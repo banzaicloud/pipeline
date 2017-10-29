@@ -1,0 +1,11 @@
+_state*
+.idea*
+.DS_Store
+bin/*
+.idea/
+pipeline.iml
+.pipeline
+pipeline
+statestore/*
+conf/config.toml
+*.swp

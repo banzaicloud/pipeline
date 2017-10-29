@@ -1,0 +1,23 @@
+version: '2'
+services:
+  app:
+    image: banzaicloud/pipeline-prod:433
+    container_name: pipeline
+    ports:
+      - "9090:9090"
+    depends_on:
+      - mysql
+    volumes:
+      - ${PWD}/conf:/conf
+      - ~/.ssh:/.ssh
+    environment:
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+  mysql:
+    image: mysql:5.6
+    container_name: mysql
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: sparky123
+      MYSQL_DATABASE: sparky

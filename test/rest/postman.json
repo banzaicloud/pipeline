@@ -1,0 +1,345 @@
+{
+    "id":"9009e6aa-1869-ddf3-5bc3-53a17fcbfe24",
+    "name":"K8S cluster provisioning",
+    "description":"Create, get and delete a K8S Cluster",
+    "order":[
+        "7fbf23a5-dd51-162b-2cdf-b63f0d7163e3",
+        "a5f98610-3b54-c347-111e-8a990e1432f8",
+        "ca57ae1c-ab1f-80c1-15b1-12d0197619e5",
+        "5f680dac-b58c-079f-515a-3b4543e2c16d",
+        "c44987d0-d1b2-d6a9-fd7e-9cf938a69245",
+        "724fbbb8-f88c-3542-8016-4b6892d9036e",
+        "1c0b5a43-0c45-ac41-657d-2ed374a6b4f1"
+    ],
+    "folders":[
+
+    ],
+    "folders_order":[
+
+    ],
+    "timestamp":1502127914961,
+    "owner":"2542241",
+    "public":false,
+    "requests":[
+        {
+            "id":"1c0b5a43-0c45-ac41-657d-2ed374a6b4f1",
+            "headers":"Content-Type: application\/x-www-form-urlencoded\n",
+            "headerData":[
+                {
+                    "key":"Content-Type",
+                    "value":"application\/x-www-form-urlencoded",
+                    "description":"",
+                    "enabled":true
+                }
+            ],
+            "url":"http:\/\/localhost:9090\/api\/v1\/clusters\/$ID\/deployments\/$DEPLOYMENT_NAME",
+            "queryParams":[
+
+            ],
+            "preRequestScript":null,
+            "pathVariables":[
+
+            ],
+            "pathVariableData":[
+
+            ],
+            "method":"DELETE",
+            "data":[
+
+            ],
+            "dataMode":"params",
+            "version":2,
+            "tests":null,
+            "currentHelper":"normal",
+            "helperAttributes":[
+
+            ],
+            "time":1504354989418,
+            "name":"Deployment Delete",
+            "description":"Delete Deployment\n",
+            "collectionId":"9009e6aa-1869-ddf3-5bc3-53a17fcbfe24",
+            "responses":[
+
+            ]
+        },
+        {
+            "id":"5f680dac-b58c-079f-515a-3b4543e2c16d",
+            "headers":"Content-Type: application\/json\n",
+            "headerData":[
+                {
+                    "key":"Content-Type",
+                    "value":"application\/json",
+                    "description":"",
+                    "enabled":true
+                }
+            ],
+            "url":"http:\/\/localhost:9090\/api\/v1\/clusters\/$ID",
+            "queryParams":[
+
+            ],
+            "preRequestScript":null,
+            "pathVariables":[
+
+            ],
+            "pathVariableData":[
+
+            ],
+            "method":"DELETE",
+            "data":[
+
+            ],
+            "dataMode":"params",
+            "version":2,
+            "tests":null,
+            "currentHelper":"normal",
+            "helperAttributes":[
+
+            ],
+            "time":1504355142197,
+            "name":"Cluster Delete ",
+            "description":"Delete a K8S cluster from the cloud, cleans up resources",
+            "collectionId":"9009e6aa-1869-ddf3-5bc3-53a17fcbfe24",
+            "responses":[
+
+            ]
+        },
+        {
+            "id":"724fbbb8-f88c-3542-8016-4b6892d9036e",
+            "headers":"Content-Type: application\/x-www-form-urlencoded\n",
+            "headerData":[
+                {
+                    "key":"Content-Type",
+                    "value":"application\/x-www-form-urlencoded",
+                    "description":"",
+                    "enabled":true
+                }
+            ],
+            "url":"http:\/\/localhost:9090\/api\/v1\/clusters\/$ID\/deployments",
+            "queryParams":[
+
+            ],
+            "preRequestScript":null,
+            "pathVariables":[
+
+            ],
+            "pathVariableData":[
+
+            ],
+            "method":"GET",
+            "data":[
+                {
+                    "key":"name",
+                    "value":"zeppelin-k8s-charts",
+                    "description":"",
+                    "type":"text",
+                    "enabled":true
+                }
+            ],
+            "dataMode":"urlencoded",
+            "version":2,
+            "tests":null,
+            "currentHelper":"normal",
+            "helperAttributes":[
+
+            ],
+            "time":1504355067783,
+            "name":"Deployment List",
+            "description":"Get the cluster deployment details",
+            "collectionId":"9009e6aa-1869-ddf3-5bc3-53a17fcbfe24",
+            "responses":[
+
+            ]
+        },
+        {
+            "id":"7fbf23a5-dd51-162b-2cdf-b63f0d7163e3",
+            "headers":"Content-Type: application\/x-www-form-urlencoded\nAuthorization: Basic YWRtaW46eWFyZDIy\n",
+            "headerData":[
+                {
+                    "key":"Content-Type",
+                    "value":"application\/x-www-form-urlencoded",
+                    "description":"",
+                    "enabled":true
+                },
+                {
+                    "key":"Authorization",
+                    "value":"Basic YWRtaW46eWFyZDIy",
+                    "description":"",
+                    "enabled":true
+                }
+            ],
+            "url":"localhost:9090\/api\/v1\/clusters",
+            "queryParams":[
+
+            ],
+            "preRequestScript":null,
+            "pathVariables":[
+
+            ],
+            "pathVariableData":[
+
+            ],
+            "method":"POST",
+            "data":[
+
+            ],
+            "dataMode":"raw",
+            "version":2,
+            "tests":null,
+            "currentHelper":"normal",
+            "helperAttributes":[
+
+            ],
+            "time":1504352172472,
+            "name":"Cluster Create",
+            "description":"Creates a K8S cluster in the cloud",
+            "collectionId":"9009e6aa-1869-ddf3-5bc3-53a17fcbfe24",
+            "rawModeData":"{\n\t\"name\":\"$CLUSTER_NAME\",\n\t\"location\":\"eu-west-1\",\n\t\"node\":{\n\t\t\"instanceType\":\"m4.large\",\n\t\t\"spotPrice\":\"0.2\",\n\t\t\"minCount\":1,\n\t\t\"maxCount\":2,\n\t\t\"image\":\"ami-18e92c61\"\n\t},\n\t\"master\":{\n\t\t\"instanceType\":\"m4.large\",\n\t\t\"image\":\"ami-18e92c61\"\n\t}\n}"
+        },
+        {
+            "id":"a5f98610-3b54-c347-111e-8a990e1432f8",
+            "headers":"Content-Type: application\/x-www-form-urlencoded\n",
+            "headerData":[
+                {
+                    "key":"Content-Type",
+                    "value":"application\/x-www-form-urlencoded",
+                    "description":"",
+                    "enabled":true
+                }
+            ],
+            "url":"http:\/\/localhost:9090\/api\/v1\/clusters\/",
+            "queryParams":[
+
+            ],
+            "preRequestScript":null,
+            "pathVariables":[
+
+            ],
+            "pathVariableData":[
+
+            ],
+            "method":"GET",
+            "data":[
+                {
+                    "key":"name",
+                    "value":"zeppelin-k8s-charts",
+                    "description":"",
+                    "type":"text",
+                    "enabled":true
+                }
+            ],
+            "dataMode":"urlencoded",
+            "version":2,
+            "tests":null,
+            "currentHelper":"normal",
+            "helperAttributes":[
+
+            ],
+            "time":1504352236606,
+            "name":"Cluster LIst",
+            "description":"Get the cluster details",
+            "collectionId":"9009e6aa-1869-ddf3-5bc3-53a17fcbfe24",
+            "responses":[
+
+            ],
+            "isFromCollection":true,
+            "collectionRequestId":"822f1d5b-9d42-060c-1835-56d6bce28007"
+        },
+        {
+            "id":"c44987d0-d1b2-d6a9-fd7e-9cf938a69245",
+            "headers":"Content-Type: application\/x-www-form-urlencoded\nAuthorization: Basic YWRtaW46eWFyZDIy\n",
+            "headerData":[
+                {
+                    "key":"Content-Type",
+                    "value":"application\/x-www-form-urlencoded",
+                    "description":"",
+                    "enabled":true
+                },
+                {
+                    "key":"Authorization",
+                    "value":"Basic YWRtaW46eWFyZDIy",
+                    "description":"",
+                    "enabled":true
+                }
+            ],
+            "url":"localhost:9090\/api\/v1\/clusters\/$ID\/deployments",
+            "queryParams":[
+
+            ],
+            "preRequestScript":null,
+            "pathVariables":[
+
+            ],
+            "pathVariableData":[
+
+            ],
+            "method":"POST",
+            "data":[
+                {
+                    "key":"name",
+                    "value":"zeppelin-k8s-charts",
+                    "description":"",
+                    "type":"text",
+                    "enabled":true
+                }
+            ],
+            "dataMode":"params",
+            "version":2,
+            "tests":null,
+            "currentHelper":"normal",
+            "helperAttributes":[
+
+            ],
+            "time":1504354879203,
+            "name":"Deployment Create",
+            "description":"Creates a K8S cluster in the cloud",
+            "collectionId":"9009e6aa-1869-ddf3-5bc3-53a17fcbfe24"
+        },
+        {
+            "id":"ca57ae1c-ab1f-80c1-15b1-12d0197619e5",
+            "headers":"Content-Type: application\/x-www-form-urlencoded\n",
+            "headerData":[
+                {
+                    "key":"Content-Type",
+                    "value":"application\/x-www-form-urlencoded",
+                    "description":"",
+                    "enabled":true
+                }
+            ],
+            "url":"http:\/\/localhost:9090\/api\/v1\/clusters\/$ID",
+            "queryParams":[
+
+            ],
+            "preRequestScript":null,
+            "pathVariables":[
+
+            ],
+            "pathVariableData":[
+
+            ],
+            "method":"GET",
+            "data":[
+                {
+                    "key":"name",
+                    "value":"zeppelin-k8s-charts",
+                    "description":"",
+                    "type":"text",
+                    "enabled":true
+                }
+            ],
+            "dataMode":"urlencoded",
+            "version":2,
+            "tests":null,
+            "currentHelper":"normal",
+            "helperAttributes":[
+
+            ],
+            "time":1504352583445,
+            "name":"Cluster Info ",
+            "description":"Get the cluster details",
+            "collectionId":"9009e6aa-1869-ddf3-5bc3-53a17fcbfe24",
+            "responses":[
+
+            ]
+        }
+    ]
+}
