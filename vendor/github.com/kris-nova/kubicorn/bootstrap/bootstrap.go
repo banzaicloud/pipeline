@@ -104,7 +104,7 @@ func bootstrapReadmeMd() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "bootstrap/README.md", size: 610, mode: os.FileMode(420), modTime: time.Unix(1506084926, 0)}
+	info := bindataFileInfo{name: "bootstrap/README.md", size: 610, mode: os.FileMode(420), modTime: time.Unix(1508271675, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -124,7 +124,7 @@ func bootstrapAmazon_k8s_centos_7_masterSh() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "bootstrap/amazon_k8s_centos_7_master.sh", size: 2456, mode: os.FileMode(420), modTime: time.Unix(1506095826, 0)}
+	info := bindataFileInfo{name: "bootstrap/amazon_k8s_centos_7_master.sh", size: 2456, mode: os.FileMode(420), modTime: time.Unix(1508753631, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -144,7 +144,7 @@ func bootstrapAmazon_k8s_centos_7_nodeSh() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "bootstrap/amazon_k8s_centos_7_node.sh", size: 1917, mode: os.FileMode(420), modTime: time.Unix(1506095826, 0)}
+	info := bindataFileInfo{name: "bootstrap/amazon_k8s_centos_7_node.sh", size: 1917, mode: os.FileMode(420), modTime: time.Unix(1508753631, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -164,12 +164,12 @@ func bootstrapAmazon_k8s_ubuntu_1604_masterSh() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "bootstrap/amazon_k8s_ubuntu_16.04_master.sh", size: 1811, mode: os.FileMode(420), modTime: time.Unix(1506095826, 0)}
+	info := bindataFileInfo{name: "bootstrap/amazon_k8s_ubuntu_16.04_master.sh", size: 1811, mode: os.FileMode(420), modTime: time.Unix(1508753631, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _bootstrapAmazon_k8s_ubuntu_1604_master_pipelineSh = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xc4\x55\x4f\x6f\x1b\xb7\x13\xbd\xf3\x53\xcc\x4f\x16\xa0\xf8\x30\xa4\x63\xe4\x97\x06\x06\xd4\xa2\x71\xdd\xc2\x4d\x1b\x1b\x86\xd3\x5e\x7c\xa1\xb8\x93\x5d\x7a\xb9\xe4\x86\x1c\xca\x56\x2c\xf7\xb3\x17\x5c\xad\x14\xab\x08\xd2\x14\x28\xd0\x3d\x68\x45\xce\xf0\xcd\x9f\xf7\x38\x7b\xf0\x3f\x95\x53\x54\x0b\xeb\x15\xf9\x25\x2c\x74\x6a\x44\x22\x06\x24\x61\x2a\xf8\x43\x88\x03\xc0\xff\xe8\x29\xb1\x4d\x8e\x0e\x30\x41\xc3\xdc\xa7\x13\xa5\x7a\x6d\x5a\x5d\x53\x92\xc6\x85\x5c\xc9\x3a\x84\xda\x91\x34\xa1\x53\xba\x67\x55\x05\x53\xde\xd8\xd2\x4a\xd6\x7d\x0d\x6b\x48\xb9\x0a\x30\x6e\x81\xae\x2a\x40\x71\x00\x1c\xb2\x69\x40\x11\x0f\xde\x2a\x85\x1c\x0d\x25\xe9\x6c\x62\x59\xa9\x36\x2f\x28\x7a\xe2\x71\x47\x1c\x40\x6a\x00\x0d\xcc\xc8\x34\x01\x26\x15\x2d\x86\x6c\x4e\x54\x39\x2c\x9f\x78\xdb\xa0\xe0\xd3\x12\xef\xc9\x5b\xed\xa0\xd3\xd6\x4f\xe0\xdb\xaf\x0d\x37\x13\xa2\xa4\x5b\x13\x43\xee\x2b\xcd\x04\xb8\xda\xed\x58\x9f\x58\x3b\x07\xb8\x82\x1b\x01\xc3\x73\xfb\x41\x1c\x0c\x7f\x52\x30\x9a\xe1\x66\x5c\xd1\x82\xf5\xc2\x51\xda\x6d\x54\xc1\xb4\x14\xa5\x0d\xbb\x9d\x02\xca\x51\xfb\xd4\x87\xc8\x38\x34\x78\x67\x2b\x49\x39\xe2\xbd\xb5\xae\xba\xf9\x73\xf9\x8d\x3c\xc2\xa3\xa3\x9d\x61\xa0\x01\x33\x5b\x97\x76\x74\x6d\xb9\x4a\x1c\xa2\xae\x69\x24\x49\xf7\x36\x0d\x44\x3d\x69\x51\x43\xae\x53\xe5\x07\x97\xc7\xf2\xa5\x3c\x42\x67\x7d\xbe\x47\xdd\x55\x2f\x5f\x48\xd6\x51\xd6\x1f\x61\x0d\xac\x23\xdc\x7f\x04\xc4\xc4\xd1\xf6\xf0\x1c\xf0\x14\x76\xa2\x2d\x51\xd3\x2a\x31\x75\x86\x1d\x90\x2f\x55\x8f\xc5\xee\x59\x12\xeb\xc8\x5b\xc3\xf5\xc5\x9b\xb3\xb7\xf3\xe9\xb3\xd2\xb1\x81\x97\x36\x2f\xac\x09\xd1\x2b\xe3\x72\x62\x8a\xf2\x36\x05\x0f\x6b\xb8\xfd\x00\x18\x61\x26\x97\xda\xe5\xc2\x30\x53\xf7\xab\xee\xe5\xf9\xdb\x9f\xcf\x4e\xaf\xcf\x7e\x18\x70\x66\x87\xe2\xf2\xe2\xea\xfa\x5f\x80\x2b\x30\xa5\xde\xe0\x73\xb7\xa0\x58\x80\xdf\xbd\xfe\xe5\xfc\xf4\xfc\x72\x3e\x7d\x46\xe6\xb8\x23\xd6\x95\x66\x0d\x88\x7d\x5e\x38\x6b\xd0\xf6\xcb\x17\xb0\x06\x93\x19\xb0\x82\x09\x4c\x00\xdf\xc3\xf1\xa1\xb8\xbc\x3a\xff\xed\xfb\xeb\xb3\xe1\xa0\xed\x8b\xf0\x23\xa4\x26\xdc\x41\x45\x4b\x20\x6e\x8e\x60\x0d\xfa\xae\x85\x99\xb2\x9e\x18\x14\x3c\xf4\xd1\x7a\x86\xe9\xf1\xe3\x6c\x87\x37\x51\x05\xee\xf9\xa1\x10\x23\xfd\x10\x29\x11\xef\x56\xd6\x5b\x06\xc4\x42\x2c\xc5\x25\x45\x5c\x58\x5f\x61\x51\x13\x4c\x1f\x4a\x2d\x8f\x80\xc8\xa1\x25\x0f\xd3\x87\xa1\x55\x8f\xb0\xe7\xaf\xab\x25\x45\xb6\x89\xb0\x24\x48\x29\x95\x73\x63\xc5\x8f\x7b\x9e\x86\x22\x23\xdd\x73\xd4\x98\xb4\xdf\xf7\x9b\x3e\xec\xaa\x7d\x2c\x6a\xb8\x6e\xb4\x6f\x13\xbc\x21\x97\x68\x05\x27\x87\x43\xbe\x45\x02\xba\xef\xdd\xaa\x34\x68\xb2\x55\xe8\x66\x88\xdc\x91\x5e\x92\xbc\x0b\xb1\x4d\xaa\x7d\x95\x94\x27\xfe\xae\x7d\x95\x70\x49\x31\xd9\xe0\xe7\xd3\x67\x5b\x84\x71\x07\xd6\x65\x4e\xd2\xcb\xd2\x7a\x8e\xa5\xf3\xb3\x1b\x3f\x3b\x9c\x00\xe2\xe0\x19\xfc\x7b\x5b\xef\x94\x30\x8a\x5d\xe9\xaa\xb3\x5e\x16\xa3\x10\x82\xee\x87\x3e\xbd\x79\xf7\xfa\xec\xf4\xe2\xed\x8f\xe7\x3f\xcd\xbf\xe4\xbe\x8d\x6f\x22\x95\x89\x50\x9a\x62\x0d\x69\x63\x42\xf6\x85\x02\xaf\x3b\x4a\xbd\x36\x34\x5c\x54\xdc\xa8\x1e\xd8\x3a\x47\xf1\xab\x93\xfa\x4b\x90\x51\xba\x31\x38\x2a\xbc\x5a\x5f\x8f\x80\x38\x5a\x30\x66\x47\x80\xf8\xc4\x71\xbe\x35\x0d\xb0\xe5\xc6\xee\x65\x3a\x7f\x92\xdd\xc9\x3f\xcc\xae\x4c\x89\xad\xe2\x46\x54\xdc\x36\x60\x03\x25\x44\xd7\x56\x36\x02\xf6\xa0\x9a\xd0\x91\xca\x8b\xec\x39\xab\x61\x44\x0b\xd3\x7f\x01\xfd\x33\x07\xd4\x26\x25\x61\x9a\x70\xe7\x01\xaf\x60\x63\x3c\xd9\xbc\x3e\x17\x41\x64\xcf\xd6\xc1\x90\xe8\xf0\xe1\xa8\x82\x00\xd8\x7c\x34\x7e\xd7\x96\xad\xaf\xa5\x94\x72\x22\x36\xe3\xb4\xb4\xba\xcc\xf4\x3e\x14\xa5\x3b\xf7\x89\xc4\x24\x00\x92\x23\xea\xe1\xff\xa2\x0a\x9e\xc4\xb6\xf8\xcd\xf0\x57\xa1\xe7\x61\x68\x6e\xa7\x0b\x5a\x5f\x97\xdb\x83\x26\x78\x8e\x61\xc3\x51\xa3\x23\xff\xdd\xb9\x3e\x86\x8e\xb8\xa1\x9c\x46\xff\x3f\x03\x00\x00\xff\xff\xe4\x92\x90\x38\x0d\x08\x00\x00")
+var _bootstrapAmazon_k8s_ubuntu_1604_master_pipelineSh = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xc4\x56\x5f\x73\x13\x37\x10\x7f\xd7\xa7\xd8\xda\x9e\x71\xf2\x20\x9d\x9d\xa1\xc0\xb8\xb8\x9d\x10\x0c\x4d\x43\x49\x26\x04\xe8\x43\x66\x18\x59\xda\xd8\xc2\x77\xd2\x21\xed\x39\x31\x71\xfa\xd9\x3b\x92\xef\x2e\x31\xa1\x40\x3b\x9d\xa9\x1f\x7c\x77\xda\x3f\xda\x5d\xed\xef\xb7\xea\xfe\x90\x55\xc1\x67\x53\x63\x33\xb4\x4b\x98\xca\x30\x67\x01\x09\x38\x32\xa5\xe1\x4f\xc6\xba\xc0\xff\xa7\x1f\x63\xdd\x6e\x17\xde\x39\xbf\x90\xde\x55\x56\xc3\x85\xf3\xa0\xcd\xc5\x05\x7a\xb4\x04\x2e\x88\x5f\x5d\x20\x2b\x0b\x04\x69\x35\xc8\x42\x7e\x72\x16\xf6\x4f\x0e\x61\x5e\xaf\xb3\xe6\x05\xf8\x05\xfc\x0c\x19\x92\xca\xee\xc9\x14\xe5\x10\x90\x78\xab\xdb\xdb\xb9\x63\xb6\x1b\x2b\xa0\x2a\x9f\x03\x0f\x30\x27\x2a\xc3\x28\xcb\x4a\xa9\x16\x72\x86\x41\xa8\xdc\x55\x5a\xcc\x9c\x9b\xe5\x28\x94\x2b\x32\x59\x52\xa6\x9d\x8a\x4f\xbe\xc0\x95\x98\x95\x33\x58\x43\xa8\xb4\x83\x7a\x09\xa4\xd6\xc0\x59\x17\xc8\x55\x6a\xbe\x89\x29\x5a\x05\x57\x79\x85\x41\xe4\x26\x90\xd0\xd9\xa2\x9a\xa2\xb7\x48\xf5\x0a\xeb\x42\x98\x03\x57\xd0\x47\x35\x77\xd0\xd1\x38\x4d\xd1\x8c\xb2\x68\x2c\xee\x68\x1b\x97\xc1\xed\x27\xbf\x42\x6b\x64\x0e\x85\x34\xb6\xd3\x94\xe0\xdb\xdb\xf5\x19\x8b\xe1\xce\x90\xa0\x2a\xb5\x24\x04\xbe\x6a\x57\x8c\x0d\x24\xf3\x1c\xf8\x0a\xce\x19\xa4\xdf\x87\x8f\xac\x9b\x5e\x82\x53\x92\xe0\xbc\xfe\xc2\x29\xc9\x69\x8e\xa1\x5d\xd0\x4e\x2d\xd0\x0b\xe3\xda\x95\xe8\x94\xbc\xb4\xa1\x74\x9e\x78\x2a\x70\x2b\x8b\x41\xe5\x48\x5b\xdf\x52\x17\xe3\xa1\x78\x24\x06\x7c\x30\x68\x05\xe9\x18\x78\x45\x26\x0f\x8c\x05\xd4\xc0\x0d\x70\x84\x7e\x58\x4f\xec\xd2\x78\x67\x0b\xb4\x34\xee\x1c\xbd\x79\x3a\x79\x39\x39\x7b\x7f\xb0\xff\xec\xed\xe1\xeb\xe3\xd3\xf7\xfb\xa7\x2f\x5e\x8f\x39\x57\x52\x2f\x4d\x70\x9e\xc7\x18\xc6\x83\xce\xbf\xb3\x3a\xb7\x5f\x34\x9b\xfc\x71\x76\xba\xdf\xda\xa4\x40\x4b\xef\x96\x46\xa3\x1f\xcb\xcb\xd0\x59\xf7\x37\x87\x12\x56\x81\xb0\xd0\xf5\x33\xab\x73\x17\x01\xfd\xd2\x28\x14\x3a\x1b\x0e\x78\x5d\x00\xa1\x9c\xbd\x68\xfb\xb2\x69\xca\x40\xce\xcb\x19\xd6\xdd\x28\x4b\x13\x52\x47\xde\xe9\x85\x39\xe6\x45\x16\xff\xf8\x72\x4f\x3c\x14\x03\x9e\x1b\x5b\x5d\x71\x59\xe8\x87\x0f\x04\x49\x2f\x66\x9f\x60\x0d\x24\x3d\x5c\x7d\x02\xce\x03\x79\x53\xc2\x10\xf8\x01\xb4\x1c\x11\x77\xdd\x44\x18\x61\x83\x36\x1e\x6f\x7d\xaa\x5b\x92\x40\xd2\x53\x23\x38\x3b\x3e\x9a\xbc\x1a\xf7\x76\x62\x6b\xa4\x5c\x17\xd5\xd4\x28\xe7\x6d\xa6\xf2\x2a\x10\x7a\xf1\x21\x38\x0b\x6b\xf8\xf0\x11\xb8\x87\xbe\x58\xca\xbc\x8a\xad\x4c\x58\xfc\x2e\x4b\x71\xf8\xea\xb7\xc9\xc1\xd9\xe4\x59\xf2\xd3\xdf\x65\x27\xc7\xa7\x67\xff\x81\xbb\xe8\x26\xe6\xeb\x6c\x55\x4c\xd1\x47\xc7\x6f\x9e\xbe\x3c\x3c\x38\x3c\x19\xf7\x76\x50\xed\x15\x48\x52\x4b\x92\xc0\x79\x59\x4d\x73\xa3\xb8\x29\x97\x0f\x60\x0d\xaa\x22\xe0\x1a\x3a\xd0\x89\xbc\xb2\xb7\xcb\x4e\x4e\x0f\xdf\xee\x9f\x4d\x92\xa1\x29\x23\xc2\x3d\x84\xb9\xbb\x04\x8d\x4b\x40\x9a\x0f\x60\x0d\xf2\x72\x01\xfd\xcc\x58\x24\xc8\xe0\xba\xf4\xc6\x12\xf4\xf6\x6e\xfa\xad\xbf\x4e\x16\xdd\x0d\x77\x19\xab\x8f\x19\x3c\x06\xa4\xf6\xcb\x58\x43\xc0\x79\x3c\x58\xf4\x4b\xf4\x7c\x6a\xac\x4e\xcd\x07\xbd\xeb\x98\xcb\x0d\x70\x4e\x6e\x81\x16\x7a\xd7\xa9\x54\x37\xb0\xa5\x2f\xf5\x12\x3d\x99\x80\x3c\x06\x88\x21\x44\xbb\x3a\xe3\x9b\x2d\x4d\x85\x9e\x38\x5e\x91\x97\x3c\x48\xbb\xad\xd7\xbb\x6e\xb3\xbd\xf9\x0c\x6c\x11\x8a\x3c\x3a\xda\xb8\x1f\x0f\xf7\x1e\x89\x81\x18\x88\xe1\xdf\x4b\xce\x6d\x23\xba\x0f\x8d\x5b\x99\x24\x92\x6a\xce\x35\xa6\x87\x47\xe5\xac\x32\x39\xf2\xb0\xb2\x8a\x97\xe8\x8d\xd3\xe3\x61\x31\x08\x0d\x96\x6e\x7b\x3e\x2b\xa4\x35\x17\x18\x28\xa4\x45\xae\x9c\x25\xef\xf2\x1c\x3d\x2f\xa4\x95\x33\xf4\x62\x25\x8b\x9c\xb1\xca\x92\xc9\x13\xc3\xc4\xf6\x8d\x34\x57\x3a\x0d\x3c\x41\x2e\xc2\xcd\xcc\xee\xb9\x96\xba\x30\x36\x61\xf1\x27\xd0\x2e\x31\xe1\x86\x9c\xdf\x49\x43\xc6\xce\xd2\xbc\x3a\x6a\xf5\xc1\xa3\xd4\xab\x4e\xd2\x0b\x39\x62\x09\x43\xa6\x9d\x45\xc6\x62\x23\x3f\x79\x32\x39\x7e\x0e\xeb\x36\x82\xef\xdc\x19\x94\xc7\x44\xcf\x17\xc0\xd9\xc2\x58\x3d\x82\xd7\x1b\x1e\x38\xc8\x65\x08\x4c\x96\xe6\x2d\xfa\x60\x9c\x1d\x41\x43\x10\x8b\xc7\x69\x4a\x2c\x87\x53\x24\x39\x64\x4d\x9b\x8f\x18\x40\x1c\x7a\x51\x51\x5a\x2d\xbd\x66\xe9\x34\xa2\x31\xfa\x11\x6c\xcf\x18\x79\x19\x38\x4e\x03\x2b\xa5\x97\x05\x12\xfa\x10\xed\x69\x55\xe2\x08\x66\xe5\x1e\x9b\x1c\x3f\x8f\x5c\x71\x36\x97\x76\x11\xe0\x08\xf3\x80\x2b\x18\xed\xb2\x26\x3f\x59\x96\xf9\x2a\x86\xdd\x69\xf8\x6b\x33\x4b\x2f\x51\x2e\x51\x5c\x3a\xbf\x08\xd9\xe2\x71\xc8\x2c\xd2\x2f\x8b\xc7\x81\x2f\x37\x59\x8c\x7b\x3b\x8d\x87\x7a\x05\xd6\xf1\xd2\x82\x0f\x23\x30\xc9\x47\x5c\xf6\xcf\x6d\x7f\xb7\xf3\xbd\x15\x64\x8c\xe1\x55\x42\x51\x64\xec\x83\xe3\x57\xcf\x0f\x5f\x8c\xbf\xa6\xde\xec\x5f\x57\xbe\x26\x68\xa9\x94\xab\x6c\x04\x68\xac\x61\x28\xa5\xc2\x54\x31\xbe\xe1\x44\x20\x13\x9b\xee\xbb\x83\xfa\x6c\x93\x9a\xd8\xbc\xcb\x31\xa2\x3e\x36\xd7\xc6\x21\xaf\x25\xdc\x57\x39\x26\x14\xb5\x8a\xe3\x46\x94\xdc\x46\x3e\xdf\x8a\x74\x7c\x27\xba\xd1\x3f\x8c\x2e\xce\x90\x86\x8f\x6a\xaf\xbc\x29\xc0\xc6\x15\x63\xc5\x42\x1b\x0f\xbc\x84\x6c\xee\x0a\xcc\xaa\x69\x65\xa9\xca\xd2\x4d\x85\xa9\xf2\x6b\x2d\x7d\xdf\x20\xdb\x84\xc4\xd4\xdc\x5d\x5a\xe0\xa7\xb0\x11\x8e\x36\x8f\x2f\xed\x50\xe3\x39\x05\x9a\xee\x4f\x09\xa0\x5b\xf0\x14\x42\x88\x88\xc6\x6d\xcc\x47\xb6\xc9\xf3\xdb\x43\x0c\xac\x41\xeb\x8f\x35\x5a\xeb\xe4\x37\x77\xa0\xcc\x95\x94\x46\x6a\x33\x7b\xb8\xb1\xb3\x48\x71\x77\x99\x46\xcd\xa5\xa7\x6f\xd9\x95\xde\x15\x48\x73\xac\x42\xad\xff\x57\x00\x00\x00\xff\xff\xfb\xe2\x3e\xfc\x9a\x0b\x00\x00")
 
 func bootstrapAmazon_k8s_ubuntu_1604_master_pipelineShBytes() ([]byte, error) {
 	return bindataRead(
@@ -184,7 +184,7 @@ func bootstrapAmazon_k8s_ubuntu_1604_master_pipelineSh() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "bootstrap/amazon_k8s_ubuntu_16.04_master_pipeline.sh", size: 2061, mode: os.FileMode(420), modTime: time.Unix(1506095826, 0)}
+	info := bindataFileInfo{name: "bootstrap/amazon_k8s_ubuntu_16.04_master_pipeline.sh", size: 2970, mode: os.FileMode(420), modTime: time.Unix(1508796166, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -204,12 +204,12 @@ func bootstrapAmazon_k8s_ubuntu_1604_nodeSh() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "bootstrap/amazon_k8s_ubuntu_16.04_node.sh", size: 1239, mode: os.FileMode(420), modTime: time.Unix(1506095826, 0)}
+	info := bindataFileInfo{name: "bootstrap/amazon_k8s_ubuntu_16.04_node.sh", size: 1239, mode: os.FileMode(420), modTime: time.Unix(1508753631, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _bootstrapAmazon_k8s_ubuntu_1604_node_pipelineSh = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xb4\x50\xc1\x6e\x13\x31\x10\xbd\xcf\x57\x0c\xdd\x48\xa1\x07\xdb\xe1\x84\x54\xa9\x48\x08\x72\x00\xd4\x22\x41\x8e\xbd\x78\xed\xd1\x66\xb3\x5e\x7b\xeb\x19\x57\x44\x6d\xf9\x76\xe4\x4d\x52\x72\xe4\x40\x7d\x19\xbd\x37\x33\x6f\x9e\x5f\xf3\xc6\x14\xce\xa6\xed\xa3\xa1\xf8\x80\xad\xe5\x2d\x30\x09\x2a\x02\xe7\xf1\x37\x40\xa3\x5e\xf9\x01\x34\xae\xe4\x80\x8a\x71\x2b\x32\xf1\x95\x31\x93\x75\x83\xed\x88\xb5\x0b\xa9\x78\xdd\xa5\xd4\x05\xd2\x2e\x8d\xc6\x4e\x62\x7c\x72\xb5\xaa\x81\xf6\xba\x9b\x3a\x7c\x42\x2e\x3e\xe1\x91\x42\xeb\x3d\x2a\x68\x24\x15\xb7\x45\x43\x32\x0f\x1b\x4e\x25\x3b\x62\x1d\x7a\x16\xed\xcd\x50\x5a\xca\x91\xe4\xc8\x40\xc3\x5b\x54\x0e\x97\xe4\xb6\x09\x2f\x3c\xb5\xb3\x97\x2b\x53\x77\xf5\xd9\x70\x9f\x0c\xfe\x85\xea\x17\xc5\xde\x06\x1c\x6d\x1f\x2f\xf0\xc3\xbf\x5e\x5b\x42\x03\xd5\x6d\x47\x82\x65\xf2\x56\x08\xd5\xfe\x85\xe9\x23\x8b\x0d\x01\xd5\x1e\xef\x00\xeb\xdb\xdd\x43\x53\x2b\x27\x67\x05\xef\x0e\x80\x5a\xb1\x6d\x20\x3e\x61\x9f\xdc\x40\x59\xf7\xe9\x44\x54\x3d\xc9\x36\xf2\x94\xb2\xa8\x39\xda\x53\xab\xfa\x09\x24\xe7\xd0\xfa\xf1\xfa\x9d\x7e\xaf\x57\x6a\xb5\x82\x06\x1a\xde\xb3\xd0\xe8\x24\x20\xc5\x7a\xe7\xa8\x7f\xde\x60\xb1\x59\x4e\x3c\x6c\xbe\x7f\x5b\xdf\x5e\x2f\xde\x56\x8b\x73\x0e\x43\x69\x7b\x97\x72\x34\x2e\x14\x16\xca\x7a\xc7\x29\xe2\x13\xee\xee\x51\x65\x5c\xea\x07\x1b\x4a\x4d\x54\x68\xbc\xb1\x93\xfe\x72\xfb\x75\xfd\x69\xb3\xfe\x3c\xeb\x2c\x2f\xe1\xe6\xe3\xcf\xcd\xfa\xc7\x7f\x10\x3c\x08\x2d\x2f\x01\x8e\xff\xc4\x4c\x4c\xf2\x82\x76\xa9\x8f\xa8\x94\xa4\x81\x22\x2e\x1e\xe7\xfb\xcf\xb8\x78\x3c\xec\x3d\xc3\x9f\x00\x00\x00\xff\xff\xa8\x56\xfb\x52\x22\x03\x00\x00")
+var _bootstrapAmazon_k8s_ubuntu_1604_node_pipelineSh = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xb4\x52\xc1\x6a\x1b\x31\x10\xbd\xeb\x2b\xa6\x5e\x83\x93\x83\x24\xe7\x54\x08\xb8\xe0\x26\x4b\x49\xd3\x24\xe0\xb8\xa5\x87\x40\x90\xa5\x89\x2d\x7b\x2d\x6d\x34\xb3\x6e\x4d\x9c\x7e\x7b\x91\xbd\x76\x7d\x28\x14\x4a\xbb\x97\xe1\xbd\xd1\x1b\x3d\xbd\xd9\xe2\x8d\x6e\x28\xe9\x89\x0f\x1a\xc3\x0a\x26\x86\x66\x82\x90\x41\xa2\xb0\x0e\x7e\x08\x51\xc8\xff\xfc\x89\x59\x24\x0e\x66\x89\x20\x9f\xe0\x1d\x68\x64\xab\xf7\xd4\xa1\x67\xb9\x02\x42\x96\x87\xb3\xdd\x93\x23\xd9\xa9\x10\x85\x6d\x52\x05\x92\x60\xc6\x5c\xd3\xb9\xd6\xb5\xb1\x0b\x33\x45\x52\xb6\x8a\x8d\x53\xd3\x18\xa7\x15\x2a\x1b\x97\xda\xd4\xac\x5d\xb4\xb9\xca\x05\xae\xd5\xb4\x9e\xc2\x06\xa8\x71\x11\x5a\x0a\x8c\x73\x20\x45\xc1\xb1\xb1\xb3\x9d\xa3\x2c\xa2\xd8\x24\x8b\xa4\x2a\x4f\xac\x9c\x5e\x34\x13\x4c\x01\xb9\x65\x44\x41\x33\x90\x16\x7a\x68\x67\x11\x3a\x0e\x27\x5b\x2f\xe7\x3a\x6b\xd5\xd1\x61\x1f\x35\xfc\x82\xf2\x3b\x06\x6f\x2a\x58\x1a\x1f\x3a\xfb\xf7\xff\xf9\xb6\x9e\x28\x44\x76\x3b\x45\x86\xa6\x76\x86\x11\xe4\xfa\xc0\xf8\x40\x6c\xaa\x0a\xe4\x1a\x1e\x04\xe4\x6f\xfe\x2c\x8a\x5c\x29\x5a\xc3\xf0\xb0\x03\x38\x61\x33\xa9\x90\xf6\xd8\x45\xbb\xc0\xa4\x7c\xdc\x13\x79\x1e\x27\x13\xa8\x8e\x89\xe5\x36\xda\x7d\x2b\xfb\xa9\x90\x8f\xa1\x71\xcb\xc1\x99\x7a\xab\xfa\xb2\xdf\x17\x85\x28\x68\x4d\x8c\xcb\xbc\x3a\x0c\xf9\x9e\x76\xfe\x71\x83\xd8\x24\xde\xf3\x62\x7c\x77\x5d\xde\x0e\xba\x27\xd9\xe2\x36\x87\x45\x33\xf1\x36\xa6\xa0\x6d\xd5\x10\x63\x52\x73\x8a\x01\x36\x30\x7f\x06\x99\xa0\xa7\x56\xa6\x6a\x72\xa2\x8c\xcb\x1b\x53\xab\xab\xdb\x8f\xe5\xc5\xb8\xbc\xdc\xce\xe9\x9d\x8a\x9b\xe1\xfd\xb8\x1c\xfd\x83\x81\xbb\x41\xbd\x53\x21\x08\x1d\x48\x0f\x12\xa1\x47\x9b\x32\xac\x7c\x8a\x61\x89\x81\x07\x9d\xeb\xcf\xef\xcb\x4f\xe5\xf8\xf1\x62\x78\xf9\xe5\xea\xfe\x6e\xf4\x38\x1c\x7d\xb8\x1f\x48\x69\x8d\x5b\x79\x8a\x49\xe6\x0c\x07\xfd\xce\xdf\xa9\x1e\xc2\x6f\x65\xe5\xd7\xf1\x68\x78\xd0\xe4\x3f\x5d\xd6\x29\xae\xbc\xc3\x34\x30\xdf\xa8\xb3\xe9\xed\xde\xbd\x4b\xdc\xb5\x55\xb7\xcb\x53\x84\x69\xe5\x2d\x2a\xa7\xcf\xfa\xb2\x5d\xa1\xb2\x31\x3c\x09\xd1\x22\x48\x48\xc8\x07\x34\x8f\x3e\x80\x94\x1c\x17\x18\xa0\xfb\xb2\x0d\xfa\x15\xba\x2f\xbb\x80\x5e\xc5\xcf\x00\x00\x00\xff\xff\x0c\xc6\x5c\xfe\x4f\x04\x00\x00")
 
 func bootstrapAmazon_k8s_ubuntu_1604_node_pipelineShBytes() ([]byte, error) {
 	return bindataRead(
@@ -224,7 +224,7 @@ func bootstrapAmazon_k8s_ubuntu_1604_node_pipelineSh() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "bootstrap/amazon_k8s_ubuntu_16.04_node_pipeline.sh", size: 802, mode: os.FileMode(420), modTime: time.Unix(1506357571, 0)}
+	info := bindataFileInfo{name: "bootstrap/amazon_k8s_ubuntu_16.04_node_pipeline.sh", size: 1103, mode: os.FileMode(420), modTime: time.Unix(1508795628, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -244,7 +244,7 @@ func bootstrapBoostrap_initSh() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "bootstrap/boostrap_init.sh", size: 386, mode: os.FileMode(420), modTime: time.Unix(1506095826, 0)}
+	info := bindataFileInfo{name: "bootstrap/boostrap_init.sh", size: 386, mode: os.FileMode(420), modTime: time.Unix(1508753631, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -264,7 +264,7 @@ func bootstrapBootstrap_initSh() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "bootstrap/bootstrap_init.sh", size: 386, mode: os.FileMode(420), modTime: time.Unix(1506095826, 0)}
+	info := bindataFileInfo{name: "bootstrap/bootstrap_init.sh", size: 386, mode: os.FileMode(420), modTime: time.Unix(1508753631, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -284,7 +284,7 @@ func bootstrapDigitalocean_k8s_centos_7_masterSh() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "bootstrap/digitalocean_k8s_centos_7_master.sh", size: 2120, mode: os.FileMode(420), modTime: time.Unix(1506084926, 0)}
+	info := bindataFileInfo{name: "bootstrap/digitalocean_k8s_centos_7_master.sh", size: 2120, mode: os.FileMode(420), modTime: time.Unix(1508271675, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -304,7 +304,7 @@ func bootstrapDigitalocean_k8s_centos_7_nodeSh() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "bootstrap/digitalocean_k8s_centos_7_node.sh", size: 1620, mode: os.FileMode(420), modTime: time.Unix(1506084926, 0)}
+	info := bindataFileInfo{name: "bootstrap/digitalocean_k8s_centos_7_node.sh", size: 1620, mode: os.FileMode(420), modTime: time.Unix(1508271675, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -324,7 +324,7 @@ func bootstrapDigitalocean_k8s_ubuntu_1604_masterSh() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "bootstrap/digitalocean_k8s_ubuntu_16.04_master.sh", size: 1857, mode: os.FileMode(420), modTime: time.Unix(1506095826, 0)}
+	info := bindataFileInfo{name: "bootstrap/digitalocean_k8s_ubuntu_16.04_master.sh", size: 1857, mode: os.FileMode(420), modTime: time.Unix(1508753631, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -344,7 +344,7 @@ func bootstrapDigitalocean_k8s_ubuntu_1604_nodeSh() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "bootstrap/digitalocean_k8s_ubuntu_16.04_node.sh", size: 1247, mode: os.FileMode(420), modTime: time.Unix(1506084926, 0)}
+	info := bindataFileInfo{name: "bootstrap/digitalocean_k8s_ubuntu_16.04_node.sh", size: 1247, mode: os.FileMode(420), modTime: time.Unix(1508271675, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -364,7 +364,7 @@ func bootstrapGoogle_compute_k8s_ubuntu_1604_masterSh() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "bootstrap/google_compute_k8s_ubuntu_16.04_master.sh", size: 1946, mode: os.FileMode(420), modTime: time.Unix(1506084926, 0)}
+	info := bindataFileInfo{name: "bootstrap/google_compute_k8s_ubuntu_16.04_master.sh", size: 1946, mode: os.FileMode(420), modTime: time.Unix(1508271675, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -384,7 +384,7 @@ func bootstrapGoogle_compute_k8s_ubuntu_1604_nodeSh() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "bootstrap/google_compute_k8s_ubuntu_16.04_node.sh", size: 1246, mode: os.FileMode(420), modTime: time.Unix(1506084926, 0)}
+	info := bindataFileInfo{name: "bootstrap/google_compute_k8s_ubuntu_16.04_node.sh", size: 1246, mode: os.FileMode(420), modTime: time.Unix(1508271675, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -404,7 +404,7 @@ func bootstrapInjectGo() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "bootstrap/inject.go", size: 840, mode: os.FileMode(420), modTime: time.Unix(1506084926, 0)}
+	info := bindataFileInfo{name: "bootstrap/inject.go", size: 840, mode: os.FileMode(420), modTime: time.Unix(1508271675, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -424,7 +424,7 @@ func bootstrapVpnMeshbirdmasterSh() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "bootstrap/vpn/meshbirdMaster.sh", size: 244, mode: os.FileMode(420), modTime: time.Unix(1506084926, 0)}
+	info := bindataFileInfo{name: "bootstrap/vpn/meshbirdMaster.sh", size: 244, mode: os.FileMode(420), modTime: time.Unix(1508271675, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -444,7 +444,7 @@ func bootstrapVpnMeshbirdnodeSh() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "bootstrap/vpn/meshbirdNode.sh", size: 796, mode: os.FileMode(420), modTime: time.Unix(1506084926, 0)}
+	info := bindataFileInfo{name: "bootstrap/vpn/meshbirdNode.sh", size: 796, mode: os.FileMode(420), modTime: time.Unix(1508271675, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -464,7 +464,7 @@ func bootstrapVpnOpenvpnmasterCentosSh() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "bootstrap/vpn/openvpnMaster-centos.sh", size: 4873, mode: os.FileMode(420), modTime: time.Unix(1506084926, 0)}
+	info := bindataFileInfo{name: "bootstrap/vpn/openvpnMaster-centos.sh", size: 4873, mode: os.FileMode(420), modTime: time.Unix(1508271675, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -484,7 +484,7 @@ func bootstrapVpnOpenvpnmasterSh() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "bootstrap/vpn/openvpnMaster.sh", size: 4970, mode: os.FileMode(420), modTime: time.Unix(1506084926, 0)}
+	info := bindataFileInfo{name: "bootstrap/vpn/openvpnMaster.sh", size: 4970, mode: os.FileMode(420), modTime: time.Unix(1508271675, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -504,7 +504,7 @@ func bootstrapVpnOpenvpnnodeCentosSh() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "bootstrap/vpn/openvpnNode-centos.sh", size: 963, mode: os.FileMode(420), modTime: time.Unix(1506084926, 0)}
+	info := bindataFileInfo{name: "bootstrap/vpn/openvpnNode-centos.sh", size: 963, mode: os.FileMode(420), modTime: time.Unix(1508271675, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -524,7 +524,7 @@ func bootstrapVpnOpenvpnnodeSh() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "bootstrap/vpn/openvpnNode.sh", size: 952, mode: os.FileMode(420), modTime: time.Unix(1506084926, 0)}
+	info := bindataFileInfo{name: "bootstrap/vpn/openvpnNode.sh", size: 952, mode: os.FileMode(420), modTime: time.Unix(1508271675, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -581,28 +581,28 @@ func AssetNames() []string {
 
 // _bindata is a table, holding each asset generator, mapped to its name.
 var _bindata = map[string]func() (*asset, error){
-	"bootstrap/README.md": bootstrapReadmeMd,
-	"bootstrap/amazon_k8s_centos_7_master.sh": bootstrapAmazon_k8s_centos_7_masterSh,
-	"bootstrap/amazon_k8s_centos_7_node.sh": bootstrapAmazon_k8s_centos_7_nodeSh,
-	"bootstrap/amazon_k8s_ubuntu_16.04_master.sh": bootstrapAmazon_k8s_ubuntu_1604_masterSh,
+	"bootstrap/README.md":                                  bootstrapReadmeMd,
+	"bootstrap/amazon_k8s_centos_7_master.sh":              bootstrapAmazon_k8s_centos_7_masterSh,
+	"bootstrap/amazon_k8s_centos_7_node.sh":                bootstrapAmazon_k8s_centos_7_nodeSh,
+	"bootstrap/amazon_k8s_ubuntu_16.04_master.sh":          bootstrapAmazon_k8s_ubuntu_1604_masterSh,
 	"bootstrap/amazon_k8s_ubuntu_16.04_master_pipeline.sh": bootstrapAmazon_k8s_ubuntu_1604_master_pipelineSh,
-	"bootstrap/amazon_k8s_ubuntu_16.04_node.sh": bootstrapAmazon_k8s_ubuntu_1604_nodeSh,
-	"bootstrap/amazon_k8s_ubuntu_16.04_node_pipeline.sh": bootstrapAmazon_k8s_ubuntu_1604_node_pipelineSh,
-	"bootstrap/boostrap_init.sh": bootstrapBoostrap_initSh,
-	"bootstrap/bootstrap_init.sh": bootstrapBootstrap_initSh,
-	"bootstrap/digitalocean_k8s_centos_7_master.sh": bootstrapDigitalocean_k8s_centos_7_masterSh,
-	"bootstrap/digitalocean_k8s_centos_7_node.sh": bootstrapDigitalocean_k8s_centos_7_nodeSh,
-	"bootstrap/digitalocean_k8s_ubuntu_16.04_master.sh": bootstrapDigitalocean_k8s_ubuntu_1604_masterSh,
-	"bootstrap/digitalocean_k8s_ubuntu_16.04_node.sh": bootstrapDigitalocean_k8s_ubuntu_1604_nodeSh,
-	"bootstrap/google_compute_k8s_ubuntu_16.04_master.sh": bootstrapGoogle_compute_k8s_ubuntu_1604_masterSh,
-	"bootstrap/google_compute_k8s_ubuntu_16.04_node.sh": bootstrapGoogle_compute_k8s_ubuntu_1604_nodeSh,
-	"bootstrap/inject.go": bootstrapInjectGo,
-	"bootstrap/vpn/meshbirdMaster.sh": bootstrapVpnMeshbirdmasterSh,
-	"bootstrap/vpn/meshbirdNode.sh": bootstrapVpnMeshbirdnodeSh,
-	"bootstrap/vpn/openvpnMaster-centos.sh": bootstrapVpnOpenvpnmasterCentosSh,
-	"bootstrap/vpn/openvpnMaster.sh": bootstrapVpnOpenvpnmasterSh,
-	"bootstrap/vpn/openvpnNode-centos.sh": bootstrapVpnOpenvpnnodeCentosSh,
-	"bootstrap/vpn/openvpnNode.sh": bootstrapVpnOpenvpnnodeSh,
+	"bootstrap/amazon_k8s_ubuntu_16.04_node.sh":            bootstrapAmazon_k8s_ubuntu_1604_nodeSh,
+	"bootstrap/amazon_k8s_ubuntu_16.04_node_pipeline.sh":   bootstrapAmazon_k8s_ubuntu_1604_node_pipelineSh,
+	"bootstrap/boostrap_init.sh":                           bootstrapBoostrap_initSh,
+	"bootstrap/bootstrap_init.sh":                          bootstrapBootstrap_initSh,
+	"bootstrap/digitalocean_k8s_centos_7_master.sh":        bootstrapDigitalocean_k8s_centos_7_masterSh,
+	"bootstrap/digitalocean_k8s_centos_7_node.sh":          bootstrapDigitalocean_k8s_centos_7_nodeSh,
+	"bootstrap/digitalocean_k8s_ubuntu_16.04_master.sh":    bootstrapDigitalocean_k8s_ubuntu_1604_masterSh,
+	"bootstrap/digitalocean_k8s_ubuntu_16.04_node.sh":      bootstrapDigitalocean_k8s_ubuntu_1604_nodeSh,
+	"bootstrap/google_compute_k8s_ubuntu_16.04_master.sh":  bootstrapGoogle_compute_k8s_ubuntu_1604_masterSh,
+	"bootstrap/google_compute_k8s_ubuntu_16.04_node.sh":    bootstrapGoogle_compute_k8s_ubuntu_1604_nodeSh,
+	"bootstrap/inject.go":                                  bootstrapInjectGo,
+	"bootstrap/vpn/meshbirdMaster.sh":                      bootstrapVpnMeshbirdmasterSh,
+	"bootstrap/vpn/meshbirdNode.sh":                        bootstrapVpnMeshbirdnodeSh,
+	"bootstrap/vpn/openvpnMaster-centos.sh":                bootstrapVpnOpenvpnmasterCentosSh,
+	"bootstrap/vpn/openvpnMaster.sh":                       bootstrapVpnOpenvpnmasterSh,
+	"bootstrap/vpn/openvpnNode-centos.sh":                  bootstrapVpnOpenvpnnodeCentosSh,
+	"bootstrap/vpn/openvpnNode.sh":                         bootstrapVpnOpenvpnnodeSh,
 }
 
 // AssetDir returns the file names below a certain
@@ -644,31 +644,32 @@ type bintree struct {
 	Func     func() (*asset, error)
 	Children map[string]*bintree
 }
+
 var _bintree = &bintree{nil, map[string]*bintree{
 	"bootstrap": &bintree{nil, map[string]*bintree{
-		"README.md": &bintree{bootstrapReadmeMd, map[string]*bintree{}},
-		"amazon_k8s_centos_7_master.sh": &bintree{bootstrapAmazon_k8s_centos_7_masterSh, map[string]*bintree{}},
-		"amazon_k8s_centos_7_node.sh": &bintree{bootstrapAmazon_k8s_centos_7_nodeSh, map[string]*bintree{}},
-		"amazon_k8s_ubuntu_16.04_master.sh": &bintree{bootstrapAmazon_k8s_ubuntu_1604_masterSh, map[string]*bintree{}},
+		"README.md":                                  &bintree{bootstrapReadmeMd, map[string]*bintree{}},
+		"amazon_k8s_centos_7_master.sh":              &bintree{bootstrapAmazon_k8s_centos_7_masterSh, map[string]*bintree{}},
+		"amazon_k8s_centos_7_node.sh":                &bintree{bootstrapAmazon_k8s_centos_7_nodeSh, map[string]*bintree{}},
+		"amazon_k8s_ubuntu_16.04_master.sh":          &bintree{bootstrapAmazon_k8s_ubuntu_1604_masterSh, map[string]*bintree{}},
 		"amazon_k8s_ubuntu_16.04_master_pipeline.sh": &bintree{bootstrapAmazon_k8s_ubuntu_1604_master_pipelineSh, map[string]*bintree{}},
-		"amazon_k8s_ubuntu_16.04_node.sh": &bintree{bootstrapAmazon_k8s_ubuntu_1604_nodeSh, map[string]*bintree{}},
-		"amazon_k8s_ubuntu_16.04_node_pipeline.sh": &bintree{bootstrapAmazon_k8s_ubuntu_1604_node_pipelineSh, map[string]*bintree{}},
-		"boostrap_init.sh": &bintree{bootstrapBoostrap_initSh, map[string]*bintree{}},
-		"bootstrap_init.sh": &bintree{bootstrapBootstrap_initSh, map[string]*bintree{}},
-		"digitalocean_k8s_centos_7_master.sh": &bintree{bootstrapDigitalocean_k8s_centos_7_masterSh, map[string]*bintree{}},
-		"digitalocean_k8s_centos_7_node.sh": &bintree{bootstrapDigitalocean_k8s_centos_7_nodeSh, map[string]*bintree{}},
-		"digitalocean_k8s_ubuntu_16.04_master.sh": &bintree{bootstrapDigitalocean_k8s_ubuntu_1604_masterSh, map[string]*bintree{}},
-		"digitalocean_k8s_ubuntu_16.04_node.sh": &bintree{bootstrapDigitalocean_k8s_ubuntu_1604_nodeSh, map[string]*bintree{}},
-		"google_compute_k8s_ubuntu_16.04_master.sh": &bintree{bootstrapGoogle_compute_k8s_ubuntu_1604_masterSh, map[string]*bintree{}},
-		"google_compute_k8s_ubuntu_16.04_node.sh": &bintree{bootstrapGoogle_compute_k8s_ubuntu_1604_nodeSh, map[string]*bintree{}},
-		"inject.go": &bintree{bootstrapInjectGo, map[string]*bintree{}},
+		"amazon_k8s_ubuntu_16.04_node.sh":            &bintree{bootstrapAmazon_k8s_ubuntu_1604_nodeSh, map[string]*bintree{}},
+		"amazon_k8s_ubuntu_16.04_node_pipeline.sh":   &bintree{bootstrapAmazon_k8s_ubuntu_1604_node_pipelineSh, map[string]*bintree{}},
+		"boostrap_init.sh":                           &bintree{bootstrapBoostrap_initSh, map[string]*bintree{}},
+		"bootstrap_init.sh":                          &bintree{bootstrapBootstrap_initSh, map[string]*bintree{}},
+		"digitalocean_k8s_centos_7_master.sh":        &bintree{bootstrapDigitalocean_k8s_centos_7_masterSh, map[string]*bintree{}},
+		"digitalocean_k8s_centos_7_node.sh":          &bintree{bootstrapDigitalocean_k8s_centos_7_nodeSh, map[string]*bintree{}},
+		"digitalocean_k8s_ubuntu_16.04_master.sh":    &bintree{bootstrapDigitalocean_k8s_ubuntu_1604_masterSh, map[string]*bintree{}},
+		"digitalocean_k8s_ubuntu_16.04_node.sh":      &bintree{bootstrapDigitalocean_k8s_ubuntu_1604_nodeSh, map[string]*bintree{}},
+		"google_compute_k8s_ubuntu_16.04_master.sh":  &bintree{bootstrapGoogle_compute_k8s_ubuntu_1604_masterSh, map[string]*bintree{}},
+		"google_compute_k8s_ubuntu_16.04_node.sh":    &bintree{bootstrapGoogle_compute_k8s_ubuntu_1604_nodeSh, map[string]*bintree{}},
+		"inject.go":                                  &bintree{bootstrapInjectGo, map[string]*bintree{}},
 		"vpn": &bintree{nil, map[string]*bintree{
-			"meshbirdMaster.sh": &bintree{bootstrapVpnMeshbirdmasterSh, map[string]*bintree{}},
-			"meshbirdNode.sh": &bintree{bootstrapVpnMeshbirdnodeSh, map[string]*bintree{}},
+			"meshbirdMaster.sh":       &bintree{bootstrapVpnMeshbirdmasterSh, map[string]*bintree{}},
+			"meshbirdNode.sh":         &bintree{bootstrapVpnMeshbirdnodeSh, map[string]*bintree{}},
 			"openvpnMaster-centos.sh": &bintree{bootstrapVpnOpenvpnmasterCentosSh, map[string]*bintree{}},
-			"openvpnMaster.sh": &bintree{bootstrapVpnOpenvpnmasterSh, map[string]*bintree{}},
-			"openvpnNode-centos.sh": &bintree{bootstrapVpnOpenvpnnodeCentosSh, map[string]*bintree{}},
-			"openvpnNode.sh": &bintree{bootstrapVpnOpenvpnnodeSh, map[string]*bintree{}},
+			"openvpnMaster.sh":        &bintree{bootstrapVpnOpenvpnmasterSh, map[string]*bintree{}},
+			"openvpnNode-centos.sh":   &bintree{bootstrapVpnOpenvpnnodeCentosSh, map[string]*bintree{}},
+			"openvpnNode.sh":          &bintree{bootstrapVpnOpenvpnnodeSh, map[string]*bintree{}},
 		}},
 	}},
 }}
@@ -719,4 +720,3 @@ func _filePath(dir, name string) string {
 	cannonicalName := strings.Replace(name, "\\", "/", -1)
 	return filepath.Join(append([]string{dir}, strings.Split(cannonicalName, "/")...)...)
 }
-
