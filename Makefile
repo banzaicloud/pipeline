@@ -8,7 +8,7 @@ build: ## Builds binary package
 	go build .
 
 build-ci:
-	go build -o .circleci/images/prod/pipeline .
+	CGO_ENABLED=0 GOOS=linux go build -o .circleci/images/prod/pipeline .
 
 docker-container-ci: build-ci
 	TAG=0.1.$CIRCLE_BUILD_NUM
@@ -16,23 +16,22 @@ docker-container-ci: build-ci
 	docker push banzaicloud/pipeline-prod:$TAG
 
 clean:
-	rm -f pipeline_static
-	rm -f .circleci/images/prod/pipeline_static
+	rm -f pipeline
+	rm -f .circleci/images/prod/pipeline
+
+container-ci:
+	docker build -t pipeline-prod  .circleci/images/prod/
+	rm .circleci/images/prod/pipeline
 
 prod-container: clean static-build
 	docker build -t pipeline-prod  .circleci/images/prod/
-	rm .circleci/images/prod/pipeline_static
-
-
-static-build:  ## Builds staticly linked binary
-	CGO_ENABLED=0 GOOS=linux  go build -o pipeline_static .
-	mv pipeline_static .circleci/images/prod/pipeline_static
+	rm .circleci/images/prod/pipeline
 
 docker-dev-img: ## Builds development image
 	docker build -t pipeline-primary  .circleci/images/primary/
 
 docker-build: docker-dev-img ## Builds go binary in docker image
-	docker run -it -v $(PWD):/go/src/github.com/banzaicloud/pipeline -w /go/src/github.com/banzaicloud/pipeline pipeline-primary go build -o pipeline_linux .
+	docker run -it -v $(PWD):/go/src/github.com/banzaicloud/pipeline -w /go/src/github.com/banzaicloud/pipeline pipeline-primary go build -o pipeline .
 
 deps: ## Install dependencies required for building
 	which dep > /dev/null || go get -u github.com/golang/dep/cmd/dep
