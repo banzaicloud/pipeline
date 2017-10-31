@@ -82,6 +82,7 @@ func (r *AtomicReconciler) cleanUp(failedCluster *cluster.Cluster, i int) (err e
 			continue
 		}
 	}
+	teardown()
 	return nil
 }
 
@@ -130,6 +131,7 @@ func (r *AtomicReconciler) Reconcile(actual, expected *cluster.Cluster) (reconci
 var destroyRetryStrings = []string{
 	"DependencyViolation:",
 	"does not exist in default VPC",
+	"must remove roles from instance profile first",
 }
 
 var hg = &hang.Hanger{

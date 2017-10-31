@@ -7,13 +7,13 @@ import (
 	"path"
 	"time"
 
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cloud"
 	"github.com/banzaicloud/pipeline/conf"
 	"github.com/banzaicloud/pipeline/helm"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"k8s.io/helm/pkg/timeconv"
@@ -49,8 +49,8 @@ type UpdateClusterType struct {
 }
 
 type DeploymentType struct {
-	Name    string `json:"name" binding:"required"`
-	Version string `json:"version"`
+	Name    string      `json:"name" binding:"required"`
+	Version string      `json:"version"`
 	Values  interface{} `json:"values"`
 }
 
@@ -418,13 +418,13 @@ func FetchClusterConfig(c *gin.Context) {
 	}
 	path, err := cloud.RetryGetConfig(clust, "")
 	if err != nil {
-		c.JSON(http.StatusServiceUnavailable, gin.H{"status": http.StatusServiceUnavailable, "message": "Failed to get kubeconf. Cluster not ready yet."})
+		c.JSON(http.StatusServiceUnavailable, gin.H{"status": http.StatusServiceUnavailable, "message": "Failed to get kubeconf. Cluster not ready yet.", "error": err})
 		return
 	}
 	data, err := ioutil.ReadFile(path)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": "Failed to read kubeconf."})
+		c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": "Failed to read kubeconf.", "error": err})
 		return
 	}
 	ctype := c.NegotiateFormat(gin.MIMEPlain, gin.MIMEJSON)
