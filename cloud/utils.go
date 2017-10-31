@@ -1,27 +1,24 @@
 package cloud
-import (
 
+import (
 	"github.com/kris-nova/kubicorn/state"
 	"github.com/kris-nova/kubicorn/state/fs"
 
-	"syscall"
-	"io/ioutil"
 	"fmt"
+	"io/ioutil"
 	"net"
 	"os"
 	"strings"
+	"syscall"
 	"time"
 
-	"github.com/kris-nova/klone/pkg/local"
+	notify "github.com/banzaicloud/pipeline/notify"
 	"github.com/kris-nova/kubicorn/apis/cluster"
 	"github.com/kris-nova/kubicorn/cutil/logger"
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/agent"
 	"golang.org/x/crypto/ssh/terminal"
-	notify "github.com/banzaicloud/pipeline/notify"
-
-
 )
 
 //We return stateStore so update can use it.
@@ -31,7 +28,7 @@ func getStateStoreForCluster(clusterType ClusterType) (stateStore state.ClusterS
 		BasePath:    "statestore",
 		ClusterName: clusterType.Name,
 	})
-  return stateStore
+	return stateStore
 }
 
 func assertTcpSocketAcceptsConnection(addr string) (bool, error) {
@@ -43,9 +40,21 @@ func assertTcpSocketAcceptsConnection(addr string) (bool, error) {
 	return true, nil
 }
 
+func Home() string {
+	home := os.Getenv("HOME")
+	return home
+}
+
+func Expand(path string) string {
+	if strings.Contains(path, "~") {
+		return strings.Replace(path, "~", Home(), 1)
+	}
+	return path
+}
+
 func GetConfig(existing *cluster.Cluster, localDir string) (string, error) {
 	user := existing.SSH.User
-	pubKeyPath := local.Expand(existing.SSH.PublicKeyPath)
+	pubKeyPath := Expand(existing.SSH.PublicKeyPath)
 	privKeyPath := strings.Replace(pubKeyPath, ".pub", "", 1)
 	address := fmt.Sprintf("%s:%s", existing.KubernetesAPI.Endpoint, "22")
 	if localDir == "" {
