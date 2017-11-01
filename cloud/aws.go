@@ -14,7 +14,7 @@ func getAWSCluster(clusterType ClusterType) *cluster.Cluster {
 		Cloud:    cluster.CloudAmazon,
 		Location: clusterType.Location,
 		SSH: &cluster.SSH{
-			PublicKeyPath: "~/.ssh/id_rsa.pub",
+			PublicKeyPath: "/.ssh/id_rsa.pub",
 			User:          "ubuntu",
 		},
 		KubernetesAPI: &cluster.KubernetesAPI{
@@ -39,7 +39,7 @@ func getAWSCluster(clusterType ClusterType) *cluster.Cluster {
 				Image:    clusterType.MasterImage, //"ami-835b4efa"
 				Size:     clusterType.NodeInstanceType,
 				BootstrapScripts: []string{
-					"amazon_k8s_ubuntu_16.04_master_pipeline.sh",
+					"amazon_k8s_ubuntu_16.04_master_ferryman.sh",
 				},
 				InstanceProfile: &cluster.IAMInstanceProfile{
 					Name: fmt.Sprintf("%s-KubicornMasterInstanceProfile", clusterType.Name),
@@ -125,9 +125,9 @@ func getAWSCluster(clusterType ClusterType) *cluster.Cluster {
 					SpotPrice: clusterType.NodeInstanceSpotPrice,
 				},
 				BootstrapScripts: []string{
-					"amazon_k8s_ubuntu_16.04_node_pipeline.sh",
+					"amazon_k8s_ubuntu_16.04_node_ferryman.sh",
 				},
-				//IamInstanceProfile: "pipelineMasterProfile",
+				//IamInstanceProfile: "ferrymanMasterProfile",
 				Subnets: []*cluster.Subnet{
 					{
 						Name:     fmt.Sprintf("%s.node", clusterType.Name),
