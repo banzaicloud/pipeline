@@ -36,12 +36,12 @@ var _ cloud.Resource = &Lc{}
 
 type Lc struct {
 	Shared
-	InstanceType        string
-	Image               string
-	SpotPrice           string
-	InstanceProfile     string
-	ServerPool          *cluster.ServerPool
-	BootstrapScripts    []string
+	InstanceType     string
+	Image            string
+	SpotPrice        string
+	InstanceProfile  string
+	ServerPool       *cluster.ServerPool
+	BootstrapScripts []string
 }
 
 const (
@@ -85,7 +85,7 @@ func (r *Lc) Actual(immutable *cluster.Cluster) (*cluster.Cluster, cloud.Resourc
 	} else {
 		newResource.Image = r.ServerPool.Image
 		newResource.InstanceType = r.ServerPool.Size
-		if r.ServerPool.Type == cluster.ServerPoolTypeNode && r.ServerPool.AwsConfiguration != nil{
+		if r.ServerPool.Type == cluster.ServerPoolTypeNode && r.ServerPool.AwsConfiguration != nil {
 			newResource.SpotPrice = r.ServerPool.AwsConfiguration.SpotPrice
 		}
 	}
@@ -225,7 +225,7 @@ func (r *Lc) Apply(actual, expected cloud.Resource, immutable *cluster.Cluster) 
 		lcInput.SpotPrice = &expected.(*Lc).SpotPrice
 	}
 	//Make it repeatable due to InstanceProfile
-	for i:=0; i < 10; i++ {
+	for i := 0; i < 10; i++ {
 		_, err = Sdk.ASG.CreateLaunchConfiguration(lcInput)
 		if err != nil {
 			if awserr, ok := err.(awserr.Error); ok {
@@ -242,9 +242,9 @@ func (r *Lc) Apply(actual, expected cloud.Resource, immutable *cluster.Cluster) 
 			} else {
 				logger.Debug(err.Error())
 			}
-			if strings.Contains(err.Error(),"Invalid IamInstanceProfile") {
+			if strings.Contains(err.Error(), "Invalid IamInstanceProfile") {
 				logger.Debug("InstanceProfile missing waiting...")
-				time.Sleep(time.Duration(i)*time.Second)
+				time.Sleep(time.Duration(i) * time.Second)
 				continue
 			}
 

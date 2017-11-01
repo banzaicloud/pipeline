@@ -14,7 +14,7 @@ func getAWSCluster(clusterType ClusterType) *cluster.Cluster {
 		Cloud:    cluster.CloudAmazon,
 		Location: clusterType.Location,
 		SSH: &cluster.SSH{
-			PublicKeyPath: "~/.ssh/id_rsa.pub",
+			PublicKeyPath: "/.ssh/id_rsa.pub",
 			User:          "ubuntu",
 		},
 		KubernetesAPI: &cluster.KubernetesAPI{
