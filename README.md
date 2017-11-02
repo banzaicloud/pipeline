@@ -51,7 +51,7 @@ Pipeline API deploys microservice based applications using the REST API. Unlike 
 
 Once Pipeline API is started, the easiest way to start, stop, delete or scale a cluster is through the following Postman example.
 
-[![Run in Postman](https://run.pstmn.io/button.svg)](https://www.getpostman.com/collections/7d5e36dd11439b319167)
+[![Run in Postman](https://run.pstmn.io/button.svg)](https://www.getpostman.com/collections/7a4c9291ff7b1afe5a5e)
 
 For alternative ways to create a cluster please follow the [create cluster guide](docs/create.md).
 

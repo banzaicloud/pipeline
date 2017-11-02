@@ -3,7 +3,7 @@
 Once Pipeline API is started you can create a cluster in the following ways: 
 
     - Using the Postman examples
-[![Run in Postman](https://run.pstmn.io/button.svg)](https://www.getpostman.com/collections/7d5e36dd11439b319167)
+[![Run in Postman](https://run.pstmn.io/button.svg)](https://www.getpostman.com/collections/7a4c9291ff7b1afe5a5e)
 
     - Using `make create-cluster` and `make delete-cluster`. If you have AWS CLI installed you can use `make ec2-list-instances` in order to see the list of clusters
 
