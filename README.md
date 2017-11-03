@@ -19,7 +19,7 @@ Pipeline enforces a typical **cloud native** architecture which takes full advan
 It is written in `Go` and built on public cloud provider APIs, Kubernetes, Kubicorn, Helm, Prometheus, Drone, Docker and a few other open source technologies - however all of these are abstracted for the end user behind a secure REST API.
 The central component of the Pipeline API is [Kubicorn](kubicorn.io) - a library/cli tool to provision and reconcile Kubernetes clusters in the cloud. Once the infrastructure/K8S cluster is provisioned by Pipeline, it also orchestrates the deployment of the application using Helm charts.
 A cluster can be reused and new and updated charts can be redeployed as well - without the need of recreating the cloud infrastructure or the K8S cluster. It supports alerting and autoscaling based on metrics using Prometheus.
-By default there are metrics exposing the behaviour of the underlying infrastructure, Kubernetes cluster and the application itself - based on the application specific `spotguide`. 
+By default there are metrics exposing the behaviour of the underlying infrastructure, Kubernetes cluster and the application itself - based on the application specific `spotguide`.
 
 ### Control plane
 
@@ -27,7 +27,7 @@ All these components are assembled into a **Control Plane** - and deployed to Ku
 
 ![Control Plane](docs/images/control-plane-aws.png)
 
-You can launch a Pipeline control plane on AWS with the following [Cloudformation](https://github.com/banzaicloud/control-plane-k8s-cf/blob/master/control-plane.template) template.
+You can launch a Pipeline control plane on AWS with the following [Cloudformation](https://github.com/banzaicloud/pipeline-cp-launcher/blob/master/control-plane.template) template.
 
 ### Infra, cluster and application deployment
 
