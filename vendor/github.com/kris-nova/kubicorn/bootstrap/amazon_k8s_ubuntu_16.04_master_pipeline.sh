@@ -75,5 +75,4 @@ do
   sleep 5
 done
 
-helm install /opt/helm/cluster-ingress-controller-chart
-helm install /opt/helm/cluster-prometheus-chart
+helm install /opt/helm/pipeline-cluster
