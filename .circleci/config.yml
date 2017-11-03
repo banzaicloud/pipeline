@@ -1,0 +1,41 @@
+# Golang CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-go/ for more details
+version: 2
+jobs:
+  build:
+    docker:
+      - image: banzaicloud/pipeline-primary
+
+    working_directory: /go/src/github.com/banzaicloud/pipeline
+    steps:
+      - checkout
+
+      - run:
+          command:
+              make build-ci
+
+      - setup_remote_docker
+
+      - run:
+          name: Install Docker client
+          command: |
+            set -x
+            VER="17.03.0-ce"
+            curl -L -o /tmp/docker-$VER.tgz https://get.docker.com/builds/Linux/x86_64/docker-$VER.tgz
+            tar -xz -C /tmp -f /tmp/docker-$VER.tgz
+            mv /tmp/docker/* /usr/bin
+
+      - run:
+          name: Build containers
+          command: |
+            make container-ci
+            docker tag pipeline-prod:latest ${DOCKER_HUB_PATH}/pipeline-prod:${CIRCLE_BUILD_NUM}
+            docker images
+      - deploy:
+          name: Push docker images
+          command: |
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+            docker push "${DOCKER_HUB_PATH}/pipeline-prod:${CIRCLE_BUILD_NUM}"
+            docker tag "${DOCKER_HUB_PATH}/pipeline-prod:${CIRCLE_BUILD_NUM}" "${DOCKER_HUB_PATH2}/pipeline-prod:${CIRCLE_BUILD_NUM}"
+            docker push "${DOCKER_HUB_PATH2}/pipeline-prod:${CIRCLE_BUILD_NUM}"
