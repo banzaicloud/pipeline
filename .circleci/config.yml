@@ -37,5 +37,3 @@ jobs:
           command: |
             docker login -u $DOCKER_USER -p $DOCKER_PASS
             docker push "${DOCKER_HUB_PATH}/pipeline-prod:${CIRCLE_BUILD_NUM}"
-            docker tag "${DOCKER_HUB_PATH}/pipeline-prod:${CIRCLE_BUILD_NUM}" "${DOCKER_HUB_PATH2}/pipeline-prod:${CIRCLE_BUILD_NUM}"
-            docker push "${DOCKER_HUB_PATH2}/pipeline-prod:${CIRCLE_BUILD_NUM}"
