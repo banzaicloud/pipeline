@@ -1,7 +1,7 @@
 version: '2'
 services:
   app:
-    image: banzaiclouds/pipeline-prod:433
+    image: banzaiclouds/pipeline-prod:4
     container_name: pipeline
     ports:
       - "9090:9090"
@@ -19,5 +19,5 @@ services:
     ports:
       - 3306:3306
     environment:
-      MYSQL_ROOT_PASSWORD: sparky123
-      MYSQL_DATABASE: sparky
+      MYSQL_ROOT_PASSWORD: induljonabanzai
+      MYSQL_DATABASE: banzai
