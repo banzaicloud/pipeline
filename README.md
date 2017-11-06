@@ -14,9 +14,9 @@ The application specification can be described in a `spotguide`. The platform in
 
 ## Cloud Providers
 
-Pipeline is currently experimental and all the development, testing and the CI/CD pipeline itself is tested on Amazon Web Services only. The AWS version has control plane and cluster images published with Cloudformation templates and belonging artifacts.
+Pipeline is currently experimental and all the development, testing and the CI/CD pipeline itself is tested on AWS only. The AWS version has all the control plane, cluster images, Cloudformation templates and belonging artifacts published.
 
-Nevertheless the underlying [Kubicorn](kubicorn.io) framework has support for the following providers:
+The underlying [Kubicorn](kubicorn.io) framework has support for the following providers, and could be used with Pipeline.
 
   * Google Cloud
   * Microsoft Azure
