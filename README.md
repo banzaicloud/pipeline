@@ -1,6 +1,6 @@
 _Banzai Pipeline, or simply Pipeline is a tabletop reef break located in Hawaii, Oahu's North Shore. The most famous and infamous reef on the planet is forming the benchmark by which all other waves are measured._
 
-_Pipeline is a RESTful API to deploy "cloud-native" microservices in public cloud and on-premise. It simplifies and abstracts all the details of provisioning the cloud infrastructure, installing orreusing the Kubernetes cluster and deploying the application._
+_Pipeline is a RESTful API to deploy "cloud-native" microservices in public cloud and on-premise. It simplifies and abstracts all the details of provisioning the cloud infrastructure, installing or reusing the Kubernetes cluster and deploying the application._
 
 ![WARNING](docs/images/warning.jpg)
 
@@ -14,9 +14,9 @@ The application specification can be described in a `spotguide`. The platform in
 
 ## Cloud Providers
 
-Pipeline is currently experimental and all the development, testing and the CI/CD pipeline itself is tested on Amazon Web Services only. The AWS version has control plane and cluster images published with Cloudformation templates and belonging artifacts.
+Pipeline is currently experimental and all the development, testing and the CI/CD pipeline itself is tested on AWS only. The AWS version has all the control plane, cluster images, Cloudformation templates and belonging artifacts published.
 
-Nevertheless the underlying [Kubicorn](kubicorn.io) framework has support for the following providers:
+The underlying [Kubicorn](kubicorn.io) framework has support for the following providers, and could be used with Pipeline.
 
   * Google Cloud
   * Microsoft Azure
