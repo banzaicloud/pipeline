@@ -7,15 +7,15 @@ Pipeline proudly uses (and contributes to) [Kubicorn](http://kubicorn.io). Curre
 There are three ways to authenticate against AWS.
 
  * Environment Credentials - export the two environment variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` so that `Pipeline` can pick it up as described in the next steps:
- 
+
     ```
     $ export AWS_ACCESS_KEY_ID=***************
     $ export AWS_SECRET_ACCESS_KEY=*****************************************
     ```
 
- * Shared Credentials file - The `~/.aws/credentials` file stores your credentials based on a profile name 
+ * Shared Credentials file - The `~/.aws/credentials` file stores your credentials based on a profile name
 
- * EC2 Instance Role Credentials - Use EC2 Instance Role to assign credentials to application running on an EC2 instance. 
+ * EC2 Instance Role Credentials - Use EC2 Instance Role to assign credentials to application running on an EC2 instance.
 
 #### SSH key setup
 
@@ -28,11 +28,11 @@ Your public key has been saved in `/Users/myname/.ssh/id_rsa.pub`.
 
 ### Installation
 
-You have three options to try out Pipeline. 
+You have three options to try out Pipeline.
 
 #### Cloudformation
 
-The easiest is by running a Pipeline control plane using the following Cloudformation [template](https://github.com/banzaicloud/control-plane-k8s-cf/blob/master/control-plane.template). 
+The easiest is by running a Pipeline control plane using the following Cloudformation [template](https://github.com/banzaicloud/pipeline-cp-launcher/blob/master/control-plane.template). 
 
 #### The DIY way
 
