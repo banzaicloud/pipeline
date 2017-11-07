@@ -7,20 +7,20 @@ import (
 	"path"
 	"time"
 
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cloud"
 	"github.com/banzaicloud/pipeline/conf"
 	"github.com/banzaicloud/pipeline/helm"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"k8s.io/helm/pkg/timeconv"
 
-	"github.com/ghodss/yaml"
 	monitor "github.com/banzaicloud/pipeline/monitor"
 	notify "github.com/banzaicloud/pipeline/notify"
+	"github.com/ghodss/yaml"
 )
 
 type CreateClusterType struct {
@@ -49,9 +49,10 @@ type UpdateClusterType struct {
 }
 
 type DeploymentType struct {
-	Name    string      `json:"name" binding:"required"`
-	Version string      `json:"version"`
-	Values  interface{} `json:"values"`
+	Name        string      `json:"name" binding:"required"`
+	ReleaseName string      `json:"releaseName" binding:"required"`
+	Version     string      `json:"version"`
+	Values      interface{} `json:"values"`
 }
 
 //TODO: minCount and Maxcount should be optional, but one of them should be present
@@ -88,6 +89,7 @@ func main() {
 		v1.PUT("/clusters/:id", UpdateCluster)
 		v1.DELETE("/clusters/:id", DeleteCluster)
 		v1.HEAD("/clusters/:id", GetClusterStatus)
+		v1.HEAD("/clusters/:id", GetClusterStatusByName)
 		v1.GET("/clusters/:id/config", FetchClusterConfig)
 		v1.GET("/clusters/:id/deployments", ListDeployments)
 		v1.POST("/clusters/:id/deployments", CreateDeployment)
@@ -162,7 +164,7 @@ func CreateDeployment(c *gin.Context) {
 		return
 	}
 
-	log.Debugf("Creating chart %s with version %s", deployment.Name, deployment.Version)
+	log.Debugf("Creating chart %s with version %s and release name %s", deployment.Name, deployment.Version, deployment.ReleaseName)
 	prefix := viper.GetString("dev.chartpath")
 	chartPath := path.Join(prefix, deployment.Name)
 
@@ -179,8 +181,9 @@ func CreateDeployment(c *gin.Context) {
 		}
 	}
 	log.Debugf("Custom values: %s", values)
-	release, err := helm.CreateDeployment(cloudCluster, chartPath, values)
+	release, err := helm.CreateDeployment(cloudCluster, chartPath, deployment.ReleaseName, values)
 	releaseName := release.Release.Name
+
 	releaseNotes := release.Release.Info.Status.Notes
 	if err != nil {
 		log.Warning(err.Error())
@@ -442,6 +445,31 @@ func FetchClusterConfig(c *gin.Context) {
 func GetClusterStatus(c *gin.Context) {
 	var cluster cloud.ClusterType
 	clusterId := c.Param("id")
+
+	db.First(&cluster, clusterId)
+
+	if cluster.ID == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "No clusters found!"})
+		return
+	}
+	clust, err := cloud.ReadCluster(cluster)
+	if err != nil {
+		log.Info("Cluster read failed")
+	} else {
+		log.Info("Cluster read successful")
+	}
+	isAvailable, _ := cloud.IsKubernetesClusterAvailable(clust)
+	if isAvailable {
+		c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "message": "Kubernetes cluster available"})
+	} else {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"status": http.StatusServiceUnavailable, "message": "Kubernetes cluster not ready yet"})
+	}
+	return
+}
+
+func GetClusterStatusByName(c *gin.Context) {
+	var cluster cloud.ClusterType
+	clusterId := c.Param("name")
 
 	db.First(&cluster, clusterId)
 
