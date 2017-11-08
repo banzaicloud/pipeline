@@ -23,7 +23,7 @@ import (
 	"github.com/ghodss/yaml"
 )
 
-//Definition to describe a cluster
+//CreateClusterType definition to describe a cluster
 type CreateClusterType struct {
 	Name     string `json:"name" binding:"required"`
 	Location string `json:"location" binding:"required"`
@@ -42,7 +42,7 @@ type CreateClusterType struct {
 
 //nodeInstanceType=m3.medium -d nodeInstanceSpotPrice=0.04 -d nodeMin=1 -d nodeMax=3 -d image=ami-6d48500b
 
-//Definition to updates a cluster
+//UpdateClusterType definition to updates a cluster
 type UpdateClusterType struct {
 	Node struct {
 		MinCount int `json:"minCount" binding:"required"`
@@ -50,7 +50,7 @@ type UpdateClusterType struct {
 	} `json:"node" binding:"required"`
 }
 
-//Definition to describe a Helm deployment
+//DeploymentType definition to describe a Helm deployment
 type DeploymentType struct {
 	Name    string      `json:"name" binding:"required"`
 	Version string      `json:"version"`
@@ -106,12 +106,12 @@ func main() {
 
 }
 
-//TODO: add endpoint to update a Helm deployment
+//UpgradeDeployment - N/A
 func UpgradeDeployment(c *gin.Context) {
 	return
 }
 
-//Deletes a Helm deployment
+//DeleteDeployment deletes a Helm deployment
 func DeleteDeployment(c *gin.Context) {
 	var cluster cloud.ClusterType
 	clusterId := c.Param("id")
@@ -141,7 +141,7 @@ func DeleteDeployment(c *gin.Context) {
 	return
 }
 
-//Creates a Helm deployment
+//CreateDeployment creates a Helm deployment
 func CreateDeployment(c *gin.Context) {
 	var cluster cloud.ClusterType
 	clusterId := c.Param("id")
@@ -201,7 +201,7 @@ func CreateDeployment(c *gin.Context) {
 	return
 }
 
-//Lists a Helm deployment
+//ListDeployments lists a Helm deployment
 func ListDeployments(c *gin.Context) {
 	//First get Cluster context
 	var cluster cloud.ClusterType
@@ -246,7 +246,7 @@ func ListDeployments(c *gin.Context) {
 	return
 }
 
-//Creates a K8S cluster in the cloud
+//CreateCluster creates a K8S cluster in the cloud
 func CreateCluster(c *gin.Context) {
 	var createClusterrequest CreateClusterType
 	if err := c.BindJSON(&createClusterrequest); err != nil {
@@ -288,7 +288,7 @@ func CreateCluster(c *gin.Context) {
 	return
 }
 
-//Deletes a K8S cluster from the cloud
+//DeleteCluster deletes a K8S cluster from the cloud
 func DeleteCluster(c *gin.Context) {
 
 	var cluster cloud.ClusterType
@@ -321,7 +321,7 @@ func DeleteCluster(c *gin.Context) {
 	return
 }
 
-//Fetches all the K8S clusters from the cloud
+//FetchClusters fetches all the K8S clusters from the cloud
 func FetchClusters(c *gin.Context) {
 	var clusters []cloud.ClusterType
 	type ClusterRepresentation struct {
@@ -352,7 +352,7 @@ func FetchClusters(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "data": response})
 }
 
-//Fetch a K8S cluster in the cloud
+//FetchCluster fetch a K8S cluster in the cloud
 func FetchCluster(c *gin.Context) {
 	var cluster cloud.ClusterType
 	clusterId := c.Param("id")
@@ -376,7 +376,7 @@ func FetchCluster(c *gin.Context) {
 
 }
 
-//Update a K8S cluster in the cloud (e.g. autoscale)
+//UpdateCluster updates a K8S cluster in the cloud (e.g. autoscale)
 func UpdateCluster(c *gin.Context) {
 
 	var cluster cloud.ClusterType
@@ -412,7 +412,7 @@ func UpdateCluster(c *gin.Context) {
 	}
 }
 
-//Fetches a cluster config
+//FetchClusterConfig fetches a cluster config
 func FetchClusterConfig(c *gin.Context) {
 	var cluster cloud.ClusterType
 	clusterId := c.Param("id")
@@ -452,7 +452,7 @@ func FetchClusterConfig(c *gin.Context) {
 	}
 }
 
-//Retrieves the cluster status
+//GetClusterStatus retrieves the cluster status
 func GetClusterStatus(c *gin.Context) {
 	var cluster cloud.ClusterType
 	clusterId := c.Param("id")
@@ -478,7 +478,7 @@ func GetClusterStatus(c *gin.Context) {
 	return
 }
 
-//Checks if tiller ready to accept deployments
+//GetTillerStatus checks if tiller ready to accept deployments
 func GetTillerStatus(c *gin.Context) {
 	var cluster cloud.ClusterType
 	clusterId := c.Param("id")
@@ -505,7 +505,7 @@ func GetTillerStatus(c *gin.Context) {
 	return
 }
 
-//Check the status of the Helm deployment
+//FetchDeploymentStatus check the status of the Helm deployment
 func FetchDeploymentStatus(c *gin.Context) {
 	var cluster cloud.ClusterType
 	clusterId := c.Param("id")
@@ -543,7 +543,7 @@ func FetchDeploymentStatus(c *gin.Context) {
 	return
 }
 
-//Auth0 check
+//Auth0Test authN check
 func Auth0Test(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"Auth0": "authn and authz successful"})
 }

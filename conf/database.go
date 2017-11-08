@@ -5,7 +5,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-//Initiaizes the database config
+//Database initializes the database config
 func Database() *gorm.DB {
 	//open a db connection
 	host := viper.GetString("dev.host")

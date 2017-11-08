@@ -17,7 +17,7 @@ const (
 	apiSocketAttempts = 40
 )
 
-//Cluster definition for the API
+//ClusterType cluster definition for the API
 type ClusterType struct {
 	gorm.Model
 	Name                  string `json:"name" binding:"required" gorm:"unique"`
@@ -45,7 +45,7 @@ func CloudInit(provider Provider, clusterType ClusterType) *cluster.Cluster {
 }
 **/
 
-//Creates a cluster in the cloud
+//CreateCluster creates a cluster in the cloud
 func CreateCluster(clusterType ClusterType) (*cluster.Cluster, error) {
 
 	logger.Level = 4
@@ -96,7 +96,7 @@ func CreateCluster(clusterType ClusterType) (*cluster.Cluster, error) {
 	return created, nil
 }
 
-//Deletes a cluster from the cloud
+//DeleteCluster deletes a cluster from the cloud
 func DeleteCluster(clusterType ClusterType) (*cluster.Cluster, error) {
 	logger.Level = 4
 
@@ -131,7 +131,7 @@ func DeleteCluster(clusterType ClusterType) (*cluster.Cluster, error) {
 	return nil, nil
 }
 
-//Reads a persisted cluster from the statestore
+//ReadCluster reads a persisted cluster from the statestore
 func ReadCluster(clusterType ClusterType) (*cluster.Cluster, error) {
 
 	stateStore := getStateStoreForCluster(clusterType)
@@ -143,14 +143,14 @@ func ReadCluster(clusterType ClusterType) (*cluster.Cluster, error) {
 	return readCluster, nil
 }
 
-//Retrieves the K8S config
+//GetKubeConfig retrieves the K8S config
 func GetKubeConfig(existing *cluster.Cluster) error {
 
 	_, err := RetryGetConfig(existing, "")
 	return err
 }
 
-//Updates a cluster in the cloud (e.g. autoscales)
+//UpdateCluster updates a cluster in the cloud (e.g. autoscales)
 func UpdateCluster(clusterType ClusterType) (*cluster.Cluster, error) {
 
 	logger.Level = 4
@@ -223,7 +223,7 @@ func awaitKubernetesCluster(existing ClusterType) (bool, error) {
 	return true, nil
 }
 
-//Awaits for K8S cluster to be available
+//IsKubernetesClusterAvailable awaits for K8S cluster to be available
 func IsKubernetesClusterAvailable(cluster *cluster.Cluster) (bool, error) {
 	return assertTcpSocketAcceptsConnection(fmt.Sprintf("%s:%s", cluster.KubernetesAPI.Endpoint, cluster.KubernetesAPI.Port))
 }

@@ -152,7 +152,7 @@ const (
 	retrySleepSeconds = 5
 )
 
-//RetryGetConfig is
+//RetryGetConfig is retrying K8S config retrieval
 func RetryGetConfig(existing *cluster.Cluster, localDir string) (string, error) {
 	for i := 0; i <= retryAttempts; i++ {
 		path, err := GetConfig(existing, localDir)

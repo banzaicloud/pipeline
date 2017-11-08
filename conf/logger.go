@@ -7,7 +7,7 @@ import (
 
 var logger *logrus.Logger
 
-//Logrus logger
+//Logger is a configured Logrus logger
 func Logger() *logrus.Logger {
 	if logger == nil {
 		logger = logrus.New()
