@@ -2,10 +2,10 @@ package conf
 
 import (
 	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/spf13/viper"
 )
 
+//Initiaizes the database config
 func Database() *gorm.DB {
 	//open a db connection
 	host := viper.GetString("dev.host")

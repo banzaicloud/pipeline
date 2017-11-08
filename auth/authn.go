@@ -5,8 +5,8 @@ import (
 	"encoding/pem"
 	"fmt"
 	"github.com/auth0-community/go-auth0"
-	"github.com/gin-gonic/gin"
 	"github.com/banzaicloud/pipeline/conf"
+	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"gopkg.in/square/go-jose.v2"
 	"io/ioutil"
@@ -16,15 +16,13 @@ import (
 
 var log = conf.Logger()
 
-const JWKS_URI = "https://banzaicloud.auth0.com/.well-known/jwks.json"
-const AUTH0_API_ISSUER = "https://banzaicloud.auth0.com/"
+const jwks_uri = "https://banzaicloud.auth0.com/.well-known/jwks.json"
+const auth0ApiIssuer = "https://banzaicloud.auth0.com/"
 
-var AUTH0_API_AUDIENCE = []string{"https://pipeline.banzaicloud.com"}
+var auth0ApiAudiences = []string{"https://pipeline.banzaicloud.com"}
 var validator *auth0.JWTValidator
 
-var (
-	ApiGroup = "ApiGroup"
-)
+var ApiGroup = "ApiGroup"
 
 func init() {
 	//Creates a configuration with the Auth0 information
@@ -41,7 +39,7 @@ func init() {
 		panic("Invalid provided key")
 	}
 	secretProvider := auth0.NewKeyProvider(secret)
-	configuration := auth0.NewConfiguration(secretProvider, AUTH0_API_AUDIENCE, AUTH0_API_ISSUER, jose.RS256)
+	configuration := auth0.NewConfiguration(secretProvider, auth0ApiAudiences, auth0ApiIssuer, jose.RS256)
 	validator = auth0.NewValidator(configuration)
 }
 
@@ -68,6 +66,7 @@ func loadPublicKey(data []byte) (interface{}, error) {
 	return nil, fmt.Errorf("square/go-jose: parse error, got '%s' and '%s'", err0, err1)
 }
 
+//handler for Gin
 func Auth0Groups(wantedGroups ...string) gin.HandlerFunc {
 
 	return gin.HandlerFunc(func(c *gin.Context) {
@@ -90,7 +89,7 @@ func Auth0Groups(wantedGroups ...string) gin.HandlerFunc {
 		}
 
 		log.Println("Claims: ", claims)
-		has_scope := strings.Contains(claims["scope"].(string), "api:invoke")
+		hasScope := strings.Contains(claims["scope"].(string), "api:invoke")
 
 		// TODO: metadata and group check for later hardening
 		/**
@@ -99,7 +98,7 @@ func Auth0Groups(wantedGroups ...string) gin.HandlerFunc {
 		groups, hasGroups := authorization["groups"].([]interface{})
 		**/
 
-		if !has_scope {
+		if !hasScope {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "needs more privileges"})
 			c.Abort()
 			log.Info("Needs more privileges")

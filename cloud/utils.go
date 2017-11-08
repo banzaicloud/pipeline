@@ -1,26 +1,24 @@
 package cloud
+
 import (
-	
 	"github.com/kris-nova/kubicorn/state"
 	"github.com/kris-nova/kubicorn/state/fs"
 
-	"syscall"
-	"io/ioutil"
 	"fmt"
+	"io/ioutil"
 	"net"
 	"os"
 	"strings"
+	"syscall"
 	"time"
-	
+
+	notify "github.com/banzaicloud/pipeline/notify"
 	"github.com/kris-nova/kubicorn/apis/cluster"
 	"github.com/kris-nova/kubicorn/cutil/logger"
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/agent"
 	"golang.org/x/crypto/ssh/terminal"
-	notify "github.com/banzaicloud/pipeline/notify"
-
-
 )
 
 //We return stateStore so update can use it.
@@ -30,7 +28,7 @@ func getStateStoreForCluster(clusterType ClusterType) (stateStore state.ClusterS
 		BasePath:    "statestore",
 		ClusterName: clusterType.Name,
 	})
-  return stateStore
+	return stateStore
 }
 
 func assertTcpSocketAcceptsConnection(addr string) (bool, error) {
@@ -42,21 +40,22 @@ func assertTcpSocketAcceptsConnection(addr string) (bool, error) {
 	return true, nil
 }
 
-func Home() string {
+func home() string {
 	home := os.Getenv("HOME")
 	return home
 }
 
-func Expand(path string) string {
+func expand(path string) string {
 	if strings.Contains(path, "~") {
-		return strings.Replace(path, "~", Home(), 1)
+		return strings.Replace(path, "~", home(), 1)
 	}
 	return path
 }
 
+//Retrieves K8S config
 func GetConfig(existing *cluster.Cluster, localDir string) (string, error) {
 	user := existing.SSH.User
-	pubKeyPath := Expand(existing.SSH.PublicKeyPath)
+	pubKeyPath := expand(existing.SSH.PublicKeyPath)
 	privKeyPath := strings.Replace(pubKeyPath, ".pub", "", 1)
 	address := fmt.Sprintf("%s:%s", existing.KubernetesAPI.Endpoint, "22")
 	if localDir == "" {
@@ -66,7 +65,7 @@ func GetConfig(existing *cluster.Cluster, localDir string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	
+
 	if err != nil {
 		return "", err
 	}
@@ -80,7 +79,7 @@ func GetConfig(existing *cluster.Cluster, localDir string) (string, error) {
 	} else {
 		remotePath = fmt.Sprintf("/home/%s/.kube/config", user)
 	}
-	
+
 	agent := sshAgent()
 	if agent != nil {
 		auths := []ssh.AuthMethod{
@@ -90,23 +89,23 @@ func GetConfig(existing *cluster.Cluster, localDir string) (string, error) {
 	} else {
 		pemBytes, err := ioutil.ReadFile(privKeyPath)
 		if err != nil {
-			
+
 			return "", err
 		}
-		
+
 		signer, err := getSigner(pemBytes)
 		if err != nil {
 			return "", err
 		}
-		
+
 		auths := []ssh.AuthMethod{
 			ssh.PublicKeys(signer),
 		}
 		sshConfig.Auth = auths
 	}
-	
+
 	sshConfig.SetDefaults()
-	
+
 	conn, err := ssh.Dial("tcp", address, sshConfig)
 	if err != nil {
 		return "", err
@@ -126,7 +125,7 @@ func GetConfig(existing *cluster.Cluster, localDir string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	
+
 	if _, err := os.Stat(localPath); os.IsNotExist(err) {
 		empty := []byte("")
 		err := ioutil.WriteFile(localPath, empty, 0755)
@@ -134,7 +133,7 @@ func GetConfig(existing *cluster.Cluster, localDir string) (string, error) {
 			return "", err
 		}
 	}
-	
+
 	f, err := os.OpenFile(localPath, os.O_WRONLY, os.ModeAppend)
 	if err != nil {
 		return "", err
@@ -149,17 +148,17 @@ func GetConfig(existing *cluster.Cluster, localDir string) (string, error) {
 }
 
 const (
-	RetryAttempts     = 150
-	RetrySleepSeconds = 5
+	retryAttempts     = 150
+	retrySleepSeconds = 5
 )
 
 func RetryGetConfig(existing *cluster.Cluster, localDir string) (string, error) {
-	for i := 0; i <= RetryAttempts; i++ {
+	for i := 0; i <= retryAttempts; i++ {
 		path, err := GetConfig(existing, localDir)
 		if err != nil {
 			if strings.Contains(err.Error(), "file does not exist") || strings.Contains(err.Error(), "getsockopt: connection refused") || strings.Contains(err.Error(), "unable to authenticate") {
 				logger.Debug("Waiting for Kubernetes to come up..")
-				time.Sleep(time.Duration(RetrySleepSeconds) * time.Second)
+				time.Sleep(time.Duration(retrySleepSeconds) * time.Second)
 				continue
 			}
 			return "", err
@@ -200,9 +199,9 @@ func getSigner(pemBytes []byte) (ssh.Signer, error) {
 		if err != nil {
 			return nil, err
 		}
-		
+
 		return signerwithpassphrase, err
 	}
-	
+
 	return signerwithoutpassphrase, err
 }
