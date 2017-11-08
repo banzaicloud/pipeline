@@ -134,4 +134,4 @@ In case you have problems please open an [issue](https://github.com/banzaicloud/
 
 ### License
 
-Pipeline is opne sourced under the Apache 2.0 license. See the [LICENSE](LICENSE) file for details. 
+Pipeline is open sourced under the Apache 2.0 license. See the [LICENSE](LICENSE.md) file for details. 
