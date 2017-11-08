@@ -528,5 +528,5 @@ func FetchDeploymentStatus(c *gin.Context) {
 }
 
 func Auth0Test(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"Auth0": "authn and authz successfull"})
+	c.JSON(http.StatusOK, gin.H{"Auth0": "authn and authz successful"})
 }
