@@ -6,31 +6,47 @@ _Banzai Pipeline, or simply Pipeline is a tabletop reef break located in Hawaii,
 
 _Pipeline is a RESTful API to deploy "cloud-native" microservices in public cloud and on-premise. It simplifies and abstracts all the details of provisioning the cloud infrastructure, installing or reusing the Kubernetes cluster and deploying the application._
 
-![WARNING](docs/images/warning.jpg)
+<p align="center">
+  <img width="139" height="197" src="docs/images/warning.jpg">
+</p>
 
 **Warning:** _Pipeline is experimental, under development and does not have a stable release yet. If in doubt, don't go out._
 
+_Pipeline uses and [contributes](https://github.com/kris-nova/kubicorn/issues?utf8=✓&q=author%3Amatyix%20) to Kubicorn and several projects in the Kubernetes ecosystem. Due to a recent common cluster API [agreement](https://github.com/kubernetes/kube-deploy/tree/master/cluster-api) in the Kubernetes ecosystem there will be a major API change [ongoing](https://github.com/kris-nova/kubicorn/issues/471) which affects the Pipeline API as well. Backward compatibility is NOT expected._
+
+
 # Pipeline
 
-The Pipeline API is able to create and configure custom Kubernetes clusters and deploy cloud native applications while taking care about services, ingress, replication and failover. It also monitors the underlying cloud infrastucture, K8S clusters, pods and the application itself.
-It is a core building block and engine of the **Pipeline Platform** - an open source PaaS where developers can build, deploy, run, monitor and scale applications. The platform can deploy an application in a few minutes starting with a GitHub commit hook. Based on an application and `infrastructure as code` specification the PaaS supports the full provisioning lifecycle (create, read, delete, update) of the application. Monitoring, SLA based autoscaling, attach to/reuse existing clusters is also included out of the box.
-The application specification can be described in a `spotguide`. The platform includes a few `spotguides` by default: Apache Spark, Apache Zeppelin and Apache Kafka.
+The Pipeline API is able to create and configure custom Kubernetes clusters in the cloud and deploy cloud native applications while taking care about services, ingress, network and volume management, replication and failover. It also monitors and autoscales the underlying cloud infrastucture, K8S cluster, pods and the application itself.
+
+It is a core building block and engine of the **Pipeline Platform** - an open source, multi cloud application platform as a service, based on a container management system. It is an application centric approach of a software delivery and deployment pipeline, to build cloud native microservices with confidence. It simplifies and abstracts all the details of provisioning the cloud infrastructure, installing or reusing the managed Kubernetes cluster and building, deploying and monitoring the application. The PaaS is a container management platform including a full CI/CD workflow, orchestration, SLA rules based autoscaling and advanced networking delivering a complete solution for developers.
+
+The main features of the platform are: 
+
+* **Provisioning:** _Provision highly available clusters on any of the supported cloud providers or managed Kubernetes commercial offerings, hybrid cloud or on-premise deployments_
+* **Microservice Ready:** _Focus and build great applications and forget the hard stuff of ops, failover, build pipelines, patching and security_
+* **Scaling:** _Supports SLA rules for resiliency, failover and autoscaling_
+* **Operations support:** _Centralized log collection, tracing and advanced monitoring support for the underlying infrastructure, Kubernetes cluster and the deployed application_
+* **Spotguides:** _Understands the application runtime requirements and dependencies, builds the artifacts and pushes to the PaaS while applying the CI/CD pipeline steps and advanced features (SLA rules, monitoring, linear regression based predictions)_
+* **Hook in:** _Trigger your pipeline with a GitHub Webhook and let the PaaS to build your app, provision or reuse the infrastructure and deploy, monitor and autoscale your deployment_
+
+The platform includes a few default `spotguides` like: **Apache Spark, Apache Zeppelin** and **Apache Kafka.**
 
 ## Cloud Providers
 
-Pipeline is currently experimental and all the development, testing and the CI/CD pipeline itself is tested on AWS only. The AWS version has all the control plane, cluster images, Cloudformation templates and belonging artifacts published.
+Pipeline is currently experimental and all the development, testing and the CI/CD pipeline itself is tested on **AWS** only. The AWS version contains the control plane, cloud images, Cloudformation templates and belonging artifacts published. 
 
-The underlying [Kubicorn](kubicorn.io) framework has support for the following providers, and could be used with Pipeline.
-
+The underlying [Kubicorn](kubicorn.io) framework has support for the following providers.
+  
+  * Amazon AWS
   * Google Cloud
   * Microsoft Azure
   * Digital Ocean
 
 ## Managed Kubernetes
 
-Pipeline was architected in a way to allow pluggable implementations for providers, managed Kubernetes clusters or hybrid environments. Through provider plugins retrives `kubeconfig` and can connect and deploy applications. Currently it's tested with [Microsoft's Azure managed Kubernetes](https://azure.microsoft.com/en-us/blog/introducing-azure-container-service-aks-managed-kubernetes-and-azure-container-registry-geo-replication/) offering and there is work for the following plugins:
+Pipeline is architected in a way to allow pluggable implementations for providers, managed Kubernetes clusters or hybrid environments. Through provider plugins retrives the `kubeconfig` and connects and deploys applications. Currently it's tested with [Microsoft's Azure managed Kubernetes](https://azure.microsoft.com/en-us/blog/introducing-azure-container-service-aks-managed-kubernetes-and-azure-container-registry-geo-replication/) and there is work planned for the following plugins:
 
-  * Microsoft Azure
   * CoreOS Tectonic
   * Redhat OpenShift
 
@@ -41,11 +57,11 @@ Pipeline enforces a typical **cloud native** architecture which takes full advan
 It is written in `Go` and built on public cloud provider APIs, Kubernetes, Kubicorn, Helm, Prometheus, Drone, Docker and a few other open source technologies - however all of these are abstracted for the end user behind a secure REST API.
 The central component of the Pipeline API is [Kubicorn](kubicorn.io) - a library/cli tool to provision and reconcile Kubernetes clusters in the cloud. Once the infrastructure/K8S cluster is provisioned by Pipeline, it also orchestrates the deployment of the application using Helm charts.
 A cluster can be reused and new and updated charts can be redeployed as well - without the need of recreating the cloud infrastructure or the K8S cluster. It supports alerting and autoscaling based on metrics using Prometheus.
-By default there are metrics exposing the behaviour of the underlying infrastructure, Kubernetes cluster and the application itself - based on the application specific `spotguide`.
+By default there are metrics and Grafana dashboards exposing the behaviour of the underlying infrastructure, Kubernetes cluster and the application itself - based on the application specific `spotguide`.
 
 ### Control plane
 
-All these components are assembled into a **Control Plane** - and deployed to Kubernetes with Helm, in a public cloud VM(s). A typical control plane - for an out of the box Spark/Zeppelin `spotguide` - looks like this:
+All these components are assembled into a **Control Plane** - and deployed to Kubernetes with Helm. A typical control plane - for an out of the box Spark/Zeppelin `spotguide` - looks like this:
 
 ![Control Plane](docs/images/control-plane-aws.png)
 
@@ -84,6 +100,10 @@ For Pipeline a `spotguide` is a combination of a few JSON files that describe an
 
 When you push a code change to GitHub, the Pipeline platform automatically detects the appropriate `spotguide`, reads the descriptors and initiates the pipeline.
 
+#### Big data 
+
+Pipeline PaaS allows enterprises to shift from a host-centric infrastructure to one that is container and application centric and take advantage of containers’ portability and flexibility. Today's big data frameworks require a scheduler (Apache YARN) and a distributed coordination framework (Apache Zookeeper) however better alternatives are already key building blocks of Kubernetes. Running big data workloads on the Pipeline PaaS removes all the requirements to use, install and maintain these systems and provide a cloud native way to run, schedule and scale the workload. The Kubernetes scheduler is aware of the application state and understands the infrastructure and cluster as well. A better density, utilization, broader range of workloads and varying latency  are all among the benefits.
+
 #### Apache Spark
 
 One of the default `spotguides` describes an Apache Spark deployment. For further information about the Apache Spark `spotguide` please follow this [guide](docs/spotguides.md).
@@ -92,7 +112,6 @@ A typical example of a Spark flow looks like this.
 ![Spark Flow](docs/images/spark-flow.png)
 
 _Note: Spark on Kubernetes does not use YARN, all scheduling and resource management is natively and more efficiently done by the Kuberneres scheduler._
-
 
 #### Apache Zeppelin
 
@@ -108,3 +127,11 @@ _Note: Zeppelin on Kubernetes for Spark notebooks does not use YARN, all schedul
 The Apache Kafka `spotguide` has a good understanding of consumers and producers but more importantly it monitors, scales, rebalances and auto-heals the Kafka cluster. It autodetects broker failures, reassigns workloads and edits partition reassignment files.
 
 _Note: Kafka on Kubernetes does not use Zookeper at all. For all quotas, controller election, cluster membership and configuration it is using **etcd**, a faster and more reliable `cloud-native` distributed system for coordination and metadata storage._
+
+## Reporting bugs
+
+In case you have problems please open an [issue] on GitHub. Also note that _Pipeline is experimental, under development and does not have a stable release yet. If in doubt, don't go out._
+
+### License
+
+Pipeline is opne sourced under the Apache 2.0 license. See the [LICENSE](LICENSE) file for details. 
