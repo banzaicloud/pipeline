@@ -16,12 +16,13 @@ import (
 
 var log = conf.Logger()
 
-const jwks_uri = "https://banzaicloud.auth0.com/.well-known/jwks.json"
+const jwksUri = "https://banzaicloud.auth0.com/.well-known/jwks.json"
 const auth0ApiIssuer = "https://banzaicloud.auth0.com/"
 
 var auth0ApiAudiences = []string{"https://pipeline.banzaicloud.com"}
 var validator *auth0.JWTValidator
 
+//ApiGroup is grouping name for the token
 var ApiGroup = "ApiGroup"
 
 func init() {
@@ -66,7 +67,7 @@ func loadPublicKey(data []byte) (interface{}, error) {
 	return nil, fmt.Errorf("square/go-jose: parse error, got '%s' and '%s'", err0, err1)
 }
 
-//handler for Gin
+//Auth0Groups handler for Gin
 func Auth0Groups(wantedGroups ...string) gin.HandlerFunc {
 
 	return gin.HandlerFunc(func(c *gin.Context) {

@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-//Initializes the configurations
+//Init initializes the configurations
 func Init() {
 
 	viper.AddConfigPath("$HOME/conf")

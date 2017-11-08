@@ -52,7 +52,7 @@ func expand(path string) string {
 	return path
 }
 
-//Retrieves K8S config
+//GetConfig retrieves K8S config
 func GetConfig(existing *cluster.Cluster, localDir string) (string, error) {
 	user := existing.SSH.User
 	pubKeyPath := expand(existing.SSH.PublicKeyPath)
@@ -152,6 +152,7 @@ const (
 	retrySleepSeconds = 5
 )
 
+//RetryGetConfig is retrying K8S config retrieval
 func RetryGetConfig(existing *cluster.Cluster, localDir string) (string, error) {
 	for i := 0; i <= retryAttempts; i++ {
 		path, err := GetConfig(existing, localDir)
