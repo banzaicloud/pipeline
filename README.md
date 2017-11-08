@@ -130,7 +130,7 @@ _Note: Kafka on Kubernetes does not use Zookeper at all. For all quotas, control
 
 ## Reporting bugs
 
-In case you have problems please open an [issue] on GitHub. Also note that _Pipeline is experimental, under development and does not have a stable release yet. If in doubt, don't go out._
+In case you have problems please open an [issue](https://github.com/banzaicloud/pipeline/issues) on GitHub. Also note that _Pipeline is experimental, under development and does not have a stable release yet. If in doubt, don't go out._
 
 ### License
 
