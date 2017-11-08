@@ -6,9 +6,9 @@ import (
 
 	"fmt"
 
-	"github.com/jinzhu/gorm"
 	"github.com/banzaicloud/pipeline/cloud"
 	"github.com/banzaicloud/pipeline/conf"
+	"github.com/jinzhu/gorm"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -20,6 +20,7 @@ type prometheusTarget struct {
 	Labels  map[string]string `json:"labels"`
 }
 
+//Updates the Prometheus configuration
 func UpdatePrometheusConfig(db *gorm.DB) error {
 	log := conf.Logger()
 

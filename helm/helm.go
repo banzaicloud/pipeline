@@ -7,15 +7,16 @@ import (
 	"text/template"
 
 	"github.com/Masterminds/sprig"
-	"github.com/kris-nova/kubicorn/apis/cluster"
 	"github.com/banzaicloud/pipeline/cloud"
+	"github.com/ghodss/yaml"
+	"github.com/kris-nova/kubicorn/apis/cluster"
 	"k8s.io/helm/pkg/chartutil"
 	"k8s.io/helm/pkg/helm"
 	"k8s.io/helm/pkg/proto/hapi/chart"
 	rls "k8s.io/helm/pkg/proto/hapi/services"
-	"github.com/ghodss/yaml"
 )
 
+//List Helm deployments
 func ListDeployments(cluster *cluster.Cluster, filter *string) (*rls.ListReleasesResponse, error) {
 	defer tearDown()
 	kubeConfig, err := cloud.GetConfig(cluster, "")
@@ -47,7 +48,8 @@ func ListDeployments(cluster *cluster.Cluster, filter *string) (*rls.ListRelease
 	return resp, nil
 }
 
-func UpgradeDeployment(cluster *cluster.Cluster, deploymentName, chartName string, values map[string]interface{} ) (string, error) {
+//Upgrade a Helm deployment
+func UpgradeDeployment(cluster *cluster.Cluster, deploymentName, chartName string, values map[string]interface{}) (string, error) {
 	//Base maps for values
 	base := map[string]interface{}{}
 	//this is only to parse x=y format
@@ -59,9 +61,9 @@ func UpgradeDeployment(cluster *cluster.Cluster, deploymentName, chartName strin
 	if err != nil {
 		return "", err
 	}
-	
+
 	//Map chartName as
-	
+
 	defer tearDown()
 	chartRequested, err := chartutil.Load(chartName)
 	if err != nil {
@@ -91,20 +93,21 @@ func UpgradeDeployment(cluster *cluster.Cluster, deploymentName, chartName strin
 		chartRequested,
 		helm.UpdateValueOverrides(updateValues),
 		helm.UpgradeDryRun(false),
-		//helm.UpgradeRecreate(u.recreate),
-		//helm.UpgradeForce(u.force),
-		//helm.UpgradeDisableHooks(u.disableHooks),
-		//helm.UpgradeTimeout(u.timeout),
-		//helm.ResetValues(u.resetValues),
-		//helm.ReuseValues(u.reuseValues),
-		//helm.UpgradeWait(u.wait)
-		)
+	//helm.UpgradeRecreate(u.recreate),
+	//helm.UpgradeForce(u.force),
+	//helm.UpgradeDisableHooks(u.disableHooks),
+	//helm.UpgradeTimeout(u.timeout),
+	//helm.ResetValues(u.resetValues),
+	//helm.ReuseValues(u.reuseValues),
+	//helm.UpgradeWait(u.wait)
+	)
 	if err != nil {
 		return "", fmt.Errorf("upgrade failed: %v", err)
 	}
 	return upgradeRes.Release.Name, nil
 }
 
+//Create a Helm deployment
 func CreateDeployment(cluster *cluster.Cluster, chartName string, valueOverrides []byte) (*rls.InstallReleaseResponse, error) {
 	//TODO value overrides
 	defer tearDown()
@@ -146,6 +149,7 @@ func CreateDeployment(cluster *cluster.Cluster, chartName string, valueOverrides
 	return installRes, nil
 }
 
+//Delete a Helm deployment
 func DeleteDeployment(cluster *cluster.Cluster, releaseName string) error {
 	defer tearDown()
 	kubeConfig, err := cloud.GetConfig(cluster, "")
@@ -163,6 +167,7 @@ func DeleteDeployment(cluster *cluster.Cluster, releaseName string) error {
 	return nil
 }
 
+//TODO: add retrieval for Helm deployment
 func GetDeployment() {
 
 }
