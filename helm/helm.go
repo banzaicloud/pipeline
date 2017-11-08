@@ -16,6 +16,7 @@ import (
 	rls "k8s.io/helm/pkg/proto/hapi/services"
 )
 
+//List Helm deployments
 func ListDeployments(cluster *cluster.Cluster, filter *string) (*rls.ListReleasesResponse, error) {
 	defer tearDown()
 	kubeConfig, err := cloud.GetConfig(cluster, "")
@@ -47,6 +48,7 @@ func ListDeployments(cluster *cluster.Cluster, filter *string) (*rls.ListRelease
 	return resp, nil
 }
 
+//Upgrade a Helm deployment
 func UpgradeDeployment(cluster *cluster.Cluster, deploymentName, chartName string, values map[string]interface{}) (string, error) {
 	//Base maps for values
 	base := map[string]interface{}{}
@@ -105,6 +107,7 @@ func UpgradeDeployment(cluster *cluster.Cluster, deploymentName, chartName strin
 	return upgradeRes.Release.Name, nil
 }
 
+//Create a Helm deployment
 func CreateDeployment(cluster *cluster.Cluster, chartName string, valueOverrides []byte) (*rls.InstallReleaseResponse, error) {
 	//TODO value overrides
 	defer tearDown()
@@ -146,6 +149,7 @@ func CreateDeployment(cluster *cluster.Cluster, chartName string, valueOverrides
 	return installRes, nil
 }
 
+//Delete a Helm deployment
 func DeleteDeployment(cluster *cluster.Cluster, releaseName string) error {
 	defer tearDown()
 	kubeConfig, err := cloud.GetConfig(cluster, "")
@@ -163,6 +167,7 @@ func DeleteDeployment(cluster *cluster.Cluster, releaseName string) error {
 	return nil
 }
 
+//TODO: add retrieval for Helm deployment
 func GetDeployment() {
 
 }

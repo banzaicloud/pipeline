@@ -40,21 +40,22 @@ func assertTcpSocketAcceptsConnection(addr string) (bool, error) {
 	return true, nil
 }
 
-func Home() string {
+func home() string {
 	home := os.Getenv("HOME")
 	return home
 }
 
-func Expand(path string) string {
+func expand(path string) string {
 	if strings.Contains(path, "~") {
-		return strings.Replace(path, "~", Home(), 1)
+		return strings.Replace(path, "~", home(), 1)
 	}
 	return path
 }
 
+//Retrieves K8S config
 func GetConfig(existing *cluster.Cluster, localDir string) (string, error) {
 	user := existing.SSH.User
-	pubKeyPath := Expand(existing.SSH.PublicKeyPath)
+	pubKeyPath := expand(existing.SSH.PublicKeyPath)
 	privKeyPath := strings.Replace(pubKeyPath, ".pub", "", 1)
 	address := fmt.Sprintf("%s:%s", existing.KubernetesAPI.Endpoint, "22")
 	if localDir == "" {
@@ -147,17 +148,17 @@ func GetConfig(existing *cluster.Cluster, localDir string) (string, error) {
 }
 
 const (
-	RetryAttempts     = 150
-	RetrySleepSeconds = 5
+	retryAttempts     = 150
+	retrySleepSeconds = 5
 )
 
 func RetryGetConfig(existing *cluster.Cluster, localDir string) (string, error) {
-	for i := 0; i <= RetryAttempts; i++ {
+	for i := 0; i <= retryAttempts; i++ {
 		path, err := GetConfig(existing, localDir)
 		if err != nil {
 			if strings.Contains(err.Error(), "file does not exist") || strings.Contains(err.Error(), "getsockopt: connection refused") || strings.Contains(err.Error(), "unable to authenticate") {
 				logger.Debug("Waiting for Kubernetes to come up..")
-				time.Sleep(time.Duration(RetrySleepSeconds) * time.Second)
+				time.Sleep(time.Duration(retrySleepSeconds) * time.Second)
 				continue
 			}
 			return "", err

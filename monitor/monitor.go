@@ -20,6 +20,7 @@ type prometheusTarget struct {
 	Labels  map[string]string `json:"labels"`
 }
 
+//Updates the Prometheus configuration
 func UpdatePrometheusConfig(db *gorm.DB) error {
 	log := conf.Logger()
 

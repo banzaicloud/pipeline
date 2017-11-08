@@ -13,10 +13,11 @@ import (
 )
 
 const (
-	ApiSleepSeconds   = 5
-	ApiSocketAttempts = 40
+	apiSleepSeconds   = 5
+	apiSocketAttempts = 40
 )
 
+//Cluster definition for the API
 type ClusterType struct {
 	gorm.Model
 	Name                  string `json:"name" binding:"required" gorm:"unique"`
@@ -44,6 +45,7 @@ func CloudInit(provider Provider, clusterType ClusterType) *cluster.Cluster {
 }
 **/
 
+//Creates a cluster in the cloud
 func CreateCluster(clusterType ClusterType) (*cluster.Cluster, error) {
 
 	logger.Level = 4
@@ -94,6 +96,7 @@ func CreateCluster(clusterType ClusterType) (*cluster.Cluster, error) {
 	return created, nil
 }
 
+//Deletes a cluster from the cloud
 func DeleteCluster(clusterType ClusterType) (*cluster.Cluster, error) {
 	logger.Level = 4
 
@@ -128,6 +131,7 @@ func DeleteCluster(clusterType ClusterType) (*cluster.Cluster, error) {
 	return nil, nil
 }
 
+//Reads a persisted cluster from the statestore
 func ReadCluster(clusterType ClusterType) (*cluster.Cluster, error) {
 
 	stateStore := getStateStoreForCluster(clusterType)
@@ -139,12 +143,14 @@ func ReadCluster(clusterType ClusterType) (*cluster.Cluster, error) {
 	return readCluster, nil
 }
 
+//Retrieves the K8S config
 func GetKubeConfig(existing *cluster.Cluster) error {
 
 	_, err := RetryGetConfig(existing, "")
 	return err
 }
 
+//Updates a cluster in the cloud (e.g. autoscales)
 func UpdateCluster(clusterType ClusterType) (*cluster.Cluster, error) {
 
 	logger.Level = 4
@@ -197,15 +203,16 @@ func UpdateCluster(clusterType ClusterType) (*cluster.Cluster, error) {
 	return updated, nil
 }
 
-func AwaitKubernetesCluster(existing ClusterType) (bool, error) {
+//Wait for K8S
+func awaitKubernetesCluster(existing ClusterType) (bool, error) {
 	success := false
 	existingCluster, _ := getStateStoreForCluster(existing).GetCluster()
 
-	for i := 0; i < ApiSocketAttempts; i++ {
+	for i := 0; i < apiSocketAttempts; i++ {
 		_, err := IsKubernetesClusterAvailable(existingCluster)
 		if err != nil {
 			logger.Info("Attempting to open a socket to the Kubernetes API: %v...\n", err)
-			time.Sleep(time.Duration(ApiSleepSeconds) * time.Second)
+			time.Sleep(time.Duration(apiSleepSeconds) * time.Second)
 			continue
 		}
 		success = true
@@ -216,6 +223,7 @@ func AwaitKubernetesCluster(existing ClusterType) (bool, error) {
 	return true, nil
 }
 
+//Awaits for K8S cluster to be available
 func IsKubernetesClusterAvailable(cluster *cluster.Cluster) (bool, error) {
 	return assertTcpSocketAcceptsConnection(fmt.Sprintf("%s:%s", cluster.KubernetesAPI.Endpoint, cluster.KubernetesAPI.Port))
 }
