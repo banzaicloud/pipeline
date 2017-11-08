@@ -10,16 +10,16 @@ import (
 	"os"
 )
 
-//Defintion for Slack
+//Slack message definition
 type Slack struct {
 	Text      string `json:"text"`
 	Username  string `json:"username"`
-	iconEmoji string `json:"icon_emoji"`
-	iconUrl   string `json:"icon_url"`
+	iconEmoji string `json:"iconemoji"`
+	iconUrl   string `json:"iconurl"`
 	Channel   string `json:"channel"`
 }
 
-//Notify on Slack
+//SlackNotify is pushing to Slack
 func SlackNotify(message string) error {
 
 	log := conf.Logger()
