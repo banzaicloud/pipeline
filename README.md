@@ -11,7 +11,7 @@ _Pipeline is a RESTful API to deploy "cloud-native" microservices in public clou
 # Table of Contents
 
 - [Introduction to Pipeline](#Pipeline)
-  * [Cloud Providers](#Cloud Providers)
+  * [Cloud Providers](#Cloud-Providers)
 
 
 # Pipeline
