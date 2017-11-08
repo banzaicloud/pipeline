@@ -6,9 +6,9 @@ import (
 
 	"fmt"
 
-	"github.com/jinzhu/gorm"
 	"github.com/banzaicloud/pipeline/cloud"
 	"github.com/banzaicloud/pipeline/conf"
+	"github.com/jinzhu/gorm"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"

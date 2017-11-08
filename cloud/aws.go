@@ -42,7 +42,7 @@ func getAWSCluster(clusterType ClusterType) *cluster.Cluster {
 					"amazon_k8s_ubuntu_16.04_master_pipeline.sh",
 				},
 				InstanceProfile: &cluster.IAMInstanceProfile{
-					Name:fmt.Sprintf("%s-KubicornMasterInstanceProfile", clusterType.Name),
+					Name: fmt.Sprintf("%s-KubicornMasterInstanceProfile", clusterType.Name),
 					Role: &cluster.IAMRole{
 						Name: fmt.Sprintf("%s-KubicornMasterRole", clusterType.Name),
 						Policies: []*cluster.IAMPolicy{

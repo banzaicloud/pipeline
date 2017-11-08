@@ -7,20 +7,20 @@ import (
 	"path"
 	"time"
 
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cloud"
 	"github.com/banzaicloud/pipeline/conf"
 	"github.com/banzaicloud/pipeline/helm"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"k8s.io/helm/pkg/timeconv"
 
-	"github.com/ghodss/yaml"
 	monitor "github.com/banzaicloud/pipeline/monitor"
 	notify "github.com/banzaicloud/pipeline/notify"
+	"github.com/ghodss/yaml"
 )
 
 type CreateClusterType struct {
