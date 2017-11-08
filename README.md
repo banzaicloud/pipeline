@@ -1,3 +1,7 @@
+[![CircleCI](https://circleci.com/gh/banzaicloud/pipeline/tree/master.svg?style=svg)](https://circleci.com/gh/banzaicloud/pipeline/tree/master)
+[![Go Report Card](https://goreportcard.com/badge/github.com/banzaicloud/pipeline)](https://goreportcard.com/report/github.com/banzaicloud/pipeline)
+
+
 _Banzai Pipeline, or simply Pipeline is a tabletop reef break located in Hawaii, Oahu's North Shore. The most famous and infamous reef on the planet is forming the benchmark by which all other waves are measured._
 
 _Pipeline is a RESTful API to deploy "cloud-native" microservices in public cloud and on-premise. It simplifies and abstracts all the details of provisioning the cloud infrastructure, installing or reusing the Kubernetes cluster and deploying the application._
