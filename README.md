@@ -12,7 +12,7 @@ _Pipeline is a RESTful API to deploy "cloud-native" microservices in public clou
 
 **Warning:** _Pipeline is experimental, under development and does not have a stable release yet. If in doubt, don't go out._
 
-_Pipeline uses and [contributes](https://github.com/kris-nova/kubicorn/issues?utf8=✓&q=author%3Amatyix%20) to Kubicorn and several projects in the Kubernetes ecosystem. Due to a recent common cluster API [agreement](https://github.com/kubernetes/kube-deploy/tree/master/cluster-api) in the Kubernetes ecosystem there will be a major API change [ongoing](https://github.com/kris-nova/kubicorn/issues/471) which affects the Pipeline API as well. Backward compatibility is NOT expected._
+_Pipeline uses and [contributes](https://github.com/kris-nova/kubicorn/issues?utf8=✓&q=author%3Amatyix%20) to Kubicorn and several projects in the Kubernetes ecosystem. Due to a recent common cluster API [agreement](https://github.com/kubernetes/kube-deploy/tree/master/cluster-api) in the Kubernetes ecosystem there will be a major API change [ongoing](https://github.com/kris-nova/kubicorn/issues/471) which affects the Pipeline API as well. Until these fixes are not merged upstream, backward compatibility is **NOT** expected._
 
 
 # Pipeline
@@ -134,4 +134,4 @@ In case you have problems please open an [issue](https://github.com/banzaicloud/
 
 ### License
 
-Pipeline is opne sourced under the Apache 2.0 license. See the [LICENSE](LICENSE) file for details. 
+Pipeline is open sourced under the Apache 2.0 license. See the [LICENSE](LICENSE.md) file for details. 
