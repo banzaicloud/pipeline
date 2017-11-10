@@ -1,6 +1,7 @@
 package cloud
 
 import (
+
 	"github.com/kris-nova/kubicorn/state"
 	"github.com/kris-nova/kubicorn/state/fs"
 
@@ -167,7 +168,7 @@ func RetryGetConfig(existing *cluster.Cluster, localDir string) (string, error) 
 		notify.SlackNotify(fmt.Sprintf("Cluster Created: %s\n IP: %s", existing.Name, existing.KubernetesAPI.Endpoint))
 		return path, err
 	}
-	return "", fmt.Errorf("Timedout writing kubeconfig")
+	return "", fmt.Errorf("Timeout writing kubeconfig")
 }
 
 func getKubeConfigPath(path string) (string, error) {
