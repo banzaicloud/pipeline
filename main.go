@@ -17,10 +17,11 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"k8s.io/helm/pkg/timeconv"
-
-	monitor "github.com/banzaicloud/pipeline/monitor"
-	notify "github.com/banzaicloud/pipeline/notify"
+	"github.com/kris-nova/kubicorn/apis/cluster"
+	"github.com/banzaicloud/pipeline/monitor"
+	"github.com/banzaicloud/pipeline/notify"
 	"github.com/ghodss/yaml"
+	"github.com/go-errors/errors"
 )
 
 //CreateClusterType definition to describe a cluster
@@ -52,9 +53,10 @@ type UpdateClusterType struct {
 
 //DeploymentType definition to describe a Helm deployment
 type DeploymentType struct {
-	Name    string      `json:"name" binding:"required"`
-	Version string      `json:"version"`
-	Values  interface{} `json:"values"`
+	Name        string      `json:"name" binding:"required"`
+	ReleaseName	string			`json:"releasename"`
+	Version     string      `json:"version"`
+	Values      interface{} `json:"values"`
 }
 
 //TODO: minCount and Maxcount should be optional, but one of them should be present
@@ -113,22 +115,9 @@ func UpgradeDeployment(c *gin.Context) {
 
 //DeleteDeployment deletes a Helm deployment
 func DeleteDeployment(c *gin.Context) {
-	var cluster cloud.ClusterType
-	clusterId := c.Param("id")
 	name := c.Param("name")
-
-	db.First(&cluster, clusterId)
-
-	if cluster.ID == 0 {
-		log.Warning("No cluster found with!")
-		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "No cluster found!"})
-		return
-	}
-
-	cloudCluster, err := cloud.ReadCluster(cluster)
+	cloudCluster, err := GetCluster(c)
 	if err != nil {
-		log.Warning(err.Error())
-		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "No cluster persistent config found!"})
 		return
 	}
 	err = helm.DeleteDeployment(cloudCluster, name)
@@ -143,32 +132,18 @@ func DeleteDeployment(c *gin.Context) {
 
 //CreateDeployment creates a Helm deployment
 func CreateDeployment(c *gin.Context) {
-	var cluster cloud.ClusterType
-	clusterId := c.Param("id")
 	var deployment DeploymentType
-
-	db.First(&cluster, clusterId)
-
-	if cluster.ID == 0 {
-		log.Warning("No cluster found with!")
-		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "No cluster found!"})
+	cloudCluster, err := GetCluster(c)
+	if err != nil {
 		return
 	}
-
 	if err := c.BindJSON(&deployment); err != nil {
 		log.Info("Required field is empty" + err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "Required field is empty", "error": err})
 		return
 	}
 
-	cloudCluster, err := cloud.ReadCluster(cluster)
-	if err != nil {
-		log.Warning(err.Error())
-		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "No cluster persistent config found!"})
-		return
-	}
-
-	log.Debugf("Creating chart %s with version %s", deployment.Name, deployment.Version)
+	log.Debugf("Creating chart %s with version %s and release name %s", deployment.Name, deployment.Version, deployment.ReleaseName)
 	prefix := viper.GetString("dev.chartpath")
 	chartPath := path.Join(prefix, deployment.Name)
 
@@ -185,14 +160,15 @@ func CreateDeployment(c *gin.Context) {
 		}
 	}
 	log.Debugf("Custom values: %s", values)
-	release, err := helm.CreateDeployment(cloudCluster, chartPath, values)
-	releaseName := release.Release.Name
-	releaseNotes := release.Release.Info.Status.Notes
+	release, err := helm.CreateDeployment(cloudCluster, chartPath, deployment.ReleaseName, values)
 	if err != nil {
 		log.Warning(err.Error())
 		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": fmt.Sprintf("%s", err)})
 		return
 	}
+	releaseName := release.Release.Name	
+	releaseNotes := release.Release.Info.Status.Notes
+
 	//Get ingress with deployment prefix TODO
 	//Get local ingress address?
 	deploymentUrl := fmt.Sprintf("http://%s:30080/zeppelin/", cloudCluster.KubernetesAPI.Endpoint)
@@ -204,20 +180,8 @@ func CreateDeployment(c *gin.Context) {
 //ListDeployments lists a Helm deployment
 func ListDeployments(c *gin.Context) {
 	//First get Cluster context
-	var cluster cloud.ClusterType
-	clusterId := c.Param("id")
-
-	db.First(&cluster, clusterId)
-
-	if cluster.ID == 0 {
-		log.Warning("No cluster found with!")
-		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "No cluster found!"})
-		return
-	}
-	cloudCluster, err := cloud.ReadCluster(cluster)
+	cloudCluster, err := GetCluster(c)
 	if err != nil {
-		log.Warning(err.Error())
-		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "No cluster persistent config found!"})
 		return
 	}
 	response, err := helm.ListDeployments(cloudCluster, nil)
@@ -354,25 +318,12 @@ func FetchClusters(c *gin.Context) {
 
 //FetchCluster fetch a K8S cluster in the cloud
 func FetchCluster(c *gin.Context) {
-	var cluster cloud.ClusterType
-	clusterId := c.Param("id")
-
-	db.First(&cluster, clusterId)
-
-	if cluster.ID == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "No clusters found!"})
+	cluster, err := GetCluster(c)
+	if err != nil {
 		return
 	}
-	clust, err := cloud.ReadCluster(cluster)
-	log.Info(clust.Name)
-	if err != nil {
-		log.Info("Cluster read failed")
-	} else {
-		log.Info("Cluster read successful")
-		cloud.GetKubeConfig(clust)
-	}
-	isAvailable, _ := cloud.IsKubernetesClusterAvailable(clust)
-	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "data": cluster, "available": isAvailable, "Ip": clust.KubernetesAPI.Endpoint})
+	isAvailable, _ := cloud.IsKubernetesClusterAvailable(cluster)
+	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "data": cluster, "available": isAvailable, "Ip": cluster.KubernetesAPI.Endpoint})
 
 }
 
@@ -414,32 +365,21 @@ func UpdateCluster(c *gin.Context) {
 
 //FetchClusterConfig fetches a cluster config
 func FetchClusterConfig(c *gin.Context) {
-	var cluster cloud.ClusterType
-	clusterId := c.Param("id")
-
-	db.First(&cluster, clusterId)
-
-	if cluster.ID == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "No clusters found!"})
+	cloudCluster, err := GetCluster(c)
+	if err != nil {
 		return
 	}
-	clust, err := cloud.ReadCluster(cluster)
-	log.Info(clust.Name)
+	configPath, err := cloud.RetryGetConfig(cloudCluster, "")
+
 	if err != nil {
-		log.Info("Cluster read failed")
-	} else {
-		log.Info("Cluster read successful")
-		cloud.GetKubeConfig(clust)
-	}
-	configPath, err := cloud.RetryGetConfig(clust, "")
-	if err != nil {
-		c.JSON(http.StatusServiceUnavailable, gin.H{"status": http.StatusServiceUnavailable, "message": "Failed to get kubeconf. Cluster not ready yet.", "error": err})
+		errorMsg := fmt.Sprintf("Error read cluster config: %s", err)
+		c.JSON(http.StatusServiceUnavailable, gin.H{"status": http.StatusServiceUnavailable, "message": errorMsg})
 		return
 	}
+
 	data, err := ioutil.ReadFile(configPath)
-
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": "Failed to read kubeconf.", "error": err})
+		c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": err})
 		return
 	}
 	ctype := c.NegotiateFormat(gin.MIMEPlain, gin.MIMEJSON)
@@ -454,16 +394,11 @@ func FetchClusterConfig(c *gin.Context) {
 
 //GetClusterStatus retrieves the cluster status
 func GetClusterStatus(c *gin.Context) {
-	var cluster cloud.ClusterType
-	clusterId := c.Param("id")
-
-	db.First(&cluster, clusterId)
-
-	if cluster.ID == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "No clusters found!"})
+	cluster, err := GetClusterFromDB(c)
+	if err != nil {
 		return
 	}
-	clust, err := cloud.ReadCluster(cluster)
+	clust, err := cloud.ReadCluster(*cluster)
 	if err != nil {
 		log.Info("Cluster read failed")
 	} else {
@@ -480,16 +415,11 @@ func GetClusterStatus(c *gin.Context) {
 
 //GetTillerStatus checks if tiller ready to accept deployments
 func GetTillerStatus(c *gin.Context) {
-	var cluster cloud.ClusterType
-	clusterId := c.Param("id")
-
-	db.First(&cluster, clusterId)
-
-	if cluster.ID == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "No clusters found!"})
+	cluster, err := GetClusterFromDB(c)
+	if err != nil {
 		return
 	}
-	clust, err := cloud.ReadCluster(cluster)
+	clust, err := cloud.ReadCluster(*cluster)
 	if err != nil {
 		log.Info("Cluster read failed")
 	} else {
@@ -507,23 +437,12 @@ func GetTillerStatus(c *gin.Context) {
 
 //FetchDeploymentStatus check the status of the Helm deployment
 func FetchDeploymentStatus(c *gin.Context) {
-	var cluster cloud.ClusterType
-	clusterId := c.Param("id")
 	name := c.Param("name")
-	db.First(&cluster, clusterId)
-
-	if cluster.ID == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "No clusters found!"})
+	cloudCluster, err := GetCluster(c)
+	if err != nil {
 		return
 	}
-	clust, err := cloud.ReadCluster(cluster)
-	if err != nil {
-		log.Info("Cluster read failed")
-	} else {
-		log.Info("Cluster read successful")
-	}
-
-	chart, err := helm.ListDeployments(clust, &name)
+	chart, err := helm.ListDeployments(cloudCluster, &name)
 	if err != nil {
 		c.JSON(http.StatusServiceUnavailable, gin.H{"status": http.StatusServiceUnavailable, "message": "Tiller not available"})
 	}
@@ -546,4 +465,52 @@ func FetchDeploymentStatus(c *gin.Context) {
 //Auth0Test authN check
 func Auth0Test(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"Auth0": "authn and authz successful"})
+}
+
+//GetCluster from database
+//If no field param was specified automatically use value as ID
+//Else it will use field as query column name
+func GetClusterFromDB(c *gin.Context) (*cloud.ClusterType, error) {
+	var cluster cloud.ClusterType
+	value := c.Param("id")
+	field := c.DefaultQuery("field", "")
+	if field != "" {
+		query := fmt.Sprintf("%s = ?", field)
+		db.Where(query, value).First(&cluster)
+	} else {
+		db.First(&cluster, value)
+	}
+
+	if cluster.ID == 0 {
+		return nil, errors.New(fmt.Sprintf("cluster not found: [%s]: %s", field, value))
+	}
+	return &cluster, nil
+
+}
+
+//GetCluster based on ClusterType object
+//This will read the persisted Kubicorn cluster format
+func GetKubicornCluster(clusterType *cloud.ClusterType) (*cluster.Cluster, error) {
+	clust, err := cloud.ReadCluster(*clusterType)
+	if err != nil {
+		return nil, err
+	}
+	log.Info("Cluster read successful")
+	return clust, nil
+}
+
+func GetCluster(c *gin.Context) (*cluster.Cluster, error) {
+	clusterType, err := GetClusterFromDB(c)
+	if err != nil {
+		errorMsg := fmt.Sprintf("Error fetch cluster: %s", err)
+		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": errorMsg})
+		return nil, err
+	}
+	cluster, err := GetKubicornCluster(clusterType)
+	if err != nil {
+		errorMsg := fmt.Sprintf("Error read cluster: %s", err)
+		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": errorMsg})
+		return nil, err
+	}
+	return cluster, nil
 }

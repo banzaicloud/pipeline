@@ -108,9 +108,8 @@ func UpgradeDeployment(cluster *cluster.Cluster, deploymentName, chartName strin
 }
 
 //CreateDeployment creates a Helm deployment
-func CreateDeployment(cluster *cluster.Cluster, chartName string, valueOverrides []byte) (*rls.InstallReleaseResponse, error) {
-	//TODO value overrides
-	defer tearDown()
+func CreateDeployment(cluster *cluster.Cluster, chartName string, releaseName string, valueOverrides []byte) (*rls.InstallReleaseResponse, error) {
+  defer tearDown()
 	chartRequested, err := chartutil.Load(chartName)
 	if err != nil {
 		return nil, fmt.Errorf("Error loading chart: %v", err)
@@ -128,7 +127,9 @@ func CreateDeployment(cluster *cluster.Cluster, chartName string, valueOverrides
 		return nil, err
 	}
 	var namespace = "default"
-	var releaseName, _ = generateName("")
+	if len(strings.TrimSpace(releaseName)) == 0 {
+		releaseName, _ = generateName("")
+	}
 	hClient, err := getHelmClient(kubeConfig)
 	if err != nil {
 		return nil, err
