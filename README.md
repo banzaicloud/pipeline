@@ -4,7 +4,7 @@
 
 _Banzai Pipeline, or simply Pipeline is a tabletop reef break located in Hawaii, Oahu's North Shore. The most famous and infamous reef on the planet is forming the benchmark by which all other waves are measured._
 
-_Pipeline is a RESTful API to deploy "cloud-native" microservices in public cloud and on-premise. It simplifies and abstracts all the details of provisioning the cloud infrastructure, installing or reusing the Kubernetes cluster and deploying the application._
+_Pipeline is a RESTful API to deploy **cloud native** microservices in public cloud and on-premise. It simplifies and abstracts all the details of provisioning the cloud infrastructure, installing or reusing the Kubernetes cluster and deploying the application._
 
 <p align="center">
   <img width="139" height="197" src="docs/images/warning.jpg">
@@ -107,7 +107,7 @@ Pipeline PaaS allows enterprises to shift from a host-centric infrastructure to 
 #### Apache Spark
 
 One of the default `spotguides` describes an Apache Spark deployment. For further information about the Apache Spark `spotguide` please follow this [guide](docs/spotguides.md).
-A typical example of a Spark flow looks like this.
+A typical example of a Spark flow is this.
 
 ![Spark Flow](docs/images/spark-flow.png)
 
@@ -115,8 +115,8 @@ _Note: Spark on Kubernetes does not use YARN, all scheduling and resource manage
 
 #### Apache Zeppelin
 
-The Apache Zeppelin `spotguide` picks up a change in a Spark notebook and deploys and executes it on Kubernetes/cloud in cluster mode. For further information about the Apache Zeppelin `spotguide` please follow this [guide](docs/spotguides.md)
-A typical example of a Zeppelin flow looks like this.
+The Apache Zeppelin `spotguide` picks up a change in a Spark notebook and deploys and executes it on Kubernetes in cluster mode. For further information about the Apache Zeppelin `spotguide` please follow this [guide](docs/spotguides.md)
+A typical example of a Zeppelin flow is this.
 
 ![Zeppelin Flow](docs/images/zeppelin-flow.png)
 
@@ -128,9 +128,13 @@ The Apache Kafka `spotguide` has a good understanding of consumers and producers
 
 _Note: Kafka on Kubernetes does not use Zookeper at all. For all quotas, controller election, cluster membership and configuration it is using **etcd**, a faster and more reliable `cloud-native` distributed system for coordination and metadata storage._
 
-## Reporting bugs
+### Reporting bugs
 
-In case you have problems please open an [issue](https://github.com/banzaicloud/pipeline/issues) on GitHub. Also note that _Pipeline is experimental, under development and does not have a stable release yet. If in doubt, don't go out._
+In case you have problems please open an [issue](https://github.com/banzaicloud/pipeline/issues) on GitHub. Please note that _Pipeline is experimental, under development and does not have a stable release yet. If in doubt, don't go out._
+
+### Contributing
+
+Please read CONTRIBUTING.md for details on the code of conduct, and the process for submitting pull requests. When you are opening a PR to Pipeline the first time we will require you to sign a standard CLA. Thanks you for your contribution and being part of our community.
 
 ### License
 
