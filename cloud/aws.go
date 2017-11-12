@@ -127,7 +127,36 @@ func getAWSCluster(clusterType ClusterType) *cluster.Cluster {
 				BootstrapScripts: []string{
 					"amazon_k8s_ubuntu_16.04_node_pipeline.sh",
 				},
-				//IamInstanceProfile: "pipelineMasterProfile",
+				InstanceProfile: &cluster.IAMInstanceProfile{
+					Name: fmt.Sprintf("%s-KubicornNodeInstanceProfile", clusterType.Name),
+					Role: &cluster.IAMRole{
+						Name: fmt.Sprintf("%s-KubicornNodeRole", clusterType.Name),
+						Policies: []*cluster.IAMPolicy{
+							{
+								Name: "NodePolicy",
+								Document: `{
+                  "Version": "2012-10-17",
+                  "Statement": [
+                     {
+                        "Effect": "Allow",
+                        "Action": [
+            							"ec2:Describe*",
+            							"ecr:GetAuthorizationToken",
+            							"ecr:BatchCheckLayerAvailability",
+            							"ecr:GetDownloadUrlForLayer",
+            							"ecr:GetRepositoryPolicy",
+            							"ecr:DescribeRepositories",
+            							"ecr:ListImages",
+            							"ecr:BatchGetImage"
+                        ],
+                        "Resource": "*"
+                     }
+                  ]
+								}`,
+							},
+						},
+					},
+				},
 				Subnets: []*cluster.Subnet{
 					{
 						Name:     fmt.Sprintf("%s.node", clusterType.Name),
