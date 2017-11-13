@@ -12,9 +12,9 @@ hostnamectl set-hostname $(hostname -f)
 # touch /etc/apt/sources.list.d/kubernetes.list
 # sh -c 'echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" > /etc/apt/sources.list.d/kubernetes.list'
 
-apt-get update -y
-apt-get install -y \
-      jq
+#apt-get update -y
+#apt-get install -y \
+#      jq
 #     socat \
 #     ebtables \
 #     docker.io \

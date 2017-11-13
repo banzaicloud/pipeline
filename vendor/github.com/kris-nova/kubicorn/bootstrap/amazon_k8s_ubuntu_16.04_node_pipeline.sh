@@ -10,9 +10,9 @@ hostnamectl set-hostname $(hostname -f)
 #touch /etc/apt/sources.list.d/kubernetes.list
 #sh -c 'echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" > /etc/apt/sources.list.d/kubernetes.list'
 #
-apt-get update -y
-apt-get install -y \
-     jq
+#apt-get update -y
+#apt-get install -y \
+#     jq
 #    socat \
 #    ebtables \
 #    docker.io \
@@ -27,6 +27,9 @@ TOKEN=$(cat /etc/kubicorn/cluster.json | jq -r '.values.itemMap.INJECTEDTOKEN')
 MASTER=$(cat /etc/kubicorn/cluster.json | jq -r '.values.itemMap.INJECTEDMASTER')
 
 sed -i -e 's|Environment="KUBELET_CADVISOR_ARGS=--cadvisor-port=0"|Environment="KUBELET_CADVISOR_ARGS=--cadvisor-port=0"\nEnvironment="KUBELET_EXTRA_ARGS=--cloud-provider=aws"|' /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+
+systemctl daemon-reload
+systemctl restart kubelet.service
 
 kubeadm reset
 kubeadm join --token ${TOKEN} ${MASTER}

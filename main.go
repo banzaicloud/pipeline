@@ -166,7 +166,7 @@ func CreateDeployment(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": fmt.Sprintf("%s", err)})
 		return
 	}
-	releaseName := release.Release.Name	
+	releaseName := release.Release.Name
 	releaseNotes := release.Release.Info.Status.Notes
 
 	//Get ingress with deployment prefix TODO
@@ -370,7 +370,6 @@ func FetchClusterConfig(c *gin.Context) {
 		return
 	}
 	configPath, err := cloud.RetryGetConfig(cloudCluster, "")
-
 	if err != nil {
 		errorMsg := fmt.Sprintf("Error read cluster config: %s", err)
 		c.JSON(http.StatusServiceUnavailable, gin.H{"status": http.StatusServiceUnavailable, "message": errorMsg})
