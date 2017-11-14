@@ -14,6 +14,23 @@ _Pipeline is a RESTful API to deploy **cloud native** microservices in public cl
 
 _Pipeline uses and [contributes](https://github.com/kris-nova/kubicorn/issues?utf8=✓&q=author%3Amatyix%20) to Kubicorn and several projects in the Kubernetes ecosystem. Due to a recent common cluster API [agreement](https://github.com/kubernetes/kube-deploy/tree/master/cluster-api) in the Kubernetes ecosystem there will be a major API change [ongoing](https://github.com/kris-nova/kubicorn/issues/471) which affects the Pipeline API as well. Until these fixes are not merged upstream, backward compatibility is **NOT** expected._
 
+- [Pipeline](#pipeline)
+  - [Cloud providers](#cloud-providers)
+  - [Managed Kubernetes](#managed-kubernetes)
+- [Architecture overview](#architecture-overview)
+  - [Control plane](#control-plane)
+  - [Deployed cluster](#deployed-cluster)
+  - [The Pipeline Platform - PaaS](#the-pipeline-platform-paas)
+- [Installation](#installation)
+- [Create and scale your cluster](#create-and-scale-your-cluster)
+- [Spotguide specification](#spotguide-specification)
+  - [Big data](#big-data)
+  - [Apache Spark](#apache-spark)
+  - [Apache Zeppelin](#apache-zeppelin)
+  - [Apache Kafka](#apache-kafka)
+- [Reporting bugs](#reporting-bugs)
+- [Contributing](#contributing)
+- [License](#license)
 
 # Pipeline
 
@@ -67,13 +84,13 @@ All these components are assembled into a **Control Plane** - and deployed to Ku
 
 You can launch a Pipeline control plane on AWS with the following [Cloudformation](https://github.com/banzaicloud/pipeline-cp-launcher/blob/master/control-plane.template) template.
 
-### Infra, cluster and application deployment
+### Deployed cluster
 
 A typical cluster/application deployed with Pipeline - for an out of the box Spark/Zeppelin spotguide - looks like this.
 
 ![Deployed Cluster](docs/images/spark-cluster-aws.png)
 
-### The Pipeline Platform - PaaS
+### The Pipeline Platform PaaS
 
 Although this readme is about the **Pipeline API** itself, in order to briefly show the full picture and understand how Pipeline is a core part and the engine behind, please find below a typical platform overview - again within the context of an out of the box Spark/Zeppelin spotguide.
 
