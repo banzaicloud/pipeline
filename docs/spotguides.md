@@ -6,7 +6,7 @@ One of the default spotguides is for Apache Spark. There are many examples on ho
 
 A typical example of a Spark flow looks like this:
 
-![Spark Flow](docs/images/spark-flow.png)
+![Spark Flow](../docs/images/spark-flow.png)
 
 
 #### Apache Zeppelin
@@ -15,7 +15,7 @@ The Apache Zeppelin spotguide picks up a change in a Spark notebook and deploys 
 
 A typical example of a Zeppelin flow looks like this:
 
-![Zeppelin Flow](docs/images/zeppelin-flow.png)
+![Zeppelin Flow](../docs/images/zeppelin-flow.png)
 
 #### Apache Kafka 
 
