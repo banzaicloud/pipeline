@@ -6,7 +6,7 @@ One of the default spotguides is for Apache Spark. There are many examples on ho
 
 A typical example of a Spark flow looks like this:
 
-![Spark Flow](docs/images/spark-flow.png)
+![Spark Flow](../docs/images/spark-flow.png)
 
 
 #### Apache Zeppelin
