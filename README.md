@@ -90,7 +90,7 @@ A typical cluster/application deployed with Pipeline - for an out of the box Spa
 
 ![Deployed Cluster](docs/images/spark-cluster-aws.png)
 
-### The Pipeline Platform - PaaS
+### The Pipeline Platform PaaS
 
 Although this readme is about the **Pipeline API** itself, in order to briefly show the full picture and understand how Pipeline is a core part and the engine behind, please find below a typical platform overview - again within the context of an out of the box Spark/Zeppelin spotguide.
 
