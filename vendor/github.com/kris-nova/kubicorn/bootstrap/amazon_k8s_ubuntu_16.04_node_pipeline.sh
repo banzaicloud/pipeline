@@ -31,5 +31,12 @@ sed -i -e 's|Environment="KUBELET_CADVISOR_ARGS=--cadvisor-port=0"|Environment="
 systemctl daemon-reload
 systemctl restart kubelet.service
 
-kubeadm reset
-kubeadm join --token ${TOKEN} ${MASTER}
+export KUBECONFIG=/etc/kubernetes/kubelet.conf
+
+until kubectl get node
+do
+  echo "Waiting...."
+  kubeadm reset
+  kubeadm join --token ${TOKEN} ${MASTER}
+  sleep 10
+done
