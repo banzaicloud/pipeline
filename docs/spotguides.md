@@ -15,7 +15,7 @@ The Apache Zeppelin spotguide picks up a change in a Spark notebook and deploys 
 
 A typical example of a Zeppelin flow looks like this:
 
-![Zeppelin Flow](docs/images/zeppelin-flow.png)
+![Zeppelin Flow](../docs/images/zeppelin-flow.png)
 
 #### Apache Kafka 
 
