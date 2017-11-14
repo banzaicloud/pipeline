@@ -18,7 +18,19 @@ _Pipeline uses and [contributes](https://github.com/kris-nova/kubicorn/issues?ut
   - [Cloud providers](#cloud-providers)
   - [Managed Kubernetes](#managed-kubernetes)
 - [Architecture overview](#architecture-overview)
-
+  - [Control plane](#control-plane)
+  - [Deployed cluster](#deployed-cluster)
+  - [The Pipeline Platform - PaaS](#the-pipeline-platform-paas)
+- [Installation](#installation)
+- [Create and scale your cluster](#create-and-scale-your-cluster)
+- [Spotguide specification](#spotguide-specification)
+  - [Big data](#big-data)
+  - [Apache Spark](#apache-spark)
+  - [Apache Zeppelin](#apache-zeppelin)
+  - [Apache Kafka](#apache-kafka)
+- [Reporting bugs](#reporting-bugs)
+- [Contributing](#contributing)
+- [License](#license)
 
 # Pipeline
 
@@ -72,7 +84,7 @@ All these components are assembled into a **Control Plane** - and deployed to Ku
 
 You can launch a Pipeline control plane on AWS with the following [Cloudformation](https://github.com/banzaicloud/pipeline-cp-launcher/blob/master/control-plane.template) template.
 
-### Infra, cluster and application deployment
+### Deployed cluster
 
 A typical cluster/application deployed with Pipeline - for an out of the box Spark/Zeppelin spotguide - looks like this.
 
