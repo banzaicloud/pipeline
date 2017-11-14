@@ -14,6 +14,11 @@ _Pipeline is a RESTful API to deploy **cloud native** microservices in public cl
 
 _Pipeline uses and [contributes](https://github.com/kris-nova/kubicorn/issues?utf8=✓&q=author%3Amatyix%20) to Kubicorn and several projects in the Kubernetes ecosystem. Due to a recent common cluster API [agreement](https://github.com/kubernetes/kube-deploy/tree/master/cluster-api) in the Kubernetes ecosystem there will be a major API change [ongoing](https://github.com/kris-nova/kubicorn/issues/471) which affects the Pipeline API as well. Until these fixes are not merged upstream, backward compatibility is **NOT** expected._
 
+- [Pipeline](#pipeline)
+  - [Cloud providers](#cloud-providers)
+  - [Managed Kubernetes](#managed-kubernetes)
+- [Architecture overview](#architecture-overview)
+
 
 # Pipeline
 
