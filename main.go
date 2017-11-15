@@ -173,7 +173,7 @@ func CreateDeployment(c *gin.Context) {
 	//Get local ingress address?
 	deploymentUrl := fmt.Sprintf("http://%s:30080/zeppelin/", cloudCluster.KubernetesAPI.Endpoint)
 	notify.SlackNotify(fmt.Sprintf("Deployment Created: %s", deploymentUrl))
-	c.JSON(http.StatusOK, gin.H{"release_name": releaseName, "url": deploymentUrl, "notes": releaseNotes})
+	c.JSON(http.StatusCreated, gin.H{"release_name": releaseName, "url": deploymentUrl, "notes": releaseNotes})
 	return
 }
 
