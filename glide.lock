@@ -11,7 +11,7 @@ imports:
 - name: github.com/auth0-community/go-auth0
   version: 9ebd072c579e8060c6d60690e9dffd3b79718992
 - name: github.com/aws/aws-sdk-go
-  version: 63ce630574a5ec05ecd8e8de5cea16332a5a684d
+  version: b33b08175d12b795daa7726c5577b39d06a2551c
   subpackages:
   - aws
   - aws/awserr
@@ -482,7 +482,7 @@ imports:
 - name: gopkg.in/yaml.v2
   version: 53feefa2559fb8dfa8d81baad31be332c97d6c77
 - name: k8s.io/api
-  version: a302fba76bd80836fb4755b5fb89a1ca0df24c5b
+  version: fe29995db37613b9c5b2a647544cf627bfa8d299
   subpackages:
   - admissionregistration/v1alpha1
   - apps/v1
@@ -510,11 +510,11 @@ imports:
   - storage/v1
   - storage/v1beta1
 - name: k8s.io/apiextensions-apiserver
-  version: 51a1910459f074162eb4e25233e461fe91e99405
+  version: 89b2a556a65053a90552eaed26f810df4a266367
   subpackages:
   - pkg/features
 - name: k8s.io/apimachinery
-  version: 9803991b41b5fcfc77691455885b65f7b86ca82a
+  version: 019ae5ada31de202164b118aee88ee2d14075c31
   subpackages:
   - pkg/api/equality
   - pkg/api/errors
@@ -570,7 +570,7 @@ imports:
   - third_party/forked/golang/netutil
   - third_party/forked/golang/reflect
 - name: k8s.io/apiserver
-  version: 7001bc4df8883d4a0ec84cd4b2117655a0009b6c
+  version: a35277792fddcf69f8cbbb8a9cb7727b23077409
   subpackages:
   - pkg/apis/audit
   - pkg/authentication/authenticator
@@ -581,7 +581,7 @@ imports:
   - pkg/util/feature
   - pkg/util/flag
 - name: k8s.io/client-go
-  version: dbe8fe09ed1682bc26b4e55cac5ef65dcd7664e9
+  version: 35874c597fed17ca62cd197e516d7d5ff9a2958c
   subpackages:
   - discovery
   - dynamic
@@ -664,7 +664,7 @@ imports:
   - pkg/timeconv
   - pkg/version
 - name: k8s.io/kube-openapi
-  version: 61b46af70dfed79c6d24530cd23b41440a7f22a5
+  version: 868f2f29720b192240e18284659231b440f9cda5
   subpackages:
   - pkg/common
 - name: k8s.io/kubernetes
@@ -819,7 +819,7 @@ imports:
   - plugin/pkg/scheduler/util
   - staging/src/k8s.io/apimachinery/pkg/util/rand
 - name: k8s.io/metrics
-  version: 57c465e2a974054e05a96b787009f81bc010092a
+  version: b0f5364407d443bf5ddcbf955ed046129aaa8842
   subpackages:
   - pkg/apis/metrics
   - pkg/apis/metrics/v1alpha1
