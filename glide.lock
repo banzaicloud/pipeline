@@ -11,7 +11,7 @@ imports:
 - name: github.com/auth0-community/go-auth0
   version: 9ebd072c579e8060c6d60690e9dffd3b79718992
 - name: github.com/aws/aws-sdk-go
-  version: 63ce630574a5ec05ecd8e8de5cea16332a5a684d
+  version: b33b08175d12b795daa7726c5577b39d06a2551c
   subpackages:
   - aws
   - aws/awserr
@@ -569,7 +569,7 @@ imports:
   - third_party/forked/golang/netutil
   - third_party/forked/golang/reflect
 - name: k8s.io/apiserver
-  version: f9b476d61dbdf6474e3d42cc5e854d0d8b7f759e
+  version: a35277792fddcf69f8cbbb8a9cb7727b23077409
   subpackages:
   - pkg/apis/audit
   - pkg/authentication/authenticator
@@ -580,7 +580,7 @@ imports:
   - pkg/util/feature
   - pkg/util/flag
 - name: k8s.io/client-go
-  version: 9f1049ed58758ba418b1072f24278cd22c5930aa
+  version: 35874c597fed17ca62cd197e516d7d5ff9a2958c
   subpackages:
   - discovery
   - dynamic
