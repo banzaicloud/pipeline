@@ -1,0 +1,52 @@
+package: github.com/banzaicloud/pipeline
+import:
+- package: github.com/Masterminds/sprig
+- package: github.com/auth0-community/go-auth0
+- package: github.com/ghodss/yaml
+- package: github.com/gin-contrib/cors
+- package: github.com/gin-gonic/gin
+- package: github.com/go-errors/errors
+- package: github.com/jinzhu/gorm
+  subpackages:
+  - dialects/mysql
+- package: github.com/kris-nova/kubicorn
+  subpackages:
+  - apis/cluster
+  - cutil
+  - cutil/initapi
+  - cutil/kubeadm
+  - cutil/logger
+  - cutil/uuid
+  - state
+  - state/fs
+- package: github.com/pkg/sftp
+- package: github.com/sirupsen/logrus
+- package: github.com/spf13/viper
+- package: golang.org/x/crypto
+  subpackages:
+  - ssh
+  - ssh/agent
+  - ssh/terminal
+- package: gopkg.in/square/go-jose.v2
+- package: k8s.io/api
+  subpackages:
+  - core/v1
+- package: k8s.io/apimachinery
+  subpackages:
+  - pkg/apis/meta/v1
+  - pkg/fields
+- package: k8s.io/client-go
+  subpackages:
+  - kubernetes
+  - kubernetes/typed/core/v1
+  - rest
+  - tools/clientcmd
+- package: k8s.io/helm
+  subpackages:
+  - pkg/chartutil
+  - pkg/helm
+  - pkg/helm/portforwarder
+  - pkg/kube
+  - pkg/proto/hapi/chart
+  - pkg/proto/hapi/services
+  - pkg/timeconv
