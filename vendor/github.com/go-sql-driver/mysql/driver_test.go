@@ -27,6 +27,12 @@ import (
 	"time"
 )
 
+// Ensure that all the driver interfaces are implemented
+var (
+	_ driver.Rows = &binaryRows{}
+	_ driver.Rows = &textRows{}
+)
+
 var (
 	user      string
 	pass      string
@@ -63,7 +69,7 @@ func init() {
 	addr = env("MYSQL_TEST_ADDR", "localhost:3306")
 	dbname = env("MYSQL_TEST_DBNAME", "gotest")
 	netAddr = fmt.Sprintf("%s(%s)", prot, addr)
-	dsn = fmt.Sprintf("%s:%s@%s/%s?timeout=30s&strict=true", user, pass, netAddr, dbname)
+	dsn = fmt.Sprintf("%s:%s@%s/%s?timeout=30s", user, pass, netAddr, dbname)
 	c, err := net.Dial(prot, addr)
 	if err == nil {
 		available = true
@@ -169,6 +175,17 @@ func (dbt *DBTest) mustQuery(query string, args ...interface{}) (rows *sql.Rows)
 		dbt.fail("query", query, err)
 	}
 	return rows
+}
+
+func maybeSkip(t *testing.T, err error, skipErrno uint16) {
+	mySQLErr, ok := err.(*MySQLError)
+	if !ok {
+		return
+	}
+
+	if mySQLErr.Number == skipErrno {
+		t.Skipf("skipping test for error: %v", err)
+	}
 }
 
 func TestEmptyQuery(t *testing.T) {
@@ -684,7 +701,7 @@ func TestDateTime(t *testing.T) {
 				for _, setup := range setups.tests {
 					allowBinTime := true
 					if setup.s == "" {
-						// fill time string whereever Go can reliable produce it
+						// fill time string wherever Go can reliable produce it
 						setup.s = setup.t.Format(setups.tlayout)
 					} else if setup.s[0] == '!' {
 						// skip tests using setup.t as source in queries
@@ -856,14 +873,14 @@ func TestNULL(t *testing.T) {
 			dbt.Fatal(err)
 		}
 		if b != nil {
-			dbt.Error("non-nil []byte wich should be nil")
+			dbt.Error("non-nil []byte which should be nil")
 		}
 		// Read non-nil
 		if err = nonNullStmt.QueryRow().Scan(&b); err != nil {
 			dbt.Fatal(err)
 		}
 		if b == nil {
-			dbt.Error("nil []byte wich should be non-nil")
+			dbt.Error("nil []byte which should be non-nil")
 		}
 		// Insert nil
 		b = nil
@@ -953,7 +970,7 @@ func TestUint64(t *testing.T) {
 }
 
 func TestLongData(t *testing.T) {
-	runTests(t, dsn, func(dbt *DBTest) {
+	runTests(t, dsn+"&maxAllowedPacket=0", func(dbt *DBTest) {
 		var maxAllowedPacketSize int
 		err := dbt.db.QueryRow("select @@max_allowed_packet").Scan(&maxAllowedPacketSize)
 		if err != nil {
@@ -1054,22 +1071,36 @@ func TestLoadData(t *testing.T) {
 				dbt.Fatalf("rows count mismatch. Got %d, want 4", i)
 			}
 		}
-		file, err := ioutil.TempFile("", "gotest")
-		defer os.Remove(file.Name())
-		if err != nil {
-			dbt.Fatal(err)
-		}
-		file.WriteString("1\ta string\n2\ta string containing a \\t\n3\ta string containing a \\n\n4\ta string containing both \\t\\n\n")
-		file.Close()
 
 		dbt.db.Exec("DROP TABLE IF EXISTS test")
 		dbt.mustExec("CREATE TABLE test (id INT NOT NULL PRIMARY KEY, value TEXT NOT NULL) CHARACTER SET utf8")
 
 		// Local File
+		file, err := ioutil.TempFile("", "gotest")
+		defer os.Remove(file.Name())
+		if err != nil {
+			dbt.Fatal(err)
+		}
 		RegisterLocalFile(file.Name())
+
+		// Try first with empty file
+		dbt.mustExec(fmt.Sprintf("LOAD DATA LOCAL INFILE %q INTO TABLE test", file.Name()))
+		var count int
+		err = dbt.db.QueryRow("SELECT COUNT(*) FROM test").Scan(&count)
+		if err != nil {
+			dbt.Fatal(err.Error())
+		}
+		if count != 0 {
+			dbt.Fatalf("unexpected row count: got %d, want 0", count)
+		}
+
+		// Then fille File with data and try to load it
+		file.WriteString("1\ta string\n2\ta string containing a \\t\n3\ta string containing a \\n\n4\ta string containing both \\t\\n\n")
+		file.Close()
 		dbt.mustExec(fmt.Sprintf("LOAD DATA LOCAL INFILE %q INTO TABLE test", file.Name()))
 		verifyLoadDataResult()
-		// negative test
+
+		// Try with non-existing file
 		_, err = dbt.db.Exec("LOAD DATA LOCAL INFILE 'doesnotexist' INTO TABLE test")
 		if err == nil {
 			dbt.Fatal("load non-existent file didn't fail")
@@ -1141,84 +1172,6 @@ func TestFoundRows(t *testing.T) {
 		}
 		if count != 3 {
 			dbt.Fatalf("Expected 3 matched rows, got %d", count)
-		}
-	})
-}
-
-func TestStrict(t *testing.T) {
-	// ALLOW_INVALID_DATES to get rid of stricter modes - we want to test for warnings, not errors
-	relaxedDsn := dsn + "&sql_mode='ALLOW_INVALID_DATES,NO_AUTO_CREATE_USER'"
-	// make sure the MySQL version is recent enough with a separate connection
-	// before running the test
-	conn, err := MySQLDriver{}.Open(relaxedDsn)
-	if conn != nil {
-		conn.Close()
-	}
-	if me, ok := err.(*MySQLError); ok && me.Number == 1231 {
-		// Error 1231: Variable 'sql_mode' can't be set to the value of 'ALLOW_INVALID_DATES'
-		// => skip test, MySQL server version is too old
-		return
-	}
-	runTests(t, relaxedDsn, func(dbt *DBTest) {
-		dbt.mustExec("CREATE TABLE test (a TINYINT NOT NULL, b CHAR(4))")
-
-		var queries = [...]struct {
-			in    string
-			codes []string
-		}{
-			{"DROP TABLE IF EXISTS no_such_table", []string{"1051"}},
-			{"INSERT INTO test VALUES(10,'mysql'),(NULL,'test'),(300,'Open Source')", []string{"1265", "1048", "1264", "1265"}},
-		}
-		var err error
-
-		var checkWarnings = func(err error, mode string, idx int) {
-			if err == nil {
-				dbt.Errorf("expected STRICT error on query [%s] %s", mode, queries[idx].in)
-			}
-
-			if warnings, ok := err.(MySQLWarnings); ok {
-				var codes = make([]string, len(warnings))
-				for i := range warnings {
-					codes[i] = warnings[i].Code
-				}
-				if len(codes) != len(queries[idx].codes) {
-					dbt.Errorf("unexpected STRICT error count on query [%s] %s: Wanted %v, Got %v", mode, queries[idx].in, queries[idx].codes, codes)
-				}
-
-				for i := range warnings {
-					if codes[i] != queries[idx].codes[i] {
-						dbt.Errorf("unexpected STRICT error codes on query [%s] %s: Wanted %v, Got %v", mode, queries[idx].in, queries[idx].codes, codes)
-						return
-					}
-				}
-
-			} else {
-				dbt.Errorf("unexpected error on query [%s] %s: %s", mode, queries[idx].in, err.Error())
-			}
-		}
-
-		// text protocol
-		for i := range queries {
-			_, err = dbt.db.Exec(queries[i].in)
-			checkWarnings(err, "text", i)
-		}
-
-		var stmt *sql.Stmt
-
-		// binary protocol
-		for i := range queries {
-			stmt, err = dbt.db.Prepare(queries[i].in)
-			if err != nil {
-				dbt.Errorf("error on preparing query %s: %s", queries[i].in, err.Error())
-			}
-
-			_, err = stmt.Exec()
-			checkWarnings(err, "binary", i)
-
-			err = stmt.Close()
-			if err != nil {
-				dbt.Errorf("error on closing stmt for query %s: %s", queries[i].in, err.Error())
-			}
 		}
 	})
 }
@@ -1422,7 +1375,6 @@ func TestTimezoneConversion(t *testing.T) {
 
 	// Regression test for timezone handling
 	tzTest := func(dbt *DBTest) {
-
 		// Create table
 		dbt.mustExec("CREATE TABLE test (ts TIMESTAMP)")
 
@@ -1739,7 +1691,7 @@ func TestCustomDial(t *testing.T) {
 		return net.Dial(prot, addr)
 	})
 
-	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@mydial(%s)/%s?timeout=30s&strict=true", user, pass, addr, dbname))
+	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@mydial(%s)/%s?timeout=30s", user, pass, addr, dbname))
 	if err != nil {
 		t.Fatalf("error connecting: %s", err.Error())
 	}
@@ -1836,7 +1788,7 @@ func TestUnixSocketAuthFail(t *testing.T) {
 			}
 		}
 		t.Logf("socket: %s", socket)
-		badDSN := fmt.Sprintf("%s:%s@unix(%s)/%s?timeout=30s&strict=true", user, badPass, socket, dbname)
+		badDSN := fmt.Sprintf("%s:%s@unix(%s)/%s?timeout=30s", user, badPass, socket, dbname)
 		db, err := sql.Open("mysql", badDSN)
 		if err != nil {
 			t.Fatalf("error connecting: %s", err.Error())
@@ -1899,6 +1851,80 @@ func TestInterruptBySignal(t *testing.T) {
 			} else if val != 42 {
 				dbt.Errorf("expected val to be 42")
 			}
+		}
+	})
+}
+
+func TestColumnsReusesSlice(t *testing.T) {
+	rows := mysqlRows{
+		rs: resultSet{
+			columns: []mysqlField{
+				{
+					tableName: "test",
+					name:      "A",
+				},
+				{
+					tableName: "test",
+					name:      "B",
+				},
+			},
+		},
+	}
+
+	allocs := testing.AllocsPerRun(1, func() {
+		cols := rows.Columns()
+
+		if len(cols) != 2 {
+			t.Fatalf("expected 2 columns, got %d", len(cols))
+		}
+	})
+
+	if allocs != 0 {
+		t.Fatalf("expected 0 allocations, got %d", int(allocs))
+	}
+
+	if rows.rs.columnNames == nil {
+		t.Fatalf("expected columnNames to be set, got nil")
+	}
+}
+
+func TestRejectReadOnly(t *testing.T) {
+	runTests(t, dsn, func(dbt *DBTest) {
+		// Create Table
+		dbt.mustExec("CREATE TABLE test (value BOOL)")
+		// Set the session to read-only. We didn't set the `rejectReadOnly`
+		// option, so any writes after this should fail.
+		_, err := dbt.db.Exec("SET SESSION TRANSACTION READ ONLY")
+		// Error 1193: Unknown system variable 'TRANSACTION' => skip test,
+		// MySQL server version is too old
+		maybeSkip(t, err, 1193)
+		if _, err := dbt.db.Exec("DROP TABLE test"); err == nil {
+			t.Fatalf("writing to DB in read-only session without " +
+				"rejectReadOnly did not error")
+		}
+		// Set the session back to read-write so runTests() can properly clean
+		// up the table `test`.
+		dbt.mustExec("SET SESSION TRANSACTION READ WRITE")
+	})
+
+	// Enable the `rejectReadOnly` option.
+	runTests(t, dsn+"&rejectReadOnly=true", func(dbt *DBTest) {
+		// Create Table
+		dbt.mustExec("CREATE TABLE test (value BOOL)")
+		// Set the session to read only. Any writes after this should error on
+		// a driver.ErrBadConn, and cause `database/sql` to initiate a new
+		// connection.
+		dbt.mustExec("SET SESSION TRANSACTION READ ONLY")
+		// This would error, but `database/sql` should automatically retry on a
+		// new connection which is not read-only, and eventually succeed.
+		dbt.mustExec("DROP TABLE test")
+	})
+}
+
+func TestPing(t *testing.T) {
+	runTests(t, dsn, func(dbt *DBTest) {
+		if err := dbt.db.Ping(); err != nil {
+			dbt.fail("Ping", "Ping", err)
 		}
 	})
 }

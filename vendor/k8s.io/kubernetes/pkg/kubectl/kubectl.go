@@ -135,6 +135,10 @@ var ResourcesShortcutStatic = []ResourceShortcuts{
 		LongForm:  schema.GroupResource{Group: "extensions", Resource: "ingresses"},
 	},
 	{
+		ShortForm: schema.GroupResource{Group: "extensions", Resource: "netpol"},
+		LongForm:  schema.GroupResource{Group: "extensions", Resource: "networkpolicies"},
+	},
+	{
 		ShortForm: schema.GroupResource{Group: "extensions", Resource: "psp"},
 		LongForm:  schema.GroupResource{Group: "extensions", Resource: "podSecurityPolicies"},
 	},
@@ -208,7 +212,10 @@ func parseFileSource(source string) (keyName, filePath string, err error) {
 	}
 }
 
-// parseLiteralSource parses the source key=val pair
+// parseLiteralSource parses the source key=val pair into its component pieces.
+// This functionality is distinguished from strings.SplitN(source, "=", 2) since
+// it returns an error in the case of empty keys, values, or a missing equals
+// sign.
 func parseLiteralSource(source string) (keyName, value string, err error) {
 	// leading equal is invalid
 	if strings.Index(source, "=") == 0 {

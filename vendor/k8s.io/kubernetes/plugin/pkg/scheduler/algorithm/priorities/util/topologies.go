@@ -17,11 +17,9 @@ limitations under the License.
 package util
 
 import (
+	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/sets"
-	utilfeature "k8s.io/apiserver/pkg/util/feature"
-	"k8s.io/kubernetes/pkg/api/v1"
-	"k8s.io/kubernetes/pkg/features"
 )
 
 // GetNamespacesFromPodAffinityTerm returns a set of names
@@ -56,7 +54,20 @@ func NodesHaveSameTopologyKey(nodeA, nodeB *v1.Node, topologyKey string) bool {
 	if len(topologyKey) == 0 {
 		return false
 	}
-	return nodeA.Labels != nil && nodeB.Labels != nil && len(nodeA.Labels[topologyKey]) > 0 && nodeA.Labels[topologyKey] == nodeB.Labels[topologyKey]
+
+	if nodeA.Labels == nil || nodeB.Labels == nil {
+		return false
+	}
+
+	nodeALabel, okA := nodeA.Labels[topologyKey]
+	nodeBLabel, okB := nodeB.Labels[topologyKey]
+
+	// If found label in both nodes, check the label
+	if okB && okA {
+		return nodeALabel == nodeBLabel
+	}
+
+	return false
 }
 
 type Topologies struct {
@@ -64,17 +75,6 @@ type Topologies struct {
 }
 
 // NodesHaveSameTopologyKey checks if nodeA and nodeB have same label value with given topologyKey as label key.
-// If the topologyKey is empty, check if the two nodes have any of the default topologyKeys, and have same corresponding label value.
 func (tps *Topologies) NodesHaveSameTopologyKey(nodeA, nodeB *v1.Node, topologyKey string) bool {
-	if utilfeature.DefaultFeatureGate.Enabled(features.AffinityInAnnotations) && len(topologyKey) == 0 {
-		// assumes this is allowed only for PreferredDuringScheduling pod anti-affinity (ensured by api/validation)
-		for _, defaultKey := range tps.DefaultKeys {
-			if NodesHaveSameTopologyKey(nodeA, nodeB, defaultKey) {
-				return true
-			}
-		}
-		return false
-	} else {
-		return NodesHaveSameTopologyKey(nodeA, nodeB, topologyKey)
-	}
+	return NodesHaveSameTopologyKey(nodeA, nodeB, topologyKey)
 }

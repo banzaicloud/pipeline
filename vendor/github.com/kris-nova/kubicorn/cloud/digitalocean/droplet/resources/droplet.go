@@ -24,8 +24,8 @@ import (
 	"github.com/digitalocean/godo"
 	"github.com/kris-nova/klone/pkg/local"
 	"github.com/kris-nova/kubicorn/apis/cluster"
-	"github.com/kris-nova/kubicorn/bootstrap"
 	"github.com/kris-nova/kubicorn/cloud"
+	"github.com/kris-nova/kubicorn/cutil/agent"
 	"github.com/kris-nova/kubicorn/cutil/compare"
 	"github.com/kris-nova/kubicorn/cutil/defaults"
 	"github.com/kris-nova/kubicorn/cutil/logger"
@@ -120,10 +120,7 @@ func (r *Droplet) Apply(actual, expected cloud.Resource, immutable *cluster.Clus
 		return immutable, applyResource, nil
 	}
 
-	userData, err := script.BuildBootstrapScript(r.ServerPool.BootstrapScripts, immutable)
-	if err != nil {
-		return nil, nil, err
-	}
+	agent := agent.NewAgent()
 
 	//masterIpPrivate := ""
 	masterIPPublic := ""
@@ -157,7 +154,7 @@ func (r *Droplet) Apply(actual, expected cloud.Resource, immutable *cluster.Clus
 			droplet := droplets[0]
 			//masterIpPrivate, err = droplet.PrivateIPv4()
 			//if err != nil {
-			//	return nil, fmt.Errorf("Unable to detect private IP: %v", err)
+			//	return nil, nil, fmt.Errorf("Unable to detect private IP: %v", err)
 			//}
 			masterIPPublic, err = droplet.PublicIPv4()
 			if err != nil {
@@ -167,7 +164,7 @@ func (r *Droplet) Apply(actual, expected cloud.Resource, immutable *cluster.Clus
 			logger.Info("Setting up VPN on Droplets... this could take a little bit longer...")
 			pubPath := local.Expand(immutable.SSH.PublicKeyPath)
 			privPath := strings.Replace(pubPath, ".pub", "", 1)
-			scp := scp.NewSecureCopier(immutable.SSH.User, masterIPPublic, "22", privPath)
+			scp := scp.NewSecureCopier(immutable.SSH.User, masterIPPublic, "22", privPath, agent)
 			masterVpnIP, err := scp.ReadBytes("/tmp/.ip")
 			if err != nil {
 				logger.Debug("Hanging for VPN IP.. /tmp/.ip (%v)", err)
@@ -195,7 +192,8 @@ func (r *Droplet) Apply(actual, expected cloud.Resource, immutable *cluster.Clus
 	}
 
 	immutable.Values.ItemMap["INJECTEDPORT"] = immutable.KubernetesAPI.Port
-	userData, err = bootstrap.Inject(userData, immutable.Values.ItemMap)
+
+	userData, err := script.BuildBootstrapScript(r.ServerPool.BootstrapScripts, immutable)
 	if err != nil {
 		return nil, nil, err
 	}

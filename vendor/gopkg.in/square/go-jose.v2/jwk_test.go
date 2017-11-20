@@ -28,6 +28,8 @@ import (
 	"reflect"
 	"testing"
 
+	"golang.org/x/crypto/ed25519"
+
 	"gopkg.in/square/go-jose.v2/json"
 )
 
@@ -235,7 +237,7 @@ func TestRoundtripX5C(t *testing.T) {
 func TestMarshalUnmarshal(t *testing.T) {
 	kid := "DEADBEEF"
 
-	for i, key := range []interface{}{ecTestKey256, ecTestKey384, ecTestKey521, rsaTestKey} {
+	for i, key := range []interface{}{ecTestKey256, ecTestKey384, ecTestKey521, rsaTestKey, ed25519PrivateKey} {
 		for _, use := range []string{"", "sig", "enc"} {
 			jwk := JSONWebKey{Key: key, KeyID: kid, Algorithm: "foo"}
 			if use != "" {
@@ -398,6 +400,14 @@ var cookbookJWKs = []string{
          SsUdaQkAgDPrwQrJmbnX9cwlGfP-HqHZR1"
    }`),
 
+	//ED Private
+	stripWhitespace(`{
+     "kty": "OKP",
+     "crv": "Ed25519",
+     "d": "nWGxne_9WmC6hEr0kuwsxERJxWl7MmkZcDusAxyuf2A",
+     "x": "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo"
+   }`),
+
 	// EC Private
 	stripWhitespace(`{
      "kty": "EC",
@@ -496,6 +506,7 @@ var cookbookJWKs = []string{
 // SHA-256 thumbprints of the above keys, hex-encoded
 var cookbookJWKThumbprints = []string{
 	"747ae2dd2003664aeeb21e4753fe7402846170a16bc8df8f23a8cf06d3cbe793",
+	"f6934029a341ddf81dceb753e91d17efe16664f40d9f4ed84bc5ea87e111f29d",
 	"747ae2dd2003664aeeb21e4753fe7402846170a16bc8df8f23a8cf06d3cbe793",
 	"f63838e96077ad1fc01c3f8405774dedc0641f558ebb4b40dccf5f9b6d66a932",
 	"0fc478f8579325fcee0d4cbc6d9d1ce21730a6e97e435d6008fb379b0ebe47d4",
@@ -633,10 +644,38 @@ func TestJWKSymmetricInvalid(t *testing.T) {
 	}
 }
 
+func TestJWKIsPublic(t *testing.T) {
+	bigInt := big.NewInt(0)
+	eccPub := ecdsa.PublicKey{elliptic.P256(), bigInt, bigInt}
+	rsaPub := rsa.PublicKey{bigInt, 1}
+
+	cases := []struct {
+		key              interface{}
+		expectedIsPublic bool
+	}{
+		{&eccPub, true},
+		{&ecdsa.PrivateKey{eccPub, bigInt}, false},
+		{&rsaPub, true},
+		{&rsa.PrivateKey{rsaPub, bigInt, []*big.Int{bigInt, bigInt}, rsa.PrecomputedValues{}}, false},
+		{&ed25519PublicKey, true},
+		{&ed25519PrivateKey, false},
+	}
+
+	for _, tc := range cases {
+		k := &JSONWebKey{Key: tc.key}
+		if public := k.IsPublic(); public != tc.expectedIsPublic {
+			t.Errorf("expected IsPublic to return %t, got %t", tc.expectedIsPublic, public)
+		}
+	}
+}
+
 func TestJWKValid(t *testing.T) {
 	bigInt := big.NewInt(0)
 	eccPub := ecdsa.PublicKey{elliptic.P256(), bigInt, bigInt}
 	rsaPub := rsa.PublicKey{bigInt, 1}
+	edPubEmpty := ed25519.PublicKey([]byte{})
+	edPrivEmpty := ed25519.PublicKey([]byte{})
+
 	cases := []struct {
 		key              interface{}
 		expectedValidity bool
@@ -650,6 +689,10 @@ func TestJWKValid(t *testing.T) {
 		{&rsaPub, true},
 		{&rsa.PrivateKey{}, false},
 		{&rsa.PrivateKey{rsaPub, bigInt, []*big.Int{bigInt, bigInt}, rsa.PrecomputedValues{}}, true},
+		{&ed25519PublicKey, true},
+		{&ed25519PrivateKey, true},
+		{&edPubEmpty, false},
+		{&edPrivEmpty, false},
 	}
 
 	for _, tc := range cases {

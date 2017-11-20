@@ -21,7 +21,6 @@ import (
 	"strings"
 
 	"github.com/kris-nova/kubicorn/apis/cluster"
-	"github.com/kris-nova/kubicorn/bootstrap"
 	"github.com/kris-nova/kubicorn/cloud"
 	"github.com/kris-nova/kubicorn/cutil/compare"
 	"github.com/kris-nova/kubicorn/cutil/defaults"
@@ -49,6 +48,10 @@ const (
 	MasterIPAttempts = 40
 	// MasterIPSleepSecondsPerAttempt specifies how much time should pass after a failed attempt to get the master IP.
 	MasterIPSleepSecondsPerAttempt = 3
+	// DeleteAttempts specifies the amount of retries are allowed when trying to delete instance templates.
+	DeleteAttempts = 150
+	// RetrySleepSeconds specifies the time to sleep after a failed attempt to delete instance templates.
+	DeleteSleepSeconds = 5
 )
 
 // Actual is used to build a cluster based on instances on the cloud provider.
@@ -127,11 +130,6 @@ func (r *InstanceGroup) Apply(actual, expected cloud.Resource, immutable *cluste
 		return immutable, applyResource, nil
 	}
 
-	scripts, err := script.BuildBootstrapScript(r.ServerPool.BootstrapScripts, immutable)
-	if err != nil {
-		return nil, nil, err
-	}
-
 	masterIPPrivate := ""
 	masterIPPublic := ""
 	if r.ServerPool.Type == cluster.ServerPoolTypeNode {
@@ -191,19 +189,32 @@ func (r *InstanceGroup) Apply(actual, expected cloud.Resource, immutable *cluste
 	}
 
 	immutable.Values.ItemMap["INJECTEDPORT"] = immutable.KubernetesAPI.Port
-	scripts, err = bootstrap.Inject(scripts, immutable.Values.ItemMap)
+
+	scripts, err := script.BuildBootstrapScript(r.ServerPool.BootstrapScripts, immutable)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	finalScripts := string(scripts)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	tags := []string{}
-	if immutable.KubernetesAPI.Port == "443" {
-		tags = append(tags, "https-server")
+	if r.ServerPool.Type == cluster.ServerPoolTypeMaster {
+		if immutable.KubernetesAPI.Port == "443" {
+			tags = append(tags, "https-server")
+		}
+
+		if immutable.KubernetesAPI.Port == "80" {
+			tags = append(tags, "http-server")
+		}
+
+		tags = append(tags, "kubicorn-master")
 	}
 
-	if immutable.KubernetesAPI.Port == "80" {
-		tags = append(tags, "http-server")
+	if r.ServerPool.Type == cluster.ServerPoolTypeNode {
+		tags = append(tags, "kubicorn-node")
 	}
 
 	prefix := "https://www.googleapis.com/compute/v1/projects/" + immutable.CloudId
@@ -323,11 +334,22 @@ func (r *InstanceGroup) Delete(actual cloud.Resource, immutable *cluster.Cluster
 		return nil, nil, fmt.Errorf("Unable to delete instance resource without Name [%s]", deleteResource.Name)
 	}
 
-	_, err := Sdk.Service.InstanceGroupManagers.Delete(immutable.CloudId, immutable.Location, strings.ToLower(r.ServerPool.Name)).Do()
-	if err != nil {
-		return nil, nil, err
+	logger.Info("Deleting InstanceGroup manager [%s]", r.ServerPool.Name)
+	_, err := Sdk.Service.InstanceGroupManagers.Get(immutable.CloudId, immutable.Location, strings.ToLower(r.ServerPool.Name)).Do()
+	if err == nil {
+		_, err := Sdk.Service.InstanceGroupManagers.Delete(immutable.CloudId, immutable.Location, strings.ToLower(r.ServerPool.Name)).Do()
+		if err != nil {
+			return nil, nil, err
+		}
 	}
-	logger.Info("Deleted InstanceGroup manager [%s]", r.ServerPool.Name)
+
+	_, err = Sdk.Service.InstanceTemplates.Get(immutable.CloudId, strings.ToLower(r.ServerPool.Name)).Do()
+	if err == nil {
+		err := r.retryDeleteInstanceTemplate(immutable)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
 
 	// Kubernetes API
 	immutable.KubernetesAPI.Endpoint = ""
@@ -336,6 +358,19 @@ func (r *InstanceGroup) Delete(actual cloud.Resource, immutable *cluster.Cluster
 		return nil, nil, err
 	}
 	return renderedCluster, actual, nil
+}
+
+func (r *InstanceGroup) retryDeleteInstanceTemplate(immutable *cluster.Cluster) error {
+	for i := 0; i <= DeleteAttempts; i++ {
+		_, err := Sdk.Service.InstanceTemplates.Delete(immutable.CloudId, strings.ToLower(r.ServerPool.Name)).Do()
+		if err != nil {
+			logger.Debug("Waiting for InstanceTemplates.Delete to complete...")
+			time.Sleep(time.Duration(DeleteSleepSeconds) * time.Second)
+			continue
+		}
+		return nil
+	}
+	return fmt.Errorf("Timeout deleting instance templates")
 }
 
 func (r *InstanceGroup) immutableRender(newResource cloud.Resource, inaccurateCluster *cluster.Cluster) (*cluster.Cluster, error) {

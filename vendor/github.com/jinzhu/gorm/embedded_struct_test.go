@@ -8,14 +8,39 @@ type BasePost struct {
 	URL   string
 }
 
+type Author struct {
+	ID    string
+	Name  string
+	Email string
+}
+
 type HNPost struct {
 	BasePost
+	Author  `gorm:"embedded_prefix:user_"` // Embedded struct
 	Upvotes int32
 }
 
 type EngadgetPost struct {
 	BasePost BasePost `gorm:"embedded"`
+	Author   Author   `gorm:"embedded;embedded_prefix:author_"` // Embedded struct
 	ImageUrl string
+}
+
+func TestPrefixColumnNameForEmbeddedStruct(t *testing.T) {
+	dialect := DB.NewScope(&EngadgetPost{}).Dialect()
+	engadgetPostScope := DB.NewScope(&EngadgetPost{})
+	if !dialect.HasColumn(engadgetPostScope.TableName(), "author_id") || !dialect.HasColumn(engadgetPostScope.TableName(), "author_name") || !dialect.HasColumn(engadgetPostScope.TableName(), "author_email") {
+		t.Errorf("should has prefix for embedded columns")
+	}
+
+	if len(engadgetPostScope.PrimaryFields()) != 1 {
+		t.Errorf("should have only one primary field with embedded struct, but got %v", len(engadgetPostScope.PrimaryFields()))
+	}
+
+	hnScope := DB.NewScope(&HNPost{})
+	if !dialect.HasColumn(hnScope.TableName(), "user_id") || !dialect.HasColumn(hnScope.TableName(), "user_name") || !dialect.HasColumn(hnScope.TableName(), "user_email") {
+		t.Errorf("should has prefix for embedded columns")
+	}
 }
 
 func TestSaveAndQueryEmbeddedStruct(t *testing.T) {

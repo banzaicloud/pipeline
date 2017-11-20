@@ -2,6 +2,7 @@ package gorm_test
 
 import (
 	"fmt"
+	"os"
 	"reflect"
 	"sort"
 	"testing"
@@ -838,5 +839,69 @@ func TestForeignKey(t *testing.T) {
 				t.Errorf(fmt.Sprintf("%v should be foreign key", foreignKey))
 			}
 		}
+	}
+}
+
+func testForeignKey(t *testing.T, source interface{}, sourceFieldName string, target interface{}, targetFieldName string) {
+	if dialect := os.Getenv("GORM_DIALECT"); dialect == "" || dialect == "sqlite" {
+		// sqlite does not support ADD CONSTRAINT in ALTER TABLE
+		return
+	}
+	targetScope := DB.NewScope(target)
+	targetTableName := targetScope.TableName()
+	modelScope := DB.NewScope(source)
+	modelField, ok := modelScope.FieldByName(sourceFieldName)
+	if !ok {
+		t.Fatalf(fmt.Sprintf("Failed to get field by name: %v", sourceFieldName))
+	}
+	targetField, ok := targetScope.FieldByName(targetFieldName)
+	if !ok {
+		t.Fatalf(fmt.Sprintf("Failed to get field by name: %v", targetFieldName))
+	}
+	dest := fmt.Sprintf("%v(%v)", targetTableName, targetField.DBName)
+	err := DB.Model(source).AddForeignKey(modelField.DBName, dest, "CASCADE", "CASCADE").Error
+	if err != nil {
+		t.Fatalf(fmt.Sprintf("Failed to create foreign key: %v", err))
+	}
+}
+
+func TestLongForeignKey(t *testing.T) {
+	testForeignKey(t, &NotSoLongTableName{}, "ReallyLongThingID", &ReallyLongTableNameToTestMySQLNameLengthLimit{}, "ID")
+}
+
+func TestLongForeignKeyWithShortDest(t *testing.T) {
+	testForeignKey(t, &ReallyLongThingThatReferencesShort{}, "ShortID", &Short{}, "ID")
+}
+
+func TestHasManyChildrenWithOneStruct(t *testing.T) {
+	category := Category{
+		Name: "main",
+		Categories: []Category{
+			{Name: "sub1"},
+			{Name: "sub2"},
+		},
+	}
+
+	DB.Save(&category)
+}
+
+func TestSkipSaveAssociation(t *testing.T) {
+	type Company struct {
+		gorm.Model
+		Name string
+	}
+
+	type User struct {
+		gorm.Model
+		Name      string
+		CompanyID uint
+		Company   Company `gorm:"save_associations:false"`
+	}
+	DB.AutoMigrate(&Company{}, &User{})
+
+	DB.Save(&User{Name: "jinzhu", Company: Company{Name: "skip_save_association"}})
+
+	if !DB.Where("name = ?", "skip_save_association").First(&Company{}).RecordNotFound() {
+		t.Errorf("Company skip_save_association should not been saved")
 	}
 }

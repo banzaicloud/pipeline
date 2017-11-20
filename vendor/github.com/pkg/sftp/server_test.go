@@ -2,7 +2,6 @@ package sftp
 
 import (
 	"io"
-	"sync"
 	"testing"
 )
 
@@ -47,10 +46,8 @@ func (p sshFxpTestBadExtendedPacket) MarshalBinary() ([]byte, error) {
 
 // test that errors are sent back when we request an invalid extended packet operation
 func TestInvalidExtendedPacket(t *testing.T) {
-	client, server := clientServerPair(t)
+	client, _ := clientServerPair(t)
 	defer client.Close()
-	defer server.Close()
-
 	badPacket := sshFxpTestBadExtendedPacket{client.nextID(), "thisDoesn'tExist", "foobar"}
 	_, _, err := client.clientConn.sendPacket(badPacket)
 	if err == nil {
@@ -64,32 +61,4 @@ func TestInvalidExtendedPacket(t *testing.T) {
 		t.Fatal("expected error from closed connection")
 	}
 
-}
-
-// test that server handles concurrent requests correctly
-func TestConcurrentRequests(t *testing.T) {
-	client, server := clientServerPair(t)
-	defer client.Close()
-	defer server.Close()
-
-	concurrency := 2
-	var wg sync.WaitGroup
-	wg.Add(concurrency)
-
-	for i := 0; i < concurrency; i++ {
-		go func() {
-			defer wg.Done()
-
-			for j := 0; j < 1024; j++ {
-				f, err := client.Open("/etc/passwd")
-				if err != nil {
-					t.Errorf("failed to open file: %v", err)
-				}
-				if err := f.Close(); err != nil {
-					t.Errorf("failed t close file: %v", err)
-				}
-			}
-		}()
-	}
-	wg.Wait()
 }

@@ -35,9 +35,7 @@ import (
 	"k8s.io/kubernetes/pkg/api"
 	"k8s.io/kubernetes/pkg/api/testapi"
 	apitesting "k8s.io/kubernetes/pkg/api/testing"
-	"k8s.io/kubernetes/pkg/api/v1"
-	"k8s.io/kubernetes/pkg/apis/extensions"
-	uexec "k8s.io/kubernetes/pkg/util/exec"
+	"k8s.io/utils/exec"
 )
 
 func TestMerge(t *testing.T) {
@@ -47,10 +45,8 @@ func TestMerge(t *testing.T) {
 		fragment  string
 		expected  runtime.Object
 		expectErr bool
-		kind      string
 	}{
 		{
-			kind: "Pod",
 			obj: &api.Pod{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "foo",
@@ -67,7 +63,6 @@ func TestMerge(t *testing.T) {
 		/* TODO: uncomment this test once Merge is updated to use
 		strategic-merge-patch. See #8449.
 		{
-			kind: "Pod",
 			obj: &api.Pod{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "foo",
@@ -105,7 +100,6 @@ func TestMerge(t *testing.T) {
 			},
 		}, */
 		{
-			kind: "Pod",
 			obj: &api.Pod{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "foo",
@@ -136,20 +130,17 @@ func TestMerge(t *testing.T) {
 			},
 		},
 		{
-			kind:      "Pod",
 			obj:       &api.Pod{},
 			fragment:  "invalid json",
 			expected:  &api.Pod{},
 			expectErr: true,
 		},
 		{
-			kind:      "Service",
 			obj:       &api.Service{},
 			fragment:  `{ "apiVersion": "badVersion" }`,
 			expectErr: true,
 		},
 		{
-			kind: "Service",
 			obj: &api.Service{
 				Spec: api.ServiceSpec{},
 			},
@@ -168,7 +159,6 @@ func TestMerge(t *testing.T) {
 			},
 		},
 		{
-			kind: "Service",
 			obj: &api.Service{
 				Spec: api.ServiceSpec{
 					Selector: map[string]string{
@@ -190,7 +180,7 @@ func TestMerge(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		out, err := Merge(testapi.Default.Codec(), test.obj, test.fragment, test.kind)
+		out, err := Merge(testapi.Default.Codec(), test.obj, test.fragment)
 		if !test.expectErr {
 			if err != nil {
 				t.Errorf("testcase[%d], unexpected error: %v", i, err)
@@ -276,8 +266,8 @@ func TestCheckNoResourceMatchError(t *testing.T) {
 func TestCheckExitError(t *testing.T) {
 	testCheckError(t, []checkErrTestCase{
 		{
-			uexec.CodeExitError{Err: fmt.Errorf("pod foo/bar terminated"), Code: 42},
-			"",
+			exec.CodeExitError{Err: fmt.Errorf("pod foo/bar terminated"), Code: 42},
+			"pod foo/bar terminated",
 			42,
 		},
 	})
@@ -292,7 +282,7 @@ func testCheckError(t *testing.T, tests []checkErrTestCase) {
 	}
 
 	for _, test := range tests {
-		checkErr("", test.err, errHandle)
+		checkErr(test.err, errHandle)
 
 		if errReturned != test.expectedErr {
 			t.Fatalf("Got: %s, expected: %s", errReturned, test.expectedErr)
@@ -327,55 +317,5 @@ func TestDumpReaderToFile(t *testing.T) {
 	stringData := string(data)
 	if stringData != testString {
 		t.Fatalf("Wrong file content %s != %s", testString, stringData)
-	}
-}
-
-func TestMaybeConvert(t *testing.T) {
-	tests := []struct {
-		input    runtime.Object
-		gv       schema.GroupVersion
-		expected runtime.Object
-	}{
-		{
-			input: &api.Pod{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "foo",
-				},
-			},
-			gv: schema.GroupVersion{Group: "", Version: "v1"},
-			expected: &v1.Pod{
-				TypeMeta: metav1.TypeMeta{
-					APIVersion: "v1",
-					Kind:       "Pod",
-				},
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "foo",
-				},
-			},
-		},
-		{
-			input: &extensions.ThirdPartyResourceData{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "foo",
-				},
-				Data: []byte("this is some data"),
-			},
-			expected: &extensions.ThirdPartyResourceData{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "foo",
-				},
-				Data: []byte("this is some data"),
-			},
-		},
-	}
-
-	for _, test := range tests {
-		obj, err := MaybeConvertObject(test.input, test.gv, testapi.Default.Converter())
-		if err != nil {
-			t.Errorf("unexpected error: %v", err)
-		}
-		if !apiequality.Semantic.DeepEqual(test.expected, obj) {
-			t.Errorf("expected:\n%#v\nsaw:\n%#v\n", test.expected, obj)
-		}
 	}
 }

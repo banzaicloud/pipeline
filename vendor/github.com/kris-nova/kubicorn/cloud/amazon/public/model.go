@@ -76,8 +76,8 @@ func (m *Model) Resources() map[int]cloud.Resource {
 		if serverPool.InstanceProfile != nil {
 			instanceProfile := &resources.InstanceProfile{
 				Shared: resources.Shared{
-					Name: serverPool.InstanceProfile.Name,
-					Tags: make(map[string]string),
+					Name:       serverPool.InstanceProfile.Name,
+					Tags:       make(map[string]string),
 					Identifier: serverPool.InstanceProfile.Identifier,
 				},
 				ServerPool: serverPool,

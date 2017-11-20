@@ -5,7 +5,6 @@ import (
 	"reflect"
 
 	"github.com/jinzhu/gorm"
-	"github.com/jinzhu/now"
 
 	"testing"
 	"time"
@@ -19,7 +18,8 @@ func TestFirstAndLast(t *testing.T) {
 	DB.First(&user1)
 	DB.Order("id").Limit(1).Find(&user2)
 
-	DB.Last(&user3)
+	ptrOfUser3 := &user3
+	DB.Last(&ptrOfUser3)
 	DB.Order("id desc").Limit(1).Find(&user4)
 	if user1.Id != user2.Id || user3.Id != user4.Id {
 		t.Errorf("First and Last should by order by primary key")
@@ -53,6 +53,24 @@ func TestFirstAndLastWithNoStdPrimaryKey(t *testing.T) {
 	DB.Order("counter desc").Limit(1).Find(&animal4)
 	if animal1.Counter != animal2.Counter || animal3.Counter != animal4.Counter {
 		t.Errorf("First and Last should work correctly")
+	}
+}
+
+func TestFirstAndLastWithRaw(t *testing.T) {
+	user1 := User{Name: "user", Emails: []Email{{Email: "user1@example.com"}}}
+	user2 := User{Name: "user", Emails: []Email{{Email: "user2@example.com"}}}
+	DB.Save(&user1)
+	DB.Save(&user2)
+
+	var user3, user4 User
+	DB.Raw("select * from users WHERE name = ?", "user").First(&user3)
+	if user3.Id != user1.Id {
+		t.Errorf("Find first record with raw")
+	}
+
+	DB.Raw("select * from users WHERE name = ?", "user").Last(&user4)
+	if user4.Id != user2.Id {
+		t.Errorf("Find last record with raw")
 	}
 }
 
@@ -100,9 +118,9 @@ func TestFindAsSliceOfPointers(t *testing.T) {
 }
 
 func TestSearchWithPlainSQL(t *testing.T) {
-	user1 := User{Name: "PlainSqlUser1", Age: 1, Birthday: now.MustParse("2000-1-1")}
-	user2 := User{Name: "PlainSqlUser2", Age: 10, Birthday: now.MustParse("2010-1-1")}
-	user3 := User{Name: "PlainSqlUser3", Age: 20, Birthday: now.MustParse("2020-1-1")}
+	user1 := User{Name: "PlainSqlUser1", Age: 1, Birthday: parseTime("2000-1-1")}
+	user2 := User{Name: "PlainSqlUser2", Age: 10, Birthday: parseTime("2010-1-1")}
+	user3 := User{Name: "PlainSqlUser3", Age: 20, Birthday: parseTime("2020-1-1")}
 	DB.Save(&user1).Save(&user2).Save(&user3)
 	scopedb := DB.Where("name LIKE ?", "%PlainSqlUser%")
 
@@ -130,7 +148,7 @@ func TestSearchWithPlainSQL(t *testing.T) {
 		t.Errorf("Should found 2 users age != 20, but got %v", len(users))
 	}
 
-	scopedb.Where("birthday > ?", now.MustParse("2000-1-1")).Find(&users)
+	scopedb.Where("birthday > ?", parseTime("2000-1-1")).Find(&users)
 	if len(users) != 2 {
 		t.Errorf("Should found 2 users's birthday > 2000-1-1, but got %v", len(users))
 	}
@@ -174,9 +192,9 @@ func TestSearchWithPlainSQL(t *testing.T) {
 }
 
 func TestSearchWithStruct(t *testing.T) {
-	user1 := User{Name: "StructSearchUser1", Age: 1, Birthday: now.MustParse("2000-1-1")}
-	user2 := User{Name: "StructSearchUser2", Age: 10, Birthday: now.MustParse("2010-1-1")}
-	user3 := User{Name: "StructSearchUser3", Age: 20, Birthday: now.MustParse("2020-1-1")}
+	user1 := User{Name: "StructSearchUser1", Age: 1, Birthday: parseTime("2000-1-1")}
+	user2 := User{Name: "StructSearchUser2", Age: 10, Birthday: parseTime("2010-1-1")}
+	user3 := User{Name: "StructSearchUser3", Age: 20, Birthday: parseTime("2020-1-1")}
 	DB.Save(&user1).Save(&user2).Save(&user3)
 
 	if DB.Where(user1.Id).First(&User{}).RecordNotFound() {
@@ -204,7 +222,7 @@ func TestSearchWithStruct(t *testing.T) {
 	}
 
 	DB.First(&user, User{Name: user1.Name})
-	if user.Id == 0 || user.Name != user.Name {
+	if user.Id == 0 || user.Name != user1.Name {
 		t.Errorf("Search first record with inline struct")
 	}
 
@@ -221,10 +239,10 @@ func TestSearchWithStruct(t *testing.T) {
 
 func TestSearchWithMap(t *testing.T) {
 	companyID := 1
-	user1 := User{Name: "MapSearchUser1", Age: 1, Birthday: now.MustParse("2000-1-1")}
-	user2 := User{Name: "MapSearchUser2", Age: 10, Birthday: now.MustParse("2010-1-1")}
-	user3 := User{Name: "MapSearchUser3", Age: 20, Birthday: now.MustParse("2020-1-1")}
-	user4 := User{Name: "MapSearchUser4", Age: 30, Birthday: now.MustParse("2020-1-1"), CompanyID: &companyID}
+	user1 := User{Name: "MapSearchUser1", Age: 1, Birthday: parseTime("2000-1-1")}
+	user2 := User{Name: "MapSearchUser2", Age: 10, Birthday: parseTime("2010-1-1")}
+	user3 := User{Name: "MapSearchUser3", Age: 20, Birthday: parseTime("2020-1-1")}
+	user4 := User{Name: "MapSearchUser4", Age: 30, Birthday: parseTime("2020-1-1"), CompanyID: &companyID}
 	DB.Save(&user1).Save(&user2).Save(&user3).Save(&user4)
 
 	var user User
@@ -267,9 +285,9 @@ func TestSearchWithMap(t *testing.T) {
 }
 
 func TestSearchWithEmptyChain(t *testing.T) {
-	user1 := User{Name: "ChainSearchUser1", Age: 1, Birthday: now.MustParse("2000-1-1")}
-	user2 := User{Name: "ChainearchUser2", Age: 10, Birthday: now.MustParse("2010-1-1")}
-	user3 := User{Name: "ChainearchUser3", Age: 20, Birthday: now.MustParse("2020-1-1")}
+	user1 := User{Name: "ChainSearchUser1", Age: 1, Birthday: parseTime("2000-1-1")}
+	user2 := User{Name: "ChainearchUser2", Age: 10, Birthday: parseTime("2010-1-1")}
+	user3 := User{Name: "ChainearchUser3", Age: 20, Birthday: parseTime("2020-1-1")}
 	DB.Save(&user1).Save(&user2).Save(&user3)
 
 	if DB.Where("").Where("").First(&User{}).Error != nil {
@@ -307,6 +325,12 @@ func TestOrderAndPluck(t *testing.T) {
 	DB.Save(&user1).Save(&user2).Save(&user3)
 	scopedb := DB.Model(&User{}).Where("name like ?", "%OrderPluckUser%")
 
+	var user User
+	scopedb.Order(gorm.Expr("case when name = ? then 0 else 1 end", "OrderPluckUser2")).First(&user)
+	if user.Name != "OrderPluckUser2" {
+		t.Errorf("Order with sql expression")
+	}
+
 	var ages []int64
 	scopedb.Order("age desc").Pluck("age", &ages)
 	if ages[0] != 20 {
@@ -334,6 +358,11 @@ func TestOrderAndPluck(t *testing.T) {
 		}
 	} else {
 		t.Errorf("Order with multiple orders")
+	}
+
+	var ages6 []int64
+	if err := scopedb.Order("").Pluck("age", &ages6).Error; err != nil {
+		t.Errorf("An empty string as order clause produces invalid queries")
 	}
 
 	DB.Model(User{}).Select("name, age").Find(&[]User{})
@@ -622,6 +651,8 @@ func TestSelectWithVariables(t *testing.T) {
 			t.Errorf("Should only contains one column")
 		}
 	}
+
+	rows.Close()
 }
 
 func TestSelectWithArrayInput(t *testing.T) {
