@@ -37,11 +37,9 @@ The easiest is by running a Pipeline control plane using the following Cloudform
 #### The DIY way
 
 * Have [Go](https://golang.org/doc/install) installed and configured - 1.8.3+
-* Install Go's dependency management tool, [dep](http://github.com/golang/dep)
-*  ~~Install dependencies by running dep ensure~~
+* Install Go's package management tool, [glide](https://github.com/Masterminds/glide)
+* All required dependencies are vendored, for a pkg update use `glide get`
 * Clone [Pipeline](https://github.com/banzaicloud/pipeline), checkout the `master` branch and run `make build`. That will create the `pipeline executable binary
-
-_Note: Due to the current dependency hell introduced by a few K8S packages (apimachinery, go-client, helm), please don't issue `dep ensure -update` or `dep prune` until these are not fixed upstream. Pipeline dependencies are managed `semi-manually` (containerized) and triggered by CircleCI.
 
 Clusters are created in different cloud regions using different images. Currently this is the list of AWS images available/publish in the following regions:
 
