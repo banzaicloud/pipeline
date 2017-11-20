@@ -1,18 +1,33 @@
 /*
  *
- * Copyright 2014 gRPC authors.
+ * Copyright 2014, Google Inc.
+ * All rights reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     * Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above
+ * copyright notice, this list of conditions and the following disclaimer
+ * in the documentation and/or other materials provided with the
+ * distribution.
+ *     * Neither the name of Google Inc. nor the names of its
+ * contributors may be used to endorse or promote products derived from
+ * this software without specific prior written permission.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
 
@@ -26,7 +41,6 @@ import (
 	"golang.org/x/net/context"
 
 	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/keepalive"
 )
 
 const tlsDir = "testdata/"
@@ -52,18 +66,6 @@ func TestTLSDialTimeout(t *testing.T) {
 	}
 	if err != context.DeadlineExceeded {
 		t.Fatalf("Dial(_, _) = %v, %v, want %v", conn, err, context.DeadlineExceeded)
-	}
-}
-
-func TestDefaultAuthority(t *testing.T) {
-	target := "Non-Existent.Server:8080"
-	conn, err := Dial(target, WithInsecure())
-	if err != nil {
-		t.Fatalf("Dial(_, _) = _, %v, want _, <nil>", err)
-	}
-	conn.Close()
-	if conn.authority != target {
-		t.Fatalf("%v.authority = %v, want %v", conn, conn.authority, target)
 	}
 }
 
@@ -249,77 +251,5 @@ func TestDialWithBlockErrorOnNonTemporaryErrorDialer(t *testing.T) {
 	// Without FailOnNonTempDialError, gRPC will retry to connect, and dial should exit with time out error.
 	if _, err := DialContext(ctx, "", WithInsecure(), WithDialer(nonTemporaryErrorDialer), WithBlock()); err != context.DeadlineExceeded {
 		t.Fatalf("Dial(%q) = %v, want %v", "", err, context.DeadlineExceeded)
-	}
-}
-
-// emptyBalancer returns an empty set of servers.
-type emptyBalancer struct {
-	ch chan []Address
-}
-
-func newEmptyBalancer() Balancer {
-	return &emptyBalancer{ch: make(chan []Address, 1)}
-}
-func (b *emptyBalancer) Start(_ string, _ BalancerConfig) error {
-	b.ch <- nil
-	return nil
-}
-func (b *emptyBalancer) Up(_ Address) func(error) {
-	return nil
-}
-func (b *emptyBalancer) Get(_ context.Context, _ BalancerGetOptions) (Address, func(), error) {
-	return Address{}, nil, nil
-}
-func (b *emptyBalancer) Notify() <-chan []Address {
-	return b.ch
-}
-func (b *emptyBalancer) Close() error {
-	close(b.ch)
-	return nil
-}
-
-func TestNonblockingDialWithEmptyBalancer(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	dialDone := make(chan error)
-	go func() {
-		dialDone <- func() error {
-			conn, err := DialContext(ctx, "Non-Existent.Server:80", WithInsecure(), WithBalancer(newEmptyBalancer()))
-			if err != nil {
-				return err
-			}
-			return conn.Close()
-		}()
-	}()
-	if err := <-dialDone; err != nil {
-		t.Fatalf("unexpected error dialing connection: %s", err)
-	}
-}
-
-func TestClientUpdatesParamsAfterGoAway(t *testing.T) {
-	lis, err := net.Listen("tcp", "localhost:0")
-	if err != nil {
-		t.Fatalf("Failed to listen. Err: %v", err)
-	}
-	defer lis.Close()
-	addr := lis.Addr().String()
-	s := NewServer()
-	go s.Serve(lis)
-	defer s.Stop()
-	cc, err := Dial(addr, WithBlock(), WithInsecure(), WithKeepaliveParams(keepalive.ClientParameters{
-		Time:                50 * time.Millisecond,
-		Timeout:             1 * time.Millisecond,
-		PermitWithoutStream: true,
-	}))
-	if err != nil {
-		t.Fatalf("Dial(%s, _) = _, %v, want _, <nil>", addr, err)
-	}
-	defer cc.Close()
-	time.Sleep(1 * time.Second)
-	cc.mu.RLock()
-	defer cc.mu.RUnlock()
-	v := cc.mkp.Time
-	if v < 100*time.Millisecond {
-		t.Fatalf("cc.dopts.copts.Keepalive.Time = %v , want 100ms", v)
 	}
 }

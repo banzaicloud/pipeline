@@ -24,10 +24,13 @@ import (
 	"os"
 	"path"
 	"sort"
+	"sync"
 	"time"
 
-	"github.com/emicklei/go-restful/swagger"
+	swagger "github.com/emicklei/go-restful-swagger12"
+	"github.com/golang/glog"
 
+	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -38,21 +41,30 @@ import (
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/kubernetes/federation/apis/federation"
 	"k8s.io/kubernetes/pkg/api"
-	"k8s.io/kubernetes/pkg/api/v1"
-	"k8s.io/kubernetes/pkg/api/validation"
 	"k8s.io/kubernetes/pkg/apis/apps"
 	"k8s.io/kubernetes/pkg/apis/batch"
 	"k8s.io/kubernetes/pkg/apis/extensions"
 	client "k8s.io/kubernetes/pkg/client/unversioned"
 	"k8s.io/kubernetes/pkg/controller"
 	"k8s.io/kubernetes/pkg/kubectl"
+	"k8s.io/kubernetes/pkg/kubectl/cmd/util/openapi"
+	openapivalidation "k8s.io/kubernetes/pkg/kubectl/cmd/util/openapi/validation"
 	"k8s.io/kubernetes/pkg/kubectl/resource"
+	"k8s.io/kubernetes/pkg/kubectl/validation"
 	"k8s.io/kubernetes/pkg/printers"
 	printersinternal "k8s.io/kubernetes/pkg/printers/internalversion"
 )
 
 type ring1Factory struct {
 	clientAccessFactory ClientAccessFactory
+
+	// openAPIGetter loads and caches openapi specs
+	openAPIGetter openAPIGetter
+}
+
+type openAPIGetter struct {
+	once   sync.Once
+	getter openapi.Getter
 }
 
 func NewObjectMappingFactory(clientAccessFactory ClientAccessFactory) ObjectMappingFactory {
@@ -103,6 +115,25 @@ func (f *ring1Factory) UnstructuredObject() (meta.RESTMapper, runtime.ObjectType
 	typer := discovery.NewUnstructuredObjectTyper(groupResources)
 	expander, err := NewShortcutExpander(mapper, discoveryClient)
 	return expander, typer, err
+}
+
+func (f *ring1Factory) CategoryExpander() resource.CategoryExpander {
+	legacyExpander := resource.LegacyCategoryExpander
+
+	discoveryClient, err := f.clientAccessFactory.DiscoveryClient()
+	if err == nil {
+		// fallback is the legacy expander wrapped with discovery based filtering
+		fallbackExpander, err := resource.NewDiscoveryFilteredExpander(legacyExpander, discoveryClient)
+		CheckErr(err)
+
+		// by default use the expander that discovers based on "categories" field from the API
+		discoveryCategoryExpander, err := resource.NewDiscoveryCategoryExpander(fallbackExpander, discoveryClient)
+		CheckErr(err)
+
+		return discoveryCategoryExpander
+	}
+
+	return legacyExpander
 }
 
 func (f *ring1Factory) ClientForMapping(mapping *meta.RESTMapping) (resource.RESTClient, error) {
@@ -208,7 +239,7 @@ func genericDescriber(clientAccessFactory ClientAccessFactory, mapping *meta.RES
 	return printersinternal.GenericDescriberFor(mapping, dynamicClient, eventsClient), nil
 }
 
-func (f *ring1Factory) LogsForObject(object, options runtime.Object) (*restclient.Request, error) {
+func (f *ring1Factory) LogsForObject(object, options runtime.Object, timeout time.Duration) (*restclient.Request, error) {
 	clientset, err := f.clientAccessFactory.ClientSetForVersion(nil)
 	if err != nil {
 		return nil, err
@@ -265,7 +296,7 @@ func (f *ring1Factory) LogsForObject(object, options runtime.Object) (*restclien
 	}
 
 	sortBy := func(pods []*v1.Pod) sort.Interface { return controller.ByLogging(pods) }
-	pod, numPods, err := GetFirstPod(clientset.Core(), namespace, selector, 20*time.Second, sortBy)
+	pod, numPods, err := GetFirstPod(clientset.Core(), namespace, selector, timeout, sortBy)
 	if err != nil {
 		return nil, err
 	}
@@ -325,7 +356,7 @@ func (f *ring1Factory) StatusViewer(mapping *meta.RESTMapping) (kubectl.StatusVi
 	return kubectl.StatusViewerFor(mapping.GroupVersionKind.GroupKind(), clientset)
 }
 
-func (f *ring1Factory) AttachablePodForObject(object runtime.Object) (*api.Pod, error) {
+func (f *ring1Factory) AttachablePodForObject(object runtime.Object, timeout time.Duration) (*api.Pod, error) {
 	clientset, err := f.clientAccessFactory.ClientSetForVersion(nil)
 	if err != nil {
 		return nil, err
@@ -374,12 +405,24 @@ func (f *ring1Factory) AttachablePodForObject(object runtime.Object) (*api.Pod, 
 	}
 
 	sortBy := func(pods []*v1.Pod) sort.Interface { return sort.Reverse(controller.ActivePods(pods)) }
-	pod, _, err := GetFirstPod(clientset.Core(), namespace, selector, 1*time.Minute, sortBy)
+	pod, _, err := GetFirstPod(clientset.Core(), namespace, selector, timeout, sortBy)
 	return pod, err
 }
 
-func (f *ring1Factory) Validator(validate bool, cacheDir string) (validation.Schema, error) {
+func (f *ring1Factory) Validator(validate, openapi bool, cacheDir string) (validation.Schema, error) {
 	if validate {
+		if openapi {
+			resources, err := f.OpenAPISchema()
+			if err == nil {
+				return validation.ConjunctiveSchema{
+					openapivalidation.NewSchemaValidation(resources),
+					validation.NoDoubleKeySchema{},
+				}, nil
+			}
+
+			glog.Warningf("Failed to download OpenAPI (%v), falling back to swagger", err)
+		}
+
 		discovery, err := f.clientAccessFactory.DiscoveryClient()
 		if err != nil {
 			return nil, err
@@ -412,4 +455,21 @@ func (f *ring1Factory) SwaggerSchema(gvk schema.GroupVersionKind) (*swagger.ApiD
 		return nil, err
 	}
 	return discovery.SwaggerSchema(version)
+}
+
+// OpenAPISchema returns metadata and structural information about Kubernetes object definitions.
+func (f *ring1Factory) OpenAPISchema() (openapi.Resources, error) {
+	discovery, err := f.clientAccessFactory.DiscoveryClient()
+	if err != nil {
+		return nil, err
+	}
+
+	// Lazily initialize the OpenAPIGetter once
+	f.openAPIGetter.once.Do(func() {
+		// Create the caching OpenAPIGetter
+		f.openAPIGetter.getter = openapi.NewOpenAPIGetter(discovery)
+	})
+
+	// Delegate to the OpenAPIGetter
+	return f.openAPIGetter.getter.Get()
 }

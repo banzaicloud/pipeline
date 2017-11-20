@@ -22,13 +22,14 @@ import (
 	"testing"
 	"time"
 
+	"k8s.io/api/core/v1"
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/diff"
 	"k8s.io/kubernetes/pkg/api"
-	"k8s.io/kubernetes/pkg/api/v1"
+	k8s_api_v1 "k8s.io/kubernetes/pkg/api/v1"
 )
 
 func TestPodLogOptions(t *testing.T) {
@@ -117,7 +118,7 @@ func TestPodLogOptions(t *testing.T) {
 	}
 }
 
-// TestPodSpecConversion tests that ServiceAccount is an alias for
+// TestPodSpecConversion tests that v1.ServiceAccount is an alias for
 // ServiceAccountName.
 func TestPodSpecConversion(t *testing.T) {
 	name, other := "foo", "bar"
@@ -207,12 +208,17 @@ func TestResourceListConversion(t *testing.T) {
 
 	for i, test := range tests {
 		output := api.ResourceList{}
+
+		// defaulting is a separate step from conversion that is applied when reading from the API or from etcd.
+		// perform that step explicitly.
+		k8s_api_v1.SetDefaults_ResourceList(&test.input)
+
 		err := api.Scheme.Convert(&test.input, &output, nil)
 		if err != nil {
 			t.Fatalf("unexpected error for case %d: %v", i, err)
 		}
 		if !apiequality.Semantic.DeepEqual(test.expected, output) {
-			t.Errorf("unexpected conversion for case %d: Expected %+v; Got %+v", i, test.expected, output)
+			t.Errorf("unexpected conversion for case %d: Expected\n%+v;\nGot\n%+v", i, test.expected, output)
 		}
 	}
 }

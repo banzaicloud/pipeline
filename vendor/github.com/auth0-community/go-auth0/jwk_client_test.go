@@ -46,8 +46,8 @@ func TestJWKDownloadKeySuccess(t *testing.T) {
 	opts := JWKClientOptions{URI: ts.URL}
 	client := NewJWKClient(opts)
 
-	err = client.downloadKeys()
-	if err != nil {
+	keys, err := client.downloadKeys()
+	if err != nil || len(keys) < 1 {
 		t.Errorf("The keys should have been correctly received: %v", err)
 		t.FailNow()
 	}
@@ -73,7 +73,7 @@ func TestJWKDownloadKeyInvalid(t *testing.T) {
 	opts := JWKClientOptions{URI: ts.URL}
 	client := NewJWKClient(opts)
 
-	err := client.downloadKeys()
+	_, err := client.downloadKeys()
 	if err != ErrInvalidContentType {
 		t.Errorf("An ErrInvalidContentType should be returned in case of invalid Content-Type Header.")
 	}
@@ -87,7 +87,7 @@ func TestJWKDownloadKeyInvalid(t *testing.T) {
 	opts = JWKClientOptions{URI: ts.URL}
 	client = NewJWKClient(opts)
 
-	err = client.downloadKeys()
+	_, err = client.downloadKeys()
 	if err == nil {
 		t.Errorf("An non JSON payload should return an error.")
 	}

@@ -19,9 +19,9 @@ package portforwarder
 import (
 	"testing"
 
+	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
-	"k8s.io/client-go/pkg/api/v1"
 )
 
 func mockTillerPod() v1.Pod {
@@ -29,7 +29,7 @@ func mockTillerPod() v1.Pod {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "orca",
 			Namespace: v1.NamespaceDefault,
-			Labels:    map[string]string{"app": "helm", "name": "tiller"},
+			Labels:    tillerPodLabels,
 		},
 		Status: v1.PodStatus{
 			Phase: v1.PodRunning,

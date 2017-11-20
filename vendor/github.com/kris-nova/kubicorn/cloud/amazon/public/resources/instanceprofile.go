@@ -1,13 +1,27 @@
+// Copyright © 2017 The Kubicorn Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package resources
 
 import (
-	"github.com/kris-nova/kubicorn/cloud"
-	"github.com/kris-nova/kubicorn/apis/cluster"
-	"github.com/kris-nova/kubicorn/cutil/logger"
-	"github.com/kris-nova/kubicorn/cutil/compare"
-	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/kris-nova/kubicorn/cutil/defaults"
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/kris-nova/kubicorn/apis/cluster"
+	"github.com/kris-nova/kubicorn/cloud"
+	"github.com/kris-nova/kubicorn/cutil/compare"
+	"github.com/kris-nova/kubicorn/cutil/defaults"
+	"github.com/kris-nova/kubicorn/cutil/logger"
 	"net/url"
 )
 
@@ -15,7 +29,7 @@ var _ cloud.Resource = &InstanceProfile{}
 
 type InstanceProfile struct {
 	Shared
-	Role  *IAMRole
+	Role       *IAMRole
 	ServerPool *cluster.ServerPool
 }
 
@@ -26,10 +40,8 @@ type IAMRole struct {
 
 type IAMPolicy struct {
 	Shared
-	Document  string
+	Document string
 }
-
-
 
 func (r *InstanceProfile) Actual(immutable *cluster.Cluster) (*cluster.Cluster, cloud.Resource, error) {
 	logger.Debug("instanceprofile.Actual")
@@ -37,8 +49,8 @@ func (r *InstanceProfile) Actual(immutable *cluster.Cluster) (*cluster.Cluster, 
 		Shared: Shared{
 			Name: r.Name,
 			Tags: map[string]string{
-				"Name":                           r.Name,
-				"KubernetesCluster":              immutable.Name,
+				"Name":              r.Name,
+				"KubernetesCluster": immutable.Name,
 			},
 		},
 		ServerPool: r.ServerPool,
@@ -57,7 +69,7 @@ func (r *InstanceProfile) Actual(immutable *cluster.Cluster) (*cluster.Cluster, 
 		if len(respInstanceProfile.InstanceProfile.Roles) > 0 {
 			//ListRolePolicies
 			for _, role := range respInstanceProfile.InstanceProfile.Roles {
-				policyList, err := Sdk.IAM.ListRolePolicies( &iam.ListRolePoliciesInput{
+				policyList, err := Sdk.IAM.ListRolePolicies(&iam.ListRolePoliciesInput{
 					RoleName: role.RoleName,
 				})
 				if err != nil {
@@ -67,18 +79,18 @@ func (r *InstanceProfile) Actual(immutable *cluster.Cluster) (*cluster.Cluster, 
 				iamrole := &IAMRole{
 					Shared: Shared{
 						Tags: map[string]string{
-							"Name":                           r.Name,
-							"KubernetesCluster":              immutable.Name,
+							"Name":              r.Name,
+							"KubernetesCluster": immutable.Name,
 						},
 						Name: *role.RoleName,
 					},
 				}
 				newResource.Role = iamrole
-				
+
 				for _, policyName := range policyList.PolicyNames {
 					policyOutput, err := Sdk.IAM.GetRolePolicy(&iam.GetRolePolicyInput{
 						PolicyName: policyName,
-						RoleName: role.RoleName,
+						RoleName:   role.RoleName,
 					})
 					if err != nil {
 						return nil, nil, err
@@ -87,8 +99,8 @@ func (r *InstanceProfile) Actual(immutable *cluster.Cluster) (*cluster.Cluster, 
 					iampolicy := &IAMPolicy{
 						Shared: Shared{
 							Tags: map[string]string{
-								"Name":                           r.Name,
-								"KubernetesCluster":              immutable.Name,
+								"Name":              r.Name,
+								"KubernetesCluster": immutable.Name,
 							},
 							Name: *policyOutput.PolicyName,
 						},
@@ -112,10 +124,10 @@ func (r *InstanceProfile) Expected(immutable *cluster.Cluster) (*cluster.Cluster
 	newResource := &InstanceProfile{
 		Shared: Shared{
 			Tags: map[string]string{
-				"Name":                           r.Name,
-				"KubernetesCluster":              immutable.Name,
-				},
-			Name:   r.Name,
+				"Name":              r.Name,
+				"KubernetesCluster": immutable.Name,
+			},
+			Name:       r.Name,
 			Identifier: r.Identifier,
 		},
 		ServerPool: r.ServerPool,
@@ -123,8 +135,8 @@ func (r *InstanceProfile) Expected(immutable *cluster.Cluster) (*cluster.Cluster
 			Shared: Shared{
 				Name: r.Role.Name,
 				Tags: map[string]string{
-					"Name":                           r.Name,
-					"KubernetesCluster":              immutable.Name,
+					"Name":              r.Name,
+					"KubernetesCluster": immutable.Name,
 				},
 			},
 			Policies: []*IAMPolicy{},
@@ -135,8 +147,8 @@ func (r *InstanceProfile) Expected(immutable *cluster.Cluster) (*cluster.Cluster
 			Shared: Shared{
 				Name: policy.Name,
 				Tags: map[string]string{
-					"Name":                           r.Name,
-					"KubernetesCluster":              immutable.Name,
+					"Name":              r.Name,
+					"KubernetesCluster": immutable.Name,
 				},
 			},
 			Document: policy.Document,
@@ -152,7 +164,7 @@ func (r *InstanceProfile) Apply(actual, expected cloud.Resource, immutable *clus
 	applyResource := expected.(*InstanceProfile)
 	isEqual, err := compare.IsEqual(actual.(*InstanceProfile), expected.(*InstanceProfile))
 	if err != nil {
-			return nil, nil, err
+		return nil, nil, err
 	}
 	if isEqual {
 		return immutable, applyResource, nil
@@ -161,14 +173,14 @@ func (r *InstanceProfile) Apply(actual, expected cloud.Resource, immutable *clus
 	logger.Debug("Expectd: %#v", expected)
 	newResource := &InstanceProfile{}
 	//TODO fill in instanceprofile attributes
-	
+
 	// Create InstanceProfile
 	profileinput := &iam.CreateInstanceProfileInput{
 		InstanceProfileName: &expected.(*InstanceProfile).Name,
-		Path: S("/"),
+		Path:                S("/"),
 	}
 	outInstanceProfile, err := Sdk.IAM.CreateInstanceProfile(profileinput)
-	if err != nil{
+	if err != nil {
 		logger.Debug("CreateInstanceProfile error: %v", err)
 		if err.(awserr.Error).Code() != iam.ErrCodeEntityAlreadyExistsException {
 			return nil, nil, err
@@ -191,12 +203,12 @@ func (r *InstanceProfile) Apply(actual, expected cloud.Resource, immutable *clus
     ]}`
 	roleinput := &iam.CreateRoleInput{
 		AssumeRolePolicyDocument: &assumeRolePolicy,
-		RoleName: &expected.(*InstanceProfile).Role.Name,
-		Description: S("Kubicorn Role"),
-		Path: S("/"),
+		RoleName:                 &expected.(*InstanceProfile).Role.Name,
+		Description:              S("Kubicorn Role"),
+		Path:                     S("/"),
 	}
 	outInstanceRole, err := Sdk.IAM.CreateRole(roleinput)
-	if err != nil{
+	if err != nil {
 		logger.Debug("CreateRole error: %v", err)
 		if err.(awserr.Error).Code() != iam.ErrCodeEntityAlreadyExistsException {
 			return nil, nil, err
@@ -206,8 +218,8 @@ func (r *InstanceProfile) Apply(actual, expected cloud.Resource, immutable *clus
 		Shared: Shared{
 			Name: *outInstanceRole.Role.RoleName,
 			Tags: map[string]string{
-				"Name":                           r.Name,
-				"KubernetesCluster":              immutable.Name,
+				"Name":              r.Name,
+				"KubernetesCluster": immutable.Name,
 			},
 		},
 		Policies: []*IAMPolicy{},
@@ -217,11 +229,11 @@ func (r *InstanceProfile) Apply(actual, expected cloud.Resource, immutable *clus
 	for _, policy := range expected.(*InstanceProfile).Role.Policies {
 		policyinput := &iam.PutRolePolicyInput{
 			PolicyDocument: &policy.Document,
-			PolicyName: &policy.Name,
-			RoleName: &expected.(*InstanceProfile).Role.Name,
+			PolicyName:     &policy.Name,
+			RoleName:       &expected.(*InstanceProfile).Role.Name,
 		}
 		_, err := Sdk.IAM.PutRolePolicy(policyinput)
-		if err != nil{
+		if err != nil {
 			logger.Debug("PutRolePolicy error: %v", err)
 			if err.(awserr.Error).Code() != iam.ErrCodeLimitExceededException {
 				return nil, nil, err
@@ -231,8 +243,8 @@ func (r *InstanceProfile) Apply(actual, expected cloud.Resource, immutable *clus
 			Shared: Shared{
 				Name: policy.Name,
 				Tags: map[string]string{
-					"Name":                           r.Name,
-					"KubernetesCluster":              immutable.Name,
+					"Name":              r.Name,
+					"KubernetesCluster": immutable.Name,
 				},
 			},
 			Document: policy.Document,
@@ -243,10 +255,10 @@ func (r *InstanceProfile) Apply(actual, expected cloud.Resource, immutable *clus
 	//Attach Role to Profile
 	roletoprofile := &iam.AddRoleToInstanceProfileInput{
 		InstanceProfileName: &expected.(*InstanceProfile).Name,
-		RoleName: &expected.(*InstanceProfile).Role.Name,
+		RoleName:            &expected.(*InstanceProfile).Role.Name,
 	}
 	_, err = Sdk.IAM.AddRoleToInstanceProfile(roletoprofile)
-	if err != nil{
+	if err != nil {
 		logger.Debug("AddRoleToInstanceProfile error: %v", err)
 		if err.(awserr.Error).Code() != iam.ErrCodeLimitExceededException {
 			return nil, nil, err
@@ -261,13 +273,13 @@ func (r *InstanceProfile) Apply(actual, expected cloud.Resource, immutable *clus
 }
 
 func (r *InstanceProfile) Delete(actual cloud.Resource, immutable *cluster.Cluster) (*cluster.Cluster, cloud.Resource, error) {
-	for _, policy := range r.Role.Policies{
+	for _, policy := range r.Role.Policies {
 		_, err := Sdk.IAM.DeleteRolePolicy(&iam.DeleteRolePolicyInput{
 			PolicyName: &policy.Name,
-			RoleName: &r.Role.Name,
+			RoleName:   &r.Role.Name,
 		})
 		if err != nil {
-			logger.Debug("Problem deleting Policy %s for Role: %s: %v", policy.Name, r.Role.Name, err )
+			logger.Debug("Problem deleting Policy %s for Role: %s: %v", policy.Name, r.Role.Name, err)
 			if err.(awserr.Error).Code() != iam.ErrCodeNoSuchEntityException {
 				return nil, nil, err
 			}
@@ -275,10 +287,10 @@ func (r *InstanceProfile) Delete(actual cloud.Resource, immutable *cluster.Clust
 	}
 	_, err := Sdk.IAM.RemoveRoleFromInstanceProfile(&iam.RemoveRoleFromInstanceProfileInput{
 		InstanceProfileName: &r.Name,
-		RoleName: &r.Role.Name,
+		RoleName:            &r.Role.Name,
 	})
 	if err != nil {
-		logger.Debug("Problem remove Role %s from InstanceProfile %s: %v", r.Role.Name, r.Name, err  )
+		logger.Debug("Problem remove Role %s from InstanceProfile %s: %v", r.Role.Name, r.Name, err)
 		if err.(awserr.Error).Code() != iam.ErrCodeNoSuchEntityException {
 			return nil, nil, err
 		}
@@ -287,16 +299,16 @@ func (r *InstanceProfile) Delete(actual cloud.Resource, immutable *cluster.Clust
 		RoleName: &r.Role.Name,
 	})
 	if err != nil {
-		logger.Debug("Problem delete role %s: %v", r.Role.Name, err )
+		logger.Debug("Problem delete role %s: %v", r.Role.Name, err)
 		if err.(awserr.Error).Code() != iam.ErrCodeNoSuchEntityException {
 			return nil, nil, err
 		}
 	}
 	_, err = Sdk.IAM.DeleteInstanceProfile(&iam.DeleteInstanceProfileInput{
-		InstanceProfileName:    &r.Name,
+		InstanceProfileName: &r.Name,
 	})
 	if err != nil {
-		logger.Debug("Problem delete InstanceProfile %s: %v", r.Name, err )
+		logger.Debug("Problem delete InstanceProfile %s: %v", r.Name, err)
 		if err.(awserr.Error).Code() != iam.ErrCodeNoSuchEntityException {
 			return nil, nil, err
 		}
@@ -319,9 +331,9 @@ func (r *InstanceProfile) immutableRender(newResource cloud.Resource, inaccurate
 		if len(newResource.(*InstanceProfile).Role.Policies) > 0 {
 			for i := range newResource.(*InstanceProfile).Role.Policies {
 				newPolicy := &cluster.IAMPolicy{
-					Name: newResource.(*InstanceProfile).Role.Policies[i].Name,
+					Name:       newResource.(*InstanceProfile).Role.Policies[i].Name,
 					Identifier: newResource.(*InstanceProfile).Role.Policies[i].Identifier,
-					Document: newResource.(*InstanceProfile).Role.Policies[i].Document,
+					Document:   newResource.(*InstanceProfile).Role.Policies[i].Document,
 				}
 				instanceProfile.Role.Policies = append(instanceProfile.Role.Policies, newPolicy)
 			}
@@ -332,7 +344,7 @@ func (r *InstanceProfile) immutableRender(newResource cloud.Resource, inaccurate
 		if newResource.(*InstanceProfile).ServerPool != nil && newCluster.ServerPools[i].Name == newResource.(*InstanceProfile).ServerPool.Name {
 			newCluster.ServerPools[i].InstanceProfile = instanceProfile
 			found = true
-			}
+		}
 	}
 	if !found {
 		logger.Debug("Not found ServerPool for InstanceProfile!")

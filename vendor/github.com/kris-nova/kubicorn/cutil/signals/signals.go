@@ -99,7 +99,6 @@ func (h *Handler) Register() {
 					os.Exit(3)
 					break
 				}
-				
 			case <-h.timer.C:
 				os.Exit(4)
 				break

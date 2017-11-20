@@ -21,13 +21,13 @@ import (
 	"testing"
 
 	"github.com/kris-nova/kubicorn/apis/cluster"
-	"github.com/kris-nova/kubicorn/profiles"
+	"github.com/kris-nova/kubicorn/profiles/amazon"
 )
 
 func TestBuildBootstrapScriptHappy(t *testing.T) {
 	scripts := []string{
-		"vpn/meshbirdMaster.sh",
-		"digitalocean_k8s_ubuntu_16.04_master.sh",
+		"bootstrap/vpn/meshbirdMaster.sh",
+		"bootstrap/digitalocean_k8s_ubuntu_16.04_master.sh",
 	}
 	_, err := BuildBootstrapScript(scripts, &cluster.Cluster{})
 	if err != nil {
@@ -37,8 +37,8 @@ func TestBuildBootstrapScriptHappy(t *testing.T) {
 
 func TestBuildBootstrapScriptSad(t *testing.T) {
 	scripts := []string{
-		"vpn/meshbirdMaster.s",
-		"digitalocean_k8s_ubuntu_16.04_master.s",
+		"bootstrap/vpn/meshbirdMaster.s",
+		"bootstrap/digitalocean_k8s_ubuntu_16.04_master.s",
 	}
 	_, err := BuildBootstrapScript(scripts, &cluster.Cluster{})
 	if err == nil {
@@ -50,10 +50,10 @@ func TestBuildBootstrapSetupScript(t *testing.T) {
 	dir := "."
 	fileName := "test.json"
 	expectedJsonSetup := `mkdir -p .
-sudo sh -c 'cat <<EOF > ./test.json`
-	expectedEnd := "\nEOF'\n"
+cat <<"EOF" > ./test.json`
+	expectedEnd := "\nEOF\n"
 
-	c := profiles.NewCentosAmazonCluster("bootstrap-setup-script-test")
+	c := amazon.NewCentosCluster("bootstrap-setup-script-test")
 	os.Remove(dir + "/" + fileName)
 	os.Remove("test.sh")
 	script, err := buildBootstrapSetupScript(c, dir, fileName)

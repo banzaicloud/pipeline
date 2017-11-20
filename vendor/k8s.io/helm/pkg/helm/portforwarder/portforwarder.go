@@ -19,14 +19,18 @@ package portforwarder
 import (
 	"fmt"
 
+	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
-	"k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/rest"
 
 	"k8s.io/helm/pkg/kube"
+)
+
+var (
+	tillerPodLabels labels.Set = labels.Set{"app": "helm", "name": "tiller"}
 )
 
 // New creates a new and initialized tunnel.
@@ -41,8 +45,7 @@ func New(namespace string, client kubernetes.Interface, config *rest.Config) (*k
 }
 
 func getTillerPodName(client corev1.PodsGetter, namespace string) (string, error) {
-	// TODO use a const for labels
-	selector := labels.Set{"app": "helm", "name": "tiller"}.AsSelector()
+	selector := tillerPodLabels.AsSelector()
 	pod, err := getFirstRunningPod(client, namespace, selector)
 	if err != nil {
 		return "", err

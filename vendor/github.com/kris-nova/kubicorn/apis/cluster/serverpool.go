@@ -25,21 +25,20 @@ const (
 )
 
 type ServerPool struct {
-	metav1.TypeMeta     `json:",inline"`
-	metav1.ObjectMeta   `json:"metadata,omitempty"`
-	Identifier          string            `json:"identifier,omitempty"`
-	MinCount            int               `json:"minCount,omitempty"`
-	MaxCount            int               `json:"maxCount,omitempty"`
-	Type                string            `json:"type,omitempty"`
-	Name                string            `json:"name,omitempty"`
-	Image               string            `json:"image,omitempty"`
-	Size                string            `json:"size,omitempty"`
-	SpotPrice           string            `json:"spotPrice,omitempty"`
-	InstanceProfile     *IAMInstanceProfile  `json:"instanceProfile,omitempty"`
-	BootstrapScripts    []string          `json:"bootstrapScripts,omitempty"`
-	Subnets             []*Subnet         `json:"subnets,omitempty"`
-	Firewalls           []*Firewall       `json:"firewalls,omitempty"`
-	AwsConfiguration    *AwsConfiguration `json:"awsconfiguration,omitempty"`
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+	Identifier        string              `json:"identifier,omitempty"`
+	MinCount          int                 `json:"minCount,omitempty"`
+	MaxCount          int                 `json:"maxCount,omitempty"`
+	Type              string              `json:"type,omitempty"`
+	Name              string              `json:"name,omitempty"`
+	Image             string              `json:"image,omitempty"`
+	Size              string              `json:"size,omitempty"`
+	InstanceProfile   *IAMInstanceProfile `json:"instanceProfile,omitempty"`
+	BootstrapScripts  []string            `json:"bootstrapScripts,omitempty"`
+	Subnets           []*Subnet           `json:"subnets,omitempty"`
+	Firewalls         []*Firewall         `json:"firewalls,omitempty"`
+	AwsConfiguration  *AwsConfiguration   `json:"awsconfiguration,omitempty"`
 }
 
 type AwsConfiguration struct {
