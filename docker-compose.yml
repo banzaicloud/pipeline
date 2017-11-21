@@ -1,7 +1,7 @@
 version: '2'
 services:
   app:
-    image: banzaiclouds/pipeline-prod:50
+    image: banzaiclouds/pipeline-prod:72
     container_name: pipeline
     ports:
       - "9090:9090"
