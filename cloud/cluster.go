@@ -59,7 +59,11 @@ func CreateCluster(clusterType ClusterType) (*cluster.Cluster, error) {
 		return nil, err
 	}
 
-	reconciler, err := cutil.GetReconciler(newCluster ,nil)
+	runtimeParam := cutil.RuntimeParameters{
+		AwsProfile: "",
+	}
+
+	reconciler, err := cutil.GetReconciler(newCluster, &runtimeParam)
 
 	if err != nil {
 		logger.Info(err.Error())
@@ -112,7 +116,11 @@ func DeleteCluster(clusterType ClusterType) (*cluster.Cluster, error) {
 		return nil, err
 	}
 
-	reconciler, err := cutil.GetReconciler(deleteCluster ,nil)
+	runtimeParam := cutil.RuntimeParameters{
+		AwsProfile: "",
+	}
+
+	reconciler, err := cutil.GetReconciler(deleteCluster, &runtimeParam)
 	if err != nil {
 		logger.Info(err.Error())
 		logger.Info("Error during getting reconciler:", err)
@@ -172,7 +180,11 @@ func UpdateCluster(clusterType ClusterType) (*cluster.Cluster, error) {
 	updateCluster.ServerPools[1].MinCount = clusterType.NodeMin
 	updateCluster.ServerPools[1].MaxCount = clusterType.NodeMax
 
-	reconciler, err := cutil.GetReconciler(updateCluster ,nil)
+	runtimeParam := cutil.RuntimeParameters{
+		AwsProfile: "",
+	}
+
+	reconciler, err := cutil.GetReconciler(updateCluster, &runtimeParam)
 	if err != nil {
 		logger.Info(err.Error())
 		logger.Info("Error during getting reconciler:", err)
