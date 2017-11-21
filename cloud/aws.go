@@ -39,7 +39,7 @@ func getAWSCluster(clusterType ClusterType) *cluster.Cluster {
 				Image:    clusterType.MasterImage, //"ami-835b4efa"
 				Size:     clusterType.NodeInstanceType,
 				BootstrapScripts: []string{
-					"amazon_k8s_ubuntu_16.04_master_pipeline.sh",
+					"https://raw.githubusercontent.com/banzaicloud/banzai-charts/master/stable/pipeline/bootstrap/amazon_k8s_ubuntu_16.04_master_pipeline.sh",
 				},
 				InstanceProfile: &cluster.IAMInstanceProfile{
 					Name: fmt.Sprintf("%s-KubicornMasterInstanceProfile", clusterType.Name),
@@ -125,7 +125,7 @@ func getAWSCluster(clusterType ClusterType) *cluster.Cluster {
 					SpotPrice: clusterType.NodeInstanceSpotPrice,
 				},
 				BootstrapScripts: []string{
-					"amazon_k8s_ubuntu_16.04_node_pipeline.sh",
+					"https://raw.githubusercontent.com/banzaicloud/banzai-charts/master/stable/pipeline/bootstrap/amazon_k8s_ubuntu_16.04_node_pipeline.sh",
 				},
 				InstanceProfile: &cluster.IAMInstanceProfile{
 					Name: fmt.Sprintf("%s-KubicornNodeInstanceProfile", clusterType.Name),
