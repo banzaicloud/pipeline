@@ -51,7 +51,7 @@ The platform includes a few default `spotguides` like: **Apache Spark, Apache Ze
 
 Pipeline is currently experimental and all the development, testing and the CI/CD pipeline itself is tested on **AWS** only. The AWS version contains the control plane, cloud images, Cloudformation templates and belonging artifacts published. 
 
-The underlying [Kubicorn](kubicorn.io) framework has support for the following providers.
+The underlying [Kubicorn](http://kubicorn.io) framework has support for the following providers.
   
   * Amazon AWS
   * Google Cloud
@@ -75,7 +75,7 @@ Pipeline is architected in a way to allow pluggable implementations for provider
 Pipeline enforces a typical **cloud native** architecture which takes full advantage of on-demand delivery, global deployment, elasticity, and higher-level services. It enables huge improvements in developer productivity, business agility, scalability, availability, utilization, and cost savings.
 
 It is written in `Golang` and built on public cloud provider APIs, Kubernetes, Kubicorn, Helm, Prometheus, Drone, Docker and a few other open source technologies - however all of these are abstracted for the end user behind a secure REST API.
-The central component of the Pipeline API is [Kubicorn](kubicorn.io) - a library/cli tool to provision and reconcile Kubernetes clusters in the cloud. Once the infrastructure/K8S cluster is provisioned by Pipeline, it also orchestrates the deployment of the application using Helm charts.
+The central component of the Pipeline API is [Kubicorn](http://kubicorn.io) - a library/cli tool to provision and reconcile Kubernetes clusters in the cloud. Once the infrastructure/K8S cluster is provisioned by Pipeline, it also orchestrates the deployment of the application using Helm charts.
 A cluster can be reused and new and updated charts can be redeployed as well - without the need of recreating the cloud infrastructure or the K8S cluster. It supports alerting and autoscaling based on metrics using Prometheus.
 By default there are metrics and Grafana dashboards exposing the behaviour of the underlying infrastructure, Kubernetes cluster and the application itself - based on the application specific `spotguide`.
 
