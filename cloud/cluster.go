@@ -10,6 +10,7 @@ import (
 	"github.com/kris-nova/kubicorn/cutil"
 	"github.com/kris-nova/kubicorn/cutil/initapi"
 	"github.com/kris-nova/kubicorn/cutil/logger"
+	"github.com/spf13/viper"
 )
 
 const (
@@ -55,6 +56,14 @@ func CreateCluster(clusterType ClusterType) (*cluster.Cluster, error) {
 	logger.Level = 4
 
 	newCluster := getAWSCluster(clusterType)
+
+	//Inject configuration parameters
+	ssh_key_path := viper.GetString("dev.keypath")
+	if ssh_key_path != "" {
+			newCluster.SSH.PublicKeyPath = ssh_key_path
+			logger.Debug("Overwriting default SSH key path to: %s", newCluster.SSH.PublicKeyPath)
+			}
+
 	newCluster, err := initapi.InitCluster(newCluster)
 
 	if err != nil {
