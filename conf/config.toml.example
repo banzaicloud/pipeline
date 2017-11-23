@@ -22,3 +22,6 @@ chartpath = "/opt/helm"
 
 #auth0 configs
 auth0pub = "./conf/auth0api.pub"
+
+# SSH key path
+#dev.keypath = ""
