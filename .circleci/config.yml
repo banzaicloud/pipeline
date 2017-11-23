@@ -31,7 +31,6 @@ jobs:
           command: |
             make container-ci
             docker tag pipeline-prod:latest ${DOCKER_HUB_PATH}/pipeline-prod:${CIRCLE_BUILD_NUM}
-            docker images
       - deploy:
           name: Push docker images
           command: |
