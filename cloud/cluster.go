@@ -35,20 +35,6 @@ type ClusterType struct {
 	NodeImage             string `json:"nodeImage" binding:"required"`
 }
 
-/**
-func CloudInit(provider Provider, clusterType ClusterType) *cluster.Cluster {
-	switch conf.Provider {
-	case "aws":
-		return getAWSCluster(clusterType)
-	case "digitalocean":
-		return getDOCluster(clusterType)
-	default:
-		return getAWSCluster(clusterType)
-	}
-
-}
-**/
-
 //CreateCluster creates a cluster in the cloud
 func CreateCluster(clusterType ClusterType) (*cluster.Cluster, error) {
 

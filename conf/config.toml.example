@@ -14,7 +14,7 @@ logformat = "text"
 loglevel = "debug"
 
 #cloud profiles
-cloudprovider = "aws"
+cloudprovider = "aks" #aws
 cloudprofile = "default" #defaults to func getCluster - see https://github.com/kris-nova/kubicorn/tree/master/profiles
 
 #helm properties

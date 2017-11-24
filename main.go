@@ -11,17 +11,17 @@ import (
 	"github.com/banzaicloud/pipeline/cloud"
 	"github.com/banzaicloud/pipeline/conf"
 	"github.com/banzaicloud/pipeline/helm"
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
-	"k8s.io/helm/pkg/timeconv"
-	"github.com/kris-nova/kubicorn/apis/cluster"
 	"github.com/banzaicloud/pipeline/monitor"
 	"github.com/banzaicloud/pipeline/notify"
 	"github.com/ghodss/yaml"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 	"github.com/go-errors/errors"
+	"github.com/jinzhu/gorm"
+	"github.com/kris-nova/kubicorn/apis/cluster"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
+	"k8s.io/helm/pkg/timeconv"
 )
 
 //CreateClusterType definition to describe a cluster
@@ -54,7 +54,7 @@ type UpdateClusterType struct {
 //DeploymentType definition to describe a Helm deployment
 type DeploymentType struct {
 	Name        string      `json:"name" binding:"required"`
-	ReleaseName	string			`json:"releasename"`
+	ReleaseName string      `json:"releasename"`
 	Version     string      `json:"version"`
 	Values      interface{} `json:"values"`
 }
@@ -63,6 +63,7 @@ type DeploymentType struct {
 
 var log *logrus.Logger
 var db *gorm.DB
+var provider string
 
 func main() {
 
@@ -72,6 +73,7 @@ func main() {
 	log.Info("Logger configured")
 	db = conf.Database()
 	db.AutoMigrate(&cloud.ClusterType{})
+	provider = conf.Provider()
 
 	router := gin.Default()
 
