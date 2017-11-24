@@ -33,6 +33,7 @@ type ClusterType struct {
 	NodeMax               int    `json:"nodeMax" binding:"required"`
 	MasterImage           string `json:"masterImage" binding:"required"`
 	NodeImage             string `json:"nodeImage" binding:"required"`
+	Tag                   string `json:"tag" binding:"required"`
 }
 
 /**

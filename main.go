@@ -39,6 +39,7 @@ type CreateClusterType struct {
 		InstanceType string `json:"instanceType" binding:"required"`
 		Image        string `json:"image" binding:"required"`
 	} `json:"master" binding:"required"`
+	Tag      string `json:"tag" binding:"required"`	// provider_type
 }
 
 //nodeInstanceType=m3.medium -d nodeInstanceSpotPrice=0.04 -d nodeMin=1 -d nodeMax=3 -d image=ami-6d48500b
@@ -58,6 +59,13 @@ type DeploymentType struct {
 	Version     string      `json:"version"`
 	Values      interface{} `json:"values"`
 }
+
+const (
+		Amazon = "AWS"
+		Azure = "AZ"
+		DigitalOcean = "DO"
+		GoogleCloud = "GC"
+)
 
 //TODO: minCount and Maxcount should be optional, but one of them should be present
 
@@ -229,8 +237,33 @@ func CreateCluster(c *gin.Context) {
 		NodeInstanceSpotPrice: createClusterrequest.Node.SpotPrice,
 		NodeMin:               createClusterrequest.Node.MinCount,
 		NodeMax:               createClusterrequest.Node.MaxCount,
+		Tag:                   createClusterrequest.Tag,
 	}
 
+	tag := cluster.Tag
+	switch tag {
+	case Amazon:
+		createClusterAWS(c, cluster)
+		break
+	case DigitalOcean:
+		c.JSON(http.StatusNotImplemented, gin.H{"status":http.StatusNotImplemented, "message": "DigitalOcean cluster creation is not implemented yet"})
+		break
+	case Azure:
+		c.JSON(http.StatusNotImplemented, gin.H{"status":http.StatusNotImplemented, "message": "Azure cluster creation is not implemented yet"})
+		break
+	case GoogleCloud:
+		c.JSON(http.StatusNotImplemented, gin.H{"status":http.StatusNotImplemented, "message": "Google Cloud cluster creation is not implemented yet"})
+		break
+	default:
+		msg := "Not supported cluster tag. Please use one of the following: " + Amazon + ", " + DigitalOcean + ", " + Azure + ", " + GoogleCloud + "."
+		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": msg})
+		break
+
+	}
+
+}
+
+func createClusterAWS(c *gin.Context, cluster cloud.ClusterType ) {
 	if err := db.Save(&cluster).Error; err != nil {
 		log.Warning("Can't persist cluster into the database!", err)
 		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "Can't persist cluster into the database!", "name": cluster.Name, "error": err})
