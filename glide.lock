@@ -1,5 +1,5 @@
-hash: 219795088285b03f75dc21204b9abbb888fe53cc9a4c91850fc0d4db0b7af1a7
-updated: 2017-11-20T15:51:21.901333154Z
+hash: 05941fd2f3360e8cbcd1ecdd03636676f0a5c81afa36ee9378d0a514029504bb
+updated: 2017-11-25T23:43:32.012808+01:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -29,6 +29,7 @@ imports:
   - aws/request
   - aws/session
   - aws/signer/v4
+  - internal/shareddefaults
   - private/protocol
   - private/protocol/ec2query
   - private/protocol/query
@@ -57,6 +58,8 @@ imports:
   - autorest/date
   - autorest/to
   - autorest/validation
+- name: github.com/banzaicloud/azure-aks-client
+  version: 64f0eb6b21546fa669ae3d4addb28418b0661fd0
 - name: github.com/beorn7/perks
   version: 3ac7bf7a47d159a033b107610db8a1b6575507a4
   subpackages:
