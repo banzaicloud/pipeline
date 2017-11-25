@@ -11,17 +11,17 @@ import (
 	"github.com/banzaicloud/pipeline/cloud"
 	"github.com/banzaicloud/pipeline/conf"
 	"github.com/banzaicloud/pipeline/helm"
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
-	"k8s.io/helm/pkg/timeconv"
-	"github.com/kris-nova/kubicorn/apis/cluster"
 	"github.com/banzaicloud/pipeline/monitor"
 	"github.com/banzaicloud/pipeline/notify"
 	"github.com/ghodss/yaml"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 	"github.com/go-errors/errors"
+	"github.com/jinzhu/gorm"
+	"github.com/kris-nova/kubicorn/apis/cluster"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
+	"k8s.io/helm/pkg/timeconv"
 )
 
 //CreateClusterType definition to describe a cluster
@@ -55,7 +55,7 @@ type UpdateClusterType struct {
 //DeploymentType definition to describe a Helm deployment
 type DeploymentType struct {
 	Name        string      `json:"name" binding:"required"`
-	ReleaseName	string			`json:"releasename"`
+	ReleaseName string      `json:"releasename"`
 	Version     string      `json:"version"`
 	Values      interface{} `json:"values"`
 }
@@ -447,18 +447,11 @@ func GetClusterStatus(c *gin.Context) {
 
 //GetTillerStatus checks if tiller ready to accept deployments
 func GetTillerStatus(c *gin.Context) {
-	cluster, err := GetClusterFromDB(c)
+	cloudCluster, err := GetCluster(c)
 	if err != nil {
 		return
 	}
-	clust, err := cloud.ReadCluster(*cluster)
-	if err != nil {
-		log.Info("Cluster read failed")
-	} else {
-		log.Info("Cluster read successful")
-	}
-
-	_, err = helm.ListDeployments(clust, nil)
+	_, err = helm.ListDeployments(cloudCluster, nil)
 	if err != nil {
 		c.JSON(http.StatusServiceUnavailable, gin.H{"status": http.StatusServiceUnavailable, "message": "Tiller not available"})
 	} else {
@@ -477,6 +470,7 @@ func FetchDeploymentStatus(c *gin.Context) {
 	chart, err := helm.ListDeployments(cloudCluster, &name)
 	if err != nil {
 		c.JSON(http.StatusServiceUnavailable, gin.H{"status": http.StatusServiceUnavailable, "message": "Tiller not available"})
+		return
 	}
 	if chart.Count == 0 {
 		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "Deployment not found"})
@@ -506,15 +500,15 @@ func GetClusterFromDB(c *gin.Context) (*cloud.ClusterType, error) {
 	var cluster cloud.ClusterType
 	value := c.Param("id")
 	field := c.DefaultQuery("field", "")
-	if field != "" {
-		query := fmt.Sprintf("%s = ?", field)
-		db.Where(query, value).First(&cluster)
-	} else {
-		db.First(&cluster, value)
+	if field == "" {
+		field = "id"
 	}
-
+	query := fmt.Sprintf("%s = ?", field)
+	db.Where(query, value).First(&cluster)
 	if cluster.ID == 0 {
-		return nil, errors.New(fmt.Sprintf("cluster not found: [%s]: %s", field, value))
+		errorMsg := fmt.Sprintf("cluster not found: [%s]: %s", field, value)
+		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": errorMsg})
+		return nil, errors.New(errorMsg)
 	}
 	return &cluster, nil
 
@@ -534,8 +528,6 @@ func GetKubicornCluster(clusterType *cloud.ClusterType) (*cluster.Cluster, error
 func GetCluster(c *gin.Context) (*cluster.Cluster, error) {
 	clusterType, err := GetClusterFromDB(c)
 	if err != nil {
-		errorMsg := fmt.Sprintf("Error fetch cluster: %s", err)
-		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": errorMsg})
 		return nil, err
 	}
 	cluster, err := GetKubicornCluster(clusterType)
