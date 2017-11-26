@@ -514,6 +514,7 @@ func Status(c *gin.Context) {
 	log.Info("Cluster running, subsystems initialized")
 	db.Find(&clusters)
 
+	//TODO:add more complex status checks
 	//no error on viper, log, db init
 	c.JSON(http.StatusOK, gin.H{"Cluster running, subsystems initialized": http.StatusOK})
 }
