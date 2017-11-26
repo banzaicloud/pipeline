@@ -88,6 +88,7 @@ func main() {
 	v1 := router.Group("/api/v1/")
 	{
 		v1.POST("/clusters", CreateCluster)
+		v1.GET("/clusters", Status)
 		v1.GET("/clusters", FetchClusters)
 		v1.GET("/clusters/:id", FetchCluster)
 		v1.PUT("/clusters/:id", UpdateCluster)
@@ -504,4 +505,15 @@ func GetCluster(c *gin.Context) (*cluster.Cluster, error) {
 		return nil, err
 	}
 	return cluster, nil
+}
+
+//FetchClusters fetches all the K8S clusters from the cloud
+func Status(c *gin.Context) {
+	var clusters []cloud.ClusterType
+
+	log.Info("Cluster running, subsystems initialized")
+	db.Find(&clusters)
+
+	//no error on viper, log, db init
+	c.JSON(http.StatusOK, gin.H{"Cluster running, subsystems initialized": http.StatusOK})
 }
