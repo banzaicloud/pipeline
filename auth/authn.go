@@ -25,9 +25,7 @@ var validator *auth0.JWTValidator
 //ApiGroup is grouping name for the token
 var ApiGroup = "ApiGroup"
 
-func init() {
-	//Creates a configuration with the Auth0 information
-	conf.Init()
+func Init() {
 	pubKey := viper.GetString("dev.auth0pub")
 	log.Info("PubKey", pubKey)
 	data, err := ioutil.ReadFile(pubKey)

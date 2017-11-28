@@ -67,6 +67,7 @@ var db *gorm.DB
 func main() {
 
 	conf.Init()
+	auth.Init()
 
 	log = conf.Logger()
 	log.Info("Logger configured")
