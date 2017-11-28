@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"path"
 	"time"
 
@@ -63,8 +64,18 @@ type DeploymentType struct {
 
 var log *logrus.Logger
 var db *gorm.DB
+var Version string
+var GitRev string
 
 func main() {
+	if os.Args[1] == "--version" {
+		if GitRev == "" {
+			fmt.Println("version:", Version)
+		} else {
+			fmt.Printf("version: %s-%s\n", Version, GitRev)
+		}
+		os.Exit(0)
+	}
 
 	conf.Init()
 	auth.Init()

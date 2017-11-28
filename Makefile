@@ -1,11 +1,14 @@
 .DEFAULT_GOAL := help
-.PHONY: help
+.PHONY: help build
 
 OS := $(shell uname -s)
 GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*")
 
+VERSION = 0.1.0
+GITREV = $(shell git rev-parse --short HEAD)
+
 build: ## Builds binary package
-	go build .
+	go build  -ldflags "-X main.Version=$(VERSION) -X main.GitRev=$(GITREV)" .
 
 build-ci:
 	CGO_ENABLED=0 GOOS=linux go build .
