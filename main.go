@@ -88,7 +88,7 @@ func main() {
 	v1 := router.Group("/api/v1/")
 	{
 		v1.POST("/clusters", CreateCluster)
-		v1.GET("/clusters", Status)
+		v1.GET("/status", Status)
 		v1.GET("/clusters", FetchClusters)
 		v1.GET("/clusters/:id", FetchCluster)
 		v1.PUT("/clusters/:id", UpdateCluster)
