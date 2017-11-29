@@ -432,6 +432,7 @@ func FetchDeploymentStatus(c *gin.Context) {
 	name := c.Param("name")
 	cloudCluster, err := GetCluster(c)
 	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "Cluster not found"})
 		return
 	}
 	chart, err := helm.ListDeployments(cloudCluster, &name)
@@ -447,9 +448,19 @@ func FetchDeploymentStatus(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "Multiple deployments found"})
 		return
 	}
-	foundChart := chart.Releases[0]
-	if foundChart.GetInfo().Status.GetCode() == 1 {
-		c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "message": "OK"})
+	// TODO simplify the flow
+	status, err := helm.CheckDeploymentState(cloudCluster, name)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "Error happened fetching status"})
+		return
+	}
+	msg := fmt.Sprintf("Deployment state is: %s", status)
+	if status == "Running" {
+		log.Infof("Deployment status is: %s", status)
+		c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "message": msg})
+		return
+	} else {
+		c.JSON(http.StatusNoContent, gin.H{"status": http.StatusNoContent, "message": msg})
 		return
 	}
 	return
