@@ -23,7 +23,15 @@ import (
 )
 
 //We return stateStore so update can use it.
-func getStateStoreForCluster(clusterType ClusterType) (stateStore state.ClusterStorer) {
+// todo szedd írd majd át mindenhol
+func getStateStoreForClusterOld(clusterType ClusterType) (stateStore state.ClusterStorer) {
+	stateStore = fs.NewFileSystemStore(&fs.FileSystemStoreOptions{
+		BasePath:    "statestore",
+		ClusterName: clusterType.Name,
+	})
+	return stateStore
+}
+func getStateStoreForCluster(clusterType CreateClusterTypeBase) (stateStore state.ClusterStorer) {
 
 	stateStore = fs.NewFileSystemStore(&fs.FileSystemStoreOptions{
 		BasePath:    "statestore",

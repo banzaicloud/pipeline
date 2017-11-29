@@ -52,7 +52,8 @@ func CloudInit(provider Provider, clusterType ClusterType) *cluster.Cluster {
 **/
 
 //CreateCluster creates a cluster in the cloud
-func CreateCluster(clusterType ClusterType) (*cluster.Cluster, error) {
+//func CreateCluster(clusterType ClusterType) (*cluster.Cluster, error) {
+func CreateCluster(clusterType CreateClusterTypeBase) (*cluster.Cluster, error) {
 
 	logger.Level = 4
 
@@ -61,9 +62,9 @@ func CreateCluster(clusterType ClusterType) (*cluster.Cluster, error) {
 	//Inject configuration parameters
 	ssh_key_path := viper.GetString("dev.keypath")
 	if ssh_key_path != "" {
-			newCluster.SSH.PublicKeyPath = ssh_key_path
-			logger.Debug("Overwriting default SSH key path to: %s", newCluster.SSH.PublicKeyPath)
-			}
+		newCluster.SSH.PublicKeyPath = ssh_key_path
+		logger.Debug("Overwriting default SSH key path to: %s", newCluster.SSH.PublicKeyPath)
+	}
 
 	newCluster, err := initapi.InitCluster(newCluster)
 
@@ -114,7 +115,7 @@ func CreateCluster(clusterType ClusterType) (*cluster.Cluster, error) {
 func DeleteCluster(clusterType ClusterType) (*cluster.Cluster, error) {
 	logger.Level = 4
 
-	stateStore := getStateStoreForCluster(clusterType)
+	stateStore := getStateStoreForClusterOld(clusterType)
 	if !stateStore.Exists() {
 		return nil, nil
 	}
@@ -148,7 +149,7 @@ func DeleteCluster(clusterType ClusterType) (*cluster.Cluster, error) {
 //ReadCluster reads a persisted cluster from the statestore
 func ReadCluster(clusterType ClusterType) (*cluster.Cluster, error) {
 
-	stateStore := getStateStoreForCluster(clusterType)
+	stateStore := getStateStoreForClusterOld(clusterType)
 	readCluster, err := stateStore.GetCluster()
 	if err != nil {
 		return nil, err
@@ -169,7 +170,7 @@ func UpdateCluster(clusterType ClusterType) (*cluster.Cluster, error) {
 
 	logger.Level = 4
 
-	stateStore := getStateStoreForCluster(clusterType)
+	stateStore := getStateStoreForClusterOld(clusterType)
 
 	updateCluster, err := stateStore.GetCluster()
 	if err != nil {
@@ -220,7 +221,7 @@ func UpdateCluster(clusterType ClusterType) (*cluster.Cluster, error) {
 //Wait for K8S
 func awaitKubernetesCluster(existing ClusterType) (bool, error) {
 	success := false
-	existingCluster, _ := getStateStoreForCluster(existing).GetCluster()
+	existingCluster, _ := getStateStoreForClusterOld(existing).GetCluster()
 
 	for i := 0; i < apiSocketAttempts; i++ {
 		_, err := IsKubernetesClusterAvailable(existingCluster)

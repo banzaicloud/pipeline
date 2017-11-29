@@ -6,9 +6,20 @@ import (
 	"github.com/kris-nova/kubicorn/apis/cluster"
 	"github.com/kris-nova/kubicorn/cutil/kubeadm"
 	"github.com/kris-nova/kubicorn/cutil/uuid"
+	"github.com/sirupsen/logrus"
+	"github.com/jinzhu/gorm"
 )
 
-func getAWSCluster(clusterType ClusterType) *cluster.Cluster {
+const (
+	amazonDefaultNodeImage          = "ami-bdba13c4"
+	amazonDefaultMasterImage        = "ami-bdba13c4"
+	amazonDefaultMasterInstanceType = "m4.xlarge"
+	amazonDefaultNodeMinCount       = 1
+	amazonDefaultNodeMaxCount       = 1
+	amazonDefaultNodeSpotPrice      = "0.2"
+)
+
+func getAWSCluster(clusterType CreateClusterTypeBase) *cluster.Cluster {
 	return &cluster.Cluster{
 		Name:     clusterType.Name,
 		Cloud:    cluster.CloudAmazon,
@@ -36,7 +47,7 @@ func getAWSCluster(clusterType ClusterType) *cluster.Cluster {
 				Name:     fmt.Sprintf("%s.master", clusterType.Name),
 				MinCount: 1,
 				MaxCount: 1,
-				Image:    clusterType.MasterImage, //"ami-835b4efa"
+				Image:    clusterType.Properties.CreateClusterAmazon.Master.InstanceType, //"ami-835b4efa"
 				Size:     clusterType.NodeInstanceType,
 				BootstrapScripts: []string{
 					"https://raw.githubusercontent.com/banzaicloud/banzai-charts/master/stable/pipeline/bootstrap/amazon_k8s_ubuntu_16.04_master_pipeline.sh",
@@ -117,12 +128,12 @@ func getAWSCluster(clusterType ClusterType) *cluster.Cluster {
 			{
 				Type:     cluster.ServerPoolTypeNode,
 				Name:     fmt.Sprintf("%s.node", clusterType.Name),
-				MinCount: clusterType.NodeMin,
-				MaxCount: clusterType.NodeMax,
-				Image:    clusterType.NodeImage, //"ami-835b4efa"
+				MinCount: clusterType.Properties.CreateClusterAmazon.Node.MinCount,
+				MaxCount: clusterType.Properties.CreateClusterAmazon.Node.MaxCount,
+				Image:    clusterType.Properties.CreateClusterAmazon.Node.Image, //"ami-835b4efa"
 				Size:     clusterType.NodeInstanceType,
 				AwsConfiguration: &cluster.AwsConfiguration{
-					SpotPrice: clusterType.NodeInstanceSpotPrice,
+					SpotPrice: clusterType.Properties.CreateClusterAmazon.Node.SpotPrice,
 				},
 				BootstrapScripts: []string{
 					"https://raw.githubusercontent.com/banzaicloud/banzai-charts/master/stable/pipeline/bootstrap/amazon_k8s_ubuntu_16.04_node_pipeline.sh",
@@ -186,4 +197,84 @@ func getAWSCluster(clusterType ClusterType) *cluster.Cluster {
 			},
 		},
 	}
+}
+
+type CreateClusterAmazon struct {
+	gorm.Model
+	Node   *CreateAmazonNode   `json:"node"`
+	Master *CreateAmazonMaster `json:"master"`
+}
+
+type CreateAmazonNode struct {
+	gorm.Model
+	SpotPrice string `json:"spotPrice"`
+	MinCount  int    `json:"minCount"`
+	MaxCount  int    `json:"maxCount"`
+	Image     string `json:"image"`
+}
+
+type CreateAmazonMaster struct {
+	gorm.Model
+	InstanceType string `json:"instanceType"`
+	Image        string `json:"image"`
+}
+
+func (amazon *CreateClusterAmazon) Validate(log *logrus.Logger) (bool, string) {
+
+	if amazon == nil {
+		msg := "Required field 'amazon' is empty."
+		log.Info(msg)
+		return false, msg
+	}
+
+	// ---- [ Master check ] ---- //
+	if amazon.Master == nil {
+		msg := "Required field 'master' is empty."
+		log.Info(msg)
+		return false, msg
+	}
+
+	if len(amazon.Master.Image) == 0 {
+		log.Info("Master image set to default value: ", amazonDefaultMasterImage)
+		amazon.Master.Image = amazonDefaultMasterImage
+	}
+
+	if len(amazon.Master.InstanceType) == 0 {
+		log.Info("Master instance type set to default value: ", amazonDefaultMasterInstanceType)
+		amazon.Master.Image = amazonDefaultMasterInstanceType
+	}
+
+	// ---- [ Node check ] ---- //
+	if amazon.Node == nil {
+		msg := "Required field 'node' is empty."
+		log.Info(msg)
+		return false, msg
+	}
+
+	if len(amazon.Node.Image) == 0 {
+		log.Info("Node image set to default value: ", amazonDefaultNodeImage)
+		amazon.Node.Image = amazonDefaultNodeImage
+	}
+
+	if amazon.Node.MinCount == 0 {
+		log.Info("Node minCount set to default value: ", amazonDefaultNodeMinCount)
+		amazon.Node.MinCount = amazonDefaultNodeMinCount
+	}
+
+	if amazon.Node.MaxCount == 0 {
+		log.Info("Node maxCount set to default value: ", amazonDefaultNodeMaxCount)
+		amazon.Node.MaxCount = amazonDefaultNodeMaxCount
+	}
+
+	if amazon.Node.MaxCount < amazon.Node.MinCount {
+		log.Info("Node maxCount is lower than minCount")
+		return false, "maxCount must be greater than mintCount"
+	}
+
+	if len(amazon.Node.SpotPrice) == 0 {
+		log.Info("Node spot price set to default value: ", amazonDefaultNodeSpotPrice)
+		amazon.Node.SpotPrice = amazonDefaultNodeSpotPrice
+	}
+
+	return true, ""
 }

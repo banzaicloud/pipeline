@@ -25,10 +25,10 @@ import (
 )
 
 //CreateClusterType definition to describe a cluster
-type CreateClusterType struct {
+type CreateClusterTypeOld struct {
 	Name     string `json:"name" binding:"required"`
 	Location string `json:"location" binding:"required"`
-	Node     struct {
+	Node struct {
 		InstanceType string `json:"instanceType" binding:"required"`
 		SpotPrice    string `json:"spotPrice"`
 		MinCount     int    `json:"minCount" binding:"required"`
@@ -39,7 +39,6 @@ type CreateClusterType struct {
 		InstanceType string `json:"instanceType" binding:"required"`
 		Image        string `json:"image" binding:"required"`
 	} `json:"master" binding:"required"`
-	Tag      string `json:"tag" binding:"required"`	// provider_type
 }
 
 //nodeInstanceType=m3.medium -d nodeInstanceSpotPrice=0.04 -d nodeMin=1 -d nodeMax=3 -d image=ami-6d48500b
@@ -61,10 +60,8 @@ type DeploymentType struct {
 }
 
 const (
-		Amazon = "AWS"
-		Azure = "AZ"
-		DigitalOcean = "DO"
-		GoogleCloud = "GC"
+	Amazon = "amazon"
+	Azure  = "azure"
 )
 
 //TODO: minCount and Maxcount should be optional, but one of them should be present
@@ -79,7 +76,8 @@ func main() {
 	log = conf.Logger()
 	log.Info("Logger configured")
 	db = conf.Database()
-	db.AutoMigrate(&cloud.ClusterType{})
+//	db.AutoMigrate(&cloud.ClusterType{})
+	db.AutoMigrate(&cloud.CreateClusterTypeBase{})
 
 	router := gin.Default()
 
@@ -220,70 +218,81 @@ func ListDeployments(c *gin.Context) {
 
 //CreateCluster creates a K8S cluster in the cloud
 func CreateCluster(c *gin.Context) {
-	var createClusterrequest CreateClusterType
-	if err := c.BindJSON(&createClusterrequest); err != nil {
+
+	log.Info("Cluster creation is stared")
+
+	var createClusterBaseRequest cloud.CreateClusterTypeBase
+	if err := c.BindJSON(&createClusterBaseRequest); err != nil {
 		log.Info("Required field is empty" + err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "Required field is empty", "error": err})
 		return
 	}
 
-	cluster := cloud.ClusterType{
-		Name:                  createClusterrequest.Name,
-		Location:              createClusterrequest.Location,
-		MasterImage:           createClusterrequest.Master.Image,
-		NodeImage:             createClusterrequest.Node.Image,
-		MasterInstanceType:    createClusterrequest.Master.InstanceType,
-		NodeInstanceType:      createClusterrequest.Node.InstanceType,
-		NodeInstanceSpotPrice: createClusterrequest.Node.SpotPrice,
-		NodeMin:               createClusterrequest.Node.MinCount,
-		NodeMax:               createClusterrequest.Node.MaxCount,
-		Tag:                   createClusterrequest.Tag,
-	}
+	cloudType := createClusterBaseRequest.Cloud
+	log.Info("Cloud type is ", cloudType)
 
-	tag := cluster.Tag
-	switch tag {
+	switch cloudType {
 	case Amazon:
-		createClusterAWS(c, cluster)
-		break
-	case DigitalOcean:
-		c.JSON(http.StatusNotImplemented, gin.H{"status":http.StatusNotImplemented, "message": "DigitalOcean cluster creation is not implemented yet"})
+		awsData := createClusterBaseRequest.Properties.CreateClusterAmazon
+		if isValid, err := awsData.Validate(log); isValid && len(err) == 0 {
+			if createClusterBaseRequest.CreateClusterAmazon(c, db, log) {
+				// update prometheus config..
+				err := monitor.UpdatePrometheusConfig(db)
+				if err != nil {
+					log.Warning("Could not update prometheus configmap: %v", err)
+				}
+			}
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": err})
+		}
 		break
 	case Azure:
-		c.JSON(http.StatusNotImplemented, gin.H{"status":http.StatusNotImplemented, "message": "Azure cluster creation is not implemented yet"})
-		break
-	case GoogleCloud:
-		c.JSON(http.StatusNotImplemented, gin.H{"status":http.StatusNotImplemented, "message": "Google Cloud cluster creation is not implemented yet"})
+		c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "message": "ok"})
 		break
 	default:
-		msg := "Not supported cluster tag. Please use one of the following: " + Amazon + ", " + DigitalOcean + ", " + Azure + ", " + GoogleCloud + "."
+		msg := "Not cloud type cluster tag. Please use one of the following: " + Amazon + ", " + Azure + "."
 		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": msg})
 		break
-
 	}
 
 }
 
-func createClusterAWS(c *gin.Context, cluster cloud.ClusterType ) {
-	if err := db.Save(&cluster).Error; err != nil {
-		log.Warning("Can't persist cluster into the database!", err)
-		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "Can't persist cluster into the database!", "name": cluster.Name, "error": err})
-		return
-	}
-
-	if createdCluster, err := cloud.CreateCluster(cluster); err != nil {
-		log.Info("Cluster creation failed!", err)
-		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "Could not launch cluster!", "name": cluster.Name, "error": err})
-	} else {
-		log.Info("Cluster created successfully!")
-		c.JSON(http.StatusCreated, gin.H{"status": http.StatusCreated, "message": "Cluster created successfully!", "resourceId": cluster.ID, "name": cluster.Name, "Ip": createdCluster.KubernetesAPI.Endpoint})
-		go cloud.RetryGetConfig(createdCluster, "")
-	}
-	err := monitor.UpdatePrometheusConfig(db)
-	if err != nil {
-		log.Warning("Could not update prometheus configmap: %v", err)
-	}
-	return
-}
+//func CreateClusterOld(c *gin.Context) {
+//	var createClusterrequest CreateClusterTypeOld
+//	if err := c.BindJSON(&createClusterrequest); err != nil {
+//		log.Info("Required field is empty" + err.Error())
+//		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "Required field is empty", "error": err})
+//		return
+//	}
+//
+//	cluster := cloud.ClusterType{
+//		Name:                  createClusterrequest.Name,
+//		Location:              createClusterrequest.Location,
+//		MasterImage:           createClusterrequest.Master.Image,
+//		NodeImage:             createClusterrequest.Node.Image,
+//		MasterInstanceType:    createClusterrequest.Master.InstanceType,
+//		NodeInstanceType:      createClusterrequest.Node.InstanceType,
+//		NodeInstanceSpotPrice: createClusterrequest.Node.SpotPrice,
+//		NodeMin:               createClusterrequest.Node.MinCount,
+//		NodeMax:               createClusterrequest.Node.MaxCount,
+//	}
+//
+//	tag := cluster.Tag
+//	switch tag {
+//	case Amazon:
+//		createClusterAWSOld(c, cluster)
+//		break
+//	case Azure:
+//		c.JSON(http.StatusNotImplemented, gin.H{"status":http.StatusNotImplemented, "message": "Azure cluster creation is not implemented yet"})
+//		break
+//	default:
+//		msg := "Not cloud type cluster tag. Please use one of the following: " + Amazon + ", " + Azure + "."
+//		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": msg})
+//		break
+//
+//	}
+//
+//}
 
 //DeleteCluster deletes a K8S cluster from the cloud
 func DeleteCluster(c *gin.Context) {
