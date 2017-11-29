@@ -507,8 +507,9 @@ func GetCluster(c *gin.Context) (*cluster.Cluster, error) {
 	return cluster, nil
 }
 
-//FetchClusters fetches all the K8S clusters from the cloud
+//Status returns 200
 func Status(c *gin.Context) {
+	//TODO: #75 
 	var clusters []cloud.ClusterType
 
 	log.Info("Cluster running, subsystems initialized")
