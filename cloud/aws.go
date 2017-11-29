@@ -7,7 +7,6 @@ import (
 	"github.com/kris-nova/kubicorn/cutil/kubeadm"
 	"github.com/kris-nova/kubicorn/cutil/uuid"
 	"github.com/sirupsen/logrus"
-	"github.com/jinzhu/gorm"
 )
 
 const (
@@ -19,7 +18,11 @@ const (
 	amazonDefaultNodeSpotPrice      = "0.2"
 )
 
-func getAWSCluster(clusterType CreateClusterTypeBase) *cluster.Cluster {
+const (
+	tableNameAmazonProperties = "amazon_cluster_properties"
+)
+
+func getAWSCluster(clusterType CreateClusterSimple) *cluster.Cluster {
 	return &cluster.Cluster{
 		Name:     clusterType.Name,
 		Cloud:    cluster.CloudAmazon,
@@ -47,7 +50,7 @@ func getAWSCluster(clusterType CreateClusterTypeBase) *cluster.Cluster {
 				Name:     fmt.Sprintf("%s.master", clusterType.Name),
 				MinCount: 1,
 				MaxCount: 1,
-				Image:    clusterType.Properties.CreateClusterAmazon.Master.InstanceType, //"ami-835b4efa"
+				Image:    clusterType.Amazon.MasterInstanceType, //"ami-835b4efa"
 				Size:     clusterType.NodeInstanceType,
 				BootstrapScripts: []string{
 					"https://raw.githubusercontent.com/banzaicloud/banzai-charts/master/stable/pipeline/bootstrap/amazon_k8s_ubuntu_16.04_master_pipeline.sh",
@@ -128,12 +131,12 @@ func getAWSCluster(clusterType CreateClusterTypeBase) *cluster.Cluster {
 			{
 				Type:     cluster.ServerPoolTypeNode,
 				Name:     fmt.Sprintf("%s.node", clusterType.Name),
-				MinCount: clusterType.Properties.CreateClusterAmazon.Node.MinCount,
-				MaxCount: clusterType.Properties.CreateClusterAmazon.Node.MaxCount,
-				Image:    clusterType.Properties.CreateClusterAmazon.Node.Image, //"ami-835b4efa"
+				MinCount: clusterType.Amazon.NodeMinCount,
+				MaxCount: clusterType.Amazon.NodeMaxCount,
+				Image:    clusterType.Amazon.NodeImage, //"ami-835b4efa"
 				Size:     clusterType.NodeInstanceType,
 				AwsConfiguration: &cluster.AwsConfiguration{
-					SpotPrice: clusterType.Properties.CreateClusterAmazon.Node.SpotPrice,
+					SpotPrice: clusterType.Amazon.NodeSpotPrice,
 				},
 				BootstrapScripts: []string{
 					"https://raw.githubusercontent.com/banzaicloud/banzai-charts/master/stable/pipeline/bootstrap/amazon_k8s_ubuntu_16.04_node_pipeline.sh",
@@ -200,13 +203,11 @@ func getAWSCluster(clusterType CreateClusterTypeBase) *cluster.Cluster {
 }
 
 type CreateClusterAmazon struct {
-	gorm.Model
 	Node   *CreateAmazonNode   `json:"node"`
 	Master *CreateAmazonMaster `json:"master"`
 }
 
 type CreateAmazonNode struct {
-	gorm.Model
 	SpotPrice string `json:"spotPrice"`
 	MinCount  int    `json:"minCount"`
 	MaxCount  int    `json:"maxCount"`
@@ -214,9 +215,22 @@ type CreateAmazonNode struct {
 }
 
 type CreateAmazonMaster struct {
-	gorm.Model
 	InstanceType string `json:"instanceType"`
 	Image        string `json:"image"`
+}
+
+type CreateAmazonClusterSimple struct {
+	CreateClusterSimpleId uint `gorm:"primary_key"`
+	NodeSpotPrice         string
+	NodeMinCount          int
+	NodeMaxCount          int
+	NodeImage             string
+	MasterInstanceType    string
+	MasterImage           string
+}
+
+func (CreateAmazonClusterSimple) TableName() string {
+	return tableNameAmazonProperties
 }
 
 func (amazon *CreateClusterAmazon) Validate(log *logrus.Logger) (bool, string) {

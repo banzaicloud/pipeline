@@ -53,7 +53,7 @@ func CloudInit(provider Provider, clusterType ClusterType) *cluster.Cluster {
 
 //CreateCluster creates a cluster in the cloud
 //func CreateCluster(clusterType ClusterType) (*cluster.Cluster, error) {
-func CreateCluster(clusterType CreateClusterTypeBase) (*cluster.Cluster, error) {
+func CreateCluster(clusterType CreateClusterSimple) (*cluster.Cluster, error) {
 
 	logger.Level = 4
 

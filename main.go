@@ -76,8 +76,7 @@ func main() {
 	log = conf.Logger()
 	log.Info("Logger configured")
 	db = conf.Database()
-//	db.AutoMigrate(&cloud.ClusterType{})
-	db.AutoMigrate(&cloud.CreateClusterTypeBase{})
+	db.AutoMigrate(&cloud.CreateClusterSimple{}, &cloud.CreateAmazonClusterSimple{})
 
 	router := gin.Default()
 
@@ -221,7 +220,7 @@ func CreateCluster(c *gin.Context) {
 
 	log.Info("Cluster creation is stared")
 
-	var createClusterBaseRequest cloud.CreateClusterTypeBase
+	var createClusterBaseRequest cloud.CreateClusterRequest
 	if err := c.BindJSON(&createClusterBaseRequest); err != nil {
 		log.Info("Required field is empty" + err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "Required field is empty", "error": err})
