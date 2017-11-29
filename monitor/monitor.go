@@ -1,7 +1,6 @@
 package monitor
 
 import (
-	"encoding/json"
 	"os"
 
 	"fmt"
@@ -18,6 +17,11 @@ import (
 type prometheusTarget struct {
 	Targets []string          `json:"targets"`
 	Labels  map[string]string `json:"labels"`
+}
+
+type PrometheusCfg struct {
+	Endpoint string
+	Name     string
 }
 
 //UpdatePrometheusConfig updates the Prometheus configuration
@@ -39,8 +43,7 @@ func UpdatePrometheusConfig(db *gorm.DB) error {
 
 	var clusters []cloud.ClusterType
 	db.Find(&clusters)
-	var Targets []prometheusTarget
-
+	var prometheusConfig []PrometheusCfg
 	//Gathering information about clusters
 	for _, cluster := range clusters {
 		log.Debugln("Cluster: ", cluster.Name)
@@ -51,22 +54,16 @@ func UpdatePrometheusConfig(db *gorm.DB) error {
 		}
 		ip := cloudCluster.KubernetesAPI.Endpoint
 		log.Debugln("Cluster Endpoint IP: ", ip)
-		item := prometheusTarget{
-			Targets: []string{fmt.Sprintf("%s:30080", ip)},
-			Labels: map[string]string{
-				"cluster":      cloudCluster.Name,
-				"cluster_name": cloudCluster.Name,
-			},
-		}
-		Targets = append(Targets, item)
+
+		prometheusConfig = append(
+			prometheusConfig,
+			PrometheusCfg{
+				Endpoint: cloudCluster.KubernetesAPI.Endpoint,
+				Name:     cloudCluster.Name,
+			})
 
 	}
-	//Generate Prometheus Target configuration
-	resJSON, errJSON := json.Marshal(Targets)
-	if errJSON != nil {
-		log.Warningln(errJSON)
-	}
-	log.Infoln("Prometheus Target Json: ", string(resJSON))
+	prometheusConfigRaw := GenerateConfig(prometheusConfig)
 
 	var kubeconfig = ""
 
@@ -97,9 +94,9 @@ func UpdatePrometheusConfig(db *gorm.DB) error {
 		return fmt.Errorf("K8S get Configmap Failed: %v", err)
 	}
 
-	log.Debugln("Actual k8sclusters.json content: ", configmap.Data["k8sclusters.json"])
+	log.Debugln("Actual k8sclusters.json content: ", configmap.Data["prometheus.yml"])
 	log.Debugln("K8S Update prometheus-server.k8sclusters.json Configmap.")
-	configmap.Data["k8sclusters.json"] = string(resJSON)
+	configmap.Data["prometheus.yml"] = string(prometheusConfigRaw)
 	client.CoreV1().ConfigMaps("default").Update(configmap)
 	log.Infoln("K8S prometheus-server.k8sclusters.json Configmap Updated.")
 

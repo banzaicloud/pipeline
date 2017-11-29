@@ -256,16 +256,11 @@ func CreateCluster(c *gin.Context) {
 //DeleteCluster deletes a K8S cluster from the cloud
 func DeleteCluster(c *gin.Context) {
 
-	var cluster cloud.ClusterType
-	clusterId := c.Param("id")
-
-	db.First(&cluster, clusterId)
-
-	if cluster.ID == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "No cluster found!"})
+	cluster, err := GetClusterFromDB(c)
+	if err != nil {
 		return
 	}
-	if _, err := cloud.DeleteCluster(cluster); err != nil {
+	if _, err := cloud.DeleteCluster(*cluster); err != nil {
 		log.Warning("Can't delete cluster from cloud!", err)
 		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "Can't delete cluster!", "resourceId": cluster.ID, "error": err})
 		return
@@ -279,7 +274,7 @@ func DeleteCluster(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "Can't delete cluster!", "resourceId": cluster.ID, "error": err})
 		return
 	}
-	err := monitor.UpdatePrometheusConfig(db)
+	err = monitor.UpdatePrometheusConfig(db)
 	if err != nil {
 		log.Warning("Could not update prometheus configmap: %v", err)
 	}
@@ -331,11 +326,6 @@ func FetchCluster(c *gin.Context) {
 //UpdateCluster updates a K8S cluster in the cloud (e.g. autoscale)
 func UpdateCluster(c *gin.Context) {
 
-	var cluster cloud.ClusterType
-	clusterId := c.Param("id")
-
-	db.First(&cluster, clusterId)
-
 	var updateClusterType UpdateClusterType
 	if err := c.BindJSON(&updateClusterType); err != nil {
 		log.Info("Required field is empty" + err.Error())
@@ -343,19 +333,18 @@ func UpdateCluster(c *gin.Context) {
 		return
 	}
 
-	if cluster.ID == 0 {
-		log.Warning("No cluster found with!")
-		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "No cluster found!"})
+	cluster, err := GetClusterFromDB(c)
+	if err != nil {
 		return
 	}
 
-	if err := db.Model(&cluster).UpdateColumns(cloud.ClusterType{NodeMin: updateClusterType.Node.MinCount, NodeMax: updateClusterType.Node.MaxCount}).Error; err != nil {
+	if err := db.Model(cluster).UpdateColumns(cloud.ClusterType{NodeMin: updateClusterType.Node.MinCount, NodeMax: updateClusterType.Node.MaxCount}).Error; err != nil {
 		log.Warning("Can't update cluster in the database!", err)
 		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "Can't update cluster in the database!", "name": cluster.Name, "error": err})
 		return
 	}
 
-	if _, err := cloud.UpdateCluster(cluster); err != nil {
+	if _, err := cloud.UpdateCluster(*cluster); err != nil {
 		log.Warning("Can't update cluster in the cloud!", err)
 		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "Can't update cluster in the cloud!", "resourceId": cluster.ID, "error": err})
 	} else {
@@ -394,21 +383,15 @@ func FetchClusterConfig(c *gin.Context) {
 
 //GetClusterStatus retrieves the cluster status
 func GetClusterStatus(c *gin.Context) {
-	cluster, err := GetClusterFromDB(c)
+	cloudCluster, err := GetCluster(c)
 	if err != nil {
 		return
 	}
-	clust, err := cloud.ReadCluster(*cluster)
-	if err != nil {
-		log.Info("Cluster read failed")
-	} else {
-		log.Info("Cluster read successful")
-	}
-	isAvailable, _ := cloud.IsKubernetesClusterAvailable(clust)
+	isAvailable, _ := cloud.IsKubernetesClusterAvailable(cloudCluster)
 	if isAvailable {
 		c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "message": "Kubernetes cluster available"})
 	} else {
-		c.JSON(http.StatusServiceUnavailable, gin.H{"status": http.StatusServiceUnavailable, "message": "Kubernetes cluster not ready yet"})
+		c.JSON(http.StatusNoContent, gin.H{"status": http.StatusNoContent, "message": "Kubernetes cluster not ready yet"})
 	}
 	return
 }
