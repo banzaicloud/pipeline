@@ -8,7 +8,9 @@ import (
 )
 
 const (
-	tableNameClusters = "clusters"
+	tableNameClusters         = "clusters"
+	tableNameAmazonProperties = "amazon_cluster_properties"
+	tableNameAzureProperties  = "azure_cluster_properties"
 )
 
 type CreateClusterRequest struct {
@@ -29,6 +31,7 @@ type CreateClusterSimple struct {
 	NodeInstanceType string
 	Cloud            string
 	Amazon           CreateAmazonClusterSimple
+	Azure            CreateAzureSimple
 }
 
 func (CreateClusterSimple) TableName() string {
@@ -53,8 +56,7 @@ func (request CreateClusterRequest) CreateClusterAmazon(c *gin.Context, db *gorm
 	}
 
 	if err := db.Save(&cluster2Db).Error; err != nil {
-		log.Warning("Can't persist cluster into the database!", err)
-		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "Can't persist cluster into the database!", "name": cluster2Db.Name, "error": err})
+		DbSaveFailed(c, log, err, cluster2Db.Name)
 		return false
 	}
 
@@ -67,4 +69,35 @@ func (request CreateClusterRequest) CreateClusterAmazon(c *gin.Context, db *gorm
 		go RetryGetConfig(createdCluster, "")
 	}
 	return true
+}
+
+func (request CreateClusterRequest) CreateClusterAzure(c *gin.Context, db *gorm.DB, log *logrus.Logger) bool {
+	cluster2Db := CreateClusterSimple{
+		Name:             request.Name,
+		Location:         request.Location,
+		NodeInstanceType: request.NodeInstanceType,
+		Cloud:            request.Cloud,
+		Azure: CreateAzureSimple{
+			ResourceGroup:     request.Properties.CreateClusterAzure.Node.ResourceGroup,
+			AgentCount:        request.Properties.CreateClusterAzure.Node.AgentCount,
+			AgentName:         request.Properties.CreateClusterAzure.Node.AgentName,
+			KubernetesVersion: request.Properties.CreateClusterAzure.Node.KubernetesVersion,
+		},
+	}
+
+	if err := db.Save(&cluster2Db).Error; err != nil {
+		DbSaveFailed(c, log, err, cluster2Db.Name)
+		return false
+	}
+
+	// todo call creation
+
+	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "message": "ok"})
+
+	return true
+}
+
+func DbSaveFailed(c *gin.Context, log *logrus.Logger, err error, clusterName string) {
+	log.Warning("Can't persist cluster into the database!", err)
+	c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "Can't persist cluster into the database!", "name": clusterName, "error": err})
 }

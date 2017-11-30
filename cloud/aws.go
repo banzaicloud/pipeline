@@ -18,10 +18,6 @@ const (
 	amazonDefaultNodeSpotPrice      = "0.2"
 )
 
-const (
-	tableNameAmazonProperties = "amazon_cluster_properties"
-)
-
 func getAWSCluster(clusterType CreateClusterSimple) *cluster.Cluster {
 	return &cluster.Cluster{
 		Name:     clusterType.Name,

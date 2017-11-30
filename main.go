@@ -76,7 +76,7 @@ func main() {
 	log = conf.Logger()
 	log.Info("Logger configured")
 	db = conf.Database()
-	db.AutoMigrate(&cloud.CreateClusterSimple{}, &cloud.CreateAmazonClusterSimple{})
+	db.AutoMigrate(&cloud.CreateClusterSimple{}, &cloud.CreateAmazonClusterSimple{}, &cloud.CreateAzureSimple{})
 
 	router := gin.Default()
 
@@ -246,7 +246,18 @@ func CreateCluster(c *gin.Context) {
 		}
 		break
 	case Azure:
-		c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "message": "ok"})
+		aksData := createClusterBaseRequest.Properties.CreateClusterAzure
+		if isValid, err := aksData.Validate(log); isValid && len(err) == 0 {
+			if createClusterBaseRequest.CreateClusterAzure(c, db, log) {
+				// update prometheus config..
+				err := monitor.UpdatePrometheusConfig(db)
+				if err != nil {
+					log.Warning("Could not update prometheus configmap: %v", err)
+				}
+			}
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": err})
+		}
 		break
 	default:
 		msg := "Not cloud type cluster tag. Please use one of the following: " + Amazon + ", " + Azure + "."
