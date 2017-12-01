@@ -20,7 +20,8 @@ docker-build: docker-dev-img ## Builds go binary in docker image
 	docker run -it -v $(PWD):/go/src/github.com/banzaicloud/pipeline -w /go/src/github.com/banzaicloud/pipeline pipeline-primary go build -o pipeline_linux .
 
 deps: ## Install dependencies required for building
-	which dep > /dev/null || go get -u github.com/golang/dep/cmd/dep
+	which glide > /dev/null || go get github.com/Masterminds/glide
+	which glide-vc > /dev/null || go get github.com/sgotti/glide-vc
 	which circleci  > /dev/null || curl -o /usr/local/bin/circleci https://circle-downloads.s3.amazonaws.com/releases/build_agent_wrapper/circleci && chmod +x /usr/local/bin/circleci
 
 ifeq ($(OS), Darwin)
