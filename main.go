@@ -68,7 +68,7 @@ var Version string
 var GitRev string
 
 func main() {
-	if os.Args[1] == "--version" {
+	if len(os.Args) > 1 && os.Args[1] == "--version" {
 		if GitRev == "" {
 			fmt.Println("version:", Version)
 		} else {
