@@ -256,13 +256,17 @@ func CreateCluster(c *gin.Context) {
 	} else {
 		log.Info("Cluster created successfully!")
 		c.JSON(http.StatusCreated, gin.H{"status": http.StatusCreated, "message": "Cluster created successfully!", "resourceId": cluster.ID, "name": cluster.Name, "Ip": createdCluster.KubernetesAPI.Endpoint})
-		go cloud.RetryGetConfig(createdCluster, "")
+		go CreateClusterPostHook(createdCluster, "")
 	}
+	return
+}
+
+func CreateClusterPostHook(cluster *cluster.Cluster, localDir string) {
+	cloud.RetryGetConfig(cluster, localDir)
 	err := monitor.UpdatePrometheusConfig(db)
 	if err != nil {
 		log.Warning("Could not update prometheus configmap: %v", err)
 	}
-	return
 }
 
 //DeleteCluster deletes a K8S cluster from the cloud
