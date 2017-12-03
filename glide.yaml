@@ -248,3 +248,7 @@ import:
   - pkg/client/clientset_generated/clientset/scheme
   - pkg/client/clientset_generated/clientset/typed/metrics/v1alpha1
   - pkg/client/clientset_generated/clientset/typed/metrics/v1beta1
+- package: github.com/prometheus/prometheus
+  version: ^2.0.0
+  subpackages:
+  - config
