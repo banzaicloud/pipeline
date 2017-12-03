@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"path"
 	"time"
 
@@ -11,17 +12,17 @@ import (
 	"github.com/banzaicloud/pipeline/cloud"
 	"github.com/banzaicloud/pipeline/conf"
 	"github.com/banzaicloud/pipeline/helm"
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
-	"k8s.io/helm/pkg/timeconv"
-	"github.com/kris-nova/kubicorn/apis/cluster"
 	"github.com/banzaicloud/pipeline/monitor"
 	"github.com/banzaicloud/pipeline/notify"
 	"github.com/ghodss/yaml"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 	"github.com/go-errors/errors"
+	"github.com/jinzhu/gorm"
+	"github.com/kris-nova/kubicorn/apis/cluster"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
+	"k8s.io/helm/pkg/timeconv"
 )
 
 //CreateClusterType definition to describe a cluster
@@ -54,7 +55,7 @@ type UpdateClusterType struct {
 //DeploymentType definition to describe a Helm deployment
 type DeploymentType struct {
 	Name        string      `json:"name" binding:"required"`
-	ReleaseName	string			`json:"releasename"`
+	ReleaseName string      `json:"releasename"`
 	Version     string      `json:"version"`
 	Values      interface{} `json:"values"`
 }
@@ -63,10 +64,21 @@ type DeploymentType struct {
 
 var log *logrus.Logger
 var db *gorm.DB
+var Version string
+var GitRev string
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "--version" {
+		if GitRev == "" {
+			fmt.Println("version:", Version)
+		} else {
+			fmt.Printf("version: %s-%s\n", Version, GitRev)
+		}
+		os.Exit(0)
+	}
 
 	conf.Init()
+	auth.Init()
 
 	log = conf.Logger()
 	log.Info("Logger configured")
@@ -88,6 +100,7 @@ func main() {
 	v1 := router.Group("/api/v1/")
 	{
 		v1.POST("/clusters", CreateCluster)
+		v1.GET("/status", Status)
 		v1.GET("/clusters", FetchClusters)
 		v1.GET("/clusters/:id", FetchCluster)
 		v1.PUT("/clusters/:id", UpdateCluster)
@@ -255,16 +268,11 @@ func CreateCluster(c *gin.Context) {
 //DeleteCluster deletes a K8S cluster from the cloud
 func DeleteCluster(c *gin.Context) {
 
-	var cluster cloud.ClusterType
-	clusterId := c.Param("id")
-
-	db.First(&cluster, clusterId)
-
-	if cluster.ID == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "No cluster found!"})
+	cluster, err := GetClusterFromDB(c)
+	if err != nil {
 		return
 	}
-	if _, err := cloud.DeleteCluster(cluster); err != nil {
+	if _, err := cloud.DeleteCluster(*cluster); err != nil {
 		log.Warning("Can't delete cluster from cloud!", err)
 		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "Can't delete cluster!", "resourceId": cluster.ID, "error": err})
 		return
@@ -278,7 +286,7 @@ func DeleteCluster(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "Can't delete cluster!", "resourceId": cluster.ID, "error": err})
 		return
 	}
-	err := monitor.UpdatePrometheusConfig(db)
+	err = monitor.UpdatePrometheusConfig(db)
 	if err != nil {
 		log.Warning("Could not update prometheus configmap: %v", err)
 	}
@@ -330,11 +338,6 @@ func FetchCluster(c *gin.Context) {
 //UpdateCluster updates a K8S cluster in the cloud (e.g. autoscale)
 func UpdateCluster(c *gin.Context) {
 
-	var cluster cloud.ClusterType
-	clusterId := c.Param("id")
-
-	db.First(&cluster, clusterId)
-
 	var updateClusterType UpdateClusterType
 	if err := c.BindJSON(&updateClusterType); err != nil {
 		log.Info("Required field is empty" + err.Error())
@@ -342,19 +345,18 @@ func UpdateCluster(c *gin.Context) {
 		return
 	}
 
-	if cluster.ID == 0 {
-		log.Warning("No cluster found with!")
-		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "No cluster found!"})
+	cluster, err := GetClusterFromDB(c)
+	if err != nil {
 		return
 	}
 
-	if err := db.Model(&cluster).UpdateColumns(cloud.ClusterType{NodeMin: updateClusterType.Node.MinCount, NodeMax: updateClusterType.Node.MaxCount}).Error; err != nil {
+	if err := db.Model(cluster).UpdateColumns(cloud.ClusterType{NodeMin: updateClusterType.Node.MinCount, NodeMax: updateClusterType.Node.MaxCount}).Error; err != nil {
 		log.Warning("Can't update cluster in the database!", err)
 		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "Can't update cluster in the database!", "name": cluster.Name, "error": err})
 		return
 	}
 
-	if _, err := cloud.UpdateCluster(cluster); err != nil {
+	if _, err := cloud.UpdateCluster(*cluster); err != nil {
 		log.Warning("Can't update cluster in the cloud!", err)
 		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "Can't update cluster in the cloud!", "resourceId": cluster.ID, "error": err})
 	} else {
@@ -393,39 +395,26 @@ func FetchClusterConfig(c *gin.Context) {
 
 //GetClusterStatus retrieves the cluster status
 func GetClusterStatus(c *gin.Context) {
-	cluster, err := GetClusterFromDB(c)
+	cloudCluster, err := GetCluster(c)
 	if err != nil {
 		return
 	}
-	clust, err := cloud.ReadCluster(*cluster)
-	if err != nil {
-		log.Info("Cluster read failed")
-	} else {
-		log.Info("Cluster read successful")
-	}
-	isAvailable, _ := cloud.IsKubernetesClusterAvailable(clust)
+	isAvailable, _ := cloud.IsKubernetesClusterAvailable(cloudCluster)
 	if isAvailable {
 		c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "message": "Kubernetes cluster available"})
 	} else {
-		c.JSON(http.StatusServiceUnavailable, gin.H{"status": http.StatusServiceUnavailable, "message": "Kubernetes cluster not ready yet"})
+		c.JSON(http.StatusNoContent, gin.H{"status": http.StatusNoContent, "message": "Kubernetes cluster not ready yet"})
 	}
 	return
 }
 
 //GetTillerStatus checks if tiller ready to accept deployments
 func GetTillerStatus(c *gin.Context) {
-	cluster, err := GetClusterFromDB(c)
+	cloudCluster, err := GetCluster(c)
 	if err != nil {
 		return
 	}
-	clust, err := cloud.ReadCluster(*cluster)
-	if err != nil {
-		log.Info("Cluster read failed")
-	} else {
-		log.Info("Cluster read successful")
-	}
-
-	_, err = helm.ListDeployments(clust, nil)
+	_, err = helm.ListDeployments(cloudCluster, nil)
 	if err != nil {
 		c.JSON(http.StatusServiceUnavailable, gin.H{"status": http.StatusServiceUnavailable, "message": "Tiller not available"})
 	} else {
@@ -444,6 +433,7 @@ func FetchDeploymentStatus(c *gin.Context) {
 	chart, err := helm.ListDeployments(cloudCluster, &name)
 	if err != nil {
 		c.JSON(http.StatusServiceUnavailable, gin.H{"status": http.StatusServiceUnavailable, "message": "Tiller not available"})
+		return
 	}
 	if chart.Count == 0 {
 		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "Deployment not found"})
@@ -473,15 +463,15 @@ func GetClusterFromDB(c *gin.Context) (*cloud.ClusterType, error) {
 	var cluster cloud.ClusterType
 	value := c.Param("id")
 	field := c.DefaultQuery("field", "")
-	if field != "" {
-		query := fmt.Sprintf("%s = ?", field)
-		db.Where(query, value).First(&cluster)
-	} else {
-		db.First(&cluster, value)
+	if field == "" {
+		field = "id"
 	}
-
+	query := fmt.Sprintf("%s = ?", field)
+	db.Where(query, value).First(&cluster)
 	if cluster.ID == 0 {
-		return nil, errors.New(fmt.Sprintf("cluster not found: [%s]: %s", field, value))
+		errorMsg := fmt.Sprintf("cluster not found: [%s]: %s", field, value)
+		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": errorMsg})
+		return nil, errors.New(errorMsg)
 	}
 	return &cluster, nil
 
@@ -501,8 +491,6 @@ func GetKubicornCluster(clusterType *cloud.ClusterType) (*cluster.Cluster, error
 func GetCluster(c *gin.Context) (*cluster.Cluster, error) {
 	clusterType, err := GetClusterFromDB(c)
 	if err != nil {
-		errorMsg := fmt.Sprintf("Error fetch cluster: %s", err)
-		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": errorMsg})
 		return nil, err
 	}
 	cluster, err := GetKubicornCluster(clusterType)
@@ -512,4 +500,16 @@ func GetCluster(c *gin.Context) (*cluster.Cluster, error) {
 		return nil, err
 	}
 	return cluster, nil
+}
+
+//FetchClusters fetches all the K8S clusters from the cloud
+func Status(c *gin.Context) {
+	var clusters []cloud.ClusterType
+
+	log.Info("Cluster running, subsystems initialized")
+	db.Find(&clusters)
+
+	//TODO:add more complex status checks
+	//no error on viper, log, db init
+	c.JSON(http.StatusOK, gin.H{"Cluster running, subsystems initialized": http.StatusOK})
 }
