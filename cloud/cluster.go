@@ -112,10 +112,10 @@ func CreateCluster(clusterType CreateClusterSimple) (*cluster.Cluster, error) {
 }
 
 //DeleteCluster deletes a cluster from the cloud
-func DeleteCluster(clusterType ClusterType) (*cluster.Cluster, error) {
+func (cluster CreateClusterSimple) DeleteClusterAmazon() (*cluster.Cluster, error) {
 	logger.Level = 4
 
-	stateStore := getStateStoreForClusterOld(clusterType)
+	stateStore := getStateStoreForCluster(cluster)
 	if !stateStore.Exists() {
 		return nil, nil
 	}
@@ -123,7 +123,7 @@ func DeleteCluster(clusterType ClusterType) (*cluster.Cluster, error) {
 	deleteCluster, err := stateStore.GetCluster()
 	if err != nil {
 		logger.Info(err.Error())
-		logger.Info("Failed to load cluster:" + clusterType.Name)
+		logger.Info("Failed to load cluster:" + cluster.Name)
 		return nil, err
 	}
 

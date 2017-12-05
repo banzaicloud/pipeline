@@ -290,24 +290,42 @@ func CreateCluster(c *gin.Context) {
 //DeleteCluster deletes a K8S cluster from the cloud
 func DeleteCluster(c *gin.Context) {
 
-	var cluster cloud.ClusterType
+	log.Info("Delete cluster start")
+
+	var cluster cloud.CreateClusterSimple
 	clusterId := c.Param("id")
 
 	db.First(&cluster, clusterId)
+
+	log.Infof("Cluster data: %#v", cluster)
 
 	if cluster.ID == 0 {
 		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "No cluster found!"})
 		return
 	}
-	if _, err := cloud.DeleteCluster(cluster); err != nil {
-		log.Warning("Can't delete cluster from cloud!", err)
-		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "Can't delete cluster!", "resourceId": cluster.ID, "error": err})
-		return
-	} else {
-		log.Info("Cluster deleted from the cloud!")
-		notify.SlackNotify("Cluster deleted from the cloud!")
-		c.JSON(http.StatusCreated, gin.H{"status": http.StatusCreated, "message": "Cluster deleted successfully!", "resourceId": cluster.ID})
+
+	clusterType := cluster.Cloud
+	log.Info("Cluster type is ", clusterType)
+
+	switch clusterType {
+	case Amazon:
+		if _, err := cluster.DeleteClusterAmazon(); err != nil {
+			log.Warning("Can't delete cluster from cloud!", err)
+			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "Can't delete cluster!", "resourceId": cluster.ID, "error": err})
+			return
+		} else {
+			log.Info("Cluster deleted from the cloud!")
+			notify.SlackNotify("Cluster deleted from the cloud!")
+			c.JSON(http.StatusCreated, gin.H{"status": http.StatusCreated, "message": "Cluster deleted successfully!", "resourceId": cluster.ID})
+		}
+		break
+	case Azure:
+		// todo call azure client
+		break
 	}
+
+	log.Info("Delete from db")
+
 	if err := db.Delete(&cluster).Error; err != nil {
 		log.Warning("Can't delete cluster from database!", err)
 		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "Can't delete cluster!", "resourceId": cluster.ID, "error": err})
