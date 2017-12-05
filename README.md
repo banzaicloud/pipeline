@@ -36,7 +36,7 @@ The Pipeline API is able to create and configure custom Kubernetes clusters in t
 
 It is a core building block and engine of the **Pipeline Platform** - an open source, multi cloud application platform as a service, based on a container management system. It is an application centric approach of a software delivery and deployment pipeline, to build cloud native microservices with confidence. It simplifies and abstracts all the details of provisioning the cloud infrastructure, installing or reusing the managed Kubernetes cluster and building, deploying and monitoring the application. The PaaS is a container management platform including a full CI/CD workflow, orchestration, SLA rules based autoscaling and advanced networking delivering a complete solution for developers.
 
-The main features of the platform are: 
+The main features of the platform are:
 
 * **Provisioning:** _Provision highly available clusters on any of the supported cloud providers or managed Kubernetes commercial offerings, hybrid cloud or on-premise deployments_
 * **Microservice Ready:** _Focus and build great applications and forget the hard stuff of ops, failover, build pipelines, patching and security_
@@ -49,10 +49,10 @@ The platform includes a few default `spotguides` like: **Apache Spark, Apache Ze
 
 ## Cloud Providers
 
-Pipeline is currently experimental and all the development, testing and the CI/CD pipeline itself is tested on **AWS** only. The AWS version contains the control plane, cloud images, Cloudformation templates and belonging artifacts published. 
+Pipeline is currently experimental and all the development, testing and the CI/CD pipeline itself is tested on **AWS** only. The AWS version contains the control plane, cloud images, Cloudformation templates and belonging artifacts published.
 
 The underlying [Kubicorn](http://kubicorn.io) framework has support for the following providers.
-  
+
   * Amazon AWS
   * Google Cloud
   * Microsoft Azure
@@ -63,7 +63,7 @@ The underlying [Kubicorn](http://kubicorn.io) framework has support for the foll
 Pipeline is architected in a way to allow pluggable implementations for providers, managed Kubernetes clusters or hybrid environments. Through provider plugins retrives the `kubeconfig` and connects and deploys applications. Currently it's tested with [Microsoft's Azure managed Kubernetes](https://azure.microsoft.com/en-us/blog/introducing-azure-container-service-aks-managed-kubernetes-and-azure-container-registry-geo-replication/).
 
   * Microsoft AKS
- 
+
  There is work planned for the following plugins:
 
   * CoreOS Tectonic
@@ -85,7 +85,7 @@ All these components are assembled into a **Control Plane** - and deployed to Ku
 
 ![Control Plane](docs/images/control-plane-aws.png)
 
-You can launch a Pipeline control plane on AWS with the following [Cloudformation](https://github.com/banzaicloud/pipeline-cp-launcher/blob/master/control-plane.template) template.
+You can launch a Pipeline control plane on AWS with the following [Cloudformation](https://github.com/banzaicloud/pipeline-cp-launcher/blob/0.1.0/control-plane.template) template.
 
 ### Deployed cluster
 
@@ -120,7 +120,7 @@ For Pipeline a `spotguide` is a combination of a few JSON files that describe an
 
 When you push a code change to GitHub, the Pipeline platform automatically detects the appropriate `spotguide`, reads the descriptors and initiates the pipeline.
 
-#### Big data 
+#### Big data
 
 Pipeline PaaS allows enterprises to shift from a host-centric infrastructure to one that is container and application centric and take advantage of containers’ portability and flexibility. Today's big data frameworks require a scheduler (Apache YARN) and a distributed coordination framework (Apache Zookeeper) however better alternatives are already key building blocks of Kubernetes. Running big data workloads on the Pipeline PaaS removes all the requirements to use, install and maintain these systems and provide a cloud native way to run, schedule and scale the workload. The Kubernetes scheduler is aware of the application state and understands the infrastructure and cluster as well. A better density, utilization, broader range of workloads and varying latency  are all among the benefits.
 
@@ -154,8 +154,8 @@ In case you have problems please open an [issue](https://github.com/banzaicloud/
 
 ### Contributing
 
-Thanks you for your contribution and being part of our community. Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on the code of conduct, and the process for submitting pull requests. When you are opening a PR to Pipeline the first time we will require you to sign a standard CLA. 
+Thanks you for your contribution and being part of our community. Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on the code of conduct, and the process for submitting pull requests. When you are opening a PR to Pipeline the first time we will require you to sign a standard CLA.
 
 ### License
 
-Pipeline is open sourced under the Apache 2.0 license. See the [LICENSE](LICENSE.md) file for details. 
+Pipeline is open sourced under the Apache 2.0 license. See the [LICENSE](LICENSE.md) file for details.
