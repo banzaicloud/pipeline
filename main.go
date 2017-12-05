@@ -244,7 +244,7 @@ func CreateCluster(c *gin.Context) {
 		}
 		break
 	default:
-		msg := "Not cloud type cluster tag. Please use one of the following: " + Amazon + ", " + Azure + "."
+		msg := "Not supported cloud type. Please use one of the following: " + Amazon + ", " + Azure + "."
 		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": msg})
 		break
 	}
