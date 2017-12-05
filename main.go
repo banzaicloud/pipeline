@@ -22,6 +22,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"k8s.io/helm/pkg/timeconv"
+	"strconv"
 )
 
 //nodeInstanceType=m3.medium -d nodeInstanceSpotPrice=0.04 -d nodeMin=1 -d nodeMax=3 -d image=ami-6d48500b
@@ -250,43 +251,6 @@ func CreateCluster(c *gin.Context) {
 
 }
 
-//func CreateClusterOld(c *gin.Context) {
-//	var createClusterrequest CreateClusterTypeOld
-//	if err := c.BindJSON(&createClusterrequest); err != nil {
-//		log.Info("Required field is empty" + err.Error())
-//		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "Required field is empty", "error": err})
-//		return
-//	}
-//
-//	cluster := cloud.ClusterType{
-//		Name:                  createClusterrequest.Name,
-//		Location:              createClusterrequest.Location,
-//		MasterImage:           createClusterrequest.Master.Image,
-//		NodeImage:             createClusterrequest.Node.Image,
-//		MasterInstanceType:    createClusterrequest.Master.InstanceType,
-//		NodeInstanceType:      createClusterrequest.Node.InstanceType,
-//		NodeInstanceSpotPrice: createClusterrequest.Node.SpotPrice,
-//		NodeMin:               createClusterrequest.Node.MinCount,
-//		NodeMax:               createClusterrequest.Node.MaxCount,
-//	}
-//
-//	tag := cluster.Tag
-//	switch tag {
-//	case Amazon:
-//		createClusterAWSOld(c, cluster)
-//		break
-//	case Azure:
-//		c.JSON(http.StatusNotImplemented, gin.H{"status":http.StatusNotImplemented, "message": "Azure cluster creation is not implemented yet"})
-//		break
-//	default:
-//		msg := "Not cloud type cluster tag. Please use one of the following: " + Amazon + ", " + Azure + "."
-//		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": msg})
-//		break
-//
-//	}
-//
-//}
-
 //DeleteCluster deletes a K8S cluster from the cloud
 func DeleteCluster(c *gin.Context) {
 
@@ -326,6 +290,9 @@ func DeleteCluster(c *gin.Context) {
 		break
 	case Azure:
 		// delete azure cluster
+
+		// set azure props
+		db.Where(cloud.CreateAzureSimple{CreateClusterSimpleId: convertString2Uint(clusterId)}).First(&cluster.Azure)
 		if cluster.DeleteClusterAzure(c, cluster.Name, cluster.Azure.ResourceGroup) {
 			if cluster.DeleteFromDb(c, db, log) {
 				updatePrometheus()
@@ -337,6 +304,14 @@ func DeleteCluster(c *gin.Context) {
 		break
 	}
 
+}
+
+func convertString2Uint(s string) uint {
+	i, err := strconv.ParseInt(s, 10, 32)
+	if err != nil {
+		panic(err)
+	}
+	return uint(i)
 }
 
 func updatePrometheus() {
