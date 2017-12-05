@@ -36,6 +36,18 @@ type CreateClusterSimple struct {
 	Azure            CreateAzureSimple
 }
 
+func (cluster CreateClusterSimple) DeleteFromDb(c *gin.Context, db *gorm.DB, log *logrus.Logger) bool {
+
+	log.Info("Delete from db")
+
+	if err := db.Delete(&cluster).Error; err != nil {
+		log.Warning("Can't delete cluster from database!", err)
+		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "Can't delete cluster!", "resourceId": cluster.ID, "error": err})
+		return false
+	}
+	return true
+}
+
 func (CreateClusterSimple) TableName() string {
 	return tableNameClusters
 }

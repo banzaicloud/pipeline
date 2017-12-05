@@ -309,33 +309,41 @@ func DeleteCluster(c *gin.Context) {
 
 	switch clusterType {
 	case Amazon:
+		// create amazon cluster
 		if _, err := cluster.DeleteClusterAmazon(); err != nil {
 			log.Warning("Can't delete cluster from cloud!", err)
 			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "Can't delete cluster!", "resourceId": cluster.ID, "error": err})
-			return
 		} else {
 			log.Info("Cluster deleted from the cloud!")
 			notify.SlackNotify("Cluster deleted from the cloud!")
 			c.JSON(http.StatusCreated, gin.H{"status": http.StatusCreated, "message": "Cluster deleted successfully!", "resourceId": cluster.ID})
+
+			if cluster.DeleteFromDb(c, db, log) {
+				updatePrometheus()
+			}
+
 		}
 		break
 	case Azure:
-		// todo call azure client
+		// delete azure cluster
+		if cluster.DeleteClusterAzure(c, cluster.Name, cluster.Azure.ResourceGroup) {
+			if cluster.DeleteFromDb(c, db, log) {
+				updatePrometheus()
+			}
+		} else {
+			log.Warning("Can't delete cluster from cloud!")
+			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "Can't delete cluster!", "resourceId": cluster.ID})
+		}
 		break
 	}
 
-	log.Info("Delete from db")
+}
 
-	if err := db.Delete(&cluster).Error; err != nil {
-		log.Warning("Can't delete cluster from database!", err)
-		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "Can't delete cluster!", "resourceId": cluster.ID, "error": err})
-		return
-	}
+func updatePrometheus() {
 	err := monitor.UpdatePrometheusConfig(db)
 	if err != nil {
 		log.Warning("Could not update prometheus configmap: %v", err)
 	}
-	return
 }
 
 //FetchClusters fetches all the K8S clusters from the cloud

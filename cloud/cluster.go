@@ -11,6 +11,8 @@ import (
 	"github.com/kris-nova/kubicorn/cutil/initapi"
 	"github.com/kris-nova/kubicorn/cutil/logger"
 	"github.com/spf13/viper"
+	azureClient "github.com/banzaicloud/azure-aks-client/client"
+	"github.com/gin-gonic/gin"
 )
 
 const (
@@ -109,6 +111,17 @@ func CreateCluster(clusterType CreateClusterSimple) (*cluster.Cluster, error) {
 	stateStore.Commit(created)
 
 	return created, nil
+}
+
+func (cluster CreateClusterSimple) DeleteClusterAzure(c *gin.Context, name string, resourceGroup string) bool {
+	res, err := azureClient.DeleteCluster(name, resourceGroup)
+	if err != nil {
+		SetResponseBody(c, err.StatusCode, gin.H{"status": err.StatusCode, "message": err.Message})
+		return false
+	} else {
+		SetResponseBody(c, res.StatusCode, res)
+		return true
+	}
 }
 
 //DeleteCluster deletes a cluster from the cloud
