@@ -104,17 +104,17 @@ func (request CreateClusterRequest) CreateClusterAzure(c *gin.Context, db *gorm.
 
 	res, err := azureClient.CreateCluster(r)
 	if err != nil {
-		SetResponseBody(c, err.StatusCode, err.Message)
+		SetResponseBody(c, err.StatusCode, gin.H{"status": err.StatusCode, "message": err.Message})
 		return false
 	} else {
-		SetResponseBody(c, res.StatusCode, res.Value.ToString())
+		SetResponseBody(c, res.StatusCode, res.Value)
 		return true
 	}
 
 }
 
-func SetResponseBody(c *gin.Context, statusCode int, message string) {
-	c.JSON(statusCode, gin.H{"status": statusCode, "message": message})
+func SetResponseBody(c *gin.Context, statusCode int, obj interface{}) {
+	c.JSON(statusCode, obj)
 }
 
 func DbSaveFailed(c *gin.Context, log *logrus.Logger, err error, clusterName string) {
