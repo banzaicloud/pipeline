@@ -24,23 +24,6 @@ import (
 	"k8s.io/helm/pkg/timeconv"
 )
 
-//CreateClusterType definition to describe a cluster
-type CreateClusterTypeOld struct {
-	Name     string `json:"name" binding:"required"`
-	Location string `json:"location" binding:"required"`
-	Node struct {
-		InstanceType string `json:"instanceType" binding:"required"`
-		SpotPrice    string `json:"spotPrice"`
-		MinCount     int    `json:"minCount" binding:"required"`
-		MaxCount     int    `json:"maxCount" binding:"required"`
-		Image        string `json:"image" binding:"required"`
-	} `json:"node" binding:"required"`
-	Master struct {
-		InstanceType string `json:"instanceType" binding:"required"`
-		Image        string `json:"image" binding:"required"`
-	} `json:"master" binding:"required"`
-}
-
 //nodeInstanceType=m3.medium -d nodeInstanceSpotPrice=0.04 -d nodeMin=1 -d nodeMax=3 -d image=ami-6d48500b
 
 //UpdateClusterType definition to updates a cluster

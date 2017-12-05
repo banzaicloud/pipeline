@@ -5,6 +5,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"net/http"
+	azureCluster "github.com/banzaicloud/azure-aks-client/cluster"
+	azureClient "github.com/banzaicloud/azure-aks-client/client"
 )
 
 const (
@@ -90,11 +92,29 @@ func (request CreateClusterRequest) CreateClusterAzure(c *gin.Context, db *gorm.
 		return false
 	}
 
-	// todo call creation
+	r := azureCluster.CreateClusterRequest{
+		Name:              cluster2Db.Name,
+		Location:          cluster2Db.Location,
+		VMSize:            cluster2Db.NodeInstanceType,
+		ResourceGroup:     cluster2Db.Azure.ResourceGroup,
+		AgentCount:        cluster2Db.Azure.AgentCount,
+		AgentName:         cluster2Db.Azure.AgentName,
+		KubernetesVersion: cluster2Db.Azure.KubernetesVersion,
+	}
 
-	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "message": "ok"})
+	res, err := azureClient.CreateCluster(r)
+	if err != nil {
+		SetResponseBody(c, err.StatusCode, err.Message)
+		return false
+	} else {
+		SetResponseBody(c, res.StatusCode, res.Value.ToString())
+		return true
+	}
 
-	return true
+}
+
+func SetResponseBody(c *gin.Context, statusCode int, message string) {
+	c.JSON(statusCode, gin.H{"status": statusCode, "message": message})
 }
 
 func DbSaveFailed(c *gin.Context, log *logrus.Logger, err error, clusterName string) {
