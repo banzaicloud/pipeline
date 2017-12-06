@@ -256,13 +256,17 @@ func CreateCluster(c *gin.Context) {
 	} else {
 		log.Info("Cluster created successfully!")
 		c.JSON(http.StatusCreated, gin.H{"status": http.StatusCreated, "message": "Cluster created successfully!", "resourceId": cluster.ID, "name": cluster.Name, "Ip": createdCluster.KubernetesAPI.Endpoint})
-		go cloud.RetryGetConfig(createdCluster, "")
+		go CreateClusterPostHook(createdCluster, "")
 	}
+	return
+}
+
+func CreateClusterPostHook(cluster *cluster.Cluster, localDir string) {
+	cloud.RetryGetConfig(cluster, localDir)
 	err := monitor.UpdatePrometheusConfig(db)
 	if err != nil {
 		log.Warning("Could not update prometheus configmap: %v", err)
 	}
-	return
 }
 
 //DeleteCluster deletes a K8S cluster from the cloud
@@ -428,6 +432,7 @@ func FetchDeploymentStatus(c *gin.Context) {
 	name := c.Param("name")
 	cloudCluster, err := GetCluster(c)
 	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "Cluster not found"})
 		return
 	}
 	chart, err := helm.ListDeployments(cloudCluster, &name)
@@ -443,9 +448,19 @@ func FetchDeploymentStatus(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "Multiple deployments found"})
 		return
 	}
-	foundChart := chart.Releases[0]
-	if foundChart.GetInfo().Status.GetCode() == 1 {
-		c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "message": "OK"})
+	// TODO simplify the flow
+	status, err := helm.CheckDeploymentState(cloudCluster, name)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "Error happened fetching status"})
+		return
+	}
+	msg := fmt.Sprintf("Deployment state is: %s", status)
+	if status == "Running" {
+		log.Infof("Deployment status is: %s", status)
+		c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "message": msg})
+		return
+	} else {
+		c.JSON(http.StatusNoContent, gin.H{"status": http.StatusNoContent, "message": msg})
 		return
 	}
 	return
