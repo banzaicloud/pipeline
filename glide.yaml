@@ -250,3 +250,7 @@ import:
   - pkg/client/clientset_generated/clientset/typed/metrics/v1beta1
 - package: github.com/banzaicloud/azure-aks-client
   version: master
+- package: github.com/Masterminds/cookoo
+  version: ^1.3.0
+  subpackages:
+  - web

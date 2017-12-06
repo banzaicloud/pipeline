@@ -15,6 +15,7 @@ import (
 var sdk cluster.Sdk
 
 const (
+	OK = 200
 	InternalErrorCode = 500
 	BadRequest = 400
 )

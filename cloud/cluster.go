@@ -160,9 +160,21 @@ func (cluster CreateClusterSimple) DeleteClusterAmazon() (*cluster.Cluster, erro
 }
 
 //ReadCluster reads a persisted cluster from the statestore
-func ReadCluster(clusterType ClusterType) (*cluster.Cluster, error) {
+// todo írd át
+func ReadClusterOld(clusterType ClusterType) (*cluster.Cluster, error) {
 
 	stateStore := getStateStoreForClusterOld(clusterType)
+	readCluster, err := stateStore.GetCluster()
+	if err != nil {
+		return nil, err
+	}
+
+	return readCluster, nil
+}
+
+func ReadCluster(cl CreateClusterSimple) (*cluster.Cluster, error) {
+
+	stateStore := getStateStoreForCluster(cl)
 	readCluster, err := stateStore.GetCluster()
 	if err != nil {
 		return nil, err

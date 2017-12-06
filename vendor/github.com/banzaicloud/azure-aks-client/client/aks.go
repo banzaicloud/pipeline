@@ -30,6 +30,83 @@ var clientId string
 var secret string
 var initError *initapi.AzureErrorResponse
 
+/**
+GetCluster gets the details of the managed cluster with a specified resource group and name.
+GET https://management.azure.com/subscriptions/
+	{subscriptionId}/resourceGroups/
+	{resourceGroupName}/providers/Microsoft.ContainerService/managedClusters/
+	{resourceName}?api-version=2017-08-31
+ */
+func GetCluster(name string, resourceGroup string) (*Response, *initapi.AzureErrorResponse) {
+
+	if azureSdk == nil {
+		return nil, initError
+	}
+
+	if len(clientId) == 0 || len(secret) == 0 {
+		message := "ClientId or secret is empty"
+		log.WithFields(log.Fields{"error": "environmental_error"}).Error(message)
+		return nil, &initapi.AzureErrorResponse{StatusCode: initapi.InternalErrorCode, Message: message}
+	}
+
+	pathParam := map[string]interface{}{
+		"subscription-id": azureSdk.ServicePrincipal.SubscriptionID,
+		"resourceGroup":   resourceGroup,
+		"resourceName":    name}
+	queryParam := map[string]interface{}{"api-version": "2017-08-31"}
+
+	groupClient := *azureSdk.ResourceGroup
+
+	req, err := autorest.Prepare(&http.Request{},
+		groupClient.WithAuthorization(),
+		autorest.AsGet(),
+		autorest.WithBaseURL("https://management.azure.com"),
+		autorest.WithPathParameters("/subscriptions/{subscription-id}/resourceGroups/{resourceGroup}/providers/Microsoft.ContainerService/managedClusters/{resourceName}", pathParam),
+		autorest.WithQueryParameters(queryParam))
+
+	if err != nil {
+		log.WithFields(log.Fields{"error": err}).Error("error during listing clusters in ", resourceGroup, " resource group")
+		return nil, createErrorResponse()
+	}
+
+	log.Info("Get cluster details with name: ", name, " in ", resourceGroup, " resource group")
+
+	resp, err := autorest.SendWithSender(groupClient.Client, req)
+	if err != nil {
+		log.WithFields(log.Fields{"error": err}).Error("error during listing clusters in ", resourceGroup, " resource group")
+		return nil, createErrorResponse()
+	}
+
+	log.Info("Get Cluster response status code: ", resp.StatusCode)
+
+	value, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.WithFields(log.Fields{"error": err}).Error("error during get cluster in ", resourceGroup, " resource group")
+		return nil, createErrorResponse()
+	}
+
+	if resp.StatusCode != initapi.OK {
+		// not ok, probably 404
+		type TempErrorResp struct {
+			Error struct {
+				Message string `json:"message"`
+			} `json:"error"`
+		}
+
+		errResp := TempErrorResp{}
+		json.Unmarshal([]byte(value), &errResp)
+		return nil, &initapi.AzureErrorResponse{StatusCode: resp.StatusCode, Message: errResp.Error.Message}
+	} else {
+		// everything is ok
+		v := Value{}
+		json.Unmarshal([]byte(value), &v)
+		response := Response{}
+		response.update(resp.StatusCode, v)
+		return &response, nil
+	}
+
+}
+
 /*
 ListClusters is listing AKS clusters in the specified subscription and resource group
 GET https://management.azure.com/subscriptions/

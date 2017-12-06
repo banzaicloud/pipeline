@@ -23,6 +23,7 @@ import (
 	"github.com/spf13/viper"
 	"k8s.io/helm/pkg/timeconv"
 	"strconv"
+	azureClient "github.com/banzaicloud/azure-aks-client/client"
 )
 
 //nodeInstanceType=m3.medium -d nodeInstanceSpotPrice=0.04 -d nodeMin=1 -d nodeMax=3 -d image=ami-6d48500b
@@ -323,13 +324,8 @@ func updatePrometheus() {
 
 //FetchClusters fetches all the K8S clusters from the cloud
 func FetchClusters(c *gin.Context) {
-	var clusters []cloud.ClusterType
-	type ClusterRepresentation struct {
-		Id   uint
-		Name string
-		Ip   string
-	}
-	var response []ClusterRepresentation
+	var clusters []cloud.CreateClusterSimple
+	var response []*ClusterRepresentation
 	db.Find(&clusters)
 
 	if len(clusters) <= 0 {
@@ -337,19 +333,71 @@ func FetchClusters(c *gin.Context) {
 		return
 	}
 
-	for _, clusterType := range clusters {
-		c, err := cloud.ReadCluster(clusterType)
-		if err == nil {
-			clust := ClusterRepresentation{
-				Id:   clusterType.ID,
-				Name: clusterType.Name,
-				Ip:   c.KubernetesAPI.Endpoint,
-			}
+	for _, cl := range clusters {
+		cloudType := cl.Cloud
+		var clust *ClusterRepresentation
+		switch cloudType {
+		case Amazon:
+			clust = ReadClusterAmazon(cl)
+			break
+		case Azure:
+			db.Where(cloud.CreateAzureSimple{CreateClusterSimpleId: cl.ID}).First(&cl.Azure)
+			clust = ReadClusterAzure(cl)
+			break
+		}
+
+		if clust != nil {
+			log.Info("Append %#v cluster representation to response", clust)
 			response = append(response, clust)
 		}
+
 	}
 
 	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "data": response})
+}
+
+type ClusterRepresentation struct {
+	Id        uint
+	Name      string
+	CloudType string
+	Amazon *struct {
+		Ip string
+	}
+	Azure *struct {
+		Value azureClient.Value
+	}
+}
+
+func ReadClusterAzure(cl cloud.CreateClusterSimple) *ClusterRepresentation {
+	log.Info("Read aks cluster with ", cl.Name, " id")
+	response, err := azureClient.GetCluster(cl.Name, cl.Azure.ResourceGroup)
+	if err != nil {
+		log.Infof("Something went wrong under read: %#v", err)
+		return nil
+	} else {
+		clust := ClusterRepresentation{
+			Id:    cl.ID,
+			Name:  cl.Name,
+			Azure: &struct{ Value azureClient.Value }{Value: response.Value},
+		}
+		return &clust
+	}
+}
+
+func ReadClusterAmazon(cl cloud.CreateClusterSimple) *ClusterRepresentation {
+	log.Info("Read aws cluster with ", cl.ID, " id")
+	c, err := cloud.ReadCluster(cl)
+	if err == nil {
+		clust := ClusterRepresentation{
+			Id:     cl.ID,
+			Name:   cl.Name,
+			Amazon: &struct{ Ip string }{Ip: c.KubernetesAPI.Endpoint},
+		}
+		return &clust
+	} else {
+		log.Info("Something went wrong under read: ", err.Error())
+	}
+	return nil
 }
 
 //FetchCluster fetch a K8S cluster in the cloud
@@ -433,7 +481,7 @@ func GetClusterStatus(c *gin.Context) {
 	if err != nil {
 		return
 	}
-	clust, err := cloud.ReadCluster(*cluster)
+	clust, err := cloud.ReadClusterOld(*cluster)
 	if err != nil {
 		log.Info("Cluster read failed")
 	} else {
@@ -520,7 +568,7 @@ func GetClusterFromDB(c *gin.Context) (*cloud.ClusterType, error) {
 //GetCluster based on ClusterType object
 //This will read the persisted Kubicorn cluster format
 func GetKubicornCluster(clusterType *cloud.ClusterType) (*cluster.Cluster, error) {
-	clust, err := cloud.ReadCluster(*clusterType)
+	clust, err := cloud.ReadClusterOld(*clusterType)
 	if err != nil {
 		return nil, err
 	}
