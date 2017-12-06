@@ -402,13 +402,56 @@ func ReadClusterAmazon(cl cloud.CreateClusterSimple) *ClusterRepresentation {
 
 //FetchCluster fetch a K8S cluster in the cloud
 func FetchCluster(c *gin.Context) {
+
+	id := c.Param("id")
+	var cl cloud.CreateClusterSimple
+	db.Where(cloud.CreateClusterSimple{Model: gorm.Model{ID: convertString2Uint(id)}}).First(&cl)
+
+	if cl.ID == 0 {
+		cloud.SetResponseBody(c, http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "Cluster not found."})
+		return
+	}
+
+	cloudType := cl.Cloud
+	log.Info("Cloud type is ", cloudType)
+
+	switch cloudType {
+	case Amazon:
+		FetchClusterAmazon(c)
+		break
+	case Azure:
+		db.Where(cloud.CreateAzureSimple{CreateClusterSimpleId: convertString2Uint(id)}).First(&cl.Azure)
+		FetchClusterAzure(c, cl)
+		break
+	default:
+		cloud.SetResponseBody(c, http.StatusInternalServerError, gin.H{"status": "Not supported cloud type."})
+		break
+	}
+
+}
+
+func FetchClusterAzure(c *gin.Context, cl cloud.CreateClusterSimple) {
+	log.Info("Fetch aks cluster with name: ", cl.Name, " in ", cl.Azure.ResourceGroup, " resource group.")
+
+	response, err := azureClient.GetCluster(cl.Name, cl.Azure.ResourceGroup)
+	if err != nil {
+		log.Info("Status code: ", err.StatusCode)
+		log.Info("Error during get cluster details: ", err.Message)
+		cloud.SetResponseBody(c, err.StatusCode, err)
+	} else {
+		log.Info("Status code: ", response.StatusCode)
+		cloud.SetResponseBody(c, response.StatusCode, response)
+	}
+
+}
+
+func FetchClusterAmazon(c *gin.Context) {
 	cluster, err := GetCluster(c)
 	if err != nil {
 		return
 	}
 	isAvailable, _ := cloud.IsKubernetesClusterAvailable(cluster)
 	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "data": cluster, "available": isAvailable, "Ip": cluster.KubernetesAPI.Endpoint})
-
 }
 
 //UpdateCluster updates a K8S cluster in the cloud (e.g. autoscale)
