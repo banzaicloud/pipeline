@@ -42,7 +42,12 @@ func (cluster CreateClusterSimple) DeleteFromDb(c *gin.Context, db *gorm.DB, log
 
 	if err := db.Delete(&cluster).Error; err != nil {
 		log.Warning("Can't delete cluster from database!", err)
-		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "Can't delete cluster!", "resourceId": cluster.ID, "error": err})
+		SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
+			JsonKeyStatus:     http.StatusBadRequest,
+			JsonKeyMessage:    "Can't delete cluster!",
+			JsonKeyResourceId: cluster.ID,
+			JsonKeyError:      err,
+		})
 		return false
 	}
 	return true
@@ -76,10 +81,20 @@ func (request CreateClusterRequest) CreateClusterAmazon(c *gin.Context, db *gorm
 
 	if createdCluster, err := CreateCluster(cluster2Db); err != nil {
 		log.Info("Cluster creation failed!", err)
-		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "Could not launch cluster!", "name": cluster2Db.Name, "error": err})
+		SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
+			JsonKeyMessage: "Could not launch cluster!",
+			JsonKeyName:    cluster2Db.Name,
+			JsonKeyError:   err,
+		})
 	} else {
 		log.Info("Cluster created successfully!")
-		c.JSON(http.StatusCreated, gin.H{"status": http.StatusCreated, "message": "Cluster created successfully!", "resourceId": cluster2Db.ID, "name": cluster2Db.Name, "Ip": createdCluster.KubernetesAPI.Endpoint})
+		SetResponseBodyJson(c, http.StatusCreated, gin.H{
+			JsonKeyStatus:     http.StatusCreated,
+			JsonKeyMessage:    "Cluster created successfully!",
+			JsonKeyResourceId: cluster2Db.ID,
+			JsonKeyName:       cluster2Db.Name,
+			JsonKeyIp:         createdCluster.KubernetesAPI.Endpoint,
+		})
 		go RetryGetConfig(createdCluster, "")
 	}
 	return true
@@ -116,20 +131,25 @@ func (request CreateClusterRequest) CreateClusterAzure(c *gin.Context, db *gorm.
 
 	res, err := azureClient.CreateCluster(r)
 	if err != nil {
-		SetResponseBody(c, err.StatusCode, gin.H{"status": err.StatusCode, "message": err.Message})
+		SetResponseBodyJson(c, err.StatusCode, gin.H{
+			JsonKeyStatus:  err.StatusCode,
+			JsonKeyMessage: err.Message,
+		})
 		return false
 	} else {
-		SetResponseBody(c, res.StatusCode, res.Value)
+		SetResponseBodyJson(c, res.StatusCode, res.Value)
 		return true
 	}
 
 }
 
-func SetResponseBody(c *gin.Context, statusCode int, obj interface{}) {
-	c.JSON(statusCode, obj)
-}
-
 func DbSaveFailed(c *gin.Context, log *logrus.Logger, err error, clusterName string) {
 	log.Warning("Can't persist cluster into the database!", err)
-	c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "Can't persist cluster into the database!", "name": clusterName, "error": err})
+
+	SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
+		JsonKeyStatus:  http.StatusBadRequest,
+		JsonKeyMessage: "Can't persist cluster into the database!",
+		JsonKeyName:    clusterName,
+		JsonKeyError:   err,
+	})
 }

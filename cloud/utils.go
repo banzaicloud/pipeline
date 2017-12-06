@@ -1,7 +1,6 @@
 package cloud
 
 import (
-
 	"github.com/kris-nova/kubicorn/state"
 	"github.com/kris-nova/kubicorn/state/fs"
 
@@ -13,13 +12,29 @@ import (
 	"syscall"
 	"time"
 
-	notify "github.com/banzaicloud/pipeline/notify"
+	"github.com/banzaicloud/pipeline/notify"
 	"github.com/kris-nova/kubicorn/apis/cluster"
 	"github.com/kris-nova/kubicorn/cutil/logger"
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/agent"
 	"golang.org/x/crypto/ssh/terminal"
+	"github.com/gin-gonic/gin"
+)
+
+const (
+	JsonKeyStatus      = "status"
+	JsonKeyMessage     = "message"
+	JsonKeyName        = "name"
+	JsonKeyError       = "error"
+	JsonKeyResourceId  = "resourceId"
+	JsonKeyIp          = "Ip"
+	JsonKeyData        = "data"
+	JsonKeyAvailable   = "available"
+	JsonKeyAuth0       = "Auth0"
+	JsonKeyReleaseName = "release_name"
+	JsonKeyUrl         = "url"
+	JsonKeyNotes       = "notes"
 )
 
 //We return stateStore so update can use it.
@@ -214,4 +229,8 @@ func getSigner(pemBytes []byte) (ssh.Signer, error) {
 	}
 
 	return signerwithoutpassphrase, err
+}
+
+func SetResponseBodyJson(c *gin.Context, statusCode int, obj interface{}) {
+	c.JSON(statusCode, obj)
 }

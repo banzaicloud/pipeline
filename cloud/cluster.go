@@ -116,10 +116,10 @@ func CreateCluster(clusterType CreateClusterSimple) (*cluster.Cluster, error) {
 func (cluster CreateClusterSimple) DeleteClusterAzure(c *gin.Context, name string, resourceGroup string) bool {
 	res, err := azureClient.DeleteCluster(name, resourceGroup)
 	if err != nil {
-		SetResponseBody(c, err.StatusCode, gin.H{"status": err.StatusCode, "message": err.Message})
+		SetResponseBodyJson(c, err.StatusCode, gin.H{"status": err.StatusCode, "message": err.Message})
 		return false
 	} else {
-		SetResponseBody(c, res.StatusCode, res)
+		SetResponseBodyJson(c, res.StatusCode, res)
 		return true
 	}
 }

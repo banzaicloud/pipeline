@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"github.com/banzaicloud/pipeline/cloud"
 )
 
 var log = conf.Logger()
@@ -74,7 +75,9 @@ func Auth0Groups(wantedGroups ...string) gin.HandlerFunc {
 
 		accessToken, err := validator.ValidateRequest(c.Request)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
+			cloud.SetResponseBodyJson(c, http.StatusUnauthorized, gin.H{
+				cloud.JsonKeyError: "invalid token",
+			})
 			c.Abort()
 			log.Info("Invalid token:", err)
 			return
@@ -83,7 +86,9 @@ func Auth0Groups(wantedGroups ...string) gin.HandlerFunc {
 		claims := map[string]interface{}{}
 		err = validator.Claims(c.Request, accessToken, &claims)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid claims"})
+			cloud.SetResponseBodyJson(c, http.StatusUnauthorized, gin.H{
+				cloud.JsonKeyError: "invalid claims",
+			})
 			c.Abort()
 			log.Info("Invalid claims:", err)
 			return
@@ -100,7 +105,9 @@ func Auth0Groups(wantedGroups ...string) gin.HandlerFunc {
 		**/
 
 		if !hasScope {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "needs more privileges"})
+			cloud.SetResponseBodyJson(c, http.StatusUnauthorized, gin.H{
+				cloud.JsonKeyError: "needs more privileges",
+			})
 			c.Abort()
 			log.Info("Needs more privileges")
 			return

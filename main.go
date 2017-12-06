@@ -113,10 +113,16 @@ func DeleteDeployment(c *gin.Context) {
 	err = helm.DeleteDeployment(cloudCluster, name)
 	if err != nil {
 		log.Warning(err.Error())
-		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": fmt.Sprintf("%s", err)})
+		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
+			cloud.JsonKeyStatus:  http.StatusNotFound,
+			cloud.JsonKeyMessage: fmt.Sprintf("%s", err),
+		})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "message": "success"})
+	cloud.SetResponseBodyJson(c, http.StatusOK, gin.H{
+		cloud.JsonKeyStatus:  http.StatusOK,
+		cloud.JsonKeyMessage: "success",
+	})
 	return
 }
 
@@ -129,7 +135,11 @@ func CreateDeployment(c *gin.Context) {
 	}
 	if err := c.BindJSON(&deployment); err != nil {
 		log.Info("Required field is empty" + err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "Required field is empty", "error": err})
+		cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
+			cloud.JsonKeyStatus:  http.StatusBadRequest,
+			cloud.JsonKeyMessage: "Required field is empty",
+			cloud.JsonKeyError:   err,
+		})
 		return
 	}
 
@@ -153,7 +163,10 @@ func CreateDeployment(c *gin.Context) {
 	release, err := helm.CreateDeployment(cloudCluster, chartPath, deployment.ReleaseName, values)
 	if err != nil {
 		log.Warning(err.Error())
-		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": fmt.Sprintf("%s", err)})
+		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
+			cloud.JsonKeyStatus:  http.StatusNotFound,
+			cloud.JsonKeyMessage: fmt.Sprintf("%s", err),
+		})
 		return
 	}
 	releaseName := release.Release.Name
@@ -163,7 +176,13 @@ func CreateDeployment(c *gin.Context) {
 	//Get local ingress address?
 	deploymentUrl := fmt.Sprintf("http://%s:30080/zeppelin/", cloudCluster.KubernetesAPI.Endpoint)
 	notify.SlackNotify(fmt.Sprintf("Deployment Created: %s", deploymentUrl))
-	c.JSON(http.StatusCreated, gin.H{"release_name": releaseName, "url": deploymentUrl, "notes": releaseNotes})
+	cloud.SetResponseBodyJson(c, http.StatusCreated, gin.H{
+		cloud.JsonKeyStatus:      http.StatusCreated,
+		cloud.JsonKeyMessage:     fmt.Sprintf("%s", err),
+		cloud.JsonKeyReleaseName: releaseName,
+		cloud.JsonKeyUrl:         deploymentUrl,
+		cloud.JsonKeyNotes:       releaseNotes,
+	})
 	return
 }
 
@@ -177,7 +196,10 @@ func ListDeployments(c *gin.Context) {
 	response, err := helm.ListDeployments(cloudCluster, nil)
 	if err != nil {
 		log.Warning("Error getting deployments. ", err)
-		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": fmt.Sprintf("%s", err)})
+		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
+			cloud.JsonKeyStatus:  http.StatusNotFound,
+			cloud.JsonKeyMessage: fmt.Sprintf("%s", err),
+		})
 		return
 	}
 	var releases []gin.H
@@ -192,11 +214,13 @@ func ListDeployments(c *gin.Context) {
 			releases = append(releases, body)
 		}
 	} else {
-		c.JSON(http.StatusOK, gin.H{"message": "There is no installed charts."})
+		cloud.SetResponseBodyJson(c, http.StatusOK, gin.H{
+			cloud.JsonKeyMessage: "There is no installed charts.",
+		})
 		return
 	}
 
-	c.JSON(http.StatusOK, releases)
+	cloud.SetResponseBodyJson(c, http.StatusOK, releases)
 	return
 }
 
@@ -208,7 +232,11 @@ func CreateCluster(c *gin.Context) {
 	var createClusterBaseRequest cloud.CreateClusterRequest
 	if err := c.BindJSON(&createClusterBaseRequest); err != nil {
 		log.Info("Required field is empty" + err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "Required field is empty", "error": err})
+		cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
+			cloud.JsonKeyStatus:  http.StatusBadRequest,
+			cloud.JsonKeyMessage: "Required field is empty",
+			cloud.JsonKeyError:   err,
+		})
 		return
 	}
 
@@ -227,7 +255,10 @@ func CreateCluster(c *gin.Context) {
 				}
 			}
 		} else {
-			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": err})
+			cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
+				cloud.JsonKeyStatus:  http.StatusBadRequest,
+				cloud.JsonKeyMessage: err,
+			})
 		}
 		break
 	case Azure:
@@ -241,12 +272,18 @@ func CreateCluster(c *gin.Context) {
 				}
 			}
 		} else {
-			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": err})
+			cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
+				cloud.JsonKeyStatus:  http.StatusBadRequest,
+				cloud.JsonKeyMessage: err,
+			})
 		}
 		break
 	default:
 		msg := "Not supported cloud type. Please use one of the following: " + Amazon + ", " + Azure + "."
-		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": msg})
+		cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
+			cloud.JsonKeyStatus:  http.StatusBadRequest,
+			cloud.JsonKeyMessage: msg,
+		})
 		break
 	}
 
@@ -265,7 +302,10 @@ func DeleteCluster(c *gin.Context) {
 	log.Infof("Cluster data: %#v", cluster)
 
 	if cluster.ID == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "No cluster found!"})
+		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
+			cloud.JsonKeyStatus:  http.StatusNotFound,
+			cloud.JsonKeyMessage: "No cluster found!",
+		})
 		return
 	}
 
@@ -275,36 +315,59 @@ func DeleteCluster(c *gin.Context) {
 	switch clusterType {
 	case Amazon:
 		// create amazon cluster
-		if _, err := cluster.DeleteClusterAmazon(); err != nil {
-			log.Warning("Can't delete cluster from cloud!", err)
-			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "Can't delete cluster!", "resourceId": cluster.ID, "error": err})
-		} else {
-			log.Info("Cluster deleted from the cloud!")
-			notify.SlackNotify("Cluster deleted from the cloud!")
-			c.JSON(http.StatusCreated, gin.H{"status": http.StatusCreated, "message": "Cluster deleted successfully!", "resourceId": cluster.ID})
-
-			if cluster.DeleteFromDb(c, db, log) {
-				updatePrometheus()
-			}
-
-		}
+		deleteAmazonCluster(c, cluster)
 		break
 	case Azure:
 		// delete azure cluster
-
-		// set azure props
-		db.Where(cloud.CreateAzureSimple{CreateClusterSimpleId: convertString2Uint(clusterId)}).First(&cluster.Azure)
-		if cluster.DeleteClusterAzure(c, cluster.Name, cluster.Azure.ResourceGroup) {
-			if cluster.DeleteFromDb(c, db, log) {
-				updatePrometheus()
-			}
-		} else {
-			log.Warning("Can't delete cluster from cloud!")
-			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "Can't delete cluster!", "resourceId": cluster.ID})
-		}
+		deleteAzureCluster(c, clusterId, &cluster)
 		break
 	}
 
+}
+
+func deleteAmazonCluster(c *gin.Context, cluster cloud.CreateClusterSimple) {
+	if _, err := cluster.DeleteClusterAmazon(); err != nil {
+		log.Warning("Can't delete cluster from cloud!", err)
+
+		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
+			"status":     http.StatusBadRequest,
+			"message":    "Can't delete cluster!",
+			"resourceId": cluster.ID,
+			"error":      err,
+		})
+	} else {
+		log.Info("Cluster deleted from the cloud!")
+		notify.SlackNotify("Cluster deleted from the cloud!")
+
+		cloud.SetResponseBodyJson(c, http.StatusCreated, gin.H{
+			cloud.JsonKeyStatus:     http.StatusCreated,
+			cloud.JsonKeyMessage:    "Cluster deleted successfully!",
+			cloud.JsonKeyResourceId: cluster.ID,
+		})
+
+		if cluster.DeleteFromDb(c, db, log) {
+			updatePrometheus()
+		}
+
+	}
+}
+
+func deleteAzureCluster(c *gin.Context, clusterId string, cluster *cloud.CreateClusterSimple) {
+
+	// set azure props
+	db.Where(cloud.CreateAzureSimple{CreateClusterSimpleId: convertString2Uint(clusterId)}).First(&cluster.Azure)
+	if cluster.DeleteClusterAzure(c, cluster.Name, cluster.Azure.ResourceGroup) {
+		if cluster.DeleteFromDb(c, db, log) {
+			updatePrometheus()
+		}
+	} else {
+		log.Warning("Can't delete cluster from cloud!")
+		cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
+			cloud.JsonKeyStatus:     http.StatusBadRequest,
+			cloud.JsonKeyMessage:    "Can't delete cluster!",
+			cloud.JsonKeyResourceId: cluster.ID,
+		})
+	}
 }
 
 func convertString2Uint(s string) uint {
@@ -329,7 +392,10 @@ func FetchClusters(c *gin.Context) {
 	db.Find(&clusters)
 
 	if len(clusters) <= 0 {
-		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "No clusters found!"})
+		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
+			cloud.JsonKeyStatus:  http.StatusNotFound,
+			cloud.JsonKeyMessage: "No clusters found!",
+		})
 		return
 	}
 
@@ -352,8 +418,10 @@ func FetchClusters(c *gin.Context) {
 		}
 
 	}
-
-	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "data": response})
+	cloud.SetResponseBodyJson(c, http.StatusOK, gin.H{
+		cloud.JsonKeyStatus: http.StatusOK,
+		cloud.JsonKeyData:   response,
+	})
 }
 
 type ClusterRepresentation struct {
@@ -408,7 +476,10 @@ func FetchCluster(c *gin.Context) {
 	db.Where(cloud.CreateClusterSimple{Model: gorm.Model{ID: convertString2Uint(id)}}).First(&cl)
 
 	if cl.ID == 0 {
-		cloud.SetResponseBody(c, http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "Cluster not found."})
+		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
+			cloud.JsonKeyStatus:  http.StatusNotFound,
+			cloud.JsonKeyMessage: "Cluster not found.",
+		})
 		return
 	}
 
@@ -424,7 +495,10 @@ func FetchCluster(c *gin.Context) {
 		FetchClusterAzure(c, cl)
 		break
 	default:
-		cloud.SetResponseBody(c, http.StatusInternalServerError, gin.H{"status": "Not supported cloud type."})
+		cloud.SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
+			cloud.JsonKeyStatus:  http.StatusInternalServerError,
+			cloud.JsonKeyMessage: "Not supported cloud type.",
+		})
 		break
 	}
 
@@ -437,10 +511,10 @@ func FetchClusterAzure(c *gin.Context, cl cloud.CreateClusterSimple) {
 	if err != nil {
 		log.Info("Status code: ", err.StatusCode)
 		log.Info("Error during get cluster details: ", err.Message)
-		cloud.SetResponseBody(c, err.StatusCode, err)
+		cloud.SetResponseBodyJson(c, err.StatusCode, err)
 	} else {
 		log.Info("Status code: ", response.StatusCode)
-		cloud.SetResponseBody(c, response.StatusCode, response)
+		cloud.SetResponseBodyJson(c, response.StatusCode, response)
 	}
 
 }
@@ -451,7 +525,12 @@ func FetchClusterAmazon(c *gin.Context) {
 		return
 	}
 	isAvailable, _ := cloud.IsKubernetesClusterAvailable(cluster)
-	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "data": cluster, "available": isAvailable, "Ip": cluster.KubernetesAPI.Endpoint})
+	cloud.SetResponseBodyJson(c, http.StatusOK, gin.H{
+		cloud.JsonKeyStatus:    http.StatusOK,
+		cloud.JsonKeyData:      cluster,
+		cloud.JsonKeyAvailable: isAvailable,
+		cloud.JsonKeyIp:        cluster.KubernetesAPI.Endpoint,
+	})
 }
 
 //UpdateCluster updates a K8S cluster in the cloud (e.g. autoscale)
@@ -465,28 +544,49 @@ func UpdateCluster(c *gin.Context) {
 	var updateClusterType UpdateClusterType
 	if err := c.BindJSON(&updateClusterType); err != nil {
 		log.Info("Required field is empty" + err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "Required field is empty", "error": err})
+		cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
+			cloud.JsonKeyStatus:  http.StatusBadRequest,
+			cloud.JsonKeyMessage: "Required field is empty",
+			cloud.JsonKeyError:   err,
+		})
 		return
 	}
 
 	if cluster.ID == 0 {
 		log.Warning("No cluster found with!")
-		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "No cluster found!"})
+		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
+			cloud.JsonKeyStatus:  http.StatusNotFound,
+			cloud.JsonKeyMessage: "No cluster found!",
+		})
 		return
 	}
 
 	if err := db.Model(&cluster).UpdateColumns(cloud.ClusterType{NodeMin: updateClusterType.Node.MinCount, NodeMax: updateClusterType.Node.MaxCount}).Error; err != nil {
 		log.Warning("Can't update cluster in the database!", err)
-		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "Can't update cluster in the database!", "name": cluster.Name, "error": err})
+		cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
+			cloud.JsonKeyStatus:  http.StatusBadRequest,
+			cloud.JsonKeyMessage: "Can't update cluster in the database!",
+			cloud.JsonKeyName:    cluster.Name,
+			cloud.JsonKeyError:   err,
+		})
 		return
 	}
 
 	if _, err := cloud.UpdateCluster(cluster); err != nil {
 		log.Warning("Can't update cluster in the cloud!", err)
-		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "Can't update cluster in the cloud!", "resourceId": cluster.ID, "error": err})
+		cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
+			cloud.JsonKeyStatus:     http.StatusBadRequest,
+			cloud.JsonKeyMessage:    "Can't update cluster in the cloud!",
+			cloud.JsonKeyResourceId: cluster.ID,
+			cloud.JsonKeyError:      err,
+		})
 	} else {
 		log.Info("Cluster updated in the cloud!")
-		c.JSON(http.StatusOK, gin.H{"status": http.StatusCreated, "message": "Cluster updated successfully!", "resourceId": cluster.ID})
+		cloud.SetResponseBodyJson(c, http.StatusCreated, gin.H{
+			cloud.JsonKeyStatus:     http.StatusCreated,
+			cloud.JsonKeyMessage:    "Cluster updated successfully!",
+			cloud.JsonKeyResourceId: cluster.ID,
+		})
 	}
 }
 
@@ -499,19 +599,28 @@ func FetchClusterConfig(c *gin.Context) {
 	configPath, err := cloud.RetryGetConfig(cloudCluster, "")
 	if err != nil {
 		errorMsg := fmt.Sprintf("Error read cluster config: %s", err)
-		c.JSON(http.StatusServiceUnavailable, gin.H{"status": http.StatusServiceUnavailable, "message": errorMsg})
+		cloud.SetResponseBodyJson(c, http.StatusServiceUnavailable, gin.H{
+			cloud.JsonKeyStatus:  http.StatusServiceUnavailable,
+			cloud.JsonKeyMessage: errorMsg,
+		})
 		return
 	}
 
 	data, err := ioutil.ReadFile(configPath)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": err})
+		cloud.SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
+			cloud.JsonKeyStatus:  http.StatusInternalServerError,
+			cloud.JsonKeyMessage: err,
+		})
 		return
 	}
 	ctype := c.NegotiateFormat(gin.MIMEPlain, gin.MIMEJSON)
 	switch ctype {
 	case gin.MIMEJSON:
-		c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "data": data})
+		cloud.SetResponseBodyJson(c, http.StatusOK, gin.H{
+			cloud.JsonKeyStatus: http.StatusOK,
+			cloud.JsonKeyData:   data,
+		})
 	default:
 		log.Debug("Content-Type: ", ctype)
 		c.String(http.StatusOK, string(data))
@@ -532,9 +641,15 @@ func GetClusterStatus(c *gin.Context) {
 	}
 	isAvailable, _ := cloud.IsKubernetesClusterAvailable(clust)
 	if isAvailable {
-		c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "message": "Kubernetes cluster available"})
+		cloud.SetResponseBodyJson(c, http.StatusOK, gin.H{
+			cloud.JsonKeyStatus:  http.StatusOK,
+			cloud.JsonKeyMessage: "Kubernetes cluster available",
+		})
 	} else {
-		c.JSON(http.StatusServiceUnavailable, gin.H{"status": http.StatusServiceUnavailable, "message": "Kubernetes cluster not ready yet"})
+		cloud.SetResponseBodyJson(c, http.StatusOK, gin.H{
+			cloud.JsonKeyStatus:  http.StatusOK,
+			cloud.JsonKeyMessage: "Kubernetes cluster not ready yet",
+		})
 	}
 	return
 }
@@ -547,9 +662,15 @@ func GetTillerStatus(c *gin.Context) {
 	}
 	_, err = helm.ListDeployments(cloudCluster, nil)
 	if err != nil {
-		c.JSON(http.StatusServiceUnavailable, gin.H{"status": http.StatusServiceUnavailable, "message": "Tiller not available"})
+		cloud.SetResponseBodyJson(c, http.StatusServiceUnavailable, gin.H{
+			cloud.JsonKeyStatus:  http.StatusServiceUnavailable,
+			cloud.JsonKeyMessage: "Tiller not available",
+		})
 	} else {
-		c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "message": "Tiller available"})
+		cloud.SetResponseBodyJson(c, http.StatusOK, gin.H{
+			cloud.JsonKeyStatus:  http.StatusOK,
+			cloud.JsonKeyMessage: "Tiller available",
+		})
 	}
 	return
 }
@@ -563,20 +684,32 @@ func FetchDeploymentStatus(c *gin.Context) {
 	}
 	chart, err := helm.ListDeployments(cloudCluster, &name)
 	if err != nil {
-		c.JSON(http.StatusServiceUnavailable, gin.H{"status": http.StatusServiceUnavailable, "message": "Tiller not available"})
+		cloud.SetResponseBodyJson(c, http.StatusServiceUnavailable, gin.H{
+			cloud.JsonKeyStatus:  http.StatusServiceUnavailable,
+			cloud.JsonKeyMessage: "Tiller not available",
+		})
 		return
 	}
 	if chart.Count == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "Deployment not found"})
+		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
+			cloud.JsonKeyStatus:  http.StatusNotFound,
+			cloud.JsonKeyMessage: "Deployment not found",
+		})
 		return
 	}
 	if chart.Count > 1 {
-		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "Multiple deployments found"})
+		cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
+			cloud.JsonKeyStatus:  http.StatusBadRequest,
+			cloud.JsonKeyMessage: "Multiple deployments found",
+		})
 		return
 	}
 	foundChart := chart.Releases[0]
 	if foundChart.GetInfo().Status.GetCode() == 1 {
-		c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "message": "OK"})
+		cloud.SetResponseBodyJson(c, http.StatusOK, gin.H{
+			cloud.JsonKeyStatus:  http.StatusOK,
+			cloud.JsonKeyMessage: "OK",
+		})
 		return
 	}
 	return
@@ -584,7 +717,9 @@ func FetchDeploymentStatus(c *gin.Context) {
 
 //Auth0Test authN check
 func Auth0Test(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"Auth0": "authn and authz successful"})
+	cloud.SetResponseBodyJson(c, http.StatusOK, gin.H{
+		cloud.JsonKeyAuth0: "authn and authz successful",
+	})
 }
 
 //GetCluster from database
@@ -601,7 +736,10 @@ func GetClusterFromDB(c *gin.Context) (*cloud.ClusterType, error) {
 	db.Where(query, value).First(&cluster)
 	if cluster.ID == 0 {
 		errorMsg := fmt.Sprintf("cluster not found: [%s]: %s", field, value)
-		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": errorMsg})
+		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
+			cloud.JsonKeyStatus:  http.StatusNotFound,
+			cloud.JsonKeyMessage: errorMsg,
+		})
 		return nil, errors.New(errorMsg)
 	}
 	return &cluster, nil
@@ -627,7 +765,10 @@ func GetCluster(c *gin.Context) (*cluster.Cluster, error) {
 	cluster, err := GetKubicornCluster(clusterType)
 	if err != nil {
 		errorMsg := fmt.Sprintf("Error read cluster: %s", err)
-		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": errorMsg})
+		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
+			cloud.JsonKeyStatus:  http.StatusNotFound,
+			cloud.JsonKeyMessage: errorMsg,
+		})
 		return nil, err
 	}
 	return cluster, nil
