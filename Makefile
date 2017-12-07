@@ -16,6 +16,13 @@ build-ci:
 clean:
 	rm -f pipeline
 
+local: ## Starts local MySql and admin in docker
+	[ -e conf/config.toml ] || cp conf/config.toml.example conf/config.toml
+	docker-compose -f docker-compose-local.yml up -d
+
+local-kill: ## Kills local MySql and admin
+	docker-compose -f docker-compose-local.yml kill
+
 docker-build: docker-dev-img ## Builds go binary in docker image
 	docker run -it -v $(PWD):/go/src/github.com/banzaicloud/pipeline -w /go/src/github.com/banzaicloud/pipeline pipeline-primary go build -o pipeline_linux .
 
