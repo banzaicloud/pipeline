@@ -114,11 +114,6 @@ func (request CreateClusterRequest) CreateClusterAzure(c *gin.Context, db *gorm.
 		},
 	}
 
-	if err := db.Save(&cluster2Db).Error; err != nil {
-		DbSaveFailed(c, log, err, cluster2Db.Name)
-		return false
-	}
-
 	r := azureCluster.CreateClusterRequest{
 		Name:              cluster2Db.Name,
 		Location:          cluster2Db.Location,
@@ -137,6 +132,11 @@ func (request CreateClusterRequest) CreateClusterAzure(c *gin.Context, db *gorm.
 		})
 		return false
 	} else {
+		if err := db.Save(&cluster2Db).Error; err != nil {
+			DbSaveFailed(c, log, err, cluster2Db.Name)
+			return false
+		}
+
 		SetResponseBodyJson(c, res.StatusCode, res.Value)
 		return true
 	}

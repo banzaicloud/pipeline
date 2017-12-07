@@ -15,9 +15,11 @@ import (
 var sdk cluster.Sdk
 
 const (
-	OK = 200
+	OK                = 200
+	Created           = 201
+	NoContent         = 204
 	InternalErrorCode = 500
-	BadRequest = 400
+	BadRequest        = 400
 )
 
 func init() {
@@ -91,6 +93,18 @@ func GetSdk() *cluster.Sdk {
 type AzureErrorResponse struct {
 	StatusCode int    `json:"status_code"`
 	Message    string `json:"message"`
+}
+
+type AzureServerError struct {
+	Error struct {
+		Message string `json:"message"`
+	} `json:"error"`
+}
+
+func CreateErrorFromValue(v []byte) AzureServerError {
+	errResp := AzureServerError{}
+	json.Unmarshal([]byte(v), &errResp)
+	return errResp
 }
 
 func (e AzureErrorResponse) ToString() string {

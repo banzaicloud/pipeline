@@ -279,14 +279,18 @@ func CreateCluster(c *gin.Context) {
 		}
 		break
 	default:
-		msg := "Not supported cloud type. Please use one of the following: " + Amazon + ", " + Azure + "."
-		cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
-			cloud.JsonKeyStatus:  http.StatusBadRequest,
-			cloud.JsonKeyMessage: msg,
-		})
+		SendNotSupportedCloudResponse(c)
 		break
 	}
 
+}
+
+func SendNotSupportedCloudResponse(c *gin.Context) {
+	msg := "Not supported cloud type. Please use one of the following: " + Amazon + ", " + Azure + "."
+	cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
+		cloud.JsonKeyStatus:  http.StatusBadRequest,
+		cloud.JsonKeyMessage: msg,
+	})
 }
 
 //DeleteCluster deletes a K8S cluster from the cloud
@@ -320,6 +324,9 @@ func DeleteCluster(c *gin.Context) {
 	case Azure:
 		// delete azure cluster
 		deleteAzureCluster(c, clusterId, &cluster)
+		break
+	default:
+		SendNotSupportedCloudResponse(c)
 		break
 	}
 
@@ -409,6 +416,9 @@ func FetchClusters(c *gin.Context) {
 		case Azure:
 			db.Where(cloud.CreateAzureSimple{CreateClusterSimpleId: cl.ID}).First(&cl.Azure)
 			clust = ReadClusterAzure(cl)
+			break
+		default:
+			SendNotSupportedCloudResponse(c)
 			break
 		}
 

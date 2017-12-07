@@ -24,6 +24,7 @@ func init() {
 		secret = azureSdk.ServicePrincipal.ClientSecret
 	}
 }
+const BaseUrl = "https://management.azure.com"
 
 var azureSdk *cluster.Sdk
 var clientId string
@@ -60,7 +61,7 @@ func GetCluster(name string, resourceGroup string) (*Response, *initapi.AzureErr
 	req, err := autorest.Prepare(&http.Request{},
 		groupClient.WithAuthorization(),
 		autorest.AsGet(),
-		autorest.WithBaseURL("https://management.azure.com"),
+		autorest.WithBaseURL(BaseUrl),
 		autorest.WithPathParameters("/subscriptions/{subscription-id}/resourceGroups/{resourceGroup}/providers/Microsoft.ContainerService/managedClusters/{resourceName}", pathParam),
 		autorest.WithQueryParameters(queryParam))
 
@@ -87,14 +88,8 @@ func GetCluster(name string, resourceGroup string) (*Response, *initapi.AzureErr
 
 	if resp.StatusCode != initapi.OK {
 		// not ok, probably 404
-		type TempErrorResp struct {
-			Error struct {
-				Message string `json:"message"`
-			} `json:"error"`
-		}
-
-		errResp := TempErrorResp{}
-		json.Unmarshal([]byte(value), &errResp)
+		errResp := initapi.CreateErrorFromValue(value)
+		log.Info("Get cluster failed with message: ", errResp.Error.Message)
 		return nil, &initapi.AzureErrorResponse{StatusCode: resp.StatusCode, Message: errResp.Error.Message}
 	} else {
 		// everything is ok
@@ -136,7 +131,7 @@ func ListClusters(resourceGroup string) (*ListResponse, *initapi.AzureErrorRespo
 	req, err := autorest.Prepare(&http.Request{},
 		groupClient.WithAuthorization(),
 		autorest.AsGet(),
-		autorest.WithBaseURL("https://management.azure.com"),
+		autorest.WithBaseURL(BaseUrl),
 		autorest.WithPathParameters("/subscriptions/{subscription-id}/resourceGroups/{resourceGroup}/providers/Microsoft.ContainerService/managedClusters", pathParam),
 		autorest.WithQueryParameters(queryParam))
 
@@ -159,6 +154,13 @@ func ListClusters(resourceGroup string) (*ListResponse, *initapi.AzureErrorRespo
 	if err != nil {
 		log.WithFields(log.Fields{"error": err}).Error("error during listing clusters in ", resourceGroup, " resource group")
 		return nil, createErrorResponse()
+	}
+
+	if resp.StatusCode != initapi.OK {
+		// not ok, probably 404
+		errResp := initapi.CreateErrorFromValue(value)
+		log.Info("Listing clusters failed with message: ", errResp.Error.Message)
+		return nil, &initapi.AzureErrorResponse{StatusCode: resp.StatusCode, Message: errResp.Error.Message}
 	}
 
 	azureListResponse := AzureListResponse{}
@@ -205,7 +207,7 @@ func CreateCluster(request cluster.CreateClusterRequest) (*Response, *initapi.Az
 	req, _ := autorest.Prepare(&http.Request{},
 		groupClient.WithAuthorization(),
 		autorest.AsPut(),
-		autorest.WithBaseURL("https://management.azure.com"),
+		autorest.WithBaseURL(BaseUrl),
 		autorest.WithPathParameters("/subscriptions/{subscription-id}/resourceGroups/{resourceGroup}/providers/Microsoft.ContainerService/managedClusters/{resourceName}", pathParam),
 		autorest.WithQueryParameters(queryParam),
 		autorest.WithJSON(managedCluster),
@@ -234,6 +236,13 @@ func CreateCluster(request cluster.CreateClusterRequest) (*Response, *initapi.Az
 	}
 
 	log.Info("Cluster create response code: ", resp.StatusCode)
+
+	if resp.StatusCode != initapi.OK && resp.StatusCode != initapi.Created {
+		// something went wrong, create failed
+		errResp := initapi.CreateErrorFromValue(value)
+		log.Info("Cluster creation failed with message: ", errResp.Error.Message)
+		return nil, &initapi.AzureErrorResponse{StatusCode: resp.StatusCode, Message: errResp.Error.Message}
+	}
 
 	v := Value{}
 	json.Unmarshal([]byte(value), &v)
@@ -273,7 +282,7 @@ func DeleteCluster(name string, resourceGroup string) (*Response, *initapi.Azure
 	req, err := autorest.Prepare(&http.Request{},
 		groupClient.WithAuthorization(),
 		autorest.AsDelete(),
-		autorest.WithBaseURL("https://management.azure.com"),
+		autorest.WithBaseURL(BaseUrl),
 		autorest.WithPathParameters("/subscriptions/{subscription-id}/resourceGroups/{resourceGroup}/providers/Microsoft.ContainerService/managedClusters/{resourceName}", pathParam),
 		autorest.WithQueryParameters(queryParam),
 	)
@@ -298,6 +307,12 @@ func DeleteCluster(name string, resourceGroup string) (*Response, *initapi.Azure
 	if err != nil {
 		log.WithFields(log.Fields{"error": err}).Error("error during delete cluster")
 		return nil, createErrorResponse()
+	}
+
+	if resp.StatusCode != initapi.OK && resp.StatusCode != initapi.NoContent {
+		errResp := initapi.CreateErrorFromValue(value)
+		log.Info("Delete cluster failed with message: ", errResp.Error.Message)
+		return nil, &initapi.AzureErrorResponse{StatusCode: resp.StatusCode, Message: errResp.Error.Message}
 	}
 
 	log.Info("Delete cluster response ", string(value))
@@ -341,7 +356,7 @@ func PollingCluster(name string, resourceGroup string) (*Response, *initapi.Azur
 	req, err := autorest.Prepare(&http.Request{},
 		groupClient.WithAuthorization(),
 		autorest.AsGet(),
-		autorest.WithBaseURL("https://management.azure.com"),
+		autorest.WithBaseURL(BaseUrl),
 		autorest.WithPathParameters("/subscriptions/{subscription-id}/resourceGroups/{resourceGroup}/providers/Microsoft.ContainerService/managedClusters/{resourceName}", pathParam),
 		autorest.WithQueryParameters(queryParam),
 	)
@@ -365,14 +380,14 @@ func PollingCluster(name string, resourceGroup string) (*Response, *initapi.Azur
 		statusCode := resp.StatusCode
 		log.Info("Cluster polling status code: ", statusCode)
 
+		value, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			log.WithFields(log.Fields{"error": err}).Error("error during cluster polling")
+			return nil, createErrorResponse()
+		}
+
 		switch statusCode {
 		case OK:
-			value, err := ioutil.ReadAll(resp.Body)
-			if err != nil {
-				log.WithFields(log.Fields{"error": err}).Error("error during cluster polling")
-				return nil, createErrorResponse()
-			}
-
 			response := Value{}
 			json.Unmarshal([]byte(value), &response)
 
@@ -391,7 +406,9 @@ func PollingCluster(name string, resourceGroup string) (*Response, *initapi.Azur
 			}
 
 		default:
-			return nil, createErrorResponseWithCode(statusCode)
+			errResp := initapi.CreateErrorFromValue(value)
+			log.Info("Delete cluster failed with message: ", errResp.Error.Message)
+			return nil, &initapi.AzureErrorResponse{StatusCode: resp.StatusCode, Message: errResp.Error.Message}
 		}
 	}
 
