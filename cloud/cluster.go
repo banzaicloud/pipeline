@@ -25,7 +25,7 @@ var runtimeParam = cutil.RuntimeParameters{
 //ClusterType cluster definition for the API
 type ClusterType struct {
 	gorm.Model
-	Name                  string `json:"name" binding:"required" gorm:"unique"`
+	Name                  string `json:"name" binding:"required" gorm:"unique_index:idx_name_deletedat"`
 	Location              string `json:"location" binding:"required"`
 	NodeInstanceType      string `json:"nodeInstanceType" binding:"required"`
 	MasterInstanceType    string `json:"masterInstanceType" binding:"required"`
