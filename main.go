@@ -44,11 +44,6 @@ type DeploymentType struct {
 	Values      interface{} `json:"values"`
 }
 
-const (
-	Amazon = "amazon"
-	Azure  = "azure"
-)
-
 //TODO: minCount and Maxcount should be optional, but one of them should be present
 
 var log *logrus.Logger
@@ -244,7 +239,7 @@ func CreateCluster(c *gin.Context) {
 	log.Info("Cloud type is ", cloudType)
 
 	switch cloudType {
-	case Amazon:
+	case cloud.Amazon:
 		awsData := createClusterBaseRequest.Properties.CreateClusterAmazon
 		if isValid, err := awsData.Validate(log); isValid && len(err) == 0 {
 			if createClusterBaseRequest.CreateClusterAmazon(c, db, log) {
@@ -261,7 +256,7 @@ func CreateCluster(c *gin.Context) {
 			})
 		}
 		break
-	case Azure:
+	case cloud.Azure:
 		aksData := createClusterBaseRequest.Properties.CreateClusterAzure
 		if isValid, err := aksData.Validate(log); isValid && len(err) == 0 {
 			if createClusterBaseRequest.CreateClusterAzure(c, db, log) {
@@ -286,7 +281,7 @@ func CreateCluster(c *gin.Context) {
 }
 
 func SendNotSupportedCloudResponse(c *gin.Context) {
-	msg := "Not supported cloud type. Please use one of the following: " + Amazon + ", " + Azure + "."
+	msg := "Not supported cloud type. Please use one of the following: " + cloud.Amazon + ", " + cloud.Azure + "."
 	cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
 		cloud.JsonKeyStatus:  http.StatusBadRequest,
 		cloud.JsonKeyMessage: msg,
@@ -317,11 +312,11 @@ func DeleteCluster(c *gin.Context) {
 	log.Info("Cluster type is ", clusterType)
 
 	switch clusterType {
-	case Amazon:
+	case cloud.Amazon:
 		// create amazon cluster
 		deleteAmazonCluster(c, cluster)
 		break
-	case Azure:
+	case cloud.Azure:
 		// delete azure cluster
 		deleteAzureCluster(c, clusterId, &cluster)
 		break
@@ -410,10 +405,10 @@ func FetchClusters(c *gin.Context) {
 		cloudType := cl.Cloud
 		var clust *ClusterRepresentation
 		switch cloudType {
-		case Amazon:
+		case cloud.Amazon:
 			clust = ReadClusterAmazon(cl)
 			break
-		case Azure:
+		case cloud.Azure:
 			db.Where(cloud.CreateAzureSimple{CreateClusterSimpleId: cl.ID}).First(&cl.Azure)
 			clust = ReadClusterAzure(cl)
 			break
@@ -423,7 +418,7 @@ func FetchClusters(c *gin.Context) {
 		}
 
 		if clust != nil {
-			log.Info("Append %#v cluster representation to response", clust)
+			log.Infof("Append %#v cluster representation to response", clust)
 			response = append(response, clust)
 		}
 
@@ -497,10 +492,10 @@ func FetchCluster(c *gin.Context) {
 	log.Info("Cloud type is ", cloudType)
 
 	switch cloudType {
-	case Amazon:
+	case cloud.Amazon:
 		FetchClusterAmazon(c)
 		break
-	case Azure:
+	case cloud.Azure:
 		db.Where(cloud.CreateAzureSimple{CreateClusterSimpleId: convertString2Uint(id)}).First(&cl.Azure)
 		FetchClusterAzure(c, cl)
 		break
@@ -546,14 +541,14 @@ func FetchClusterAmazon(c *gin.Context) {
 //UpdateCluster updates a K8S cluster in the cloud (e.g. autoscale)
 func UpdateCluster(c *gin.Context) {
 
-	var cluster cloud.ClusterType
+	var cl cloud.CreateClusterSimple
 	clusterId := c.Param("id")
 
-	db.First(&cluster, clusterId)
-
-	var updateClusterType UpdateClusterType
-	if err := c.BindJSON(&updateClusterType); err != nil {
-		log.Info("Required field is empty" + err.Error())
+	// bind request body to UpdateClusterRequest struct
+	var updateRequest cloud.UpdateClusterRequest
+	if err := c.BindJSON(&updateRequest); err != nil {
+		// bind failed, required field(s) empty
+		log.Warning("Required field is empty" + err.Error())
 		cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
 			cloud.JsonKeyStatus:  http.StatusBadRequest,
 			cloud.JsonKeyMessage: "Required field is empty",
@@ -562,7 +557,15 @@ func UpdateCluster(c *gin.Context) {
 		return
 	}
 
-	if cluster.ID == 0 {
+	// load cluster from db
+	db.Where(cloud.CreateClusterSimple{
+		Model: gorm.Model{ID: convertString2Uint(clusterId)},
+	}).Where(cloud.CreateClusterSimple{
+		Cloud: updateRequest.Cloud,
+	}).First(&cl)
+
+	// if ID is 0, the cluster is not found in DB
+	if cl.ID == 0 {
 		log.Warning("No cluster found with!")
 		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
 			cloud.JsonKeyStatus:  http.StatusNotFound,
@@ -571,33 +574,47 @@ func UpdateCluster(c *gin.Context) {
 		return
 	}
 
-	if err := db.Model(&cluster).UpdateColumns(cloud.ClusterType{NodeMin: updateClusterType.Node.MinCount, NodeMax: updateClusterType.Node.MaxCount}).Error; err != nil {
-		log.Warning("Can't update cluster in the database!", err)
-		cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
-			cloud.JsonKeyStatus:  http.StatusBadRequest,
-			cloud.JsonKeyMessage: "Can't update cluster in the database!",
-			cloud.JsonKeyName:    cluster.Name,
-			cloud.JsonKeyError:   err,
-		})
+	log.Info("Update request: ", updateRequest)
+	cloudType := cl.Cloud
+
+	switch cloudType {
+	case cloud.Amazon:
+		// read amazon props from amazon_cluster_properties table
+		log.Info("Load amazon props from db")
+		db.Where(cloud.CreateAmazonClusterSimple{CreateClusterSimpleId: convertString2Uint(clusterId)}).First(&cl.Amazon)
+		break
+	case cloud.Azure:
+		// read azure props from azure_cluster_properties table
+		log.Info("Load azure props from db")
+		db.Where(cloud.CreateAzureSimple{CreateClusterSimpleId: convertString2Uint(clusterId)}).First(&cl.Azure)
+		break
+	default:
+		// not supported cloud type
+		log.Warning("Not supported cloud type")
+		SendNotSupportedCloudResponse(c)
 		return
 	}
 
-	if _, err := cloud.UpdateCluster(cluster); err != nil {
-		log.Warning("Can't update cluster in the cloud!", err)
-		cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
-			cloud.JsonKeyStatus:     http.StatusBadRequest,
-			cloud.JsonKeyMessage:    "Can't update cluster in the cloud!",
-			cloud.JsonKeyResourceId: cluster.ID,
-			cloud.JsonKeyError:      err,
-		})
+	log.Info("Cluster to modify: ", cl)
+
+	if isValid, err := updateRequest.Validate(log, cl); isValid && len(err) == 0 {
+		// validation OK
+		if updateRequest.UpdateClusterInCloud(c, db, log, cl) {
+			// cluster updated successfully in cloud
+			// update prometheus config..
+			err := monitor.UpdatePrometheusConfig(db)
+			if err != nil {
+				log.Warning("Could not update prometheus configmap: %v", err)
+			}
+		}
 	} else {
-		log.Info("Cluster updated in the cloud!")
-		cloud.SetResponseBodyJson(c, http.StatusCreated, gin.H{
-			cloud.JsonKeyStatus:     http.StatusCreated,
-			cloud.JsonKeyMessage:    "Cluster updated successfully!",
-			cloud.JsonKeyResourceId: cluster.ID,
+		// validation failed
+		cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
+			cloud.JsonKeyStatus:  http.StatusBadRequest,
+			cloud.JsonKeyMessage: err,
 		})
 	}
+
 }
 
 //FetchClusterConfig fetches a cluster config

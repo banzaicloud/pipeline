@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/viper"
 	azureClient "github.com/banzaicloud/azure-aks-client/client"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -102,6 +103,11 @@ func CreateCluster(clusterType CreateClusterSimple) (*cluster.Cluster, error) {
 		logger.Info("Error during reconcile:", err)
 		return nil, err
 	}
+
+	if created == nil {
+		return nil, errors.New("Error during reconcile")
+	}
+
 	logger.Debug("Created cluster [%s]", created.Name)
 
 	stateStore := getStateStoreForCluster(clusterType)
@@ -191,26 +197,26 @@ func GetKubeConfig(existing *cluster.Cluster) error {
 }
 
 //UpdateCluster updates a cluster in the cloud (e.g. autoscales)
-func UpdateCluster(clusterType ClusterType) (*cluster.Cluster, error) {
+func UpdateClusterAws(ccs CreateClusterSimple) (*cluster.Cluster, error) {
 
 	logger.Level = 4
 
-	stateStore := getStateStoreForClusterOld(clusterType)
+	stateStore := getStateStoreForCluster(ccs)
 
 	updateCluster, err := stateStore.GetCluster()
 	if err != nil {
 		logger.Info(err.Error())
-		logger.Info("Failed to load cluster:" + clusterType.Name)
+		logger.Info("Failed to load cluster:" + ccs.Name)
 		return nil, err
 	}
 
-	logger.Info("Resizing cluster : " + clusterType.Name)
-	logger.Info("Worker pool min size: " + strconv.Itoa(updateCluster.ServerPools[1].MinCount) + " => " + strconv.Itoa(clusterType.NodeMin))
-	logger.Info("Worker pool max size : " + strconv.Itoa(updateCluster.ServerPools[1].MaxCount) + " => " + strconv.Itoa(clusterType.NodeMax))
+	logger.Info("Resizing cluster : " + ccs.Name)
+	logger.Info("Worker pool min size: " + strconv.Itoa(updateCluster.ServerPools[1].MinCount) + " => " + strconv.Itoa(ccs.Amazon.NodeMinCount))
+	logger.Info("Worker pool max size : " + strconv.Itoa(updateCluster.ServerPools[1].MaxCount) + " => " + strconv.Itoa(ccs.Amazon.NodeMaxCount))
 	updateCluster.ServerPools[0].MinCount = 1
 	updateCluster.ServerPools[0].MaxCount = 1
-	updateCluster.ServerPools[1].MinCount = clusterType.NodeMin
-	updateCluster.ServerPools[1].MaxCount = clusterType.NodeMax
+	updateCluster.ServerPools[1].MinCount = ccs.Amazon.NodeMinCount
+	updateCluster.ServerPools[1].MaxCount = ccs.Amazon.NodeMaxCount
 
 	reconciler, err := cutil.GetReconciler(updateCluster, &runtimeParam)
 	if err != nil {

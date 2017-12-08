@@ -202,12 +202,20 @@ type CreateClusterAmazon struct {
 	Node   *CreateAmazonNode   `json:"node"`
 	Master *CreateAmazonMaster `json:"master"`
 }
+type UpdateClusterAmazon struct {
+	*UpdateAmazonNode `json:"node"`
+}
 
 type CreateAmazonNode struct {
 	SpotPrice string `json:"spotPrice"`
 	MinCount  int    `json:"minCount"`
 	MaxCount  int    `json:"maxCount"`
 	Image     string `json:"image"`
+}
+
+type UpdateAmazonNode struct {
+	MinCount int `json:"minCount"`
+	MaxCount int `json:"maxCount"`
 }
 
 type CreateAmazonMaster struct {
@@ -251,7 +259,7 @@ func (amazon *CreateClusterAmazon) Validate(log *logrus.Logger) (bool, string) {
 
 	if len(amazon.Master.InstanceType) == 0 {
 		log.Info("Master instance type set to default value: ", amazonDefaultMasterInstanceType)
-		amazon.Master.Image = amazonDefaultMasterInstanceType
+		amazon.Master.InstanceType = amazonDefaultMasterInstanceType
 	}
 
 	// ---- [ Node check ] ---- //

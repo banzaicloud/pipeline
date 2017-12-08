@@ -172,13 +172,13 @@ func ListClusters(resourceGroup string) (*ListResponse, *initapi.AzureErrorRespo
 }
 
 /*
-CreateCluster creates a managed AKS on Azure
+CreateUpdateCluster creates or updates a managed cluster
 PUT https://management.azure.com/subscriptions/
 	{subscriptionId}/resourceGroups/
 	{resourceGroupName}/providers/Microsoft.ContainerService/managedClusters/{resourceName}?
 	api-version=2017-08-31sdk *cluster.Sdk
 */
-func CreateCluster(request cluster.CreateClusterRequest) (*Response, *initapi.AzureErrorResponse) {
+func CreateUpdateCluster(request cluster.CreateClusterRequest) (*Response, *initapi.AzureErrorResponse) {
 
 	if azureSdk == nil {
 		return nil, initError

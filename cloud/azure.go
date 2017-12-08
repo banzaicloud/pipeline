@@ -14,8 +14,18 @@ type CreateClusterAzure struct {
 	Node *CreateAzureNode `json:"node"`
 }
 
+type UpdateClusterAzure struct {
+	*UpdateAzureNode `json:"node"`
+}
+
 type CreateAzureNode struct {
 	ResourceGroup     string `json:"resourceGroup"`
+	AgentCount        int    `json:"agentCount"`
+	AgentName         string `json:"agentName"`
+	KubernetesVersion string `json:"kubernetesVersion"`
+}
+
+type UpdateAzureNode struct {
 	AgentCount        int    `json:"agentCount"`
 	AgentName         string `json:"agentName"`
 	KubernetesVersion string `json:"kubernetesVersion"`
