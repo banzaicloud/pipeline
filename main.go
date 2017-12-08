@@ -430,15 +430,19 @@ func FetchClusters(c *gin.Context) {
 }
 
 type ClusterRepresentation struct {
-	Id        uint
-	Name      string
-	CloudType string
-	Amazon *struct {
-		Ip string
-	}
-	Azure *struct {
-		Value azureClient.Value
-	}
+	Id        uint        `json:"id"`
+	Name      string      `json:"name"`
+	CloudType string      `json:"cloud"`
+	*AmazonRepresentation `json:"amazon"`
+	*AzureRepresentation  `json:"azure"`
+}
+
+type AzureRepresentation struct {
+	Value azureClient.Value `json:"value"`
+}
+
+type AmazonRepresentation struct {
+	Ip string `json:"ip"`
 }
 
 func ReadClusterAzure(cl cloud.CreateClusterSimple) *ClusterRepresentation {
@@ -449,9 +453,11 @@ func ReadClusterAzure(cl cloud.CreateClusterSimple) *ClusterRepresentation {
 		return nil
 	} else {
 		clust := ClusterRepresentation{
-			Id:    cl.ID,
-			Name:  cl.Name,
-			Azure: &struct{ Value azureClient.Value }{Value: response.Value},
+			Id:   cl.ID,
+			Name: cl.Name,
+			AzureRepresentation: &AzureRepresentation{
+				Value: response.Value,
+			},
 		}
 		return &clust
 	}
@@ -462,9 +468,11 @@ func ReadClusterAmazon(cl cloud.CreateClusterSimple) *ClusterRepresentation {
 	c, err := cloud.ReadCluster(cl)
 	if err == nil {
 		clust := ClusterRepresentation{
-			Id:     cl.ID,
-			Name:   cl.Name,
-			Amazon: &struct{ Ip string }{Ip: c.KubernetesAPI.Endpoint},
+			Id:   cl.ID,
+			Name: cl.Name,
+			AmazonRepresentation: &AmazonRepresentation{
+				Ip: c.KubernetesAPI.Endpoint,
+			},
 		}
 		return &clust
 	} else {
