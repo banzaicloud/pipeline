@@ -10,6 +10,7 @@ import (
 	"os"
 	"time"
 	"github.com/banzaicloud/azure-aks-client/initapi"
+	"errors"
 )
 
 func init() {
@@ -24,6 +25,7 @@ func init() {
 		secret = azureSdk.ServicePrincipal.ClientSecret
 	}
 }
+
 const BaseUrl = "https://management.azure.com"
 
 var azureSdk *cluster.Sdk
@@ -67,7 +69,7 @@ func GetCluster(name string, resourceGroup string) (*Response, *initapi.AzureErr
 
 	if err != nil {
 		log.WithFields(log.Fields{"error": err}).Error("error during listing clusters in ", resourceGroup, " resource group")
-		return nil, createErrorResponse()
+		return nil, createErrorResponseFromError(err)
 	}
 
 	log.Info("Get cluster details with name: ", name, " in ", resourceGroup, " resource group")
@@ -75,7 +77,7 @@ func GetCluster(name string, resourceGroup string) (*Response, *initapi.AzureErr
 	resp, err := autorest.SendWithSender(groupClient.Client, req)
 	if err != nil {
 		log.WithFields(log.Fields{"error": err}).Error("error during listing clusters in ", resourceGroup, " resource group")
-		return nil, createErrorResponse()
+		return nil, createErrorResponseFromError(err)
 	}
 
 	log.Info("Get Cluster response status code: ", resp.StatusCode)
@@ -83,14 +85,14 @@ func GetCluster(name string, resourceGroup string) (*Response, *initapi.AzureErr
 	value, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.WithFields(log.Fields{"error": err}).Error("error during get cluster in ", resourceGroup, " resource group")
-		return nil, createErrorResponse()
+		return nil, createErrorResponseFromError(err)
 	}
 
 	if resp.StatusCode != initapi.OK {
 		// not ok, probably 404
-		errResp := initapi.CreateErrorFromValue(value)
-		log.Info("Get cluster failed with message: ", errResp.Error.Message)
-		return nil, &initapi.AzureErrorResponse{StatusCode: resp.StatusCode, Message: errResp.Error.Message}
+		errResp := initapi.CreateErrorFromValue(resp.StatusCode, value)
+		log.Info("Get cluster failed with message: ", errResp.Message)
+		return nil, &initapi.AzureErrorResponse{StatusCode: resp.StatusCode, Message: errResp.Message}
 	} else {
 		// everything is ok
 		v := Value{}
@@ -137,7 +139,7 @@ func ListClusters(resourceGroup string) (*ListResponse, *initapi.AzureErrorRespo
 
 	if err != nil {
 		log.WithFields(log.Fields{"error": err}).Error("error during listing clusters in ", resourceGroup, " resource group")
-		return nil, createErrorResponse()
+		return nil, createErrorResponseFromError(err)
 	}
 
 	log.Info("Start cluster listing in ", resourceGroup, " resource group")
@@ -145,7 +147,7 @@ func ListClusters(resourceGroup string) (*ListResponse, *initapi.AzureErrorRespo
 	resp, err := autorest.SendWithSender(groupClient.Client, req)
 	if err != nil {
 		log.WithFields(log.Fields{"error": err}).Error("error during listing clusters in ", resourceGroup, " resource group")
-		return nil, createErrorResponse()
+		return nil, createErrorResponseFromError(err)
 	}
 
 	log.Info("Cluster list response status code: ", resp.StatusCode)
@@ -153,14 +155,14 @@ func ListClusters(resourceGroup string) (*ListResponse, *initapi.AzureErrorRespo
 	value, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.WithFields(log.Fields{"error": err}).Error("error during listing clusters in ", resourceGroup, " resource group")
-		return nil, createErrorResponse()
+		return nil, createErrorResponseFromError(err)
 	}
 
 	if resp.StatusCode != initapi.OK {
 		// not ok, probably 404
-		errResp := initapi.CreateErrorFromValue(value)
-		log.Info("Listing clusters failed with message: ", errResp.Error.Message)
-		return nil, &initapi.AzureErrorResponse{StatusCode: resp.StatusCode, Message: errResp.Error.Message}
+		errResp := initapi.CreateErrorFromValue(resp.StatusCode, value)
+		log.Info("Listing clusters failed with message: ", errResp.Message)
+		return nil, &initapi.AzureErrorResponse{StatusCode: resp.StatusCode, Message: errResp.Message}
 	}
 
 	azureListResponse := AzureListResponse{}
@@ -217,7 +219,7 @@ func CreateUpdateCluster(request cluster.CreateClusterRequest) (*Response, *init
 	_, err := json.Marshal(managedCluster)
 	if err != nil {
 		log.WithFields(log.Fields{"error": err}).Error("error during JSON marshal")
-		return nil, createErrorResponse()
+		return nil, createErrorResponseFromError(err)
 	}
 
 	log.Info("Cluster creation start with name ", request.Name, " in ", request.ResourceGroup, " resource group")
@@ -225,23 +227,23 @@ func CreateUpdateCluster(request cluster.CreateClusterRequest) (*Response, *init
 	resp, err := autorest.SendWithSender(groupClient.Client, req)
 	if err != nil {
 		log.WithFields(log.Fields{"error": err}).Error("error during cluster creation")
-		return nil, createErrorResponse()
+		return nil, createErrorResponseFromError(err)
 	}
 
 	defer resp.Body.Close()
 	value, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.WithFields(log.Fields{"error": err}).Error("error during cluster creation")
-		return nil, createErrorResponse()
+		return nil, createErrorResponseFromError(err)
 	}
 
 	log.Info("Cluster create response code: ", resp.StatusCode)
 
 	if resp.StatusCode != initapi.OK && resp.StatusCode != initapi.Created {
 		// something went wrong, create failed
-		errResp := initapi.CreateErrorFromValue(value)
-		log.Info("Cluster creation failed with message: ", errResp.Error.Message)
-		return nil, &initapi.AzureErrorResponse{StatusCode: resp.StatusCode, Message: errResp.Error.Message}
+		errResp := initapi.CreateErrorFromValue(resp.StatusCode, value)
+		log.Info("Cluster creation failed with message: ", errResp.Message)
+		return nil, &initapi.AzureErrorResponse{StatusCode: resp.StatusCode, Message: errResp.Message}
 	}
 
 	v := Value{}
@@ -259,7 +261,7 @@ DELETE https://management.azure.com/subscriptions/
 	{resourceGroupName}/providers/Microsoft.ContainerService/managedClusters/{resourceName}?
 	api-version=2017-08-31
 */
-func DeleteCluster(name string, resourceGroup string) (*Response, *initapi.AzureErrorResponse) {
+func DeleteCluster(name string, resourceGroup string) (*ResponseSimple, *initapi.AzureErrorResponse) {
 
 	if azureSdk == nil {
 		return nil, initError
@@ -289,7 +291,7 @@ func DeleteCluster(name string, resourceGroup string) (*Response, *initapi.Azure
 
 	if err != nil {
 		log.WithFields(log.Fields{"error": err}).Error("error during delete cluster")
-		return nil, createErrorResponse()
+		return nil, createErrorResponseFromError(err)
 	}
 
 	log.Info("Cluster delete start with name ", name, " in ", resourceGroup, " resource group")
@@ -297,7 +299,7 @@ func DeleteCluster(name string, resourceGroup string) (*Response, *initapi.Azure
 	resp, err := autorest.SendWithSender(groupClient.Client, req)
 	if err != nil {
 		log.WithFields(log.Fields{"error": err}).Error("error during delete cluster")
-		return nil, createErrorResponse()
+		return nil, createErrorResponseFromError(err)
 	}
 
 	log.Info("Cluster delete status code: ", resp.StatusCode)
@@ -306,18 +308,18 @@ func DeleteCluster(name string, resourceGroup string) (*Response, *initapi.Azure
 	value, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.WithFields(log.Fields{"error": err}).Error("error during delete cluster")
-		return nil, createErrorResponse()
+		return nil, createErrorResponseFromError(err)
 	}
 
-	if resp.StatusCode != initapi.OK && resp.StatusCode != initapi.NoContent {
-		errResp := initapi.CreateErrorFromValue(value)
-		log.Info("Delete cluster failed with message: ", errResp.Error.Message)
-		return nil, &initapi.AzureErrorResponse{StatusCode: resp.StatusCode, Message: errResp.Error.Message}
+	if resp.StatusCode != initapi.OK && resp.StatusCode != initapi.NoContent && resp.StatusCode != initapi.Accepted {
+		errResp := initapi.CreateErrorFromValue(resp.StatusCode, value)
+		log.Info("Delete cluster failed with message: ", errResp.Message)
+		return nil, &initapi.AzureErrorResponse{StatusCode: resp.StatusCode, Message: errResp.Message}
 	}
 
 	log.Info("Delete cluster response ", string(value))
 
-	result := Response{StatusCode: resp.StatusCode}
+	result := ResponseSimple{StatusCode: resp.StatusCode}
 	return &result, nil
 }
 
@@ -363,7 +365,7 @@ func PollingCluster(name string, resourceGroup string) (*Response, *initapi.Azur
 
 	if err != nil {
 		log.WithFields(log.Fields{"error": err}).Error("error during cluster polling")
-		return nil, createErrorResponse()
+		return nil, createErrorResponseFromError(err)
 	}
 
 	log.Info("Cluster polling start with name ", name, " in ", resourceGroup, " resource group")
@@ -374,7 +376,7 @@ func PollingCluster(name string, resourceGroup string) (*Response, *initapi.Azur
 		resp, err := autorest.SendWithSender(groupClient.Client, req)
 		if err != nil {
 			log.WithFields(log.Fields{"error": err}).Error("error during cluster polling")
-			return nil, createErrorResponse()
+			return nil, createErrorResponseFromError(err)
 		}
 
 		statusCode := resp.StatusCode
@@ -383,7 +385,7 @@ func PollingCluster(name string, resourceGroup string) (*Response, *initapi.Azur
 		value, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			log.WithFields(log.Fields{"error": err}).Error("error during cluster polling")
-			return nil, createErrorResponse()
+			return nil, createErrorResponseFromError(err)
 		}
 
 		switch statusCode {
@@ -399,16 +401,16 @@ func PollingCluster(name string, resourceGroup string) (*Response, *initapi.Azur
 				isReady = true
 				result.update(statusCode, response)
 			case stageFailed:
-				return nil, createErrorResponse()
+				return nil, createErrorResponseFromError(errors.New("cluster stage is 'Failed'"))
 			default:
 				log.Info("Waiting...")
 				time.Sleep(waitInSeconds * time.Second)
 			}
 
 		default:
-			errResp := initapi.CreateErrorFromValue(value)
-			log.Info("Delete cluster failed with message: ", errResp.Error.Message)
-			return nil, &initapi.AzureErrorResponse{StatusCode: resp.StatusCode, Message: errResp.Error.Message}
+			errResp := initapi.CreateErrorFromValue(resp.StatusCode, value)
+			log.Info("Delete cluster failed with message: ", errResp.Message)
+			return nil, &initapi.AzureErrorResponse{StatusCode: resp.StatusCode, Message: errResp.Message}
 		}
 	}
 
@@ -441,6 +443,10 @@ type Response struct {
 	Value      Value `json:"message"`
 }
 
+type ResponseSimple struct {
+	StatusCode int `json:"status_code"`
+}
+
 type ListResponse struct {
 	StatusCode int               `json:"status_code"`
 	Value      AzureListResponse `json:"message"`
@@ -466,15 +472,19 @@ func (r *Response) update(code int, Value Value) {
 	r.StatusCode = code
 }
 
-func createErrorResponse() *initapi.AzureErrorResponse {
-	return createErrorResponseWithCode(initapi.InternalErrorCode)
-}
-
-func createErrorResponseWithCode(code int) *initapi.AzureErrorResponse {
-	return &initapi.AzureErrorResponse{StatusCode: code}
+func createErrorResponseFromError(err error) *initapi.AzureErrorResponse {
+	return &initapi.AzureErrorResponse{
+		StatusCode: initapi.InternalErrorCode,
+		Message:    err.Error(),
+	}
 }
 
 func (r ListResponse) toString() string {
+	jsonResponse, _ := json.Marshal(r)
+	return string(jsonResponse)
+}
+
+func (r ResponseSimple) String() string {
 	jsonResponse, _ := json.Marshal(r)
 	return string(jsonResponse)
 }

@@ -17,6 +17,7 @@ var sdk cluster.Sdk
 const (
 	OK                = 200
 	Created           = 201
+	Accepted          = 202
 	NoContent         = 204
 	InternalErrorCode = 500
 	BadRequest        = 400
@@ -96,15 +97,24 @@ type AzureErrorResponse struct {
 }
 
 type AzureServerError struct {
-	Error struct {
-		Message string `json:"message"`
-	} `json:"error"`
+	Message string `json:"message"`
 }
 
-func CreateErrorFromValue(v []byte) AzureServerError {
-	errResp := AzureServerError{}
-	json.Unmarshal([]byte(v), &errResp)
-	return errResp
+func CreateErrorFromValue(statusCode int, v []byte) AzureServerError {
+	if statusCode == BadRequest {
+		ase := AzureServerError{}
+		json.Unmarshal([]byte(v), &ase)
+		return ase
+	} else {
+		type TempError struct {
+			Error struct {
+				Message string `json:"message"`
+			} `json:"error"`
+		}
+		tempError := TempError{}
+		json.Unmarshal([]byte(v), &tempError)
+		return AzureServerError{Message: tempError.Error.Message}
+	}
 }
 
 func (e AzureErrorResponse) ToString() string {

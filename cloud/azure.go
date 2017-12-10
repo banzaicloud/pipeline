@@ -27,8 +27,6 @@ type CreateAzureNode struct {
 
 type UpdateAzureNode struct {
 	AgentCount        int    `json:"agentCount"`
-	AgentName         string `json:"agentName"`
-	KubernetesVersion string `json:"kubernetesVersion"`
 }
 
 type CreateAzureSimple struct {

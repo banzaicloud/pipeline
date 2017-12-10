@@ -49,10 +49,8 @@ func (r UpdateClusterRequest) String() string {
 	buffer.WriteString(fmt.Sprintf("Cloud: %s, ", r.Cloud))
 	if r.Cloud == Azure && r.UpdateClusterAzure != nil {
 		// Write AKS
-		buffer.WriteString(fmt.Sprintf("Agent count: %d, Agent name: %s, Kubernetes version: %s",
-			r.UpdateClusterAzure.AgentCount,
-			r.UpdateClusterAzure.AgentName,
-			r.UpdateClusterAzure.KubernetesVersion))
+		buffer.WriteString(fmt.Sprintf("Agent count: %d",
+			r.UpdateClusterAzure.AgentCount))
 	} else if r.Cloud == Amazon && r.UpdateClusterAzure != nil {
 		// Write AWS Node
 		if r.UpdateClusterAmazon.UpdateAmazonNode != nil {
@@ -176,8 +174,8 @@ func (r UpdateClusterRequest) updateClusterAzureInCloud(c *gin.Context, db *gorm
 		Azure: CreateAzureSimple{
 			ResourceGroup:     preCluster.Azure.ResourceGroup,
 			AgentCount:        r.UpdateClusterAzure.AgentCount,
-			AgentName:         r.UpdateClusterAzure.AgentName,
-			KubernetesVersion: r.UpdateClusterAzure.KubernetesVersion,
+			AgentName:         preCluster.Azure.AgentName,
+			KubernetesVersion: preCluster.Azure.KubernetesVersion,
 		},
 	}
 
@@ -352,9 +350,7 @@ func (r *UpdateClusterRequest) validateAzureRequest(log *logrus.Logger, defaultV
 	r.UpdateClusterAmazon = nil
 
 	defAzureNode := &UpdateAzureNode{
-		AgentCount:        defaultValue.Azure.AgentCount,
-		AgentName:         defaultValue.Azure.AgentName,
-		KubernetesVersion: defaultValue.Azure.KubernetesVersion,
+		AgentCount: defaultValue.Azure.AgentCount,
 	}
 
 	// ---- [ Azure field check ] ---- //
@@ -376,20 +372,6 @@ func (r *UpdateClusterRequest) validateAzureRequest(log *logrus.Logger, defaultV
 		def := defaultValue.Azure.AgentCount
 		log.Info("Node agentCount set to default value: ", def)
 		r.UpdateClusterAzure.AgentCount = def
-	}
-
-	// ---- [ Node - Agent name check] ---- //
-	if len(r.UpdateClusterAzure.AgentName) == 0 {
-		def := defaultValue.Azure.AgentName
-		log.Info("Node agentName set to default value: ", def)
-		r.UpdateClusterAzure.AgentName = def
-	}
-
-	// ---- [ Node - Kubernetes version check] ---- //
-	if len(r.UpdateClusterAzure.KubernetesVersion) == 0 {
-		def := defaultValue.Azure.KubernetesVersion
-		log.Info("Node kubernetesVersion set to default value: ", def)
-		r.UpdateClusterAzure.KubernetesVersion = def
 	}
 
 	// create update request struct with the stored data to check equality
