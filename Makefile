@@ -1,40 +1,34 @@
 .DEFAULT_GOAL := help
-.PHONY: help
+.PHONY: help build
 
 OS := $(shell uname -s)
 GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*")
 
+VERSION = 0.1.0
+GITREV = $(shell git rev-parse --short HEAD)
+
 build: ## Builds binary package
-	go build .
+	go build  -ldflags "-X main.Version=$(VERSION) -X main.GitRev=$(GITREV)" .
 
 build-ci:
-	CGO_ENABLED=0 GOOS=linux go build -o .circleci/images/prod/pipeline .
-
-docker-container-ci: build-ci
-	TAG=0.1.$CIRCLE_BUILD_NUM
-	docker build -t banzaicloud/pipeline-prod:$TAG  .circleci/images/prod/
-	docker push banzaicloud/pipeline-prod:$TAG
+	CGO_ENABLED=0 GOOS=linux go build .
 
 clean:
-	rm -f pipeline_static
-	rm -f .circleci/images/prod/pipeline_static
+	rm -f pipeline
 
-container-ci:
-	docker build -t pipeline-prod  .circleci/images/prod/
-	rm .circleci/images/prod/pipeline
+local: ## Starts local MySql and admin in docker
+	[ -e conf/config.toml ] || cp conf/config.toml.example conf/config.toml
+	docker-compose -f docker-compose-local.yml up -d
 
-prod-container: clean static-build
-	docker build -t pipeline-prod  .circleci/images/prod/
-	rm .circleci/images/prod/pipeline_static
-
-docker-dev-img: ## Builds development image
-	docker build -t pipeline-primary  .circleci/images/primary/
+local-kill: ## Kills local MySql and admin
+	docker-compose -f docker-compose-local.yml kill
 
 docker-build: docker-dev-img ## Builds go binary in docker image
 	docker run -it -v $(PWD):/go/src/github.com/banzaicloud/pipeline -w /go/src/github.com/banzaicloud/pipeline pipeline-primary go build -o pipeline_linux .
 
 deps: ## Install dependencies required for building
-	which dep > /dev/null || go get -u github.com/golang/dep/cmd/dep
+	which glide > /dev/null || go get github.com/Masterminds/glide
+	which glide-vc > /dev/null || go get github.com/sgotti/glide-vc
 	which circleci  > /dev/null || curl -o /usr/local/bin/circleci https://circle-downloads.s3.amazonaws.com/releases/build_agent_wrapper/circleci && chmod +x /usr/local/bin/circleci
 
 ifeq ($(OS), Darwin)
@@ -45,7 +39,7 @@ ifeq ($(OS), Linux)
 endif
 
 help: ## Generates this help message
-	@grep -E '^[0-9a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "�33[36m%-30s�33[0m %sn", $$1, $$2}'
+	@grep -E '^[0-9a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 create-cluster: ## Curl call to pipeline api to create a cluster with your username
 	curl -i -X POST http://localhost:9090/api/v1/clusters -H "Accept: application/json" -H "Content-Type: application/json" -d '{"name":"test-$(USER)","location":"eu-west-1","node":{"instanceType":"m4.large","spotPrice":"0.2","minCount":2,"maxCount":4,"image":"ami-34b6764d"},"master":{"instanceType":"m4.large","image":"ami-34b6764d"}}'

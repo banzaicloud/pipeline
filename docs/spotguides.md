@@ -8,6 +8,10 @@ A typical example of a Spark flow looks like this:
 
 ![Spark Flow](../docs/images/spark-flow.png)
 
+The sequence of events/internals within a cluster is the following:
+
+![Spark on K8S](https://cdn.rawgit.com/banzaicloud/pipeline/master/docs/images/spark-k8s.xml.svg)
+
 
 #### Apache Zeppelin
 

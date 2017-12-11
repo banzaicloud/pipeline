@@ -367,6 +367,10 @@ imports:
   version: 65c1f6f8f0fc1e2185eb9863a3bc751496404259
   subpackages:
   - xfs
+- name: github.com/prometheus/prometheus
+  version: 0a74f98628a0463dddc90528220c94de5032d1a0
+  subpackages:
+  - config
 - name: github.com/PuerkitoBio/purell
   version: 8a290539e2e8629dbc4e6bad948158f790ec31f4
 - name: github.com/PuerkitoBio/urlesc

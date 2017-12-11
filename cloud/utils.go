@@ -20,6 +20,7 @@ import (
 	"golang.org/x/crypto/ssh/agent"
 	"golang.org/x/crypto/ssh/terminal"
 	"github.com/gin-gonic/gin"
+  "k8s.io/client-go/tools/clientcmd"
 )
 
 const (
@@ -150,6 +151,7 @@ func GetConfig(existing *cluster.Cluster, localDir string) (string, error) {
 		return "", err
 	}
 
+
 	if _, err := os.Stat(localPath); os.IsNotExist(err) {
 		empty := []byte("")
 		err := ioutil.WriteFile(localPath, empty, 0755)
@@ -168,6 +170,11 @@ func GetConfig(existing *cluster.Cluster, localDir string) (string, error) {
 	}
 	defer f.Close()
 	logger.Always("Wrote kubeconfig to [%s]", localPath)
+	//TODO better solution
+	config, err := clientcmd.BuildConfigFromFlags("", localPath)
+	ioutil.WriteFile(localDir + "/client-key-data.pem", config.KeyData, 0644)
+	ioutil.WriteFile(localDir + "/client-certificate-data.pem", config.CertData, 0644)
+	ioutil.WriteFile(localDir + "/certificate-authority-data.pem", config.CAData, 0644)
 	return localPath, nil
 }
 
