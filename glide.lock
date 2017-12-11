@@ -1,5 +1,5 @@
-hash: a7019acffca9bb9fa3d47f37df6af0f529f5fc793e587e6a323388d4967c9f96
-updated: 2017-11-27T00:31:46.98464683+01:00
+hash: 67a303d117c3f814ba0de121e5ecc8a4d24624c6ab1625cf2bfd04ceb93d0818
+updated: 2017-12-10T13:35:52.980364994+01:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -58,6 +58,13 @@ imports:
   - autorest/date
   - autorest/to
   - autorest/validation
+- name: github.com/banzaicloud/azure-aks-client
+  version: a6ec72fde98b8083360c42cc49b889ccda6b65e1
+  subpackages:
+  - client
+  - cluster
+  - initapi
+  - utils
 - name: github.com/beorn7/perks
   version: 3ac7bf7a47d159a033b107610db8a1b6575507a4
   subpackages:
@@ -306,6 +313,10 @@ imports:
   - buffer
   - jlexer
   - jwriter
+- name: github.com/Masterminds/cookoo
+  version: 78aa11ce75e257c51be7ea945edb84cf19c4a6de
+  subpackages:
+  - web
 - name: github.com/Masterminds/semver
   version: 517734cc7d6470c0d07130e40fd40bdeb9bcd3fd
 - name: github.com/Masterminds/sprig

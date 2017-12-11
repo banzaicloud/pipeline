@@ -47,7 +47,7 @@ func UpdatePrometheusConfig(db *gorm.DB) error {
 	//Gathering information about clusters
 	for _, cluster := range clusters {
 		log.Debugln("Cluster: ", cluster.Name)
-		cloudCluster, err := cloud.ReadCluster(cluster)
+		cloudCluster, err := cloud.ReadClusterOld(cluster)
 		if err != nil {
 			log.Warningln("Cluster Parser Error: ", err.Error())
 			continue

@@ -1,7 +1,6 @@
 package cloud
 
 import (
-
 	"github.com/kris-nova/kubicorn/state"
 	"github.com/kris-nova/kubicorn/state/fs"
 
@@ -13,18 +12,42 @@ import (
 	"syscall"
 	"time"
 
-	notify "github.com/banzaicloud/pipeline/notify"
+	"github.com/banzaicloud/pipeline/notify"
 	"github.com/kris-nova/kubicorn/apis/cluster"
 	"github.com/kris-nova/kubicorn/cutil/logger"
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/agent"
 	"golang.org/x/crypto/ssh/terminal"
-	"k8s.io/client-go/tools/clientcmd"
+	"github.com/gin-gonic/gin"
+  "k8s.io/client-go/tools/clientcmd"
+)
+
+const (
+	JsonKeyStatus      = "status"
+	JsonKeyMessage     = "message"
+	JsonKeyName        = "name"
+	JsonKeyError       = "error"
+	JsonKeyResourceId  = "resourceId"
+	JsonKeyIp          = "Ip"
+	JsonKeyData        = "data"
+	JsonKeyAvailable   = "available"
+	JsonKeyAuth0       = "Auth0"
+	JsonKeyReleaseName = "release_name"
+	JsonKeyUrl         = "url"
+	JsonKeyNotes       = "notes"
 )
 
 //We return stateStore so update can use it.
-func getStateStoreForCluster(clusterType ClusterType) (stateStore state.ClusterStorer) {
+// todo szedd írd majd át mindenhol
+func getStateStoreForClusterOld(clusterType ClusterType) (stateStore state.ClusterStorer) {
+	stateStore = fs.NewFileSystemStore(&fs.FileSystemStoreOptions{
+		BasePath:    "statestore",
+		ClusterName: clusterType.Name,
+	})
+	return stateStore
+}
+func getStateStoreForCluster(clusterType ClusterSimple) (stateStore state.ClusterStorer) {
 
 	stateStore = fs.NewFileSystemStore(&fs.FileSystemStoreOptions{
 		BasePath:    "statestore",
@@ -213,4 +236,8 @@ func getSigner(pemBytes []byte) (ssh.Signer, error) {
 	}
 
 	return signerwithoutpassphrase, err
+}
+
+func SetResponseBodyJson(c *gin.Context, statusCode int, obj interface{}) {
+	c.JSON(statusCode, obj)
 }
