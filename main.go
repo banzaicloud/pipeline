@@ -56,7 +56,7 @@ func main() {
 	log = conf.Logger()
 	log.Info("Logger configured")
 	db = conf.Database()
-	db.AutoMigrate(&cloud.CreateClusterSimple{}, &cloud.CreateAmazonClusterSimple{}, &cloud.CreateAzureSimple{})
+	db.AutoMigrate(&cloud.ClusterSimple{}, &cloud.AmazonClusterSimple{}, &cloud.AzureSimple{})
 
 	router := gin.Default()
 
@@ -121,7 +121,7 @@ func DeleteDeployment(c *gin.Context) {
 	return
 }
 
-//CreateDeployment creates a Helm deployment
+// CreateDeployment creates a Helm deployment
 func CreateDeployment(c *gin.Context) {
 	var deployment DeploymentType
 	cloudCluster, err := GetCluster(c)
@@ -181,7 +181,7 @@ func CreateDeployment(c *gin.Context) {
 	return
 }
 
-//ListDeployments lists a Helm deployment
+// ListDeployments lists a Helm deployment
 func ListDeployments(c *gin.Context) {
 	//First get Cluster context
 	cloudCluster, err := GetCluster(c)
@@ -219,11 +219,12 @@ func ListDeployments(c *gin.Context) {
 	return
 }
 
-//CreateCluster creates a K8S cluster in the cloud
+// CreateCluster creates a K8S cluster in the cloud
 func CreateCluster(c *gin.Context) {
 
 	log.Info("Cluster creation is stared")
 
+	// bind request body to struct
 	var createClusterBaseRequest cloud.CreateClusterRequest
 	if err := c.BindJSON(&createClusterBaseRequest); err != nil {
 		log.Info("Required field is empty" + err.Error())
@@ -240,16 +241,15 @@ func CreateCluster(c *gin.Context) {
 
 	switch cloudType {
 	case cloud.Amazon:
+		// validate and create Amazon cluster
 		awsData := createClusterBaseRequest.Properties.CreateClusterAmazon
 		if isValid, err := awsData.Validate(log); isValid && len(err) == 0 {
 			if createClusterBaseRequest.CreateClusterAmazon(c, db, log) {
 				// update prometheus config..
-				err := monitor.UpdatePrometheusConfig(db)
-				if err != nil {
-					log.Warning("Could not update prometheus configmap: %v", err)
-				}
+				updatePrometheus()
 			}
 		} else {
+			// not valid request
 			cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
 				cloud.JsonKeyStatus:  http.StatusBadRequest,
 				cloud.JsonKeyMessage: err,
@@ -257,16 +257,15 @@ func CreateCluster(c *gin.Context) {
 		}
 		break
 	case cloud.Azure:
+		// validate and create Azure cluster
 		aksData := createClusterBaseRequest.Properties.CreateClusterAzure
 		if isValid, err := aksData.Validate(log); isValid && len(err) == 0 {
 			if createClusterBaseRequest.CreateClusterAzure(c, db, log) {
 				// update prometheus config..
-				err := monitor.UpdatePrometheusConfig(db)
-				if err != nil {
-					log.Warning("Could not update prometheus configmap: %v", err)
-				}
+				updatePrometheus()
 			}
 		} else {
+			// not valid request
 			cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
 				cloud.JsonKeyStatus:  http.StatusBadRequest,
 				cloud.JsonKeyMessage: err,
@@ -274,12 +273,14 @@ func CreateCluster(c *gin.Context) {
 		}
 		break
 	default:
+		// wrong cloud type
 		SendNotSupportedCloudResponse(c)
 		break
 	}
 
 }
 
+// SendNotSupportedCloudResponse sends Not-supported-cloud-type error message back
 func SendNotSupportedCloudResponse(c *gin.Context) {
 	msg := "Not supported cloud type. Please use one of the following: " + cloud.Amazon + ", " + cloud.Azure + "."
 	cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
@@ -288,12 +289,12 @@ func SendNotSupportedCloudResponse(c *gin.Context) {
 	})
 }
 
-//DeleteCluster deletes a K8S cluster from the cloud
+// DeleteCluster deletes a K8S cluster from the cloud
 func DeleteCluster(c *gin.Context) {
 
 	log.Info("Delete cluster start")
 
-	var cluster cloud.CreateClusterSimple
+	var cluster cloud.ClusterSimple
 	clusterId := c.Param("id")
 
 	db.First(&cluster, clusterId)
@@ -301,6 +302,7 @@ func DeleteCluster(c *gin.Context) {
 	log.Infof("Cluster data: %#v", cluster)
 
 	if cluster.ID == 0 {
+		// not found cluster with the given ID
 		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
 			cloud.JsonKeyStatus:  http.StatusNotFound,
 			cloud.JsonKeyMessage: "No cluster found!",
@@ -327,17 +329,20 @@ func DeleteCluster(c *gin.Context) {
 
 }
 
-func deleteAmazonCluster(c *gin.Context, cluster cloud.CreateClusterSimple) {
+// deleteAmazonCluster deletes cluster from amazon
+func deleteAmazonCluster(c *gin.Context, cluster cloud.ClusterSimple) {
 	if _, err := cluster.DeleteClusterAmazon(); err != nil {
+		// delete failed
 		log.Warning("Can't delete cluster from cloud!", err)
 
 		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
-			"status":     http.StatusBadRequest,
-			"message":    "Can't delete cluster!",
-			"resourceId": cluster.ID,
-			"error":      err,
+			cloud.JsonKeyStatus:     http.StatusBadRequest,
+			cloud.JsonKeyMessage:    "Can't delete cluster!",
+			cloud.JsonKeyResourceId: cluster.ID,
+			cloud.JsonKeyError:      err,
 		})
 	} else {
+		// delete success
 		log.Info("Cluster deleted from the cloud!")
 		notify.SlackNotify("Cluster deleted from the cloud!")
 
@@ -347,6 +352,7 @@ func deleteAmazonCluster(c *gin.Context, cluster cloud.CreateClusterSimple) {
 			cloud.JsonKeyResourceId: cluster.ID,
 		})
 
+		// delete from db
 		if cluster.DeleteFromDb(c, db, log) {
 			updatePrometheus()
 		}
@@ -354,11 +360,13 @@ func deleteAmazonCluster(c *gin.Context, cluster cloud.CreateClusterSimple) {
 	}
 }
 
-func deleteAzureCluster(c *gin.Context, clusterId string, cluster *cloud.CreateClusterSimple) {
+// deleteAzureCluster deletes cluster from azure
+func deleteAzureCluster(c *gin.Context, clusterId string, cluster *cloud.ClusterSimple) {
 
 	// set azure props
-	db.Where(cloud.CreateAzureSimple{CreateClusterSimpleId: convertString2Uint(clusterId)}).First(&cluster.Azure)
+	db.Where(cloud.AzureSimple{CreateClusterSimpleId: convertString2Uint(clusterId)}).First(&cluster.Azure)
 	if cluster.DeleteClusterAzure(c, cluster.Name, cluster.Azure.ResourceGroup) {
+		log.Info("Delete success")
 		if cluster.DeleteFromDb(c, db, log) {
 			updatePrometheus()
 		}
@@ -372,6 +380,7 @@ func deleteAzureCluster(c *gin.Context, clusterId string, cluster *cloud.CreateC
 	}
 }
 
+// convertString2Uint converts a string to uint
 func convertString2Uint(s string) uint {
 	i, err := strconv.ParseInt(s, 10, 32)
 	if err != nil {
@@ -387,9 +396,9 @@ func updatePrometheus() {
 	}
 }
 
-//FetchClusters fetches all the K8S clusters from the cloud
+// FetchClusters fetches all the K8S clusters from the cloud
 func FetchClusters(c *gin.Context) {
-	var clusters []cloud.CreateClusterSimple
+	var clusters []cloud.ClusterSimple
 	var response []*ClusterRepresentation
 	db.Find(&clusters)
 
@@ -409,7 +418,7 @@ func FetchClusters(c *gin.Context) {
 			clust = ReadClusterAmazon(cl)
 			break
 		case cloud.Azure:
-			db.Where(cloud.CreateAzureSimple{CreateClusterSimpleId: cl.ID}).First(&cl.Azure)
+			db.Where(cloud.AzureSimple{CreateClusterSimpleId: cl.ID}).First(&cl.Azure)
 			clust = ReadClusterAzure(cl)
 			break
 		default:
@@ -445,13 +454,15 @@ type AmazonRepresentation struct {
 	Ip string `json:"ip"`
 }
 
-func ReadClusterAzure(cl cloud.CreateClusterSimple) *ClusterRepresentation {
+// ReadClusterAzure load azure props from cloud to list clusters
+func ReadClusterAzure(cl cloud.ClusterSimple) *ClusterRepresentation {
 	log.Info("Read aks cluster with ", cl.Name, " id")
 	response, err := azureClient.GetCluster(cl.Name, cl.Azure.ResourceGroup)
 	if err != nil {
 		log.Infof("Something went wrong under read: %#v", err)
 		return nil
 	} else {
+		log.Info("Read cluster success")
 		clust := ClusterRepresentation{
 			Id:   cl.ID,
 			Name: cl.Name,
@@ -463,10 +474,12 @@ func ReadClusterAzure(cl cloud.CreateClusterSimple) *ClusterRepresentation {
 	}
 }
 
-func ReadClusterAmazon(cl cloud.CreateClusterSimple) *ClusterRepresentation {
+// ReadClusterAmazon load amazon props from cloud to list clusters
+func ReadClusterAmazon(cl cloud.ClusterSimple) *ClusterRepresentation {
 	log.Info("Read aws cluster with ", cl.ID, " id")
 	c, err := cloud.ReadCluster(cl)
 	if err == nil {
+		log.Info("Read aws cluster success")
 		clust := ClusterRepresentation{
 			Id:   cl.ID,
 			Name: cl.Name,
@@ -481,12 +494,12 @@ func ReadClusterAmazon(cl cloud.CreateClusterSimple) *ClusterRepresentation {
 	return nil
 }
 
-//FetchCluster fetch a K8S cluster in the cloud
+// FetchCluster fetch a K8S cluster in the cloud
 func FetchCluster(c *gin.Context) {
 
 	id := c.Param("id")
-	var cl cloud.CreateClusterSimple
-	db.Where(cloud.CreateClusterSimple{Model: gorm.Model{ID: convertString2Uint(id)}}).First(&cl)
+	var cl cloud.ClusterSimple
+	db.Where(cloud.ClusterSimple{Model: gorm.Model{ID: convertString2Uint(id)}}).First(&cl)
 
 	if cl.ID == 0 {
 		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
@@ -504,10 +517,12 @@ func FetchCluster(c *gin.Context) {
 		FetchClusterAmazon(c)
 		break
 	case cloud.Azure:
-		db.Where(cloud.CreateAzureSimple{CreateClusterSimpleId: convertString2Uint(id)}).First(&cl.Azure)
+		// set azure props
+		db.Where(cloud.AzureSimple{CreateClusterSimpleId: convertString2Uint(id)}).First(&cl.Azure)
 		FetchClusterAzure(c, cl)
 		break
 	default:
+		// wrong cloud type
 		cloud.SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
 			cloud.JsonKeyStatus:  http.StatusInternalServerError,
 			cloud.JsonKeyMessage: "Not supported cloud type.",
@@ -517,21 +532,25 @@ func FetchCluster(c *gin.Context) {
 
 }
 
-func FetchClusterAzure(c *gin.Context, cl cloud.CreateClusterSimple) {
+// FetchClusterAzure fetches azure cluster props with the given name and resource group
+func FetchClusterAzure(c *gin.Context, cl cloud.ClusterSimple) {
 	log.Info("Fetch aks cluster with name: ", cl.Name, " in ", cl.Azure.ResourceGroup, " resource group.")
 
 	response, err := azureClient.GetCluster(cl.Name, cl.Azure.ResourceGroup)
 	if err != nil {
+		// fetch failed
 		log.Info("Status code: ", err.StatusCode)
 		log.Info("Error during get cluster details: ", err.Message)
 		cloud.SetResponseBodyJson(c, err.StatusCode, err)
 	} else {
+		// fetch success
 		log.Info("Status code: ", response.StatusCode)
 		cloud.SetResponseBodyJson(c, response.StatusCode, response)
 	}
 
 }
 
+// FetchClusterAmazon fetches amazon cluster props
 func FetchClusterAmazon(c *gin.Context) {
 	cluster, err := GetCluster(c)
 	if err != nil {
@@ -546,10 +565,10 @@ func FetchClusterAmazon(c *gin.Context) {
 	})
 }
 
-//UpdateCluster updates a K8S cluster in the cloud (e.g. autoscale)
+// UpdateCluster updates a K8S cluster in the cloud (e.g. autoscale)
 func UpdateCluster(c *gin.Context) {
 
-	var cl cloud.CreateClusterSimple
+	var cl cloud.ClusterSimple
 	clusterId := c.Param("id")
 
 	// bind request body to UpdateClusterRequest struct
@@ -566,9 +585,9 @@ func UpdateCluster(c *gin.Context) {
 	}
 
 	// load cluster from db
-	db.Where(cloud.CreateClusterSimple{
+	db.Where(cloud.ClusterSimple{
 		Model: gorm.Model{ID: convertString2Uint(clusterId)},
-	}).Where(cloud.CreateClusterSimple{
+	}).Where(cloud.ClusterSimple{
 		Cloud: updateRequest.Cloud,
 	}).First(&cl)
 
@@ -589,12 +608,12 @@ func UpdateCluster(c *gin.Context) {
 	case cloud.Amazon:
 		// read amazon props from amazon_cluster_properties table
 		log.Info("Load amazon props from db")
-		db.Where(cloud.CreateAmazonClusterSimple{CreateClusterSimpleId: convertString2Uint(clusterId)}).First(&cl.Amazon)
+		db.Where(cloud.AmazonClusterSimple{CreateClusterSimpleId: convertString2Uint(clusterId)}).First(&cl.Amazon)
 		break
 	case cloud.Azure:
 		// read azure props from azure_cluster_properties table
 		log.Info("Load azure props from db")
-		db.Where(cloud.CreateAzureSimple{CreateClusterSimpleId: convertString2Uint(clusterId)}).First(&cl.Azure)
+		db.Where(cloud.AzureSimple{CreateClusterSimpleId: convertString2Uint(clusterId)}).First(&cl.Azure)
 		break
 	default:
 		// not supported cloud type
@@ -610,10 +629,7 @@ func UpdateCluster(c *gin.Context) {
 		if updateRequest.UpdateClusterInCloud(c, db, log, cl) {
 			// cluster updated successfully in cloud
 			// update prometheus config..
-			err := monitor.UpdatePrometheusConfig(db)
-			if err != nil {
-				log.Warning("Could not update prometheus configmap: %v", err)
-			}
+			updatePrometheus()
 		}
 	} else {
 		// validation failed
@@ -625,7 +641,7 @@ func UpdateCluster(c *gin.Context) {
 
 }
 
-//FetchClusterConfig fetches a cluster config
+// FetchClusterConfig fetches a cluster config
 func FetchClusterConfig(c *gin.Context) {
 	cloudCluster, err := GetCluster(c)
 	if err != nil {
@@ -662,7 +678,7 @@ func FetchClusterConfig(c *gin.Context) {
 	}
 }
 
-//GetClusterStatus retrieves the cluster status
+// GetClusterStatus retrieves the cluster status
 func GetClusterStatus(c *gin.Context) {
 	cluster, err := GetClusterFromDB(c)
 	if err != nil {
@@ -689,7 +705,7 @@ func GetClusterStatus(c *gin.Context) {
 	return
 }
 
-//GetTillerStatus checks if tiller ready to accept deployments
+// GetTillerStatus checks if tiller ready to accept deployments
 func GetTillerStatus(c *gin.Context) {
 	cloudCluster, err := GetCluster(c)
 	if err != nil {
@@ -710,7 +726,7 @@ func GetTillerStatus(c *gin.Context) {
 	return
 }
 
-//FetchDeploymentStatus check the status of the Helm deployment
+// FetchDeploymentStatus check the status of the Helm deployment
 func FetchDeploymentStatus(c *gin.Context) {
 	name := c.Param("name")
 	cloudCluster, err := GetCluster(c)
@@ -750,16 +766,16 @@ func FetchDeploymentStatus(c *gin.Context) {
 	return
 }
 
-//Auth0Test authN check
+// Auth0Test authN check
 func Auth0Test(c *gin.Context) {
 	cloud.SetResponseBodyJson(c, http.StatusOK, gin.H{
 		cloud.JsonKeyAuth0: "authn and authz successful",
 	})
 }
 
-//GetCluster from database
-//If no field param was specified automatically use value as ID
-//Else it will use field as query column name
+// GetCluster from database
+// If no field param was specified automatically use value as ID
+// Else it will use field as query column name
 func GetClusterFromDB(c *gin.Context) (*cloud.ClusterType, error) {
 	var cluster cloud.ClusterType
 	value := c.Param("id")
@@ -781,8 +797,8 @@ func GetClusterFromDB(c *gin.Context) (*cloud.ClusterType, error) {
 
 }
 
-//GetCluster based on ClusterType object
-//This will read the persisted Kubicorn cluster format
+// GetCluster based on ClusterType object
+// This will read the persisted Kubicorn cluster format
 func GetKubicornCluster(clusterType *cloud.ClusterType) (*cluster.Cluster, error) {
 	clust, err := cloud.ReadClusterOld(*clusterType)
 	if err != nil {

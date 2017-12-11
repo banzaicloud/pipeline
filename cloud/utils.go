@@ -46,7 +46,7 @@ func getStateStoreForClusterOld(clusterType ClusterType) (stateStore state.Clust
 	})
 	return stateStore
 }
-func getStateStoreForCluster(clusterType CreateClusterSimple) (stateStore state.ClusterStorer) {
+func getStateStoreForCluster(clusterType ClusterSimple) (stateStore state.ClusterStorer) {
 
 	stateStore = fs.NewFileSystemStore(&fs.FileSystemStoreOptions{
 		BasePath:    "statestore",

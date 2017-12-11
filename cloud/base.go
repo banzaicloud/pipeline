@@ -44,6 +44,17 @@ type UpdateProperties struct {
 	*UpdateClusterAzure  `json:"azure"`
 }
 
+type ClusterSimple struct {
+	gorm.Model
+	Name             string `gorm:"unique"`
+	Location         string
+	NodeInstanceType string
+	Cloud            string
+	Amazon           AmazonClusterSimple
+	Azure            AzureSimple
+}
+
+// String method prints formatted update request fields
 func (r UpdateClusterRequest) String() string {
 	var buffer bytes.Buffer
 	buffer.WriteString(fmt.Sprintf("Cloud: %s, ", r.Cloud))
@@ -63,21 +74,13 @@ func (r UpdateClusterRequest) String() string {
 	return buffer.String()
 }
 
-type CreateClusterSimple struct {
-	gorm.Model
-	Name             string `gorm:"unique"`
-	Location         string
-	NodeInstanceType string
-	Cloud            string
-	Amazon           CreateAmazonClusterSimple
-	Azure            CreateAzureSimple
-}
-
-func (cluster CreateClusterSimple) DeleteFromDb(c *gin.Context, db *gorm.DB, log *logrus.Logger) bool {
+// DeleteFromDb deletes cluster from database
+func (cluster ClusterSimple) DeleteFromDb(c *gin.Context, db *gorm.DB, log *logrus.Logger) bool {
 
 	log.Info("Delete from db")
 
 	if err := db.Delete(&cluster).Error; err != nil {
+		// delete failed
 		log.Warning("Can't delete cluster from database!", err)
 		SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
 			JsonKeyStatus:     http.StatusBadRequest,
@@ -90,12 +93,13 @@ func (cluster CreateClusterSimple) DeleteFromDb(c *gin.Context, db *gorm.DB, log
 	return true
 }
 
-func (CreateClusterSimple) TableName() string {
+// TableName sets ClusterSimple's table name
+func (ClusterSimple) TableName() string {
 	return tableNameClusters
 }
 
 // String method prints formatted cluster fields
-func (cluster CreateClusterSimple) String() string {
+func (cluster ClusterSimple) String() string {
 	var buffer bytes.Buffer
 	buffer.WriteString(fmt.Sprintf("Id: %d, Creation date: %s, Cloud: %s, NodeInstanceType: %s, ", cluster.ID, cluster.CreatedAt, cluster.Cloud, cluster.NodeInstanceType))
 	if cluster.Cloud == Azure {
@@ -120,14 +124,15 @@ func (cluster CreateClusterSimple) String() string {
 	return buffer.String()
 }
 
+// CreateClusterAmazon creates amazon cluster in cloud
 func (request CreateClusterRequest) CreateClusterAmazon(c *gin.Context, db *gorm.DB, log *logrus.Logger) bool {
 
-	cluster2Db := CreateClusterSimple{
+	cluster2Db := ClusterSimple{
 		Name:             request.Name,
 		Location:         request.Location,
 		NodeInstanceType: request.NodeInstanceType,
 		Cloud:            request.Cloud,
-		Amazon: CreateAmazonClusterSimple{
+		Amazon: AmazonClusterSimple{
 			NodeSpotPrice:      request.Properties.CreateClusterAmazon.Node.SpotPrice,
 			NodeMinCount:       request.Properties.CreateClusterAmazon.Node.MinCount,
 			NodeMaxCount:       request.Properties.CreateClusterAmazon.Node.MaxCount,
@@ -137,12 +142,15 @@ func (request CreateClusterRequest) CreateClusterAmazon(c *gin.Context, db *gorm
 		},
 	}
 
+	// save db
 	if err := db.Save(&cluster2Db).Error; err != nil {
 		DbSaveFailed(c, log, err, cluster2Db.Name)
 		return false
 	}
 
+	// create aws cluster
 	if createdCluster, err := CreateCluster(cluster2Db); err != nil {
+		// creation failed
 		log.Info("Cluster creation failed!", err)
 		SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
 			JsonKeyMessage: "Could not launch cluster!",
@@ -150,6 +158,7 @@ func (request CreateClusterRequest) CreateClusterAmazon(c *gin.Context, db *gorm
 			JsonKeyError:   err,
 		})
 	} else {
+		// cluster creation success
 		log.Info("Cluster created successfully!")
 		SetResponseBodyJson(c, http.StatusCreated, gin.H{
 			JsonKeyStatus:     http.StatusCreated,
@@ -163,15 +172,16 @@ func (request CreateClusterRequest) CreateClusterAmazon(c *gin.Context, db *gorm
 	return true
 }
 
-func (r UpdateClusterRequest) updateClusterAzureInCloud(c *gin.Context, db *gorm.DB, log *logrus.Logger, preCluster CreateClusterSimple) bool {
+// updateClusterAzureInCloud updates azure cluster in cloud
+func (r UpdateClusterRequest) updateClusterAzureInCloud(c *gin.Context, db *gorm.DB, log *logrus.Logger, preCluster ClusterSimple) bool {
 
-	cluster2Db := CreateClusterSimple{
+	cluster2Db := ClusterSimple{
 		Model:            preCluster.Model,
 		Name:             preCluster.Name,
 		Location:         preCluster.Location,
 		NodeInstanceType: preCluster.NodeInstanceType,
 		Cloud:            r.Cloud,
-		Azure: CreateAzureSimple{
+		Azure: AzureSimple{
 			ResourceGroup:     preCluster.Azure.ResourceGroup,
 			AgentCount:        r.UpdateClusterAzure.AgentCount,
 			AgentName:         preCluster.Azure.AgentName,
@@ -191,14 +201,16 @@ func (r UpdateClusterRequest) updateClusterAzureInCloud(c *gin.Context, db *gorm
 
 	res, err := azureClient.CreateUpdateCluster(ccr)
 	if err != nil {
+		log.Info("Cluster update failed!", err.Message)
 		SetResponseBodyJson(c, err.StatusCode, gin.H{
 			JsonKeyStatus:  err.StatusCode,
 			JsonKeyMessage: err.Message,
 		})
 		return false
 	} else {
+		log.Info("Cluster update success")
 		// updateDb
-		if err := db.Model(&CreateClusterSimple{}).Update(&cluster2Db).Error; err != nil {
+		if err := db.Model(&ClusterSimple{}).Update(&cluster2Db).Error; err != nil {
 			DbSaveFailed(c, log, err, cluster2Db.Name)
 			return false
 		}
@@ -209,15 +221,16 @@ func (r UpdateClusterRequest) updateClusterAzureInCloud(c *gin.Context, db *gorm
 
 }
 
-func (r UpdateClusterRequest) updateClusterAmazonInCloud(c *gin.Context, db *gorm.DB, log *logrus.Logger, preCluster CreateClusterSimple) bool {
+// updateClusterAmazonInCloud updates amazon cluster in cloud
+func (r UpdateClusterRequest) updateClusterAmazonInCloud(c *gin.Context, db *gorm.DB, log *logrus.Logger, preCluster ClusterSimple) bool {
 
-	cluster2Db := CreateClusterSimple{
+	cluster2Db := ClusterSimple{
 		Model:            preCluster.Model,
 		Name:             preCluster.Name,
 		Location:         preCluster.Location,
 		NodeInstanceType: preCluster.NodeInstanceType,
 		Cloud:            r.Cloud,
-		Amazon: CreateAmazonClusterSimple{
+		Amazon: AmazonClusterSimple{
 			NodeSpotPrice:      preCluster.Amazon.NodeSpotPrice,
 			NodeMinCount:       r.UpdateClusterAmazon.MinCount,
 			NodeMaxCount:       r.UpdateClusterAmazon.MaxCount,
@@ -252,7 +265,9 @@ func (r UpdateClusterRequest) updateClusterAmazonInCloud(c *gin.Context, db *gor
 
 }
 
-func (r *UpdateClusterRequest) UpdateClusterInCloud(c *gin.Context, db *gorm.DB, log *logrus.Logger, preCluster CreateClusterSimple) bool {
+// UpdateClusterInCloud updates cluster in cloud
+// The request's cloud field decided which type of cloud will be called
+func (r *UpdateClusterRequest) UpdateClusterInCloud(c *gin.Context, db *gorm.DB, log *logrus.Logger, preCluster ClusterSimple) bool {
 
 	switch r.Cloud {
 	case Amazon:
@@ -266,7 +281,7 @@ func (r *UpdateClusterRequest) UpdateClusterInCloud(c *gin.Context, db *gorm.DB,
 }
 
 // The Validate method checks the request fields
-func (r *UpdateClusterRequest) Validate(log *logrus.Logger, defaultValue CreateClusterSimple) (bool, string) {
+func (r *UpdateClusterRequest) Validate(log *logrus.Logger, defaultValue ClusterSimple) (bool, string) {
 
 	switch r.Cloud {
 	case Amazon:
@@ -284,7 +299,7 @@ func (r *UpdateClusterRequest) Validate(log *logrus.Logger, defaultValue CreateC
 
 // ValidateAmazonRequest validates the update request (only amazon part). If any of the fields is missing, the method fills
 // with stored data.
-func (r *UpdateClusterRequest) ValidateAmazonRequest(log *logrus.Logger, defaultValue CreateClusterSimple) (bool, string) {
+func (r *UpdateClusterRequest) ValidateAmazonRequest(log *logrus.Logger, defaultValue ClusterSimple) (bool, string) {
 
 	// reset azure fields
 	r.UpdateClusterAzure = nil
@@ -344,7 +359,7 @@ func (r *UpdateClusterRequest) ValidateAmazonRequest(log *logrus.Logger, default
 
 // ValidateAzureRequest validates the update request (only azure part). If any of the fields is missing, the method fills
 // with stored data.
-func (r *UpdateClusterRequest) validateAzureRequest(log *logrus.Logger, defaultValue CreateClusterSimple) (bool, string) {
+func (r *UpdateClusterRequest) validateAzureRequest(log *logrus.Logger, defaultValue ClusterSimple) (bool, string) {
 
 	// reset field amazon fields
 	r.UpdateClusterAmazon = nil
@@ -388,6 +403,7 @@ func (r *UpdateClusterRequest) validateAzureRequest(log *logrus.Logger, defaultV
 	return isUpdateEqualsWithStoredCluster(r, preCl, log)
 }
 
+// isUpdateEqualsWithStoredCluster compares x and y interfaces with deep equal
 func isUpdateEqualsWithStoredCluster(x interface{}, y interface{}, log *logrus.Logger) (bool, string) {
 	if reflect.DeepEqual(x, y) {
 		msg := "There is no change in data"
@@ -397,13 +413,15 @@ func isUpdateEqualsWithStoredCluster(x interface{}, y interface{}, log *logrus.L
 	return true, ""
 }
 
+// CreateClusterAzure creates azure cluster in the cloud
 func (request CreateClusterRequest) CreateClusterAzure(c *gin.Context, db *gorm.DB, log *logrus.Logger) bool {
-	cluster2Db := CreateClusterSimple{
+
+	cluster2Db := ClusterSimple{
 		Name:             request.Name,
 		Location:         request.Location,
 		NodeInstanceType: request.NodeInstanceType,
 		Cloud:            request.Cloud,
-		Azure: CreateAzureSimple{
+		Azure: AzureSimple{
 			ResourceGroup:     request.Properties.CreateClusterAzure.Node.ResourceGroup,
 			AgentCount:        request.Properties.CreateClusterAzure.Node.AgentCount,
 			AgentName:         request.Properties.CreateClusterAzure.Node.AgentName,
@@ -421,14 +439,19 @@ func (request CreateClusterRequest) CreateClusterAzure(c *gin.Context, db *gorm.
 		KubernetesVersion: cluster2Db.Azure.KubernetesVersion,
 	}
 
+	// call creation
 	res, err := azureClient.CreateUpdateCluster(r)
 	if err != nil {
+		// creation failed
+		log.Info("Cluster creation failed!", err.Message)
 		SetResponseBodyJson(c, err.StatusCode, gin.H{
 			JsonKeyStatus:  err.StatusCode,
 			JsonKeyMessage: err.Message,
 		})
 		return false
 	} else {
+		// creation success
+		log.Info("Cluster created successfully!")
 		if err := db.Save(&cluster2Db).Error; err != nil {
 			DbSaveFailed(c, log, err, cluster2Db.Name)
 			return false
@@ -440,6 +463,7 @@ func (request CreateClusterRequest) CreateClusterAzure(c *gin.Context, db *gorm.
 
 }
 
+// DbSaveFailed sends DB operation failed message back
 func DbSaveFailed(c *gin.Context, log *logrus.Logger, err error, clusterName string) {
 	log.Warning("Can't persist cluster into the database!", err)
 

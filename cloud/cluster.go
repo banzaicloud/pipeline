@@ -54,9 +54,8 @@ func CloudInit(provider Provider, clusterType ClusterType) *cluster.Cluster {
 }
 **/
 
-//CreateCluster creates a cluster in the cloud
-//func CreateCluster(clusterType ClusterType) (*cluster.Cluster, error) {
-func CreateCluster(clusterType CreateClusterSimple) (*cluster.Cluster, error) {
+// CreateCluster creates a cluster in the cloud
+func CreateCluster(clusterType ClusterSimple) (*cluster.Cluster, error) {
 
 	logger.Level = 4
 
@@ -119,7 +118,8 @@ func CreateCluster(clusterType CreateClusterSimple) (*cluster.Cluster, error) {
 	return created, nil
 }
 
-func (cluster CreateClusterSimple) DeleteClusterAzure(c *gin.Context, name string, resourceGroup string) bool {
+// DeleteClusterAzure deletes cluster from azure
+func (cluster ClusterSimple) DeleteClusterAzure(c *gin.Context, name string, resourceGroup string) bool {
 	res, err := azureClient.DeleteCluster(name, resourceGroup)
 	if err != nil {
 		SetResponseBodyJson(c, err.StatusCode, gin.H{"status": err.StatusCode, "message": err.Message})
@@ -130,8 +130,8 @@ func (cluster CreateClusterSimple) DeleteClusterAzure(c *gin.Context, name strin
 	}
 }
 
-//DeleteCluster deletes a cluster from the cloud
-func (cluster CreateClusterSimple) DeleteClusterAmazon() (*cluster.Cluster, error) {
+// DeleteCluster deletes a cluster from the cloud
+func (cluster ClusterSimple) DeleteClusterAmazon() (*cluster.Cluster, error) {
 	logger.Level = 4
 
 	stateStore := getStateStoreForCluster(cluster)
@@ -165,8 +165,8 @@ func (cluster CreateClusterSimple) DeleteClusterAmazon() (*cluster.Cluster, erro
 	return nil, nil
 }
 
-//ReadCluster reads a persisted cluster from the statestore
-// todo írd át
+// ReadCluster reads a persisted cluster from the statestore
+// todo cseréld majd le ReadCluster-re
 func ReadClusterOld(clusterType ClusterType) (*cluster.Cluster, error) {
 
 	stateStore := getStateStoreForClusterOld(clusterType)
@@ -178,7 +178,7 @@ func ReadClusterOld(clusterType ClusterType) (*cluster.Cluster, error) {
 	return readCluster, nil
 }
 
-func ReadCluster(cl CreateClusterSimple) (*cluster.Cluster, error) {
+func ReadCluster(cl ClusterSimple) (*cluster.Cluster, error) {
 
 	stateStore := getStateStoreForCluster(cl)
 	readCluster, err := stateStore.GetCluster()
@@ -189,15 +189,15 @@ func ReadCluster(cl CreateClusterSimple) (*cluster.Cluster, error) {
 	return readCluster, nil
 }
 
-//GetKubeConfig retrieves the K8S config
+// GetKubeConfig retrieves the K8S config
 func GetKubeConfig(existing *cluster.Cluster) error {
 
 	_, err := RetryGetConfig(existing, "")
 	return err
 }
 
-//UpdateCluster updates a cluster in the cloud (e.g. autoscales)
-func UpdateClusterAws(ccs CreateClusterSimple) (*cluster.Cluster, error) {
+// UpdateCluster updates a cluster in the cloud (e.g. autoscales)
+func UpdateClusterAws(ccs ClusterSimple) (*cluster.Cluster, error) {
 
 	logger.Level = 4
 
@@ -249,7 +249,7 @@ func UpdateClusterAws(ccs CreateClusterSimple) (*cluster.Cluster, error) {
 	return updated, nil
 }
 
-//Wait for K8S
+// Wait for K8S
 func awaitKubernetesCluster(existing ClusterType) (bool, error) {
 	success := false
 	existingCluster, _ := getStateStoreForClusterOld(existing).GetCluster()
@@ -269,7 +269,7 @@ func awaitKubernetesCluster(existing ClusterType) (bool, error) {
 	return true, nil
 }
 
-//IsKubernetesClusterAvailable awaits for K8S cluster to be available
+// IsKubernetesClusterAvailable awaits for K8S cluster to be available
 func IsKubernetesClusterAvailable(cluster *cluster.Cluster) (bool, error) {
 	return assertTcpSocketAcceptsConnection(fmt.Sprintf("%s:%s", cluster.KubernetesAPI.Endpoint, cluster.KubernetesAPI.Port))
 }

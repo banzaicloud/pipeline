@@ -29,7 +29,7 @@ type UpdateAzureNode struct {
 	AgentCount        int    `json:"agentCount"`
 }
 
-type CreateAzureSimple struct {
+type AzureSimple struct {
 	CreateClusterSimpleId uint `gorm:"primary_key"`
 	ResourceGroup         string
 	AgentCount            int
@@ -37,10 +37,12 @@ type CreateAzureSimple struct {
 	KubernetesVersion     string
 }
 
-func (CreateAzureSimple) TableName() string {
+// TableName sets AzureSimple's table name
+func (AzureSimple) TableName() string {
 	return tableNameAzureProperties
 }
 
+// Validate validates azure cluster create request
 func (azure *CreateClusterAzure) Validate(log *logrus.Logger) (bool, string) {
 
 	if azure == nil {

@@ -18,7 +18,8 @@ const (
 	amazonDefaultNodeSpotPrice      = "0.2"
 )
 
-func getAWSCluster(clusterType CreateClusterSimple) *cluster.Cluster {
+// getAWSCluster creates *cluster.Cluster from ClusterSimple struct
+func getAWSCluster(clusterType ClusterSimple) *cluster.Cluster {
 	return &cluster.Cluster{
 		Name:     clusterType.Name,
 		Cloud:    cluster.CloudAmazon,
@@ -223,7 +224,7 @@ type CreateAmazonMaster struct {
 	Image        string `json:"image"`
 }
 
-type CreateAmazonClusterSimple struct {
+type AmazonClusterSimple struct {
 	CreateClusterSimpleId uint `gorm:"primary_key"`
 	NodeSpotPrice         string
 	NodeMinCount          int
@@ -233,10 +234,12 @@ type CreateAmazonClusterSimple struct {
 	MasterImage           string
 }
 
-func (CreateAmazonClusterSimple) TableName() string {
+// TableName sets AmazonClusterSimple's table name
+func (AmazonClusterSimple) TableName() string {
 	return tableNameAmazonProperties
 }
 
+// Validate validates amazon cluster create request
 func (amazon *CreateClusterAmazon) Validate(log *logrus.Logger) (bool, string) {
 
 	if amazon == nil {
