@@ -244,9 +244,9 @@ func CreateCluster(c *gin.Context) {
 		// validate and create Amazon cluster
 		awsData := createClusterBaseRequest.Properties.CreateClusterAmazon
 		if isValid, err := awsData.Validate(log); isValid && len(err) == 0 {
-			if createClusterBaseRequest.CreateClusterAmazon(c, db, log) {
+			if isOk, createdCluster := createClusterBaseRequest.CreateClusterAmazon(c, db, log); isOk {
 				// update prometheus config..
-				updatePrometheus()
+				go updatePrometheusWithRetryConf(createdCluster)
 			}
 		} else {
 			// not valid request
@@ -387,6 +387,11 @@ func convertString2Uint(s string) uint {
 		panic(err)
 	}
 	return uint(i)
+}
+
+func updatePrometheusWithRetryConf(createdCluster *cluster.Cluster) {
+	cloud.RetryGetConfig(createdCluster, "")
+	updatePrometheus()
 }
 
 func updatePrometheus() {

@@ -11,7 +11,6 @@ import (
 	"bytes"
 	"reflect"
 	"github.com/kris-nova/kubicorn/apis/cluster"
-	"github.com/banzaicloud/pipeline/monitor"
 )
 
 const (
@@ -127,7 +126,7 @@ func (cluster ClusterSimple) String() string {
 }
 
 // CreateClusterAmazon creates amazon cluster in cloud
-func (request CreateClusterRequest) CreateClusterAmazon(c *gin.Context, db *gorm.DB, log *logrus.Logger) bool {
+func (request CreateClusterRequest) CreateClusterAmazon(c *gin.Context, db *gorm.DB, log *logrus.Logger) (bool, *cluster.Cluster) {
 
 	cluster2Db := ClusterSimple{
 		Name:             request.Name,
@@ -147,7 +146,7 @@ func (request CreateClusterRequest) CreateClusterAmazon(c *gin.Context, db *gorm
 	// save db
 	if err := db.Save(&cluster2Db).Error; err != nil {
 		DbSaveFailed(c, log, err, cluster2Db.Name)
-		return false
+		return false, nil
 	}
 
 	// create aws cluster
@@ -159,6 +158,7 @@ func (request CreateClusterRequest) CreateClusterAmazon(c *gin.Context, db *gorm
 			JsonKeyName:    cluster2Db.Name,
 			JsonKeyError:   err,
 		})
+		return false, nil
 	} else {
 		// cluster creation success
 		log.Info("Cluster created successfully!")
@@ -169,18 +169,18 @@ func (request CreateClusterRequest) CreateClusterAmazon(c *gin.Context, db *gorm
 			JsonKeyName:       cluster2Db.Name,
 			JsonKeyIp:         createdCluster.KubernetesAPI.Endpoint,
 		})
-		go CreateClusterPostHook(createdCluster, "", log, db)
+		return true, createdCluster
 	}
-	return true
+
 }
 
-func CreateClusterPostHook(cluster *cluster.Cluster, localDir string, log *logrus.Logger, db *gorm.DB) {
-	RetryGetConfig(cluster, localDir)
-	err := monitor.UpdatePrometheusConfig(db)
-	if err != nil {
-		log.Warning("Could not update prometheus configmap: %v", err)
-	}
-}
+//func CreateClusterPostHook(cluster *cluster.Cluster, localDir string, log *logrus.Logger, db *gorm.DB) {
+//	RetryGetConfig(cluster, localDir)
+//	err := monitor.UpdatePrometheusConfig(db)
+//	if err != nil {
+//		log.Warning("Could not update prometheus configmap: %v", err)
+//	}
+//}
 
 // updateClusterAzureInCloud updates azure cluster in cloud
 func (r UpdateClusterRequest) updateClusterAzureInCloud(c *gin.Context, db *gorm.DB, log *logrus.Logger, preCluster ClusterSimple) bool {
