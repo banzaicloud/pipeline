@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"bytes"
 	"reflect"
+	"github.com/kris-nova/kubicorn/apis/cluster"
+	"github.com/banzaicloud/pipeline/monitor"
 )
 
 const (
@@ -167,9 +169,17 @@ func (request CreateClusterRequest) CreateClusterAmazon(c *gin.Context, db *gorm
 			JsonKeyName:       cluster2Db.Name,
 			JsonKeyIp:         createdCluster.KubernetesAPI.Endpoint,
 		})
-		go RetryGetConfig(createdCluster, "")
+		go CreateClusterPostHook(createdCluster, "", log, db)
 	}
 	return true
+}
+
+func CreateClusterPostHook(cluster *cluster.Cluster, localDir string, log *logrus.Logger, db *gorm.DB) {
+	RetryGetConfig(cluster, localDir)
+	err := monitor.UpdatePrometheusConfig(db)
+	if err != nil {
+		log.Warning("Could not update prometheus configmap: %v", err)
+	}
 }
 
 // updateClusterAzureInCloud updates azure cluster in cloud
