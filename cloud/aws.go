@@ -20,11 +20,13 @@ const (
 
 // getAWSCluster creates *cluster.Cluster from ClusterSimple struct
 func getAWSCluster(clusterType ClusterSimple) *cluster.Cluster {
+	uuid_suffix := uuid.TimeOrderedUUID()
 	return &cluster.Cluster{
 		Name:     clusterType.Name,
 		Cloud:    cluster.CloudAmazon,
 		Location: clusterType.Location,
 		SSH: &cluster.SSH{
+			Name: clusterType.Name + "-" + uuid_suffix,
 			PublicKeyPath: "/.ssh/id_rsa.pub",
 			User:          "ubuntu",
 		},
@@ -95,7 +97,7 @@ func getAWSCluster(clusterType ClusterSimple) *cluster.Cluster {
 
 				Firewalls: []*cluster.Firewall{
 					{
-						Name: fmt.Sprintf("%s.master-external-%s", clusterType.Name, uuid.TimeOrderedUUID()),
+						Name: fmt.Sprintf("%s.master-external-%s", clusterType.Name, uuid_suffix),
 						IngressRules: []*cluster.IngressRule{
 							{
 								IngressFromPort: "22",
@@ -177,7 +179,7 @@ func getAWSCluster(clusterType ClusterSimple) *cluster.Cluster {
 				},
 				Firewalls: []*cluster.Firewall{
 					{
-						Name: fmt.Sprintf("%s.node-external-%s", clusterType.Name, uuid.TimeOrderedUUID()),
+						Name: fmt.Sprintf("%s.node-external-%s", clusterType.Name,uuid_suffix),
 						IngressRules: []*cluster.IngressRule{
 							{
 								IngressFromPort: "22",
