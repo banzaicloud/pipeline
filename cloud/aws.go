@@ -49,7 +49,7 @@ func getAWSCluster(clusterType ClusterSimple) *cluster.Cluster {
 				Name:     fmt.Sprintf("%s.master", clusterType.Name),
 				MinCount: 1,
 				MaxCount: 1,
-				Image:    clusterType.Amazon.MasterInstanceType, //"ami-835b4efa"
+				Image:    clusterType.Amazon.MasterImage, //"ami-835b4efa"
 				Size:     clusterType.NodeInstanceType,
 				BootstrapScripts: []string{
 					"https://raw.githubusercontent.com/banzaicloud/banzai-charts/master/stable/pipeline/bootstrap/amazon_k8s_ubuntu_16.04_master_pipeline.sh",
