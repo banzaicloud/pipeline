@@ -11,6 +11,9 @@ import (
 	"github.com/kris-nova/kubicorn/cutil/initapi"
 	"github.com/kris-nova/kubicorn/cutil/logger"
 	"github.com/spf13/viper"
+	azureClient "github.com/banzaicloud/azure-aks-client/client"
+	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -50,8 +53,8 @@ func CloudInit(provider Provider, clusterType ClusterType) *cluster.Cluster {
 }
 **/
 
-//CreateCluster creates a cluster in the cloud
-func CreateCluster(clusterType ClusterType) (*cluster.Cluster, error) {
+// CreateCluster creates a cluster in the cloud
+func CreateCluster(clusterType ClusterSimple) (*cluster.Cluster, error) {
 
 	logger.Level = 4
 
@@ -60,9 +63,9 @@ func CreateCluster(clusterType ClusterType) (*cluster.Cluster, error) {
 	//Inject configuration parameters
 	ssh_key_path := viper.GetString("dev.keypath")
 	if ssh_key_path != "" {
-			newCluster.SSH.PublicKeyPath = ssh_key_path
-			logger.Debug("Overwriting default SSH key path to: %s", newCluster.SSH.PublicKeyPath)
-			}
+		newCluster.SSH.PublicKeyPath = ssh_key_path
+		logger.Debug("Overwriting default SSH key path to: %s", newCluster.SSH.PublicKeyPath)
+	}
 
 	newCluster, err := initapi.InitCluster(newCluster)
 
@@ -98,6 +101,11 @@ func CreateCluster(clusterType ClusterType) (*cluster.Cluster, error) {
 		logger.Info("Error during reconcile:", err)
 		return nil, err
 	}
+
+	if created == nil {
+		return nil, errors.New("Error during reconcile")
+	}
+
 	logger.Debug("Created cluster [%s]", created.Name)
 
 	stateStore := getStateStoreForCluster(clusterType)
@@ -109,11 +117,23 @@ func CreateCluster(clusterType ClusterType) (*cluster.Cluster, error) {
 	return created, nil
 }
 
-//DeleteCluster deletes a cluster from the cloud
-func DeleteCluster(clusterType ClusterType) (*cluster.Cluster, error) {
+// DeleteClusterAzure deletes cluster from azure
+func (cluster ClusterSimple) DeleteClusterAzure(c *gin.Context, name string, resourceGroup string) bool {
+	res, err := azureClient.DeleteCluster(name, resourceGroup)
+	if err != nil {
+		SetResponseBodyJson(c, err.StatusCode, gin.H{"status": err.StatusCode, "message": err.Message})
+		return false
+	} else {
+		SetResponseBodyJson(c, res.StatusCode, res)
+		return true
+	}
+}
+
+// DeleteCluster deletes a cluster from the cloud
+func (cluster ClusterSimple) DeleteClusterAmazon() (*cluster.Cluster, error) {
 	logger.Level = 4
 
-	stateStore := getStateStoreForCluster(clusterType)
+	stateStore := getStateStoreForCluster(cluster)
 	if !stateStore.Exists() {
 		return nil, nil
 	}
@@ -121,7 +141,7 @@ func DeleteCluster(clusterType ClusterType) (*cluster.Cluster, error) {
 	deleteCluster, err := stateStore.GetCluster()
 	if err != nil {
 		logger.Info(err.Error())
-		logger.Info("Failed to load cluster:" + clusterType.Name)
+		logger.Info("Failed to load cluster:" + cluster.Name)
 		return nil, err
 	}
 
@@ -144,10 +164,11 @@ func DeleteCluster(clusterType ClusterType) (*cluster.Cluster, error) {
 	return nil, nil
 }
 
-//ReadCluster reads a persisted cluster from the statestore
-func ReadCluster(clusterType ClusterType) (*cluster.Cluster, error) {
+// ReadCluster reads a persisted cluster from the statestore
+// todo cseréld majd le ReadCluster-re
+func ReadClusterOld(clusterType ClusterType) (*cluster.Cluster, error) {
 
-	stateStore := getStateStoreForCluster(clusterType)
+	stateStore := getStateStoreForClusterOld(clusterType)
 	readCluster, err := stateStore.GetCluster()
 	if err != nil {
 		return nil, err
@@ -156,34 +177,45 @@ func ReadCluster(clusterType ClusterType) (*cluster.Cluster, error) {
 	return readCluster, nil
 }
 
-//GetKubeConfig retrieves the K8S config
+func ReadCluster(cl ClusterSimple) (*cluster.Cluster, error) {
+
+	stateStore := getStateStoreForCluster(cl)
+	readCluster, err := stateStore.GetCluster()
+	if err != nil {
+		return nil, err
+	}
+
+	return readCluster, nil
+}
+
+// GetKubeConfig retrieves the K8S config
 func GetKubeConfig(existing *cluster.Cluster) error {
 
 	_, err := RetryGetConfig(existing, "")
 	return err
 }
 
-//UpdateCluster updates a cluster in the cloud (e.g. autoscales)
-func UpdateCluster(clusterType ClusterType) (*cluster.Cluster, error) {
+// UpdateCluster updates a cluster in the cloud (e.g. autoscales)
+func UpdateClusterAws(ccs ClusterSimple) (*cluster.Cluster, error) {
 
 	logger.Level = 4
 
-	stateStore := getStateStoreForCluster(clusterType)
+	stateStore := getStateStoreForCluster(ccs)
 
 	updateCluster, err := stateStore.GetCluster()
 	if err != nil {
 		logger.Info(err.Error())
-		logger.Info("Failed to load cluster:" + clusterType.Name)
+		logger.Info("Failed to load cluster:" + ccs.Name)
 		return nil, err
 	}
 
-	logger.Info("Resizing cluster : " + clusterType.Name)
-	logger.Info("Worker pool min size: " + strconv.Itoa(updateCluster.ServerPools[1].MinCount) + " => " + strconv.Itoa(clusterType.NodeMin))
-	logger.Info("Worker pool max size : " + strconv.Itoa(updateCluster.ServerPools[1].MaxCount) + " => " + strconv.Itoa(clusterType.NodeMax))
+	logger.Info("Resizing cluster : " + ccs.Name)
+	logger.Info("Worker pool min size: " + strconv.Itoa(updateCluster.ServerPools[1].MinCount) + " => " + strconv.Itoa(ccs.Amazon.NodeMinCount))
+	logger.Info("Worker pool max size : " + strconv.Itoa(updateCluster.ServerPools[1].MaxCount) + " => " + strconv.Itoa(ccs.Amazon.NodeMaxCount))
 	updateCluster.ServerPools[0].MinCount = 1
 	updateCluster.ServerPools[0].MaxCount = 1
-	updateCluster.ServerPools[1].MinCount = clusterType.NodeMin
-	updateCluster.ServerPools[1].MaxCount = clusterType.NodeMax
+	updateCluster.ServerPools[1].MinCount = ccs.Amazon.NodeMinCount
+	updateCluster.ServerPools[1].MaxCount = ccs.Amazon.NodeMaxCount
 
 	reconciler, err := cutil.GetReconciler(updateCluster, &runtimeParam)
 	if err != nil {
@@ -216,10 +248,10 @@ func UpdateCluster(clusterType ClusterType) (*cluster.Cluster, error) {
 	return updated, nil
 }
 
-//Wait for K8S
+// Wait for K8S
 func awaitKubernetesCluster(existing ClusterType) (bool, error) {
 	success := false
-	existingCluster, _ := getStateStoreForCluster(existing).GetCluster()
+	existingCluster, _ := getStateStoreForClusterOld(existing).GetCluster()
 
 	for i := 0; i < apiSocketAttempts; i++ {
 		_, err := IsKubernetesClusterAvailable(existingCluster)
@@ -236,7 +268,7 @@ func awaitKubernetesCluster(existing ClusterType) (bool, error) {
 	return true, nil
 }
 
-//IsKubernetesClusterAvailable awaits for K8S cluster to be available
+// IsKubernetesClusterAvailable awaits for K8S cluster to be available
 func IsKubernetesClusterAvailable(cluster *cluster.Cluster) (bool, error) {
 	return assertTcpSocketAcceptsConnection(fmt.Sprintf("%s:%s", cluster.KubernetesAPI.Endpoint, cluster.KubernetesAPI.Port))
 }
