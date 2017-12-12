@@ -1,5 +1,5 @@
 hash: a7019acffca9bb9fa3d47f37df6af0f529f5fc793e587e6a323388d4967c9f96
-updated: 2017-11-27T00:31:46.98464683+01:00
+updated: 2017-12-12T11:04:37.347515968+01:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -58,6 +58,13 @@ imports:
   - autorest/date
   - autorest/to
   - autorest/validation
+- name: github.com/banzaicloud/azure-aks-client
+  version: a6ec72fde98b8083360c42cc49b889ccda6b65e1
+  subpackages:
+  - client
+  - cluster
+  - initapi
+  - utils
 - name: github.com/beorn7/perks
   version: 3ac7bf7a47d159a033b107610db8a1b6575507a4
   subpackages:
