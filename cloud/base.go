@@ -143,12 +143,6 @@ func (request CreateClusterRequest) CreateClusterAmazon(c *gin.Context, db *gorm
 		},
 	}
 
-	// save db
-	if err := db.Save(&cluster2Db).Error; err != nil {
-		DbSaveFailed(c, log, err, cluster2Db.Name)
-		return false, nil
-	}
-
 	// create aws cluster
 	if createdCluster, err := CreateCluster(cluster2Db); err != nil {
 		// creation failed
@@ -169,6 +163,13 @@ func (request CreateClusterRequest) CreateClusterAmazon(c *gin.Context, db *gorm
 			JsonKeyName:       cluster2Db.Name,
 			JsonKeyIp:         createdCluster.KubernetesAPI.Endpoint,
 		})
+
+		// save db
+		if err := db.Save(&cluster2Db).Error; err != nil {
+			DbSaveFailed(c, log, err, cluster2Db.Name)
+			return false, nil
+		}
+
 		return true, createdCluster
 	}
 
