@@ -1,6 +1,6 @@
-> All these example projects are making use of resources (Spark clusters on k8s on AWS) provisioned on demand during their CI/CD workflow however some of the workflow steps are different (build details, run details).
 
-In order to hook a Spark project into the CI/CD workflow of Banzai Cloud [Pipeline](https://github.com/banzaicloud/pipeline/tree/0.1.0) follow the instructions below
+
+To hook a Spark project into the CI/CD workflow of Banzai Cloud [Pipeline](https://github.com/banzaicloud/pipeline/tree/0.1.0) follow the instructions below
 
 ### Getting Started
 
@@ -31,7 +31,7 @@ The easiest way for running a Pipeline Control Plane is to use a [Cloudformation
 
 * Navigate to: https://eu-west-1.console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new
 
-* Select `Specify an Amazon S3 template URL` and add the URL to our template `https://s3-eu-west-1.amazonaws.com/cf-templates-grr4ysncvcdl-eu-west-1/2017338aEC-new.template6z1wxm2h6cb`
+* Select `Specify an Amazon S3 template URL` and add the URL to our template `https://s3-eu-west-1.amazonaws.com/cf-templates-grr4ysncvcdl-eu-west-1/2017340oCy-new.templatei5xlidcwt4p`
 
   <a href="images/howto/ControlPlaneFromTemplate.png" target="_blank"><img src="images/howto/ControlPlaneFromTemplate.png" height="230"></a>
 
@@ -43,32 +43,22 @@ The easiest way for running a Pipeline Control Plane is to use a [Cloudformation
       <a href="images/howto/StackName.png"><img src="images/howto/StackName.png" height="130"></a>
 
   * **AWS Credentials**
+     * Amazon access key id - specify your [access key id](http://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys)
+     * Amazon secret access key - specify your [secret access key](http://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys)
 
-      * Amazon access key id - specify your [secret access key id](http://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys)
-      * Amazon secret access key - specify your [secret access key](http://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys)
+     <a href="images/howto/AwsCred.png"><img src="images/howto/AwsCred.png" height="150"></a>
 
-      <a href="images/howto/AwsCred.png"><img src="images/howto/AwsCred.png" height="150"></a>
+  * **Control Plane Instance Config**
+     * InstanceName - name of the EC2 instance that will host the Control Plane
+     * ImageId - pick the image id from the  [README](https://github.com/banzaicloud/pipeline-cp-launcher/blob/0.1.0/README.md)
+     * KeyName - specify your AWS [EC2 key pair](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html)
+
+     <a href="images/howto/ControlPlaneInstanceConfig.png"><img src="images/howto/ControlPlaneInstanceConfig.png" height="200"></a>
 
   * **Banzai Pipeline Credentials**
      * Pipeline API Password - specify the password for accessing the Pipeline REST [API](https://github.com/banzaicloud/pipeline/blob/0.1.0/docs/create.md) exposed by the Pipeline PaaS. **_Take note of the user name and password as those will be required when setting the [secrets](#repository-secrets) for the GitHub repositories in the CI/CD workflow._**
 
       <a href="images/howto/PipelineCred.png"><img src="images/howto/PipelineCred.png" height="150"></a>
-
-  * **Alert SMTP Credentials**
-     * this section is optional. Fill this section to receive cluster related alerts through email.
-
-  * **Slack Credentials**
-     * this section is optional. Fill this section to receive  cluster related alerts through a [Slack](https://slack.com) push notification channel.
-
-  * **Prometheus Dashboard**
-     * Prometheus Password - specify password for accessing Prometheus that collects cluster metrics
-
-      <a href="images/howto/PrometheusCred.png"><img src="images/howto/PrometheusCred.png" height="100"></a>
-
-  * **Grafana Dashboard**
-      * Grafana Dashboard Password - specify password for accessing Grafana dashboard with defaults specific to the application
-
-      <a href="images/howto/GrafanaCred.png"><img src="images/howto/GrafanaCred.png" height="100"></a>
 
   * **Banzai-Ci Credentials**
      * Orgs - comma-separated list of Github organizations whose members to grant access to use Banzai Cloud Pipeline's CI/CD workflow
@@ -77,13 +67,26 @@ The easiest way for running a Pipeline Control Plane is to use a [Cloudformation
 
       <a href="images/howto/CloudFormulationDetails3.png"><img src="images/howto/CloudFormulationDetails3.png" height="150"></a>
 
-  * **Other parameters**
-     * ImageId - pick the image id from the  [README](https://github.com/banzaicloud/pipeline-cp-launcher/blob/0.1.0/README.md)
-     * InstanceName - name of the EC2 instance that will host the Control Plane
-     * KeyName - specify your AWS [EC2 key pair](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html)
+  * **Grafana Dashboard**
+     * Grafana Dashboard Password - specify password for accessing Grafana dashboard with defaults specific to the application
+
+     <a href="images/howto/GrafanaCred.png"><img src="images/howto/GrafanaCred.png" height="100"></a>
+
+  * **Prometheus Dashboard**
+     * Prometheus Password - specify password for accessing Prometheus that collects cluster metrics
+
+      <a href="images/howto/PrometheusCred.png"><img src="images/howto/PrometheusCred.png" height="100"></a>
+
+  * **Advanced Pipeline Options**
      * PipelineImageTag - specify `0.1.0` for using current stable Pipeline release.
 
-      <a href="images/howto/CloudFormulationDetails4.png"><img src="images/howto/CloudFormulationDetails4.png" height="270"></a>
+     <a href="images/howto/AdvencedPipOpt.png"><img src="images/howto/AdvencedPipOpt.png" height="130"></a>
+
+  * **Slack Credentials**
+       * this section is optional. Complete this section to receive  cluster related alerts through a [Slack](https://slack.com) push notification channel.
+
+  * **Alert SMTP Credentials**
+     * this section is optional. Fill this section to receive cluster related alerts through email.
 
 * Finish the wizard to create a `Control Plane` instance.
 * Take note of the PublicIP of the created Stack. We refer to this as the PublicIP of `Control Plane`.
@@ -152,7 +155,9 @@ The following sections needs to be modified:
 
 ### Grant access to desired GitHub organizations
 
-Navigate to `http://{control_plane_public_ip}` in your web browser and grant access for the organizations that contain the GitHub repositories that you want to hook into the CI/CD workflow. Than click authorize access.
+Navigate to `http://{control_plane_public_ip}` in your web browser and grant access for the organizations that contain the GitHub repositories that you want to hook into the CI/CD workflow. Then click authorize access.
+
+All the services of the Pipeline may take some time to fully initialize, thus the page may not load at first. Please give it some time and retry.
 
 ### Hook repositories to CI/CD flow
 
@@ -184,12 +189,20 @@ For the hooked repositories set the following secrets :
 
 Modify the source code of your Spark application, commit the changes and push it to the repository on GitHub. The Pipeline gets notified through GitHub webhooks about the commits and will trigger the flow described in the `.pipeline.yml` file of the watched repositories.
 
-### Monitor running jobs
+### Monitor running workflows
 
 The running CI/CD jobs can be monitored and managed at `http://{control_plane_public_ip}/account/repos`
 
+
 <a href="images/howto/BuildMenuCI.png" target="_blank"><img src="images/howto/BuildMenuCI.png"></a>
+
 <a href="images/howto/JobCI.png" target="_blank"><img src="images/howto/JobCI.png"></a>
+
+In order to check the logs of the CI/CD workflow steps, click on the desired commit message on the UI.
+
+<a href="images/howto/JobCIBuild.png"><img src="images/howto/JobCIBuild.png"></a>
+<br>
+<a href="images/howto/SparkPiSuccess.png"><img src="images/howto/SparkPiSuccess.png" height="370"></a>
 
 That's all!
 Once configured the Spark application will be built, deployed and executed for every commit pushed to the project's repository. The progress of the workflow can be followed by clicking on the small orange dot beside the commit on the GitHub UI.
