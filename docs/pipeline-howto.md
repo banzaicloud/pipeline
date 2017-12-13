@@ -1,4 +1,3 @@
-As the first version of the Pipeline application has arrived this blog post is intended to shortly present how to set up a basic  CI/CD workflow using it. We have also prepared a few projects in our [github repo](https://github.com/banzaicloud/pipeline/tree/0.1.0) that can be used as starting point (see the links to them at the en dof the post).
 > All these example projects are making use of resources (Spark clusters on k8s on AWS) provisioned on demand during their CI/CD workflow however some of the workflow steps are different (build details, run details).
 
 In order to hook a Spark project into the CI/CD workflow of Banzai Cloud [Pipeline](https://github.com/banzaicloud/pipeline/tree/0.1.0) follow the instructions below
