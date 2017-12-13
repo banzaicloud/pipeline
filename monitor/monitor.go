@@ -41,13 +41,13 @@ func UpdatePrometheusConfig(db *gorm.DB) error {
 		prometheusConfigMapName = releaseName + "-" + prometheusConfigMapName
 	}
 
-	var clusters []cloud.ClusterType
+	var clusters []cloud.ClusterSimple
 	db.Find(&clusters)
 	var prometheusConfig []PrometheusCfg
 	//Gathering information about clusters
 	for _, cluster := range clusters {
 		log.Debugln("Cluster: ", cluster.Name)
-		cloudCluster, err := cloud.ReadClusterOld(cluster)
+		cloudCluster, err := cloud.ReadCluster(cluster)
 		if err != nil {
 			log.Warningln("Cluster Parser Error: ", err.Error())
 			continue

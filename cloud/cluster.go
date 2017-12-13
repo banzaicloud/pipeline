@@ -5,7 +5,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/jinzhu/gorm"
 	"github.com/kris-nova/kubicorn/apis/cluster"
 	"github.com/kris-nova/kubicorn/cutil"
 	"github.com/kris-nova/kubicorn/cutil/initapi"
@@ -23,20 +22,6 @@ const (
 
 var runtimeParam = cutil.RuntimeParameters{
 	AwsProfile: "",
-}
-
-//ClusterType cluster definition for the API
-type ClusterType struct {
-	gorm.Model
-	Name                  string `json:"name" binding:"required" gorm:"unique_index:idx_name_deletedat"`
-	Location              string `json:"location" binding:"required"`
-	NodeInstanceType      string `json:"nodeInstanceType" binding:"required"`
-	MasterInstanceType    string `json:"masterInstanceType" binding:"required"`
-	NodeInstanceSpotPrice string `json:"nodeInstanceSpotPrice"`
-	NodeMin               int    `json:"nodeMin" binding:"required"`
-	NodeMax               int    `json:"nodeMax" binding:"required"`
-	MasterImage           string `json:"masterImage" binding:"required"`
-	NodeImage             string `json:"nodeImage" binding:"required"`
 }
 
 /**
@@ -165,18 +150,6 @@ func (cluster ClusterSimple) DeleteClusterAmazon() (*cluster.Cluster, error) {
 }
 
 // ReadCluster reads a persisted cluster from the statestore
-// todo cseréld majd le ReadCluster-re
-func ReadClusterOld(clusterType ClusterType) (*cluster.Cluster, error) {
-
-	stateStore := getStateStoreForClusterOld(clusterType)
-	readCluster, err := stateStore.GetCluster()
-	if err != nil {
-		return nil, err
-	}
-
-	return readCluster, nil
-}
-
 func ReadCluster(cl ClusterSimple) (*cluster.Cluster, error) {
 
 	stateStore := getStateStoreForCluster(cl)
@@ -249,9 +222,9 @@ func UpdateClusterAws(ccs ClusterSimple) (*cluster.Cluster, error) {
 }
 
 // Wait for K8S
-func awaitKubernetesCluster(existing ClusterType) (bool, error) {
+func awaitKubernetesCluster(existing ClusterSimple) (bool, error) {
 	success := false
-	existingCluster, _ := getStateStoreForClusterOld(existing).GetCluster()
+	existingCluster, _ := getStateStoreForCluster(existing).GetCluster()
 
 	for i := 0; i < apiSocketAttempts; i++ {
 		_, err := IsKubernetesClusterAvailable(existingCluster)
