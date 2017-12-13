@@ -11,6 +11,7 @@ import (
 	"bytes"
 	"reflect"
 	"github.com/kris-nova/kubicorn/apis/cluster"
+	"errors"
 )
 
 const (
@@ -156,6 +157,13 @@ func (request CreateClusterRequest) CreateClusterAmazon(c *gin.Context, db *gorm
 	} else {
 		// cluster creation success
 		log.Info("Cluster created successfully!")
+
+		// save db
+		if err := db.Save(&cluster2Db).Error; err != nil {
+			DbSaveFailed(c, log, err, cluster2Db.Name)
+			return false, nil
+		}
+
 		SetResponseBodyJson(c, http.StatusCreated, gin.H{
 			JsonKeyStatus:     http.StatusCreated,
 			JsonKeyMessage:    "Cluster created successfully!",
@@ -164,24 +172,10 @@ func (request CreateClusterRequest) CreateClusterAmazon(c *gin.Context, db *gorm
 			JsonKeyIp:         createdCluster.KubernetesAPI.Endpoint,
 		})
 
-		// save db
-		if err := db.Save(&cluster2Db).Error; err != nil {
-			DbSaveFailed(c, log, err, cluster2Db.Name)
-			return false, nil
-		}
-
 		return true, createdCluster
 	}
 
 }
-
-//func CreateClusterPostHook(cluster *cluster.Cluster, localDir string, log *logrus.Logger, db *gorm.DB) {
-//	RetryGetConfig(cluster, localDir)
-//	err := monitor.UpdatePrometheusConfig(db)
-//	if err != nil {
-//		log.Warning("Could not update prometheus configmap: %v", err)
-//	}
-//}
 
 // updateClusterAzureInCloud updates azure cluster in cloud
 func (r UpdateClusterRequest) updateClusterAzureInCloud(c *gin.Context, db *gorm.DB, log *logrus.Logger, preCluster ClusterSimple) bool {
@@ -221,15 +215,24 @@ func (r UpdateClusterRequest) updateClusterAzureInCloud(c *gin.Context, db *gorm
 	} else {
 		log.Info("Cluster update success")
 		// updateDb
-		if err := db.Model(&ClusterSimple{}).Update(&cluster2Db).Error; err != nil {
-			DbSaveFailed(c, log, err, cluster2Db.Name)
+		if updateClusterInDb(c, db, log, cluster2Db) {
+			// success update
+			SetResponseBodyJson(c, res.StatusCode, res.Value)
+			return true
+		} else {
 			return false
 		}
 
-		SetResponseBodyJson(c, res.StatusCode, res.Value)
-		return true
 	}
 
+}
+
+func updateClusterInDb(c *gin.Context, db *gorm.DB, log *logrus.Logger, cluster ClusterSimple) bool {
+	if err := db.Model(&ClusterSimple{}).Update(&cluster).Error; err != nil {
+		DbSaveFailed(c, log, err, cluster.Name)
+		return false
+	}
+	return true
 }
 
 // updateClusterAmazonInCloud updates amazon cluster in cloud
@@ -264,14 +267,17 @@ func (r UpdateClusterRequest) updateClusterAmazonInCloud(c *gin.Context, db *gor
 		return false
 	} else {
 		log.Info("Cluster updated in the cloud!")
+		if updateClusterInDb(c, db, log, cluster2Db) {
+			SetResponseBodyJson(c, http.StatusCreated, gin.H{
+				JsonKeyStatus:     http.StatusCreated,
+				JsonKeyMessage:    "Cluster updated successfully!",
+				JsonKeyResourceId: cluster2Db.ID,
+			})
 
-		SetResponseBodyJson(c, http.StatusCreated, gin.H{
-			JsonKeyStatus:     http.StatusCreated,
-			JsonKeyMessage:    "Cluster updated successfully!",
-			JsonKeyResourceId: cluster2Db.ID,
-		})
+			return true
+		}
 
-		return true
+		return false
 	}
 
 }
@@ -484,4 +490,122 @@ func DbSaveFailed(c *gin.Context, log *logrus.Logger, err error, clusterName str
 		JsonKeyName:    clusterName,
 		JsonKeyError:   err,
 	})
+}
+
+func (cluster *ClusterSimple) GetAzureClusterStatus(c *gin.Context, db *gorm.DB, log *logrus.Logger) {
+	// load azure props from db
+	db.Where(AzureSimple{ClusterSimpleId: cluster.ID}).First(&cluster.Azure)
+	resp, err := azureClient.GetCluster(cluster.Name, cluster.Azure.ResourceGroup)
+	if err != nil {
+		log.Info("Error during get cluster info: ", err.Message)
+		SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
+			JsonKeyStatus:  http.StatusInternalServerError,
+			JsonKeyMessage: err.Message,
+		})
+	} else {
+		log.Info("Get cluster success")
+		stage := resp.Value.Properties.ProvisioningState
+		var msg string
+		var code int
+		if stage == "Succeeded" {
+			msg = "Cluster available"
+			code = http.StatusOK
+		} else {
+			msg = "Cluster not ready yet"
+			code = http.StatusNoContent
+		}
+		SetResponseBodyJson(c, code, gin.H{
+			JsonKeyStatus:  code,
+			JsonKeyMessage: msg,
+		})
+	}
+}
+
+func (cluster *ClusterSimple) GetAmazonClusterStatus(c *gin.Context, log *logrus.Logger) {
+	cl, err := cluster.GetClusterWithDbCluster(c, log)
+	if err != nil {
+		log.Info("Error during read cluster from db")
+		return
+	}
+	isAvailable, _ := IsKubernetesClusterAvailable(cl)
+	if isAvailable {
+		msg := "Kubernetes cluster available"
+		log.Info(msg)
+		SetResponseBodyJson(c, http.StatusOK, gin.H{
+			JsonKeyStatus:  http.StatusOK,
+			JsonKeyMessage: msg,
+		})
+	} else {
+		msg := "Kubernetes cluster not ready yet"
+		log.Info(msg)
+		SetResponseBodyJson(c, http.StatusNoContent, gin.H{
+			JsonKeyStatus:  http.StatusNoContent,
+			JsonKeyMessage: msg,
+		})
+	}
+
+}
+
+func (cluster *ClusterSimple) GetClusterWithDbCluster(c *gin.Context, log *logrus.Logger) (*cluster.Cluster, error) {
+	cl, err := cluster.GetKubicornCluster(log)
+	if err != nil {
+		errorMsg := fmt.Sprintf("Error read cluster: %s", err)
+		SetResponseBodyJson(c, http.StatusNotFound, gin.H{
+			JsonKeyStatus:  http.StatusNotFound,
+			JsonKeyMessage: errorMsg,
+		})
+		return nil, err
+	}
+	return cl, nil
+}
+
+// GetCluster based on ClusterSimple object
+// This will read the persisted Kubicorn cluster format
+func (cluster *ClusterSimple) GetKubicornCluster(log *logrus.Logger) (*cluster.Cluster, error) {
+	clust, err := ReadCluster(*cluster)
+	if err != nil {
+		return nil, err
+	}
+	log.Info("Cluster read successful")
+	return clust, nil
+}
+
+func GetCluster(c *gin.Context, db *gorm.DB, log *logrus.Logger) (*cluster.Cluster, error) {
+	cl, err := GetClusterFromDB(c, db)
+	if err != nil {
+		return nil, err
+	}
+	return cl.GetClusterWithDbCluster(c, log)
+}
+
+// GetCluster from database
+// If no field param was specified automatically use value as ID
+// Else it will use field as query column name
+func GetClusterFromDB(c *gin.Context, db *gorm.DB) (*ClusterSimple, error) {
+	var cluster ClusterSimple
+	value := c.Param("id")
+	field := c.DefaultQuery("field", "")
+	if field == "" {
+		field = "id"
+	}
+	query := fmt.Sprintf("%s = ?", field)
+	db.Where(query, value).First(&cluster)
+	if cluster.ID == 0 {
+		errorMsg := fmt.Sprintf("cluster not found: [%s]: %s", field, value)
+		SetResponseBodyJson(c, http.StatusNotFound, gin.H{
+			JsonKeyStatus:  http.StatusNotFound,
+			JsonKeyMessage: errorMsg,
+		})
+		return nil, errors.New(errorMsg)
+	}
+	return &cluster, nil
+
+}
+
+func GetClusterSimple(c *gin.Context, db *gorm.DB) (*ClusterSimple, error) {
+	cl, err := GetClusterFromDB(c, db)
+	if err != nil {
+		return nil, err
+	}
+	return cl, nil
 }

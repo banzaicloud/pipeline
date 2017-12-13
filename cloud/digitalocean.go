@@ -6,7 +6,7 @@ import (
 	"github.com/kris-nova/kubicorn/cutil/kubeadm"
 )
 
-func getDOCluster(clusterType ClusterType) *cluster.Cluster {
+func getDOCluster(clusterType ClusterSimple) *cluster.Cluster {
 	return &cluster.Cluster{
 		Name:     clusterType.Name,
 		Cloud:    cluster.CloudDigitalOcean,

@@ -17,7 +17,6 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/go-errors/errors"
 	"github.com/jinzhu/gorm"
 	"github.com/kris-nova/kubicorn/apis/cluster"
 	"github.com/sirupsen/logrus"
@@ -28,14 +27,6 @@ import (
 )
 
 //nodeInstanceType=m3.medium -d nodeInstanceSpotPrice=0.04 -d nodeMin=1 -d nodeMax=3 -d image=ami-6d48500b
-
-//UpdateClusterType definition to updates a cluster
-type UpdateClusterType struct {
-	Node struct {
-		MinCount int `json:"minCount" binding:"required"`
-		MaxCount int `json:"maxCount" binding:"required"`
-	} `json:"node" binding:"required"`
-}
 
 //DeploymentType definition to describe a Helm deployment
 type DeploymentType struct {
@@ -114,7 +105,7 @@ func UpgradeDeployment(c *gin.Context) {
 //DeleteDeployment deletes a Helm deployment
 func DeleteDeployment(c *gin.Context) {
 	name := c.Param("name")
-	cloudCluster, err := GetCluster(c)
+	cloudCluster, err := cloud.GetCluster(c, db, log)
 	if err != nil {
 		return
 	}
@@ -137,7 +128,7 @@ func DeleteDeployment(c *gin.Context) {
 // CreateDeployment creates a Helm deployment
 func CreateDeployment(c *gin.Context) {
 	var deployment DeploymentType
-	cloudCluster, err := GetCluster(c)
+	cloudCluster, err := cloud.GetCluster(c, db, log)
 	if err != nil {
 		return
 	}
@@ -197,7 +188,7 @@ func CreateDeployment(c *gin.Context) {
 // ListDeployments lists a Helm deployment
 func ListDeployments(c *gin.Context) {
 	//First get Cluster context
-	cloudCluster, err := GetCluster(c)
+	cloudCluster, err := cloud.GetCluster(c, db, log)
 	if err != nil {
 		return
 	}
@@ -245,6 +236,19 @@ func CreateCluster(c *gin.Context) {
 			cloud.JsonKeyStatus:  http.StatusBadRequest,
 			cloud.JsonKeyMessage: "Required field is empty",
 			cloud.JsonKeyError:   err,
+		})
+		return
+	}
+
+	var savedCluster cloud.ClusterSimple
+	db.Raw("SELECT * FROM "+cloud.ClusterSimple.TableName(savedCluster)+" WHERE name = ?;", createClusterBaseRequest.Name).Scan(&savedCluster)
+
+	if savedCluster.ID != 0 {
+		msg := "Duplicate entry '" + savedCluster.Name + "' for key 'name'"
+		log.Info(msg)
+		cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
+			cloud.JsonKeyStatus:  http.StatusBadRequest,
+			cloud.JsonKeyMessage: msg,
 		})
 		return
 	}
@@ -534,7 +538,7 @@ func FetchCluster(c *gin.Context) {
 
 	switch cloudType {
 	case cloud.Amazon:
-		FetchClusterAmazon(c)
+		FetchClusterAmazon(c, &cl)
 		break
 	case cloud.Azure:
 		// set azure props
@@ -571,17 +575,19 @@ func FetchClusterAzure(c *gin.Context, cl cloud.ClusterSimple) {
 }
 
 // FetchClusterAmazon fetches amazon cluster props
-func FetchClusterAmazon(c *gin.Context) {
-	cluster, err := GetCluster(c)
+func FetchClusterAmazon(c *gin.Context, savedCl *cloud.ClusterSimple) {
+	cl, err := savedCl.GetClusterWithDbCluster(c, log)
 	if err != nil {
+		log.Info("Error during fetch amazon cluster: ", err.Error())
 		return
 	}
-	isAvailable, _ := cloud.IsKubernetesClusterAvailable(cluster)
+
+	isAvailable, _ := cloud.IsKubernetesClusterAvailable(cl)
 	cloud.SetResponseBodyJson(c, http.StatusOK, gin.H{
 		cloud.JsonKeyStatus:    http.StatusOK,
-		cloud.JsonKeyData:      cluster,
+		cloud.JsonKeyData:      cl,
 		cloud.JsonKeyAvailable: isAvailable,
-		cloud.JsonKeyIp:        cluster.KubernetesAPI.Endpoint,
+		cloud.JsonKeyIp:        cl.KubernetesAPI.Endpoint,
 	})
 }
 
@@ -663,7 +669,7 @@ func UpdateCluster(c *gin.Context) {
 
 // FetchClusterConfig fetches a cluster config
 func FetchClusterConfig(c *gin.Context) {
-	cloudCluster, err := GetCluster(c)
+	cloudCluster, err := cloud.GetCluster(c, db, log)
 	if err != nil {
 		return
 	}
@@ -700,28 +706,29 @@ func FetchClusterConfig(c *gin.Context) {
 
 // GetClusterStatus retrieves the cluster status
 func GetClusterStatus(c *gin.Context) {
-	cloudCluster, err := GetCluster(c)
+	cloudCluster, err := cloud.GetClusterSimple(c, db)
 	if err != nil {
 		return
 	}
-	isAvailable, _ := cloud.IsKubernetesClusterAvailable(cloudCluster)
-	if isAvailable {
-		cloud.SetResponseBodyJson(c, http.StatusOK, gin.H{
-			cloud.JsonKeyStatus:  http.StatusOK,
-			cloud.JsonKeyMessage: "Kubernetes cluster available",
-		})
-	} else {
-		cloud.SetResponseBodyJson(c, http.StatusNoContent, gin.H{
-			cloud.JsonKeyStatus:  http.StatusNoContent,
-			cloud.JsonKeyMessage: "Kubernetes cluster not ready yet",
-		})
+
+	cloudType := cloudCluster.Cloud
+
+	switch cloudType {
+	case cloud.Amazon:
+		cloudCluster.GetAmazonClusterStatus(c, log)
+		break
+	case cloud.Azure:
+		cloudCluster.GetAzureClusterStatus(c, db, log)
+		break
+	default:
+		SendNotSupportedCloudResponse(c)
+		return
 	}
-	return
 }
 
 // GetTillerStatus checks if tiller ready to accept deployments
 func GetTillerStatus(c *gin.Context) {
-	cloudCluster, err := GetCluster(c)
+	cloudCluster, err := cloud.GetCluster(c, db, log)
 	if err != nil {
 		return
 	}
@@ -743,7 +750,7 @@ func GetTillerStatus(c *gin.Context) {
 // FetchDeploymentStatus check the status of the Helm deployment
 func FetchDeploymentStatus(c *gin.Context) {
 	name := c.Param("name")
-	cloudCluster, err := GetCluster(c)
+	cloudCluster, err := cloud.GetCluster(c, db, log)
 	if err != nil {
 		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
 			cloud.JsonKeyStatus:  http.StatusNotFound,
@@ -807,61 +814,9 @@ func Auth0Test(c *gin.Context) {
 	})
 }
 
-// GetCluster from database
-// If no field param was specified automatically use value as ID
-// Else it will use field as query column name
-func GetClusterFromDB(c *gin.Context) (*cloud.ClusterType, error) {
-	var cluster cloud.ClusterType
-	value := c.Param("id")
-	field := c.DefaultQuery("field", "")
-	if field == "" {
-		field = "id"
-	}
-	query := fmt.Sprintf("%s = ?", field)
-	db.Where(query, value).First(&cluster)
-	if cluster.ID == 0 {
-		errorMsg := fmt.Sprintf("cluster not found: [%s]: %s", field, value)
-		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
-			cloud.JsonKeyStatus:  http.StatusNotFound,
-			cloud.JsonKeyMessage: errorMsg,
-		})
-		return nil, errors.New(errorMsg)
-	}
-	return &cluster, nil
-
-}
-
-// GetCluster based on ClusterType object
-// This will read the persisted Kubicorn cluster format
-func GetKubicornCluster(clusterType *cloud.ClusterType) (*cluster.Cluster, error) {
-	clust, err := cloud.ReadClusterOld(*clusterType)
-	if err != nil {
-		return nil, err
-	}
-	log.Info("Cluster read successful")
-	return clust, nil
-}
-
-func GetCluster(c *gin.Context) (*cluster.Cluster, error) {
-	clusterType, err := GetClusterFromDB(c)
-	if err != nil {
-		return nil, err
-	}
-	cluster, err := GetKubicornCluster(clusterType)
-	if err != nil {
-		errorMsg := fmt.Sprintf("Error read cluster: %s", err)
-		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
-			cloud.JsonKeyStatus:  http.StatusNotFound,
-			cloud.JsonKeyMessage: errorMsg,
-		})
-		return nil, err
-	}
-	return cluster, nil
-}
-
 //FetchClusters fetches all the K8S clusters from the cloud
 func Status(c *gin.Context) {
-	var clusters []cloud.ClusterType
+	var clusters []cloud.ClusterSimple
 
 	log.Info("Cluster running, subsystems initialized")
 	db.Find(&clusters)
