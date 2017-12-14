@@ -22,8 +22,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"k8s.io/helm/pkg/timeconv"
-	"strconv"
-	azureClient "github.com/banzaicloud/azure-aks-client/client"
+	"github.com/banzaicloud/pipeline/utils"
 )
 
 //nodeInstanceType=m3.medium -d nodeInstanceSpotPrice=0.04 -d nodeMin=1 -d nodeMax=3 -d image=ami-6d48500b
@@ -253,6 +252,8 @@ func CreateCluster(c *gin.Context) {
 		return
 	}
 
+	log.Info("Cluster name is free in db")
+
 	cloudType := createClusterBaseRequest.Cloud
 	log.Info("Cloud type is ", cloudType)
 
@@ -291,19 +292,10 @@ func CreateCluster(c *gin.Context) {
 		break
 	default:
 		// wrong cloud type
-		SendNotSupportedCloudResponse(c)
+		cloud.SendNotSupportedCloudResponse(c)
 		break
 	}
 
-}
-
-// SendNotSupportedCloudResponse sends Not-supported-cloud-type error message back
-func SendNotSupportedCloudResponse(c *gin.Context) {
-	msg := "Not supported cloud type. Please use one of the following: " + cloud.Amazon + ", " + cloud.Azure + "."
-	cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
-		cloud.JsonKeyStatus:  http.StatusBadRequest,
-		cloud.JsonKeyMessage: msg,
-	})
 }
 
 // DeleteCluster deletes a K8S cluster from the cloud
@@ -327,83 +319,13 @@ func DeleteCluster(c *gin.Context) {
 		return
 	}
 
-	clusterType := cluster.Cloud
-	log.Info("Cluster type is ", clusterType)
-
-	switch clusterType {
-	case cloud.Amazon:
-		// create amazon cluster
-		deleteAmazonCluster(c, cluster)
-		break
-	case cloud.Azure:
-		// delete azure cluster
-		deleteAzureCluster(c, clusterId, &cluster)
-		break
-	default:
-		SendNotSupportedCloudResponse(c)
-		break
-	}
-
-}
-
-// deleteAmazonCluster deletes cluster from amazon
-func deleteAmazonCluster(c *gin.Context, cluster cloud.ClusterSimple) {
-	if _, err := cluster.DeleteClusterAmazon(); err != nil {
-		// delete failed
-		log.Warning("Can't delete cluster from cloud!", err)
-
-		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
-			cloud.JsonKeyStatus:     http.StatusBadRequest,
-			cloud.JsonKeyMessage:    "Can't delete cluster!",
-			cloud.JsonKeyResourceId: cluster.ID,
-			cloud.JsonKeyError:      err,
-		})
-	} else {
-		// delete success
-		log.Info("Cluster deleted from the cloud!")
-		notify.SlackNotify("Cluster deleted from the cloud!")
-
-		cloud.SetResponseBodyJson(c, http.StatusCreated, gin.H{
-			cloud.JsonKeyStatus:     http.StatusCreated,
-			cloud.JsonKeyMessage:    "Cluster deleted successfully!",
-			cloud.JsonKeyResourceId: cluster.ID,
-		})
-
-		// delete from db
+	if cluster.DeleteCluster(c, db, log) {
+		// cluster delete success, delete from db
 		if cluster.DeleteFromDb(c, db, log) {
 			updatePrometheus()
 		}
-
 	}
-}
 
-// deleteAzureCluster deletes cluster from azure
-func deleteAzureCluster(c *gin.Context, clusterId string, cluster *cloud.ClusterSimple) {
-
-	// set azure props
-	db.Where(cloud.AzureSimple{ClusterSimpleId: convertString2Uint(clusterId)}).First(&cluster.Azure)
-	if cluster.DeleteClusterAzure(c, cluster.Name, cluster.Azure.ResourceGroup) {
-		log.Info("Delete success")
-		if cluster.DeleteFromDb(c, db, log) {
-			updatePrometheus()
-		}
-	} else {
-		log.Warning("Can't delete cluster from cloud!")
-		cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
-			cloud.JsonKeyStatus:     http.StatusBadRequest,
-			cloud.JsonKeyMessage:    "Can't delete cluster!",
-			cloud.JsonKeyResourceId: cluster.ID,
-		})
-	}
-}
-
-// convertString2Uint converts a string to uint
-func convertString2Uint(s string) uint {
-	i, err := strconv.ParseInt(s, 10, 32)
-	if err != nil {
-		panic(err)
-	}
-	return uint(i)
 }
 
 func updatePrometheusWithRetryConf(createdCluster *cluster.Cluster) {
@@ -421,7 +343,7 @@ func updatePrometheus() {
 // FetchClusters fetches all the K8S clusters from the cloud
 func FetchClusters(c *gin.Context) {
 	var clusters []cloud.ClusterSimple
-	var response []*ClusterRepresentation
+	var response []*cloud.ClusterRepresentation
 	db.Find(&clusters)
 
 	if len(clusters) <= 0 {
@@ -433,21 +355,7 @@ func FetchClusters(c *gin.Context) {
 	}
 
 	for _, cl := range clusters {
-		cloudType := cl.Cloud
-		var clust *ClusterRepresentation
-		switch cloudType {
-		case cloud.Amazon:
-			clust = ReadClusterAmazon(cl)
-			break
-		case cloud.Azure:
-			db.Where(cloud.AzureSimple{ClusterSimpleId: cl.ID}).First(&cl.Azure)
-			clust = ReadClusterAzure(cl)
-			break
-		default:
-			SendNotSupportedCloudResponse(c)
-			break
-		}
-
+		clust := cl.GetClusterRepresentation(db, log)
 		if clust != nil {
 			log.Infof("Append %#v cluster representation to response", clust)
 			response = append(response, clust)
@@ -460,70 +368,12 @@ func FetchClusters(c *gin.Context) {
 	})
 }
 
-type ClusterRepresentation struct {
-	Id        uint        `json:"id"`
-	Name      string      `json:"name"`
-	CloudType string      `json:"cloud"`
-	*AmazonRepresentation `json:"amazon"`
-	*AzureRepresentation  `json:"azure"`
-}
-
-type AzureRepresentation struct {
-	Value azureClient.Value `json:"value"`
-}
-
-type AmazonRepresentation struct {
-	Ip string `json:"ip"`
-}
-
-// ReadClusterAzure load azure props from cloud to list clusters
-func ReadClusterAzure(cl cloud.ClusterSimple) *ClusterRepresentation {
-	log.Info("Read aks cluster with ", cl.Name, " id")
-	response, err := azureClient.GetCluster(cl.Name, cl.Azure.ResourceGroup)
-	if err != nil {
-		log.Infof("Something went wrong under read: %#v", err)
-		return nil
-	} else {
-		log.Info("Read cluster success")
-		clust := ClusterRepresentation{
-			Id:        cl.ID,
-			Name:      cl.Name,
-			CloudType: cloud.Azure,
-			AzureRepresentation: &AzureRepresentation{
-				Value: response.Value,
-			},
-		}
-		return &clust
-	}
-}
-
-// ReadClusterAmazon load amazon props from cloud to list clusters
-func ReadClusterAmazon(cl cloud.ClusterSimple) *ClusterRepresentation {
-	log.Info("Read aws cluster with ", cl.ID, " id")
-	c, err := cloud.ReadCluster(cl)
-	if err == nil {
-		log.Info("Read aws cluster success")
-		clust := ClusterRepresentation{
-			Id:        cl.ID,
-			Name:      cl.Name,
-			CloudType: cloud.Amazon,
-			AmazonRepresentation: &AmazonRepresentation{
-				Ip: c.KubernetesAPI.Endpoint,
-			},
-		}
-		return &clust
-	} else {
-		log.Info("Something went wrong under read: ", err.Error())
-	}
-	return nil
-}
-
 // FetchCluster fetch a K8S cluster in the cloud
 func FetchCluster(c *gin.Context) {
 
 	id := c.Param("id")
 	var cl cloud.ClusterSimple
-	db.Where(cloud.ClusterSimple{Model: gorm.Model{ID: convertString2Uint(id)}}).First(&cl)
+	db.Where(cloud.ClusterSimple{Model: gorm.Model{ID: utils.ConvertString2Uint(id)}}).First(&cl)
 
 	if cl.ID == 0 {
 		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
@@ -533,62 +383,8 @@ func FetchCluster(c *gin.Context) {
 		return
 	}
 
-	cloudType := cl.Cloud
-	log.Info("Cloud type is ", cloudType)
+	cl.FetchClusterInfo(c, db, log)
 
-	switch cloudType {
-	case cloud.Amazon:
-		FetchClusterAmazon(c, &cl)
-		break
-	case cloud.Azure:
-		// set azure props
-		db.Where(cloud.AzureSimple{ClusterSimpleId: convertString2Uint(id)}).First(&cl.Azure)
-		FetchClusterAzure(c, cl)
-		break
-	default:
-		// wrong cloud type
-		cloud.SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
-			cloud.JsonKeyStatus:  http.StatusInternalServerError,
-			cloud.JsonKeyMessage: "Not supported cloud type.",
-		})
-		break
-	}
-
-}
-
-// FetchClusterAzure fetches azure cluster props with the given name and resource group
-func FetchClusterAzure(c *gin.Context, cl cloud.ClusterSimple) {
-	log.Info("Fetch aks cluster with name: ", cl.Name, " in ", cl.Azure.ResourceGroup, " resource group.")
-
-	response, err := azureClient.GetCluster(cl.Name, cl.Azure.ResourceGroup)
-	if err != nil {
-		// fetch failed
-		log.Info("Status code: ", err.StatusCode)
-		log.Info("Error during get cluster details: ", err.Message)
-		cloud.SetResponseBodyJson(c, err.StatusCode, err)
-	} else {
-		// fetch success
-		log.Info("Status code: ", response.StatusCode)
-		cloud.SetResponseBodyJson(c, response.StatusCode, response)
-	}
-
-}
-
-// FetchClusterAmazon fetches amazon cluster props
-func FetchClusterAmazon(c *gin.Context, savedCl *cloud.ClusterSimple) {
-	cl, err := savedCl.GetClusterWithDbCluster(c, log)
-	if err != nil {
-		log.Info("Error during fetch amazon cluster: ", err.Error())
-		return
-	}
-
-	isAvailable, _ := cloud.IsKubernetesClusterAvailable(cl)
-	cloud.SetResponseBodyJson(c, http.StatusOK, gin.H{
-		cloud.JsonKeyStatus:    http.StatusOK,
-		cloud.JsonKeyData:      cl,
-		cloud.JsonKeyAvailable: isAvailable,
-		cloud.JsonKeyIp:        cl.KubernetesAPI.Endpoint,
-	})
 }
 
 // UpdateCluster updates a K8S cluster in the cloud (e.g. autoscale)
@@ -612,7 +408,7 @@ func UpdateCluster(c *gin.Context) {
 
 	// load cluster from db
 	db.Where(cloud.ClusterSimple{
-		Model: gorm.Model{ID: convertString2Uint(clusterId)},
+		Model: gorm.Model{ID: utils.ConvertString2Uint(clusterId)},
 	}).Where(cloud.ClusterSimple{
 		Cloud: updateRequest.Cloud,
 	}).First(&cl)
@@ -634,17 +430,17 @@ func UpdateCluster(c *gin.Context) {
 	case cloud.Amazon:
 		// read amazon props from amazon_cluster_properties table
 		log.Info("Load amazon props from db")
-		db.Where(cloud.AmazonClusterSimple{ClusterSimpleId: convertString2Uint(clusterId)}).First(&cl.Amazon)
+		db.Where(cloud.AmazonClusterSimple{ClusterSimpleId: utils.ConvertString2Uint(clusterId)}).First(&cl.Amazon)
 		break
 	case cloud.Azure:
 		// read azure props from azure_cluster_properties table
 		log.Info("Load azure props from db")
-		db.Where(cloud.AzureSimple{ClusterSimpleId: convertString2Uint(clusterId)}).First(&cl.Azure)
+		db.Where(cloud.AzureSimple{ClusterSimpleId: utils.ConvertString2Uint(clusterId)}).First(&cl.Azure)
 		break
 	default:
 		// not supported cloud type
 		log.Warning("Not supported cloud type")
-		SendNotSupportedCloudResponse(c)
+		cloud.SendNotSupportedCloudResponse(c)
 		return
 	}
 
@@ -721,7 +517,7 @@ func GetClusterStatus(c *gin.Context) {
 		cloudCluster.GetAzureClusterStatus(c, db, log)
 		break
 	default:
-		SendNotSupportedCloudResponse(c)
+		cloud.SendNotSupportedCloudResponse(c)
 		return
 	}
 }
