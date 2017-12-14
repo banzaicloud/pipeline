@@ -28,11 +28,11 @@ var runtimeParam = cutil.RuntimeParameters{
 func CloudInit(provider Provider, clusterType ClusterType) *cluster.Cluster {
 	switch conf.Provider {
 	case "aws":
-		return getAWSCluster(clusterType)
+		return GetAWSCluster(clusterType)
 	case "digitalocean":
 		return getDOCluster(clusterType)
 	default:
-		return getAWSCluster(clusterType)
+		return GetAWSCluster(clusterType)
 	}
 
 }
@@ -43,7 +43,7 @@ func CreateCluster(clusterType ClusterSimple) (*cluster.Cluster, error) {
 
 	logger.Level = 4
 
-	newCluster := getAWSCluster(clusterType)
+	newCluster := clusterType.GetAWSCluster()
 
 	//Inject configuration parameters
 	ssh_key_path := viper.GetString("dev.keypath")
@@ -103,7 +103,7 @@ func CreateCluster(clusterType ClusterSimple) (*cluster.Cluster, error) {
 }
 
 // DeleteClusterAzure deletes cluster from azure
-func (cluster ClusterSimple) DeleteClusterAzure(c *gin.Context, name string, resourceGroup string) bool {
+func (cs ClusterSimple) DeleteClusterAzure(c *gin.Context, name string, resourceGroup string) bool {
 	res, err := azureClient.DeleteCluster(name, resourceGroup)
 	if err != nil {
 		SetResponseBodyJson(c, err.StatusCode, gin.H{"status": err.StatusCode, "message": err.Message})
@@ -115,10 +115,10 @@ func (cluster ClusterSimple) DeleteClusterAzure(c *gin.Context, name string, res
 }
 
 // DeleteCluster deletes a cluster from the cloud
-func (cluster ClusterSimple) DeleteClusterAmazon() (*cluster.Cluster, error) {
+func (cs ClusterSimple) DeleteClusterAmazon() (*cluster.Cluster, error) {
 	logger.Level = 4
 
-	stateStore := getStateStoreForCluster(cluster)
+	stateStore := getStateStoreForCluster(cs)
 	if !stateStore.Exists() {
 		return nil, nil
 	}
@@ -126,7 +126,7 @@ func (cluster ClusterSimple) DeleteClusterAmazon() (*cluster.Cluster, error) {
 	deleteCluster, err := stateStore.GetCluster()
 	if err != nil {
 		logger.Info(err.Error())
-		logger.Info("Failed to load cluster:" + cluster.Name)
+		logger.Info("Failed to load cluster:" + cs.Name)
 		return nil, err
 	}
 
