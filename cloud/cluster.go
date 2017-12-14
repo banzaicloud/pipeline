@@ -8,11 +8,13 @@ import (
 	"github.com/kris-nova/kubicorn/apis/cluster"
 	"github.com/kris-nova/kubicorn/cutil"
 	"github.com/kris-nova/kubicorn/cutil/initapi"
-	"github.com/kris-nova/kubicorn/cutil/logger"
 	"github.com/spf13/viper"
 	azureClient "github.com/banzaicloud/azure-aks-client/client"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"github.com/kris-nova/kubicorn/cutil/logger"
+	"github.com/banzaicloud/pipeline/utils"
 )
 
 const (
@@ -39,7 +41,7 @@ func CloudInit(provider Provider, clusterType ClusterType) *cluster.Cluster {
 **/
 
 // CreateCluster creates a cluster in the cloud
-func CreateCluster(clusterType ClusterSimple) (*cluster.Cluster, error) {
+func CreateCluster(clusterType ClusterSimple, log *logrus.Logger) (*cluster.Cluster, error) {
 
 	logger.Level = 4
 
@@ -49,50 +51,66 @@ func CreateCluster(clusterType ClusterSimple) (*cluster.Cluster, error) {
 	ssh_key_path := viper.GetString("dev.keypath")
 	if ssh_key_path != "" {
 		newCluster.SSH.PublicKeyPath = ssh_key_path
-		logger.Debug("Overwriting default SSH key path to: %s", newCluster.SSH.PublicKeyPath)
+		log.Debug("Overwriting default SSH key path to: %s", newCluster.SSH.PublicKeyPath)
 	}
 
+	// ---- [ Init cluster ] ---- //
+	utils.LogInfo(log, utils.TagCreateCluster, "Init cluster")
 	newCluster, err := initapi.InitCluster(newCluster)
 
 	if err != nil {
-		logger.Info(err.Error())
-		logger.Info("Error during init cluster:", err)
+		utils.LogInfo(log, utils.TagCreateCluster, "Error during init cluster:", err)
 		return nil, err
+	} else {
+		utils.LogInfo(log, utils.TagCreateCluster, "Init cluster succeeded")
 	}
 
+	// ---- [ Get Reconciler ] ---- //
+	utils.LogInfo(log, utils.TagCreateCluster, "Get Reconciler")
 	reconciler, err := cutil.GetReconciler(newCluster, &runtimeParam)
 
 	if err != nil {
-		logger.Info(err.Error())
-		logger.Info("Error during getting reconciler:", err)
+		utils.LogInfo(log, utils.TagCreateCluster, "Error during getting reconciler:", err)
 		return nil, err
+	} else {
+		utils.LogInfo(log, utils.TagCreateCluster, "Get Reconciler succeeded")
 	}
 
+	// ---- [ Get expected state ] ---- //
 	expected, err := reconciler.Expected(newCluster)
 	if err != nil {
-		logger.Info(err.Error())
-		logger.Info("Error during getting expected state:", err)
+		utils.LogInfo(log, utils.TagCreateCluster, "Error during getting expected state:", err)
 		return nil, err
+	} else {
+		utils.LogInfo(log, utils.TagCreateCluster, "Get expected state succeeded")
 	}
+
+	// ---- [ Get actual state ] ---- //
 	actual, err := reconciler.Actual(newCluster)
 	if err != nil {
-		logger.Info(err.Error())
-		logger.Info("Error during getting actual state:", err)
+		utils.LogInfo(log, utils.TagCreateCluster, "Error during getting actual state:", err)
 		return nil, err
+	} else {
+		utils.LogInfo(log, utils.TagCreateCluster, "Get actual state succeeded")
 	}
+
+	// ---- [ Reconcile ] ---- //
 	created, err := reconciler.Reconcile(actual, expected)
 	if err != nil {
-		logger.Info(err.Error())
-		logger.Info("Error during reconcile:", err)
+		utils.LogInfo(log, utils.TagCreateCluster, "Error during reconcile:", err)
 		return nil, err
+	} else {
+		utils.LogInfo(log, utils.TagCreateCluster, "Reconcile succeeded")
 	}
 
 	if created == nil {
+		utils.LogInfo(log, utils.TagCreateCluster, "Error during reconcile, created cluster is nil")
 		return nil, errors.New("Error during reconcile")
 	}
 
-	logger.Debug("Created cluster [%s]", created.Name)
+	utils.LogDebug(log, utils.TagCreateCluster, "Created cluster [%s]", created.Name)
 
+	utils.LogInfo(log, utils.TagCreateCluster, "Get state store")
 	stateStore := getStateStoreForCluster(clusterType)
 	if stateStore.Exists() {
 		return nil, fmt.Errorf("State store [%s] exists, will not overwrite", clusterType.Name)
@@ -115,36 +133,50 @@ func (cs ClusterSimple) DeleteClusterAzure(c *gin.Context, name string, resource
 }
 
 // DeleteCluster deletes a cluster from the cloud
-func (cs ClusterSimple) DeleteClusterAmazon() (*cluster.Cluster, error) {
+func (cs ClusterSimple) DeleteClusterAmazon(log *logrus.Logger) (*cluster.Cluster, error) {
+
 	logger.Level = 4
 
+	// --- [ Get state store ] --- //
+	utils.LogInfo(log, utils.TagDeleteCluster, "Get State store")
 	stateStore := getStateStoreForCluster(cs)
 	if !stateStore.Exists() {
+		utils.LogWarn(log, utils.TagDeleteCluster, "State store not exists")
 		return nil, nil
+	} else {
+		utils.LogInfo(log, utils.TagDeleteCluster, "Get State store exists")
 	}
 
+	// --- [ Get cluster ] --- //
+	utils.LogInfo(log, utils.TagDeleteCluster, "Get cluster")
 	deleteCluster, err := stateStore.GetCluster()
 	if err != nil {
-		logger.Info(err.Error())
-		logger.Info("Failed to load cluster:" + cs.Name)
+		utils.LogInfo(log, utils.TagDeleteCluster, "Failed to load cluster:"+cs.Name)
 		return nil, err
+	} else {
+		utils.LogInfo(log, utils.TagDeleteCluster, "Get cluster succeeded")
 	}
 
+	// --- [ Get Reconciler ] --- //
+	utils.LogInfo(log, utils.TagDeleteCluster, "Get cluster")
 	reconciler, err := cutil.GetReconciler(deleteCluster, &runtimeParam)
 	if err != nil {
-		logger.Info(err.Error())
-		logger.Info("Error during getting reconciler:", err)
+		utils.LogInfo(log, utils.TagDeleteCluster, "Error during getting reconciler:", err)
 		return nil, err
+	} else {
+		utils.LogInfo(log, utils.TagDeleteCluster, "Get Reconciler succeeded")
 	}
 
+	// --- [ Destroy cluster ] --- //
+	utils.LogInfo(log, utils.TagDeleteCluster, "Destroy cluster")
 	_, err = reconciler.Destroy()
 	if err != nil {
-		logger.Info(err.Error())
-		logger.Info("Error during reconciler destroy:", err)
+		utils.LogInfo(log, utils.TagDeleteCluster, "Error during reconciler destroy:", err)
 		return nil, err
 	}
-	logger.Info("Deleted cluster [%s]", deleteCluster.Name)
+	utils.LogInfo(log, utils.TagDeleteCluster, "Deleted cluster [%s]", deleteCluster.Name)
 
+	utils.LogInfo(log, utils.TagDeleteCluster, "Destroy state store")
 	stateStore.Destroy()
 	return nil, nil
 }
@@ -169,32 +201,40 @@ func GetKubeConfig(existing *cluster.Cluster) error {
 }
 
 // UpdateCluster updates a cluster in the cloud (e.g. autoscales)
-func UpdateClusterAws(ccs ClusterSimple) (*cluster.Cluster, error) {
+func UpdateClusterAws(ccs ClusterSimple, log *logrus.Logger) (*cluster.Cluster, error) {
 
 	logger.Level = 4
 
+	utils.LogInfo(log, utils.TagUpdateCluster, "Get state store for cluster")
 	stateStore := getStateStoreForCluster(ccs)
+	utils.LogDebug(log, utils.TagUpdateCluster, "State store for cluster:", stateStore)
 
+	// --- [ Get cluster ] --- //
 	updateCluster, err := stateStore.GetCluster()
+	utils.LogDebug(log, utils.TagUpdateCluster, "Get cluster")
 	if err != nil {
-		logger.Info(err.Error())
-		logger.Info("Failed to load cluster:" + ccs.Name)
+		utils.LogDebug(log, utils.TagUpdateCluster, "Failed to load cluster:"+ccs.Name)
 		return nil, err
+	} else {
+		utils.LogDebug(log, utils.TagUpdateCluster, "Get cluster succeeded:", updateCluster)
 	}
 
-	logger.Info("Resizing cluster : " + ccs.Name)
-	logger.Info("Worker pool min size: " + strconv.Itoa(updateCluster.ServerPools[1].MinCount) + " => " + strconv.Itoa(ccs.Amazon.NodeMinCount))
-	logger.Info("Worker pool max size : " + strconv.Itoa(updateCluster.ServerPools[1].MaxCount) + " => " + strconv.Itoa(ccs.Amazon.NodeMaxCount))
+	utils.LogDebug(log, utils.TagUpdateCluster, "Resizing cluster:"+ccs.Name)
+	utils.LogDebug(log, utils.TagUpdateCluster, "Worker pool min size:"+strconv.Itoa(updateCluster.ServerPools[1].MinCount)+"=>"+strconv.Itoa(ccs.Amazon.NodeMinCount))
+	utils.LogDebug(log, utils.TagUpdateCluster, "Worker pool max size:"+strconv.Itoa(updateCluster.ServerPools[1].MaxCount)+"=>"+strconv.Itoa(ccs.Amazon.NodeMaxCount))
 	updateCluster.ServerPools[0].MinCount = 1
 	updateCluster.ServerPools[0].MaxCount = 1
 	updateCluster.ServerPools[1].MinCount = ccs.Amazon.NodeMinCount
 	updateCluster.ServerPools[1].MaxCount = ccs.Amazon.NodeMaxCount
 
+	// --- [ Get Reconciler ] --- //
+	utils.LogDebug(log, utils.TagUpdateCluster, "Get reconciler")
 	reconciler, err := cutil.GetReconciler(updateCluster, &runtimeParam)
 	if err != nil {
-		logger.Info(err.Error())
-		logger.Info("Error during getting reconciler:", err)
+		utils.LogDebug(log, utils.TagUpdateCluster, "Error during getting reconciler:", err)
 		return nil, err
+	} else {
+		utils.LogDebug(log, utils.TagUpdateCluster, "Getting Reconciler succeeded")
 	}
 
 	/*actual, err := reconciler.Actual(updateCluster)
@@ -203,33 +243,41 @@ func UpdateClusterAws(ccs ClusterSimple) (*cluster.Cluster, error) {
 		logger.Info("Error during getting expected state:", err)
 		return nil, err
 	}*/
+
+	// --- [ Get expected state ] --- //
+	utils.LogDebug(log, utils.TagUpdateCluster, "Get expected state")
 	expected, err := reconciler.Expected(updateCluster)
 	if err != nil {
-		logger.Info(err.Error())
-		logger.Info("Error during getting expected state:", err)
+		utils.LogInfo(log, utils.TagUpdateCluster, "Error during getting expected state:", err)
 		return nil, err
+	} else {
+		utils.LogDebug(log, utils.TagUpdateCluster, "Getting expected state succeeded")
 	}
 
+	// --- [ Reconcile ] --- //
+	utils.LogDebug(log, utils.TagUpdateCluster, "Reconcile")
 	updated, err := reconciler.Reconcile(updateCluster, expected)
 	if err != nil {
-		logger.Info(err.Error())
-		logger.Info("Error during reconcile:", err)
+		utils.LogDebug(log, utils.TagUpdateCluster, "Error during reconcile:", err)
 		return nil, err
+	} else {
+		utils.LogDebug(log, utils.TagUpdateCluster, "Reconcile succeeded")
 	}
 
+	utils.LogInfo(log, utils.TagUpdateCluster, "Commit state store")
 	stateStore.Commit(updateCluster)
 	return updated, nil
 }
 
 // Wait for K8S
-func awaitKubernetesCluster(existing ClusterSimple) (bool, error) {
+func awaitKubernetesCluster(existing ClusterSimple, log *logrus.Logger) (bool, error) {
 	success := false
 	existingCluster, _ := getStateStoreForCluster(existing).GetCluster()
 
 	for i := 0; i < apiSocketAttempts; i++ {
 		_, err := IsKubernetesClusterAvailable(existingCluster)
 		if err != nil {
-			logger.Info("Attempting to open a socket to the Kubernetes API: %v...\n", err)
+			log.Info("Attempting to open a socket to the Kubernetes API: %v...\n", err)
 			time.Sleep(time.Duration(apiSleepSeconds) * time.Second)
 			continue
 		}

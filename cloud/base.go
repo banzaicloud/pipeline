@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"reflect"
 	"errors"
+	"github.com/banzaicloud/pipeline/utils"
 )
 
 const (
@@ -88,11 +89,11 @@ func (r UpdateClusterRequest) String() string {
 // DeleteFromDb deletes cluster from database
 func (cs ClusterSimple) DeleteFromDb(c *gin.Context, db *gorm.DB, log *logrus.Logger) bool {
 
-	log.Info("Delete from db")
+	utils.LogInfo(log, utils.TagDeleteCluster, "Delete from database")
 
 	if err := db.Delete(&cs).Error; err != nil {
 		// delete failed
-		log.Warning("Can't delete cluster from database!", err)
+		utils.LogWarn(log, utils.TagDeleteCluster, "Can't delete cluster from database!", err)
 		SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
 			JsonKeyStatus:     http.StatusBadRequest,
 			JsonKeyMessage:    "Can't delete cluster!",
@@ -136,6 +137,7 @@ func (cs ClusterSimple) String() string {
 }
 
 func updateClusterInDb(c *gin.Context, db *gorm.DB, log *logrus.Logger, cluster ClusterSimple) bool {
+	utils.LogInfo(log, utils.TagUpdateCluster, "Update cluster in database")
 	if err := db.Model(&ClusterSimple{}).Update(&cluster).Error; err != nil {
 		DbSaveFailed(c, log, err, cluster.Name)
 		return false
@@ -179,9 +181,10 @@ func (r *UpdateClusterRequest) Validate(log *logrus.Logger, defaultValue Cluster
 func isUpdateEqualsWithStoredCluster(x interface{}, y interface{}, log *logrus.Logger) (bool, string) {
 	if reflect.DeepEqual(x, y) {
 		msg := "There is no change in data"
-		log.Info(msg)
+		utils.LogInfo(log, utils.TagValidateUpdateCluster, msg)
 		return false, msg
 	}
+	utils.LogInfo(log, utils.TagValidateUpdateCluster, "Different interfaces")
 	return true, ""
 }
 
@@ -200,17 +203,22 @@ func DbSaveFailed(c *gin.Context, log *logrus.Logger, err error, clusterName str
 // GetCluster from database
 // If no field param was specified automatically use value as ID
 // Else it will use field as query column name
-func GetClusterFromDB(c *gin.Context, db *gorm.DB) (*ClusterSimple, error) {
+func GetClusterFromDB(c *gin.Context, db *gorm.DB, log *logrus.Logger) (*ClusterSimple, error) {
+
+	utils.LogInfo(log, utils.TagGetCluster, "Get cluster from database")
+
 	var cluster ClusterSimple
 	value := c.Param("id")
 	field := c.DefaultQuery("field", "")
 	if field == "" {
 		field = "id"
 	}
+	utils.LogInfo(log, utils.TagGetCluster, "Cluster ID:", value)
 	query := fmt.Sprintf("%s = ?", field)
 	db.Where(query, value).First(&cluster)
 	if cluster.ID == 0 {
 		errorMsg := fmt.Sprintf("cluster not found: [%s]: %s", field, value)
+		utils.LogInfo(log, utils.TagGetCluster, errorMsg)
 		SetResponseBodyJson(c, http.StatusNotFound, gin.H{
 			JsonKeyStatus:  http.StatusNotFound,
 			JsonKeyMessage: errorMsg,
@@ -221,8 +229,8 @@ func GetClusterFromDB(c *gin.Context, db *gorm.DB) (*ClusterSimple, error) {
 
 }
 
-func GetClusterSimple(c *gin.Context, db *gorm.DB) (*ClusterSimple, error) {
-	cl, err := GetClusterFromDB(c, db)
+func GetClusterSimple(c *gin.Context, db *gorm.DB, log *logrus.Logger) (*ClusterSimple, error) {
+	cl, err := GetClusterFromDB(c, db, log)
 	if err != nil {
 		return nil, err
 	}
@@ -232,7 +240,7 @@ func GetClusterSimple(c *gin.Context, db *gorm.DB) (*ClusterSimple, error) {
 func (cs *ClusterSimple) DeleteCluster(c *gin.Context, db *gorm.DB, log *logrus.Logger) bool {
 
 	clusterType := cs.Cloud
-	log.Info("Cluster type is ", clusterType)
+	utils.LogInfo(log, utils.TagDeleteCluster, "Cluster type is ", clusterType)
 
 	switch clusterType {
 	case Amazon:
@@ -242,15 +250,16 @@ func (cs *ClusterSimple) DeleteCluster(c *gin.Context, db *gorm.DB, log *logrus.
 		// delete azure cs
 		return cs.DeleteAzureCluster(c, db, log)
 	default:
-		SendNotSupportedCloudResponse(c)
+		SendNotSupportedCloudResponse(c, log, utils.TagDeleteCluster)
 		return false
 	}
 
 }
 
 // SendNotSupportedCloudResponse sends Not-supported-cloud-type error message back
-func SendNotSupportedCloudResponse(c *gin.Context) {
+func SendNotSupportedCloudResponse(c *gin.Context, log *logrus.Logger, tag string) {
 	msg := "Not supported cloud type. Please use one of the following: " + Amazon + ", " + Azure + "."
+	utils.LogInfo(log, tag, msg)
 	SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
 		JsonKeyStatus:  http.StatusBadRequest,
 		JsonKeyMessage: msg,
@@ -258,8 +267,10 @@ func SendNotSupportedCloudResponse(c *gin.Context) {
 }
 
 func (cs *ClusterSimple) GetClusterRepresentation(db *gorm.DB, log *logrus.Logger) *ClusterRepresentation {
+
 	cloudType := cs.Cloud
-	log.Info("Cloud type is ", cloudType)
+	utils.LogInfo(log, utils.TagGetCluster, "Cloud type is ", cloudType)
+
 	switch cloudType {
 	case Amazon:
 		return cs.ReadClusterAmazon(log)
@@ -269,7 +280,7 @@ func (cs *ClusterSimple) GetClusterRepresentation(db *gorm.DB, log *logrus.Logge
 		return cs.ReadClusterAzure(log)
 		break
 	default:
-		log.Info("Not supported cloud type")
+		utils.LogInfo(log, utils.TagGetCluster, "Not supported cloud type")
 		break
 	}
 	return nil
@@ -278,7 +289,7 @@ func (cs *ClusterSimple) GetClusterRepresentation(db *gorm.DB, log *logrus.Logge
 func (cs *ClusterSimple) FetchClusterInfo(c *gin.Context, db *gorm.DB, log *logrus.Logger) {
 
 	cloudType := cs.Cloud
-	log.Info("Cloud type is ", cloudType)
+	utils.LogInfo(log, utils.TagGetClusterInfo, "Cloud type is ", cloudType)
 
 	switch cloudType {
 	case Amazon:
@@ -291,10 +302,7 @@ func (cs *ClusterSimple) FetchClusterInfo(c *gin.Context, db *gorm.DB, log *logr
 		break
 	default:
 		// wrong cloud type
-		SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
-			JsonKeyStatus:  http.StatusInternalServerError,
-			JsonKeyMessage: "Not supported cloud type.",
-		})
+		SendNotSupportedCloudResponse(c, log, utils.TagGetCluster)
 		break
 	}
 }
