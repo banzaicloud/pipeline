@@ -26,6 +26,7 @@ const (
 	TagFetchDeploymentStatus = "FetchDeploymentStatus"
 	TagStatus                = "Status"
 	TagSlack                 = "Slack"
+	TagAuth                  = "Auth"
 )
 
 func LogInfo(log *logrus.Logger, tag string, args ... interface{}) {

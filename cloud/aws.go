@@ -12,6 +12,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/banzaicloud/pipeline/notify"
 	"github.com/banzaicloud/pipeline/utils"
+	"github.com/go-errors/errors"
 )
 
 const (
@@ -24,7 +25,7 @@ const (
 )
 
 // GetAWSCluster creates *cluster.Cluster from ClusterSimple struct
-func (cs ClusterSimple) GetAWSCluster() *cluster.Cluster {
+func (cs *ClusterSimple) GetAWSCluster() *cluster.Cluster {
 	uuid_suffix := uuid.TimeOrderedUUID()
 	return &cluster.Cluster{
 		Name:     cs.Name,
@@ -253,6 +254,11 @@ func (amazon *CreateClusterAmazon) Validate(log *logrus.Logger) (bool, string) {
 	utils.LogInfo(log, utils.TagValidateCreateCluster, "Validate create request (amazon)")
 
 	if amazon == nil {
+		utils.LogInfo(log, utils.TagValidateCreateCluster, "Amazon is <nil>")
+		return false, ""
+	}
+
+	if amazon == nil {
 		msg := "Required field 'amazon' is empty."
 		utils.LogInfo(log, utils.TagValidateCreateCluster, msg)
 		return false, msg
@@ -321,6 +327,11 @@ func (r *UpdateClusterRequest) ValidateAmazonRequest(log *logrus.Logger, default
 
 	utils.LogInfo(log, utils.TagValidateUpdateCluster, "Reset azure fields")
 
+	if r == nil {
+		utils.LogInfo(log, utils.TagValidateUpdateCluster, "update request <nil>")
+		return false, ""
+	}
+
 	// reset azure fields
 	r.UpdateClusterAzure = nil
 
@@ -384,6 +395,11 @@ func (cs *ClusterSimple) GetAmazonClusterStatus(c *gin.Context, log *logrus.Logg
 
 	utils.LogInfo(log, utils.TagGetClusterStatus, "Start get cluster status (amazon)")
 
+	if cs == nil {
+		utils.LogInfo(log, utils.TagGetClusterStatus, "<nil> cluster")
+		return
+	}
+
 	// --- [ Get cluster with stored data ] --- //
 	cl, err := cs.GetClusterWithDbCluster(c, log)
 	if err != nil {
@@ -413,9 +429,14 @@ func (cs *ClusterSimple) GetAmazonClusterStatus(c *gin.Context, log *logrus.Logg
 }
 
 // UpdateClusterAmazonInCloud updates amazon cluster in cloud
-func (r UpdateClusterRequest) UpdateClusterAmazonInCloud(c *gin.Context, db *gorm.DB, log *logrus.Logger, preCluster ClusterSimple) bool {
+func (r *UpdateClusterRequest) UpdateClusterAmazonInCloud(c *gin.Context, db *gorm.DB, log *logrus.Logger, preCluster ClusterSimple) bool {
 
 	utils.LogInfo(log, utils.TagUpdateCluster, "Start updating cluster (amazon)")
+
+	if r == nil {
+		utils.LogInfo(log, utils.TagUpdateCluster, "<nil> update cluster request")
+		return false
+	}
 
 	cluster2Db := ClusterSimple{
 		Model:            preCluster.Model,
@@ -464,9 +485,14 @@ func (r UpdateClusterRequest) UpdateClusterAmazonInCloud(c *gin.Context, db *gor
 }
 
 // CreateClusterAmazon creates amazon cluster in cloud
-func (request CreateClusterRequest) CreateClusterAmazon(c *gin.Context, db *gorm.DB, log *logrus.Logger) (bool, *cluster.Cluster) {
+func (request *CreateClusterRequest) CreateClusterAmazon(c *gin.Context, db *gorm.DB, log *logrus.Logger) (bool, *cluster.Cluster) {
 
 	utils.LogInfo(log, utils.TagCreateCluster, "Create ClusterSimple struct from the request")
+
+	if request == nil {
+		utils.LogInfo(log, utils.TagCreateCluster, "<nil> create request")
+		return false, nil
+	}
 
 	cluster2Db := ClusterSimple{
 		Name:             request.Name,
@@ -522,6 +548,12 @@ func (request CreateClusterRequest) CreateClusterAmazon(c *gin.Context, db *gorm
 }
 
 func (cs *ClusterSimple) GetClusterWithDbCluster(c *gin.Context, log *logrus.Logger) (*cluster.Cluster, error) {
+
+	if cs == nil {
+		utils.LogInfo(log, utils.TagCreateCluster, "<nil> create request")
+		return nil, errors.New("Error read cluster")
+	}
+
 	cl, err := cs.GetKubicornCluster(log)
 	if err != nil {
 		errorMsg := fmt.Sprintf("Error read cluster: %s", err)
@@ -539,6 +571,12 @@ func (cs *ClusterSimple) GetClusterWithDbCluster(c *gin.Context, log *logrus.Log
 // GetCluster based on ClusterSimple object
 // This will read the persisted Kubicorn cluster format
 func (cs *ClusterSimple) GetKubicornCluster(log *logrus.Logger) (*cluster.Cluster, error) {
+
+	if cs == nil {
+		utils.LogInfo(log, utils.TagGetCluster, "<nil> cluster")
+		return nil, errors.New("Read Kubicorn cluster failed")
+	}
+
 	utils.LogInfo(log, utils.TagGetCluster, "Read persisted Kubicorn cluster format")
 	clust, err := ReadCluster(*cs)
 	if err != nil {
@@ -558,9 +596,15 @@ func GetCluster(c *gin.Context, db *gorm.DB, log *logrus.Logger) (*cluster.Clust
 }
 
 // ReadClusterAmazon load amazon props from cloud to list clusters
-func (cs ClusterSimple) ReadClusterAmazon(log *logrus.Logger) *ClusterRepresentation {
+func (cs *ClusterSimple) ReadClusterAmazon(log *logrus.Logger) *ClusterRepresentation {
+
+	if cs == nil {
+		utils.LogInfo(log, utils.TagGetCluster, "<nil> cluster")
+		return nil
+	}
+
 	utils.LogInfo(log, utils.TagGetCluster, "Read aws cluster with", cs.ID, "id")
-	c, err := ReadCluster(cs)
+	c, err := ReadCluster(*cs)
 	if err == nil {
 		utils.LogInfo(log, utils.TagGetCluster, "Read aws cluster success")
 		clust := ClusterRepresentation{
@@ -583,6 +627,11 @@ func (cs *ClusterSimple) GetClusterInfoAmazon(c *gin.Context, log *logrus.Logger
 
 	utils.LogInfo(log, utils.TagGetCluster, "Get cluster info (amazon)")
 
+	if cs == nil {
+		utils.LogInfo(log, utils.TagGetCluster, "<nil> cluster")
+		return
+	}
+
 	cl, err := cs.GetClusterWithDbCluster(c, log)
 	if err != nil {
 		utils.LogInfo(log, utils.TagGetCluster, "Error during fetch amazon cluster: ", err.Error())
@@ -604,6 +653,11 @@ func (cs *ClusterSimple) GetClusterInfoAmazon(c *gin.Context, log *logrus.Logger
 func (cs *ClusterSimple) DeleteAmazonCluster(c *gin.Context, db *gorm.DB, log *logrus.Logger) bool {
 
 	utils.LogInfo(log, utils.TagDeleteCluster, "Start delete amazon cluster")
+
+	if cs == nil {
+		utils.LogInfo(log, utils.TagGetCluster, "<nil> cluster")
+		return false
+	}
 
 	if _, err := cs.DeleteClusterAmazon(log); err != nil {
 		// delete failed
