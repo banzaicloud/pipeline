@@ -87,7 +87,7 @@ func (r UpdateClusterRequest) String() string {
 }
 
 // DeleteFromDb deletes cluster from database
-func (cs ClusterSimple) DeleteFromDb(c *gin.Context, db *gorm.DB, log *logrus.Logger) bool {
+func (cs *ClusterSimple) DeleteFromDb(c *gin.Context, db *gorm.DB, log *logrus.Logger) bool {
 
 	utils.LogInfo(log, utils.TagDeleteCluster, "Delete from database")
 
@@ -111,7 +111,7 @@ func (ClusterSimple) TableName() string {
 }
 
 // String method prints formatted cluster fields
-func (cs ClusterSimple) String() string {
+func (cs *ClusterSimple) String() string {
 	var buffer bytes.Buffer
 	buffer.WriteString(fmt.Sprintf("Id: %d, Creation date: %s, Cloud: %s, NodeInstanceType: %s, ", cs.ID, cs.CreatedAt, cs.Cloud, cs.NodeInstanceType))
 	if cs.Cloud == Azure {

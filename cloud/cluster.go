@@ -51,7 +51,7 @@ func CreateCluster(clusterType ClusterSimple, log *logrus.Logger) (*cluster.Clus
 	ssh_key_path := viper.GetString("dev.keypath")
 	if ssh_key_path != "" {
 		newCluster.SSH.PublicKeyPath = ssh_key_path
-		log.Debug("Overwriting default SSH key path to: %s", newCluster.SSH.PublicKeyPath)
+		utils.LogDebug(log, utils.TagCreateCluster, "Overwriting default SSH key path to:", newCluster.SSH.PublicKeyPath)
 	}
 
 	// ---- [ Init cluster ] ---- //
@@ -108,7 +108,7 @@ func CreateCluster(clusterType ClusterSimple, log *logrus.Logger) (*cluster.Clus
 		return nil, errors.New("Error during reconcile")
 	}
 
-	utils.LogDebug(log, utils.TagCreateCluster, "Created cluster [%s]", created.Name)
+	utils.LogDebug(log, utils.TagCreateCluster, "Created cluster:", created.Name)
 
 	utils.LogInfo(log, utils.TagCreateCluster, "Get state store")
 	stateStore := getStateStoreForCluster(clusterType)
@@ -121,7 +121,7 @@ func CreateCluster(clusterType ClusterSimple, log *logrus.Logger) (*cluster.Clus
 }
 
 // DeleteClusterAzure deletes cluster from azure
-func (cs ClusterSimple) DeleteClusterAzure(c *gin.Context, name string, resourceGroup string) bool {
+func (cs *ClusterSimple) DeleteClusterAzure(c *gin.Context, name string, resourceGroup string) bool {
 	res, err := azureClient.DeleteCluster(name, resourceGroup)
 	if err != nil {
 		SetResponseBodyJson(c, err.StatusCode, gin.H{"status": err.StatusCode, "message": err.Message})
@@ -133,13 +133,13 @@ func (cs ClusterSimple) DeleteClusterAzure(c *gin.Context, name string, resource
 }
 
 // DeleteCluster deletes a cluster from the cloud
-func (cs ClusterSimple) DeleteClusterAmazon(log *logrus.Logger) (*cluster.Cluster, error) {
+func (cs *ClusterSimple) DeleteClusterAmazon(log *logrus.Logger) (*cluster.Cluster, error) {
 
 	logger.Level = 4
 
 	// --- [ Get state store ] --- //
 	utils.LogInfo(log, utils.TagDeleteCluster, "Get State store")
-	stateStore := getStateStoreForCluster(cs)
+	stateStore := getStateStoreForCluster(*cs)
 	if !stateStore.Exists() {
 		utils.LogWarn(log, utils.TagDeleteCluster, "State store not exists")
 		return nil, nil

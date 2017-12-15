@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"strings"
 	"github.com/banzaicloud/pipeline/cloud"
+	"github.com/banzaicloud/pipeline/utils"
 )
 
 var log = conf.Logger()
@@ -28,7 +29,7 @@ var ApiGroup = "ApiGroup"
 
 func Init() {
 	pubKey := viper.GetString("dev.auth0pub")
-	log.Info("PubKey", pubKey)
+	utils.LogInfo(log, utils.TagAuth, "PubKey", pubKey)
 	data, err := ioutil.ReadFile(pubKey)
 	if err != nil {
 		panic("Impossible to read key form disk")
@@ -77,7 +78,7 @@ func Auth0Groups(wantedGroups ...string) gin.HandlerFunc {
 				cloud.JsonKeyError: "invalid token",
 			})
 			c.Abort()
-			log.Info("Invalid token:", err)
+			utils.LogInfo(log, utils.TagAuth, "Invalid token:", err)
 			return
 		}
 
@@ -88,11 +89,11 @@ func Auth0Groups(wantedGroups ...string) gin.HandlerFunc {
 				cloud.JsonKeyError: "invalid claims",
 			})
 			c.Abort()
-			log.Info("Invalid claims:", err)
+			utils.LogInfo(log, utils.TagAuth, "Invalid claims:", err)
 			return
 		}
 
-		log.Println("Claims: ", claims)
+		utils.LogDebug(log, utils.TagAuth, "Claims: ", claims)
 		hasScope := strings.Contains(claims["scope"].(string), "api:invoke")
 
 		// TODO: metadata and group check for later hardening
@@ -107,7 +108,7 @@ func Auth0Groups(wantedGroups ...string) gin.HandlerFunc {
 				cloud.JsonKeyError: "needs more privileges",
 			})
 			c.Abort()
-			log.Info("Needs more privileges")
+			utils.LogInfo(log, utils.TagAuth, "Needs more privileges")
 			return
 		}
 		c.Next()

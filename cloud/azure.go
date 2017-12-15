@@ -58,6 +58,11 @@ func (azure *CreateClusterAzure) Validate(log *logrus.Logger) (bool, string) {
 	utils.LogInfo(log, utils.TagValidateCreateCluster, "Start validate create request (azure)")
 
 	if azure == nil {
+		utils.LogInfo(log, utils.TagValidateCreateCluster, "Azure is <nil>")
+		return false, ""
+	}
+
+	if azure == nil {
 		msg := "Required field 'azure' is empty."
 		utils.LogInfo(log, utils.TagValidateCreateCluster, msg)
 		return false, msg
@@ -99,6 +104,11 @@ func (azure *CreateClusterAzure) Validate(log *logrus.Logger) (bool, string) {
 func (r *UpdateClusterRequest) ValidateAzureRequest(log *logrus.Logger, defaultValue ClusterSimple) (bool, string) {
 
 	utils.LogInfo(log, utils.TagValidateCreateCluster, "Reset amazon fields")
+
+	if r == nil {
+		utils.LogInfo(log, utils.TagValidateCreateCluster, "Update request is <nil>")
+		return false, ""
+	}
 
 	// reset field amazon fields
 	r.UpdateClusterAmazon = nil
@@ -150,6 +160,11 @@ func (r *UpdateClusterRequest) ValidateAzureRequest(log *logrus.Logger, defaultV
 func (request *CreateClusterRequest) CreateClusterAzure(c *gin.Context, db *gorm.DB, log *logrus.Logger) bool {
 
 	utils.LogInfo(log, utils.TagCreateCluster, "Start create cluster (azure)")
+
+	if request == nil {
+		utils.LogInfo(log, utils.TagCreateCluster, "Create request is <nil>")
+		return false
+	}
 
 	cluster2Db := ClusterSimple{
 		Name:             request.Name,
@@ -206,6 +221,15 @@ func (cs *ClusterSimple) GetAzureClusterStatus(c *gin.Context, db *gorm.DB, log 
 
 	utils.LogInfo(log, utils.TagGetClusterStatus, "Start get cluster status (azure)")
 
+	if cs == nil {
+		utils.LogInfo(log, utils.TagGetClusterStatus, "<nil> cluster struct")
+		SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
+			JsonKeyStatus:  http.StatusInternalServerError,
+			JsonKeyMessage: "",
+		})
+		return
+	}
+
 	utils.LogInfo(log, utils.TagGetClusterStatus, "Load azure props from database")
 
 	// load azure props from db
@@ -241,6 +265,11 @@ func (cs *ClusterSimple) GetAzureClusterStatus(c *gin.Context, db *gorm.DB, log 
 func (r *UpdateClusterRequest) UpdateClusterAzureInCloud(c *gin.Context, db *gorm.DB, log *logrus.Logger, preCluster ClusterSimple) bool {
 
 	utils.LogInfo(log, utils.TagUpdateCluster, "Start updating cluster (azure)")
+
+	if r == nil {
+		utils.LogInfo(log, utils.TagUpdateCluster, "<nil> update cluster")
+		return false
+	}
 
 	cluster2Db := ClusterSimple{
 		Model:            preCluster.Model,
@@ -292,6 +321,12 @@ func (r *UpdateClusterRequest) UpdateClusterAzureInCloud(c *gin.Context, db *gor
 // ReadClusterAzure load azure props from cloud to list clusters
 func (cs *ClusterSimple) ReadClusterAzure(log *logrus.Logger) *ClusterRepresentation {
 	utils.LogInfo(log, utils.TagGetCluster, "Read aks cluster with", cs.Name, "id")
+
+	if cs == nil {
+		utils.LogInfo(log, utils.TagGetCluster, "<nil> cluster")
+		return nil
+	}
+
 	response, err := azureClient.GetCluster(cs.Name, cs.Azure.ResourceGroup)
 	if err != nil {
 		utils.LogInfo(log, utils.TagGetCluster, "Something went wrong under read:", err)
@@ -311,8 +346,16 @@ func (cs *ClusterSimple) ReadClusterAzure(log *logrus.Logger) *ClusterRepresenta
 }
 
 // GetClusterInfoAzure fetches azure cluster props with the given name and resource group
-func (cs ClusterSimple) GetClusterInfoAzure(c *gin.Context, log *logrus.Logger) {
+func (cs *ClusterSimple) GetClusterInfoAzure(c *gin.Context, log *logrus.Logger) {
 	utils.LogInfo(log, utils.TagGetCluster, "Fetch aks cluster with name:", cs.Name, "in", cs.Azure.ResourceGroup, "resource group.")
+
+	if cs == nil {
+		utils.LogInfo(log, utils.TagGetCluster, "<nil> cluster")
+		SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
+			JsonKeyStatus: http.StatusInternalServerError,
+		})
+		return
+	}
 
 	response, err := azureClient.GetCluster(cs.Name, cs.Azure.ResourceGroup)
 	if err != nil {
@@ -332,6 +375,11 @@ func (cs ClusterSimple) GetClusterInfoAzure(c *gin.Context, log *logrus.Logger) 
 func (cs *ClusterSimple) DeleteAzureCluster(c *gin.Context, db *gorm.DB, log *logrus.Logger) bool {
 
 	utils.LogInfo(log, utils.TagGetCluster, "Start delete azure cluster")
+
+	if cs == nil {
+		utils.LogInfo(log, utils.TagGetCluster, "<nil> cluster")
+		return false
+	}
 
 	// set azure props
 	db.Where(AzureSimple{ClusterSimpleId: cs.ID}).First(&cs.Azure)
