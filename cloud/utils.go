@@ -21,6 +21,7 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 	"github.com/gin-gonic/gin"
 	"k8s.io/client-go/tools/clientcmd"
+	banzaiSimpleTypes "github.com/banzaicloud/banzai-types/components/database"
 )
 
 const (
@@ -39,7 +40,7 @@ const (
 )
 
 //We return stateStore so update can use it.
-func getStateStoreForCluster(clusterType ClusterSimple) (stateStore state.ClusterStorer) {
+func getStateStoreForCluster(clusterType banzaiSimpleTypes.ClusterSimple) (stateStore state.ClusterStorer) {
 
 	stateStore = fs.NewFileSystemStore(&fs.FileSystemStoreOptions{
 		BasePath:    "statestore",

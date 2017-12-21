@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"github.com/kris-nova/kubicorn/apis/cluster"
 	"github.com/kris-nova/kubicorn/cutil/kubeadm"
+	banzaiSimpleTypes "github.com/banzaicloud/banzai-types/components/database"
 )
 
-func getDOCluster(clusterType ClusterSimple) *cluster.Cluster {
+func getDOCluster(clusterType banzaiSimpleTypes.ClusterSimple) *cluster.Cluster {
 	return &cluster.Cluster{
 		Name:     clusterType.Name,
 		Cloud:    cluster.CloudDigitalOcean,

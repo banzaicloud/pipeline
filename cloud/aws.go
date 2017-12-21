@@ -6,26 +6,19 @@ import (
 	"github.com/kris-nova/kubicorn/apis/cluster"
 	"github.com/kris-nova/kubicorn/cutil/kubeadm"
 	"github.com/kris-nova/kubicorn/cutil/uuid"
-	"github.com/sirupsen/logrus"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"github.com/jinzhu/gorm"
 	"github.com/banzaicloud/pipeline/notify"
-	"github.com/banzaicloud/pipeline/utils"
 	"github.com/go-errors/errors"
-)
-
-const (
-	amazonDefaultNodeImage          = "ami-bdba13c4"
-	amazonDefaultMasterImage        = "ami-bdba13c4"
-	amazonDefaultMasterInstanceType = "m4.xlarge"
-	amazonDefaultNodeMinCount       = 1
-	amazonDefaultNodeMaxCount       = 1
-	amazonDefaultNodeSpotPrice      = "0.2"
+	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
+	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
+	banzaiTypes "github.com/banzaicloud/banzai-types/components"
+	banzaiSimpleTypes "github.com/banzaicloud/banzai-types/components/database"
+	"github.com/banzaicloud/banzai-types/database"
 )
 
 // GetAWSCluster creates *cluster.Cluster from ClusterSimple struct
-func (cs *ClusterSimple) GetAWSCluster() *cluster.Cluster {
+func GetAWSCluster(cs *banzaiSimpleTypes.ClusterSimple) *cluster.Cluster {
 	uuid_suffix := uuid.TimeOrderedUUID()
 	return &cluster.Cluster{
 		Name:     cs.Name,
@@ -207,219 +200,35 @@ func (cs *ClusterSimple) GetAWSCluster() *cluster.Cluster {
 	}
 }
 
-type CreateClusterAmazon struct {
-	Node   *CreateAmazonNode   `json:"node"`
-	Master *CreateAmazonMaster `json:"master"`
-}
+func GetAmazonClusterStatus(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 
-type UpdateClusterAmazon struct {
-	*UpdateAmazonNode `json:"node"`
-}
-
-type CreateAmazonNode struct {
-	SpotPrice string `json:"spotPrice"`
-	MinCount  int    `json:"minCount"`
-	MaxCount  int    `json:"maxCount"`
-	Image     string `json:"image"`
-}
-
-type UpdateAmazonNode struct {
-	MinCount int `json:"minCount"`
-	MaxCount int `json:"maxCount"`
-}
-
-type CreateAmazonMaster struct {
-	InstanceType string `json:"instanceType"`
-	Image        string `json:"image"`
-}
-
-type AmazonClusterSimple struct {
-	ClusterSimpleId    uint `gorm:"primary_key"`
-	NodeSpotPrice      string
-	NodeMinCount       int
-	NodeMaxCount       int
-	NodeImage          string
-	MasterInstanceType string
-	MasterImage        string
-}
-
-// TableName sets AmazonClusterSimple's table name
-func (AmazonClusterSimple) TableName() string {
-	return tableNameAmazonProperties
-}
-
-// Validate validates amazon cluster create request
-func (amazon *CreateClusterAmazon) Validate(log *logrus.Logger) (bool, string) {
-
-	utils.LogInfo(log, utils.TagValidateCreateCluster, "Validate create request (amazon)")
-
-	if amazon == nil {
-		utils.LogInfo(log, utils.TagValidateCreateCluster, "Amazon is <nil>")
-		return false, ""
-	}
-
-	if amazon == nil {
-		msg := "Required field 'amazon' is empty."
-		utils.LogInfo(log, utils.TagValidateCreateCluster, msg)
-		return false, msg
-	}
-
-	// ---- [ Master check ] ---- //
-	if amazon.Master == nil {
-		msg := "Required field 'master' is empty."
-		utils.LogInfo(log, utils.TagValidateCreateCluster, msg)
-		return false, msg
-	}
-
-	if len(amazon.Master.Image) == 0 {
-		utils.LogInfo(log, utils.TagValidateCreateCluster, "Master image set to default value:", amazonDefaultMasterImage)
-		amazon.Master.Image = amazonDefaultMasterImage
-	}
-
-	if len(amazon.Master.InstanceType) == 0 {
-		utils.LogInfo(log, utils.TagValidateCreateCluster, "Master instance type set to default value:", amazonDefaultMasterInstanceType)
-		amazon.Master.InstanceType = amazonDefaultMasterInstanceType
-	}
-
-	// ---- [ Node check ] ---- //
-	if amazon.Node == nil {
-		msg := "Required field 'node' is empty."
-		utils.LogInfo(log, utils.TagValidateCreateCluster, msg)
-		return false, msg
-	}
-
-	// ---- [ Node image check ] ---- //
-	if len(amazon.Node.Image) == 0 {
-		utils.LogInfo(log, utils.TagValidateCreateCluster, "Node image set to default value:", amazonDefaultNodeImage)
-		amazon.Node.Image = amazonDefaultNodeImage
-	}
-
-	// ---- [ Node min count check ] ---- //
-	if amazon.Node.MinCount == 0 {
-		utils.LogInfo(log, utils.TagValidateCreateCluster, "Node minCount set to default value:", amazonDefaultNodeMinCount)
-		amazon.Node.MinCount = amazonDefaultNodeMinCount
-	}
-
-	// ---- [ Node max count check ] ---- //
-	if amazon.Node.MaxCount == 0 {
-		utils.LogInfo(log, utils.TagValidateCreateCluster, "Node maxCount set to default value:", amazonDefaultNodeMaxCount)
-		amazon.Node.MaxCount = amazonDefaultNodeMaxCount
-	}
-
-	// ---- [ Node min count <= max count check ] ---- //
-	if amazon.Node.MaxCount < amazon.Node.MinCount {
-		utils.LogInfo(log, utils.TagValidateCreateCluster, "Node maxCount is lower than minCount")
-		return false, "maxCount must be greater than mintCount"
-	}
-
-	// ---- [ Node spot price ] ---- //
-	if len(amazon.Node.SpotPrice) == 0 {
-		utils.LogInfo(log, utils.TagValidateCreateCluster, "Node spot price set to default value:", amazonDefaultNodeSpotPrice)
-		amazon.Node.SpotPrice = amazonDefaultNodeSpotPrice
-	}
-
-	return true, ""
-}
-
-// ValidateAmazonRequest validates the update request (only amazon part). If any of the fields is missing, the method fills
-// with stored data.
-func (r *UpdateClusterRequest) ValidateAmazonRequest(log *logrus.Logger, defaultValue ClusterSimple) (bool, string) {
-
-	utils.LogInfo(log, utils.TagValidateUpdateCluster, "Reset azure fields")
-
-	if r == nil {
-		utils.LogInfo(log, utils.TagValidateUpdateCluster, "update request <nil>")
-		return false, ""
-	}
-
-	// reset azure fields
-	r.UpdateClusterAzure = nil
-
-	utils.LogInfo(log, utils.TagValidateUpdateCluster, "Validate update request (amazon)")
-	defAmazonNode := &UpdateAmazonNode{
-		MinCount: defaultValue.Amazon.NodeMinCount,
-		MaxCount: defaultValue.Amazon.NodeMaxCount,
-	}
-
-	// ---- [ Amazon field check ] ---- //
-	if r.UpdateClusterAmazon == nil {
-		utils.LogInfo(log, utils.TagValidateUpdateCluster, "'amazon' field is empty, Load it from stored data.")
-		r.UpdateClusterAmazon = &UpdateClusterAmazon{
-			UpdateAmazonNode: defAmazonNode,
-		}
-	}
-
-	// ---- [ Node check ] ---- //
-	if r.UpdateAmazonNode == nil {
-		utils.LogInfo(log, utils.TagValidateUpdateCluster, "'node' field is empty. Fill from stored data")
-		r.UpdateAmazonNode = defAmazonNode
-	}
-
-	// ---- [ Node min count check ] ---- //
-	if r.UpdateAmazonNode.MinCount == 0 {
-		defMinCount := defaultValue.Amazon.NodeMinCount
-		utils.LogInfo(log, utils.TagValidateUpdateCluster, "Node minCount set to default value: ", defMinCount)
-		r.UpdateAmazonNode.MinCount = defMinCount
-	}
-
-	// ---- [ Node max count check ] ---- //
-	if r.UpdateAmazonNode.MaxCount == 0 {
-		defMaxCount := defaultValue.Amazon.NodeMaxCount
-		utils.LogInfo(log, utils.TagValidateUpdateCluster, "Node maxCount set to default value: ", defMaxCount)
-		r.UpdateAmazonNode.MaxCount = defMaxCount
-	}
-
-	// ---- [ Node max count > min count check ] ---- //
-	if r.UpdateAmazonNode.MaxCount < r.UpdateAmazonNode.MinCount {
-		utils.LogInfo(log, utils.TagValidateUpdateCluster, "Node maxCount is lower than minCount")
-		return false, "maxCount must be greater than mintCount"
-	}
-
-	// create update request struct with the stored data to check equality
-	preCl := &UpdateClusterRequest{
-		Cloud: defaultValue.Cloud,
-		UpdateProperties: UpdateProperties{
-			UpdateClusterAmazon: &UpdateClusterAmazon{
-				UpdateAmazonNode: defAmazonNode,
-			},
-		},
-	}
-
-	utils.LogInfo(log, utils.TagValidateUpdateCluster, "Check stored & updated cluster equals")
-
-	// check equality
-	return isUpdateEqualsWithStoredCluster(r, preCl, log)
-}
-
-func (cs *ClusterSimple) GetAmazonClusterStatus(c *gin.Context, log *logrus.Logger) {
-
-	utils.LogInfo(log, utils.TagGetClusterStatus, "Start get cluster status (amazon)")
+	banzaiUtils.LogInfo(banzaiConstants.TagGetClusterStatus, "Start get cluster status (amazon)")
 
 	if cs == nil {
-		utils.LogInfo(log, utils.TagGetClusterStatus, "<nil> cluster")
+		banzaiUtils.LogInfo(banzaiConstants.TagGetClusterStatus, "<nil> cluster")
 		return
 	}
 
 	// --- [ Get cluster with stored data ] --- //
-	cl, err := cs.GetClusterWithDbCluster(c, log)
+	cl, err := GetClusterWithDbCluster(cs, c)
 	if err != nil {
-		utils.LogInfo(log, utils.TagGetClusterStatus, "Error during read cluster")
+		banzaiUtils.LogInfo(banzaiConstants.TagGetClusterStatus, "Error during read cluster")
 		return
 	} else {
-		utils.LogInfo(log, utils.TagGetClusterStatus, "Read cluster succeeded")
+		banzaiUtils.LogInfo(banzaiConstants.TagGetClusterStatus, "Read cluster succeeded")
 	}
 
 	isAvailable, _ := IsKubernetesClusterAvailable(cl)
 	if isAvailable {
 		msg := "Kubernetes cluster available"
-		utils.LogInfo(log, utils.TagGetClusterStatus, msg)
+		banzaiUtils.LogInfo(banzaiConstants.TagGetClusterStatus, msg)
 		SetResponseBodyJson(c, http.StatusOK, gin.H{
 			JsonKeyStatus:  http.StatusOK,
 			JsonKeyMessage: msg,
 		})
 	} else {
 		msg := "Kubernetes cluster not ready yet"
-		utils.LogInfo(log, utils.TagGetClusterStatus, msg)
+		banzaiUtils.LogInfo(banzaiConstants.TagGetClusterStatus, msg)
 		SetResponseBodyJson(c, http.StatusNoContent, gin.H{
 			JsonKeyStatus:  http.StatusNoContent,
 			JsonKeyMessage: msg,
@@ -429,22 +238,22 @@ func (cs *ClusterSimple) GetAmazonClusterStatus(c *gin.Context, log *logrus.Logg
 }
 
 // UpdateClusterAmazonInCloud updates amazon cluster in cloud
-func (r *UpdateClusterRequest) UpdateClusterAmazonInCloud(c *gin.Context, db *gorm.DB, log *logrus.Logger, preCluster ClusterSimple) bool {
+func UpdateClusterAmazonInCloud(r *banzaiTypes.UpdateClusterRequest, c *gin.Context, preCluster banzaiSimpleTypes.ClusterSimple) bool {
 
-	utils.LogInfo(log, utils.TagUpdateCluster, "Start updating cluster (amazon)")
+	banzaiUtils.LogInfo(banzaiConstants.TagUpdateCluster, "Start updating cluster (amazon)")
 
 	if r == nil {
-		utils.LogInfo(log, utils.TagUpdateCluster, "<nil> update cluster request")
+		banzaiUtils.LogInfo(banzaiConstants.TagUpdateCluster, "<nil> update cluster request")
 		return false
 	}
 
-	cluster2Db := ClusterSimple{
+	cluster2Db := banzaiSimpleTypes.ClusterSimple{
 		Model:            preCluster.Model,
 		Name:             preCluster.Name,
 		Location:         preCluster.Location,
 		NodeInstanceType: preCluster.NodeInstanceType,
 		Cloud:            r.Cloud,
-		Amazon: AmazonClusterSimple{
+		Amazon: banzaiSimpleTypes.AmazonClusterSimple{
 			NodeSpotPrice:      preCluster.Amazon.NodeSpotPrice,
 			NodeMinCount:       r.UpdateClusterAmazon.MinCount,
 			NodeMaxCount:       r.UpdateClusterAmazon.MaxCount,
@@ -454,10 +263,10 @@ func (r *UpdateClusterRequest) UpdateClusterAmazonInCloud(c *gin.Context, db *go
 		},
 	}
 
-	utils.LogInfo(log, utils.TagUpdateCluster, "Call amazon to updating")
+	banzaiUtils.LogInfo(banzaiConstants.TagUpdateCluster, "Call amazon to updating")
 
-	if _, err := UpdateClusterAws(cluster2Db, log); err != nil {
-		utils.LogWarn(log, utils.TagUpdateCluster, "Can't update cluster in the cloud!", err)
+	if _, err := UpdateClusterAws(cluster2Db); err != nil {
+		banzaiUtils.LogWarn(banzaiConstants.TagUpdateCluster, "Can't update cluster in the cloud!", err)
 
 		SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
 			JsonKeyStatus:     http.StatusBadRequest,
@@ -468,8 +277,8 @@ func (r *UpdateClusterRequest) UpdateClusterAmazonInCloud(c *gin.Context, db *go
 
 		return false
 	} else {
-		utils.LogInfo(log, utils.TagUpdateCluster, "Cluster updated in the cloud!")
-		if updateClusterInDb(c, db, log, cluster2Db) {
+		banzaiUtils.LogInfo(banzaiConstants.TagUpdateCluster, "Cluster updated in the cloud!")
+		if updateClusterInDb(c, cluster2Db) {
 			SetResponseBodyJson(c, http.StatusCreated, gin.H{
 				JsonKeyStatus:     http.StatusCreated,
 				JsonKeyMessage:    "Cluster updated successfully!",
@@ -485,21 +294,21 @@ func (r *UpdateClusterRequest) UpdateClusterAmazonInCloud(c *gin.Context, db *go
 }
 
 // CreateClusterAmazon creates amazon cluster in cloud
-func (request *CreateClusterRequest) CreateClusterAmazon(c *gin.Context, db *gorm.DB, log *logrus.Logger) (bool, *cluster.Cluster) {
+func CreateClusterAmazon(request *banzaiTypes.CreateClusterRequest, c *gin.Context) (bool, *cluster.Cluster) {
 
-	utils.LogInfo(log, utils.TagCreateCluster, "Create ClusterSimple struct from the request")
+	banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Create ClusterSimple struct from the request")
 
 	if request == nil {
-		utils.LogInfo(log, utils.TagCreateCluster, "<nil> create request")
+		banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "<nil> create request")
 		return false, nil
 	}
 
-	cluster2Db := ClusterSimple{
+	cluster2Db := banzaiSimpleTypes.ClusterSimple{
 		Name:             request.Name,
 		Location:         request.Location,
 		NodeInstanceType: request.NodeInstanceType,
 		Cloud:            request.Cloud,
-		Amazon: AmazonClusterSimple{
+		Amazon: banzaiSimpleTypes.AmazonClusterSimple{
 			NodeSpotPrice:      request.Properties.CreateClusterAmazon.Node.SpotPrice,
 			NodeMinCount:       request.Properties.CreateClusterAmazon.Node.MinCount,
 			NodeMaxCount:       request.Properties.CreateClusterAmazon.Node.MaxCount,
@@ -509,12 +318,12 @@ func (request *CreateClusterRequest) CreateClusterAmazon(c *gin.Context, db *gor
 		},
 	}
 
-	utils.LogInfo(log, utils.TagCreateCluster, "Call amazon with the request")
+	banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Call amazon with the request")
 
 	// create aws cluster
-	if createdCluster, err := CreateCluster(cluster2Db, log); err != nil {
+	if createdCluster, err := CreateCluster(cluster2Db); err != nil {
 		// creation failed
-		utils.LogInfo(log, utils.TagCreateCluster, "Cluster creation failed!", err.Error())
+		banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Cluster creation failed!", err.Error())
 		SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
 			JsonKeyMessage: "Could not launch cluster!",
 			JsonKeyName:    cluster2Db.Name,
@@ -523,17 +332,17 @@ func (request *CreateClusterRequest) CreateClusterAmazon(c *gin.Context, db *gor
 		return false, nil
 	} else {
 		// cluster creation success
-		utils.LogInfo(log, utils.TagCreateCluster, "Cluster created successfully!")
-		utils.LogInfo(log, utils.TagCreateCluster, "Save created cluster into database")
+		banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Cluster created successfully!")
+		banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Save created cluster into database")
 
 		// save db
-		if err := db.Save(&cluster2Db).Error; err != nil {
-			DbSaveFailed(c, log, err, cluster2Db.Name)
+		if err := database.Save(&cluster2Db).Error; err != nil {
+			DbSaveFailed(c, err, cluster2Db.Name)
 			return false, nil
 		}
 
-		utils.LogInfo(log, utils.TagCreateCluster, "Database save succeeded")
-		utils.LogInfo(log, utils.TagCreateCluster, "Create response")
+		banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Database save succeeded")
+		banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Create response")
 		SetResponseBodyJson(c, http.StatusCreated, gin.H{
 			JsonKeyStatus:     http.StatusCreated,
 			JsonKeyMessage:    "Cluster created successfully!",
@@ -547,97 +356,97 @@ func (request *CreateClusterRequest) CreateClusterAmazon(c *gin.Context, db *gor
 
 }
 
-func (cs *ClusterSimple) GetClusterWithDbCluster(c *gin.Context, log *logrus.Logger) (*cluster.Cluster, error) {
+func GetClusterWithDbCluster(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) (*cluster.Cluster, error) {
 
 	if cs == nil {
-		utils.LogInfo(log, utils.TagCreateCluster, "<nil> create request")
+		banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "<nil> create request")
 		return nil, errors.New("Error read cluster")
 	}
 
-	cl, err := cs.GetKubicornCluster(log)
+	cl, err := GetKubicornCluster(cs)
 	if err != nil {
 		errorMsg := fmt.Sprintf("Error read cluster: %s", err)
-		utils.LogWarn(log, utils.TagGetCluster, errorMsg)
+		banzaiUtils.LogWarn(banzaiConstants.TagGetCluster, errorMsg)
 		SetResponseBodyJson(c, http.StatusNotFound, gin.H{
 			JsonKeyStatus:  http.StatusNotFound,
 			JsonKeyMessage: errorMsg,
 		})
 		return nil, err
 	}
-	utils.LogDebug(log, utils.TagGetCluster, "Get cluster succeeded:", cl)
+	banzaiUtils.LogDebug(banzaiConstants.TagGetCluster, "Get cluster succeeded:", cl)
 	return cl, nil
 }
 
 // GetCluster based on ClusterSimple object
 // This will read the persisted Kubicorn cluster format
-func (cs *ClusterSimple) GetKubicornCluster(log *logrus.Logger) (*cluster.Cluster, error) {
+func GetKubicornCluster(cs *banzaiSimpleTypes.ClusterSimple) (*cluster.Cluster, error) {
 
 	if cs == nil {
-		utils.LogInfo(log, utils.TagGetCluster, "<nil> cluster")
+		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "<nil> cluster")
 		return nil, errors.New("Read Kubicorn cluster failed")
 	}
 
-	utils.LogInfo(log, utils.TagGetCluster, "Read persisted Kubicorn cluster format")
+	banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Read persisted Kubicorn cluster format")
 	clust, err := ReadCluster(*cs)
 	if err != nil {
-		utils.LogWarn(log, utils.TagGetCluster, "Read Kubicorn cluster failed", err)
+		banzaiUtils.LogWarn(banzaiConstants.TagGetCluster, "Read Kubicorn cluster failed", err)
 		return nil, err
 	}
-	utils.LogInfo(log, utils.TagGetCluster, "Cluster read succeeded")
+	banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Cluster read succeeded")
 	return clust, nil
 }
 
-func GetCluster(c *gin.Context, db *gorm.DB, log *logrus.Logger) (*cluster.Cluster, error) {
-	cl, err := GetClusterFromDB(c, db, log)
+func GetCluster(c *gin.Context) (*cluster.Cluster, error) {
+	cl, err := GetClusterFromDB(c)
 	if err != nil {
 		return nil, err
 	}
-	return cl.GetClusterWithDbCluster(c, log)
+	return GetClusterWithDbCluster(cl, c)
 }
 
 // ReadClusterAmazon load amazon props from cloud to list clusters
-func (cs *ClusterSimple) ReadClusterAmazon(log *logrus.Logger) *ClusterRepresentation {
+func ReadClusterAmazon(cs *banzaiSimpleTypes.ClusterSimple) *ClusterRepresentation {
 
 	if cs == nil {
-		utils.LogInfo(log, utils.TagGetCluster, "<nil> cluster")
+		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "<nil> cluster")
 		return nil
 	}
 
-	utils.LogInfo(log, utils.TagGetCluster, "Read aws cluster with", cs.ID, "id")
+	banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Read aws cluster with", cs.ID, "id")
 	c, err := ReadCluster(*cs)
 	if err == nil {
-		utils.LogInfo(log, utils.TagGetCluster, "Read aws cluster success")
+		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Read aws cluster success")
 		clust := ClusterRepresentation{
 			Id:        cs.ID,
 			Name:      cs.Name,
-			CloudType: Amazon,
+			CloudType: banzaiConstants.Amazon,
 			AmazonRepresentation: &AmazonRepresentation{
 				Ip: c.KubernetesAPI.Endpoint,
 			},
 		}
 		return &clust
 	} else {
-		utils.LogInfo(log, utils.TagGetCluster, "Something went wrong under read: ", err.Error())
+		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Something went wrong under read: ", err.Error())
 	}
 	return nil
 }
 
 // GetClusterInfoAmazon fetches amazon cluster props
-func (cs *ClusterSimple) GetClusterInfoAmazon(c *gin.Context, log *logrus.Logger) {
+func GetClusterInfoAmazon(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 
-	utils.LogInfo(log, utils.TagGetCluster, "Get cluster info (amazon)")
+	banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Get cluster info (amazon)")
 
 	if cs == nil {
-		utils.LogInfo(log, utils.TagGetCluster, "<nil> cluster")
+		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "<nil> cluster")
 		return
 	}
 
-	cl, err := cs.GetClusterWithDbCluster(c, log)
+	cl, err := GetClusterWithDbCluster(cs, c)
 	if err != nil {
-		utils.LogInfo(log, utils.TagGetCluster, "Error during fetch amazon cluster: ", err.Error())
+		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Error during fetch amazon cluster: ", err.Error())
 		return
 	} else {
-		utils.LogInfo(log, utils.TagGetCluster, "Get cluster info succeeded")
+		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Get cluster info succeeded")
 	}
 
 	isAvailable, _ := IsKubernetesClusterAvailable(cl)
@@ -650,18 +459,18 @@ func (cs *ClusterSimple) GetClusterInfoAmazon(c *gin.Context, log *logrus.Logger
 }
 
 // DeleteAmazonCluster deletes cluster from amazon
-func (cs *ClusterSimple) DeleteAmazonCluster(c *gin.Context, db *gorm.DB, log *logrus.Logger) bool {
+func DeleteAmazonCluster(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) bool {
 
-	utils.LogInfo(log, utils.TagDeleteCluster, "Start delete amazon cluster")
+	banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Start delete amazon cluster")
 
 	if cs == nil {
-		utils.LogInfo(log, utils.TagGetCluster, "<nil> cluster")
+		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "<nil> cluster")
 		return false
 	}
 
-	if _, err := cs.DeleteClusterAmazon(log); err != nil {
+	if _, err := DeleteClusterAmazon(cs); err != nil {
 		// delete failed
-		utils.LogWarn(log, utils.TagDeleteCluster, "Can't delete cluster from cloud!", err)
+		banzaiUtils.LogWarn(banzaiConstants.TagDeleteCluster, "Can't delete cluster from cloud!", err)
 
 		SetResponseBodyJson(c, http.StatusNotFound, gin.H{
 			JsonKeyStatus:     http.StatusBadRequest,
@@ -673,7 +482,7 @@ func (cs *ClusterSimple) DeleteAmazonCluster(c *gin.Context, db *gorm.DB, log *l
 	} else {
 		// delete success
 		msg := "Cluster deleted from the cloud!"
-		utils.LogInfo(log, utils.TagDeleteCluster, msg)
+		banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, msg)
 		notify.SlackNotify(msg)
 
 		SetResponseBodyJson(c, http.StatusCreated, gin.H{

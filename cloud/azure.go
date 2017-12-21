@@ -1,177 +1,37 @@
 package cloud
 
 import (
-	"github.com/sirupsen/logrus"
 	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
 	"net/http"
 	azureCluster "github.com/banzaicloud/azure-aks-client/cluster"
 	azureClient "github.com/banzaicloud/azure-aks-client/client"
-	"github.com/banzaicloud/pipeline/utils"
+	banzaiTypes "github.com/banzaicloud/banzai-types/components"
+	banzaiSimpleTypes "github.com/banzaicloud/banzai-types/components/database"
+	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
+	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
+	"github.com/banzaicloud/banzai-types/database"
 )
-
-const (
-	azureDefaultAgentCount        = 1
-	azureDefaultAgentName         = "agentpool1"
-	azureDefaultKubernetesVersion = "1.7.7"
-)
-
-type CreateClusterAzure struct {
-	Node *CreateAzureNode `json:"node"`
-}
-
-type UpdateClusterAzure struct {
-	*UpdateAzureNode `json:"node"`
-}
-
-type CreateAzureNode struct {
-	ResourceGroup     string `json:"resourceGroup"`
-	AgentCount        int    `json:"agentCount"`
-	AgentName         string `json:"agentName"`
-	KubernetesVersion string `json:"kubernetesVersion"`
-}
-
-type UpdateAzureNode struct {
-	AgentCount int `json:"agentCount"`
-}
-
-type AzureSimple struct {
-	ClusterSimpleId   uint `gorm:"primary_key"`
-	ResourceGroup     string
-	AgentCount        int
-	AgentName         string
-	KubernetesVersion string
-}
 
 type AzureRepresentation struct {
 	Value azureClient.Value `json:"value"`
 }
 
-// TableName sets AzureSimple's table name
-func (AzureSimple) TableName() string {
-	return tableNameAzureProperties
-}
-
-// Validate validates azure cluster create request
-func (azure *CreateClusterAzure) Validate(log *logrus.Logger) (bool, string) {
-
-	utils.LogInfo(log, utils.TagValidateCreateCluster, "Start validate create request (azure)")
-
-	if azure == nil {
-		utils.LogInfo(log, utils.TagValidateCreateCluster, "Azure is <nil>")
-		return false, ""
-	}
-
-	if azure == nil {
-		msg := "Required field 'azure' is empty."
-		utils.LogInfo(log, utils.TagValidateCreateCluster, msg)
-		return false, msg
-	}
-
-	// ---- [ Node check ] ---- //
-	if azure.Node == nil {
-		msg := "Required field 'node' is empty."
-		utils.LogInfo(log, utils.TagValidateCreateCluster, msg)
-		return false, msg
-	}
-
-	if len(azure.Node.ResourceGroup) == 0 {
-		msg := "Required field 'resourceGroup' is empty."
-		utils.LogInfo(log, utils.TagValidateCreateCluster, msg)
-		return false, msg
-	}
-
-	if azure.Node.AgentCount == 0 {
-		utils.LogInfo(log, utils.TagValidateCreateCluster, "Node agentCount set to default value: ", azureDefaultAgentCount)
-		azure.Node.AgentCount = azureDefaultAgentCount
-	}
-
-	if len(azure.Node.AgentName) == 0 {
-		utils.LogInfo(log, utils.TagValidateCreateCluster, "Node agentName set to default value: ", azureDefaultAgentName)
-		azure.Node.AgentName = azureDefaultAgentName
-	}
-
-	if len(azure.Node.KubernetesVersion) == 0 {
-		utils.LogInfo(log, utils.TagValidateCreateCluster, "Node kubernetesVersion set to default value: ", azureDefaultKubernetesVersion)
-		azure.Node.KubernetesVersion = azureDefaultKubernetesVersion
-	}
-
-	return true, ""
-}
-
-// ValidateAzureRequest validates the update request (only azure part). If any of the fields is missing, the method fills
-// with stored data.
-func (r *UpdateClusterRequest) ValidateAzureRequest(log *logrus.Logger, defaultValue ClusterSimple) (bool, string) {
-
-	utils.LogInfo(log, utils.TagValidateCreateCluster, "Reset amazon fields")
-
-	if r == nil {
-		utils.LogInfo(log, utils.TagValidateCreateCluster, "Update request is <nil>")
-		return false, ""
-	}
-
-	// reset field amazon fields
-	r.UpdateClusterAmazon = nil
-
-	utils.LogInfo(log, utils.TagValidateCreateCluster, "Start validate update request (azure)")
-
-	defAzureNode := &UpdateAzureNode{
-		AgentCount: defaultValue.Azure.AgentCount,
-	}
-
-	// ---- [ Azure field check ] ---- //
-	if r.UpdateClusterAzure == nil {
-		utils.LogInfo(log, utils.TagValidateCreateCluster, "'azure' field is empty, Load it from stored data.")
-		r.UpdateClusterAzure = &UpdateClusterAzure{
-			UpdateAzureNode: defAzureNode,
-		}
-	}
-
-	// ---- [ Node check ] ---- //
-	if r.UpdateClusterAzure.UpdateAzureNode == nil {
-		utils.LogInfo(log, utils.TagValidateCreateCluster, "'node' field is empty. Load it from stored data.")
-		r.UpdateClusterAzure.UpdateAzureNode = defAzureNode
-	}
-
-	// ---- [ Node - Agent count check] ---- //
-	if r.UpdateClusterAzure.AgentCount == 0 {
-		def := defaultValue.Azure.AgentCount
-		utils.LogInfo(log, utils.TagValidateCreateCluster, "Node agentCount set to default value: ", def)
-		r.UpdateClusterAzure.AgentCount = def
-	}
-
-	// create update request struct with the stored data to check equality
-	preCl := &UpdateClusterRequest{
-		Cloud: defaultValue.Cloud,
-		UpdateProperties: UpdateProperties{
-			UpdateClusterAzure: &UpdateClusterAzure{
-				UpdateAzureNode: defAzureNode,
-			},
-		},
-	}
-
-	utils.LogInfo(log, utils.TagValidateUpdateCluster, "Check stored & updated cluster equals")
-
-	// check equality
-	return isUpdateEqualsWithStoredCluster(r, preCl, log)
-}
-
 // CreateClusterAzure creates azure cluster in the cloud
-func (request *CreateClusterRequest) CreateClusterAzure(c *gin.Context, db *gorm.DB, log *logrus.Logger) bool {
+func CreateClusterAzure(request *banzaiTypes.CreateClusterRequest, c *gin.Context) bool {
 
-	utils.LogInfo(log, utils.TagCreateCluster, "Start create cluster (azure)")
+	banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Start create cluster (azure)")
 
 	if request == nil {
-		utils.LogInfo(log, utils.TagCreateCluster, "Create request is <nil>")
+		banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Create request is <nil>")
 		return false
 	}
 
-	cluster2Db := ClusterSimple{
+	cluster2Db := banzaiSimpleTypes.ClusterSimple{
 		Name:             request.Name,
 		Location:         request.Location,
 		NodeInstanceType: request.NodeInstanceType,
 		Cloud:            request.Cloud,
-		Azure: AzureSimple{
+		Azure: banzaiSimpleTypes.AzureClusterSimple{
 			ResourceGroup:     request.Properties.CreateClusterAzure.Node.ResourceGroup,
 			AgentCount:        request.Properties.CreateClusterAzure.Node.AgentCount,
 			AgentName:         request.Properties.CreateClusterAzure.Node.AgentName,
@@ -189,13 +49,13 @@ func (request *CreateClusterRequest) CreateClusterAzure(c *gin.Context, db *gorm
 		KubernetesVersion: cluster2Db.Azure.KubernetesVersion,
 	}
 
-	utils.LogInfo(log, utils.TagCreateCluster, "Call azure client")
+	banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Call azure client")
 
 	// call creation
 	res, err := azureClient.CreateUpdateCluster(r)
 	if err != nil {
 		// creation failed
-		utils.LogInfo(log, utils.TagCreateCluster, "Cluster creation failed!", err.Message)
+		banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Cluster creation failed!", err.Message)
 		SetResponseBodyJson(c, err.StatusCode, gin.H{
 			JsonKeyStatus:  err.StatusCode,
 			JsonKeyMessage: err.Message,
@@ -203,26 +63,26 @@ func (request *CreateClusterRequest) CreateClusterAzure(c *gin.Context, db *gorm
 		return false
 	} else {
 		// creation success
-		utils.LogInfo(log, utils.TagCreateCluster, "Cluster created successfully!")
-		utils.LogInfo(log, utils.TagCreateCluster, "Save create cluster into database")
-		if err := db.Save(&cluster2Db).Error; err != nil {
-			DbSaveFailed(c, log, err, cluster2Db.Name)
+		banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Cluster created successfully!")
+		banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Save create cluster into database")
+		if err := database.Save(&cluster2Db).Error; err != nil {
+			DbSaveFailed(c, err, cluster2Db.Name)
 			return false
 		}
 
-		utils.LogInfo(log, utils.TagCreateCluster, "Save create cluster into database succeeded")
+		banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Save create cluster into database succeeded")
 		SetResponseBodyJson(c, res.StatusCode, res.Value)
 		return true
 	}
 
 }
 
-func (cs *ClusterSimple) GetAzureClusterStatus(c *gin.Context, db *gorm.DB, log *logrus.Logger) {
+func GetAzureClusterStatus(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 
-	utils.LogInfo(log, utils.TagGetClusterStatus, "Start get cluster status (azure)")
+	banzaiUtils.LogInfo(banzaiConstants.TagGetClusterStatus, "Start get cluster status (azure)")
 
 	if cs == nil {
-		utils.LogInfo(log, utils.TagGetClusterStatus, "<nil> cluster struct")
+		banzaiUtils.LogInfo(banzaiConstants.TagGetClusterStatus, "<nil> cluster struct")
 		SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
 			JsonKeyStatus:  http.StatusInternalServerError,
 			JsonKeyMessage: "",
@@ -230,21 +90,21 @@ func (cs *ClusterSimple) GetAzureClusterStatus(c *gin.Context, db *gorm.DB, log 
 		return
 	}
 
-	utils.LogInfo(log, utils.TagGetClusterStatus, "Load azure props from database")
+	banzaiUtils.LogInfo(banzaiConstants.TagGetClusterStatus, "Load azure props from database")
 
 	// load azure props from db
-	db.Where(AzureSimple{ClusterSimpleId: cs.ID}).First(&cs.Azure)
+	database.SelectFirstWhere(&cs.Azure, banzaiSimpleTypes.AzureClusterSimple{ClusterSimpleId: cs.ID})
 	resp, err := azureClient.GetCluster(cs.Name, cs.Azure.ResourceGroup)
 	if err != nil {
-		utils.LogInfo(log, utils.TagGetClusterStatus, "Error during get cluster info: ", err.Message)
+		banzaiUtils.LogInfo(banzaiConstants.TagGetClusterStatus, "Error during get cluster info: ", err.Message)
 		SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
 			JsonKeyStatus:  http.StatusInternalServerError,
 			JsonKeyMessage: err.Message,
 		})
 	} else {
-		utils.LogInfo(log, utils.TagGetClusterStatus, "Get cluster success")
+		banzaiUtils.LogInfo(banzaiConstants.TagGetClusterStatus, "Get cluster success")
 		stage := resp.Value.Properties.ProvisioningState
-		utils.LogInfo(log, utils.TagGetClusterStatus, "Cluster stage is", stage)
+		banzaiUtils.LogInfo(banzaiConstants.TagGetClusterStatus, "Cluster stage is", stage)
 		var msg string
 		var code int
 		if stage == "Succeeded" {
@@ -262,22 +122,22 @@ func (cs *ClusterSimple) GetAzureClusterStatus(c *gin.Context, db *gorm.DB, log 
 }
 
 // updateClusterAzureInCloud updates azure cluster in cloud
-func (r *UpdateClusterRequest) UpdateClusterAzureInCloud(c *gin.Context, db *gorm.DB, log *logrus.Logger, preCluster ClusterSimple) bool {
+func UpdateClusterAzureInCloud(r *banzaiTypes.UpdateClusterRequest, c *gin.Context, preCluster banzaiSimpleTypes.ClusterSimple) bool {
 
-	utils.LogInfo(log, utils.TagUpdateCluster, "Start updating cluster (azure)")
+	banzaiUtils.LogInfo(banzaiConstants.TagUpdateCluster, "Start updating cluster (azure)")
 
 	if r == nil {
-		utils.LogInfo(log, utils.TagUpdateCluster, "<nil> update cluster")
+		banzaiUtils.LogInfo(banzaiConstants.TagUpdateCluster, "<nil> update cluster")
 		return false
 	}
 
-	cluster2Db := ClusterSimple{
+	cluster2Db := banzaiSimpleTypes.ClusterSimple{
 		Model:            preCluster.Model,
 		Name:             preCluster.Name,
 		Location:         preCluster.Location,
 		NodeInstanceType: preCluster.NodeInstanceType,
 		Cloud:            r.Cloud,
-		Azure: AzureSimple{
+		Azure: banzaiSimpleTypes.AzureClusterSimple{
 			ResourceGroup:     preCluster.Azure.ResourceGroup,
 			AgentCount:        r.UpdateClusterAzure.AgentCount,
 			AgentName:         preCluster.Azure.AgentName,
@@ -297,16 +157,16 @@ func (r *UpdateClusterRequest) UpdateClusterAzureInCloud(c *gin.Context, db *gor
 
 	res, err := azureClient.CreateUpdateCluster(ccr)
 	if err != nil {
-		utils.LogInfo(log, utils.TagUpdateCluster, "Cluster update failed!", err.Message)
+		banzaiUtils.LogInfo(banzaiConstants.TagUpdateCluster, "Cluster update failed!", err.Message)
 		SetResponseBodyJson(c, err.StatusCode, gin.H{
 			JsonKeyStatus:  err.StatusCode,
 			JsonKeyMessage: err.Message,
 		})
 		return false
 	} else {
-		utils.LogInfo(log, utils.TagUpdateCluster, "Cluster update succeeded")
+		banzaiUtils.LogInfo(banzaiConstants.TagUpdateCluster, "Cluster update succeeded")
 		// updateDb
-		if updateClusterInDb(c, db, log, cluster2Db) {
+		if updateClusterInDb(c, cluster2Db) {
 			// success update
 			SetResponseBodyJson(c, res.StatusCode, res.Value)
 			return true
@@ -319,24 +179,24 @@ func (r *UpdateClusterRequest) UpdateClusterAzureInCloud(c *gin.Context, db *gor
 }
 
 // ReadClusterAzure load azure props from cloud to list clusters
-func (cs *ClusterSimple) ReadClusterAzure(log *logrus.Logger) *ClusterRepresentation {
-	utils.LogInfo(log, utils.TagGetCluster, "Read aks cluster with", cs.Name, "id")
+func ReadClusterAzure(cs *banzaiSimpleTypes.ClusterSimple) *ClusterRepresentation {
+	banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Read aks cluster with", cs.Name, "id")
 
 	if cs == nil {
-		utils.LogInfo(log, utils.TagGetCluster, "<nil> cluster")
+		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "<nil> cluster")
 		return nil
 	}
 
 	response, err := azureClient.GetCluster(cs.Name, cs.Azure.ResourceGroup)
 	if err != nil {
-		utils.LogInfo(log, utils.TagGetCluster, "Something went wrong under read:", err)
+		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Something went wrong under read:", err)
 		return nil
 	} else {
-		utils.LogInfo(log, utils.TagGetCluster, "Read cluster success")
+		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Read cluster success")
 		clust := ClusterRepresentation{
 			Id:        cs.ID,
 			Name:      cs.Name,
-			CloudType: Azure,
+			CloudType: banzaiConstants.Azure,
 			AzureRepresentation: &AzureRepresentation{
 				Value: response.Value,
 			},
@@ -346,11 +206,11 @@ func (cs *ClusterSimple) ReadClusterAzure(log *logrus.Logger) *ClusterRepresenta
 }
 
 // GetClusterInfoAzure fetches azure cluster props with the given name and resource group
-func (cs *ClusterSimple) GetClusterInfoAzure(c *gin.Context, log *logrus.Logger) {
-	utils.LogInfo(log, utils.TagGetCluster, "Fetch aks cluster with name:", cs.Name, "in", cs.Azure.ResourceGroup, "resource group.")
+func GetClusterInfoAzure(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
+	banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Fetch aks cluster with name:", cs.Name, "in", cs.Azure.ResourceGroup, "resource group.")
 
 	if cs == nil {
-		utils.LogInfo(log, utils.TagGetCluster, "<nil> cluster")
+		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "<nil> cluster")
 		SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
 			JsonKeyStatus: http.StatusInternalServerError,
 		})
@@ -360,34 +220,34 @@ func (cs *ClusterSimple) GetClusterInfoAzure(c *gin.Context, log *logrus.Logger)
 	response, err := azureClient.GetCluster(cs.Name, cs.Azure.ResourceGroup)
 	if err != nil {
 		// fetch failed
-		utils.LogInfo(log, utils.TagGetCluster, "Status code:", err.StatusCode)
-		utils.LogInfo(log, utils.TagGetCluster, "Error during get cluster details:", err.Message)
+		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Status code:", err.StatusCode)
+		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Error during get cluster details:", err.Message)
 		SetResponseBodyJson(c, err.StatusCode, err)
 	} else {
 		// fetch success
-		utils.LogInfo(log, utils.TagGetCluster, "Status code:", response.StatusCode)
+		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Status code:", response.StatusCode)
 		SetResponseBodyJson(c, response.StatusCode, response)
 	}
 
 }
 
 // deleteAzureCluster deletes cluster from azure
-func (cs *ClusterSimple) DeleteAzureCluster(c *gin.Context, db *gorm.DB, log *logrus.Logger) bool {
+func DeleteAzureCluster(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) bool {
 
-	utils.LogInfo(log, utils.TagGetCluster, "Start delete azure cluster")
+	banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Start delete azure cluster")
 
 	if cs == nil {
-		utils.LogInfo(log, utils.TagGetCluster, "<nil> cluster")
+		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "<nil> cluster")
 		return false
 	}
 
 	// set azure props
-	db.Where(AzureSimple{ClusterSimpleId: cs.ID}).First(&cs.Azure)
-	if cs.DeleteClusterAzure(c, cs.Name, cs.Azure.ResourceGroup) {
-		utils.LogInfo(log, utils.TagGetCluster, "Delete succeeded")
+	database.SelectFirstWhere(&cs.Azure, banzaiSimpleTypes.AzureClusterSimple{ClusterSimpleId: cs.ID})
+	if DeleteClusterAzure(c, cs.Name, cs.Azure.ResourceGroup) {
+		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Delete succeeded")
 		return true
 	} else {
-		utils.LogWarn(log, utils.TagGetCluster, "Can't delete cluster from cloud!")
+		banzaiUtils.LogWarn(banzaiConstants.TagGetCluster, "Can't delete cluster from cloud!")
 		SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
 			JsonKeyStatus:     http.StatusBadRequest,
 			JsonKeyMessage:    "Can't delete cluster!",
