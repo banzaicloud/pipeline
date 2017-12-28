@@ -20,7 +20,7 @@ func GetHomeDir() string {
 	return os.Getenv("HOME")
 }
 
-// convertString2Uint converts a string to uint
+//ConvertString2Uint converts a string to uint
 func ConvertString2Uint(s string) uint {
 	i, err := strconv.ParseInt(s, 10, 32)
 	if err != nil {

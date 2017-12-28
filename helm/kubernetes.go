@@ -50,6 +50,7 @@ func getHelmClient(kubeConfigPath string) (*helm.Client, error) {
 	return hclient, nil
 }
 
+//CheckDeploymentState checks the state of Helm deployment
 func CheckDeploymentState(cluster *cluster.Cluster, releaseName string) (string, error) {
 	var (
 		config *rest.Config

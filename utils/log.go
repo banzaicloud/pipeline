@@ -29,18 +29,22 @@ const (
 	TagAuth                  = "Auth"
 )
 
+//LogInfo logs at info level
 func LogInfo(log *logrus.Logger, tag string, args ...interface{}) {
 	log.Info(getTag(tag), getMessage(args))
 }
 
+//LogError logs at error level
 func LogError(log *logrus.Logger, tag string, args ...interface{}) {
 	log.Error(getTag(tag), getMessage(args))
 }
 
+//LogWarn logs at warn level
 func LogWarn(log *logrus.Logger, tag string, args ...interface{}) {
 	log.Warn(getTag(tag), getMessage(args))
 }
 
+//LogDebug logs at debug level
 func LogDebug(log *logrus.Logger, tag string, args ...interface{}) {
 	log.Debug(getTag(tag), getMessage(args))
 }

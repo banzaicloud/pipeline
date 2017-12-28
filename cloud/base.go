@@ -19,10 +19,13 @@ const (
 )
 
 const (
+	// Amazon - for AWS
 	Amazon = "amazon"
-	Azure  = "azure"
+	// Azure - for AKS
+	Azure = "azure"
 )
 
+// CreateClusterRequest base request
 type CreateClusterRequest struct {
 	Name             string `json:"name" binding:"required"`
 	Location         string `json:"location" binding:"required"`
@@ -34,16 +37,19 @@ type CreateClusterRequest struct {
 	} `json:"properties" binding:"required"`
 }
 
+// UpdateClusterRequest request
 type UpdateClusterRequest struct {
 	Cloud            string `json:"cloud" binding:"required"`
 	UpdateProperties `json:"properties"`
 }
 
+// UpdateProperties cloud specific properties
 type UpdateProperties struct {
 	*UpdateClusterAmazon `json:"amazon"`
 	*UpdateClusterAzure  `json:"azure"`
 }
 
+// ClusterSimple for old (EC2 only) backward compatibility
 type ClusterSimple struct {
 	gorm.Model
 	Name             string `gorm:"unique"`
@@ -54,6 +60,7 @@ type ClusterSimple struct {
 	Azure            AzureSimple
 }
 
+// ClusterRepresentation combines EC2 and AKS
 type ClusterRepresentation struct {
 	Id                    uint   `json:"id"`
 	Name                  string `json:"name"`
@@ -160,7 +167,7 @@ func (r *UpdateClusterRequest) UpdateClusterInCloud(c *gin.Context, db *gorm.DB,
 
 }
 
-// The Validate method checks the request fields
+// Validate method checks the request fields
 func (r *UpdateClusterRequest) Validate(log *logrus.Logger, defaultValue ClusterSimple) (bool, string) {
 
 	switch r.Cloud {
@@ -200,7 +207,7 @@ func DbSaveFailed(c *gin.Context, log *logrus.Logger, err error, clusterName str
 	})
 }
 
-// GetCluster from database
+// GetClusterFromDB from database
 // If no field param was specified automatically use value as ID
 // Else it will use field as query column name
 func GetClusterFromDB(c *gin.Context, db *gorm.DB, log *logrus.Logger) (*ClusterSimple, error) {
@@ -229,6 +236,7 @@ func GetClusterFromDB(c *gin.Context, db *gorm.DB, log *logrus.Logger) (*Cluster
 
 }
 
+//GetClusterSimple legacy EC2
 func GetClusterSimple(c *gin.Context, db *gorm.DB, log *logrus.Logger) (*ClusterSimple, error) {
 	cl, err := GetClusterFromDB(c, db, log)
 	if err != nil {
@@ -237,6 +245,7 @@ func GetClusterSimple(c *gin.Context, db *gorm.DB, log *logrus.Logger) (*Cluster
 	return cl, nil
 }
 
+//DeleteCluster legacy EC2
 func (cs *ClusterSimple) DeleteCluster(c *gin.Context, db *gorm.DB, log *logrus.Logger) bool {
 
 	clusterType := cs.Cloud
@@ -266,6 +275,7 @@ func SendNotSupportedCloudResponse(c *gin.Context, log *logrus.Logger, tag strin
 	})
 }
 
+//GetClusterRepresentation legacy EC2
 func (cs *ClusterSimple) GetClusterRepresentation(db *gorm.DB, log *logrus.Logger) *ClusterRepresentation {
 
 	cloudType := cs.Cloud
@@ -286,6 +296,7 @@ func (cs *ClusterSimple) GetClusterRepresentation(db *gorm.DB, log *logrus.Logge
 	return nil
 }
 
+//FetchClusterInfo legacy EC2
 func (cs *ClusterSimple) FetchClusterInfo(c *gin.Context, db *gorm.DB, log *logrus.Logger) {
 
 	cloudType := cs.Cloud

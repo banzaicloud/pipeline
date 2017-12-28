@@ -26,13 +26,13 @@ const (
 
 // GetAWSCluster creates *cluster.Cluster from ClusterSimple struct
 func (cs *ClusterSimple) GetAWSCluster() *cluster.Cluster {
-	uuid_suffix := uuid.TimeOrderedUUID()
+	uuidSuffix := uuid.TimeOrderedUUID()
 	return &cluster.Cluster{
 		Name:     cs.Name,
 		Cloud:    cluster.CloudAmazon,
 		Location: cs.Location,
 		SSH: &cluster.SSH{
-			Name:          cs.Name + "-" + uuid_suffix,
+			Name:          cs.Name + "-" + uuidSuffix,
 			PublicKeyPath: "/.ssh/id_rsa.pub",
 			User:          "ubuntu",
 		},
@@ -103,7 +103,7 @@ func (cs *ClusterSimple) GetAWSCluster() *cluster.Cluster {
 
 				Firewalls: []*cluster.Firewall{
 					{
-						Name: fmt.Sprintf("%s.master-external-%s", cs.Name, uuid_suffix),
+						Name: fmt.Sprintf("%s.master-external-%s", cs.Name, uuidSuffix),
 						IngressRules: []*cluster.IngressRule{
 							{
 								IngressFromPort: "22",
@@ -185,7 +185,7 @@ func (cs *ClusterSimple) GetAWSCluster() *cluster.Cluster {
 				},
 				Firewalls: []*cluster.Firewall{
 					{
-						Name: fmt.Sprintf("%s.node-external-%s", cs.Name, uuid_suffix),
+						Name: fmt.Sprintf("%s.node-external-%s", cs.Name, uuidSuffix),
 						IngressRules: []*cluster.IngressRule{
 							{
 								IngressFromPort: "22",
@@ -207,15 +207,18 @@ func (cs *ClusterSimple) GetAWSCluster() *cluster.Cluster {
 	}
 }
 
+//CreateClusterAmazon
 type CreateClusterAmazon struct {
 	Node   *CreateAmazonNode   `json:"node"`
 	Master *CreateAmazonMaster `json:"master"`
 }
 
+//UpdateClusterAmazon
 type UpdateClusterAmazon struct {
 	*UpdateAmazonNode `json:"node"`
 }
 
+//CreateAmazonNode
 type CreateAmazonNode struct {
 	SpotPrice string `json:"spotPrice"`
 	MinCount  int    `json:"minCount"`
@@ -223,16 +226,19 @@ type CreateAmazonNode struct {
 	Image     string `json:"image"`
 }
 
+//UpdateAmazonNode
 type UpdateAmazonNode struct {
 	MinCount int `json:"minCount"`
 	MaxCount int `json:"maxCount"`
 }
 
+//CreateAmazonMaster
 type CreateAmazonMaster struct {
 	InstanceType string `json:"instanceType"`
 	Image        string `json:"image"`
 }
 
+//AmazonClusterSimple
 type AmazonClusterSimple struct {
 	ClusterSimpleId    uint `gorm:"primary_key"`
 	NodeSpotPrice      string
@@ -391,6 +397,7 @@ func (r *UpdateClusterRequest) ValidateAmazonRequest(log *logrus.Logger, default
 	return isUpdateEqualsWithStoredCluster(r, preCl, log)
 }
 
+//GetAmazonClusterStatus retrieves the state of the AWS cluster
 func (cs *ClusterSimple) GetAmazonClusterStatus(c *gin.Context, log *logrus.Logger) {
 
 	utils.LogInfo(log, utils.TagGetClusterStatus, "Start get cluster status (amazon)")
@@ -428,7 +435,7 @@ func (cs *ClusterSimple) GetAmazonClusterStatus(c *gin.Context, log *logrus.Logg
 
 }
 
-// UpdateClusterAmazonInCloud updates amazon cluster in cloud
+// UpdateClusterAmazonInCloud updates Amazon cluster in cloud
 func (r *UpdateClusterRequest) UpdateClusterAmazonInCloud(c *gin.Context, db *gorm.DB, log *logrus.Logger, preCluster ClusterSimple) bool {
 
 	utils.LogInfo(log, utils.TagUpdateCluster, "Start updating cluster (amazon)")
@@ -547,6 +554,7 @@ func (request *CreateClusterRequest) CreateClusterAmazon(c *gin.Context, db *gor
 
 }
 
+//GetClusterWithDbCluster legacy AWS
 func (cs *ClusterSimple) GetClusterWithDbCluster(c *gin.Context, log *logrus.Logger) (*cluster.Cluster, error) {
 
 	if cs == nil {
@@ -568,7 +576,7 @@ func (cs *ClusterSimple) GetClusterWithDbCluster(c *gin.Context, log *logrus.Log
 	return cl, nil
 }
 
-// GetCluster based on ClusterSimple object
+// GetKubicornCluster based on ClusterSimple object
 // This will read the persisted Kubicorn cluster format
 func (cs *ClusterSimple) GetKubicornCluster(log *logrus.Logger) (*cluster.Cluster, error) {
 
@@ -587,6 +595,7 @@ func (cs *ClusterSimple) GetKubicornCluster(log *logrus.Logger) (*cluster.Cluste
 	return clust, nil
 }
 
+//GetCluster
 func GetCluster(c *gin.Context, db *gorm.DB, log *logrus.Logger) (*cluster.Cluster, error) {
 	cl, err := GetClusterFromDB(c, db, log)
 	if err != nil {

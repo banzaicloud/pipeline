@@ -8,6 +8,7 @@ import (
 	"net/url"
 )
 
+//GenerateConfig generates prometheus config
 func GenerateConfig(prometheusCfg []PrometheusCfg) []byte {
 	prefix := "/opt/pipeline/statestore"
 
