@@ -3,16 +3,16 @@ package cloud
 import (
 	"fmt"
 
+	"github.com/banzaicloud/pipeline/notify"
+	"github.com/banzaicloud/pipeline/utils"
+	"github.com/gin-gonic/gin"
+	"github.com/go-errors/errors"
+	"github.com/jinzhu/gorm"
 	"github.com/kris-nova/kubicorn/apis/cluster"
 	"github.com/kris-nova/kubicorn/cutil/kubeadm"
 	"github.com/kris-nova/kubicorn/cutil/uuid"
 	"github.com/sirupsen/logrus"
-	"github.com/gin-gonic/gin"
 	"net/http"
-	"github.com/jinzhu/gorm"
-	"github.com/banzaicloud/pipeline/notify"
-	"github.com/banzaicloud/pipeline/utils"
-	"github.com/go-errors/errors"
 )
 
 const (

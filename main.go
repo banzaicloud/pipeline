@@ -14,6 +14,7 @@ import (
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/monitor"
 	"github.com/banzaicloud/pipeline/notify"
+	"github.com/banzaicloud/pipeline/utils"
 	"github.com/ghodss/yaml"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -22,7 +23,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"k8s.io/helm/pkg/timeconv"
-	"github.com/banzaicloud/pipeline/utils"
 )
 
 //nodeInstanceType=m3.medium -d nodeInstanceSpotPrice=0.04 -d nodeMin=1 -d nodeMax=3 -d image=ami-6d48500b

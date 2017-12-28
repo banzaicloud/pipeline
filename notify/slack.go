@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/banzaicloud/pipeline/conf"
+	"github.com/banzaicloud/pipeline/utils"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
-	"github.com/banzaicloud/pipeline/utils"
 )
 
 //Slack message definition
