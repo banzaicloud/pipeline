@@ -5,15 +5,15 @@ import (
 	"encoding/pem"
 	"fmt"
 	"github.com/auth0-community/go-auth0"
+	"github.com/banzaicloud/pipeline/cloud"
 	"github.com/banzaicloud/pipeline/conf"
+	"github.com/banzaicloud/pipeline/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"gopkg.in/square/go-jose.v2"
 	"io/ioutil"
 	"net/http"
 	"strings"
-	"github.com/banzaicloud/pipeline/cloud"
-	"github.com/banzaicloud/pipeline/utils"
 )
 
 var log = conf.Logger()

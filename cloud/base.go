@@ -1,15 +1,15 @@
 package cloud
 
 import (
-	"github.com/jinzhu/gorm"
+	"bytes"
+	"errors"
+	"fmt"
+	"github.com/banzaicloud/pipeline/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 	"net/http"
-	"fmt"
-	"bytes"
 	"reflect"
-	"errors"
-	"github.com/banzaicloud/pipeline/utils"
 )
 
 const (
@@ -28,14 +28,14 @@ type CreateClusterRequest struct {
 	Location         string `json:"location" binding:"required"`
 	Cloud            string `json:"cloud" binding:"required"`
 	NodeInstanceType string `json:"nodeInstanceType" binding:"required"`
-	Properties struct {
+	Properties       struct {
 		CreateClusterAmazon *CreateClusterAmazon `json:"amazon"`
 		CreateClusterAzure  *CreateClusterAzure  `json:"azure"`
 	} `json:"properties" binding:"required"`
 }
 
 type UpdateClusterRequest struct {
-	Cloud string     `json:"cloud" binding:"required"`
+	Cloud            string `json:"cloud" binding:"required"`
 	UpdateProperties `json:"properties"`
 }
 
@@ -55,9 +55,9 @@ type ClusterSimple struct {
 }
 
 type ClusterRepresentation struct {
-	Id        uint        `json:"id"`
-	Name      string      `json:"name"`
-	CloudType string      `json:"cloud"`
+	Id                    uint   `json:"id"`
+	Name                  string `json:"name"`
+	CloudType             string `json:"cloud"`
 	*AmazonRepresentation `json:"amazon"`
 	*AzureRepresentation  `json:"azure"`
 }

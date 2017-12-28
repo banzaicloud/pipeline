@@ -1,13 +1,13 @@
 package cloud
 
 import (
-	"github.com/sirupsen/logrus"
+	azureClient "github.com/banzaicloud/azure-aks-client/client"
+	azureCluster "github.com/banzaicloud/azure-aks-client/cluster"
+	"github.com/banzaicloud/pipeline/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
+	"github.com/sirupsen/logrus"
 	"net/http"
-	azureCluster "github.com/banzaicloud/azure-aks-client/cluster"
-	azureClient "github.com/banzaicloud/azure-aks-client/client"
-	"github.com/banzaicloud/pipeline/utils"
 )
 
 const (

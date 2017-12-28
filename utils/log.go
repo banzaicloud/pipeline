@@ -1,9 +1,9 @@
 package utils
 
 import (
-	"github.com/sirupsen/logrus"
 	"bytes"
 	"fmt"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -29,19 +29,19 @@ const (
 	TagAuth                  = "Auth"
 )
 
-func LogInfo(log *logrus.Logger, tag string, args ... interface{}) {
+func LogInfo(log *logrus.Logger, tag string, args ...interface{}) {
 	log.Info(getTag(tag), getMessage(args))
 }
 
-func LogError(log *logrus.Logger, tag string, args ... interface{}) {
+func LogError(log *logrus.Logger, tag string, args ...interface{}) {
 	log.Error(getTag(tag), getMessage(args))
 }
 
-func LogWarn(log *logrus.Logger, tag string, args ... interface{}) {
+func LogWarn(log *logrus.Logger, tag string, args ...interface{}) {
 	log.Warn(getTag(tag), getMessage(args))
 }
 
-func LogDebug(log *logrus.Logger, tag string, args ... interface{}) {
+func LogDebug(log *logrus.Logger, tag string, args ...interface{}) {
 	log.Debug(getTag(tag), getMessage(args))
 }
 

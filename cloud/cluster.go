@@ -5,16 +5,16 @@ import (
 	"strconv"
 	"time"
 
+	azureClient "github.com/banzaicloud/azure-aks-client/client"
+	"github.com/banzaicloud/pipeline/utils"
+	"github.com/gin-gonic/gin"
 	"github.com/kris-nova/kubicorn/apis/cluster"
 	"github.com/kris-nova/kubicorn/cutil"
 	"github.com/kris-nova/kubicorn/cutil/initapi"
-	"github.com/spf13/viper"
-	azureClient "github.com/banzaicloud/azure-aks-client/client"
-	"github.com/gin-gonic/gin"
+	"github.com/kris-nova/kubicorn/cutil/logger"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/kris-nova/kubicorn/cutil/logger"
-	"github.com/banzaicloud/pipeline/utils"
+	"github.com/spf13/viper"
 )
 
 const (
