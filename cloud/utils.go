@@ -229,6 +229,7 @@ func getSigner(pemBytes []byte) (ssh.Signer, error) {
 	return signerwithoutpassphrase, err
 }
 
+//SetResponseBodyJson
 func SetResponseBodyJson(c *gin.Context, statusCode int, obj interface{}) {
 	c.JSON(statusCode, obj)
 }

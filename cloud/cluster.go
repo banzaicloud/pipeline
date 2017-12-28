@@ -48,9 +48,9 @@ func CreateCluster(clusterType ClusterSimple, log *logrus.Logger) (*cluster.Clus
 	newCluster := clusterType.GetAWSCluster()
 
 	//Inject configuration parameters
-	ssh_key_path := viper.GetString("dev.keypath")
-	if ssh_key_path != "" {
-		newCluster.SSH.PublicKeyPath = ssh_key_path
+	sshKeyPath := viper.GetString("dev.keypath")
+	if sshKeyPath != "" {
+		newCluster.SSH.PublicKeyPath = sshKeyPath
 		utils.LogDebug(log, utils.TagCreateCluster, "Overwriting default SSH key path to:", newCluster.SSH.PublicKeyPath)
 	}
 
@@ -132,7 +132,7 @@ func (cs *ClusterSimple) DeleteClusterAzure(c *gin.Context, name string, resourc
 	}
 }
 
-// DeleteCluster deletes a cluster from the cloud
+// DeleteClusterAmazon deletes a cluster from the cloud
 func (cs *ClusterSimple) DeleteClusterAmazon(log *logrus.Logger) (*cluster.Cluster, error) {
 
 	logger.Level = 4
@@ -200,7 +200,7 @@ func GetKubeConfig(existing *cluster.Cluster) error {
 	return err
 }
 
-// UpdateCluster updates a cluster in the cloud (e.g. autoscales)
+// UpdateClusterAws updates a cluster in the cloud (e.g. autoscales)
 func UpdateClusterAws(ccs ClusterSimple, log *logrus.Logger) (*cluster.Cluster, error) {
 
 	logger.Level = 4

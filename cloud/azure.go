@@ -16,14 +16,17 @@ const (
 	azureDefaultKubernetesVersion = "1.7.7"
 )
 
+//CreateClusterAzure
 type CreateClusterAzure struct {
 	Node *CreateAzureNode `json:"node"`
 }
 
+//UpdateClusterAzure
 type UpdateClusterAzure struct {
 	*UpdateAzureNode `json:"node"`
 }
 
+//CreateAzureNode
 type CreateAzureNode struct {
 	ResourceGroup     string `json:"resourceGroup"`
 	AgentCount        int    `json:"agentCount"`
@@ -31,10 +34,12 @@ type CreateAzureNode struct {
 	KubernetesVersion string `json:"kubernetesVersion"`
 }
 
+//UpdateAzureNode
 type UpdateAzureNode struct {
 	AgentCount int `json:"agentCount"`
 }
 
+//AzureSimple
 type AzureSimple struct {
 	ClusterSimpleId   uint `gorm:"primary_key"`
 	ResourceGroup     string
@@ -43,6 +48,7 @@ type AzureSimple struct {
 	KubernetesVersion string
 }
 
+//AzureRepresentation
 type AzureRepresentation struct {
 	Value azureClient.Value `json:"value"`
 }
@@ -261,7 +267,7 @@ func (cs *ClusterSimple) GetAzureClusterStatus(c *gin.Context, db *gorm.DB, log 
 	}
 }
 
-// updateClusterAzureInCloud updates azure cluster in cloud
+// UpdateClusterAzureInCloud updates azure cluster in cloud
 func (r *UpdateClusterRequest) UpdateClusterAzureInCloud(c *gin.Context, db *gorm.DB, log *logrus.Logger, preCluster ClusterSimple) bool {
 
 	utils.LogInfo(log, utils.TagUpdateCluster, "Start updating cluster (azure)")
@@ -371,7 +377,7 @@ func (cs *ClusterSimple) GetClusterInfoAzure(c *gin.Context, log *logrus.Logger)
 
 }
 
-// deleteAzureCluster deletes cluster from azure
+// DeleteAzureCluster deletes cluster from azure
 func (cs *ClusterSimple) DeleteAzureCluster(c *gin.Context, db *gorm.DB, log *logrus.Logger) bool {
 
 	utils.LogInfo(log, utils.TagGetCluster, "Start delete azure cluster")

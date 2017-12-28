@@ -19,6 +19,7 @@ type prometheusTarget struct {
 	Labels  map[string]string `json:"labels"`
 }
 
+//PrometheusCfg
 type PrometheusCfg struct {
 	Endpoint string
 	Name     string

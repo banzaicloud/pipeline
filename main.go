@@ -39,7 +39,11 @@ type DeploymentType struct {
 
 var log *logrus.Logger
 var db *gorm.DB
+
+//Version of Pipeline
 var Version string
+
+//GitRev of Pipeline
 var GitRev string
 
 func main() {
@@ -764,7 +768,7 @@ func Auth0Test(c *gin.Context) {
 	})
 }
 
-//FetchClusters fetches all the K8S clusters from the cloud
+//Status
 func Status(c *gin.Context) {
 	var clusters []cloud.ClusterSimple
 
