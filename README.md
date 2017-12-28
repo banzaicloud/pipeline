@@ -1,6 +1,6 @@
 [![CircleCI](https://circleci.com/gh/banzaicloud/pipeline/tree/master.svg?style=shield)](https://circleci.com/gh/banzaicloud/pipeline/tree/master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/banzaicloud/pipeline)](https://goreportcard.com/report/github.com/banzaicloud/pipeline)
-[![license](http://img.shields.io/badge/license-Apache%20v2-orange.svg)]
+![license](http://img.shields.io/badge/license-Apache%20v2-orange.svg)
 
 
 _Banzai Pipeline, or simply Pipeline is a tabletop reef break located in Hawaii, Oahu's North Shore. The most famous and infamous reef on the planet is forming the benchmark by which all other waves are measured._
