@@ -9,12 +9,12 @@ import (
 	"k8s.io/helm/pkg/helm/portforwarder"
 	"k8s.io/helm/pkg/kube"
 
-	"github.com/banzaicloud/pipeline/conf"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"fmt"
 	"github.com/banzaicloud/pipeline/cloud"
-	"k8s.io/api/core/v1"
+	"github.com/banzaicloud/pipeline/conf"
 	"github.com/kris-nova/kubicorn/apis/cluster"
+	"k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var log = conf.Logger()
@@ -78,7 +78,7 @@ func CheckDeploymentState(cluster *cluster.Cluster, releaseName string) (string,
 	}
 	for _, pod := range podList.Items {
 		log.Debugf("PodStatus: %s", pod.Status.Phase)
-		if pod.Status.Phase ==  v1.PodRunning {
+		if pod.Status.Phase == v1.PodRunning {
 			continue
 		} else {
 			state = pod.Status.Phase
