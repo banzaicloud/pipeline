@@ -6,6 +6,7 @@ import (
 	azureCluster "github.com/banzaicloud/azure-aks-client/cluster"
 	azureClient "github.com/banzaicloud/azure-aks-client/client"
 	banzaiTypes "github.com/banzaicloud/banzai-types/components"
+	banzaiAzureTypes "github.com/banzaicloud/banzai-types/components/azure"
 	banzaiSimpleTypes "github.com/banzaicloud/banzai-types/components/database"
 	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
 	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
@@ -13,7 +14,7 @@ import (
 )
 
 type AzureRepresentation struct {
-	Value azureClient.Value `json:"value"`
+	Value banzaiAzureTypes.Value `json:"value"`
 }
 
 // CreateClusterAzure creates azure cluster in the cloud

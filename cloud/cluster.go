@@ -12,7 +12,6 @@ import (
 	azureClient "github.com/banzaicloud/azure-aks-client/client"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"github.com/kris-nova/kubicorn/cutil/logger"
 	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
 	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
@@ -124,14 +123,9 @@ func CreateCluster(clusterType banzaiSimpleTypes.ClusterSimple) (*cluster.Cluste
 
 // DeleteClusterAzure deletes cluster from azure
 func DeleteClusterAzure(c *gin.Context, name string, resourceGroup string) bool {
-	res, err := azureClient.DeleteCluster(name, resourceGroup)
-	if err != nil {
-		SetResponseBodyJson(c, err.StatusCode, gin.H{"status": err.StatusCode, "message": err.Message})
-		return false
-	} else {
-		SetResponseBodyJson(c, res.StatusCode, res)
-		return true
-	}
+	res, success := azureClient.DeleteCluster(name, resourceGroup)
+	SetResponseBodyJson(c, res.StatusCode, res)
+	return success
 }
 
 // DeleteCluster deletes a cluster from the cloud
@@ -272,14 +266,14 @@ func UpdateClusterAws(ccs banzaiSimpleTypes.ClusterSimple) (*cluster.Cluster, er
 }
 
 // Wait for K8S
-func awaitKubernetesCluster(existing banzaiSimpleTypes.ClusterSimple, log *logrus.Logger) (bool, error) {
+func awaitKubernetesCluster(existing banzaiSimpleTypes.ClusterSimple) (bool, error) {
 	success := false
 	existingCluster, _ := getStateStoreForCluster(existing).GetCluster()
 
 	for i := 0; i < apiSocketAttempts; i++ {
 		_, err := IsKubernetesClusterAvailable(existingCluster)
 		if err != nil {
-			log.Info("Attempting to open a socket to the Kubernetes API: %v...\n", err)
+			banzaiUtils.LogInfo(banzaiConstants.TagGetClusterInfo, "Attempting to open a socket to the Kubernetes API: %v...\n", err)
 			time.Sleep(time.Duration(apiSleepSeconds) * time.Second)
 			continue
 		}

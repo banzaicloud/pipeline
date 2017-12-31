@@ -8,34 +8,20 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/banzaicloud/azure-aks-client/cluster"
-	log "github.com/sirupsen/logrus"
+	banzaiTypes "github.com/banzaicloud/banzai-types/components"
+	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
+	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
 	"encoding/json"
 )
 
 var sdk cluster.Sdk
-
-const (
-	OK                = 200
-	Created           = 201
-	Accepted          = 202
-	NoContent         = 204
-	InternalErrorCode = 500
-	BadRequest        = 400
-)
-
-func init() {
-	// Log as JSON
-	log.SetFormatter(&log.JSONFormatter{})
-	log.SetOutput(os.Stdout)
-	log.SetLevel(log.InfoLevel)
-}
 
 const azureClientId = "AZURE_CLIENT_ID"
 const azureClientSecret = "AZURE_CLIENT_SECRET"
 const azureSubscriptionId = "AZURE_SUBSCRIPTION_ID"
 const azureTenantId = "AZURE_TENANT_ID"
 
-func Authenticate() (*cluster.Sdk, *AzureErrorResponse) {
+func Authenticate() (*cluster.Sdk, *banzaiTypes.BanzaiResponse) {
 	clientId := os.Getenv(azureClientId)
 	clientSecret := os.Getenv(azureClientSecret)
 	subscriptionId := os.Getenv(azureSubscriptionId)
@@ -91,17 +77,12 @@ func GetSdk() *cluster.Sdk {
 	return &sdk
 }
 
-type AzureErrorResponse struct {
-	StatusCode int    `json:"status_code"`
-	Message    string `json:"message"`
-}
-
 type AzureServerError struct {
 	Message string `json:"message"`
 }
 
 func CreateErrorFromValue(statusCode int, v []byte) AzureServerError {
-	if statusCode == BadRequest {
+	if statusCode == banzaiConstants.BadRequest {
 		ase := AzureServerError{}
 		json.Unmarshal([]byte(v), &ase)
 		return ase
@@ -117,19 +98,14 @@ func CreateErrorFromValue(statusCode int, v []byte) AzureServerError {
 	}
 }
 
-func (e AzureErrorResponse) ToString() string {
-	jsonResponse, _ := json.Marshal(e)
-	return string(jsonResponse)
-}
-
-func CreateEnvErrorResponse(env string) *AzureErrorResponse {
+func CreateEnvErrorResponse(env string) *banzaiTypes.BanzaiResponse {
 	message := "Environmental variable is empty: " + env
-	log.WithFields(log.Fields{"error": "environmental_error"}).Error(message)
-	return &AzureErrorResponse{StatusCode: InternalErrorCode, Message: message}
+	banzaiUtils.LogError(banzaiConstants.TagInit, "environmental_error")
+	return &banzaiTypes.BanzaiResponse{StatusCode: banzaiConstants.InternalErrorCode, Message: message}
 }
 
-func CreateAuthErrorResponse(err error) *AzureErrorResponse {
+func CreateAuthErrorResponse(err error) *banzaiTypes.BanzaiResponse {
 	errMsg := "Failed to authenticate with Azure"
-	log.WithFields(log.Fields{"Authentication error": err}).Error(errMsg)
-	return &AzureErrorResponse{StatusCode: InternalErrorCode, Message: errMsg}
+	banzaiUtils.LogError(banzaiConstants.TagAuth, "Authentication error:", err)
+	return &banzaiTypes.BanzaiResponse{StatusCode: banzaiConstants.InternalErrorCode, Message: errMsg}
 }
