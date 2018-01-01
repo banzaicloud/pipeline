@@ -5,17 +5,18 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/kris-nova/kubicorn/apis/cluster"
-	"github.com/kris-nova/kubicorn/cutil"
-	"github.com/kris-nova/kubicorn/cutil/initapi"
-	"github.com/spf13/viper"
 	azureClient "github.com/banzaicloud/azure-aks-client/client"
-	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
-	"github.com/kris-nova/kubicorn/cutil/logger"
 	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
 	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
 	banzaiSimpleTypes "github.com/banzaicloud/banzai-types/components/database"
+
+	"github.com/gin-gonic/gin"
+	"github.com/kris-nova/kubicorn/apis/cluster"
+	"github.com/kris-nova/kubicorn/cutil"
+	"github.com/kris-nova/kubicorn/cutil/initapi"
+	"github.com/kris-nova/kubicorn/cutil/logger"
+	"github.com/pkg/errors"
+	"github.com/spf13/viper"
 )
 
 const (
@@ -49,9 +50,9 @@ func CreateCluster(clusterType banzaiSimpleTypes.ClusterSimple) (*cluster.Cluste
 	newCluster := GetAWSCluster(&clusterType)
 
 	//Inject configuration parameters
-	ssh_key_path := viper.GetString("dev.keypath")
-	if ssh_key_path != "" {
-		newCluster.SSH.PublicKeyPath = ssh_key_path
+	sshKeyPath := viper.GetString("dev.keypath")
+	if sshKeyPath != "" {
+		newCluster.SSH.PublicKeyPath = sshKeyPath
 		banzaiUtils.LogDebug(banzaiConstants.TagCreateCluster, "Overwriting default SSH key path to:", newCluster.SSH.PublicKeyPath)
 	}
 
@@ -114,7 +115,7 @@ func CreateCluster(clusterType banzaiSimpleTypes.ClusterSimple) (*cluster.Cluste
 	banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Get state store")
 	stateStore := getStateStoreForCluster(clusterType)
 	if stateStore.Exists() {
-		return nil, fmt.Errorf("State store [%s] exists, will not overwrite", clusterType.Name)
+		return nil, fmt.Errorf("state store [%s] exists, will not overwrite", clusterType.Name)
 	}
 	stateStore.Commit(created)
 
@@ -128,7 +129,7 @@ func DeleteClusterAzure(c *gin.Context, name string, resourceGroup string) bool 
 	return success
 }
 
-// DeleteCluster deletes a cluster from the cloud
+// DeleteClusterAmazon deletes a cluster from the cloud
 func DeleteClusterAmazon(cs *banzaiSimpleTypes.ClusterSimple) (*cluster.Cluster, error) {
 
 	logger.Level = 4
@@ -196,7 +197,7 @@ func GetKubeConfig(existing *cluster.Cluster) error {
 	return err
 }
 
-// UpdateCluster updates a cluster in the cloud (e.g. autoscales)
+// UpdateClusterAws updates a cluster in the cloud (e.g. autoscales)
 func UpdateClusterAws(ccs banzaiSimpleTypes.ClusterSimple) (*cluster.Cluster, error) {
 
 	logger.Level = 4

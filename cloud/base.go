@@ -1,10 +1,10 @@
 package cloud
 
 import (
+	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"fmt"
-	"errors"
 	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
 	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
 	banzaiTypes "github.com/banzaicloud/banzai-types/components"
@@ -12,6 +12,7 @@ import (
 	"github.com/banzaicloud/banzai-types/database"
 )
 
+// ClusterRepresentation combines EC2 and AKS
 type ClusterRepresentation struct {
 	Id        uint        `json:"id"`
 	Name      string      `json:"name"`
@@ -79,7 +80,7 @@ func DbSaveFailed(c *gin.Context, err error, clusterName string) {
 	})
 }
 
-// GetCluster from database
+// GetClusterFromDB from database
 // If no field param was specified automatically use value as ID
 // Else it will use field as query column name
 func GetClusterFromDB(c *gin.Context) (*banzaiSimpleTypes.ClusterSimple, error) {
@@ -108,6 +109,7 @@ func GetClusterFromDB(c *gin.Context) (*banzaiSimpleTypes.ClusterSimple, error) 
 
 }
 
+//GetClusterSimple legacy EC2
 func GetClusterSimple(c *gin.Context) (*banzaiSimpleTypes.ClusterSimple, error) {
 	cl, err := GetClusterFromDB(c)
 	if err != nil {
@@ -116,6 +118,7 @@ func GetClusterSimple(c *gin.Context) (*banzaiSimpleTypes.ClusterSimple, error) 
 	return cl, nil
 }
 
+//DeleteCluster legacy EC2
 func DeleteCluster(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) bool {
 
 	clusterType := cs.Cloud
@@ -145,6 +148,7 @@ func SendNotSupportedCloudResponse(c *gin.Context, tag string) {
 	})
 }
 
+//GetClusterRepresentation legacy EC2
 func GetClusterRepresentation(cs *banzaiSimpleTypes.ClusterSimple) *ClusterRepresentation {
 
 	cloudType := cs.Cloud
@@ -165,6 +169,7 @@ func GetClusterRepresentation(cs *banzaiSimpleTypes.ClusterSimple) *ClusterRepre
 	return nil
 }
 
+//FetchClusterInfo legacy EC2
 func FetchClusterInfo(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 
 	cloudType := cs.Cloud

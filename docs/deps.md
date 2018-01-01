@@ -1,6 +1,6 @@
 ## Dependency Management
 
-Vendoring all dependencied is essential to have a **go get**-able package.
+Vendoring all dependencies is essential to have a **go get**-able package.
 
 Tools needed:
 
@@ -34,7 +34,7 @@ glide.yaml:
 If you are using a specific branch/tag like v1.2.0 in glide.yaml, just change it to the 
 new version.
 
-Otherwise if you havn't picked a branch/tag and just used the latest master, you will
+Otherwise if you haven't picked a branch/tag and just used the latest master, you will
 have a commit sha in glide.lock. Due to a [bug in glide](https://github.com/Masterminds/glide/issues/592)
 it will be stuck on that sha.
 To fix it, you have to specify **master** (or a branch/tag) in **glide.yaml**:
@@ -61,4 +61,3 @@ see GH issues:
 
 - [k8s.io/client-go#83](https://github.com/kubernetes/client-go/issues/83)
 - [golang/deps#1207](https://github.com/golang/dep/issues/1207)
-

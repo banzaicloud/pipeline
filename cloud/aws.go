@@ -3,13 +3,14 @@ package cloud
 import (
 	"fmt"
 
+	"github.com/banzaicloud/pipeline/notify"
+	"github.com/gin-gonic/gin"
+	"github.com/go-errors/errors"
 	"github.com/kris-nova/kubicorn/apis/cluster"
 	"github.com/kris-nova/kubicorn/cutil/kubeadm"
 	"github.com/kris-nova/kubicorn/cutil/uuid"
-	"github.com/gin-gonic/gin"
 	"net/http"
-	"github.com/banzaicloud/pipeline/notify"
-	"github.com/go-errors/errors"
+
 	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
 	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
 	banzaiTypes "github.com/banzaicloud/banzai-types/components"
@@ -19,13 +20,13 @@ import (
 
 // GetAWSCluster creates *cluster.Cluster from ClusterSimple struct
 func GetAWSCluster(cs *banzaiSimpleTypes.ClusterSimple) *cluster.Cluster {
-	uuid_suffix := uuid.TimeOrderedUUID()
+	uuidSuffix := uuid.TimeOrderedUUID()
 	return &cluster.Cluster{
 		Name:     cs.Name,
 		Cloud:    cluster.CloudAmazon,
 		Location: cs.Location,
 		SSH: &cluster.SSH{
-			Name:          cs.Name + "-" + uuid_suffix,
+			Name:          cs.Name + "-" + uuidSuffix,
 			PublicKeyPath: "/.ssh/id_rsa.pub",
 			User:          "ubuntu",
 		},
@@ -96,7 +97,7 @@ func GetAWSCluster(cs *banzaiSimpleTypes.ClusterSimple) *cluster.Cluster {
 
 				Firewalls: []*cluster.Firewall{
 					{
-						Name: fmt.Sprintf("%s.master-external-%s", cs.Name, uuid_suffix),
+						Name: fmt.Sprintf("%s.master-external-%s", cs.Name, uuidSuffix),
 						IngressRules: []*cluster.IngressRule{
 							{
 								IngressFromPort: "22",
@@ -178,7 +179,7 @@ func GetAWSCluster(cs *banzaiSimpleTypes.ClusterSimple) *cluster.Cluster {
 				},
 				Firewalls: []*cluster.Firewall{
 					{
-						Name: fmt.Sprintf("%s.node-external-%s", cs.Name, uuid_suffix),
+						Name: fmt.Sprintf("%s.node-external-%s", cs.Name, uuidSuffix),
 						IngressRules: []*cluster.IngressRule{
 							{
 								IngressFromPort: "22",
@@ -237,7 +238,7 @@ func GetAmazonClusterStatus(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context)
 
 }
 
-// UpdateClusterAmazonInCloud updates amazon cluster in cloud
+// UpdateClusterAmazonInCloud updates Amazon cluster in cloud
 func UpdateClusterAmazonInCloud(r *banzaiTypes.UpdateClusterRequest, c *gin.Context, preCluster banzaiSimpleTypes.ClusterSimple) bool {
 
 	banzaiUtils.LogInfo(banzaiConstants.TagUpdateCluster, "Start updating cluster (amazon)")
@@ -356,6 +357,7 @@ func CreateClusterAmazon(request *banzaiTypes.CreateClusterRequest, c *gin.Conte
 
 }
 
+//GetClusterWithDbCluster legacy AWS
 func GetClusterWithDbCluster(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) (*cluster.Cluster, error) {
 
 	if cs == nil {
@@ -377,7 +379,7 @@ func GetClusterWithDbCluster(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context
 	return cl, nil
 }
 
-// GetCluster based on ClusterSimple object
+// GetKubicornCluster based on ClusterSimple object
 // This will read the persisted Kubicorn cluster format
 func GetKubicornCluster(cs *banzaiSimpleTypes.ClusterSimple) (*cluster.Cluster, error) {
 
@@ -396,6 +398,7 @@ func GetKubicornCluster(cs *banzaiSimpleTypes.ClusterSimple) (*cluster.Cluster, 
 	return clust, nil
 }
 
+//GetCluster
 func GetCluster(c *gin.Context) (*cluster.Cluster, error) {
 	cl, err := GetClusterFromDB(c)
 	if err != nil {

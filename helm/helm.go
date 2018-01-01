@@ -109,7 +109,7 @@ func UpgradeDeployment(cluster *cluster.Cluster, deploymentName, chartName strin
 
 //CreateDeployment creates a Helm deployment
 func CreateDeployment(cluster *cluster.Cluster, chartName string, releaseName string, valueOverrides []byte) (*rls.InstallReleaseResponse, error) {
-  defer tearDown()
+	defer tearDown()
 	chartRequested, err := chartutil.Load(chartName)
 	if err != nil {
 		return nil, fmt.Errorf("Error loading chart: %v", err)

@@ -1,18 +1,21 @@
 package cloud
 
 import (
-	"github.com/gin-gonic/gin"
-	"net/http"
-	azureCluster "github.com/banzaicloud/azure-aks-client/cluster"
 	azureClient "github.com/banzaicloud/azure-aks-client/client"
+	azureCluster "github.com/banzaicloud/azure-aks-client/cluster"
 	banzaiTypes "github.com/banzaicloud/banzai-types/components"
 	banzaiAzureTypes "github.com/banzaicloud/banzai-types/components/azure"
 	banzaiSimpleTypes "github.com/banzaicloud/banzai-types/components/database"
 	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
 	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
+
+	"github.com/gin-gonic/gin"
+	"net/http"
+
 	"github.com/banzaicloud/banzai-types/database"
 )
 
+//AzureRepresentation
 type AzureRepresentation struct {
 	Value banzaiAzureTypes.Value `json:"value"`
 }
@@ -122,7 +125,7 @@ func GetAzureClusterStatus(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) 
 	}
 }
 
-// updateClusterAzureInCloud updates azure cluster in cloud
+// UpdateClusterAzureInCloud updates azure cluster in cloud
 func UpdateClusterAzureInCloud(r *banzaiTypes.UpdateClusterRequest, c *gin.Context, preCluster banzaiSimpleTypes.ClusterSimple) bool {
 
 	banzaiUtils.LogInfo(banzaiConstants.TagUpdateCluster, "Start updating cluster (azure)")
@@ -174,9 +177,7 @@ func UpdateClusterAzureInCloud(r *banzaiTypes.UpdateClusterRequest, c *gin.Conte
 		} else {
 			return false
 		}
-
 	}
-
 }
 
 // ReadClusterAzure load azure props from cloud to list clusters
@@ -232,7 +233,7 @@ func GetClusterInfoAzure(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 
 }
 
-// deleteAzureCluster deletes cluster from azure
+// DeleteAzureCluster deletes cluster from azure
 func DeleteAzureCluster(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) bool {
 
 	banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Start delete azure cluster")

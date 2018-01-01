@@ -2,7 +2,6 @@ package utils
 
 import (
 	"os"
-	"strconv"
 )
 
 //GetEnv retrieves ENV variable, fallback if not set

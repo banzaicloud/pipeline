@@ -5,13 +5,14 @@ import (
 	"encoding/pem"
 	"fmt"
 	"github.com/auth0-community/go-auth0"
+	"github.com/banzaicloud/pipeline/cloud"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"gopkg.in/square/go-jose.v2"
 	"io/ioutil"
 	"net/http"
 	"strings"
-	"github.com/banzaicloud/pipeline/cloud"
+
 	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
 	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
 )
@@ -25,6 +26,7 @@ var validator *auth0.JWTValidator
 //ApiGroup is grouping name for the token
 var ApiGroup = "ApiGroup"
 
+//Init
 func Init() {
 	pubKey := viper.GetString("dev.auth0pub")
 	banzaiUtils.LogInfo(banzaiConstants.TagAuth, "PubKey", pubKey)

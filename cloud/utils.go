@@ -13,13 +13,13 @@ import (
 	"time"
 
 	"github.com/banzaicloud/pipeline/notify"
+	"github.com/gin-gonic/gin"
 	"github.com/kris-nova/kubicorn/apis/cluster"
 	"github.com/kris-nova/kubicorn/cutil/logger"
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/agent"
 	"golang.org/x/crypto/ssh/terminal"
-	"github.com/gin-gonic/gin"
 	"k8s.io/client-go/tools/clientcmd"
 	banzaiSimpleTypes "github.com/banzaicloud/banzai-types/components/database"
 )
@@ -230,6 +230,7 @@ func getSigner(pemBytes []byte) (ssh.Signer, error) {
 	return signerwithoutpassphrase, err
 }
 
+//SetResponseBodyJson
 func SetResponseBodyJson(c *gin.Context, statusCode int, obj interface{}) {
 	c.JSON(statusCode, obj)
 }

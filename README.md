@@ -1,5 +1,6 @@
-[![CircleCI](https://circleci.com/gh/banzaicloud/pipeline/tree/master.svg?style=svg)](https://circleci.com/gh/banzaicloud/pipeline/tree/master)
+[![CircleCI](https://circleci.com/gh/banzaicloud/pipeline/tree/master.svg?style=shield)](https://circleci.com/gh/banzaicloud/pipeline/tree/master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/banzaicloud/pipeline)](https://goreportcard.com/report/github.com/banzaicloud/pipeline)
+![license](http://img.shields.io/badge/license-Apache%20v2-orange.svg)
 
 
 _Banzai Pipeline, or simply Pipeline is a tabletop reef break located in Hawaii, Oahu's North Shore. The most famous and infamous reef on the planet is forming the benchmark by which all other waves are measured._
@@ -20,6 +21,7 @@ _Pipeline is a RESTful API to deploy **cloud native** microservices in public cl
   - [Deployed cluster](#deployed-cluster)
   - [The Pipeline Platform - PaaS](#the-pipeline-platform-paas)
 - [Installation](#installation)
+- [Dependency management](#vendoring)
 - [Create and scale your cluster](#create-and-scale-your-cluster)
 - [Quick howto](#pipeline-howto)
 - [Spotguide specification](#spotguide-specification)
@@ -105,6 +107,10 @@ For the platform's end user a typical Pipeline interaction starts with a GitHub 
 ### Installation
 
 Pipeline API deploys microservice based applications using the REST API. Unlike the Pipeline Platform, the API has no explicit knowledge about `spotguides`, the CI/CD pipeline, or the application type. It merely provisions the cloud infrastructure (or reuses), deploys the containers through Helm and applies cluster reconciliation/SLA rules. In order to try the API follow the [installation guide](docs/install.md).
+
+### Vendoring
+
+Vendoring all dependencies is essential to have a **go get**-able package. Go vendoring in combination with Kubernetes is quiet tricky - we came up with a `solution` described in [dependency management guide](docs/deps.md).
 
 ### Create and scale your cluster
 

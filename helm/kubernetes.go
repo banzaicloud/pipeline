@@ -9,11 +9,12 @@ import (
 	"k8s.io/helm/pkg/helm/portforwarder"
 	"k8s.io/helm/pkg/kube"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"fmt"
 	"github.com/banzaicloud/pipeline/cloud"
-	"k8s.io/api/core/v1"
 	"github.com/kris-nova/kubicorn/apis/cluster"
+	"k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
 	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
 )
@@ -50,6 +51,7 @@ func getHelmClient(kubeConfigPath string) (*helm.Client, error) {
 	return hclient, nil
 }
 
+//CheckDeploymentState checks the state of Helm deployment
 func CheckDeploymentState(cluster *cluster.Cluster, releaseName string) (string, error) {
 	var (
 		config *rest.Config
