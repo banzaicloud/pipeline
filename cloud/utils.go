@@ -12,6 +12,7 @@ import (
 	"syscall"
 	"time"
 
+	banzaiSimpleTypes "github.com/banzaicloud/banzai-types/components/database"
 	"github.com/banzaicloud/pipeline/notify"
 	"github.com/gin-gonic/gin"
 	"github.com/kris-nova/kubicorn/apis/cluster"
@@ -21,7 +22,6 @@ import (
 	"golang.org/x/crypto/ssh/agent"
 	"golang.org/x/crypto/ssh/terminal"
 	"k8s.io/client-go/tools/clientcmd"
-	banzaiSimpleTypes "github.com/banzaicloud/banzai-types/components/database"
 )
 
 const (

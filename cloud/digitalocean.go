@@ -2,9 +2,9 @@ package cloud
 
 import (
 	"fmt"
+	banzaiSimpleTypes "github.com/banzaicloud/banzai-types/components/database"
 	"github.com/kris-nova/kubicorn/apis/cluster"
 	"github.com/kris-nova/kubicorn/cutil/kubeadm"
-	banzaiSimpleTypes "github.com/banzaicloud/banzai-types/components/database"
 )
 
 func getDOCluster(clusterType banzaiSimpleTypes.ClusterSimple) *cluster.Cluster {

@@ -3,20 +3,20 @@ package cloud
 import (
 	"errors"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"net/http"
-	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
-	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
 	banzaiTypes "github.com/banzaicloud/banzai-types/components"
 	banzaiSimpleTypes "github.com/banzaicloud/banzai-types/components/database"
+	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/banzai-types/database"
+	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
+	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 // ClusterRepresentation combines EC2 and AKS
 type ClusterRepresentation struct {
-	Id        uint        `json:"id"`
-	Name      string      `json:"name"`
-	CloudType string      `json:"cloud"`
+	Id                    uint   `json:"id"`
+	Name                  string `json:"name"`
+	CloudType             string `json:"cloud"`
 	*AmazonRepresentation `json:"amazon,omitempty"`
 	*AzureRepresentation  `json:"azure,omitempty"`
 }

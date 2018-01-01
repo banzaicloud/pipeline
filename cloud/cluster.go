@@ -6,9 +6,9 @@ import (
 	"time"
 
 	azureClient "github.com/banzaicloud/azure-aks-client/client"
+	banzaiSimpleTypes "github.com/banzaicloud/banzai-types/components/database"
 	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
 	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
-	banzaiSimpleTypes "github.com/banzaicloud/banzai-types/components/database"
 
 	"github.com/gin-gonic/gin"
 	"github.com/kris-nova/kubicorn/apis/cluster"

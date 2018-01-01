@@ -6,8 +6,8 @@ import (
 	banzaiTypes "github.com/banzaicloud/banzai-types/components"
 	banzaiAzureTypes "github.com/banzaicloud/banzai-types/components/azure"
 	banzaiSimpleTypes "github.com/banzaicloud/banzai-types/components/database"
-	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
 	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
+	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
 
 	"github.com/gin-gonic/gin"
 	"net/http"

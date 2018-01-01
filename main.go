@@ -8,6 +8,11 @@ import (
 	"path"
 	"time"
 
+	banzaiTypes "github.com/banzaicloud/banzai-types/components"
+	banzaiSimpleTypes "github.com/banzaicloud/banzai-types/components/database"
+	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
+	"github.com/banzaicloud/banzai-types/database"
+	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cloud"
 	"github.com/banzaicloud/pipeline/conf"
@@ -20,11 +25,6 @@ import (
 	"github.com/kris-nova/kubicorn/apis/cluster"
 	"github.com/spf13/viper"
 	"k8s.io/helm/pkg/timeconv"
-	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
-	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
-	banzaiTypes "github.com/banzaicloud/banzai-types/components"
-	banzaiSimpleTypes "github.com/banzaicloud/banzai-types/components/database"
-	"github.com/banzaicloud/banzai-types/database"
 )
 
 //nodeInstanceType=m3.medium -d nodeInstanceSpotPrice=0.04 -d nodeMin=1 -d nodeMax=3 -d image=ami-6d48500b

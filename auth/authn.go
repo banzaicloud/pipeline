@@ -13,8 +13,8 @@ import (
 	"net/http"
 	"strings"
 
-	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
 	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
+	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
 )
 
 const jwksUri = "https://banzaicloud.auth0.com/.well-known/jwks.json"

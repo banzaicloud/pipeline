@@ -11,11 +11,11 @@ import (
 	"github.com/kris-nova/kubicorn/cutil/uuid"
 	"net/http"
 
-	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
-	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
 	banzaiTypes "github.com/banzaicloud/banzai-types/components"
 	banzaiSimpleTypes "github.com/banzaicloud/banzai-types/components/database"
+	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/banzai-types/database"
+	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
 )
 
 // GetAWSCluster creates *cluster.Cluster from ClusterSimple struct

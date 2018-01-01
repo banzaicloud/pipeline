@@ -3,12 +3,12 @@ package notify
 import (
 	"encoding/json"
 	"fmt"
+	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
+	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
-	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
-	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
 )
 
 //Slack message definition

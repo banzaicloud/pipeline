@@ -5,15 +5,15 @@ import (
 
 	"fmt"
 
+	banzaiSimpleTypes "github.com/banzaicloud/banzai-types/components/database"
+	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
+	"github.com/banzaicloud/banzai-types/database"
+	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
 	"github.com/banzaicloud/pipeline/cloud"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
-	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
-	banzaiSimpleTypes "github.com/banzaicloud/banzai-types/components/database"
-	"github.com/banzaicloud/banzai-types/database"
 )
 
 type prometheusTarget struct {
