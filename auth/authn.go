@@ -6,17 +6,16 @@ import (
 	"fmt"
 	"github.com/auth0-community/go-auth0"
 	"github.com/banzaicloud/pipeline/cloud"
-	"github.com/banzaicloud/pipeline/conf"
-	"github.com/banzaicloud/pipeline/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"gopkg.in/square/go-jose.v2"
 	"io/ioutil"
 	"net/http"
 	"strings"
-)
 
-var log = conf.Logger()
+	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
+	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
+)
 
 const jwksUri = "https://banzaicloud.auth0.com/.well-known/jwks.json"
 const auth0ApiIssuer = "https://banzaicloud.auth0.com/"
@@ -30,7 +29,7 @@ var ApiGroup = "ApiGroup"
 //Init
 func Init() {
 	pubKey := viper.GetString("dev.auth0pub")
-	utils.LogInfo(log, utils.TagAuth, "PubKey", pubKey)
+	banzaiUtils.LogInfo(banzaiConstants.TagAuth, "PubKey", pubKey)
 	data, err := ioutil.ReadFile(pubKey)
 	if err != nil {
 		panic("Impossible to read key form disk")
@@ -79,7 +78,7 @@ func Auth0Groups(wantedGroups ...string) gin.HandlerFunc {
 				cloud.JsonKeyError: "invalid token",
 			})
 			c.Abort()
-			utils.LogInfo(log, utils.TagAuth, "Invalid token:", err)
+			banzaiUtils.LogInfo(banzaiConstants.TagAuth, "Invalid token:", err)
 			return
 		}
 
@@ -90,11 +89,11 @@ func Auth0Groups(wantedGroups ...string) gin.HandlerFunc {
 				cloud.JsonKeyError: "invalid claims",
 			})
 			c.Abort()
-			utils.LogInfo(log, utils.TagAuth, "Invalid claims:", err)
+			banzaiUtils.LogInfo(banzaiConstants.TagAuth, "Invalid claims:", err)
 			return
 		}
 
-		utils.LogDebug(log, utils.TagAuth, "Claims: ", claims)
+		banzaiUtils.LogDebug(banzaiConstants.TagAuth, "Claims: ", claims)
 		hasScope := strings.Contains(claims["scope"].(string), "api:invoke")
 
 		// TODO: metadata and group check for later hardening
@@ -109,7 +108,7 @@ func Auth0Groups(wantedGroups ...string) gin.HandlerFunc {
 				cloud.JsonKeyError: "needs more privileges",
 			})
 			c.Abort()
-			utils.LogInfo(log, utils.TagAuth, "Needs more privileges")
+			banzaiUtils.LogInfo(banzaiConstants.TagAuth, "Needs more privileges")
 			return
 		}
 		c.Next()

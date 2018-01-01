@@ -12,6 +12,7 @@ import (
 	"syscall"
 	"time"
 
+	banzaiSimpleTypes "github.com/banzaicloud/banzai-types/components/database"
 	"github.com/banzaicloud/pipeline/notify"
 	"github.com/gin-gonic/gin"
 	"github.com/kris-nova/kubicorn/apis/cluster"
@@ -39,7 +40,7 @@ const (
 )
 
 //We return stateStore so update can use it.
-func getStateStoreForCluster(clusterType ClusterSimple) (stateStore state.ClusterStorer) {
+func getStateStoreForCluster(clusterType banzaiSimpleTypes.ClusterSimple) (stateStore state.ClusterStorer) {
 
 	stateStore = fs.NewFileSystemStore(&fs.FileSystemStoreOptions{
 		BasePath:    "statestore",
