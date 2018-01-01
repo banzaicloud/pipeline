@@ -1,5 +1,5 @@
 hash: a7019acffca9bb9fa3d47f37df6af0f529f5fc793e587e6a323388d4967c9f96
-updated: 2017-12-12T11:04:37.347515968+01:00
+updated: 2018-01-01T18:05:26.060158+01:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -44,13 +44,13 @@ imports:
   - service/s3
   - service/sts
 - name: github.com/Azure/azure-sdk-for-go
-  version: 786cc84138518bf7fd6d60e92fad1ac9d1a117ad
+  version: 934e2462aeb6e0c14186dcfeedd73a026d1b8eeb
   subpackages:
   - arm/examples/helpers
   - arm/network
   - arm/resources/resources
 - name: github.com/Azure/go-autorest
-  version: 58f6f26e200fa5dfb40c9cd1c83f3e2c860d779d
+  version: 809ed2ef5c4c9a60c3c2f3aa9cc11f3a7c2ce59d
   subpackages:
   - autorest
   - autorest/adal
@@ -59,11 +59,22 @@ imports:
   - autorest/to
   - autorest/validation
 - name: github.com/banzaicloud/azure-aks-client
-  version: a6ec72fde98b8083360c42cc49b889ccda6b65e1
+  version: 0e2a89f4136d86d70a288328f918b19751fa9fba
   subpackages:
   - client
   - cluster
   - initapi
+  - utils
+- name: github.com/banzaicloud/banzai-types
+  version: 68cb49b7a1aacfdbf6754e86d7019e3f8b5d0384
+  subpackages:
+  - components
+  - components/amazon
+  - components/azure
+  - components/database
+  - configuration
+  - constants
+  - database
   - utils
 - name: github.com/beorn7/perks
   version: 3ac7bf7a47d159a033b107610db8a1b6575507a4
@@ -374,7 +385,7 @@ imports:
 - name: github.com/satori/go.uuid
   version: 879c5887cd475cd7864858769793b2ceb0d44feb
 - name: github.com/sirupsen/logrus
-  version: 89742aefa4b206dcf400792f3bd35b542998eb3b
+  version: d682213848ed68c0a260ca37d6dd5ace8423f5ba
 - name: github.com/spf13/afero
   version: 8d919cbe7e2627e417f3e45c3c0e489a5b7e2536
   subpackages:
