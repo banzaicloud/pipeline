@@ -1,14 +1,13 @@
-package conf
+package configuration
 
 import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
-var logger *logrus.Logger
-
 //Logger is a configured Logrus logger
 func Logger() *logrus.Logger {
+	var logger *logrus.Logger
 	if logger == nil {
 		logger = logrus.New()
 		switch viper.GetString("dev.loglevel") {

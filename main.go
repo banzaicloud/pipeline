@@ -8,19 +8,21 @@ import (
 	"path"
 	"time"
 
+	banzaiTypes "github.com/banzaicloud/banzai-types/components"
+	banzaiSimpleTypes "github.com/banzaicloud/banzai-types/components/database"
+	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
+	"github.com/banzaicloud/banzai-types/database"
+	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cloud"
 	"github.com/banzaicloud/pipeline/conf"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/monitor"
 	"github.com/banzaicloud/pipeline/notify"
-	"github.com/banzaicloud/pipeline/utils"
 	"github.com/ghodss/yaml"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
 	"github.com/kris-nova/kubicorn/apis/cluster"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"k8s.io/helm/pkg/timeconv"
 )
@@ -37,14 +39,20 @@ type DeploymentType struct {
 
 //TODO: minCount and Maxcount should be optional, but one of them should be present
 
-var log *logrus.Logger
-var db *gorm.DB
-
 //Version of Pipeline
 var Version string
 
 //GitRev of Pipeline
 var GitRev string
+
+func initDatabase() {
+	host := viper.GetString("dev.host")
+	port := viper.GetString("dev.port")
+	user := viper.GetString("dev.user")
+	password := viper.GetString("dev.password")
+	dbName := viper.GetString("dev.dbname")
+	database.Init(host, port, user, password, dbName)
+}
 
 func main() {
 	if len(os.Args) > 1 && os.Args[1] == "--version" {
@@ -59,14 +67,15 @@ func main() {
 	conf.Init()
 	auth.Init()
 
-	log = conf.Logger()
-	utils.LogInfo(log, utils.TagInit, "Logger configured")
-	db = conf.Database()
-	utils.LogInfo(log, utils.TagInit, "Create table(s):",
-		cloud.ClusterSimple.TableName(cloud.ClusterSimple{}),
-		cloud.AmazonClusterSimple.TableName(cloud.AmazonClusterSimple{}),
-		cloud.AzureSimple.TableName(cloud.AzureSimple{}))
-	db.AutoMigrate(&cloud.ClusterSimple{}, &cloud.AmazonClusterSimple{}, &cloud.AzureSimple{})
+	banzaiUtils.LogInfo(banzaiConstants.TagInit, "Logger configured")
+
+	initDatabase()
+
+	banzaiUtils.LogInfo(banzaiConstants.TagInit, "Create table(s):",
+		banzaiSimpleTypes.ClusterSimple.TableName(banzaiSimpleTypes.ClusterSimple{}),
+		banzaiSimpleTypes.AmazonClusterSimple.TableName(banzaiSimpleTypes.AmazonClusterSimple{}),
+		banzaiSimpleTypes.AzureClusterSimple.TableName(banzaiSimpleTypes.AzureClusterSimple{}))
+	database.CreateTables(&banzaiSimpleTypes.ClusterSimple{}, &banzaiSimpleTypes.AmazonClusterSimple{}, &banzaiSimpleTypes.AzureClusterSimple{})
 
 	router := gin.Default()
 
@@ -112,23 +121,23 @@ func UpgradeDeployment(c *gin.Context) {
 //DeleteDeployment deletes a Helm deployment
 func DeleteDeployment(c *gin.Context) {
 
-	utils.LogInfo(log, utils.TagDeleteDeployment, "Start delete deployment")
+	banzaiUtils.LogInfo(banzaiConstants.TagDeleteDeployment, "Start delete deployment")
 
 	name := c.Param("name")
 
 	// --- [ Get cluster ] --- //
-	utils.LogInfo(log, utils.TagDeleteDeployment, "Get cluster")
-	cloudCluster, err := cloud.GetCluster(c, db, log)
+	banzaiUtils.LogInfo(banzaiConstants.TagDeleteDeployment, "Get cluster")
+	cloudCluster, err := cloud.GetCluster(c)
 	if err != nil {
 		return
 	}
 
 	// --- [Delete deployment] --- //
-	utils.LogInfo(log, utils.TagDeleteDeployment, "Delete deployment")
+	banzaiUtils.LogInfo(banzaiConstants.TagDeleteDeployment, "Delete deployment")
 	err = helm.DeleteDeployment(cloudCluster, name)
 	if err != nil {
 		// error during delete deployment
-		utils.LogWarn(log, utils.TagDeleteDeployment, err.Error())
+		banzaiUtils.LogWarn(banzaiConstants.TagDeleteDeployment, err.Error())
 		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
 			cloud.JsonKeyStatus:  http.StatusNotFound,
 			cloud.JsonKeyMessage: fmt.Sprintf("%s", err),
@@ -136,7 +145,7 @@ func DeleteDeployment(c *gin.Context) {
 		return
 	} else {
 		// delete succeeded
-		utils.LogInfo(log, utils.TagDeleteDeployment, "Delete deployment succeeded")
+		banzaiUtils.LogInfo(banzaiConstants.TagDeleteDeployment, "Delete deployment succeeded")
 	}
 	cloud.SetResponseBodyJson(c, http.StatusOK, gin.H{
 		cloud.JsonKeyStatus:  http.StatusOK,
@@ -148,14 +157,14 @@ func DeleteDeployment(c *gin.Context) {
 // CreateDeployment creates a Helm deployment
 func CreateDeployment(c *gin.Context) {
 
-	utils.LogInfo(log, utils.TagCreateDeployment, "Start create deployment")
+	banzaiUtils.LogInfo(banzaiConstants.TagCreateDeployment, "Start create deployment")
 
 	// --- [ Get cluster ] --- //
-	utils.LogInfo(log, utils.TagCreateDeployment, "Get cluster")
-	cloudCluster, err := cloud.GetCluster(c, db, log)
+	banzaiUtils.LogInfo(banzaiConstants.TagCreateDeployment, "Get cluster")
+	cloudCluster, err := cloud.GetCluster(c)
 	if err != nil {
 		msg := "Error during get cluster cluster. " + err.Error()
-		utils.LogInfo(log, utils.TagCreateDeployment, msg)
+		banzaiUtils.LogInfo(banzaiConstants.TagCreateDeployment, msg)
 		cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
 			cloud.JsonKeyStatus:  http.StatusBadRequest,
 			cloud.JsonKeyMessage: msg,
@@ -163,13 +172,13 @@ func CreateDeployment(c *gin.Context) {
 		return
 	}
 
-	utils.LogInfo(log, utils.TagCreateDeployment, "Get cluster succeeded")
+	banzaiUtils.LogInfo(banzaiConstants.TagCreateDeployment, "Get cluster succeeded")
 
-	utils.LogInfo(log, utils.TagCreateDeployment, "Bind json into DeploymentType struct")
+	banzaiUtils.LogInfo(banzaiConstants.TagCreateDeployment, "Bind json into DeploymentType struct")
 	var deployment DeploymentType
 	if err := c.BindJSON(&deployment); err != nil {
-		utils.LogInfo(log, utils.TagCreateDeployment, "Bind failed")
-		utils.LogInfo(log, utils.TagCreateDeployment, "Required field is empty."+err.Error())
+		banzaiUtils.LogInfo(banzaiConstants.TagCreateDeployment, "Bind failed")
+		banzaiUtils.LogInfo(banzaiConstants.TagCreateDeployment, "Required field is empty."+err.Error())
 		cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
 			cloud.JsonKeyStatus:  http.StatusBadRequest,
 			cloud.JsonKeyMessage: "Required field is empty",
@@ -178,7 +187,7 @@ func CreateDeployment(c *gin.Context) {
 		return
 	}
 
-	utils.LogDebug(log, utils.TagCreateDeployment, fmt.Sprintf("Creating chart %s with version %s and release name %s", deployment.Name, deployment.Version, deployment.ReleaseName))
+	banzaiUtils.LogDebug(banzaiConstants.TagCreateDeployment, fmt.Sprintf("Creating chart %s with version %s and release name %s", deployment.Name, deployment.Version, deployment.ReleaseName))
 	prefix := viper.GetString("dev.chartpath")
 	chartPath := path.Join(prefix, deployment.Name)
 
@@ -186,33 +195,33 @@ func CreateDeployment(c *gin.Context) {
 	if deployment.Values != "" {
 		parsedJSON, err := yaml.Marshal(deployment.Values)
 		if err != nil {
-			utils.LogError(log, utils.TagCreateDeployment, "Can't parse Values:", err)
+			banzaiUtils.LogError(banzaiConstants.TagCreateDeployment, "Can't parse Values:", err)
 		}
 		values, err = yaml.JSONToYAML(parsedJSON)
 		if err != nil {
-			utils.LogError(log, utils.TagCreateDeployment, "Can't convert JSON to YAML:", err)
+			banzaiUtils.LogError(banzaiConstants.TagCreateDeployment, "Can't convert JSON to YAML:", err)
 			return
 		}
 	}
-	utils.LogDebug(log, utils.TagCreateDeployment, "Custom values:", string(values))
-	utils.LogInfo(log, utils.TagCreateDeployment, "Create deployment")
+	banzaiUtils.LogDebug(banzaiConstants.TagCreateDeployment, "Custom values:", string(values))
+	banzaiUtils.LogInfo(banzaiConstants.TagCreateDeployment, "Create deployment")
 	release, err := helm.CreateDeployment(cloudCluster, chartPath, deployment.ReleaseName, values)
 	if err != nil {
-		utils.LogWarn(log, utils.TagCreateDeployment, "Error during create deployment.", err.Error())
+		banzaiUtils.LogWarn(banzaiConstants.TagCreateDeployment, "Error during create deployment.", err.Error())
 		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
 			cloud.JsonKeyStatus:  http.StatusNotFound,
 			cloud.JsonKeyMessage: fmt.Sprintf("%s", err),
 		})
 		return
 	} else {
-		utils.LogInfo(log, utils.TagCreateDeployment, "Create deployment succeeded")
+		banzaiUtils.LogInfo(banzaiConstants.TagCreateDeployment, "Create deployment succeeded")
 	}
 
 	releaseName := release.Release.Name
 	releaseNotes := release.Release.Info.Status.Notes
 
-	utils.LogDebug(log, utils.TagCreateDeployment, "Release name:", releaseName)
-	utils.LogDebug(log, utils.TagCreateDeployment, "Release notes:", releaseNotes)
+	banzaiUtils.LogDebug(banzaiConstants.TagCreateDeployment, "Release name:", releaseName)
+	banzaiUtils.LogDebug(banzaiConstants.TagCreateDeployment, "Release notes:", releaseNotes)
 
 	//Get ingress with deployment prefix TODO
 	//Get local ingress address?
@@ -231,28 +240,28 @@ func CreateDeployment(c *gin.Context) {
 // ListDeployments lists a Helm deployment
 func ListDeployments(c *gin.Context) {
 
-	utils.LogInfo(log, utils.TagListDeployments, "Start listing deployments")
+	banzaiUtils.LogInfo(banzaiConstants.TagListDeployments, "Start listing deployments")
 
 	// --- [ Get cluster ] ---- //
-	utils.LogInfo(log, utils.TagListDeployments, "Get cluster")
-	cloudCluster, err := cloud.GetCluster(c, db, log)
+	banzaiUtils.LogInfo(banzaiConstants.TagListDeployments, "Get cluster")
+	cloudCluster, err := cloud.GetCluster(c)
 	if err != nil {
 		msg := "Error during getting cluster"
-		utils.LogWarn(log, utils.TagListDeployments, "Error during getting cluster:", err.Error())
+		banzaiUtils.LogWarn(banzaiConstants.TagListDeployments, "Error during getting cluster:", err.Error())
 		cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
 			cloud.JsonKeyStatus:  http.StatusBadRequest,
 			cloud.JsonKeyMessage: msg,
 		})
 		return
 	} else {
-		utils.LogInfo(log, utils.TagListDeployments, "Getting cluster succeeded")
+		banzaiUtils.LogInfo(banzaiConstants.TagListDeployments, "Getting cluster succeeded")
 	}
 
 	// --- [ Get deployments ] --- //
-	utils.LogInfo(log, utils.TagListDeployments, "Get deployments")
+	banzaiUtils.LogInfo(banzaiConstants.TagListDeployments, "Get deployments")
 	response, err := helm.ListDeployments(cloudCluster, nil)
 	if err != nil {
-		utils.LogWarn(log, utils.TagListDeployments, "Error getting deployments. ", err)
+		banzaiUtils.LogWarn(banzaiConstants.TagListDeployments, "Error getting deployments. ", err)
 		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
 			cloud.JsonKeyStatus:  http.StatusNotFound,
 			cloud.JsonKeyMessage: fmt.Sprintf("%s", err),
@@ -272,7 +281,7 @@ func ListDeployments(c *gin.Context) {
 		}
 	} else {
 		msg := "There is no installed charts."
-		utils.LogInfo(log, utils.TagListDeployments, msg)
+		banzaiUtils.LogInfo(banzaiConstants.TagListDeployments, msg)
 		cloud.SetResponseBodyJson(c, http.StatusOK, gin.H{
 			cloud.JsonKeyMessage: msg,
 		})
@@ -286,14 +295,14 @@ func ListDeployments(c *gin.Context) {
 // CreateCluster creates a K8S cluster in the cloud
 func CreateCluster(c *gin.Context) {
 
-	utils.LogInfo(log, utils.TagCreateCluster, "Cluster creation is stared")
-	utils.LogInfo(log, utils.TagCreateCluster, "Bind json into CreateClusterRequest struct")
+	banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Cluster creation is stared")
+	banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Bind json into CreateClusterRequest struct")
 
 	// bind request body to struct
-	var createClusterBaseRequest cloud.CreateClusterRequest
+	var createClusterBaseRequest banzaiTypes.CreateClusterRequest
 	if err := c.BindJSON(&createClusterBaseRequest); err != nil {
 		// bind failed
-		utils.LogError(log, utils.TagCreateCluster, "Required field is empty: "+err.Error())
+		banzaiUtils.LogError(banzaiConstants.TagCreateCluster, "Required field is empty: "+err.Error())
 		cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
 			cloud.JsonKeyStatus:  http.StatusBadRequest,
 			cloud.JsonKeyMessage: "Required field is empty",
@@ -301,17 +310,20 @@ func CreateCluster(c *gin.Context) {
 		})
 		return
 	} else {
-		utils.LogInfo(log, utils.TagCreateCluster, "Bind succeeded")
+		banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Bind succeeded")
 	}
 
-	utils.LogInfo(log, utils.TagCreateCluster, "Searching entry with name:", createClusterBaseRequest.Name)
-	var savedCluster cloud.ClusterSimple
-	db.Raw("SELECT * FROM "+cloud.ClusterSimple.TableName(savedCluster)+" WHERE name = ?;", createClusterBaseRequest.Name).Scan(&savedCluster)
+	banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Searching entry with name:", createClusterBaseRequest.Name)
+	var savedCluster banzaiSimpleTypes.ClusterSimple
+
+	database.Query("SELECT * FROM "+banzaiSimpleTypes.ClusterSimple.TableName(savedCluster)+" WHERE name = ?;",
+		createClusterBaseRequest.Name,
+		&savedCluster)
 
 	if savedCluster.ID != 0 {
 		// duplicated entry
 		msg := "Duplicate entry '" + savedCluster.Name + "' for key 'name'"
-		utils.LogError(log, utils.TagCreateCluster, msg)
+		banzaiUtils.LogError(banzaiConstants.TagCreateCluster, msg)
 		cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
 			cloud.JsonKeyStatus:  http.StatusBadRequest,
 			cloud.JsonKeyMessage: msg,
@@ -319,18 +331,18 @@ func CreateCluster(c *gin.Context) {
 		return
 	}
 
-	utils.LogInfo(log, utils.TagCreateCluster, "No entity with this name exists. The creation is possible.")
+	banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "No entity with this name exists. The creation is possible.")
 
 	cloudType := createClusterBaseRequest.Cloud
-	utils.LogInfo(log, utils.TagCreateCluster, "Cloud type is ", cloudType)
+	banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Cloud type is ", cloudType)
 
 	switch cloudType {
-	case cloud.Amazon:
+	case banzaiConstants.Amazon:
 		// validate and create Amazon cluster
 		awsData := createClusterBaseRequest.Properties.CreateClusterAmazon
-		if isValid, err := awsData.Validate(log); isValid && len(err) == 0 {
-			utils.LogInfo(log, utils.TagCreateCluster, "Validation is OK")
-			if isOk, createdCluster := createClusterBaseRequest.CreateClusterAmazon(c, db, log); isOk {
+		if isValid, err := awsData.Validate(); isValid && len(err) == 0 {
+			banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Validation is OK")
+			if isOk, createdCluster := cloud.CreateClusterAmazon(&createClusterBaseRequest, c); isOk {
 				// update prometheus config..
 				go updatePrometheusWithRetryConf(createdCluster)
 			}
@@ -342,11 +354,11 @@ func CreateCluster(c *gin.Context) {
 			})
 		}
 		break
-	case cloud.Azure:
+	case banzaiConstants.Azure:
 		// validate and create Azure cluster
 		aksData := createClusterBaseRequest.Properties.CreateClusterAzure
-		if isValid, err := aksData.Validate(log); isValid && len(err) == 0 {
-			if createClusterBaseRequest.CreateClusterAzure(c, db, log) {
+		if isValid, err := aksData.Validate(); isValid && len(err) == 0 {
+			if cloud.CreateClusterAzure(&createClusterBaseRequest, c) {
 				// update prometheus config..
 				updatePrometheus()
 			}
@@ -360,7 +372,7 @@ func CreateCluster(c *gin.Context) {
 		break
 	default:
 		// wrong cloud type
-		cloud.SendNotSupportedCloudResponse(c, log, utils.TagCreateCluster)
+		cloud.SendNotSupportedCloudResponse(c, banzaiConstants.TagCreateCluster)
 		break
 	}
 
@@ -369,18 +381,18 @@ func CreateCluster(c *gin.Context) {
 // DeleteCluster deletes a K8S cluster from the cloud
 func DeleteCluster(c *gin.Context) {
 
-	utils.LogInfo(log, utils.TagDeleteCluster, "Delete cluster start")
+	banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Delete cluster start")
 
-	var cluster cloud.ClusterSimple
+	var cluster banzaiSimpleTypes.ClusterSimple
 	clusterId := c.Param("id")
 
-	db.First(&cluster, clusterId)
+	database.First(clusterId, &cluster)
 
-	utils.LogInfo(log, utils.TagDeleteCluster, "Cluster data:", cluster)
+	banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Cluster data:", cluster)
 
 	if cluster.ID == 0 {
 		// not found cluster with the given ID
-		utils.LogInfo(log, utils.TagDeleteCluster, "Clouster not found")
+		banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Clouster not found")
 		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
 			cloud.JsonKeyStatus:  http.StatusNotFound,
 			cloud.JsonKeyMessage: "No cluster found!",
@@ -388,9 +400,9 @@ func DeleteCluster(c *gin.Context) {
 		return
 	}
 
-	if cluster.DeleteCluster(c, db, log) {
+	if cloud.DeleteCluster(&cluster, c) {
 		// cluster delete success, delete from db
-		if cluster.DeleteFromDb(c, db, log) {
+		if cloud.DeleteFromDb(&cluster, c) {
 			updatePrometheus()
 		}
 	}
@@ -403,23 +415,23 @@ func updatePrometheusWithRetryConf(createdCluster *cluster.Cluster) {
 }
 
 func updatePrometheus() {
-	err := monitor.UpdatePrometheusConfig(db)
+	err := monitor.UpdatePrometheusConfig()
 	if err != nil {
-		utils.LogWarn(log, utils.TagUpdatePrometheus, "Could not update prometheus configmap: %v", err)
+		banzaiUtils.LogWarn(banzaiConstants.TagPrometheus, "Could not update prometheus configmap: %v", err)
 	}
 }
 
 // FetchClusters fetches all the K8S clusters from the cloud
 func FetchClusters(c *gin.Context) {
 
-	utils.LogInfo(log, utils.TagListClusters, "Start listing clusters")
+	banzaiUtils.LogInfo(banzaiConstants.TagListClusters, "Start listing clusters")
 
-	var clusters []cloud.ClusterSimple
+	var clusters []banzaiSimpleTypes.ClusterSimple
 	var response []*cloud.ClusterRepresentation
-	db.Find(&clusters)
+	database.Find(&clusters)
 
 	if len(clusters) <= 0 {
-		utils.LogInfo(log, utils.TagListClusters, "No clusters found")
+		banzaiUtils.LogInfo(banzaiConstants.TagListClusters, "No clusters found")
 		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
 			cloud.JsonKeyStatus:  http.StatusNotFound,
 			cloud.JsonKeyMessage: "No clusters found!",
@@ -428,9 +440,9 @@ func FetchClusters(c *gin.Context) {
 	}
 
 	for _, cl := range clusters {
-		clust := cl.GetClusterRepresentation(db, log)
+		clust := cloud.GetClusterRepresentation(&cl)
 		if clust != nil {
-			utils.LogInfo(log, utils.TagListClusters, fmt.Sprintf("Append %#v cluster representation to response", clust))
+			banzaiUtils.LogInfo(banzaiConstants.TagListClusters, fmt.Sprintf("Append %#v cluster representation to response", clust))
 			response = append(response, clust)
 		}
 
@@ -446,14 +458,14 @@ func FetchCluster(c *gin.Context) {
 
 	id := c.Param("id")
 
-	utils.LogInfo(log, utils.TagGetClusterInfo, "Start getting cluster info with", id, "id")
+	banzaiUtils.LogInfo(banzaiConstants.TagGetClusterInfo, "Start getting cluster info with", id, "id")
 
-	var cl cloud.ClusterSimple
-	db.Where(cloud.ClusterSimple{Model: gorm.Model{ID: utils.ConvertString2Uint(id)}}).First(&cl)
+	var cl banzaiSimpleTypes.ClusterSimple
+	database.SelectFirstWhere(&cl, banzaiSimpleTypes.GetSimpleClusterWithId(banzaiUtils.ConvertString2Uint(id)))
 
 	if cl.ID == 0 {
 		msg := "Cluster not found."
-		utils.LogWarn(log, utils.TagGetClusterInfo, msg)
+		banzaiUtils.LogWarn(banzaiConstants.TagGetClusterInfo, msg)
 		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
 			cloud.JsonKeyStatus:  http.StatusNotFound,
 			cloud.JsonKeyMessage: msg,
@@ -461,24 +473,24 @@ func FetchCluster(c *gin.Context) {
 		return
 	}
 
-	cl.FetchClusterInfo(c, db, log)
+	cloud.FetchClusterInfo(&cl, c)
 
 }
 
 // UpdateCluster updates a K8S cluster in the cloud (e.g. autoscale)
 func UpdateCluster(c *gin.Context) {
 
-	var cl cloud.ClusterSimple
+	var cl banzaiSimpleTypes.ClusterSimple
 	clusterId := c.Param("id")
 
-	utils.LogInfo(log, utils.TagGetClusterInfo, "Start updating cluster with", clusterId, "id")
-	utils.LogInfo(log, utils.TagGetClusterInfo, "Bind json into UpdateClusterRequest struct")
+	banzaiUtils.LogInfo(banzaiConstants.TagGetClusterInfo, "Start updating cluster with", clusterId, "id")
+	banzaiUtils.LogInfo(banzaiConstants.TagGetClusterInfo, "Bind json into UpdateClusterRequest struct")
 
 	// bind request body to UpdateClusterRequest struct
-	var updateRequest cloud.UpdateClusterRequest
+	var updateRequest banzaiTypes.UpdateClusterRequest
 	if err := c.BindJSON(&updateRequest); err != nil {
 		// bind failed, required field(s) empty
-		utils.LogWarn(log, utils.TagGetClusterInfo, "Bind failed.", err.Error())
+		banzaiUtils.LogWarn(banzaiConstants.TagGetClusterInfo, "Bind failed.", err.Error())
 		cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
 			cloud.JsonKeyStatus:  http.StatusBadRequest,
 			cloud.JsonKeyMessage: "Required field is empty",
@@ -487,18 +499,14 @@ func UpdateCluster(c *gin.Context) {
 		return
 	}
 
-	utils.LogInfo(log, utils.TagGetClusterInfo, "Load cluster from database")
+	banzaiUtils.LogInfo(banzaiConstants.TagGetClusterInfo, "Load cluster from database")
 
 	// load cluster from db
-	db.Where(cloud.ClusterSimple{
-		Model: gorm.Model{ID: utils.ConvertString2Uint(clusterId)},
-	}).Where(cloud.ClusterSimple{
-		Cloud: updateRequest.Cloud,
-	}).First(&cl)
+	cl.LoadClusterFromDatabase(banzaiUtils.ConvertString2Uint(clusterId), updateRequest.Cloud)
 
 	// if ID is 0, the cluster is not found in DB
 	if cl.ID == 0 {
-		utils.LogInfo(log, utils.TagGetClusterInfo, "No cluster found with!")
+		banzaiUtils.LogInfo(banzaiConstants.TagGetClusterInfo, "No cluster found with!")
 		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
 			cloud.JsonKeyStatus:  http.StatusNotFound,
 			cloud.JsonKeyMessage: "No cluster found!",
@@ -506,40 +514,40 @@ func UpdateCluster(c *gin.Context) {
 		return
 	}
 
-	utils.LogInfo(log, utils.TagGetClusterInfo, "Update request: ", updateRequest)
+	banzaiUtils.LogInfo(banzaiConstants.TagGetClusterInfo, "Update request: ", updateRequest)
 	cloudType := cl.Cloud
 
 	switch cloudType {
-	case cloud.Amazon:
+	case banzaiConstants.Amazon:
 		// read amazon props from amazon_cluster_properties table
-		utils.LogInfo(log, utils.TagGetClusterInfo, "Load amazon props from db")
-		db.Where(cloud.AmazonClusterSimple{ClusterSimpleId: utils.ConvertString2Uint(clusterId)}).First(&cl.Amazon)
+		banzaiUtils.LogInfo(banzaiConstants.TagGetClusterInfo, "Load amazon props from db")
+		database.SelectFirstWhere(&cl.Amazon, banzaiSimpleTypes.AmazonClusterSimple{ClusterSimpleId: banzaiUtils.ConvertString2Uint(clusterId)})
 		break
-	case cloud.Azure:
+	case banzaiConstants.Azure:
 		// read azure props from azure_cluster_properties table
-		utils.LogInfo(log, utils.TagGetClusterInfo, "Load azure props from db")
-		db.Where(cloud.AzureSimple{ClusterSimpleId: utils.ConvertString2Uint(clusterId)}).First(&cl.Azure)
+		banzaiUtils.LogInfo(banzaiConstants.TagGetClusterInfo, "Load azure props from db")
+		database.SelectFirstWhere(&cl.Azure, banzaiSimpleTypes.AzureClusterSimple{ClusterSimpleId: banzaiUtils.ConvertString2Uint(clusterId)})
 		break
 	default:
 		// not supported cloud type
-		utils.LogWarn(log, utils.TagGetClusterInfo, "Not supported cloud type")
-		cloud.SendNotSupportedCloudResponse(c, log, utils.TagUpdateCluster)
+		banzaiUtils.LogWarn(banzaiConstants.TagGetClusterInfo, "Not supported cloud type")
+		cloud.SendNotSupportedCloudResponse(c, banzaiConstants.TagUpdateCluster)
 		return
 	}
 
-	utils.LogInfo(log, utils.TagGetClusterInfo, "Cluster to modify: ", cl)
+	banzaiUtils.LogInfo(banzaiConstants.TagGetClusterInfo, "Cluster to modify: ", cl)
 
-	if isValid, err := updateRequest.Validate(log, cl); isValid && len(err) == 0 {
+	if isValid, err := updateRequest.Validate(cl); isValid && len(err) == 0 {
 		// validation OK
-		utils.LogInfo(log, utils.TagGetClusterInfo, "Validate is OK")
-		if updateRequest.UpdateClusterInCloud(c, db, log, cl) {
+		banzaiUtils.LogInfo(banzaiConstants.TagGetClusterInfo, "Validate is OK")
+		if cloud.UpdateClusterInCloud(c, &updateRequest, cl) {
 			// cluster updated successfully in cloud
 			// update prometheus config..
 			updatePrometheus()
 		}
 	} else {
 		// validation failed
-		utils.LogInfo(log, utils.TagGetClusterInfo, "Validation failed")
+		banzaiUtils.LogInfo(banzaiConstants.TagGetClusterInfo, "Validation failed")
 		cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
 			cloud.JsonKeyStatus:  http.StatusBadRequest,
 			cloud.JsonKeyMessage: err,
@@ -551,24 +559,24 @@ func UpdateCluster(c *gin.Context) {
 // FetchClusterConfig fetches a cluster config
 func FetchClusterConfig(c *gin.Context) {
 
-	utils.LogInfo(log, utils.TagFetchClusterConfig, "Start fetching cluster config")
+	banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Start fetching cluster config")
 
 	// --- [ Get cluster ] --- //
-	utils.LogInfo(log, utils.TagFetchClusterConfig, "Get cluster")
-	cloudCluster, err := cloud.GetCluster(c, db, log)
+	banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Get cluster")
+	cloudCluster, err := cloud.GetCluster(c)
 	if err != nil {
-		utils.LogInfo(log, utils.TagFetchClusterConfig, "Error during getting cluster")
+		banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Error during getting cluster")
 		return
 	} else {
-		utils.LogInfo(log, utils.TagFetchClusterConfig, "Get cluster succeeded")
+		banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Get cluster succeeded")
 	}
 
 	// --- [ Get config ] --- //
-	utils.LogInfo(log, utils.TagFetchClusterConfig, "Get config")
+	banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Get config")
 	configPath, err := cloud.RetryGetConfig(cloudCluster, "")
 	if err != nil {
 		errorMsg := fmt.Sprintf("Error read cluster config: %s", err)
-		utils.LogWarn(log, utils.TagFetchClusterConfig, errorMsg)
+		banzaiUtils.LogWarn(banzaiConstants.TagFetchClusterConfig, errorMsg)
 		cloud.SetResponseBodyJson(c, http.StatusServiceUnavailable, gin.H{
 			cloud.JsonKeyStatus:  http.StatusServiceUnavailable,
 			cloud.JsonKeyMessage: errorMsg,
@@ -577,17 +585,17 @@ func FetchClusterConfig(c *gin.Context) {
 	}
 
 	// --- [ Read file ] --- //
-	utils.LogInfo(log, utils.TagFetchClusterConfig, "Read file")
+	banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Read file")
 	data, err := ioutil.ReadFile(configPath)
 	if err != nil {
-		utils.LogInfo(log, utils.TagFetchClusterConfig, "Error during read file:", err.Error())
+		banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Error during read file:", err.Error())
 		cloud.SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
 			cloud.JsonKeyStatus:  http.StatusInternalServerError,
 			cloud.JsonKeyMessage: err,
 		})
 		return
 	} else {
-		utils.LogDebug(log, utils.TagFetchClusterConfig, "Read file succeeded:", data)
+		banzaiUtils.LogDebug(banzaiConstants.TagFetchClusterConfig, "Read file succeeded:", data)
 	}
 
 	ctype := c.NegotiateFormat(gin.MIMEPlain, gin.MIMEJSON)
@@ -598,7 +606,7 @@ func FetchClusterConfig(c *gin.Context) {
 			cloud.JsonKeyData:   data,
 		})
 	default:
-		utils.LogDebug(log, utils.TagFetchClusterConfig, "Content-Type: ", ctype)
+		banzaiUtils.LogDebug(banzaiConstants.TagFetchClusterConfig, "Content-Type: ", ctype)
 		c.String(http.StatusOK, string(data))
 	}
 }
@@ -606,33 +614,33 @@ func FetchClusterConfig(c *gin.Context) {
 // GetClusterStatus retrieves the cluster status
 func GetClusterStatus(c *gin.Context) {
 
-	utils.LogInfo(log, utils.TagGetClusterStatus, "Start getting cluster status")
+	banzaiUtils.LogInfo(banzaiConstants.TagGetClusterStatus, "Start getting cluster status")
 
 	// --- [ Get cluster ] --- //
-	cloudCluster, err := cloud.GetClusterSimple(c, db, log)
+	cloudCluster, err := cloud.GetClusterSimple(c)
 	if err != nil {
-		utils.LogWarn(log, utils.TagGetClusterStatus, "Error during get cluster", err.Error())
+		banzaiUtils.LogWarn(banzaiConstants.TagGetClusterStatus, "Error during get cluster", err.Error())
 		cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
 			cloud.JsonKeyStatus:  http.StatusBadRequest,
 			cloud.JsonKeyMessage: err.Error(),
 		})
 		return
 	} else {
-		utils.LogInfo(log, utils.TagGetClusterStatus, "Getting cluster status succeeded")
+		banzaiUtils.LogInfo(banzaiConstants.TagGetClusterStatus, "Getting cluster status succeeded")
 	}
 
 	cloudType := cloudCluster.Cloud
-	utils.LogInfo(log, utils.TagGetClusterStatus, "Cloud type is", cloudType)
+	banzaiUtils.LogInfo(banzaiConstants.TagGetClusterStatus, "Cloud type is", cloudType)
 
 	switch cloudType {
-	case cloud.Amazon:
-		cloudCluster.GetAmazonClusterStatus(c, log)
+	case banzaiConstants.Amazon:
+		cloud.GetAmazonClusterStatus(cloudCluster, c)
 		break
-	case cloud.Azure:
-		cloudCluster.GetAzureClusterStatus(c, db, log)
+	case banzaiConstants.Azure:
+		cloud.GetAzureClusterStatus(cloudCluster, c)
 		break
 	default:
-		cloud.SendNotSupportedCloudResponse(c, log, utils.TagGetClusterStatus)
+		cloud.SendNotSupportedCloudResponse(c, banzaiConstants.TagGetClusterStatus)
 		return
 	}
 }
@@ -640,13 +648,13 @@ func GetClusterStatus(c *gin.Context) {
 // GetTillerStatus checks if tiller ready to accept deployments
 func GetTillerStatus(c *gin.Context) {
 
-	utils.LogInfo(log, utils.TagGetTillerStatus, "Start getting tiller status")
+	banzaiUtils.LogInfo(banzaiConstants.TagGetTillerStatus, "Start getting tiller status")
 
 	// --- [ Get cluster ] --- //
-	utils.LogInfo(log, utils.TagGetTillerStatus, "Get cluster")
-	cloudCluster, err := cloud.GetCluster(c, db, log)
+	banzaiUtils.LogInfo(banzaiConstants.TagGetTillerStatus, "Get cluster")
+	cloudCluster, err := cloud.GetCluster(c)
 	if err != nil {
-		utils.LogWarn(log, utils.TagGetTillerStatus, "Error during getting cluster.", err.Error())
+		banzaiUtils.LogWarn(banzaiConstants.TagGetTillerStatus, "Error during getting cluster.", err.Error())
 		cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
 			cloud.JsonKeyStatus:  http.StatusBadRequest,
 			cloud.JsonKeyMessage: err.Error(),
@@ -657,13 +665,13 @@ func GetTillerStatus(c *gin.Context) {
 	// --- [ List deployments ] ---- //
 	_, err = helm.ListDeployments(cloudCluster, nil)
 	if err != nil {
-		utils.LogWarn(log, utils.TagGetTillerStatus, "Error during getting deployments.", err.Error())
+		banzaiUtils.LogWarn(banzaiConstants.TagGetTillerStatus, "Error during getting deployments.", err.Error())
 		cloud.SetResponseBodyJson(c, http.StatusServiceUnavailable, gin.H{
 			cloud.JsonKeyStatus:  http.StatusServiceUnavailable,
 			cloud.JsonKeyMessage: "Tiller not available",
 		})
 	} else {
-		utils.LogInfo(log, utils.TagGetTillerStatus, "Tiller available")
+		banzaiUtils.LogInfo(banzaiConstants.TagGetTillerStatus, "Tiller available")
 		cloud.SetResponseBodyJson(c, http.StatusOK, gin.H{
 			cloud.JsonKeyStatus:  http.StatusOK,
 			cloud.JsonKeyMessage: "Tiller available",
@@ -675,41 +683,41 @@ func GetTillerStatus(c *gin.Context) {
 // FetchDeploymentStatus check the status of the Helm deployment
 func FetchDeploymentStatus(c *gin.Context) {
 
-	utils.LogInfo(log, utils.TagFetchDeploymentStatus, "Start fetching deployment status")
+	banzaiUtils.LogInfo(banzaiConstants.TagFetchDeploymentStatus, "Start fetching deployment status")
 
 	name := c.Param("name")
 
 	// --- [ Get cluster ]  --- //
-	utils.LogInfo(log, utils.TagFetchDeploymentStatus, "Get cluster with name:", name)
-	cloudCluster, err := cloud.GetCluster(c, db, log)
+	banzaiUtils.LogInfo(banzaiConstants.TagFetchDeploymentStatus, "Get cluster with name:", name)
+	cloudCluster, err := cloud.GetCluster(c)
 	if err != nil {
-		utils.LogWarn(log, utils.TagFetchDeploymentStatus, "Error during get cluster.", err.Error())
+		banzaiUtils.LogWarn(banzaiConstants.TagFetchDeploymentStatus, "Error during get cluster.", err.Error())
 		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
 			cloud.JsonKeyStatus:  http.StatusNotFound,
 			cloud.JsonKeyMessage: "Cluster not found",
 		})
 		return
 	} else {
-		utils.LogInfo(log, utils.TagFetchDeploymentStatus, "Get cluster succeeded:", cloudCluster)
+		banzaiUtils.LogInfo(banzaiConstants.TagFetchDeploymentStatus, "Get cluster succeeded:", cloudCluster)
 	}
 
 	// --- [ List deployments ] --- //
-	utils.LogInfo(log, utils.TagFetchDeploymentStatus, "List deployments")
+	banzaiUtils.LogInfo(banzaiConstants.TagFetchDeploymentStatus, "List deployments")
 	chart, err := helm.ListDeployments(cloudCluster, &name)
 	if err != nil {
-		utils.LogWarn(log, utils.TagFetchDeploymentStatus, "Error during listing deployments:", err.Error())
+		banzaiUtils.LogWarn(banzaiConstants.TagFetchDeploymentStatus, "Error during listing deployments:", err.Error())
 		cloud.SetResponseBodyJson(c, http.StatusServiceUnavailable, gin.H{
 			cloud.JsonKeyStatus:  http.StatusServiceUnavailable,
 			cloud.JsonKeyMessage: "Tiller not available",
 		})
 		return
 	} else {
-		utils.LogInfo(log, utils.TagFetchDeploymentStatus, "List deployments succeeded")
+		banzaiUtils.LogInfo(banzaiConstants.TagFetchDeploymentStatus, "List deployments succeeded")
 	}
 
 	if chart.Count == 0 {
 		msg := "Deployment not found"
-		utils.LogInfo(log, utils.TagFetchDeploymentStatus, msg)
+		banzaiUtils.LogInfo(banzaiConstants.TagFetchDeploymentStatus, msg)
 		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
 			cloud.JsonKeyStatus:  http.StatusNotFound,
 			cloud.JsonKeyMessage: msg,
@@ -719,7 +727,7 @@ func FetchDeploymentStatus(c *gin.Context) {
 
 	if chart.Count > 1 {
 		msg := "Multiple deployments found"
-		utils.LogInfo(log, utils.TagFetchDeploymentStatus, msg)
+		banzaiUtils.LogInfo(banzaiConstants.TagFetchDeploymentStatus, msg)
 		cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
 			cloud.JsonKeyStatus:  http.StatusBadRequest,
 			cloud.JsonKeyMessage: msg,
@@ -728,24 +736,24 @@ func FetchDeploymentStatus(c *gin.Context) {
 	}
 	// TODO simplify the flow
 	// --- [Check deployment state ] --- //
-	utils.LogInfo(log, utils.TagFetchDeploymentStatus, "Check deployment state")
+	banzaiUtils.LogInfo(banzaiConstants.TagFetchDeploymentStatus, "Check deployment state")
 	status, err := helm.CheckDeploymentState(cloudCluster, name)
 	if err != nil {
-		utils.LogWarn(log, utils.TagFetchDeploymentStatus, "Error during check deployment state:", err.Error())
+		banzaiUtils.LogWarn(banzaiConstants.TagFetchDeploymentStatus, "Error during check deployment state:", err.Error())
 		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
 			cloud.JsonKeyStatus:  http.StatusNotFound,
 			cloud.JsonKeyMessage: "Error happened fetching status",
 		})
 		return
 	} else {
-		utils.LogInfo(log, utils.TagFetchDeploymentStatus, "Check deployment state")
+		banzaiUtils.LogInfo(banzaiConstants.TagFetchDeploymentStatus, "Check deployment state")
 	}
 
 	msg := fmt.Sprintf("Deployment state is: %s", status)
-	utils.LogInfo(log, utils.TagFetchDeploymentStatus, msg)
+	banzaiUtils.LogInfo(banzaiConstants.TagFetchDeploymentStatus, msg)
 
 	if status == "Running" {
-		utils.LogInfo(log, utils.TagFetchDeploymentStatus, "Deployment status is: %s", status)
+		banzaiUtils.LogInfo(banzaiConstants.TagFetchDeploymentStatus, "Deployment status is: %s", status)
 		cloud.SetResponseBodyJson(c, http.StatusOK, gin.H{
 			cloud.JsonKeyStatus:  http.StatusOK,
 			cloud.JsonKeyMessage: msg,
@@ -770,12 +778,12 @@ func Auth0Test(c *gin.Context) {
 
 //Status
 func Status(c *gin.Context) {
-	var clusters []cloud.ClusterSimple
+	var clusters []banzaiSimpleTypes.ClusterSimple
 
-	utils.LogInfo(log, utils.TagStatus, "Cluster running, subsystems initialized")
-	db.Find(&clusters)
+	banzaiUtils.LogInfo(banzaiConstants.TagStatus, "Cluster running, subsystems initialized")
+	database.Find(&clusters)
 
 	//TODO:add more complex status checks
-	//no error on viper, log, db init
+	//no error on viper,   db init
 	c.JSON(http.StatusOK, gin.H{"Cluster running, subsystems initialized": http.StatusOK})
 }

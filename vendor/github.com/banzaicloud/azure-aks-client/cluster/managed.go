@@ -2,18 +2,10 @@ package cluster
 
 import (
 	"github.com/banzaicloud/azure-aks-client/utils"
-	log "github.com/sirupsen/logrus"
-	"os"
+	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
+	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
 	"regexp"
 )
-
-func init() {
-	// Log as JSON
-	log.SetFormatter(&log.JSONFormatter{})
-	log.SetOutput(os.Stdout)
-	log.SetLevel(log.InfoLevel)
-
-}
 
 type ManagedCluster struct {
 	Location   string     `json:"location"`
@@ -63,20 +55,20 @@ type CreateClusterRequest struct {
 
 func (c CreateClusterRequest) Validate() (bool, string) {
 
-	log.Info("Validate cluster name: ", c.Name)
+	banzaiUtils.LogInfo(banzaiConstants.TagValidateCreateCluster, "Validate cluster name: ", c.Name)
 
 	msg := "Only numbers, lowercase letters and underscores are allowed under name property. In addition, the value cannot end with an underscore, and must also be less than 32 characters long."
 	emptyMsg := "The name should not be empty."
 	if len(c.Name) == 0 {
-		log.Info("Cluster name is empty")
+		banzaiUtils.LogInfo(banzaiConstants.TagValidateCreateCluster, "Cluster name is empty")
 		return false, emptyMsg
 	} else if len(c.Name) >= 32 {
-		log.Info("Cluster name is greater than or equal 32")
+		banzaiUtils.LogInfo(banzaiConstants.TagValidateCreateCluster, "Cluster name is greater than or equal 32")
 		return false, msg
 	}
 
 	if isMatch, _ := regexp.MatchString("^[a-z0-9_]{0,31}[a-z0-9]$", c.Name); !isMatch {
-		log.Info("Cluster name doesn't match with the regular expression")
+		banzaiUtils.LogInfo(banzaiConstants.TagValidateCreateCluster, "Cluster name doesn't match with the regular expression")
 		return false, msg
 	}
 

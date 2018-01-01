@@ -4,21 +4,18 @@ import (
 	"encoding/json"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/banzaicloud/azure-aks-client/cluster"
-	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"time"
 	"github.com/banzaicloud/azure-aks-client/initapi"
 	"errors"
+	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
+	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
+	banzaiTypes "github.com/banzaicloud/banzai-types/components"
+	banzaiTypesAzure "github.com/banzaicloud/banzai-types/components/azure"
 )
 
 func init() {
-	// Log as JSON
-	log.SetFormatter(&log.JSONFormatter{})
-	log.SetOutput(os.Stdout)
-	log.SetLevel(log.InfoLevel)
-
 	azureSdk, initError = initapi.Init()
 	if azureSdk != nil {
 		clientId = azureSdk.ServicePrincipal.ClientID
@@ -31,7 +28,7 @@ const BaseUrl = "https://management.azure.com"
 var azureSdk *cluster.Sdk
 var clientId string
 var secret string
-var initError *initapi.AzureErrorResponse
+var initError *banzaiTypes.BanzaiResponse
 
 /**
 GetCluster gets the details of the managed cluster with a specified resource group and name.
@@ -40,7 +37,7 @@ GET https://management.azure.com/subscriptions/
 	{resourceGroupName}/providers/Microsoft.ContainerService/managedClusters/
 	{resourceName}?api-version=2017-08-31
  */
-func GetCluster(name string, resourceGroup string) (*Response, *initapi.AzureErrorResponse) {
+func GetCluster(name string, resourceGroup string) (*banzaiTypesAzure.ResponseWithValue, *banzaiTypes.BanzaiResponse) {
 
 	if azureSdk == nil {
 		return nil, initError
@@ -48,8 +45,8 @@ func GetCluster(name string, resourceGroup string) (*Response, *initapi.AzureErr
 
 	if len(clientId) == 0 || len(secret) == 0 {
 		message := "ClientId or secret is empty"
-		log.WithFields(log.Fields{"error": "environmental_error"}).Error(message)
-		return nil, &initapi.AzureErrorResponse{StatusCode: initapi.InternalErrorCode, Message: message}
+		banzaiUtils.LogError(banzaiConstants.TagGetCluster, "environmental_error")
+		return nil, &banzaiTypes.BanzaiResponse{StatusCode: banzaiConstants.InternalErrorCode, Message: message}
 	}
 
 	pathParam := map[string]interface{}{
@@ -68,37 +65,37 @@ func GetCluster(name string, resourceGroup string) (*Response, *initapi.AzureErr
 		autorest.WithQueryParameters(queryParam))
 
 	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Error("error during listing clusters in ", resourceGroup, " resource group")
+		banzaiUtils.LogError(banzaiConstants.TagGetCluster, "error during listing clusters in ", resourceGroup, " resource group", err)
 		return nil, createErrorResponseFromError(err)
 	}
 
-	log.Info("Get cluster details with name: ", name, " in ", resourceGroup, " resource group")
+	banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Get cluster details with name: ", name, " in ", resourceGroup, " resource group", err)
 
 	resp, err := autorest.SendWithSender(groupClient.Client, req)
 	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Error("error during listing clusters in ", resourceGroup, " resource group")
+		banzaiUtils.LogError(banzaiConstants.TagGetCluster, "error during listing clusters in ", resourceGroup, " resource group:", err)
 		return nil, createErrorResponseFromError(err)
 	}
 
-	log.Info("Get Cluster response status code: ", resp.StatusCode)
+	banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Get Cluster response status code: ", resp.StatusCode)
 
 	value, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Error("error during get cluster in ", resourceGroup, " resource group")
+		banzaiUtils.LogError(banzaiConstants.TagGetCluster, "error during get cluster in ", resourceGroup, " resource group:", err)
 		return nil, createErrorResponseFromError(err)
 	}
 
-	if resp.StatusCode != initapi.OK {
+	if resp.StatusCode != banzaiConstants.OK {
 		// not ok, probably 404
 		errResp := initapi.CreateErrorFromValue(resp.StatusCode, value)
-		log.Info("Get cluster failed with message: ", errResp.Message)
-		return nil, &initapi.AzureErrorResponse{StatusCode: resp.StatusCode, Message: errResp.Message}
+		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Get cluster failed with message: ", errResp.Message)
+		return nil, &banzaiTypes.BanzaiResponse{StatusCode: resp.StatusCode, Message: errResp.Message}
 	} else {
 		// everything is ok
-		v := Value{}
+		v := banzaiTypesAzure.Value{}
 		json.Unmarshal([]byte(value), &v)
-		response := Response{}
-		response.update(resp.StatusCode, v)
+		response := banzaiTypesAzure.ResponseWithValue{}
+		response.Update(resp.StatusCode, v)
 		return &response, nil
 	}
 
@@ -111,7 +108,7 @@ GET https://management.azure.com/subscriptions/
 	{resourceGroupName}/providers/Microsoft.ContainerService/managedClusters?
 	api-version=2017-08-31
 */
-func ListClusters(resourceGroup string) (*ListResponse, *initapi.AzureErrorResponse) {
+func ListClusters(resourceGroup string) (*banzaiTypesAzure.ListResponse, *banzaiTypes.BanzaiResponse) {
 
 	if azureSdk == nil {
 		return nil, initError
@@ -119,8 +116,8 @@ func ListClusters(resourceGroup string) (*ListResponse, *initapi.AzureErrorRespo
 
 	if len(clientId) == 0 || len(secret) == 0 {
 		message := "ClientId or secret is empty"
-		log.WithFields(log.Fields{"error": "environmental_error"}).Error(message)
-		return nil, &initapi.AzureErrorResponse{StatusCode: initapi.InternalErrorCode, Message: message}
+		banzaiUtils.LogError(banzaiConstants.TagListClusters, "environmental_error")
+		return nil, &banzaiTypes.BanzaiResponse{StatusCode: banzaiConstants.InternalErrorCode, Message: message}
 	}
 
 	pathParam := map[string]interface{}{
@@ -138,38 +135,38 @@ func ListClusters(resourceGroup string) (*ListResponse, *initapi.AzureErrorRespo
 		autorest.WithQueryParameters(queryParam))
 
 	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Error("error during listing clusters in ", resourceGroup, " resource group")
+		banzaiUtils.LogError(banzaiConstants.TagListClusters, "error during listing clusters in ", resourceGroup, " resource group:", err)
 		return nil, createErrorResponseFromError(err)
 	}
 
-	log.Info("Start cluster listing in ", resourceGroup, " resource group")
+	banzaiUtils.LogInfo(banzaiConstants.TagListClusters, "Start cluster listing in ", resourceGroup, " resource group")
 
 	resp, err := autorest.SendWithSender(groupClient.Client, req)
 	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Error("error during listing clusters in ", resourceGroup, " resource group")
+		banzaiUtils.LogError(banzaiConstants.TagListClusters, "error during listing clusters in ", resourceGroup, " resource group:", err)
 		return nil, createErrorResponseFromError(err)
 	}
 
-	log.Info("Cluster list response status code: ", resp.StatusCode)
+	banzaiUtils.LogInfo(banzaiConstants.TagListClusters, "Cluster list response status code: ", resp.StatusCode)
 
 	value, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Error("error during listing clusters in ", resourceGroup, " resource group")
+		banzaiUtils.LogError(banzaiConstants.TagListClusters, "error during listing clusters in ", resourceGroup, " resource group:", err)
 		return nil, createErrorResponseFromError(err)
 	}
 
-	if resp.StatusCode != initapi.OK {
+	if resp.StatusCode != banzaiConstants.OK {
 		// not ok, probably 404
 		errResp := initapi.CreateErrorFromValue(resp.StatusCode, value)
-		log.Info("Listing clusters failed with message: ", errResp.Message)
-		return nil, &initapi.AzureErrorResponse{StatusCode: resp.StatusCode, Message: errResp.Message}
+		banzaiUtils.LogInfo(banzaiConstants.TagListClusters, "Listing clusters failed with message: ", errResp.Message)
+		return nil, &banzaiTypes.BanzaiResponse{StatusCode: resp.StatusCode, Message: errResp.Message}
 	}
 
-	azureListResponse := AzureListResponse{}
+	azureListResponse := banzaiTypesAzure.Values{}
 	json.Unmarshal([]byte(value), &azureListResponse)
-	log.Info("List cluster result ", azureListResponse.toString())
+	banzaiUtils.LogInfo(banzaiConstants.TagListClusters, "List cluster result ", &azureListResponse)
 
-	response := ListResponse{StatusCode: resp.StatusCode, Value: azureListResponse}
+	response := banzaiTypesAzure.ListResponse{StatusCode: resp.StatusCode, Value: azureListResponse}
 	return &response, nil
 }
 
@@ -180,7 +177,7 @@ PUT https://management.azure.com/subscriptions/
 	{resourceGroupName}/providers/Microsoft.ContainerService/managedClusters/{resourceName}?
 	api-version=2017-08-31sdk *cluster.Sdk
 */
-func CreateUpdateCluster(request cluster.CreateClusterRequest) (*Response, *initapi.AzureErrorResponse) {
+func CreateUpdateCluster(request cluster.CreateClusterRequest) (*banzaiTypesAzure.ResponseWithValue, *banzaiTypes.BanzaiResponse) {
 
 	if azureSdk == nil {
 		return nil, initError
@@ -188,12 +185,12 @@ func CreateUpdateCluster(request cluster.CreateClusterRequest) (*Response, *init
 
 	if len(clientId) == 0 || len(secret) == 0 {
 		message := "ClientId or secret is empty"
-		log.WithFields(log.Fields{"error": "environmental_error"}).Error(message)
-		return nil, &initapi.AzureErrorResponse{StatusCode: initapi.InternalErrorCode, Message: message}
+		banzaiUtils.LogError(banzaiConstants.TagCreateCluster, "environmental_error")
+		return nil, &banzaiTypes.BanzaiResponse{StatusCode: banzaiConstants.InternalErrorCode, Message: message}
 	}
 
 	if isValid, errMsg := request.Validate(); !isValid {
-		return nil, &initapi.AzureErrorResponse{StatusCode: initapi.BadRequest, Message: errMsg}
+		return nil, &banzaiTypes.BanzaiResponse{StatusCode: banzaiConstants.BadRequest, Message: errMsg}
 	}
 
 	managedCluster := cluster.GetManagedCluster(request, clientId, secret)
@@ -218,39 +215,39 @@ func CreateUpdateCluster(request cluster.CreateClusterRequest) (*Response, *init
 
 	_, err := json.Marshal(managedCluster)
 	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Error("error during JSON marshal")
+		banzaiUtils.LogError(banzaiConstants.TagCreateCluster, "error during JSON marshal:", err)
 		return nil, createErrorResponseFromError(err)
 	}
 
-	log.Info("Cluster creation start with name ", request.Name, " in ", request.ResourceGroup, " resource group")
+	banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Cluster creation start with name ", request.Name, " in ", request.ResourceGroup, " resource group")
 
 	resp, err := autorest.SendWithSender(groupClient.Client, req)
 	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Error("error during cluster creation")
+		banzaiUtils.LogError(banzaiConstants.TagCreateCluster, "error during cluster creation:", err)
 		return nil, createErrorResponseFromError(err)
 	}
 
 	defer resp.Body.Close()
 	value, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Error("error during cluster creation")
+		banzaiUtils.LogError(banzaiConstants.TagCreateCluster, "error during cluster creation:", err)
 		return nil, createErrorResponseFromError(err)
 	}
 
-	log.Info("Cluster create response code: ", resp.StatusCode)
+	banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Cluster create response code: ", resp.StatusCode)
 
-	if resp.StatusCode != initapi.OK && resp.StatusCode != initapi.Created {
+	if resp.StatusCode != banzaiConstants.OK && resp.StatusCode != banzaiConstants.Created {
 		// something went wrong, create failed
 		errResp := initapi.CreateErrorFromValue(resp.StatusCode, value)
-		log.Info("Cluster creation failed with message: ", errResp.Message)
-		return nil, &initapi.AzureErrorResponse{StatusCode: resp.StatusCode, Message: errResp.Message}
+		banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Cluster creation failed with message: ", errResp.Message)
+		return nil, &banzaiTypes.BanzaiResponse{StatusCode: resp.StatusCode, Message: errResp.Message}
 	}
 
-	v := Value{}
+	v := banzaiTypesAzure.Value{}
 	json.Unmarshal([]byte(value), &v)
-	log.Info("Cluster creation with name ", request.Name, " in ", request.ResourceGroup, " resource group has started")
+	banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Cluster creation with name ", request.Name, " in ", request.ResourceGroup, " resource group has started")
 
-	result := Response{StatusCode: resp.StatusCode, Value: v}
+	result := banzaiTypesAzure.ResponseWithValue{StatusCode: resp.StatusCode, Value: v}
 	return &result, nil
 }
 
@@ -261,16 +258,16 @@ DELETE https://management.azure.com/subscriptions/
 	{resourceGroupName}/providers/Microsoft.ContainerService/managedClusters/{resourceName}?
 	api-version=2017-08-31
 */
-func DeleteCluster(name string, resourceGroup string) (*ResponseSimple, *initapi.AzureErrorResponse) {
+func DeleteCluster(name string, resourceGroup string) (*banzaiTypes.BanzaiResponse, bool) {
 
 	if azureSdk == nil {
-		return nil, initError
+		return initError, false
 	}
 
 	if len(clientId) == 0 || len(secret) == 0 {
 		message := "ClientId or secret is empty"
-		log.WithFields(log.Fields{"error": "environmental_error"}).Error(message)
-		return nil, &initapi.AzureErrorResponse{StatusCode: initapi.InternalErrorCode, Message: message}
+		banzaiUtils.LogError(banzaiConstants.TagDeleteCluster, "environmental_error")
+		return &banzaiTypes.BanzaiResponse{StatusCode: banzaiConstants.InternalErrorCode, Message: message}, false
 	}
 
 	pathParam := map[string]interface{}{
@@ -290,37 +287,37 @@ func DeleteCluster(name string, resourceGroup string) (*ResponseSimple, *initapi
 	)
 
 	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Error("error during delete cluster")
-		return nil, createErrorResponseFromError(err)
+		banzaiUtils.LogError(banzaiConstants.TagDeleteCluster, "error during delete cluster:", err)
+		return createErrorResponseFromError(err), false
 	}
 
-	log.Info("Cluster delete start with name ", name, " in ", resourceGroup, " resource group")
+	banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Cluster delete start with name ", name, " in ", resourceGroup, " resource group")
 
 	resp, err := autorest.SendWithSender(groupClient.Client, req)
 	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Error("error during delete cluster")
-		return nil, createErrorResponseFromError(err)
+		banzaiUtils.LogError(banzaiConstants.TagDeleteCluster, "error during delete cluster:", err)
+		return createErrorResponseFromError(err), false
 	}
 
-	log.Info("Cluster delete status code: ", resp.StatusCode)
+	banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Cluster delete status code: ", resp.StatusCode)
 
 	defer resp.Body.Close()
 	value, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Error("error during delete cluster")
-		return nil, createErrorResponseFromError(err)
+		banzaiUtils.LogError(banzaiConstants.TagDeleteCluster, "error during delete cluster:", err)
+		return createErrorResponseFromError(err), false
 	}
 
-	if resp.StatusCode != initapi.OK && resp.StatusCode != initapi.NoContent && resp.StatusCode != initapi.Accepted {
+	if resp.StatusCode != banzaiConstants.OK && resp.StatusCode != banzaiConstants.NoContent && resp.StatusCode != banzaiConstants.Accepted {
 		errResp := initapi.CreateErrorFromValue(resp.StatusCode, value)
-		log.Info("Delete cluster failed with message: ", errResp.Message)
-		return nil, &initapi.AzureErrorResponse{StatusCode: resp.StatusCode, Message: errResp.Message}
+		banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Delete cluster failed with message: ", errResp.Message)
+		return &banzaiTypes.BanzaiResponse{StatusCode: resp.StatusCode, Message: errResp.Message}, false
 	}
 
-	log.Info("Delete cluster response ", string(value))
+	banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Delete cluster response ", string(value))
 
-	result := ResponseSimple{StatusCode: resp.StatusCode}
-	return &result, nil
+	result := banzaiTypes.BanzaiResponse{StatusCode: resp.StatusCode}
+	return &result, true
 }
 
 /*
@@ -330,7 +327,7 @@ GET https://management.azure.com/subscriptions/
 	{resourceGroupName}/providers/Microsoft.ContainerService/managedClusters/{resourceName}?
 	api-version=2017-08-31
  */
-func PollingCluster(name string, resourceGroup string) (*Response, *initapi.AzureErrorResponse) {
+func PollingCluster(name string, resourceGroup string) (*banzaiTypesAzure.ResponseWithValue, *banzaiTypes.BanzaiResponse) {
 
 	if azureSdk == nil {
 		return nil, initError
@@ -338,11 +335,10 @@ func PollingCluster(name string, resourceGroup string) (*Response, *initapi.Azur
 
 	if len(clientId) == 0 || len(secret) == 0 {
 		message := "ClientId or secret is empty"
-		log.WithFields(log.Fields{"error": "environmental_error"}).Error(message)
-		return nil, &initapi.AzureErrorResponse{StatusCode: initapi.InternalErrorCode, Message: message}
+		banzaiUtils.LogError(banzaiConstants.TagGetClusterInfo, "environmental_error")
+		return nil, &banzaiTypes.BanzaiResponse{StatusCode: banzaiConstants.InternalErrorCode, Message: message}
 	}
 
-	const OK = 200
 	const stageSuccess = "Succeeded"
 	const stageFailed = "Failed"
 	const waitInSeconds = 10
@@ -364,127 +360,62 @@ func PollingCluster(name string, resourceGroup string) (*Response, *initapi.Azur
 	)
 
 	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Error("error during cluster polling")
+		banzaiUtils.LogError(banzaiConstants.TagGetClusterInfo, "error during cluster polling:", err)
 		return nil, createErrorResponseFromError(err)
 	}
 
-	log.Info("Cluster polling start with name ", name, " in ", resourceGroup, " resource group")
+	banzaiUtils.LogInfo(banzaiConstants.TagGetClusterInfo, "Cluster polling start with name ", name, " in ", resourceGroup, " resource group")
 
-	result := Response{}
+	result := banzaiTypesAzure.ResponseWithValue{}
 	for isReady := false; !isReady; {
 
 		resp, err := autorest.SendWithSender(groupClient.Client, req)
 		if err != nil {
-			log.WithFields(log.Fields{"error": err}).Error("error during cluster polling")
+			banzaiUtils.LogError(banzaiConstants.TagGetClusterInfo, "error during cluster polling:", err)
 			return nil, createErrorResponseFromError(err)
 		}
 
 		statusCode := resp.StatusCode
-		log.Info("Cluster polling status code: ", statusCode)
+		banzaiUtils.LogDebug(banzaiConstants.TagGetClusterInfo, "Cluster polling status code: ", statusCode)
 
 		value, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			log.WithFields(log.Fields{"error": err}).Error("error during cluster polling")
+			banzaiUtils.LogError(banzaiConstants.TagGetClusterInfo, "error during cluster polling:", err)
 			return nil, createErrorResponseFromError(err)
 		}
 
 		switch statusCode {
-		case OK:
-			response := Value{}
+		case banzaiConstants.OK:
+			response := banzaiTypesAzure.Value{}
 			json.Unmarshal([]byte(value), &response)
 
 			stage := response.Properties.ProvisioningState
-			log.Info("Cluster stage is ", stage)
+			banzaiUtils.LogInfo(banzaiConstants.TagGetClusterInfo, "Cluster stage is ", stage)
 
 			switch stage {
 			case stageSuccess:
 				isReady = true
-				result.update(statusCode, response)
+				result.Update(statusCode, response)
 			case stageFailed:
 				return nil, createErrorResponseFromError(errors.New("cluster stage is 'Failed'"))
 			default:
-				log.Info("Waiting...")
+				banzaiUtils.LogInfo(banzaiConstants.TagGetClusterInfo, "Waiting...")
 				time.Sleep(waitInSeconds * time.Second)
 			}
 
 		default:
 			errResp := initapi.CreateErrorFromValue(resp.StatusCode, value)
-			log.Info("Delete cluster failed with message: ", errResp.Message)
-			return nil, &initapi.AzureErrorResponse{StatusCode: resp.StatusCode, Message: errResp.Message}
+			banzaiUtils.LogInfo(banzaiConstants.TagGetClusterInfo, "Delete cluster failed with message: ", errResp.Message)
+			return nil, &banzaiTypes.BanzaiResponse{StatusCode: resp.StatusCode, Message: errResp.Message}
 		}
 	}
 
 	return &result, nil
 }
 
-type AzureListResponse struct {
-	Value []Value `json:"value"`
-}
-
-type Value struct {
-	Id         string     `json:"id"`
-	Location   string     `json:"location"`
-	Name       string     `json:"name"`
-	Properties Properties `json:"properties"`
-}
-
-type Properties struct {
-	ProvisioningState string    `json:"provisioningState"`
-	AgentPoolProfiles []Profile `json:"agentPoolProfiles"`
-}
-
-type Profile struct {
-	Name  string `json:"name"`
-	Count int    `json:"count"`
-}
-
-type Response struct {
-	StatusCode int   `json:"status_code"`
-	Value      Value `json:"message"`
-}
-
-type ResponseSimple struct {
-	StatusCode int `json:"status_code"`
-}
-
-type ListResponse struct {
-	StatusCode int               `json:"status_code"`
-	Value      AzureListResponse `json:"message"`
-}
-
-func (r AzureListResponse) toString() string {
-	jsonResponse, _ := json.Marshal(r)
-	return string(jsonResponse)
-}
-
-func (v Value) ToString() string {
-	jsonResponse, _ := json.Marshal(v)
-	return string(jsonResponse)
-}
-
-func (r Response) toString() string {
-	jsonResponse, _ := json.Marshal(r)
-	return string(jsonResponse)
-}
-
-func (r *Response) update(code int, Value Value) {
-	r.Value = Value
-	r.StatusCode = code
-}
-
-func createErrorResponseFromError(err error) *initapi.AzureErrorResponse {
-	return &initapi.AzureErrorResponse{
-		StatusCode: initapi.InternalErrorCode,
+func createErrorResponseFromError(err error) *banzaiTypes.BanzaiResponse {
+	return &banzaiTypes.BanzaiResponse{
+		StatusCode: banzaiConstants.InternalErrorCode,
 		Message:    err.Error(),
 	}
-}
-
-func (r ListResponse) toString() string {
-	jsonResponse, _ := json.Marshal(r)
-	return string(jsonResponse)
-}
-
-func (r ResponseSimple) String() string {
-	jsonResponse, _ := json.Marshal(r)
-	return string(jsonResponse)
 }

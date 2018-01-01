@@ -11,40 +11,41 @@ import (
 
 	"fmt"
 	"github.com/banzaicloud/pipeline/cloud"
-	"github.com/banzaicloud/pipeline/conf"
 	"github.com/kris-nova/kubicorn/apis/cluster"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
+	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
 )
 
-var log = conf.Logger()
 var tillerTunnel *kube.Tunnel
 
 func getHelmClient(kubeConfigPath string) (*helm.Client, error) {
 	var config *rest.Config
 	var err error
 	if kubeConfigPath != "" {
-		log.Infoln("Create Kubernetes config from file: ", kubeConfigPath)
+		banzaiUtils.LogInfo(banzaiConstants.TagKubernetes, "Create Kubernetes config from file: ", kubeConfigPath)
 		config, err = clientcmd.BuildConfigFromFlags("", kubeConfigPath)
 	} else {
-		log.Infoln("Use K8S InCluster Config.")
+		banzaiUtils.LogInfo(banzaiConstants.TagKubernetes, "Use K8S InCluster Config.")
 		config, err = rest.InClusterConfig()
 	}
 	if err != nil {
 		return nil, fmt.Errorf("create kubernetes config failed: %v", err)
 	}
-	log.Debugln("Create kubernetes Client.")
+	banzaiUtils.LogDebug(banzaiConstants.TagKubernetes, "Create kubernetes Client.")
 	client, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		log.Error("Could not create kubernetes client from config.")
+		banzaiUtils.LogError(banzaiConstants.TagKubernetes, "Could not create kubernetes client from config.")
 		return nil, fmt.Errorf("create kubernetes client failed: %v", err)
 	}
-	log.Debugln("Create kubernetes Tunnel.")
+	banzaiUtils.LogDebug(banzaiConstants.TagKubernetes, "Create kubernetes Tunnel.")
 	tillerTunnel, err := portforwarder.New("kube-system", client, config)
 	if err != nil {
 		return nil, fmt.Errorf("create tunnel failed: %v", err)
 	}
-	log.Debugf("Created kubernetes tunnel on address: localhost:%d .", tillerTunnel.Local)
+	banzaiUtils.LogDebug(banzaiConstants.TagKubernetes, "Created kubernetes tunnel on address: localhost:", tillerTunnel.Local)
 	tillerTunnelAddress := fmt.Sprintf("localhost:%d", tillerTunnel.Local)
 	hclient := helm.NewClient(helm.Host(tillerTunnelAddress))
 	return hclient, nil
@@ -63,7 +64,7 @@ func CheckDeploymentState(cluster *cluster.Cluster, releaseName string) (string,
 	if kubeConfig != "" {
 		config, err = clientcmd.BuildConfigFromFlags("", kubeConfig)
 	} else {
-		log.Infoln("Use K8S InCluster Config.")
+		banzaiUtils.LogInfo(banzaiConstants.TagKubernetes, "Use K8S InCluster Config.")
 		config, err = rest.InClusterConfig()
 	}
 	if err != nil {
@@ -78,7 +79,7 @@ func CheckDeploymentState(cluster *cluster.Cluster, releaseName string) (string,
 		return "", fmt.Errorf("PoD list failed: %v", err)
 	}
 	for _, pod := range podList.Items {
-		log.Debugf("PodStatus: %s", pod.Status.Phase)
+		banzaiUtils.LogDebug(banzaiConstants.TagKubernetes, "PodStatus:", pod.Status.Phase)
 		if pod.Status.Phase == v1.PodRunning {
 			continue
 		} else {
@@ -91,9 +92,9 @@ func CheckDeploymentState(cluster *cluster.Cluster, releaseName string) (string,
 }
 
 func tearDown() {
-	log.Debug("There is no Tunnel to close.")
+	banzaiUtils.LogDebug(banzaiConstants.TagKubernetes, "There is no Tunnel to close.")
 	if tillerTunnel != nil {
-		log.Debug("Closing Tunnel.")
+		banzaiUtils.LogDebug(banzaiConstants.TagKubernetes, "Closing Tunnel.")
 		tillerTunnel.Close()
 	}
 }
