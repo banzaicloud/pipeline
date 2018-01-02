@@ -259,6 +259,7 @@ func DeleteAzureCluster(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) boo
 	}
 }
 
+//GetAzureK8SConfig retrieves kubeconfig for Azure AKS
 func GetAzureK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 	banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Start loading azure k8s config")
 
