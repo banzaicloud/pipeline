@@ -16,6 +16,7 @@ import (
 	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/banzai-types/database"
 	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
+	"io/ioutil"
 )
 
 // GetAWSCluster creates *cluster.Cluster from ClusterSimple struct
@@ -496,4 +497,54 @@ func DeleteAmazonCluster(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) bo
 		return true
 	}
 
+}
+
+func GetAmazonK8SConfig(cl *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
+
+	cloudCluster, err := GetClusterWithDbCluster(cl, c)
+	if err != nil {
+		banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Error during getting aws cluster")
+		return
+	} else {
+		banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Get aws cluster succeeded")
+	}
+
+	// --- [ Get config ] --- //
+	banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Get config")
+	configPath, err := RetryGetConfig(cloudCluster, "")
+	if err != nil {
+		errorMsg := fmt.Sprintf("Error read cluster config: %s", err)
+		banzaiUtils.LogWarn(banzaiConstants.TagFetchClusterConfig, errorMsg)
+		SetResponseBodyJson(c, http.StatusServiceUnavailable, gin.H{
+			JsonKeyStatus:  http.StatusServiceUnavailable,
+			JsonKeyMessage: errorMsg,
+		})
+		return
+	}
+
+	// --- [ Read file ] --- //
+	banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Read file")
+	data, err := ioutil.ReadFile(configPath)
+	if err != nil {
+		banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Error during read file:", err.Error())
+		SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
+			JsonKeyStatus:  http.StatusInternalServerError,
+			JsonKeyMessage: err,
+		})
+		return
+	} else {
+		banzaiUtils.LogDebug(banzaiConstants.TagFetchClusterConfig, "Read file succeeded:", data)
+	}
+
+	ctype := c.NegotiateFormat(gin.MIMEPlain, gin.MIMEJSON)
+	switch ctype {
+	case gin.MIMEJSON:
+		SetResponseBodyJson(c, http.StatusOK, gin.H{
+			JsonKeyStatus: http.StatusOK,
+			JsonKeyData:   data,
+		})
+	default:
+		banzaiUtils.LogDebug(banzaiConstants.TagFetchClusterConfig, "Content-Type: ", ctype)
+		c.String(http.StatusOK, string(data))
+	}
 }
