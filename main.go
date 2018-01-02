@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
@@ -562,52 +561,30 @@ func FetchClusterConfig(c *gin.Context) {
 	banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Start fetching cluster config")
 
 	// --- [ Get cluster ] --- //
-	banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Get cluster")
-	cloudCluster, err := cloud.GetCluster(c)
-	if err != nil {
-		banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Error during getting cluster")
-		return
-	} else {
-		banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Get cluster succeeded")
-	}
+	banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Get cluster from database")
 
-	// --- [ Get config ] --- //
-	banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Get config")
-	configPath, err := cloud.RetryGetConfig(cloudCluster, "")
+	cl, err := cloud.GetClusterFromDB(c)
 	if err != nil {
-		errorMsg := fmt.Sprintf("Error read cluster config: %s", err)
-		banzaiUtils.LogWarn(banzaiConstants.TagFetchClusterConfig, errorMsg)
-		cloud.SetResponseBodyJson(c, http.StatusServiceUnavailable, gin.H{
-			cloud.JsonKeyStatus:  http.StatusServiceUnavailable,
-			cloud.JsonKeyMessage: errorMsg,
+		banzaiUtils.LogWarn(banzaiConstants.TagFetchClusterConfig, "Get cluster from database failed")
+		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
+			cloud.JsonKeyStatus:  http.StatusNotFound,
+			cloud.JsonKeyMessage: "No cluster found",
 		})
 		return
 	}
 
-	// --- [ Read file ] --- //
-	banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Read file")
-	data, err := ioutil.ReadFile(configPath)
-	if err != nil {
-		banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Error during read file:", err.Error())
-		cloud.SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
-			cloud.JsonKeyStatus:  http.StatusInternalServerError,
-			cloud.JsonKeyMessage: err,
-		})
-		return
-	} else {
-		banzaiUtils.LogDebug(banzaiConstants.TagFetchClusterConfig, "Read file succeeded:", data)
-	}
+	banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Get cluster from database succeeded")
+	banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Cluster type", cl.Cloud)
 
-	ctype := c.NegotiateFormat(gin.MIMEPlain, gin.MIMEJSON)
-	switch ctype {
-	case gin.MIMEJSON:
-		cloud.SetResponseBodyJson(c, http.StatusOK, gin.H{
-			cloud.JsonKeyStatus: http.StatusOK,
-			cloud.JsonKeyData:   data,
-		})
+	switch cl.Cloud {
+	case banzaiConstants.Amazon:
+		cloud.GetAmazonK8SConfig(cl, c)
+		break
+	case banzaiConstants.Azure:
+		cloud.GetAzureK8SConfig(cl, c)
+		break
 	default:
-		banzaiUtils.LogDebug(banzaiConstants.TagFetchClusterConfig, "Content-Type: ", ctype)
-		c.String(http.StatusOK, string(data))
+		cloud.SendNotSupportedCloudResponse(c, banzaiConstants.TagFetchClusterConfig)
 	}
 }
 

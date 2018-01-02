@@ -258,3 +258,28 @@ func DeleteAzureCluster(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) boo
 		return false
 	}
 }
+
+func GetAzureK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
+	banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Start loading azure k8s config")
+
+	if cs == nil {
+		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "<nil> cluster")
+		return
+	}
+
+	// set azure props
+	database.SelectFirstWhere(&cs.Azure, banzaiSimpleTypes.AzureClusterSimple{ClusterSimpleId: cs.ID})
+	config, err := azureClient.GetClusterConfig(cs.Name, cs.Azure.ResourceGroup)
+	if err != nil {
+		// something went wrong
+		SetResponseBodyJson(c, err.StatusCode, gin.H{
+			JsonKeyStatus:  err.StatusCode,
+			JsonKeyData: err.Message,
+		})
+	} else {
+		// get config succeeded
+		banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Get k8s config succeeded")
+		SetResponseBodyJson(c, http.StatusOK, config)
+	}
+
+}
