@@ -13,6 +13,10 @@ import (
 	"net/http"
 
 	"github.com/banzaicloud/banzai-types/database"
+	"encoding/base64"
+	"io/ioutil"
+	"fmt"
+	"os"
 )
 
 //AzureRepresentation
@@ -274,13 +278,41 @@ func GetAzureK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 	if err != nil {
 		// something went wrong
 		SetResponseBodyJson(c, err.StatusCode, gin.H{
-			JsonKeyStatus:  err.StatusCode,
-			JsonKeyData: err.Message,
+			JsonKeyStatus: err.StatusCode,
+			JsonKeyData:   err.Message,
 		})
 	} else {
 		// get config succeeded
+
+		writeConfig2File(fmt.Sprintf("./statestore/%s", cs.Name), config)
+
 		banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Get k8s config succeeded")
 		SetResponseBodyJson(c, http.StatusOK, config)
+	}
+
+}
+
+func writeConfig2File(path string, config *banzaiAzureTypes.Config) {
+
+	if config == nil {
+		banzaiUtils.LogWarn(banzaiConstants.TagFetchClusterConfig, "config is nil")
+		return
+	}
+
+	decodedConfig, _ := base64.StdEncoding.DecodeString(config.Properties.AccessProfiles.ClusterAdmin.KubeConfig)
+
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		if err := os.Mkdir(path, 0777); err != nil {
+			banzaiUtils.LogWarn(banzaiConstants.TagFetchClusterConfig, "error during write to file", err)
+			return
+		}
+	}
+
+	if err := ioutil.WriteFile(fmt.Sprintf("%s/config", path), decodedConfig, 0777); err != nil {
+		banzaiUtils.LogWarn(banzaiConstants.TagFetchClusterConfig, "error during write to file", err)
+		return
+	} else {
+		banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "write config file succeeded")
 	}
 
 }

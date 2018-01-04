@@ -498,7 +498,7 @@ func DeleteAmazonCluster(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) bo
 	}
 
 }
-//GetAmazonK8SConfig retrieves the kubeconfig for AWS
+
 func GetAmazonK8SConfig(cl *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 
 	cloudCluster, err := GetClusterWithDbCluster(cl, c)
