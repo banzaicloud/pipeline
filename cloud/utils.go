@@ -84,9 +84,6 @@ func GetConfig(existing *cluster.Cluster, localDir string) (string, error) {
 		return "", err
 	}
 
-	if err != nil {
-		return "", err
-	}
 	sshConfig := &ssh.ClientConfig{
 		User:            user,
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
