@@ -4,8 +4,8 @@ Vendoring all dependencies is essential to have a **go get**-able package.
 
 Tools needed:
 
-- [glide](github.com/Masterminds/glide) dependency manager
-- [glide-vc](github.com/sgotti/glide-vc) vendor cleaner plugin for glide
+- [glide](https://github.com/Masterminds/glide) dependency manager
+- [glide-vc](https://github.com/sgotti/glide-vc) vendor cleaner plugin for glide
 
 `make deps` will instal them, in case they are missing
 
