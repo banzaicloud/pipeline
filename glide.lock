@@ -1,5 +1,5 @@
 hash: a7019acffca9bb9fa3d47f37df6af0f529f5fc793e587e6a323388d4967c9f96
-updated: 2018-01-01T18:05:26.060158+01:00
+updated: 2018-01-04T16:16:11.884668+01:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -59,14 +59,14 @@ imports:
   - autorest/to
   - autorest/validation
 - name: github.com/banzaicloud/azure-aks-client
-  version: 0e2a89f4136d86d70a288328f918b19751fa9fba
+  version: 0c7cd426d597dc8b88b173f959d21a51f026f911
   subpackages:
   - client
   - cluster
   - initapi
   - utils
 - name: github.com/banzaicloud/banzai-types
-  version: 68cb49b7a1aacfdbf6754e86d7019e3f8b5d0384
+  version: e70b2970791251ff389ccd45e7a0e9cca6af056b
   subpackages:
   - components
   - components/amazon

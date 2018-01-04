@@ -392,7 +392,7 @@ GET https://management.azure.com/subscriptions/
 	{resourceGroupName}/providers/Microsoft.ContainerService/managedClusters/
 	{resourceName}?api-version=2017-08-31
  */
-func GetClusterConfig(name, resourceGroup string) (*AzureConfig, *banzaiTypes.BanzaiResponse) {
+func GetClusterConfig(name, resourceGroup string) (*banzaiTypesAzure.Config, *banzaiTypes.BanzaiResponse) {
 
 	resp, callErr := callAzureGetCluster(name, resourceGroup)
 	if callErr != nil {
@@ -407,14 +407,12 @@ func GetClusterConfig(name, resourceGroup string) (*AzureConfig, *banzaiTypes.Ba
 
 	if resp.StatusCode != banzaiConstants.OK {
 		// not ok, probably 404
-		// todo set new banzai-types constants
 		errResp := initapi.CreateErrorFromValue(resp.StatusCode, value)
 		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Get k8s config failed with message: ", errResp.Message)
 		return nil, &banzaiTypes.BanzaiResponse{StatusCode: resp.StatusCode, Message: errResp.Message}
 	} else {
 		// everything is ok
-		// todo set new banzai-types struct
-		res := AzureConfig{}
+		res := banzaiTypesAzure.Config{}
 		json.Unmarshal([]byte(value), &res)
 		return &res, nil
 	}
@@ -463,23 +461,4 @@ func callAzureGetCluster(name, resourceGroup string) (*http.Response, *banzaiTyp
 
 	banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Get Cluster response status code:", resp.StatusCode)
 	return resp, nil
-}
-
-type AzureConfig struct {
-	Location string `json:"location"`
-	Name     string `json:"name"`
-	Properties struct {
-		AccessProfiles struct {
-			ClusterAdmin struct {
-				KubeConfig string `json:"kubeConfig"`
-			} `json:"clusterAdmin"`
-			ClusterUser struct {
-				KubeConfig string `json:"kubeConfig"`
-			} `json:"clusterUser"`
-		} `json:"accessProfiles"`
-	} `json:"properties"`
-}
-
-func (a *AzureConfig) String() string {
-	return banzaiUtils.Convert2Json(a)
 }
