@@ -443,24 +443,13 @@ func FetchClusters(c *gin.Context) {
 // FetchCluster fetch a K8S cluster in the cloud
 func FetchCluster(c *gin.Context) {
 
-	id := c.Param("id")
-
-	banzaiUtils.LogInfo(banzaiConstants.TagGetClusterInfo, "Start getting cluster info with", id, "id")
-
-	var cl banzaiSimpleTypes.ClusterSimple
-	database.SelectFirstWhere(&cl, banzaiSimpleTypes.GetSimpleClusterWithId(banzaiUtils.ConvertString2Uint(id)))
-
-	if cl.ID == 0 {
-		msg := "Cluster not found."
-		banzaiUtils.LogWarn(banzaiConstants.TagGetClusterInfo, msg)
-		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
-			cloud.JsonKeyStatus:  http.StatusNotFound,
-			cloud.JsonKeyMessage: msg,
-		})
+	banzaiUtils.LogInfo(banzaiConstants.TagGetClusterInfo, "Start getting cluster info")
+	cl, err := cloud.GetClusterFromDB(c)
+	if err != nil {
 		return
 	}
 
-	cloud.FetchClusterInfo(&cl, c)
+	cloud.FetchClusterInfo(cl, c)
 
 }
 
