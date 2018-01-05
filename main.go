@@ -533,11 +533,6 @@ func FetchClusterConfig(c *gin.Context) {
 
 	cl, err := cloud.GetClusterFromDB(c)
 	if err != nil {
-		banzaiUtils.LogWarn(banzaiConstants.TagFetchClusterConfig, "Get cluster from database failed")
-		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
-			cloud.JsonKeyStatus:  http.StatusNotFound,
-			cloud.JsonKeyMessage: "No cluster found",
-		})
 		return
 	}
 
