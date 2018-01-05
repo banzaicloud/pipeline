@@ -383,9 +383,15 @@ func DeleteCluster(c *gin.Context) {
 	banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Delete cluster start")
 
 	var cluster banzaiSimpleTypes.ClusterSimple
-	clusterId := c.Param("id")
+	value := c.Param("id")
+	field := c.DefaultQuery("field", "")
+	if field == "" {
+		field = "id"
+	}
 
-	database.First(clusterId, &cluster)
+	banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Cluster ID:", value)
+	query := fmt.Sprintf("%s = ?", field)
+	database.SelectFirstWhere(&cluster, query, value)
 
 	banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Cluster data:", cluster)
 
