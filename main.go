@@ -485,7 +485,10 @@ func UpdateCluster(c *gin.Context) {
 	banzaiUtils.LogInfo(banzaiConstants.TagGetClusterInfo, "Load cluster from database")
 
 	// load cluster from db
-	cl, _ := cloud.GetClusterFromDB(c)
+	cl, err := cloud.GetClusterFromDB(c)
+	if err != nil {
+		return
+	}
 
 	banzaiUtils.LogInfo(banzaiConstants.TagGetClusterInfo, "Start updating cluster:", cl.Name)
 
