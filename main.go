@@ -382,32 +382,14 @@ func DeleteCluster(c *gin.Context) {
 
 	banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Delete cluster start")
 
-	var cluster banzaiSimpleTypes.ClusterSimple
-	value := c.Param("id")
-	field := c.DefaultQuery("field", "")
-	if field == "" {
-		field = "id"
-	}
-
-	banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Cluster ID:", value)
-	query := fmt.Sprintf("%s = ?", field)
-	database.SelectFirstWhere(&cluster, query, value)
-
-	banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Cluster data:", cluster)
-
-	if cluster.ID == 0 {
-		// not found cluster with the given ID
-		banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Clouster not found")
-		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
-			cloud.JsonKeyStatus:  http.StatusNotFound,
-			cloud.JsonKeyMessage: "No cluster found!",
-		})
+	cl, err := cloud.GetClusterFromDB(c)
+	if err != nil {
 		return
 	}
 
-	if cloud.DeleteCluster(&cluster, c) {
+	if cloud.DeleteCluster(cl, c) {
 		// cluster delete success, delete from db
-		if cloud.DeleteFromDb(&cluster, c) {
+		if cloud.DeleteFromDb(cl, c) {
 			updatePrometheus()
 		}
 	}
@@ -485,10 +467,6 @@ func FetchCluster(c *gin.Context) {
 // UpdateCluster updates a K8S cluster in the cloud (e.g. autoscale)
 func UpdateCluster(c *gin.Context) {
 
-	var cl banzaiSimpleTypes.ClusterSimple
-	clusterId := c.Param("id")
-
-	banzaiUtils.LogInfo(banzaiConstants.TagGetClusterInfo, "Start updating cluster with", clusterId, "id")
 	banzaiUtils.LogInfo(banzaiConstants.TagGetClusterInfo, "Bind json into UpdateClusterRequest struct")
 
 	// bind request body to UpdateClusterRequest struct
@@ -507,17 +485,9 @@ func UpdateCluster(c *gin.Context) {
 	banzaiUtils.LogInfo(banzaiConstants.TagGetClusterInfo, "Load cluster from database")
 
 	// load cluster from db
-	cl.LoadClusterFromDatabase(banzaiUtils.ConvertString2Uint(clusterId), updateRequest.Cloud)
+	cl, _ := cloud.GetClusterFromDB(c)
 
-	// if ID is 0, the cluster is not found in DB
-	if cl.ID == 0 {
-		banzaiUtils.LogInfo(banzaiConstants.TagGetClusterInfo, "No cluster found with!")
-		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
-			cloud.JsonKeyStatus:  http.StatusNotFound,
-			cloud.JsonKeyMessage: "No cluster found!",
-		})
-		return
-	}
+	banzaiUtils.LogInfo(banzaiConstants.TagGetClusterInfo, "Start updating cluster:", cl.Name)
 
 	banzaiUtils.LogInfo(banzaiConstants.TagGetClusterInfo, "Update request: ", updateRequest)
 	cloudType := cl.Cloud
@@ -526,12 +496,12 @@ func UpdateCluster(c *gin.Context) {
 	case banzaiConstants.Amazon:
 		// read amazon props from amazon_cluster_properties table
 		banzaiUtils.LogInfo(banzaiConstants.TagGetClusterInfo, "Load amazon props from db")
-		database.SelectFirstWhere(&cl.Amazon, banzaiSimpleTypes.AmazonClusterSimple{ClusterSimpleId: banzaiUtils.ConvertString2Uint(clusterId)})
+		database.SelectFirstWhere(&cl.Amazon, banzaiSimpleTypes.AmazonClusterSimple{ClusterSimpleId: cl.ID})
 		break
 	case banzaiConstants.Azure:
 		// read azure props from azure_cluster_properties table
 		banzaiUtils.LogInfo(banzaiConstants.TagGetClusterInfo, "Load azure props from db")
-		database.SelectFirstWhere(&cl.Azure, banzaiSimpleTypes.AzureClusterSimple{ClusterSimpleId: banzaiUtils.ConvertString2Uint(clusterId)})
+		database.SelectFirstWhere(&cl.Azure, banzaiSimpleTypes.AzureClusterSimple{ClusterSimpleId: cl.ID})
 		break
 	default:
 		// not supported cloud type
@@ -542,10 +512,10 @@ func UpdateCluster(c *gin.Context) {
 
 	banzaiUtils.LogInfo(banzaiConstants.TagGetClusterInfo, "Cluster to modify: ", cl)
 
-	if isValid, err := updateRequest.Validate(cl); isValid && len(err) == 0 {
+	if isValid, err := updateRequest.Validate(*cl); isValid && len(err) == 0 {
 		// validation OK
 		banzaiUtils.LogInfo(banzaiConstants.TagGetClusterInfo, "Validate is OK")
-		if cloud.UpdateClusterInCloud(c, &updateRequest, cl) {
+		if cloud.UpdateClusterInCloud(c, &updateRequest, *cl) {
 			// cluster updated successfully in cloud
 			// update prometheus config..
 			updatePrometheus()
