@@ -1,5 +1,5 @@
 hash: a7019acffca9bb9fa3d47f37df6af0f529f5fc793e587e6a323388d4967c9f96
-updated: 2018-01-04T16:16:11.884668+01:00
+updated: 2018-01-06T17:41:55.388434+01:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -44,13 +44,13 @@ imports:
   - service/s3
   - service/sts
 - name: github.com/Azure/azure-sdk-for-go
-  version: 934e2462aeb6e0c14186dcfeedd73a026d1b8eeb
+  version: 57da6001a1d275435ae24b8a39c04828d9623321
   subpackages:
   - arm/examples/helpers
   - arm/network
   - arm/resources/resources
 - name: github.com/Azure/go-autorest
-  version: 809ed2ef5c4c9a60c3c2f3aa9cc11f3a7c2ce59d
+  version: 8c58b4788dedd95779efe0ac2055bb6a1b9b8e01
   subpackages:
   - autorest
   - autorest/adal
@@ -59,14 +59,14 @@ imports:
   - autorest/to
   - autorest/validation
 - name: github.com/banzaicloud/azure-aks-client
-  version: 0c7cd426d597dc8b88b173f959d21a51f026f911
+  version: c99daaa657685fe961576388bde67b472c4d031f
   subpackages:
   - client
   - cluster
   - initapi
   - utils
 - name: github.com/banzaicloud/banzai-types
-  version: e70b2970791251ff389ccd45e7a0e9cca6af056b
+  version: 50e7593471aa49bfd19e1f61506329d54e046e0a
   subpackages:
   - components
   - components/amazon
@@ -155,7 +155,7 @@ imports:
 - name: github.com/fatih/color
   version: 5df930a27be2502f99b292b7cc09ebad4d0891f4
 - name: github.com/fsnotify/fsnotify
-  version: 4da3e2cfbabc9f751898f250b49f2439785783a1
+  version: f12c6236fe7b5cf6bcf30e5935d08cb079d78334
 - name: github.com/ghodss/yaml
   version: 73d445a93680fa1a78ae23a5839bad48f32ba1ee
 - name: github.com/gin-contrib/cors
@@ -317,7 +317,7 @@ imports:
 - name: github.com/kris-nova/lolgopher
   version: 14bbba5e911d8e26eda5a2254405941b2c38607d
 - name: github.com/magiconair/properties
-  version: 49d762b9817ba1c2e9d0c69183c2b4a8b8f1d934
+  version: 61b492c03cf472e0c6419be5899b8e0dc28b1b88
 - name: github.com/mailru/easyjson
   version: d5b7844b561a7bc640052f1b935f7b800330d7e0
   subpackages:
@@ -327,7 +327,7 @@ imports:
 - name: github.com/Masterminds/semver
   version: 517734cc7d6470c0d07130e40fd40bdeb9bcd3fd
 - name: github.com/Masterminds/sprig
-  version: 82f6f19d47b416d27ae039939b44afaa0575860e
+  version: b217b9c388de2cacde4354c536e520c52c055563
 - name: github.com/mattn/go-colorable
   version: 5411d3eea5978e6cdc258b30de592b60df6aba96
   repo: https://github.com/mattn/go-colorable
@@ -338,7 +338,7 @@ imports:
   subpackages:
   - pbutil
 - name: github.com/mitchellh/mapstructure
-  version: 06020f85339e21b2478f756a78e295255ffa4d6a
+  version: 53818660ed4955e899c0bcafa97299a388bd7c8e
 - name: github.com/opencontainers/go-digest
   version: a6d0ee40d4207ea02364bd3b9e8e77b9159ba1eb
 - name: github.com/opencontainers/image-spec
@@ -348,12 +348,14 @@ imports:
   - specs-go/v1
 - name: github.com/pborman/uuid
   version: ca53cad383cad2479bbba7f7a1a05797ec1386e4
+- name: github.com/pelletier/go-buffruneio
+  version: df1e16fde7fc330a0ca68167c23bf7ed6ac31d6d
 - name: github.com/pelletier/go-toml
-  version: 4e9e0ee19b60b13eb79915933f44d8ed5f268bdd
+  version: 0049ab3dc4c4c70a9eee23087437b69c0dde2130
 - name: github.com/peterbourgon/diskv
   version: 5f041e8faa004a95c88a202771f4cc3e991971e6
 - name: github.com/pkg/errors
-  version: f15c970de5b76fac0b59abb32d62c17cc7bed265
+  version: a22138067af1c4942683050411a841ade67fe1eb
 - name: github.com/pkg/sftp
   version: 4d0e916071f68db74f8a73926335f809396d6b42
 - name: github.com/prometheus/client_golang
@@ -387,15 +389,16 @@ imports:
 - name: github.com/sirupsen/logrus
   version: d682213848ed68c0a260ca37d6dd5ace8423f5ba
 - name: github.com/spf13/afero
-  version: 8d919cbe7e2627e417f3e45c3c0e489a5b7e2536
+  version: b28a7effac979219c2a2ed6205a4d70e4b1bcd02
   subpackages:
   - mem
+  - sftp
 - name: github.com/spf13/cast
-  version: acbeb36b902d72a7a4c18e8f3241075e7ab763e4
+  version: e31f36ffc91a2ba9ddb72a4b6a607ff9b3d3cb63
 - name: github.com/spf13/cobra
   version: f62e98d28ab7ad31d707ba837a966378465c7b57
 - name: github.com/spf13/jwalterweatherman
-  version: 12bd96e66386c1960ab0f74ced1362f66f552f7b
+  version: 33c24e77fb80341fe7130ee7c594256ff08ccc46
 - name: github.com/spf13/pflag
   version: 9ff6c6923cfffbcd502984b8e0c80539a94968b7
 - name: github.com/spf13/viper
@@ -670,8 +673,9 @@ imports:
   - util/retry
   - util/workqueue
 - name: k8s.io/helm
-  version: 15053e6750ebf50e7ab28b4eecf955c53ffb5b6e
+  version: 8478fb4fc723885b155c924d1c8c410b7a9444e6
   subpackages:
+  - cmd/helm/installer
   - pkg/chartutil
   - pkg/helm
   - pkg/helm/portforwarder
@@ -681,6 +685,7 @@ imports:
   - pkg/proto/hapi/release
   - pkg/proto/hapi/services
   - pkg/proto/hapi/version
+  - pkg/strvals
   - pkg/timeconv
   - pkg/version
 - name: k8s.io/kube-openapi
@@ -854,7 +859,7 @@ imports:
   - exec
   - exec/testing
 - name: vbom.ml/util
-  version: 256737ac55c46798123f754ab7d2c784e2c71783
+  version: db5cfe13f5cc80a4990d98e2e1b0707a4d1a5394
   repo: https://github.com/fvbommel/util.git
   vcs: git
   subpackages:

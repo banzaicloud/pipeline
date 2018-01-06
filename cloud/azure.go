@@ -274,7 +274,7 @@ func GetAzureK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 
 	// set azure props
 	database.SelectFirstWhere(&cs.Azure, banzaiSimpleTypes.AzureClusterSimple{ClusterSimpleId: cs.ID})
-	config, err := azureClient.GetClusterConfig(cs.Name, cs.Azure.ResourceGroup)
+	config, err := azureClient.GetClusterConfig(cs.Name, cs.Azure.ResourceGroup, "clusterUser")
 	if err != nil {
 		// something went wrong
 		SetResponseBodyJson(c, err.StatusCode, gin.H{
@@ -299,7 +299,7 @@ func writeConfig2File(path string, config *banzaiAzureTypes.Config) {
 		return
 	}
 
-	decodedConfig, _ := base64.StdEncoding.DecodeString(config.Properties.AccessProfiles.ClusterAdmin.KubeConfig)
+	decodedConfig, _ := base64.StdEncoding.DecodeString(config.Properties.KubeConfig)
 
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		if err := os.Mkdir(path, 0777); err != nil {

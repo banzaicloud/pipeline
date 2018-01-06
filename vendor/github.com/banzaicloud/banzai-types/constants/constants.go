@@ -25,6 +25,7 @@ const (
 	TagDatabase              = "Database"
 	TagKubernetes            = "Kubernetes"
 	TagFormat                = "Format"
+	TagHelmInstall           = "HelmInstall"
 )
 
 // ### [ Constants to Azure cluster default values ] ### //
