@@ -11,16 +11,11 @@ import (
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/banzai-types/components"
 	"net/http"
+	"github.com/banzaicloud/banzai-types/components/helm"
 )
 
-type HelmInstall struct {
-	KubeContext string `json:"kube_context"`
-	Namespace   string `json:"namespace"` // "kube-system"
-	Upgrade     bool   `json:"upgrade"`
-}
-
 // Install uses Kubernetes client to install Tiller.
-func Install(helmInstall *HelmInstall) *components.BanzaiResponse {
+func Install(helmInstall *helm.Install) *components.BanzaiResponse {
 	opts := installer.Options{
 		Namespace: helmInstall.Namespace,
 	}
