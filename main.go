@@ -12,6 +12,7 @@ import (
 	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/banzai-types/database"
 	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
+	banzaiHelm "github.com/banzaicloud/banzai-types/components/helm"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cloud"
 	"github.com/banzaicloud/pipeline/conf"
@@ -744,7 +745,7 @@ func InitHelmOnCluster(c *gin.Context) {
 	os.Setenv("KUBECONFIG", kce)
 
 	// bind request body to struct
-	var helmInstall helm.HelmInstall
+	var helmInstall banzaiHelm.Install
 	if err := c.BindJSON(&helmInstall); err != nil {
 		// bind failed
 		banzaiUtils.LogError(banzaiConstants.TagHelmInstall, "Required field is empty: "+err.Error())
