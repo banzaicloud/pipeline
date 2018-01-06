@@ -53,6 +53,11 @@ func LogFatalf(tag string, format string, args ... interface{}) {
 	log.Fatalf(prepareFormat(tag, format), getMessage(args))
 }
 
+func SetLogLevel(level string) {
+	l, _ := logrus.ParseLevel(level)
+	log.SetLevel(l)
+}
+
 func getTag(tag string) string {
 	return " ### [" + tag + "] ### "
 }

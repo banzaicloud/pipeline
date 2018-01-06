@@ -177,14 +177,7 @@ type Config struct {
 	Location string `json:"location"`
 	Name     string `json:"name"`
 	Properties struct {
-		AccessProfiles struct {
-			ClusterAdmin struct {
-				KubeConfig string `json:"kubeConfig"`
-			} `json:"clusterAdmin"`
-			ClusterUser struct {
-				KubeConfig string `json:"kubeConfig"`
-			} `json:"clusterUser"`
-		} `json:"accessProfiles"`
+		KubeConfig string `json:"kubeConfig"`
 	} `json:"properties"`
 }
 

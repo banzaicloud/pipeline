@@ -392,12 +392,49 @@ GET https://management.azure.com/subscriptions/
 	{resourceGroupName}/providers/Microsoft.ContainerService/managedClusters/
 	{resourceName}?api-version=2017-08-31
  */
-func GetClusterConfig(name, resourceGroup string) (*banzaiTypesAzure.Config, *banzaiTypes.BanzaiResponse) {
+func GetClusterConfig(name, resourceGroup, roleName string) (*banzaiTypesAzure.Config, *banzaiTypes.BanzaiResponse) {
 
-	resp, callErr := callAzureGetCluster(name, resourceGroup)
-	if callErr != nil {
-		return nil, callErr
+	if azureSdk == nil {
+		return nil, initError
 	}
+
+	if len(clientId) == 0 || len(secret) == 0 {
+		message := "ClientId or secret is empty"
+		banzaiUtils.LogError(banzaiConstants.TagGetCluster, "environmental_error")
+		return nil, &banzaiTypes.BanzaiResponse{StatusCode: banzaiConstants.InternalErrorCode, Message: message}
+	}
+
+	pathParam := map[string]interface{}{
+		"subscriptionId":    azureSdk.ServicePrincipal.SubscriptionID,
+		"resourceGroupName": resourceGroup,
+		"resourceName":      name,
+		"roleName":          roleName,
+	}
+	queryParam := map[string]interface{}{"api-version": "2017-08-31"}
+
+	groupClient := *azureSdk.ResourceGroup
+
+	req, err := autorest.Prepare(&http.Request{},
+		groupClient.WithAuthorization(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(BaseUrl),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ContainerService/managedClusters/{resourceName}/accessProfiles/{roleName}", pathParam),
+		autorest.WithQueryParameters(queryParam))
+
+	if err != nil {
+		banzaiUtils.LogError(banzaiConstants.TagGetCluster, "error during get cluster in", resourceGroup, "resource group", err)
+		return nil, createErrorResponseFromError(err)
+	}
+
+	banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Get cluster with name:", name, " in ", resourceGroup, "resource group")
+
+	resp, err := autorest.SendWithSender(groupClient.Client, req)
+	if err != nil {
+		banzaiUtils.LogError(banzaiConstants.TagGetCluster, "error during get clusters in", resourceGroup, "resource group:", err)
+		return nil, createErrorResponseFromError(err)
+	}
+
+	banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Get Cluster response status code:", resp.StatusCode)
 
 	value, err := ioutil.ReadAll(resp.Body)
 	if err != nil {

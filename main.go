@@ -104,6 +104,7 @@ func main() {
 		v1.DELETE("/clusters/:id/deployments/:name", DeleteDeployment)
 		v1.PUT("/clusters/:id/deployments/:name", UpgradeDeployment)
 		v1.HEAD("/clusters/:id/deployments/:name", FetchDeploymentStatus)
+		v1.POST("/clusters/:id/helminit", InitHelmOnCluster)
 
 		v1.GET("/auth0test", auth.Auth0Groups(auth.ApiGroup), Auth0Test)
 	}
@@ -726,4 +727,38 @@ func Status(c *gin.Context) {
 	//TODO:add more complex status checks
 	//no error on viper,   db init
 	c.JSON(http.StatusOK, gin.H{"Cluster running, subsystems initialized": http.StatusOK})
+}
+
+// InitHelmInCluster installs Helm on AKS cluster and configure the Helm client
+func InitHelmOnCluster(c *gin.Context) {
+	banzaiUtils.LogInfo(banzaiConstants.TagHelmInstall, "Start helm install")
+
+	// get cluster from database
+	cl, err := cloud.GetClusterFromDB(c)
+	if err != nil {
+		return
+	}
+
+	kce := fmt.Sprintf("./statestore/%s/config", cl.Name)
+	banzaiUtils.LogInfof("Set $KUBECONFIG env to %s", kce)
+	os.Setenv("KUBECONFIG", kce)
+
+	// bind request body to struct
+	var helmInstall helm.HelmInstall
+	if err := c.BindJSON(&helmInstall); err != nil {
+		// bind failed
+		banzaiUtils.LogError(banzaiConstants.TagHelmInstall, "Required field is empty: "+err.Error())
+		cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
+			cloud.JsonKeyStatus:  http.StatusBadRequest,
+			cloud.JsonKeyMessage: "Required field is empty",
+			cloud.JsonKeyError:   err,
+		})
+		return
+	} else {
+		banzaiUtils.LogInfo(banzaiConstants.TagHelmInstall, "Bind succeeded")
+	}
+
+	resp := helm.Install(&helmInstall)
+	cloud.SetResponseBodyJson(c, resp.StatusCode, resp)
+
 }

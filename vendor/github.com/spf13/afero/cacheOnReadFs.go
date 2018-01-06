@@ -32,8 +32,9 @@ func NewCacheOnReadFs(base Fs, layer Fs, cacheTime time.Duration) Fs {
 type cacheState int
 
 const (
+	cacheUnknown cacheState = iota
 	// not present in the overlay, unknown if it exists in the base:
-	cacheMiss cacheState = iota
+	cacheMiss
 	// present in the overlay and in base, base file is newer:
 	cacheStale
 	// present in the overlay - with cache time == 0 it may exist in the base,
@@ -64,10 +65,15 @@ func (u *CacheOnReadFs) cacheStatus(name string) (state cacheState, fi os.FileIn
 		return cacheHit, lfi, nil
 	}
 
-	if err == syscall.ENOENT || os.IsNotExist(err) {
+	if err == syscall.ENOENT {
 		return cacheMiss, nil, nil
 	}
-
+	var ok bool
+	if err, ok = err.(*os.PathError); ok {
+		if err == os.ErrNotExist {
+			return cacheMiss, nil, nil
+		}
+	}
 	return cacheMiss, nil, err
 }
 
