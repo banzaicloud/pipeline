@@ -1,5 +1,5 @@
 hash: a7019acffca9bb9fa3d47f37df6af0f529f5fc793e587e6a323388d4967c9f96
-updated: 2018-01-06T17:41:55.388434+01:00
+updated: 2018-01-06T17:58:45.065331+01:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -72,6 +72,7 @@ imports:
   - components/amazon
   - components/azure
   - components/database
+  - components/helm
   - configuration
   - constants
   - database
