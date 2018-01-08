@@ -59,13 +59,10 @@ func getMessage(args []interface{}) string {
 		switch a.(type) {
 		case string:
 			buffer.WriteString(fmt.Sprintf("%s", a))
-			break
 		case int:
 			buffer.WriteString(fmt.Sprintf("%d", a))
-			break
 		default:
 			buffer.WriteString(fmt.Sprintf("%v", a))
-			break
 		}
 		if i+1 < len(args) {
 			buffer.WriteString(" ")
