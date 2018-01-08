@@ -17,6 +17,9 @@ import (
 	"github.com/banzaicloud/banzai-types/database"
 	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
 	"io/ioutil"
+	"golang.org/x/crypto/ssh"
+	"github.com/pkg/sftp"
+	"strings"
 )
 
 // GetAWSCluster creates *cluster.Cluster from ClusterSimple struct
@@ -497,6 +500,74 @@ func DeleteAmazonCluster(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) bo
 		return true
 	}
 
+}
+
+func getAmazonKubernetesConfig(existing *cluster.Cluster) (string, error) {
+	user := existing.SSH.User
+	pubKeyPath := expand(existing.SSH.PublicKeyPath)
+	privKeyPath := strings.Replace(pubKeyPath, ".pub", "", 1)
+	address := fmt.Sprintf("%s:%s", existing.KubernetesAPI.Endpoint, "22")
+
+	sshConfig := &ssh.ClientConfig{
+		User:            user,
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+	}
+	remotePath := ""
+	if user == "root" {
+		remotePath = "/root/.kube/config"
+	} else {
+		remotePath = fmt.Sprintf("/home/%s/.kube/config", user)
+	}
+
+	pemBytes, err := ioutil.ReadFile(privKeyPath)
+	if err != nil {
+
+		return "", err
+	}
+
+	signer, err := getSigner(pemBytes)
+	if err != nil {
+		return "", err
+	}
+
+	auths := []ssh.AuthMethod{
+		ssh.PublicKeys(signer),
+	}
+	sshConfig.Auth = auths
+
+	sshConfig.SetDefaults()
+
+	conn, err := ssh.Dial("tcp", address, sshConfig)
+	if err != nil {
+		return "", err
+	}
+	defer conn.Close()
+	c, err := sftp.NewClient(conn)
+	if err != nil {
+		return "", err
+	}
+	defer c.Close()
+	r, err := c.Open(remotePath)
+	if err != nil {
+		return "", err
+	}
+	defer r.Close()
+	bytes, err := ioutil.ReadAll(r)
+	if err != nil {
+		return "", err
+	}
+	return string(bytes), nil
+}
+
+func getAmazonK8SEndpoint(cl *banzaiSimpleTypes.ClusterSimple, c *gin.Context) (string, error) {
+	cloudCluster, err := GetClusterWithDbCluster(cl, c)
+	if err != nil {
+		banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Error during getting aws cluster")
+		return "", err
+	} else {
+		banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Get aws cluster succeeded")
+		return cloudCluster.KubernetesAPI.Endpoint, nil
+	}
 }
 
 // GetAmazonK8SConfig retrieves the kubeconfig for AWS

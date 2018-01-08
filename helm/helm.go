@@ -9,17 +9,18 @@ import (
 	"github.com/Masterminds/sprig"
 	"github.com/banzaicloud/pipeline/cloud"
 	"github.com/ghodss/yaml"
-	"github.com/kris-nova/kubicorn/apis/cluster"
+	banzaiSimpleTypes "github.com/banzaicloud/banzai-types/components/database"
 	"k8s.io/helm/pkg/chartutil"
 	"k8s.io/helm/pkg/helm"
 	"k8s.io/helm/pkg/proto/hapi/chart"
 	rls "k8s.io/helm/pkg/proto/hapi/services"
+	"github.com/gin-gonic/gin"
 )
 
 //ListDeployments lists Helm deployments
-func ListDeployments(cluster *cluster.Cluster, filter *string) (*rls.ListReleasesResponse, error) {
+func ListDeployments(cluster *banzaiSimpleTypes.ClusterSimple, filter *string, c *gin.Context) (*rls.ListReleasesResponse, error) {
 	defer tearDown()
-	kubeConfig, err := cloud.GetConfig(cluster, "")
+	kubeConfig, err := cloud.GetK8SConfig(cluster, c)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +50,7 @@ func ListDeployments(cluster *cluster.Cluster, filter *string) (*rls.ListRelease
 }
 
 //UpgradeDeployment upgrades a Helm deployment
-func UpgradeDeployment(cluster *cluster.Cluster, deploymentName, chartName string, values map[string]interface{}) (string, error) {
+func UpgradeDeployment(cluster *banzaiSimpleTypes.ClusterSimple, deploymentName, chartName string, values map[string]interface{}, c *gin.Context) (string, error) {
 	//Base maps for values
 	base := map[string]interface{}{}
 	//this is only to parse x=y format
@@ -79,7 +80,7 @@ func UpgradeDeployment(cluster *cluster.Cluster, deploymentName, chartName strin
 	//Get cluster based or inCluster kubeconfig
 	kubeConfig := ""
 	if cluster != nil {
-		kubeConfig, err = cloud.GetConfig(cluster, "")
+		kubeConfig, err = cloud.GetK8SConfig(cluster, c)
 		if err != nil {
 			return "", err
 		}
@@ -93,13 +94,13 @@ func UpgradeDeployment(cluster *cluster.Cluster, deploymentName, chartName strin
 		chartRequested,
 		helm.UpdateValueOverrides(updateValues),
 		helm.UpgradeDryRun(false),
-	//helm.UpgradeRecreate(u.recreate),
-	//helm.UpgradeForce(u.force),
-	//helm.UpgradeDisableHooks(u.disableHooks),
-	//helm.UpgradeTimeout(u.timeout),
-	//helm.ResetValues(u.resetValues),
-	//helm.ReuseValues(u.reuseValues),
-	//helm.UpgradeWait(u.wait)
+		//helm.UpgradeRecreate(u.recreate),
+		//helm.UpgradeForce(u.force),
+		//helm.UpgradeDisableHooks(u.disableHooks),
+		//helm.UpgradeTimeout(u.timeout),
+		//helm.ResetValues(u.resetValues),
+		//helm.ReuseValues(u.reuseValues),
+		//helm.UpgradeWait(u.wait)
 	)
 	if err != nil {
 		return "", fmt.Errorf("upgrade failed: %v", err)
@@ -108,7 +109,7 @@ func UpgradeDeployment(cluster *cluster.Cluster, deploymentName, chartName strin
 }
 
 //CreateDeployment creates a Helm deployment
-func CreateDeployment(cluster *cluster.Cluster, chartName string, releaseName string, valueOverrides []byte) (*rls.InstallReleaseResponse, error) {
+func CreateDeployment(cluster *banzaiSimpleTypes.ClusterSimple, chartName string, releaseName string, valueOverrides []byte, c *gin.Context) (*rls.InstallReleaseResponse, error) {
 	defer tearDown()
 	chartRequested, err := chartutil.Load(chartName)
 	if err != nil {
@@ -122,7 +123,7 @@ func CreateDeployment(cluster *cluster.Cluster, chartName string, releaseName st
 		return nil, fmt.Errorf("cannot load requirements: %v", err)
 	}
 
-	kubeConfig, err := cloud.GetConfig(cluster, "")
+	kubeConfig, err := cloud.GetK8SConfig(cluster, c)
 	if err != nil {
 		return nil, err
 	}
@@ -151,9 +152,9 @@ func CreateDeployment(cluster *cluster.Cluster, chartName string, releaseName st
 }
 
 //DeleteDeployment deletes a Helm deployment
-func DeleteDeployment(cluster *cluster.Cluster, releaseName string) error {
+func DeleteDeployment(cluster *banzaiSimpleTypes.ClusterSimple, releaseName string, c *gin.Context) error {
 	defer tearDown()
-	kubeConfig, err := cloud.GetConfig(cluster, "")
+	kubeConfig, err := cloud.GetK8SConfig(cluster, c)
 	if err != nil {
 		return err
 	}

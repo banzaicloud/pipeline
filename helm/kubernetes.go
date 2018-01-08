@@ -11,12 +11,12 @@ import (
 
 	"fmt"
 	"github.com/banzaicloud/pipeline/cloud"
-	"github.com/kris-nova/kubicorn/apis/cluster"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
 	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
+	banzaiSimpleTypes "github.com/banzaicloud/banzai-types/components/database"
 )
 
 var tillerTunnel *kube.Tunnel
@@ -52,12 +52,13 @@ func getHelmClient(kubeConfigPath string) (*helm.Client, error) {
 }
 
 //CheckDeploymentState checks the state of Helm deployment
-func CheckDeploymentState(cluster *cluster.Cluster, releaseName string) (string, error) {
+func CheckDeploymentState(cs *banzaiSimpleTypes.ClusterSimple, releaseName string) (string, error) {
 	var (
 		config *rest.Config
 		err    error
 	)
-	kubeConfig, err := cloud.GetConfig(cluster, "")
+
+	kubeConfig, err := cloud.GetKubeConfigPath(fmt.Sprintf("./statestore/%s/", cs.Name))
 	if err != nil {
 		return "", err
 	}

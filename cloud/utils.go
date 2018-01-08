@@ -17,7 +17,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/kris-nova/kubicorn/apis/cluster"
 	"github.com/kris-nova/kubicorn/cutil/logger"
-	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/terminal"
 	"k8s.io/client-go/tools/clientcmd"
@@ -71,67 +70,17 @@ func expand(path string) string {
 
 //GetConfig retrieves K8S config
 func GetConfig(existing *cluster.Cluster, localDir string) (string, error) {
-	user := existing.SSH.User
-	pubKeyPath := expand(existing.SSH.PublicKeyPath)
-	privKeyPath := strings.Replace(pubKeyPath, ".pub", "", 1)
-	address := fmt.Sprintf("%s:%s", existing.KubernetesAPI.Endpoint, "22")
 	if localDir == "" {
 		localDir = fmt.Sprintf("./statestore/%s/", existing.Name)
 	}
-	localPath, err := getKubeConfigPath(localDir)
+	localPath, err := GetKubeConfigPath(localDir)
 	if err != nil {
 		return "", err
 	}
-
-	sshConfig := &ssh.ClientConfig{
-		User:            user,
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-	}
-	remotePath := ""
-	if user == "root" {
-		remotePath = "/root/.kube/config"
-	} else {
-		remotePath = fmt.Sprintf("/home/%s/.kube/config", user)
-	}
-
-	pemBytes, err := ioutil.ReadFile(privKeyPath)
-	if err != nil {
-
-		return "", err
-	}
-
-	signer, err := getSigner(pemBytes)
+	conf, err := getAmazonKubernetesConfig(existing)
 	if err != nil {
 		return "", err
 	}
-
-	auths := []ssh.AuthMethod{
-		ssh.PublicKeys(signer),
-	}
-	sshConfig.Auth = auths
-
-	sshConfig.SetDefaults()
-
-	conn, err := ssh.Dial("tcp", address, sshConfig)
-	if err != nil {
-		return "", err
-	}
-	defer conn.Close()
-	c, err := sftp.NewClient(conn)
-	if err != nil {
-		return "", err
-	}
-	defer c.Close()
-	r, err := c.Open(remotePath)
-	if err != nil {
-		return "", err
-	}
-	defer r.Close()
-	bytes, err := ioutil.ReadAll(r)
-	if err != nil {
-		return "", err
-	}
-
 	if _, err := os.Stat(localPath); os.IsNotExist(err) {
 		empty := []byte("")
 		err := ioutil.WriteFile(localPath, empty, 0755)
@@ -144,7 +93,7 @@ func GetConfig(existing *cluster.Cluster, localDir string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	_, err = f.WriteString(string(bytes))
+	_, err = f.WriteString(conf)
 	if err != nil {
 		return "", err
 	}
@@ -181,7 +130,7 @@ func RetryGetConfig(existing *cluster.Cluster, localDir string) (string, error) 
 	return "", fmt.Errorf("Timeout writing kubeconfig")
 }
 
-func getKubeConfigPath(path string) (string, error) {
+func GetKubeConfigPath(path string) (string, error) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		if err := os.Mkdir(path, 0777); err != nil {
 			return "", err

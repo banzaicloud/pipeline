@@ -128,14 +128,14 @@ func DeleteDeployment(c *gin.Context) {
 
 	// --- [ Get cluster ] --- //
 	banzaiUtils.LogInfo(banzaiConstants.TagDeleteDeployment, "Get cluster")
-	cloudCluster, err := cloud.GetCluster(c)
+	cloudCluster, err := cloud.GetClusterFromDB(c)
 	if err != nil {
 		return
 	}
 
 	// --- [Delete deployment] --- //
 	banzaiUtils.LogInfo(banzaiConstants.TagDeleteDeployment, "Delete deployment")
-	err = helm.DeleteDeployment(cloudCluster, name)
+	err = helm.DeleteDeployment(cloudCluster, name, c)
 	if err != nil {
 		// error during delete deployment
 		banzaiUtils.LogWarn(banzaiConstants.TagDeleteDeployment, err.Error())
@@ -162,14 +162,8 @@ func CreateDeployment(c *gin.Context) {
 
 	// --- [ Get cluster ] --- //
 	banzaiUtils.LogInfo(banzaiConstants.TagCreateDeployment, "Get cluster")
-	cloudCluster, err := cloud.GetCluster(c)
+	cloudCluster, err := cloud.GetClusterFromDB(c)
 	if err != nil {
-		msg := "Error during get cluster cluster. " + err.Error()
-		banzaiUtils.LogInfo(banzaiConstants.TagCreateDeployment, msg)
-		cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
-			cloud.JsonKeyStatus:  http.StatusBadRequest,
-			cloud.JsonKeyMessage: msg,
-		})
 		return
 	}
 
@@ -206,7 +200,7 @@ func CreateDeployment(c *gin.Context) {
 	}
 	banzaiUtils.LogDebug(banzaiConstants.TagCreateDeployment, "Custom values:", string(values))
 	banzaiUtils.LogInfo(banzaiConstants.TagCreateDeployment, "Create deployment")
-	release, err := helm.CreateDeployment(cloudCluster, chartPath, deployment.ReleaseName, values)
+	release, err := helm.CreateDeployment(cloudCluster, chartPath, deployment.ReleaseName, values, c)
 	if err != nil {
 		banzaiUtils.LogWarn(banzaiConstants.TagCreateDeployment, "Error during create deployment.", err.Error())
 		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
@@ -226,7 +220,7 @@ func CreateDeployment(c *gin.Context) {
 
 	//Get ingress with deployment prefix TODO
 	//Get local ingress address?
-	deploymentUrl := fmt.Sprintf("http://%s:30080/zeppelin/", cloudCluster.KubernetesAPI.Endpoint)
+	deploymentUrl := fmt.Sprintf("http://%s:30080/zeppelin/", cloud.GetK8SEndpoint(cloudCluster, c))
 	notify.SlackNotify(fmt.Sprintf("Deployment Created: %s", deploymentUrl))
 	cloud.SetResponseBodyJson(c, http.StatusCreated, gin.H{
 		cloud.JsonKeyStatus:      http.StatusCreated,
@@ -245,14 +239,8 @@ func ListDeployments(c *gin.Context) {
 
 	// --- [ Get cluster ] ---- //
 	banzaiUtils.LogInfo(banzaiConstants.TagListDeployments, "Get cluster")
-	cloudCluster, err := cloud.GetCluster(c)
+	cloudCluster, err := cloud.GetClusterFromDB(c)
 	if err != nil {
-		msg := "Error during getting cluster"
-		banzaiUtils.LogWarn(banzaiConstants.TagListDeployments, "Error during getting cluster:", err.Error())
-		cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
-			cloud.JsonKeyStatus:  http.StatusBadRequest,
-			cloud.JsonKeyMessage: msg,
-		})
 		return
 	} else {
 		banzaiUtils.LogInfo(banzaiConstants.TagListDeployments, "Getting cluster succeeded")
@@ -260,7 +248,7 @@ func ListDeployments(c *gin.Context) {
 
 	// --- [ Get deployments ] --- //
 	banzaiUtils.LogInfo(banzaiConstants.TagListDeployments, "Get deployments")
-	response, err := helm.ListDeployments(cloudCluster, nil)
+	response, err := helm.ListDeployments(cloudCluster, nil, c)
 	if err != nil {
 		banzaiUtils.LogWarn(banzaiConstants.TagListDeployments, "Error getting deployments. ", err)
 		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
@@ -585,18 +573,15 @@ func GetTillerStatus(c *gin.Context) {
 
 	// --- [ Get cluster ] --- //
 	banzaiUtils.LogInfo(banzaiConstants.TagGetTillerStatus, "Get cluster")
-	cloudCluster, err := cloud.GetCluster(c)
+	cloudCluster, err := cloud.GetClusterFromDB(c)
 	if err != nil {
-		banzaiUtils.LogWarn(banzaiConstants.TagGetTillerStatus, "Error during getting cluster.", err.Error())
-		cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
-			cloud.JsonKeyStatus:  http.StatusBadRequest,
-			cloud.JsonKeyMessage: err.Error(),
-		})
 		return
+	} else {
+		banzaiUtils.LogInfo(banzaiConstants.TagGetTillerStatus, "Get cluster succeeded:", cloudCluster)
 	}
 
 	// --- [ List deployments ] ---- //
-	_, err = helm.ListDeployments(cloudCluster, nil)
+	_, err = helm.ListDeployments(cloudCluster, nil, c)
 	if err != nil {
 		banzaiUtils.LogWarn(banzaiConstants.TagGetTillerStatus, "Error during getting deployments.", err.Error())
 		cloud.SetResponseBodyJson(c, http.StatusServiceUnavailable, gin.H{
@@ -622,13 +607,8 @@ func FetchDeploymentStatus(c *gin.Context) {
 
 	// --- [ Get cluster ]  --- //
 	banzaiUtils.LogInfo(banzaiConstants.TagFetchDeploymentStatus, "Get cluster with name:", name)
-	cloudCluster, err := cloud.GetCluster(c)
+	cloudCluster, err := cloud.GetClusterFromDB(c)
 	if err != nil {
-		banzaiUtils.LogWarn(banzaiConstants.TagFetchDeploymentStatus, "Error during get cluster.", err.Error())
-		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
-			cloud.JsonKeyStatus:  http.StatusNotFound,
-			cloud.JsonKeyMessage: "Cluster not found",
-		})
 		return
 	} else {
 		banzaiUtils.LogInfo(banzaiConstants.TagFetchDeploymentStatus, "Get cluster succeeded:", cloudCluster)
@@ -636,7 +616,7 @@ func FetchDeploymentStatus(c *gin.Context) {
 
 	// --- [ List deployments ] --- //
 	banzaiUtils.LogInfo(banzaiConstants.TagFetchDeploymentStatus, "List deployments")
-	chart, err := helm.ListDeployments(cloudCluster, &name)
+	chart, err := helm.ListDeployments(cloudCluster, &name, c)
 	if err != nil {
 		banzaiUtils.LogWarn(banzaiConstants.TagFetchDeploymentStatus, "Error during listing deployments:", err.Error())
 		cloud.SetResponseBodyJson(c, http.StatusServiceUnavailable, gin.H{
