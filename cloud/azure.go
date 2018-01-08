@@ -273,8 +273,7 @@ func GetAzureK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 	}
 
 	// set azure props
-	database.SelectFirstWhere(&cs.Azure, banzaiSimpleTypes.AzureClusterSimple{ClusterSimpleId: cs.ID})
-	config, err := azureClient.GetClusterConfig(cs.Name, cs.Azure.ResourceGroup, "clusterUser")
+	config, err := getAzureKubernetesConfig(cs)
 	if err != nil {
 		// something went wrong
 		SetResponseBodyJson(c, err.StatusCode, gin.H{
@@ -300,6 +299,17 @@ func GetAzureK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 		SetResponseBodyJson(c, http.StatusOK, string(decodedConfig))
 	}
 
+}
+
+func getAzureK8SEndpoint(cs *banzaiSimpleTypes.ClusterSimple) string {
+	return ReadClusterAzure(cs).Value.Properties.Fqdn
+}
+
+func getAzureKubernetesConfig(cs *banzaiSimpleTypes.ClusterSimple) (*banzaiAzureTypes.Config, *banzaiTypes.BanzaiResponse) {
+	database.SelectFirstWhere(&cs.Azure, banzaiSimpleTypes.AzureClusterSimple{ClusterSimpleId: cs.ID})
+	config, err := azureClient.GetClusterConfig(cs.Name, cs.Azure.ResourceGroup, "clusterUser")
+
+	return config, err
 }
 
 func writeConfig2File(path string, config *banzaiAzureTypes.Config) {

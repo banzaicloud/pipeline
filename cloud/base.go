@@ -10,13 +10,14 @@ import (
 	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"encoding/base64"
 )
 
 // ClusterRepresentation combines EC2 and AKS
 type ClusterRepresentation struct {
-	Id                    uint   `json:"id"`
-	Name                  string `json:"name"`
-	CloudType             string `json:"cloud"`
+	Id        uint        `json:"id"`
+	Name      string      `json:"name"`
+	CloudType string      `json:"cloud"`
 	*AmazonRepresentation `json:"amazon,omitempty"`
 	*AzureRepresentation  `json:"azure,omitempty"`
 }
@@ -183,4 +184,70 @@ func FetchClusterInfo(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 		// wrong cloud type
 		SendNotSupportedCloudResponse(c, banzaiConstants.TagGetCluster)
 	}
+}
+
+func GetK8SEndpoint(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) string {
+
+	const LOGTAG = "getK8SEndpoint"
+
+	cloudType := cs.Cloud
+	banzaiUtils.LogInfo(LOGTAG, "Cloud type is ", cloudType)
+
+	switch cloudType {
+	case banzaiConstants.Amazon:
+		endpoint, _ := getAmazonK8SEndpoint(cs, c)
+		return endpoint
+	case banzaiConstants.Azure:
+		return getAzureK8SEndpoint(cs)
+	default:
+		SendNotSupportedCloudResponse(c, LOGTAG)
+		return ""
+	}
+}
+
+func GetK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) (string, error) {
+
+	const LOGTAG = "GetK8sConfig"
+
+	if cs == nil {
+		banzaiUtils.LogInfo(LOGTAG, "<nil> cluster")
+		return "", errors.New("<nil> cluster")
+	}
+	clusterType := cs.Cloud
+	banzaiUtils.LogInfo(LOGTAG, "Cluster type is ", clusterType)
+	switch clusterType {
+	case banzaiConstants.Amazon:
+		banzaiUtils.LogInfo(LOGTAG, "Trying to get AmazonKubernetesConfig")
+		cloudCluster, err := GetClusterWithDbCluster(cs, c)
+		if err != nil {
+			banzaiUtils.LogInfo(LOGTAG, "Error during getting aws cluster")
+			return "", errors.New("error happened during getting aws cluster")
+		} else {
+			banzaiUtils.LogInfo(LOGTAG, "Get aws cluster succeeded")
+		}
+		config, err := getAmazonKubernetesConfig(cloudCluster)
+		if err != nil {
+			return "", err
+		}
+		return config, nil
+
+	case banzaiConstants.Azure:
+		banzaiUtils.LogInfo(LOGTAG, "Trying to get AzureKubernetesConfig")
+		b64config, err := getAzureKubernetesConfig(cs)
+		if err != nil {
+			// something went wrong
+			banzaiUtils.LogWarn(LOGTAG, "Error during getting Azure K8S config")
+			SetResponseBodyJson(c, err.StatusCode, gin.H{
+				JsonKeyStatus: err.StatusCode,
+				JsonKeyData:   err.Message,
+			})
+		} else {
+			banzaiUtils.LogInfo(LOGTAG, "Kubernetes Config retrieve succeeded!")
+			config, _ := base64.StdEncoding.DecodeString(b64config.Properties.KubeConfig)
+			return string(config), nil
+		}
+	default:
+		SendNotSupportedCloudResponse(c, LOGTAG)
+	}
+	return "", errors.New("error happened during getting K8S config")
 }
