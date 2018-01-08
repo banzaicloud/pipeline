@@ -157,14 +157,11 @@ func GetClusterRepresentation(cs *banzaiSimpleTypes.ClusterSimple) *ClusterRepre
 	switch cloudType {
 	case banzaiConstants.Amazon:
 		return ReadClusterAmazon(cs)
-		break
 	case banzaiConstants.Azure:
 		database.SelectFirstWhere(&cs.Azure, banzaiSimpleTypes.AzureClusterSimple{ClusterSimpleId: cs.ID})
 		return ReadClusterAzure(cs)
-		break
 	default:
 		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Not supported cloud type")
-		break
 	}
 	return nil
 }
@@ -178,15 +175,12 @@ func FetchClusterInfo(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 	switch cloudType {
 	case banzaiConstants.Amazon:
 		GetClusterInfoAmazon(cs, c)
-		break
 	case banzaiConstants.Azure:
 		// set azure props
 		database.SelectFirstWhere(&cs.Azure, banzaiSimpleTypes.AzureClusterSimple{ClusterSimpleId: cs.ID})
 		GetClusterInfoAzure(cs, c)
-		break
 	default:
 		// wrong cloud type
 		SendNotSupportedCloudResponse(c, banzaiConstants.TagGetCluster)
-		break
 	}
 }

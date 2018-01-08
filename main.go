@@ -354,7 +354,6 @@ func CreateCluster(c *gin.Context) {
 				cloud.JsonKeyMessage: err,
 			})
 		}
-		break
 	case banzaiConstants.Azure:
 		// validate and create Azure cluster
 		aksData := createClusterBaseRequest.Properties.CreateClusterAzure
@@ -370,11 +369,9 @@ func CreateCluster(c *gin.Context) {
 				cloud.JsonKeyMessage: err,
 			})
 		}
-		break
 	default:
 		// wrong cloud type
 		cloud.SendNotSupportedCloudResponse(c, banzaiConstants.TagCreateCluster)
-		break
 	}
 
 }
@@ -491,12 +488,10 @@ func UpdateCluster(c *gin.Context) {
 		// read amazon props from amazon_cluster_properties table
 		banzaiUtils.LogInfo(banzaiConstants.TagGetClusterInfo, "Load amazon props from db")
 		database.SelectFirstWhere(&cl.Amazon, banzaiSimpleTypes.AmazonClusterSimple{ClusterSimpleId: cl.ID})
-		break
 	case banzaiConstants.Azure:
 		// read azure props from azure_cluster_properties table
 		banzaiUtils.LogInfo(banzaiConstants.TagGetClusterInfo, "Load azure props from db")
 		database.SelectFirstWhere(&cl.Azure, banzaiSimpleTypes.AzureClusterSimple{ClusterSimpleId: cl.ID})
-		break
 	default:
 		// not supported cloud type
 		banzaiUtils.LogWarn(banzaiConstants.TagGetClusterInfo, "Not supported cloud type")
@@ -544,10 +539,8 @@ func FetchClusterConfig(c *gin.Context) {
 	switch cl.Cloud {
 	case banzaiConstants.Amazon:
 		cloud.GetAmazonK8SConfig(cl, c)
-		break
 	case banzaiConstants.Azure:
 		cloud.GetAzureK8SConfig(cl, c)
-		break
 	default:
 		cloud.SendNotSupportedCloudResponse(c, banzaiConstants.TagFetchClusterConfig)
 	}
@@ -577,10 +570,8 @@ func GetClusterStatus(c *gin.Context) {
 	switch cloudType {
 	case banzaiConstants.Amazon:
 		cloud.GetAmazonClusterStatus(cloudCluster, c)
-		break
 	case banzaiConstants.Azure:
 		cloud.GetAzureClusterStatus(cloudCluster, c)
-		break
 	default:
 		cloud.SendNotSupportedCloudResponse(c, banzaiConstants.TagGetClusterStatus)
 		return
