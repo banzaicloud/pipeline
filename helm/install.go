@@ -17,7 +17,8 @@ import (
 // Install uses Kubernetes client to install Tiller.
 func Install(helmInstall *helm.Install) *components.BanzaiResponse {
 	opts := installer.Options{
-		Namespace: helmInstall.Namespace,
+		Namespace:      helmInstall.Namespace,
+		ServiceAccount: helmInstall.ServiceAccount,
 	}
 	_, kubeClient, err := getKubeClient(helmInstall.KubeContext)
 	if err != nil {
