@@ -25,6 +25,10 @@ import (
 	"github.com/kris-nova/kubicorn/apis/cluster"
 	"github.com/spf13/viper"
 	"k8s.io/helm/pkg/timeconv"
+
+	"github.com/banzaicloud/pipeline/utils"
+	"github.com/banzaicloud/pipeline/pods"
+
 )
 
 //nodeInstanceType=m3.medium -d nodeInstanceSpotPrice=0.04 -d nodeMin=1 -d nodeMax=3 -d image=ami-6d48500b
@@ -738,9 +742,28 @@ func Status(c *gin.Context) {
 	banzaiUtils.LogInfo(banzaiConstants.TagStatus, "Cluster running, subsystems initialized")
 	database.Find(&clusters)
 
-	//TODO:add more complex status checks
-	//no error on viper,   db init
-	c.JSON(http.StatusOK, gin.H{"Cluster running, subsystems initialized": http.StatusOK})
+	if len(clusters) == 0 {
+		c.JSON(http.StatusOK, gin.H{"No running clusters found.": http.StatusOK})
+	} else {
+		var clusterStatuses []pods.ClusterStatusResponse
+		for _, cl := range clusters {
+			clust, err := cloud.GetKubicornCluster(&cl)
+			banzaiUtils.LogInfo(utils.TagStatus, "Start listing pods / cluster")
+			if err != nil {
+				banzaiUtils.LogInfo(utils.TagStatus, err.Error())
+			} else {
+				var clusterStatusResponse pods.ClusterStatusResponse
+				clusterStatusResponse, err = pods.ListPodsForCluster(clust)
+				if err == nil {
+					clusterStatuses = append(clusterStatuses, clusterStatusResponse)
+				} else {
+					banzaiUtils.LogError(utils.TagStatus, err)
+				}
+			}
+		}
+		c.JSON(http.StatusOK, gin.H{"clusterStatuses": clusterStatuses})
+	}
+
 }
 
 // InitHelmInCluster installs Helm on AKS cluster and configure the Helm client
