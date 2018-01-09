@@ -20,6 +20,7 @@ type Value struct {
 type Properties struct {
 	ProvisioningState string    `json:"provisioningState"`
 	AgentPoolProfiles []Profile `json:"agentPoolProfiles"`
+	Fqdn string  `json:"fqdn"`
 }
 
 type Profile struct {
