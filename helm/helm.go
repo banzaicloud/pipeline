@@ -7,23 +7,16 @@ import (
 	"text/template"
 
 	"github.com/Masterminds/sprig"
-	"github.com/banzaicloud/pipeline/cloud"
 	"github.com/ghodss/yaml"
-	banzaiSimpleTypes "github.com/banzaicloud/banzai-types/components/database"
 	"k8s.io/helm/pkg/chartutil"
 	"k8s.io/helm/pkg/helm"
 	"k8s.io/helm/pkg/proto/hapi/chart"
 	rls "k8s.io/helm/pkg/proto/hapi/services"
-	"github.com/gin-gonic/gin"
 )
 
 //ListDeployments lists Helm deployments
-func ListDeployments(cluster *banzaiSimpleTypes.ClusterSimple, filter *string, c *gin.Context) (*rls.ListReleasesResponse, error) {
+func ListDeployments(filter *string, kubeConfig string) (*rls.ListReleasesResponse, error) {
 	defer tearDown()
-	kubeConfig, err := cloud.GetK8SConfig(cluster, c)
-	if err != nil {
-		return nil, err
-	}
 	hClient, err := getHelmClient(kubeConfig)
 	// TODO doc the options here
 	var sortBy = int32(2)
@@ -50,7 +43,7 @@ func ListDeployments(cluster *banzaiSimpleTypes.ClusterSimple, filter *string, c
 }
 
 //UpgradeDeployment upgrades a Helm deployment
-func UpgradeDeployment(cluster *banzaiSimpleTypes.ClusterSimple, deploymentName, chartName string, values map[string]interface{}, c *gin.Context) (string, error) {
+func UpgradeDeployment(deploymentName, chartName string, values map[string]interface{}, kubeConfig string) (string, error) {
 	//Base maps for values
 	base := map[string]interface{}{}
 	//this is only to parse x=y format
@@ -78,13 +71,6 @@ func UpgradeDeployment(cluster *banzaiSimpleTypes.ClusterSimple, deploymentName,
 		return "", fmt.Errorf("cannot load requirements: %v", err)
 	}
 	//Get cluster based or inCluster kubeconfig
-	kubeConfig := ""
-	if cluster != nil {
-		kubeConfig, err = cloud.GetK8SConfig(cluster, c)
-		if err != nil {
-			return "", err
-		}
-	}
 	hClient, err := getHelmClient(kubeConfig)
 	if err != nil {
 		return "", err
@@ -109,7 +95,7 @@ func UpgradeDeployment(cluster *banzaiSimpleTypes.ClusterSimple, deploymentName,
 }
 
 //CreateDeployment creates a Helm deployment
-func CreateDeployment(cluster *banzaiSimpleTypes.ClusterSimple, chartName string, releaseName string, valueOverrides []byte, c *gin.Context) (*rls.InstallReleaseResponse, error) {
+func CreateDeployment(chartName string, releaseName string, valueOverrides []byte, kubeConfig string) (*rls.InstallReleaseResponse, error) {
 	defer tearDown()
 	chartRequested, err := chartutil.Load(chartName)
 	if err != nil {
@@ -121,11 +107,6 @@ func CreateDeployment(cluster *banzaiSimpleTypes.ClusterSimple, chartName string
 		}
 	} else if err != chartutil.ErrRequirementsNotFound {
 		return nil, fmt.Errorf("cannot load requirements: %v", err)
-	}
-
-	kubeConfig, err := cloud.GetK8SConfig(cluster, c)
-	if err != nil {
-		return nil, err
 	}
 	var namespace = "default"
 	if len(strings.TrimSpace(releaseName)) == 0 {
@@ -152,12 +133,8 @@ func CreateDeployment(cluster *banzaiSimpleTypes.ClusterSimple, chartName string
 }
 
 //DeleteDeployment deletes a Helm deployment
-func DeleteDeployment(cluster *banzaiSimpleTypes.ClusterSimple, releaseName string, c *gin.Context) error {
+func DeleteDeployment(releaseName string, kubeConfig string) error {
 	defer tearDown()
-	kubeConfig, err := cloud.GetK8SConfig(cluster, c)
-	if err != nil {
-		return err
-	}
 	hClient, err := getHelmClient(kubeConfig)
 	if err != nil {
 		return err

@@ -132,10 +132,16 @@ func DeleteDeployment(c *gin.Context) {
 	if err != nil {
 		return
 	}
+	// --- [ Get K8S Config ] --- //
+	kubeConfig, err := cloud.GetK8SConfig(cloudCluster, c)
+	if err != nil {
+		return
+	}
+	banzaiUtils.LogInfo(banzaiConstants.TagDeleteDeployment, "Getting K8S Config Succeeded")
 
 	// --- [Delete deployment] --- //
 	banzaiUtils.LogInfo(banzaiConstants.TagDeleteDeployment, "Delete deployment")
-	err = helm.DeleteDeployment(cloudCluster, name, c)
+	err = helm.DeleteDeployment(name, kubeConfig)
 	if err != nil {
 		// error during delete deployment
 		banzaiUtils.LogWarn(banzaiConstants.TagDeleteDeployment, err.Error())
@@ -198,9 +204,16 @@ func CreateDeployment(c *gin.Context) {
 			return
 		}
 	}
+	// --- [ Get K8S Config ] --- //
+	kubeConfig, err := cloud.GetK8SConfig(cloudCluster, c)
+	if err != nil {
+		return
+	}
+	banzaiUtils.LogInfo(banzaiConstants.TagCreateDeployment, "Getting K8S Config Succeeded")
+
 	banzaiUtils.LogDebug(banzaiConstants.TagCreateDeployment, "Custom values:", string(values))
 	banzaiUtils.LogInfo(banzaiConstants.TagCreateDeployment, "Create deployment")
-	release, err := helm.CreateDeployment(cloudCluster, chartPath, deployment.ReleaseName, values, c)
+	release, err := helm.CreateDeployment(chartPath, deployment.ReleaseName, values, kubeConfig)
 	if err != nil {
 		banzaiUtils.LogWarn(banzaiConstants.TagCreateDeployment, "Error during create deployment.", err.Error())
 		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
@@ -220,7 +233,16 @@ func CreateDeployment(c *gin.Context) {
 
 	//Get ingress with deployment prefix TODO
 	//Get local ingress address?
-	deploymentUrl := fmt.Sprintf("http://%s:30080/zeppelin/", cloud.GetK8SEndpoint(cloudCluster, c))
+	endpoint, err := cloud.GetK8SEndpoint(cloudCluster, c)
+	if err != nil {
+		cloud.SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
+			cloud.JsonKeyStatus:  http.StatusInternalServerError,
+			cloud.JsonKeyMessage: fmt.Sprintf("%s", err),
+		})
+		return
+	}
+
+	deploymentUrl := fmt.Sprintf("http://%s:30080/zeppelin/", endpoint)
 	notify.SlackNotify(fmt.Sprintf("Deployment Created: %s", deploymentUrl))
 	cloud.SetResponseBodyJson(c, http.StatusCreated, gin.H{
 		cloud.JsonKeyStatus:      http.StatusCreated,
@@ -242,13 +264,19 @@ func ListDeployments(c *gin.Context) {
 	cloudCluster, err := cloud.GetClusterFromDB(c)
 	if err != nil {
 		return
-	} else {
-		banzaiUtils.LogInfo(banzaiConstants.TagListDeployments, "Getting cluster succeeded")
 	}
+	banzaiUtils.LogInfo(banzaiConstants.TagListDeployments, "Getting cluster succeeded")
+
+	// --- [ Get K8S Config ] --- //
+	kubeConfig, err := cloud.GetK8SConfig(cloudCluster, c)
+	if err != nil {
+		return
+	}
+	banzaiUtils.LogInfo(banzaiConstants.TagListDeployments, "Getting K8S Config Succeeded")
 
 	// --- [ Get deployments ] --- //
 	banzaiUtils.LogInfo(banzaiConstants.TagListDeployments, "Get deployments")
-	response, err := helm.ListDeployments(cloudCluster, nil, c)
+	response, err := helm.ListDeployments(nil, kubeConfig)
 	if err != nil {
 		banzaiUtils.LogWarn(banzaiConstants.TagListDeployments, "Error getting deployments. ", err)
 		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
@@ -580,8 +608,15 @@ func GetTillerStatus(c *gin.Context) {
 		banzaiUtils.LogInfo(banzaiConstants.TagGetTillerStatus, "Get cluster succeeded:", cloudCluster)
 	}
 
+	// --- [ Get K8S Config ] --- //
+	kubeConfig, err := cloud.GetK8SConfig(cloudCluster, c)
+	if err != nil {
+		return
+	}
+	banzaiUtils.LogInfo(banzaiConstants.TagGetTillerStatus, "Getting K8S Config Succeeded")
+
 	// --- [ List deployments ] ---- //
-	_, err = helm.ListDeployments(cloudCluster, nil, c)
+	_, err = helm.ListDeployments(nil, kubeConfig)
 	if err != nil {
 		banzaiUtils.LogWarn(banzaiConstants.TagGetTillerStatus, "Error during getting deployments.", err.Error())
 		cloud.SetResponseBodyJson(c, http.StatusServiceUnavailable, gin.H{
@@ -614,9 +649,16 @@ func FetchDeploymentStatus(c *gin.Context) {
 		banzaiUtils.LogInfo(banzaiConstants.TagFetchDeploymentStatus, "Get cluster succeeded:", cloudCluster)
 	}
 
+	// --- [ Get K8S Config ] --- //
+	kubeConfig, err := cloud.GetK8SConfig(cloudCluster, c)
+	if err != nil {
+		return
+	}
+	banzaiUtils.LogInfo(banzaiConstants.TagFetchDeploymentStatus, "Getting K8S Config Succeeded")
+
 	// --- [ List deployments ] --- //
 	banzaiUtils.LogInfo(banzaiConstants.TagFetchDeploymentStatus, "List deployments")
-	chart, err := helm.ListDeployments(cloudCluster, &name, c)
+	chart, err := helm.ListDeployments(&name, kubeConfig)
 	if err != nil {
 		banzaiUtils.LogWarn(banzaiConstants.TagFetchDeploymentStatus, "Error during listing deployments:", err.Error())
 		cloud.SetResponseBodyJson(c, http.StatusServiceUnavailable, gin.H{
