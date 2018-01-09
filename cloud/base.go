@@ -186,7 +186,7 @@ func FetchClusterInfo(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 	}
 }
 
-func GetK8SEndpoint(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) string {
+func GetK8SEndpoint(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) (string, error) {
 
 	const LOGTAG = "getK8SEndpoint"
 
@@ -195,13 +195,16 @@ func GetK8SEndpoint(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) string 
 
 	switch cloudType {
 	case banzaiConstants.Amazon:
-		endpoint, _ := getAmazonK8SEndpoint(cs, c)
-		return endpoint
+		endpoint, err := getAmazonK8SEndpoint(cs, c)
+		if err != nil {
+			return "", err
+		}
+		return endpoint, nil
 	case banzaiConstants.Azure:
 		return getAzureK8SEndpoint(cs)
 	default:
 		SendNotSupportedCloudResponse(c, LOGTAG)
-		return ""
+		return "", errors.New("could not retrieve K8S endpoint")
 	}
 }
 
@@ -227,6 +230,10 @@ func GetK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) (string, 
 		}
 		config, err := getAmazonKubernetesConfig(cloudCluster)
 		if err != nil {
+			SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
+				JsonKeyStatus:  http.StatusInternalServerError,
+				JsonKeyMessage: err,
+			})
 			return "", err
 		}
 		return config, nil
@@ -241,6 +248,7 @@ func GetK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) (string, 
 				JsonKeyStatus: err.StatusCode,
 				JsonKeyData:   err.Message,
 			})
+			return "", errors.New("error happened during getting K8S config")
 		} else {
 			banzaiUtils.LogInfo(LOGTAG, "Kubernetes Config retrieve succeeded!")
 			config, _ := base64.StdEncoding.DecodeString(b64config.Properties.KubeConfig)
@@ -248,6 +256,6 @@ func GetK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) (string, 
 		}
 	default:
 		SendNotSupportedCloudResponse(c, LOGTAG)
+		return "", errors.New("error happened during getting K8S config")
 	}
-	return "", errors.New("error happened during getting K8S config")
 }

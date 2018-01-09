@@ -17,6 +17,7 @@ import (
 	"io/ioutil"
 	"fmt"
 	"os"
+	"github.com/go-errors/errors"
 )
 
 //AzureRepresentation
@@ -301,8 +302,12 @@ func GetAzureK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 
 }
 
-func getAzureK8SEndpoint(cs *banzaiSimpleTypes.ClusterSimple) string {
-	return ReadClusterAzure(cs).Value.Properties.Fqdn
+func getAzureK8SEndpoint(cs *banzaiSimpleTypes.ClusterSimple) (string, error) {
+	resp := ReadClusterAzure(cs)
+	if resp == nil {
+		return "", errors.New("Could not retrieve K8S endpoint")
+	}
+	return resp.Value.Properties.Fqdn, nil
 }
 
 func getAzureKubernetesConfig(cs *banzaiSimpleTypes.ClusterSimple) (*banzaiAzureTypes.Config, *banzaiTypes.BanzaiResponse) {
