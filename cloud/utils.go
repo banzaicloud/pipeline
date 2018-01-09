@@ -118,7 +118,7 @@ func RetryGetConfig(existing *cluster.Cluster, localDir string) (string, error) 
 		path, err := GetConfig(existing, localDir)
 		if err != nil {
 			if strings.Contains(err.Error(), "file does not exist") || strings.Contains(err.Error(), "getsockopt: connection refused") || strings.Contains(err.Error(), "unable to authenticate") {
-				logger.Debug("Waiting for Kubernetes to come up..")
+				logger.Debug("Waiting for Kubernetes to come up.. #%s", err.Error())
 				time.Sleep(time.Duration(retrySleepSeconds) * time.Second)
 				continue
 			}
