@@ -24,13 +24,17 @@ var tillerTunnel *kube.Tunnel
 func getHelmClient(kubeConfigPath string) (*helm.Client, error) {
 	var config *rest.Config
 	var err error
-	if kubeConfigPath != "" {
-		banzaiUtils.LogInfo(banzaiConstants.TagKubernetes, "Create Kubernetes config from file: ", kubeConfigPath)
-		config, err = clientcmd.BuildConfigFromFlags("", kubeConfigPath)
-	} else {
-		banzaiUtils.LogInfo(banzaiConstants.TagKubernetes, "Use K8S InCluster Config.")
-		config, err = rest.InClusterConfig()
-	}
+	apiconfig, err :=clientcmd.Load([]byte(kubeConfigPath))
+	clientConfig := clientcmd.NewDefaultClientConfig(*apiconfig, &clientcmd.ConfigOverrides{})
+	config, err = clientConfig.ClientConfig()
+
+	//if kubeConfigPath != "" {
+	//	banzaiUtils.LogInfo(banzaiConstants.TagKubernetes, "Create Kubernetes config from file: ", kubeConfigPath)
+	//	config, err = clientcmd.BuildConfigFromFlags("", kubeConfigPath)
+	//} else {
+	//	banzaiUtils.LogInfo(banzaiConstants.TagKubernetes, "Use K8S InCluster Config.")
+	//	config, err = rest.InClusterConfig()
+	//}
 	if err != nil {
 		return nil, fmt.Errorf("create kubernetes config failed: %v", err)
 	}
