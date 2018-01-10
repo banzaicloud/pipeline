@@ -188,7 +188,7 @@ func FetchClusterInfo(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 
 func GetK8SEndpoint(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) (string, error) {
 
-	const LOGTAG = "getK8SEndpoint"
+	const LOGTAG = "GetK8SEndpoint"
 
 	cloudType := cs.Cloud
 	banzaiUtils.LogInfo(LOGTAG, "Cloud type is ", cloudType)
