@@ -24,7 +24,7 @@ func GetManagedCluster(request CreateClusterRequest, clientId string, secret str
 					VMSize: request.VMSize,
 				},
 			},
-			KubernetesVersion: "1.7.7",
+			KubernetesVersion: request.KubernetesVersion,
 			ServicePrincipalProfile: ServicePrincipalProfile{
 				ClientID: utils.S(clientId),
 				Secret:   utils.S(secret),
