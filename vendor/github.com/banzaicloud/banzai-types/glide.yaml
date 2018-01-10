@@ -1,0 +1,8 @@
+package: github.com/banzaicloud/banzai-types
+import:
+- package: github.com/sirupsen/logrus
+  version: ^1.0.4
+- package: github.com/Masterminds/cookoo
+  version: ^1.3.0
+  subpackages:
+  - web

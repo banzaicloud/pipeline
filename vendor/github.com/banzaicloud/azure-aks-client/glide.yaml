@@ -1,0 +1,19 @@
+package: github.com/banzaicloud/azure-aks-client
+import:
+- package: github.com/Azure/azure-sdk-for-go
+  version: ^12.0.0-beta
+  subpackages:
+  - arm/examples/helpers
+  - arm/resources/resources
+- package: github.com/Azure/go-autorest
+  version: ^9.6.0
+  subpackages:
+  - autorest
+  - autorest/adal
+  - autorest/azure
+- package: github.com/banzaicloud/banzai-types
+  subpackages:
+  - components
+  - components/azure
+  - constants
+  - utils
