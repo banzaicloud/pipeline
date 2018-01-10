@@ -287,7 +287,16 @@ func GetAzureK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 		writeConfig2File(fmt.Sprintf("./statestore/%s", cs.Name), config)
 
 		banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Get k8s config succeeded")
-		decodedConfig, _ := base64.StdEncoding.DecodeString(config.Properties.KubeConfig)
+		decodedConfig, err := base64.StdEncoding.DecodeString(config.Properties.KubeConfig)
+		if err != nil {
+			banzaiUtils.LogError(banzaiConstants.TagFetchClusterConfig, "Error decoding config failed:", config)
+			SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
+				JsonKeyStatus: http.StatusInternalServerError,
+				JsonKeyMessage: err.Error(),
+				JsonKeyData: config,
+			})
+			return
+		}
 		SetResponseBodyJson(c, http.StatusOK, string(decodedConfig))
 	}
 
