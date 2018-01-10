@@ -287,7 +287,8 @@ func GetAzureK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 		writeConfig2File(fmt.Sprintf("./statestore/%s", cs.Name), config)
 
 		banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Get k8s config succeeded")
-		SetResponseBodyJson(c, http.StatusOK, config)
+		decodedConfig, _ := base64.StdEncoding.DecodeString(config.Properties.KubeConfig)
+		SetResponseBodyJson(c, http.StatusOK, string(decodedConfig))
 	}
 
 }
