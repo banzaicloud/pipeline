@@ -1,0 +1,23 @@
+<div style="margin:auto; text-align: center;">
+  <h2>Resend Confirmation</h2>
+
+  {{$flashes := .Flashes}}
+  {{if $flashes}}
+    <ul>
+      {{range $flash := $flashes}}
+        <li>{{$flash.Message}}</li>
+      {{end}}
+    </ul>
+  {{end}}
+
+  <div>
+    <form action="{{.AuthURL "password/confirmation/send"}}" method="POST">
+      Email:  <input name="email">
+      <input type="submit">
+    </form>
+  </div>
+
+  <div>
+    <a href="{{.AuthURL "login"}}">Sign in</a>
+  </div>
+</div>

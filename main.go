@@ -9,11 +9,11 @@ import (
 
 	banzaiTypes "github.com/banzaicloud/banzai-types/components"
 	banzaiSimpleTypes "github.com/banzaicloud/banzai-types/components/database"
+	banzaiHelm "github.com/banzaicloud/banzai-types/components/helm"
 	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/banzai-types/database"
 	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
-	banzaiHelm "github.com/banzaicloud/banzai-types/components/helm"
-	"github.com/banzaicloud/pipeline/auth"
+	banzaiAuth "github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cloud"
 	"github.com/banzaicloud/pipeline/conf"
 	"github.com/banzaicloud/pipeline/helm"
@@ -25,6 +25,13 @@ import (
 	"github.com/kris-nova/kubicorn/apis/cluster"
 	"github.com/spf13/viper"
 	"k8s.io/helm/pkg/timeconv"
+
+	"github.com/qor/auth"
+	"github.com/qor/auth/auth_identity"
+	"github.com/qor/auth/authority"
+	"github.com/qor/auth/providers/github"
+	"github.com/qor/redirect_back"
+	"github.com/qor/session/manager"
 
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/banzaicloud/pipeline/pods"
@@ -69,7 +76,7 @@ func main() {
 	}
 
 	conf.Init()
-	auth.Init()
+	banzaiAuth.Init()
 
 	banzaiUtils.LogInfo(banzaiConstants.TagInit, "Logger configured")
 
@@ -79,7 +86,7 @@ func main() {
 		banzaiSimpleTypes.ClusterSimple.TableName(banzaiSimpleTypes.ClusterSimple{}),
 		banzaiSimpleTypes.AmazonClusterSimple.TableName(banzaiSimpleTypes.AmazonClusterSimple{}),
 		banzaiSimpleTypes.AzureClusterSimple.TableName(banzaiSimpleTypes.AzureClusterSimple{}))
-	database.CreateTables(&banzaiSimpleTypes.ClusterSimple{}, &banzaiSimpleTypes.AmazonClusterSimple{}, &banzaiSimpleTypes.AzureClusterSimple{})
+	database.CreateTables(&banzaiSimpleTypes.ClusterSimple{}, &banzaiSimpleTypes.AmazonClusterSimple{}, &banzaiSimpleTypes.AzureClusterSimple{}, &auth_identity.AuthIdentity{})
 
 	router := gin.Default()
 
@@ -93,8 +100,51 @@ func main() {
 
 	router.Use(cors.New(config))
 
+	// Init authorization
+	var (
+		RedirectBack = redirect_back.New(&redirect_back.Config{
+			SessionManager:  manager.SessionManager,
+			IgnoredPrefixes: []string{"/auth"},
+		})
+
+		// Initialize Auth with configuration
+		Auth = auth.New(&auth.Config{
+			DB:         database.DB(),
+			Redirector: auth.Redirector{RedirectBack},
+		})
+
+		Authority = authority.New(&authority.Config{
+			Auth: Auth,
+			AccessDeniedHandler: func(w http.ResponseWriter, req *http.Request) {
+				w.WriteHeader(http.StatusUnauthorized)
+			},
+		})
+	)
+
+	Auth.RegisterProvider(github.New(&github.Config{
+		ClientID:     viper.GetString("dev.clientid"),
+		ClientSecret: viper.GetString("dev.clientsecret"),
+	}))
+
+	authHandler := gin.WrapH(Auth.NewServeMux())
+
+	auth := router.Group("/auth/")
+	{
+		auth.GET("/*w", authHandler)
+		auth.GET("/*w/*w", authHandler)
+	}
+	// This should be installed, but it gives a fat StackOverflow
+	// router.Use(gin.WrapH(manager.SessionManager.Middleware(RedirectBack.Middleware(router))))
+
 	v1 := router.Group("/api/v1/")
 	{
+		v1.Use(func(ctx *gin.Context) {
+			var currentUser interface{}
+			currentUser = Authority.Auth.GetCurrentUser(ctx.Request)
+			if currentUser == nil {
+				ctx.AbortWithError(http.StatusUnauthorized, fmt.Errorf("Invalid session"))
+			}
+		})
 		v1.POST("/clusters", CreateCluster)
 		v1.GET("/status", Status)
 		v1.GET("/clusters", FetchClusters)
@@ -111,11 +161,10 @@ func main() {
 		v1.HEAD("/clusters/:id/deployments/:name", FetchDeploymentStatus)
 		v1.POST("/clusters/:id/helminit", InitHelmOnCluster)
 
-		v1.GET("/auth0test", auth.Auth0Groups(auth.ApiGroup), Auth0Test)
+		v1.GET("/auth0test", banzaiAuth.Auth0Groups(banzaiAuth.ApiGroup), Auth0Test)
 	}
 	notify.SlackNotify("API is already running")
 	router.Run(":9090")
-
 }
 
 //UpgradeDeployment - N/A

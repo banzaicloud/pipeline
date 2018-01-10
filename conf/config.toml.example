@@ -25,3 +25,7 @@ auth0pub = "./conf/auth0api.pub"
 
 # SSH key path
 #dev.keypath = ""
+
+# GitHub settings
+clientid = "91fec45935ed5c9a64a8"
+clientsecret = "047e067d690eef1a6c22e07af6e3cae51d191f94"

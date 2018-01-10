@@ -1,0 +1,9 @@
+{{define "head"}}<!-- nix -->{{end}}
+
+{{define "content"}}
+  <div class="container-fluid">
+    <h2 id="rules">Rules</h2>
+    {{range .RuleGroups}}<pre>File: {{.File}}; Group name: {{.Name}}
+{{range .Rules}}-------<br/>{{.HTMLSnippet pathPrefix}}{{end}}</pre>{{end}}
+  </div>
+{{end}}

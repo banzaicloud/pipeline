@@ -859,6 +859,18 @@ imports:
   subpackages:
   - exec
   - exec/testing
+- name: github.com/qor/auth
+  version: d0a475c04fd9ead5301ed7de9cc65776f58a4c87
+  subpackages:
+  - authority
+  - auth_identity
+  - providers/github
+- name: github.com/qor/session
+  version: 8206b0adab706a6ef3ee6fabba2584d34429a26a
+  subpackages:
+  - manager
+- name: github.com/qor/redirect_back
+  version: b4161ed6f84819fb3a2d13d5c9e6872ef76d8128
 - name: vbom.ml/util
   version: db5cfe13f5cc80a4990d98e2e1b0707a4d1a5394
   repo: https://github.com/fvbommel/util.git
