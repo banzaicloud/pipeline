@@ -19,7 +19,6 @@ import (
 	"github.com/kris-nova/kubicorn/cutil/logger"
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
-	"golang.org/x/crypto/ssh/agent"
 	"golang.org/x/crypto/ssh/terminal"
 	"k8s.io/client-go/tools/clientcmd"
 )
@@ -95,29 +94,21 @@ func GetConfig(existing *cluster.Cluster, localDir string) (string, error) {
 		remotePath = fmt.Sprintf("/home/%s/.kube/config", user)
 	}
 
-	agent := sshAgent()
-	if agent != nil {
-		auths := []ssh.AuthMethod{
-			agent,
-		}
-		sshConfig.Auth = auths
-	} else {
-		pemBytes, err := ioutil.ReadFile(privKeyPath)
-		if err != nil {
+	pemBytes, err := ioutil.ReadFile(privKeyPath)
+	if err != nil {
 
-			return "", err
-		}
-
-		signer, err := getSigner(pemBytes)
-		if err != nil {
-			return "", err
-		}
-
-		auths := []ssh.AuthMethod{
-			ssh.PublicKeys(signer),
-		}
-		sshConfig.Auth = auths
+		return "", err
 	}
+
+	signer, err := getSigner(pemBytes)
+	if err != nil {
+		return "", err
+	}
+
+	auths := []ssh.AuthMethod{
+		ssh.PublicKeys(signer),
+	}
+	sshConfig.Auth = auths
 
 	sshConfig.SetDefaults()
 
@@ -197,13 +188,6 @@ func getKubeConfigPath(path string) (string, error) {
 		}
 	}
 	return fmt.Sprintf("%s/config", path), nil
-}
-
-func sshAgent() ssh.AuthMethod {
-	if sshAgent, err := net.Dial("unix", os.Getenv("SSH_AUTH_SOCK")); err == nil {
-		return ssh.PublicKeysCallback(agent.NewClient(sshAgent).Signers)
-	}
-	return nil
 }
 
 func getSigner(pemBytes []byte) (ssh.Signer, error) {
