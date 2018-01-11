@@ -28,7 +28,6 @@ import (
 
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/banzaicloud/pipeline/pods"
-
 )
 
 //nodeInstanceType=m3.medium -d nodeInstanceSpotPrice=0.04 -d nodeMin=1 -d nodeMax=3 -d image=ami-6d48500b
@@ -777,7 +776,7 @@ func InitHelmOnCluster(c *gin.Context) {
 	}
 
 	kce := fmt.Sprintf("./statestore/%s/config", cl.Name)
-	banzaiUtils.LogInfof("Set $KUBECONFIG env to %s", kce)
+	banzaiUtils.LogInfof(banzaiConstants.TagHelmInstall, "Set $KUBECONFIG env to %s", kce)
 	os.Setenv("KUBECONFIG", kce)
 
 	// bind request body to struct
