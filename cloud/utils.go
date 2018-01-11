@@ -164,3 +164,31 @@ func getSigner(pemBytes []byte) (ssh.Signer, error) {
 func SetResponseBodyJson(c *gin.Context, statusCode int, obj interface{}) {
 	c.JSON(statusCode, obj)
 }
+
+const (
+	BootstrapScriptMasterKey     = "BOOTSTRAP_SCRIPT_MASTER"
+	BootstrapScriptNodeKey       = "BOOTSTRAP_SCRIPT_NODE"
+	BootstrapScriptMasterDefault = "https://raw.githubusercontent.com/banzaicloud/banzai-charts/master/stable/pipeline/bootstrap/amazon_k8s_ubuntu_16.04_master_pipeline.sh"
+	BootstrapScriptNodeDefault   = "https://raw.githubusercontent.com/banzaicloud/banzai-charts/master/stable/pipeline/bootstrap/amazon_k8s_ubuntu_16.04_node_pipeline.sh"
+)
+
+func getBootstrapScriptFromEnv(isMaster bool) string {
+
+	var s string
+	if isMaster {
+		s = os.Getenv(BootstrapScriptMasterKey)
+	} else {
+		s = os.Getenv(BootstrapScriptNodeKey)
+	}
+
+	if len(s) == 0 {
+		if isMaster {
+			return BootstrapScriptMasterDefault
+		} else {
+			return BootstrapScriptNodeDefault
+		}
+	} else {
+		return s
+	}
+
+}
