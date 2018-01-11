@@ -33,7 +33,7 @@ func CreateClusterAzure(request *banzaiTypes.CreateClusterRequest, c *gin.Contex
 
 	if request == nil {
 		banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Create request is <nil>")
-		return false
+		return false, nil
 	}
 
 	cluster2Db := banzaiSimpleTypes.ClusterSimple{
