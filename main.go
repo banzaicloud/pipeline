@@ -9,10 +9,10 @@ import (
 
 	banzaiTypes "github.com/banzaicloud/banzai-types/components"
 	banzaiSimpleTypes "github.com/banzaicloud/banzai-types/components/database"
+	banzaiHelm "github.com/banzaicloud/banzai-types/components/helm"
 	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/banzai-types/database"
 	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
-	banzaiHelm "github.com/banzaicloud/banzai-types/components/helm"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cloud"
 	"github.com/banzaicloud/pipeline/conf"
@@ -26,8 +26,8 @@ import (
 	"github.com/spf13/viper"
 	"k8s.io/helm/pkg/timeconv"
 
-	"github.com/banzaicloud/pipeline/utils"
 	"github.com/banzaicloud/pipeline/pods"
+	"github.com/banzaicloud/pipeline/utils"
 )
 
 //nodeInstanceType=m3.medium -d nodeInstanceSpotPrice=0.04 -d nodeMin=1 -d nodeMax=3 -d image=ami-6d48500b
@@ -356,15 +356,22 @@ func CreateCluster(c *gin.Context) {
 	cloudType := createClusterBaseRequest.Cloud
 	banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Cloud type is ", cloudType)
 
+	var postHookFunctions []func(*cluster.Cluster)
+	var createdCluster *cluster.Cluster = nil
+
 	switch cloudType {
 	case banzaiConstants.Amazon:
 		// validate and create Amazon cluster
 		awsData := createClusterBaseRequest.Properties.CreateClusterAmazon
 		if isValid, err := awsData.Validate(); isValid && len(err) == 0 {
 			banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Validation is OK")
-			if isOk, createdCluster := cloud.CreateClusterAmazon(&createClusterBaseRequest, c); isOk {
+			var isOk bool
+			isOk, createdCluster = cloud.CreateClusterAmazon(&createClusterBaseRequest, c)
+			if isOk {
 				// update prometheus config..
-				go updatePrometheusWithRetryConf(createdCluster)
+				postHookFunctions = append(postHookFunctions, getConfigPostHook)
+				postHookFunctions = append(postHookFunctions, updatePrometheusPostHook)
+				postHookFunctions = append(postHookFunctions, installHelmPostHook)
 			}
 		} else {
 			// not valid request
@@ -377,9 +384,12 @@ func CreateCluster(c *gin.Context) {
 		// validate and create Azure cluster
 		aksData := createClusterBaseRequest.Properties.CreateClusterAzure
 		if isValid, err := aksData.Validate(); isValid && len(err) == 0 {
-			if cloud.CreateClusterAzure(&createClusterBaseRequest, c) {
+			var isOk bool
+			isOk, createdCluster = cloud.CreateClusterAzure(&createClusterBaseRequest, c)
+			if isOk {
 				// update prometheus config..
-				updatePrometheus()
+				postHookFunctions = append(postHookFunctions, updatePrometheusPostHook)
+				postHookFunctions = append(postHookFunctions, installHelmPostHook)
 			}
 		} else {
 			// not valid request
@@ -392,7 +402,16 @@ func CreateCluster(c *gin.Context) {
 		// wrong cloud type
 		cloud.SendNotSupportedCloudResponse(c, banzaiConstants.TagCreateCluster)
 	}
+	//TODO: need common cluster return with basic attributes like Name
+	go RunPostHooks(postHookFunctions, createdCluster)
 
+}
+
+// Calls posthook functions with created cluster
+func RunPostHooks(functionList []func(*cluster.Cluster), createdCluster *cluster.Cluster) {
+	for _, i := range functionList {
+		i(createdCluster)
+	}
 }
 
 // DeleteCluster deletes a K8S cluster from the cloud
@@ -414,9 +433,23 @@ func DeleteCluster(c *gin.Context) {
 
 }
 
-func updatePrometheusWithRetryConf(createdCluster *cluster.Cluster) {
+//PostHook functions with func(*cluster.Cluster) signature
+func getConfigPostHook(createdCluster *cluster.Cluster) {
 	cloud.RetryGetConfig(createdCluster, "")
+}
+
+func updatePrometheusPostHook(createdCluster *cluster.Cluster) {
 	updatePrometheus()
+}
+
+func installHelmPostHook(createdCluster *cluster.Cluster) {
+	kce := fmt.Sprintf("./statestore/%s/config", createdCluster.Name)
+	helmInstall := &banzaiHelm.Install{
+		KubeContext:    kce,
+		Namespace:      "kube-system",
+		ServiceAccount: "tiller",
+	}
+	helm.Install(helmInstall)
 }
 
 func updatePrometheus() {

@@ -12,12 +12,13 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 
-	"github.com/banzaicloud/banzai-types/database"
 	"encoding/base64"
-	"io/ioutil"
 	"fmt"
-	"os"
+	"github.com/banzaicloud/banzai-types/database"
 	"github.com/go-errors/errors"
+	"github.com/kris-nova/kubicorn/apis/cluster"
+	"io/ioutil"
+	"os"
 )
 
 //AzureRepresentation
@@ -26,7 +27,7 @@ type AzureRepresentation struct {
 }
 
 // CreateClusterAzure creates azure cluster in the cloud
-func CreateClusterAzure(request *banzaiTypes.CreateClusterRequest, c *gin.Context) bool {
+func CreateClusterAzure(request *banzaiTypes.CreateClusterRequest, c *gin.Context) (bool, *cluster.Cluster) {
 
 	banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Start create cluster (azure)")
 
@@ -60,6 +61,10 @@ func CreateClusterAzure(request *banzaiTypes.CreateClusterRequest, c *gin.Contex
 
 	banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Call azure client")
 
+	//Mock response cluster name
+	createdCluster := &cluster.Cluster{
+		Name: cluster2Db.Name,
+	}
 	// call creation
 	res, err := azureClient.CreateUpdateCluster(r)
 	if err != nil {
@@ -69,19 +74,19 @@ func CreateClusterAzure(request *banzaiTypes.CreateClusterRequest, c *gin.Contex
 			JsonKeyStatus:  err.StatusCode,
 			JsonKeyMessage: err.Message,
 		})
-		return false
+		return false, nil
 	} else {
 		// creation success
 		banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Cluster created successfully!")
 		banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Save create cluster into database")
 		if err := database.Save(&cluster2Db).Error; err != nil {
 			DbSaveFailed(c, err, cluster2Db.Name)
-			return false
+			return false, nil
 		}
 
 		banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Save create cluster into database succeeded")
 		SetResponseBodyJson(c, res.StatusCode, res.Value)
-		return true
+		return true, createdCluster
 	}
 
 }
@@ -291,9 +296,9 @@ func GetAzureK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 		if err != nil {
 			banzaiUtils.LogError(banzaiConstants.TagFetchClusterConfig, "Error decoding config failed:", config)
 			SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
-				JsonKeyStatus: http.StatusInternalServerError,
+				JsonKeyStatus:  http.StatusInternalServerError,
 				JsonKeyMessage: err.Error(),
-				JsonKeyData: config,
+				JsonKeyData:    config,
 			})
 			return
 		}
