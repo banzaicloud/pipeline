@@ -19,39 +19,51 @@ import (
 
 //Create ServiceAccount and AccountRoleBinding
 func PreInstall(helmInstall *helm.Install) error {
+
+	utils.LogInfo(constants.TagHelmInstall, "start pre-install")
+
 	_, client, err := getKubeClient(helmInstall.KubeContext)
 	if err != nil {
 		utils.LogErrorf(constants.TagHelmInstall, "could not get kubernetes client: %s", err)
 		return err
 	}
-	serviceAccount := &apiv1.ServiceAccount{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "tiller",
-		},
+
+	v1MetaData := metav1.ObjectMeta{
+		Name: helmInstall.ServiceAccount, // "tiller",
 	}
-	client.CoreV1().ServiceAccounts("kube-system").Create(serviceAccount)
+
+	serviceAccount := &apiv1.ServiceAccount{
+		ObjectMeta: v1MetaData,
+	}
+	utils.LogInfo(constants.TagHelmInstall, "create service account")
+	_, err = client.CoreV1().ServiceAccounts(helmInstall.Namespace).Create(serviceAccount)
+	if err != nil {
+		utils.LogErrorf(constants.TagHelmInstall, "create service account failed: %s", err)
+		return err
+	}
 
 	clusterRoleBinding := &v1.ClusterRoleBinding{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "tiller",
-		},
+		ObjectMeta: v1MetaData,
 		RoleRef: v1.RoleRef{
 			APIGroup: "rbac.authorization.k8s.io",
 			Kind:     "ClusterRole",
-			Name:     "tiller",
+			Name:     helmInstall.ServiceAccount, // "tiller",
 		},
 		Subjects: []v1.Subject{
 			{
 				Kind:      "ServiceAccount",
-				Name:      "tiller",
-				Namespace: "kube-system",
+				Name:      helmInstall.ServiceAccount, // "tiller",
+				Namespace: helmInstall.Namespace,
 			}},
 	}
-	client.RbacV1().ClusterRoleBindings().Create(clusterRoleBinding)
+	utils.LogInfo(constants.TagHelmInstall, "create cluster role bindings")
+	_, err = client.RbacV1().ClusterRoleBindings().Create(clusterRoleBinding)
+	if err != nil {
+		utils.LogErrorf(constants.TagHelmInstall, "create role bindings failed: %s", err)
+		return err
+	}
 	clusterRole := &v1.ClusterRole{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "tiller",
-		},
+		ObjectMeta: v1MetaData,
 		Rules: []v1.PolicyRule{{
 			APIGroups: []string{
 				"",
@@ -66,12 +78,27 @@ func PreInstall(helmInstall *helm.Install) error {
 			},
 		}},
 	}
-	client.RbacV1().ClusterRoles().Create(clusterRole)
+	utils.LogInfo(constants.TagHelmInstall, "create cluster roles")
+	_, err = client.RbacV1().ClusterRoles().Create(clusterRole)
+	if err != nil {
+		utils.LogErrorf(constants.TagHelmInstall, "create roles failed: %s", err)
+		return err
+	}
+
 	return nil
 }
 
 // Install uses Kubernetes client to install Tiller.
 func Install(helmInstall *helm.Install) *components.BanzaiResponse {
+
+	err := PreInstall(helmInstall)
+	if err != nil {
+		return &components.BanzaiResponse{
+			StatusCode: http.StatusInternalServerError,
+			Message:    err.Error(),
+		}
+	}
+
 	opts := installer.Options{
 		Namespace:      helmInstall.Namespace,
 		ServiceAccount: helmInstall.ServiceAccount,
