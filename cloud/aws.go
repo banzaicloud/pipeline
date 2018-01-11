@@ -56,7 +56,7 @@ func GetAWSCluster(cs *banzaiSimpleTypes.ClusterSimple) *cluster.Cluster {
 				Image:    cs.Amazon.MasterImage, //"ami-835b4efa"
 				Size:     cs.NodeInstanceType,
 				BootstrapScripts: []string{
-					"https://raw.githubusercontent.com/banzaicloud/banzai-charts/master/stable/pipeline/bootstrap/amazon_k8s_ubuntu_16.04_master_pipeline.sh",
+					getBootstrapScriptFromEnv(true),
 				},
 				InstanceProfile: &cluster.IAMInstanceProfile{
 					Name: fmt.Sprintf("%s-KubicornMasterInstanceProfile", cs.Name),
@@ -142,7 +142,7 @@ func GetAWSCluster(cs *banzaiSimpleTypes.ClusterSimple) *cluster.Cluster {
 					SpotPrice: cs.Amazon.NodeSpotPrice,
 				},
 				BootstrapScripts: []string{
-					"https://raw.githubusercontent.com/banzaicloud/banzai-charts/master/stable/pipeline/bootstrap/amazon_k8s_ubuntu_16.04_node_pipeline.sh",
+					getBootstrapScriptFromEnv(false),
 				},
 				InstanceProfile: &cluster.IAMInstanceProfile{
 					Name: fmt.Sprintf("%s-KubicornNodeInstanceProfile", cs.Name),
