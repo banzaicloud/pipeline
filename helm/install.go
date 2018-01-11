@@ -102,6 +102,9 @@ func Install(helmInstall *helm.Install) *components.BanzaiResponse {
 	opts := installer.Options{
 		Namespace:      helmInstall.Namespace,
 		ServiceAccount: helmInstall.ServiceAccount,
+		UseCanary:      helmInstall.Canary,
+		ImageSpec:      helmInstall.ImageSpec,
+		MaxHistory:     helmInstall.MaxHistory,
 	}
 	_, kubeClient, err := getKubeClient(helmInstall.KubeContext)
 	if err != nil {
