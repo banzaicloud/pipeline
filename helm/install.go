@@ -71,10 +71,10 @@ func PreInstall(helmInstall *helm.Install) error {
 				"apps",
 			},
 			Resources: []string{
-				"'*'",
+				"*",
 			},
 			Verbs: []string{
-				"'*'",
+				"*",
 			},
 		}},
 	}
