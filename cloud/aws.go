@@ -299,7 +299,7 @@ func UpdateClusterAmazonInCloud(r *banzaiTypes.UpdateClusterRequest, c *gin.Cont
 }
 
 // CreateClusterAmazon creates amazon cluster in cloud
-func CreateClusterAmazon(request *banzaiTypes.CreateClusterRequest, c *gin.Context) (bool, *cluster.Cluster) {
+func CreateClusterAmazon(request *banzaiTypes.CreateClusterRequest, c *gin.Context) (bool, *banzaiSimpleTypes.ClusterSimple) {
 
 	banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Create ClusterSimple struct from the request")
 
@@ -356,7 +356,7 @@ func CreateClusterAmazon(request *banzaiTypes.CreateClusterRequest, c *gin.Conte
 			JsonKeyIp:         createdCluster.KubernetesAPI.Endpoint,
 		})
 
-		return true, createdCluster
+		return true, &cluster2Db
 	}
 
 }

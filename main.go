@@ -22,7 +22,6 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/kris-nova/kubicorn/apis/cluster"
 	"github.com/spf13/viper"
 	"k8s.io/helm/pkg/timeconv"
 
@@ -356,8 +355,8 @@ func CreateCluster(c *gin.Context) {
 	cloudType := createClusterBaseRequest.Cloud
 	banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Cloud type is ", cloudType)
 
-	var postHookFunctions []func(*cluster.Cluster)
-	var createdCluster *cluster.Cluster = nil
+	var postHookFunctions []func(simple *banzaiSimpleTypes.ClusterSimple)
+	var createdCluster *banzaiSimpleTypes.ClusterSimple = nil
 
 	switch cloudType {
 	case banzaiConstants.Amazon:
@@ -369,7 +368,7 @@ func CreateCluster(c *gin.Context) {
 			isOk, createdCluster = cloud.CreateClusterAmazon(&createClusterBaseRequest, c)
 			if isOk {
 				// update prometheus config..
-				postHookFunctions = append(postHookFunctions, getConfigPostHook)
+				postHookFunctions = append(postHookFunctions, getConfigPostHookAmazon)
 				postHookFunctions = append(postHookFunctions, updatePrometheusPostHook)
 				postHookFunctions = append(postHookFunctions, installHelmPostHook)
 			}
@@ -388,6 +387,7 @@ func CreateCluster(c *gin.Context) {
 			isOk, createdCluster = cloud.CreateClusterAzure(&createClusterBaseRequest, c)
 			if isOk {
 				// update prometheus config..
+				postHookFunctions = append(postHookFunctions, getConfigPostHookAzure)
 				postHookFunctions = append(postHookFunctions, updatePrometheusPostHook)
 				postHookFunctions = append(postHookFunctions, installHelmPostHook)
 			}
@@ -408,7 +408,7 @@ func CreateCluster(c *gin.Context) {
 }
 
 // Calls posthook functions with created cluster
-func RunPostHooks(functionList []func(*cluster.Cluster), createdCluster *cluster.Cluster) {
+func RunPostHooks(functionList []func(simple *banzaiSimpleTypes.ClusterSimple), createdCluster *banzaiSimpleTypes.ClusterSimple) {
 	for _, i := range functionList {
 		i(createdCluster)
 	}
@@ -434,18 +434,29 @@ func DeleteCluster(c *gin.Context) {
 }
 
 //PostHook functions with func(*cluster.Cluster) signature
-func getConfigPostHook(createdCluster *cluster.Cluster) {
+func getConfigPostHookAmazon(cs *banzaiSimpleTypes.ClusterSimple) {
+	createdCluster, err := cloud.GetClusterWithDbCluster(cs, nil)
+	if err != nil {
+		banzaiUtils.LogErrorf("PostHook", "error during get config post hook: %s", createdCluster)
+		return
+	}
 	cloud.RetryGetConfig(createdCluster, "")
 }
 
-func updatePrometheusPostHook(createdCluster *cluster.Cluster) {
+func getConfigPostHookAzure(createdCluster *banzaiSimpleTypes.ClusterSimple) {
+	cloud.GetAzureK8SConfig(createdCluster, nil)
+}
+
+func updatePrometheusPostHook(_ *banzaiSimpleTypes.ClusterSimple) {
 	updatePrometheus()
 }
 
-func installHelmPostHook(createdCluster *cluster.Cluster) {
+func installHelmPostHook(createdCluster *banzaiSimpleTypes.ClusterSimple) {
 	kce := fmt.Sprintf("./statestore/%s/config", createdCluster.Name)
+	banzaiUtils.LogInfof(banzaiConstants.TagHelmInstall, "Set $KUBECONFIG env to %s", kce)
+	os.Setenv("KUBECONFIG", kce)
+
 	helmInstall := &banzaiHelm.Install{
-		KubeContext:    kce,
 		Namespace:      "kube-system",
 		ServiceAccount: "tiller",
 	}

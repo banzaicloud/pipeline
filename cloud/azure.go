@@ -16,7 +16,6 @@ import (
 	"fmt"
 	"github.com/banzaicloud/banzai-types/database"
 	"github.com/go-errors/errors"
-	"github.com/kris-nova/kubicorn/apis/cluster"
 	"io/ioutil"
 	"os"
 )
@@ -27,7 +26,7 @@ type AzureRepresentation struct {
 }
 
 // CreateClusterAzure creates azure cluster in the cloud
-func CreateClusterAzure(request *banzaiTypes.CreateClusterRequest, c *gin.Context) (bool, *cluster.Cluster) {
+func CreateClusterAzure(request *banzaiTypes.CreateClusterRequest, c *gin.Context) (bool, *banzaiSimpleTypes.ClusterSimple) {
 
 	banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Start create cluster (azure)")
 
@@ -61,12 +60,8 @@ func CreateClusterAzure(request *banzaiTypes.CreateClusterRequest, c *gin.Contex
 
 	banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Call azure client")
 
-	//Mock response cluster name
-	createdCluster := &cluster.Cluster{
-		Name: cluster2Db.Name,
-	}
 	// call creation
-	res, err := azureClient.CreateUpdateCluster(r)
+	_, err := azureClient.CreateUpdateCluster(r)
 	if err != nil {
 		// creation failed
 		banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Cluster creation failed!", err.Message)
@@ -79,14 +74,24 @@ func CreateClusterAzure(request *banzaiTypes.CreateClusterRequest, c *gin.Contex
 		// creation success
 		banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Cluster created successfully!")
 		banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Save create cluster into database")
-		if err := database.Save(&cluster2Db).Error; err != nil {
-			DbSaveFailed(c, err, cluster2Db.Name)
-			return false, nil
-		}
 
-		banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Save create cluster into database succeeded")
-		SetResponseBodyJson(c, res.StatusCode, res.Value)
-		return true, createdCluster
+		// polling cluster
+		pollingRes, err := azureClient.PollingCluster(r.Name, r.ResourceGroup)
+		if err != nil {
+			// polling error
+			SetResponseBodyJson(c, err.StatusCode, err)
+			return false, nil
+		} else {
+			// polling success
+			if err := database.Save(&cluster2Db).Error; err != nil {
+				DbSaveFailed(c, err, cluster2Db.Name)
+				return false, nil
+			}
+
+			banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Save create cluster into database succeeded")
+			SetResponseBodyJson(c, pollingRes.StatusCode, pollingRes.Value)
+			return true, &cluster2Db
+		}
 	}
 
 }
