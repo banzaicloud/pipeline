@@ -116,7 +116,7 @@ Vendoring all dependencies is essential to have a **go get**-able package. Go ve
 
 Once Pipeline API is started, the easiest way to start, stop, delete or scale a cluster is through the following Postman example.
 
-[![Run in Postman](https://run.pstmn.io/button.svg)](https://www.getpostman.com/collections/7a4c9291ff7b1afe5a5e)
+[![Run in Postman](https://run.pstmn.io/button.svg)](https://www.getpostman.com/collections/56684ef61ee236e8f30d)
 
 For alternative ways to create a cluster please follow the [create cluster guide](docs/create.md).
 
