@@ -162,6 +162,12 @@ The Apache Kafka `spotguide` has a good understanding of consumers and producers
 
 _Note: Kafka on Kubernetes does not use Zookeper at all. For all quotas, controller election, cluster membership and configuration it is using **etcd**, a faster and more reliable `cloud-native` distributed system for coordination and metadata storage._
 
+#### TiDB
+
+The TiDB `spotguide` provisions, runs, scales and monitors a TiDB cluster (TiDB, TiKV, PD) on the Pipeline PaaS. It detects failures and auto-scales, heals or rebalances the cluster.
+
+![TiDB Flow](docs/images/pipeline_tidb_flow.png)
+
 ### Reporting bugs
 
 In case you have problems please open an [issue](https://github.com/banzaicloud/pipeline/issues) on GitHub. Please note that _Pipeline is experimental, under development and does not have a stable release yet. If in doubt, don't go out._
