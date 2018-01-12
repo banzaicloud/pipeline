@@ -284,8 +284,8 @@ func UpdateClusterAmazonInCloud(r *banzaiTypes.UpdateClusterRequest, c *gin.Cont
 	} else {
 		banzaiUtils.LogInfo(banzaiConstants.TagUpdateCluster, "Cluster updated in the cloud!")
 		if updateClusterInDb(c, cluster2Db) {
-			SetResponseBodyJson(c, http.StatusCreated, gin.H{
-				JsonKeyStatus:     http.StatusCreated,
+			SetResponseBodyJson(c, http.StatusOK, gin.H{
+				JsonKeyStatus:     http.StatusOK,
 				JsonKeyMessage:    "Cluster updated successfully!",
 				JsonKeyResourceId: cluster2Db.ID,
 			})
@@ -492,8 +492,8 @@ func DeleteAmazonCluster(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) bo
 		banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, msg)
 		notify.SlackNotify(msg)
 
-		SetResponseBodyJson(c, http.StatusCreated, gin.H{
-			JsonKeyStatus:     http.StatusCreated,
+		SetResponseBodyJson(c, http.StatusAccepted, gin.H{
+			JsonKeyStatus:     http.StatusAccepted,
 			JsonKeyMessage:    "Cluster deleted successfully!",
 			JsonKeyResourceId: cs.ID,
 		})
