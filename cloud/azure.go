@@ -89,7 +89,11 @@ func CreateClusterAzure(request *banzaiTypes.CreateClusterRequest, c *gin.Contex
 			}
 
 			banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Save create cluster into database succeeded")
-			SetResponseBodyJson(c, pollingRes.StatusCode, pollingRes.Value)
+			SetResponseBodyJson(c, pollingRes.StatusCode, gin.H{
+				JsonKeyStatus: pollingRes.StatusCode,
+				JsonKeyResourceId: cluster2Db.ID,
+				JsonKeyData: pollingRes.Value,
+			})
 			return true, &cluster2Db
 		}
 	}
@@ -187,7 +191,10 @@ func UpdateClusterAzureInCloud(r *banzaiTypes.UpdateClusterRequest, c *gin.Conte
 		// updateDb
 		if updateClusterInDb(c, cluster2Db) {
 			// success update
-			SetResponseBodyJson(c, res.StatusCode, res.Value)
+			SetResponseBodyJson(c, res.StatusCode, gin.H{
+				JsonKeyResourceId: cluster2Db.ID,
+				JsonKeyData: res.Value,
+			})
 			return true
 		} else {
 			return false
@@ -243,7 +250,10 @@ func GetClusterInfoAzure(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 	} else {
 		// fetch success
 		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Status code:", response.StatusCode)
-		SetResponseBodyJson(c, response.StatusCode, response)
+		SetResponseBodyJson(c, response.StatusCode, gin.H{
+			JsonKeyResourceId: cs.ID,
+			JsonKeyData: response,
+		})
 	}
 
 }

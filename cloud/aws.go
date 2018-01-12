@@ -458,6 +458,7 @@ func GetClusterInfoAmazon(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 
 	isAvailable, _ := IsKubernetesClusterAvailable(cl)
 	SetResponseBodyJson(c, http.StatusOK, gin.H{
+		JsonKeyResourceId: cs.ID,
 		JsonKeyStatus:    http.StatusOK,
 		JsonKeyData:      cl,
 		JsonKeyAvailable: isAvailable,
