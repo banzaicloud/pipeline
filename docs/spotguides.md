@@ -31,4 +31,4 @@ _Note: Kafka on Kubernetes does not use Zookeper at all. For all quotas, control
 
 The TiDB `spotguide` provisions, runs, scales and monitors a TiDB cluster (TiDB, TiKV, PD) on the Pipeline PaaS. It detects failures and auto-scales, heals or rebalances the cluster.
 
-![TiDB Flow](docs/images/pipeline_tidb_flow.png)
+![TiDB Flow](../docs/images/pipeline_tidb_flow.png)
