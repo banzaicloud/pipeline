@@ -21,6 +21,8 @@ A typical example of a Zeppelin flow looks like this:
 
 ![Zeppelin Flow](../docs/images/zeppelin-flow.png)
 
+![Zeppelin Spark K8s flow](https://rawgit.com/banzaicloud/pipeline/master/docs/images/zeppelin-spark-k8.svg)
+
 #### Apache Kafka 
 
 The Apache Kafka `spotguide` has a good understanding of consumers and producers but more importantly it monitors, scales, rebalances and auto-heals the Kafka cluster. It autodetects broker failures, reassigns workloads and edits partition reassignment files.
