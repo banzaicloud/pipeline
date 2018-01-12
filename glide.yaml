@@ -252,3 +252,37 @@ import:
   version: ^2.0.0
   subpackages:
   - config
+- package: github.com/qor/auth
+  version: d0a475c04fd9ead5301ed7de9cc65776f58a4c87
+  subpackages:
+  - authority
+  - auth_identity
+  - claims
+  - providers/github
+- package: github.com/qor/session
+  version: 8206b0adab706a6ef3ee6fabba2584d34429a26a
+  subpackages:
+  - gorilla
+  - manager
+- package: github.com/qor/redirect_back
+  version: b4161ed6f84819fb3a2d13d5c9e6872ef76d8128
+- package: github.com/qor/assetfs
+  version: ff57fdc13a148d39c3e930cb27c7eaf82e376891
+- package: github.com/qor/mailer
+  version: 1e6ac71069556a146390b35dea415dc1c383f430
+  subpackages:
+  - logger
+- package: github.com/qor/middlewares
+  version: 781378b69454a545d08058d8154aca40d079e7ab
+- package: github.com/qor/qor
+  version: 1c17696527773fa844a809b0ff06f79559f4d336
+  subpackages:
+  - utils
+- package: github.com/qor/render
+  version: 63566e46f01b134ae9882a59a06518e82a903231
+- package: github.com/qor/responder
+  version: b6def473574f621fee316696ad120d4fbf470826
+- package: github.com/qor/roles
+  version: d6375609fe3e5da46ad3a574fae244fb633e79c1
+- package: github.com/qor/roles
+  version: d6375609fe3e5da46ad3a574fae244fb633e79c1

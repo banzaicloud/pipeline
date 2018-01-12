@@ -9,10 +9,10 @@ import (
 
 	banzaiTypes "github.com/banzaicloud/banzai-types/components"
 	banzaiSimpleTypes "github.com/banzaicloud/banzai-types/components/database"
+	banzaiHelm "github.com/banzaicloud/banzai-types/components/helm"
 	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/banzai-types/database"
 	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
-	banzaiHelm "github.com/banzaicloud/banzai-types/components/helm"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cloud"
 	"github.com/banzaicloud/pipeline/conf"
@@ -23,12 +23,13 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/kris-nova/kubicorn/apis/cluster"
+	"github.com/qor/auth/auth_identity"
+	sessionManager "github.com/qor/session/manager"
 	"github.com/spf13/viper"
 	"k8s.io/helm/pkg/timeconv"
 
-	"github.com/banzaicloud/pipeline/utils"
 	"github.com/banzaicloud/pipeline/pods"
-
+	"github.com/banzaicloud/pipeline/utils"
 )
 
 //nodeInstanceType=m3.medium -d nodeInstanceSpotPrice=0.04 -d nodeMin=1 -d nodeMax=3 -d image=ami-6d48500b
@@ -69,17 +70,16 @@ func main() {
 	}
 
 	conf.Init()
+	initDatabase()
 	auth.Init()
 
 	banzaiUtils.LogInfo(banzaiConstants.TagInit, "Logger configured")
-
-	initDatabase()
 
 	banzaiUtils.LogInfo(banzaiConstants.TagInit, "Create table(s):",
 		banzaiSimpleTypes.ClusterSimple.TableName(banzaiSimpleTypes.ClusterSimple{}),
 		banzaiSimpleTypes.AmazonClusterSimple.TableName(banzaiSimpleTypes.AmazonClusterSimple{}),
 		banzaiSimpleTypes.AzureClusterSimple.TableName(banzaiSimpleTypes.AzureClusterSimple{}))
-	database.CreateTables(&banzaiSimpleTypes.ClusterSimple{}, &banzaiSimpleTypes.AmazonClusterSimple{}, &banzaiSimpleTypes.AzureClusterSimple{})
+	database.CreateTables(&banzaiSimpleTypes.ClusterSimple{}, &banzaiSimpleTypes.AmazonClusterSimple{}, &banzaiSimpleTypes.AzureClusterSimple{}, &auth_identity.AuthIdentity{})
 
 	router := gin.Default()
 
@@ -93,8 +93,28 @@ func main() {
 
 	router.Use(cors.New(config))
 
+	authHandler := gin.WrapH(auth.Auth.NewServeMux())
+
+	// We have to make the raw net/http handlers a bit Gin-ish
+	router.Use(gin.WrapH(sessionManager.SessionManager.Middleware(utils.NopHandler{})))
+	router.Use(gin.WrapH(auth.RedirectBack.Middleware(utils.NopHandler{})))
+
+	authGroup := router.Group("/auth/")
+	{
+		authGroup.GET("/*w", authHandler)
+		authGroup.GET("/*w/*w", authHandler)
+	}
+
+	apiAuthHandler := auth.Auth0Handler(auth.ApiGroup)
+
 	v1 := router.Group("/api/v1/")
 	{
+		v1.Use(func(ctx *gin.Context) {
+			currentUser := auth.Auth.GetCurrentUser(ctx.Request)
+			if currentUser == nil {
+				apiAuthHandler(ctx)
+			}
+		})
 		v1.POST("/clusters", CreateCluster)
 		v1.GET("/status", Status)
 		v1.GET("/clusters", FetchClusters)
@@ -110,12 +130,10 @@ func main() {
 		v1.PUT("/clusters/:id/deployments/:name", UpgradeDeployment)
 		v1.HEAD("/clusters/:id/deployments/:name", FetchDeploymentStatus)
 		v1.POST("/clusters/:id/helminit", InitHelmOnCluster)
-
-		v1.GET("/auth0test", auth.Auth0Groups(auth.ApiGroup), Auth0Test)
+		v1.GET("/token", auth.GenerateToken)
 	}
 	notify.SlackNotify("API is already running")
 	router.Run(":9090")
-
 }
 
 //UpgradeDeployment - N/A
@@ -726,13 +744,6 @@ func FetchDeploymentStatus(c *gin.Context) {
 		return
 	}
 	return
-}
-
-// Auth0Test authN check
-func Auth0Test(c *gin.Context) {
-	cloud.SetResponseBodyJson(c, http.StatusOK, gin.H{
-		cloud.JsonKeyAuth0: "authn and authz successful",
-	})
 }
 
 //Status
