@@ -370,6 +370,7 @@ func CreateCluster(c *gin.Context) {
 				postHookFunctions = append(postHookFunctions, getConfigPostHookAmazon)
 				postHookFunctions = append(postHookFunctions, updatePrometheusPostHook)
 				postHookFunctions = append(postHookFunctions, installHelmPostHook)
+				postHookFunctions = append(postHookFunctions, installIngressControllerPostHook)
 			}
 		} else {
 			// not valid request
@@ -389,6 +390,7 @@ func CreateCluster(c *gin.Context) {
 				postHookFunctions = append(postHookFunctions, getConfigPostHookAzure)
 				postHookFunctions = append(postHookFunctions, updatePrometheusPostHook)
 				postHookFunctions = append(postHookFunctions, installHelmPostHook)
+				postHookFunctions = append(postHookFunctions, installIngressControllerPostHook)
 			}
 		} else {
 			// not valid request
@@ -432,6 +434,16 @@ func DeleteCluster(c *gin.Context) {
 
 }
 
+func installIngressControllerPostHook(createdCluster *banzaiSimpleTypes.ClusterSimple) {
+	kce := fmt.Sprintf("./statestore/%s/config", createdCluster.Name)
+	_, err := helm.CreateDeployment("pipeline-cluster-ingress", "pipeline", nil, kce)
+	if err != nil {
+		banzaiUtils.LogErrorf("PostHook", "error during create deployment pipeline-cluster-ingress: %s", createdCluster)
+		return
+	}
+	banzaiUtils.LogInfo("InstallIngressController", "pipeline-cluster-ingress installed")
+}
+
 //PostHook functions with func(*cluster.Cluster) signature
 func getConfigPostHookAmazon(cs *banzaiSimpleTypes.ClusterSimple) {
 	createdCluster, err := cloud.GetClusterWithDbCluster(cs, nil)
@@ -458,7 +470,7 @@ func installHelmPostHook(createdCluster *banzaiSimpleTypes.ClusterSimple) {
 	helmInstall := &banzaiHelm.Install{
 		Namespace:      "kube-system",
 		ServiceAccount: "tiller",
-		ImageSpec: 			"gcr.io/kubernetes-helm/tiller:v2.7.2",
+		ImageSpec:      "gcr.io/kubernetes-helm/tiller:v2.7.2",
 	}
 	helm.Install(helmInstall)
 }
