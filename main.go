@@ -23,7 +23,6 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
-	"github.com/kris-nova/kubicorn/apis/cluster"
 	"github.com/qor/auth/auth_identity"
 	sessionManager "github.com/qor/session/manager"
 
