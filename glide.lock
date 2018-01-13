@@ -1,5 +1,5 @@
 hash: a7019acffca9bb9fa3d47f37df6af0f529f5fc793e587e6a323388d4967c9f96
-updated: 2018-01-09T20:15:41.324525+01:00
+updated: 2018-01-11T20:19:17.387314+01:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -44,13 +44,13 @@ imports:
   - service/s3
   - service/sts
 - name: github.com/Azure/azure-sdk-for-go
-  version: 57da6001a1d275435ae24b8a39c04828d9623321
+  version: eae258195456be76b2ec9ad2ee2ab63cdda365d9
   subpackages:
   - arm/examples/helpers
   - arm/network
   - arm/resources/resources
 - name: github.com/Azure/go-autorest
-  version: 8c58b4788dedd95779efe0ac2055bb6a1b9b8e01
+  version: 6311d7a76f54cf2b6dea03d737d9bd9a6022ac5f
   subpackages:
   - autorest
   - autorest/adal
@@ -66,7 +66,7 @@ imports:
   - initapi
   - utils
 - name: github.com/banzaicloud/banzai-types
-  version: 061d56b4ca3d7f365a079a270456ae508d083aad
+  version: 825c3f0f621a9bc77ae8b2301e606886ef252bd4
   subpackages:
   - components
   - components/amazon
@@ -386,7 +386,7 @@ imports:
 - name: github.com/PuerkitoBio/urlesc
   version: 5bd2802263f21d8788851d5305584c82a5c75d7e
 - name: github.com/satori/go.uuid
-  version: 879c5887cd475cd7864858769793b2ceb0d44feb
+  version: f58768cc1a7a7e77a3bd49e98cdd21419399b6a3
 - name: github.com/sirupsen/logrus
   version: d682213848ed68c0a260ca37d6dd5ace8423f5ba
 - name: github.com/spf13/afero

@@ -31,7 +31,7 @@ func GetAWSCluster(cs *banzaiSimpleTypes.ClusterSimple) *cluster.Cluster {
 		Location: cs.Location,
 		SSH: &cluster.SSH{
 			Name:          cs.Name + "-" + uuidSuffix,
-			PublicKeyPath: "/.ssh/id_rsa.pub",
+			PublicKeyPath: "~/.ssh/id_rsa.pub",
 			User:          "ubuntu",
 		},
 		KubernetesAPI: &cluster.KubernetesAPI{
@@ -299,7 +299,7 @@ func UpdateClusterAmazonInCloud(r *banzaiTypes.UpdateClusterRequest, c *gin.Cont
 }
 
 // CreateClusterAmazon creates amazon cluster in cloud
-func CreateClusterAmazon(request *banzaiTypes.CreateClusterRequest, c *gin.Context) (bool, *cluster.Cluster) {
+func CreateClusterAmazon(request *banzaiTypes.CreateClusterRequest, c *gin.Context) (bool, *banzaiSimpleTypes.ClusterSimple) {
 
 	banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Create ClusterSimple struct from the request")
 
@@ -356,7 +356,7 @@ func CreateClusterAmazon(request *banzaiTypes.CreateClusterRequest, c *gin.Conte
 			JsonKeyIp:         createdCluster.KubernetesAPI.Endpoint,
 		})
 
-		return true, createdCluster
+		return true, &cluster2Db
 	}
 
 }
@@ -458,6 +458,7 @@ func GetClusterInfoAmazon(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 
 	isAvailable, _ := IsKubernetesClusterAvailable(cl)
 	SetResponseBodyJson(c, http.StatusOK, gin.H{
+		JsonKeyResourceId: cs.ID,
 		JsonKeyStatus:    http.StatusOK,
 		JsonKeyData:      cl,
 		JsonKeyAvailable: isAvailable,

@@ -12,12 +12,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 
-	"github.com/banzaicloud/banzai-types/database"
 	"encoding/base64"
-	"io/ioutil"
 	"fmt"
-	"os"
+	"github.com/banzaicloud/banzai-types/database"
 	"github.com/go-errors/errors"
+	"io/ioutil"
+	"os"
 )
 
 //AzureRepresentation
@@ -26,13 +26,13 @@ type AzureRepresentation struct {
 }
 
 // CreateClusterAzure creates azure cluster in the cloud
-func CreateClusterAzure(request *banzaiTypes.CreateClusterRequest, c *gin.Context) bool {
+func CreateClusterAzure(request *banzaiTypes.CreateClusterRequest, c *gin.Context) (bool, *banzaiSimpleTypes.ClusterSimple) {
 
 	banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Start create cluster (azure)")
 
 	if request == nil {
 		banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Create request is <nil>")
-		return false
+		return false, nil
 	}
 
 	cluster2Db := banzaiSimpleTypes.ClusterSimple{
@@ -61,7 +61,7 @@ func CreateClusterAzure(request *banzaiTypes.CreateClusterRequest, c *gin.Contex
 	banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Call azure client")
 
 	// call creation
-	res, err := azureClient.CreateUpdateCluster(r)
+	_, err := azureClient.CreateUpdateCluster(r)
 	if err != nil {
 		// creation failed
 		banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Cluster creation failed!", err.Message)
@@ -69,19 +69,33 @@ func CreateClusterAzure(request *banzaiTypes.CreateClusterRequest, c *gin.Contex
 			JsonKeyStatus:  err.StatusCode,
 			JsonKeyMessage: err.Message,
 		})
-		return false
+		return false, nil
 	} else {
 		// creation success
 		banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Cluster created successfully!")
 		banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Save create cluster into database")
-		if err := database.Save(&cluster2Db).Error; err != nil {
-			DbSaveFailed(c, err, cluster2Db.Name)
-			return false
-		}
 
-		banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Save create cluster into database succeeded")
-		SetResponseBodyJson(c, res.StatusCode, res.Value)
-		return true
+		// polling cluster
+		pollingRes, err := azureClient.PollingCluster(r.Name, r.ResourceGroup)
+		if err != nil {
+			// polling error
+			SetResponseBodyJson(c, err.StatusCode, err)
+			return false, nil
+		} else {
+			// polling success
+			if err := database.Save(&cluster2Db).Error; err != nil {
+				DbSaveFailed(c, err, cluster2Db.Name)
+				return false, nil
+			}
+
+			banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Save create cluster into database succeeded")
+			SetResponseBodyJson(c, pollingRes.StatusCode, gin.H{
+				JsonKeyStatus: pollingRes.StatusCode,
+				JsonKeyResourceId: cluster2Db.ID,
+				JsonKeyData: pollingRes.Value,
+			})
+			return true, &cluster2Db
+		}
 	}
 
 }
@@ -177,7 +191,10 @@ func UpdateClusterAzureInCloud(r *banzaiTypes.UpdateClusterRequest, c *gin.Conte
 		// updateDb
 		if updateClusterInDb(c, cluster2Db) {
 			// success update
-			SetResponseBodyJson(c, res.StatusCode, res.Value)
+			SetResponseBodyJson(c, res.StatusCode, gin.H{
+				JsonKeyResourceId: cluster2Db.ID,
+				JsonKeyData: res.Value,
+			})
 			return true
 		} else {
 			return false
@@ -233,7 +250,10 @@ func GetClusterInfoAzure(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 	} else {
 		// fetch success
 		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Status code:", response.StatusCode)
-		SetResponseBodyJson(c, response.StatusCode, response)
+		SetResponseBodyJson(c, response.StatusCode, gin.H{
+			JsonKeyResourceId: cs.ID,
+			JsonKeyData: response,
+		})
 	}
 
 }
@@ -291,9 +311,9 @@ func GetAzureK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 		if err != nil {
 			banzaiUtils.LogError(banzaiConstants.TagFetchClusterConfig, "Error decoding config failed:", config)
 			SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
-				JsonKeyStatus: http.StatusInternalServerError,
+				JsonKeyStatus:  http.StatusInternalServerError,
 				JsonKeyMessage: err.Error(),
-				JsonKeyData: config,
+				JsonKeyData:    config,
 			})
 			return
 		}
