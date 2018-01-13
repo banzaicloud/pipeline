@@ -66,7 +66,7 @@ imports:
   - initapi
   - utils
 - name: github.com/banzaicloud/banzai-types
-  version: 061d56b4ca3d7f365a079a270456ae508d083aad
+  version: 825c3f0f621a9bc77ae8b2301e606886ef252bd4
   subpackages:
   - components
   - components/amazon
