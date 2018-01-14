@@ -472,7 +472,7 @@ func installHelmPostHook(createdCluster *banzaiSimpleTypes.ClusterSimple) {
 		ServiceAccount: "tiller",
 		ImageSpec:      "gcr.io/kubernetes-helm/tiller:v2.7.2",
 	}
-	helm.Install(helmInstall)
+	helm.RetryHelmInstall(helmInstall)
 }
 
 func updatePrometheus() {
