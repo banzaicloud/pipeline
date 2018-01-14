@@ -21,13 +21,13 @@ import (
 
 var tillerTunnel *kube.Tunnel
 
-func getHelmClient(kubeConfig string) (*helm.Client, error) {
+func getHelmClient(kubeConfig []byte) (*helm.Client, error) {
 	var config *rest.Config
 	var err error
 
 	//TODO Beatify this do not use string for kubeConfig
-	if kubeConfig != "" {
-		apiconfig, _ :=clientcmd.Load([]byte(kubeConfig))
+	if len(kubeConfig) > 0 {
+		apiconfig, _ :=clientcmd.Load(kubeConfig)
 		clientConfig := clientcmd.NewDefaultClientConfig(*apiconfig, &clientcmd.ConfigOverrides{})
 		config, err = clientConfig.ClientConfig()
 	} else {
