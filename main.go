@@ -354,7 +354,7 @@ func CreateCluster(c *gin.Context) {
 	cloudType := createClusterBaseRequest.Cloud
 	banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Cloud type is ", cloudType)
 
-	var postHookFunctions []func(simple *banzaiSimpleTypes.ClusterSimple)
+	var postHookFunctions []func(simple *banzaiSimpleTypes.ClusterSimple, c *gin.Context)
 	var createdCluster *banzaiSimpleTypes.ClusterSimple = nil
 
 	switch cloudType {
@@ -404,14 +404,14 @@ func CreateCluster(c *gin.Context) {
 		cloud.SendNotSupportedCloudResponse(c, banzaiConstants.TagCreateCluster)
 	}
 	//TODO: need common cluster return with basic attributes like Name
-	go RunPostHooks(postHookFunctions, createdCluster)
+	go RunPostHooks(postHookFunctions, createdCluster, c)
 
 }
 
 // Calls posthook functions with created cluster
-func RunPostHooks(functionList []func(simple *banzaiSimpleTypes.ClusterSimple), createdCluster *banzaiSimpleTypes.ClusterSimple) {
+func RunPostHooks(functionList []func(simple *banzaiSimpleTypes.ClusterSimple, c *gin.Context), createdCluster *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 	for _, i := range functionList {
-		i(createdCluster)
+		i(createdCluster, c)
 	}
 }
 
@@ -434,9 +434,16 @@ func DeleteCluster(c *gin.Context) {
 
 }
 
-func installIngressControllerPostHook(createdCluster *banzaiSimpleTypes.ClusterSimple) {
-	kce := fmt.Sprintf("./statestore/%s/config", createdCluster.Name)
-	_, err := helm.CreateDeployment("pipeline-cluster-ingress", "pipeline", nil, kce)
+func installIngressControllerPostHook(createdCluster *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
+	// --- [ Get K8S Config ] --- //
+	kubeConfig, err := cloud.GetK8SConfig(createdCluster, c)
+	if err != nil {
+		return
+	}
+	banzaiUtils.LogInfo(banzaiConstants.TagListDeployments, "Getting K8S Config Succeeded")
+
+
+	_, err = helm.CreateDeployment("pipeline-cluster-ingress", "pipeline", nil, kubeConfig)
 	if err != nil {
 		banzaiUtils.LogErrorf("PostHook", "error during create deployment pipeline-cluster-ingress: %s", createdCluster)
 		return
@@ -445,8 +452,8 @@ func installIngressControllerPostHook(createdCluster *banzaiSimpleTypes.ClusterS
 }
 
 //PostHook functions with func(*cluster.Cluster) signature
-func getConfigPostHookAmazon(cs *banzaiSimpleTypes.ClusterSimple) {
-	createdCluster, err := cloud.GetClusterWithDbCluster(cs, nil)
+func getConfigPostHookAmazon(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
+	createdCluster, err := cloud.GetClusterWithDbCluster(cs, c)
 	if err != nil {
 		banzaiUtils.LogErrorf("PostHook", "error during get config post hook: %s", createdCluster)
 		return
@@ -454,15 +461,15 @@ func getConfigPostHookAmazon(cs *banzaiSimpleTypes.ClusterSimple) {
 	cloud.RetryGetConfig(createdCluster, "")
 }
 
-func getConfigPostHookAzure(createdCluster *banzaiSimpleTypes.ClusterSimple) {
-	cloud.GetAzureK8SConfig(createdCluster, nil)
+func getConfigPostHookAzure(createdCluster *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
+	cloud.GetAzureK8SConfig(createdCluster, c)
 }
 
-func updatePrometheusPostHook(_ *banzaiSimpleTypes.ClusterSimple) {
+func updatePrometheusPostHook(_ *banzaiSimpleTypes.ClusterSimple, _ *gin.Context) {
 	updatePrometheus()
 }
 
-func installHelmPostHook(createdCluster *banzaiSimpleTypes.ClusterSimple) {
+func installHelmPostHook(createdCluster *banzaiSimpleTypes.ClusterSimple, _ *gin.Context) {
 	kce := fmt.Sprintf("./statestore/%s/config", createdCluster.Name)
 	banzaiUtils.LogInfof(banzaiConstants.TagHelmInstall, "Set $KUBECONFIG env to %s", kce)
 	os.Setenv("KUBECONFIG", kce)

@@ -15,7 +15,7 @@ import (
 )
 
 //ListDeployments lists Helm deployments
-func ListDeployments(filter *string, kubeConfig string) (*rls.ListReleasesResponse, error) {
+func ListDeployments(filter *string, kubeConfig []byte) (*rls.ListReleasesResponse, error) {
 	defer tearDown()
 	hClient, err := getHelmClient(kubeConfig)
 	// TODO doc the options here
@@ -43,7 +43,7 @@ func ListDeployments(filter *string, kubeConfig string) (*rls.ListReleasesRespon
 }
 
 //UpgradeDeployment upgrades a Helm deployment
-func UpgradeDeployment(deploymentName, chartName string, values map[string]interface{}, kubeConfig string) (string, error) {
+func UpgradeDeployment(deploymentName, chartName string, values map[string]interface{}, kubeConfig []byte) (string, error) {
 	//Base maps for values
 	base := map[string]interface{}{}
 	//this is only to parse x=y format
@@ -95,7 +95,7 @@ func UpgradeDeployment(deploymentName, chartName string, values map[string]inter
 }
 
 //CreateDeployment creates a Helm deployment
-func CreateDeployment(chartName string, releaseName string, valueOverrides []byte, kubeConfig string) (*rls.InstallReleaseResponse, error) {
+func CreateDeployment(chartName string, releaseName string, valueOverrides []byte, kubeConfig []byte) (*rls.InstallReleaseResponse, error) {
 	defer tearDown()
 	chartRequested, err := chartutil.Load(chartName)
 	if err != nil {
@@ -133,7 +133,7 @@ func CreateDeployment(chartName string, releaseName string, valueOverrides []byt
 }
 
 //DeleteDeployment deletes a Helm deployment
-func DeleteDeployment(releaseName string, kubeConfig string) error {
+func DeleteDeployment(releaseName string, kubeConfig []byte) error {
 	defer tearDown()
 	hClient, err := getHelmClient(kubeConfig)
 	if err != nil {

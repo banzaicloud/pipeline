@@ -503,7 +503,7 @@ func DeleteAmazonCluster(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) bo
 
 }
 
-func getAmazonKubernetesConfig(existing *cluster.Cluster) (string, error) {
+func getAmazonKubernetesConfig(existing *cluster.Cluster) ([]byte, error) {
 	user := existing.SSH.User
 	pubKeyPath := expand(existing.SSH.PublicKeyPath)
 	privKeyPath := strings.Replace(pubKeyPath, ".pub", "", 1)
@@ -523,12 +523,12 @@ func getAmazonKubernetesConfig(existing *cluster.Cluster) (string, error) {
 	pemBytes, err := ioutil.ReadFile(privKeyPath)
 	if err != nil {
 
-		return "", err
+		return nil , err
 	}
 
 	signer, err := getSigner(pemBytes)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	auths := []ssh.AuthMethod{
@@ -540,24 +540,24 @@ func getAmazonKubernetesConfig(existing *cluster.Cluster) (string, error) {
 
 	conn, err := ssh.Dial("tcp", address, sshConfig)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer conn.Close()
 	c, err := sftp.NewClient(conn)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer c.Close()
 	r, err := c.Open(remotePath)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer r.Close()
-	bytes, err := ioutil.ReadAll(r)
+	config, err := ioutil.ReadAll(r)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return string(bytes), nil
+	return config, nil
 }
 
 func getAmazonK8SEndpoint(cl *banzaiSimpleTypes.ClusterSimple, c *gin.Context) (string, error) {

@@ -93,7 +93,7 @@ func GetConfig(existing *cluster.Cluster, localDir string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	_, err = f.WriteString(conf)
+	_, err = f.Write(conf)
 	if err != nil {
 		return "", err
 	}
