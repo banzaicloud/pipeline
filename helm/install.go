@@ -15,6 +15,9 @@ import (
 	"k8s.io/helm/cmd/helm/installer"
 	"k8s.io/helm/pkg/kube"
 	"net/http"
+	"time"
+	"strings"
+	"github.com/spf13/viper"
 )
 
 //Create ServiceAccount and AccountRoleBinding
@@ -93,6 +96,29 @@ func PreInstall(helmInstall *helm.Install) error {
 
 	return nil
 }
+
+// RetryHelmInstall retries for a configurable time/interval
+// Azure AKS sometimes failing because of TLS handshake timeout, there are several issues on GitHub about that:
+// https://github.com/Azure/AKS/issues/112, https://github.com/Azure/AKS/issues/116, https://github.com/Azure/AKS/issues/14
+func RetryHelmInstall(helmInstall *helm.Install) {
+	retryAttempts := viper.GetInt("dev.retryAttempt")
+	retrySleepSeconds := viper.GetInt("dev.retrySleepSeconds")
+
+	logTag := "RetryHelmInstall"
+	for i := 0; i <= retryAttempts; i++ {
+		utils.LogDebugf(logTag, "Waiting %d/%d", i, retryAttempts)
+		response := Install(helmInstall)
+		if strings.Contains(response.Message, "net/http: TLS handshake timeout") {
+			utils.LogDebug(logTag, "Waiting for AKS Control Plane to come up..")
+			time.Sleep(time.Duration(retrySleepSeconds) * time.Second)
+			continue
+		}
+		return
+	}
+	utils.LogError(logTag, "Timeout during waiting for AKS to become healthy..")
+	utils.LogError(logTag, "https://github.com/Azure/AKS/issues/116")
+}
+
 
 // Install uses Kubernetes client to install Tiller.
 func Install(helmInstall *helm.Install) *components.BanzaiResponse {
