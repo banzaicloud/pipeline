@@ -440,15 +440,23 @@ func installIngressControllerPostHook(createdCluster *banzaiSimpleTypes.ClusterS
 	if err != nil {
 		return
 	}
-	banzaiUtils.LogInfo(banzaiConstants.TagListDeployments, "Getting K8S Config Succeeded")
 
+	logTag := "InstallIngressController"
+	banzaiUtils.LogInfo(logTag, "Getting K8S Config Succeeded")
 
-	_, err = helm.CreateDeployment("pipeline-cluster-ingress", "pipeline", nil, kubeConfig)
+	deploymentName := "pipeline-cluster-ingress"
+	releaseName := "pipeline"
+
+	prefix := viper.GetString("dev.chartpath")
+	chartPath := path.Join(prefix, deploymentName)
+
+	_, err = helm.CreateDeployment(chartPath, releaseName, nil, kubeConfig)
 	if err != nil {
-		banzaiUtils.LogErrorf("PostHook", "error during create deployment pipeline-cluster-ingress: %s", createdCluster)
+		banzaiUtils.LogErrorf(logTag, "Deploying '%s' failed due to: ", deploymentName)
+		banzaiUtils.LogErrorf(logTag, "%s", err.Error())
 		return
 	}
-	banzaiUtils.LogInfo("InstallIngressController", "pipeline-cluster-ingress installed")
+	banzaiUtils.LogInfof(logTag, "'%s' installed", deploymentName)
 }
 
 //PostHook functions with func(*cluster.Cluster) signature
