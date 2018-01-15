@@ -491,7 +491,7 @@ func installHelmPostHook(createdCluster *banzaiSimpleTypes.ClusterSimple, c *gin
 		ImageSpec:      "gcr.io/kubernetes-helm/tiller:v2.7.2",
 	}
 	err := helm.RetryHelmInstall(helmInstall, createdCluster.Cloud)
-	if err != nil {
+	if err == nil {
 		// --- [ Get K8S Config ] --- //
 		kubeConfig, err := cloud.GetK8SConfig(createdCluster, c)
 		if err != nil {
