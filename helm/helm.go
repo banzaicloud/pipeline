@@ -95,9 +95,9 @@ func UpgradeDeployment(deploymentName, chartName string, values map[string]inter
 }
 
 //CreateDeployment creates a Helm deployment
-func CreateDeployment(chartName string, releaseName string, valueOverrides []byte, kubeConfig []byte) (*rls.InstallReleaseResponse, error) {
+func CreateDeployment(chartPath string, releaseName string, valueOverrides []byte, kubeConfig []byte) (*rls.InstallReleaseResponse, error) {
 	defer tearDown()
-	chartRequested, err := chartutil.Load(chartName)
+	chartRequested, err := chartutil.Load(chartPath)
 	if err != nil {
 		return nil, fmt.Errorf("Error loading chart: %v", err)
 	}
