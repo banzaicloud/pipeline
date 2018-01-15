@@ -477,7 +477,10 @@ func updatePrometheusPostHook(_ *banzaiSimpleTypes.ClusterSimple, _ *gin.Context
 	updatePrometheus()
 }
 
-func installHelmPostHook(createdCluster *banzaiSimpleTypes.ClusterSimple, _ *gin.Context) {
+func installHelmPostHook(createdCluster *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
+	logTag := "installHelmPostHook"
+	retryAttempts := viper.GetInt("dev.retryAttempt")
+	retrySleepSeconds := viper.GetInt("dev.retrySleepSeconds")
 	kce := fmt.Sprintf("./statestore/%s/config", createdCluster.Name)
 	banzaiUtils.LogInfof(banzaiConstants.TagHelmInstall, "Set $KUBECONFIG env to %s", kce)
 	os.Setenv("KUBECONFIG", kce)
@@ -487,7 +490,25 @@ func installHelmPostHook(createdCluster *banzaiSimpleTypes.ClusterSimple, _ *gin
 		ServiceAccount: "tiller",
 		ImageSpec:      "gcr.io/kubernetes-helm/tiller:v2.7.2",
 	}
-	helm.RetryHelmInstall(helmInstall)
+	err := helm.RetryHelmInstall(helmInstall, createdCluster.Cloud)
+	if err != nil {
+		// --- [ Get K8S Config ] --- //
+		kubeConfig, err := cloud.GetK8SConfig(createdCluster, c)
+		if err != nil {
+			return
+		}
+		banzaiUtils.LogInfo(logTag, "Getting K8S Config Succeeded")
+		// --- [ List deployments ] ---- //
+		for i := 0; i <= retryAttempts; i++ {
+			banzaiUtils.LogDebugf(logTag, "Waiting %d/%d", i, retryAttempts)
+			_, err = helm.GetHelmClient(kubeConfig)
+			if err != nil {
+				time.Sleep(time.Duration(retrySleepSeconds) * time.Second)
+				continue
+			}
+		}
+		banzaiUtils.LogError(logTag, "Timeout during waiting for tiller to get ready")
+	}
 }
 
 func updatePrometheus() {

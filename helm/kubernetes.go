@@ -21,7 +21,7 @@ import (
 
 var tillerTunnel *kube.Tunnel
 
-func getHelmClient(kubeConfig []byte) (*helm.Client, error) {
+func GetHelmClient(kubeConfig []byte) (*helm.Client, error) {
 	var config *rest.Config
 	var err error
 

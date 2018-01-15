@@ -100,7 +100,7 @@ func PreInstall(helmInstall *helm.Install) error {
 // RetryHelmInstall retries for a configurable time/interval
 // Azure AKS sometimes failing because of TLS handshake timeout, there are several issues on GitHub about that:
 // https://github.com/Azure/AKS/issues/112, https://github.com/Azure/AKS/issues/116, https://github.com/Azure/AKS/issues/14
-func RetryHelmInstall(helmInstall *helm.Install) {
+func RetryHelmInstall(helmInstall *helm.Install, clusterType string) error {
 	retryAttempts := viper.GetInt("dev.retryAttempt")
 	retrySleepSeconds := viper.GetInt("dev.retrySleepSeconds")
 
@@ -109,14 +109,19 @@ func RetryHelmInstall(helmInstall *helm.Install) {
 		utils.LogDebugf(logTag, "Waiting %d/%d", i, retryAttempts)
 		response := Install(helmInstall)
 		if strings.Contains(response.Message, "net/http: TLS handshake timeout") {
-			utils.LogDebug(logTag, "Waiting for AKS Control Plane to come up..")
 			time.Sleep(time.Duration(retrySleepSeconds) * time.Second)
 			continue
 		}
-		return
+		return nil
 	}
-	utils.LogError(logTag, "Timeout during waiting for AKS to become healthy..")
-	utils.LogError(logTag, "https://github.com/Azure/AKS/issues/116")
+	switch clusterType {
+	case constants.Amazon:
+		utils.LogError(logTag, "Timeout during waiting for AWS Control Plane to become healthy..")
+	case constants.Azure:
+		utils.LogError(logTag, "Timeout during waiting for AKS to become healthy..")
+		utils.LogError(logTag, "https://github.com/Azure/AKS/issues/116")
+	}
+	return fmt.Errorf("timeout during helm install")
 }
 
 
