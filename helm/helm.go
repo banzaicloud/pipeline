@@ -17,7 +17,7 @@ import (
 //ListDeployments lists Helm deployments
 func ListDeployments(filter *string, kubeConfig []byte) (*rls.ListReleasesResponse, error) {
 	defer tearDown()
-	hClient, err := getHelmClient(kubeConfig)
+	hClient, err := GetHelmClient(kubeConfig)
 	// TODO doc the options here
 	var sortBy = int32(2)
 	var sortOrd = int32(1)
@@ -71,7 +71,7 @@ func UpgradeDeployment(deploymentName, chartName string, values map[string]inter
 		return "", fmt.Errorf("cannot load requirements: %v", err)
 	}
 	//Get cluster based or inCluster kubeconfig
-	hClient, err := getHelmClient(kubeConfig)
+	hClient, err := GetHelmClient(kubeConfig)
 	if err != nil {
 		return "", err
 	}
@@ -112,7 +112,7 @@ func CreateDeployment(chartPath string, releaseName string, valueOverrides []byt
 	if len(strings.TrimSpace(releaseName)) == 0 {
 		releaseName, _ = generateName("")
 	}
-	hClient, err := getHelmClient(kubeConfig)
+	hClient, err := GetHelmClient(kubeConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -135,7 +135,7 @@ func CreateDeployment(chartPath string, releaseName string, valueOverrides []byt
 //DeleteDeployment deletes a Helm deployment
 func DeleteDeployment(releaseName string, kubeConfig []byte) error {
 	defer tearDown()
-	hClient, err := getHelmClient(kubeConfig)
+	hClient, err := GetHelmClient(kubeConfig)
 	if err != nil {
 		return err
 	}
