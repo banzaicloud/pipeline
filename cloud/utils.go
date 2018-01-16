@@ -167,6 +167,13 @@ func SetResponseBodyJson(c *gin.Context, statusCode int, obj interface{}) {
 	}
 }
 
+//SetResponseBodyString
+func SetResponseBodyString(c *gin.Context, statusCode int, format string, values... interface{}) {
+	if c!= nil {
+		c.String(statusCode, format, values)
+	}
+}
+
 const (
 	BootstrapScriptMasterKey     = "BOOTSTRAP_SCRIPT_MASTER"
 	BootstrapScriptNodeKey       = "BOOTSTRAP_SCRIPT_NODE"
