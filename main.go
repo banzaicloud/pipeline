@@ -500,7 +500,7 @@ func installHelmPostHook(createdCluster *banzaiSimpleTypes.ClusterSimple, c *gin
 		banzaiUtils.LogInfo(logTag, "Getting K8S Config Succeeded")
 		// --- [ List deployments ] ---- //
 		for i := 0; i <= retryAttempts; i++ {
-			banzaiUtils.LogDebugf(logTag, "Waiting %s/%s", i, retryAttempts)
+			banzaiUtils.LogDebugf(logTag, "Waiting %d/%d", i, retryAttempts)
 			_, err = helm.GetHelmClient(kubeConfig)
 			if err == nil {
 				return

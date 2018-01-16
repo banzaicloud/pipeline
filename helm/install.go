@@ -106,7 +106,7 @@ func RetryHelmInstall(helmInstall *helm.Install, clusterType string) error {
 
 	logTag := "RetryHelmInstall"
 	for i := 0; i <= retryAttempts; i++ {
-		utils.LogDebugf(logTag, "Waiting %s/%s", i, retryAttempts)
+		utils.LogDebugf(logTag, "Waiting %d/%d", i, retryAttempts)
 		response := Install(helmInstall)
 		if strings.Contains(response.Message, "net/http: TLS handshake timeout") {
 			time.Sleep(time.Duration(retrySleepSeconds) * time.Second)
