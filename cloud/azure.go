@@ -297,6 +297,7 @@ func GetAzureK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 	config, err := getAzureKubernetesConfig(cs)
 	if err != nil {
 		// something went wrong
+		banzaiUtils.LogError(banzaiConstants.TagFetchClusterConfig, "Error getting K8S config")
 		SetResponseBodyJson(c, err.StatusCode, gin.H{
 			JsonKeyStatus: err.StatusCode,
 			JsonKeyData:   err.Message,
@@ -317,7 +318,7 @@ func GetAzureK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 			})
 			return
 		}
-		SetResponseBodyJson(c, http.StatusOK, string(decodedConfig))
+		c.String(http.StatusOK, string(decodedConfig))
 	}
 
 }
