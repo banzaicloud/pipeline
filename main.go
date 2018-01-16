@@ -478,7 +478,7 @@ func updatePrometheusPostHook(_ *banzaiSimpleTypes.ClusterSimple, _ *gin.Context
 }
 
 func installHelmPostHook(createdCluster *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
-	logTag := "installHelmPostHook"
+	logTag := "InstallHelmPostHook"
 	retryAttempts := viper.GetInt("dev.retryAttempt")
 	retrySleepSeconds := viper.GetInt("dev.retrySleepSeconds")
 	kce := fmt.Sprintf("./statestore/%s/config", createdCluster.Name)
