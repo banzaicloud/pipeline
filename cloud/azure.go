@@ -318,7 +318,7 @@ func GetAzureK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 			})
 			return
 		}
-		c.String(http.StatusOK, string(decodedConfig))
+		SetResponseBodyString(c, http.StatusOK, string(decodedConfig))
 	}
 
 }
