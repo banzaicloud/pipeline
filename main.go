@@ -502,11 +502,10 @@ func installHelmPostHook(createdCluster *banzaiSimpleTypes.ClusterSimple, c *gin
 		for i := 0; i <= retryAttempts; i++ {
 			banzaiUtils.LogDebugf(logTag, "Waiting %s/%s", i, retryAttempts)
 			_, err = helm.GetHelmClient(kubeConfig)
-			if err != nil {
-				time.Sleep(time.Duration(retrySleepSeconds) * time.Second)
-				continue
+			if err == nil {
+				return
 			}
-			break
+			time.Sleep(time.Duration(retrySleepSeconds) * time.Second)
 		}
 		banzaiUtils.LogError(logTag, "Timeout during waiting for tiller to get ready")
 	}
