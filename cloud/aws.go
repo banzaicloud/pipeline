@@ -503,7 +503,7 @@ func DeleteAmazonCluster(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) bo
 
 }
 
-func getAmazonKubernetesConfig(existing *cluster.Cluster) ([]byte, error) {
+func GetAmazonKubernetesConfig(existing *cluster.Cluster) ([]byte, error) {
 	user := existing.SSH.User
 	pubKeyPath := expand(existing.SSH.PublicKeyPath)
 	privKeyPath := strings.Replace(pubKeyPath, ".pub", "", 1)
