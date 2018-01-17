@@ -418,12 +418,12 @@ func RunPostHooks(functionList []func(simple *banzaiSimpleTypes.ClusterSimple, c
 //DeleteAll deletes all Helm deployment
 func deleteAllDeployment(kubeconfig []byte) error {
 	var logTag = "DeleteAllDeployment"
-	banzaiUtils.LogInfo(logTag, "Trying to list deployments")
+	banzaiUtils.LogInfo(logTag, "Getting deployments....")
 	releaseResp, err := helm.ListDeployments(nil, kubeconfig)
 	if err != nil {
 		return err
 	}
-	banzaiUtils.LogInfo(logTag, "List deployments succeeded")
+	banzaiUtils.LogInfo(logTag, "Retrieving deployments succeeded.")
 	banzaiUtils.LogInfo(logTag, "Starting deleting deployments")
 	for _, r := range releaseResp.Releases {
 		banzaiUtils.LogInfo(logTag, "Trying to delete deployment", r.Name)
@@ -445,37 +445,38 @@ func DeleteCluster(c *gin.Context) {
 	if err != nil {
 		return
 	}
+	if cl.Cloud == banzaiConstants.Amazon {
+		banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Start delete created helm charts")
 
-	banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Start delete created helm charts")
+		cloudCluster, err := cloud.GetClusterWithDbCluster(cl, c)
+		if err != nil {
+			cloud.SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
+				cloud.JsonKeyStatus:  http.StatusInternalServerError,
+				cloud.JsonKeyMessage: err,
+			})
+			return
+		}
+		banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Get aws cluster succeeded")
 
-	cloudCluster, err := cloud.GetClusterWithDbCluster(cl, c)
-	if err != nil {
-		cloud.SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
-			cloud.JsonKeyStatus:  http.StatusInternalServerError,
-			cloud.JsonKeyMessage: err,
-		})
-		return
+		config, err := cloud.GetAmazonKubernetesConfig(cloudCluster)
+		if err != nil {
+			cloud.SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
+				cloud.JsonKeyStatus:  http.StatusInternalServerError,
+				cloud.JsonKeyMessage: err,
+			})
+			return
+		}
+		err = deleteAllDeployment(config)
+		if err != nil {
+			banzaiUtils.LogError(banzaiConstants.TagDeleteCluster, "Error during deleting all deployments #", err.Error())
+			cloud.SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
+				cloud.JsonKeyStatus:  http.StatusInternalServerError,
+				cloud.JsonKeyMessage: err,
+			})
+			return
+		}
+		banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Deployments successfully deleted")
 	}
-	banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Get aws cluster succeeded")
-
-	config, err := cloud.GetAmazonKubernetesConfig(cloudCluster)
-	if err != nil {
-		cloud.SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
-			cloud.JsonKeyStatus:  http.StatusInternalServerError,
-			cloud.JsonKeyMessage: err,
-		})
-		return
-	}
-	err = deleteAllDeployment(config)
-	if err != nil {
-		banzaiUtils.LogError(banzaiConstants.TagDeleteCluster, "Error during deleting all deployments #", err.Error())
-		cloud.SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
-			cloud.JsonKeyStatus:  http.StatusInternalServerError,
-			cloud.JsonKeyMessage: err,
-		})
-		return
-	}
-	banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Deployments successfully deleted")
 	if cloud.DeleteCluster(cl, c) {
 		// cluster delete success, delete from db
 		if cloud.DeleteFromDb(cl, c) {
