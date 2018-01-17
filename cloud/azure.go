@@ -318,7 +318,18 @@ func GetAzureK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 			})
 			return
 		}
-		SetResponseBodyString(c, http.StatusOK, string(decodedConfig))
+
+		ctype := c.NegotiateFormat(gin.MIMEPlain, gin.MIMEJSON)
+		switch ctype {
+		case gin.MIMEJSON:
+			SetResponseBodyJson(c, http.StatusOK, gin.H{
+				JsonKeyStatus: http.StatusOK,
+				JsonKeyData:   string(decodedConfig),
+			})
+		default:
+			banzaiUtils.LogDebug(banzaiConstants.TagFetchClusterConfig, "Content-Type: ", ctype)
+			SetResponseBodyString(c, http.StatusOK, string(decodedConfig))
+		}
 	}
 
 }

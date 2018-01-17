@@ -609,5 +609,15 @@ func GetAmazonK8SConfig(cl *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 		banzaiUtils.LogDebug(banzaiConstants.TagFetchClusterConfig, "Read file succeeded:", data)
 	}
 
-	SetResponseBodyString(c, http.StatusOK, string(data))
+	ctype := c.NegotiateFormat(gin.MIMEPlain, gin.MIMEJSON)
+	switch ctype {
+	case gin.MIMEJSON:
+		SetResponseBodyJson(c, http.StatusOK, gin.H{
+			JsonKeyStatus: http.StatusOK,
+			JsonKeyData:   data,
+		})
+	default:
+		banzaiUtils.LogDebug(banzaiConstants.TagFetchClusterConfig, "Content-Type: ", ctype)
+		SetResponseBodyString(c, http.StatusOK, string(data))
+	}
 }
