@@ -168,9 +168,9 @@ func SetResponseBodyJson(c *gin.Context, statusCode int, obj interface{}) {
 }
 
 //SetResponseBodyString
-func SetResponseBodyString(c *gin.Context, statusCode int, format string, values... interface{}) {
+func SetResponseBodyString(c *gin.Context, statusCode int, format string) {
 	if c!= nil {
-		c.String(statusCode, format, values)
+		c.String(statusCode, format)
 	}
 }
 
