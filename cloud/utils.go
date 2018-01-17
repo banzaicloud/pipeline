@@ -77,7 +77,7 @@ func GetConfig(existing *cluster.Cluster, localDir string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	conf, err := getAmazonKubernetesConfig(existing)
+	conf, err := GetAmazonKubernetesConfig(existing)
 	if err != nil {
 		return "", err
 	}

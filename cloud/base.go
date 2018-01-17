@@ -228,7 +228,7 @@ func GetK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) ([]byte, 
 		} else {
 			banzaiUtils.LogInfo(LOGTAG, "Get aws cluster succeeded")
 		}
-		config, err := getAmazonKubernetesConfig(cloudCluster)
+		config, err := GetAmazonKubernetesConfig(cloudCluster)
 		if err != nil {
 			SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
 				JsonKeyStatus:  http.StatusInternalServerError,
