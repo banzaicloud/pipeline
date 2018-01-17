@@ -2,6 +2,7 @@ package cloud
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/banzaicloud/pipeline/notify"
 	"github.com/gin-gonic/gin"
@@ -20,6 +21,16 @@ import (
 	"golang.org/x/crypto/ssh"
 	"github.com/pkg/sftp"
 	"strings"
+	"github.com/banzaicloud/pipeline/helm"
+	"github.com/kris-nova/kubicorn/cutil/logger"
+	"k8s.io/client-go/tools/clientcmd"
+	"time"
+	"github.com/banzaicloud/pipeline/utils"
+)
+
+const (
+	retryAttempts     = 150
+	retrySleepSeconds = 5
 )
 
 // GetAWSCluster creates *cluster.Cluster from ClusterSimple struct
@@ -56,7 +67,7 @@ func GetAWSCluster(cs *banzaiSimpleTypes.ClusterSimple) *cluster.Cluster {
 				Image:    cs.Amazon.MasterImage, //"ami-835b4efa"
 				Size:     cs.NodeInstanceType,
 				BootstrapScripts: []string{
-					getBootstrapScriptFromEnv(true),
+					utils.GetBootstrapScriptFromEnv(true),
 				},
 				InstanceProfile: &cluster.IAMInstanceProfile{
 					Name: fmt.Sprintf("%s-KubicornMasterInstanceProfile", cs.Name),
@@ -142,7 +153,7 @@ func GetAWSCluster(cs *banzaiSimpleTypes.ClusterSimple) *cluster.Cluster {
 					SpotPrice: cs.Amazon.NodeSpotPrice,
 				},
 				BootstrapScripts: []string{
-					getBootstrapScriptFromEnv(false),
+					utils.GetBootstrapScriptFromEnv(false),
 				},
 				InstanceProfile: &cluster.IAMInstanceProfile{
 					Name: fmt.Sprintf("%s-KubicornNodeInstanceProfile", cs.Name),
@@ -227,16 +238,16 @@ func GetAmazonClusterStatus(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context)
 	if isAvailable {
 		msg := "Kubernetes cluster available"
 		banzaiUtils.LogInfo(banzaiConstants.TagGetClusterStatus, msg)
-		SetResponseBodyJson(c, http.StatusOK, gin.H{
-			JsonKeyStatus:  http.StatusOK,
-			JsonKeyMessage: msg,
+		utils.SetResponseBodyJson(c, http.StatusOK, gin.H{
+			utils.JsonKeyStatus:  http.StatusOK,
+			utils.JsonKeyMessage: msg,
 		})
 	} else {
 		msg := "Kubernetes cluster not ready yet"
 		banzaiUtils.LogInfo(banzaiConstants.TagGetClusterStatus, msg)
-		SetResponseBodyJson(c, http.StatusNoContent, gin.H{
-			JsonKeyStatus:  http.StatusNoContent,
-			JsonKeyMessage: msg,
+		utils.SetResponseBodyJson(c, http.StatusNoContent, gin.H{
+			utils.JsonKeyStatus:  http.StatusNoContent,
+			utils.JsonKeyMessage: msg,
 		})
 	}
 
@@ -273,21 +284,21 @@ func UpdateClusterAmazonInCloud(r *banzaiTypes.UpdateClusterRequest, c *gin.Cont
 	if _, err := UpdateClusterAws(cluster2Db); err != nil {
 		banzaiUtils.LogWarn(banzaiConstants.TagUpdateCluster, "Can't update cluster in the cloud!", err)
 
-		SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
-			JsonKeyStatus:     http.StatusBadRequest,
-			JsonKeyMessage:    "Can't update cluster in the cloud!",
-			JsonKeyResourceId: cluster2Db.ID,
-			JsonKeyError:      err,
+		utils.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
+			utils.JsonKeyStatus:     http.StatusBadRequest,
+			utils.JsonKeyMessage:    "Can't update cluster in the cloud!",
+			utils.JsonKeyResourceId: cluster2Db.ID,
+			utils.JsonKeyError:      err,
 		})
 
 		return false
 	} else {
 		banzaiUtils.LogInfo(banzaiConstants.TagUpdateCluster, "Cluster updated in the cloud!")
 		if updateClusterInDb(c, cluster2Db) {
-			SetResponseBodyJson(c, http.StatusOK, gin.H{
-				JsonKeyStatus:     http.StatusOK,
-				JsonKeyMessage:    "Cluster updated successfully!",
-				JsonKeyResourceId: cluster2Db.ID,
+			utils.SetResponseBodyJson(c, http.StatusOK, gin.H{
+				utils.JsonKeyStatus:     http.StatusOK,
+				utils.JsonKeyMessage:    "Cluster updated successfully!",
+				utils.JsonKeyResourceId: cluster2Db.ID,
 			})
 
 			return true
@@ -329,10 +340,10 @@ func CreateClusterAmazon(request *banzaiTypes.CreateClusterRequest, c *gin.Conte
 	if createdCluster, err := CreateCluster(cluster2Db); err != nil {
 		// creation failed
 		banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Cluster creation failed!", err.Error())
-		SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
-			JsonKeyMessage: "Could not launch cluster!",
-			JsonKeyName:    cluster2Db.Name,
-			JsonKeyError:   err,
+		utils.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
+			utils.JsonKeyMessage: "Could not launch cluster!",
+			utils.JsonKeyName:    cluster2Db.Name,
+			utils.JsonKeyError:   err,
 		})
 		return false, nil
 	} else {
@@ -348,12 +359,12 @@ func CreateClusterAmazon(request *banzaiTypes.CreateClusterRequest, c *gin.Conte
 
 		banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Database save succeeded")
 		banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Create response")
-		SetResponseBodyJson(c, http.StatusCreated, gin.H{
-			JsonKeyStatus:     http.StatusCreated,
-			JsonKeyMessage:    "Cluster created successfully!",
-			JsonKeyResourceId: cluster2Db.ID,
-			JsonKeyName:       cluster2Db.Name,
-			JsonKeyIp:         createdCluster.KubernetesAPI.Endpoint,
+		utils.SetResponseBodyJson(c, http.StatusCreated, gin.H{
+			utils.JsonKeyStatus:     http.StatusCreated,
+			utils.JsonKeyMessage:    "Cluster created successfully!",
+			utils.JsonKeyResourceId: cluster2Db.ID,
+			utils.JsonKeyName:       cluster2Db.Name,
+			utils.JsonKeyIp:         createdCluster.KubernetesAPI.Endpoint,
 		})
 
 		return true, &cluster2Db
@@ -373,9 +384,9 @@ func GetClusterWithDbCluster(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context
 	if err != nil {
 		errorMsg := fmt.Sprintf("Error read cluster: %s", err)
 		banzaiUtils.LogWarn(banzaiConstants.TagGetCluster, errorMsg)
-		SetResponseBodyJson(c, http.StatusNotFound, gin.H{
-			JsonKeyStatus:  http.StatusNotFound,
-			JsonKeyMessage: errorMsg,
+		utils.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
+			utils.JsonKeyStatus:  http.StatusNotFound,
+			utils.JsonKeyMessage: errorMsg,
 		})
 		return nil, err
 	}
@@ -457,12 +468,12 @@ func GetClusterInfoAmazon(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 	}
 
 	isAvailable, _ := IsKubernetesClusterAvailable(cl)
-	SetResponseBodyJson(c, http.StatusOK, gin.H{
-		JsonKeyResourceId: cs.ID,
-		JsonKeyStatus:    http.StatusOK,
-		JsonKeyData:      cl,
-		JsonKeyAvailable: isAvailable,
-		JsonKeyIp:        cl.KubernetesAPI.Endpoint,
+	utils.SetResponseBodyJson(c, http.StatusOK, gin.H{
+		utils.JsonKeyResourceId: cs.ID,
+		utils.JsonKeyStatus:    http.StatusOK,
+		utils.JsonKeyData:      cl,
+		utils.JsonKeyAvailable: isAvailable,
+		utils.JsonKeyIp:        cl.KubernetesAPI.Endpoint,
 	})
 }
 
@@ -476,15 +487,40 @@ func DeleteAmazonCluster(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) bo
 		return false
 	}
 
+	banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Start delete created helm charts")
+
+	cloudCluster, err := GetClusterWithDbCluster(cs, c)
+	if err != nil {
+		banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Error during getting aws cluster")
+		return false
+	}
+	banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Get aws cluster succeeded")
+
+	config, err := getAmazonKubernetesConfig(cloudCluster)
+	if err != nil {
+		utils.SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
+			utils.JsonKeyStatus:  http.StatusInternalServerError,
+			utils.JsonKeyMessage: err,
+		})
+		return false
+	}
+
+	err = helm.DeleteAllDeployment(config)
+	if err != nil {
+		banzaiUtils.LogError(banzaiConstants.TagDeleteCluster, "Error during deleting all deployments #", err.Error())
+		return false
+	}
+	banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Deployments successfully deleted")
+
 	if _, err := DeleteClusterAmazon(cs); err != nil {
 		// delete failed
 		banzaiUtils.LogWarn(banzaiConstants.TagDeleteCluster, "Can't delete cluster from cloud!", err)
 
-		SetResponseBodyJson(c, http.StatusNotFound, gin.H{
-			JsonKeyStatus:     http.StatusBadRequest,
-			JsonKeyMessage:    "Can't delete cluster!",
-			JsonKeyResourceId: cs.ID,
-			JsonKeyError:      err,
+		utils.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
+			utils.JsonKeyStatus:     http.StatusBadRequest,
+			utils.JsonKeyMessage:    "Can't delete cluster!",
+			utils.JsonKeyResourceId: cs.ID,
+			utils.JsonKeyError:      err,
 		})
 		return false
 	} else {
@@ -493,10 +529,10 @@ func DeleteAmazonCluster(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) bo
 		banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, msg)
 		notify.SlackNotify(msg)
 
-		SetResponseBodyJson(c, http.StatusAccepted, gin.H{
-			JsonKeyStatus:     http.StatusAccepted,
-			JsonKeyMessage:    "Cluster deleted successfully!",
-			JsonKeyResourceId: cs.ID,
+		utils.SetResponseBodyJson(c, http.StatusAccepted, gin.H{
+			utils.JsonKeyStatus:     http.StatusAccepted,
+			utils.JsonKeyMessage:    "Cluster deleted successfully!",
+			utils.JsonKeyResourceId: cs.ID,
 		})
 		return true
 	}
@@ -505,7 +541,7 @@ func DeleteAmazonCluster(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) bo
 
 func getAmazonKubernetesConfig(existing *cluster.Cluster) ([]byte, error) {
 	user := existing.SSH.User
-	pubKeyPath := expand(existing.SSH.PublicKeyPath)
+	pubKeyPath := utils.Expand(existing.SSH.PublicKeyPath)
 	privKeyPath := strings.Replace(pubKeyPath, ".pub", "", 1)
 	address := fmt.Sprintf("%s:%s", existing.KubernetesAPI.Endpoint, "22")
 
@@ -526,7 +562,7 @@ func getAmazonKubernetesConfig(existing *cluster.Cluster) ([]byte, error) {
 		return nil , err
 	}
 
-	signer, err := getSigner(pemBytes)
+	signer, err := utils.GetSigner(pemBytes)
 	if err != nil {
 		return nil, err
 	}
@@ -588,9 +624,9 @@ func GetAmazonK8SConfig(cl *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 	if err != nil {
 		errorMsg := fmt.Sprintf("Error read cluster config: %s", err)
 		banzaiUtils.LogWarn(banzaiConstants.TagFetchClusterConfig, errorMsg)
-		SetResponseBodyJson(c, http.StatusServiceUnavailable, gin.H{
-			JsonKeyStatus:  http.StatusServiceUnavailable,
-			JsonKeyMessage: errorMsg,
+		utils.SetResponseBodyJson(c, http.StatusServiceUnavailable, gin.H{
+			utils.JsonKeyStatus:  http.StatusServiceUnavailable,
+			utils.JsonKeyMessage: errorMsg,
 		})
 		return
 	}
@@ -600,14 +636,71 @@ func GetAmazonK8SConfig(cl *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 	data, err := ioutil.ReadFile(configPath)
 	if err != nil {
 		banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Error during read file:", err.Error())
-		SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
-			JsonKeyStatus:  http.StatusInternalServerError,
-			JsonKeyMessage: err,
+		utils.SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
+			utils.JsonKeyStatus:  http.StatusInternalServerError,
+			utils.JsonKeyMessage: err,
 		})
 		return
 	} else {
 		banzaiUtils.LogDebug(banzaiConstants.TagFetchClusterConfig, "Read file succeeded:", data)
 	}
 
-	SetResponseBodyString(c, http.StatusOK, string(data))
+	utils.SetResponseBodyString(c, http.StatusOK, string(data))
+}
+
+//GetConfig retrieves K8S config
+func GetConfig(existing *cluster.Cluster, localDir string) (string, error) {
+	if localDir == "" {
+		localDir = fmt.Sprintf("./statestore/%s/", existing.Name)
+	}
+	localPath, err := utils.GetKubeConfigPath(localDir)
+	if err != nil {
+		return "", err
+	}
+	conf, err := getAmazonKubernetesConfig(existing)
+	if err != nil {
+		return "", err
+	}
+	if _, err := os.Stat(localPath); os.IsNotExist(err) {
+		empty := []byte("")
+		err := ioutil.WriteFile(localPath, empty, 0755)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	f, err := os.OpenFile(localPath, os.O_WRONLY, os.ModeAppend)
+	if err != nil {
+		return "", err
+	}
+	_, err = f.Write(conf)
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+	logger.Always("Wrote kubeconfig to [%s]", localPath)
+	//TODO better solution
+	config, err := clientcmd.BuildConfigFromFlags("", localPath)
+	ioutil.WriteFile(localDir+"/client-key-data.pem", config.KeyData, 0644)
+	ioutil.WriteFile(localDir+"/client-certificate-data.pem", config.CertData, 0644)
+	ioutil.WriteFile(localDir+"/certificate-authority-data.pem", config.CAData, 0644)
+	return localPath, nil
+}
+
+//RetryGetConfig is retrying K8S config retrieval
+func RetryGetConfig(existing *cluster.Cluster, localDir string) (string, error) {
+	for i := 0; i <= retryAttempts; i++ {
+		path, err := GetConfig(existing, localDir)
+		if err != nil {
+			if strings.Contains(err.Error(), "file does not exist") || strings.Contains(err.Error(), "getsockopt: connection refused") || strings.Contains(err.Error(), "unable to authenticate") {
+				logger.Debug("Waiting for Kubernetes to come up.. #%s", err.Error())
+				time.Sleep(time.Duration(retrySleepSeconds) * time.Second)
+				continue
+			}
+			return "", err
+		}
+		notify.SlackNotify(fmt.Sprintf("Cluster Created: %s\n IP: %s", existing.Name, existing.KubernetesAPI.Endpoint))
+		return path, err
+	}
+	return "", fmt.Errorf("Timeout writing kubeconfig")
 }

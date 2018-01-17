@@ -147,18 +147,18 @@ func DeleteDeployment(c *gin.Context) {
 	if err != nil {
 		// error during delete deployment
 		banzaiUtils.LogWarn(banzaiConstants.TagDeleteDeployment, err.Error())
-		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
-			cloud.JsonKeyStatus:  http.StatusNotFound,
-			cloud.JsonKeyMessage: fmt.Sprintf("%s", err),
+		utils.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
+			utils.JsonKeyStatus:  http.StatusNotFound,
+			utils.JsonKeyMessage: fmt.Sprintf("%s", err),
 		})
 		return
 	} else {
 		// delete succeeded
 		banzaiUtils.LogInfo(banzaiConstants.TagDeleteDeployment, "Delete deployment succeeded")
 	}
-	cloud.SetResponseBodyJson(c, http.StatusOK, gin.H{
-		cloud.JsonKeyStatus:  http.StatusOK,
-		cloud.JsonKeyMessage: "success",
+	utils.SetResponseBodyJson(c, http.StatusOK, gin.H{
+		utils.JsonKeyStatus:  http.StatusOK,
+		utils.JsonKeyMessage: "success",
 	})
 	return
 }
@@ -182,10 +182,10 @@ func CreateDeployment(c *gin.Context) {
 	if err := c.BindJSON(&deployment); err != nil {
 		banzaiUtils.LogInfo(banzaiConstants.TagCreateDeployment, "Bind failed")
 		banzaiUtils.LogInfo(banzaiConstants.TagCreateDeployment, "Required field is empty."+err.Error())
-		cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
-			cloud.JsonKeyStatus:  http.StatusBadRequest,
-			cloud.JsonKeyMessage: "Required field is empty",
-			cloud.JsonKeyError:   err,
+		utils.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
+			utils.JsonKeyStatus:  http.StatusBadRequest,
+			utils.JsonKeyMessage: "Required field is empty",
+			utils.JsonKeyError:   err,
 		})
 		return
 	}
@@ -218,9 +218,9 @@ func CreateDeployment(c *gin.Context) {
 	release, err := helm.CreateDeployment(chartPath, deployment.ReleaseName, values, kubeConfig)
 	if err != nil {
 		banzaiUtils.LogWarn(banzaiConstants.TagCreateDeployment, "Error during create deployment.", err.Error())
-		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
-			cloud.JsonKeyStatus:  http.StatusNotFound,
-			cloud.JsonKeyMessage: fmt.Sprintf("%s", err),
+		utils.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
+			utils.JsonKeyStatus:  http.StatusNotFound,
+			utils.JsonKeyMessage: fmt.Sprintf("%s", err),
 		})
 		return
 	} else {
@@ -237,20 +237,20 @@ func CreateDeployment(c *gin.Context) {
 	//Get local ingress address?
 	endpoint, err := cloud.GetK8SEndpoint(cloudCluster, c)
 	if err != nil {
-		cloud.SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
-			cloud.JsonKeyStatus:  http.StatusInternalServerError,
-			cloud.JsonKeyMessage: fmt.Sprintf("%s", err.Error()),
+		utils.SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
+			utils.JsonKeyStatus:  http.StatusInternalServerError,
+			utils.JsonKeyMessage: fmt.Sprintf("%s", err.Error()),
 		})
 		return
 	}
 
 	deploymentUrl := fmt.Sprintf("http://%s:30080/zeppelin/", endpoint)
 	notify.SlackNotify(fmt.Sprintf("Deployment Created: %s", deploymentUrl))
-	cloud.SetResponseBodyJson(c, http.StatusCreated, gin.H{
-		cloud.JsonKeyStatus:      http.StatusCreated,
-		cloud.JsonKeyReleaseName: releaseName,
-		cloud.JsonKeyUrl:         deploymentUrl,
-		cloud.JsonKeyNotes:       releaseNotes,
+	utils.SetResponseBodyJson(c, http.StatusCreated, gin.H{
+		utils.JsonKeyStatus:      http.StatusCreated,
+		utils.JsonKeyReleaseName: releaseName,
+		utils.JsonKeyUrl:         deploymentUrl,
+		utils.JsonKeyNotes:       releaseNotes,
 	})
 	return
 }
@@ -280,9 +280,9 @@ func ListDeployments(c *gin.Context) {
 	response, err := helm.ListDeployments(nil, kubeConfig)
 	if err != nil {
 		banzaiUtils.LogWarn(banzaiConstants.TagListDeployments, "Error getting deployments. ", err)
-		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
-			cloud.JsonKeyStatus:  http.StatusNotFound,
-			cloud.JsonKeyMessage: fmt.Sprintf("%s", err),
+		utils.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
+			utils.JsonKeyStatus:  http.StatusNotFound,
+			utils.JsonKeyMessage: fmt.Sprintf("%s", err),
 		})
 		return
 	}
@@ -300,13 +300,13 @@ func ListDeployments(c *gin.Context) {
 	} else {
 		msg := "There is no installed charts."
 		banzaiUtils.LogInfo(banzaiConstants.TagListDeployments, msg)
-		cloud.SetResponseBodyJson(c, http.StatusOK, gin.H{
-			cloud.JsonKeyMessage: msg,
+		utils.SetResponseBodyJson(c, http.StatusOK, gin.H{
+			utils.JsonKeyMessage: msg,
 		})
 		return
 	}
 
-	cloud.SetResponseBodyJson(c, http.StatusOK, releases)
+	utils.SetResponseBodyJson(c, http.StatusOK, releases)
 	return
 }
 
@@ -321,10 +321,10 @@ func CreateCluster(c *gin.Context) {
 	if err := c.BindJSON(&createClusterBaseRequest); err != nil {
 		// bind failed
 		banzaiUtils.LogError(banzaiConstants.TagCreateCluster, "Required field is empty: "+err.Error())
-		cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
-			cloud.JsonKeyStatus:  http.StatusBadRequest,
-			cloud.JsonKeyMessage: "Required field is empty",
-			cloud.JsonKeyError:   err,
+		utils.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
+			utils.JsonKeyStatus:  http.StatusBadRequest,
+			utils.JsonKeyMessage: "Required field is empty",
+			utils.JsonKeyError:   err,
 		})
 		return
 	} else {
@@ -342,9 +342,9 @@ func CreateCluster(c *gin.Context) {
 		// duplicated entry
 		msg := "Duplicate entry '" + savedCluster.Name + "' for key 'name'"
 		banzaiUtils.LogError(banzaiConstants.TagCreateCluster, msg)
-		cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
-			cloud.JsonKeyStatus:  http.StatusBadRequest,
-			cloud.JsonKeyMessage: msg,
+		utils.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
+			utils.JsonKeyStatus:  http.StatusBadRequest,
+			utils.JsonKeyMessage: msg,
 		})
 		return
 	}
@@ -374,9 +374,9 @@ func CreateCluster(c *gin.Context) {
 			}
 		} else {
 			// not valid request
-			cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
-				cloud.JsonKeyStatus:  http.StatusBadRequest,
-				cloud.JsonKeyMessage: err,
+			utils.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
+				utils.JsonKeyStatus:  http.StatusBadRequest,
+				utils.JsonKeyMessage: err,
 			})
 		}
 	case banzaiConstants.Azure:
@@ -394,9 +394,9 @@ func CreateCluster(c *gin.Context) {
 			}
 		} else {
 			// not valid request
-			cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
-				cloud.JsonKeyStatus:  http.StatusBadRequest,
-				cloud.JsonKeyMessage: err,
+			utils.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
+				utils.JsonKeyStatus:  http.StatusBadRequest,
+				utils.JsonKeyMessage: err,
 			})
 		}
 	default:
@@ -529,9 +529,9 @@ func FetchClusters(c *gin.Context) {
 
 	if len(clusters) <= 0 {
 		banzaiUtils.LogInfo(banzaiConstants.TagListClusters, "No clusters found")
-		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
-			cloud.JsonKeyStatus:  http.StatusNotFound,
-			cloud.JsonKeyMessage: "No clusters found!",
+		utils.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
+			utils.JsonKeyStatus:  http.StatusNotFound,
+			utils.JsonKeyMessage: "No clusters found!",
 		})
 		return
 	}
@@ -544,9 +544,9 @@ func FetchClusters(c *gin.Context) {
 		}
 
 	}
-	cloud.SetResponseBodyJson(c, http.StatusOK, gin.H{
-		cloud.JsonKeyStatus: http.StatusOK,
-		cloud.JsonKeyData:   response,
+	utils.SetResponseBodyJson(c, http.StatusOK, gin.H{
+		utils.JsonKeyStatus: http.StatusOK,
+		utils.JsonKeyData:   response,
 	})
 }
 
@@ -573,10 +573,10 @@ func UpdateCluster(c *gin.Context) {
 	if err := c.BindJSON(&updateRequest); err != nil {
 		// bind failed, required field(s) empty
 		banzaiUtils.LogWarn(banzaiConstants.TagGetClusterInfo, "Bind failed.", err.Error())
-		cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
-			cloud.JsonKeyStatus:  http.StatusBadRequest,
-			cloud.JsonKeyMessage: "Required field is empty",
-			cloud.JsonKeyError:   err,
+		utils.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
+			utils.JsonKeyStatus:  http.StatusBadRequest,
+			utils.JsonKeyMessage: "Required field is empty",
+			utils.JsonKeyError:   err,
 		})
 		return
 	}
@@ -623,9 +623,9 @@ func UpdateCluster(c *gin.Context) {
 	} else {
 		// validation failed
 		banzaiUtils.LogInfo(banzaiConstants.TagGetClusterInfo, "Validation failed")
-		cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
-			cloud.JsonKeyStatus:  http.StatusBadRequest,
-			cloud.JsonKeyMessage: err,
+		utils.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
+			utils.JsonKeyStatus:  http.StatusBadRequest,
+			utils.JsonKeyMessage: err,
 		})
 	}
 
@@ -666,9 +666,9 @@ func GetClusterStatus(c *gin.Context) {
 	cloudCluster, err := cloud.GetClusterSimple(c)
 	if err != nil {
 		banzaiUtils.LogWarn(banzaiConstants.TagGetClusterStatus, "Error during get cluster", err.Error())
-		cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
-			cloud.JsonKeyStatus:  http.StatusBadRequest,
-			cloud.JsonKeyMessage: err.Error(),
+		utils.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
+			utils.JsonKeyStatus:  http.StatusBadRequest,
+			utils.JsonKeyMessage: err.Error(),
 		})
 		return
 	} else {
@@ -714,15 +714,15 @@ func GetTillerStatus(c *gin.Context) {
 	_, err = helm.ListDeployments(nil, kubeConfig)
 	if err != nil {
 		banzaiUtils.LogWarn(banzaiConstants.TagGetTillerStatus, "Error during getting deployments.", err.Error())
-		cloud.SetResponseBodyJson(c, http.StatusServiceUnavailable, gin.H{
-			cloud.JsonKeyStatus:  http.StatusServiceUnavailable,
-			cloud.JsonKeyMessage: "Tiller not available",
+		utils.SetResponseBodyJson(c, http.StatusServiceUnavailable, gin.H{
+			utils.JsonKeyStatus:  http.StatusServiceUnavailable,
+			utils.JsonKeyMessage: "Tiller not available",
 		})
 	} else {
 		banzaiUtils.LogInfo(banzaiConstants.TagGetTillerStatus, "Tiller available")
-		cloud.SetResponseBodyJson(c, http.StatusOK, gin.H{
-			cloud.JsonKeyStatus:  http.StatusOK,
-			cloud.JsonKeyMessage: "Tiller available",
+		utils.SetResponseBodyJson(c, http.StatusOK, gin.H{
+			utils.JsonKeyStatus:  http.StatusOK,
+			utils.JsonKeyMessage: "Tiller available",
 		})
 	}
 	return
@@ -756,9 +756,9 @@ func FetchDeploymentStatus(c *gin.Context) {
 	chart, err := helm.ListDeployments(&name, kubeConfig)
 	if err != nil {
 		banzaiUtils.LogWarn(banzaiConstants.TagFetchDeploymentStatus, "Error during listing deployments:", err.Error())
-		cloud.SetResponseBodyJson(c, http.StatusServiceUnavailable, gin.H{
-			cloud.JsonKeyStatus:  http.StatusServiceUnavailable,
-			cloud.JsonKeyMessage: "Tiller not available",
+		utils.SetResponseBodyJson(c, http.StatusServiceUnavailable, gin.H{
+			utils.JsonKeyStatus:  http.StatusServiceUnavailable,
+			utils.JsonKeyMessage: "Tiller not available",
 		})
 		return
 	} else {
@@ -768,9 +768,9 @@ func FetchDeploymentStatus(c *gin.Context) {
 	if chart.Count == 0 {
 		msg := "Deployment not found"
 		banzaiUtils.LogInfo(banzaiConstants.TagFetchDeploymentStatus, msg)
-		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
-			cloud.JsonKeyStatus:  http.StatusNotFound,
-			cloud.JsonKeyMessage: msg,
+		utils.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
+			utils.JsonKeyStatus:  http.StatusNotFound,
+			utils.JsonKeyMessage: msg,
 		})
 		return
 	}
@@ -778,9 +778,9 @@ func FetchDeploymentStatus(c *gin.Context) {
 	if chart.Count > 1 {
 		msg := "Multiple deployments found"
 		banzaiUtils.LogInfo(banzaiConstants.TagFetchDeploymentStatus, msg)
-		cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
-			cloud.JsonKeyStatus:  http.StatusBadRequest,
-			cloud.JsonKeyMessage: msg,
+		utils.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
+			utils.JsonKeyStatus:  http.StatusBadRequest,
+			utils.JsonKeyMessage: msg,
 		})
 		return
 	}
@@ -790,9 +790,9 @@ func FetchDeploymentStatus(c *gin.Context) {
 	status, err := helm.CheckDeploymentState(cloudCluster, name)
 	if err != nil {
 		banzaiUtils.LogWarn(banzaiConstants.TagFetchDeploymentStatus, "Error during check deployment state:", err.Error())
-		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
-			cloud.JsonKeyStatus:  http.StatusNotFound,
-			cloud.JsonKeyMessage: "Error happened fetching status",
+		utils.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
+			utils.JsonKeyStatus:  http.StatusNotFound,
+			utils.JsonKeyMessage: "Error happened fetching status",
 		})
 		return
 	} else {
@@ -804,15 +804,15 @@ func FetchDeploymentStatus(c *gin.Context) {
 
 	if status == "Running" {
 		banzaiUtils.LogInfo(banzaiConstants.TagFetchDeploymentStatus, "Deployment status is: %s", status)
-		cloud.SetResponseBodyJson(c, http.StatusOK, gin.H{
-			cloud.JsonKeyStatus:  http.StatusOK,
-			cloud.JsonKeyMessage: msg,
+		utils.SetResponseBodyJson(c, http.StatusOK, gin.H{
+			utils.JsonKeyStatus:  http.StatusOK,
+			utils.JsonKeyMessage: msg,
 		})
 		return
 	} else {
-		cloud.SetResponseBodyJson(c, http.StatusNoContent, gin.H{
-			cloud.JsonKeyStatus:  http.StatusNoContent,
-			cloud.JsonKeyMessage: msg,
+		utils.SetResponseBodyJson(c, http.StatusNoContent, gin.H{
+			utils.JsonKeyStatus:  http.StatusNoContent,
+			utils.JsonKeyMessage: msg,
 		})
 		return
 	}
@@ -821,8 +821,8 @@ func FetchDeploymentStatus(c *gin.Context) {
 
 // Auth0Test authN check
 func Auth0Test(c *gin.Context) {
-	cloud.SetResponseBodyJson(c, http.StatusOK, gin.H{
-		cloud.JsonKeyAuth0: "authn and authz successful",
+	utils.SetResponseBodyJson(c, http.StatusOK, gin.H{
+		utils.JsonKeyAuth0: "authn and authz successful",
 	})
 }
 
@@ -876,10 +876,10 @@ func InitHelmOnCluster(c *gin.Context) {
 	if err := c.BindJSON(&helmInstall); err != nil {
 		// bind failed
 		banzaiUtils.LogError(banzaiConstants.TagHelmInstall, "Required field is empty: "+err.Error())
-		cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
-			cloud.JsonKeyStatus:  http.StatusBadRequest,
-			cloud.JsonKeyMessage: "Required field is empty",
-			cloud.JsonKeyError:   err,
+		utils.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
+			utils.JsonKeyStatus:  http.StatusBadRequest,
+			utils.JsonKeyMessage: "Required field is empty",
+			utils.JsonKeyError:   err,
 		})
 		return
 	} else {
@@ -887,6 +887,6 @@ func InitHelmOnCluster(c *gin.Context) {
 	}
 
 	resp := helm.Install(&helmInstall)
-	cloud.SetResponseBodyJson(c, resp.StatusCode, resp)
+	utils.SetResponseBodyJson(c, resp.StatusCode, resp)
 
 }

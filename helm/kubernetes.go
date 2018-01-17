@@ -10,13 +10,13 @@ import (
 	"k8s.io/helm/pkg/kube"
 
 	"fmt"
-	"github.com/banzaicloud/pipeline/cloud"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
 	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
 	banzaiSimpleTypes "github.com/banzaicloud/banzai-types/components/database"
+	"github.com/banzaicloud/pipeline/utils"
 )
 
 var tillerTunnel *kube.Tunnel
@@ -61,7 +61,7 @@ func CheckDeploymentState(cs *banzaiSimpleTypes.ClusterSimple, releaseName strin
 		err    error
 	)
 
-	kubeConfig, err := cloud.GetKubeConfigPath(fmt.Sprintf("./statestore/%s/", cs.Name))
+	kubeConfig, err := utils.GetKubeConfigPath(fmt.Sprintf("./statestore/%s/", cs.Name))
 	if err != nil {
 		return "", err
 	}

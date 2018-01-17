@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"encoding/base64"
+	"github.com/banzaicloud/pipeline/utils"
 )
 
 // ClusterRepresentation combines EC2 and AKS
@@ -34,11 +35,11 @@ func DeleteFromDb(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) bool {
 	if err := database.Delete(&cs).Error; err != nil {
 		// delete failed
 		banzaiUtils.LogWarn(banzaiConstants.TagDeleteCluster, "Can't delete cluster from database!", err)
-		SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
-			JsonKeyStatus:     http.StatusBadRequest,
-			JsonKeyMessage:    "Can't delete cluster!",
-			JsonKeyResourceId: cs.ID,
-			JsonKeyError:      err,
+		utils.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
+			utils.JsonKeyStatus:     http.StatusBadRequest,
+			utils.JsonKeyMessage:    "Can't delete cluster!",
+			utils.JsonKeyResourceId: cs.ID,
+			utils.JsonKeyError:      err,
 		})
 		return false
 	}
@@ -73,11 +74,11 @@ func UpdateClusterInCloud(c *gin.Context, r *banzaiTypes.UpdateClusterRequest, p
 func DbSaveFailed(c *gin.Context, err error, clusterName string) {
 	banzaiUtils.LogWarn(banzaiConstants.TagDatabase, "Can't persist cluster into the database!", err)
 
-	SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
-		JsonKeyStatus:  http.StatusBadRequest,
-		JsonKeyMessage: "Can't persist cluster into the database!",
-		JsonKeyName:    clusterName,
-		JsonKeyError:   err,
+	utils.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
+		utils.JsonKeyStatus:  http.StatusBadRequest,
+		utils.JsonKeyMessage: "Can't persist cluster into the database!",
+		utils.JsonKeyName:    clusterName,
+		utils.JsonKeyError:   err,
 	})
 }
 
@@ -100,9 +101,9 @@ func GetClusterFromDB(c *gin.Context) (*banzaiSimpleTypes.ClusterSimple, error) 
 	if cluster.ID == 0 {
 		errorMsg := fmt.Sprintf("cluster not found: [%s]: %s", field, value)
 		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, errorMsg)
-		SetResponseBodyJson(c, http.StatusNotFound, gin.H{
-			JsonKeyStatus:  http.StatusNotFound,
-			JsonKeyMessage: errorMsg,
+		utils.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
+			utils.JsonKeyStatus:  http.StatusNotFound,
+			utils.JsonKeyMessage: errorMsg,
 		})
 		return nil, errors.New(errorMsg)
 	}
@@ -143,9 +144,9 @@ func DeleteCluster(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) bool {
 func SendNotSupportedCloudResponse(c *gin.Context, tag string) {
 	msg := "Not supported cloud type. Please use one of the following: " + banzaiConstants.Amazon + ", " + banzaiConstants.Azure + "."
 	banzaiUtils.LogInfo(tag, msg)
-	SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
-		JsonKeyStatus:  http.StatusBadRequest,
-		JsonKeyMessage: msg,
+	utils.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
+		utils.JsonKeyStatus:  http.StatusBadRequest,
+		utils.JsonKeyMessage: msg,
 	})
 }
 
@@ -230,9 +231,9 @@ func GetK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) ([]byte, 
 		}
 		config, err := getAmazonKubernetesConfig(cloudCluster)
 		if err != nil {
-			SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
-				JsonKeyStatus:  http.StatusInternalServerError,
-				JsonKeyMessage: err,
+			utils.SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
+				utils.JsonKeyStatus:  http.StatusInternalServerError,
+				utils.JsonKeyMessage: err,
 			})
 			return nil, err
 		}
@@ -244,9 +245,9 @@ func GetK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) ([]byte, 
 		if err != nil {
 			// something went wrong
 			banzaiUtils.LogWarn(LOGTAG, "Error during getting Azure K8S config")
-			SetResponseBodyJson(c, err.StatusCode, gin.H{
-				JsonKeyStatus: err.StatusCode,
-				JsonKeyData:   err.Message,
+			utils.SetResponseBodyJson(c, err.StatusCode, gin.H{
+				utils.JsonKeyStatus: err.StatusCode,
+				utils.JsonKeyData:   err.Message,
 			})
 			return nil, errors.New("error happened during getting K8S config")
 		} else {

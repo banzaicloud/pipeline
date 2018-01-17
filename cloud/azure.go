@@ -18,6 +18,7 @@ import (
 	"github.com/go-errors/errors"
 	"io/ioutil"
 	"os"
+	"github.com/banzaicloud/pipeline/utils"
 )
 
 //AzureRepresentation
@@ -65,9 +66,9 @@ func CreateClusterAzure(request *banzaiTypes.CreateClusterRequest, c *gin.Contex
 	if err != nil {
 		// creation failed
 		banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Cluster creation failed!", err.Message)
-		SetResponseBodyJson(c, err.StatusCode, gin.H{
-			JsonKeyStatus:  err.StatusCode,
-			JsonKeyMessage: err.Message,
+		utils.SetResponseBodyJson(c, err.StatusCode, gin.H{
+			utils.JsonKeyStatus:  err.StatusCode,
+			utils.JsonKeyMessage: err.Message,
 		})
 		return false, nil
 	} else {
@@ -79,7 +80,7 @@ func CreateClusterAzure(request *banzaiTypes.CreateClusterRequest, c *gin.Contex
 		pollingRes, err := azureClient.PollingCluster(r.Name, r.ResourceGroup)
 		if err != nil {
 			// polling error
-			SetResponseBodyJson(c, err.StatusCode, err)
+			utils.SetResponseBodyJson(c, err.StatusCode, err)
 			return false, nil
 		} else {
 			// polling success
@@ -89,10 +90,10 @@ func CreateClusterAzure(request *banzaiTypes.CreateClusterRequest, c *gin.Contex
 			}
 
 			banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Save create cluster into database succeeded")
-			SetResponseBodyJson(c, pollingRes.StatusCode, gin.H{
-				JsonKeyStatus: pollingRes.StatusCode,
-				JsonKeyResourceId: cluster2Db.ID,
-				JsonKeyData: pollingRes.Value,
+			utils.SetResponseBodyJson(c, pollingRes.StatusCode, gin.H{
+				utils.JsonKeyStatus: pollingRes.StatusCode,
+				utils.JsonKeyResourceId: cluster2Db.ID,
+				utils.JsonKeyData: pollingRes.Value,
 			})
 			return true, &cluster2Db
 		}
@@ -106,9 +107,9 @@ func GetAzureClusterStatus(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) 
 
 	if cs == nil {
 		banzaiUtils.LogInfo(banzaiConstants.TagGetClusterStatus, "<nil> cluster struct")
-		SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
-			JsonKeyStatus:  http.StatusInternalServerError,
-			JsonKeyMessage: "",
+		utils.SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
+			utils.JsonKeyStatus:  http.StatusInternalServerError,
+			utils.JsonKeyMessage: "",
 		})
 		return
 	}
@@ -120,9 +121,9 @@ func GetAzureClusterStatus(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) 
 	resp, err := azureClient.GetCluster(cs.Name, cs.Azure.ResourceGroup)
 	if err != nil {
 		banzaiUtils.LogInfo(banzaiConstants.TagGetClusterStatus, "Error during get cluster info: ", err.Message)
-		SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
-			JsonKeyStatus:  http.StatusInternalServerError,
-			JsonKeyMessage: err.Message,
+		utils.SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
+			utils.JsonKeyStatus:  http.StatusInternalServerError,
+			utils.JsonKeyMessage: err.Message,
 		})
 	} else {
 		banzaiUtils.LogInfo(banzaiConstants.TagGetClusterStatus, "Get cluster success")
@@ -137,9 +138,9 @@ func GetAzureClusterStatus(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) 
 			msg = "Cluster not ready yet"
 			code = http.StatusNoContent
 		}
-		SetResponseBodyJson(c, code, gin.H{
-			JsonKeyStatus:  code,
-			JsonKeyMessage: msg,
+		utils.SetResponseBodyJson(c, code, gin.H{
+			utils.JsonKeyStatus:  code,
+			utils.JsonKeyMessage: msg,
 		})
 	}
 }
@@ -181,9 +182,9 @@ func UpdateClusterAzureInCloud(r *banzaiTypes.UpdateClusterRequest, c *gin.Conte
 	res, err := azureClient.CreateUpdateCluster(ccr)
 	if err != nil {
 		banzaiUtils.LogInfo(banzaiConstants.TagUpdateCluster, "Cluster update failed!", err.Message)
-		SetResponseBodyJson(c, err.StatusCode, gin.H{
-			JsonKeyStatus:  err.StatusCode,
-			JsonKeyMessage: err.Message,
+		utils.SetResponseBodyJson(c, err.StatusCode, gin.H{
+			utils.JsonKeyStatus:  err.StatusCode,
+			utils.JsonKeyMessage: err.Message,
 		})
 		return false
 	} else {
@@ -191,9 +192,9 @@ func UpdateClusterAzureInCloud(r *banzaiTypes.UpdateClusterRequest, c *gin.Conte
 		// updateDb
 		if updateClusterInDb(c, cluster2Db) {
 			// success update
-			SetResponseBodyJson(c, res.StatusCode, gin.H{
-				JsonKeyResourceId: cluster2Db.ID,
-				JsonKeyData: res.Value,
+			utils.SetResponseBodyJson(c, res.StatusCode, gin.H{
+				utils.JsonKeyResourceId: cluster2Db.ID,
+				utils.JsonKeyData: res.Value,
 			})
 			return true
 		} else {
@@ -235,8 +236,8 @@ func GetClusterInfoAzure(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 
 	if cs == nil {
 		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "<nil> cluster")
-		SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
-			JsonKeyStatus: http.StatusInternalServerError,
+		utils.SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
+			utils.JsonKeyStatus: http.StatusInternalServerError,
 		})
 		return
 	}
@@ -246,13 +247,13 @@ func GetClusterInfoAzure(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 		// fetch failed
 		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Status code:", err.StatusCode)
 		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Error during get cluster details:", err.Message)
-		SetResponseBodyJson(c, err.StatusCode, err)
+		utils.SetResponseBodyJson(c, err.StatusCode, err)
 	} else {
 		// fetch success
 		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Status code:", response.StatusCode)
-		SetResponseBodyJson(c, response.StatusCode, gin.H{
-			JsonKeyResourceId: cs.ID,
-			JsonKeyData: response,
+		utils.SetResponseBodyJson(c, response.StatusCode, gin.H{
+			utils.JsonKeyResourceId: cs.ID,
+			utils.JsonKeyData: response,
 		})
 	}
 
@@ -275,10 +276,10 @@ func DeleteAzureCluster(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) boo
 		return true
 	} else {
 		banzaiUtils.LogWarn(banzaiConstants.TagGetCluster, "Can't delete cluster from cloud!")
-		SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
-			JsonKeyStatus:     http.StatusBadRequest,
-			JsonKeyMessage:    "Can't delete cluster!",
-			JsonKeyResourceId: cs.ID,
+		utils.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
+			utils.JsonKeyStatus:     http.StatusBadRequest,
+			utils.JsonKeyMessage:    "Can't delete cluster!",
+			utils.JsonKeyResourceId: cs.ID,
 		})
 		return false
 	}
@@ -298,9 +299,9 @@ func GetAzureK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 	if err != nil {
 		// something went wrong
 		banzaiUtils.LogError(banzaiConstants.TagFetchClusterConfig, "Error getting K8S config")
-		SetResponseBodyJson(c, err.StatusCode, gin.H{
-			JsonKeyStatus: err.StatusCode,
-			JsonKeyData:   err.Message,
+		utils.SetResponseBodyJson(c, err.StatusCode, gin.H{
+			utils.JsonKeyStatus: err.StatusCode,
+			utils.JsonKeyData:   err.Message,
 		})
 	} else {
 		// get config succeeded
@@ -311,14 +312,14 @@ func GetAzureK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 		decodedConfig, err := base64.StdEncoding.DecodeString(config.Properties.KubeConfig)
 		if err != nil {
 			banzaiUtils.LogError(banzaiConstants.TagFetchClusterConfig, "Error decoding config failed:", config)
-			SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
-				JsonKeyStatus:  http.StatusInternalServerError,
-				JsonKeyMessage: err.Error(),
-				JsonKeyData:    config,
+			utils.SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
+				utils.JsonKeyStatus:  http.StatusInternalServerError,
+				utils.JsonKeyMessage: err.Error(),
+				utils.JsonKeyData:    config,
 			})
 			return
 		}
-		SetResponseBodyString(c, http.StatusOK, string(decodedConfig))
+		utils.SetResponseBodyString(c, http.StatusOK, string(decodedConfig))
 	}
 
 }

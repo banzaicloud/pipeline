@@ -12,6 +12,7 @@ import (
 	"k8s.io/helm/pkg/helm"
 	"k8s.io/helm/pkg/proto/hapi/chart"
 	rls "k8s.io/helm/pkg/proto/hapi/services"
+	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
 )
 
 //ListDeployments lists Helm deployments
@@ -130,6 +131,27 @@ func CreateDeployment(chartPath string, releaseName string, valueOverrides []byt
 		return nil, fmt.Errorf("Error deploying chart: %v", err)
 	}
 	return installRes, nil
+}
+
+//DeleteAll deletes all Helm deployment
+func DeleteAllDeployment(kubeconfig []byte) error {
+	var logTag = "DeleteAllDeployment"
+	banzaiUtils.LogInfo(logTag, "Trying to list deployments")
+	releaseResp, err := ListDeployments(nil, kubeconfig)
+	if err != nil {
+		return err
+	}
+	banzaiUtils.LogInfo(logTag, "List deployments succeeded")
+	banzaiUtils.LogInfo(logTag, "Starting deleting deployments")
+	for _, r := range releaseResp.Releases {
+		banzaiUtils.LogInfo(logTag, "Trying to delete deployment", r.Name)
+		err := DeleteDeployment(r.Name, kubeconfig)
+		if err != nil {
+			return err
+		}
+		banzaiUtils.LogInfo(logTag, "Deployment", r.Name, "successfully deleted")
+	}
+	return nil
 }
 
 //DeleteDeployment deletes a Helm deployment

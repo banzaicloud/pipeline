@@ -17,6 +17,7 @@ import (
 	"github.com/kris-nova/kubicorn/cutil/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
+	"github.com/banzaicloud/pipeline/utils"
 )
 
 const (
@@ -113,7 +114,7 @@ func CreateCluster(clusterType banzaiSimpleTypes.ClusterSimple) (*cluster.Cluste
 	banzaiUtils.LogDebug(banzaiConstants.TagCreateCluster, "Created cluster:", created.Name)
 
 	banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Get state store")
-	stateStore := getStateStoreForCluster(clusterType)
+	stateStore := utils.GetStateStoreForCluster(clusterType)
 	if stateStore.Exists() {
 		return nil, fmt.Errorf("state store [%s] exists, will not overwrite", clusterType.Name)
 	}
@@ -125,7 +126,7 @@ func CreateCluster(clusterType banzaiSimpleTypes.ClusterSimple) (*cluster.Cluste
 // DeleteClusterAzure deletes cluster from azure
 func DeleteClusterAzure(c *gin.Context, name string, resourceGroup string) bool {
 	res, success := azureClient.DeleteCluster(name, resourceGroup)
-	SetResponseBodyJson(c, res.StatusCode, res)
+	utils.SetResponseBodyJson(c, res.StatusCode, res)
 	return success
 }
 
@@ -136,7 +137,7 @@ func DeleteClusterAmazon(cs *banzaiSimpleTypes.ClusterSimple) (*cluster.Cluster,
 
 	// --- [ Get state store ] --- //
 	banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Get State store")
-	stateStore := getStateStoreForCluster(*cs)
+	stateStore := utils.GetStateStoreForCluster(*cs)
 	if !stateStore.Exists() {
 		banzaiUtils.LogWarn(banzaiConstants.TagDeleteCluster, "State store not exists")
 		return nil, nil
@@ -181,7 +182,7 @@ func DeleteClusterAmazon(cs *banzaiSimpleTypes.ClusterSimple) (*cluster.Cluster,
 // ReadCluster reads a persisted cluster from the statestore
 func ReadCluster(cl banzaiSimpleTypes.ClusterSimple) (*cluster.Cluster, error) {
 
-	stateStore := getStateStoreForCluster(cl)
+	stateStore := utils.GetStateStoreForCluster(cl)
 	readCluster, err := stateStore.GetCluster()
 	if err != nil {
 		return nil, err
@@ -203,7 +204,7 @@ func UpdateClusterAws(ccs banzaiSimpleTypes.ClusterSimple) (*cluster.Cluster, er
 	logger.Level = 4
 
 	banzaiUtils.LogInfo(banzaiConstants.TagUpdateCluster, "Get state store for cluster")
-	stateStore := getStateStoreForCluster(ccs)
+	stateStore := utils.GetStateStoreForCluster(ccs)
 	banzaiUtils.LogDebug(banzaiConstants.TagUpdateCluster, "State store for cluster:", stateStore)
 
 	// --- [ Get cluster ] --- //
@@ -269,7 +270,7 @@ func UpdateClusterAws(ccs banzaiSimpleTypes.ClusterSimple) (*cluster.Cluster, er
 // Wait for K8S
 func awaitKubernetesCluster(existing banzaiSimpleTypes.ClusterSimple) (bool, error) {
 	success := false
-	existingCluster, _ := getStateStoreForCluster(existing).GetCluster()
+	existingCluster, _ := utils.GetStateStoreForCluster(existing).GetCluster()
 
 	for i := 0; i < apiSocketAttempts; i++ {
 		_, err := IsKubernetesClusterAvailable(existingCluster)
@@ -288,5 +289,5 @@ func awaitKubernetesCluster(existing banzaiSimpleTypes.ClusterSimple) (bool, err
 
 // IsKubernetesClusterAvailable awaits for K8S cluster to be available
 func IsKubernetesClusterAvailable(cluster *cluster.Cluster) (bool, error) {
-	return assertTcpSocketAcceptsConnection(fmt.Sprintf("%s:%s", cluster.KubernetesAPI.Endpoint, cluster.KubernetesAPI.Port))
+	return utils.AssertTcpSocketAcceptsConnection(fmt.Sprintf("%s:%s", cluster.KubernetesAPI.Endpoint, cluster.KubernetesAPI.Port))
 }
