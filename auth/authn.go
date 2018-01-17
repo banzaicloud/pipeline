@@ -5,7 +5,6 @@ import (
 	"encoding/pem"
 	"fmt"
 	"github.com/auth0-community/go-auth0"
-	"github.com/banzaicloud/pipeline/cloud"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"gopkg.in/square/go-jose.v2"
@@ -15,6 +14,7 @@ import (
 
 	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
 	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
+	"github.com/banzaicloud/pipeline/utils"
 )
 
 const jwksUri = "https://banzaicloud.auth0.com/.well-known/jwks.json"
@@ -74,8 +74,8 @@ func Auth0Groups(wantedGroups ...string) gin.HandlerFunc {
 
 		accessToken, err := validator.ValidateRequest(c.Request)
 		if err != nil {
-			cloud.SetResponseBodyJson(c, http.StatusUnauthorized, gin.H{
-				cloud.JsonKeyError: "invalid token",
+			utils.SetResponseBodyJson(c, http.StatusUnauthorized, gin.H{
+				utils.JsonKeyError: "invalid token",
 			})
 			c.Abort()
 			banzaiUtils.LogInfo(banzaiConstants.TagAuth, "Invalid token:", err)
@@ -85,8 +85,8 @@ func Auth0Groups(wantedGroups ...string) gin.HandlerFunc {
 		claims := map[string]interface{}{}
 		err = validator.Claims(c.Request, accessToken, &claims)
 		if err != nil {
-			cloud.SetResponseBodyJson(c, http.StatusUnauthorized, gin.H{
-				cloud.JsonKeyError: "invalid claims",
+			utils.SetResponseBodyJson(c, http.StatusUnauthorized, gin.H{
+				utils.JsonKeyError: "invalid claims",
 			})
 			c.Abort()
 			banzaiUtils.LogInfo(banzaiConstants.TagAuth, "Invalid claims:", err)
@@ -104,8 +104,8 @@ func Auth0Groups(wantedGroups ...string) gin.HandlerFunc {
 		**/
 
 		if !hasScope {
-			cloud.SetResponseBodyJson(c, http.StatusUnauthorized, gin.H{
-				cloud.JsonKeyError: "needs more privileges",
+			utils.SetResponseBodyJson(c, http.StatusUnauthorized, gin.H{
+				utils.JsonKeyError: "needs more privileges",
 			})
 			c.Abort()
 			banzaiUtils.LogInfo(banzaiConstants.TagAuth, "Needs more privileges")
