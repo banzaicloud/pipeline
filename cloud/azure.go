@@ -18,6 +18,12 @@ import (
 	"github.com/go-errors/errors"
 	"io/ioutil"
 	"os"
+
+	"github.com/Azure/azure-sdk-for-go/arm/examples/helpers"
+	"github.com/Azure/azure-sdk-for-go/arm/storage"
+	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/to"
 )
 
 //AzureRepresentation
@@ -90,9 +96,9 @@ func CreateClusterAzure(request *banzaiTypes.CreateClusterRequest, c *gin.Contex
 
 			banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Save create cluster into database succeeded")
 			SetResponseBodyJson(c, pollingRes.StatusCode, gin.H{
-				JsonKeyStatus: pollingRes.StatusCode,
+				JsonKeyStatus:     pollingRes.StatusCode,
 				JsonKeyResourceId: cluster2Db.ID,
-				JsonKeyData: pollingRes.Value,
+				JsonKeyData:       pollingRes.Value,
 			})
 			return true, &cluster2Db
 		}
@@ -193,7 +199,7 @@ func UpdateClusterAzureInCloud(r *banzaiTypes.UpdateClusterRequest, c *gin.Conte
 			// success update
 			SetResponseBodyJson(c, res.StatusCode, gin.H{
 				JsonKeyResourceId: cluster2Db.ID,
-				JsonKeyData: res.Value,
+				JsonKeyData:       res.Value,
 			})
 			return true
 		} else {
@@ -252,7 +258,7 @@ func GetClusterInfoAzure(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Status code:", response.StatusCode)
 		SetResponseBodyJson(c, response.StatusCode, gin.H{
 			JsonKeyResourceId: cs.ID,
-			JsonKeyData: response,
+			JsonKeyData:       response,
 		})
 	}
 
@@ -371,5 +377,61 @@ func writeConfig2File(path string, config *banzaiAzureTypes.Config) {
 	} else {
 		banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "write config file succeeded")
 	}
+
+}
+
+func CreateStoreAccountOnAzure(createdCluster *banzaiSimpleTypes.ClusterSimple, _ *gin.Context) {
+
+	const TAG = "createStoreAccountOnAzure"
+
+	resourceGroup := createdCluster.Azure.ResourceGroup
+	name := "colinstorageaccount2"
+
+	c := map[string]string{
+		"AZURE_CLIENT_ID":       os.Getenv("AZURE_CLIENT_ID"),
+		"AZURE_CLIENT_SECRET":   os.Getenv("AZURE_CLIENT_SECRET"),
+		"AZURE_SUBSCRIPTION_ID": os.Getenv("AZURE_SUBSCRIPTION_ID"),
+		"AZURE_TENANT_ID":       os.Getenv("AZURE_TENANT_ID"),
+	}
+
+	spt, err := helpers.NewServicePrincipalTokenFromCredentials(c, azure.PublicCloud.ResourceManagerEndpoint)
+	if err != nil {
+		banzaiUtils.LogFatalf(TAG, "Error: %v", err)
+		return
+	}
+
+	ac := storage.NewAccountsClient(c["AZURE_SUBSCRIPTION_ID"])
+	ac.Authorizer = autorest.NewBearerAuthorizer(spt)
+
+	cna, err := ac.CheckNameAvailability(
+		storage.AccountCheckNameAvailabilityParameters{
+			Name: to.StringPtr(name),
+			Type: to.StringPtr("Microsoft.Storage/storageAccounts")})
+	if err != nil {
+		banzaiUtils.LogFatalf(TAG, "Error: %v", err)
+		return
+	}
+	if !to.Bool(cna.NameAvailable) {
+		banzaiUtils.LogInfof(TAG, "%s is unavailable -- try with another name", name)
+		return
+	}
+	banzaiUtils.LogInfof(TAG, "%s is available", name)
+
+	cp := storage.AccountCreateParameters{
+		Sku: &storage.Sku{
+			Name: storage.StandardLRS,
+			Tier: storage.Standard,
+		},
+		Location: &createdCluster.Location,
+	}
+	cancel := make(chan struct{})
+
+	_, errchan := ac.Create(resourceGroup, name, cp, cancel)
+	err = <-errchan
+	if err != nil {
+		banzaiUtils.LogInfof(TAG, "Create '%s' storage account failed: %v", name, err)
+		return
+	}
+	banzaiUtils.LogInfof(TAG, "Successfully created '%s' storage account in '%s' resource group", name, resourceGroup)
 
 }

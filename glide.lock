@@ -1,5 +1,5 @@
 hash: a7019acffca9bb9fa3d47f37df6af0f529f5fc793e587e6a323388d4967c9f96
-updated: 2018-01-11T20:19:17.387314+01:00
+updated: 2018-01-18T14:05:36.210885+01:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -49,8 +49,9 @@ imports:
   - arm/examples/helpers
   - arm/network
   - arm/resources/resources
+  - arm/storage
 - name: github.com/Azure/go-autorest
-  version: 6311d7a76f54cf2b6dea03d737d9bd9a6022ac5f
+  version: 3c16bcd9ea019819c1d7c14055ed74f845f44a8a
   subpackages:
   - autorest
   - autorest/adal
@@ -422,8 +423,11 @@ imports:
   - ssh/agent
   - ssh/terminal
 - name: golang.org/x/net
-  version: 1c05540f6879653db88113bc4a2b70aec4bd491f
+  version: 5ccada7d0a7ba9aeb5d3aca8d3501b4c2a509fec
+  repo: https://github.com/golang/net.git
+  vcs: git
   subpackages:
+  - .
   - context
   - context/ctxhttp
   - http2
@@ -445,8 +449,11 @@ imports:
   - unix
   - windows
 - name: golang.org/x/text
-  version: b19bf474d317b857955b12035d2c5acb57ce8b01
+  version: e19ae1496984b1c655b8044a65c0300a3c878dd3
+  repo: https://github.com/golang/text.git
+  vcs: git
   subpackages:
+  - .
   - cases
   - encoding
   - encoding/internal
@@ -466,10 +473,19 @@ imports:
 - name: google.golang.org/api
   version: 98825bb0065da4054e5da6db34f5fc598e50bc24
   subpackages:
+  - cloudkms/v1
+  - cloudmonitoring/v2beta2
+  - compute/v0.alpha
+  - compute/v0.beta
   - compute/v1
+  - container/v1
+  - dns/v1
   - gensupport
   - googleapi
   - googleapi/internal/uritemplates
+  - logging/v2beta1
+  - monitoring/v3
+  - pubsub/v1
 - name: google.golang.org/appengine
   version: 9d8544a6b2c7df9cff240fcf92d7b2f59bc13416
   subpackages:

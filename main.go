@@ -380,6 +380,7 @@ func CreateCluster(c *gin.Context) {
 				postHookFunctions = append(postHookFunctions, updatePrometheusPostHook)
 				postHookFunctions = append(postHookFunctions, installHelmPostHook)
 				postHookFunctions = append(postHookFunctions, installIngressControllerPostHook)
+				postHookFunctions = append(postHookFunctions, cloud.CreateStoreAccountOnAzure)
 			}
 		} else {
 			// not valid request
