@@ -77,7 +77,7 @@ func GetConfig(existing *cluster.Cluster, localDir string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	conf, err := getAmazonKubernetesConfig(existing)
+	conf, err := GetAmazonKubernetesConfig(existing)
 	if err != nil {
 		return "", err
 	}
@@ -93,7 +93,7 @@ func GetConfig(existing *cluster.Cluster, localDir string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	_, err = f.WriteString(conf)
+	_, err = f.Write(conf)
 	if err != nil {
 		return "", err
 	}
@@ -164,6 +164,13 @@ func getSigner(pemBytes []byte) (ssh.Signer, error) {
 func SetResponseBodyJson(c *gin.Context, statusCode int, obj interface{}) {
 	if c != nil {
 		c.JSON(statusCode, obj)
+	}
+}
+
+//SetResponseBodyString
+func SetResponseBodyString(c *gin.Context, statusCode int, format string) {
+	if c!= nil {
+		c.String(statusCode, format)
 	}
 }
 

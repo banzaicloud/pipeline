@@ -208,13 +208,13 @@ func GetK8SEndpoint(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) (string
 	}
 }
 
-func GetK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) (string, error) {
+func GetK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) ([]byte, error) {
 
 	const LOGTAG = "GetK8sConfig"
 
 	if cs == nil {
 		banzaiUtils.LogInfo(LOGTAG, "<nil> cluster")
-		return "", errors.New("<nil> cluster")
+		return nil, errors.New("<nil> cluster")
 	}
 	clusterType := cs.Cloud
 	banzaiUtils.LogInfo(LOGTAG, "Cluster type is ", clusterType)
@@ -224,17 +224,17 @@ func GetK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) (string, 
 		cloudCluster, err := GetClusterWithDbCluster(cs, c)
 		if err != nil {
 			banzaiUtils.LogInfo(LOGTAG, "Error during getting aws cluster")
-			return "", errors.New("error happened during getting aws cluster")
+			return nil, errors.New("error happened during getting aws cluster")
 		} else {
 			banzaiUtils.LogInfo(LOGTAG, "Get aws cluster succeeded")
 		}
-		config, err := getAmazonKubernetesConfig(cloudCluster)
+		config, err := GetAmazonKubernetesConfig(cloudCluster)
 		if err != nil {
 			SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
 				JsonKeyStatus:  http.StatusInternalServerError,
 				JsonKeyMessage: err,
 			})
-			return "", err
+			return nil, err
 		}
 		return config, nil
 
@@ -248,14 +248,14 @@ func GetK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) (string, 
 				JsonKeyStatus: err.StatusCode,
 				JsonKeyData:   err.Message,
 			})
-			return "", errors.New("error happened during getting K8S config")
+			return nil, errors.New("error happened during getting K8S config")
 		} else {
 			banzaiUtils.LogInfo(LOGTAG, "Kubernetes Config retrieve succeeded!")
 			config, _ := base64.StdEncoding.DecodeString(b64config.Properties.KubeConfig)
-			return string(config), nil
+			return config, nil
 		}
 	default:
 		SendNotSupportedCloudResponse(c, LOGTAG)
-		return "", errors.New("error happened during getting K8S config")
+		return nil, errors.New("error happened during getting K8S config")
 	}
 }

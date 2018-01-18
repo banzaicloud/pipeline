@@ -116,12 +116,6 @@ func GetAWSCluster(cs *banzaiSimpleTypes.ClusterSimple) *cluster.Cluster {
 								IngressProtocol: "tcp",
 							},
 							{
-								IngressFromPort: "30080",
-								IngressToPort:   "30080",
-								IngressSource:   "0.0.0.0/0",
-								IngressProtocol: "tcp",
-							},
-							{
 								IngressFromPort: "0",
 								IngressToPort:   "65535",
 								IngressSource:   "10.0.100.0/24",
@@ -503,7 +497,7 @@ func DeleteAmazonCluster(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) bo
 
 }
 
-func getAmazonKubernetesConfig(existing *cluster.Cluster) (string, error) {
+func GetAmazonKubernetesConfig(existing *cluster.Cluster) ([]byte, error) {
 	user := existing.SSH.User
 	pubKeyPath := expand(existing.SSH.PublicKeyPath)
 	privKeyPath := strings.Replace(pubKeyPath, ".pub", "", 1)
@@ -523,12 +517,12 @@ func getAmazonKubernetesConfig(existing *cluster.Cluster) (string, error) {
 	pemBytes, err := ioutil.ReadFile(privKeyPath)
 	if err != nil {
 
-		return "", err
+		return nil , err
 	}
 
 	signer, err := getSigner(pemBytes)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	auths := []ssh.AuthMethod{
@@ -540,24 +534,24 @@ func getAmazonKubernetesConfig(existing *cluster.Cluster) (string, error) {
 
 	conn, err := ssh.Dial("tcp", address, sshConfig)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer conn.Close()
 	c, err := sftp.NewClient(conn)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer c.Close()
 	r, err := c.Open(remotePath)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer r.Close()
-	bytes, err := ioutil.ReadAll(r)
+	config, err := ioutil.ReadAll(r)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return string(bytes), nil
+	return config, nil
 }
 
 func getAmazonK8SEndpoint(cl *banzaiSimpleTypes.ClusterSimple, c *gin.Context) (string, error) {
@@ -618,6 +612,6 @@ func GetAmazonK8SConfig(cl *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 		})
 	default:
 		banzaiUtils.LogDebug(banzaiConstants.TagFetchClusterConfig, "Content-Type: ", ctype)
-		c.String(http.StatusOK, string(data))
+		SetResponseBodyString(c, http.StatusOK, string(data))
 	}
 }

@@ -10,8 +10,11 @@ import (
 	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
 	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/gin-gonic/gin"
 	"github.com/kris-nova/kubicorn/apis/cluster"
+	"github.com/kris-nova/kubicorn/cloud/amazon/awsSdkGo"
 	"github.com/kris-nova/kubicorn/cutil"
 	"github.com/kris-nova/kubicorn/cutil/initapi"
 	"github.com/kris-nova/kubicorn/cutil/logger"
@@ -153,7 +156,61 @@ func DeleteClusterAmazon(cs *banzaiSimpleTypes.ClusterSimple) (*cluster.Cluster,
 	} else {
 		banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Get cluster succeeded")
 	}
-
+	// [PIP-34] --- [ Doing security group cleanup] --- //
+	sdk, err := awsSdkGo.NewSdk(deleteCluster.Location, "")
+	secGroupInput := &ec2.DescribeSecurityGroupsInput{
+		Filters: []*ec2.Filter{
+			{
+				Name: aws.String("tag:KubernetesCluster"),
+				Values: []*string{
+					&deleteCluster.Name,
+				},
+			},
+		},
+	}
+	securityGroup, err := sdk.Ec2.DescribeSecurityGroups(secGroupInput)
+	if err != nil {
+		banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Error getting security groups: ", err)
+	}
+	for _, sg := range securityGroup.SecurityGroups {
+		banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Delete security group: ", *sg.GroupId)
+		refSecurityGroupInput := &ec2.DescribeSecurityGroupsInput{
+			Filters: []*ec2.Filter{
+				{
+					Name: aws.String("ip-permission.group-id"),
+					Values: []*string{
+						sg.GroupId,
+					},
+				},
+			},
+		}
+		referencedSecurityGroup, err := sdk.Ec2.DescribeSecurityGroups(refSecurityGroupInput)
+		if err != nil {
+			banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Error getting security groups: ", err.Error())
+		}
+		revokeIngress := &ec2.RevokeSecurityGroupIngressInput{
+			GroupId: referencedSecurityGroup.SecurityGroups[0].GroupId,
+			IpPermissions: []*ec2.IpPermission{
+				{
+					IpProtocol: aws.String("-1"),
+					UserIdGroupPairs: []*ec2.UserIdGroupPair{
+						{
+							GroupId: sg.GroupId,
+							VpcId:   sg.VpcId,
+						},
+					},
+				},
+			},
+		}
+		_, err = sdk.Ec2.RevokeSecurityGroupIngress(revokeIngress)
+		if err != nil {
+			banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Delete security rule failed: ", err.Error())
+		}
+		_, err = sdk.Ec2.DeleteSecurityGroup(&ec2.DeleteSecurityGroupInput{GroupId: sg.GroupId})
+		if err != nil {
+			banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Delete security group failed: ", err.Error())
+		}
+	}
 	// --- [ Get Reconciler ] --- //
 	banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Get cluster")
 	reconciler, err := cutil.GetReconciler(deleteCluster, &runtimeParam)

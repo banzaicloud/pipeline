@@ -15,9 +15,9 @@ import (
 )
 
 //ListDeployments lists Helm deployments
-func ListDeployments(filter *string, kubeConfig string) (*rls.ListReleasesResponse, error) {
+func ListDeployments(filter *string, kubeConfig []byte) (*rls.ListReleasesResponse, error) {
 	defer tearDown()
-	hClient, err := getHelmClient(kubeConfig)
+	hClient, err := GetHelmClient(kubeConfig)
 	// TODO doc the options here
 	var sortBy = int32(2)
 	var sortOrd = int32(1)
@@ -43,7 +43,7 @@ func ListDeployments(filter *string, kubeConfig string) (*rls.ListReleasesRespon
 }
 
 //UpgradeDeployment upgrades a Helm deployment
-func UpgradeDeployment(deploymentName, chartName string, values map[string]interface{}, kubeConfig string) (string, error) {
+func UpgradeDeployment(deploymentName, chartName string, values map[string]interface{}, kubeConfig []byte) (string, error) {
 	//Base maps for values
 	base := map[string]interface{}{}
 	//this is only to parse x=y format
@@ -71,7 +71,7 @@ func UpgradeDeployment(deploymentName, chartName string, values map[string]inter
 		return "", fmt.Errorf("cannot load requirements: %v", err)
 	}
 	//Get cluster based or inCluster kubeconfig
-	hClient, err := getHelmClient(kubeConfig)
+	hClient, err := GetHelmClient(kubeConfig)
 	if err != nil {
 		return "", err
 	}
@@ -95,9 +95,9 @@ func UpgradeDeployment(deploymentName, chartName string, values map[string]inter
 }
 
 //CreateDeployment creates a Helm deployment
-func CreateDeployment(chartName string, releaseName string, valueOverrides []byte, kubeConfig string) (*rls.InstallReleaseResponse, error) {
+func CreateDeployment(chartPath string, releaseName string, valueOverrides []byte, kubeConfig []byte) (*rls.InstallReleaseResponse, error) {
 	defer tearDown()
-	chartRequested, err := chartutil.Load(chartName)
+	chartRequested, err := chartutil.Load(chartPath)
 	if err != nil {
 		return nil, fmt.Errorf("Error loading chart: %v", err)
 	}
@@ -112,7 +112,7 @@ func CreateDeployment(chartName string, releaseName string, valueOverrides []byt
 	if len(strings.TrimSpace(releaseName)) == 0 {
 		releaseName, _ = generateName("")
 	}
-	hClient, err := getHelmClient(kubeConfig)
+	hClient, err := GetHelmClient(kubeConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -133,9 +133,9 @@ func CreateDeployment(chartName string, releaseName string, valueOverrides []byt
 }
 
 //DeleteDeployment deletes a Helm deployment
-func DeleteDeployment(releaseName string, kubeConfig string) error {
+func DeleteDeployment(releaseName string, kubeConfig []byte) error {
 	defer tearDown()
-	hClient, err := getHelmClient(kubeConfig)
+	hClient, err := GetHelmClient(kubeConfig)
 	if err != nil {
 		return err
 	}

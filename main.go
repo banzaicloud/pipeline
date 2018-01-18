@@ -256,21 +256,10 @@ func CreateDeployment(c *gin.Context) {
 
 	//Get ingress with deployment prefix TODO
 	//Get local ingress address?
-	endpoint, err := cloud.GetK8SEndpoint(cloudCluster, c)
-	if err != nil {
-		cloud.SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
-			cloud.JsonKeyStatus:  http.StatusInternalServerError,
-			cloud.JsonKeyMessage: fmt.Sprintf("%s", err.Error()),
-		})
-		return
-	}
 
-	deploymentUrl := fmt.Sprintf("http://%s:30080/zeppelin/", endpoint)
-	notify.SlackNotify(fmt.Sprintf("Deployment Created: %s", deploymentUrl))
 	cloud.SetResponseBodyJson(c, http.StatusCreated, gin.H{
 		cloud.JsonKeyStatus:      http.StatusCreated,
 		cloud.JsonKeyReleaseName: releaseName,
-		cloud.JsonKeyUrl:         deploymentUrl,
 		cloud.JsonKeyNotes:       releaseNotes,
 	})
 	return
@@ -375,7 +364,7 @@ func CreateCluster(c *gin.Context) {
 	cloudType := createClusterBaseRequest.Cloud
 	banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Cloud type is ", cloudType)
 
-	var postHookFunctions []func(simple *banzaiSimpleTypes.ClusterSimple)
+	var postHookFunctions []func(simple *banzaiSimpleTypes.ClusterSimple, c *gin.Context)
 	var createdCluster *banzaiSimpleTypes.ClusterSimple = nil
 
 	switch cloudType {
@@ -425,15 +414,36 @@ func CreateCluster(c *gin.Context) {
 		cloud.SendNotSupportedCloudResponse(c, banzaiConstants.TagCreateCluster)
 	}
 	//TODO: need common cluster return with basic attributes like Name
-	go RunPostHooks(postHookFunctions, createdCluster)
+	go RunPostHooks(postHookFunctions, createdCluster, c)
 
 }
 
 // Calls posthook functions with created cluster
-func RunPostHooks(functionList []func(simple *banzaiSimpleTypes.ClusterSimple), createdCluster *banzaiSimpleTypes.ClusterSimple) {
+func RunPostHooks(functionList []func(simple *banzaiSimpleTypes.ClusterSimple, c *gin.Context), createdCluster *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 	for _, i := range functionList {
-		i(createdCluster)
+		i(createdCluster, c)
 	}
+}
+
+//DeleteAll deletes all Helm deployment
+func deleteAllDeployment(kubeconfig []byte) error {
+	var logTag = "DeleteAllDeployment"
+	banzaiUtils.LogInfo(logTag, "Getting deployments....")
+	releaseResp, err := helm.ListDeployments(nil, kubeconfig)
+	if err != nil {
+		return err
+	}
+	banzaiUtils.LogInfo(logTag, "Retrieving deployments succeeded.")
+	banzaiUtils.LogInfo(logTag, "Starting deleting deployments")
+	for _, r := range releaseResp.Releases {
+		banzaiUtils.LogInfo(logTag, "Trying to delete deployment", r.Name)
+		err := helm.DeleteDeployment(r.Name, kubeconfig)
+		if err != nil {
+			return err
+		}
+		banzaiUtils.LogInfo(logTag, "Deployment", r.Name, "successfully deleted")
+	}
+	return nil
 }
 
 // DeleteCluster deletes a K8S cluster from the cloud
@@ -445,7 +455,38 @@ func DeleteCluster(c *gin.Context) {
 	if err != nil {
 		return
 	}
+	if cl.Cloud == banzaiConstants.Amazon {
+		banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Start delete created helm charts")
 
+		cloudCluster, err := cloud.GetClusterWithDbCluster(cl, c)
+		if err != nil {
+			cloud.SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
+				cloud.JsonKeyStatus:  http.StatusInternalServerError,
+				cloud.JsonKeyMessage: err,
+			})
+			return
+		}
+		banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Get aws cluster succeeded")
+
+		config, err := cloud.GetAmazonKubernetesConfig(cloudCluster)
+		if err != nil {
+			cloud.SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
+				cloud.JsonKeyStatus:  http.StatusInternalServerError,
+				cloud.JsonKeyMessage: err,
+			})
+			return
+		}
+		err = deleteAllDeployment(config)
+		if err != nil {
+			banzaiUtils.LogError(banzaiConstants.TagDeleteCluster, "Error during deleting all deployments #", err.Error())
+			cloud.SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
+				cloud.JsonKeyStatus:  http.StatusInternalServerError,
+				cloud.JsonKeyMessage: err,
+			})
+			return
+		}
+		banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Deployments successfully deleted")
+	}
 	if cloud.DeleteCluster(cl, c) {
 		// cluster delete success, delete from db
 		if cloud.DeleteFromDb(cl, c) {
@@ -455,19 +496,34 @@ func DeleteCluster(c *gin.Context) {
 
 }
 
-func installIngressControllerPostHook(createdCluster *banzaiSimpleTypes.ClusterSimple) {
-	kce := fmt.Sprintf("./statestore/%s/config", createdCluster.Name)
-	_, err := helm.CreateDeployment("pipeline-cluster-ingress", "pipeline", nil, kce)
+func installIngressControllerPostHook(createdCluster *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
+	// --- [ Get K8S Config ] --- //
+	kubeConfig, err := cloud.GetK8SConfig(createdCluster, c)
 	if err != nil {
-		banzaiUtils.LogErrorf("PostHook", "error during create deployment pipeline-cluster-ingress: %s", createdCluster)
 		return
 	}
-	banzaiUtils.LogInfo("InstallIngressController", "pipeline-cluster-ingress installed")
+
+	logTag := "InstallIngressController"
+	banzaiUtils.LogInfo(logTag, "Getting K8S Config Succeeded")
+
+	deploymentName := "pipeline-cluster-ingress"
+	releaseName := "pipeline"
+
+	prefix := viper.GetString("dev.chartpath")
+	chartPath := path.Join(prefix, deploymentName)
+
+	_, err = helm.CreateDeployment(chartPath, releaseName, nil, kubeConfig)
+	if err != nil {
+		banzaiUtils.LogErrorf(logTag, "Deploying '%s' failed due to: ", deploymentName)
+		banzaiUtils.LogErrorf(logTag, "%s", err.Error())
+		return
+	}
+	banzaiUtils.LogInfof(logTag, "'%s' installed", deploymentName)
 }
 
 //PostHook functions with func(*cluster.Cluster) signature
-func getConfigPostHookAmazon(cs *banzaiSimpleTypes.ClusterSimple) {
-	createdCluster, err := cloud.GetClusterWithDbCluster(cs, nil)
+func getConfigPostHookAmazon(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
+	createdCluster, err := cloud.GetClusterWithDbCluster(cs, c)
 	if err != nil {
 		banzaiUtils.LogErrorf("PostHook", "error during get config post hook: %s", createdCluster)
 		return
@@ -475,15 +531,18 @@ func getConfigPostHookAmazon(cs *banzaiSimpleTypes.ClusterSimple) {
 	cloud.RetryGetConfig(createdCluster, "")
 }
 
-func getConfigPostHookAzure(createdCluster *banzaiSimpleTypes.ClusterSimple) {
-	cloud.GetAzureK8SConfig(createdCluster, nil)
+func getConfigPostHookAzure(createdCluster *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
+	cloud.GetAzureK8SConfig(createdCluster, c)
 }
 
-func updatePrometheusPostHook(_ *banzaiSimpleTypes.ClusterSimple) {
+func updatePrometheusPostHook(_ *banzaiSimpleTypes.ClusterSimple, _ *gin.Context) {
 	updatePrometheus()
 }
 
-func installHelmPostHook(createdCluster *banzaiSimpleTypes.ClusterSimple) {
+func installHelmPostHook(createdCluster *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
+	logTag := "InstallHelmPostHook"
+	retryAttempts := viper.GetInt("dev.retryAttempt")
+	retrySleepSeconds := viper.GetInt("dev.retrySleepSeconds")
 	kce := fmt.Sprintf("./statestore/%s/config", createdCluster.Name)
 	banzaiUtils.LogInfof(banzaiConstants.TagHelmInstall, "Set $KUBECONFIG env to %s", kce)
 	os.Setenv("KUBECONFIG", kce)
@@ -493,7 +552,25 @@ func installHelmPostHook(createdCluster *banzaiSimpleTypes.ClusterSimple) {
 		ServiceAccount: "tiller",
 		ImageSpec:      "gcr.io/kubernetes-helm/tiller:v2.7.2",
 	}
-	helm.RetryHelmInstall(helmInstall)
+	err := helm.RetryHelmInstall(helmInstall, createdCluster.Cloud)
+	if err == nil {
+		// --- [ Get K8S Config ] --- //
+		kubeConfig, err := cloud.GetK8SConfig(createdCluster, c)
+		if err != nil {
+			return
+		}
+		banzaiUtils.LogInfo(logTag, "Getting K8S Config Succeeded")
+		// --- [ List deployments ] ---- //
+		for i := 0; i <= retryAttempts; i++ {
+			banzaiUtils.LogDebugf(logTag, "Waiting for tiller to come up %d/%d", i, retryAttempts)
+			_, err = helm.GetHelmClient(kubeConfig)
+			if err == nil {
+				return
+			}
+			time.Sleep(time.Duration(retrySleepSeconds) * time.Second)
+		}
+		banzaiUtils.LogError(logTag, "Timeout during waiting for tiller to get ready")
+	}
 }
 
 func updatePrometheus() {
