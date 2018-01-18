@@ -360,7 +360,7 @@ func PollingCluster(name string, resourceGroup string) (*banzaiTypesAzure.Respon
 			switch stage {
 			case stageSuccess:
 				isReady = true
-				result.Update(banzaiConstants.Created, response)
+				result.Update(statusCode, response)
 			case stageFailed:
 				return nil, createErrorResponseFromError(errors.New("cluster stage is 'Failed'"))
 			default:

@@ -1,0 +1,25 @@
+<div style="margin:auto; text-align: center;">
+  <h2>Log in</h2>
+
+  {{$flashes := .Flashes}}
+  {{if $flashes}}
+    <ul>
+      {{range $flash := $flashes}}
+        <li>{{$flash.Message}}</li>
+      {{end}}
+    </ul>
+  {{end}}
+
+  <div>
+    <div>
+      {{range $provider := .GetProviders}}
+        <div>Login with {{$provider.GetName}}</div>
+        {{render (printf "auth/login/providers/%v" $provider.GetName)}}
+      {{end}}
+    </div>
+  </div>
+
+  <div>
+    <a href="{{.AuthURL "register"}}">Sign Up</a>
+  </div>
+</div>
