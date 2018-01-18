@@ -116,12 +116,6 @@ func GetAWSCluster(cs *banzaiSimpleTypes.ClusterSimple) *cluster.Cluster {
 								IngressProtocol: "tcp",
 							},
 							{
-								IngressFromPort: "30080",
-								IngressToPort:   "30080",
-								IngressSource:   "0.0.0.0/0",
-								IngressProtocol: "tcp",
-							},
-							{
 								IngressFromPort: "0",
 								IngressToPort:   "65535",
 								IngressSource:   "10.0.100.0/24",
