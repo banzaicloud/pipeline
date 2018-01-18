@@ -384,7 +384,7 @@ func CreateStoreAccountOnAzure(createdCluster *banzaiSimpleTypes.ClusterSimple, 
 
 	const TAG = "createStoreAccountOnAzure"
 
-	resourceGroup := createdCluster.Azure.ResourceGroup
+	resourceGroup := fmt.Sprintf("MC_%s_%s_%s", createdCluster.Azure.ResourceGroup, createdCluster.Name, createdCluster.Location)
 	name := "colinstorageaccount2"
 
 	c := map[string]string{
