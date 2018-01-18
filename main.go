@@ -235,21 +235,10 @@ func CreateDeployment(c *gin.Context) {
 
 	//Get ingress with deployment prefix TODO
 	//Get local ingress address?
-	endpoint, err := cloud.GetK8SEndpoint(cloudCluster, c)
-	if err != nil {
-		cloud.SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
-			cloud.JsonKeyStatus:  http.StatusInternalServerError,
-			cloud.JsonKeyMessage: fmt.Sprintf("%s", err.Error()),
-		})
-		return
-	}
 
-	deploymentUrl := fmt.Sprintf("http://%s:30080/zeppelin/", endpoint)
-	notify.SlackNotify(fmt.Sprintf("Deployment Created: %s", deploymentUrl))
 	cloud.SetResponseBodyJson(c, http.StatusCreated, gin.H{
 		cloud.JsonKeyStatus:      http.StatusCreated,
 		cloud.JsonKeyReleaseName: releaseName,
-		cloud.JsonKeyUrl:         deploymentUrl,
 		cloud.JsonKeyNotes:       releaseNotes,
 	})
 	return
