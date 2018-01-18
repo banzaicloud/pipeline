@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"net/http"
 	"os"
 )
 
@@ -18,3 +19,8 @@ func GetHomeDir() string {
 	//Linux
 	return os.Getenv("HOME")
 }
+
+//NopHandler is an empty handler to help net/http -> Gin conversions
+type NopHandler struct{}
+
+func (h NopHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {}
