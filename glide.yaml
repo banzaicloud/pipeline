@@ -252,3 +252,9 @@ import:
   version: ^2.0.0
   subpackages:
   - config
+- package: go4.org
+  version: fba789b7e39ba524b9e60c45c37a50fae63a2a09
+  subpackages:
+  - sort
+  - reflect
+- package: github.com/qor/auth

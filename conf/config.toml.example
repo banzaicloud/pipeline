@@ -29,3 +29,7 @@ retrySleepSeconds = 15
 
 # SSH key path
 #dev.keypath = ""
+
+# GitHub settings
+clientid = ""
+clientsecret = ""
