@@ -40,14 +40,15 @@ var ApiGroup = "ApiGroup"
 
 // Init authorization
 var (
-	RedirectBack = redirect_back.New(&redirect_back.Config{
-		SessionManager:  manager.SessionManager,
-		IgnoredPrefixes: []string{"/auth"},
-	})
+	RedirectBack *redirect_back.RedirectBack
 
 	Auth *auth.Auth
 
 	Authority *authority.Authority
+
+	authEnabled bool
+	signingKey  []byte
+	tokenStore  TokenStore
 )
 
 type ScopedClaims struct {
@@ -55,15 +56,21 @@ type ScopedClaims struct {
 	Scope string `json:"scope"`
 }
 
-var signingKey = viper.GetString("dev.tokensigningkey")
-var tokenStore TokenStore = NewVaultTokenStore()
+func IsEnabled() bool {
+	return authEnabled
+}
 
-func LookupAccessToken(userId, token string) (bool, error) {
+func lookupAccessToken(userId, token string) (bool, error) {
 	return tokenStore.Lookup(userId, token)
 }
 
-//Init
 func Init() {
+	authEnabled = viper.GetBool("dev.authenabled")
+	if !authEnabled {
+		banzaiUtils.LogInfo(banzaiConstants.TagAuth, "Authentication is disabled.")
+		return
+	}
+
 	pubKey := viper.GetString("dev.auth0pub")
 	banzaiUtils.LogInfo(banzaiConstants.TagAuth, "PubKey", pubKey)
 	data, err := ioutil.ReadFile(pubKey)
@@ -76,11 +83,17 @@ func Init() {
 		panic("Invalid provided key")
 	}
 	secretProvider := auth0.NewKeyProvider(secret)
+
 	// TODO: jose.RS256 once the private key is there
-	secret, _ = base64.URLEncoding.DecodeString(signingKey)
-	secretProvider = auth0.NewKeyProvider(secret)
+	signingKey, _ = base64.URLEncoding.DecodeString(viper.GetString("dev.tokensigningkey"))
+	secretProvider = auth0.NewKeyProvider(signingKey)
 	configuration := auth0.NewConfiguration(secretProvider, auth0ApiAudiences, auth0ApiIssuer, jose.HS256)
 	validator = auth0.NewValidator(configuration)
+
+	RedirectBack = redirect_back.New(&redirect_back.Config{
+		SessionManager:  manager.SessionManager,
+		IgnoredPrefixes: []string{"/auth"},
+	})
 
 	// Initialize Auth with configuration
 	Auth = auth.New(&auth.Config{
@@ -97,6 +110,8 @@ func Init() {
 	Authority = authority.New(&authority.Config{
 		Auth: Auth,
 	})
+
+	tokenStore = NewVaultTokenStore()
 }
 
 // LoadPublicKey loads a public key from PEM/DER-encoded data.
@@ -146,8 +161,7 @@ func GenerateToken(c *gin.Context) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	signingKeyData, _ := base64.URLEncoding.DecodeString(signingKey)
-	signedToken, err := token.SignedString(signingKeyData)
+	signedToken, err := token.SignedString(signingKey)
 
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Failed to sign token: %s", err))
@@ -161,61 +175,62 @@ func GenerateToken(c *gin.Context) {
 	}
 }
 
-//Auth0Groups handler for Gin
-func Auth0Handler(wantedGroups ...string) gin.HandlerFunc {
+//Auth0Handler handler for Gin
+func Auth0Handler(c *gin.Context) {
+	currentUser := Auth.GetCurrentUser(c.Request)
+	if currentUser != nil {
+		return
+	}
 
-	return gin.HandlerFunc(func(c *gin.Context) {
+	accessToken, err := validator.ValidateRequest(c.Request)
+	if err != nil {
+		cloud.SetResponseBodyJson(c, http.StatusUnauthorized, gin.H{
+			cloud.JsonKeyError: "invalid token",
+		})
+		c.Abort()
+		banzaiUtils.LogInfo(banzaiConstants.TagAuth, "Invalid token:", err)
+		return
+	}
 
-		accessToken, err := validator.ValidateRequest(c.Request)
-		if err != nil {
-			cloud.SetResponseBodyJson(c, http.StatusUnauthorized, gin.H{
-				cloud.JsonKeyError: "invalid token",
-			})
-			c.Abort()
-			banzaiUtils.LogInfo(banzaiConstants.TagAuth, "Invalid token:", err)
-			return
-		}
+	claims := map[string]interface{}{}
+	err = validator.Claims(c.Request, accessToken, &claims)
+	if err != nil {
+		cloud.SetResponseBodyJson(c, http.StatusUnauthorized, gin.H{
+			cloud.JsonKeyError: "invalid claims",
+		})
+		c.Abort()
+		banzaiUtils.LogInfo(banzaiConstants.TagAuth, "Invalid claims:", err)
+		return
+	}
 
-		claims := map[string]interface{}{}
-		err = validator.Claims(c.Request, accessToken, &claims)
-		if err != nil {
-			cloud.SetResponseBodyJson(c, http.StatusUnauthorized, gin.H{
-				cloud.JsonKeyError: "invalid claims",
-			})
-			c.Abort()
-			banzaiUtils.LogInfo(banzaiConstants.TagAuth, "Invalid claims:", err)
-			return
-		}
+	userID := claims["sub"].(string)
+	tokenID := claims["jti"].(string)
+	isTokenValid, err := lookupAccessToken(userID, tokenID)
+	if err != nil || !isTokenValid {
+		cloud.SetResponseBodyJson(c, http.StatusUnauthorized, gin.H{
+			cloud.JsonKeyError: "invalid token",
+		})
+		c.Abort()
+		banzaiUtils.LogInfo(banzaiConstants.TagAuth, "Invalid token:", err)
+		return
+	}
 
-		userID := claims["sub"].(string)
-		tokenID := claims["jti"].(string)
-		isTokenValid, err := LookupAccessToken(userID, tokenID)
-		if err != nil || !isTokenValid {
-			cloud.SetResponseBodyJson(c, http.StatusUnauthorized, gin.H{
-				cloud.JsonKeyError: "invalid token",
-			})
-			c.Abort()
-			banzaiUtils.LogInfo(banzaiConstants.TagAuth, "Invalid token:", err)
-			return
-		}
+	hasScope := strings.Contains(claims["scope"].(string), "api:invoke")
 
-		hasScope := strings.Contains(claims["scope"].(string), "api:invoke")
+	// TODO: metadata and group check for later hardening
+	/**
+	metadata, okMetadata := claims["scope"].(map[string]interface{})
+	authorization, okAuthorization := metadata["authorization"].(map[string]interface{})
+	groups, hasGroups := authorization["groups"].([]interface{})
+	**/
 
-		// TODO: metadata and group check for later hardening
-		/**
-		metadata, okMetadata := claims["scope"].(map[string]interface{})
-		authorization, okAuthorization := metadata["authorization"].(map[string]interface{})
-		groups, hasGroups := authorization["groups"].([]interface{})
-		**/
-
-		if !hasScope {
-			cloud.SetResponseBodyJson(c, http.StatusUnauthorized, gin.H{
-				cloud.JsonKeyError: "needs more privileges",
-			})
-			c.Abort()
-			banzaiUtils.LogInfo(banzaiConstants.TagAuth, "Needs more privileges")
-			return
-		}
-		c.Next()
-	})
+	if !hasScope {
+		cloud.SetResponseBodyJson(c, http.StatusUnauthorized, gin.H{
+			cloud.JsonKeyError: "needs more privileges",
+		})
+		c.Abort()
+		banzaiUtils.LogInfo(banzaiConstants.TagAuth, "Needs more privileges")
+		return
+	}
+	c.Next()
 }
