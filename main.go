@@ -98,28 +98,25 @@ func main() {
 
 	router.Use(cors.New(config))
 
-	authHandler := gin.WrapH(auth.Auth.NewServeMux())
+	if auth.IsEnabled() {
+		authHandler := gin.WrapH(auth.Auth.NewServeMux())
 
-	// We have to make the raw net/http handlers a bit Gin-ish
-	router.Use(gin.WrapH(sessionManager.SessionManager.Middleware(utils.NopHandler{})))
-	router.Use(gin.WrapH(auth.RedirectBack.Middleware(utils.NopHandler{})))
+		// We have to make the raw net/http handlers a bit Gin-ish
+		router.Use(gin.WrapH(sessionManager.SessionManager.Middleware(utils.NopHandler{})))
+		router.Use(gin.WrapH(auth.RedirectBack.Middleware(utils.NopHandler{})))
 
-	authGroup := router.Group("/auth/")
-	{
-		authGroup.GET("/*w", authHandler)
-		authGroup.GET("/*w/*w", authHandler)
+		authGroup := router.Group("/auth/")
+		{
+			authGroup.GET("/*w", authHandler)
+			authGroup.GET("/*w/*w", authHandler)
+		}
 	}
-
-	apiAuthHandler := auth.Auth0Handler(auth.ApiGroup)
 
 	v1 := router.Group("/api/v1/")
 	{
-		v1.Use(func(ctx *gin.Context) {
-			currentUser := auth.Auth.GetCurrentUser(ctx.Request)
-			if currentUser == nil {
-				apiAuthHandler(ctx)
-			}
-		})
+		if auth.IsEnabled() {
+			v1.Use(auth.Auth0Handler)
+		}
 		v1.POST("/clusters", CreateCluster)
 		v1.GET("/status", Status)
 		v1.GET("/clusters", FetchClusters)
