@@ -155,8 +155,9 @@ func GenerateToken(c *gin.Context) {
 		err = tokenStore.Store(strconv.Itoa(int(currentUser.ID)), tokenID)
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Failed to store token: %s", err))
+		} else {
+			c.JSON(http.StatusOK, gin.H{"token": signedToken})
 		}
-		c.JSON(http.StatusOK, gin.H{"token": signedToken})
 	}
 }
 
