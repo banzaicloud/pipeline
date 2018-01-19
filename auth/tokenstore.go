@@ -92,15 +92,17 @@ func NewVaultTokenStore() TokenStore {
 	if err != nil {
 		panic(err)
 	}
-	usr, err := user.Current()
-	if err != nil {
-		panic(err)
+	if client.Token() == "" {
+		usr, err := user.Current()
+		if err != nil {
+			panic(err)
+		}
+		token, err := ioutil.ReadFile(usr.HomeDir + "/.vault-token")
+		if err != nil {
+			panic(err)
+		}
+		client.SetToken(string(token))
 	}
-	token, err := ioutil.ReadFile(usr.HomeDir + "/.vault-token")
-	if err != nil {
-		panic(err)
-	}
-	client.SetToken(string(token))
 	return vaultTokenStore{client: client, logical: client.Logical()}
 }
 
