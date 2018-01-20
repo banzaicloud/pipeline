@@ -307,3 +307,47 @@ func ReadClusterGoogle(cs *banzaiSimpleTypes.ClusterSimple, svc *gke.Service) *C
 type GoogleRepresentation struct {
 	GoogleCluster *gke.Cluster `json:"value,omitempty"`
 }
+
+func GetClusterInfoGoogle(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
+	banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Fetch aks cluster with name:", cs.Name, "in", cs.Azure.ResourceGroup, "resource group.")
+
+	if cs == nil {
+		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "<nil> cluster")
+		SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
+			JsonKeyStatus: http.StatusInternalServerError,
+		})
+		return
+	}
+
+	svc, err := GetGoogleServiceClient()
+	if err != nil {
+		// todo log?
+		SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
+			JsonKeyStatus:  http.StatusInternalServerError,
+			JsonKeyMessage: err,
+		})
+		return
+	}
+
+	gkec := GKECluster{
+		ProjectID: cs.Google.Project,
+		Name:      cs.Name,
+		Zone:      cs.Location,
+	}
+
+	response, err := GetClusterGoogle(svc, gkec)
+	if err != nil {
+		// fetch failed
+		googleApiErr := getBanzaiErrorFromError(err)
+		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Status code:", googleApiErr.StatusCode)
+		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Error during get cluster details:", googleApiErr.Message)
+		SetResponseBodyJson(c, googleApiErr.StatusCode, googleApiErr)
+	} else {
+		// fetch success
+		SetResponseBodyJson(c, http.StatusOK, gin.H{
+			JsonKeyResourceId: cs.ID,
+			JsonKeyData:       response,
+		})
+	}
+
+}

@@ -187,6 +187,10 @@ func FetchClusterInfo(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 		// set azure props
 		database.SelectFirstWhere(&cs.Azure, banzaiSimpleTypes.AzureClusterSimple{ClusterSimpleId: cs.ID})
 		GetClusterInfoAzure(cs, c)
+	case banzaiConstants.Google:
+		// set google props
+		database.SelectFirstWhere(&cs.Google, banzaiSimpleTypes.GoogleClusterSimple{ClusterSimpleId: cs.ID})
+		GetClusterInfoGoogle(cs, c)
 	default:
 		// wrong cloud type
 		SendNotSupportedCloudResponse(c, banzaiConstants.TagGetCluster)
