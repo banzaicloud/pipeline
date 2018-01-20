@@ -96,8 +96,10 @@ func CreateClusterGoogle(request *banzaiTypes.CreateClusterRequest, c *gin.Conte
 		NodeInstanceType: request.NodeInstanceType,
 		Cloud:            request.Cloud,
 		Google: banzaiSimpleTypes.GoogleClusterSimple{
-			Project:   request.Properties.CreateClusterGoogle.Project,
-			NodeCount: request.Properties.CreateClusterGoogle.Node.Count,
+			Project:       request.Properties.CreateClusterGoogle.Project,
+			NodeCount:     request.Properties.CreateClusterGoogle.Node.Count,
+			MasterVersion: request.Properties.CreateClusterGoogle.Master.Version,
+			NodeVersion:   request.Properties.CreateClusterGoogle.Node.Version,
 		},
 	}
 
@@ -350,4 +352,153 @@ func GetClusterInfoGoogle(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 		})
 	}
 
+}
+
+// UpdateClusterGoogleInCloud updates google cluster in cloud
+func UpdateClusterGoogleInCloud(r *banzaiTypes.UpdateClusterRequest, c *gin.Context, preCluster banzaiSimpleTypes.ClusterSimple) bool {
+
+	banzaiUtils.LogInfo(banzaiConstants.TagUpdateCluster, "Start updating cluster (google)")
+
+	if r == nil {
+		banzaiUtils.LogInfo(banzaiConstants.TagUpdateCluster, "<nil> update cluster")
+		return false
+	}
+
+	cluster2Db := banzaiSimpleTypes.ClusterSimple{
+		Model:            preCluster.Model,
+		Name:             preCluster.Name,
+		Location:         preCluster.Location,
+		NodeInstanceType: preCluster.NodeInstanceType,
+		Cloud:            preCluster.Cloud,
+		Google: banzaiSimpleTypes.GoogleClusterSimple{
+			Project:       preCluster.Google.Project,
+			NodeCount:     r.GoogleNode.Count,
+			MasterVersion: r.GoogleMaster.Version,
+			NodeVersion:   r.GoogleNode.Version,
+		},
+	}
+
+	svc, err := GetGoogleServiceClient()
+	if err != nil {
+		// todo log?
+		SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
+			JsonKeyStatus:  http.StatusInternalServerError,
+			JsonKeyMessage: err,
+		})
+		return false
+	}
+
+	cc := GKECluster{
+		MasterVersion: r.GoogleMaster.Version,
+		NodeVersion:   r.GoogleNode.Version,
+		NodeCount:     int64(r.GoogleNode.Count),
+	}
+
+	res, err := callUpdateClusterGoogle(svc, cc)
+	if err != nil {
+		googleApiErr := getBanzaiErrorFromError(err)
+		banzaiUtils.LogInfo(banzaiConstants.TagUpdateCluster, "Cluster update failed!", googleApiErr)
+		SetResponseBodyJson(c, googleApiErr.StatusCode, gin.H{
+			JsonKeyStatus:  googleApiErr.StatusCode,
+			JsonKeyMessage: googleApiErr.Message,
+		})
+		return false
+	} else {
+		banzaiUtils.LogInfo(banzaiConstants.TagUpdateCluster, "Cluster update succeeded")
+		// updateDb
+		if updateClusterInDb(c, cluster2Db) {
+			// success update
+			SetResponseBodyJson(c, http.StatusCreated, gin.H{
+				JsonKeyResourceId: cluster2Db.ID,
+				JsonKeyData:       res,
+			})
+			return true
+		} else {
+			return false
+		}
+	}
+}
+
+func callUpdateClusterGoogle(svc *gke.Service, cc GKECluster) (*gke.Cluster, error) {
+
+	var updatedCluster *gke.Cluster
+
+	banzaiUtils.LogInfof(banzaiConstants.TagUpdateCluster, "Updating cluster. MasterVersion: %s, NodeVersion: %s, NodeCount: %v", cc.MasterVersion, cc.NodeVersion, cc.NodeCount)
+	if cc.NodePoolID == "" {
+		cluster, err := svc.Projects.Zones.Clusters.Get(cc.ProjectID, cc.Zone, cc.Name).Context(context.Background()).Do()
+		if err != nil {
+			banzaiUtils.LogError(banzaiConstants.TagUpdateCluster, "Contains error", err)
+			return nil, err
+		}
+		cc.NodePoolID = cluster.NodePools[0].Name
+	}
+
+	if cc.MasterVersion != "" {
+		banzaiUtils.LogInfof(banzaiConstants.TagUpdateCluster, "Updating master to %v version", cc.MasterVersion)
+		updateCall, err := svc.Projects.Zones.Clusters.Update(cc.ProjectID, cc.Zone, cc.Name, &gke.UpdateClusterRequest{
+			Update: &gke.ClusterUpdate{
+				DesiredMasterVersion: cc.MasterVersion,
+			},
+		}).Context(context.Background()).Do()
+		if err != nil {
+			return nil, err
+		}
+		banzaiUtils.LogInfof(banzaiConstants.TagUpdateCluster, "Cluster %s update is called for project %s and zone %s. Status Code %v", cc.Name, cc.ProjectID, cc.Zone, updateCall.HTTPStatusCode)
+		if updatedCluster, err = waitForCluster(svc, cc); err != nil {
+			banzaiUtils.LogError(banzaiConstants.TagUpdateCluster, "Contains error", err)
+			return nil, err
+		}
+	}
+
+	if cc.NodeVersion != "" {
+		banzaiUtils.LogInfof(banzaiConstants.TagUpdateCluster, "Updating node to %v verison", cc.NodeVersion)
+		updateCall, err := svc.Projects.Zones.Clusters.NodePools.Update(cc.ProjectID, cc.Zone, cc.Name, cc.NodePoolID, &gke.UpdateNodePoolRequest{
+			NodeVersion: cc.NodeVersion,
+		}).Context(context.Background()).Do()
+		if err != nil {
+			banzaiUtils.LogInfof(banzaiConstants.TagUpdateCluster, "Contains error", err)
+			return nil, err
+		}
+		banzaiUtils.LogInfof(banzaiConstants.TagUpdateCluster, "Nodepool %s update is called for project %s, zone %s and cluster %s. Status Code %v", cc.NodePoolID, cc.ProjectID, cc.Zone, cc.Name, updateCall.HTTPStatusCode)
+		if err := waitForNodePool(svc, cc); err != nil {
+			banzaiUtils.LogError(banzaiConstants.TagUpdateCluster, "Contains error", err)
+			return nil, err
+		}
+	}
+
+	if cc.NodeCount != 0 {
+		banzaiUtils.LogInfof(banzaiConstants.TagUpdateCluster, "Updating node size to %v", cc.NodeCount)
+		updateCall, err := svc.Projects.Zones.Clusters.NodePools.SetSize(cc.ProjectID, cc.Zone, cc.Name, cc.NodePoolID, &gke.SetNodePoolSizeRequest{
+			NodeCount: cc.NodeCount,
+		}).Context(context.Background()).Do()
+		if err != nil {
+			return nil, err
+		}
+		banzaiUtils.LogInfof(banzaiConstants.TagUpdateCluster, "Nodepool %s size change is called for project %s, zone %s and cluster %s. Status Code %v", cc.NodePoolID, cc.ProjectID, cc.Zone, cc.Name, updateCall.HTTPStatusCode)
+		if updatedCluster, err = waitForCluster(svc, cc); err != nil {
+			banzaiUtils.LogError(banzaiConstants.TagUpdateCluster, "Contains error", err)
+			return nil, err
+		}
+	}
+	return updatedCluster, nil
+}
+
+func waitForNodePool(svc *gke.Service, cc GKECluster) error {
+	const TAG = "waitForNodePool"
+	message := ""
+	for {
+		nodepool, err := svc.Projects.Zones.Clusters.NodePools.Get(cc.ProjectID, cc.Zone, cc.Name, cc.NodePoolID).Context(context.TODO()).Do()
+		if err != nil {
+			return err
+		}
+		if nodepool.Status == statusRunning {
+			banzaiUtils.LogInfof(TAG, "Nodepool %v is running", cc.Name)
+			return nil
+		}
+		if nodepool.Status != message {
+			banzaiUtils.LogInfof(TAG, "%v nodepool %v", string(nodepool.Status), cc.NodePoolID)
+			message = nodepool.Status
+		}
+		time.Sleep(time.Second * 5)
+	}
 }

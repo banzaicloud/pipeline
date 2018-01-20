@@ -64,6 +64,8 @@ func UpdateClusterInCloud(c *gin.Context, r *banzaiTypes.UpdateClusterRequest, p
 		return UpdateClusterAmazonInCloud(r, c, preCluster)
 	case banzaiConstants.Azure:
 		return UpdateClusterAzureInCloud(r, c, preCluster)
+	case banzaiConstants.Google:
+		return UpdateClusterGoogleInCloud(r, c, preCluster)
 	default:
 		return false
 	}
