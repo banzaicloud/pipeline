@@ -1,5 +1,5 @@
-hash: a7019acffca9bb9fa3d47f37df6af0f529f5fc793e587e6a323388d4967c9f96
-updated: 2018-01-11T20:19:17.387314+01:00
+hash: 20ebf4c7227afde652f3d4ab0bf0fc3433d270b6332ea492753b012b668669c4
+updated: 2018-01-18T08:21:36.070655+01:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -50,7 +50,7 @@ imports:
   - arm/network
   - arm/resources/resources
 - name: github.com/Azure/go-autorest
-  version: 6311d7a76f54cf2b6dea03d737d9bd9a6022ac5f
+  version: 3c16bcd9ea019819c1d7c14055ed74f845f44a8a
   subpackages:
   - autorest
   - autorest/adal
@@ -467,6 +467,7 @@ imports:
   version: 98825bb0065da4054e5da6db34f5fc598e50bc24
   subpackages:
   - compute/v1
+  - container/v1
   - gensupport
   - googleapi
   - googleapi/internal/uritemplates

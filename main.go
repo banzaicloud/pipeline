@@ -399,6 +399,32 @@ func CreateCluster(c *gin.Context) {
 				cloud.JsonKeyMessage: err,
 			})
 		}
+	case banzaiConstants.Google:
+		// validate and create Azure cluster
+		// todo validate and other stupid things
+		gkeData := createClusterBaseRequest.Properties.CreateClusterGoogle
+		if isValid, err := gkeData.Validate(); isValid && err == nil {
+			err := cloud.CreateClusterGoogle(&createClusterBaseRequest)
+			if err != nil {
+				// todo resp code
+				cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
+					cloud.JsonKeyStatus:  http.StatusBadRequest,
+					cloud.JsonKeyMessage: err,
+				})
+				return
+			} else {
+				cloud.SetResponseBodyJson(c, http.StatusOK, gin.H{
+					cloud.JsonKeyStatus:  http.StatusOK,
+					cloud.JsonKeyMessage: "",
+				})
+			}
+		} else {
+			// not valid request
+			cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
+				cloud.JsonKeyStatus:  http.StatusBadRequest,
+				cloud.JsonKeyMessage: err,
+			})
+		}
 	default:
 		// wrong cloud type
 		cloud.SendNotSupportedCloudResponse(c, banzaiConstants.TagCreateCluster)

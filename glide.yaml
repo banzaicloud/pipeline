@@ -252,3 +252,6 @@ import:
   version: ^2.0.0
   subpackages:
   - config
+- package: google.golang.org/api
+  subpackages:
+  - container/v1
