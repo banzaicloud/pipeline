@@ -20,6 +20,7 @@ type ClusterRepresentation struct {
 	CloudType string      `json:"cloud"`
 	*AmazonRepresentation `json:"amazon,omitempty"`
 	*AzureRepresentation  `json:"azure,omitempty"`
+	*GoogleRepresentation `json:"google,omitempty"`
 }
 
 type AmazonRepresentation struct {
@@ -141,7 +142,7 @@ func DeleteCluster(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) bool {
 
 // SendNotSupportedCloudResponse sends Not-supported-cloud-type error message back
 func SendNotSupportedCloudResponse(c *gin.Context, tag string) {
-	msg := "Not supported cloud type. Please use one of the following: " + banzaiConstants.Amazon + ", " + banzaiConstants.Azure + "."
+	msg := "Not supported cloud type. Please use one of the following: " + banzaiConstants.Amazon + ", " + banzaiConstants.Azure + ", " + banzaiConstants.Google + "."
 	banzaiUtils.LogInfo(tag, msg)
 	SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
 		JsonKeyStatus:  http.StatusBadRequest,
@@ -161,6 +162,12 @@ func GetClusterRepresentation(cs *banzaiSimpleTypes.ClusterSimple) *ClusterRepre
 	case banzaiConstants.Azure:
 		database.SelectFirstWhere(&cs.Azure, banzaiSimpleTypes.AzureClusterSimple{ClusterSimpleId: cs.ID})
 		return ReadClusterAzure(cs)
+	case banzaiConstants.Google:
+		database.SelectFirstWhere(&cs.Google, banzaiSimpleTypes.GoogleClusterSimple{ClusterSimpleId: cs.ID})
+		svc, err := GetGoogleServiceClient()
+		if err == nil {
+			return ReadClusterGoogle(cs, svc)
+		}
 	default:
 		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Not supported cloud type")
 	}

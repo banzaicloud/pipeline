@@ -43,7 +43,7 @@ func CreateClusterGoogle(request *banzaiTypes.CreateClusterRequest, c *gin.Conte
 		return false, nil
 	}
 
-	svc, err := getServiceClient()
+	svc, err := GetGoogleServiceClient()
 	if err != nil {
 		// todo log?
 		SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
@@ -169,7 +169,7 @@ func generateClusterCreateRequest(cc GKECluster) *gke.CreateClusterRequest {
 	return &request
 }
 
-func getServiceClient() (*gke.Service, error) {
+func GetGoogleServiceClient() (*gke.Service, error) {
 
 	// See https://cloud.google.com/docs/authentication/.
 	// Use GOOGLE_APPLICATION_CREDENTIALS environment variable to specify
@@ -266,4 +266,44 @@ func waitForCluster(svc *gke.Service, cc GKECluster) (*gke.Cluster, error) {
 		time.Sleep(time.Second * 5)
 
 	}
+}
+
+func GetClusterGoogle(svc *gke.Service, cc GKECluster) (*gke.Cluster, error) {
+	return svc.Projects.Zones.Clusters.Get(cc.ProjectID, cc.Zone, cc.Name).Context(context.TODO()).Do()
+}
+
+func ReadClusterGoogle(cs *banzaiSimpleTypes.ClusterSimple, svc *gke.Service) *ClusterRepresentation {
+	banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Read google cluster with", cs.Name, "id")
+
+	if cs == nil {
+		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "<nil> cluster")
+		return nil
+	}
+
+	gkec := GKECluster{
+		ProjectID: cs.Google.Project,
+		Name:      cs.Name,
+		Zone:      cs.Location,
+	}
+
+	response, err := GetClusterGoogle(svc, gkec)
+	if err != nil {
+		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Something went wrong under read:", err)
+		return nil
+	} else {
+		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Read cluster success")
+		clust := ClusterRepresentation{
+			Id:        cs.ID,
+			Name:      cs.Name,
+			CloudType: banzaiConstants.Google,
+			GoogleRepresentation: &GoogleRepresentation{
+				GoogleCluster: response,
+			},
+		}
+		return &clust
+	}
+}
+
+type GoogleRepresentation struct {
+	GoogleCluster *gke.Cluster `json:"value,omitempty"`
 }
