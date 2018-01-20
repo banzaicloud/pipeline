@@ -81,7 +81,12 @@ func GetAWSCluster(cs *banzaiSimpleTypes.ClusterSimple) *cluster.Cluster {
                            "ecr:ListImages",
                            "ecr:BatchGetImage",
                            "autoscaling:DescribeAutoScalingGroups",
-                           "autoscaling:UpdateAutoScalingGroup"
+                           "autoscaling:UpdateAutoScalingGroup",
+													 "s3:ListBucket",
+													 "s3:GetObject",
+													 "s3:PutObject",
+													 "s3:ListObjects",
+													 "s3:DeleteObject"
                         ],
                         "Resource": "*"
                      }
@@ -112,12 +117,6 @@ func GetAWSCluster(cs *banzaiSimpleTypes.ClusterSimple) *cluster.Cluster {
 							{
 								IngressFromPort: "443",
 								IngressToPort:   "443",
-								IngressSource:   "0.0.0.0/0",
-								IngressProtocol: "tcp",
-							},
-							{
-								IngressFromPort: "30080",
-								IngressToPort:   "30080",
 								IngressSource:   "0.0.0.0/0",
 								IngressProtocol: "tcp",
 							},
@@ -164,7 +163,12 @@ func GetAWSCluster(cs *banzaiSimpleTypes.ClusterSimple) *cluster.Cluster {
             							"ecr:GetRepositoryPolicy",
             							"ecr:DescribeRepositories",
             							"ecr:ListImages",
-            							"ecr:BatchGetImage"
+            							"ecr:BatchGetImage",
+													"s3:ListBucket",
+													"s3:GetObject",
+													"s3:PutObject",
+													"s3:ListObjects",
+													"s3:DeleteObject"
                         ],
                         "Resource": "*"
                      }
@@ -503,7 +507,7 @@ func DeleteAmazonCluster(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) bo
 
 }
 
-func getAmazonKubernetesConfig(existing *cluster.Cluster) ([]byte, error) {
+func GetAmazonKubernetesConfig(existing *cluster.Cluster) ([]byte, error) {
 	user := existing.SSH.User
 	pubKeyPath := expand(existing.SSH.PublicKeyPath)
 	privKeyPath := strings.Replace(pubKeyPath, ".pub", "", 1)

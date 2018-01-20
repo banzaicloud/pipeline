@@ -324,7 +324,7 @@ func GetAzureK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 		case gin.MIMEJSON:
 			SetResponseBodyJson(c, http.StatusOK, gin.H{
 				JsonKeyStatus: http.StatusOK,
-				JsonKeyData:   string(decodedConfig),
+				JsonKeyData:   decodedConfig,
 			})
 		default:
 			banzaiUtils.LogDebug(banzaiConstants.TagFetchClusterConfig, "Content-Type: ", ctype)

@@ -235,21 +235,10 @@ func CreateDeployment(c *gin.Context) {
 
 	//Get ingress with deployment prefix TODO
 	//Get local ingress address?
-	endpoint, err := cloud.GetK8SEndpoint(cloudCluster, c)
-	if err != nil {
-		cloud.SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
-			cloud.JsonKeyStatus:  http.StatusInternalServerError,
-			cloud.JsonKeyMessage: fmt.Sprintf("%s", err.Error()),
-		})
-		return
-	}
 
-	deploymentUrl := fmt.Sprintf("http://%s:30080/zeppelin/", endpoint)
-	notify.SlackNotify(fmt.Sprintf("Deployment Created: %s", deploymentUrl))
 	cloud.SetResponseBodyJson(c, http.StatusCreated, gin.H{
 		cloud.JsonKeyStatus:      http.StatusCreated,
 		cloud.JsonKeyReleaseName: releaseName,
-		cloud.JsonKeyUrl:         deploymentUrl,
 		cloud.JsonKeyNotes:       releaseNotes,
 	})
 	return
@@ -441,6 +430,27 @@ func RunPostHooks(functionList []func(simple *banzaiSimpleTypes.ClusterSimple, c
 	}
 }
 
+//DeleteAll deletes all Helm deployment
+func deleteAllDeployment(kubeconfig []byte) error {
+	var logTag = "DeleteAllDeployment"
+	banzaiUtils.LogInfo(logTag, "Getting deployments....")
+	releaseResp, err := helm.ListDeployments(nil, kubeconfig)
+	if err != nil {
+		return err
+	}
+	banzaiUtils.LogInfo(logTag, "Retrieving deployments succeeded.")
+	banzaiUtils.LogInfo(logTag, "Starting deleting deployments")
+	for _, r := range releaseResp.Releases {
+		banzaiUtils.LogInfo(logTag, "Trying to delete deployment", r.Name)
+		err := helm.DeleteDeployment(r.Name, kubeconfig)
+		if err != nil {
+			return err
+		}
+		banzaiUtils.LogInfo(logTag, "Deployment", r.Name, "successfully deleted")
+	}
+	return nil
+}
+
 // DeleteCluster deletes a K8S cluster from the cloud
 func DeleteCluster(c *gin.Context) {
 
@@ -450,7 +460,34 @@ func DeleteCluster(c *gin.Context) {
 	if err != nil {
 		return
 	}
+	if cl.Cloud == banzaiConstants.Amazon {
+		banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Start delete created helm charts")
 
+		cloudCluster, err := cloud.GetClusterWithDbCluster(cl, c)
+		if err != nil {
+			cloud.SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
+				cloud.JsonKeyStatus:  http.StatusInternalServerError,
+				cloud.JsonKeyMessage: err,
+			})
+			return
+		}
+		banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Get aws cluster succeeded")
+
+		config, err := cloud.GetAmazonKubernetesConfig(cloudCluster)
+		if err != nil {
+			cloud.SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
+				cloud.JsonKeyStatus:  http.StatusInternalServerError,
+				cloud.JsonKeyMessage: err,
+			})
+			return
+		}
+		err = deleteAllDeployment(config)
+		if err != nil {
+			banzaiUtils.LogError(banzaiConstants.TagDeleteCluster, "Error during deleting all deployments #", err.Error())
+		} else {
+			banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Deployments successfully deleted")
+		}
+	}
 	if cloud.DeleteCluster(cl, c) {
 		// cluster delete success, delete from db
 		if cloud.DeleteFromDb(cl, c) {
@@ -526,7 +563,7 @@ func installHelmPostHook(createdCluster *banzaiSimpleTypes.ClusterSimple, c *gin
 		banzaiUtils.LogInfo(logTag, "Getting K8S Config Succeeded")
 		// --- [ List deployments ] ---- //
 		for i := 0; i <= retryAttempts; i++ {
-			banzaiUtils.LogDebugf(logTag, "Waiting %d/%d", i, retryAttempts)
+			banzaiUtils.LogDebugf(logTag, "Waiting for tiller to come up %d/%d", i, retryAttempts)
 			_, err = helm.GetHelmClient(kubeConfig)
 			if err == nil {
 				return
