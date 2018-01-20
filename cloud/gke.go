@@ -3,16 +3,20 @@ package cloud
 import (
 	"os"
 	"io/ioutil"
-	"github.com/banzaicloud/banzai-types/utils"
-	"github.com/banzaicloud/banzai-types/constants"
 	"golang.org/x/oauth2/google"
 	gke "google.golang.org/api/container/v1"
 	"golang.org/x/net/context"
 	"strings"
 	"time"
 	"google.golang.org/api/googleapi"
-	"github.com/banzaicloud/banzai-types/components"
 	"net/http"
+	"github.com/gin-gonic/gin"
+
+	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
+	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
+	banzaiTypes "github.com/banzaicloud/banzai-types/components"
+	banzaiSimpleTypes "github.com/banzaicloud/banzai-types/components/database"
+	"github.com/banzaicloud/banzai-types/database"
 )
 
 var credentialPath string
@@ -24,27 +28,29 @@ const (
 func init() {
 	// todo key
 	credentialPath = os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
-	utils.LogDebugf(constants.TagInit, "GOOGLE_APPLICATION_CREDENTIALS is %s", credentialPath)
+	banzaiUtils.LogDebugf(banzaiConstants.TagInit, "GOOGLE_APPLICATION_CREDENTIALS is %s", credentialPath)
 }
 
-func CreateClusterGoogle(request *components.CreateClusterRequest) *components.BanzaiResponse {
+func CreateClusterGoogle(request *banzaiTypes.CreateClusterRequest, c *gin.Context) (bool, *banzaiSimpleTypes.ClusterSimple) {
 	// todo change tags
 	data, err := ioutil.ReadFile(credentialPath)
 	if err != nil {
-		utils.LogFatalf(constants.TagCreateCluster, "GOOGLE_APPLICATION_CREDENTIALS env var is not specified: %s", err)
-		return &components.BanzaiResponse{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "GOOGLE_APPLICATION_CREDENTIALS env var is not specified",
-		}
+		banzaiUtils.LogFatalf(banzaiConstants.TagCreateCluster, "GOOGLE_APPLICATION_CREDENTIALS env var is not specified: %s", err)
+		SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
+			JsonKeyStatus:  http.StatusInternalServerError,
+			JsonKeyMessage: "GOOGLE_APPLICATION_CREDENTIALS env var is not specified",
+		})
+		return false, nil
 	}
 
 	svc, err := getServiceClient()
 	if err != nil {
 		// todo log?
-		return &components.BanzaiResponse{
-			StatusCode: http.StatusInternalServerError,
-			Message:    err.Error(),
-		}
+		SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
+			JsonKeyStatus:  http.StatusInternalServerError,
+			JsonKeyMessage: err,
+		})
+		return false, nil
 	}
 
 	cc := GKECluster{
@@ -56,33 +62,64 @@ func CreateClusterGoogle(request *components.CreateClusterRequest) *components.B
 		CredentialContent: string(data),
 	}
 
-	utils.LogInfof(constants.TagCreateCluster, "Cluster request: %v", generateClusterCreateRequest(cc))
+	banzaiUtils.LogInfof(banzaiConstants.TagCreateCluster, "Cluster request: %v", generateClusterCreateRequest(cc))
 	createCall, err := svc.Projects.Zones.Clusters.Create(cc.ProjectID, cc.Zone, generateClusterCreateRequest(cc)).Context(context.Background()).Do()
 
-	utils.LogInfof(constants.TagCreateCluster, "Cluster request submitted: %v", generateClusterCreateRequest(cc))
+	banzaiUtils.LogInfof(banzaiConstants.TagCreateCluster, "Cluster request submitted: %v", generateClusterCreateRequest(cc))
 
 	if err != nil && !strings.Contains(err.Error(), "alreadyExists") {
-		utils.LogInfof(constants.TagCreateCluster, "Contains error: %s", err)
-		return getBanzaiErrorFromError(err)
+		banzaiUtils.LogInfof(banzaiConstants.TagCreateCluster, "Contains error: %s", err)
+		be := getBanzaiErrorFromError(err)
+		SetResponseBodyJson(c, be.StatusCode, gin.H{
+			JsonKeyStatus:  be.StatusCode,
+			JsonKeyMessage: be.Message,
+		})
+		return false, nil
 	} else {
-		utils.LogInfof(constants.TagCreateCluster, "Cluster %s create is called for project %s and zone %s. Status Code %v", cc.Name, cc.ProjectID, cc.Zone, createCall.HTTPStatusCode)
+		banzaiUtils.LogInfof(banzaiConstants.TagCreateCluster, "Cluster %s create is called for project %s and zone %s. Status Code %v", cc.Name, cc.ProjectID, cc.Zone, createCall.HTTPStatusCode)
 	}
 
-	err = waitForCluster(svc, cc)
+	gkeCluster, err := waitForCluster(svc, cc)
 	if err != nil {
-		utils.LogErrorf(constants.TagCreateCluster, "Cluster create failed", err)
-		return getBanzaiErrorFromError(err)
+		banzaiUtils.LogErrorf(banzaiConstants.TagCreateCluster, "Cluster create failed", err)
+		be := getBanzaiErrorFromError(err)
+		SetResponseBodyJson(c, be.StatusCode, gin.H{
+			JsonKeyStatus:  be.StatusCode,
+			JsonKeyMessage: be.Message,
+		})
+		return false, nil
 	}
 
-	// everything is ok
-	return nil
+	cluster2Db := banzaiSimpleTypes.ClusterSimple{
+		Name:             request.Name,
+		Location:         request.Location,
+		NodeInstanceType: request.NodeInstanceType,
+		Cloud:            request.Cloud,
+		Google: banzaiSimpleTypes.GoogleClusterSimple{
+			Project:   request.Properties.CreateClusterGoogle.Project,
+			NodeCount: request.Properties.CreateClusterGoogle.Node.Count,
+		},
+	}
+
+	if err := database.Save(&cluster2Db).Error; err != nil {
+		DbSaveFailed(c, err, cluster2Db.Name)
+		return false, nil
+	}
+
+	banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Save create cluster into database succeeded")
+	SetResponseBodyJson(c, http.StatusCreated, gin.H{
+		JsonKeyStatus:     http.StatusCreated,
+		JsonKeyResourceId: cluster2Db.ID,
+		JsonKeyData:       gkeCluster,
+	})
+	return true, &cluster2Db
 }
 
-func getBanzaiErrorFromError(err error) *components.BanzaiResponse {
+func getBanzaiErrorFromError(err error) *banzaiTypes.BanzaiResponse {
 
 	if err == nil {
 		// error is nil
-		return &components.BanzaiResponse{
+		return &banzaiTypes.BanzaiResponse{
 			StatusCode: http.StatusInternalServerError,
 		}
 	}
@@ -90,14 +127,14 @@ func getBanzaiErrorFromError(err error) *components.BanzaiResponse {
 	googleErr, ok := err.(*googleapi.Error)
 	if ok {
 		// error is googleapi error
-		return &components.BanzaiResponse{
+		return &banzaiTypes.BanzaiResponse{
 			StatusCode: googleErr.Code,
 			Message:    googleErr.Message,
 		}
 	}
 
 	// default
-	return &components.BanzaiResponse{
+	return &banzaiTypes.BanzaiResponse{
 		StatusCode: http.StatusInternalServerError,
 		Message:    err.Error(),
 	}
@@ -141,15 +178,15 @@ func getServiceClient() (*gke.Service, error) {
 	client, err := google.DefaultClient(context.Background(), gke.CloudPlatformScope)
 	if err != nil {
 		// todo replace banzai-types tag
-		utils.LogFatalf(constants.TagCreateCluster, "Could not get authenticated client: %v", err)
+		banzaiUtils.LogFatalf(banzaiConstants.TagCreateCluster, "Could not get authenticated client: %v", err)
 		return nil, err
 	}
 	service, err := gke.New(client)
 	if err != nil {
-		utils.LogFatalf(constants.TagCreateCluster, "Could not initialize gke client: %v", err)
+		banzaiUtils.LogFatalf(banzaiConstants.TagCreateCluster, "Could not initialize gke client: %v", err)
 		return nil, err
 	}
-	utils.LogInfof(constants.TagCreateCluster, "Using service acc: %v", service)
+	banzaiUtils.LogInfof(banzaiConstants.TagCreateCluster, "Using service acc: %v", service)
 	return service, nil
 }
 
@@ -206,22 +243,27 @@ type GKECluster struct {
 	ImageType string
 }
 
-func waitForCluster(svc *gke.Service, cc GKECluster) error {
+func waitForCluster(svc *gke.Service, cc GKECluster) (*gke.Cluster, error) {
+
 	message := ""
 	for {
+
 		cluster, err := svc.Projects.Zones.Clusters.Get(cc.ProjectID, cc.Zone, cc.Name).Context(context.TODO()).Do()
 		if err != nil {
-			return err
+			return nil, err
 		}
+
 		if cluster.Status == statusRunning {
 			// todo tag
-			utils.LogInfof(constants.TagCreateCluster, "Cluster %v is running", cc.Name)
-			return nil
+			banzaiUtils.LogInfof(banzaiConstants.TagCreateCluster, "Cluster %v is running", cc.Name)
+			return cluster, nil
 		}
+
 		if cluster.Status != message {
-			utils.LogInfof(constants.TagCreateCluster, "%v cluster %v", string(cluster.Status), cc.Name)
+			banzaiUtils.LogInfof(banzaiConstants.TagCreateCluster, "%v cluster %v", string(cluster.Status), cc.Name)
 			message = cluster.Status
 		}
 		time.Sleep(time.Second * 5)
+
 	}
 }

@@ -76,8 +76,14 @@ func main() {
 	banzaiUtils.LogInfo(banzaiConstants.TagInit, "Create table(s):",
 		banzaiSimpleTypes.ClusterSimple.TableName(banzaiSimpleTypes.ClusterSimple{}),
 		banzaiSimpleTypes.AmazonClusterSimple.TableName(banzaiSimpleTypes.AmazonClusterSimple{}),
-		banzaiSimpleTypes.AzureClusterSimple.TableName(banzaiSimpleTypes.AzureClusterSimple{}))
-	database.CreateTables(&banzaiSimpleTypes.ClusterSimple{}, &banzaiSimpleTypes.AmazonClusterSimple{}, &banzaiSimpleTypes.AzureClusterSimple{})
+		banzaiSimpleTypes.AzureClusterSimple.TableName(banzaiSimpleTypes.AzureClusterSimple{}),
+		banzaiSimpleTypes.GoogleClusterSimple.TableName(banzaiSimpleTypes.GoogleClusterSimple{}))
+	database.CreateTables(
+		&banzaiSimpleTypes.ClusterSimple{},
+		&banzaiSimpleTypes.AmazonClusterSimple{},
+		&banzaiSimpleTypes.AzureClusterSimple{},
+		&banzaiSimpleTypes.GoogleClusterSimple{},
+	)
 
 	router := gin.Default()
 
@@ -393,19 +399,14 @@ func CreateCluster(c *gin.Context) {
 		// todo validate and other stupid things
 		gkeData := createClusterBaseRequest.Properties.CreateClusterGoogle
 		if isValid, err := gkeData.Validate(); isValid && err == nil {
-			err := cloud.CreateClusterGoogle(&createClusterBaseRequest)
-			if err != nil {
-				// todo resp code
-				cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
-					cloud.JsonKeyStatus:  http.StatusBadRequest,
-					cloud.JsonKeyMessage: err,
-				})
-				return
-			} else {
-				cloud.SetResponseBodyJson(c, http.StatusOK, gin.H{
-					cloud.JsonKeyStatus:  http.StatusOK,
-					cloud.JsonKeyMessage: "",
-				})
+			var isOk bool
+			isOk, createdCluster = cloud.CreateClusterGoogle(&createClusterBaseRequest, c)
+			if isOk {
+				// update prometheus config..
+				// postHookFunctions = append(postHookFunctions, getConfigPostHookAzure) todo config
+				postHookFunctions = append(postHookFunctions, updatePrometheusPostHook)
+				postHookFunctions = append(postHookFunctions, installHelmPostHook)
+				postHookFunctions = append(postHookFunctions, installIngressControllerPostHook)
 			}
 		} else {
 			// not valid request
