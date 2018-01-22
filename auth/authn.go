@@ -53,7 +53,7 @@ var (
 
 type ScopedClaims struct {
 	jwt.StandardClaims
-	Scope string `json:"scope"`
+	Scope string `json:"scope,omitempty"`
 }
 
 func IsEnabled() bool {
@@ -62,6 +62,12 @@ func IsEnabled() bool {
 
 func lookupAccessToken(userId, token string) (bool, error) {
 	return tokenStore.Lookup(userId, token)
+}
+
+func validateAccessToken(claims *ScopedClaims) (bool, error) {
+	userID := claims.Subject
+	tokenID := claims.Id
+	return lookupAccessToken(userID, tokenID)
 }
 
 func Init() {
@@ -102,6 +108,7 @@ func Init() {
 		UserModel:  User{},
 	})
 
+	// ClientID and ClientSecret is validated inside github.New()
 	Auth.RegisterProvider(github.New(&github.Config{
 		ClientID:     viper.GetString("dev.clientid"),
 		ClientSecret: viper.GetString("dev.clientsecret"),
@@ -141,7 +148,8 @@ func loadPublicKey(data []byte) (interface{}, error) {
 func GenerateToken(c *gin.Context) {
 	currentUser := GetCurrentUser(c.Request)
 	if currentUser == nil {
-		c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("Invalid session"))
+		err := c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("Invalid session"))
+		banzaiUtils.LogInfo(banzaiConstants.TagAuth, c.ClientIP(), err.Error())
 		return
 	}
 
@@ -164,11 +172,13 @@ func GenerateToken(c *gin.Context) {
 	signedToken, err := token.SignedString(signingKey)
 
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Failed to sign token: %s", err))
+		err = c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Failed to sign token: %s", err))
+		banzaiUtils.LogInfo(banzaiConstants.TagAuth, c.ClientIP(), err.Error())
 	} else {
 		err = tokenStore.Store(strconv.Itoa(int(currentUser.ID)), tokenID)
 		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Failed to store token: %s", err))
+			err = c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Failed to store token: %s", err))
+			banzaiUtils.LogInfo(banzaiConstants.TagAuth, c.ClientIP(), err.Error())
 		} else {
 			c.JSON(http.StatusOK, gin.H{"token": signedToken})
 		}
@@ -184,38 +194,33 @@ func Auth0Handler(c *gin.Context) {
 
 	accessToken, err := validator.ValidateRequest(c.Request)
 	if err != nil {
-		cloud.SetResponseBodyJson(c, http.StatusUnauthorized, gin.H{
-			cloud.JsonKeyError: "invalid token",
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+			cloud.JsonKeyError: "Invalid token",
 		})
-		c.Abort()
 		banzaiUtils.LogInfo(banzaiConstants.TagAuth, "Invalid token:", err)
 		return
 	}
 
-	claims := map[string]interface{}{}
+	claims := ScopedClaims{}
 	err = validator.Claims(c.Request, accessToken, &claims)
 	if err != nil {
-		cloud.SetResponseBodyJson(c, http.StatusUnauthorized, gin.H{
-			cloud.JsonKeyError: "invalid claims",
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+			cloud.JsonKeyError: "Invalid claims in token",
 		})
-		c.Abort()
 		banzaiUtils.LogInfo(banzaiConstants.TagAuth, "Invalid claims:", err)
 		return
 	}
 
-	userID := claims["sub"].(string)
-	tokenID := claims["jti"].(string)
-	isTokenValid, err := lookupAccessToken(userID, tokenID)
+	isTokenValid, err := validateAccessToken(&claims)
 	if err != nil || !isTokenValid {
-		cloud.SetResponseBodyJson(c, http.StatusUnauthorized, gin.H{
-			cloud.JsonKeyError: "invalid token",
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+			cloud.JsonKeyError: "Invalid token",
 		})
-		c.Abort()
 		banzaiUtils.LogInfo(banzaiConstants.TagAuth, "Invalid token:", err)
 		return
 	}
 
-	hasScope := strings.Contains(claims["scope"].(string), "api:invoke")
+	hasScope := strings.Contains(claims.Scope, "api:invoke")
 
 	// TODO: metadata and group check for later hardening
 	/**
@@ -225,10 +230,9 @@ func Auth0Handler(c *gin.Context) {
 	**/
 
 	if !hasScope {
-		cloud.SetResponseBodyJson(c, http.StatusUnauthorized, gin.H{
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 			cloud.JsonKeyError: "needs more privileges",
 		})
-		c.Abort()
 		banzaiUtils.LogInfo(banzaiConstants.TagAuth, "Needs more privileges")
 		return
 	}
