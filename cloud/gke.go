@@ -60,6 +60,8 @@ func CreateClusterGoogle(request *banzaiTypes.CreateClusterRequest, c *gin.Conte
 		NodeCount:         int64(request.Properties.CreateClusterGoogle.Node.Count),
 		CredentialPath:    credentialPath,
 		CredentialContent: string(data),
+		MasterVersion:     request.Properties.CreateClusterGoogle.Master.Version,
+		NodeVersion:       request.Properties.CreateClusterGoogle.Node.Version,
 	}
 
 	banzaiUtils.LogInfof(banzaiConstants.TagCreateCluster, "Cluster request: %v", generateClusterCreateRequest(cc))
@@ -501,4 +503,70 @@ func waitForNodePool(svc *gke.Service, cc GKECluster) error {
 		}
 		time.Sleep(time.Second * 5)
 	}
+}
+
+func DeleteGoogleCluster(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) bool {
+
+	banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Start delete google cluster")
+
+	if cs == nil {
+		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "<nil> cluster")
+		return false
+	}
+
+	// set google props
+	database.SelectFirstWhere(&cs.Google, banzaiSimpleTypes.GoogleClusterSimple{ClusterSimpleId: cs.ID})
+	gkec := GKECluster{
+		ProjectID: cs.Google.Project,
+		Name:      cs.Name,
+		Zone:      cs.Location,
+	}
+	if deleteCluster(&gkec, c) {
+		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Delete succeeded")
+		return true
+	} else {
+		banzaiUtils.LogWarn(banzaiConstants.TagGetCluster, "Can't delete cluster from cloud!")
+		SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
+			JsonKeyStatus:     http.StatusBadRequest,
+			JsonKeyMessage:    "Can't delete cluster!",
+			JsonKeyResourceId: cs.ID,
+		})
+		return false
+	}
+}
+
+func deleteCluster(cc *GKECluster, c *gin.Context) bool {
+
+	svc, err := GetGoogleServiceClient()
+	if err != nil {
+		// todo log?
+		SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
+			JsonKeyStatus:  http.StatusInternalServerError,
+			JsonKeyMessage: err,
+		})
+		return false
+	}
+
+	banzaiUtils.LogInfof(banzaiConstants.TagDeleteCluster, "Removing cluster %v from project %v, zone %v", cc.Name, cc.ProjectID, cc.Zone)
+	deleteCall, err := svc.Projects.Zones.Clusters.Delete(cc.ProjectID, cc.Zone, cc.Name).Context(context.Background()).Do()
+	if err != nil && !strings.Contains(err.Error(), "notFound") {
+		SetResponseBodyJson(c, http.StatusNotFound, gin.H{
+			JsonKeyStatus:  http.StatusNotFound,
+			JsonKeyMessage: err,
+		})
+		return false
+	} else if err == nil {
+		banzaiUtils.LogInfof(banzaiConstants.TagDeleteCluster, "Cluster %v delete is called. Status Code %v", cc.Name, deleteCall.HTTPStatusCode)
+		SetResponseBodyJson(c, deleteCall.HTTPStatusCode, gin.H{
+			JsonKeyStatus: deleteCall.HTTPStatusCode,
+		})
+	} else {
+		banzaiUtils.LogErrorf(banzaiConstants.TagDeleteCluster, "Cluster %s doesn't exist", cc.Name)
+		SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
+			JsonKeyStatus:  http.StatusInternalServerError,
+			JsonKeyMessage: err,
+		})
+	}
+	os.RemoveAll(cc.TempCredentialPath)
+	return true
 }
