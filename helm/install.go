@@ -14,11 +14,27 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/helm/cmd/helm/installer"
 	"k8s.io/helm/pkg/kube"
+	"k8s.io/helm/pkg/helm/helmpath"
 	"net/http"
 	"time"
 	"strings"
 	"github.com/spf13/viper"
+	"os"
+	"github.com/pkg/errors"
+	"k8s.io/helm/pkg/repo"
+	"k8s.io/helm/pkg/getter"
+	helm_env "k8s.io/helm/pkg/helm/environment"
+	"path/filepath"
+	"k8s.io/helm/pkg/downloader"
 )
+
+const (
+	stableRepository = "stable"
+	stableRepositoryURL = "https://kubernetes-charts.storage.googleapis.com"
+	banzaiRepository = "banzaicloud-stable"
+	banzaiRepositoryURL = "http://kubernetes-charts.banzaicloud.com"
+)
+var settings helm_env.EnvSettings
 
 //Create ServiceAccount and AccountRoleBinding
 func PreInstall(helmInstall *helm.Install) error {
@@ -124,9 +140,130 @@ func RetryHelmInstall(helmInstall *helm.Install, clusterType string) error {
 	return fmt.Errorf("timeout during helm install")
 }
 
+func initializeEnvSettings(clusterName string) {
+	settings.Home = helmpath.Home(stateStorePath + clusterName + helmPostFix)
+}
+
+func downloadChartFromRepo(name string) (string, error) {
+	dl := downloader.ChartDownloader{
+		HelmHome: settings.Home,
+		Getters:  getter.All(settings),
+	}
+	if _, err := os.Stat(settings.Home.Archive()); os.IsNotExist(err) {
+		os.MkdirAll(settings.Home.Archive(), 0744)
+	}
+	filename, _, err := dl.DownloadTo(name, "", settings.Home.Archive())
+	if err == nil {
+		lname, err := filepath.Abs(filename)
+		if err != nil {
+			return filename, errors.Wrapf(err, "Could not create absolute path from %s", filename)
+		}
+		utils.LogDebugf("downloadChartFromRepo", "Fetched %s to %s", name, filename)
+		return lname, nil
+	}
+
+	return filename, errors.Errorf("Failed to download %q", name)
+}
+
+// Installs helm client on the cluster
+func installHelmClient(helmInstall *helm.Install) error {
+	const logTag  = "installHelmClient"
+	settings.Home = helmInstall.HomePath
+	if err := ensureDirectories(helmInstall.HomePath); err != nil {
+		return errors.Wrap(err, "Initializing helm directories failed!")
+	}
+
+	if err := ensureDefaultRepos(helmInstall.HomePath); err != nil {
+		return errors.Wrap(err, "Setting up default repos failed!")
+	}
+
+	utils.LogInfo(logTag, "Initializing helm client succeeded, happy helming!")
+	return nil
+}
+
+func ensureDirectories(home helmpath.Home) error {
+	const logTag = "ensureDirectories"
+	configDirectories := []string{
+		home.String(),
+		home.Repository(),
+		home.Cache(),
+		home.LocalRepository(),
+		home.Plugins(),
+		home.Starters(),
+		home.Archive(),
+	}
+	for _, p := range configDirectories {
+		if fi, err := os.Stat(p); err != nil {
+			utils.LogInfof( logTag,"Creating %s", p)
+			if err := os.MkdirAll(p, 0755); err != nil {
+				return errors.Wrapf(err,"Could not create %s", p)
+			}
+		} else if !fi.IsDir() {
+			return errors.Errorf("%s must be a directory", p)
+		}
+	}
+	return nil
+}
+
+func ensureDefaultRepos(home helmpath.Home) error {
+	const logTag = "ensureDefault Repos"
+	repoFile := home.RepositoryFile()
+	if fi, err := os.Stat(repoFile); err != nil {
+		utils.LogInfof(logTag, "Creating %s \n", repoFile)
+		f := repo.NewRepoFile()
+		sr, err := initRepo(stableRepository, stableRepositoryURL ,home.CacheIndex(stableRepository))
+		if err != nil {
+			return errors.Wrapf(err, "Cannot init stable repo")
+		}
+		br, err := initRepo(banzaiRepository, banzaiRepositoryURL, home.CacheIndex(banzaiRepository))
+		if err != nil {
+			return errors.Wrapf(err, "Cannot init banzai repo")
+		}
+		f.Add(sr, br)
+		if err := f.WriteFile(repoFile, 0644); err != nil {
+			return errors.Wrap(err, "Cannot create file")
+		}
+	} else if fi.IsDir() {
+		return errors.Errorf("%s must be a file, not a directory", repoFile)
+	}
+	return nil
+}
+
+func initRepo(repoName string, repoUrl string, cacheFile string) (*repo.Entry, error) {
+	const logTag = "initStableRepo"
+	utils.LogInfof(logTag, "Adding %s repo with URL: %s \n", repoName, repoUrl)
+	c := repo.Entry{
+		Name:  repoName,
+		URL:   repoUrl,
+		Cache: cacheFile,
+	}
+	r, err := repo.NewChartRepository(&c, getter.All(settings))
+	if err != nil {
+		return nil, errors.Wrap(err, "Cannot create a new ChartRepo")
+	}
+
+	// In this case, the cacheFile is always absolute. So passing empty string
+	// is safe.
+	if err := r.DownloadIndexFile(""); err != nil {
+		return nil, errors.Errorf("Looks like %q is not a valid chart repository or cannot be reached: %s", repoUrl, err.Error())
+	}
+
+	return &c, nil
+}
 
 // Install uses Kubernetes client to install Tiller.
 func Install(helmInstall *helm.Install) *components.BanzaiResponse {
+
+	//Installing helm client
+	utils.LogInfo(constants.TagHelmInstall, "Installing helm client!")
+	if err := installHelmClient(helmInstall); err != nil {
+		utils.LogErrorf(constants.TagHelmInstall, "%+v\n", err)
+		return &components.BanzaiResponse{
+			StatusCode: http.StatusInternalServerError,
+			Message:    err.Error(),
+		}
+	}
+	utils.LogInfo(constants.TagHelmInstall, "Helm client install succeeded")
 
 	err := PreInstall(helmInstall)
 	if err != nil {
