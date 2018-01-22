@@ -29,6 +29,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/pods"
 	"github.com/banzaicloud/pipeline/utils"
+	"k8s.io/helm/pkg/helm/helmpath"
 )
 
 //nodeInstanceType=m3.medium -d nodeInstanceSpotPrice=0.04 -d nodeMin=1 -d nodeMax=3 -d image=ami-6d48500b
@@ -40,6 +41,11 @@ type DeploymentType struct {
 	Version     string      `json:"version"`
 	Values      interface{} `json:"values"`
 }
+
+const (
+	stateStorePath = "./statestore/"
+	helmPostFix = "/helm"
+)
 
 //TODO: minCount and Maxcount should be optional, but one of them should be present
 
@@ -213,8 +219,6 @@ func CreateDeployment(c *gin.Context) {
 	}
 
 	banzaiUtils.LogDebug(banzaiConstants.TagCreateDeployment, fmt.Sprintf("Creating chart %s with version %s and release name %s", deployment.Name, deployment.Version, deployment.ReleaseName))
-	prefix := viper.GetString("dev.chartpath")
-	chartPath := path.Join(prefix, deployment.Name)
 
 	var values []byte = nil
 	if deployment.Values != "" {
@@ -237,7 +241,7 @@ func CreateDeployment(c *gin.Context) {
 
 	banzaiUtils.LogDebug(banzaiConstants.TagCreateDeployment, "Custom values:", string(values))
 	banzaiUtils.LogInfo(banzaiConstants.TagCreateDeployment, "Create deployment")
-	release, err := helm.CreateDeployment(chartPath, deployment.ReleaseName, values, kubeConfig)
+	release, err := helm.CreateDeployment(deployment.Name, deployment.ReleaseName, values, kubeConfig, cloudCluster.Name)
 	if err != nil {
 		banzaiUtils.LogWarn(banzaiConstants.TagCreateDeployment, "Error during create deployment.", err.Error())
 		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
@@ -503,13 +507,10 @@ func installIngressControllerPostHook(createdCluster *banzaiSimpleTypes.ClusterS
 	logTag := "InstallIngressController"
 	banzaiUtils.LogInfo(logTag, "Getting K8S Config Succeeded")
 
-	deploymentName := "pipeline-cluster-ingress"
+	deploymentName := "banzaicloud-stable/pipeline-cluster-ingress"
 	releaseName := "pipeline"
 
-	prefix := viper.GetString("dev.chartpath")
-	chartPath := path.Join(prefix, deploymentName)
-
-	_, err = helm.CreateDeployment(chartPath, releaseName, nil, kubeConfig)
+	_, err = helm.CreateDeployment(deploymentName, releaseName, nil, kubeConfig, createdCluster.Name)
 	if err != nil {
 		banzaiUtils.LogErrorf(logTag, "Deploying '%s' failed due to: ", deploymentName)
 		banzaiUtils.LogErrorf(logTag, "%s", err.Error())
@@ -548,6 +549,7 @@ func installHelmPostHook(createdCluster *banzaiSimpleTypes.ClusterSimple, c *gin
 		Namespace:      "kube-system",
 		ServiceAccount: "tiller",
 		ImageSpec:      "gcr.io/kubernetes-helm/tiller:v2.7.2",
+		HomePath:       helmpath.Home(stateStorePath + createdCluster.Name + helmPostFix),
 	}
 	err := helm.RetryHelmInstall(helmInstall, createdCluster.Cloud)
 	if err == nil {

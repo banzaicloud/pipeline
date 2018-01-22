@@ -14,6 +14,11 @@ import (
 	rls "k8s.io/helm/pkg/proto/hapi/services"
 )
 
+const (
+ stateStorePath = "./statestore/"
+ helmPostFix = "/helm"
+)
+
 //ListDeployments lists Helm deployments
 func ListDeployments(filter *string, kubeConfig []byte) (*rls.ListReleasesResponse, error) {
 	defer tearDown()
@@ -95,9 +100,14 @@ func UpgradeDeployment(deploymentName, chartName string, values map[string]inter
 }
 
 //CreateDeployment creates a Helm deployment
-func CreateDeployment(chartPath string, releaseName string, valueOverrides []byte, kubeConfig []byte) (*rls.InstallReleaseResponse, error) {
+func CreateDeployment(chartName string, releaseName string, valueOverrides []byte, kubeConfig []byte, clusterName string) (*rls.InstallReleaseResponse, error) {
 	defer tearDown()
-	chartRequested, err := chartutil.Load(chartPath)
+	initializeEnvSettings(clusterName)
+	downloadedChartPath, err := downloadChartFromRepo(chartName)
+	if err != nil {
+		return nil, err
+	}
+	chartRequested, err := chartutil.Load(downloadedChartPath)
 	if err != nil {
 		return nil, fmt.Errorf("Error loading chart: %v", err)
 	}
