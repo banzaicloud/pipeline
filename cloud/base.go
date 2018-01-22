@@ -135,6 +135,8 @@ func DeleteCluster(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) bool {
 	case banzaiConstants.Azure:
 		// delete azure cs
 		return DeleteAzureCluster(cs, c)
+	case banzaiConstants.Google:
+		return DeleteGoogleCluster(cs, c)
 	default:
 		SendNotSupportedCloudResponse(c, banzaiConstants.TagDeleteCluster)
 		return false
