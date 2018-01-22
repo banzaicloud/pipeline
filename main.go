@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"path"
 	"time"
 
 	banzaiTypes "github.com/banzaicloud/banzai-types/components"
