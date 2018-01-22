@@ -66,11 +66,12 @@ imports:
   - initapi
   - utils
 - name: github.com/banzaicloud/banzai-types
-  version: 227969bb7d796e80e625686479bfc0777628e284
+  version: fd55f35191969fd42e59931efbfee74d9c3f93f7
   subpackages:
   - components
   - components/amazon
   - components/azure
+  - components/google
   - components/database
   - components/helm
   - configuration

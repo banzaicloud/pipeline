@@ -16,6 +16,7 @@ type ClusterSimple struct {
 	Cloud            string
 	Amazon           AmazonClusterSimple
 	Azure            AzureClusterSimple
+	Google           GoogleClusterSimple
 }
 
 type AmazonClusterSimple struct {
@@ -34,6 +35,14 @@ type AzureClusterSimple struct {
 	AgentCount        int
 	AgentName         string
 	KubernetesVersion string
+}
+
+type GoogleClusterSimple struct {
+	ClusterSimpleId uint `gorm:"primary_key"`
+	Project         string
+	MasterVersion   string
+	NodeVersion     string
+	NodeCount       int
 }
 
 // TableName sets ClusterSimple's table name
@@ -86,4 +95,8 @@ func (cs *ClusterSimple) LoadClusterFromDatabase(clusterId uint, cloud string) {
 
 func GetSimpleClusterWithId(id uint) ClusterSimple {
 	return ClusterSimple{Model: gorm.Model{ID: id}}
+}
+
+func (GoogleClusterSimple) TableName() string {
+	return constants.TableNameGoogleProperties
 }
