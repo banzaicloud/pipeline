@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"strings"
 	"text/template"
-
 	"github.com/Masterminds/sprig"
 	"github.com/ghodss/yaml"
 	"k8s.io/helm/pkg/chartutil"
 	"k8s.io/helm/pkg/helm"
 	"k8s.io/helm/pkg/proto/hapi/chart"
 	rls "k8s.io/helm/pkg/proto/hapi/services"
+	"github.com/banzaicloud/banzai-types/utils"
 )
 
 const (
@@ -102,11 +102,17 @@ func UpgradeDeployment(deploymentName, chartName string, values map[string]inter
 //CreateDeployment creates a Helm deployment
 func CreateDeployment(chartName string, releaseName string, valueOverrides []byte, kubeConfig []byte, clusterName string) (*rls.InstallReleaseResponse, error) {
 	defer tearDown()
+
+	logTag := "CreateDeployment"
+
+	utils.LogInfof(logTag, "Deploying chart='%s', release name='%s'.", chartName, releaseName)
 	initializeEnvSettings(clusterName)
 	downloadedChartPath, err := downloadChartFromRepo(chartName)
 	if err != nil {
 		return nil, err
 	}
+
+	utils.LogInfof(logTag, "Loading chart '%s'", downloadedChartPath)
 	chartRequested, err := chartutil.Load(downloadedChartPath)
 	if err != nil {
 		return nil, fmt.Errorf("Error loading chart: %v", err)

@@ -150,15 +150,18 @@ func downloadChartFromRepo(name string) (string, error) {
 		Getters:  getter.All(settings),
 	}
 	if _, err := os.Stat(settings.Home.Archive()); os.IsNotExist(err) {
+		utils.LogInfof("downloadChartFromRepo", "Creating '%s' directory.", settings.Home.Archive())
 		os.MkdirAll(settings.Home.Archive(), 0744)
 	}
+
+	utils.LogInfof("downloadChartFromRepo", "Downloading helm chart '%s' to '%s'", name, settings.Home.Archive())
 	filename, _, err := dl.DownloadTo(name, "", settings.Home.Archive())
 	if err == nil {
 		lname, err := filepath.Abs(filename)
 		if err != nil {
 			return filename, errors.Wrapf(err, "Could not create absolute path from %s", filename)
 		}
-		utils.LogDebugf("downloadChartFromRepo", "Fetched %s to %s", name, filename)
+		utils.LogDebugf("downloadChartFromRepo", "Fetched helm chart '%s' to '%s'", name, filename)
 		return lname, nil
 	}
 
@@ -192,39 +195,45 @@ func ensureDirectories(home helmpath.Home) error {
 		home.Starters(),
 		home.Archive(),
 	}
+
+	utils.LogInfo(logTag, "Setting up helm directories.")
+
 	for _, p := range configDirectories {
 		if fi, err := os.Stat(p); err != nil {
-			utils.LogInfof( logTag,"Creating %s", p)
+			utils.LogInfof( logTag,"Creating '%s'", p)
 			if err := os.MkdirAll(p, 0755); err != nil {
-				return errors.Wrapf(err,"Could not create %s", p)
+				return errors.Wrapf(err,"Could not create '%s'", p)
 			}
 		} else if !fi.IsDir() {
-			return errors.Errorf("%s must be a directory", p)
+			return errors.Errorf("'%s' must be a directory", p)
 		}
 	}
 	return nil
 }
 
 func ensureDefaultRepos(home helmpath.Home) error {
-	const logTag = "ensureDefault Repos"
+	const logTag = "ensureDefaultRepos"
 	repoFile := home.RepositoryFile()
+
+	utils.LogInfo(logTag, "Setting up default helm repos.")
+
 	if fi, err := os.Stat(repoFile); err != nil {
 		utils.LogInfof(logTag, "Creating %s \n", repoFile)
 		f := repo.NewRepoFile()
 		sr, err := initRepo(stableRepository, stableRepositoryURL ,home.CacheIndex(stableRepository))
 		if err != nil {
-			return errors.Wrapf(err, "Cannot init stable repo")
+			return errors.Wrapf(err, "Cannot init stable repo!")
 		}
 		br, err := initRepo(banzaiRepository, banzaiRepositoryURL, home.CacheIndex(banzaiRepository))
 		if err != nil {
-			return errors.Wrapf(err, "Cannot init banzai repo")
+			return errors.Wrapf(err, "Cannot init banzai repo!")
 		}
 		f.Add(sr, br)
 		if err := f.WriteFile(repoFile, 0644); err != nil {
-			return errors.Wrap(err, "Cannot create file")
+			return errors.Wrap(err, "Cannot create file!")
 		}
 	} else if fi.IsDir() {
-		return errors.Errorf("%s must be a file, not a directory", repoFile)
+		return errors.Errorf("%s must be a file, not a directory!", repoFile)
 	}
 	return nil
 }
