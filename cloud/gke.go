@@ -27,7 +27,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"gopkg.in/yaml.v2"
 	"path/filepath"
-	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/spf13/viper"
 )
 
 var credentialPath string
@@ -42,20 +42,23 @@ const (
 	netesDefault     = "netes-default"
 )
 
-const googleAppCredential = "GOOGLE_APPLICATION_CREDENTIALS"
+const googleAppCredential = "dev.gkeCredentialPath"
 
-func init() {
-	credentialPath = os.Getenv(googleAppCredential)
-	banzaiUtils.LogDebugf(banzaiConstants.TagInit, "%s is %s", googleAppCredential, credentialPath)
+func getCredentialPath() string {
+	if len(credentialPath) == 0 {
+		credentialPath = viper.GetString(googleAppCredential)
+		banzaiUtils.LogDebugf(banzaiConstants.TagInit, "Credential path is %s", credentialPath)
+	}
+	return credentialPath
 }
 
 func CreateClusterGoogle(request *banzaiTypes.CreateClusterRequest, c *gin.Context) (bool, *banzaiSimpleTypes.ClusterSimple) {
-	data, err := ioutil.ReadFile(credentialPath)
+	data, err := ioutil.ReadFile(getCredentialPath())
 	if err != nil {
-		banzaiUtils.LogFatalf(banzaiConstants.TagCreateCluster, "GOOGLE_APPLICATION_CREDENTIALS env var is not specified: %s", err)
+		banzaiUtils.LogErrorf(banzaiConstants.TagCreateCluster, "GKE credential path is not specified: %s", err.Error())
 		SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
 			JsonKeyStatus:  http.StatusInternalServerError,
-			JsonKeyMessage: "GOOGLE_APPLICATION_CREDENTIALS env var is not specified",
+			JsonKeyMessage: "GKE credential path is not specified",
 		})
 		return false, nil
 	}
@@ -74,19 +77,21 @@ func CreateClusterGoogle(request *banzaiTypes.CreateClusterRequest, c *gin.Conte
 		Zone:              request.Location,
 		Name:              request.Name,
 		NodeCount:         int64(request.Properties.CreateClusterGoogle.Node.Count),
-		CredentialPath:    credentialPath,
+		CredentialPath:    getCredentialPath(),
 		CredentialContent: string(data),
 		MasterVersion:     request.Properties.CreateClusterGoogle.Master.Version,
 		NodeVersion:       request.Properties.CreateClusterGoogle.Node.Version,
 	}
 
-	banzaiUtils.LogInfof(banzaiConstants.TagCreateCluster, "Cluster request: %v", generateClusterCreateRequest(cc))
-	createCall, err := svc.Projects.Zones.Clusters.Create(cc.ProjectID, cc.Zone, generateClusterCreateRequest(cc)).Context(context.Background()).Do()
+	ccr := generateClusterCreateRequest(cc)
 
-	banzaiUtils.LogInfof(banzaiConstants.TagCreateCluster, "Cluster request submitted: %v", generateClusterCreateRequest(cc))
+	banzaiUtils.LogInfof(banzaiConstants.TagCreateCluster, "Cluster request: %v", ccr)
+	createCall, err := svc.Projects.Zones.Clusters.Create(cc.ProjectID, cc.Zone, ccr).Context(context.Background()).Do()
+
+	banzaiUtils.LogInfof(banzaiConstants.TagCreateCluster, "Cluster request submitted: %v", ccr)
 
 	if err != nil && !strings.Contains(err.Error(), "alreadyExists") {
-		banzaiUtils.LogInfof(banzaiConstants.TagCreateCluster, "Contains error: %s", err)
+		banzaiUtils.LogErrorf(banzaiConstants.TagCreateCluster, "Contains error: %s", err.Error())
 		be := getBanzaiErrorFromError(err)
 		SetResponseBodyJson(c, be.StatusCode, gin.H{
 			JsonKeyStatus:  be.StatusCode,
@@ -99,7 +104,7 @@ func CreateClusterGoogle(request *banzaiTypes.CreateClusterRequest, c *gin.Conte
 
 	gkeCluster, err := waitForCluster(svc, cc)
 	if err != nil {
-		banzaiUtils.LogErrorf(banzaiConstants.TagCreateCluster, "Cluster create failed", err)
+		banzaiUtils.LogErrorf(banzaiConstants.TagCreateCluster, "Cluster create failed: %s", err.Error())
 		be := getBanzaiErrorFromError(err)
 		SetResponseBodyJson(c, be.StatusCode, gin.H{
 			JsonKeyStatus:  be.StatusCode,
@@ -263,7 +268,7 @@ type GKECluster struct {
 
 func waitForCluster(svc *gke.Service, cc GKECluster) (*gke.Cluster, error) {
 
-	message := ""
+	var message string
 	for {
 
 		cluster, err := svc.Projects.Zones.Clusters.Get(cc.ProjectID, cc.Zone, cc.Name).Context(context.TODO()).Do()
@@ -272,7 +277,7 @@ func waitForCluster(svc *gke.Service, cc GKECluster) (*gke.Cluster, error) {
 		}
 
 		if cluster.Status == statusRunning {
-			banzaiUtils.LogInfof(banzaiConstants.TagCreateCluster, "Cluster %v is running", cc.Name)
+			banzaiUtils.LogInfof(banzaiConstants.TagCreateCluster, "Cluster %s is running", cc.Name)
 			return cluster, nil
 		}
 
@@ -293,7 +298,7 @@ func ReadClusterGoogle(cs *banzaiSimpleTypes.ClusterSimple, svc *gke.Service) *C
 	banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Read google cluster with", cs.Name, "id")
 
 	if cs == nil {
-		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "<nil> cluster")
+		banzaiUtils.LogError(banzaiConstants.TagGetCluster, "<nil> cluster")
 		return nil
 	}
 
@@ -305,7 +310,7 @@ func ReadClusterGoogle(cs *banzaiSimpleTypes.ClusterSimple, svc *gke.Service) *C
 
 	response, err := GetClusterGoogle(svc, gkec)
 	if err != nil {
-		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Something went wrong under read:", err)
+		banzaiUtils.LogError(banzaiConstants.TagGetCluster, "Something went wrong under read:", err)
 		return nil
 	} else {
 		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Read cluster success")
@@ -329,7 +334,7 @@ func GetClusterInfoGoogle(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 	banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Fetch aks cluster with name:", cs.Name, "in", cs.Azure.ResourceGroup, "resource group.")
 
 	if cs == nil {
-		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "<nil> cluster")
+		banzaiUtils.LogError(banzaiConstants.TagGetCluster, "<nil> cluster")
 		SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
 			JsonKeyStatus: http.StatusInternalServerError,
 		})
@@ -355,11 +360,12 @@ func GetClusterInfoGoogle(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 	if err != nil {
 		// fetch failed
 		googleApiErr := getBanzaiErrorFromError(err)
-		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Status code:", googleApiErr.StatusCode)
-		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Error during get cluster details:", googleApiErr.Message)
+		banzaiUtils.LogErrorf(banzaiConstants.TagGetCluster, "Status code: %d", googleApiErr.StatusCode)
+		banzaiUtils.LogErrorf(banzaiConstants.TagGetCluster, "Error during get cluster details: %s", googleApiErr.Message)
 		SetResponseBodyJson(c, googleApiErr.StatusCode, googleApiErr)
 	} else {
 		// fetch success
+		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Fetch success")
 		SetResponseBodyJson(c, http.StatusOK, gin.H{
 			JsonKeyResourceId: cs.ID,
 			JsonKeyData:       response,
@@ -374,7 +380,7 @@ func UpdateClusterGoogleInCloud(r *banzaiTypes.UpdateClusterRequest, c *gin.Cont
 	banzaiUtils.LogInfo(banzaiConstants.TagUpdateCluster, "Start updating cluster (google)")
 
 	if r == nil {
-		banzaiUtils.LogInfo(banzaiConstants.TagUpdateCluster, "<nil> update cluster")
+		banzaiUtils.LogError(banzaiConstants.TagUpdateCluster, "<nil> update cluster")
 		return false
 	}
 
@@ -410,7 +416,7 @@ func UpdateClusterGoogleInCloud(r *banzaiTypes.UpdateClusterRequest, c *gin.Cont
 	res, err := callUpdateClusterGoogle(svc, cc)
 	if err != nil {
 		googleApiErr := getBanzaiErrorFromError(err)
-		banzaiUtils.LogInfo(banzaiConstants.TagUpdateCluster, "Cluster update failed!", googleApiErr)
+		banzaiUtils.LogError(banzaiConstants.TagUpdateCluster, "Cluster update failed!", googleApiErr)
 		SetResponseBodyJson(c, googleApiErr.StatusCode, gin.H{
 			JsonKeyStatus:  googleApiErr.StatusCode,
 			JsonKeyMessage: googleApiErr.Message,
@@ -603,7 +609,7 @@ func GetGoogleK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 	} else {
 		// get config succeeded
 		banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Get k8s config succeeded")
-		encodedConfig := base64.StdEncoding.EncodeToString([]byte(to.String(config)))
+		encodedConfig := base64.StdEncoding.EncodeToString(config)
 
 		if c != nil {
 			ctype := c.NegotiateFormat(gin.MIMEPlain, gin.MIMEJSON)
@@ -622,7 +628,7 @@ func GetGoogleK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 
 }
 
-func getGoogleKubernetesConfig(cs *banzaiSimpleTypes.ClusterSimple) (*string, *banzaiTypes.BanzaiResponse) {
+func getGoogleKubernetesConfig(cs *banzaiSimpleTypes.ClusterSimple) ([]byte, *banzaiTypes.BanzaiResponse) {
 
 	svc, err := GetGoogleServiceClient()
 	if err != nil {
@@ -797,7 +803,7 @@ type Cluster struct {
 }
 
 // storeConfig saves config file
-func storeConfig(c *Cluster, name string) (*string, error) {
+func storeConfig(c *Cluster, name string) ([]byte, error) {
 	isBasicOn := false
 	if c.Username != "" && c.Password != "" {
 		isBasicOn = true
@@ -908,7 +914,7 @@ func storeConfig(c *Cluster, name string) (*string, error) {
 	}
 	banzaiUtils.LogInfof(banzaiConstants.TagFetchClusterConfig, "KubeConfig files is saved to %s", fileToWrite)
 
-	return to.StringPtr(string(data)), nil
+	return data, nil
 }
 
 type kubeConfig struct {
