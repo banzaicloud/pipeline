@@ -32,7 +32,6 @@ const (
 	stableRepository = "stable"
 	banzaiRepository = "banzaicloud-stable"
 )
-var settings helm_env.EnvSettings
 
 //Create ServiceAccount and AccountRoleBinding
 func PreInstall(helmInstall *helm.Install) error {
@@ -114,14 +113,14 @@ func PreInstall(helmInstall *helm.Install) error {
 // RetryHelmInstall retries for a configurable time/interval
 // Azure AKS sometimes failing because of TLS handshake timeout, there are several issues on GitHub about that:
 // https://github.com/Azure/AKS/issues/112, https://github.com/Azure/AKS/issues/116, https://github.com/Azure/AKS/issues/14
-func RetryHelmInstall(helmInstall *helm.Install, clusterType string) error {
+func RetryHelmInstall(helmInstall *helm.Install, clusterType string, clusterName string) error {
 	retryAttempts := viper.GetInt("helm.retryAttempt")
 	retrySleepSeconds := viper.GetInt("helm.retrySleepSeconds")
 
 	logTag := "RetryHelmInstall"
 	for i := 0; i <= retryAttempts; i++ {
 		utils.LogDebugf(logTag, "Waiting %d/%d", i, retryAttempts)
-		response := Install(helmInstall)
+		response := Install(helmInstall, clusterName)
 		if strings.Contains(response.Message, "net/http: TLS handshake timeout") {
 			time.Sleep(time.Duration(retrySleepSeconds) * time.Second)
 			continue
@@ -138,11 +137,20 @@ func RetryHelmInstall(helmInstall *helm.Install, clusterType string) error {
 	return fmt.Errorf("timeout during helm install")
 }
 
-func initializeEnvSettings(clusterName string) {
-	settings.Home = helmpath.Home(stateStorePath + clusterName + helmPostFix)
+func createEnvSettings(helmRepoHome string) helm_env.EnvSettings {
+	var settings helm_env.EnvSettings
+	settings.Home = helmpath.Home(helmRepoHome)
+	return settings
 }
 
-func downloadChartFromRepo(name string) (string, error) {
+func generateHelmRepoPath(clusterName string) string {
+	const stateStorePath = "./statestore/"
+	const helmPostFix = "/helm"
+	return stateStorePath + clusterName + helmPostFix
+}
+
+func downloadChartFromRepo(name string, clusterName string) (string, error) {
+	settings := createEnvSettings(generateHelmRepoPath(clusterName))
 	dl := downloader.ChartDownloader{
 		HelmHome: settings.Home,
 		Getters:  getter.All(settings),
@@ -167,14 +175,14 @@ func downloadChartFromRepo(name string) (string, error) {
 }
 
 // Installs helm client on the cluster
-func installHelmClient(helmInstall *helm.Install) error {
+func installHelmClient(clusterName string) error {
 	const logTag  = "installHelmClient"
-	settings.Home = helmInstall.HomePath
-	if err := ensureDirectories(helmInstall.HomePath); err != nil {
+	settings := createEnvSettings(generateHelmRepoPath(clusterName))
+	if err := ensureDirectories(settings); err != nil {
 		return errors.Wrap(err, "Initializing helm directories failed!")
 	}
 
-	if err := ensureDefaultRepos(helmInstall.HomePath); err != nil {
+	if err := ensureDefaultRepos(settings); err != nil {
 		return errors.Wrap(err, "Setting up default repos failed!")
 	}
 
@@ -182,8 +190,9 @@ func installHelmClient(helmInstall *helm.Install) error {
 	return nil
 }
 
-func ensureDirectories(home helmpath.Home) error {
+func ensureDirectories(env helm_env.EnvSettings) error {
 	const logTag = "ensureDirectories"
+	home := env.Home
 	configDirectories := []string{
 		home.String(),
 		home.Repository(),
@@ -209,8 +218,9 @@ func ensureDirectories(home helmpath.Home) error {
 	return nil
 }
 
-func ensureDefaultRepos(home helmpath.Home) error {
+func ensureDefaultRepos(env helm_env.EnvSettings) error {
 	const logTag = "ensureDefaultRepos"
+	home := env.Home
 	repoFile := home.RepositoryFile()
 
 	stableRepositoryURL := viper.GetString("helm.stableRepositoryURL")
@@ -221,11 +231,11 @@ func ensureDefaultRepos(home helmpath.Home) error {
 	if fi, err := os.Stat(repoFile); err != nil {
 		utils.LogInfof(logTag, "Creating %s", repoFile)
 		f := repo.NewRepoFile()
-		sr, err := initRepo(stableRepository, stableRepositoryURL ,home.CacheIndex(stableRepository))
+		sr, err := initRepo(stableRepository, stableRepositoryURL, env)
 		if err != nil {
 			return errors.Wrapf(err, "Cannot init stable repo!")
 		}
-		br, err := initRepo(banzaiRepository, banzaiRepositoryURL, home.CacheIndex(banzaiRepository))
+		br, err := initRepo(banzaiRepository, banzaiRepositoryURL, env)
 		if err != nil {
 			return errors.Wrapf(err, "Cannot init banzai repo!")
 		}
@@ -239,15 +249,15 @@ func ensureDefaultRepos(home helmpath.Home) error {
 	return nil
 }
 
-func initRepo(repoName string, repoUrl string, cacheFile string) (*repo.Entry, error) {
+func initRepo(repoName string, repoUrl string, env helm_env.EnvSettings) (*repo.Entry, error) {
 	const logTag = "initStableRepo"
 	utils.LogInfof(logTag, "Adding %s repo with URL: %s", repoName, repoUrl)
 	c := repo.Entry{
 		Name:  repoName,
 		URL:   repoUrl,
-		Cache: cacheFile,
+		Cache: env.Home.CacheIndex(repoName),
 	}
-	r, err := repo.NewChartRepository(&c, getter.All(settings))
+	r, err := repo.NewChartRepository(&c, getter.All(env))
 	if err != nil {
 		return nil, errors.Wrap(err, "Cannot create a new ChartRepo")
 	}
@@ -262,11 +272,11 @@ func initRepo(repoName string, repoUrl string, cacheFile string) (*repo.Entry, e
 }
 
 // Install uses Kubernetes client to install Tiller.
-func Install(helmInstall *helm.Install) *components.BanzaiResponse {
+func Install(helmInstall *helm.Install, clusterName string) *components.BanzaiResponse {
 
 	//Installing helm client
 	utils.LogInfo(constants.TagHelmInstall, "Installing helm client!")
-	if err := installHelmClient(helmInstall); err != nil {
+	if err := installHelmClient(clusterName); err != nil {
 		utils.LogErrorf(constants.TagHelmInstall, "%+v\n", err)
 		return &components.BanzaiResponse{
 			StatusCode: http.StatusInternalServerError,

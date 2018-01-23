@@ -14,11 +14,6 @@ import (
 	"github.com/banzaicloud/banzai-types/utils"
 )
 
-const (
- stateStorePath = "./statestore/"
- helmPostFix = "/helm"
-)
-
 //ListDeployments lists Helm deployments
 func ListDeployments(filter *string, kubeConfig []byte) (*rls.ListReleasesResponse, error) {
 	defer tearDown()
@@ -106,8 +101,7 @@ func CreateDeployment(chartName string, releaseName string, valueOverrides []byt
 	logTag := "CreateDeployment"
 
 	utils.LogInfof(logTag, "Deploying chart='%s', release name='%s'.", chartName, releaseName)
-	initializeEnvSettings(clusterName)
-	downloadedChartPath, err := downloadChartFromRepo(chartName)
+	downloadedChartPath, err := downloadChartFromRepo(chartName, clusterName)
 	if err != nil {
 		return nil, err
 	}
