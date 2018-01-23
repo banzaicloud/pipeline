@@ -81,7 +81,12 @@ func GetAWSCluster(cs *banzaiSimpleTypes.ClusterSimple) *cluster.Cluster {
                            "ecr:ListImages",
                            "ecr:BatchGetImage",
                            "autoscaling:DescribeAutoScalingGroups",
-                           "autoscaling:UpdateAutoScalingGroup"
+                           "autoscaling:UpdateAutoScalingGroup",
+													 "s3:ListBucket",
+													 "s3:GetObject",
+													 "s3:PutObject",
+													 "s3:ListObjects",
+													 "s3:DeleteObject"
                         ],
                         "Resource": "*"
                      }
@@ -158,7 +163,12 @@ func GetAWSCluster(cs *banzaiSimpleTypes.ClusterSimple) *cluster.Cluster {
             							"ecr:GetRepositoryPolicy",
             							"ecr:DescribeRepositories",
             							"ecr:ListImages",
-            							"ecr:BatchGetImage"
+            							"ecr:BatchGetImage",
+													"s3:ListBucket",
+													"s3:GetObject",
+													"s3:PutObject",
+													"s3:ListObjects",
+													"s3:DeleteObject"
                         ],
                         "Resource": "*"
                      }

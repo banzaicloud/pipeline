@@ -156,7 +156,7 @@ func DeleteClusterAmazon(cs *banzaiSimpleTypes.ClusterSimple) (*cluster.Cluster,
 	} else {
 		banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Get cluster succeeded")
 	}
-	// [PIP-34] --- [ Doing security group cleanup] --- //
+	// --- [ Doing security group cleanup] --- //
 	sdk, err := awsSdkGo.NewSdk(deleteCluster.Location, "")
 	secGroupInput := &ec2.DescribeSecurityGroupsInput{
 		Filters: []*ec2.Filter{

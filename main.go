@@ -480,13 +480,9 @@ func DeleteCluster(c *gin.Context) {
 		err = deleteAllDeployment(config)
 		if err != nil {
 			banzaiUtils.LogError(banzaiConstants.TagDeleteCluster, "Error during deleting all deployments #", err.Error())
-			cloud.SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
-				cloud.JsonKeyStatus:  http.StatusInternalServerError,
-				cloud.JsonKeyMessage: err,
-			})
-			return
+		} else {
+			banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Deployments successfully deleted")
 		}
-		banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Deployments successfully deleted")
 	}
 	if cloud.DeleteCluster(cl, c) {
 		// cluster delete success, delete from db
