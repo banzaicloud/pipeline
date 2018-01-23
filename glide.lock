@@ -1,5 +1,5 @@
 hash: 20ebf4c7227afde652f3d4ab0bf0fc3433d270b6332ea492753b012b668669c4
-updated: 2018-01-18T08:21:36.070655+01:00
+updated: 2018-01-23T07:10:26.080435+01:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -66,7 +66,7 @@ imports:
   - initapi
   - utils
 - name: github.com/banzaicloud/banzai-types
-  version: fd55f35191969fd42e59931efbfee74d9c3f93f7
+  version: 3579bf10d118f315edd92b7eb68091dfdc792d7c
   subpackages:
   - components
   - components/amazon
