@@ -4,6 +4,7 @@ import (
 	"github.com/banzaicloud/banzai-types/utils"
 	"github.com/banzaicloud/banzai-types/components/amazon"
 	"github.com/banzaicloud/banzai-types/components/azure"
+	"github.com/banzaicloud/banzai-types/components/google"
 	"bytes"
 	"fmt"
 	"github.com/banzaicloud/banzai-types/constants"
@@ -23,6 +24,7 @@ type CreateClusterRequest struct {
 	Properties struct {
 		CreateClusterAmazon *amazon.CreateClusterAmazon `json:"amazon,omitempty"`
 		CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
+		CreateClusterGoogle *google.CreateClusterGoogle `json:"google,omitempty"`
 	} `json:"properties" binding:"required"`
 }
 
@@ -34,6 +36,7 @@ type UpdateClusterRequest struct {
 type UpdateProperties struct {
 	*amazon.UpdateClusterAmazon `json:"amazon,omitempty"`
 	*azure.UpdateClusterAzure   `json:"azure,omitempty"`
+	*google.UpdateClusterGoogle `json:"google,omitempty"`
 }
 
 func (e *BanzaiResponse) String() string {
@@ -72,6 +75,9 @@ func (r *UpdateClusterRequest) Validate(defaultValue database.ClusterSimple) (bo
 	case constants.Azure:
 		// azure validate
 		return r.UpdateClusterAzure.Validate(defaultValue)
+	case constants.Google:
+		// google validate
+		return r.UpdateClusterGoogle.Validate(defaultValue)
 	default:
 		// not supported cloud type
 		return false, "Not supported cloud type."
