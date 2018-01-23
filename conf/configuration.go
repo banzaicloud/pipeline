@@ -17,6 +17,10 @@ func Init() {
 	viper.SetConfigName("config")
 	//viper.SetConfigType("toml")
 
+	// Set defaults
+	viper.SetDefault("helm.retryAttempt", 30)
+	viper.SetDefault("helm.retrySleepSeconds", 15)
+
 	// Find and read the config file
 	if err := viper.ReadInConfig(); err != nil {
 		log.Fatalf("Error reading config file, %s", err)

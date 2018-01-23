@@ -117,8 +117,8 @@ func PreInstall(helmInstall *helm.Install) error {
 // Azure AKS sometimes failing because of TLS handshake timeout, there are several issues on GitHub about that:
 // https://github.com/Azure/AKS/issues/112, https://github.com/Azure/AKS/issues/116, https://github.com/Azure/AKS/issues/14
 func RetryHelmInstall(helmInstall *helm.Install, clusterType string) error {
-	retryAttempts := viper.GetInt("dev.retryAttempt")
-	retrySleepSeconds := viper.GetInt("dev.retrySleepSeconds")
+	retryAttempts := viper.GetInt("helm.retryAttempt")
+	retrySleepSeconds := viper.GetInt("helm.retrySleepSeconds")
 
 	logTag := "RetryHelmInstall"
 	for i := 0; i <= retryAttempts; i++ {
