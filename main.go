@@ -28,7 +28,6 @@ import (
 
 	"github.com/banzaicloud/pipeline/pods"
 	"github.com/banzaicloud/pipeline/utils"
-	"k8s.io/helm/pkg/helm/helmpath"
 )
 
 //nodeInstanceType=m3.medium -d nodeInstanceSpotPrice=0.04 -d nodeMin=1 -d nodeMax=3 -d image=ami-6d48500b
@@ -40,11 +39,6 @@ type DeploymentType struct {
 	Version     string      `json:"version"`
 	Values      interface{} `json:"values"`
 }
-
-const (
-	stateStorePath = "./statestore/"
-	helmPostFix = "/helm"
-)
 
 //TODO: minCount and Maxcount should be optional, but one of them should be present
 
@@ -548,9 +542,8 @@ func installHelmPostHook(createdCluster *banzaiSimpleTypes.ClusterSimple, c *gin
 		Namespace:      "kube-system",
 		ServiceAccount: "tiller",
 		ImageSpec:      "gcr.io/kubernetes-helm/tiller:v2.7.2",
-		HomePath:       helmpath.Home(stateStorePath + createdCluster.Name + helmPostFix),
 	}
-	err := helm.RetryHelmInstall(helmInstall, createdCluster.Cloud)
+	err := helm.RetryHelmInstall(helmInstall, createdCluster.Cloud, createdCluster.Name)
 	if err == nil {
 		// --- [ Get K8S Config ] --- //
 		kubeConfig, err := cloud.GetK8SConfig(createdCluster, c)
@@ -939,7 +932,7 @@ func InitHelmOnCluster(c *gin.Context) {
 		banzaiUtils.LogInfo(banzaiConstants.TagHelmInstall, "Bind succeeded")
 	}
 
-	resp := helm.Install(&helmInstall)
+	resp := helm.Install(&helmInstall, cl.Name)
 	cloud.SetResponseBodyJson(c, resp.StatusCode, resp)
 
 }
