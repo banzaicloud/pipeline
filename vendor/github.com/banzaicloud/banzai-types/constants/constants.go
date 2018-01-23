@@ -50,12 +50,6 @@ const (
 	GoogleDefaultNodeCount = 1
 )
 
-// ### [ Constants to helm]
-const (
-	HELM_RETRY_ATTEMPT_CONFIG = "helm.retryAttempt"
-	HELM_RETRY_SLEEP_SECONDS = "helm.retrySleepSeconds"
-)
-
 // ### [ Constants to cloud types ] ### //
 const (
 	Amazon = "amazon"

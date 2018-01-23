@@ -71,6 +71,7 @@ imports:
   - components
   - components/amazon
   - components/azure
+  - components/google
   - components/database
   - components/helm
   - configuration
