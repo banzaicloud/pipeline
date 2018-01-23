@@ -11,7 +11,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"encoding/base64"
-	"github.com/Azure/go-autorest/autorest/to"
 )
 
 // ClusterRepresentation combines EC2 and AKS
@@ -283,8 +282,7 @@ func GetK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) ([]byte, 
 			return nil, errors.New("error happened during getting K8S config")
 		} else {
 			banzaiUtils.LogInfo(LOGTAG, "Kubernetes Config retrieve succeeded!")
-			c := to.String(config)
-			return []byte(c), nil
+			return config, nil
 		}
 	default:
 		SendNotSupportedCloudResponse(c, LOGTAG)

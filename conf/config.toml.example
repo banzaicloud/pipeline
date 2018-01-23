@@ -36,3 +36,6 @@ clientsecret = ""
 
 # AccessToken settings
 # tokensigningkey = ""
+
+# GKE credential path
+gkeCredentialPath = ""
