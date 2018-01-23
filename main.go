@@ -687,7 +687,7 @@ func UpdateCluster(c *gin.Context) {
 		database.SelectFirstWhere(&cl.Azure, banzaiSimpleTypes.AzureClusterSimple{ClusterSimpleId: cl.ID})
 	case banzaiConstants.Google:
 		// read google props from google_cluster_properties table
-		banzaiUtils.LogInfo(banzaiConstants.TagGetClusterInfo, "Load google props from db")
+		banzaiUtils.LogInfo(banzaiConstants.TagGetClusterInfo, "Load Google props from db")
 		database.SelectFirstWhere(&cl.Google, banzaiSimpleTypes.GoogleClusterSimple{ClusterSimpleId: cl.ID})
 	default:
 		// not supported cloud type
