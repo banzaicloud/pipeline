@@ -266,3 +266,6 @@ import:
   subpackages:
   - components/helm
 - package: github.com/qor/auth
+- package: google.golang.org/api
+  subpackages:
+  - container/v1
