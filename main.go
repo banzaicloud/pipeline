@@ -83,6 +83,7 @@ func main() {
 		&banzaiSimpleTypes.ClusterSimple{},
 		&banzaiSimpleTypes.AmazonClusterSimple{},
 		&banzaiSimpleTypes.AzureClusterSimple{},
+		&banzaiSimpleTypes.GoogleClusterSimple{},
 		&auth_identity.AuthIdentity{},
 		&auth.User{},
 		&banzaiSimpleTypes.GoogleClusterSimple{},
