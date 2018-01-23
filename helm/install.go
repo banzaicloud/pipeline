@@ -30,9 +30,7 @@ import (
 
 const (
 	stableRepository = "stable"
-	stableRepositoryURL = "https://kubernetes-charts.storage.googleapis.com"
 	banzaiRepository = "banzaicloud-stable"
-	banzaiRepositoryURL = "http://kubernetes-charts.banzaicloud.com"
 )
 var settings helm_env.EnvSettings
 
@@ -215,10 +213,13 @@ func ensureDefaultRepos(home helmpath.Home) error {
 	const logTag = "ensureDefaultRepos"
 	repoFile := home.RepositoryFile()
 
+	stableRepositoryURL := viper.GetString("helm.stableRepositoryURL")
+	banzaiRepositoryURL := viper.GetString("helm.banzaiRepositoryURL")
+
 	utils.LogInfo(logTag, "Setting up default helm repos.")
 
 	if fi, err := os.Stat(repoFile); err != nil {
-		utils.LogInfof(logTag, "Creating %s \n", repoFile)
+		utils.LogInfof(logTag, "Creating %s", repoFile)
 		f := repo.NewRepoFile()
 		sr, err := initRepo(stableRepository, stableRepositoryURL ,home.CacheIndex(stableRepository))
 		if err != nil {
@@ -240,7 +241,7 @@ func ensureDefaultRepos(home helmpath.Home) error {
 
 func initRepo(repoName string, repoUrl string, cacheFile string) (*repo.Entry, error) {
 	const logTag = "initStableRepo"
-	utils.LogInfof(logTag, "Adding %s repo with URL: %s \n", repoName, repoUrl)
+	utils.LogInfof(logTag, "Adding %s repo with URL: %s", repoName, repoUrl)
 	c := repo.Entry{
 		Name:  repoName,
 		URL:   repoUrl,

@@ -38,3 +38,7 @@ clientsecret = ""
 #helm retry configs
 retryAttempt = 30
 retrySleepSeconds = 15
+
+#helm repo URLs
+stableRepositoryURL = "https://kubernetes-charts.storage.googleapis.com"
+banzaiRepositoryURL = "http://kubernetes-charts.banzaicloud.com"
