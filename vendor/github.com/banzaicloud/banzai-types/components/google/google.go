@@ -50,6 +50,11 @@ func (g *CreateClusterGoogle) Validate() (bool, *error) {
 		}
 	}
 
+	if g.Master == nil {
+		utils.LogInfo(constants.TagValidateCreateCluster, "Master is <null>")
+		g.Master = &GoogleMaster{}
+	}
+
 	if g.Node.Count == 0 {
 		utils.LogInfo(constants.TagValidateCreateCluster, "Node count set to default value:", constants.GoogleDefaultNodeCount)
 		g.Node.Count = constants.GoogleDefaultNodeCount

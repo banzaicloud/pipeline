@@ -738,6 +738,8 @@ func FetchClusterConfig(c *gin.Context) {
 		cloud.GetAmazonK8SConfig(cl, c)
 	case banzaiConstants.Azure:
 		cloud.GetAzureK8SConfig(cl, c)
+	case banzaiConstants.Google:
+		cloud.GetGoogleK8SConfig(cl, c)
 	default:
 		cloud.SendNotSupportedCloudResponse(c, banzaiConstants.TagFetchClusterConfig)
 	}
