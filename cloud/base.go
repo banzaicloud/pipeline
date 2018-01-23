@@ -13,7 +13,6 @@ import (
 	"encoding/base64"
 	"k8s.io/client-go/tools/clientcmd"
 	"io/ioutil"
-	"github.com/Azure/go-autorest/autorest/to"
 )
 
 // ClusterRepresentation combines EC2 and AKS
