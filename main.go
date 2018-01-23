@@ -22,6 +22,8 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/qor/auth/auth_identity"
+	sessionManager "github.com/qor/session/manager"
 	"github.com/spf13/viper"
 	"k8s.io/helm/pkg/timeconv"
 
@@ -67,11 +69,10 @@ func main() {
 	}
 
 	conf.Init()
+	initDatabase()
 	auth.Init()
 
 	banzaiUtils.LogInfo(banzaiConstants.TagInit, "Logger configured")
-
-	initDatabase()
 
 	banzaiUtils.LogInfo(banzaiConstants.TagInit, "Create table(s):",
 		banzaiSimpleTypes.ClusterSimple.TableName(banzaiSimpleTypes.ClusterSimple{}),
@@ -83,6 +84,8 @@ func main() {
 		&banzaiSimpleTypes.AmazonClusterSimple{},
 		&banzaiSimpleTypes.AzureClusterSimple{},
 		&banzaiSimpleTypes.GoogleClusterSimple{},
+		&auth_identity.AuthIdentity{},
+		&auth.User{},
 	)
 
 	router := gin.Default()
@@ -97,8 +100,25 @@ func main() {
 
 	router.Use(cors.New(config))
 
+	if auth.IsEnabled() {
+		authHandler := gin.WrapH(auth.Auth.NewServeMux())
+
+		// We have to make the raw net/http handlers a bit Gin-ish
+		router.Use(gin.WrapH(sessionManager.SessionManager.Middleware(utils.NopHandler{})))
+		router.Use(gin.WrapH(auth.RedirectBack.Middleware(utils.NopHandler{})))
+
+		authGroup := router.Group("/auth/")
+		{
+			authGroup.GET("/*w", authHandler)
+			authGroup.GET("/*w/*w", authHandler)
+		}
+	}
+
 	v1 := router.Group("/api/v1/")
 	{
+		if auth.IsEnabled() {
+			v1.Use(auth.Auth0Handler)
+		}
 		v1.POST("/clusters", CreateCluster)
 		v1.GET("/status", Status)
 		v1.GET("/clusters", FetchClusters)
@@ -114,12 +134,10 @@ func main() {
 		v1.PUT("/clusters/:id/deployments/:name", UpgradeDeployment)
 		v1.HEAD("/clusters/:id/deployments/:name", FetchDeploymentStatus)
 		v1.POST("/clusters/:id/helminit", InitHelmOnCluster)
-
-		v1.GET("/auth0test", auth.Auth0Groups(auth.ApiGroup), Auth0Test)
+		v1.GET("/token", auth.GenerateToken)
 	}
 	notify.SlackNotify("API is already running")
 	router.Run(":9090")
-
 }
 
 //UpgradeDeployment - N/A
@@ -892,13 +910,6 @@ func FetchDeploymentStatus(c *gin.Context) {
 		return
 	}
 	return
-}
-
-// Auth0Test authN check
-func Auth0Test(c *gin.Context) {
-	cloud.SetResponseBodyJson(c, http.StatusOK, gin.H{
-		cloud.JsonKeyAuth0: "authn and authz successful",
-	})
 }
 
 //Status

@@ -1,10 +1,10 @@
 package utils
 
 import (
+	"github.com/sirupsen/logrus"
 	"bytes"
 	"fmt"
 	"github.com/banzaicloud/banzai-types/configuration"
-	"github.com/sirupsen/logrus"
 )
 
 var log *logrus.Logger
@@ -13,44 +13,44 @@ func init() {
 	log = configuration.Logger()
 }
 
-func LogInfo(tag string, args ...interface{}) {
-	log.Info(appendTagAndArgs(tag, args...)...)
+func LogInfo(tag string, args ... interface{}) {
+	log.Info(getTag(tag), getMessage(args))
 }
 
-func LogInfof(tag string, format string, args ...interface{}) {
-	log.Infof(prepareFormat(tag, format), args...)
+func LogInfof(tag string, format string, args ... interface{}) {
+	log.Infof(prepareFormat(tag, format), getMessage(args))
 }
 
-func LogError(tag string, args ...interface{}) {
-	log.Error(appendTagAndArgs(tag, args...)...)
+func LogError(tag string, args ... interface{}) {
+	log.Error(getTag(tag), getMessage(args))
 }
 
-func LogErrorf(tag string, format string, args ...interface{}) {
-	log.Errorf(prepareFormat(tag, format), args...)
+func LogErrorf(tag string, format string, args ... interface{}) {
+	log.Errorf(prepareFormat(tag, format), getMessage(args))
 }
 
-func LogWarn(tag string, args ...interface{}) {
-	log.Warn(appendTagAndArgs(tag, args...)...)
+func LogWarn(tag string, args ... interface{}) {
+	log.Warn(getTag(tag), getMessage(args))
 }
 
-func LogWarnf(tag string, format string, args ...interface{}) {
-	log.Warnf(prepareFormat(tag, format), args...)
+func LogWarnf(tag string, format string, args ... interface{}) {
+	log.Warnf(prepareFormat(tag, format), getMessage(args))
 }
 
-func LogDebug(tag string, args ...interface{}) {
-	log.Debug(appendTagAndArgs(tag, args...)...)
+func LogDebug(tag string, args ... interface{}) {
+	log.Debug(getTag(tag), getMessage(args))
 }
 
-func LogDebugf(tag string, format string, args ...interface{}) {
-	log.Debugf(prepareFormat(tag, format), args...)
+func LogDebugf(tag string, format string, args ... interface{}) {
+	log.Debugf(prepareFormat(tag, format), getMessage(args))
 }
 
-func LogFatal(tag string, args ...interface{}) {
-	log.Fatal(appendTagAndArgs(tag, args...)...)
+func LogFatal(tag string, args ... interface{}) {
+	log.Fatal(getTag(tag), getMessage(args))
 }
 
-func LogFatalf(tag string, format string, args ...interface{}) {
-	log.Fatalf(prepareFormat(tag, format), args...)
+func LogFatalf(tag string, format string, args ... interface{}) {
+	log.Fatalf(prepareFormat(tag, format), getMessage(args))
 }
 
 func SetLogLevel(level string) {
@@ -63,33 +63,28 @@ func getTag(tag string) string {
 }
 
 func prepareFormat(tag string, format string) string {
-	buffer := bytes.NewBufferString(getTag(tag))
+	buffer:= bytes.NewBufferString(getTag(tag))
 	buffer.WriteString(format)
 	return buffer.String()
 }
 
-func getMessage(args []interface{}) []interface{} {
-	var res []interface{}
+func getMessage(args []interface{}) string {
+	var buffer bytes.Buffer
 	for i, a := range args {
 		switch a.(type) {
 		case string:
-			res = append(res, fmt.Sprintf("%s", a))
+			buffer.WriteString(fmt.Sprintf("%s", a))
+			break
 		case int:
-			res = append(res, fmt.Sprintf("%d", a))
+			buffer.WriteString(fmt.Sprintf("%d", a))
+			break
 		default:
-			res = append(res, fmt.Sprintf("%v", a))
+			buffer.WriteString(fmt.Sprintf("%v", a))
+			break
 		}
 		if i+1 < len(args) {
-			res = append(res, " ")
+			buffer.WriteString(" ")
 		}
 	}
-	return res
-}
-
-// appendTagAndArgs puts the tag and the args one after the other
-func appendTagAndArgs(tag string, args ...interface{}) []interface{} {
-	var argsNew []interface{}
-	argsNew = append(argsNew, getTag(tag))
-	argsNew = append(argsNew, getMessage(args)...)
-	return argsNew
+	return buffer.String()
 }

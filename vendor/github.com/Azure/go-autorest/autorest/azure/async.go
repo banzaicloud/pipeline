@@ -458,3 +458,21 @@ func newPollingRequest(ps pollingState) (*http.Request, error) {
 
 	return reqPoll, nil
 }
+
+// AsyncOpIncompleteError is the type that's returned from a future that has not completed.
+type AsyncOpIncompleteError struct {
+	// FutureType is the name of the type composed of a azure.Future.
+	FutureType string
+}
+
+// Error returns an error message including the originating type name of the error.
+func (e AsyncOpIncompleteError) Error() string {
+	return fmt.Sprintf("%s: asynchronous operation has not completed", e.FutureType)
+}
+
+// NewAsyncOpIncompleteError creates a new AsyncOpIncompleteError with the specified parameters.
+func NewAsyncOpIncompleteError(futureType string) AsyncOpIncompleteError {
+	return AsyncOpIncompleteError{
+		FutureType: futureType,
+	}
+}
