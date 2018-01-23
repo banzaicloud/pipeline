@@ -538,8 +538,8 @@ func updatePrometheusPostHook(_ *banzaiSimpleTypes.ClusterSimple, _ *gin.Context
 
 func installHelmPostHook(createdCluster *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 	logTag := "InstallHelmPostHook"
-	retryAttempts := viper.GetInt("dev.retryAttempt")
-	retrySleepSeconds := viper.GetInt("dev.retrySleepSeconds")
+	retryAttempts := viper.GetInt("helm.retryAttempt")
+	retrySleepSeconds := viper.GetInt("helm.retrySleepSeconds")
 	kce := fmt.Sprintf("./statestore/%s/config", createdCluster.Name)
 	banzaiUtils.LogInfof(banzaiConstants.TagHelmInstall, "Set $KUBECONFIG env to %s", kce)
 	os.Setenv("KUBECONFIG", kce)

@@ -23,10 +23,6 @@ chartpath = "/opt/helm"
 #auth0 configs
 auth0pub = "./conf/auth0api.pub"
 
-#helm retry configs
-retryAttempt = 30
-retrySleepSeconds = 15
-
 # SSH key path
 #dev.keypath = ""
 
@@ -36,3 +32,9 @@ clientsecret = ""
 
 # AccessToken settings
 # tokensigningkey = ""
+
+[helm]
+
+#helm retry configs
+retryAttempt = 30
+retrySleepSeconds = 15
