@@ -986,3 +986,58 @@ func writeToFile(data []byte, file string) error {
 	err = os.Rename(tmpfi.Name(), file)
 	return err
 }
+
+func GetGoogleClusterStatus(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
+
+	banzaiUtils.LogInfo(banzaiConstants.TagGetClusterStatus, "Start get cluster status (google)")
+
+	if cs == nil {
+		banzaiUtils.LogInfo(banzaiConstants.TagGetClusterStatus, "<nil> cluster struct")
+		SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
+			JsonKeyStatus: http.StatusInternalServerError,
+		})
+		return
+	}
+
+	banzaiUtils.LogInfo(banzaiConstants.TagGetClusterStatus, "Load google props from database")
+
+	// load google props from db
+	database.SelectFirstWhere(&cs.Google, banzaiSimpleTypes.GoogleClusterSimple{ClusterSimpleId: cs.ID})
+
+	svc, err := GetGoogleServiceClient()
+	if err != nil {
+		banzaiUtils.LogErrorf(banzaiConstants.TagGetClusterStatus, "Error during get service client %v", err)
+		SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
+			JsonKeyStatus:  http.StatusInternalServerError,
+			JsonKeyMessage: err,
+		})
+		return
+	}
+
+	banzaiUtils.LogInfof(banzaiConstants.TagGetClusterStatus, "Get google cluster with name %s", cs.Name)
+	cl, err := svc.Projects.Zones.Clusters.Get(cs.Google.Project, cs.Location, cs.Name).Context(context.Background()).Do()
+	if err != nil {
+		apiError := getBanzaiErrorFromError(err)
+		banzaiUtils.LogInfo(banzaiConstants.TagGetClusterStatus, "Error during get cluster info: ", apiError.Message)
+		SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
+			JsonKeyStatus:  http.StatusInternalServerError,
+			JsonKeyMessage: apiError.Message,
+		})
+	} else {
+		banzaiUtils.LogInfo(banzaiConstants.TagGetClusterStatus, "Get cluster success")
+		banzaiUtils.LogInfo(banzaiConstants.TagGetClusterStatus, "Cluster status is", cl.Status)
+		var msg string
+		var code int
+		if statusRunning == cl.Status {
+			msg = "Cluster available"
+			code = http.StatusOK
+		} else {
+			msg = "Cluster not ready yet"
+			code = http.StatusNoContent
+		}
+		SetResponseBodyJson(c, code, gin.H{
+			JsonKeyStatus:  code,
+			JsonKeyMessage: msg,
+		})
+	}
+}

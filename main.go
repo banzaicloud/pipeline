@@ -753,6 +753,8 @@ func GetClusterStatus(c *gin.Context) {
 		cloud.GetAmazonClusterStatus(cloudCluster, c)
 	case banzaiConstants.Azure:
 		cloud.GetAzureClusterStatus(cloudCluster, c)
+	case banzaiConstants.Google:
+		cloud.GetGoogleClusterStatus(cloudCluster, c)
 	default:
 		cloud.SendNotSupportedCloudResponse(c, banzaiConstants.TagGetClusterStatus)
 		return
