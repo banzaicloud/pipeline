@@ -20,6 +20,8 @@ func Init() {
 	// Set defaults
 	viper.SetDefault("helm.retryAttempt", 30)
 	viper.SetDefault("helm.retrySleepSeconds", 15)
+	viper.SetDefault("helm.stableRepositoryURL", "https://kubernetes-charts.storage.googleapis.com")
+	viper.SetDefault("helm.banzaiRepositoryURL", "http://kubernetes-charts.banzaicloud.com")
 
 	// Find and read the config file
 	if err := viper.ReadInConfig(); err != nil {
