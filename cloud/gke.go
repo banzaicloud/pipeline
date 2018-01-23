@@ -42,14 +42,14 @@ const (
 	netesDefault     = "netes-default"
 )
 
+const googleAppCredential = "GOOGLE_APPLICATION_CREDENTIALS"
+
 func init() {
-	// todo key
-	credentialPath = os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
-	banzaiUtils.LogDebugf(banzaiConstants.TagInit, "GOOGLE_APPLICATION_CREDENTIALS is %s", credentialPath)
+	credentialPath = os.Getenv(googleAppCredential)
+	banzaiUtils.LogDebugf(banzaiConstants.TagInit, "%s is %s", googleAppCredential, credentialPath)
 }
 
 func CreateClusterGoogle(request *banzaiTypes.CreateClusterRequest, c *gin.Context) (bool, *banzaiSimpleTypes.ClusterSimple) {
-	// todo change tags
 	data, err := ioutil.ReadFile(credentialPath)
 	if err != nil {
 		banzaiUtils.LogFatalf(banzaiConstants.TagCreateCluster, "GOOGLE_APPLICATION_CREDENTIALS env var is not specified: %s", err)
@@ -62,7 +62,6 @@ func CreateClusterGoogle(request *banzaiTypes.CreateClusterRequest, c *gin.Conte
 
 	svc, err := GetGoogleServiceClient()
 	if err != nil {
-		// todo log?
 		SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
 			JsonKeyStatus:  http.StatusInternalServerError,
 			JsonKeyMessage: err,
@@ -198,7 +197,6 @@ func GetGoogleServiceClient() (*gke.Service, error) {
 
 	client, err := google.DefaultClient(context.Background(), gke.CloudPlatformScope)
 	if err != nil {
-		// todo replace banzai-types tag
 		banzaiUtils.LogFatalf(banzaiConstants.TagCreateCluster, "Could not get authenticated client: %v", err)
 		return nil, err
 	}
@@ -211,7 +209,6 @@ func GetGoogleServiceClient() (*gke.Service, error) {
 	return service, nil
 }
 
-// todo replace to banzai-types
 // Struct of GKE
 type GKECluster struct {
 	// ProjectID is the ID of your project to use when creating a cluster
@@ -275,7 +272,6 @@ func waitForCluster(svc *gke.Service, cc GKECluster) (*gke.Cluster, error) {
 		}
 
 		if cluster.Status == statusRunning {
-			// todo tag
 			banzaiUtils.LogInfof(banzaiConstants.TagCreateCluster, "Cluster %v is running", cc.Name)
 			return cluster, nil
 		}
@@ -342,7 +338,6 @@ func GetClusterInfoGoogle(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 
 	svc, err := GetGoogleServiceClient()
 	if err != nil {
-		// todo log?
 		SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
 			JsonKeyStatus:  http.StatusInternalServerError,
 			JsonKeyMessage: err,
@@ -399,7 +394,6 @@ func UpdateClusterGoogleInCloud(r *banzaiTypes.UpdateClusterRequest, c *gin.Cont
 
 	svc, err := GetGoogleServiceClient()
 	if err != nil {
-		// todo log?
 		SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
 			JsonKeyStatus:  http.StatusInternalServerError,
 			JsonKeyMessage: err,
@@ -556,7 +550,6 @@ func deleteCluster(cc *GKECluster, c *gin.Context) bool {
 
 	svc, err := GetGoogleServiceClient()
 	if err != nil {
-		// todo log?
 		SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
 			JsonKeyStatus:  http.StatusInternalServerError,
 			JsonKeyMessage: err,
