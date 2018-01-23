@@ -414,14 +414,13 @@ func CreateCluster(c *gin.Context) {
 		}
 	case banzaiConstants.Google:
 		// validate and create Azure cluster
-		// todo validate and other stupid things
 		gkeData := createClusterBaseRequest.Properties.CreateClusterGoogle
 		if isValid, err := gkeData.Validate(); isValid && err == nil {
 			var isOk bool
 			isOk, createdCluster = cloud.CreateClusterGoogle(&createClusterBaseRequest, c)
 			if isOk {
 				// update prometheus config..
-				// postHookFunctions = append(postHookFunctions, getConfigPostHookAzure) todo config
+				postHookFunctions = append(postHookFunctions, getConfigPostHookGoogle)
 				postHookFunctions = append(postHookFunctions, updatePrometheusPostHook)
 				postHookFunctions = append(postHookFunctions, installHelmPostHook)
 				postHookFunctions = append(postHookFunctions, installIngressControllerPostHook)
@@ -553,6 +552,10 @@ func getConfigPostHookAmazon(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context
 
 func getConfigPostHookAzure(createdCluster *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 	cloud.GetAzureK8SConfig(createdCluster, c)
+}
+
+func getConfigPostHookGoogle(createdCluster *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
+	cloud.GetGoogleK8SConfig(createdCluster, c)
 }
 
 func updatePrometheusPostHook(_ *banzaiSimpleTypes.ClusterSimple, _ *gin.Context) {
