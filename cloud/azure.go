@@ -75,6 +75,13 @@ func CreateClusterAzure(request *banzaiTypes.CreateClusterRequest, c *gin.Contex
 		banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Cluster created successfully!")
 		banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Save create cluster into database")
 
+		if err := database.Save(&cluster2Db).Error; err != nil {
+			DbSaveFailed(c, err, cluster2Db.Name)
+			return false, nil
+		}
+
+		banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Save create cluster into database succeeded")
+
 		// polling cluster
 		pollingRes, err := azureClient.PollingCluster(r.Name, r.ResourceGroup)
 		if err != nil {
@@ -83,12 +90,6 @@ func CreateClusterAzure(request *banzaiTypes.CreateClusterRequest, c *gin.Contex
 			return false, nil
 		} else {
 			// polling success
-			if err := database.Save(&cluster2Db).Error; err != nil {
-				DbSaveFailed(c, err, cluster2Db.Name)
-				return false, nil
-			}
-
-			banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Save create cluster into database succeeded")
 			SetResponseBodyJson(c, pollingRes.StatusCode, gin.H{
 				JsonKeyStatus: pollingRes.StatusCode,
 				JsonKeyResourceId: cluster2Db.ID,
