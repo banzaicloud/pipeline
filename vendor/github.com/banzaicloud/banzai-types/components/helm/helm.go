@@ -1,6 +1,5 @@
 package helm
 
-
 type Install struct {
 	// Name of the kubeconfig context to use
 	KubeContext string `json:"kube_context"`
@@ -22,5 +21,4 @@ type Install struct {
 
 	// Limit the maximum number of revisions saved per release. Use 0 for no limit.
 	MaxHistory int `json:"history_max"`
-
 }
