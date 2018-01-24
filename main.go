@@ -945,6 +945,7 @@ func HelmDeploymentStatus(c *gin.Context) {
 	// todo error handling - design it, refine it, refactor it
 
 	name := c.Param("name")
+	banzaiUtils.LogInfof("HelmDeploymentStatus", "Retrieving status for deployment: %s", name)
 
 	cloudCluster, err := cloud.GetClusterFromDB(c)
 	helmDeploymentStatusErrorResponse(c, errors.Wrap(err, "couldn't get the cluster from db"))
@@ -956,6 +957,7 @@ func HelmDeploymentStatus(c *gin.Context) {
 
 	if err != nil {
 
+		banzaiUtils.LogError("HelmDeploymentStatus", err.Error())
 		// convert the status code back - this is specific to the underlying call!
 		code, _ := strconv.Atoi(status)
 
@@ -968,6 +970,7 @@ func HelmDeploymentStatus(c *gin.Context) {
 	}
 
 	if status != "" {
+		banzaiUtils.LogInfof("HelmDeploymentStatus", "Deployment status: %s", status)
 		cloud.SetResponseBodyJson(c, http.StatusOK, gin.H{
 			cloud.JsonKeyStatus:  http.StatusOK,
 			cloud.JsonKeyMessage: "Deployment status: " + status,
@@ -977,7 +980,9 @@ func HelmDeploymentStatus(c *gin.Context) {
 }
 
 func helmDeploymentStatusErrorResponse(c *gin.Context, err error) {
+
 	if err != nil {
+		banzaiUtils.LogError("HelmDeploymentStatus", err.Error())
 		cloud.SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
 			cloud.JsonKeyStatus:  http.StatusInternalServerError,
 			cloud.JsonKeyMessage: err.Error(),
