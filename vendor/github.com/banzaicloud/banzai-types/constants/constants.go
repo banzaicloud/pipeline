@@ -45,10 +45,22 @@ const (
 	AmazonDefaultNodeSpotPrice      = "0.2"
 )
 
+// ### [ Constants to Google cluster default values ] ### //
+const (
+	GoogleDefaultNodeCount = 1
+)
+
+// ### [ Constants to helm]
+const (
+	HELM_RETRY_ATTEMPT_CONFIG = "helm.retryAttempt"
+	HELM_RETRY_SLEEP_SECONDS = "helm.retrySleepSeconds"
+)
+
 // ### [ Constants to cloud types ] ### //
 const (
 	Amazon = "amazon"
 	Azure  = "azure"
+	Google = "google"
 )
 
 // ### [ Constants to table names ] ### //
@@ -56,6 +68,7 @@ const (
 	TableNameClusters         = "clusters"
 	TableNameAmazonProperties = "amazon_cluster_properties"
 	TableNameAzureProperties  = "azure_cluster_properties"
+	TableNameGoogleProperties = "google_cluster_properties"
 )
 
 // ### [ Constants to Response codes ] ### //
