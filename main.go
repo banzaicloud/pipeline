@@ -28,6 +28,9 @@ import (
 
 	"github.com/banzaicloud/pipeline/pods"
 	"github.com/banzaicloud/pipeline/utils"
+	"strconv"
+
+	"github.com/pkg/errors"
 )
 
 //nodeInstanceType=m3.medium -d nodeInstanceSpotPrice=0.04 -d nodeMin=1 -d nodeMax=3 -d image=ami-6d48500b
@@ -129,7 +132,7 @@ func main() {
 		v1.HEAD("/clusters/:id/deployments", GetTillerStatus)
 		v1.DELETE("/clusters/:id/deployments/:name", DeleteDeployment)
 		v1.PUT("/clusters/:id/deployments/:name", UpgradeDeployment)
-		v1.HEAD("/clusters/:id/deployments/:name", FetchDeploymentStatus)
+		v1.HEAD("/clusters/:id/deployments/:name", HelmDeploymentStatus)
 		v1.POST("/clusters/:id/helminit", InitHelmOnCluster)
 		v1.GET("/token", auth.GenerateToken)
 	}
@@ -787,9 +790,9 @@ func FetchDeploymentStatus(c *gin.Context) {
 	banzaiUtils.LogInfo(banzaiConstants.TagFetchDeploymentStatus, "Start fetching deployment status")
 
 	name := c.Param("name")
+	banzaiUtils.LogInfo(banzaiConstants.TagFetchDeploymentStatus, "Get deployment with name:", name)
 
 	// --- [ Get cluster ]  --- //
-	banzaiUtils.LogInfo(banzaiConstants.TagFetchDeploymentStatus, "Get cluster with name:", name)
 	cloudCluster, err := cloud.GetClusterFromDB(c)
 	if err != nil {
 		return
@@ -935,4 +938,50 @@ func InitHelmOnCluster(c *gin.Context) {
 	resp := helm.Install(&helmInstall, cl.Name)
 	cloud.SetResponseBodyJson(c, resp.StatusCode, resp)
 
+}
+
+// Check the status of a deployment through the helm client API
+func HelmDeploymentStatus(c *gin.Context) {
+	// todo error handling - design it, refine it, refactor it
+
+	name := c.Param("name")
+
+	cloudCluster, err := cloud.GetClusterFromDB(c)
+	helmDeploymentStatusErrorResponse(c, errors.Wrap(err, "couldn't get the cluster from db"))
+
+	kubeConfig, err := cloud.GetK8SConfig(cloudCluster, c)
+	helmDeploymentStatusErrorResponse(c, errors.Wrap(err, "couldn't get the k8s config"))
+
+	status, err := helm.GetDeploymentStatus(name, kubeConfig)
+
+	if err != nil {
+
+		// convert the status code back - this is specific to the underlying call!
+		code, _ := strconv.Atoi(status)
+
+		cloud.SetResponseBodyJson(c, code, gin.H{
+			cloud.JsonKeyStatus:  code,
+			cloud.JsonKeyMessage: fmt.Sprint(http.StatusText(code), "\n", err.Error()),
+		})
+
+		return
+	}
+
+	if status != "" {
+		cloud.SetResponseBodyJson(c, http.StatusOK, gin.H{
+			cloud.JsonKeyStatus:  http.StatusOK,
+			cloud.JsonKeyMessage: "Deployment status: " + status,
+		})
+	}
+
+}
+
+func helmDeploymentStatusErrorResponse(c *gin.Context, err error) {
+	if err != nil {
+		cloud.SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
+			cloud.JsonKeyStatus:  http.StatusInternalServerError,
+			cloud.JsonKeyMessage: err.Error(),
+		})
+		return
+	}
 }
