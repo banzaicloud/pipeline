@@ -615,11 +615,12 @@ func GetGoogleK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 	banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Start loading google k8s config")
 
 	if cs == nil {
-		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "<nil> cluster")
+		banzaiUtils.LogError(banzaiConstants.TagGetCluster, "<nil> cluster")
 		return
 	}
 
 	// set google props
+	banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Load Google props from database")
 	database.SelectFirstWhere(&cs.Google, banzaiSimpleTypes.GoogleClusterSimple{ClusterSimpleId: cs.ID})
 	config, err := getGoogleKubernetesConfig(cs)
 	if err != nil {
@@ -653,11 +654,13 @@ func GetGoogleK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 
 func getGoogleKubernetesConfig(cs *banzaiSimpleTypes.ClusterSimple) ([]byte, *banzaiTypes.BanzaiResponse) {
 
+	banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Get Service Client")
 	svc, err := GetGoogleServiceClient()
 	if err != nil {
 		banzaiUtils.LogErrorf(banzaiConstants.TagFetchClusterConfig, "Error during get service client %v", err)
 		return nil, getBanzaiErrorFromError(err)
 	}
+	banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Get Service Client success")
 
 	banzaiUtils.LogInfof(banzaiConstants.TagFetchClusterConfig, "Get google cluster with name %s", cs.Name)
 	cl, err := svc.Projects.Zones.Clusters.Get(cs.Google.Project, cs.Location, cs.Name).Context(context.Background()).Do()
@@ -1016,18 +1019,19 @@ func GetGoogleClusterStatus(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context)
 	banzaiUtils.LogInfo(banzaiConstants.TagGetClusterStatus, "Start get cluster status (google)")
 
 	if cs == nil {
-		banzaiUtils.LogInfo(banzaiConstants.TagGetClusterStatus, "<nil> cluster struct")
+		banzaiUtils.LogError(banzaiConstants.TagGetClusterStatus, "<nil> cluster struct")
 		SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
 			JsonKeyStatus: http.StatusInternalServerError,
 		})
 		return
 	}
 
-	banzaiUtils.LogInfo(banzaiConstants.TagGetClusterStatus, "Load google props from database")
+	banzaiUtils.LogInfo(banzaiConstants.TagGetClusterStatus, "Load Google props from database")
 
 	// load google props from db
 	database.SelectFirstWhere(&cs.Google, banzaiSimpleTypes.GoogleClusterSimple{ClusterSimpleId: cs.ID})
 
+	banzaiUtils.LogInfo(banzaiConstants.TagGetClusterStatus, "Get Service Client")
 	svc, err := GetGoogleServiceClient()
 	if err != nil {
 		banzaiUtils.LogErrorf(banzaiConstants.TagGetClusterStatus, "Error during get service client %v", err)
@@ -1037,6 +1041,7 @@ func GetGoogleClusterStatus(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context)
 		})
 		return
 	}
+	banzaiUtils.LogInfo(banzaiConstants.TagGetClusterStatus, "Get Service Client success")
 
 	banzaiUtils.LogInfof(banzaiConstants.TagGetClusterStatus, "Get google cluster with name %s", cs.Name)
 	cl, err := svc.Projects.Zones.Clusters.Get(cs.Google.Project, cs.Location, cs.Name).Context(context.Background()).Do()
@@ -1049,7 +1054,7 @@ func GetGoogleClusterStatus(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context)
 		})
 	} else {
 		banzaiUtils.LogInfo(banzaiConstants.TagGetClusterStatus, "Get cluster success")
-		banzaiUtils.LogInfo(banzaiConstants.TagGetClusterStatus, "Cluster status is", cl.Status)
+		banzaiUtils.LogInfof(banzaiConstants.TagGetClusterStatus, "Cluster status is %s", cl.Status)
 		var msg string
 		var code int
 		if statusRunning == cl.Status {
