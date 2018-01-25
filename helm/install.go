@@ -14,10 +14,23 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/helm/cmd/helm/installer"
 	"k8s.io/helm/pkg/kube"
+	"k8s.io/helm/pkg/helm/helmpath"
 	"net/http"
 	"time"
 	"strings"
 	"github.com/spf13/viper"
+	"os"
+	"github.com/pkg/errors"
+	"k8s.io/helm/pkg/repo"
+	"k8s.io/helm/pkg/getter"
+	helm_env "k8s.io/helm/pkg/helm/environment"
+	"path/filepath"
+	"k8s.io/helm/pkg/downloader"
+)
+
+const (
+	stableRepository = "stable"
+	banzaiRepository = "banzaicloud-stable"
 )
 
 //Create ServiceAccount and AccountRoleBinding
@@ -100,14 +113,14 @@ func PreInstall(helmInstall *helm.Install) error {
 // RetryHelmInstall retries for a configurable time/interval
 // Azure AKS sometimes failing because of TLS handshake timeout, there are several issues on GitHub about that:
 // https://github.com/Azure/AKS/issues/112, https://github.com/Azure/AKS/issues/116, https://github.com/Azure/AKS/issues/14
-func RetryHelmInstall(helmInstall *helm.Install, clusterType string) error {
-	retryAttempts := viper.GetInt("dev.retryAttempt")
-	retrySleepSeconds := viper.GetInt("dev.retrySleepSeconds")
+func RetryHelmInstall(helmInstall *helm.Install, clusterType string, clusterName string) error {
+	retryAttempts := viper.GetInt(constants.HELM_RETRY_ATTEMPT_CONFIG)
+	retrySleepSeconds := viper.GetInt(constants.HELM_RETRY_SLEEP_SECONDS)
 
 	logTag := "RetryHelmInstall"
 	for i := 0; i <= retryAttempts; i++ {
 		utils.LogDebugf(logTag, "Waiting %d/%d", i, retryAttempts)
-		response := Install(helmInstall)
+		response := Install(helmInstall, clusterName)
 		if strings.Contains(response.Message, "net/http: TLS handshake timeout") {
 			time.Sleep(time.Duration(retrySleepSeconds) * time.Second)
 			continue
@@ -124,9 +137,153 @@ func RetryHelmInstall(helmInstall *helm.Install, clusterType string) error {
 	return fmt.Errorf("timeout during helm install")
 }
 
+func createEnvSettings(helmRepoHome string) helm_env.EnvSettings {
+	var settings helm_env.EnvSettings
+	settings.Home = helmpath.Home(helmRepoHome)
+	return settings
+}
+
+func generateHelmRepoPath(clusterName string) string {
+	const stateStorePath = "./statestore/"
+	const helmPostFix = "/helm"
+	return stateStorePath + clusterName + helmPostFix
+}
+
+func downloadChartFromRepo(name string, clusterName string) (string, error) {
+	settings := createEnvSettings(generateHelmRepoPath(clusterName))
+	dl := downloader.ChartDownloader{
+		HelmHome: settings.Home,
+		Getters:  getter.All(settings),
+	}
+	if _, err := os.Stat(settings.Home.Archive()); os.IsNotExist(err) {
+		utils.LogInfof("downloadChartFromRepo", "Creating '%s' directory.", settings.Home.Archive())
+		os.MkdirAll(settings.Home.Archive(), 0744)
+	}
+
+	utils.LogInfof("downloadChartFromRepo", "Downloading helm chart '%s' to '%s'", name, settings.Home.Archive())
+	filename, _, err := dl.DownloadTo(name, "", settings.Home.Archive())
+	if err == nil {
+		lname, err := filepath.Abs(filename)
+		if err != nil {
+			return filename, errors.Wrapf(err, "Could not create absolute path from %s", filename)
+		}
+		utils.LogDebugf("downloadChartFromRepo", "Fetched helm chart '%s' to '%s'", name, filename)
+		return lname, nil
+	}
+
+	return filename, errors.Errorf("Failed to download %q", name)
+}
+
+// Installs helm client on the cluster
+func installHelmClient(clusterName string) error {
+	const logTag  = "installHelmClient"
+	settings := createEnvSettings(generateHelmRepoPath(clusterName))
+	if err := ensureDirectories(settings); err != nil {
+		return errors.Wrap(err, "Initializing helm directories failed!")
+	}
+
+	if err := ensureDefaultRepos(settings); err != nil {
+		return errors.Wrap(err, "Setting up default repos failed!")
+	}
+
+	utils.LogInfo(logTag, "Initializing helm client succeeded, happy helming!")
+	return nil
+}
+
+func ensureDirectories(env helm_env.EnvSettings) error {
+	const logTag = "ensureDirectories"
+	home := env.Home
+	configDirectories := []string{
+		home.String(),
+		home.Repository(),
+		home.Cache(),
+		home.LocalRepository(),
+		home.Plugins(),
+		home.Starters(),
+		home.Archive(),
+	}
+
+	utils.LogInfo(logTag, "Setting up helm directories.")
+
+	for _, p := range configDirectories {
+		if fi, err := os.Stat(p); err != nil {
+			utils.LogInfof( logTag,"Creating '%s'", p)
+			if err := os.MkdirAll(p, 0755); err != nil {
+				return errors.Wrapf(err,"Could not create '%s'", p)
+			}
+		} else if !fi.IsDir() {
+			return errors.Errorf("'%s' must be a directory", p)
+		}
+	}
+	return nil
+}
+
+func ensureDefaultRepos(env helm_env.EnvSettings) error {
+	const logTag = "ensureDefaultRepos"
+	home := env.Home
+	repoFile := home.RepositoryFile()
+
+	stableRepositoryURL := viper.GetString("helm.stableRepositoryURL")
+	banzaiRepositoryURL := viper.GetString("helm.banzaiRepositoryURL")
+
+	utils.LogInfo(logTag, "Setting up default helm repos.")
+
+	if fi, err := os.Stat(repoFile); err != nil {
+		utils.LogInfof(logTag, "Creating %s", repoFile)
+		f := repo.NewRepoFile()
+		sr, err := initRepo(stableRepository, stableRepositoryURL, env)
+		if err != nil {
+			return errors.Wrapf(err, "Cannot init stable repo!")
+		}
+		br, err := initRepo(banzaiRepository, banzaiRepositoryURL, env)
+		if err != nil {
+			return errors.Wrapf(err, "Cannot init banzai repo!")
+		}
+		f.Add(sr, br)
+		if err := f.WriteFile(repoFile, 0644); err != nil {
+			return errors.Wrap(err, "Cannot create file!")
+		}
+	} else if fi.IsDir() {
+		return errors.Errorf("%s must be a file, not a directory!", repoFile)
+	}
+	return nil
+}
+
+func initRepo(repoName string, repoUrl string, env helm_env.EnvSettings) (*repo.Entry, error) {
+	const logTag = "initStableRepo"
+	utils.LogInfof(logTag, "Adding %s repo with URL: %s", repoName, repoUrl)
+	c := repo.Entry{
+		Name:  repoName,
+		URL:   repoUrl,
+		Cache: env.Home.CacheIndex(repoName),
+	}
+	r, err := repo.NewChartRepository(&c, getter.All(env))
+	if err != nil {
+		return nil, errors.Wrap(err, "Cannot create a new ChartRepo")
+	}
+
+	// In this case, the cacheFile is always absolute. So passing empty string
+	// is safe.
+	if err := r.DownloadIndexFile(""); err != nil {
+		return nil, errors.Errorf("Looks like %q is not a valid chart repository or cannot be reached: %s", repoUrl, err.Error())
+	}
+
+	return &c, nil
+}
 
 // Install uses Kubernetes client to install Tiller.
-func Install(helmInstall *helm.Install) *components.BanzaiResponse {
+func Install(helmInstall *helm.Install, clusterName string) *components.BanzaiResponse {
+
+	//Installing helm client
+	utils.LogInfo(constants.TagHelmInstall, "Installing helm client!")
+	if err := installHelmClient(clusterName); err != nil {
+		utils.LogErrorf(constants.TagHelmInstall, "%+v\n", err)
+		return &components.BanzaiResponse{
+			StatusCode: http.StatusInternalServerError,
+			Message:    err.Error(),
+		}
+	}
+	utils.LogInfo(constants.TagHelmInstall, "Helm client install succeeded")
 
 	err := PreInstall(helmInstall)
 	if err != nil {

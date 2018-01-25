@@ -7,11 +7,14 @@ import (
 	"text/template"
 
 	"github.com/Masterminds/sprig"
+	"github.com/banzaicloud/banzai-types/utils"
 	"github.com/ghodss/yaml"
+	"github.com/pkg/errors"
 	"k8s.io/helm/pkg/chartutil"
 	"k8s.io/helm/pkg/helm"
 	"k8s.io/helm/pkg/proto/hapi/chart"
 	rls "k8s.io/helm/pkg/proto/hapi/services"
+	"net/http"
 )
 
 //ListDeployments lists Helm deployments
@@ -95,9 +98,19 @@ func UpgradeDeployment(deploymentName, chartName string, values map[string]inter
 }
 
 //CreateDeployment creates a Helm deployment
-func CreateDeployment(chartPath string, releaseName string, valueOverrides []byte, kubeConfig []byte) (*rls.InstallReleaseResponse, error) {
+func CreateDeployment(chartName string, releaseName string, valueOverrides []byte, kubeConfig []byte, clusterName string) (*rls.InstallReleaseResponse, error) {
 	defer tearDown()
-	chartRequested, err := chartutil.Load(chartPath)
+
+	logTag := "CreateDeployment"
+
+	utils.LogInfof(logTag, "Deploying chart='%s', release name='%s'.", chartName, releaseName)
+	downloadedChartPath, err := downloadChartFromRepo(chartName, clusterName)
+	if err != nil {
+		return nil, err
+	}
+
+	utils.LogInfof(logTag, "Loading chart '%s'", downloadedChartPath)
+	chartRequested, err := chartutil.Load(downloadedChartPath)
 	if err != nil {
 		return nil, fmt.Errorf("Error loading chart: %v", err)
 	}
@@ -148,6 +161,30 @@ func DeleteDeployment(releaseName string, kubeConfig []byte) error {
 
 //GetDeployment - N/A
 func GetDeployment() {
+
+}
+
+// Retrieves the status of the passed in release name.
+// returns with an error if the release is not found or another error occurs
+// in case of error the status is filled with information to classify the error cause
+func GetDeploymentStatus(releaseName string, kubeConfig []byte) (string, error) {
+	defer tearDown()
+
+	helmClient, err := GetHelmClient(kubeConfig)
+
+	if err != nil {
+		// internal server error
+		return fmt.Sprint(http.StatusInternalServerError), errors.Wrap(err, "couldn't get the helm client")
+	}
+
+	releaseStatusResponse, err := helmClient.ReleaseStatus(releaseName)
+
+	if err != nil {
+		// the release cannot be found
+		return fmt.Sprint(http.StatusNotFound), errors.Wrap(err, "couldn't get the release status")
+	}
+
+	return releaseStatusResponse.Info.Status.GetCode().String(), nil
 
 }
 

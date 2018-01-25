@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"path"
 	"time"
 
 	banzaiTypes "github.com/banzaicloud/banzai-types/components"
@@ -29,6 +28,9 @@ import (
 
 	"github.com/banzaicloud/pipeline/pods"
 	"github.com/banzaicloud/pipeline/utils"
+	"strconv"
+
+	"github.com/pkg/errors"
 )
 
 //nodeInstanceType=m3.medium -d nodeInstanceSpotPrice=0.04 -d nodeMin=1 -d nodeMax=3 -d image=ami-6d48500b
@@ -132,7 +134,7 @@ func main() {
 		v1.HEAD("/clusters/:id/deployments", GetTillerStatus)
 		v1.DELETE("/clusters/:id/deployments/:name", DeleteDeployment)
 		v1.PUT("/clusters/:id/deployments/:name", UpgradeDeployment)
-		v1.HEAD("/clusters/:id/deployments/:name", FetchDeploymentStatus)
+		v1.HEAD("/clusters/:id/deployments/:name", HelmDeploymentStatus)
 		v1.POST("/clusters/:id/helminit", InitHelmOnCluster)
 		v1.GET("/token", auth.GenerateToken)
 	}
@@ -215,8 +217,6 @@ func CreateDeployment(c *gin.Context) {
 	}
 
 	banzaiUtils.LogDebug(banzaiConstants.TagCreateDeployment, fmt.Sprintf("Creating chart %s with version %s and release name %s", deployment.Name, deployment.Version, deployment.ReleaseName))
-	prefix := viper.GetString("dev.chartpath")
-	chartPath := path.Join(prefix, deployment.Name)
 
 	var values []byte = nil
 	if deployment.Values != "" {
@@ -239,7 +239,7 @@ func CreateDeployment(c *gin.Context) {
 
 	banzaiUtils.LogDebug(banzaiConstants.TagCreateDeployment, "Custom values:", string(values))
 	banzaiUtils.LogInfo(banzaiConstants.TagCreateDeployment, "Create deployment")
-	release, err := helm.CreateDeployment(chartPath, deployment.ReleaseName, values, kubeConfig)
+	release, err := helm.CreateDeployment(deployment.Name, deployment.ReleaseName, values, kubeConfig, cloudCluster.Name)
 	if err != nil {
 		banzaiUtils.LogWarn(banzaiConstants.TagCreateDeployment, "Error during create deployment.", err.Error())
 		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
@@ -525,13 +525,10 @@ func installIngressControllerPostHook(createdCluster *banzaiSimpleTypes.ClusterS
 	logTag := "InstallIngressController"
 	banzaiUtils.LogInfo(logTag, "Getting K8S Config Succeeded")
 
-	deploymentName := "pipeline-cluster-ingress"
+	deploymentName := "banzaicloud-stable/pipeline-cluster-ingress"
 	releaseName := "pipeline"
 
-	prefix := viper.GetString("dev.chartpath")
-	chartPath := path.Join(prefix, deploymentName)
-
-	_, err = helm.CreateDeployment(chartPath, releaseName, nil, kubeConfig)
+	_, err = helm.CreateDeployment(deploymentName, releaseName, nil, kubeConfig, createdCluster.Name)
 	if err != nil {
 		banzaiUtils.LogErrorf(logTag, "Deploying '%s' failed due to: ", deploymentName)
 		banzaiUtils.LogErrorf(logTag, "%s", err.Error())
@@ -564,8 +561,8 @@ func updatePrometheusPostHook(_ *banzaiSimpleTypes.ClusterSimple, _ *gin.Context
 
 func installHelmPostHook(createdCluster *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 	logTag := "InstallHelmPostHook"
-	retryAttempts := viper.GetInt("dev.retryAttempt")
-	retrySleepSeconds := viper.GetInt("dev.retrySleepSeconds")
+	retryAttempts := viper.GetInt(banzaiConstants.HELM_RETRY_ATTEMPT_CONFIG)
+	retrySleepSeconds := viper.GetInt(banzaiConstants.HELM_RETRY_SLEEP_SECONDS)
 	kce := fmt.Sprintf("./statestore/%s/config", createdCluster.Name)
 	banzaiUtils.LogInfof(banzaiConstants.TagHelmInstall, "Set $KUBECONFIG env to %s", kce)
 	os.Setenv("KUBECONFIG", kce)
@@ -575,7 +572,7 @@ func installHelmPostHook(createdCluster *banzaiSimpleTypes.ClusterSimple, c *gin
 		ServiceAccount: "tiller",
 		ImageSpec:      "gcr.io/kubernetes-helm/tiller:v2.7.2",
 	}
-	err := helm.RetryHelmInstall(helmInstall, createdCluster.Cloud)
+	err := helm.RetryHelmInstall(helmInstall, createdCluster.Cloud, createdCluster.Name)
 	if err == nil {
 		// --- [ Get K8S Config ] --- //
 		kubeConfig, err := cloud.GetK8SConfig(createdCluster, c)
@@ -827,9 +824,9 @@ func FetchDeploymentStatus(c *gin.Context) {
 	banzaiUtils.LogInfo(banzaiConstants.TagFetchDeploymentStatus, "Start fetching deployment status")
 
 	name := c.Param("name")
+	banzaiUtils.LogInfo(banzaiConstants.TagFetchDeploymentStatus, "Get deployment with name:", name)
 
 	// --- [ Get cluster ]  --- //
-	banzaiUtils.LogInfo(banzaiConstants.TagFetchDeploymentStatus, "Get cluster with name:", name)
 	cloudCluster, err := cloud.GetClusterFromDB(c)
 	if err != nil {
 		return
@@ -972,7 +969,58 @@ func InitHelmOnCluster(c *gin.Context) {
 		banzaiUtils.LogInfo(banzaiConstants.TagHelmInstall, "Bind succeeded")
 	}
 
-	resp := helm.Install(&helmInstall)
+	resp := helm.Install(&helmInstall, cl.Name)
 	cloud.SetResponseBodyJson(c, resp.StatusCode, resp)
 
+}
+
+// Check the status of a deployment through the helm client API
+func HelmDeploymentStatus(c *gin.Context) {
+	// todo error handling - design it, refine it, refactor it
+
+	name := c.Param("name")
+	banzaiUtils.LogInfof("HelmDeploymentStatus", "Retrieving status for deployment: %s", name)
+
+	cloudCluster, err := cloud.GetClusterFromDB(c)
+	helmDeploymentStatusErrorResponse(c, errors.Wrap(err, "couldn't get the cluster from db"))
+
+	kubeConfig, err := cloud.GetK8SConfig(cloudCluster, c)
+	helmDeploymentStatusErrorResponse(c, errors.Wrap(err, "couldn't get the k8s config"))
+
+	status, err := helm.GetDeploymentStatus(name, kubeConfig)
+
+	if err != nil {
+
+		banzaiUtils.LogError("HelmDeploymentStatus", err.Error())
+		// convert the status code back - this is specific to the underlying call!
+		code, _ := strconv.Atoi(status)
+
+		cloud.SetResponseBodyJson(c, code, gin.H{
+			cloud.JsonKeyStatus:  code,
+			cloud.JsonKeyMessage: fmt.Sprint(http.StatusText(code), "\n", err.Error()),
+		})
+
+		return
+	}
+
+	if status != "" {
+		banzaiUtils.LogInfof("HelmDeploymentStatus", "Deployment status: %s", status)
+		cloud.SetResponseBodyJson(c, http.StatusOK, gin.H{
+			cloud.JsonKeyStatus:  http.StatusOK,
+			cloud.JsonKeyMessage: "Deployment status: " + status,
+		})
+	}
+
+}
+
+func helmDeploymentStatusErrorResponse(c *gin.Context, err error) {
+
+	if err != nil {
+		banzaiUtils.LogError("HelmDeploymentStatus", err.Error())
+		cloud.SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
+			cloud.JsonKeyStatus:  http.StatusInternalServerError,
+			cloud.JsonKeyMessage: err.Error(),
+		})
+		return
+	}
 }
