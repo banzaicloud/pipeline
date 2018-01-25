@@ -258,4 +258,28 @@ func GetK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) ([]byte, 
 		SendNotSupportedCloudResponse(c, LOGTAG)
 		return nil, errors.New("error happened during getting K8S config")
 	}
+
+}
+
+// DestroyStateStore deletes state store for given cluster
+func DestroyStateStore(cs *banzaiSimpleTypes.ClusterSimple) {
+
+	banzaiUtils.LogInfof(banzaiConstants.TagDeleteCluster, "Deleting state store, %s cluster with id: %d", cs.Name, cs.ID)
+	stateStore := getStateStoreForCluster(*cs)
+	banzaiUtils.LogInfof(banzaiConstants.TagDeleteCluster, "State store: %#v", stateStore)
+
+	if !stateStore.Exists() {
+		// state store NOT exists
+		banzaiUtils.LogWarn(banzaiConstants.TagDeleteCluster, "State store not exists")
+	} else {
+		// state store exists
+		banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "State store exists")
+		err := stateStore.Destroy()
+		if err != nil {
+			banzaiUtils.LogErrorf(banzaiConstants.TagDeleteCluster, "State store delete failed: %s", err.Error())
+		} else {
+			banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "State store delete success")
+		}
+	}
+
 }
