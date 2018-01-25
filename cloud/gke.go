@@ -549,12 +549,14 @@ func DeleteGoogleCluster(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) bo
 	}
 
 	// set google props
+	banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Load Google props from database")
 	database.SelectFirstWhere(&cs.Google, banzaiSimpleTypes.GoogleClusterSimple{ClusterSimpleId: cs.ID})
 	gkec := GKECluster{
 		ProjectID: cs.Google.Project,
 		Name:      cs.Name,
 		Zone:      cs.Location,
 	}
+
 	if deleteCluster(&gkec, c) {
 		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Delete succeeded")
 		return true
@@ -571,6 +573,8 @@ func DeleteGoogleCluster(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) bo
 
 func deleteCluster(cc *GKECluster, c *gin.Context) bool {
 
+	banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Get Service Client")
+
 	svc, err := GetGoogleServiceClient()
 	if err != nil {
 		SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
@@ -579,10 +583,12 @@ func deleteCluster(cc *GKECluster, c *gin.Context) bool {
 		})
 		return false
 	}
+	banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Get Service Client success")
 
 	banzaiUtils.LogInfof(banzaiConstants.TagDeleteCluster, "Removing cluster %v from project %v, zone %v", cc.Name, cc.ProjectID, cc.Zone)
 	deleteCall, err := svc.Projects.Zones.Clusters.Delete(cc.ProjectID, cc.Zone, cc.Name).Context(context.Background()).Do()
 	if err != nil && !strings.Contains(err.Error(), "notFound") {
+		banzaiUtils.LogErrorf(banzaiConstants.TagDeleteCluster, "Error during delete %s", err.Error())
 		SetResponseBodyJson(c, http.StatusNotFound, gin.H{
 			JsonKeyStatus:  http.StatusNotFound,
 			JsonKeyMessage: err,
