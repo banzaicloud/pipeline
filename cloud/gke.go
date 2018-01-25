@@ -71,7 +71,7 @@ func CreateClusterGoogle(request *banzaiTypes.CreateClusterRequest, c *gin.Conte
 	}
 	banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Read success")
 
-	banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Get Service Client")
+	banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Get Google Service Client")
 	svc, err := GetGoogleServiceClient()
 	if err != nil {
 		SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
@@ -80,7 +80,7 @@ func CreateClusterGoogle(request *banzaiTypes.CreateClusterRequest, c *gin.Conte
 		})
 		return false, nil
 	}
-	banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Get Service Client success")
+	banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Get Google Service Client succeeded")
 
 	cc := GKECluster{
 		ProjectID:         request.Properties.CreateClusterGoogle.Project,
@@ -573,7 +573,7 @@ func DeleteGoogleCluster(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) bo
 
 func deleteCluster(cc *GKECluster, c *gin.Context) bool {
 
-	banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Get Service Client")
+	banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Get Google Service Client")
 
 	svc, err := GetGoogleServiceClient()
 	if err != nil {
@@ -583,7 +583,7 @@ func deleteCluster(cc *GKECluster, c *gin.Context) bool {
 		})
 		return false
 	}
-	banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Get Service Client success")
+	banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Get Google Service Client succeeded")
 
 	banzaiUtils.LogInfof(banzaiConstants.TagDeleteCluster, "Removing cluster %v from project %v, zone %v", cc.Name, cc.ProjectID, cc.Zone)
 	deleteCall, err := svc.Projects.Zones.Clusters.Delete(cc.ProjectID, cc.Zone, cc.Name).Context(context.Background()).Do()
@@ -654,13 +654,13 @@ func GetGoogleK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 
 func getGoogleKubernetesConfig(cs *banzaiSimpleTypes.ClusterSimple) ([]byte, *banzaiTypes.BanzaiResponse) {
 
-	banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Get Service Client")
+	banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Get Google Service Client")
 	svc, err := GetGoogleServiceClient()
 	if err != nil {
 		banzaiUtils.LogErrorf(banzaiConstants.TagFetchClusterConfig, "Error during get service client %v", err)
 		return nil, getBanzaiErrorFromError(err)
 	}
-	banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Get Service Client success")
+	banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Get Google Service Client succeeded")
 
 	banzaiUtils.LogInfof(banzaiConstants.TagFetchClusterConfig, "Get google cluster with name %s", cs.Name)
 	cl, err := svc.Projects.Zones.Clusters.Get(cs.Google.Project, cs.Location, cs.Name).Context(context.Background()).Do()
@@ -1031,7 +1031,7 @@ func GetGoogleClusterStatus(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context)
 	// load google props from db
 	database.SelectFirstWhere(&cs.Google, banzaiSimpleTypes.GoogleClusterSimple{ClusterSimpleId: cs.ID})
 
-	banzaiUtils.LogInfo(banzaiConstants.TagGetClusterStatus, "Get Service Client")
+	banzaiUtils.LogInfo(banzaiConstants.TagGetClusterStatus, "Get Google Service Client")
 	svc, err := GetGoogleServiceClient()
 	if err != nil {
 		banzaiUtils.LogErrorf(banzaiConstants.TagGetClusterStatus, "Error during get service client %v", err)
@@ -1041,7 +1041,7 @@ func GetGoogleClusterStatus(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context)
 		})
 		return
 	}
-	banzaiUtils.LogInfo(banzaiConstants.TagGetClusterStatus, "Get Service Client success")
+	banzaiUtils.LogInfo(banzaiConstants.TagGetClusterStatus, "Get Google Service Client success")
 
 	banzaiUtils.LogInfof(banzaiConstants.TagGetClusterStatus, "Get google cluster with name %s", cs.Name)
 	cl, err := svc.Projects.Zones.Clusters.Get(cs.Google.Project, cs.Location, cs.Name).Context(context.Background()).Do()
