@@ -887,19 +887,15 @@ func Status(c *gin.Context) {
 	} else {
 		var clusterStatuses []pods.ClusterStatusResponse
 		for _, cl := range clusters {
-			clust, err := cloud.GetKubicornCluster(&cl)
 			banzaiUtils.LogInfo(utils.TagStatus, "Start listing pods / cluster")
-			if err != nil {
-				banzaiUtils.LogInfo(utils.TagStatus, err.Error())
+			var clusterStatusResponse pods.ClusterStatusResponse
+			clusterStatusResponse, err := pods.ListPodsForCluster(&cl)
+			if err == nil {
+				clusterStatuses = append(clusterStatuses, clusterStatusResponse)
 			} else {
-				var clusterStatusResponse pods.ClusterStatusResponse
-				clusterStatusResponse, err = pods.ListPodsForCluster(clust)
-				if err == nil {
-					clusterStatuses = append(clusterStatuses, clusterStatusResponse)
-				} else {
-					banzaiUtils.LogError(utils.TagStatus, err)
-				}
+				banzaiUtils.LogError(utils.TagStatus, err)
 			}
+
 		}
 		c.JSON(http.StatusOK, gin.H{"clusterStatuses": clusterStatuses})
 	}
