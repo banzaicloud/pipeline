@@ -487,7 +487,7 @@ func DeleteCluster(c *gin.Context) {
 	if cloud.DeleteCluster(cl, c) {
 		// cluster delete success
 
-		// delete sate store
+		// delete state store
 		cloud.DestroyStateStore(cl)
 
 		// delete from db

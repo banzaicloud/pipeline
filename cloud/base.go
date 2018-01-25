@@ -264,8 +264,9 @@ func GetK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) ([]byte, 
 // DestroyStateStore deletes state store for given cluster
 func DestroyStateStore(cs *banzaiSimpleTypes.ClusterSimple) {
 
-	banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Deleting state store")
+	banzaiUtils.LogInfof(banzaiConstants.TagDeleteCluster, "Deleting state store, %s cluster with id: %d", cs.Name, cs.ID)
 	stateStore := getStateStoreForCluster(*cs)
+	banzaiUtils.LogInfof(banzaiConstants.TagDeleteCluster, "State store: %#v", stateStore)
 
 	if !stateStore.Exists() {
 		// state store NOT exists
