@@ -45,14 +45,21 @@ const (
 const googleAppCredential = "dev.gkeCredentialPath"
 
 func getCredentialPath() string {
+	banzaiUtils.LogInfo(banzaiConstants.TagInit, "Get gke credential path")
 	if len(credentialPath) == 0 {
 		credentialPath = viper.GetString(googleAppCredential)
 		banzaiUtils.LogDebugf(banzaiConstants.TagInit, "Credential path is %s", credentialPath)
+	} else {
+		banzaiUtils.LogError(banzaiConstants.TagInit, "Credential path is not configured")
 	}
 	return credentialPath
 }
 
 func CreateClusterGoogle(request *banzaiTypes.CreateClusterRequest, c *gin.Context) (bool, *banzaiSimpleTypes.ClusterSimple) {
+
+	banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Start create cluster (Google)")
+
+	banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Read credential path")
 	data, err := ioutil.ReadFile(getCredentialPath())
 	if err != nil {
 		banzaiUtils.LogErrorf(banzaiConstants.TagCreateCluster, "GKE credential path is not specified: %s", err.Error())
@@ -62,7 +69,9 @@ func CreateClusterGoogle(request *banzaiTypes.CreateClusterRequest, c *gin.Conte
 		})
 		return false, nil
 	}
+	banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Read success")
 
+	banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Get Service Client")
 	svc, err := GetGoogleServiceClient()
 	if err != nil {
 		SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
@@ -71,6 +80,7 @@ func CreateClusterGoogle(request *banzaiTypes.CreateClusterRequest, c *gin.Conte
 		})
 		return false, nil
 	}
+	banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Get Service Client success")
 
 	cc := GKECluster{
 		ProjectID:         request.Properties.CreateClusterGoogle.Project,
@@ -102,6 +112,8 @@ func CreateClusterGoogle(request *banzaiTypes.CreateClusterRequest, c *gin.Conte
 		banzaiUtils.LogInfof(banzaiConstants.TagCreateCluster, "Cluster %s create is called for project %s and zone %s. Status Code %v", cc.Name, cc.ProjectID, cc.Zone, createCall.HTTPStatusCode)
 	}
 
+	banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Waiting for cluster...")
+
 	gkeCluster, err := waitForCluster(svc, cc)
 	if err != nil {
 		banzaiUtils.LogErrorf(banzaiConstants.TagCreateCluster, "Cluster create failed: %s", err.Error())
@@ -126,6 +138,7 @@ func CreateClusterGoogle(request *banzaiTypes.CreateClusterRequest, c *gin.Conte
 		},
 	}
 
+	banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Save created cluster into database: %v", cluster2Db)
 	if err := database.Save(&cluster2Db).Error; err != nil {
 		DbSaveFailed(c, err, cluster2Db.Name)
 		return false, nil
@@ -273,8 +286,11 @@ func waitForCluster(svc *gke.Service, cc GKECluster) (*gke.Cluster, error) {
 
 		cluster, err := svc.Projects.Zones.Clusters.Get(cc.ProjectID, cc.Zone, cc.Name).Context(context.TODO()).Do()
 		if err != nil {
+			banzaiUtils.LogErrorf(banzaiConstants.TagCreateCluster, "error during getting cluster: %s", err.Error())
 			return nil, err
 		}
+
+		banzaiUtils.LogInfof(banzaiConstants.TagCreateCluster, "Cluster status: %s", cluster.Status)
 
 		if cluster.Status == statusRunning {
 			banzaiUtils.LogInfof(banzaiConstants.TagCreateCluster, "Cluster %s is running", cc.Name)
@@ -285,6 +301,7 @@ func waitForCluster(svc *gke.Service, cc GKECluster) (*gke.Cluster, error) {
 			banzaiUtils.LogInfof(banzaiConstants.TagCreateCluster, "%s cluster %s", string(cluster.Status), cc.Name)
 			message = cluster.Status
 		}
+
 		time.Sleep(time.Second * 5)
 
 	}
