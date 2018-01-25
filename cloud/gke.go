@@ -45,9 +45,12 @@ const (
 const googleAppCredential = "dev.gkeCredentialPath"
 
 func getCredentialPath() string {
+	banzaiUtils.LogInfo(banzaiConstants.TagInit, "Get gke credential path")
 	if len(credentialPath) == 0 {
 		credentialPath = viper.GetString(googleAppCredential)
 		banzaiUtils.LogDebugf(banzaiConstants.TagInit, "Credential path is %s", credentialPath)
+	} else {
+		banzaiUtils.LogError(banzaiConstants.TagInit, "Credential path is not configured")
 	}
 	return credentialPath
 }
