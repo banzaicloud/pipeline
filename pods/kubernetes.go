@@ -7,15 +7,16 @@ import (
 	log "github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"github.com/banzaicloud/pipeline/cloud"
-	"github.com/kris-nova/kubicorn/apis/cluster"
 	"fmt"
+	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
+	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
+	banzaiSimpleTypes "github.com/banzaicloud/banzai-types/components/database"
 )
 
 //Get Kubernetes config - running inside or outside K8S
@@ -147,23 +148,26 @@ func CreatePodMap(client *kubernetes.Clientset, namespace string) (map[string][]
 	return podGroupMap, nil
 }
 
-func ListPodsForCluster(cluster *cluster.Cluster) (ClusterStatusResponse, error) {
+func ListPodsForCluster(cluster *banzaiSimpleTypes.ClusterSimple) (ClusterStatusResponse, error) {
 	var (
 		config *rest.Config
 		err    error
 	)
-	kubeConfig, err := cloud.GetConfig(cluster, "")
+	kubeConfig, err := cloud.GetKubeConfigPath(fmt.Sprintf("./statestore/%s/", cluster.Name))
 	if err != nil {
 		return ClusterStatusResponse{}, err
 	}
 	if kubeConfig != "" {
 		config, err = clientcmd.BuildConfigFromFlags("", kubeConfig)
+	} else {
+		banzaiUtils.LogInfo(banzaiConstants.TagKubernetes, "Use K8S InCluster Config.")
+		config, err = rest.InClusterConfig()
 	}
 	if err != nil {
 		return ClusterStatusResponse{}, fmt.Errorf("K8S Connection Failed: %v", err)
 	}
-
 	client := kubernetes.NewForConfigOrDie(config)
+
 	systemPodGroupMap, err := CreatePodMap(client, metav1.NamespaceSystem)
 	if err != nil {
 		return ClusterStatusResponse{}, err
