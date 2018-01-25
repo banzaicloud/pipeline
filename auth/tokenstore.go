@@ -6,6 +6,8 @@ import (
 	"os/user"
 	"sync"
 
+	"k8s.io/client-go/rest"
+
 	vault "github.com/hashicorp/vault/api"
 )
 
@@ -83,8 +85,9 @@ func (tokenStore inMemoryTokenStore) List(userId string) ([]string, error) {
 // $ vault server -dev &
 // $ export VAULT_ADDR='http://127.0.0.1:8200'
 type vaultTokenStore struct {
-	client  *vault.Client
-	logical *vault.Logical
+	client       *vault.Client
+	logical      *vault.Logical
+	tokenRenewer *vault.Renewer
 }
 
 func NewVaultTokenStore() TokenStore {
@@ -92,18 +95,50 @@ func NewVaultTokenStore() TokenStore {
 	if err != nil {
 		panic(err)
 	}
+	logical := client.Logical()
+	var tokenRenewer *vault.Renewer
+
 	if client.Token() == "" {
+
 		usr, err := user.Current()
 		if err != nil {
 			panic(err)
 		}
+
 		token, err := ioutil.ReadFile(usr.HomeDir + "/.vault-token")
-		if err != nil {
-			panic(err)
+		if err == nil {
+
+			client.SetToken(string(token))
+
+		} else {
+			// If VAULT_TOKEN or ~/.vault-token wasn't provided let's suppose
+			// we are in Kubernetes and try to get one with the ServiceAccount token
+
+			k8sconfig, err := rest.InClusterConfig()
+			if err != nil {
+				panic(err)
+			}
+
+			data := map[string]interface{}{"jwt": k8sconfig.BearerToken, "role": "pipeline"}
+			secret, err := logical.Write("auth/kubernetes/login", data)
+			if err != nil {
+				panic(err)
+			}
+
+			tokenRenewer, err = client.NewRenewer(&vault.RenewerInput{Secret: secret})
+			if err != nil {
+				panic(err)
+			}
+
+			// We never really want to stop this
+			go tokenRenewer.Renew()
+
+			// Finally set the first token from the response
+			client.SetToken(secret.Auth.ClientToken)
 		}
-		client.SetToken(string(token))
 	}
-	return vaultTokenStore{client: client, logical: client.Logical()}
+
+	return vaultTokenStore{client: client, logical: logical, tokenRenewer: tokenRenewer}
 }
 
 func tokenPath(userId, token string) string {
@@ -111,7 +146,8 @@ func tokenPath(userId, token string) string {
 }
 
 func (tokenStore vaultTokenStore) Store(userId, token string) error {
-	_, err := tokenStore.logical.Write(tokenPath(userId, token), map[string]interface{}{"token": token})
+	data := map[string]interface{}{"token": token}
+	_, err := tokenStore.logical.Write(tokenPath(userId, token), data)
 	return err
 }
 
