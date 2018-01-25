@@ -275,7 +275,7 @@ func DestroyStateStore(cs *banzaiSimpleTypes.ClusterSimple) {
 		banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "State store exists")
 		err := stateStore.Destroy()
 		if err != nil {
-			banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "State store delete failed: %s", err.Error())
+			banzaiUtils.LogErrorf(banzaiConstants.TagDeleteCluster, "State store delete failed: %s", err.Error())
 		} else {
 			banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "State store delete success")
 		}
