@@ -485,7 +485,12 @@ func DeleteCluster(c *gin.Context) {
 		}
 	}
 	if cloud.DeleteCluster(cl, c) {
-		// cluster delete success, delete from db
+		// cluster delete success
+
+		// delete sate store
+		cloud.DestroyStateStore(cl)
+
+		// delete from db
 		if cloud.DeleteFromDb(cl, c) {
 			updatePrometheus()
 		}
