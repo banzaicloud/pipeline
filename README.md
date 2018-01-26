@@ -29,6 +29,7 @@ _Pipeline is a RESTful API to deploy **cloud native** microservices in public cl
   - [Apache Spark](#apache-spark)
   - [Apache Zeppelin](#apache-zeppelin)
   - [Apache Kafka](#apache-kafka)
+  - [TiDB](#tidb)
 - [Reporting bugs](#reporting-bugs)
 - [Contributing](#contributing)
 - [License](#license)
