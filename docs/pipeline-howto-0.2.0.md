@@ -1,10 +1,11 @@
-Starting from the [0.2.0](https://github.com/banzaicloud/pipeline/tree/0.2.0) version Pipeline supports managed Kubernetes clusters on Azure ([AKS](https://docs.microsoft.com/en-us/azure/aks/) as well.
+Starting from the [0.2.0](https://github.com/banzaicloud/pipeline/tree/0.2.0) version Pipeline supports managed Kubernetes clusters on Azure ([AKS](https://docs.microsoft.com/en-us/azure/aks/)) as well.
 
 For simplicity the instruction steps are presented through an example specifically how to hook a Spark application one develops into CI/CD workflow to run it on Kubernetes on Azure.
 
 ### Getting Started
 
-It's assumed that the source of the Spark application is stored in [GitHub](http://github.com) and the user has an [Azure](https://portal.azure.com) subscription with AKS service enabled.
+It's assumed that the source of the Spark application is stored in [GitHub](http://github.com).
+
 The [Pipeline Control Plane](https://github.com/banzaicloud/pipeline-cp-launcher/tree/0.2.0) takes care of creating a Kubernetes cluster on the desired cloud provider and executing the steps of the CI/CD flow can be hosted on both `AWS` and `Azure`.
 See details below for how to launch `Pipeline Control Plane` on `AWS` and `Azure`.
 
@@ -66,7 +67,7 @@ The easiest way for running a Pipeline Control Plane is to use a [Cloudformation
 
 * Navigate to: https://eu-west-1.console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new
 
-* Select `Specify an Amazon S3 template URL` and add the URL to our template `https://s3-eu-west-1.amazonaws.com/cf-templates-grr4ysncvcdl-eu-west-1/2018026v2c-new.templatedf0gpwyv0gg`
+* Select `Specify an Amazon S3 template URL` and add the URL to our template `https://s3-eu-west-1.amazonaws.com/cf-templates-grr4ysncvcdl-eu-west-1/2018026em9-new.templatee93ate9mob7`
 
   <a href="images/howto/ControlPlaneFromTemplate.png" target="_blank"><img src="images/howto/ControlPlaneFromTemplate.png" height="230"></a>
 
