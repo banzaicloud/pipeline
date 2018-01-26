@@ -23,7 +23,8 @@ _Pipeline is a RESTful API to deploy **cloud native** microservices in public cl
 - [Installation](#installation)
 - [Dependency management](#vendoring)
 - [Create and scale your cluster](#create-and-scale-your-cluster)
-- [Quick howto](#pipeline-howto)
+- [Deploy applications](#application-deployments)
+- [Quick howto](#quick-howto)
 - [Spotguide specification](#spotguide-specification)
   - [Big data](#big-data)
   - [Apache Spark](#apache-spark)
@@ -94,9 +95,9 @@ All these components are assembled into a **Control Plane** - and deployed to Ku
 
 You can launch a Pipeline control plane on AWS with the following [Cloudformation](https://github.com/banzaicloud/pipeline-cp-launcher/blob/0.1.0/control-plane.template) template.
 
-### Deployed cluster
+### Deployments
 
-A typical cluster/application deployed with Pipeline - for an out of the box Spark/Zeppelin spotguide - looks like this.
+A typical cluster/application deployed with Pipeline - as an example Spark/Zeppelin spotguide - looks like this.
 
 ![Deployed Cluster](docs/images/spark-cluster-aws.png)
 
@@ -118,11 +119,19 @@ Vendoring all dependencies is essential to have a **go get**-able package. Go ve
 
 ### Create and scale your cluster
 
-Once Pipeline API is started, the easiest way to start, stop, delete or scale a cluster is through the following Postman example.
+Once Pipeline API is started, the easiest way to start, stop, delete or scale a cluster is through the following Postman examples.
 
 [![Run in Postman](https://run.pstmn.io/button.svg)](https://www.getpostman.com/collections/56684ef61ee236e8f30d)
 
 For alternative ways to create a cluster please follow the [create cluster guide](docs/create.md).
+
+### Application deployments
+
+Once Pipeline API is started, the easiest way to deploy applications to it is through the following Postman examples.
+
+[![Run in Postman](https://run.pstmn.io/button.svg)](https://www.getpostman.com/collections/56684ef61ee236e8f30d)
+
+For alternative ways to learn about application deployments please follow the [create cluster guide](docs/deployments.md).
 
 ### Quick howto
 
