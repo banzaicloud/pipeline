@@ -186,7 +186,7 @@ func (r *AtomicReconciler) Destroy() (destroyedCluster *cluster.Cluster, err err
 }
 
 func init() {
-	sigHandler = signals.NewSignalHandler(600)
+	sigHandler = signals.NewSignalHandler(6000)
 	sigHandler.Register()
 }
 
