@@ -1,6 +1,6 @@
-Starting from the [0.2.0](https://github.com/banzaicloud/pipeline/tree/0.2.0) version Pipeline supports managed Kubernetes clusters on Azure ([AKS](https://docs.microsoft.com/en-us/azure/aks/)) as well.
+Starting from the [0.2.0](https://github.com/banzaicloud/pipeline/tree/0.2.0) version Pipeline supports managed Kubernetes clusters on Azure [AKS](https://docs.microsoft.com/en-us/azure/aks/) as well.
 
-For simplicity the instruction steps are presented through an example specifically how to hook a Spark application one develops into CI/CD workflow to run it on Kubernetes on Azure.
+For simplicity the instruction steps are presented through an example specifically how to hook a Spark application into a CI/CD workflow to run it on managed Kubernetes AKS/Azure.
 
 ### Getting Started
 
@@ -13,10 +13,10 @@ See details below for how to launch `Pipeline Control Plane` on `AWS` and `Azure
 
 1. Account on [GitHub](http://github.com)
 1. Repository on [GitHub](http://github.com) for the Spark application source code
-1. Hosting `Pipeline Control Plane` and creating Kubernetes clusters on `AWS`
+1. Hosting `Pipeline Control Plane` and creating Kubernetes clusters on **`AWS`**
    1. [AWS](https://portal.aws.amazon.com/billing/signup?type=enterprise#/start) account
    1. AWS [EC2 key pair](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html)
-1. Hosting `Pipeline Control Plane` and creating Kubernetes clusters on `Azure`
+1. Hosting `Pipeline Control Plane` and creating Kubernetes clusters on **`Azure`**
    1. [Azure](https://portal.azure.com) subscription with AKS service enabled.
    1. Obtain a Client Id, Client Secret and Tenant Id for a Microsoft Azure Active Directory. These information can be retrieved from the portal, but the easiest and fastest way is to use the Azure CLI tool.<br>  
     ```sh
@@ -143,7 +143,7 @@ The easiest way for running a Pipeline Control Plane is to use a [Cloudformation
 
 ### Launch Pipeline Control Plane on `Azure`
 
-The easiest way for running a Pipeline Control Plane is deploying it using an [ARM](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview)(https://aws.amazon.com/cloudformation/) template.
+The easiest way for running a Pipeline Control Plane is deploying it using an [ARM](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview) template.
 
 * Navigate to: https://portal.azure.com/#create/Microsoft.Template
 
@@ -167,7 +167,6 @@ The easiest way for running a Pipeline Control Plane is deploying it using an [A
     * this section is optional. Complete this section to receive  cluster related alerts through a [Slack](https://slack.com) push notification channel.
 
   * **Banzai Pipeline Credentials**
-     
      * Pipeline Password - specify the password for accessing the Pipeline REST [API](https://github.com/banzaicloud/pipeline/blob/0.2.0/docs/create.md) exposed by the Pipeline PaaS. **_Take note of the user name and password as those will be required when setting the [secrets](#repository-secrets) for the GitHub repositories in the CI/CD workflow._**
 
       <a href="images/howto/ARMPiCred.png"><img src="images/howto/ARMPiCred.png" height="70"></a>
