@@ -26,35 +26,35 @@ Hosting `Pipeline Control Plane` and creating Kubernetes clusters on **`Azure`**
 
    1. [Azure](https://portal.azure.com) subscription with AKS service enabled.
    1. Obtain a Client Id, Client Secret and Tenant Id for a Microsoft Azure Active Directory. These information can be retrieved from the portal, but the easiest and fastest way is to use the Azure CLI tool.<br>  
-    ```sh
-    curl -L https://aka.ms/InstallAzureCli | bash
-    exec -l $SHELL
-    az login
+   
+```bash
+$ curl -L https://aka.ms/InstallAzureCli | bash
+$ exec -l $SHELL
+$ az login
+```
 
-    az ad sp create-for-rbac
-    ```
-    You should get something like:
+You should get something like:
 
-    ```json
-    {
+```json
+{
 
-      "appId": "1234567-1234-1234-1234-1234567890ab",
-      "displayName": "azure-cli-2017-08-18-19-25-59",
-      "name": "http://azure-cli-2017-08-18-19-25-59",
-      "password": "1234567-1234-1234-be18-1234567890ab",
-      "tenant": "7654321-1234-1234-ee18-9876543210ab"
-    }
-    ```
+  "appId": "1234567-1234-1234-1234-1234567890ab",
+  "displayName": "azure-cli-2017-08-18-19-25-59",
+  "name": "http://azure-cli-2017-08-18-19-25-59",
+  "password": "1234567-1234-1234-be18-1234567890ab",
+  "tenant": "7654321-1234-1234-ee18-9876543210ab"
+}
+```
 
-    * `appId` is the Azure Client Id
-    * `password` is the Azure Client Secret
-    * `tenant` is the Azure Tenant Id
+* `appId` is the Azure Client Id
+* `password` is the Azure Client Secret
+* `tenant` is the Azure Tenant Id
 
-    In order to get Azure Subscription Id run:
+In order to get Azure Subscription Id run:
 
-    ```sh
-    az account show --query id
-    ```
+```sh
+az account show --query id
+```
 
 ### Register the OAuth application on GitHub
 
