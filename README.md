@@ -23,12 +23,14 @@ _Pipeline is a RESTful API to deploy **cloud native** microservices in public cl
 - [Installation](#installation)
 - [Dependency management](#vendoring)
 - [Create and scale your cluster](#create-and-scale-your-cluster)
-- [Quick howto](#pipeline-howto)
+- [Deploy applications](#application-deployments)
+- [Quick howto](#quick-howto)
 - [Spotguide specification](#spotguide-specification)
   - [Big data](#big-data)
   - [Apache Spark](#apache-spark)
   - [Apache Zeppelin](#apache-zeppelin)
   - [Apache Kafka](#apache-kafka)
+  - [TiDB](#tidb)
 - [Reporting bugs](#reporting-bugs)
 - [Contributing](#contributing)
 - [License](#license)
@@ -48,7 +50,7 @@ The main features of the platform are:
 * **Spotguides:** _Understands the application runtime requirements and dependencies, builds the artifacts and pushes to the PaaS while applying the CI/CD pipeline steps and advanced features (SLA rules, monitoring, linear regression based predictions)_
 * **Hook in:** _Trigger your pipeline with a GitHub Webhook and let the PaaS to build your app, provision or reuse the infrastructure and deploy, monitor and autoscale your deployment_
 
-The platform includes a few default `spotguides` like: **Apache Spark, Apache Zeppelin** and **Apache Kafka.**
+The platform includes a few default `spotguides` like: **Apache Spark, Apache Zeppelin, TiDB** and **Apache Kafka.**
 
 ## Cloud Providers
 
@@ -66,12 +68,15 @@ The underlying [Kubicorn](http://kubicorn.io) framework has support for the foll
 Pipeline is architected in a way to allow pluggable implementations for providers, managed Kubernetes clusters or hybrid environments. Through provider plugins retrives the `kubeconfig` and connects and deploys applications. Currently it's tested with [Microsoft's Azure managed Kubernetes](https://azure.microsoft.com/en-us/blog/introducing-azure-container-service-aks-managed-kubernetes-and-azure-container-registry-geo-replication/).
 
   * Microsoft AKS
+  * Google GKE
 
- There is work planned for the following plugins:
+ There is work undergoig/planned for the following plugins:
 
+  * Oracle Managed Kubernetes
+  * Alibaba Cloud Managed Kubernetes
   * CoreOS Tectonic
   * Redhat OpenShift
-  * Google GKE
+ 
 
 ## Architecture overview
 
@@ -86,13 +91,13 @@ By default there are metrics and Grafana dashboards exposing the behaviour of th
 
 All these components are assembled into a **Control Plane** - and deployed to Kubernetes with Helm. A typical control plane - for an out of the box Spark/Zeppelin `spotguide` - looks like this:
 
-![Control Plane](docs/images/control-plane-aws.png)
+![Control Plane](docs/images/control-plane-aws-azure.png)
 
 You can launch a Pipeline control plane on AWS with the following [Cloudformation](https://github.com/banzaicloud/pipeline-cp-launcher/blob/0.1.0/control-plane.template) template.
 
-### Deployed cluster
+### Deployments
 
-A typical cluster/application deployed with Pipeline - for an out of the box Spark/Zeppelin spotguide - looks like this.
+A typical cluster/application deployed with Pipeline - as an example Spark/Zeppelin spotguide - looks like this.
 
 ![Deployed Cluster](docs/images/spark-cluster-aws.png)
 
@@ -100,7 +105,7 @@ A typical cluster/application deployed with Pipeline - for an out of the box Spa
 
 Although this readme is about the **Pipeline API** itself, in order to briefly show the full picture and understand how Pipeline is a core part and the engine behind, please find below a typical platform overview - again within the context of an out of the box Spark/Zeppelin spotguide.
 
-![Pipeline PaaS](docs/images/spark-pipeline-aws.png)  
+![Pipeline PaaS](docs/images/pipeline-overview.png)  
 
 For the platform's end user a typical Pipeline interaction starts with a GitHub commit hook setup. Once the hook is configured (e.g. for branch merge, commit to master, etc.) the only task is to place the Pipeline Platform `descriptor` inside the GitHub repository. The `descriptor` contains information about the desired cluster type (size, kind, storage, etc), the autoscaling/SLA rules, custom monitoring rules (beside the default ones), authentication providers (Pipeline supports OAuth2, thus all providers with JWT token capabilities are supported).
 
@@ -114,11 +119,19 @@ Vendoring all dependencies is essential to have a **go get**-able package. Go ve
 
 ### Create and scale your cluster
 
-Once Pipeline API is started, the easiest way to start, stop, delete or scale a cluster is through the following Postman example.
+Once Pipeline API is started, the easiest way to start, stop, delete or scale a cluster is through the following Postman examples.
 
-[![Run in Postman](https://run.pstmn.io/button.svg)](https://www.getpostman.com/collections/56684ef61ee236e8f30d)
+[![Run in Postman](https://run.pstmn.io/button.svg)](https://www.getpostman.com/collections/b4eb0f62eb53d1ad29f7)
 
 For alternative ways to create a cluster please follow the [create cluster guide](docs/create.md).
+
+### Application deployments
+
+Once Pipeline API is started, the easiest way to deploy applications to it is through the following Postman examples.
+
+[![Run in Postman](https://run.pstmn.io/button.svg)](https://www.getpostman.com/collections/b4eb0f62eb53d1ad29f7)
+
+For alternative ways to learn about application deployments please follow the [create cluster guide](docs/deployments.md).
 
 ### Quick howto
 
