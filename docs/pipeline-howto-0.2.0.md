@@ -6,17 +6,24 @@ For simplicity the instruction steps are presented through an example specifical
 
 It's assumed that the source of the Spark application is stored in [GitHub](http://github.com).
 
-The [Pipeline Control Plane](https://github.com/banzaicloud/pipeline-cp-launcher/tree/0.2.0) takes care of creating a Kubernetes cluster on the desired cloud provider and executing the steps of the CI/CD flow can be hosted on both `AWS` and `Azure`.
-See details below for how to launch `Pipeline Control Plane` on `AWS` and `Azure`.
+The [Pipeline Control Plane](https://github.com/banzaicloud/pipeline-cp-launcher/tree/0.2.0) takes care of creating a Kubernetes cluster on the desired cloud provider and executing the steps of the CI/CD flow can be hosted on both `AWS` and `Azure`. See details below for how to launch `Pipeline Control Plane` on `AWS` and `Azure`.
 
-### Prerequisites
+### General prerequisites
 
 1. Account on [GitHub](http://github.com)
 1. Repository on [GitHub](http://github.com) for the Spark application source code
-1. Hosting `Pipeline Control Plane` and creating Kubernetes clusters on **`AWS`**
+
+### Hosting the control plane on AWS 
+
+Hosting `Pipeline Control Plane` and creating Kubernetes clusters on **`AWS`**
+
    1. [AWS](https://portal.aws.amazon.com/billing/signup?type=enterprise#/start) account
    1. AWS [EC2 key pair](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html)
-1. Hosting `Pipeline Control Plane` and creating Kubernetes clusters on **`Azure`**
+   
+### Hosting the control plane on Azure
+
+Hosting `Pipeline Control Plane` and creating Kubernetes clusters on **`Azure`**
+
    1. [Azure](https://portal.azure.com) subscription with AKS service enabled.
    1. Obtain a Client Id, Client Secret and Tenant Id for a Microsoft Azure Active Directory. These information can be retrieved from the portal, but the easiest and fastest way is to use the Azure CLI tool.<br>  
     ```sh
