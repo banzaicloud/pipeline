@@ -49,30 +49,36 @@ func UpdatePrometheusConfig() error {
 	//Gathering information about clusters
 	for _, cluster := range clusters {
 		banzaiUtils.LogDebug(banzaiConstants.TagPrometheus, "Cluster: ", cluster.Name)
-		cloudCluster, err := cloud.ReadCluster(cluster)
-		if err != nil {
-			banzaiUtils.LogWarn(banzaiConstants.TagPrometheus, "Cluster Parser Error: ", err.Error())
-			continue
+		cloudType := cluster.Cloud
+		banzaiUtils.LogDebug(banzaiConstants.TagPrometheus, "Cluster type is: ", cloudType)
+		var kubeEndpoint string
+		switch cloudType {
+		case banzaiConstants.Amazon:
+			cloudCluster, err := cloud.ReadCluster(cluster)
+			if err != nil {
+				banzaiUtils.LogWarn(banzaiConstants.TagPrometheus, "Cluster Parser Error: ", err.Error())
+				continue
+			}
+			kubeEndpoint = cloudCluster.KubernetesAPI.Endpoint
+		case banzaiConstants.Azure:
+			clusterRep := cloud.ReadClusterAzure(&cluster)
+			kubeEndpoint = clusterRep.Value.Properties.Fqdn
 		}
-		ip := cloudCluster.KubernetesAPI.Endpoint
-		banzaiUtils.LogDebug(banzaiConstants.TagPrometheus, "Cluster Endpoint IP: ", ip)
+		banzaiUtils.LogDebug(banzaiConstants.TagPrometheus, "Cluster Endpoint IP: ", kubeEndpoint)
 
 		prometheusConfig = append(
 			prometheusConfig,
 			PrometheusCfg{
-				Endpoint: cloudCluster.KubernetesAPI.Endpoint,
-				Name:     cloudCluster.Name,
+				Endpoint: kubeEndpoint,
+				Name:     cluster.Name,
 			})
 
 	}
 	prometheusConfigRaw := GenerateConfig(prometheusConfig)
 
-	var kubeconfig = ""
+	var kubeconfig = os.Getenv("KUBECONFIG")
+	banzaiUtils.LogDebug(banzaiConstants.TagPrometheus, "KUBECONFIG:", kubeconfig)
 
-	if kubeconfig == "" {
-		kubeconfig = os.Getenv("KUBECONFIG")
-		banzaiUtils.LogDebug(banzaiConstants.TagPrometheus, "KUBECONFIG:", kubeconfig)
-	}
 	var (
 		config *rest.Config
 		err    error
@@ -91,7 +97,7 @@ func UpdatePrometheusConfig() error {
 	banzaiUtils.LogDebug(banzaiConstants.TagPrometheus, "K8S Connection Successful!")
 
 	//TODO configurable namespace and service
-	configmap, err := (client.CoreV1().ConfigMaps("default").Get(prometheusConfigMapName, metav1.GetOptions{}))
+	configmap, err := client.CoreV1().ConfigMaps("default").Get(prometheusConfigMapName, metav1.GetOptions{})
 	if err != nil {
 		return fmt.Errorf("K8S get Configmap Failed: %v", err)
 	}
