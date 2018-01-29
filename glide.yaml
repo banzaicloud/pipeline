@@ -1,4 +1,6 @@
 package: github.com/banzaicloud/pipeline
+ignore:
+- github.com/prometheus/prometheus/discovery
 import:
 - package: github.com/Masterminds/sprig
 - package: github.com/auth0-community/go-auth0
