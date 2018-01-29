@@ -11,6 +11,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"encoding/base64"
+	"k8s.io/client-go/tools/clientcmd"
+	"io/ioutil"
 )
 
 // ClusterRepresentation combines EC2 and AKS
@@ -147,6 +149,21 @@ func SendNotSupportedCloudResponse(c *gin.Context, tag string) {
 		JsonKeyStatus:  http.StatusBadRequest,
 		JsonKeyMessage: msg,
 	})
+}
+
+func writeKubernetesKeys(kubeConfigPath string, localPath string) {
+	const logTag = "WriteKubernetesKey"
+	banzaiUtils.LogInfof(logTag, "Starting to write kubernetes related certs/keys for: %s", kubeConfigPath)
+	config, err := clientcmd.BuildConfigFromFlags("", kubeConfigPath)
+	if err != nil {
+		banzaiUtils.LogErrorf(logTag, "Getting kubernetes config failed from: %s", kubeConfigPath)
+		return
+	}
+	banzaiUtils.LogInfo(logTag, "Getting kubernetes config succeeded!")
+	ioutil.WriteFile(localPath+"/client-key-data.pem", config.KeyData, 0644)
+	ioutil.WriteFile(localPath+"/client-certificate-data.pem", config.CertData, 0644)
+	ioutil.WriteFile(localPath+"/certificate-authority-data.pem", config.CAData, 0644)
+	banzaiUtils.LogInfof(logTag, "Writing kubernetes related certs/keys succeeded for: %s", kubeConfigPath)
 }
 
 //GetClusterRepresentation legacy EC2
