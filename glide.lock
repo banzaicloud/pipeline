@@ -59,14 +59,14 @@ imports:
   - autorest/to
   - autorest/validation
 - name: github.com/banzaicloud/azure-aks-client
-  version: b375f4dfec50d1bf0efac4478fad51c55275e871
+  version: master
   subpackages:
   - client
   - cluster
   - initapi
   - utils
 - name: github.com/banzaicloud/banzai-types
-  version: ac63fb9ecd6d7f4cfdc6242c8e4eb53377ecf293
+  version: master
   subpackages:
   - components
   - components/amazon
