@@ -305,8 +305,19 @@ func GetAzureK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 		})
 	} else {
 		// get config succeeded
-
-		writeConfig2File(fmt.Sprintf("./statestore/%s", cs.Name), config)
+		localDir := fmt.Sprintf("./statestore/%s", cs.Name)
+		writeConfig2File(localDir, config)
+		kubeConfigPath, err := GetKubeConfigPath(localDir)
+		if err != nil {
+			banzaiUtils.LogError(banzaiConstants.TagFetchClusterConfig, "Error getting config path:", localDir)
+			SetResponseBodyJson(c, http.StatusInternalServerError, gin.H{
+				JsonKeyStatus:  http.StatusInternalServerError,
+				JsonKeyMessage: err.Error(),
+				JsonKeyData:    localDir,
+			})
+			return
+		}
+		writeKubernetesKeys(kubeConfigPath,localDir)
 
 		banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Get k8s config succeeded")
 		decodedConfig, err := base64.StdEncoding.DecodeString(config.Properties.KubeConfig)
