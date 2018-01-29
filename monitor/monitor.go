@@ -61,7 +61,7 @@ func UpdatePrometheusConfig() error {
 			}
 			kubeEndpoint = cloudCluster.KubernetesAPI.Endpoint
 		case banzaiConstants.Azure:
-			clusterRep := cloud.ReadClusterAzure(&cluster)
+			clusterRep := cloud.GetClusterRepresentation(&cluster)
 			kubeEndpoint = clusterRep.Value.Properties.Fqdn
 		}
 		banzaiUtils.LogDebug(banzaiConstants.TagPrometheus, "Cluster Endpoint IP: ", kubeEndpoint)
