@@ -425,6 +425,9 @@ func UpdateClusterGoogleInCloud(r *banzaiTypes.UpdateClusterRequest, c *gin.Cont
 	}
 
 	cc := GKECluster{
+		Name:          preCluster.Name,
+		ProjectID:     preCluster.Google.Project,
+		Zone:          preCluster.Location,
 		MasterVersion: r.GoogleMaster.Version,
 		NodeVersion:   r.GoogleNode.Version,
 		NodeCount:     int64(r.GoogleNode.Count),
@@ -459,14 +462,16 @@ func callUpdateClusterGoogle(svc *gke.Service, cc GKECluster) (*gke.Cluster, err
 
 	var updatedCluster *gke.Cluster
 
-	banzaiUtils.LogInfof(banzaiConstants.TagUpdateCluster, "Updating cluster. MasterVersion: %s, NodeVersion: %s, NodeCount: %v", cc.MasterVersion, cc.NodeVersion, cc.NodeCount)
+	banzaiUtils.LogInfof(banzaiConstants.TagUpdateCluster, "Updating cluster: %#v", cc)
 	if cc.NodePoolID == "" {
 		cluster, err := svc.Projects.Zones.Clusters.Get(cc.ProjectID, cc.Zone, cc.Name).Context(context.Background()).Do()
 		if err != nil {
 			banzaiUtils.LogError(banzaiConstants.TagUpdateCluster, "Contains error", err)
 			return nil, err
 		}
-		cc.NodePoolID = cluster.NodePools[0].Name
+		if cluster.NodePools != nil && len(cluster.NodePools) != 0 {
+			cc.NodePoolID = cluster.NodePools[0].Name
+		}
 	}
 
 	if cc.MasterVersion != "" {
