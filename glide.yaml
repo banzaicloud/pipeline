@@ -12,6 +12,8 @@ import:
   subpackages:
   - dialects/mysql
 - package: github.com/kris-nova/kubicorn
+  repo: https://github.com/banzaicloud/kubicorn.git 
+  version: vendor-update
   subpackages:
   - apis/cluster
   - cutil
@@ -251,7 +253,7 @@ import:
   - pkg/client/clientset_generated/clientset/typed/metrics/v1alpha1
   - pkg/client/clientset_generated/clientset/typed/metrics/v1beta1
 - package: github.com/prometheus/prometheus
-  version: ^2.0.0
+  version: v1.8.2
   subpackages:
   - config
 - package: go4.org
