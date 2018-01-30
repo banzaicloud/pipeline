@@ -609,14 +609,16 @@ func DeleteCluster(c *gin.Context) {
 	}
 	if cloud.DeleteCluster(cl, c) {
 		// cluster delete success
+		banzaiUtils.LogInfof(banzaiConstants.TagDeleteCluster, "Cluster %s delete succeeded!", cl.Name)
+
+		// update Prometheus config
+		updatePrometheus()
 
 		// delete state store
 		cloud.DestroyStateStore(cl)
 
 		// delete from db
-		if cloud.DeleteFromDb(cl, c) {
-			updatePrometheus()
-		}
+		cloud.DeleteFromDb(cl, c)
 	}
 
 }
