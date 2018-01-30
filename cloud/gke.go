@@ -83,6 +83,9 @@ func CreateClusterGoogle(request *banzaiTypes.CreateClusterRequest, c *gin.Conte
 	banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Get Google Service Client succeeded")
 
 	cc := GKECluster{
+		NodeConfig: &gke.NodeConfig{
+			MachineType: request.NodeInstanceType,
+		},
 		ProjectID:         request.Properties.CreateClusterGoogle.Project,
 		Zone:              request.Location,
 		Name:              request.Name,
