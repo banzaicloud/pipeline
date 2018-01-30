@@ -13,7 +13,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 type prometheusTarget struct {
@@ -76,19 +75,9 @@ func UpdatePrometheusConfig() error {
 	}
 	prometheusConfigRaw := GenerateConfig(prometheusConfig)
 
-	var kubeconfig = os.Getenv("KUBECONFIG")
-	banzaiUtils.LogDebug(banzaiConstants.TagPrometheus, "KUBECONFIG:", kubeconfig)
+	banzaiUtils.LogInfo(banzaiConstants.TagPrometheus, "Use K8S InCluster Config.")
+	config, err := rest.InClusterConfig()
 
-	var (
-		config *rest.Config
-		err    error
-	)
-	if kubeconfig != "" {
-		config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
-	} else {
-		banzaiUtils.LogInfo(banzaiConstants.TagPrometheus, "Use K8S InCluster Config.")
-		config, err = rest.InClusterConfig()
-	}
 	if err != nil {
 		return fmt.Errorf("K8S Connection Failed: %v", err)
 	}
