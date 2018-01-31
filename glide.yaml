@@ -1,4 +1,6 @@
 package: github.com/banzaicloud/pipeline
+ignore:
+- github.com/prometheus/prometheus/discovery
 import:
 - package: github.com/Masterminds/sprig
 - package: github.com/auth0-community/go-auth0
@@ -10,6 +12,8 @@ import:
   subpackages:
   - dialects/mysql
 - package: github.com/kris-nova/kubicorn
+  version: vendor-update
+  repo: https://github.com/banzaicloud/kubicorn.git
   subpackages:
   - apis/cluster
   - cutil
@@ -249,7 +253,7 @@ import:
   - pkg/client/clientset_generated/clientset/typed/metrics/v1alpha1
   - pkg/client/clientset_generated/clientset/typed/metrics/v1beta1
 - package: github.com/prometheus/prometheus
-  version: ^2.0.0
+  version: v1.8.2
   subpackages:
   - config
 - package: go4.org
@@ -266,3 +270,10 @@ import:
   subpackages:
   - components/helm
 - package: github.com/qor/auth
+- package: google.golang.org/api
+  subpackages:
+  - container/v1
+- package: github.com/packethost/packngo
+  version: ^0.1.0
+- package: github.com/Azure/go-autorest
+  version: ^9.9.0

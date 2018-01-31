@@ -38,6 +38,14 @@ ifeq ($(OS), Linux)
 	which jq  > /dev/null || curl -L https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64 > /usr/local/bin/jq && chmod +x /usr/local/bin/jq
 endif
 
+kubicorn-vendor: ## fix vendor dir (flattened) with forked kubicorn
+	rm -rf vendor
+	glide i -v --skip-test
+	rm -rf vendor/github.com/kris-nova/kubicorn/
+	git clone https://github.com/banzaicloud/kubicorn.git  vendor/github.com/kris-nova/kubicorn/
+	cd vendor/github.com/kris-nova/kubicorn/ &&  git checkout vendor-update
+	glide-vc --only-code --no-tests
+
 help: ## Generates this help message
 	@grep -E '^[0-9a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 

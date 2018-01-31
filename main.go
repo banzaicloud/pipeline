@@ -83,11 +83,13 @@ func main() {
 	banzaiUtils.LogInfo(banzaiConstants.TagInit, "Create table(s):",
 		banzaiSimpleTypes.ClusterSimple.TableName(banzaiSimpleTypes.ClusterSimple{}),
 		banzaiSimpleTypes.AmazonClusterSimple.TableName(banzaiSimpleTypes.AmazonClusterSimple{}),
-		banzaiSimpleTypes.AzureClusterSimple.TableName(banzaiSimpleTypes.AzureClusterSimple{}))
+		banzaiSimpleTypes.AzureClusterSimple.TableName(banzaiSimpleTypes.AzureClusterSimple{}),
+		banzaiSimpleTypes.GoogleClusterSimple.TableName(banzaiSimpleTypes.GoogleClusterSimple{}))
 	database.CreateTables(
 		&banzaiSimpleTypes.ClusterSimple{},
 		&banzaiSimpleTypes.AmazonClusterSimple{},
 		&banzaiSimpleTypes.AzureClusterSimple{},
+		&banzaiSimpleTypes.GoogleClusterSimple{},
 		&auth_identity.AuthIdentity{},
 		&auth.User{},
 	)
@@ -533,6 +535,26 @@ func CreateCluster(c *gin.Context) {
 				cloud.JsonKeyMessage: err,
 			})
 		}
+	case banzaiConstants.Google:
+		// validate and create Google cluster
+		gkeData := createClusterBaseRequest.Properties.CreateClusterGoogle
+		if isValid, err := gkeData.Validate(); isValid && err == nil {
+			var isOk bool
+			isOk, createdCluster = cloud.CreateClusterGoogle(&createClusterBaseRequest, c)
+			if isOk {
+				// update prometheus config..
+				postHookFunctions = append(postHookFunctions, getConfigPostHookGoogle)
+				postHookFunctions = append(postHookFunctions, updatePrometheusPostHook)
+				postHookFunctions = append(postHookFunctions, installHelmPostHook)
+				postHookFunctions = append(postHookFunctions, installIngressControllerPostHook)
+			}
+		} else {
+			// not valid request
+			cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
+				cloud.JsonKeyStatus:  http.StatusBadRequest,
+				cloud.JsonKeyMessage: err,
+			})
+		}
 	default:
 		// wrong cloud type
 		cloud.SendNotSupportedCloudResponse(c, banzaiConstants.TagCreateCluster)
@@ -657,6 +679,10 @@ func getConfigPostHookAmazon(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context
 
 func getConfigPostHookAzure(createdCluster *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 	cloud.GetAzureK8SConfig(createdCluster, c)
+}
+
+func getConfigPostHookGoogle(createdCluster *banzaiSimpleTypes.ClusterSimple, _ *gin.Context) {
+	cloud.GetGoogleK8SConfig(createdCluster, nil)
 }
 
 func updatePrometheusPostHook(_ *banzaiSimpleTypes.ClusterSimple, _ *gin.Context) {
@@ -789,6 +815,10 @@ func UpdateCluster(c *gin.Context) {
 		// read azure props from azure_cluster_properties table
 		banzaiUtils.LogInfo(banzaiConstants.TagGetClusterInfo, "Load azure props from db")
 		database.SelectFirstWhere(&cl.Azure, banzaiSimpleTypes.AzureClusterSimple{ClusterSimpleId: cl.ID})
+	case banzaiConstants.Google:
+		// read google props from google_cluster_properties table
+		banzaiUtils.LogInfo(banzaiConstants.TagGetClusterInfo, "Load Google props from db")
+		database.SelectFirstWhere(&cl.Google, banzaiSimpleTypes.GoogleClusterSimple{ClusterSimpleId: cl.ID})
 	default:
 		// not supported cloud type
 		banzaiUtils.LogWarn(banzaiConstants.TagGetClusterInfo, "Not supported cloud type")
@@ -838,6 +868,8 @@ func FetchClusterConfig(c *gin.Context) {
 		cloud.GetAmazonK8SConfig(cl, c)
 	case banzaiConstants.Azure:
 		cloud.GetAzureK8SConfig(cl, c)
+	case banzaiConstants.Google:
+		cloud.GetGoogleK8SConfig(cl, c)
 	default:
 		cloud.SendNotSupportedCloudResponse(c, banzaiConstants.TagFetchClusterConfig)
 	}
@@ -869,6 +901,8 @@ func GetClusterStatus(c *gin.Context) {
 		cloud.GetAmazonClusterStatus(cloudCluster, c)
 	case banzaiConstants.Azure:
 		cloud.GetAzureClusterStatus(cloudCluster, c)
+	case banzaiConstants.Google:
+		cloud.GetGoogleClusterStatus(cloudCluster, c)
 	default:
 		cloud.SendNotSupportedCloudResponse(c, banzaiConstants.TagGetClusterStatus)
 		return
