@@ -197,7 +197,6 @@ var (
 	// DefaultRemoteReadConfig is the default remote read configuration.
 	DefaultRemoteReadConfig = RemoteReadConfig{
 		RemoteTimeout: model.Duration(1 * time.Minute),
-		ReadRecent:    true,
 	}
 )
 
@@ -300,11 +299,6 @@ func resolveFilepaths(baseDir string, cfg *Config) {
 			consulcfg.TLSConfig.CAFile = join(consulcfg.TLSConfig.CAFile)
 			consulcfg.TLSConfig.CertFile = join(consulcfg.TLSConfig.CertFile)
 			consulcfg.TLSConfig.KeyFile = join(consulcfg.TLSConfig.KeyFile)
-		}
-		for _, filecfg := range cfg.FileSDConfigs {
-			for i, fn := range filecfg.Files {
-				filecfg.Files[i] = join(fn)
-			}
 		}
 	}
 
@@ -1491,7 +1485,7 @@ type QueueConfig struct {
 type RemoteReadConfig struct {
 	URL           *URL           `yaml:"url"`
 	RemoteTimeout model.Duration `yaml:"remote_timeout,omitempty"`
-	ReadRecent    bool           `yaml:"read_recent,omitempty"`
+
 	// We cannot do proper Go type embedding below as the parser will then parse
 	// values arbitrarily into the overflow maps of further-down types.
 	HTTPClientConfig HTTPClientConfig `yaml:",inline"`

@@ -30,6 +30,9 @@ clientsecret = ""
 # AccessToken settings
 # tokensigningkey = ""
 
+# GKE credential path
+gkeCredentialPath = ""
+
 [helm]
 
 #helm retry configs
