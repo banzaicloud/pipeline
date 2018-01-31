@@ -48,10 +48,13 @@ func getCredentialPath() string {
 	banzaiUtils.LogInfo(banzaiConstants.TagInit, "Get gke credential path")
 	if len(credentialPath) == 0 {
 		credentialPath = viper.GetString(googleAppCredential)
-		banzaiUtils.LogDebugf(banzaiConstants.TagInit, "Credential path is %s", credentialPath)
-	} else {
-		banzaiUtils.LogError(banzaiConstants.TagInit, "Credential path is not configured")
+		// set GOOGLE_APPLICATION_CREDENTIALS environment variable to specify
+		// a service account key file to authenticate to the Google Cloud API
+		os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", credentialPath)
 	}
+
+	banzaiUtils.LogDebugf(banzaiConstants.TagInit, "Credential path is %s", credentialPath)
+
 	return credentialPath
 }
 
@@ -218,15 +221,15 @@ func GetGoogleServiceClient() (*gke.Service, error) {
 
 	client, err := google.DefaultClient(context.Background(), gke.CloudPlatformScope)
 	if err != nil {
-		banzaiUtils.LogFatalf(banzaiConstants.TagCreateCluster, "Could not get authenticated client: %v", err)
+		banzaiUtils.LogErrorf(banzaiConstants.TagCreateCluster, "Could not get authenticated client: %v", err)
 		return nil, err
 	}
 	service, err := gke.New(client)
 	if err != nil {
-		banzaiUtils.LogFatalf(banzaiConstants.TagCreateCluster, "Could not initialize gke client: %v", err)
+		banzaiUtils.LogErrorf(banzaiConstants.TagCreateCluster, "Could not initialize gke client: %v", err)
 		return nil, err
 	}
-	banzaiUtils.LogInfof(banzaiConstants.TagCreateCluster, "Using service acc: %v", service)
+	banzaiUtils.LogInfof(banzaiConstants.TagCreateCluster, "Using service acc: %v", &service)
 	return service, nil
 }
 
@@ -287,7 +290,7 @@ func waitForCluster(svc *gke.Service, cc GKECluster) (*gke.Cluster, error) {
 	var message string
 	for {
 
-		cluster, err := svc.Projects.Zones.Clusters.Get(cc.ProjectID, cc.Zone, cc.Name).Context(context.TODO()).Do()
+		cluster, err := getClusterGoogle(svc, cc)
 		if err != nil {
 			banzaiUtils.LogErrorf(banzaiConstants.TagCreateCluster, "error during getting cluster: %s", err.Error())
 			return nil, err
@@ -310,7 +313,7 @@ func waitForCluster(svc *gke.Service, cc GKECluster) (*gke.Cluster, error) {
 	}
 }
 
-func GetClusterGoogle(svc *gke.Service, cc GKECluster) (*gke.Cluster, error) {
+func getClusterGoogle(svc *gke.Service, cc GKECluster) (*gke.Cluster, error) {
 	return svc.Projects.Zones.Clusters.Get(cc.ProjectID, cc.Zone, cc.Name).Context(context.TODO()).Do()
 }
 
@@ -328,7 +331,7 @@ func ReadClusterGoogle(cs *banzaiSimpleTypes.ClusterSimple, svc *gke.Service) *C
 		Zone:      cs.Location,
 	}
 
-	response, err := GetClusterGoogle(svc, gkec)
+	response, err := getClusterGoogle(svc, gkec)
 	if err != nil {
 		banzaiUtils.LogError(banzaiConstants.TagGetCluster, "Something went wrong under read:", err)
 		return nil
@@ -376,7 +379,7 @@ func GetClusterInfoGoogle(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 		Zone:      cs.Location,
 	}
 
-	response, err := GetClusterGoogle(svc, gkec)
+	response, err := getClusterGoogle(svc, gkec)
 	if err != nil {
 		// fetch failed
 		googleApiErr := getBanzaiErrorFromError(err)
@@ -467,7 +470,7 @@ func callUpdateClusterGoogle(svc *gke.Service, cc GKECluster) (*gke.Cluster, err
 
 	banzaiUtils.LogInfof(banzaiConstants.TagUpdateCluster, "Updating cluster: %#v", cc)
 	if cc.NodePoolID == "" {
-		cluster, err := svc.Projects.Zones.Clusters.Get(cc.ProjectID, cc.Zone, cc.Name).Context(context.Background()).Do()
+		cluster, err := getClusterGoogle(svc, cc)
 		if err != nil {
 			banzaiUtils.LogError(banzaiConstants.TagUpdateCluster, "Contains error", err)
 			return nil, err
@@ -529,7 +532,7 @@ func callUpdateClusterGoogle(svc *gke.Service, cc GKECluster) (*gke.Cluster, err
 
 func waitForNodePool(svc *gke.Service, cc GKECluster) error {
 	const TAG = "waitForNodePool"
-	message := ""
+	var message string
 	for {
 		nodepool, err := svc.Projects.Zones.Clusters.NodePools.Get(cc.ProjectID, cc.Zone, cc.Name, cc.NodePoolID).Context(context.TODO()).Do()
 		if err != nil {
@@ -671,7 +674,11 @@ func getGoogleKubernetesConfig(cs *banzaiSimpleTypes.ClusterSimple) ([]byte, *ba
 	banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Get Google Service Client succeeded")
 
 	banzaiUtils.LogInfof(banzaiConstants.TagFetchClusterConfig, "Get google cluster with name %s", cs.Name)
-	cl, err := svc.Projects.Zones.Clusters.Get(cs.Google.Project, cs.Location, cs.Name).Context(context.Background()).Do()
+	cl, err := getClusterGoogle(svc, GKECluster{
+		Name:      cs.Name,
+		ProjectID: cs.Google.Project,
+		Zone:      cs.Location,
+	})
 	if err != nil {
 		banzaiUtils.LogErrorf(banzaiConstants.TagFetchClusterConfig, "Error during get cluster %v", err)
 		return nil, getBanzaiErrorFromError(err)

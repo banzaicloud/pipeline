@@ -413,7 +413,7 @@ func CreateCluster(c *gin.Context) {
 			})
 		}
 	case banzaiConstants.Google:
-		// validate and create Azure cluster
+		// validate and create Google cluster
 		gkeData := createClusterBaseRequest.Properties.CreateClusterGoogle
 		if isValid, err := gkeData.Validate(); isValid && err == nil {
 			var isOk bool
