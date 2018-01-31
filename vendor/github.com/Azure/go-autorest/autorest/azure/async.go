@@ -39,7 +39,7 @@ const (
 	operationSucceeded  string = "Succeeded"
 )
 
-var pollingCodes = [...]int{http.StatusAccepted, http.StatusCreated, http.StatusOK}
+var pollingCodes = [...]int{http.StatusNoContent, http.StatusAccepted, http.StatusCreated, http.StatusOK}
 
 // Future provides a mechanism to access the status and results of an asynchronous request.
 // Since futures are stateful they should be passed by value to avoid race conditions.

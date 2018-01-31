@@ -1,5 +1,5 @@
-hash: ef126c68c49e6f227acc4042bd2a23d1d77d27451ba81513e176374131a25a81
-updated: 2018-01-18T21:50:59.730266+01:00
+hash: 84223e904870b3d71f0f87bb6bd6c3c065f19048e70cb7d999298ca38870d5cf
+updated: 2018-01-31T21:17:41.167569+01:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -44,13 +44,13 @@ imports:
   - service/s3
   - service/sts
 - name: github.com/Azure/azure-sdk-for-go
-  version: eae258195456be76b2ec9ad2ee2ab63cdda365d9
+  version: a75e7321dcb5045edbbdba24b594d8f3f1b31352
   subpackages:
   - arm/examples/helpers
   - arm/network
   - arm/resources/resources
 - name: github.com/Azure/go-autorest
-  version: 3c16bcd9ea019819c1d7c14055ed74f845f44a8a
+  version: d4e6b95c12a08b4de2d48b45d5b4d594e5d32fab
   subpackages:
   - autorest
   - autorest/adal
@@ -59,20 +59,20 @@ imports:
   - autorest/to
   - autorest/validation
 - name: github.com/banzaicloud/azure-aks-client
-  version: master
+  version: b375f4dfec50d1bf0efac4478fad51c55275e871
   subpackages:
   - client
   - cluster
   - initapi
   - utils
 - name: github.com/banzaicloud/banzai-types
-  version: master
+  version: ac63fb9ecd6d7f4cfdc6242c8e4eb53377ecf293
   subpackages:
   - components
   - components/amazon
   - components/azure
-  - components/google
   - components/database
+  - components/google
   - components/helm
   - configuration
   - constants
@@ -280,7 +280,7 @@ imports:
   - json/scanner
   - json/token
 - name: github.com/hashicorp/vault
-  version: 87b6919dea55da61d7cd444b2442cabb8ede8ab1
+  version: 5acd6a21d5a69ab49d0f7c0bf540123a9b2c696d
   subpackages:
   - api
   - helper/compressutil
@@ -317,7 +317,8 @@ imports:
   subpackages:
   - pkg/local
 - name: github.com/kris-nova/kubicorn
-  version: a684f96403fbc309159dae38e6a35aac2f985f20
+  version: 091fed4780fa46c7dbdede19e8dabbffe9285df6
+  repo: https://github.com/banzaicloud/kubicorn.git
   subpackages:
   - apis/cluster
   - cloud
@@ -333,6 +334,9 @@ imports:
   - cloud/google/compute
   - cloud/google/compute/resources
   - cloud/google/googleSDK
+  - cloud/packet/packetSDK
+  - cloud/packet/public
+  - cloud/packet/public/resources
   - cutil
   - cutil/agent
   - cutil/compare
@@ -387,6 +391,8 @@ imports:
   subpackages:
   - specs-go
   - specs-go/v1
+- name: github.com/packethost/packngo
+  version: 131798f2804a1b3e895ca98047d56f0d7e094e2a
 - name: github.com/pborman/uuid
   version: ca53cad383cad2479bbba7f7a1a05797ec1386e4
 - name: github.com/pelletier/go-buffruneio
@@ -418,7 +424,7 @@ imports:
   subpackages:
   - xfs
 - name: github.com/prometheus/prometheus
-  version: 0a74f98628a0463dddc90528220c94de5032d1a0
+  version: 5211b96d4d1291c3dd1a569f711d3b301b635ecb
   subpackages:
   - config
 - name: github.com/PuerkitoBio/purell
@@ -495,9 +501,17 @@ imports:
 - name: golang.org/x/crypto
   version: 81e90905daefcd6fd217b62423c0908922eadb30
   subpackages:
+  - cast5
   - curve25519
   - ed25519
   - ed25519/internal/edwards25519
+  - openpgp
+  - openpgp/armor
+  - openpgp/clearsign
+  - openpgp/elgamal
+  - openpgp/errors
+  - openpgp/packet
+  - openpgp/s2k
   - pbkdf2
   - scrypt
   - ssh
@@ -516,6 +530,7 @@ imports:
   - internal/timeseries
   - lex/httplex
   - trace
+  - websocket
 - name: golang.org/x/oauth2
   version: a6bd8cefa1811bd24b86f8902872e4e8225f74c4
   subpackages:
@@ -524,7 +539,7 @@ imports:
   - jws
   - jwt
 - name: golang.org/x/sys
-  version: 43eea11bc92608addb41b8a406b0407495c106f6
+  version: 7ddbeae9ae08c6a06a59597f0c9edbc5ff2444ce
   subpackages:
   - unix
   - windows
@@ -550,19 +565,11 @@ imports:
 - name: google.golang.org/api
   version: 98825bb0065da4054e5da6db34f5fc598e50bc24
   subpackages:
-  - cloudkms/v1
-  - cloudmonitoring/v2beta2
-  - compute/v0.alpha
-  - compute/v0.beta
   - compute/v1
   - container/v1
-  - dns/v1
   - gensupport
   - googleapi
   - googleapi/internal/uritemplates
-  - logging/v2beta1
-  - monitoring/v3
-  - pubsub/v1
 - name: google.golang.org/appengine
   version: 9d8544a6b2c7df9cff240fcf92d7b2f59bc13416
   subpackages:
@@ -775,16 +782,26 @@ imports:
   subpackages:
   - cmd/helm/installer
   - pkg/chartutil
+  - pkg/downloader
+  - pkg/getter
   - pkg/helm
+  - pkg/helm/environment
+  - pkg/helm/helmpath
   - pkg/helm/portforwarder
   - pkg/ignore
   - pkg/kube
+  - pkg/plugin
   - pkg/proto/hapi/chart
   - pkg/proto/hapi/release
   - pkg/proto/hapi/services
   - pkg/proto/hapi/version
+  - pkg/provenance
+  - pkg/repo
+  - pkg/resolver
   - pkg/strvals
   - pkg/timeconv
+  - pkg/tlsutil
+  - pkg/urlutil
   - pkg/version
 - name: k8s.io/kube-openapi
   version: 868f2f29720b192240e18284659231b440f9cda5
