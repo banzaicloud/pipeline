@@ -42,6 +42,3 @@ retrySleepSeconds = 15
 #helm repo URLs
 stableRepositoryURL = "https://kubernetes-charts.storage.googleapis.com"
 banzaiRepositoryURL = "http://kubernetes-charts.banzaicloud.com"
-
-# GKE credential path
-gkeCredentialPath = ""
