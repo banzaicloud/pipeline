@@ -15,9 +15,10 @@
 package fileresource
 
 import (
-	"github.com/kris-nova/kubicorn/cutil/logger"
 	"net/url"
 	"strings"
+
+	"github.com/kris-nova/kubicorn/cutil/logger"
 )
 
 // ReadFromResource reads a file from different sources
@@ -39,12 +40,14 @@ func ReadFromResource(r string) (string, error) {
 
 	case strings.HasPrefix(strings.ToLower(r), "http://") || strings.HasPrefix(strings.ToLower(r), "https://"):
 		url, err := url.ParseRequestURI(r)
+		logger.Info("Parsing bootstrap script from url [%s]", url)
 		if err != nil {
 			return "", err
 		}
 		return readFromHTTP(url)
 
 	default:
+		logger.Info("Parsing bootstrap script from filesystem [%s]", r)
 		return readFromFS(r)
 	}
 }
