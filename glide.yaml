@@ -12,8 +12,8 @@ import:
   subpackages:
   - dialects/mysql
 - package: github.com/kris-nova/kubicorn
-  repo: https://github.com/banzaicloud/kubicorn.git 
   version: vendor-update
+  repo: https://github.com/banzaicloud/kubicorn.git
   subpackages:
   - apis/cluster
   - cutil
@@ -273,3 +273,7 @@ import:
 - package: google.golang.org/api
   subpackages:
   - container/v1
+- package: github.com/packethost/packngo
+  version: ^0.1.0
+- package: github.com/Azure/go-autorest
+  version: ^9.9.0
