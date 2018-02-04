@@ -11,44 +11,69 @@ import (
 
 	"fmt"
 	"github.com/banzaicloud/pipeline/cloud"
+	"github.com/banzaicloud/pipeline/config"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	banzaiSimpleTypes "github.com/banzaicloud/banzai-types/components/database"
 	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
 	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
-	banzaiSimpleTypes "github.com/banzaicloud/banzai-types/components/database"
+	"github.com/sirupsen/logrus"
 )
 
 var tillerTunnel *kube.Tunnel
 
-func GetHelmClient(kubeConfig []byte) (*helm.Client, error) {
+func init() {
+	logger = config.Logger()
+	log = logger.WithFields(logrus.Fields{"action": "Helm"})
+}
+
+func GetK8sConnection(kubeConfig *[]byte) (*kubernetes.Clientset, error) {
+	config, err := GetK8sClientConfig(kubeConfig)
+	if err != nil {
+		return nil, fmt.Errorf("create kubernetes config failed: %v", err)
+	}
+	client, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		return nil, fmt.Errorf("create kubernetes connection failed: %v", err)
+	}
+	return client, nil
+}
+
+func GetK8sClientConfig(kubeConfig *[]byte) (*rest.Config, error) {
 	var config *rest.Config
 	var err error
-
-	//TODO Beatify this do not use string for kubeConfig
-	if len(kubeConfig) > 0 {
-		apiconfig, _ :=clientcmd.Load(kubeConfig)
+	if kubeConfig != nil {
+		apiconfig, _ := clientcmd.Load(*kubeConfig)
 		clientConfig := clientcmd.NewDefaultClientConfig(*apiconfig, &clientcmd.ConfigOverrides{})
 		config, err = clientConfig.ClientConfig()
+		log.Info("Use K8S RemoteCluster Config: ", config.ServerName)
 	} else {
-		banzaiUtils.LogInfo(banzaiConstants.TagKubernetes, "Use K8S InCluster Config.")
+		log.Info("Use K8S InCluster Config.")
 		config, err = rest.InClusterConfig()
 	}
 	if err != nil {
 		return nil, fmt.Errorf("create kubernetes config failed: %v", err)
 	}
-	banzaiUtils.LogDebug(banzaiConstants.TagKubernetes, "Create kubernetes Client.")
-	client, err := kubernetes.NewForConfig(config)
+	return config, nil
+}
+
+//Estabilish Tunnel for Helm client TODO check client and config if both needed
+func GetHelmClient(kubeConfig *[]byte) (*helm.Client, error) {
+	log := logger.WithFields(logrus.Fields{"tag": banzaiConstants.TagKubernetes})
+	log.Debug("Create kubernetes Client.")
+	config, err := GetK8sClientConfig(kubeConfig)
+	client, err := GetK8sConnection(kubeConfig)
 	if err != nil {
-		banzaiUtils.LogError(banzaiConstants.TagKubernetes, "Could not create kubernetes client from config.")
+		log.Debug("Could not create kubernetes client from config.")
 		return nil, fmt.Errorf("create kubernetes client failed: %v", err)
 	}
-	banzaiUtils.LogDebug(banzaiConstants.TagKubernetes, "Create kubernetes Tunnel.")
-	tillerTunnel, err := portforwarder.New("kube-system", client, config)
+	log.Debug("Create kubernetes Tunnel")
+	tillerTunnel, err = portforwarder.New("kube-system", client, config)
 	if err != nil {
 		return nil, fmt.Errorf("create tunnel failed: %v", err)
 	}
-	banzaiUtils.LogDebug(banzaiConstants.TagKubernetes, "Created kubernetes tunnel on address: localhost:", tillerTunnel.Local)
+	log.Debug("Created kubernetes tunnel on address: localhost:", tillerTunnel.Local)
 	tillerTunnelAddress := fmt.Sprintf("localhost:%d", tillerTunnel.Local)
 	hclient := helm.NewClient(helm.Host(tillerTunnelAddress))
 	return hclient, nil
@@ -91,14 +116,12 @@ func CheckDeploymentState(cs *banzaiSimpleTypes.ClusterSimple, releaseName strin
 			break
 		}
 	}
-
 	return string(state), nil
 }
 
 func tearDown() {
-	banzaiUtils.LogDebug(banzaiConstants.TagKubernetes, "There is no Tunnel to close.")
 	if tillerTunnel != nil {
-		banzaiUtils.LogDebug(banzaiConstants.TagKubernetes, "Closing Tunnel.")
+		log.Debug("Closing Tunnel.")
 		tillerTunnel.Close()
 	}
 }

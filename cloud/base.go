@@ -1,25 +1,24 @@
 package cloud
 
 import (
+	"encoding/base64"
 	"errors"
-	"fmt"
 	banzaiTypes "github.com/banzaicloud/banzai-types/components"
 	banzaiSimpleTypes "github.com/banzaicloud/banzai-types/components/database"
 	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/banzai-types/database"
 	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
 	"github.com/gin-gonic/gin"
-	"net/http"
-	"encoding/base64"
-	"k8s.io/client-go/tools/clientcmd"
 	"io/ioutil"
+	"k8s.io/client-go/tools/clientcmd"
+	"net/http"
 )
 
 // ClusterRepresentation combines EC2 and AKS
 type ClusterRepresentation struct {
-	Id        uint        `json:"id"`
-	Name      string      `json:"name"`
-	CloudType string      `json:"cloud"`
+	Id                    uint   `json:"id"`
+	Name                  string `json:"name"`
+	CloudType             string `json:"cloud"`
 	*AmazonRepresentation `json:"amazon,omitempty"`
 	*AzureRepresentation  `json:"azure,omitempty"`
 	*GoogleRepresentation `json:"google,omitempty"`
@@ -89,31 +88,6 @@ func DbSaveFailed(c *gin.Context, err error, clusterName string) {
 // GetClusterFromDB from database
 // If no field param was specified automatically use value as ID
 // Else it will use field as query column name
-func GetClusterFromDB(c *gin.Context) (*banzaiSimpleTypes.ClusterSimple, error) {
-
-	banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Get cluster from database")
-
-	var cluster banzaiSimpleTypes.ClusterSimple
-	value := c.Param("id")
-	field := c.DefaultQuery("field", "")
-	if field == "" {
-		field = "id"
-	}
-	banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, "Cluster ID:", value)
-	query := fmt.Sprintf("%s = ?", field)
-	database.SelectFirstWhere(&cluster, query, value)
-	if cluster.ID == 0 {
-		errorMsg := fmt.Sprintf("cluster not found: [%s]: %s", field, value)
-		banzaiUtils.LogInfo(banzaiConstants.TagGetCluster, errorMsg)
-		SetResponseBodyJson(c, http.StatusNotFound, gin.H{
-			JsonKeyStatus:  http.StatusNotFound,
-			JsonKeyMessage: errorMsg,
-		})
-		return nil, errors.New(errorMsg)
-	}
-	return &cluster, nil
-
-}
 
 //GetClusterSimple legacy EC2
 func GetClusterSimple(c *gin.Context) (*banzaiSimpleTypes.ClusterSimple, error) {

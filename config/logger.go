@@ -1,4 +1,4 @@
-package conf
+package config
 
 import (
 	"github.com/sirupsen/logrus"
@@ -11,7 +11,7 @@ var logger *logrus.Logger
 func Logger() *logrus.Logger {
 	if logger == nil {
 		logger = logrus.New()
-		switch viper.GetString("dev.loglevel") {
+		switch viper.GetString("log.loglevel") {
 		case "debug":
 			logrus.SetLevel(logrus.DebugLevel)
 		case "info":
@@ -27,13 +27,12 @@ func Logger() *logrus.Logger {
 			logrus.SetLevel(logrus.InfoLevel)
 		}
 
-		switch viper.GetString("dev.logformat") {
+		switch viper.GetString("log.logformat") {
 		case "text":
 			logrus.SetFormatter(new(logrus.TextFormatter))
 		case "json":
 			logrus.SetFormatter(new(logrus.JSONFormatter))
 		default:
-			//logrus.WithField("dev.logformat", viper.GetString("dev.logformat")).Warning("Invalid log format. Defaulting to text.")
 			logrus.SetFormatter(new(logrus.TextFormatter))
 		}
 

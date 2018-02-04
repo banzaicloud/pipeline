@@ -28,9 +28,37 @@ type CreateClusterRequest struct {
 	} `json:"properties" binding:"required"`
 }
 
+type GetClusterStatusResponse struct {
+	Status					 int    `json:"status"`
+	Name             string `json:"name"`
+	Location         string `json:"location"`
+	Cloud            string `json:"cloud"`
+	NodeInstanceType string `json:"nodeInstanceType"`
+}
+
+type GetClusterConfigResponse struct {
+	Status int `json:"status"`
+	Data string `json:"data"`
+}
+
+type UpdateClusterResponse struct {
+	Status int `json:"status"`
+}
+
+type GetClusterStatusResponse struct {
+	Status int `json:"status"`
+}
+
 type UpdateClusterRequest struct {
 	Cloud string     `json:"cloud" binding:"required"`
 	UpdateProperties `json:"properties"`
+}
+
+type DeleteClusterResponse struct {
+	Status int `json:"status"`
+	Name string `json:"name"`
+	Message string `json:"message"`
+	ResourceID uint `json:"id"`
 }
 
 type UpdateProperties struct {
