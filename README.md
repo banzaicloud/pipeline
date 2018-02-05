@@ -18,7 +18,7 @@ _Pipeline is a RESTful API to deploy **cloud native** microservices in public cl
   - [Managed Kubernetes](#managed-kubernetes)
 - [Architecture overview](#architecture-overview)
   - [Control plane](#control-plane)
-  - [Deployed cluster](#deployed-cluster)
+  - [Deployments](#deployments)
   - [The Pipeline Platform - PaaS](#the-pipeline-platform-paas)
 - [Installation](#installation)
 - [Dependency management](#vendoring)
@@ -111,7 +111,7 @@ For the platform's end user a typical Pipeline interaction starts with a GitHub 
 
 ### Installation
 
-Pipeline API deploys microservice based applications using the REST API. Unlike the Pipeline Platform, the API has no explicit knowledge about `spotguides`, the CI/CD pipeline, or the application type. It merely provisions the cloud infrastructure (or reuses), deploys the containers through Helm and applies cluster reconciliation/SLA rules. In order to try the API follow the [installation guide](docs/install.md).
+Pipeline API deploys microservice based applications using the REST API. Unlike the Pipeline Platform, the API has no explicit knowledge about `spotguides`, the CI/CD pipeline, or the application type. It merely provisions the cloud infrastructure (or reuses), deploys the containers through Helm and applies cluster reconciliation/SLA rules. In order to try the API follow the [installation guide](docs/pipeline-howto.md).
 
 ### Vendoring
 
