@@ -201,24 +201,24 @@ func GetDeployment() {
 // Retrieves the status of the passed in release name.
 // returns with an error if the release is not found or another error occurs
 // in case of error the status is filled with information to classify the error cause
-func GetDeploymentStatus(releaseName string, kubeConfig *[]byte) (string, error) {
+func GetDeploymentStatus(releaseName string, kubeConfig *[]byte) (int32, error) {
 	defer tearDown()
 
 	helmClient, err := GetHelmClient(kubeConfig)
 
 	if err != nil {
 		// internal server error
-		return fmt.Sprint(http.StatusInternalServerError), errors.Wrap(err, "couldn't get the helm client")
+		return http.StatusInternalServerError, errors.Wrap(err, "couldn't get the helm client")
 	}
 
 	releaseStatusResponse, err := helmClient.ReleaseStatus(releaseName)
 
 	if err != nil {
 		// the release cannot be found
-		return fmt.Sprint(http.StatusNotFound), errors.Wrap(err, "couldn't get the release status")
+		return http.StatusNotFound, errors.Wrap(err, "couldn't get the release status")
 	}
 
-	return releaseStatusResponse.Info.Status.GetCode().String(), nil
+	return int32(releaseStatusResponse.Info.Status.GetCode()), nil
 
 }
 

@@ -293,62 +293,69 @@ func DeleteCluster(c *gin.Context) {
 
 // FetchClusters fetches all the K8S clusters from the cloud
 func FetchClusters(c *gin.Context) {
+	log := logger.WithFields(logrus.Fields{"tag": constants.TagDeleteCluster})
+	log.Info("Fetching clusters")
 
-	banzaiUtils.LogInfo(banzaiConstants.TagListClusters, "Start listing clusters")
+	var clusters []cluster.CommonCluster //TODO change this to CommonClusterStatus
+	db := model.GetDB()
+	db.Find(&clusters)
 
-	var clusters []banzaiSimpleTypes.ClusterSimple
-	var response []*cloud.ClusterRepresentation
-	database.Find(&clusters)
-
-	if len(clusters) <= 0 {
-		banzaiUtils.LogInfo(banzaiConstants.TagListClusters, "No clusters found")
-		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
-			cloud.JsonKeyStatus:  http.StatusNotFound,
-			cloud.JsonKeyMessage: "No clusters found!",
+	if len(clusters) < 1 {
+		message := "No clusters found"
+		log.Info(message)
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: message,
+			Error:   message,
 		})
 		return
 	}
-
-	for _, cl := range clusters {
-		clust := cloud.GetClusterRepresentation(&cl)
-		if clust != nil {
-			banzaiUtils.LogInfo(banzaiConstants.TagListClusters, fmt.Sprintf("Append %#v cluster representation to response", clust))
-			response = append(response, clust)
+	var response []*components.GetClusterStatusResponse
+	for _, commonCluster := range clusters {
+		status, err := commonCluster.GetStatus()
+		if err != nil {
+			//TODO we want skip or return error?
+			log.Errorf("get status failed for %s", commonCluster.GetName())
 		}
-
+		log.Debugf("Append cluster to list: %s", commonCluster.GetName())
+		response = append(response, status)
 	}
-	cloud.SetResponseBodyJson(c, http.StatusOK, gin.H{
-		cloud.JsonKeyStatus: http.StatusOK,
-		cloud.JsonKeyData:   response,
-	})
+	c.JSON(http.StatusOK, response)
 }
 
 // FetchCluster fetch a K8S cluster in the cloud
 func FetchCluster(c *gin.Context) {
-
-	banzaiUtils.LogInfo(banzaiConstants.TagGetClusterInfo, "Start getting cluster info")
-	cl, err := cloud.GetClusterFromDB(c)
-	if err != nil {
+	log := logger.WithFields(logrus.Fields{"tag": constants.TagGetClusterStatus})
+	commonCluster, ok := GetCommonClusterFromRequest(c)
+	if ok != true {
 		return
 	}
-
-	cloud.FetchClusterInfo(cl, c)
-
+	log.Info("getting cluster info")
+	status, err := commonCluster.GetStatus()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: err.Error(),
+			Error:   err.Error(),
+		})
+		return
+	}
+	c.JSON(http.StatusOK, status)
 }
 
 //Status
 func Status(c *gin.Context) {
-	var clusters []banzaiSimpleTypes.ClusterSimple
-
-	banzaiUtils.LogInfo(banzaiConstants.TagStatus, "Cluster running, subsystems initialized")
-	database.Find(&clusters)
+	var clusters []cluster.CommonCluster
+	log := logger.WithFields(logrus.Fields{"tag": constants.TagStatus})
+	db := model.GetDB()
+	db.Find(&clusters)
 
 	if len(clusters) == 0 {
 		c.JSON(http.StatusOK, gin.H{"No running clusters found.": http.StatusOK})
 	} else {
 		var clusterStatuses []pods.ClusterStatusResponse
 		for _, cl := range clusters {
-			banzaiUtils.LogInfo(utils.TagStatus, "Start listing pods / cluster")
+			log.Info("Start listing pods / cluster")
 			var clusterStatusResponse pods.ClusterStatusResponse
 			clusterStatusResponse, err := pods.ListPodsForCluster(&cl)
 			if err == nil {

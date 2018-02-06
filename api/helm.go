@@ -2,7 +2,10 @@ package api
 
 import (
 	"fmt"
+	htype "github.com/banzaicloud/banzai-types/components/helm"
 	"github.com/banzaicloud/banzai-types/constants"
+	"github.com/banzaicloud/pipeline/helm"
+	"github.com/ghodss/yaml"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"k8s.io/helm/pkg/timeconv"
@@ -10,185 +13,170 @@ import (
 	"os"
 )
 
-//DeploymentType definition to describe a Helm deployment
-type DeploymentType struct {
-	Name        string      `json:"name" binding:"required"`
-	ReleaseName string      `json:"releasename"`
-	Version     string      `json:"version"`
-	Values      interface{} `json:"values"`
+func GetK8sConfig(c *gin.Context) (*[]byte, bool) {
+	log := logger.WithFields(logrus.Fields{"tag": "GetKubernetesConfig"})
+	commonCluster, ok := GetCommonClusterFromRequest(c)
+	if ok != true {
+		return nil, false
+	}
+	kubeConfig, err := commonCluster.GetK8sConfig()
+	if err != nil {
+		log.Error(err)
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error getting kubeconfig",
+			Error:   err.Error(),
+		})
+		return nil, false
+	}
+	return kubeConfig, true
 }
 
 // CreateDeployment creates a Helm deployment
 func CreateDeployment(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagCreateDeployment})
-	log.Info("Start create deployment")
-
-	// --- [ Get cluster ] --- //
-	log.Info("Get cluster")
-	cloudCluster, err := cloud.GetClusterFromDB(c)
-	if err != nil {
+	commonCluster, ok := GetCommonClusterFromRequest(c)
+	if ok != true {
 		return
 	}
-
-	banzaiUtils.LogInfo(banzaiConstants.TagCreateDeployment, "Get cluster succeeded")
-
-	banzaiUtils.LogInfo(banzaiConstants.TagCreateDeployment, "Bind json into DeploymentType struct")
-	var deployment DeploymentType
-	if err := c.BindJSON(&deployment); err != nil {
-		banzaiUtils.LogInfo(banzaiConstants.TagCreateDeployment, "Bind failed")
-		banzaiUtils.LogInfo(banzaiConstants.TagCreateDeployment, "Required field is empty."+err.Error())
-		cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
-			cloud.JsonKeyStatus:  http.StatusBadRequest,
-			cloud.JsonKeyMessage: "Required field is empty",
-			cloud.JsonKeyError:   err,
+	log.Info("Get cluster succeeded")
+	var deployment *htype.CreateDeploymentRequest
+	err := c.BindJSON(&deployment)
+	if err != nil {
+		log.Error(err)
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error parsing request",
+			Error:   err.Error(),
 		})
 		return
 	}
+	log.Info("Parse deployment succeeded")
 
-	banzaiUtils.LogDebug(banzaiConstants.TagCreateDeployment, fmt.Sprintf("Creating chart %s with version %s and release name %s", deployment.Name, deployment.Version, deployment.ReleaseName))
-
-	var values []byte = nil
+	log.Debugf("Creating chart %s with version %s and release name %s", deployment.Name, deployment.Version, deployment.ReleaseName)
+	var values []byte
 	if deployment.Values != "" {
 		parsedJSON, err := yaml.Marshal(deployment.Values)
 		if err != nil {
-			banzaiUtils.LogError(banzaiConstants.TagCreateDeployment, "Can't parse Values:", err)
+			log.Error("can't parse Values:", err)
+			c.JSON(http.StatusBadRequest, ErrorResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Error parsing request",
+				Error:   err.Error(),
+			})
+			return
 		}
 		values, err = yaml.JSONToYAML(parsedJSON)
 		if err != nil {
-			banzaiUtils.LogError(banzaiConstants.TagCreateDeployment, "Can't convert JSON to YAML:", err)
+			log.Errorf("can't convert json to yaml: %s", err)
+			c.JSON(http.StatusBadRequest, ErrorResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Error parsing request",
+				Error:   err.Error(),
+			})
 			return
 		}
 	}
-	// --- [ Get K8S Config ] --- //
-	kubeConfig, err := cloud.GetK8SConfig(cloudCluster, c)
+	kubeConfig, err := commonCluster.GetK8sConfig()
 	if err != nil {
-		return
-	}
-	banzaiUtils.LogInfo(banzaiConstants.TagCreateDeployment, "Getting K8S Config Succeeded")
-
-	banzaiUtils.LogDebug(banzaiConstants.TagCreateDeployment, "Custom values:", string(values))
-	banzaiUtils.LogInfo(banzaiConstants.TagCreateDeployment, "Create deployment")
-	release, err := helm.CreateDeployment(deployment.Name, deployment.ReleaseName, values, kubeConfig, cloudCluster.Name)
-	if err != nil {
-		banzaiUtils.LogWarn(banzaiConstants.TagCreateDeployment, "Error during create deployment.", err.Error())
-		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
-			cloud.JsonKeyStatus:  http.StatusNotFound,
-			cloud.JsonKeyMessage: fmt.Sprintf("%s", err),
+		log.Error(err)
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error getting kubeconfig",
+			Error:   err.Error(),
 		})
 		return
-	} else {
-		banzaiUtils.LogInfo(banzaiConstants.TagCreateDeployment, "Create deployment succeeded")
 	}
+
+	log.Debug("Custom values:", string(values))
+	release, err := helm.CreateDeployment(deployment.Name, deployment.ReleaseName, values, kubeConfig)
+	if err != nil {
+		//TODO distinguish error codes
+		log.Errorf("Error during create deployment.", err.Error())
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error creating deployment",
+			Error:   err.Error(),
+		})
+		return
+	}
+	log.Info("Create deployment succeeded")
 
 	releaseName := release.Release.Name
 	releaseNotes := release.Release.Info.Status.Notes
 
-	banzaiUtils.LogDebug(banzaiConstants.TagCreateDeployment, "Release name:", releaseName)
-	banzaiUtils.LogDebug(banzaiConstants.TagCreateDeployment, "Release notes:", releaseNotes)
-
-	//Get ingress with deployment prefix TODO
-	//Get local ingress address?
-
-	cloud.SetResponseBodyJson(c, http.StatusCreated, gin.H{
-		cloud.JsonKeyStatus:      http.StatusCreated,
-		cloud.JsonKeyReleaseName: releaseName,
-		cloud.JsonKeyNotes:       releaseNotes,
-	})
+	log.Debug("Release name: ", releaseName)
+	log.Debug("Release notes: ", releaseNotes)
+	response := htype.CreateDeploymentResponse{
+		ReleaseName: releaseName,
+		Notes:       releaseNotes,
+	}
+	c.JSON(http.StatusCreated, response)
 	return
 }
 
 // ListDeployments lists a Helm deployment
 func ListDeployments(c *gin.Context) {
-
-	banzaiUtils.LogInfo(banzaiConstants.TagListDeployments, "Start listing deployments")
-
-	// --- [ Get cluster ] ---- //
-	banzaiUtils.LogInfo(banzaiConstants.TagListDeployments, "Get cluster")
-	cloudCluster, err := cloud.GetClusterFromDB(c)
-	if err != nil {
+	log := logger.WithFields(logrus.Fields{"tag": constants.TagListDeployments})
+	kubeConfig, ok := GetK8sConfig(c)
+	if ok != true {
 		return
 	}
-	banzaiUtils.LogInfo(banzaiConstants.TagListDeployments, "Getting cluster succeeded")
 
-	// --- [ Get K8S Config ] --- //
-	kubeConfig, err := cloud.GetK8SConfig(cloudCluster, c)
-	if err != nil {
-		return
-	}
-	banzaiUtils.LogInfo(banzaiConstants.TagListDeployments, "Getting K8S Config Succeeded")
-
-	// --- [ Get deployments ] --- //
-	banzaiUtils.LogInfo(banzaiConstants.TagListDeployments, "Get deployments")
+	log.Info("Get deployments")
 	response, err := helm.ListDeployments(nil, kubeConfig)
 	if err != nil {
-		banzaiUtils.LogWarn(banzaiConstants.TagListDeployments, "Error getting deployments. ", err)
-		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
-			cloud.JsonKeyStatus:  http.StatusNotFound,
-			cloud.JsonKeyMessage: fmt.Sprintf("%s", err),
+		log.Errorf("Error during create deployment.", err.Error())
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error listing deployments",
+			Error:   err.Error(),
 		})
 		return
 	}
-	var releases []gin.H
+	var releases []htype.ListDeploymentResponse
 	if len(response.Releases) > 0 {
 		for _, r := range response.Releases {
-			body := gin.H{
-				"name":    r.Name,
-				"chart":   fmt.Sprintf("%s-%s", r.Chart.Metadata.Name, r.Chart.Metadata.Version),
-				"version": r.Version,
-				"updated": timeconv.String(r.Info.LastDeployed),
-				"status":  r.Info.Status.Code.String()}
+			body := htype.ListDeploymentResponse{
+				Name:    r.Name,
+				Chart:   fmt.Sprintf("%s-%s", r.Chart.Metadata.Name, r.Chart.Metadata.Version),
+				Version: r.Version,
+				Updated: timeconv.String(r.Info.LastDeployed),
+				Status:  r.Info.Status.Code.String()}
 			releases = append(releases, body)
 		}
 	} else {
-		msg := "There is no installed charts."
-		banzaiUtils.LogInfo(banzaiConstants.TagListDeployments, msg)
-		cloud.SetResponseBodyJson(c, http.StatusOK, gin.H{
-			cloud.JsonKeyMessage: msg,
-		})
-		return
+		log.Info("There is no installed charts.")
 	}
-
-	cloud.SetResponseBodyJson(c, http.StatusOK, releases)
+	c.JSON(http.StatusOK, releases)
 	return
 }
 
-// Check the status of a deployment through the helm client API
+// Check the status of a deployment through the helm client API Check what is this?
 func HelmDeploymentStatus(c *gin.Context) {
 	// todo error handling - design it, refine it, refactor it
-
+	log := logger.WithFields(logrus.Fields{"tag": "DeploymentStatus"})
 	name := c.Param("name")
-	banzaiUtils.LogInfof("HelmDeploymentStatus", "Retrieving status for deployment: %s", name)
-
-	cloudCluster, err := cloud.GetClusterFromDB(c)
-	helmDeploymentStatusErrorResponse(c, errors.Wrap(err, "couldn't get the cluster from db"))
-
-	kubeConfig, err := cloud.GetK8SConfig(cloudCluster, c)
-	helmDeploymentStatusErrorResponse(c, errors.Wrap(err, "couldn't get the k8s config"))
-
-	status, err := helm.GetDeploymentStatus(name, kubeConfig)
-
-	if err != nil {
-
-		banzaiUtils.LogError("HelmDeploymentStatus", err.Error())
-		// convert the status code back - this is specific to the underlying call!
-		code, _ := strconv.Atoi(status)
-
-		cloud.SetResponseBodyJson(c, code, gin.H{
-			cloud.JsonKeyStatus:  code,
-			cloud.JsonKeyMessage: fmt.Sprint(http.StatusText(code), "\n", err.Error()),
-		})
-
+	log.Infof("Retrieving status for deployment: %s", name)
+	kubeConfig, ok := GetK8sConfig(c)
+	if ok != true {
 		return
 	}
-
-	if status != "" {
-		banzaiUtils.LogInfof("HelmDeploymentStatus", "Deployment status: %s", status)
-		cloud.SetResponseBodyJson(c, http.StatusOK, gin.H{
-			cloud.JsonKeyStatus:  http.StatusOK,
-			cloud.JsonKeyMessage: "Deployment status: " + status,
+	status, err := helm.GetDeploymentStatus(name, kubeConfig)
+	if err != nil {
+		log.Errorf(err.Error())
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error listing deployments",
+			Error:   err.Error(),
 		})
+		return
 	}
-
+	log.Infof("HelmDeploymentStatus", "Deployment status: %s", status)
+	c.JSON(http.StatusOK, htype.DeploymentStatusResponse{
+		Status:  http.StatusOK,
+		Message: "",
+	})
 }
 
 // InitHelmInCluster installs Helm on AKS cluster and configure the Helm client
