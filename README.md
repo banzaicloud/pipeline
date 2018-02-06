@@ -93,7 +93,7 @@ All these components are assembled into a **Control Plane** - and deployed to Ku
 
 ![Control Plane](docs/images/control-plane-aws-azure.png)
 
-You can launch a Pipeline control plane on AWS with the following [Cloudformation](https://github.com/banzaicloud/pipeline-cp-launcher/blob/0.1.0/control-plane.template) template.
+You can launch a Pipeline control plane on AWS with the following [Cloudformation](https://github.com/banzaicloud/pipeline-cp-launcher/blob/0.2.0/control-plane-cf.template) template.
 
 ### Deployments
 
