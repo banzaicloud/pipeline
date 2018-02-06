@@ -621,7 +621,7 @@ func deleteCluster(cc *GKECluster, c *gin.Context) bool {
 	return true
 }
 
-//GetAzureK8SConfig retrieves kubeconfig for Azure AKS
+//GetGoogleK8SConfig retrieves kubeconfig for GKE
 func GetGoogleK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 	banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Start loading google k8s config")
 
@@ -630,9 +630,6 @@ func GetGoogleK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 		return
 	}
 
-	// set google props
-	banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Load Google props from database")
-	database.SelectFirstWhere(&cs.Google, banzaiSimpleTypes.GoogleClusterSimple{ClusterSimpleId: cs.ID})
 	config, err := getGoogleKubernetesConfig(cs)
 	if err != nil {
 		// something went wrong
@@ -664,6 +661,9 @@ func GetGoogleK8SConfig(cs *banzaiSimpleTypes.ClusterSimple, c *gin.Context) {
 }
 
 func getGoogleKubernetesConfig(cs *banzaiSimpleTypes.ClusterSimple) ([]byte, *banzaiTypes.BanzaiResponse) {
+
+	banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Load Google props from database")
+	database.SelectFirstWhere(&cs.Google, banzaiSimpleTypes.GoogleClusterSimple{ClusterSimpleId: cs.ID})
 
 	banzaiUtils.LogInfo(banzaiConstants.TagFetchClusterConfig, "Get Google Service Client")
 	svc, err := GetGoogleServiceClient()
