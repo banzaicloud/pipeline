@@ -37,7 +37,7 @@ func CreateAKSClusterFromRequest(request *components.CreateClusterRequest) (*AKS
 }
 
 type AKSCluster struct {
-	// kubicornCluster *kcluster.Cluster //Don't use this directly
+	azureCluster *banzaiAzureTypes.Value //Don't use this directly
 	modelCluster *model.ClusterModel
 	k8sConfig    *[]byte
 	APIEndpoint  string
@@ -58,7 +58,7 @@ func (c *AKSCluster) CreateCluster() error {
 	}
 
 	// call creation
-	_, err := azureClient.CreateUpdateCluster(r)
+	createdCluster, err := azureClient.CreateUpdateCluster(r)
 	if err != nil {
 		// creation failed
 		log.Infof("Cluster creation failed! %s", err.Message)
@@ -68,16 +68,19 @@ func (c *AKSCluster) CreateCluster() error {
 		// creation success
 		log.Info("Cluster created successfully!")
 
+		c.azureCluster = &createdCluster.Value
+
 		// todo save cluster to DB before polling
 
 		// polling cluster
-		_, err := azureClient.PollingCluster(r.Name, r.ResourceGroup)
+		pollingResult, err := azureClient.PollingCluster(r.Name, r.ResourceGroup)
 		if err != nil {
 			// polling error
 			// todo status code!??
 			return errors.New(err.Message)
 		} else {
 			log.Info("Cluster is ready...")
+			c.azureCluster = &pollingResult.Value
 			return nil
 		}
 	}
@@ -203,7 +206,7 @@ func (c *AKSCluster) UpdateCluster(request *bTypes.UpdateClusterRequest) error {
 		KubernetesVersion: c.modelCluster.Azure.KubernetesVersion,
 	}
 
-	_, err := azureClient.CreateUpdateCluster(ccr)
+	updatedCluster, err := azureClient.CreateUpdateCluster(ccr)
 	if err != nil {
 		return errors.New(err.Message)
 	} else {
@@ -226,7 +229,7 @@ func (c *AKSCluster) UpdateCluster(request *bTypes.UpdateClusterRequest) error {
 			},
 		}
 		c.modelCluster = updateCluster
-
+		c.azureCluster = &updatedCluster.Value
 		return nil
 	}
 
