@@ -263,3 +263,12 @@ func writeConfig2File(path string, config *banzaiAzureTypes.Config) error {
 	}
 	return nil
 }
+
+func CreateAKSClusterFromModel(clusterModel *model.ClusterModel) (*AKSCluster, error) {
+	log := logger.WithFields(logrus.Fields{"action": constants.TagGetCluster})
+	log.Debug("Create ClusterModel struct from the request")
+	aksCluster := AKSCluster{
+		modelCluster: clusterModel,
+	}
+	return &aksCluster, nil
+}

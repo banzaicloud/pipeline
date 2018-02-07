@@ -899,3 +899,12 @@ type userData struct {
 	Username string `yaml:"username,omitempty"`
 	Password string `yaml:"password,omitempty"`
 }
+
+func CreateGKEClusterFromModel(clusterModel *model.ClusterModel) (*GKECluster, error) {
+	log := logger.WithFields(logrus.Fields{"action": constants.TagGetCluster})
+	log.Debug("Create ClusterModel struct from the request")
+	gkeCluster := GKECluster{
+		modelCluster: clusterModel,
+	}
+	return &gkeCluster, nil
+}

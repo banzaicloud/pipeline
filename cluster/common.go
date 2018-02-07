@@ -42,10 +42,20 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 		return awsCluster, nil
 
 	case constants.Azure:
-		return nil, nil
+		// Create Azure struct
+		aksCluster, err := CreateAKSClusterFromModel(modelCluster)
+		if err != nil {
+			return nil, err
+		}
+		return aksCluster, nil
 
 	case constants.Google:
-		return nil, nil
+		// Create Azure struct
+		gkeCluster, err := CreateGKEClusterFromModel(modelCluster)
+		if err != nil {
+			return nil, err
+		}
+		return gkeCluster, nil
 	}
 	return nil, errors.New("Cluster type not found")
 }
