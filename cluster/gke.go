@@ -29,7 +29,7 @@ import (
 
 var credentialPath string
 
-const googleAppCredentialKey = "dev.gkeCredentialPath"
+const googleAppCredentialKey = "cloud.gkeCredentialPath"
 
 const (
 	statusRunning = "RUNNING"
