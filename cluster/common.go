@@ -11,6 +11,8 @@ import (
 	"os"
 	"strings"
 	"syscall"
+	"k8s.io/client-go/tools/clientcmd"
+	"io/ioutil"
 )
 
 type CommonCluster interface {
@@ -52,8 +54,8 @@ func CreateCommonClusterFromRequest(createClusterRequest *bTypes.CreateClusterRe
 	cloudType := createClusterRequest.Cloud
 	switch cloudType {
 	case constants.Amazon:
-		_, errString := createClusterRequest.Properties.CreateClusterAmazon.Validate()
-		if errString != "" {
+		isOk, errString := createClusterRequest.Properties.CreateClusterAmazon.Validate()
+		if !isOk {
 			return nil, errors.New(errString)
 		}
 		//Create Amazon struct
@@ -63,6 +65,19 @@ func CreateCommonClusterFromRequest(createClusterRequest *bTypes.CreateClusterRe
 		}
 		return awsCluster, nil
 	case constants.Azure:
+
+		isOk, errString := createClusterRequest.Properties.CreateClusterAzure.Validate()
+		if !isOk {
+			return nil, errors.New(errString)
+		}
+
+		// Create Azure struct
+		aksCluster, err := CreateAKSClusterFromRequest(createClusterRequest)
+		if err != nil {
+			return nil, err
+		}
+		return aksCluster, nil
+
 		return nil, nil
 	case constants.Google:
 		return nil, nil
@@ -101,4 +116,28 @@ func getSigner(pemBytes []byte) (ssh.Signer, error) {
 	}
 
 	return signerwithoutpassphrase, err
+}
+
+func writeKubernetesKeys(kubeConfigPath string, localPath string) {
+	log.Infof("Starting to write kubernetes related certs/keys for: %s", kubeConfigPath)
+	config, err := clientcmd.BuildConfigFromFlags("", kubeConfigPath)
+	if err != nil {
+		log.Errorf("Getting kubernetes config failed from: %s", kubeConfigPath)
+		return
+	}
+	log.Infof("Getting kubernetes config succeeded!")
+	ioutil.WriteFile(localPath+"/client-key-data.pem", config.KeyData, 0644)
+	ioutil.WriteFile(localPath+"/client-certificate-data.pem", config.CertData, 0644)
+	ioutil.WriteFile(localPath+"/certificate-authority-data.pem", config.CAData, 0644)
+	log.Infof("Writing kubernetes related certs/keys succeeded for: %s", kubeConfigPath)
+}
+
+
+func getKubeConfigPath(path string) (string, error) {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		if err := os.Mkdir(path, 0777); err != nil {
+			return "", err
+		}
+	}
+	return fmt.Sprintf("%s/config", path), nil
 }

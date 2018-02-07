@@ -126,6 +126,7 @@ func CreateCluster(c *gin.Context) {
 	}
 	// This is the common part of cluster flow
 
+	// todo if the cluster save into db before validate, the cluster cloud not delete from database
 	// Persist the cluster in Database
 	err = commonCLuster.Persist()
 	if err != nil {
@@ -278,6 +279,8 @@ func DeleteCluster(c *gin.Context) {
 	}
 
 	err = commonCluster.DeleteCluster()
+
+	// todo error handling
 
 	// Asyncron update prometheus
 	go cluster.UpdatePrometheus()
