@@ -153,6 +153,9 @@ func (g *GKECluster) GetK8sConfig() (*[]byte, error) {
 	database := model.GetDB()
 	database.Where(model.GoogleClusterModel{ClusterModelId: g.modelCluster.ID}).First(&g.modelCluster.Google)
 
+	// to set env var
+	_ = getCredentialPath()
+
 	config, err := getGoogleKubernetesConfig(g.modelCluster)
 	if err != nil {
 		// something went wrong
