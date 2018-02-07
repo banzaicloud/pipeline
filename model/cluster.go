@@ -19,7 +19,7 @@ type ClusterModel struct {
 }
 
 type AmazonClusterModel struct {
-	ClusterSimpleId    uint `gorm:"primary_key"`
+	ClusterModelId     uint `gorm:"primary_key"`
 	NodeSpotPrice      string
 	NodeMinCount       int
 	NodeMaxCount       int
@@ -29,7 +29,7 @@ type AmazonClusterModel struct {
 }
 
 type AzureClusterModel struct {
-	ClusterSimpleId   uint `gorm:"primary_key"`
+	ClusterModelId    uint `gorm:"primary_key"`
 	ResourceGroup     string
 	AgentCount        int
 	AgentName         string
@@ -37,11 +37,11 @@ type AzureClusterModel struct {
 }
 
 type GoogleClusterModel struct {
-	ClusterSimpleId uint `gorm:"primary_key"`
-	Project         string
-	MasterVersion   string
-	NodeVersion     string
-	NodeCount       int
+	ClusterModelId uint `gorm:"primary_key"`
+	Project        string
+	MasterVersion  string
+	NodeVersion    string
+	NodeCount      int
 }
 
 // TableName sets ClusterModel's table name

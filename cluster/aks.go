@@ -102,7 +102,7 @@ func (c *AKSCluster) GetK8sConfig() (*[]byte, error) {
 	}
 
 	database := model.GetDB()
-	database.Where(model.AzureClusterModel{ClusterSimpleId: c.modelCluster.ID}).First(&c)
+	database.Where(model.AzureClusterModel{ClusterModelId: c.modelCluster.ID}).First(&c)
 	config, err := azureClient.GetClusterConfig(c.modelCluster.Name, c.modelCluster.Azure.ResourceGroup, "clusterUser")
 	if err != nil {
 		// TODO status code !?
@@ -153,7 +153,7 @@ func (c *AKSCluster) GetStatus() (*bTypes.GetClusterStatusResponse, error) {
 
 	// load azure props from db
 	database := model.GetDB()
-	database.Where(model.AzureClusterModel{ClusterSimpleId: c.modelCluster.ID}).First(&c)
+	database.Where(model.AzureClusterModel{ClusterModelId: c.modelCluster.ID}).First(&c)
 	resp, err := azureClient.GetCluster(c.modelCluster.Name, c.modelCluster.Azure.ResourceGroup)
 	if err != nil {
 		return nil, errors.New(err)
@@ -181,7 +181,7 @@ func (c *AKSCluster) DeleteCluster() error {
 
 	// set azure props
 	database := model.GetDB()
-	database.Where(model.AzureClusterModel{ClusterSimpleId: c.modelCluster.ID}).First(&c.modelCluster.Azure)
+	database.Where(model.AzureClusterModel{ClusterModelId: c.modelCluster.ID}).First(&c.modelCluster.Azure)
 
 	res, isSuccess := azureClient.DeleteCluster(c.modelCluster.Name, c.modelCluster.Azure.ResourceGroup)
 	if isSuccess {
