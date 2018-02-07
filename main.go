@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/banzaicloud/banzai-types/database"
 	"github.com/banzaicloud/pipeline/api"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
@@ -54,7 +53,7 @@ func main() {
 	// Initialise config
 	config.Init()
 	// Ensure DB connection
-	model.GetDB()
+	db := model.GetDB()
 	// Initialise auth
 	auth.Init()
 
@@ -65,7 +64,8 @@ func main() {
 		model.AzureClusterModel.TableName(model.AzureClusterModel{}),
 		model.GoogleClusterModel.TableName(model.GoogleClusterModel{}))
 
-	database.CreateTables(
+	// Create tables
+	db.AutoMigrate(
 		&model.ClusterModel{},
 		&model.AmazonClusterModel{},
 		&model.AzureClusterModel{},
