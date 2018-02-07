@@ -3,7 +3,7 @@ package amazon
 import (
 	"github.com/banzaicloud/banzai-types/utils"
 	"github.com/banzaicloud/banzai-types/constants"
-	"github.com/banzaicloud/banzai-types/components/database"
+	"errors"
 )
 
 type CreateClusterAmazon struct {
@@ -108,53 +108,21 @@ func (amazon *CreateClusterAmazon) Validate() (bool, string) {
 // ValidateAmazonRequest validates the update request (only amazon part). If any of the fields is missing, the method fills
 // with stored data.
 // func (r *UpdateClusterRequest) ValidateAmazonRequest(defaultValue ClusterSimple) (bool, string) {
-func (a *UpdateClusterAmazon) Validate(defaultValue database.ClusterSimple) (bool, string) {
+func (a *UpdateClusterAmazon) Validate() error {
 
 	utils.LogInfo(constants.TagValidateUpdateCluster, "Validate update request (amazon)")
-	defAmazonNode := &UpdateAmazonNode{
-		MinCount: defaultValue.Amazon.NodeMinCount,
-		MaxCount: defaultValue.Amazon.NodeMaxCount,
-	}
 
 	// ---- [ Amazon field check ] ---- //
 	if a == nil {
 		utils.LogInfo(constants.TagValidateUpdateCluster, "'amazon' field is empty")
-		return false, "'amazon' field is empty"
-	}
-
-	// ---- [ Node check ] ---- //
-	if a.UpdateAmazonNode == nil {
-		utils.LogInfo(constants.TagValidateUpdateCluster, "'node' field is empty. Fill from stored data")
-		a.UpdateAmazonNode = defAmazonNode
-	}
-
-	// ---- [ Node min count check ] ---- //
-	if a.UpdateAmazonNode.MinCount == 0 {
-		defMinCount := defaultValue.Amazon.NodeMinCount
-		utils.LogInfo(constants.TagValidateUpdateCluster, "Node minCount set to default value: ", defMinCount)
-		a.UpdateAmazonNode.MinCount = defMinCount
-	}
-
-	// ---- [ Node max count check ] ---- //
-	if a.UpdateAmazonNode.MaxCount == 0 {
-		defMaxCount := defaultValue.Amazon.NodeMaxCount
-		utils.LogInfo(constants.TagValidateUpdateCluster, "Node maxCount set to default value: ", defMaxCount)
-		a.UpdateAmazonNode.MaxCount = defMaxCount
+		return errors.New("'amazon' field is empty")
 	}
 
 	// ---- [ Node max count > min count check ] ---- //
 	if a.UpdateAmazonNode.MaxCount < a.UpdateAmazonNode.MinCount {
 		utils.LogInfo(constants.TagValidateUpdateCluster, "Node maxCount is lower than minCount")
-		return false, "maxCount must be greater than mintCount"
+		return errors.New("maxCount must be greater than mintCount")
 	}
 
-	// create update request struct with the stored data to check equality
-	preCl := &UpdateClusterAmazon{
-		UpdateAmazonNode: defAmazonNode,
-	}
-
-	utils.LogInfo(constants.TagValidateUpdateCluster, "Check stored & updated cluster equals")
-
-	// check equality
-	return utils.IsDifferent(a, preCl, constants.TagValidateUpdateCluster)
+	return nil
 }

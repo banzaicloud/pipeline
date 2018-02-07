@@ -4,7 +4,6 @@ import (
 	"github.com/banzaicloud/banzai-types/utils"
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/pkg/errors"
-	"github.com/banzaicloud/banzai-types/components/database"
 )
 
 type CreateClusterGoogle struct {
@@ -65,51 +64,15 @@ func (g *CreateClusterGoogle) Validate() (bool, *error) {
 
 // Validate validates the update request (only google part). If any of the fields is missing, the method fills
 // with stored data.
-func (a *UpdateClusterGoogle) Validate(defaultValue database.ClusterSimple) (bool, string) {
+func (a *UpdateClusterGoogle) Validate() error {
 
 	utils.LogInfo(constants.TagValidateCreateCluster, "Start validate update request (google)")
-
-	defGoogleNode := &GoogleNode{
-		Version: defaultValue.Google.NodeVersion,
-		Count:   defaultValue.Google.NodeCount,
-	}
-
-	defGoogleMaster := &GoogleMaster{
-		Version: defaultValue.Google.MasterVersion,
-	}
 
 	// ---- [ Google field check ] ---- //
 	if a == nil {
 		utils.LogInfo(constants.TagValidateCreateCluster, "'google' field is empty")
-		return false, "'google' field is empty"
+		return errors.New("'google' field is empty")
 	}
 
-	// ---- [ Node check ] ---- //
-	if a.GoogleNode == nil {
-		utils.LogInfo(constants.TagValidateCreateCluster, "'node' field is empty. Load it from stored data.")
-		a.GoogleNode = defGoogleNode
-	}
-
-	// ---- [ Master check ] ---- //
-	if a.GoogleMaster == nil {
-		utils.LogInfo(constants.TagValidateCreateCluster, "'master' field is empty. Load it from stored data.")
-		a.GoogleMaster = defGoogleMaster
-	}
-
-	// ---- [ Node - Agent count check] ---- //
-	if a.Count == 0 {
-		def := defaultValue.Azure.AgentCount
-		utils.LogInfo(constants.TagValidateCreateCluster, "Node count set to default value: ", def)
-		a.Count = def
-	}
-
-	// create update request struct with the stored data to check equality
-	preCl := &UpdateClusterGoogle{
-		GoogleNode: defGoogleNode,
-	}
-
-	utils.LogInfo(constants.TagValidateUpdateCluster, "Check stored & updated cluster equals")
-
-	// check equality
-	return utils.IsDifferent(a, preCl, constants.TagValidateUpdateCluster)
+	return nil
 }

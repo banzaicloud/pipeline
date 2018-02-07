@@ -25,6 +25,8 @@ import (
 	"os"
 	"strings"
 	"time"
+	bGoogle "github.com/banzaicloud/banzai-types/components/google"
+	"github.com/banzaicloud/banzai-types/utils"
 )
 
 var credentialPath string
@@ -263,6 +265,13 @@ func (g *GKECluster) UpdateCluster(updateRequest *components.UpdateClusterReques
 
 	log.Info("Start updating cluster (google)")
 
+	log.Info("Load Google props from database")
+	database := model.GetDB()
+	database.Where(model.GoogleClusterModel{ClusterModelId: g.modelCluster.ID}).First(&g.modelCluster.Google)
+
+	// to set env var
+	_ = getCredentialPath()
+
 	svc, err := getGoogleServiceClient()
 	if err != nil {
 		return err
@@ -292,6 +301,10 @@ func (g *GKECluster) UpdateCluster(updateRequest *components.UpdateClusterReques
 
 func (g *GKECluster) GetID() uint {
 	return g.modelCluster.ID
+}
+
+func (g *GKECluster) GetModel() *model.ClusterModel {
+	return g.modelCluster
 }
 
 // getCredentialPath returns the Google application credential path and set the env variable
@@ -910,4 +923,52 @@ func CreateGKEClusterFromModel(clusterModel *model.ClusterModel) (*GKECluster, e
 		modelCluster: clusterModel,
 	}
 	return &gkeCluster, nil
+}
+
+func AddDefaultsGoogleUpdate(r *components.UpdateClusterRequest, existsCluster *model.ClusterModel) {
+	defGoogleNode := &bGoogle.GoogleNode{
+		Version: existsCluster.Google.NodeVersion,
+		Count:   existsCluster.Google.NodeCount,
+	}
+
+	defGoogleMaster := &bGoogle.GoogleMaster{
+		Version: existsCluster.Google.MasterVersion,
+	}
+
+	// ---- [ Node check ] ---- //
+	if r.GoogleNode == nil {
+		log.Info("'node' field is empty. Load it from stored data.")
+		r.GoogleNode = defGoogleNode
+	}
+
+	// ---- [ Master check ] ---- //
+	if r.GoogleMaster == nil {
+		log.Info(constants.TagValidateCreateCluster, "'master' field is empty. Load it from stored data.")
+		r.GoogleMaster = defGoogleMaster
+	}
+
+	// ---- [ NodeCount check] ---- //
+	if r.UpdateClusterGoogle.GoogleNode.Count == 0 {
+		def := existsCluster.Google.NodeCount
+		log.Info(constants.TagValidateCreateCluster, "Node count set to default value: ", def)
+		r.UpdateClusterGoogle.GoogleNode.Count = def
+	}
+}
+
+func IsUpdateRequestDifferentGoogle(r *components.UpdateClusterRequest, existsCluster *model.ClusterModel) error {
+	// create update request struct with the stored data to check equality
+	preCl := &bGoogle.UpdateClusterGoogle{
+		GoogleMaster: &bGoogle.GoogleMaster{
+			Version: existsCluster.Google.MasterVersion,
+		},
+		GoogleNode: &bGoogle.GoogleNode{
+			Version: existsCluster.Google.NodeVersion,
+			Count:   existsCluster.Google.NodeCount,
+		},
+	}
+
+	log.Info("Check stored & updated cluster equals")
+
+	// check equality
+	return utils.IsDifferent(r, preCl, constants.TagValidateUpdateCluster)
 }

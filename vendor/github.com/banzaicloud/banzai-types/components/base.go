@@ -8,7 +8,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/banzaicloud/banzai-types/constants"
-	"github.com/banzaicloud/banzai-types/components/database"
+	"errors"
 )
 
 type BanzaiResponse struct {
@@ -29,7 +29,7 @@ type CreateClusterRequest struct {
 }
 
 type GetClusterStatusResponse struct {
-	Status					 int    `json:"status"`
+	Status           int    `json:"status"`
 	Name             string `json:"name"`
 	Location         string `json:"location"`
 	Cloud            string `json:"cloud"`
@@ -37,17 +37,17 @@ type GetClusterStatusResponse struct {
 }
 
 type GetClusterConfigResponse struct {
-	Status int `json:"status"`
-	Data string `json:"data"`
+	Status int    `json:"status"`
+	Data   string `json:"data"`
 }
 
 type UpdateClusterResponse struct {
 	Status int `json:"status"`
 }
 
-type GetClusterStatusResponse struct {
-	Status int `json:"status"`
-}
+//type GetClusterStatusResponse struct {
+//	Status int `json:"status"`
+//}
 
 type UpdateClusterRequest struct {
 	Cloud string     `json:"cloud" binding:"required"`
@@ -55,10 +55,10 @@ type UpdateClusterRequest struct {
 }
 
 type DeleteClusterResponse struct {
-	Status int `json:"status"`
-	Name string `json:"name"`
-	Message string `json:"message"`
-	ResourceID uint `json:"id"`
+	Status     int    `json:"status"`
+	Name       string `json:"name"`
+	Message    string `json:"message"`
+	ResourceID uint   `json:"id"`
 }
 
 type UpdateProperties struct {
@@ -92,23 +92,23 @@ func (r *UpdateClusterRequest) String() string {
 }
 
 // The Validate method checks the request fields
-func (r *UpdateClusterRequest) Validate(defaultValue database.ClusterSimple) (bool, string) {
+func (r *UpdateClusterRequest) Validate() error {
 
 	r.preValidate()
 
 	switch r.Cloud {
 	case constants.Amazon:
 		// amazon validate
-		return r.UpdateClusterAmazon.Validate(defaultValue)
+		return r.UpdateClusterAmazon.Validate()
 	case constants.Azure:
 		// azure validate
-		return r.UpdateClusterAzure.Validate(defaultValue)
+		return r.UpdateClusterAzure.Validate()
 	case constants.Google:
 		// google validate
-		return r.UpdateClusterGoogle.Validate(defaultValue)
+		return r.UpdateClusterGoogle.Validate()
 	default:
 		// not supported cloud type
-		return false, "Not supported cloud type."
+		return errors.New("Not supported cloud type.")
 	}
 
 }

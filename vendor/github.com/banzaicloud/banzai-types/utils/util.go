@@ -1,14 +1,17 @@
 package utils
 
-import "reflect"
+import (
+	"reflect"
+	"errors"
+)
 
 // IsDifferent compares x and y interfaces with deep equal
-func IsDifferent(x interface{}, y interface{}, logTag string) (bool, string) {
+func IsDifferent(x interface{}, y interface{}, logTag string) error {
 	if reflect.DeepEqual(x, y) {
 		msg := "There is no change in data"
 		LogInfo(logTag, msg)
-		return false, msg
+		return errors.New(msg)
 	}
 	LogInfo(logTag, "Different interfaces")
-	return true, ""
+	return nil
 }

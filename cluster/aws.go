@@ -24,6 +24,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"github.com/banzaicloud/banzai-types/components/amazon"
 )
 
 // TODO se who will win
@@ -68,6 +69,10 @@ func (c *AWSCluster) GetName() string {
 
 func (c *AWSCluster) GetType() string {
 	return c.modelCluster.Cloud
+}
+
+func (c *AWSCluster) GetModel() *model.ClusterModel {
+	return c.modelCluster
 }
 
 func CreateAWSClusterFromModel(clusterModel *model.ClusterModel) (*AWSCluster, error) {
@@ -630,4 +635,46 @@ func getBootstrapScriptFromEnv(isMaster bool) string {
 		return s
 	}
 
+}
+
+func AddDefaultsAmazonUpdate(r *components.UpdateClusterRequest, existsCluster *model.ClusterModel) {
+
+	// ---- [ Node check ] ---- //
+	if r.UpdateAmazonNode == nil {
+		log.Info("'node' field is empty. Fill from stored data")
+		r.UpdateAmazonNode = &amazon.UpdateAmazonNode{
+			MinCount: existsCluster.Amazon.NodeMinCount,
+			MaxCount: existsCluster.Amazon.NodeMaxCount,
+		}
+	}
+
+	// ---- [ Node min count check ] ---- //
+	if r.UpdateAmazonNode.MinCount == 0 {
+		defMinCount := existsCluster.Amazon.NodeMinCount
+		log.Info(constants.TagValidateUpdateCluster, "Node minCount set to default value: ", defMinCount)
+		r.UpdateAmazonNode.MinCount = defMinCount
+	}
+
+	// ---- [ Node max count check ] ---- //
+	if r.UpdateAmazonNode.MaxCount == 0 {
+		defMaxCount := existsCluster.Amazon.NodeMaxCount
+		log.Info(constants.TagValidateUpdateCluster, "Node maxCount set to default value: ", defMaxCount)
+		r.UpdateAmazonNode.MaxCount = defMaxCount
+	}
+
+}
+
+func IsUpdateRequestDifferentAmazon(r *components.UpdateClusterRequest, existsCluster *model.ClusterModel) error {
+	// create update request struct with the stored data to check equality
+	preCl := &amazon.UpdateClusterAmazon{
+		UpdateAmazonNode: &amazon.UpdateAmazonNode{
+			MinCount: existsCluster.Amazon.NodeMinCount,
+			MaxCount: existsCluster.Amazon.NodeMaxCount,
+		},
+	}
+
+	log.Info("Check stored & updated cluster equals")
+
+	// check equality
+	return banzaiUtils.IsDifferent(r, preCl, constants.TagValidateUpdateCluster)
 }

@@ -241,11 +241,34 @@ func UpdateCluster(c *gin.Context) {
 		return
 	}
 
+	// set default
+	cluster.SetDefaultsToUpdateRequest(updateRequest, &commonCluster)
+
+	if err := cluster.IsUpdateRequestDifferentFromStored(updateRequest, &commonCluster); err != nil {
+		log.Errorf("Check changes failed: %s", err.Error())
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: err.Error(),
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	if err := updateRequest.Validate(); err != nil {
+		log.Errorf("Validation failed: %s", err.Error())
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: err.Error(),
+			Error:   err.Error(),
+		})
+		return
+	}
+
 	// TODO check if validation can be applied sooner
 	err := commonCluster.UpdateCluster(updateRequest)
 	if err != nil {
 		// validation failed
-		log.Info("Validation failed")
+		log.Errorf("Update failed: %s", err.Error())
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: err.Error(),
