@@ -80,7 +80,17 @@ func CreateCommonClusterFromRequest(createClusterRequest *bTypes.CreateClusterRe
 
 		return nil, nil
 	case constants.Google:
-		return nil, nil
+		if isOk, errString := createClusterRequest.Properties.CreateClusterGoogle.Validate(); !isOk {
+			return nil, errors.New(errString)
+		}
+
+		// Create Google struct
+		gkeCluster, err := CreateGKEClusterFromRequest(createClusterRequest)
+		if err != nil {
+			return nil, err
+		}
+
+		return gkeCluster, nil
 	}
 	return nil, errors.New("Cluster type not found")
 }

@@ -21,6 +21,8 @@ loglevel = "debug"
 cloudprovider = "aws"
 cloudprofile = "default" #defaults to func getCluster - see https://github.com/kris-nova/kubicorn/tree/master/profiles
 
+# GKE credential path
+gkeCredentialPath = ""
 
 [auth]
 enabled = true
@@ -36,9 +38,6 @@ clientsecret = ""
 
 # AccessToken settings
 # tokensigningkey = ""
-
-# GKE credential path
-gkeCredentialPath = ""
 
 [helm]
 
