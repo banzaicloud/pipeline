@@ -1,28 +1,52 @@
-#environment
-[dev]
+# This is the example configuration for pipeline
 
-#database settings
+
+[database]
+# Database section
+
 dialect = "mysql"
 host = "localhost"
 port = 3306
-user = "root"
+user = "sparky"
 password = "sparky123"
 dbname = "sparky"
 
+[logging]
 #logger settings
 logformat = "text"
 loglevel = "debug"
 
+[cloud]
 #cloud profiles
 cloudprovider = "aws"
 cloudprofile = "default" #defaults to func getCluster - see https://github.com/kris-nova/kubicorn/tree/master/profiles
 
-#helm properties
-chartpath = "./"
-home = "."
+# GKE credential path
+gkeCredentialPath = ""
 
+[auth]
+enabled = true
 #auth0 configs
 auth0pub = "./conf/auth0api.pub"
 
 # SSH key path
-keypath = "~/.ssh/id_rsa.pub"
+#dev.keypath = ""
+
+# GitHub settings
+clientid = ""
+clientsecret = ""
+
+# AccessToken settings
+# tokensigningkey = ""
+
+[helm]
+
+#helm retry configs
+# TODO retry what?
+retryAttempt = 30
+retrySleepSeconds = 15
+
+# TODO explain what this is here
+#helm repo URLs
+stableRepositoryURL = "https://kubernetes-charts.storage.googleapis.com"
+banzaiRepositoryURL = "http://kubernetes-charts.banzaicloud.com"
