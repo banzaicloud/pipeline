@@ -83,24 +83,29 @@ func CreateCluster(c *gin.Context) {
 	}
 	log.Debug("Parsing request succeeded")
 
-	log.Info("Searching entry with name:", createClusterRequest.Name)
-	filter := ParseField(c)
+	log.Info("Searching entry with name: ", createClusterRequest.Name)
 
-	//TODO check if error handling is enough
-	existingCluster, err := model.QueryCluster(filter)
-	if err != nil {
-		log.Error(err)
-		c.JSON(http.StatusBadRequest, ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error parsing request",
-			Error:   err.Error(),
-		})
-		return
-	}
+	// check exists cluster name
+	var existingCluster model.ClusterModel
+	database := model.GetDB()
+	database.Raw("SELECT * FROM "+model.ClusterModel.TableName(existingCluster)+" WHERE name = ?;",
+		createClusterRequest.Name).Scan(&existingCluster)
+
+	////TODO check if error handling is enough
+	//existingCluster, err := model.QueryCluster(filter)
+	//if err != nil {
+	//	log.Error(err)
+	//	c.JSON(http.StatusBadRequest, ErrorResponse{
+	//		Code:    http.StatusBadRequest,
+	//		Message: "Error parsing request",
+	//		Error:   err.Error(),
+	//	})
+	//	return
+	//}
 
 	if existingCluster.ID != 0 {
 		// duplicated entry
-		err = fmt.Errorf("duplicate entry: %s", existingCluster.Name)
+		err := fmt.Errorf("duplicate entry: %s", existingCluster.Name)
 		log.Error(err)
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Code:    http.StatusBadRequest,
@@ -115,7 +120,7 @@ func CreateCluster(c *gin.Context) {
 	var commonCLuster cluster.CommonCluster
 
 	// TODO check validation
-	commonCLuster, err = cluster.CreateCommonClusterFromRequest(&createClusterRequest)
+	commonCLuster, err := cluster.CreateCommonClusterFromRequest(&createClusterRequest)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Code:    http.StatusBadRequest,
