@@ -151,7 +151,7 @@ func (g *GKECluster) GetK8sConfig() (*[]byte, error) {
 	// set google props
 	log.Info("Load Google props from database")
 	database := model.GetDB()
-	database.Where(model.GoogleClusterModel{ClusterModelId: g.modelCluster.ID}).First(&g)
+	database.Where(model.GoogleClusterModel{ClusterModelId: g.modelCluster.ID}).First(&g.modelCluster.Google)
 
 	config, err := getGoogleKubernetesConfig(g.modelCluster)
 	if err != nil {
@@ -188,7 +188,7 @@ func (g *GKECluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 
 	// load google props from db
 	database := model.GetDB()
-	database.Where(model.GoogleClusterModel{ClusterModelId: g.modelCluster.ID}).First(&g)
+	database.Where(model.GoogleClusterModel{ClusterModelId: g.modelCluster.ID}).First(&g.modelCluster.Google)
 
 	log.Info("Get Google Service Client")
 	svc, err := getGoogleServiceClient()
@@ -235,7 +235,7 @@ func (g *GKECluster) DeleteCluster() error {
 	// set google props
 	log.Info("Load Google props from database")
 	database := model.GetDB()
-	database.Where(model.GoogleClusterModel{ClusterModelId: g.modelCluster.ID}).First(&g)
+	database.Where(model.GoogleClusterModel{ClusterModelId: g.modelCluster.ID}).First(&g.modelCluster.Google)
 
 	gkec := googleCluster{
 		ProjectID: g.modelCluster.Google.Project,
