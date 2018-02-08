@@ -340,7 +340,7 @@ func FetchClusters(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagDeleteCluster})
 	log.Info("Fetching clusters")
 
-	var clusters []cluster.CommonCluster //TODO change this to CommonClusterStatus
+	var clusters []model.ClusterModel //TODO change this to CommonClusterStatus
 	db := model.GetDB()
 	db.Find(&clusters)
 
@@ -355,14 +355,20 @@ func FetchClusters(c *gin.Context) {
 		return
 	}
 	var response []*components.GetClusterStatusResponse
-	for _, commonCluster := range clusters {
-		status, err := commonCluster.GetStatus()
-		if err != nil {
-			//TODO we want skip or return error?
-			log.Errorf("get status failed for %s", commonCluster.GetName())
+	for _, cl := range clusters {
+		commonCluster, err := cluster.GetCommonClusterFromModel(&cl)
+		if err == nil {
+			status, err := commonCluster.GetStatus()
+			if err != nil {
+				//TODO we want skip or return error?
+				log.Errorf("get status failed for %s: %s", commonCluster.GetName(), err.Error())
+			} else {
+				log.Debugf("Append cluster to list: %s", commonCluster.GetName())
+				response = append(response, status)
+			}
+		} else {
+			log.Errorf("convert ClusterModel to CommonCluster failed: %s ", err.Error())
 		}
-		log.Debugf("Append cluster to list: %s", commonCluster.GetName())
-		response = append(response, status)
 	}
 	c.JSON(http.StatusOK, response)
 }
