@@ -173,6 +173,8 @@ _Note: Zeppelin on Kubernetes for Spark notebooks does not use YARN, all schedul
 
 The Apache Kafka `spotguide` has a good understanding of consumers and producers but more importantly it monitors, scales, rebalances and auto-heals the Kafka cluster. It autodetects broker failures, reassigns workloads and edits partition reassignment files.
 
+![Kafka Pipeline](https://raw.githubusercontent.com/banzaicloud/pipeline/master/docs/images/kafka-on-etcd.png)
+
 _Note: Kafka on Kubernetes does not use Zookeper at all. For all quotas, controller election, cluster membership and configuration it is using **etcd**, a faster and more reliable `cloud-native` distributed system for coordination and metadata storage._
 
 #### TiDB
