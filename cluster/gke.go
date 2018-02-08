@@ -195,6 +195,9 @@ func (g *GKECluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 	database := model.GetDB()
 	database.Where(model.GoogleClusterModel{ClusterModelId: g.modelCluster.ID}).First(&g.modelCluster.Google)
 
+	// to set env var
+	_ = getCredentialPath()
+
 	log.Info("Get Google Service Client")
 	svc, err := getGoogleServiceClient()
 	if err != nil {
