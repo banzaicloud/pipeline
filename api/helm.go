@@ -10,7 +10,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"k8s.io/helm/pkg/timeconv"
 	"net/http"
-	"os"
 )
 
 func GetK8sConfig(c *gin.Context) (*[]byte, bool) {
@@ -181,36 +180,41 @@ func HelmDeploymentStatus(c *gin.Context) {
 
 // InitHelmInCluster installs Helm on AKS cluster and configure the Helm client
 func InitHelmOnCluster(c *gin.Context) {
-	banzaiUtils.LogInfo(banzaiConstants.TagHelmInstall, "Start helm install")
+	log := logger.WithFields(logrus.Fields{"tag": constants.TagHelmInstall})
+	log.Info("Start helm install")
 
-	// get cluster from database
-	cl, err := cloud.GetClusterFromDB(c)
-	if err != nil {
+	commonCluster, ok := GetCommonClusterFromRequest(c)
+	if ok != true {
 		return
 	}
 
-	kce := fmt.Sprintf("./statestore/%s/config", cl.Name)
-	banzaiUtils.LogInfof(banzaiConstants.TagHelmInstall, "Set $KUBECONFIG env to %s", kce)
-	os.Setenv("KUBECONFIG", kce)
-
+	kubeConfig, err := commonCluster.GetK8sConfig()
+	log.Error(err)
+	c.JSON(http.StatusBadRequest, ErrorResponse{
+		Code:    http.StatusBadRequest,
+		Message: "Error getting kubeconfig",
+		Error:   err.Error(),
+	})
 	// bind request body to struct
-	var helmInstall banzaiHelm.Install
+	var helmInstall htype.Install
 	if err := c.BindJSON(&helmInstall); err != nil {
 		// bind failed
-		banzaiUtils.LogError(banzaiConstants.TagHelmInstall, "Required field is empty: "+err.Error())
-		cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
-			cloud.JsonKeyStatus:  http.StatusBadRequest,
-			cloud.JsonKeyMessage: "Required field is empty",
-			cloud.JsonKeyError:   err,
+		log.Errorf("Required field is empty: %s", err.Error())
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error parsing request",
+			Error:   err.Error(),
 		})
 		return
-	} else {
-		banzaiUtils.LogInfo(banzaiConstants.TagHelmInstall, "Bind succeeded")
 	}
-
-	resp := helm.Install(&helmInstall, cl.Name)
-	cloud.SetResponseBodyJson(c, resp.StatusCode, resp)
-
+	x := helm.Install(&helmInstall, kubeConfig, commonCluster.GetName())
+	message := "helm initialising"
+	c.JSON(http.StatusCreated, htype.InstallResponse{
+		Status:  http.StatusCreated,
+		Message: message,
+	})
+	log.Info(message)
+	return
 }
 
 // FetchDeploymentStatus check the status of the Helm deployment

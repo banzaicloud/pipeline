@@ -23,6 +23,11 @@ type Install struct {
 	MaxHistory int `json:"history_max"`
 }
 
+type InstallResponse struct {
+	Status int `json:"status"`
+	Message string `json:"message"`
+}
+
 type CreateDeploymentResponse struct {
 	ReleaseName string `json:"release_name"`
 	Notes string `json:"notes"`
