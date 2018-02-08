@@ -163,29 +163,3 @@ func getKubeConfigPath(path string) (string, error) {
 	}
 	return fmt.Sprintf("%s/config", path), nil
 }
-
-func SetDefaultsToUpdateRequest(r *bTypes.UpdateClusterRequest, existsCluster *CommonCluster) {
-
-	switch (*existsCluster).GetType() {
-	case constants.Amazon:
-		AddDefaultsAmazonUpdate(r, (*existsCluster).GetModel())
-	case constants.Azure:
-		AddDefaultsAzureUpdate(r, (*existsCluster).GetModel())
-	case constants.Google:
-		AddDefaultsGoogleUpdate(r, (*existsCluster).GetModel())
-	}
-
-}
-
-func IsUpdateRequestDifferentFromStored(r *bTypes.UpdateClusterRequest, existsCluster *CommonCluster) error {
-	// todo add to interface
-	switch (*existsCluster).GetType() {
-	case constants.Amazon:
-		return IsUpdateRequestDifferentAmazon(r, (*existsCluster).GetModel())
-	case constants.Azure:
-		return IsUpdateRequestDifferentAzure(r, (*existsCluster).GetModel())
-	case constants.Google:
-		return IsUpdateRequestDifferentGoogle(r, (*existsCluster).GetModel())
-	}
-	return errors.New("Not supported cloud type")
-}

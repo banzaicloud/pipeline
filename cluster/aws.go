@@ -676,5 +676,5 @@ func (c *AWSCluster) CheckEqualityToUpdate(r *components.UpdateClusterRequest) e
 	log.Info("Check stored & updated cluster equals")
 
 	// check equality
-	return banzaiUtils.IsDifferent(r, preCl, constants.TagValidateUpdateCluster)
+	return banzaiUtils.IsDifferent(r.UpdateClusterAmazon, preCl, constants.TagValidateUpdateCluster)
 }

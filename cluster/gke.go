@@ -970,5 +970,5 @@ func (g *GKECluster) CheckEqualityToUpdate(r *components.UpdateClusterRequest) e
 	log.Info("Check stored & updated cluster equals")
 
 	// check equality
-	return utils.IsDifferent(r, preCl, constants.TagValidateUpdateCluster)
+	return utils.IsDifferent(r.UpdateClusterGoogle, preCl, constants.TagValidateUpdateCluster)
 }

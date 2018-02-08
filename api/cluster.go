@@ -241,6 +241,16 @@ func UpdateCluster(c *gin.Context) {
 		return
 	}
 
+	if commonCluster.GetType() != updateRequest.Cloud {
+		msg := fmt.Sprintf("Stored cloud type [%s] and request cloud type [%s] not equal", commonCluster.GetType(), updateRequest.Cloud)
+		log.Errorf(msg)
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: msg,
+		})
+		return
+	}
+
 	log.Info("Add default values to request if necessarily")
 
 	// set default
