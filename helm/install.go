@@ -14,14 +14,11 @@ import (
 	"k8s.io/api/rbac/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
 	"k8s.io/helm/cmd/helm/installer"
 	"k8s.io/helm/pkg/downloader"
 	"k8s.io/helm/pkg/getter"
 	helm_env "k8s.io/helm/pkg/helm/environment"
 	"k8s.io/helm/pkg/helm/helmpath"
-	"k8s.io/helm/pkg/kube"
 	"k8s.io/helm/pkg/repo"
 	"net/http"
 	"os"
@@ -277,7 +274,7 @@ func initRepo(repoName string, repoUrl string, env helm_env.EnvSettings) (*repo.
 }
 
 // Install uses Kubernetes client to install Tiller.
-func Install(helmInstall *helm.Install, kubeConfig *[]byte, path string) *components.BanzaiResponse {
+func Install(helmInstall *helm.Install, kubeConfig *[]byte, path string) error {
 
 	//Installing helm client
 	utils.LogInfo(constants.TagHelmInstall, "Installing helm client!")
@@ -305,7 +302,7 @@ func Install(helmInstall *helm.Install, kubeConfig *[]byte, path string) *compon
 		ImageSpec:      helmInstall.ImageSpec,
 		MaxHistory:     helmInstall.MaxHistory,
 	}
-	_, kubeClient, err := getKubeClient(helmInstall.KubeContext)
+	kubeClient, err := GetK8sConnection(kubeConfig)
 	if err != nil {
 		utils.LogErrorf(constants.TagHelmInstall, "could not get kubernetes client: %s", err)
 		return &components.BanzaiResponse{
@@ -340,26 +337,4 @@ func Install(helmInstall *helm.Install, kubeConfig *[]byte, path string) *compon
 	return &components.BanzaiResponse{
 		StatusCode: http.StatusOK,
 	}
-}
-
-// getKubeClient creates a Kubernetes config and client for a given kubeconfig context.
-func getKubeClient(context string) (*rest.Config, kubernetes.Interface, error) {
-	config, err := configForContext(context)
-	if err != nil {
-		return nil, nil, err
-	}
-	client, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		return nil, nil, fmt.Errorf("could not get Kubernetes client: %s", err)
-	}
-	return config, client, nil
-}
-
-// configForContext creates a Kubernetes REST client configuration for a given kubeconfig context.
-func configForContext(context string) (*rest.Config, error) {
-	config, err := kube.GetConfig(context).ClientConfig()
-	if err != nil {
-		return nil, fmt.Errorf("could not get Kubernetes config for context %q: %s", context, err)
-	}
-	return config, nil
 }
