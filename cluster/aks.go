@@ -278,30 +278,30 @@ func CreateAKSClusterFromModel(clusterModel *model.ClusterModel) (*AKSCluster, e
 	return &aksCluster, nil
 }
 
-func AddDefaultsAzureUpdate(r *components.UpdateClusterRequest, existsCluster *model.ClusterModel) {
+func (c *AKSCluster) AddDefaultsToUpdate(r *components.UpdateClusterRequest) {
 
 	// ---- [ Node check ] ---- //
 	if r.UpdateAzureNode == nil {
 		log.Info(constants.TagValidateCreateCluster, "'node' field is empty. Load it from stored data.")
 		r.UpdateAzureNode = &banzaiAzureTypes.UpdateAzureNode{
-			AgentCount: existsCluster.Azure.AgentCount,
+			AgentCount: c.modelCluster.Azure.AgentCount,
 		}
 	}
 
 	// ---- [ Node - Agent count check] ---- //
 	if r.AgentCount == 0 {
-		def := existsCluster.Azure.AgentCount
+		def := c.modelCluster.Azure.AgentCount
 		log.Info(constants.TagValidateCreateCluster, "Node agentCount set to default value: ", def)
 		r.AgentCount = def
 	}
 
 }
 
-func IsUpdateRequestDifferentAzure(r *components.UpdateClusterRequest, existsCluster *model.ClusterModel) error {
+func (c *AKSCluster) CheckEqualityToUpdate(r *components.UpdateClusterRequest) error {
 	// create update request struct with the stored data to check equality
 	preCl := &banzaiAzureTypes.UpdateClusterAzure{
 		UpdateAzureNode: &banzaiAzureTypes.UpdateAzureNode{
-			AgentCount: existsCluster.Azure.AgentCount,
+			AgentCount: c.modelCluster.Azure.AgentCount,
 		},
 	}
 

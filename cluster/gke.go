@@ -925,14 +925,14 @@ func CreateGKEClusterFromModel(clusterModel *model.ClusterModel) (*GKECluster, e
 	return &gkeCluster, nil
 }
 
-func AddDefaultsGoogleUpdate(r *components.UpdateClusterRequest, existsCluster *model.ClusterModel) {
+func (g *GKECluster) AddDefaultsToUpdate(r *components.UpdateClusterRequest) {
 	defGoogleNode := &bGoogle.GoogleNode{
-		Version: existsCluster.Google.NodeVersion,
-		Count:   existsCluster.Google.NodeCount,
+		Version: g.modelCluster.Google.NodeVersion,
+		Count:   g.modelCluster.Google.NodeCount,
 	}
 
 	defGoogleMaster := &bGoogle.GoogleMaster{
-		Version: existsCluster.Google.MasterVersion,
+		Version: g.modelCluster.Google.MasterVersion,
 	}
 
 	// ---- [ Node check ] ---- //
@@ -949,21 +949,21 @@ func AddDefaultsGoogleUpdate(r *components.UpdateClusterRequest, existsCluster *
 
 	// ---- [ NodeCount check] ---- //
 	if r.UpdateClusterGoogle.GoogleNode.Count == 0 {
-		def := existsCluster.Google.NodeCount
+		def := g.modelCluster.Google.NodeCount
 		log.Info(constants.TagValidateCreateCluster, "Node count set to default value: ", def)
 		r.UpdateClusterGoogle.GoogleNode.Count = def
 	}
 }
 
-func IsUpdateRequestDifferentGoogle(r *components.UpdateClusterRequest, existsCluster *model.ClusterModel) error {
+func (g *GKECluster) CheckEqualityToUpdate(r *components.UpdateClusterRequest) error {
 	// create update request struct with the stored data to check equality
 	preCl := &bGoogle.UpdateClusterGoogle{
 		GoogleMaster: &bGoogle.GoogleMaster{
-			Version: existsCluster.Google.MasterVersion,
+			Version: g.modelCluster.Google.MasterVersion,
 		},
 		GoogleNode: &bGoogle.GoogleNode{
-			Version: existsCluster.Google.NodeVersion,
-			Count:   existsCluster.Google.NodeCount,
+			Version: g.modelCluster.Google.NodeVersion,
+			Count:   g.modelCluster.Google.NodeCount,
 		},
 	}
 

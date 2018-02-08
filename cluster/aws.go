@@ -637,39 +637,39 @@ func getBootstrapScriptFromEnv(isMaster bool) string {
 
 }
 
-func AddDefaultsAmazonUpdate(r *components.UpdateClusterRequest, existsCluster *model.ClusterModel) {
+func (c *AWSCluster) AddDefaultsToUpdate(r *components.UpdateClusterRequest) {
 
 	// ---- [ Node check ] ---- //
 	if r.UpdateAmazonNode == nil {
 		log.Info("'node' field is empty. Fill from stored data")
 		r.UpdateAmazonNode = &amazon.UpdateAmazonNode{
-			MinCount: existsCluster.Amazon.NodeMinCount,
-			MaxCount: existsCluster.Amazon.NodeMaxCount,
+			MinCount: c.modelCluster.Amazon.NodeMinCount,
+			MaxCount: c.modelCluster.Amazon.NodeMaxCount,
 		}
 	}
 
 	// ---- [ Node min count check ] ---- //
 	if r.UpdateAmazonNode.MinCount == 0 {
-		defMinCount := existsCluster.Amazon.NodeMinCount
+		defMinCount := c.modelCluster.Amazon.NodeMinCount
 		log.Info(constants.TagValidateUpdateCluster, "Node minCount set to default value: ", defMinCount)
 		r.UpdateAmazonNode.MinCount = defMinCount
 	}
 
 	// ---- [ Node max count check ] ---- //
 	if r.UpdateAmazonNode.MaxCount == 0 {
-		defMaxCount := existsCluster.Amazon.NodeMaxCount
+		defMaxCount := c.modelCluster.Amazon.NodeMaxCount
 		log.Info(constants.TagValidateUpdateCluster, "Node maxCount set to default value: ", defMaxCount)
 		r.UpdateAmazonNode.MaxCount = defMaxCount
 	}
 
 }
 
-func IsUpdateRequestDifferentAmazon(r *components.UpdateClusterRequest, existsCluster *model.ClusterModel) error {
+func (c *AWSCluster) CheckEqualityToUpdate(r *components.UpdateClusterRequest) error {
 	// create update request struct with the stored data to check equality
 	preCl := &amazon.UpdateClusterAmazon{
 		UpdateAmazonNode: &amazon.UpdateAmazonNode{
-			MinCount: existsCluster.Amazon.NodeMinCount,
-			MaxCount: existsCluster.Amazon.NodeMaxCount,
+			MinCount: c.modelCluster.Amazon.NodeMinCount,
+			MaxCount: c.modelCluster.Amazon.NodeMaxCount,
 		},
 	}
 

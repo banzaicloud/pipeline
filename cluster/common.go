@@ -26,6 +26,8 @@ type CommonCluster interface {
 	UpdateCluster(*bTypes.UpdateClusterRequest) error
 	GetID() uint
 	GetModel() *model.ClusterModel
+	CheckEqualityToUpdate(*bTypes.UpdateClusterRequest) error
+	AddDefaultsToUpdate(*bTypes.UpdateClusterRequest)
 	//ModifyCluster(*model.ClusterModel)
 	//GetKubernetesConf()
 	//GetKubernetesEndpoint()

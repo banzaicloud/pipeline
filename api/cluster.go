@@ -241,10 +241,13 @@ func UpdateCluster(c *gin.Context) {
 		return
 	}
 
-	// set default
-	cluster.SetDefaultsToUpdateRequest(updateRequest, &commonCluster)
+	log.Info("Add default values to request if necessarily")
 
-	if err := cluster.IsUpdateRequestDifferentFromStored(updateRequest, &commonCluster); err != nil {
+	// set default
+	commonCluster.AddDefaultsToUpdate(updateRequest)
+
+	log.Info("Check equality")
+	if err := commonCluster.CheckEqualityToUpdate(updateRequest); err != nil {
 		log.Errorf("Check changes failed: %s", err.Error())
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Code:    http.StatusBadRequest,
