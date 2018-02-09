@@ -150,11 +150,6 @@ func (g *GKECluster) GetK8sConfig() (*[]byte, error) {
 
 	log := logger.WithFields(logrus.Fields{"action": constants.TagFetchClusterConfig})
 
-	// set google props
-	log.Info("Load Google props from database")
-	database := model.GetDB()
-	database.Where(model.GoogleClusterModel{ClusterModelId: g.modelCluster.ID}).First(&g.modelCluster.Google)
-
 	// to set env var
 	_ = getCredentialPath()
 
@@ -188,12 +183,6 @@ func (g *GKECluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 	log := logger.WithFields(logrus.Fields{"action": constants.TagFetchClusterConfig})
 
 	log.Info("Start get cluster status (google)")
-
-	log.Info("Load Google props from database")
-
-	// load google props from db
-	database := model.GetDB()
-	database.Where(model.GoogleClusterModel{ClusterModelId: g.modelCluster.ID}).First(&g.modelCluster.Google)
 
 	// to set env var
 	_ = getCredentialPath()
@@ -240,11 +229,6 @@ func (g *GKECluster) DeleteCluster() error {
 		return errors.New("<nil> cluster")
 	}
 
-	// set google props
-	log.Info("Load Google props from database")
-	database := model.GetDB()
-	database.Where(model.GoogleClusterModel{ClusterModelId: g.modelCluster.ID}).First(&g.modelCluster.Google)
-
 	gkec := googleCluster{
 		ProjectID: g.modelCluster.Google.Project,
 		Name:      g.modelCluster.Name,
@@ -267,10 +251,6 @@ func (g *GKECluster) UpdateCluster(updateRequest *components.UpdateClusterReques
 	log := logger.WithFields(logrus.Fields{"action": constants.TagUpdateCluster})
 
 	log.Info("Start updating cluster (google)")
-
-	log.Info("Load Google props from database")
-	database := model.GetDB()
-	database.Where(model.GoogleClusterModel{ClusterModelId: g.modelCluster.ID}).First(&g.modelCluster.Google)
 
 	// to set env var
 	_ = getCredentialPath()

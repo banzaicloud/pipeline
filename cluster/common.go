@@ -34,6 +34,9 @@ type CommonCluster interface {
 }
 
 func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster, error) {
+
+	database := model.GetDB()
+
 	cloudType := modelCluster.Cloud
 	switch cloudType {
 	case constants.Amazon:
@@ -42,6 +45,10 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 		if err != nil {
 			return nil, err
 		}
+
+		log.Info("Load Amazon props from database")
+		database.Where(model.AzureClusterModel{ClusterModelId: awsCluster.modelCluster.ID}).First(&awsCluster.modelCluster.Amazon)
+
 		return awsCluster, nil
 
 	case constants.Azure:
@@ -50,6 +57,10 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 		if err != nil {
 			return nil, err
 		}
+
+		log.Info("Load Azure props from database")
+		database.Where(model.AzureClusterModel{ClusterModelId: aksCluster.modelCluster.ID}).First(&aksCluster.modelCluster.Azure)
+
 		return aksCluster, nil
 
 	case constants.Google:
@@ -58,6 +69,10 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 		if err != nil {
 			return nil, err
 		}
+
+		log.Info("Load Google props from database")
+		database.Where(model.AzureClusterModel{ClusterModelId: gkeCluster.modelCluster.ID}).First(&gkeCluster.modelCluster.Google)
+
 		return gkeCluster, nil
 	}
 	return nil, errors.New("Cluster type not found")

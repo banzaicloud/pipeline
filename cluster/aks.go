@@ -150,11 +150,6 @@ func (c *AKSCluster) GetType() string {
 func (c *AKSCluster) GetStatus() (*bTypes.GetClusterStatusResponse, error) {
 	log := logger.WithFields(logrus.Fields{"action": constants.TagGetClusterStatus})
 
-	log.Info("Load azure props from database")
-
-	// load azure props from db
-	database := model.GetDB()
-	database.Where(model.AzureClusterModel{ClusterModelId: c.modelCluster.ID}).First(&c.modelCluster.Azure)
 	resp, err := azureClient.GetCluster(c.modelCluster.Name, c.modelCluster.Azure.ResourceGroup)
 	if err != nil {
 		return nil, errors.New(err)
@@ -202,7 +197,7 @@ func (c *AKSCluster) UpdateCluster(request *bTypes.UpdateClusterRequest) error {
 		Location:          c.modelCluster.Location,
 		VMSize:            c.modelCluster.NodeInstanceType,
 		ResourceGroup:     c.modelCluster.Azure.ResourceGroup,
-		AgentCount:        c.modelCluster.Azure.AgentCount,
+		AgentCount:        request.UpdateClusterAzure.AgentCount,
 		AgentName:         c.modelCluster.Azure.AgentName,
 		KubernetesVersion: c.modelCluster.Azure.KubernetesVersion,
 	}
@@ -220,13 +215,11 @@ func (c *AKSCluster) UpdateCluster(request *bTypes.UpdateClusterRequest) error {
 			Location:         c.modelCluster.Location,
 			NodeInstanceType: c.modelCluster.NodeInstanceType,
 			Cloud:            c.modelCluster.Cloud,
-			Amazon: model.AmazonClusterModel{
-				NodeSpotPrice:      c.modelCluster.Amazon.NodeSpotPrice,
-				NodeMinCount:       request.UpdateClusterAmazon.MinCount,
-				NodeMaxCount:       request.UpdateClusterAmazon.MaxCount,
-				NodeImage:          c.modelCluster.Amazon.NodeImage,
-				MasterInstanceType: c.modelCluster.Amazon.MasterInstanceType,
-				MasterImage:        c.modelCluster.Amazon.MasterImage,
+			Azure: model.AzureClusterModel{
+				ResourceGroup:     c.modelCluster.Azure.ResourceGroup,
+				AgentCount:        request.UpdateClusterAzure.AgentCount,
+				AgentName:         c.modelCluster.Azure.AgentName,
+				KubernetesVersion: c.modelCluster.Azure.KubernetesVersion,
 			},
 		}
 		c.modelCluster = updateCluster
