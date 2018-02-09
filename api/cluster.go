@@ -131,9 +131,8 @@ func CreateCluster(c *gin.Context) {
 	}
 	// This is the common part of cluster flow
 
-	// todo if the cluster save into db before validate, the cluster cloud not delete from database
-	// Persist the cluster in Database
-	err = commonCLuster.Persist()
+	// Create cluster
+	err = commonCLuster.CreateCluster()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Code:    http.StatusBadRequest,
@@ -143,8 +142,8 @@ func CreateCluster(c *gin.Context) {
 		return
 	}
 
-	// Create cluster
-	err = commonCLuster.CreateCluster()
+	// Persist the cluster in Database
+	err = commonCLuster.Persist()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Code:    http.StatusBadRequest,

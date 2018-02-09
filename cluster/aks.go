@@ -62,7 +62,6 @@ func (c *AKSCluster) CreateCluster() error {
 	createdCluster, err := azureClient.CreateUpdateCluster(r)
 	if err != nil {
 		// creation failed
-		log.Infof("Cluster creation failed! %s", err.Message)
 		// todo status code!??
 		return errors.New(err.Message)
 	} else {
@@ -71,7 +70,10 @@ func (c *AKSCluster) CreateCluster() error {
 
 		c.azureCluster = &createdCluster.Value
 
-		// todo save cluster to DB before polling
+		// save to database
+		if err := c.Persist(); err != nil {
+			log.Errorf("Cluster save failed! %s", err.Error())
+		}
 
 		// polling cluster
 		pollingResult, err := azureClient.PollingCluster(r.Name, r.ResourceGroup)
