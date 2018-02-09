@@ -288,6 +288,11 @@ func UpdateCluster(c *gin.Context) {
 			Error:   err.Error(),
 		})
 		return
+	} else {
+		// save the updated cluster to database
+		if err := commonCluster.Persist(); err != nil {
+			log.Errorf("Error during cluster save %s", err.Error())
+		}
 	}
 
 	c.JSON(http.StatusAccepted, components.UpdateClusterResponse{
