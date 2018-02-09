@@ -34,6 +34,7 @@ type GetClusterStatusResponse struct {
 	Location         string `json:"location"`
 	Cloud            string `json:"cloud"`
 	NodeInstanceType string `json:"nodeInstanceType"`
+	ResourceID       uint   `json:"id"`
 }
 
 type GetClusterConfigResponse struct {

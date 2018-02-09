@@ -165,6 +165,7 @@ func (c *AKSCluster) GetStatus() (*bTypes.GetClusterStatusResponse, error) {
 				Location:         c.modelCluster.Location,
 				Cloud:            c.modelCluster.Cloud,
 				NodeInstanceType: c.modelCluster.NodeInstanceType,
+				ResourceID:       c.modelCluster.ID,
 			}
 
 			return response, nil

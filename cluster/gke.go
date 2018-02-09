@@ -211,6 +211,7 @@ func (g *GKECluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 				Location:         g.modelCluster.Location,
 				Cloud:            g.modelCluster.Cloud,
 				NodeInstanceType: g.modelCluster.NodeInstanceType,
+				ResourceID:       g.modelCluster.ID,
 			}
 			return response, nil
 		} else {

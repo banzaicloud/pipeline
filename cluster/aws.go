@@ -393,6 +393,7 @@ func (c *AWSCluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 		Location:         kubicornCluster.Location,
 		Cloud:            kubicornCluster.Cloud,
 		NodeInstanceType: c.modelCluster.NodeInstanceType,
+		ResourceID:       c.modelCluster.ID,
 	}
 	return response, nil
 }
