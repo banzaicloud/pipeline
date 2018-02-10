@@ -76,7 +76,7 @@ Pipeline is architected in a way to allow pluggable implementations for provider
   * Alibaba Cloud Managed Kubernetes
   * CoreOS Tectonic
   * Redhat OpenShift
- 
+
 
 ## Architecture overview
 
@@ -93,7 +93,7 @@ All these components are assembled into a **Control Plane** - and deployed to Ku
 
 ![Control Plane](docs/images/control-plane-aws-azure.png)
 
-You can launch a Pipeline control plane on AWS with the following [Cloudformation](https://github.com/banzaicloud/pipeline-cp-launcher/blob/0.2.0/control-plane-cf.template) template.
+To launch a Pipeline control plane on AWS or Azure follow this [documentation](docs/control-plane.md).
 
 ### Deployments
 
@@ -131,7 +131,7 @@ Once Pipeline API is started, the easiest way to deploy applications to it is th
 
 [![Run in Postman](https://run.pstmn.io/button.svg)](https://www.getpostman.com/collections/b4eb0f62eb53d1ad29f7)
 
-For alternative ways to learn about application deployments please follow the [create cluster guide](docs/deployments.md).
+For alternative ways to learn about application deployments please follow the [deployments guide](docs/deployments.md).
 
 ### Quick howto
 
