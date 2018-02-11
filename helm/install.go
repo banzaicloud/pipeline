@@ -122,8 +122,8 @@ func RetryHelmInstall(helmInstall *helm.Install, commonCluster cluster.CommonClu
 	}
 	for i := 0; i <= retryAttempts; i++ {
 		log.Debugf("Waiting %d/%d", i, retryAttempts)
-		response := Install(helmInstall, kubeconfig, path)
-		if strings.Contains(response.Message, "net/http: TLS handshake timeout") {
+		err := Install(helmInstall, kubeconfig, path)
+		if strings.Contains(err.Error(), "net/http: TLS handshake timeout") {
 			time.Sleep(time.Duration(retrySleepSeconds) * time.Second)
 			continue
 		}
@@ -152,24 +152,25 @@ func generateHelmRepoPath(path string) string {
 }
 
 func downloadChartFromRepo(name string) (string, error) {
+	log := logger.WithFields(logrus.Fields{"tag": "DownloadChartFromRepo"})
 	settings := createEnvSettings("")
 	dl := downloader.ChartDownloader{
 		HelmHome: settings.Home,
 		Getters:  getter.All(settings),
 	}
 	if _, err := os.Stat(settings.Home.Archive()); os.IsNotExist(err) {
-		utils.LogInfof("downloadChartFromRepo", "Creating '%s' directory.", settings.Home.Archive())
+		log.Infof("Creating '%s' directory.", settings.Home.Archive())
 		os.MkdirAll(settings.Home.Archive(), 0744)
 	}
 
-	utils.LogInfof("downloadChartFromRepo", "Downloading helm chart '%s' to '%s'", name, settings.Home.Archive())
+	log.Infof("Downloading helm chart '%s' to '%s'", name, settings.Home.Archive())
 	filename, _, err := dl.DownloadTo(name, "", settings.Home.Archive())
 	if err == nil {
 		lname, err := filepath.Abs(filename)
 		if err != nil {
 			return filename, errors.Wrapf(err, "Could not create absolute path from %s", filename)
 		}
-		utils.LogDebugf("downloadChartFromRepo", "Fetched helm chart '%s' to '%s'", name, filename)
+		log.Debugf("Fetched helm chart '%s' to '%s'", name, filename)
 		return lname, nil
 	}
 
@@ -178,7 +179,7 @@ func downloadChartFromRepo(name string) (string, error) {
 
 // Installs helm client on the cluster
 func installHelmClient(path string) error {
-	const logTag = "installHelmClient"
+	log := logger.WithFields(logrus.Fields{"tag": "InstallHelmClient"})
 	settings := createEnvSettings(generateHelmRepoPath(path))
 	if err := ensureDirectories(settings); err != nil {
 		return errors.Wrap(err, "Initializing helm directories failed!")
@@ -188,12 +189,12 @@ func installHelmClient(path string) error {
 		return errors.Wrap(err, "Setting up default repos failed!")
 	}
 
-	utils.LogInfo(logTag, "Initializing helm client succeeded, happy helming!")
+	log.Info("Initializing helm client succeeded, happy helming!")
 	return nil
 }
 
 func ensureDirectories(env helm_env.EnvSettings) error {
-	const logTag = "ensureDirectories"
+	log := logger.WithFields(logrus.Fields{"tag": "EnsureHelmDirectories"})
 	home := env.Home
 	configDirectories := []string{
 		home.String(),
@@ -205,11 +206,11 @@ func ensureDirectories(env helm_env.EnvSettings) error {
 		home.Archive(),
 	}
 
-	utils.LogInfo(logTag, "Setting up helm directories.")
+	log.Info("Setting up helm directories.")
 
 	for _, p := range configDirectories {
 		if fi, err := os.Stat(p); err != nil {
-			utils.LogInfof(logTag, "Creating '%s'", p)
+			log.Infof("Creating '%s'", p)
 			if err := os.MkdirAll(p, 0755); err != nil {
 				return errors.Wrapf(err, "Could not create '%s'", p)
 			}
@@ -221,29 +222,29 @@ func ensureDirectories(env helm_env.EnvSettings) error {
 }
 
 func ensureDefaultRepos(env helm_env.EnvSettings) error {
-	const logTag = "ensureDefaultRepos"
+	log := logger.WithFields(logrus.Fields{"tag": "EnsureDefaultRepositories"})
 	home := env.Home
 	repoFile := home.RepositoryFile()
 
 	stableRepositoryURL := viper.GetString("helm.stableRepositoryURL")
 	banzaiRepositoryURL := viper.GetString("helm.banzaiRepositoryURL")
 
-	utils.LogInfo(logTag, "Setting up default helm repos.")
+	log.Infof("Setting up default helm repos.")
 
 	if fi, err := os.Stat(repoFile); err != nil {
-		utils.LogInfof(logTag, "Creating %s", repoFile)
+		log.Infof("Creating %s", repoFile)
 		f := repo.NewRepoFile()
 		sr, err := initRepo(stableRepository, stableRepositoryURL, env)
 		if err != nil {
-			return errors.Wrapf(err, "Cannot init stable repo!")
+			return errors.Wrapf(err, "cannot init stable repo")
 		}
 		br, err := initRepo(banzaiRepository, banzaiRepositoryURL, env)
 		if err != nil {
-			return errors.Wrapf(err, "Cannot init banzai repo!")
+			return errors.Wrapf(err, "cannot init banzai repo")
 		}
 		f.Add(sr, br)
 		if err := f.WriteFile(repoFile, 0644); err != nil {
-			return errors.Wrap(err, "Cannot create file!")
+			return errors.Wrap(err, "cannot create file")
 		}
 	} else if fi.IsDir() {
 		return errors.Errorf("%s must be a file, not a directory!", repoFile)
@@ -252,8 +253,8 @@ func ensureDefaultRepos(env helm_env.EnvSettings) error {
 }
 
 func initRepo(repoName string, repoUrl string, env helm_env.EnvSettings) (*repo.Entry, error) {
-	const logTag = "initStableRepo"
-	utils.LogInfof(logTag, "Adding %s repo with URL: %s", repoName, repoUrl)
+	log := logger.WithFields(logrus.Fields{"tag": "InitHelmRepositories"})
+	log.Infof("Adding %s repo with URL: %s", repoName, repoUrl)
 	c := repo.Entry{
 		Name:  repoName,
 		URL:   repoUrl,
@@ -275,24 +276,16 @@ func initRepo(repoName string, repoUrl string, env helm_env.EnvSettings) (*repo.
 
 // Install uses Kubernetes client to install Tiller.
 func Install(helmInstall *helm.Install, kubeConfig *[]byte, path string) error {
-
+	log := logger.WithFields(logrus.Fields{"tag": "InstallHelmClient"})
 	//Installing helm client
-	utils.LogInfo(constants.TagHelmInstall, "Installing helm client!")
 	if err := installHelmClient(path); err != nil {
-		utils.LogErrorf(constants.TagHelmInstall, "%+v\n", err)
-		return &components.BanzaiResponse{
-			StatusCode: http.StatusInternalServerError,
-			Message:    err.Error(),
-		}
+		return err
 	}
-	utils.LogInfo(constants.TagHelmInstall, "Helm client install succeeded")
+	log.Info("Helm client install succeeded")
 
 	err := PreInstall(helmInstall, kubeConfig)
 	if err != nil {
-		return &components.BanzaiResponse{
-			StatusCode: http.StatusInternalServerError,
-			Message:    err.Error(),
-		}
+		return err
 	}
 
 	opts := installer.Options{
@@ -304,37 +297,24 @@ func Install(helmInstall *helm.Install, kubeConfig *[]byte, path string) error {
 	}
 	kubeClient, err := GetK8sConnection(kubeConfig)
 	if err != nil {
-		utils.LogErrorf(constants.TagHelmInstall, "could not get kubernetes client: %s", err)
-		return &components.BanzaiResponse{
-			StatusCode: http.StatusBadRequest,
-			Message:    fmt.Sprintf("could not get kubernetes client: %s", err),
-		}
+		return err
 	}
 	if err := installer.Install(kubeClient, &opts); err != nil {
 		if !apierrors.IsAlreadyExists(err) {
-			utils.LogErrorf(constants.TagHelmInstall, "error installing: %s", err)
-			return &components.BanzaiResponse{
-				StatusCode: http.StatusInternalServerError,
-				Message:    fmt.Sprintf("error installing: %s", err),
-			}
+			//TODO shouldn'T we just skipp?
+			return err
 		}
 		if helmInstall.Upgrade {
 			if err := installer.Upgrade(kubeClient, &opts); err != nil {
-				utils.LogErrorf(constants.TagHelmInstall, "error when upgrading: %s", err)
-				return &components.BanzaiResponse{
-					StatusCode: http.StatusInternalServerError,
-					Message:    fmt.Sprintf("error when upgrading: %s", err),
-				}
+				return errors.Wrap(err, "error when upgrading")
 			}
-			utils.LogInfo(constants.TagHelmInstall, "Tiller (the Helm server-side component) has been upgraded to the current version.")
+			log.Info("Tiller (the Helm server-side component) has been upgraded to the current version.")
 		} else {
-			utils.LogInfo(constants.TagHelmInstall, "Warning: Tiller is already installed in the cluster.")
+			log.Info("Warning: Tiller is already installed in the cluster.")
 		}
 	} else {
-		utils.LogInfo(constants.TagHelmInstall, "Tiller (the Helm server-side component) has been installed into your Kubernetes Cluster.")
+		log.Info("Tiller (the Helm server-side component) has been installed into your Kubernetes Cluster.")
 	}
-	utils.LogInfo(constants.TagHelmInstall, "Helm install finished")
-	return &components.BanzaiResponse{
-		StatusCode: http.StatusOK,
-	}
+	log.Info("Helm install finished")
+	return nil
 }
