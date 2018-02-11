@@ -23,6 +23,39 @@ type Install struct {
 	MaxHistory int `json:"history_max"`
 }
 
+type ErrorResponse struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+	Error   string `json:"error"`
+}
+
+type EndpointResponse struct {
+	Endpoints []*EndpointItem `json:"endpoints"`
+}
+
+type EndpointItem struct {
+	Name         string          `json:"name"`
+	Host         string          `json:"host"`
+	EndPointURLs []*EndPointURLs `json:"urls"`
+}
+
+type EndPointURLs struct {
+	ServiceName string `json:"servicename"`
+	URL         string `json:"url"`
+}
+
+type StatusResponse struct {
+	Status int `json:"status"`
+	Message string `json:"message"`
+	Name string `json:"name"`
+}
+
+type DeleteResponse struct {
+	Status int `json:"status"`
+	Message string `json:"message"`
+	Name string `json:"name"`
+}
+
 type InstallResponse struct {
 	Status int `json:"status"`
 	Message string `json:"message"`

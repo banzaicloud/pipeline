@@ -28,6 +28,12 @@ type CreateClusterRequest struct {
 	} `json:"properties" binding:"required"`
 }
 
+type ErrorResponse struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+	Error   string `json:"error"`
+}
+
 type GetClusterStatusResponse struct {
 	Status           int    `json:"status"`
 	Name             string `json:"name"`

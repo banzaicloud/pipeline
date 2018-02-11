@@ -8,11 +8,11 @@ import (
 	"github.com/go-errors/errors"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/terminal"
+	"io/ioutil"
+	"k8s.io/client-go/tools/clientcmd"
 	"os"
 	"strings"
 	"syscall"
-	"k8s.io/client-go/tools/clientcmd"
-	"io/ioutil"
 )
 
 type CommonCluster interface {
@@ -28,6 +28,7 @@ type CommonCluster interface {
 	GetModel() *model.ClusterModel
 	CheckEqualityToUpdate(*bTypes.UpdateClusterRequest) error
 	AddDefaultsToUpdate(*bTypes.UpdateClusterRequest)
+	GetAPIEndpoint() (string, error)
 	//ModifyCluster(*model.ClusterModel)
 	//GetKubernetesConf()
 	//GetKubernetesEndpoint()

@@ -10,14 +10,11 @@ import (
 	"k8s.io/helm/pkg/kube"
 
 	"fmt"
-	"github.com/banzaicloud/pipeline/cloud"
 	"github.com/banzaicloud/pipeline/config"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	banzaiSimpleTypes "github.com/banzaicloud/banzai-types/components/database"
-	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
-	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
+	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/sirupsen/logrus"
 )
 
@@ -60,7 +57,7 @@ func GetK8sClientConfig(kubeConfig *[]byte) (*rest.Config, error) {
 
 //Estabilish Tunnel for Helm client TODO check client and config if both needed
 func GetHelmClient(kubeConfig *[]byte) (*helm.Client, error) {
-	log := logger.WithFields(logrus.Fields{"tag": banzaiConstants.TagKubernetes})
+	log := logger.WithFields(logrus.Fields{"tag": constants.TagKubernetes})
 	log.Debug("Create kubernetes Client.")
 	config, err := GetK8sClientConfig(kubeConfig)
 	client, err := GetK8sConnection(kubeConfig)
@@ -80,26 +77,9 @@ func GetHelmClient(kubeConfig *[]byte) (*helm.Client, error) {
 }
 
 //CheckDeploymentState checks the state of Helm deployment
-func CheckDeploymentState(cs *banzaiSimpleTypes.ClusterSimple, releaseName string) (string, error) {
-	var (
-		config *rest.Config
-		err    error
-	)
-
-	kubeConfig, err := cloud.GetKubeConfigPath(fmt.Sprintf("./statestore/%s/", cs.Name))
-	if err != nil {
-		return "", err
-	}
-	if kubeConfig != "" {
-		config, err = clientcmd.BuildConfigFromFlags("", kubeConfig)
-	} else {
-		banzaiUtils.LogInfo(banzaiConstants.TagKubernetes, "Use K8S InCluster Config.")
-		config, err = rest.InClusterConfig()
-	}
-	if err != nil {
-		return "", fmt.Errorf("K8S Connection Failed: %v", err)
-	}
-	client := kubernetes.NewForConfigOrDie(config)
+func CheckDeploymentState(kubeConfig *[]byte, releaseName string) (string, error) {
+	log := logger.WithFields(logrus.Fields{"tag": constants.TagKubernetes})
+	client, err := GetK8sConnection(kubeConfig)
 	filter := fmt.Sprintf("release=%s", releaseName)
 
 	state := v1.PodRunning
@@ -108,7 +88,7 @@ func CheckDeploymentState(cs *banzaiSimpleTypes.ClusterSimple, releaseName strin
 		return "", fmt.Errorf("PoD list failed: %v", err)
 	}
 	for _, pod := range podList.Items {
-		banzaiUtils.LogDebug(banzaiConstants.TagKubernetes, "PodStatus:", pod.Status.Phase)
+		log.Debug("PodStatus:", pod.Status.Phase)
 		if pod.Status.Phase == v1.PodRunning {
 			continue
 		} else {

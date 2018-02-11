@@ -39,6 +39,10 @@ clientsecret = ""
 # AccessToken settings
 # tokensigningkey = ""
 
+[monitor]
+enabled = false
+release = ""
+
 [helm]
 
 #helm retry configs

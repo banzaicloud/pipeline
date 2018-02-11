@@ -21,7 +21,7 @@ func GetK8sConfig(c *gin.Context) (*[]byte, bool) {
 	kubeConfig, err := commonCluster.GetK8sConfig()
 	if err != nil {
 		log.Error(err)
-		c.JSON(http.StatusBadRequest, ErrorResponse{
+		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error getting kubeconfig",
 			Error:   err.Error(),
@@ -43,7 +43,7 @@ func CreateDeployment(c *gin.Context) {
 	err := c.BindJSON(&deployment)
 	if err != nil {
 		log.Error(err)
-		c.JSON(http.StatusBadRequest, ErrorResponse{
+		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error parsing request",
 			Error:   err.Error(),
@@ -58,7 +58,7 @@ func CreateDeployment(c *gin.Context) {
 		parsedJSON, err := yaml.Marshal(deployment.Values)
 		if err != nil {
 			log.Error("can't parse Values:", err)
-			c.JSON(http.StatusBadRequest, ErrorResponse{
+			c.JSON(http.StatusBadRequest, htype.ErrorResponse{
 				Code:    http.StatusBadRequest,
 				Message: "Error parsing request",
 				Error:   err.Error(),
@@ -68,7 +68,7 @@ func CreateDeployment(c *gin.Context) {
 		values, err = yaml.JSONToYAML(parsedJSON)
 		if err != nil {
 			log.Errorf("can't convert json to yaml: %s", err)
-			c.JSON(http.StatusBadRequest, ErrorResponse{
+			c.JSON(http.StatusBadRequest, htype.ErrorResponse{
 				Code:    http.StatusBadRequest,
 				Message: "Error parsing request",
 				Error:   err.Error(),
@@ -79,7 +79,7 @@ func CreateDeployment(c *gin.Context) {
 	kubeConfig, err := commonCluster.GetK8sConfig()
 	if err != nil {
 		log.Error(err)
-		c.JSON(http.StatusBadRequest, ErrorResponse{
+		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error getting kubeconfig",
 			Error:   err.Error(),
@@ -92,7 +92,7 @@ func CreateDeployment(c *gin.Context) {
 	if err != nil {
 		//TODO distinguish error codes
 		log.Errorf("Error during create deployment.", err.Error())
-		c.JSON(http.StatusBadRequest, ErrorResponse{
+		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error creating deployment",
 			Error:   err.Error(),
@@ -126,7 +126,7 @@ func ListDeployments(c *gin.Context) {
 	response, err := helm.ListDeployments(nil, kubeConfig)
 	if err != nil {
 		log.Errorf("Error during create deployment.", err.Error())
-		c.JSON(http.StatusBadRequest, ErrorResponse{
+		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error listing deployments",
 			Error:   err.Error(),
@@ -164,7 +164,7 @@ func HelmDeploymentStatus(c *gin.Context) {
 	status, err := helm.GetDeploymentStatus(name, kubeConfig)
 	if err != nil {
 		log.Errorf(err.Error())
-		c.JSON(http.StatusBadRequest, ErrorResponse{
+		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error listing deployments",
 			Error:   err.Error(),
@@ -190,7 +190,7 @@ func InitHelmOnCluster(c *gin.Context) {
 
 	kubeConfig, err := commonCluster.GetK8sConfig()
 	log.Error(err)
-	c.JSON(http.StatusBadRequest, ErrorResponse{
+	c.JSON(http.StatusBadRequest, htype.ErrorResponse{
 		Code:    http.StatusBadRequest,
 		Message: "Error getting kubeconfig",
 		Error:   err.Error(),
@@ -200,14 +200,23 @@ func InitHelmOnCluster(c *gin.Context) {
 	if err := c.BindJSON(&helmInstall); err != nil {
 		// bind failed
 		log.Errorf("Required field is empty: %s", err.Error())
-		c.JSON(http.StatusBadRequest, ErrorResponse{
+		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error parsing request",
 			Error:   err.Error(),
 		})
 		return
 	}
-	x := helm.Install(&helmInstall, kubeConfig, commonCluster.GetName())
+	err = helm.Install(&helmInstall, kubeConfig, commonCluster.GetName())
+	if err != nil {
+		log.Errorf("Unable to install chart: %s", err.Error())
+		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error installing helm",
+			Error:   err.Error(),
+		})
+		return
+	}
 	message := "helm initialising"
 	c.JSON(http.StatusCreated, htype.InstallResponse{
 		Status:  http.StatusCreated,
@@ -217,179 +226,66 @@ func InitHelmOnCluster(c *gin.Context) {
 	return
 }
 
-// FetchDeploymentStatus check the status of the Helm deployment
-func FetchDeploymentStatus(c *gin.Context) {
-
-	banzaiUtils.LogInfo(banzaiConstants.TagFetchDeploymentStatus, "Start fetching deployment status")
-
-	name := c.Param("name")
-	banzaiUtils.LogInfo(banzaiConstants.TagFetchDeploymentStatus, "Get deployment with name:", name)
-
-	// --- [ Get cluster ]  --- //
-	cloudCluster, err := cloud.GetClusterFromDB(c)
-	if err != nil {
-		return
-	} else {
-		banzaiUtils.LogInfo(banzaiConstants.TagFetchDeploymentStatus, "Get cluster succeeded:", cloudCluster)
-	}
-
-	// --- [ Get K8S Config ] --- //
-	kubeConfig, err := cloud.GetK8SConfig(cloudCluster, c)
-	if err != nil {
-		return
-	}
-	banzaiUtils.LogInfo(banzaiConstants.TagFetchDeploymentStatus, "Getting K8S Config Succeeded")
-
-	// --- [ List deployments ] --- //
-	banzaiUtils.LogInfo(banzaiConstants.TagFetchDeploymentStatus, "List deployments")
-	chart, err := helm.ListDeployments(&name, kubeConfig)
-	if err != nil {
-		banzaiUtils.LogWarn(banzaiConstants.TagFetchDeploymentStatus, "Error during listing deployments:", err.Error())
-		cloud.SetResponseBodyJson(c, http.StatusServiceUnavailable, gin.H{
-			cloud.JsonKeyStatus:  http.StatusServiceUnavailable,
-			cloud.JsonKeyMessage: "Tiller not available",
-		})
-		return
-	} else {
-		banzaiUtils.LogInfo(banzaiConstants.TagFetchDeploymentStatus, "List deployments succeeded")
-	}
-
-	if chart.Count == 0 {
-		msg := "Deployment not found"
-		banzaiUtils.LogInfo(banzaiConstants.TagFetchDeploymentStatus, msg)
-		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
-			cloud.JsonKeyStatus:  http.StatusNotFound,
-			cloud.JsonKeyMessage: msg,
-		})
-		return
-	}
-
-	if chart.Count > 1 {
-		msg := "Multiple deployments found"
-		banzaiUtils.LogInfo(banzaiConstants.TagFetchDeploymentStatus, msg)
-		cloud.SetResponseBodyJson(c, http.StatusBadRequest, gin.H{
-			cloud.JsonKeyStatus:  http.StatusBadRequest,
-			cloud.JsonKeyMessage: msg,
-		})
-		return
-	}
-	// TODO simplify the flow
-	// --- [Check deployment state ] --- //
-	banzaiUtils.LogInfo(banzaiConstants.TagFetchDeploymentStatus, "Check deployment state")
-	status, err := helm.CheckDeploymentState(cloudCluster, name)
-	if err != nil {
-		banzaiUtils.LogWarn(banzaiConstants.TagFetchDeploymentStatus, "Error during check deployment state:", err.Error())
-		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
-			cloud.JsonKeyStatus:  http.StatusNotFound,
-			cloud.JsonKeyMessage: "Error happened fetching status",
-		})
-		return
-	} else {
-		banzaiUtils.LogInfo(banzaiConstants.TagFetchDeploymentStatus, "Check deployment state")
-	}
-
-	msg := fmt.Sprintf("Deployment state is: %s", status)
-	banzaiUtils.LogInfo(banzaiConstants.TagFetchDeploymentStatus, msg)
-
-	if status == "Running" {
-		banzaiUtils.LogInfo(banzaiConstants.TagFetchDeploymentStatus, "Deployment status is: %s", status)
-		cloud.SetResponseBodyJson(c, http.StatusOK, gin.H{
-			cloud.JsonKeyStatus:  http.StatusOK,
-			cloud.JsonKeyMessage: msg,
-		})
-		return
-	} else {
-		cloud.SetResponseBodyJson(c, http.StatusNoContent, gin.H{
-			cloud.JsonKeyStatus:  http.StatusNoContent,
-			cloud.JsonKeyMessage: msg,
-		})
-		return
-	}
-	return
-}
-
 // GetTillerStatus checks if tiller ready to accept deployments
 func GetTillerStatus(c *gin.Context) {
-
-	banzaiUtils.LogInfo(banzaiConstants.TagGetTillerStatus, "Start getting tiller status")
-
-	// --- [ Get cluster ] --- //
-	banzaiUtils.LogInfo(banzaiConstants.TagGetTillerStatus, "Get cluster")
-	cloudCluster, err := cloud.GetClusterFromDB(c)
-	if err != nil {
-		return
-	} else {
-		banzaiUtils.LogInfo(banzaiConstants.TagGetTillerStatus, "Get cluster succeeded:", cloudCluster)
-	}
-
-	// --- [ Get K8S Config ] --- //
-	kubeConfig, err := cloud.GetK8SConfig(cloudCluster, c)
-	if err != nil {
+	log := logger.WithFields(logrus.Fields{"tag": "GetTillerStatus"})
+	name := c.Param("name")
+	log.Infof("Retrieving status for deployment: %s", name)
+	kubeConfig, ok := GetK8sConfig(c)
+	if ok != true {
 		return
 	}
-	banzaiUtils.LogInfo(banzaiConstants.TagGetTillerStatus, "Getting K8S Config Succeeded")
-
 	// --- [ List deployments ] ---- //
-	_, err = helm.ListDeployments(nil, kubeConfig)
+	_, err := helm.ListDeployments(nil, kubeConfig)
 	if err != nil {
-		banzaiUtils.LogWarn(banzaiConstants.TagGetTillerStatus, "Error during getting deployments.", err.Error())
-		cloud.SetResponseBodyJson(c, http.StatusServiceUnavailable, gin.H{
-			cloud.JsonKeyStatus:  http.StatusServiceUnavailable,
-			cloud.JsonKeyMessage: "Tiller not available",
+		message := "Error connecting to tiller"
+		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: message,
+			Error:   err.Error(),
 		})
-	} else {
-		banzaiUtils.LogInfo(banzaiConstants.TagGetTillerStatus, "Tiller available")
-		cloud.SetResponseBodyJson(c, http.StatusOK, gin.H{
-			cloud.JsonKeyStatus:  http.StatusOK,
-			cloud.JsonKeyMessage: "Tiller available",
-		})
+		log.Info(message)
+		return
 	}
+	c.JSON(http.StatusOK, htype.StatusResponse{
+		Status:  http.StatusOK,
+		Message: "Tiller is available",
+	})
 	return
 }
 
 //UpgradeDeployment - N/A
 func UpgradeDeployment(c *gin.Context) {
+	c.JSON(http.StatusBadRequest, htype.ErrorResponse{
+		Code:    http.StatusBadRequest,
+		Message: "Function is not available",
+		Error:   "TODO",
+	})
 	return
 }
 
 //DeleteDeployment deletes a Helm deployment
 func DeleteDeployment(c *gin.Context) {
-
-	banzaiUtils.LogInfo(banzaiConstants.TagDeleteDeployment, "Start delete deployment")
-
+	log := logger.WithFields(logrus.Fields{"tag": "DeleteDeployment"})
 	name := c.Param("name")
-
-	// --- [ Get cluster ] --- //
-	banzaiUtils.LogInfo(banzaiConstants.TagDeleteDeployment, "Get cluster")
-	cloudCluster, err := cloud.GetClusterFromDB(c)
-	if err != nil {
+	log.Infof("Delete deployment: %s", name)
+	kubeConfig, ok := GetK8sConfig(c)
+	if ok != true {
 		return
 	}
-	// --- [ Get K8S Config ] --- //
-	kubeConfig, err := cloud.GetK8SConfig(cloudCluster, c)
-	if err != nil {
-		return
-	}
-	banzaiUtils.LogInfo(banzaiConstants.TagDeleteDeployment, "Getting K8S Config Succeeded")
-
-	// --- [Delete deployment] --- //
-	banzaiUtils.LogInfo(banzaiConstants.TagDeleteDeployment, "Delete deployment")
-	err = helm.DeleteDeployment(name, kubeConfig)
+	err := helm.DeleteDeployment(name, kubeConfig)
 	if err != nil {
 		// error during delete deployment
-		banzaiUtils.LogWarn(banzaiConstants.TagDeleteDeployment, err.Error())
-		cloud.SetResponseBodyJson(c, http.StatusNotFound, gin.H{
-			cloud.JsonKeyStatus:  http.StatusNotFound,
-			cloud.JsonKeyMessage: fmt.Sprintf("%s", err),
+		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error deleting deployment",
+			Error:   err.Error(),
 		})
 		return
-	} else {
-		// delete succeeded
-		banzaiUtils.LogInfo(banzaiConstants.TagDeleteDeployment, "Delete deployment succeeded")
 	}
-	cloud.SetResponseBodyJson(c, http.StatusOK, gin.H{
-		cloud.JsonKeyStatus:  http.StatusOK,
-		cloud.JsonKeyMessage: "success",
+	c.JSON(http.StatusOK, htype.DeleteResponse{
+		Status:  http.StatusOK,
+		Message: "Tiller is available",
+		Name:    name,
 	})
-	return
 }

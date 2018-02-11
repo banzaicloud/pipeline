@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/banzaicloud/banzai-types/components"
+	"github.com/banzaicloud/banzai-types/components/amazon"
 	"github.com/banzaicloud/banzai-types/constants"
 	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
 	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
@@ -24,7 +25,6 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
-	"github.com/banzaicloud/banzai-types/components/amazon"
 )
 
 // TODO se who will win
@@ -52,15 +52,15 @@ func (c *AWSCluster) GetID() uint {
 	return c.modelCluster.ID
 }
 
-func (c *AWSCluster) GetAPIEndpoint() string {
+func (c *AWSCluster) GetAPIEndpoint() (string, error) {
 	if c.APIEndpoint != "" {
-		return c.APIEndpoint
+		return c.APIEndpoint, nil
 	}
 	kubicornCluster, err := c.GetKubicornCluster()
 	if err != nil {
-		return ""
+		return "", err
 	}
-	return kubicornCluster.KubernetesAPI.Endpoint
+	return kubicornCluster.KubernetesAPI.Endpoint, nil
 }
 
 func (c *AWSCluster) GetName() string {

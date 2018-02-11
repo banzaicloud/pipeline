@@ -1,19 +1,29 @@
 package monitor
 
 import (
-	"os"
-
 	"fmt"
 
-	banzaiSimpleTypes "github.com/banzaicloud/banzai-types/components/database"
-	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
-	"github.com/banzaicloud/banzai-types/database"
-	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
-	"github.com/banzaicloud/pipeline/cloud"
+	"github.com/banzaicloud/pipeline/cluster"
+	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/model"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )
+
+var logger *logrus.Logger
+var log *logrus.Entry
+
+// Simple init for logging
+func init() {
+	logger = config.Logger()
+	log = logger.WithFields(logrus.Fields{"tag": "monitor"})
+	viper.SetDefault("monitor.release", "pipeline")
+	viper.SetDefault("monitor.enabled", false)
+}
 
 type prometheusTarget struct {
 	Targets []string          `json:"targets"`
@@ -28,76 +38,61 @@ type PrometheusCfg struct {
 
 //UpdatePrometheusConfig updates the Prometheus configuration
 func UpdatePrometheusConfig() error {
-
+	log := logger.WithFields(logrus.Fields{"tag": "PrometheusConfig"})
 	//TODO configsets
-	if len(os.Getenv("KUBERNETES_SERVICE_PORT")) <= 0 {
-		banzaiUtils.LogWarn(banzaiConstants.TagPrometheus, "Non k8s Env -> UpdatePrometheusConfig skip! ")
+	if !viper.GetBool("monitor.enabled") {
+		log.Warn("Update monitoring confiouration is disabled")
 		return nil
 	}
-	prometheusConfigMapName := "prometheus-server"
 
-	releaseName := os.Getenv("KUBERNETES_RELEASE_NAME")
-	if len(releaseName) > 0 {
-		banzaiUtils.LogDebug(banzaiConstants.TagPrometheus, "K8s Release Name:", releaseName)
-		prometheusConfigMapName = releaseName + "-" + prometheusConfigMapName
-	}
+	//TODO move to configuration or sg like this
+	prometheusConfigMap := "prometheus-server"
+	releaseName := viper.GetString("monitor.release")
+	log.Debugf("Prometheus relelase name: %s", releaseName)
+	log.Debugf("Prometheus Config map  name: %s", prometheusConfigMap)
+	prometheusConfigMapName := releaseName + "-" + prometheusConfigMap
+	log.Debugf("Prometheus Config map full name: %s", prometheusConfigMapName)
 
-	var clusters []banzaiSimpleTypes.ClusterSimple
-	database.Find(&clusters)
+	var clusters []cluster.CommonCluster
+	db := model.GetDB()
+	db.Find(&clusters)
 	var prometheusConfig []PrometheusCfg
 	//Gathering information about clusters
 	for _, cluster := range clusters {
-		banzaiUtils.LogDebug(banzaiConstants.TagPrometheus, "Cluster: ", cluster.Name)
-		cloudType := cluster.Cloud
-		banzaiUtils.LogDebug(banzaiConstants.TagPrometheus, "Cluster type is: ", cloudType)
-		var kubeEndpoint string
-		switch cloudType {
-		case banzaiConstants.Amazon:
-			cloudCluster, err := cloud.ReadCluster(cluster)
-			if err != nil {
-				banzaiUtils.LogWarn(banzaiConstants.TagPrometheus, "Cluster Parser Error: ", err.Error())
-				continue
-			}
-			kubeEndpoint = cloudCluster.KubernetesAPI.Endpoint
-		case banzaiConstants.Azure:
-			clusterRep := cloud.GetClusterRepresentation(&cluster)
-			kubeEndpoint = clusterRep.Value.Properties.Fqdn
+
+		kubeEndpoint, err := cluster.GetAPIEndpoint()
+		if err != nil {
+			log.Errorf("Cluster endpoint not doinf for cluster: %s", cluster.GetName())
 		}
-		banzaiUtils.LogDebug(banzaiConstants.TagPrometheus, "Cluster Endpoint IP: ", kubeEndpoint)
+
+		log.Debugf("Cluster Endpoint IP: %s", kubeEndpoint)
 
 		prometheusConfig = append(
 			prometheusConfig,
 			PrometheusCfg{
 				Endpoint: kubeEndpoint,
-				Name:     cluster.Name,
+				Name:     cluster.GetName(),
 			})
 
 	}
 	prometheusConfigRaw := GenerateConfig(prometheusConfig)
 
-	banzaiUtils.LogInfo(banzaiConstants.TagPrometheus, "Use K8S InCluster Config.")
+	log.Info("Kubernetes in-cluster configuration.")
 	config, err := rest.InClusterConfig()
-
 	if err != nil {
-		return fmt.Errorf("K8S Connection Failed: %v", err)
+		return errors.Wrap(err, "can't use kubernetes in-cluster config")
 	}
-
 	client := kubernetes.NewForConfigOrDie(config)
-	banzaiUtils.LogDebug(banzaiConstants.TagPrometheus, "K8S Connection Successful!")
 
 	//TODO configurable namespace and service
 	configmap, err := client.CoreV1().ConfigMaps("default").Get(prometheusConfigMapName, metav1.GetOptions{})
 	if err != nil {
-		return fmt.Errorf("K8S get Configmap Failed: %v", err)
+		return fmt.Errorf("getting kubernetes confgimap failed: %s", err)
 	}
-
-	banzaiUtils.LogDebug(banzaiConstants.TagPrometheus, "Actual k8sclusters.json content: ", configmap.Data["prometheus.yml"])
-	banzaiUtils.LogDebug(banzaiConstants.TagPrometheus, "K8S Update prometheus-server.k8sclusters.json Configmap.")
+	log.Info("Updating configmap")
 	configmap.Data["prometheus.yml"] = string(prometheusConfigRaw)
 	client.CoreV1().ConfigMaps("default").Update(configmap)
-	banzaiUtils.LogInfo(banzaiConstants.TagPrometheus, "K8S prometheus-server.k8sclusters.json Configmap Updated.")
+	log.Info("Update configmap finished")
 
-	NewConfigmap, _ := (client.CoreV1().ConfigMaps("default").Get(prometheusConfigMapName, metav1.GetOptions{}))
-	banzaiUtils.LogDebug(banzaiConstants.TagPrometheus, "K8S Updated Configmap:", NewConfigmap.Data["k8sclusters.json"])
 	return nil
 }

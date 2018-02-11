@@ -42,7 +42,7 @@ func GetCommonClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
 	modelCluster, err := model.QueryCluster(filter)
 	if err != nil {
 		log.Error(err)
-		c.JSON(http.StatusBadRequest, ErrorResponse{
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error parsing request",
 			Error:   err.Error(),
@@ -52,7 +52,7 @@ func GetCommonClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
 	commonCLuster, err := cluster.GetCommonClusterFromModel(modelCluster)
 	if err != nil {
 		log.Error(err)
-		c.JSON(http.StatusBadRequest, ErrorResponse{
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error parsing request",
 			Error:   err.Error(),
@@ -74,7 +74,7 @@ func CreateCluster(c *gin.Context) {
 	var createClusterRequest components.CreateClusterRequest
 	if err := c.BindJSON(&createClusterRequest); err != nil {
 		log.Error(errors.Wrap(err, "Error parsing request"))
-		c.JSON(http.StatusBadRequest, ErrorResponse{
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error parsing request",
 			Error:   err.Error(),
@@ -107,7 +107,7 @@ func CreateCluster(c *gin.Context) {
 		// duplicated entry
 		err := fmt.Errorf("duplicate entry: %s", existingCluster.Name)
 		log.Error(err)
-		c.JSON(http.StatusBadRequest, ErrorResponse{
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: err.Error(),
 			Error:   err.Error(),
@@ -122,7 +122,7 @@ func CreateCluster(c *gin.Context) {
 	// TODO check validation
 	commonCLuster, err := cluster.CreateCommonClusterFromRequest(&createClusterRequest)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, ErrorResponse{
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: err.Error(),
 			Error:   err.Error(),
@@ -134,7 +134,7 @@ func CreateCluster(c *gin.Context) {
 	// Create cluster
 	err = commonCLuster.CreateCluster()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, ErrorResponse{
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: err.Error(),
 			Error:   err.Error(),
@@ -145,7 +145,7 @@ func CreateCluster(c *gin.Context) {
 	// Persist the cluster in Database
 	err = commonCLuster.Persist()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, ErrorResponse{
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: err.Error(),
 			Error:   err.Error(),
@@ -178,7 +178,7 @@ func GetClusterStatus(c *gin.Context) {
 	response, err := commonCluster.GetStatus()
 	if err != nil {
 		log.Error(err)
-		c.JSON(http.StatusBadRequest, ErrorResponse{
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error parsing request",
 			Error:   err.Error(),
@@ -199,7 +199,7 @@ func GetClusterConfig(c *gin.Context) {
 	config, err := commonCluster.GetK8sConfig()
 	if err != nil {
 		log.Error(err)
-		c.JSON(http.StatusBadRequest, ErrorResponse{
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error parsing request",
 			Error:   err.Error(),
@@ -228,7 +228,7 @@ func UpdateCluster(c *gin.Context) {
 	var updateRequest *components.UpdateClusterRequest
 	if err := c.BindJSON(&updateRequest); err != nil {
 		log.Error(err)
-		c.JSON(http.StatusBadRequest, ErrorResponse{
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error parsing request",
 			Error:   err.Error(),
@@ -243,7 +243,7 @@ func UpdateCluster(c *gin.Context) {
 	if commonCluster.GetType() != updateRequest.Cloud {
 		msg := fmt.Sprintf("Stored cloud type [%s] and request cloud type [%s] not equal", commonCluster.GetType(), updateRequest.Cloud)
 		log.Errorf(msg)
-		c.JSON(http.StatusBadRequest, ErrorResponse{
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: msg,
 		})
@@ -258,7 +258,7 @@ func UpdateCluster(c *gin.Context) {
 	log.Info("Check equality")
 	if err := commonCluster.CheckEqualityToUpdate(updateRequest); err != nil {
 		log.Errorf("Check changes failed: %s", err.Error())
-		c.JSON(http.StatusBadRequest, ErrorResponse{
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: err.Error(),
 			Error:   err.Error(),
@@ -268,7 +268,7 @@ func UpdateCluster(c *gin.Context) {
 
 	if err := updateRequest.Validate(); err != nil {
 		log.Errorf("Validation failed: %s", err.Error())
-		c.JSON(http.StatusBadRequest, ErrorResponse{
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: err.Error(),
 			Error:   err.Error(),
@@ -281,7 +281,7 @@ func UpdateCluster(c *gin.Context) {
 	if err != nil {
 		// validation failed
 		log.Errorf("Update failed: %s", err.Error())
-		c.JSON(http.StatusBadRequest, ErrorResponse{
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: err.Error(),
 			Error:   err.Error(),
@@ -310,7 +310,7 @@ func DeleteCluster(c *gin.Context) {
 
 	config, err := commonCluster.GetK8sConfig()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, ErrorResponse{
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: err.Error(),
 			Error:   err.Error(),
@@ -351,7 +351,7 @@ func FetchClusters(c *gin.Context) {
 	if len(clusters) < 1 {
 		message := "No clusters found"
 		log.Info(message)
-		c.JSON(http.StatusBadRequest, ErrorResponse{
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: message,
 			Error:   message,
@@ -387,7 +387,7 @@ func FetchCluster(c *gin.Context) {
 	log.Info("getting cluster info")
 	status, err := commonCluster.GetStatus()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, ErrorResponse{
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: err.Error(),
 			Error:   err.Error(),
@@ -415,7 +415,7 @@ func Status(c *gin.Context) {
 			if err == nil {
 				clusterStatuses = append(clusterStatuses, clusterStatusResponse)
 			} else {
-				banzaiUtils.LogError(utils.TagStatus, err)
+				log.Error(err)
 			}
 
 		}
