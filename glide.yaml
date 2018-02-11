@@ -3,7 +3,6 @@ ignore:
 - github.com/prometheus/prometheus/discovery
 import:
 - package: github.com/Masterminds/sprig
-- package: github.com/auth0-community/go-auth0
 - package: github.com/ghodss/yaml
 - package: github.com/gin-contrib/cors
 - package: github.com/gin-gonic/gin
@@ -277,3 +276,7 @@ import:
   version: ^0.1.0
 - package: github.com/Azure/go-autorest
   version: ^9.9.0
+- package: github.com/dgrijalva/jwt-go
+  version: ^3.1.0
+  subpackages:
+  - request
