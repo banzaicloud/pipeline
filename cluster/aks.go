@@ -89,14 +89,8 @@ func (c *AKSCluster) CreateCluster() error {
 	}
 }
 
-// TODO same as AWS, GKE, maybe put common function
 func (c *AKSCluster) Persist() error {
-	db := model.GetDB()
-	err := db.Save(c.modelCluster).Error
-	if err != nil {
-		return err
-	}
-	return nil
+	return saveDatabase(c.modelCluster)
 }
 
 func (c *AKSCluster) GetK8sConfig() (*[]byte, error) {
@@ -310,4 +304,9 @@ func (c *AKSCluster) CheckEqualityToUpdate(r *components.UpdateClusterRequest) e
 
 	// check equality
 	return utils.IsDifferent(r.UpdateClusterAzure, preCl, constants.TagValidateUpdateCluster)
+}
+
+func (c *AKSCluster) GetAPIEndpoint() (string, error) {
+	// TODO implement
+	return "", nil
 }

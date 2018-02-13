@@ -179,3 +179,12 @@ func getKubeConfigPath(path string) (string, error) {
 	}
 	return fmt.Sprintf("%s/config", path), nil
 }
+
+func saveDatabase(i interface{}) error {
+	db := model.GetDB()
+	err := db.Save(i).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}

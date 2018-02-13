@@ -111,13 +111,8 @@ func CreateAWSClusterFromRequest(request *components.CreateClusterRequest) (*AWS
 	return &cluster, nil
 }
 
-func (cluster *AWSCluster) Persist() error {
-	db := model.GetDB()
-	err := db.Save(cluster.modelCluster).Error
-	if err != nil {
-		return err
-	}
-	return nil
+func (c *AWSCluster) Persist() error {
+	return saveDatabase(c.modelCluster)
 }
 
 //Create new cluster

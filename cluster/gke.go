@@ -136,14 +136,8 @@ func (g *GKECluster) CreateCluster() error {
 
 }
 
-// TODO move to common
 func (g *GKECluster) Persist() error {
-	db := model.GetDB()
-	err := db.Save(g.modelCluster).Error
-	if err != nil {
-		return err
-	}
-	return nil
+	return saveDatabase(g.modelCluster)
 }
 
 func (g *GKECluster) GetK8sConfig() (*[]byte, error) {
@@ -955,4 +949,9 @@ func (g *GKECluster) CheckEqualityToUpdate(r *components.UpdateClusterRequest) e
 
 	// check equality
 	return utils.IsDifferent(r.UpdateClusterGoogle, preCl, constants.TagValidateUpdateCluster)
+}
+
+func (c *GKECluster) GetAPIEndpoint() (string, error) {
+	// TODO implement
+	return "", nil
 }
