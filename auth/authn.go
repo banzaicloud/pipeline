@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/auth0-community/go-auth0"
-	"github.com/banzaicloud/banzai-types/database"
 	"github.com/banzaicloud/pipeline/cloud"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
@@ -27,6 +26,7 @@ import (
 
 	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
 	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
+	"github.com/banzaicloud/pipeline/model"
 )
 
 const jwksUri = "https://banzaicloud.auth0.com/.well-known/jwks.json"
@@ -103,7 +103,7 @@ func Init() {
 
 	// Initialize Auth with configuration
 	Auth = auth.New(&auth.Config{
-		DB:         database.DB(),
+		DB:         model.GetDB(),
 		Redirector: auth.Redirector{RedirectBack},
 		UserModel:  User{},
 	})
