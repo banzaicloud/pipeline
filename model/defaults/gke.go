@@ -19,7 +19,7 @@ type DefaultGKE struct {
 }
 
 func (*DefaultGKE) TableName() string {
-	return "google_default_profile"
+	return defaultGoogleProfileTablaName
 }
 
 func (d *DefaultGKE) SaveDefaultInstance() error {
