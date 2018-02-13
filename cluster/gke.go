@@ -4,7 +4,9 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/banzaicloud/banzai-types/components"
+	bGoogle "github.com/banzaicloud/banzai-types/components/google"
 	"github.com/banzaicloud/banzai-types/constants"
+	"github.com/banzaicloud/banzai-types/utils"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/go-errors/errors"
 	"github.com/sirupsen/logrus"
@@ -25,8 +27,6 @@ import (
 	"os"
 	"strings"
 	"time"
-	bGoogle "github.com/banzaicloud/banzai-types/components/google"
-	"github.com/banzaicloud/banzai-types/utils"
 )
 
 var credentialPath string
@@ -68,6 +68,14 @@ type GKECluster struct {
 	modelCluster  *model.ClusterModel
 	k8sConfig     *[]byte
 	APIEndpoint   string
+}
+
+func (c *GKECluster) GetAPIEndpoint() (string, error) {
+	if c.APIEndpoint != "" {
+		return c.APIEndpoint, nil
+	}
+	c.APIEndpoint = c.googleCluster.Endpoint
+	return c.APIEndpoint, nil
 }
 
 func (g *GKECluster) CreateCluster() error {
@@ -137,7 +145,7 @@ func (g *GKECluster) CreateCluster() error {
 }
 
 func (g *GKECluster) Persist() error {
-	return saveDatabase(g.modelCluster)
+	return g.modelCluster.Save()
 }
 
 func (g *GKECluster) GetK8sConfig() (*[]byte, error) {
@@ -744,7 +752,7 @@ func storeConfig(c *kubernetesCluster, name string) ([]byte, error) {
 	cluster := configCluster{
 		Cluster: dataCluster{
 			CertificateAuthorityData: string(c.RootCACert),
-			Server:                   host,
+			Server: host,
 		},
 		Name: c.Name,
 	}
@@ -949,9 +957,4 @@ func (g *GKECluster) CheckEqualityToUpdate(r *components.UpdateClusterRequest) e
 
 	// check equality
 	return utils.IsDifferent(r.UpdateClusterGoogle, preCl, constants.TagValidateUpdateCluster)
-}
-
-func (c *GKECluster) GetAPIEndpoint() (string, error) {
-	// TODO implement
-	return "", nil
 }

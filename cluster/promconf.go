@@ -1,16 +1,17 @@
-package monitor
+package cluster
 
 import (
 	"fmt"
 	"github.com/prometheus/common/model"
 	promcfg "github.com/prometheus/prometheus/config"
+	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
 	"net/url"
 )
 
 //GenerateConfig generates prometheus config
 func GenerateConfig(prometheusCfg []PrometheusCfg) []byte {
-	prefix := "/opt/pipeline/statestore"
+	prefix := viper.GetString("statestore.path")
 
 	//Set Global Config
 	config := promcfg.Config{}

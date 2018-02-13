@@ -7,15 +7,15 @@ import (
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/notify"
-	"github.com/banzaicloud/pipeline/utils"
+	//	"github.com/banzaicloud/pipeline/utils"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/qor/auth/auth_identity"
-	sessionManager "github.com/qor/session/manager"
+	//	sessionManager "github.com/qor/session/manager"
+	"github.com/banzaicloud/pipeline/model/defaults"
 	"github.com/sirupsen/logrus"
 	"os"
 	"time"
-	"github.com/banzaicloud/pipeline/model/defaults"
 )
 
 //Version of Pipeline
@@ -56,7 +56,7 @@ func main() {
 	// Ensure DB connection
 	db := model.GetDB()
 	// Initialise auth
-	auth.Init()
+	//auth.Init()
 
 	// Creating tables if not exists
 	logger.Info("Create table(s):",
@@ -93,27 +93,27 @@ func main() {
 
 	router.Use(cors.New(config))
 
-	if auth.IsEnabled() {
-		authHandler := gin.WrapH(auth.Auth.NewServeMux())
-
-		// We have to make the raw net/http handlers a bit Gin-ish
-		router.Use(gin.WrapH(sessionManager.SessionManager.Middleware(utils.NopHandler{})))
-		router.Use(gin.WrapH(auth.RedirectBack.Middleware(utils.NopHandler{})))
-
-		authGroup := router.Group("/auth/")
-		{
-			authGroup.GET("/*w", authHandler)
-			authGroup.GET("/*w/*w", authHandler)
-		}
-	}
+	//if auth.IsEnabled() {
+	//	authHandler := gin.WrapH(auth.Auth.NewServeMux())
+	//
+	//	// We have to make the raw net/http handlers a bit Gin-ish
+	//	router.Use(gin.WrapH(sessionManager.SessionManager.Middleware(utils.NopHandler{})))
+	//	router.Use(gin.WrapH(auth.RedirectBack.Middleware(utils.NopHandler{})))
+	//
+	//	authGroup := router.Group("/auth/")
+	//	{
+	//		authGroup.GET("/*w", authHandler)
+	//		authGroup.GET("/*w/*w", authHandler)
+	//	}
+	//}
 
 	v1 := router.Group("/api/v1/")
 	{
-		if auth.IsEnabled() {
-			v1.Use(auth.Auth0Handler)
-		}
+		//if auth.IsEnabled() {
+		//	v1.Use(auth.Auth0Handler)
+		//}
 		v1.POST("/clusters", api.CreateCluster)
-		v1.GET("/status", api.Status)
+		//v1.GET("/status", api.Status)
 		v1.GET("/clusters", api.FetchClusters)
 		v1.GET("/clusters/:id", api.FetchCluster)
 		v1.PUT("/clusters/:id", api.UpdateCluster)
@@ -128,8 +128,8 @@ func main() {
 		v1.PUT("/clusters/:id/deployments/:name", api.UpgradeDeployment)
 		v1.HEAD("/clusters/:id/deployments/:name", api.HelmDeploymentStatus)
 		v1.POST("/clusters/:id/helminit", api.InitHelmOnCluster)
-		v1.GET("/token", auth.GenerateToken)
 		v1.GET("/cluster/profiles/:type", api.GetDefaults)
+		//v1.GET("/token", auth.GenerateToken)
 	}
 	notify.SlackNotify("API is already running")
 	router.Run(":9090")

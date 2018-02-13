@@ -1,7 +1,6 @@
 package components
 
 import (
-	"github.com/banzaicloud/banzai-types/utils"
 	"github.com/banzaicloud/banzai-types/components/amazon"
 	"github.com/banzaicloud/banzai-types/components/azure"
 	"github.com/banzaicloud/banzai-types/components/google"
@@ -86,7 +85,7 @@ func (r *UpdateClusterRequest) String() string {
 		// Write AKS
 		buffer.WriteString(fmt.Sprintf("Agent count: %d",
 			r.UpdateClusterAzure.AgentCount))
-	} else if r.Cloud == constants.Amazon && r.UpdateClusterAzure != nil {
+	} else if r.Cloud == constants.Amazon && r.UpdateClusterAmazon != nil {
 		// Write AWS Node
 		if r.UpdateClusterAmazon.UpdateAmazonNode != nil {
 			buffer.WriteString(fmt.Sprintf("Min count: %d, Max count: %d",

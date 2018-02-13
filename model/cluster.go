@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/jinzhu/gorm"
+	"github.com/prometheus/common/model"
 )
 
 type ClusterModel struct {
@@ -42,6 +43,15 @@ type GoogleClusterModel struct {
 	MasterVersion  string
 	NodeVersion    string
 	NodeCount      int
+}
+
+func (cs ClusterModel) Save() error {
+	db := GetDB()
+	err := db.Save(cs).Error
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // TableName sets ClusterModel's table name

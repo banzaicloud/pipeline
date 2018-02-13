@@ -6,14 +6,17 @@ import (
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/go-errors/errors"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/terminal"
-	"io/ioutil"
-	"k8s.io/client-go/tools/clientcmd"
 	"os"
 	"strings"
 	"syscall"
 )
+
+// TODO se who will win
+var logger *logrus.Logger
+var log *logrus.Entry
 
 type CommonCluster interface {
 	CreateCluster() error
@@ -155,36 +158,4 @@ func getSigner(pemBytes []byte) (ssh.Signer, error) {
 	}
 
 	return signerwithoutpassphrase, err
-}
-
-func writeKubernetesKeys(kubeConfigPath string, localPath string) {
-	log.Infof("Starting to write kubernetes related certs/keys for: %s", kubeConfigPath)
-	config, err := clientcmd.BuildConfigFromFlags("", kubeConfigPath)
-	if err != nil {
-		log.Errorf("Getting kubernetes config failed from: %s", kubeConfigPath)
-		return
-	}
-	log.Infof("Getting kubernetes config succeeded!")
-	ioutil.WriteFile(localPath+"/client-key-data.pem", config.KeyData, 0644)
-	ioutil.WriteFile(localPath+"/client-certificate-data.pem", config.CertData, 0644)
-	ioutil.WriteFile(localPath+"/certificate-authority-data.pem", config.CAData, 0644)
-	log.Infof("Writing kubernetes related certs/keys succeeded for: %s", kubeConfigPath)
-}
-
-func getKubeConfigPath(path string) (string, error) {
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		if err := os.Mkdir(path, 0777); err != nil {
-			return "", err
-		}
-	}
-	return fmt.Sprintf("%s/config", path), nil
-}
-
-func saveDatabase(i interface{}) error {
-	db := model.GetDB()
-	err := db.Save(i).Error
-	if err != nil {
-		return err
-	}
-	return nil
 }

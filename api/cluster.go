@@ -8,7 +8,7 @@ import (
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/model"
-	"github.com/banzaicloud/pipeline/pods"
+	//"github.com/banzaicloud/pipeline/pods"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -156,7 +156,7 @@ func CreateCluster(c *gin.Context) {
 	// Apply PostHooks
 	// These are hardcoded poshooks maybe we will want a bit more dynamic
 	postHookFunctions := []func(commonCluster cluster.CommonCluster){
-		cluster.GetConfigPostHook,
+		cluster.PersistKubernetesKeys,
 		cluster.UpdatePrometheusPostHook,
 		cluster.InstallHelmPostHook,
 		cluster.InstallIngressControllerPostHook,
@@ -398,28 +398,29 @@ func FetchCluster(c *gin.Context) {
 }
 
 //Status
-func Status(c *gin.Context) {
-	var clusters []cluster.CommonCluster
-	log := logger.WithFields(logrus.Fields{"tag": constants.TagStatus})
-	db := model.GetDB()
-	db.Find(&clusters)
-
-	if len(clusters) == 0 {
-		c.JSON(http.StatusOK, gin.H{"No running clusters found.": http.StatusOK})
-	} else {
-		var clusterStatuses []pods.ClusterStatusResponse
-		for _, cl := range clusters {
-			log.Info("Start listing pods / cluster")
-			var clusterStatusResponse pods.ClusterStatusResponse
-			clusterStatusResponse, err := pods.ListPodsForCluster(&cl)
-			if err == nil {
-				clusterStatuses = append(clusterStatuses, clusterStatusResponse)
-			} else {
-				log.Error(err)
-			}
-
-		}
-		c.JSON(http.StatusOK, gin.H{"clusterStatuses": clusterStatuses})
-	}
-
-}
+//func Status(c *gin.Context) {
+//	var clusters []cluster.CommonCluster
+//	log := logger.WithFields(logrus.Fields{"tag": constants.TagStatus})
+//	db := model.GetDB()
+//	db.Find(&clusters)
+//
+//	if len(clusters) == 0 {
+//		c.JSON(http.StatusOK, gin.H{"No running clusters found.": http.StatusOK})
+//	} else {
+//		var clusterStatuses []pods.ClusterStatusResponse
+//		for _, cl := range clusters {
+//			log.Info("Start listing pods / cluster")
+//			var clusterStatusResponse pods.ClusterStatusResponse
+//			clusterStatusResponse, err := pods.ListPodsForCluster(&cl)
+//			if err == nil {
+//				clusterStatuses = append(clusterStatuses, clusterStatusResponse)
+//			} else {
+//				log.Error(err)
+//			}
+//
+//		}
+//		c.JSON(http.StatusOK, gin.H{"clusterStatuses": clusterStatuses})
+//	}
+//
+//}
+//

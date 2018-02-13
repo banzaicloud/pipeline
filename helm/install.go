@@ -2,11 +2,8 @@ package helm
 
 import (
 	"fmt"
-	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/banzai-types/components/helm"
 	"github.com/banzaicloud/banzai-types/constants"
-	"github.com/banzaicloud/banzai-types/utils"
-	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -20,7 +17,6 @@ import (
 	helm_env "k8s.io/helm/pkg/helm/environment"
 	"k8s.io/helm/pkg/helm/helmpath"
 	"k8s.io/helm/pkg/repo"
-	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -39,7 +35,7 @@ func PreInstall(helmInstall *helm.Install, kubeConfig *[]byte) error {
 
 	client, err := GetK8sConnection(kubeConfig)
 	if err != nil {
-		utils.LogErrorf(constants.TagHelmInstall, "could not get kubernetes client: %s", err)
+		log.Errorf("could not get kubernetes client: %s", err)
 		return err
 	}
 
@@ -50,10 +46,10 @@ func PreInstall(helmInstall *helm.Install, kubeConfig *[]byte) error {
 	serviceAccount := &apiv1.ServiceAccount{
 		ObjectMeta: v1MetaData,
 	}
-	utils.LogInfo(constants.TagHelmInstall, "create service account")
+	log.Info("create service account")
 	_, err = client.CoreV1().ServiceAccounts(helmInstall.Namespace).Create(serviceAccount)
 	if err != nil {
-		utils.LogErrorf(constants.TagHelmInstall, "create service account failed: %s", err)
+		log.Errorf("create service account failed: %s", err)
 		return err
 	}
 
@@ -71,10 +67,10 @@ func PreInstall(helmInstall *helm.Install, kubeConfig *[]byte) error {
 				Namespace: helmInstall.Namespace,
 			}},
 	}
-	utils.LogInfo(constants.TagHelmInstall, "create cluster role bindings")
+	log.Info("create cluster role bindings")
 	_, err = client.RbacV1().ClusterRoleBindings().Create(clusterRoleBinding)
 	if err != nil {
-		utils.LogErrorf(constants.TagHelmInstall, "create role bindings failed: %s", err)
+		log.Errorf(constants.TagHelmInstall, "create role bindings failed: %s", err)
 		return err
 	}
 	clusterRole := &v1.ClusterRole{
@@ -99,10 +95,10 @@ func PreInstall(helmInstall *helm.Install, kubeConfig *[]byte) error {
 				},
 			}},
 	}
-	utils.LogInfo(constants.TagHelmInstall, "create cluster roles")
+	log.Info("create cluster roles")
 	_, err = client.RbacV1().ClusterRoles().Create(clusterRole)
 	if err != nil {
-		utils.LogErrorf(constants.TagHelmInstall, "create roles failed: %s", err)
+		log.Errorf("create roles failed: %s", err)
 		return err
 	}
 
@@ -112,14 +108,10 @@ func PreInstall(helmInstall *helm.Install, kubeConfig *[]byte) error {
 // RetryHelmInstall retries for a configurable time/interval
 // Azure AKS sometimes failing because of TLS handshake timeout, there are several issues on GitHub about that:
 // https://github.com/Azure/AKS/issues/112, https://github.com/Azure/AKS/issues/116, https://github.com/Azure/AKS/issues/14
-func RetryHelmInstall(helmInstall *helm.Install, commonCluster cluster.CommonCluster, path string) error {
+func RetryHelmInstall(helmInstall *helm.Install, kubeconfig *[]byte, path string) error {
 	log := logger.WithFields(logrus.Fields{"tag": "RetryHelmInstall"})
 	retryAttempts := viper.GetInt(constants.HELM_RETRY_ATTEMPT_CONFIG)
 	retrySleepSeconds := viper.GetInt(constants.HELM_RETRY_SLEEP_SECONDS)
-	kubeconfig, err := commonCluster.GetK8sConfig()
-	if err != nil {
-		log.Errorf("Error getting Kubernetes config")
-	}
 	for i := 0; i <= retryAttempts; i++ {
 		log.Debugf("Waiting %d/%d", i, retryAttempts)
 		err := Install(helmInstall, kubeconfig, path)
@@ -128,13 +120,6 @@ func RetryHelmInstall(helmInstall *helm.Install, commonCluster cluster.CommonClu
 			continue
 		}
 		return nil
-	}
-	switch commonCluster.GetType() {
-	case constants.Amazon:
-		log.Errorf("Timeout during waiting for AWS Control Plane to become healthy..")
-	case constants.Azure:
-		log.Errorf("Timeout during waiting for AKS to become healthy..")
-		log.Errorf("https://github.com/Azure/AKS/issues/116")
 	}
 	return fmt.Errorf("timeout during helm install")
 }

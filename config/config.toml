@@ -11,6 +11,9 @@ user = "sparky"
 password = "sparky123"
 dbname = "sparky"
 
+[statestore]
+path = "./statestore"
+
 [logging]
 #logger settings
 logformat = "text"

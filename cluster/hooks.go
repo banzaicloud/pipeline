@@ -4,9 +4,9 @@ import (
 	htypes "github.com/banzaicloud/banzai-types/components/helm"
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/helm"
-	"github.com/banzaicloud/pipeline/monitor"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"io/ioutil"
 	"time"
 )
 
@@ -15,6 +15,26 @@ func RunPostHooks(functionList []func(cluster CommonCluster), createdCluster Com
 	for _, i := range functionList {
 		i(createdCluster)
 	}
+}
+
+// Basic version of persisting keys TODO check if we need this from API or anywhere else
+func PersistKubernetesKeys(cluster CommonCluster) {
+	log = logger.WithFields(logrus.Fields{"action": "PersistKubernetesKeys"})
+	configPath := viper.GetString("statestore.path") + cluster.GetName()
+	log.Infof("Statestore path is: %s", configPath)
+	kubeConfig, err := cluster.GetK8sConfig()
+	if err != nil {
+		log.Errorf("Error loading kubernetes config: %s", err)
+	}
+	config, err := helm.GetK8sClientConfig(kubeConfig)
+	if err != nil {
+		log.Errorf("Error getting kubernetes go client: %s", err)
+	}
+	log.Infof("Starting to write kubernetes related certs/keys for: %s", configPath)
+	ioutil.WriteFile(configPath+"/client-key-data.pem", config.KeyData, 0644)
+	ioutil.WriteFile(configPath+"/client-certificate-data.pem", config.CertData, 0644)
+	ioutil.WriteFile(configPath+"/certificate-authority-data.pem", config.CAData, 0644)
+	log.Infof("Writing kubernetes related certs/keys succeeded.")
 }
 
 //Post Hooks can't return value, they can log error and/or update state?
@@ -66,7 +86,11 @@ func InstallHelmPostHook(cluster CommonCluster) {
 		ImageSpec:      "gcr.io/kubernetes-helm/tiller:v2.7.2",
 	}
 	helmHome := viper.GetString("helm.home")
-	err := helm.RetryHelmInstall(helmInstall, cluster, helmHome)
+	kubeconfig, err := cluster.GetK8sConfig()
+	if err != nil {
+		log.Errorf("Error retrieveing kubernetes config")
+	}
+	err = helm.RetryHelmInstall(helmInstall, kubeconfig, helmHome)
 	if err == nil {
 		// Get K8S Config //
 		kubeConfig, err := cluster.GetK8sConfig()
@@ -88,7 +112,7 @@ func InstallHelmPostHook(cluster CommonCluster) {
 
 func UpdatePrometheus() {
 	log = logger.WithFields(logrus.Fields{"tag": constants.TagPrometheus})
-	err := monitor.UpdatePrometheusConfig()
+	err := UpdatePrometheusConfig()
 	if err != nil {
 		log.Warn("Could not update prometheus configmap: %v", err)
 	}

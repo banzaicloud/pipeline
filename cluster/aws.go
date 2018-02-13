@@ -6,7 +6,6 @@ import (
 	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/banzai-types/components/amazon"
 	"github.com/banzaicloud/banzai-types/constants"
-	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
 	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
@@ -26,10 +25,6 @@ import (
 	"os"
 	"strings"
 )
-
-// TODO se who will win
-var logger *logrus.Logger
-var log *logrus.Entry
 
 // Simple init for logging
 func init() {
@@ -112,7 +107,7 @@ func CreateAWSClusterFromRequest(request *components.CreateClusterRequest) (*AWS
 }
 
 func (c *AWSCluster) Persist() error {
-	return saveDatabase(c.modelCluster)
+	return c.modelCluster.Save()
 }
 
 //Create new cluster
@@ -146,7 +141,7 @@ func (c *AWSCluster) CreateCluster() error {
 	if err != nil {
 		return err
 	} else {
-		banzaiUtils.LogInfo(banzaiConstants.TagCreateCluster, "Get expected state succeeded")
+		log.Info("Get expected state succeeded")
 	}
 
 	// ---- [ Get actual state ] ---- //
@@ -374,7 +369,7 @@ func GetKubicornProfile(cs *model.ClusterModel) *kcluster.Cluster {
 }
 
 func (c *AWSCluster) GetStatus() (*components.GetClusterStatusResponse, error) {
-	banzaiUtils.LogInfo(banzaiConstants.TagGetClusterStatus, "Start get cluster status (amazon)")
+	log.Info("Start get cluster status (amazon)")
 
 	c.GetK8sConfig()
 	c.GetAPIEndpoint()
@@ -396,7 +391,7 @@ func (c *AWSCluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 // UpdateClusterAmazonInCloud updates Amazon cluster in cloud
 func (c *AWSCluster) UpdateCluster(request *components.UpdateClusterRequest) error {
 	log := logger.WithFields(logrus.Fields{"action": constants.TagUpdateCluster})
-	banzaiUtils.LogInfo(banzaiConstants.TagUpdateCluster, "Start updating cluster (amazon)")
+	log.Info("Start updating cluster (amazon)")
 
 	if request == nil {
 		err := errors.New("Empty update cluster request")
@@ -510,7 +505,7 @@ func (c *AWSCluster) DeleteCluster() error {
 		return err
 	}
 
-	banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Destroy cluster from statestore")
+	log.Info("Destroy cluster from statestore")
 	err = statestore.Destroy()
 	if err != nil {
 		err = errors.Wrap(err, "error destroying stetestore")
@@ -518,7 +513,7 @@ func (c *AWSCluster) DeleteCluster() error {
 	}
 	c.kubicornCluster = nil
 
-	banzaiUtils.LogInfo(banzaiConstants.TagDeleteCluster, "Destroy cluster from db")
+	log.Info("Destroy cluster from db")
 	db := model.GetDB()
 	if err := db.Delete(c.modelCluster).Error; err != nil {
 		err = errors.Wrap(err, "error deleting cluster from db")

@@ -1,20 +1,20 @@
 package cluster
 
 import (
-	"github.com/banzaicloud/banzai-types/components"
-	"github.com/sirupsen/logrus"
-	"github.com/banzaicloud/banzai-types/constants"
-	"github.com/banzaicloud/pipeline/model"
-	bTypes "github.com/banzaicloud/banzai-types/components"
+	"encoding/base64"
+	"fmt"
 	azureClient "github.com/banzaicloud/azure-aks-client/client"
 	azureCluster "github.com/banzaicloud/azure-aks-client/cluster"
+	"github.com/banzaicloud/banzai-types/components"
+	bTypes "github.com/banzaicloud/banzai-types/components"
 	banzaiAzureTypes "github.com/banzaicloud/banzai-types/components/azure"
-	"github.com/go-errors/errors"
-	"fmt"
-	"encoding/base64"
-	"os"
-	"io/ioutil"
+	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/banzai-types/utils"
+	"github.com/banzaicloud/pipeline/model"
+	"github.com/go-errors/errors"
+	"github.com/sirupsen/logrus"
+	"io/ioutil"
+	"os"
 )
 
 func CreateAKSClusterFromRequest(request *components.CreateClusterRequest) (*AKSCluster, error) {
@@ -42,6 +42,14 @@ type AKSCluster struct {
 	modelCluster *model.ClusterModel
 	k8sConfig    *[]byte
 	APIEndpoint  string
+}
+
+func (c *AKSCluster) GetAPIEndpoint() (string, error) {
+	if c.APIEndpoint != "" {
+		return c.APIEndpoint, nil
+	}
+	c.APIEndpoint = c.azureCluster.Properties.Fqdn
+	return c.APIEndpoint, nil
 }
 
 func (c *AKSCluster) CreateCluster() error {
@@ -90,7 +98,7 @@ func (c *AKSCluster) CreateCluster() error {
 }
 
 func (c *AKSCluster) Persist() error {
-	return saveDatabase(c.modelCluster)
+	return c.modelCluster.Save()
 }
 
 func (c *AKSCluster) GetK8sConfig() (*[]byte, error) {
@@ -100,39 +108,19 @@ func (c *AKSCluster) GetK8sConfig() (*[]byte, error) {
 
 	database := model.GetDB()
 	database.Where(model.AzureClusterModel{ClusterModelId: c.modelCluster.ID}).First(&c.modelCluster.Azure)
-	config, err := azureClient.GetClusterConfig(c.modelCluster.Name, c.modelCluster.Azure.ResourceGroup, "clusterUser")
-	if err != nil {
+	//TODO check banzairesponses
+	config, err2 := azureClient.GetClusterConfig(c.modelCluster.Name, c.modelCluster.Azure.ResourceGroup, "clusterUser")
+	if err2 != nil {
 		// TODO status code !?
-		return nil, errors.New(err.Message)
-	} else {
-
-		// TODO save or not save, this is the question
-		//// get config succeeded
-		//localDir := fmt.Sprintf("./statestore/%s", c.modelCluster.Name)
-		//if err := writeConfig2File(localDir, config); err != nil {
-		//	return nil, err
-		//}
-
-		//kubeConfigPath, err := getKubeConfigPath(localDir)
-		//if err != nil {
-		//	return nil, err
-		//}
-
-		// TODO this needs to prometheus
-		// writeKubernetesKeys(kubeConfigPath, localDir)
-
-		log.Info("Get k8s config succeeded")
-		decodedConfig, err := base64.StdEncoding.DecodeString(config.Properties.KubeConfig)
-		if err != nil {
-			return nil, err
-		}
-
-		c.k8sConfig = &decodedConfig
-
-		return &decodedConfig, nil
-
+		return nil, errors.New(err2.Message)
 	}
-
+	log.Info("Get k8s config succeeded")
+	decodedConfig, err := base64.StdEncoding.DecodeString(config.Properties.KubeConfig)
+	if err != nil {
+		return nil, err
+	}
+	c.k8sConfig = &decodedConfig
+	return &decodedConfig, nil
 }
 
 func (c *AKSCluster) GetName() string {
@@ -232,31 +220,6 @@ func (c *AKSCluster) GetID() uint {
 
 func (c *AKSCluster) GetModel() *model.ClusterModel {
 	return c.modelCluster
-}
-
-func writeConfig2File(path string, config *banzaiAzureTypes.Config) error {
-
-	if config == nil {
-		// log.Warn("config is nil")
-		return errors.New("config is null")
-	}
-
-	decodedConfig, _ := base64.StdEncoding.DecodeString(config.Properties.KubeConfig)
-
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		if err := os.Mkdir(path, 0777); err != nil {
-			// log.Warn("error during write to file: %s", err.Error())
-			return err
-		}
-	}
-
-	if err := ioutil.WriteFile(fmt.Sprintf("%s/config", path), decodedConfig, 0777); err != nil {
-		// log.Warn("error during write to file: %s", err.Error())
-		return err
-	} else {
-		log.Info("write config file succeeded")
-	}
-	return nil
 }
 
 func CreateAKSClusterFromModel(clusterModel *model.ClusterModel) (*AKSCluster, error) {

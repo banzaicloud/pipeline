@@ -1,10 +1,8 @@
-package monitor
+package cluster
 
 import (
 	"fmt"
 
-	"github.com/banzaicloud/pipeline/cluster"
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -14,13 +12,8 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-var logger *logrus.Logger
-var log *logrus.Entry
-
 // Simple init for logging
 func init() {
-	logger = config.Logger()
-	log = logger.WithFields(logrus.Fields{"tag": "monitor"})
 	viper.SetDefault("monitor.release", "pipeline")
 	viper.SetDefault("monitor.enabled", false)
 }
@@ -53,7 +46,7 @@ func UpdatePrometheusConfig() error {
 	prometheusConfigMapName := releaseName + "-" + prometheusConfigMap
 	log.Debugf("Prometheus Config map full name: %s", prometheusConfigMapName)
 
-	var clusters []cluster.CommonCluster
+	var clusters []CommonCluster
 	db := model.GetDB()
 	db.Find(&clusters)
 	var prometheusConfig []PrometheusCfg

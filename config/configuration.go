@@ -24,6 +24,8 @@ func Init() {
 	viper.SetDefault("helm.banzaiRepositoryURL", "http://kubernetes-charts.banzaicloud.com")
 	viper.SetDefault("cloud.gkeCredentialPath", "./conf/gke_credential.json")
 
+	viper.SetDefault("statestore.path", "./statestore")
+
 	// Find and read the config file
 	if err := viper.ReadInConfig(); err != nil {
 		log.Fatalf("Error reading config file, %s", err)
