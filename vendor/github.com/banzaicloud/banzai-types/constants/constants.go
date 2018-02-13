@@ -26,6 +26,7 @@ const (
 	TagKubernetes            = "Kubernetes"
 	TagFormat                = "Format"
 	TagHelmInstall           = "HelmInstall"
+	TagGetDefaults           = "GetDefaults"
 )
 
 // ### [ Constants to Azure cluster default values ] ### //
@@ -53,7 +54,7 @@ const (
 // ### [ Constants to helm]
 const (
 	HELM_RETRY_ATTEMPT_CONFIG = "helm.retryAttempt"
-	HELM_RETRY_SLEEP_SECONDS = "helm.retrySleepSeconds"
+	HELM_RETRY_SLEEP_SECONDS  = "helm.retrySleepSeconds"
 )
 
 // ### [ Constants to cloud types ] ### //

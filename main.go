@@ -15,6 +15,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"os"
 	"time"
+	"github.com/banzaicloud/pipeline/model/defaults"
 )
 
 //Version of Pipeline
@@ -72,7 +73,12 @@ func main() {
 		&model.GoogleClusterModel{},
 		&auth_identity.AuthIdentity{},
 		&auth.User{},
+		&defaults.DefaultCreateRequestAWS{},
+		&defaults.DefaultCreateRequestAKS{},
+		&defaults.DefaultCreateRequestGKE{},
 	)
+
+	defaults.SetDefaultValues()
 
 	router := gin.Default()
 
@@ -123,6 +129,7 @@ func main() {
 		v1.HEAD("/clusters/:id/deployments/:name", api.HelmDeploymentStatus)
 		v1.POST("/clusters/:id/helminit", api.InitHelmOnCluster)
 		v1.GET("/token", auth.GenerateToken)
+		v1.GET("/defaults/:function/:type", api.GetDefaults)
 	}
 	notify.SlackNotify("API is already running")
 	router.Run(":9090")
