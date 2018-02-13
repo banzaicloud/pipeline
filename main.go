@@ -73,9 +73,9 @@ func main() {
 		&model.GoogleClusterModel{},
 		&auth_identity.AuthIdentity{},
 		&auth.User{},
-		&defaults.DefaultCreateRequestAWS{},
-		&defaults.DefaultCreateRequestAKS{},
-		&defaults.DefaultCreateRequestGKE{},
+		&defaults.DefaultAWS{},
+		&defaults.DefaultAKS{},
+		&defaults.DefaultGKE{},
 	)
 
 	defaults.SetDefaultValues()
@@ -129,7 +129,7 @@ func main() {
 		v1.HEAD("/clusters/:id/deployments/:name", api.HelmDeploymentStatus)
 		v1.POST("/clusters/:id/helminit", api.InitHelmOnCluster)
 		v1.GET("/token", auth.GenerateToken)
-		v1.GET("/defaults/:function/:type", api.GetDefaults)
+		v1.GET("/cluster/profiles/:type", api.GetDefaults)
 	}
 	notify.SlackNotify("API is already running")
 	router.Run(":9090")

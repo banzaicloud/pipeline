@@ -10,7 +10,7 @@ import (
 )
 
 // todo maybe this could be private
-type DefaultCreateRequestAWS struct {
+type DefaultAWS struct {
 	DefaultModel
 	Location           string `gorm:"default:'eu-west-1'"`
 	NodeInstanceType   string `gorm:"default:'m4.xlarge'"`
@@ -22,25 +22,25 @@ type DefaultCreateRequestAWS struct {
 	NodeMaxCount       int    `gorm:"default:2"`
 }
 
-func (*DefaultCreateRequestAWS) TableName() string {
-	return "amazon_default_create"
+func (*DefaultAWS) TableName() string {
+	return "amazon_default_profile"
 }
 
-func (d *DefaultCreateRequestAWS) SaveDefaultInstance() error {
+func (d *DefaultAWS) SaveDefaultInstance() error {
 	return save(d)
 }
 
-func (d *DefaultCreateRequestAWS) GetType() string {
+func (d *DefaultAWS) GetType() string {
 	return constants.Amazon
 }
 
-func (d *DefaultCreateRequestAWS) IsDefinedBefore() bool {
+func (d *DefaultAWS) IsDefinedBefore() bool {
 	database := model.GetDB()
 	database.First(&d)
 	return d.ID != 0
 }
 
-func (d *DefaultCreateRequestAWS) GetDefaultCreateClusterRequest() *components.CreateClusterRequest {
+func (d *DefaultAWS) GetDefaultProfile() *components.CreateClusterRequest {
 	loadFirst(&d)
 
 	return &components.CreateClusterRequest{

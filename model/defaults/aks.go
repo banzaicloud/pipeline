@@ -9,7 +9,7 @@ import (
 	"github.com/banzaicloud/banzai-types/components/google"
 )
 
-type DefaultCreateRequestAKS struct {
+type DefaultAKS struct {
 	DefaultModel
 	Location          string `gorm:"default:'eastus'"`
 	NodeInstanceType  string `gorm:"default:'Standard_D2_v2'"`
@@ -18,25 +18,25 @@ type DefaultCreateRequestAKS struct {
 	KubernetesVersion string `gorm:"default:'1.8.2'"`
 }
 
-func (*DefaultCreateRequestAKS) TableName() string {
-	return "azure_default_create"
+func (*DefaultAKS) TableName() string {
+	return "azure_default_profile"
 }
 
-func (d *DefaultCreateRequestAKS) SaveDefaultInstance() error {
+func (d *DefaultAKS) SaveDefaultInstance() error {
 	return save(d)
 }
 
-func (d *DefaultCreateRequestAKS) IsDefinedBefore() bool {
+func (d *DefaultAKS) IsDefinedBefore() bool {
 	database := model.GetDB()
 	database.First(&d)
 	return d.ID != 0
 }
 
-func (d *DefaultCreateRequestAKS) GetType() string {
+func (d *DefaultAKS) GetType() string {
 	return constants.Azure
 }
 
-func (d *DefaultCreateRequestAKS) GetDefaultCreateClusterRequest() *components.CreateClusterRequest {
+func (d *DefaultAKS) GetDefaultProfile() *components.CreateClusterRequest {
 	loadFirst(&d)
 
 	return &components.CreateClusterRequest{

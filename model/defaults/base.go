@@ -38,7 +38,7 @@ type Default interface {
 	IsDefinedBefore() bool
 	SaveDefaultInstance() error
 	GetType() string
-	GetDefaultCreateClusterRequest() *components.CreateClusterRequest
+	GetDefaultProfile() *components.CreateClusterRequest
 }
 
 type DefaultModel struct {
@@ -61,6 +61,6 @@ func loadFirst(output interface{}) {
 
 func GetDefaults() []Default {
 	var defaults []Default
-	defaults = append(defaults, &DefaultCreateRequestAWS{}, &DefaultCreateRequestAKS{}, &DefaultCreateRequestGKE{})
+	defaults = append(defaults, &DefaultAWS{}, &DefaultAKS{}, &DefaultGKE{})
 	return defaults
 }
