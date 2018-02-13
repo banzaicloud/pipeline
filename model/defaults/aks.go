@@ -19,7 +19,7 @@ type DefaultAKS struct {
 }
 
 func (*DefaultAKS) TableName() string {
-	return "azure_default_profile"
+	return defaultAzureProfileTablaName
 }
 
 func (d *DefaultAKS) SaveDefaultInstance() error {

@@ -23,7 +23,7 @@ type DefaultAWS struct {
 }
 
 func (*DefaultAWS) TableName() string {
-	return "amazon_default_profile"
+	return defaultAmazonProfileTablaName
 }
 
 func (d *DefaultAWS) SaveDefaultInstance() error {
