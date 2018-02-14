@@ -86,9 +86,9 @@ func CreateCommonClusterFromRequest(createClusterRequest *bTypes.CreateClusterRe
 	cloudType := createClusterRequest.Cloud
 	switch cloudType {
 	case constants.Amazon:
-		isOk, errString := createClusterRequest.Properties.CreateClusterAmazon.Validate()
-		if !isOk {
-			return nil, errors.New(errString)
+		err := createClusterRequest.Properties.CreateClusterAmazon.Validate()
+		if err != nil {
+			return nil, err
 		}
 		//Create Amazon struct
 		awsCluster, err := CreateAWSClusterFromRequest(createClusterRequest)
@@ -98,9 +98,9 @@ func CreateCommonClusterFromRequest(createClusterRequest *bTypes.CreateClusterRe
 		return awsCluster, nil
 	case constants.Azure:
 
-		isOk, errString := createClusterRequest.Properties.CreateClusterAzure.Validate()
-		if !isOk {
-			return nil, errors.New(errString)
+		err := createClusterRequest.Properties.CreateClusterAzure.Validate()
+		if err != nil {
+			return nil, err
 		}
 
 		// Create Azure struct
@@ -112,8 +112,8 @@ func CreateCommonClusterFromRequest(createClusterRequest *bTypes.CreateClusterRe
 
 		return nil, nil
 	case constants.Google:
-		if isOk, errString := createClusterRequest.Properties.CreateClusterGoogle.Validate(); !isOk {
-			return nil, errors.New(errString)
+		if err := createClusterRequest.Properties.CreateClusterGoogle.Validate(); err != nil {
+			return nil, err
 		}
 
 		// Create Google struct
