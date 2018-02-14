@@ -67,3 +67,15 @@ func (d *AWSProfile) GetProfile() *components.ClusterProfileRespone {
 	}
 
 }
+
+func (d *AWSProfile) UpdateProfile(r *components.ClusterProfileRequest) error {
+	d.Location = r.Location
+	d.NodeInstanceType = r.NodeInstanceType
+	d.NodeSpotPrice = r.Properties.Amazon.Node.SpotPrice
+	d.NodeMinCount = r.Properties.Amazon.Node.MinCount
+	d.NodeMaxCount = r.Properties.Amazon.Node.MaxCount
+	d.NodeImage = r.Properties.Amazon.Node.Image
+	d.MasterInstanceType = r.Properties.Amazon.Master.InstanceType
+	d.MasterImage = r.Properties.Amazon.Master.Image
+	return d.SaveInstance()
+}

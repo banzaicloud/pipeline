@@ -28,8 +28,9 @@ const (
 	TagKubernetes            = "Kubernetes"
 	TagFormat                = "Format"
 	TagHelmInstall           = "HelmInstall"
-	TagGetDefaults           = "GetDefaults"
-	TagSetDefaults           = "SetDefaults"
+	TagGetClusterProfile     = "GetClusterProfile"
+	TagSetClusterProfile     = "SetClusterProfile"
+	TagUpdateClusterProfile  = "UpdateClusterProfile"
 )
 
 // ### [ Constants to Azure cluster default values ] ### //

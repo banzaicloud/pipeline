@@ -57,3 +57,12 @@ func (d *AKSProfile) GetProfile() *components.ClusterProfileRespone {
 		},
 	}
 }
+
+func (d *AKSProfile) UpdateProfile(r *components.ClusterProfileRequest) error {
+	d.Location = r.Location
+	d.NodeInstanceType = r.NodeInstanceType
+	d.AgentCount = r.Properties.Azure.Node.AgentCount
+	d.AgentName = r.Properties.Azure.Node.AgentName
+	d.KubernetesVersion = r.Properties.Azure.Node.KubernetesVersion
+	return d.SaveInstance()
+}

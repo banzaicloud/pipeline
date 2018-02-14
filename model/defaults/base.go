@@ -22,7 +22,7 @@ const (
 // Simple init for logging
 func init() {
 	logger = config.Logger()
-	log = logger.WithFields(logrus.Fields{"action": constants.TagGetDefaults})
+	log = logger.WithFields(logrus.Fields{"action": constants.TagGetClusterProfile})
 }
 
 func SetDefaultValues() {
@@ -45,6 +45,7 @@ type ClusterProfile interface {
 	SaveInstance() error
 	GetType() string
 	GetProfile() *components.ClusterProfileRespone
+	UpdateProfile(*components.ClusterProfileRequest) error
 }
 
 type DefaultModel struct {
@@ -107,5 +108,38 @@ func GetAllProfiles(cloudType string) ([]ClusterProfile, error) {
 	}
 
 	return defaults, nil
+
+}
+
+func GetProfile(cloudType string, name string) (ClusterProfile, error) {
+	db := model.GetDB()
+
+	switch cloudType {
+	case constants.Amazon:
+		var awsProfile AWSProfile
+		if err := db.Where(GKEProfile{DefaultModel: DefaultModel{Name: name}}).First(&awsProfile).Error; err != nil {
+			return nil, err
+		} else {
+			return &awsProfile, nil
+		}
+
+	case constants.Azure:
+		var aksProfile AKSProfile
+		if err := db.Where(GKEProfile{DefaultModel: DefaultModel{Name: name}}).First(&aksProfile).Error; err != nil {
+			return nil, err
+		} else {
+			return &aksProfile, nil
+		}
+
+	case constants.Google:
+		var gkeProfile GKEProfile
+		if err := db.Where(GKEProfile{DefaultModel: DefaultModel{Name: name}}).First(&gkeProfile).Error; err != nil {
+			return nil, err
+		} else {
+			return &gkeProfile, nil
+		}
+	default:
+		return nil, constants.NotSupportedCloudType
+	}
 
 }

@@ -59,3 +59,12 @@ func (d *GKEProfile) GetProfile() *components.ClusterProfileRespone {
 		},
 	}
 }
+
+func (d *GKEProfile) UpdateProfile(r *components.ClusterProfileRequest) error {
+	d.Location = r.Location
+	d.NodeInstanceType = r.NodeInstanceType
+	d.NodeCount = r.Properties.Google.Node.Count
+	d.NodeVersion = r.Properties.Google.Node.Version
+	d.MasterVersion = r.Properties.Google.Master.Version
+	return d.SaveInstance()
+}

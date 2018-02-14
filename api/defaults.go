@@ -15,7 +15,7 @@ const cloudTypeKey = "type"
 
 func GetDefaults(c *gin.Context) {
 
-	log := logger.WithFields(logrus.Fields{"tag": constants.TagGetDefaults})
+	log := logger.WithFields(logrus.Fields{"tag": constants.TagGetClusterProfile})
 
 	cloudType := c.Param(cloudTypeKey)
 	log.Infof("Cloud type: %s", cloudType)
@@ -36,7 +36,7 @@ func GetDefaults(c *gin.Context) {
 }
 
 func AddClusterProfile(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"tag": constants.TagSetDefaults})
+	log := logger.WithFields(logrus.Fields{"tag": constants.TagSetClusterProfile})
 
 	cloudType := c.Param(cloudTypeKey)
 	log.Infof("Cloud type: %s", cloudType)
@@ -145,6 +145,47 @@ func convertRequestToProfile(request *components.ClusterProfileRequest) (default
 		}, nil
 	default:
 		return nil, notSupportedCloudType(request.Cloud)
+	}
+
+}
+
+func UpdateClusterProfile(c *gin.Context) {
+	log := logger.WithFields(logrus.Fields{"tag": constants.TagUpdateClusterProfile})
+
+	cloudType := c.Param(cloudTypeKey)
+	log.Infof("Cloud type: %s", cloudType)
+
+	log.Debug("Bind json into ClusterProfileRequest struct")
+	// bind request body to struct
+	var profileRequest components.ClusterProfileRequest
+	if err := c.BindJSON(&profileRequest); err != nil {
+		log.Error(errors.Wrap(err, "Error parsing request"))
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error parsing request",
+			Error:   err.Error(),
+		})
+		return
+	}
+	log.Debugf("Parsing request succeeded", profileRequest)
+
+	if profile, err := defaults.GetProfile(cloudType, profileRequest.ProfileName); err != nil {
+		log.Error(errors.Wrap(err, "Error during getting profile"))
+		c.JSON(http.StatusInternalServerError, components.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: "Error during getting profile",
+			Error:   err.Error(),
+		})
+	} else if err := profile.UpdateProfile(&profileRequest); err != nil {
+		log.Error(errors.Wrap(err, "Error during update profile"))
+		c.JSON(http.StatusInternalServerError, components.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: "Error during update profile",
+			Error:   err.Error(),
+		})
+	} else {
+		log.Infof("Update succeeded")
+		c.Status(http.StatusCreated)
 	}
 
 }
