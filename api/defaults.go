@@ -167,7 +167,7 @@ func UpdateClusterProfile(c *gin.Context) {
 		})
 		return
 	}
-	log.Debugf("Parsing request succeeded", profileRequest)
+	log.Debug("Parsing request succeeded")
 
 	if profile, err := defaults.GetProfile(cloudType, profileRequest.ProfileName); err != nil {
 		log.Error(errors.Wrap(err, "Error during getting profile"))

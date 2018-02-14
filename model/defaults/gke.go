@@ -61,10 +61,30 @@ func (d *GKEProfile) GetProfile() *components.ClusterProfileRespone {
 }
 
 func (d *GKEProfile) UpdateProfile(r *components.ClusterProfileRequest) error {
-	d.Location = r.Location
-	d.NodeInstanceType = r.NodeInstanceType
-	d.NodeCount = r.Properties.Google.Node.Count
-	d.NodeVersion = r.Properties.Google.Node.Version
-	d.MasterVersion = r.Properties.Google.Master.Version
+
+	if len(r.Location) != 0 {
+		d.Location = r.Location
+	}
+
+	if len(r.NodeInstanceType) != 0 {
+		d.NodeInstanceType = r.NodeInstanceType
+	}
+
+	if r.Properties.Google != nil {
+		if r.Properties.Google.Node != nil {
+			if r.Properties.Google.Node.Count != 0 {
+				d.NodeCount = r.Properties.Google.Node.Count
+			}
+
+			if len(r.Properties.Google.Node.Version) != 0 {
+				d.NodeVersion = r.Properties.Google.Node.Version
+			}
+		}
+
+		if r.Properties.Google.Master != nil {
+			d.MasterVersion = r.Properties.Google.Master.Version
+		}
+	}
+
 	return d.SaveInstance()
 }

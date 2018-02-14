@@ -59,10 +59,26 @@ func (d *AKSProfile) GetProfile() *components.ClusterProfileRespone {
 }
 
 func (d *AKSProfile) UpdateProfile(r *components.ClusterProfileRequest) error {
-	d.Location = r.Location
-	d.NodeInstanceType = r.NodeInstanceType
-	d.AgentCount = r.Properties.Azure.Node.AgentCount
-	d.AgentName = r.Properties.Azure.Node.AgentName
-	d.KubernetesVersion = r.Properties.Azure.Node.KubernetesVersion
+	if len(r.Location) != 0 {
+		d.Location = r.Location
+	}
+
+	if len(r.NodeInstanceType) != 0 {
+		d.NodeInstanceType = r.NodeInstanceType
+	}
+
+	if r.Properties.Azure != nil {
+		if r.Properties.Azure.Node != nil {
+			if r.Properties.Azure.Node.AgentCount != 0 {
+				d.AgentCount = r.Properties.Azure.Node.AgentCount
+			}
+			if len(r.Properties.Azure.Node.AgentName) != 0 {
+				d.AgentName = r.Properties.Azure.Node.AgentName
+			}
+			if len(r.Properties.Azure.Node.KubernetesVersion) != 0 {
+				d.KubernetesVersion = r.Properties.Azure.Node.KubernetesVersion
+			}
+		}
+	}
 	return d.SaveInstance()
 }
