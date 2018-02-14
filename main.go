@@ -129,6 +129,7 @@ func main() {
 		v1.HEAD("/clusters/:id/deployments/:name", api.HelmDeploymentStatus)
 		v1.POST("/clusters/:id/helminit", api.InitHelmOnCluster)
 		v1.GET("/cluster/profiles/:type", api.GetDefaults)
+		v1.POST("/cluster/profiles/:type", api.AddClusterProfile)
 		//v1.GET("/token", auth.GenerateToken)
 	}
 	notify.SlackNotify("API is already running")

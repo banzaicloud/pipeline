@@ -139,3 +139,15 @@ type ClusterProfileRespone struct {
 		Google *google.ClusterProfileGoogle `json:"google,omitempty"`
 	} `json:"properties" binding:"required"`
 }
+
+type ClusterProfileRequest struct {
+	ProfileName      string `json:"instanceName" binding:"required"`
+	Location         string `json:"location" binding:"required"`
+	Cloud            string `json:"cloud" binding:"required"`
+	NodeInstanceType string `json:"nodeInstanceType" binding:"required"`
+	Properties struct {
+		Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
+		Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
+		Google *google.ClusterProfileGoogle `json:"google,omitempty"`
+	} `json:"properties" binding:"required"`
+}
