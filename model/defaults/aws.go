@@ -35,9 +35,7 @@ func (d *AWSProfile) GetType() string {
 }
 
 func (d *AWSProfile) IsDefinedBefore() bool {
-	database := model.GetDB()
-	database.First(&d)
-	return database.RowsAffected != int64(0)
+	return model.GetDB().First(&d).RowsAffected != int64(0)
 }
 
 func (d *AWSProfile) GetDefaultProfile() *components.ClusterProfileRespone {

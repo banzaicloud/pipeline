@@ -27,9 +27,7 @@ func (d *GKEProfile) SaveInstance() error {
 }
 
 func (d *GKEProfile) IsDefinedBefore() bool {
-	database := model.GetDB()
-	database.First(&d)
-	return database.RowsAffected != int64(0)
+	return model.GetDB().First(&d).RowsAffected != int64(0)
 }
 
 func (d *GKEProfile) GetType() string {

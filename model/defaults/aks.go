@@ -27,9 +27,7 @@ func (d *AKSProfile) SaveInstance() error {
 }
 
 func (d *AKSProfile) IsDefinedBefore() bool {
-	database := model.GetDB()
-	database.First(&d)
-	return database.RowsAffected != int64(0)
+	return model.GetDB().First(&d).RowsAffected != int64(0)
 }
 
 func (d *AKSProfile) GetType() string {
