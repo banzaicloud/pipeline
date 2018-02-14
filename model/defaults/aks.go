@@ -34,7 +34,7 @@ func (d *AKSProfile) GetType() string {
 	return constants.Azure
 }
 
-func (d *AKSProfile) GetDefaultProfile() *components.ClusterProfileRespone {
+func (d *AKSProfile) GetProfile() *components.ClusterProfileRespone {
 	loadFirst(&d)
 
 	return &components.ClusterProfileRespone{

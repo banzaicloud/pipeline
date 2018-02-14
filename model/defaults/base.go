@@ -27,7 +27,7 @@ func init() {
 
 func SetDefaultValues() {
 
-	defaults := GetDefaults()
+	defaults := GetDefaultProfiles()
 	for _, d := range defaults {
 		if !d.IsDefinedBefore() {
 			log.Infof("%s default table NOT contains the default values. Fill it...", d.GetType())
@@ -44,7 +44,7 @@ type ClusterProfile interface {
 	IsDefinedBefore() bool
 	SaveInstance() error
 	GetType() string
-	GetDefaultProfile() *components.ClusterProfileRespone
+	GetProfile() *components.ClusterProfileRespone
 }
 
 type DefaultModel struct {
@@ -65,11 +65,47 @@ func loadFirst(output interface{}) {
 	model.GetDB().First(output)
 }
 
-func GetDefaults() []ClusterProfile {
+func GetDefaultProfiles() []ClusterProfile {
 	var defaults []ClusterProfile
 	defaults = append(defaults,
 		&AWSProfile{DefaultModel: DefaultModel{Name: "default"},},
 		&AKSProfile{DefaultModel: DefaultModel{Name: "default"},},
 		&GKEProfile{DefaultModel: DefaultModel{Name: "default"},})
 	return defaults
+}
+
+func GetAllProfiles(cloudType string) ([]ClusterProfile, error) {
+
+	var defaults []ClusterProfile
+	db := model.GetDB()
+
+	switch cloudType {
+
+	case constants.Amazon:
+		var awsProfiles []AWSProfile
+		db.Find(&awsProfiles)
+		for i := range awsProfiles {
+			defaults = append(defaults, &awsProfiles[i])
+		}
+
+	case constants.Azure:
+		var aksProfiles []AKSProfile
+		db.Find(&aksProfiles)
+		for i := range aksProfiles {
+			defaults = append(defaults, &aksProfiles[i])
+		}
+
+	case constants.Google:
+		var gkeProfiles []GKEProfile
+		db.Find(&gkeProfiles)
+		for i := range gkeProfiles {
+			defaults = append(defaults, &gkeProfiles[i])
+		}
+
+	default:
+		return nil, constants.NotSupportedCloudType
+	}
+
+	return defaults, nil
+
 }

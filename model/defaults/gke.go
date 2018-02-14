@@ -4,9 +4,9 @@ import (
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/banzai-types/components"
-	"github.com/banzaicloud/banzai-types/components/amazon"
-	"github.com/banzaicloud/banzai-types/components/azure"
 	"github.com/banzaicloud/banzai-types/components/google"
+	"github.com/banzaicloud/banzai-types/components/azure"
+	"github.com/banzaicloud/banzai-types/components/amazon"
 )
 
 type GKEProfile struct {
@@ -34,7 +34,7 @@ func (d *GKEProfile) GetType() string {
 	return constants.Google
 }
 
-func (d *GKEProfile) GetDefaultProfile() *components.ClusterProfileRespone {
+func (d *GKEProfile) GetProfile() *components.ClusterProfileRespone {
 	loadFirst(&d)
 
 	return &components.ClusterProfileRespone{

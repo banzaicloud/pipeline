@@ -93,16 +93,19 @@ func notSupportedCloudType(ct string) error {
 	return errors.New(fmt.Sprintf("Not supported cloud type: %s", ct)) // todo move to constants
 }
 
-func getDefaultClusterProfile(cloudType string) (*components.ClusterProfileRespone, error) {
+func getDefaultClusterProfile(cloudType string) ([]components.ClusterProfileRespone, error) {
 
-	ds := defaults.GetDefaults()
-	for _, d := range ds {
-		if d.GetType() == cloudType {
-			return d.GetDefaultProfile(), nil
+	var response []components.ClusterProfileRespone
+	if profiles, err := defaults.GetAllProfiles(cloudType); err != nil {
+		// error during getting profiles
+		return nil, err
+	} else {
+		for _, p := range profiles {
+			r := p.GetProfile()
+			response = append(response, *r)
 		}
+		return response, nil
 	}
-
-	return nil, notSupportedCloudType(cloudType)
 
 }
 

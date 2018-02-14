@@ -1,5 +1,7 @@
 package constants
 
+import "errors"
+
 // ### [ Constants to log ] ### //
 const (
 	TagInit                  = "Init"
@@ -27,6 +29,7 @@ const (
 	TagFormat                = "Format"
 	TagHelmInstall           = "HelmInstall"
 	TagGetDefaults           = "GetDefaults"
+	TagSetDefaults           = "SetDefaults"
 )
 
 // ### [ Constants to Azure cluster default values ] ### //
@@ -81,4 +84,9 @@ const (
 	InternalErrorCode = 500
 	BadRequest        = 400
 	NotFound          = 404
+)
+
+// ### [ Errors ] ### //
+var (
+	NotSupportedCloudType = errors.New("Not supported cloud type")
 )
