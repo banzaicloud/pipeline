@@ -44,7 +44,7 @@ type Default interface {
 	IsDefinedBefore() bool
 	SaveDefaultInstance() error
 	GetType() string
-	GetDefaultProfile() *components.CreateClusterRequest
+	GetDefaultProfile() *components.ClusterProfileRespone
 }
 
 type DefaultModel struct {

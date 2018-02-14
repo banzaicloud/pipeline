@@ -73,10 +73,6 @@ type UpdateProperties struct {
 	*google.UpdateClusterGoogle `json:"google,omitempty"`
 }
 
-func (e *BanzaiResponse) String() string {
-	return utils.Convert2Json(e)
-}
-
 // String method prints formatted update request fields
 func (r *UpdateClusterRequest) String() string {
 	var buffer bytes.Buffer
@@ -124,13 +120,22 @@ func (r *UpdateClusterRequest) preValidate() {
 	switch r.Cloud {
 	case constants.Amazon:
 		// reset azure fields
-		utils.LogInfo(constants.TagValidateUpdateCluster, "Reset azure fields")
 		r.UpdateClusterAzure = nil
 		break
 	case constants.Azure:
 		// reset field amazon fields
-		utils.LogInfo(constants.TagValidateCreateCluster, "Reset amazon fields")
 		r.UpdateClusterAmazon = nil
 		break
 	}
+}
+
+type ClusterProfileRespone struct {
+	Location         string `json:"location" binding:"required"`
+	Cloud            string `json:"cloud" binding:"required"`
+	NodeInstanceType string `json:"nodeInstanceType" binding:"required"`
+	Properties struct {
+		Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
+		Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
+		Google *google.ClusterProfileGoogle `json:"google,omitempty"`
+	} `json:"properties" binding:"required"`
 }

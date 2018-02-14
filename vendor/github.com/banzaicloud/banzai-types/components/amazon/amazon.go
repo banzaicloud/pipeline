@@ -51,7 +51,7 @@ func (amazon *CreateClusterAmazon) Validate() error {
 	// ---- [ Node check ] ---- //
 	if amazon.Node == nil {
 		msg := "Required field 'node' is empty."
-		return errors.New( msg)
+		return errors.New(msg)
 	}
 
 	// ---- [ Node image check ] ---- //
@@ -98,4 +98,21 @@ func (a *UpdateClusterAmazon) Validate() error {
 	}
 
 	return nil
+}
+
+type ClusterProfileAmazon struct {
+	Master *AmazonProfileMaster `json:"master,omitempty"`
+	Node   *AmazonProfileNode   `json:"node,omitempty"`
+}
+
+type AmazonProfileMaster struct {
+	InstanceType string `json:"instanceType"`
+	Image        string `json:"image"`
+}
+
+type AmazonProfileNode struct {
+	SpotPrice string `json:"spotPrice"`
+	MinCount  int    `json:"minCount"`
+	MaxCount  int    `json:"maxCount"`
+	Image     string `json:"image"`
 }

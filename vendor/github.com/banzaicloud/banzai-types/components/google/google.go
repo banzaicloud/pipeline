@@ -64,3 +64,8 @@ func (a *UpdateClusterGoogle) Validate() error {
 
 	return nil
 }
+
+type ClusterProfileGoogle struct {
+	Master *GoogleMaster `json:"master,omitempty"`
+	Node   *GoogleNode   `json:"node,omitempty"`
+}

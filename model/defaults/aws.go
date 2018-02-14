@@ -40,27 +40,26 @@ func (d *DefaultAWS) IsDefinedBefore() bool {
 	return d.ID != 0
 }
 
-func (d *DefaultAWS) GetDefaultProfile() *components.CreateClusterRequest {
+func (d *DefaultAWS) GetDefaultProfile() *components.ClusterProfileRespone {
 	loadFirst(&d)
 
-	return &components.CreateClusterRequest{
-		Name:             "", // todo good?
+	return &components.ClusterProfileRespone{
 		Location:         d.Location,
 		Cloud:            constants.Amazon,
 		NodeInstanceType: d.NodeInstanceType,
 		Properties: struct {
-			CreateClusterAmazon *amazon.CreateClusterAmazon `json:"amazon,omitempty"`
-			CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
-			CreateClusterGoogle *google.CreateClusterGoogle `json:"google,omitempty"`
+			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
+			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
+			Google *google.ClusterProfileGoogle `json:"google,omitempty"`
 		}{
-			CreateClusterAmazon: &amazon.CreateClusterAmazon{
-				Node: &amazon.CreateAmazonNode{
+			Amazon: &amazon.ClusterProfileAmazon{
+				Node: &amazon.AmazonProfileNode{
 					SpotPrice: d.NodeSpotPrice,
 					MinCount:  d.NodeMinCount,
 					MaxCount:  d.NodeMaxCount,
 					Image:     d.NodeImage,
 				},
-				Master: &amazon.CreateAmazonMaster{
+				Master: &amazon.AmazonProfileMaster{
 					InstanceType: d.MasterInstanceType,
 					Image:        d.MasterImage,
 				},

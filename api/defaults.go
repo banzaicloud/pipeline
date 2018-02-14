@@ -16,13 +16,9 @@ func GetDefaults(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagGetDefaults})
 
 	cloudType := c.Param("type")
-
 	log.Infof("Cloud type: %s", cloudType)
 
-	var resp interface{}
-	var err error
-
-	resp, err = getDefaultClusterProfile(cloudType)
+	resp, err := getDefaultClusterProfile(cloudType)
 
 	if err != nil {
 		log.Errorf("Error during getting defaults to %s: %s", cloudType, err.Error())
@@ -39,10 +35,10 @@ func GetDefaults(c *gin.Context) {
 
 // notSupportedCloudType returns an error with 'not supported cloud type' message
 func notSupportedCloudType(ct string) error {
-	return errors.New(fmt.Sprintf("Not supported cloud type: %s", ct))
+	return errors.New(fmt.Sprintf("Not supported cloud type: %s", ct)) // todo move to constants
 }
 
-func getDefaultClusterProfile(cloudType string) (*components.CreateClusterRequest, error) {
+func getDefaultClusterProfile(cloudType string) (*components.ClusterProfileRespone, error) {
 
 	ds := defaults.GetDefaults()
 	for _, d := range ds {

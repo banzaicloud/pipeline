@@ -65,7 +65,7 @@ func (azure *CreateClusterAzure) Validate() error {
 
 	if azure == nil {
 		msg := "Required field 'azure' is empty."
-		return errors.New( msg)
+		return errors.New(msg)
 	}
 
 	// ---- [ Node check ] ---- //
@@ -106,33 +106,9 @@ func (a *UpdateClusterAzure) Validate() error {
 	return nil
 }
 
-func (r *ResponseWithValue) String() string {
-	return utils.Convert2Json(r)
-}
-
 func (r *ResponseWithValue) Update(code int, Value Value) {
 	r.Value = Value
 	r.StatusCode = code
-}
-
-func (v *Value) String() string {
-	return utils.Convert2Json(v)
-}
-
-func (v *Values) String() string {
-	return utils.Convert2Json(v)
-}
-
-func (l *ListResponse) String() string {
-	return utils.Convert2Json(l)
-}
-
-func (p *Properties) String() string {
-	return utils.Convert2Json(p)
-}
-
-func (p *Profile) String() string {
-	return utils.Convert2Json(p)
 }
 
 type Config struct {
@@ -143,6 +119,12 @@ type Config struct {
 	} `json:"properties"`
 }
 
-func (c *Config) String() string {
-	return utils.Convert2Json(c)
+type ClusterProfileAzure struct {
+	Node *AzureProfileNode `json:"node,omitempty"`
+}
+
+type AzureProfileNode struct {
+	AgentCount        int    `json:"agentCount"`
+	AgentName         string `json:"agentName"`
+	KubernetesVersion string `json:"kubernetesVersion"`
 }

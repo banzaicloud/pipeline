@@ -36,22 +36,20 @@ func (d *DefaultAKS) GetType() string {
 	return constants.Azure
 }
 
-func (d *DefaultAKS) GetDefaultProfile() *components.CreateClusterRequest {
+func (d *DefaultAKS) GetDefaultProfile() *components.ClusterProfileRespone {
 	loadFirst(&d)
 
-	return &components.CreateClusterRequest{
-		Name:             "", // todo good??
+	return &components.ClusterProfileRespone{
 		Location:         d.Location,
 		Cloud:            constants.Azure,
 		NodeInstanceType: d.NodeInstanceType,
 		Properties: struct {
-			CreateClusterAmazon *amazon.CreateClusterAmazon `json:"amazon,omitempty"`
-			CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
-			CreateClusterGoogle *google.CreateClusterGoogle `json:"google,omitempty"`
+			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
+			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
+			Google *google.ClusterProfileGoogle `json:"google,omitempty"`
 		}{
-			CreateClusterAzure: &azure.CreateClusterAzure{
-				Node: &azure.CreateAzureNode{
-					ResourceGroup:     "", // todo good?
+			Azure: &azure.ClusterProfileAzure{
+				Node: &azure.AzureProfileNode{
 					AgentCount:        d.AgentCount,
 					AgentName:         d.AgentName,
 					KubernetesVersion: d.KubernetesVersion,
