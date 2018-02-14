@@ -22,14 +22,14 @@ func (*GKEProfile) TableName() string {
 	return defaultGoogleProfileTablaName
 }
 
-func (d *GKEProfile) SaveDefaultInstance() error {
+func (d *GKEProfile) SaveInstance() error {
 	return save(d)
 }
 
 func (d *GKEProfile) IsDefinedBefore() bool {
 	database := model.GetDB()
 	database.First(&d)
-	return d.ID != 0
+	return database.RowsAffected != int64(0)
 }
 
 func (d *GKEProfile) GetType() string {

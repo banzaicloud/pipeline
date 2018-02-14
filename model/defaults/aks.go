@@ -22,14 +22,14 @@ func (*AKSProfile) TableName() string {
 	return defaultAzureProfileTablaName
 }
 
-func (d *AKSProfile) SaveDefaultInstance() error {
+func (d *AKSProfile) SaveInstance() error {
 	return save(d)
 }
 
 func (d *AKSProfile) IsDefinedBefore() bool {
 	database := model.GetDB()
 	database.First(&d)
-	return d.ID != 0
+	return database.RowsAffected != int64(0)
 }
 
 func (d *AKSProfile) GetType() string {

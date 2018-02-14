@@ -26,7 +26,7 @@ func (*AWSProfile) TableName() string {
 	return defaultAmazonProfileTablaName
 }
 
-func (d *AWSProfile) SaveDefaultInstance() error {
+func (d *AWSProfile) SaveInstance() error {
 	return save(d)
 }
 
@@ -37,7 +37,7 @@ func (d *AWSProfile) GetType() string {
 func (d *AWSProfile) IsDefinedBefore() bool {
 	database := model.GetDB()
 	database.First(&d)
-	return d.ID != 0
+	return database.RowsAffected != int64(0)
 }
 
 func (d *AWSProfile) GetDefaultProfile() *components.ClusterProfileRespone {

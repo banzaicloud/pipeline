@@ -73,9 +73,9 @@ func main() {
 		&model.GoogleClusterModel{},
 		&auth_identity.AuthIdentity{},
 		&auth.User{},
-		&defaults.DefaultAWS{},
-		&defaults.DefaultAKS{},
-		&defaults.DefaultGKE{},
+		&defaults.AWSProfile{},
+		&defaults.AKSProfile{},
+		&defaults.GKEProfile{},
 	)
 
 	defaults.SetDefaultValues()

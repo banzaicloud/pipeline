@@ -31,7 +31,7 @@ func SetDefaultValues() {
 	for _, d := range defaults {
 		if !d.IsDefinedBefore() {
 			log.Infof("%s default table NOT contains the default values. Fill it...", d.GetType())
-			if err := d.SaveDefaultInstance(); err != nil {
+			if err := d.SaveInstance(); err != nil {
 				log.Errorf("Could not save default values[%s]: %s", d.GetType(), err.Error())
 			}
 		} else {
@@ -42,13 +42,13 @@ func SetDefaultValues() {
 
 type ClusterProfile interface {
 	IsDefinedBefore() bool
-	SaveDefaultInstance() error
+	SaveInstance() error
 	GetType() string
 	GetDefaultProfile() *components.ClusterProfileRespone
 }
 
 type DefaultModel struct {
-	ID        uint `gorm:"primary_key"`
+	Name      string `gorm:"primary_key"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -67,6 +67,9 @@ func loadFirst(output interface{}) {
 
 func GetDefaults() []ClusterProfile {
 	var defaults []ClusterProfile
-	defaults = append(defaults, &AWSProfile{}, &AKSProfile{}, &GKEProfile{})
+	defaults = append(defaults,
+		&AWSProfile{DefaultModel: DefaultModel{Name: "default"},},
+		&AKSProfile{DefaultModel: DefaultModel{Name: "default"},},
+		&GKEProfile{DefaultModel: DefaultModel{Name: "default"},})
 	return defaults
 }
