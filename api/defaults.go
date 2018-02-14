@@ -75,7 +75,7 @@ func AddClusterProfile(c *gin.Context) {
 			})
 		} else {
 			log.Info("Save cluster profile succeeded")
-			c.Status(http.StatusOK)
+			c.Status(http.StatusCreated)
 		}
 	} else {
 		log.Error("Cluster profile with the given name is already exists")
