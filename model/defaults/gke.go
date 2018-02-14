@@ -9,7 +9,7 @@ import (
 	"github.com/banzaicloud/banzai-types/components/google"
 )
 
-type DefaultGKE struct {
+type GKEProfile struct {
 	DefaultModel
 	Location         string `gorm:"default:'us-central1-a'"`
 	NodeInstanceType string `gorm:"default:'n1-standard-1'"`
@@ -18,25 +18,25 @@ type DefaultGKE struct {
 	MasterVersion    string `gorm:"default:'1.7.12-gke.1'"`
 }
 
-func (*DefaultGKE) TableName() string {
+func (*GKEProfile) TableName() string {
 	return defaultGoogleProfileTablaName
 }
 
-func (d *DefaultGKE) SaveDefaultInstance() error {
+func (d *GKEProfile) SaveDefaultInstance() error {
 	return save(d)
 }
 
-func (d *DefaultGKE) IsDefinedBefore() bool {
+func (d *GKEProfile) IsDefinedBefore() bool {
 	database := model.GetDB()
 	database.First(&d)
 	return d.ID != 0
 }
 
-func (d *DefaultGKE) GetType() string {
+func (d *GKEProfile) GetType() string {
 	return constants.Google
 }
 
-func (d *DefaultGKE) GetDefaultProfile() *components.ClusterProfileRespone {
+func (d *GKEProfile) GetDefaultProfile() *components.ClusterProfileRespone {
 	loadFirst(&d)
 
 	return &components.ClusterProfileRespone{

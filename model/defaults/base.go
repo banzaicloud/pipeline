@@ -40,7 +40,7 @@ func SetDefaultValues() {
 	}
 }
 
-type Default interface {
+type ClusterProfile interface {
 	IsDefinedBefore() bool
 	SaveDefaultInstance() error
 	GetType() string
@@ -65,8 +65,8 @@ func loadFirst(output interface{}) {
 	model.GetDB().First(output)
 }
 
-func GetDefaults() []Default {
-	var defaults []Default
-	defaults = append(defaults, &DefaultAWS{}, &DefaultAKS{}, &DefaultGKE{})
+func GetDefaults() []ClusterProfile {
+	var defaults []ClusterProfile
+	defaults = append(defaults, &AWSProfile{}, &AKSProfile{}, &GKEProfile{})
 	return defaults
 }

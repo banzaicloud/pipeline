@@ -10,7 +10,7 @@ import (
 )
 
 // todo maybe this could be private
-type DefaultAWS struct {
+type AWSProfile struct {
 	DefaultModel
 	Location           string `gorm:"default:'eu-west-1'"`
 	NodeInstanceType   string `gorm:"default:'m4.xlarge'"`
@@ -22,25 +22,25 @@ type DefaultAWS struct {
 	NodeMaxCount       int    `gorm:"default:2"`
 }
 
-func (*DefaultAWS) TableName() string {
+func (*AWSProfile) TableName() string {
 	return defaultAmazonProfileTablaName
 }
 
-func (d *DefaultAWS) SaveDefaultInstance() error {
+func (d *AWSProfile) SaveDefaultInstance() error {
 	return save(d)
 }
 
-func (d *DefaultAWS) GetType() string {
+func (d *AWSProfile) GetType() string {
 	return constants.Amazon
 }
 
-func (d *DefaultAWS) IsDefinedBefore() bool {
+func (d *AWSProfile) IsDefinedBefore() bool {
 	database := model.GetDB()
 	database.First(&d)
 	return d.ID != 0
 }
 
-func (d *DefaultAWS) GetDefaultProfile() *components.ClusterProfileRespone {
+func (d *AWSProfile) GetDefaultProfile() *components.ClusterProfileRespone {
 	loadFirst(&d)
 
 	return &components.ClusterProfileRespone{

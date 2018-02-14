@@ -9,7 +9,7 @@ import (
 	"github.com/banzaicloud/banzai-types/components/google"
 )
 
-type DefaultAKS struct {
+type AKSProfile struct {
 	DefaultModel
 	Location          string `gorm:"default:'eastus'"`
 	NodeInstanceType  string `gorm:"default:'Standard_D2_v2'"`
@@ -18,25 +18,25 @@ type DefaultAKS struct {
 	KubernetesVersion string `gorm:"default:'1.8.2'"`
 }
 
-func (*DefaultAKS) TableName() string {
+func (*AKSProfile) TableName() string {
 	return defaultAzureProfileTablaName
 }
 
-func (d *DefaultAKS) SaveDefaultInstance() error {
+func (d *AKSProfile) SaveDefaultInstance() error {
 	return save(d)
 }
 
-func (d *DefaultAKS) IsDefinedBefore() bool {
+func (d *AKSProfile) IsDefinedBefore() bool {
 	database := model.GetDB()
 	database.First(&d)
 	return d.ID != 0
 }
 
-func (d *DefaultAKS) GetType() string {
+func (d *AKSProfile) GetType() string {
 	return constants.Azure
 }
 
-func (d *DefaultAKS) GetDefaultProfile() *components.ClusterProfileRespone {
+func (d *AKSProfile) GetDefaultProfile() *components.ClusterProfileRespone {
 	loadFirst(&d)
 
 	return &components.ClusterProfileRespone{
