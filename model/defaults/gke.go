@@ -38,6 +38,7 @@ func (d *GKEProfile) GetDefaultProfile() *components.ClusterProfileRespone {
 	loadFirst(&d)
 
 	return &components.ClusterProfileRespone{
+		ProfileName:      d.DefaultModel.Name,
 		Location:         d.Location,
 		Cloud:            constants.Google,
 		NodeInstanceType: d.NodeInstanceType,

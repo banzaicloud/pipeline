@@ -38,6 +38,7 @@ func (d *AKSProfile) GetDefaultProfile() *components.ClusterProfileRespone {
 	loadFirst(&d)
 
 	return &components.ClusterProfileRespone{
+		ProfileName:      d.DefaultModel.Name,
 		Location:         d.Location,
 		Cloud:            constants.Azure,
 		NodeInstanceType: d.NodeInstanceType,

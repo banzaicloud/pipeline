@@ -42,6 +42,7 @@ func (d *AWSProfile) GetDefaultProfile() *components.ClusterProfileRespone {
 	loadFirst(&d)
 
 	return &components.ClusterProfileRespone{
+		ProfileName:      d.DefaultModel.Name,
 		Location:         d.Location,
 		Cloud:            constants.Amazon,
 		NodeInstanceType: d.NodeInstanceType,

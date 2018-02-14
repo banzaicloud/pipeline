@@ -130,6 +130,7 @@ func (r *UpdateClusterRequest) preValidate() {
 }
 
 type ClusterProfileRespone struct {
+	ProfileName      string `json:"instanceName" binding:"required"`
 	Location         string `json:"location" binding:"required"`
 	Cloud            string `json:"cloud" binding:"required"`
 	NodeInstanceType string `json:"nodeInstanceType" binding:"required"`
