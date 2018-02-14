@@ -2,19 +2,16 @@ package cluster
 
 import (
 	"encoding/base64"
-	"fmt"
 	azureClient "github.com/banzaicloud/azure-aks-client/client"
 	azureCluster "github.com/banzaicloud/azure-aks-client/cluster"
 	"github.com/banzaicloud/banzai-types/components"
 	bTypes "github.com/banzaicloud/banzai-types/components"
 	banzaiAzureTypes "github.com/banzaicloud/banzai-types/components/azure"
 	"github.com/banzaicloud/banzai-types/constants"
-	"github.com/banzaicloud/banzai-types/utils"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/go-errors/errors"
 	"github.com/sirupsen/logrus"
-	"io/ioutil"
-	"os"
+	"github.com/banzaicloud/pipeline/utils"
 )
 
 func CreateAKSClusterFromRequest(request *components.CreateClusterRequest) (*AKSCluster, error) {
@@ -266,10 +263,5 @@ func (c *AKSCluster) CheckEqualityToUpdate(r *components.UpdateClusterRequest) e
 	log.Info("Check stored & updated cluster equals")
 
 	// check equality
-	return utils.IsDifferent(r.UpdateClusterAzure, preCl, constants.TagValidateUpdateCluster)
-}
-
-func (c *AKSCluster) GetAPIEndpoint() (string, error) {
-	// TODO implement
-	return "", nil
+	return utils.IsDifferent(r.UpdateClusterAzure, preCl)
 }

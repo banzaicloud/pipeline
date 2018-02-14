@@ -6,7 +6,6 @@ import (
 	"github.com/banzaicloud/banzai-types/components"
 	bGoogle "github.com/banzaicloud/banzai-types/components/google"
 	"github.com/banzaicloud/banzai-types/constants"
-	"github.com/banzaicloud/banzai-types/utils"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/go-errors/errors"
 	"github.com/sirupsen/logrus"
@@ -27,6 +26,7 @@ import (
 	"os"
 	"strings"
 	"time"
+	"github.com/banzaicloud/pipeline/utils"
 )
 
 var credentialPath string
@@ -752,7 +752,7 @@ func storeConfig(c *kubernetesCluster, name string) ([]byte, error) {
 	cluster := configCluster{
 		Cluster: dataCluster{
 			CertificateAuthorityData: string(c.RootCACert),
-			Server: host,
+			Server:                   host,
 		},
 		Name: c.Name,
 	}
@@ -956,5 +956,5 @@ func (g *GKECluster) CheckEqualityToUpdate(r *components.UpdateClusterRequest) e
 	log.Info("Check stored & updated cluster equals")
 
 	// check equality
-	return utils.IsDifferent(r.UpdateClusterGoogle, preCl, constants.TagValidateUpdateCluster)
+	return utils.IsDifferent(r.UpdateClusterGoogle, preCl)
 }

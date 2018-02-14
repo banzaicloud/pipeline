@@ -6,7 +6,6 @@ import (
 	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/banzai-types/components/amazon"
 	"github.com/banzaicloud/banzai-types/constants"
-	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
 	kcluster "github.com/kris-nova/kubicorn/apis/cluster"
@@ -24,6 +23,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"github.com/banzaicloud/pipeline/utils"
 )
 
 // Simple init for logging
@@ -667,5 +667,5 @@ func (c *AWSCluster) CheckEqualityToUpdate(r *components.UpdateClusterRequest) e
 	log.Info("Check stored & updated cluster equals")
 
 	// check equality
-	return banzaiUtils.IsDifferent(r.UpdateClusterAmazon, preCl, constants.TagValidateUpdateCluster)
+	return utils.IsDifferent(r.UpdateClusterAmazon, preCl)
 }

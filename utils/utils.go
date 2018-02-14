@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"io/ioutil"
+	"reflect"
+	"github.com/go-errors/errors"
 )
 
 //GetEnv retrieves ENV variable, fallback if not set
@@ -55,4 +57,13 @@ func WriteToFile(data []byte, file string) error {
 
 	err = os.Rename(tmpfi.Name(), file)
 	return err
+}
+
+// IsDifferent compares x and y interfaces with deep equal
+func IsDifferent(x interface{}, y interface{}) error {
+	if reflect.DeepEqual(x, y) {
+		return errors.New("There is no change in data")
+	}
+
+	return nil
 }
