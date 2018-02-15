@@ -148,7 +148,7 @@ func UpdateClusterProfile(c *gin.Context) {
 	}
 	log.Debug("Parsing request succeeded")
 
-	if "default" == profileRequest.ProfileName { // todo move to constants
+	if defaults.GetDefaultProfileName() == profileRequest.ProfileName {
 		log.Error("The default profile cannot be updated") // todo move to constants
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
@@ -186,7 +186,7 @@ func DeleteClusterProfile(c *gin.Context) {
 	name := c.Param(nameKey)
 	log.Infof("Delete profile: %s[%s]", name, cloudType)
 
-	if "default" == name { // todo move to constants
+	if defaults.GetDefaultProfileName() == name {
 		log.Error("The default profile cannot be deleted")
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,

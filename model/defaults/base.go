@@ -7,6 +7,7 @@ import (
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/banzai-types/components"
+	"github.com/spf13/viper"
 )
 
 // TODO se who will win
@@ -70,9 +71,9 @@ func loadFirst(output interface{}) {
 func GetDefaultProfiles() []ClusterProfile {
 	var defaults []ClusterProfile
 	defaults = append(defaults,
-		&AWSProfile{DefaultModel: DefaultModel{Name: "default"},},
-		&AKSProfile{DefaultModel: DefaultModel{Name: "default"},},
-		&GKEProfile{DefaultModel: DefaultModel{Name: "default"},})
+		&AWSProfile{DefaultModel: DefaultModel{Name: GetDefaultProfileName()},},
+		&AKSProfile{DefaultModel: DefaultModel{Name: GetDefaultProfileName()},},
+		&GKEProfile{DefaultModel: DefaultModel{Name: GetDefaultProfileName()},})
 	return defaults
 }
 
@@ -143,4 +144,8 @@ func GetProfile(cloudType string, name string) (ClusterProfile, error) {
 		return nil, constants.NotSupportedCloudType
 	}
 
+}
+
+func GetDefaultProfileName() string {
+	return viper.GetString("cloud.defaultProfileName")
 }
