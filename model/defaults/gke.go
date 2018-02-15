@@ -18,8 +18,8 @@ type GKEProfile struct {
 	MasterVersion    string `gorm:"default:'1.7.12-gke.1'"`
 }
 
-func (*GKEProfile) TableName() string {
-	return defaultGoogleProfileTablaName
+func (GKEProfile) TableName() string {
+	return DefaultGoogleProfileTablaName
 }
 
 func (d *GKEProfile) SaveInstance() error {

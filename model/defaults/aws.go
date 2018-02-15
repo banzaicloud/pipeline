@@ -22,8 +22,8 @@ type AWSProfile struct {
 	NodeMaxCount       int    `gorm:"default:2"`
 }
 
-func (*AWSProfile) TableName() string {
-	return defaultAmazonProfileTablaName
+func (AWSProfile) TableName() string {
+	return DefaultAmazonProfileTablaName
 }
 
 func (d *AWSProfile) SaveInstance() error {

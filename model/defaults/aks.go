@@ -18,8 +18,8 @@ type AKSProfile struct {
 	KubernetesVersion string `gorm:"default:'1.8.2'"`
 }
 
-func (*AKSProfile) TableName() string {
-	return defaultAzureProfileTablaName
+func (AKSProfile) TableName() string {
+	return DefaultAzureProfileTablaName
 }
 
 func (d *AKSProfile) SaveInstance() error {

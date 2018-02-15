@@ -14,9 +14,9 @@ var logger *logrus.Logger
 var log *logrus.Entry
 
 const (
-	defaultAmazonProfileTablaName = "amazon_default_profile"
-	defaultAzureProfileTablaName  = "azure_default_profile"
-	defaultGoogleProfileTablaName = "google_default_profile"
+	DefaultAmazonProfileTablaName = "amazon_default_profile"
+	DefaultAzureProfileTablaName  = "azure_default_profile"
+	DefaultGoogleProfileTablaName = "google_default_profile"
 )
 
 // Simple init for logging
