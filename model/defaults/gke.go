@@ -9,6 +9,7 @@ import (
 	"github.com/banzaicloud/banzai-types/components/amazon"
 )
 
+// GKEProfile describes a Google cluster profile
 type GKEProfile struct {
 	DefaultModel
 	Location         string `gorm:"default:'us-central1-a'"`
@@ -18,22 +19,27 @@ type GKEProfile struct {
 	MasterVersion    string `gorm:"default:'1.7.12-gke.1'"`
 }
 
+// TableName overrides GKEProfile's table name
 func (GKEProfile) TableName() string {
 	return DefaultGoogleProfileTablaName
 }
 
+// SaveInstance saves cluster profile into database
 func (d *GKEProfile) SaveInstance() error {
 	return save(d)
 }
 
+// IsDefinedBefore returns true if database contains en entry with profile name
 func (d *GKEProfile) IsDefinedBefore() bool {
 	return model.GetDB().First(&d).RowsAffected != int64(0)
 }
 
+// GetType returns profile's cloud type
 func (d *GKEProfile) GetType() string {
 	return constants.Google
 }
 
+// GetProfile load profile from database and converts ClusterProfileResponse
 func (d *GKEProfile) GetProfile() *components.ClusterProfileResponse {
 	loadFirst(&d)
 
@@ -60,6 +66,7 @@ func (d *GKEProfile) GetProfile() *components.ClusterProfileResponse {
 	}
 }
 
+// UpdateProfile update profile's data with ClusterProfileRequest's data and if bool is true then update in the database
 func (d *GKEProfile) UpdateProfile(r *components.ClusterProfileRequest, withSave bool) error {
 
 	if len(r.Location) != 0 {
@@ -94,6 +101,7 @@ func (d *GKEProfile) UpdateProfile(r *components.ClusterProfileRequest, withSave
 	}
 }
 
+// DeleteProfile deletes cluster profile from database
 func (d *GKEProfile) DeleteProfile() error {
 	return model.GetDB().Delete(&d).Error
 }

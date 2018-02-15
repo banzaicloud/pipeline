@@ -15,15 +15,16 @@ const (
 	nameKey      = "name"
 )
 
+// GetClusterProfiles handles /cluster/profiles/:type GET api endpoint.
+// Sends back the saved cluster profiles
 func GetClusterProfiles(c *gin.Context) {
 
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagGetClusterProfile})
 
 	cloudType := c.Param(cloudTypeKey)
-	log.Infof("Cloud type: %s", cloudType)
+	log.Infof("Start getting saved cluster profiles [%s]", cloudType)
 
-	resp, err := getDefaultClusterProfile(cloudType)
-
+	resp, err := getProfiles(cloudType)
 	if err != nil {
 		log.Errorf("Error during getting defaults to %s: %s", cloudType, err.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
@@ -37,11 +38,14 @@ func GetClusterProfiles(c *gin.Context) {
 
 }
 
+// AddClusterProfile handles /cluster/profiles/:type POST api endpoint.
+// Saves ClusterProfileRequest data into the database.
+// Saving failed if profile with the given name is already exists
 func AddClusterProfile(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagSetClusterProfile})
 
 	cloudType := c.Param(cloudTypeKey)
-	log.Infof("Cloud type: %s", cloudType)
+	log.Infof("Start getting save cluster profile [%s]", cloudType)
 
 	log.Debug("Bind json into ClusterProfileRequest struct")
 	// bind request body to struct
@@ -55,9 +59,10 @@ func AddClusterProfile(c *gin.Context) {
 		})
 		return
 	}
-	log.Debugf("Parsing request succeeded %#v", profileRequest)
+	log.Info("Parsing request succeeded")
 	log.Infof("Convert ClusterProfileRequest into ClusterProfile model with name: %s", profileRequest.ProfileName)
 
+	// convert request into ClusterProfile model
 	if prof, err := convertRequestToProfile(&profileRequest); err != nil {
 		log.Error("Error during convert profile: &s", err.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
@@ -66,9 +71,11 @@ func AddClusterProfile(c *gin.Context) {
 			Error:   err.Error(),
 		})
 	} else if !prof.IsDefinedBefore() {
+		// name is free
 		log.Info("Convert succeeded")
 		log.Info("Save cluster profile into database")
 		if err := prof.SaveInstance(); err != nil {
+			// save falied
 			log.Errorf("Error during persist cluster profile: %s", err.Error())
 			c.JSON(http.StatusInternalServerError, components.ErrorResponse{
 				Code:    http.StatusInternalServerError,
@@ -76,10 +83,12 @@ func AddClusterProfile(c *gin.Context) {
 				Error:   err.Error(),
 			})
 		} else {
+			// save succeeded
 			log.Info("Save cluster profile succeeded")
 			c.Status(http.StatusCreated)
 		}
 	} else {
+		// profile with given name is already exists
 		log.Error("Cluster profile with the given name is already exists")
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
@@ -90,7 +99,8 @@ func AddClusterProfile(c *gin.Context) {
 
 }
 
-func getDefaultClusterProfile(cloudType string) ([]components.ClusterProfileResponse, error) {
+// getProfiles loads cluster profiles from database by cloud type
+func getProfiles(cloudType string) ([]components.ClusterProfileResponse, error) {
 
 	var response []components.ClusterProfileResponse
 	if profiles, err := defaults.GetAllProfiles(cloudType); err != nil {
@@ -128,11 +138,14 @@ func convertRequestToProfile(request *components.ClusterProfileRequest) (default
 
 }
 
+// UpdateClusterProfile handles /cluster/profiles/:type PUT api endpoint.
+// Updates existing cluster profiles.
+// Updating failed if the name is the default name.
 func UpdateClusterProfile(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagUpdateClusterProfile})
 
 	cloudType := c.Param(cloudTypeKey)
-	log.Infof("Cloud type: %s", cloudType)
+	log.Infof("Start updating cluster profile [%s]", cloudType)
 
 	log.Debug("Bind json into ClusterProfileRequest struct")
 	// bind request body to struct
@@ -149,6 +162,7 @@ func UpdateClusterProfile(c *gin.Context) {
 	log.Debug("Parsing request succeeded")
 
 	if defaults.GetDefaultProfileName() == profileRequest.ProfileName {
+		// default profiles cannot updated
 		log.Error("The default profile cannot be updated") // todo move to constants
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
@@ -158,7 +172,11 @@ func UpdateClusterProfile(c *gin.Context) {
 		return
 	}
 
+	log.Infof("Load cluster from database: %s[%s]", profileRequest.ProfileName, cloudType)
+
+	// load cluster profile from database
 	if profile, err := defaults.GetProfile(cloudType, profileRequest.ProfileName); err != nil {
+		// load from db failed
 		log.Error(errors.Wrap(err, "Error during getting profile"))
 		c.JSON(http.StatusInternalServerError, components.ErrorResponse{
 			Code:    http.StatusInternalServerError,
@@ -166,6 +184,7 @@ func UpdateClusterProfile(c *gin.Context) {
 			Error:   err.Error(),
 		})
 	} else if err := profile.UpdateProfile(&profileRequest, true); err != nil {
+		// updating failed
 		log.Error(errors.Wrap(err, "Error during update profile"))
 		c.JSON(http.StatusInternalServerError, components.ErrorResponse{
 			Code:    http.StatusInternalServerError,
@@ -173,20 +192,25 @@ func UpdateClusterProfile(c *gin.Context) {
 			Error:   err.Error(),
 		})
 	} else {
+		// update success
 		log.Infof("Update succeeded")
 		c.Status(http.StatusCreated)
 	}
 
 }
 
+// UpdateClusterProfile handles /cluster/profiles/:type/:name DELETE api endpoint.
+// Deletes saved cluster profile.
+// Deleting failed if the name is the default name.
 func DeleteClusterProfile(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagDeleteClusterProfile})
 
 	cloudType := c.Param(cloudTypeKey)
 	name := c.Param(nameKey)
-	log.Infof("Delete profile: %s[%s]", name, cloudType)
+	log.Infof("Start deleting cluster profile: %s[%s]", name, cloudType)
 
 	if defaults.GetDefaultProfileName() == name {
+		// default profile cannot deleted
 		log.Error("The default profile cannot be deleted")
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
@@ -196,7 +220,11 @@ func DeleteClusterProfile(c *gin.Context) {
 		return
 	}
 
+	log.Infof("Load cluster profile from database: %s[%s]", name, cloudType)
+
+	// load cluster profile from database
 	if profile, err := defaults.GetProfile(cloudType, name); err != nil {
+		// load from database failed
 		log.Error(errors.Wrap(err, "Error during getting profile"))
 		c.JSON(http.StatusInternalServerError, components.ErrorResponse{
 			Code:    http.StatusInternalServerError,
@@ -207,6 +235,7 @@ func DeleteClusterProfile(c *gin.Context) {
 		log.Info("Getting profile succeeded")
 		log.Info("Delete from database")
 		if err := profile.DeleteProfile(); err != nil {
+			// delete from db failed
 			log.Error(errors.Wrap(err, "Error during profile delete"))
 			c.JSON(http.StatusInternalServerError, components.ErrorResponse{
 				Code:    http.StatusInternalServerError,
@@ -214,6 +243,7 @@ func DeleteClusterProfile(c *gin.Context) {
 				Error:   err.Error(),
 			})
 		} else {
+			// delete succeeded
 			log.Info("Delete from database succeeded")
 			c.Status(http.StatusOK)
 		}

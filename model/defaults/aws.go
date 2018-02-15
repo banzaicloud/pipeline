@@ -9,7 +9,7 @@ import (
 	"github.com/banzaicloud/banzai-types/components/google"
 )
 
-// todo maybe this could be private
+// AWSProfile describes an Amazon cluster profile
 type AWSProfile struct {
 	DefaultModel
 	Location           string `gorm:"default:'eu-west-1'"`
@@ -22,22 +22,27 @@ type AWSProfile struct {
 	NodeMaxCount       int    `gorm:"default:2"`
 }
 
+// TableName overrides AWSProfile's table name
 func (AWSProfile) TableName() string {
 	return DefaultAmazonProfileTablaName
 }
 
+// SaveInstance saves cluster profile into database
 func (d *AWSProfile) SaveInstance() error {
 	return save(d)
 }
 
+// GetType returns profile's cloud type
 func (d *AWSProfile) GetType() string {
 	return constants.Amazon
 }
 
+// IsDefinedBefore returns true if database contains en entry with profile name
 func (d *AWSProfile) IsDefinedBefore() bool {
 	return model.GetDB().First(&d).RowsAffected != int64(0)
 }
 
+// GetProfile load profile from database and converts ClusterProfileResponse
 func (d *AWSProfile) GetProfile() *components.ClusterProfileResponse {
 	loadFirst(&d)
 
@@ -68,6 +73,7 @@ func (d *AWSProfile) GetProfile() *components.ClusterProfileResponse {
 
 }
 
+// UpdateProfile update profile's data with ClusterProfileRequest's data and if bool is true then update in the database
 func (d *AWSProfile) UpdateProfile(r *components.ClusterProfileRequest, withSave bool) error {
 
 	if len(r.Location) != 0 {
@@ -114,6 +120,7 @@ func (d *AWSProfile) UpdateProfile(r *components.ClusterProfileRequest, withSave
 	}
 }
 
+// DeleteProfile deletes cluster profile from database
 func (d *AWSProfile) DeleteProfile() error {
 	return model.GetDB().Delete(&d).Error
 }

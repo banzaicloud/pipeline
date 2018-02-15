@@ -9,6 +9,7 @@ import (
 	"github.com/banzaicloud/banzai-types/components/google"
 )
 
+// AKSProfile describes an Azure cluster profile
 type AKSProfile struct {
 	DefaultModel
 	Location          string `gorm:"default:'eastus'"`
@@ -18,22 +19,27 @@ type AKSProfile struct {
 	KubernetesVersion string `gorm:"default:'1.8.2'"`
 }
 
+// TableName overrides AKSProfile's table name
 func (AKSProfile) TableName() string {
 	return DefaultAzureProfileTablaName
 }
 
+// SaveInstance saves cluster profile into database
 func (d *AKSProfile) SaveInstance() error {
 	return save(d)
 }
 
+// IsDefinedBefore returns true if database contains en entry with profile name
 func (d *AKSProfile) IsDefinedBefore() bool {
 	return model.GetDB().First(&d).RowsAffected != int64(0)
 }
 
+// GetType returns profile's cloud type
 func (d *AKSProfile) GetType() string {
 	return constants.Azure
 }
 
+// GetProfile load profile from database and converts ClusterProfileResponse
 func (d *AKSProfile) GetProfile() *components.ClusterProfileResponse {
 	loadFirst(&d)
 
@@ -58,6 +64,7 @@ func (d *AKSProfile) GetProfile() *components.ClusterProfileResponse {
 	}
 }
 
+// UpdateProfile update profile's data with ClusterProfileRequest's data and if bool is true then update in the database
 func (d *AKSProfile) UpdateProfile(r *components.ClusterProfileRequest, withSave bool) error {
 	if len(r.Location) != 0 {
 		d.Location = r.Location
@@ -89,6 +96,7 @@ func (d *AKSProfile) UpdateProfile(r *components.ClusterProfileRequest, withSave
 	}
 }
 
+// DeleteProfile deletes cluster profile from database
 func (d *AKSProfile) DeleteProfile() error {
 	return model.GetDB().Delete(&d).Error
 }

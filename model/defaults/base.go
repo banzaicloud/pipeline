@@ -8,12 +8,15 @@ import (
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/banzai-types/components"
 	"github.com/spf13/viper"
+	"github.com/go-errors/errors"
+	"fmt"
 )
 
 // TODO se who will win
 var logger *logrus.Logger
 var log *logrus.Entry
 
+// cluster profile table names
 const (
 	DefaultAmazonProfileTablaName = "amazon_default_profile"
 	DefaultAzureProfileTablaName  = "azure_default_profile"
@@ -26,21 +29,30 @@ func init() {
 	log = logger.WithFields(logrus.Fields{"action": constants.TagGetClusterProfile})
 }
 
-func SetDefaultValues() {
+// SetDefaultValues saves the default cluster profile into the database if not exists yet
+func SetDefaultValues() error {
+
+	log.Info("Save default cluster profiles")
 
 	defaults := GetDefaultProfiles()
 	for _, d := range defaults {
 		if !d.IsDefinedBefore() {
+			// the table not contains the default profile
 			log.Infof("%s default table NOT contains the default values. Fill it...", d.GetType())
 			if err := d.SaveInstance(); err != nil {
-				log.Errorf("Could not save default values[%s]: %s", d.GetType(), err.Error())
+				// save failed
+				return errors.New(fmt.Sprintf("Could not save default values[%s]: %s", d.GetType(), err.Error()))
 			}
 		} else {
+			// it's already exists
 			log.Infof("%s default table already contains the default values", d.GetType())
 		}
 	}
+
+	return nil
 }
 
+// ClusterProfile describes a cluster profile
 type ClusterProfile interface {
 	IsDefinedBefore() bool
 	SaveInstance() error
@@ -50,12 +62,14 @@ type ClusterProfile interface {
 	DeleteProfile() error
 }
 
+// DefaultModel describes the common variables all types of clouds
 type DefaultModel struct {
 	Name      string `gorm:"primary_key"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
 
+// save saves the given data into database
 func save(i interface{}) error {
 	database := model.GetDB()
 	if err := database.Save(i).Error; err != nil {
@@ -64,10 +78,12 @@ func save(i interface{}) error {
 	return nil
 }
 
+// loadFirst find first record that match given conditions, order by primary key
 func loadFirst(output interface{}) {
 	model.GetDB().First(output)
 }
 
+// GetDefaultProfiles create all types of clouds with default profile name
 func GetDefaultProfiles() []ClusterProfile {
 	var defaults []ClusterProfile
 	defaults = append(defaults,
@@ -77,6 +93,7 @@ func GetDefaultProfiles() []ClusterProfile {
 	return defaults
 }
 
+// GetAllProfiles loads all saved cluster profile from database by given cloud type
 func GetAllProfiles(cloudType string) ([]ClusterProfile, error) {
 
 	var defaults []ClusterProfile
@@ -113,6 +130,7 @@ func GetAllProfiles(cloudType string) ([]ClusterProfile, error) {
 
 }
 
+// GetProfile finds cluster profile from database by given name and cloud type
 func GetProfile(cloudType string, name string) (ClusterProfile, error) {
 	db := model.GetDB()
 
@@ -146,6 +164,7 @@ func GetProfile(cloudType string, name string) (ClusterProfile, error) {
 
 }
 
+// GetDefaultProfileName reads the default profile name env var
 func GetDefaultProfileName() string {
 	return viper.GetString("cloud.defaultProfileName")
 }
