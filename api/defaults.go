@@ -200,6 +200,16 @@ func DeleteClusterProfile(c *gin.Context) {
 	name := c.Param(nameKey)
 	log.Infof("Delete profile: %s[%s]", name, cloudType)
 
+	if "default" == name { // todo move to constants
+		log.Error("The default profile cannot be deleted")
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "The default profile cannot be deleted",
+			Error:   "The default profile cannot be deleted",
+		})
+		return
+	}
+
 	if profile, err := defaults.GetProfile(cloudType, name); err != nil {
 		log.Error(errors.Wrap(err, "Error during getting profile"))
 		c.JSON(http.StatusInternalServerError, components.ErrorResponse{
