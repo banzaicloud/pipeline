@@ -154,6 +154,16 @@ func UpdateClusterProfile(c *gin.Context) {
 	}
 	log.Debug("Parsing request succeeded")
 
+	if "default" == profileRequest.ProfileName { // todo move to constants
+		log.Error("The default profile cannot be updated") // todo move to constants
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "The default profile cannot be updated",
+			Error:   "The default profile cannot be updated",
+		})
+		return
+	}
+
 	if profile, err := defaults.GetProfile(cloudType, profileRequest.ProfileName); err != nil {
 		log.Error(errors.Wrap(err, "Error during getting profile"))
 		c.JSON(http.StatusInternalServerError, components.ErrorResponse{
