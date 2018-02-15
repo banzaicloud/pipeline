@@ -11,7 +11,10 @@ import (
 	"github.com/pkg/errors"
 )
 
-const cloudTypeKey = "type"
+const (
+	cloudTypeKey = "type"
+	nameKey      = "name"
+)
 
 func GetDefaults(c *gin.Context) {
 
@@ -186,6 +189,38 @@ func UpdateClusterProfile(c *gin.Context) {
 	} else {
 		log.Infof("Update succeeded")
 		c.Status(http.StatusCreated)
+	}
+
+}
+
+func DeleteClusterProfile(c *gin.Context) {
+	log := logger.WithFields(logrus.Fields{"tag": constants.TagDeleteClusterProfile})
+
+	cloudType := c.Param(cloudTypeKey)
+	name := c.Param(nameKey)
+	log.Infof("Delete profile: %s[%s]", name, cloudType)
+
+	if profile, err := defaults.GetProfile(cloudType, name); err != nil {
+		log.Error(errors.Wrap(err, "Error during getting profile"))
+		c.JSON(http.StatusInternalServerError, components.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: "Error during getting profile",
+			Error:   err.Error(),
+		})
+	} else {
+		log.Info("Getting profile succeeded")
+		log.Info("Delete from database")
+		if err := profile.DeleteProfile(); err != nil {
+			log.Error(errors.Wrap(err, "Error during profile delete"))
+			c.JSON(http.StatusInternalServerError, components.ErrorResponse{
+				Code:    http.StatusInternalServerError,
+				Message: "Error during profile delete",
+				Error:   err.Error(),
+			})
+		} else {
+			log.Info("Delete from database succeeded")
+			c.Status(http.StatusOK)
+		}
 	}
 
 }

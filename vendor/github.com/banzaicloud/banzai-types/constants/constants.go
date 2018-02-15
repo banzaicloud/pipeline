@@ -31,6 +31,7 @@ const (
 	TagGetClusterProfile     = "GetClusterProfile"
 	TagSetClusterProfile     = "SetClusterProfile"
 	TagUpdateClusterProfile  = "UpdateClusterProfile"
+	TagDeleteClusterProfile  = "DeleteClusterProfile"
 )
 
 // ### [ Constants to Azure cluster default values ] ### //

@@ -46,6 +46,7 @@ type ClusterProfile interface {
 	GetType() string
 	GetProfile() *components.ClusterProfileRespone
 	UpdateProfile(*components.ClusterProfileRequest) error
+	DeleteProfile() error
 }
 
 type DefaultModel struct {

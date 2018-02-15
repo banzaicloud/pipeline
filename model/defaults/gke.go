@@ -88,3 +88,7 @@ func (d *GKEProfile) UpdateProfile(r *components.ClusterProfileRequest) error {
 
 	return d.SaveInstance()
 }
+
+func (d *GKEProfile) DeleteProfile() error {
+	return model.GetDB().Delete(&d).Error
+}

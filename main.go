@@ -131,6 +131,7 @@ func main() {
 		v1.GET("/cluster/profiles/:type", api.GetDefaults)
 		v1.POST("/cluster/profiles/:type", api.AddClusterProfile)
 		v1.PUT("/cluster/profiles/:type", api.UpdateClusterProfile)
+		v1.DELETE("/cluster/profiles/:type/:name", api.DeleteClusterProfile)
 		//v1.GET("/token", auth.GenerateToken)
 	}
 	notify.SlackNotify("API is already running")

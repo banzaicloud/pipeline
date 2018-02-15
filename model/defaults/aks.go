@@ -82,3 +82,7 @@ func (d *AKSProfile) UpdateProfile(r *components.ClusterProfileRequest) error {
 	}
 	return d.SaveInstance()
 }
+
+func (d *AKSProfile) DeleteProfile() error {
+	return model.GetDB().Delete(&d).Error
+}

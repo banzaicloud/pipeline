@@ -109,3 +109,7 @@ func (d *AWSProfile) UpdateProfile(r *components.ClusterProfileRequest) error {
 
 	return d.SaveInstance()
 }
+
+func (d *AWSProfile) DeleteProfile() error {
+	return model.GetDB().Delete(&d).Error
+}
