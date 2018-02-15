@@ -5,7 +5,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/banzai-types/components"
-	"fmt"
 	"net/http"
 	"github.com/banzaicloud/pipeline/model/defaults"
 	"github.com/pkg/errors"
@@ -91,11 +90,6 @@ func AddClusterProfile(c *gin.Context) {
 
 }
 
-// notSupportedCloudType returns an error with 'not supported cloud type' message
-func notSupportedCloudType(ct string) error {
-	return errors.New(fmt.Sprintf("Not supported cloud type: %s", ct)) // todo move to constants
-}
-
 func getDefaultClusterProfile(cloudType string) ([]components.ClusterProfileRespone, error) {
 
 	var response []components.ClusterProfileRespone
@@ -129,7 +123,7 @@ func convertRequestToProfile(request *components.ClusterProfileRequest) (default
 		gkeProfile.UpdateProfile(request, false)
 		return &gkeProfile, nil
 	default:
-		return nil, notSupportedCloudType(request.Cloud)
+		return nil, constants.NotSupportedCloudType
 	}
 
 }
