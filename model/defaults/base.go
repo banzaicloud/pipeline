@@ -45,7 +45,7 @@ type ClusterProfile interface {
 	SaveInstance() error
 	GetType() string
 	GetProfile() *components.ClusterProfileRespone
-	UpdateProfile(*components.ClusterProfileRequest) error
+	UpdateProfile(*components.ClusterProfileRequest, bool) error
 	DeleteProfile() error
 }
 

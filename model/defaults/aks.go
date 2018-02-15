@@ -58,7 +58,7 @@ func (d *AKSProfile) GetProfile() *components.ClusterProfileRespone {
 	}
 }
 
-func (d *AKSProfile) UpdateProfile(r *components.ClusterProfileRequest) error {
+func (d *AKSProfile) UpdateProfile(r *components.ClusterProfileRequest, withSave bool) error {
 	if len(r.Location) != 0 {
 		d.Location = r.Location
 	}
@@ -80,7 +80,13 @@ func (d *AKSProfile) UpdateProfile(r *components.ClusterProfileRequest) error {
 			}
 		}
 	}
-	return d.SaveInstance()
+
+	if withSave {
+		return d.SaveInstance()
+	} else {
+		d.Name = r.ProfileName
+		return nil
+	}
 }
 
 func (d *AKSProfile) DeleteProfile() error {

@@ -60,7 +60,7 @@ func (d *GKEProfile) GetProfile() *components.ClusterProfileRespone {
 	}
 }
 
-func (d *GKEProfile) UpdateProfile(r *components.ClusterProfileRequest) error {
+func (d *GKEProfile) UpdateProfile(r *components.ClusterProfileRequest, withSave bool) error {
 
 	if len(r.Location) != 0 {
 		d.Location = r.Location
@@ -86,7 +86,12 @@ func (d *GKEProfile) UpdateProfile(r *components.ClusterProfileRequest) error {
 		}
 	}
 
-	return d.SaveInstance()
+	if withSave {
+		return d.SaveInstance()
+	} else {
+		d.Name = r.ProfileName
+		return nil
+	}
 }
 
 func (d *GKEProfile) DeleteProfile() error {

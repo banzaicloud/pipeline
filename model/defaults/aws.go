@@ -68,7 +68,7 @@ func (d *AWSProfile) GetProfile() *components.ClusterProfileRespone {
 
 }
 
-func (d *AWSProfile) UpdateProfile(r *components.ClusterProfileRequest) error {
+func (d *AWSProfile) UpdateProfile(r *components.ClusterProfileRequest, withSave bool) error {
 
 	if len(r.Location) != 0 {
 		d.Location = r.Location
@@ -106,8 +106,12 @@ func (d *AWSProfile) UpdateProfile(r *components.ClusterProfileRequest) error {
 			}
 		}
 	}
-
-	return d.SaveInstance()
+	if withSave {
+		return d.SaveInstance()
+	} else {
+		d.Name = r.ProfileName
+		return nil
+	}
 }
 
 func (d *AWSProfile) DeleteProfile() error {

@@ -117,35 +117,17 @@ func convertRequestToProfile(request *components.ClusterProfileRequest) (default
 
 	switch request.Cloud {
 	case constants.Amazon:
-		return &defaults.AWSProfile{
-			DefaultModel:       defaults.DefaultModel{Name: request.ProfileName},
-			Location:           request.Location,
-			NodeInstanceType:   request.NodeInstanceType,
-			NodeImage:          request.Properties.Amazon.Node.Image,
-			MasterInstanceType: request.Properties.Amazon.Master.InstanceType,
-			MasterImage:        request.Properties.Amazon.Master.Image,
-			NodeSpotPrice:      request.Properties.Amazon.Node.SpotPrice,
-			NodeMinCount:       request.Properties.Amazon.Node.MinCount,
-			NodeMaxCount:       request.Properties.Amazon.Node.MaxCount,
-		}, nil
+		var awsProfile defaults.AWSProfile
+		awsProfile.UpdateProfile(request, false)
+		return &awsProfile, nil
 	case constants.Azure:
-		return &defaults.AKSProfile{
-			DefaultModel:      defaults.DefaultModel{Name: request.ProfileName},
-			Location:          request.Location,
-			NodeInstanceType:  request.NodeInstanceType,
-			AgentCount:        request.Properties.Azure.Node.AgentCount,
-			AgentName:         request.Properties.Azure.Node.AgentName,
-			KubernetesVersion: request.Properties.Azure.Node.KubernetesVersion,
-		}, nil
+		var aksProfile defaults.AKSProfile
+		aksProfile.UpdateProfile(request, false)
+		return &aksProfile, nil
 	case constants.Google:
-		return &defaults.GKEProfile{
-			DefaultModel:     defaults.DefaultModel{Name: request.ProfileName},
-			Location:         request.Location,
-			NodeInstanceType: request.NodeInstanceType,
-			NodeCount:        request.Properties.Google.Node.Count,
-			NodeVersion:      request.Properties.Google.Node.Version,
-			MasterVersion:    request.Properties.Google.Master.Version,
-		}, nil
+		var gkeProfile defaults.GKEProfile
+		gkeProfile.UpdateProfile(request, false)
+		return &gkeProfile, nil
 	default:
 		return nil, notSupportedCloudType(request.Cloud)
 	}
@@ -179,7 +161,7 @@ func UpdateClusterProfile(c *gin.Context) {
 			Message: "Error during getting profile",
 			Error:   err.Error(),
 		})
-	} else if err := profile.UpdateProfile(&profileRequest); err != nil {
+	} else if err := profile.UpdateProfile(&profileRequest, true); err != nil {
 		log.Error(errors.Wrap(err, "Error during update profile"))
 		c.JSON(http.StatusInternalServerError, components.ErrorResponse{
 			Code:    http.StatusInternalServerError,
