@@ -45,7 +45,7 @@ type ClusterProfile interface {
 	IsDefinedBefore() bool
 	SaveInstance() error
 	GetType() string
-	GetProfile() *components.ClusterProfileRespone
+	GetProfile() *components.ClusterProfileResponse
 	UpdateProfile(*components.ClusterProfileRequest, bool) error
 	DeleteProfile() error
 }

@@ -38,10 +38,10 @@ func (d *AWSProfile) IsDefinedBefore() bool {
 	return model.GetDB().First(&d).RowsAffected != int64(0)
 }
 
-func (d *AWSProfile) GetProfile() *components.ClusterProfileRespone {
+func (d *AWSProfile) GetProfile() *components.ClusterProfileResponse {
 	loadFirst(&d)
 
-	return &components.ClusterProfileRespone{
+	return &components.ClusterProfileResponse{
 		ProfileName:      d.DefaultModel.Name,
 		Location:         d.Location,
 		Cloud:            constants.Amazon,

@@ -15,7 +15,7 @@ const (
 	nameKey      = "name"
 )
 
-func GetDefaults(c *gin.Context) {
+func GetClusterProfiles(c *gin.Context) {
 
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagGetClusterProfile})
 
@@ -90,9 +90,9 @@ func AddClusterProfile(c *gin.Context) {
 
 }
 
-func getDefaultClusterProfile(cloudType string) ([]components.ClusterProfileRespone, error) {
+func getDefaultClusterProfile(cloudType string) ([]components.ClusterProfileResponse, error) {
 
-	var response []components.ClusterProfileRespone
+	var response []components.ClusterProfileResponse
 	if profiles, err := defaults.GetAllProfiles(cloudType); err != nil {
 		// error during getting profiles
 		return nil, err

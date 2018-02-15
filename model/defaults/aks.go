@@ -34,10 +34,10 @@ func (d *AKSProfile) GetType() string {
 	return constants.Azure
 }
 
-func (d *AKSProfile) GetProfile() *components.ClusterProfileRespone {
+func (d *AKSProfile) GetProfile() *components.ClusterProfileResponse {
 	loadFirst(&d)
 
-	return &components.ClusterProfileRespone{
+	return &components.ClusterProfileResponse{
 		ProfileName:      d.DefaultModel.Name,
 		Location:         d.Location,
 		Cloud:            constants.Azure,

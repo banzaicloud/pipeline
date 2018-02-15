@@ -34,10 +34,10 @@ func (d *GKEProfile) GetType() string {
 	return constants.Google
 }
 
-func (d *GKEProfile) GetProfile() *components.ClusterProfileRespone {
+func (d *GKEProfile) GetProfile() *components.ClusterProfileResponse {
 	loadFirst(&d)
 
-	return &components.ClusterProfileRespone{
+	return &components.ClusterProfileResponse{
 		ProfileName:      d.DefaultModel.Name,
 		Location:         d.Location,
 		Cloud:            constants.Google,
