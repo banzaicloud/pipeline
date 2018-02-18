@@ -8,7 +8,6 @@ import (
 
 	"github.com/Masterminds/sprig"
 	"github.com/banzaicloud/banzai-types/constants"
-	"github.com/banzaicloud/banzai-types/utils"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
@@ -133,17 +132,16 @@ func UpgradeDeployment(deploymentName, chartName string, values map[string]inter
 
 //CreateDeployment creates a Helm deployment
 func CreateDeployment(chartName string, releaseName string, valueOverrides []byte, kubeConfig *[]byte) (*rls.InstallReleaseResponse, error) {
+	log := logger.WithFields(logrus.Fields{"tag": constants.TagCreateDeployment})
 	defer tearDown()
 
-	logTag := "CreateDeployment"
-
-	utils.LogInfof(logTag, "Deploying chart='%s', release name='%s'.", chartName, releaseName)
+	log.Infof("Deploying chart='%s', release name='%s'.", chartName, releaseName)
 	downloadedChartPath, err := downloadChartFromRepo(chartName)
 	if err != nil {
 		return nil, err
 	}
 
-	utils.LogInfof(logTag, "Loading chart '%s'", downloadedChartPath)
+	log.Infof("Loading chart '%s'", downloadedChartPath)
 	chartRequested, err := chartutil.Load(downloadedChartPath)
 	if err != nil {
 		return nil, fmt.Errorf("Error loading chart: %v", err)

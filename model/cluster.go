@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/jinzhu/gorm"
-	"github.com/prometheus/common/model"
 )
 
 type ClusterModel struct {

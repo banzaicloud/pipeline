@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/banzaicloud/pipeline/api"
-	"github.com/banzaicloud/pipeline/auth"
+	//	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/notify"
@@ -72,7 +72,7 @@ func main() {
 		&model.AzureClusterModel{},
 		&model.GoogleClusterModel{},
 		&auth_identity.AuthIdentity{},
-		&auth.User{},
+		//&auth.User{},
 		&defaults.AWSProfile{},
 		&defaults.AKSProfile{},
 		&defaults.GKEProfile{},

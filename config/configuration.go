@@ -10,9 +10,9 @@ import (
 //Init initializes the configurations
 func Init() {
 
-	viper.AddConfigPath("$HOME/conf")
+	viper.AddConfigPath("$HOME/pipeline")
 	viper.AddConfigPath("./")
-	viper.AddConfigPath("./conf")
+	viper.AddConfigPath("./config")
 
 	viper.SetConfigName("config")
 	//viper.SetConfigType("toml")

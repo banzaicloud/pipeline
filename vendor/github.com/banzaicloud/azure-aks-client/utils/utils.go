@@ -8,11 +8,40 @@ import (
 
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
+	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
 )
 
-const (
-	credentialsPath = "/.azure/credentials.json"
-)
+
+// Create new AKS error
+// Params:
+// 1 - Message string
+// 2 - StatusCode int
+func NewErr(params ...interface{}) *AKSError {
+	switch len(params) {
+	case 1:
+		return &AKSError{
+			Message: params[0].(string),
+		}
+	case 2:
+		return &AKSError{
+			Message: params[0].(string),
+			StatusCode: params[1].(int),
+		}
+	default:
+		return &AKSError{
+			Message: "unknown error happend",
+		}
+	}
+}
+
+type AKSError struct {
+	StatusCode int
+	Message string
+}
+
+func (e *AKSError) Error() string{
+	return e.Message
+}
 
 // ToJSON returns the passed item as a pretty-printed JSON string. If any JSON error occurs,
 // it returns the empty string.
@@ -59,20 +88,30 @@ func ReadPubRSA(filename string) string {
 	return string(b)
 }
 
-func CheckEnvVar(envVars *map[string]string) error {
-	var missingVars []string
-	for varName, value := range *envVars {
-		if value == "" {
-			missingVars = append(missingVars, varName)
-		}
-	}
-	if len(missingVars) > 0 {
-		return fmt.Errorf("Missing environment variables %v", missingVars)
-	}
-	return nil
-}
-
 func S(input string) *string {
 	s := input
 	return &s
+}
+
+type AzureServerError struct {
+	Message string `json:"message"`
+}
+
+func CreateErrorFromValue(statusCode int, v []byte) error {
+	if statusCode == banzaiConstants.BadRequest {
+		ase := AzureServerError{}
+		json.Unmarshal([]byte(v), &ase)
+		if len(ase.Message) != 0 {
+			return NewErr(ase.Message, statusCode)
+		}
+	}
+
+	type TempError struct {
+		Error struct {
+			Message string `json:"message"`
+		} `json:"error"`
+	}
+	tempError := TempError{}
+	json.Unmarshal([]byte(v), &tempError)
+	return NewErr(tempError.Error.Message, statusCode)
 }
