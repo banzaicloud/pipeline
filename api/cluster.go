@@ -22,7 +22,7 @@ var log *logrus.Entry
 // Simple init for logging
 func init() {
 	logger = config.Logger()
-	log = logger.WithFields(logrus.Fields{"action": "Cluster"})
+	log = logger.WithFields(logrus.Fields{"tag": "Cluster"})
 }
 
 //This is to restrict other query TODO investigate to just pass the hasmap
@@ -64,7 +64,7 @@ func GetCommonClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
 
 // CreateCluster creates a K8S cluster in the cloud
 func CreateCluster(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"action": constants.TagCreateCluster})
+	log := logger.WithFields(logrus.Fields{"tag": constants.TagCreateCluster})
 	//TODO refactor logging here
 
 	log.Info("Cluster creation stared")
@@ -191,7 +191,7 @@ func GetClusterStatus(c *gin.Context) {
 
 // FetchClusterConfig fetches a cluster config
 func GetClusterConfig(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"tag": "GetClusterConfig"})
+	log := logger.WithFields(logrus.Fields{"tag": constants.TagFetchClusterConfig})
 	commonCluster, ok := GetCommonClusterFromRequest(c)
 	if ok != true {
 		return
@@ -222,7 +222,7 @@ func GetClusterConfig(c *gin.Context) {
 
 // UpdateCluster updates a K8S cluster in the cloud (e.g. autoscale)
 func UpdateCluster(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"tag": constants.TagGetClusterInfo})
+	log := logger.WithFields(logrus.Fields{"tag": constants.TagUpdateCluster})
 
 	// bind request body to UpdateClusterRequest struct
 	var updateRequest *components.UpdateClusterRequest
@@ -358,7 +358,7 @@ func DeleteCluster(c *gin.Context) {
 
 // FetchClusters fetches all the K8S clusters from the cloud
 func FetchClusters(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"tag": constants.TagDeleteCluster})
+	log := logger.WithFields(logrus.Fields{"tag": constants.TagGetCluster})
 	log.Info("Fetching clusters")
 
 	var clusters []model.ClusterModel //TODO change this to CommonClusterStatus
