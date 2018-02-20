@@ -19,7 +19,7 @@ const BaseUrl = "https://management.azure.com"
 type AKSClient struct {
 	azureSdk *cluster.Sdk
 	clientId string
-	secret string
+	secret   string
 }
 
 func GetAKSClient(credentials *cluster.AKSCredential) (*AKSClient, error) {
@@ -30,7 +30,7 @@ func GetAKSClient(credentials *cluster.AKSCredential) (*AKSClient, error) {
 	}
 	aksClient := &AKSClient{
 		clientId: azureSdk.ServicePrincipal.ClientID,
-		secret: azureSdk.ServicePrincipal.ClientSecret,
+		secret:   azureSdk.ServicePrincipal.ClientSecret,
 		azureSdk: azureSdk,
 	}
 	if aksClient.clientId == "" {
@@ -134,8 +134,8 @@ PUT https://management.azure.com/subscriptions/
 */
 func (a *AKSClient) CreateUpdateCluster(request cluster.CreateClusterRequest) (*banzaiTypesAzure.ResponseWithValue, error) {
 
-	if isValid, errMsg := request.Validate(); !isValid {
-		return nil, utils.NewErr(errMsg)
+	if err := request.Validate(); err != nil {
+		return nil, err
 	}
 
 	managedCluster := cluster.GetManagedCluster(request, a.clientId, a.secret)
@@ -166,14 +166,14 @@ func (a *AKSClient) CreateUpdateCluster(request cluster.CreateClusterRequest) (*
 
 	resp, err := autorest.SendWithSender(groupClient.Client, req)
 	if err != nil {
-		msg := fmt.Sprint( "error during cluster creation: ", err)
+		msg := fmt.Sprint("error during cluster creation: ", err)
 		return nil, utils.NewErr(msg)
 	}
 
 	defer resp.Body.Close()
 	value, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		msg := fmt.Sprint( "error during cluster creation:", err)
+		msg := fmt.Sprint("error during cluster creation:", err)
 		return nil, utils.NewErr(msg)
 	}
 
@@ -292,11 +292,11 @@ func (a *AKSClient) PollingCluster(name string, resourceGroup string) (*banzaiTy
 			stage := response.Properties.ProvisioningState
 
 			switch stage {
-				case stageSuccess:
-					isReady = true
-					result.Update(banzaiConstants.Created, response)
-				case stageFailed:
-					return nil, errors.New("cluster stage is 'Failed'")
+			case stageSuccess:
+				isReady = true
+				result.Update(banzaiConstants.Created, response)
+			case stageFailed:
+				return nil, errors.New("cluster stage is 'Failed'")
 			default:
 				time.Sleep(waitInSeconds * time.Second)
 			}
