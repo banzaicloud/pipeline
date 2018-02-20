@@ -24,6 +24,7 @@ import (
 	"os"
 	"strings"
 	"github.com/banzaicloud/pipeline/utils"
+	"net/http"
 )
 
 // Simple init for logging
@@ -379,6 +380,7 @@ func (c *AWSCluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 	}
 
 	response := &components.GetClusterStatusResponse{
+		Status:           http.StatusOK,
 		Name:             kubicornCluster.Name,
 		Location:         kubicornCluster.Location,
 		Cloud:            kubicornCluster.Cloud,

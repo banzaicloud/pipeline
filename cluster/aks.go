@@ -12,6 +12,7 @@ import (
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/go-errors/errors"
 	"github.com/sirupsen/logrus"
+	"net/http"
 )
 
 func CreateAKSClusterFromRequest(request *components.CreateClusterRequest) (*AKSCluster, error) {
@@ -149,6 +150,7 @@ func (c *AKSCluster) GetStatus() (*bTypes.GetClusterStatusResponse, error) {
 		log.Info("Cluster stage is", stage)
 		if stage == "Succeeded" {
 			response := &components.GetClusterStatusResponse{
+				Status:           http.StatusOK,
 				Name:             c.modelCluster.Name,
 				Location:         c.modelCluster.Location,
 				Cloud:            c.modelCluster.Cloud,

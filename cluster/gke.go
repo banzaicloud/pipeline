@@ -210,6 +210,7 @@ func (g *GKECluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 		log.Infof("Cluster status is %s", cl.Status)
 		if statusRunning == cl.Status {
 			response := &components.GetClusterStatusResponse{
+				Status:           http.StatusOK,
 				Name:             g.modelCluster.Name,
 				Location:         g.modelCluster.Location,
 				Cloud:            g.modelCluster.Cloud,
