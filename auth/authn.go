@@ -112,7 +112,7 @@ func Init() {
 		Redirector: auth.Redirector{RedirectBack},
 		UserModel:  User{},
 		UserStorer: BanzaiUserStorer{signingKeyBase32: signingKeyBase32, droneDB: initDroneDatabase()},
-		ViewPaths:  []string{"github.com/banzaicloud/pipeline/views"},
+		ViewPaths:  []string{"views"},
 		SessionStorer: &BanzaiSessionStorer{
 			SessionStorer: auth.SessionStorer{
 				SessionName:    "_auth_session",
