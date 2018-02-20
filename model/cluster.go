@@ -44,9 +44,9 @@ type GoogleClusterModel struct {
 	NodeCount      int
 }
 
-func (cs ClusterModel) Save() error {
+func (cs *ClusterModel) Save() error {
 	db := GetDB()
-	err := db.Save(cs).Error
+	err := db.Save(&cs).Error
 	if err != nil {
 		return err
 	}

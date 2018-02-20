@@ -70,12 +70,12 @@ type GKECluster struct {
 	APIEndpoint   string
 }
 
-func (c *GKECluster) GetAPIEndpoint() (string, error) {
-	if c.APIEndpoint != "" {
-		return c.APIEndpoint, nil
+func (g *GKECluster) GetAPIEndpoint() (string, error) {
+	if g.APIEndpoint != "" {
+		return g.APIEndpoint, nil
 	}
-	c.APIEndpoint = c.googleCluster.Endpoint
-	return c.APIEndpoint, nil
+	g.APIEndpoint = g.googleCluster.Endpoint
+	return g.APIEndpoint, nil
 }
 
 func (g *GKECluster) CreateCluster() error {
@@ -145,6 +145,7 @@ func (g *GKECluster) CreateCluster() error {
 }
 
 func (g *GKECluster) Persist() error {
+	log.Infof("Model before save: %v", g.modelCluster)
 	return g.modelCluster.Save()
 }
 
