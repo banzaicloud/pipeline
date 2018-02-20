@@ -115,9 +115,11 @@ func RetryHelmInstall(helmInstall *helm.Install, kubeconfig *[]byte, path string
 	for i := 0; i <= retryAttempts; i++ {
 		log.Debugf("Waiting %d/%d", i, retryAttempts)
 		err := Install(helmInstall, kubeconfig, path)
-		if strings.Contains(err.Error(), "net/http: TLS handshake timeout") {
-			time.Sleep(time.Duration(retrySleepSeconds) * time.Second)
-			continue
+		if err != nil {
+			if strings.Contains(err.Error(), "net/http: TLS handshake timeout") {
+				time.Sleep(time.Duration(retrySleepSeconds) * time.Second)
+				continue
+			}
 		}
 		return nil
 	}
