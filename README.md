@@ -32,6 +32,7 @@ _Pipeline is a RESTful API to deploy **cloud native** microservices in public cl
   - [Apache Zeppelin](#apache-zeppelin)
   - [Apache Kafka](#apache-kafka)
   - [TiDB](#tidb)
+  - [Serverless](#serverless)
 - [Reporting bugs](#reporting-bugs)
 - [Contributing](#contributing)
 - [License](#license)
@@ -183,6 +184,13 @@ _Note: Kafka on Kubernetes does not use Zookeper at all. For all quotas, control
 The TiDB `spotguide` provisions, runs, scales and monitors a TiDB cluster (TiDB, TiKV, PD) on the Pipeline PaaS. It detects failures and auto-scales, heals or rebalances the cluster.
 
 ![TiDB Flow](docs/images/pipeline_tidb_flow.png)
+
+#### Serverless
+
+The serverless/function as a service `spotguide` provisions the selected serverless framework (OpenFaaS or Kubeless) and deploys it to Pipeline PaaS. The `function as a service` flow can be triggered with the frameworks native tooling (UI or CLI) however next Pipeline releases will contain a unified serverless API to trigger a function on any of the prefered frameworks with unified tooling (Pipeline API, UI and CLI).
+
+![Serverless Flow](docs/images/pipeline-open-faas-flow.png)
+
 
 ### Reporting bugs
 
