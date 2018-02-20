@@ -32,6 +32,7 @@ type CommonCluster interface {
 	CheckEqualityToUpdate(*bTypes.UpdateClusterRequest) error
 	AddDefaultsToUpdate(*bTypes.UpdateClusterRequest)
 	GetAPIEndpoint() (string, error)
+	DeleteFromDatabase() error
 	//ModifyCluster(*model.ClusterModel)
 	//GetKubernetesConf()
 	//GetKubernetesEndpoint()

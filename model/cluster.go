@@ -53,6 +53,11 @@ func (cs *ClusterModel) Save() error {
 	return nil
 }
 
+func (cs *ClusterModel) Delete() error {
+	db := GetDB()
+	return db.Delete(&cs).Error
+}
+
 // TableName sets ClusterModel's table name
 func (ClusterModel) TableName() string {
 	return constants.TableNameClusters

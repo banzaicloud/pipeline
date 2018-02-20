@@ -282,3 +282,7 @@ func (c *AKSCluster) CheckEqualityToUpdate(r *components.UpdateClusterRequest) e
 	// check equality
 	return utils.IsDifferent(r.UpdateClusterAzure, preCl)
 }
+
+func (c *AKSCluster) DeleteFromDatabase() error {
+	return c.modelCluster.Delete()
+}

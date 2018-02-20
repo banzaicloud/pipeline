@@ -671,3 +671,7 @@ func (c *AWSCluster) CheckEqualityToUpdate(r *components.UpdateClusterRequest) e
 	// check equality
 	return utils.IsDifferent(r.UpdateClusterAmazon, preCl)
 }
+
+func (c *AWSCluster) DeleteFromDatabase() error {
+	return c.modelCluster.Delete()
+}

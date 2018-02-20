@@ -324,8 +324,25 @@ func DeleteCluster(c *gin.Context) {
 	}
 
 	err = commonCluster.DeleteCluster()
-
-	// todo error handling
+	if err != nil {
+		log.Errorf(errors.Wrap(err, "Error during delete cluster").Error())
+		c.JSON(http.StatusInternalServerError, components.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: "Error during delete cluster",
+			Error:   err.Error(),
+		})
+		return
+	} else {
+		err := commonCluster.DeleteFromDatabase()
+		if err != nil {
+			log.Errorf(errors.Wrap(err, "Error during delete cluster from database").Error())
+			c.JSON(http.StatusInternalServerError, components.ErrorResponse{
+				Code:    http.StatusInternalServerError,
+				Message: "Error during delete cluster",
+				Error:   err.Error(),
+			})
+		}
+	}
 
 	// Asyncron update prometheus
 	go cluster.UpdatePrometheus()

@@ -464,6 +464,8 @@ func getClusterGoogle(svc *gke.Service, cc googleCluster) (*gke.Cluster, error) 
 
 func callDeleteCluster(cc *googleCluster) error {
 
+	_ = getCredentialPath()
+
 	log.Info("Get Google Service Client")
 
 	svc, err := getGoogleServiceClient()
@@ -959,4 +961,8 @@ func (g *GKECluster) CheckEqualityToUpdate(r *components.UpdateClusterRequest) e
 
 	// check equality
 	return utils.IsDifferent(r.UpdateClusterGoogle, preCl)
+}
+
+func (g *GKECluster) DeleteFromDatabase() error {
+	return g.modelCluster.Delete()
 }
