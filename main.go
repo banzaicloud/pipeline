@@ -35,6 +35,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"strings"
+	"k8s.io/api/extensions/v1beta1"
 )
 
 //nodeInstanceType=m3.medium -d nodeInstanceSpotPrice=0.04 -d nodeMin=1 -d nodeMax=3 -d image=ami-6d48500b
@@ -370,11 +371,10 @@ func ListEndpoints(c *gin.Context) {
 				for _, ingress := range ingressList.Items {
 					banzaiUtils.LogDebugf(banzaiConstants.TagKubernetes, "Inspecting ingress: %s", ingress.Name)
 					if ingress.Annotations["kubernetes.io/ingress.class"] == traefik {
-						path := ingress.Spec.Rules[0].HTTP.Paths[0].Path
-						endpointURLs = append(endpointURLs, &EndPointURLs{
-							ServiceName: strings.TrimPrefix(path, "/"),
-							URL:         fmt.Sprint("http://", publicIp, path),
-						})
+						endpoints := getIngressEndpoints(publicIp, &ingress)
+						for i := 0; i < len(endpoints); i++ {
+							endpointURLs = append(endpointURLs, &(endpoints[i]))
+						}
 					}
 				}
 			}
@@ -389,6 +389,30 @@ func ListEndpoints(c *gin.Context) {
 	c.JSON(http.StatusOK, EndpointResponse{
 		Endpoints: endpointList,
 	})
+}
+
+// getIngressEndpoints iterates through all the rules->paths defined in the given Ingress object
+// and returns a collection of EndPointURLs form it.
+// The EndPointURLs struct is constructed as:
+// 		EndPointURLs {
+//			ServiceName: {path from ingress rule}
+//			URL: http://{loadBalancerPublicHost}/{path from ingress rule}/
+// 		}
+func getIngressEndpoints(loadBalancerPublicHost string, ingress *v1beta1.Ingress) []EndPointURLs {
+	var endpointUrls []EndPointURLs
+
+	for _, ingressRule := range ingress.Spec.Rules {
+		for _, ingressPath := range ingressRule.HTTP.Paths {
+			path := ingressPath.Path
+			endpointUrls = append(endpointUrls,
+				EndPointURLs{
+					ServiceName: strings.TrimPrefix(path, "/"),
+					URL:         fmt.Sprint("http://", loadBalancerPublicHost, path, "/"),
+				})
+		}
+	}
+
+	return endpointUrls
 }
 
 // ListDeployments lists a Helm deployment
