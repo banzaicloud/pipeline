@@ -85,6 +85,7 @@ func (c *AKSCluster) CreateCluster() error {
 		}
 
 		// polling cluster
+		azureClient.SetLogger(log)
 		pollingResult, err := client.PollingCluster(r.Name, r.ResourceGroup)
 		if err != nil {
 			// polling error

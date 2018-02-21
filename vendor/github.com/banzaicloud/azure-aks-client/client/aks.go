@@ -12,14 +12,21 @@ import (
 	"github.com/banzaicloud/azure-aks-client/utils"
 	"github.com/pkg/errors"
 	"fmt"
+	"github.com/sirupsen/logrus"
 )
 
 const BaseUrl = "https://management.azure.com"
+
+var logger logrus.FieldLogger
 
 type AKSClient struct {
 	azureSdk *cluster.Sdk
 	clientId string
 	secret   string
+}
+
+func SetLogger(l logrus.FieldLogger) {
+	logger = l
 }
 
 func GetAKSClient(credentials *cluster.AKSCredential) (*AKSClient, error) {
@@ -249,6 +256,10 @@ func (a *AKSClient) PollingCluster(name string, resourceGroup string) (*banzaiTy
 	const stageFailed = "Failed"
 	const waitInSeconds = 10
 
+	if logger != nil {
+		logger.Infof("Start polling cluster: %s [%s]", name, resourceGroup)
+	}
+
 	pathParam := map[string]interface{}{
 		"subscription-id": a.azureSdk.ServicePrincipal.SubscriptionID,
 		"resourceGroup":   resourceGroup,
@@ -278,6 +289,9 @@ func (a *AKSClient) PollingCluster(name string, resourceGroup string) (*banzaiTy
 		}
 
 		statusCode := resp.StatusCode
+		if logger != nil {
+			logger.Infof("Cluster polling status code: %d", statusCode)
+		}
 
 		value, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
@@ -290,6 +304,9 @@ func (a *AKSClient) PollingCluster(name string, resourceGroup string) (*banzaiTy
 			json.Unmarshal([]byte(value), &response)
 
 			stage := response.Properties.ProvisioningState
+			if logger != nil {
+				logger.Infof("Cluster stage is %s", stage)
+			}
 
 			switch stage {
 			case stageSuccess:
@@ -298,6 +315,9 @@ func (a *AKSClient) PollingCluster(name string, resourceGroup string) (*banzaiTy
 			case stageFailed:
 				return nil, banzaiConstants.ErrorAzureCLusterStageFailed
 			default:
+				if logger != nil {
+					logger.Info("Waiting for cluster ready...")
+				}
 				time.Sleep(waitInSeconds * time.Second)
 			}
 
