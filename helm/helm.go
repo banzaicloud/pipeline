@@ -133,7 +133,7 @@ func UpgradeDeployment(deploymentName, chartName string, values map[string]inter
 //CreateDeployment creates a Helm deployment
 func CreateDeployment(chartName string, releaseName string, valueOverrides []byte, kubeConfig *[]byte) (*rls.InstallReleaseResponse, error) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagCreateDeployment})
-	defer tearDown()
+	// defer tearDown() // todo close on closed channel panic, if the chart cannot be downloaded
 
 	log.Infof("Deploying chart='%s', release name='%s'.", chartName, releaseName)
 	downloadedChartPath, err := downloadChartFromRepo(chartName)

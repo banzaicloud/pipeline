@@ -169,7 +169,7 @@ func CreateCluster(c *gin.Context) {
 	}
 
 	// Apply PostHooks
-	// These are hardcoded poshooks maybe we will want a bit more dynamic
+	// These are hardcoded posthooks maybe we will want a bit more dynamic
 	postHookFunctions := []func(commonCluster cluster.CommonCluster){
 		cluster.PersistKubernetesKeys,
 		cluster.UpdatePrometheusPostHook,
