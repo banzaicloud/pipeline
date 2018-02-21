@@ -8,9 +8,8 @@ import (
 
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
-	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
+	"net/http"
 )
-
 
 // Create new AKS error
 // Params:
@@ -24,7 +23,7 @@ func NewErr(params ...interface{}) *AKSError {
 		}
 	case 2:
 		return &AKSError{
-			Message: params[0].(string),
+			Message:    params[0].(string),
 			StatusCode: params[1].(int),
 		}
 	default:
@@ -36,10 +35,10 @@ func NewErr(params ...interface{}) *AKSError {
 
 type AKSError struct {
 	StatusCode int
-	Message string
+	Message    string
 }
 
-func (e *AKSError) Error() string{
+func (e *AKSError) Error() string {
 	return e.Message
 }
 
@@ -98,7 +97,7 @@ type AzureServerError struct {
 }
 
 func CreateErrorFromValue(statusCode int, v []byte) error {
-	if statusCode == banzaiConstants.BadRequest {
+	if statusCode == http.StatusBadRequest {
 		ase := AzureServerError{}
 		json.Unmarshal([]byte(v), &ase)
 		if len(ase.Message) != 0 {

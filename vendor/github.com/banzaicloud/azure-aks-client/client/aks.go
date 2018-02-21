@@ -177,7 +177,7 @@ func (a *AKSClient) CreateUpdateCluster(request cluster.CreateClusterRequest) (*
 		return nil, utils.NewErr(msg)
 	}
 
-	if resp.StatusCode != banzaiConstants.OK && resp.StatusCode != banzaiConstants.Created {
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		// something went wrong, create failed
 		errResp := utils.CreateErrorFromValue(resp.StatusCode, value)
 		return nil, errResp
@@ -228,7 +228,7 @@ func (a *AKSClient) DeleteCluster(name string, resourceGroup string) (error) {
 		return err
 	}
 
-	if resp.StatusCode != banzaiConstants.OK && resp.StatusCode != banzaiConstants.NoContent && resp.StatusCode != banzaiConstants.Accepted {
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNoContent && resp.StatusCode != http.StatusAccepted {
 		err := utils.CreateErrorFromValue(resp.StatusCode, value)
 		return err
 	}
@@ -285,7 +285,7 @@ func (a *AKSClient) PollingCluster(name string, resourceGroup string) (*banzaiTy
 		}
 
 		switch statusCode {
-		case banzaiConstants.OK:
+		case http.StatusOK:
 			response := banzaiTypesAzure.Value{}
 			json.Unmarshal([]byte(value), &response)
 
@@ -294,7 +294,7 @@ func (a *AKSClient) PollingCluster(name string, resourceGroup string) (*banzaiTy
 			switch stage {
 			case stageSuccess:
 				isReady = true
-				result.Update(banzaiConstants.Created, response)
+				result.Update(http.StatusCreated, response)
 			case stageFailed:
 				return nil, banzaiConstants.ErrorAzureCLusterStageFailed
 			default:
@@ -349,7 +349,7 @@ func (a *AKSClient) GetClusterConfig(name, resourceGroup, roleName string) (*ban
 		return nil, err
 	}
 
-	if resp.StatusCode != banzaiConstants.OK {
+	if resp.StatusCode != http.StatusOK {
 		// not ok, probably 404
 		err := utils.CreateErrorFromValue(resp.StatusCode, value)
 		return nil, err
