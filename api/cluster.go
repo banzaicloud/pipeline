@@ -42,9 +42,24 @@ func GetCommonClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
 	modelCluster, err := model.QueryCluster(filter)
 	if err != nil {
 		log.Error(err)
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error parsing request",
+		c.JSON(http.StatusNotFound, components.ErrorResponse{
+			Code:    http.StatusNotFound,
+			Message: "Cluster not found",
+			Error:   err.Error(),
+		})
+		return nil, false
+
+		isNotFound := model.IsErrorGormNotFound(err)
+		statusCode := http.StatusBadRequest
+		msg := "Error parsing request"
+		if isNotFound {
+			statusCode = http.StatusNotFound
+			msg = "Cluster not found"
+		}
+
+		c.JSON(statusCode, components.ErrorResponse{
+			Code:    statusCode,
+			Message: msg,
 			Error:   err.Error(),
 		})
 		return nil, false

@@ -39,3 +39,7 @@ func GetDB() *gorm.DB {
 	}
 	return db
 }
+
+func IsErrorGormNotFound(err error) bool {
+	return err == gorm.ErrRecordNotFound
+}
