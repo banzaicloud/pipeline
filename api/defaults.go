@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"github.com/banzaicloud/pipeline/model/defaults"
 	"github.com/pkg/errors"
+	"github.com/banzaicloud/pipeline/model"
 )
 
 const (
@@ -74,7 +75,7 @@ func AddClusterProfile(c *gin.Context) {
 		log.Info("Convert succeeded")
 		log.Info("Save cluster profile into database")
 		if err := prof.SaveInstance(); err != nil {
-			// save falied
+			// save failed
 			log.Errorf("Error during persist cluster profile: %s", err.Error())
 			c.JSON(http.StatusInternalServerError, components.ErrorResponse{
 				Code:    http.StatusInternalServerError,
@@ -177,11 +178,7 @@ func UpdateClusterProfile(c *gin.Context) {
 	if profile, err := defaults.GetProfile(cloudType, profileRequest.ProfileName); err != nil {
 		// load from db failed
 		log.Error(errors.Wrap(err, "Error during getting profile"))
-		c.JSON(http.StatusInternalServerError, components.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: "Error during getting profile",
-			Error:   err.Error(),
-		})
+		sendBackGetProfileErrorResponse(c, err)
 	} else if err := profile.UpdateProfile(&profileRequest, true); err != nil {
 		// updating failed
 		log.Error(errors.Wrap(err, "Error during update profile"))
@@ -225,11 +222,7 @@ func DeleteClusterProfile(c *gin.Context) {
 	if profile, err := defaults.GetProfile(cloudType, name); err != nil {
 		// load from database failed
 		log.Error(errors.Wrap(err, "Error during getting profile"))
-		c.JSON(http.StatusInternalServerError, components.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: "Error during getting profile",
-			Error:   err.Error(),
-		})
+		sendBackGetProfileErrorResponse(c, err)
 	} else {
 		log.Info("Getting profile succeeded")
 		log.Info("Delete from database")
@@ -248,4 +241,19 @@ func DeleteClusterProfile(c *gin.Context) {
 		}
 	}
 
+}
+
+func sendBackGetProfileErrorResponse(c *gin.Context, err error) {
+	statusCode := http.StatusBadRequest
+	msg := "Error during getting profile"
+	if model.IsErrorGormNotFound(err) {
+		statusCode = http.StatusNotFound
+		msg = "Profile not found"
+	}
+
+	c.JSON(statusCode, components.ErrorResponse{
+		Code:    statusCode,
+		Message: msg,
+		Error:   err.Error(),
+	})
 }
