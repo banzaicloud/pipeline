@@ -44,8 +44,7 @@ func GetClusterProfiles(c *gin.Context) {
 func AddClusterProfile(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagSetClusterProfile})
 
-	cloudType := c.Param(cloudTypeKey)
-	log.Infof("Start getting save cluster profile [%s]", cloudType)
+	log.Info("Start getting save cluster profile")
 
 	log.Debug("Bind json into ClusterProfileRequest struct")
 	// bind request body to struct

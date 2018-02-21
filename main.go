@@ -129,7 +129,7 @@ func main() {
 		v1.HEAD("/clusters/:id/deployments/:name", api.HelmDeploymentStatus)
 		v1.POST("/clusters/:id/helminit", api.InitHelmOnCluster)
 		v1.GET("/cluster/profiles/:type", api.GetClusterProfiles)
-		v1.POST("/cluster/profiles/:type", api.AddClusterProfile)
+		v1.POST("/cluster/profiles", api.AddClusterProfile)
 		v1.PUT("/cluster/profiles/:type", api.UpdateClusterProfile)
 		v1.DELETE("/cluster/profiles/:type/:name", api.DeleteClusterProfile)
 		//v1.GET("/token", auth.GenerateToken)
