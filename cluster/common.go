@@ -5,7 +5,6 @@ import (
 	bTypes "github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/model"
-	"github.com/go-errors/errors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/terminal"
@@ -80,7 +79,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 
 		return gkeCluster, nil
 	}
-	return nil, errors.New("Cluster type not found")
+	return nil, constants.ErrorClusterTypeNotFound
 }
 
 func CreateCommonClusterFromRequest(createClusterRequest *bTypes.CreateClusterRequest) (CommonCluster, error) {
@@ -125,7 +124,7 @@ func CreateCommonClusterFromRequest(createClusterRequest *bTypes.CreateClusterRe
 
 		return gkeCluster, nil
 	}
-	return nil, errors.New("Cluster type not found")
+	return nil, constants.ErrorClusterTypeNotFound
 }
 
 func home() string {

@@ -219,7 +219,7 @@ func (g *GKECluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 			}
 			return response, nil
 		} else {
-			return nil, errors.New("Cluster not ready yet")
+			return nil, constants.ErrorClusterNotReady
 		}
 	}
 }
@@ -231,7 +231,7 @@ func (g *GKECluster) DeleteCluster() error {
 	log.Info("Start delete google cluster")
 
 	if g == nil {
-		return errors.New("<nil> cluster")
+		return constants.ErrorNilCluster
 	}
 
 	gkec := googleCluster{

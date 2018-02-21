@@ -160,7 +160,7 @@ func (c *AKSCluster) GetStatus() (*bTypes.GetClusterStatusResponse, error) {
 
 			return response, nil
 		} else {
-			return nil, errors.New("Cluster not ready yet")
+			return nil, constants.ErrorClusterNotReady
 		}
 	}
 }

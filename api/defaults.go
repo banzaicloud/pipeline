@@ -133,7 +133,7 @@ func convertRequestToProfile(request *components.ClusterProfileRequest) (default
 		gkeProfile.UpdateProfile(request, false)
 		return &gkeProfile, nil
 	default:
-		return nil, constants.NotSupportedCloudType
+		return nil, constants.ErrorNotSupportedCloudType
 	}
 
 }

@@ -3,7 +3,7 @@ package cluster
 import (
 	"github.com/banzaicloud/azure-aks-client/utils"
 	"regexp"
-	"github.com/pkg/errors"
+	"github.com/banzaicloud/banzai-types/constants"
 )
 
 type ManagedCluster struct {
@@ -54,15 +54,13 @@ type CreateClusterRequest struct {
 
 func (c CreateClusterRequest) Validate() error {
 
-	msg := "Only numbers, lowercase letters and underscores are allowed under name property. In addition, the value cannot end with an underscore, and must also be less than 32 characters long."
-	emptyMsg := "The name should not be empty."
 	if len(c.Name) == 0 {
-		return errors.New(emptyMsg)
+		return constants.ErrorAzureClusterNameEmpty
 	} else if len(c.Name) >= 32 {
-		return errors.New("Cluster name is greater than or equal 32")
+		return constants.ErrorAzureClusterNameTooLong
 	}
 	if isMatch, _ := regexp.MatchString("^[a-z0-9_]{0,31}[a-z0-9]$", c.Name); !isMatch {
-		return errors.New(msg)
+		return constants.ErrorAzureClusterNameRegexp
 	}
 
 	return nil

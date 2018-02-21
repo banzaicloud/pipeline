@@ -123,7 +123,7 @@ func GetAllProfiles(cloudType string) ([]ClusterProfile, error) {
 		}
 
 	default:
-		return nil, constants.NotSupportedCloudType
+		return nil, constants.ErrorNotSupportedCloudType
 	}
 
 	return defaults, nil
@@ -159,7 +159,7 @@ func GetProfile(cloudType string, name string) (ClusterProfile, error) {
 			return &gkeProfile, nil
 		}
 	default:
-		return nil, constants.NotSupportedCloudType
+		return nil, constants.ErrorNotSupportedCloudType
 	}
 
 }

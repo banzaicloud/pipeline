@@ -158,7 +158,7 @@ func (c *AWSCluster) CreateCluster() error {
 	}
 
 	if created == nil {
-		return errors.New("Error during reconcile")
+		return constants.ErrorReconcile
 	}
 
 	log.Debug("Created cluster:", created.Name)
@@ -396,8 +396,7 @@ func (c *AWSCluster) UpdateCluster(request *components.UpdateClusterRequest) err
 	log.Info("Start updating cluster (amazon)")
 
 	if request == nil {
-		err := errors.New("Empty update cluster request")
-		return err
+		return constants.ErrorEmptyUpdateRequest
 	}
 
 	log.Info("Create updated model")

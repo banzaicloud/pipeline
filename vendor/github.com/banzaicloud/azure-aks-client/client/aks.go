@@ -296,7 +296,7 @@ func (a *AKSClient) PollingCluster(name string, resourceGroup string) (*banzaiTy
 				isReady = true
 				result.Update(banzaiConstants.Created, response)
 			case stageFailed:
-				return nil, errors.New("cluster stage is 'Failed'")
+				return nil, banzaiConstants.ErrorAzureCLusterStageFailed
 			default:
 				time.Sleep(waitInSeconds * time.Second)
 			}

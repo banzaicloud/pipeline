@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"io/ioutil"
 	"reflect"
-	"github.com/go-errors/errors"
+	"github.com/banzaicloud/banzai-types/constants"
 )
 
 //GetEnv retrieves ENV variable, fallback if not set
@@ -62,7 +62,7 @@ func WriteToFile(data []byte, file string) error {
 // IsDifferent compares x and y interfaces with deep equal
 func IsDifferent(x interface{}, y interface{}) error {
 	if reflect.DeepEqual(x, y) {
-		return errors.New("There is no change in data")
+		return constants.ErrorNotDifferentInterfaces
 	}
 
 	return nil
