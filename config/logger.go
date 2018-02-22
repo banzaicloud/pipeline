@@ -36,7 +36,6 @@ func Logger() *logrus.Logger {
 			logrus.SetFormatter(new(logrus.TextFormatter))
 		}
 
-		logger.SetLevel(logrus.DebugLevel)
 	}
 	return logger
 }
