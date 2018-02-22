@@ -67,6 +67,9 @@ func (c *AKSCluster) CreateCluster() error {
 	if err != nil {
 		return err
 	}
+
+	client.With(log.Logger)
+
 	// call creation
 	createdCluster, err := client.CreateUpdateCluster(r)
 	if err != nil {
@@ -85,7 +88,6 @@ func (c *AKSCluster) CreateCluster() error {
 		}
 
 		// polling cluster
-		azureClient.SetLogger(log)
 		pollingResult, err := client.PollingCluster(r.Name, r.ResourceGroup)
 		if err != nil {
 			// polling error
@@ -111,6 +113,9 @@ func (c *AKSCluster) GetK8sConfig() (*[]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	client.With(log.Logger)
+
 	database := model.GetDB()
 	database.Where(model.AzureClusterModel{ClusterModelId: c.modelCluster.ID}).First(&c.modelCluster.Azure)
 	//TODO check banzairesponses
@@ -142,6 +147,9 @@ func (c *AKSCluster) GetStatus() (*bTypes.GetClusterStatusResponse, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	client.With(log.Logger)
+
 	resp, err := client.GetCluster(c.modelCluster.Name, c.modelCluster.Azure.ResourceGroup)
 	if err != nil {
 		return nil, errors.New(err)
@@ -172,6 +180,9 @@ func (c *AKSCluster) DeleteCluster() error {
 	if err != nil {
 		return err
 	}
+
+	client.With(log.Logger)
+
 	// set azure props
 	database := model.GetDB()
 	database.Where(model.AzureClusterModel{ClusterModelId: c.modelCluster.ID}).First(&c.modelCluster.Azure)
@@ -192,6 +203,9 @@ func (c *AKSCluster) UpdateCluster(request *bTypes.UpdateClusterRequest) error {
 	if err != nil {
 		return err
 	}
+
+	client.With(log.Logger)
+
 	ccr := azureCluster.CreateClusterRequest{
 		Name:              c.modelCluster.Name,
 		Location:          c.modelCluster.Location,
