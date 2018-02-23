@@ -25,6 +25,7 @@ import (
 	"strings"
 	"github.com/banzaicloud/pipeline/utils"
 	"net/http"
+	kubicornLogger "github.com/kris-nova/kubicorn/cutil/logger"
 )
 
 // Simple init for logging
@@ -114,6 +115,9 @@ func (c *AWSCluster) Persist() error {
 //Create new cluster
 func (c *AWSCluster) CreateCluster() error {
 	log := logger.WithFields(logrus.Fields{"action": constants.TagCreateCluster})
+
+	kubicornLogger.Level = getKubocornLogLevel()
+
 	//TODO check if this should be private
 	c.kubicornCluster = GetKubicornProfile(c.modelCluster)
 	sshKeyPath := viper.GetString("dev.keypath")
@@ -392,7 +396,10 @@ func (c *AWSCluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 
 // UpdateClusterAmazonInCloud updates Amazon cluster in cloud
 func (c *AWSCluster) UpdateCluster(request *components.UpdateClusterRequest) error {
+
 	log := logger.WithFields(logrus.Fields{"action": constants.TagUpdateCluster})
+	kubicornLogger.Level = getKubocornLogLevel()
+
 	log.Info("Start updating cluster (amazon)")
 
 	if request == nil {
@@ -486,7 +493,10 @@ func ReadCluster(modelCluster *model.ClusterModel) (*kcluster.Cluster, error) {
 
 // DeleteAmazonCluster deletes cluster from amazon
 func (c *AWSCluster) DeleteCluster() error {
+
 	log := logger.WithFields(logrus.Fields{"action": constants.TagDeleteCluster})
+	kubicornLogger.Level = getKubocornLogLevel()
+
 	log.Info("Start delete amazon cluster")
 	kubicornCluster, err := c.GetKubicornCluster()
 	if err != nil {
@@ -673,4 +683,20 @@ func (c *AWSCluster) CheckEqualityToUpdate(r *components.UpdateClusterRequest) e
 
 func (c *AWSCluster) DeleteFromDatabase() error {
 	return c.modelCluster.Delete()
+}
+
+func getKubocornLogLevel() int {
+	lvl := viper.GetString("logging.kubicornloglevel")
+	switch lvl {
+	case "critical":
+		return 1
+	case "warn":
+		return 2
+	case "info":
+		return 3
+	case "debug":
+		return 4
+	default:
+		return 4
+	}
 }

@@ -15,6 +15,7 @@ dbname = "sparky"
 #logger settings
 logformat = "text"
 loglevel = "debug"
+kubicornloglevel = "debug"
 
 [cloud]
 #cloud profiles
