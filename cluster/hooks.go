@@ -59,7 +59,7 @@ func InstallIngressControllerPostHook(cluster CommonCluster) {
 
 	kubeConfig, err := cluster.GetK8sConfig()
 	if err != nil {
-		log.Error("Unable to fetch config for posthook")
+		log.Errorf("Unable to fetch config for posthook: %s", err.Error())
 		return
 	}
 
@@ -103,8 +103,10 @@ func InstallHelmPostHook(cluster CommonCluster) {
 	helmHome := viper.GetString("helm.home")
 	kubeconfig, err := cluster.GetK8sConfig()
 	if err != nil {
-		log.Errorf("Error retrieveing kubernetes config")
+		log.Errorf("Error retrieving kubernetes config: %s", err.Error())
+		return
 	}
+
 	err = helm.RetryHelmInstall(helmInstall, kubeconfig, helmHome)
 	if err == nil {
 		// Get K8S Config //
