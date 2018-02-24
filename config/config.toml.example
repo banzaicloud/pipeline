@@ -26,18 +26,14 @@ gkeCredentialPath = ""
 
 [auth]
 enabled = true
-#auth0 configs
-auth0pub = "./conf/auth0api.pub"
-
-# SSH key path
-#dev.keypath = ""
 
 # GitHub settings
 clientid = ""
 clientsecret = ""
 
-# AccessToken settings
-# tokensigningkey = ""
+tokensigningkey = "mys3cr3t"
+jwtissueer = "https://banzaicloud.com/"
+jwtaudience = "https://pipeline.banzaicloud.com"
 
 [helm]
 

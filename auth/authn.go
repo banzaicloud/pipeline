@@ -1,240 +1,297 @@
 package auth
 
-//import (
-//	"crypto/x509"
-//	"encoding/base64"
-//	"encoding/pem"
-//	"fmt"
-//	"io/ioutil"
-//	"net/http"
-//	"strconv"
-//	"strings"
-//	"time"
+import (
+	"encoding/base32"
+	"fmt"
+	"net/http"
+	"strconv"
 
-//	"github.com/auth0-community/go-auth0"
-//	"github.com/banzaicloud/banzai-types/database"
-//	"github.com/banzaicloud/pipeline/cloud"
-//	jwt "github.com/dgrijalva/jwt-go"
-//	"github.com/gin-gonic/gin"
-//	"github.com/qor/auth"
-//	"github.com/qor/auth/authority"
-//	"github.com/qor/auth/providers/github"
-//	"github.com/qor/redirect_back"
-//	"github.com/qor/session/manager"
-//	"github.com/satori/go.uuid"
-//	"github.com/spf13/viper"
-//	"gopkg.in/square/go-jose.v2"
+	jwt "github.com/dgrijalva/jwt-go"
+	jwtRequest "github.com/dgrijalva/jwt-go/request"
+	"github.com/gin-gonic/gin"
+	"github.com/qor/auth"
+	"github.com/qor/auth/authority"
+	"github.com/qor/auth/claims"
+	"github.com/qor/auth/providers/github"
+	"github.com/qor/redirect_back"
+	"github.com/qor/session/manager"
+	"github.com/satori/go.uuid"
+	"github.com/spf13/viper"
 
-//	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
-//	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
-//)
+	btype "github.com/banzaicloud/banzai-types/components"
+	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
+	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/model"
+	"github.com/sirupsen/logrus"
+	"strings"
+)
 
-//const jwksUri = "https://banzaicloud.auth0.com/.well-known/jwks.json"
-//const auth0ApiIssuer = "https://banzaicloud.auth0.com/"
+// DroneSessionCookie holds the name of the Cookie Drone sets in the browser
+const DroneSessionCookie = "user_sess"
 
-//var auth0ApiAudiences = []string{"https://pipeline.banzaicloud.com"}
-//var validator *auth0.JWTValidator
+// DroneSessionCookieType is the Drone token type used for browser sessions
+const DroneSessionCookieType = "sess"
 
-////ApiGroup is grouping name for the token
-//var ApiGroup = "ApiGroup"
+// DroneUserCookieType is the Drone token type used for API sessions
+const DroneUserCookieType = "user"
 
-//// Init authorization
-//var (
-//	RedirectBack *redirect_back.RedirectBack
+// For all Drone token types please see: https://github.com/drone/drone/blob/master/shared/token/token.go#L12
 
-//	Auth *auth.Auth
+// Init authorization
+var (
+	logger *logrus.Logger
+	log    *logrus.Entry
 
-//	Authority *authority.Authority
+	RedirectBack *redirect_back.RedirectBack
 
-//	authEnabled bool
-//	signingKey  []byte
-//	tokenStore  TokenStore
-//)
+	Auth *auth.Auth
 
-//type ScopedClaims struct {
-//	jwt.StandardClaims
-//	Scope string `json:"scope,omitempty"`
-//}
+	Authority *authority.Authority
 
-//func IsEnabled() bool {
-//	return authEnabled
-//}
+	authEnabled      bool
+	signingKeyBase32 string
+	tokenStore       TokenStore
 
-//func lookupAccessToken(userId, token string) (bool, error) {
-//	return tokenStore.Lookup(userId, token)
-//}
+	// JwtIssuer ("iss") claim identifies principal that issued the JWT
+	JwtIssuer string
 
-//func validateAccessToken(claims *ScopedClaims) (bool, error) {
-//	userID := claims.Subject
-//	tokenID := claims.Id
-//	return lookupAccessToken(userID, tokenID)
-//}
+	// JwtAudience ("aud") claim identifies the recipients that the JWT is intended for
+	JwtAudience string
+)
 
-//func Init() {
-//	authEnabled = viper.GetBool("dev.authenabled")
-//	if !authEnabled {
-//		banzaiUtils.LogInfo(banzaiConstants.TagAuth, "Authentication is disabled.")
-//		return
-//	}
+// TODO se who will win
 
-//	pubKey := viper.GetString("dev.auth0pub")
-//	banzaiUtils.LogInfo(banzaiConstants.TagAuth, "PubKey", pubKey)
-//	data, err := ioutil.ReadFile(pubKey)
-//	if err != nil {
-//		panic("Impossible to read key form disk")
-//	}
+// Simple init for logging
+func init() {
+	logger = config.Logger()
+	log = logger.WithFields(logrus.Fields{"tag": "Auth"})
+}
 
-//	secret, err := loadPublicKey(data)
-//	if err != nil {
-//		panic("Invalid provided key")
-//	}
-//	secretProvider := auth0.NewKeyProvider(secret)
+type ScopedClaims struct {
+	jwt.StandardClaims
+	Scope string `json:"scope,omitempty"`
+	// Drone
+	Type string `json:"type,omitempty"`
+	Text string `json:"text,omitempty"`
+}
 
-//	// TODO: jose.RS256 once the private key is there
-//	signingKey, _ = base64.URLEncoding.DecodeString(viper.GetString("dev.tokensigningkey"))
-//	secretProvider = auth0.NewKeyProvider(signingKey)
-//	configuration := auth0.NewConfiguration(secretProvider, auth0ApiAudiences, auth0ApiIssuer, jose.HS256)
-//	validator = auth0.NewValidator(configuration)
+type DroneClaims struct {
+	*claims.Claims
+	Type string `json:"type,omitempty"`
+	Text string `json:"text,omitempty"`
+}
 
-//	RedirectBack = redirect_back.New(&redirect_back.Config{
-//		SessionManager:  manager.SessionManager,
-//		IgnoredPrefixes: []string{"/auth"},
-//	})
+func IsEnabled() bool {
+	return authEnabled
+}
 
-//	// Initialize Auth with configuration
-//	Auth = auth.New(&auth.Config{
-//		DB:         database.DB(),
-//		Redirector: auth.Redirector{RedirectBack},
-//		UserModel:  User{},
-//	})
+func lookupAccessToken(userId, token string) (bool, error) {
+	return tokenStore.Lookup(userId, token)
+}
 
-//	// ClientID and ClientSecret is validated inside github.New()
-//	Auth.RegisterProvider(github.New(&github.Config{
-//		ClientID:     viper.GetString("dev.clientid"),
-//		ClientSecret: viper.GetString("dev.clientsecret"),
-//	}))
+func validateAccessToken(claims *ScopedClaims) (bool, error) {
+	userID := claims.Subject
+	tokenID := claims.Id
+	return lookupAccessToken(userID, tokenID)
+}
 
-//	Authority = authority.New(&authority.Config{
-//		Auth: Auth,
-//	})
+func Init() {
+	authEnabled = viper.GetBool("auth.enabled")
+	if !authEnabled {
+		log.Info(banzaiConstants.TagAuth, "Authentication is disabled.")
+		return
+	}
 
-//	tokenStore = NewVaultTokenStore()
-//}
+	viper.SetDefault("auth.jwtissuer", "https://banzaicloud.com/")
+	viper.SetDefault("auth.jwtaudience", "https://pipeline.banzaicloud.com")
+	JwtIssuer = viper.GetString("auth.jwtissuer")
+	JwtAudience = viper.GetString("auth.jwtaudience")
 
-//// LoadPublicKey loads a public key from PEM/DER-encoded data.
-//func loadPublicKey(data []byte) (interface{}, error) {
-//	input := data
+	signingKey := viper.GetString("auth.tokensigningkey")
+	if signingKey == "" {
+		panic("Token signing key is missing from configuration")
+	}
+	signingKeyBase32 = base32.StdEncoding.EncodeToString([]byte(signingKey))
 
-//	block, _ := pem.Decode(data)
-//	if block != nil {
-//		input = block.Bytes
-//	}
+	RedirectBack = redirect_back.New(&redirect_back.Config{
+		SessionManager:  manager.SessionManager,
+		IgnoredPrefixes: []string{"/auth"},
+	})
 
-//	// Try to load SubjectPublicKeyInfo
-//	pub, err0 := x509.ParsePKIXPublicKey(input)
-//	if err0 == nil {
-//		return pub, nil
-//	}
+	// Initialize Auth with configuration
+	Auth = auth.New(&auth.Config{
+		DB:         model.GetDB(),
+		Redirector: auth.Redirector{RedirectBack},
+		UserModel:  User{},
+		UserStorer: BanzaiUserStorer{signingKeyBase32: signingKeyBase32, droneDB: initDroneDatabase()},
+		ViewPaths:  []string{"views"},
+		SessionStorer: &BanzaiSessionStorer{
+			SessionStorer: auth.SessionStorer{
+				SessionName:    "_auth_session",
+				SessionManager: manager.SessionManager,
+				SigningMethod:  jwt.SigningMethodHS256,
+				SignedString:   signingKeyBase32,
+			},
+			SignedStringBytes: []byte(signingKeyBase32),
+		},
+	})
 
-//	cert, err1 := x509.ParseCertificate(input)
-//	if err1 == nil {
-//		return cert.PublicKey, nil
-//	}
+	githubProvider := github.New(&github.Config{
+		// ClientID and ClientSecret is validated inside github.New()
+		ClientID:     viper.GetString("auth.clientid"),
+		ClientSecret: viper.GetString("auth.clientsecret"),
 
-//	return nil, fmt.Errorf("square/go-jose: parse error, got '%s' and '%s'", err0, err1)
-//}
+		// The same as Drone's scopes
+		Scopes: []string{
+			"repo",
+			"repo:status",
+			"user:email",
+			"read:org",
+		},
+	})
+	githubProvider.AuthorizeHandler = NewGithubAuthorizeHandler(githubProvider)
+	Auth.RegisterProvider(githubProvider)
 
-//// TODO: it should be possible to generate tokens via a token (not just session cookie)
-//func GenerateToken(c *gin.Context) {
-//	currentUser := GetCurrentUser(c.Request)
-//	if currentUser == nil {
-//		err := c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("Invalid session"))
-//		banzaiUtils.LogInfo(banzaiConstants.TagAuth, c.ClientIP(), err.Error())
-//		return
-//	}
+	Authority = authority.New(&authority.Config{
+		Auth: Auth,
+	})
 
-//	tokenID := uuid.NewV4().String()
+	tokenStore = NewVaultTokenStore()
+}
 
-//	// Create the Claims
-//	claims := &ScopedClaims{
-//		jwt.StandardClaims{
-//			Issuer:    auth0ApiIssuer,
-//			Audience:  auth0ApiAudiences[0],
-//			IssuedAt:  time.Now().UnixNano(),
-//			ExpiresAt: time.Now().UnixNano() * 2,
-//			Subject:   strconv.Itoa(int(currentUser.ID)),
-//			Id:        tokenID,
-//		},
-//		"api:invoke",
-//	}
+// TODO: it should be possible to generate tokens via a token (not just session cookie)
+func GenerateToken(c *gin.Context) {
+	currentUser := getCurrentUser(c.Request)
+	if currentUser == nil {
+		err := c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("Invalid session"))
+		log.Info(c.ClientIP(), err.Error())
+		return
+	}
 
-//	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-//	signedToken, err := token.SignedString(signingKey)
+	tokenID := uuid.NewV4().String()
 
-//	if err != nil {
-//		err = c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Failed to sign token: %s", err))
-//		banzaiUtils.LogInfo(banzaiConstants.TagAuth, c.ClientIP(), err.Error())
-//	} else {
-//		err = tokenStore.Store(strconv.Itoa(int(currentUser.ID)), tokenID)
-//		if err != nil {
-//			err = c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Failed to store token: %s", err))
-//			banzaiUtils.LogInfo(banzaiConstants.TagAuth, c.ClientIP(), err.Error())
-//		} else {
-//			c.JSON(http.StatusOK, gin.H{"token": signedToken})
-//		}
-//	}
-//}
+	// Create the Claims
+	claims := &ScopedClaims{
+		StandardClaims: jwt.StandardClaims{
+			Issuer:    JwtIssuer,
+			Audience:  JwtAudience,
+			IssuedAt:  jwt.TimeFunc().Unix(),
+			ExpiresAt: 0,
+			Subject:   strconv.Itoa(int(currentUser.ID)),
+			Id:        tokenID,
+		},
+		Scope: "api:invoke",        // "scope" for Pipeline
+		Type:  DroneUserCookieType, // "type" for Drone
+		Text:  currentUser.Login,   // "text" for Drone
+	}
 
-////Auth0Handler handler for Gin
-//func Auth0Handler(c *gin.Context) {
-//	currentUser := Auth.GetCurrentUser(c.Request)
-//	if currentUser != nil {
-//		return
-//	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	signedToken, err := token.SignedString([]byte(signingKeyBase32))
 
-//	accessToken, err := validator.ValidateRequest(c.Request)
-//	if err != nil {
-//		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-//			cloud.JsonKeyError: "Invalid token",
-//		})
-//		banzaiUtils.LogInfo(banzaiConstants.TagAuth, "Invalid token:", err)
-//		return
-//	}
+	if err != nil {
+		err = c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Failed to sign token: %s", err))
+		log.Info(c.ClientIP(), err.Error())
+	} else {
+		err = tokenStore.Store(strconv.Itoa(int(currentUser.ID)), tokenID)
+		if err != nil {
+			err = c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Failed to store token: %s", err))
+			log.Info(c.ClientIP(), err.Error())
+		} else {
+			c.JSON(http.StatusOK, gin.H{"token": signedToken})
+		}
+	}
+}
 
-//	claims := ScopedClaims{}
-//	err = validator.Claims(c.Request, accessToken, &claims)
-//	if err != nil {
-//		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-//			cloud.JsonKeyError: "Invalid claims in token",
-//		})
-//		banzaiUtils.LogInfo(banzaiConstants.TagAuth, "Invalid claims:", err)
-//		return
-//	}
+func hmacKeyFunc(token *jwt.Token) (interface{}, error) {
+	// Don't forget to validate the alg is what you expect:
+	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+		return nil, fmt.Errorf("Unexpected signing method: %v", token.Method.Alg())
+	}
+	return []byte(signingKeyBase32), nil
+}
 
-//	isTokenValid, err := validateAccessToken(&claims)
-//	if err != nil || !isTokenValid {
-//		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-//			cloud.JsonKeyError: "Invalid token",
-//		})
-//		banzaiUtils.LogInfo(banzaiConstants.TagAuth, "Invalid token:", err)
-//		return
-//	}
+func Auth0Handler(c *gin.Context) {
+	currentUser := Auth.GetCurrentUser(c.Request)
+	if currentUser != nil {
+		return
+	}
 
-//	hasScope := strings.Contains(claims.Scope, "api:invoke")
+	claims := ScopedClaims{}
+	accessToken, err := jwtRequest.ParseFromRequestWithClaims(c.Request, jwtRequest.OAuth2Extractor, &claims, hmacKeyFunc)
 
-//	// TODO: metadata and group check for later hardening
-//	/**
-//	metadata, okMetadata := claims["scope"].(map[string]interface{})
-//	authorization, okAuthorization := metadata["authorization"].(map[string]interface{})
-//	groups, hasGroups := authorization["groups"].([]interface{})
-//	**/
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized,
+			btype.ErrorResponse{
+				Code:    http.StatusUnauthorized,
+				Message: "Invalid token",
+				Error:   err.Error(),
+			})
+		log.Info("Invalid token:", err)
+		return
+	}
 
-//	if !hasScope {
-//		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-//			cloud.JsonKeyError: "needs more privileges",
-//		})
-//		banzaiUtils.LogInfo(banzaiConstants.TagAuth, "Needs more privileges")
-//		return
-//	}
-//	c.Next()//
-//}
+	isTokenValid, err := validateAccessToken(&claims)
+	if err != nil || !accessToken.Valid || !isTokenValid {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, btype.ErrorResponse{
+			Code:    http.StatusUnauthorized,
+			Message: "Invalid token",
+			Error:   err.Error(),
+		})
+		log.Info("Invalid token:", err)
+		return
+	}
+
+	hasScope := strings.Contains(claims.Scope, "api:invoke")
+
+	// TODO: metadata and group check for later hardening
+	/**
+	metadata, okMetadata := claims["scope"].(map[string]interface{})
+	authorization, okAuthorization := metadata["authorization"].(map[string]interface{})
+	groups, hasGroups := authorization["groups"].([]interface{})
+	**/
+
+	if !hasScope {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, btype.ErrorResponse{
+			Code:    http.StatusUnauthorized,
+			Message: "Need more priviliges",
+			Error:   err.Error(),
+		})
+		log.Info("Needs more privileges")
+		return
+	}
+	c.Next()
+}
+
+type BanzaiSessionStorer struct {
+	auth.SessionStorer
+	SignedStringBytes []byte
+}
+
+func (sessionStorer *BanzaiSessionStorer) Update(w http.ResponseWriter, req *http.Request, claims *claims.Claims) error {
+	token := sessionStorer.SignedToken(claims)
+	err := sessionStorer.SessionManager.Add(w, req, sessionStorer.SessionName, token)
+	if err != nil {
+		log.Info(req.RemoteAddr, err.Error())
+		return err
+	}
+
+	// Set the drone cookie as well
+	currentUser := getCurrentUser(req)
+	if currentUser == nil {
+		return fmt.Errorf("Can't get current user")
+	}
+	droneClaims := &DroneClaims{Claims: claims, Type: DroneSessionCookieType, Text: currentUser.Login}
+	tokenToken, err := sessionStorer.SignedTokenWithDrone(droneClaims)
+	if err != nil {
+		log.Info(req.RemoteAddr, err.Error())
+		return err
+	}
+	SetCookie(w, req, DroneSessionCookie, tokenToken)
+	return nil
+}
+
+// SignedToken generate signed token with Claims
+func (sessionStorer *BanzaiSessionStorer) SignedTokenWithDrone(claims *DroneClaims) (string, error) {
+	token := jwt.NewWithClaims(sessionStorer.SigningMethod, claims)
+	return token.SignedString(sessionStorer.SignedStringBytes)
+}

@@ -1,6 +1,7 @@
 [![CircleCI](https://circleci.com/gh/banzaicloud/pipeline/tree/master.svg?style=shield)](https://circleci.com/gh/banzaicloud/pipeline/tree/master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/banzaicloud/pipeline)](https://goreportcard.com/report/github.com/banzaicloud/pipeline)
 ![license](http://img.shields.io/badge/license-Apache%20v2-orange.svg)
+[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/1651/badge)](https://bestpractices.coreinfrastructure.org/projects/1651)
 
 
 _Banzai Pipeline, or simply Pipeline is a tabletop reef break located in Hawaii, Oahu's North Shore. The most famous and infamous reef on the planet is forming the benchmark by which all other waves are measured._
@@ -18,7 +19,7 @@ _Pipeline is a RESTful API to deploy **cloud native** microservices in public cl
   - [Managed Kubernetes](#managed-kubernetes)
 - [Architecture overview](#architecture-overview)
   - [Control plane](#control-plane)
-  - [Deployed cluster](#deployed-cluster)
+  - [Deployments](#deployments)
   - [The Pipeline Platform - PaaS](#the-pipeline-platform-paas)
 - [Installation](#installation)
 - [Dependency management](#vendoring)
@@ -31,6 +32,7 @@ _Pipeline is a RESTful API to deploy **cloud native** microservices in public cl
   - [Apache Zeppelin](#apache-zeppelin)
   - [Apache Kafka](#apache-kafka)
   - [TiDB](#tidb)
+  - [Serverless](#serverless)
 - [Reporting bugs](#reporting-bugs)
 - [Contributing](#contributing)
 - [License](#license)
@@ -54,9 +56,9 @@ The platform includes a few default `spotguides` like: **Apache Spark, Apache Ze
 
 ## Cloud Providers
 
-Pipeline is currently experimental and all the development, testing and the CI/CD pipeline itself is tested on **AWS** only. The AWS version contains the control plane, cloud images, Cloudformation templates and belonging artifacts published.
+Pipeline is currently experimental and all the development, testing and the CI/CD pipeline itself is tested on **AWS** and **Azure** only. The latest version contains the control plane, cloud images, Cloudformation/ARM templates and belonging artifacts released under the *0.2.0* across repositories.
 
-The underlying [Kubicorn](http://kubicorn.io) framework has support for the following providers.
+Nevertheless, the underlying [Kubicorn](http://kubicorn.io) framework has support for the following providers.
 
   * Amazon AWS
   * Google Cloud
@@ -65,7 +67,7 @@ The underlying [Kubicorn](http://kubicorn.io) framework has support for the foll
 
 ## Managed Kubernetes
 
-Pipeline is architected in a way to allow pluggable implementations for providers, managed Kubernetes clusters or hybrid environments. Through provider plugins retrives the `kubeconfig` and connects and deploys applications. Currently it's tested with [Microsoft's Azure managed Kubernetes](https://azure.microsoft.com/en-us/blog/introducing-azure-container-service-aks-managed-kubernetes-and-azure-container-registry-geo-replication/).
+Pipeline is architected in a way to allow pluggable implementations for providers, managed Kubernetes clusters or hybrid environments. Through provider plugins retrives the `kubeconfig` and connects and deploys applications. Currently it's tested with [Microsoft's Azure managed Kubernetes](https://azure.microsoft.com/en-us/blog/introducing-azure-container-service-aks-managed-kubernetes-and-azure-container-registry-geo-replication/) and Google' GKE.
 
   * Microsoft AKS
   * Google GKE
@@ -76,7 +78,7 @@ Pipeline is architected in a way to allow pluggable implementations for provider
   * Alibaba Cloud Managed Kubernetes
   * CoreOS Tectonic
   * Redhat OpenShift
- 
+
 
 ## Architecture overview
 
@@ -93,7 +95,7 @@ All these components are assembled into a **Control Plane** - and deployed to Ku
 
 ![Control Plane](docs/images/control-plane-aws-azure.png)
 
-You can launch a Pipeline control plane on AWS with the following [Cloudformation](https://github.com/banzaicloud/pipeline-cp-launcher/blob/0.1.0/control-plane.template) template.
+To launch a Pipeline control plane on AWS or Azure follow this [documentation](docs/control-plane.md).
 
 ### Deployments
 
@@ -111,7 +113,7 @@ For the platform's end user a typical Pipeline interaction starts with a GitHub 
 
 ### Installation
 
-Pipeline API deploys microservice based applications using the REST API. Unlike the Pipeline Platform, the API has no explicit knowledge about `spotguides`, the CI/CD pipeline, or the application type. It merely provisions the cloud infrastructure (or reuses), deploys the containers through Helm and applies cluster reconciliation/SLA rules. In order to try the API follow the [installation guide](docs/install.md).
+Pipeline API deploys microservice based applications using the REST API. Unlike the Pipeline Platform, the API has no explicit knowledge about `spotguides`, the CI/CD pipeline, or the application type. It merely provisions (or reuses) the cloud infrastructure, deploys the containers through Helm and applies cluster reconciliation/SLA rules. In order to try the API follow the [installation guide](docs/pipeline-howto.md).
 
 ### Vendoring
 
@@ -131,7 +133,7 @@ Once Pipeline API is started, the easiest way to deploy applications to it is th
 
 [![Run in Postman](https://run.pstmn.io/button.svg)](https://www.getpostman.com/collections/b4eb0f62eb53d1ad29f7)
 
-For alternative ways to learn about application deployments please follow the [create cluster guide](docs/deployments.md).
+For alternative ways to learn about application deployments please follow the [deployments guide](docs/deployments.md).
 
 ### Quick howto
 
@@ -173,6 +175,8 @@ _Note: Zeppelin on Kubernetes for Spark notebooks does not use YARN, all schedul
 
 The Apache Kafka `spotguide` has a good understanding of consumers and producers but more importantly it monitors, scales, rebalances and auto-heals the Kafka cluster. It autodetects broker failures, reassigns workloads and edits partition reassignment files.
 
+![Kafka Pipeline](https://raw.githubusercontent.com/banzaicloud/pipeline/master/docs/images/kafka-on-etcd.png)
+
 _Note: Kafka on Kubernetes does not use Zookeper at all. For all quotas, controller election, cluster membership and configuration it is using **etcd**, a faster and more reliable `cloud-native` distributed system for coordination and metadata storage._
 
 #### TiDB
@@ -180,6 +184,13 @@ _Note: Kafka on Kubernetes does not use Zookeper at all. For all quotas, control
 The TiDB `spotguide` provisions, runs, scales and monitors a TiDB cluster (TiDB, TiKV, PD) on the Pipeline PaaS. It detects failures and auto-scales, heals or rebalances the cluster.
 
 ![TiDB Flow](docs/images/pipeline_tidb_flow.png)
+
+#### Serverless
+
+The serverless/function as a service `spotguide` provisions the selected serverless framework (OpenFaaS or Kubeless) and deploys it to Pipeline PaaS. The `function as a service` flow can be triggered with the frameworks native tooling (UI or CLI) however next Pipeline releases will contain a unified serverless API to trigger a function on any of the prefered frameworks with unified tooling (Pipeline API, UI and CLI).
+
+![Serverless Flow](docs/images/pipeline-open-faas-flow.png)
+
 
 ### Reporting bugs
 

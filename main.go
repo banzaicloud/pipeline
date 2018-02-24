@@ -3,17 +3,18 @@ package main
 import (
 	"fmt"
 	"github.com/banzaicloud/pipeline/api"
-	//	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/model/defaults"
 	"github.com/banzaicloud/pipeline/notify"
-	//	"github.com/banzaicloud/pipeline/utils"
+	"github.com/banzaicloud/pipeline/utils"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/qor/auth/auth_identity"
-	//	sessionManager "github.com/qor/session/manager"
-	"github.com/banzaicloud/pipeline/model/defaults"
+	sessionManager "github.com/qor/session/manager"
 	"github.com/sirupsen/logrus"
+	"net/http"
 	"os"
 	"time"
 )
@@ -92,26 +93,27 @@ func main() {
 	config.MaxAge = 12 * time.Hour
 
 	router.Use(cors.New(config))
+	router.Use(createOptionsMiddleware().Response)
 
-	//if auth.IsEnabled() {
-	//	authHandler := gin.WrapH(auth.Auth.NewServeMux())
-	//
-	//	// We have to make the raw net/http handlers a bit Gin-ish
-	//	router.Use(gin.WrapH(sessionManager.SessionManager.Middleware(utils.NopHandler{})))
-	//	router.Use(gin.WrapH(auth.RedirectBack.Middleware(utils.NopHandler{})))
-	//
-	//	authGroup := router.Group("/auth/")
-	//	{
-	//		authGroup.GET("/*w", authHandler)
-	//		authGroup.GET("/*w/*w", authHandler)
-	//	}
-	//}
+	if auth.IsEnabled() {
+		authHandler := gin.WrapH(auth.Auth.NewServeMux())
+
+		// We have to make the raw net/http handlers a bit Gin-ish
+		router.Use(gin.WrapH(sessionManager.SessionManager.Middleware(utils.NopHandler{})))
+		router.Use(gin.WrapH(auth.RedirectBack.Middleware(utils.NopHandler{})))
+
+		authGroup := router.Group("/auth/")
+		{
+			authGroup.GET("/*w", authHandler)
+			authGroup.GET("/*w/*w", authHandler)
+		}
+	}
 
 	v1 := router.Group("/api/v1/")
 	{
-		//if auth.IsEnabled() {
-		//	v1.Use(auth.Auth0Handler)
-		//}
+		if auth.IsEnabled() {
+			v1.Use(auth.Auth0Handler)
+		}
 		v1.POST("/clusters", api.CreateCluster)
 		//v1.GET("/status", api.Status)
 		v1.GET("/clusters", api.FetchClusters)
@@ -132,8 +134,21 @@ func main() {
 		v1.POST("/cluster/profiles", api.AddClusterProfile)
 		v1.PUT("/cluster/profiles/:type", api.UpdateClusterProfile)
 		v1.DELETE("/cluster/profiles/:type/:name", api.DeleteClusterProfile)
-		//v1.GET("/token", auth.GenerateToken)
+		v1.GET("/token", auth.GenerateToken)
 	}
 	notify.SlackNotify("API is already running")
 	router.Run(":9090")
+}
+
+type optionsMiddleware struct {
+}
+
+func createOptionsMiddleware() *optionsMiddleware {
+	return &optionsMiddleware{}
+}
+
+func (middleware *optionsMiddleware) Response(context *gin.Context) {
+	if context.Request.Method == "OPTIONS" {
+		context.AbortWithStatus(http.StatusNoContent)
+	}
 }

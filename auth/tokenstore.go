@@ -23,7 +23,7 @@ type TokenStore interface {
 
 // NewInMemoryTokenStore is a basic in-memory TokenStore implementation (thread-safe)
 func NewInMemoryTokenStore() TokenStore {
-	return inMemoryTokenStore{store: make(map[string]map[string]bool)}
+	return &inMemoryTokenStore{store: make(map[string]map[string]bool)}
 }
 
 type inMemoryTokenStore struct {
@@ -31,7 +31,7 @@ type inMemoryTokenStore struct {
 	store map[string]map[string]bool
 }
 
-func (tokenStore inMemoryTokenStore) Store(userId, token string) error {
+func (tokenStore *inMemoryTokenStore) Store(userId, token string) error {
 	tokenStore.Lock()
 	defer tokenStore.Unlock()
 	var userTokens map[string]bool
@@ -44,7 +44,7 @@ func (tokenStore inMemoryTokenStore) Store(userId, token string) error {
 	return nil
 }
 
-func (tokenStore inMemoryTokenStore) Lookup(userId, token string) (bool, error) {
+func (tokenStore *inMemoryTokenStore) Lookup(userId, token string) (bool, error) {
 	tokenStore.RLock()
 	defer tokenStore.RUnlock()
 	if userTokens, ok := tokenStore.store[userId]; ok {
@@ -54,7 +54,7 @@ func (tokenStore inMemoryTokenStore) Lookup(userId, token string) (bool, error) 
 	return false, nil
 }
 
-func (tokenStore inMemoryTokenStore) Revoke(userId, token string) error {
+func (tokenStore *inMemoryTokenStore) Revoke(userId, token string) error {
 	tokenStore.Lock()
 	defer tokenStore.Unlock()
 	if userTokens, ok := tokenStore.store[userId]; ok {
@@ -63,7 +63,7 @@ func (tokenStore inMemoryTokenStore) Revoke(userId, token string) error {
 	return nil
 }
 
-func (tokenStore inMemoryTokenStore) List(userId string) ([]string, error) {
+func (tokenStore *inMemoryTokenStore) List(userId string) ([]string, error) {
 	tokenStore.Lock()
 	defer tokenStore.Unlock()
 	if userTokens, ok := tokenStore.store[userId]; ok {

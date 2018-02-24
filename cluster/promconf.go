@@ -40,9 +40,11 @@ func GenerateConfig(prometheusCfg []PrometheusCfg) []byte {
 		scrapeConfig.Params = url.Values{
 			"match[]": {
 				`{job="kubernetes-nodes"}`,
+				`{job="kubernetes-pods"}`,
 				`{job="kubernetes-apiservers"}`,
 				`{job="kubernetes-service-endpoints"}`,
 				`{job="kubernetes-cadvisor"}`,
+				`{job="banzaicloud-pushgateway"}`,
 				`{job="node_exporter"}`,
 			},
 		}
