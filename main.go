@@ -65,6 +65,20 @@ func initDatabase() {
 	database.Init(host, port, user, password, dbName)
 }
 
+type optionsMiddleware struct {
+}
+
+func createOptionsMiddleware() *optionsMiddleware {
+	return &optionsMiddleware{}
+}
+
+func (middleware *optionsMiddleware) Response(context *gin.Context) {
+	if context.Request.Method == "OPTIONS" {
+		context.AbortWithStatus(http.StatusNoContent)
+	}
+}
+
+
 func main() {
 	if len(os.Args) > 1 && os.Args[1] == "--version" {
 		if GitRev == "" {
@@ -98,7 +112,7 @@ func main() {
 	router := gin.Default()
 
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"*"}
+	config.AllowAllOrigins = true
 	config.AllowMethods = []string{"PUT", "DELETE", "GET", "POST", "OPTIONS"}
 	config.AllowHeaders = []string{"Origin", "Authorization", "Content-Type"}
 	config.ExposeHeaders = []string{"Content-Length"}
@@ -106,6 +120,7 @@ func main() {
 	config.MaxAge = 12 * time.Hour
 
 	router.Use(cors.New(config))
+	router.Use(createOptionsMiddleware().Response)
 
 	if auth.IsEnabled() {
 		authHandler := gin.WrapH(auth.Auth.NewServeMux())
