@@ -14,9 +14,7 @@ import (
 	"github.com/qor/auth/auth_identity"
 	sessionManager "github.com/qor/session/manager"
 	"github.com/sirupsen/logrus"
-	"net/http"
 	"os"
-	"time"
 )
 
 //Version of Pipeline
@@ -83,17 +81,7 @@ func main() {
 
 	router := gin.Default()
 
-	//TODO check if needed
-	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://", "https://"}
-	config.AllowMethods = []string{"PUT", "DELETE", "GET", "POST"}
-	config.AllowHeaders = []string{"Origin", "Authorization", "Content-Type"}
-	config.ExposeHeaders = []string{"Content-Length"}
-	config.AllowCredentials = true
-	config.MaxAge = 12 * time.Hour
-
-	router.Use(cors.New(config))
-	router.Use(createOptionsMiddleware().Response)
+	router.Use(cors.New(config.GetCORS()))
 
 	if auth.IsEnabled() {
 		authHandler := gin.WrapH(auth.Auth.NewServeMux())
@@ -138,17 +126,4 @@ func main() {
 	}
 	notify.SlackNotify("API is already running")
 	router.Run(":9090")
-}
-
-type optionsMiddleware struct {
-}
-
-func createOptionsMiddleware() *optionsMiddleware {
-	return &optionsMiddleware{}
-}
-
-func (middleware *optionsMiddleware) Response(context *gin.Context) {
-	if context.Request.Method == "OPTIONS" {
-		context.AbortWithStatus(http.StatusNoContent)
-	}
 }

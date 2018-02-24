@@ -25,6 +25,12 @@ cloudprofile = "default" #defaults to func getCluster - see https://github.com/k
 # GKE credential path
 gkeCredentialPath = ""
 
+#[cors]
+#
+#
+#
+#
+
 [auth]
 enabled = true
 

@@ -282,3 +282,6 @@ import:
   version: ^3.1.0
   subpackages:
   - request
+- package: github.com/qor/session
+  subpackages:
+  - manager
