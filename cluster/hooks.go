@@ -1,12 +1,13 @@
 package cluster
 
 import (
+	"fmt"
 	htypes "github.com/banzaicloud/banzai-types/components/helm"
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/helm"
+	"github.com/banzaicloud/pipeline/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"io/ioutil"
 	"time"
 )
 
@@ -20,20 +21,34 @@ func RunPostHooks(functionList []func(cluster CommonCluster), createdCluster Com
 // Basic version of persisting keys TODO check if we need this from API or anywhere else
 func PersistKubernetesKeys(cluster CommonCluster) {
 	log = logger.WithFields(logrus.Fields{"action": "PersistKubernetesKeys"})
-	configPath := viper.GetString("statestore.path") + cluster.GetName()
+	configPath := fmt.Sprintf("%s/%s", viper.GetString("statestore.path"), cluster.GetName())
 	log.Infof("Statestore path is: %s", configPath)
 	kubeConfig, err := cluster.GetK8sConfig()
 	if err != nil {
 		log.Errorf("Error loading kubernetes config: %s", err)
+		return
 	}
+
 	config, err := helm.GetK8sClientConfig(kubeConfig)
 	if err != nil {
 		log.Errorf("Error getting kubernetes go client: %s", err)
+		return
 	}
+
 	log.Infof("Starting to write kubernetes related certs/keys for: %s", configPath)
-	ioutil.WriteFile(configPath+"/client-key-data.pem", config.KeyData, 0644)
-	ioutil.WriteFile(configPath+"/client-certificate-data.pem", config.CertData, 0644)
-	ioutil.WriteFile(configPath+"/certificate-authority-data.pem", config.CAData, 0644)
+	if err := utils.WriteToFile(config.KeyData, configPath+"/client-key-data.pem"); err != nil {
+		log.Errorf("Error writing file: %s", err.Error())
+		return
+	}
+	if err := utils.WriteToFile(config.CertData, configPath+"/client-certificate-data.pem"); err != nil {
+		log.Errorf("Error writing file: %s", err.Error())
+		return
+	}
+	if err := utils.WriteToFile(config.CAData, configPath+"/certificate-authority-data.pem"); err != nil {
+		log.Errorf("Error writing file: %s", err.Error())
+		return
+	}
+
 	log.Infof("Writing kubernetes related certs/keys succeeded.")
 }
 
@@ -44,7 +59,7 @@ func InstallIngressControllerPostHook(cluster CommonCluster) {
 
 	kubeConfig, err := cluster.GetK8sConfig()
 	if err != nil {
-		log.Error("Unable to fetch config for posthook")
+		log.Errorf("Unable to fetch config for posthook: %s", err.Error())
 		return
 	}
 
@@ -88,8 +103,10 @@ func InstallHelmPostHook(cluster CommonCluster) {
 	helmHome := viper.GetString("helm.home")
 	kubeconfig, err := cluster.GetK8sConfig()
 	if err != nil {
-		log.Errorf("Error retrieveing kubernetes config")
+		log.Errorf("Error retrieving kubernetes config: %s", err.Error())
+		return
 	}
+
 	err = helm.RetryHelmInstall(helmInstall, kubeconfig, helmHome)
 	if err == nil {
 		// Get K8S Config //

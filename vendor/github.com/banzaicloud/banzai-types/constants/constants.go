@@ -84,7 +84,6 @@ var (
 	ErrorAzureClusterNameEmpty   = errors.New("The name should not be empty.")
 	ErrorAzureClusterNameTooLong = errors.New("Cluster name is greater than or equal 32")
 	ErrorAzureCLusterStageFailed = errors.New("cluster stage is 'Failed'")
-	ErrorClusterTypeNotFound     = errors.New("Cluster type not found")
 	ErrorNotDifferentInterfaces  = errors.New("There is no change in data")
 	ErrorReconcile               = errors.New("Error during reconcile")
 	ErrorEmptyUpdateRequest      = errors.New("Empty update cluster request")

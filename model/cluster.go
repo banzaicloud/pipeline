@@ -84,6 +84,14 @@ func (cs *ClusterModel) String() string {
 			cs.Amazon.NodeMinCount,
 			cs.Amazon.NodeMaxCount,
 			cs.Amazon.NodeImage))
+	} else if cs.Cloud == constants.Google {
+		// Write GKE Master
+		buffer.WriteString(fmt.Sprintf("Master version: %s",
+			cs.Google.MasterVersion))
+		// Write GKE Node
+		buffer.WriteString(fmt.Sprintf("Node count: %d, Node version: %s",
+			cs.Google.NodeCount,
+			cs.Google.NodeVersion))
 	}
 
 	return buffer.String()

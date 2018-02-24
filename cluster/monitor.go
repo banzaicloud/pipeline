@@ -34,7 +34,7 @@ func UpdatePrometheusConfig() error {
 	log := logger.WithFields(logrus.Fields{"tag": "PrometheusConfig"})
 	//TODO configsets
 	if !viper.GetBool("monitor.enabled") {
-		log.Warn("Update monitoring confiouration is disabled")
+		log.Warn("Update monitoring configuration is disabled")
 		return nil
 	}
 

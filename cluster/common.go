@@ -79,7 +79,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 
 		return gkeCluster, nil
 	}
-	return nil, constants.ErrorClusterTypeNotFound
+	return nil, constants.ErrorNotSupportedCloudType
 }
 
 func CreateCommonClusterFromRequest(createClusterRequest *bTypes.CreateClusterRequest) (CommonCluster, error) {
@@ -124,7 +124,7 @@ func CreateCommonClusterFromRequest(createClusterRequest *bTypes.CreateClusterRe
 
 		return gkeCluster, nil
 	}
-	return nil, constants.ErrorClusterTypeNotFound
+	return nil, constants.ErrorNotSupportedCloudType
 }
 
 func home() string {

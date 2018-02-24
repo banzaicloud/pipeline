@@ -2,8 +2,8 @@ package cluster
 
 import (
 	"github.com/banzaicloud/azure-aks-client/utils"
-	"regexp"
 	"github.com/banzaicloud/banzai-types/constants"
+	"regexp"
 )
 
 type ManagedCluster struct {
