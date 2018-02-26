@@ -7,5 +7,5 @@ pipeline.iml
 .pipeline
 pipeline
 statestore/*
-conf/config.toml
+config/config.toml
 *.swp
