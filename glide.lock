@@ -1,5 +1,5 @@
-hash: 84223e904870b3d71f0f87bb6bd6c3c065f19048e70cb7d999298ca38870d5cf
-updated: 2018-02-01T09:27:38.849238+01:00
+hash: f6b416a45115e12fcbb9ff34cdbb56734e749dc5b6c4a27d0d367ebc66271eb2
+updated: 2018-02-24T14:27:01.745255+01:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -8,8 +8,6 @@ imports:
   - internal
 - name: github.com/aokoli/goutils
   version: 3391d3790d23d03408670993e957e8f408993c34
-- name: github.com/auth0-community/go-auth0
-  version: 9ebd072c579e8060c6d60690e9dffd3b79718992
 - name: github.com/aws/aws-sdk-go
   version: b33b08175d12b795daa7726c5577b39d06a2551c
   subpackages:
@@ -44,13 +42,13 @@ imports:
   - service/s3
   - service/sts
 - name: github.com/Azure/azure-sdk-for-go
-  version: a75e7321dcb5045edbbdba24b594d8f3f1b31352
+  version: 990842d1126ef6e294152c5f6f4e3f804a3cfd6d
   subpackages:
   - arm/examples/helpers
   - arm/network
   - arm/resources/resources
 - name: github.com/Azure/go-autorest
-  version: d4e6b95c12a08b4de2d48b45d5b4d594e5d32fab
+  version: fc3b03a2d2d1f43fad3007038bd16f044f870722
   subpackages:
   - autorest
   - autorest/adal
@@ -59,25 +57,20 @@ imports:
   - autorest/to
   - autorest/validation
 - name: github.com/banzaicloud/azure-aks-client
-  version: b375f4dfec50d1bf0efac4478fad51c55275e871
+  version: 2e07bf40916ab5d216bc235de02c870bc70efca2
   subpackages:
   - client
   - cluster
-  - initapi
   - utils
 - name: github.com/banzaicloud/banzai-types
-  version: ac63fb9ecd6d7f4cfdc6242c8e4eb53377ecf293
+  version: 978f77ab080d07e7450a1146c19da83a1a9a03d6
   subpackages:
   - components
   - components/amazon
   - components/azure
-  - components/database
   - components/google
   - components/helm
-  - configuration
   - constants
-  - database
-  - utils
 - name: github.com/beorn7/perks
   version: 3ac7bf7a47d159a033b107610db8a1b6575507a4
   subpackages:
@@ -89,7 +82,9 @@ imports:
   subpackages:
   - spew
 - name: github.com/dgrijalva/jwt-go
-  version: 01aeca54ebda6e0fbfafd0a524d234159c05ec20
+  version: dbeaa9332f19a944acb5736b4456cfcc02140e29
+  subpackages:
+  - request
 - name: github.com/digitalocean/godo
   version: 573489fbea177d54a0d853370715c11c63982114
   subpackages:
@@ -157,7 +152,7 @@ imports:
 - name: github.com/fatih/color
   version: 5df930a27be2502f99b292b7cc09ebad4d0891f4
 - name: github.com/fatih/structs
-  version: 253b866009f3c281655a29eb8a31bcd759a0dbdb
+  version: ebf56d35bba727c68ac77f56f2fcf90b181851aa
 - name: github.com/fsnotify/fsnotify
   version: f12c6236fe7b5cf6bcf30e5935d08cb079d78334
 - name: github.com/ghodss/yaml
@@ -187,7 +182,7 @@ imports:
 - name: github.com/go-sql-driver/mysql
   version: 404c02a8a39c65a587e5ceedbd6e29c2ca185aca
 - name: github.com/gobwas/glob
-  version: bea32b9cd2d6f55753d94a28e959b13f0244797a
+  version: 5ccd90ef52e1e632236f7326478d4faa74f99438
   subpackages:
   - compiler
   - match
@@ -220,7 +215,7 @@ imports:
 - name: github.com/google/btree
   version: 7d79101e329e5a3adf994758c578dab82b90c017
 - name: github.com/google/go-github
-  version: 922ceac0585d40f97d283d921f872fc50480e06e
+  version: b1658317c4f5c8dd7000d94ab8a9b56039412cc6
   subpackages:
   - github
 - name: github.com/google/go-querystring
@@ -245,11 +240,11 @@ imports:
   - openstack/utils
   - pagination
 - name: github.com/gorilla/context
-  version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
+  version: 215affda49addc4c8ef7e2534915df2c8c35c6cd
 - name: github.com/gorilla/securecookie
   version: e59506cc896acb7f7bf732d4fdf5e25f7ccd8983
 - name: github.com/gorilla/sessions
-  version: fe21b6a095cd8a9d41cc7f412e13d35c130383f3
+  version: 7087b4d669d1bc3da42fb4e2eda73ae139a24439
 - name: github.com/gosimple/slug
   version: e9f42fa127660e552d0ad2b589868d403a9be7c6
 - name: github.com/gregjones/httpcache
@@ -280,12 +275,13 @@ imports:
   - json/scanner
   - json/token
 - name: github.com/hashicorp/vault
-  version: 5acd6a21d5a69ab49d0f7c0bf540123a9b2c696d
+  version: 2e2c89a3d8d2f4876c64dee6ba3d4a5e08691aee
   subpackages:
   - api
   - helper/compressutil
   - helper/jsonutil
   - helper/parseutil
+  - helper/strutil
 - name: github.com/howeyc/gopass
   version: bf9dde6d0d2c004a008c27aaee91170c786f6db8
 - name: github.com/huandu/xstrings
@@ -402,7 +398,7 @@ imports:
 - name: github.com/peterbourgon/diskv
   version: 5f041e8faa004a95c88a202771f4cc3e991971e6
 - name: github.com/pkg/errors
-  version: a22138067af1c4942683050411a841ade67fe1eb
+  version: 645ef00459ed84a119197bfb8d8205042c6df63d
 - name: github.com/pkg/sftp
   version: 4d0e916071f68db74f8a73926335f809396d6b42
 - name: github.com/prometheus/client_golang
@@ -447,7 +443,7 @@ imports:
 - name: github.com/qor/middlewares
   version: 781378b69454a545d08058d8154aca40d079e7ab
 - name: github.com/qor/qor
-  version: 1c17696527773fa844a809b0ff06f79559f4d336
+  version: 2d6dc0813f93982324177788466955288aaffe95
   subpackages:
   - utils
 - name: github.com/qor/redirect_back
@@ -465,10 +461,12 @@ imports:
   - manager
 - name: github.com/rainycape/unidecode
   version: cb7f23ec59bec0d61b19c56cd88cee3d0cc1870c
+- name: github.com/ryanuber/go-glob
+  version: 256dc444b735e061061cf46c809487313d5b0065
 - name: github.com/satori/go.uuid
   version: f58768cc1a7a7e77a3bd49e98cdd21419399b6a3
 - name: github.com/sethgrid/pester
-  version: 760f8913c0483b776294e1bee43f1d687527127b
+  version: b18953f5db2922a73aaf89652abf7b5ee95cb516
 - name: github.com/sirupsen/logrus
   version: d682213848ed68c0a260ca37d6dd5ace8423f5ba
 - name: github.com/spf13/afero
@@ -496,7 +494,6 @@ imports:
   version: fba789b7e39ba524b9e60c45c37a50fae63a2a09
   subpackages:
   - reflect
-  - reflectutil
   - sort
 - name: golang.org/x/crypto
   version: 81e90905daefcd6fd217b62423c0908922eadb30
@@ -530,7 +527,6 @@ imports:
   - internal/timeseries
   - lex/httplex
   - trace
-  - websocket
 - name: golang.org/x/oauth2
   version: a6bd8cefa1811bd24b86f8902872e4e8225f74c4
   subpackages:
@@ -539,7 +535,7 @@ imports:
   - jws
   - jwt
 - name: golang.org/x/sys
-  version: 7ddbeae9ae08c6a06a59597f0c9edbc5ff2444ce
+  version: 43eea11bc92608addb41b8a406b0407495c106f6
   subpackages:
   - unix
   - windows
@@ -606,10 +602,6 @@ imports:
   version: 3887ee99ecf07df5b447e9b00d9c0b2adaa9f3e4
 - name: gopkg.in/square/go-jose.v2
   version: f8f38de21b4dcd69d0413faf231983f5fd6634b1
-  subpackages:
-  - cipher
-  - json
-  - jwt
 - name: gopkg.in/yaml.v2
   version: 53feefa2559fb8dfa8d81baad31be332c97d6c77
 - name: k8s.io/api

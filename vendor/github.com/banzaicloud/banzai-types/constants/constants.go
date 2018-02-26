@@ -1,5 +1,7 @@
 package constants
 
+import "errors"
+
 // ### [ Constants to log ] ### //
 const (
 	TagInit                  = "Init"
@@ -26,6 +28,10 @@ const (
 	TagKubernetes            = "Kubernetes"
 	TagFormat                = "Format"
 	TagHelmInstall           = "HelmInstall"
+	TagGetClusterProfile     = "GetClusterProfile"
+	TagSetClusterProfile     = "SetClusterProfile"
+	TagUpdateClusterProfile  = "UpdateClusterProfile"
+	TagDeleteClusterProfile  = "DeleteClusterProfile"
 )
 
 // ### [ Constants to Azure cluster default values ] ### //
@@ -53,7 +59,7 @@ const (
 // ### [ Constants to helm]
 const (
 	HELM_RETRY_ATTEMPT_CONFIG = "helm.retryAttempt"
-	HELM_RETRY_SLEEP_SECONDS = "helm.retrySleepSeconds"
+	HELM_RETRY_SLEEP_SECONDS  = "helm.retrySleepSeconds"
 )
 
 // ### [ Constants to cloud types ] ### //
@@ -71,13 +77,16 @@ const (
 	TableNameGoogleProperties = "google_cluster_properties"
 )
 
-// ### [ Constants to Response codes ] ### //
-const (
-	OK                = 200
-	Created           = 201
-	Accepted          = 202
-	NoContent         = 204
-	InternalErrorCode = 500
-	BadRequest        = 400
-	NotFound          = 404
+// ### [ Errors ] ### //
+var (
+	ErrorNotSupportedCloudType   = errors.New("Not supported cloud type")
+	ErrorAzureClusterNameRegexp  = errors.New("Only numbers, lowercase letters and underscores are allowed under name property. In addition, the value cannot end with an underscore, and must also be less than 32 characters long.")
+	ErrorAzureClusterNameEmpty   = errors.New("The name should not be empty.")
+	ErrorAzureClusterNameTooLong = errors.New("Cluster name is greater than or equal 32")
+	ErrorAzureCLusterStageFailed = errors.New("cluster stage is 'Failed'")
+	ErrorNotDifferentInterfaces  = errors.New("There is no change in data")
+	ErrorReconcile               = errors.New("Error during reconcile")
+	ErrorEmptyUpdateRequest      = errors.New("Empty update cluster request")
+	ErrorClusterNotReady         = errors.New("Cluster not ready yet")
+	ErrorNilCluster              = errors.New("<nil> cluster")
 )

@@ -7,9 +7,11 @@ import (
 	"text/template"
 
 	"github.com/Masterminds/sprig"
-	"github.com/banzaicloud/banzai-types/utils"
+	"github.com/banzaicloud/banzai-types/constants"
+	"github.com/banzaicloud/pipeline/config"
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"k8s.io/helm/pkg/chartutil"
 	"k8s.io/helm/pkg/helm"
 	"k8s.io/helm/pkg/proto/hapi/chart"
@@ -17,8 +19,38 @@ import (
 	"net/http"
 )
 
+var logger *logrus.Logger
+var log *logrus.Entry
+
+// Simple init for logging
+func init() {
+	logger = config.Logger()
+	log = logger.WithFields(logrus.Fields{"action": "Helm"})
+}
+
+//DeleteAll deletes all Helm deployment
+func DeleteAllDeployment(kubeconfig *[]byte) error {
+	log := logger.WithFields(logrus.Fields{"tag": "DeleteAllDeployment"})
+	log.Info("Getting deployments....")
+	releaseResp, err := ListDeployments(nil, kubeconfig)
+	if err != nil {
+		return err
+	}
+	log.Info("Starting deleting deployments")
+	for _, r := range releaseResp.Releases {
+		log.Info("Trying to delete deployment ", r.Name)
+		err := DeleteDeployment(r.Name, kubeconfig)
+		if err != nil {
+			return err
+		}
+		log.Infof("Deployment %s successfully deleted", r.Name)
+	}
+	return nil
+}
+
 //ListDeployments lists Helm deployments
-func ListDeployments(filter *string, kubeConfig []byte) (*rls.ListReleasesResponse, error) {
+func ListDeployments(filter *string, kubeConfig *[]byte) (*rls.ListReleasesResponse, error) {
+	log := logger.WithFields(logrus.Fields{"tag": constants.TagListDeployments})
 	defer tearDown()
 	hClient, err := GetHelmClient(kubeConfig)
 	// TODO doc the options here
@@ -33,6 +65,7 @@ func ListDeployments(filter *string, kubeConfig []byte) (*rls.ListReleasesRespon
 		//helm.ReleaseListNamespace(""),
 	}
 	if filter != nil {
+		log.Debug("Apply filters: ", filter)
 		ops = append(ops, helm.ReleaseListFilter(*filter))
 	}
 	if err != nil {
@@ -46,7 +79,7 @@ func ListDeployments(filter *string, kubeConfig []byte) (*rls.ListReleasesRespon
 }
 
 //UpgradeDeployment upgrades a Helm deployment
-func UpgradeDeployment(deploymentName, chartName string, values map[string]interface{}, kubeConfig []byte) (string, error) {
+func UpgradeDeployment(deploymentName, chartName string, values map[string]interface{}, kubeConfig *[]byte) (string, error) {
 	//Base maps for values
 	base := map[string]interface{}{}
 	//this is only to parse x=y format
@@ -98,18 +131,17 @@ func UpgradeDeployment(deploymentName, chartName string, values map[string]inter
 }
 
 //CreateDeployment creates a Helm deployment
-func CreateDeployment(chartName string, releaseName string, valueOverrides []byte, kubeConfig []byte, clusterName string) (*rls.InstallReleaseResponse, error) {
-	defer tearDown()
+func CreateDeployment(chartName string, releaseName string, valueOverrides []byte, kubeConfig *[]byte) (*rls.InstallReleaseResponse, error) {
+	log := logger.WithFields(logrus.Fields{"tag": constants.TagCreateDeployment})
+	// defer tearDown() // todo close on closed channel panic, if the chart cannot be downloaded
 
-	logTag := "CreateDeployment"
-
-	utils.LogInfof(logTag, "Deploying chart='%s', release name='%s'.", chartName, releaseName)
-	downloadedChartPath, err := downloadChartFromRepo(chartName, clusterName)
+	log.Infof("Deploying chart='%s', release name='%s'.", chartName, releaseName)
+	downloadedChartPath, err := downloadChartFromRepo(chartName)
 	if err != nil {
 		return nil, err
 	}
 
-	utils.LogInfof(logTag, "Loading chart '%s'", downloadedChartPath)
+	log.Infof("Loading chart '%s'", downloadedChartPath)
 	chartRequested, err := chartutil.Load(downloadedChartPath)
 	if err != nil {
 		return nil, fmt.Errorf("Error loading chart: %v", err)
@@ -146,7 +178,7 @@ func CreateDeployment(chartName string, releaseName string, valueOverrides []byt
 }
 
 //DeleteDeployment deletes a Helm deployment
-func DeleteDeployment(releaseName string, kubeConfig []byte) error {
+func DeleteDeployment(releaseName string, kubeConfig *[]byte) error {
 	defer tearDown()
 	hClient, err := GetHelmClient(kubeConfig)
 	if err != nil {
@@ -167,24 +199,24 @@ func GetDeployment() {
 // Retrieves the status of the passed in release name.
 // returns with an error if the release is not found or another error occurs
 // in case of error the status is filled with information to classify the error cause
-func GetDeploymentStatus(releaseName string, kubeConfig []byte) (string, error) {
+func GetDeploymentStatus(releaseName string, kubeConfig *[]byte) (int32, error) {
 	defer tearDown()
 
 	helmClient, err := GetHelmClient(kubeConfig)
 
 	if err != nil {
 		// internal server error
-		return fmt.Sprint(http.StatusInternalServerError), errors.Wrap(err, "couldn't get the helm client")
+		return http.StatusInternalServerError, errors.Wrap(err, "couldn't get the helm client")
 	}
 
 	releaseStatusResponse, err := helmClient.ReleaseStatus(releaseName)
 
 	if err != nil {
 		// the release cannot be found
-		return fmt.Sprint(http.StatusNotFound), errors.Wrap(err, "couldn't get the release status")
+		return http.StatusNotFound, errors.Wrap(err, "couldn't get the release status")
 	}
 
-	return releaseStatusResponse.Info.Status.GetCode().String(), nil
+	return int32(releaseStatusResponse.Info.Status.GetCode()), nil
 
 }
 
