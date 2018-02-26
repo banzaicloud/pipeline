@@ -1,7 +1,8 @@
-package main
+package api
 
 import (
 	"testing"
+	htype "github.com/banzaicloud/banzai-types/components/helm"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"reflect"
@@ -62,7 +63,7 @@ func TestIngressEndpointUrls(t *testing.T) {
 
 	loadBalancerPublicHost := "lb.url.com"
 
-	expectedEndpoints := []EndPointURLs {
+	expectedEndpoints := []htype.EndPointURLs {
 		{
 			ServiceName: "svc1_path1",
 			URL: fmt.Sprint("http://",loadBalancerPublicHost, "/svc1_path1/"),
