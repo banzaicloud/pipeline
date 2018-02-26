@@ -12,7 +12,7 @@ import (
 //Init initializes the configurations
 func Init() {
 
-	viper.AddConfigPath("$HOME/pipeline")
+	viper.AddConfigPath("$HOME/config")
 	viper.AddConfigPath("./")
 	viper.AddConfigPath("./config")
 
