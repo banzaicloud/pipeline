@@ -55,7 +55,7 @@ func main() {
 	// Ensure DB connection
 	db := model.GetDB()
 	// Initialise auth
-	//auth.Init()
+	auth.Init()
 
 	// Creating tables if not exists
 	logger.Info("Create table(s):",
@@ -71,7 +71,7 @@ func main() {
 		&model.AzureClusterModel{},
 		&model.GoogleClusterModel{},
 		&auth_identity.AuthIdentity{},
-		//&auth.User{},
+		&auth.User{},
 		&defaults.AWSProfile{},
 		&defaults.AKSProfile{},
 		&defaults.GKEProfile{},

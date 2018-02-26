@@ -89,10 +89,10 @@ func (bus BanzaiUserStorer) createUserInDroneDB(user *User, githubAccessToken st
 }
 
 func initDroneDatabase() *gorm.DB {
-	host := viper.GetString("db.host")
-	port := viper.GetString("db.port")
-	user := viper.GetString("db.user")
-	password := viper.GetString("db.password")
+	host := viper.GetString("database.host")
+	port := viper.GetString("database.port")
+	user := viper.GetString("database.user")
+	password := viper.GetString("database.password")
 
 	db, err := gorm.Open("mysql", user+":"+password+"@tcp("+host+":"+port+")/drone?charset=utf8&parseTime=True&loc=Local")
 	if err != nil {
