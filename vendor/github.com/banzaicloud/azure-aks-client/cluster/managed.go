@@ -2,8 +2,7 @@ package cluster
 
 import (
 	"github.com/banzaicloud/azure-aks-client/utils"
-	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
-	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
+	"github.com/banzaicloud/banzai-types/constants"
 	"regexp"
 )
 
@@ -53,24 +52,16 @@ type CreateClusterRequest struct {
 	KubernetesVersion string
 }
 
-func (c CreateClusterRequest) Validate() (bool, string) {
+func (c CreateClusterRequest) Validate() error {
 
-	banzaiUtils.LogInfo(banzaiConstants.TagValidateCreateCluster, "Validate cluster name: ", c.Name)
-
-	msg := "Only numbers, lowercase letters and underscores are allowed under name property. In addition, the value cannot end with an underscore, and must also be less than 32 characters long."
-	emptyMsg := "The name should not be empty."
 	if len(c.Name) == 0 {
-		banzaiUtils.LogInfo(banzaiConstants.TagValidateCreateCluster, "Cluster name is empty")
-		return false, emptyMsg
+		return constants.ErrorAzureClusterNameEmpty
 	} else if len(c.Name) >= 32 {
-		banzaiUtils.LogInfo(banzaiConstants.TagValidateCreateCluster, "Cluster name is greater than or equal 32")
-		return false, msg
+		return constants.ErrorAzureClusterNameTooLong
 	}
-
 	if isMatch, _ := regexp.MatchString("^[a-z0-9_]{0,31}[a-z0-9]$", c.Name); !isMatch {
-		banzaiUtils.LogInfo(banzaiConstants.TagValidateCreateCluster, "Cluster name doesn't match with the regular expression")
-		return false, msg
+		return constants.ErrorAzureClusterNameRegexp
 	}
 
-	return true, ""
+	return nil
 }

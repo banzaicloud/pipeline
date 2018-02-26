@@ -4,14 +4,13 @@ import (
 	"fmt"
 	"reflect"
 
-	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
-	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
 	"github.com/google/go-github/github"
 	"github.com/qor/auth"
 	"github.com/qor/auth/auth_identity"
 	"github.com/qor/auth/claims"
 	githubauth "github.com/qor/auth/providers/github"
 	"github.com/qor/qor/utils"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 )
 
@@ -21,6 +20,7 @@ type GithubExtraInfo struct {
 }
 
 func NewGithubAuthorizeHandler(provider *githubauth.GithubProvider) func(context *auth.Context) (*claims.Claims, error) {
+	log = logger.WithFields(logrus.Fields{"tag": "Auth"})
 	return func(context *auth.Context) (*claims.Claims, error) {
 		var (
 			schema       auth.Schema
@@ -34,7 +34,7 @@ func NewGithubAuthorizeHandler(provider *githubauth.GithubProvider) func(context
 		claims, err := context.Auth.SessionStorer.ValidateClaims(state)
 
 		if err != nil || claims.Valid() != nil || claims.Subject != "state" {
-			banzaiUtils.LogInfo(banzaiConstants.TagAuth, context.Request.RemoteAddr, auth.ErrUnauthorized.Error())
+			log.Info(context.Request.RemoteAddr, auth.ErrUnauthorized.Error())
 			return nil, auth.ErrUnauthorized
 		}
 
@@ -43,14 +43,14 @@ func NewGithubAuthorizeHandler(provider *githubauth.GithubProvider) func(context
 			tkn, err := oauthCfg.Exchange(oauth2.NoContext, req.URL.Query().Get("code"))
 
 			if err != nil {
-				banzaiUtils.LogInfo(banzaiConstants.TagAuth, context.Request.RemoteAddr, err.Error())
+				log.Info(context.Request.RemoteAddr, err.Error())
 				return nil, err
 			}
 
 			client := github.NewClient(oauthCfg.Client(oauth2.NoContext, tkn))
 			user, _, err := client.Users.Get(oauth2.NoContext, "")
 			if err != nil {
-				banzaiUtils.LogInfo(banzaiConstants.TagAuth, context.Request.RemoteAddr, err.Error())
+				log.Info(context.Request.RemoteAddr, err.Error())
 				return nil, err
 			}
 
@@ -81,11 +81,11 @@ func NewGithubAuthorizeHandler(provider *githubauth.GithubProvider) func(context
 				return authInfo.ToClaims(), nil
 			}
 
-			banzaiUtils.LogInfo(banzaiConstants.TagAuth, context.Request.RemoteAddr, err.Error())
+			log.Info(context.Request.RemoteAddr, err.Error())
 			return nil, err
 		}
 
-		banzaiUtils.LogInfo(banzaiConstants.TagAuth, context.Request.RemoteAddr, err.Error())
+		log.Info(context.Request.RemoteAddr, err.Error())
 		return nil, err
 	}
 }

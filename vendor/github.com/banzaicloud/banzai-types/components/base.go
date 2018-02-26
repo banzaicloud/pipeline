@@ -1,14 +1,13 @@
 package components
 
 import (
-	"github.com/banzaicloud/banzai-types/utils"
 	"github.com/banzaicloud/banzai-types/components/amazon"
 	"github.com/banzaicloud/banzai-types/components/azure"
 	"github.com/banzaicloud/banzai-types/components/google"
 	"bytes"
 	"fmt"
 	"github.com/banzaicloud/banzai-types/constants"
-	"github.com/banzaicloud/banzai-types/components/database"
+	"errors"
 )
 
 type BanzaiResponse struct {
@@ -28,19 +27,50 @@ type CreateClusterRequest struct {
 	} `json:"properties" binding:"required"`
 }
 
+type ErrorResponse struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+	Error   string `json:"error"`
+}
+
+type GetClusterStatusResponse struct {
+	Status           int    `json:"status"`
+	Name             string `json:"name"`
+	Location         string `json:"location"`
+	Cloud            string `json:"cloud"`
+	NodeInstanceType string `json:"nodeInstanceType"`
+	ResourceID       uint   `json:"id"`
+}
+
+type GetClusterConfigResponse struct {
+	Status int    `json:"status"`
+	Data   string `json:"data"`
+}
+
+type UpdateClusterResponse struct {
+	Status int `json:"status"`
+}
+
+//type GetClusterStatusResponse struct {
+//	Status int `json:"status"`
+//}
+
 type UpdateClusterRequest struct {
 	Cloud string     `json:"cloud" binding:"required"`
 	UpdateProperties `json:"properties"`
+}
+
+type DeleteClusterResponse struct {
+	Status     int    `json:"status"`
+	Name       string `json:"name"`
+	Message    string `json:"message"`
+	ResourceID uint   `json:"id"`
 }
 
 type UpdateProperties struct {
 	*amazon.UpdateClusterAmazon `json:"amazon,omitempty"`
 	*azure.UpdateClusterAzure   `json:"azure,omitempty"`
 	*google.UpdateClusterGoogle `json:"google,omitempty"`
-}
-
-func (e *BanzaiResponse) String() string {
-	return utils.Convert2Json(e)
 }
 
 // String method prints formatted update request fields
@@ -51,7 +81,7 @@ func (r *UpdateClusterRequest) String() string {
 		// Write AKS
 		buffer.WriteString(fmt.Sprintf("Agent count: %d",
 			r.UpdateClusterAzure.AgentCount))
-	} else if r.Cloud == constants.Amazon && r.UpdateClusterAzure != nil {
+	} else if r.Cloud == constants.Amazon && r.UpdateClusterAmazon != nil {
 		// Write AWS Node
 		if r.UpdateClusterAmazon.UpdateAmazonNode != nil {
 			buffer.WriteString(fmt.Sprintf("Min count: %d, Max count: %d",
@@ -64,23 +94,23 @@ func (r *UpdateClusterRequest) String() string {
 }
 
 // The Validate method checks the request fields
-func (r *UpdateClusterRequest) Validate(defaultValue database.ClusterSimple) (bool, string) {
+func (r *UpdateClusterRequest) Validate() error {
 
 	r.preValidate()
 
 	switch r.Cloud {
 	case constants.Amazon:
 		// amazon validate
-		return r.UpdateClusterAmazon.Validate(defaultValue)
+		return r.UpdateClusterAmazon.Validate()
 	case constants.Azure:
 		// azure validate
-		return r.UpdateClusterAzure.Validate(defaultValue)
+		return r.UpdateClusterAzure.Validate()
 	case constants.Google:
 		// google validate
-		return r.UpdateClusterGoogle.Validate(defaultValue)
+		return r.UpdateClusterGoogle.Validate()
 	default:
 		// not supported cloud type
-		return false, "Not supported cloud type."
+		return errors.New("Not supported cloud type.")
 	}
 
 }
@@ -90,13 +120,35 @@ func (r *UpdateClusterRequest) preValidate() {
 	switch r.Cloud {
 	case constants.Amazon:
 		// reset azure fields
-		utils.LogInfo(constants.TagValidateUpdateCluster, "Reset azure fields")
 		r.UpdateClusterAzure = nil
 		break
 	case constants.Azure:
 		// reset field amazon fields
-		utils.LogInfo(constants.TagValidateCreateCluster, "Reset amazon fields")
 		r.UpdateClusterAmazon = nil
 		break
 	}
+}
+
+type ClusterProfileResponse struct {
+	ProfileName      string `json:"instanceName" binding:"required"`
+	Location         string `json:"location" binding:"required"`
+	Cloud            string `json:"cloud" binding:"required"`
+	NodeInstanceType string `json:"nodeInstanceType" binding:"required"`
+	Properties struct {
+		Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
+		Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
+		Google *google.ClusterProfileGoogle `json:"google,omitempty"`
+	} `json:"properties" binding:"required"`
+}
+
+type ClusterProfileRequest struct {
+	ProfileName      string `json:"instanceName" binding:"required"`
+	Location         string `json:"location" binding:"required"`
+	Cloud            string `json:"cloud" binding:"required"`
+	NodeInstanceType string `json:"nodeInstanceType" binding:"required"`
+	Properties struct {
+		Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
+		Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
+		Google *google.ClusterProfileGoogle `json:"google,omitempty"`
+	} `json:"properties" binding:"required"`
 }

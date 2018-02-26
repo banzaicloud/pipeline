@@ -3,8 +3,8 @@ package notify
 import (
 	"encoding/json"
 	"fmt"
-	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
-	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
+	"github.com/banzaicloud/pipeline/config"
+	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -20,19 +20,25 @@ type Slack struct {
 	Channel   string `json:"channel"`
 }
 
+var logger *logrus.Logger
+
+func init() {
+	logger = config.Logger()
+}
+
 //SlackNotify is pushing to Slack
 func SlackNotify(message string) error {
-
+	log := logger.WithFields(logrus.Fields{"tag": "NotifySlack"})
 	content := Slack{}
 
 	if len(os.Getenv("SLACK_WEBHOOK_URL")) <= 0 {
-		banzaiUtils.LogInfo(banzaiConstants.TagSlack, "Webhookurl is missing -> Slack notification disabled.")
+		log.Info("Webhookurl is missing -> Slack notification disabled.")
 		return nil
 	}
 	webhookUrl := os.Getenv("SLACK_WEBHOOK_URL")
 
 	if len(os.Getenv("SLACK_CHANNEL")) <= 0 {
-		banzaiUtils.LogInfo(banzaiConstants.TagSlack, "Channel name is missing -> Slack notification disabled.")
+		log.Info("Channel name is missing -> Slack notification disabled.")
 		return nil
 	}
 	content.Channel = os.Getenv("SLACK_CHANNEL")
@@ -43,22 +49,22 @@ func SlackNotify(message string) error {
 
 	params, marsErr := json.Marshal(content)
 	if marsErr != nil {
-		banzaiUtils.LogWarn(banzaiConstants.TagSlack, marsErr)
+		log.Debug(marsErr)
 		return fmt.Errorf("Content masrshalling failed: %s", marsErr)
 	}
 
 	resp, postErr := http.PostForm(webhookUrl, url.Values{"payload": {string(params)}})
 	if postErr != nil {
-		banzaiUtils.LogWarn(banzaiConstants.TagSlack, "Slack API Post Failed:", postErr)
+		log.Debug("Slack API Post Failed:", postErr)
 		return fmt.Errorf("http post form failed: %s", postErr)
 	}
 
 	body, respErr := ioutil.ReadAll(resp.Body)
 	defer resp.Body.Close()
 	if respErr != nil {
-		banzaiUtils.LogWarn(banzaiConstants.TagSlack, "Slack Response Failed:", respErr)
+		log.Debug("Slack Response Failed:", respErr)
 		return fmt.Errorf("http response failed: %s", respErr)
 	}
-	banzaiUtils.LogDebug(banzaiConstants.TagSlack, "Slack API Response:", string(body))
+	log.Debug("Slack API Response:", string(body))
 	return nil
 }

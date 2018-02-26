@@ -264,8 +264,10 @@ import:
   version: ~0.9.1
   subpackages:
   - api
+- package: github.com/banzaicloud/azure-aks-client
+  version: refactor
 - package: github.com/banzaicloud/banzai-types
-  version: master
+  version: refaktor
   subpackages:
   - components/helm
 - package: github.com/qor/auth
@@ -280,3 +282,6 @@ import:
   version: ^3.1.0
   subpackages:
   - request
+- package: github.com/qor/session
+  subpackages:
+  - manager

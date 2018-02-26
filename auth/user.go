@@ -5,12 +5,11 @@ import (
 	"net/http"
 	"time"
 
-	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
-	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
 	"github.com/jinzhu/copier"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/qor/auth"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
@@ -56,6 +55,7 @@ type BanzaiUserStorer struct {
 // This differs from the default UserStorer.Save() in that it
 // extracts Token and Login and saves to Drone DB as well
 func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (user interface{}, userID string, err error) {
+	log = logger.WithFields(logrus.Fields{"tag": "Auth"})
 	var tx = context.Auth.GetDB(context.Request)
 
 	if context.Auth.Config.UserModel != nil {
@@ -66,7 +66,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 		currentUser.Login = githubExtraInfo.Login
 		err = bus.createUserInDroneDB(currentUser, githubExtraInfo.Token)
 		if err != nil {
-			banzaiUtils.LogInfo(banzaiConstants.TagAuth, context.Request.RemoteAddr, err.Error())
+			log.Info(context.Request.RemoteAddr, err.Error())
 			return nil, "", err
 		}
 		err = tx.Create(currentUser).Error
@@ -89,10 +89,10 @@ func (bus BanzaiUserStorer) createUserInDroneDB(user *User, githubAccessToken st
 }
 
 func initDroneDatabase() *gorm.DB {
-	host := viper.GetString("dev.host")
-	port := viper.GetString("dev.port")
-	user := viper.GetString("dev.user")
-	password := viper.GetString("dev.password")
+	host := viper.GetString("db.host")
+	port := viper.GetString("db.port")
+	user := viper.GetString("db.user")
+	password := viper.GetString("db.password")
 
 	db, err := gorm.Open("mysql", user+":"+password+"@tcp("+host+":"+port+")/drone?charset=utf8&parseTime=True&loc=Local")
 	if err != nil {

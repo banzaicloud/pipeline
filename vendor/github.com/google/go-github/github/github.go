@@ -27,10 +27,9 @@ import (
 )
 
 const (
-	libraryVersion = "14"
 	defaultBaseURL = "https://api.github.com/"
 	uploadBaseURL  = "https://uploads.github.com/"
-	userAgent      = "go-github/" + libraryVersion
+	userAgent      = "go-github"
 
 	headerRateLimit     = "X-RateLimit-Limit"
 	headerRateRemaining = "X-RateLimit-Remaining"
@@ -99,9 +98,6 @@ const (
 
 	// https://developer.github.com/changes/2017-07-17-update-topics-on-repositories/
 	mediaTypeTopicsPreview = "application/vnd.github.mercy-preview+json"
-
-	// https://developer.github.com/changes/2017-07-26-team-review-request-thor-preview/
-	mediaTypeTeamReviewPreview = "application/vnd.github.thor-preview+json"
 
 	// https://developer.github.com/v3/apps/marketplace/
 	mediaTypeMarketplacePreview = "application/vnd.github.valkyrie-preview+json"
@@ -970,6 +966,10 @@ func Bool(v bool) *bool { return &v }
 // Int is a helper routine that allocates a new int value
 // to store v and returns a pointer to it.
 func Int(v int) *int { return &v }
+
+// Int64 is a helper routine that allocates a new int64 value
+// to store v and returns a pointer to it.
+func Int64(v int64) *int64 { return &v }
 
 // String is a helper routine that allocates a new string value
 // to store v and returns a pointer to it.

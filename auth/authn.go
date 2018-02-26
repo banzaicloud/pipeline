@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 
-	"github.com/banzaicloud/banzai-types/database"
-	"github.com/banzaicloud/pipeline/cloud"
 	jwt "github.com/dgrijalva/jwt-go"
 	jwtRequest "github.com/dgrijalva/jwt-go/request"
 	"github.com/gin-gonic/gin"
@@ -21,8 +18,12 @@ import (
 	"github.com/satori/go.uuid"
 	"github.com/spf13/viper"
 
+	btype "github.com/banzaicloud/banzai-types/components"
 	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
-	banzaiUtils "github.com/banzaicloud/banzai-types/utils"
+	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/model"
+	"github.com/sirupsen/logrus"
+	"strings"
 )
 
 // DroneSessionCookie holds the name of the Cookie Drone sets in the browser
@@ -38,6 +39,9 @@ const DroneUserCookieType = "user"
 
 // Init authorization
 var (
+	logger *logrus.Logger
+	log    *logrus.Entry
+
 	RedirectBack *redirect_back.RedirectBack
 
 	Auth *auth.Auth
@@ -54,6 +58,14 @@ var (
 	// JwtAudience ("aud") claim identifies the recipients that the JWT is intended for
 	JwtAudience string
 )
+
+// TODO se who will win
+
+// Simple init for logging
+func init() {
+	logger = config.Logger()
+	log = logger.WithFields(logrus.Fields{"tag": "Auth"})
+}
 
 type ScopedClaims struct {
 	jwt.StandardClaims
@@ -86,7 +98,7 @@ func validateAccessToken(claims *ScopedClaims) (bool, error) {
 func Init() {
 	authEnabled = viper.GetBool("auth.enabled")
 	if !authEnabled {
-		banzaiUtils.LogInfo(banzaiConstants.TagAuth, "Authentication is disabled.")
+		log.Info(banzaiConstants.TagAuth, "Authentication is disabled.")
 		return
 	}
 
@@ -108,7 +120,7 @@ func Init() {
 
 	// Initialize Auth with configuration
 	Auth = auth.New(&auth.Config{
-		DB:         database.DB(),
+		DB:         model.GetDB(),
 		Redirector: auth.Redirector{RedirectBack},
 		UserModel:  User{},
 		UserStorer: BanzaiUserStorer{signingKeyBase32: signingKeyBase32, droneDB: initDroneDatabase()},
@@ -152,7 +164,7 @@ func GenerateToken(c *gin.Context) {
 	currentUser := getCurrentUser(c.Request)
 	if currentUser == nil {
 		err := c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("Invalid session"))
-		banzaiUtils.LogInfo(banzaiConstants.TagAuth, c.ClientIP(), err.Error())
+		log.Info(c.ClientIP(), err.Error())
 		return
 	}
 
@@ -178,12 +190,12 @@ func GenerateToken(c *gin.Context) {
 
 	if err != nil {
 		err = c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Failed to sign token: %s", err))
-		banzaiUtils.LogInfo(banzaiConstants.TagAuth, c.ClientIP(), err.Error())
+		log.Info(c.ClientIP(), err.Error())
 	} else {
 		err = tokenStore.Store(strconv.Itoa(int(currentUser.ID)), tokenID)
 		if err != nil {
 			err = c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Failed to store token: %s", err))
-			banzaiUtils.LogInfo(banzaiConstants.TagAuth, c.ClientIP(), err.Error())
+			log.Info(c.ClientIP(), err.Error())
 		} else {
 			c.JSON(http.StatusOK, gin.H{"token": signedToken})
 		}
@@ -198,7 +210,6 @@ func hmacKeyFunc(token *jwt.Token) (interface{}, error) {
 	return []byte(signingKeyBase32), nil
 }
 
-//Auth0Handler handler for Gin
 func Auth0Handler(c *gin.Context) {
 	currentUser := Auth.GetCurrentUser(c.Request)
 	if currentUser != nil {
@@ -209,19 +220,24 @@ func Auth0Handler(c *gin.Context) {
 	accessToken, err := jwtRequest.ParseFromRequestWithClaims(c.Request, jwtRequest.OAuth2Extractor, &claims, hmacKeyFunc)
 
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-			cloud.JsonKeyError: "Invalid token",
-		})
-		banzaiUtils.LogInfo(banzaiConstants.TagAuth, "Invalid token:", err)
+		c.AbortWithStatusJSON(http.StatusUnauthorized,
+			btype.ErrorResponse{
+				Code:    http.StatusUnauthorized,
+				Message: "Invalid token",
+				Error:   err.Error(),
+			})
+		log.Info("Invalid token:", err)
 		return
 	}
 
 	isTokenValid, err := validateAccessToken(&claims)
 	if err != nil || !accessToken.Valid || !isTokenValid {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-			cloud.JsonKeyError: "Invalid token",
+		c.AbortWithStatusJSON(http.StatusUnauthorized, btype.ErrorResponse{
+			Code:    http.StatusUnauthorized,
+			Message: "Invalid token",
+			Error:   err.Error(),
 		})
-		banzaiUtils.LogInfo(banzaiConstants.TagAuth, "Invalid token:", err)
+		log.Info("Invalid token:", err)
 		return
 	}
 
@@ -235,10 +251,12 @@ func Auth0Handler(c *gin.Context) {
 	**/
 
 	if !hasScope {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-			cloud.JsonKeyError: "Needs more privileges",
+		c.AbortWithStatusJSON(http.StatusUnauthorized, btype.ErrorResponse{
+			Code:    http.StatusUnauthorized,
+			Message: "Need more priviliges",
+			Error:   err.Error(),
 		})
-		banzaiUtils.LogInfo(banzaiConstants.TagAuth, "Needs more privileges")
+		log.Info("Needs more privileges")
 		return
 	}
 	c.Next()
@@ -253,7 +271,7 @@ func (sessionStorer *BanzaiSessionStorer) Update(w http.ResponseWriter, req *htt
 	token := sessionStorer.SignedToken(claims)
 	err := sessionStorer.SessionManager.Add(w, req, sessionStorer.SessionName, token)
 	if err != nil {
-		banzaiUtils.LogInfo(banzaiConstants.TagAuth, req.RemoteAddr, err.Error())
+		log.Info(req.RemoteAddr, err.Error())
 		return err
 	}
 
@@ -265,7 +283,7 @@ func (sessionStorer *BanzaiSessionStorer) Update(w http.ResponseWriter, req *htt
 	droneClaims := &DroneClaims{Claims: claims, Type: DroneSessionCookieType, Text: currentUser.Login}
 	tokenToken, err := sessionStorer.SignedTokenWithDrone(droneClaims)
 	if err != nil {
-		banzaiUtils.LogInfo(banzaiConstants.TagAuth, req.RemoteAddr, err.Error())
+		log.Info(req.RemoteAddr, err.Error())
 		return err
 	}
 	SetCookie(w, req, DroneSessionCookie, tokenToken)

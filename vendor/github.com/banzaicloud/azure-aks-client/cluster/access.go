@@ -2,7 +2,7 @@ package cluster
 
 type AccessProfiles struct {
 	ClusterAdmin ClusterAdmin `json:"clusterAdmin"`
-	ClusterUser ClusterUser `json:"clusterUser"`
+	ClusterUser  ClusterUser  `json:"clusterUser"`
 }
 
 type ClusterAdmin struct {
@@ -12,4 +12,3 @@ type ClusterAdmin struct {
 type ClusterUser struct {
 	KubeConfig string `json:"kubeConfig"`
 }
-
