@@ -116,7 +116,7 @@ func (c *AWSCluster) Persist() error {
 func (c *AWSCluster) CreateCluster() error {
 	log := logger.WithFields(logrus.Fields{"action": constants.TagCreateCluster})
 
-	kubicornLogger.Level = getKubocornLogLevel()
+	kubicornLogger.Level = getKubicornLogLevel()
 
 	//TODO check if this should be private
 	c.kubicornCluster = GetKubicornProfile(c.modelCluster)
@@ -398,7 +398,7 @@ func (c *AWSCluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 func (c *AWSCluster) UpdateCluster(request *components.UpdateClusterRequest) error {
 
 	log := logger.WithFields(logrus.Fields{"action": constants.TagUpdateCluster})
-	kubicornLogger.Level = getKubocornLogLevel()
+	kubicornLogger.Level = getKubicornLogLevel()
 
 	log.Info("Start updating cluster (amazon)")
 
@@ -495,7 +495,7 @@ func ReadCluster(modelCluster *model.ClusterModel) (*kcluster.Cluster, error) {
 func (c *AWSCluster) DeleteCluster() error {
 
 	log := logger.WithFields(logrus.Fields{"action": constants.TagDeleteCluster})
-	kubicornLogger.Level = getKubocornLogLevel()
+	kubicornLogger.Level = getKubicornLogLevel()
 
 	log.Info("Start delete amazon cluster")
 	kubicornCluster, err := c.GetKubicornCluster()
@@ -685,7 +685,7 @@ func (c *AWSCluster) DeleteFromDatabase() error {
 	return c.modelCluster.Delete()
 }
 
-func getKubocornLogLevel() int {
+func getKubicornLogLevel() int {
 	lvl := viper.GetString("logging.kubicornloglevel")
 	switch lvl {
 	case "critical":
