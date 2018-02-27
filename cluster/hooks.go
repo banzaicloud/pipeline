@@ -8,6 +8,7 @@ import (
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"k8s.io/client-go/rest"
 	"time"
 )
 
@@ -29,12 +30,22 @@ func PersistKubernetesKeys(cluster CommonCluster) {
 		return
 	}
 
-	config, err := helm.GetK8sClientConfig(kubeConfig)
+	var config *rest.Config
+	retryCount := viper.GetInt("cloud.configRetryCount")
+	retrySleepTime := viper.GetInt("cloud.configRetrySleep")
+	for i := 0; i < retryCount; i++ {
+		config, err = helm.GetK8sClientConfig(kubeConfig)
+		if err != nil {
+			log.Infof("Error getting kubernetes config attempt %s/%s: %s", i, retryCount, err)
+			time.Sleep(time.Duration(retrySleepTime) * time.Second)
+			continue
+		}
+		break
+	}
 	if err != nil {
-		log.Errorf("Error getting kubernetes go client: %s", err)
+		log.Errorf("Error getting kubernetes config : %s", err)
 		return
 	}
-
 	log.Infof("Starting to write kubernetes related certs/keys for: %s", configPath)
 	if err := utils.WriteToFile(config.KeyData, configPath+"/client-key-data.pem"); err != nil {
 		log.Errorf("Error writing file: %s", err.Error())
