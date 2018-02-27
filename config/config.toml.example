@@ -6,8 +6,6 @@
 port = 9090
 
 [database]
-# Database section
-
 dialect = "mysql"
 host = "localhost"
 port = 3306
@@ -16,13 +14,11 @@ password = "sparky123"
 dbname = "sparky"
 
 [logging]
-#logger settings
 logformat = "text"
 loglevel = "debug"
 kubicornloglevel = "debug"
 
 [cloud]
-#cloud profiles
 cloudprovider = "aws"
 cloudprofile = "default" #defaults to func getCluster - see https://github.com/kris-nova/kubicorn/tree/master/profiles
 keypath = "~"
@@ -48,13 +44,9 @@ jwtissueer = "https://banzaicloud.com/"
 jwtaudience = "https://pipeline.banzaicloud.com"
 
 [helm]
-
-#helm retry configs
-# TODO retry what?
 retryAttempt = 30
 retrySleepSeconds = 15
 
-# TODO explain what this is here
 #helm repo URLs
 stableRepositoryURL = "https://kubernetes-charts.storage.googleapis.com"
 banzaiRepositoryURL = "http://kubernetes-charts.banzaicloud.com"
