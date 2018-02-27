@@ -27,4 +27,4 @@ services:
     ports:
       - 8200:8200
     volumes:
-      - ${HOME}/.vault-token:/home/vault/.vault-token
+      - ./vault:/home/vault
