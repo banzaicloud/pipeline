@@ -377,10 +377,9 @@ func FetchClusters(c *gin.Context) {
 
 	var clusters []model.ClusterModel //TODO change this to CommonClusterStatus
 	db := model.GetDB()
-	db.Find(&clusters)
-
-	if len(clusters) < 1 {
-		message := "No clusters found"
+	err := db.Find(&clusters).Error
+	if err != nil {
+		message := "Error listing clusters"
 		log.Info(message)
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
@@ -389,7 +388,7 @@ func FetchClusters(c *gin.Context) {
 		})
 		return
 	}
-	var response []*components.GetClusterStatusResponse
+	response := make([]components.GetClusterStatusResponse, 0)
 	for _, cl := range clusters {
 		commonCluster, err := cluster.GetCommonClusterFromModel(&cl)
 		if err == nil {
@@ -399,7 +398,7 @@ func FetchClusters(c *gin.Context) {
 				log.Errorf("get status failed for %s: %s", commonCluster.GetName(), err.Error())
 			} else {
 				log.Debugf("Append cluster to list: %s", commonCluster.GetName())
-				response = append(response, status)
+				response = append(response, *status)
 			}
 		} else {
 			log.Errorf("convert ClusterModel to CommonCluster failed: %s ", err.Error())
