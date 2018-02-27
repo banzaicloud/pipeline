@@ -15,6 +15,7 @@ import (
 	sessionManager "github.com/qor/session/manager"
 	"github.com/sirupsen/logrus"
 	"os"
+	"github.com/spf13/viper"
 )
 
 //Version of Pipeline
@@ -125,5 +126,5 @@ func main() {
 		v1.GET("/token", auth.GenerateToken)
 	}
 	notify.SlackNotify("API is already running")
-	router.Run(":9090")
+	router.Run(":" + viper.GetString("pipeline.port"))
 }
