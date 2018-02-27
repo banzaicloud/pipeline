@@ -123,7 +123,6 @@ func Init() {
 		DB:         model.GetDB(),
 		Redirector: auth.Redirector{RedirectBack},
 		UserModel:  User{},
-		UserStorer: BanzaiUserStorer{signingKeyBase32: signingKeyBase32, droneDB: initDroneDatabase()},
 		ViewPaths:  []string{"views"},
 		SessionStorer: &BanzaiSessionStorer{
 			SessionStorer: auth.SessionStorer{
@@ -135,6 +134,11 @@ func Init() {
 			SignedStringBytes: []byte(signingKeyBase32),
 		},
 	})
+	if viper.GetBool("drone.enabled") {
+		Auth.UserStorer = BanzaiUserStorer{signingKeyBase32: signingKeyBase32, droneDB: initDroneDatabase()}
+	} else {
+		Auth.UserStorer = BanzaiUserStorer{signingKeyBase32: signingKeyBase32, droneDB: nil}
+	}
 
 	githubProvider := github.New(&github.Config{
 		// ClientID and ClientSecret is validated inside github.New()

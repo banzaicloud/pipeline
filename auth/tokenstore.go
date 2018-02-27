@@ -3,12 +3,12 @@ package auth
 import (
 	"fmt"
 	"io/ioutil"
-	"os/user"
 	"sync"
 
 	"k8s.io/client-go/rest"
 
 	vault "github.com/hashicorp/vault/api"
+	"github.com/spf13/viper"
 )
 
 // TokenStore is general interface for storing access tokens
@@ -100,12 +100,8 @@ func NewVaultTokenStore() TokenStore {
 
 	if client.Token() == "" {
 
-		usr, err := user.Current()
-		if err != nil {
-			panic(err)
-		}
-
-		token, err := ioutil.ReadFile(usr.HomeDir + "/.vault-token")
+		tokenPath := viper.GetString("auth.vaultpath")
+		token, err := ioutil.ReadFile( tokenPath + "/.vault-token")
 		if err == nil {
 
 			client.SetToken(string(token))
