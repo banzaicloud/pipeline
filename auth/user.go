@@ -64,10 +64,12 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 		// This assumes GitHub auth only right now
 		githubExtraInfo := schema.RawInfo.(*GithubExtraInfo)
 		currentUser.Login = githubExtraInfo.Login
-		err = bus.createUserInDroneDB(currentUser, githubExtraInfo.Token)
-		if err != nil {
-			log.Info(context.Request.RemoteAddr, err.Error())
-			return nil, "", err
+		if viper.GetBool("drone.enabled") {
+			err = bus.createUserInDroneDB(currentUser, githubExtraInfo.Token)
+			if err != nil {
+				log.Info(context.Request.RemoteAddr, err.Error())
+				return nil, "", err
+			}
 		}
 		err = tx.Create(currentUser).Error
 		return currentUser, fmt.Sprint(tx.NewScope(currentUser).PrimaryKeyValue()), err
