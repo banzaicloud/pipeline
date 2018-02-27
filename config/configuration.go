@@ -26,9 +26,16 @@ func Init() {
 	viper.SetDefault("helm.banzaiRepositoryURL", "http://kubernetes-charts.banzaicloud.com")
 	viper.SetDefault("cloud.gkeCredentialPath", "./conf/gke_credential.json")
 	viper.SetDefault("cloud.defaultProfileName", "default")
-	viper.SetDefault("logger.kubicornloglevel", 4)
-
+	viper.SetDefault("logging.kubicornloglevel", 4)
 	viper.SetDefault("statestore.path", "./statestore")
+	viper.SetDefault("pipeline.port", "9090")
+	viper.SetDefault("database.dialect", "mysql")
+	viper.SetDefault("database.port", 3306)
+	viper.SetDefault("database.host", "localhost")
+	viper.SetDefault("database.user", "kellyslater")
+	viper.SetDefault("database.password", "pipemaster123!")
+	viper.SetDefault("database.dbname", "pipelinedb")
+
 
 	// Find and read the config file
 	if err := viper.ReadInConfig(); err != nil {
