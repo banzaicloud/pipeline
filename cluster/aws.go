@@ -8,10 +8,12 @@ import (
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/utils"
 	kcluster "github.com/kris-nova/kubicorn/apis/cluster"
 	"github.com/kris-nova/kubicorn/cutil"
 	"github.com/kris-nova/kubicorn/cutil/initapi"
 	"github.com/kris-nova/kubicorn/cutil/kubeadm"
+	kubicornLogger "github.com/kris-nova/kubicorn/cutil/logger"
 	"github.com/kris-nova/kubicorn/cutil/uuid"
 	"github.com/kris-nova/kubicorn/state"
 	"github.com/kris-nova/kubicorn/state/fs"
@@ -21,11 +23,9 @@ import (
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"strings"
-	"github.com/banzaicloud/pipeline/utils"
-	"net/http"
-	kubicornLogger "github.com/kris-nova/kubicorn/cutil/logger"
 )
 
 // Simple init for logging
@@ -120,7 +120,7 @@ func (c *AWSCluster) CreateCluster() error {
 
 	//TODO check if this should be private
 	c.kubicornCluster = GetKubicornProfile(c.modelCluster)
-	sshKeyPath := viper.GetString("dev.keypath")
+	sshKeyPath := viper.GetString("cloud.keypath")
 	//TODO move to the profile section
 	if sshKeyPath != "" {
 		log.Debug("Overwriting default SSH key path to:", sshKeyPath)
