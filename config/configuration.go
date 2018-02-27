@@ -26,7 +26,7 @@ func Init() {
 	viper.SetDefault("helm.banzaiRepositoryURL", "http://kubernetes-charts.banzaicloud.com")
 	viper.SetDefault("cloud.gkeCredentialPath", "./conf/gke_credential.json")
 	viper.SetDefault("cloud.defaultProfileName", "default")
-	viper.SetDefault("logging.kubicornloglevel", 4)
+	viper.SetDefault("logging.kubicornloglevel", "debug")
 	viper.SetDefault("statestore.path", "./statestore")
 	viper.SetDefault("pipeline.port", "9090")
 	viper.SetDefault("database.dialect", "mysql")
