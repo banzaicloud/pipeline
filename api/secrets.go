@@ -279,7 +279,7 @@ func (ss *secretStore) delete(organizationId, secretId string) error {
 	} else {
 		for key := range mounts {
 
-			prefix := fmt.Sprintf("org/%s/%s", organizationId, secretId)
+			prefix := fmt.Sprintf("org/%s/%s/", organizationId, secretId)
 			if strings.HasPrefix(key, prefix) {
 				return ss.client.Sys().Unmount(key)
 			}
