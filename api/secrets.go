@@ -119,7 +119,7 @@ func DeleteSecrets(c *gin.Context) {
 		log.Info("Delete secrets succeeded")
 		c.Status(http.StatusOK)
 	}
-	
+
 }
 
 type CreateSecretRequest struct {
@@ -170,12 +170,12 @@ func (ss *secretStore) List(organizationId string) ([]SecretsItemResponse, error
 				// find mount
 				log.Debugf("Searching for organization mounts [%s]", secretType)
 				prefix := fmt.Sprintf("org/%s", organizationId)
-				suffix := fmt.Sprintf("%s/", secretType)
+				suffix := fmt.Sprintf("/%s/", secretType)
 				if strings.HasPrefix(key, fmt.Sprintf("org/%s", organizationId)) && strings.HasSuffix(key, suffix) {
 
 					desc := mount.Description
 
-					secretId := key[len(prefix)+1:len(suffix)]
+					secretId := key[len(prefix)+1:len(key)-len(suffix)]
 					log.Debugf("Secret id: %s", secretId)
 
 					sir := SecretsItemResponse{
