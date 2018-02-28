@@ -100,6 +100,28 @@ func ListSecrets(c *gin.Context) {
 
 }
 
+func DeleteSecrets(c *gin.Context) {
+	log = logger.WithFields(logrus.Fields{"tag": "Delete Secrets"})
+	log.Info("Start deleting secrets")
+
+	organizationId := c.Param("id")
+	secretId := c.Param("secretId")
+	log.Infof("Organization id: %s", organizationId)
+
+	if err := secretStoreObj.delete(organizationId, secretId); err != nil {
+		log.Errorf("Error during deleting secrets: %s", err.Error())
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error during deleting secrets",
+			Error:   err.Error(),
+		})
+	} else {
+		log.Info("Delete secrets succeeded")
+		c.Status(http.StatusOK)
+	}
+	
+}
+
 type CreateSecretRequest struct {
 	Name       string     `json:"name" binding:"required"`
 	SecretType string     `json:"type" binding:"required"`
@@ -247,6 +269,25 @@ func (ss *secretStore) mount(mountPath, name string) error {
 		return errors.Wrap(err, "Error enabling")
 	}
 	return nil
+}
+
+func (ss *secretStore) delete(organizationId, secretId string) error {
+
+	log.Info("List mounts")
+	if mounts, err := secretStoreObj.client.Sys().ListMounts(); err != nil {
+		return err
+	} else {
+		for key := range mounts {
+
+			prefix := fmt.Sprintf("org/%s/%s", organizationId, secretId)
+			if strings.HasPrefix(key, prefix) {
+				return ss.client.Sys().Unmount(key)
+			}
+
+		}
+	}
+
+	return errors.New("No matching secrets")
 }
 
 func generateSecretId() string {
