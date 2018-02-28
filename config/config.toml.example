@@ -17,6 +17,8 @@ kubicornloglevel = "debug"
 [cloud]
 cloudprovider = "aws"
 cloudprofile = "default" #defaults to func getCluster - see https://github.com/kris-nova/kubicorn/tree/master/profiles
+configRetryCount = 30
+configRetrySleep = 15
 keypath = "~"
 
 # GKE credential path
