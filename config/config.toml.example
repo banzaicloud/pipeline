@@ -1,5 +1,9 @@
 # This is the example configuration for pipeline
 
+[pipeline]
+# Pipeline configs
+
+port = 9090
 
 [database]
 dialect = "mysql"
