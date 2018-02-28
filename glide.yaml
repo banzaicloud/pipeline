@@ -11,7 +11,7 @@ import:
   subpackages:
   - dialects/mysql
 - package: github.com/kris-nova/kubicorn
-  version: vendor-update
+  version: master
   repo: https://github.com/banzaicloud/kubicorn.git
   subpackages:
   - apis/cluster
@@ -265,9 +265,9 @@ import:
   subpackages:
   - api
 - package: github.com/banzaicloud/azure-aks-client
-  version: refactor
+  version: master
 - package: github.com/banzaicloud/banzai-types
-  version: refaktor
+  version: master
   subpackages:
   - components/helm
 - package: github.com/qor/auth
