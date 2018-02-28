@@ -299,5 +299,10 @@ func (c *AKSCluster) CheckEqualityToUpdate(r *components.UpdateClusterRequest) e
 }
 
 func (c *AKSCluster) DeleteFromDatabase() error {
-	return c.modelCluster.Delete()
+	err := c.modelCluster.Delete()
+	if err != nil {
+		return err
+	}
+	c.modelCluster = nil
+	return nil
 }

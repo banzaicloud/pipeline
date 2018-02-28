@@ -52,7 +52,6 @@ func DeleteAllDeployment(kubeconfig *[]byte) error {
 //ListDeployments lists Helm deployments
 func ListDeployments(filter *string, kubeConfig *[]byte) (*rls.ListReleasesResponse, error) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagListDeployments})
-	defer tearDown()
 	hClient, err := GetHelmClient(kubeConfig)
 	// TODO doc the options here
 	var sortBy = int32(2)
@@ -95,7 +94,6 @@ func UpgradeDeployment(deploymentName, chartName string, values map[string]inter
 
 	//Map chartName as
 
-	defer tearDown()
 	chartRequested, err := chartutil.Load(chartName)
 	if err != nil {
 		return "", fmt.Errorf("Error loading chart: %v", err)
@@ -134,7 +132,6 @@ func UpgradeDeployment(deploymentName, chartName string, values map[string]inter
 //CreateDeployment creates a Helm deployment
 func CreateDeployment(chartName string, releaseName string, valueOverrides []byte, kubeConfig *[]byte, path string) (*rls.InstallReleaseResponse, error) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagCreateDeployment})
-	// defer tearDown() // todo close on closed channel panic, if the chart cannot be downloaded
 
 	log.Infof("Deploying chart='%s', release name='%s'.", chartName, releaseName)
 	downloadedChartPath, err := downloadChartFromRepo(chartName, generateHelmRepoPath(path))
@@ -180,7 +177,6 @@ func CreateDeployment(chartName string, releaseName string, valueOverrides []byt
 
 //DeleteDeployment deletes a Helm deployment
 func DeleteDeployment(releaseName string, kubeConfig *[]byte) error {
-	defer tearDown()
 	hClient, err := GetHelmClient(kubeConfig)
 	if err != nil {
 		return err
@@ -201,7 +197,6 @@ func GetDeployment() {
 // returns with an error if the release is not found or another error occurs
 // in case of error the status is filled with information to classify the error cause
 func GetDeploymentStatus(releaseName string, kubeConfig *[]byte) (int32, error) {
-	defer tearDown()
 
 	helmClient, err := GetHelmClient(kubeConfig)
 
