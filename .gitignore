@@ -7,5 +7,6 @@ pipeline.iml
 .pipeline
 pipeline
 statestore/*
+vault/*
 config/config.toml
 *.swp
