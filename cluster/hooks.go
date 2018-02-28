@@ -112,14 +112,13 @@ func InstallHelmPostHook(cluster CommonCluster) {
 		ServiceAccount: "tiller",
 		ImageSpec:      "gcr.io/kubernetes-helm/tiller:v2.7.2",
 	}
-	helmHome := viper.GetString("helm.home")
 	kubeconfig, err := cluster.GetK8sConfig()
 	if err != nil {
 		log.Errorf("Error retrieving kubernetes config: %s", err.Error())
 		return
 	}
 
-	err = helm.RetryHelmInstall(helmInstall, kubeconfig, helmHome)
+	err = helm.RetryHelmInstall(helmInstall, kubeconfig, cluster.GetName())
 	if err == nil {
 		// Get K8S Config //
 		kubeConfig, err := cluster.GetK8sConfig()
