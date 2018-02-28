@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"net/http"
+	"strconv"
 )
 
 // TODO se who will win
@@ -318,8 +319,14 @@ func DeleteCluster(c *gin.Context) {
 	}
 	log.Info("Delete cluster start")
 
-	config, err := commonCluster.GetK8sConfig()
+	forceParam := c.DefaultQuery("force", "false")
+	force, err := strconv.ParseBool(forceParam)
 	if err != nil {
+		force = false
+	}
+
+	config, err := commonCluster.GetK8sConfig()
+	if err != nil && !force {
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: err.Error(),
@@ -334,7 +341,7 @@ func DeleteCluster(c *gin.Context) {
 	}
 
 	err = commonCluster.DeleteCluster()
-	if err != nil {
+	if err != nil && !force {
 		log.Errorf(errors.Wrap(err, "Error during delete cluster").Error())
 		c.JSON(http.StatusInternalServerError, components.ErrorResponse{
 			Code:    http.StatusInternalServerError,
@@ -343,8 +350,10 @@ func DeleteCluster(c *gin.Context) {
 		})
 		return
 	}
+	deleteName := commonCluster.GetName()
+	deleteId := commonCluster.GetID()
 	err = commonCluster.DeleteFromDatabase()
-	if err != nil {
+	if err != nil && !force {
 		log.Errorf(errors.Wrap(err, "Error during delete cluster from database").Error())
 		c.JSON(http.StatusInternalServerError, components.ErrorResponse{
 			Code:    http.StatusInternalServerError,
@@ -358,9 +367,9 @@ func DeleteCluster(c *gin.Context) {
 
 	c.JSON(http.StatusAccepted, components.DeleteClusterResponse{
 		Status:     http.StatusAccepted,
-		Name:       commonCluster.GetName(),
+		Name:       deleteName,
 		Message:    "Cluster deleted succesfully",
-		ResourceID: commonCluster.GetID(),
+		ResourceID: deleteId,
 	})
 	return
 }

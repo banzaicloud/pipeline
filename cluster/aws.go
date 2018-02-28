@@ -523,14 +523,6 @@ func (c *AWSCluster) DeleteCluster() error {
 		return err
 	}
 	c.kubicornCluster = nil
-
-	log.Info("Destroy cluster from db")
-	db := model.GetDB()
-	if err := db.Delete(c.modelCluster).Error; err != nil {
-		err = errors.Wrap(err, "error deleting cluster from db")
-		return err
-	}
-	c.modelCluster = nil
 	return nil
 }
 
@@ -682,7 +674,12 @@ func (c *AWSCluster) CheckEqualityToUpdate(r *components.UpdateClusterRequest) e
 }
 
 func (c *AWSCluster) DeleteFromDatabase() error {
-	return c.modelCluster.Delete()
+	err := c.modelCluster.Delete()
+	if err != nil {
+		return err
+	}
+	c.modelCluster = nil
+	return nil
 }
 
 func getKubocornLogLevel() int {
