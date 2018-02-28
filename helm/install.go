@@ -49,8 +49,10 @@ func PreInstall(helmInstall *helm.Install, kubeConfig *[]byte) error {
 	log.Info("create service account")
 	_, err = client.CoreV1().ServiceAccounts(helmInstall.Namespace).Create(serviceAccount)
 	if err != nil {
-		log.Errorf("create service account failed: %s", err)
-		return err
+		if !strings.Contains(err.Error(), "already exists") {
+			return errors.Wrap(err, fmt.Sprintf("create service account failed: %s", err))
+		}
+		log.Info(err.Error())
 	}
 
 	clusterRoleBinding := &v1.ClusterRoleBinding{
@@ -70,8 +72,10 @@ func PreInstall(helmInstall *helm.Install, kubeConfig *[]byte) error {
 	log.Info("create cluster role bindings")
 	_, err = client.RbacV1().ClusterRoleBindings().Create(clusterRoleBinding)
 	if err != nil {
-		log.Errorf(constants.TagHelmInstall, "create role bindings failed: %s", err)
-		return err
+		if !strings.Contains(err.Error(), "already exists") {
+			return errors.Wrap(err, fmt.Sprintf("create role bindings failed: %s", err))
+		}
+		log.Infof("create role bindings failed: %s", err)
 	}
 	clusterRole := &v1.ClusterRole{
 		ObjectMeta: v1MetaData,
@@ -98,10 +102,11 @@ func PreInstall(helmInstall *helm.Install, kubeConfig *[]byte) error {
 	log.Info("create cluster roles")
 	_, err = client.RbacV1().ClusterRoles().Create(clusterRole)
 	if err != nil {
-		log.Errorf("create roles failed: %s", err)
-		return err
+		if !strings.Contains(err.Error(), "already exists") {
+			return errors.Wrap(err, fmt.Sprintf("create roles failed: %s", err))
+		}
+		log.Infof("create roles failed: %s", err)
 	}
-
 	return nil
 }
 
@@ -138,9 +143,9 @@ func generateHelmRepoPath(path string) string {
 	return stateStorePath + path + helmPostFix
 }
 
-func downloadChartFromRepo(name string) (string, error) {
+func downloadChartFromRepo(name, path string) (string, error) {
 	log := logger.WithFields(logrus.Fields{"tag": "DownloadChartFromRepo"})
-	settings := createEnvSettings("")
+	settings := createEnvSettings(path)
 	dl := downloader.ChartDownloader{
 		HelmHome: settings.Home,
 		Getters:  getter.All(settings),
