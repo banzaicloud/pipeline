@@ -32,7 +32,7 @@ func PersistKubernetesKeys(cluster CommonCluster) {
 	for i := 0; i < retryCount; i++ {
 		kubeConfig, err = cluster.GetK8sConfig()
 		if err != nil {
-			log.Infof("Error getting kubernetes config attempt %s/%s: %s. Waiting %s seconds", i, retryCount, err.Error(), retrySleepTime)
+			log.Infof("Error getting kubernetes config attempt %d/%d: %s. Waiting %d seconds", i, retryCount, err.Error(), retrySleepTime)
 			time.Sleep(time.Duration(retrySleepTime) * time.Second)
 			continue
 		}
