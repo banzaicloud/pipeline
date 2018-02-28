@@ -57,13 +57,13 @@ imports:
   - autorest/to
   - autorest/validation
 - name: github.com/banzaicloud/azure-aks-client
-  version: 2e07bf40916ab5d216bc235de02c870bc70efca2
+  version: 3c02d383161ea354f720d85c46ff0c631ddfeb45
   subpackages:
   - client
   - cluster
   - utils
 - name: github.com/banzaicloud/banzai-types
-  version: 978f77ab080d07e7450a1146c19da83a1a9a03d6
+  version: a13ef7426aa4d79cd3856b47911536caa9869634
   subpackages:
   - components
   - components/amazon
@@ -313,7 +313,7 @@ imports:
   subpackages:
   - pkg/local
 - name: github.com/kris-nova/kubicorn
-  version: 091fed4780fa46c7dbdede19e8dabbffe9285df6
+  version: 0002d60c1532e83918094a3b6e465b2346268797
   repo: https://github.com/banzaicloud/kubicorn.git
   subpackages:
   - apis/cluster

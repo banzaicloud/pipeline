@@ -43,7 +43,7 @@ revendor: ## fix vendor dir (flattened) with forked kubicorn
 	glide i -v --skip-test
 	rm -rf vendor/github.com/kris-nova/kubicorn/
 	git clone https://github.com/banzaicloud/kubicorn.git  vendor/github.com/kris-nova/kubicorn/
-	cd vendor/github.com/kris-nova/kubicorn/ &&  git checkout vendor-update
+	cd vendor/github.com/kris-nova/kubicorn/ &&  git checkout master
 	glide-vc --only-code --no-tests
 
 help: ## Generates this help message
