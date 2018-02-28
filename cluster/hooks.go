@@ -24,19 +24,15 @@ func PersistKubernetesKeys(cluster CommonCluster) {
 	log = logger.WithFields(logrus.Fields{"action": "PersistKubernetesKeys"})
 	configPath := fmt.Sprintf("%s/%s", viper.GetString("statestore.path"), cluster.GetName())
 	log.Infof("Statestore path is: %s", configPath)
-	kubeConfig, err := cluster.GetK8sConfig()
-	if err != nil {
-		log.Errorf("Error loading kubernetes config: %s", err)
-		return
-	}
-
 	var config *rest.Config
 	retryCount := viper.GetInt("cloud.configRetryCount")
 	retrySleepTime := viper.GetInt("cloud.configRetrySleep")
+	var err error
+	var kubeConfig *[]byte
 	for i := 0; i < retryCount; i++ {
-		config, err = helm.GetK8sClientConfig(kubeConfig)
+		kubeConfig, err = cluster.GetK8sConfig()
 		if err != nil {
-			log.Infof("Error getting kubernetes config attempt %s/%s: %s", i, retryCount, err)
+			log.Infof(": %s", err)
 			time.Sleep(time.Duration(retrySleepTime) * time.Second)
 			continue
 		}
@@ -44,6 +40,11 @@ func PersistKubernetesKeys(cluster CommonCluster) {
 	}
 	if err != nil {
 		log.Errorf("Error getting kubernetes config : %s", err)
+		return
+	}
+	config, err = helm.GetK8sClientConfig(kubeConfig)
+	if err != nil {
+		log.Errorf("Error parsing kubernetes config : %s", err)
 		return
 	}
 	log.Infof("Starting to write kubernetes related certs/keys for: %s", configPath)
@@ -77,7 +78,7 @@ func InstallIngressControllerPostHook(cluster CommonCluster) {
 	deploymentName := "banzaicloud-stable/pipeline-cluster-ingress"
 	releaseName := "pipeline"
 
-	_, err = helm.CreateDeployment(deploymentName, releaseName, nil, kubeConfig)
+	_, err = helm.CreateDeployment(deploymentName, releaseName, nil, kubeConfig, cluster.GetName())
 	if err != nil {
 		log.Errorf("Deploying '%s' failed due to: ", deploymentName)
 		log.Errorf("%s", err.Error())

@@ -32,7 +32,8 @@ func init() {
 func DeleteAllDeployment(kubeconfig *[]byte) error {
 	log := logger.WithFields(logrus.Fields{"tag": "DeleteAllDeployment"})
 	log.Info("Getting deployments....")
-	releaseResp, err := ListDeployments(nil, kubeconfig)
+	filter := ""
+	releaseResp, err := ListDeployments(&filter, kubeconfig)
 	if err != nil {
 		return err
 	}
@@ -131,12 +132,12 @@ func UpgradeDeployment(deploymentName, chartName string, values map[string]inter
 }
 
 //CreateDeployment creates a Helm deployment
-func CreateDeployment(chartName string, releaseName string, valueOverrides []byte, kubeConfig *[]byte) (*rls.InstallReleaseResponse, error) {
+func CreateDeployment(chartName string, releaseName string, valueOverrides []byte, kubeConfig *[]byte, path string) (*rls.InstallReleaseResponse, error) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagCreateDeployment})
 	// defer tearDown() // todo close on closed channel panic, if the chart cannot be downloaded
 
 	log.Infof("Deploying chart='%s', release name='%s'.", chartName, releaseName)
-	downloadedChartPath, err := downloadChartFromRepo(chartName)
+	downloadedChartPath, err := downloadChartFromRepo(chartName, path)
 	if err != nil {
 		return nil, err
 	}

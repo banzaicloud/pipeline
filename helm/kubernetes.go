@@ -44,7 +44,7 @@ func GetK8sClientConfig(kubeConfig *[]byte) (*rest.Config, error) {
 		apiconfig, _ := clientcmd.Load(*kubeConfig)
 		clientConfig := clientcmd.NewDefaultClientConfig(*apiconfig, &clientcmd.ConfigOverrides{})
 		config, err = clientConfig.ClientConfig()
-		log.Info("Use K8S RemoteCluster Config: ", config.ServerName)
+		log.Debug("Use K8S RemoteCluster Config: ", config.ServerName)
 	} else {
 		log.Info("Use K8S InCluster Config.")
 		config, err = rest.InClusterConfig()

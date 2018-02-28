@@ -88,7 +88,7 @@ func CreateDeployment(c *gin.Context) {
 	}
 
 	log.Debug("Custom values:", string(values))
-	release, err := helm.CreateDeployment(deployment.Name, deployment.ReleaseName, values, kubeConfig)
+	release, err := helm.CreateDeployment(deployment.Name, deployment.ReleaseName, values, kubeConfig, commonCluster.GetName())
 	if err != nil {
 		//TODO distinguish error codes
 		log.Errorf("Error during create deployment.", err.Error())
@@ -189,12 +189,14 @@ func InitHelmOnCluster(c *gin.Context) {
 	}
 
 	kubeConfig, err := commonCluster.GetK8sConfig()
-	log.Error(err)
-	c.JSON(http.StatusBadRequest, htype.ErrorResponse{
-		Code:    http.StatusBadRequest,
-		Message: "Error getting kubeconfig",
-		Error:   err.Error(),
-	})
+	if err != nil {
+		log.Error(err.Error())
+		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error getting kubeconfig",
+			Error:   err.Error(),
+		})
+	}
 	// bind request body to struct
 	var helmInstall htype.Install
 	if err := c.BindJSON(&helmInstall); err != nil {

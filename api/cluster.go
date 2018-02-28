@@ -37,35 +37,20 @@ func ParseField(c *gin.Context) map[string]interface{} {
 func GetCommonClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
 	filter := ParseField(c)
 
-	//TODO check if error handling is enough
+	//TODO check gorm error
 	modelCluster, err := model.QueryCluster(filter)
 	if err != nil {
-		log.Error(err)
+		log.Error(err.Error())
 		c.JSON(http.StatusNotFound, components.ErrorResponse{
 			Code:    http.StatusNotFound,
 			Message: "Cluster not found",
 			Error:   err.Error(),
 		})
 		return nil, false
-
-		isNotFound := model.IsErrorGormNotFound(err)
-		statusCode := http.StatusBadRequest
-		msg := "Error parsing request"
-		if isNotFound {
-			statusCode = http.StatusNotFound
-			msg = "Cluster not found"
-		}
-
-		c.JSON(statusCode, components.ErrorResponse{
-			Code:    statusCode,
-			Message: msg,
-			Error:   err.Error(),
-		})
-		return nil, false
 	}
 	commonCLuster, err := cluster.GetCommonClusterFromModel(modelCluster)
 	if err != nil {
-		log.Error(err)
+		log.Error(err.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error parsing request",
@@ -131,10 +116,10 @@ func CreateCluster(c *gin.Context) {
 
 	log.Info("Creating new entry with cloud type: ", createClusterRequest.Cloud)
 
-	var commonCLuster cluster.CommonCluster
+	var commonCluster cluster.CommonCluster
 
 	// TODO check validation
-	commonCLuster, err := cluster.CreateCommonClusterFromRequest(&createClusterRequest)
+	commonCluster, err := cluster.CreateCommonClusterFromRequest(&createClusterRequest)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
@@ -146,7 +131,7 @@ func CreateCluster(c *gin.Context) {
 	// This is the common part of cluster flow
 
 	// Create cluster
-	err = commonCLuster.CreateCluster()
+	err = commonCluster.CreateCluster()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
@@ -157,7 +142,7 @@ func CreateCluster(c *gin.Context) {
 	}
 
 	// Persist the cluster in Database
-	err = commonCLuster.Persist()
+	err = commonCluster.Persist()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
@@ -175,8 +160,19 @@ func CreateCluster(c *gin.Context) {
 		cluster.InstallHelmPostHook,
 		cluster.InstallIngressControllerPostHook,
 	}
-	go cluster.RunPostHooks(postHookFunctions, commonCLuster)
+	go cluster.RunPostHooks(postHookFunctions, commonCluster)
 
+	response, err := commonCluster.GetStatus()
+	if err != nil {
+		log.Error(err)
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error parsing request",
+			Error:   err.Error(),
+		})
+		return
+	}
+	c.JSON(http.StatusOK, response)
 	return
 }
 
@@ -346,16 +342,15 @@ func DeleteCluster(c *gin.Context) {
 			Error:   err.Error(),
 		})
 		return
-	} else {
-		err := commonCluster.DeleteFromDatabase()
-		if err != nil {
-			log.Errorf(errors.Wrap(err, "Error during delete cluster from database").Error())
-			c.JSON(http.StatusInternalServerError, components.ErrorResponse{
-				Code:    http.StatusInternalServerError,
-				Message: "Error during delete cluster",
-				Error:   err.Error(),
-			})
-		}
+	}
+	err = commonCluster.DeleteFromDatabase()
+	if err != nil {
+		log.Errorf(errors.Wrap(err, "Error during delete cluster from database").Error())
+		c.JSON(http.StatusInternalServerError, components.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: "Error during delete cluster",
+			Error:   err.Error(),
+		})
 	}
 
 	// Asyncron update prometheus
