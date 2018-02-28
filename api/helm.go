@@ -87,7 +87,7 @@ func CreateDeployment(c *gin.Context) {
 		return
 	}
 
-	log.Debug("Custom values:", string(values))
+	log.Debug("Custom values: ", string(values))
 	release, err := helm.CreateDeployment(deployment.Name, deployment.ReleaseName, values, kubeConfig, commonCluster.GetName())
 	if err != nil {
 		//TODO distinguish error codes
