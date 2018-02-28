@@ -40,6 +40,7 @@ type CommonCluster interface {
 func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster, error) {
 
 	database := model.GetDB()
+	log := logger.WithFields(logrus.Fields{"tag": "GetCommonClusterFromModel"})
 
 	cloudType := modelCluster.Cloud
 	switch cloudType {
@@ -50,7 +51,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 			return nil, err
 		}
 
-		log.Info("Load Amazon props from database")
+		log.Debug("Load Amazon props from database")
 		database.Where(model.AzureClusterModel{ClusterModelId: awsCluster.modelCluster.ID}).First(&awsCluster.modelCluster.Amazon)
 
 		return awsCluster, nil

@@ -287,7 +287,7 @@ func DeleteDeployment(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, htype.DeleteResponse{
 		Status:  http.StatusOK,
-		Message: "Tiller is available",
+		Message: "Deployment deleted!",
 		Name:    name,
 	})
 }

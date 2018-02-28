@@ -127,7 +127,7 @@ func InstallHelmPostHook(cluster CommonCluster) {
 		}
 		log.Info("Getting K8S Config Succeeded")
 		for i := 0; i <= retryAttempts; i++ {
-			log.Debugf("Waiting for tiller to come up %d/%d", i, retryAttempts)
+			log.Infof("Waiting for tiller to come up %d/%d", i, retryAttempts)
 			_, err = helm.GetHelmClient(kubeConfig)
 			if err == nil {
 				return
