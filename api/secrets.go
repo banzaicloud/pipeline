@@ -48,8 +48,9 @@ func AddSecrets(c *gin.Context) {
 
 	// todo validate types
 
-	// org/{org_id}/{type}
-	vaultPath := fmt.Sprintf("org/%s/%s", organizationId, createSecretRequest.SecretType)
+	// org/{org_id}/{uuid}/{secret_type}
+	secretId := generateSecretId()
+	vaultPath := fmt.Sprintf("org/%s/%s/%s", organizationId, secretId, createSecretRequest.SecretType)
 	if err := secretStoreObj.mount(vaultPath, createSecretRequest.Name); err != nil {
 		log.Errorf("Error during mount: %s", err.Error())
 		c.JSON(http.StatusInternalServerError, components.ErrorResponse{
@@ -59,9 +60,8 @@ func AddSecrets(c *gin.Context) {
 		})
 	}
 
-	secretId := generateSecretId()
 	for _, kv := range createSecretRequest.Values {
-		path := fmt.Sprintf("%s/%s/%s", vaultPath, secretId, kv.Key)
+		path := fmt.Sprintf("%s/%s", vaultPath, kv.Key)
 		if err := secretStoreObj.Store(path, kv.Value); err != nil {
 			log.Errorf("Error during store: %s", err.Error())
 			c.JSON(http.StatusInternalServerError, components.ErrorResponse{
@@ -84,37 +84,19 @@ func ListSecrets(c *gin.Context) {
 	organizationId := c.Param("id")
 	log.Infof("Organization id: %s", organizationId)
 
-	var allSecrets []SecretsItemResponse
-
-	for _, secretType := range allSecretTypes {
-		// get secrets on path
-		path := fmt.Sprintf("org/%s/%s", organizationId, secretType)
-		log.Infof("Listing secrets on %s", path)
-		if secrets, err := secretStoreObj.List(path); err != nil {
-			log.Errorf("Error during listing secret keys: %s", err.Error())
-		} else {
-			log.Info("Listing secrets on path succeeded")
-
-			var values []KeyValue
-			for _, key := range secrets.keys {
-				values = append(values, KeyValue{
-					Key: key,
-				})
-			}
-
-			sir := SecretsItemResponse{
-				Id:         strings.Replace(secrets.id, "/", "", -1),
-				Name:       secrets.description,
-				SecretType: string(secretType),
-				Values:     values,
-			}
-			allSecrets = append(allSecrets, sir)
-		}
+	if items, err := secretStoreObj.List(organizationId); err != nil {
+		log.Errorf("Error during listing secrets: %s", err.Error())
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error during listing secrets",
+			Error:   err.Error(),
+		})
+	} else {
+		log.Infof("Listing secrets succeeded: %v", items)
+		c.JSON(http.StatusOK, ListSecretsResponse{
+			Secrets: items,
+		})
 	}
-
-	c.JSON(http.StatusOK, ListSecretsResponse{
-		Secrets: allSecrets,
-	})
 
 }
 
@@ -154,51 +136,53 @@ func (ss *secretStore) Store(path string, value string) error {
 	return nil
 }
 
-func (ss *secretStore) List(path string) (*secretListItem, error) {
-	var result secretListItem
+func (ss *secretStore) List(organizationId string) ([]SecretsItemResponse, error) {
 
 	log.Info("List mounts")
-	if mounts, err := ss.client.Sys().ListMounts(); err != nil {
-		return nil, errors.Wrap(err, "Error during listing mounts")
+	if mounts, err := secretStoreObj.client.Sys().ListMounts(); err != nil {
+		return nil, err
 	} else {
-		mount, ok := mounts[fmt.Sprintf("%s/", path)]
-		if !ok {
-			return nil, errors.New(fmt.Sprintf("No mount found with name: %s", path))
-		}
+		var responseItems []SecretsItemResponse
+		for _, secretType := range allSecretTypes {
+			for key, mount := range mounts {
+				// find mount
+				log.Debugf("Searching for organization mounts [%s]", secretType)
+				prefix := fmt.Sprintf("org/%s", organizationId)
+				suffix := fmt.Sprintf("%s/", secretType)
+				if strings.HasPrefix(key, fmt.Sprintf("org/%s", organizationId)) && strings.HasSuffix(key, suffix) {
 
-		result.description = mount.Description
+					desc := mount.Description
 
-		if secret, err := ss.client.Logical().List(path); err != nil {
-			return nil, errors.Wrap(err, "Error during getting secret id")
-		} else if secret != nil {
-			keys := secret.Data["keys"].([]interface{})
-			for _, secretId := range keys {
-				path = fmt.Sprintf("%s/%s", path, secretId.(string))
-				if secret, err := ss.client.Logical().List(path); err != nil {
-					return nil, errors.Wrap(err, "Error during list secret keys")
-				} else if secret != nil {
-					keys := secret.Data["keys"].([]interface{})
-					var secrets []string
-					for _, key := range keys {
-						secrets = append(secrets, key.(string))
+					secretId := key[len(prefix)+1:len(suffix)]
+					log.Debugf("Secret id: %s", secretId)
+
+					sir := SecretsItemResponse{
+						Id:         secretId,
+						Name:       desc,
+						SecretType: string(secretType),
+						Values:     nil,
 					}
 
-					result.id = secretId.(string)
-					result.keys = secrets
+					if secret, err := secretStoreObj.client.Logical().List(key); err != nil {
+						log.Errorf("Error listing secrets: %s", err.Error())
+					} else {
+						keys := secret.Data["keys"].([]interface{})
+						var secrets []KeyValue
+						for _, key := range keys {
+							secrets = append(secrets, KeyValue{
+								Key: key.(string),
+							})
+						}
+						sir.Values = secrets
+						responseItems = append(responseItems, sir)
+					}
 
-					return &result, nil
 				}
 			}
 		}
+
+		return responseItems, nil
 	}
-
-	return nil, errors.New(fmt.Sprintf("There are no secrets on %s path", path))
-}
-
-type secretListItem struct {
-	id          string
-	keys        []string
-	description string
 }
 
 func newVaultSecretStore() *secretStore {
