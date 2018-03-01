@@ -92,7 +92,7 @@ func GetConfigPostHook(cluster CommonCluster) {
 	log = logger.WithFields(logrus.Fields{"action": "PostHook"})
 	createdCluster, err := cluster.GetK8sConfig()
 	if err != nil {
-		log.Errorf("error during get config post hook: %s", createdCluster)
+		log.Errorf("error during get config post hook: %v", createdCluster)
 		return
 	}
 }
