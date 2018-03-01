@@ -15,8 +15,8 @@ import (
 type Slack struct {
 	Text      string `json:"text"`
 	Username  string `json:"username"`
-	iconEmoji string `json:"iconemoji"`
-	iconUrl   string `json:"iconurl"`
+	IconEmoji string `json:"iconemoji"`
+	IconUrl   string `json:"iconurl"`
 	Channel   string `json:"channel"`
 }
 
@@ -43,7 +43,7 @@ func SlackNotify(message string) error {
 	}
 	content.Channel = os.Getenv("SLACK_CHANNEL")
 
-	content.iconEmoji = ":cloud:"
+	content.IconEmoji = ":cloud:"
 	content.Username = "banzaicloud"
 	content.Text = message
 
