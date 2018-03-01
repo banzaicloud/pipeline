@@ -1,26 +1,26 @@
 package api
 
 import (
-	"testing"
+	"fmt"
 	htype "github.com/banzaicloud/banzai-types/components/helm"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"reflect"
-	"fmt"
+	"testing"
 )
 
 func TestIngressEndpointUrls(t *testing.T) {
 	// given
-	ingress := &v1beta1.Ingress {
-		Spec: v1beta1.IngressSpec {
-			Backend: &v1beta1.IngressBackend {},
-			TLS: []v1beta1.IngressTLS {},
-			Rules: []v1beta1.IngressRule {
+	ingress := &v1beta1.Ingress{
+		Spec: v1beta1.IngressSpec{
+			Backend: &v1beta1.IngressBackend{},
+			TLS:     []v1beta1.IngressTLS{},
+			Rules: []v1beta1.IngressRule{
 				{
-					Host:"",
+					Host: "",
 					IngressRuleValue: v1beta1.IngressRuleValue{
-						HTTP: &v1beta1.HTTPIngressRuleValue {
-							Paths: []v1beta1.HTTPIngressPath {
+						HTTP: &v1beta1.HTTPIngressRuleValue{
+							Paths: []v1beta1.HTTPIngressPath{
 								{
 									Path: "/svc1_path1",
 									Backend: v1beta1.IngressBackend{
@@ -40,10 +40,10 @@ func TestIngressEndpointUrls(t *testing.T) {
 					},
 				},
 				{
-					Host:"",
+					Host: "",
 					IngressRuleValue: v1beta1.IngressRuleValue{
-						HTTP: &v1beta1.HTTPIngressRuleValue {
-							Paths: []v1beta1.HTTPIngressPath {
+						HTTP: &v1beta1.HTTPIngressRuleValue{
+							Paths: []v1beta1.HTTPIngressPath{
 								{
 									Path: "/svc1_ui",
 									Backend: v1beta1.IngressBackend{
@@ -55,26 +55,25 @@ func TestIngressEndpointUrls(t *testing.T) {
 						},
 					},
 				},
-
 			},
 		},
-		Status: v1beta1.IngressStatus {},
+		Status: v1beta1.IngressStatus{},
 	}
 
 	loadBalancerPublicHost := "lb.url.com"
 
-	expectedEndpoints := []htype.EndPointURLs {
+	expectedEndpoints := []htype.EndPointURLs{
 		{
 			ServiceName: "svc1_path1",
-			URL: fmt.Sprint("http://",loadBalancerPublicHost, "/svc1_path1/"),
+			URL:         fmt.Sprint("http://", loadBalancerPublicHost, "/svc1_path1/"),
 		},
 		{
 			ServiceName: "svc1_path2",
-			URL: fmt.Sprint("http://",loadBalancerPublicHost, "/svc1_path2/"),
+			URL:         fmt.Sprint("http://", loadBalancerPublicHost, "/svc1_path2/"),
 		},
 		{
 			ServiceName: "svc1_ui",
-			URL: fmt.Sprint("http://",loadBalancerPublicHost, "/svc1_ui/"),
+			URL:         fmt.Sprint("http://", loadBalancerPublicHost, "/svc1_ui/"),
 		},
 	}
 

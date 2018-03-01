@@ -14,8 +14,8 @@ import (
 	"github.com/qor/auth/auth_identity"
 	sessionManager "github.com/qor/session/manager"
 	"github.com/sirupsen/logrus"
-	"os"
 	"github.com/spf13/viper"
+	"os"
 )
 
 //Version of Pipeline

@@ -1,14 +1,14 @@
 package api
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
-	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/banzai-types/components"
-	"net/http"
-	"github.com/banzaicloud/pipeline/model/defaults"
-	"github.com/pkg/errors"
+	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/model/defaults"
+	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"net/http"
 )
 
 const (

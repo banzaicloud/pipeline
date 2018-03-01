@@ -101,7 +101,7 @@ func NewVaultTokenStore() TokenStore {
 	if client.Token() == "" {
 
 		tokenPath := viper.GetString("auth.vaultpath")
-		token, err := ioutil.ReadFile( tokenPath + "/.vault-token")
+		token, err := ioutil.ReadFile(tokenPath + "/.vault-token")
 		if err == nil {
 
 			client.SetToken(string(token))
