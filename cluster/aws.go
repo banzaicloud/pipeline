@@ -615,6 +615,7 @@ func DownloadK8sConfig(kubicornCluster *kcluster.Cluster) (*[]byte, error) {
 	return &config, nil
 }
 
+// const's of BootstrapScript values
 const (
 	BootstrapScriptMasterKey     = "BOOTSTRAP_SCRIPT_MASTER"
 	BootstrapScriptNodeKey       = "BOOTSTRAP_SCRIPT_NODE"
