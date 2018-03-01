@@ -140,7 +140,7 @@ func InstallHelmPostHook(cluster CommonCluster) {
 	}
 }
 
-////UpdatePrometheus updates a configmap used by Prometheus
+//UpdatePrometheus updates a configmap used by Prometheus
 func UpdatePrometheus() {
 	log = logger.WithFields(logrus.Fields{"tag": constants.TagPrometheus})
 	err := UpdatePrometheusConfig()

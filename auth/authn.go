@@ -166,6 +166,7 @@ func Init() {
 
 	tokenStore = NewVaultTokenStore()
 }
+
 //GenerateToken generates token from context
 // TODO: it should be possible to generate tokens via a token (not just session cookie)
 func GenerateToken(c *gin.Context) {
