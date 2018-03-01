@@ -90,10 +90,9 @@ func (d *AKSProfile) UpdateProfile(r *components.ClusterProfileRequest, withSave
 
 	if withSave {
 		return d.SaveInstance()
-	} else {
-		d.Name = r.ProfileName
-		return nil
 	}
+	d.Name = r.ProfileName
+	return nil
 }
 
 // DeleteProfile deletes cluster profile from database

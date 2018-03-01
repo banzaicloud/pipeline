@@ -7,6 +7,7 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+//ClusterModel describes the common cluster model
 type ClusterModel struct {
 	gorm.Model
 	Name             string `gorm:"unique"`
@@ -18,6 +19,7 @@ type ClusterModel struct {
 	Google           GoogleClusterModel
 }
 
+//AmazonClusterModel describes the amazon cluster model
 type AmazonClusterModel struct {
 	ClusterModelId     uint `gorm:"primary_key"`
 	NodeSpotPrice      string
@@ -28,6 +30,7 @@ type AmazonClusterModel struct {
 	MasterImage        string
 }
 
+//AzureClusterModel describes the azure cluster model
 type AzureClusterModel struct {
 	ClusterModelId    uint `gorm:"primary_key"`
 	ResourceGroup     string
@@ -36,6 +39,7 @@ type AzureClusterModel struct {
 	KubernetesVersion string
 }
 
+//GoogleClusterModel describes the google cluster model
 type GoogleClusterModel struct {
 	ClusterModelId uint `gorm:"primary_key"`
 	Project        string
@@ -44,6 +48,7 @@ type GoogleClusterModel struct {
 	NodeCount      int
 }
 
+//Save the cluster to DB
 func (cs *ClusterModel) Save() error {
 	db := GetDB()
 	err := db.Save(&cs).Error
@@ -53,6 +58,7 @@ func (cs *ClusterModel) Save() error {
 	return nil
 }
 
+//Delete cluster from DB
 func (cs *ClusterModel) Delete() error {
 	db := GetDB()
 	return db.Delete(&cs).Error
@@ -107,6 +113,7 @@ func (AzureClusterModel) TableName() string {
 	return constants.TableNameAzureProperties
 }
 
+//QueryCluster get's the cluster from the DB
 func QueryCluster(filter map[string]interface{}) (*ClusterModel, error) {
 	var cluster ClusterModel
 	err := db.Where(filter).First(&cluster).Error
@@ -116,10 +123,12 @@ func QueryCluster(filter map[string]interface{}) (*ClusterModel, error) {
 	return &cluster, nil
 }
 
+//GetSimpleClusterWithId returns a simple cluster model
 func GetSimpleClusterWithId(id uint) ClusterModel {
 	return ClusterModel{Model: gorm.Model{ID: id}}
 }
 
+//TableName sets the GoogleClusterModel's table name
 func (GoogleClusterModel) TableName() string {
 	return constants.TableNameGoogleProperties
 }

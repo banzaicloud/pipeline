@@ -12,6 +12,7 @@ import (
 	"net/http"
 )
 
+// GetK8sConfig returns the Kubernetes config
 func GetK8sConfig(c *gin.Context) (*[]byte, bool) {
 	log := logger.WithFields(logrus.Fields{"tag": "GetKubernetesConfig"})
 	commonCluster, ok := GetCommonClusterFromRequest(c)
@@ -151,7 +152,7 @@ func ListDeployments(c *gin.Context) {
 	return
 }
 
-// Check the status of a deployment through the helm client API Check what is this?
+// HelmDeploymentStatus checks the status of a deployment through the helm client API
 func HelmDeploymentStatus(c *gin.Context) {
 	// todo error handling - design it, refine it, refactor it
 	log := logger.WithFields(logrus.Fields{"tag": "DeploymentStatus"})
@@ -178,7 +179,7 @@ func HelmDeploymentStatus(c *gin.Context) {
 	})
 }
 
-// InitHelmInCluster installs Helm on AKS cluster and configure the Helm client
+// InitHelmOnCluster installs Helm on AKS cluster and configure the Helm client
 func InitHelmOnCluster(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagHelmInstall})
 	log.Info("Start helm install")

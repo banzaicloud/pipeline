@@ -25,7 +25,7 @@ func init() {
 	log = logger.WithFields(logrus.Fields{"tag": "Cluster"})
 }
 
-//This is to restrict other query TODO investigate to just pass the hasmap
+//ParseField is to restrict other query TODO investigate to just pass the hasmap
 func ParseField(c *gin.Context) map[string]interface{} {
 	value := c.Param("id")
 	field := c.DefaultQuery("field", "id")
@@ -34,7 +34,7 @@ func ParseField(c *gin.Context) map[string]interface{} {
 	return filter
 }
 
-// Simple getter to build commonCluster object this handles error messages directly
+// GetCommonClusterFromRequest just a simple getter to build commonCluster object this handles error messages directly
 func GetCommonClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
 	filter := ParseField(c)
 
@@ -200,7 +200,7 @@ func GetClusterStatus(c *gin.Context) {
 	return
 }
 
-// FetchClusterConfig fetches a cluster config
+// GetClusterConfig gets a cluster config
 func GetClusterConfig(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagFetchClusterConfig})
 	commonCluster, ok := GetCommonClusterFromRequest(c)
@@ -298,11 +298,10 @@ func UpdateCluster(c *gin.Context) {
 			Error:   err.Error(),
 		})
 		return
-	} else {
-		// save the updated cluster to database
-		if err := commonCluster.Persist(); err != nil {
-			log.Errorf("Error during cluster save %s", err.Error())
-		}
+	}
+	// save the updated cluster to database
+	if err := commonCluster.Persist(); err != nil {
+		log.Errorf("Error during cluster save %s", err.Error())
 	}
 
 	c.JSON(http.StatusAccepted, components.UpdateClusterResponse{

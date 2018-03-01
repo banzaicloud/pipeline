@@ -3,6 +3,7 @@ package model
 import (
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/jinzhu/gorm"
+	// blank import is used here for simplicity
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -33,6 +34,7 @@ func initDatabase() *gorm.DB {
 	return db
 }
 
+//GetDB returns an initialized DB
 func GetDB() *gorm.DB {
 	if db == nil {
 		db = initDatabase()
@@ -40,6 +42,7 @@ func GetDB() *gorm.DB {
 	return db
 }
 
+//IsErrorGormNotFound returns gorm.ErrRecordNotFound
 func IsErrorGormNotFound(err error) bool {
 	return err == gorm.ErrRecordNotFound
 }

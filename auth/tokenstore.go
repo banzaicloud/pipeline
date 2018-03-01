@@ -90,6 +90,7 @@ type vaultTokenStore struct {
 	tokenRenewer *vault.Renewer
 }
 
+//NewVaultTokenStore creates a new Vault backed token store
 func NewVaultTokenStore() TokenStore {
 	client, err := vault.NewClient(vault.DefaultConfig())
 	if err != nil {

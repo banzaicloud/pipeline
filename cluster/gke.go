@@ -43,6 +43,7 @@ const (
 	netesDefault     = "netes-default"
 )
 
+//CreateGKEClusterFromRequest creates ClusterModel struct from the request
 func CreateGKEClusterFromRequest(request *components.CreateClusterRequest) (*GKECluster, error) {
 	log := logger.WithFields(logrus.Fields{"action": constants.TagCreateCluster})
 	log.Debug("Create ClusterModel struct from the request")
@@ -63,6 +64,7 @@ func CreateGKEClusterFromRequest(request *components.CreateClusterRequest) (*GKE
 	return &cluster, nil
 }
 
+//GKECluster struct for GKE cluster
 type GKECluster struct {
 	googleCluster *gke.Cluster //Don't use this directly
 	modelCluster  *model.ClusterModel
@@ -70,6 +72,7 @@ type GKECluster struct {
 	APIEndpoint   string
 }
 
+//GetAPIEndpoint returns the Kubernetes Api endpoint
 func (g *GKECluster) GetAPIEndpoint() (string, error) {
 	if g.APIEndpoint != "" {
 		return g.APIEndpoint, nil
@@ -78,6 +81,7 @@ func (g *GKECluster) GetAPIEndpoint() (string, error) {
 	return g.APIEndpoint, nil
 }
 
+//CreateCluster creates a new cluster
 func (g *GKECluster) CreateCluster() error {
 
 	log := logger.WithFields(logrus.Fields{"action": constants.TagCreateCluster})
@@ -125,9 +129,8 @@ func (g *GKECluster) CreateCluster() error {
 		be := getBanzaiErrorFromError(err)
 		// TODO status code !?
 		return errors.New(be.Message)
-	} else {
-		log.Infof("Cluster %s create is called for project %s and zone %s. Status Code %v", cc.Name, cc.ProjectID, cc.Zone, createCall.HTTPStatusCode)
 	}
+	log.Infof("Cluster %s create is called for project %s and zone %s. Status Code %v", cc.Name, cc.ProjectID, cc.Zone, createCall.HTTPStatusCode)
 
 	log.Info("Waiting for cluster...")
 
@@ -144,11 +147,13 @@ func (g *GKECluster) CreateCluster() error {
 
 }
 
+//Persist save the cluster model
 func (g *GKECluster) Persist() error {
 	log.Infof("Model before save: %v", g.modelCluster)
 	return g.modelCluster.Save()
 }
 
+//GetK8sConfig returns the Kubernetes config
 func (g *GKECluster) GetK8sConfig() (*[]byte, error) {
 
 	log := logger.WithFields(logrus.Fields{"action": constants.TagFetchClusterConfig})
@@ -173,14 +178,17 @@ func (g *GKECluster) GetK8sConfig() (*[]byte, error) {
 
 }
 
+//GetName returns the name of the cluster
 func (g *GKECluster) GetName() string {
 	return g.modelCluster.Name
 }
 
+//GetType returns the cloud type of the cluster
 func (g *GKECluster) GetType() string {
 	return g.modelCluster.Cloud
 }
 
+//GetStatus gets cluster status
 func (g *GKECluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 
 	log := logger.WithFields(logrus.Fields{"action": constants.TagFetchClusterConfig})
@@ -205,25 +213,25 @@ func (g *GKECluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 		apiError := getBanzaiErrorFromError(err)
 		// TODO status code !?
 		return nil, errors.New(apiError.Message)
-	} else {
-		log.Info("Get cluster success")
-		log.Infof("Cluster status is %s", cl.Status)
-		if statusRunning == cl.Status {
-			response := &components.GetClusterStatusResponse{
-				Status:           http.StatusOK,
-				Name:             g.modelCluster.Name,
-				Location:         g.modelCluster.Location,
-				Cloud:            g.modelCluster.Cloud,
-				NodeInstanceType: g.modelCluster.NodeInstanceType,
-				ResourceID:       g.modelCluster.ID,
-			}
-			return response, nil
-		} else {
-			return nil, constants.ErrorClusterNotReady
-		}
 	}
+	log.Info("Get cluster success")
+	log.Infof("Cluster status is %s", cl.Status)
+	if statusRunning == cl.Status {
+		response := &components.GetClusterStatusResponse{
+			Status:           http.StatusOK,
+			Name:             g.modelCluster.Name,
+			Location:         g.modelCluster.Location,
+			Cloud:            g.modelCluster.Cloud,
+			NodeInstanceType: g.modelCluster.NodeInstanceType,
+			ResourceID:       g.modelCluster.ID,
+		}
+		return response, nil
+	}
+	return nil, constants.ErrorClusterNotReady
+
 }
 
+// DeleteCluster deletes cluster from google
 func (g *GKECluster) DeleteCluster() error {
 
 	log := logger.WithFields(logrus.Fields{"action": constants.TagDeleteCluster})
@@ -244,13 +252,13 @@ func (g *GKECluster) DeleteCluster() error {
 		be := getBanzaiErrorFromError(err)
 		// TODO status code !?
 		return errors.New(be.Message)
-	} else {
-		log.Info("Delete succeeded")
-		return nil
 	}
+	log.Info("Delete succeeded")
+	return nil
 
 }
 
+// UpdateCluster updates GKE cluster in cloud
 func (g *GKECluster) UpdateCluster(updateRequest *components.UpdateClusterRequest) error {
 
 	log := logger.WithFields(logrus.Fields{"action": constants.TagUpdateCluster})
@@ -279,18 +287,19 @@ func (g *GKECluster) UpdateCluster(updateRequest *components.UpdateClusterReques
 		be := getBanzaiErrorFromError(err)
 		// TODO status code !?
 		return errors.New(be.Message)
-	} else {
-		log.Info("Cluster update succeeded")
-		g.googleCluster = res
-		return nil
 	}
+	log.Info("Cluster update succeeded")
+	g.googleCluster = res
+	return nil
 
 }
 
+//GetID returns the specified cluster id
 func (g *GKECluster) GetID() uint {
 	return g.modelCluster.ID
 }
 
+//GetModel returns the whole clusterModel
 func (g *GKECluster) GetModel() *model.ClusterModel {
 	return g.modelCluster
 }
@@ -756,7 +765,7 @@ func storeConfig(c *kubernetesCluster, name string) ([]byte, error) {
 	cluster := configCluster{
 		Cluster: dataCluster{
 			CertificateAuthorityData: string(c.RootCACert),
-			Server: host,
+			Server:                   host,
 		},
 		Name: c.Name,
 	}
@@ -906,6 +915,7 @@ type userData struct {
 	Password string `yaml:"password,omitempty"`
 }
 
+//CreateGKEClusterFromModel creates ClusterModel struct from model
 func CreateGKEClusterFromModel(clusterModel *model.ClusterModel) (*GKECluster, error) {
 	log := logger.WithFields(logrus.Fields{"action": constants.TagGetCluster})
 	log.Debug("Create ClusterModel struct from the request")
@@ -915,6 +925,7 @@ func CreateGKEClusterFromModel(clusterModel *model.ClusterModel) (*GKECluster, e
 	return &gkeCluster, nil
 }
 
+//AddDefaultsToUpdate adds defaults to update request
 func (g *GKECluster) AddDefaultsToUpdate(r *components.UpdateClusterRequest) {
 	defGoogleNode := &bGoogle.GoogleNode{
 		Version: g.modelCluster.Google.NodeVersion,
@@ -945,6 +956,7 @@ func (g *GKECluster) AddDefaultsToUpdate(r *components.UpdateClusterRequest) {
 	}
 }
 
+//CheckEqualityToUpdate validates the update request
 func (g *GKECluster) CheckEqualityToUpdate(r *components.UpdateClusterRequest) error {
 	// create update request struct with the stored data to check equality
 	preCl := &bGoogle.UpdateClusterGoogle{
@@ -963,6 +975,7 @@ func (g *GKECluster) CheckEqualityToUpdate(r *components.UpdateClusterRequest) e
 	return utils.IsDifferent(r.UpdateClusterGoogle, preCl)
 }
 
+//DeleteFromDatabase deletes model from the database
 func (g *GKECluster) DeleteFromDatabase() error {
 	err := g.modelCluster.Delete()
 	if err != nil {

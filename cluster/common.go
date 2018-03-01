@@ -17,6 +17,7 @@ import (
 var logger *logrus.Logger
 var log *logrus.Entry
 
+//CommonCluster interface for clusters
 type CommonCluster interface {
 	CreateCluster() error
 	Persist() error
@@ -37,6 +38,7 @@ type CommonCluster interface {
 	//GetKubernetesEndpoint()
 }
 
+//GetCommonClusterFromModel extracts CommonCluster from a ClusterModel
 func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster, error) {
 
 	database := model.GetDB()
@@ -83,6 +85,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 	return nil, constants.ErrorNotSupportedCloudType
 }
 
+//CreateCommonClusterFromRequest creates a CommonCluster from a request
 func CreateCommonClusterFromRequest(createClusterRequest *bTypes.CreateClusterRequest) (CommonCluster, error) {
 	cloudType := createClusterRequest.Cloud
 	switch cloudType {

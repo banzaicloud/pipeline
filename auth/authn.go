@@ -67,6 +67,7 @@ func init() {
 	log = logger.WithFields(logrus.Fields{"tag": "Auth"})
 }
 
+//ScopedClaims struct to store the scoped claim related things
 type ScopedClaims struct {
 	jwt.StandardClaims
 	Scope string `json:"scope,omitempty"`
@@ -75,12 +76,14 @@ type ScopedClaims struct {
 	Text string `json:"text,omitempty"`
 }
 
+//DroneClaims struct to store the drone claim related things
 type DroneClaims struct {
 	*claims.Claims
 	Type string `json:"type,omitempty"`
 	Text string `json:"text,omitempty"`
 }
 
+//IsEnabled checks if the auth is enabled
 func IsEnabled() bool {
 	return authEnabled
 }
@@ -95,6 +98,7 @@ func validateAccessToken(claims *ScopedClaims) (bool, error) {
 	return lookupAccessToken(userID, tokenID)
 }
 
+//Init initialize the auth
 func Init() {
 	authEnabled = viper.GetBool("auth.enabled")
 	if !authEnabled {
@@ -162,7 +166,7 @@ func Init() {
 
 	tokenStore = NewVaultTokenStore()
 }
-
+//GenerateToken generates token from context
 // TODO: it should be possible to generate tokens via a token (not just session cookie)
 func GenerateToken(c *gin.Context) {
 	currentUser := getCurrentUser(c.Request)
@@ -214,6 +218,7 @@ func hmacKeyFunc(token *jwt.Token) (interface{}, error) {
 	return []byte(signingKeyBase32), nil
 }
 
+//Auth0Handler handles auth
 func Auth0Handler(c *gin.Context) {
 	currentUser := Auth.GetCurrentUser(c.Request)
 	if currentUser != nil {
@@ -266,11 +271,13 @@ func Auth0Handler(c *gin.Context) {
 	c.Next()
 }
 
+//BanzaiSessionStorer stores the banzai session
 type BanzaiSessionStorer struct {
 	auth.SessionStorer
 	SignedStringBytes []byte
 }
 
+//Update updates the BanzaiSessionStorer
 func (sessionStorer *BanzaiSessionStorer) Update(w http.ResponseWriter, req *http.Request, claims *claims.Claims) error {
 	token := sessionStorer.SignedToken(claims)
 	err := sessionStorer.SessionManager.Add(w, req, sessionStorer.SessionName, token)
@@ -294,7 +301,7 @@ func (sessionStorer *BanzaiSessionStorer) Update(w http.ResponseWriter, req *htt
 	return nil
 }
 
-// SignedToken generate signed token with Claims
+// SignedTokenWithDrone generate signed token with Claims
 func (sessionStorer *BanzaiSessionStorer) SignedTokenWithDrone(claims *DroneClaims) (string, error) {
 	token := jwt.NewWithClaims(sessionStorer.SigningMethod, claims)
 	return token.SignedString(sessionStorer.SignedStringBytes)

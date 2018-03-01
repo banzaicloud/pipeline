@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-// List service public endpoints
+// ListEndpoints lists service public endpoints
 func ListEndpoints(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": "ListEndpoints"})
 	const traefik = "traefik"

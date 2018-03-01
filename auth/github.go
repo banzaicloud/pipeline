@@ -14,11 +14,13 @@ import (
 	"golang.org/x/oauth2"
 )
 
+//GithubExtraInfo struct for github credentials
 type GithubExtraInfo struct {
 	Login string
 	Token string
 }
 
+//NewGithubAuthorizeHandler handler for Github auth
 func NewGithubAuthorizeHandler(provider *githubauth.GithubProvider) func(context *auth.Context) (*claims.Claims, error) {
 	log = logger.WithFields(logrus.Fields{"tag": "Auth"})
 	return func(context *auth.Context) (*claims.Claims, error) {
