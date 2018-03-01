@@ -367,7 +367,7 @@ func DeleteCluster(c *gin.Context) {
 	c.JSON(http.StatusAccepted, components.DeleteClusterResponse{
 		Status:     http.StatusAccepted,
 		Name:       deleteName,
-		Message:    "Cluster deleted succesfully",
+		Message:    "Cluster deleted successfully",
 		ResourceID: deleteId,
 	})
 	return
