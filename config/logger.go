@@ -13,27 +13,27 @@ func Logger() *logrus.Logger {
 		logger = logrus.New()
 		switch viper.GetString("log.loglevel") {
 		case "debug":
-			logrus.SetLevel(logrus.DebugLevel)
+			logger.Level = logrus.DebugLevel
 		case "info":
-			logrus.SetLevel(logrus.InfoLevel)
+			logger.Level = logrus.InfoLevel
 		case "warn":
-			logrus.SetLevel(logrus.WarnLevel)
+			logger.Level = logrus.WarnLevel
 		case "error":
-			logrus.SetLevel(logrus.ErrorLevel)
+			logger.Level = logrus.ErrorLevel
 		case "fatal":
-			logrus.SetLevel(logrus.FatalLevel)
+			logger.Level = logrus.FatalLevel
 		default:
 			//logrus.WithField("dev.loglevel", viper.GetString("dev.loglevel")).Warning("Invalid log level. Defaulting to info.")
-			logrus.SetLevel(logrus.InfoLevel)
+			logger.Level = logrus.InfoLevel
 		}
 
 		switch viper.GetString("log.logformat") {
 		case "text":
-			logrus.SetFormatter(new(logrus.TextFormatter))
+			logger.Formatter = new(logrus.TextFormatter)
 		case "json":
-			logrus.SetFormatter(new(logrus.JSONFormatter))
+			logger.Formatter = new(logrus.JSONFormatter)
 		default:
-			logrus.SetFormatter(new(logrus.TextFormatter))
+			logger.Formatter = new(logrus.TextFormatter)
 		}
 
 	}
