@@ -47,7 +47,17 @@ func AddSecrets(c *gin.Context) {
 	log.Info("Binding request succeeded")
 	log.Debugf("%#v", createSecretRequest)
 
-	// todo validate types
+	log.Info("Start validation")
+	if err := createSecretRequest.Validate(); err != nil {
+		log.Errorf("Validation error: %s", err.Error())
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Validation error",
+			Error:   err.Error(),
+		})
+		return
+	}
+	log.Info("Validation passed")
 
 	// org/{org_id}/{uuid}/{secret_type}
 	secretId := generateSecretId()
@@ -131,6 +141,31 @@ type CreateSecretRequest struct {
 	Name       string     `json:"name" binding:"required"`
 	SecretType string     `json:"type" binding:"required"`
 	Values     []KeyValue `json:"values" binding:"required"`
+}
+
+func (c *CreateSecretRequest) Validate() error {
+
+	allRules := getRules()
+	for i, rule := range allRules {
+		if string(rule.secretType) == c.SecretType {
+			for j, requiredKey := range rule.requiredKeys {
+				for _, keyValues := range c.Values {
+					if requiredKey.requiredKey == keyValues.Key {
+						allRules[i].requiredKeys[j].isInRequest = true
+						break
+					}
+				}
+			}
+
+			if err := allRules[i].isValid(); err != nil {
+				return err
+			}
+
+			return nil
+		}
+	}
+
+	return errors.New("Wrong secret type")
 }
 
 type KeyValue struct {
@@ -309,11 +344,52 @@ type SecretType string
 var allSecretTypes = []SecretType{
 	Amazon,
 	Azure,
-	Google,
+	// Google, // todo put back if the rules are completed
+}
+
+func getRules() []rule {
+	// todo add google rules
+	return []rule{
+		{
+			secretType: Amazon,
+			requiredKeys: []ruleKey{
+				{requiredKey: "AWS_ACCESS_KEY_ID",},
+				{requiredKey: "AWS_SECRET_ACCESS_KEY",},
+			},
+		},
+		{
+			secretType: Azure,
+			requiredKeys: []ruleKey{
+				{requiredKey: "AZURE_CLIENT_ID",},
+				{requiredKey: "AZURE_CLIENT_SECRET",},
+				{requiredKey: "AZURE_TENANT_ID",},
+				{requiredKey: "AZURE_SUBSCRIPTION_ID",},
+			},
+		},
+	}
+}
+
+type rule struct {
+	secretType   SecretType
+	requiredKeys []ruleKey
+}
+
+func (r *rule) isValid() error {
+	for _, ruleKey := range r.requiredKeys {
+		if !ruleKey.isInRequest {
+			return errors.New(fmt.Sprintf("Missing key: %s", ruleKey.requiredKey))
+		}
+	}
+	return nil
+}
+
+type ruleKey struct {
+	requiredKey string
+	isInRequest bool
 }
 
 const (
 	Amazon SecretType = "AMAZON_SECRET"
 	Azure  SecretType = "AZURE_SECRET"
-	Google SecretType = "GOOGLE_SECRET"
+	// Google SecretType = "GOOGLE_SECRET" // todo put back if the rules are completed
 )
