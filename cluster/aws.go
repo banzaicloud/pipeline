@@ -555,8 +555,8 @@ func (c *AWSCluster) GetK8sConfig() (*[]byte, error) {
 	return c.k8sConfig, nil
 }
 
-// Todo check first if config is locally available
 //DownloadK8sConfig downloads the Kubernetes config from the cluster
+// Todo check first if config is locally available
 func DownloadK8sConfig(kubicornCluster *kcluster.Cluster) (*[]byte, error) {
 
 	user := kubicornCluster.SSH.User
@@ -634,9 +634,8 @@ func getBootstrapScriptFromEnv(isMaster bool) string {
 	if len(s) == 0 {
 		if isMaster {
 			return BootstrapScriptMasterDefault
-		} else {
-			return BootstrapScriptNodeDefault
 		}
+		return BootstrapScriptNodeDefault
 	}
 	return s
 
