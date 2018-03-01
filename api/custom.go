@@ -6,10 +6,10 @@ import (
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"k8s.io/api/extensions/v1beta1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"net/http"
 	"strings"
-	"k8s.io/api/extensions/v1beta1"
 )
 
 // List service public endpoints

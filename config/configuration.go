@@ -38,7 +38,6 @@ func Init() {
 	viper.SetDefault("database.password", "pipemaster123!")
 	viper.SetDefault("database.dbname", "pipelinedb")
 
-
 	// Find and read the config file
 	if err := viper.ReadInConfig(); err != nil {
 		log.Fatalf("Error reading config file, %s", err)

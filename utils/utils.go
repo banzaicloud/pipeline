@@ -1,12 +1,12 @@
 package utils
 
 import (
+	"github.com/banzaicloud/banzai-types/constants"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
-	"io/ioutil"
 	"reflect"
-	"github.com/banzaicloud/banzai-types/constants"
 )
 
 //GetEnv retrieves ENV variable, fallback if not set

@@ -1,15 +1,15 @@
 package defaults
 
 import (
+	"fmt"
+	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/banzai-types/constants"
-	"time"
-	"github.com/sirupsen/logrus"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
-	"github.com/banzaicloud/banzai-types/components"
-	"github.com/spf13/viper"
 	"github.com/go-errors/errors"
-	"fmt"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
+	"time"
 )
 
 // TODO se who will win
@@ -87,9 +87,9 @@ func loadFirst(output interface{}) {
 func GetDefaultProfiles() []ClusterProfile {
 	var defaults []ClusterProfile
 	defaults = append(defaults,
-		&AWSProfile{DefaultModel: DefaultModel{Name: GetDefaultProfileName()},},
-		&AKSProfile{DefaultModel: DefaultModel{Name: GetDefaultProfileName()},},
-		&GKEProfile{DefaultModel: DefaultModel{Name: GetDefaultProfileName()},})
+		&AWSProfile{DefaultModel: DefaultModel{Name: GetDefaultProfileName()}},
+		&AKSProfile{DefaultModel: DefaultModel{Name: GetDefaultProfileName()}},
+		&GKEProfile{DefaultModel: DefaultModel{Name: GetDefaultProfileName()}})
 	return defaults
 }
 
