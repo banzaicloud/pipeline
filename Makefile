@@ -63,3 +63,9 @@ list:
 
 fmt:
 	@gofmt -w ${GOFILES_NOVENDOR}
+
+vet:
+	@go vet -composites=false ./...
+
+test:
+	@go test -v ./...

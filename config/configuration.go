@@ -15,6 +15,7 @@ func init() {
 	viper.AddConfigPath("$HOME/config")
 	viper.AddConfigPath("./")
 	viper.AddConfigPath("./config")
+	viper.AddConfigPath("$PIPELINE_CONFIG_DIR/")
 
 	viper.SetConfigName("config")
 	//viper.SetConfigType("toml")
