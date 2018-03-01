@@ -5,7 +5,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/golang:1.8
+      - image: circleci/golang:1.10
 
     working_directory: /go/src/github.com/banzaicloud/pipeline
     steps:
@@ -13,3 +13,12 @@ jobs:
       - run:
           command:
               make build
+      - run:
+          name: Run go vet
+          command:
+              make vet
+      - run:
+          name: Run pipeline tests
+          command: |
+              cp config/config.toml.example config/config.toml
+              make test
