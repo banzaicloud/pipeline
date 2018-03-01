@@ -262,7 +262,7 @@ func Auth0Handler(c *gin.Context) {
 	if !hasScope {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, btype.ErrorResponse{
 			Code:    http.StatusUnauthorized,
-			Message: "Need more priviliges",
+			Message: "Need more privileges",
 			Error:   err.Error(),
 		})
 		log.Info("Needs more privileges")

@@ -529,7 +529,7 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster) (*gke.Cluster, 
 	}
 
 	if cc.NodeVersion != "" {
-		log.Infof("Updating node to %v verison", cc.NodeVersion)
+		log.Infof("Updating node to %v version", cc.NodeVersion)
 		updateCall, err := svc.Projects.Zones.Clusters.NodePools.Update(cc.ProjectID, cc.Zone, cc.Name, cc.NodePoolID, &gke.UpdateNodePoolRequest{
 			NodeVersion: cc.NodeVersion,
 		}).Context(context.Background()).Do()
@@ -624,7 +624,11 @@ func getGoogleKubernetesConfig(cs *model.ClusterModel) ([]byte, error) {
 	// TODO if the final solution is NOT SAVE CONFIG TO FILE than rename the method and change log message
 	log.Info("Start save config file")
 	config, err := storeConfig(&finalCl, cs.Name)
-
+	if err != nil {
+		be := getBanzaiErrorFromError(err)
+		// TODO status code !?
+		return nil, errors.New(be.Message)
+	}
 	return config, nil
 }
 
