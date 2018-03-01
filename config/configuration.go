@@ -10,7 +10,7 @@ import (
 )
 
 //Init initializes the configurations
-func Init() {
+func init() {
 
 	viper.AddConfigPath("$HOME/config")
 	viper.AddConfigPath("./")

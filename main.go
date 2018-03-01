@@ -51,8 +51,6 @@ func main() {
 	logger = initLog()
 	logger.Info("Pipeline initialization")
 
-	// Initialise config
-	config.Init()
 	// Ensure DB connection
 	db := model.GetDB()
 	// Initialise auth
