@@ -27,6 +27,7 @@ func AddSecrets(c *gin.Context) {
 	log = logger.WithFields(logrus.Fields{"tag": "Create Secrets"})
 	log.Info("Start adding secrets")
 
+	log.Info("Get organization id from params")
 	organizationId := c.Param("id")
 	log.Infof("Organization id: %s", organizationId)
 
@@ -60,6 +61,8 @@ func AddSecrets(c *gin.Context) {
 		})
 	}
 
+	log.Info("Mount succeeded")
+
 	for _, kv := range createSecretRequest.Values {
 		path := fmt.Sprintf("%s/%s", vaultPath, kv.Key)
 		if err := secretStoreObj.Store(path, kv.Value); err != nil {
@@ -81,6 +84,7 @@ func ListSecrets(c *gin.Context) {
 	log = logger.WithFields(logrus.Fields{"tag": "List Secrets"})
 	log.Info("Start listing secrets")
 
+	log.Info("Get organization id from params")
 	organizationId := c.Param("id")
 	log.Infof("Organization id: %s", organizationId)
 
@@ -92,7 +96,7 @@ func ListSecrets(c *gin.Context) {
 			Error:   err.Error(),
 		})
 	} else {
-		log.Infof("Listing secrets succeeded: %v", items)
+		log.Infof("Listing secrets succeeded: %#v", items)
 		c.JSON(http.StatusOK, ListSecretsResponse{
 			Secrets: items,
 		})
@@ -104,6 +108,7 @@ func DeleteSecrets(c *gin.Context) {
 	log = logger.WithFields(logrus.Fields{"tag": "Delete Secrets"})
 	log.Info("Start deleting secrets")
 
+	log.Info("Get organization id and secret id from params")
 	organizationId := c.Param("id")
 	secretId := c.Param("secretId")
 	log.Infof("Organization id: %s", organizationId)
@@ -151,6 +156,7 @@ type secretStore struct {
 }
 
 func (ss *secretStore) Store(path string, value string) error {
+	log.Infof("Start storing secret")
 	data := map[string]interface{}{"value": value}
 	if _, err := ss.logical.Write(path, data); err != nil {
 		return errors.Wrap(err, "Error during store secrets")
@@ -160,7 +166,7 @@ func (ss *secretStore) Store(path string, value string) error {
 
 func (ss *secretStore) List(organizationId string) ([]SecretsItemResponse, error) {
 
-	log.Info("List mounts")
+	log.Info("Listing mounts")
 	if mounts, err := secretStoreObj.client.Sys().ListMounts(); err != nil {
 		return nil, err
 	} else {
@@ -260,6 +266,8 @@ func newVaultSecretStore() *secretStore {
 
 func (ss *secretStore) mount(mountPath, name string) error {
 
+	log.Infof("Mount %s", mountPath)
+
 	mountInput := &vault.MountInput{
 		Type:        "kv",
 		Description: name,
@@ -273,7 +281,7 @@ func (ss *secretStore) mount(mountPath, name string) error {
 
 func (ss *secretStore) delete(organizationId, secretId string) error {
 
-	log.Info("List mounts")
+	log.Info("Listing mounts")
 	if mounts, err := secretStoreObj.client.Sys().ListMounts(); err != nil {
 		return err
 	} else {
@@ -287,10 +295,11 @@ func (ss *secretStore) delete(organizationId, secretId string) error {
 		}
 	}
 
-	return errors.New("No matching secrets")
+	return errors.New(fmt.Sprintf("There are no secrets with [%s] organization id and [%s] secret id", organizationId, secretId))
 }
 
 func generateSecretId() string {
+	log.Debug("Generate secret id")
 	rInt := rand.Intn(10)
 	return fmt.Sprintf("%d%d", time.Now().UTC().Unix(), rInt)
 }
