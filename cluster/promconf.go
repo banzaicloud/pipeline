@@ -89,7 +89,7 @@ func GenerateConfig(prometheusCfg []PrometheusCfg) []byte {
 	// Reload configuration?
 	out, err := yaml.Marshal(config)
 	if err != nil {
-		fmt.Errorf("%v", err)
+		log.Errorf("%v", err)
 	}
 	return out
 

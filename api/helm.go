@@ -91,7 +91,7 @@ func CreateDeployment(c *gin.Context) {
 	release, err := helm.CreateDeployment(deployment.Name, deployment.ReleaseName, values, kubeConfig, commonCluster.GetName())
 	if err != nil {
 		//TODO distinguish error codes
-		log.Errorf("Error during create deployment.", err.Error())
+		log.Error("Error during create deployment.", err.Error())
 		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error creating deployment",
@@ -125,7 +125,7 @@ func ListDeployments(c *gin.Context) {
 	log.Info("Get deployments")
 	response, err := helm.ListDeployments(nil, kubeConfig)
 	if err != nil {
-		log.Errorf("Error during create deployment.", err.Error())
+		log.Error("Error during create deployment.", err.Error())
 		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error listing deployments",

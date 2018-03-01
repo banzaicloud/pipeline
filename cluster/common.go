@@ -111,7 +111,6 @@ func CreateCommonClusterFromRequest(createClusterRequest *bTypes.CreateClusterRe
 		}
 		return aksCluster, nil
 
-		return nil, nil
 	case constants.Google:
 		if err := createClusterRequest.Properties.CreateClusterGoogle.Validate(); err != nil {
 			return nil, err
