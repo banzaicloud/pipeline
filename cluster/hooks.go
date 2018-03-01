@@ -12,14 +12,14 @@ import (
 	"time"
 )
 
-// Calls posthook functions with created cluster
+//RunPostHooks calls posthook functions with created cluster
 func RunPostHooks(functionList []func(cluster CommonCluster), createdCluster CommonCluster) {
 	for _, i := range functionList {
 		i(createdCluster)
 	}
 }
 
-// Basic version of persisting keys TODO check if we need this from API or anywhere else
+//PersistKubernetesKeys is a basic version of persisting keys TODO check if we need this from API or anywhere else
 func PersistKubernetesKeys(cluster CommonCluster) {
 	log = logger.WithFields(logrus.Fields{"action": "PersistKubernetesKeys"})
 	configPath := fmt.Sprintf("%s/%s", viper.GetString("statestore.path"), cluster.GetName())
@@ -64,7 +64,7 @@ func PersistKubernetesKeys(cluster CommonCluster) {
 	log.Infof("Writing kubernetes related certs/keys succeeded.")
 }
 
-//Post Hooks can't return value, they can log error and/or update state?
+//InstallIngressControllerPostHook post hooks can't return value, they can log error and/or update state?
 func InstallIngressControllerPostHook(cluster CommonCluster) {
 	// --- [ Get K8S Config ] --- //
 	log = logger.WithFields(logrus.Fields{"action": "InstallIngressController"})
@@ -87,7 +87,7 @@ func InstallIngressControllerPostHook(cluster CommonCluster) {
 	log.Infof("'%s' installed", deploymentName)
 }
 
-//PostHook functions with func(*cluster.Cluster) signature
+//GetConfigPostHook functions with func(*cluster.Cluster) signature
 func GetConfigPostHook(cluster CommonCluster) {
 	log = logger.WithFields(logrus.Fields{"action": "PostHook"})
 	createdCluster, err := cluster.GetK8sConfig()
@@ -97,10 +97,12 @@ func GetConfigPostHook(cluster CommonCluster) {
 	}
 }
 
+//UpdatePrometheusPostHook updates a configmap used by Prometheus
 func UpdatePrometheusPostHook(_ CommonCluster) {
 	UpdatePrometheus()
 }
 
+//InstallHelmPostHook this posthook installs the helm related things
 func InstallHelmPostHook(cluster CommonCluster) {
 	log = logger.WithFields(logrus.Fields{"action": "PostHook"})
 
@@ -138,6 +140,7 @@ func InstallHelmPostHook(cluster CommonCluster) {
 	}
 }
 
+////UpdatePrometheus updates a configmap used by Prometheus
 func UpdatePrometheus() {
 	log = logger.WithFields(logrus.Fields{"tag": constants.TagPrometheus})
 	err := UpdatePrometheusConfig()

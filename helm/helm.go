@@ -28,7 +28,7 @@ func init() {
 	log = logger.WithFields(logrus.Fields{"action": "Helm"})
 }
 
-//DeleteAll deletes all Helm deployment
+//DeleteAllDeployment deletes all Helm deployment
 func DeleteAllDeployment(kubeconfig *[]byte) error {
 	log := logger.WithFields(logrus.Fields{"tag": "DeleteAllDeployment"})
 	log.Info("Getting deployments....")
@@ -193,7 +193,7 @@ func GetDeployment() {
 
 }
 
-// Retrieves the status of the passed in release name.
+// GetDeploymentStatus retrieves the status of the passed in release name.
 // returns with an error if the release is not found or another error occurs
 // in case of error the status is filled with information to classify the error cause
 func GetDeploymentStatus(releaseName string, kubeConfig *[]byte) (int32, error) {

@@ -103,16 +103,16 @@ func AddClusterProfile(c *gin.Context) {
 func getProfiles(cloudType string) ([]components.ClusterProfileResponse, error) {
 
 	var response []components.ClusterProfileResponse
-	if profiles, err := defaults.GetAllProfiles(cloudType); err != nil {
+	profiles, err := defaults.GetAllProfiles(cloudType)
+	if err != nil {
 		// error during getting profiles
 		return nil, err
-	} else {
-		for _, p := range profiles {
-			r := p.GetProfile()
-			response = append(response, *r)
-		}
-		return response, nil
 	}
+	for _, p := range profiles {
+		r := p.GetProfile()
+		response = append(response, *r)
+	}
+	return response, nil
 
 }
 
@@ -195,7 +195,7 @@ func UpdateClusterProfile(c *gin.Context) {
 
 }
 
-// UpdateClusterProfile handles /cluster/profiles/:type/:name DELETE api endpoint.
+// DeleteClusterProfile handles /cluster/profiles/:type/:name DELETE api endpoint.
 // Deletes saved cluster profile.
 // Deleting failed if the name is the default name.
 func DeleteClusterProfile(c *gin.Context) {

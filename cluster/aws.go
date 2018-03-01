@@ -38,6 +38,7 @@ var runtimeParam = cutil.RuntimeParameters{
 	AwsProfile: "",
 }
 
+//AWSCluster struct for AWS cluster
 type AWSCluster struct {
 	kubicornCluster *kcluster.Cluster //Don't use this directly
 	modelCluster    *model.ClusterModel
@@ -45,10 +46,12 @@ type AWSCluster struct {
 	APIEndpoint     string
 }
 
+//GetID returns the specified cluster id
 func (c *AWSCluster) GetID() uint {
 	return c.modelCluster.ID
 }
 
+//GetAPIEndpoint returns the Kubernetes Api endpoint
 func (c *AWSCluster) GetAPIEndpoint() (string, error) {
 	if c.APIEndpoint != "" {
 		return c.APIEndpoint, nil
@@ -60,18 +63,22 @@ func (c *AWSCluster) GetAPIEndpoint() (string, error) {
 	return kubicornCluster.KubernetesAPI.Endpoint, nil
 }
 
+//GetName returns the name of the cluster
 func (c *AWSCluster) GetName() string {
 	return c.modelCluster.Name
 }
 
+//GetType returns the cloud type of the cluster
 func (c *AWSCluster) GetType() string {
 	return c.modelCluster.Cloud
 }
 
+//GetModel returns the whole clusterModel
 func (c *AWSCluster) GetModel() *model.ClusterModel {
 	return c.modelCluster
 }
 
+//CreateAWSClusterFromModel creates ClusterModel struct from the kubicorn model
 func CreateAWSClusterFromModel(clusterModel *model.ClusterModel) (*AWSCluster, error) {
 	log := logger.WithFields(logrus.Fields{"action": constants.TagGetCluster})
 	log.Debug("Create ClusterModel struct from the request")
@@ -86,6 +93,7 @@ func CreateAWSClusterFromModel(clusterModel *model.ClusterModel) (*AWSCluster, e
 	return &awsCluster, nil
 }
 
+//CreateAWSClusterFromRequest creates ClusterModel struct from the request
 func CreateAWSClusterFromRequest(request *components.CreateClusterRequest) (*AWSCluster, error) {
 	log := logger.WithFields(logrus.Fields{"action": constants.TagCreateCluster})
 	log.Debug("Create ClusterModel struct from the request")
@@ -108,11 +116,12 @@ func CreateAWSClusterFromRequest(request *components.CreateClusterRequest) (*AWS
 	return &cluster, nil
 }
 
+//Persist save the cluster model
 func (c *AWSCluster) Persist() error {
 	return c.modelCluster.Save()
 }
 
-//Create new cluster
+//CreateCluster creates a new cluster
 func (c *AWSCluster) CreateCluster() error {
 	log := logger.WithFields(logrus.Fields{"action": constants.TagCreateCluster})
 
@@ -145,9 +154,8 @@ func (c *AWSCluster) CreateCluster() error {
 	expected, err := reconciler.Expected(newCluster)
 	if err != nil {
 		return err
-	} else {
-		log.Info("Get expected state succeeded")
 	}
+	log.Info("Get expected state succeeded")
 
 	// ---- [ Get actual state ] ---- //
 	actual, err := reconciler.Actual(newCluster)
@@ -186,7 +194,7 @@ func getStateStoreForCluster(clusterType *model.ClusterModel) (stateStore state.
 	return stateStore
 }
 
-// GetAWSCluster creates *cluster.Cluster from ClusterModel struct
+// GetKubicornProfile creates *cluster.Cluster from ClusterModel struct
 func GetKubicornProfile(cs *model.ClusterModel) *kcluster.Cluster {
 	uuidSuffix := uuid.TimeOrderedUUID()
 	return &kcluster.Cluster{
@@ -373,6 +381,7 @@ func GetKubicornProfile(cs *model.ClusterModel) *kcluster.Cluster {
 	}
 }
 
+//GetStatus gets cluster status
 func (c *AWSCluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 	log.Info("Start get cluster status (amazon)")
 
@@ -394,7 +403,7 @@ func (c *AWSCluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 	return response, nil
 }
 
-// UpdateClusterAmazonInCloud updates Amazon cluster in cloud
+// UpdateCluster updates Amazon cluster in cloud
 func (c *AWSCluster) UpdateCluster(request *components.UpdateClusterRequest) error {
 
 	log := logger.WithFields(logrus.Fields{"action": constants.TagUpdateCluster})
@@ -469,6 +478,7 @@ func (c *AWSCluster) UpdateCluster(request *components.UpdateClusterRequest) err
 	return nil
 }
 
+//GetKubicornCluster returns a Kubicorn cluster
 func (c *AWSCluster) GetKubicornCluster() (*kcluster.Cluster, error) {
 	if c.kubicornCluster != nil {
 		return c.kubicornCluster, nil
@@ -491,7 +501,7 @@ func ReadCluster(modelCluster *model.ClusterModel) (*kcluster.Cluster, error) {
 	return readCluster, nil
 }
 
-// DeleteAmazonCluster deletes cluster from amazon
+// DeleteCluster deletes cluster from amazon
 func (c *AWSCluster) DeleteCluster() error {
 
 	log := logger.WithFields(logrus.Fields{"action": constants.TagDeleteCluster})
@@ -526,6 +536,7 @@ func (c *AWSCluster) DeleteCluster() error {
 	return nil
 }
 
+//GetK8sConfig returns the Kubernetes config
 func (c *AWSCluster) GetK8sConfig() (*[]byte, error) {
 	if c.k8sConfig != nil {
 		return c.k8sConfig, nil
@@ -545,6 +556,7 @@ func (c *AWSCluster) GetK8sConfig() (*[]byte, error) {
 }
 
 // Todo check first if config is locally available
+//DownloadK8sConfig downloads the Kubernetes config from the cluster
 func DownloadK8sConfig(kubicornCluster *kcluster.Cluster) (*[]byte, error) {
 
 	user := kubicornCluster.SSH.User
@@ -625,12 +637,12 @@ func getBootstrapScriptFromEnv(isMaster bool) string {
 		} else {
 			return BootstrapScriptNodeDefault
 		}
-	} else {
-		return s
 	}
+	return s
 
 }
 
+//AddDefaultsToUpdate adds defaults to update request
 func (c *AWSCluster) AddDefaultsToUpdate(r *components.UpdateClusterRequest) {
 
 	// ---- [ Node check ] ---- //
@@ -658,6 +670,7 @@ func (c *AWSCluster) AddDefaultsToUpdate(r *components.UpdateClusterRequest) {
 
 }
 
+//CheckEqualityToUpdate validates the update request
 func (c *AWSCluster) CheckEqualityToUpdate(r *components.UpdateClusterRequest) error {
 	// create update request struct with the stored data to check equality
 	preCl := &amazon.UpdateClusterAmazon{
@@ -673,6 +686,7 @@ func (c *AWSCluster) CheckEqualityToUpdate(r *components.UpdateClusterRequest) e
 	return utils.IsDifferent(r.UpdateClusterAmazon, preCl)
 }
 
+//DeleteFromDatabase deletes model from the database
 func (c *AWSCluster) DeleteFromDatabase() error {
 	err := c.modelCluster.Delete()
 	if err != nil {

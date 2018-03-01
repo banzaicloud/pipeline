@@ -29,6 +29,7 @@ type NopHandler struct{}
 
 func (h NopHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {}
 
+//WriteToFile write the []byte to the given file
 func WriteToFile(data []byte, file string) error {
 	if err := os.MkdirAll(filepath.Dir(file), os.ModePerm); err != nil {
 		return err

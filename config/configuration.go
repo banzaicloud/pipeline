@@ -49,6 +49,7 @@ func Init() {
 	viper.AutomaticEnv()
 }
 
+//GetCORS gets CORS related config
 func GetCORS() cors.Config {
 	viper.SetDefault("cors.AllowAllOrigins", true)
 	viper.SetDefault("cors.AllowOrigins", []string{"http://", "https://"})

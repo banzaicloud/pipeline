@@ -6,7 +6,6 @@ import (
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
-	"github.com/go-errors/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"time"
@@ -41,7 +40,7 @@ func SetDefaultValues() error {
 			log.Infof("%s default table NOT contains the default values. Fill it...", d.GetType())
 			if err := d.SaveInstance(); err != nil {
 				// save failed
-				return errors.New(fmt.Sprintf("Could not save default values[%s]: %s", d.GetType(), err.Error()))
+				return fmt.Errorf("Could not save default values[%s]: %s", d.GetType(), err.Error())
 			}
 		} else {
 			// it's already exists
@@ -72,10 +71,7 @@ type DefaultModel struct {
 // save saves the given data into database
 func save(i interface{}) error {
 	database := model.GetDB()
-	if err := database.Save(i).Error; err != nil {
-		return err
-	}
-	return nil
+	return database.Save(i).Error
 }
 
 // loadFirst find first record that match given conditions, order by primary key
@@ -139,25 +135,23 @@ func GetProfile(cloudType string, name string) (ClusterProfile, error) {
 		var awsProfile AWSProfile
 		if err := db.Where(GKEProfile{DefaultModel: DefaultModel{Name: name}}).First(&awsProfile).Error; err != nil {
 			return nil, err
-		} else {
-			return &awsProfile, nil
 		}
+		return &awsProfile, nil
 
 	case constants.Azure:
 		var aksProfile AKSProfile
 		if err := db.Where(GKEProfile{DefaultModel: DefaultModel{Name: name}}).First(&aksProfile).Error; err != nil {
 			return nil, err
-		} else {
-			return &aksProfile, nil
 		}
+		return &aksProfile, nil
 
 	case constants.Google:
 		var gkeProfile GKEProfile
 		if err := db.Where(GKEProfile{DefaultModel: DefaultModel{Name: name}}).First(&gkeProfile).Error; err != nil {
 			return nil, err
-		} else {
-			return &gkeProfile, nil
 		}
+		return &gkeProfile, nil
+
 	default:
 		return nil, constants.ErrorNotSupportedCloudType
 	}

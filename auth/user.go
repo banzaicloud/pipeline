@@ -7,12 +7,14 @@ import (
 
 	"github.com/jinzhu/copier"
 	"github.com/jinzhu/gorm"
+	// blank import is used here for simplicity
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/qor/auth"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
+//User struct
 type User struct {
 	gorm.Model
 	Name  string `form:"name"`
@@ -21,6 +23,7 @@ type User struct {
 	Image string `form:"image"`
 }
 
+//DroneUser struct
 type DroneUser struct {
 	ID     int64  `gorm:"column:user_id;primary_key"`
 	Login  string `gorm:"column:user_login"`
@@ -35,6 +38,7 @@ type DroneUser struct {
 	Synced int64  `gorm:"column:user_synced"`
 }
 
+//TableName sets DroneUser's table name
 func (DroneUser) TableName() string {
 	return "users"
 }
@@ -46,13 +50,14 @@ func getCurrentUser(req *http.Request) *User {
 	return nil
 }
 
+//BanzaiUserStorer struct
 type BanzaiUserStorer struct {
 	auth.UserStorer
 	signingKeyBase32 string // Drone uses base32 Hash
 	droneDB          *gorm.DB
 }
 
-// This differs from the default UserStorer.Save() in that it
+// Save differs from the default UserStorer.Save() in that it
 // extracts Token and Login and saves to Drone DB as well
 func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (user interface{}, userID string, err error) {
 	log = logger.WithFields(logrus.Fields{"tag": "Auth"})

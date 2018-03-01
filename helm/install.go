@@ -28,7 +28,7 @@ const (
 	banzaiRepository = "banzaicloud-stable"
 )
 
-//Create ServiceAccount and AccountRoleBinding
+//PreInstall create's ServiceAccount and AccountRoleBinding
 func PreInstall(helmInstall *helm.Install, kubeConfig *[]byte) error {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagHelmInstall})
 	log.Info("start pre-install")

@@ -15,6 +15,7 @@ import (
 	"net/http"
 )
 
+//CreateAKSClusterFromRequest creates ClusterModel struct from the request
 func CreateAKSClusterFromRequest(request *components.CreateClusterRequest) (*AKSCluster, error) {
 	log := logger.WithFields(logrus.Fields{"action": constants.TagCreateCluster})
 	log.Debug("Create ClusterModel struct from the request")
@@ -35,6 +36,7 @@ func CreateAKSClusterFromRequest(request *components.CreateClusterRequest) (*AKS
 	return &cluster, nil
 }
 
+//AKSCluster struct for AKS cluster
 type AKSCluster struct {
 	azureCluster *banzaiAzureTypes.Value //Don't use this directly
 	modelCluster *model.ClusterModel
@@ -42,6 +44,7 @@ type AKSCluster struct {
 	APIEndpoint  string
 }
 
+//GetAPIEndpoint returns the Kubernetes Api endpoint
 func (c *AKSCluster) GetAPIEndpoint() (string, error) {
 	if c.APIEndpoint != "" {
 		return c.APIEndpoint, nil
@@ -50,6 +53,7 @@ func (c *AKSCluster) GetAPIEndpoint() (string, error) {
 	return c.APIEndpoint, nil
 }
 
+//CreateCluster creates a new cluster
 func (c *AKSCluster) CreateCluster() error {
 
 	log := logger.WithFields(logrus.Fields{"action": constants.TagCreateCluster})
@@ -76,35 +80,35 @@ func (c *AKSCluster) CreateCluster() error {
 		// creation failed
 		// todo status code!??
 		return err
-	} else {
-		// creation success
-		log.Info("Cluster created successfully!")
-
-		c.azureCluster = &createdCluster.Value
-
-		// save to database
-		if err := c.Persist(); err != nil {
-			log.Errorf("Cluster save failed! %s", err.Error())
-		}
-
-		// polling cluster
-		pollingResult, err := client.PollingCluster(r.Name, r.ResourceGroup)
-		if err != nil {
-			// polling error
-			// todo status code!??
-			return err
-		} else {
-			log.Info("Cluster is ready...")
-			c.azureCluster = &pollingResult.Value
-			return nil
-		}
 	}
+	// creation success
+	log.Info("Cluster created successfully!")
+
+	c.azureCluster = &createdCluster.Value
+
+	// save to database
+	if err := c.Persist(); err != nil {
+		log.Errorf("Cluster save failed! %s", err.Error())
+	}
+
+	// polling cluster
+	pollingResult, err := client.PollingCluster(r.Name, r.ResourceGroup)
+	if err != nil {
+		// polling error
+		// todo status code!??
+		return err
+	}
+	log.Info("Cluster is ready...")
+	c.azureCluster = &pollingResult.Value
+	return nil
 }
 
+//Persist save the cluster model
 func (c *AKSCluster) Persist() error {
 	return c.modelCluster.Save()
 }
 
+//GetK8sConfig returns the Kubernetes config
 func (c *AKSCluster) GetK8sConfig() (*[]byte, error) {
 	if c.k8sConfig != nil {
 		return c.k8sConfig, nil
@@ -133,14 +137,17 @@ func (c *AKSCluster) GetK8sConfig() (*[]byte, error) {
 	return &decodedConfig, nil
 }
 
+//GetName returns the name of the cluster
 func (c *AKSCluster) GetName() string {
 	return c.modelCluster.Name
 }
 
+//GetType returns the cloud type of the cluster
 func (c *AKSCluster) GetType() string {
 	return c.modelCluster.Cloud
 }
 
+//GetStatus gets cluster status
 func (c *AKSCluster) GetStatus() (*bTypes.GetClusterStatusResponse, error) {
 	log := logger.WithFields(logrus.Fields{"action": constants.TagGetClusterStatus})
 	client, err := azureClient.GetAKSClient(nil)
@@ -153,27 +160,26 @@ func (c *AKSCluster) GetStatus() (*bTypes.GetClusterStatusResponse, error) {
 	resp, err := client.GetCluster(c.modelCluster.Name, c.modelCluster.Azure.ResourceGroup)
 	if err != nil {
 		return nil, errors.New(err)
-	} else {
-		log.Info("Get cluster success")
-		stage := resp.Value.Properties.ProvisioningState
-		log.Info("Cluster stage is", stage)
-		if stage == "Succeeded" {
-			response := &components.GetClusterStatusResponse{
-				Status:           http.StatusOK,
-				Name:             c.modelCluster.Name,
-				Location:         c.modelCluster.Location,
-				Cloud:            c.modelCluster.Cloud,
-				NodeInstanceType: c.modelCluster.NodeInstanceType,
-				ResourceID:       c.modelCluster.ID,
-			}
-
-			return response, nil
-		} else {
-			return nil, constants.ErrorClusterNotReady
-		}
 	}
+	log.Info("Get cluster success")
+	stage := resp.Value.Properties.ProvisioningState
+	log.Info("Cluster stage is", stage)
+	if stage == "Succeeded" {
+		response := &components.GetClusterStatusResponse{
+			Status:           http.StatusOK,
+			Name:             c.modelCluster.Name,
+			Location:         c.modelCluster.Location,
+			Cloud:            c.modelCluster.Cloud,
+			NodeInstanceType: c.modelCluster.NodeInstanceType,
+			ResourceID:       c.modelCluster.ID,
+		}
+
+		return response, nil
+	}
+	return nil, constants.ErrorClusterNotReady
 }
 
+// DeleteCluster deletes cluster from aks
 func (c *AKSCluster) DeleteCluster() error {
 	log := logger.WithFields(logrus.Fields{"action": constants.TagDeleteCluster})
 	client, err := azureClient.GetAKSClient(nil)
@@ -191,12 +197,12 @@ func (c *AKSCluster) DeleteCluster() error {
 	if err != nil {
 		log.Info("Delete succeeded")
 		return nil
-	} else {
-		// todo status code !?
-		return err
 	}
+	// todo status code !?
+	return err
 }
 
+// UpdateCluster updates AKS cluster in cloud
 func (c *AKSCluster) UpdateCluster(request *bTypes.UpdateClusterRequest) error {
 	log := logger.WithFields(logrus.Fields{"action": constants.TagUpdateCluster})
 	client, err := azureClient.GetAKSClient(nil)
@@ -219,38 +225,39 @@ func (c *AKSCluster) UpdateCluster(request *bTypes.UpdateClusterRequest) error {
 	updatedCluster, err := client.CreateUpdateCluster(ccr)
 	if err != nil {
 		return err
-	} else {
-		log.Info("Cluster update succeeded")
-		//Update AWS model
-		log.Info("Create updated model")
-		updateCluster := &model.ClusterModel{
-			Model:            c.modelCluster.Model,
-			Name:             c.modelCluster.Name,
-			Location:         c.modelCluster.Location,
-			NodeInstanceType: c.modelCluster.NodeInstanceType,
-			Cloud:            c.modelCluster.Cloud,
-			Azure: model.AzureClusterModel{
-				ResourceGroup:     c.modelCluster.Azure.ResourceGroup,
-				AgentCount:        request.UpdateClusterAzure.AgentCount,
-				AgentName:         c.modelCluster.Azure.AgentName,
-				KubernetesVersion: c.modelCluster.Azure.KubernetesVersion,
-			},
-		}
-		c.modelCluster = updateCluster
-		c.azureCluster = &updatedCluster.Value
-		return nil
 	}
-
+	log.Info("Cluster update succeeded")
+	//Update AWS model
+	log.Info("Create updated model")
+	updateCluster := &model.ClusterModel{
+		Model:            c.modelCluster.Model,
+		Name:             c.modelCluster.Name,
+		Location:         c.modelCluster.Location,
+		NodeInstanceType: c.modelCluster.NodeInstanceType,
+		Cloud:            c.modelCluster.Cloud,
+		Azure: model.AzureClusterModel{
+			ResourceGroup:     c.modelCluster.Azure.ResourceGroup,
+			AgentCount:        request.UpdateClusterAzure.AgentCount,
+			AgentName:         c.modelCluster.Azure.AgentName,
+			KubernetesVersion: c.modelCluster.Azure.KubernetesVersion,
+		},
+	}
+	c.modelCluster = updateCluster
+	c.azureCluster = &updatedCluster.Value
+	return nil
 }
 
+//GetID returns the specified cluster id
 func (c *AKSCluster) GetID() uint {
 	return c.modelCluster.ID
 }
 
+//GetModel returns the whole clusterModel
 func (c *AKSCluster) GetModel() *model.ClusterModel {
 	return c.modelCluster
 }
 
+//CreateAKSClusterFromModel creates ClusterModel struct from model
 func CreateAKSClusterFromModel(clusterModel *model.ClusterModel) (*AKSCluster, error) {
 	log := logger.WithFields(logrus.Fields{"action": constants.TagGetCluster})
 	log.Debug("Create ClusterModel struct from the request")
@@ -260,6 +267,7 @@ func CreateAKSClusterFromModel(clusterModel *model.ClusterModel) (*AKSCluster, e
 	return &aksCluster, nil
 }
 
+//AddDefaultsToUpdate adds defaults to update request
 func (c *AKSCluster) AddDefaultsToUpdate(r *components.UpdateClusterRequest) {
 
 	if r.UpdateClusterAzure == nil {
@@ -284,6 +292,7 @@ func (c *AKSCluster) AddDefaultsToUpdate(r *components.UpdateClusterRequest) {
 
 }
 
+//CheckEqualityToUpdate validates the update request
 func (c *AKSCluster) CheckEqualityToUpdate(r *components.UpdateClusterRequest) error {
 	// create update request struct with the stored data to check equality
 	preCl := &banzaiAzureTypes.UpdateClusterAzure{
@@ -298,6 +307,7 @@ func (c *AKSCluster) CheckEqualityToUpdate(r *components.UpdateClusterRequest) e
 	return utils.IsDifferent(r.UpdateClusterAzure, preCl)
 }
 
+//DeleteFromDatabase deletes model from the database
 func (c *AKSCluster) DeleteFromDatabase() error {
 	err := c.modelCluster.Delete()
 	if err != nil {

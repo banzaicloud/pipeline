@@ -25,6 +25,7 @@ func init() {
 	log = logger.WithFields(logrus.Fields{"action": "Helm"})
 }
 
+//GetK8sConnection creates a new Kubernetes client
 func GetK8sConnection(kubeConfig *[]byte) (*kubernetes.Clientset, error) {
 	config, err := GetK8sClientConfig(kubeConfig)
 	if err != nil {
@@ -37,6 +38,7 @@ func GetK8sConnection(kubeConfig *[]byte) (*kubernetes.Clientset, error) {
 	return client, nil
 }
 
+//GetK8sClientConfig creates a Kubernetes client config
 func GetK8sClientConfig(kubeConfig *[]byte) (*rest.Config, error) {
 	var config *rest.Config
 	var err error
@@ -55,7 +57,7 @@ func GetK8sClientConfig(kubeConfig *[]byte) (*rest.Config, error) {
 	return config, nil
 }
 
-//Estabilish Tunnel for Helm client TODO check client and config if both needed
+//GetHelmClient establishes Tunnel for Helm client TODO check client and config if both needed
 func GetHelmClient(kubeConfig *[]byte) (*helm.Client, error) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagKubernetes})
 	log.Debug("Create kubernetes Client.")
