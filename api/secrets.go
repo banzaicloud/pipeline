@@ -1,19 +1,19 @@
 package api
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
-	"net/http"
+	"fmt"
 	"github.com/banzaicloud/banzai-types/components"
+	"github.com/gin-gonic/gin"
 	vault "github.com/hashicorp/vault/api"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"io/ioutil"
-	"os/user"
 	"k8s.io/client-go/rest"
-	"strings"
-	"fmt"
-	"time"
 	"math/rand"
+	"net/http"
+	"os/user"
+	"strings"
+	"time"
 )
 
 var secretStoreObj *secretStore
@@ -216,7 +216,7 @@ func (ss *secretStore) List(organizationId string) ([]SecretsItemResponse, error
 
 					desc := mount.Description
 
-					secretId := key[len(prefix)+1:len(key)-len(suffix)]
+					secretId := key[len(prefix)+1 : len(key)-len(suffix)]
 					log.Debugf("Secret id: %s", secretId)
 
 					sir := SecretsItemResponse{
@@ -353,17 +353,17 @@ func getRules() []rule {
 		{
 			secretType: Amazon,
 			requiredKeys: []ruleKey{
-				{requiredKey: "AWS_ACCESS_KEY_ID",},
-				{requiredKey: "AWS_SECRET_ACCESS_KEY",},
+				{requiredKey: "AWS_ACCESS_KEY_ID"},
+				{requiredKey: "AWS_SECRET_ACCESS_KEY"},
 			},
 		},
 		{
 			secretType: Azure,
 			requiredKeys: []ruleKey{
-				{requiredKey: "AZURE_CLIENT_ID",},
-				{requiredKey: "AZURE_CLIENT_SECRET",},
-				{requiredKey: "AZURE_TENANT_ID",},
-				{requiredKey: "AZURE_SUBSCRIPTION_ID",},
+				{requiredKey: "AZURE_CLIENT_ID"},
+				{requiredKey: "AZURE_CLIENT_SECRET"},
+				{requiredKey: "AZURE_TENANT_ID"},
+				{requiredKey: "AZURE_SUBSCRIPTION_ID"},
 			},
 		},
 	}
