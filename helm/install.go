@@ -166,7 +166,7 @@ func downloadChartFromRepo(name, path string) (string, error) {
 		return lname, nil
 	}
 
-	return filename, errors.Errorf("Failed to download %q", name)
+	return filename, errors.Wrapf(err,"Failed to download %q", name)
 }
 
 // Installs helm client on the cluster
