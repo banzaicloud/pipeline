@@ -46,6 +46,7 @@ type GoogleClusterModel struct {
 	MasterVersion  string
 	NodeVersion    string
 	NodeCount      int
+	ServiceAccount string
 }
 
 //Save the cluster to DB

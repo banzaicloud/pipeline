@@ -59,6 +59,7 @@ func CreateGKEClusterFromRequest(request *components.CreateClusterRequest) (*GKE
 			MasterVersion: request.Properties.CreateClusterGoogle.Master.Version,
 			NodeVersion:   request.Properties.CreateClusterGoogle.Node.Version,
 			NodeCount:     request.Properties.CreateClusterGoogle.Node.Count,
+			ServiceAccount:request.Properties.CreateClusterGoogle.ServiceAccount,
 		},
 	}
 	return &cluster, nil
@@ -106,7 +107,8 @@ func (g *GKECluster) CreateCluster() error {
 
 	cc := googleCluster{
 		NodeConfig: &gke.NodeConfig{
-			MachineType: g.modelCluster.NodeInstanceType,
+			MachineType:    g.modelCluster.NodeInstanceType,
+			ServiceAccount: g.modelCluster.Google.ServiceAccount,
 		},
 		ProjectID:         g.modelCluster.Google.Project,
 		Zone:              g.modelCluster.Location,
