@@ -3,7 +3,7 @@
 [pipeline]
 # Pipeline configs
 
-port = 9090
+listenport = 9090
 
 [database]
 dialect = "mysql"

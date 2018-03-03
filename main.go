@@ -124,5 +124,11 @@ func main() {
 		v1.GET("/token", auth.GenerateToken)
 	}
 	notify.SlackNotify("API is already running")
-	router.Run(":" + viper.GetString("pipeline.port"))
+	var listenPort string
+	port := viper.GetInt("pipeline.listenport")
+	if port != 0 {
+		listenPort = ":" + string(port)
+		fmt.Println(listenPort)
+	}
+	router.Run(listenPort)
 }
