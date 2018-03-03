@@ -17,6 +17,7 @@ type GKEProfile struct {
 	NodeCount        int    `gorm:"default:1"`
 	NodeVersion      string `gorm:"default:'1.7.12-gke.1'"`
 	MasterVersion    string `gorm:"default:'1.7.12-gke.1'"`
+	ServiceAccount   string
 }
 
 // TableName overrides GKEProfile's table name
@@ -55,8 +56,9 @@ func (d *GKEProfile) GetProfile() *components.ClusterProfileResponse {
 		}{
 			Google: &google.ClusterProfileGoogle{
 				Node: &google.GoogleNode{
-					Count:   d.NodeCount,
-					Version: d.NodeVersion,
+					Count:          d.NodeCount,
+					Version:        d.NodeVersion,
+					ServiceAccount: d.ServiceAccount,
 				},
 				Master: &google.GoogleMaster{
 					Version: d.MasterVersion,
@@ -86,6 +88,11 @@ func (d *GKEProfile) UpdateProfile(r *components.ClusterProfileRequest, withSave
 			if len(r.Properties.Google.Node.Version) != 0 {
 				d.NodeVersion = r.Properties.Google.Node.Version
 			}
+
+			if len(r.Properties.Google.Node.ServiceAccount) != 0 {
+				d.ServiceAccount = r.Properties.Google.Node.ServiceAccount
+			}
+
 		}
 
 		if r.Properties.Google.Master != nil {
