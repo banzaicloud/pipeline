@@ -120,6 +120,7 @@ func Init() {
 	RedirectBack = redirect_back.New(&redirect_back.Config{
 		SessionManager:  manager.SessionManager,
 		IgnoredPrefixes: []string{"/auth"},
+		FallbackPath:    "/ui",
 	})
 
 	// Initialize Auth with configuration
@@ -242,12 +243,18 @@ func Auth0Handler(c *gin.Context) {
 
 	isTokenValid, err := validateAccessToken(&claims)
 	if err != nil || !accessToken.Valid || !isTokenValid {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, btype.ErrorResponse{
+		resp := btype.ErrorResponse{
 			Code:    http.StatusUnauthorized,
 			Message: "Invalid token",
-			Error:   err.Error(),
-		})
-		log.Info("Invalid token:", err)
+		}
+		if err != nil {
+			resp.Error = err.Error()
+			log.Info("Invalid token: ", err)
+		} else {
+			resp.Error = ""
+			log.Info("Invalid token")
+		}
+		c.AbortWithStatusJSON(http.StatusUnauthorized, resp)
 		return
 	}
 
