@@ -135,6 +135,11 @@ func (g *GKECluster) CreateCluster() error {
 		NodeConfig: &gke.NodeConfig{
 			MachineType:    g.modelCluster.NodeInstanceType,
 			ServiceAccount: g.modelCluster.Google.ServiceAccount,
+			OauthScopes: []string{
+				"https://www.googleapis.com/auth/logging.write",
+				"https://www.googleapis.com/auth/monitoring",
+				"https://www.googleapis.com/auth/devstorage.read_write",
+			},
 		},
 		ProjectID:         g.modelCluster.Google.Project,
 		Zone:              g.modelCluster.Location,
