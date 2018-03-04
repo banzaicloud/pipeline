@@ -127,8 +127,8 @@ func main() {
 	var listenPort string
 	port := viper.GetInt("pipeline.listenport")
 	if port != 0 {
-		listenPort = ":" + string(port)
-		fmt.Println(listenPort)
+		listenPort = fmt.Sprintf(":%d", port)
+		logger.Info("Pipeline API listening on port ", listenPort)
 	}
 	router.Run(listenPort)
 }
