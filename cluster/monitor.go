@@ -12,12 +12,6 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-// Simple init for logging
-func init() {
-	viper.SetDefault("monitor.release", "pipeline")
-	viper.SetDefault("monitor.enabled", false)
-}
-
 type prometheusTarget struct {
 	Targets []string          `json:"targets"`
 	Labels  map[string]string `json:"labels"`
