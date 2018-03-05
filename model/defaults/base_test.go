@@ -98,6 +98,7 @@ var (
 	minCount           = 1
 	maxCount           = 2
 	spotPrice          = "0.2"
+	serviceAccount     = "TestServiceAccount"
 )
 
 var (
@@ -116,8 +117,9 @@ var (
 					Version: version,
 				},
 				Node: &google.GoogleNode{
-					Count:   nodeCount,
-					Version: version,
+					Count:          nodeCount,
+					Version:        version,
+					ServiceAccount: serviceAccount,
 				},
 			},
 		},
@@ -175,6 +177,7 @@ var (
 		MasterVersion:    version,
 		NodeCount:        nodeCount,
 		NodeVersion:      version,
+		ServiceAccount:   serviceAccount,
 	}
 
 	fullAKS = defaults.AKSProfile{
