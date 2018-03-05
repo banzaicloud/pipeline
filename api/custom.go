@@ -100,10 +100,14 @@ func getIngressEndpoints(loadBalancerPublicHost string, ingress *v1beta1.Ingress
 	for _, ingressRule := range ingress.Spec.Rules {
 		for _, ingressPath := range ingressRule.HTTP.Paths {
 			path := ingressPath.Path
+
+			if !strings.HasSuffix(path, "/") {
+				path += "/"
+			}
 			endpointUrls = append(endpointUrls,
 				htype.EndPointURLs{
-					ServiceName: strings.TrimPrefix(path, "/"),
-					URL:         fmt.Sprint("http://", loadBalancerPublicHost, path, "/"),
+					ServiceName: strings.Trim(path, "/"),
+					URL:         fmt.Sprint("http://", loadBalancerPublicHost, path),
 				})
 		}
 	}
