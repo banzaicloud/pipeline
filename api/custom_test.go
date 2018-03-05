@@ -9,8 +9,10 @@ import (
 	"testing"
 )
 
+
+
 func TestIngressEndpointUrls(t *testing.T) {
-	// given
+	//given
 	ingress := &v1beta1.Ingress{
 		Spec: v1beta1.IngressSpec{
 			Backend: &v1beta1.IngressBackend{},
@@ -55,6 +57,22 @@ func TestIngressEndpointUrls(t *testing.T) {
 						},
 					},
 				},
+				{
+					Host: "",
+					IngressRuleValue: v1beta1.IngressRuleValue{
+						HTTP: &v1beta1.HTTPIngressRuleValue{
+							Paths: []v1beta1.HTTPIngressPath{
+								{
+									Path: "/",
+									Backend: v1beta1.IngressBackend{
+										ServiceName: "service1",
+										ServicePort: intstr.FromInt(1000),
+									},
+								},
+							},
+						},
+					},
+				},
 			},
 		},
 		Status: v1beta1.IngressStatus{},
@@ -74,6 +92,10 @@ func TestIngressEndpointUrls(t *testing.T) {
 		{
 			ServiceName: "svc1_ui",
 			URL:         fmt.Sprint("http://", loadBalancerPublicHost, "/svc1_ui/"),
+		},
+		{
+			ServiceName: "",
+			URL:         fmt.Sprint("http://", loadBalancerPublicHost, "/"),
 		},
 	}
 
