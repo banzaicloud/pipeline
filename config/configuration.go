@@ -5,6 +5,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/spf13/viper"
 	"log"
+	"os"
 	"strings"
 	"time"
 )
@@ -40,6 +41,13 @@ func init() {
 	viper.SetDefault("database.user", "kellyslater")
 	viper.SetDefault("database.password", "pipemaster123!")
 	viper.SetDefault("database.dbname", "pipelinedb")
+
+	ReleaseName := os.Getenv("KUBERNETES_RELEASE_NAME")
+	if ReleaseName == "" {
+		ReleaseName = "pipeline"
+	}
+	viper.SetDefault("monitor.release", ReleaseName)
+	viper.SetDefault("monitor.enabled", false)
 
 	// Find and read the config file
 	if err := viper.ReadInConfig(); err != nil {
