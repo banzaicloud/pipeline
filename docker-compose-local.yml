@@ -3,7 +3,7 @@ version: '3.1'
 services:
 
   db:
-    image: mysql
+    image: mariadb
     restart: always
     ports:
       - 3306:3306
@@ -12,6 +12,8 @@ services:
       MYSQL_DATABASE: sparky
       MYSQL_USER: sparky
       MYSQL_PASSWORD: sparky123
+    volumes:
+      - ${PWD}/db-init.sql:/docker-entrypoint-initdb.d/db-init.sql
 
   adminer:
     image: adminer
@@ -28,3 +30,23 @@ services:
       - 8200:8200
     volumes:
       - ./vault:/home/vault
+
+  drone:
+    image: banzaicloud/drone:0.3.0
+    restart: always
+    ports:
+      - 8000:8000
+    command:
+      - /bin/drone-server
+    environment:
+      DRONE_HOST:                 http://localhost:8000
+      DRONE_DEBUG:                "true"
+      DRONE_GITHUB:               "true"
+      DRONE_GITHUB_CLIENT:
+      DRONE_GITHUB_SECRET:
+      DRONE_OPEN:                 "true"
+      DRONE_ORGS:
+      DRONE_PROVIDER:             github
+      DRONE_DATABASE_DRIVER:      mysql
+      DRONE_DATABASE_DATASOURCE:  root:example@tcp(db:3306)/drone?parseTime=true
+
