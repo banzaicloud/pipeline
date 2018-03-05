@@ -16,8 +16,9 @@ type GoogleMaster struct {
 }
 
 type GoogleNode struct {
-	Count   int    `json:"count"`
-	Version string `json:"version"`
+	Count          int    `json:"count"`
+	Version        string `json:"version"`
+	ServiceAccount string `json:"serviceAccount"`
 }
 
 type UpdateClusterGoogle struct {
