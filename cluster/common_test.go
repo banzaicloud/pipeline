@@ -18,7 +18,9 @@ const (
 	clusterRequestNodeInstance   = "testInstance"
 	clusterRequestProject        = "testProject"
 	clusterRequestNodeCount      = 1
-	clusterRequestVersion        = "testVersion"
+	clusterRequestVersion        = "1.8.7-gke.1"
+	clusterRequestVersion2       = "1.8.7-gke.2"
+	clusterRequestWrongVersion   = "1.7.7-gke.1"
 	clusterRequestRG             = "testResourceGroup"
 	clusterRequestKubernetes     = "1.8.2"
 	clusterRequestAgentName      = "testAgent"
@@ -41,6 +43,9 @@ func TestCreateCommonClusterFromRequest(t *testing.T) {
 		{name: "gke create", createRequest: gkeCreateFull, expectedModel: gkeModelFull, expectedError: nil},
 		{name: "aks create", createRequest: aksCreateFull, expectedModel: aksModelFull, expectedError: nil},
 		{name: "aws create", createRequest: awsCreateFull, expectedModel: awsModelFull, expectedError: nil},
+
+		{name: "gke wrong k8s version", createRequest: gkeWrongK8sVersion, expectedModel: nil, expectedError: constants.ErrorWrongKubernetesVersion},
+		{name: "gke different k8s version", createRequest: gkeDifferentK8sVersion, expectedModel: nil, expectedError: constants.ErrorDifferentKubernetesVersion},
 
 		{name: "not supported cloud", createRequest: notSupportedCloud, expectedModel: nil, expectedError: constants.ErrorNotSupportedCloudType},
 	}
@@ -158,6 +163,54 @@ var (
 			CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
 			CreateClusterGoogle *google.CreateClusterGoogle `json:"google,omitempty"`
 		}{},
+	}
+
+	gkeWrongK8sVersion = &components.CreateClusterRequest{
+		Name:             clusterRequestName,
+		Location:         clusterRequestLocation,
+		Cloud:            constants.Google,
+		NodeInstanceType: clusterRequestNodeInstance,
+		Properties: struct {
+			CreateClusterAmazon *amazon.CreateClusterAmazon `json:"amazon,omitempty"`
+			CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
+			CreateClusterGoogle *google.CreateClusterGoogle `json:"google,omitempty"`
+		}{
+			CreateClusterGoogle: &google.CreateClusterGoogle{
+				Project: clusterRequestProject,
+				Node: &google.GoogleNode{
+					Count:          clusterRequestNodeCount,
+					Version:        clusterRequestWrongVersion,
+					ServiceAccount: clusterServiceAccount,
+				},
+				Master: &google.GoogleMaster{
+					Version: clusterRequestWrongVersion,
+				},
+			},
+		},
+	}
+
+	gkeDifferentK8sVersion = &components.CreateClusterRequest{
+		Name:             clusterRequestName,
+		Location:         clusterRequestLocation,
+		Cloud:            constants.Google,
+		NodeInstanceType: clusterRequestNodeInstance,
+		Properties: struct {
+			CreateClusterAmazon *amazon.CreateClusterAmazon `json:"amazon,omitempty"`
+			CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
+			CreateClusterGoogle *google.CreateClusterGoogle `json:"google,omitempty"`
+		}{
+			CreateClusterGoogle: &google.CreateClusterGoogle{
+				Project: clusterRequestProject,
+				Node: &google.GoogleNode{
+					Count:          clusterRequestNodeCount,
+					Version:        clusterRequestVersion,
+					ServiceAccount: clusterServiceAccount,
+				},
+				Master: &google.GoogleMaster{
+					Version: clusterRequestVersion2,
+				},
+			},
+		},
 	}
 )
 
