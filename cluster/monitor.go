@@ -59,7 +59,7 @@ func UpdatePrometheusConfig() error {
 		}
 		kubeEndpoint, err := commonCluster.GetAPIEndpoint()
 		if err != nil {
-			log.Errorf("Cluster endpoint not doinf for cluster: %s, err: %s", commonCluster.GetName(), err)
+			log.Errorf("Cluster endpoint is not available for cluster: %s, err: %s", commonCluster.GetName(), err)
 			continue
 		}
 
