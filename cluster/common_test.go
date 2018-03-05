@@ -27,6 +27,7 @@ const (
 	clusterRequestNodeImage      = "testImage"
 	clusterRequestMasterImage    = "testImage"
 	clusterRequestMasterInstance = "testInstance"
+	clusterServiceAccount        = "testServiceAccount"
 )
 
 func TestCreateCommonClusterFromRequest(t *testing.T) {
@@ -90,8 +91,9 @@ var (
 			CreateClusterGoogle: &google.CreateClusterGoogle{
 				Project: clusterRequestProject,
 				Node: &google.GoogleNode{
-					Count:   clusterRequestNodeCount,
-					Version: clusterRequestVersion,
+					Count:          clusterRequestNodeCount,
+					Version:        clusterRequestVersion,
+					ServiceAccount: clusterServiceAccount,
 				},
 				Master: &google.GoogleMaster{
 					Version: clusterRequestVersion,
@@ -168,10 +170,11 @@ var (
 		Amazon:           model.AmazonClusterModel{},
 		Azure:            model.AzureClusterModel{},
 		Google: model.GoogleClusterModel{
-			Project:       clusterRequestProject,
-			MasterVersion: clusterRequestVersion,
-			NodeVersion:   clusterRequestVersion,
-			NodeCount:     clusterRequestNodeCount,
+			Project:        clusterRequestProject,
+			MasterVersion:  clusterRequestVersion,
+			NodeVersion:    clusterRequestVersion,
+			NodeCount:      clusterRequestNodeCount,
+			ServiceAccount: clusterServiceAccount,
 		},
 	}
 
