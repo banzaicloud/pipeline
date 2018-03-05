@@ -46,16 +46,21 @@ func UpdatePrometheusConfig() error {
 	prometheusConfigMapName := releaseName + "-" + prometheusConfigMap
 	log.Debugf("Prometheus Config map full name: %s", prometheusConfigMapName)
 
-	var clusters []CommonCluster
+	var clusters []model.ClusterModel
 	db := model.GetDB()
 	db.Find(&clusters)
 	var prometheusConfig []PrometheusCfg
 	//Gathering information about clusters
 	for _, cluster := range clusters {
-
-		kubeEndpoint, err := cluster.GetAPIEndpoint()
+		commonCluster, err := GetCommonClusterFromModel(&cluster)
 		if err != nil {
-			log.Errorf("Cluster endpoint not doinf for cluster: %s", cluster.GetName())
+			log.Errorf("Can't fetch cluster from database: %s, err: %s", commonCluster.GetName(), err)
+			continue
+		}
+		kubeEndpoint, err := commonCluster.GetAPIEndpoint()
+		if err != nil {
+			log.Errorf("Cluster endpoint is not available for cluster: %s, err: %s", commonCluster.GetName(), err)
+			continue
 		}
 
 		log.Debugf("Cluster Endpoint IP: %s", kubeEndpoint)
@@ -64,7 +69,7 @@ func UpdatePrometheusConfig() error {
 			prometheusConfig,
 			PrometheusCfg{
 				Endpoint: kubeEndpoint,
-				Name:     cluster.GetName(),
+				Name:     commonCluster.GetName(),
 			})
 
 	}
