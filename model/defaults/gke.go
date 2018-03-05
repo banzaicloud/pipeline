@@ -15,8 +15,8 @@ type GKEProfile struct {
 	Location         string `gorm:"default:'us-central1-a'"`
 	NodeInstanceType string `gorm:"default:'n1-standard-1'"`
 	NodeCount        int    `gorm:"default:1"`
-	NodeVersion      string `gorm:"default:'1.7.12-gke.1'"`
-	MasterVersion    string `gorm:"default:'1.7.12-gke.1'"`
+	NodeVersion      string `gorm:"default:'1.8.7-gke.1'"`
+	MasterVersion    string `gorm:"default:'1.8.7-gke.1'"`
 	ServiceAccount   string
 }
 
