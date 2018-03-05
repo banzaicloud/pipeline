@@ -122,6 +122,7 @@ func CreateCluster(c *gin.Context) {
 	// TODO check validation
 	commonCluster, err := cluster.CreateCommonClusterFromRequest(&createClusterRequest)
 	if err != nil {
+		log.Errorf("Error during creating common cluster model: %s", err.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: err.Error(),
@@ -134,6 +135,7 @@ func CreateCluster(c *gin.Context) {
 	// Create cluster
 	err = commonCluster.CreateCluster()
 	if err != nil {
+		log.Errorf("Error during cluster creation: %s", err.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: err.Error(),
@@ -145,6 +147,7 @@ func CreateCluster(c *gin.Context) {
 	// Persist the cluster in Database
 	err = commonCluster.Persist()
 	if err != nil {
+		log.Errorf("Error persisting cluster in database: %s", err.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: err.Error(),
@@ -165,7 +168,7 @@ func CreateCluster(c *gin.Context) {
 
 	response, err := commonCluster.GetStatus()
 	if err != nil {
-		log.Error(err)
+		log.Errorf("Error during getting cluster status: %s", err.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error parsing request",
