@@ -144,9 +144,6 @@ func convertRequestToProfile(request *components.ClusterProfileRequest) (default
 func UpdateClusterProfile(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagUpdateClusterProfile})
 
-	cloudType := c.Param(cloudTypeKey)
-	log.Infof("Start updating cluster profile [%s]", cloudType)
-
 	log.Debug("Bind json into ClusterProfileRequest struct")
 	// bind request body to struct
 	var profileRequest components.ClusterProfileRequest
@@ -172,10 +169,10 @@ func UpdateClusterProfile(c *gin.Context) {
 		return
 	}
 
-	log.Infof("Load cluster from database: %s[%s]", profileRequest.ProfileName, cloudType)
+	log.Infof("Load cluster from database: %s[%s]", profileRequest.ProfileName, profileRequest.Cloud)
 
 	// load cluster profile from database
-	if profile, err := defaults.GetProfile(cloudType, profileRequest.ProfileName); err != nil {
+	if profile, err := defaults.GetProfile(profileRequest.Cloud, profileRequest.ProfileName); err != nil {
 		// load from db failed
 		log.Error(errors.Wrap(err, "Error during getting profile"))
 		sendBackGetProfileErrorResponse(c, err)
