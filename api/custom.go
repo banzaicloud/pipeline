@@ -17,7 +17,6 @@ func ListEndpoints(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": "ListEndpoints"})
 	const traefik = "traefik"
 	var endpointList []*htype.EndpointItem
-	var endpointURLs []*htype.EndPointURLs
 
 	kubeConfig, ok := GetK8sConfig(c)
 	if ok != true {
@@ -45,6 +44,7 @@ func ListEndpoints(c *gin.Context) {
 		return
 	}
 	for _, service := range serviceList.Items {
+		var endpointURLs []*htype.EndPointURLs
 		log.Debugf("Service: %#v", service.Status)
 		if len(service.Status.LoadBalancer.Ingress) > 0 {
 			//TODO we should avoid differences on kubernetes level
