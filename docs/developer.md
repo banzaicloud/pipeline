@@ -49,24 +49,6 @@ Depending on the cloud provider there are couple of env vars has to be set:
    * AWS_SECRET_ACCESS_KEY
 *GCP
 
-#### Run Pipeline
+#### GitHub OAuth App setup
 
-For accessing the API an access token has to be generated,
-the above created Github Oauth App `Authorization callback URL` section should be:
-
-```bash
-http://localhost:9090/auth/github/callback
-```
-
-Tokens can be generated only with a browser (for now), to do that please use the following URL:
-
-```bash
-localhost:9090/auth/github/login
-```
-
-Please authenticate yourself with GitHub. If everything is done correctly you will be redirected.
-The browser already contains the generated token. It can be retrieved by issuing the following:
-
-```bash
-http://localhost:9090/api/v1/token
-```
+Setup your Pipeline GitHub OAuth application according to: [this guilde](./github-app.md)

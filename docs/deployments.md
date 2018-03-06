@@ -15,7 +15,7 @@ In order to get the `kubeconfig` you can do the following REST call:
 ```
 curl --request GET \
   --url 'http://{{url}}/api/v1/clusters/{{cluster_id}}/config' \
-  --header 'Authorization: Bearer YOUR_JWT_TOKEN' \
+  --header 'Authorization: Bearer PIPELINE_TOKEN' \
   --header 'Content-Type: application/json'
 ```
 
@@ -26,7 +26,7 @@ Now you can add a deployment with the following REST call:
 ```
 curl --request POST \
   --url 'http://{{url}}/api/v1/clusters/{{cluster_id}}/deployments' \
-  --header 'Authorization: Bearer YOUR_JWT_TOKEN' \
+  --header 'Authorization: Bearer PIPELINE_TOKEN' \
   --header 'Content-Type: application/json' \
   --data '{"name": "spark-shuffle"}'
 ```
@@ -37,7 +37,7 @@ Once the deployment is posted you can check the status with this HEAD call:
 ```
 curl --request HEAD \
   --url 'http://{{url}}/api/v1/clusters/{{cluster_id}}/deployments/{{deployment_name}}' \
-  --header 'Authorization: Bearer YOUR_JWT_TOKEN' \
+  --header 'Authorization: Bearer PIPELINE_TOKEN' \
   --header 'Content-Type: application/json'
 ```
 ##### Upgrade a deployment
@@ -47,7 +47,7 @@ Deployments can be upgraded with the following PUT call:
 ```
 curl --request PUT \
   --url 'http://{{url}}/api/v1/clusters/{{cluster_id}}/deployments/{{deployment_name}}' \
-  --header 'Authorization: Bearer YOUR_JWT_TOKEN' \
+  --header 'Authorization: Bearer PIPELINE_TOKEN' \
   --header 'Content-Type: application/x-www-form-urlencoded'
 ```
 
@@ -58,7 +58,7 @@ Finally a deployment can be deleted as well:
 ```
 curl --request DELETE \
   --url 'http://{{url}}/api/v1/clusters/{{cluster_id}}/deployments/{{deployment_name}}' \
-  --header 'Authorization: Bearer YOUR_JWT_TOKEN' \
+  --header 'Authorization: Bearer PIPELINE_TOKEN' \
   --header 'Content-Type: application/x-www-form-urlencoded'
 ```
 
