@@ -27,7 +27,6 @@ func initDatabase() {
 	user := viper.GetString("database.user")
 	password := viper.GetString("database.password")
 	dbName := viper.GetString("database.dbname")
-	//TODO this shouldn't be shared
 	database, err := gorm.Open("mysql", user+":"+password+"@tcp("+host+":"+port+")/"+dbName+"?charset=utf8&parseTime=True&loc=Local")
 	if err != nil {
 		log.Error("Database connection failed")
