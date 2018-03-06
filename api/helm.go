@@ -10,6 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"k8s.io/helm/pkg/timeconv"
 	"net/http"
+	"k8s.io/helm/pkg/proto/hapi/release"
 )
 
 // GetK8sConfig returns the Kubernetes config
@@ -154,28 +155,42 @@ func ListDeployments(c *gin.Context) {
 
 // HelmDeploymentStatus checks the status of a deployment through the helm client API
 func HelmDeploymentStatus(c *gin.Context) {
-	// todo error handling - design it, refine it, refactor it
+
 	log := logger.WithFields(logrus.Fields{"tag": "DeploymentStatus"})
 	name := c.Param("name")
-	log.Infof("Retrieving status for deployment: %s", name)
+	log.Infof("getting status for deployment: [%s]", name)
+
 	kubeConfig, ok := GetK8sConfig(c)
-	if ok != true {
+
+	if !ok {
+		log.Debugf("could not get the k8s config")
 		return
 	}
+
 	status, err := helm.GetDeploymentStatus(name, kubeConfig)
+	// we have the status code in the status, regardless the error!
+
+	msg := "Status ok"
+	var statusCode int
+
 	if err != nil {
-		log.Errorf(err.Error())
-		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error listing deployments",
-			Error:   err.Error(),
-		})
-		return
+		// the helm client returned with error
+		statusCode = int(status)
+		msg = err.Error()
+	} else {
+		// the helm client returned with the status of the deployment
+		if val, ok := release.Status_Code_name[status]; ok {
+			log.Infof("deployment status: [%s]", val)
+			statusCode = http.StatusOK
+			msg = val
+		}
+
 	}
-	log.Infof("Deployment status: %d", status)
-	c.JSON(http.StatusOK, htype.DeploymentStatusResponse{
-		Status:  http.StatusOK,
-		Message: "",
+
+	log.Infof("deployment status for [%s] is [%d]", name, status)
+	c.JSON(statusCode, htype.DeploymentStatusResponse{
+		Status:  statusCode,
+		Message: msg,
 	})
 }
 

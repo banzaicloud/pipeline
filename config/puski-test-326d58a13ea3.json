@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "puski-test-194413",
+  "private_key_id": "326d58a13ea324d2e82e42d5443f0c4eb1f843be",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCx3c6fI3gnIs5V\nn3hweFbukuMcXex3B3dyKguTIvKAscQ9EbRUBAM2/YSfyA/hDqP0gDkw0xt3Menw\nWdiPlWbeIovs6R/zKgXodcBkvLHVlHhgy3ev0eR3VeqzFuEQEtsQrUUym/S3WMg/\nLuFrdf+UlmQ3ipZ0YGvDbwGgoVERKrxds8ybH4FkjXATh8m2b1Px/XK/kGRMvF5u\n87kN06QIcnEVPCxbPZCLm1OksNMPo9ZvuKNQFUk6O1K28YJmtMCH9H74AeCRjs0n\n0/YsU4aE8Oc9LeivIqGCPbXp6JyBLRLzKN1tdIjl6TiWcA4nQP/sQgOqToa3uKg2\nPmFQOWxPAgMBAAECggEAJUpHg33ANxRJBhKFAa95KlOJYe0fImViWYEPJC3zgZ/D\ncLpBgEvHEMReBdG/4oNbRGuNkfrwizDfxxBPIutDwdakV2sY07Y/vtjRGU2mSwzx\nn/mIgkgTCiHtLtbhIKmTXA+3rkCcMcRfVz/Q6uK2TsSpBiv8FzIP5c1kHfU0NdDS\nHK2gXwltxWOt3/ZkXcSsFR6xrfeuEGrt9ga21CE7ojgp6gFeLsHI6uo5nq9tCy0M\ntF4u12GIfqOQw6y858/5WVVu3mghbUHuxOkTvRoznP8iomo9qFqaLVgUrkoDWjRm\ntmxPpbg3EsZfUS1Iyo5r93C4hv5026WhLV3+wbiMoQKBgQDn1GSwMqqYNZrq57Sz\nGEa7+J3wzWwo860nSuGzRHjv1CovqZq+bfmVKpd8q0b0hVAPXDLJPJham28kFW0x\nkLKRZilMLRnTlIFbza4rTR3vs5jsYfH5B0bVfM6kPeBSK3qLFHzTzj/46Nt8QoWr\nU+d3kd4hGyRRjQF0Vi11rgxBywKBgQDEaR5GuhrK8o2y7/l2rhaGDeQJ8feW8I3d\n6hNsNUSl+tNlFBMnbAlV13RKeVtXcvYZegSjC84FDLlDcCbsNuCNAvZYgZcxLsYe\nuSwde06d6amrFWxglxXOaDbpm1zZDL14F43j35lh8x1Y6tJG9Jp5HWoSQwRs37H4\na+TfapefDQKBgQCYSNKjU4TwWzYaXH48rxO34kaNqcME25zAlNXR1obCs9HKYVT/\nBmrOa537DN+dO/0tOdk6i41g532IbHK//lbuX/d8zJuMep7G2UMxuoSRsp4fmO9E\nMF19W3C6PtMd5uWmepzM3Uz0irGy3FfGBWWlC7KoeJXQ5BkyfHF8PgpbJQKBgFVo\nKGQ09QWfJ4LR2zaCSQUN8UVp1HHsNKR07vE00J8kTNw9OH8B+aU8RTNFRjTmpqE5\nb96+eV20xLLQh/xbeJWY3ipqX6ZhYoFloAtJ3UvJmZ/tdu0hhbf1lTtL9bnkUldw\nVqDqUDZJk09g/QMhxjI4WjGKttfpBeiychm8riXZAoGAOP04Ilt/AUcNa6EPqKQM\n9TBFr/8qyKsvXSR2/W7j2LmcIN+XB2Z7OCbjJctGNcJRGhWg0exBFLrnB5T/df6z\nfPlNFukPtvei1AdfwCDHEufWV1k4wWYY/rXH4kRqoHRgzZ8F87UHmWdo5704qcBP\nCA09K1D0fUzXnDnvOftcHz0=\n-----END PRIVATE KEY-----\n",
+  "client_email": "puski-sa@puski-test-194413.iam.gserviceaccount.com",
+  "client_id": "111306142083445430174",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://accounts.google.com/o/oauth2/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/puski-sa%40puski-test-194413.iam.gserviceaccount.com"
+}
