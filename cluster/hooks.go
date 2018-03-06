@@ -6,8 +6,10 @@ import (
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/utils"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 	"time"
 )
@@ -42,6 +44,11 @@ func PersistKubernetesKeys(cluster CommonCluster) {
 		log.Errorf("Error getting kubernetes config : %s", err)
 		return
 	}
+	log.Infof("Starting to write kubernetes config: %s", configPath)
+	if err := utils.WriteToFile(*kubeConfig, configPath+"/cluster.cfg"); err != nil {
+		log.Errorf("Error writing file: %s", err.Error())
+		return
+	}
 	config, err = helm.GetK8sClientConfig(kubeConfig)
 	if err != nil {
 		log.Errorf("Error parsing kubernetes config : %s", err)
@@ -61,7 +68,32 @@ func PersistKubernetesKeys(cluster CommonCluster) {
 		return
 	}
 
+	configMapName := viper.GetString("monitor.configmap")
+	configMapPath := viper.GetString("statestore.configmap")
+	if configMapName != "" && configMapPath != "" {
+		log.Infof("Save certificates to configmap: %s")
+		if err := saveKeysToConfigmap(config, configMapName, cluster.GetName()); err != nil {
+			log.Errorf("Error saving certs to configmap: ", err)
+			return
+		}
+	}
 	log.Infof("Writing kubernetes related certs/keys succeeded.")
+}
+
+func saveKeysToConfigmap(config *rest.Config, configName string, clusterName string) error {
+	client, err := helm.GetK8sInClusterConnection()
+	if err != nil {
+		return err
+	}
+	configmap, err := client.CoreV1().ConfigMaps("default").Get(configName, metav1.GetOptions{})
+	configmap.Data[clusterName+"_client-key-data.pem"] = string(config.KeyData)
+	configmap.Data[clusterName+"_client-certificate-data.pem"] = string(config.CertData)
+	configmap.Data[clusterName+"_certificate-authority-data.pem"] = string(config.CAData)
+	_, err = client.CoreV1().ConfigMaps("default").Update(configmap)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 //InstallIngressControllerPostHook post hooks can't return value, they can log error and/or update state?
