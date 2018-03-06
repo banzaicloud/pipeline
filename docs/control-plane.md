@@ -118,9 +118,7 @@ The easiest way for running a Pipeline Control Plane is to use a [Cloudformation
 
     <a href="images/howto/CloudFormulationDetails5.png"><img src="images/howto/CloudFormulationDetails5.png" height="250"></a>
 
-* Go back to the earlier created GitHub OAuth application and modify it. Set the `Authorization callback URL` field to `http://{control_plane_public_ip}/authorize`
-
-  <a href="images/howto/OAuthCallback.png"><img src="images/howto/OAuthCallback.png" height="70"></a>
+* Go back to the earlier created GitHub OAuth application and modify it. Set the `Authorization callback URL` field to `http://{control_plane_public_ip}/auth/github/callback`
 
 ### Launch Pipeline Control Plane on `Azure`
 
@@ -147,15 +145,10 @@ The easiest way for running a Pipeline Control Plane is deploying it using an [A
   * **Slack Webhook Url/Channel**
     * this section is optional. Complete this section to receive  cluster related alerts through a [Slack](https://slack.com) push notification channel.
 
-  * **Banzai Pipeline Credentials**
-     * Pipeline Password - specify the password for accessing the Pipeline REST [API](https://github.com/banzaicloud/pipeline/blob/0.2.0/docs/create.md) exposed by the Pipeline PaaS. **_Take note of the user name and password as those will be required when setting the [secrets](#repository-secrets) for the GitHub repositories in the CI/CD workflow._**
+  * **Prometheus Dashboard**
+    * Prometheus Password - specify password for accessing Prometheus that collects cluster metrics
 
-      <a href="images/howto/ARMPiCred.png"><img src="images/howto/ARMPiCred.png" height="70"></a>
-
-   * **Prometheus Dashboard**
-     * Prometheus Password - specify password for accessing Prometheus that collects cluster metrics
-
-      <a href="images/howto/ARMPrometheusCred.png"><img src="images/howto/ARMPrometheusCred.png" height="70"></a>
+    <a href="images/howto/ARMPrometheusCred.png"><img src="images/howto/ARMPrometheusCred.png" height="70"></a>
 
   * **Grafana Dashboard**
      * Grafana Dashboard Password - specify password for accessing Grafana dashboard with defaults specific to the application
