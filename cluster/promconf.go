@@ -1,18 +1,14 @@
 package cluster
 
 import (
-	"fmt"
 	"github.com/prometheus/common/model"
 	promcfg "github.com/prometheus/prometheus/config"
-	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
 	"net/url"
 )
 
 //GenerateConfig generates prometheus config
 func GenerateConfig(prometheusCfg []PrometheusCfg) []byte {
-	prefix := viper.GetString("statestore.path")
-
 	//Set Global Config
 	config := promcfg.Config{}
 	config.GlobalConfig = promcfg.GlobalConfig{}
@@ -28,10 +24,7 @@ func GenerateConfig(prometheusCfg []PrometheusCfg) []byte {
 	//Set Scrape Config
 	var ScrapeConfigs []*promcfg.ScrapeConfig
 	for _, cluster := range prometheusCfg {
-		basePath := prefix + "/" + cluster.Name
-		CaFilePath := fmt.Sprintf(basePath + "/certificate-authority-data.pem")
-		CertFilePath := fmt.Sprintf(basePath + "/client-certificate-data.pem")
-		KeyFile := fmt.Sprintf(basePath + "/client-key-data.pem")
+
 		scrapeConfig := promcfg.ScrapeConfig{}
 		scrapeConfig.JobName = cluster.Name
 		scrapeConfig.HonorLabels = true
@@ -63,9 +56,9 @@ func GenerateConfig(prometheusCfg []PrometheusCfg) []byte {
 		}
 		scrapeConfig.HTTPClientConfig = promcfg.HTTPClientConfig{
 			TLSConfig: promcfg.TLSConfig{
-				CAFile:             CaFilePath,
-				CertFile:           CertFilePath,
-				KeyFile:            KeyFile,
+				CAFile:             cluster.CaFilePath,
+				CertFile:           cluster.CertFilePath,
+				KeyFile:            cluster.KeyFile,
 				InsecureSkipVerify: true,
 			},
 		}
