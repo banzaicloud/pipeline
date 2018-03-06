@@ -44,7 +44,7 @@ func UpdatePrometheusConfig() error {
 	log.Debugf("Prometheus Config map full name: %s", prometheusConfigMapName)
 
 	prefix := viper.GetString("statestore.path")
-	configMapPath := viper.GetString("statestore.configmap")
+	configMapPath := viper.GetString("monitor.mountpath")
 
 	var clusters []model.ClusterModel
 	db := model.GetDB()

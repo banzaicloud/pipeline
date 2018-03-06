@@ -68,7 +68,7 @@ func PersistKubernetesKeys(cluster CommonCluster) {
 	}
 
 	configMapName := viper.GetString("monitor.configmap")
-	configMapPath := viper.GetString("statestore.configmap")
+	configMapPath := viper.GetString("monitor.mountPath")
 	if configMapName != "" && configMapPath != "" {
 		log.Infof("Save certificates to configmap: %s")
 		if err := saveKeysToConfigmap(config, configMapName, cluster.GetName()); err != nil {
