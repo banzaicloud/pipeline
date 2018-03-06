@@ -3,6 +3,7 @@ package auth
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/banzaicloud/pipeline/model"
@@ -12,17 +13,24 @@ import (
 	// blank import is used here for sql driver inclusion
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/qor/auth"
+	"github.com/qor/auth/claims"
+	"github.com/qor/qor/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+)
+
+const (
+	CurrentOrganization utils.ContextKey = "org"
 )
 
 //User struct
 type User struct {
 	gorm.Model
-	Name  string `form:"name"`
-	Email string `form:"email"`
-	Login string `form:"login"`
-	Image string `form:"image"`
+	Name          string         `form:"name"`
+	Email         string         `form:"email"`
+	Login         string         `gorm:"unique;not null" form:"login"`
+	Image         string         `form:"image"`
+	Organizations []Organization `gorm:"many2many:user_organizations"`
 }
 
 //DroneUser struct
@@ -40,16 +48,49 @@ type DroneUser struct {
 	Synced int64  `gorm:"column:user_synced"`
 }
 
+type UserOrganization struct {
+	Role string `gorm:"DEFAULT:\"admin\""`
+}
+
+//Organization struct
+type Organization struct {
+	ID        uint                 `gorm:"primary_key" json:"id"`
+	CreatedAt time.Time            `json:"createdAt"`
+	UpdatedAt time.Time            `json:"updatedAt"`
+	DeletedAt *time.Time           `sql:"index" json:"deletedAt,omitempty"`
+	Name      string               `gorm:"unique;not null" json:"name"`
+	Users     []User               `gorm:"many2many:user_organizations" json:"users,omitempty"`
+	Clusters  []model.ClusterModel `gorm:"foreignkey:organization_id" json:"clusters,omitempty"`
+}
+
 //TableName sets DroneUser's table name
 func (DroneUser) TableName() string {
 	return "users"
 }
 
-func getCurrentUser(req *http.Request) *User {
+func GetCurrentUser(req *http.Request) *User {
 	if currentUser, ok := Auth.GetCurrentUser(req).(*User); ok {
 		return currentUser
 	}
 	return nil
+}
+
+func GetCurrentOrganization(req *http.Request) *Organization {
+	if organization := req.Context().Value(CurrentOrganization); organization != nil {
+		return organization.(*Organization)
+	}
+	return nil
+}
+
+func GetCurrentUserFromDB(req *http.Request) (*User, error) {
+	if currentUser, ok := Auth.GetCurrentUser(req).(*User); ok {
+		claims := &claims.Claims{UserID: strconv.Itoa(int(currentUser.ID))}
+		context := &auth.Context{Auth: Auth, Claims: claims, Request: req}
+		if user, err := Auth.UserStorer.Get(claims, context); err == nil {
+			return user.(*User), nil
+		}
+	}
+	return nil, nil
 }
 
 //BanzaiUserStorer struct
@@ -68,6 +109,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 	if context.Auth.Config.UserModel != nil {
 		currentUser := &User{}
 		copier.Copy(currentUser, schema)
+
 		// This assumes GitHub auth only right now
 		githubExtraInfo := schema.RawInfo.(*GithubExtraInfo)
 		currentUser.Login = githubExtraInfo.Login
@@ -79,6 +121,13 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 			}
 			bus.synchronizeDroneRepos(currentUser.Login)
 		}
+
+		// When a user registers a default organization is created in which he/she is admin
+		userOrg := Organization{
+			Name: currentUser.Login + "'s Org",
+		}
+		currentUser.Organizations = []Organization{userOrg}
+
 		err = tx.Create(currentUser).Error
 		return currentUser, fmt.Sprint(tx.NewScope(currentUser).PrimaryKeyValue()), err
 	}

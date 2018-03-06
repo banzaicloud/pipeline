@@ -2,8 +2,12 @@ package api
 
 import (
 	"fmt"
+	"net/http"
+	"strconv"
+
 	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/banzai-types/constants"
+	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
@@ -11,11 +15,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"net/http"
-	"strconv"
 )
 
-// TODO se who will win
+// TODO see who will win
 var logger *logrus.Logger
 var log *logrus.Entry
 
@@ -29,9 +31,7 @@ func init() {
 func ParseField(c *gin.Context) map[string]interface{} {
 	value := c.Param("id")
 	field := c.DefaultQuery("field", "id")
-	filter := make(map[string]interface{})
-	filter[field] = value
-	return filter
+	return map[string]interface{}{field: value}
 }
 
 func UpdateMonitoring(c *gin.Context) {
@@ -420,7 +420,9 @@ func FetchClusters(c *gin.Context) {
 
 	var clusters []model.ClusterModel //TODO change this to CommonClusterStatus
 	db := model.GetDB()
-	err := db.Find(&clusters).Error
+	organization := auth.GetCurrentOrganization(c.Request)
+	organization.Name = ""
+	err := db.Model(organization).Related(&clusters).Error
 	if err != nil {
 		log.Errorf("Error listing clusters: %s", err.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{

@@ -72,6 +72,8 @@ func main() {
 		&model.GoogleClusterModel{},
 		&auth_identity.AuthIdentity{},
 		&auth.User{},
+		&auth.UserOrganization{},
+		&auth.Organization{},
 		&defaults.AWSProfile{},
 		&defaults.AKSProfile{},
 		&defaults.GKEProfile{}).Error; err != nil {
@@ -100,29 +102,36 @@ func main() {
 	v1 := router.Group("/api/v1/")
 	{
 		v1.Use(auth.Handler)
-		v1.POST("/clusters", api.CreateCluster)
-		//v1.GET("/status", api.Status)
-		v1.GET("/clusters", api.FetchClusters)
-		v1.GET("/clusters/:id", api.FetchCluster)
-		v1.PUT("/clusters/:id", api.UpdateCluster)
-		v1.DELETE("/clusters/:id", api.DeleteCluster)
-		v1.HEAD("/clusters/:id", api.GetClusterStatus)
-		v1.GET("/clusters/:id/config", api.GetClusterConfig)
-		v1.GET("/clusters/:id/apiendpoint", api.GetApiEndpoint)
-		v1.POST("/clusters/:id/monitoring", api.UpdateMonitoring)
-		v1.GET("/clusters/:id/endpoints", api.ListEndpoints)
-		v1.GET("/clusters/:id/deployments", api.ListDeployments)
-		v1.POST("/clusters/:id/deployments", api.CreateDeployment)
-		v1.HEAD("/clusters/:id/deployments", api.GetTillerStatus)
-		v1.DELETE("/clusters/:id/deployments/:name", api.DeleteDeployment)
-		v1.PUT("/clusters/:id/deployments/:name", api.UpgradeDeployment)
-		v1.HEAD("/clusters/:id/deployments/:name", api.HelmDeploymentStatus)
-		v1.POST("/clusters/:id/helminit", api.InitHelmOnCluster)
-		v1.GET("/cluster/profiles/:type", api.GetClusterProfiles)
-		v1.POST("/cluster/profiles", api.AddClusterProfile)
-		v1.PUT("/cluster/profiles", api.UpdateClusterProfile)
-		v1.DELETE("/cluster/profiles/:type/:name", api.DeleteClusterProfile)
+		orgs := v1.Group("/orgs")
+		{
+			orgs.Use(api.OrganizationMiddleware)
+			orgs.POST("/:orgid/clusters", api.CreateCluster)
+			//v1.GET("/status", api.Status)
+			orgs.GET("/:orgid/clusters", api.FetchClusters)
+			orgs.GET("/:orgid/clusters/:id", api.FetchCluster)
+			orgs.PUT("/:orgid/clusters/:id", api.UpdateCluster)
+			orgs.DELETE("/:orgid/clusters/:id", api.DeleteCluster)
+			orgs.HEAD("/:orgid/clusters/:id", api.GetClusterStatus)
+			orgs.GET("/:orgid/clusters/:id/config", api.GetClusterConfig)
+			orgs.GET("/:orgid/clusters/:id/apiendpoint", api.GetApiEndpoint)
+			orgs.POST("/:orgid/clusters/:id/monitoring", api.UpdateMonitoring)
+			orgs.GET("/:orgid/clusters/:id/endpoints", api.ListEndpoints)
+			orgs.GET("/:orgid/clusters/:id/deployments", api.ListDeployments)
+			orgs.POST("/:orgid/clusters/:id/deployments", api.CreateDeployment)
+			orgs.HEAD("/:orgid/clusters/:id/deployments", api.GetTillerStatus)
+			orgs.DELETE("/:orgid/clusters/:id/deployments/:name", api.DeleteDeployment)
+			orgs.PUT("/:orgid/clusters/:id/deployments/:name", api.UpgradeDeployment)
+			orgs.HEAD("/:orgid/clusters/:id/deployments/:name", api.HelmDeploymentStatus)
+			orgs.POST("/:orgid/clusters/:id/helminit", api.InitHelmOnCluster)
+			orgs.GET("/:orgid/cluster/profiles/:type", api.GetClusterProfiles)
+			orgs.POST("/:orgid/cluster/profiles", api.AddClusterProfile)
+			orgs.PUT("/:orgid/cluster/profiles", api.UpdateClusterProfile)
+			orgs.DELETE("/:orgid/cluster/profiles/:type/:name", api.DeleteClusterProfile)
+		}
 		v1.GET("/token", auth.GenerateToken)
+		v1.GET("/orgs", api.GetOrganizations)
+		v1.GET("/orgs/:orgid", api.GetOrganizations)
+		v1.POST("/orgs", api.CreateOrganization)
 	}
 
 	router.GET("/api", api.MetaHandler(router, "/api"))
