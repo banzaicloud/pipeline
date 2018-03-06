@@ -11,6 +11,53 @@ import (
 func GenerateConfig(prometheusCfg []PrometheusCfg) []byte {
 	//Set Global Config
 	config := promcfg.Config{}
+	config.AlertingConfig = promcfg.AlertingConfig{
+		AlertmanagerConfigs: []*promcfg.AlertmanagerConfig{
+			{
+				ServiceDiscoveryConfig: promcfg.ServiceDiscoveryConfig{
+					KubernetesSDConfigs: []*promcfg.KubernetesSDConfig{
+						{
+							Role: promcfg.KubernetesRole("pod"),
+							TLSConfig: promcfg.TLSConfig{
+								CAFile: "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt",
+							},
+							BearerTokenFile: "/var/run/secrets/kubernetes.io/serviceaccount/token",
+						},
+					},
+				},
+				RelabelConfigs: []*promcfg.RelabelConfig{
+					{
+						SourceLabels: model.LabelNames{
+							model.LabelName("__meta_kubernetes_namespace"),
+						},
+						Action: "keep",
+						Regex:  promcfg.MustNewRegexp("default"),
+					},
+					{
+						SourceLabels: model.LabelNames{
+							model.LabelName("___meta_kubernetes_pod_label_app"),
+						},
+						Action: "keep",
+						Regex:  promcfg.MustNewRegexp("prometheus"),
+					},
+					{
+						SourceLabels: model.LabelNames{
+							model.LabelName("___meta_kubernetes_pod_label_component"),
+						},
+						Action: "keep",
+						Regex:  promcfg.MustNewRegexp("alertmanager"),
+					},
+					{
+						SourceLabels: model.LabelNames{
+							model.LabelName("__meta_kubernetes_pod_container_port_number"),
+						},
+						Action: "drop",
+						Regex:  promcfg.MustNewRegexp(""),
+					},
+				},
+			},
+		},
+	}
 	config.GlobalConfig = promcfg.GlobalConfig{}
 	duration, _ := model.ParseDuration("15s")
 	config.GlobalConfig.EvaluationInterval = duration
@@ -41,17 +88,15 @@ func GenerateConfig(prometheusCfg []PrometheusCfg) []byte {
 				`{job="node_exporter"}`,
 			},
 		}
-		regex, _ := promcfg.NewRegexp(`(.+):(?:\d+)`)
-		labelNames := model.LabelNames{
-			model.LabelName("__address__"),
-		}
 		scrapeConfig.RelabelConfigs = []*promcfg.RelabelConfig{
 			{
-				SourceLabels: labelNames,
-				Action:       "replace",
-				Regex:        regex,
-				Replacement:  "${1}",
-				TargetLabel:  "cluster",
+				SourceLabels: model.LabelNames{
+					model.LabelName("__address__"),
+				},
+				Action:      "replace",
+				Regex:       promcfg.MustNewRegexp(`(.+):(?:\d+)`),
+				Replacement: "${1}",
+				TargetLabel: "cluster",
 			},
 		}
 		scrapeConfig.HTTPClientConfig = promcfg.HTTPClientConfig{
