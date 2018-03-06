@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/banzaicloud/pipeline/api"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
@@ -15,7 +17,6 @@ import (
 	sessionManager "github.com/qor/session/manager"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"os"
 )
 
 //Version of Pipeline
@@ -64,7 +65,7 @@ func main() {
 		model.GoogleClusterModel.TableName(model.GoogleClusterModel{}))
 
 	// Create tables
-	db.AutoMigrate(
+	if err := db.AutoMigrate(
 		&model.ClusterModel{},
 		&model.AmazonClusterModel{},
 		&model.AzureClusterModel{},
@@ -73,8 +74,10 @@ func main() {
 		&auth.User{},
 		&defaults.AWSProfile{},
 		&defaults.AKSProfile{},
-		&defaults.GKEProfile{},
-	)
+		&defaults.GKEProfile{}).Error; err != nil {
+
+		panic(err)
+	}
 
 	defaults.SetDefaultValues()
 
