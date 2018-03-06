@@ -82,6 +82,51 @@ func TestCreateCommonClusterFromRequest(t *testing.T) {
 
 }
 
+func TestGKEKubernetesVersion(t *testing.T) {
+
+	testCases := []struct {
+		name    string
+		version string
+		error
+	}{
+		{name: "version 1.5", version: "1.5", error: constants.ErrorWrongKubernetesVersion},
+		{name: "version 1.6", version: "1.6", error: constants.ErrorWrongKubernetesVersion},
+		{name: "version 1.7.7", version: "1.7.7", error: constants.ErrorWrongKubernetesVersion},
+		{name: "version 1sd.8", version: "1sd", error: constants.ErrorWrongKubernetesVersion},
+		{name: "version 1.8", version: "1.8", error: nil},
+		{name: "version 1.82", version: "1.82", error: nil},
+		{name: "version 1.9", version: "1.9", error: nil},
+		{name: "version 1.15", version: "1.15", error: nil},
+		{name: "version 2.0", version: "2.0", error: nil},
+		{name: "version 2.3242.324", version: "2.3242.324", error: nil},
+		{name: "version 11.5", version: "11.5", error: nil},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			g := google.CreateClusterGoogle{
+				Project: clusterRequestProject,
+				Node: &google.GoogleNode{
+					Count:          clusterRequestNodeCount,
+					Version:        tc.version,
+					ServiceAccount: clusterServiceAccount,
+				},
+				Master: &google.GoogleMaster{
+					Version: tc.version,
+				},
+			}
+
+			err := g.Validate()
+
+			if !reflect.DeepEqual(tc.error, err) {
+				t.Errorf("Expected error: %#v, got: %#v", tc.error, err)
+			}
+
+		})
+	}
+
+}
+
 var (
 	gkeCreateFull = &components.CreateClusterRequest{
 		Name:             clusterRequestName,
