@@ -3,6 +3,7 @@ package model
 import (
 	"bytes"
 	"fmt"
+
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/jinzhu/gorm"
 )
@@ -14,6 +15,7 @@ type ClusterModel struct {
 	Location         string
 	NodeInstanceType string
 	Cloud            string
+	OrganizationId   uint
 	Amazon           AmazonClusterModel
 	Azure            AzureClusterModel
 	Google           GoogleClusterModel

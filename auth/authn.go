@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	jwtRequest "github.com/dgrijalva/jwt-go/request"
@@ -19,8 +20,6 @@ import (
 	"github.com/qor/session/manager"
 	"github.com/satori/go.uuid"
 	"github.com/spf13/viper"
-
-	"strings"
 
 	btype "github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/pipeline/config"
@@ -166,7 +165,7 @@ func Init() {
 //GenerateToken generates token from context
 // TODO: it should be possible to generate tokens via a token (not just session cookie)
 func GenerateToken(c *gin.Context) {
-	currentUser := getCurrentUser(c.Request)
+	currentUser := GetCurrentUser(c.Request)
 	if currentUser == nil {
 		err := c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("Invalid session"))
 		log.Info(c.ClientIP(), err.Error())
@@ -299,7 +298,7 @@ func (sessionStorer *BanzaiSessionStorer) Update(w http.ResponseWriter, req *htt
 	}
 
 	// Set the drone cookie as well
-	currentUser := getCurrentUser(req)
+	currentUser := GetCurrentUser(req)
 	if currentUser == nil {
 		return fmt.Errorf("Can't get current user")
 	}
