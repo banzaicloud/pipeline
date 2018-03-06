@@ -7,7 +7,9 @@ Once Pipeline API is started you can create a cluster in the following ways:
 
     - Using `make create-cluster` and `make delete-cluster`. If you have AWS CLI installed you can use `make ec2-list-instances` in order to see the list of clusters
 
-    - Use CURL `curl http://localhost:9090/api/v1/clusters -X POST -d name=test-$(USER) -d location=eu-west-1 -d nodeInstanceType=m4.xlarge -d nodeInstanceSpotPrice=0.2 -d nodeMin=1 -d nodeMax=3 -d image=ami-6d48500b`
+    - Acquire a Pipeline access token on the GUI via logging in at `http://localhost:9090/auth/github/login` and then after visit `http://localhost:9090/api/v1/token`. Save it into the `PIPELINE_TOKEN` environment variable.
+
+    - Use CURL `curl http://localhost:9090/api/v1/clusters -X POST -H "Authorization: Bearer $PIPELINE_TOKEN" -d name=test-$(USER) -d location=eu-west-1 -d nodeInstanceType=m4.xlarge -d nodeInstanceSpotPrice=0.2 -d nodeMin=1 -d nodeMax=3 -d image=ami-6d48500b`
     
 _Note: AWS spot prices are supported_ 
 
@@ -18,7 +20,7 @@ Pipeline creates, manages and deletes cloud resources for you. In order to avoid
 
 Substitute <clusterid> with the ID of your cluster:
     
-`curl -i -X PUT http://localhost:9090/api/v1/clusters/<clusterid> -H "Accept: application/json" -H "Content-Type: application/json" -d '{"node":{"minCount":6,"maxCount":12}}'`
+`curl -i -X PUT -H "Authorization: Bearer $PIPELINE_TOKEN" http://localhost:9090/api/v1/clusters/<clusterid> -H "Accept: application/json" -H "Content-Type: application/json" -d '{"node":{"minCount":6,"maxCount":12}}'`
 
 ### Logs
 

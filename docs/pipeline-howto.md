@@ -106,11 +106,6 @@ The easiest way for running a Pipeline Control Plane is to use a [Cloudformation
 
      <a href="images/howto/ControlPlaneInstanceConfig.png"><img src="images/howto/ControlPlaneInstanceConfig.png" height="180"></a>
 
-  * **Banzai Pipeline Credentials**
-     * Pipeline API Password - specify the password for accessing the Pipeline REST [API](https://github.com/banzaicloud/pipeline/blob/0.2.0/docs/create.md) exposed by the Pipeline PaaS. **_Take note of the user name and password as those will be required when setting the [secrets](#repository-secrets) for the GitHub repositories in the CI/CD workflow._**
-
-      <a href="images/howto/PipelineCred.png"><img src="images/howto/PipelineCred.png" height="150"></a>
-
   * **Banzai-Ci Credentials**
      * Orgs - comma-separated list of Github organizations whose members to grant access to use Banzai Cloud Pipeline's CI/CD workflow
      * Github Client - GitHub OAuth `Client Id`
