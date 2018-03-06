@@ -15,6 +15,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/banzaicloud/banzai-types/constants"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -35,6 +36,16 @@ func GetK8sConnection(kubeConfig *[]byte) (*kubernetes.Clientset, error) {
 	if err != nil {
 		return nil, fmt.Errorf("create kubernetes connection failed: %v", err)
 	}
+	return client, nil
+}
+
+func GetK8sInClusterConnection() (*kubernetes.Clientset, error) {
+	log.Info("Kubernetes in-cluster configuration.")
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		return nil, errors.Wrap(err, "can't use kubernetes in-cluster config")
+	}
+	client := kubernetes.NewForConfigOrDie(config)
 	return client, nil
 }
 
