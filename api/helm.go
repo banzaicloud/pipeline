@@ -172,7 +172,7 @@ func HelmDeploymentStatus(c *gin.Context) {
 		})
 		return
 	}
-	log.Infof("HelmDeploymentStatus", "Deployment status: %s", status)
+	log.Infof("Deployment status: %d", status)
 	c.JSON(http.StatusOK, htype.DeploymentStatusResponse{
 		Status:  http.StatusOK,
 		Message: "",
@@ -259,11 +259,7 @@ func GetTillerStatus(c *gin.Context) {
 
 //UpgradeDeployment - N/A
 func UpgradeDeployment(c *gin.Context) {
-	c.JSON(http.StatusBadRequest, htype.ErrorResponse{
-		Code:    http.StatusBadRequest,
-		Message: "Function is not available",
-		Error:   "TODO",
-	})
+	c.Status(http.StatusNotImplemented)
 	return
 }
 

@@ -950,14 +950,14 @@ func (g *GKECluster) AddDefaultsToUpdate(r *components.UpdateClusterRequest) {
 
 	// ---- [ Master check ] ---- //
 	if r.GoogleMaster == nil {
-		log.Info(constants.TagValidateCreateCluster, "'master' field is empty. Load it from stored data.")
+		log.Info("'master' field is empty. Load it from stored data.")
 		r.GoogleMaster = defGoogleMaster
 	}
 
 	// ---- [ NodeCount check] ---- //
 	if r.UpdateClusterGoogle.GoogleNode.Count == 0 {
 		def := g.modelCluster.Google.NodeCount
-		log.Info(constants.TagValidateCreateCluster, "Node count set to default value: ", def)
+		log.Info("Node count set to default value: ", def)
 		r.UpdateClusterGoogle.GoogleNode.Count = def
 	}
 }
