@@ -5,7 +5,7 @@
 #### Prerequisites:
 
 * Docker
-* Account on Github (in case of OAuth2 is enabled)
+* Account on Github
 
 #### Pipeline dependencies 
 
@@ -13,8 +13,7 @@
 docker-compose -f docker-compose-local.yml up -d
 ``` 
 
-This will create a `mysql`, `adminer` and `vault` container. The first two is always required by Pipeline,
-Vault is only required when oauth based authentication enabled.
+This will create a `mysql`, `adminer` and `vault` container.
 
 #### Create your config.toml
 
@@ -32,7 +31,7 @@ by modifying the `cloud` section `keypath` entry. This needs to point to the `pu
 
 #### Set Required Environment Variables
 
-If the OAuth2 based authentication is enabled, the `VAULT_ADDR` env var has to be set.
+For accessing Vault the `VAULT_ADDR` env var has to be set, Pipeline stores JWT access tokens there.
 
 ```bash
 VAULT_ADDR=http://127.0.0.1:8200
@@ -52,7 +51,7 @@ Depending on the cloud provider there are couple of env vars has to be set:
 
 #### Run Pipeline
 
-If the OAuth2 based authentication is enabled a token has to be generated,
+For accessing the API an access token has to be generated,
 the above created Github Oauth App `Authorization callback URL` section should be:
 
 ```bash
