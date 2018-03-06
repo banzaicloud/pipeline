@@ -34,7 +34,6 @@ func init() {
 	viper.SetDefault("cloud.configRetrySleep", 15)
 	viper.SetDefault("logging.kubicornloglevel", "debug")
 	viper.SetDefault("statestore.path", "./statestore")
-	viper.SetDefault("statestore.configmap", "")
 	viper.SetDefault("pipeline.listenport", 9090)
 	viper.SetDefault("database.dialect", "mysql")
 	viper.SetDefault("database.port", 3306)
@@ -50,6 +49,7 @@ func init() {
 	viper.SetDefault("monitor.release", ReleaseName)
 	viper.SetDefault("monitor.enabled", false)
 	viper.SetDefault("monitor.configmap", "")
+	viper.SetDefault("monitor.mountPath", "")
 
 	// Find and read the config file
 	if err := viper.ReadInConfig(); err != nil {
