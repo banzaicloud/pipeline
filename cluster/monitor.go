@@ -19,8 +19,11 @@ type prometheusTarget struct {
 
 //PrometheusCfg describes Prometheus config
 type PrometheusCfg struct {
-	Endpoint string
-	Name     string
+	Endpoint     string
+	Name         string
+	CaFilePath   string
+	CertFilePath string
+	KeyFile      string
 }
 
 //UpdatePrometheusConfig updates the Prometheus configuration
@@ -40,6 +43,9 @@ func UpdatePrometheusConfig() error {
 	prometheusConfigMapName := releaseName + "-" + prometheusConfigMap
 	log.Debugf("Prometheus Config map full name: %s", prometheusConfigMapName)
 
+	prefix := viper.GetString("statestore.path")
+	configMapPath := viper.GetString("statestore.configmap")
+
 	var clusters []model.ClusterModel
 	db := model.GetDB()
 	db.Find(&clusters)
@@ -58,13 +64,23 @@ func UpdatePrometheusConfig() error {
 		}
 
 		log.Debugf("Cluster Endpoint IP: %s", kubeEndpoint)
+		basePath := prefix + "/" + commonCluster.GetName()
 
-		prometheusConfig = append(
-			prometheusConfig,
-			PrometheusCfg{
-				Endpoint: kubeEndpoint,
-				Name:     commonCluster.GetName(),
-			})
+		cfgElement := PrometheusCfg{
+			Endpoint: kubeEndpoint,
+			Name:     commonCluster.GetName(),
+		}
+		if configMapPath == "" {
+			cfgElement.CaFilePath = basePath + "/certificate-authority-data.pem"
+			cfgElement.CertFilePath = basePath + "/client-certificate-data.pem"
+			cfgElement.KeyFile = basePath + "/client-key-data.pem"
+		} else {
+			cfgElement.CaFilePath = configMapPath + commonCluster.GetName() + "_certificate-authority-data.pem"
+			cfgElement.CertFilePath = configMapPath + commonCluster.GetName() + "_client-certificate-data.pem"
+			cfgElement.KeyFile = configMapPath + commonCluster.GetName() + "_client-key-data.pem"
+		}
+
+		prometheusConfig = append(prometheusConfig, cfgElement)
 
 	}
 	prometheusConfigRaw := GenerateConfig(prometheusConfig)
