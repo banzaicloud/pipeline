@@ -25,6 +25,7 @@ _Pipeline is a RESTful API to deploy **cloud native** microservices in public cl
 - [Dependency management](#vendoring)
 - [Create and scale your cluster](#create-and-scale-your-cluster)
 - [Deploy applications](#application-deployments)
+- [Security](#security)
 - [Quick howto](#quick-howto)
 - [Spotguide specification](#spotguide-specification)
   - [Big data](#big-data)
@@ -134,6 +135,24 @@ Once Pipeline API is started, the easiest way to deploy applications to it is th
 [![Run in Postman](https://run.pstmn.io/button.svg)](https://www.getpostman.com/collections/b4eb0f62eb53d1ad29f7)
 
 For alternative ways to learn about application deployments please follow the [deployments guide](docs/deployments.md).
+
+### Security
+
+#### Authentication 
+
+For `Authentication` Pipeline uses [OAuth2](https://oauth.net/2/) via delegating user authentication to the service that hosts the user account. There are plenty of OAuth2 identity providers out there: GitHub, Google, Facebook, Azure Active Directory, Twitter and Salesforce to mention only the biggest ones. At this time in Pipeline there is support for GitHub, mainly due to the fact that our [CI/CD component](https://banzaicloud.com/blog/pipeline-howto/) is triggered by GitHub events, but we are using the very flexible [QOR](github.com/qor/auth) package which supports many major providers as a `plugin` mechanism, so it is just a matter of a configuration change to have support for the providers above (beside oldschool username/passwords). The main benefit of this solution is that we **don't have to store any user credentials** and our users can use their existing accounts at these sites to access our service. The OAuth2 flow can be seen in this diagram. When a user hits [Pipeline](https://github.com/banzaicloud/pipeline), they have to first login with GitHub to have a user record created in the RDBMS - the REST endpoint for that is: `https://$HOST/auth/login`.
+
+![Overview of the Pipeline's Auth flow](https://raw.githubusercontent.com/banzaicloud/pipeline/master/docs/images/authn-vault-flow.png)
+
+#### Bearer tokens - JWT 
+
+[JWT token](https://jwt.io) which is a really good candidate for being a [Bearer token](https://jwt.io/introduction/). Note that JWT is based on the [RFC 7519](https://tools.ietf.org/html/rfc7519) standard. The main benefit of JWT is that is `self-contained`, so it allows stateless authentication. The server's protected routes will check for a valid JWT in the Authorization header and if it's present the user will be allowed to access protected resources based on the `scopes` field of the token. JWT is stateless unless you would like to allow users to `revoke` the generated tokens immediately (so not waiting until the token expires). To be able to revoke JWT tokens you have to maintain a blacklist or a whitelist where you store all revoked or valid tokens. 
+
+#### Vault 
+
+For the purpose of storeing tokens we choose HashiCorp's Vault. However there was another major contributor to the decision to standardize on Vault: Vault’s nice integration with the [Kubernetes Authentication API](https://www.vaultproject.io/docs/auth/kubernetes.html). After Vault is started, the Kubernetes auth backend has to be enabled and configured, and with that Vault can `lease` tokens to be able to use its API based on **ServiceAccount JWT tokens**. This enables other applications running in the same Kubernetes cluster to call Vault and with this we can use `tightly scoped tokens` with various TTLs.
+
+![Pipeline Vault connection](https://raw.githubusercontent.com/banzaicloud/pipeline/master/docs/images//token-request-vault-flow.png)
 
 ### Quick howto
 
