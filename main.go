@@ -113,6 +113,7 @@ func main() {
 		v1.HEAD("/clusters/:id", api.GetClusterStatus)
 		v1.GET("/clusters/:id/config", api.GetClusterConfig)
 		v1.GET("/clusters/:id/apiendpoint", api.GetApiEndpoint)
+		v1.POST("/clusters/:id/monitoring", api.UpdateMonitoring)
 		v1.GET("/clusters/:id/endpoints", api.ListEndpoints)
 		v1.GET("/clusters/:id/deployments", api.ListDeployments)
 		v1.POST("/clusters/:id/deployments", api.CreateDeployment)
