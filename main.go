@@ -112,6 +112,7 @@ func main() {
 		v1.DELETE("/clusters/:id", api.DeleteCluster)
 		v1.HEAD("/clusters/:id", api.GetClusterStatus)
 		v1.GET("/clusters/:id/config", api.GetClusterConfig)
+		v1.GET("/clusters/:id/apiendpoint", api.GetApiEndpoint)
 		v1.GET("/clusters/:id/endpoints", api.ListEndpoints)
 		v1.GET("/clusters/:id/deployments", api.ListDeployments)
 		v1.POST("/clusters/:id/deployments", api.CreateDeployment)

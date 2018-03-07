@@ -234,6 +234,23 @@ func GetClusterConfig(c *gin.Context) {
 	return
 }
 
+func GetApiEndpoint(c *gin.Context) {
+	commonCluster, ok := GetCommonClusterFromRequest(c)
+	if ok != true {
+		return
+	}
+	endPoint, err := commonCluster.GetAPIEndpoint()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error parsing request",
+			Error:   err.Error(),
+		})
+	}
+	c.String(http.StatusOK, endPoint)
+	return
+}
+
 // UpdateCluster updates a K8S cluster in the cloud (e.g. autoscale)
 func UpdateCluster(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagUpdateCluster})
