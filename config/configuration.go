@@ -49,7 +49,7 @@ func init() {
 	viper.SetDefault("monitor.release", ReleaseName)
 	viper.SetDefault("monitor.enabled", false)
 	viper.SetDefault("monitor.configmap", "")
-	viper.SetDefault("monitor.mountPath", "")
+	viper.SetDefault("monitor.mountpath", "")
 
 	// Find and read the config file
 	if err := viper.ReadInConfig(); err != nil {

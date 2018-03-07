@@ -75,9 +75,9 @@ func UpdatePrometheusConfig() error {
 			cfgElement.CertFilePath = basePath + "/client-certificate-data.pem"
 			cfgElement.KeyFile = basePath + "/client-key-data.pem"
 		} else {
-			cfgElement.CaFilePath = configMapPath + commonCluster.GetName() + "_certificate-authority-data.pem"
-			cfgElement.CertFilePath = configMapPath + commonCluster.GetName() + "_client-certificate-data.pem"
-			cfgElement.KeyFile = configMapPath + commonCluster.GetName() + "_client-key-data.pem"
+			cfgElement.CaFilePath = configMapPath + "/" + commonCluster.GetName() + "_certificate-authority-data.pem"
+			cfgElement.CertFilePath = configMapPath + "/" + commonCluster.GetName() + "_client-certificate-data.pem"
+			cfgElement.KeyFile = configMapPath + "/" + commonCluster.GetName() + "_client-key-data.pem"
 		}
 
 		prometheusConfig = append(prometheusConfig, cfgElement)
