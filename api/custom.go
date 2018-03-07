@@ -10,13 +10,12 @@ import (
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"net/http"
 	"strings"
+	"k8s.io/api/core/v1"
 )
 
 // ListEndpoints lists service public endpoints
 func ListEndpoints(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": "ListEndpoints"})
-	const traefik = "traefik"
-	var endpointList []*htype.EndpointItem
 
 	kubeConfig, ok := GetK8sConfig(c)
 	if ok != true {
@@ -43,31 +42,43 @@ func ListEndpoints(c *gin.Context) {
 		})
 		return
 	}
+
+	ingressList, err := client.ExtensionsV1beta1().Ingresses("").List(meta_v1.ListOptions{})
+	if err != nil {
+		log.Errorf("Error listing ingresses: %s", err)
+		c.JSON(http.StatusInternalServerError, htype.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: fmt.Sprintf("List kubernetes ingresses failed: %+v", err),
+		})
+		return
+	}
+	endpointList := getLoadBalancersWithIngressPaths(serviceList, ingressList)
+
+	c.JSON(http.StatusOK, htype.EndpointResponse{
+		Endpoints: endpointList,
+	})
+}
+
+func getLoadBalancersWithIngressPaths(serviceList *v1.ServiceList, ingressList *v1beta1.IngressList) []*htype.EndpointItem {
+	var endpointList []*htype.EndpointItem
+	const traefik = "traefik"
+
 	for _, service := range serviceList.Items {
 		var endpointURLs []*htype.EndPointURLs
 		log.Debugf("Service: %#v", service.Status)
 		if len(service.Status.LoadBalancer.Ingress) > 0 {
 			//TODO we should avoid differences on kubernetes level
-			var publicIp string
+			var publicIP string
 			if service.Status.LoadBalancer.Ingress[0].Hostname != "" {
-				publicIp = service.Status.LoadBalancer.Ingress[0].Hostname
+				publicIP = service.Status.LoadBalancer.Ingress[0].Hostname
 			} else {
-				publicIp = service.Status.LoadBalancer.Ingress[0].IP
+				publicIP = service.Status.LoadBalancer.Ingress[0].IP
 			}
 			if strings.Contains(service.Spec.Selector["app"], traefik) {
-				ingressList, err := client.ExtensionsV1beta1().Ingresses("").List(meta_v1.ListOptions{})
-				if err != nil {
-					log.Errorf("Error listing ingresses: %s", err)
-					c.JSON(http.StatusInternalServerError, htype.ErrorResponse{
-						Code:    http.StatusInternalServerError,
-						Message: fmt.Sprintf("List kubernetes ingresses failed: %+v", err),
-					})
-					return
-				}
 				for _, ingress := range ingressList.Items {
 					log.Debugf("Inspecting ingress: %s", ingress.Name)
 					if ingress.Annotations["kubernetes.io/ingress.class"] == traefik {
-						endpoints := getIngressEndpoints(publicIp, &ingress)
+						endpoints := getIngressEndpoints(publicIP, &ingress)
 						for i := 0; i < len(endpoints); i++ {
 							endpointURLs = append(endpointURLs, &(endpoints[i]))
 						}
@@ -76,15 +87,12 @@ func ListEndpoints(c *gin.Context) {
 			}
 			endpointList = append(endpointList, &htype.EndpointItem{
 				Name:         service.Name,
-				Host:         publicIp,
+				Host:         publicIP,
 				EndPointURLs: endpointURLs,
 			})
 		}
 	}
-
-	c.JSON(http.StatusOK, htype.EndpointResponse{
-		Endpoints: endpointList,
-	})
+	return endpointList
 }
 
 // getIngressEndpoints iterates through all the rules->paths defined in the given Ingress object
