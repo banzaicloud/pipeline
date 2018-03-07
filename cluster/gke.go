@@ -933,6 +933,9 @@ func CreateGKEClusterFromModel(clusterModel *model.ClusterModel) (*GKECluster, e
 
 //AddDefaultsToUpdate adds defaults to update request
 func (g *GKECluster) AddDefaultsToUpdate(r *components.UpdateClusterRequest) {
+
+	log := logger.WithFields(logrus.Fields{"action": "AddDefaultsToUpdate"})
+
 	defGoogleNode := &bGoogle.GoogleNode{
 		Version: g.modelCluster.Google.NodeVersion,
 		Count:   g.modelCluster.Google.NodeCount,
@@ -944,26 +947,29 @@ func (g *GKECluster) AddDefaultsToUpdate(r *components.UpdateClusterRequest) {
 
 	// ---- [ Node check ] ---- //
 	if r.GoogleNode == nil {
-		log.Info("'node' field is empty. Load it from stored data.")
+		log.Warn("'node' field is empty. Load it from stored data.")
 		r.GoogleNode = defGoogleNode
 	}
 
 	// ---- [ Master check ] ---- //
 	if r.GoogleMaster == nil {
-		log.Info("'master' field is empty. Load it from stored data.")
+		log.Warn("'master' field is empty. Load it from stored data.")
 		r.GoogleMaster = defGoogleMaster
 	}
 
 	// ---- [ NodeCount check] ---- //
 	if r.UpdateClusterGoogle.GoogleNode.Count == 0 {
 		def := g.modelCluster.Google.NodeCount
-		log.Info("Node count set to default value: ", def)
+		log.Warn("Node count set to default value: ", def)
 		r.UpdateClusterGoogle.GoogleNode.Count = def
 	}
 }
 
 //CheckEqualityToUpdate validates the update request
 func (g *GKECluster) CheckEqualityToUpdate(r *components.UpdateClusterRequest) error {
+
+	log := logger.WithFields(logrus.Fields{"action": "CheckEqualityToUpdate"})
+
 	// create update request struct with the stored data to check equality
 	preCl := &bGoogle.UpdateClusterGoogle{
 		GoogleMaster: &bGoogle.GoogleMaster{
