@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"context"
 	"encoding/base32"
 	"fmt"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	jwtRequest "github.com/dgrijalva/jwt-go/request"
 	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/gorm"
 	"github.com/qor/auth"
 	"github.com/qor/auth/authority"
 	"github.com/qor/auth/claims"
@@ -220,8 +222,8 @@ func hmacKeyFunc(token *jwt.Token) (interface{}, error) {
 	return []byte(signingKeyBase32), nil
 }
 
-//Auth0Handler handles auth
-func Auth0Handler(c *gin.Context) {
+//Handler handles authentication
+func Handler(c *gin.Context) {
 	currentUser := Auth.GetCurrentUser(c.Request)
 	if currentUser != nil {
 		return
@@ -276,7 +278,16 @@ func Auth0Handler(c *gin.Context) {
 		log.Info("Needs more privileges")
 		return
 	}
+
+	saveUserIntoContext(c, &claims)
+
 	c.Next()
+}
+
+func saveUserIntoContext(c *gin.Context, claims *ScopedClaims) {
+	userID, _ := strconv.ParseUint(claims.Subject, 10, 32)
+	newContext := context.WithValue(c.Request.Context(), auth.CurrentUser, &User{Model: gorm.Model{ID: uint(userID)}})
+	c.Request = c.Request.WithContext(newContext)
 }
 
 //BanzaiSessionStorer stores the banzai session

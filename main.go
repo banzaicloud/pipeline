@@ -102,7 +102,7 @@ func main() {
 	v1 := router.Group("/api/v1/")
 	{
 		if auth.IsEnabled() {
-			v1.Use(auth.Auth0Handler)
+			v1.Use(auth.Handler)
 		}
 		v1.POST("/clusters", api.CreateCluster)
 		//v1.GET("/status", api.Status)
