@@ -34,6 +34,12 @@ func ParseField(c *gin.Context) map[string]interface{} {
 	return filter
 }
 
+func UpdateMonitoring(c *gin.Context) {
+	cluster.UpdatePrometheus()
+	c.String(http.StatusOK, "OK")
+	return
+}
+
 // GetCommonClusterFromRequest just a simple getter to build commonCluster object this handles error messages directly
 func GetCommonClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
 	filter := ParseField(c)
@@ -220,6 +226,17 @@ func GetClusterConfig(c *gin.Context) {
 		})
 		return
 	}
+
+	// Force persist keys
+	persistParam := c.DefaultQuery("persist", "false")
+	persist, err := strconv.ParseBool(persistParam)
+	if err != nil {
+		persist = false
+	}
+	if persist {
+		cluster.PersistKubernetesKeys(commonCluster)
+	}
+
 	contentType := c.NegotiateFormat(gin.MIMEPlain, gin.MIMEJSON)
 	log.Debug("Content-Type: ", contentType)
 	switch contentType {
