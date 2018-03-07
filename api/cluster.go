@@ -236,7 +236,7 @@ func GetClusterConfig(c *gin.Context) {
 
 func GetApiEndpoint(c *gin.Context) {
 	commonCluster, ok := GetCommonClusterFromRequest(c)
-	if ok != true {
+	if !ok {
 		return
 	}
 	endPoint, err := commonCluster.GetAPIEndpoint()
@@ -246,6 +246,7 @@ func GetApiEndpoint(c *gin.Context) {
 			Message: "Error parsing request",
 			Error:   err.Error(),
 		})
+		return
 	}
 	c.String(http.StatusOK, endPoint)
 	return
