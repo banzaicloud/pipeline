@@ -163,15 +163,17 @@ func HelmDeploymentStatus(c *gin.Context) {
 	kubeConfig, ok := GetK8sConfig(c)
 
 	if !ok {
-		log.Debugf("could not get the k8s config")
+		log.Debug("could not get the k8s config")
 		return
 	}
 
 	status, err := helm.GetDeploymentStatus(name, kubeConfig)
 	// we have the status code in the status, regardless the error!
 
-	msg := "Status ok"
-	var statusCode int
+	var (
+		statusCode int
+		msg        string
+	)
 
 	if err != nil {
 		// the helm client returned with error
@@ -184,7 +186,6 @@ func HelmDeploymentStatus(c *gin.Context) {
 			statusCode = http.StatusOK
 			msg = val
 		}
-
 	}
 
 	log.Infof("deployment status for [%s] is [%d]", name, status)
