@@ -59,8 +59,7 @@ func GetK8sClientConfig(kubeConfig *[]byte) (*rest.Config, error) {
 		config, err = clientConfig.ClientConfig()
 		log.Debug("Use K8S RemoteCluster Config: ", config.ServerName)
 	} else {
-		log.Info("Use K8S InCluster Config.")
-		config, err = rest.InClusterConfig()
+		return nil, errors.New("kubeconfig value is nil")
 	}
 	if err != nil {
 		return nil, fmt.Errorf("create kubernetes config failed: %v", err)
