@@ -63,7 +63,7 @@ imports:
   - cluster
   - utils
 - name: github.com/banzaicloud/banzai-types
-  version: bf997e22bf99bd44b35d9fd1382204e5b54c0fae
+  version: 58a74b1ed9c00f9580e76c4ba75cacb69440d15c
   subpackages:
   - components
   - components/amazon
