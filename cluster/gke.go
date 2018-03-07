@@ -73,12 +73,38 @@ type GKECluster struct {
 	APIEndpoint   string
 }
 
+func (g *GKECluster) GetGoogleCluster() (*gke.Cluster, error) {
+	if g.googleCluster != nil {
+		return g.googleCluster, nil
+	}
+	getCredentialPath()
+	svc, err := getGoogleServiceClient()
+	if err != nil {
+		return nil, err
+	}
+	cc := googleCluster{
+		Name:      g.modelCluster.Name,
+		ProjectID: g.modelCluster.Google.Project,
+		Zone:      g.modelCluster.Location,
+	}
+	cluster, err := getClusterGoogle(svc, cc)
+	if err != nil {
+		return nil, err
+	}
+	g.googleCluster = cluster
+	return g.googleCluster, nil
+}
+
 //GetAPIEndpoint returns the Kubernetes Api endpoint
 func (g *GKECluster) GetAPIEndpoint() (string, error) {
 	if g.APIEndpoint != "" {
 		return g.APIEndpoint, nil
 	}
-	g.APIEndpoint = g.googleCluster.Endpoint
+	cluster, err := g.GetGoogleCluster()
+	if err != nil {
+		return "", err
+	}
+	g.APIEndpoint = cluster.Endpoint
 	return g.APIEndpoint, nil
 }
 
@@ -158,6 +184,9 @@ func (g *GKECluster) Persist() error {
 //GetK8sConfig returns the Kubernetes config
 func (g *GKECluster) GetK8sConfig() (*[]byte, error) {
 
+	if g.k8sConfig != nil {
+		return g.k8sConfig, nil
+	}
 	log := logger.WithFields(logrus.Fields{"action": constants.TagFetchClusterConfig})
 
 	// to set env var
@@ -170,7 +199,6 @@ func (g *GKECluster) GetK8sConfig() (*[]byte, error) {
 		// TODO status code !?
 		return nil, errors.New(be.Message)
 	}
-
 	// get config succeeded
 	log.Info("Get k8s config succeeded")
 
