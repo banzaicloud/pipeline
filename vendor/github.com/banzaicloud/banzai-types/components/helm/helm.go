@@ -36,6 +36,7 @@ type EndpointResponse struct {
 type EndpointItem struct {
 	Name         string          `json:"name"`
 	Host         string          `json:"host"`
+	Ports        map[string]int32 `json:"ports"`
 	EndPointURLs []*EndPointURLs `json:"urls"`
 }
 

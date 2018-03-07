@@ -74,6 +74,12 @@ func getLoadBalancersWithIngressPaths(serviceList *v1.ServiceList, ingressList *
 			} else {
 				publicIP = service.Status.LoadBalancer.Ingress[0].IP
 			}
+			ports := make(map[string]int32)
+			if len(service.Spec.Ports) > 0 {
+				for _, port := range service.Spec.Ports {
+					ports[port.Name] = port.Port
+				}
+			}
 			if strings.Contains(service.Spec.Selector["app"], traefik) {
 				for _, ingress := range ingressList.Items {
 					log.Debugf("Inspecting ingress: %s", ingress.Name)
@@ -88,6 +94,7 @@ func getLoadBalancersWithIngressPaths(serviceList *v1.ServiceList, ingressList *
 			endpointList = append(endpointList, &htype.EndpointItem{
 				Name:         service.Name,
 				Host:         publicIP,
+				Ports:        ports,
 				EndPointURLs: endpointURLs,
 			})
 		}
