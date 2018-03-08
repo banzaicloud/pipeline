@@ -35,7 +35,6 @@ enabled = false
 
 [auth]
 enabled = true
-vaultpath = "./vault"
 
 # GitHub settings
 clientid = ""

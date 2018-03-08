@@ -2,12 +2,13 @@ package config
 
 import (
 	"fmt"
-	"github.com/gin-contrib/cors"
-	"github.com/spf13/viper"
 	"log"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/gin-contrib/cors"
+	"github.com/spf13/viper"
 )
 
 //Init initializes the configurations
@@ -23,7 +24,6 @@ func init() {
 
 	// Set defaults TODO expand defaults
 	viper.SetDefault("drone.enabled", false)
-	viper.SetDefault("auth.vaultpath", "./vault")
 	viper.SetDefault("helm.retryAttempt", 30)
 	viper.SetDefault("helm.retrySleepSeconds", 15)
 	viper.SetDefault("helm.stableRepositoryURL", "https://kubernetes-charts.storage.googleapis.com")

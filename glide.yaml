@@ -285,3 +285,6 @@ import:
 - package: github.com/qor/session
   subpackages:
   - manager
+- package: github.com/banzaicloud/bank-vaults
+  subpackages:
+  - vault

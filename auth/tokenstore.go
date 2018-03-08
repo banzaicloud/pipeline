@@ -2,13 +2,10 @@ package auth
 
 import (
 	"fmt"
-	"io/ioutil"
 	"sync"
 
-	"k8s.io/client-go/rest"
-
-	vault "github.com/hashicorp/vault/api"
-	"github.com/spf13/viper"
+	"github.com/banzaicloud/bank-vaults/vault"
+	vaultapi "github.com/hashicorp/vault/api"
 )
 
 // TokenStore is general interface for storing access tokens
@@ -85,57 +82,19 @@ func (tokenStore *inMemoryTokenStore) List(userId string) ([]string, error) {
 // $ vault server -dev &
 // $ export VAULT_ADDR='http://127.0.0.1:8200'
 type vaultTokenStore struct {
-	client       *vault.Client
-	logical      *vault.Logical
-	tokenRenewer *vault.Renewer
+	client  *vault.Client
+	logical *vaultapi.Logical
 }
 
 //NewVaultTokenStore creates a new Vault backed token store
 func NewVaultTokenStore() TokenStore {
-	client, err := vault.NewClient(vault.DefaultConfig())
+	role := "pipeline"
+	client, err := vault.NewClient(role)
 	if err != nil {
 		panic(err)
 	}
-	logical := client.Logical()
-	var tokenRenewer *vault.Renewer
-
-	if client.Token() == "" {
-
-		tokenPath := viper.GetString("auth.vaultpath")
-		token, err := ioutil.ReadFile(tokenPath + "/.vault-token")
-		if err == nil {
-
-			client.SetToken(string(token))
-
-		} else {
-			// If VAULT_TOKEN or ~/.vault-token wasn't provided let's suppose
-			// we are in Kubernetes and try to get one with the ServiceAccount token
-
-			k8sconfig, err := rest.InClusterConfig()
-			if err != nil {
-				panic(err)
-			}
-
-			data := map[string]interface{}{"jwt": k8sconfig.BearerToken, "role": "pipeline"}
-			secret, err := logical.Write("auth/kubernetes/login", data)
-			if err != nil {
-				panic(err)
-			}
-
-			tokenRenewer, err = client.NewRenewer(&vault.RenewerInput{Secret: secret})
-			if err != nil {
-				panic(err)
-			}
-
-			// We never really want to stop this
-			go tokenRenewer.Renew()
-
-			// Finally set the first token from the response
-			client.SetToken(secret.Auth.ClientToken)
-		}
-	}
-
-	return vaultTokenStore{client: client, logical: logical, tokenRenewer: tokenRenewer}
+	logical := client.Vault().Logical()
+	return vaultTokenStore{client: client, logical: logical}
 }
 
 func tokenPath(userId, token string) string {
