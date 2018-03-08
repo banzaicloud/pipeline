@@ -29,7 +29,7 @@ services:
     ports:
       - 8200:8200
     volumes:
-      - ./vault:/home/vault
+      - $HOME:/home/vault
 
   drone-server:
     image: banzaicloud/drone:0.3.0

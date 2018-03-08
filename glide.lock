@@ -1,5 +1,5 @@
-hash: f6b416a45115e12fcbb9ff34cdbb56734e749dc5b6c4a27d0d367ebc66271eb2
-updated: 2018-02-24T14:27:01.745255+01:00
+hash: 339cf68aab54c66342ed15ab7659458647e61635ed2f18a44cfb0849c07ee06f
+updated: 2018-03-10T14:41:17.265028+01:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -62,6 +62,10 @@ imports:
   - client
   - cluster
   - utils
+- name: github.com/banzaicloud/bank-vaults
+  version: 1211922aa2951c40474e663ca0e57f4436077cc9
+  subpackages:
+  - vault
 - name: github.com/banzaicloud/banzai-types
   version: e86d61906327b2a3583c417d944fca87bcf093aa
   subpackages:
@@ -82,7 +86,7 @@ imports:
   subpackages:
   - spew
 - name: github.com/dgrijalva/jwt-go
-  version: dbeaa9332f19a944acb5736b4456cfcc02140e29
+  version: 06ea1031745cb8b3dab3f6a236daf2b0aa468b7e
   subpackages:
   - request
 - name: github.com/digitalocean/godo
@@ -275,7 +279,7 @@ imports:
   - json/scanner
   - json/token
 - name: github.com/hashicorp/vault
-  version: 2e2c89a3d8d2f4876c64dee6ba3d4a5e08691aee
+  version: 36edb4d42380d89a897e7f633046423240b710d9
   subpackages:
   - api
   - helper/compressutil
@@ -347,10 +351,8 @@ imports:
   - cutil/script
   - cutil/signals
   - cutil/uuid
-  - profiles
   - state
   - state/fs
-  - test
 - name: github.com/kris-nova/lolgopher
   version: 14bbba5e911d8e26eda5a2254405941b2c38607d
 - name: github.com/magiconair/properties
