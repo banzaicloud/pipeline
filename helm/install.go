@@ -47,12 +47,19 @@ func PreInstall(helmInstall *helm.Install, kubeConfig *[]byte) error {
 		ObjectMeta: v1MetaData,
 	}
 	log.Info("create service account")
-	_, err = client.CoreV1().ServiceAccounts(helmInstall.Namespace).Create(serviceAccount)
-	if err != nil {
-		if !strings.Contains(err.Error(), "already exists") {
-			return errors.Wrap(err, fmt.Sprintf("create service account failed: %s", err))
+	for i := 0; i <= 5; i++ {
+		_, err = client.CoreV1().ServiceAccounts(helmInstall.Namespace).Create(serviceAccount)
+		if err != nil {
+			log.Warnf("create service account failed: %s", err.Error())
+			if strings.Contains(err.Error(), "etcdserver: request timed out") {
+				time.Sleep(time.Duration(10) * time.Second)
+				continue
+			}
+			if !strings.Contains(err.Error(), "already exists") {
+				return errors.Wrap(err, fmt.Sprintf("create service account failed: %s", err))
+			}
 		}
-		log.Info(err.Error())
+		break
 	}
 
 	clusterRoleBinding := &v1.ClusterRoleBinding{
@@ -70,12 +77,19 @@ func PreInstall(helmInstall *helm.Install, kubeConfig *[]byte) error {
 			}},
 	}
 	log.Info("create cluster role bindings")
-	_, err = client.RbacV1().ClusterRoleBindings().Create(clusterRoleBinding)
-	if err != nil {
-		if !strings.Contains(err.Error(), "already exists") {
-			return errors.Wrap(err, fmt.Sprintf("create role bindings failed: %s", err))
+	for i := 0; i <= 5; i++ {
+		_, err = client.RbacV1().ClusterRoleBindings().Create(clusterRoleBinding)
+		if err != nil {
+			log.Warnf("create role bindings failed: %s", err.Error())
+			if strings.Contains(err.Error(), "etcdserver: request timed out") {
+				time.Sleep(time.Duration(10) * time.Second)
+				continue
+			}
+			if !strings.Contains(err.Error(), "already exists") {
+				return errors.Wrap(err, fmt.Sprintf("create role bindings failed: %s", err))
+			}
 		}
-		log.Infof("create role bindings failed: %s", err)
+		break
 	}
 	clusterRole := &v1.ClusterRole{
 		ObjectMeta: v1MetaData,
@@ -100,12 +114,19 @@ func PreInstall(helmInstall *helm.Install, kubeConfig *[]byte) error {
 			}},
 	}
 	log.Info("create cluster roles")
-	_, err = client.RbacV1().ClusterRoles().Create(clusterRole)
-	if err != nil {
-		if !strings.Contains(err.Error(), "already exists") {
-			return errors.Wrap(err, fmt.Sprintf("create roles failed: %s", err))
+	for i := 0; i <= 5; i++ {
+		_, err = client.RbacV1().ClusterRoles().Create(clusterRole)
+		if err != nil {
+			if strings.Contains(err.Error(), "etcdserver: request timed out") {
+				time.Sleep(time.Duration(10) * time.Second)
+				continue
+			}
+			log.Warnf("create roles failed: %s", err.Error())
+			if !strings.Contains(err.Error(), "already exists") {
+				return errors.Wrap(err, fmt.Sprintf("create roles failed: %s", err))
+			}
 		}
-		log.Infof("create roles failed: %s", err)
+		break
 	}
 	return nil
 }
@@ -113,12 +134,12 @@ func PreInstall(helmInstall *helm.Install, kubeConfig *[]byte) error {
 // RetryHelmInstall retries for a configurable time/interval
 // Azure AKS sometimes failing because of TLS handshake timeout, there are several issues on GitHub about that:
 // https://github.com/Azure/AKS/issues/112, https://github.com/Azure/AKS/issues/116, https://github.com/Azure/AKS/issues/14
-func RetryHelmInstall(helmInstall *helm.Install, kubeconfig *[]byte, path string) error {
+func  RetryHelmInstall(helmInstall *helm.Install, kubeconfig *[]byte, path string) error {
 	log := logger.WithFields(logrus.Fields{"tag": "RetryHelmInstall"})
 	retryAttempts := viper.GetInt(constants.HELM_RETRY_ATTEMPT_CONFIG)
 	retrySleepSeconds := viper.GetInt(constants.HELM_RETRY_SLEEP_SECONDS)
 	for i := 0; i <= retryAttempts; i++ {
-		log.Debugf("Waiting %d/%d", i, retryAttempts)
+		log.Infof("Waiting %d/%d", i, retryAttempts)
 		err := Install(helmInstall, kubeconfig, path)
 		if err != nil {
 			if strings.Contains(err.Error(), "net/http: TLS handshake timeout") {
