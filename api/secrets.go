@@ -7,11 +7,11 @@ import (
 	vault "github.com/hashicorp/vault/api"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"io/ioutil"
 	"k8s.io/client-go/rest"
 	"math/rand"
 	"net/http"
-	"os/user"
 	"strings"
 	"time"
 )
@@ -258,12 +258,8 @@ func newVaultSecretStore() *secretStore {
 
 	if client.Token() == "" {
 
-		usr, err := user.Current()
-		if err != nil {
-			panic(err)
-		}
-
-		token, err := ioutil.ReadFile(usr.HomeDir + "/.vault-token")
+		tokenPath := viper.GetString("auth.vaultpath")
+		token, err := ioutil.ReadFile(tokenPath + "/.vault-token")
 		if err == nil {
 
 			client.SetToken(string(token))
