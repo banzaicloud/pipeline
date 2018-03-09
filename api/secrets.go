@@ -352,11 +352,10 @@ type SecretType string
 var allSecretTypes = []SecretType{
 	Amazon,
 	Azure,
-	// Google, // todo put back if the rules are completed
+	Google,
 }
 
 func getRules() []rule {
-	// todo add google rules
 	return []rule{
 		{
 			secretType: Amazon,
@@ -372,6 +371,21 @@ func getRules() []rule {
 				{requiredKey: "AZURE_CLIENT_SECRET"},
 				{requiredKey: "AZURE_TENANT_ID"},
 				{requiredKey: "AZURE_SUBSCRIPTION_ID"},
+			},
+		},
+		{
+			secretType: Google,
+			requiredKeys: []ruleKey{
+				{requiredKey: "TYPE"},
+				{requiredKey: "PROJECT_ID"},
+				{requiredKey: "PRIVATE_KEY_ID"},
+				{requiredKey: "PRIVATE_KEY"},
+				{requiredKey: "CLIENT_EMAIL"},
+				{requiredKey: "CLIENT_ID"},
+				{requiredKey: "AUTH_URI"},
+				{requiredKey: "TOKEN_URI"},
+				{requiredKey: "AUTH_PROVIDER_X509_CERT_URL"},
+				{requiredKey: "CLIENT_X509_CERT_URL"},
 			},
 		},
 	}
@@ -399,5 +413,5 @@ type ruleKey struct {
 const (
 	Amazon SecretType = "AMAZON_SECRET"
 	Azure  SecretType = "AZURE_SECRET"
-	// Google SecretType = "GOOGLE_SECRET" // todo put back if the rules are completed
+	Google SecretType = "GOOGLE_SECRET"
 )
