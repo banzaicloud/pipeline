@@ -107,11 +107,12 @@ func TestIngressEndpointUrls(t *testing.T) {
 		t.Errorf("Expected: %v, got: %v", expectedEndpoints, actualEndpoints)
 	}
 }
-const(
-	dummyLoadBalancer = "dummy.loadbalancer"
+
+const (
+	dummyLoadBalancer  = "dummy.loadbalancer"
 	dummyLoadBalancer2 = "dummy.loadbalancer2"
-	dummyIP = "192.168.0.1"
-	traefik = "traefik"
+	dummyIP            = "192.168.0.1"
+	traefik            = "traefik"
 )
 
 var (
@@ -191,6 +192,32 @@ var (
 		},
 		},
 	}
+	serviceListWithPort = &v1.ServiceList{
+		Items: []v1.Service{{
+			ObjectMeta: v12.ObjectMeta{
+				Name: "loadBalancerWithPort",
+			},
+			Spec: v1.ServiceSpec{
+				Ports:[]v1.ServicePort{{
+					Name: "UI",
+					Port: 80,
+				},{
+					Name: "API",
+					Port: 3000,
+				},
+				},
+			},
+			Status: v1.ServiceStatus{
+				LoadBalancer: v1.LoadBalancerStatus{
+					Ingress: []v1.LoadBalancerIngress{{
+						Hostname: dummyLoadBalancer,
+					},
+					},
+				},
+			},
+		},
+		},
+	}
 )
 var (
 	ingressListWithMultipleLoadBalancer = &v1beta1.IngressList{
@@ -232,16 +259,19 @@ var (
 	expectedEndpointListWithHostName = []*htype.EndpointItem{{
 		Name:         "serviceListWithHostName",
 		Host:         dummyLoadBalancer,
+		Ports:        make(map[string]int32),
 		EndPointURLs: nil,
 	},}
 	expectedEndpointListWithIP = []*htype.EndpointItem{{
 		Name:         "serviceListWithIP",
 		Host:         dummyIP,
+		Ports:        make(map[string]int32),
 		EndPointURLs: nil,
 	},}
 	expectedEndpointWithMultipleLoadBalancer = []*htype.EndpointItem{{
 		Name: "loadBalancerWithIngress",
 		Host: "dummy.loadbalancer",
+		Ports:        make(map[string]int32),
 		EndPointURLs: []*htype.EndPointURLs{
 			{
 				ServiceName: "svc1_path1",
@@ -255,11 +285,22 @@ var (
 	}, {
 		Name:         "loadBalancerWithoutIngress",
 		Host:         dummyLoadBalancer2,
+		Ports:        make(map[string]int32),
 		EndPointURLs: nil,
 	},}
+	expectedEndpointListWithPort = []*htype.EndpointItem{{
+		Name: "loadBalancerWithPort",
+		Host: "dummy.loadbalancer",
+		Ports: map[string]int32 {
+			"UI": 80,
+			"API": 3000,
+		},
+		EndPointURLs: nil,
+	},
+	}
 )
 
-func TestProba(t *testing.T) {
+func TestLoadBalancersWithIngressPaths(t *testing.T) {
 	cases := []struct {
 		testName             string
 		inputServiceList     *v1.ServiceList
@@ -271,13 +312,14 @@ func TestProba(t *testing.T) {
 		{testName: "serviceWithIP", inputServiceList: serviceListWithIP, inputIngressList: nil, expectedEndPointList: expectedEndpointListWithIP},
 		{testName: "serviceWithMultipleLoadBalancer", inputServiceList: serviceListWithMultipleLoadBalancer,
 			inputIngressList: ingressListWithMultipleLoadBalancer, expectedEndPointList: expectedEndpointWithMultipleLoadBalancer},
+		{testName: "serviceWithPorts", inputServiceList: serviceListWithPort, inputIngressList: nil, expectedEndPointList: expectedEndpointListWithPort},
 	}
 	for _, tc := range cases {
 		t.Run(tc.testName, func(t *testing.T) {
 			endpointList := getLoadBalancersWithIngressPaths(tc.inputServiceList, tc.inputIngressList)
 
 			if !reflect.DeepEqual(tc.expectedEndPointList, endpointList) {
-				t.Errorf("Expected: %v, got: %v", tc.expectedEndPointList, endpointList)
+				t.Errorf("Expected: %#v, got: %#v", tc.expectedEndPointList, endpointList)
 			}
 		})
 	}

@@ -1,0 +1,4332 @@
+{
+   "id":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+   "name":"End2End TEST v0.3.0",
+   "description":"Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
+   "auth":null,
+   "events":[
+
+   ],
+   "variables":[
+
+   ],
+   "order":[
+
+   ],
+   "folders_order":[
+      "3ba3ef69-81cc-442d-a621-7c7f531e56a7",
+      "9211ca36-24c3-4f19-9de0-a33d8f96a2f7",
+      "3f25ca24-ac31-49dd-a1e4-5ea40d0e99df",
+      "2a3b95be-594e-443a-8412-9ef3af92b869",
+      "69e45f00-bf42-4954-994d-b3d1d63ee6d4",
+      "9b6534b8-414f-47ac-978a-113605f438cc"
+   ],
+   "folders":[
+      {
+         "id":"55a8699d-91bb-58e3-20b2-0fe298eec1bf",
+         "name":"Auth",
+         "description":"",
+         "auth":null,
+         "events":null,
+         "collection":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "folder":"9b6534b8-414f-47ac-978a-113605f438cc",
+         "order":[
+            "79a0d0d3-9415-3390-4aa6-a20f8c429bac"
+         ],
+         "folders_order":[
+
+         ],
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "folderId":"55a8699d-91bb-58e3-20b2-0fe298eec1bf"
+      },
+      {
+         "id":"9b6534b8-414f-47ac-978a-113605f438cc",
+         "name":"Auth",
+         "description":"",
+         "auth":null,
+         "events":null,
+         "collection":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "folder":null,
+         "order":[
+            "6a4522b7-3ede-44c6-9aae-c93c321134a3"
+         ],
+         "folders_order":[
+            "55a8699d-91bb-58e3-20b2-0fe298eec1bf"
+         ],
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "folderId":"9b6534b8-414f-47ac-978a-113605f438cc"
+      },
+      {
+         "id":"9211ca36-24c3-4f19-9de0-a33d8f96a2f7",
+         "name":"Cluster",
+         "description":"",
+         "auth":null,
+         "events":null,
+         "collection":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "folder":null,
+         "order":[
+            "c0635046-5ab8-511f-ccad-3b1d1bdc9a57",
+            "d9a212d9-f288-fbd1-237c-a008a3142c16",
+            "fb3fa347-df37-7fc8-b2be-a011a2aef744",
+            "b87e590e-3726-a473-9533-adb0cddc12d0",
+            "0be96389-bc24-61ff-1286-3297604d7ab4",
+            "ba805b7f-f9a9-6e0c-d755-031ccaead3bf",
+            "36c88903-f6b7-f608-11e0-e70c746a9f0d",
+            "f52c7b57-e40e-cb54-43d5-596ea9266535",
+            "9f3ecb0c-c540-09bf-69ca-c07b26026783",
+            "c61d579a-8650-9064-646b-4e4053e5cbed"
+         ],
+         "folders_order":[
+            "a6a9926f-138f-e46a-3584-6bcf89825d5c"
+         ],
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "folderId":"9211ca36-24c3-4f19-9de0-a33d8f96a2f7"
+      },
+      {
+         "id":"a6a9926f-138f-e46a-3584-6bcf89825d5c",
+         "name":"Cluster",
+         "description":"",
+         "auth":null,
+         "events":null,
+         "collection":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "folder":"9211ca36-24c3-4f19-9de0-a33d8f96a2f7",
+         "order":[
+            "dedade78-5361-a6bc-8aa6-22bad9997335",
+            "a08c6318-a720-e940-30d0-7a1498ada472",
+            "94df9a32-12ef-eff7-8b16-f1e668a340ae",
+            "2a2d76f4-a3bf-0c15-13c6-ee6b0f539160",
+            "08973504-0087-8c7c-d07a-c80a9217c499",
+            "e8c745ba-0039-7e8a-8890-9d60e1e0662a",
+            "b25daebe-b378-c2c2-309b-efd2e5b59fc6",
+            "88af7c90-362e-2b86-85cc-6e9f40bd1892",
+            "82391090-aa93-e78c-360e-06732ef6400a",
+            "43620d09-fdfd-84cf-c8fb-241dd42d8b5c"
+         ],
+         "folders_order":[
+
+         ],
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "folderId":"a6a9926f-138f-e46a-3584-6bcf89825d5c"
+      },
+      {
+         "id":"3ba3ef69-81cc-442d-a621-7c7f531e56a7",
+         "name":"Clusters",
+         "description":"",
+         "auth":null,
+         "events":null,
+         "collection":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "folder":null,
+         "order":[
+            "be88ae23-8e34-7555-46d5-741bab38573b",
+            "89e771be-07bc-82f3-fd74-91308cbaa8ee",
+            "efe6e125-e929-f0bc-d55a-ffd8ce8a9d1e",
+            "809a56a4-7753-0f48-8c9b-0b3dbe5998cf"
+         ],
+         "folders_order":[
+            "ee5495a0-5f37-344c-db1d-8a0f916d8819"
+         ],
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "folderId":"3ba3ef69-81cc-442d-a621-7c7f531e56a7"
+      },
+      {
+         "id":"ee5495a0-5f37-344c-db1d-8a0f916d8819",
+         "name":"Clusters",
+         "description":"",
+         "auth":null,
+         "events":null,
+         "collection":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "folder":"3ba3ef69-81cc-442d-a621-7c7f531e56a7",
+         "order":[
+            "0ae98780-a5b4-c95c-2724-1dd9574eef5f",
+            "a096c4e9-6a6a-c79b-835d-d6f3ccfed7af",
+            "362f8e73-32fd-da42-072c-dd2dd7075d4e",
+            "f603f5eb-ad65-1b74-3518-3f5eb5f8366d"
+         ],
+         "folders_order":[
+
+         ],
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "folderId":"ee5495a0-5f37-344c-db1d-8a0f916d8819"
+      },
+      {
+         "id":"2a3b95be-594e-443a-8412-9ef3af92b869",
+         "name":"Deployment",
+         "description":"",
+         "auth":null,
+         "events":null,
+         "collection":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "folder":null,
+         "order":[
+            "b2a43237-d419-5a94-0e36-83f1516114b6",
+            "c3d8bbbb-3c8e-affa-727e-06d6a29a8ca0",
+            "7cfa929c-d5c9-c30d-2c97-d8444c144993",
+            "3915dd1a-0691-2afe-63a6-2feee00ae384"
+         ],
+         "folders_order":[
+            "a5b8a640-56e1-2502-f3e2-efb1b5acd6f9"
+         ],
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "folderId":"2a3b95be-594e-443a-8412-9ef3af92b869"
+      },
+      {
+         "id":"a5b8a640-56e1-2502-f3e2-efb1b5acd6f9",
+         "name":"Deployment",
+         "description":"",
+         "auth":null,
+         "events":null,
+         "collection":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "folder":"2a3b95be-594e-443a-8412-9ef3af92b869",
+         "order":[
+            "b741e423-ffb5-e1ba-2813-718e7a0099a7",
+            "99dcf56c-928b-bb88-8284-714092641479",
+            "5ab46153-9b91-33ae-48a4-07f8d23b3a1e",
+            "4a215169-26f6-82ab-465f-be54a4207fa6"
+         ],
+         "folders_order":[
+
+         ],
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "folderId":"a5b8a640-56e1-2502-f3e2-efb1b5acd6f9"
+      },
+      {
+         "id":"074a75de-ef32-5a65-bdd3-75dd70a12d00",
+         "name":"Deployments",
+         "description":"",
+         "auth":null,
+         "events":null,
+         "collection":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "folder":"3f25ca24-ac31-49dd-a1e4-5ea40d0e99df",
+         "order":[
+            "601829f3-5066-7aec-ae55-b6e15b343f7f",
+            "68c00764-76ca-face-dca0-80318393bffe",
+            "aae971a1-950e-cfae-d381-c08bce20ad12",
+            "7818d6f5-5523-6f55-3d4c-2aaf5ead1b1e"
+         ],
+         "folders_order":[
+
+         ],
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "folderId":"074a75de-ef32-5a65-bdd3-75dd70a12d00"
+      },
+      {
+         "id":"3f25ca24-ac31-49dd-a1e4-5ea40d0e99df",
+         "name":"Deployments",
+         "description":"",
+         "auth":null,
+         "events":null,
+         "collection":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "folder":null,
+         "order":[
+            "ea0a3e16-cda3-f459-a2bf-37e852ce1c12",
+            "8cd232df-0dfe-da93-d93f-142003d2f7c2",
+            "93fb54a7-293c-eceb-a5ed-8425cb155b79",
+            "55a9cdb9-d618-288d-f52a-51aa5849df12"
+         ],
+         "folders_order":[
+            "074a75de-ef32-5a65-bdd3-75dd70a12d00"
+         ],
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "folderId":"3f25ca24-ac31-49dd-a1e4-5ea40d0e99df"
+      },
+      {
+         "id":"681ed2da-68d2-892e-d0c3-01d8ab36e04f",
+         "name":"Profiles",
+         "description":"",
+         "auth":null,
+         "events":null,
+         "collection":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "folder":"69e45f00-bf42-4954-994d-b3d1d63ee6d4",
+         "order":[
+            "7a8ac1b7-0903-a2f1-d315-627bcf7ff805",
+            "4afd4c8a-4292-9e31-f6d0-244cd30b7dbb",
+            "7ea1c553-0559-1031-43bb-84fa116aa732",
+            "aa45d07e-01b4-bd77-e92d-0d1b4038d64a",
+            "ea644d8a-dd30-4593-0d32-8e56ed901df3",
+            "a4266a71-2c61-8223-2d2a-628452f9fb9c",
+            "c6d89a60-476b-ce92-7ffa-c9ac10c82491",
+            "a6b208f2-f049-a523-66f5-3529ab0a33d0"
+         ],
+         "folders_order":[
+
+         ],
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "folderId":"681ed2da-68d2-892e-d0c3-01d8ab36e04f"
+      },
+      {
+         "id":"69e45f00-bf42-4954-994d-b3d1d63ee6d4",
+         "name":"Profiles",
+         "description":"",
+         "auth":null,
+         "events":null,
+         "collection":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "folder":null,
+         "order":[
+            "b559ae70-ab5c-4643-96fc-4d0aac4e3ca2",
+            "7aa1bf4f-b76e-4b3b-a7f7-aee5d0789941",
+            "24789390-5310-4953-8a79-6bd960899e35",
+            "fd603a58-858d-48cb-bb44-6d63a1a45965",
+            "a81c3d25-77ce-47dc-bf03-ee55e1421afa",
+            "da2cad14-2d8c-430d-87a8-0a6c4f2fe13f",
+            "7d9119a0-2c0d-4024-a7de-b1d0194d3edf",
+            "04988546-698b-49be-8568-1a723696319a"
+         ],
+         "folders_order":[
+            "681ed2da-68d2-892e-d0c3-01d8ab36e04f"
+         ],
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "folderId":"69e45f00-bf42-4954-994d-b3d1d63ee6d4"
+      }
+   ],
+   "requests":[
+      {
+         "id":"04988546-698b-49be-8568-1a723696319a",
+         "name":"Delete profile",
+         "url":"{{url}}\/api\/v1\/cluster\/profiles\/{{cloud_type}}\/{{profile_name}}",
+         "description":"Delete an existing cluster profile",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}",
+               "description":"",
+               "enabled":true
+            }
+         ],
+         "method":"DELETE",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"588d0d18-2f62-4c19-a28d-2d77a92dfe01",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "if (responseCode.code === 200) {",
+                     "    tests[\"Response Code 200\"] = responseCode.code == 200;",
+                     "    postman.setNextRequest(\"List profiles\");",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    console.warn(responseBody);",
+                     "    postman.setNextRequest(null);",
+                     "}",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"69e45f00-bf42-4954-994d-b3d1d63ee6d4",
+         "preRequestScript":null,
+         "tests":"if (responseCode.code === 200) {\n    tests[\"Response Code 200\"] = responseCode.code == 200;\n    postman.setNextRequest(\"List profiles\");\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    console.warn(responseBody);\n    postman.setNextRequest(null);\n}\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"",
+         "headers":"Authorization: Bearer {{token}}\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"08973504-0087-8c7c-d07a-c80a9217c499",
+         "name":"Cluster Delete ",
+         "url":"{{url}}\/api\/v1\/clusters\/{{cluster_id}}",
+         "description":"Delete a K8S cluster from the cloud, cleans up resources",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}"
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json"
+            }
+         ],
+         "method":"DELETE",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "type":"text\/javascript",
+                  "exec":[
+                     "",
+                     "if (responseCode.code === 202) {",
+                     "    tests[\"Response Code 202\"] = responseCode.code == 202;",
+                     "    tests[\"Response Time\"] = pm.expect(pm.response.responseTime).to.be.below(155679)",
+                     "",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    postman.setNextRequest(null);",
+                     "",
+                     "}",
+                     " "
+                  ]
+               }
+            }
+         ],
+         "folder":"a6a9926f-138f-e46a-3584-6bcf89825d5c",
+         "preRequestScript":null,
+         "tests":"\nif (responseCode.code === 202) {\n    tests[\"Response Code 202\"] = responseCode.code == 202;\n    tests[\"Response Time\"] = pm.expect(pm.response.responseTime).to.be.below(155679)\n\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    postman.setNextRequest(null);\n\n}\n ",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"0ae98780-a5b4-c95c-2724-1dd9574eef5f",
+         "name":"Cluster LIst",
+         "url":"{{url}}\/api\/v1\/clusters",
+         "description":"Get the cluster details",
+         "data":[
+            {
+               "key":"name",
+               "type":"text",
+               "value":"zeppelin-k8s-charts"
+            }
+         ],
+         "dataMode":"urlencoded",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}"
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json"
+            }
+         ],
+         "method":"GET",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "type":"text\/javascript",
+                  "exec":[
+                     "",
+                     "if (responseCode.code === 200) {",
+                     "    tests[\"Response Code 200\"] = responseCode.code == 200;",
+                     "",
+                     "}",
+                     "else if (responseCode.code === 404) {",
+                     "    tests[\"Cluster Node Found!\"] = false",
+                     "    postman.setNextRequest(null);",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    postman.setNextRequest(null);",
+                     "",
+                     "    ",
+                     "}",
+                     " ",
+                     "",
+                     "",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"ee5495a0-5f37-344c-db1d-8a0f916d8819",
+         "preRequestScript":null,
+         "tests":"\nif (responseCode.code === 200) {\n    tests[\"Response Code 200\"] = responseCode.code == 200;\n\n}\nelse if (responseCode.code === 404) {\n    tests[\"Cluster Node Found!\"] = false\n    postman.setNextRequest(null);\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    postman.setNextRequest(null);\n\n    \n}\n \n\n\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"0be96389-bc24-61ff-1286-3297604d7ab4",
+         "name":"Cluster Update GKE",
+         "url":"{{url}}\/api\/v1\/clusters\/{{cluster_id}}",
+         "description":"Update an AKS cluster",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}",
+               "description":"",
+               "enabled":true
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json",
+               "description":"",
+               "enabled":true
+            }
+         ],
+         "method":"PUT",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"37265830-f9a7-4967-bca4-cdbe793e27be",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "",
+                     "if (responseCode.code === 202) {",
+                     "    tests[\"Response Code 202\"] = responseCode.code == 202;",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    postman.setNextRequest(null);",
+                     "}",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"9211ca36-24c3-4f19-9de0-a33d8f96a2f7",
+         "preRequestScript":null,
+         "tests":"\nif (responseCode.code === 202) {\n    tests[\"Response Code 202\"] = responseCode.code == 202;\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    postman.setNextRequest(null);\n}\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"{\n  \"cloud\": \"google\",\n  \"properties\": {\n    \"google\": {\n      \"node\": {\n        \"count\": 2\n      }\n    }\n  }\n}",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"24789390-5310-4953-8a79-6bd960899e35",
+         "name":"Create Profile AKS",
+         "url":"{{url}}\/api\/v1\/cluster\/profiles",
+         "description":"Create an Azure Container Service profile",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}",
+               "description":"",
+               "enabled":true
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json",
+               "description":"",
+               "enabled":true
+            }
+         ],
+         "method":"POST",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"6795b382-1ed8-42ca-8aa9-ffebb2f585dd",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "if (responseCode.code === 201) {",
+                     "    tests[\"Response Code 201\"] = responseCode.code == 201;",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    console.warn(responseBody);",
+                     "    postman.setNextRequest(null);",
+                     "}",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"69e45f00-bf42-4954-994d-b3d1d63ee6d4",
+         "preRequestScript":null,
+         "tests":"if (responseCode.code === 201) {\n    tests[\"Response Code 201\"] = responseCode.code == 201;\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    console.warn(responseBody);\n    postman.setNextRequest(null);\n}\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"{\n\t\"instanceName\": \"{{profile_name}}\",\n\t\"location\": \"westeurope\",\n\t\"cloud\": \"azure\",\n\t\"nodeInstanceType\": \"Standard_D2_v2\",\n\t\"properties\": {\n\t\t\"azure\": {\n            \"node\": {\n                \"resourceGroup\": \"{{az-resource-group}}\",\n                \"agentCount\": 1,\n                \"agentName\": \"agentpool1\",\n                \"kubernetesVersion\": \"1.8.2\"\n            }\n        }\n\t}\n}",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"2a2d76f4-a3bf-0c15-13c6-ee6b0f539160",
+         "name":"Cluster Update AKS",
+         "url":"{{url}}\/api\/v1\/clusters\/{{cluster_id}}",
+         "description":"Update an AKS cluster",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}",
+               "enabled":true
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json",
+               "enabled":true
+            }
+         ],
+         "method":"PUT",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"1d33fe5d-239f-4bb8-968c-46ab44390e6d",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "",
+                     "if (responseCode.code === 202) {",
+                     "    tests[\"Response Code 202\"] = responseCode.code == 202;",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    postman.setNextRequest(null);",
+                     "}",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"a6a9926f-138f-e46a-3584-6bcf89825d5c",
+         "preRequestScript":null,
+         "tests":"\nif (responseCode.code === 202) {\n    tests[\"Response Code 202\"] = responseCode.code == 202;\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    postman.setNextRequest(null);\n}\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"{\n  \"cloud\": \"azure\",\n  \"properties\": {\n    \"azure\": {\n      \"node\": {\n        \"agentCount\": 1\n      }\n    }\n  }\n}",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"362f8e73-32fd-da42-072c-dd2dd7075d4e",
+         "name":"Cluster Create AWS",
+         "url":"{{url}}\/api\/v1\/clusters",
+         "description":"Creates a K8S cluster in the Amazon Web Services",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}",
+               "enabled":true
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json",
+               "enabled":true
+            }
+         ],
+         "method":"POST",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"1eb9f479-f5d9-420e-9e2f-6df45be8731c",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "if (responseCode.code === 200) {",
+                     "    tests[\"Response Code 200\"] = responseCode.code == 200;",
+                     "",
+                     "    pm.environment.set(\"timestampHeader\", new Date());",
+                     "    var dataJSON = JSON.parse(responseBody);",
+                     "    pm.environment.set(\"cluster_id\", dataJSON.id);",
+                     "    tests[\"Cluster ID: \" + dataJSON.id] = true;",
+                     "",
+                     "    tests[\"Response Time\"] = pm.expect(pm.response.responseTime).to.be.below(80500)",
+                     "",
+                     "    postman.setNextRequest(\"Cluster Status\");",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    console.warn(responseBody);",
+                     "    postman.setNextRequest(null);",
+                     "}",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"ee5495a0-5f37-344c-db1d-8a0f916d8819",
+         "preRequestScript":null,
+         "tests":"if (responseCode.code === 200) {\n    tests[\"Response Code 200\"] = responseCode.code == 200;\n\n    pm.environment.set(\"timestampHeader\", new Date());\n    var dataJSON = JSON.parse(responseBody);\n    pm.environment.set(\"cluster_id\", dataJSON.id);\n    tests[\"Cluster ID: \" + dataJSON.id] = true;\n\n    tests[\"Response Time\"] = pm.expect(pm.response.responseTime).to.be.below(80500)\n\n    postman.setNextRequest(\"Cluster Status\");\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    console.warn(responseBody);\n    postman.setNextRequest(null);\n}\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"{\n  \"name\":\"awscluster-{{username}}-{{$randomInt}}\",\n    \"location\": \"eu-west-1\",\n    \"cloud\": \"amazon\",\n    \"nodeInstanceType\": \"m4.xlarge\",\n    \"properties\": {\n        \"amazon\": {\n            \"node\": {\n                \"spotPrice\": \"0.2\",\n                \"minCount\": 1,\n                \"maxCount\": 2,\n                \"image\": \"ami-06d1667f\"\n            },\n            \"master\": {\n                \"instanceType\": \"m4.xlarge\",\n                \"image\": \"ami-06d1667f\"\n            }\n        }\n    }\n}\n\n",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"36c88903-f6b7-f608-11e0-e70c746a9f0d",
+         "name":"Cluster Delete  FakeID",
+         "url":"{{url}}\/api\/v1\/clusters\/31231231241231231231321",
+         "description":"Delete a K8S cluster from the cloud, cleans up resources",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}"
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json"
+            }
+         ],
+         "method":"DELETE",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"3b611314-d6e9-4e5e-ae48-1494996f0bb2",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "",
+                     "if (responseCode.code === 404) {",
+                     "    tests[\"Response Code 404\"] = responseCode.code == 404;",
+                     "    var dataJSON = JSON.parse(responseBody);",
+                     "    ",
+                     "    console.log(dataJSON)",
+                     "    tests[\"Valid Message\"] = dataJSON.message == \"Cluster not found\";",
+                     "    tests[\"Valid Error\"] = dataJSON.error == \"record not found\";",
+                     "    tests[\"Valid code\"] = dataJSON.code == \"404\";",
+                     "",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    postman.setNextRequest(null);",
+                     "",
+                     "}",
+                     " ",
+                     "",
+                     "",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"9211ca36-24c3-4f19-9de0-a33d8f96a2f7",
+         "preRequestScript":null,
+         "tests":"\nif (responseCode.code === 404) {\n    tests[\"Response Code 404\"] = responseCode.code == 404;\n    var dataJSON = JSON.parse(responseBody);\n    \n    console.log(dataJSON)\n    tests[\"Valid Message\"] = dataJSON.message == \"Cluster not found\";\n    tests[\"Valid Error\"] = dataJSON.error == \"record not found\";\n    tests[\"Valid code\"] = dataJSON.code == \"404\";\n\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    postman.setNextRequest(null);\n\n}\n \n\n\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"3915dd1a-0691-2afe-63a6-2feee00ae384",
+         "name":"Deployment app Status",
+         "url":"{{url}}\/api\/v1\/clusters\/{{cluster_id}}\/deployments\/{{deployment_name}}",
+         "description":"Get deployment app status",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}"
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json"
+            }
+         ],
+         "method":"HEAD",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":{
+            "type":"basic",
+            "basic":[
+               {
+                  "key":"username",
+                  "value":"admin",
+                  "type":"string"
+               },
+               {
+                  "key":"password",
+                  "value":"puski123",
+                  "type":"string"
+               },
+               {
+                  "key":"saveHelperData",
+                  "type":"any"
+               },
+               {
+                  "key":"showPassword",
+                  "value":false,
+                  "type":"boolean"
+               }
+            ]
+         },
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "type":"text\/javascript",
+                  "exec":[
+                     "",
+                     "if (responseCode.code === 200) {",
+                     "    tests[\"Response Code 200\"] = responseCode.code == 200;",
+                     "",
+                     "} else if (responseCode.code === 404 || responseCode.code === 503 )  {",
+                     "    console.log(\"Waiting...\" );",
+                     "    postman.setNextRequest(\"Delay Response 3\");",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    console.warn(responseBody);",
+                     "    postman.setNextRequest(null);",
+                     "    ",
+                     "}",
+                     " ",
+                     "",
+                     "",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"2a3b95be-594e-443a-8412-9ef3af92b869",
+         "preRequestScript":null,
+         "tests":"\nif (responseCode.code === 200) {\n    tests[\"Response Code 200\"] = responseCode.code == 200;\n\n} else if (responseCode.code === 404 || responseCode.code === 503 )  {\n    console.log(\"Waiting...\" );\n    postman.setNextRequest(\"Delay Response 3\");\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    console.warn(responseBody);\n    postman.setNextRequest(null);\n    \n}\n \n\n\n",
+         "currentHelper":"basicAuth",
+         "helperAttributes":{
+            "id":"basic",
+            "username":"admin",
+            "password":"puski123"
+         },
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"43620d09-fdfd-84cf-c8fb-241dd42d8b5c",
+         "name":"Cluster Update AWS",
+         "url":"{{url}}\/api\/v1\/clusters\/{{cluster_id}}",
+         "description":"Update an AWS cluster",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}"
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json"
+            }
+         ],
+         "method":"PUT",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"bb0bfcd1-a1c2-4cc0-b03e-61e4bb31fcee",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "",
+                     "if (responseCode.code === 202) {",
+                     "    tests[\"Response Code 202\"] = responseCode.code == 202;",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    postman.setNextRequest(null);",
+                     "}",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"a6a9926f-138f-e46a-3584-6bcf89825d5c",
+         "preRequestScript":null,
+         "tests":"\nif (responseCode.code === 202) {\n    tests[\"Response Code 202\"] = responseCode.code == 202;\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    postman.setNextRequest(null);\n}\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"{\n  \"cloud\": \"amazon\",\n  \"properties\": {\n    \"amazon\": {\n      \"node\": {\n        \"minCount\": 2,\n        \"maxCount\": 3\n      }\n    }\n  }\n}",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"4a215169-26f6-82ab-465f-be54a4207fa6",
+         "name":"Deployment Delete  FakeAPP",
+         "url":"{{url}}\/api\/v1\/clusters\/{{cluster_id}}\/deployments\/pokollll-appp",
+         "description":"Delete Deployment\n",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}"
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/x-www-form-urlencoded"
+            }
+         ],
+         "method":"DELETE",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"a593fab0-d03e-4681-a36a-f5053cde21fb",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "if (responseCode.code === 400) {",
+                     "    tests[\"Response Code 400\"] = responseCode.code == 400;",
+                     "    ",
+                     "    var dataJSON = JSON.parse(responseBody);",
+                     "    console.log(dataJSON)",
+                     "    tests[\"Valid code\"] = dataJSON.code == 400;",
+                     "    tests[\"Valid message\"] = dataJSON.message == \"Error deleting deployment\";",
+                     "",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    postman.setNextRequest(null);",
+                     "",
+                     "}"
+                  ]
+               }
+            }
+         ],
+         "folder":"a5b8a640-56e1-2502-f3e2-efb1b5acd6f9",
+         "preRequestScript":null,
+         "tests":"if (responseCode.code === 400) {\n    tests[\"Response Code 400\"] = responseCode.code == 400;\n    \n    var dataJSON = JSON.parse(responseBody);\n    console.log(dataJSON)\n    tests[\"Valid code\"] = dataJSON.code == 400;\n    tests[\"Valid message\"] = dataJSON.message == \"Error deleting deployment\";\n\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    postman.setNextRequest(null);\n\n}",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/x-www-form-urlencoded\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"4afd4c8a-4292-9e31-f6d0-244cd30b7dbb",
+         "name":"Create Profile AKS",
+         "url":"{{url}}\/api\/v1\/cluster\/profiles",
+         "description":"Create an Azure Container Service profile",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}",
+               "enabled":true
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json",
+               "enabled":true
+            }
+         ],
+         "method":"POST",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"6795b382-1ed8-42ca-8aa9-ffebb2f585dd",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "if (responseCode.code === 201) {",
+                     "    tests[\"Response Code 201\"] = responseCode.code == 201;",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    console.warn(responseBody);",
+                     "    postman.setNextRequest(null);",
+                     "}",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"681ed2da-68d2-892e-d0c3-01d8ab36e04f",
+         "preRequestScript":null,
+         "tests":"if (responseCode.code === 201) {\n    tests[\"Response Code 201\"] = responseCode.code == 201;\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    console.warn(responseBody);\n    postman.setNextRequest(null);\n}\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"{\n  \"instanceName\": \"{{profile_name}}\",\n  \"location\": \"westeurope\",\n  \"cloud\": \"azure\",\n  \"nodeInstanceType\": \"Standard_D2_v2\",\n  \"properties\": {\n    \"azure\": {\n            \"node\": {\n                \"resourceGroup\": \"{{az-resource-group}}\",\n                \"agentCount\": 1,\n                \"agentName\": \"agentpool1\",\n                \"kubernetesVersion\": \"1.8.2\"\n            }\n        }\n  }\n}",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"55a9cdb9-d618-288d-f52a-51aa5849df12",
+         "name":"Deployment Init Status",
+         "url":"{{url}}\/api\/v1\/clusters\/{{cluster_id}}\/deployments",
+         "description":"Get deployment status",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}"
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json"
+            }
+         ],
+         "method":"HEAD",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "type":"text\/javascript",
+                  "exec":[
+                     "",
+                     "if (responseCode.code === 200) {",
+                     "    tests[\"Response Code 200\"] = responseCode.code == 200;",
+                     "",
+                     "} else if (responseCode.code === 404 || responseCode.code === 503 )  {",
+                     "    console.log(\"Waiting...\" );",
+                     "    postman.setNextRequest(\"Delay Response 2\");",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    console.warn(responseBody);",
+                     "    postman.setNextRequest(null);",
+                     "    ",
+                     "}",
+                     " ",
+                     "",
+                     "",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"3f25ca24-ac31-49dd-a1e4-5ea40d0e99df",
+         "preRequestScript":null,
+         "tests":"\nif (responseCode.code === 200) {\n    tests[\"Response Code 200\"] = responseCode.code == 200;\n\n} else if (responseCode.code === 404 || responseCode.code === 503 )  {\n    console.log(\"Waiting...\" );\n    postman.setNextRequest(\"Delay Response 2\");\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    console.warn(responseBody);\n    postman.setNextRequest(null);\n    \n}\n \n\n\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"5ab46153-9b91-33ae-48a4-07f8d23b3a1e",
+         "name":"Deployment Delete ",
+         "url":"{{url}}\/api\/v1\/clusters\/{{cluster_id}}\/deployments\/{{deployment_name}}",
+         "description":"Delete Deployment\n",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}",
+               "enabled":true
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/x-www-form-urlencoded",
+               "enabled":true
+            }
+         ],
+         "method":"DELETE",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"04be7a1d-e73b-435f-8f58-a43bfd7b77ff",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "",
+                     "if (responseCode.code === 200) {",
+                     "    tests[\"Response Code 200\"] = responseCode.code == 200;",
+                     "    ",
+                     "    var dataJSON = JSON.parse(responseBody);",
+                     "    console.log(dataJSON)",
+                     "    tests[\"Valid status\"] = dataJSON.status == 200;",
+                     "    tests[\"Valid message\"] = dataJSON.message == \"Deployment deleted!\";",
+                     "    tests[\"Valid name\"] = dataJSON.name == environment.deployment_name;",
+                     "",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    postman.setNextRequest(null);",
+                     "",
+                     "}",
+                     " "
+                  ]
+               }
+            }
+         ],
+         "folder":"a5b8a640-56e1-2502-f3e2-efb1b5acd6f9",
+         "preRequestScript":null,
+         "tests":"\nif (responseCode.code === 200) {\n    tests[\"Response Code 200\"] = responseCode.code == 200;\n    \n    var dataJSON = JSON.parse(responseBody);\n    console.log(dataJSON)\n    tests[\"Valid status\"] = dataJSON.status == 200;\n    tests[\"Valid message\"] = dataJSON.message == \"Deployment deleted!\";\n    tests[\"Valid name\"] = dataJSON.name == environment.deployment_name;\n\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    postman.setNextRequest(null);\n\n}\n ",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/x-www-form-urlencoded\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"601829f3-5066-7aec-ae55-b6e15b343f7f",
+         "name":"Deployment Init Status",
+         "url":"{{url}}\/api\/v1\/clusters\/{{cluster_id}}\/deployments",
+         "description":"Get deployment status",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}"
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json"
+            }
+         ],
+         "method":"HEAD",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "type":"text\/javascript",
+                  "exec":[
+                     "",
+                     "if (responseCode.code === 200) {",
+                     "    tests[\"Response Code 200\"] = responseCode.code == 200;",
+                     "",
+                     "} else if (responseCode.code === 404 || responseCode.code === 503 )  {",
+                     "    console.log(\"Waiting...\" );",
+                     "    postman.setNextRequest(\"Delay Response 2\");",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    console.warn(responseBody);",
+                     "    postman.setNextRequest(null);",
+                     "    ",
+                     "}",
+                     " ",
+                     "",
+                     "",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"074a75de-ef32-5a65-bdd3-75dd70a12d00",
+         "preRequestScript":null,
+         "tests":"\nif (responseCode.code === 200) {\n    tests[\"Response Code 200\"] = responseCode.code == 200;\n\n} else if (responseCode.code === 404 || responseCode.code === 503 )  {\n    console.log(\"Waiting...\" );\n    postman.setNextRequest(\"Delay Response 2\");\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    console.warn(responseBody);\n    postman.setNextRequest(null);\n    \n}\n \n\n\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"68c00764-76ca-face-dca0-80318393bffe",
+         "name":"Deployment Create Fake APP",
+         "url":"{{url}}\/api\/v1\/clusters\/{{cluster_id}}\/deployments",
+         "description":"Create a helm deployment",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}"
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json"
+            }
+         ],
+         "method":"POST",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "type":"text\/javascript",
+                  "exec":[
+                     "",
+                     "if (responseCode.code === 404) {",
+                     "    tests[\"Response Code 404\"] = responseCode.code == 404;",
+                     "    var dataJSON = JSON.parse(responseBody);",
+                     "    ",
+                     "    console.log(dataJSON)",
+                     "    tests[\"Valid Message\"] = \/^Error loading chart: stat \\\/opt\\\/helm\\\/.*.no such file or directory$\/.test(dataJSON.message);",
+                     "    tests[\"Valid code\"] = dataJSON.status == \"404\";",
+                     "",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    postman.setNextRequest(null);",
+                     "",
+                     "}",
+                     " ",
+                     "",
+                     "",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"074a75de-ef32-5a65-bdd3-75dd70a12d00",
+         "preRequestScript":null,
+         "tests":"\nif (responseCode.code === 404) {\n    tests[\"Response Code 404\"] = responseCode.code == 404;\n    var dataJSON = JSON.parse(responseBody);\n    \n    console.log(dataJSON)\n    tests[\"Valid Message\"] = \/^Error loading chart: stat \\\/opt\\\/helm\\\/.*.no such file or directory$\/.test(dataJSON.message);\n    tests[\"Valid code\"] = dataJSON.status == \"404\";\n\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    postman.setNextRequest(null);\n\n}\n \n\n\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"{\"name\": \"pokol_app\"}",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"6a4522b7-3ede-44c6-9aae-c93c321134a3",
+         "name":"Generate token",
+         "url":"{{url}}\/api\/v1\/token",
+         "description":"",
+         "data":null,
+         "dataMode":"params",
+         "headerData":[
+            {
+               "key":"",
+               "value":"",
+               "description":"",
+               "enabled":false
+            }
+         ],
+         "method":"GET",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"9482b21b-a4e5-4135-9f66-a5c76a3f8d0a",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "",
+                     "if (responseCode.code === 200) {",
+                     "    tests[\"Response Code 200\"] = responseCode.code == 200;",
+                     "    var dataJSON = JSON.parse(responseBody);",
+                     "    ",
+                     "    pm.environment.set(\"token\", dataJSON.token);",
+                     "",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    postman.setNextRequest(null);",
+                     "",
+                     "}",
+                     " ",
+                     "",
+                     "",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"9b6534b8-414f-47ac-978a-113605f438cc",
+         "preRequestScript":null,
+         "tests":"\nif (responseCode.code === 200) {\n    tests[\"Response Code 200\"] = responseCode.code == 200;\n    var dataJSON = JSON.parse(responseBody);\n    \n    pm.environment.set(\"token\", dataJSON.token);\n\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    postman.setNextRequest(null);\n\n}\n \n\n\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "headers":"",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"7818d6f5-5523-6f55-3d4c-2aaf5ead1b1e",
+         "name":"Deployment Create",
+         "url":"{{url}}\/api\/v1\/clusters\/{{cluster_id}}\/deployments",
+         "description":"Create a helm deployment",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}"
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json"
+            }
+         ],
+         "method":"POST",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "type":"text\/javascript",
+                  "exec":[
+                     "if (responseCode.code === 201) {",
+                     "    tests[\"Response Code 201\"] = responseCode.code == 201;",
+                     "    var dataJSON = JSON.parse(responseBody);",
+                     "",
+                     "    pm.environment.set(\"deployment_name\", dataJSON.release_name);",
+                     "",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    postman.setNextRequest(null);",
+                     "}",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"074a75de-ef32-5a65-bdd3-75dd70a12d00",
+         "preRequestScript":null,
+         "tests":"if (responseCode.code === 201) {\n    tests[\"Response Code 201\"] = responseCode.code == 201;\n    var dataJSON = JSON.parse(responseBody);\n\n    pm.environment.set(\"deployment_name\", dataJSON.release_name);\n\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    postman.setNextRequest(null);\n}\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"{\"name\": \"banzaicloud-stable\/drone\"}",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"79a0d0d3-9415-3390-4aa6-a20f8c429bac",
+         "name":"Generate token",
+         "url":"{{url}}\/api\/v1\/token",
+         "description":null,
+         "data":[
+
+         ],
+         "dataMode":"params",
+         "headerData":[
+            {
+               "key":"",
+               "value":"",
+               "enabled":false
+            }
+         ],
+         "method":"GET",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"9482b21b-a4e5-4135-9f66-a5c76a3f8d0a",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "",
+                     "if (responseCode.code === 200) {",
+                     "    tests[\"Response Code 200\"] = responseCode.code == 200;",
+                     "    var dataJSON = JSON.parse(responseBody);",
+                     "    ",
+                     "    pm.environment.set(\"token\", dataJSON.token);",
+                     "",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    postman.setNextRequest(null);",
+                     "",
+                     "}",
+                     " ",
+                     "",
+                     "",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"55a8699d-91bb-58e3-20b2-0fe298eec1bf",
+         "preRequestScript":null,
+         "tests":"\nif (responseCode.code === 200) {\n    tests[\"Response Code 200\"] = responseCode.code == 200;\n    var dataJSON = JSON.parse(responseBody);\n    \n    pm.environment.set(\"token\", dataJSON.token);\n\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    postman.setNextRequest(null);\n\n}\n \n\n\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "headers":"",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"7a8ac1b7-0903-a2f1-d315-627bcf7ff805",
+         "name":"Delete profile",
+         "url":"{{url}}\/api\/v1\/cluster\/profiles\/{{cloud_type}}\/{{profile_name}}",
+         "description":"Delete an existing cluster profile",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}",
+               "enabled":true
+            }
+         ],
+         "method":"DELETE",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"588d0d18-2f62-4c19-a28d-2d77a92dfe01",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "if (responseCode.code === 200) {",
+                     "    tests[\"Response Code 200\"] = responseCode.code == 200;",
+                     "    postman.setNextRequest(\"List profiles\");",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    console.warn(responseBody);",
+                     "    postman.setNextRequest(null);",
+                     "}",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"681ed2da-68d2-892e-d0c3-01d8ab36e04f",
+         "preRequestScript":null,
+         "tests":"if (responseCode.code === 200) {\n    tests[\"Response Code 200\"] = responseCode.code == 200;\n    postman.setNextRequest(\"List profiles\");\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    console.warn(responseBody);\n    postman.setNextRequest(null);\n}\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"",
+         "headers":"Authorization: Bearer {{token}}\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"7aa1bf4f-b76e-4b3b-a7f7-aee5d0789941",
+         "name":"Create Profile AWS",
+         "url":"{{url}}\/api\/v1\/cluster\/profiles",
+         "description":"Create an Amazon Web Services profile",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}",
+               "description":"",
+               "enabled":true
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json",
+               "description":"",
+               "enabled":true
+            }
+         ],
+         "method":"POST",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"6795b382-1ed8-42ca-8aa9-ffebb2f585dd",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "if (responseCode.code === 201) {",
+                     "    tests[\"Response Code 201\"] = responseCode.code == 201;",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    console.warn(responseBody);",
+                     "    postman.setNextRequest(null);",
+                     "}",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"69e45f00-bf42-4954-994d-b3d1d63ee6d4",
+         "preRequestScript":null,
+         "tests":"if (responseCode.code === 201) {\n    tests[\"Response Code 201\"] = responseCode.code == 201;\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    console.warn(responseBody);\n    postman.setNextRequest(null);\n}\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"{\n\t\"instanceName\": \"{{profile_name}}\",\n\t\"location\": \"eu-west-1\",\n\t\"cloud\": \"amazon\",\n\t\"nodeInstanceType\": \"m4.xlarge\",\n\t\"properties\": {\n\t\t\"amazon\": {\n\t\t\t\"master\": {\n\t\t\t\t\"instanceType\": \"m4.xlarge\",\n\t\t\t\t\"image\": \"ami-06d1667f\"\n\t\t\t},\n\t\t\t\"node\": {\n\t\t\t\t\"spotPrice\": \"0.2\",\n\t\t\t\t\"minCount\": 1,\n\t\t\t\t\"maxCount\": 2,\n\t\t\t\t\"image\": \"ami-06d1667f\"\n\t\t\t}\n\t\t}\n\t}\n}",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"7cfa929c-d5c9-c30d-2c97-d8444c144993",
+         "name":"Deployment Upgrade",
+         "url":"{{url}}\/api\/v1\/clusters\/{{cluster_id}}\/deployments\/{{deployment_name}}",
+         "description":"Upgrades an existing deployment",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}"
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/x-www-form-urlencoded"
+            }
+         ],
+         "method":"PUT",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"5938dc81-a51b-4ecf-969b-b147bf96ce59",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "if (responseCode.code === 501) {",
+                     "    tests[\"Response Code 501\"] = responseCode.code == 501;",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    postman.setNextRequest(null);",
+                     "",
+                     "}"
+                  ]
+               }
+            }
+         ],
+         "folder":"2a3b95be-594e-443a-8412-9ef3af92b869",
+         "preRequestScript":null,
+         "tests":"if (responseCode.code === 501) {\n    tests[\"Response Code 501\"] = responseCode.code == 501;\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    postman.setNextRequest(null);\n\n}",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/x-www-form-urlencoded\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"7d9119a0-2c0d-4024-a7de-b1d0194d3edf",
+         "name":"Update Profile GKE",
+         "url":"{{url}}\/api\/v1\/cluster\/profiles",
+         "description":"Update an existing Google Kubernetes Engine profile",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}",
+               "description":"",
+               "enabled":true
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json",
+               "description":"",
+               "enabled":true
+            }
+         ],
+         "method":"PUT",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"6795b382-1ed8-42ca-8aa9-ffebb2f585dd",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "if (responseCode.code === 201) {",
+                     "    tests[\"Response Code 201\"] = responseCode.code == 201;",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    console.warn(responseBody);",
+                     "    postman.setNextRequest(null);",
+                     "}",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"69e45f00-bf42-4954-994d-b3d1d63ee6d4",
+         "preRequestScript":null,
+         "tests":"if (responseCode.code === 201) {\n    tests[\"Response Code 201\"] = responseCode.code == 201;\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    console.warn(responseBody);\n    postman.setNextRequest(null);\n}\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"{\n\t\"instanceName\": \"{{profile_name}}\",\n\t\"location\": \"us-central1-a\",\n\t\"cloud\": \"google\",\n\t\"nodeInstanceType\": \"n1-standard-1\",\n\t\"properties\": {\n\t\t\"google\": {\n            \"master\":{\n                \"version\":\"1.8.7-gke.1\"\n            },\n            \"node\":{\n            \t\"count\": 2,\n            \t\"version\":\"1.8.7-gke.1\"\n            }\n        }\n\t}\n}",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"7ea1c553-0559-1031-43bb-84fa116aa732",
+         "name":"Create Profile AWS",
+         "url":"{{url}}\/api\/v1\/cluster\/profiles",
+         "description":"Create an Amazon Web Services profile",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}",
+               "enabled":true
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json",
+               "enabled":true
+            }
+         ],
+         "method":"POST",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"6795b382-1ed8-42ca-8aa9-ffebb2f585dd",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "if (responseCode.code === 201) {",
+                     "    tests[\"Response Code 201\"] = responseCode.code == 201;",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    console.warn(responseBody);",
+                     "    postman.setNextRequest(null);",
+                     "}",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"681ed2da-68d2-892e-d0c3-01d8ab36e04f",
+         "preRequestScript":null,
+         "tests":"if (responseCode.code === 201) {\n    tests[\"Response Code 201\"] = responseCode.code == 201;\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    console.warn(responseBody);\n    postman.setNextRequest(null);\n}\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"{\n  \"instanceName\": \"{{profile_name}}\",\n  \"location\": \"eu-west-1\",\n  \"cloud\": \"amazon\",\n  \"nodeInstanceType\": \"m4.xlarge\",\n  \"properties\": {\n    \"amazon\": {\n      \"master\": {\n        \"instanceType\": \"m4.xlarge\",\n        \"image\": \"ami-06d1667f\"\n      },\n      \"node\": {\n        \"spotPrice\": \"0.2\",\n        \"minCount\": 1,\n        \"maxCount\": 2,\n        \"image\": \"ami-06d1667f\"\n      }\n    }\n  }\n}",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"809a56a4-7753-0f48-8c9b-0b3dbe5998cf",
+         "name":"Cluster LIst",
+         "url":"{{url}}\/api\/v1\/clusters",
+         "description":"Get the cluster details",
+         "data":[
+            {
+               "key":"name",
+               "type":"text",
+               "value":"zeppelin-k8s-charts"
+            }
+         ],
+         "dataMode":"urlencoded",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}"
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json"
+            }
+         ],
+         "method":"GET",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "type":"text\/javascript",
+                  "exec":[
+                     "",
+                     "if (responseCode.code === 200) {",
+                     "    tests[\"Response Code 200\"] = responseCode.code == 200;",
+                     "",
+                     "}",
+                     "else if (responseCode.code === 404) {",
+                     "    tests[\"Cluster Node Found!\"] = false",
+                     "    postman.setNextRequest(null);",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    postman.setNextRequest(null);",
+                     "",
+                     "    ",
+                     "}",
+                     " ",
+                     "",
+                     "",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"3ba3ef69-81cc-442d-a621-7c7f531e56a7",
+         "preRequestScript":null,
+         "tests":"\nif (responseCode.code === 200) {\n    tests[\"Response Code 200\"] = responseCode.code == 200;\n\n}\nelse if (responseCode.code === 404) {\n    tests[\"Cluster Node Found!\"] = false\n    postman.setNextRequest(null);\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    postman.setNextRequest(null);\n\n    \n}\n \n\n\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"82391090-aa93-e78c-360e-06732ef6400a",
+         "name":"Cluster Status",
+         "url":"{{url}}\/api\/v1\/clusters\/{{cluster_id}}",
+         "description":"Get cluster status",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}",
+               "enabled":true
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json",
+               "enabled":true
+            }
+         ],
+         "method":"HEAD",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "type":"text\/javascript",
+                  "exec":[
+                     "",
+                     "if (responseCode.code === 200) {",
+                     "    tests[\"Response Code 200\"] = responseCode.code == 200;",
+                     "     postman.setNextRequest(\"Cluster Info\");",
+                     "",
+                     "} else if (responseCode.code === 404 || responseCode.code === 503 )  {",
+                     "    console.log(\"Waiting...\" );",
+                     "    postman.setNextRequest(\"Delay Response 1\");",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    postman.setNextRequest(null);",
+                     "    ",
+                     "}",
+                     " ",
+                     "",
+                     "",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"a6a9926f-138f-e46a-3584-6bcf89825d5c",
+         "preRequestScript":null,
+         "tests":"\nif (responseCode.code === 200) {\n    tests[\"Response Code 200\"] = responseCode.code == 200;\n     postman.setNextRequest(\"Cluster Info\");\n\n} else if (responseCode.code === 404 || responseCode.code === 503 )  {\n    console.log(\"Waiting...\" );\n    postman.setNextRequest(\"Delay Response 1\");\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    postman.setNextRequest(null);\n    \n}\n \n\n\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"88af7c90-362e-2b86-85cc-6e9f40bd1892",
+         "name":"Helm init",
+         "url":"{{url}}\/api\/v1\/clusters\/{{cluster_id}}\/helminit",
+         "description":"Initialize helm in the cluster",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}"
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json"
+            }
+         ],
+         "method":"POST",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"4f7e7713-c0c0-4d42-8d1e-aad3a7bdffde",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "",
+                     "if (responseCode.code === 201) {",
+                     "    tests[\"Response Code 201\"] = responseCode.code == 201;",
+                     "    var dataJSON = JSON.parse(responseBody);",
+                     "    ",
+                     "    console.log(dataJSON)",
+                     "    tests[\"Valid status\"] = dataJSON.status == 201;",
+                     "    tests[\"Valid message\"] = dataJSON.message == \"helm initialising\";",
+                     "",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    postman.setNextRequest(null);",
+                     "}",
+                     " ",
+                     "",
+                     "",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"a6a9926f-138f-e46a-3584-6bcf89825d5c",
+         "preRequestScript":null,
+         "tests":"\nif (responseCode.code === 201) {\n    tests[\"Response Code 201\"] = responseCode.code == 201;\n    var dataJSON = JSON.parse(responseBody);\n    \n    console.log(dataJSON)\n    tests[\"Valid status\"] = dataJSON.status == 201;\n    tests[\"Valid message\"] = dataJSON.message == \"helm initialising\";\n\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    postman.setNextRequest(null);\n}\n \n\n\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"{\n  \"namespace\": \"kube-system\",\n  \"service_account\": \"tiller\",\n  \"tiller_image\": \"gcr.io\/kubernetes-helm\/tiller:v2.7.2\"\n}",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"89e771be-07bc-82f3-fd74-91308cbaa8ee",
+         "name":"Cluster Create AKS",
+         "url":"{{url}}\/api\/v1\/clusters",
+         "description":"Creates a K8S cluster in the Azure Container Service",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}"
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json"
+            }
+         ],
+         "method":"POST",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"b6319e6f-0b6a-42e5-ba8e-0bc0c639b0cd",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "if (responseCode.code === 200) {",
+                     "    tests[\"Response Code 200\"] = responseCode.code == 200;",
+                     "",
+                     "    pm.environment.set(\"timestampHeader\", new Date());",
+                     "    var dataJSON = JSON.parse(responseBody);",
+                     "    pm.environment.set(\"cluster_id\", dataJSON.id);",
+                     "    tests[\"Cluster ID: \" + dataJSON.id] = true;",
+                     "",
+                     "    postman.setNextRequest(\"Cluster Status\");",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    console.warn(responseBody);",
+                     "    postman.setNextRequest(null);",
+                     "}",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"3ba3ef69-81cc-442d-a621-7c7f531e56a7",
+         "preRequestScript":null,
+         "tests":"if (responseCode.code === 200) {\n    tests[\"Response Code 200\"] = responseCode.code == 200;\n\n    pm.environment.set(\"timestampHeader\", new Date());\n    var dataJSON = JSON.parse(responseBody);\n    pm.environment.set(\"cluster_id\", dataJSON.id);\n    tests[\"Cluster ID: \" + dataJSON.id] = true;\n\n    postman.setNextRequest(\"Cluster Status\");\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    console.warn(responseBody);\n    postman.setNextRequest(null);\n}\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"{\n\t\"name\":\"azcluster{{username}}{{$randomInt}}\",\n\t\"location\": \"westeurope\",\n\t\"cloud\": \"azure\",\n    \"nodeInstanceType\": \"Standard_B2ms\",\n    \"properties\": {\n        \"azure\": {\n            \"node\": {\n                \"resourceGroup\": \"{{az-resource-group}}\",\n                \"agentCount\": 1,\n                \"agentName\": \"agentpool1\",\n                \"kubernetesVersion\": \"1.8.2\"\n            }\n        }\n    }\n}",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"8cd232df-0dfe-da93-d93f-142003d2f7c2",
+         "name":"Deployment Create Fake APP",
+         "url":"{{url}}\/api\/v1\/clusters\/{{cluster_id}}\/deployments",
+         "description":"Create a helm deployment",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}"
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json"
+            }
+         ],
+         "method":"POST",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "type":"text\/javascript",
+                  "exec":[
+                     "",
+                     "if (responseCode.code === 404) {",
+                     "    tests[\"Response Code 404\"] = responseCode.code == 404;",
+                     "    var dataJSON = JSON.parse(responseBody);",
+                     "    ",
+                     "    console.log(dataJSON)",
+                     "    tests[\"Valid Message\"] = \/^Error loading chart: stat \\\/opt\\\/helm\\\/.*.no such file or directory$\/.test(dataJSON.message);",
+                     "    tests[\"Valid code\"] = dataJSON.status == \"404\";",
+                     "",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    postman.setNextRequest(null);",
+                     "",
+                     "}",
+                     " ",
+                     "",
+                     "",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"3f25ca24-ac31-49dd-a1e4-5ea40d0e99df",
+         "preRequestScript":null,
+         "tests":"\nif (responseCode.code === 404) {\n    tests[\"Response Code 404\"] = responseCode.code == 404;\n    var dataJSON = JSON.parse(responseBody);\n    \n    console.log(dataJSON)\n    tests[\"Valid Message\"] = \/^Error loading chart: stat \\\/opt\\\/helm\\\/.*.no such file or directory$\/.test(dataJSON.message);\n    tests[\"Valid code\"] = dataJSON.status == \"404\";\n\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    postman.setNextRequest(null);\n\n}\n \n\n\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"{\"name\": \"pokol_app\"}",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"93fb54a7-293c-eceb-a5ed-8425cb155b79",
+         "name":"List Deployment",
+         "url":"{{url}}\/api\/v1\/clusters\/{{cluster_id}}\/deployments",
+         "description":"List helm deployment",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}",
+               "description":"",
+               "enabled":true
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json",
+               "description":"",
+               "enabled":true
+            }
+         ],
+         "method":"GET",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"c45ecb31-d574-4ddf-aaa5-ae2d554e0832",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "if (responseCode.code === 200) {",
+                     "    tests[\"Response Code 200\"] = responseCode.code == 200;",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    postman.setNextRequest(null);",
+                     "}",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"3f25ca24-ac31-49dd-a1e4-5ea40d0e99df",
+         "preRequestScript":null,
+         "tests":"if (responseCode.code === 200) {\n    tests[\"Response Code 200\"] = responseCode.code == 200;\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    postman.setNextRequest(null);\n}\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"{\"name\": \"banzaicloud-stable\/drone\"}",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"94df9a32-12ef-eff7-8b16-f1e668a340ae",
+         "name":"Cluster Config",
+         "url":"{{url}}\/api\/v1\/clusters\/{{cluster_id}}\/config",
+         "description":"Get the cluster configuration file",
+         "data":[
+            {
+               "key":"name",
+               "type":"text",
+               "value":"zeppelin-k8s-charts"
+            }
+         ],
+         "dataMode":"urlencoded",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}"
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json"
+            }
+         ],
+         "method":"GET",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "type":"text\/javascript",
+                  "exec":[
+                     "",
+                     "if (responseCode.code === 200) {",
+                     "    tests[\"Response Code 200\"] = responseCode.code == 200;",
+                     "",
+                     "}",
+                     "else if (responseCode.code === 404) {",
+                     "    tests[\"Cluster Node Found!\"] = false",
+                     "    postman.setNextRequest(null);",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    postman.setNextRequest(null);",
+                     "",
+                     "    ",
+                     "}",
+                     " ",
+                     "",
+                     "",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"a6a9926f-138f-e46a-3584-6bcf89825d5c",
+         "preRequestScript":null,
+         "tests":"\nif (responseCode.code === 200) {\n    tests[\"Response Code 200\"] = responseCode.code == 200;\n\n}\nelse if (responseCode.code === 404) {\n    tests[\"Cluster Node Found!\"] = false\n    postman.setNextRequest(null);\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    postman.setNextRequest(null);\n\n    \n}\n \n\n\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"99dcf56c-928b-bb88-8284-714092641479",
+         "name":"Deployment Upgrade",
+         "url":"{{url}}\/api\/v1\/clusters\/{{cluster_id}}\/deployments\/{{deployment_name}}",
+         "description":"Upgrades an existing deployment",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}"
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/x-www-form-urlencoded"
+            }
+         ],
+         "method":"PUT",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"5938dc81-a51b-4ecf-969b-b147bf96ce59",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "if (responseCode.code === 501) {",
+                     "    tests[\"Response Code 501\"] = responseCode.code == 501;",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    postman.setNextRequest(null);",
+                     "",
+                     "}"
+                  ]
+               }
+            }
+         ],
+         "folder":"a5b8a640-56e1-2502-f3e2-efb1b5acd6f9",
+         "preRequestScript":null,
+         "tests":"if (responseCode.code === 501) {\n    tests[\"Response Code 501\"] = responseCode.code == 501;\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    postman.setNextRequest(null);\n\n}",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/x-www-form-urlencoded\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"9f3ecb0c-c540-09bf-69ca-c07b26026783",
+         "name":"Cluster Config",
+         "url":"{{url}}\/api\/v1\/clusters\/{{cluster_id}}\/config",
+         "description":"Get the cluster configuration file",
+         "data":[
+            {
+               "key":"name",
+               "type":"text",
+               "value":"zeppelin-k8s-charts"
+            }
+         ],
+         "dataMode":"urlencoded",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}"
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json"
+            }
+         ],
+         "method":"GET",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "type":"text\/javascript",
+                  "exec":[
+                     "",
+                     "if (responseCode.code === 200) {",
+                     "    tests[\"Response Code 200\"] = responseCode.code == 200;",
+                     "",
+                     "}",
+                     "else if (responseCode.code === 404) {",
+                     "    tests[\"Cluster Node Found!\"] = false",
+                     "    postman.setNextRequest(null);",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    postman.setNextRequest(null);",
+                     "",
+                     "    ",
+                     "}",
+                     " ",
+                     "",
+                     "",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"9211ca36-24c3-4f19-9de0-a33d8f96a2f7",
+         "preRequestScript":null,
+         "tests":"\nif (responseCode.code === 200) {\n    tests[\"Response Code 200\"] = responseCode.code == 200;\n\n}\nelse if (responseCode.code === 404) {\n    tests[\"Cluster Node Found!\"] = false\n    postman.setNextRequest(null);\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    postman.setNextRequest(null);\n\n    \n}\n \n\n\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"a08c6318-a720-e940-30d0-7a1498ada472",
+         "name":"Cluster Delete  FakeID",
+         "url":"{{url}}\/api\/v1\/clusters\/31231231241231231231321",
+         "description":"Delete a K8S cluster from the cloud, cleans up resources",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}"
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json"
+            }
+         ],
+         "method":"DELETE",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"3b611314-d6e9-4e5e-ae48-1494996f0bb2",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "",
+                     "if (responseCode.code === 404) {",
+                     "    tests[\"Response Code 404\"] = responseCode.code == 404;",
+                     "    var dataJSON = JSON.parse(responseBody);",
+                     "    ",
+                     "    console.log(dataJSON)",
+                     "    tests[\"Valid Message\"] = dataJSON.message == \"Cluster not found\";",
+                     "    tests[\"Valid Error\"] = dataJSON.error == \"record not found\";",
+                     "    tests[\"Valid code\"] = dataJSON.code == \"404\";",
+                     "",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    postman.setNextRequest(null);",
+                     "",
+                     "}",
+                     " ",
+                     "",
+                     "",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"a6a9926f-138f-e46a-3584-6bcf89825d5c",
+         "preRequestScript":null,
+         "tests":"\nif (responseCode.code === 404) {\n    tests[\"Response Code 404\"] = responseCode.code == 404;\n    var dataJSON = JSON.parse(responseBody);\n    \n    console.log(dataJSON)\n    tests[\"Valid Message\"] = dataJSON.message == \"Cluster not found\";\n    tests[\"Valid Error\"] = dataJSON.error == \"record not found\";\n    tests[\"Valid code\"] = dataJSON.code == \"404\";\n\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    postman.setNextRequest(null);\n\n}\n \n\n\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"a096c4e9-6a6a-c79b-835d-d6f3ccfed7af",
+         "name":"Cluster Create AKS",
+         "url":"{{url}}\/api\/v1\/clusters",
+         "description":"Creates a K8S cluster in the Azure Container Service",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}"
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json"
+            }
+         ],
+         "method":"POST",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"b6319e6f-0b6a-42e5-ba8e-0bc0c639b0cd",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "if (responseCode.code === 200) {",
+                     "    tests[\"Response Code 200\"] = responseCode.code == 200;",
+                     "",
+                     "    pm.environment.set(\"timestampHeader\", new Date());",
+                     "    var dataJSON = JSON.parse(responseBody);",
+                     "    pm.environment.set(\"cluster_id\", dataJSON.id);",
+                     "    tests[\"Cluster ID: \" + dataJSON.id] = true;",
+                     "",
+                     "    postman.setNextRequest(\"Cluster Status\");",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    console.warn(responseBody);",
+                     "    postman.setNextRequest(null);",
+                     "}",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"ee5495a0-5f37-344c-db1d-8a0f916d8819",
+         "preRequestScript":null,
+         "tests":"if (responseCode.code === 200) {\n    tests[\"Response Code 200\"] = responseCode.code == 200;\n\n    pm.environment.set(\"timestampHeader\", new Date());\n    var dataJSON = JSON.parse(responseBody);\n    pm.environment.set(\"cluster_id\", dataJSON.id);\n    tests[\"Cluster ID: \" + dataJSON.id] = true;\n\n    postman.setNextRequest(\"Cluster Status\");\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    console.warn(responseBody);\n    postman.setNextRequest(null);\n}\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"{\n  \"name\":\"azcluster{{username}}{{$randomInt}}\",\n  \"location\": \"westeurope\",\n  \"cloud\": \"azure\",\n    \"nodeInstanceType\": \"Standard_D2_v2\",\n    \"properties\": {\n        \"azure\": {\n            \"node\": {\n                \"resourceGroup\": \"{{az-resource-group}}\",\n                \"agentCount\": 1,\n                \"agentName\": \"agentpool1\",\n                \"kubernetesVersion\": \"1.8.2\"\n            }\n        }\n    }\n}",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"a4266a71-2c61-8223-2d2a-628452f9fb9c",
+         "name":"List profiles",
+         "url":"{{url}}\/api\/v1\/cluster\/profiles\/{{cloud_type}}",
+         "description":"List the stored cluster profiles in pipeline",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}",
+               "enabled":true
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json",
+               "enabled":true
+            }
+         ],
+         "method":"GET",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"3bbc178d-32ee-487c-8c4a-e6b0970ad765",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "if (responseCode.code === 200) {",
+                     "    tests[\"Response Code 200\"] = responseCode.code == 200;",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    console.warn(responseBody);",
+                     "    postman.setNextRequest(null);",
+                     "}",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"681ed2da-68d2-892e-d0c3-01d8ab36e04f",
+         "preRequestScript":null,
+         "tests":"if (responseCode.code === 200) {\n    tests[\"Response Code 200\"] = responseCode.code == 200;\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    console.warn(responseBody);\n    postman.setNextRequest(null);\n}\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"a6b208f2-f049-a523-66f5-3529ab0a33d0",
+         "name":"Create Profile GKE",
+         "url":"{{url}}\/api\/v1\/cluster\/profiles",
+         "description":"Create a Google Kubernetes Engine profile",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}",
+               "enabled":true
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json",
+               "enabled":true
+            }
+         ],
+         "method":"POST",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"6795b382-1ed8-42ca-8aa9-ffebb2f585dd",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "if (responseCode.code === 201) {",
+                     "    tests[\"Response Code 201\"] = responseCode.code == 201;",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    console.warn(responseBody);",
+                     "    postman.setNextRequest(null);",
+                     "}",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"681ed2da-68d2-892e-d0c3-01d8ab36e04f",
+         "preRequestScript":null,
+         "tests":"if (responseCode.code === 201) {\n    tests[\"Response Code 201\"] = responseCode.code == 201;\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    console.warn(responseBody);\n    postman.setNextRequest(null);\n}\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"{\n  \"instanceName\": \"{{profile_name}}\",\n  \"location\": \"us-central1-a\",\n  \"cloud\": \"google\",\n  \"nodeInstanceType\": \"n1-standard-1\",\n  \"properties\": {\n    \"google\": {\n            \"master\":{\n                \"version\":\"1.8.7-gke.1\"\n            },\n            \"node\":{\n              \"count\": 1,\n              \"version\":\"1.8.7-gke.1\"\n            }\n        }\n  }\n}",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"a81c3d25-77ce-47dc-bf03-ee55e1421afa",
+         "name":"Update Profile AWS",
+         "url":"{{url}}\/api\/v1\/cluster\/profiles",
+         "description":"Update an existing Amazon Web Services profile",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}",
+               "description":"",
+               "enabled":true
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json",
+               "description":"",
+               "enabled":true
+            }
+         ],
+         "method":"PUT",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"6795b382-1ed8-42ca-8aa9-ffebb2f585dd",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "if (responseCode.code === 201) {",
+                     "    tests[\"Response Code 201\"] = responseCode.code == 201;",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    console.warn(responseBody);",
+                     "    postman.setNextRequest(null);",
+                     "}",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"69e45f00-bf42-4954-994d-b3d1d63ee6d4",
+         "preRequestScript":null,
+         "tests":"if (responseCode.code === 201) {\n    tests[\"Response Code 201\"] = responseCode.code == 201;\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    console.warn(responseBody);\n    postman.setNextRequest(null);\n}\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"{\n\t\"instanceName\": \"{{profile_name}}\",\n\t\"location\": \"eu-west-1\",\n\t\"cloud\": \"amazon\",\n\t\"nodeInstanceType\": \"m4.xlarge\",\n\t\"properties\": {\n\t\t\"amazon\": {\n\t\t\t\"master\": {\n\t\t\t\t\"instanceType\": \"m4.xlarge\",\n\t\t\t\t\"image\": \"ami-06d1667f\"\n\t\t\t},\n\t\t\t\"node\": {\n\t\t\t\t\"spotPrice\": \"0.2\",\n\t\t\t\t\"minCount\": 2,\n\t\t\t\t\"maxCount\": 4,\n\t\t\t\t\"image\": \"ami-06d1667f\"\n\t\t\t}\n\t\t}\n\t}\n}",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"aa45d07e-01b4-bd77-e92d-0d1b4038d64a",
+         "name":"Update Profile GKE",
+         "url":"{{url}}\/api\/v1\/cluster\/profiles",
+         "description":"Update an existing Google Kubernetes Engine profile",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}",
+               "enabled":true
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json",
+               "enabled":true
+            }
+         ],
+         "method":"PUT",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"6795b382-1ed8-42ca-8aa9-ffebb2f585dd",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "if (responseCode.code === 201) {",
+                     "    tests[\"Response Code 201\"] = responseCode.code == 201;",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    console.warn(responseBody);",
+                     "    postman.setNextRequest(null);",
+                     "}",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"681ed2da-68d2-892e-d0c3-01d8ab36e04f",
+         "preRequestScript":null,
+         "tests":"if (responseCode.code === 201) {\n    tests[\"Response Code 201\"] = responseCode.code == 201;\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    console.warn(responseBody);\n    postman.setNextRequest(null);\n}\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"{\n  \"instanceName\": \"{{profile_name}}\",\n  \"location\": \"us-central1-a\",\n  \"cloud\": \"google\",\n  \"nodeInstanceType\": \"n1-standard-1\",\n  \"properties\": {\n    \"google\": {\n            \"master\":{\n                \"version\":\"1.8.7-gke.1\"\n            },\n            \"node\":{\n              \"count\": 2,\n              \"version\":\"1.8.7-gke.1\"\n            }\n        }\n  }\n}",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"aae971a1-950e-cfae-d381-c08bce20ad12",
+         "name":"List Deployment",
+         "url":"{{url}}\/api\/v1\/clusters\/{{cluster_id}}\/deployments",
+         "description":"List helm deployment",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}",
+               "enabled":true
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json",
+               "enabled":true
+            }
+         ],
+         "method":"GET",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"c45ecb31-d574-4ddf-aaa5-ae2d554e0832",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "if (responseCode.code === 200) {",
+                     "    tests[\"Response Code 200\"] = responseCode.code == 200;",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    postman.setNextRequest(null);",
+                     "}",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"074a75de-ef32-5a65-bdd3-75dd70a12d00",
+         "preRequestScript":null,
+         "tests":"if (responseCode.code === 200) {\n    tests[\"Response Code 200\"] = responseCode.code == 200;\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    postman.setNextRequest(null);\n}\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"{\"name\": \"banzaicloud-stable\/drone\"}",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"b25daebe-b378-c2c2-309b-efd2e5b59fc6",
+         "name":"Cluster Public Endpoints",
+         "url":"{{url}}\/api\/v1\/clusters\/{{cluster_id}}\/endpoints",
+         "description":"List cluster public endpoints",
+         "data":[
+            {
+               "key":"name",
+               "type":"text",
+               "value":"zeppelin-k8s-charts"
+            }
+         ],
+         "dataMode":"urlencoded",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}"
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/x-www-form-urlencoded"
+            }
+         ],
+         "method":"GET",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "type":"text\/javascript",
+                  "exec":[
+                     "",
+                     "if (responseCode.code === 200) {",
+                     "    tests[\"Response Code 200\"] = responseCode.code == 200;",
+                     "}"
+                  ]
+               }
+            }
+         ],
+         "folder":"a6a9926f-138f-e46a-3584-6bcf89825d5c",
+         "preRequestScript":null,
+         "tests":"\nif (responseCode.code === 200) {\n    tests[\"Response Code 200\"] = responseCode.code == 200;\n}",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/x-www-form-urlencoded\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"b2a43237-d419-5a94-0e36-83f1516114b6",
+         "name":"Deployment Delete ",
+         "url":"{{url}}\/api\/v1\/clusters\/{{cluster_id}}\/deployments\/{{deployment_name}}",
+         "description":"Delete Deployment\n",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}",
+               "description":"",
+               "enabled":true
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/x-www-form-urlencoded",
+               "description":"",
+               "enabled":true
+            }
+         ],
+         "method":"DELETE",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"04be7a1d-e73b-435f-8f58-a43bfd7b77ff",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "",
+                     "if (responseCode.code === 200) {",
+                     "    tests[\"Response Code 200\"] = responseCode.code == 200;",
+                     "    ",
+                     "    var dataJSON = JSON.parse(responseBody);",
+                     "    console.log(dataJSON)",
+                     "    tests[\"Valid status\"] = dataJSON.status == 200;",
+                     "    tests[\"Valid message\"] = dataJSON.message == \"Deployment deleted!\";",
+                     "    tests[\"Valid name\"] = dataJSON.name == environment.deployment_name;",
+                     "",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    postman.setNextRequest(null);",
+                     "",
+                     "}",
+                     " "
+                  ]
+               }
+            }
+         ],
+         "folder":"2a3b95be-594e-443a-8412-9ef3af92b869",
+         "preRequestScript":null,
+         "tests":"\nif (responseCode.code === 200) {\n    tests[\"Response Code 200\"] = responseCode.code == 200;\n    \n    var dataJSON = JSON.parse(responseBody);\n    console.log(dataJSON)\n    tests[\"Valid status\"] = dataJSON.status == 200;\n    tests[\"Valid message\"] = dataJSON.message == \"Deployment deleted!\";\n    tests[\"Valid name\"] = dataJSON.name == environment.deployment_name;\n\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    postman.setNextRequest(null);\n\n}\n ",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/x-www-form-urlencoded\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"b559ae70-ab5c-4643-96fc-4d0aac4e3ca2",
+         "name":"List profiles",
+         "url":"{{url}}\/api\/v1\/cluster\/profiles\/{{cloud_type}}",
+         "description":"List the stored cluster profiles in pipeline",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}",
+               "description":"",
+               "enabled":true
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json",
+               "description":"",
+               "enabled":true
+            }
+         ],
+         "method":"GET",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"3bbc178d-32ee-487c-8c4a-e6b0970ad765",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "if (responseCode.code === 200) {",
+                     "    tests[\"Response Code 200\"] = responseCode.code == 200;",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    console.warn(responseBody);",
+                     "    postman.setNextRequest(null);",
+                     "}",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"69e45f00-bf42-4954-994d-b3d1d63ee6d4",
+         "preRequestScript":null,
+         "tests":"if (responseCode.code === 200) {\n    tests[\"Response Code 200\"] = responseCode.code == 200;\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    console.warn(responseBody);\n    postman.setNextRequest(null);\n}\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"b741e423-ffb5-e1ba-2813-718e7a0099a7",
+         "name":"Deployment app Status",
+         "url":"{{url}}\/api\/v1\/clusters\/{{cluster_id}}\/deployments\/{{deployment_name}}",
+         "description":"Get deployment app status",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}"
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json"
+            }
+         ],
+         "method":"HEAD",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":{
+            "type":"basic",
+            "basic":[
+               {
+                  "key":"username",
+                  "value":"admin",
+                  "type":"string"
+               },
+               {
+                  "key":"password",
+                  "value":"puski123",
+                  "type":"string"
+               },
+               {
+                  "key":"saveHelperData",
+                  "type":"any"
+               },
+               {
+                  "key":"showPassword",
+                  "value":false,
+                  "type":"boolean"
+               }
+            ]
+         },
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "type":"text\/javascript",
+                  "exec":[
+                     "",
+                     "if (responseCode.code === 200) {",
+                     "    tests[\"Response Code 200\"] = responseCode.code == 200;",
+                     "",
+                     "} else if (responseCode.code === 404 || responseCode.code === 503 )  {",
+                     "    console.log(\"Waiting...\" );",
+                     "    postman.setNextRequest(\"Delay Response 3\");",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    console.warn(responseBody);",
+                     "    postman.setNextRequest(null);",
+                     "    ",
+                     "}",
+                     " ",
+                     "",
+                     "",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"a5b8a640-56e1-2502-f3e2-efb1b5acd6f9",
+         "preRequestScript":null,
+         "tests":"\nif (responseCode.code === 200) {\n    tests[\"Response Code 200\"] = responseCode.code == 200;\n\n} else if (responseCode.code === 404 || responseCode.code === 503 )  {\n    console.log(\"Waiting...\" );\n    postman.setNextRequest(\"Delay Response 3\");\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    console.warn(responseBody);\n    postman.setNextRequest(null);\n    \n}\n \n\n\n",
+         "currentHelper":"basicAuth",
+         "helperAttributes":{
+            "id":"basic",
+            "username":"admin",
+            "password":"puski123"
+         },
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"b87e590e-3726-a473-9533-adb0cddc12d0",
+         "name":"Cluster Update AKS",
+         "url":"{{url}}\/api\/v1\/clusters\/{{cluster_id}}",
+         "description":"Update an AKS cluster",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}",
+               "description":"",
+               "enabled":true
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json",
+               "description":"",
+               "enabled":true
+            }
+         ],
+         "method":"PUT",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"1d33fe5d-239f-4bb8-968c-46ab44390e6d",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "",
+                     "if (responseCode.code === 202) {",
+                     "    tests[\"Response Code 202\"] = responseCode.code == 202;",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    postman.setNextRequest(null);",
+                     "}",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"9211ca36-24c3-4f19-9de0-a33d8f96a2f7",
+         "preRequestScript":null,
+         "tests":"\nif (responseCode.code === 202) {\n    tests[\"Response Code 202\"] = responseCode.code == 202;\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    postman.setNextRequest(null);\n}\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"{\n  \"cloud\": \"azure\",\n  \"properties\": {\n    \"azure\": {\n      \"node\": {\n        \"agentCount\": 1\n      }\n    }\n  }\n}",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"ba805b7f-f9a9-6e0c-d755-031ccaead3bf",
+         "name":"Cluster Delete ",
+         "url":"{{url}}\/api\/v1\/clusters\/{{cluster_id}}",
+         "description":"Delete a K8S cluster from the cloud, cleans up resources",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}"
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json"
+            }
+         ],
+         "method":"DELETE",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "type":"text\/javascript",
+                  "exec":[
+                     "",
+                     "if (responseCode.code === 202) {",
+                     "    tests[\"Response Code 202\"] = responseCode.code == 202;",
+                     "    tests[\"Response Time\"] = pm.expect(pm.response.responseTime).to.be.below(155679)",
+                     "",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    postman.setNextRequest(null);",
+                     "",
+                     "}",
+                     " "
+                  ]
+               }
+            }
+         ],
+         "folder":"9211ca36-24c3-4f19-9de0-a33d8f96a2f7",
+         "preRequestScript":null,
+         "tests":"\nif (responseCode.code === 202) {\n    tests[\"Response Code 202\"] = responseCode.code == 202;\n    tests[\"Response Time\"] = pm.expect(pm.response.responseTime).to.be.below(155679)\n\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    postman.setNextRequest(null);\n\n}\n ",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"be88ae23-8e34-7555-46d5-741bab38573b",
+         "name":"Cluster Create AWS",
+         "url":"{{url}}\/api\/v1\/clusters",
+         "description":"Creates a K8S cluster in the Amazon Web Services",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}",
+               "description":"",
+               "enabled":true
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json",
+               "description":"",
+               "enabled":true
+            }
+         ],
+         "method":"POST",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"1eb9f479-f5d9-420e-9e2f-6df45be8731c",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "if (responseCode.code === 200) {",
+                     "    tests[\"Response Code 200\"] = responseCode.code == 200;",
+                     "",
+                     "    pm.environment.set(\"timestampHeader\", new Date());",
+                     "    var dataJSON = JSON.parse(responseBody);",
+                     "    pm.environment.set(\"cluster_id\", dataJSON.id);",
+                     "    tests[\"Cluster ID: \" + dataJSON.id] = true;",
+                     "",
+                     "    tests[\"Response Time\"] = pm.expect(pm.response.responseTime).to.be.below(80500)",
+                     "",
+                     "    postman.setNextRequest(\"Cluster Status\");",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    console.warn(responseBody);",
+                     "    postman.setNextRequest(null);",
+                     "}",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"3ba3ef69-81cc-442d-a621-7c7f531e56a7",
+         "preRequestScript":null,
+         "tests":"if (responseCode.code === 200) {\n    tests[\"Response Code 200\"] = responseCode.code == 200;\n\n    pm.environment.set(\"timestampHeader\", new Date());\n    var dataJSON = JSON.parse(responseBody);\n    pm.environment.set(\"cluster_id\", dataJSON.id);\n    tests[\"Cluster ID: \" + dataJSON.id] = true;\n\n    tests[\"Response Time\"] = pm.expect(pm.response.responseTime).to.be.below(80500)\n\n    postman.setNextRequest(\"Cluster Status\");\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    console.warn(responseBody);\n    postman.setNextRequest(null);\n}\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"{\n\t\"name\":\"awscluster-{{username}}-{{$randomInt}}\",\n    \"location\": \"eu-west-1\",\n    \"cloud\": \"amazon\",\n    \"nodeInstanceType\": \"m4.xlarge\",\n    \"properties\": {\n        \"amazon\": {\n            \"node\": {\n                \"spotPrice\": \"0.2\",\n                \"minCount\": 1,\n                \"maxCount\": 2,\n                \"image\": \"ami-06d1667f\"\n            },\n            \"master\": {\n                \"instanceType\": \"m4.xlarge\",\n                \"image\": \"ami-06d1667f\"\n            }\n        }\n    }\n}\n\n",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"c0635046-5ab8-511f-ccad-3b1d1bdc9a57",
+         "name":"Fetch cluster",
+         "url":"{{url}}\/api\/v1\/clusters\/{{cluster_id}}",
+         "description":"Get cluster details",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}",
+               "description":"",
+               "enabled":true
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json",
+               "description":"",
+               "enabled":true
+            }
+         ],
+         "method":"GET",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"2918cae2-a5f9-47c2-979b-bfaf1152fdaf",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "if (responseCode.code === 200) {",
+                     "    tests[\"Response Code 200\"] = responseCode.code == 200;",
+                     "",
+                     "    pm.environment.set(\"timestampHeader\", new Date());",
+                     "    var dataJSON = JSON.parse(responseBody);",
+                     "    pm.environment.set(\"cluster_id\", dataJSON.id);",
+                     "    tests[\"Cluster ID: \" + dataJSON.id] = true;",
+                     "",
+                     "    tests[\"Valid id\"] = dataJSON.id == environment.cluster_id;",
+                     "",
+                     "    postman.setNextRequest(\"Cluster Status\");",
+                     "}",
+                     "else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    console.warn(responseBody);",
+                     "    postman.setNextRequest(null);",
+                     "}",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"9211ca36-24c3-4f19-9de0-a33d8f96a2f7",
+         "preRequestScript":null,
+         "tests":"if (responseCode.code === 200) {\n    tests[\"Response Code 200\"] = responseCode.code == 200;\n\n    pm.environment.set(\"timestampHeader\", new Date());\n    var dataJSON = JSON.parse(responseBody);\n    pm.environment.set(\"cluster_id\", dataJSON.id);\n    tests[\"Cluster ID: \" + dataJSON.id] = true;\n\n    tests[\"Valid id\"] = dataJSON.id == environment.cluster_id;\n\n    postman.setNextRequest(\"Cluster Status\");\n}\nelse {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    console.warn(responseBody);\n    postman.setNextRequest(null);\n}\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"{\n  \"name\":\"azcluster{{username}}{{$randomInt}}\",\n    \"location\": \"westeurope\",\n    \"cloud\": \"azure\",\n    \"nodeInstanceType\": \"Standard_D2_v2\",\n    \"properties\": {\n        \"azure\": {\n            \"node\": {\n                \"resourceGroup\": \"{{az-resource-group}}\",\n                \"agentCount\": 1,\n                \"agentName\": \"agentpool1\",\n                \"kubernetesVersion\": \"1.8.2\"\n            }\n        }\n    }\n}",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"c3d8bbbb-3c8e-affa-727e-06d6a29a8ca0",
+         "name":"Deployment Delete  FakeAPP",
+         "url":"{{url}}\/api\/v1\/clusters\/{{cluster_id}}\/deployments\/pokollll-appp",
+         "description":"Delete Deployment\n",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}"
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/x-www-form-urlencoded"
+            }
+         ],
+         "method":"DELETE",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"a593fab0-d03e-4681-a36a-f5053cde21fb",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "if (responseCode.code === 400) {",
+                     "    tests[\"Response Code 400\"] = responseCode.code == 400;",
+                     "    ",
+                     "    var dataJSON = JSON.parse(responseBody);",
+                     "    console.log(dataJSON)",
+                     "    tests[\"Valid code\"] = dataJSON.code == 400;",
+                     "    tests[\"Valid message\"] = dataJSON.message == \"Error deleting deployment\";",
+                     "",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    postman.setNextRequest(null);",
+                     "",
+                     "}"
+                  ]
+               }
+            }
+         ],
+         "folder":"2a3b95be-594e-443a-8412-9ef3af92b869",
+         "preRequestScript":null,
+         "tests":"if (responseCode.code === 400) {\n    tests[\"Response Code 400\"] = responseCode.code == 400;\n    \n    var dataJSON = JSON.parse(responseBody);\n    console.log(dataJSON)\n    tests[\"Valid code\"] = dataJSON.code == 400;\n    tests[\"Valid message\"] = dataJSON.message == \"Error deleting deployment\";\n\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    postman.setNextRequest(null);\n\n}",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/x-www-form-urlencoded\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"c61d579a-8650-9064-646b-4e4053e5cbed",
+         "name":"Cluster Public Endpoints",
+         "url":"{{url}}\/api\/v1\/clusters\/{{cluster_id}}\/endpoints",
+         "description":"List cluster public endpoints",
+         "data":[
+            {
+               "key":"name",
+               "type":"text",
+               "value":"zeppelin-k8s-charts"
+            }
+         ],
+         "dataMode":"urlencoded",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}"
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/x-www-form-urlencoded"
+            }
+         ],
+         "method":"GET",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "type":"text\/javascript",
+                  "exec":[
+                     "",
+                     "if (responseCode.code === 200) {",
+                     "    tests[\"Response Code 200\"] = responseCode.code == 200;",
+                     "}"
+                  ]
+               }
+            }
+         ],
+         "folder":"9211ca36-24c3-4f19-9de0-a33d8f96a2f7",
+         "preRequestScript":null,
+         "tests":"\nif (responseCode.code === 200) {\n    tests[\"Response Code 200\"] = responseCode.code == 200;\n}",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/x-www-form-urlencoded\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"c6d89a60-476b-ce92-7ffa-c9ac10c82491",
+         "name":"Update Profile AKS",
+         "url":"{{url}}\/api\/v1\/cluster\/profiles",
+         "description":"Update an existing Azure Container Service profile",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}",
+               "enabled":true
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json",
+               "enabled":true
+            }
+         ],
+         "method":"PUT",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"6795b382-1ed8-42ca-8aa9-ffebb2f585dd",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "if (responseCode.code === 201) {",
+                     "    tests[\"Response Code 201\"] = responseCode.code == 201;",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    console.warn(responseBody);",
+                     "    postman.setNextRequest(null);",
+                     "}",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"681ed2da-68d2-892e-d0c3-01d8ab36e04f",
+         "preRequestScript":null,
+         "tests":"if (responseCode.code === 201) {\n    tests[\"Response Code 201\"] = responseCode.code == 201;\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    console.warn(responseBody);\n    postman.setNextRequest(null);\n}\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"{\n  \"instanceName\": \"{{profile_name}}\",\n  \"location\": \"westeurope\",\n  \"cloud\": \"azure\",\n  \"nodeInstanceType\": \"Standard_D2_v2\",\n  \"properties\": {\n    \"azure\": {\n            \"node\": {\n                \"resourceGroup\": \"{{az-resource-group}}\",\n                \"agentCount\": 2,\n                \"agentName\": \"agentpool1\",\n                \"kubernetesVersion\": \"1.8.2\"\n            }\n        }\n  }\n}",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"d9a212d9-f288-fbd1-237c-a008a3142c16",
+         "name":"Helm init",
+         "url":"{{url}}\/api\/v1\/clusters\/{{cluster_id}}\/helminit",
+         "description":"Initialize helm in the cluster",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}"
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json"
+            }
+         ],
+         "method":"POST",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"4f7e7713-c0c0-4d42-8d1e-aad3a7bdffde",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "",
+                     "if (responseCode.code === 201) {",
+                     "    tests[\"Response Code 201\"] = responseCode.code == 201;",
+                     "    var dataJSON = JSON.parse(responseBody);",
+                     "    ",
+                     "    console.log(dataJSON)",
+                     "    tests[\"Valid status\"] = dataJSON.status == 201;",
+                     "    tests[\"Valid message\"] = dataJSON.message == \"helm initialising\";",
+                     "",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    postman.setNextRequest(null);",
+                     "}",
+                     " ",
+                     "",
+                     "",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"9211ca36-24c3-4f19-9de0-a33d8f96a2f7",
+         "preRequestScript":null,
+         "tests":"\nif (responseCode.code === 201) {\n    tests[\"Response Code 201\"] = responseCode.code == 201;\n    var dataJSON = JSON.parse(responseBody);\n    \n    console.log(dataJSON)\n    tests[\"Valid status\"] = dataJSON.status == 201;\n    tests[\"Valid message\"] = dataJSON.message == \"helm initialising\";\n\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    postman.setNextRequest(null);\n}\n \n\n\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"{\n  \"namespace\": \"kube-system\",\n  \"service_account\": \"tiller\",\n  \"tiller_image\": \"gcr.io\/kubernetes-helm\/tiller:v2.7.2\"\n}",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"da2cad14-2d8c-430d-87a8-0a6c4f2fe13f",
+         "name":"Update Profile AKS",
+         "url":"{{url}}\/api\/v1\/cluster\/profiles",
+         "description":"Update an existing Azure Container Service profile",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}",
+               "description":"",
+               "enabled":true
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json",
+               "description":"",
+               "enabled":true
+            }
+         ],
+         "method":"PUT",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"6795b382-1ed8-42ca-8aa9-ffebb2f585dd",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "if (responseCode.code === 201) {",
+                     "    tests[\"Response Code 201\"] = responseCode.code == 201;",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    console.warn(responseBody);",
+                     "    postman.setNextRequest(null);",
+                     "}",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"69e45f00-bf42-4954-994d-b3d1d63ee6d4",
+         "preRequestScript":null,
+         "tests":"if (responseCode.code === 201) {\n    tests[\"Response Code 201\"] = responseCode.code == 201;\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    console.warn(responseBody);\n    postman.setNextRequest(null);\n}\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"{\n\t\"instanceName\": \"{{profile_name}}\",\n\t\"location\": \"westeurope\",\n\t\"cloud\": \"azure\",\n\t\"nodeInstanceType\": \"Standard_D2_v2\",\n\t\"properties\": {\n\t\t\"azure\": {\n            \"node\": {\n                \"resourceGroup\": \"{{az-resource-group}}\",\n                \"agentCount\": 2,\n                \"agentName\": \"agentpool1\",\n                \"kubernetesVersion\": \"1.8.2\"\n            }\n        }\n\t}\n}",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"dedade78-5361-a6bc-8aa6-22bad9997335",
+         "name":"Cluster Update GKE",
+         "url":"{{url}}\/api\/v1\/clusters\/{{cluster_id}}",
+         "description":"Update an AKS cluster",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}",
+               "enabled":true
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json",
+               "enabled":true
+            }
+         ],
+         "method":"PUT",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"37265830-f9a7-4967-bca4-cdbe793e27be",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "",
+                     "if (responseCode.code === 202) {",
+                     "    tests[\"Response Code 202\"] = responseCode.code == 202;",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    postman.setNextRequest(null);",
+                     "}",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"a6a9926f-138f-e46a-3584-6bcf89825d5c",
+         "preRequestScript":null,
+         "tests":"\nif (responseCode.code === 202) {\n    tests[\"Response Code 202\"] = responseCode.code == 202;\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    postman.setNextRequest(null);\n}\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"{\n  \"cloud\": \"google\",\n  \"properties\": {\n    \"google\": {\n      \"node\": {\n        \"count\": 2\n      }\n    }\n  }\n}",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"e8c745ba-0039-7e8a-8890-9d60e1e0662a",
+         "name":"Fetch cluster",
+         "url":"{{url}}\/api\/v1\/clusters\/{{cluster_id}}",
+         "description":"Get cluster details",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}",
+               "enabled":true
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json",
+               "enabled":true
+            }
+         ],
+         "method":"GET",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"2918cae2-a5f9-47c2-979b-bfaf1152fdaf",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "if (responseCode.code === 200) {",
+                     "    tests[\"Response Code 200\"] = responseCode.code == 200;",
+                     "",
+                     "    pm.environment.set(\"timestampHeader\", new Date());",
+                     "    var dataJSON = JSON.parse(responseBody);",
+                     "    pm.environment.set(\"cluster_id\", dataJSON.id);",
+                     "    tests[\"Cluster ID: \" + dataJSON.id] = true;",
+                     "",
+                     "    tests[\"Valid id\"] = dataJSON.id == environment.cluster_id;",
+                     "",
+                     "    postman.setNextRequest(\"Cluster Status\");",
+                     "}",
+                     "else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    console.warn(responseBody);",
+                     "    postman.setNextRequest(null);",
+                     "}",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"a6a9926f-138f-e46a-3584-6bcf89825d5c",
+         "preRequestScript":null,
+         "tests":"if (responseCode.code === 200) {\n    tests[\"Response Code 200\"] = responseCode.code == 200;\n\n    pm.environment.set(\"timestampHeader\", new Date());\n    var dataJSON = JSON.parse(responseBody);\n    pm.environment.set(\"cluster_id\", dataJSON.id);\n    tests[\"Cluster ID: \" + dataJSON.id] = true;\n\n    tests[\"Valid id\"] = dataJSON.id == environment.cluster_id;\n\n    postman.setNextRequest(\"Cluster Status\");\n}\nelse {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    console.warn(responseBody);\n    postman.setNextRequest(null);\n}\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"{\n  \"name\":\"azcluster{{username}}{{$randomInt}}\",\n    \"location\": \"westeurope\",\n    \"cloud\": \"azure\",\n    \"nodeInstanceType\": \"Standard_D2_v2\",\n    \"properties\": {\n        \"azure\": {\n            \"node\": {\n                \"resourceGroup\": \"{{az-resource-group}}\",\n                \"agentCount\": 1,\n                \"agentName\": \"agentpool1\",\n                \"kubernetesVersion\": \"1.8.2\"\n            }\n        }\n    }\n}",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"ea0a3e16-cda3-f459-a2bf-37e852ce1c12",
+         "name":"Deployment Create",
+         "url":"{{url}}\/api\/v1\/clusters\/{{cluster_id}}\/deployments",
+         "description":"Create a helm deployment",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}"
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json"
+            }
+         ],
+         "method":"POST",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "type":"text\/javascript",
+                  "exec":[
+                     "if (responseCode.code === 201) {",
+                     "    tests[\"Response Code 201\"] = responseCode.code == 201;",
+                     "    var dataJSON = JSON.parse(responseBody);",
+                     "",
+                     "    pm.environment.set(\"deployment_name\", dataJSON.release_name);",
+                     "",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    postman.setNextRequest(null);",
+                     "}",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"3f25ca24-ac31-49dd-a1e4-5ea40d0e99df",
+         "preRequestScript":null,
+         "tests":"if (responseCode.code === 201) {\n    tests[\"Response Code 201\"] = responseCode.code == 201;\n    var dataJSON = JSON.parse(responseBody);\n\n    pm.environment.set(\"deployment_name\", dataJSON.release_name);\n\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    postman.setNextRequest(null);\n}\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"{\"name\": \"banzaicloud-stable\/drone\"}",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"ea644d8a-dd30-4593-0d32-8e56ed901df3",
+         "name":"Update Profile AWS",
+         "url":"{{url}}\/api\/v1\/cluster\/profiles",
+         "description":"Update an existing Amazon Web Services profile",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}",
+               "enabled":true
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json",
+               "enabled":true
+            }
+         ],
+         "method":"PUT",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"6795b382-1ed8-42ca-8aa9-ffebb2f585dd",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "if (responseCode.code === 201) {",
+                     "    tests[\"Response Code 201\"] = responseCode.code == 201;",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    console.warn(responseBody);",
+                     "    postman.setNextRequest(null);",
+                     "}",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"681ed2da-68d2-892e-d0c3-01d8ab36e04f",
+         "preRequestScript":null,
+         "tests":"if (responseCode.code === 201) {\n    tests[\"Response Code 201\"] = responseCode.code == 201;\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    console.warn(responseBody);\n    postman.setNextRequest(null);\n}\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"{\n  \"instanceName\": \"{{profile_name}}\",\n  \"location\": \"eu-west-1\",\n  \"cloud\": \"amazon\",\n  \"nodeInstanceType\": \"m4.xlarge\",\n  \"properties\": {\n    \"amazon\": {\n      \"master\": {\n        \"instanceType\": \"m4.xlarge\",\n        \"image\": \"ami-06d1667f\"\n      },\n      \"node\": {\n        \"spotPrice\": \"0.2\",\n        \"minCount\": 2,\n        \"maxCount\": 4,\n        \"image\": \"ami-06d1667f\"\n      }\n    }\n  }\n}",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"efe6e125-e929-f0bc-d55a-ffd8ce8a9d1e",
+         "name":"Cluster Create GKE",
+         "url":"{{url}}\/api\/v1\/clusters",
+         "description":"Creates a K8S cluster in the Google Kubernetes Engine",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}",
+               "description":"",
+               "enabled":true
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json",
+               "description":"",
+               "enabled":true
+            }
+         ],
+         "method":"POST",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"4e0642d3-125d-46f1-9533-6aeaee99dd78",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "if (responseCode.code === 200) {",
+                     "    tests[\"Response Code 200\"] = responseCode.code == 200;",
+                     "",
+                     "    pm.environment.set(\"timestampHeader\", new Date());",
+                     "    var dataJSON = JSON.parse(responseBody);",
+                     "    pm.environment.set(\"cluster_id\", dataJSON.id);",
+                     "    tests[\"Cluster ID: \" + dataJSON.id] = true;",
+                     "",
+                     "    postman.setNextRequest(\"Cluster Status\");",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    console.warn(responseBody);",
+                     "    postman.setNextRequest(null);",
+                     "}",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"3ba3ef69-81cc-442d-a621-7c7f531e56a7",
+         "preRequestScript":null,
+         "tests":"if (responseCode.code === 200) {\n    tests[\"Response Code 200\"] = responseCode.code == 200;\n\n    pm.environment.set(\"timestampHeader\", new Date());\n    var dataJSON = JSON.parse(responseBody);\n    pm.environment.set(\"cluster_id\", dataJSON.id);\n    tests[\"Cluster ID: \" + dataJSON.id] = true;\n\n    postman.setNextRequest(\"Cluster Status\");\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    console.warn(responseBody);\n    postman.setNextRequest(null);\n}\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"{\n    \"name\":\"gkecluster-{{username}}-{{$randomInt}}\",\n    \"location\": \"us-central1-a\",\n    \"nodeInstanceType\": \"n1-standard-2\",\n    \"cloud\": \"google\",\n    \"properties\": {\n        \"google\": {\n            \"project\":\"{{gke-projectId}}\",\n            \"master\":{\n                \"version\":\"1.8.7-gke.1\"\n            },\n            \"node\":{\n            \t\"count\": 1,\n            \t\"version\":\"1.8.7-gke.1\"\n            }\n        }\n    }\n}",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"f52c7b57-e40e-cb54-43d5-596ea9266535",
+         "name":"Cluster Status",
+         "url":"{{url}}\/api\/v1\/clusters\/{{cluster_id}}",
+         "description":"Get cluster status",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}",
+               "description":"",
+               "enabled":true
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json",
+               "description":"",
+               "enabled":true
+            }
+         ],
+         "method":"HEAD",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"90935d8f-b035-4e4b-aabe-bb1018ae4944",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "",
+                     "if (responseCode.code === 200) {",
+                     "    tests[\"Response Code 200\"] = responseCode.code == 200;",
+                     "     postman.setNextRequest(\"Cluster Info\");",
+                     "",
+                     "} else if (responseCode.code === 404 || responseCode.code === 503 )  {",
+                     "    console.log(\"Waiting...\" );",
+                     "    postman.setNextRequest(\"Delay Response 1\");",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    postman.setNextRequest(null);",
+                     "    ",
+                     "}",
+                     " ",
+                     "",
+                     "",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"9211ca36-24c3-4f19-9de0-a33d8f96a2f7",
+         "preRequestScript":null,
+         "tests":"\nif (responseCode.code === 200) {\n    tests[\"Response Code 200\"] = responseCode.code == 200;\n     postman.setNextRequest(\"Cluster Info\");\n\n} else if (responseCode.code === 404 || responseCode.code === 503 )  {\n    console.log(\"Waiting...\" );\n    postman.setNextRequest(\"Delay Response 1\");\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    postman.setNextRequest(null);\n    \n}\n \n\n\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"f603f5eb-ad65-1b74-3518-3f5eb5f8366d",
+         "name":"Cluster Create GKE",
+         "url":"{{url}}\/api\/v1\/clusters",
+         "description":"Creates a K8S cluster in the Google Kubernetes Engine",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}",
+               "enabled":true
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json",
+               "enabled":true
+            }
+         ],
+         "method":"POST",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"4e0642d3-125d-46f1-9533-6aeaee99dd78",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "if (responseCode.code === 200) {",
+                     "    tests[\"Response Code 200\"] = responseCode.code == 200;",
+                     "",
+                     "    pm.environment.set(\"timestampHeader\", new Date());",
+                     "    var dataJSON = JSON.parse(responseBody);",
+                     "    pm.environment.set(\"cluster_id\", dataJSON.id);",
+                     "    tests[\"Cluster ID: \" + dataJSON.id] = true;",
+                     "",
+                     "    postman.setNextRequest(\"Cluster Status\");",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    console.warn(responseBody);",
+                     "    postman.setNextRequest(null);",
+                     "}",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"ee5495a0-5f37-344c-db1d-8a0f916d8819",
+         "preRequestScript":null,
+         "tests":"if (responseCode.code === 200) {\n    tests[\"Response Code 200\"] = responseCode.code == 200;\n\n    pm.environment.set(\"timestampHeader\", new Date());\n    var dataJSON = JSON.parse(responseBody);\n    pm.environment.set(\"cluster_id\", dataJSON.id);\n    tests[\"Cluster ID: \" + dataJSON.id] = true;\n\n    postman.setNextRequest(\"Cluster Status\");\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    console.warn(responseBody);\n    postman.setNextRequest(null);\n}\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"{\n    \"name\":\"gkecluster-{{username}}-{{$randomInt}}\",\n    \"location\": \"us-central1-a\",\n    \"nodeInstanceType\": \"n1-standard-1\",\n    \"cloud\": \"google\",\n    \"properties\": {\n        \"google\": {\n            \"project\":\"{{gke-projectId}}\",\n            \"master\":{\n                \"version\":\"1.8.7-gke.1\"\n            },\n            \"node\":{\n              \"count\": 1,\n              \"version\":\"1.8.7-gke.1\"\n            }\n        }\n    }\n}",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"fb3fa347-df37-7fc8-b2be-a011a2aef744",
+         "name":"Cluster Update AWS",
+         "url":"{{url}}\/api\/v1\/clusters\/{{cluster_id}}",
+         "description":"Update an AWS cluster",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}"
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json"
+            }
+         ],
+         "method":"PUT",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"bb0bfcd1-a1c2-4cc0-b03e-61e4bb31fcee",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "",
+                     "if (responseCode.code === 202) {",
+                     "    tests[\"Response Code 202\"] = responseCode.code == 202;",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    postman.setNextRequest(null);",
+                     "}",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"9211ca36-24c3-4f19-9de0-a33d8f96a2f7",
+         "preRequestScript":null,
+         "tests":"\nif (responseCode.code === 202) {\n    tests[\"Response Code 202\"] = responseCode.code == 202;\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    postman.setNextRequest(null);\n}\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"{\n  \"cloud\": \"amazon\",\n  \"properties\": {\n    \"amazon\": {\n      \"node\": {\n        \"minCount\": 2,\n        \"maxCount\": 3\n      }\n    }\n  }\n}",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      },
+      {
+         "id":"fd603a58-858d-48cb-bb44-6d63a1a45965",
+         "name":"Create Profile GKE",
+         "url":"{{url}}\/api\/v1\/cluster\/profiles",
+         "description":"Create a Google Kubernetes Engine profile",
+         "data":[
+
+         ],
+         "dataMode":"raw",
+         "headerData":[
+            {
+               "key":"Authorization",
+               "value":"Bearer {{token}}",
+               "description":"",
+               "enabled":true
+            },
+            {
+               "key":"Content-Type",
+               "value":"application\/json",
+               "description":"",
+               "enabled":true
+            }
+         ],
+         "method":"POST",
+         "pathVariableData":[
+
+         ],
+         "queryParams":[
+
+         ],
+         "auth":null,
+         "events":[
+            {
+               "listen":"test",
+               "script":{
+                  "id":"6795b382-1ed8-42ca-8aa9-ffebb2f585dd",
+                  "type":"text\/javascript",
+                  "exec":[
+                     "if (responseCode.code === 201) {",
+                     "    tests[\"Response Code 201\"] = responseCode.code == 201;",
+                     "} else {",
+                     "    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+                     "    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+                     "    console.warn(responseBody);",
+                     "    postman.setNextRequest(null);",
+                     "}",
+                     ""
+                  ]
+               }
+            }
+         ],
+         "folder":"69e45f00-bf42-4954-994d-b3d1d63ee6d4",
+         "preRequestScript":null,
+         "tests":"if (responseCode.code === 201) {\n    tests[\"Response Code 201\"] = responseCode.code == 201;\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    console.warn(responseBody);\n    postman.setNextRequest(null);\n}\n",
+         "currentHelper":null,
+         "helperAttributes":null,
+         "collectionId":"c6e454e4-22d3-3bd7-fd28-df221f3f0f8b",
+         "rawModeData":"{\n\t\"instanceName\": \"{{profile_name}}\",\n\t\"location\": \"us-central1-a\",\n\t\"cloud\": \"google\",\n\t\"nodeInstanceType\": \"n1-standard-1\",\n\t\"properties\": {\n\t\t\"google\": {\n            \"master\":{\n                \"version\":\"1.8.7-gke.1\"\n            },\n            \"node\":{\n            \t\"count\": 1,\n            \t\"version\":\"1.8.7-gke.1\"\n            }\n        }\n\t}\n}",
+         "headers":"Authorization: Bearer {{token}}\nContent-Type: application\/json\n",
+         "pathVariables":[
+
+         ]
+      }
+   ]
+}
