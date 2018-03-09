@@ -434,6 +434,7 @@ func generateClusterCreateRequest(cc googleCluster) *gke.CreateClusterRequest {
 	request.Cluster.ClusterIpv4Cidr = cc.ClusterIpv4Cidr
 	request.Cluster.Description = cc.Description
 	request.Cluster.EnableKubernetesAlpha = cc.EnableAlphaFeature
+	request.Cluster.LegacyAbac.Enabled = true
 	request.Cluster.AddonsConfig = &gke.AddonsConfig{
 		HttpLoadBalancing:        &gke.HttpLoadBalancing{Disabled: !cc.HTTPLoadBalancing},
 		HorizontalPodAutoscaling: &gke.HorizontalPodAutoscaling{Disabled: !cc.HorizontalPodAutoscaling},
@@ -446,7 +447,6 @@ func generateClusterCreateRequest(cc googleCluster) *gke.CreateClusterRequest {
 		Enabled: cc.LegacyAbac,
 	}
 	request.Cluster.MasterAuth = &gke.MasterAuth{
-		Username: "admin",
 	}
 	request.Cluster.NodeConfig = cc.NodeConfig
 	return &request
@@ -672,18 +672,27 @@ func generateServiceAccountTokenForGke(cluster *gke.Cluster) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	certData, err := base64.StdEncoding.DecodeString(cluster.MasterAuth.ClientCertificate)
+	if err != nil {
+		return "", err
+	}
+	keyData, err := base64.StdEncoding.DecodeString(cluster.MasterAuth.ClientKey)
+	if err != nil {
+		return "", err
+	}
 	host := cluster.Endpoint
 	if !strings.HasPrefix(host, "https://") {
 		host = fmt.Sprintf("https://%s", host)
 	}
+
 	// in here we have to use http basic auth otherwise we can't get the permission to create cluster role
 	config := &rest.Config{
 		Host: host,
 		TLSClientConfig: rest.TLSClientConfig{
-			CAData: capem,
+			CAData:   capem,
+			CertData: certData,
+			KeyData:  keyData,
 		},
-		Username: cluster.MasterAuth.Username,
-		Password: cluster.MasterAuth.Password,
 	}
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
@@ -804,7 +813,7 @@ func storeConfig(c *kubernetesCluster, name string) ([]byte, error) {
 	cluster := configCluster{
 		Cluster: dataCluster{
 			CertificateAuthorityData: string(c.RootCACert),
-			Server: host,
+			Server:                   host,
 		},
 		Name: c.Name,
 	}
@@ -826,9 +835,11 @@ func storeConfig(c *kubernetesCluster, name string) ([]byte, error) {
 	// setup users
 	user := configUser{
 		User: userData{
-			Username: username,
-			Password: password,
-			Token:    token,
+			Username:              username,
+			Password:              password,
+			Token:                 token,
+			ClientCertificateData: c.ClientCertificate,
+			ClientKeyData:         c.ClientKey,
 		},
 		Name: c.Name,
 	}
@@ -949,9 +960,11 @@ type configUser struct {
 }
 
 type userData struct {
-	Token    string `yaml:"token,omitempty"`
-	Username string `yaml:"username,omitempty"`
-	Password string `yaml:"password,omitempty"`
+	Token                 string `yaml:"token,omitempty"`
+	Username              string `yaml:"username,omitempty"`
+	Password              string `yaml:"password,omitempty"`
+	ClientCertificateData string `yaml:"client-certificate-data,omitempty"`
+	ClientKeyData         string `yaml:"client-key-data,omitempty"`
 }
 
 //CreateGKEClusterFromModel creates ClusterModel struct from model
