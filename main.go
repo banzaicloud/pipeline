@@ -127,6 +127,9 @@ func main() {
 			orgs.POST("/:orgid/cluster/profiles", api.AddClusterProfile)
 			orgs.PUT("/:orgid/cluster/profiles", api.UpdateClusterProfile)
 			orgs.DELETE("/:orgid/cluster/profiles/:type/:name", api.DeleteClusterProfile)
+			orgs.GET("/:orgid/secrets", api.ListSecrets)
+			orgs.POST("/:orgid/secrets", api.AddSecrets)
+			orgs.DELETE("/:orgid/secrets/:secretId", api.DeleteSecrets)
 		}
 		v1.GET("/token", auth.GenerateToken)
 		v1.GET("/orgs", api.GetOrganizations)
