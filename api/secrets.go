@@ -87,6 +87,12 @@ func AddSecrets(c *gin.Context) {
 		}
 	}
 
+	c.JSON(http.StatusCreated, CreateSecretResponse{
+		Name:       createSecretRequest.Name,
+		SecretType: createSecretRequest.SecretType,
+		SecretId:   secretId,
+	})
+
 }
 
 func ListSecrets(c *gin.Context) {
@@ -135,6 +141,12 @@ func DeleteSecrets(c *gin.Context) {
 		c.Status(http.StatusOK)
 	}
 
+}
+
+type CreateSecretResponse struct {
+	Name       string `json:"name" binding:"required"`
+	SecretType string `json:"type" binding:"required"`
+	SecretId   string `json:"secret_id"`
 }
 
 type CreateSecretRequest struct {
