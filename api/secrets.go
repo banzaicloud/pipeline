@@ -131,11 +131,21 @@ func DeleteSecrets(c *gin.Context) {
 
 	if err := secretStoreObj.delete(organizationId, secretId); err != nil {
 		log.Errorf("Error during deleting secrets: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error during deleting secrets",
+		isNotFound := strings.Contains(err.Error(), "There are no secrets with")
+		msg := "Error during deleting secrets"
+		code := http.StatusBadRequest
+		if isNotFound {
+			code = http.StatusNotFound
+			msg = "Secrets not found"
+		}
+
+		resp := components.ErrorResponse{
+			Code:    code,
+			Message: msg,
 			Error:   err.Error(),
-		})
+		}
+
+		c.JSON(code, resp)
 	} else {
 		log.Info("Delete secrets succeeded")
 		c.Status(http.StatusOK)
