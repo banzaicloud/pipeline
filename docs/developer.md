@@ -34,7 +34,7 @@ by modifying the `cloud` section `keypath` entry. This needs to point to the `pu
 For accessing Vault the `VAULT_ADDR` env var has to be set, Pipeline stores JWT access tokens there.
 
 ```bash
-VAULT_ADDR=http://127.0.0.1:8200
+export VAULT_ADDR=http://127.0.0.1:8200
 ```
 
 Depending on the cloud provider there are couple of env vars has to be set:
