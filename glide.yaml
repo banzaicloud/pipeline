@@ -288,3 +288,4 @@ import:
 - package: github.com/banzaicloud/bank-vaults
   subpackages:
   - vault
+  - database

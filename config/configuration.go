@@ -38,8 +38,7 @@ func init() {
 	viper.SetDefault("database.dialect", "mysql")
 	viper.SetDefault("database.port", 3306)
 	viper.SetDefault("database.host", "localhost")
-	viper.SetDefault("database.user", "kellyslater")
-	viper.SetDefault("database.password", "pipemaster123!")
+	viper.SetDefault("database.role", "pipeline")
 	viper.SetDefault("database.dbname", "pipelinedb")
 
 	ReleaseName := os.Getenv("KUBERNETES_RELEASE_NAME")

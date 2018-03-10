@@ -1,5 +1,5 @@
-hash: 339cf68aab54c66342ed15ab7659458647e61635ed2f18a44cfb0849c07ee06f
-updated: 2018-03-10T14:41:17.265028+01:00
+hash: af32a9e96fc7354814150360bbe2cce551e2ffa2e8c50566c8cc73278deb44a0
+updated: 2018-03-10T15:51:47.352629+01:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -65,6 +65,7 @@ imports:
 - name: github.com/banzaicloud/bank-vaults
   version: 1211922aa2951c40474e663ca0e57f4436077cc9
   subpackages:
+  - database
   - vault
 - name: github.com/banzaicloud/banzai-types
   version: e86d61906327b2a3583c417d944fca87bcf093aa

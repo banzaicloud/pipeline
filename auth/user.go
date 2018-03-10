@@ -5,9 +5,10 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/banzaicloud/bank-vaults/database"
 	"github.com/jinzhu/copier"
 	"github.com/jinzhu/gorm"
-	// blank import is used here for simplicity
+	// blank import is used here for sql driver inclusion
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/qor/auth"
 	"github.com/sirupsen/logrus"
@@ -98,12 +99,17 @@ func (bus BanzaiUserStorer) createUserInDroneDB(user *User, githubAccessToken st
 func initDroneDatabase() *gorm.DB {
 	host := viper.GetString("database.host")
 	port := viper.GetString("database.port")
-	user := viper.GetString("database.user")
-	password := viper.GetString("database.password")
+	role := viper.GetString("database.role")
 
-	db, err := gorm.Open("mysql", user+":"+password+"@tcp("+host+":"+port+")/drone?charset=utf8&parseTime=True&loc=Local")
+	dataSource, err := database.DynamicSecretDataSource("mysql", role+"@tcp("+host+":"+port+")/drone?charset=utf8&parseTime=True&loc=Local")
 	if err != nil {
-		panic(err)
+		log.Error("Database dyanimc secret acquisition failed")
+		panic(err.Error())
+	}
+	db, err := gorm.Open("mysql", dataSource)
+	if err != nil {
+		log.Error("Database connection failed")
+		panic(err.Error())
 	}
 	db.LogMode(true)
 
