@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# This script demonstrates how to setup Vault in the docker-compose local environment
+# This script showcases how to setup Vault in the docker-compose local environment
 
 vault secrets enable database
 
