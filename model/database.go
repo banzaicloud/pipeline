@@ -22,15 +22,27 @@ func init() {
 }
 
 func initDatabase() {
+	dbName := viper.GetString("database.dbname")
+	db = ConnectDB(dbName)
+}
+
+func ConnectDB(dbName string) *gorm.DB {
 	log := logger.WithFields(logrus.Fields{"action": "ConnectDB"})
 	host := viper.GetString("database.host")
 	port := viper.GetString("database.port")
 	role := viper.GetString("database.role")
-	dbName := viper.GetString("database.dbname")
-	dataSource, err := database.DynamicSecretDataSource("mysql", role+"@tcp("+host+":"+port+")/"+dbName+"?charset=utf8&parseTime=True&loc=Local")
-	if err != nil {
-		log.Error("Database dyanimc secret acquisition failed")
-		panic(err.Error())
+	user := viper.GetString("database.user")
+	password := viper.GetString("database.password")
+	dataSource := "@tcp(" + host + ":" + port + ")/" + dbName + "?charset=utf8&parseTime=True&loc=Local"
+	if role != "" {
+		var err error
+		dataSource, err = database.DynamicSecretDataSource("mysql", role+dataSource)
+		if err != nil {
+			log.Error("Database dyanimc secret acquisition failed")
+			panic(err.Error())
+		}
+	} else {
+		dataSource = user + ":" + password + dataSource
 	}
 	database, err := gorm.Open("mysql", dataSource)
 	if err != nil {
@@ -38,7 +50,7 @@ func initDatabase() {
 		panic(err.Error())
 	}
 	database.LogMode(true)
-	db = database
+	return database
 }
 
 //GetDB returns an initialized DB
