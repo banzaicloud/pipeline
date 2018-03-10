@@ -128,6 +128,9 @@ func main() {
 		v1.DELETE("/cluster/profiles/:type/:name", api.DeleteClusterProfile)
 		v1.GET("/token", auth.GenerateToken)
 	}
+
+	router.GET("/api", api.MetaHandler(router, "/api"))
+
 	notify.SlackNotify("API is already running")
 	var listenPort string
 	port := viper.GetInt("pipeline.listenport")
