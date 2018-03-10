@@ -20,12 +20,12 @@ import (
 	"github.com/satori/go.uuid"
 	"github.com/spf13/viper"
 
+	"strings"
+
 	btype "github.com/banzaicloud/banzai-types/components"
-	banzaiConstants "github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/sirupsen/logrus"
-	"strings"
 )
 
 // DroneSessionCookie holds the name of the Cookie Drone sets in the browser
@@ -102,12 +102,6 @@ func validateAccessToken(claims *ScopedClaims) (bool, error) {
 
 //Init initialize the auth
 func Init() {
-	authEnabled = viper.GetBool("auth.enabled")
-	if !authEnabled {
-		log.Info(banzaiConstants.TagAuth, "Authentication is disabled.")
-		return
-	}
-
 	viper.SetDefault("auth.jwtissuer", "https://banzaicloud.com/")
 	viper.SetDefault("auth.jwtaudience", "https://pipeline.banzaicloud.com")
 	JwtIssuer = viper.GetString("auth.jwtissuer")
