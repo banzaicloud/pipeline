@@ -31,6 +31,20 @@ services:
     volumes:
       - $HOME:/home/vault
 
+  vault-configurer:
+    image: vault
+    depends_on:
+      - vault
+      - db
+    restart: on-failure
+    command:
+      - /bin/vault-enable-database.sh
+    environment:
+      VAULT_ADDR: http://vault:8200
+    volumes:
+      - $HOME:/root
+      - ./vault-enable-database.sh:/bin/vault-enable-database.sh
+
   drone-server:
     image: banzaicloud/drone:0.3.0
     restart: always
