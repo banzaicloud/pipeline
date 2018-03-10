@@ -10,6 +10,7 @@ dialect = "mysql"
 host = "localhost"
 port = 3306
 user = "sparky"
+role = "pipeline"
 password = "sparky123"
 dbname = "sparky"
 

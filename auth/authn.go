@@ -136,7 +136,7 @@ func Init() {
 		},
 	})
 	if viper.GetBool("drone.enabled") {
-		Auth.UserStorer = BanzaiUserStorer{signingKeyBase32: signingKeyBase32, droneDB: initDroneDatabase()}
+		Auth.UserStorer = BanzaiUserStorer{signingKeyBase32: signingKeyBase32, droneDB: initDroneDB()}
 	} else {
 		Auth.UserStorer = BanzaiUserStorer{signingKeyBase32: signingKeyBase32, droneDB: nil}
 	}
