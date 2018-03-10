@@ -80,4 +80,3 @@ services:
     environment:
       DRONE_SERVER: drone-server:9000
       DRONE_SECRET: "s3cr3t"
-
