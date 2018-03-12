@@ -110,7 +110,8 @@ func Init() {
 
 	// A RedirectBack instance which constantly redirects to /ui
 	RedirectBack = redirect_back.New(&redirect_back.Config{
-		SessionManager: manager.SessionManager,
+		SessionManager:  manager.SessionManager,
+		IgnoredPrefixes: []string{"/"},
 		IgnoreFunc: func(r *http.Request) bool {
 			return true
 		},
