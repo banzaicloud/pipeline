@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"github.com/banzaicloud/banzai-types/components"
+	"github.com/banzaicloud/pipeline/auth"
 	"github.com/gin-gonic/gin"
 	vault "github.com/hashicorp/vault/api"
 	"github.com/pkg/errors"
@@ -12,6 +13,7 @@ import (
 	"k8s.io/client-go/rest"
 	"math/rand"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -28,7 +30,7 @@ func AddSecrets(c *gin.Context) {
 	log.Info("Start adding secrets")
 
 	log.Info("Get organization id from params")
-	organizationId := c.Param("id")
+	organizationId := strconv.FormatUint(uint64(c.Request.Context().Value(auth.CurrentOrganization).(*auth.Organization).ID), 10)
 	log.Infof("Organization id: %s", organizationId)
 
 	log.Info("Binding request")
@@ -101,7 +103,8 @@ func ListSecrets(c *gin.Context) {
 	log.Info("Start listing secrets")
 
 	log.Info("Get organization id from params")
-	organizationId := c.Param("id")
+	organizationId := strconv.FormatUint(uint64(c.Request.Context().Value(auth.CurrentOrganization).(*auth.Organization).ID), 10)
+
 	log.Infof("Organization id: %s", organizationId)
 
 	if items, err := secretStoreObj.List(organizationId); err != nil {
@@ -125,7 +128,7 @@ func DeleteSecrets(c *gin.Context) {
 	log.Info("Start deleting secrets")
 
 	log.Info("Get organization id and secret id from params")
-	organizationId := c.Param("id")
+	organizationId := strconv.FormatUint(uint64(c.Request.Context().Value(auth.CurrentOrganization).(*auth.Organization).ID), 10)
 	secretId := c.Param("secretId")
 	log.Infof("Organization id: %s", organizationId)
 
@@ -227,7 +230,7 @@ func (ss *secretStore) List(organizationId string) ([]SecretsItemResponse, error
 	if mounts, err := secretStoreObj.client.Sys().ListMounts(); err != nil {
 		return nil, err
 	} else {
-		var responseItems []SecretsItemResponse
+		responseItems := make([]SecretsItemResponse, 0)
 		for _, secretType := range allSecretTypes {
 			for key, mount := range mounts {
 				// find mount
@@ -386,16 +389,10 @@ func getRules() []rule {
 		{
 			secretType: Google,
 			requiredKeys: []ruleKey{
-				{requiredKey: "TYPE"},
-				{requiredKey: "PROJECT_ID"},
-				{requiredKey: "PRIVATE_KEY_ID"},
-				{requiredKey: "PRIVATE_KEY"},
-				{requiredKey: "CLIENT_EMAIL"},
 				{requiredKey: "CLIENT_ID"},
-				{requiredKey: "AUTH_URI"},
-				{requiredKey: "TOKEN_URI"},
-				{requiredKey: "AUTH_PROVIDER_X509_CERT_URL"},
-				{requiredKey: "CLIENT_X509_CERT_URL"},
+				{requiredKey: "CLIENT_SECRET"},
+				{requiredKey: "REFRESH_TOKEN"},
+				{requiredKey: "TYPE"},
 			},
 		},
 	}
