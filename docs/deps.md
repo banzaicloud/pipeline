@@ -14,7 +14,7 @@ Tools needed:
 If you write new features which imports a new library, you have to vendor it:
 ```
 glide get -v github.com/Masterminds/cookoo/web
-glide-vc --only-code --no-tests
+make revendor
 ```
 
 ## Add a forked dependency
@@ -47,7 +47,7 @@ than perform an update:
 
 ```
 glide up -v
-glide-vc --only-code --no-tests
+make revendor
 ```
 
 ## History
