@@ -19,7 +19,7 @@ func OrganizationMiddleware(c *gin.Context) {
 	if err != nil {
 		message := "Error parsing organization id"
 		log.Info(message, ": ", err)
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.AbortWithStatusJSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: message,
 			Error:   message,
@@ -35,7 +35,7 @@ func OrganizationMiddleware(c *gin.Context) {
 	if err != nil {
 		message := "Error listing organizations"
 		log.Info(message, ": ", err)
-		c.JSON(http.StatusInternalServerError, components.ErrorResponse{
+		c.AbortWithStatusJSON(http.StatusInternalServerError, components.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: message,
 			Error:   message,
@@ -46,7 +46,7 @@ func OrganizationMiddleware(c *gin.Context) {
 	if len(organizations) != 1 {
 		message := "Organization not found"
 		log.Info(message)
-		c.JSON(http.StatusNotFound, components.ErrorResponse{
+		c.AbortWithStatusJSON(http.StatusNotFound, components.ErrorResponse{
 			Code:    http.StatusNotFound,
 			Message: message,
 			Error:   message,
