@@ -108,10 +108,13 @@ func Init() {
 	}
 	signingKeyBase32 = base32.StdEncoding.EncodeToString([]byte(signingKey))
 
+	// A RedirectBack instance which constantly redirects to /ui
 	RedirectBack = redirect_back.New(&redirect_back.Config{
-		SessionManager:  manager.SessionManager,
-		IgnoredPrefixes: []string{"/auth"},
-		FallbackPath:    "/ui",
+		SessionManager: manager.SessionManager,
+		IgnoreFunc: func(r *http.Request) bool {
+			return true
+		},
+		FallbackPath: "/ui",
 	})
 
 	// Initialize Auth with configuration
