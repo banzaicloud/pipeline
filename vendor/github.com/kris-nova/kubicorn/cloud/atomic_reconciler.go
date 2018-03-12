@@ -43,8 +43,6 @@ func NewAtomicReconciler(known *cluster.Cluster, model Model) Reconciler {
 }
 
 func (r *AtomicReconciler) Actual(known *cluster.Cluster) (actualCluster *cluster.Cluster, err error) {
-	initSignal()
-	defer teardown()
 	actualCluster = defaults.NewClusterDefaults(r.known)
 	for i := 0; i < len(r.model.Resources()); i++ {
 		resource := r.model.Resources()[i]
@@ -57,8 +55,6 @@ func (r *AtomicReconciler) Actual(known *cluster.Cluster) (actualCluster *cluste
 }
 
 func (r *AtomicReconciler) Expected(known *cluster.Cluster) (expectedCluster *cluster.Cluster, err error) {
-	initSignal()
-	defer teardown()
 	expectedCluster = defaults.NewClusterDefaults(r.known)
 	for i := 0; i < len(r.model.Resources()); i++ {
 		resource := r.model.Resources()[i]
@@ -71,8 +67,6 @@ func (r *AtomicReconciler) Expected(known *cluster.Cluster) (expectedCluster *cl
 }
 
 func (r *AtomicReconciler) cleanUp(failedCluster *cluster.Cluster, i int) (err error) {
-	initSignal()
-	defer teardown()
 	logger.Warning("")
 	logger.Warning("Attempting to backtrack and cleanup created resources.")
 	logger.Warning("")
@@ -94,8 +88,6 @@ func (r *AtomicReconciler) cleanUp(failedCluster *cluster.Cluster, i int) (err e
 var createdResources = make(map[int]Resource)
 
 func (r *AtomicReconciler) Reconcile(actual, expected *cluster.Cluster) (reconciledCluster *cluster.Cluster, err error) {
-	initSignal()
-	defer teardown()
 	reconciledCluster = defaults.NewClusterDefaults(r.known)
 	for i := 0; i < len(r.model.Resources()); i++ {
 		if sigHandler.GetState() != 0 {
@@ -156,8 +148,6 @@ func destroyI(err error, i int) (int, error) {
 }
 
 func (r *AtomicReconciler) Destroy() (destroyedCluster *cluster.Cluster, err error) {
-	initSignal()
-	defer teardown()
 	destroyedCluster = defaults.NewClusterDefaults(r.known)
 	for i := len(r.model.Resources()) - 1; i >= 0; i-- {
 		resource := r.model.Resources()[i]
@@ -189,16 +179,4 @@ func (r *AtomicReconciler) Destroy() (destroyedCluster *cluster.Cluster, err err
 		destroyedCluster = newCluster
 	}
 	return destroyedCluster, nil
-}
-
-// TODO(@xmudrii): improve implementation of sighandlers
-func initSignal() {
-	sigHandler = signals.NewSignalHandler(600)
-	sigHandler.Register()
-}
-
-func teardown() {
-	logger.Debug("Resetting TimeOut counter.")
-	sigHandler.Reset()
-	sigHandler = nil
 }

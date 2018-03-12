@@ -318,7 +318,7 @@ imports:
   subpackages:
   - pkg/local
 - name: github.com/kris-nova/kubicorn
-  version: 0002d60c1532e83918094a3b6e465b2346268797
+  version: 33d78422a95b12cce07235101e5c4afc9469dbe3
   repo: https://github.com/banzaicloud/kubicorn.git
   subpackages:
   - apis/cluster
