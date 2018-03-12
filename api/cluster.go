@@ -44,6 +44,9 @@ func UpdateMonitoring(c *gin.Context) {
 func GetCommonClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
 	filter := ParseField(c)
 
+	// Filter for organisation
+	filter["organization_id"] = c.Request.Context().Value(auth.CurrentOrganization).(*auth.Organization).ID
+
 	//TODO check gorm error
 	modelCluster, err := model.QueryCluster(filter)
 	if err != nil {
