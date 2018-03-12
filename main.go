@@ -85,25 +85,21 @@ func main() {
 
 	router.Use(cors.New(config.GetCORS()))
 
-	if auth.IsEnabled() {
-		authHandler := gin.WrapH(auth.Auth.NewServeMux())
+	authHandler := gin.WrapH(auth.Auth.NewServeMux())
 
-		// We have to make the raw net/http handlers a bit Gin-ish
-		router.Use(gin.WrapH(sessionManager.SessionManager.Middleware(utils.NopHandler{})))
-		router.Use(gin.WrapH(auth.RedirectBack.Middleware(utils.NopHandler{})))
+	// We have to make the raw net/http handlers a bit Gin-ish
+	router.Use(gin.WrapH(sessionManager.SessionManager.Middleware(utils.NopHandler{})))
+	router.Use(gin.WrapH(auth.RedirectBack.Middleware(utils.NopHandler{})))
 
-		authGroup := router.Group("/auth/")
-		{
-			authGroup.GET("/*w", authHandler)
-			authGroup.GET("/*w/*w", authHandler)
-		}
+	authGroup := router.Group("/auth/")
+	{
+		authGroup.GET("/*w", authHandler)
+		authGroup.GET("/*w/*w", authHandler)
 	}
 
 	v1 := router.Group("/api/v1/")
 	{
-		if auth.IsEnabled() {
-			v1.Use(auth.Handler)
-		}
+		v1.Use(auth.Handler)
 		v1.POST("/clusters", api.CreateCluster)
 		//v1.GET("/status", api.Status)
 		v1.GET("/clusters", api.FetchClusters)

@@ -85,11 +85,6 @@ type DroneClaims struct {
 	Text string `json:"text,omitempty"`
 }
 
-//IsEnabled checks if the auth is enabled
-func IsEnabled() bool {
-	return authEnabled
-}
-
 func lookupAccessToken(userId, token string) (bool, error) {
 	return tokenStore.Lookup(userId, token)
 }
