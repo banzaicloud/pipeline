@@ -1,13 +1,13 @@
 package components
 
 import (
+	"bytes"
+	"errors"
+	"fmt"
 	"github.com/banzaicloud/banzai-types/components/amazon"
 	"github.com/banzaicloud/banzai-types/components/azure"
 	"github.com/banzaicloud/banzai-types/components/google"
-	"bytes"
-	"fmt"
 	"github.com/banzaicloud/banzai-types/constants"
-	"errors"
 )
 
 type BanzaiResponse struct {
@@ -20,7 +20,7 @@ type CreateClusterRequest struct {
 	Location         string `json:"location" binding:"required"`
 	Cloud            string `json:"cloud" binding:"required"`
 	NodeInstanceType string `json:"nodeInstanceType" binding:"required"`
-	Properties struct {
+	Properties       struct {
 		CreateClusterAmazon *amazon.CreateClusterAmazon `json:"amazon,omitempty"`
 		CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
 		CreateClusterGoogle *google.CreateClusterGoogle `json:"google,omitempty"`
@@ -56,7 +56,7 @@ type UpdateClusterResponse struct {
 //}
 
 type UpdateClusterRequest struct {
-	Cloud string     `json:"cloud" binding:"required"`
+	Cloud            string `json:"cloud" binding:"required"`
 	UpdateProperties `json:"properties"`
 }
 
@@ -134,7 +134,7 @@ type ClusterProfileResponse struct {
 	Location         string `json:"location" binding:"required"`
 	Cloud            string `json:"cloud" binding:"required"`
 	NodeInstanceType string `json:"nodeInstanceType" binding:"required"`
-	Properties struct {
+	Properties       struct {
 		Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 		Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
 		Google *google.ClusterProfileGoogle `json:"google,omitempty"`
@@ -146,7 +146,7 @@ type ClusterProfileRequest struct {
 	Location         string `json:"location" binding:"required"`
 	Cloud            string `json:"cloud" binding:"required"`
 	NodeInstanceType string `json:"nodeInstanceType" binding:"required"`
-	Properties struct {
+	Properties       struct {
 		Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 		Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
 		Google *google.ClusterProfileGoogle `json:"google,omitempty"`

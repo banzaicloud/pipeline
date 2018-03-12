@@ -1,8 +1,8 @@
 package azure
 
 import (
-	"github.com/banzaicloud/banzai-types/constants"
 	"errors"
+	"github.com/banzaicloud/banzai-types/constants"
 )
 
 type Values struct {
@@ -112,8 +112,8 @@ func (r *ResponseWithValue) Update(code int, Value Value) {
 }
 
 type Config struct {
-	Location string `json:"location"`
-	Name     string `json:"name"`
+	Location   string `json:"location"`
+	Name       string `json:"name"`
 	Properties struct {
 		KubeConfig string `json:"kubeConfig"`
 	} `json:"properties"`

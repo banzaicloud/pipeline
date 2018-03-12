@@ -1,8 +1,8 @@
 package amazon
 
 import (
-	"github.com/banzaicloud/banzai-types/constants"
 	"errors"
+	"github.com/banzaicloud/banzai-types/constants"
 )
 
 type CreateClusterAmazon struct {
