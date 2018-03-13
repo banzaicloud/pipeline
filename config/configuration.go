@@ -24,6 +24,7 @@ func init() {
 
 	// Set defaults TODO expand defaults
 	viper.SetDefault("drone.enabled", false)
+	viper.SetDefault("drone.url", "http://localhost:8000")
 	viper.SetDefault("helm.retryAttempt", 30)
 	viper.SetDefault("helm.retrySleepSeconds", 15)
 	viper.SetDefault("helm.stableRepositoryURL", "https://kubernetes-charts.storage.googleapis.com")
