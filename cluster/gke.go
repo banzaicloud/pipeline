@@ -1028,12 +1028,16 @@ func (g *GKECluster) AddDefaultsToUpdate(r *components.UpdateClusterRequest) {
 
 	// ---- [ Node Version check] ---- //
 	if len(r.UpdateClusterGoogle.GoogleNode.Version) == 0 {
-		r.UpdateClusterGoogle.GoogleNode.Version = g.modelCluster.Google.NodeVersion
+		nodeVersion := g.modelCluster.Google.NodeVersion
+		log.Warn("Node K8s version: ", nodeVersion)
+		r.UpdateClusterGoogle.GoogleNode.Version = nodeVersion
 	}
 
 	// ---- [ Master Version check] ---- //
 	if len(r.UpdateClusterGoogle.GoogleMaster.Version) == 0 {
-		r.UpdateClusterGoogle.GoogleMaster.Version = g.modelCluster.Google.MasterVersion
+		masterVersion := g.modelCluster.Google.MasterVersion
+		log.Warn("Master K8s version: ", masterVersion)
+		r.UpdateClusterGoogle.GoogleMaster.Version = masterVersion
 	}
 
 }
