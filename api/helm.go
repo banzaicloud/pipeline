@@ -207,12 +207,13 @@ func InitHelmOnCluster(c *gin.Context) {
 
 	kubeConfig, err := commonCluster.GetK8sConfig()
 	if err != nil {
-		log.Error(err.Error())
+		log.Errorf("Error during getting kubeconfig: %s", err.Error())
 		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error getting kubeconfig",
 			Error:   err.Error(),
 		})
+		return
 	}
 	// bind request body to struct
 	var helmInstall htype.Install
