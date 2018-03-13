@@ -165,8 +165,12 @@ func (g *GKECluster) CreateCluster() error {
 	}
 	log.Infof("Cluster %s create is called for project %s and zone %s. Status Code %v", cc.Name, cc.ProjectID, cc.Zone, createCall.HTTPStatusCode)
 
-	log.Info("Waiting for cluster...")
+	// save to database before polling
+	if err := g.Persist(); err != nil {
+		log.Errorf("Cluster save failed! %s", err.Error())
+	}
 
+	log.Info("Waiting for cluster...")
 	gkeCluster, err := waitForCluster(svc, cc)
 	if err != nil {
 		be := getBanzaiErrorFromError(err)
