@@ -304,12 +304,12 @@ func (sessionStorer *BanzaiSessionStorer) Update(w http.ResponseWriter, req *htt
 		return fmt.Errorf("Can't get current user")
 	}
 	droneClaims := &DroneClaims{Claims: claims, Type: DroneSessionCookieType, Text: currentUser.Login}
-	tokenToken, err := sessionStorer.SignedTokenWithDrone(droneClaims)
+	droneToken, err := sessionStorer.SignedTokenWithDrone(droneClaims)
 	if err != nil {
 		log.Info(req.RemoteAddr, err.Error())
 		return err
 	}
-	SetCookie(w, req, DroneSessionCookie, tokenToken)
+	SetCookie(w, req, DroneSessionCookie, droneToken)
 	return nil
 }
 
