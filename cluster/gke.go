@@ -329,8 +329,21 @@ func (g *GKECluster) UpdateCluster(updateRequest *components.UpdateClusterReques
 	}
 	log.Info("Cluster update succeeded")
 	g.googleCluster = res
+
+	// update model to save
+	g.updateModel(res)
+
 	return nil
 
+}
+
+func (g *GKECluster) updateModel(c *gke.Cluster) {
+	g.modelCluster.Google.MasterVersion = c.CurrentMasterVersion
+	g.modelCluster.Google.NodeVersion = c.CurrentNodeVersion
+	g.modelCluster.Google.NodeCount = int(c.CurrentNodeCount)
+	if c.NodeConfig != nil {
+		g.modelCluster.Google.ServiceAccount = c.NodeConfig.ServiceAccount
+	}
 }
 
 //GetID returns the specified cluster id
