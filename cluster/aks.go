@@ -51,7 +51,7 @@ func (c *AKSCluster) GetAPIEndpoint() (string, error) {
 	}
 	cluster, err := c.GetAzureCluster()
 	if err != nil {
-
+		return "", err
 	}
 	c.APIEndpoint = cluster.Properties.Fqdn
 	return c.APIEndpoint, nil
