@@ -22,7 +22,7 @@ func GetK8sConfig(c *gin.Context) (*[]byte, bool) {
 	}
 	kubeConfig, err := commonCluster.GetK8sConfig()
 	if err != nil {
-		log.Error(err)
+		log.Errorf("Error getting config: %s", err.Error())
 		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error getting kubeconfig",
@@ -44,7 +44,7 @@ func CreateDeployment(c *gin.Context) {
 	var deployment *htype.CreateDeploymentRequest
 	err := c.BindJSON(&deployment)
 	if err != nil {
-		log.Error(err)
+		log.Errorf("Error parsing request: %s", err.Error())
 		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error parsing request",
@@ -80,7 +80,7 @@ func CreateDeployment(c *gin.Context) {
 	}
 	kubeConfig, err := commonCluster.GetK8sConfig()
 	if err != nil {
-		log.Error(err)
+		log.Errorf("Error getting config: %s", err.Error())
 		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error getting kubeconfig",
@@ -93,7 +93,7 @@ func CreateDeployment(c *gin.Context) {
 	release, err := helm.CreateDeployment(deployment.Name, deployment.ReleaseName, values, kubeConfig, commonCluster.GetName())
 	if err != nil {
 		//TODO distinguish error codes
-		log.Error("Error during create deployment.", err.Error())
+		log.Errorf("Error during create deployment. %s", err.Error())
 		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error creating deployment",
@@ -264,7 +264,7 @@ func GetTillerStatus(c *gin.Context) {
 			Message: message,
 			Error:   err.Error(),
 		})
-		log.Info(message)
+		log.Error(message)
 		return
 	}
 	c.JSON(http.StatusOK, htype.StatusResponse{
@@ -292,6 +292,7 @@ func DeleteDeployment(c *gin.Context) {
 	err := helm.DeleteDeployment(name, kubeConfig)
 	if err != nil {
 		// error during delete deployment
+		log.Errorf("Error deleting deployment: %s", err.Error())
 		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error deleting deployment",
