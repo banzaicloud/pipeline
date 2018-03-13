@@ -24,10 +24,10 @@ func ListEndpoints(c *gin.Context) {
 
 	client, err := helm.GetK8sConnection(kubeConfig)
 	if err != nil {
-		log.Error(err)
+		log.Errorf("Error getting k8s connection: %s", err.Error())
 		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
 			Code:    http.StatusBadRequest,
-			Message: err.Error(),
+			Message: "Error getting k8s connection",
 			Error:   err.Error(),
 		})
 		return
@@ -35,9 +35,10 @@ func ListEndpoints(c *gin.Context) {
 
 	serviceList, err := client.CoreV1().Services("").List(meta_v1.ListOptions{})
 	if err != nil {
+		log.Errorf("Error listing services: %s", err.Error())
 		c.JSON(http.StatusNotFound, htype.ErrorResponse{
 			Code:    http.StatusNotFound,
-			Message: err.Error(),
+			Message: "Error during listing services",
 			Error:   err.Error(),
 		})
 		return

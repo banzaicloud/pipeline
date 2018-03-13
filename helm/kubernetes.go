@@ -54,10 +54,13 @@ func GetK8sClientConfig(kubeConfig *[]byte) (*rest.Config, error) {
 	var config *rest.Config
 	var err error
 	if kubeConfig != nil {
-		apiconfig, _ := clientcmd.Load(*kubeConfig)
-		clientConfig := clientcmd.NewDefaultClientConfig(*apiconfig, &clientcmd.ConfigOverrides{})
-		config, err = clientConfig.ClientConfig()
-		log.Debug("Use K8S RemoteCluster Config: ", config.ServerName)
+		if apiconfig, err := clientcmd.Load(*kubeConfig); err != nil {
+			return nil, err
+		} else {
+			clientConfig := clientcmd.NewDefaultClientConfig(*apiconfig, &clientcmd.ConfigOverrides{})
+			config, err = clientConfig.ClientConfig()
+			log.Debug("Use K8S RemoteCluster Config: ", config.ServerName)
+		}
 	} else {
 		return nil, errors.New("kubeconfig value is nil")
 	}

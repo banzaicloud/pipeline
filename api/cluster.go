@@ -47,7 +47,7 @@ func GetCommonClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
 	//TODO check gorm error
 	modelCluster, err := model.QueryCluster(filter)
 	if err != nil {
-		log.Error(err.Error())
+		log.Errorf("Cluster not found: %s", err.Error())
 		c.JSON(http.StatusNotFound, components.ErrorResponse{
 			Code:    http.StatusNotFound,
 			Message: "Cluster not found",
@@ -57,7 +57,7 @@ func GetCommonClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
 	}
 	commonCLuster, err := cluster.GetCommonClusterFromModel(modelCluster)
 	if err != nil {
-		log.Error(err.Error())
+		log.Errorf("GetCommonClusterFromModel failed: %s", err.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error parsing request",
@@ -197,10 +197,10 @@ func GetClusterStatus(c *gin.Context) {
 
 	response, err := commonCluster.GetStatus()
 	if err != nil {
-		log.Error(err)
+		log.Errorf("Error during getting status: %s", err.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
-			Message: "Error parsing request",
+			Message: "Error during getting status",
 			Error:   err.Error(),
 		})
 		return
@@ -218,10 +218,10 @@ func GetClusterConfig(c *gin.Context) {
 	}
 	config, err := commonCluster.GetK8sConfig()
 	if err != nil {
-		log.Error(err)
+		log.Errorf("Error during getting config: %s", err.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
-			Message: "Error parsing request",
+			Message: "Error during getting config",
 			Error:   err.Error(),
 		})
 		return
@@ -258,9 +258,10 @@ func GetApiEndpoint(c *gin.Context) {
 	}
 	endPoint, err := commonCluster.GetAPIEndpoint()
 	if err != nil {
+		log.Errorf("Error during getting api endpoint: %s", err.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
-			Message: "Error parsing request",
+			Message: "Error getting endpoint",
 			Error:   err.Error(),
 		})
 		return
@@ -276,7 +277,7 @@ func UpdateCluster(c *gin.Context) {
 	// bind request body to UpdateClusterRequest struct
 	var updateRequest *components.UpdateClusterRequest
 	if err := c.BindJSON(&updateRequest); err != nil {
-		log.Error(err)
+		log.Errorf("Error parsing request: %s", err.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error parsing request",
@@ -364,9 +365,10 @@ func DeleteCluster(c *gin.Context) {
 
 	config, err := commonCluster.GetK8sConfig()
 	if err != nil && !force {
+		log.Errorf("Error during getting kubeconfig: %s", err.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
-			Message: err.Error(),
+			Message: "Error during getting kubeconfig",
 			Error:   err.Error(),
 		})
 		return
@@ -420,12 +422,11 @@ func FetchClusters(c *gin.Context) {
 	db := model.GetDB()
 	err := db.Find(&clusters).Error
 	if err != nil {
-		message := "Error listing clusters"
-		log.Info(message)
+		log.Errorf("Error listing clusters: %s", err.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
-			Message: message,
-			Error:   message,
+			Message: "Error listing clusters",
+			Error:   err.Error(),
 		})
 		return
 	}
@@ -458,9 +459,10 @@ func FetchCluster(c *gin.Context) {
 	log.Info("getting cluster info")
 	status, err := commonCluster.GetStatus()
 	if err != nil {
+		log.Errorf("Error getting cluster: %s", err.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
-			Message: err.Error(),
+			Message: "Error getting cluster",
 			Error:   err.Error(),
 		})
 		return
