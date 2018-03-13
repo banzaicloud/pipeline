@@ -15,11 +15,8 @@
 package cloud
 
 import (
-	"os"
 	"strings"
 	"time"
-
-	"github.com/kris-nova/kubicorn/cutil/signals"
 
 	"github.com/kris-nova/kubicorn/apis/cluster"
 	"github.com/kris-nova/kubicorn/cutil/defaults"
@@ -27,8 +24,6 @@ import (
 	"github.com/kris-nova/kubicorn/cutil/logger"
 )
 
-var sigCaught = false
-var sigHandler *signals.Handler
 
 type AtomicReconciler struct {
 	known *cluster.Cluster
@@ -90,14 +85,6 @@ var createdResources = make(map[int]Resource)
 func (r *AtomicReconciler) Reconcile(actual, expected *cluster.Cluster) (reconciledCluster *cluster.Cluster, err error) {
 	reconciledCluster = defaults.NewClusterDefaults(r.known)
 	for i := 0; i < len(r.model.Resources()); i++ {
-		if sigHandler.GetState() != 0 {
-			sigHandler.GetState()
-			err := r.cleanUp(reconciledCluster, i)
-			if err != nil {
-				logger.Critical("Error during cleanup: %v", err)
-			}
-			os.Exit(1)
-		}
 		resource := r.model.Resources()[i]
 		_, actualResource, err := resource.Actual(r.known)
 		if err != nil {
