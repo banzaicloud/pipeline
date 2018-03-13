@@ -64,7 +64,7 @@ func AddSecrets(c *gin.Context) {
 	secretID := generateSecretID()
 	secretPath := fmt.Sprintf("secret/orgs/%s/%s", organizationID, secretID)
 
-	if err := secretStoreObj.Store(secretPath, createSecretRequest); err != nil {
+	if err := secretStoreObj.store(secretPath, createSecretRequest); err != nil {
 		log.Errorf("Error during store: %s", err.Error())
 		c.JSON(http.StatusInternalServerError, components.ErrorResponse{
 			Code:    http.StatusInternalServerError,
@@ -93,7 +93,7 @@ func ListSecrets(c *gin.Context) {
 
 	log.Infof("Organization id: %s", organizationId)
 
-	if items, err := secretStoreObj.List(organizationId); err != nil {
+	if items, err := secretStoreObj.list(organizationId); err != nil {
 		log.Errorf("Error during listing secrets: %s", err.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
@@ -200,7 +200,7 @@ type secretStore struct {
 	logical *vaultapi.Logical
 }
 
-func (ss *secretStore) Store(path string, value CreateSecretRequest) error {
+func (ss *secretStore) store(path string, value CreateSecretRequest) error {
 	log.Infof("Start storing secret")
 	_, err := json.Marshal(value)
 	if err != nil {
@@ -213,7 +213,7 @@ func (ss *secretStore) Store(path string, value CreateSecretRequest) error {
 	return nil
 }
 
-func (ss *secretStore) List(organizationId string) ([]SecretsItemResponse, error) {
+func (ss *secretStore) list(organizationId string) ([]SecretsItemResponse, error) {
 
 	log.Info("Listing secrets")
 	responseItems := make([]SecretsItemResponse, 0)
