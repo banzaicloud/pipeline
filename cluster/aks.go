@@ -49,7 +49,11 @@ func (c *AKSCluster) GetAPIEndpoint() (string, error) {
 	if c.APIEndpoint != "" {
 		return c.APIEndpoint, nil
 	}
-	c.APIEndpoint = c.azureCluster.Properties.Fqdn
+	cluster, err := c.GetAzureCluster()
+	if err != nil {
+
+	}
+	c.APIEndpoint = cluster.Properties.Fqdn
 	return c.APIEndpoint, nil
 }
 
@@ -255,6 +259,19 @@ func (c *AKSCluster) GetID() uint {
 //GetModel returns the whole clusterModel
 func (c *AKSCluster) GetModel() *model.ClusterModel {
 	return c.modelCluster
+}
+
+func (c *AKSCluster) GetAzureCluster() (*banzaiAzureTypes.Value, error) {
+	client, err := azureClient.GetAKSClient(nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := client.GetCluster(c.modelCluster.Name, c.modelCluster.Azure.ResourceGroup)
+	if err != nil {
+		return nil, err
+	}
+	c.azureCluster = &resp.Value
+	return c.azureCluster, nil
 }
 
 //CreateAKSClusterFromModel creates ClusterModel struct from model
