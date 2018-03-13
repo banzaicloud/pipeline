@@ -16,7 +16,7 @@ const (
 	nameKey      = "name"
 )
 
-// GetClusterProfiles handles /cluster/profiles/:type GET api endpoint.
+// GetClusterProfiles handles /profiles/cluster/:type GET api endpoint.
 // Sends back the saved cluster profiles
 func GetClusterProfiles(c *gin.Context) {
 
@@ -39,7 +39,7 @@ func GetClusterProfiles(c *gin.Context) {
 
 }
 
-// AddClusterProfile handles /cluster/profiles/:type POST api endpoint.
+// AddClusterProfile handles /profiles/cluster/:type POST api endpoint.
 // Saves ClusterProfileRequest data into the database.
 // Saving failed if profile with the given name is already exists
 func AddClusterProfile(c *gin.Context) {
