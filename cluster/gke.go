@@ -434,7 +434,6 @@ func generateClusterCreateRequest(cc googleCluster) *gke.CreateClusterRequest {
 	request.Cluster.ClusterIpv4Cidr = cc.ClusterIpv4Cidr
 	request.Cluster.Description = cc.Description
 	request.Cluster.EnableKubernetesAlpha = cc.EnableAlphaFeature
-	request.Cluster.LegacyAbac.Enabled = true
 	request.Cluster.AddonsConfig = &gke.AddonsConfig{
 		HttpLoadBalancing:        &gke.HttpLoadBalancing{Disabled: !cc.HTTPLoadBalancing},
 		HorizontalPodAutoscaling: &gke.HorizontalPodAutoscaling{Disabled: !cc.HorizontalPodAutoscaling},
@@ -444,7 +443,7 @@ func generateClusterCreateRequest(cc googleCluster) *gke.CreateClusterRequest {
 	request.Cluster.Network = cc.Network
 	request.Cluster.Subnetwork = cc.SubNetwork
 	request.Cluster.LegacyAbac = &gke.LegacyAbac{
-		Enabled: cc.LegacyAbac,
+		Enabled: true,
 	}
 	request.Cluster.MasterAuth = &gke.MasterAuth{
 	}
