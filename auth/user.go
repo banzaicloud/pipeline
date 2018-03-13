@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/banzaicloud/pipeline/model"
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/jinzhu/copier"
 	"github.com/jinzhu/gorm"
 	// blank import is used here for sql driver inclusion
@@ -76,12 +77,15 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 				log.Info(context.Request.RemoteAddr, err.Error())
 				return nil, "", err
 			}
+			bus.synchronizeDroneRepos(currentUser.Login)
 		}
 		err = tx.Create(currentUser).Error
 		return currentUser, fmt.Sprint(tx.NewScope(currentUser).PrimaryKeyValue()), err
 	}
 	return nil, "", nil
 }
+
+//http://127.0.0.1:8000/
 
 func (bus BanzaiUserStorer) createUserInDroneDB(user *User, githubAccessToken string) error {
 	droneUser := DroneUser{
@@ -98,4 +102,32 @@ func (bus BanzaiUserStorer) createUserInDroneDB(user *User, githubAccessToken st
 
 func initDroneDB() *gorm.DB {
 	return model.ConnectDB("drone")
+}
+
+// This method tries to call the Drone API on a best effort basis to fetch all repos before the user navigates there.
+func (bus BanzaiUserStorer) synchronizeDroneRepos(login string) {
+	droneURL := viper.GetString("drone.url")
+	req, err := http.NewRequest("GET", droneURL+"/api/user/repos?all=true&flush=true", nil)
+	if err != nil {
+		log.Info("synchronizeDroneRepos: failed to create Drone GET request", err.Error())
+		return
+	}
+
+	// Create a temporary Drone API token
+	claims := &DroneClaims{Type: DroneUserCookieType, Text: login}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	apiToken, err := token.SignedString([]byte(bus.signingKeyBase32))
+	if err != nil {
+		log.Info("synchronizeDroneRepos: failed to create temporary token for Drone GET request", err.Error())
+		return
+	}
+	req.Header.Add("Authorization", "Bearer "+apiToken)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		log.Info("synchronizeDroneRepos: failed to call Drone API", err.Error())
+		return
+	}
+	if resp.StatusCode != http.StatusOK {
+		log.Info("synchronizeDroneRepos: failed to call Drone API HTTP", resp.StatusCode)
+	}
 }
