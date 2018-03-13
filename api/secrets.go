@@ -51,7 +51,7 @@ func AddSecrets(c *gin.Context) {
 	log.Info("Start validation")
 	if err := createSecretRequest.Validate(); err != nil {
 		log.Errorf("Validation error: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.AbortWithStatusJSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Validation error",
 			Error:   err.Error(),
@@ -66,21 +66,21 @@ func AddSecrets(c *gin.Context) {
 
 	if err := secretStoreObj.store(secretPath, createSecretRequest); err != nil {
 		log.Errorf("Error during store: %s", err.Error())
-		c.JSON(http.StatusInternalServerError, components.ErrorResponse{
+		c.AbortWithStatusJSON(http.StatusInternalServerError, components.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: "Error during store",
 			Error:   err.Error(),
 		})
-	} else {
-		log.Infof("Secret stored at: %s", secretPath)
+		return
 	}
+
+	log.Infof("Secret stored at: %s", secretPath)
 
 	c.JSON(http.StatusCreated, CreateSecretResponse{
 		Name:       createSecretRequest.Name,
 		SecretType: createSecretRequest.SecretType,
 		SecretId:   secretID,
 	})
-
 }
 
 func ListSecrets(c *gin.Context) {
@@ -95,7 +95,7 @@ func ListSecrets(c *gin.Context) {
 
 	if items, err := secretStoreObj.list(organizationId); err != nil {
 		log.Errorf("Error during listing secrets: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.AbortWithStatusJSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error during listing secrets",
 			Error:   err.Error(),
