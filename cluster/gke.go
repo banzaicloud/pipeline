@@ -1012,6 +1012,17 @@ func (g *GKECluster) AddDefaultsToUpdate(r *components.UpdateClusterRequest) {
 		log.Warn("Node count set to default value: ", def)
 		r.UpdateClusterGoogle.GoogleNode.Count = def
 	}
+
+	// ---- [ Node Version check] ---- //
+	if len(r.UpdateClusterGoogle.GoogleNode.Version) == 0 {
+		r.UpdateClusterGoogle.GoogleNode.Version = g.modelCluster.Google.NodeVersion
+	}
+
+	// ---- [ Master Version check] ---- //
+	if len(r.UpdateClusterGoogle.GoogleMaster.Version) == 0 {
+		r.UpdateClusterGoogle.GoogleMaster.Version = g.modelCluster.Google.MasterVersion
+	}
+
 }
 
 //CheckEqualityToUpdate validates the update request
