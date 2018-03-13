@@ -1,21 +1,20 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
-	"github.com/banzaicloud/banzai-types/components"
-	"github.com/banzaicloud/pipeline/auth"
-	"github.com/gin-gonic/gin"
-	vault "github.com/hashicorp/vault/api"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
-	"io/ioutil"
-	"k8s.io/client-go/rest"
-	"math/rand"
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
+
+	"github.com/banzaicloud/bank-vaults/vault"
+	"github.com/banzaicloud/banzai-types/components"
+	"github.com/banzaicloud/pipeline/auth"
+	"github.com/gin-gonic/gin"
+	vaultapi "github.com/hashicorp/vault/api"
+	"github.com/pkg/errors"
+	uuid "github.com/satori/go.uuid"
+	"github.com/sirupsen/logrus"
 )
 
 var secretStoreObj *secretStore
@@ -30,8 +29,8 @@ func AddSecrets(c *gin.Context) {
 	log.Info("Start adding secrets")
 
 	log.Info("Get organization id from params")
-	organizationId := strconv.FormatUint(uint64(c.Request.Context().Value(auth.CurrentOrganization).(*auth.Organization).ID), 10)
-	log.Infof("Organization id: %s", organizationId)
+	organizationID := strconv.FormatUint(uint64(auth.GetCurrentOrganization(c.Request).ID), 10)
+	log.Infof("Organization id: %s", organizationID)
 
 	log.Info("Binding request")
 
@@ -61,38 +60,25 @@ func AddSecrets(c *gin.Context) {
 	}
 	log.Info("Validation passed")
 
-	// org/{org_id}/{uuid}/{secret_type}
-	secretId := generateSecretId()
-	vaultPath := fmt.Sprintf("org/%s/%s/%s", organizationId, secretId, createSecretRequest.SecretType)
-	if err := secretStoreObj.mount(vaultPath, createSecretRequest.Name); err != nil {
-		log.Errorf("Error during mount: %s", err.Error())
+	// orgs/{org_id}/{uuid}/{secret_type}
+	secretID := generateSecretID()
+	secretPath := fmt.Sprintf("secret/orgs/%s/%s", organizationID, secretID)
+
+	if err := secretStoreObj.Store(secretPath, createSecretRequest); err != nil {
+		log.Errorf("Error during store: %s", err.Error())
 		c.JSON(http.StatusInternalServerError, components.ErrorResponse{
 			Code:    http.StatusInternalServerError,
-			Message: "Error during mount",
+			Message: "Error during store",
 			Error:   err.Error(),
 		})
-	}
-
-	log.Info("Mount succeeded")
-
-	for _, kv := range createSecretRequest.Values {
-		path := fmt.Sprintf("%s/%s", vaultPath, kv.Key)
-		if err := secretStoreObj.Store(path, kv.Value); err != nil {
-			log.Errorf("Error during store: %s", err.Error())
-			c.JSON(http.StatusInternalServerError, components.ErrorResponse{
-				Code:    http.StatusInternalServerError,
-				Message: "Error during store",
-				Error:   err.Error(),
-			})
-		} else {
-			log.Infof("Secret stored: %s", path)
-		}
+	} else {
+		log.Infof("Secret stored at: %s", secretPath)
 	}
 
 	c.JSON(http.StatusCreated, CreateSecretResponse{
 		Name:       createSecretRequest.Name,
 		SecretType: createSecretRequest.SecretType,
-		SecretId:   secretId,
+		SecretId:   secretID,
 	})
 
 }
@@ -210,154 +196,75 @@ type SecretsItemResponse struct {
 }
 
 type secretStore struct {
-	client       *vault.Client
-	logical      *vault.Logical
-	tokenRenewer *vault.Renewer
+	client  *vault.Client
+	logical *vaultapi.Logical
 }
 
-func (ss *secretStore) Store(path string, value string) error {
+func (ss *secretStore) Store(path string, value CreateSecretRequest) error {
 	log.Infof("Start storing secret")
+	_, err := json.Marshal(value)
+	if err != nil {
+		return errors.Wrap(err, "Error during storing secret")
+	}
 	data := map[string]interface{}{"value": value}
 	if _, err := ss.logical.Write(path, data); err != nil {
-		return errors.Wrap(err, "Error during store secrets")
+		return errors.Wrap(err, "Error during storing secret")
 	}
 	return nil
 }
 
 func (ss *secretStore) List(organizationId string) ([]SecretsItemResponse, error) {
 
-	log.Info("Listing mounts")
-	if mounts, err := secretStoreObj.client.Sys().ListMounts(); err != nil {
-		return nil, err
-	} else {
-		responseItems := make([]SecretsItemResponse, 0)
-		for _, secretType := range allSecretTypes {
-			for key, mount := range mounts {
-				// find mount
-				log.Debugf("Searching for organization mounts [%s]", secretType)
-				prefix := fmt.Sprintf("org/%s", organizationId)
-				suffix := fmt.Sprintf("/%s/", secretType)
-				if strings.HasPrefix(key, fmt.Sprintf("org/%s", organizationId)) && strings.HasSuffix(key, suffix) {
+	log.Info("Listing secrets")
+	responseItems := make([]SecretsItemResponse, 0)
 
-					desc := mount.Description
+	log.Debugf("Searching for organizations secrets [%s]", organizationId)
+	orgSecretPath := fmt.Sprintf("secret/orgs/%s", organizationId)
 
-					secretId := key[len(prefix)+1 : len(key)-len(suffix)]
-					log.Debugf("Secret id: %s", secretId)
-
-					sir := SecretsItemResponse{
-						Id:         secretId,
-						Name:       desc,
-						SecretType: string(secretType),
-						Values:     nil,
-					}
-
-					if secret, err := secretStoreObj.client.Logical().List(key); err != nil {
-						log.Errorf("Error listing secrets: %s", err.Error())
-					} else {
-						keys := secret.Data["keys"].([]interface{})
-						var secrets []KeyValue
-						for _, key := range keys {
-							secrets = append(secrets, KeyValue{
-								Key: key.(string),
-							})
-						}
-						sir.Values = secrets
-						responseItems = append(responseItems, sir)
-					}
-
+	if secret, err := ss.logical.List(orgSecretPath); err != nil {
+		log.Errorf("Error listing secrets: %s", err.Error())
+	} else if secret != nil {
+		keys := secret.Data["keys"].([]interface{})
+		for _, key := range keys {
+			secretID := key.(string)
+			if secret, err := ss.logical.Read(orgSecretPath + "/" + secretID); err != nil {
+				log.Errorf("Error listing secrets: %s", err.Error())
+			} else if secret != nil {
+				secretData := secret.Data["value"].(map[string]interface{})
+				sir := SecretsItemResponse{
+					Id:         key.(string),
+					Name:       secretData["name"].(string),
+					SecretType: secretData["type"].(string),
+					Values:     nil,
 				}
+				responseItems = append(responseItems, sir)
 			}
 		}
-
+	} else {
 		return responseItems, nil
 	}
+
+	return responseItems, nil
 }
 
 func newVaultSecretStore() *secretStore {
-	client, err := vault.NewClient(vault.DefaultConfig())
+	role := "pipeline"
+	client, err := vault.NewClient(role)
 	if err != nil {
 		panic(err)
 	}
-	logical := client.Logical()
-	var tokenRenewer *vault.Renewer
-
-	if client.Token() == "" {
-
-		tokenPath := viper.GetString("auth.vaultpath")
-		token, err := ioutil.ReadFile(tokenPath + "/.vault-token")
-		if err == nil {
-
-			client.SetToken(string(token))
-
-		} else {
-			// If VAULT_TOKEN or ~/.vault-token wasn't provided let's suppose
-			// we are in Kubernetes and try to get one with the ServiceAccount token
-
-			k8sconfig, err := rest.InClusterConfig()
-			if err != nil {
-				panic(err)
-			}
-
-			data := map[string]interface{}{"jwt": k8sconfig.BearerToken, "role": "pipeline"}
-			secret, err := logical.Write("auth/kubernetes/login", data)
-			if err != nil {
-				panic(err)
-			}
-
-			tokenRenewer, err = client.NewRenewer(&vault.RenewerInput{Secret: secret})
-			if err != nil {
-				panic(err)
-			}
-
-			// We never really want to stop this
-			go tokenRenewer.Renew()
-
-			// Finally set the first token from the response
-			client.SetToken(secret.Auth.ClientToken)
-		}
-	}
-
-	return &secretStore{client: client, logical: logical, tokenRenewer: tokenRenewer}
-}
-
-func (ss *secretStore) mount(mountPath, name string) error {
-
-	log.Infof("Mount %s", mountPath)
-
-	mountInput := &vault.MountInput{
-		Type:        "kv",
-		Description: name,
-	}
-
-	if err := ss.client.Sys().Mount(mountPath, mountInput); err != nil && !strings.Contains(err.Error(), "existing mount") {
-		return errors.Wrap(err, "Error enabling")
-	}
-	return nil
+	logical := client.Vault().Logical()
+	return &secretStore{client: client, logical: logical}
 }
 
 func (ss *secretStore) delete(organizationId, secretId string) error {
-
-	log.Info("Listing mounts")
-	if mounts, err := secretStoreObj.client.Sys().ListMounts(); err != nil {
-		return err
-	} else {
-		for key := range mounts {
-
-			prefix := fmt.Sprintf("org/%s/%s/", organizationId, secretId)
-			if strings.HasPrefix(key, prefix) {
-				return ss.client.Sys().Unmount(key)
-			}
-
-		}
-	}
-
-	return errors.New(fmt.Sprintf("There are no secrets with [%s] organization id and [%s] secret id", organizationId, secretId))
+	_, err := ss.logical.Delete(fmt.Sprintf("secret/orgs/%s/%s", organizationId, secretId))
+	return err
 }
 
-func generateSecretId() string {
-	log.Debug("Generate secret id")
-	rInt := rand.Intn(10)
-	return fmt.Sprintf("%d%d", time.Now().UTC().Unix(), rInt)
+func generateSecretID() string {
+	log.Debug("Generating secret id")
+	return uuid.NewV4().String()
 }
 
 type SecretType string
