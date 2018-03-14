@@ -93,9 +93,9 @@ func PreInstall(helmInstall *helm.Install, kubeConfig *[]byte) error {
 				time.Sleep(time.Duration(10) * time.Second)
 				continue
 			} else if strings.Contains(err.Error(), "is forbidden") {
-				_, err = client.RbacV1().ClusterRoles().Get("cluster-admin", metav1.GetOptions{})
-				if err != nil {
-					return errors.Wrap(err, fmt.Sprintf("cluster-admin not found: %s", err))
+				_, errGet := client.RbacV1().ClusterRoles().Get("cluster-admin", metav1.GetOptions{})
+				if errGet != nil {
+					return errors.Wrap(err, fmt.Sprintf("clusterrole create error: %s cluster-admin not found: %s", err, errGet))
 				}
 				clusterRoleName = "cluster-admin"
 				break
@@ -108,6 +108,8 @@ func PreInstall(helmInstall *helm.Install, kubeConfig *[]byte) error {
 		break
 	}
 
+	log.Debugf("ClusterRole Name: %s", clusterRoleName)
+	log.Debugf("ServiceAccount Name: %s", helmInstall.ServiceAccount)
 	clusterRoleBinding := &v1.ClusterRoleBinding{
 		ObjectMeta: v1MetaData,
 		RoleRef: v1.RoleRef{
