@@ -112,7 +112,7 @@ func DeleteSecrets(c *gin.Context) {
 	organizationID := auth.GetCurrentOrganization(c.Request).IDString()
 	log.Infof("Organization id: %s", organizationID)
 
-	secretID := c.Param("secretId")
+	secretID := c.Param("secretid")
 
 	if err := secretStoreObj.delete(organizationID, secretID); err != nil {
 		log.Errorf("Error during deleting secrets: %s", err.Error())
