@@ -181,10 +181,9 @@ type ListSecretsResponse struct {
 }
 
 type SecretsItemResponse struct {
-	Id         string     `json:"id"`
-	Name       string     `json:"name"`
-	SecretType string     `json:"type"`
-	Values     []KeyValue `json:"values"`
+	ID         string `json:"id"`
+	Name       string `json:"name"`
+	SecretType string `json:"type"`
 }
 
 type secretStore struct {
@@ -220,10 +219,9 @@ func (ss *secretStore) list(organizationID string) ([]SecretsItemResponse, error
 			} else if secret != nil {
 				secretData := secret.Data["value"].(map[string]interface{})
 				sir := SecretsItemResponse{
-					Id:         key.(string),
+					ID:         key.(string),
 					Name:       secretData["name"].(string),
 					SecretType: secretData["type"].(string),
-					Values:     nil,
 				}
 				responseItems = append(responseItems, sir)
 			}
