@@ -12,7 +12,7 @@ The [Pipeline Control Plane](https://github.com/banzaicloud/pipeline-cp-launcher
 
 To hook your Spark application into BanzaiCloud CI/CD flow the following steps are required:
 
-1. [Register the OAuth application on GitHub](#register-the-oauth-application-on-GitHub)
+1. [Register the OAuth application on GitHub](#register-the-oauth-application-on-github)
 
 1. [Deploy Control Plane](#deploy-control-plane)
 
