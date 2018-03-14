@@ -62,6 +62,7 @@ The following sections may need to be customized:
     ...
     cluster_name: "[[your-cluster-name]]"
   ```
+  _The cluster name must be a match of regex '(?:a-z?)' (only alphanumerics and '-' are allowed; it must start with a letter and end with an alphanumeric, and must be no longer than 40 characters)_
 
 - the command for building your application
 
