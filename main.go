@@ -129,7 +129,7 @@ func main() {
 			orgs.DELETE("/:orgid/profiles/cluster/:type/:name", api.DeleteClusterProfile)
 			orgs.GET("/:orgid/secrets", api.ListSecrets)
 			orgs.POST("/:orgid/secrets", api.AddSecrets)
-			orgs.DELETE("/:orgid/secrets/:secretId", api.DeleteSecrets)
+			orgs.DELETE("/:orgid/secrets/:secretid", api.DeleteSecrets)
 		}
 		v1.GET("/token", auth.GenerateToken)
 		v1.GET("/orgs", api.GetOrganizations)
