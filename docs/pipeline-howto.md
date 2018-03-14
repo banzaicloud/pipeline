@@ -1,6 +1,6 @@
 Starting from the [0.3.0](https://github.com/banzaicloud/pipeline/tree/0.3.0) version Pipeline supports managed Kubernetes clusters on Google Cloud [GKE](https://cloud.google.com/kubernetes-engine/) as well.
 
-Another change introduced in `0.3.0` is that Pipeline requires GitHub OAuth authentication similar to the CICD flow. With that we have a single mechanism to authenticate both Pipeline and CI/CD flow instead of what it was before where Pipeline required basic authentication while the CICD flow GitHub OAuth authentication.
+Another change introduced in `0.3.0` is that Pipeline requires GitHub OAuth authentication similar to the CI/CD flow. With that we have a single mechanism to authenticate both Pipeline and CI/CD flow instead of what it was before where Pipeline required basic authentication while the CI/CD flow GitHub OAuth authentication.
 
 For simplicity the instruction steps are presented through an example specifically how to hook a Spark application into a CI/CD workflow to run it on managed Kubernetes on Google Cloud (GKE).
 
@@ -12,23 +12,23 @@ The [Pipeline Control Plane](https://github.com/banzaicloud/pipeline-cp-launcher
 
 To hook your Spark application into BanzaiCloud CI/CD flow the following steps are required:
 
-1. [Register the OAuth application on GitHub](#Register-the-OAuth-application-on-GitHub)
+1. [Register the OAuth application on GitHub](#register-the-oauth-application-on-GitHub)
 
-1. [Deploy Control Plane](#Deploy-Control-Plane)
+1. [Deploy Control Plane](#deploy-control-plane)
 
-1. [Define CI/CD workflow configuration for your Spark application](#Define-pipeline-workflow-configuration-for-your-Spark-application)
+1. [Define CI/CD workflow configuration for your Spark application](#define-pipeline-workflow-configuration-for-your-spark-application)
 
-1. [Grant access to desired GitHub organizations](#Grant-access-to-desired-GitHub-organizations)
+1. [Grant access to desired GitHub organizations](#grant-access-to-desired-github-organizations)
 
-1. [Hook GitHub repositories to CI/CD flow](#Hook-repositories-to-CI/CD-flow)
+1. [Hook GitHub repositories to CI/CD flow](#hook-repositories-to-ci/cd-flow)
 
-1. [Trigger the CICD workflow](#Trigger-the-CICD-workflow)
+1. [Trigger the CI/CD workflow](#trigger-the-ci/cd-workflow)
 
-1. [Monitor running workflows](#Monitor-running-workflows)
+1. [Monitor running workflows](#monitor-running-workflows)
 
 ### Register the OAuth application on GitHub
 
-Both Pipeline and CICD flow requires GitHub OAuth authentication and for this a OAuth application must be setup on GitHub.
+Both Pipeline and CI/CD flow requires GitHub OAuth authentication and for this a OAuth application must be setup on GitHub.
 
 Setup your Pipeline GitHub OAuth application according to [this guilde](./github-app.md)
 
@@ -127,7 +127,7 @@ Select repositories desired to be hooked to the CI/CD flow.
 
 <a href="images/howto/EnableRepoCI.png" target="_blank"><img src="images/howto/EnableRepoCI.png"></a>
 
-### CI/CD secrets
+#### CI/CD secrets
 
 For the hooked repositories set the following secrets :
 
@@ -142,7 +142,7 @@ For the hooked repositories set the following secrets :
 
   <a href="images/howto/RepoSecretPluginToken.png" target="_blank"><img src="images/howto/RepoSecretPluginToken.png"></a>
 
-### Trigger the CICD workflow
+### Trigger the CI/CD workflow
 
 Modify the source code of your Spark application, commit the changes and push it to the repository on GitHub. The Pipeline gets notified through GitHub webhooks about the commits and will trigger the flow described in the `.pipeline.yml` file of the watched repositories.
 
