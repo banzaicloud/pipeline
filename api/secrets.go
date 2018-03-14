@@ -1,7 +1,6 @@
 package api
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -49,7 +48,7 @@ func AddSecrets(c *gin.Context) {
 	log.Debugf("%#v", createSecretRequest)
 
 	log.Info("Start validation")
-	if err := createSecretRequest.Validate(); err != nil {
+	if err := createSecretRequest.validate(); err != nil {
 		log.Errorf("Validation error: %s", err.Error())
 		c.AbortWithStatusJSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
@@ -89,11 +88,11 @@ func ListSecrets(c *gin.Context) {
 	log.Info("Start listing secrets")
 
 	log.Info("Get organization id from params")
-	organizationId := strconv.FormatUint(uint64(c.Request.Context().Value(auth.CurrentOrganization).(*auth.Organization).ID), 10)
+	organizationID := strconv.FormatUint(uint64(c.Request.Context().Value(auth.CurrentOrganization).(*auth.Organization).ID), 10)
 
-	log.Infof("Organization id: %s", organizationId)
+	log.Infof("Organization id: %s", organizationID)
 
-	if items, err := secretStoreObj.list(organizationId); err != nil {
+	if items, err := secretStoreObj.list(organizationID); err != nil {
 		log.Errorf("Error during listing secrets: %s", err.Error())
 		c.AbortWithStatusJSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
@@ -106,7 +105,6 @@ func ListSecrets(c *gin.Context) {
 			Secrets: items,
 		})
 	}
-
 }
 
 func DeleteSecrets(c *gin.Context) {
@@ -114,11 +112,11 @@ func DeleteSecrets(c *gin.Context) {
 	log.Info("Start deleting secrets")
 
 	log.Info("Get organization id and secret id from params")
-	organizationId := strconv.FormatUint(uint64(c.Request.Context().Value(auth.CurrentOrganization).(*auth.Organization).ID), 10)
+	organizationID := strconv.FormatUint(uint64(c.Request.Context().Value(auth.CurrentOrganization).(*auth.Organization).ID), 10)
 	secretId := c.Param("secretId")
-	log.Infof("Organization id: %s", organizationId)
+	log.Infof("Organization id: %s", organizationID)
 
-	if err := secretStoreObj.delete(organizationId, secretId); err != nil {
+	if err := secretStoreObj.delete(organizationID, secretId); err != nil {
 		log.Errorf("Error during deleting secrets: %s", err.Error())
 		isNotFound := strings.Contains(err.Error(), "There are no secrets with")
 		msg := "Error during deleting secrets"
@@ -154,25 +152,20 @@ type CreateSecretRequest struct {
 	Values     []KeyValue `json:"values" binding:"required"`
 }
 
-func (c *CreateSecretRequest) Validate() error {
+func (c *CreateSecretRequest) validate() error {
 
 	allRules := getRules()
-	for i, rule := range allRules {
+	for _, rule := range allRules {
 		if string(rule.secretType) == c.SecretType {
 			for j, requiredKey := range rule.requiredKeys {
 				for _, keyValues := range c.Values {
 					if requiredKey.requiredKey == keyValues.Key {
-						allRules[i].requiredKeys[j].isInRequest = true
+						rule.requiredKeys[j].isInRequest = true
 						break
 					}
 				}
 			}
-
-			if err := allRules[i].isValid(); err != nil {
-				return err
-			}
-
-			return nil
+			return rule.isValid()
 		}
 	}
 
@@ -202,10 +195,6 @@ type secretStore struct {
 
 func (ss *secretStore) store(path string, value CreateSecretRequest) error {
 	log.Infof("Start storing secret")
-	_, err := json.Marshal(value)
-	if err != nil {
-		return errors.Wrap(err, "Error during storing secret")
-	}
 	data := map[string]interface{}{"value": value}
 	if _, err := ss.logical.Write(path, data); err != nil {
 		return errors.Wrap(err, "Error during storing secret")
@@ -213,13 +202,13 @@ func (ss *secretStore) store(path string, value CreateSecretRequest) error {
 	return nil
 }
 
-func (ss *secretStore) list(organizationId string) ([]SecretsItemResponse, error) {
+func (ss *secretStore) list(organizationID string) ([]SecretsItemResponse, error) {
 
 	log.Info("Listing secrets")
 	responseItems := make([]SecretsItemResponse, 0)
 
-	log.Debugf("Searching for organizations secrets [%s]", organizationId)
-	orgSecretPath := fmt.Sprintf("secret/orgs/%s", organizationId)
+	log.Debugf("Searching for organizations secrets [%s]", organizationID)
+	orgSecretPath := fmt.Sprintf("secret/orgs/%s", organizationID)
 
 	if secret, err := ss.logical.List(orgSecretPath); err != nil {
 		log.Errorf("Error listing secrets: %s", err.Error())
@@ -257,8 +246,8 @@ func newVaultSecretStore() *secretStore {
 	return &secretStore{client: client, logical: logical}
 }
 
-func (ss *secretStore) delete(organizationId, secretId string) error {
-	_, err := ss.logical.Delete(fmt.Sprintf("secret/orgs/%s/%s", organizationId, secretId))
+func (ss *secretStore) delete(organizationID, secretID string) error {
+	_, err := ss.logical.Delete(fmt.Sprintf("secret/orgs/%s/%s", organizationID, secretID))
 	return err
 }
 
