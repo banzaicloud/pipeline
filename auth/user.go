@@ -63,6 +63,10 @@ type Organization struct {
 	Clusters  []model.ClusterModel `gorm:"foreignkey:organization_id" json:"clusters,omitempty"`
 }
 
+func (org *Organization) IDString() string {
+	return strconv.FormatUint(uint64(org.ID), 10)
+}
+
 //TableName sets DroneUser's table name
 func (DroneUser) TableName() string {
 	return "users"

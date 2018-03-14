@@ -3,7 +3,6 @@ package api
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/banzaicloud/bank-vaults/vault"
@@ -28,7 +27,7 @@ func AddSecrets(c *gin.Context) {
 	log.Info("Start adding secrets")
 
 	log.Info("Get organization id from params")
-	organizationID := strconv.FormatUint(uint64(auth.GetCurrentOrganization(c.Request).ID), 10)
+	organizationID := auth.GetCurrentOrganization(c.Request).IDString()
 	log.Infof("Organization id: %s", organizationID)
 
 	log.Info("Binding request")
@@ -88,7 +87,7 @@ func ListSecrets(c *gin.Context) {
 	log.Info("Start listing secrets")
 
 	log.Info("Get organization id from params")
-	organizationID := strconv.FormatUint(uint64(c.Request.Context().Value(auth.CurrentOrganization).(*auth.Organization).ID), 10)
+	organizationID := auth.GetCurrentOrganization(c.Request).IDString()
 
 	log.Infof("Organization id: %s", organizationID)
 
@@ -112,11 +111,11 @@ func DeleteSecrets(c *gin.Context) {
 	log.Info("Start deleting secrets")
 
 	log.Info("Get organization id and secret id from params")
-	organizationID := strconv.FormatUint(uint64(c.Request.Context().Value(auth.CurrentOrganization).(*auth.Organization).ID), 10)
-	secretId := c.Param("secretId")
+	organizationID := auth.GetCurrentOrganization(c.Request).IDString()
 	log.Infof("Organization id: %s", organizationID)
+	secretID := c.Param("secretId")
 
-	if err := secretStoreObj.delete(organizationID, secretId); err != nil {
+	if err := secretStoreObj.delete(organizationID, secretID); err != nil {
 		log.Errorf("Error during deleting secrets: %s", err.Error())
 		isNotFound := strings.Contains(err.Error(), "There are no secrets with")
 		msg := "Error during deleting secrets"
