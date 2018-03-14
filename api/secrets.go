@@ -3,7 +3,6 @@ package api
 import (
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/banzaicloud/bank-vaults/vault"
 	"github.com/banzaicloud/banzai-types/components"
@@ -77,7 +76,7 @@ func AddSecrets(c *gin.Context) {
 	c.JSON(http.StatusCreated, CreateSecretResponse{
 		Name:       createSecretRequest.Name,
 		SecretType: createSecretRequest.SecretType,
-		SecretId:   secretID,
+		SecretID:   secretID,
 	})
 }
 
@@ -88,7 +87,6 @@ func ListSecrets(c *gin.Context) {
 
 	log.Info("Get organization id from params")
 	organizationID := auth.GetCurrentOrganization(c.Request).IDString()
-
 	log.Infof("Organization id: %s", organizationID)
 
 	if items, err := secretStoreObj.list(organizationID); err != nil {
@@ -110,39 +108,31 @@ func DeleteSecrets(c *gin.Context) {
 	log = logger.WithFields(logrus.Fields{"tag": "Delete Secrets"})
 	log.Info("Start deleting secrets")
 
-	log.Info("Get organization id and secret id from params")
+	log.Info("Get organization id from params")
 	organizationID := auth.GetCurrentOrganization(c.Request).IDString()
 	log.Infof("Organization id: %s", organizationID)
+
 	secretID := c.Param("secretId")
 
 	if err := secretStoreObj.delete(organizationID, secretID); err != nil {
 		log.Errorf("Error during deleting secrets: %s", err.Error())
-		isNotFound := strings.Contains(err.Error(), "There are no secrets with")
-		msg := "Error during deleting secrets"
-		code := http.StatusBadRequest
-		if isNotFound {
-			code = http.StatusNotFound
-			msg = "Secrets not found"
-		}
-
+		code := http.StatusInternalServerError
 		resp := components.ErrorResponse{
 			Code:    code,
-			Message: msg,
+			Message: "Error during deleting secrets",
 			Error:   err.Error(),
 		}
-
-		c.JSON(code, resp)
+		c.AbortWithStatusJSON(code, resp)
 	} else {
 		log.Info("Delete secrets succeeded")
-		c.Status(http.StatusOK)
+		c.Status(http.StatusNoContent)
 	}
-
 }
 
 type CreateSecretResponse struct {
 	Name       string `json:"name" binding:"required"`
 	SecretType string `json:"type" binding:"required"`
-	SecretId   string `json:"secret_id"`
+	SecretID   string `json:"secret_id"`
 }
 
 type CreateSecretRequest struct {
