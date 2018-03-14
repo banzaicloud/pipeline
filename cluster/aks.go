@@ -263,7 +263,7 @@ func (c *AKSCluster) UpdateCluster(request *bTypes.UpdateClusterRequest) error {
 		return err
 	}
 	log.Info("Cluster update succeeded")
-	//Update AWS model
+	//Update AKS model
 	log.Info("Create updated model")
 	updateCluster := &model.ClusterModel{
 		Model:            c.modelCluster.Model,

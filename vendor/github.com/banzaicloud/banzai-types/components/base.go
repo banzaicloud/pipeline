@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/banzaicloud/banzai-types/components/amazon"
 	"github.com/banzaicloud/banzai-types/components/azure"
+	"github.com/banzaicloud/banzai-types/components/dummy"
 	"github.com/banzaicloud/banzai-types/components/google"
 	"github.com/banzaicloud/banzai-types/constants"
 )
@@ -25,6 +26,7 @@ type CreateClusterRequest struct {
 		CreateClusterAmazon *amazon.CreateClusterAmazon `json:"amazon,omitempty"`
 		CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
 		CreateClusterGoogle *google.CreateClusterGoogle `json:"google,omitempty"`
+		CreateClusterDummy  *dummy.CreateClusterDummy   `json:"dummy,omitempty"`
 	} `json:"properties" binding:"required"`
 }
 
@@ -52,10 +54,6 @@ type UpdateClusterResponse struct {
 	Status int `json:"status"`
 }
 
-//type GetClusterStatusResponse struct {
-//	Status int `json:"status"`
-//}
-
 type UpdateClusterRequest struct {
 	Cloud            string `json:"cloud" binding:"required"`
 	UpdateProperties `json:"properties"`
@@ -72,6 +70,7 @@ type UpdateProperties struct {
 	*amazon.UpdateClusterAmazon `json:"amazon,omitempty"`
 	*azure.UpdateClusterAzure   `json:"azure,omitempty"`
 	*google.UpdateClusterGoogle `json:"google,omitempty"`
+	*dummy.UpdateClusterDummy   `json:"dummy,omitempty"`
 }
 
 // String method prints formatted update request fields
@@ -109,6 +108,8 @@ func (r *UpdateClusterRequest) Validate() error {
 	case constants.Google:
 		// google validate
 		return r.UpdateClusterGoogle.Validate()
+	case constants.Dummy:
+		return r.UpdateClusterDummy.Validate()
 	default:
 		// not supported cloud type
 		return errors.New("Not supported cloud type.")

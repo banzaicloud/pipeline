@@ -70,6 +70,7 @@ func main() {
 		&model.AmazonClusterModel{},
 		&model.AzureClusterModel{},
 		&model.GoogleClusterModel{},
+		&model.DummyClusterModel{},
 		&auth_identity.AuthIdentity{},
 		&auth.User{},
 		&auth.UserOrganization{},

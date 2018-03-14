@@ -88,6 +88,15 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 		database.Where(model.AzureClusterModel{ClusterModelId: gkeCluster.modelCluster.ID}).First(&gkeCluster.modelCluster.Google)
 
 		return gkeCluster, nil
+	case constants.Dummy:
+		dummyCluster, err := CreateDummyClusterFromModel(modelCluster)
+		if err != nil {
+			return nil, err
+		}
+		log.Info("Load Google props from database")
+		database.Where(model.AzureClusterModel{ClusterModelId: dummyCluster.modelCluster.ID}).First(&dummyCluster.modelCluster.Dummy)
+
+		return dummyCluster, nil
 	}
 	return nil, constants.ErrorNotSupportedCloudType
 }
@@ -133,6 +142,18 @@ func CreateCommonClusterFromRequest(createClusterRequest *bTypes.CreateClusterRe
 		}
 
 		return gkeCluster, nil
+	case constants.Dummy:
+		if err := createClusterRequest.Properties.CreateClusterDummy.Validate(); err != nil {
+			return nil, err
+		}
+
+		// Create Dummy struct
+		dummy, err := CreateDummyClusterFromRequest(createClusterRequest)
+		if err != nil {
+			return nil, err
+		}
+
+		return dummy, nil
 	}
 	return nil, constants.ErrorNotSupportedCloudType
 }
