@@ -36,6 +36,7 @@ func init() {
 	viper.SetDefault("logging.kubicornloglevel", "debug")
 	viper.SetDefault("statestore.path", "./statestore")
 	viper.SetDefault("pipeline.listenport", 9090)
+	viper.SetDefault("pipeline.uipath", "/account/repos")
 	viper.SetDefault("database.dialect", "mysql")
 	viper.SetDefault("database.port", 3306)
 	viper.SetDefault("database.host", "localhost")

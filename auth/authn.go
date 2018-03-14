@@ -115,7 +115,7 @@ func Init() {
 		IgnoreFunc: func(r *http.Request) bool {
 			return true
 		},
-		FallbackPath: "/ui",
+		FallbackPath: viper.GetString("pipeline.uipath"),
 	})
 
 	// Initialize Auth with configuration

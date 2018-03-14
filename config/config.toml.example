@@ -5,6 +5,9 @@
 
 listenport = 9090
 
+# Use to redirect url after login
+uipath = "/account/repos"
+
 [database]
 dialect = "mysql"
 host = "localhost"
