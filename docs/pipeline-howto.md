@@ -20,7 +20,7 @@ To hook your Spark application into BanzaiCloud CI/CD flow the following steps a
 
 1. [Grant access to desired GitHub organizations](#grant-access-to-desired-github-organizations)
 
-1. [Hook GitHub repositories to CI/CD flow](#hook-repositories-to-ci/cd-flow)
+1. [Hook GitHub repositories to CI/CD flow](#hook-repositories-to-cicd-flow)
 
 1. [Trigger the CI/CD workflow](#trigger-the-cicd-workflow)
 
