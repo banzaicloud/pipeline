@@ -34,7 +34,7 @@ func AddSecrets(c *gin.Context) {
 	log.Info("Binding request")
 
 	var createSecretRequest CreateSecretRequest
-	if err := c.Bind(&createSecretRequest); err != nil {
+	if err := c.ShouldBind(&createSecretRequest); err != nil {
 		log.Errorf("Error during binding CreateSecretRequest: %s", err)
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
