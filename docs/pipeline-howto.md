@@ -34,7 +34,7 @@ Setup your Pipeline GitHub OAuth application according to [this guilde](./github
 
 ### Deploy Control Plane
 
-Deploy `Control Plane` using [Pipeline Control Plane Launcher](https://github.com/banzaicloud/pipeline-cp-launcher/tree/0.3.0) to the one of the supported cloud providers where you would like to run your CI/CD flow.
+Deploy `Control Plane` using [Pipeline Control Plane Launcher](https://github.com/banzaicloud/pipeline-cp-launcher/tree/0.3.0) to one of the supported cloud providers where you would like to run your CI/CD flow.
 
 * Take note of the PublicIP of the host where `Control Plane` was deployed. We refer to this as the PublicIP of `Control Plane`:
   * [AWS](https://github.com/banzaicloud/pipeline-cp-launcher/blob/0.3.0/docs/control-plane-on-aw)
@@ -122,7 +122,8 @@ All the services of the Pipeline may take some time to fully initialize, thus th
 
 ### Hook repositories to CI/CD flow
 
-Navigate to `http://{control_plane_public_ip}/`  - this will bring you to the CI/CD user interface. Select `Repositories` from top left menu. This will list all the repositories that the Pipeline has access to.
+Navigate to `http://{control_plane_public_ip}/`  - this will bring you to the CI/CD user interface. Select `Repositories` from top left menu. This will list all the repositories that the Pipeline has access to. In case no repositories are listed at all click the `Synchronize` menu item under the `Repositories` menu.
+
 Select repositories desired to be hooked to the CI/CD flow.
 
 <a href="images/howto/EnableRepoCI.png" target="_blank"><img src="images/howto/EnableRepoCI.png"></a>
