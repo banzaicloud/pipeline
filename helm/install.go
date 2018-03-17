@@ -62,35 +62,6 @@ func PreInstall(helmInstall *helm.Install, kubeConfig *[]byte) error {
 		break
 	}
 
-	clusterRoleBinding := &v1.ClusterRoleBinding{
-		ObjectMeta: v1MetaData,
-		RoleRef: v1.RoleRef{
-			APIGroup: "rbac.authorization.k8s.io",
-			Kind:     "ClusterRole",
-			Name:     helmInstall.ServiceAccount, // "tiller",
-		},
-		Subjects: []v1.Subject{
-			{
-				Kind:      "ServiceAccount",
-				Name:      helmInstall.ServiceAccount, // "tiller",
-				Namespace: helmInstall.Namespace,
-			}},
-	}
-	log.Info("create cluster role bindings")
-	for i := 0; i <= 5; i++ {
-		_, err = client.RbacV1().ClusterRoleBindings().Create(clusterRoleBinding)
-		if err != nil {
-			log.Warnf("create role bindings failed: %s", err.Error())
-			if strings.Contains(err.Error(), "etcdserver: request timed out") {
-				time.Sleep(time.Duration(10) * time.Second)
-				continue
-			}
-			if !strings.Contains(err.Error(), "already exists") {
-				return errors.Wrap(err, fmt.Sprintf("create role bindings failed: %s", err))
-			}
-		}
-		break
-	}
 	clusterRole := &v1.ClusterRole{
 		ObjectMeta: v1MetaData,
 		Rules: []v1.PolicyRule{{
@@ -114,12 +85,20 @@ func PreInstall(helmInstall *helm.Install, kubeConfig *[]byte) error {
 			}},
 	}
 	log.Info("create cluster roles")
+	clusterRoleName := helmInstall.ServiceAccount
 	for i := 0; i <= 5; i++ {
 		_, err = client.RbacV1().ClusterRoles().Create(clusterRole)
 		if err != nil {
 			if strings.Contains(err.Error(), "etcdserver: request timed out") {
 				time.Sleep(time.Duration(10) * time.Second)
 				continue
+			} else if strings.Contains(err.Error(), "is forbidden") {
+				_, errGet := client.RbacV1().ClusterRoles().Get("cluster-admin", metav1.GetOptions{})
+				if errGet != nil {
+					return errors.Wrap(err, fmt.Sprintf("clusterrole create error: %s cluster-admin not found: %s", err, errGet))
+				}
+				clusterRoleName = "cluster-admin"
+				break
 			}
 			log.Warnf("create roles failed: %s", err.Error())
 			if !strings.Contains(err.Error(), "already exists") {
@@ -128,13 +107,47 @@ func PreInstall(helmInstall *helm.Install, kubeConfig *[]byte) error {
 		}
 		break
 	}
+
+	log.Debugf("ClusterRole Name: %s", clusterRoleName)
+	log.Debugf("ServiceAccount Name: %s", helmInstall.ServiceAccount)
+	clusterRoleBinding := &v1.ClusterRoleBinding{
+		ObjectMeta: v1MetaData,
+		RoleRef: v1.RoleRef{
+			APIGroup: "rbac.authorization.k8s.io",
+			Kind:     "ClusterRole",
+			Name:     clusterRoleName, // "tiller",
+		},
+		Subjects: []v1.Subject{
+			{
+				Kind:      "ServiceAccount",
+				Name:      helmInstall.ServiceAccount, // "tiller",
+				Namespace: helmInstall.Namespace,
+			}},
+	}
+	log.Info("create cluster role bindings")
+	for i := 0; i <= 5; i++ {
+
+		_, err = client.RbacV1().ClusterRoleBindings().Create(clusterRoleBinding)
+		if err != nil {
+			log.Warnf("create role bindings failed: %s", err.Error())
+			if strings.Contains(err.Error(), "etcdserver: request timed out") {
+				time.Sleep(time.Duration(10) * time.Second)
+				continue
+			}
+			if !strings.Contains(err.Error(), "already exists") {
+				return errors.Wrap(err, fmt.Sprintf("create role bindings failed: %s", err))
+			}
+		}
+		break
+	}
+
 	return nil
 }
 
 // RetryHelmInstall retries for a configurable time/interval
 // Azure AKS sometimes failing because of TLS handshake timeout, there are several issues on GitHub about that:
 // https://github.com/Azure/AKS/issues/112, https://github.com/Azure/AKS/issues/116, https://github.com/Azure/AKS/issues/14
-func  RetryHelmInstall(helmInstall *helm.Install, kubeconfig *[]byte, path string) error {
+func RetryHelmInstall(helmInstall *helm.Install, kubeconfig *[]byte, path string) error {
 	log := logger.WithFields(logrus.Fields{"tag": "RetryHelmInstall"})
 	retryAttempts := viper.GetInt(constants.HELM_RETRY_ATTEMPT_CONFIG)
 	retrySleepSeconds := viper.GetInt(constants.HELM_RETRY_SLEEP_SECONDS)
@@ -187,7 +200,7 @@ func downloadChartFromRepo(name, path string) (string, error) {
 		return lname, nil
 	}
 
-	return filename, errors.Wrapf(err,"Failed to download %q", name)
+	return filename, errors.Wrapf(err, "Failed to download %q", name)
 }
 
 // Installs helm client on the cluster

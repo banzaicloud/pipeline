@@ -26,6 +26,8 @@ _Pipeline is a RESTful API to deploy **cloud native** microservices in public cl
 - [Create and scale your cluster](#create-and-scale-your-cluster)
 - [Deploy applications](#application-deployments)
 - [Security](#security)
+  - [Authentication](#authentication)
+  - [Dynamic secrets](#dynamic-secrets)
 - [Quick howto](#quick-howto)
 - [Spotguide specification](#spotguide-specification)
   - [Big data](#big-data)
@@ -157,6 +159,15 @@ For the purpose of storeing tokens we choose HashiCorp's Vault. However there wa
 
 ![Pipeline Vault connection](https://raw.githubusercontent.com/banzaicloud/pipeline/master/docs/images//token-request-vault-flow.png)
 
+#### Dynamic secrets 
+
+Vault does support dynamic secrets thus decided to add support and make the out of the box solution for all our supported deployments. To harden security each application gets a dedicated credential towards the requested service, this credential only belongs to the requesting application and has a fixed expiry time. Because the credential is dedicated it is possible to track down which application accessed the service and when and it is easy to revoke it because they are managed at a central place, Vault. Since Pipeline is running on Kubernetes we can apply Kubernetes Service Account based authentication to get the Vault tokens first which we can later exchange for a credential (username/password) based on our configured Vault role. Please see this diagram for further details about the sequence of events:
+![Vault MySQL credentials lease](https://raw.githubusercontent.com/banzaicloud/pipeline/master/docs/images/vault-dynamic-secrets.gif)
+
+As you can see with this solution [Pipeline](https://github.com/banzaicloud/pipeline) became able to connect to (e.g.) MySQL simply because it is running in the configured **Kubernetes Service Account** and without being required to type a single username/password during the configuration of the application.
+
+The code implementing the dynamic secret allocation for database connections and Vault configuration described above can be found in our open sourced project [Bank-Vaults](https://github.com/banzaicloud/bank-vaults/tree/master).
+
 ### Quick howto
 
 To do a step by step installation there is a detailed howto available [here](docs/pipeline-howto.md).
@@ -209,9 +220,15 @@ The TiDB `spotguide` provisions, runs, scales and monitors a TiDB cluster (TiDB,
 
 #### Serverless
 
-The serverless/function as a service `spotguide` provisions the selected serverless framework (OpenFaaS or Kubeless) and deploys it to Pipeline PaaS. The `function as a service` flow can be triggered with the frameworks native tooling (UI or CLI) however next Pipeline releases will contain a unified serverless API to trigger a function on any of the prefered frameworks with unified tooling (Pipeline API, UI and CLI).
+The serverless/function as a service `spotguide` provisions the selected serverless framework (Fn, OpenFaaS or Kubeless) and deploys it to Pipeline PaaS. The `function as a service` flow can be triggered with the frameworks native tooling (UI or CLI) however next Pipeline releases will contain a unified serverless API to trigger a function on any of the prefered frameworks with unified tooling (Pipeline API, UI and CLI).
+
+##### OpenFaaS
 
 ![Serverless Flow](docs/images/pipeline-open-faas-flow.png)
+
+##### Fn 
+
+##### Kubeless
 
 
 ### Reporting bugs
