@@ -228,6 +228,8 @@ The serverless/function as a service `spotguide` provisions the selected serverl
 
 ##### Fn 
 
+![Serverless Flow](docs/images/pipeline-fn-flow.png)
+
 ##### Kubeless
 
 
