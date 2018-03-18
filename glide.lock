@@ -57,7 +57,7 @@ imports:
   - autorest/to
   - autorest/validation
 - name: github.com/banzaicloud/azure-aks-client
-  version: 3c02d383161ea354f720d85c46ff0c631ddfeb45
+  version: e31a6824570a9f41bf25b79731b611d31837247e
   subpackages:
   - client
   - cluster
