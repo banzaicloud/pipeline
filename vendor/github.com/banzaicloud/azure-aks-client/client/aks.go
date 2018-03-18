@@ -239,7 +239,7 @@ func (a *AKSClient) CreateUpdateCluster(request cluster.CreateClusterRequest) (*
 // DELETE https://management.azure.com/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ContainerService/managedClusters/{resourceName}?api-version=2017-08-31
 func (a *AKSClient) DeleteCluster(name string, resourceGroup string) error {
 
-	a.logInfo("Start deleting cluster %s in %s resource group", name, resourceGroup)
+	a.logInfof("Start deleting cluster %s in %s resource group", name, resourceGroup)
 
 	pathParam := map[string]interface{}{
 		"subscription-id": a.azureSdk.ServicePrincipal.SubscriptionID,
