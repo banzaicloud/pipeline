@@ -52,6 +52,10 @@ func (g *CreateClusterGoogle) Validate() error {
 		return constants.ErrorWrongKubernetesVersion
 	}
 
+	if g.Master.Version != g.Node.Version {
+		return constants.ErrorDifferentKubernetesVersion
+	}
+
 	if g.Node.Count == 0 {
 		g.Node.Count = constants.GoogleDefaultNodeCount
 	}
@@ -72,6 +76,11 @@ func (a *UpdateClusterGoogle) Validate() error {
 	if (a.GoogleMaster != nil && !isValidVersion(a.GoogleMaster.Version)) ||
 		(a.GoogleNode != nil && !isValidVersion(a.GoogleNode.Version)) {
 		return constants.ErrorWrongKubernetesVersion
+	}
+
+	// check version equality
+	if a.GoogleMaster != nil && a.GoogleNode != nil && a.GoogleMaster.Version != a.GoogleNode.Version {
+		return constants.ErrorDifferentKubernetesVersion
 	}
 
 	return nil
