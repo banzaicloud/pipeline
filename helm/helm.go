@@ -181,7 +181,11 @@ func DeleteDeployment(releaseName string, kubeConfig *[]byte) error {
 	if err != nil {
 		return err
 	}
-	_, err = hClient.DeleteRelease(releaseName)
+	//TODO sophisticate commant options
+	opts := []helm.DeleteOption{
+		helm.DeletePurge(true),
+	}
+	_, err = hClient.DeleteRelease(releaseName, opts...)
 	if err != nil {
 		return err
 	}
