@@ -27,6 +27,7 @@ import (
 	"os"
 	"strings"
 	"time"
+	"github.com/gin-gonic/gin"
 )
 
 var credentialPath string
@@ -1072,4 +1073,67 @@ func (g *GKECluster) DeleteFromDatabase() error {
 	}
 	g.modelCluster = nil
 	return nil
+}
+
+// GetGkeServerConfig returns configuration info about the Kubernetes Engine service.
+func GetGkeServerConfig(c *gin.Context) {
+
+	log := logger.WithFields(logrus.Fields{"action": "GetGkeServerConfig"})
+
+	projectId := c.Param("projectid")
+	zone := c.Param("zone")
+
+	log.Info("Start getting configuration info")
+
+	_ = getCredentialPath()
+
+	log.Info("Get Google service client")
+	if svc, err := getGoogleServiceClient(); err != nil {
+		apiErr := getBanzaiErrorFromError(err)
+		log.Errorf("Error during getting service client: %s", apiErr.Message)
+		c.JSON(apiErr.StatusCode, components.ErrorResponse{
+			Code:    apiErr.StatusCode,
+			Message: "Error during getting service client",
+			Error:   apiErr.Message,
+		})
+	} else {
+		if serverConfig, err := svc.Projects.Zones.GetServerconfig(projectId, zone).Context(context.Background()).Do(); err != nil {
+			apiErr := getBanzaiErrorFromError(err)
+			log.Errorf("Error during getting server config: %s", apiErr.Message)
+			c.JSON(apiErr.StatusCode, components.ErrorResponse{
+				Code:    apiErr.StatusCode,
+				Message: "Error during getting server config",
+				Error:   apiErr.Message,
+			})
+		} else {
+			log.Info("Getting server config succeeded")
+			c.JSON(http.StatusOK, convertServerConfig(serverConfig))
+		}
+
+	}
+
+}
+
+type GetServerConfigResponse struct {
+	// Version of Kubernetes the service deploys by default.
+	DefaultClusterVersion string `json:"defaultClusterVersion"`
+	// Default image type.
+	DefaultImageType string `json:"defaultImageType"`
+	// List of valid image types.
+	ValidImageTypes []string `json:"validImageTypes"`
+	// List of valid master versions.
+	ValidMasterVersions []string `json:"validMasterVersions"`
+	// List of valid node upgrade target versions.
+	ValidNodeVersions [] string `json:"validNodeVersions"`
+}
+
+// convertServerConfig create a GetServerConfigResponse from ServerConfig
+func convertServerConfig(config *gke.ServerConfig) (*GetServerConfigResponse) {
+	return &GetServerConfigResponse{
+		DefaultClusterVersion: config.DefaultClusterVersion,
+		DefaultImageType:      config.DefaultImageType,
+		ValidImageTypes:       config.ValidImageTypes,
+		ValidMasterVersions:   config.ValidMasterVersions,
+		ValidNodeVersions:     config.ValidNodeVersions,
+	}
 }
