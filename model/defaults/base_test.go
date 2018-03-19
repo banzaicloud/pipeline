@@ -85,7 +85,7 @@ func TestUpdateWithoutSave(t *testing.T) {
 }
 
 var (
-	profileName        = "TestProfile"
+	name               = "TestProfile"
 	location           = "TestLocation"
 	nodeInstanceType   = "TestNodeInstance"
 	masterInstanceType = "TestMasterInstance"
@@ -103,7 +103,7 @@ var (
 
 var (
 	fullRequestGKE = &components.ClusterProfileRequest{
-		Name:      profileName,
+		Name:             name,
 		Location:         location,
 		Cloud:            constants.Google,
 		NodeInstanceType: nodeInstanceType,
@@ -126,7 +126,7 @@ var (
 	}
 
 	fullRequestAKS = &components.ClusterProfileRequest{
-		Name:      profileName,
+		Name:             name,
 		Location:         location,
 		Cloud:            constants.Azure,
 		NodeInstanceType: nodeInstanceType,
@@ -146,7 +146,7 @@ var (
 	}
 
 	fullRequestAWS = &components.ClusterProfileRequest{
-		Name:      profileName,
+		Name:             name,
 		Location:         location,
 		Cloud:            constants.Amazon,
 		NodeInstanceType: nodeInstanceType,
@@ -171,7 +171,7 @@ var (
 	}
 
 	fullGKE = defaults.GKEProfile{
-		DefaultModel:     defaults.DefaultModel{Name: profileName},
+		DefaultModel:     defaults.DefaultModel{Name: name},
 		Location:         location,
 		NodeInstanceType: nodeInstanceType,
 		MasterVersion:    version,
@@ -181,7 +181,7 @@ var (
 	}
 
 	fullAKS = defaults.AKSProfile{
-		DefaultModel:      defaults.DefaultModel{Name: profileName},
+		DefaultModel:      defaults.DefaultModel{Name: name},
 		Location:          location,
 		NodeInstanceType:  nodeInstanceType,
 		AgentCount:        nodeCount,
@@ -190,7 +190,7 @@ var (
 	}
 
 	fullAWS = defaults.AWSProfile{
-		DefaultModel:       defaults.DefaultModel{Name: profileName},
+		DefaultModel:       defaults.DefaultModel{Name: name},
 		Location:           location,
 		NodeInstanceType:   nodeInstanceType,
 		NodeImage:          nodeImage,
@@ -204,7 +204,7 @@ var (
 
 var (
 	masterRequestGKE = &components.ClusterProfileRequest{
-		Name:      profileName,
+		Name:             name,
 		Location:         location,
 		Cloud:            constants.Google,
 		NodeInstanceType: nodeInstanceType,
@@ -222,7 +222,7 @@ var (
 	}
 
 	masterRequestAWS = &components.ClusterProfileRequest{
-		Name:      profileName,
+		Name:             name,
 		Location:         location,
 		Cloud:            constants.Amazon,
 		NodeInstanceType: nodeInstanceType,
@@ -241,14 +241,14 @@ var (
 	}
 
 	masterGKE = defaults.GKEProfile{
-		DefaultModel:     defaults.DefaultModel{Name: profileName},
+		DefaultModel:     defaults.DefaultModel{Name: name},
 		Location:         location,
 		NodeInstanceType: nodeInstanceType,
 		MasterVersion:    version,
 	}
 
 	masterAWS = defaults.AWSProfile{
-		DefaultModel:       defaults.DefaultModel{Name: profileName},
+		DefaultModel:       defaults.DefaultModel{Name: name},
 		Location:           location,
 		NodeInstanceType:   nodeInstanceType,
 		MasterInstanceType: masterInstanceType,
@@ -258,7 +258,7 @@ var (
 
 var (
 	nodeRequestGKE = &components.ClusterProfileRequest{
-		Name:      profileName,
+		Name:             name,
 		Location:         location,
 		Cloud:            constants.Google,
 		NodeInstanceType: nodeInstanceType,
@@ -277,7 +277,7 @@ var (
 	}
 
 	nodeRequestAWS = &components.ClusterProfileRequest{
-		Name:      profileName,
+		Name:             name,
 		Location:         location,
 		Cloud:            constants.Amazon,
 		NodeInstanceType: nodeInstanceType,
@@ -298,7 +298,7 @@ var (
 	}
 
 	nodeGKE = defaults.GKEProfile{
-		DefaultModel:     defaults.DefaultModel{Name: profileName},
+		DefaultModel:     defaults.DefaultModel{Name: name},
 		Location:         location,
 		NodeInstanceType: nodeInstanceType,
 		NodeCount:        nodeCount,
@@ -306,7 +306,7 @@ var (
 	}
 
 	nodeAWS = defaults.AWSProfile{
-		DefaultModel:     defaults.DefaultModel{Name: profileName},
+		DefaultModel:     defaults.DefaultModel{Name: name},
 		Location:         location,
 		NodeInstanceType: nodeInstanceType,
 		NodeImage:        nodeImage,
@@ -318,40 +318,40 @@ var (
 
 var (
 	emptyRequestGKE = &components.ClusterProfileRequest{
-		Name:      profileName,
+		Name:             name,
 		Location:         location,
 		Cloud:            constants.Google,
 		NodeInstanceType: nodeInstanceType,
 	}
 
 	emptyRequestAKS = &components.ClusterProfileRequest{
-		Name:      profileName,
+		Name:             name,
 		Location:         location,
 		Cloud:            constants.Azure,
 		NodeInstanceType: nodeInstanceType,
 	}
 
 	emptyRequestAWS = &components.ClusterProfileRequest{
-		Name:      profileName,
+		Name:             name,
 		Location:         location,
 		Cloud:            constants.Amazon,
 		NodeInstanceType: nodeInstanceType,
 	}
 
 	emptyGKE = defaults.GKEProfile{
-		DefaultModel:     defaults.DefaultModel{Name: profileName},
+		DefaultModel:     defaults.DefaultModel{Name: name},
 		Location:         location,
 		NodeInstanceType: nodeInstanceType,
 	}
 
 	emptyAKS = defaults.AKSProfile{
-		DefaultModel:     defaults.DefaultModel{Name: profileName},
+		DefaultModel:     defaults.DefaultModel{Name: name},
 		Location:         location,
 		NodeInstanceType: nodeInstanceType,
 	}
 
 	emptyAWS = defaults.AWSProfile{
-		DefaultModel:     defaults.DefaultModel{Name: profileName},
+		DefaultModel:     defaults.DefaultModel{Name: name},
 		Location:         location,
 		NodeInstanceType: nodeInstanceType,
 	}
