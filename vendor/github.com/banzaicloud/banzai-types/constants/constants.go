@@ -38,7 +38,7 @@ const (
 const (
 	AzureDefaultAgentCount        = 1
 	AzureDefaultAgentName         = "agentpool1"
-	AzureDefaultKubernetesVersion = "1.7.7"
+	AzureDefaultKubernetesVersion = "1.9.2"
 )
 
 // ### [ Constants to Amazon cluster default values ] ### //

@@ -18,11 +18,11 @@ const (
 	clusterRequestNodeInstance   = "testInstance"
 	clusterRequestProject        = "testProject"
 	clusterRequestNodeCount      = 1
-	clusterRequestVersion        = "1.8.7-gke.1"
+	clusterRequestVersion        = "1.9.4-gke.1"
 	clusterRequestVersion2       = "1.8.7-gke.2"
 	clusterRequestWrongVersion   = "1.7.7-gke.1"
 	clusterRequestRG             = "testResourceGroup"
-	clusterRequestKubernetes     = "1.8.2"
+	clusterRequestKubernetes     = "1.9.2"
 	clusterRequestAgentName      = "testAgent"
 	clusterRequestSpotPrice      = "1.2"
 	clusterRequestNodeMaxCount   = 2

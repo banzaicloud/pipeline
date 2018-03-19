@@ -47,7 +47,7 @@ func (d *AWSProfile) GetProfile() *components.ClusterProfileResponse {
 	loadFirst(&d)
 
 	return &components.ClusterProfileResponse{
-		ProfileName:      d.DefaultModel.Name,
+		Name:      d.DefaultModel.Name,
 		Location:         d.Location,
 		Cloud:            constants.Amazon,
 		NodeInstanceType: d.NodeInstanceType,
@@ -115,7 +115,7 @@ func (d *AWSProfile) UpdateProfile(r *components.ClusterProfileRequest, withSave
 	if withSave {
 		return d.SaveInstance()
 	}
-	d.Name = r.ProfileName
+	d.Name = r.Name
 	return nil
 }
 
