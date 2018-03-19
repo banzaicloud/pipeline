@@ -16,7 +16,7 @@ type AKSProfile struct {
 	NodeInstanceType  string `gorm:"default:'Standard_D2_v2'"`
 	AgentCount        int    `gorm:"default:1"`
 	AgentName         string `gorm:"default:'agentpool1'"`
-	KubernetesVersion string `gorm:"default:'1.8.2'"`
+	KubernetesVersion string `gorm:"default:'1.9.2'"`
 }
 
 // TableName overrides AKSProfile's table name
