@@ -88,5 +88,4 @@ var (
 	ErrorClusterNotReady            = errors.New("Cluster not ready yet")
 	ErrorNilCluster                 = errors.New("<nil> cluster")
 	ErrorWrongKubernetesVersion     = errors.New("Wrong kubernetes version for master/nodes. The required minimum kubernetes version is 1.8.x ")
-	ErrorDifferentKubernetesVersion = errors.New("Different kubernetes version for master and nodes")
 )
