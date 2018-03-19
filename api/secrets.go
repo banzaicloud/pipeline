@@ -272,10 +272,16 @@ func getRules() []rule {
 		{
 			secretType: Google,
 			requiredKeys: []ruleKey{
-				{requiredKey: "CLIENT_ID"},
-				{requiredKey: "CLIENT_SECRET"},
-				{requiredKey: "REFRESH_TOKEN"},
 				{requiredKey: "TYPE"},
+				{requiredKey: "PROJECT_ID"},
+				{requiredKey: "PRIVATE_KEY_ID"},
+				{requiredKey: "PRIVATE_KEY"},
+				{requiredKey: "CLIENT_EMAIL"},
+				{requiredKey: "CLIENT_ID"},
+				{requiredKey: "AUTH_URI"},
+				{requiredKey: "TOKEN_URI"},
+				{requiredKey: "AUTH_PROVIDER_X509_CERT_URL"},
+				{requiredKey: "CLIENT_X509_CERT_URL"},
 			},
 		},
 	}
