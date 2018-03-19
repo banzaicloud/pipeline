@@ -3,6 +3,8 @@ package cluster
 import (
 	"fmt"
 
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/banzai-types/components/amazon"
 	"github.com/banzaicloud/banzai-types/constants"
@@ -34,6 +36,13 @@ func init() {
 	log = logger.WithFields(logrus.Fields{"action": "Cluster"})
 }
 
+func SetCredentials(awscred *credentials.Credentials) func(*session.Options) error {
+	return func(opts *session.Options) error {
+		opts.Config.Credentials = awscred
+		return nil
+	}
+}
+
 var runtimeParam = cutil.RuntimeParameters{
 	AwsProfile: "",
 }
@@ -44,6 +53,10 @@ type AWSCluster struct {
 	modelCluster    *model.ClusterModel
 	k8sConfig       *[]byte
 	APIEndpoint     string
+}
+
+func (c *AWSCluster) GetOrg() uint {
+	return c.modelCluster.OrganizationId
 }
 
 //GetID returns the specified cluster id
@@ -104,6 +117,7 @@ func CreateAWSClusterFromRequest(request *components.CreateClusterRequest) (*AWS
 		Location:         request.Location,
 		NodeInstanceType: request.NodeInstanceType,
 		Cloud:            request.Cloud,
+		SecretId:         request.SecretId,
 		Amazon: model.AmazonClusterModel{
 			NodeSpotPrice:      request.Properties.CreateClusterAmazon.Node.SpotPrice,
 			NodeMinCount:       request.Properties.CreateClusterAmazon.Node.MinCount,
@@ -122,8 +136,14 @@ func (c *AWSCluster) Persist() error {
 }
 
 //CreateCluster creates a new cluster
-func (c *AWSCluster) CreateCluster() error {
+func (c *AWSCluster) CreateCluster(organizationID string) error {
 	log := logger.WithFields(logrus.Fields{"action": constants.TagCreateCluster})
+
+	//GetSecret(organizationID)
+
+	awsCred := credentials.NewStaticCredentials("", "", "")
+
+	runtimeParam.AwsOptions = append(runtimeParam.AwsOptions, SetCredentials(awsCred))
 
 	kubicornLogger.Level = getKubicornLogLevel()
 

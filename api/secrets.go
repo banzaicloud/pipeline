@@ -307,7 +307,9 @@ type ruleKey struct {
 }
 
 const (
-	Amazon SecretType = "AMAZON_SECRET"
-	Azure  SecretType = "AZURE_SECRET"
-	Google SecretType = "GOOGLE_SECRET"
+	Amazon     SecretType = "AMAZON_SECRET"
+	Azure      SecretType = "AZURE_SECRET"
+	Google     SecretType = "GOOGLE_SECRET"
+	General    SecretType = "GENERAL_SECRET"
+	Kubernetes SecretType = "KUBERNETES_SECRET"
 )

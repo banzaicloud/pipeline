@@ -41,6 +41,7 @@ import (
 // using the Reconciler
 type RuntimeParameters struct {
 	AwsProfile string
+  AwsOptions []func(*session.Options) error
 }
 
 // GetReconciler gets the correct Reconciler for the cloud provider currenty used.
@@ -61,7 +62,7 @@ func GetReconciler(known *cluster.Cluster, runtimeParameters *RuntimeParameters)
 		dr.Sdk = sdk
 		return cloud.NewAtomicReconciler(known, droplet.NewDigitalOceanDropletModel(known)), nil
 	case cluster.CloudAmazon:
-		sdk, err := awsSdkGo.NewSdk(known.Location, runtimeParameters.AwsProfile)
+		sdk, err := awsSdkGo.NewSdk(known.Location, runtimeParameters.AwsProfile, runtimeParameters.AwsOptions...)
 		if err != nil {
 			return nil, err
 		}

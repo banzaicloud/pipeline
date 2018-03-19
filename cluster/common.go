@@ -19,7 +19,7 @@ var log *logrus.Entry
 
 //CommonCluster interface for clusters
 type CommonCluster interface {
-	CreateCluster() error
+	CreateCluster(organizationID string) error
 	Persist() error
 	GetK8sConfig() (*[]byte, error)
 	GetName() string
@@ -33,9 +33,17 @@ type CommonCluster interface {
 	AddDefaultsToUpdate(*bTypes.UpdateClusterRequest)
 	GetAPIEndpoint() (string, error)
 	DeleteFromDatabase() error
+	GetOrg() uint
 	//ModifyCluster(*model.ClusterModel)
 	//GetKubernetesConf()
 	//GetKubernetesEndpoint()
+}
+
+func GetSecret(cluster CommonCluster) (interface{}, error) {
+	org := cluster.GetOrg()
+	//TODO magic vault code here
+	secret := string(org)
+	return secret, nil
 }
 
 //GetCommonClusterFromModel extracts CommonCluster from a ClusterModel

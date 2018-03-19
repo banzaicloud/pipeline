@@ -74,6 +74,10 @@ type GKECluster struct {
 	APIEndpoint   string
 }
 
+func (g *GKECluster) GetOrg() uint {
+	return g.modelCluster.OrganizationId
+}
+
 func (g *GKECluster) GetGoogleCluster() (*gke.Cluster, error) {
 	if g.googleCluster != nil {
 		return g.googleCluster, nil
@@ -110,7 +114,7 @@ func (g *GKECluster) GetAPIEndpoint() (string, error) {
 }
 
 //CreateCluster creates a new cluster
-func (g *GKECluster) CreateCluster() error {
+func (g *GKECluster) CreateCluster(organizationID string) error {
 
 	log := logger.WithFields(logrus.Fields{"action": constants.TagCreateCluster})
 
@@ -463,8 +467,7 @@ func generateClusterCreateRequest(cc googleCluster) *gke.CreateClusterRequest {
 	request.Cluster.LegacyAbac = &gke.LegacyAbac{
 		Enabled: true,
 	}
-	request.Cluster.MasterAuth = &gke.MasterAuth{
-	}
+	request.Cluster.MasterAuth = &gke.MasterAuth{}
 	request.Cluster.NodeConfig = cc.NodeConfig
 	return &request
 }
@@ -830,7 +833,7 @@ func storeConfig(c *kubernetesCluster, name string) ([]byte, error) {
 	cluster := configCluster{
 		Cluster: dataCluster{
 			CertificateAuthorityData: string(c.RootCACert),
-			Server:                   host,
+			Server: host,
 		},
 		Name: c.Name,
 	}
@@ -852,9 +855,9 @@ func storeConfig(c *kubernetesCluster, name string) ([]byte, error) {
 	// setup users
 	user := configUser{
 		User: userData{
-			Username:              username,
-			Password:              password,
-			Token:                 token,
+			Username: username,
+			Password: password,
+			Token:    token,
 			ClientCertificateData: c.ClientCertificate,
 			ClientKeyData:         c.ClientKey,
 		},

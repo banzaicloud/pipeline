@@ -44,6 +44,10 @@ type AKSCluster struct {
 	APIEndpoint  string
 }
 
+func (c *AKSCluster) GetOrg() uint {
+	return c.modelCluster.OrganizationId
+}
+
 //GetAPIEndpoint returns the Kubernetes Api endpoint
 func (c *AKSCluster) GetAPIEndpoint() (string, error) {
 	if c.APIEndpoint != "" {
@@ -58,7 +62,7 @@ func (c *AKSCluster) GetAPIEndpoint() (string, error) {
 }
 
 //CreateCluster creates a new cluster
-func (c *AKSCluster) CreateCluster() error {
+func (c *AKSCluster) CreateCluster(organizationID string) error {
 
 	log := logger.WithFields(logrus.Fields{"action": constants.TagCreateCluster})
 

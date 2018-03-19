@@ -20,6 +20,7 @@ type CreateClusterRequest struct {
 	Location         string `json:"location" binding:"required"`
 	Cloud            string `json:"cloud" binding:"required"`
 	NodeInstanceType string `json:"nodeInstanceType" binding:"required"`
+	SecretId				 string `json:"secret_id" binding:"required"`
 	Properties       struct {
 		CreateClusterAmazon *amazon.CreateClusterAmazon `json:"amazon,omitempty"`
 		CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
