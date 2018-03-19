@@ -16,6 +16,7 @@ type ClusterModel struct {
 	NodeInstanceType string
 	Cloud            string
 	OrganizationId   uint
+	SecretId         string
 	Amazon           AmazonClusterModel
 	Azure            AzureClusterModel
 	Google           GoogleClusterModel

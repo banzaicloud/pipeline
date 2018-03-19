@@ -18,6 +18,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/iam"
@@ -31,15 +32,31 @@ type Sdk struct {
 	IAM *iam.IAM
 }
 
-func NewSdk(region string, profile string) (*Sdk, error) {
+
+func NewSdk(region string, profile string, opts ...func(session.Options) error) (*Sdk, error) {
 	sdk := &Sdk{}
-	session, err := session.NewSessionWithOptions(session.Options{
-		Config: aws.Config{Region: aws.String(region)},
-		// Support MFA when authing using assumed roles.
-		SharedConfigState:       session.SharedConfigEnable,
-		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
-		Profile:                 profile,
-	})
+	var sessionOption session.Options
+	if len(opts) > 0 {
+		sessionOption = session.Options{
+			Config: aws.Config{Region: aws.String(region)},
+			Profile:                 profile,
+		}
+		for _, o := range opts {
+			err := o(sessionOption)
+			if err != nil {
+				return nil, err
+			}
+		}
+	} else {
+		sessionOption = session.Options{
+			Config: aws.Config{Region: aws.String(region)},
+			// Support MFA when authing using assumed roles.
+			SharedConfigState:       session.SharedConfigEnable,
+			AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
+			Profile:                 profile,
+		}
+	}
+	session, err := session.NewSessionWithOptions(sessionOption)
 	if err != nil {
 		return nil, err
 	}

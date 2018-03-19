@@ -140,9 +140,9 @@ func CreateCluster(c *gin.Context) {
 		return
 	}
 	// This is the common part of cluster flow
-
+	organizationID := auth.GetCurrentOrganization(c.Request).IDString()
 	// Create cluster
-	err = commonCluster.CreateCluster()
+	err = commonCluster.CreateCluster(organizationID)
 	if err != nil {
 		log.Errorf("Error during cluster creation: %s", err.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
