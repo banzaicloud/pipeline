@@ -60,7 +60,7 @@ func AddClusterProfile(c *gin.Context) {
 		return
 	}
 	log.Info("Parsing request succeeded")
-	log.Infof("Convert ClusterProfileRequest into ClusterProfile model with name: %s", profileRequest.ProfileName)
+	log.Infof("Convert ClusterProfileRequest into ClusterProfile model with name: %s", profileRequest.Name)
 
 	// convert request into ClusterProfile model
 	if prof, err := convertRequestToProfile(&profileRequest); err != nil {
@@ -158,7 +158,7 @@ func UpdateClusterProfile(c *gin.Context) {
 	}
 	log.Debug("Parsing request succeeded")
 
-	if defaults.GetDefaultProfileName() == profileRequest.ProfileName {
+	if defaults.GetDefaultProfileName() == profileRequest.Name {
 		// default profiles cannot updated
 		log.Error("The default profile cannot be updated") // todo move to constants
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
@@ -169,10 +169,10 @@ func UpdateClusterProfile(c *gin.Context) {
 		return
 	}
 
-	log.Infof("Load cluster from database: %s[%s]", profileRequest.ProfileName, profileRequest.Cloud)
+	log.Infof("Load cluster from database: %s[%s]", profileRequest.Name, profileRequest.Cloud)
 
 	// load cluster profile from database
-	if profile, err := defaults.GetProfile(profileRequest.Cloud, profileRequest.ProfileName); err != nil {
+	if profile, err := defaults.GetProfile(profileRequest.Cloud, profileRequest.Name); err != nil {
 		// load from db failed
 		log.Error(errors.Wrap(err, "Error during getting profile"))
 		sendBackGetProfileErrorResponse(c, err)

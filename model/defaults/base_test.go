@@ -103,7 +103,7 @@ var (
 
 var (
 	fullRequestGKE = &components.ClusterProfileRequest{
-		ProfileName:      profileName,
+		Name:      profileName,
 		Location:         location,
 		Cloud:            constants.Google,
 		NodeInstanceType: nodeInstanceType,
@@ -126,7 +126,7 @@ var (
 	}
 
 	fullRequestAKS = &components.ClusterProfileRequest{
-		ProfileName:      profileName,
+		Name:      profileName,
 		Location:         location,
 		Cloud:            constants.Azure,
 		NodeInstanceType: nodeInstanceType,
@@ -146,7 +146,7 @@ var (
 	}
 
 	fullRequestAWS = &components.ClusterProfileRequest{
-		ProfileName:      profileName,
+		Name:      profileName,
 		Location:         location,
 		Cloud:            constants.Amazon,
 		NodeInstanceType: nodeInstanceType,
@@ -204,7 +204,7 @@ var (
 
 var (
 	masterRequestGKE = &components.ClusterProfileRequest{
-		ProfileName:      profileName,
+		Name:      profileName,
 		Location:         location,
 		Cloud:            constants.Google,
 		NodeInstanceType: nodeInstanceType,
@@ -222,7 +222,7 @@ var (
 	}
 
 	masterRequestAWS = &components.ClusterProfileRequest{
-		ProfileName:      profileName,
+		Name:      profileName,
 		Location:         location,
 		Cloud:            constants.Amazon,
 		NodeInstanceType: nodeInstanceType,
@@ -258,7 +258,7 @@ var (
 
 var (
 	nodeRequestGKE = &components.ClusterProfileRequest{
-		ProfileName:      profileName,
+		Name:      profileName,
 		Location:         location,
 		Cloud:            constants.Google,
 		NodeInstanceType: nodeInstanceType,
@@ -277,7 +277,7 @@ var (
 	}
 
 	nodeRequestAWS = &components.ClusterProfileRequest{
-		ProfileName:      profileName,
+		Name:      profileName,
 		Location:         location,
 		Cloud:            constants.Amazon,
 		NodeInstanceType: nodeInstanceType,
@@ -318,21 +318,21 @@ var (
 
 var (
 	emptyRequestGKE = &components.ClusterProfileRequest{
-		ProfileName:      profileName,
+		Name:      profileName,
 		Location:         location,
 		Cloud:            constants.Google,
 		NodeInstanceType: nodeInstanceType,
 	}
 
 	emptyRequestAKS = &components.ClusterProfileRequest{
-		ProfileName:      profileName,
+		Name:      profileName,
 		Location:         location,
 		Cloud:            constants.Azure,
 		NodeInstanceType: nodeInstanceType,
 	}
 
 	emptyRequestAWS = &components.ClusterProfileRequest{
-		ProfileName:      profileName,
+		Name:      profileName,
 		Location:         location,
 		Cloud:            constants.Amazon,
 		NodeInstanceType: nodeInstanceType,
