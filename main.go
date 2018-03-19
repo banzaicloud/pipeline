@@ -17,6 +17,7 @@ import (
 	sessionManager "github.com/qor/session/manager"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"github.com/banzaicloud/pipeline/cluster"
 )
 
 //Version of Pipeline
@@ -131,6 +132,7 @@ func main() {
 			orgs.POST("/:orgid/secrets", api.AddSecrets)
 			orgs.DELETE("/:orgid/secrets/:secretid", api.DeleteSecrets)
 		}
+		v1.GET("/clusters/gke/:projectid/:zone/serverconf", cluster.GetGkeServerConfig) // todo think about it and move
 		v1.GET("/token", auth.GenerateToken)
 		v1.GET("/orgs", api.GetOrganizations)
 		v1.GET("/orgs/:orgid", api.GetOrganizations)
