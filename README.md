@@ -98,16 +98,19 @@ By default there are metrics and Grafana dashboards exposing the behaviour of th
 ### Control plane
 
 All these components are assembled into a **Control Plane** - and deployed to Kubernetes with Helm. A typical control plane - for an out of the box Spark/Zeppelin `spotguide` - looks like this:
-
-![Control Plane](docs/images/control-plane-aws-azure.png)
+<p align="center">
+<img src="docs/images/control-plane-aws-azure.png" width="700">
+</p>
 
 To launch a Pipeline control plane on AWS or Azure follow this [documentation](docs/control-plane.md).
 
 ### Deployments
 
 A typical cluster/application deployed with Pipeline - as an example Spark/Zeppelin spotguide - looks like this.
+<p align="center">
+<img src="docs/images/spark-cluster-aws.png">
+</p>
 
-![Deployed Cluster](docs/images/spark-cluster-aws.png)
 
 ### The Pipeline Platform PaaS
 
@@ -147,7 +150,10 @@ For alternative ways to learn about application deployments please follow the [d
 
 For `Authentication` Pipeline uses [OAuth2](https://oauth.net/2/) via delegating user authentication to the service that hosts the user account. There are plenty of OAuth2 identity providers out there: GitHub, Google, Facebook, Azure Active Directory, Twitter and Salesforce to mention only the biggest ones. At this time in Pipeline there is support for GitHub, mainly due to the fact that our [CI/CD component](https://banzaicloud.com/blog/pipeline-howto/) is triggered by GitHub events, but we are using the very flexible [QOR](github.com/qor/auth) package which supports many major providers as a `plugin` mechanism, so it is just a matter of a configuration change to have support for the providers above (beside oldschool username/passwords). The main benefit of this solution is that we **don't have to store any user credentials** and our users can use their existing accounts at these sites to access our service. The OAuth2 flow can be seen in this diagram. When a user hits [Pipeline](https://github.com/banzaicloud/pipeline), they have to first login with GitHub to have a user record created in the RDBMS - the REST endpoint for that is: `https://$HOST/auth/login`.
 
-![Overview of the Pipeline's Auth flow](https://raw.githubusercontent.com/banzaicloud/pipeline/master/docs/images/authn-vault-flow.png)
+<p align="center">
+<img src="/docs/images/authn-vault-flow.png" width="700">
+</p>
+
 
 #### Bearer tokens - JWT 
 
@@ -157,12 +163,16 @@ For `Authentication` Pipeline uses [OAuth2](https://oauth.net/2/) via delegating
 
 For the purpose of storeing tokens we choose HashiCorp's Vault. However there was another major contributor to the decision to standardize on Vault: Vault’s nice integration with the [Kubernetes Authentication API](https://www.vaultproject.io/docs/auth/kubernetes.html). After Vault is started, the Kubernetes auth backend has to be enabled and configured, and with that Vault can `lease` tokens to be able to use its API based on **ServiceAccount JWT tokens**. This enables other applications running in the same Kubernetes cluster to call Vault and with this we can use `tightly scoped tokens` with various TTLs.
 
-![Pipeline Vault connection](https://raw.githubusercontent.com/banzaicloud/pipeline/master/docs/images//token-request-vault-flow.png)
-
+<p align="center">
+<img src="/docs/images//token-request-vault-flow.png" width="700">
+</p>
 #### Dynamic secrets 
 
 Vault does support dynamic secrets thus decided to add support and make the out of the box solution for all our supported deployments. To harden security each application gets a dedicated credential towards the requested service, this credential only belongs to the requesting application and has a fixed expiry time. Because the credential is dedicated it is possible to track down which application accessed the service and when and it is easy to revoke it because they are managed at a central place, Vault. Since Pipeline is running on Kubernetes we can apply Kubernetes Service Account based authentication to get the Vault tokens first which we can later exchange for a credential (username/password) based on our configured Vault role. Please see this diagram for further details about the sequence of events:
-![Vault MySQL credentials lease](https://raw.githubusercontent.com/banzaicloud/pipeline/master/docs/images/vault-dynamic-secrets.gif)
+<p align="center">
+<img src="/docs/images/vault-dynamic-secrets.gif" width="650">
+</p>
+
 
 As you can see with this solution [Pipeline](https://github.com/banzaicloud/pipeline) became able to connect to (e.g.) MySQL simply because it is running in the configured **Kubernetes Service Account** and without being required to type a single username/password during the configuration of the application.
 
@@ -208,7 +218,7 @@ _Note: Zeppelin on Kubernetes for Spark notebooks does not use YARN, all schedul
 
 The Apache Kafka `spotguide` has a good understanding of consumers and producers but more importantly it monitors, scales, rebalances and auto-heals the Kafka cluster. It autodetects broker failures, reassigns workloads and edits partition reassignment files.
 
-![Kafka Pipeline](https://raw.githubusercontent.com/banzaicloud/pipeline/master/docs/images/kafka-on-etcd.png)
+![Kafka Pipeline](/docs/images/kafka-on-etcd.png)
 
 _Note: Kafka on Kubernetes does not use Zookeper at all. For all quotas, controller election, cluster membership and configuration it is using **etcd**, a faster and more reliable `cloud-native` distributed system for coordination and metadata storage._
 
