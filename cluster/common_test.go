@@ -45,7 +45,7 @@ func TestCreateCommonClusterFromRequest(t *testing.T) {
 		{name: "aws create", createRequest: awsCreateFull, expectedModel: awsModelFull, expectedError: nil},
 
 		{name: "gke wrong k8s version", createRequest: gkeWrongK8sVersion, expectedModel: nil, expectedError: constants.ErrorWrongKubernetesVersion},
-		{name: "gke different k8s version", createRequest: gkeDifferentK8sVersion, expectedModel: nil, expectedError: constants.ErrorDifferentKubernetesVersion},
+		{name: "gke different k8s version", createRequest: gkeDifferentK8sVersion, expectedModel: gkeModelDifferentVersion, expectedError: nil},
 
 		{name: "not supported cloud", createRequest: notSupportedCloud, expectedModel: nil, expectedError: constants.ErrorNotSupportedCloudType},
 	}
@@ -306,5 +306,22 @@ var (
 		},
 		Azure:  model.AzureClusterModel{},
 		Google: model.GoogleClusterModel{},
+	}
+
+	gkeModelDifferentVersion = &model.ClusterModel{
+		Name:             clusterRequestName,
+		Location:         clusterRequestLocation,
+		NodeInstanceType: clusterRequestNodeInstance,
+		Cloud:            constants.Google,
+		OrganizationId:   0,
+		Amazon:           model.AmazonClusterModel{},
+		Azure:            model.AzureClusterModel{},
+		Google: model.GoogleClusterModel{
+			Project:        clusterRequestProject,
+			MasterVersion:  clusterRequestVersion2,
+			NodeVersion:    clusterRequestVersion,
+			NodeCount:      clusterRequestNodeCount,
+			ServiceAccount: clusterServiceAccount,
+		},
 	}
 )
