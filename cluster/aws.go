@@ -107,7 +107,7 @@ func CreateAWSClusterFromModel(clusterModel *model.ClusterModel) (*AWSCluster, e
 }
 
 //CreateAWSClusterFromRequest creates ClusterModel struct from the request
-func CreateAWSClusterFromRequest(request *components.CreateClusterRequest) (*AWSCluster, error) {
+func CreateAWSClusterFromRequest(request *components.CreateClusterRequest, orgId uint) (*AWSCluster, error) {
 	log := logger.WithFields(logrus.Fields{"action": constants.TagCreateCluster})
 	log.Debug("Create ClusterModel struct from the request")
 	var cluster AWSCluster
@@ -118,6 +118,7 @@ func CreateAWSClusterFromRequest(request *components.CreateClusterRequest) (*AWS
 		NodeInstanceType: request.NodeInstanceType,
 		Cloud:            request.Cloud,
 		SecretId:         request.SecretId,
+		OrganizationId:   orgId,
 		Amazon: model.AmazonClusterModel{
 			NodeSpotPrice:      request.Properties.CreateClusterAmazon.Node.SpotPrice,
 			NodeMinCount:       request.Properties.CreateClusterAmazon.Node.MinCount,
@@ -136,14 +137,12 @@ func (c *AWSCluster) Persist() error {
 }
 
 //CreateCluster creates a new cluster
-func (c *AWSCluster) CreateCluster(organizationID string) error {
+func (c *AWSCluster) CreateCluster() error {
 	log := logger.WithFields(logrus.Fields{"action": constants.TagCreateCluster})
 
-	//GetSecret(organizationID)
-
-	awsCred := credentials.NewStaticCredentials("", "", "")
-
-	runtimeParam.AwsOptions = append(runtimeParam.AwsOptions, SetCredentials(awsCred))
+	//uid := c.GetModel().OrganizationId
+	//awsCred := credentials.NewStaticCredentials("", "", "")
+	//runtimeParam.AwsOptions = append(runtimeParam.AwsOptions, SetCredentials(awsCred))
 
 	kubicornLogger.Level = getKubicornLogLevel()
 

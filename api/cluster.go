@@ -129,7 +129,9 @@ func CreateCluster(c *gin.Context) {
 	var commonCluster cluster.CommonCluster
 
 	// TODO check validation
-	commonCluster, err := cluster.CreateCommonClusterFromRequest(&createClusterRequest)
+	// This is the common part of cluster flow
+	organizationID := auth.GetCurrentOrganization(c.Request).ID
+	commonCluster, err := cluster.CreateCommonClusterFromRequest(&createClusterRequest, organizationID)
 	if err != nil {
 		log.Errorf("Error during creating common cluster model: %s", err.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
@@ -139,10 +141,8 @@ func CreateCluster(c *gin.Context) {
 		})
 		return
 	}
-	// This is the common part of cluster flow
-	organizationID := auth.GetCurrentOrganization(c.Request).IDString()
 	// Create cluster
-	err = commonCluster.CreateCluster(organizationID)
+	err = commonCluster.CreateCluster()
 	if err != nil {
 		log.Errorf("Error during cluster creation: %s", err.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{

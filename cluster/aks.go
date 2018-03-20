@@ -16,7 +16,7 @@ import (
 )
 
 //CreateAKSClusterFromRequest creates ClusterModel struct from the request
-func CreateAKSClusterFromRequest(request *components.CreateClusterRequest) (*AKSCluster, error) {
+func CreateAKSClusterFromRequest(request *components.CreateClusterRequest, orgId uint) (*AKSCluster, error) {
 	log := logger.WithFields(logrus.Fields{"action": constants.TagCreateCluster})
 	log.Debug("Create ClusterModel struct from the request")
 	var cluster AKSCluster
@@ -26,6 +26,7 @@ func CreateAKSClusterFromRequest(request *components.CreateClusterRequest) (*AKS
 		Location:         request.Location,
 		NodeInstanceType: request.NodeInstanceType,
 		Cloud:            request.Cloud,
+		OrganizationId:   orgId,
 		Azure: model.AzureClusterModel{
 			ResourceGroup:     request.Properties.CreateClusterAzure.Node.ResourceGroup,
 			AgentCount:        request.Properties.CreateClusterAzure.Node.AgentCount,
@@ -62,7 +63,7 @@ func (c *AKSCluster) GetAPIEndpoint() (string, error) {
 }
 
 //CreateCluster creates a new cluster
-func (c *AKSCluster) CreateCluster(organizationID string) error {
+func (c *AKSCluster) CreateCluster() error {
 
 	log := logger.WithFields(logrus.Fields{"action": constants.TagCreateCluster})
 

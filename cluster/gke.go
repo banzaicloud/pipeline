@@ -8,6 +8,7 @@ import (
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/utils"
+	"github.com/gin-gonic/gin"
 	"github.com/go-errors/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -27,7 +28,6 @@ import (
 	"os"
 	"strings"
 	"time"
-	"github.com/gin-gonic/gin"
 )
 
 var credentialPath string
@@ -45,7 +45,7 @@ const (
 )
 
 //CreateGKEClusterFromRequest creates ClusterModel struct from the request
-func CreateGKEClusterFromRequest(request *components.CreateClusterRequest) (*GKECluster, error) {
+func CreateGKEClusterFromRequest(request *components.CreateClusterRequest, orgId uint) (*GKECluster, error) {
 	log := logger.WithFields(logrus.Fields{"action": constants.TagCreateCluster})
 	log.Debug("Create ClusterModel struct from the request")
 	var cluster GKECluster
@@ -55,6 +55,7 @@ func CreateGKEClusterFromRequest(request *components.CreateClusterRequest) (*GKE
 		Location:         request.Location,
 		NodeInstanceType: request.NodeInstanceType,
 		Cloud:            request.Cloud,
+		OrganizationId:   orgId,
 		Google: model.GoogleClusterModel{
 			Project:        request.Properties.CreateClusterGoogle.Project,
 			MasterVersion:  request.Properties.CreateClusterGoogle.Master.Version,
@@ -114,7 +115,7 @@ func (g *GKECluster) GetAPIEndpoint() (string, error) {
 }
 
 //CreateCluster creates a new cluster
-func (g *GKECluster) CreateCluster(organizationID string) error {
+func (g *GKECluster) CreateCluster() error {
 
 	log := logger.WithFields(logrus.Fields{"action": constants.TagCreateCluster})
 
@@ -1127,11 +1128,11 @@ type GetServerConfigResponse struct {
 	// List of valid master versions.
 	ValidMasterVersions []string `json:"validMasterVersions"`
 	// List of valid node upgrade target versions.
-	ValidNodeVersions [] string `json:"validNodeVersions"`
+	ValidNodeVersions []string `json:"validNodeVersions"`
 }
 
 // convertServerConfig create a GetServerConfigResponse from ServerConfig
-func convertServerConfig(config *gke.ServerConfig) (*GetServerConfigResponse) {
+func convertServerConfig(config *gke.ServerConfig) *GetServerConfigResponse {
 	return &GetServerConfigResponse{
 		DefaultClusterVersion: config.DefaultClusterVersion,
 		DefaultImageType:      config.DefaultImageType,

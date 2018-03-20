@@ -19,7 +19,7 @@ var log *logrus.Entry
 
 //CommonCluster interface for clusters
 type CommonCluster interface {
-	CreateCluster(organizationID string) error
+	CreateCluster() error
 	Persist() error
 	GetK8sConfig() (*[]byte, error)
 	GetName() string
@@ -94,7 +94,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 }
 
 //CreateCommonClusterFromRequest creates a CommonCluster from a request
-func CreateCommonClusterFromRequest(createClusterRequest *bTypes.CreateClusterRequest) (CommonCluster, error) {
+func CreateCommonClusterFromRequest(createClusterRequest *bTypes.CreateClusterRequest, orgId uint) (CommonCluster, error) {
 	cloudType := createClusterRequest.Cloud
 	switch cloudType {
 	case constants.Amazon:
@@ -103,7 +103,7 @@ func CreateCommonClusterFromRequest(createClusterRequest *bTypes.CreateClusterRe
 			return nil, err
 		}
 		//Create Amazon struct
-		awsCluster, err := CreateAWSClusterFromRequest(createClusterRequest)
+		awsCluster, err := CreateAWSClusterFromRequest(createClusterRequest, orgId)
 		if err != nil {
 			return nil, err
 		}
@@ -116,7 +116,7 @@ func CreateCommonClusterFromRequest(createClusterRequest *bTypes.CreateClusterRe
 		}
 
 		// Create Azure struct
-		aksCluster, err := CreateAKSClusterFromRequest(createClusterRequest)
+		aksCluster, err := CreateAKSClusterFromRequest(createClusterRequest, orgId)
 		if err != nil {
 			return nil, err
 		}
@@ -128,7 +128,7 @@ func CreateCommonClusterFromRequest(createClusterRequest *bTypes.CreateClusterRe
 		}
 
 		// Create Google struct
-		gkeCluster, err := CreateGKEClusterFromRequest(createClusterRequest)
+		gkeCluster, err := CreateGKEClusterFromRequest(createClusterRequest, orgId)
 		if err != nil {
 			return nil, err
 		}
