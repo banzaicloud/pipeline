@@ -9,6 +9,7 @@ import (
 	banzaiAzureTypes "github.com/banzaicloud/banzai-types/components/azure"
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/go-errors/errors"
 	"github.com/sirupsen/logrus"
@@ -49,6 +50,27 @@ func (c *AKSCluster) GetOrg() uint {
 	return c.modelCluster.OrganizationId
 }
 
+func (c *AKSCluster) GetAKSClient() (*azureClient.AKSClient, error) {
+	clusterSecret, err := GetSecret(c)
+	if err != nil {
+		return nil, err
+	}
+	if clusterSecret.SecretType != secret.Azure {
+		return nil, errors.Errorf("missmatch secret type %s versus %s", clusterSecret.SecretType, secret.Azure)
+	}
+	creds := &azureCluster.AKSCredential{
+		ClientId:       clusterSecret.Values["AZURE_CLIENT_ID"],
+		ClientSecret:   clusterSecret.Values["AZURE_CLIENT_SECRET"],
+		SubscriptionId: clusterSecret.Values["AZURE_TENANT_ID"],
+		TenantId:       clusterSecret.Values["AZURE_SUBSCRIPTION_ID"],
+	}
+	client, err := azureClient.GetAKSClient(creds)
+	if err != nil {
+		return nil, err
+	}
+	return client, nil
+}
+
 func (c *AKSCluster) GetSecretID() string {
 	return c.modelCluster.SecretId
 }
@@ -80,7 +102,7 @@ func (c *AKSCluster) CreateCluster() error {
 		AgentName:         c.modelCluster.Azure.AgentName,
 		KubernetesVersion: c.modelCluster.Azure.KubernetesVersion,
 	}
-	client, err := azureClient.GetAKSClient(nil)
+	client, err := c.GetAKSClient()
 	if err != nil {
 		return err
 	}
@@ -126,7 +148,7 @@ func (c *AKSCluster) GetK8sConfig() (*[]byte, error) {
 	if c.k8sConfig != nil {
 		return c.k8sConfig, nil
 	}
-	client, err := azureClient.GetAKSClient(nil)
+	client, err := c.GetAKSClient()
 	if err != nil {
 		return nil, err
 	}
@@ -163,7 +185,7 @@ func (c *AKSCluster) GetType() string {
 //GetStatus gets cluster status
 func (c *AKSCluster) GetStatus() (*bTypes.GetClusterStatusResponse, error) {
 	log := logger.WithFields(logrus.Fields{"action": constants.TagGetClusterStatus})
-	client, err := azureClient.GetAKSClient(nil)
+	client, err := c.GetAKSClient()
 	if err != nil {
 		return nil, err
 	}
@@ -195,7 +217,7 @@ func (c *AKSCluster) GetStatus() (*bTypes.GetClusterStatusResponse, error) {
 // DeleteCluster deletes cluster from aks
 func (c *AKSCluster) DeleteCluster() error {
 	log := logger.WithFields(logrus.Fields{"action": constants.TagDeleteCluster})
-	client, err := azureClient.GetAKSClient(nil)
+	client, err := c.GetAKSClient()
 	if err != nil {
 		return err
 	}
@@ -218,7 +240,7 @@ func (c *AKSCluster) DeleteCluster() error {
 // UpdateCluster updates AKS cluster in cloud
 func (c *AKSCluster) UpdateCluster(request *bTypes.UpdateClusterRequest) error {
 	log := logger.WithFields(logrus.Fields{"action": constants.TagUpdateCluster})
-	client, err := azureClient.GetAKSClient(nil)
+	client, err := c.GetAKSClient()
 	if err != nil {
 		return err
 	}
@@ -271,7 +293,7 @@ func (c *AKSCluster) GetModel() *model.ClusterModel {
 }
 
 func (c *AKSCluster) GetAzureCluster() (*banzaiAzureTypes.Value, error) {
-	client, err := azureClient.GetAKSClient(nil)
+	client, err := c.GetAKSClient()
 	if err != nil {
 		return nil, err
 	}
