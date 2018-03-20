@@ -5,10 +5,12 @@ import (
 	bTypes "github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/secret"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/terminal"
 	"os"
+	"strconv"
 	"strings"
 	"syscall"
 )
@@ -28,21 +30,21 @@ type CommonCluster interface {
 	DeleteCluster() error
 	UpdateCluster(*bTypes.UpdateClusterRequest) error
 	GetID() uint
+	GetSecretID() string
 	GetModel() *model.ClusterModel
 	CheckEqualityToUpdate(*bTypes.UpdateClusterRequest) error
 	AddDefaultsToUpdate(*bTypes.UpdateClusterRequest)
 	GetAPIEndpoint() (string, error)
 	DeleteFromDatabase() error
 	GetOrg() uint
-	//ModifyCluster(*model.ClusterModel)
-	//GetKubernetesConf()
-	//GetKubernetesEndpoint()
 }
 
-func GetSecret(cluster CommonCluster) (interface{}, error) {
-	org := cluster.GetOrg()
-	//TODO magic vault code here
-	secret := string(org)
+func GetSecret(cluster CommonCluster) (*secret.SecretsItemResponse, error) {
+	org := strconv.FormatUint(uint64(cluster.GetOrg()), 10)
+	secret, err := secret.Store.Get(org, cluster.GetSecretID())
+	if err != nil {
+		return nil, err
+	}
 	return secret, nil
 }
 
