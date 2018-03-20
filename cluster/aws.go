@@ -44,10 +44,6 @@ func SetCredentials(awscred *credentials.Credentials) func(*session.Options) err
 	}
 }
 
-var runtimeParam = cutil.RuntimeParameters{
-	AwsProfile: "",
-}
-
 //AWSCluster struct for AWS cluster
 type AWSCluster struct {
 	kubicornCluster *kcluster.Cluster //Don't use this directly
@@ -145,6 +141,10 @@ func (c *AWSCluster) Persist() error {
 func (c *AWSCluster) CreateCluster() error {
 	log := logger.WithFields(logrus.Fields{"action": constants.TagCreateCluster})
 
+	// Set up credentials TODO simplify
+	runtimeParam := cutil.RuntimeParameters{
+		AwsProfile: "",
+	}
 	clusterSecret, err := GetSecret(c)
 	if err != nil {
 		return err
@@ -152,7 +152,6 @@ func (c *AWSCluster) CreateCluster() error {
 	if clusterSecret.SecretType != secret.Amazon {
 		return errors.Errorf("missmatch secret type %s versus %s", clusterSecret.SecretType, secret.Amazon)
 	}
-
 	awsCred := credentials.NewStaticCredentials(
 		clusterSecret.Values["AWS_ACCESS_KEY_ID"],
 		clusterSecret.Values["AWS_SECRET_ACCESS_KEY"],
@@ -481,6 +480,25 @@ func (c *AWSCluster) UpdateCluster(request *components.UpdateClusterRequest) err
 	kubicornCluster.ServerPools[1].MaxCount = updateCluster.Amazon.NodeMaxCount
 
 	log.Debug("Get reconciler")
+
+	// Set up credentials TODO simplify
+	runtimeParam := cutil.RuntimeParameters{
+		AwsProfile: "",
+	}
+	clusterSecret, err := GetSecret(c)
+	if err != nil {
+		return err
+	}
+	if clusterSecret.SecretType != secret.Amazon {
+		return errors.Errorf("missmatch secret type %s versus %s", clusterSecret.SecretType, secret.Amazon)
+	}
+	awsCred := credentials.NewStaticCredentials(
+		clusterSecret.Values["AWS_ACCESS_KEY_ID"],
+		clusterSecret.Values["AWS_SECRET_ACCESS_KEY"],
+		"",
+	)
+	runtimeParam.AwsOptions = append(runtimeParam.AwsOptions, SetCredentials(awsCred))
+
 	reconciler, err := cutil.GetReconciler(kubicornCluster, &runtimeParam)
 	if err != nil {
 		err = errors.Wrap(err, "error getting reconciler")
@@ -549,6 +567,25 @@ func (c *AWSCluster) DeleteCluster() error {
 	}
 	statestore := getStateStoreForCluster(c.modelCluster)
 	log.Debug("Get reconciler")
+
+	// Set up credentials TODO simplify
+	runtimeParam := cutil.RuntimeParameters{
+		AwsProfile: "",
+	}
+	clusterSecret, err := GetSecret(c)
+	if err != nil {
+		return err
+	}
+	if clusterSecret.SecretType != secret.Amazon {
+		return errors.Errorf("missmatch secret type %s versus %s", clusterSecret.SecretType, secret.Amazon)
+	}
+	awsCred := credentials.NewStaticCredentials(
+		clusterSecret.Values["AWS_ACCESS_KEY_ID"],
+		clusterSecret.Values["AWS_SECRET_ACCESS_KEY"],
+		"",
+	)
+	runtimeParam.AwsOptions = append(runtimeParam.AwsOptions, SetCredentials(awsCred))
+
 	reconciler, err := cutil.GetReconciler(kubicornCluster, &runtimeParam)
 	if err != nil {
 		err = errors.Wrap(err, "error getting reconciler")
