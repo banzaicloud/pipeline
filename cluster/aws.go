@@ -10,6 +10,7 @@ import (
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	kcluster "github.com/kris-nova/kubicorn/apis/cluster"
 	"github.com/kris-nova/kubicorn/cutil"
@@ -57,6 +58,10 @@ type AWSCluster struct {
 
 func (c *AWSCluster) GetOrg() uint {
 	return c.modelCluster.OrganizationId
+}
+
+func (c *AWSCluster) GetSecretID() string {
+	return c.modelCluster.SecretId
 }
 
 //GetID returns the specified cluster id
@@ -140,9 +145,20 @@ func (c *AWSCluster) Persist() error {
 func (c *AWSCluster) CreateCluster() error {
 	log := logger.WithFields(logrus.Fields{"action": constants.TagCreateCluster})
 
-	//uid := c.GetModel().OrganizationId
-	//awsCred := credentials.NewStaticCredentials("", "", "")
-	//runtimeParam.AwsOptions = append(runtimeParam.AwsOptions, SetCredentials(awsCred))
+	clusterSecret, err := GetSecret(c)
+	if err != nil {
+		return err
+	}
+	if clusterSecret.SecretType != secret.Amazon {
+		return errors.Errorf("missmatch secret type %s versus %s", clusterSecret.SecretType, secret.Amazon)
+	}
+
+	awsCred := credentials.NewStaticCredentials(
+		clusterSecret.Values["AWS_ACCESS_KEY_ID"],
+		clusterSecret.Values["AWS_SECRET_ACCESS_KEY"],
+		"",
+	)
+	runtimeParam.AwsOptions = append(runtimeParam.AwsOptions, SetCredentials(awsCred))
 
 	kubicornLogger.Level = getKubicornLogLevel()
 

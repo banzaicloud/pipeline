@@ -79,6 +79,10 @@ func (g *GKECluster) GetOrg() uint {
 	return g.modelCluster.OrganizationId
 }
 
+func (g *GKECluster) GetSecretID() string {
+	return g.modelCluster.SecretId
+}
+
 func (g *GKECluster) GetGoogleCluster() (*gke.Cluster, error) {
 	if g.googleCluster != nil {
 		return g.googleCluster, nil

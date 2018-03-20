@@ -49,6 +49,10 @@ func (c *AKSCluster) GetOrg() uint {
 	return c.modelCluster.OrganizationId
 }
 
+func (c *AKSCluster) GetSecretID() string {
+	return c.modelCluster.SecretId
+}
+
 //GetAPIEndpoint returns the Kubernetes Api endpoint
 func (c *AKSCluster) GetAPIEndpoint() (string, error) {
 	if c.APIEndpoint != "" {
