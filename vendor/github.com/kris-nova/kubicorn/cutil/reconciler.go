@@ -19,6 +19,7 @@ import (
 
 	"github.com/kris-nova/kubicorn/apis/cluster"
 	"github.com/kris-nova/kubicorn/cloud"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/kris-nova/kubicorn/cloud/amazon/awsSdkGo"
 	awspub "github.com/kris-nova/kubicorn/cloud/amazon/public"
 	ar "github.com/kris-nova/kubicorn/cloud/amazon/public/resources"
