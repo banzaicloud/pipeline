@@ -4,21 +4,12 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/banzaicloud/bank-vaults/vault"
 	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/secret"
 	"github.com/gin-gonic/gin"
-	vaultapi "github.com/hashicorp/vault/api"
-	"github.com/pkg/errors"
-	uuid "github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
 )
-
-var secretStoreObj *secretStore
-
-func init() {
-	secretStoreObj = newVaultSecretStore()
-}
 
 func AddSecrets(c *gin.Context) {
 
@@ -31,7 +22,7 @@ func AddSecrets(c *gin.Context) {
 
 	log.Info("Binding request")
 
-	var createSecretRequest CreateSecretRequest
+	var createSecretRequest secret.CreateSecretRequest
 	if err := c.ShouldBind(&createSecretRequest); err != nil {
 		log.Errorf("Error during binding CreateSecretRequest: %s", err)
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
@@ -46,7 +37,7 @@ func AddSecrets(c *gin.Context) {
 	log.Debugf("%#v", createSecretRequest)
 
 	log.Info("Start validation")
-	if err := createSecretRequest.validate(); err != nil {
+	if err := createSecretRequest.Validate(); err != nil {
 		log.Errorf("Validation error: %s", err.Error())
 		c.AbortWithStatusJSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
@@ -58,10 +49,10 @@ func AddSecrets(c *gin.Context) {
 	log.Info("Validation passed")
 
 	// orgs/{org_id}/{uuid}/{secret_type}
-	secretID := generateSecretID()
+	secretID := secret.GenerateSecretID()
 	secretPath := fmt.Sprintf("secret/orgs/%s/%s", organizationID, secretID)
 
-	if err := secretStoreObj.store(secretPath, createSecretRequest); err != nil {
+	if err := secret.Store.Store(secretPath, createSecretRequest); err != nil {
 		log.Errorf("Error during store: %s", err.Error())
 		c.AbortWithStatusJSON(http.StatusInternalServerError, components.ErrorResponse{
 			Code:    http.StatusInternalServerError,
@@ -73,7 +64,7 @@ func AddSecrets(c *gin.Context) {
 
 	log.Infof("Secret stored at: %s", secretPath)
 
-	c.JSON(http.StatusCreated, CreateSecretResponse{
+	c.JSON(http.StatusCreated, secret.CreateSecretResponse{
 		Name:       createSecretRequest.Name,
 		SecretType: createSecretRequest.SecretType,
 		SecretID:   secretID,
@@ -89,7 +80,7 @@ func ListSecrets(c *gin.Context) {
 	organizationID := auth.GetCurrentOrganization(c.Request).IDString()
 	log.Infof("Organization id: %s", organizationID)
 
-	if items, err := secretStoreObj.list(organizationID); err != nil {
+	if items, err := secret.Store.List(organizationID); err != nil {
 		log.Errorf("Error during listing secrets: %s", err.Error())
 		c.AbortWithStatusJSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
@@ -98,7 +89,7 @@ func ListSecrets(c *gin.Context) {
 		})
 	} else {
 		log.Infof("Listing secrets succeeded: %#v", items)
-		c.JSON(http.StatusOK, ListSecretsResponse{
+		c.JSON(http.StatusOK, secret.ListSecretsResponse{
 			Secrets: items,
 		})
 	}
@@ -114,7 +105,7 @@ func DeleteSecrets(c *gin.Context) {
 
 	secretID := c.Param("secretid")
 
-	if err := secretStoreObj.delete(organizationID, secretID); err != nil {
+	if err := secret.Store.Delete(organizationID, secretID); err != nil {
 		log.Errorf("Error during deleting secrets: %s", err.Error())
 		code := http.StatusInternalServerError
 		resp := components.ErrorResponse{
@@ -128,188 +119,3 @@ func DeleteSecrets(c *gin.Context) {
 		c.Status(http.StatusNoContent)
 	}
 }
-
-type CreateSecretResponse struct {
-	Name       string `json:"name" binding:"required"`
-	SecretType string `json:"type" binding:"required"`
-	SecretID   string `json:"secret_id"`
-}
-
-type CreateSecretRequest struct {
-	Name       string     `json:"name" binding:"required"`
-	SecretType string     `json:"type" binding:"required"`
-	Values     []KeyValue `json:"values" binding:"required"`
-}
-
-func (c *CreateSecretRequest) validate() error {
-
-	allRules := getRules()
-	for _, rule := range allRules {
-		if string(rule.secretType) == c.SecretType {
-			for j, requiredKey := range rule.requiredKeys {
-				for _, keyValues := range c.Values {
-					if requiredKey.requiredKey == keyValues.Key {
-						rule.requiredKeys[j].isInRequest = true
-						break
-					}
-				}
-			}
-			return rule.isValid()
-		}
-	}
-
-	return errors.New("Wrong secret type")
-}
-
-type KeyValue struct {
-	Key   string `json:"key" binding:"required"`
-	Value string `json:"value,omitempty" binding:"required"`
-}
-
-type ListSecretsResponse struct {
-	Secrets []SecretsItemResponse `json:"secrets"`
-}
-
-type SecretsItemResponse struct {
-	ID         string `json:"id"`
-	Name       string `json:"name"`
-	SecretType string `json:"type"`
-}
-
-type secretStore struct {
-	client  *vault.Client
-	logical *vaultapi.Logical
-}
-
-func (ss *secretStore) store(path string, value CreateSecretRequest) error {
-	log.Infof("Start storing secret")
-	data := map[string]interface{}{"value": value}
-	if _, err := ss.logical.Write(path, data); err != nil {
-		return errors.Wrap(err, "Error during storing secret")
-	}
-	return nil
-}
-
-func (ss *secretStore) list(organizationID string) ([]SecretsItemResponse, error) {
-
-	log.Info("Listing secrets")
-	responseItems := make([]SecretsItemResponse, 0)
-
-	log.Debugf("Searching for organizations secrets [%s]", organizationID)
-	orgSecretPath := fmt.Sprintf("secret/orgs/%s", organizationID)
-
-	if secret, err := ss.logical.List(orgSecretPath); err != nil {
-		log.Errorf("Error listing secrets: %s", err.Error())
-	} else if secret != nil {
-		keys := secret.Data["keys"].([]interface{})
-		for _, key := range keys {
-			secretID := key.(string)
-			if secret, err := ss.logical.Read(orgSecretPath + "/" + secretID); err != nil {
-				log.Errorf("Error listing secrets: %s", err.Error())
-			} else if secret != nil {
-				secretData := secret.Data["value"].(map[string]interface{})
-				sir := SecretsItemResponse{
-					ID:         key.(string),
-					Name:       secretData["name"].(string),
-					SecretType: secretData["type"].(string),
-				}
-				responseItems = append(responseItems, sir)
-			}
-		}
-	} else {
-		return responseItems, nil
-	}
-
-	return responseItems, nil
-}
-
-func newVaultSecretStore() *secretStore {
-	role := "pipeline"
-	client, err := vault.NewClient(role)
-	if err != nil {
-		panic(err)
-	}
-	logical := client.Vault().Logical()
-	return &secretStore{client: client, logical: logical}
-}
-
-func (ss *secretStore) delete(organizationID, secretID string) error {
-	_, err := ss.logical.Delete(fmt.Sprintf("secret/orgs/%s/%s", organizationID, secretID))
-	return err
-}
-
-func generateSecretID() string {
-	log.Debug("Generating secret id")
-	return uuid.NewV4().String()
-}
-
-type SecretType string
-
-var allSecretTypes = []SecretType{
-	Amazon,
-	Azure,
-	Google,
-}
-
-func getRules() []rule {
-	return []rule{
-		{
-			secretType: Amazon,
-			requiredKeys: []ruleKey{
-				{requiredKey: "AWS_ACCESS_KEY_ID"},
-				{requiredKey: "AWS_SECRET_ACCESS_KEY"},
-			},
-		},
-		{
-			secretType: Azure,
-			requiredKeys: []ruleKey{
-				{requiredKey: "AZURE_CLIENT_ID"},
-				{requiredKey: "AZURE_CLIENT_SECRET"},
-				{requiredKey: "AZURE_TENANT_ID"},
-				{requiredKey: "AZURE_SUBSCRIPTION_ID"},
-			},
-		},
-		{
-			secretType: Google,
-			requiredKeys: []ruleKey{
-				{requiredKey: "TYPE"},
-				{requiredKey: "PROJECT_ID"},
-				{requiredKey: "PRIVATE_KEY_ID"},
-				{requiredKey: "PRIVATE_KEY"},
-				{requiredKey: "CLIENT_EMAIL"},
-				{requiredKey: "CLIENT_ID"},
-				{requiredKey: "AUTH_URI"},
-				{requiredKey: "TOKEN_URI"},
-				{requiredKey: "AUTH_PROVIDER_X509_CERT_URL"},
-				{requiredKey: "CLIENT_X509_CERT_URL"},
-			},
-		},
-	}
-}
-
-type rule struct {
-	secretType   SecretType
-	requiredKeys []ruleKey
-}
-
-func (r *rule) isValid() error {
-	for _, ruleKey := range r.requiredKeys {
-		if !ruleKey.isInRequest {
-			return errors.New(fmt.Sprintf("Missing key: %s", ruleKey.requiredKey))
-		}
-	}
-	return nil
-}
-
-type ruleKey struct {
-	requiredKey string
-	isInRequest bool
-}
-
-const (
-	Amazon     SecretType = "AMAZON_SECRET"
-	Azure      SecretType = "AZURE_SECRET"
-	Google     SecretType = "GOOGLE_SECRET"
-	General    SecretType = "GENERAL_SECRET"
-	Kubernetes SecretType = "KUBERNETES_SECRET"
-)
