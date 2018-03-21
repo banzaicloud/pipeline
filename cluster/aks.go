@@ -28,6 +28,7 @@ func CreateAKSClusterFromRequest(request *components.CreateClusterRequest, orgId
 		NodeInstanceType: request.NodeInstanceType,
 		Cloud:            request.Cloud,
 		OrganizationId:   orgId,
+		SecretId:         request.SecretId,
 		Azure: model.AzureClusterModel{
 			ResourceGroup:     request.Properties.CreateClusterAzure.Node.ResourceGroup,
 			AgentCount:        request.Properties.CreateClusterAzure.Node.AgentCount,
