@@ -531,7 +531,7 @@ imports:
   - lex/httplex
   - trace
 - name: golang.org/x/oauth2
-  version: a6bd8cefa1811bd24b86f8902872e4e8225f74c4
+  version: fdc9e635145ae97e6c2cb777c48305600cf515cb 
   subpackages:
   - google
   - internal
