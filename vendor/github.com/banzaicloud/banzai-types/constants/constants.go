@@ -43,8 +43,6 @@ const (
 
 // ### [ Constants to Amazon cluster default values ] ### //
 const (
-	AmazonDefaultNodeImage          = "ami-bdba13c4"
-	AmazonDefaultMasterImage        = "ami-bdba13c4"
 	AmazonDefaultMasterInstanceType = "m4.xlarge"
 	AmazonDefaultNodeMinCount       = 1
 	AmazonDefaultNodeMaxCount       = 1

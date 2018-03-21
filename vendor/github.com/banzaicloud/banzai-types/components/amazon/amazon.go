@@ -41,7 +41,7 @@ func (amazon *CreateClusterAmazon) Validate() error {
 		return errors.New(msg)
 	}
 	if amazon.Master.Image == "" {
-		amazon.Master.Image = constants.AmazonDefaultMasterImage
+		return errors.New("Required field 'image' is empty ")
 	}
 
 	if amazon.Master.InstanceType == "" {
@@ -56,7 +56,7 @@ func (amazon *CreateClusterAmazon) Validate() error {
 
 	// ---- [ Node image check ] ---- //
 	if len(amazon.Node.Image) == 0 {
-		amazon.Node.Image = constants.AmazonDefaultNodeImage
+		return errors.New("Required field 'image' is empty ")
 	}
 
 	// ---- [ Node min count check ] ---- //
