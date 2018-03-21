@@ -52,7 +52,7 @@ func PreInstall(helmInstall *helm.Install, kubeConfig []byte) error {
 		_, err = client.CoreV1().ServiceAccounts(helmInstall.Namespace).Create(serviceAccount)
 		if err != nil {
 			log.Warnf("create service account failed: %s", err.Error())
-			if strings.Contains(err.Error(), "etcdserver: request timed out") {
+			if strings.Contains(err.Error(), "etcd server: request timed out") {
 				time.Sleep(time.Duration(10) * time.Second)
 				continue
 			}
