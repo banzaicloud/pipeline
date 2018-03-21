@@ -37,7 +37,7 @@ Setup your Pipeline GitHub OAuth application according to [this guilde](./github
 Deploy `Control Plane` using [Pipeline Control Plane Launcher](https://github.com/banzaicloud/pipeline-cp-launcher/tree/0.3.0) to one of the supported cloud providers where you would like to run your CI/CD flow.
 
 * Take note of the PublicIP of the host where `Control Plane` was deployed. We refer to this as the PublicIP of `Control Plane`:
-  * [AWS](https://github.com/banzaicloud/pipeline-cp-launcher/blob/0.3.0/docs/control-plane-on-aw)
+  * [AWS](https://github.com/banzaicloud/pipeline-cp-launcher/blob/0.3.0/docs/control-plane-on-aws.md#deployment-end-points)
   * [Azure](https://github.com/banzaicloud/pipeline-cp-launcher/blob/0.3.0/docs/control-plane-on-azure.md#deployment-end-points)
   * [Google Cloud](https://github.com/banzaicloud/pipeline-cp-launcher/blob/0.3.0/docs/control-plane-on-gcloud.md#deployment-end-points)
 
