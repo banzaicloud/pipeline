@@ -14,9 +14,9 @@ type AWSProfile struct {
 	DefaultModel
 	Location           string `gorm:"default:'eu-west-1'"`
 	NodeInstanceType   string `gorm:"default:'m4.xlarge'"`
-	NodeImage          string `gorm:"default:'ami-06d1667f'"`
+	NodeImage          string `gorm:"default:'ami-16bfeb6f'"`
 	MasterInstanceType string `gorm:"default:'m4.xlarge'"`
-	MasterImage        string `gorm:"default:'ami-06d1667f'"`
+	MasterImage        string `gorm:"default:'ami-16bfeb6f'"`
 	NodeSpotPrice      string `gorm:"default:'0.2'"`
 	NodeMinCount       int    `gorm:"default:1"`
 	NodeMaxCount       int    `gorm:"default:2"`
