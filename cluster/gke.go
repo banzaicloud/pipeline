@@ -7,11 +7,12 @@ import (
 	bGoogle "github.com/banzaicloud/banzai-types/components/google"
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/json"
 	"github.com/go-errors/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2/google"
 	gke "google.golang.org/api/container/v1"
@@ -30,10 +31,6 @@ import (
 	"time"
 )
 
-var credentialPath string
-
-const googleAppCredentialKey = "cloud.gkeCredentialPath"
-
 const (
 	statusRunning = "RUNNING"
 )
@@ -43,6 +40,19 @@ const (
 	clusterAdmin     = "cluster-admin"
 	netesDefault     = "netes-default"
 )
+
+type ServiceAccount struct {
+	Type                   string `json:"type"`
+	ProjectId              string `json:"project_id"`
+	PrivateKeyId           string `json:"private_key_id"`
+	PrivateKey             string `json:"private_key"`
+	ClientEmail            string `json:"client_email"`
+	ClientId               string `json:"client_id"`
+	AuthUri                string `json:"auth_uri"`
+	TokenUri               string `json:"token_uri"`
+	AuthProviderX50CertUrl string `json:"auth_provider_x509_cert_url"`
+	ClientX509CertUrl      string `json:"client_x509_cert_url"`
+}
 
 //CreateGKEClusterFromRequest creates ClusterModel struct from the request
 func CreateGKEClusterFromRequest(request *components.CreateClusterRequest, orgId uint) (*GKECluster, error) {
@@ -56,6 +66,7 @@ func CreateGKEClusterFromRequest(request *components.CreateClusterRequest, orgId
 		NodeInstanceType: request.NodeInstanceType,
 		Cloud:            request.Cloud,
 		OrganizationId:   orgId,
+		SecretId:         request.SecretId,
 		Google: model.GoogleClusterModel{
 			Project:        request.Properties.CreateClusterGoogle.Project,
 			MasterVersion:  request.Properties.CreateClusterGoogle.Master.Version,
@@ -87,8 +98,7 @@ func (g *GKECluster) GetGoogleCluster() (*gke.Cluster, error) {
 	if g.googleCluster != nil {
 		return g.googleCluster, nil
 	}
-	getCredentialPath()
-	svc, err := getGoogleServiceClient()
+	svc, err := g.getGoogleServiceClient()
 	if err != nil {
 		return nil, err
 	}
@@ -125,16 +135,8 @@ func (g *GKECluster) CreateCluster() error {
 
 	log.Info("Start create cluster (Google)")
 
-	log.Info("Read google application credential path")
-	data, err := ioutil.ReadFile(getCredentialPath())
-	if err != nil {
-		return err
-	}
-
-	log.Info("Read credential path success")
-
 	log.Info("Get Google Service Client")
-	svc, err := getGoogleServiceClient()
+	svc, err := g.getGoogleServiceClient()
 	if err != nil {
 		return err
 	}
@@ -151,14 +153,12 @@ func (g *GKECluster) CreateCluster() error {
 				"https://www.googleapis.com/auth/devstorage.read_write",
 			},
 		},
-		ProjectID:         g.modelCluster.Google.Project,
-		Zone:              g.modelCluster.Location,
-		Name:              g.modelCluster.Name,
-		NodeCount:         int64(g.modelCluster.Google.NodeCount),
-		CredentialPath:    getCredentialPath(),
-		CredentialContent: string(data),
-		MasterVersion:     g.modelCluster.Google.MasterVersion,
-		NodeVersion:       g.modelCluster.Google.NodeVersion,
+		ProjectID:     g.modelCluster.Google.Project,
+		Zone:          g.modelCluster.Location,
+		Name:          g.modelCluster.Name,
+		NodeCount:     int64(g.modelCluster.Google.NodeCount),
+		MasterVersion: g.modelCluster.Google.MasterVersion,
+		NodeVersion:   g.modelCluster.Google.NodeVersion,
 	}
 
 	ccr := generateClusterCreateRequest(cc)
@@ -208,10 +208,7 @@ func (g *GKECluster) GetK8sConfig() (*[]byte, error) {
 	}
 	log := logger.WithFields(logrus.Fields{"action": constants.TagFetchClusterConfig})
 
-	// to set env var
-	_ = getCredentialPath()
-
-	config, err := getGoogleKubernetesConfig(g.modelCluster)
+	config, err := g.getGoogleKubernetesConfig()
 	if err != nil {
 		// something went wrong
 		be := getBanzaiErrorFromError(err)
@@ -242,13 +239,8 @@ func (g *GKECluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 
 	log := logger.WithFields(logrus.Fields{"action": constants.TagFetchClusterConfig})
 
-	log.Info("Start get cluster status (google)")
-
-	// to set env var
-	_ = getCredentialPath()
-
 	log.Info("Get Google Service Client")
-	svc, err := getGoogleServiceClient()
+	svc, err := g.getGoogleServiceClient()
 	if err != nil {
 		be := getBanzaiErrorFromError(err)
 		// TODO status code !?
@@ -297,7 +289,7 @@ func (g *GKECluster) DeleteCluster() error {
 		Zone:      g.modelCluster.Location,
 	}
 
-	if err := callDeleteCluster(&gkec); err != nil {
+	if err := g.callDeleteCluster(&gkec); err != nil {
 		be := getBanzaiErrorFromError(err)
 		// TODO status code !?
 		return errors.New(be.Message)
@@ -311,13 +303,9 @@ func (g *GKECluster) DeleteCluster() error {
 func (g *GKECluster) UpdateCluster(updateRequest *components.UpdateClusterRequest) error {
 
 	log := logger.WithFields(logrus.Fields{"action": constants.TagUpdateCluster})
-
 	log.Info("Start updating cluster (google)")
 
-	// to set env var
-	_ = getCredentialPath()
-
-	svc, err := getGoogleServiceClient()
+	svc, err := g.getGoogleServiceClient()
 	if err != nil {
 		return err
 	}
@@ -366,31 +354,50 @@ func (g *GKECluster) GetModel() *model.ClusterModel {
 	return g.modelCluster
 }
 
-// getCredentialPath returns the Google application credential path and set the env variable
-func getCredentialPath() string {
-	log.Info("Get gke credential path")
-	if len(credentialPath) == 0 {
-		credentialPath = viper.GetString(googleAppCredentialKey)
-		// set GOOGLE_APPLICATION_CREDENTIALS environment variable to specify
-		// a service account key file to authenticate to the Google Cloud API
-		os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", credentialPath)
+func (g *GKECluster) getGoogleServiceClient() (*gke.Service, error) {
+
+	// Get Secret from Vault
+	clusterSecret, err := GetSecret(g)
+	if err != nil {
+		return nil, err
+	}
+	if clusterSecret.SecretType != secret.Google {
+		return nil, errors.Errorf("missmatch secret type %s versus %s", clusterSecret.SecretType, secret.Amazon)
 	}
 
-	log.Debugf("Credential path is %s", credentialPath)
-
-	return credentialPath
-}
-
-func getGoogleServiceClient() (*gke.Service, error) {
-
+	// TODO https://github.com/mitchellh/mapstructure
+	credentials := ServiceAccount{
+		Type:                   clusterSecret.Values["type"],
+		ProjectId:              clusterSecret.Values["project_id"],
+		PrivateKeyId:           clusterSecret.Values["private_key_id"],
+		PrivateKey:             clusterSecret.Values["private_key"],
+		ClientEmail:            clusterSecret.Values["client_email"],
+		ClientId:               clusterSecret.Values["client_id"],
+		AuthUri:                clusterSecret.Values["auth_uri"],
+		TokenUri:               clusterSecret.Values["token_uri"],
+		AuthProviderX50CertUrl: clusterSecret.Values["auth_provider_x509_cert_url"],
+		ClientX509CertUrl:      clusterSecret.Values["client_x509_cert_url"],
+	}
+	jsonConfig, err := json.Marshal(credentials)
+	if err != nil {
+		return nil, err
+	}
 	// See https://cloud.google.com/docs/authentication/.
 	// Use GOOGLE_APPLICATION_CREDENTIALS environment variable to specify
 	// a service account key file to authenticate to the API.
 
-	client, err := google.DefaultClient(context.Background(), gke.CloudPlatformScope)
+	// Parse credentials from JSON
+	config, err := google.JWTConfigFromJSON(jsonConfig, gke.CloudPlatformScope)
 	if err != nil {
 		return nil, err
 	}
+
+	// Create oauth2 client with credential
+	//fmt.Printf("%#v", config.)
+	client := config.Client(context.TODO())
+	//client := oauth2.NewClient(context.Background(), googleCredentials.TokenSource)
+
+	//New client from credentials
 	service, err := gke.New(client)
 	if err != nil {
 		return nil, err
@@ -531,13 +538,8 @@ func getClusterGoogle(svc *gke.Service, cc googleCluster) (*gke.Cluster, error) 
 	return svc.Projects.Zones.Clusters.Get(cc.ProjectID, cc.Zone, cc.Name).Context(context.TODO()).Do()
 }
 
-func callDeleteCluster(cc *googleCluster) error {
-
-	_ = getCredentialPath()
-
-	log.Info("Get Google Service Client")
-
-	svc, err := getGoogleServiceClient()
+func (g *GKECluster) callDeleteCluster(cc *googleCluster) error {
+	svc, err := g.getGoogleServiceClient()
 	if err != nil {
 		return err
 	}
@@ -637,20 +639,20 @@ func waitForNodePool(svc *gke.Service, cc *googleCluster) error {
 	}
 }
 
-func getGoogleKubernetesConfig(cs *model.ClusterModel) ([]byte, error) {
+func (g *GKECluster) getGoogleKubernetesConfig() ([]byte, error) {
 
 	log.Info("Get Google Service Client")
-	svc, err := getGoogleServiceClient()
+	svc, err := g.getGoogleServiceClient()
 	if err != nil {
 		return nil, err
 	}
 	log.Info("Get Google Service Client succeeded")
 
-	log.Infof("Get google cluster with name %s", cs.Name)
+	log.Infof("Get google cluster with name %s", g.modelCluster.Name)
 	cl, err := getClusterGoogle(svc, googleCluster{
-		Name:      cs.Name,
-		ProjectID: cs.Google.Project,
-		Zone:      cs.Location,
+		Name:      g.modelCluster.Name,
+		ProjectID: g.modelCluster.Google.Project,
+		Zone:      g.modelCluster.Location,
 	})
 
 	if err != nil {
@@ -683,7 +685,7 @@ func getGoogleKubernetesConfig(cs *model.ClusterModel) ([]byte, error) {
 
 	// TODO if the final solution is NOT SAVE CONFIG TO FILE than rename the method and change log message
 	log.Info("Start save config file")
-	config, err := storeConfig(&finalCl, cs.Name)
+	config, err := storeConfig(&finalCl, g.modelCluster.Name)
 	if err != nil {
 		be := getBanzaiErrorFromError(err)
 		// TODO status code !?
@@ -1084,7 +1086,7 @@ func (g *GKECluster) DeleteFromDatabase() error {
 }
 
 // GetGkeServerConfig returns configuration info about the Kubernetes Engine service.
-func GetGkeServerConfig(c *gin.Context) {
+func (g *GKECluster) GetGkeServerConfig(c *gin.Context) {
 
 	log := logger.WithFields(logrus.Fields{"action": "GetGkeServerConfig"})
 
@@ -1093,10 +1095,8 @@ func GetGkeServerConfig(c *gin.Context) {
 
 	log.Info("Start getting configuration info")
 
-	_ = getCredentialPath()
-
 	log.Info("Get Google service client")
-	if svc, err := getGoogleServiceClient(); err != nil {
+	if svc, err := g.getGoogleServiceClient(); err != nil {
 		apiErr := getBanzaiErrorFromError(err)
 		log.Errorf("Error during getting service client: %s", apiErr.Message)
 		c.JSON(apiErr.StatusCode, components.ErrorResponse{

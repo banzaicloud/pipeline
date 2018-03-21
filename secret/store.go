@@ -82,16 +82,16 @@ var DefaultRules = map[string][]string{
 		"AZURE_SUBSCRIPTION_ID",
 	},
 	Google: {
-		"TYPE",
-		"PROJECT_ID",
-		"PRIVATE_KEY_ID",
-		"PRIVATE_KEY",
-		"CLIENT_EMAIL",
-		"CLIENT_ID",
-		"AUTH_URI",
-		"TOKEN_URI",
-		"AUTH_PROVIDER_X509_CERT_URL",
-		"CLIENT_X509_CERT_URL",
+		"type",
+		"project_id",
+		"private_key_id",
+		"private_key",
+		"client_email",
+		"client_id",
+		"auth_uri",
+		"token_uri",
+		"auth_provider_x509_cert_url",
+		"client_x509_cert_url",
 	},
 }
 
@@ -132,11 +132,7 @@ func (ss *SecretStore) Get(organizationID string, secretID string) (*SecretsItem
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(organizationID)
-	fmt.Println(secretID)
-	fmt.Printf("%#v", secret)
 	secretData := secret.Data["value"].(map[string]interface{})
-
 	secretResp := &SecretsItemResponse{
 		ID:         secretID,
 		Name:       secretData["name"].(string),
