@@ -62,8 +62,8 @@ func (c *AKSCluster) GetAKSClient() (*azureClient.AKSClient, error) {
 	creds := &azureCluster.AKSCredential{
 		ClientId:       clusterSecret.Values["AZURE_CLIENT_ID"],
 		ClientSecret:   clusterSecret.Values["AZURE_CLIENT_SECRET"],
-		SubscriptionId: clusterSecret.Values["AZURE_TENANT_ID"],
-		TenantId:       clusterSecret.Values["AZURE_SUBSCRIPTION_ID"],
+		SubscriptionId: clusterSecret.Values["AZURE_SUBSCRIPTION_ID"],
+		TenantId:       clusterSecret.Values["AZURE_TENANT_ID"],
 	}
 	client, err := azureClient.GetAKSClient(creds)
 	if err != nil {
