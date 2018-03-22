@@ -2,10 +2,12 @@ package api
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strconv"
 
-	"fmt"
+	"github.com/jinzhu/gorm"
+
 	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/model"
@@ -30,22 +32,10 @@ func OrganizationMiddleware(c *gin.Context) {
 
 	user := auth.GetCurrentUser(c.Request)
 	var organization = auth.Organization{ID: uint(orgid)}
-	var organizations []auth.Organization
 
 	db := model.GetDB()
-	err = db.Model(user).Where(&organization).Related(&organizations, "Organizations").Error
-	if err != nil {
-		message := "error fetching organizations"
-		log.Info(message + ": " + err.Error())
-		c.AbortWithStatusJSON(http.StatusInternalServerError, components.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: message,
-			Error:   message,
-		})
-		return
-	}
-
-	if len(organizations) != 1 {
+	err = db.Model(user).Where(&organization).Related(&organization, "Organizations").Error
+	if err == gorm.ErrRecordNotFound {
 		message := fmt.Sprintf("organization not found: %q", orgidParam)
 		log.Info(message)
 		c.AbortWithStatusJSON(http.StatusNotFound, components.ErrorResponse{
@@ -53,11 +43,19 @@ func OrganizationMiddleware(c *gin.Context) {
 			Message: message,
 			Error:   message,
 		})
-		return
+	} else if err != nil {
+		message := "error fetching organizations"
+		log.Info(message + ": " + err.Error())
+		c.AbortWithStatusJSON(http.StatusInternalServerError, components.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: message,
+			Error:   message,
+		})
+	} else {
+		newContext := context.WithValue(c.Request.Context(), auth.CurrentOrganization, &organization)
+		c.Request = c.Request.WithContext(newContext)
+		c.Next()
 	}
-	newContext := context.WithValue(c.Request.Context(), auth.CurrentOrganization, &organizations[0])
-	c.Request = c.Request.WithContext(newContext)
-	c.Next()
 }
 
 //GetOrganizations returns all organizations the user belongs to or a specific one from those by id
@@ -67,7 +65,7 @@ func GetOrganizations(c *gin.Context) {
 
 	user := auth.GetCurrentUser(c.Request)
 
-	idParam := c.Param("id")
+	idParam := c.Param("orgid")
 	id, err := strconv.ParseUint(idParam, 10, 32)
 	if idParam != "" && err != nil {
 		message := fmt.Sprintf("error parsing organization id: %s", err)
