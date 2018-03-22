@@ -2,6 +2,11 @@ package cluster
 
 import (
 	"fmt"
+	"os"
+	"strconv"
+	"strings"
+	"syscall"
+
 	bTypes "github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/model"
@@ -9,10 +14,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/terminal"
-	"os"
-	"strconv"
-	"strings"
-	"syscall"
 )
 
 // TODO se who will win
@@ -41,11 +42,7 @@ type CommonCluster interface {
 
 func GetSecret(cluster CommonCluster) (*secret.SecretsItemResponse, error) {
 	org := strconv.FormatUint(uint64(cluster.GetOrg()), 10)
-	secret, err := secret.Store.Get(org, cluster.GetSecretID())
-	if err != nil {
-		return nil, err
-	}
-	return secret, nil
+	return secret.Store.Get(org, cluster.GetSecretID())
 }
 
 //GetCommonClusterFromModel extracts CommonCluster from a ClusterModel
