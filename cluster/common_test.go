@@ -221,7 +221,7 @@ var (
 		Location:         clusterRequestLocation,
 		Cloud:            constants.Google,
 		NodeInstanceType: clusterRequestNodeInstance,
-		SecretId:         "",
+		SecretId:         clusterRequestSecretId,
 		Properties: struct {
 			CreateClusterAmazon *amazon.CreateClusterAmazon `json:"amazon,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
@@ -246,7 +246,7 @@ var (
 		Location:         clusterRequestLocation,
 		Cloud:            constants.Google,
 		NodeInstanceType: clusterRequestNodeInstance,
-		SecretId:         "",
+		SecretId:         clusterRequestSecretId,
 		Properties: struct {
 			CreateClusterAmazon *amazon.CreateClusterAmazon `json:"amazon,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
@@ -274,6 +274,7 @@ var (
 		NodeInstanceType: clusterRequestNodeInstance,
 		SecretId:         clusterRequestSecretId,
 		Cloud:            constants.Google,
+		OrganizationId:   organisationId,
 		Amazon:           model.AmazonClusterModel{},
 		Azure:            model.AzureClusterModel{},
 		Google: model.GoogleClusterModel{
@@ -291,6 +292,7 @@ var (
 		NodeInstanceType: clusterRequestNodeInstance,
 		SecretId:         clusterRequestSecretId,
 		Cloud:            constants.Azure,
+		OrganizationId:   organisationId,
 		Amazon:           model.AmazonClusterModel{},
 		Azure: model.AzureClusterModel{
 			ResourceGroup:     clusterRequestRG,
@@ -307,6 +309,7 @@ var (
 		NodeInstanceType: clusterRequestNodeInstance,
 		SecretId:         clusterRequestSecretId,
 		Cloud:            constants.Amazon,
+		OrganizationId:   organisationId,
 		Amazon: model.AmazonClusterModel{
 			NodeSpotPrice:      clusterRequestSpotPrice,
 			NodeMinCount:       clusterRequestNodeCount,
@@ -325,7 +328,7 @@ var (
 		NodeInstanceType: clusterRequestNodeInstance,
 		SecretId:         clusterRequestSecretId,
 		Cloud:            constants.Google,
-		OrganizationId:   0,
+		OrganizationId:   organisationId,
 		Amazon:           model.AmazonClusterModel{},
 		Azure:            model.AzureClusterModel{},
 		Google: model.GoogleClusterModel{
