@@ -85,19 +85,27 @@ func GetOrganizations(c *gin.Context) {
 	if err != nil {
 		message := "error fetching organizations"
 		log.Info(message + ": " + err.Error())
-		c.JSON(http.StatusInternalServerError, components.ErrorResponse{
+		c.AbortWithStatusJSON(http.StatusInternalServerError, components.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: message,
 			Error:   message,
 		})
 	} else if id == 0 {
 		c.JSON(http.StatusOK, organizations)
-	} else if len(organizations) != 0 {
+	} else if len(organizations) == 1 {
 		c.JSON(http.StatusOK, organizations[0])
+	} else if len(organizations) > 1 {
+		message := fmt.Sprintf("multiple organizations found with id: %q", idParam)
+		log.Info(message)
+		c.AbortWithStatusJSON(http.StatusNotFound, components.ErrorResponse{
+			Code:    http.StatusConflict,
+			Message: message,
+			Error:   message,
+		})
 	} else {
 		message := fmt.Sprintf("organization not found: %q", idParam)
 		log.Info(message)
-		c.JSON(http.StatusNotFound, components.ErrorResponse{
+		c.AbortWithStatusJSON(http.StatusNotFound, components.ErrorResponse{
 			Code:    http.StatusNotFound,
 			Message: message,
 			Error:   message,
