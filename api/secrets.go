@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/banzaicloud/banzai-types/components"
@@ -48,11 +47,8 @@ func AddSecrets(c *gin.Context) {
 	}
 	log.Info("Validation passed")
 
-	// orgs/{org_id}/{uuid}/{secret_type}
 	secretID := secret.GenerateSecretID()
-	secretPath := fmt.Sprintf("secret/orgs/%s/%s", organizationID, secretID)
-
-	if err := secret.Store.Store(secretPath, createSecretRequest); err != nil {
+	if err := secret.Store.Store(organizationID, secretID, createSecretRequest); err != nil {
 		log.Errorf("Error during store: %s", err.Error())
 		c.AbortWithStatusJSON(http.StatusInternalServerError, components.ErrorResponse{
 			Code:    http.StatusInternalServerError,
@@ -62,7 +58,7 @@ func AddSecrets(c *gin.Context) {
 		return
 	}
 
-	log.Infof("Secret stored at: %s", secretPath)
+	log.Infof("Secret stored at: %s/%s", organizationID, secretID)
 
 	c.JSON(http.StatusCreated, secret.CreateSecretResponse{
 		Name:       createSecretRequest.Name,
