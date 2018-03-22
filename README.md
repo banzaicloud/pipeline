@@ -70,7 +70,7 @@ Nevertheless, the underlying [Kubicorn](http://kubicorn.io) framework has suppor
 
 ## Managed Kubernetes
 
-Pipeline is architected in a way to allow pluggable implementations for providers, managed Kubernetes clusters or hybrid environments. Through provider plugins retrives the `kubeconfig` and connects and deploys applications. Currently it's tested with [Google Kubernetes Engine](https://cloud.google.com/kubernetes-engine/) and [Microsoft's Azure managed Kubernetes](https://azure.microsoft.com/en-us/blog/introducing-azure-container-service-aks-managed-kubernetes-and-azure-container-registry-geo-replication/).
+Pipeline is architected in a way to allow pluggable implementations for providers, managed Kubernetes clusters or hybrid environments. Through provider plugins it retrieves the `kubeconfig` and connects and deploys applications. Currently it's tested with [Google Kubernetes Engine](https://cloud.google.com/kubernetes-engine/) and [Microsoft's Azure managed Kubernetes](https://azure.microsoft.com/en-us/blog/introducing-azure-container-service-aks-managed-kubernetes-and-azure-container-registry-geo-replication/).
 
   * Microsoft AKS
   * Google GKE
