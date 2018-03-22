@@ -191,7 +191,7 @@ func (ss *secretStore) List(organizationID, secretType string) ([]SecretsItemRes
 			} else if secret != nil {
 				secretData := secret.Data["value"].(map[string]interface{})
 				sType := secretData["type"].(string)
-				if sType == secretType {
+				if len(secretType) == 0 || sType == secretType {
 					sir := SecretsItemResponse{
 						ID:         key.(string),
 						Name:       secretData["name"].(string),
