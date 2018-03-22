@@ -23,7 +23,7 @@ func AddSecrets(c *gin.Context) {
 
 	var createSecretRequest secret.CreateSecretRequest
 	if err := c.ShouldBind(&createSecretRequest); err != nil {
-		log.Errorf("Error during binding CreateSecretRequest: %s", err)
+		log.Errorf("Error during binding CreateSecretRequest: %s", err.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error during binding",
