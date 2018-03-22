@@ -362,7 +362,7 @@ func (g *GKECluster) getGoogleServiceClient() (*gke.Service, error) {
 		return nil, err
 	}
 	if clusterSecret.SecretType != secret.Google {
-		return nil, errors.Errorf("missmatch secret type %s versus %s", clusterSecret.SecretType, secret.Amazon)
+		return nil, errors.Errorf("missmatch secret type %s versus %s", clusterSecret.SecretType, secret.Google)
 	}
 
 	// TODO https://github.com/mitchellh/mapstructure
