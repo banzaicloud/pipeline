@@ -16,6 +16,7 @@ const (
 	clusterRequestName           = "testName"
 	clusterRequestLocation       = "testLocation"
 	clusterRequestNodeInstance   = "testInstance"
+	clusterRequestSecretId       = ""
 	clusterRequestProject        = "testProject"
 	clusterRequestNodeCount      = 1
 	clusterRequestVersion        = "1.9.4-gke.1"
@@ -30,6 +31,7 @@ const (
 	clusterRequestMasterImage    = "testImage"
 	clusterRequestMasterInstance = "testInstance"
 	clusterServiceAccount        = "testServiceAccount"
+	organisationId               = 1
 )
 
 func TestCreateCommonClusterFromRequest(t *testing.T) {
@@ -53,7 +55,7 @@ func TestCreateCommonClusterFromRequest(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 
-			commonCluster, err := cluster.CreateCommonClusterFromRequest(tc.createRequest)
+			commonCluster, err := cluster.CreateCommonClusterFromRequest(tc.createRequest, organisationId)
 
 			if tc.expectedError != nil {
 
@@ -133,6 +135,7 @@ var (
 		Location:         clusterRequestLocation,
 		Cloud:            constants.Google,
 		NodeInstanceType: clusterRequestNodeInstance,
+		SecretId:         clusterRequestSecretId,
 		Properties: struct {
 			CreateClusterAmazon *amazon.CreateClusterAmazon `json:"amazon,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
@@ -157,6 +160,7 @@ var (
 		Location:         clusterRequestLocation,
 		Cloud:            constants.Azure,
 		NodeInstanceType: clusterRequestNodeInstance,
+		SecretId:         clusterRequestSecretId,
 		Properties: struct {
 			CreateClusterAmazon *amazon.CreateClusterAmazon `json:"amazon,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
@@ -178,6 +182,7 @@ var (
 		Location:         clusterRequestLocation,
 		Cloud:            constants.Amazon,
 		NodeInstanceType: clusterRequestNodeInstance,
+		SecretId:         clusterRequestSecretId,
 		Properties: struct {
 			CreateClusterAmazon *amazon.CreateClusterAmazon `json:"amazon,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
@@ -203,6 +208,7 @@ var (
 		Location:         clusterRequestLocation,
 		Cloud:            "nonExistsCloud",
 		NodeInstanceType: clusterRequestNodeInstance,
+		SecretId:         clusterRequestSecretId,
 		Properties: struct {
 			CreateClusterAmazon *amazon.CreateClusterAmazon `json:"amazon,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
@@ -215,6 +221,7 @@ var (
 		Location:         clusterRequestLocation,
 		Cloud:            constants.Google,
 		NodeInstanceType: clusterRequestNodeInstance,
+		SecretId:         "",
 		Properties: struct {
 			CreateClusterAmazon *amazon.CreateClusterAmazon `json:"amazon,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
@@ -239,6 +246,7 @@ var (
 		Location:         clusterRequestLocation,
 		Cloud:            constants.Google,
 		NodeInstanceType: clusterRequestNodeInstance,
+		SecretId:         "",
 		Properties: struct {
 			CreateClusterAmazon *amazon.CreateClusterAmazon `json:"amazon,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
@@ -264,6 +272,7 @@ var (
 		Name:             clusterRequestName,
 		Location:         clusterRequestLocation,
 		NodeInstanceType: clusterRequestNodeInstance,
+		SecretId:         clusterRequestSecretId,
 		Cloud:            constants.Google,
 		Amazon:           model.AmazonClusterModel{},
 		Azure:            model.AzureClusterModel{},
@@ -280,6 +289,7 @@ var (
 		Name:             clusterRequestName,
 		Location:         clusterRequestLocation,
 		NodeInstanceType: clusterRequestNodeInstance,
+		SecretId:         clusterRequestSecretId,
 		Cloud:            constants.Azure,
 		Amazon:           model.AmazonClusterModel{},
 		Azure: model.AzureClusterModel{
@@ -295,6 +305,7 @@ var (
 		Name:             clusterRequestName,
 		Location:         clusterRequestLocation,
 		NodeInstanceType: clusterRequestNodeInstance,
+		SecretId:         clusterRequestSecretId,
 		Cloud:            constants.Amazon,
 		Amazon: model.AmazonClusterModel{
 			NodeSpotPrice:      clusterRequestSpotPrice,
@@ -312,6 +323,7 @@ var (
 		Name:             clusterRequestName,
 		Location:         clusterRequestLocation,
 		NodeInstanceType: clusterRequestNodeInstance,
+		SecretId:         clusterRequestSecretId,
 		Cloud:            constants.Google,
 		OrganizationId:   0,
 		Amazon:           model.AmazonClusterModel{},
