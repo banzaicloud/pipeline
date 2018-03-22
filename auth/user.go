@@ -11,6 +11,7 @@ import (
 	"github.com/jinzhu/copier"
 	"github.com/jinzhu/gorm"
 	// blank import is used here for sql driver inclusion
+	"github.com/go-errors/errors"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/qor/auth"
 	"github.com/qor/auth/claims"
@@ -90,11 +91,13 @@ func GetCurrentUserFromDB(req *http.Request) (*User, error) {
 	if currentUser, ok := Auth.GetCurrentUser(req).(*User); ok {
 		claims := &claims.Claims{UserID: strconv.Itoa(int(currentUser.ID))}
 		context := &auth.Context{Auth: Auth, Claims: claims, Request: req}
-		if user, err := Auth.UserStorer.Get(claims, context); err == nil {
-			return user.(*User), nil
+		user, err := Auth.UserStorer.Get(claims, context)
+		if err != nil {
+			return nil, err
 		}
+		return user.(*User), nil
 	}
-	return nil, nil
+	return nil, errors.New("error fetching user from db")
 }
 
 //BanzaiUserStorer struct
