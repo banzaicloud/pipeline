@@ -62,18 +62,15 @@ The platform includes a few default `spotguides` like: **Apache Spark, Apache Ze
 
 ## Cloud Providers
 
-Pipeline is currently experimental and all the development, testing and the CI/CD pipeline itself is tested on **AWS** and **Azure** only. The latest version contains the control plane, cloud images, Cloudformation/ARM templates and belonging artifacts released under the *0.2.0* across repositories.
+Pipeline is currently experimental and all the development, testing and the CI/CD pipeline itself is tested on **AWS**, **Google** and **Azure** only. The latest version contains the control plane, cloud images, Cloudformation/ARM templates and belonging artifacts released under the *0.3.0* across repositories.
 
 Nevertheless, the underlying [Kubicorn](http://kubicorn.io) framework has support for the following providers.
 
-  * Amazon AWS
-  * Google Cloud
-  * Microsoft Azure
   * Digital Ocean
 
 ## Managed Kubernetes
 
-Pipeline is architected in a way to allow pluggable implementations for providers, managed Kubernetes clusters or hybrid environments. Through provider plugins retrives the `kubeconfig` and connects and deploys applications. Currently it's tested with [Microsoft's Azure managed Kubernetes](https://azure.microsoft.com/en-us/blog/introducing-azure-container-service-aks-managed-kubernetes-and-azure-container-registry-geo-replication/) and Google' GKE.
+Pipeline is architected in a way to allow pluggable implementations for providers, managed Kubernetes clusters or hybrid environments. Through provider plugins retrives the `kubeconfig` and connects and deploys applications. Currently it's tested with [Google Kubernetes Engine](https://cloud.google.com/kubernetes-engine/) and [Microsoft's Azure managed Kubernetes](https://azure.microsoft.com/en-us/blog/introducing-azure-container-service-aks-managed-kubernetes-and-azure-container-registry-geo-replication/).
 
   * Microsoft AKS
   * Google GKE
