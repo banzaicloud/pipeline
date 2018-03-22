@@ -31,7 +31,7 @@ const (
 	clusterRequestMasterImage    = "testImage"
 	clusterRequestMasterInstance = "testInstance"
 	clusterServiceAccount        = "testServiceAccount"
-	organisationId               = 1
+	organizationId               = 1
 )
 
 func TestCreateCommonClusterFromRequest(t *testing.T) {
@@ -47,7 +47,7 @@ func TestCreateCommonClusterFromRequest(t *testing.T) {
 		{name: "aws create", createRequest: awsCreateFull, expectedModel: awsModelFull, expectedError: nil},
 
 		{name: "gke wrong k8s version", createRequest: gkeWrongK8sVersion, expectedModel: nil, expectedError: constants.ErrorWrongKubernetesVersion},
-		{name: "gke different k8s version", createRequest: gkeDifferentK8sVersion, expectedModel: gkeModelDifferentVersion, expectedError: nil},
+		{name: "gke different k8s version", createRequest: gkeDifferentK8sVersion, expectedModel: gkeModelDifferentVersion, expectedError: constants.ErrorDifferentKubernetesVersion},
 
 		{name: "not supported cloud", createRequest: notSupportedCloud, expectedModel: nil, expectedError: constants.ErrorNotSupportedCloudType},
 	}
@@ -55,7 +55,7 @@ func TestCreateCommonClusterFromRequest(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 
-			commonCluster, err := cluster.CreateCommonClusterFromRequest(tc.createRequest, organisationId)
+			commonCluster, err := cluster.CreateCommonClusterFromRequest(tc.createRequest, organizationId)
 
 			if tc.expectedError != nil {
 
@@ -274,7 +274,7 @@ var (
 		NodeInstanceType: clusterRequestNodeInstance,
 		SecretId:         clusterRequestSecretId,
 		Cloud:            constants.Google,
-		OrganizationId:   organisationId,
+		OrganizationId:   organizationId,
 		Amazon:           model.AmazonClusterModel{},
 		Azure:            model.AzureClusterModel{},
 		Google: model.GoogleClusterModel{
@@ -292,7 +292,7 @@ var (
 		NodeInstanceType: clusterRequestNodeInstance,
 		SecretId:         clusterRequestSecretId,
 		Cloud:            constants.Azure,
-		OrganizationId:   organisationId,
+		OrganizationId:   organizationId,
 		Amazon:           model.AmazonClusterModel{},
 		Azure: model.AzureClusterModel{
 			ResourceGroup:     clusterRequestRG,
@@ -309,7 +309,7 @@ var (
 		NodeInstanceType: clusterRequestNodeInstance,
 		SecretId:         clusterRequestSecretId,
 		Cloud:            constants.Amazon,
-		OrganizationId:   organisationId,
+		OrganizationId:   organizationId,
 		Amazon: model.AmazonClusterModel{
 			NodeSpotPrice:      clusterRequestSpotPrice,
 			NodeMinCount:       clusterRequestNodeCount,
@@ -328,7 +328,7 @@ var (
 		NodeInstanceType: clusterRequestNodeInstance,
 		SecretId:         clusterRequestSecretId,
 		Cloud:            constants.Google,
-		OrganizationId:   organisationId,
+		OrganizationId:   organizationId,
 		Amazon:           model.AmazonClusterModel{},
 		Azure:            model.AzureClusterModel{},
 		Google: model.GoogleClusterModel{
