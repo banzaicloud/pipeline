@@ -11,8 +11,11 @@ import (
 )
 
 var logger *logrus.Logger
-var Store *SecretStore
 
+// Store object that wraps up vault logical store
+var Store *secretStore
+
+// Validated secret types
 const (
 	Amazon     = "AMAZON_SECRET"
 	Azure      = "AZURE_SECRET"
@@ -26,27 +29,31 @@ func init() {
 	Store = newVaultSecretStore()
 }
 
-type SecretStore struct {
+type secretStore struct {
 	client  *vault.Client
 	logical *vaultapi.Logical
 }
 
+// CreateSecretResponse API response for AddSecrets
 type CreateSecretResponse struct {
 	Name       string `json:"name" binding:"required"`
 	SecretType string `json:"type" binding:"required"`
 	SecretID   string `json:"secret_id"`
 }
 
+// CreateSecretRequest param for Store.Store
 type CreateSecretRequest struct {
 	Name       string            `json:"name" binding:"required"`
 	SecretType string            `json:"type" binding:"required"`
 	Values     map[string]string `json:"values" binding:"required"`
 }
 
+// ListSecretsResponse for API response for ListSecrets
 type ListSecretsResponse struct {
 	Secrets []SecretsItemResponse `json:"secrets"`
 }
 
+// SecretsItemResponse for GetSecret (no API endpoint for this!)
 type SecretsItemResponse struct {
 	ID         string            `json:"id"`
 	Name       string            `json:"name"`
@@ -54,22 +61,24 @@ type SecretsItemResponse struct {
 	Values     map[string]string `json:"-"`
 }
 
-func newVaultSecretStore() *SecretStore {
+func newVaultSecretStore() *secretStore {
 	role := "pipeline"
 	client, err := vault.NewClient(role)
 	if err != nil {
 		panic(err)
 	}
 	logical := client.Vault().Logical()
-	return &SecretStore{client: client, logical: logical}
+	return &secretStore{client: client, logical: logical}
 }
 
+// GenerateSecretID uuid for new secrets
 func GenerateSecretID() string {
 	log := logger.WithFields(logrus.Fields{"tag": "Secret"})
 	log.Debug("Generating secret id")
 	return uuid.NewV4().String()
 }
 
+// DefaultRules key matching for types
 var DefaultRules = map[string][]string{
 	Amazon: {
 		"AWS_ACCESS_KEY_ID",
@@ -95,6 +104,7 @@ var DefaultRules = map[string][]string{
 	},
 }
 
+// Validate SecretRequest
 func (c *CreateSecretRequest) Validate() error {
 	requiresKeys, ok := DefaultRules[c.SecretType]
 	if !ok {
@@ -109,16 +119,19 @@ func (c *CreateSecretRequest) Validate() error {
 	return nil
 }
 
-func (ss *SecretStore) Delete(organizationID, secretID string) error {
+// Delete secret secret/orgs/:orgid:/:id: scope
+func (ss *secretStore) Delete(organizationID, secretID string) error {
 	log := logger.WithFields(logrus.Fields{"tag": "DeleteSecret"})
 	log.Debugf("Delete sectret: %s", fmt.Sprintf("secret/orgs/%s/%s", organizationID, secretID))
 	_, err := ss.logical.Delete(fmt.Sprintf("secret/orgs/%s/%s", organizationID, secretID))
 	return err
 }
 
-func (ss *SecretStore) Store(path string, value CreateSecretRequest) error {
+// Save secret secret/orgs/:orgid:/:id: scope
+func (ss *secretStore) Store(organizationID, secretID string, value CreateSecretRequest) error {
 	log := logger.WithFields(logrus.Fields{"tag": "StoreSecret"})
-	log.Infof("Start storing secret")
+	log.Infof("Storing secret")
+	path := fmt.Sprintf("secret/orgs/%s/%s", organizationID, secretID)
 	data := map[string]interface{}{"value": value}
 	if _, err := ss.logical.Write(path, data); err != nil {
 		return errors.Wrap(err, "Error during storing secret")
@@ -126,7 +139,8 @@ func (ss *SecretStore) Store(path string, value CreateSecretRequest) error {
 	return nil
 }
 
-func (ss *SecretStore) Get(organizationID string, secretID string) (*SecretsItemResponse, error) {
+// Retrieve secret secret/orgs/:orgid:/:id: scope
+func (ss *secretStore) Get(organizationID string, secretID string) (*SecretsItemResponse, error) {
 	secretPath := fmt.Sprintf("secret/orgs/%s/%s", organizationID, secretID)
 	secret, err := ss.logical.Read(secretPath)
 	if err != nil {
@@ -148,7 +162,8 @@ func (ss *SecretStore) Get(organizationID string, secretID string) (*SecretsItem
 	return secretResp, nil
 }
 
-func (ss *SecretStore) List(organizationID string) ([]SecretsItemResponse, error) {
+// List secret secret/orgs/:orgid:/ scope
+func (ss *secretStore) List(organizationID string) ([]SecretsItemResponse, error) {
 	log := logger.WithFields(logrus.Fields{"tag": "ListSecret"})
 	log.Info("Listing secrets")
 	responseItems := make([]SecretsItemResponse, 0)
@@ -177,6 +192,5 @@ func (ss *SecretStore) List(organizationID string) ([]SecretsItemResponse, error
 	} else {
 		return responseItems, nil
 	}
-
 	return responseItems, nil
 }
