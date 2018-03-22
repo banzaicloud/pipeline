@@ -97,7 +97,7 @@ func GetOrganizations(c *gin.Context) {
 	} else if len(organizations) > 1 {
 		message := fmt.Sprintf("multiple organizations found with id: %q", idParam)
 		log.Info(message)
-		c.AbortWithStatusJSON(http.StatusNotFound, components.ErrorResponse{
+		c.AbortWithStatusJSON(http.StatusConflict, components.ErrorResponse{
 			Code:    http.StatusConflict,
 			Message: message,
 			Error:   message,
@@ -122,7 +122,7 @@ func CreateOrganization(c *gin.Context) {
 	if err != nil {
 		message := "error creating organization"
 		log.Info(message + ": " + err.Error())
-		c.JSON(http.StatusInternalServerError, components.ErrorResponse{
+		c.AbortWithStatusJSON(http.StatusInternalServerError, components.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: message,
 			Error:   message,
@@ -135,7 +135,11 @@ func CreateOrganization(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&name); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, components.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: err.Error(),
+			Error:   err.Error(),
+		})
 		return
 	}
 
@@ -145,7 +149,7 @@ func CreateOrganization(c *gin.Context) {
 	if err != nil {
 		message := "error creating organization"
 		log.Info(message + ": " + err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.AbortWithStatusJSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: message,
 			Error:   message,
