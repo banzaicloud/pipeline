@@ -8,6 +8,7 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"github.com/go-errors/errors"
 )
 
 func AddSecrets(c *gin.Context) {
@@ -72,22 +73,33 @@ func ListSecrets(c *gin.Context) {
 	log = logger.WithFields(logrus.Fields{"tag": "List Secrets"})
 	log.Info("Start listing secrets")
 
-	log.Info("Get organization id from params")
+	log.Info("Get organization id and secret type from params")
 	organizationID := auth.GetCurrentOrganization(c.Request).IDString()
+	secretType := c.Param("type")
 	log.Infof("Organization id: %s", organizationID)
+	log.Infof("Secret type: %s", secretType)
 
-	if items, err := secret.Store.List(organizationID); err != nil {
-		log.Errorf("Error during listing secrets: %s", err.Error())
-		c.AbortWithStatusJSON(http.StatusBadRequest, components.ErrorResponse{
+	if err := isValidSecretType(secretType); err != nil {
+		log.Errorf("Error validation secret type[%s]: %s", secretType, err.Error())
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
-			Message: "Error during listing secrets",
+			Message: "Not supported secret type",
 			Error:   err.Error(),
 		})
 	} else {
-		log.Infof("Listing secrets succeeded: %#v", items)
-		c.JSON(http.StatusOK, secret.ListSecretsResponse{
-			Secrets: items,
-		})
+		if items, err := secret.Store.List(organizationID, secretType); err != nil {
+			log.Errorf("Error during listing secrets: %s", err.Error())
+			c.AbortWithStatusJSON(http.StatusBadRequest, components.ErrorResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Error during listing secrets",
+				Error:   err.Error(),
+			})
+		} else {
+			log.Infof("Listing secrets succeeded: %#v", items)
+			c.JSON(http.StatusOK, secret.ListSecretsResponse{
+				Secrets: items,
+			})
+		}
 	}
 }
 
@@ -113,5 +125,18 @@ func DeleteSecrets(c *gin.Context) {
 	} else {
 		log.Info("Delete secrets succeeded")
 		c.Status(http.StatusNoContent)
+	}
+}
+
+func isValidSecretType(secretType string) error {
+	if len(secretType) == 0 {
+		return nil
+	} else {
+		for _, st := range secret.AllTypes {
+			if st == secretType {
+				return nil
+			}
+		}
+		return errors.New("Not supported secret type")
 	}
 }
