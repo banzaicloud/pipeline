@@ -128,6 +128,7 @@ func DeleteSecrets(c *gin.Context) {
 	}
 }
 
+// isValidSecretType checks the given secret type is supported
 func isValidSecretType(secretType string) error {
 	if len(secretType) == 0 {
 		return nil
