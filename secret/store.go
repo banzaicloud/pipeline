@@ -24,6 +24,14 @@ const (
 	Kubernetes = "KUBERNETES_SECRET"
 )
 
+type supportedSecretType []string
+
+var AllTypes = supportedSecretType{
+	Amazon,
+	Azure,
+	Google,
+}
+
 func init() {
 	logger = config.Logger()
 	Store = newVaultSecretStore()
@@ -163,7 +171,7 @@ func (ss *secretStore) Get(organizationID string, secretID string) (*SecretsItem
 }
 
 // List secret secret/orgs/:orgid:/ scope
-func (ss *secretStore) List(organizationID string) ([]SecretsItemResponse, error) {
+func (ss *secretStore) List(organizationID, secretType string) ([]SecretsItemResponse, error) {
 	log := logger.WithFields(logrus.Fields{"tag": "ListSecret"})
 	log.Info("Listing secrets")
 	responseItems := make([]SecretsItemResponse, 0)
@@ -181,12 +189,15 @@ func (ss *secretStore) List(organizationID string) ([]SecretsItemResponse, error
 				log.Errorf("Error listing secrets: %s", err.Error())
 			} else if secret != nil {
 				secretData := secret.Data["value"].(map[string]interface{})
-				sir := SecretsItemResponse{
-					ID:         key.(string),
-					Name:       secretData["name"].(string),
-					SecretType: secretData["type"].(string),
+				sType := secretData["type"].(string)
+				if sType == secretType {
+					sir := SecretsItemResponse{
+						ID:         key.(string),
+						Name:       secretData["name"].(string),
+						SecretType: sType,
+					}
+					responseItems = append(responseItems, sir)
 				}
-				responseItems = append(responseItems, sir)
 			}
 		}
 	} else {
