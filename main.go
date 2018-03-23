@@ -130,6 +130,8 @@ func main() {
 			orgs.GET("/:orgid/secrets", api.ListSecrets)
 			orgs.POST("/:orgid/secrets", api.AddSecrets)
 			orgs.DELETE("/:orgid/secrets/:secretid", api.DeleteSecrets)
+			orgs.GET("/:orgid/users", api.GetUsers)
+			orgs.GET("/:orgid/users/:id", api.GetUsers)
 		}
 		//v1.GET("/clusters/gke/:projectid/:zone/serverconf", cluster.GetGkeServerConfig) // todo think about it and move
 		v1.GET("/token", auth.GenerateToken)
