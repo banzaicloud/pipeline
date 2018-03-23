@@ -11,7 +11,6 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	jwtRequest "github.com/dgrijalva/jwt-go/request"
 	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
 	"github.com/qor/auth"
 	"github.com/qor/auth/authority"
 	"github.com/qor/auth/claims"
@@ -278,7 +277,7 @@ func Handler(c *gin.Context) {
 
 func saveUserIntoContext(c *gin.Context, claims *ScopedClaims) {
 	userID, _ := strconv.ParseUint(claims.Subject, 10, 32)
-	newContext := context.WithValue(c.Request.Context(), auth.CurrentUser, &User{Model: gorm.Model{ID: uint(userID)}})
+	newContext := context.WithValue(c.Request.Context(), auth.CurrentUser, &User{ID: uint(userID)})
 	c.Request = c.Request.WithContext(newContext)
 }
 

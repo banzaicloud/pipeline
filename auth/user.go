@@ -26,12 +26,15 @@ const (
 
 //User struct
 type User struct {
-	gorm.Model
-	Name          string         `form:"name"`
-	Email         string         `form:"email"`
-	Login         string         `gorm:"unique;not null" form:"login"`
-	Image         string         `form:"image"`
-	Organizations []Organization `gorm:"many2many:user_organizations"`
+	ID            uint           `gorm:"primary_key" json:"id"`
+	CreatedAt     time.Time      `json:"createdAt"`
+	UpdatedAt     time.Time      `json:"updatedAt"`
+	DeletedAt     *time.Time     `sql:"index" json:"deletedAt,omitempty"`
+	Name          string         `form:"name" json:"name,omitempty"`
+	Email         string         `form:"email" json:"email,omitempty"`
+	Login         string         `gorm:"unique;not null" form:"login" json:"login"`
+	Image         string         `form:"image" json:"image,omitempty"`
+	Organizations []Organization `gorm:"many2many:user_organizations" json:"organizations,omitempty"`
 }
 
 //DroneUser struct
