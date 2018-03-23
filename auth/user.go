@@ -8,10 +8,10 @@ import (
 
 	"github.com/banzaicloud/pipeline/model"
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/go-errors/errors"
 	"github.com/jinzhu/copier"
 	"github.com/jinzhu/gorm"
 	// blank import is used here for sql driver inclusion
-	"github.com/go-errors/errors"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/qor/auth"
 	"github.com/qor/auth/claims"
