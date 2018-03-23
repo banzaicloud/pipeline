@@ -6,7 +6,7 @@
 
 _Banzai Pipeline, or simply Pipeline is a tabletop reef break located in Hawaii, Oahu's North Shore. The most famous and infamous reef on the planet is forming the benchmark by which all other waves are measured._
 
-_Pipeline is a RESTful API to deploy **cloud native** microservices in public cloud and on-premise. It simplifies and abstracts all the details of provisioning the cloud infrastructure, installing or reusing the Kubernetes cluster and deploying the application._
+_Pipeline is a RESTful API to deploy **cloud native** microservices in public cloud and on-premise. It simplifies and abstracts all the details of provisioning the cloud and Kubernetes infrastructure, deploying, monitoring and managing the applications lifecycle._
 
 <p align="center">
   <img width="139" height="197" src="docs/images/warning.jpg">
@@ -47,7 +47,7 @@ _Pipeline is a RESTful API to deploy **cloud native** microservices in public cl
 
 The Pipeline API is able to create and configure custom Kubernetes clusters in the cloud and deploy cloud native applications while taking care about services, ingress, network and volume management, replication and failover. It also monitors and autoscales the underlying cloud infrastucture, K8S cluster, pods and the application itself.
 
-It is a core building block and engine of the **Pipeline Platform** - an open source, multi cloud application platform as a service, based on a container management system. It is an application centric approach of a software delivery and deployment pipeline, to build cloud native microservices with confidence. It simplifies and abstracts all the details of provisioning the cloud infrastructure, installing or reusing the managed Kubernetes cluster and building, deploying and monitoring the application. The PaaS is a container management platform including a full CI/CD workflow, orchestration, SLA rules based autoscaling and advanced networking delivering a complete solution for developers.
+It is a core building block and engine of the **Pipeline Platform** - an open source, multi cloud application platform as a service, based on a container management system. It is an application centric approach of a software delivery and deployment pipeline, to build cloud native microservices with confidence. It simplifies and abstracts all the details of provisioning the cloud infrastructure, installing or reusing the managed Kubernetes cluster and building, deploying and monitoring the application. The PaaS includes a full CI/CD workflow, orchestration, SLA rules based autoscaling and advanced networking delivering a complete solution for developers.
 
 The main features of the platform are:
 
@@ -55,18 +55,14 @@ The main features of the platform are:
 * **Microservice Ready:** _Focus and build great applications and forget the hard stuff of ops, failover, build pipelines, patching and security_
 * **Scaling:** _Supports SLA rules for resiliency, failover and autoscaling_
 * **Operations support:** _Centralized log collection, tracing and advanced monitoring support for the underlying infrastructure, Kubernetes cluster and the deployed application_
-* **Spotguides:** _Understands the application runtime requirements and dependencies, builds the artifacts and pushes to the PaaS while applying the CI/CD pipeline steps and advanced features (SLA rules, monitoring, linear regression based predictions)_
+* **Spotguides:** _Understands the application runtime requirements and dependencies, builds the artifacts and pushes to the PaaS while applying the CI/CD pipeline steps with ready to use advanced features (SLA rules, monitoring, alerting, linear regression based predictions)_
 * **Hook in:** _Trigger your pipeline with a GitHub Webhook and let the PaaS to build your app, provision or reuse the infrastructure and deploy, monitor and autoscale your deployment_
 
-The platform includes a few default `spotguides` like: **Apache Spark, Apache Zeppelin, TiDB** and **Apache Kafka.**
+The platform includes a few default `spotguides` like: **Apache Spark, Apache Zeppelin, TiDB, Apache Kafka, Fn, OpenFaaS, Kubeless, Java/JEE, etc among many others**.
 
 ## Cloud Providers
 
-Pipeline is currently experimental and all the development, testing and the CI/CD pipeline itself is tested on **AWS**, **Google** and **Azure** only. The latest version contains the control plane, cloud images, Cloudformation/ARM templates and belonging artifacts released under the *0.3.0* across repositories.
-
-Nevertheless, the underlying [Kubicorn](http://kubicorn.io) framework has support for the following providers.
-
-  * Digital Ocean
+Pipeline is currently experimental and all the development, testing and the CI/CD pipeline itself is tested on **AWS**, **Google** and **Azure** only. The latest version contains the control plane, cloud images, Cloudformation/ARM templates, GKE deployments and belonging artifacts released under the *0.3.0* tag across several repositories. We do `native` Kubernetes installation on AWS, whereas everyhere available we use managed Kubernetes offerings.
 
 ## Managed Kubernetes
 
@@ -82,19 +78,19 @@ Pipeline is architected in a way to allow pluggable implementations for provider
   * CoreOS Tectonic
   * Redhat OpenShift
 
-
 ## Architecture overview
 
 Pipeline enforces a typical **cloud native** architecture which takes full advantage of on-demand delivery, global deployment, elasticity, and higher-level services. It enables huge improvements in developer productivity, business agility, scalability, availability, utilization, and cost savings.
 
 It is written in `Golang` and built on public cloud provider APIs, Kubernetes, Kubicorn, Helm, Prometheus, Drone, Docker and a few other open source technologies - however all of these are abstracted for the end user behind a secure REST API.
-The central component of the Pipeline API is [Kubicorn](http://kubicorn.io) - a library/cli tool to provision and reconcile Kubernetes clusters in the cloud. Once the infrastructure/K8S cluster is provisioned by Pipeline, it also orchestrates the deployment of the application using Helm charts.
+One central component of the Pipeline API is [Kubicorn](http://kubicorn.io) - a library/cli tool to provision and reconcile Kubernetes clusters in the cloud. Once the infrastructure/K8S cluster is provisioned by Pipeline, it also orchestrates the deployment of the application using Helm charts.
 A cluster can be reused and new and updated charts can be redeployed as well - without the need of recreating the cloud infrastructure or the K8S cluster. It supports alerting and autoscaling based on metrics using Prometheus.
 By default there are metrics and Grafana dashboards exposing the behaviour of the underlying infrastructure, Kubernetes cluster and the application itself - based on the application specific `spotguide`.
 
 ### Control plane
 
-All these components are assembled into a **Control Plane** - and deployed to Kubernetes with Helm. A typical control plane - for an out of the box Spark/Zeppelin `spotguide` - looks like this:
+All these components are assembled into a **Control Plane** - and deployed to Kubernetes with Helm. A typical control plane - with a Spark/Zeppelin `spotguide` deployment looks like this:
+
 <p align="center">
 <img src="docs/images/control-plane-aws-azure.png" width="700">
 </p>
@@ -103,7 +99,8 @@ To launch a Pipeline control plane on AWS, Azure or Google Cloud follow this [do
 
 ### Deployments
 
-A typical cluster/application deployed with Pipeline - as an example Spark/Zeppelin spotguide - looks like this.
+A typical cluster/application deployed with Pipeline - as an example using Spark/Zeppelin spotguide deployment - looks like this.
+
 <p align="center">
 <img src="docs/images/spark-cluster-aws.png">
 </p>
