@@ -11,6 +11,8 @@ import (
 	"github.com/go-errors/errors"
 )
 
+var NotSupportedSecretType = errors.New("Not supported secret type")
+
 func AddSecrets(c *gin.Context) {
 
 	log = logger.WithFields(logrus.Fields{"tag": "Create Secrets"})
@@ -79,7 +81,7 @@ func ListSecrets(c *gin.Context) {
 	log.Infof("Organization id: %s", organizationID)
 	log.Infof("Secret type: %s", secretType)
 
-	if err := isValidSecretType(secretType); err != nil {
+	if err := IsValidSecretType(secretType); err != nil {
 		log.Errorf("Error validation secret type[%s]: %s", secretType, err.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
@@ -128,8 +130,8 @@ func DeleteSecrets(c *gin.Context) {
 	}
 }
 
-// isValidSecretType checks the given secret type is supported
-func isValidSecretType(secretType string) error {
+// IsValidSecretType checks the given secret type is supported
+func IsValidSecretType(secretType string) error {
 	if len(secretType) == 0 {
 		return nil
 	} else {
@@ -138,6 +140,6 @@ func isValidSecretType(secretType string) error {
 				return nil
 			}
 		}
-		return errors.New("Not supported secret type")
+		return NotSupportedSecretType
 	}
 }
