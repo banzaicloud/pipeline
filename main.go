@@ -138,7 +138,10 @@ func main() {
 			orgs.GET("/:orgid/allowed/secrets/:type", api.ListAllowedSecretTypes)
 		}
 		//v1.GET("/clusters/gke/:projectid/:zone/serverconf", cluster.GetGkeServerConfig) // todo think about it and move
-		v1.GET("/token", auth.GenerateToken)
+		v1.GET("/token", auth.GenerateToken) // Should be POST /tokens
+		v1.GET("/tokens", auth.GetTokens)
+		v1.GET("/tokens/:id", auth.GetTokens)
+		v1.DELETE("/tokens/:id", auth.DeleteToken)
 		v1.GET("/orgs", api.GetOrganizations)
 		v1.GET("/orgs/:orgid", api.GetOrganizations)
 		v1.POST("/orgs", api.CreateOrganization)

@@ -3,71 +3,105 @@ package auth
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/banzaicloud/bank-vaults/vault"
 	vaultapi "github.com/hashicorp/vault/api"
 )
 
+// Verify tokenstores satisfy the correct interface
+var _ TokenStore = (*inMemoryTokenStore)(nil)
+var _ TokenStore = (*vaultTokenStore)(nil)
+
+// Token represents an access token
+type Token struct {
+	ID        string
+	Name      string
+	CreatedAt time.Time
+}
+
 // TokenStore is general interface for storing access tokens
 type TokenStore interface {
-	Store(string, string) error
-	Lookup(string, string) (bool, error)
-	Revoke(string, string) error
-	List(string) ([]string, error)
+	Store(userID string, token *Token) error
+	Lookup(userID string, tokenID string) (*Token, error)
+	Revoke(userID string, tokenID string) error
+	List(userID string) ([]*Token, error)
+}
+
+// NewToken Creates a new Token instance initialized ID and Name and CreatedAt fields
+func NewToken(id, name string) *Token {
+	createdAt := time.Now()
+	return &Token{ID: id, Name: name, CreatedAt: createdAt}
+}
+
+func parseToken(secret *vaultapi.Secret) (*Token, error) {
+	if secret == nil {
+		return nil, fmt.Errorf("Can't find Secret")
+	}
+	tokenData := secret.Data["token"].(map[string]interface{})
+	token := &Token{}
+	token.ID = tokenData["ID"].(string)
+	token.Name = tokenData["Name"].(string)
+	createdAt, err := time.Parse(time.RFC3339, tokenData["CreatedAt"].(string))
+	if err != nil {
+		return nil, err
+	}
+	token.CreatedAt = createdAt
+	return token, nil
 }
 
 // In-memory implementation
 
 // NewInMemoryTokenStore is a basic in-memory TokenStore implementation (thread-safe)
 func NewInMemoryTokenStore() TokenStore {
-	return &inMemoryTokenStore{store: make(map[string]map[string]bool)}
+	return &inMemoryTokenStore{store: make(map[string]map[string]*Token)}
 }
 
 type inMemoryTokenStore struct {
 	sync.RWMutex
-	store map[string]map[string]bool
+	store map[string]map[string]*Token
 }
 
-func (tokenStore *inMemoryTokenStore) Store(userId, token string) error {
+func (tokenStore *inMemoryTokenStore) Store(userID string, token *Token) error {
 	tokenStore.Lock()
 	defer tokenStore.Unlock()
-	var userTokens map[string]bool
+	var userTokens map[string]*Token
 	var ok bool
-	if userTokens, ok = tokenStore.store[userId]; !ok {
-		userTokens = make(map[string]bool)
+	if userTokens, ok = tokenStore.store[userID]; !ok {
+		userTokens = make(map[string]*Token)
 	}
-	userTokens[token] = true
-	tokenStore.store[userId] = userTokens
+	userTokens[token.ID] = token
+	tokenStore.store[userID] = userTokens
 	return nil
 }
 
-func (tokenStore *inMemoryTokenStore) Lookup(userId, token string) (bool, error) {
+func (tokenStore *inMemoryTokenStore) Lookup(userID, tokenID string) (*Token, error) {
 	tokenStore.RLock()
 	defer tokenStore.RUnlock()
-	if userTokens, ok := tokenStore.store[userId]; ok {
-		_, found := userTokens[token]
-		return found, nil
+	if userTokens, ok := tokenStore.store[userID]; ok {
+		token, _ := userTokens[tokenID]
+		return token, nil
 	}
-	return false, nil
+	return nil, nil
 }
 
-func (tokenStore *inMemoryTokenStore) Revoke(userId, token string) error {
+func (tokenStore *inMemoryTokenStore) Revoke(userID, tokenID string) error {
 	tokenStore.Lock()
 	defer tokenStore.Unlock()
-	if userTokens, ok := tokenStore.store[userId]; ok {
-		delete(userTokens, token)
+	if userTokens, ok := tokenStore.store[userID]; ok {
+		delete(userTokens, tokenID)
 	}
 	return nil
 }
 
-func (tokenStore *inMemoryTokenStore) List(userId string) ([]string, error) {
+func (tokenStore *inMemoryTokenStore) List(userID string) ([]*Token, error) {
 	tokenStore.Lock()
 	defer tokenStore.Unlock()
-	if userTokens, ok := tokenStore.store[userId]; ok {
-		tokens := make([]string, len(userTokens))
+	if userTokens, ok := tokenStore.store[userID]; ok {
+		tokens := make([]*Token, len(userTokens))
 		i := 0
-		for k := range userTokens {
-			tokens[i] = k
+		for _, v := range userTokens {
+			tokens[i] = v
 			i++
 		}
 		return tokens, nil
@@ -87,8 +121,7 @@ type vaultTokenStore struct {
 }
 
 //NewVaultTokenStore creates a new Vault backed token store
-func NewVaultTokenStore() TokenStore {
-	role := "pipeline"
+func NewVaultTokenStore(role string) TokenStore {
 	client, err := vault.NewClient(role)
 	if err != nil {
 		panic(err)
@@ -97,39 +130,48 @@ func NewVaultTokenStore() TokenStore {
 	return vaultTokenStore{client: client, logical: logical}
 }
 
-func tokenPath(userId, token string) string {
-	return fmt.Sprintf("secret/accesstokens/%s/%s", userId, token)
+func tokenPath(userID, tokenID string) string {
+	return fmt.Sprintf("secret/accesstokens/%s/%s", userID, tokenID)
 }
 
-func (tokenStore vaultTokenStore) Store(userId, token string) error {
+func (tokenStore vaultTokenStore) Store(userID string, token *Token) error {
 	data := map[string]interface{}{"token": token}
-	_, err := tokenStore.logical.Write(tokenPath(userId, token), data)
+	_, err := tokenStore.logical.Write(tokenPath(userID, token.ID), data)
 	return err
 }
 
-func (tokenStore vaultTokenStore) Lookup(userId, token string) (bool, error) {
-	secret, err := tokenStore.logical.Read(tokenPath(userId, token))
+func (tokenStore vaultTokenStore) Lookup(userID, tokenID string) (*Token, error) {
+	secret, err := tokenStore.logical.Read(tokenPath(userID, tokenID))
 	if err != nil {
-		return false, err
+		return nil, err
 	}
-	return secret != nil, nil
+	return parseToken(secret)
 }
 
-func (tokenStore vaultTokenStore) Revoke(userId, token string) error {
-	_, err := tokenStore.logical.Delete(tokenPath(userId, token))
+func (tokenStore vaultTokenStore) Revoke(userID, tokenID string) error {
+	_, err := tokenStore.logical.Delete(tokenPath(userID, tokenID))
 	return err
 }
 
-func (tokenStore vaultTokenStore) List(userId string) ([]string, error) {
-	secret, err := tokenStore.logical.List(fmt.Sprintf("secret/accesstokens/%s", userId))
+func (tokenStore vaultTokenStore) List(userID string) ([]*Token, error) {
+	secret, err := tokenStore.logical.List(fmt.Sprintf("secret/accesstokens/%s", userID))
 	if err != nil {
 		return nil, err
 	}
 
 	keys := secret.Data["keys"].([]interface{})
-	tokens := make([]string, len(keys))
-	for i, key := range keys {
-		tokens[i] = key.(string)
+	tokens := make([]*Token, len(keys))
+
+	for i, tokenID := range keys {
+		secret, err := tokenStore.logical.Read(tokenPath(userID, tokenID.(string)))
+		if err != nil {
+			return nil, err
+		}
+		token, err := parseToken(secret)
+		if err != nil {
+			return nil, err
+		}
+		tokens[i] = token
 	}
 	return tokens, nil
 }
