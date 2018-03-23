@@ -132,14 +132,11 @@ func DeleteSecrets(c *gin.Context) {
 
 // IsValidSecretType checks the given secret type is supported
 func IsValidSecretType(secretType string) error {
-	if len(secretType) == 0 {
-		return nil
-	} else {
-		for _, st := range secret.AllTypes {
-			if st == secretType {
-				return nil
-			}
+	if len(secretType) != 0 {
+		r := secret.DefaultRules[secretType]
+		if r == nil {
+			return NotSupportedSecretType
 		}
-		return NotSupportedSecretType
 	}
+	return nil
 }
