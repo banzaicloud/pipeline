@@ -24,15 +24,6 @@ const (
 	Kubernetes = "KUBERNETES_SECRET"
 )
 
-// All supported secret types in a slice to help in validate (in list secrets endpoint)
-var AllTypes = []string{
-	Amazon,
-	Azure,
-	Google,
-	General,
-	Kubernetes,
-}
-
 func init() {
 	logger = config.Logger()
 	Store = newVaultSecretStore()
