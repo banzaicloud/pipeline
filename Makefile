@@ -41,9 +41,9 @@ endif
 revendor: ## fix vendor dir (flattened) with forked kubicorn
 	rm -rf vendor
 	glide i -v --skip-test
-	rm -rf vendor/github.com/kris-nova/kubicorn/
-	git clone https://github.com/banzaicloud/kubicorn.git  vendor/github.com/kris-nova/kubicorn/
-	cd vendor/github.com/kris-nova/kubicorn/ &&  git checkout master
+	rm -rf vendor/github.com/kubicorn/kubicorn/
+	git clone https://github.com/banzaicloud/kubicorn.git  vendor/github.com/kubicorn/kubicorn/
+	cd vendor/github.com/kubicorn/kubicorn/ &&  git checkout master
 	glide-vc --only-code --no-tests
 
 help: ## Generates this help message
