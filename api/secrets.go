@@ -144,25 +144,34 @@ func ListAllowedSecretTypes(c *gin.Context) {
 	secretType := c.Param("type")
 	log.Infof("Secret type: %s", secretType)
 
-	if len(secretType) == 0 {
-		log.Info("List all types and keys")
-		c.JSON(http.StatusOK, secret.AllowedSecretTypesResponse{
-			Allowed: secret.DefaultRules,
-		})
-	} else if err := IsValidSecretType(secretType); err != nil {
-		log.Errorf("Error during secret type validation: %s", err.Error())
+	if response, err := GetAllowedTypes(secretType); err != nil {
+		log.Errorf("Error during listing allowed types: %s", err.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
-			Message: "Error during secret type validation",
+			Message: "Error during listing allowed types",
 			Error:   err.Error(),
 		})
 	} else {
-		log.Info("Valid secret type. List filtered secret types")
-		c.JSON(http.StatusOK, secret.AllowedFilteredSecretTypesResponse{
-			Keys: secret.DefaultRules[secretType],
-		})
+		c.JSON(http.StatusOK, response)
 	}
 
+}
+
+// GetAllowedTypes filters the allowed secret types if necessary
+func GetAllowedTypes(secretType string) (interface{}, error) {
+	if len(secretType) == 0 {
+		log.Info("List all types and keys")
+		return secret.AllowedSecretTypesResponse{
+			Allowed: secret.DefaultRules,
+		}, nil
+	} else if err := IsValidSecretType(secretType); err != nil {
+		return nil, err
+	} else {
+		log.Info("Valid secret type. List filtered secret types")
+		return secret.AllowedFilteredSecretTypesResponse{
+			Keys: secret.DefaultRules[secretType],
+		}, nil
+	}
 }
 
 // IsValidSecretType checks the given secret type is supported

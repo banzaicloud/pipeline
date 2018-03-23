@@ -17,7 +17,7 @@ func TestIsValidSecretType(t *testing.T) {
 		{name: "Amazon secret type", secretType: secret.Amazon, error: nil},
 		{name: "Azure secret type", secretType: secret.Azure, error: nil},
 		{name: "Google secret type", secretType: secret.Google, error: nil},
-		{name: "not supported secret type", secretType: "SOMETHING_ELSE", error: api.NotSupportedSecretType},
+		{name: "not supported secret type", secretType: invalidSecretType, error: api.NotSupportedSecretType},
 	}
 
 	for _, tc := range cases {
@@ -25,6 +25,37 @@ func TestIsValidSecretType(t *testing.T) {
 			err := api.IsValidSecretType(tc.secretType)
 			if !reflect.DeepEqual(tc.error, err) {
 				t.Errorf("Expected error: %s, but got: %s", tc.error.Error(), err.Error())
+			}
+		})
+	}
+
+}
+
+func TestListAllowedSecretTypes(t *testing.T) {
+
+	cases := []struct {
+		name             string
+		secretType       string
+		expectedResponse interface{}
+		error
+	}{
+		{name: "List all allowed secret types", secretType: "", expectedResponse: allAllowedTypes, error: nil},
+		{name: "List aws required keys", secretType: secret.Amazon, expectedResponse: awsRequiredKeys, error: nil},
+		{name: "List aks required keys", secretType: secret.Azure, expectedResponse: aksRequiredKeys, error: nil},
+		{name: "List gke required keys", secretType: secret.Google, expectedResponse: gkeRequiredKeys, error: nil},
+		{name: "Invalid secret type", secretType: invalidSecretType, expectedResponse: nil, error: api.NotSupportedSecretType},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if response, err := api.GetAllowedTypes(tc.secretType); err != nil {
+				if !reflect.DeepEqual(tc.error, err) {
+					t.Errorf("Error during listing allowed types: %s", err.Error())
+				}
+			} else {
+				if !reflect.DeepEqual(tc.expectedResponse, response) {
+					t.Errorf("Expected response: %s, but got: %s", tc.expectedResponse, response)
+				}
 			}
 		})
 	}
@@ -125,7 +156,8 @@ const (
 )
 
 const (
-	secretName = "testName1"
+	secretName        = "testName1"
+	invalidSecretType = "SOMETHING_ELSE"
 )
 
 // AWS test constants
@@ -273,5 +305,23 @@ var (
 			SecretType: secret.Google,
 			Values:     nil,
 		},
+	}
+)
+
+var (
+	allAllowedTypes = secret.AllowedSecretTypesResponse{
+		Allowed: secret.DefaultRules,
+	}
+
+	awsRequiredKeys = secret.AllowedFilteredSecretTypesResponse{
+		Keys: secret.DefaultRules[secret.Amazon],
+	}
+
+	aksRequiredKeys = secret.AllowedFilteredSecretTypesResponse{
+		Keys: secret.DefaultRules[secret.Azure],
+	}
+
+	gkeRequiredKeys = secret.AllowedFilteredSecretTypesResponse{
+		Keys: secret.DefaultRules[secret.Google],
 	}
 )
