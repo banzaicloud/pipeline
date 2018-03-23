@@ -61,6 +61,16 @@ type SecretsItemResponse struct {
 	Values     map[string]string `json:"-"`
 }
 
+// AllowedFilteredSecretTypesResponse for API response for AllowedSecretTypes/:type
+type AllowedFilteredSecretTypesResponse struct {
+	Keys []string `json:"keys"`
+}
+
+// AllowedFilteredSecretTypesResponse for API response for AllowedSecretTypes
+type AllowedSecretTypesResponse struct {
+	Allowed map[string][]string `json:"allowed"`
+}
+
 func newVaultSecretStore() *secretStore {
 	role := "pipeline"
 	client, err := vault.NewClient(role)
