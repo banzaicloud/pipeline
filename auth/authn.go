@@ -83,14 +83,15 @@ type DroneClaims struct {
 	Text string `json:"text,omitempty"`
 }
 
-func lookupAccessToken(userId, token string) (bool, error) {
-	return tokenStore.Lookup(userId, token)
+func lookupAccessToken(userID, tokenID string) (*Token, error) {
+	return tokenStore.Lookup(userID, tokenID)
 }
 
 func validateAccessToken(claims *ScopedClaims) (bool, error) {
 	userID := claims.Subject
 	tokenID := claims.Id
-	return lookupAccessToken(userID, tokenID)
+	token, err := lookupAccessToken(userID, tokenID)
+	return token != nil, err
 }
 
 //Init initialize the auth
@@ -158,7 +159,7 @@ func Init() {
 		Auth: Auth,
 	})
 
-	tokenStore = NewVaultTokenStore()
+	tokenStore = NewVaultTokenStore("pipeline")
 }
 
 //GenerateToken generates token from context
@@ -195,12 +196,69 @@ func GenerateToken(c *gin.Context) {
 		err = c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Failed to sign token: %s", err))
 		log.Info(c.ClientIP(), err.Error())
 	} else {
-		err = tokenStore.Store(strconv.Itoa(int(currentUser.ID)), tokenID)
+		userID := strconv.Itoa(int(currentUser.ID))
+		token := NewToken(tokenID, "generated") // TODO get the name from the request
+		err = tokenStore.Store(userID, token)
 		if err != nil {
 			err = c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Failed to store token: %s", err))
 			log.Info(c.ClientIP(), err.Error())
 		} else {
 			c.JSON(http.StatusOK, gin.H{"token": signedToken})
+		}
+	}
+}
+
+// GetTokens returns the calling user's access tokens
+func GetTokens(c *gin.Context) {
+	currentUser := GetCurrentUser(c.Request)
+	if currentUser == nil {
+		err := c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("Invalid session"))
+		log.Info(c.ClientIP(), err.Error())
+		return
+	}
+	tokenID := c.Param("id")
+
+	if tokenID == "" {
+		tokens, err := tokenStore.List(currentUser.IDString())
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		} else {
+			c.JSON(http.StatusOK, tokens)
+		}
+	} else {
+		token, err := tokenStore.Lookup(currentUser.IDString(), tokenID)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		} else if token != nil {
+			c.JSON(http.StatusOK, token)
+		} else {
+			c.AbortWithStatusJSON(http.StatusNotFound, btype.ErrorResponse{
+				Code:    http.StatusNotFound,
+				Message: "Token not found",
+				Error:   "Token not found",
+			})
+		}
+	}
+}
+
+// DeleteToken deletes the calling user's access token specified by token id
+func DeleteToken(c *gin.Context) {
+	currentUser := GetCurrentUser(c.Request)
+	if currentUser == nil {
+		err := c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("Invalid session"))
+		log.Info(c.ClientIP(), err.Error())
+		return
+	}
+	tokenID := c.Param("id")
+
+	if tokenID == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, fmt.Errorf("Missing token id"))
+	} else {
+		err := tokenStore.Revoke(currentUser.IDString(), tokenID)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		} else {
+			c.Status(http.StatusNoContent)
 		}
 	}
 }
