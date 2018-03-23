@@ -13,6 +13,7 @@ import (
 
 var NotSupportedSecretType = errors.New("Not supported secret type")
 
+// AddSecrets saves the given secret to vault
 func AddSecrets(c *gin.Context) {
 
 	log = logger.WithFields(logrus.Fields{"tag": "Create Secrets"})
@@ -70,6 +71,7 @@ func AddSecrets(c *gin.Context) {
 	})
 }
 
+// ListSecrets returns the user all secrets, if the secret type is filled, then filtered
 func ListSecrets(c *gin.Context) {
 
 	log = logger.WithFields(logrus.Fields{"tag": "List Secrets"})
@@ -105,6 +107,7 @@ func ListSecrets(c *gin.Context) {
 	}
 }
 
+// DeleteSecrets delete a secret with the given secret id
 func DeleteSecrets(c *gin.Context) {
 	log = logger.WithFields(logrus.Fields{"tag": "Delete Secrets"})
 	log.Info("Start deleting secrets")
@@ -128,6 +131,38 @@ func DeleteSecrets(c *gin.Context) {
 		log.Info("Delete secrets succeeded")
 		c.Status(http.StatusNoContent)
 	}
+}
+
+// ListAllowedSecretTypes returns the allowed secret types and the required keys
+func ListAllowedSecretTypes(c *gin.Context) {
+	log = logger.WithFields(logrus.Fields{"tag": "List allowed types/required keys"})
+
+	log.Info("Start listing allowed types and required keys")
+	organizationID := auth.GetCurrentOrganization(c.Request).IDString()
+	log.Infof("Organization id: %s", organizationID)
+
+	secretType := c.Param("type")
+	log.Infof("Secret type: %s", secretType)
+
+	if len(secretType) == 0 {
+		log.Info("List all types and keys")
+		c.JSON(http.StatusOK, secret.AllowedSecretTypesResponse{
+			Allowed: secret.DefaultRules,
+		})
+	} else if err := IsValidSecretType(secretType); err != nil {
+		log.Errorf("Error during secret type validation: %s", err.Error())
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error during secret type validation",
+			Error:   err.Error(),
+		})
+	} else {
+		log.Info("Valid secret type. List filtered secret types")
+		c.JSON(http.StatusOK, secret.AllowedFilteredSecretTypesResponse{
+			Keys: secret.DefaultRules[secretType],
+		})
+	}
+
 }
 
 // IsValidSecretType checks the given secret type is supported
