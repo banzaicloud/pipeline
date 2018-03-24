@@ -22,6 +22,7 @@ _Pipeline is a RESTful API to deploy **cloud native** microservices in public cl
   - [Deployed clusters](#deployed-clusters)
   - [The Pipeline Platform - PaaS](#the-pipeline-platform-paas)
 - [Installation](#installation)
+- [API specification](#api-specification)
 - [Dependency management](#vendoring)
 - [Create Kubernetes clusters](#create-kubernetes-clusters)
 - [Deploy applications](#application-deployments)
