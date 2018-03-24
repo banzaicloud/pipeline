@@ -19,11 +19,11 @@ _Pipeline is a RESTful API to deploy **cloud native** microservices in public cl
   - [Managed Kubernetes](#managed-kubernetes)
 - [Architecture overview](#architecture-overview)
   - [Control plane](#control-plane)
-  - [Deployments](#deployments)
+  - [Deployed clusters](#deployed-clusters)
   - [The Pipeline Platform - PaaS](#the-pipeline-platform-paas)
 - [Installation](#installation)
 - [Dependency management](#vendoring)
-- [Create and scale your cluster](#create-and-scale-your-cluster)
+- [Create Kubernetes clusters](#create-kubernetes-clusters)
 - [Deploy applications](#application-deployments)
 - [Security](#security)
   - [Authentication](#authentication)
@@ -97,7 +97,7 @@ All these components are assembled into a **Control Plane** - and deployed to Ku
 
 To launch a Pipeline control plane on AWS, Azure or Google Cloud follow this [documentation](https://github.com/banzaicloud/pipeline-cp-launcher/blob/master/README.md).
 
-### Deployments
+### Deployed clusters
 
 A typical cluster/application deployed with Pipeline - as an example using Spark/Zeppelin spotguide deployment - looks like this.
 
@@ -123,11 +123,11 @@ Vendoring all dependencies is essential to have a **go get**-able package. Go ve
 
 ### API specification
 
-Pipeline us using OpenAPI 3.0 to specify the API, and it's compatible with all Swagger tooling. The get the specification please follow this [link](https://github.com/banzaicloud/pipeline-openapi).
+Pipeline is using OpenAPI 3.0 to specify the API, and it's compatible with all Swagger tooling. The get the specification please follow this [link](https://github.com/banzaicloud/pipeline-openapi).
 
-### Create and scale your cluster
+### Create Kubernetes clusters
 
-Once Pipeline API is started, the easiest way to start, stop, delete or scale a cluster is through the following Postman examples.
+Once Pipeline is started, it can creates Kubernetes clusters on all cloud providers using a RESTful API. The easiest way to create, start, stop, delete or scale a cluster is through the following Postman examples.
 
 [![Run in Postman](https://run.pstmn.io/button.svg)](https://www.getpostman.com/collections/094e8ba30480348b5489)
 
@@ -135,7 +135,13 @@ For alternative ways to create a cluster please follow the [create cluster guide
 
 ### Application deployments
 
-Once Pipeline API is started, the easiest way to deploy applications to it is through the following Postman examples.
+Once Pipeline is started, it can deploy applications using a RESTful API from any Helm repository. We have introduced a new feature where beside CLI and gRPC a RESTful API can be used to deploy applications packegd with Helm.
+
+<p align="center">
+<img src="/docs/images/tiller-rest-flow.png" width="700">
+</p>
+
+The easiest way to deploy applications to it is through the following Postman examples.
 
 [![Run in Postman](https://run.pstmn.io/button.svg)](https://www.getpostman.com/collections/094e8ba30480348b5489)
 
