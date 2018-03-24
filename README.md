@@ -105,7 +105,6 @@ A typical cluster/application deployed with Pipeline - as an example using Spark
 <img src="docs/images/spark-cluster-aws.png">
 </p>
 
-
 ### The Pipeline Platform PaaS
 
 Although this readme is about the **Pipeline API** itself, in order to briefly show the full picture and understand how Pipeline is a core part and the engine behind, please find below a typical platform overview - again within the context of an out of the box Spark/Zeppelin spotguide.
@@ -121,6 +120,10 @@ Pipeline API deploys microservice based applications using the REST API. Unlike 
 ### Vendoring
 
 Vendoring all dependencies is essential to have a **go get**-able package. Go vendoring in combination with Kubernetes is quiet tricky - we came up with a `solution` described in [dependency management guide](docs/deps.md).
+
+### API specification
+
+Pipeline us using OpenAPI 3.0 to specify the API, and it's compatible with all Swagger tooling. The get the specification please follow this [link](https://github.com/banzaicloud/pipeline-openapi).
 
 ### Create and scale your cluster
 
