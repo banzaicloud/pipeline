@@ -2,6 +2,7 @@ package secret
 
 import (
 	"fmt"
+
 	"github.com/banzaicloud/bank-vaults/vault"
 	"github.com/banzaicloud/pipeline/config"
 	vaultapi "github.com/hashicorp/vault/api"
@@ -183,12 +184,14 @@ func (ss *secretStore) List(organizationID, secretType string) ([]SecretsItemRes
 
 	if secret, err := ss.logical.List(orgSecretPath); err != nil {
 		log.Errorf("Error listing secrets: %s", err.Error())
+		return nil, err
 	} else if secret != nil {
 		keys := secret.Data["keys"].([]interface{})
 		for _, key := range keys {
 			secretID := key.(string)
 			if secret, err := ss.logical.Read(orgSecretPath + "/" + secretID); err != nil {
 				log.Errorf("Error listing secrets: %s", err.Error())
+				return nil, err
 			} else if secret != nil {
 				secretData := secret.Data["value"].(map[string]interface{})
 				sType := secretData["type"].(string)
