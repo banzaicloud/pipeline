@@ -93,7 +93,7 @@ By default there are metrics and Grafana dashboards exposing the behaviour of th
 All these components are assembled into a **Control Plane** - and deployed to Kubernetes with Helm. A typical control plane - with a Spark/Zeppelin `spotguide` deployment looks like this:
 
 <p align="center">
-<img src="docs/images/control-plane-aws-azure.png" width="700">
+<img src="docs/images/control-plane-creation.png" width="700">
 </p>
 
 To launch a Pipeline control plane on AWS, Azure or Google Cloud follow this [documentation](https://github.com/banzaicloud/pipeline-cp-launcher/blob/master/README.md).
