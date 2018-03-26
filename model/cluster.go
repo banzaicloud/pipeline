@@ -120,7 +120,7 @@ func (AzureClusterModel) TableName() string {
 // QueryCluster get's the clusters from the DB
 func QueryCluster(filter map[string]interface{}) ([]ClusterModel, error) {
 	var cluster []ClusterModel
-	err := db.Where(filter).First(&cluster).Error
+	err := db.Where(filter).Find(&cluster).Error
 	if err != nil {
 		return nil, err
 	}
