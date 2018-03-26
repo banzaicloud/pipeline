@@ -11,6 +11,7 @@ import (
 	"github.com/go-errors/errors"
 	"fmt"
 	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/cluster"
 )
 
 var NotSupportedSecretType = errors.New("Not supported secret type")
@@ -202,10 +203,14 @@ func checkClustersBeforeDelete(orgId, secretId string) error {
 		"secret_id":       secretId,
 	}
 
-	modelCluster, err := model.QueryCluster(filter)
-	if err != nil {
+	if modelCluster, err := model.QueryCluster(filter); err != nil {
 		return nil
+	} else {
+		if commonCLuster, err := cluster.GetCommonClusterFromModel(modelCluster); err != nil {
+			return nil
+		} else if _, err := commonCLuster.GetStatus(); err != nil {
+			return nil
+		}
+		return errors.New(fmt.Sprintf("There's a running cluster with this secret: %s[%d]", modelCluster.Name, modelCluster.ID))
 	}
-
-	return errors.New(fmt.Sprintf("There's a running cluster with this secret: %s[%d]", modelCluster.Name, modelCluster.ID))
 }
