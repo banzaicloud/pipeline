@@ -117,14 +117,14 @@ func (AzureClusterModel) TableName() string {
 	return constants.TableNameAzureProperties
 }
 
-//QueryCluster get's the cluster from the DB
-func QueryCluster(filter map[string]interface{}) (*ClusterModel, error) {
-	var cluster ClusterModel
+// QueryCluster get's the clusters from the DB
+func QueryCluster(filter map[string]interface{}) ([]ClusterModel, error) {
+	var cluster []ClusterModel
 	err := db.Where(filter).First(&cluster).Error
 	if err != nil {
 		return nil, err
 	}
-	return &cluster, nil
+	return cluster, nil
 }
 
 //GetSimpleClusterWithId returns a simple cluster model
