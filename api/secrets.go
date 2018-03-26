@@ -196,6 +196,7 @@ func IsValidSecretType(secretType string) error {
 	return nil
 }
 
+// checkClustersBeforeDelete returns error if there's a running cluster that created with the given secret
 func checkClustersBeforeDelete(orgId, secretId string) error {
 
 	filter := map[string]interface{}{
