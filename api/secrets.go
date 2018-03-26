@@ -9,6 +9,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/go-errors/errors"
+	"fmt"
+	"github.com/banzaicloud/pipeline/model"
 )
 
 var NotSupportedSecretType = errors.New("Not supported secret type")
@@ -118,7 +120,15 @@ func DeleteSecrets(c *gin.Context) {
 
 	secretID := c.Param("secretid")
 
-	if err := secret.Store.Delete(organizationID, secretID); err != nil {
+	log.Infof("Check clusters before delete secret[%s]", secretID)
+	if err := checkClustersBeforeDelete(organizationID, secretID); err != nil {
+		log.Errorf("Cluster found with this secret[%s]: %s", secretID, err.Error())
+		c.AbortWithStatusJSON(http.StatusBadRequest, components.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: fmt.Sprintf("Cluster found with this secret[%s]", secretID),
+			Error:   err.Error(),
+		})
+	} else if err := secret.Store.Delete(organizationID, secretID); err != nil {
 		log.Errorf("Error during deleting secrets: %s", err.Error())
 		code := http.StatusInternalServerError
 		resp := components.ErrorResponse{
@@ -183,4 +193,19 @@ func IsValidSecretType(secretType string) error {
 		}
 	}
 	return nil
+}
+
+func checkClustersBeforeDelete(orgId, secretId string) error {
+
+	filter := map[string]interface{}{
+		"organization_id": orgId,
+		"secret_id":       secretId,
+	}
+
+	modelCluster, err := model.QueryCluster(filter)
+	if err != nil {
+		return nil
+	}
+
+	return errors.New(fmt.Sprintf("There's a running cluster with this secret: %s[%d]", modelCluster.Name, modelCluster.ID))
 }
