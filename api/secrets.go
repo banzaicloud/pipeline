@@ -206,11 +206,13 @@ func checkClustersBeforeDelete(orgId, secretId string) error {
 	if modelCluster, err := model.QueryCluster(filter); err != nil {
 		return nil
 	} else {
-		if commonCLuster, err := cluster.GetCommonClusterFromModel(modelCluster); err != nil {
-			return nil
-		} else if _, err := commonCLuster.GetStatus(); err != nil {
-			return nil
+		for _, mc := range modelCluster {
+			if commonCluster, err := cluster.GetCommonClusterFromModel(&mc); err == nil {
+				if _, err := commonCluster.GetStatus(); err == nil {
+					return errors.New(fmt.Sprintf("There's a running cluster with this secret: %s[%d]", mc.Name, mc.ID))
+				}
+			}
 		}
-		return errors.New(fmt.Sprintf("There's a running cluster with this secret: %s[%d]", modelCluster.Name, modelCluster.ID))
+		return nil
 	}
 }

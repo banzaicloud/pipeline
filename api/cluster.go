@@ -58,7 +58,18 @@ func GetCommonClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
 		})
 		return nil, false
 	}
-	commonCLuster, err := cluster.GetCommonClusterFromModel(modelCluster)
+
+	if len(modelCluster) == 0 {
+		log.Errorf("Empty cluster list")
+		c.JSON(http.StatusNotFound, components.ErrorResponse{
+			Code:    http.StatusNotFound,
+			Message: "Cluster not found",
+			Error:   "",
+		})
+		return nil, false
+	}
+
+	commonCLuster, err := cluster.GetCommonClusterFromModel(&modelCluster[0])
 	if err != nil {
 		log.Errorf("GetCommonClusterFromModel failed: %s", err.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
