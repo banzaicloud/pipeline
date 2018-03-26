@@ -38,8 +38,6 @@ gkeCredentialPath = ""
 enabled = false
 
 [auth]
-enabled = true
-
 # GitHub settings
 clientid = ""
 clientsecret = ""
