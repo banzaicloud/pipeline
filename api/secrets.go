@@ -3,15 +3,15 @@ package api
 import (
 	"net/http"
 
+	"fmt"
 	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/cluster"
+	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 	"github.com/go-errors/errors"
-	"fmt"
-	"github.com/banzaicloud/pipeline/model"
-	"github.com/banzaicloud/pipeline/cluster"
+	"github.com/sirupsen/logrus"
 )
 
 var NotSupportedSecretType = errors.New("Not supported secret type")
