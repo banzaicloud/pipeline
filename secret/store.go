@@ -159,7 +159,7 @@ func (ss *secretStore) Get(organizationID string, secretID string) (*SecretsItem
 	}
 
 	if secret == nil {
-		return nil, errors.New(fmt.Sprintf("There's no secret with this id: %s", secretID))
+		return nil, fmt.Errorf("there's no secret with this id: %s", secretID)
 	}
 
 	secretData := secret.Data["value"].(map[string]interface{})
