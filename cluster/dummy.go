@@ -104,6 +104,14 @@ func (d *DummyCluster) DeleteFromDatabase() error {
 	return d.modelCluster.Delete()
 }
 
+func (d *DummyCluster) GetOrg() uint {
+	return d.modelCluster.OrganizationId
+}
+
+func (d *DummyCluster) GetSecretID() string {
+	return d.modelCluster.SecretId
+}
+
 func createDummyConfig() *kubeConfig {
 	return &kubeConfig{
 		APIVersion: "v1",
