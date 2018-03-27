@@ -83,6 +83,10 @@ type DroneClaims struct {
 	Text string `json:"text,omitempty"`
 }
 
+type createTokenRequest struct {
+	Name string `json:"name,omitempty"`
+}
+
 func lookupAccessToken(userID, tokenID string) (*Token, error) {
 	return tokenStore.Lookup(userID, tokenID)
 }
@@ -173,6 +177,15 @@ func GenerateToken(c *gin.Context) {
 		return
 	}
 
+	tokenRequest := createTokenRequest{Name: "generated"}
+	if c.Request.Method == http.MethodPost {
+		if err := c.ShouldBindJSON(&tokenRequest); err != nil {
+			err := c.AbortWithError(http.StatusBadRequest, err)
+			log.Info(c.ClientIP(), err.Error())
+			return
+		}
+	}
+
 	tokenID := uuid.NewV4().String()
 
 	// Create the Claims
@@ -198,13 +211,13 @@ func GenerateToken(c *gin.Context) {
 		log.Info(c.ClientIP(), err.Error())
 	} else {
 		userID := strconv.Itoa(int(currentUser.ID))
-		token := NewToken(tokenID, "generated") // TODO get the name from the request
+		token := NewToken(tokenID, tokenRequest.Name)
 		err = tokenStore.Store(userID, token)
 		if err != nil {
 			err = c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Failed to store token: %s", err))
 			log.Info(c.ClientIP(), err.Error())
 		} else {
-			c.JSON(http.StatusOK, gin.H{"token": signedToken})
+			c.JSON(http.StatusOK, gin.H{"id": tokenID, "token": signedToken})
 		}
 	}
 }

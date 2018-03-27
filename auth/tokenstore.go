@@ -15,9 +15,9 @@ var _ TokenStore = (*vaultTokenStore)(nil)
 
 // Token represents an access token
 type Token struct {
-	ID        string
-	Name      string
-	CreatedAt time.Time
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 // TokenStore is general interface for storing access tokens
