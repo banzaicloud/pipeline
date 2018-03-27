@@ -205,6 +205,7 @@ func checkClustersBeforeDelete(orgId, secretId string) error {
 	}
 
 	if modelCluster, err := model.QueryCluster(filter); err != nil {
+		log.Infof("No cluster found in database with the given orgId[%s] and secretId[%s]", orgId, secretId)
 		return nil
 	} else {
 		for _, mc := range modelCluster {
