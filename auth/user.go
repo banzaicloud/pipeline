@@ -129,14 +129,12 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 		// This assumes GitHub auth only right now
 		githubExtraInfo := schema.RawInfo.(*GithubExtraInfo)
 		currentUser.Login = githubExtraInfo.Login
-		if viper.GetBool("drone.enabled") {
-			err = bus.createUserInDroneDB(currentUser, githubExtraInfo.Token)
-			if err != nil {
-				log.Info(context.Request.RemoteAddr, err.Error())
-				return nil, "", err
-			}
-			bus.synchronizeDroneRepos(currentUser.Login)
+		err = bus.createUserInDroneDB(currentUser, githubExtraInfo.Token)
+		if err != nil {
+			log.Info(context.Request.RemoteAddr, err.Error())
+			return nil, "", err
 		}
+		bus.synchronizeDroneRepos(currentUser.Login)
 
 		// When a user registers a default organization is created in which he/she is admin
 		userOrg := Organization{
