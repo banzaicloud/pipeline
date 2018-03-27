@@ -23,7 +23,6 @@ func init() {
 	//viper.SetConfigType("toml")
 
 	// Set defaults TODO expand defaults
-	viper.SetDefault("drone.enabled", false)
 	viper.SetDefault("drone.url", "http://localhost:8000")
 	viper.SetDefault("helm.retryAttempt", 30)
 	viper.SetDefault("helm.retrySleepSeconds", 15)
