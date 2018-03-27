@@ -61,7 +61,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 		}
 
 		log.Debug("Load Amazon props from database")
-		database.Where(model.AzureClusterModel{ClusterModelId: awsCluster.modelCluster.ID}).First(&awsCluster.modelCluster.Amazon)
+		database.Where(model.AmazonClusterModel{ClusterModelId: awsCluster.modelCluster.ID}).First(&awsCluster.modelCluster.Amazon)
 
 		return awsCluster, nil
 
@@ -78,14 +78,14 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 		return aksCluster, nil
 
 	case constants.Google:
-		// Create Azure struct
+		// Create Google struct
 		gkeCluster, err := CreateGKEClusterFromModel(modelCluster)
 		if err != nil {
 			return nil, err
 		}
 
 		log.Info("Load Google props from database")
-		database.Where(model.AzureClusterModel{ClusterModelId: gkeCluster.modelCluster.ID}).First(&gkeCluster.modelCluster.Google)
+		database.Where(model.GoogleClusterModel{ClusterModelId: gkeCluster.modelCluster.ID}).First(&gkeCluster.modelCluster.Google)
 
 		return gkeCluster, nil
 	}
