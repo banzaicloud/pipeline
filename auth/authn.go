@@ -132,6 +132,7 @@ func Init() {
 			},
 			SignedStringBytes: []byte(signingKeyBase32),
 		},
+		LogoutHandler: BanzaiLogoutHandler,
 	})
 	if viper.GetBool("drone.enabled") {
 		Auth.UserStorer = BanzaiUserStorer{signingKeyBase32: signingKeyBase32, droneDB: initDroneDB()}
@@ -373,4 +374,10 @@ func (sessionStorer *BanzaiSessionStorer) Update(w http.ResponseWriter, req *htt
 func (sessionStorer *BanzaiSessionStorer) SignedTokenWithDrone(claims *DroneClaims) (string, error) {
 	token := jwt.NewWithClaims(sessionStorer.SigningMethod, claims)
 	return token.SignedString(sessionStorer.SignedStringBytes)
+}
+
+// BanzaiLogoutHandler does the qor/auth DefaultLogoutHandler default logout behaviour + deleting the Drone cookie
+func BanzaiLogoutHandler(context *auth.Context) {
+	DelCookie(context.Writer, context.Request, DroneSessionCookie)
+	auth.DefaultLogoutHandler(context)
 }
