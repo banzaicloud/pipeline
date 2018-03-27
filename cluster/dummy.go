@@ -1,12 +1,13 @@
+// The DummyCluster mocks create/update/delete functions. For testing and UI mocks.
 package cluster
 
 import (
 	"github.com/banzaicloud/banzai-types/components"
-	"github.com/sirupsen/logrus"
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/model"
-	"net/http"
+	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
+	"net/http"
 )
 
 type DummyCluster struct {
@@ -46,7 +47,6 @@ func (d *DummyCluster) Persist() error {
 }
 
 func (d *DummyCluster) GetK8sConfig() (*[]byte, error) {
-	//return nil, errors.New("")
 	data, err := yaml.Marshal(createDummyConfig())
 	if err != nil {
 		return nil, err
@@ -163,8 +163,7 @@ func createDummyConfig() *kubeConfig {
 			},
 			{
 				Name: "green-user",
-				User: userData{
-				},
+				User: userData{},
 			},
 		},
 		CurrentContext: "federal-context",

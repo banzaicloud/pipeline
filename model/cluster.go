@@ -148,7 +148,7 @@ func (GoogleClusterModel) TableName() string {
 	return constants.TableNameGoogleProperties
 }
 
-//TableName sets the GoogleClusterModel's table name
+//TableName sets the DummyClusterModel's table name
 func (DummyClusterModel) TableName() string {
 	return constants.TableNameDummyProperties
 }

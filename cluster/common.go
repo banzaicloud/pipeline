@@ -93,8 +93,8 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 		if err != nil {
 			return nil, err
 		}
-		log.Info("Load Google props from database")
-		database.Where(model.AzureClusterModel{ClusterModelId: dummyCluster.modelCluster.ID}).First(&dummyCluster.modelCluster.Dummy)
+		log.Info("Load Dummy props from database")
+		database.Where(model.DummyClusterModel{ClusterModelId: dummyCluster.modelCluster.ID}).First(&dummyCluster.modelCluster.Dummy)
 
 		return dummyCluster, nil
 	}
