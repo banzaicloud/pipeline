@@ -138,7 +138,8 @@ func main() {
 			orgs.GET("/:orgid/allowed/secrets/:type", api.ListAllowedSecretTypes)
 		}
 		//v1.GET("/clusters/gke/:projectid/:zone/serverconf", cluster.GetGkeServerConfig) // todo think about it and move
-		v1.GET("/token", auth.GenerateToken) // Should be POST /tokens
+		v1.GET("/token", auth.GenerateToken) // TODO Deprecated, should be removed once the UI has support.
+		v1.POST("/tokens", auth.GenerateToken)
 		v1.GET("/tokens", auth.GetTokens)
 		v1.GET("/tokens/:id", auth.GetTokens)
 		v1.DELETE("/tokens/:id", auth.DeleteToken)
