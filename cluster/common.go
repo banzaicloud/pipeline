@@ -148,7 +148,7 @@ func CreateCommonClusterFromRequest(createClusterRequest *bTypes.CreateClusterRe
 		}
 
 		// Create Dummy struct
-		dummy, err := CreateDummyClusterFromRequest(createClusterRequest)
+		dummy, err := CreateDummyClusterFromRequest(createClusterRequest, orgId)
 		if err != nil {
 			return nil, err
 		}

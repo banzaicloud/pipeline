@@ -16,7 +16,7 @@ type DummyCluster struct {
 }
 
 // CreateDummyClusterFromRequest creates ClusterModel struct from the request
-func CreateDummyClusterFromRequest(request *components.CreateClusterRequest) (*DummyCluster, error) {
+func CreateDummyClusterFromRequest(request *components.CreateClusterRequest, orgId uint) (*DummyCluster, error) {
 	log := logger.WithFields(logrus.Fields{"action": constants.TagCreateCluster})
 	log.Debug("Create ClusterModel struct from the request")
 	var cluster DummyCluster
@@ -26,6 +26,8 @@ func CreateDummyClusterFromRequest(request *components.CreateClusterRequest) (*D
 		Location:         request.Location,
 		NodeInstanceType: request.NodeInstanceType,
 		Cloud:            request.Cloud,
+		OrganizationId:   orgId,
+		SecretId:         request.SecretId,
 		Dummy: model.DummyClusterModel{
 			KubernetesVersion: request.Properties.CreateClusterDummy.Node.KubernetesVersion,
 			NodeCount:         request.Properties.CreateClusterDummy.Node.Count,
