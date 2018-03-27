@@ -79,7 +79,9 @@ func (d *DummyCluster) DeleteCluster() error {
 }
 
 func (d *DummyCluster) UpdateCluster(r *components.UpdateClusterRequest) error {
-	return nil // todo impl
+	d.modelCluster.Dummy.KubernetesVersion = r.UpdateClusterDummy.Node.KubernetesVersion
+	d.modelCluster.Dummy.NodeCount = r.UpdateClusterDummy.Node.Count
+	return nil
 }
 
 func (d *DummyCluster) GetID() uint {
