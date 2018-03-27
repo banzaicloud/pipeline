@@ -26,6 +26,8 @@ _Pipeline is a RESTful API to deploy **cloud native** microservices in public cl
 - [Dependency management](#vendoring)
 - [Create Kubernetes clusters](#create-kubernetes-clusters)
 - [Deploy applications](#application-deployments)
+  - [Deploy using the API](#deploy-using-the-api)
+  - [Deploy using CI/CD](#deploy-using-cicd)
 - [Security](#security)
   - [Authentication](#authentication)
   - [Dynamic secrets](#dynamic-secrets)
@@ -136,7 +138,11 @@ For alternative ways to create a cluster please follow the [create cluster guide
 
 ### Application deployments
 
-Once Pipeline is started, it can deploy applications using a RESTful API from any Helm repository. We have introduced a new feature where beside CLI and gRPC a RESTful API can be used to deploy applications packegd with Helm.
+Once Pipeline is started, it can deploy applications using a RESTful API from any Helm repository or using the in-built CI/CD system. 
+
+#### Deploy using the API
+
+We have introduced a new feature where beside CLI and gRPC a RESTful API can be used to deploy applications packegd with Helm.
 
 <p align="center">
 <img src="/docs/images/tiller-rest-flow.png" width="700">
@@ -145,6 +151,10 @@ Once Pipeline is started, it can deploy applications using a RESTful API from an
 The easiest way to deploy applications to it is through the following Postman examples.
 
 [![Run in Postman](https://run.pstmn.io/button.svg)](https://www.getpostman.com/collections/094e8ba30480348b5489)
+
+#### Deploy using CI/CD
+
+Pipeline has an in-built CI/CD system. Once the GitHub repository is configured with a commit hook, Pipeline can automatically clone, build and deploy the applications. For further CI/CD example please follow this [CI/CD guide](docs/pipeline-howto.md#define-pipeline-workflow-configuration-for-your-spark-application).
 
 For alternative ways to learn about application deployments please follow the [deployments guide](docs/deployments.md).
 
