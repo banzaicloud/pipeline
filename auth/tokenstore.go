@@ -40,9 +40,9 @@ func parseToken(secret *vaultapi.Secret) (*Token, error) {
 	}
 	tokenData := secret.Data["token"].(map[string]interface{})
 	token := &Token{}
-	token.ID = tokenData["ID"].(string)
-	token.Name = tokenData["Name"].(string)
-	createdAt, err := time.Parse(time.RFC3339, tokenData["CreatedAt"].(string))
+	token.ID = tokenData["id"].(string)
+	token.Name = tokenData["name"].(string)
+	createdAt, err := time.Parse(time.RFC3339, tokenData["createdAt"].(string))
 	if err != nil {
 		return nil, err
 	}
