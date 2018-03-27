@@ -37,7 +37,7 @@ func CreateDummyClusterFromRequest(request *components.CreateClusterRequest, org
 }
 
 func (d *DummyCluster) CreateCluster() error {
-	return nil // todo impl
+	return nil
 }
 
 func (d *DummyCluster) Persist() error {
@@ -75,7 +75,7 @@ func (d *DummyCluster) GetStatus() (*components.GetClusterStatusResponse, error)
 }
 
 func (d *DummyCluster) DeleteCluster() error {
-	return nil // todo impl
+	return nil
 }
 
 func (d *DummyCluster) UpdateCluster(r *components.UpdateClusterRequest) error {
@@ -93,15 +93,16 @@ func (d *DummyCluster) GetModel() *model.ClusterModel {
 }
 
 func (d *DummyCluster) CheckEqualityToUpdate(r *components.UpdateClusterRequest) error {
-	return nil // todo impl
+	return nil
 }
 
 func (d *DummyCluster) AddDefaultsToUpdate(r *components.UpdateClusterRequest) {
-	// todo impl
+
 }
 
 func (d *DummyCluster) GetAPIEndpoint() (string, error) {
-	return "http://cow.org:8080", nil
+	d.APIEndpoint = "http://cow.org:8080"
+	return d.APIEndpoint, nil
 }
 
 func (d *DummyCluster) DeleteFromDatabase() error {
