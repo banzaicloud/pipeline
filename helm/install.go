@@ -172,9 +172,9 @@ func createEnvSettings(helmRepoHome string) helm_env.EnvSettings {
 }
 
 func generateHelmRepoPath(path string) string {
-	const stateStorePath = "./statestore/"
-	const helmPostFix = "/helm"
-	return stateStorePath + path + helmPostFix
+	var stateStorePath = viper.GetString("statestore.path")
+	const helmPostFix = "helm"
+	return fmt.Sprintf("%s/%s/%s", stateStorePath, path, helmPostFix)
 }
 
 func downloadChartFromRepo(name, path string) (string, error) {
