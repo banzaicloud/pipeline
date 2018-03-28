@@ -418,6 +418,13 @@ func DeleteCluster(c *gin.Context) {
 	// Asyncron update prometheus
 	go cluster.UpdatePrometheus()
 
+	log.Info("Clean cluster's statestore folder ")
+	if err := cluster.CleanStateStore(commonCluster); err != nil {
+		log.Errorf("Statestore cleaning failed: %s", err.Error())
+	} else {
+		log.Info("Cluster's statestore folder cleaned")
+	}
+
 	c.JSON(http.StatusAccepted, components.DeleteClusterResponse{
 		Status:     http.StatusAccepted,
 		Name:       deleteName,

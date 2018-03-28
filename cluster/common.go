@@ -12,6 +12,7 @@ import (
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/terminal"
 )
@@ -168,4 +169,9 @@ func getSigner(pemBytes []byte) (ssh.Signer, error) {
 	}
 
 	return signerwithoutpassphrase, err
+}
+
+func CleanStateStore(cluster CommonCluster) error {
+	stateStorePath := fmt.Sprintf("%s/%s", viper.GetString("statestore.path"), cluster.GetName())
+	return os.RemoveAll(stateStorePath)
 }
