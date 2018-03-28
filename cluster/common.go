@@ -9,10 +9,10 @@ import (
 
 	bTypes "github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/banzai-types/constants"
+	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/terminal"
 )
@@ -171,7 +171,7 @@ func getSigner(pemBytes []byte) (ssh.Signer, error) {
 	return signerwithoutpassphrase, err
 }
 
-func CleanStateStore(cluster CommonCluster) error {
-	stateStorePath := fmt.Sprintf("%s/%s", viper.GetString("statestore.path"), cluster.GetName())
+func CleanStateStore(clusterName string) error {
+	stateStorePath := config.GetStateStorePath(clusterName)
 	return os.RemoveAll(stateStorePath)
 }

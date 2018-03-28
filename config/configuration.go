@@ -88,3 +88,12 @@ func GetCORS() cors.Config {
 	config.MaxAge = time.Duration(maxAge) * time.Hour
 	return config
 }
+
+func GetStateStorePath(clusterName string) string {
+	stateStorePath := viper.GetString("statestore.path")
+	if len(clusterName) == 0 {
+		return stateStorePath
+	} else {
+		return fmt.Sprintf("%s/%s", stateStorePath, clusterName)
+	}
+}

@@ -419,7 +419,7 @@ func DeleteCluster(c *gin.Context) {
 	go cluster.UpdatePrometheus()
 
 	log.Info("Clean cluster's statestore folder ")
-	if err := cluster.CleanStateStore(commonCluster); err != nil {
+	if err := cluster.CleanStateStore(deleteName); err != nil {
 		log.Errorf("Statestore cleaning failed: %s", err.Error())
 	} else {
 		log.Info("Cluster's statestore folder cleaned")
