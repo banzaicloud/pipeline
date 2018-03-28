@@ -133,6 +133,8 @@ func main() {
 			orgs.DELETE("/:orgid/secrets/:secretid", api.DeleteSecrets)
 			orgs.GET("/:orgid/users", api.GetUsers)
 			orgs.GET("/:orgid/users/:id", api.GetUsers)
+			orgs.POST("/:orgid/users/:id", api.AddUser)
+			orgs.DELETE("/:orgid/users/:id", api.RemoveUser)
 
 			orgs.GET("/:orgid/allowed/secrets/", api.ListAllowedSecretTypes)
 			orgs.GET("/:orgid/allowed/secrets/:type", api.ListAllowedSecretTypes)
@@ -145,6 +147,7 @@ func main() {
 		v1.DELETE("/tokens/:id", auth.DeleteToken)
 		v1.GET("/orgs", api.GetOrganizations)
 		v1.GET("/orgs/:orgid", api.GetOrganizations)
+		v1.DELETE("/orgs/:orgid", api.DeleteOrganization)
 		v1.POST("/orgs", api.CreateOrganization)
 	}
 

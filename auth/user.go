@@ -204,7 +204,7 @@ func (bus BanzaiUserStorer) synchronizeDroneRepos(login string) {
 	}
 }
 
-func getGithubOrganizations(token string) ([]Organization, error) {
+func getGithubOrganizations(token string) ([]*Organization, error) {
 	httpClient := oauth2.NewClient(
 		oauth2.NoContext,
 		oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token}),
@@ -216,11 +216,11 @@ func getGithubOrganizations(token string) ([]Organization, error) {
 		return nil, err
 	}
 
-	orgs := []Organization{}
+	orgs := []*Organization{}
 	for _, membership := range memberships {
 		githubOrg := membership.GetOrganization()
 		org := Organization{Name: githubOrg.GetLogin(), GithubID: githubOrg.ID, Role: membership.GetRole()}
-		orgs = append(orgs, org)
+		orgs = append(orgs, &org)
 	}
 	return orgs, nil
 }
@@ -230,13 +230,13 @@ func importGithubOrganizations(currentUser *User, context *auth.Context, githubT
 	githubOrgs, err := getGithubOrganizations(githubToken)
 	if err != nil {
 		log.Info("Failed to list organizations", err)
-		githubOrgs = []Organization{}
+		githubOrgs = []*Organization{}
 	}
 
 	tx := context.Auth.GetDB(context.Request).Begin()
 	{
 		for _, githubOrg := range githubOrgs {
-			err = tx.Where(&githubOrg).FirstOrCreate(&githubOrg).Error
+			err = tx.Where(&githubOrg).FirstOrCreate(githubOrg).Error
 			if err != nil {
 				tx.Rollback()
 				return err

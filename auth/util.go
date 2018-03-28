@@ -3,6 +3,8 @@ package auth
 import (
 	"net/http"
 	"strings"
+
+	"github.com/jinzhu/gorm"
 )
 
 // IsHttps is a helper function that evaluates the http.Request
@@ -50,4 +52,12 @@ func DelCookie(w http.ResponseWriter, r *http.Request, name string) {
 	}
 
 	http.SetCookie(w, &cookie)
+}
+
+// Translates GORM errors to HTTP status codes
+func GormErrorToStatusCode(err error) int {
+	if err == gorm.ErrRecordNotFound {
+		return http.StatusNotFound
+	}
+	return http.StatusInternalServerError
 }
