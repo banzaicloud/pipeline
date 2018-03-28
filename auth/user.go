@@ -31,7 +31,6 @@ type User struct {
 	ID            uint           `gorm:"primary_key" json:"id"`
 	CreatedAt     time.Time      `json:"createdAt"`
 	UpdatedAt     time.Time      `json:"updatedAt"`
-	DeletedAt     *time.Time     `sql:"index" json:"deletedAt,omitempty"`
 	Name          string         `form:"name" json:"name,omitempty"`
 	Email         string         `form:"email" json:"email,omitempty"`
 	Login         string         `gorm:"unique;not null" form:"login" json:"login"`
@@ -63,14 +62,13 @@ type UserOrganization struct {
 //Organization struct
 type Organization struct {
 	ID        uint                 `gorm:"primary_key" json:"id"`
-	GithubID  *int64               `gorm:"unique" json:"githubId"`
+	GithubID  *int64               `gorm:"unique" json:"githubId,omitempty"`
 	CreatedAt time.Time            `json:"createdAt"`
 	UpdatedAt time.Time            `json:"updatedAt"`
-	DeletedAt *time.Time           `sql:"index" json:"deletedAt,omitempty"`
 	Name      string               `gorm:"not null" json:"name"`
 	Users     []User               `gorm:"many2many:user_organizations" json:"users,omitempty"`
 	Clusters  []model.ClusterModel `gorm:"foreignkey:organization_id" json:"clusters,omitempty"`
-	Role      string               `gorm:"-"` // Used only internally
+	Role      string               `json:"-" gorm:"-"` // Used only internally
 }
 
 //IDString returns the ID as string
@@ -160,7 +158,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 //http://127.0.0.1:8000/
 
 func (bus BanzaiUserStorer) createUserInDroneDB(user *User, githubAccessToken string) error {
-	droneUser := DroneUser{
+	droneUser := &DroneUser{
 		Login:  user.Login,
 		Email:  user.Email,
 		Token:  githubAccessToken,
@@ -169,7 +167,7 @@ func (bus BanzaiUserStorer) createUserInDroneDB(user *User, githubAccessToken st
 		Active: true,
 		Synced: time.Now().Unix(),
 	}
-	return bus.droneDB.Where(&droneUser).FirstOrCreate(&droneUser).Error
+	return bus.droneDB.Where(droneUser).FirstOrCreate(droneUser).Error
 }
 
 func initDroneDB() *gorm.DB {
