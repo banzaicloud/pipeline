@@ -3,6 +3,7 @@ package cluster
 import (
 	"fmt"
 
+	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -43,7 +44,7 @@ func UpdatePrometheusConfig() error {
 	prometheusConfigMapName := releaseName + "-" + prometheusConfigMap
 	log.Debugf("Prometheus Config map full name: %s", prometheusConfigMapName)
 
-	prefix := viper.GetString("statestore.path")
+	prefix := pipConfig.GetStateStorePath("")
 	configMapPath := viper.GetString("monitor.mountpath")
 
 	var clusters []model.ClusterModel

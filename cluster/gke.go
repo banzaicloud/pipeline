@@ -6,6 +6,7 @@ import (
 	"github.com/banzaicloud/banzai-types/components"
 	bGoogle "github.com/banzaicloud/banzai-types/components/google"
 	"github.com/banzaicloud/banzai-types/constants"
+	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
@@ -13,7 +14,6 @@ import (
 	"github.com/gin-gonic/gin/json"
 	"github.com/go-errors/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2/google"
 	gke "google.golang.org/api/container/v1"
@@ -819,7 +819,7 @@ func storeConfig(c *kubernetesCluster, name string) ([]byte, error) {
 		token = c.ServiceAccountToken
 	}
 
-	configFile := fmt.Sprintf("%s/%s/config", viper.GetString("statestore.path"), name)
+	configFile := fmt.Sprintf("%s/%s/config", pipConfig.GetStateStorePath(""), name)
 	config := kubeConfig{}
 	if _, err := os.Stat(configFile); err == nil {
 		data, err := ioutil.ReadFile(configFile)

@@ -1,9 +1,9 @@
 package cluster
 
 import (
-	"fmt"
 	htypes "github.com/banzaicloud/banzai-types/components/helm"
 	"github.com/banzaicloud/banzai-types/constants"
+	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/sirupsen/logrus"
@@ -23,7 +23,7 @@ func RunPostHooks(functionList []func(cluster CommonCluster), createdCluster Com
 //PersistKubernetesKeys is a basic version of persisting keys TODO check if we need this from API or anywhere else
 func PersistKubernetesKeys(cluster CommonCluster) {
 	log = logger.WithFields(logrus.Fields{"action": "PersistKubernetesKeys"})
-	configPath := fmt.Sprintf("%s/%s", viper.GetString("statestore.path"), cluster.GetName())
+	configPath := pipConfig.GetStateStorePath(cluster.GetName())
 	log.Infof("Statestore path is: %s", configPath)
 	var config *rest.Config
 	retryCount := viper.GetInt("cloud.configRetryCount")
