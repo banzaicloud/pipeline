@@ -128,15 +128,18 @@ func addUserToOrgInDb(organization *auth.Organization, user *auth.User, role str
 	tx := model.GetDB().Begin()
 	err := tx.Error
 	if err != nil {
+		tx.Rollback()
 		return err
 	}
 	err = tx.Model(organization).Association("Users").Append(user).Error
 	if err != nil {
+		tx.Rollback()
 		return err
 	}
 	userRoleInOrg := auth.UserOrganization{UserID: user.ID, OrganizationID: organization.ID}
 	err = tx.Model(&auth.UserOrganization{}).Where(userRoleInOrg).Update("role", role).Error
 	if err != nil {
+		tx.Rollback()
 		return err
 	}
 	return tx.Commit().Error

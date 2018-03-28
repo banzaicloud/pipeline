@@ -138,17 +138,18 @@ func main() {
 
 			orgs.GET("/:orgid/allowed/secrets/", api.ListAllowedSecretTypes)
 			orgs.GET("/:orgid/allowed/secrets/:type", api.ListAllowedSecretTypes)
+
+			orgs.GET("/:orgid", api.GetOrganizations)
+			orgs.DELETE("/:orgid", api.DeleteOrganization)
 		}
+		v1.GET("/orgs", api.GetOrganizations)
+		v1.POST("/orgs", api.CreateOrganization)
 		//v1.GET("/clusters/gke/:projectid/:zone/serverconf", cluster.GetGkeServerConfig) // todo think about it and move
 		v1.GET("/token", auth.GenerateToken) // TODO Deprecated, should be removed once the UI has support.
 		v1.POST("/tokens", auth.GenerateToken)
 		v1.GET("/tokens", auth.GetTokens)
 		v1.GET("/tokens/:id", auth.GetTokens)
 		v1.DELETE("/tokens/:id", auth.DeleteToken)
-		v1.GET("/orgs", api.GetOrganizations)
-		v1.GET("/orgs/:orgid", api.GetOrganizations)
-		v1.DELETE("/orgs/:orgid", api.DeleteOrganization)
-		v1.POST("/orgs", api.CreateOrganization)
 	}
 
 	router.GET("/api", api.MetaHandler(router, "/api"))

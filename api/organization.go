@@ -30,10 +30,10 @@ func OrganizationMiddleware(c *gin.Context) {
 	}
 
 	user := auth.GetCurrentUser(c.Request)
-	var organization = auth.Organization{ID: uint(orgid)}
+	organization := &auth.Organization{ID: uint(orgid)}
 
 	db := model.GetDB()
-	err = db.Model(user).Where(&organization).Related(&organization, "Organizations").Error
+	err = db.Model(user).Where(organization).Related(organization, "Organizations").Error
 	if err != nil {
 		message := "error fetching organizations: " + err.Error()
 		log.Info(message)
@@ -111,22 +111,9 @@ func CreateOrganization(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": "CreateOrganization"})
 	log.Info("Creating organization")
 
-	user, err := auth.GetCurrentUserFromDB(c.Request)
-	if err != nil {
-		message := "error creating organization"
-		log.Info(message + ": " + err.Error())
-		c.AbortWithStatusJSON(http.StatusInternalServerError, components.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: message,
-			Error:   message,
-		})
-		return
-	}
-
 	var name struct {
 		Name string `json:"name,omitempty"`
 	}
-
 	if err := c.ShouldBindJSON(&name); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
@@ -136,9 +123,11 @@ func CreateOrganization(c *gin.Context) {
 		return
 	}
 
-	organization := auth.Organization{Name: name.Name, Users: []auth.User{*user}}
+	user := auth.GetCurrentUser(c.Request)
+	organization := &auth.Organization{Name: name.Name}
+
 	db := model.GetDB()
-	err = db.Save(&organization).Error
+	err := db.Model(user).Association("Organizations").Append(organization).Error
 	if err != nil {
 		message := "error creating organization: " + err.Error()
 		log.Info(message)
@@ -157,8 +146,6 @@ func DeleteOrganization(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": "DeleteOrganization"})
 	log.Info("Deleting organization")
 
-	user := auth.GetCurrentUser(c.Request)
-
 	idParam := c.Param("orgid")
 	id, err := strconv.ParseUint(idParam, 10, 32)
 	if err != nil {
@@ -172,9 +159,10 @@ func DeleteOrganization(c *gin.Context) {
 		return
 	}
 
-	var organization = auth.Organization{ID: uint(id)}
-	db := model.GetDB()
-	err = db.Model(user).Where(&organization).Related(&organization, "Organizations").Delete(&organization).Error
+	user := auth.GetCurrentUser(c.Request)
+	organization := &auth.Organization{ID: uint(id)}
+
+	err = deleteOrgFromDB(organization, user)
 	if err != nil {
 		message := "error deleting organizations: " + err.Error()
 		log.Info(message)
@@ -187,4 +175,24 @@ func DeleteOrganization(c *gin.Context) {
 	} else {
 		c.Status(http.StatusNoContent)
 	}
+}
+
+func deleteOrgFromDB(organization *auth.Organization, user *auth.User) error {
+	tx := model.GetDB().Begin()
+	err := tx.Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	err = tx.Model(user).Where(organization).Related(organization, "Organizations").Delete(organization).Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	err = tx.Model(user).Association("Organizations").Delete(organization).Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	return tx.Commit().Error
 }
