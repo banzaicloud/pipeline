@@ -37,10 +37,9 @@ type Options struct {
 // NewSession is called by session stores to create a new session instance.
 func NewSession(store Store, name string) *Session {
 	return &Session{
-		Values:  make(map[interface{}]interface{}),
-		store:   store,
-		name:    name,
-		Options: new(Options),
+		Values: make(map[interface{}]interface{}),
+		store:  store,
+		name:   name,
 	}
 }
 

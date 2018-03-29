@@ -12,14 +12,14 @@ import (
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
-	kcluster "github.com/kris-nova/kubicorn/apis/cluster"
-	"github.com/kris-nova/kubicorn/cutil"
-	"github.com/kris-nova/kubicorn/cutil/initapi"
-	"github.com/kris-nova/kubicorn/cutil/kubeadm"
-	kubicornLogger "github.com/kris-nova/kubicorn/cutil/logger"
-	"github.com/kris-nova/kubicorn/cutil/uuid"
-	"github.com/kris-nova/kubicorn/state"
-	"github.com/kris-nova/kubicorn/state/fs"
+	kcluster "github.com/kubicorn/kubicorn/apis/cluster"
+	"github.com/kubicorn/kubicorn/pkg"
+	"github.com/kubicorn/kubicorn/pkg/initapi"
+	"github.com/kubicorn/kubicorn/pkg/kubeadm"
+	kubicornLogger "github.com/kubicorn/kubicorn/pkg/logger"
+	"github.com/kubicorn/kubicorn/pkg/uuid"
+	"github.com/kubicorn/kubicorn/state"
+	"github.com/kubicorn/kubicorn/state/fs"
 	"github.com/pkg/errors"
 	"github.com/pkg/sftp"
 	"github.com/sirupsen/logrus"
@@ -142,7 +142,7 @@ func (c *AWSCluster) CreateCluster() error {
 	log := logger.WithFields(logrus.Fields{"action": constants.TagCreateCluster})
 
 	// Set up credentials TODO simplify
-	runtimeParam := cutil.RuntimeParameters{
+	runtimeParam := pkg.RuntimeParameters{
 		AwsProfile: "",
 	}
 	clusterSecret, err := GetSecret(c)
@@ -178,7 +178,7 @@ func (c *AWSCluster) CreateCluster() error {
 	}
 
 	log.Info("Get reconciler")
-	reconciler, err := cutil.GetReconciler(newCluster, &runtimeParam)
+	reconciler, err := pkg.GetReconciler(newCluster, &runtimeParam)
 
 	if err != nil {
 		return err
@@ -482,7 +482,7 @@ func (c *AWSCluster) UpdateCluster(request *components.UpdateClusterRequest) err
 	log.Debug("Get reconciler")
 
 	// Set up credentials TODO simplify
-	runtimeParam := cutil.RuntimeParameters{
+	runtimeParam := pkg.RuntimeParameters{
 		AwsProfile: "",
 	}
 	clusterSecret, err := GetSecret(c)
@@ -499,7 +499,7 @@ func (c *AWSCluster) UpdateCluster(request *components.UpdateClusterRequest) err
 	)
 	runtimeParam.AwsOptions = append(runtimeParam.AwsOptions, SetCredentials(awsCred))
 
-	reconciler, err := cutil.GetReconciler(kubicornCluster, &runtimeParam)
+	reconciler, err := pkg.GetReconciler(kubicornCluster, &runtimeParam)
 	if err != nil {
 		err = errors.Wrap(err, "error getting reconciler")
 		return err
@@ -569,7 +569,7 @@ func (c *AWSCluster) DeleteCluster() error {
 	log.Debug("Get reconciler")
 
 	// Set up credentials TODO simplify
-	runtimeParam := cutil.RuntimeParameters{
+	runtimeParam := pkg.RuntimeParameters{
 		AwsProfile: "",
 	}
 	clusterSecret, err := GetSecret(c)
@@ -586,7 +586,7 @@ func (c *AWSCluster) DeleteCluster() error {
 	)
 	runtimeParam.AwsOptions = append(runtimeParam.AwsOptions, SetCredentials(awsCred))
 
-	reconciler, err := cutil.GetReconciler(kubicornCluster, &runtimeParam)
+	reconciler, err := pkg.GetReconciler(kubicornCluster, &runtimeParam)
 	if err != nil {
 		err = errors.Wrap(err, "error getting reconciler")
 		return err
