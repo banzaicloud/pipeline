@@ -4,13 +4,13 @@ import (
 	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/banzai-types/components/amazon"
 	"github.com/banzaicloud/banzai-types/components/azure"
+	"github.com/banzaicloud/banzai-types/components/dummy"
 	"github.com/banzaicloud/banzai-types/components/google"
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/model"
 	"reflect"
 	"testing"
-	"github.com/banzaicloud/banzai-types/components/dummy"
 )
 
 const (
@@ -46,6 +46,7 @@ func TestCreateCommonClusterFromRequest(t *testing.T) {
 		{name: "gke create", createRequest: gkeCreateFull, expectedModel: gkeModelFull, expectedError: nil},
 		{name: "aks create", createRequest: aksCreateFull, expectedModel: aksModelFull, expectedError: nil},
 		{name: "aws create", createRequest: awsCreateFull, expectedModel: awsModelFull, expectedError: nil},
+		{name: "dummy create", createRequest: dummyCreateFull, expectedModel: dummyModelFull, expectedError: nil},
 
 		{name: "gke wrong k8s version", createRequest: gkeWrongK8sVersion, expectedModel: nil, expectedError: constants.ErrorWrongKubernetesVersion},
 		{name: "gke different k8s version", createRequest: gkeDifferentK8sVersion, expectedModel: gkeModelDifferentVersion, expectedError: constants.ErrorDifferentKubernetesVersion},
@@ -141,7 +142,7 @@ var (
 			CreateClusterAmazon *amazon.CreateClusterAmazon `json:"amazon,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
 			CreateClusterGoogle *google.CreateClusterGoogle `json:"google,omitempty"`
-			CreateClusterDummy  *dummy.CreateClusterDummy 	`json:"dummy,omitempty"`
+			CreateClusterDummy  *dummy.CreateClusterDummy   `json:"dummy,omitempty"`
 		}{
 			CreateClusterGoogle: &google.CreateClusterGoogle{
 				Project: clusterRequestProject,
@@ -190,7 +191,7 @@ var (
 			CreateClusterAmazon *amazon.CreateClusterAmazon `json:"amazon,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
 			CreateClusterGoogle *google.CreateClusterGoogle `json:"google,omitempty"`
-			CreateClusterDummy  *dummy.CreateClusterDummy 	`json:"dummy,omitempty"`
+			CreateClusterDummy  *dummy.CreateClusterDummy   `json:"dummy,omitempty"`
 		}{
 			CreateClusterAmazon: &amazon.CreateClusterAmazon{
 				Node: &amazon.CreateAmazonNode{
@@ -202,6 +203,27 @@ var (
 				Master: &amazon.CreateAmazonMaster{
 					InstanceType: clusterRequestMasterInstance,
 					Image:        clusterRequestMasterImage,
+				},
+			},
+		},
+	}
+
+	dummyCreateFull = &components.CreateClusterRequest{
+		Name:             clusterRequestName,
+		Location:         clusterRequestLocation,
+		Cloud:            constants.Dummy,
+		NodeInstanceType: clusterRequestNodeInstance,
+		SecretId:         clusterRequestSecretId,
+		Properties: struct {
+			CreateClusterAmazon *amazon.CreateClusterAmazon `json:"amazon,omitempty"`
+			CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
+			CreateClusterGoogle *google.CreateClusterGoogle `json:"google,omitempty"`
+			CreateClusterDummy  *dummy.CreateClusterDummy   `json:"dummy,omitempty"`
+		}{
+			CreateClusterDummy: &dummy.CreateClusterDummy{
+				Node: &dummy.Node{
+					KubernetesVersion: clusterRequestKubernetes,
+					Count:             clusterRequestNodeCount,
 				},
 			},
 		},
@@ -231,7 +253,7 @@ var (
 			CreateClusterAmazon *amazon.CreateClusterAmazon `json:"amazon,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
 			CreateClusterGoogle *google.CreateClusterGoogle `json:"google,omitempty"`
-			CreateClusterDummy  *dummy.CreateClusterDummy 	`json:"dummy,omitempty"`
+			CreateClusterDummy  *dummy.CreateClusterDummy   `json:"dummy,omitempty"`
 		}{
 			CreateClusterGoogle: &google.CreateClusterGoogle{
 				Project: clusterRequestProject,
@@ -257,7 +279,7 @@ var (
 			CreateClusterAmazon *amazon.CreateClusterAmazon `json:"amazon,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
 			CreateClusterGoogle *google.CreateClusterGoogle `json:"google,omitempty"`
-			CreateClusterDummy  *dummy.CreateClusterDummy 	`json:"dummy,omitempty"`
+			CreateClusterDummy  *dummy.CreateClusterDummy   `json:"dummy,omitempty"`
 		}{
 			CreateClusterGoogle: &google.CreateClusterGoogle{
 				Project: clusterRequestProject,
@@ -327,6 +349,22 @@ var (
 		},
 		Azure:  model.AzureClusterModel{},
 		Google: model.GoogleClusterModel{},
+	}
+
+	dummyModelFull = &model.ClusterModel{
+		Name:             clusterRequestName,
+		Location:         clusterRequestLocation,
+		NodeInstanceType: clusterRequestNodeInstance,
+		Cloud:            constants.Dummy,
+		OrganizationId:   organizationId,
+		SecretId:         clusterRequestSecretId,
+		Amazon:           model.AmazonClusterModel{},
+		Azure:            model.AzureClusterModel{},
+		Google:           model.GoogleClusterModel{},
+		Dummy: model.DummyClusterModel{
+			KubernetesVersion: clusterRequestKubernetes,
+			NodeCount:         clusterRequestNodeCount,
+		},
 	}
 
 	gkeModelDifferentVersion = &model.ClusterModel{
