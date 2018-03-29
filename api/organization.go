@@ -44,7 +44,7 @@ func OrganizationMiddleware(c *gin.Context) {
 			Error:   message,
 		})
 	} else {
-		newContext := context.WithValue(c.Request.Context(), auth.CurrentOrganization, &organization)
+		newContext := context.WithValue(c.Request.Context(), auth.CurrentOrganization, organization)
 		c.Request = c.Request.WithContext(newContext)
 		c.Next()
 	}
