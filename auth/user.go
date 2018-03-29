@@ -7,10 +7,12 @@ import (
 	"time"
 
 	"github.com/banzaicloud/pipeline/model"
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/go-errors/errors"
+	"github.com/google/go-github/github"
 	"github.com/jinzhu/copier"
 	"github.com/jinzhu/gorm"
+	"golang.org/x/oauth2"
 	// blank import is used here for sql driver inclusion
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/qor/auth"
@@ -29,7 +31,6 @@ type User struct {
 	ID            uint           `gorm:"primary_key" json:"id"`
 	CreatedAt     time.Time      `json:"createdAt"`
 	UpdatedAt     time.Time      `json:"updatedAt"`
-	DeletedAt     *time.Time     `sql:"index" json:"deletedAt,omitempty"`
 	Name          string         `form:"name" json:"name,omitempty"`
 	Email         string         `form:"email" json:"email,omitempty"`
 	Login         string         `gorm:"unique;not null" form:"login" json:"login"`
@@ -53,18 +54,21 @@ type DroneUser struct {
 }
 
 type UserOrganization struct {
-	Role string `gorm:"DEFAULT:\"admin\""`
+	UserID         uint
+	OrganizationID uint
+	Role           string `gorm:"default:'admin'"`
 }
 
 //Organization struct
 type Organization struct {
 	ID        uint                 `gorm:"primary_key" json:"id"`
+	GithubID  *int64               `gorm:"unique" json:"githubId,omitempty"`
 	CreatedAt time.Time            `json:"createdAt"`
 	UpdatedAt time.Time            `json:"updatedAt"`
-	DeletedAt *time.Time           `sql:"index" json:"deletedAt,omitempty"`
-	Name      string               `gorm:"unique;not null" json:"name"`
+	Name      string               `gorm:"not null" json:"name"`
 	Users     []User               `gorm:"many2many:user_organizations" json:"users,omitempty"`
 	Clusters  []model.ClusterModel `gorm:"foreignkey:organization_id" json:"clusters,omitempty"`
+	Role      string               `json:"-" gorm:"-"` // Used only internally
 }
 
 //IDString returns the ID as string
@@ -119,41 +123,42 @@ type BanzaiUserStorer struct {
 // Save differs from the default UserStorer.Save() in that it
 // extracts Token and Login and saves to Drone DB as well
 func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (user interface{}, userID string, err error) {
-	log = logger.WithFields(logrus.Fields{"tag": "Auth"})
-	var tx = context.Auth.GetDB(context.Request)
+	log := logger.WithFields(logrus.Fields{"tag": "Auth"})
 
-	if context.Auth.Config.UserModel != nil {
-		currentUser := &User{}
-		copier.Copy(currentUser, schema)
+	currentUser := &User{}
+	copier.Copy(currentUser, schema)
 
-		// This assumes GitHub auth only right now
-		githubExtraInfo := schema.RawInfo.(*GithubExtraInfo)
-		currentUser.Login = githubExtraInfo.Login
-		if viper.GetBool("drone.enabled") {
-			err = bus.createUserInDroneDB(currentUser, githubExtraInfo.Token)
-			if err != nil {
-				log.Info(context.Request.RemoteAddr, err.Error())
-				return nil, "", err
-			}
-			bus.synchronizeDroneRepos(currentUser.Login)
-		}
-
-		// When a user registers a default organization is created in which he/she is admin
-		userOrg := Organization{
-			Name: currentUser.Login + "'s Org",
-		}
-		currentUser.Organizations = []Organization{userOrg}
-
-		err = tx.Create(currentUser).Error
-		return currentUser, fmt.Sprint(tx.NewScope(currentUser).PrimaryKeyValue()), err
+	// This assumes GitHub auth only right now
+	githubExtraInfo := schema.RawInfo.(*GithubExtraInfo)
+	currentUser.Login = githubExtraInfo.Login
+	err = bus.createUserInDroneDB(currentUser, githubExtraInfo.Token)
+	if err != nil {
+		log.Info(context.Request.RemoteAddr, err.Error())
+		return nil, "", err
 	}
-	return nil, "", nil
+	bus.synchronizeDroneRepos(currentUser.Login)
+
+	// When a user registers a default organization is created in which he/she is admin
+	userOrg := Organization{
+		Name: currentUser.Login + "'s Org",
+	}
+	currentUser.Organizations = []Organization{userOrg}
+
+	db := context.Auth.GetDB(context.Request)
+	err = db.Create(currentUser).Error
+	if err != nil {
+		return nil, "", err
+	}
+
+	err = importGithubOrganizations(currentUser, context, githubExtraInfo.Token)
+
+	return currentUser, fmt.Sprint(db.NewScope(currentUser).PrimaryKeyValue()), err
 }
 
 //http://127.0.0.1:8000/
 
 func (bus BanzaiUserStorer) createUserInDroneDB(user *User, githubAccessToken string) error {
-	droneUser := DroneUser{
+	droneUser := &DroneUser{
 		Login:  user.Login,
 		Email:  user.Email,
 		Token:  githubAccessToken,
@@ -162,7 +167,7 @@ func (bus BanzaiUserStorer) createUserInDroneDB(user *User, githubAccessToken st
 		Active: true,
 		Synced: time.Now().Unix(),
 	}
-	return bus.droneDB.Create(&droneUser).Error
+	return bus.droneDB.Where(droneUser).FirstOrCreate(droneUser).Error
 }
 
 func initDroneDB() *gorm.DB {
@@ -195,4 +200,57 @@ func (bus BanzaiUserStorer) synchronizeDroneRepos(login string) {
 	if resp.StatusCode != http.StatusOK {
 		log.Info("synchronizeDroneRepos: failed to call Drone API HTTP", resp.StatusCode)
 	}
+}
+
+func getGithubOrganizations(token string) ([]*Organization, error) {
+	httpClient := oauth2.NewClient(
+		oauth2.NoContext,
+		oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token}),
+	)
+	githubClient := github.NewClient(httpClient)
+
+	memberships, _, err := githubClient.Organizations.ListOrgMemberships(oauth2.NoContext, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	orgs := []*Organization{}
+	for _, membership := range memberships {
+		githubOrg := membership.GetOrganization()
+		org := Organization{Name: githubOrg.GetLogin(), GithubID: githubOrg.ID, Role: membership.GetRole()}
+		orgs = append(orgs, &org)
+	}
+	return orgs, nil
+}
+
+func importGithubOrganizations(currentUser *User, context *auth.Context, githubToken string) error {
+
+	githubOrgs, err := getGithubOrganizations(githubToken)
+	if err != nil {
+		log.Info("Failed to list organizations", err)
+		githubOrgs = []*Organization{}
+	}
+
+	tx := context.Auth.GetDB(context.Request).Begin()
+	{
+		for _, githubOrg := range githubOrgs {
+			err = tx.Where(&githubOrg).FirstOrCreate(githubOrg).Error
+			if err != nil {
+				tx.Rollback()
+				return err
+			}
+			err = tx.Model(currentUser).Association("Organizations").Append(githubOrg).Error
+			if err != nil {
+				tx.Rollback()
+				return err
+			}
+			userRoleInOrg := UserOrganization{UserID: currentUser.ID, OrganizationID: githubOrg.ID}
+			err = tx.Model(&UserOrganization{}).Where(userRoleInOrg).Update("role", githubOrg.Role).Error
+			if err != nil {
+				tx.Rollback()
+				return err
+			}
+		}
+	}
+	return tx.Commit().Error
 }

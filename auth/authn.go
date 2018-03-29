@@ -133,12 +133,8 @@ func Init() {
 			SignedStringBytes: []byte(signingKeyBase32),
 		},
 		LogoutHandler: BanzaiLogoutHandler,
+		UserStorer:    BanzaiUserStorer{signingKeyBase32: signingKeyBase32, droneDB: initDroneDB()},
 	})
-	if viper.GetBool("drone.enabled") {
-		Auth.UserStorer = BanzaiUserStorer{signingKeyBase32: signingKeyBase32, droneDB: initDroneDB()}
-	} else {
-		Auth.UserStorer = BanzaiUserStorer{signingKeyBase32: signingKeyBase32, droneDB: nil}
-	}
 
 	githubProvider := github.New(&github.Config{
 		// ClientID and ClientSecret is validated inside github.New()
@@ -173,6 +169,18 @@ func GenerateToken(c *gin.Context) {
 		return
 	}
 
+	tokenRequest := struct {
+		Name string `json:"name,omitempty"`
+	}{Name: "generated"}
+
+	if c.Request.Method == http.MethodPost {
+		if err := c.ShouldBindJSON(&tokenRequest); err != nil {
+			err := c.AbortWithError(http.StatusBadRequest, err)
+			log.Info(c.ClientIP(), err.Error())
+			return
+		}
+	}
+
 	tokenID := uuid.NewV4().String()
 
 	// Create the Claims
@@ -198,13 +206,13 @@ func GenerateToken(c *gin.Context) {
 		log.Info(c.ClientIP(), err.Error())
 	} else {
 		userID := strconv.Itoa(int(currentUser.ID))
-		token := NewToken(tokenID, "generated") // TODO get the name from the request
+		token := NewToken(tokenID, tokenRequest.Name)
 		err = tokenStore.Store(userID, token)
 		if err != nil {
 			err = c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Failed to store token: %s", err))
 			log.Info(c.ClientIP(), err.Error())
 		} else {
-			c.JSON(http.StatusOK, gin.H{"token": signedToken})
+			c.JSON(http.StatusOK, gin.H{"id": tokenID, "token": signedToken})
 		}
 	}
 }

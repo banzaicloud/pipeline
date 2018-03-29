@@ -15,9 +15,9 @@ var _ TokenStore = (*vaultTokenStore)(nil)
 
 // Token represents an access token
 type Token struct {
-	ID        string
-	Name      string
-	CreatedAt time.Time
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 // TokenStore is general interface for storing access tokens
@@ -40,9 +40,9 @@ func parseToken(secret *vaultapi.Secret) (*Token, error) {
 	}
 	tokenData := secret.Data["token"].(map[string]interface{})
 	token := &Token{}
-	token.ID = tokenData["ID"].(string)
-	token.Name = tokenData["Name"].(string)
-	createdAt, err := time.Parse(time.RFC3339, tokenData["CreatedAt"].(string))
+	token.ID = tokenData["id"].(string)
+	token.Name = tokenData["name"].(string)
+	createdAt, err := time.Parse(time.RFC3339, tokenData["createdAt"].(string))
 	if err != nil {
 		return nil, err
 	}

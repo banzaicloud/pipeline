@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/banzaicloud/banzai-types/components/helm"
 	"github.com/banzaicloud/banzai-types/constants"
+	"github.com/banzaicloud/pipeline/config"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -172,9 +173,9 @@ func createEnvSettings(helmRepoHome string) helm_env.EnvSettings {
 }
 
 func generateHelmRepoPath(path string) string {
-	const stateStorePath = "./statestore/"
-	const helmPostFix = "/helm"
-	return stateStorePath + path + helmPostFix
+	var stateStorePath = config.GetStateStorePath("")
+	const helmPostFix = "helm"
+	return fmt.Sprintf("%s/%s/%s", stateStorePath, path, helmPostFix)
 }
 
 func downloadChartFromRepo(name, path string) (string, error) {

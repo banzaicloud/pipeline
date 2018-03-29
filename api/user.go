@@ -12,6 +12,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// GetUsers gets a user or lists all users from an organizaion depending on the presence of the id paramater
 func GetUsers(c *gin.Context) {
 
 	log := logger.WithFields(logrus.Fields{"tag": "GetUsers"})
@@ -63,5 +64,120 @@ func GetUsers(c *gin.Context) {
 			Message: message,
 			Error:   message,
 		})
+	}
+}
+
+// AddUser adds a user to an organization, role=admin|member has to be in the body, otherwise member is the default role.
+func AddUser(c *gin.Context) {
+
+	log := logger.WithFields(logrus.Fields{"tag": "AddUser"})
+	log.Info("Adding user to organization")
+
+	idParam := c.Param("id")
+	id, err := strconv.ParseUint(idParam, 10, 32)
+	if err != nil {
+		message := fmt.Sprintf("error parsing user id: %s", err)
+		log.Info(message)
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: message,
+			Error:   message,
+		})
+		return
+	}
+
+	role := struct {
+		Role string `json:"role" binding:"required,eq=member|eq=admin"`
+	}{Role: "member"}
+
+	if c.Request.ContentLength != 0 {
+		err = c.ShouldBindJSON(&role)
+		if err != nil {
+			message := fmt.Sprintf("error parsing role from request: %s", err)
+			log.Info(message)
+			c.JSON(http.StatusBadRequest, components.ErrorResponse{
+				Code:    http.StatusBadRequest,
+				Message: message,
+				Error:   message,
+			})
+			return
+		}
+	}
+
+	organization := auth.GetCurrentOrganization(c.Request)
+	user := &auth.User{ID: uint(id)}
+
+	err = addUserToOrgInDb(organization, user, role.Role)
+
+	if err != nil {
+		message := "failed to add user: " + err.Error()
+		log.Info(message)
+		statusCode := auth.GormErrorToStatusCode(err)
+		c.AbortWithStatusJSON(statusCode, components.ErrorResponse{
+			Code:    statusCode,
+			Message: message,
+			Error:   message,
+		})
+		return
+	}
+
+	c.Status(http.StatusNoContent)
+}
+
+func addUserToOrgInDb(organization *auth.Organization, user *auth.User, role string) error {
+	tx := model.GetDB().Begin()
+	err := tx.Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	err = tx.Model(organization).Association("Users").Append(user).Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	userRoleInOrg := auth.UserOrganization{UserID: user.ID, OrganizationID: organization.ID}
+	err = tx.Model(&auth.UserOrganization{}).Where(userRoleInOrg).Update("role", role).Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	return tx.Commit().Error
+}
+
+// RemoveUser removes a user from an organization
+func RemoveUser(c *gin.Context) {
+
+	log := logger.WithFields(logrus.Fields{"tag": "DeleteUser"})
+	log.Info("Deleting user from organization")
+
+	organization := auth.GetCurrentOrganization(c.Request)
+
+	idParam := c.Param("id")
+	id, err := strconv.ParseUint(idParam, 10, 32)
+	if err != nil {
+		message := fmt.Sprintf("error parsing user id: %s", err)
+		log.Info(message)
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: message,
+			Error:   message,
+		})
+		return
+	}
+
+	db := model.GetDB()
+	err = db.Model(organization).Association("Users").Delete(auth.User{ID: uint(id)}).Error
+	if err != nil {
+		message := "failed to delete user: " + err.Error()
+		log.Info(message)
+		statusCode := auth.GormErrorToStatusCode(err)
+		c.AbortWithStatusJSON(statusCode, components.ErrorResponse{
+			Code:    statusCode,
+			Message: message,
+			Error:   message,
+		})
+	} else {
+		c.Status(http.StatusNoContent)
 	}
 }

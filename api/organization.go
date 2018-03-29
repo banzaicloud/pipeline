@@ -6,8 +6,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/jinzhu/gorm"
-
 	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/model"
@@ -16,6 +14,7 @@ import (
 )
 
 //OrganizationMiddleware parses the organization id from the request, queries it from the database and saves it to the current context
+//It also checks if the current (calling) user has access to this organization
 func OrganizationMiddleware(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": "OrganizationMiddleware"})
 	orgidParam := c.Param("orgid")
@@ -31,28 +30,21 @@ func OrganizationMiddleware(c *gin.Context) {
 	}
 
 	user := auth.GetCurrentUser(c.Request)
-	var organization = auth.Organization{ID: uint(orgid)}
+	organization := &auth.Organization{ID: uint(orgid)}
 
 	db := model.GetDB()
-	err = db.Model(user).Where(&organization).Related(&organization, "Organizations").Error
-	if err == gorm.ErrRecordNotFound {
-		message := fmt.Sprintf("organization not found: %q", orgidParam)
+	err = db.Model(user).Where(organization).Related(organization, "Organizations").Error
+	if err != nil {
+		message := "error fetching organizations: " + err.Error()
 		log.Info(message)
-		c.AbortWithStatusJSON(http.StatusNotFound, components.ErrorResponse{
-			Code:    http.StatusNotFound,
-			Message: message,
-			Error:   message,
-		})
-	} else if err != nil {
-		message := "error fetching organizations"
-		log.Info(message + ": " + err.Error())
-		c.AbortWithStatusJSON(http.StatusInternalServerError, components.ErrorResponse{
-			Code:    http.StatusInternalServerError,
+		statusCode := auth.GormErrorToStatusCode(err)
+		c.AbortWithStatusJSON(statusCode, components.ErrorResponse{
+			Code:    statusCode,
 			Message: message,
 			Error:   message,
 		})
 	} else {
-		newContext := context.WithValue(c.Request.Context(), auth.CurrentOrganization, &organization)
+		newContext := context.WithValue(c.Request.Context(), auth.CurrentOrganization, organization)
 		c.Request = c.Request.WithContext(newContext)
 		c.Next()
 	}
@@ -85,8 +77,9 @@ func GetOrganizations(c *gin.Context) {
 	if err != nil {
 		message := "error fetching organizations"
 		log.Info(message + ": " + err.Error())
-		c.AbortWithStatusJSON(http.StatusInternalServerError, components.ErrorResponse{
-			Code:    http.StatusInternalServerError,
+		statusCode := auth.GormErrorToStatusCode(err)
+		c.AbortWithStatusJSON(statusCode, components.ErrorResponse{
+			Code:    statusCode,
 			Message: message,
 			Error:   message,
 		})
@@ -118,22 +111,9 @@ func CreateOrganization(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": "CreateOrganization"})
 	log.Info("Creating organization")
 
-	user, err := auth.GetCurrentUserFromDB(c.Request)
-	if err != nil {
-		message := "error creating organization"
-		log.Info(message + ": " + err.Error())
-		c.AbortWithStatusJSON(http.StatusInternalServerError, components.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: message,
-			Error:   message,
-		})
-		return
-	}
-
 	var name struct {
-		Name string
+		Name string `json:"name,omitempty"`
 	}
-
 	if err := c.ShouldBindJSON(&name); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
@@ -143,12 +123,14 @@ func CreateOrganization(c *gin.Context) {
 		return
 	}
 
-	organization := auth.Organization{Name: name.Name, Users: []auth.User{*user}}
+	user := auth.GetCurrentUser(c.Request)
+	organization := &auth.Organization{Name: name.Name}
+
 	db := model.GetDB()
-	err = db.Save(&organization).Error
+	err := db.Model(user).Association("Organizations").Append(organization).Error
 	if err != nil {
-		message := "error creating organization"
-		log.Info(message + ": " + err.Error())
+		message := "error creating organization: " + err.Error()
+		log.Info(message)
 		c.AbortWithStatusJSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: message,
@@ -157,4 +139,60 @@ func CreateOrganization(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, organization)
+}
+
+//DeleteOrganization deletes an organizaion by id
+func DeleteOrganization(c *gin.Context) {
+	log := logger.WithFields(logrus.Fields{"tag": "DeleteOrganization"})
+	log.Info("Deleting organization")
+
+	idParam := c.Param("orgid")
+	id, err := strconv.ParseUint(idParam, 10, 32)
+	if err != nil {
+		message := fmt.Sprintf("error parsing organization id: %s", err)
+		log.Info(message)
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: message,
+			Error:   message,
+		})
+		return
+	}
+
+	user := auth.GetCurrentUser(c.Request)
+	organization := &auth.Organization{ID: uint(id)}
+
+	err = deleteOrgFromDB(organization, user)
+	if err != nil {
+		message := "error deleting organizations: " + err.Error()
+		log.Info(message)
+		statusCode := auth.GormErrorToStatusCode(err)
+		c.AbortWithStatusJSON(statusCode, components.ErrorResponse{
+			Code:    statusCode,
+			Message: message,
+			Error:   message,
+		})
+	} else {
+		c.Status(http.StatusNoContent)
+	}
+}
+
+func deleteOrgFromDB(organization *auth.Organization, user *auth.User) error {
+	tx := model.GetDB().Begin()
+	err := tx.Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	err = tx.Model(user).Where(organization).Related(organization, "Organizations").Delete(organization).Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	err = tx.Model(user).Association("Organizations").Delete(organization).Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	return tx.Commit().Error
 }

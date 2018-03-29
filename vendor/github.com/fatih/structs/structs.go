@@ -203,7 +203,9 @@ func (s *Struct) Values() []interface{} {
 		if IsStruct(val.Interface()) && !tagOpts.Has("omitnested") {
 			// look out for embedded structs, and convert them to a
 			// []interface{} to be added to the final values slice
-			t = append(t, Values(val.Interface())...)
+			for _, embeddedVal := range Values(val.Interface()) {
+				t = append(t, embeddedVal)
+			}
 		} else {
 			t = append(t, val.Interface())
 		}
@@ -571,7 +573,7 @@ func (s *Struct) nested(val reflect.Value) interface{} {
 			break
 		}
 
-		slices := make([]interface{}, val.Len())
+		slices := make([]interface{}, val.Len(), val.Len())
 		for x := 0; x < val.Len(); x++ {
 			slices[x] = s.nested(val.Index(x))
 		}

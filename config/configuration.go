@@ -23,7 +23,6 @@ func init() {
 	//viper.SetConfigType("toml")
 
 	// Set defaults TODO expand defaults
-	viper.SetDefault("drone.enabled", false)
 	viper.SetDefault("drone.url", "http://localhost:8000")
 	viper.SetDefault("helm.retryAttempt", 30)
 	viper.SetDefault("helm.retrySleepSeconds", 15)
@@ -87,4 +86,13 @@ func GetCORS() cors.Config {
 	maxAge := viper.GetInt("cors.MaxAge")
 	config.MaxAge = time.Duration(maxAge) * time.Hour
 	return config
+}
+
+func GetStateStorePath(clusterName string) string {
+	stateStorePath := viper.GetString("statestore.path")
+	if len(clusterName) == 0 {
+		return stateStorePath
+	} else {
+		return fmt.Sprintf("%s/%s", stateStorePath, clusterName)
+	}
 }

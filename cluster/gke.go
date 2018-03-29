@@ -6,6 +6,7 @@ import (
 	"github.com/banzaicloud/banzai-types/components"
 	bGoogle "github.com/banzaicloud/banzai-types/components/google"
 	"github.com/banzaicloud/banzai-types/constants"
+	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
@@ -818,7 +819,7 @@ func storeConfig(c *kubernetesCluster, name string) ([]byte, error) {
 		token = c.ServiceAccountToken
 	}
 
-	configFile := fmt.Sprintf("./statestore/%s/config", name)
+	configFile := fmt.Sprintf("%s/%s/config", pipConfig.GetStateStorePath(""), name)
 	config := kubeConfig{}
 	if _, err := os.Stat(configFile); err == nil {
 		data, err := ioutil.ReadFile(configFile)
