@@ -11,7 +11,6 @@ import (
 	"github.com/banzaicloud/pipeline/model"
 	"reflect"
 	"testing"
-	"github.com/banzaicloud/banzai-types/components/dummy"
 )
 
 const (
