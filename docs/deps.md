@@ -4,17 +4,15 @@ Vendoring all dependencies is essential to have a **go get**-able package.
 
 Tools needed:
 
-- [glide](https://github.com/Masterminds/glide) dependency manager
-- [glide-vc](https://github.com/sgotti/glide-vc) vendor cleaner plugin for glide
+- [dep](https://golang.github.io/dep/) dependency manager
 
-`make deps` will instal them, in case they are missing
+`make deps` will install them, in case they are missing
 
 ## Add a new dependency
 
 If you write new features which imports a new library, you have to vendor it:
 ```
-glide get -v github.com/Masterminds/cookoo/web
-make revendor
+dep ensure -v -add github.com/Masterminds/cookoo/web
 ```
 
 ## Add a forked dependency
@@ -22,38 +20,33 @@ make revendor
 Sometimes you have an unmerged PR, or a change which you don't even want to push upstream.
 In those cases you have a GH fork, and want use that instead of the origin.
 
-glide.yaml:
+Gopkg.toml:
 ```
-- package: k8s.io/helm
-  repo: https://github.com/banzaicloud/helm.git
-  vcs: git
+[[constraint]]
+  name = "github.com/kubicorn/kubicorn"
+  branch = "master"
+  source = "github.com/banzaicloud/kubicorn"
 ```
 
 ## Update existing dependency
 
-If you are using a specific branch/tag like v1.2.0 in glide.yaml, just change it to the 
+If you are using a specific branch/tag like v1.2.0 in Gopkg.toml, just change it to the 
 new version.
 
-Otherwise if you haven't picked a branch/tag and just used the latest master, you will
-have a commit sha in glide.lock. Due to a [bug in glide](https://github.com/Masterminds/glide/issues/592)
-it will be stuck on that sha.
-To fix it, you have to specify **master** (or a branch/tag) in **glide.yaml**:
-```
-- package: github.com/prometheus/prometheus
-  version: ^2.0.0
-```
-
-than perform an update:
+Perform an update:
 
 ```
-glide up -v
-make revendor
+dep ensure -v -update github.com/your/upgradable/package
+
 ```
 
 ## History
 
 This project was previously using [dep](https://github.com/golang/dep). But `dep ensure`
 couldn't handle k8s.io dependencies.
+
+This project was previously using [glide](https://github.com/Masterminds/glide). But we returned to dep because seems like
+glide is becoming dormant, and seems like dep now can handle k8s.io dependencies.
 
 ## Related issues
 
