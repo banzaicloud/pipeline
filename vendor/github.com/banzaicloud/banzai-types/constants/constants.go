@@ -65,6 +65,7 @@ const (
 	Amazon = "amazon"
 	Azure  = "azure"
 	Google = "google"
+	Dummy  = "dummy"
 )
 
 // ### [ Constants to table names ] ### //
@@ -73,6 +74,7 @@ const (
 	TableNameAmazonProperties = "amazon_cluster_properties"
 	TableNameAzureProperties  = "azure_cluster_properties"
 	TableNameGoogleProperties = "google_cluster_properties"
+	TableNameDummyProperties  = "dummy_cluster_properties"
 )
 
 // ### [ Errors ] ### //

@@ -1,0 +1,208 @@
+# Gopkg.toml example
+#
+# Refer to https://github.com/golang/dep/blob/master/docs/Gopkg.toml.md
+# for detailed Gopkg.toml documentation.
+#
+# required = ["github.com/user/thing/cmd/thing"]
+# ignored = ["github.com/user/project/pkgX", "bitbucket.org/user/project/pkgA/pkgY"]
+#
+# [[constraint]]
+#   name = "github.com/user/project"
+#   version = "1.0.0"
+#
+# [[constraint]]
+#   name = "github.com/user/project2"
+#   branch = "dev"
+#   source = "github.com/myfork/project2"
+#
+# [[override]]
+#   name = "github.com/x/y"
+#   version = "2.4.0"
+#
+# [prune]
+#   non-go = false
+#   go-tests = true
+#   unused-packages = true
+
+#ignored = ["github.com/kubicorn/kubicorn*"]
+
+[[override]]
+  branch = "master"
+  name = "github.com/qor/render"
+
+[[override]]
+  branch = "master"
+  name = "github.com/qor/roles"
+
+[[override]]
+  branch = "master"
+  name = "github.com/rackspace/gophercloud"
+
+[[override]]
+  branch = "master"
+  name = "github.com/docker/distribution"
+
+[[override]]
+  name = "k8s.io/kubernetes"
+  version = "=v1.8.0"
+
+[[override]]
+  name = "github.com/docker/docker"
+  revision = "4f3616fb1c112e206b88cb7a9922bf49067a7756"
+
+[[override]]
+  name = "google.golang.org/grpc"
+  version = "=v1.2.1"
+
+[[override]]
+  name = "github.com/Azure/go-autorest"
+  version = "=v9.10.0"
+
+[[constraint]]
+  name = "github.com/kubicorn/kubicorn"
+  branch = "master"
+  source = "github.com/banzaicloud/kubicorn"
+
+[[constraint]]
+  name = "github.com/Masterminds/sprig"
+  version = "2.14.1"
+
+[[constraint]]
+  name = "github.com/aws/aws-sdk-go"
+  version = "=1.13.9"
+
+[[constraint]]
+  name = "github.com/banzaicloud/azure-aks-client"
+  version = "0.3.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/banzaicloud/bank-vaults"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/banzaicloud/banzai-types"
+
+[[constraint]]
+  name = "github.com/dgrijalva/jwt-go"
+  version = "3.2.0"
+
+[[constraint]]
+  name = "github.com/ghodss/yaml"
+  version = "1.0.0"
+
+[[constraint]]
+  name = "github.com/gin-contrib/cors"
+  version = "1.2.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/gin-gonic/gin"
+
+[[constraint]]
+  name = "github.com/go-errors/errors"
+  version = "1.0.1"
+
+[[constraint]]
+  name = "github.com/google/go-github"
+  version = "15.0.0"
+
+[[constraint]]
+  name = "github.com/hashicorp/vault"
+  version = "0.9.6"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/jinzhu/copier"
+
+[[constraint]]
+  name = "github.com/jinzhu/gorm"
+  version = "1.9.1"
+
+[[constraint]]
+  name = "github.com/pkg/errors"
+  version = "0.8.0"
+
+[[constraint]]
+  name = "github.com/pkg/sftp"
+  version = "1.5.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/prometheus/common"
+
+[[constraint]]
+  name = "github.com/prometheus/prometheus"
+  version = "2.0.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/qor/auth"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/qor/qor"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/qor/redirect_back"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/qor/session"
+
+[[constraint]]
+  name = "github.com/satori/go.uuid"
+  version = "1.2.0"
+
+[[constraint]]
+  name = "github.com/sirupsen/logrus"
+  version = "1.0.5"
+
+[[constraint]]
+  name = "github.com/spf13/viper"
+  version = "1.0.2"
+
+[[constraint]]
+  branch = "master"
+  name = "golang.org/x/crypto"
+
+[[constraint]]
+  branch = "master"
+  name = "golang.org/x/net"
+
+[[constraint]]
+  branch = "master"
+  name = "golang.org/x/oauth2"
+
+[[constraint]]
+  branch = "master"
+  name = "google.golang.org/api"
+
+[[constraint]]
+  name = "gopkg.in/yaml.v2"
+  version = "2.2.0"
+
+[[constraint]]
+  name = "k8s.io/api"
+  revision = "fe29995db37613b9c5b2a647544cf627bfa8d299"
+
+[[constraint]]
+  branch = "release-1.8"
+  name = "k8s.io/apimachinery"
+
+[[constraint]]
+  name = "k8s.io/client-go"
+  version = "=5.0.0"
+
+[[constraint]]
+  name = "k8s.io/helm"
+  version = "=2.7.2"
+
+[prune]
+  go-tests = true
+  unused-packages = true
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/banzaicloud/kubicorn"
