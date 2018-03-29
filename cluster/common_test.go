@@ -10,6 +10,7 @@ import (
 	"github.com/banzaicloud/pipeline/model"
 	"reflect"
 	"testing"
+	"github.com/banzaicloud/banzai-types/components/dummy"
 )
 
 const (
@@ -140,6 +141,7 @@ var (
 			CreateClusterAmazon *amazon.CreateClusterAmazon `json:"amazon,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
 			CreateClusterGoogle *google.CreateClusterGoogle `json:"google,omitempty"`
+			CreateClusterDummy  *dummy.CreateClusterDummy 	`json:"dummy,omitempty"`
 		}{
 			CreateClusterGoogle: &google.CreateClusterGoogle{
 				Project: clusterRequestProject,
@@ -165,6 +167,7 @@ var (
 			CreateClusterAmazon *amazon.CreateClusterAmazon `json:"amazon,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
 			CreateClusterGoogle *google.CreateClusterGoogle `json:"google,omitempty"`
+			CreateClusterDummy  *dummy.CreateClusterDummy 	`json:"dummy,omitempty"`
 		}{
 			CreateClusterAzure: &azure.CreateClusterAzure{
 				Node: &azure.CreateAzureNode{
@@ -187,6 +190,7 @@ var (
 			CreateClusterAmazon *amazon.CreateClusterAmazon `json:"amazon,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
 			CreateClusterGoogle *google.CreateClusterGoogle `json:"google,omitempty"`
+			CreateClusterDummy  *dummy.CreateClusterDummy 	`json:"dummy,omitempty"`
 		}{
 			CreateClusterAmazon: &amazon.CreateClusterAmazon{
 				Node: &amazon.CreateAmazonNode{
@@ -213,6 +217,7 @@ var (
 			CreateClusterAmazon *amazon.CreateClusterAmazon `json:"amazon,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
 			CreateClusterGoogle *google.CreateClusterGoogle `json:"google,omitempty"`
+			CreateClusterDummy  *dummy.CreateClusterDummy 	`json:"dummy,omitempty"`
 		}{},
 	}
 
@@ -226,6 +231,7 @@ var (
 			CreateClusterAmazon *amazon.CreateClusterAmazon `json:"amazon,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
 			CreateClusterGoogle *google.CreateClusterGoogle `json:"google,omitempty"`
+			CreateClusterDummy  *dummy.CreateClusterDummy 	`json:"dummy,omitempty"`
 		}{
 			CreateClusterGoogle: &google.CreateClusterGoogle{
 				Project: clusterRequestProject,
@@ -251,6 +257,7 @@ var (
 			CreateClusterAmazon *amazon.CreateClusterAmazon `json:"amazon,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
 			CreateClusterGoogle *google.CreateClusterGoogle `json:"google,omitempty"`
+			CreateClusterDummy  *dummy.CreateClusterDummy 	`json:"dummy,omitempty"`
 		}{
 			CreateClusterGoogle: &google.CreateClusterGoogle{
 				Project: clusterRequestProject,
