@@ -31,6 +31,7 @@ _Pipeline is a RESTful API to deploy **cloud native** microservices in public cl
 - [Security](#security)
   - [Authentication](#authentication)
   - [Dynamic secrets](#dynamic-secrets)
+- [Centralized logging](#centralized-logging)  
 - [Quick howto](#quick-howto)
 - [Spotguide specification](#spotguide-specification)
   - [Big data](#big-data)
@@ -192,6 +193,10 @@ Vault does support dynamic secrets thus decided to add support and make the out 
 As you can see with this solution [Pipeline](https://github.com/banzaicloud/pipeline) became able to connect to (e.g.) MySQL simply because it is running in the configured **Kubernetes Service Account** and without being required to type a single username/password during the configuration of the application.
 
 The code implementing the dynamic secret allocation for database connections and Vault configuration described above can be found in our open sourced project [Bank-Vaults](https://github.com/banzaicloud/bank-vaults/tree/master).
+
+### Centralized logging
+
+We are using fluentd and fluent-bit to move application logs towards a centralized location. To collect all logs we deploy fluent-bit as a `DemonSet`. These pods will mount the Docker container logs from the Host machine and transfer to the Fluentd service for further transformations.
 
 ### Quick howto
 
