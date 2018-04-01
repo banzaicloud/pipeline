@@ -198,6 +198,9 @@ The code implementing the dynamic secret allocation for database connections and
 
 We are using fluentd and fluent-bit to move application logs towards a centralized location. To collect all logs we deploy fluent-bit as a `DemonSet`. These pods will mount the Docker container logs from the Host machine and transfer to the Fluentd service for further transformations.
 
+
+![Pipeline PaaS](docs/images/pipeline-log.png)  
+
 ### Quick howto
 
 To do a step by step installation there is a detailed howto available [here](docs/pipeline-howto.md).
