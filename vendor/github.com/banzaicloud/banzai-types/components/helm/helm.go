@@ -41,8 +41,9 @@ type EndpointItem struct {
 }
 
 type EndPointURLs struct {
-	ServiceName string `json:"servicename"`
-	URL         string `json:"url"`
+	ServiceName     string `json:"servicename"`
+	URL             string `json:"url"`
+	HelmReleaseName string `json:"helmreleasename"`
 }
 
 type StatusResponse struct {
