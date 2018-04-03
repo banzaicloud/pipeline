@@ -26,14 +26,14 @@ func TestIngressEndpointUrls(t *testing.T) {
 								{
 									Path: "/svc1_path1",
 									Backend: v1beta1.IngressBackend{
-										ServiceName: "service1",
+										ServiceName: "serviceForIngress",
 										ServicePort: intstr.FromInt(1000),
 									},
 								},
 								{
 									Path: "/svc1_path2",
 									Backend: v1beta1.IngressBackend{
-										ServiceName: "service1",
+										ServiceName: "serviceForIngress",
 										ServicePort: intstr.FromInt(1000),
 									},
 								},
@@ -49,7 +49,7 @@ func TestIngressEndpointUrls(t *testing.T) {
 								{
 									Path: "/svc1_ui",
 									Backend: v1beta1.IngressBackend{
-										ServiceName: "service1",
+										ServiceName: "serviceForIngress",
 										ServicePort: intstr.FromInt(1000),
 									},
 								},
@@ -65,7 +65,7 @@ func TestIngressEndpointUrls(t *testing.T) {
 								{
 									Path: "/",
 									Backend: v1beta1.IngressBackend{
-										ServiceName: "service1",
+										ServiceName: "serviceForIngress",
 										ServicePort: intstr.FromInt(1000),
 									},
 								},
@@ -84,23 +84,27 @@ func TestIngressEndpointUrls(t *testing.T) {
 		{
 			ServiceName: "svc1_path1",
 			URL:         fmt.Sprint("http://", loadBalancerPublicHost, "/svc1_path1/"),
+			HelmReleaseName: dummyReleaseName,
 		},
 		{
 			ServiceName: "svc1_path2",
 			URL:         fmt.Sprint("http://", loadBalancerPublicHost, "/svc1_path2/"),
+			HelmReleaseName: dummyReleaseName,
 		},
 		{
 			ServiceName: "svc1_ui",
 			URL:         fmt.Sprint("http://", loadBalancerPublicHost, "/svc1_ui/"),
+			HelmReleaseName: dummyReleaseName,
 		},
 		{
 			ServiceName: "",
 			URL:         fmt.Sprint("http://", loadBalancerPublicHost, "/"),
+			HelmReleaseName: dummyReleaseName,
 		},
 	}
 
 	// when
-	actualEndpoints := getIngressEndpoints(loadBalancerPublicHost, ingress)
+	actualEndpoints := getIngressEndpoints(loadBalancerPublicHost, ingress, serviceForIngress)
 
 	// then
 	if !reflect.DeepEqual(expectedEndpoints, actualEndpoints) {
@@ -113,9 +117,19 @@ const (
 	dummyLoadBalancer2 = "dummy.loadbalancer2"
 	dummyIP            = "192.168.0.1"
 	traefik            = "traefik"
+	dummyReleaseName   = "vetoed-ibis"
 )
 
 var (
+	serviceForIngress = &v1.ServiceList{
+		Items: []v1.Service{{
+			ObjectMeta: v12.ObjectMeta{
+				Name: "serviceForIngress",
+				Labels: map[string]string{"release": dummyReleaseName,},
+			},
+		},
+		},
+	}
 	serviceListWithoutLoadBalancer = &v1.ServiceList{
 		Items: []v1.Service{{
 			ObjectMeta: v12.ObjectMeta{
@@ -190,6 +204,12 @@ var (
 				},
 			},
 		},
+		{
+			ObjectMeta: v12.ObjectMeta{
+				Name: "serviceForIngress",
+				Labels: map[string]string{"release": dummyReleaseName,},
+			},
+		},
 		},
 	}
 	serviceListWithPort = &v1.ServiceList{
@@ -235,14 +255,14 @@ var (
 									{
 										Path: "/svc1_path1",
 										Backend: v1beta1.IngressBackend{
-											ServiceName: "service1",
+											ServiceName: "serviceForIngress",
 											ServicePort: intstr.FromInt(1000),
 										},
 									},
 									{
 										Path: "/svc1_path2",
 										Backend: v1beta1.IngressBackend{
-											ServiceName: "service1",
+											ServiceName: "serviceForIngress",
 											ServicePort: intstr.FromInt(1000),
 										},
 									},
@@ -276,10 +296,12 @@ var (
 			{
 				ServiceName: "svc1_path1",
 				URL:         fmt.Sprint("http://", dummyLoadBalancer, "/svc1_path1/"),
+				HelmReleaseName: dummyReleaseName,
 			},
 			{
 				ServiceName: "svc1_path2",
 				URL:         fmt.Sprint("http://", dummyLoadBalancer, "/svc1_path2/"),
+				HelmReleaseName: dummyReleaseName,
 			},
 		},
 	}, {

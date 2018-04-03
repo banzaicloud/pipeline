@@ -82,6 +82,8 @@ const (
 // ### [ Errors ] ### //
 var (
 	ErrorNotSupportedCloudType      = errors.New("Not supported cloud type")
+	ErrorAmazonClusterNameRegexp    = errors.New("Up to 255 letters (uppercase and lowercase), numbers, hyphens, and underscores are allowed.")
+	ErrorGoogleClusterNameRegexp    = errors.New("Name must start with a lowercase letter followed by up to 40 lowercase letters, numbers, or hyphens, and cannot end with a hyphen.")
 	ErrorAzureClusterNameRegexp     = errors.New("Only numbers, lowercase letters and underscores are allowed under name property. In addition, the value cannot end with an underscore, and must also be less than 32 characters long.")
 	ErrorAzureClusterNameEmpty      = errors.New("The name should not be empty.")
 	ErrorAzureClusterNameTooLong    = errors.New("Cluster name is greater than or equal 32")
@@ -95,4 +97,11 @@ var (
 	ErrorDifferentKubernetesVersion = errors.New("Different kubernetes version for master and nodes")
 	ErrorLocationEmpty              = errors.New("Location field is empty")
 	ErrorNodeInstanceTypeEmpty      = errors.New("NodeInstanceType field is empty")
+)
+
+// ### [ Regexps for cluster names ] ### //
+const (
+	RegexpAWSName = `^[A-z0-9-_]{1,255}$`
+	RegexpAKSName = `^[a-z0-9_]{0,31}[a-z0-9]$`
+	RegexpGKEName = `^[a-z]$|^[a-z][a-z0-9-]{0,38}[a-z0-9]$`
 )
