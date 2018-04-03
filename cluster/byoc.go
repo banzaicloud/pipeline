@@ -37,7 +37,7 @@ func CreateBYOCClusterFromRequest(request *components.CreateClusterRequest, orgI
 // BYOCluster struct for Build your own cluster
 type BYOCluster struct {
 	modelCluster *model.ClusterModel
-	k8sConfig    *[]byte
+	k8sConfig    []byte
 	APIEndpoint  string
 }
 
@@ -62,13 +62,10 @@ func (b *BYOCluster) Persist() error {
 }
 
 // GetK8sConfig returns the Kubernetes config
-func (b *BYOCluster) GetK8sConfig() (*[]byte, error) {
-	config, err := b.createConfig()
-	if err != nil {
-		return nil, err
-	}
-	b.k8sConfig = &config
-	return b.k8sConfig, nil
+func (b *BYOCluster) GetK8sConfig() ([]byte, error) {
+	var err error = nil
+	b.k8sConfig, err = b.createConfig()
+	return b.k8sConfig, err
 }
 
 // createConfig returns the kubeconfig
