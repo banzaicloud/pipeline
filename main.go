@@ -71,6 +71,7 @@ func main() {
 		&model.AzureClusterModel{},
 		&model.GoogleClusterModel{},
 		&model.DummyClusterModel{},
+		&model.BYOClusterModel{},
 		&auth_identity.AuthIdentity{},
 		&auth.User{},
 		&auth.UserOrganization{},

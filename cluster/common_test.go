@@ -5,6 +5,7 @@ import (
 	"github.com/banzaicloud/banzai-types/components/amazon"
 	"github.com/banzaicloud/banzai-types/components/azure"
 	"github.com/banzaicloud/banzai-types/components/dummy"
+	"github.com/banzaicloud/banzai-types/components/byoc"
 	"github.com/banzaicloud/banzai-types/components/google"
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/cluster"
@@ -33,6 +34,8 @@ const (
 	clusterRequestMasterInstance = "testInstance"
 	clusterServiceAccount        = "testServiceAccount"
 	organizationId               = 1
+	clusterBYOCMetaKey           = "metaKey"
+	clusterBYOCMetaValue         = "metaValue"
 )
 
 func TestCreateCommonClusterFromRequest(t *testing.T) {
@@ -47,11 +50,20 @@ func TestCreateCommonClusterFromRequest(t *testing.T) {
 		{name: "aks create", createRequest: aksCreateFull, expectedModel: aksModelFull, expectedError: nil},
 		{name: "aws create", createRequest: awsCreateFull, expectedModel: awsModelFull, expectedError: nil},
 		{name: "dummy create", createRequest: dummyCreateFull, expectedModel: dummyModelFull, expectedError: nil},
+		{name: "byoc create", createRequest: byocCreateFull, expectedModel: byocModelFull, expectedError: nil},
 
 		{name: "gke wrong k8s version", createRequest: gkeWrongK8sVersion, expectedModel: nil, expectedError: constants.ErrorWrongKubernetesVersion},
 		{name: "gke different k8s version", createRequest: gkeDifferentK8sVersion, expectedModel: gkeModelDifferentVersion, expectedError: constants.ErrorDifferentKubernetesVersion},
 
 		{name: "not supported cloud", createRequest: notSupportedCloud, expectedModel: nil, expectedError: constants.ErrorNotSupportedCloudType},
+
+		{name: "aws empty location", createRequest: awsEmptyLocationCreate, expectedModel: nil, expectedError: constants.ErrorLocationEmpty},
+		{name: "aws empty nodeInstanceType", createRequest: awsEmptyNITCreate, expectedModel: nil, expectedError: constants.ErrorNodeInstanceTypeEmpty},
+		{name: "aks empty location", createRequest: aksEmptyLocationCreate, expectedModel: nil, expectedError: constants.ErrorLocationEmpty},
+		{name: "aks empty nodeInstanceType", createRequest: aksEmptyNITCreate, expectedModel: nil, expectedError: constants.ErrorNodeInstanceTypeEmpty},
+		{name: "gke empty location", createRequest: gkeEmptyLocationCreate, expectedModel: nil, expectedError: constants.ErrorLocationEmpty},
+		{name: "gke empty nodeInstanceType", createRequest: gkeEmptyNITCreate, expectedModel: nil, expectedError: constants.ErrorNodeInstanceTypeEmpty},
+		{name: "byoc empty location and nodeInstanceType", createRequest: byocEmptyLocationAndNIT, expectedModel: byocEmptyLocAndNIT, expectedError: nil},
 	}
 
 	for _, tc := range cases {
@@ -143,6 +155,61 @@ var (
 			CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
 			CreateClusterGoogle *google.CreateClusterGoogle `json:"google,omitempty"`
 			CreateClusterDummy  *dummy.CreateClusterDummy   `json:"dummy,omitempty"`
+			CreateBYOC          *byoc.CreateBYOC            `json:"byoc,omitempty"`
+		}{
+			CreateClusterGoogle: &google.CreateClusterGoogle{
+				Project: clusterRequestProject,
+				Node: &google.GoogleNode{
+					Count:          clusterRequestNodeCount,
+					Version:        clusterRequestVersion,
+					ServiceAccount: clusterServiceAccount,
+				},
+				Master: &google.GoogleMaster{
+					Version: clusterRequestVersion,
+				},
+			},
+		},
+	}
+
+	gkeEmptyLocationCreate = &components.CreateClusterRequest{
+		Name:             clusterRequestName,
+		Location:         "",
+		Cloud:            constants.Google,
+		NodeInstanceType: clusterRequestNodeInstance,
+		SecretId:         clusterRequestSecretId,
+		Properties: struct {
+			CreateClusterAmazon *amazon.CreateClusterAmazon `json:"amazon,omitempty"`
+			CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
+			CreateClusterGoogle *google.CreateClusterGoogle `json:"google,omitempty"`
+			CreateClusterDummy  *dummy.CreateClusterDummy   `json:"dummy,omitempty"`
+			CreateBYOC          *byoc.CreateBYOC            `json:"byoc,omitempty"`
+		}{
+			CreateClusterGoogle: &google.CreateClusterGoogle{
+				Project: clusterRequestProject,
+				Node: &google.GoogleNode{
+					Count:          clusterRequestNodeCount,
+					Version:        clusterRequestVersion,
+					ServiceAccount: clusterServiceAccount,
+				},
+				Master: &google.GoogleMaster{
+					Version: clusterRequestVersion,
+				},
+			},
+		},
+	}
+
+	gkeEmptyNITCreate = &components.CreateClusterRequest{
+		Name:             clusterRequestName,
+		Location:         clusterRequestLocation,
+		Cloud:            constants.Google,
+		NodeInstanceType: "",
+		SecretId:         clusterRequestSecretId,
+		Properties: struct {
+			CreateClusterAmazon *amazon.CreateClusterAmazon `json:"amazon,omitempty"`
+			CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
+			CreateClusterGoogle *google.CreateClusterGoogle `json:"google,omitempty"`
+			CreateClusterDummy  *dummy.CreateClusterDummy   `json:"dummy,omitempty"`
+			CreateBYOC          *byoc.CreateBYOC            `json:"byoc,omitempty"`
 		}{
 			CreateClusterGoogle: &google.CreateClusterGoogle{
 				Project: clusterRequestProject,
@@ -168,7 +235,56 @@ var (
 			CreateClusterAmazon *amazon.CreateClusterAmazon `json:"amazon,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
 			CreateClusterGoogle *google.CreateClusterGoogle `json:"google,omitempty"`
-			CreateClusterDummy  *dummy.CreateClusterDummy 	`json:"dummy,omitempty"`
+			CreateClusterDummy  *dummy.CreateClusterDummy   `json:"dummy,omitempty"`
+			CreateBYOC          *byoc.CreateBYOC            `json:"byoc,omitempty"`
+		}{
+			CreateClusterAzure: &azure.CreateClusterAzure{
+				Node: &azure.CreateAzureNode{
+					ResourceGroup:     clusterRequestRG,
+					AgentCount:        clusterRequestNodeCount,
+					AgentName:         clusterRequestAgentName,
+					KubernetesVersion: clusterRequestKubernetes,
+				},
+			},
+		},
+	}
+
+	aksEmptyLocationCreate = &components.CreateClusterRequest{
+		Name:             clusterRequestName,
+		Location:         "",
+		Cloud:            constants.Azure,
+		NodeInstanceType: clusterRequestNodeInstance,
+		SecretId:         clusterRequestSecretId,
+		Properties: struct {
+			CreateClusterAmazon *amazon.CreateClusterAmazon `json:"amazon,omitempty"`
+			CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
+			CreateClusterGoogle *google.CreateClusterGoogle `json:"google,omitempty"`
+			CreateClusterDummy  *dummy.CreateClusterDummy   `json:"dummy,omitempty"`
+			CreateBYOC          *byoc.CreateBYOC            `json:"byoc,omitempty"`
+		}{
+			CreateClusterAzure: &azure.CreateClusterAzure{
+				Node: &azure.CreateAzureNode{
+					ResourceGroup:     clusterRequestRG,
+					AgentCount:        clusterRequestNodeCount,
+					AgentName:         clusterRequestAgentName,
+					KubernetesVersion: clusterRequestKubernetes,
+				},
+			},
+		},
+	}
+
+	aksEmptyNITCreate = &components.CreateClusterRequest{
+		Name:             clusterRequestName,
+		Location:         clusterRequestLocation,
+		Cloud:            constants.Azure,
+		NodeInstanceType: "",
+		SecretId:         clusterRequestSecretId,
+		Properties: struct {
+			CreateClusterAmazon *amazon.CreateClusterAmazon `json:"amazon,omitempty"`
+			CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
+			CreateClusterGoogle *google.CreateClusterGoogle `json:"google,omitempty"`
+			CreateClusterDummy  *dummy.CreateClusterDummy   `json:"dummy,omitempty"`
+			CreateBYOC          *byoc.CreateBYOC            `json:"byoc,omitempty"`
 		}{
 			CreateClusterAzure: &azure.CreateClusterAzure{
 				Node: &azure.CreateAzureNode{
@@ -192,6 +308,7 @@ var (
 			CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
 			CreateClusterGoogle *google.CreateClusterGoogle `json:"google,omitempty"`
 			CreateClusterDummy  *dummy.CreateClusterDummy   `json:"dummy,omitempty"`
+			CreateBYOC          *byoc.CreateBYOC            `json:"byoc,omitempty"`
 		}{
 			CreateClusterAmazon: &amazon.CreateClusterAmazon{
 				Node: &amazon.CreateAmazonNode{
@@ -219,11 +336,110 @@ var (
 			CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
 			CreateClusterGoogle *google.CreateClusterGoogle `json:"google,omitempty"`
 			CreateClusterDummy  *dummy.CreateClusterDummy   `json:"dummy,omitempty"`
+			CreateBYOC          *byoc.CreateBYOC            `json:"byoc,omitempty"`
 		}{
 			CreateClusterDummy: &dummy.CreateClusterDummy{
 				Node: &dummy.Node{
 					KubernetesVersion: clusterRequestKubernetes,
 					Count:             clusterRequestNodeCount,
+				},
+			},
+		},
+	}
+
+	awsEmptyLocationCreate = &components.CreateClusterRequest{
+		Name:             clusterRequestName,
+		Location:         "",
+		Cloud:            constants.Amazon,
+		NodeInstanceType: clusterRequestNodeInstance,
+		SecretId:         clusterRequestSecretId,
+		Properties: struct {
+			CreateClusterAmazon *amazon.CreateClusterAmazon `json:"amazon,omitempty"`
+			CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
+			CreateClusterGoogle *google.CreateClusterGoogle `json:"google,omitempty"`
+			CreateClusterDummy  *dummy.CreateClusterDummy   `json:"dummy,omitempty"`
+			CreateBYOC          *byoc.CreateBYOC            `json:"byoc,omitempty"`
+		}{
+			CreateClusterAmazon: &amazon.CreateClusterAmazon{
+				Node: &amazon.CreateAmazonNode{
+					SpotPrice: clusterRequestSpotPrice,
+					MinCount:  clusterRequestNodeCount,
+					MaxCount:  clusterRequestNodeMaxCount,
+					Image:     clusterRequestNodeImage,
+				},
+				Master: &amazon.CreateAmazonMaster{
+					InstanceType: clusterRequestMasterInstance,
+					Image:        clusterRequestMasterImage,
+				},
+			},
+		},
+	}
+
+	awsEmptyNITCreate = &components.CreateClusterRequest{
+		Name:             clusterRequestName,
+		Location:         clusterRequestLocation,
+		Cloud:            constants.Amazon,
+		NodeInstanceType: "",
+		SecretId:         clusterRequestSecretId,
+		Properties: struct {
+			CreateClusterAmazon *amazon.CreateClusterAmazon `json:"amazon,omitempty"`
+			CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
+			CreateClusterGoogle *google.CreateClusterGoogle `json:"google,omitempty"`
+			CreateClusterDummy  *dummy.CreateClusterDummy   `json:"dummy,omitempty"`
+			CreateBYOC          *byoc.CreateBYOC            `json:"byoc,omitempty"`
+		}{
+			CreateClusterAmazon: &amazon.CreateClusterAmazon{
+				Node: &amazon.CreateAmazonNode{
+					SpotPrice: clusterRequestSpotPrice,
+					MinCount:  clusterRequestNodeCount,
+					MaxCount:  clusterRequestNodeMaxCount,
+					Image:     clusterRequestNodeImage,
+				},
+				Master: &amazon.CreateAmazonMaster{
+					InstanceType: clusterRequestMasterInstance,
+					Image:        clusterRequestMasterImage,
+				},
+			},
+		},
+	}
+
+	byocCreateFull = &components.CreateClusterRequest{
+		Name:             clusterRequestName,
+		Location:         clusterRequestLocation,
+		Cloud:            constants.BYOC,
+		NodeInstanceType: clusterRequestNodeInstance,
+		SecretId:         clusterRequestSecretId,
+		Properties: struct {
+			CreateClusterAmazon *amazon.CreateClusterAmazon `json:"amazon,omitempty"`
+			CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
+			CreateClusterGoogle *google.CreateClusterGoogle `json:"google,omitempty"`
+			CreateClusterDummy  *dummy.CreateClusterDummy   `json:"dummy,omitempty"`
+			CreateBYOC          *byoc.CreateBYOC            `json:"byoc,omitempty"`
+		}{
+			CreateBYOC: &byoc.CreateBYOC{
+				Metadata: map[string]string{
+					clusterBYOCMetaKey: clusterBYOCMetaValue,
+				},
+			},
+		},
+	}
+
+	byocEmptyLocationAndNIT = &components.CreateClusterRequest{
+		Name:             clusterRequestName,
+		Location:         "",
+		Cloud:            constants.BYOC,
+		NodeInstanceType: "",
+		SecretId:         clusterRequestSecretId,
+		Properties: struct {
+			CreateClusterAmazon *amazon.CreateClusterAmazon `json:"amazon,omitempty"`
+			CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
+			CreateClusterGoogle *google.CreateClusterGoogle `json:"google,omitempty"`
+			CreateClusterDummy  *dummy.CreateClusterDummy   `json:"dummy,omitempty"`
+			CreateBYOC          *byoc.CreateBYOC            `json:"byoc,omitempty"`
+		}{
+			CreateBYOC: &byoc.CreateBYOC{
+				Metadata: map[string]string{
+					clusterBYOCMetaKey: clusterBYOCMetaValue,
 				},
 			},
 		},
@@ -239,7 +455,8 @@ var (
 			CreateClusterAmazon *amazon.CreateClusterAmazon `json:"amazon,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
 			CreateClusterGoogle *google.CreateClusterGoogle `json:"google,omitempty"`
-			CreateClusterDummy  *dummy.CreateClusterDummy 	`json:"dummy,omitempty"`
+			CreateClusterDummy  *dummy.CreateClusterDummy   `json:"dummy,omitempty"`
+			CreateBYOC          *byoc.CreateBYOC            `json:"byoc,omitempty"`
 		}{},
 	}
 
@@ -254,6 +471,7 @@ var (
 			CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
 			CreateClusterGoogle *google.CreateClusterGoogle `json:"google,omitempty"`
 			CreateClusterDummy  *dummy.CreateClusterDummy   `json:"dummy,omitempty"`
+			CreateBYOC          *byoc.CreateBYOC            `json:"byoc,omitempty"`
 		}{
 			CreateClusterGoogle: &google.CreateClusterGoogle{
 				Project: clusterRequestProject,
@@ -280,6 +498,7 @@ var (
 			CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
 			CreateClusterGoogle *google.CreateClusterGoogle `json:"google,omitempty"`
 			CreateClusterDummy  *dummy.CreateClusterDummy   `json:"dummy,omitempty"`
+			CreateBYOC          *byoc.CreateBYOC            `json:"byoc,omitempty"`
 		}{
 			CreateClusterGoogle: &google.CreateClusterGoogle{
 				Project: clusterRequestProject,
@@ -364,6 +583,42 @@ var (
 		Dummy: model.DummyClusterModel{
 			KubernetesVersion: clusterRequestKubernetes,
 			NodeCount:         clusterRequestNodeCount,
+		},
+	}
+
+	byocModelFull = &model.ClusterModel{
+		Name:             clusterRequestName,
+		Location:         clusterRequestLocation,
+		NodeInstanceType: clusterRequestNodeInstance,
+		SecretId:         clusterRequestSecretId,
+		Cloud:            constants.BYOC,
+		OrganizationId:   organizationId,
+		Amazon:           model.AmazonClusterModel{},
+		Azure:            model.AzureClusterModel{},
+		Google:           model.GoogleClusterModel{},
+		BYOC: model.BYOClusterModel{
+			Metadata: map[string]string{
+				clusterBYOCMetaKey: clusterBYOCMetaValue,
+			},
+			MetadataRaw: nil,
+		},
+	}
+
+	byocEmptyLocAndNIT = &model.ClusterModel{
+		Name:             clusterRequestName,
+		Location:         "",
+		NodeInstanceType: "",
+		SecretId:         clusterRequestSecretId,
+		Cloud:            constants.BYOC,
+		OrganizationId:   organizationId,
+		Amazon:           model.AmazonClusterModel{},
+		Azure:            model.AzureClusterModel{},
+		Google:           model.GoogleClusterModel{},
+		BYOC: model.BYOClusterModel{
+			Metadata: map[string]string{
+				clusterBYOCMetaKey: clusterBYOCMetaValue,
+			},
+			MetadataRaw: nil,
 		},
 	}
 

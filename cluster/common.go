@@ -89,6 +89,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 		database.Where(model.GoogleClusterModel{ClusterModelId: gkeCluster.modelCluster.ID}).First(&gkeCluster.modelCluster.Google)
 
 		return gkeCluster, nil
+
 	case constants.Dummy:
 		dummyCluster, err := CreateDummyClusterFromModel(modelCluster)
 		if err != nil {
@@ -98,32 +99,42 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 		database.Where(model.DummyClusterModel{ClusterModelId: dummyCluster.modelCluster.ID}).First(&dummyCluster.modelCluster.Dummy)
 
 		return dummyCluster, nil
+
+	case constants.BYOC:
+		// Create BYOC struct
+		byocCluster, err := CreateBYOCClusterFromModel(modelCluster)
+		if err != nil {
+			return nil, err
+		}
+
+		log.Info("Load BYOC props from database")
+		database.Where(model.BYOClusterModel{ClusterModelId: byocCluster.modelCluster.ID}).First(&byocCluster.modelCluster.BYOC)
+
+		return byocCluster, nil
 	}
+
 	return nil, constants.ErrorNotSupportedCloudType
 }
 
 //CreateCommonClusterFromRequest creates a CommonCluster from a request
 func CreateCommonClusterFromRequest(createClusterRequest *bTypes.CreateClusterRequest, orgId uint) (CommonCluster, error) {
+
+	// validate request
+	if err := createClusterRequest.Validate(); err != nil {
+		return nil, err
+	}
+
 	cloudType := createClusterRequest.Cloud
 	switch cloudType {
 	case constants.Amazon:
-		err := createClusterRequest.Properties.CreateClusterAmazon.Validate()
-		if err != nil {
-			return nil, err
-		}
 		//Create Amazon struct
 		awsCluster, err := CreateAWSClusterFromRequest(createClusterRequest, orgId)
 		if err != nil {
 			return nil, err
 		}
 		return awsCluster, nil
+
 	case constants.Azure:
-
-		err := createClusterRequest.Properties.CreateClusterAzure.Validate()
-		if err != nil {
-			return nil, err
-		}
-
 		// Create Azure struct
 		aksCluster, err := CreateAKSClusterFromRequest(createClusterRequest, orgId)
 		if err != nil {
@@ -132,22 +143,14 @@ func CreateCommonClusterFromRequest(createClusterRequest *bTypes.CreateClusterRe
 		return aksCluster, nil
 
 	case constants.Google:
-		if err := createClusterRequest.Properties.CreateClusterGoogle.Validate(); err != nil {
-			return nil, err
-		}
-
 		// Create Google struct
 		gkeCluster, err := CreateGKEClusterFromRequest(createClusterRequest, orgId)
 		if err != nil {
 			return nil, err
 		}
-
 		return gkeCluster, nil
-	case constants.Dummy:
-		if err := createClusterRequest.Properties.CreateClusterDummy.Validate(); err != nil {
-			return nil, err
-		}
 
+	case constants.Dummy:
 		// Create Dummy struct
 		dummy, err := CreateDummyClusterFromRequest(createClusterRequest, orgId)
 		if err != nil {
@@ -155,7 +158,16 @@ func CreateCommonClusterFromRequest(createClusterRequest *bTypes.CreateClusterRe
 		}
 
 		return dummy, nil
+
+	case constants.BYOC:
+		// Create BYOC struct
+		byoc, err := CreateBYOCClusterFromRequest(createClusterRequest, orgId)
+		if err != nil {
+			return nil, err
+		}
+		return byoc, nil
 	}
+
 	return nil, constants.ErrorNotSupportedCloudType
 }
 

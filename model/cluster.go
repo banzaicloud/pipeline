@@ -4,9 +4,14 @@ import (
 	"bytes"
 	"fmt"
 
+	"encoding/json"
 	"github.com/banzaicloud/banzai-types/constants"
+	"github.com/banzaicloud/pipeline/utils"
 	"github.com/jinzhu/gorm"
+	"github.com/sirupsen/logrus"
 )
+
+const unknown = "unknown"
 
 //ClusterModel describes the common cluster model
 type ClusterModel struct {
@@ -21,6 +26,7 @@ type ClusterModel struct {
 	Azure            AzureClusterModel
 	Google           GoogleClusterModel
 	Dummy            DummyClusterModel
+	BYOC             BYOClusterModel
 }
 
 //AmazonClusterModel describes the amazon cluster model
@@ -57,6 +63,57 @@ type DummyClusterModel struct {
 	ClusterModelId    uint `gorm:"primary_key"`
 	KubernetesVersion string
 	NodeCount         int
+}
+
+//BYOClusterModel describes the build your own cluster model
+type BYOClusterModel struct {
+	ClusterModelId uint              `gorm:"primary_key"`
+	Metadata       map[string]string `gorm:"-"`
+	MetadataRaw    []byte            `gorm:"meta_data"`
+}
+
+// BeforeSave converts the metadata into a json string in case of BYOC
+func (cs *ClusterModel) BeforeSave() error {
+	log := logger.WithFields(logrus.Fields{"tag": "BeforeSave"})
+	log.Info("Before save convert meta data")
+
+	if cs.Cloud == constants.BYOC && cs.BYOC.MetadataRaw != nil && len(cs.BYOC.MetadataRaw) != 0 {
+		if out, err := json.Marshal(cs.BYOC.Metadata); err != nil {
+			log.Errorf("Error during convert map to json: %s", err.Error())
+			return err
+		} else {
+			cs.BYOC.MetadataRaw = out
+		}
+	}
+
+	return nil
+}
+
+// AfterFind converts metadata json string into map in case of BYOC and sets NodeInstanceType and/or Location field(s)
+// to unknown if they are empty
+func (cs *ClusterModel) AfterFind() error {
+
+	log := logger.WithFields(logrus.Fields{"tag": "AfterFind"})
+	log.Info("After find convert metadata")
+
+	if len(cs.Location) == 0 {
+		cs.Location = unknown
+	}
+
+	if len(cs.NodeInstanceType) == 0 {
+		cs.NodeInstanceType = unknown
+	}
+
+	if cs.Cloud == constants.BYOC && cs.BYOC.MetadataRaw != nil && len(cs.BYOC.MetadataRaw) != 0 {
+		if out, err := utils.ConvertJson2Map(cs.BYOC.MetadataRaw); err != nil {
+			log.Errorf("Error during convert json to map: %s", err.Error())
+			return err
+		} else {
+			cs.BYOC.Metadata = out
+		}
+	}
+
+	return nil
 }
 
 //Save the cluster to DB
@@ -113,6 +170,8 @@ func (cs *ClusterModel) String() string {
 		buffer.WriteString(fmt.Sprintf("Node count: %d, kubernetes version: %s",
 			cs.Dummy.NodeCount,
 			cs.Dummy.KubernetesVersion))
+	} else if cs.Cloud == constants.BYOC {
+		buffer.WriteString(fmt.Sprintf("Metadata: %#v", cs.BYOC.Metadata))
 	}
 
 	return buffer.String()
@@ -123,7 +182,7 @@ func (AmazonClusterModel) TableName() string {
 	return constants.TableNameAmazonProperties
 }
 
-// TableName sets AzureSimple's table name
+// TableName sets AzureClusterModel's table name
 func (AzureClusterModel) TableName() string {
 	return constants.TableNameAzureProperties
 }
@@ -151,4 +210,9 @@ func (GoogleClusterModel) TableName() string {
 //TableName sets the DummyClusterModel's table name
 func (DummyClusterModel) TableName() string {
 	return constants.TableNameDummyProperties
+}
+
+//TableName sets the BYOClusterModel's table name
+func (BYOClusterModel) TableName() string {
+	return constants.TableNameBYOCProperties
 }

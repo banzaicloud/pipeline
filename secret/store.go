@@ -92,28 +92,86 @@ func GenerateSecretID() string {
 // DefaultRules key matching for types
 var DefaultRules = map[string][]string{
 	Amazon: {
-		"AWS_ACCESS_KEY_ID",
-		"AWS_SECRET_ACCESS_KEY",
+		AwsAccessKeyId,
+		AwsSecretAccessKey,
 	},
 	Azure: {
-		"AZURE_CLIENT_ID",
-		"AZURE_CLIENT_SECRET",
-		"AZURE_TENANT_ID",
-		"AZURE_SUBSCRIPTION_ID",
+		AzureClientId,
+		AzureClientSecret,
+		AzureTenantId,
+		AzureSubscriptionId,
 	},
 	Google: {
-		"type",
-		"project_id",
-		"private_key_id",
-		"private_key",
-		"client_email",
-		"client_id",
-		"auth_uri",
-		"token_uri",
-		"auth_provider_x509_cert_url",
-		"client_x509_cert_url",
+		Type,
+		ProjectId,
+		PrivateKeyId,
+		PrivateKey,
+		ClientEmail,
+		ClientId,
+		AuthUri,
+		TokenUri,
+		AuthX509Url,
+		ClientX509Url,
+	},
+	Kubernetes: {
+		ServiceAccountToken,
+		Endpoint,
+		UserName,
+		Password,
+		RootCertificate,
+		ClientCertificate,
+		ClientKey,
+		AuthProviderName,
+		AuthAccessToken,
+		AuthAccessTokenExpiry,
+		CurrentContext,
+		Name,
 	},
 }
+
+// Amazon keys
+const (
+	AwsAccessKeyId     = "AWS_ACCESS_KEY_ID"
+	AwsSecretAccessKey = "AWS_SECRET_ACCESS_KEY"
+)
+
+// Azure keys
+const (
+	AzureClientId       = "AZURE_CLIENT_ID"
+	AzureClientSecret   = "AZURE_CLIENT_SECRET"
+	AzureTenantId       = "AZURE_TENANT_ID"
+	AzureSubscriptionId = "AZURE_SUBSCRIPTION_ID"
+)
+
+// Google keys
+const (
+	Type          = "type"
+	ProjectId     = "project_id"
+	PrivateKeyId  = "private_key_id"
+	PrivateKey    = "private_key"
+	ClientEmail   = "client_email"
+	ClientId      = "client_id"
+	AuthUri       = "auth_uri"
+	TokenUri      = "token_uri"
+	AuthX509Url   = "auth_provider_x509_cert_url"
+	ClientX509Url = "client_x509_cert_url"
+)
+
+// Kubernetes keys
+const (
+	Name                  = "name"
+	ServiceAccountToken   = "service_account_token"
+	Endpoint              = "endpoint"
+	UserName              = "user_name"
+	Password              = "password"
+	RootCertificate       = "root_certificate"
+	ClientCertificate     = "client_certificate"
+	ClientKey             = "client_key"
+	AuthProviderName      = "auth_provider_name"
+	AuthAccessToken       = "auth_access_token"
+	AuthAccessTokenExpiry = "auth_access_token_expiry"
+	CurrentContext        = "current_context"
+)
 
 // Validate SecretRequest
 func (c *CreateSecretRequest) Validate() error {
@@ -214,4 +272,9 @@ func (ss *secretStore) List(organizationID, secretType string) ([]SecretsItemRes
 		return responseItems, nil
 	}
 	return responseItems, nil
+}
+
+// GetValue returns the value under key
+func (s SecretsItemResponse) GetValue(key string) string {
+	return s.Values[key]
 }

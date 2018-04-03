@@ -66,6 +66,7 @@ const (
 	Azure  = "azure"
 	Google = "google"
 	Dummy  = "dummy"
+	BYOC   = "byoc"
 )
 
 // ### [ Constants to table names ] ### //
@@ -75,6 +76,7 @@ const (
 	TableNameAzureProperties  = "azure_cluster_properties"
 	TableNameGoogleProperties = "google_cluster_properties"
 	TableNameDummyProperties  = "dummy_cluster_properties"
+	TableNameBYOCProperties   = "byoc_cluster_properties"
 )
 
 // ### [ Errors ] ### //
@@ -91,4 +93,6 @@ var (
 	ErrorNilCluster                 = errors.New("<nil> cluster")
 	ErrorWrongKubernetesVersion     = errors.New("Wrong kubernetes version for master/nodes. The required minimum kubernetes version is 1.8.x ")
 	ErrorDifferentKubernetesVersion = errors.New("Different kubernetes version for master and nodes")
+	ErrorLocationEmpty              = errors.New("Location field is empty")
+	ErrorNodeInstanceTypeEmpty      = errors.New("NodeInstanceType field is empty")
 )
