@@ -25,7 +25,7 @@ var log *logrus.Entry
 type CommonCluster interface {
 	CreateCluster() error
 	Persist() error
-	GetK8sConfig() (*[]byte, error)
+	GetK8sConfig() ([]byte, error)
 	GetName() string
 	GetType() string
 	GetStatus() (*bTypes.GetClusterStatusResponse, error)

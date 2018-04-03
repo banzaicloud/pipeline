@@ -14,7 +14,7 @@ import (
 )
 
 // GetK8sConfig returns the Kubernetes config
-func GetK8sConfig(c *gin.Context) (*[]byte, bool) {
+func GetK8sConfig(c *gin.Context) ([]byte, bool) {
 	log := logger.WithFields(logrus.Fields{"tag": "GetKubernetesConfig"})
 	commonCluster, ok := GetCommonClusterFromRequest(c)
 	if ok != true {

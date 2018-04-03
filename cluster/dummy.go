@@ -13,7 +13,7 @@ import (
 // DummyCluster struct for DC
 type DummyCluster struct {
 	modelCluster *model.ClusterModel
-	k8sConfig    *[]byte
+	k8sConfig    []byte
 	APIEndpoint  string
 }
 
@@ -50,13 +50,13 @@ func (d *DummyCluster) Persist() error {
 }
 
 //GetK8sConfig returns the Kubernetes config
-func (d *DummyCluster) GetK8sConfig() (*[]byte, error) {
+func (d *DummyCluster) GetK8sConfig() ([]byte, error) {
 	data, err := yaml.Marshal(createDummyConfig())
 	if err != nil {
 		return nil, err
 	}
-	d.k8sConfig = &data
-	return &data, nil
+	d.k8sConfig = data
+	return data, nil
 }
 
 //GetName returns the name of the cluster
@@ -81,12 +81,12 @@ func (d *DummyCluster) GetStatus() (*components.GetClusterStatusResponse, error)
 	}, nil
 }
 
-// DeleteCluster deletes cluster 
+// DeleteCluster deletes cluster
 func (d *DummyCluster) DeleteCluster() error {
 	return nil
 }
 
-// UpdateCluster updates the dummy cluster 
+// UpdateCluster updates the dummy cluster
 func (d *DummyCluster) UpdateCluster(r *components.UpdateClusterRequest) error {
 	d.modelCluster.Dummy.KubernetesVersion = r.UpdateClusterDummy.Node.KubernetesVersion
 	d.modelCluster.Dummy.NodeCount = r.UpdateClusterDummy.Node.Count

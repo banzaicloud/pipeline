@@ -257,10 +257,10 @@ func GetClusterConfig(c *gin.Context) {
 	case gin.MIMEJSON:
 		c.JSON(http.StatusOK, components.GetClusterConfigResponse{
 			Status: http.StatusOK,
-			Data:   string(*config),
+			Data:   string(config),
 		})
 	default:
-		c.String(http.StatusOK, string(*config))
+		c.String(http.StatusOK, string(config))
 	}
 	return
 }

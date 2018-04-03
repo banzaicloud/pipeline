@@ -43,7 +43,7 @@ func CreateAKSClusterFromRequest(request *components.CreateClusterRequest, orgId
 type AKSCluster struct {
 	azureCluster *banzaiAzureTypes.Value //Don't use this directly
 	modelCluster *model.ClusterModel
-	k8sConfig    *[]byte
+	k8sConfig    []byte
 	APIEndpoint  string
 }
 
@@ -145,7 +145,7 @@ func (c *AKSCluster) Persist() error {
 }
 
 //GetK8sConfig returns the Kubernetes config
-func (c *AKSCluster) GetK8sConfig() (*[]byte, error) {
+func (c *AKSCluster) GetK8sConfig() ([]byte, error) {
 	if c.k8sConfig != nil {
 		return c.k8sConfig, nil
 	}
@@ -169,8 +169,8 @@ func (c *AKSCluster) GetK8sConfig() (*[]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	c.k8sConfig = &decodedConfig
-	return &decodedConfig, nil
+	c.k8sConfig = decodedConfig
+	return decodedConfig, nil
 }
 
 //GetName returns the name of the cluster
