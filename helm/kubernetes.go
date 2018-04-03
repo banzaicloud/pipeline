@@ -27,7 +27,7 @@ func init() {
 }
 
 //GetK8sConnection creates a new Kubernetes client
-func GetK8sConnection(kubeConfig *[]byte) (*kubernetes.Clientset, error) {
+func GetK8sConnection(kubeConfig []byte) (*kubernetes.Clientset, error) {
 	config, err := GetK8sClientConfig(kubeConfig)
 	if err != nil {
 		return nil, fmt.Errorf("create kubernetes config failed: %v", err)
@@ -50,11 +50,11 @@ func GetK8sInClusterConnection() (*kubernetes.Clientset, error) {
 }
 
 //GetK8sClientConfig creates a Kubernetes client config
-func GetK8sClientConfig(kubeConfig *[]byte) (*rest.Config, error) {
+func GetK8sClientConfig(kubeConfig []byte) (*rest.Config, error) {
 	var config *rest.Config
 	var err error
 	if kubeConfig != nil {
-		if apiconfig, err := clientcmd.Load(*kubeConfig); err != nil {
+		if apiconfig, err := clientcmd.Load(kubeConfig); err != nil {
 			return nil, err
 		} else {
 			clientConfig := clientcmd.NewDefaultClientConfig(*apiconfig, &clientcmd.ConfigOverrides{})
@@ -74,7 +74,7 @@ func GetK8sClientConfig(kubeConfig *[]byte) (*rest.Config, error) {
 }
 
 //GetHelmClient establishes Tunnel for Helm client TODO check client and config if both needed
-func GetHelmClient(kubeConfig *[]byte) (*helm.Client, error) {
+func GetHelmClient(kubeConfig []byte) (*helm.Client, error) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagKubernetes})
 	log.Debug("Create kubernetes Client.")
 	config, err := GetK8sClientConfig(kubeConfig)
@@ -95,7 +95,7 @@ func GetHelmClient(kubeConfig *[]byte) (*helm.Client, error) {
 }
 
 //CheckDeploymentState checks the state of Helm deployment
-func CheckDeploymentState(kubeConfig *[]byte, releaseName string) (string, error) {
+func CheckDeploymentState(kubeConfig []byte, releaseName string) (string, error) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagKubernetes})
 	client, err := GetK8sConnection(kubeConfig)
 	filter := fmt.Sprintf("release=%s", releaseName)

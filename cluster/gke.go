@@ -83,7 +83,7 @@ func CreateGKEClusterFromRequest(request *components.CreateClusterRequest, orgId
 type GKECluster struct {
 	googleCluster *gke.Cluster //Don't use this directly
 	modelCluster  *model.ClusterModel
-	k8sConfig     *[]byte
+	k8sConfig     []byte
 	APIEndpoint   string
 }
 
@@ -202,7 +202,7 @@ func (g *GKECluster) Persist() error {
 }
 
 //GetK8sConfig returns the Kubernetes config
-func (g *GKECluster) GetK8sConfig() (*[]byte, error) {
+func (g *GKECluster) GetK8sConfig() ([]byte, error) {
 
 	if g.k8sConfig != nil {
 		return g.k8sConfig, nil
@@ -219,9 +219,9 @@ func (g *GKECluster) GetK8sConfig() (*[]byte, error) {
 	// get config succeeded
 	log.Info("Get k8s config succeeded")
 
-	g.k8sConfig = &config
+	g.k8sConfig = config
 
-	return &config, nil
+	return config, nil
 
 }
 

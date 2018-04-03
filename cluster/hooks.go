@@ -29,7 +29,7 @@ func PersistKubernetesKeys(cluster CommonCluster) {
 	retryCount := viper.GetInt("cloud.configRetryCount")
 	retrySleepTime := viper.GetInt("cloud.configRetrySleep")
 	var err error
-	var kubeConfig *[]byte
+	var kubeConfig []byte
 	for i := 0; i < retryCount; i++ {
 		kubeConfig, err = cluster.GetK8sConfig()
 		if err != nil {
@@ -44,7 +44,7 @@ func PersistKubernetesKeys(cluster CommonCluster) {
 		return
 	}
 	log.Infof("Starting to write kubernetes config: %s", configPath)
-	if err := utils.WriteToFile(*kubeConfig, configPath+"/cluster.cfg"); err != nil {
+	if err := utils.WriteToFile(kubeConfig, configPath+"/cluster.cfg"); err != nil {
 		log.Errorf("Error writing file: %s", err.Error())
 		return
 	}

@@ -29,7 +29,7 @@ func init() {
 }
 
 //DeleteAllDeployment deletes all Helm deployment
-func DeleteAllDeployment(kubeconfig *[]byte) error {
+func DeleteAllDeployment(kubeconfig []byte) error {
 	log := logger.WithFields(logrus.Fields{"tag": "DeleteAllDeployment"})
 	log.Info("Getting deployments....")
 	filter := ""
@@ -50,7 +50,7 @@ func DeleteAllDeployment(kubeconfig *[]byte) error {
 }
 
 //ListDeployments lists Helm deployments
-func ListDeployments(filter *string, kubeConfig *[]byte) (*rls.ListReleasesResponse, error) {
+func ListDeployments(filter *string, kubeConfig []byte) (*rls.ListReleasesResponse, error) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagListDeployments})
 	hClient, err := GetHelmClient(kubeConfig)
 	// TODO doc the options here
@@ -79,7 +79,7 @@ func ListDeployments(filter *string, kubeConfig *[]byte) (*rls.ListReleasesRespo
 }
 
 //UpgradeDeployment upgrades a Helm deployment
-func UpgradeDeployment(deploymentName, chartName string, values map[string]interface{}, kubeConfig *[]byte) (string, error) {
+func UpgradeDeployment(deploymentName, chartName string, values map[string]interface{}, kubeConfig []byte) (string, error) {
 	//Base maps for values
 	base := map[string]interface{}{}
 	//this is only to parse x=y format
@@ -130,7 +130,7 @@ func UpgradeDeployment(deploymentName, chartName string, values map[string]inter
 }
 
 //CreateDeployment creates a Helm deployment
-func CreateDeployment(chartName string, releaseName string, valueOverrides []byte, kubeConfig *[]byte, path string) (*rls.InstallReleaseResponse, error) {
+func CreateDeployment(chartName string, releaseName string, valueOverrides []byte, kubeConfig []byte, path string) (*rls.InstallReleaseResponse, error) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagCreateDeployment})
 
 	log.Infof("Deploying chart='%s', release name='%s'.", chartName, releaseName)
@@ -176,7 +176,7 @@ func CreateDeployment(chartName string, releaseName string, valueOverrides []byt
 }
 
 //DeleteDeployment deletes a Helm deployment
-func DeleteDeployment(releaseName string, kubeConfig *[]byte) error {
+func DeleteDeployment(releaseName string, kubeConfig []byte) error {
 	hClient, err := GetHelmClient(kubeConfig)
 	if err != nil {
 		return err
@@ -200,7 +200,7 @@ func GetDeployment() {
 // GetDeploymentStatus retrieves the status of the passed in release name.
 // returns with an error if the release is not found or another error occurs
 // in case of error the status is filled with information to classify the error cause
-func GetDeploymentStatus(releaseName string, kubeConfig *[]byte) (int32, error) {
+func GetDeploymentStatus(releaseName string, kubeConfig []byte) (int32, error) {
 
 	helmClient, err := GetHelmClient(kubeConfig)
 

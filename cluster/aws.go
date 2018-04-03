@@ -48,7 +48,7 @@ func SetCredentials(awscred *credentials.Credentials) func(*session.Options) err
 type AWSCluster struct {
 	kubicornCluster *kcluster.Cluster //Don't use this directly
 	modelCluster    *model.ClusterModel
-	k8sConfig       *[]byte
+	k8sConfig       []byte
 	APIEndpoint     string
 }
 
@@ -609,7 +609,7 @@ func (c *AWSCluster) DeleteCluster() error {
 }
 
 //GetK8sConfig returns the Kubernetes config
-func (c *AWSCluster) GetK8sConfig() (*[]byte, error) {
+func (c *AWSCluster) GetK8sConfig() ([]byte, error) {
 	if c.k8sConfig != nil {
 		return c.k8sConfig, nil
 	}
@@ -629,7 +629,7 @@ func (c *AWSCluster) GetK8sConfig() (*[]byte, error) {
 
 //DownloadK8sConfig downloads the Kubernetes config from the cluster
 // Todo check first if config is locally available
-func DownloadK8sConfig(kubicornCluster *kcluster.Cluster) (*[]byte, error) {
+func DownloadK8sConfig(kubicornCluster *kcluster.Cluster) ([]byte, error) {
 
 	user := kubicornCluster.SSH.User
 	pubKeyPath := expand(kubicornCluster.SSH.PublicKeyPath)
@@ -684,7 +684,7 @@ func DownloadK8sConfig(kubicornCluster *kcluster.Cluster) (*[]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &config, nil
+	return config, nil
 }
 
 // const's of BootstrapScript values
