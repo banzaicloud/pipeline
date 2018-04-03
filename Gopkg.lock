@@ -129,12 +129,13 @@
     "components",
     "components/amazon",
     "components/azure",
+    "components/byoc",
     "components/dummy",
     "components/google",
     "components/helm",
     "constants"
   ]
-  revision = "64b95fc60862a03ceff8370f1903d419d69b4ace"
+  revision = "b0ce5a001f929e84162386d6c384173e7cfd4ad0"
 
 [[projects]]
   branch = "master"

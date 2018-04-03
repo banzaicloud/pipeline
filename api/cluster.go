@@ -266,10 +266,17 @@ func GetClusterConfig(c *gin.Context) {
 }
 
 func GetApiEndpoint(c *gin.Context) {
+
+	log := logger.WithFields(logrus.Fields{"tag": "GetApiEndpoint"})
+	log.Info("Start getting API endpoint")
+
+	log.Info("Create common cluster model from request")
 	commonCluster, ok := GetCommonClusterFromRequest(c)
 	if !ok {
 		return
 	}
+
+	log.Info("Start getting API endpoint")
 	endPoint, err := commonCluster.GetAPIEndpoint()
 	if err != nil {
 		log.Errorf("Error during getting api endpoint: %s", err.Error())
@@ -280,6 +287,9 @@ func GetApiEndpoint(c *gin.Context) {
 		})
 		return
 	}
+
+	log.Debugf("API endpoint: %s", endPoint)
+
 	c.String(http.StatusOK, endPoint)
 	return
 }

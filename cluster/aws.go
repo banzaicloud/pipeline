@@ -153,8 +153,8 @@ func (c *AWSCluster) CreateCluster() error {
 		return errors.Errorf("missmatch secret type %s versus %s", clusterSecret.SecretType, secret.Amazon)
 	}
 	awsCred := credentials.NewStaticCredentials(
-		clusterSecret.Values["AWS_ACCESS_KEY_ID"],
-		clusterSecret.Values["AWS_SECRET_ACCESS_KEY"],
+		clusterSecret.Values[secret.AwsAccessKeyId],
+		clusterSecret.Values[secret.AwsSecretAccessKey],
 		"",
 	)
 	runtimeParam.AwsOptions = append(runtimeParam.AwsOptions, SetCredentials(awsCred))
@@ -493,8 +493,8 @@ func (c *AWSCluster) UpdateCluster(request *components.UpdateClusterRequest) err
 		return errors.Errorf("missmatch secret type %s versus %s", clusterSecret.SecretType, secret.Amazon)
 	}
 	awsCred := credentials.NewStaticCredentials(
-		clusterSecret.Values["AWS_ACCESS_KEY_ID"],
-		clusterSecret.Values["AWS_SECRET_ACCESS_KEY"],
+		clusterSecret.Values[secret.AwsAccessKeyId],
+		clusterSecret.Values[secret.AwsSecretAccessKey],
 		"",
 	)
 	runtimeParam.AwsOptions = append(runtimeParam.AwsOptions, SetCredentials(awsCred))
@@ -580,8 +580,8 @@ func (c *AWSCluster) DeleteCluster() error {
 		return errors.Errorf("missmatch secret type %s versus %s", clusterSecret.SecretType, secret.Amazon)
 	}
 	awsCred := credentials.NewStaticCredentials(
-		clusterSecret.Values["AWS_ACCESS_KEY_ID"],
-		clusterSecret.Values["AWS_SECRET_ACCESS_KEY"],
+		clusterSecret.Values[secret.AwsAccessKeyId],
+		clusterSecret.Values[secret.AwsSecretAccessKey],
 		"",
 	)
 	runtimeParam.AwsOptions = append(runtimeParam.AwsOptions, SetCredentials(awsCred))

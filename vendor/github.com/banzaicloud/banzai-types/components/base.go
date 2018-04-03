@@ -2,10 +2,10 @@ package components
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"github.com/banzaicloud/banzai-types/components/amazon"
 	"github.com/banzaicloud/banzai-types/components/azure"
+	"github.com/banzaicloud/banzai-types/components/byoc"
 	"github.com/banzaicloud/banzai-types/components/dummy"
 	"github.com/banzaicloud/banzai-types/components/google"
 	"github.com/banzaicloud/banzai-types/constants"
@@ -18,15 +18,16 @@ type BanzaiResponse struct {
 
 type CreateClusterRequest struct {
 	Name             string `json:"name" binding:"required"`
-	Location         string `json:"location" binding:"required"`
+	Location         string `json:"location"`
 	Cloud            string `json:"cloud" binding:"required"`
-	NodeInstanceType string `json:"nodeInstanceType" binding:"required"`
+	NodeInstanceType string `json:"nodeInstanceType"`
 	SecretId         string `json:"secret_id" binding:"required"`
 	Properties       struct {
 		CreateClusterAmazon *amazon.CreateClusterAmazon `json:"amazon,omitempty"`
 		CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
 		CreateClusterGoogle *google.CreateClusterGoogle `json:"google,omitempty"`
 		CreateClusterDummy  *dummy.CreateClusterDummy   `json:"dummy,omitempty"`
+		CreateBYOC          *byoc.CreateBYOC            `json:"byoc,omitempty"`
 	} `json:"properties" binding:"required"`
 }
 
@@ -88,9 +89,72 @@ func (r *UpdateClusterRequest) String() string {
 				r.UpdateClusterAmazon.MinCount,
 				r.UpdateClusterAmazon.MaxCount))
 		}
+	} else if r.Cloud == constants.Google && r.UpdateClusterGoogle != nil {
+		// Write GKE Master
+		if r.UpdateClusterGoogle.GoogleMaster != nil {
+			buffer.WriteString(fmt.Sprintf("Master version: %s",
+				r.UpdateClusterGoogle.GoogleMaster.Version))
+		}
+
+		// Write GKE Node
+		if r.UpdateClusterGoogle.GoogleNode != nil {
+			buffer.WriteString(fmt.Sprintf("Node version: %s, Service account: %s, Node count: %d",
+				r.UpdateClusterGoogle.GoogleNode.Version,
+				r.UpdateClusterGoogle.GoogleNode.ServiceAccount,
+				r.UpdateClusterGoogle.GoogleNode.Count))
+		}
+	} else if r.Cloud == constants.Dummy && r.UpdateClusterDummy != nil {
+		// Write Dummy node
+		if r.UpdateClusterDummy.Node != nil {
+			buffer.WriteString(fmt.Sprintf("Node count: %d, k8s version: %s",
+				r.UpdateClusterDummy.Node.Count,
+				r.UpdateClusterDummy.Node.KubernetesVersion))
+		}
 	}
 
 	return buffer.String()
+}
+
+// The Validate method checks the request fields
+func (r *CreateClusterRequest) Validate() error {
+
+	if err := r.validateMainFields(); err != nil {
+		return err
+	}
+
+	switch r.Cloud {
+	case constants.Amazon:
+		// amazon validate
+		return r.Properties.CreateClusterAmazon.Validate()
+	case constants.Azure:
+		// azure validate
+		return r.Properties.CreateClusterAzure.Validate()
+	case constants.Google:
+		// google validate
+		return r.Properties.CreateClusterGoogle.Validate()
+	case constants.Dummy:
+		// dummy validate
+		return r.Properties.CreateClusterDummy.Validate()
+	case constants.BYOC:
+		// byoc validate
+		return r.Properties.CreateBYOC.Validate()
+	default:
+		// not supported cloud type
+		return constants.ErrorNotSupportedCloudType
+	}
+}
+
+func (r *CreateClusterRequest) validateMainFields() error {
+	if r.Cloud != constants.BYOC {
+		if len(r.Location) == 0 {
+			return constants.ErrorLocationEmpty
+		}
+
+		if len(r.NodeInstanceType) == 0 {
+			return constants.ErrorNodeInstanceTypeEmpty
+		}
+	}
+	return nil
 }
 
 // The Validate method checks the request fields
@@ -112,22 +176,28 @@ func (r *UpdateClusterRequest) Validate() error {
 		return r.UpdateClusterDummy.Validate()
 	default:
 		// not supported cloud type
-		return errors.New("Not supported cloud type.")
+		return constants.ErrorNotSupportedCloudType
 	}
 
 }
 
-// preValidate resets the azure fields
+// preValidate resets other cloud type fields
 func (r *UpdateClusterRequest) preValidate() {
 	switch r.Cloud {
 	case constants.Amazon:
-		// reset azure fields
+		// reset other fields
 		r.UpdateClusterAzure = nil
+		r.UpdateClusterGoogle = nil
 		break
 	case constants.Azure:
-		// reset field amazon fields
+		// reset other fields
 		r.UpdateClusterAmazon = nil
+		r.UpdateClusterGoogle = nil
 		break
+	case constants.Google:
+		// reset other fields
+		r.UpdateClusterAmazon = nil
+		r.UpdateClusterAzure = nil
 	}
 }
 

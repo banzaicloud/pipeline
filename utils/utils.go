@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"encoding/json"
 )
 
 //GetEnv retrieves ENV variable, fallback if not set
@@ -67,4 +68,10 @@ func IsDifferent(x interface{}, y interface{}) error {
 	}
 
 	return nil
+}
+
+func ConvertJson2Map(js []byte) (map[string]string, error) {
+	var result map[string]string
+	err := json.Unmarshal(js, &result)
+	return result, err
 }

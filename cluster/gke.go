@@ -367,17 +367,18 @@ func (g *GKECluster) getGoogleServiceClient() (*gke.Service, error) {
 	}
 
 	// TODO https://github.com/mitchellh/mapstructure
+
 	credentials := ServiceAccount{
-		Type:                   clusterSecret.Values["type"],
-		ProjectId:              clusterSecret.Values["project_id"],
-		PrivateKeyId:           clusterSecret.Values["private_key_id"],
-		PrivateKey:             clusterSecret.Values["private_key"],
-		ClientEmail:            clusterSecret.Values["client_email"],
-		ClientId:               clusterSecret.Values["client_id"],
-		AuthUri:                clusterSecret.Values["auth_uri"],
-		TokenUri:               clusterSecret.Values["token_uri"],
-		AuthProviderX50CertUrl: clusterSecret.Values["auth_provider_x509_cert_url"],
-		ClientX509CertUrl:      clusterSecret.Values["client_x509_cert_url"],
+		Type:                   clusterSecret.Values[secret.Type],
+		ProjectId:              clusterSecret.Values[secret.ProjectId],
+		PrivateKeyId:           clusterSecret.Values[secret.PrivateKeyId],
+		PrivateKey:             clusterSecret.Values[secret.PrivateKey],
+		ClientEmail:            clusterSecret.Values[secret.ClientEmail],
+		ClientId:               clusterSecret.Values[secret.ClientId],
+		AuthUri:                clusterSecret.Values[secret.AuthUri],
+		TokenUri:               clusterSecret.Values[secret.TokenUri],
+		AuthProviderX50CertUrl: clusterSecret.Values[secret.AuthX509Url],
+		ClientX509CertUrl:      clusterSecret.Values[secret.ClientX509Url],
 	}
 	jsonConfig, err := json.Marshal(credentials)
 	if err != nil {
@@ -860,14 +861,26 @@ func storeConfig(c *kubernetesCluster, name string) ([]byte, error) {
 		}
 	}
 
+	var provider authProvider
+	if len(c.AuthProviderName) != 0 || len(c.AuthAccessToken) != 0 {
+		provider = authProvider{
+			ProviderConfig: providerConfig{
+				AccessToken: c.AuthAccessToken,
+				Expiry:      c.AuthAccessTokenExpiry,
+			},
+			Name: c.AuthProviderName,
+		}
+	}
+
 	// setup users
 	user := configUser{
 		User: userData{
-			Username: username,
-			Password: password,
-			Token:    token,
+			Token:                 token,
+			Username:              username,
+			Password:              password,
 			ClientCertificateData: c.ClientCertificate,
 			ClientKeyData:         c.ClientKey,
+			AuthProvider:          provider,
 		},
 		Name: c.Name,
 	}
@@ -885,6 +898,8 @@ func storeConfig(c *kubernetesCluster, name string) ([]byte, error) {
 			config.Users = append(config.Users, user)
 		}
 	}
+
+	config.CurrentContext = c.CurrentContext
 
 	// setup context
 	context := configContext{
@@ -950,6 +965,11 @@ type kubernetesCluster struct {
 	NodeCount int64 `json:"nodeCount,omitempty" yaml:"node_count,omitempty"`
 	// Metadata store specific driver options per cloud provider
 	Metadata map[string]string `json:"metadata,omitempty" yaml:"metadata,omitempty"`
+
+	AuthProviderName      string `json:"auth_provider_name,omitempty"`
+	AuthAccessToken       string `json:"auth_access_token,omitempty"`
+	AuthAccessTokenExpiry string `json:"auth_access_token_expiry,omitempty"`
+	CurrentContext        string `json:"current_context,omitempty"`
 }
 
 type kubeConfig struct {
@@ -988,11 +1008,22 @@ type configUser struct {
 }
 
 type userData struct {
-	Token                 string `yaml:"token,omitempty"`
-	Username              string `yaml:"username,omitempty"`
-	Password              string `yaml:"password,omitempty"`
-	ClientCertificateData string `yaml:"client-certificate-data,omitempty"`
-	ClientKeyData         string `yaml:"client-key-data,omitempty"`
+	Token                 string       `yaml:"token,omitempty"`
+	Username              string       `yaml:"username,omitempty"`
+	Password              string       `yaml:"password,omitempty"`
+	ClientCertificateData string       `yaml:"client-certificate-data,omitempty"`
+	ClientKeyData         string       `yaml:"client-key-data,omitempty"`
+	AuthProvider          authProvider `yaml:"auth-provider,omitempty"`
+}
+
+type authProvider struct {
+	ProviderConfig providerConfig `yaml:"config,omitempty"`
+	Name           string         `yaml:"name,omitempty"`
+}
+
+type providerConfig struct {
+	AccessToken string `yaml:"access-token,omitempty"`
+	Expiry      string `yaml:"expiry,omitempty"`
 }
 
 //CreateGKEClusterFromModel creates ClusterModel struct from model
