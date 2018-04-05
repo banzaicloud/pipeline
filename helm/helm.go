@@ -9,7 +9,6 @@ import (
 	"github.com/Masterminds/sprig"
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/config"
-	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"k8s.io/helm/pkg/chartutil"
@@ -79,54 +78,41 @@ func ListDeployments(filter *string, kubeConfig []byte) (*rls.ListReleasesRespon
 }
 
 //UpgradeDeployment upgrades a Helm deployment
-func UpgradeDeployment(deploymentName, chartName string, values map[string]interface{}, kubeConfig []byte) (string, error) {
-	//Base maps for values
-	base := map[string]interface{}{}
-	//this is only to parse x=y format
-	//if err := strvals.ParseInto(value, base); err != nil {
-	//	return []byte{}, fmt.Errorf("failed parsing --set data: %s", err)
-	//}
-	base = mergeValues(base, values)
-	updateValues, err := yaml.Marshal(base)
-	if err != nil {
-		return "", err
-	}
-
+func UpgradeDeployment(deploymentName, chartName string, values []byte, reuseValues bool, kubeConfig []byte, path string) (*rls.UpdateReleaseResponse, error) {
 	//Map chartName as
 
-	chartRequested, err := chartutil.Load(chartName)
+	downloadedChartPath, err := downloadChartFromRepo(chartName, generateHelmRepoPath(path))
 	if err != nil {
-		return "", fmt.Errorf("Error loading chart: %v", err)
+		return nil, err
+	}
+	chartRequested, err := chartutil.Load(downloadedChartPath)
+	if err != nil {
+		return nil, fmt.Errorf("Error loading chart: %v", err)
 	}
 	if req, err := chartutil.LoadRequirements(chartRequested); err == nil {
 		if err := checkDependencies(chartRequested, req); err != nil {
-			return "", err
+			return nil, err
 		}
 	} else if err != chartutil.ErrRequirementsNotFound {
-		return "", fmt.Errorf("cannot load requirements: %v", err)
+		return nil, fmt.Errorf("cannot load requirements: %v", err)
 	}
 	//Get cluster based or inCluster kubeconfig
 	hClient, err := GetHelmClient(kubeConfig)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	upgradeRes, err := hClient.UpdateReleaseFromChart(
 		deploymentName,
 		chartRequested,
-		helm.UpdateValueOverrides(updateValues),
+		helm.UpdateValueOverrides(values),
 		helm.UpgradeDryRun(false),
-		//helm.UpgradeRecreate(u.recreate),
-		//helm.UpgradeForce(u.force),
-		//helm.UpgradeDisableHooks(u.disableHooks),
-		//helm.UpgradeTimeout(u.timeout),
 		//helm.ResetValues(u.resetValues),
-		//helm.ReuseValues(u.reuseValues),
-		//helm.UpgradeWait(u.wait)
+		helm.ReuseValues(reuseValues),
 	)
 	if err != nil {
-		return "", fmt.Errorf("upgrade failed: %v", err)
+		return nil, fmt.Errorf("upgrade failed: %v", err)
 	}
-	return upgradeRes.Release.Name, nil
+	return upgradeRes, nil
 }
 
 //CreateDeployment creates a Helm deployment

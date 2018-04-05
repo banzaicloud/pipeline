@@ -11,6 +11,7 @@ import (
 	"k8s.io/helm/pkg/timeconv"
 	"net/http"
 	"k8s.io/helm/pkg/proto/hapi/release"
+	"github.com/juju/errors"
 )
 
 // GetK8sConfig returns the Kubernetes config
@@ -36,61 +37,19 @@ func GetK8sConfig(c *gin.Context) ([]byte, bool) {
 // CreateDeployment creates a Helm deployment
 func CreateDeployment(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagCreateDeployment})
-	commonCluster, ok := GetCommonClusterFromRequest(c)
-	if ok != true {
-		return
-	}
-	log.Info("Get cluster succeeded")
-	var deployment *htype.CreateDeploymentRequest
-	err := c.BindJSON(&deployment)
+	parsedRequest, err := parseCreateUpdateDeploymentRequest(c)
 	if err != nil {
-		log.Errorf("Error parsing request: %s", err.Error())
+		log.Errorf(errors.ErrorStack(err))
 		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error parsing request",
-			Error:   err.Error(),
+			Code: http.StatusBadRequest,
+			Message: "Error during parsing request!",
+			Error:    errors.Cause(err).Error(),
 		})
 		return
 	}
-	log.Info("Parse deployment succeeded")
-
-	log.Debugf("Creating chart %s with version %s and release name %s", deployment.Name, deployment.Version, deployment.ReleaseName)
-	var values []byte
-	if deployment.Values != "" {
-		parsedJSON, err := yaml.Marshal(deployment.Values)
-		if err != nil {
-			log.Error("can't parse Values:", err)
-			c.JSON(http.StatusBadRequest, htype.ErrorResponse{
-				Code:    http.StatusBadRequest,
-				Message: "Error parsing request",
-				Error:   err.Error(),
-			})
-			return
-		}
-		values, err = yaml.JSONToYAML(parsedJSON)
-		if err != nil {
-			log.Errorf("can't convert json to yaml: %s", err)
-			c.JSON(http.StatusBadRequest, htype.ErrorResponse{
-				Code:    http.StatusBadRequest,
-				Message: "Error parsing request",
-				Error:   err.Error(),
-			})
-			return
-		}
-	}
-	kubeConfig, err := commonCluster.GetK8sConfig()
-	if err != nil {
-		log.Errorf("Error getting config: %s", err.Error())
-		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error getting kubeconfig",
-			Error:   err.Error(),
-		})
-		return
-	}
-
-	log.Debug("Custom values: ", string(values))
-	release, err := helm.CreateDeployment(deployment.Name, deployment.ReleaseName, values, kubeConfig, commonCluster.GetName())
+	release, err := helm.CreateDeployment(parsedRequest.deploymentName,
+		parsedRequest.deploymentReleaseName, parsedRequest.values, parsedRequest.kubeConfig,
+		parsedRequest.clusterName)
 	if err != nil {
 		//TODO distinguish error codes
 		log.Errorf("Error during create deployment. %s", err.Error())
@@ -108,7 +67,7 @@ func CreateDeployment(c *gin.Context) {
 
 	log.Debug("Release name: ", releaseName)
 	log.Debug("Release notes: ", releaseNotes)
-	response := htype.CreateDeploymentResponse{
+	response := htype.CreateUpdateDeploymentResponse{
 		ReleaseName: releaseName,
 		Notes:       releaseNotes,
 	}
@@ -274,9 +233,44 @@ func GetTillerStatus(c *gin.Context) {
 	return
 }
 
-//UpgradeDeployment - N/A
+//UpgradeDeployment - Upgrades helm deployment, if --reuse-value is specified reuses the last release's value.
 func UpgradeDeployment(c *gin.Context) {
-	c.Status(http.StatusNotImplemented)
+	log := logger.WithFields(logrus.Fields{"tag": "UpgradeDeployment"})
+	name := c.Param("name")
+	log.Infof("Upgrading deployment: %s", name)
+	parsedRequest, err := parseCreateUpdateDeploymentRequest(c)
+	if err != nil {
+		log.Errorf(errors.ErrorStack(err))
+		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
+			Code: http.StatusBadRequest,
+			Message: "Error during parsing request!",
+			Error:    errors.Cause(err).Error(),
+		})
+		return
+	}
+	
+	release, err := helm.UpgradeDeployment(name,
+		parsedRequest.deploymentName, parsedRequest.values,
+		parsedRequest.reuseValues, parsedRequest.kubeConfig, parsedRequest.clusterName)
+	if err != nil {
+		log.Errorf("Error during upgrading deployment. %s", err.Error())
+		c.JSON(http.StatusInternalServerError, htype.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: "Error upgrading deployment",
+			Error:    err.Error(),
+		})
+		return
+	}
+	log.Info("Upgrade deployment succeeded")
+
+	releaseNotes := release.Release.Info.Status.Notes
+
+	log.Debug("Release notes: ", releaseNotes)
+	response := htype.CreateUpdateDeploymentResponse{
+		ReleaseName: name,
+		Notes:       releaseNotes,
+	}
+	c.JSON(http.StatusCreated, response)
 	return
 }
 
@@ -305,4 +299,55 @@ func DeleteDeployment(c *gin.Context) {
 		Message: "Deployment deleted!",
 		Name:    name,
 	})
+}
+
+type parsedDeploymentRequest struct {
+	deploymentName string
+	deploymentReleaseName string
+	reuseValues bool
+	values []byte
+	kubeConfig []byte
+	clusterName string
+}
+
+func parseCreateUpdateDeploymentRequest(c *gin.Context) (*parsedDeploymentRequest, error) {
+	log := logger.WithFields(logrus.Fields{"tag": "parseCreateUpdateDeploymentRequest"})
+	pdr := new(parsedDeploymentRequest)
+
+	commonCluster, ok := GetCommonClusterFromRequest(c)
+	if ok != true {
+		return nil, errors.New("Get cluster failed!")
+	}
+
+	pdr.clusterName = commonCluster.GetName()
+
+	var deployment *htype.CreateUpdateDeploymentRequest
+	err := c.BindJSON(&deployment)
+	if err != nil {
+		return nil, errors.Annotate(err, "Error parsing request:")
+	}
+	log.Info("Parse deployment succeeded")
+
+	log.Debugf("Parsing chart %s with version %s and release name %s", deployment.Name, deployment.Version, deployment.ReleaseName)
+
+	pdr.deploymentName = deployment.Name
+	pdr.deploymentReleaseName = deployment.ReleaseName
+	pdr.reuseValues = deployment.ReUseValues
+
+	if deployment.Values != "" {
+		parsedJSON, err := yaml.Marshal(deployment.Values)
+		if err != nil {
+			return nil, errors.Annotate(err, "Can't parse Values:")
+		}
+		pdr.values, err = yaml.JSONToYAML(parsedJSON)
+		if err != nil {
+			return nil, errors.Annotate(err, "Can't convert json to yaml:")
+		}
+	}
+	pdr.kubeConfig, err = commonCluster.GetK8sConfig()
+	if err != nil {
+		return nil, errors.Annotate(err, "Error getting kubeconfig:")
+	}
+	log.Debug("Custom values: ", string(pdr.values))
+	return pdr, nil
 }

@@ -63,16 +63,17 @@ type InstallResponse struct {
 	Message string `json:"message"`
 }
 
-type CreateDeploymentResponse struct {
+type CreateUpdateDeploymentResponse struct {
 	ReleaseName string `json:"release_name"`
 	Notes       string `json:"notes"`
 }
 
-// CreateDeploymentRequest describes a Helm deployment
-type CreateDeploymentRequest struct {
+// CreateUpdateDeploymentRequest describes a Helm deployment
+type CreateUpdateDeploymentRequest struct {
 	Name        string      `json:"name" binding:"required"`
 	ReleaseName string      `json:"release_name"`
 	Version     string      `json:"version"`
+	ReUseValues bool        `json:"reuse_values"`
 	Values      interface{} `json:"values"`
 }
 
