@@ -206,3 +206,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/banzaicloud/kubicorn"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/juju/errors"
