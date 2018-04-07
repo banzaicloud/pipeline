@@ -25,6 +25,8 @@ _Pipeline is a RESTful API to deploy **cloud native** microservices in public cl
 - [API specification](#api-specification)
 - [Dependency management](#vendoring)
 - [Create Kubernetes clusters](#create-kubernetes-clusters)
+  - [Create using the API](#create-using-the-api)
+  - [Create using CI/CD](#create-using-cicd)
 - [Deploy applications](#application-deployments)
   - [Deploy using the API](#deploy-using-the-api)
   - [Deploy using CI/CD](#deploy-using-cicd)
@@ -131,9 +133,19 @@ Pipeline is using OpenAPI 3.0 to specify the API, and it's compatible with all S
 
 ### Create Kubernetes clusters
 
-Once Pipeline is started, it can creates Kubernetes clusters on all cloud providers using a RESTful API. The easiest way to create, start, stop, delete or scale a cluster is through the following Postman examples.
+Once Pipeline is started, it can create Kubernetes clusters on all cloud providers using a RESTful API. Kubernetes clusters can be created declaratively (directly triggered by calling the API) or part of a CI/CD flow (where the cluster is created on demand as part of the flow).
+
+#### Create using the API
+
+The easiest way to create a Kubernetes cluster on one of the supported cloud providers is by using the REST API, available as a Postman collection. Clusters can be created, updated or deleted.
+
+The easiest way to deploy applications to it is through the following Postman examples.
 
 [![Run in Postman](https://run.pstmn.io/button.svg)](https://www.getpostman.com/collections/094e8ba30480348b5489)
+
+#### Create using CI/CD
+
+Pipeline has an in-built CI/CD system. Once the GitHub repository is configured with a commit hook, Pipeline can automatically clone, build and deploy the applications. The Kubernetes clusters are created (or reaused) on demand as part of the CI/CD flow. For a CI/CD example please follow this [CI/CD guide](docs/pipeline-howto.md#define-pipeline-workflow-configuration-for-your-spark-application).
 
 For alternative ways to create a cluster please follow the [create cluster guide](docs/create.md).
 
