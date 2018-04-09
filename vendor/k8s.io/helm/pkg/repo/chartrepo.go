@@ -36,6 +36,8 @@ type Entry struct {
 	Name     string `json:"name"`
 	Cache    string `json:"cache"`
 	URL      string `json:"url"`
+	Username string `json:"username"`
+	Password string `json:"password"`
 	CertFile string `json:"certFile"`
 	KeyFile  string `json:"keyFile"`
 	CAFile   string `json:"caFile"`
@@ -117,7 +119,12 @@ func (r *ChartRepository) DownloadIndexFile(cachePath string) error {
 	parsedURL.Path = strings.TrimSuffix(parsedURL.Path, "/") + "/index.yaml"
 
 	indexURL = parsedURL.String()
-	resp, err := r.Client.Get(indexURL)
+	g, err := getter.NewHTTPGetter(indexURL, r.Config.CertFile, r.Config.KeyFile, r.Config.CAFile)
+	if err != nil {
+		return err
+	}
+	g.SetCredentials(r.Config.Username, r.Config.Password)
+	resp, err := g.Get(indexURL)
 	if err != nil {
 		return err
 	}
@@ -184,8 +191,15 @@ func (r *ChartRepository) generateIndex() error {
 }
 
 // FindChartInRepoURL finds chart in chart repository pointed by repoURL
-// without adding repo to repostiories
+// without adding repo to repositories
 func FindChartInRepoURL(repoURL, chartName, chartVersion, certFile, keyFile, caFile string, getters getter.Providers) (string, error) {
+	return FindChartInAuthRepoURL(repoURL, "", "", chartName, chartVersion, certFile, keyFile, caFile, getters)
+}
+
+// FindChartInAuthRepoURL finds chart in chart repository pointed by repoURL
+// without adding repo to repositories, like FindChartInRepoURL,
+// but it also receives credentials for the chart repository.
+func FindChartInAuthRepoURL(repoURL, username, password, chartName, chartVersion, certFile, keyFile, caFile string, getters getter.Providers) (string, error) {
 
 	// Download and write the index file to a temporary location
 	tempIndexFile, err := ioutil.TempFile("", "tmp-repo-file")
@@ -196,6 +210,8 @@ func FindChartInRepoURL(repoURL, chartName, chartVersion, certFile, keyFile, caF
 
 	c := Entry{
 		URL:      repoURL,
+		Username: username,
+		Password: password,
 		CertFile: certFile,
 		KeyFile:  keyFile,
 		CAFile:   caFile,
@@ -227,5 +243,28 @@ func FindChartInRepoURL(repoURL, chartName, chartVersion, certFile, keyFile, caF
 		return "", fmt.Errorf("%s has no downloadable URLs", errMsg)
 	}
 
-	return cv.URLs[0], nil
+	chartURL := cv.URLs[0]
+
+	absoluteChartURL, err := ResolveReferenceURL(repoURL, chartURL)
+	if err != nil {
+		return "", fmt.Errorf("failed to make chart URL absolute: %v", err)
+	}
+
+	return absoluteChartURL, nil
+}
+
+// ResolveReferenceURL resolves refURL relative to baseURL.
+// If refURL is absolute, it simply returns refURL.
+func ResolveReferenceURL(baseURL, refURL string) (string, error) {
+	parsedBaseURL, err := url.Parse(baseURL)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse %s as URL: %v", baseURL, err)
+	}
+
+	parsedRefURL, err := url.Parse(refURL)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse %s as URL: %v", refURL, err)
+	}
+
+	return parsedBaseURL.ResolveReference(parsedRefURL).String(), nil
 }

@@ -17,10 +17,12 @@ limitations under the License.
 package installer // import "k8s.io/helm/cmd/helm/installer"
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"strings"
 
+	"github.com/Masterminds/semver"
 	"github.com/ghodss/yaml"
 	"k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
@@ -30,6 +32,8 @@ import (
 	"k8s.io/client-go/kubernetes"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	extensionsclient "k8s.io/client-go/kubernetes/typed/extensions/v1beta1"
+	"k8s.io/helm/pkg/version"
+
 	"k8s.io/helm/pkg/chartutil"
 )
 
@@ -37,14 +41,14 @@ import (
 //
 // Returns an error if the command failed.
 func Install(client kubernetes.Interface, opts *Options) error {
-	if err := createDeployment(client.Extensions(), opts); err != nil {
+	if err := createDeployment(client.ExtensionsV1beta1(), opts); err != nil {
 		return err
 	}
-	if err := createService(client.Core(), opts.Namespace); err != nil {
+	if err := createService(client.CoreV1(), opts.Namespace); err != nil {
 		return err
 	}
 	if opts.tls() {
-		if err := createSecret(client.Core(), opts); err != nil {
+		if err := createSecret(client.CoreV1(), opts); err != nil {
 			return err
 		}
 	}
@@ -55,23 +59,47 @@ func Install(client kubernetes.Interface, opts *Options) error {
 //
 // Returns an error if the command failed.
 func Upgrade(client kubernetes.Interface, opts *Options) error {
-	obj, err := client.Extensions().Deployments(opts.Namespace).Get(deploymentName, metav1.GetOptions{})
+	obj, err := client.ExtensionsV1beta1().Deployments(opts.Namespace).Get(deploymentName, metav1.GetOptions{})
 	if err != nil {
 		return err
+	}
+	tillerImage := obj.Spec.Template.Spec.Containers[0].Image
+	if semverCompare(tillerImage) == -1 && !opts.ForceUpgrade {
+		return errors.New("current Tiller version is newer, use --force-upgrade to downgrade")
 	}
 	obj.Spec.Template.Spec.Containers[0].Image = opts.selectImage()
 	obj.Spec.Template.Spec.Containers[0].ImagePullPolicy = opts.pullPolicy()
 	obj.Spec.Template.Spec.ServiceAccountName = opts.ServiceAccount
-	if _, err := client.Extensions().Deployments(opts.Namespace).Update(obj); err != nil {
+	if _, err := client.ExtensionsV1beta1().Deployments(opts.Namespace).Update(obj); err != nil {
 		return err
 	}
 	// If the service does not exists that would mean we are upgrading from a Tiller version
 	// that didn't deploy the service, so install it.
-	_, err = client.Core().Services(opts.Namespace).Get(serviceName, metav1.GetOptions{})
+	_, err = client.CoreV1().Services(opts.Namespace).Get(serviceName, metav1.GetOptions{})
 	if apierrors.IsNotFound(err) {
-		return createService(client.Core(), opts.Namespace)
+		return createService(client.CoreV1(), opts.Namespace)
 	}
 	return err
+}
+
+// semverCompare returns whether the client's version is older, equal or newer than the given image's version.
+func semverCompare(image string) int {
+	split := strings.Split(image, ":")
+	if len(split) < 2 {
+		// If we don't know the version, we consider the client version newer.
+		return 1
+	}
+	tillerVersion, err := semver.NewVersion(split[1])
+	if err != nil {
+		// same thing with unparsable tiller versions (e.g. canary releases).
+		return 1
+	}
+	clientVersion, err := semver.NewVersion(version.Version)
+	if err != nil {
+		// aaaaaand same thing with unparsable helm versions (e.g. canary releases).
+		return 1
+	}
+	return clientVersion.Compare(tillerVersion)
 }
 
 // createDeployment creates the Tiller Deployment resource.
@@ -148,6 +176,7 @@ func generateDeployment(opts *Options) (*v1beta1.Deployment, error) {
 			return nil, err
 		}
 	}
+	automountServiceAccountToken := opts.ServiceAccount != ""
 	d := &v1beta1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: opts.Namespace,
@@ -155,12 +184,14 @@ func generateDeployment(opts *Options) (*v1beta1.Deployment, error) {
 			Labels:    labels,
 		},
 		Spec: v1beta1.DeploymentSpec{
+			Replicas: opts.getReplicas(),
 			Template: v1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: labels,
 				},
 				Spec: v1.PodSpec{
-					ServiceAccountName: opts.ServiceAccount,
+					ServiceAccountName:           opts.ServiceAccount,
+					AutomountServiceAccountToken: &automountServiceAccountToken,
 					Containers: []v1.Container{
 						{
 							Name:            "tiller",
@@ -168,6 +199,7 @@ func generateDeployment(opts *Options) (*v1beta1.Deployment, error) {
 							ImagePullPolicy: opts.pullPolicy(),
 							Ports: []v1.ContainerPort{
 								{ContainerPort: 44134, Name: "tiller"},
+								{ContainerPort: 44135, Name: "http"},
 							},
 							Env: []v1.EnvVar{
 								{Name: "TILLER_NAMESPACE", Value: opts.Namespace},

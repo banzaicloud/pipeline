@@ -17,12 +17,13 @@ package resources
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
 	"github.com/kubicorn/kubicorn/apis/cluster"
 	"github.com/kubicorn/kubicorn/cloud"
 	"github.com/kubicorn/kubicorn/pkg/compare"
 	"github.com/kubicorn/kubicorn/pkg/defaults"
 	"github.com/kubicorn/kubicorn/pkg/logger"
+	"context"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-02-01/resources"
 )
 
 var _ cloud.Resource = &ResourceGroup{}
@@ -45,7 +46,7 @@ func (r *ResourceGroup) Actual(immutable *cluster.Cluster) (*cluster.Cluster, cl
 	}
 
 	if r.Identifier != "" {
-		group, err := Sdk.ResourceGroup.Get(immutable.Name)
+		group, err := Sdk.ResourceGroup.Get(context.Background(), immutable.Name)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -84,7 +85,7 @@ func (r *ResourceGroup) Apply(actual, expected cloud.Resource, immutable *cluste
 		return immutable, applyResource, nil
 	}
 
-	group, err := Sdk.ResourceGroup.CreateOrUpdate(immutable.Name, resources.Group{
+	group, err := Sdk.ResourceGroup.CreateOrUpdate(context.Background(), immutable.Name, resources.Group{
 		Location: &immutable.Location,
 	})
 	if err != nil {
@@ -109,13 +110,24 @@ func (r *ResourceGroup) Delete(actual cloud.Resource, immutable *cluster.Cluster
 		return nil, nil, fmt.Errorf("Unable to delete VPC resource without ID [%s]", deleteResource.Name)
 	}
 
-	autorestChan, errorChan := Sdk.ResourceGroup.Delete(immutable.ClusterName, make(chan struct{}))
-	select {
-	case <-autorestChan:
-		logger.Success("Successfully deleted resource group [%s]", deleteResource.Identifier)
-	case err := <-errorChan:
+	result, err := Sdk.ResourceGroup.Delete(context.Background(), immutable.ClusterName)
+	if err != nil {
 		return nil, nil, err
 	}
+	_, err = result.Result(*Sdk.ResourceGroup)
+	if err != nil {
+		return nil, nil, err
+	} else {
+		logger.Success("Successfully deleted resource group [%s]", deleteResource.Identifier)
+	}
+
+	//autorestChan, errorChan := Sdk.ResourceGroup.Delete(immutable.ClusterName, make(chan struct{}))
+	//select {
+	//case <-autorestChan:
+	//	logger.Success("Successfully deleted resource group [%s]", deleteResource.Identifier)
+	//case err := <-errorChan:
+	//	return nil, nil, err
+	//}
 
 	newResource := &ResourceGroup{
 		Shared: Shared{

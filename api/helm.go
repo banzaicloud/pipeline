@@ -9,10 +9,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/juju/errors"
 	"github.com/sirupsen/logrus"
-	"k8s.io/helm/pkg/proto/hapi/release"
 	"k8s.io/helm/pkg/repo"
+	"k8s.io/helm/pkg/proto/hapi/release"
 	"k8s.io/helm/pkg/timeconv"
 	"net/http"
+	"k8s.io/helm/pkg/proto/hapi/release"
+	"github.com/juju/errors"
 )
 
 type ChartQuery struct {

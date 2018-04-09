@@ -144,6 +144,10 @@ func main() {
 			orgs.POST("/:orgid/users/:id", api.AddUser)
 			orgs.DELETE("/:orgid/users/:id", api.RemoveUser)
 
+			orgs.GET("/:orgid/cloudinfo", api.GetSupportedClusterList)
+			orgs.GET("/:orgid/cloudinfo/filters", api.GetSupportedFilters)
+			orgs.POST("/:orgid/cloudinfo/:cloudtype", api.GetCloudInfo)
+
 			orgs.GET("/:orgid/allowed/secrets/", api.ListAllowedSecretTypes)
 			orgs.GET("/:orgid/allowed/secrets/:type", api.ListAllowedSecretTypes)
 
@@ -152,7 +156,6 @@ func main() {
 		}
 		v1.GET("/orgs", api.GetOrganizations)
 		v1.POST("/orgs", api.CreateOrganization)
-		//v1.GET("/clusters/gke/:projectid/:zone/serverconf", cluster.GetGkeServerConfig) // todo think about it and move
 		v1.GET("/token", auth.GenerateToken) // TODO Deprecated, should be removed once the UI has support.
 		v1.POST("/tokens", auth.GenerateToken)
 		v1.GET("/tokens", auth.GetTokens)

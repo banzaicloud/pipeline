@@ -44,7 +44,7 @@
 
 [[override]]
   name = "k8s.io/kubernetes"
-  version = "=v1.8.0"
+  version = "=v1.10.0"
 
 [[override]]
   name = "github.com/docker/docker"
@@ -52,11 +52,15 @@
 
 [[override]]
   name = "google.golang.org/grpc"
-  version = "=v1.2.1"
+  version = "=v1.11.2"
 
 [[override]]
   name = "github.com/Azure/go-autorest"
-  version = "=v9.10.0"
+  version = "=v10.6.0"
+
+[[override]]
+  name = "github.com/Azure/azure-sdk-for-go"
+  version = "=v15.0.0"
 
 [[constraint]]
   name = "github.com/kubicorn/kubicorn"
@@ -72,8 +76,8 @@
   version = "=1.13.9"
 
 [[constraint]]
+  branch = "master"
   name = "github.com/banzaicloud/azure-aks-client"
-  version = "0.3.0"
 
 [[constraint]]
   branch = "master"
@@ -185,19 +189,23 @@
 
 [[constraint]]
   name = "k8s.io/api"
-  revision = "fe29995db37613b9c5b2a647544cf627bfa8d299"
+  branch = "release-1.10"
 
 [[constraint]]
-  branch = "release-1.8"
+  branch = "release-1.10"
   name = "k8s.io/apimachinery"
 
 [[constraint]]
   name = "k8s.io/client-go"
-  version = "=5.0.0"
+  version = "=v7.0.0"
 
 [[constraint]]
+  branch = "release-2.9"
   name = "k8s.io/helm"
-  version = "=2.7.2"
+
+[[override]]
+  name = "github.com/russross/blackfriday"
+  version = "=v1.5.1"
 
 [prune]
   go-tests = true

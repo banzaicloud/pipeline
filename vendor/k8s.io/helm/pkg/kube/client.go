@@ -27,10 +27,13 @@ import (
 	"time"
 
 	jsonpatch "github.com/evanphx/json-patch"
-	apps "k8s.io/api/apps/v1beta2"
+	appsv1 "k8s.io/api/apps/v1"
+	appsv1beta1 "k8s.io/api/apps/v1beta1"
+	appsv1beta2 "k8s.io/api/apps/v1beta2"
 	batch "k8s.io/api/batch/v1"
 	"k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
+	extv1beta1 "k8s.io/api/extensions/v1beta1"
+	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,15 +45,19 @@ import (
 	"k8s.io/apimachinery/pkg/util/strategicpatch"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/kubernetes/pkg/api"
-	"k8s.io/kubernetes/pkg/api/helper"
 	batchinternal "k8s.io/kubernetes/pkg/apis/batch"
-	conditions "k8s.io/kubernetes/pkg/client/unversioned"
+	"k8s.io/kubernetes/pkg/apis/core"
+	"k8s.io/kubernetes/pkg/client/conditions"
 	"k8s.io/kubernetes/pkg/kubectl"
 	cmdutil "k8s.io/kubernetes/pkg/kubectl/cmd/util"
 	"k8s.io/kubernetes/pkg/kubectl/resource"
 	"k8s.io/kubernetes/pkg/kubectl/validation"
 	"k8s.io/kubernetes/pkg/printers"
+)
+
+const (
+	// MissingGetHeader is added to Get's outout when a resource is not found.
+	MissingGetHeader = "==> MISSING\nKIND\t\tNAME\n"
 )
 
 // ErrNoObjectsVisited indicates that during a visit operation, no matching objects were found.
@@ -70,9 +77,11 @@ func New(config clientcmd.ClientConfig) *Client {
 	return &Client{
 		Factory:        cmdutil.NewFactory(config),
 		SchemaCacheDir: clientcmd.RecommendedSchemaFile,
-		Log:            func(_ string, _ ...interface{}) {},
+		Log:            nopLogger,
 	}
 }
+
+var nopLogger = func(_ string, _ ...interface{}) {}
 
 // ResourceActorFunc performs an action on a single resource.
 type ResourceActorFunc func(*resource.Info) error
@@ -104,7 +113,8 @@ func (c *Client) Create(namespace string, reader io.Reader, timeout int64, shoul
 }
 
 func (c *Client) newBuilder(namespace string, reader io.Reader) *resource.Result {
-	return c.NewBuilder(true).
+	return c.NewBuilder().
+		Internal().
 		ContinueOnError().
 		Schema(c.validator()).
 		NamespaceParam(namespace).
@@ -115,8 +125,7 @@ func (c *Client) newBuilder(namespace string, reader io.Reader) *resource.Result
 }
 
 func (c *Client) validator() validation.Schema {
-	const openapi = false // only works on v1.8 clusters
-	schema, err := c.Validator(true, openapi, c.SchemaCacheDir)
+	schema, err := c.Validator(true)
 	if err != nil {
 		c.Log("warning: failed to load schema: %s", err)
 	}
@@ -127,12 +136,9 @@ func (c *Client) validator() validation.Schema {
 func (c *Client) BuildUnstructured(namespace string, reader io.Reader) (Result, error) {
 	var result Result
 
-	b, err := c.NewUnstructuredBuilder(true)
-	if err != nil {
-		return result, err
-	}
-	result, err = b.ContinueOnError().
-		Schema(c.validator()).
+	result, err := c.NewBuilder().
+		Unstructured().
+		ContinueOnError().
 		NamespaceParam(namespace).
 		DefaultNamespace().
 		Stream(reader, "").
@@ -160,7 +166,7 @@ func (c *Client) Get(namespace string, reader io.Reader) (string, error) {
 		return "", err
 	}
 
-	var objPods = make(map[string][]api.Pod)
+	var objPods = make(map[string][]core.Pod)
 
 	missing := []string{}
 	err = perform(infos, func(info *resource.Info) error {
@@ -201,7 +207,10 @@ func (c *Client) Get(namespace string, reader io.Reader) (string, error) {
 	// an object type changes, so we can just rely on that. Problem is it doesn't seem to keep
 	// track of tab widths.
 	buf := new(bytes.Buffer)
-	p, _ := c.Printer(nil, printers.PrintOptions{})
+	p, err := cmdutil.PrinterForOptions(&printers.PrintOptions{})
+	if err != nil {
+		return "", err
+	}
 	for t, ot := range objs {
 		if _, err = buf.WriteString("==> " + t + "\n"); err != nil {
 			return "", err
@@ -217,7 +226,7 @@ func (c *Client) Get(namespace string, reader io.Reader) (string, error) {
 		}
 	}
 	if len(missing) > 0 {
-		buf.WriteString("==> MISSING\nKIND\t\tNAME\n")
+		buf.WriteString(MissingGetHeader)
 		for _, s := range missing {
 			fmt.Fprintln(buf, s)
 		}
@@ -269,7 +278,8 @@ func (c *Client) Update(namespace string, originalReader, targetReader io.Reader
 
 		originalInfo := original.Get(info)
 		if originalInfo == nil {
-			return fmt.Errorf("no resource with the name %q found", info.Name)
+			kind := info.Mapping.GroupVersionKind.Kind
+			return fmt.Errorf("no %s with the name %q found", kind, info.Name)
 		}
 
 		if err := updateResource(c, info, originalInfo.Object, force, recreate); err != nil {
@@ -394,14 +404,25 @@ func createPatch(mapping *meta.RESTMapping, target, current runtime.Object) ([]b
 		return nil, types.StrategicMergePatchType, fmt.Errorf("serializing target configuration: %s", err)
 	}
 
-	if helper.Semantic.DeepEqual(oldData, newData) {
+	// While different objects need different merge types, the parent function
+	// that calls this does not try to create a patch when the data (first
+	// returned object) is nil. We can skip calculating the the merge type as
+	// the returned merge type is ignored.
+	if apiequality.Semantic.DeepEqual(oldData, newData) {
 		return nil, types.StrategicMergePatchType, nil
 	}
 
 	// Get a versioned object
-	versionedObject, err := api.Scheme.New(mapping.GroupVersionKind)
+	versionedObject, err := mapping.ConvertToVersion(target, mapping.GroupVersionKind.GroupVersion())
+
+	// Unstructured objects, such as CRDs, may not have an not registered error
+	// returned from ConvertToVersion. Anything that's unstructured should
+	// use the jsonpatch.CreateMergePatch. Strategic Merge Patch is not supported
+	// on objects like CRDs.
+	_, isUnstructured := versionedObject.(runtime.Unstructured)
+
 	switch {
-	case runtime.IsNotRegisteredError(err):
+	case runtime.IsNotRegisteredError(err), isUnstructured:
 		// fall back to generic JSON merge patch
 		patch, err := jsonpatch.CreateMergePatch(oldData, newData)
 		return patch, types.MergePatchType, err
@@ -425,40 +446,39 @@ func updateResource(c *Client, target *resource.Info, currentObj runtime.Object,
 		if err := target.Get(); err != nil {
 			return fmt.Errorf("error trying to refresh resource information: %v", err)
 		}
-		return nil
-	}
+	} else {
+		// send patch to server
+		helper := resource.NewHelper(target.Client, target.Mapping)
 
-	// send patch to server
-	helper := resource.NewHelper(target.Client, target.Mapping)
+		obj, err := helper.Patch(target.Namespace, target.Name, patchType, patch)
+		if err != nil {
+			kind := target.Mapping.GroupVersionKind.Kind
+			log.Printf("Cannot patch %s: %q (%v)", kind, target.Name, err)
 
-	obj, err := helper.Patch(target.Namespace, target.Name, patchType, patch)
-	if err != nil {
-		kind := target.Mapping.GroupVersionKind.Kind
-		log.Printf("Cannot patch %s: %q (%v)", kind, target.Name, err)
+			if force {
+				// Attempt to delete...
+				if err := deleteResource(c, target); err != nil {
+					return err
+				}
+				log.Printf("Deleted %s: %q", kind, target.Name)
 
-		if force {
-			// Attempt to delete...
-			if err := deleteResource(c, target); err != nil {
+				// ... and recreate
+				if err := createResource(target); err != nil {
+					return fmt.Errorf("Failed to recreate resource: %s", err)
+				}
+				log.Printf("Created a new %s called %q\n", kind, target.Name)
+
+				// No need to refresh the target, as we recreated the resource based
+				// on it. In addition, it might not exist yet and a call to `Refresh`
+				// may fail.
+			} else {
+				log.Print("Use --force to force recreation of the resource")
 				return err
 			}
-			log.Printf("Deleted %s: %q", kind, target.Name)
-
-			// ... and recreate
-			if err := createResource(target); err != nil {
-				return fmt.Errorf("Failed to recreate resource: %s", err)
-			}
-			log.Printf("Created a new %s called %q\n", kind, target.Name)
-
-			// No need to refresh the target, as we recreated the resource based
-			// on it. In addition, it might not exist yet and a call to `Refresh`
-			// may fail.
 		} else {
-			log.Print("Use --force to force recreation of the resource")
-			return err
+			// When patch succeeds without needing to recreate, refresh target.
+			target.Refresh(obj, true)
 		}
-	} else {
-		// When patch succeeds without needing to recreate, refresh target.
-		target.Refresh(obj, true)
 	}
 
 	if !recreate {
@@ -505,18 +525,41 @@ func updateResource(c *Client, target *resource.Info, currentObj runtime.Object,
 
 func getSelectorFromObject(obj runtime.Object) (map[string]string, error) {
 	switch typed := obj.(type) {
+
 	case *v1.ReplicationController:
 		return typed.Spec.Selector, nil
-	case *v1beta1.ReplicaSet:
+
+	case *extv1beta1.ReplicaSet:
 		return typed.Spec.Selector.MatchLabels, nil
-	case *v1beta1.Deployment:
+	case *appsv1.ReplicaSet:
 		return typed.Spec.Selector.MatchLabels, nil
-	case *v1beta1.DaemonSet:
+
+	case *extv1beta1.Deployment:
 		return typed.Spec.Selector.MatchLabels, nil
+	case *appsv1beta1.Deployment:
+		return typed.Spec.Selector.MatchLabels, nil
+	case *appsv1beta2.Deployment:
+		return typed.Spec.Selector.MatchLabels, nil
+	case *appsv1.Deployment:
+		return typed.Spec.Selector.MatchLabels, nil
+
+	case *extv1beta1.DaemonSet:
+		return typed.Spec.Selector.MatchLabels, nil
+	case *appsv1beta2.DaemonSet:
+		return typed.Spec.Selector.MatchLabels, nil
+	case *appsv1.DaemonSet:
+		return typed.Spec.Selector.MatchLabels, nil
+
 	case *batch.Job:
 		return typed.Spec.Selector.MatchLabels, nil
-	case *apps.StatefulSet:
+
+	case *appsv1beta1.StatefulSet:
 		return typed.Spec.Selector.MatchLabels, nil
+	case *appsv1beta2.StatefulSet:
+		return typed.Spec.Selector.MatchLabels, nil
+	case *appsv1.StatefulSet:
+		return typed.Spec.Selector.MatchLabels, nil
+
 	default:
 		return nil, fmt.Errorf("Unsupported kind when getting selector: %v", obj)
 	}
@@ -570,7 +613,8 @@ func (c *Client) AsVersionedObject(obj runtime.Object) (runtime.Object, error) {
 		return nil, err
 	}
 	versions := &runtime.VersionedObjects{}
-	err = runtime.DecodeInto(c.Decoder(true), json, versions)
+	decoder := unstructured.UnstructuredJSONScheme
+	err = runtime.DecodeInto(decoder, json, versions)
 	return versions.First(), err
 }
 
@@ -584,9 +628,9 @@ func (c *Client) waitForJob(e watch.Event, name string) (bool, error) {
 	}
 
 	for _, c := range o.Status.Conditions {
-		if c.Type == batchinternal.JobComplete && c.Status == api.ConditionTrue {
+		if c.Type == batchinternal.JobComplete && c.Status == core.ConditionTrue {
 			return true, nil
-		} else if c.Type == batchinternal.JobFailed && c.Status == api.ConditionTrue {
+		} else if c.Type == batchinternal.JobFailed && c.Status == core.ConditionTrue {
 			return true, fmt.Errorf("Job failed: %s", c.Reason)
 		}
 	}
@@ -610,26 +654,26 @@ func scrubValidationError(err error) error {
 
 // WaitAndGetCompletedPodPhase waits up to a timeout until a pod enters a completed phase
 // and returns said phase (PodSucceeded or PodFailed qualify).
-func (c *Client) WaitAndGetCompletedPodPhase(namespace string, reader io.Reader, timeout time.Duration) (api.PodPhase, error) {
+func (c *Client) WaitAndGetCompletedPodPhase(namespace string, reader io.Reader, timeout time.Duration) (core.PodPhase, error) {
 	infos, err := c.Build(namespace, reader)
 	if err != nil {
-		return api.PodUnknown, err
+		return core.PodUnknown, err
 	}
 	info := infos[0]
 
 	kind := info.Mapping.GroupVersionKind.Kind
 	if kind != "Pod" {
-		return api.PodUnknown, fmt.Errorf("%s is not a Pod", info.Name)
+		return core.PodUnknown, fmt.Errorf("%s is not a Pod", info.Name)
 	}
 
 	if err := c.watchPodUntilComplete(timeout, info); err != nil {
-		return api.PodUnknown, err
+		return core.PodUnknown, err
 	}
 
 	if err := info.Get(); err != nil {
-		return api.PodUnknown, err
+		return core.PodUnknown, err
 	}
-	status := info.Object.(*api.Pod).Status.Phase
+	status := info.Object.(*core.Pod).Status.Phase
 
 	return status, nil
 }
@@ -650,7 +694,7 @@ func (c *Client) watchPodUntilComplete(timeout time.Duration, info *resource.Inf
 
 //get an kubernetes resources's relation pods
 // kubernetes resource used select labels to relate pods
-func (c *Client) getSelectRelationPod(info *resource.Info, objPods map[string][]api.Pod) (map[string][]api.Pod, error) {
+func (c *Client) getSelectRelationPod(info *resource.Info, objPods map[string][]core.Pod) (map[string][]core.Pod, error) {
 	if info == nil {
 		return objPods, nil
 	}
@@ -703,7 +747,7 @@ func (c *Client) getSelectRelationPod(info *resource.Info, objPods map[string][]
 	return objPods, nil
 }
 
-func isFoundPod(podItem []api.Pod, pod api.Pod) bool {
+func isFoundPod(podItem []core.Pod, pod core.Pod) bool {
 	for _, value := range podItem {
 		if (value.Namespace == pod.Namespace) && (value.Name == pod.Name) {
 			return true

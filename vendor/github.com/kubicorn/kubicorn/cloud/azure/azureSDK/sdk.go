@@ -18,19 +18,19 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Azure/azure-sdk-for-go/arm/examples/helpers"
-	"github.com/Azure/azure-sdk-for-go/arm/network"
-	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
-	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/network/mgmt/network"
+
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-02-01/resources"
 	"github.com/Azure/go-autorest/autorest/adal"
-	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/azure/auth"
 )
 
 type Sdk struct {
 	ServicePrincipal *ServicePrincipal
-	Network          *network.ManagementClient
-	Vnet             *network.VirtualNetworksClient
-	ResourceGroup    *resources.GroupsClient
+	//Network          *network.ManagementClient
+	Vnet          *network.VirtualNetworksClient
+	ResourceGroup *resources.GroupsClient
 }
 
 type ServicePrincipal struct {
@@ -75,27 +75,29 @@ func NewSdk() (*Sdk, error) {
 		},
 	}
 
-	authenticatedToken, err := helpers.NewServicePrincipalTokenFromCredentials(sdk.ServicePrincipal.HashMap, azure.PublicCloud.ResourceManagerEndpoint)
-	if err != nil {
-		return nil, err
-	}
-	sdk.ServicePrincipal.AuthenticatedToken = authenticatedToken
-
 	//-------------------------
 	// Azure Client Resources
 	//-------------------------
 
 	//-------------------------
+
+	sp := sdk.ServicePrincipal
+
+	authorizer, err := auth.NewClientCredentialsConfig(sp.ClientID, sp.ClientSecret, sp.TenantId).Authorizer()
+	if err != nil {
+		return nil, err
+	}
+
 	// Resource Group
 	resourceGroup := resources.NewGroupsClient(sdk.ServicePrincipal.SubscriptionID)
-	resourceGroup.Authorizer = autorest.NewBearerAuthorizer(sdk.ServicePrincipal.AuthenticatedToken)
+	resourceGroup.Authorizer = authorizer
 	sdk.ResourceGroup = &resourceGroup
 
 	//------------------------
 	// Network
 	networkClient := network.New(sdk.ServicePrincipal.SubscriptionID)
 	networkClient.Authorizer = autorest.NewBearerAuthorizer(sdk.ServicePrincipal.AuthenticatedToken)
-	sdk.Network = &networkClient
+	//sdk.Network = &networkClient
 
 	//------------------------
 	// Vnet
