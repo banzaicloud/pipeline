@@ -31,7 +31,8 @@ import (
 var ErrRepoOutOfDate = errors.New("repository file is out of date")
 
 // RepoFile represents the repositories.yaml file in $HELM_HOME
-type RepoFile struct {
+// TODO: change type name to File in Helm 3 to resolve linter warning
+type RepoFile struct { // nolint
 	APIVersion   string    `json:"apiVersion"`
 	Generated    time.Time `json:"generated"`
 	Repositories []*Entry  `json:"repositories"`
@@ -55,6 +56,13 @@ func NewRepoFile() *RepoFile {
 func LoadRepositoriesFile(path string) (*RepoFile, error) {
 	b, err := ioutil.ReadFile(path)
 	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, fmt.Errorf(
+				"Couldn't load repositories file (%s).\n"+
+					"You might need to run `helm init` (or "+
+					"`helm init --client-only` if tiller is "+
+					"already installed)", path)
+		}
 		return nil, err
 	}
 

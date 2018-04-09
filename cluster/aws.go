@@ -12,14 +12,14 @@ import (
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
-	kcluster "github.com/kubicorn/kubicorn/apis/cluster"
-	"github.com/kubicorn/kubicorn/pkg"
-	"github.com/kubicorn/kubicorn/pkg/initapi"
-	"github.com/kubicorn/kubicorn/pkg/kubeadm"
-	kubicornLogger "github.com/kubicorn/kubicorn/pkg/logger"
-	"github.com/kubicorn/kubicorn/pkg/uuid"
-	"github.com/kubicorn/kubicorn/state"
-	"github.com/kubicorn/kubicorn/state/fs"
+	kcluster "github.com/banzaicloud/kubicorn/apis/cluster"
+	"github.com/banzaicloud/kubicorn/pkg"
+	"github.com/banzaicloud/kubicorn/pkg/initapi"
+	"github.com/banzaicloud/kubicorn/pkg/kubeadm"
+	kubicornLogger "github.com/banzaicloud/kubicorn/pkg/logger"
+	"github.com/banzaicloud/kubicorn/pkg/uuid"
+	"github.com/banzaicloud/kubicorn/state"
+	"github.com/banzaicloud/kubicorn/state/fs"
 	"github.com/pkg/errors"
 	"github.com/pkg/sftp"
 	"github.com/sirupsen/logrus"
@@ -29,6 +29,8 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/aws"
 )
 
 // Simple init for logging
@@ -782,4 +784,53 @@ func getKubicornLogLevel() int {
 	default:
 		return 4
 	}
+}
+
+func ListRegions() ([]*ec2.Region, error) {
+	// Load session from shared config
+	sess := session.Must(session.NewSessionWithOptions(session.Options{
+		SharedConfigState: session.SharedConfigEnable,
+	}))
+
+	// Create new EC2 client
+	svc := ec2.New(sess)
+
+	resultRegions, err := svc.DescribeRegions(nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return resultRegions.Regions, nil
+}
+
+func ListAMIs(region string, tags []*string) ([]*ec2.Image, error) {
+	// Load session from shared config
+	sess := session.Must(session.NewSessionWithOptions(session.Options{
+		SharedConfigState: session.SharedConfigEnable,
+	}))
+
+	// Create new EC2 client
+	svc := ec2.New(sess, &aws.Config{
+		Region: &region,
+	})
+
+	var input *ec2.DescribeImagesInput
+	if tags != nil {
+		tagKey := "tag:Name"
+		input = &ec2.DescribeImagesInput{
+			Filters: []*ec2.Filter{
+				{
+					Name:   &tagKey,
+					Values: tags,
+				},
+			},
+		}
+	}
+
+	images, err := svc.DescribeImages(input)
+	if err != nil {
+		return nil, err
+	}
+
+	return images.Images, nil
 }
