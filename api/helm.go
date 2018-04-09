@@ -9,12 +9,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/juju/errors"
 	"github.com/sirupsen/logrus"
-	"k8s.io/helm/pkg/repo"
 	"k8s.io/helm/pkg/proto/hapi/release"
+	"k8s.io/helm/pkg/repo"
 	"k8s.io/helm/pkg/timeconv"
 	"net/http"
-	"k8s.io/helm/pkg/proto/hapi/release"
-	"github.com/juju/errors"
 )
 
 type ChartQuery struct {
@@ -492,7 +490,7 @@ func HelmReposModify(c *gin.Context) {
 
 	errModify := helm.ReposModify(clusterName, repoName, newRepo)
 	if errModify != nil {
-		if errModify == helm.ErrRepoNotFound{
+		if errModify == helm.ErrRepoNotFound {
 			c.JSON(http.StatusNotFound, htype.ErrorResponse{
 				Code:    http.StatusNotFound,
 				Error:   errModify.Error(),
