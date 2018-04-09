@@ -357,47 +357,10 @@ func (g *GKECluster) GetModel() *model.ClusterModel {
 
 func (g *GKECluster) getGoogleServiceClient() (*gke.Service, error) {
 
-	// Get Secret from Vault
-	clusterSecret, err := GetSecret(g)
+	client, err := g.newClientFromCredentials()
 	if err != nil {
 		return nil, err
 	}
-	if clusterSecret.SecretType != secret.Google {
-		return nil, errors.Errorf("missmatch secret type %s versus %s", clusterSecret.SecretType, secret.Google)
-	}
-
-	// TODO https://github.com/mitchellh/mapstructure
-
-	credentials := ServiceAccount{
-		Type:                   clusterSecret.Values[secret.Type],
-		ProjectId:              clusterSecret.Values[secret.ProjectId],
-		PrivateKeyId:           clusterSecret.Values[secret.PrivateKeyId],
-		PrivateKey:             clusterSecret.Values[secret.PrivateKey],
-		ClientEmail:            clusterSecret.Values[secret.ClientEmail],
-		ClientId:               clusterSecret.Values[secret.ClientId],
-		AuthUri:                clusterSecret.Values[secret.AuthUri],
-		TokenUri:               clusterSecret.Values[secret.TokenUri],
-		AuthProviderX50CertUrl: clusterSecret.Values[secret.AuthX509Url],
-		ClientX509CertUrl:      clusterSecret.Values[secret.ClientX509Url],
-	}
-	jsonConfig, err := json.Marshal(credentials)
-	if err != nil {
-		return nil, err
-	}
-	// See https://cloud.google.com/docs/authentication/.
-	// Use GOOGLE_APPLICATION_CREDENTIALS environment variable to specify
-	// a service account key file to authenticate to the API.
-
-	// Parse credentials from JSON
-	config, err := google.JWTConfigFromJSON(jsonConfig, gke.CloudPlatformScope)
-	if err != nil {
-		return nil, err
-	}
-
-	// Create oauth2 client with credential
-	//fmt.Printf("%#v", config.)
-	client := config.Client(context.TODO())
-	//client := oauth2.NewClient(context.Background(), googleCredentials.TokenSource)
 
 	//New client from credentials
 	service, err := gke.New(client)
@@ -1150,9 +1113,8 @@ func GetGkeServerConfig(orgId uint, secretId, zone string) (*gke.ServerConfig, e
 
 }
 
-type MachineType []string // todo move to common
-
-func GetAllMachineTypesByZone(orgId uint, secretId, zone string) (map[string]MachineType, error) {
+// GetAllMachineTypesByZone lists supported machine types by zone
+func GetAllMachineTypesByZone(orgId uint, secretId, zone string) (map[string]components.MachineType, error) {
 
 	g := &GKECluster{
 		modelCluster: &model.ClusterModel{
@@ -1173,7 +1135,8 @@ func GetAllMachineTypesByZone(orgId uint, secretId, zone string) (map[string]Mac
 	}
 }
 
-func GetAllMachineTypes(orgId uint, secretId string) (map[string]MachineType, error) {
+// GetAllMachineTypes lists all supported machine types
+func GetAllMachineTypes(orgId uint, secretId string) (map[string]components.MachineType, error) {
 
 	g := &GKECluster{
 		modelCluster: &model.ClusterModel{
@@ -1194,8 +1157,9 @@ func GetAllMachineTypes(orgId uint, secretId string) (map[string]MachineType, er
 
 }
 
-func getMachineTypesWithoutZones(csv *compute.Service, project string) (map[string]MachineType, error) {
-	response := make(map[string]MachineType)
+// getMachineTypesWithoutZones lists supported machine types in all zone
+func getMachineTypesWithoutZones(csv *compute.Service, project string) (map[string]components.MachineType, error) {
+	response := make(map[string]components.MachineType)
 	req := csv.MachineTypes.AggregatedList(project)
 	if err := req.Pages(context.Background(), func(list *compute.MachineTypeAggregatedList) error {
 		for zone, item := range list.Items {
@@ -1220,7 +1184,8 @@ func getMachineTypesWithoutZones(csv *compute.Service, project string) (map[stri
 
 const zonePrefix = "zones/"
 
-func getMachineTypes(csv *compute.Service, project, zone string) (map[string]MachineType, error) {
+// getMachineTypes returns supported machine types by zone
+func getMachineTypes(csv *compute.Service, project, zone string) (map[string]components.MachineType, error) {
 
 	var machineTypes []string
 	req := csv.MachineTypes.List(project, zone)
@@ -1233,7 +1198,7 @@ func getMachineTypes(csv *compute.Service, project, zone string) (map[string]Mac
 		return nil, err
 	}
 
-	response := make(map[string]MachineType)
+	response := make(map[string]components.MachineType)
 	response[zone] = machineTypes
 	return response, nil
 }
@@ -1292,6 +1257,7 @@ func (g *GKECluster) newClientFromCredentials() (*http.Client, error) {
 	return config.Client(context.TODO()), nil
 }
 
+// GetZones lists supported zones
 func GetZones(orgId uint, secretId string) ([]string, error) {
 
 	g := &GKECluster{
@@ -1323,6 +1289,7 @@ func GetZones(orgId uint, secretId string) ([]string, error) {
 
 }
 
+// getProjectId returns with project id from secret
 func (g *GKECluster) getProjectId() (*string, error) {
 	s, err := GetSecret(g)
 	if err != nil {

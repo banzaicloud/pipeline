@@ -97,6 +97,16 @@ var (
 	ErrorDifferentKubernetesVersion = errors.New("Different kubernetes version for master and nodes")
 	ErrorLocationEmpty              = errors.New("Location field is empty")
 	ErrorNodeInstanceTypeEmpty      = errors.New("NodeInstanceType field is empty")
+	ErrorRequiredZone               = errors.New("Zone is required")
+	ErrorRequiredSecretId           = errors.New("Secret id is required")
+	ErrorCloudInfoK8SNotSupported   = errors.New("Not supported key in case of amazon")
+)
+
+// ### [ Keywords ] ###
+const (
+	KeyWorldLocation          = "location"
+	KeyWorldInstanceType      = "instanceType"
+	KeyWorldKubernetesVersion = "k8sVersion"
 )
 
 // ### [ Regexps for cluster names ] ### //

@@ -138,9 +138,9 @@ func main() {
 			orgs.POST("/:orgid/users/:id", api.AddUser)
 			orgs.DELETE("/:orgid/users/:id", api.RemoveUser)
 
-			orgs.GET("/:orgid/supported", api.GetSupportedClusterList)
-			orgs.GET("/:orgid/supported/filters", api.GetSupportedFilters)
-			orgs.POST("/:orgid/supported/:cloudtype", api.GetCloudInfo)
+			orgs.GET("/:orgid/cloudinfo", api.GetSupportedClusterList)
+			orgs.GET("/:orgid/cloudinfo/filters", api.GetSupportedFilters)
+			orgs.POST("/:orgid/cloudinfo/:cloudtype", api.GetCloudInfo)
 
 			orgs.GET("/:orgid/allowed/secrets/", api.ListAllowedSecretTypes)
 			orgs.GET("/:orgid/allowed/secrets/:type", api.ListAllowedSecretTypes)
