@@ -9,7 +9,6 @@ import (
 type GoogleInfo struct {
 	BaseFields
 	ProjectId string
-	Zone      string
 }
 
 func (g *GoogleInfo) GetType() string {
@@ -46,15 +45,15 @@ func (g *GoogleInfo) GetMachineTypesWithFilter(filter *InstanceFilter) (map[stri
 	return cluster.GetAllMachineTypesByZone(g.ProjectId, filter.Zone)
 }
 
-func (g *GoogleInfo) GetKubernetesVersion() (interface{}, error) {
+func (g *GoogleInfo) GetKubernetesVersion(filter *KubernetesFilter) (interface{}, error) {
 
 	if len(g.SecretId) == 0 {
 		return nil, errors.New("Secret id is required")
 	}
 
-	if len(g.Zone) == 0 {
+	if filter == nil || len(filter.Zone) == 0 {
 		return nil, errors.New("Zone is required")
 	}
 
-	return cluster.GetGkeServerConfig(g.OrgId, g.SecretId, g.ProjectId, g.Zone)
+	return cluster.GetGkeServerConfig(g.OrgId, g.SecretId, g.ProjectId, filter.Zone)
 }

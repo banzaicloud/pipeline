@@ -69,7 +69,7 @@ func GetCloudInfo(c *gin.Context) {
 	log.Debugf("Cloud type: %s", cloudType)
 
 	log.Info("Binding request")
-	var request supported.CloudInfoRequest // todo check empty
+	var request supported.CloudInfoRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		log.Errorf("Error during binding request: %s", err.Error())
 	}

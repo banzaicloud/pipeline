@@ -43,8 +43,8 @@ func (a *AmazonInfo) GetMachineTypesWithFilter(filter *InstanceFilter) (map[stri
 	return processMachineTypes(filter.Zone, filter.Tags)
 }
 
-func (a *AmazonInfo) GetKubernetesVersion() (interface{}, error) {
-	return nil, nil
+func (a *AmazonInfo) GetKubernetesVersion(*KubernetesFilter) (interface{}, error) {
+	return nil, errors.New("Not supported key in case of amazon") // todo move to BT
 }
 
 func processMachineTypes(region string, tags []*string) (map[string]cluster.MachineType, error) {
