@@ -377,19 +377,20 @@ func GetLocations(orgId uint, secretId string) ([]string, error) {
 }
 
 // GetMachineTypes lists all available virtual machine sizes for a subscription in a location.
-func GetMachineTypes(orgId uint, secretId, location string) (response map[string]MachineType, err error) {
+func GetMachineTypes(orgId uint, secretId, location string) (response map[string]components.MachineType, err error) {
 	client, err := getAKSClient(orgId, secretId)
 	if err != nil {
 		return nil, err
 	}
 
-	response = make(map[string]MachineType)
+	response = make(map[string]components.MachineType)
 	response[location], err = azureClient.GetVmSizes(client, location)
 
 	return
 
 }
 
+// GetKubernetesVersion returns a list of supported kubernetes version in the specified subscription
 func GetKubernetesVersion(orgId uint, secretId, location string) ([]string, error) {
 	client, err := getAKSClient(orgId, secretId)
 	if err != nil {

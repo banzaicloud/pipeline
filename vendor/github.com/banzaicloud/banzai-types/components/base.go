@@ -224,3 +224,45 @@ type ClusterProfileRequest struct {
 		Google *google.ClusterProfileGoogle `json:"google,omitempty"`
 	} `json:"properties" binding:"required"`
 }
+
+type CloudInfoRequest struct {
+	OrganizationId uint   `json:"-"`
+	SecretId       string `json:"secret_id,omitempty"`
+	Filter         *struct {
+		Fields           []string          `json:"fields,omitempty"`
+		InstanceType     *InstanceFilter   `json:"instanceType,omitempty"`
+		KubernetesFilter *KubernetesFilter `json:"k8sVersion,omitempty"`
+	} `json:"filter,omitempty"`
+}
+
+type InstanceFilter struct {
+	Zone string    `json:"zone,omitempty"`
+	Tags []*string `json:"tags,omitempty"`
+}
+
+type KubernetesFilter struct {
+	Zone string `json:"zone,omitempty"`
+}
+
+type GetCloudInfoResponse struct {
+	Type               string                 `json:"type" binding:"required"`
+	NameRegexp         string                 `json:"nameRegexp,omitempty"`
+	Locations          []string               `json:"locations,omitempty"`
+	NodeInstanceType   map[string]MachineType `json:"nodeInstanceType,omitempty"`
+	KubernetesVersions interface{}            `json:"kubernetes_versions,omitempty"`
+}
+
+type MachineType []string
+
+type SupportedClustersResponse struct {
+	Items []SupportedClusterItem `json:"items"`
+}
+
+type SupportedClusterItem struct {
+	Name string `json:"name" binding:"required"`
+	Key  string `json:"key" binding:"required"`
+}
+
+type SupportedFilters struct {
+	Keys []string `json:"keys"`
+}

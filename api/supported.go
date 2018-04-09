@@ -10,6 +10,7 @@ import (
 	"github.com/banzaicloud/pipeline/cluster/supported"
 )
 
+// GetSupportedClusterList sends back the supported cluster list
 func GetSupportedClusterList(c *gin.Context) {
 
 	log := logger.WithFields(logrus.Fields{"tag": "GetSupportedClusterList"})
@@ -19,8 +20,8 @@ func GetSupportedClusterList(c *gin.Context) {
 	organizationID := auth.GetCurrentOrganization(c.Request).IDString()
 	log.Infof("Organization id: %s", organizationID)
 
-	c.JSON(http.StatusOK, SupportedClustersResponse{
-		Items: []SupportedClusterItem{
+	c.JSON(http.StatusOK, components.SupportedClustersResponse{
+		Items: []components.SupportedClusterItem{
 			{
 				Name: "Amazon Web Services",
 				Key:  constants.Amazon,
@@ -46,17 +47,19 @@ func GetSupportedClusterList(c *gin.Context) {
 
 }
 
+// GetSupportedFilters sends back the supported filter words
 func GetSupportedFilters(c *gin.Context) {
 
 	log := logger.WithFields(logrus.Fields{"tag": "GetSupportedFilters"})
 	log.Info("Start getting filter keys")
 
-	c.JSON(http.StatusOK, SupportedFilters{
+	c.JSON(http.StatusOK, components.SupportedFilters{
 		Keys: supported.Keywords,
 	})
 
 }
 
+// GetCloudInfo sends back the supported locations/k8sVersions/machineTypes
 func GetCloudInfo(c *gin.Context) {
 
 	log := logger.WithFields(logrus.Fields{"tag": "GetCloudInfo"})
@@ -69,7 +72,7 @@ func GetCloudInfo(c *gin.Context) {
 	log.Debugf("Cloud type: %s", cloudType)
 
 	log.Info("Binding request")
-	var request supported.CloudInfoRequest
+	var request components.CloudInfoRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		log.Errorf("Error during binding request: %s", err.Error())
 	}
@@ -89,7 +92,8 @@ func GetCloudInfo(c *gin.Context) {
 	}
 }
 
-func processCloudInfo(cloudType string, r *supported.CloudInfoRequest) (*supported.GetCloudInfoResponse, error) {
+// processCloudInfo returns the cloud info with the supported fields
+func processCloudInfo(cloudType string, r *components.CloudInfoRequest) (*components.GetCloudInfoResponse, error) {
 	log.Info("Create cloud info model")
 	if m, err := supported.GetCloudInfoModel(cloudType, r); err != nil {
 		return nil, err
@@ -97,19 +101,4 @@ func processCloudInfo(cloudType string, r *supported.CloudInfoRequest) (*support
 		log.Info("Process filtering")
 		return supported.ProcessFilter(m, r)
 	}
-}
-
-// todo move to BT
-type SupportedClustersResponse struct {
-	Items []SupportedClusterItem `json:"items"`
-}
-
-// todo move to BT
-type SupportedClusterItem struct {
-	Name string `json:"name" binding:"required"`
-	Key  string `json:"key" binding:"required"`
-}
-
-type SupportedFilters struct {
-	Keys []string `json:"keys"`
 }

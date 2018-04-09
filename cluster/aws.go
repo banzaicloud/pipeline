@@ -786,6 +786,7 @@ func getKubicornLogLevel() int {
 	}
 }
 
+// ListRegions lists supported regions
 func ListRegions() ([]*ec2.Region, error) {
 	// Load session from shared config
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
@@ -803,6 +804,7 @@ func ListRegions() ([]*ec2.Region, error) {
 	return resultRegions.Regions, nil
 }
 
+// ListAMIs returns supported AMIs by region and tags
 func ListAMIs(region string, tags []*string) ([]*ec2.Image, error) {
 	// Load session from shared config
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
