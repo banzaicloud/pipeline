@@ -158,49 +158,6 @@
   revision = "e77541765bd6c4215993f7316d11c8ad72fd43e7"
 
 [[projects]]
-  branch = "update-azure"
-  name = "github.com/banzaicloud/kubicorn"
-  packages = [
-    "apis/cluster",
-    "cloud",
-    "cloud/amazon/awsSdkGo",
-    "cloud/amazon/public",
-    "cloud/amazon/public/resources",
-    "cloud/azure/azureSDK",
-    "cloud/azure/public",
-    "cloud/azure/public/resources",
-    "cloud/digitalocean/droplet",
-    "cloud/digitalocean/droplet/resources",
-    "cloud/digitalocean/godoSdk",
-    "cloud/google/compute",
-    "cloud/google/compute/resources",
-    "cloud/google/googleSDK",
-    "cloud/openstack/openstackSdk",
-    "cloud/openstack/operator/generic/resources",
-    "cloud/openstack/operator/ovh",
-    "cloud/openstack/operator/ovh/resources",
-    "cloud/packet/packetSDK",
-    "cloud/packet/public",
-    "cloud/packet/public/resources",
-    "pkg",
-    "pkg/agent",
-    "pkg/compare",
-    "pkg/defaults",
-    "pkg/hang",
-    "pkg/initapi",
-    "pkg/kubeadm",
-    "pkg/logger",
-    "pkg/parser",
-    "pkg/rand",
-    "pkg/scp",
-    "pkg/script",
-    "pkg/uuid",
-    "state",
-    "state/fs"
-  ]
-  revision = "ff5593b786814ac39849ab871d6f2a5305bed3f0"
-
-[[projects]]
   branch = "master"
   name = "github.com/beorn7/perks"
   packages = ["quantile"]
@@ -666,6 +623,50 @@
   name = "github.com/kris-nova/lolgopher"
   packages = ["."]
   revision = "14d43f83481a37e992f5899de8581727b9ba7702"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/kubicorn/kubicorn"
+  packages = [
+    "apis/cluster",
+    "cloud",
+    "cloud/amazon/awsSdkGo",
+    "cloud/amazon/public",
+    "cloud/amazon/public/resources",
+    "cloud/azure/azureSDK",
+    "cloud/azure/public",
+    "cloud/azure/public/resources",
+    "cloud/digitalocean/droplet",
+    "cloud/digitalocean/droplet/resources",
+    "cloud/digitalocean/godoSdk",
+    "cloud/google/compute",
+    "cloud/google/compute/resources",
+    "cloud/google/googleSDK",
+    "cloud/openstack/openstackSdk",
+    "cloud/openstack/operator/generic/resources",
+    "cloud/openstack/operator/ovh",
+    "cloud/openstack/operator/ovh/resources",
+    "cloud/packet/packetSDK",
+    "cloud/packet/public",
+    "cloud/packet/public/resources",
+    "pkg",
+    "pkg/agent",
+    "pkg/compare",
+    "pkg/defaults",
+    "pkg/hang",
+    "pkg/initapi",
+    "pkg/kubeadm",
+    "pkg/logger",
+    "pkg/parser",
+    "pkg/rand",
+    "pkg/scp",
+    "pkg/script",
+    "pkg/uuid",
+    "state",
+    "state/fs"
+  ]
+  revision = "17c10750505c5aaed4a62a41c12d505b96fccd32"
+  source = "github.com/banzaicloud/kubicorn"
 
 [[projects]]
   name = "github.com/magiconair/properties"

@@ -63,8 +63,9 @@
   version = "=v15.0.0"
 
 [[constraint]]
-  name = "github.com/banzaicloud/kubicorn"
-  branch = "update-azure"
+  name = "github.com/kubicorn/kubicorn"
+  branch = "master"
+  source = "github.com/banzaicloud/kubicorn"
 
 [[constraint]]
   name = "github.com/Masterminds/sprig"
