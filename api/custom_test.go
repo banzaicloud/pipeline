@@ -3,12 +3,12 @@ package api
 import (
 	"fmt"
 	htype "github.com/banzaicloud/banzai-types/components/helm"
+	"k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
+	v12 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"reflect"
 	"testing"
-	"k8s.io/api/core/v1"
-	v12 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func TestIngressEndpointUrls(t *testing.T) {
@@ -82,23 +82,23 @@ func TestIngressEndpointUrls(t *testing.T) {
 
 	expectedEndpoints := []htype.EndPointURLs{
 		{
-			ServiceName: "svc1_path1",
-			URL:         fmt.Sprint("http://", loadBalancerPublicHost, "/svc1_path1/"),
+			ServiceName:     "svc1_path1",
+			URL:             fmt.Sprint("http://", loadBalancerPublicHost, "/svc1_path1/"),
 			HelmReleaseName: dummyReleaseName,
 		},
 		{
-			ServiceName: "svc1_path2",
-			URL:         fmt.Sprint("http://", loadBalancerPublicHost, "/svc1_path2/"),
+			ServiceName:     "svc1_path2",
+			URL:             fmt.Sprint("http://", loadBalancerPublicHost, "/svc1_path2/"),
 			HelmReleaseName: dummyReleaseName,
 		},
 		{
-			ServiceName: "svc1_ui",
-			URL:         fmt.Sprint("http://", loadBalancerPublicHost, "/svc1_ui/"),
+			ServiceName:     "svc1_ui",
+			URL:             fmt.Sprint("http://", loadBalancerPublicHost, "/svc1_ui/"),
 			HelmReleaseName: dummyReleaseName,
 		},
 		{
-			ServiceName: "",
-			URL:         fmt.Sprint("http://", loadBalancerPublicHost, "/"),
+			ServiceName:     "",
+			URL:             fmt.Sprint("http://", loadBalancerPublicHost, "/"),
 			HelmReleaseName: dummyReleaseName,
 		},
 	}
@@ -124,8 +124,8 @@ var (
 	serviceForIngress = &v1.ServiceList{
 		Items: []v1.Service{{
 			ObjectMeta: v12.ObjectMeta{
-				Name: "serviceForIngress",
-				Labels: map[string]string{"release": dummyReleaseName,},
+				Name:   "serviceForIngress",
+				Labels: map[string]string{"release": dummyReleaseName},
 			},
 		},
 		},
@@ -181,7 +181,7 @@ var (
 				Name: "loadBalancerWithIngress",
 			},
 			Spec: v1.ServiceSpec{
-				Selector: map[string]string{"app": traefik,},
+				Selector: map[string]string{"app": traefik},
 			},
 			Status: v1.ServiceStatus{
 				LoadBalancer: v1.LoadBalancerStatus{
@@ -204,12 +204,12 @@ var (
 				},
 			},
 		},
-		{
-			ObjectMeta: v12.ObjectMeta{
-				Name: "serviceForIngress",
-				Labels: map[string]string{"release": dummyReleaseName,},
+			{
+				ObjectMeta: v12.ObjectMeta{
+					Name:   "serviceForIngress",
+					Labels: map[string]string{"release": dummyReleaseName},
+				},
 			},
-		},
 		},
 	}
 	serviceListWithPort = &v1.ServiceList{
@@ -218,10 +218,10 @@ var (
 				Name: "loadBalancerWithPort",
 			},
 			Spec: v1.ServiceSpec{
-				Ports:[]v1.ServicePort{{
+				Ports: []v1.ServicePort{{
 					Name: "UI",
 					Port: 80,
-				},{
+				}, {
 					Name: "API",
 					Port: 3000,
 				},
@@ -244,7 +244,7 @@ var (
 		Items: []v1beta1.Ingress{{
 			ObjectMeta: v12.ObjectMeta{
 				Name:        "test-ingress1",
-				Annotations: map[string]string{"kubernetes.io/ingress.class": traefik,},
+				Annotations: map[string]string{"kubernetes.io/ingress.class": traefik},
 			},
 			Spec: v1beta1.IngressSpec{
 				Rules: []v1beta1.IngressRule{
@@ -281,26 +281,26 @@ var (
 		Host:         dummyLoadBalancer,
 		Ports:        make(map[string]int32),
 		EndPointURLs: nil,
-	},}
+	}}
 	expectedEndpointListWithIP = []*htype.EndpointItem{{
 		Name:         "serviceListWithIP",
 		Host:         dummyIP,
 		Ports:        make(map[string]int32),
 		EndPointURLs: nil,
-	},}
+	}}
 	expectedEndpointWithMultipleLoadBalancer = []*htype.EndpointItem{{
-		Name: "loadBalancerWithIngress",
-		Host: "dummy.loadbalancer",
-		Ports:        make(map[string]int32),
+		Name:  "loadBalancerWithIngress",
+		Host:  "dummy.loadbalancer",
+		Ports: make(map[string]int32),
 		EndPointURLs: []*htype.EndPointURLs{
 			{
-				ServiceName: "svc1_path1",
-				URL:         fmt.Sprint("http://", dummyLoadBalancer, "/svc1_path1/"),
+				ServiceName:     "svc1_path1",
+				URL:             fmt.Sprint("http://", dummyLoadBalancer, "/svc1_path1/"),
 				HelmReleaseName: dummyReleaseName,
 			},
 			{
-				ServiceName: "svc1_path2",
-				URL:         fmt.Sprint("http://", dummyLoadBalancer, "/svc1_path2/"),
+				ServiceName:     "svc1_path2",
+				URL:             fmt.Sprint("http://", dummyLoadBalancer, "/svc1_path2/"),
 				HelmReleaseName: dummyReleaseName,
 			},
 		},
@@ -309,12 +309,12 @@ var (
 		Host:         dummyLoadBalancer2,
 		Ports:        make(map[string]int32),
 		EndPointURLs: nil,
-	},}
+	}}
 	expectedEndpointListWithPort = []*htype.EndpointItem{{
 		Name: "loadBalancerWithPort",
 		Host: "dummy.loadbalancer",
-		Ports: map[string]int32 {
-			"UI": 80,
+		Ports: map[string]int32{
+			"UI":  80,
 			"API": 3000,
 		},
 		EndPointURLs: nil,

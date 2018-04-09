@@ -1,13 +1,13 @@
 package api
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
-	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/banzai-types/components"
-	"net/http"
+	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster/supported"
+	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
+	"net/http"
 )
 
 // GetSupportedClusterList sends back the supported cluster list

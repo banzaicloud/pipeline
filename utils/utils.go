@@ -1,13 +1,13 @@
 package utils
 
 import (
+	"encoding/json"
 	"github.com/banzaicloud/banzai-types/constants"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
 	"reflect"
-	"encoding/json"
 )
 
 //GetEnv retrieves ENV variable, fallback if not set
