@@ -1118,7 +1118,7 @@ func (g *GKECluster) DeleteFromDatabase() error {
 }
 
 // GetGkeServerConfig returns configuration info about the Kubernetes Engine service.
-func GetGkeServerConfig(orgId uint, secretId string, projectId, zone string) (*gke.ServerConfig, error) {
+func GetGkeServerConfig(orgId uint, secretId, zone string) (*gke.ServerConfig, error) {
 
 	log := logger.WithFields(logrus.Fields{"action": "GetGkeServerConfig"})
 
@@ -1135,7 +1135,11 @@ func GetGkeServerConfig(orgId uint, secretId string, projectId, zone string) (*g
 	if svc, err := g.getGoogleServiceClient(); err != nil {
 		return nil, err
 	} else {
-		if serverConfig, err := svc.Projects.Zones.GetServerconfig(projectId, zone).Context(context.Background()).Do(); err != nil {
+		projectId, err := g.getProjectId()
+		if err != nil {
+			return nil, err
+		}
+		if serverConfig, err := svc.Projects.Zones.GetServerconfig(*projectId, zone).Context(context.Background()).Do(); err != nil {
 			return nil, err
 		} else {
 			log.Info("Getting server config succeeded")
@@ -1146,46 +1150,46 @@ func GetGkeServerConfig(orgId uint, secretId string, projectId, zone string) (*g
 
 }
 
-type GetServerConfigResponse struct {
-	// Version of Kubernetes the service deploys by default.
-	DefaultClusterVersion string `json:"defaultClusterVersion"`
-	// Default image type.
-	DefaultImageType string `json:"defaultImageType"`
-	// List of valid image types.
-	ValidImageTypes []string `json:"validImageTypes"`
-	// List of valid master versions.
-	ValidMasterVersions []string `json:"validMasterVersions"`
-	// List of valid node upgrade target versions.
-	ValidNodeVersions []string `json:"validNodeVersions"`
-}
+type MachineType []string // todo move to common
 
-// convertServerConfig create a GetServerConfigResponse from ServerConfig
-func convertServerConfig(config *gke.ServerConfig) *GetServerConfigResponse {
-	return &GetServerConfigResponse{
-		DefaultClusterVersion: config.DefaultClusterVersion,
-		DefaultImageType:      config.DefaultImageType,
-		ValidImageTypes:       config.ValidImageTypes,
-		ValidMasterVersions:   config.ValidMasterVersions,
-		ValidNodeVersions:     config.ValidNodeVersions,
+func GetAllMachineTypesByZone(orgId uint, secretId, zone string) (map[string]MachineType, error) {
+
+	g := &GKECluster{
+		modelCluster: &model.ClusterModel{
+			OrganizationId: orgId,
+			SecretId:       secretId,
+		},
+	}
+
+	if computeService, err := g.getComputeService(); err != nil {
+		return nil, err
+	} else {
+		project, err := g.getProjectId()
+		if err != nil {
+			return nil, err
+		}
+
+		return getMachineTypes(computeService, *project, zone)
 	}
 }
 
-type MachineType []string
+func GetAllMachineTypes(orgId uint, secretId string) (map[string]MachineType, error) {
 
-func GetAllMachineTypesByZone(project, zone string) (map[string]MachineType, error) {
-	if computeService, err := getComputeService(); err != nil {
-		return nil, err
-	} else {
-		return getMachineTypes(computeService, project, zone)
+	g := &GKECluster{
+		modelCluster: &model.ClusterModel{
+			OrganizationId: orgId,
+			SecretId:       secretId,
+		},
 	}
-}
 
-func GetAllMachineTypes(project string) (map[string]MachineType, error) {
-
-	if computeService, err := getComputeService(); err != nil {
+	if computeService, err := g.getComputeService(); err != nil {
 		return nil, err
 	} else {
-		return getMachineTypesWithoutZones(computeService, project)
+		project, err := g.getProjectId()
+		if err != nil {
+			return nil, err
+		}
+		return getMachineTypesWithoutZones(computeService, *project)
 	}
 
 }
@@ -1234,23 +1238,78 @@ func getMachineTypes(csv *compute.Service, project, zone string) (map[string]Mac
 	return response, nil
 }
 
-func getComputeService() (*compute.Service, error) {
-	// todo change to oauth
-	c, err := google.DefaultClient(context.Background(), compute.CloudPlatformScope)
+func (g *GKECluster) getComputeService() (*compute.Service, error) {
+
+	//New client from credentials
+	client, err := g.newClientFromCredentials()
+	if err != nil {
+		return nil, err
+	}
+	service, err := compute.New(client)
+	if err != nil {
+		return nil, err
+	}
+	return service, nil
+}
+
+// newClientFromCredentials creates new client from credentials
+func (g *GKECluster) newClientFromCredentials() (*http.Client, error) {
+	// Get Secret from Vault
+	clusterSecret, err := GetSecret(g)
+	if err != nil {
+		return nil, err
+	}
+	if clusterSecret.SecretType != secret.Google {
+		return nil, errors.Errorf("missmatch secret type %s versus %s", clusterSecret.SecretType, secret.Google)
+	}
+
+	// TODO https://github.com/mitchellh/mapstructure
+
+	credentials := ServiceAccount{
+		Type:                   clusterSecret.Values[secret.Type],
+		ProjectId:              clusterSecret.Values[secret.ProjectId],
+		PrivateKeyId:           clusterSecret.Values[secret.PrivateKeyId],
+		PrivateKey:             clusterSecret.Values[secret.PrivateKey],
+		ClientEmail:            clusterSecret.Values[secret.ClientEmail],
+		ClientId:               clusterSecret.Values[secret.ClientId],
+		AuthUri:                clusterSecret.Values[secret.AuthUri],
+		TokenUri:               clusterSecret.Values[secret.TokenUri],
+		AuthProviderX50CertUrl: clusterSecret.Values[secret.AuthX509Url],
+		ClientX509CertUrl:      clusterSecret.Values[secret.ClientX509Url],
+	}
+	jsonConfig, err := json.Marshal(credentials)
 	if err != nil {
 		return nil, err
 	}
 
-	return compute.New(c)
+	// Parse credentials from JSON
+	config, err := google.JWTConfigFromJSON(jsonConfig, gke.CloudPlatformScope)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create oauth2 client with credential
+	return config.Client(context.TODO()), nil
 }
 
-func GetZones(project string) ([]string, error) {
+func GetZones(orgId uint, secretId string) ([]string, error) {
 
-	if computeService, err := getComputeService(); err != nil {
+	g := &GKECluster{
+		modelCluster: &model.ClusterModel{
+			OrganizationId: orgId,
+			SecretId:       secretId,
+		},
+	}
+
+	if computeService, err := g.getComputeService(); err != nil {
 		return nil, err
 	} else {
+		project, err := g.getProjectId()
+		if err != nil {
+			return nil, err
+		}
 		var zones []string
-		req := computeService.Zones.List(project)
+		req := computeService.Zones.List(*project)
 		if err := req.Pages(context.Background(), func(page *compute.ZoneList) error {
 			for _, zone := range page.Items {
 				zones = append(zones, zone.Name)
@@ -1262,4 +1321,13 @@ func GetZones(project string) ([]string, error) {
 		return zones, nil
 	}
 
+}
+
+func (g *GKECluster) getProjectId() (*string, error) {
+	s, err := GetSecret(g)
+	if err != nil {
+		return nil, err
+	}
+
+	return utils.S(s.GetValue(secret.ProjectId)), nil
 }

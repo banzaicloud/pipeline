@@ -8,7 +8,6 @@ import (
 
 type GoogleInfo struct {
 	BaseFields
-	ProjectId string
 }
 
 func (g *GoogleInfo) GetType() string {
@@ -19,30 +18,30 @@ func (g *GoogleInfo) GetNameRegexp() string {
 }
 
 func (g *GoogleInfo) GetLocations() ([]string, error) {
-	if len(g.ProjectId) == 0 {
-		return nil, errors.New("Project id is required") // todo move to BT
+	if len(g.SecretId) == 0 {
+		return nil, errors.New("Secret id is required") // todo move to BT
 	}
-	return cluster.GetZones(g.ProjectId)
+	return cluster.GetZones(g.OrgId, g.SecretId)
 }
 
 func (g *GoogleInfo) GetMachineTypes() (map[string]cluster.MachineType, error) {
-	if len(g.ProjectId) == 0 {
-		return nil, errors.New("Project id is required") // todo move to BT
+	if len(g.SecretId) == 0 {
+		return nil, errors.New("Secret id is required") // todo move to BT
 	}
-	return cluster.GetAllMachineTypes(g.ProjectId)
+	return cluster.GetAllMachineTypes(g.OrgId, g.SecretId)
 }
 
 func (g *GoogleInfo) GetMachineTypesWithFilter(filter *InstanceFilter) (map[string]cluster.MachineType, error) {
 
-	if len(g.ProjectId) == 0 {
-		return nil, errors.New("Project id is required") // todo move to BT
+	if len(g.SecretId) == 0 {
+		return nil, errors.New("Secret id is required") // todo move to BT
 	}
 
 	if len(filter.Zone) == 0 {
 		return nil, errors.New("SubField is required") // todo move to BT
 	}
 
-	return cluster.GetAllMachineTypesByZone(g.ProjectId, filter.Zone)
+	return cluster.GetAllMachineTypesByZone(g.OrgId, g.SecretId, filter.Zone)
 }
 
 func (g *GoogleInfo) GetKubernetesVersion(filter *KubernetesFilter) (interface{}, error) {
@@ -55,5 +54,5 @@ func (g *GoogleInfo) GetKubernetesVersion(filter *KubernetesFilter) (interface{}
 		return nil, errors.New("Zone is required")
 	}
 
-	return cluster.GetGkeServerConfig(g.OrgId, g.SecretId, g.ProjectId, filter.Zone)
+	return cluster.GetGkeServerConfig(g.OrgId, g.SecretId, filter.Zone)
 }

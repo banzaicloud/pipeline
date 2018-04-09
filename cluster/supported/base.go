@@ -5,7 +5,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/banzai-types/constants"
-	"github.com/go-errors/errors"
 )
 
 var logger *logrus.Logger
@@ -81,6 +80,7 @@ type GetCloudInfoResponse struct {
 func GetCloudInfoModel(cloudType string, r *CloudInfoRequest) (CloudInfoProvider, error) {
 	log.Infof("Cloud type: %s", cloudType)
 	switch cloudType {
+
 	case constants.Amazon:
 		return &AmazonInfo{
 			BaseFields: BaseFields{
@@ -88,30 +88,24 @@ func GetCloudInfoModel(cloudType string, r *CloudInfoRequest) (CloudInfoProvider
 				SecretId: r.SecretId,
 			},
 		}, nil
+
 	case constants.Google:
-		var projectId string
-		if r.Google != nil {
-			projectId = r.Google.ProjectId
-		}
 		return &GoogleInfo{
 			BaseFields: BaseFields{
 				OrgId:    r.OrganizationId,
 				SecretId: r.SecretId,
 			},
-			ProjectId: projectId,
 		}, nil
+
 	case constants.Azure:
-		if len(r.SecretId) != 0 {
-			return &AzureInfo{
-				BaseFields: BaseFields{
-					OrgId:    r.OrganizationId,
-					SecretId: r.SecretId,
-				},
-			}, nil
-		} else {
-			return nil, errors.New("Secret id is required") // todo move to BT
-		}
-	default:
+		return &AzureInfo{
+			BaseFields: BaseFields{
+				OrgId:    r.OrganizationId,
+				SecretId: r.SecretId,
+			},
+		}, nil
+
+		default:
 		return nil, constants.ErrorNotSupportedCloudType
 	}
 }
