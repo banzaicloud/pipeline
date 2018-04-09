@@ -111,7 +111,7 @@ func (c *AKSCluster) CreateCluster() error {
 	client.With(log.Logger)
 
 	// call creation
-	createdCluster, err := client.CreateUpdateCluster(r)
+	createdCluster, err := azureClient.CreateUpdateCluster(client, &r)
 	if err != nil {
 		// creation failed
 		// todo status code!??
@@ -128,7 +128,7 @@ func (c *AKSCluster) CreateCluster() error {
 	}
 
 	// polling cluster
-	pollingResult, err := client.PollingCluster(r.Name, r.ResourceGroup)
+	pollingResult, err := azureClient.PollingCluster(client, r.Name, r.ResourceGroup)
 	if err != nil {
 		// polling error
 		// todo status code!??
@@ -159,7 +159,7 @@ func (c *AKSCluster) GetK8sConfig() ([]byte, error) {
 	database := model.GetDB()
 	database.Where(model.AzureClusterModel{ClusterModelId: c.modelCluster.ID}).First(&c.modelCluster.Azure)
 	//TODO check banzairesponses
-	config, err := client.GetClusterConfig(c.modelCluster.Name, c.modelCluster.Azure.ResourceGroup, "clusterUser")
+	config, err := azureClient.GetClusterConfig(client, c.modelCluster.Name, c.modelCluster.Azure.ResourceGroup, "clusterUser")
 	if err != nil {
 		// TODO status code !?
 		return nil, err
@@ -193,7 +193,7 @@ func (c *AKSCluster) GetStatus() (*bTypes.GetClusterStatusResponse, error) {
 
 	client.With(log.Logger)
 
-	resp, err := client.GetCluster(c.modelCluster.Name, c.modelCluster.Azure.ResourceGroup)
+	resp, err := azureClient.GetCluster(client, c.modelCluster.Name, c.modelCluster.Azure.ResourceGroup)
 	if err != nil {
 		return nil, errors.New(err)
 	}
@@ -229,7 +229,7 @@ func (c *AKSCluster) DeleteCluster() error {
 	database := model.GetDB()
 	database.Where(model.AzureClusterModel{ClusterModelId: c.modelCluster.ID}).First(&c.modelCluster.Azure)
 
-	err = client.DeleteCluster(c.modelCluster.Name, c.modelCluster.Azure.ResourceGroup)
+	err = azureClient.DeleteCluster(client, c.modelCluster.Name, c.modelCluster.Azure.ResourceGroup)
 	if err != nil {
 		log.Info("Delete succeeded")
 		return nil
@@ -258,7 +258,7 @@ func (c *AKSCluster) UpdateCluster(request *bTypes.UpdateClusterRequest) error {
 		KubernetesVersion: c.modelCluster.Azure.KubernetesVersion,
 	}
 
-	updatedCluster, err := client.CreateUpdateCluster(ccr)
+	updatedCluster, err := azureClient.CreateUpdateCluster(client, &ccr)
 	if err != nil {
 		return err
 	}
@@ -298,7 +298,7 @@ func (c *AKSCluster) GetAzureCluster() (*banzaiAzureTypes.Value, error) {
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.GetCluster(c.modelCluster.Name, c.modelCluster.Azure.ResourceGroup)
+	resp, err := azureClient.GetCluster(client, c.modelCluster.Name, c.modelCluster.Azure.ResourceGroup)
 	if err != nil {
 		return nil, err
 	}

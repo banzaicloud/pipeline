@@ -10,13 +10,13 @@ import (
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
-	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/json"
 	"github.com/go-errors/errors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2/google"
 	gke "google.golang.org/api/container/v1"
+	"google.golang.org/api/compute/v1"
 	"google.golang.org/api/googleapi"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
@@ -842,7 +842,7 @@ func storeConfig(c *kubernetesCluster, name string) ([]byte, error) {
 	cluster := configCluster{
 		Cluster: dataCluster{
 			CertificateAuthorityData: string(c.RootCACert),
-			Server: host,
+			Server:                   host,
 		},
 		Name: c.Name,
 	}
@@ -1118,36 +1118,28 @@ func (g *GKECluster) DeleteFromDatabase() error {
 }
 
 // GetGkeServerConfig returns configuration info about the Kubernetes Engine service.
-func (g *GKECluster) GetGkeServerConfig(c *gin.Context) {
+func GetGkeServerConfig(orgId uint, secretId string, projectId, zone string) (*gke.ServerConfig, error) {
 
 	log := logger.WithFields(logrus.Fields{"action": "GetGkeServerConfig"})
 
-	projectId := c.Param("projectid")
-	zone := c.Param("zone")
-
 	log.Info("Start getting configuration info")
+
+	g := GKECluster{
+		modelCluster: &model.ClusterModel{
+			OrganizationId: orgId,
+			SecretId:       secretId,
+		},
+	}
 
 	log.Info("Get Google service client")
 	if svc, err := g.getGoogleServiceClient(); err != nil {
-		apiErr := getBanzaiErrorFromError(err)
-		log.Errorf("Error during getting service client: %s", apiErr.Message)
-		c.JSON(apiErr.StatusCode, components.ErrorResponse{
-			Code:    apiErr.StatusCode,
-			Message: "Error during getting service client",
-			Error:   apiErr.Message,
-		})
+		return nil, err
 	} else {
 		if serverConfig, err := svc.Projects.Zones.GetServerconfig(projectId, zone).Context(context.Background()).Do(); err != nil {
-			apiErr := getBanzaiErrorFromError(err)
-			log.Errorf("Error during getting server config: %s", apiErr.Message)
-			c.JSON(apiErr.StatusCode, components.ErrorResponse{
-				Code:    apiErr.StatusCode,
-				Message: "Error during getting server config",
-				Error:   apiErr.Message,
-			})
+			return nil, err
 		} else {
 			log.Info("Getting server config succeeded")
-			c.JSON(http.StatusOK, convertServerConfig(serverConfig))
+			return serverConfig, nil
 		}
 
 	}
@@ -1176,4 +1168,98 @@ func convertServerConfig(config *gke.ServerConfig) *GetServerConfigResponse {
 		ValidMasterVersions:   config.ValidMasterVersions,
 		ValidNodeVersions:     config.ValidNodeVersions,
 	}
+}
+
+type MachineType []string
+
+func GetAllMachineTypesByZone(project, zone string) (map[string]MachineType, error) {
+	if computeService, err := getComputeService(); err != nil {
+		return nil, err
+	} else {
+		return getMachineTypes(computeService, project, zone)
+	}
+}
+
+func GetAllMachineTypes(project string) (map[string]MachineType, error) {
+
+	if computeService, err := getComputeService(); err != nil {
+		return nil, err
+	} else {
+		return getMachineTypesWithoutZones(computeService, project)
+	}
+
+}
+
+func getMachineTypesWithoutZones(csv *compute.Service, project string) (map[string]MachineType, error) {
+	response := make(map[string]MachineType)
+	req := csv.MachineTypes.AggregatedList(project)
+	if err := req.Pages(context.Background(), func(list *compute.MachineTypeAggregatedList) error {
+		for zone, item := range list.Items {
+			var types []string
+			for _, t := range item.MachineTypes {
+				types = append(types, t.Name)
+			}
+			key := zone
+			if strings.HasPrefix(key, zonePrefix) {
+				key = zone[len(zonePrefix):]
+			}
+			if types != nil {
+				response[key] = types
+			}
+		}
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+const zonePrefix = "zones/"
+
+func getMachineTypes(csv *compute.Service, project, zone string) (map[string]MachineType, error) {
+
+	var machineTypes []string
+	req := csv.MachineTypes.List(project, zone)
+	if err := req.Pages(context.Background(), func(page *compute.MachineTypeList) error {
+		for _, machineType := range page.Items {
+			machineTypes = append(machineTypes, machineType.Name)
+		}
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+
+	response := make(map[string]MachineType)
+	response[zone] = machineTypes
+	return response, nil
+}
+
+func getComputeService() (*compute.Service, error) {
+	// todo change to oauth
+	c, err := google.DefaultClient(context.Background(), compute.CloudPlatformScope)
+	if err != nil {
+		return nil, err
+	}
+
+	return compute.New(c)
+}
+
+func GetZones(project string) ([]string, error) {
+
+	if computeService, err := getComputeService(); err != nil {
+		return nil, err
+	} else {
+		var zones []string
+		req := computeService.Zones.List(project)
+		if err := req.Pages(context.Background(), func(page *compute.ZoneList) error {
+			for _, zone := range page.Items {
+				zones = append(zones, zone.Name)
+			}
+			return nil
+		}); err != nil {
+			return nil, err
+		}
+		return zones, nil
+	}
+
 }

@@ -4,11 +4,11 @@ import (
 	"os"
 
 	"fmt"
-	"github.com/Azure/azure-sdk-for-go/arm/examples/helpers"
-	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
-	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-04-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
 	"github.com/Azure/go-autorest/autorest/adal"
-	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/banzaicloud/azure-aks-client/utils"
 )
 
@@ -25,8 +25,11 @@ type AKSCredential struct {
 }
 
 type Sdk struct {
-	ServicePrincipal *ServicePrincipal
-	ResourceGroup    *resources.GroupsClient
+	ServicePrincipal        *ServicePrincipal
+	ManagedClusterClient    *containerservice.ManagedClustersClient
+	VMSizeClient            *compute.VirtualMachineSizesClient
+	SubscriptionsClient     *subscriptions.Client
+	ContainerServicesClient *containerservice.ContainerServicesClient
 }
 
 type ServicePrincipal struct {
@@ -86,17 +89,26 @@ func Authenticate(credentials *AKSCredential) (*Sdk, error) {
 			},
 		},
 	}
-
-	authenticatedToken, err := helpers.NewServicePrincipalTokenFromCredentials(sdk.ServicePrincipal.HashMap, azure.PublicCloud.ResourceManagerEndpoint)
+	authorizer, err := auth.NewClientCredentialsConfig(AKSCred.ClientId, AKSCred.ClientSecret, AKSCred.TenantId).Authorizer()
 	if err != nil {
 		return nil, utils.NewErr(fmt.Sprintf("authentication error: %s", err))
 	}
 
-	sdk.ServicePrincipal.AuthenticatedToken = authenticatedToken
+	subscriptionId := sdk.ServicePrincipal.SubscriptionID
+	managedClusterClient := containerservice.NewManagedClustersClient(subscriptionId)
+	vmSizesClient := compute.NewVirtualMachineSizesClient(subscriptionId)
+	subscriptionsClient := subscriptions.NewClient()
+	containerServicesClient := containerservice.NewContainerServicesClient(subscriptionId)
 
-	resourceGroup := resources.NewGroupsClient(sdk.ServicePrincipal.SubscriptionID)
-	resourceGroup.Authorizer = autorest.NewBearerAuthorizer(sdk.ServicePrincipal.AuthenticatedToken)
-	sdk.ResourceGroup = &resourceGroup
+	managedClusterClient.Authorizer = authorizer
+	vmSizesClient.Authorizer = authorizer
+	subscriptionsClient.Authorizer = authorizer
+	containerServicesClient.Authorizer = authorizer
+
+	sdk.ManagedClusterClient = &managedClusterClient
+	sdk.VMSizeClient = &vmSizesClient
+	sdk.SubscriptionsClient = &subscriptionsClient
+	sdk.ContainerServicesClient = &containerServicesClient
 
 	return &sdk, nil
 }
