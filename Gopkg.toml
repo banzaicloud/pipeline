@@ -58,6 +58,10 @@
   name = "github.com/Azure/go-autorest"
   version = "=v10.6.0"
 
+[[override]]
+  name = "github.com/Azure/azure-sdk-for-go"
+  version = "=v15.0.0"
+
 [[constraint]]
   name = "github.com/banzaicloud/kubicorn"
   branch = "update-azure"
