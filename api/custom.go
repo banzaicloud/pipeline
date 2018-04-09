@@ -6,11 +6,11 @@ import (
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"net/http"
 	"strings"
-	"k8s.io/api/core/v1"
 )
 
 // ListEndpoints lists service public endpoints
@@ -123,9 +123,9 @@ func getIngressEndpoints(loadBalancerPublicHost string, ingress *v1beta1.Ingress
 			}
 			endpointUrls = append(endpointUrls,
 				htype.EndPointURLs{
-					ServiceName:           strings.Trim(path, "/"),
-					URL:                   fmt.Sprint("http://", loadBalancerPublicHost, path),
-					HelmReleaseName:       getIngressReleaseName(ingressPath.Backend, serviceList),
+					ServiceName:     strings.Trim(path, "/"),
+					URL:             fmt.Sprint("http://", loadBalancerPublicHost, path),
+					HelmReleaseName: getIngressReleaseName(ingressPath.Backend, serviceList),
 				})
 		}
 	}
@@ -137,7 +137,7 @@ func getIngressEndpoints(loadBalancerPublicHost string, ingress *v1beta1.Ingress
 func getIngressReleaseName(backend v1beta1.IngressBackend, serviceList *v1.ServiceList) string {
 	serviceName := backend.ServiceName
 	for _, service := range serviceList.Items {
-		if service.Name == serviceName{
+		if service.Name == serviceName {
 			return service.Labels["release"]
 		}
 	}

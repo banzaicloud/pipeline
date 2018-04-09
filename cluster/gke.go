@@ -15,8 +15,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2/google"
+	gkeCompute "google.golang.org/api/compute/v1"
 	gke "google.golang.org/api/container/v1"
-	"google.golang.org/api/compute/v1"
 	"google.golang.org/api/googleapi"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
@@ -805,7 +805,7 @@ func storeConfig(c *kubernetesCluster, name string) ([]byte, error) {
 	cluster := configCluster{
 		Cluster: dataCluster{
 			CertificateAuthorityData: string(c.RootCACert),
-			Server:                   host,
+			Server: host,
 		},
 		Name: c.Name,
 	}
@@ -1158,10 +1158,10 @@ func GetAllMachineTypes(orgId uint, secretId string) (map[string]components.Mach
 }
 
 // getMachineTypesWithoutZones lists supported machine types in all zone
-func getMachineTypesWithoutZones(csv *compute.Service, project string) (map[string]components.MachineType, error) {
+func getMachineTypesWithoutZones(csv *gkeCompute.Service, project string) (map[string]components.MachineType, error) {
 	response := make(map[string]components.MachineType)
 	req := csv.MachineTypes.AggregatedList(project)
-	if err := req.Pages(context.Background(), func(list *compute.MachineTypeAggregatedList) error {
+	if err := req.Pages(context.Background(), func(list *gkeCompute.MachineTypeAggregatedList) error {
 		for zone, item := range list.Items {
 			var types []string
 			for _, t := range item.MachineTypes {
@@ -1185,11 +1185,11 @@ func getMachineTypesWithoutZones(csv *compute.Service, project string) (map[stri
 const zonePrefix = "zones/"
 
 // getMachineTypes returns supported machine types by zone
-func getMachineTypes(csv *compute.Service, project, zone string) (map[string]components.MachineType, error) {
+func getMachineTypes(csv *gkeCompute.Service, project, zone string) (map[string]components.MachineType, error) {
 
 	var machineTypes []string
 	req := csv.MachineTypes.List(project, zone)
-	if err := req.Pages(context.Background(), func(page *compute.MachineTypeList) error {
+	if err := req.Pages(context.Background(), func(page *gkeCompute.MachineTypeList) error {
 		for _, machineType := range page.Items {
 			machineTypes = append(machineTypes, machineType.Name)
 		}
@@ -1203,14 +1203,14 @@ func getMachineTypes(csv *compute.Service, project, zone string) (map[string]com
 	return response, nil
 }
 
-func (g *GKECluster) getComputeService() (*compute.Service, error) {
+func (g *GKECluster) getComputeService() (*gkeCompute.Service, error) {
 
 	//New client from credentials
 	client, err := g.newClientFromCredentials()
 	if err != nil {
 		return nil, err
 	}
-	service, err := compute.New(client)
+	service, err := gkeCompute.New(client)
 	if err != nil {
 		return nil, err
 	}
@@ -1276,7 +1276,7 @@ func GetZones(orgId uint, secretId string) ([]string, error) {
 		}
 		var zones []string
 		req := computeService.Zones.List(*project)
-		if err := req.Pages(context.Background(), func(page *compute.ZoneList) error {
+		if err := req.Pages(context.Background(), func(page *gkeCompute.ZoneList) error {
 			for _, zone := range page.Items {
 				zones = append(zones, zone.Name)
 			}

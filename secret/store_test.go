@@ -1,9 +1,9 @@
 package secret_test
 
 import (
-	"testing"
 	"github.com/banzaicloud/pipeline/secret"
 	"reflect"
+	"testing"
 )
 
 func TestGetValue(t *testing.T) {

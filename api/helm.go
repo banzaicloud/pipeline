@@ -7,11 +7,11 @@ import (
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/ghodss/yaml"
 	"github.com/gin-gonic/gin"
+	"github.com/juju/errors"
 	"github.com/sirupsen/logrus"
+	"k8s.io/helm/pkg/proto/hapi/release"
 	"k8s.io/helm/pkg/timeconv"
 	"net/http"
-	"k8s.io/helm/pkg/proto/hapi/release"
-	"github.com/juju/errors"
 )
 
 // GetK8sConfig returns the Kubernetes config
@@ -41,9 +41,9 @@ func CreateDeployment(c *gin.Context) {
 	if err != nil {
 		log.Errorf(errors.ErrorStack(err))
 		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
-			Code: http.StatusBadRequest,
+			Code:    http.StatusBadRequest,
 			Message: "Error during parsing request!",
-			Error:    errors.Cause(err).Error(),
+			Error:   errors.Cause(err).Error(),
 		})
 		return
 	}
@@ -242,13 +242,13 @@ func UpgradeDeployment(c *gin.Context) {
 	if err != nil {
 		log.Errorf(errors.ErrorStack(err))
 		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
-			Code: http.StatusBadRequest,
+			Code:    http.StatusBadRequest,
 			Message: "Error during parsing request!",
-			Error:    errors.Cause(err).Error(),
+			Error:   errors.Cause(err).Error(),
 		})
 		return
 	}
-	
+
 	release, err := helm.UpgradeDeployment(name,
 		parsedRequest.deploymentName, parsedRequest.values,
 		parsedRequest.reuseValues, parsedRequest.kubeConfig, parsedRequest.clusterName)
@@ -257,7 +257,7 @@ func UpgradeDeployment(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, htype.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: "Error upgrading deployment",
-			Error:    err.Error(),
+			Error:   err.Error(),
 		})
 		return
 	}
@@ -302,12 +302,12 @@ func DeleteDeployment(c *gin.Context) {
 }
 
 type parsedDeploymentRequest struct {
-	deploymentName string
+	deploymentName        string
 	deploymentReleaseName string
-	reuseValues bool
-	values []byte
-	kubeConfig []byte
-	clusterName string
+	reuseValues           bool
+	values                []byte
+	kubeConfig            []byte
+	clusterName           string
 }
 
 func parseCreateUpdateDeploymentRequest(c *gin.Context) (*parsedDeploymentRequest, error) {
