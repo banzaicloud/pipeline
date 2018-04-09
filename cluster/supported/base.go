@@ -5,6 +5,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/banzai-types/constants"
+	"github.com/go-errors/errors"
 )
 
 var logger *logrus.Logger
@@ -37,7 +38,7 @@ type CloudInfoProvider interface {
 	GetLocations() ([]string, error)
 	GetMachineTypes() (map[string]cluster.MachineType, error)
 	GetMachineTypesWithFilter(*InstanceFilter) (map[string]cluster.MachineType, error)
-	GetKubernetesVersion() (interface{}, error)
+	GetKubernetesVersion(*KubernetesFilter) (interface{}, error)
 }
 
 type BaseFields struct {
@@ -50,18 +51,22 @@ type CloudInfoRequest struct {
 	OrganizationId uint   `json:"-"`
 	SecretId       string `json:"secret_id,omitempty"`
 	Filter *struct {
-		Fields       []string        `json:"fields,omitempty"`
-		InstanceType *InstanceFilter `json:"instanceType,omitempty"`
+		Fields           []string          `json:"fields,omitempty"`
+		InstanceType     *InstanceFilter   `json:"instanceType,omitempty"`
+		KubernetesFilter *KubernetesFilter `json:"k8sVersion,omitempty"`
 	} `json:"filter,omitempty"`
 	Google *struct {
-		ProjectId string `json:"project_id,omitempty"`
-		Zone      string `json:"zone,omitempty"`
+		ProjectId string `json:"project_id,omitempty"` // todo secret?
 	} `json:"google,omitempty"`
 }
 
 type InstanceFilter struct {
 	Zone string    `json:"zone,omitempty"`
 	Tags []*string `json:"tags,omitempty"`
+}
+
+type KubernetesFilter struct {
+	Zone string `json:"zone,omitempty"`
 }
 
 // todo move to BT
@@ -85,10 +90,8 @@ func GetCloudInfoModel(cloudType string, r *CloudInfoRequest) (CloudInfoProvider
 		}, nil
 	case constants.Google:
 		var projectId string
-		var zone string
 		if r.Google != nil {
 			projectId = r.Google.ProjectId
-			zone = r.Google.Zone
 		}
 		return &GoogleInfo{
 			BaseFields: BaseFields{
@@ -96,8 +99,18 @@ func GetCloudInfoModel(cloudType string, r *CloudInfoRequest) (CloudInfoProvider
 				SecretId: r.SecretId,
 			},
 			ProjectId: projectId,
-			Zone:      zone,
 		}, nil
+	case constants.Azure:
+		if len(r.SecretId) != 0 {
+			return &AzureInfo{
+				BaseFields: BaseFields{
+					OrgId:    r.OrganizationId,
+					SecretId: r.SecretId,
+				},
+			}, nil
+		} else {
+			return nil, errors.New("Secret id is required") // todo move to BT
+		}
 	default:
 		return nil, constants.ErrorNotSupportedCloudType
 	}
@@ -140,7 +153,7 @@ func ProcessFilter(p CloudInfoProvider, r *CloudInfoRequest) (*GetCloudInfoRespo
 				}
 
 			case KubernetesVersion:
-				if versions, err := p.GetKubernetesVersion(); err != nil {
+				if versions, err := p.GetKubernetesVersion(r.Filter.KubernetesFilter); err != nil {
 					return nil, err
 				} else {
 					response.KubernetesVersions = versions

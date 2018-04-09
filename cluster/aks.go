@@ -365,3 +365,48 @@ func (c *AKSCluster) DeleteFromDatabase() error {
 	c.modelCluster = nil
 	return nil
 }
+
+// GetLocations returns all the locations that are available for resource providers
+func GetLocations(orgId uint, secretId string) ([]string, error) {
+	client, err := getAKSClient(orgId, secretId)
+	if err != nil {
+		return nil, err
+	}
+
+	return azureClient.GetLocations(client)
+}
+
+// GetMachineTypes lists all available virtual machine sizes for a subscription in a location.
+func GetMachineTypes(orgId uint, secretId, location string) (response map[string]MachineType, err error) {
+	client, err := getAKSClient(orgId, secretId)
+	if err != nil {
+		return nil, err
+	}
+
+	response = make(map[string]MachineType)
+	response[location], err = azureClient.GetVmSizes(client, location)
+
+	return
+
+}
+
+func GetKubernetesVersion(orgId uint, secretId, location string) ([]string, error) {
+	client, err := getAKSClient(orgId, secretId)
+	if err != nil {
+		return nil, err
+	}
+
+	return azureClient.GetKubernetesVersions(client, location)
+}
+
+// getAKSClient create AKSClient with the given organization id and secret id
+func getAKSClient(orgId uint, secretId string) (*azureClient.AKSClient, error) {
+	c := AKSCluster{
+		modelCluster: &model.ClusterModel{
+			OrganizationId: orgId,
+			SecretId:       secretId,
+		},
+	}
+
+	return c.GetAKSClient()
+}

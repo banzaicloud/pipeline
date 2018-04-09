@@ -150,7 +150,6 @@ func main() {
 		}
 		v1.GET("/orgs", api.GetOrganizations)
 		v1.POST("/orgs", api.CreateOrganization)
-		//v1.GET("/clusters/gke/:projectid/:zone/serverconf", cluster.GetGkeServerConfig) // todo think about it and move
 		v1.GET("/token", auth.GenerateToken) // TODO Deprecated, should be removed once the UI has support.
 		v1.POST("/tokens", auth.GenerateToken)
 		v1.GET("/tokens", auth.GetTokens)
