@@ -91,17 +91,15 @@ func (r *UpdateClusterRequest) String() string {
 		}
 	} else if r.Cloud == constants.Google && r.UpdateClusterGoogle != nil {
 		// Write GKE Master
-		if r.UpdateClusterGoogle.GoogleMaster != nil {
+		if r.UpdateClusterGoogle.Master != nil {
 			buffer.WriteString(fmt.Sprintf("Master version: %s",
-				r.UpdateClusterGoogle.GoogleMaster.Version))
+				r.UpdateClusterGoogle.Master.Version))
 		}
 
-		// Write GKE Node
-		if r.UpdateClusterGoogle.GoogleNode != nil {
-			buffer.WriteString(fmt.Sprintf("Node version: %s, Service account: %s, Node count: %d",
-				r.UpdateClusterGoogle.GoogleNode.Version,
-				r.UpdateClusterGoogle.GoogleNode.ServiceAccount,
-				r.UpdateClusterGoogle.GoogleNode.Count))
+		// Write GKE Node version
+		buffer.WriteString(fmt.Sprintf("Node version: %s", r.UpdateClusterGoogle.NodeVersion))
+		if r.UpdateClusterGoogle.NodePools != nil {
+			buffer.WriteString(fmt.Sprintf("Node pools: %v", r.UpdateClusterGoogle.NodePools))
 		}
 	} else if r.Cloud == constants.Dummy && r.UpdateClusterDummy != nil {
 		// Write Dummy node

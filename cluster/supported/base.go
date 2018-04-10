@@ -1,10 +1,10 @@
 package supported
 
 import (
-	"github.com/sirupsen/logrus"
-	"github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/banzai-types/components"
+	"github.com/banzaicloud/banzai-types/constants"
+	"github.com/banzaicloud/pipeline/config"
+	"github.com/sirupsen/logrus"
 )
 
 var logger *logrus.Logger
@@ -86,7 +86,7 @@ func ProcessFilter(p CloudInfoProvider, r *components.CloudInfoRequest) (*compon
 			switch field {
 
 			case constants.KeyWorldLocation:
-				l, err := p.GetLocations();
+				l, err := p.GetLocations()
 				if err != nil {
 					return nil, err
 				}

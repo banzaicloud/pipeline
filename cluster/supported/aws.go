@@ -1,9 +1,9 @@
 package supported
 
 import (
+	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/cluster"
-	"github.com/banzaicloud/banzai-types/components"
 )
 
 type AmazonInfo struct {

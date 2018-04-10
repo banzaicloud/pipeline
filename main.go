@@ -62,7 +62,9 @@ func main() {
 		model.ClusterModel.TableName(model.ClusterModel{}),
 		model.AmazonClusterModel.TableName(model.AmazonClusterModel{}),
 		model.AzureClusterModel.TableName(model.AzureClusterModel{}),
-		model.GoogleClusterModel.TableName(model.GoogleClusterModel{}))
+		model.GoogleClusterModel.TableName(model.GoogleClusterModel{}),
+		model.GoogleNodePoolModel.TableName(model.GoogleNodePoolModel{}),
+	)
 
 	// Create tables
 	if err := db.AutoMigrate(
@@ -70,6 +72,7 @@ func main() {
 		&model.AmazonClusterModel{},
 		&model.AzureClusterModel{},
 		&model.GoogleClusterModel{},
+		&model.GoogleNodePoolModel{},
 		&model.DummyClusterModel{},
 		&model.BYOClusterModel{},
 		&auth_identity.AuthIdentity{},

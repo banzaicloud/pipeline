@@ -155,7 +155,7 @@
     "components/helm",
     "constants"
   ]
-  revision = "e77541765bd6c4215993f7316d11c8ad72fd43e7"
+  revision = "27d35a043e665ce555fc5589148c4f88a95087c9"
 
 [[projects]]
   branch = "master"
@@ -599,12 +599,6 @@
   name = "github.com/juju/errors"
   packages = ["."]
   revision = "c7d06af17c68cd34c835053720b21f6549d9b0ee"
-
-[[projects]]
-  name = "github.com/juju/ratelimit"
-  packages = ["."]
-  revision = "59fac5042749a5afb9af70e813da1dd5474f0167"
-  version = "1.0.1"
 
 [[projects]]
   branch = "master"
@@ -1712,6 +1706,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "979102069899ed3833b81567c320b53dc20ff23769807bde21a6d6f4c58997b6"
+  inputs-digest = "5e3a8fb2472c7a2b0e3260f7b6578512d82bf00cb0ad59b40f851e742401438c"
   solver-name = "gps-cdcl"
   solver-version = 1

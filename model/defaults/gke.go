@@ -55,11 +55,8 @@ func (d *GKEProfile) GetProfile() *components.ClusterProfileResponse {
 			Google *google.ClusterProfileGoogle `json:"google,omitempty"`
 		}{
 			Google: &google.ClusterProfileGoogle{
-				Node: &google.GoogleNode{
-					Count:          d.NodeCount,
-					Version:        d.NodeVersion,
-					ServiceAccount: d.ServiceAccount,
-				},
+				NodeVersion: d.NodeVersion,
+				NodePools:   nil, // TODO : finish me
 				Master: &google.GoogleMaster{
 					Version: d.MasterVersion,
 				},
@@ -80,20 +77,35 @@ func (d *GKEProfile) UpdateProfile(r *components.ClusterProfileRequest, withSave
 	}
 
 	if r.Properties.Google != nil {
-		if r.Properties.Google.Node != nil {
-			if r.Properties.Google.Node.Count != 0 {
-				d.NodeCount = r.Properties.Google.Node.Count
-			}
 
-			if len(r.Properties.Google.Node.Version) != 0 {
-				d.NodeVersion = r.Properties.Google.Node.Version
-			}
-
-			if len(r.Properties.Google.Node.ServiceAccount) != 0 {
-				d.ServiceAccount = r.Properties.Google.Node.ServiceAccount
-			}
-
+		if len(r.Properties.Google.NodeVersion) != 0 {
+			d.NodeVersion = r.Properties.Google.NodeVersion
 		}
+
+		// TODO : fix me
+
+		if len(r.Properties.Google.NodePools) > 0 {
+			for _, v := range r.Properties.Google.NodePools {
+				if v.Count != 0 {
+					d.NodeCount = v.Count
+				}
+				if len(v.ServiceAccount) != 0 {
+					d.ServiceAccount = v.ServiceAccount
+				}
+				break
+			}
+		}
+		/*
+			if r.Properties.Google.Node != nil {
+				if r.Properties.Google.Node.Count != 0 {
+					d.NodeCount = r.Properties.Google.Node.Count
+				}
+
+				if len(r.Properties.Google.Node.ServiceAccount) != 0 {
+					d.ServiceAccount = r.Properties.Google.Node.ServiceAccount
+				}
+
+			}*/
 
 		if r.Properties.Google.Master != nil {
 			d.MasterVersion = r.Properties.Google.Master.Version
