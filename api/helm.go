@@ -45,7 +45,7 @@ func CreateDeployment(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagCreateDeployment})
 	parsedRequest, err := parseCreateUpdateDeploymentRequest(c)
 	if err != nil {
-		log.Errorf(err.Error())
+		log.Error(err.Error())
 		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error during parsing request!",
@@ -246,7 +246,7 @@ func UpgradeDeployment(c *gin.Context) {
 	log.Infof("Upgrading deployment: %s", name)
 	parsedRequest, err := parseCreateUpdateDeploymentRequest(c)
 	if err != nil {
-		log.Errorf(err.Error())
+		log.Error(err.Error())
 		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error during parsing request!",

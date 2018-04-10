@@ -596,12 +596,6 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/juju/errors"
-  packages = ["."]
-  revision = "c7d06af17c68cd34c835053720b21f6549d9b0ee"
-
-[[projects]]
-  branch = "master"
   name = "github.com/kr/fs"
   packages = ["."]
   revision = "2788f0dbd16903de03cb8186e5c7d97b69ad387b"
@@ -1706,6 +1700,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "5e3a8fb2472c7a2b0e3260f7b6578512d82bf00cb0ad59b40f851e742401438c"
+  inputs-digest = "723a9aa255a49af1c6621d7ca5bbe541885106c12de112c5aa9f67cb704f4616"
   solver-name = "gps-cdcl"
   solver-version = 1
