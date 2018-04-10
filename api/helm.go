@@ -358,7 +358,7 @@ func parseCreateUpdateDeploymentRequest(c *gin.Context) (*parsedDeploymentReques
 	return pdr, nil
 }
 
-//Listing helm repositories in the cluster
+//HelmReposGet listing helm repositories in the cluster
 func HelmReposGet(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": "HelmReposGet"})
 
@@ -385,7 +385,7 @@ func HelmReposGet(c *gin.Context) {
 	return
 }
 
-//Add new helm repository
+//HelmReposAdd add a new helm repository
 func HelmReposAdd(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": "HelmReposAdd"})
 	log.Info("Add helm repository")
@@ -424,7 +424,7 @@ func HelmReposAdd(c *gin.Context) {
 	return
 }
 
-//Delete helm repository
+//HelmReposDelete delete the helm repository
 func HelmReposDelete(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": "HelmReposDelete"})
 	log.Info("Delete helm repository")
@@ -465,7 +465,7 @@ func HelmReposDelete(c *gin.Context) {
 	return
 }
 
-//Modify helm repository
+//HelmReposModify modify the helm repository
 func HelmReposModify(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": "HelmReposModify"})
 	log.Info("modify helm repository")
@@ -519,6 +519,7 @@ func HelmReposModify(c *gin.Context) {
 	return
 }
 
+// HelmReposUpdate update the helm repo
 func HelmReposUpdate(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": "ReposUpdate"})
 	log.Info("delete helm repository")
@@ -551,7 +552,7 @@ func HelmReposUpdate(c *gin.Context) {
 	return
 }
 
-//Get available helm chart's list
+//HelmCharts get available helm chart's list
 func HelmCharts(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": "HelmCharts"})
 	log.Info("Get helm repository charts")
