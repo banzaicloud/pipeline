@@ -34,6 +34,9 @@ gkeCredentialPath = ""
 
 #[cors]
 
+[statestore]
+path = ""
+
 [drone]
 
 [auth]

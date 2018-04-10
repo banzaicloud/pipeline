@@ -33,7 +33,13 @@ func init() {
 	viper.SetDefault("cloud.configRetryCount", 30)
 	viper.SetDefault("cloud.configRetrySleep", 15)
 	viper.SetDefault("logging.kubicornloglevel", "debug")
-	viper.SetDefault("statestore.path", "./statestore")
+
+	pwd, err := os.Getwd()
+	if err != nil {
+		log.Fatalf("Error reading config file, %s", err.Error())
+	}
+	viper.SetDefault("statestore.path", fmt.Sprintf("%s/statestore/", pwd))
+
 	viper.SetDefault("pipeline.listenport", 9090)
 	viper.SetDefault("pipeline.uipath", "/account/repos")
 	viper.SetDefault("database.dialect", "mysql")
