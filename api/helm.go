@@ -527,7 +527,7 @@ func HelmReposUpdate(c *gin.Context) {
 
 	errUpdate := helm.ReposUpdate(clusterName, repoName)
 	if errUpdate != nil {
-		log.Error("Error during helm repo update.", errUpdate.Error())
+		log.Error("Error during helm repo update.", errors.ErrorStack(errUpdate))
 		c.JSON(http.StatusNotFound, htype.ErrorResponse{
 			Code:    http.StatusNotFound,
 			Error:   errUpdate.Error(),
