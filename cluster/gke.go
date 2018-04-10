@@ -12,6 +12,7 @@ import (
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/gin-gonic/gin/json"
 	"github.com/go-errors/errors"
+	"github.com/jinzhu/copier"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2/google"
@@ -61,22 +62,58 @@ func CreateGKEClusterFromRequest(request *components.CreateClusterRequest, orgId
 	log.Debug("Create ClusterModel struct from the request")
 	var cluster GKECluster
 
+	// if nodeInstanceType is not provided at node pool level
+	// than fall back to node instance type defined at cluster level
+	for _, nodePoolData := range request.Properties.CreateClusterGoogle.NodePools {
+		if len(request.NodeInstanceType) > 0 && len(nodePoolData.NodeInstanceType) == 0 {
+			nodePoolData.NodeInstanceType = request.NodeInstanceType
+		}
+	}
+
+	nodePools, err := createNodePoolsModelFromRequestData(request.Properties.CreateClusterGoogle.NodePools)
+
+	if err != nil {
+		return nil, err
+	}
+
 	cluster.modelCluster = &model.ClusterModel{
 		Name:             request.Name,
 		Location:         request.Location,
-		NodeInstanceType: request.NodeInstanceType,
 		Cloud:            request.Cloud,
+		NodeInstanceType: request.NodeInstanceType,
 		OrganizationId:   orgId,
 		SecretId:         request.SecretId,
 		Google: model.GoogleClusterModel{
-			Project:        request.Properties.CreateClusterGoogle.Project,
-			MasterVersion:  request.Properties.CreateClusterGoogle.Master.Version,
-			NodeVersion:    request.Properties.CreateClusterGoogle.Node.Version,
-			NodeCount:      request.Properties.CreateClusterGoogle.Node.Count,
-			ServiceAccount: request.Properties.CreateClusterGoogle.Node.ServiceAccount,
+			Project:       request.Properties.CreateClusterGoogle.Project,
+			MasterVersion: request.Properties.CreateClusterGoogle.Master.Version,
+			NodeVersion:   request.Properties.CreateClusterGoogle.NodeVersion,
+			NodePools:     nodePools,
 		},
 	}
 	return &cluster, nil
+}
+
+//createNodePoolsModelFromRequestData creates an array of GoogleNodePoolModel from the nodePoolsData received through create/update requests
+func createNodePoolsModelFromRequestData(nodePoolsData map[string]*bGoogle.GoogleNodePool) ([]*model.GoogleNodePoolModel, error) {
+
+	nodePoolsCount := len(nodePoolsData)
+	if nodePoolsCount == 0 {
+		return nil, constants.ErrorNodePoolNotProvided
+	}
+	nodePoolsModel := make([]*model.GoogleNodePoolModel, nodePoolsCount)
+
+	i := 0
+	for nodePoolName, nodePoolData := range nodePoolsData {
+		nodePoolsModel[i] = &model.GoogleNodePoolModel{
+			Name:             nodePoolName,
+			NodeCount:        nodePoolData.Count,
+			NodeInstanceType: nodePoolData.NodeInstanceType,
+			ServiceAccount:   nodePoolData.ServiceAccount,
+		}
+		i++
+	}
+
+	return nodePoolsModel, nil
 }
 
 //GKECluster struct for GKE cluster
@@ -144,22 +181,17 @@ func (g *GKECluster) CreateCluster() error {
 
 	log.Info("Get Google Service Client succeeded")
 
+	nodePools, err := createNodePoolsFromClusterModel(&g.modelCluster.Google)
+	if err != nil {
+		return err
+	}
+
 	cc := googleCluster{
-		NodeConfig: &gke.NodeConfig{
-			MachineType:    g.modelCluster.NodeInstanceType,
-			ServiceAccount: g.modelCluster.Google.ServiceAccount,
-			OauthScopes: []string{
-				"https://www.googleapis.com/auth/logging.write",
-				"https://www.googleapis.com/auth/monitoring",
-				"https://www.googleapis.com/auth/devstorage.read_write",
-			},
-		},
 		ProjectID:     g.modelCluster.Google.Project,
 		Zone:          g.modelCluster.Location,
 		Name:          g.modelCluster.Name,
-		NodeCount:     int64(g.modelCluster.Google.NodeCount),
 		MasterVersion: g.modelCluster.Google.MasterVersion,
-		NodeVersion:   g.modelCluster.Google.NodeVersion,
+		NodePools:     nodePools,
 	}
 
 	ccr := generateClusterCreateRequest(cc)
@@ -311,13 +343,27 @@ func (g *GKECluster) UpdateCluster(updateRequest *components.UpdateClusterReques
 		return err
 	}
 
+	updateNodePoolsModel, err := createNodePoolsModelFromRequestData(updateRequest.NodePools)
+	if err != nil {
+		return err
+	}
+
+	googleClusterModel := model.GoogleClusterModel{}
+
+	copier.Copy(&googleClusterModel, &g.modelCluster.Google)
+	googleClusterModel.NodePools = updateNodePoolsModel
+
+	updatedNodePools, err := createNodePoolsFromClusterModel(&googleClusterModel)
+	if err != nil {
+		return err
+	}
+
 	cc := googleCluster{
 		Name:          g.modelCluster.Name,
 		ProjectID:     g.modelCluster.Google.Project,
 		Zone:          g.modelCluster.Location,
-		MasterVersion: updateRequest.GoogleMaster.Version,
-		NodeVersion:   updateRequest.GoogleNode.Version,
-		NodeCount:     int64(updateRequest.GoogleNode.Count),
+		MasterVersion: updateRequest.Master.Version,
+		NodePools:     updatedNodePools,
 	}
 
 	res, err := callUpdateClusterGoogle(svc, cc)
@@ -330,19 +376,72 @@ func (g *GKECluster) UpdateCluster(updateRequest *components.UpdateClusterReques
 	g.googleCluster = res
 
 	// update model to save
-	g.updateModel(res)
+	g.updateModel(res, updatedNodePools)
 
 	return nil
 
 }
 
-func (g *GKECluster) updateModel(c *gke.Cluster) {
+func (g *GKECluster) updateModel(c *gke.Cluster, updatedNodePools []*gke.NodePool) {
+	// Update the model from the cluster data read back from Google
 	g.modelCluster.Google.MasterVersion = c.CurrentMasterVersion
 	g.modelCluster.Google.NodeVersion = c.CurrentNodeVersion
-	g.modelCluster.Google.NodeCount = int(c.CurrentNodeCount)
-	if c.NodeConfig != nil {
-		g.modelCluster.Google.ServiceAccount = c.NodeConfig.ServiceAccount
+
+	var newNodePoolsModels []*model.GoogleNodePoolModel
+	for _, clusterNodePool := range c.NodePools {
+		updated := false
+
+		for _, nodePoolModel := range g.modelCluster.Google.NodePools {
+			if clusterNodePool.Name == nodePoolModel.Name {
+				nodePoolModel.ServiceAccount = clusterNodePool.Config.ServiceAccount
+				nodePoolModel.NodeInstanceType = clusterNodePool.Config.MachineType
+
+				// TODO: This is ugly but Google API doesn't expose the current node count for a node pool
+				for _, updatedNodePool := range updatedNodePools {
+					if updatedNodePool.Name == clusterNodePool.Name {
+						nodePoolModel.NodeCount = int(updatedNodePool.InitialNodeCount)
+						break
+					}
+				}
+
+				updated = true
+				break
+			}
+		}
+
+		if !updated {
+			nodePoolModelAdd := &model.GoogleNodePoolModel{
+				Name:             clusterNodePool.Name,
+				ServiceAccount:   clusterNodePool.Config.ServiceAccount,
+				NodeInstanceType: clusterNodePool.Config.MachineType,
+				NodeCount:        int(clusterNodePool.InitialNodeCount),
+			}
+
+			newNodePoolsModels = append(newNodePoolsModels, nodePoolModelAdd)
+		}
 	}
+
+	for _, newNodePoolModel := range newNodePoolsModels {
+		g.modelCluster.Google.NodePools = append(g.modelCluster.Google.NodePools, newNodePoolModel)
+	}
+
+	// mark for deletion the node pool model entries that has no corresponding node pool in the cluster
+	for _, nodePoolModel := range g.modelCluster.Google.NodePools {
+		found := false
+
+		for _, clusterNodePool := range c.NodePools {
+			if nodePoolModel.Name == clusterNodePool.Name {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			nodePoolModel.Delete = true
+		}
+
+	}
+
 }
 
 //GetID returns the specified cluster id
@@ -380,18 +479,14 @@ type googleCluster struct {
 	ClusterIpv4Cidr string
 	// An optional description of this cluster
 	Description string
-	// The number of nodes to create in this cluster
-	NodeCount int64
+
 	// the kubernetes master version
 	MasterVersion string
 	// The authentication information for accessing the master
 	MasterAuth *gke.MasterAuth
-	// the kubernetes node version
-	NodeVersion string
+
 	// The name of this cluster
 	Name string
-	// Parameters used in creating the cluster's nodes
-	NodeConfig *gke.NodeConfig
 	// The path to the credential file(key.json)
 	CredentialPath string
 	// The content of the credential
@@ -416,10 +511,10 @@ type googleCluster struct {
 	SubNetwork string
 	// Configuration for LegacyAbac
 	LegacyAbac bool
-	// NodePool id
-	NodePoolID string
 	// Image Type
 	ImageType string
+	// The node pools the cluster's nodes are created from
+	NodePools []*gke.NodePool
 }
 
 func generateClusterCreateRequest(cc googleCluster) *gke.CreateClusterRequest {
@@ -429,7 +524,6 @@ func generateClusterCreateRequest(cc googleCluster) *gke.CreateClusterRequest {
 	request.Cluster.Name = cc.Name
 	request.Cluster.Zone = cc.Zone
 	request.Cluster.InitialClusterVersion = cc.MasterVersion
-	request.Cluster.InitialNodeCount = cc.NodeCount
 	request.Cluster.ClusterIpv4Cidr = cc.ClusterIpv4Cidr
 	request.Cluster.Description = cc.Description
 	request.Cluster.EnableKubernetesAlpha = cc.EnableAlphaFeature
@@ -445,8 +539,61 @@ func generateClusterCreateRequest(cc googleCluster) *gke.CreateClusterRequest {
 		Enabled: true,
 	}
 	request.Cluster.MasterAuth = &gke.MasterAuth{}
-	request.Cluster.NodeConfig = cc.NodeConfig
+	request.Cluster.NodePools = cc.NodePools
+
 	return &request
+}
+
+//createNodePoolsFromClusterModel creates an array of google NodePool from the given cluster model
+func createNodePoolsFromClusterModel(clusterModel *model.GoogleClusterModel) ([]*gke.NodePool, error) {
+	nodePoolsCount := len(clusterModel.NodePools)
+	if nodePoolsCount == 0 {
+		return nil, constants.ErrorNodePoolNotProvided
+	}
+
+	nodePools := make([]*gke.NodePool, nodePoolsCount)
+
+	for i := 0; i < nodePoolsCount; i++ {
+		nodePoolModel := clusterModel.NodePools[i]
+
+		nodePools[i] = &gke.NodePool{
+			Name: nodePoolModel.Name,
+			Config: &gke.NodeConfig{
+				MachineType:    nodePoolModel.NodeInstanceType,
+				ServiceAccount: nodePoolModel.ServiceAccount,
+				OauthScopes: []string{
+					"https://www.googleapis.com/auth/logging.write",
+					"https://www.googleapis.com/auth/monitoring",
+					"https://www.googleapis.com/auth/devstorage.read_write",
+				},
+			},
+			InitialNodeCount: int64(nodePoolModel.NodeCount),
+			Version:          clusterModel.NodeVersion,
+		}
+	}
+
+	return nodePools, nil
+}
+
+// createNodePoolsRequestDataFromNodePoolModel returns a map of node pool name -> GoogleNodePool from the given nodePoolsModel
+func createNodePoolsRequestDataFromNodePoolModel(nodePoolsModel []*model.GoogleNodePoolModel) (map[string]*bGoogle.GoogleNodePool, error) {
+	nodePoolsCount := len(nodePoolsModel)
+	if nodePoolsCount == 0 {
+		return nil, constants.ErrorNodePoolNotProvided
+	}
+
+	nodePools := make(map[string]*bGoogle.GoogleNodePool)
+
+	for i := 0; i < nodePoolsCount; i++ {
+		nodePoolModel := nodePoolsModel[i]
+		nodePools[nodePoolModel.Name] = &bGoogle.GoogleNodePool{
+			Count:            nodePoolModel.NodeCount,
+			NodeInstanceType: nodePoolModel.NodeInstanceType,
+			ServiceAccount:   nodePoolModel.ServiceAccount,
+		}
+	}
+
+	return nodePools, nil
 }
 
 func getBanzaiErrorFromError(err error) *components.BanzaiResponse {
@@ -529,17 +676,13 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster) (*gke.Cluster, 
 	var updatedCluster *gke.Cluster
 
 	log.Infof("Updating cluster: %#v", cc)
-	if cc.NodePoolID == "" {
-		cluster, err := getClusterGoogle(svc, cc)
-		if err != nil {
-			return nil, err
-		}
-		if cluster.NodePools != nil && len(cluster.NodePools) != 0 {
-			cc.NodePoolID = cluster.NodePools[0].Name
-		}
+
+	cluster, err := getClusterGoogle(svc, cc)
+	if err != nil {
+		return nil, err
 	}
 
-	if cc.MasterVersion != "" {
+	if cc.MasterVersion != "" && cc.MasterVersion != cluster.CurrentMasterVersion {
 		log.Infof("Updating master to %v version", cc.MasterVersion)
 		updateCall, err := svc.Projects.Zones.Clusters.Update(cc.ProjectID, cc.Zone, cc.Name, &gke.UpdateClusterRequest{
 			Update: &gke.ClusterUpdate{
@@ -555,49 +698,126 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster) (*gke.Cluster, 
 		}
 	}
 
-	if cc.NodeVersion != "" {
-		log.Infof("Updating node to %v version", cc.NodeVersion)
-		updateCall, err := svc.Projects.Zones.Clusters.NodePools.Update(cc.ProjectID, cc.Zone, cc.Name, cc.NodePoolID, &gke.UpdateNodePoolRequest{
-			NodeVersion: cc.NodeVersion,
-		}).Context(context.Background()).Do()
-		if err != nil {
-			return nil, err
+	// Collect node pools that have to be deleted and delete them before
+	// resizing exiting ones or creating new ones to minimize tha chance
+	// of hitting quota limits
+	var nodePoolsToDelete []string
+	for _, currentClusterNodePool := range cluster.NodePools {
+		var i int
+		for i = 0; i < len(cc.NodePools); i++ {
+			if currentClusterNodePool.Name == cc.NodePools[i].Name {
+				break
+			}
 		}
-		log.Infof("Nodepool %s update is called for project %s, zone %s and cluster %s. Status Code %v", cc.NodePoolID, cc.ProjectID, cc.Zone, cc.Name, updateCall.HTTPStatusCode)
-		if err := waitForNodePool(svc, &cc); err != nil {
-			return nil, err
+
+		if i == len(cc.NodePools) {
+			// cluster node pool with given name not found in the update request thus we need to delete it
+			nodePoolsToDelete = append(nodePoolsToDelete, currentClusterNodePool.Name)
 		}
 	}
 
-	if cc.NodeCount != 0 {
-		log.Infof("Updating node size to %v", cc.NodeCount)
-		updateCall, err := svc.Projects.Zones.Clusters.NodePools.SetSize(cc.ProjectID, cc.Zone, cc.Name, cc.NodePoolID, &gke.SetNodePoolSizeRequest{
-			NodeCount: cc.NodeCount,
-		}).Context(context.Background()).Do()
+	var nodePoolsToCreate []*gke.NodePool
+	for _, nodePoolFromUpdReq := range cc.NodePools {
+		var i int
+		for i = 0; i < len(cluster.NodePools); i++ {
+			if nodePoolFromUpdReq.Name == cluster.NodePools[i].Name {
+				break
+			}
+		}
+		if i == len(cluster.NodePools) {
+			nodePoolsToCreate = append(nodePoolsToCreate, nodePoolFromUpdReq)
+		}
+	}
+
+	// Delete node pools
+	for _, nodePoolName := range nodePoolsToDelete {
+		log.Infof("Deleting node pool %s", nodePoolName)
+
+		deleteCall, err :=
+			svc.Projects.Zones.Clusters.NodePools.Delete(cc.ProjectID, cc.Zone, cc.Name, nodePoolName).Context(
+				context.Background()).Do()
+
 		if err != nil {
 			return nil, err
 		}
-		log.Infof("Nodepool %s size change is called for project %s, zone %s and cluster %s. Status Code %v", cc.NodePoolID, cc.ProjectID, cc.Zone, cc.Name, updateCall.HTTPStatusCode)
+		log.Infof("Node pool %s delete is called for project %s, zone %s and cluster %s. Status Code %v", nodePoolName, cc.ProjectID, cc.Zone, cc.Name, deleteCall.HTTPStatusCode)
 		if updatedCluster, err = waitForCluster(svc, cc); err != nil {
 			return nil, err
 		}
 	}
+
+	// Update node pools
+	for _, nodePool := range cc.NodePools {
+		for i := 0; i < len(cluster.NodePools); i++ {
+			if cluster.NodePools[i].Name == nodePool.Name {
+
+				if nodePool.Version != "" && nodePool.Version != cluster.NodePools[i].Version {
+					log.Infof("Updating node pool %s to %v version", nodePool.Name, nodePool.Version)
+					updateCall, err := svc.Projects.Zones.Clusters.NodePools.Update(cc.ProjectID, cc.Zone, cc.Name, nodePool.Name, &gke.UpdateNodePoolRequest{
+						NodeVersion: nodePool.Version,
+					}).Context(context.Background()).Do()
+					if err != nil {
+						return nil, err
+					}
+					log.Infof("Node pool %s update is called for project %s, zone %s and cluster %s. Status Code %v", nodePool.Name, cc.ProjectID, cc.Zone, cc.Name, updateCall.HTTPStatusCode)
+					if err := waitForNodePool(svc, &cc, nodePool.Name); err != nil {
+						return nil, err
+					}
+				}
+
+				if nodePool.InitialNodeCount > 0 {
+					log.Infof("Updating node size to %v for node pool %s", nodePool.InitialNodeCount, nodePool.Name)
+					updateCall, err := svc.Projects.Zones.Clusters.NodePools.SetSize(cc.ProjectID, cc.Zone, cc.Name, nodePool.Name, &gke.SetNodePoolSizeRequest{
+						NodeCount: nodePool.InitialNodeCount,
+					}).Context(context.Background()).Do()
+					if err != nil {
+						return nil, err
+					}
+					log.Infof("Node pool %s size change is called for project %s, zone %s and cluster %s. Status Code %v", nodePool.Name, cc.ProjectID, cc.Zone, cc.Name, updateCall.HTTPStatusCode)
+					if updatedCluster, err = waitForCluster(svc, cc); err != nil {
+						return nil, err
+					}
+				}
+
+				break
+			}
+		}
+	}
+
+	// Create node pools
+	for _, nodePoolToCreate := range nodePoolsToCreate {
+		log.Infof("Creating node pool %s", nodePoolToCreate.Name)
+
+		createCall, err :=
+			svc.Projects.Zones.Clusters.NodePools.Create(cc.ProjectID, cc.Zone, cc.Name, &gke.CreateNodePoolRequest{
+				NodePool: nodePoolToCreate,
+			}).Context(context.Background()).Do()
+
+		if err != nil {
+			return nil, err
+		}
+		log.Infof("Node pool %s create is called for project %s, zone %s and cluster %s. Status Code %v", nodePoolToCreate.Name, cc.ProjectID, cc.Zone, cc.Name, createCall.HTTPStatusCode)
+		if updatedCluster, err = waitForCluster(svc, cc); err != nil {
+			return nil, err
+		}
+	}
+
 	return updatedCluster, nil
 }
 
-func waitForNodePool(svc *gke.Service, cc *googleCluster) error {
+func waitForNodePool(svc *gke.Service, cc *googleCluster, nodePoolName string) error {
 	var message string
 	for {
-		nodepool, err := svc.Projects.Zones.Clusters.NodePools.Get(cc.ProjectID, cc.Zone, cc.Name, cc.NodePoolID).Context(context.TODO()).Do()
+		nodepool, err := svc.Projects.Zones.Clusters.NodePools.Get(cc.ProjectID, cc.Zone, cc.Name, nodePoolName).Context(context.TODO()).Do()
 		if err != nil {
 			return err
 		}
 		if nodepool.Status == statusRunning {
-			log.Infof("Nodepool %v is running", cc.Name)
+			log.Infof("NodePool %v is running", nodePoolName)
 			return nil
 		}
 		if nodepool.Status != message {
-			log.Infof("%v nodepool %v", string(nodepool.Status), cc.NodePoolID)
+			log.Infof("%v NodePool %v", string(nodepool.Status), nodePoolName)
 			message = nodepool.Status
 		}
 		time.Sleep(time.Second * 5)
@@ -646,7 +866,7 @@ func (g *GKECluster) getGoogleKubernetesConfig() ([]byte, error) {
 		Status:              cl.Status,
 	}
 
-	finalCl.Metadata["nodePool"] = cl.NodePools[0].Name
+	finalCl.Metadata["nodePools"] = fmt.Sprintf("%v", cl.NodePools)
 
 	// TODO if the final solution is NOT SAVE CONFIG TO FILE than rename the method and change log message
 	log.Info("Start save config file")
@@ -1004,46 +1224,64 @@ func (g *GKECluster) AddDefaultsToUpdate(r *components.UpdateClusterRequest) {
 
 	log := logger.WithFields(logrus.Fields{"action": "AddDefaultsToUpdate"})
 
-	defGoogleNode := &bGoogle.GoogleNode{
-		Version: g.modelCluster.Google.NodeVersion,
-		Count:   g.modelCluster.Google.NodeCount,
-	}
+	// TODO: error handling
+	defGooglePools, _ := createNodePoolsFromClusterModel(&g.modelCluster.Google)
 
 	defGoogleMaster := &bGoogle.GoogleMaster{
 		Version: g.modelCluster.Google.MasterVersion,
 	}
 
 	// ---- [ Node check ] ---- //
-	if r.GoogleNode == nil {
-		log.Warn("'node' field is empty. Load it from stored data.")
-		r.GoogleNode = defGoogleNode
-	}
+	if r.NodePools == nil {
+		log.Warn("'nodePools' field is empty. Load it from stored data.")
 
+		r.NodePools = make(map[string]*bGoogle.GoogleNodePool)
+		for _, nodePool := range defGooglePools {
+			r.NodePools[nodePool.Name] = &bGoogle.GoogleNodePool{
+				Count:            int(nodePool.InitialNodeCount),
+				NodeInstanceType: nodePool.Config.MachineType,
+				ServiceAccount:   nodePool.Config.ServiceAccount,
+			}
+		}
+	}
 	// ---- [ Master check ] ---- //
-	if r.GoogleMaster == nil {
+	if r.Master == nil {
 		log.Warn("'master' field is empty. Load it from stored data.")
-		r.GoogleMaster = defGoogleMaster
+		r.Master = defGoogleMaster
 	}
 
 	// ---- [ NodeCount check] ---- //
-	if r.UpdateClusterGoogle.GoogleNode.Count == 0 {
-		def := g.modelCluster.Google.NodeCount
-		log.Warn("Node count set to default value: ", def)
-		r.UpdateClusterGoogle.GoogleNode.Count = def
+	for name, nodePoolData := range r.NodePools {
+		if nodePoolData.Count == 0 {
+			// initialize with count read from db
+			var i int
+			for i = 0; i < len(g.modelCluster.Google.NodePools); i++ {
+				if g.modelCluster.Google.NodePools[i].Name == name {
+					nodePoolData.Count = g.modelCluster.Google.NodePools[i].NodeCount
+					log.Warnf("Node count for node pool %s initiated from database to value: %d", name, nodePoolData.Count)
+					break
+				}
+			}
+			if i == len(g.modelCluster.Google.NodePools) {
+				// node pool not found in db; set count to default value
+				nodePoolData.Count = constants.GoogleDefaultNodeCount
+				log.Warnf("Node count for node pool %s set to default value: ", name, nodePoolData.Count)
+			}
+		}
 	}
 
 	// ---- [ Node Version check] ---- //
-	if len(r.UpdateClusterGoogle.GoogleNode.Version) == 0 {
+	if len(r.UpdateClusterGoogle.NodeVersion) == 0 {
 		nodeVersion := g.modelCluster.Google.NodeVersion
-		log.Warn("Node K8s version: ", nodeVersion)
-		r.UpdateClusterGoogle.GoogleNode.Version = nodeVersion
+		log.Warnf("Node K8s version: %s", nodeVersion)
+		r.UpdateClusterGoogle.NodeVersion = nodeVersion
 	}
 
 	// ---- [ Master Version check] ---- //
-	if len(r.UpdateClusterGoogle.GoogleMaster.Version) == 0 {
+	if len(r.UpdateClusterGoogle.Master.Version) == 0 {
 		masterVersion := g.modelCluster.Google.MasterVersion
-		log.Warn("Master K8s version: ", masterVersion)
-		r.UpdateClusterGoogle.GoogleMaster.Version = masterVersion
+		log.Warnf("Master K8s version: %s", masterVersion)
+		r.UpdateClusterGoogle.Master.Version = masterVersion
 	}
 
 }
@@ -1054,14 +1292,13 @@ func (g *GKECluster) CheckEqualityToUpdate(r *components.UpdateClusterRequest) e
 	log := logger.WithFields(logrus.Fields{"action": "CheckEqualityToUpdate"})
 
 	// create update request struct with the stored data to check equality
+	nodePools, _ := createNodePoolsRequestDataFromNodePoolModel(g.modelCluster.Google.NodePools)
 	preCl := &bGoogle.UpdateClusterGoogle{
-		GoogleMaster: &bGoogle.GoogleMaster{
+		Master: &bGoogle.GoogleMaster{
 			Version: g.modelCluster.Google.MasterVersion,
 		},
-		GoogleNode: &bGoogle.GoogleNode{
-			Version: g.modelCluster.Google.NodeVersion,
-			Count:   g.modelCluster.Google.NodeCount,
-		},
+		NodeVersion: g.modelCluster.Google.NodeVersion,
+		NodePools:   nodePools,
 	}
 
 	log.Info("Check stored & updated cluster equals")

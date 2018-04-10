@@ -87,6 +87,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 
 		log.Info("Load Google props from database")
 		database.Where(model.GoogleClusterModel{ClusterModelId: gkeCluster.modelCluster.ID}).First(&gkeCluster.modelCluster.Google)
+		database.Model(&gkeCluster.modelCluster.Google).Related(&gkeCluster.modelCluster.Google.NodePools, "NodePools")
 
 		return gkeCluster, nil
 

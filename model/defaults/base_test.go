@@ -116,10 +116,14 @@ var (
 				Master: &google.GoogleMaster{
 					Version: version,
 				},
-				Node: &google.GoogleNode{
-					Count:          nodeCount,
-					Version:        version,
-					ServiceAccount: serviceAccount,
+				NodeVersion: version,
+				// TODO: revise me
+				NodePools: map[string]*google.GoogleNodePool{
+					"pool1": {
+						Count:            nodeCount,
+						NodeInstanceType: nodeInstanceType,
+						ServiceAccount:   serviceAccount,
+					},
 				},
 			},
 		},
@@ -268,9 +272,13 @@ var (
 			Google *google.ClusterProfileGoogle `json:"google,omitempty"`
 		}{
 			Google: &google.ClusterProfileGoogle{
-				Node: &google.GoogleNode{
-					Count:   nodeCount,
-					Version: version,
+				NodeVersion: version,
+				// TODO: revise me
+				NodePools: map[string]*google.GoogleNodePool{
+					"pool1": {
+						Count:            nodeCount,
+						NodeInstanceType: nodeInstanceType,
+					},
 				},
 			},
 		},

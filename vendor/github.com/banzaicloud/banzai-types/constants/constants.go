@@ -51,7 +51,8 @@ const (
 
 // ### [ Constants to Google cluster default values ] ### //
 const (
-	GoogleDefaultNodeCount = 1
+	GoogleDefaultNodeCount    = 1
+	GoogleDefaultNodePoolName = "default-pool"
 )
 
 // ### [ Constants to helm]
@@ -75,6 +76,7 @@ const (
 	TableNameAmazonProperties = "amazon_cluster_properties"
 	TableNameAzureProperties  = "azure_cluster_properties"
 	TableNameGoogleProperties = "google_cluster_properties"
+	TableNameGoogleNodePools  = "google_node_pools"
 	TableNameDummyProperties  = "dummy_cluster_properties"
 	TableNameBYOCProperties   = "byoc_cluster_properties"
 )
@@ -100,6 +102,7 @@ var (
 	ErrorRequiredZone               = errors.New("Zone is required")
 	ErrorRequiredSecretId           = errors.New("Secret id is required")
 	ErrorCloudInfoK8SNotSupported   = errors.New("Not supported key in case of amazon")
+	ErrorNodePoolNotProvided        = errors.New("At least one 'nodepool' is required for creating or updating a cluster")
 )
 
 // ### [ Keywords ] ###
