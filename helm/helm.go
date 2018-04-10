@@ -9,7 +9,7 @@ import (
 	"github.com/Masterminds/sprig"
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/config"
-	"github.com/pkg/errors"
+	"github.com/juju/errors"
 	"github.com/sirupsen/logrus"
 	"k8s.io/helm/pkg/chartutil"
 	"k8s.io/helm/pkg/getter"
@@ -198,14 +198,14 @@ func GetDeploymentStatus(releaseName string, kubeConfig []byte) (int32, error) {
 
 	if err != nil {
 		// internal server error
-		return http.StatusInternalServerError, errors.Wrap(err, "couldn't get the helm client")
+		return http.StatusInternalServerError, errors.Annotate(err, "couldn't get the helm client")
 	}
 
 	releaseStatusResponse, err := helmClient.ReleaseStatus(releaseName)
 
 	if err != nil {
 		// the release cannot be found
-		return http.StatusNotFound, errors.Wrap(err, "couldn't get the release status")
+		return http.StatusNotFound, errors.Annotate(err, "couldn't get the release status")
 	}
 
 	return int32(releaseStatusResponse.Info.Status.GetCode()), nil
@@ -305,7 +305,7 @@ func ReposAdd(clusterName string, Hrepo *repo.Entry) error {
 	} else {
 		f, err = repo.LoadRepositoriesFile(repoFile)
 		if err != nil {
-			return errors.Wrap(err, "Cannot create a new ChartRepo")
+			return errors.Annotate(err, "Cannot create a new ChartRepo")
 		}
 		log.Debugf("Profile file %q loaded.", repoFile)
 	}
@@ -324,17 +324,17 @@ func ReposAdd(clusterName string, Hrepo *repo.Entry) error {
 	}
 	r, err := repo.NewChartRepository(&c, getter.All(settings))
 	if err != nil {
-		return errors.Wrap(err, "Cannot create a new ChartRepo")
+		return errors.Annotate(err, "Cannot create a new ChartRepo")
 	}
 	log.Debug("New repo added:", Hrepo.Name)
 
 	errIdx := r.DownloadIndexFile("")
 	if errIdx != nil {
-		return errors.Wrap(errIdx, "Repo index download failed")
+		return errors.Annotate(errIdx, "Repo index download failed")
 	}
 	f.Add(&c)
 	if errW := f.WriteFile(repoFile, 0644); errW != nil {
-		return errors.Wrap(errW, "Cannot write helm repo profile file")
+		return errors.Annotate(errW, "Cannot write helm repo profile file")
 	}
 	return nil
 }
@@ -387,7 +387,7 @@ func ReposModify(clusterName, repoName string, newRepo *repo.Entry) error {
 	f.Update(newRepo)
 
 	if errW := f.WriteFile(repoFile, 0644); errW != nil {
-		return errors.Wrap(errW, "Cannot write helm repo profile file")
+		return errors.Annotate(errW, "Cannot write helm repo profile file")
 	}
 	return nil
 }
@@ -401,18 +401,18 @@ func ReposUpdate(clusterName, repoName string) error {
 	f, err := repo.LoadRepositoriesFile(repoFile)
 
 	if err != nil {
-		return errors.Wrap(err, "Load ChartRepo")
+		return errors.Annotate(err, "Load ChartRepo")
 	}
 
 	for _, cfg := range f.Repositories {
 		if cfg.Name == repoName {
 			c, err := repo.NewChartRepository(cfg, getter.All(settings))
 			if err != nil {
-				return errors.Wrap(err, "Cannot get ChartRepo")
+				return errors.Annotate(err, "Cannot get ChartRepo")
 			}
 			errIdx := c.DownloadIndexFile("")
 			if errIdx != nil {
-				return errors.Wrap(errIdx, "Repo index download failed")
+				return errors.Annotate(errIdx, "Repo index download failed")
 			}
 			return nil
 
