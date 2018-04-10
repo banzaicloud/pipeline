@@ -371,7 +371,7 @@ func HelmReposGet(c *gin.Context) {
 
 	response, err := helm.ReposGet(clusterName)
 	if err != nil {
-		log.Error("Error during get helm repo list.", err.Error())
+		log.Error("Error during get helm repo list.", errors.ErrorStack(err))
 		c.JSON(http.StatusInternalServerError, htype.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: "Error listing helm repos",
@@ -396,7 +396,7 @@ func HelmReposAdd(c *gin.Context) {
 	var repo *repo.Entry
 	err := c.BindJSON(&repo)
 	if err != nil {
-		log.Errorf("Error parsing request: %s", err.Error())
+		log.Errorf("Error parsing request: %s", errors.ErrorStack(err))
 		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error parsing request",
@@ -406,7 +406,7 @@ func HelmReposAdd(c *gin.Context) {
 	}
 	err = helm.ReposAdd(clusterName, repo)
 	if err != nil {
-		log.Error("Error adding helm repo", err.Error())
+		log.Error("Error adding helm repo", errors.ErrorStack(err))
 		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error adding helm repo",
@@ -436,7 +436,7 @@ func HelmReposDelete(c *gin.Context) {
 
 	err := helm.ReposDelete(clusterName, repoName)
 	if err != nil {
-		log.Error("Error during get helm repo delete.", err.Error())
+		log.Error("Error during get helm repo delete.", errors.ErrorStack(err))
 		if err.Error() == helm.ErrRepoNotFound.Error() {
 			c.JSON(http.StatusOK, htype.DeleteResponse{
 				Status:  http.StatusOK,
@@ -476,7 +476,7 @@ func HelmReposModify(c *gin.Context) {
 	var newRepo *repo.Entry
 	err := c.BindJSON(&newRepo)
 	if err != nil {
-		log.Errorf("Error parsing request: %s", err.Error())
+		log.Errorf("Error parsing request: %s", errors.ErrorStack(err))
 		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "error parsing request",
@@ -496,7 +496,7 @@ func HelmReposModify(c *gin.Context) {
 			return
 
 		}
-		log.Error("Error during helm repo modified.", errModify.Error())
+		log.Error("Error during helm repo modified.", errors.ErrorStack(errModify))
 		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Error:   errModify.Error(),
@@ -569,7 +569,7 @@ func HelmCharts(c *gin.Context) {
 
 	response, err := helm.ChartsGet(clusterName, query.Name, query.Repo)
 	if err != nil {
-		log.Error("Error during get helm repo chart list.", err.Error())
+		log.Error("Error during get helm repo chart list.", errors.ErrorStack(err))
 		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error listing helm repo charts",
