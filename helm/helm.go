@@ -9,17 +9,23 @@ import (
 	"github.com/Masterminds/sprig"
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/config"
-	"github.com/pkg/errors"
+	"github.com/juju/errors"
 	"github.com/sirupsen/logrus"
 	"k8s.io/helm/pkg/chartutil"
+	"k8s.io/helm/pkg/getter"
 	"k8s.io/helm/pkg/helm"
 	"k8s.io/helm/pkg/proto/hapi/chart"
 	rls "k8s.io/helm/pkg/proto/hapi/services"
+	"k8s.io/helm/pkg/repo"
 	"net/http"
+	"os"
+	"regexp"
 )
 
 var logger *logrus.Logger
 var log *logrus.Entry
+
+var ErrRepoNotFound = errors.New("helm repository not found!")
 
 // Simple init for logging
 func init() {
@@ -192,14 +198,14 @@ func GetDeploymentStatus(releaseName string, kubeConfig []byte) (int32, error) {
 
 	if err != nil {
 		// internal server error
-		return http.StatusInternalServerError, errors.Wrap(err, "couldn't get the helm client")
+		return http.StatusInternalServerError, errors.Annotate(err, "couldn't get the helm client")
 	}
 
 	releaseStatusResponse, err := helmClient.ReleaseStatus(releaseName)
 
 	if err != nil {
 		// the release cannot be found
-		return http.StatusNotFound, errors.Wrap(err, "couldn't get the release status")
+		return http.StatusNotFound, errors.Annotate(err, "couldn't get the release status")
 	}
 
 	return int32(releaseStatusResponse.Info.Status.GetCode()), nil
@@ -271,4 +277,183 @@ func mergeValues(dest map[string]interface{}, src map[string]interface{}) map[st
 		dest[k] = mergeValues(destMap, nextMap)
 	}
 	return dest
+}
+
+func ReposGet(clusterName string) ([]*repo.Entry, error) {
+	repoPath := fmt.Sprintf("%s/repository/repositories.yaml", generateHelmRepoPath(clusterName))
+	log.Debug("Helm repo path:", repoPath)
+
+	f, err := repo.LoadRepositoriesFile(repoPath)
+	if err != nil {
+		return nil, err
+	}
+	if len(f.Repositories) == 0 {
+		return make([]*repo.Entry, 0), nil
+	}
+
+	return f.Repositories, nil
+}
+
+func ReposAdd(clusterName string, Hrepo *repo.Entry) error {
+
+	settings := createEnvSettings(generateHelmRepoPath(clusterName))
+	repoFile := settings.Home.RepositoryFile()
+	var f *repo.RepoFile
+	if _, err := os.Stat(repoFile); err != nil {
+		log.Infof("Creating %s", repoFile)
+		f = repo.NewRepoFile()
+	} else {
+		f, err = repo.LoadRepositoriesFile(repoFile)
+		if err != nil {
+			return errors.Annotate(err, "Cannot create a new ChartRepo")
+		}
+		log.Debugf("Profile file %q loaded.", repoFile)
+	}
+
+	for _, n := range f.Repositories {
+		log.Debug("repo", n.Name)
+		if n.Name == Hrepo.Name {
+			return errors.New("Already added.")
+		}
+	}
+
+	c := repo.Entry{
+		Name:  Hrepo.Name,
+		URL:   Hrepo.URL,
+		Cache: settings.Home.CacheIndex(Hrepo.Name),
+	}
+	r, err := repo.NewChartRepository(&c, getter.All(settings))
+	if err != nil {
+		return errors.Annotate(err, "Cannot create a new ChartRepo")
+	}
+	log.Debug("New repo added:", Hrepo.Name)
+
+	errIdx := r.DownloadIndexFile("")
+	if errIdx != nil {
+		return errors.Annotate(errIdx, "Repo index download failed")
+	}
+	f.Add(&c)
+	if errW := f.WriteFile(repoFile, 0644); errW != nil {
+		return errors.Annotate(errW, "Cannot write helm repo profile file")
+	}
+	return nil
+}
+
+func ReposDelete(clusterName, repoName string) error {
+	repoPath := generateHelmRepoPath(clusterName)
+	settings := createEnvSettings(repoPath)
+	repoFile := settings.Home.RepositoryFile()
+	log.Debug("Repo File:", repoFile)
+
+	r, err := repo.LoadRepositoriesFile(repoFile)
+	if err != nil {
+		return err
+	}
+
+	if !r.Remove(repoName) {
+		return ErrRepoNotFound
+	}
+	if err := r.WriteFile(repoFile, 0644); err != nil {
+		return err
+	}
+
+	if _, err := os.Stat(settings.Home.CacheIndex(repoName)); err == nil {
+		err = os.Remove(settings.Home.CacheIndex(repoName))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+
+}
+
+func ReposModify(clusterName, repoName string, newRepo *repo.Entry) error {
+	log.Debug("ReposModify")
+	repoPath := generateHelmRepoPath(clusterName)
+	settings := createEnvSettings(repoPath)
+	repoFile := settings.Home.RepositoryFile()
+	log.Debug("Repo File:", repoFile)
+	log.Debugf("New repo content: %#v", newRepo)
+
+	f, err := repo.LoadRepositoriesFile(repoFile)
+	if err != nil {
+		return err
+	}
+
+	if !f.Has(repoName) {
+		return ErrRepoNotFound
+	}
+
+	f.Update(newRepo)
+
+	if errW := f.WriteFile(repoFile, 0644); errW != nil {
+		return errors.Annotate(errW, "Cannot write helm repo profile file")
+	}
+	return nil
+}
+
+func ReposUpdate(clusterName, repoName string) error {
+	repoPath := generateHelmRepoPath(clusterName)
+	settings := createEnvSettings(repoPath)
+	repoFile := settings.Home.RepositoryFile()
+	log.Debug("Repo File:", repoFile)
+
+	f, err := repo.LoadRepositoriesFile(repoFile)
+
+	if err != nil {
+		return errors.Annotate(err, "Load ChartRepo")
+	}
+
+	for _, cfg := range f.Repositories {
+		if cfg.Name == repoName {
+			c, err := repo.NewChartRepository(cfg, getter.All(settings))
+			if err != nil {
+				return errors.Annotate(err, "Cannot get ChartRepo")
+			}
+			errIdx := c.DownloadIndexFile("")
+			if errIdx != nil {
+				return errors.Annotate(errIdx, "Repo index download failed")
+			}
+			return nil
+
+		}
+	}
+
+	return ErrRepoNotFound
+}
+
+func ChartsGet(clusterName, chartNameQuery, chartRepoQuery string) (map[string]map[string]repo.ChartVersions, error) {
+	repoPath := fmt.Sprintf("%s/repository/repositories.yaml", generateHelmRepoPath(clusterName))
+	log.Debug("Helm repo path:", repoPath)
+
+	f, err := repo.LoadRepositoriesFile(repoPath)
+	if err != nil {
+		return nil, err
+	}
+	if len(f.Repositories) == 0 {
+		return nil, nil
+	}
+	chartList := make(map[string]map[string]repo.ChartVersions, 0)
+	for _, r := range f.Repositories {
+
+		log.Debugf("%s", r.Cache)
+		i, errIndx := repo.LoadIndexFile(r.Cache)
+		if errIndx != nil {
+			return nil, errIndx
+		}
+
+		repoMatched, _ := regexp.MatchString(chartRepoQuery, strings.ToLower(r.Name))
+		if repoMatched || chartRepoQuery == "" {
+			for n := range i.Entries {
+				chartMatched, _ := regexp.MatchString(chartNameQuery, strings.ToLower(n))
+				if chartMatched || chartNameQuery == "" {
+					cn := map[string]repo.ChartVersions{
+						n: i.Entries[n],
+					}
+					chartList[r.Name] = cn
+				}
+			}
+		}
+	}
+	return chartList, nil
 }

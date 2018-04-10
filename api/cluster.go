@@ -82,6 +82,17 @@ func GetCommonClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
 	return commonCLuster, true
 }
 
+//GetCommonClusterNameFromRequest get cluster name from cluster request
+func GetCommonClusterNameFromRequest(c *gin.Context) (string, bool) {
+	commonCluster, ok := GetCommonClusterFromRequest(c)
+	if ok != true {
+		return "", false
+	}
+	clusterName := commonCluster.GetName()
+	log.Debugln("clusterName:", clusterName)
+	return clusterName, true
+}
+
 // CreateCluster creates a K8S cluster in the cloud
 func CreateCluster(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagCreateCluster})
