@@ -281,7 +281,7 @@ func mergeValues(dest map[string]interface{}, src map[string]interface{}) map[st
 
 func ReposGet(clusterName string) ([]*repo.Entry, error) {
 	repoPath := fmt.Sprintf("%s/repository/repositories.yaml", generateHelmRepoPath(clusterName))
-	log.Debugln("Helm config path:", repoPath)
+	log.Debug("Helm repo path:", repoPath)
 
 	f, err := repo.LoadRepositoriesFile(repoPath)
 	if err != nil {
@@ -311,7 +311,7 @@ func ReposAdd(clusterName string, Hrepo *repo.Entry) error {
 	}
 
 	for _, n := range f.Repositories {
-		log.Debugln("repo", n.Name)
+		log.Debug("repo", n.Name)
 		if n.Name == Hrepo.Name {
 			return errors.New("Already added.")
 		}
@@ -326,7 +326,7 @@ func ReposAdd(clusterName string, Hrepo *repo.Entry) error {
 	if err != nil {
 		return errors.Wrap(err, "Cannot create a new ChartRepo")
 	}
-	log.Debugln("New repo added:", Hrepo.Name)
+	log.Debug("New repo added:", Hrepo.Name)
 
 	errIdx := r.DownloadIndexFile("")
 	if errIdx != nil {
@@ -343,7 +343,7 @@ func ReposDelete(clusterName, repoName string) error {
 	repoPath := generateHelmRepoPath(clusterName)
 	settings := createEnvSettings(repoPath)
 	repoFile := settings.Home.RepositoryFile()
-	log.Debugln("Repo File:", repoFile)
+	log.Debug("Repo File:", repoFile)
 
 	r, err := repo.LoadRepositoriesFile(repoFile)
 	if err != nil {
@@ -368,11 +368,11 @@ func ReposDelete(clusterName, repoName string) error {
 }
 
 func ReposModify(clusterName, repoName string, newRepo *repo.Entry) error {
-	log.Debugln("ReposModify")
+	log.Debug("ReposModify")
 	repoPath := generateHelmRepoPath(clusterName)
 	settings := createEnvSettings(repoPath)
 	repoFile := settings.Home.RepositoryFile()
-	log.Debugln("Repo File:", repoFile)
+	log.Debug("Repo File:", repoFile)
 	log.Debugf("New repo content: %#v", newRepo)
 
 	f, err := repo.LoadRepositoriesFile(repoFile)
@@ -396,7 +396,7 @@ func ReposUpdate(clusterName, repoName string) error {
 	repoPath := generateHelmRepoPath(clusterName)
 	settings := createEnvSettings(repoPath)
 	repoFile := settings.Home.RepositoryFile()
-	log.Debugln("Repo File:", repoFile)
+	log.Debug("Repo File:", repoFile)
 
 	f, err := repo.LoadRepositoriesFile(repoFile)
 
@@ -424,7 +424,7 @@ func ReposUpdate(clusterName, repoName string) error {
 
 func ChartsGet(clusterName, chartNameQuery, chartRepoQuery string) (map[string]map[string]repo.ChartVersions, error) {
 	repoPath := fmt.Sprintf("%s/repository/repositories.yaml", generateHelmRepoPath(clusterName))
-	log.Debugln("Helm config path:", repoPath)
+	log.Debug("Helm repo path:", repoPath)
 
 	f, err := repo.LoadRepositoriesFile(repoPath)
 	if err != nil {

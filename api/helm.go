@@ -364,12 +364,10 @@ func HelmReposGet(c *gin.Context) {
 
 	log.Info("Get helm repository")
 
-	commonCluster, ok := GetCommonClusterFromRequest(c)
+	clusterName, ok := GetCommonClusterNameFromRequest(c)
 	if ok != true {
 		return
 	}
-	clusterName := commonCluster.GetName()
-	log.Debugln("clusterName:", clusterName)
 
 	response, err := helm.ReposGet(clusterName)
 	if err != nil {
@@ -390,12 +388,11 @@ func HelmReposAdd(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": "HelmReposAdd"})
 	log.Info("Add helm repository")
 
-	commonCluster, ok := GetCommonClusterFromRequest(c)
+	clusterName, ok := GetCommonClusterNameFromRequest(c)
 	if ok != true {
 		return
 	}
-	clusterName := commonCluster.GetName()
-	log.Debugln("ClusterName:", commonCluster.GetName())
+
 	var repo *repo.Entry
 	err := c.BindJSON(&repo)
 	if err != nil {
@@ -429,12 +426,10 @@ func HelmReposDelete(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": "HelmReposDelete"})
 	log.Info("Delete helm repository")
 
-	commonCluster, ok := GetCommonClusterFromRequest(c)
+	clusterName, ok := GetCommonClusterNameFromRequest(c)
 	if ok != true {
 		return
 	}
-	clusterName := commonCluster.GetName()
-	log.Debugln("clusterName:", clusterName)
 
 	repoName := c.Param("name")
 	log.Debugln("repoName:", repoName)
@@ -470,12 +465,10 @@ func HelmReposModify(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": "HelmReposModify"})
 	log.Info("modify helm repository")
 
-	commonCluster, ok := GetCommonClusterFromRequest(c)
+	clusterName, ok := GetCommonClusterNameFromRequest(c)
 	if ok != true {
 		return
 	}
-	clusterName := commonCluster.GetName()
-	log.Debugln("clusterName:", clusterName)
 
 	repoName := c.Param("name")
 	log.Debugln("repoName:", repoName)
@@ -524,12 +517,10 @@ func HelmReposUpdate(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": "ReposUpdate"})
 	log.Info("delete helm repository")
 
-	commonCluster, ok := GetCommonClusterFromRequest(c)
+	clusterName, ok := GetCommonClusterNameFromRequest(c)
 	if ok != true {
 		return
 	}
-	clusterName := commonCluster.GetName()
-	log.Debugln("clusterName:", clusterName)
 
 	repoName := c.Param("name")
 	log.Debugln("repoName:", repoName)
@@ -557,13 +548,10 @@ func HelmCharts(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": "HelmCharts"})
 	log.Info("Get helm repository charts")
 
-	commonCluster, ok := GetCommonClusterFromRequest(c)
+	clusterName, ok := GetCommonClusterNameFromRequest(c)
 	if ok != true {
 		return
 	}
-	clusterName := commonCluster.GetName()
-
-	log.Debugln("clusterName:", clusterName)
 
 	var query ChartQuery
 	err := c.BindQuery(&query)
