@@ -358,6 +358,7 @@ func parseCreateUpdateDeploymentRequest(c *gin.Context) (*parsedDeploymentReques
 	return pdr, nil
 }
 
+//Listing helm repositories in the cluster
 func HelmReposGet(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": "HelmReposGet"})
 
@@ -373,8 +374,8 @@ func HelmReposGet(c *gin.Context) {
 	response, err := helm.ReposGet(clusterName)
 	if err != nil {
 		log.Error("Error during get helm repo list.", err.Error())
-		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
-			Code:    http.StatusBadRequest,
+		c.JSON(http.StatusInternalServerError, htype.ErrorResponse{
+			Code:    http.StatusInternalServerError,
 			Message: "Error listing helm repos",
 			Error:   err.Error(),
 		})
@@ -384,6 +385,7 @@ func HelmReposGet(c *gin.Context) {
 	return
 }
 
+//Add new helm repository
 func HelmReposAdd(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": "HelmReposAdd"})
 	log.Info("Add helm repository")
@@ -407,7 +409,7 @@ func HelmReposAdd(c *gin.Context) {
 	}
 	err = helm.ReposAdd(clusterName, repo)
 	if err != nil {
-		log.Error("Error during get helm repo list.", err.Error())
+		log.Error("Error adding helm repo", err.Error())
 		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error adding helm repo",
@@ -415,13 +417,14 @@ func HelmReposAdd(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusOK, htype.DeleteResponse{
+	c.JSON(http.StatusOK, htype.StatusResponse{
 		Status:  http.StatusOK,
 		Message: "resource successfully added.",
 		Name:    repo.Name})
 	return
 }
 
+//Delete helm repository
 func HelmReposDelete(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": "HelmReposDelete"})
 	log.Info("Delete helm repository")
@@ -462,6 +465,7 @@ func HelmReposDelete(c *gin.Context) {
 	return
 }
 
+//Modify helm repository
 func HelmReposModify(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": "HelmReposModify"})
 	log.Info("modify helm repository")
@@ -547,8 +551,9 @@ func HelmReposUpdate(c *gin.Context) {
 	return
 }
 
-func HelmChars(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"tag": "HelmChars"})
+//Get available helm chart's list
+func HelmCharts(c *gin.Context) {
+	log := logger.WithFields(logrus.Fields{"tag": "HelmCharts"})
 	log.Info("Get helm repository charts")
 
 	commonCluster, ok := GetCommonClusterFromRequest(c)
