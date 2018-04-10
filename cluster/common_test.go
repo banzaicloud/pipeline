@@ -117,15 +117,18 @@ func TestGKEKubernetesVersion(t *testing.T) {
 		{name: "version 2.3242.324", version: "2.3242.324", error: nil},
 		{name: "version 11.5", version: "11.5", error: nil},
 	}
-
+	// TODO: revise me
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			g := google.CreateClusterGoogle{
-				Project: clusterRequestProject,
-				Node: &google.GoogleNode{
-					Count:          clusterRequestNodeCount,
-					Version:        tc.version,
-					ServiceAccount: clusterServiceAccount,
+				Project:     clusterRequestProject,
+				NodeVersion: tc.version,
+				NodePools: map[string]*google.GoogleNodePool{
+					"pool1": {
+						Count:            clusterRequestNodeCount,
+						NodeInstanceType: clusterRequestNodeInstance,
+						ServiceAccount:   clusterServiceAccount,
+					},
 				},
 				Master: &google.GoogleMaster{
 					Version: tc.version,
@@ -158,11 +161,14 @@ var (
 			CreateBYOC          *byoc.CreateBYOC            `json:"byoc,omitempty"`
 		}{
 			CreateClusterGoogle: &google.CreateClusterGoogle{
-				Project: clusterRequestProject,
-				Node: &google.GoogleNode{
-					Count:          clusterRequestNodeCount,
-					Version:        clusterRequestVersion,
-					ServiceAccount: clusterServiceAccount,
+				Project:     clusterRequestProject,
+				NodeVersion: clusterRequestVersion,
+				NodePools: map[string]*google.GoogleNodePool{
+					"pool1": {
+						Count:            clusterRequestNodeCount,
+						NodeInstanceType: clusterRequestNodeInstance,
+						ServiceAccount:   clusterServiceAccount,
+					},
 				},
 				Master: &google.GoogleMaster{
 					Version: clusterRequestVersion,
@@ -185,11 +191,14 @@ var (
 			CreateBYOC          *byoc.CreateBYOC            `json:"byoc,omitempty"`
 		}{
 			CreateClusterGoogle: &google.CreateClusterGoogle{
-				Project: clusterRequestProject,
-				Node: &google.GoogleNode{
-					Count:          clusterRequestNodeCount,
-					Version:        clusterRequestVersion,
-					ServiceAccount: clusterServiceAccount,
+				Project:     clusterRequestProject,
+				NodeVersion: clusterRequestVersion,
+				NodePools: map[string]*google.GoogleNodePool{
+					"pool1": {
+						Count:            clusterRequestNodeCount,
+						NodeInstanceType: clusterRequestNodeInstance,
+						ServiceAccount:   clusterServiceAccount,
+					},
 				},
 				Master: &google.GoogleMaster{
 					Version: clusterRequestVersion,
@@ -212,11 +221,14 @@ var (
 			CreateBYOC          *byoc.CreateBYOC            `json:"byoc,omitempty"`
 		}{
 			CreateClusterGoogle: &google.CreateClusterGoogle{
-				Project: clusterRequestProject,
-				Node: &google.GoogleNode{
-					Count:          clusterRequestNodeCount,
-					Version:        clusterRequestVersion,
-					ServiceAccount: clusterServiceAccount,
+				Project:     clusterRequestProject,
+				NodeVersion: clusterRequestVersion,
+				NodePools: map[string]*google.GoogleNodePool{
+					"pool1": {
+						Count:            clusterRequestNodeCount,
+						NodeInstanceType: clusterRequestNodeInstance,
+						ServiceAccount:   clusterServiceAccount,
+					},
 				},
 				Master: &google.GoogleMaster{
 					Version: clusterRequestVersion,
@@ -474,11 +486,14 @@ var (
 			CreateBYOC          *byoc.CreateBYOC            `json:"byoc,omitempty"`
 		}{
 			CreateClusterGoogle: &google.CreateClusterGoogle{
-				Project: clusterRequestProject,
-				Node: &google.GoogleNode{
-					Count:          clusterRequestNodeCount,
-					Version:        clusterRequestWrongVersion,
-					ServiceAccount: clusterServiceAccount,
+				Project:     clusterRequestProject,
+				NodeVersion: clusterRequestVersion,
+				NodePools: map[string]*google.GoogleNodePool{
+					"pool1": {
+						Count:            clusterRequestNodeCount,
+						NodeInstanceType: clusterRequestNodeInstance,
+						ServiceAccount:   clusterServiceAccount,
+					},
 				},
 				Master: &google.GoogleMaster{
 					Version: clusterRequestWrongVersion,
@@ -501,11 +516,14 @@ var (
 			CreateBYOC          *byoc.CreateBYOC            `json:"byoc,omitempty"`
 		}{
 			CreateClusterGoogle: &google.CreateClusterGoogle{
-				Project: clusterRequestProject,
-				Node: &google.GoogleNode{
-					Count:          clusterRequestNodeCount,
-					Version:        clusterRequestVersion,
-					ServiceAccount: clusterServiceAccount,
+				Project:     clusterRequestProject,
+				NodeVersion: clusterRequestVersion,
+				NodePools: map[string]*google.GoogleNodePool{
+					"pool1": {
+						Count:            clusterRequestNodeCount,
+						NodeInstanceType: clusterRequestNodeInstance,
+						ServiceAccount:   clusterServiceAccount,
+					},
 				},
 				Master: &google.GoogleMaster{
 					Version: clusterRequestVersion2,
@@ -526,11 +544,17 @@ var (
 		Amazon:           model.AmazonClusterModel{},
 		Azure:            model.AzureClusterModel{},
 		Google: model.GoogleClusterModel{
-			Project:        clusterRequestProject,
-			MasterVersion:  clusterRequestVersion,
-			NodeVersion:    clusterRequestVersion,
-			NodeCount:      clusterRequestNodeCount,
-			ServiceAccount: clusterServiceAccount,
+			Project:       clusterRequestProject,
+			MasterVersion: clusterRequestVersion,
+			NodeVersion:   clusterRequestVersion,
+			NodePools: []*model.GoogleNodePoolModel{
+				{
+					Name:             "pool1",
+					NodeCount:        clusterRequestNodeCount,
+					NodeInstanceType: clusterRequestNodeInstance,
+					ServiceAccount:   clusterServiceAccount,
+				},
+			},
 		},
 	}
 
@@ -632,11 +656,17 @@ var (
 		Amazon:           model.AmazonClusterModel{},
 		Azure:            model.AzureClusterModel{},
 		Google: model.GoogleClusterModel{
-			Project:        clusterRequestProject,
-			MasterVersion:  clusterRequestVersion2,
-			NodeVersion:    clusterRequestVersion,
-			NodeCount:      clusterRequestNodeCount,
-			ServiceAccount: clusterServiceAccount,
+			Project:       clusterRequestProject,
+			MasterVersion: clusterRequestVersion2,
+			NodeVersion:   clusterRequestVersion,
+			NodePools: []*model.GoogleNodePoolModel{
+				{
+					Name:             "pool1",
+					NodeCount:        clusterRequestNodeCount,
+					NodeInstanceType: clusterRequestNodeInstance,
+					ServiceAccount:   clusterServiceAccount,
+				},
+			},
 		},
 	}
 )
