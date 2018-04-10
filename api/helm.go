@@ -7,12 +7,18 @@ import (
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/ghodss/yaml"
 	"github.com/gin-gonic/gin"
-	"github.com/juju/errors"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"k8s.io/helm/pkg/proto/hapi/release"
+	"k8s.io/helm/pkg/repo"
 	"k8s.io/helm/pkg/timeconv"
 	"net/http"
 )
+
+type ChartQuery struct {
+	Name string `form:"name"`
+	Repo string `form:"repo"`
+}
 
 // GetK8sConfig returns the Kubernetes config
 func GetK8sConfig(c *gin.Context) ([]byte, bool) {
@@ -39,7 +45,7 @@ func CreateDeployment(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagCreateDeployment})
 	parsedRequest, err := parseCreateUpdateDeploymentRequest(c)
 	if err != nil {
-		log.Errorf(errors.ErrorStack(err))
+		log.Errorf(err.Error())
 		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error during parsing request!",
@@ -240,7 +246,7 @@ func UpgradeDeployment(c *gin.Context) {
 	log.Infof("Upgrading deployment: %s", name)
 	parsedRequest, err := parseCreateUpdateDeploymentRequest(c)
 	if err != nil {
-		log.Errorf(errors.ErrorStack(err))
+		log.Errorf(err.Error())
 		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error during parsing request!",
@@ -324,7 +330,7 @@ func parseCreateUpdateDeploymentRequest(c *gin.Context) (*parsedDeploymentReques
 	var deployment *htype.CreateUpdateDeploymentRequest
 	err := c.BindJSON(&deployment)
 	if err != nil {
-		return nil, errors.Annotate(err, "Error parsing request:")
+		return nil, errors.Wrap(err, "Error parsing request:")
 	}
 	log.Info("Parse deployment succeeded")
 
@@ -337,17 +343,240 @@ func parseCreateUpdateDeploymentRequest(c *gin.Context) (*parsedDeploymentReques
 	if deployment.Values != "" {
 		parsedJSON, err := yaml.Marshal(deployment.Values)
 		if err != nil {
-			return nil, errors.Annotate(err, "Can't parse Values:")
+			return nil, errors.Wrap(err, "Can't parse Values:")
 		}
 		pdr.values, err = yaml.JSONToYAML(parsedJSON)
 		if err != nil {
-			return nil, errors.Annotate(err, "Can't convert json to yaml:")
+			return nil, errors.Wrap(err, "Can't convert json to yaml:")
 		}
 	}
 	pdr.kubeConfig, err = commonCluster.GetK8sConfig()
 	if err != nil {
-		return nil, errors.Annotate(err, "Error getting kubeconfig:")
+		return nil, errors.Wrap(err, "Error getting kubeconfig:")
 	}
 	log.Debug("Custom values: ", string(pdr.values))
 	return pdr, nil
+}
+
+//HelmReposGet listing helm repositories in the cluster
+func HelmReposGet(c *gin.Context) {
+	log := logger.WithFields(logrus.Fields{"tag": "HelmReposGet"})
+
+	log.Info("Get helm repository")
+
+	clusterName, ok := GetCommonClusterNameFromRequest(c)
+	if ok != true {
+		return
+	}
+
+	response, err := helm.ReposGet(clusterName)
+	if err != nil {
+		log.Error("Error during get helm repo list.", err.Error())
+		c.JSON(http.StatusInternalServerError, htype.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: "Error listing helm repos",
+			Error:   err.Error(),
+		})
+		return
+	}
+	c.JSON(http.StatusOK, response)
+	return
+}
+
+//HelmReposAdd add a new helm repository
+func HelmReposAdd(c *gin.Context) {
+	log := logger.WithFields(logrus.Fields{"tag": "HelmReposAdd"})
+	log.Info("Add helm repository")
+
+	clusterName, ok := GetCommonClusterNameFromRequest(c)
+	if ok != true {
+		return
+	}
+
+	var repo *repo.Entry
+	err := c.BindJSON(&repo)
+	if err != nil {
+		log.Errorf("Error parsing request: %s", err.Error())
+		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error parsing request",
+			Error:   err.Error(),
+		})
+		return
+	}
+	err = helm.ReposAdd(clusterName, repo)
+	if err != nil {
+		log.Error("Error adding helm repo", err.Error())
+		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error adding helm repo",
+			Error:   err.Error(),
+		})
+		return
+	}
+	c.JSON(http.StatusOK, htype.StatusResponse{
+		Status:  http.StatusOK,
+		Message: "resource successfully added.",
+		Name:    repo.Name})
+	return
+}
+
+//HelmReposDelete delete the helm repository
+func HelmReposDelete(c *gin.Context) {
+	log := logger.WithFields(logrus.Fields{"tag": "HelmReposDelete"})
+	log.Info("Delete helm repository")
+
+	clusterName, ok := GetCommonClusterNameFromRequest(c)
+	if ok != true {
+		return
+	}
+
+	repoName := c.Param("name")
+	log.Debugln("repoName:", repoName)
+
+	err := helm.ReposDelete(clusterName, repoName)
+	if err != nil {
+		log.Error("Error during get helm repo delete.", err.Error())
+		if err.Error() == helm.ErrRepoNotFound.Error() {
+			c.JSON(http.StatusOK, htype.DeleteResponse{
+				Status:  http.StatusOK,
+				Message: err.Error(),
+				Name:    repoName})
+			return
+
+		}
+		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "error deleting helm repos",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, htype.DeleteResponse{
+		Status:  http.StatusOK,
+		Message: "resource deleted successfully.",
+		Name:    repoName})
+	return
+}
+
+//HelmReposModify modify the helm repository
+func HelmReposModify(c *gin.Context) {
+	log := logger.WithFields(logrus.Fields{"tag": "HelmReposModify"})
+	log.Info("modify helm repository")
+
+	clusterName, ok := GetCommonClusterNameFromRequest(c)
+	if ok != true {
+		return
+	}
+
+	repoName := c.Param("name")
+	log.Debugln("repoName:", repoName)
+
+	var newRepo *repo.Entry
+	err := c.BindJSON(&newRepo)
+	if err != nil {
+		log.Errorf("Error parsing request: %s", err.Error())
+		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "error parsing request",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	errModify := helm.ReposModify(clusterName, repoName, newRepo)
+	if errModify != nil {
+		if errModify == helm.ErrRepoNotFound {
+			c.JSON(http.StatusNotFound, htype.ErrorResponse{
+				Code:    http.StatusNotFound,
+				Error:   errModify.Error(),
+				Message: "repo not found",
+			})
+			return
+
+		}
+		log.Error("Error during helm repo modified.", errModify.Error())
+		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Error:   errModify.Error(),
+			Message: "repo modification failed",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, htype.StatusResponse{
+		Status:  http.StatusOK,
+		Message: "resource modified successfully",
+		Name:    repoName})
+	return
+}
+
+// HelmReposUpdate update the helm repo
+func HelmReposUpdate(c *gin.Context) {
+	log := logger.WithFields(logrus.Fields{"tag": "ReposUpdate"})
+	log.Info("delete helm repository")
+
+	clusterName, ok := GetCommonClusterNameFromRequest(c)
+	if ok != true {
+		return
+	}
+
+	repoName := c.Param("name")
+	log.Debugln("repoName:", repoName)
+
+	errUpdate := helm.ReposUpdate(clusterName, repoName)
+	if errUpdate != nil {
+		log.Error("Error during helm repo update.", errUpdate.Error())
+		c.JSON(http.StatusNotFound, htype.ErrorResponse{
+			Code:    http.StatusNotFound,
+			Error:   errUpdate.Error(),
+			Message: "repository update failed",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, htype.StatusResponse{
+		Status:  http.StatusOK,
+		Message: "repository updated successfully",
+		Name:    repoName})
+	return
+}
+
+//HelmCharts get available helm chart's list
+func HelmCharts(c *gin.Context) {
+	log := logger.WithFields(logrus.Fields{"tag": "HelmCharts"})
+	log.Info("Get helm repository charts")
+
+	clusterName, ok := GetCommonClusterNameFromRequest(c)
+	if ok != true {
+		return
+	}
+
+	var query ChartQuery
+	err := c.BindQuery(&query)
+	if err != nil {
+		log.Errorf("Error parsing request: %s", err.Error())
+		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "error parsing request",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	log.Info(query)
+
+	response, err := helm.ChartsGet(clusterName, query.Name, query.Repo)
+	if err != nil {
+		log.Error("Error during get helm repo chart list.", err.Error())
+		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error listing helm repo charts",
+			Error:   err.Error(),
+		})
+		return
+	}
+	c.JSON(http.StatusOK, response)
+	return
 }

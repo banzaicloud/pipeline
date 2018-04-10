@@ -11,7 +11,7 @@ var logger *logrus.Logger
 func Logger() *logrus.Logger {
 	if logger == nil {
 		logger = logrus.New()
-		switch viper.GetString("log.loglevel") {
+		switch viper.GetString("logging.loglevel") {
 		case "debug":
 			logger.Level = logrus.DebugLevel
 		case "info":
