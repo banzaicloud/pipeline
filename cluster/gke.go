@@ -1102,7 +1102,7 @@ func GetGkeServerConfig(orgId uint, secretId, zone string) (*gke.ServerConfig, e
 		if err != nil {
 			return nil, err
 		}
-		if serverConfig, err := svc.Projects.Zones.GetServerconfig(*projectId, zone).Context(context.Background()).Do(); err != nil {
+		if serverConfig, err := svc.Projects.Zones.GetServerconfig(string(projectId), zone).Context(context.Background()).Do(); err != nil {
 			return nil, err
 		} else {
 			log.Info("Getting server config succeeded")
@@ -1131,7 +1131,7 @@ func GetAllMachineTypesByZone(orgId uint, secretId, zone string) (map[string]com
 			return nil, err
 		}
 
-		return getMachineTypes(computeService, *project, zone)
+		return getMachineTypes(computeService, string(project), zone)
 	}
 }
 
@@ -1152,7 +1152,7 @@ func GetAllMachineTypes(orgId uint, secretId string) (map[string]components.Mach
 		if err != nil {
 			return nil, err
 		}
-		return getMachineTypesWithoutZones(computeService, *project)
+		return getMachineTypesWithoutZones(computeService, string(project))
 	}
 
 }
@@ -1275,7 +1275,7 @@ func GetZones(orgId uint, secretId string) ([]string, error) {
 			return nil, err
 		}
 		var zones []string
-		req := computeService.Zones.List(*project)
+		req := computeService.Zones.List(string(project))
 		if err := req.Pages(context.Background(), func(page *gkeCompute.ZoneList) error {
 			for _, zone := range page.Items {
 				zones = append(zones, zone.Name)
@@ -1290,11 +1290,11 @@ func GetZones(orgId uint, secretId string) ([]string, error) {
 }
 
 // getProjectId returns with project id from secret
-func (g *GKECluster) getProjectId() (*string, error) {
+func (g *GKECluster) getProjectId() ([]byte, error) {
 	s, err := GetSecret(g)
 	if err != nil {
 		return nil, err
 	}
 
-	return utils.S(s.GetValue(secret.ProjectId)), nil
+	return []byte(s.GetValue(secret.ProjectId)), nil
 }
