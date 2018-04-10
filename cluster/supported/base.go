@@ -74,6 +74,7 @@ func GetCloudInfoModel(cloudType string, r *components.CloudInfoRequest) (CloudI
 	}
 }
 
+// ProcessFilter returns the proper supported fields, the CloudInfoRequest decide which
 func ProcessFilter(p CloudInfoProvider, r *components.CloudInfoRequest) (*components.GetCloudInfoResponse, error) {
 
 	response := components.GetCloudInfoResponse{
@@ -85,38 +86,37 @@ func ProcessFilter(p CloudInfoProvider, r *components.CloudInfoRequest) (*compon
 			switch field {
 
 			case constants.KeyWorldLocation:
-				if l, err := p.GetLocations(); err != nil {
+				l, err := p.GetLocations();
+				if err != nil {
 					return nil, err
-				} else {
-					response.Locations = l
 				}
+				response.Locations = l
 
 			case constants.KeyWorldInstanceType:
 				if r.Filter.InstanceType != nil {
 					log.Infof("Get machine types with filter [%#v]", *r.Filter.InstanceType)
 					// get machine types from spec zone
-					if mt, err := p.GetMachineTypesWithFilter(r.Filter.InstanceType); err != nil {
+					mt, err := p.GetMachineTypesWithFilter(r.Filter.InstanceType)
+					if err != nil {
 						return nil, err
-					} else {
-						response.NodeInstanceType = mt
 					}
+					response.NodeInstanceType = mt
 				} else {
 					// get machine types from all zone
 					log.Info("Get machine types from all zone")
-					if mt, err := p.GetMachineTypes(); err != nil {
+					mt, err := p.GetMachineTypes()
+					if err != nil {
 						return nil, err
-					} else {
-						response.NodeInstanceType = mt
 					}
+					response.NodeInstanceType = mt
 				}
 
 			case constants.KeyWorldKubernetesVersion:
-				if versions, err := p.GetKubernetesVersion(r.Filter.KubernetesFilter); err != nil {
+				versions, err := p.GetKubernetesVersion(r.Filter.KubernetesFilter)
+				if err != nil {
 					return nil, err
-				} else {
-					response.KubernetesVersions = versions
 				}
-
+				response.KubernetesVersions = versions
 			}
 		}
 	} else {
