@@ -7,24 +7,26 @@ import (
 )
 
 type CreateClusterGoogle struct {
-	Project string        `json:"project"`
-	Node    *GoogleNode   `json:"node,omitempty"`
-	Master  *GoogleMaster `json:"master,omitempty"`
+	Project     string                     `json:"project"`
+	NodeVersion string                     `json:"nodeVersion,omitempty"`
+	NodePools   map[string]*GoogleNodePool `json:"nodePools,omitempty"`
+	Master      *GoogleMaster              `json:"master,omitempty"`
 }
 
 type GoogleMaster struct {
 	Version string `json:"version"`
 }
 
-type GoogleNode struct {
-	Count          int    `json:"count"`
-	Version        string `json:"version"`
-	ServiceAccount string `json:"serviceAccount"`
+type GoogleNodePool struct {
+	Count            int    `json:"count,omitempty"`
+	NodeInstanceType string `json:"nodeInstanceType,omitempty"`
+	ServiceAccount   string `json:"serviceAccount,omitempty"`
 }
 
 type UpdateClusterGoogle struct {
-	*GoogleNode   `json:"node,omitempty"`
-	*GoogleMaster `json:"master,omitempty"`
+	NodeVersion string                     `json:"nodeVersion,omitempty"`
+	NodePools   map[string]*GoogleNodePool `json:"nodePools,omitempty"`
+	Master      *GoogleMaster              `json:"master,omitempty"`
 }
 
 func (g *CreateClusterGoogle) Validate() error {
@@ -38,9 +40,11 @@ func (g *CreateClusterGoogle) Validate() error {
 		return errors.New(msg)
 	}
 
-	if g.Node == nil {
-		g.Node = &GoogleNode{
-			Count: 1,
+	if g.NodePools == nil {
+		g.NodePools = map[string]*GoogleNodePool{
+			constants.GoogleDefaultNodePoolName: &GoogleNodePool{
+				Count: constants.GoogleDefaultNodeCount,
+			},
 		}
 	}
 
@@ -48,16 +52,18 @@ func (g *CreateClusterGoogle) Validate() error {
 		g.Master = &GoogleMaster{}
 	}
 
-	if !isValidVersion(g.Node.Version) || !isValidVersion(g.Master.Version) {
+	if !isValidVersion(g.Master.Version) || !isValidVersion(g.NodeVersion) {
 		return constants.ErrorWrongKubernetesVersion
 	}
 
-	if g.Master.Version != g.Node.Version {
+	if g.Master.Version != g.NodeVersion {
 		return constants.ErrorDifferentKubernetesVersion
 	}
 
-	if g.Node.Count == 0 {
-		g.Node.Count = constants.GoogleDefaultNodeCount
+	for _, nodePool := range g.NodePools {
+		if nodePool.Count == 0 {
+			nodePool.Count = constants.GoogleDefaultNodeCount
+		}
 	}
 
 	return nil
@@ -73,22 +79,27 @@ func (a *UpdateClusterGoogle) Validate() error {
 	}
 
 	// check version
-	if (a.GoogleMaster != nil && !isValidVersion(a.GoogleMaster.Version)) ||
-		(a.GoogleNode != nil && !isValidVersion(a.GoogleNode.Version)) {
+	if (a.Master != nil && !isValidVersion(a.Master.Version)) || !isValidVersion(a.NodeVersion) {
 		return constants.ErrorWrongKubernetesVersion
 	}
 
 	// check version equality
-	if a.GoogleMaster != nil && a.GoogleNode != nil && a.GoogleMaster.Version != a.GoogleNode.Version {
+	if a.Master != nil && a.Master.Version != a.NodeVersion {
 		return constants.ErrorDifferentKubernetesVersion
+	}
+
+	// if nodepools are provided in the update request check that it's not empty
+	if a.NodePools != nil && len(a.NodePools) == 0 {
+		return constants.ErrorNodePoolNotProvided
 	}
 
 	return nil
 }
 
 type ClusterProfileGoogle struct {
-	Master *GoogleMaster `json:"master,omitempty"`
-	Node   *GoogleNode   `json:"node,omitempty"`
+	Master      *GoogleMaster              `json:"master,omitempty"`
+	NodeVersion string                     `json:"nodeVersion,omitempty"`
+	NodePools   map[string]*GoogleNodePool `json:"nodePools,omitempty"`
 }
 
 func isValidVersion(version string) bool {

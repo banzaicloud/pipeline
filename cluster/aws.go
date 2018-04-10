@@ -788,13 +788,8 @@ func getKubicornLogLevel() int {
 
 // ListRegions lists supported regions
 func ListRegions() ([]*ec2.Region, error) {
-	// Load session from shared config
-	sess := session.Must(session.NewSessionWithOptions(session.Options{
-		SharedConfigState: session.SharedConfigEnable,
-	}))
 
-	// Create new EC2 client
-	svc := ec2.New(sess)
+	svc := newEC2Client(nil)
 
 	resultRegions, err := svc.DescribeRegions(nil)
 	if err != nil {
@@ -806,13 +801,8 @@ func ListRegions() ([]*ec2.Region, error) {
 
 // ListAMIs returns supported AMIs by region and tags
 func ListAMIs(region string, tags []*string) ([]*ec2.Image, error) {
-	// Load session from shared config
-	sess := session.Must(session.NewSessionWithOptions(session.Options{
-		SharedConfigState: session.SharedConfigEnable,
-	}))
 
-	// Create new EC2 client
-	svc := ec2.New(sess, &aws.Config{
+	svc := newEC2Client(&aws.Config{
 		Region: &region,
 	})
 
@@ -835,4 +825,14 @@ func ListAMIs(region string, tags []*string) ([]*ec2.Image, error) {
 	}
 
 	return images.Images, nil
+}
+
+// newEC2Client creates new EC2 client
+func newEC2Client(config *aws.Config) *ec2.EC2 {
+
+	sess := session.Must(session.NewSessionWithOptions(session.Options{
+		SharedConfigState: session.SharedConfigEnable,
+	}))
+
+	return ec2.New(sess, config)
 }

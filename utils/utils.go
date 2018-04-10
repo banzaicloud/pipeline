@@ -75,7 +75,3 @@ func ConvertJson2Map(js []byte) (map[string]string, error) {
 	err := json.Unmarshal(js, &result)
 	return result, err
 }
-
-func S(s string) *string {
-	return &s
-}

@@ -49,14 +49,24 @@ type AzureClusterModel struct {
 	KubernetesVersion string
 }
 
+//GoogleNodePoolModel describes google node pools model of a cluster
+type GoogleNodePoolModel struct {
+	ID               uint   `gorm:"primary_key"`
+	ClusterModelId   uint   `gorm:"unique_index:idx_modelid_name"`
+	Name             string `gorm:"unique_index:idx_modelid_name"`
+	NodeCount        int
+	NodeInstanceType string
+	ServiceAccount   string
+	Delete           bool `gorm:"-"`
+}
+
 //GoogleClusterModel describes the google cluster model
 type GoogleClusterModel struct {
 	ClusterModelId uint `gorm:"primary_key"`
 	Project        string
 	MasterVersion  string
 	NodeVersion    string
-	NodeCount      int
-	ServiceAccount string
+	NodePools      []*GoogleNodePoolModel `gorm:"foreignkey:ClusterModelId"`
 }
 
 type DummyClusterModel struct {
@@ -70,6 +80,22 @@ type BYOClusterModel struct {
 	ClusterModelId uint              `gorm:"primary_key"`
 	Metadata       map[string]string `gorm:"-"`
 	MetadataRaw    []byte            `gorm:"meta_data"`
+}
+
+func (gn GoogleNodePoolModel) String() string {
+	return fmt.Sprintf("(Name: %s, Instance type: %s, Node count: %d, Service account: %s)",
+		gn.Name, gn.NodeInstanceType, gn.NodeCount, gn.ServiceAccount)
+}
+
+func (gc GoogleClusterModel) String() string {
+	var buffer bytes.Buffer
+
+	buffer.WriteString(fmt.Sprintf("Master version: %s, Node version: %s, Node pools: %s",
+		gc.MasterVersion,
+		gc.NodeVersion,
+		gc.NodePools))
+
+	return buffer.String()
 }
 
 // BeforeSave converts the metadata into a json string in case of BYOC
@@ -159,13 +185,7 @@ func (cs *ClusterModel) String() string {
 			cs.Amazon.NodeMaxCount,
 			cs.Amazon.NodeImage))
 	} else if cs.Cloud == constants.Google {
-		// Write GKE Master
-		buffer.WriteString(fmt.Sprintf("Master version: %s",
-			cs.Google.MasterVersion))
-		// Write GKE Node
-		buffer.WriteString(fmt.Sprintf("Node count: %d, Node version: %s",
-			cs.Google.NodeCount,
-			cs.Google.NodeVersion))
+		buffer.WriteString(fmt.Sprint(cs.Google))
 	} else if cs.Cloud == constants.Dummy {
 		buffer.WriteString(fmt.Sprintf("Node count: %d, kubernetes version: %s",
 			cs.Dummy.NodeCount,
@@ -207,6 +227,11 @@ func (GoogleClusterModel) TableName() string {
 	return constants.TableNameGoogleProperties
 }
 
+//TableName sets the GoogleNodePoolModel's table name
+func (GoogleNodePoolModel) TableName() string {
+	return constants.TableNameGoogleNodePools
+}
+
 //TableName sets the DummyClusterModel's table name
 func (DummyClusterModel) TableName() string {
 	return constants.TableNameDummyProperties
@@ -215,4 +240,21 @@ func (DummyClusterModel) TableName() string {
 //TableName sets the BYOClusterModel's table name
 func (BYOClusterModel) TableName() string {
 	return constants.TableNameBYOCProperties
+}
+
+func (googleClusterModel *GoogleClusterModel) AfterUpdate(scope *gorm.Scope) error {
+	log := logger.WithFields(logrus.Fields{"tag": "AfterUpdate"})
+	log.Info("Remove node pools marked for deletion")
+
+	for _, nodePoolModel := range googleClusterModel.NodePools {
+		if nodePoolModel.Delete {
+			err := scope.DB().Delete(nodePoolModel).Error
+
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
