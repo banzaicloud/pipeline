@@ -38,7 +38,7 @@ func ConnectDB(dbName string) *gorm.DB {
 		var err error
 		dataSource, err = database.DynamicSecretDataSource("mysql", role+dataSource)
 		if err != nil {
-			log.Error("Database dyanimc secret acquisition failed")
+			log.Error("Database dynamic secret acquisition failed")
 			panic(err.Error())
 		}
 	} else {
