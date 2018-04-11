@@ -96,6 +96,7 @@ type AzureServerError struct {
 	Message string `json:"message"`
 }
 
+// CreateErrorFromValue creates error from azure response
 func CreateErrorFromValue(statusCode int, v []byte) error {
 	if statusCode == http.StatusBadRequest {
 		ase := AzureServerError{}
@@ -113,4 +114,28 @@ func CreateErrorFromValue(statusCode int, v []byte) error {
 	tempError := TempError{}
 	json.Unmarshal([]byte(v), &tempError)
 	return NewErr(tempError.Error.Message, statusCode)
+}
+
+// ToI converts integer pointer to integer
+func ToI(pointer *int32) int {
+	if pointer != nil {
+		return int(*pointer)
+	}
+	return 0
+}
+
+// ToS converts stirng pointer to string
+func ToS(pointer *string) string {
+	if pointer != nil {
+		return *pointer
+	}
+	return ""
+}
+
+// FromBToS converts byte pointer to string
+func FromBToS(pointer *[]byte) string {
+	if pointer != nil {
+		return string(*pointer)
+	}
+	return ""
 }
