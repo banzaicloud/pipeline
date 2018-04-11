@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-errors/errors"
 	"github.com/sirupsen/logrus"
+	"encoding/base64"
 )
 
 var NotSupportedSecretType = errors.New("Not supported secret type")
@@ -38,6 +39,8 @@ func AddSecrets(c *gin.Context) {
 		})
 		return
 	}
+	//Check if the received value is base64 encoded if not encode it.
+	createSecretRequest.Values["K8Sconfig"] = encodeStringToBase64(createSecretRequest.Values["K8Sconfig"])
 
 	log.Info("Binding request succeeded")
 	log.Debugf("%#v", createSecretRequest)
@@ -217,4 +220,12 @@ func checkClustersBeforeDelete(orgId, secretId string) error {
 		}
 		return nil
 	}
+}
+
+// encodeStringToBase64 first checks if the string is encoded if yes returns it if no than encodes it.
+func encodeStringToBase64(s string) string {
+	if _, err := base64.StdEncoding.DecodeString(s); err != nil {
+		return base64.StdEncoding.EncodeToString([]byte(s))
+	}
+	return s
 }

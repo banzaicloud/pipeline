@@ -114,18 +114,7 @@ var DefaultRules = map[string][]string{
 		ClientX509Url,
 	},
 	Kubernetes: {
-		ServiceAccountToken,
-		Endpoint,
-		UserName,
-		Password,
-		RootCertificate,
-		ClientCertificate,
-		ClientKey,
-		AuthProviderName,
-		AuthAccessToken,
-		AuthAccessTokenExpiry,
-		CurrentContext,
-		Name,
+		K8SConfig,
 	},
 }
 
@@ -159,18 +148,7 @@ const (
 
 // Kubernetes keys
 const (
-	Name                  = "name"
-	ServiceAccountToken   = "service_account_token"
-	Endpoint              = "endpoint"
-	UserName              = "user_name"
-	Password              = "password"
-	RootCertificate       = "root_certificate"
-	ClientCertificate     = "client_certificate"
-	ClientKey             = "client_key"
-	AuthProviderName      = "auth_provider_name"
-	AuthAccessToken       = "auth_access_token"
-	AuthAccessTokenExpiry = "auth_access_token_expiry"
-	CurrentContext        = "current_context"
+	K8SConfig = "K8Sconfig"
 )
 
 // Validate SecretRequest
