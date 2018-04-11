@@ -338,6 +338,31 @@ func UpdateCluster(c *gin.Context) {
 		return
 	}
 
+	log.Info("Check cluster status")
+	status, err := commonCluster.GetStatus()
+	if err != nil {
+		log.Errorf("Error checking status: %s", err.Error())
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error checking status",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	log.Info("Cluster status: %s", status.Status)
+
+	if status.Status != constants.Running {
+		err := fmt.Errorf("cluster is not in %s state yet", constants.Running)
+		log.Errorf("Error during checking cluster status: %s", err.Error())
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error during checking cluster status",
+			Error:   err.Error(),
+		})
+		return
+	}
+
 	log.Info("Add default values to request if necessarily")
 
 	// set default
