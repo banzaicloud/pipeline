@@ -2,12 +2,16 @@ package client
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-04-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
 	"github.com/banzaicloud/azure-aks-client/cluster"
 	"github.com/banzaicloud/azure-aks-client/utils"
+	"github.com/banzaicloud/banzai-types/components/azure"
 	"github.com/sirupsen/logrus"
+	"io/ioutil"
 	"net/http"
 )
 
@@ -63,6 +67,7 @@ func getDefaultLogger() *logrus.Logger {
 	return logger
 }
 
+// List returns all managed cluster in the cloud
 func (a *AKSClient) List() ([]containerservice.ManagedCluster, error) {
 	page, err := a.azureSdk.ManagedClusterClient.List(context.Background())
 	if err != nil {
@@ -71,21 +76,40 @@ func (a *AKSClient) List() ([]containerservice.ManagedCluster, error) {
 	return page.Values(), nil
 }
 
-func (a *AKSClient) CreateOrUpdate(request *cluster.CreateClusterRequest, managedCluster *containerservice.ManagedCluster) (*containerservice.ManagedCluster, error) {
+// CreateOrUpdate creates or updates a managed cluster
+func (a *AKSClient) CreateOrUpdate(request *cluster.CreateClusterRequest, managedCluster *containerservice.ManagedCluster) (*azure.ResponseWithValue, error) {
 
 	res, err := a.azureSdk.ManagedClusterClient.CreateOrUpdate(context.Background(), request.ResourceGroup, request.Name, *managedCluster)
 	if err != nil {
 		return nil, err
 	}
 
-	mc, err := res.Result(*a.azureSdk.ManagedClusterClient)
+	a.LogInfo("Read response body")
+	resp := res.Response()
+	value, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error during cluster creation: %s", err.Error())
 	}
 
-	return &mc, err
+	a.LogInfof("Status code: %d", resp.StatusCode)
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
+		// something went wrong, create failed
+		errResp := utils.CreateErrorFromValue(resp.StatusCode, value)
+		return nil, errResp
+	}
+
+	a.LogInfo("Create response model")
+	v := azure.Value{}
+	json.Unmarshal([]byte(value), &v)
+
+	return &azure.ResponseWithValue{
+		StatusCode: resp.StatusCode,
+		Value:      v,
+	}, nil
+
 }
 
+// Delete deletes a managed cluster
 func (a *AKSClient) Delete(resourceGroup, name string) (*http.Response, error) {
 	resp, err := a.azureSdk.ManagedClusterClient.Delete(context.Background(), resourceGroup, name)
 	if err != nil {
@@ -94,30 +118,37 @@ func (a *AKSClient) Delete(resourceGroup, name string) (*http.Response, error) {
 	return resp.Response(), nil
 }
 
+// Get returns managed cluster info from cloud
 func (a *AKSClient) Get(resourceGroup, name string) (containerservice.ManagedCluster, error) {
 	return a.azureSdk.ManagedClusterClient.Get(context.Background(), resourceGroup, name)
 }
 
+// GetAccessProfiles returns access profiles including kubeconfig
 func (a *AKSClient) GetAccessProfiles(resourceGroup, name, roleName string) (containerservice.ManagedClusterAccessProfile, error) {
 	return a.azureSdk.ManagedClusterClient.GetAccessProfiles(context.Background(), resourceGroup, name, roleName)
 }
 
+// ListVmSizes lists all supported vm size in the given location
 func (a *AKSClient) ListVmSizes(location string) (result compute.VirtualMachineSizeListResult, err error) {
 	return a.azureSdk.VMSizeClient.List(context.Background(), location)
 }
 
+// ListLocations lists all supported location
 func (a *AKSClient) ListLocations() (subscriptions.LocationListResult, error) {
 	return a.azureSdk.SubscriptionsClient.ListLocations(context.Background(), a.azureSdk.ServicePrincipal.SubscriptionID)
 }
 
+// ListVersions lists all supported Kubernetes verison in the given location
 func (a *AKSClient) ListVersions(location, resourceType string) (result containerservice.OrchestratorVersionProfileListResult, err error) {
 	return a.azureSdk.ContainerServicesClient.ListOrchestrators(context.Background(), location, resourceType)
 }
 
+// GetClientId returns client id
 func (a *AKSClient) GetClientId() string {
 	return a.clientId
 }
 
+// GetClientSecret returns client secret
 func (a *AKSClient) GetClientSecret() string {
 	return a.secret
 }

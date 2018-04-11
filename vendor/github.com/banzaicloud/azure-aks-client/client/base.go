@@ -6,6 +6,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
 	"github.com/banzaicloud/azure-aks-client/cluster"
+	"github.com/banzaicloud/azure-aks-client/utils"
 	"github.com/banzaicloud/banzai-types/components/azure"
 	"github.com/banzaicloud/banzai-types/constants"
 	"net/http"
@@ -13,7 +14,7 @@ import (
 )
 
 type ClusterManager interface {
-	CreateOrUpdate(request *cluster.CreateClusterRequest, managedCluster *containerservice.ManagedCluster) (*containerservice.ManagedCluster, error)
+	CreateOrUpdate(request *cluster.CreateClusterRequest, managedCluster *containerservice.ManagedCluster) (*azure.ResponseWithValue, error)
 	Delete(resourceGroup, name string) (*http.Response, error)
 	Get(resourceGroup, name string) (containerservice.ManagedCluster, error)
 	List() ([]containerservice.ManagedCluster, error)
@@ -66,10 +67,7 @@ func CreateUpdateCluster(manager ClusterManager, request *cluster.CreateClusterR
 
 	manager.LogInfo("Create response model")
 
-	return &azure.ResponseWithValue{
-		StatusCode: result.Response.StatusCode,
-		Value:      *convertManagedClusterToValue(result),
-	}, nil
+	return result, nil
 
 }
 
@@ -116,7 +114,7 @@ func PollingCluster(manager ClusterManager, name string, resourceGroup string) (
 		case http.StatusOK:
 			response := convertManagedClusterToValue(&managedCluster)
 
-			stage := *managedCluster.ProvisioningState
+			stage := utils.ToS(managedCluster.ProvisioningState)
 			manager.LogInfof("Cluster stage is %s", stage)
 
 			switch stage {
@@ -187,12 +185,12 @@ func GetClusterConfig(manager ClusterManager, name, resourceGroup, roleName stri
 	manager.LogInfof("Status code: %d", profile.StatusCode)
 	manager.LogInfo("Create response model")
 	return &azure.Config{
-		Location: *profile.Location,
-		Name:     *profile.Name,
+		Location: utils.ToS(profile.Location),
+		Name:     utils.ToS(profile.Name),
 		Properties: struct {
 			KubeConfig string `json:"kubeConfig"`
 		}{
-			KubeConfig: string(*profile.KubeConfig),
+			KubeConfig: utils.FromBToS(profile.KubeConfig),
 		},
 	}, nil
 }
@@ -207,8 +205,10 @@ func GetLocations(manager ClusterManager) ([]string, error) {
 	}
 
 	var locations []string
-	for _, loc := range *resp.Value {
-		locations = append(locations, *loc.Name)
+	if resp.Value != nil {
+		for _, loc := range *resp.Value {
+			locations = append(locations, *loc.Name)
+		}
 	}
 
 	return locations, nil
@@ -224,8 +224,10 @@ func GetVmSizes(manager ClusterManager, location string) ([]string, error) {
 	}
 
 	var sizes []string
-	for _, vm := range *resp.Value {
-		sizes = append(sizes, *vm.Name)
+	if resp.Value != nil {
+		for _, vm := range *resp.Value {
+			sizes = append(sizes, *vm.Name)
+		}
 	}
 	return sizes, nil
 }
@@ -240,8 +242,10 @@ func GetKubernetesVersions(manager ClusterManager, location string) ([]string, e
 	}
 
 	var versions []string
-	for _, v := range *resp.OrchestratorVersionProfileProperties.Orchestrators {
-		versions = append(versions, *v.OrchestratorVersion)
+	if resp.OrchestratorVersionProfileProperties != nil && resp.OrchestratorVersionProfileProperties.Orchestrators != nil {
+		for _, v := range *resp.OrchestratorVersionProfileProperties.Orchestrators {
+			versions = append(versions, *v.OrchestratorVersion)
+		}
 	}
 
 	return versions, nil
@@ -263,20 +267,20 @@ func convertManagedClusterToValue(managedCluster *containerservice.ManagedCluste
 	if managedCluster.AgentPoolProfiles != nil {
 		for _, p := range *managedCluster.AgentPoolProfiles {
 			profiles = append(profiles, azure.Profile{
-				Name:  *p.Name,
-				Count: int(*p.Count),
+				Name:  utils.ToS(p.Name),
+				Count: utils.ToI(p.Count),
 			})
 		}
 	}
 
 	return &azure.Value{
-		Id:       *managedCluster.ID,
-		Location: *managedCluster.Location,
-		Name:     *managedCluster.Name,
+		Id:       utils.ToS(managedCluster.ID),
+		Location: utils.ToS(managedCluster.Location),
+		Name:     utils.ToS(managedCluster.Name),
 		Properties: azure.Properties{
-			ProvisioningState: *managedCluster.ProvisioningState,
+			ProvisioningState: utils.ToS(managedCluster.ProvisioningState),
 			AgentPoolProfiles: profiles,
-			Fqdn:              *managedCluster.Fqdn,
+			Fqdn:              utils.ToS(managedCluster.Fqdn),
 		},
 	}
 }
