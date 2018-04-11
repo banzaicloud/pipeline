@@ -208,11 +208,6 @@ func (g *GKECluster) CreateCluster() error {
 	}
 	log.Infof("Cluster %s create is called for project %s and zone %s. Status Code %v", cc.Name, cc.ProjectID, cc.Zone, createCall.HTTPStatusCode)
 
-	// save to database before polling
-	if err := g.Persist(); err != nil {
-		log.Errorf("Cluster save failed! %s", err.Error())
-	}
-
 	log.Info("Waiting for cluster...")
 	gkeCluster, err := waitForCluster(svc, cc)
 	if err != nil {
@@ -228,9 +223,9 @@ func (g *GKECluster) CreateCluster() error {
 }
 
 //Persist save the cluster model
-func (g *GKECluster) Persist() error {
+func (g *GKECluster) Persist(status string) error {
 	log.Infof("Model before save: %v", g.modelCluster)
-	return g.modelCluster.Save()
+	return g.modelCluster.UpdateStatus(status)
 }
 
 //GetK8sConfig returns the Kubernetes config
@@ -270,38 +265,17 @@ func (g *GKECluster) GetType() string {
 //GetStatus gets cluster status
 func (g *GKECluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 
-	log := logger.WithFields(logrus.Fields{"action": constants.TagFetchClusterConfig})
+	log := logger.WithFields(logrus.Fields{"action": constants.TagGetClusterStatus})
+	log.Info("Create cluster status response")
 
-	log.Info("Get Google Service Client")
-	svc, err := g.getGoogleServiceClient()
-	if err != nil {
-		be := getBanzaiErrorFromError(err)
-		// TODO status code !?
-		return nil, errors.New(be.Message)
-	}
-	log.Info("Get Google Service Client success")
-
-	log.Infof("Get google cluster with name %s", g.modelCluster.Name)
-	cl, err := svc.Projects.Zones.Clusters.Get(g.modelCluster.Google.Project, g.modelCluster.Location, g.modelCluster.Name).Context(context.Background()).Do()
-	if err != nil {
-		apiError := getBanzaiErrorFromError(err)
-		// TODO status code !?
-		return nil, errors.New(apiError.Message)
-	}
-	log.Info("Get cluster success")
-	log.Infof("Cluster status is %s", cl.Status)
-	if statusRunning == cl.Status {
-		response := &components.GetClusterStatusResponse{
-			Status:           http.StatusOK,
-			Name:             g.modelCluster.Name,
-			Location:         g.modelCluster.Location,
-			Cloud:            g.modelCluster.Cloud,
-			NodeInstanceType: g.modelCluster.NodeInstanceType,
-			ResourceID:       g.modelCluster.ID,
-		}
-		return response, nil
-	}
-	return nil, constants.ErrorClusterNotReady
+	return &components.GetClusterStatusResponse{
+		Status:           g.modelCluster.Status,
+		Name:             g.modelCluster.Name,
+		Location:         g.modelCluster.Location,
+		Cloud:            g.modelCluster.Cloud,
+		NodeInstanceType: g.modelCluster.NodeInstanceType,
+		ResourceID:       g.modelCluster.ID,
+	}, nil
 
 }
 
@@ -375,9 +349,6 @@ func (g *GKECluster) UpdateCluster(updateRequest *components.UpdateClusterReques
 	log.Info("Cluster update succeeded")
 	g.googleCluster = res
 
-	// update model to save
-	g.updateModel(res, updatedNodePools)
-
 	return nil
 
 }
@@ -442,6 +413,10 @@ func (g *GKECluster) updateModel(c *gke.Cluster, updatedNodePools []*gke.NodePoo
 
 	}
 
+}
+
+func (g *GKECluster) UpdateClusterModelFromRequest(*components.UpdateClusterRequest) {
+	g.updateModel(g.googleCluster, g.googleCluster.NodePools)
 }
 
 //GetID returns the specified cluster id
@@ -1538,4 +1513,43 @@ func (g *GKECluster) getProjectId() (string, error) {
 	}
 
 	return s.GetValue(secret.ProjectId), nil
+}
+
+// UpdateStatus updates cluster status in database
+func (g *GKECluster) UpdateStatus(status string) error {
+	return g.modelCluster.UpdateStatus(status)
+}
+
+// GetClusterDetails gets cluster details from cloud
+func (g *GKECluster) GetClusterDetails() (*components.ClusterDetailsResponse, error) {
+	log := logger.WithFields(logrus.Fields{"tag": "GetClusterDetails"})
+	log.Info("Get Google Service Client")
+	svc, err := g.getGoogleServiceClient()
+	if err != nil {
+		be := getBanzaiErrorFromError(err)
+		return nil, errors.New(be.Message)
+	}
+	log.Info("Get Google Service Client success")
+
+	log.Infof("Get google cluster with name %s", g.modelCluster.Name)
+	cl, err := svc.Projects.Zones.Clusters.Get(g.modelCluster.Google.Project, g.modelCluster.Location, g.modelCluster.Name).Context(context.Background()).Do()
+	if err != nil {
+		apiError := getBanzaiErrorFromError(err)
+		return nil, errors.New(apiError.Message)
+	}
+	log.Info("Get cluster success")
+	log.Infof("Cluster status is %s", cl.Status)
+	if statusRunning == cl.Status {
+		response := &components.ClusterDetailsResponse{
+			//Status:           g.modelCluster.Status,
+			Name: g.modelCluster.Name,
+			Id:   g.modelCluster.ID,
+			//Location:         g.modelCluster.Location,
+			//Cloud:            g.modelCluster.Cloud,
+			//NodeInstanceType: g.modelCluster.NodeInstanceType,
+			//ResourceID:       g.modelCluster.ID,
+		}
+		return response, nil
+	}
+	return nil, constants.ErrorClusterNotReady
 }

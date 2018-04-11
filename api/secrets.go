@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 
+	"encoding/base64"
 	"fmt"
 	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/pipeline/auth"
@@ -12,7 +13,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-errors/errors"
 	"github.com/sirupsen/logrus"
-	"encoding/base64"
 )
 
 var NotSupportedSecretType = errors.New("Not supported secret type")
@@ -212,7 +212,7 @@ func checkClustersBeforeDelete(orgId, secretId string) error {
 		return nil
 	} else {
 		for _, mc := range modelCluster {
-			if commonCluster, err := cluster.GetCommonClusterFromModel(&mc); err == nil {
+			if commonCluster, err := cluster.GetCommonClusterFromModel(&mc, true); err == nil {
 				if _, err := commonCluster.GetStatus(); err == nil {
 					return fmt.Errorf("there's a running cluster with this secret: %s[%d]", mc.Name, mc.ID)
 				}

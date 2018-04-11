@@ -38,7 +38,7 @@ type ErrorResponse struct {
 }
 
 type GetClusterStatusResponse struct {
-	Status           int    `json:"status"`
+	Status           string `json:"status"`
 	Name             string `json:"name"`
 	Location         string `json:"location"`
 	Cloud            string `json:"cloud"`
@@ -263,4 +263,15 @@ type SupportedClusterItem struct {
 
 type SupportedFilters struct {
 	Keys []string `json:"keys"`
+}
+
+type CreateClusterResponse struct {
+	Name       string `json:"name"`
+	ResourceID uint   `json:"id"`
+}
+
+// todo expand with more fields
+type ClusterDetailsResponse struct {
+	Name string `json:"name"`
+	Id   uint   `json:"id"`
 }

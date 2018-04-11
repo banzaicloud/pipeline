@@ -155,7 +155,7 @@
     "components/helm",
     "constants"
   ]
-  revision = "27d35a043e665ce555fc5589148c4f88a95087c9"
+  revision = "d36c303373b4ef2960fb1f9d6cc51820e6e8592b"
 
 [[projects]]
   branch = "master"

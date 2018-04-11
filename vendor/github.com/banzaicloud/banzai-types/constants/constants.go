@@ -118,3 +118,12 @@ const (
 	RegexpAKSName = `^[a-z0-9_]{0,31}[a-z0-9]$`
 	RegexpGKEName = `^[a-z]$|^[a-z][a-z0-9-]{0,38}[a-z0-9]$`
 )
+
+// ### [ Cluster statuses ] ### //
+const (
+	Creating = "CREATING"
+	Running  = "RUNNING"
+	Updating = "UPDATING"
+	Deleting = "DELETING"
+	Error    = "ERROR"
+)

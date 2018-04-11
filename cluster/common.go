@@ -24,7 +24,7 @@ var log *logrus.Entry
 //CommonCluster interface for clusters
 type CommonCluster interface {
 	CreateCluster() error
-	Persist() error
+	Persist(string) error
 	GetK8sConfig() ([]byte, error)
 	GetName() string
 	GetType() string
@@ -39,6 +39,9 @@ type CommonCluster interface {
 	GetAPIEndpoint() (string, error)
 	DeleteFromDatabase() error
 	GetOrg() uint
+	UpdateStatus(string) error
+	GetClusterDetails() (*bTypes.ClusterDetailsResponse, error)
+	UpdateClusterModelFromRequest(*bTypes.UpdateClusterRequest)
 }
 
 func GetSecret(cluster CommonCluster) (*secret.SecretsItemResponse, error) {
@@ -47,7 +50,7 @@ func GetSecret(cluster CommonCluster) (*secret.SecretsItemResponse, error) {
 }
 
 //GetCommonClusterFromModel extracts CommonCluster from a ClusterModel
-func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster, error) {
+func GetCommonClusterFromModel(modelCluster *model.ClusterModel, isReadStateStore bool) (CommonCluster, error) {
 
 	database := model.GetDB()
 	log := logger.WithFields(logrus.Fields{"tag": "GetCommonClusterFromModel"})
@@ -56,7 +59,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 	switch cloudType {
 	case constants.Amazon:
 		//Create Amazon struct
-		awsCluster, err := CreateAWSClusterFromModel(modelCluster)
+		awsCluster, err := CreateAWSClusterFromModel(modelCluster, isReadStateStore)
 		if err != nil {
 			return nil, err
 		}

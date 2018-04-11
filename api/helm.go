@@ -23,7 +23,7 @@ type ChartQuery struct {
 // GetK8sConfig returns the Kubernetes config
 func GetK8sConfig(c *gin.Context) ([]byte, bool) {
 	log := logger.WithFields(logrus.Fields{"tag": "GetKubernetesConfig"})
-	commonCluster, ok := GetCommonClusterFromRequest(c)
+	commonCluster, ok := GetCommonClusterFromRequest(c, true)
 	if ok != true {
 		return nil, false
 	}
@@ -165,7 +165,7 @@ func InitHelmOnCluster(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagHelmInstall})
 	log.Info("Start helm install")
 
-	commonCluster, ok := GetCommonClusterFromRequest(c)
+	commonCluster, ok := GetCommonClusterFromRequest(c, true)
 	if ok != true {
 		return
 	}
@@ -320,7 +320,7 @@ func parseCreateUpdateDeploymentRequest(c *gin.Context) (*parsedDeploymentReques
 	log := logger.WithFields(logrus.Fields{"tag": "parseCreateUpdateDeploymentRequest"})
 	pdr := new(parsedDeploymentRequest)
 
-	commonCluster, ok := GetCommonClusterFromRequest(c)
+	commonCluster, ok := GetCommonClusterFromRequest(c, true)
 	if ok != true {
 		return nil, errors.New("Get cluster failed!")
 	}
