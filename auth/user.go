@@ -140,7 +140,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 
 	// When a user registers a default organization is created in which he/she is admin
 	userOrg := Organization{
-		Name: currentUser.Login + "'s Org",
+		Name: currentUser.Login,
 	}
 	currentUser.Organizations = []Organization{userOrg}
 
