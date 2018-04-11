@@ -1,7 +1,6 @@
 package cluster
 
 import (
-	"encoding/base64"
 	azureClient "github.com/banzaicloud/azure-aks-client/client"
 	azureCluster "github.com/banzaicloud/azure-aks-client/cluster"
 	"github.com/banzaicloud/banzai-types/components"
@@ -13,7 +12,6 @@ import (
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/go-errors/errors"
 	"github.com/sirupsen/logrus"
-	"net/http"
 )
 
 //CreateAKSClusterFromRequest creates ClusterModel struct from the request
@@ -122,11 +120,6 @@ func (c *AKSCluster) CreateCluster() error {
 
 	c.azureCluster = &createdCluster.Value
 
-	// save to database
-	if err := c.Persist(); err != nil {
-		log.Errorf("Cluster save failed! %s", err.Error())
-	}
-
 	// polling cluster
 	pollingResult, err := azureClient.PollingCluster(client, r.Name, r.ResourceGroup)
 	if err != nil {
@@ -140,8 +133,8 @@ func (c *AKSCluster) CreateCluster() error {
 }
 
 //Persist save the cluster model
-func (c *AKSCluster) Persist() error {
-	return c.modelCluster.Save()
+func (c *AKSCluster) Persist(status string) error {
+	return c.modelCluster.UpdateStatus(status)
 }
 
 //GetK8sConfig returns the Kubernetes config
@@ -165,12 +158,8 @@ func (c *AKSCluster) GetK8sConfig() ([]byte, error) {
 		return nil, err
 	}
 	log.Info("Get k8s config succeeded")
-	decodedConfig, err := base64.StdEncoding.DecodeString(config.Properties.KubeConfig)
-	if err != nil {
-		return nil, err
-	}
-	c.k8sConfig = decodedConfig
-	return decodedConfig, nil
+	c.k8sConfig = []byte(config.Properties.KubeConfig)
+	return c.k8sConfig, nil
 }
 
 //GetName returns the name of the cluster
@@ -185,34 +174,18 @@ func (c *AKSCluster) GetType() string {
 
 //GetStatus gets cluster status
 func (c *AKSCluster) GetStatus() (*bTypes.GetClusterStatusResponse, error) {
+
 	log := logger.WithFields(logrus.Fields{"action": constants.TagGetClusterStatus})
-	client, err := c.GetAKSClient()
-	if err != nil {
-		return nil, err
-	}
+	log.Info("Create cluster status response")
 
-	client.With(log.Logger)
-
-	resp, err := azureClient.GetCluster(client, c.modelCluster.Name, c.modelCluster.Azure.ResourceGroup)
-	if err != nil {
-		return nil, errors.New(err)
-	}
-	log.Info("Get cluster success")
-	stage := resp.Value.Properties.ProvisioningState
-	log.Info("Cluster stage is", stage)
-	if stage == "Succeeded" {
-		response := &components.GetClusterStatusResponse{
-			Status:           http.StatusOK,
-			Name:             c.modelCluster.Name,
-			Location:         c.modelCluster.Location,
-			Cloud:            c.modelCluster.Cloud,
-			NodeInstanceType: c.modelCluster.NodeInstanceType,
-			ResourceID:       c.modelCluster.ID,
-		}
-
-		return response, nil
-	}
-	return nil, constants.ErrorClusterNotReady
+	return &components.GetClusterStatusResponse{
+		Status:           c.modelCluster.Status,
+		Name:             c.modelCluster.Name,
+		Location:         c.modelCluster.Location,
+		Cloud:            c.modelCluster.Cloud,
+		NodeInstanceType: c.modelCluster.NodeInstanceType,
+		ResourceID:       c.modelCluster.ID,
+	}, nil
 }
 
 // DeleteCluster deletes cluster from aks
@@ -265,12 +238,21 @@ func (c *AKSCluster) UpdateCluster(request *bTypes.UpdateClusterRequest) error {
 	log.Info("Cluster update succeeded")
 	//Update AKS model
 	log.Info("Create updated model")
-	updateCluster := &model.ClusterModel{
+
+	c.azureCluster = &updatedCluster.Value
+	return nil
+}
+
+func (c *AKSCluster) UpdateClusterModelFromRequest(request *bTypes.UpdateClusterRequest) {
+	updatedModel := &model.ClusterModel{ // todo make it testable
 		Model:            c.modelCluster.Model,
 		Name:             c.modelCluster.Name,
 		Location:         c.modelCluster.Location,
 		NodeInstanceType: c.modelCluster.NodeInstanceType,
 		Cloud:            c.modelCluster.Cloud,
+		OrganizationId:   c.modelCluster.OrganizationId,
+		SecretId:         c.modelCluster.SecretId,
+		Status:           c.modelCluster.Status,
 		Azure: model.AzureClusterModel{
 			ResourceGroup:     c.modelCluster.Azure.ResourceGroup,
 			AgentCount:        request.UpdateClusterAzure.AgentCount,
@@ -278,9 +260,7 @@ func (c *AKSCluster) UpdateCluster(request *bTypes.UpdateClusterRequest) error {
 			KubernetesVersion: c.modelCluster.Azure.KubernetesVersion,
 		},
 	}
-	c.modelCluster = updateCluster
-	c.azureCluster = &updatedCluster.Value
-	return nil
+	c.modelCluster = updatedModel
 }
 
 //GetID returns the specified cluster id
@@ -410,4 +390,37 @@ func getAKSClient(orgId uint, secretId string) (*azureClient.AKSClient, error) {
 	}
 
 	return c.GetAKSClient()
+}
+
+// UpdateStatus updates cluster status in database
+func (c *AKSCluster) UpdateStatus(status string) error {
+	return c.modelCluster.UpdateStatus(status)
+}
+
+// GetClusterDetails gets cluster details from cloud
+func (c *AKSCluster) GetClusterDetails() (*components.ClusterDetailsResponse, error) {
+
+	log := logger.WithFields(logrus.Fields{"action": "GetClusterDetails"})
+	client, err := c.GetAKSClient()
+	if err != nil {
+		return nil, err
+	}
+
+	client.With(log.Logger)
+
+	resp, err := azureClient.GetCluster(client, c.modelCluster.Name, c.modelCluster.Azure.ResourceGroup)
+	if err != nil {
+		return nil, errors.New(err)
+	}
+	log.Info("Get cluster success")
+	stage := resp.Value.Properties.ProvisioningState
+	log.Info("Cluster stage is", stage)
+	if stage == "Succeeded" {
+		return &components.ClusterDetailsResponse{
+			Name: c.modelCluster.Name,
+			Id:   c.modelCluster.ID,
+		}, nil
+
+	}
+	return nil, constants.ErrorClusterNotReady
 }

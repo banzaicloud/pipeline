@@ -28,7 +28,6 @@ import (
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"strings"
 )
@@ -95,16 +94,17 @@ func (c *AWSCluster) GetModel() *model.ClusterModel {
 }
 
 //CreateAWSClusterFromModel creates ClusterModel struct from the kubicorn model
-func CreateAWSClusterFromModel(clusterModel *model.ClusterModel) (*AWSCluster, error) {
+func CreateAWSClusterFromModel(clusterModel *model.ClusterModel, isReadStateStore bool) (*AWSCluster, error) {
 	log := logger.WithFields(logrus.Fields{"action": constants.TagGetCluster})
 	log.Debug("Create ClusterModel struct from the request")
 	awsCluster := AWSCluster{
 		modelCluster: clusterModel,
 	}
-	//
-	_, err := awsCluster.GetKubicornCluster()
-	if err != nil {
-		return nil, err
+	if isReadStateStore {
+		_, err := awsCluster.GetKubicornCluster()
+		if err != nil {
+			return nil, err
+		}
 	}
 	return &awsCluster, nil
 }
@@ -135,8 +135,8 @@ func CreateAWSClusterFromRequest(request *components.CreateClusterRequest, orgId
 }
 
 //Persist save the cluster model
-func (c *AWSCluster) Persist() error {
-	return c.modelCluster.Save()
+func (c *AWSCluster) Persist(status string) error {
+	return c.modelCluster.UpdateStatus(status)
 }
 
 //CreateCluster creates a new cluster
@@ -219,6 +219,28 @@ func (c *AWSCluster) CreateCluster() error {
 	stateStore.Commit(created)
 
 	return nil
+}
+
+func (c *AWSCluster) UpdateClusterModelFromRequest(request *components.UpdateClusterRequest) {
+	updatedModel := &model.ClusterModel{ // todo make it testable
+		Model:            c.modelCluster.Model,
+		Name:             c.modelCluster.Name,
+		Location:         c.modelCluster.Location,
+		NodeInstanceType: c.modelCluster.NodeInstanceType,
+		Cloud:            request.Cloud,
+		OrganizationId:   c.modelCluster.OrganizationId,
+		SecretId:         c.modelCluster.SecretId,
+		Status:           c.modelCluster.Status,
+		Amazon: model.AmazonClusterModel{
+			NodeSpotPrice:      c.modelCluster.Amazon.NodeSpotPrice,
+			NodeMinCount:       request.UpdateClusterAmazon.MinCount,
+			NodeMaxCount:       request.UpdateClusterAmazon.MaxCount,
+			NodeImage:          c.modelCluster.Amazon.NodeImage,
+			MasterInstanceType: c.modelCluster.Amazon.MasterInstanceType,
+			MasterImage:        c.modelCluster.Amazon.MasterImage,
+		},
+	}
+	c.modelCluster = updatedModel
 }
 
 //We return stateStore so update can use it.
@@ -421,22 +443,14 @@ func GetKubicornProfile(cs *model.ClusterModel) *kcluster.Cluster {
 func (c *AWSCluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 	log.Info("Start get cluster status (amazon)")
 
-	c.GetK8sConfig()
-	c.GetAPIEndpoint()
-	kubicornCluster, err := c.GetKubicornCluster()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &components.GetClusterStatusResponse{
-		Status:           http.StatusOK,
-		Name:             kubicornCluster.Name,
-		Location:         kubicornCluster.Location,
-		Cloud:            kubicornCluster.Cloud,
+	return &components.GetClusterStatusResponse{
+		Status:           c.modelCluster.Status,
+		Name:             c.modelCluster.Name,
+		Location:         c.modelCluster.Location,
+		Cloud:            c.modelCluster.Location,
 		NodeInstanceType: c.modelCluster.NodeInstanceType,
 		ResourceID:       c.modelCluster.ID,
-	}
-	return response, nil
+	}, nil
 }
 
 // UpdateCluster updates Amazon cluster in cloud
@@ -452,21 +466,7 @@ func (c *AWSCluster) UpdateCluster(request *components.UpdateClusterRequest) err
 	}
 
 	log.Info("Create updated model")
-	updateCluster := &model.ClusterModel{
-		Model:            c.modelCluster.Model,
-		Name:             c.modelCluster.Name,
-		Location:         c.modelCluster.Location,
-		NodeInstanceType: c.modelCluster.NodeInstanceType,
-		Cloud:            request.Cloud,
-		Amazon: model.AmazonClusterModel{
-			NodeSpotPrice:      c.modelCluster.Amazon.NodeSpotPrice,
-			NodeMinCount:       request.UpdateClusterAmazon.MinCount,
-			NodeMaxCount:       request.UpdateClusterAmazon.MaxCount,
-			NodeImage:          c.modelCluster.Amazon.NodeImage,
-			MasterInstanceType: c.modelCluster.Amazon.MasterInstanceType,
-			MasterImage:        c.modelCluster.Amazon.MasterImage,
-		},
-	}
+	updateCluster := c.modelCluster
 
 	log.Debug("Resizing cluster: ", c.GetName())
 	kubicornCluster, err := c.GetKubicornCluster()
@@ -522,7 +522,6 @@ func (c *AWSCluster) UpdateCluster(request *components.UpdateClusterRequest) err
 	}
 
 	//Update AWS model
-	c.modelCluster = updateCluster
 	c.kubicornCluster = kubicornCluster //This is redundant TODO check if it's ok
 
 	// TODO check statestore usage
@@ -835,4 +834,28 @@ func newEC2Client(config *aws.Config) *ec2.EC2 {
 	}))
 
 	return ec2.New(sess, config)
+}
+
+// UpdateStatus updates cluster status in database
+func (c *AWSCluster) UpdateStatus(status string) error {
+	return c.modelCluster.UpdateStatus(status)
+}
+
+// GetClusterDetails gets cluster details from cloud
+func (c *AWSCluster) GetClusterDetails() (*components.ClusterDetailsResponse, error) {
+
+	log := logger.WithFields(logrus.Fields{"tag": "GetClusterDetails"})
+	log.Info("Start getting cluster details")
+
+	c.GetK8sConfig()
+	c.GetAPIEndpoint()
+	kubicornCluster, err := c.GetKubicornCluster()
+	if err != nil {
+		return nil, err
+	}
+
+	return &components.ClusterDetailsResponse{
+		Name: kubicornCluster.Name,
+		Id:   c.modelCluster.ID,
+	}, nil
 }

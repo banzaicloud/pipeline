@@ -1,6 +1,7 @@
 package cluster
 
 import (
+	"encoding/base64"
 	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/model"
@@ -8,8 +9,6 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
-	"net/http"
-	"encoding/base64"
 	"gopkg.in/yaml.v2"
 )
 
@@ -59,8 +58,8 @@ func (b *BYOCluster) CreateCluster() error {
 }
 
 // Persist save the cluster model
-func (b *BYOCluster) Persist() error {
-	return b.modelCluster.Save()
+func (b *BYOCluster) Persist(status string) error {
+	return b.modelCluster.UpdateStatus(status)
 }
 
 // GetK8sConfig returns the Kubernetes config
@@ -94,7 +93,7 @@ func (b *BYOCluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 	}
 
 	return &components.GetClusterStatusResponse{
-		Status:           http.StatusOK,
+		Status:           b.modelCluster.Status,
 		Name:             b.GetName(),
 		Location:         b.modelCluster.Location,
 		Cloud:            constants.BYOC,
@@ -111,6 +110,10 @@ func (b *BYOCluster) DeleteCluster() error {
 // UpdateCluster updates cluster in cloud, in this case no update function
 func (b *BYOCluster) UpdateCluster(*components.UpdateClusterRequest) error {
 	return nil
+}
+
+func (b *BYOCluster) UpdateClusterModelFromRequest(*components.UpdateClusterRequest) {
+	// BYOC not supports update cluster
 }
 
 // GetID returns the specified cluster id
@@ -179,4 +182,20 @@ func CreateBYOCClusterFromModel(clusterModel *model.ClusterModel) (*BYOCluster, 
 		modelCluster: clusterModel,
 	}
 	return &byocCluster, nil
+}
+
+func (b *BYOCluster) UpdateStatus(status string) error {
+	return b.modelCluster.UpdateStatus(status)
+}
+
+func (b *BYOCluster) GetClusterDetails() (*components.ClusterDetailsResponse, error) {
+	status, err := b.GetStatus()
+	if err != nil {
+		return nil, err
+	}
+
+	return &components.ClusterDetailsResponse{
+		Name: status.Name,
+		Id:   status.ResourceID,
+	}, nil
 }

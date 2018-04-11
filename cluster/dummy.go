@@ -7,7 +7,6 @@ import (
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
-	"net/http"
 )
 
 // DummyCluster struct for DC
@@ -44,9 +43,9 @@ func (d *DummyCluster) CreateCluster() error {
 }
 
 //Persist save the cluster model
-func (d *DummyCluster) Persist() error {
+func (d *DummyCluster) Persist(status string) error {
 	log.Infof("Model before save: %v", d.modelCluster)
-	return d.modelCluster.Save()
+	return d.modelCluster.UpdateStatus(status)
 }
 
 //GetK8sConfig returns the Kubernetes config
@@ -72,7 +71,7 @@ func (d *DummyCluster) GetType() string {
 //GetStatus gets cluster status
 func (d *DummyCluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 	return &components.GetClusterStatusResponse{
-		Status:           http.StatusOK,
+		Status:           d.modelCluster.Status,
 		Name:             d.modelCluster.Name,
 		Location:         d.modelCluster.Location,
 		Cloud:            constants.Dummy,
@@ -91,6 +90,10 @@ func (d *DummyCluster) UpdateCluster(r *components.UpdateClusterRequest) error {
 	d.modelCluster.Dummy.KubernetesVersion = r.UpdateClusterDummy.Node.KubernetesVersion
 	d.modelCluster.Dummy.NodeCount = r.UpdateClusterDummy.Node.Count
 	return nil
+}
+
+func (d *DummyCluster) UpdateClusterModelFromRequest(r *components.UpdateClusterRequest) {
+	d.UpdateCluster(r)
 }
 
 //GetID returns the specified cluster id
@@ -196,4 +199,20 @@ func CreateDummyClusterFromModel(clusterModel *model.ClusterModel) (*DummyCluste
 		modelCluster: clusterModel,
 	}
 	return &dummyCluster, nil
+}
+
+func (d *DummyCluster) UpdateStatus(status string) error {
+	return d.modelCluster.UpdateStatus(status)
+}
+
+func (d *DummyCluster) GetClusterDetails() (*components.ClusterDetailsResponse, error) {
+	status, err := d.GetStatus()
+	if err != nil {
+		return nil, err
+	}
+
+	return &components.ClusterDetailsResponse{
+		Name: status.Name,
+		Id:   status.ResourceID,
+	}, nil
 }

@@ -22,6 +22,7 @@ type ClusterModel struct {
 	Cloud            string
 	OrganizationId   uint
 	SecretId         string
+	Status           string
 	Amazon           AmazonClusterModel
 	Azure            AzureClusterModel
 	Google           GoogleClusterModel
@@ -257,4 +258,9 @@ func (googleClusterModel *GoogleClusterModel) AfterUpdate(scope *gorm.Scope) err
 	}
 
 	return nil
+}
+
+func (cs *ClusterModel) UpdateStatus(status string) error {
+	cs.Status = status
+	return cs.Save()
 }
