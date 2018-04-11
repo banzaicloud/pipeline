@@ -1162,7 +1162,11 @@ type kubeConfig struct {
 	Users          []configUser    `yaml:"users,omitempty"`
 	CurrentContext string          `yaml:"current-context,omitempty"`
 	Kind           string          `yaml:"kind,omitempty"`
-	Preferences    string          `yaml:"preferences,omitempty"`
+	//Kubernetes config contains an invalid map for the go yaml parser,
+	//preferences field always look like this {} this should be {{}} so
+	//yaml.Unmarshal fails with a cryptic error message which says string
+	//cannot be casted as !map
+	//Preferences    string          `yaml:"preferences,omitempty"`
 }
 
 type configCluster struct {

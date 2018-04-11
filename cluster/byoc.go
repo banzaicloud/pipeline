@@ -9,6 +9,8 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 	"net/http"
+	"encoding/base64"
+	"gopkg.in/yaml.v2"
 )
 
 // CreateBYOCClusterFromRequest creates ClusterModel struct from the request
@@ -63,33 +65,12 @@ func (b *BYOCluster) Persist() error {
 
 // GetK8sConfig returns the Kubernetes config
 func (b *BYOCluster) GetK8sConfig() ([]byte, error) {
-	var err error = nil
-	b.k8sConfig, err = b.createConfig()
-	return b.k8sConfig, err
-}
-
-// createConfig returns the kubeconfig
-func (b *BYOCluster) createConfig() ([]byte, error) {
-	if s, err := GetSecret(b); err != nil {
+	s, err := GetSecret(b)
+	if err != nil {
 		return nil, err
-	} else {
-		kubeCluster := kubernetesCluster{
-			Name:                  s.GetValue(secret.Name),
-			ServiceAccountToken:   s.GetValue(secret.ServiceAccountToken),
-			Endpoint:              s.GetValue(secret.Endpoint),
-			Username:              s.GetValue(secret.UserName),
-			Password:              s.GetValue(secret.Password),
-			RootCACert:            s.GetValue(secret.RootCertificate),
-			ClientCertificate:     s.GetValue(secret.ClientCertificate),
-			ClientKey:             s.GetValue(secret.ClientKey),
-			Metadata:              b.modelCluster.BYOC.Metadata,
-			AuthProviderName:      s.GetValue(secret.AuthProviderName),
-			AuthAccessToken:       s.GetValue(secret.AuthAccessToken),
-			AuthAccessTokenExpiry: s.GetValue(secret.AuthAccessTokenExpiry),
-			CurrentContext:        s.GetValue(secret.CurrentContext),
-		}
-		return storeConfig(&kubeCluster, b.GetName())
 	}
+	b.k8sConfig, err = base64.StdEncoding.DecodeString(s.GetValue(secret.K8SConfig))
+	return b.k8sConfig, err
 }
 
 // GetName returns the name of the cluster
@@ -163,15 +144,21 @@ func (b *BYOCluster) GetAPIEndpoint() (string, error) {
 	if b.APIEndpoint != "" {
 		return b.APIEndpoint, nil
 	}
-
-	if secretItem, err := GetSecret(b); err != nil {
+	secretItem, err := GetSecret(b)
+	if err != nil {
 		return "", err
-	} else {
-		endpoint := secretItem.GetValue(secret.Endpoint)
-		b.APIEndpoint = endpoint
-		return b.APIEndpoint, nil
 	}
-
+	config, err := base64.StdEncoding.DecodeString(secretItem.GetValue(secret.K8SConfig))
+	if err != nil {
+		return "", err
+	}
+	kubeConf := kubeConfig{}
+	err = yaml.Unmarshal(config, &kubeConf)
+	if err != nil {
+		return "", err
+	}
+	b.APIEndpoint = kubeConf.Clusters[0].Cluster.Server
+	return b.APIEndpoint, nil
 }
 
 // DeleteFromDatabase deletes model from the database
