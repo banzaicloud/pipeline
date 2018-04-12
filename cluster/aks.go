@@ -12,6 +12,7 @@ import (
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/go-errors/errors"
 	"github.com/sirupsen/logrus"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice"
 )
 
 //CreateAKSClusterFromRequest creates ClusterModel struct from the request
@@ -20,18 +21,28 @@ func CreateAKSClusterFromRequest(request *components.CreateClusterRequest, orgId
 	log.Debug("Create ClusterModel struct from the request")
 	var cluster AKSCluster
 
+	var nodePools []*model.AzureNodePoolModel
+	if request.Properties.CreateClusterAzure.NodePools != nil {
+		for name, np := range *request.Properties.CreateClusterAzure.NodePools {
+			nodePools = append(nodePools, &model.AzureNodePoolModel{
+				Name:      name,
+				NodeCount: np.AgentCount,
+				VmSize:    np.VmSize,
+			})
+		}
+	}
+
 	cluster.modelCluster = &model.ClusterModel{
 		Name:             request.Name,
 		Location:         request.Location,
-		NodeInstanceType: request.NodeInstanceType,
+		NodeInstanceType: request.NodeInstanceType, // todo make it optional
 		Cloud:            request.Cloud,
 		OrganizationId:   orgId,
 		SecretId:         request.SecretId,
 		Azure: model.AzureClusterModel{
-			ResourceGroup:     request.Properties.CreateClusterAzure.Node.ResourceGroup,
-			AgentCount:        request.Properties.CreateClusterAzure.Node.AgentCount,
-			AgentName:         request.Properties.CreateClusterAzure.Node.AgentName,
-			KubernetesVersion: request.Properties.CreateClusterAzure.Node.KubernetesVersion,
+			ResourceGroup:     request.Properties.CreateClusterAzure.ResourceGroup,
+			KubernetesVersion: request.Properties.CreateClusterAzure.KubernetesVersion,
+			NodePools:         nodePools, // todo profiles
 		},
 	}
 	return &cluster, nil
@@ -92,14 +103,27 @@ func (c *AKSCluster) CreateCluster() error {
 
 	log := logger.WithFields(logrus.Fields{"action": constants.TagCreateCluster})
 
+	var profiles []containerservice.AgentPoolProfile
+	if nodePools := c.modelCluster.Azure.NodePools; nodePools != nil {
+		for _, np := range nodePools {
+			if np != nil {
+				count := int32(np.NodeCount)
+				name := np.Name
+				profiles = append(profiles, containerservice.AgentPoolProfile{
+					Name:   &name,
+					Count:  &count,
+					VMSize: containerservice.VMSizeTypes(np.VmSize),
+				})
+			}
+		}
+	}
+
 	r := azureCluster.CreateClusterRequest{
 		Name:              c.modelCluster.Name,
 		Location:          c.modelCluster.Location,
-		VMSize:            c.modelCluster.NodeInstanceType,
 		ResourceGroup:     c.modelCluster.Azure.ResourceGroup,
-		AgentCount:        c.modelCluster.Azure.AgentCount,
-		AgentName:         c.modelCluster.Azure.AgentName,
 		KubernetesVersion: c.modelCluster.Azure.KubernetesVersion,
+		Profiles:          profiles,
 	}
 	client, err := c.GetAKSClient()
 	if err != nil {
@@ -222,13 +246,14 @@ func (c *AKSCluster) UpdateCluster(request *bTypes.UpdateClusterRequest) error {
 	client.With(log.Logger)
 
 	ccr := azureCluster.CreateClusterRequest{
-		Name:              c.modelCluster.Name,
-		Location:          c.modelCluster.Location,
-		VMSize:            c.modelCluster.NodeInstanceType,
-		ResourceGroup:     c.modelCluster.Azure.ResourceGroup,
-		AgentCount:        request.UpdateClusterAzure.AgentCount,
-		AgentName:         c.modelCluster.Azure.AgentName,
+		Name:     c.modelCluster.Name,
+		Location: c.modelCluster.Location,
+		//VMSize:            c.modelCluster.NodeInstanceType,
+		ResourceGroup: c.modelCluster.Azure.ResourceGroup,
+		//AgentCount:        request.UpdateClusterAzure.AgentCount,
+		//AgentName:         c.modelCluster.Azure.AgentName,
 		KubernetesVersion: c.modelCluster.Azure.KubernetesVersion,
+		Profiles:          nil, // todo profiles
 	}
 
 	updatedCluster, err := azureClient.CreateUpdateCluster(client, &ccr)
@@ -244,20 +269,21 @@ func (c *AKSCluster) UpdateCluster(request *bTypes.UpdateClusterRequest) error {
 }
 
 func (c *AKSCluster) UpdateClusterModelFromRequest(request *bTypes.UpdateClusterRequest) {
-	updatedModel := &model.ClusterModel{ // todo make it testable
-		Model:            c.modelCluster.Model,
-		Name:             c.modelCluster.Name,
-		Location:         c.modelCluster.Location,
+	updatedModel := &model.ClusterModel{// todo make it testable
+		Model: c.modelCluster.Model,
+		Name: c.modelCluster.Name,
+		Location: c.modelCluster.Location,
 		NodeInstanceType: c.modelCluster.NodeInstanceType,
-		Cloud:            c.modelCluster.Cloud,
-		OrganizationId:   c.modelCluster.OrganizationId,
-		SecretId:         c.modelCluster.SecretId,
-		Status:           c.modelCluster.Status,
+		Cloud: c.modelCluster.Cloud,
+		OrganizationId: c.modelCluster.OrganizationId,
+		SecretId: c.modelCluster.SecretId,
+		Status: c.modelCluster.Status,
 		Azure: model.AzureClusterModel{
-			ResourceGroup:     c.modelCluster.Azure.ResourceGroup,
-			AgentCount:        request.UpdateClusterAzure.AgentCount,
-			AgentName:         c.modelCluster.Azure.AgentName,
+			ResourceGroup: c.modelCluster.Azure.ResourceGroup,
+			//AgentCount:        request.UpdateClusterAzure.AgentCount,
+			//AgentName:         c.modelCluster.Azure.AgentName,
 			KubernetesVersion: c.modelCluster.Azure.KubernetesVersion,
+			// todo profiles
 		},
 	}
 	c.modelCluster = updatedModel
@@ -304,20 +330,21 @@ func (c *AKSCluster) AddDefaultsToUpdate(r *components.UpdateClusterRequest) {
 		r.UpdateClusterAzure = &banzaiAzureTypes.UpdateClusterAzure{}
 	}
 
-	// ---- [ Node check ] ---- //
-	if r.UpdateAzureNode == nil {
-		log.Info("'node' field is empty. Load it from stored data.")
-		r.UpdateAzureNode = &banzaiAzureTypes.UpdateAzureNode{
-			AgentCount: c.modelCluster.Azure.AgentCount,
-		}
-	}
-
-	// ---- [ Node - Agent count check] ---- //
-	if r.AgentCount == 0 {
-		def := c.modelCluster.Azure.AgentCount
-		log.Info("Node agentCount set to default value: ", def)
-		r.AgentCount = def
-	}
+	// todo profiles
+	//// ---- [ Node check ] ---- //
+	//if r.UpdateAzureNode == nil {
+	//	log.Info("'node' field is empty. Load it from stored data.")
+	//	r.UpdateAzureNode = &banzaiAzureTypes.UpdateAzureNode{
+	//		AgentCount: c.modelCluster.Azure.AgentCount,
+	//	}
+	//}
+	//
+	//// ---- [ Node - Agent count check] ---- //
+	//if r.AgentCount == 0 {
+	//	def := c.modelCluster.Azure.AgentCount
+	//	log.Info("Node agentCount set to default value: ", def)
+	//	r.AgentCount = def
+	//}
 
 }
 
@@ -326,7 +353,7 @@ func (c *AKSCluster) CheckEqualityToUpdate(r *components.UpdateClusterRequest) e
 	// create update request struct with the stored data to check equality
 	preCl := &banzaiAzureTypes.UpdateClusterAzure{
 		UpdateAzureNode: &banzaiAzureTypes.UpdateAzureNode{
-			AgentCount: c.modelCluster.Azure.AgentCount,
+			// AgentCount: c.modelCluster.Azure.AgentCount,// todo profiles
 		},
 	}
 
