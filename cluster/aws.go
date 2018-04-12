@@ -94,13 +94,13 @@ func (c *AWSCluster) GetModel() *model.ClusterModel {
 }
 
 //CreateAWSClusterFromModel creates ClusterModel struct from the kubicorn model
-func CreateAWSClusterFromModel(clusterModel *model.ClusterModel, isReadStateStore bool) (*AWSCluster, error) {
+func CreateAWSClusterFromModel(clusterModel *model.ClusterModel) (*AWSCluster, error) {
 	log := logger.WithFields(logrus.Fields{"action": constants.TagGetCluster})
 	log.Debug("Create ClusterModel struct from the request")
 	awsCluster := AWSCluster{
 		modelCluster: clusterModel,
 	}
-	if isReadStateStore {
+	if awsCluster.modelCluster.Status == constants.Running {
 		_, err := awsCluster.GetKubicornCluster()
 		if err != nil {
 			return nil, err

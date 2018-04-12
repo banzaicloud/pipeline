@@ -50,7 +50,7 @@ func GetSecret(cluster CommonCluster) (*secret.SecretsItemResponse, error) {
 }
 
 //GetCommonClusterFromModel extracts CommonCluster from a ClusterModel
-func GetCommonClusterFromModel(modelCluster *model.ClusterModel, isReadStateStore bool) (CommonCluster, error) {
+func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster, error) {
 
 	database := model.GetDB()
 	log := logger.WithFields(logrus.Fields{"tag": "GetCommonClusterFromModel"})
@@ -59,7 +59,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel, isReadStateStor
 	switch cloudType {
 	case constants.Amazon:
 		//Create Amazon struct
-		awsCluster, err := CreateAWSClusterFromModel(modelCluster, isReadStateStore)
+		awsCluster, err := CreateAWSClusterFromModel(modelCluster)
 		if err != nil {
 			return nil, err
 		}
