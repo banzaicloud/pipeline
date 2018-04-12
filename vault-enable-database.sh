@@ -1,10 +1,23 @@
 #!/bin/sh
+set -euo pipefail
 
-# This script showcases how to setup Vault in the docker-compose local environment
+echo "Waiting Vault to launch on vault:8200..."
+while ! nc -z vault 8200; do
+  sleep 0.1 # wait for 1/10 of the second before check again
+done
+echo "Vault launched"
+
+echo "Waiting DB to launch on db:3306..."
+while ! nc -z db 3306; do
+  sleep 0.1 # wait for 1/10 of the second before check again
+done
+echo "DB launched"
+
+vault secrets disable secret
+
+vault secrets enable -version=1 -path=secret kv
 
 vault secrets enable database
-
-set -euo pipefail
 
 vault write database/config/my-mysql-database \
     plugin_name=mysql-database-plugin \

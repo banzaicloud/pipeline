@@ -3,7 +3,7 @@ version: '3.1'
 services:
 
   db:
-    image: mariadb
+    image: mariadb:10.2
     restart: always
     ports:
       - 3306:3306
@@ -22,7 +22,7 @@ services:
       - 8080:8080
 
   vault:
-    image: vault
+    image: vault:0.10.0
     restart: always
     cap_add:
       - IPC_LOCK
@@ -32,7 +32,7 @@ services:
       - $HOME:/home/vault
 
   vault-configurer:
-    image: vault
+    image: vault:0.10.0
     depends_on:
       - vault
       - db
