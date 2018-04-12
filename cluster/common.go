@@ -78,6 +78,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel, isReadStateStor
 
 		log.Info("Load Azure props from database")
 		database.Where(model.AzureClusterModel{ClusterModelId: aksCluster.modelCluster.ID}).First(&aksCluster.modelCluster.Azure)
+		database.Model(&aksCluster.modelCluster.Azure).Related(&aksCluster.modelCluster.Azure.NodePools, "NodePools")
 
 		return aksCluster, nil
 

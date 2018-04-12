@@ -245,15 +245,24 @@ func (c *AKSCluster) UpdateCluster(request *bTypes.UpdateClusterRequest) error {
 
 	client.With(log.Logger)
 
+	var profiles []containerservice.AgentPoolProfile
+	if nps := request.Azure.NodePools; nps != nil {
+		for name, p := range *nps {
+			count := int32(p.AgentCount)
+			profiles = append(profiles, containerservice.AgentPoolProfile{
+				Name:   &name,
+				Count:  &count,
+				VMSize: containerservice.VMSizeTypes(p.VmSize),
+			})
+		}
+	}
+
 	ccr := azureCluster.CreateClusterRequest{
-		Name:     c.modelCluster.Name,
-		Location: c.modelCluster.Location,
-		//VMSize:            c.modelCluster.NodeInstanceType,
-		ResourceGroup: c.modelCluster.Azure.ResourceGroup,
-		//AgentCount:        request.UpdateClusterAzure.AgentCount,
-		//AgentName:         c.modelCluster.Azure.AgentName,
+		Name:              c.modelCluster.Name,
+		Location:          c.modelCluster.Location,
+		ResourceGroup:     c.modelCluster.Azure.ResourceGroup,
 		KubernetesVersion: c.modelCluster.Azure.KubernetesVersion,
-		Profiles:          nil, // todo profiles
+		Profiles:          profiles,
 	}
 
 	updatedCluster, err := azureClient.CreateUpdateCluster(client, &ccr)
@@ -261,29 +270,36 @@ func (c *AKSCluster) UpdateCluster(request *bTypes.UpdateClusterRequest) error {
 		return err
 	}
 	log.Info("Cluster update succeeded")
-	//Update AKS model
-	log.Info("Create updated model")
 
 	c.azureCluster = &updatedCluster.Value
 	return nil
 }
 
 func (c *AKSCluster) UpdateClusterModelFromRequest(request *bTypes.UpdateClusterRequest) {
-	updatedModel := &model.ClusterModel{// todo make it testable
-		Model: c.modelCluster.Model,
-		Name: c.modelCluster.Name,
-		Location: c.modelCluster.Location,
+	var nodePools []*model.AzureNodePoolModel
+	if nps := request.Azure.NodePools; nodePools != nil {
+		for name, np := range *nps {
+			nodePools = append(nodePools, &model.AzureNodePoolModel{
+				Name:      name,
+				NodeCount: np.AgentCount,
+				VmSize:    np.VmSize,
+			})
+		}
+	}
+
+	updatedModel := &model.ClusterModel{
+		Model:            c.modelCluster.Model,
+		Name:             c.modelCluster.Name,
+		Location:         c.modelCluster.Location,
 		NodeInstanceType: c.modelCluster.NodeInstanceType,
-		Cloud: c.modelCluster.Cloud,
-		OrganizationId: c.modelCluster.OrganizationId,
-		SecretId: c.modelCluster.SecretId,
-		Status: c.modelCluster.Status,
+		Cloud:            c.modelCluster.Cloud,
+		OrganizationId:   c.modelCluster.OrganizationId,
+		SecretId:         c.modelCluster.SecretId,
+		Status:           c.modelCluster.Status,
 		Azure: model.AzureClusterModel{
-			ResourceGroup: c.modelCluster.Azure.ResourceGroup,
-			//AgentCount:        request.UpdateClusterAzure.AgentCount,
-			//AgentName:         c.modelCluster.Azure.AgentName,
+			ResourceGroup:     c.modelCluster.Azure.ResourceGroup,
 			KubernetesVersion: c.modelCluster.Azure.KubernetesVersion,
-			// todo profiles
+			NodePools:         nodePools,
 		},
 	}
 	c.modelCluster = updatedModel
@@ -325,9 +341,9 @@ func CreateAKSClusterFromModel(clusterModel *model.ClusterModel) (*AKSCluster, e
 //AddDefaultsToUpdate adds defaults to update request
 func (c *AKSCluster) AddDefaultsToUpdate(r *components.UpdateClusterRequest) {
 
-	if r.UpdateClusterAzure == nil {
+	if r.Azure == nil {
 		log.Info("'azure' field is empty.")
-		r.UpdateClusterAzure = &banzaiAzureTypes.UpdateClusterAzure{}
+		r.Azure = &banzaiAzureTypes.UpdateClusterAzure{}
 	}
 
 	// todo profiles
@@ -351,16 +367,25 @@ func (c *AKSCluster) AddDefaultsToUpdate(r *components.UpdateClusterRequest) {
 //CheckEqualityToUpdate validates the update request
 func (c *AKSCluster) CheckEqualityToUpdate(r *components.UpdateClusterRequest) error {
 	// create update request struct with the stored data to check equality
+	preProfiles := make(map[string]*banzaiAzureTypes.NodePool)
+
+	for _, preP := range c.modelCluster.Azure.NodePools {
+		if preP != nil {
+			preProfiles[preP.Name] = &banzaiAzureTypes.NodePool{
+				AgentCount: preP.NodeCount,
+				VmSize:     preP.VmSize,
+			}
+		}
+	}
+
 	preCl := &banzaiAzureTypes.UpdateClusterAzure{
-		UpdateAzureNode: &banzaiAzureTypes.UpdateAzureNode{
-			// AgentCount: c.modelCluster.Azure.AgentCount,// todo profiles
-		},
+		NodePools: &preProfiles,
 	}
 
 	log.Info("Check stored & updated cluster equals")
 
 	// check equality
-	return utils.IsDifferent(r.UpdateClusterAzure, preCl)
+	return utils.IsDifferent(r.Azure, preCl)
 }
 
 //DeleteFromDatabase deletes model from the database

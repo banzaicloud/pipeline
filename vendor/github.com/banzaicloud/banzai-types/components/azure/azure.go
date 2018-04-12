@@ -39,22 +39,18 @@ type ListResponse struct {
 }
 
 type CreateClusterAzure struct {
-	ResourceGroup     string                       `json:"resourceGroup"`
-	KubernetesVersion string                       `json:"kubernetesVersion"`
-	NodePools         *map[string]*CreateAzureNode `json:"nodePools,omitempty"`
+	ResourceGroup     string                `json:"resourceGroup"`
+	KubernetesVersion string                `json:"kubernetesVersion"`
+	NodePools         *map[string]*NodePool `json:"nodePools,omitempty"`
 }
 
-type CreateAzureNode struct {
+type NodePool struct {
 	AgentCount int    `json:"agentCount"`
 	VmSize     string `json:"vmSize"`
 }
 
 type UpdateClusterAzure struct {
-	*UpdateAzureNode `json:"node,omitempty"`
-}
-
-type UpdateAzureNode struct {
-	AgentCount int `json:"agentCount"`
+	NodePools *map[string]*NodePool `json:"nodePools,omitempty"`
 }
 
 // Validate validates azure cluster create request
