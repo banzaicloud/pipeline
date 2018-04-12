@@ -212,7 +212,7 @@ func checkClustersBeforeDelete(orgId, secretId string) error {
 		return nil
 	} else {
 		for _, mc := range modelCluster {
-			if commonCluster, err := cluster.GetCommonClusterFromModel(&mc, true); err == nil {
+			if commonCluster, err := cluster.GetCommonClusterFromModel(&mc); err == nil {
 				if _, err := commonCluster.GetStatus(); err == nil {
 					return fmt.Errorf("there's a running cluster with this secret: %s[%d]", mc.Name, mc.ID)
 				}

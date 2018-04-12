@@ -53,7 +53,7 @@ func UpdatePrometheusConfig() error {
 	var prometheusConfig []PrometheusCfg
 	//Gathering information about clusters
 	for _, cluster := range clusters {
-		commonCluster, err := GetCommonClusterFromModel(&cluster, true)
+		commonCluster, err := GetCommonClusterFromModel(&cluster)
 		if err != nil {
 			log.Errorf("Can't fetch cluster from database: %s, err: %s", commonCluster.GetName(), err)
 			continue

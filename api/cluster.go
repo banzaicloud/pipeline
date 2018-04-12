@@ -41,7 +41,7 @@ func UpdateMonitoring(c *gin.Context) {
 }
 
 // GetCommonClusterFromRequest just a simple getter to build commonCluster object this handles error messages directly
-func GetCommonClusterFromRequest(c *gin.Context, isReadStateStore bool) (cluster.CommonCluster, bool) {
+func GetCommonClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
 	filter := ParseField(c)
 
 	// Filter for organisation
@@ -69,7 +69,7 @@ func GetCommonClusterFromRequest(c *gin.Context, isReadStateStore bool) (cluster
 		return nil, false
 	}
 
-	commonCLuster, err := cluster.GetCommonClusterFromModel(&modelCluster[0], isReadStateStore)
+	commonCLuster, err := cluster.GetCommonClusterFromModel(&modelCluster[0])
 	if err != nil {
 		log.Errorf("GetCommonClusterFromModel failed: %s", err.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
@@ -84,7 +84,7 @@ func GetCommonClusterFromRequest(c *gin.Context, isReadStateStore bool) (cluster
 
 //GetCommonClusterNameFromRequest get cluster name from cluster request
 func GetCommonClusterNameFromRequest(c *gin.Context) (string, bool) {
-	commonCluster, ok := GetCommonClusterFromRequest(c, true)
+	commonCluster, ok := GetCommonClusterFromRequest(c)
 	if ok != true {
 		return "", false
 	}
@@ -218,7 +218,7 @@ func postCreateCluster(commonCluster cluster.CommonCluster) error {
 func GetClusterStatus(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagGetClusterStatus})
 
-	commonCluster, ok := GetCommonClusterFromRequest(c, false)
+	commonCluster, ok := GetCommonClusterFromRequest(c)
 	if ok != true {
 		return
 	}
@@ -240,7 +240,7 @@ func GetClusterStatus(c *gin.Context) {
 // GetClusterConfig gets a cluster config
 func GetClusterConfig(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagFetchClusterConfig})
-	commonCluster, ok := GetCommonClusterFromRequest(c, true)
+	commonCluster, ok := GetCommonClusterFromRequest(c)
 	if ok != true {
 		return
 	}
@@ -285,7 +285,7 @@ func GetApiEndpoint(c *gin.Context) {
 	log.Info("Start getting API endpoint")
 
 	log.Info("Create common cluster model from request")
-	commonCluster, ok := GetCommonClusterFromRequest(c, true)
+	commonCluster, ok := GetCommonClusterFromRequest(c)
 	if !ok {
 		return
 	}
@@ -323,7 +323,7 @@ func UpdateCluster(c *gin.Context) {
 		})
 		return
 	}
-	commonCluster, ok := GetCommonClusterFromRequest(c, true)
+	commonCluster, ok := GetCommonClusterFromRequest(c)
 	if ok != true {
 		return
 	}
@@ -424,7 +424,7 @@ func postUpdateCluster(commonCluster cluster.CommonCluster, updateRequest *compo
 // DeleteCluster deletes a K8S cluster from the cloud
 func DeleteCluster(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagDeleteCluster})
-	commonCluster, ok := GetCommonClusterFromRequest(c, false)
+	commonCluster, ok := GetCommonClusterFromRequest(c)
 	if ok != true {
 		return
 	}
@@ -522,7 +522,7 @@ func FetchClusters(c *gin.Context) {
 	}
 	response := make([]components.GetClusterStatusResponse, 0)
 	for _, cl := range clusters {
-		commonCluster, err := cluster.GetCommonClusterFromModel(&cl, false)
+		commonCluster, err := cluster.GetCommonClusterFromModel(&cl)
 		if err == nil {
 			status, err := commonCluster.GetStatus()
 			if err != nil {
@@ -542,7 +542,7 @@ func FetchClusters(c *gin.Context) {
 // FetchCluster fetch a K8S cluster in the cloud
 func FetchCluster(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagGetClusterStatus})
-	commonCluster, ok := GetCommonClusterFromRequest(c, true)
+	commonCluster, ok := GetCommonClusterFromRequest(c)
 	if ok != true {
 		return
 	}
