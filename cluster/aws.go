@@ -447,7 +447,7 @@ func (c *AWSCluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 		Status:           c.modelCluster.Status,
 		Name:             c.modelCluster.Name,
 		Location:         c.modelCluster.Location,
-		Cloud:            c.modelCluster.Location,
+		Cloud:            c.modelCluster.Cloud,
 		NodeInstanceType: c.modelCluster.NodeInstanceType,
 		ResourceID:       c.modelCluster.ID,
 	}, nil
