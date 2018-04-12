@@ -264,44 +264,19 @@ func (g *GKECluster) GetType() string {
 
 //GetStatus gets cluster status
 func (g *GKECluster) GetStatus() (*components.GetClusterStatusResponse, error) {
-
 	log := logger.WithFields(logrus.Fields{"action": constants.TagGetClusterStatus})
 	log.Info("Create cluster status response")
 
-	log.Info("Get Google Service Client")
-	svc, err := g.getGoogleServiceClient()
-	if err != nil {
-		be := getBanzaiErrorFromError(err)
-		// TODO status code !?
-		return nil, errors.New(be.Message)
-	}
-	log.Info("Get Google Service Client success")
-
-	log.Infof("Get google cluster with name %s", g.modelCluster.Name)
-	cl, err := svc.Projects.Zones.Clusters.Get(g.modelCluster.Google.Project, g.modelCluster.Location, g.modelCluster.Name).Context(context.Background()).Do()
-	if err != nil {
-		apiError := getBanzaiErrorFromError(err)
-		// TODO status code !?
-		return nil, errors.New(apiError.Message)
-	}
-
 	nodePools, _ := createNodePoolsRequestDataFromNodePoolModel(g.modelCluster.Google.NodePools)
-	log.Info("Get cluster success")
-	log.Infof("Cluster status is %s", cl.Status)
-	if statusRunning == cl.Status {
-		response := &components.GetClusterStatusResponse{
-			Status:     g.modelCluster.Status,
-			Name:       g.modelCluster.Name,
-			Location:   g.modelCluster.Location,
-			Cloud:      g.modelCluster.Cloud,
-			ResourceID: g.modelCluster.ID,
-			NodePools:  nodePools,
-		}
-		return response, nil
-	}
-	return nil, constants.ErrorClusterNotReady
-
-
+	return &components.GetClusterStatusResponse{
+		Status:           g.modelCluster.Status,
+		Name:             g.modelCluster.Name,
+		Location:         g.modelCluster.Location,
+		Cloud:            g.modelCluster.Cloud,
+		NodeInstanceType: g.modelCluster.NodeInstanceType,
+		ResourceID:       g.modelCluster.ID,
+		NodePools:        nodePools,
+	}, nil
 }
 
 // DeleteCluster deletes cluster from google
