@@ -436,21 +436,21 @@ func ChartsGet(clusterName, chartNameQuery, chartRepoQuery string) (map[string]m
 	chartList := make(map[string]map[string]repo.ChartVersions, 0)
 	for _, r := range f.Repositories {
 
-		log.Debugf("%s", r.Cache)
+		log.Debugf("Repository: %s", r.Name)
 		i, errIndx := repo.LoadIndexFile(r.Cache)
 		if errIndx != nil {
 			return nil, errIndx
 		}
-
+		chartList[r.Name] = make(map[string]repo.ChartVersions, 0)
 		repoMatched, _ := regexp.MatchString(chartRepoQuery, strings.ToLower(r.Name))
 		if repoMatched || chartRepoQuery == "" {
+			log.Debugf("Repository: %s Matched", r.Name)
 			for n := range i.Entries {
+				log.Debugf("Chart: %s", n)
 				chartMatched, _ := regexp.MatchString(chartNameQuery, strings.ToLower(n))
 				if chartMatched || chartNameQuery == "" {
-					cn := map[string]repo.ChartVersions{
-						n: i.Entries[n],
-					}
-					chartList[r.Name] = cn
+					log.Debugf("Chart: %s Matched", n)
+					chartList[r.Name][n] = i.Entries[n]
 				}
 			}
 		}
