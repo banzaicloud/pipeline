@@ -38,12 +38,13 @@ type ErrorResponse struct {
 }
 
 type GetClusterStatusResponse struct {
-	Status           string `json:"status"`
-	Name             string `json:"name"`
-	Location         string `json:"location"`
-	Cloud            string `json:"cloud"`
-	NodeInstanceType string `json:"nodeInstanceType"`
-	ResourceID       uint   `json:"id"`
+	Status           string                            `json:"status"`
+	Name             string                            `json:"name"`
+	Location         string                            `json:"location"`
+	Cloud            string                            `json:"cloud"`
+	NodeInstanceType string                            `json:"nodeInstanceType,omitempty"`
+	ResourceID       uint                              `json:"id"`
+	NodePools        map[string]*google.GoogleNodePool `json:"nodePools,omitempty"`
 }
 
 type GetClusterConfigResponse struct {
