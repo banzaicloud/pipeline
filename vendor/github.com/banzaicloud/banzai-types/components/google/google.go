@@ -7,26 +7,26 @@ import (
 )
 
 type CreateClusterGoogle struct {
-	Project     string                     `json:"project"`
-	NodeVersion string                     `json:"nodeVersion,omitempty"`
-	NodePools   map[string]*GoogleNodePool `json:"nodePools,omitempty"`
-	Master      *GoogleMaster              `json:"master,omitempty"`
+	Project     string               `json:"project"`
+	NodeVersion string               `json:"nodeVersion,omitempty"`
+	NodePools   map[string]*NodePool `json:"nodePools,omitempty"`
+	Master      *Master              `json:"master,omitempty"`
 }
 
-type GoogleMaster struct {
+type Master struct {
 	Version string `json:"version"`
 }
 
-type GoogleNodePool struct {
+type NodePool struct {
 	Count            int    `json:"count,omitempty"`
 	NodeInstanceType string `json:"nodeInstanceType,omitempty"`
 	ServiceAccount   string `json:"serviceAccount,omitempty"`
 }
 
 type UpdateClusterGoogle struct {
-	NodeVersion string                     `json:"nodeVersion,omitempty"`
-	NodePools   map[string]*GoogleNodePool `json:"nodePools,omitempty"`
-	Master      *GoogleMaster              `json:"master,omitempty"`
+	NodeVersion string               `json:"nodeVersion,omitempty"`
+	NodePools   map[string]*NodePool `json:"nodePools,omitempty"`
+	Master      *Master              `json:"master,omitempty"`
 }
 
 func (g *CreateClusterGoogle) Validate() error {
@@ -41,15 +41,15 @@ func (g *CreateClusterGoogle) Validate() error {
 	}
 
 	if g.NodePools == nil {
-		g.NodePools = map[string]*GoogleNodePool{
-			constants.GoogleDefaultNodePoolName: &GoogleNodePool{
+		g.NodePools = map[string]*NodePool{
+			constants.GoogleDefaultNodePoolName: {
 				Count: constants.GoogleDefaultNodeCount,
 			},
 		}
 	}
 
 	if g.Master == nil {
-		g.Master = &GoogleMaster{}
+		g.Master = &Master{}
 	}
 
 	if !isValidVersion(g.Master.Version) || !isValidVersion(g.NodeVersion) {
@@ -97,9 +97,9 @@ func (a *UpdateClusterGoogle) Validate() error {
 }
 
 type ClusterProfileGoogle struct {
-	Master      *GoogleMaster              `json:"master,omitempty"`
-	NodeVersion string                     `json:"nodeVersion,omitempty"`
-	NodePools   map[string]*GoogleNodePool `json:"nodePools,omitempty"`
+	Master      *Master              `json:"master,omitempty"`
+	NodeVersion string               `json:"nodeVersion,omitempty"`
+	NodePools   map[string]*NodePool `json:"nodePools,omitempty"`
 }
 
 func isValidVersion(version string) bool {

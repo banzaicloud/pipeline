@@ -75,6 +75,7 @@ const (
 	TableNameClusters         = "clusters"
 	TableNameAmazonProperties = "amazon_cluster_properties"
 	TableNameAzureProperties  = "azure_cluster_properties"
+	TableNameAzureNodePools   = "azure_node_pools"
 	TableNameGoogleProperties = "google_cluster_properties"
 	TableNameGoogleNodePools  = "google_node_pools"
 	TableNameDummyProperties  = "dummy_cluster_properties"

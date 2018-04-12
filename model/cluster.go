@@ -43,11 +43,18 @@ type AmazonClusterModel struct {
 
 //AzureClusterModel describes the azure cluster model
 type AzureClusterModel struct {
-	ClusterModelId    uint `gorm:"primary_key"`
+	ClusterModelId    uint                  `gorm:"primary_key"`
 	ResourceGroup     string
-	AgentCount        int
-	AgentName         string
 	KubernetesVersion string
+	NodePools         []*AzureNodePoolModel `gorm:"foreignkey:ClusterModelId"`
+}
+
+type AzureNodePoolModel struct {
+	ID             uint   `gorm:"primary_key"`
+	ClusterModelId uint   `gorm:"unique_index:idx_modelid_name"`
+	Name           string `gorm:"unique_index:idx_modelid_name"`
+	NodeCount      int
+	VmSize         string
 }
 
 //GoogleNodePoolModel describes google node pools model of a cluster
@@ -58,12 +65,12 @@ type GoogleNodePoolModel struct {
 	NodeCount        int
 	NodeInstanceType string
 	ServiceAccount   string
-	Delete           bool `gorm:"-"`
+	Delete           bool   `gorm:"-"`
 }
 
 //GoogleClusterModel describes the google cluster model
 type GoogleClusterModel struct {
-	ClusterModelId uint `gorm:"primary_key"`
+	ClusterModelId uint                   `gorm:"primary_key"`
 	Project        string
 	MasterVersion  string
 	NodeVersion    string
@@ -170,9 +177,8 @@ func (cs *ClusterModel) String() string {
 	buffer.WriteString(fmt.Sprintf("Id: %d, Creation date: %s, Cloud: %s, NodeInstanceType: %s, ", cs.ID, cs.CreatedAt, cs.Cloud, cs.NodeInstanceType))
 	if cs.Cloud == constants.Azure {
 		// Write AKS
-		buffer.WriteString(fmt.Sprintf("Agent count: %d, Agent name: %s, Kubernetes version: %s",
-			cs.Azure.AgentCount,
-			cs.Azure.AgentName,
+		buffer.WriteString(fmt.Sprintf("NodePools: %v, Kubernetes version: %s",
+			cs.Azure.NodePools,
 			cs.Azure.KubernetesVersion))
 	} else if cs.Cloud == constants.Amazon {
 		// Write AWS Master
@@ -206,6 +212,11 @@ func (AmazonClusterModel) TableName() string {
 // TableName sets AzureClusterModel's table name
 func (AzureClusterModel) TableName() string {
 	return constants.TableNameAzureProperties
+}
+
+// TableName sets AzureNodePoolModel's table name
+func (AzureNodePoolModel) TableName() string {
+	return constants.TableNameAzureNodePools
 }
 
 // QueryCluster get's the clusters from the DB

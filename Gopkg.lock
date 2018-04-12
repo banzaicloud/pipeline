@@ -124,14 +124,14 @@
   version = "v1.13.9"
 
 [[projects]]
-  branch = "master"
+  branch = "nodepool-support"
   name = "github.com/banzaicloud/azure-aks-client"
   packages = [
     "client",
     "cluster",
     "utils"
   ]
-  revision = "1b3f9224907024d2d1633d3b926897b8567c7b7e"
+  revision = "738ef59469ca4828e88a5d8ce5edbbcb6530a634"
 
 [[projects]]
   branch = "master"
@@ -143,7 +143,7 @@
   revision = "fd0dd6fe2c3d700a12c8e8b65e111f56db3dfb5f"
 
 [[projects]]
-  branch = "master"
+  branch = "suport-nodepools"
   name = "github.com/banzaicloud/banzai-types"
   packages = [
     "components",
@@ -155,7 +155,7 @@
     "components/helm",
     "constants"
   ]
-  revision = "d36c303373b4ef2960fb1f9d6cc51820e6e8592b"
+  revision = "0b9cfc75d5a89be75402ebdb6966cf45cd47504d"
 
 [[projects]]
   branch = "master"
@@ -1700,6 +1700,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "723a9aa255a49af1c6621d7ca5bbe541885106c12de112c5aa9f67cb704f4616"
+  inputs-digest = "fd8bee6fcaaaeef7fd14207a4d0536cf71667f87624c0e61bc111ad29cf7b379"
   solver-name = "gps-cdcl"
   solver-version = 1
