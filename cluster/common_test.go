@@ -123,14 +123,14 @@ func TestGKEKubernetesVersion(t *testing.T) {
 			g := google.CreateClusterGoogle{
 				Project:     clusterRequestProject,
 				NodeVersion: tc.version,
-				NodePools: map[string]*google.GoogleNodePool{
+				NodePools: map[string]*google.NodePool{
 					"pool1": {
 						Count:            clusterRequestNodeCount,
 						NodeInstanceType: clusterRequestNodeInstance,
 						ServiceAccount:   clusterServiceAccount,
 					},
 				},
-				Master: &google.GoogleMaster{
+				Master: &google.Master{
 					Version: tc.version,
 				},
 			}
@@ -163,14 +163,14 @@ var (
 			CreateClusterGoogle: &google.CreateClusterGoogle{
 				Project:     clusterRequestProject,
 				NodeVersion: clusterRequestVersion,
-				NodePools: map[string]*google.GoogleNodePool{
+				NodePools: map[string]*google.NodePool{
 					"pool1": {
 						Count:            clusterRequestNodeCount,
 						NodeInstanceType: clusterRequestNodeInstance,
 						ServiceAccount:   clusterServiceAccount,
 					},
 				},
-				Master: &google.GoogleMaster{
+				Master: &google.Master{
 					Version: clusterRequestVersion,
 				},
 			},
@@ -193,14 +193,14 @@ var (
 			CreateClusterGoogle: &google.CreateClusterGoogle{
 				Project:     clusterRequestProject,
 				NodeVersion: clusterRequestVersion,
-				NodePools: map[string]*google.GoogleNodePool{
+				NodePools: map[string]*google.NodePool{
 					"pool1": {
 						Count:            clusterRequestNodeCount,
 						NodeInstanceType: clusterRequestNodeInstance,
 						ServiceAccount:   clusterServiceAccount,
 					},
 				},
-				Master: &google.GoogleMaster{
+				Master: &google.Master{
 					Version: clusterRequestVersion,
 				},
 			},
@@ -223,14 +223,14 @@ var (
 			CreateClusterGoogle: &google.CreateClusterGoogle{
 				Project:     clusterRequestProject,
 				NodeVersion: clusterRequestVersion,
-				NodePools: map[string]*google.GoogleNodePool{
+				NodePools: map[string]*google.NodePool{
 					"pool1": {
 						Count:            clusterRequestNodeCount,
 						NodeInstanceType: clusterRequestNodeInstance,
 						ServiceAccount:   clusterServiceAccount,
 					},
 				},
-				Master: &google.GoogleMaster{
+				Master: &google.Master{
 					Version: clusterRequestVersion,
 				},
 			},
@@ -251,11 +251,13 @@ var (
 			CreateBYOC          *byoc.CreateBYOC            `json:"byoc,omitempty"`
 		}{
 			CreateClusterAzure: &azure.CreateClusterAzure{
-				Node: &azure.CreateAzureNode{
-					ResourceGroup:     clusterRequestRG,
-					AgentCount:        clusterRequestNodeCount,
-					AgentName:         clusterRequestAgentName,
-					KubernetesVersion: clusterRequestKubernetes,
+				ResourceGroup:     clusterRequestRG,
+				KubernetesVersion: clusterRequestKubernetes,
+				NodePools: map[string]*azure.NodePoolCreate{
+					clusterRequestAgentName: {
+						Count:            clusterRequestNodeCount,
+						NodeInstanceType: clusterRequestNodeInstance,
+					},
 				},
 			},
 		},
@@ -275,11 +277,13 @@ var (
 			CreateBYOC          *byoc.CreateBYOC            `json:"byoc,omitempty"`
 		}{
 			CreateClusterAzure: &azure.CreateClusterAzure{
-				Node: &azure.CreateAzureNode{
-					ResourceGroup:     clusterRequestRG,
-					AgentCount:        clusterRequestNodeCount,
-					AgentName:         clusterRequestAgentName,
-					KubernetesVersion: clusterRequestKubernetes,
+				ResourceGroup:     clusterRequestRG,
+				KubernetesVersion: clusterRequestKubernetes,
+				NodePools: map[string]*azure.NodePoolCreate{
+					clusterRequestAgentName: {
+						Count:            clusterRequestNodeCount,
+						NodeInstanceType: clusterRequestNodeInstance,
+					},
 				},
 			},
 		},
@@ -299,11 +303,13 @@ var (
 			CreateBYOC          *byoc.CreateBYOC            `json:"byoc,omitempty"`
 		}{
 			CreateClusterAzure: &azure.CreateClusterAzure{
-				Node: &azure.CreateAzureNode{
-					ResourceGroup:     clusterRequestRG,
-					AgentCount:        clusterRequestNodeCount,
-					AgentName:         clusterRequestAgentName,
-					KubernetesVersion: clusterRequestKubernetes,
+				ResourceGroup:     clusterRequestRG,
+				KubernetesVersion: clusterRequestKubernetes,
+				NodePools: map[string]*azure.NodePoolCreate{
+					clusterRequestAgentName: {
+						Count:            clusterRequestNodeCount,
+						NodeInstanceType: clusterRequestNodeInstance,
+					},
 				},
 			},
 		},
@@ -488,14 +494,14 @@ var (
 			CreateClusterGoogle: &google.CreateClusterGoogle{
 				Project:     clusterRequestProject,
 				NodeVersion: clusterRequestVersion,
-				NodePools: map[string]*google.GoogleNodePool{
+				NodePools: map[string]*google.NodePool{
 					"pool1": {
 						Count:            clusterRequestNodeCount,
 						NodeInstanceType: clusterRequestNodeInstance,
 						ServiceAccount:   clusterServiceAccount,
 					},
 				},
-				Master: &google.GoogleMaster{
+				Master: &google.Master{
 					Version: clusterRequestWrongVersion,
 				},
 			},
@@ -518,14 +524,14 @@ var (
 			CreateClusterGoogle: &google.CreateClusterGoogle{
 				Project:     clusterRequestProject,
 				NodeVersion: clusterRequestVersion,
-				NodePools: map[string]*google.GoogleNodePool{
+				NodePools: map[string]*google.NodePool{
 					"pool1": {
 						Count:            clusterRequestNodeCount,
 						NodeInstanceType: clusterRequestNodeInstance,
 						ServiceAccount:   clusterServiceAccount,
 					},
 				},
-				Master: &google.GoogleMaster{
+				Master: &google.Master{
 					Version: clusterRequestVersion2,
 				},
 			},
@@ -568,9 +574,14 @@ var (
 		Amazon:           model.AmazonClusterModel{},
 		Azure: model.AzureClusterModel{
 			ResourceGroup:     clusterRequestRG,
-			AgentCount:        clusterRequestNodeCount,
-			AgentName:         clusterRequestAgentName,
 			KubernetesVersion: clusterRequestKubernetes,
+			NodePools: []*model.AzureNodePoolModel{
+				{
+					Count:            clusterRequestNodeCount,
+					NodeInstanceType: clusterRequestNodeInstance,
+					Name:             clusterRequestAgentName,
+				},
+			},
 		},
 		Google: model.GoogleClusterModel{},
 	}
