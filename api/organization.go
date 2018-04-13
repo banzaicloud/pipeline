@@ -27,6 +27,7 @@ func OrganizationMiddleware(c *gin.Context) {
 			Message: message,
 			Error:   message,
 		})
+		return
 	}
 
 	user := auth.GetCurrentUser(c.Request)
