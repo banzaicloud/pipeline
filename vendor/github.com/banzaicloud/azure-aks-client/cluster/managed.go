@@ -8,21 +8,13 @@ import (
 )
 
 func GetManagedCluster(request *CreateClusterRequest, clientId string, secret string) *containerservice.ManagedCluster {
-	agentCount := int32(request.AgentCount)
-	agentPoolProfiles := []containerservice.AgentPoolProfile{
-		{
-			Count:  &agentCount,
-			Name:   &request.AgentName,
-			VMSize: containerservice.VMSizeTypes(request.VMSize),
-		},
-	}
 	return &containerservice.ManagedCluster{
 		ManagedClusterProperties: &containerservice.ManagedClusterProperties{
 			ProvisioningState: nil,
 			DNSPrefix:         utils.S("dnsprefix"),
 			Fqdn:              nil,
 			KubernetesVersion: &request.KubernetesVersion,
-			AgentPoolProfiles: &agentPoolProfiles,
+			AgentPoolProfiles: &request.Profiles,
 			LinuxProfile: &containerservice.LinuxProfile{
 				AdminUsername: utils.S("pipeline"),
 				SSH: &containerservice.SSHConfiguration{
@@ -46,11 +38,9 @@ func GetManagedCluster(request *CreateClusterRequest, clientId string, secret st
 type CreateClusterRequest struct {
 	Name              string
 	Location          string
-	VMSize            string
 	ResourceGroup     string
-	AgentCount        int
-	AgentName         string
 	KubernetesVersion string
+	Profiles          []containerservice.AgentPoolProfile
 }
 
 func (c CreateClusterRequest) Validate() error {

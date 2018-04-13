@@ -41,7 +41,6 @@ type CommonCluster interface {
 	GetOrg() uint
 	UpdateStatus(string) error
 	GetClusterDetails() (*bTypes.ClusterDetailsResponse, error)
-	UpdateClusterModelFromRequest(*bTypes.UpdateClusterRequest)
 }
 
 func GetSecret(cluster CommonCluster) (*secret.SecretsItemResponse, error) {
@@ -78,6 +77,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 
 		log.Info("Load Azure props from database")
 		database.Where(model.AzureClusterModel{ClusterModelId: aksCluster.modelCluster.ID}).First(&aksCluster.modelCluster.Azure)
+		database.Model(&aksCluster.modelCluster.Azure).Related(&aksCluster.modelCluster.Azure.NodePools, "NodePools")
 
 		return aksCluster, nil
 
