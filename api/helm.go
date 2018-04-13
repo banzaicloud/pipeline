@@ -16,8 +16,9 @@ import (
 )
 
 type ChartQuery struct {
-	Name string `form:"name"`
-	Repo string `form:"repo"`
+	Name    string `form:"name"`
+	Repo    string `form:"repo"`
+	Version string `form:"version"`
 }
 
 // GetK8sConfig returns the Kubernetes config
@@ -567,7 +568,7 @@ func HelmCharts(c *gin.Context) {
 
 	log.Info(query)
 
-	response, err := helm.ChartsGet(clusterName, query.Name, query.Repo)
+	response, err := helm.ChartsGet(clusterName, query.Name, query.Repo, query.Version)
 	if err != nil {
 		log.Error("Error during get helm repo chart list.", err.Error())
 		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
@@ -577,6 +578,48 @@ func HelmCharts(c *gin.Context) {
 		})
 		return
 	}
+	c.JSON(http.StatusOK, response)
+	return
+}
+
+//HelmChart get helm chart details
+func HelmChart(c *gin.Context) {
+	log := logger.WithFields(logrus.Fields{"tag": "HelmChart"})
+	log.Info("Get helm chart")
+
+	clusterName, ok := GetCommonClusterNameFromRequest(c)
+	if ok != true {
+		return
+	}
+	log.Debugf("%#v", c)
+	chartRepo := c.Param("reponame")
+	log.Debugln("chartRepo:", chartRepo)
+
+	chartName := c.Param("name")
+	log.Debugln("chartName:", chartName)
+
+	chartVersion := c.Param("version")
+	log.Debugln("version:", chartVersion)
+
+	response, err := helm.ChartGet(clusterName, chartRepo, chartName, chartVersion)
+	if err != nil {
+		log.Error("Error during get helm chart information.", err.Error())
+		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error during get helm chart information.",
+			Error:   err.Error(),
+		})
+		return
+	}
+	if response == nil {
+		c.JSON(http.StatusNotFound, htype.ErrorResponse{
+			Code:    http.StatusNotFound,
+			Error:   "Chart Not Found!",
+			Message: "Chart Not Found!",
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, response)
 	return
 }

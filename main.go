@@ -135,6 +135,8 @@ func main() {
 			orgs.PUT("/:orgid/clusters/:id/helm/repos/:name/update", api.HelmReposUpdate)
 			orgs.DELETE("/:orgid/clusters/:id/helm/repos/:name", api.HelmReposDelete)
 			orgs.GET("/:orgid/clusters/:id/helm/charts", api.HelmCharts)
+			orgs.GET("/:orgid/clusters/:id/helm/chart/:reponame/:name/:version", api.HelmChart)
+			orgs.GET("/:orgid/clusters/:id/helm/chart/:reponame/:name/", api.HelmChart)
 			orgs.GET("/:orgid/profiles/cluster/:type", api.GetClusterProfiles)
 			orgs.POST("/:orgid/profiles/cluster", api.AddClusterProfile)
 			orgs.PUT("/:orgid/profiles/cluster", api.UpdateClusterProfile)

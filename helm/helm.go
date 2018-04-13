@@ -6,11 +6,15 @@ import (
 	"strings"
 	"text/template"
 
+	"archive/tar"
+	"compress/gzip"
+	"encoding/base64"
 	"github.com/Masterminds/sprig"
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"io"
 	"k8s.io/helm/pkg/chartutil"
 	"k8s.io/helm/pkg/getter"
 	"k8s.io/helm/pkg/helm"
@@ -31,6 +35,42 @@ var ErrRepoNotFound = errors.New("helm repository not found!")
 func init() {
 	logger = config.Logger()
 	log = logger.WithFields(logrus.Fields{"action": "Helm"})
+}
+
+//getChartFile Download file from chart repository
+func getChartFile(url, fileName string) (string, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	tarContent := new(bytes.Buffer)
+	io.Copy(tarContent, resp.Body)
+
+	gzf, err := gzip.NewReader(tarContent)
+	if err != nil {
+		return "", err
+	}
+	tarReader := tar.NewReader(gzf)
+	for {
+		header, err := tarReader.Next()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return "", err
+		}
+		if strings.Contains(header.Name, fileName) {
+			valuesContent := new(bytes.Buffer)
+			if _, err := io.Copy(valuesContent, tarReader); err != nil {
+				return "", err
+			}
+			base64Str := base64.StdEncoding.EncodeToString(valuesContent.Bytes())
+			return base64Str, nil
+		}
+	}
+	return "", nil
 }
 
 //DeleteAllDeployment deletes all Helm deployment
@@ -422,7 +462,13 @@ func ReposUpdate(clusterName, repoName string) error {
 	return ErrRepoNotFound
 }
 
-func ChartsGet(clusterName, chartNameQuery, chartRepoQuery string) (map[string]map[string]repo.ChartVersions, error) {
+type ChartList struct {
+	Name   string               `json:"name"`
+	Charts []repo.ChartVersions `json:"charts"`
+}
+
+func ChartsGet(clusterName, queryName, queryRepo, queryVersion string) ([]ChartList, error) {
+
 	repoPath := fmt.Sprintf("%s/repository/repositories.yaml", generateHelmRepoPath(clusterName))
 	log.Debug("Helm repo path:", repoPath)
 
@@ -433,7 +479,8 @@ func ChartsGet(clusterName, chartNameQuery, chartRepoQuery string) (map[string]m
 	if len(f.Repositories) == 0 {
 		return nil, nil
 	}
-	chartList := make(map[string]map[string]repo.ChartVersions, 0)
+	cl := make([]ChartList, 0)
+
 	for _, r := range f.Repositories {
 
 		log.Debugf("Repository: %s", r.Name)
@@ -441,19 +488,102 @@ func ChartsGet(clusterName, chartNameQuery, chartRepoQuery string) (map[string]m
 		if errIndx != nil {
 			return nil, errIndx
 		}
-		chartList[r.Name] = make(map[string]repo.ChartVersions, 0)
-		repoMatched, _ := regexp.MatchString(chartRepoQuery, strings.ToLower(r.Name))
-		if repoMatched || chartRepoQuery == "" {
+		repoMatched, _ := regexp.MatchString(queryRepo, strings.ToLower(r.Name))
+		if repoMatched || queryRepo == "" {
 			log.Debugf("Repository: %s Matched", r.Name)
+			c := ChartList{
+				Name:   r.Name,
+				Charts: make([]repo.ChartVersions, 0),
+			}
 			for n := range i.Entries {
 				log.Debugf("Chart: %s", n)
-				chartMatched, _ := regexp.MatchString(chartNameQuery, strings.ToLower(n))
-				if chartMatched || chartNameQuery == "" {
+				chartMatched, _ := regexp.MatchString(queryName, strings.ToLower(n))
+				if chartMatched || queryName == "" {
 					log.Debugf("Chart: %s Matched", n)
-					chartList[r.Name][n] = i.Entries[n]
+
+					if queryVersion == "latest" {
+						c.Charts = append(c.Charts, repo.ChartVersions{i.Entries[n][0]})
+					} else {
+						c.Charts = append(c.Charts, i.Entries[n])
+					}
 				}
+
 			}
+			cl = append(cl, c)
+
 		}
 	}
-	return chartList, nil
+	return cl, nil
+}
+
+type ChartDetails struct {
+	Name   string             `json:"name"`
+	Repo   string             `json:"name"`
+	Chart  *repo.ChartVersion `json:"chart"`
+	Values string             `json:"values"`
+	Readme string             `json:"readme"`
+}
+
+func ChartGet(clusterName, chartRepo, chartName, chartVersion string) (*ChartDetails, error) {
+
+	repoPath := fmt.Sprintf("%s/repository/repositories.yaml", generateHelmRepoPath(clusterName))
+	log.Debug("Helm repo path:", repoPath)
+	chartD := &ChartDetails{}
+	f, err := repo.LoadRepositoriesFile(repoPath)
+	if err != nil {
+		return nil, err
+	}
+	if len(f.Repositories) == 0 {
+		return nil, nil
+	}
+
+	for _, r := range f.Repositories {
+
+		log.Debugf("Repository: %s", r.Name)
+
+		i, errIndx := repo.LoadIndexFile(r.Cache)
+		if errIndx != nil {
+			return nil, errIndx
+		}
+
+		if r.Name == chartRepo {
+
+			for n := range i.Entries {
+				log.Debugf("Chart: %s", n)
+				if chartName == n {
+
+					for _, s := range i.Entries[n] {
+						if s.Version == chartVersion || chartVersion == "" {
+							chartSource := s.URLs[0]
+							log.Debugf("chartSource: %s", chartSource)
+							valuesStr, err := getChartFile(chartSource, "values.yaml")
+							if err != nil {
+								return nil, err
+							}
+							log.Debugf("values hash: %s", valuesStr)
+
+							readmeStr, err := getChartFile(chartSource, "README.md")
+							if err != nil {
+								return nil, err
+							}
+							log.Debugf("readme hash: %s", readmeStr)
+							chartD = &ChartDetails{
+								Name:   chartName,
+								Repo:   chartRepo,
+								Chart:  s,
+								Values: valuesStr,
+								Readme: readmeStr,
+							}
+							return chartD, nil
+
+						}
+
+					}
+				}
+
+			}
+
+		}
+	}
+	return nil, nil
 }
