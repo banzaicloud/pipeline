@@ -57,7 +57,7 @@ func (d *GKEProfile) GetProfile() *components.ClusterProfileResponse {
 			Google: &google.ClusterProfileGoogle{
 				NodeVersion: d.NodeVersion,
 				NodePools:   nil, // TODO : finish me
-				Master: &google.GoogleMaster{
+				Master: &google.Master{
 					Version: d.MasterVersion,
 				},
 			},

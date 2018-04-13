@@ -350,7 +350,7 @@ func UpdateCluster(c *gin.Context) {
 		return
 	}
 
-	log.Info("Cluster status: %s", status.Status)
+	log.Infof("Cluster status: %s", status.Status)
 
 	if status.Status != constants.Running {
 		err := fmt.Errorf("cluster is not in %s state yet", constants.Running)
@@ -403,7 +403,7 @@ func UpdateCluster(c *gin.Context) {
 
 // postUpdateCluster updates a cluster (ASYNC)
 func postUpdateCluster(commonCluster cluster.CommonCluster, updateRequest *components.UpdateClusterRequest) error {
-	commonCluster.UpdateClusterModelFromRequest(updateRequest)
+
 	err := commonCluster.UpdateCluster(updateRequest)
 	if err != nil {
 		// validation failed

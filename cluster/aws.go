@@ -221,28 +221,6 @@ func (c *AWSCluster) CreateCluster() error {
 	return nil
 }
 
-func (c *AWSCluster) UpdateClusterModelFromRequest(request *components.UpdateClusterRequest) {
-	updatedModel := &model.ClusterModel{ // todo make it testable
-		Model:            c.modelCluster.Model,
-		Name:             c.modelCluster.Name,
-		Location:         c.modelCluster.Location,
-		NodeInstanceType: c.modelCluster.NodeInstanceType,
-		Cloud:            request.Cloud,
-		OrganizationId:   c.modelCluster.OrganizationId,
-		SecretId:         c.modelCluster.SecretId,
-		Status:           c.modelCluster.Status,
-		Amazon: model.AmazonClusterModel{
-			NodeSpotPrice:      c.modelCluster.Amazon.NodeSpotPrice,
-			NodeMinCount:       request.UpdateClusterAmazon.MinCount,
-			NodeMaxCount:       request.UpdateClusterAmazon.MaxCount,
-			NodeImage:          c.modelCluster.Amazon.NodeImage,
-			MasterInstanceType: c.modelCluster.Amazon.MasterInstanceType,
-			MasterImage:        c.modelCluster.Amazon.MasterImage,
-		},
-	}
-	c.modelCluster = updatedModel
-}
-
 //We return stateStore so update can use it.
 func getStateStoreForCluster(clusterType *model.ClusterModel) (stateStore state.ClusterStorer) {
 	stateStore = fs.NewFileSystemStore(&fs.FileSystemStoreOptions{
@@ -466,7 +444,24 @@ func (c *AWSCluster) UpdateCluster(request *components.UpdateClusterRequest) err
 	}
 
 	log.Info("Create updated model")
-	updateCluster := c.modelCluster
+	updateCluster := &model.ClusterModel{
+		Model:            c.modelCluster.Model,
+		Name:             c.modelCluster.Name,
+		Location:         c.modelCluster.Location,
+		NodeInstanceType: c.modelCluster.NodeInstanceType,
+		Cloud:            request.Cloud,
+		OrganizationId:   c.modelCluster.OrganizationId,
+		SecretId:         c.modelCluster.SecretId,
+		Status:           c.modelCluster.Status,
+		Amazon: model.AmazonClusterModel{
+			NodeSpotPrice:      c.modelCluster.Amazon.NodeSpotPrice,
+			NodeMinCount:       request.Amazon.MinCount,
+			NodeMaxCount:       request.Amazon.MaxCount,
+			NodeImage:          c.modelCluster.Amazon.NodeImage,
+			MasterInstanceType: c.modelCluster.Amazon.MasterInstanceType,
+			MasterImage:        c.modelCluster.Amazon.MasterImage,
+		},
+	}
 
 	log.Debug("Resizing cluster: ", c.GetName())
 	kubicornCluster, err := c.GetKubicornCluster()
@@ -522,6 +517,7 @@ func (c *AWSCluster) UpdateCluster(request *components.UpdateClusterRequest) err
 	}
 
 	//Update AWS model
+	c.modelCluster = updateCluster
 	c.kubicornCluster = kubicornCluster //This is redundant TODO check if it's ok
 
 	// TODO check statestore usage
@@ -719,26 +715,26 @@ func getBootstrapScriptFromEnv(isMaster bool) string {
 func (c *AWSCluster) AddDefaultsToUpdate(r *components.UpdateClusterRequest) {
 
 	// ---- [ Node check ] ---- //
-	if r.UpdateAmazonNode == nil {
+	if r.Amazon.UpdateAmazonNode == nil {
 		log.Info("'node' field is empty. Fill from stored data")
-		r.UpdateAmazonNode = &amazon.UpdateAmazonNode{
+		r.Amazon.UpdateAmazonNode = &amazon.UpdateAmazonNode{
 			MinCount: c.modelCluster.Amazon.NodeMinCount,
 			MaxCount: c.modelCluster.Amazon.NodeMaxCount,
 		}
 	}
 
 	// ---- [ Node min count check ] ---- //
-	if r.UpdateAmazonNode.MinCount == 0 {
+	if r.Amazon.UpdateAmazonNode.MinCount == 0 {
 		defMinCount := c.modelCluster.Amazon.NodeMinCount
 		log.Info(constants.TagValidateUpdateCluster, "Node minCount set to default value: ", defMinCount)
-		r.UpdateAmazonNode.MinCount = defMinCount
+		r.Amazon.UpdateAmazonNode.MinCount = defMinCount
 	}
 
 	// ---- [ Node max count check ] ---- //
-	if r.UpdateAmazonNode.MaxCount == 0 {
+	if r.Amazon.UpdateAmazonNode.MaxCount == 0 {
 		defMaxCount := c.modelCluster.Amazon.NodeMaxCount
 		log.Info(constants.TagValidateUpdateCluster, "Node maxCount set to default value: ", defMaxCount)
-		r.UpdateAmazonNode.MaxCount = defMaxCount
+		r.Amazon.UpdateAmazonNode.MaxCount = defMaxCount
 	}
 
 }
@@ -756,7 +752,7 @@ func (c *AWSCluster) CheckEqualityToUpdate(r *components.UpdateClusterRequest) e
 	log.Info("Check stored & updated cluster equals")
 
 	// check equality
-	return utils.IsDifferent(r.UpdateClusterAmazon, preCl)
+	return utils.IsDifferent(r.Amazon, preCl)
 }
 
 //DeleteFromDatabase deletes model from the database

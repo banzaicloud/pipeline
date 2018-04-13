@@ -40,9 +40,9 @@ var (
 
 func TestCreateNodePoolsModelFromRequestData(t *testing.T) {
 	// given
-	emptyNodePoolsData := map[string]*bGoogle.GoogleNodePool{}
+	emptyNodePoolsData := map[string]*bGoogle.NodePool{}
 
-	modePoolsData := map[string]*bGoogle.GoogleNodePool{
+	modePoolsData := map[string]*bGoogle.NodePool{
 		pool1Name: {Count: pool1Count, NodeInstanceType: pool1NodeInstanceType, ServiceAccount: pool1ServiceAccount},
 		pool2Name: {Count: pool2Count, NodeInstanceType: pool2NodeInstanceType, ServiceAccount: pool2ServiceAccount},
 	}
@@ -54,7 +54,7 @@ func TestCreateNodePoolsModelFromRequestData(t *testing.T) {
 
 	testCases := []struct {
 		name                   string
-		inputNodePoolsData     map[string]*bGoogle.GoogleNodePool
+		inputNodePoolsData     map[string]*bGoogle.NodePool
 		expectedNodePoolsModel []*model.GoogleNodePoolModel
 		expectedErr            error
 	}{
@@ -147,7 +147,7 @@ func TestCreateNodePoolsFromClusterModel(t *testing.T) {
 
 func TestCreateRequestNodePoolsFromNodePoolModel(t *testing.T) {
 	// given
-	nodePoolsRequestData := map[string]*bGoogle.GoogleNodePool{
+	nodePoolsRequestData := map[string]*bGoogle.NodePool{
 		pool1Name: {
 			Count:            pool1Count,
 			NodeInstanceType: pool1NodeInstanceType,
@@ -163,7 +163,7 @@ func TestCreateRequestNodePoolsFromNodePoolModel(t *testing.T) {
 	testCases := []struct {
 		name                 string
 		nodePoolsModel       []*model.GoogleNodePoolModel
-		nodePoolsRequestData map[string]*bGoogle.GoogleNodePool
+		nodePoolsRequestData map[string]*bGoogle.NodePool
 		err                  error
 	}{
 		{name: "create request node pools from node pools model", nodePoolsModel: clusterModel.NodePools, nodePoolsRequestData: nodePoolsRequestData, err: nil},

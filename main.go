@@ -62,6 +62,7 @@ func main() {
 		model.ClusterModel.TableName(model.ClusterModel{}),
 		model.AmazonClusterModel.TableName(model.AmazonClusterModel{}),
 		model.AzureClusterModel.TableName(model.AzureClusterModel{}),
+		model.AzureNodePoolModel.TableName(model.AzureNodePoolModel{}),
 		model.GoogleClusterModel.TableName(model.GoogleClusterModel{}),
 		model.GoogleNodePoolModel.TableName(model.GoogleNodePoolModel{}),
 	)
@@ -71,6 +72,7 @@ func main() {
 		&model.ClusterModel{},
 		&model.AmazonClusterModel{},
 		&model.AzureClusterModel{},
+		&model.AzureNodePoolModel{},
 		&model.GoogleClusterModel{},
 		&model.GoogleNodePoolModel{},
 		&model.DummyClusterModel{},

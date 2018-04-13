@@ -55,7 +55,7 @@ func (d *AKSProfile) GetProfile() *components.ClusterProfileResponse {
 		}{
 			Azure: &azure.ClusterProfileAzure{
 				Node: &azure.AzureProfileNode{
-					AgentCount:        d.AgentCount,
+					Count:             d.AgentCount,
 					AgentName:         d.AgentName,
 					KubernetesVersion: d.KubernetesVersion,
 				},
@@ -76,8 +76,8 @@ func (d *AKSProfile) UpdateProfile(r *components.ClusterProfileRequest, withSave
 
 	if r.Properties.Azure != nil {
 		if r.Properties.Azure.Node != nil {
-			if r.Properties.Azure.Node.AgentCount != 0 {
-				d.AgentCount = r.Properties.Azure.Node.AgentCount
+			if r.Properties.Azure.Node.Count != 0 {
+				d.AgentCount = r.Properties.Azure.Node.Count
 			}
 			if len(r.Properties.Azure.Node.AgentName) != 0 {
 				d.AgentName = r.Properties.Azure.Node.AgentName

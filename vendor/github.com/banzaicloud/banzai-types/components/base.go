@@ -38,13 +38,13 @@ type ErrorResponse struct {
 }
 
 type GetClusterStatusResponse struct {
-	Status           string                            `json:"status"`
-	Name             string                            `json:"name"`
-	Location         string                            `json:"location"`
-	Cloud            string                            `json:"cloud"`
-	NodeInstanceType string                            `json:"nodeInstanceType,omitempty"`
-	ResourceID       uint                              `json:"id"`
-	NodePools        map[string]*google.GoogleNodePool `json:"nodePools,omitempty"`
+	Status           string                      `json:"status"`
+	Name             string                      `json:"name"`
+	Location         string                      `json:"location"`
+	Cloud            string                      `json:"cloud"`
+	NodeInstanceType string                      `json:"nodeInstanceType,omitempty"`
+	ResourceID       uint                        `json:"id"`
+	NodePools        map[string]*google.NodePool `json:"nodePools,omitempty"`
 }
 
 type GetClusterConfigResponse struct {
@@ -69,45 +69,45 @@ type DeleteClusterResponse struct {
 }
 
 type UpdateProperties struct {
-	*amazon.UpdateClusterAmazon `json:"amazon,omitempty"`
-	*azure.UpdateClusterAzure   `json:"azure,omitempty"`
-	*google.UpdateClusterGoogle `json:"google,omitempty"`
-	*dummy.UpdateClusterDummy   `json:"dummy,omitempty"`
+	Amazon *amazon.UpdateClusterAmazon `json:"amazon,omitempty"`
+	Azure  *azure.UpdateClusterAzure   `json:"azure,omitempty"`
+	Google *google.UpdateClusterGoogle `json:"google,omitempty"`
+	Dummy  *dummy.UpdateClusterDummy   `json:"dummy,omitempty"`
 }
 
 // String method prints formatted update request fields
 func (r *UpdateClusterRequest) String() string {
 	var buffer bytes.Buffer
 	buffer.WriteString(fmt.Sprintf("Cloud: %s, ", r.Cloud))
-	if r.Cloud == constants.Azure && r.UpdateClusterAzure != nil {
+	if r.Cloud == constants.Azure && r.Azure != nil && r.Azure.NodePools != nil {
 		// Write AKS
-		buffer.WriteString(fmt.Sprintf("Agent count: %d",
-			r.UpdateClusterAzure.AgentCount))
-	} else if r.Cloud == constants.Amazon && r.UpdateClusterAmazon != nil {
+		buffer.WriteString(fmt.Sprintf("Node pools: %v",
+			&r.Azure.NodePools))
+	} else if r.Cloud == constants.Amazon && r.Amazon != nil {
 		// Write AWS Node
-		if r.UpdateClusterAmazon.UpdateAmazonNode != nil {
+		if r.Amazon.UpdateAmazonNode != nil {
 			buffer.WriteString(fmt.Sprintf("Min count: %d, Max count: %d",
-				r.UpdateClusterAmazon.MinCount,
-				r.UpdateClusterAmazon.MaxCount))
+				r.Amazon.MinCount,
+				r.Amazon.MaxCount))
 		}
-	} else if r.Cloud == constants.Google && r.UpdateClusterGoogle != nil {
+	} else if r.Cloud == constants.Google && r.Google != nil {
 		// Write GKE Master
-		if r.UpdateClusterGoogle.Master != nil {
+		if r.Google.Master != nil {
 			buffer.WriteString(fmt.Sprintf("Master version: %s",
-				r.UpdateClusterGoogle.Master.Version))
+				r.Google.Master.Version))
 		}
 
 		// Write GKE Node version
-		buffer.WriteString(fmt.Sprintf("Node version: %s", r.UpdateClusterGoogle.NodeVersion))
-		if r.UpdateClusterGoogle.NodePools != nil {
-			buffer.WriteString(fmt.Sprintf("Node pools: %v", r.UpdateClusterGoogle.NodePools))
+		buffer.WriteString(fmt.Sprintf("Node version: %s", r.Google.NodeVersion))
+		if r.Google.NodePools != nil {
+			buffer.WriteString(fmt.Sprintf("Node pools: %v", r.Google.NodePools))
 		}
-	} else if r.Cloud == constants.Dummy && r.UpdateClusterDummy != nil {
+	} else if r.Cloud == constants.Dummy && r.Dummy != nil {
 		// Write Dummy node
-		if r.UpdateClusterDummy.Node != nil {
+		if r.Dummy.Node != nil {
 			buffer.WriteString(fmt.Sprintf("Node count: %d, k8s version: %s",
-				r.UpdateClusterDummy.Node.Count,
-				r.UpdateClusterDummy.Node.KubernetesVersion))
+				r.Dummy.Node.Count,
+				r.Dummy.Node.KubernetesVersion))
 		}
 	}
 
@@ -164,15 +164,15 @@ func (r *UpdateClusterRequest) Validate() error {
 	switch r.Cloud {
 	case constants.Amazon:
 		// amazon validate
-		return r.UpdateClusterAmazon.Validate()
+		return r.Amazon.Validate()
 	case constants.Azure:
 		// azure validate
-		return r.UpdateClusterAzure.Validate()
+		return r.Azure.Validate()
 	case constants.Google:
 		// google validate
-		return r.UpdateClusterGoogle.Validate()
+		return r.Google.Validate()
 	case constants.Dummy:
-		return r.UpdateClusterDummy.Validate()
+		return r.Dummy.Validate()
 	default:
 		// not supported cloud type
 		return constants.ErrorNotSupportedCloudType
@@ -185,18 +185,18 @@ func (r *UpdateClusterRequest) preValidate() {
 	switch r.Cloud {
 	case constants.Amazon:
 		// reset other fields
-		r.UpdateClusterAzure = nil
-		r.UpdateClusterGoogle = nil
+		r.Azure = nil
+		r.Google = nil
 		break
 	case constants.Azure:
 		// reset other fields
-		r.UpdateClusterAmazon = nil
-		r.UpdateClusterGoogle = nil
+		r.Amazon = nil
+		r.Google = nil
 		break
 	case constants.Google:
 		// reset other fields
-		r.UpdateClusterAmazon = nil
-		r.UpdateClusterAzure = nil
+		r.Amazon = nil
+		r.Azure = nil
 	}
 }
 
