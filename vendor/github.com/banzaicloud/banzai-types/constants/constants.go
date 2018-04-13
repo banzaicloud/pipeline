@@ -75,6 +75,7 @@ const (
 	TableNameClusters         = "clusters"
 	TableNameAmazonProperties = "amazon_cluster_properties"
 	TableNameAzureProperties  = "azure_cluster_properties"
+	TableNameAzureNodePools   = "azure_node_pools"
 	TableNameGoogleProperties = "google_cluster_properties"
 	TableNameGoogleNodePools  = "google_node_pools"
 	TableNameDummyProperties  = "dummy_cluster_properties"
@@ -103,6 +104,7 @@ var (
 	ErrorRequiredSecretId           = errors.New("Secret id is required")
 	ErrorCloudInfoK8SNotSupported   = errors.New("Not supported key in case of amazon")
 	ErrorNodePoolNotProvided        = errors.New("At least one 'nodepool' is required for creating or updating a cluster")
+	ErrorOnlyOneNodeModify          = errors.New("only one node can be modified at a time")
 )
 
 // ### [ Keywords ] ###
@@ -117,4 +119,13 @@ const (
 	RegexpAWSName = `^[A-z0-9-_]{1,255}$`
 	RegexpAKSName = `^[a-z0-9_]{0,31}[a-z0-9]$`
 	RegexpGKEName = `^[a-z]$|^[a-z][a-z0-9-]{0,38}[a-z0-9]$`
+)
+
+// ### [ Cluster statuses ] ### //
+const (
+	Creating = "CREATING"
+	Running  = "RUNNING"
+	Updating = "UPDATING"
+	Deleting = "DELETING"
+	Error    = "ERROR"
 )

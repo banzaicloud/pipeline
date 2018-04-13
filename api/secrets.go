@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 
+	"encoding/base64"
 	"fmt"
 	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/pipeline/auth"
@@ -38,6 +39,8 @@ func AddSecrets(c *gin.Context) {
 		})
 		return
 	}
+	//Check if the received value is base64 encoded if not encode it.
+	createSecretRequest.Values["K8Sconfig"] = encodeStringToBase64(createSecretRequest.Values["K8Sconfig"])
 
 	log.Info("Binding request succeeded")
 	log.Debugf("%#v", createSecretRequest)
@@ -209,7 +212,7 @@ func checkClustersBeforeDelete(orgId, secretId string) error {
 		return nil
 	} else {
 		for _, mc := range modelCluster {
-			if commonCluster, err := cluster.GetCommonClusterFromModel(&mc); err == nil {
+			if commonCluster, err := cluster.GetCommonClusterFromModel(&mc, true); err == nil {
 				if _, err := commonCluster.GetStatus(); err == nil {
 					return fmt.Errorf("there's a running cluster with this secret: %s[%d]", mc.Name, mc.ID)
 				}
@@ -217,4 +220,12 @@ func checkClustersBeforeDelete(orgId, secretId string) error {
 		}
 		return nil
 	}
+}
+
+// encodeStringToBase64 first checks if the string is encoded if yes returns it if no than encodes it.
+func encodeStringToBase64(s string) string {
+	if _, err := base64.StdEncoding.DecodeString(s); err != nil {
+		return base64.StdEncoding.EncodeToString([]byte(s))
+	}
+	return s
 }

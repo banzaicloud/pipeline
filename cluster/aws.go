@@ -28,7 +28,6 @@ import (
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"strings"
 )
@@ -95,16 +94,17 @@ func (c *AWSCluster) GetModel() *model.ClusterModel {
 }
 
 //CreateAWSClusterFromModel creates ClusterModel struct from the kubicorn model
-func CreateAWSClusterFromModel(clusterModel *model.ClusterModel) (*AWSCluster, error) {
+func CreateAWSClusterFromModel(clusterModel *model.ClusterModel, isReadStateStore bool) (*AWSCluster, error) {
 	log := logger.WithFields(logrus.Fields{"action": constants.TagGetCluster})
 	log.Debug("Create ClusterModel struct from the request")
 	awsCluster := AWSCluster{
 		modelCluster: clusterModel,
 	}
-	//
-	_, err := awsCluster.GetKubicornCluster()
-	if err != nil {
-		return nil, err
+	if isReadStateStore {
+		_, err := awsCluster.GetKubicornCluster()
+		if err != nil {
+			return nil, err
+		}
 	}
 	return &awsCluster, nil
 }
@@ -135,8 +135,8 @@ func CreateAWSClusterFromRequest(request *components.CreateClusterRequest, orgId
 }
 
 //Persist save the cluster model
-func (c *AWSCluster) Persist() error {
-	return c.modelCluster.Save()
+func (c *AWSCluster) Persist(status string) error {
+	return c.modelCluster.UpdateStatus(status)
 }
 
 //CreateCluster creates a new cluster
@@ -421,22 +421,14 @@ func GetKubicornProfile(cs *model.ClusterModel) *kcluster.Cluster {
 func (c *AWSCluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 	log.Info("Start get cluster status (amazon)")
 
-	c.GetK8sConfig()
-	c.GetAPIEndpoint()
-	kubicornCluster, err := c.GetKubicornCluster()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &components.GetClusterStatusResponse{
-		Status:           http.StatusOK,
-		Name:             kubicornCluster.Name,
-		Location:         kubicornCluster.Location,
-		Cloud:            kubicornCluster.Cloud,
+	return &components.GetClusterStatusResponse{
+		Status:           c.modelCluster.Status,
+		Name:             c.modelCluster.Name,
+		Location:         c.modelCluster.Location,
+		Cloud:            c.modelCluster.Location,
 		NodeInstanceType: c.modelCluster.NodeInstanceType,
 		ResourceID:       c.modelCluster.ID,
-	}
-	return response, nil
+	}, nil
 }
 
 // UpdateCluster updates Amazon cluster in cloud
@@ -458,10 +450,13 @@ func (c *AWSCluster) UpdateCluster(request *components.UpdateClusterRequest) err
 		Location:         c.modelCluster.Location,
 		NodeInstanceType: c.modelCluster.NodeInstanceType,
 		Cloud:            request.Cloud,
+		OrganizationId:   c.modelCluster.OrganizationId,
+		SecretId:         c.modelCluster.SecretId,
+		Status:           c.modelCluster.Status,
 		Amazon: model.AmazonClusterModel{
 			NodeSpotPrice:      c.modelCluster.Amazon.NodeSpotPrice,
-			NodeMinCount:       request.UpdateClusterAmazon.MinCount,
-			NodeMaxCount:       request.UpdateClusterAmazon.MaxCount,
+			NodeMinCount:       request.Amazon.MinCount,
+			NodeMaxCount:       request.Amazon.MaxCount,
 			NodeImage:          c.modelCluster.Amazon.NodeImage,
 			MasterInstanceType: c.modelCluster.Amazon.MasterInstanceType,
 			MasterImage:        c.modelCluster.Amazon.MasterImage,
@@ -720,26 +715,26 @@ func getBootstrapScriptFromEnv(isMaster bool) string {
 func (c *AWSCluster) AddDefaultsToUpdate(r *components.UpdateClusterRequest) {
 
 	// ---- [ Node check ] ---- //
-	if r.UpdateAmazonNode == nil {
+	if r.Amazon.UpdateAmazonNode == nil {
 		log.Info("'node' field is empty. Fill from stored data")
-		r.UpdateAmazonNode = &amazon.UpdateAmazonNode{
+		r.Amazon.UpdateAmazonNode = &amazon.UpdateAmazonNode{
 			MinCount: c.modelCluster.Amazon.NodeMinCount,
 			MaxCount: c.modelCluster.Amazon.NodeMaxCount,
 		}
 	}
 
 	// ---- [ Node min count check ] ---- //
-	if r.UpdateAmazonNode.MinCount == 0 {
+	if r.Amazon.UpdateAmazonNode.MinCount == 0 {
 		defMinCount := c.modelCluster.Amazon.NodeMinCount
 		log.Info(constants.TagValidateUpdateCluster, "Node minCount set to default value: ", defMinCount)
-		r.UpdateAmazonNode.MinCount = defMinCount
+		r.Amazon.UpdateAmazonNode.MinCount = defMinCount
 	}
 
 	// ---- [ Node max count check ] ---- //
-	if r.UpdateAmazonNode.MaxCount == 0 {
+	if r.Amazon.UpdateAmazonNode.MaxCount == 0 {
 		defMaxCount := c.modelCluster.Amazon.NodeMaxCount
 		log.Info(constants.TagValidateUpdateCluster, "Node maxCount set to default value: ", defMaxCount)
-		r.UpdateAmazonNode.MaxCount = defMaxCount
+		r.Amazon.UpdateAmazonNode.MaxCount = defMaxCount
 	}
 
 }
@@ -757,7 +752,7 @@ func (c *AWSCluster) CheckEqualityToUpdate(r *components.UpdateClusterRequest) e
 	log.Info("Check stored & updated cluster equals")
 
 	// check equality
-	return utils.IsDifferent(r.UpdateClusterAmazon, preCl)
+	return utils.IsDifferent(r.Amazon, preCl)
 }
 
 //DeleteFromDatabase deletes model from the database
@@ -835,4 +830,28 @@ func newEC2Client(config *aws.Config) *ec2.EC2 {
 	}))
 
 	return ec2.New(sess, config)
+}
+
+// UpdateStatus updates cluster status in database
+func (c *AWSCluster) UpdateStatus(status string) error {
+	return c.modelCluster.UpdateStatus(status)
+}
+
+// GetClusterDetails gets cluster details from cloud
+func (c *AWSCluster) GetClusterDetails() (*components.ClusterDetailsResponse, error) {
+
+	log := logger.WithFields(logrus.Fields{"tag": "GetClusterDetails"})
+	log.Info("Start getting cluster details")
+
+	c.GetK8sConfig()
+	c.GetAPIEndpoint()
+	kubicornCluster, err := c.GetKubicornCluster()
+	if err != nil {
+		return nil, err
+	}
+
+	return &components.ClusterDetailsResponse{
+		Name: kubicornCluster.Name,
+		Id:   c.modelCluster.ID,
+	}, nil
 }

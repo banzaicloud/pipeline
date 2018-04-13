@@ -23,8 +23,9 @@ type Properties struct {
 }
 
 type Profile struct {
-	Name  string `json:"name"`
-	Count int    `json:"count"`
+	Name   string `json:"name"`
+	Count  int    `json:"count"`
+	VmSize string `json:"vmSize"`
 }
 
 type ResponseWithValue struct {
@@ -38,22 +39,22 @@ type ListResponse struct {
 }
 
 type CreateClusterAzure struct {
-	Node *CreateAzureNode `json:"node,omitempty"`
+	ResourceGroup     string                     `json:"resourceGroup"`
+	KubernetesVersion string                     `json:"kubernetesVersion"`
+	NodePools         map[string]*NodePoolCreate `json:"nodePools,omitempty"`
 }
 
-type CreateAzureNode struct {
-	ResourceGroup     string `json:"resourceGroup"`
-	AgentCount        int    `json:"agentCount"`
-	AgentName         string `json:"agentName"`
-	KubernetesVersion string `json:"kubernetesVersion"`
+type NodePoolCreate struct {
+	Count            int    `json:"count"`
+	NodeInstanceType string `json:"nodeInstanceType"`
+}
+
+type NodePoolUpdate struct {
+	Count int `json:"count"`
 }
 
 type UpdateClusterAzure struct {
-	*UpdateAzureNode `json:"node,omitempty"`
-}
-
-type UpdateAzureNode struct {
-	AgentCount int `json:"agentCount"`
+	NodePools map[string]*NodePoolUpdate `json:"nodePools,omitempty"`
 }
 
 // Validate validates azure cluster create request
@@ -69,26 +70,28 @@ func (azure *CreateClusterAzure) Validate() error {
 	}
 
 	// ---- [ Node check ] ---- //
-	if azure.Node == nil {
-		msg := "Required field 'node' is empty."
+	if azure.NodePools == nil {
+		msg := "Required field 'nodePools' is empty."
 		return errors.New(msg)
 	}
 
-	if len(azure.Node.ResourceGroup) == 0 {
+	if len(azure.ResourceGroup) == 0 {
 		msg := "Required field 'resourceGroup' is empty."
 		return errors.New(msg)
 	}
 
-	if azure.Node.AgentCount == 0 {
-		azure.Node.AgentCount = constants.AzureDefaultAgentCount
+	for name, np := range azure.NodePools {
+		if np.Count == 0 {
+			azure.NodePools[name].Count = constants.AzureDefaultAgentCount
+		}
+
+		if len(np.NodeInstanceType) == 0 {
+			return errors.New("required field `NodeInstanceType` is empty")
+		}
 	}
 
-	if len(azure.Node.AgentName) == 0 {
-		azure.Node.AgentName = constants.AzureDefaultAgentName
-	}
-
-	if len(azure.Node.KubernetesVersion) == 0 {
-		azure.Node.KubernetesVersion = constants.AzureDefaultKubernetesVersion
+	if len(azure.KubernetesVersion) == 0 {
+		azure.KubernetesVersion = constants.AzureDefaultKubernetesVersion
 	}
 
 	return nil
@@ -112,8 +115,8 @@ func (r *ResponseWithValue) Update(code int, Value Value) {
 }
 
 type Config struct {
-	Location   string `json:"location"`
-	Name       string `json:"name"`
+	Location string `json:"location"`
+	Name     string `json:"name"`
 	Properties struct {
 		KubeConfig string `json:"kubeConfig"`
 	} `json:"properties"`
@@ -124,7 +127,7 @@ type ClusterProfileAzure struct {
 }
 
 type AzureProfileNode struct {
-	AgentCount        int    `json:"agentCount"`
+	Count             int    `json:"count"`
 	AgentName         string `json:"agentName"`
 	KubernetesVersion string `json:"kubernetesVersion"`
 }

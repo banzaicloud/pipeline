@@ -62,6 +62,7 @@ func main() {
 		model.ClusterModel.TableName(model.ClusterModel{}),
 		model.AmazonClusterModel.TableName(model.AmazonClusterModel{}),
 		model.AzureClusterModel.TableName(model.AzureClusterModel{}),
+		model.AzureNodePoolModel.TableName(model.AzureNodePoolModel{}),
 		model.GoogleClusterModel.TableName(model.GoogleClusterModel{}),
 		model.GoogleNodePoolModel.TableName(model.GoogleNodePoolModel{}),
 	)
@@ -71,6 +72,7 @@ func main() {
 		&model.ClusterModel{},
 		&model.AmazonClusterModel{},
 		&model.AzureClusterModel{},
+		&model.AzureNodePoolModel{},
 		&model.GoogleClusterModel{},
 		&model.GoogleNodePoolModel{},
 		&model.DummyClusterModel{},
@@ -113,7 +115,8 @@ func main() {
 			orgs.POST("/:orgid/clusters", api.CreateCluster)
 			//v1.GET("/status", api.Status)
 			orgs.GET("/:orgid/clusters", api.FetchClusters)
-			orgs.GET("/:orgid/clusters/:id", api.FetchCluster)
+			orgs.GET("/:orgid/clusters/:id", api.GetClusterStatus)
+			orgs.GET("/:orgid/clusters/:id/details", api.FetchCluster)
 			orgs.PUT("/:orgid/clusters/:id", api.UpdateCluster)
 			orgs.DELETE("/:orgid/clusters/:id", api.DeleteCluster)
 			orgs.HEAD("/:orgid/clusters/:id", api.GetClusterStatus)

@@ -41,7 +41,7 @@ func UpdateMonitoring(c *gin.Context) {
 }
 
 // GetCommonClusterFromRequest just a simple getter to build commonCluster object this handles error messages directly
-func GetCommonClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
+func GetCommonClusterFromRequest(c *gin.Context, isReadStateStore bool) (cluster.CommonCluster, bool) {
 	filter := ParseField(c)
 
 	// Filter for organisation
@@ -69,7 +69,7 @@ func GetCommonClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
 		return nil, false
 	}
 
-	commonCLuster, err := cluster.GetCommonClusterFromModel(&modelCluster[0])
+	commonCLuster, err := cluster.GetCommonClusterFromModel(&modelCluster[0], isReadStateStore)
 	if err != nil {
 		log.Errorf("GetCommonClusterFromModel failed: %s", err.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
@@ -84,7 +84,7 @@ func GetCommonClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
 
 //GetCommonClusterNameFromRequest get cluster name from cluster request
 func GetCommonClusterNameFromRequest(c *gin.Context) (string, bool) {
-	commonCluster, ok := GetCommonClusterFromRequest(c)
+	commonCluster, ok := GetCommonClusterFromRequest(c, true)
 	if ok != true {
 		return "", false
 	}
@@ -163,20 +163,9 @@ func CreateCluster(c *gin.Context) {
 		})
 		return
 	}
-	// Create cluster
-	err = commonCluster.CreateCluster()
-	if err != nil {
-		log.Errorf("Error during cluster creation: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: err.Error(),
-			Error:   err.Error(),
-		})
-		return
-	}
 
 	// Persist the cluster in Database
-	err = commonCluster.Persist()
+	err = commonCluster.Persist(constants.Creating)
 	if err != nil {
 		log.Errorf("Error persisting cluster in database: %s", err.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
@@ -184,7 +173,31 @@ func CreateCluster(c *gin.Context) {
 			Message: err.Error(),
 			Error:   err.Error(),
 		})
-		return
+	}
+
+	c.JSON(http.StatusAccepted, components.CreateClusterResponse{
+		Name:       commonCluster.GetName(),
+		ResourceID: commonCluster.GetID(),
+	})
+
+	go postCreateCluster(commonCluster)
+
+}
+
+// postCreateCluster creates a cluster (ASYNC)
+func postCreateCluster(commonCluster cluster.CommonCluster) error {
+	// Create cluster
+	err := commonCluster.CreateCluster()
+	if err != nil {
+		log.Errorf("Error during cluster creation: %s", err.Error())
+		commonCluster.UpdateStatus(constants.Error)
+		return err
+	}
+
+	err = commonCluster.UpdateStatus(constants.Running)
+	if err != nil {
+		log.Errorf("Error during updating cluster status: %s", err.Error())
+		return err
 	}
 
 	// Apply PostHooks
@@ -197,25 +210,15 @@ func CreateCluster(c *gin.Context) {
 	}
 	go cluster.RunPostHooks(postHookFunctions, commonCluster)
 
-	response, err := commonCluster.GetStatus()
-	if err != nil {
-		log.Errorf("Error during getting cluster status: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error parsing request",
-			Error:   err.Error(),
-		})
-		return
-	}
-	c.JSON(http.StatusOK, response)
-	return
+	return nil
+
 }
 
 // GetClusterStatus retrieves the cluster status
 func GetClusterStatus(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagGetClusterStatus})
 
-	commonCluster, ok := GetCommonClusterFromRequest(c)
+	commonCluster, ok := GetCommonClusterFromRequest(c, false)
 	if ok != true {
 		return
 	}
@@ -237,7 +240,7 @@ func GetClusterStatus(c *gin.Context) {
 // GetClusterConfig gets a cluster config
 func GetClusterConfig(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagFetchClusterConfig})
-	commonCluster, ok := GetCommonClusterFromRequest(c)
+	commonCluster, ok := GetCommonClusterFromRequest(c, true)
 	if ok != true {
 		return
 	}
@@ -282,7 +285,7 @@ func GetApiEndpoint(c *gin.Context) {
 	log.Info("Start getting API endpoint")
 
 	log.Info("Create common cluster model from request")
-	commonCluster, ok := GetCommonClusterFromRequest(c)
+	commonCluster, ok := GetCommonClusterFromRequest(c, true)
 	if !ok {
 		return
 	}
@@ -320,7 +323,7 @@ func UpdateCluster(c *gin.Context) {
 		})
 		return
 	}
-	commonCluster, ok := GetCommonClusterFromRequest(c)
+	commonCluster, ok := GetCommonClusterFromRequest(c, true)
 	if ok != true {
 		return
 	}
@@ -331,6 +334,31 @@ func UpdateCluster(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: msg,
+		})
+		return
+	}
+
+	log.Info("Check cluster status")
+	status, err := commonCluster.GetStatus()
+	if err != nil {
+		log.Errorf("Error checking status: %s", err.Error())
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error checking status",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	log.Infof("Cluster status: %s", status.Status)
+
+	if status.Status != constants.Running {
+		err := fmt.Errorf("cluster is not in %s state yet", constants.Running)
+		log.Errorf("Error during checking cluster status: %s", err.Error())
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error during checking cluster status",
+			Error:   err.Error(),
 		})
 		return
 	}
@@ -361,32 +389,42 @@ func UpdateCluster(c *gin.Context) {
 		return
 	}
 
-	// TODO check if validation can be applied sooner
-	err := commonCluster.UpdateCluster(updateRequest)
-	if err != nil {
-		// validation failed
-		log.Errorf("Update failed: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: err.Error(),
-			Error:   err.Error(),
-		})
-		return
-	}
 	// save the updated cluster to database
-	if err := commonCluster.Persist(); err != nil {
+	if err := commonCluster.Persist(constants.Updating); err != nil {
 		log.Errorf("Error during cluster save %s", err.Error())
 	}
+
+	go postUpdateCluster(commonCluster, updateRequest)
 
 	c.JSON(http.StatusAccepted, components.UpdateClusterResponse{
 		Status: http.StatusAccepted,
 	})
 }
 
+// postUpdateCluster updates a cluster (ASYNC)
+func postUpdateCluster(commonCluster cluster.CommonCluster, updateRequest *components.UpdateClusterRequest) error {
+
+	err := commonCluster.UpdateCluster(updateRequest)
+	if err != nil {
+		// validation failed
+		log.Errorf("Update failed: %s", err.Error())
+		commonCluster.UpdateStatus(constants.Error)
+		return err
+	}
+
+	err = commonCluster.UpdateStatus(constants.Running)
+	if err != nil {
+		log.Errorf("Error during update cluster status: %s", err.Error())
+		return err
+	}
+
+	return nil
+}
+
 // DeleteCluster deletes a K8S cluster from the cloud
 func DeleteCluster(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagDeleteCluster})
-	commonCluster, ok := GetCommonClusterFromRequest(c)
+	commonCluster, ok := GetCommonClusterFromRequest(c, false)
 	if ok != true {
 		return
 	}
@@ -398,61 +436,69 @@ func DeleteCluster(c *gin.Context) {
 		force = false
 	}
 
-	config, err := commonCluster.GetK8sConfig()
-	if err != nil && !force {
-		log.Errorf("Error during getting kubeconfig: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error during getting kubeconfig",
-			Error:   err.Error(),
-		})
-		return
+	go postDeleteCluster(commonCluster, force)
+
+	deleteName := commonCluster.GetName()
+	deleteId := commonCluster.GetID()
+
+	c.JSON(http.StatusAccepted, components.DeleteClusterResponse{
+		Status:     http.StatusAccepted,
+		Name:       deleteName,
+		ResourceID: deleteId,
+	})
+}
+
+// postDeleteCluster deletes a cluster (ASYNC)
+func postDeleteCluster(commonCluster cluster.CommonCluster, force bool) error {
+
+	err := commonCluster.UpdateStatus(constants.Deleting)
+	if err != nil {
+		log.Errorf("Error during updating cluster status: %s", err.Error())
+		return err
 	}
 
-	err = helm.DeleteAllDeployment(config)
+	// get kubeconfig
+	c, err := commonCluster.GetK8sConfig()
+	if err != nil && !force {
+		log.Errorf("Error during getting kubeconfig: %s", err.Error())
+		commonCluster.UpdateStatus(constants.Error)
+		return err
+	}
+
+	// delete deployments
+	err = helm.DeleteAllDeployment(c)
 	if err != nil {
 		log.Errorf("Problem deleting deployment: %s", err)
 	}
 
+	// delete cluster
 	err = commonCluster.DeleteCluster()
 	if err != nil && !force {
 		log.Errorf(errors.Wrap(err, "Error during delete cluster").Error())
-		c.JSON(http.StatusInternalServerError, components.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: "Error during delete cluster",
-			Error:   err.Error(),
-		})
-		return
+		commonCluster.UpdateStatus(constants.Error)
+		return err
 	}
+
+	// delete cluster from database
 	deleteName := commonCluster.GetName()
-	deleteId := commonCluster.GetID()
 	err = commonCluster.DeleteFromDatabase()
 	if err != nil && !force {
 		log.Errorf(errors.Wrap(err, "Error during delete cluster from database").Error())
-		c.JSON(http.StatusInternalServerError, components.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: "Error during delete cluster",
-			Error:   err.Error(),
-		})
+		commonCluster.UpdateStatus(constants.Error)
+		return err
 	}
 
 	// Asyncron update prometheus
 	go cluster.UpdatePrometheus()
 
+	// clean statestore
 	log.Info("Clean cluster's statestore folder ")
 	if err := cluster.CleanStateStore(deleteName); err != nil {
 		log.Errorf("Statestore cleaning failed: %s", err.Error())
 	} else {
 		log.Info("Cluster's statestore folder cleaned")
 	}
-
-	c.JSON(http.StatusAccepted, components.DeleteClusterResponse{
-		Status:     http.StatusAccepted,
-		Name:       deleteName,
-		Message:    "Cluster deleted successfully",
-		ResourceID: deleteId,
-	})
-	return
+	return nil
 }
 
 // FetchClusters fetches all the K8S clusters from the cloud
@@ -476,7 +522,7 @@ func FetchClusters(c *gin.Context) {
 	}
 	response := make([]components.GetClusterStatusResponse, 0)
 	for _, cl := range clusters {
-		commonCluster, err := cluster.GetCommonClusterFromModel(&cl)
+		commonCluster, err := cluster.GetCommonClusterFromModel(&cl, false)
 		if err == nil {
 			status, err := commonCluster.GetStatus()
 			if err != nil {
@@ -496,12 +542,12 @@ func FetchClusters(c *gin.Context) {
 // FetchCluster fetch a K8S cluster in the cloud
 func FetchCluster(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagGetClusterStatus})
-	commonCluster, ok := GetCommonClusterFromRequest(c)
+	commonCluster, ok := GetCommonClusterFromRequest(c, true)
 	if ok != true {
 		return
 	}
 	log.Info("getting cluster info")
-	status, err := commonCluster.GetStatus()
+	status, err := commonCluster.GetClusterDetails()
 	if err != nil {
 		log.Errorf("Error getting cluster: %s", err.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
