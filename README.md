@@ -68,7 +68,7 @@ The platform includes a few default `spotguides` like: **Apache Spark, Apache Ze
 
 ## Cloud Providers
 
-Pipeline is currently experimental and all the development, testing and the CI/CD pipeline itself is tested on **AWS**, **Google** and **Azure** only. The latest version contains the control plane, cloud images, Cloudformation/ARM templates, GKE deployments and belonging artifacts released under the *0.3.0* tag across several repositories. We do `native` Kubernetes installation on AWS, whereas everyhere available we use managed Kubernetes offerings.
+Pipeline is currently experimental and all the development, testing and the CI/CD pipeline itself is tested on **AWS**, **Google** and **Azure** only. The latest version contains the control plane, cloud images, Cloudformation/ARM templates, GKE deployments and belonging artifacts released under the *0.3.0* tag across several repositories. We do `native` Kubernetes installation on AWS, whereas everyhere available we use managed Kubernetes offerings. Pipeline does support `Bring Your Own Cluster`, thus we can adopt and manage any existing Kubernetes cluster.
 
 ## Managed Kubernetes
 
@@ -101,7 +101,7 @@ All these components are assembled into a **Control Plane** - and deployed to Ku
 <img src="docs/images/control-plane-creation.png" width="700">
 </p>
 
-To launch a Pipeline control plane on AWS, Azure or Google Cloud follow this [documentation](https://github.com/banzaicloud/pipeline-cp-launcher/blob/master/README.md).
+To launch a Pipeline control plane on AWS, Azure, Google Cloud or locally (for dev purposes) on Minikube follow this [documentation](https://github.com/banzaicloud/pipeline-cp-launcher/blob/master/README.md).
 
 ### Deployed clusters
 
