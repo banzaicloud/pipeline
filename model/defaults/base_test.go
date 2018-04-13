@@ -113,12 +113,12 @@ var (
 			Google *google.ClusterProfileGoogle `json:"google,omitempty"`
 		}{
 			Google: &google.ClusterProfileGoogle{
-				Master: &google.GoogleMaster{
+				Master: &google.Master{
 					Version: version,
 				},
 				NodeVersion: version,
 				// TODO: revise me
-				NodePools: map[string]*google.GoogleNodePool{
+				NodePools: map[string]*google.NodePool{
 					"pool1": {
 						Count:            nodeCount,
 						NodeInstanceType: nodeInstanceType,
@@ -141,7 +141,7 @@ var (
 		}{
 			Azure: &azure.ClusterProfileAzure{
 				Node: &azure.AzureProfileNode{
-					AgentCount:        nodeCount,
+					Count:        nodeCount,
 					AgentName:         agentName,
 					KubernetesVersion: k8sVersion,
 				},
@@ -218,7 +218,7 @@ var (
 			Google *google.ClusterProfileGoogle `json:"google,omitempty"`
 		}{
 			Google: &google.ClusterProfileGoogle{
-				Master: &google.GoogleMaster{
+				Master: &google.Master{
 					Version: version,
 				},
 			},
@@ -274,7 +274,7 @@ var (
 			Google: &google.ClusterProfileGoogle{
 				NodeVersion: version,
 				// TODO: revise me
-				NodePools: map[string]*google.GoogleNodePool{
+				NodePools: map[string]*google.NodePool{
 					"pool1": {
 						Count:            nodeCount,
 						NodeInstanceType: nodeInstanceType,
