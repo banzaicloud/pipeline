@@ -388,7 +388,7 @@ func (c *AKSCluster) AddDefaultsToUpdate(r *components.UpdateClusterRequest) {
 		r.Azure = &banzaiAzureTypes.UpdateClusterAzure{}
 	}
 
-	if r.Azure.NodePools == nil && len(r.Azure.NodePools) == 0 {
+	if len(r.Azure.NodePools) == 0 {
 		storedPools := c.modelCluster.Azure.NodePools
 		nodePools := make(map[string]*banzaiAzureTypes.NodePoolUpdate)
 		for _, np := range storedPools {
