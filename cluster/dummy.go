@@ -87,13 +87,9 @@ func (d *DummyCluster) DeleteCluster() error {
 
 // UpdateCluster updates the dummy cluster
 func (d *DummyCluster) UpdateCluster(r *components.UpdateClusterRequest) error {
-	d.modelCluster.Dummy.KubernetesVersion = r.UpdateClusterDummy.Node.KubernetesVersion
-	d.modelCluster.Dummy.NodeCount = r.UpdateClusterDummy.Node.Count
+	d.modelCluster.Dummy.KubernetesVersion = r.Dummy.Node.KubernetesVersion
+	d.modelCluster.Dummy.NodeCount = r.Dummy.Node.Count
 	return nil
-}
-
-func (d *DummyCluster) UpdateClusterModelFromRequest(r *components.UpdateClusterRequest) {
-	d.UpdateCluster(r)
 }
 
 //GetID returns the specified cluster id

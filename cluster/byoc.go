@@ -112,10 +112,6 @@ func (b *BYOCluster) UpdateCluster(*components.UpdateClusterRequest) error {
 	return nil
 }
 
-func (b *BYOCluster) UpdateClusterModelFromRequest(*components.UpdateClusterRequest) {
-	// BYOC not supports update cluster
-}
-
 // GetID returns the specified cluster id
 func (b *BYOCluster) GetID() uint {
 	return b.modelCluster.ID
