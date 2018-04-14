@@ -119,7 +119,7 @@ func main() {
 			orgs.GET("/:orgid/clusters/:id/details", api.FetchCluster)
 			orgs.PUT("/:orgid/clusters/:id", api.UpdateCluster)
 			orgs.DELETE("/:orgid/clusters/:id", api.DeleteCluster)
-			orgs.HEAD("/:orgid/clusters/:id", api.GetClusterStatus)
+			orgs.HEAD("/:orgid/clusters/:id", api.FetchCluster)
 			orgs.GET("/:orgid/clusters/:id/config", api.GetClusterConfig)
 			orgs.GET("/:orgid/clusters/:id/apiendpoint", api.GetApiEndpoint)
 			orgs.POST("/:orgid/clusters/:id/monitoring", api.UpdateMonitoring)
