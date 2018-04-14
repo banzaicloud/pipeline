@@ -1,6 +1,7 @@
 package api_test
 
 import (
+	btypes "github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/api"
 	"github.com/banzaicloud/pipeline/secret"
 	"reflect"
@@ -14,9 +15,9 @@ func TestIsValidSecretType(t *testing.T) {
 		secretType string
 		error      error
 	}{
-		{name: "Amazon secret type", secretType: secret.Amazon, error: nil},
-		{name: "Azure secret type", secretType: secret.Azure, error: nil},
-		{name: "Google secret type", secretType: secret.Google, error: nil},
+		{name: "Amazon secret type", secretType: btypes.Amazon, error: nil},
+		{name: "Azure secret type", secretType: btypes.Azure, error: nil},
+		{name: "Google secret type", secretType: btypes.Google, error: nil},
 		{name: "not supported secret type", secretType: invalidSecretType, error: api.NotSupportedSecretType},
 	}
 
@@ -40,9 +41,9 @@ func TestListAllowedSecretTypes(t *testing.T) {
 		error
 	}{
 		{name: "List all allowed secret types", secretType: "", expectedResponse: allAllowedTypes, error: nil},
-		{name: "List aws required keys", secretType: secret.Amazon, expectedResponse: awsRequiredKeys, error: nil},
-		{name: "List aks required keys", secretType: secret.Azure, expectedResponse: aksRequiredKeys, error: nil},
-		{name: "List gke required keys", secretType: secret.Google, expectedResponse: gkeRequiredKeys, error: nil},
+		{name: "List aws required keys", secretType: btypes.Amazon, expectedResponse: awsRequiredKeys, error: nil},
+		{name: "List aks required keys", secretType: btypes.Azure, expectedResponse: aksRequiredKeys, error: nil},
+		{name: "List gke required keys", secretType: btypes.Google, expectedResponse: gkeRequiredKeys, error: nil},
 		{name: "Invalid secret type", secretType: invalidSecretType, expectedResponse: nil, error: api.NotSupportedSecretType},
 	}
 
@@ -103,9 +104,9 @@ func TestListSecrets(t *testing.T) {
 		secretType     string
 		expectedValues []secret.SecretsItemResponse
 	}{
-		{name: "List aws secrets", secretType: secret.Amazon, expectedValues: awsExpectedItems},
-		{name: "List aks secrets", secretType: secret.Azure, expectedValues: aksExpectedItems},
-		{name: "List gke secrets", secretType: secret.Google, expectedValues: gkeExpectedItems},
+		{name: "List aws secrets", secretType: btypes.Amazon, expectedValues: awsExpectedItems},
+		{name: "List aks secrets", secretType: btypes.Azure, expectedValues: aksExpectedItems},
+		{name: "List gke secrets", secretType: btypes.Google, expectedValues: gkeExpectedItems},
 		{name: "List all secrets", secretType: "", expectedValues: allExpectedItems},
 	}
 
@@ -192,7 +193,7 @@ const (
 var (
 	awsCreateSecretRequest = secret.CreateSecretRequest{
 		Name:       secretName,
-		SecretType: secret.Amazon,
+		SecretType: btypes.Amazon,
 		Values: map[string]string{
 			"AWS_ACCESS_KEY_ID":     awsAccessKeyId,
 			"AWS_SECRET_ACCESS_KEY": awsSecretAccessKey,
@@ -201,7 +202,7 @@ var (
 
 	aksCreateSecretRequest = secret.CreateSecretRequest{
 		Name:       secretName,
-		SecretType: secret.Azure,
+		SecretType: btypes.Azure,
 		Values: map[string]string{
 			"AZURE_CLIENT_ID":       aksClientId,
 			"AZURE_CLIENT_SECRET":   aksClientSecret,
@@ -212,7 +213,7 @@ var (
 
 	gkeCreateSecretRequest = secret.CreateSecretRequest{
 		Name:       secretName,
-		SecretType: secret.Google,
+		SecretType: btypes.Google,
 		Values: map[string]string{
 			"type":                        gkeType,
 			"project_id":                  gkeProjectId,
@@ -229,7 +230,7 @@ var (
 
 	awsMissingKey = secret.CreateSecretRequest{
 		Name:       secretName,
-		SecretType: secret.Amazon,
+		SecretType: btypes.Amazon,
 		Values: map[string]string{
 			"AWS_SECRET_ACCESS_KEY": awsSecretAccessKey,
 		},
@@ -237,7 +238,7 @@ var (
 
 	aksMissingKey = secret.CreateSecretRequest{
 		Name:       secretName,
-		SecretType: secret.Azure,
+		SecretType: btypes.Azure,
 		Values: map[string]string{
 			"AZURE_CLIENT_ID":       aksClientId,
 			"AZURE_TENANT_ID":       aksTenantId,
@@ -247,7 +248,7 @@ var (
 
 	gkeMissingKey = secret.CreateSecretRequest{
 		Name:       secretName,
-		SecretType: secret.Google,
+		SecretType: btypes.Google,
 		Values: map[string]string{
 			"type":                        gkeType,
 			"project_id":                  gkeProjectId,
@@ -264,7 +265,7 @@ var (
 		{
 			ID:         secretIdAmazon,
 			Name:       secretName,
-			SecretType: secret.Amazon,
+			SecretType: btypes.Amazon,
 			Values:     nil,
 		},
 	}
@@ -273,7 +274,7 @@ var (
 		{
 			ID:         secretIdAzure,
 			Name:       secretName,
-			SecretType: secret.Azure,
+			SecretType: btypes.Azure,
 			Values:     nil,
 		},
 	}
@@ -282,7 +283,7 @@ var (
 		{
 			ID:         secretIdGoogle,
 			Name:       secretName,
-			SecretType: secret.Google,
+			SecretType: btypes.Google,
 			Values:     nil,
 		},
 	}
@@ -291,18 +292,18 @@ var (
 		{
 			ID:         secretIdAmazon,
 			Name:       secretName,
-			SecretType: secret.Amazon,
+			SecretType: btypes.Amazon,
 			Values:     nil,
 		},
 		{
 			ID:         secretIdAzure,
 			Name:       secretName,
-			SecretType: secret.Azure,
+			SecretType: btypes.Azure,
 			Values:     nil,
 		}, {
 			ID:         secretIdGoogle,
 			Name:       secretName,
-			SecretType: secret.Google,
+			SecretType: btypes.Google,
 			Values:     nil,
 		},
 	}
@@ -314,14 +315,14 @@ var (
 	}
 
 	awsRequiredKeys = secret.AllowedFilteredSecretTypesResponse{
-		Keys: secret.DefaultRules[secret.Amazon],
+		Keys: secret.DefaultRules[btypes.Amazon],
 	}
 
 	aksRequiredKeys = secret.AllowedFilteredSecretTypesResponse{
-		Keys: secret.DefaultRules[secret.Azure],
+		Keys: secret.DefaultRules[btypes.Azure],
 	}
 
 	gkeRequiredKeys = secret.AllowedFilteredSecretTypesResponse{
-		Keys: secret.DefaultRules[secret.Google],
+		Keys: secret.DefaultRules[btypes.Google],
 	}
 )

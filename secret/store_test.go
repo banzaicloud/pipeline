@@ -1,6 +1,7 @@
 package secret_test
 
 import (
+	btypes "github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/secret"
 	"reflect"
 	"testing"
@@ -96,7 +97,7 @@ const (
 var (
 	awsCreateSecretFull = secret.CreateSecretRequest{
 		Name:       secretDesc,
-		SecretType: secret.Amazon,
+		SecretType: btypes.Amazon,
 		Values: map[string]string{
 			secret.AwsAccessKeyId:     AwsAccessKeyId,
 			secret.AwsSecretAccessKey: AwsSecretAccessKey,
@@ -105,7 +106,7 @@ var (
 
 	awsMissingKey = secret.CreateSecretRequest{
 		Name:       secretDesc,
-		SecretType: secret.Amazon,
+		SecretType: btypes.Amazon,
 		Values: map[string]string{
 			secret.AwsSecretAccessKey: AwsSecretAccessKey,
 		},
@@ -113,7 +114,7 @@ var (
 
 	aksCreateSecretFull = secret.CreateSecretRequest{
 		Name:       secretDesc,
-		SecretType: secret.Azure,
+		SecretType: btypes.Azure,
 		Values: map[string]string{
 			secret.AzureClientId:       AzureClientId,
 			secret.AzureClientSecret:   AzureClientSecret,
@@ -124,7 +125,7 @@ var (
 
 	aksMissingKey = secret.CreateSecretRequest{
 		Name:       secretDesc,
-		SecretType: secret.Azure,
+		SecretType: btypes.Azure,
 		Values: map[string]string{
 			secret.AzureClientId:       AzureClientId,
 			secret.AzureSubscriptionId: AzureSubscriptionId,
@@ -133,7 +134,7 @@ var (
 
 	gkeCreateSecretFull = secret.CreateSecretRequest{
 		Name:       secretDesc,
-		SecretType: secret.Google,
+		SecretType: btypes.Google,
 		Values: map[string]string{
 			secret.Type:          gkeType,
 			secret.ProjectId:     gkeProjectId,
@@ -150,7 +151,7 @@ var (
 
 	gkeMissingKey = secret.CreateSecretRequest{
 		Name:       secretDesc,
-		SecretType: secret.Google,
+		SecretType: btypes.Google,
 		Values: map[string]string{
 			secret.Type:          gkeType,
 			secret.ProjectId:     gkeProjectId,
@@ -169,7 +170,7 @@ var (
 	secretItem1 = secret.SecretsItemResponse{
 		ID:         secretId,
 		Name:       secretDesc,
-		SecretType: secret.Google,
+		SecretType: btypes.Google,
 		Values: map[string]string{
 			secret.ProjectId: gkeProjectId,
 		},

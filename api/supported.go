@@ -35,12 +35,8 @@ func GetSupportedClusterList(c *gin.Context) {
 				Key:  constants.Google,
 			},
 			{
-				Name: "Build Your Own Cluster",
-				Key:  constants.BYOC,
-			},
-			{
-				Name: "Dummy cluster",
-				Key:  constants.Dummy,
+				Name: "Kubernetes Cluster",
+				Key:  constants.Kubernetes,
 			},
 		},
 	})

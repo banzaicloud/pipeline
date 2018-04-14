@@ -76,7 +76,7 @@ func main() {
 		&model.GoogleClusterModel{},
 		&model.GoogleNodePoolModel{},
 		&model.DummyClusterModel{},
-		&model.BYOClusterModel{},
+		&model.KubernetesClusterModel{},
 		&auth_identity.AuthIdentity{},
 		&auth.User{},
 		&auth.UserOrganization{},
