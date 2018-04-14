@@ -212,3 +212,8 @@ func (d *DummyCluster) GetClusterDetails() (*components.ClusterDetailsResponse, 
 		Id:   status.ResourceID,
 	}, nil
 }
+
+// ValidateCreationFields validates all field
+func (d *DummyCluster) ValidateCreationFields(r *components.CreateClusterRequest) error {
+	return nil
+}

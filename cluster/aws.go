@@ -855,3 +855,92 @@ func (c *AWSCluster) GetClusterDetails() (*components.ClusterDetailsResponse, er
 		Id:   c.modelCluster.ID,
 	}, nil
 }
+
+// ValidateCreationFields validates all field
+func (c *AWSCluster) ValidateCreationFields(r *components.CreateClusterRequest) error {
+	location := r.Location
+
+	// Validate location
+	log.Info("Validate location")
+	if err := c.validateLocation(location); err != nil {
+		return err
+	}
+	log.Info("Validate location passed")
+
+	// Validate images
+	log.Info("Validate images")
+	masterImage := r.Properties.CreateClusterAmazon.Master.Image
+	nodeImage := r.Properties.CreateClusterAmazon.Node.Image
+	if err := c.validateAMIs(masterImage, nodeImage, location); err != nil {
+		return err
+	}
+	log.Info("Validate images passed")
+
+	return nil
+
+}
+
+// validateLocation validates location
+func (c *AWSCluster) validateLocation(location string) error {
+	log.Infof("Location: %s", location)
+	validRegions, err := ListRegions()
+	if err != nil {
+		return err
+	}
+
+	log.Infof("Valid locations: %#v", validRegions)
+	isContains := false
+	for _, r := range validRegions {
+		if location == *r.RegionName {
+			isContains = true
+			break
+		}
+	}
+
+	if !isContains {
+		return constants.ErrorNotValidLocation
+	}
+
+	return nil
+}
+
+// validateAMIs validates AMIs
+func (c *AWSCluster) validateAMIs(masterAMI, nodeAMI, location string) error {
+
+	log.Infof("Master image: %s", masterAMI)
+	log.Infof("Node image: %s", nodeAMI)
+	validImages, err := ListAMIs(location, nil)
+	if err != nil {
+		return err
+	}
+
+	isMasterValid := false
+	isNodeValid := false
+	for _, image := range validImages {
+		if image != nil && image.ImageId != nil {
+			if masterAMI == *image.ImageId {
+				isMasterValid = true
+				if isNodeValid {
+					break
+				}
+			}
+
+			if nodeAMI == *image.ImageId {
+				isNodeValid = true
+				if isMasterValid {
+					break
+				}
+			}
+		}
+	}
+
+	if !isMasterValid {
+		return constants.ErrorNotValidMasterImage
+	}
+
+	if !isNodeValid {
+		return constants.ErrorNotValidNodeImage
+	}
+
+	return nil
+}

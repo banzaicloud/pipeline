@@ -75,3 +75,13 @@ func ConvertJson2Map(js []byte) (map[string]string, error) {
 	err := json.Unmarshal(js, &result)
 	return result, err
 }
+
+// Contains checks slice contains `s` string
+func Contains(slice []string, s string) bool {
+	for _, sl := range slice {
+		if sl == s {
+			return true
+		}
+	}
+	return false
+}

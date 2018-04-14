@@ -512,3 +512,97 @@ func (c *AKSCluster) GetClusterDetails() (*components.ClusterDetailsResponse, er
 	}
 	return nil, constants.ErrorClusterNotReady
 }
+
+// ValidateCreationFields validates all field
+func (c *AKSCluster) ValidateCreationFields(r *bTypes.CreateClusterRequest) error {
+
+	location := r.Location
+
+	// Validate location
+	log.Info("Validate location")
+	if err := c.validateLocation(location); err != nil {
+		return err
+	}
+	log.Info("Validate location passed")
+
+	// Validate machine types
+	nodePools := r.Properties.CreateClusterAzure.NodePools
+	log.Info("Validate nodePools")
+	if err := c.validateMachineType(nodePools, location); err != nil {
+		return err
+	}
+	log.Info("Validate nodePools passed")
+
+	// Validate kubernetes version
+	log.Info("Validate kubernetesVersion")
+	k8sVersion := r.Properties.CreateClusterAzure.KubernetesVersion
+	if err := c.validateKubernetesVersion(k8sVersion, location); err != nil {
+		return err
+	}
+	log.Info("Validate kubernetesVersion passed")
+
+	return nil
+
+}
+
+// validateLocation validates location
+func (c *AKSCluster) validateLocation(location string) error {
+	log.Infof("Location: %s", location)
+	validLocations, err := GetLocations(c.GetOrg(), c.GetSecretID())
+	if err != nil {
+		return err
+	}
+
+	log.Infof("Valid locations: %#v", validLocations)
+
+	if isOk := utils.Contains(validLocations, location); !isOk {
+		return constants.ErrorNotValidLocation
+	}
+
+	return nil
+}
+
+// validateMachineType validates nodeInstanceTypes
+func (c *AKSCluster) validateMachineType(nodePools map[string]*banzaiAzureTypes.NodePoolCreate, location string) error {
+
+	var machineTypes []string
+	for _, nodePool := range nodePools {
+		if nodePool != nil {
+			machineTypes = append(machineTypes, nodePool.NodeInstanceType)
+		}
+	}
+
+	log.Infof("NodeInstanceTypes: %v", machineTypes)
+
+	validMachineTypes, err := GetMachineTypes(c.GetOrg(), c.GetSecretID(), location)
+	if err != nil {
+		return err
+	}
+	log.Infof("Valid NodeInstanceTypes: %v", validMachineTypes[location])
+
+	for _, mt := range machineTypes {
+		if isOk := utils.Contains(validMachineTypes[location], mt); !isOk {
+			return constants.ErrorNotValidNodeInstanceType
+		}
+	}
+
+	return nil
+}
+
+// validateKubernetesVersion validates k8s version
+func (c *AKSCluster) validateKubernetesVersion(k8sVersion, location string) error {
+
+	log.Infof("K8SVersion: %s", k8sVersion)
+	validVersions, err := GetKubernetesVersion(c.GetOrg(), c.GetSecretID(), location)
+	if err != nil {
+		return err
+	}
+	log.Infof("Valid K8SVersions: %s", validVersions)
+
+	if isOk := utils.Contains(validVersions, k8sVersion); !isOk {
+		return constants.ErrorNotValidKubernetesVersion
+	}
+
+	return nil
+
+}
