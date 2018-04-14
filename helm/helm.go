@@ -518,7 +518,7 @@ func ChartsGet(clusterName, queryName, queryRepo, queryVersion string) ([]ChartL
 
 type ChartDetails struct {
 	Name   string             `json:"name"`
-	Repo   string             `json:"name"`
+	Repo   string             `json:"repo"`
 	Chart  *repo.ChartVersion `json:"chart"`
 	Values string             `json:"values"`
 	Readme string             `json:"readme"`
