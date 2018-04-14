@@ -1552,3 +1552,107 @@ func (g *GKECluster) GetClusterDetails() (*components.ClusterDetailsResponse, er
 	}
 	return nil, constants.ErrorClusterNotReady
 }
+
+// ValidateCreationFields validates all field
+func (g *GKECluster) ValidateCreationFields(r *components.CreateClusterRequest) error {
+
+	location := r.Location
+
+	// Validate location
+	log.Info("Validate location")
+	if err := g.validateLocation(location); err != nil {
+		return err
+	}
+	log.Info("Validate location passed")
+
+	// Validate machine types
+	nodePools := r.Properties.CreateClusterGoogle.NodePools
+	log.Info("Validate nodePools")
+	if err := g.validateMachineType(nodePools, location); err != nil {
+		return err
+	}
+	log.Info("Validate nodePools passed")
+
+	// Validate kubernetes version
+	log.Info("Validate kubernetesVersion")
+	masterVersion := r.Properties.CreateClusterGoogle.Master.Version
+	nodeVersion := r.Properties.CreateClusterGoogle.NodeVersion
+	if err := g.validateKubernetesVersion(masterVersion, nodeVersion, location); err != nil {
+		return err
+	}
+	log.Info("Validate kubernetesVersion passed")
+
+	return nil
+}
+
+// validateLocation validates location
+func (g *GKECluster) validateLocation(location string) error {
+	log.Infof("Location: %s", location)
+	validLocations, err := GetZones(g.GetOrg(), g.GetSecretID())
+	if err != nil {
+		return err
+	}
+
+	log.Infof("Valid locations: %v", validLocations)
+
+	if isOk := utils.Contains(validLocations, location); !isOk {
+		return constants.ErrorNotValidLocation
+	}
+
+	return nil
+}
+
+// validateMachineType validates nodeInstanceTypes
+func (g *GKECluster) validateMachineType(nodePools map[string]*bGoogle.NodePool, location string) error {
+
+	var machineTypes []string
+	for _, nodePool := range nodePools {
+		if nodePool != nil {
+			machineTypes = append(machineTypes, nodePool.NodeInstanceType)
+		}
+	}
+
+	log.Infof("NodeInstanceTypes: %v", machineTypes)
+
+	validMachineTypes, err := GetAllMachineTypesByZone(g.GetOrg(), g.GetSecretID(), location)
+	if err != nil {
+		return err
+	}
+	log.Infof("Valid NodeInstanceTypes: %v", validMachineTypes[location])
+
+	for _, mt := range machineTypes {
+		if isOk := utils.Contains(validMachineTypes[location], mt); !isOk {
+			return constants.ErrorNotValidNodeInstanceType
+		}
+	}
+
+	return nil
+}
+
+// validateKubernetesVersion validates k8s versions
+func (g *GKECluster) validateKubernetesVersion(masterVersion, nodeVersion, location string) error {
+
+	log.Infof("Master version: %s", masterVersion)
+	log.Infof("Node version: %s", nodeVersion)
+	config, err := GetGkeServerConfig(g.GetOrg(), g.GetSecretID(), location)
+	if err != nil {
+		return err
+	}
+
+	validNodeVersions := config.ValidNodeVersions
+	log.Infof("Valid node versions: %s", validNodeVersions)
+
+	if isOk := utils.Contains(validNodeVersions, nodeVersion); !isOk {
+		return constants.ErrorNotValidNodeVersion
+	}
+
+	validMasterVersions := config.ValidMasterVersions
+	log.Infof("Valid master versions: %s", validMasterVersions)
+
+	if isOk := utils.Contains(validMasterVersions, masterVersion); !isOk {
+		return constants.ErrorNotValidMasterVersion
+	}
+
+	return nil
+
+}

@@ -41,6 +41,7 @@ type CommonCluster interface {
 	GetOrg() uint
 	UpdateStatus(string) error
 	GetClusterDetails() (*bTypes.ClusterDetailsResponse, error)
+	ValidateCreationFields(r *bTypes.CreateClusterRequest) error
 }
 
 func GetSecret(cluster CommonCluster) (*secret.SecretsItemResponse, error) {

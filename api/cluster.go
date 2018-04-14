@@ -164,6 +164,19 @@ func CreateCluster(c *gin.Context) {
 		return
 	}
 
+	log.Info("Validate creation fields")
+	if err := commonCluster.ValidateCreationFields(&createClusterRequest); err != nil {
+		log.Errorf("Error during request validation: %s", err.Error())
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: err.Error(),
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	log.Info("Validation passed")
+
 	// Persist the cluster in Database
 	err = commonCluster.Persist(constants.Creating)
 	if err != nil {

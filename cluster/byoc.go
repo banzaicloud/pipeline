@@ -195,3 +195,8 @@ func (b *BYOCluster) GetClusterDetails() (*components.ClusterDetailsResponse, er
 		Id:   status.ResourceID,
 	}, nil
 }
+
+// ValidateCreationFields validates all field
+func (b *BYOCluster) ValidateCreationFields(r *components.CreateClusterRequest) error {
+	return nil
+}

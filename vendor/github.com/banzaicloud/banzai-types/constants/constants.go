@@ -105,6 +105,13 @@ var (
 	ErrorCloudInfoK8SNotSupported   = errors.New("Not supported key in case of amazon")
 	ErrorNodePoolNotProvided        = errors.New("At least one 'nodepool' is required for creating or updating a cluster")
 	ErrorOnlyOneNodeModify          = errors.New("only one node can be modified at a time")
+	ErrorNotValidLocation           = errors.New("not valid location")
+	ErrorNotValidMasterImage        = errors.New("not valid master image")
+	ErrorNotValidNodeImage          = errors.New("not valid node image")
+	ErrorNotValidNodeInstanceType   = errors.New("not valid nodeInstanceType")
+	ErrorNotValidMasterVersion      = errors.New("not valid master version")
+	ErrorNotValidNodeVersion        = errors.New("not valid node version")
+	ErrorNotValidKubernetesVersion  = errors.New("not valid kubernetesVersion")
 )
 
 // ### [ Keywords ] ###
