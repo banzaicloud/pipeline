@@ -105,17 +105,17 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 
 		return dummyCluster, nil
 
-	case constants.BYOC:
-		// Create BYOC struct
-		byocCluster, err := CreateBYOCClusterFromModel(modelCluster)
+	case constants.Kubernetes:
+		// Create Kubernetes struct
+		KubernetesCluster, err := CreateKubernetesClusterFromModel(modelCluster)
 		if err != nil {
 			return nil, err
 		}
 
-		log.Info("Load BYOC props from database")
-		database.Where(model.BYOClusterModel{ClusterModelId: byocCluster.modelCluster.ID}).First(&byocCluster.modelCluster.BYOC)
+		log.Info("Load Kubernetes props from database")
+		database.Where(model.KubernetesClusterModel{ClusterModelId: KubernetesCluster.modelCluster.ID}).First(&KubernetesCluster.modelCluster.Kubernetes)
 
-		return byocCluster, nil
+		return KubernetesCluster, nil
 	}
 
 	return nil, constants.ErrorNotSupportedCloudType
@@ -164,9 +164,9 @@ func CreateCommonClusterFromRequest(createClusterRequest *bTypes.CreateClusterRe
 
 		return dummy, nil
 
-	case constants.BYOC:
+	case constants.Kubernetes:
 		// Create BYOC struct
-		byoc, err := CreateBYOCClusterFromRequest(createClusterRequest, orgId)
+		byoc, err := CreateKubernetesClusterFromRequest(createClusterRequest, orgId)
 		if err != nil {
 			return nil, err
 		}

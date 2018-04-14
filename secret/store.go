@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/banzaicloud/bank-vaults/vault"
+	btypes "github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/config"
 	vaultapi "github.com/hashicorp/vault/api"
 	"github.com/pkg/errors"
@@ -18,11 +19,7 @@ var Store *secretStore
 
 // Validated secret types
 const (
-	Amazon     = "AMAZON_SECRET"
-	Azure      = "AZURE_SECRET"
-	Google     = "GOOGLE_SECRET"
-	General    = "GENERAL_SECRET"
-	Kubernetes = "KUBERNETES_SECRET"
+	General = "GENERAL_SECRET"
 )
 
 func init() {
@@ -91,17 +88,17 @@ func GenerateSecretID() string {
 
 // DefaultRules key matching for types
 var DefaultRules = map[string][]string{
-	Amazon: {
+	btypes.Amazon: {
 		AwsAccessKeyId,
 		AwsSecretAccessKey,
 	},
-	Azure: {
+	btypes.Azure: {
 		AzureClientId,
 		AzureClientSecret,
 		AzureTenantId,
 		AzureSubscriptionId,
 	},
-	Google: {
+	btypes.Google: {
 		Type,
 		ProjectId,
 		PrivateKeyId,
@@ -113,7 +110,7 @@ var DefaultRules = map[string][]string{
 		AuthX509Url,
 		ClientX509Url,
 	},
-	Kubernetes: {
+	btypes.Kubernetes: {
 		K8SConfig,
 	},
 }

@@ -63,11 +63,11 @@ const (
 
 // ### [ Constants to cloud types ] ### //
 const (
-	Amazon = "amazon"
-	Azure  = "azure"
-	Google = "google"
-	Dummy  = "dummy"
-	BYOC   = "byoc"
+	Amazon     = "amazon"
+	Azure      = "azure"
+	Google     = "google"
+	Dummy      = "dummy"
+	Kubernetes = "kubernetes"
 )
 
 // ### [ Constants to table names ] ### //
@@ -79,7 +79,7 @@ const (
 	TableNameGoogleProperties = "google_cluster_properties"
 	TableNameGoogleNodePools  = "google_node_pools"
 	TableNameDummyProperties  = "dummy_cluster_properties"
-	TableNameBYOCProperties   = "byoc_cluster_properties"
+	TableNameKubernetesProperties   = "kubernetes_cluster_properties"
 )
 
 // ### [ Errors ] ### //

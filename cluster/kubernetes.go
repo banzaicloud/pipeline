@@ -12,12 +12,12 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// CreateBYOCClusterFromRequest creates ClusterModel struct from the request
-func CreateBYOCClusterFromRequest(request *components.CreateClusterRequest, orgId uint) (*BYOCluster, error) {
+// CreateKubeClusterFromRequest creates ClusterModel struct from the request
+func CreateKubernetesClusterFromRequest(request *components.CreateClusterRequest, orgId uint) (*Kubecluster, error) {
 
 	log := logger.WithFields(logrus.Fields{"action": constants.TagCreateCluster})
 	log.Debug("Create ClusterModel struct from the request")
-	var cluster BYOCluster
+	var cluster Kubecluster
 
 	cluster.modelCluster = &model.ClusterModel{
 		Model:            gorm.Model{},
@@ -27,43 +27,43 @@ func CreateBYOCClusterFromRequest(request *components.CreateClusterRequest, orgI
 		Cloud:            request.Cloud,
 		OrganizationId:   orgId,
 		SecretId:         request.SecretId,
-		BYOC: model.BYOClusterModel{
-			Metadata: request.Properties.CreateBYOC.Metadata,
+		Kubernetes: model.KubernetesClusterModel{
+			Metadata: request.Properties.CreateKubernetes.Metadata,
 		},
 	}
 	return &cluster, nil
 
 }
 
-// BYOCluster struct for Build your own cluster
-type BYOCluster struct {
+// Kubecluster struct for Build your own cluster
+type Kubecluster struct {
 	modelCluster *model.ClusterModel
 	k8sConfig    []byte
 	APIEndpoint  string
 }
 
 // CreateCluster creates a new cluster
-func (b *BYOCluster) CreateCluster() error {
+func (b *Kubecluster) CreateCluster() error {
 
 	clusterSecret, err := GetSecret(b)
 	if err != nil {
 		return err
 	}
 
-	if clusterSecret.SecretType != secret.Kubernetes {
-		return errors.Errorf("missmatch secret type %s versus %s", clusterSecret.SecretType, secret.Kubernetes)
+	if clusterSecret.SecretType != constants.Kubernetes {
+		return errors.Errorf("missmatch secret type %s versus %s", clusterSecret.SecretType, constants.Kubernetes)
 	}
 
 	return nil
 }
 
 // Persist save the cluster model
-func (b *BYOCluster) Persist(status string) error {
+func (b *Kubecluster) Persist(status string) error {
 	return b.modelCluster.UpdateStatus(status)
 }
 
 // GetK8sConfig returns the Kubernetes config
-func (b *BYOCluster) GetK8sConfig() ([]byte, error) {
+func (b *Kubecluster) GetK8sConfig() ([]byte, error) {
 	s, err := GetSecret(b)
 	if err != nil {
 		return nil, err
@@ -73,17 +73,17 @@ func (b *BYOCluster) GetK8sConfig() ([]byte, error) {
 }
 
 // GetName returns the name of the cluster
-func (b *BYOCluster) GetName() string {
+func (b *Kubecluster) GetName() string {
 	return b.modelCluster.Name
 }
 
 // GetType returns the cloud type of the cluster
-func (b *BYOCluster) GetType() string {
-	return constants.BYOC
+func (b *Kubecluster) GetType() string {
+	return constants.Kubernetes
 }
 
 // GetStatus gets cluster status
-func (b *BYOCluster) GetStatus() (*components.GetClusterStatusResponse, error) {
+func (b *Kubecluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 
 	if len(b.modelCluster.Location) == 0 || len(b.modelCluster.NodeInstanceType) == 0 {
 		log.Debug("Empty location and/or nodeInstanceType.. reload from db")
@@ -96,49 +96,53 @@ func (b *BYOCluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 		Status:           b.modelCluster.Status,
 		Name:             b.GetName(),
 		Location:         b.modelCluster.Location,
-		Cloud:            constants.BYOC,
+		Cloud:            constants.Kubernetes,
 		NodeInstanceType: b.modelCluster.NodeInstanceType,
 		ResourceID:       b.modelCluster.ID,
 	}, nil
 }
 
 // DeleteCluster deletes cluster from cloud, in this case no delete function
-func (b *BYOCluster) DeleteCluster() error {
+func (b *Kubecluster) DeleteCluster() error {
 	return nil
 }
 
 // UpdateCluster updates cluster in cloud, in this case no update function
-func (b *BYOCluster) UpdateCluster(*components.UpdateClusterRequest) error {
+func (b *Kubecluster) UpdateCluster(*components.UpdateClusterRequest) error {
 	return nil
 }
 
+func (b *Kubecluster) UpdateClusterModelFromRequest(*components.UpdateClusterRequest) {
+	// BYOC not supports update cluster
+}
+
 // GetID returns the specified cluster id
-func (b *BYOCluster) GetID() uint {
+func (b *Kubecluster) GetID() uint {
 	return b.modelCluster.ID
 }
 
 // GetSecretID returns the specified secret id
-func (b *BYOCluster) GetSecretID() string {
+func (b *Kubecluster) GetSecretID() string {
 	return b.modelCluster.SecretId
 }
 
 // GetModel returns the whole clusterModel
-func (b *BYOCluster) GetModel() *model.ClusterModel {
+func (b *Kubecluster) GetModel() *model.ClusterModel {
 	return b.modelCluster
 }
 
 // CheckEqualityToUpdate validates the update request, in this case no update function
-func (b *BYOCluster) CheckEqualityToUpdate(*components.UpdateClusterRequest) error {
+func (b *Kubecluster) CheckEqualityToUpdate(*components.UpdateClusterRequest) error {
 	return nil
 }
 
 // AddDefaultsToUpdate adds defaults to update request, in this case no update function
-func (b *BYOCluster) AddDefaultsToUpdate(*components.UpdateClusterRequest) {
+func (b *Kubecluster) AddDefaultsToUpdate(*components.UpdateClusterRequest) {
 
 }
 
 // GetAPIEndpoint returns the Kubernetes Api endpoint
-func (b *BYOCluster) GetAPIEndpoint() (string, error) {
+func (b *Kubecluster) GetAPIEndpoint() (string, error) {
 
 	if b.APIEndpoint != "" {
 		return b.APIEndpoint, nil
@@ -161,30 +165,30 @@ func (b *BYOCluster) GetAPIEndpoint() (string, error) {
 }
 
 // DeleteFromDatabase deletes model from the database
-func (b *BYOCluster) DeleteFromDatabase() error {
+func (b *Kubecluster) DeleteFromDatabase() error {
 	return b.modelCluster.Delete()
 }
 
 // GetOrg returns the specified organization id
-func (b *BYOCluster) GetOrg() uint {
+func (b *Kubecluster) GetOrg() uint {
 	return b.modelCluster.OrganizationId
 }
 
-// CreateBYOCClusterFromModel converts ClusterModel to BYOCluster
-func CreateBYOCClusterFromModel(clusterModel *model.ClusterModel) (*BYOCluster, error) {
+// CreateBYOCClusterFromModel converts ClusterModel to Kubecluster
+func CreateKubernetesClusterFromModel(clusterModel *model.ClusterModel) (*Kubecluster, error) {
 	log := logger.WithFields(logrus.Fields{"action": constants.TagGetCluster})
 	log.Debug("Create ClusterModel struct from the request")
-	byocCluster := BYOCluster{
+	byocCluster := Kubecluster{
 		modelCluster: clusterModel,
 	}
 	return &byocCluster, nil
 }
 
-func (b *BYOCluster) UpdateStatus(status string) error {
+func (b *Kubecluster) UpdateStatus(status string) error {
 	return b.modelCluster.UpdateStatus(status)
 }
 
-func (b *BYOCluster) GetClusterDetails() (*components.ClusterDetailsResponse, error) {
+func (b *Kubecluster) GetClusterDetails() (*components.ClusterDetailsResponse, error) {
 	status, err := b.GetStatus()
 	if err != nil {
 		return nil, err
@@ -197,6 +201,6 @@ func (b *BYOCluster) GetClusterDetails() (*components.ClusterDetailsResponse, er
 }
 
 // ValidateCreationFields validates all field
-func (b *BYOCluster) ValidateCreationFields(r *components.CreateClusterRequest) error {
+func (b *Kubecluster) ValidateCreationFields(r *components.CreateClusterRequest) error {
 	return nil
 }

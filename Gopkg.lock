@@ -149,13 +149,13 @@
     "components",
     "components/amazon",
     "components/azure",
-    "components/byoc",
     "components/dummy",
     "components/google",
     "components/helm",
+    "components/kubernetes",
     "constants"
   ]
-  revision = "a8d471fdcee7596f012b2b1e6a404c84a069fbb7"
+  revision = "f6495444b5a8ca429405b62dccc4b8b18156b131"
 
 [[projects]]
   branch = "master"
@@ -1700,6 +1700,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "5f5ad33d3cc3bbb5444e20e5eaf7ced1414fa63e42e8c71d029cee9da7e9a7ca"
+  inputs-digest = "4c4856c00d17db42983915acae5753b712d473b40adf96275a7367994575d068"
   solver-name = "gps-cdcl"
   solver-version = 1

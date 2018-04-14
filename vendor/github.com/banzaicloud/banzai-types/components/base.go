@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"github.com/banzaicloud/banzai-types/components/amazon"
 	"github.com/banzaicloud/banzai-types/components/azure"
-	"github.com/banzaicloud/banzai-types/components/byoc"
 	"github.com/banzaicloud/banzai-types/components/dummy"
 	"github.com/banzaicloud/banzai-types/components/google"
+	"github.com/banzaicloud/banzai-types/components/kubernetes"
 	"github.com/banzaicloud/banzai-types/constants"
 )
 
@@ -23,11 +23,11 @@ type CreateClusterRequest struct {
 	NodeInstanceType string `json:"nodeInstanceType"`
 	SecretId         string `json:"secret_id" binding:"required"`
 	Properties       struct {
-		CreateClusterAmazon *amazon.CreateClusterAmazon `json:"amazon,omitempty"`
-		CreateClusterAzure  *azure.CreateClusterAzure   `json:"azure,omitempty"`
-		CreateClusterGoogle *google.CreateClusterGoogle `json:"google,omitempty"`
-		CreateClusterDummy  *dummy.CreateClusterDummy   `json:"dummy,omitempty"`
-		CreateBYOC          *byoc.CreateBYOC            `json:"byoc,omitempty"`
+		CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
+		CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
+		CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
+		CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
+		CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
 	} `json:"properties" binding:"required"`
 }
 
@@ -134,9 +134,9 @@ func (r *CreateClusterRequest) Validate() error {
 	case constants.Dummy:
 		// dummy validate
 		return r.Properties.CreateClusterDummy.Validate()
-	case constants.BYOC:
-		// byoc validate
-		return r.Properties.CreateBYOC.Validate()
+	case constants.Kubernetes:
+		// kubernetes validate
+		return r.Properties.CreateKubernetes.Validate()
 	default:
 		// not supported cloud type
 		return constants.ErrorNotSupportedCloudType
@@ -144,7 +144,7 @@ func (r *CreateClusterRequest) Validate() error {
 }
 
 func (r *CreateClusterRequest) validateMainFields() error {
-	if r.Cloud != constants.BYOC {
+	if r.Cloud != constants.Kubernetes {
 		if len(r.Location) == 0 {
 			return constants.ErrorLocationEmpty
 		}

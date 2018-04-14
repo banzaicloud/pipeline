@@ -23,8 +23,8 @@ local: ## Starts local MySql and admin in docker
 local-kill: ## Kills local MySql and admin
 	docker-compose -f docker-compose-local.yml kill
 
-docker-build: docker-dev-img ## Builds go binary in docker image
-	docker run -it -v $(PWD):/go/src/github.com/banzaicloud/pipeline -w /go/src/github.com/banzaicloud/pipeline pipeline-primary go build -o pipeline_linux .
+docker-build: ## Builds go binary in docker image
+	docker run -it -v $(PWD):/go/src/github.com/banzaicloud/pipeline -w /go/src/github.com/banzaicloud/pipeline golang:1.10.1-alpine go build -o pipeline_linux .
 
 deps: ## Install dependencies required for building
 	which dep > /dev/null || brew install dep

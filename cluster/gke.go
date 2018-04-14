@@ -1439,8 +1439,8 @@ func (g *GKECluster) newClientFromCredentials() (*http.Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	if clusterSecret.SecretType != secret.Google {
-		return nil, errors.Errorf("missmatch secret type %s versus %s", clusterSecret.SecretType, secret.Google)
+	if clusterSecret.SecretType != constants.Google {
+		return nil, errors.Errorf("missmatch secret type %s versus %s", clusterSecret.SecretType, constants.Google)
 	}
 
 	// TODO https://github.com/mitchellh/mapstructure

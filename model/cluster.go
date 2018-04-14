@@ -27,7 +27,7 @@ type ClusterModel struct {
 	Azure            AzureClusterModel
 	Google           GoogleClusterModel
 	Dummy            DummyClusterModel
-	BYOC             BYOClusterModel
+	Kubernetes       KubernetesClusterModel
 }
 
 //AmazonClusterModel describes the amazon cluster model
@@ -83,8 +83,8 @@ type DummyClusterModel struct {
 	NodeCount         int
 }
 
-//BYOClusterModel describes the build your own cluster model
-type BYOClusterModel struct {
+//KubernetesClusterModel describes the build your own cluster model
+type KubernetesClusterModel struct {
 	ClusterModelId uint              `gorm:"primary_key"`
 	Metadata       map[string]string `gorm:"-"`
 	MetadataRaw    []byte            `gorm:"meta_data"`
@@ -106,24 +106,24 @@ func (gc GoogleClusterModel) String() string {
 	return buffer.String()
 }
 
-// BeforeSave converts the metadata into a json string in case of BYOC
+// BeforeSave converts the metadata into a json string in case of Kubernetes
 func (cs *ClusterModel) BeforeSave() error {
 	log := logger.WithFields(logrus.Fields{"tag": "BeforeSave"})
 	log.Info("Before save convert meta data")
 
-	if cs.Cloud == constants.BYOC && cs.BYOC.MetadataRaw != nil && len(cs.BYOC.MetadataRaw) != 0 {
-		if out, err := json.Marshal(cs.BYOC.Metadata); err != nil {
+	if cs.Cloud == constants.Kubernetes && cs.Kubernetes.MetadataRaw != nil && len(cs.Kubernetes.MetadataRaw) != 0 {
+		if out, err := json.Marshal(cs.Kubernetes.Metadata); err != nil {
 			log.Errorf("Error during convert map to json: %s", err.Error())
 			return err
 		} else {
-			cs.BYOC.MetadataRaw = out
+			cs.Kubernetes.MetadataRaw = out
 		}
 	}
 
 	return nil
 }
 
-// AfterFind converts metadata json string into map in case of BYOC and sets NodeInstanceType and/or Location field(s)
+// AfterFind converts metadata json string into map in case of Kubernetes and sets NodeInstanceType and/or Location field(s)
 // to unknown if they are empty
 func (cs *ClusterModel) AfterFind() error {
 
@@ -138,12 +138,12 @@ func (cs *ClusterModel) AfterFind() error {
 		cs.NodeInstanceType = unknown
 	}
 
-	if cs.Cloud == constants.BYOC && cs.BYOC.MetadataRaw != nil && len(cs.BYOC.MetadataRaw) != 0 {
-		if out, err := utils.ConvertJson2Map(cs.BYOC.MetadataRaw); err != nil {
+	if cs.Cloud == constants.Kubernetes && cs.Kubernetes.MetadataRaw != nil && len(cs.Kubernetes.MetadataRaw) != 0 {
+		if out, err := utils.ConvertJson2Map(cs.Kubernetes.MetadataRaw); err != nil {
 			log.Errorf("Error during convert json to map: %s", err.Error())
 			return err
 		} else {
-			cs.BYOC.Metadata = out
+			cs.Kubernetes.Metadata = out
 		}
 	}
 
@@ -197,8 +197,8 @@ func (cs *ClusterModel) String() string {
 		buffer.WriteString(fmt.Sprintf("Node count: %d, kubernetes version: %s",
 			cs.Dummy.NodeCount,
 			cs.Dummy.KubernetesVersion))
-	} else if cs.Cloud == constants.BYOC {
-		buffer.WriteString(fmt.Sprintf("Metadata: %#v", cs.BYOC.Metadata))
+	} else if cs.Cloud == constants.Kubernetes {
+		buffer.WriteString(fmt.Sprintf("Metadata: %#v", cs.Kubernetes.Metadata))
 	}
 
 	return buffer.String()
@@ -249,9 +249,9 @@ func (DummyClusterModel) TableName() string {
 	return constants.TableNameDummyProperties
 }
 
-//TableName sets the BYOClusterModel's table name
-func (BYOClusterModel) TableName() string {
-	return constants.TableNameBYOCProperties
+//TableName sets the KubernetesClusterModel's table name
+func (KubernetesClusterModel) TableName() string {
+	return constants.TableNameKubernetesProperties
 }
 
 func (googleClusterModel *GoogleClusterModel) AfterUpdate(scope *gorm.Scope) error {

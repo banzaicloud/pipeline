@@ -151,8 +151,8 @@ func (c *AWSCluster) CreateCluster() error {
 	if err != nil {
 		return err
 	}
-	if clusterSecret.SecretType != secret.Amazon {
-		return errors.Errorf("missmatch secret type %s versus %s", clusterSecret.SecretType, secret.Amazon)
+	if clusterSecret.SecretType != constants.Amazon {
+		return errors.Errorf("missmatch secret type %s versus %s", clusterSecret.SecretType, constants.Amazon)
 	}
 	awsCred := credentials.NewStaticCredentials(
 		clusterSecret.Values[secret.AwsAccessKeyId],
@@ -486,8 +486,8 @@ func (c *AWSCluster) UpdateCluster(request *components.UpdateClusterRequest) err
 	if err != nil {
 		return err
 	}
-	if clusterSecret.SecretType != secret.Amazon {
-		return errors.Errorf("missmatch secret type %s versus %s", clusterSecret.SecretType, secret.Amazon)
+	if clusterSecret.SecretType != constants.Amazon {
+		return errors.Errorf("missmatch secret type %s versus %s", clusterSecret.SecretType, constants.Amazon)
 	}
 	awsCred := credentials.NewStaticCredentials(
 		clusterSecret.Values[secret.AwsAccessKeyId],
@@ -573,8 +573,8 @@ func (c *AWSCluster) DeleteCluster() error {
 	if err != nil {
 		return err
 	}
-	if clusterSecret.SecretType != secret.Amazon {
-		return errors.Errorf("missmatch secret type %s versus %s", clusterSecret.SecretType, secret.Amazon)
+	if clusterSecret.SecretType != constants.Amazon {
+		return errors.Errorf("missmatch secret type %s versus %s", clusterSecret.SecretType, constants.Amazon)
 	}
 	awsCred := credentials.NewStaticCredentials(
 		clusterSecret.Values[secret.AwsAccessKeyId],

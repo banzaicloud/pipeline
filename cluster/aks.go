@@ -65,8 +65,8 @@ func (c *AKSCluster) GetAKSClient() (*azureClient.AKSClient, error) {
 	if err != nil {
 		return nil, err
 	}
-	if clusterSecret.SecretType != secret.Azure {
-		return nil, errors.Errorf("missmatch secret type %s versus %s", clusterSecret.SecretType, secret.Azure)
+	if clusterSecret.SecretType != constants.Azure {
+		return nil, errors.Errorf("missmatch secret type %s versus %s", clusterSecret.SecretType, constants.Azure)
 	}
 	creds := &azureCluster.AKSCredential{
 		ClientId:       clusterSecret.Values[secret.AzureClientId],
