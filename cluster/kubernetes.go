@@ -13,11 +13,11 @@ import (
 )
 
 // CreateKubeClusterFromRequest creates ClusterModel struct from the request
-func CreateKubernetesClusterFromRequest(request *components.CreateClusterRequest, orgId uint) (*Kubecluster, error) {
+func CreateKubernetesClusterFromRequest(request *components.CreateClusterRequest, orgId uint) (*KubeCluster, error) {
 
 	log := logger.WithFields(logrus.Fields{"action": constants.TagCreateCluster})
 	log.Debug("Create ClusterModel struct from the request")
-	var cluster Kubecluster
+	var cluster KubeCluster
 
 	cluster.modelCluster = &model.ClusterModel{
 		Model:            gorm.Model{},
@@ -35,15 +35,15 @@ func CreateKubernetesClusterFromRequest(request *components.CreateClusterRequest
 
 }
 
-// Kubecluster struct for Build your own cluster
-type Kubecluster struct {
+// KubeCluster struct for Build your own cluster
+type KubeCluster struct {
 	modelCluster *model.ClusterModel
 	k8sConfig    []byte
 	APIEndpoint  string
 }
 
 // CreateCluster creates a new cluster
-func (b *Kubecluster) CreateCluster() error {
+func (b *KubeCluster) CreateCluster() error {
 
 	clusterSecret, err := GetSecret(b)
 	if err != nil {
@@ -58,12 +58,12 @@ func (b *Kubecluster) CreateCluster() error {
 }
 
 // Persist save the cluster model
-func (b *Kubecluster) Persist(status string) error {
+func (b *KubeCluster) Persist(status string) error {
 	return b.modelCluster.UpdateStatus(status)
 }
 
 // GetK8sConfig returns the Kubernetes config
-func (b *Kubecluster) GetK8sConfig() ([]byte, error) {
+func (b *KubeCluster) GetK8sConfig() ([]byte, error) {
 	s, err := GetSecret(b)
 	if err != nil {
 		return nil, err
@@ -73,17 +73,17 @@ func (b *Kubecluster) GetK8sConfig() ([]byte, error) {
 }
 
 // GetName returns the name of the cluster
-func (b *Kubecluster) GetName() string {
+func (b *KubeCluster) GetName() string {
 	return b.modelCluster.Name
 }
 
 // GetType returns the cloud type of the cluster
-func (b *Kubecluster) GetType() string {
+func (b *KubeCluster) GetType() string {
 	return constants.Kubernetes
 }
 
 // GetStatus gets cluster status
-func (b *Kubecluster) GetStatus() (*components.GetClusterStatusResponse, error) {
+func (b *KubeCluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 
 	if len(b.modelCluster.Location) == 0 || len(b.modelCluster.NodeInstanceType) == 0 {
 		log.Debug("Empty location and/or nodeInstanceType.. reload from db")
@@ -103,46 +103,46 @@ func (b *Kubecluster) GetStatus() (*components.GetClusterStatusResponse, error) 
 }
 
 // DeleteCluster deletes cluster from cloud, in this case no delete function
-func (b *Kubecluster) DeleteCluster() error {
+func (b *KubeCluster) DeleteCluster() error {
 	return nil
 }
 
 // UpdateCluster updates cluster in cloud, in this case no update function
-func (b *Kubecluster) UpdateCluster(*components.UpdateClusterRequest) error {
+func (b *KubeCluster) UpdateCluster(*components.UpdateClusterRequest) error {
 	return nil
 }
 
-func (b *Kubecluster) UpdateClusterModelFromRequest(*components.UpdateClusterRequest) {
+func (b *KubeCluster) UpdateClusterModelFromRequest(*components.UpdateClusterRequest) {
 	// BYOC not supports update cluster
 }
 
 // GetID returns the specified cluster id
-func (b *Kubecluster) GetID() uint {
+func (b *KubeCluster) GetID() uint {
 	return b.modelCluster.ID
 }
 
 // GetSecretID returns the specified secret id
-func (b *Kubecluster) GetSecretID() string {
+func (b *KubeCluster) GetSecretID() string {
 	return b.modelCluster.SecretId
 }
 
 // GetModel returns the whole clusterModel
-func (b *Kubecluster) GetModel() *model.ClusterModel {
+func (b *KubeCluster) GetModel() *model.ClusterModel {
 	return b.modelCluster
 }
 
 // CheckEqualityToUpdate validates the update request, in this case no update function
-func (b *Kubecluster) CheckEqualityToUpdate(*components.UpdateClusterRequest) error {
+func (b *KubeCluster) CheckEqualityToUpdate(*components.UpdateClusterRequest) error {
 	return nil
 }
 
 // AddDefaultsToUpdate adds defaults to update request, in this case no update function
-func (b *Kubecluster) AddDefaultsToUpdate(*components.UpdateClusterRequest) {
+func (b *KubeCluster) AddDefaultsToUpdate(*components.UpdateClusterRequest) {
 
 }
 
 // GetAPIEndpoint returns the Kubernetes Api endpoint
-func (b *Kubecluster) GetAPIEndpoint() (string, error) {
+func (b *KubeCluster) GetAPIEndpoint() (string, error) {
 
 	if b.APIEndpoint != "" {
 		return b.APIEndpoint, nil
@@ -165,30 +165,30 @@ func (b *Kubecluster) GetAPIEndpoint() (string, error) {
 }
 
 // DeleteFromDatabase deletes model from the database
-func (b *Kubecluster) DeleteFromDatabase() error {
+func (b *KubeCluster) DeleteFromDatabase() error {
 	return b.modelCluster.Delete()
 }
 
 // GetOrg returns the specified organization id
-func (b *Kubecluster) GetOrg() uint {
+func (b *KubeCluster) GetOrg() uint {
 	return b.modelCluster.OrganizationId
 }
 
-// CreateBYOCClusterFromModel converts ClusterModel to Kubecluster
-func CreateKubernetesClusterFromModel(clusterModel *model.ClusterModel) (*Kubecluster, error) {
+// CreateKubernetesClusterFromModel converts ClusterModel to KubeCluster
+func CreateKubernetesClusterFromModel(clusterModel *model.ClusterModel) (*KubeCluster, error) {
 	log := logger.WithFields(logrus.Fields{"action": constants.TagGetCluster})
 	log.Debug("Create ClusterModel struct from the request")
-	byocCluster := Kubecluster{
+	kubeCluster := KubeCluster{
 		modelCluster: clusterModel,
 	}
-	return &byocCluster, nil
+	return &kubeCluster, nil
 }
 
-func (b *Kubecluster) UpdateStatus(status string) error {
+func (b *KubeCluster) UpdateStatus(status string) error {
 	return b.modelCluster.UpdateStatus(status)
 }
 
-func (b *Kubecluster) GetClusterDetails() (*components.ClusterDetailsResponse, error) {
+func (b *KubeCluster) GetClusterDetails() (*components.ClusterDetailsResponse, error) {
 	status, err := b.GetStatus()
 	if err != nil {
 		return nil, err
@@ -201,6 +201,6 @@ func (b *Kubecluster) GetClusterDetails() (*components.ClusterDetailsResponse, e
 }
 
 // ValidateCreationFields validates all field
-func (b *Kubecluster) ValidateCreationFields(r *components.CreateClusterRequest) error {
+func (b *KubeCluster) ValidateCreationFields(r *components.CreateClusterRequest) error {
 	return nil
 }
