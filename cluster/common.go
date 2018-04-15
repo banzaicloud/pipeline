@@ -165,12 +165,12 @@ func CreateCommonClusterFromRequest(createClusterRequest *bTypes.CreateClusterRe
 		return dummy, nil
 
 	case constants.Kubernetes:
-		// Create BYOC struct
-		byoc, err := CreateKubernetesClusterFromRequest(createClusterRequest, orgId)
+		// Create Kubernetes struct
+		kubeCluster, err := CreateKubernetesClusterFromRequest(createClusterRequest, orgId)
 		if err != nil {
 			return nil, err
 		}
-		return byoc, nil
+		return kubeCluster, nil
 	}
 
 	return nil, constants.ErrorNotSupportedCloudType
