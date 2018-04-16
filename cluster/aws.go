@@ -13,7 +13,6 @@ import (
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/banzaicloud/pipeline/utils"
 	kcluster "github.com/kubicorn/kubicorn/apis/cluster"
 	"github.com/kubicorn/kubicorn/pkg"
 	"github.com/kubicorn/kubicorn/pkg/initapi"
@@ -30,6 +29,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // Simple init for logging
@@ -115,6 +115,8 @@ func CreateAWSClusterFromRequest(request *components.CreateClusterRequest, orgId
 	log.Debug("Create ClusterModel struct from the request")
 	var cluster AWSCluster
 
+	modelNodePools := createNodePoolsFromRequest(request.Properties.CreateClusterAmazon.NodePools)
+
 	cluster.modelCluster = &model.ClusterModel{
 		Name:             request.Name,
 		Location:         request.Location,
@@ -123,15 +125,29 @@ func CreateAWSClusterFromRequest(request *components.CreateClusterRequest, orgId
 		SecretId:         request.SecretId,
 		OrganizationId:   orgId,
 		Amazon: model.AmazonClusterModel{
-			NodeSpotPrice:      request.Properties.CreateClusterAmazon.Node.SpotPrice,
-			NodeMinCount:       request.Properties.CreateClusterAmazon.Node.MinCount,
-			NodeMaxCount:       request.Properties.CreateClusterAmazon.Node.MaxCount,
-			NodeImage:          request.Properties.CreateClusterAmazon.Node.Image,
 			MasterInstanceType: request.Properties.CreateClusterAmazon.Master.InstanceType,
 			MasterImage:        request.Properties.CreateClusterAmazon.Master.Image,
+			NodePools:          modelNodePools,
 		},
 	}
 	return &cluster, nil
+}
+
+func createNodePoolsFromRequest(nodePools map[string]*amazon.AmazonNodePool) []*model.AmazonNodePoolsModel {
+	var modelNodePools = make([]*model.AmazonNodePoolsModel, len(nodePools))
+	i := 0
+	for nodePoolName, nodePool := range nodePools {
+		modelNodePools[i] = &model.AmazonNodePoolsModel{
+			Name:             nodePoolName,
+			NodeInstanceType: nodePool.InstanceType,
+			NodeSpotPrice:    nodePool.SpotPrice,
+			NodeImage:        nodePool.Image,
+			NodeMinCount:     nodePool.MinCount,
+			NodeMaxCount:     nodePool.MaxCount,
+		}
+		i++
+	}
+	return modelNodePools
 }
 
 //Persist save the cluster model
@@ -230,9 +246,216 @@ func getStateStoreForCluster(clusterType *model.ClusterModel) (stateStore state.
 	return stateStore
 }
 
+func GetMasterServerPool(cs *model.ClusterModel, nodeServerPool []*kcluster.ServerPool, uuidSuffix string) *kcluster.ServerPool {
+	var ingressRules = make([]*kcluster.IngressRule, 2+len(nodeServerPool))
+	ingressRules[0] = &kcluster.IngressRule{
+		IngressFromPort: "22",
+		IngressToPort:   "22",
+		IngressSource:   "0.0.0.0/0",
+		IngressProtocol: "tcp",
+	}
+	ingressRules[1] = &kcluster.IngressRule{
+		IngressFromPort: "443",
+		IngressToPort:   "443",
+		IngressSource:   "0.0.0.0/0",
+		IngressProtocol: "tcp",
+	}
+
+	for i, node := range nodeServerPool {
+		ingressRules[i+2] = &kcluster.IngressRule{
+			IngressFromPort: "0",
+			IngressToPort:   "65535",
+			IngressSource:   node.Subnets[0].CIDR,
+			IngressProtocol: "-1",
+		}
+	}
+
+	return &kcluster.ServerPool{
+		Type:     kcluster.ServerPoolTypeMaster,
+		Name:     fmt.Sprintf("%s.master", cs.Name),
+		MinCount: 1,
+		MaxCount: 1,
+		Image:    cs.Amazon.MasterImage, //"ami-835b4efa"
+		Size:     cs.Amazon.MasterInstanceType,
+		BootstrapScripts: []string{
+			getBootstrapScriptFromEnv(true),
+		},
+		InstanceProfile: &kcluster.IAMInstanceProfile{
+			Name: fmt.Sprintf("%s-KubicornMasterInstanceProfile", cs.Name),
+			Role: &kcluster.IAMRole{
+				Name: fmt.Sprintf("%s-KubicornMasterRole", cs.Name),
+				Policies: []*kcluster.IAMPolicy{
+					{
+						Name: "MasterPolicy",
+						Document: `{
+                  "Version": "2012-10-17",
+                  "Statement": [
+                     {
+                        "Effect": "Allow",
+                        "Action": [
+                           "ec2:*",
+                           "elasticloadbalancing:*",
+                           "ecr:GetAuthorizationToken",
+                           "ecr:BatchCheckLayerAvailability",
+                           "ecr:GetDownloadUrlForLayer",
+                           "ecr:GetRepositoryPolicy",
+                           "ecr:DescribeRepositories",
+                           "ecr:ListImages",
+                           "ecr:BatchGetImage",
+                           "autoscaling:DescribeAutoScalingGroups",
+                           "autoscaling:UpdateAutoScalingGroup",
+													 "autoscaling:DescribeAutoScalingInstances",
+													 "autoscaling:DescribeTags",
+													 "autoscaling:DescribeLaunchConfigurations",
+													 "autoscaling:SetDesiredCapacity",
+													 "autoscaling:TerminateInstanceInAutoScalingGroup",
+													 "s3:ListBucket",
+													 "s3:GetObject",
+													 "s3:PutObject",
+													 "s3:ListObjects",
+													 "s3:DeleteObject"
+                        ],
+                        "Resource": "*"
+                     }
+                  ]
+								}`,
+					},
+				},
+			},
+		},
+		Subnets: []*kcluster.Subnet{
+			{
+				Name:     fmt.Sprintf("%s.master", cs.Name),
+				CIDR:     "10.0.0.0/24",
+				Location: cs.Location,
+			},
+		},
+		Firewalls: []*kcluster.Firewall{
+			{
+				Name:         fmt.Sprintf("%s.master-external-%s", cs.Name, uuidSuffix),
+				IngressRules: ingressRules,
+			},
+		},
+	}
+}
+
+func GetAsgNodePoolName(asgName string) string {
+	if strings.HasSuffix(asgName, "master") {
+		return "master"
+	}
+	asgNameSplit := strings.Split(asgName, ".node.")
+	if len(asgNameSplit) > 1 {
+		return asgNameSplit[1]
+	}
+	return asgName
+}
+
+func GetNodeServerPool(clusterName string, location string, nodePool *model.AmazonNodePoolsModel,
+	cidr string, uuidSuffix string) *kcluster.ServerPool {
+
+	return &kcluster.ServerPool{
+		ObjectMeta: metav1.ObjectMeta{
+			Labels: map[string]string{
+				"k8s.io/cluster-autoscaler/enabled":    "true",
+				"kubernetes.io/cluster/" + clusterName: "true",
+			},
+		},
+		Type:     kcluster.ServerPoolTypeNode,
+		Name:     fmt.Sprintf("%s.node.%s", clusterName, nodePool.Name),
+		MinCount: nodePool.NodeMinCount,
+		MaxCount: nodePool.NodeMaxCount,
+		Image:    nodePool.NodeImage, //"ami-835b4efa"
+		Size:     nodePool.NodeInstanceType,
+		AwsConfiguration: &kcluster.AwsConfiguration{
+			SpotPrice: nodePool.NodeSpotPrice,
+		},
+		BootstrapScripts: []string{
+			getBootstrapScriptFromEnv(false),
+		},
+		InstanceProfile: &kcluster.IAMInstanceProfile{
+			Name: fmt.Sprintf("%s-KubicornNodeInstanceProfile-%s", clusterName, nodePool.Name),
+			Role: &kcluster.IAMRole{
+				Name: fmt.Sprintf("%s-KubicornNodeRole-%s", clusterName, nodePool.Name),
+				Policies: []*kcluster.IAMPolicy{
+					{
+						Name: "NodePolicy",
+						Document: `{
+                  "Version": "2012-10-17",
+                  "Statement": [
+                     {
+                        "Effect": "Allow",
+                        "Action": [
+            							"ec2:Describe*",
+            							"ecr:GetAuthorizationToken",
+            							"ecr:BatchCheckLayerAvailability",
+            							"ecr:GetDownloadUrlForLayer",
+            							"ecr:GetRepositoryPolicy",
+            							"ecr:DescribeRepositories",
+            							"ecr:ListImages",
+            							"ecr:BatchGetImage",
+													"s3:ListBucket",
+													"s3:GetObject",
+													"s3:PutObject",
+													"s3:ListObjects",
+													"s3:DeleteObject",
+													"autoscaling:DescribeAutoScalingGroups",
+													"autoscaling:UpdateAutoScalingGroup",
+													"autoscaling:DescribeAutoScalingInstances",
+													"autoscaling:DescribeTags",
+													"autoscaling:DescribeLaunchConfigurations",
+													"autoscaling:SetDesiredCapacity",
+													"autoscaling:TerminateInstanceInAutoScalingGroup"
+                        ],
+                        "Resource": "*"
+                     }
+                  ]
+								}`,
+					},
+				},
+			},
+		},
+		Subnets: []*kcluster.Subnet{
+			{
+				Name:     fmt.Sprintf("%s.node.%s", clusterName, nodePool.Name),
+				CIDR:     cidr,
+				Location: location,
+			},
+		},
+		Firewalls: []*kcluster.Firewall{
+			{
+				Name: fmt.Sprintf("%s.node.%s-external-%s", clusterName, nodePool.Name, uuidSuffix),
+				IngressRules: []*kcluster.IngressRule{
+					{
+						IngressFromPort: "22",
+						IngressToPort:   "22",
+						IngressSource:   "0.0.0.0/0",
+						IngressProtocol: "tcp",
+					},
+					{
+						IngressFromPort: "0",
+						IngressToPort:   "65535",
+						IngressSource:   "10.0.0.0/24",
+						IngressProtocol: "-1",
+					},
+				},
+			},
+		},
+	}
+}
+
 // GetKubicornProfile creates *cluster.Cluster from ClusterModel struct
 func GetKubicornProfile(cs *model.ClusterModel) *kcluster.Cluster {
+
 	uuidSuffix := uuid.TimeOrderedUUID()
+	var nodeServerPool = make([]*kcluster.ServerPool, len(cs.Amazon.NodePools))
+	for i, nodePool := range cs.Amazon.NodePools {
+		nodeServerPool[i] = GetNodeServerPool(cs.Name, cs.Location, nodePool, fmt.Sprintf("10.0.%d.0/24", 100+i), uuidSuffix)
+	}
+	var masterServerPool = []*kcluster.ServerPool{
+		GetMasterServerPool(cs, nodeServerPool, uuidSuffix),
+	}
+	nodeServerPool = append(masterServerPool, nodeServerPool...)
+
 	return &kcluster.Cluster{
 		Name:     cs.Name,
 		Cloud:    kcluster.CloudAmazon,
@@ -255,165 +478,7 @@ func GetKubicornProfile(cs *model.ClusterModel) *kcluster.Cluster {
 				"INJECTEDTOKEN": kubeadm.GetRandomToken(),
 			},
 		},
-		ServerPools: []*kcluster.ServerPool{
-			{
-				Type:     kcluster.ServerPoolTypeMaster,
-				Name:     fmt.Sprintf("%s.master", cs.Name),
-				MinCount: 1,
-				MaxCount: 1,
-				Image:    cs.Amazon.MasterImage, //"ami-835b4efa"
-				Size:     cs.NodeInstanceType,
-				BootstrapScripts: []string{
-					getBootstrapScriptFromEnv(true),
-				},
-				InstanceProfile: &kcluster.IAMInstanceProfile{
-					Name: fmt.Sprintf("%s-KubicornMasterInstanceProfile", cs.Name),
-					Role: &kcluster.IAMRole{
-						Name: fmt.Sprintf("%s-KubicornMasterRole", cs.Name),
-						Policies: []*kcluster.IAMPolicy{
-							{
-								Name: "MasterPolicy",
-								Document: `{
-                  "Version": "2012-10-17",
-                  "Statement": [
-                     {
-                        "Effect": "Allow",
-                        "Action": [
-                           "ec2:*",
-                           "elasticloadbalancing:*",
-                           "ecr:GetAuthorizationToken",
-                           "ecr:BatchCheckLayerAvailability",
-                           "ecr:GetDownloadUrlForLayer",
-                           "ecr:GetRepositoryPolicy",
-                           "ecr:DescribeRepositories",
-                           "ecr:ListImages",
-                           "ecr:BatchGetImage",
-                           "autoscaling:DescribeAutoScalingGroups",
-                           "autoscaling:UpdateAutoScalingGroup",
-													 "s3:ListBucket",
-													 "s3:GetObject",
-													 "s3:PutObject",
-													 "s3:ListObjects",
-													 "s3:DeleteObject"
-                        ],
-                        "Resource": "*"
-                     }
-                  ]
-								}`,
-							},
-						},
-					},
-				},
-				Subnets: []*kcluster.Subnet{
-					{
-						Name:     fmt.Sprintf("%s.master", cs.Name),
-						CIDR:     "10.0.0.0/24",
-						Location: cs.Location,
-					},
-				},
-
-				Firewalls: []*kcluster.Firewall{
-					{
-						Name: fmt.Sprintf("%s.master-external-%s", cs.Name, uuidSuffix),
-						IngressRules: []*kcluster.IngressRule{
-							{
-								IngressFromPort: "22",
-								IngressToPort:   "22",
-								IngressSource:   "0.0.0.0/0",
-								IngressProtocol: "tcp",
-							},
-							{
-								IngressFromPort: "443",
-								IngressToPort:   "443",
-								IngressSource:   "0.0.0.0/0",
-								IngressProtocol: "tcp",
-							},
-							{
-								IngressFromPort: "0",
-								IngressToPort:   "65535",
-								IngressSource:   "10.0.100.0/24",
-								IngressProtocol: "-1",
-							},
-						},
-					},
-				},
-			},
-			{
-				Type:     kcluster.ServerPoolTypeNode,
-				Name:     fmt.Sprintf("%s.node", cs.Name),
-				MinCount: cs.Amazon.NodeMinCount,
-				MaxCount: cs.Amazon.NodeMaxCount,
-				Image:    cs.Amazon.NodeImage, //"ami-835b4efa"
-				Size:     cs.NodeInstanceType,
-				AwsConfiguration: &kcluster.AwsConfiguration{
-					SpotPrice: cs.Amazon.NodeSpotPrice,
-				},
-				BootstrapScripts: []string{
-					getBootstrapScriptFromEnv(false),
-				},
-				InstanceProfile: &kcluster.IAMInstanceProfile{
-					Name: fmt.Sprintf("%s-KubicornNodeInstanceProfile", cs.Name),
-					Role: &kcluster.IAMRole{
-						Name: fmt.Sprintf("%s-KubicornNodeRole", cs.Name),
-						Policies: []*kcluster.IAMPolicy{
-							{
-								Name: "NodePolicy",
-								Document: `{
-                  "Version": "2012-10-17",
-                  "Statement": [
-                     {
-                        "Effect": "Allow",
-                        "Action": [
-            							"ec2:Describe*",
-            							"ecr:GetAuthorizationToken",
-            							"ecr:BatchCheckLayerAvailability",
-            							"ecr:GetDownloadUrlForLayer",
-            							"ecr:GetRepositoryPolicy",
-            							"ecr:DescribeRepositories",
-            							"ecr:ListImages",
-            							"ecr:BatchGetImage",
-													"s3:ListBucket",
-													"s3:GetObject",
-													"s3:PutObject",
-													"s3:ListObjects",
-													"s3:DeleteObject"
-                        ],
-                        "Resource": "*"
-                     }
-                  ]
-								}`,
-							},
-						},
-					},
-				},
-				Subnets: []*kcluster.Subnet{
-					{
-						Name:     fmt.Sprintf("%s.node", cs.Name),
-						CIDR:     "10.0.100.0/24",
-						Location: cs.Location,
-					},
-				},
-				Firewalls: []*kcluster.Firewall{
-					{
-						Name: fmt.Sprintf("%s.node-external-%s", cs.Name, uuidSuffix),
-						IngressRules: []*kcluster.IngressRule{
-							{
-								IngressFromPort: "22",
-								IngressToPort:   "22",
-								IngressSource:   "0.0.0.0/0",
-								IngressProtocol: "tcp",
-							},
-							{
-								IngressFromPort: "0",
-								IngressToPort:   "65535",
-								IngressSource:   "10.0.0.0/24",
-								IngressProtocol: "-1",
-							},
-						},
-					},
-				},
-			},
-		},
+		ServerPools: nodeServerPool,
 	}
 }
 
@@ -443,6 +508,21 @@ func (c *AWSCluster) UpdateCluster(request *components.UpdateClusterRequest) err
 		return constants.ErrorEmptyUpdateRequest
 	}
 
+	existingNodePools := map[string]*model.AmazonNodePoolsModel{}
+	for _, nodePool := range c.modelCluster.Amazon.NodePools {
+		existingNodePools[nodePool.Name] = nodePool
+	}
+
+	updatedNodePools := make([]*model.AmazonNodePoolsModel, len(c.modelCluster.Amazon.NodePools))
+
+	existingAsgs := map[string]*kcluster.ServerPool{}
+	for _, asg := range c.kubicornCluster.ServerPools {
+		poolName := GetAsgNodePoolName(asg.Name)
+		existingAsgs[poolName] = asg
+	}
+
+	//updatedAsgs := make([]*kcluster.ServerPool, len(c.modelCluster.Amazon.NodePools))
+
 	log.Info("Create updated model")
 	updateCluster := &model.ClusterModel{
 		Model:            c.modelCluster.Model,
@@ -454,12 +534,9 @@ func (c *AWSCluster) UpdateCluster(request *components.UpdateClusterRequest) err
 		SecretId:         c.modelCluster.SecretId,
 		Status:           c.modelCluster.Status,
 		Amazon: model.AmazonClusterModel{
-			NodeSpotPrice:      c.modelCluster.Amazon.NodeSpotPrice,
-			NodeMinCount:       request.Amazon.MinCount,
-			NodeMaxCount:       request.Amazon.MaxCount,
-			NodeImage:          c.modelCluster.Amazon.NodeImage,
 			MasterInstanceType: c.modelCluster.Amazon.MasterInstanceType,
 			MasterImage:        c.modelCluster.Amazon.MasterImage,
+			NodePools:          updatedNodePools,
 		},
 	}
 
@@ -471,10 +548,10 @@ func (c *AWSCluster) UpdateCluster(request *components.UpdateClusterRequest) err
 	log.Debug("Resizing cluster: ", c.GetName())
 	kubicornCluster.ServerPools[0].MinCount = 1
 	kubicornCluster.ServerPools[0].MaxCount = 1
-	log.Debugf("Worker pool min size from %d to %d", kubicornCluster.ServerPools[1].MinCount, updateCluster.Amazon.NodeMinCount)
-	kubicornCluster.ServerPools[1].MinCount = updateCluster.Amazon.NodeMinCount
-	log.Debugf("Worker pool max size from %d to %d", kubicornCluster.ServerPools[1].MaxCount, updateCluster.Amazon.NodeMaxCount)
-	kubicornCluster.ServerPools[1].MaxCount = updateCluster.Amazon.NodeMaxCount
+	//log.Debugf("Worker pool min size from %d to %d", kubicornCluster.ServerPools[1].MinCount, updateCluster.Amazon.NodeMinCount)
+	//kubicornCluster.ServerPools[1].MinCount = updateCluster.Amazon.NodeMinCount
+	//log.Debugf("Worker pool max size from %d to %d", kubicornCluster.ServerPools[1].MaxCount, updateCluster.Amazon.NodeMaxCount)
+	//kubicornCluster.ServerPools[1].MaxCount = updateCluster.Amazon.NodeMaxCount
 
 	log.Debug("Get reconciler")
 
@@ -713,46 +790,46 @@ func getBootstrapScriptFromEnv(isMaster bool) string {
 
 //AddDefaultsToUpdate adds defaults to update request
 func (c *AWSCluster) AddDefaultsToUpdate(r *components.UpdateClusterRequest) {
-
+	log.Info("TODO")
 	// ---- [ Node check ] ---- //
-	if r.Amazon.UpdateAmazonNode == nil {
-		log.Info("'node' field is empty. Fill from stored data")
-		r.Amazon.UpdateAmazonNode = &amazon.UpdateAmazonNode{
-			MinCount: c.modelCluster.Amazon.NodeMinCount,
-			MaxCount: c.modelCluster.Amazon.NodeMaxCount,
-		}
-	}
-
-	// ---- [ Node min count check ] ---- //
-	if r.Amazon.UpdateAmazonNode.MinCount == 0 {
-		defMinCount := c.modelCluster.Amazon.NodeMinCount
-		log.Info(constants.TagValidateUpdateCluster, "Node minCount set to default value: ", defMinCount)
-		r.Amazon.UpdateAmazonNode.MinCount = defMinCount
-	}
-
-	// ---- [ Node max count check ] ---- //
-	if r.Amazon.UpdateAmazonNode.MaxCount == 0 {
-		defMaxCount := c.modelCluster.Amazon.NodeMaxCount
-		log.Info(constants.TagValidateUpdateCluster, "Node maxCount set to default value: ", defMaxCount)
-		r.Amazon.UpdateAmazonNode.MaxCount = defMaxCount
-	}
+	//if r.UpdateAmazonNode == nil {
+	//	log.Info("'node' field is empty. Fill from stored data")
+	//	r.UpdateAmazonNode = &amazon.UpdateAmazonNode{
+	//		MinCount: c.modelCluster.Amazon.NodeMinCount,
+	//		MaxCount: c.modelCluster.Amazon.NodeMaxCount,
+	//	}
+	//}
+	//
+	//// ---- [ Node min count check ] ---- //
+	//if r.UpdateAmazonNode.MinCount == 0 {
+	//	defMinCount := c.modelCluster.Amazon.NodeMinCount
+	//	log.Info(constants.TagValidateUpdateCluster, "Node minCount set to default value: ", defMinCount)
+	//	r.UpdateAmazonNode.MinCount = defMinCount
+	//}
+	//
+	//// ---- [ Node max count check ] ---- //
+	//if r.UpdateAmazonNode.MaxCount == 0 {
+	//	defMaxCount := c.modelCluster.Amazon.NodeMaxCount
+	//	log.Info(constants.TagValidateUpdateCluster, "Node maxCount set to default value: ", defMaxCount)
+	//	r.UpdateAmazonNode.MaxCount = defMaxCount
+	//}
 
 }
 
 //CheckEqualityToUpdate validates the update request
 func (c *AWSCluster) CheckEqualityToUpdate(r *components.UpdateClusterRequest) error {
 	// create update request struct with the stored data to check equality
-	preCl := &amazon.UpdateClusterAmazon{
-		UpdateAmazonNode: &amazon.UpdateAmazonNode{
-			MinCount: c.modelCluster.Amazon.NodeMinCount,
-			MaxCount: c.modelCluster.Amazon.NodeMaxCount,
-		},
-	}
+	//preCl := &amazon.UpdateClusterAmazon{
+	//	UpdateAmazonNode: &amazon.UpdateAmazonNode{
+	//		MinCount: c.modelCluster.Amazon.NodeMinCount,
+	//		MaxCount: c.modelCluster.Amazon.NodeMaxCount,
+	//	},
+	//}
 
 	log.Info("Check stored & updated cluster equals")
 
 	// check equality
-	return utils.IsDifferent(r.Amazon, preCl)
+	return nil //utils.IsDifferent(r.UpdateClusterAmazon, preCl)
 }
 
 //DeleteFromDatabase deletes model from the database
@@ -782,9 +859,11 @@ func getKubicornLogLevel() int {
 }
 
 // ListRegions lists supported regions
-func ListRegions() ([]*ec2.Region, error) {
+func ListRegions(region string) ([]*ec2.Region, error) {
 
-	svc := newEC2Client(nil)
+	svc := newEC2Client(&aws.Config{
+		Region: &region,
+	})
 
 	resultRegions, err := svc.DescribeRegions(nil)
 	if err != nil {
@@ -870,8 +949,7 @@ func (c *AWSCluster) ValidateCreationFields(r *components.CreateClusterRequest) 
 	// Validate images
 	log.Info("Validate images")
 	masterImage := r.Properties.CreateClusterAmazon.Master.Image
-	nodeImage := r.Properties.CreateClusterAmazon.Node.Image
-	if err := c.validateAMIs(masterImage, nodeImage, location); err != nil {
+	if err := c.validateAMIs(masterImage, r.Properties.CreateClusterAmazon.NodePools, location); err != nil {
 		return err
 	}
 	log.Info("Validate images passed")
@@ -883,7 +961,7 @@ func (c *AWSCluster) ValidateCreationFields(r *components.CreateClusterRequest) 
 // validateLocation validates location
 func (c *AWSCluster) validateLocation(location string) error {
 	log.Infof("Location: %s", location)
-	validRegions, err := ListRegions()
+	validRegions, err := ListRegions(location)
 	if err != nil {
 		return err
 	}
@@ -905,42 +983,35 @@ func (c *AWSCluster) validateLocation(location string) error {
 }
 
 // validateAMIs validates AMIs
-func (c *AWSCluster) validateAMIs(masterAMI, nodeAMI, location string) error {
+func (c *AWSCluster) validateAMIs(masterAMI string, nodePools map[string]*amazon.AmazonNodePool, location string) error {
 
 	log.Infof("Master image: %s", masterAMI)
-	log.Infof("Node image: %s", nodeAMI)
-	validImages, err := ListAMIs(location, nil)
-	if err != nil {
-		return err
+	for nodePoolName, node := range nodePools {
+		log.Infof("Node pool %s image: %s", nodePoolName, node.Image)
 	}
 
-	isMasterValid := false
-	isNodeValid := false
-	for _, image := range validImages {
-		if image != nil && image.ImageId != nil {
-			if masterAMI == *image.ImageId {
-				isMasterValid = true
-				if isNodeValid {
-					break
-				}
-			}
-
-			if nodeAMI == *image.ImageId {
-				isNodeValid = true
-				if isMasterValid {
-					break
-				}
-			}
-		}
-	}
-
-	if !isMasterValid {
-		return constants.ErrorNotValidMasterImage
-	}
-
-	if !isNodeValid {
-		return constants.ErrorNotValidNodeImage
-	}
+	//validImages, err := ListAMIs(location, nil)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//var validImageMap = make(map[string]*ec2.Image, len(validImages))
+	//for _, image := range validImages {
+	//	if image.ImageId != nil {
+	//		validImageMap[*image.ImageId] = image
+	//	}
+	//}
+	//
+	//if validImageMap[masterAMI] == nil {
+	//	return constants.ErrorNotValidMasterImage
+	//}
+	//
+	//for _, node := range nodePools {
+	//	if validImageMap[node.Image] == nil {
+	//		return constants.ErrorNotValidNodeImage
+	//	}
+	//}
 
 	return nil
+
 }

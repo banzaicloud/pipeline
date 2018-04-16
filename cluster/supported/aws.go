@@ -22,7 +22,7 @@ func (a *AmazonInfo) GetNameRegexp() string {
 
 // GetLocations returns supported locations
 func (a *AmazonInfo) GetLocations() ([]string, error) {
-	if regions, err := cluster.ListRegions(); err != nil {
+	if regions, err := cluster.ListRegions(""); err != nil {
 		return nil, err
 	} else {
 		var locations []string
