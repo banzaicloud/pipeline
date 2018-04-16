@@ -79,7 +79,7 @@ const (
 	TableNameGoogleProperties = "google_cluster_properties"
 	TableNameGoogleNodePools  = "google_node_pools"
 	TableNameDummyProperties  = "dummy_cluster_properties"
-	TableNameKubernetesProperties   = "kubernetes_cluster_properties"
+	TableNameKubeProperties   = "kubernetes_cluster_properties"
 )
 
 // ### [ Errors ] ### //

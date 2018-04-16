@@ -12,17 +12,64 @@ import (
 // GKEProfile describes a Google cluster profile
 type GKEProfile struct {
 	DefaultModel
-	Location         string `gorm:"default:'us-central1-a'"`
+	Location      string                `gorm:"default:'us-central1-a'"`
+	NodeVersion   string                `gorm:"default:'1.9.4-gke.1'"`
+	MasterVersion string                `gorm:"default:'1.9.4-gke.1'"`
+	NodePools     []*GKENodePoolProfile `gorm:"foreignkey:Name"`
+}
+
+// GKENodePoolProfile describes a Google cluster profile's nodepools
+type GKENodePoolProfile struct {
+	ID               uint   `gorm:"primary_key"`
+	Count            int    `gorm:"default:1"`
 	NodeInstanceType string `gorm:"default:'n1-standard-1'"`
-	NodeCount        int    `gorm:"default:1"`
-	NodeVersion      string `gorm:"default:'1.9.4-gke.1'"`
-	MasterVersion    string `gorm:"default:'1.9.4-gke.1'"`
+	Name             string `gorm:"unique_index:idx_model_name"`
+	NodeName         string `gorm:"unique_index:idx_model_name"`
 	ServiceAccount   string
 }
 
 // TableName overrides GKEProfile's table name
 func (GKEProfile) TableName() string {
 	return DefaultGoogleProfileTablaName
+}
+
+func (GKENodePoolProfile) TableName() string {
+	return DefaultGoogleNodePoolProfileTablaName
+}
+
+// AfterFind loads nodepools to profile
+func (d *GKEProfile) AfterFind() error {
+	log.Info("AfterFind gke profile... load node pools")
+	return model.GetDB().Where(GKENodePoolProfile{Name: d.Name}).Find(&d.NodePools).Error
+}
+
+// BeforeSave clears nodepools
+func (d *GKEProfile) BeforeSave() error {
+	log.Info("BeforeSave gke profile...")
+
+	var nodePools []*GKENodePoolProfile
+	err := model.GetDB().Where(GKENodePoolProfile{
+		Name: d.Name,
+	}).Find(&nodePools).Delete(&nodePools).Error
+	if err != nil {
+		log.Errorf("Error during deleting saved nodepools: %s", err.Error())
+	}
+
+	return nil
+}
+
+// BeforeDelete deletes all nodepools to belongs to profile
+func (d *GKEProfile) BeforeDelete() error {
+	log.Info("BeforeDelete gke profile... delete all nodepool")
+
+	var nodePools []*GKENodePoolProfile
+	if err := model.GetDB().Where(GKENodePoolProfile{
+		Name: d.Name,
+	}).Find(&nodePools).Delete(&nodePools).Error; err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // SaveInstance saves cluster profile into database
@@ -41,28 +88,40 @@ func (d *GKEProfile) GetType() string {
 }
 
 // GetProfile load profile from database and converts ClusterProfileResponse
-func (d *GKEProfile) GetProfile() *components.ClusterProfileResponse {
-	loadFirst(&d)
+func (d *GKEProfile) GetProfile() (*components.ClusterProfileResponse, error) {
+	if err := loadFirst(&d); err != nil {
+		return nil, err
+	}
+
+	nodePools := make(map[string]*google.NodePool)
+	if d.NodePools != nil {
+		for _, np := range d.NodePools {
+			nodePools[np.NodeName] = &google.NodePool{
+				Count:            np.Count,
+				NodeInstanceType: np.NodeInstanceType,
+				ServiceAccount:   np.ServiceAccount,
+			}
+		}
+	}
 
 	return &components.ClusterProfileResponse{
-		Name:             d.DefaultModel.Name,
-		Location:         d.Location,
-		Cloud:            constants.Google,
-		NodeInstanceType: d.NodeInstanceType,
+		Name:     d.DefaultModel.Name,
+		Location: d.Location,
+		Cloud:    constants.Google,
 		Properties: struct {
 			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
 			Google *google.ClusterProfileGoogle `json:"google,omitempty"`
 		}{
 			Google: &google.ClusterProfileGoogle{
-				NodeVersion: d.NodeVersion,
-				NodePools:   nil, // TODO : finish me
 				Master: &google.Master{
 					Version: d.MasterVersion,
 				},
+				NodeVersion: d.NodeVersion,
+				NodePools:   nodePools,
 			},
 		},
-	}
+	}, nil
 }
 
 // UpdateProfile update profile's data with ClusterProfileRequest's data and if bool is true then update in the database
@@ -72,40 +131,26 @@ func (d *GKEProfile) UpdateProfile(r *components.ClusterProfileRequest, withSave
 		d.Location = r.Location
 	}
 
-	if len(r.NodeInstanceType) != 0 {
-		d.NodeInstanceType = r.NodeInstanceType
-	}
-
 	if r.Properties.Google != nil {
 
 		if len(r.Properties.Google.NodeVersion) != 0 {
 			d.NodeVersion = r.Properties.Google.NodeVersion
 		}
 
-		// TODO : fix me
+		if len(r.Properties.Google.NodePools) != 0 {
 
-		if len(r.Properties.Google.NodePools) > 0 {
-			for _, v := range r.Properties.Google.NodePools {
-				if v.Count != 0 {
-					d.NodeCount = v.Count
-				}
-				if len(v.ServiceAccount) != 0 {
-					d.ServiceAccount = v.ServiceAccount
-				}
-				break
+			var nodePools []*GKENodePoolProfile
+			for name, np := range r.Properties.Google.NodePools {
+				nodePools = append(nodePools, &GKENodePoolProfile{
+					Count:            np.Count,
+					NodeInstanceType: np.NodeInstanceType,
+					Name:             d.Name,
+					NodeName:         name,
+				})
 			}
+
+			d.NodePools = nodePools
 		}
-		/*
-			if r.Properties.Google.Node != nil {
-				if r.Properties.Google.Node.Count != 0 {
-					d.NodeCount = r.Properties.Google.Node.Count
-				}
-
-				if len(r.Properties.Google.Node.ServiceAccount) != 0 {
-					d.ServiceAccount = r.Properties.Google.Node.ServiceAccount
-				}
-
-			}*/
 
 		if r.Properties.Google.Master != nil {
 			d.MasterVersion = r.Properties.Google.Master.Version

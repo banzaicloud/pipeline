@@ -83,7 +83,10 @@ func main() {
 		&auth.Organization{},
 		&defaults.AWSProfile{},
 		&defaults.AKSProfile{},
-		&defaults.GKEProfile{}).Error; err != nil {
+		&defaults.AKSNodePoolProfile{},
+		&defaults.GKEProfile{},
+		&defaults.GKENodePoolProfile{},
+	).Error; err != nil {
 
 		panic(err)
 	}

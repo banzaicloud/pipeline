@@ -17,9 +17,15 @@ var log *logrus.Entry
 
 // cluster profile table names
 const (
-	DefaultAmazonProfileTablaName = "amazon_default_profile"
-	DefaultAzureProfileTablaName  = "azure_default_profile"
-	DefaultGoogleProfileTablaName = "google_default_profile"
+	DefaultAmazonProfileTablaName         = "amazon_default_profile"
+	DefaultAzureProfileTablaName          = "azure_default_profile"
+	DefaultAzureNodePoolProfileTablaName  = "azure_nodepool_default_profile"
+	DefaultGoogleProfileTablaName         = "google_default_profile"
+	DefaultGoogleNodePoolProfileTablaName = "google_nodepool_default_profile"
+)
+
+const (
+	DefaultNodeName = "pool1"
 )
 
 // Simple init for logging
@@ -56,7 +62,7 @@ type ClusterProfile interface {
 	IsDefinedBefore() bool
 	SaveInstance() error
 	GetType() string
-	GetProfile() *components.ClusterProfileResponse
+	GetProfile() (*components.ClusterProfileResponse, error)
 	UpdateProfile(*components.ClusterProfileRequest, bool) error
 	DeleteProfile() error
 }
@@ -75,8 +81,8 @@ func save(i interface{}) error {
 }
 
 // loadFirst find first record that match given conditions, order by primary key
-func loadFirst(output interface{}) {
-	model.GetDB().First(output)
+func loadFirst(output interface{}) error {
+	return model.GetDB().First(output).Error
 }
 
 // GetDefaultProfiles create all types of clouds with default profile name
@@ -84,8 +90,18 @@ func GetDefaultProfiles() []ClusterProfile {
 	var defaults []ClusterProfile
 	defaults = append(defaults,
 		&AWSProfile{DefaultModel: DefaultModel{Name: GetDefaultProfileName()}},
-		&AKSProfile{DefaultModel: DefaultModel{Name: GetDefaultProfileName()}},
-		&GKEProfile{DefaultModel: DefaultModel{Name: GetDefaultProfileName()}})
+		&AKSProfile{
+			DefaultModel: DefaultModel{Name: GetDefaultProfileName()},
+			NodePools: []*AKSNodePoolProfile{{
+				NodeName: DefaultNodeName,
+			}},
+		},
+		&GKEProfile{
+			DefaultModel: DefaultModel{Name: GetDefaultProfileName()},
+			NodePools: []*GKENodePoolProfile{{
+				NodeName: DefaultNodeName,
+			}},
+		})
 	return defaults
 }
 

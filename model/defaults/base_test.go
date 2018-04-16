@@ -84,7 +84,7 @@ func TestUpdateWithoutSave(t *testing.T) {
 
 }
 
-var (
+const (
 	name               = "TestProfile"
 	location           = "TestLocation"
 	nodeInstanceType   = "TestNodeInstance"
@@ -117,9 +117,8 @@ var (
 					Version: version,
 				},
 				NodeVersion: version,
-				// TODO: revise me
 				NodePools: map[string]*google.NodePool{
-					"pool1": {
+					agentName: {
 						Count:            nodeCount,
 						NodeInstanceType: nodeInstanceType,
 						ServiceAccount:   serviceAccount,
@@ -130,20 +129,21 @@ var (
 	}
 
 	fullRequestAKS = &components.ClusterProfileRequest{
-		Name:             name,
-		Location:         location,
-		Cloud:            constants.Azure,
-		NodeInstanceType: nodeInstanceType,
+		Name:     name,
+		Location: location,
+		Cloud:    constants.Azure,
 		Properties: struct {
 			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
 			Google *google.ClusterProfileGoogle `json:"google,omitempty"`
 		}{
 			Azure: &azure.ClusterProfileAzure{
-				Node: &azure.AzureProfileNode{
-					Count:        nodeCount,
-					AgentName:         agentName,
-					KubernetesVersion: k8sVersion,
+				KubernetesVersion: k8sVersion,
+				NodePools: map[string]*azure.NodePoolCreate{
+					agentName: {
+						Count:            nodeCount,
+						NodeInstanceType: nodeInstanceType,
+					},
 				},
 			},
 		},
@@ -175,22 +175,30 @@ var (
 	}
 
 	fullGKE = defaults.GKEProfile{
-		DefaultModel:     defaults.DefaultModel{Name: name},
-		Location:         location,
-		NodeInstanceType: nodeInstanceType,
-		MasterVersion:    version,
-		NodeCount:        nodeCount,
-		NodeVersion:      version,
-		ServiceAccount:   serviceAccount,
+		DefaultModel:  defaults.DefaultModel{Name: name},
+		Location:      location,
+		NodeVersion:   version,
+		MasterVersion: version,
+		NodePools: []*defaults.GKENodePoolProfile{
+			{
+				Count:            nodeCount,
+				NodeInstanceType: nodeInstanceType,
+				NodeName:         agentName,
+			},
+		},
 	}
 
 	fullAKS = defaults.AKSProfile{
 		DefaultModel:      defaults.DefaultModel{Name: name},
 		Location:          location,
-		NodeInstanceType:  nodeInstanceType,
-		AgentCount:        nodeCount,
-		AgentName:         agentName,
 		KubernetesVersion: k8sVersion,
+		NodePools: []*defaults.AKSNodePoolProfile{
+			{
+				NodeInstanceType: nodeInstanceType,
+				Count:            nodeCount,
+				NodeName:         agentName,
+			},
+		},
 	}
 
 	fullAWS = defaults.AWSProfile{
@@ -245,10 +253,9 @@ var (
 	}
 
 	masterGKE = defaults.GKEProfile{
-		DefaultModel:     defaults.DefaultModel{Name: name},
-		Location:         location,
-		NodeInstanceType: nodeInstanceType,
-		MasterVersion:    version,
+		DefaultModel:  defaults.DefaultModel{Name: name},
+		Location:      location,
+		MasterVersion: version,
 	}
 
 	masterAWS = defaults.AWSProfile{
@@ -273,9 +280,8 @@ var (
 		}{
 			Google: &google.ClusterProfileGoogle{
 				NodeVersion: version,
-				// TODO: revise me
 				NodePools: map[string]*google.NodePool{
-					"pool1": {
+					agentName: {
 						Count:            nodeCount,
 						NodeInstanceType: nodeInstanceType,
 					},
@@ -306,11 +312,16 @@ var (
 	}
 
 	nodeGKE = defaults.GKEProfile{
-		DefaultModel:     defaults.DefaultModel{Name: name},
-		Location:         location,
-		NodeInstanceType: nodeInstanceType,
-		NodeCount:        nodeCount,
-		NodeVersion:      version,
+		DefaultModel: defaults.DefaultModel{Name: name},
+		Location:     location,
+		NodeVersion:  version,
+		NodePools: []*defaults.GKENodePoolProfile{
+			{
+				Count:            nodeCount,
+				NodeInstanceType: nodeInstanceType,
+				NodeName:         agentName,
+			},
+		},
 	}
 
 	nodeAWS = defaults.AWSProfile{
@@ -347,15 +358,13 @@ var (
 	}
 
 	emptyGKE = defaults.GKEProfile{
-		DefaultModel:     defaults.DefaultModel{Name: name},
-		Location:         location,
-		NodeInstanceType: nodeInstanceType,
+		DefaultModel: defaults.DefaultModel{Name: name},
+		Location:     location,
 	}
 
 	emptyAKS = defaults.AKSProfile{
-		DefaultModel:     defaults.DefaultModel{Name: name},
-		Location:         location,
-		NodeInstanceType: nodeInstanceType,
+		DefaultModel: defaults.DefaultModel{Name: name},
+		Location:     location,
 	}
 
 	emptyAWS = defaults.AWSProfile{

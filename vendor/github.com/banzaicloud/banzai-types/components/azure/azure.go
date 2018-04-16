@@ -123,11 +123,6 @@ type Config struct {
 }
 
 type ClusterProfileAzure struct {
-	Node *AzureProfileNode `json:"node,omitempty"`
-}
-
-type AzureProfileNode struct {
-	Count             int    `json:"count"`
-	AgentName         string `json:"agentName"`
-	KubernetesVersion string `json:"kubernetesVersion"`
+	KubernetesVersion string                     `json:"kubernetesVersion"`
+	NodePools         map[string]*NodePoolCreate `json:"nodePools,omitempty"`
 }
