@@ -223,16 +223,19 @@ func (r *InstanceProfile) Apply(actual, expected cloud.Resource, immutable *clus
 		Description:              S("Kubicorn Role"),
 		Path:                     S("/"),
 	}
+	irName := ""
 	outInstanceRole, err := Sdk.IAM.CreateRole(roleinput)
 	if err != nil {
 		logger.Debug("CreateRole error: %v", err)
 		if err.(awserr.Error).Code() != iam.ErrCodeEntityAlreadyExistsException {
-			return nil, nil, err
+			irName = expected.(*InstanceProfile).Role.Name
 		}
+	}else {
+		irName = *outInstanceRole.Role.RoleName
 	}
 	newIamRole := &IAMRole{
 		Shared: Shared{
-			Name: *outInstanceRole.Role.RoleName,
+			Name: irName,
 			Tags: map[string]string{
 				"Name":              r.Name,
 				"KubernetesCluster": immutable.Name,
