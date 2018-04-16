@@ -109,8 +109,10 @@ func getProfiles(cloudType string) ([]components.ClusterProfileResponse, error) 
 		return nil, err
 	}
 	for _, p := range profiles {
-		r := p.GetProfile()
-		response = append(response, *r)
+		r, err := p.GetProfile()
+		if err == nil {
+			response = append(response, *r)
+		}
 	}
 	return response, nil
 

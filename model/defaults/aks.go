@@ -12,16 +12,64 @@ import (
 // AKSProfile describes an Azure cluster profile
 type AKSProfile struct {
 	DefaultModel
-	Location          string `gorm:"default:'eastus'"`
-	NodeInstanceType  string `gorm:"default:'Standard_D2_v2'"`
-	AgentCount        int    `gorm:"default:1"`
-	AgentName         string `gorm:"default:'agentpool1'"`
-	KubernetesVersion string `gorm:"default:'1.9.2'"`
+	Location          string                `gorm:"default:'eastus'"`
+	KubernetesVersion string                `gorm:"default:'1.9.2'"`
+	NodePools         []*AKSNodePoolProfile `gorm:"foreignkey:Name"`
+}
+
+// AKSNodePoolProfile describes an Azure cluster profile's nodepools
+type AKSNodePoolProfile struct {
+	ID               uint   `gorm:"primary_key"`
+	Count            int    `gorm:"default:1"`
+	NodeInstanceType string `gorm:"default:'Standard_D2_v2'"`
+	Name             string `gorm:"unique_index:idx_model_name"`
+	NodeName         string `gorm:"unique_index:idx_model_name"`
+}
+
+// TableName overrides AKSNodePoolProfile's table name
+func (AKSNodePoolProfile) TableName() string {
+	return DefaultAzureNodePoolProfileTablaName
 }
 
 // TableName overrides AKSProfile's table name
 func (AKSProfile) TableName() string {
 	return DefaultAzureProfileTablaName
+}
+
+// AfterFind loads nodepools to profile
+func (d *AKSProfile) AfterFind() error {
+	log.Info("AfterFind aks profile... load node pools")
+	return model.GetDB().Where(AKSNodePoolProfile{Name: d.Name}).Find(&d.NodePools).Error
+}
+
+// BeforeSave clears nodepools
+func (d *AKSProfile) BeforeSave() error {
+	log.Info("BeforeSave aks profile...")
+
+	db := model.GetDB()
+	var nodePools []*AKSNodePoolProfile
+	err := db.Where(AKSNodePoolProfile{
+		Name: d.Name,
+	}).Find(&nodePools).Delete(&nodePools).Error
+	if err != nil {
+		log.Errorf("Error during deleting saved nodepools: %s", err.Error())
+	}
+
+	return nil
+}
+
+// BeforeDelete deletes all nodepools to belongs to profile
+func (d *AKSProfile) BeforeDelete() error {
+	log.Info("BeforeDelete aks profile... delete all nodepool")
+
+	var nodePools []*AKSNodePoolProfile
+	if err := model.GetDB().Where(AKSNodePoolProfile{
+		Name: d.Name,
+	}).Find(&nodePools).Delete(&nodePools).Error; err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // SaveInstance saves cluster profile into database
@@ -40,28 +88,36 @@ func (d *AKSProfile) GetType() string {
 }
 
 // GetProfile load profile from database and converts ClusterProfileResponse
-func (d *AKSProfile) GetProfile() *components.ClusterProfileResponse {
-	loadFirst(&d)
+func (d *AKSProfile) GetProfile() (*components.ClusterProfileResponse, error) {
+	if err := loadFirst(&d); err != nil {
+		return nil, err
+	}
+
+	nodePools := make(map[string]*azure.NodePoolCreate)
+	for _, np := range d.NodePools {
+		if np != nil {
+			nodePools[np.NodeName] = &azure.NodePoolCreate{
+				Count:            np.Count,
+				NodeInstanceType: np.NodeInstanceType,
+			}
+		}
+	}
 
 	return &components.ClusterProfileResponse{
-		Name:             d.DefaultModel.Name,
-		Location:         d.Location,
-		Cloud:            constants.Azure,
-		NodeInstanceType: d.NodeInstanceType,
+		Name:     d.DefaultModel.Name,
+		Location: d.Location,
+		Cloud:    constants.Azure,
 		Properties: struct {
 			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
 			Google *google.ClusterProfileGoogle `json:"google,omitempty"`
 		}{
 			Azure: &azure.ClusterProfileAzure{
-				Node: &azure.AzureProfileNode{
-					Count:             d.AgentCount,
-					AgentName:         d.AgentName,
-					KubernetesVersion: d.KubernetesVersion,
-				},
+				KubernetesVersion: d.KubernetesVersion,
+				NodePools:         nodePools,
 			},
 		},
-	}
+	}, nil
 }
 
 // UpdateProfile update profile's data with ClusterProfileRequest's data and if bool is true then update in the database
@@ -70,21 +126,25 @@ func (d *AKSProfile) UpdateProfile(r *components.ClusterProfileRequest, withSave
 		d.Location = r.Location
 	}
 
-	if len(r.NodeInstanceType) != 0 {
-		d.NodeInstanceType = r.NodeInstanceType
-	}
-
 	if r.Properties.Azure != nil {
-		if r.Properties.Azure.Node != nil {
-			if r.Properties.Azure.Node.Count != 0 {
-				d.AgentCount = r.Properties.Azure.Node.Count
+
+		if len(r.Properties.Azure.KubernetesVersion) != 0 {
+			d.KubernetesVersion = r.Properties.Azure.KubernetesVersion
+		}
+
+		if len(r.Properties.Azure.NodePools) != 0 {
+
+			var nodePools []*AKSNodePoolProfile
+			for name, np := range r.Properties.Azure.NodePools {
+				nodePools = append(nodePools, &AKSNodePoolProfile{
+					Count:            np.Count,
+					NodeInstanceType: np.NodeInstanceType,
+					Name:             d.Name,
+					NodeName:         name,
+				})
 			}
-			if len(r.Properties.Azure.Node.AgentName) != 0 {
-				d.AgentName = r.Properties.Azure.Node.AgentName
-			}
-			if len(r.Properties.Azure.Node.KubernetesVersion) != 0 {
-				d.KubernetesVersion = r.Properties.Azure.Node.KubernetesVersion
-			}
+
+			d.NodePools = nodePools
 		}
 	}
 

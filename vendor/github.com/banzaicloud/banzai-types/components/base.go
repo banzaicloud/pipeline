@@ -204,7 +204,7 @@ type ClusterProfileResponse struct {
 	Name             string `json:"name" binding:"required"`
 	Location         string `json:"location" binding:"required"`
 	Cloud            string `json:"cloud" binding:"required"`
-	NodeInstanceType string `json:"nodeInstanceType" binding:"required"`
+	NodeInstanceType string `json:"nodeInstanceType,omitempty"`
 	Properties       struct {
 		Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 		Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
@@ -216,7 +216,7 @@ type ClusterProfileRequest struct {
 	Name             string `json:"name" binding:"required"`
 	Location         string `json:"location" binding:"required"`
 	Cloud            string `json:"cloud" binding:"required"`
-	NodeInstanceType string `json:"nodeInstanceType" binding:"required"`
+	NodeInstanceType string `json:"nodeInstanceType"`
 	Properties       struct {
 		Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 		Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
