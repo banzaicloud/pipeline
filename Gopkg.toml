@@ -84,7 +84,7 @@
   name = "github.com/banzaicloud/bank-vaults"
 
 [[constraint]]
-  branch = "temp-update-profile"
+  branch = "fix-cloudinfo"
   name = "github.com/banzaicloud/banzai-types"
 
 [[constraint]]

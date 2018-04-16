@@ -12,9 +12,10 @@ var log *logrus.Entry
 
 var (
 	Keywords = []string{
-		constants.KeyWorldLocation,
-		constants.KeyWorldInstanceType,
-		constants.KeyWorldKubernetesVersion,
+		constants.KeyWordLocation,
+		constants.KeyWordInstanceType,
+		constants.KeyWordKubernetesVersion,
+		constants.KeyWordImage,
 	}
 )
 
@@ -32,6 +33,7 @@ type CloudInfoProvider interface {
 	GetMachineTypes() (map[string]components.MachineType, error)
 	GetMachineTypesWithFilter(*components.InstanceFilter) (map[string]components.MachineType, error)
 	GetKubernetesVersion(*components.KubernetesFilter) (interface{}, error)
+	GetImages(*components.ImageFilter) (map[string][]string, error)
 }
 
 // Base fields for cloud info types
@@ -85,14 +87,14 @@ func ProcessFilter(p CloudInfoProvider, r *components.CloudInfoRequest) (*compon
 		for _, field := range r.Filter.Fields {
 			switch field {
 
-			case constants.KeyWorldLocation:
+			case constants.KeyWordLocation:
 				l, err := p.GetLocations()
 				if err != nil {
 					return nil, err
 				}
 				response.Locations = l
 
-			case constants.KeyWorldInstanceType:
+			case constants.KeyWordInstanceType:
 				if r.Filter.InstanceType != nil {
 					log.Infof("Get machine types with filter [%#v]", *r.Filter.InstanceType)
 					// get machine types from spec zone
@@ -111,12 +113,18 @@ func ProcessFilter(p CloudInfoProvider, r *components.CloudInfoRequest) (*compon
 					response.NodeInstanceType = mt
 				}
 
-			case constants.KeyWorldKubernetesVersion:
+			case constants.KeyWordKubernetesVersion:
 				versions, err := p.GetKubernetesVersion(r.Filter.KubernetesFilter)
 				if err != nil {
 					return nil, err
 				}
 				response.KubernetesVersions = versions
+			case constants.KeyWordImage:
+				images, err := p.GetImages(r.Filter.ImageFilter)
+				if err != nil {
+					return nil, err
+				}
+				response.Image = images
 			}
 		}
 	} else {
