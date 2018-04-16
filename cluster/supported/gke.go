@@ -43,11 +43,11 @@ func (g *GoogleInfo) GetMachineTypesWithFilter(filter *components.InstanceFilter
 		return nil, constants.ErrorRequiredSecretId
 	}
 
-	if len(filter.Zone) == 0 {
-		return nil, constants.ErrorRequiredZone
+	if len(filter.Location) == 0 {
+		return nil, constants.ErrorRequiredLocation
 	}
 
-	return cluster.GetAllMachineTypesByZone(g.OrgId, g.SecretId, filter.Zone)
+	return cluster.GetAllMachineTypesByZone(g.OrgId, g.SecretId, filter.Location)
 }
 
 // GetKubernetesVersion returns supported k8s versions
@@ -57,9 +57,13 @@ func (g *GoogleInfo) GetKubernetesVersion(filter *components.KubernetesFilter) (
 		return nil, constants.ErrorRequiredSecretId
 	}
 
-	if filter == nil || len(filter.Zone) == 0 {
-		return nil, constants.ErrorRequiredZone
+	if filter == nil || len(filter.Location) == 0 {
+		return nil, constants.ErrorRequiredLocation
 	}
 
-	return cluster.GetGkeServerConfig(g.OrgId, g.SecretId, filter.Zone)
+	return cluster.GetGkeServerConfig(g.OrgId, g.SecretId, filter.Location)
+}
+
+func (g *GoogleInfo) GetImages(filter *components.ImageFilter) (map[string][]string, error) {
+	return nil, nil
 }

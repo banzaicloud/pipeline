@@ -255,7 +255,7 @@ func (DummyClusterModel) TableName() string {
 
 //TableName sets the KubernetesClusterModel's table name
 func (KubernetesClusterModel) TableName() string {
-	return constants.TableNameKubeProperties
+	return constants.TableNameKubernetesProperties
 }
 
 func (googleClusterModel *GoogleClusterModel) AfterUpdate(scope *gorm.Scope) error {
