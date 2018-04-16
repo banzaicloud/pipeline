@@ -85,10 +85,11 @@ func (r *UpdateClusterRequest) String() string {
 			&r.Azure.NodePools))
 	} else if r.Cloud == constants.Amazon && r.Amazon != nil {
 		// Write AWS Node
-		if r.Amazon.UpdateAmazonNode != nil {
-			buffer.WriteString(fmt.Sprintf("Min count: %d, Max count: %d",
-				r.Amazon.MinCount,
-				r.Amazon.MaxCount))
+		for name, nodePool := range r.UpdateProperties.Amazon.NodePools {
+			buffer.WriteString(fmt.Sprintf("NodePool %s Min count: %d, Max count: %d",
+				name,
+				nodePool.MinCount,
+				nodePool.MaxCount))
 		}
 	} else if r.Cloud == constants.Google && r.Google != nil {
 		// Write GKE Master
