@@ -6,8 +6,8 @@ import (
 )
 
 type CreateClusterAmazon struct {
-	Node   *CreateAmazonNode   `json:"node,omitempty"`
-	Master *CreateAmazonMaster `json:"master,omitempty"`
+	NodePools map[string]*AmazonNodePool `json:"nodePools,omitempty"`
+	Master    *CreateAmazonMaster        `json:"master,omitempty"`
 }
 
 type CreateAmazonMaster struct {
@@ -15,68 +15,74 @@ type CreateAmazonMaster struct {
 	Image        string `json:"image"`
 }
 
-type CreateAmazonNode struct {
-	SpotPrice string `json:"spotPrice"`
-	MinCount  int    `json:"minCount"`
-	MaxCount  int    `json:"maxCount"`
-	Image     string `json:"image"`
+type AmazonNodePool struct {
+	InstanceType string `json:"instanceType"`
+	SpotPrice    string `json:"spotPrice"`
+	MinCount     int    `json:"minCount"`
+	MaxCount     int    `json:"maxCount"`
+	Image        string `json:"image"`
 }
 
 type UpdateClusterAmazon struct {
-	*UpdateAmazonNode `json:"node,omitempty"`
+	NodePools map[string]*UpdateAmazonNodePool `json:"nodePools,omitempty"`
 }
 
-type UpdateAmazonNode struct {
-	MinCount int `json:"minCount"`
-	MaxCount int `json:"maxCount"`
+type UpdateAmazonNodePool struct {
+	MinCount int    `json:"minCount"`
+	MaxCount int    `json:"maxCount"`
 }
 
 // Validate validates amazon cluster create request
 func (amazon *CreateClusterAmazon) Validate() error {
 	if amazon == nil {
-		return errors.New("Required field 'amazon' is empty.")
+		return constants.ErrorAmazonFieldIsEmpty
 	}
 	if amazon.Master == nil {
-		msg := "Required field 'master' is empty."
-		return errors.New(msg)
+		return constants.ErrorAmazonMasterFieldIsEmpty
 	}
 	if amazon.Master.Image == "" {
-		return errors.New("Required field 'image' is empty ")
+		return constants.ErrorAmazonImageFieldIsEmpty
 	}
 
 	if amazon.Master.InstanceType == "" {
 		amazon.Master.InstanceType = constants.AmazonDefaultMasterInstanceType
 	}
 
-	// ---- [ Node check ] ---- //
-	if amazon.Node == nil {
-		msg := "Required field 'node' is empty."
-		return errors.New(msg)
+	if len(amazon.NodePools) == 0 {
+		return constants.ErrorAmazonNodePoolFieldIsEmpty
 	}
 
-	// ---- [ Node image check ] ---- //
-	if len(amazon.Node.Image) == 0 {
-		return errors.New("Required field 'image' is empty ")
-	}
+	for _, amazonNode := range amazon.NodePools {
 
-	// ---- [ Node min count check ] ---- //
-	if amazon.Node.MinCount == 0 {
-		amazon.Node.MinCount = constants.AmazonDefaultNodeMinCount
-	}
+		// ---- [ Node image check ] ---- //
+		if len(amazonNode.InstanceType) == 0 {
+			return constants.ErrorAmazonInstancetypeFieldIsEmpty
+		}
 
-	// ---- [ Node max count check ] ---- //
-	if amazon.Node.MaxCount == 0 {
-		amazon.Node.MaxCount = constants.AmazonDefaultNodeMaxCount
-	}
+		// ---- [ Node image check ] ---- //
+		if len(amazonNode.Image) == 0 {
+			return constants.ErrorAmazonImageFieldIsEmpty
+		}
 
-	// ---- [ Node min count <= max count check ] ---- //
-	if amazon.Node.MaxCount < amazon.Node.MinCount {
-		return errors.New("maxCount must be greater than mintCount")
-	}
+		// ---- [ Node min count check ] ---- //
+		if amazonNode.MinCount == 0 {
+			amazonNode.MinCount = constants.AmazonDefaultNodeMinCount
+		}
 
-	// ---- [ Node spot price ] ---- //
-	if len(amazon.Node.SpotPrice) == 0 {
-		amazon.Node.SpotPrice = constants.AmazonDefaultNodeSpotPrice
+		// ---- [ Node max count check ] ---- //
+		if amazonNode.MaxCount == 0 {
+			amazonNode.MaxCount = constants.AmazonDefaultNodeMaxCount
+		}
+
+		// ---- [ Node min count <= max count check ] ---- //
+		if amazonNode.MaxCount < amazonNode.MinCount {
+			return constants.ErrorAmazonMinMaxFieldError
+		}
+
+		// ---- [ Node spot price ] ---- //
+		if len(amazonNode.SpotPrice) == 0 {
+			amazonNode.SpotPrice = constants.AmazonDefaultNodeSpotPrice
+		}
 	}
 
 	return nil
@@ -92,27 +98,27 @@ func (a *UpdateClusterAmazon) Validate() error {
 		return errors.New("'amazon' field is empty")
 	}
 
-	// ---- [ Node max count > min count check ] ---- //
-	if a.UpdateAmazonNode.MaxCount < a.UpdateAmazonNode.MinCount {
-		return errors.New("maxCount must be greater than mintCount")
+	if len(a.NodePools) == 0 {
+		msg := "At least one 'nodePool' is required."
+		return errors.New(msg)
+	}
+
+	for _, amazonNode := range a.NodePools {
+		// ---- [ Node max count > min count check ] ---- //
+		if amazonNode.MaxCount < amazonNode.MinCount {
+			return errors.New("maxCount must be greater than mintCount")
+		}
 	}
 
 	return nil
 }
 
 type ClusterProfileAmazon struct {
-	Master *AmazonProfileMaster `json:"master,omitempty"`
-	Node   *AmazonProfileNode   `json:"node,omitempty"`
+	Master           *AmazonProfileMaster       `json:"master,omitempty"`
+	NodePoolProfiles map[string]*AmazonNodePool `json:"nodePoolProfiles,omitempty"`
 }
 
 type AmazonProfileMaster struct {
 	InstanceType string `json:"instanceType"`
 	Image        string `json:"image"`
-}
-
-type AmazonProfileNode struct {
-	SpotPrice string `json:"spotPrice"`
-	MinCount  int    `json:"minCount"`
-	MaxCount  int    `json:"maxCount"`
-	Image     string `json:"image"`
 }

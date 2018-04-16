@@ -36,13 +36,23 @@ type ClusterModel struct {
 
 //AmazonClusterModel describes the amazon cluster model
 type AmazonClusterModel struct {
-	ClusterModelId     uint `gorm:"primary_key"`
-	NodeSpotPrice      string
-	NodeMinCount       int
-	NodeMaxCount       int
-	NodeImage          string
+	ClusterModelId     uint                    `gorm:"primary_key"`
 	MasterInstanceType string
 	MasterImage        string
+	NodePools          []*AmazonNodePoolsModel `gorm:"foreignkey:ClusterModelId"`
+}
+
+//AmazonNodePoolsModel describes Amazon node groups model of a cluster
+type AmazonNodePoolsModel struct {
+	ID               uint   `gorm:"primary_key"`
+	ClusterModelId   uint   `gorm:"unique_index:idx_modelid_name"`
+	Name             string `gorm:"unique_index:idx_modelid_name"`
+	NodeSpotPrice    string
+	NodeMinCount     int
+	NodeMaxCount     int
+	NodeImage        string
+	NodeInstanceType string
+	Delete           bool 	`gorm:"-"`
 }
 
 //AzureClusterModel describes the azure cluster model
@@ -190,11 +200,16 @@ func (cs *ClusterModel) String() string {
 			cs.Amazon.MasterInstanceType,
 			cs.Amazon.MasterImage))
 		// Write AWS Node
-		buffer.WriteString(fmt.Sprintf("Spot price: %s, Min count: %d, Max count: %d, Node image: %s",
-			cs.Amazon.NodeSpotPrice,
-			cs.Amazon.NodeMinCount,
-			cs.Amazon.NodeMaxCount,
-			cs.Amazon.NodeImage))
+		for _, nodePool := range cs.Amazon.NodePools {
+			buffer.WriteString(fmt.Sprintf("NodePool Name: %s, InstanceType: %s, Spot price: %s, Min count: %d, Max count: %d, Node image: %s",
+					nodePool.Name,
+					nodePool.NodeInstanceType,
+					nodePool.NodeSpotPrice,
+					nodePool.NodeMinCount,
+					nodePool.NodeMaxCount,
+					nodePool.NodeImage))
+		}
+
 	} else if cs.Cloud == constants.Google {
 		buffer.WriteString(fmt.Sprint(cs.Google))
 	} else if cs.Cloud == constants.Dummy {
@@ -211,6 +226,11 @@ func (cs *ClusterModel) String() string {
 // TableName sets AmazonClusterModel's table name
 func (AmazonClusterModel) TableName() string {
 	return constants.TableNameAmazonProperties
+}
+
+// TableName sets AmazonNodePoolsModel's table name
+func (AmazonNodePoolsModel) TableName() string {
+	return constants.TableNameAmazonNodePools
 }
 
 // TableName sets AzureClusterModel's table name

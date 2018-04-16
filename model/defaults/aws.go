@@ -59,11 +59,15 @@ func (d *AWSProfile) GetProfile() (*components.ClusterProfileResponse, error) {
 			Google *google.ClusterProfileGoogle `json:"google,omitempty"`
 		}{
 			Amazon: &amazon.ClusterProfileAmazon{
-				Node: &amazon.AmazonProfileNode{
-					SpotPrice: d.NodeSpotPrice,
-					MinCount:  d.NodeMinCount,
-					MaxCount:  d.NodeMaxCount,
-					Image:     d.NodeImage,
+				NodePoolProfiles: map[string]*amazon.AmazonNodePool{
+					d.Name :
+					{
+						InstanceType: d.NodeInstanceType,
+						SpotPrice: 		d.NodeSpotPrice,
+						MinCount:  		d.NodeMinCount,
+						MaxCount: 		d.NodeMaxCount,
+						Image:     		d.NodeImage,
+					},
 				},
 				Master: &amazon.AmazonProfileMaster{
 					InstanceType: d.MasterInstanceType,
@@ -86,21 +90,22 @@ func (d *AWSProfile) UpdateProfile(r *components.ClusterProfileRequest, withSave
 		d.NodeInstanceType = r.NodeInstanceType
 	}
 	if r.Properties.Amazon != nil {
-		if r.Properties.Amazon.Node != nil {
-			if len(r.Properties.Amazon.Node.SpotPrice) != 0 {
-				d.NodeSpotPrice = r.Properties.Amazon.Node.SpotPrice
+		// TODO handle profile update properly
+		for _, nodePool := range r.Properties.Amazon.NodePoolProfiles {
+			if len(nodePool.SpotPrice) != 0 {
+				d.NodeSpotPrice = nodePool.SpotPrice
 			}
 
-			if r.Properties.Amazon.Node.MinCount != 0 {
-				d.NodeMinCount = r.Properties.Amazon.Node.MinCount
+			if nodePool.MinCount != 0 {
+				d.NodeMinCount = nodePool.MinCount
 			}
 
-			if r.Properties.Amazon.Node.MaxCount != 0 {
-				d.NodeMaxCount = r.Properties.Amazon.Node.MaxCount
+			if nodePool.MaxCount != 0 {
+				d.NodeMaxCount = nodePool.MaxCount
 			}
 
-			if len(r.Properties.Amazon.Node.Image) != 0 {
-				d.NodeImage = r.Properties.Amazon.Node.Image
+			if len(nodePool.Image) != 0 {
+				d.NodeImage = nodePool.Image
 			}
 		}
 

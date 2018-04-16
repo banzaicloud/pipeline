@@ -71,6 +71,7 @@ func main() {
 	if err := db.AutoMigrate(
 		&model.ClusterModel{},
 		&model.AmazonClusterModel{},
+		&model.AmazonNodePoolsModel{},
 		&model.AzureClusterModel{},
 		&model.AzureNodePoolModel{},
 		&model.GoogleClusterModel{},
