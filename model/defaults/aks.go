@@ -21,7 +21,7 @@ type AKSProfile struct {
 type AKSNodePoolProfile struct {
 	ID               uint   `gorm:"primary_key"`
 	Count            int    `gorm:"default:1"`
-	NodeInstanceType string `gorm:"default:'Standard_D2_v2'"`
+	NodeInstanceType string `gorm:"default:'Standard_D4_v2'"`
 	Name             string `gorm:"unique_index:idx_model_name"`
 	NodeName         string `gorm:"unique_index:idx_model_name"`
 }
