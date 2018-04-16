@@ -95,13 +95,15 @@ By default there are metrics and Grafana dashboards exposing the behaviour of th
 
 ### Control plane
 
+The Pipeline Control Plane is the central location where all the components of the [Pipeline PaaS](https://banzaicloud.com/platform/) are assembled together and it runs all the services we provide (CI/CD, authentication, log collection, monitoring, dashboards, and application registries/spotguide definitions). The control plane itself is a Kubernetes deployment as well, and it's cloud agnostic - currently there are out of the box deployments for [AWS](https://github.com/banzaicloud/pipeline-cp-launcher/blob/master/README.md#pipeline-control-plane-launcher-on-aws), [Azure](https://github.com/banzaicloud/pipeline-cp-launcher/blob/master/README.md#pipeline-control-plane-launcher-on-azure), [Google](https://github.com/banzaicloud/pipeline-cp-launcher/blob/master/README.md#pipeline-control-plane-launcher-on-google-cloud) and for [Minikube](https://github.com/banzaicloud/pipeline-cp-launcher/blob/master/README.md#pipeline-control-plane-launcher-on-minikube) (for local/dev purpuse).
+
 All these components are assembled into a **Control Plane** - and deployed to Kubernetes with Helm. A typical control plane - with a Spark/Zeppelin `spotguide` deployment looks like this:
 
 <p align="center">
 <img src="docs/images/control-plane-creation.png" width="700">
 </p>
 
-To launch a Pipeline control plane on AWS, Azure, Google Cloud or locally (for dev purposes) on Minikube follow this [documentation](https://github.com/banzaicloud/pipeline-cp-launcher/blob/master/README.md).
+To launch a Pipeline control plane on one of the supported provider please follow this [documentation](https://github.com/banzaicloud/pipeline-cp-launcher/blob/master/README.md).
 
 ### Deployed clusters
 
