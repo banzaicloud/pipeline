@@ -27,25 +27,29 @@ func (a *AzureInfo) GetLocations() ([]string, error) {
 
 // GetMachineTypes returns supported machine types
 func (a *AzureInfo) GetMachineTypes() (map[string]components.MachineType, error) {
-	return nil, constants.ErrorRequiredZone
+	return nil, constants.ErrorRequiredLocation
 }
 
 // GetMachineTypesWithFilter returns supported machine types by location
 func (a *AzureInfo) GetMachineTypesWithFilter(filter *components.InstanceFilter) (map[string]components.MachineType, error) {
 
-	if len(filter.Zone) == 0 {
-		return nil, constants.ErrorRequiredZone
+	if len(filter.Location) == 0 {
+		return nil, constants.ErrorRequiredLocation
 	}
 
-	return cluster.GetMachineTypes(a.OrgId, a.SecretId, filter.Zone)
+	return cluster.GetMachineTypes(a.OrgId, a.SecretId, filter.Location)
 }
 
 // GetKubernetesVersion returns supported k8s versions
 func (a *AzureInfo) GetKubernetesVersion(filter *components.KubernetesFilter) (interface{}, error) {
 
-	if filter == nil || len(filter.Zone) == 0 {
-		return nil, constants.ErrorRequiredZone
+	if filter == nil || len(filter.Location) == 0 {
+		return nil, constants.ErrorRequiredLocation
 	}
 
-	return cluster.GetKubernetesVersion(a.OrgId, a.SecretId, filter.Zone)
+	return cluster.GetKubernetesVersion(a.OrgId, a.SecretId, filter.Location)
+}
+
+func (a *AzureInfo) GetImages(filter *components.ImageFilter) (map[string][]string, error) {
+	return nil, nil
 }

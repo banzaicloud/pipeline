@@ -72,14 +72,14 @@ const (
 
 // ### [ Constants to table names ] ### //
 const (
-	TableNameClusters         = "clusters"
-	TableNameAmazonProperties = "amazon_cluster_properties"
-	TableNameAzureProperties  = "azure_cluster_properties"
-	TableNameAzureNodePools   = "azure_node_pools"
-	TableNameGoogleProperties = "google_cluster_properties"
-	TableNameGoogleNodePools  = "google_node_pools"
-	TableNameDummyProperties  = "dummy_cluster_properties"
-	TableNameKubeProperties   = "kubernetes_cluster_properties"
+	TableNameClusters             = "clusters"
+	TableNameAmazonProperties     = "amazon_cluster_properties"
+	TableNameAzureProperties      = "azure_cluster_properties"
+	TableNameAzureNodePools       = "azure_node_pools"
+	TableNameGoogleProperties     = "google_cluster_properties"
+	TableNameGoogleNodePools      = "google_node_pools"
+	TableNameDummyProperties      = "dummy_cluster_properties"
+	TableNameKubernetesProperties = "kubernetes_cluster_properties"
 )
 
 // ### [ Errors ] ### //
@@ -100,7 +100,7 @@ var (
 	ErrorDifferentKubernetesVersion = errors.New("Different kubernetes version for master and nodes")
 	ErrorLocationEmpty              = errors.New("Location field is empty")
 	ErrorNodeInstanceTypeEmpty      = errors.New("NodeInstanceType field is empty")
-	ErrorRequiredZone               = errors.New("Zone is required")
+	ErrorRequiredLocation           = errors.New("location is required")
 	ErrorRequiredSecretId           = errors.New("Secret id is required")
 	ErrorCloudInfoK8SNotSupported   = errors.New("Not supported key in case of amazon")
 	ErrorNodePoolNotProvided        = errors.New("At least one 'nodepool' is required for creating or updating a cluster")
@@ -116,9 +116,10 @@ var (
 
 // ### [ Keywords ] ###
 const (
-	KeyWorldLocation          = "location"
-	KeyWorldInstanceType      = "instanceType"
-	KeyWorldKubernetesVersion = "k8sVersion"
+	KeyWordLocation          = "location"
+	KeyWordInstanceType      = "instanceType"
+	KeyWordKubernetesVersion = "k8sVersion"
+	KeyWordImage             = "image"
 )
 
 // ### [ Regexps for cluster names ] ### //
