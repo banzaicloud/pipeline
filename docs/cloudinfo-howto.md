@@ -85,7 +85,7 @@ Response:
 		"fields": [ "image" ],
 		"image": {
 			"tags": [ "0.3.0" ],
-			"zone": "eu-west-1"
+			"location": "eu-west-1"
 		}
 	}
 }
@@ -104,6 +104,41 @@ Response:
     }
 }
 ```
+
+#### Supported instanceTypes
+`POST orgs/{orgId}/cloudinfo/amazon` with body:
+```
+{
+	"filter": {
+		"fields": [ "instanceType" ],
+		"instanceType": {
+			"location": "eu-west-1"
+		}
+	}
+}
+```
+
+Response:
+```
+{
+    "type": "amazon",
+    "nameRegexp": "^[A-z0-9-_]{1,255}$",
+    "nodeInstanceType": {
+        "eu-west-1": [
+            "t2.nano",
+            "t2.micro",
+            "t2.small",
+            "t2.medium",
+            "t2.large",
+            "t2.xlarge",
+            "t2.2xlarge",
+            "m5.large"
+        ]
+    }
+}
+```
+
+
 #### All supported fields
 `POST orgs/{orgId}/cloudinfo/amazon` with body:
 ```
@@ -115,7 +150,7 @@ Response:
 		],
 		"image": {
 			"tags": [ "0.3.0" ],
-			"zone": "eu-west-1"
+			"location": "eu-west-1"
 		}
 	}
 }
@@ -185,7 +220,7 @@ Response:
 	"filter": {
 		"fields": [ "instanceType" ],
 		"instanceType":{
-			"zone": "eastus"
+			"location": "eastus"
 		}
 	}
 }
@@ -215,7 +250,7 @@ Response:
 	"filter": {
 		"fields": [ "k8sVersion" ],
 		"k8sVersion":{
-			"zone": "eastus"
+			"location": "eastus"
 		}
 	}
 }
@@ -246,10 +281,10 @@ Response:
 			"k8sVersion"
 		],
 		"instanceType":{
-			"zone": "eastus"
+			"location": "eastus"
 		},
 		"k8sVersion": {
-			"zone": "eastus"
+			"location": "eastus"
 		}
 	}
 }
@@ -334,7 +369,7 @@ Response:
 	"filter": {
 		"fields": [ "instanceType" ],
 		"instanceType":{
-			"zone": "asia-east1-a"
+			"location": "asia-east1-a"
 		}
 	},
 	"google": {
@@ -365,7 +400,7 @@ Response:
 	"filter": {
 		"fields": [ "k8sVersion" ],
 		"k8sVersion": {
-			"zone": "us-central1-a"
+			"location": "us-central1-a"
 		}
 	},
 	"google": {
@@ -412,10 +447,10 @@ Response:
 			"k8sVersion"
 		],
 		"instanceType":{
-			"zone": "asia-east1-a"
+			"location": "asia-east1-a"
 		},
 		"k8sVersion": {
-			"zone": "us-central1-a"
+			"location": "us-central1-a"
 		}
 	}
 }
