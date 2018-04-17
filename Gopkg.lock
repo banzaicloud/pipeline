@@ -653,7 +653,7 @@
     "state",
     "state/fs"
   ]
-  revision = "c128910e493f28916a0ce30e3908ea0ee3572131"
+  revision = "7829d3cf0caf42b5ddf2b2f82a9b5b8503f7dc5b"
   source = "github.com/banzaicloud/kubicorn"
 
 [[projects]]
