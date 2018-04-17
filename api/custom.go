@@ -143,3 +143,38 @@ func getIngressReleaseName(backend v1beta1.IngressBackend, serviceList *v1.Servi
 	}
 	return "No release name for this ingress."
 }
+
+//GetClusterNodes Get node information
+func GetClusterNodes(c *gin.Context) {
+	log := logger.WithFields(logrus.Fields{"tag": "GetClusterNodes"})
+
+	kubeConfig, ok := GetK8sConfig(c)
+	if ok != true {
+		return
+	}
+
+	client, err := helm.GetK8sConnection(kubeConfig)
+	if err != nil {
+		log.Errorf("Error getting k8s connection: %s", err.Error())
+		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error getting k8s connection",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	response, err := client.CoreV1().Nodes().List(meta_v1.ListOptions{})
+	log.Debugf("%s", response.String())
+	if err != nil {
+		log.Errorf("Error listing nodes: %s", err.Error())
+		c.JSON(http.StatusNotFound, htype.ErrorResponse{
+			Code:    http.StatusNotFound,
+			Message: "Error during listing nodes",
+			Error:   err.Error(),
+		})
+
+	}
+	c.JSON(http.StatusOK, response)
+	return
+}
