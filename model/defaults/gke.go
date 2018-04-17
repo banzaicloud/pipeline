@@ -88,10 +88,7 @@ func (d *GKEProfile) GetType() string {
 }
 
 // GetProfile load profile from database and converts ClusterProfileResponse
-func (d *GKEProfile) GetProfile() (*components.ClusterProfileResponse, error) {
-	if err := loadFirst(&d); err != nil {
-		return nil, err
-	}
+func (d *GKEProfile) GetProfile() *components.ClusterProfileResponse {
 
 	nodePools := make(map[string]*google.NodePool)
 	if d.NodePools != nil {
@@ -121,7 +118,7 @@ func (d *GKEProfile) GetProfile() (*components.ClusterProfileResponse, error) {
 				NodePools:   nodePools,
 			},
 		},
-	}, nil
+	}
 }
 
 // UpdateProfile update profile's data with ClusterProfileRequest's data and if bool is true then update in the database
