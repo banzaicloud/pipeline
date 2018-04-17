@@ -246,28 +246,28 @@ func getStateStoreForCluster(clusterType *model.ClusterModel) (stateStore state.
 	return stateStore
 }
 
-func GetMasterServerPool(cs *model.ClusterModel, nodeServerPool []*kcluster.ServerPool, uuidSuffix string) *kcluster.ServerPool {
-	var ingressRules = make([]*kcluster.IngressRule, 2+len(nodeServerPool))
-	ingressRules[0] = &kcluster.IngressRule{
+func getMasterServerPool(cs *model.ClusterModel, nodeServerPool []*kcluster.ServerPool, uuidSuffix string) *kcluster.ServerPool {
+	var ingressRules = make([]*kcluster.IngressRule, 0, 2 + len(nodeServerPool))
+	ingressRules = append(ingressRules, &kcluster.IngressRule{
 		IngressFromPort: "22",
 		IngressToPort:   "22",
 		IngressSource:   "0.0.0.0/0",
 		IngressProtocol: "tcp",
-	}
-	ingressRules[1] = &kcluster.IngressRule{
+	})
+	ingressRules = append(ingressRules, &kcluster.IngressRule{
 		IngressFromPort: "443",
 		IngressToPort:   "443",
 		IngressSource:   "0.0.0.0/0",
 		IngressProtocol: "tcp",
-	}
+	})
 
-	for i, node := range nodeServerPool {
-		ingressRules[i+2] = &kcluster.IngressRule{
+	for _, node := range nodeServerPool {
+		ingressRules = append(ingressRules, &kcluster.IngressRule{
 			IngressFromPort: "0",
 			IngressToPort:   "65535",
 			IngressSource:   node.Subnets[0].CIDR,
 			IngressProtocol: "-1",
-		}
+		})
 	}
 
 	return &kcluster.ServerPool{
@@ -339,7 +339,7 @@ func GetMasterServerPool(cs *model.ClusterModel, nodeServerPool []*kcluster.Serv
 	}
 }
 
-func GetAsgNodePoolName(asgName string) string {
+func getAsgNodePoolName(asgName string) string {
 	if strings.HasSuffix(asgName, "master") {
 		return "master"
 	}
@@ -350,7 +350,7 @@ func GetAsgNodePoolName(asgName string) string {
 	return asgName
 }
 
-func GetNodeServerPool(clusterName string, location string, nodePool *model.AmazonNodePoolsModel,
+func getNodeServerPool(clusterName string, location string, nodePool *model.AmazonNodePoolsModel,
 	cidr string, uuidSuffix string) *kcluster.ServerPool {
 
 	return &kcluster.ServerPool{
@@ -449,10 +449,10 @@ func GetKubicornProfile(cs *model.ClusterModel) *kcluster.Cluster {
 	uuidSuffix := uuid.TimeOrderedUUID()
 	var nodeServerPool = make([]*kcluster.ServerPool, len(cs.Amazon.NodePools))
 	for i, nodePool := range cs.Amazon.NodePools {
-		nodeServerPool[i] = GetNodeServerPool(cs.Name, cs.Location, nodePool, fmt.Sprintf("10.0.%d.0/24", 100+i), uuidSuffix)
+		nodeServerPool[i] = getNodeServerPool(cs.Name, cs.Location, nodePool, fmt.Sprintf("10.0.%d.0/24", 100+i), uuidSuffix)
 	}
 	var masterServerPool = []*kcluster.ServerPool{
-		GetMasterServerPool(cs, nodeServerPool, uuidSuffix),
+		getMasterServerPool(cs, nodeServerPool, uuidSuffix),
 	}
 	nodeServerPool = append(masterServerPool, nodeServerPool...)
 
@@ -517,7 +517,7 @@ func (c *AWSCluster) UpdateCluster(request *components.UpdateClusterRequest) err
 
 	existingAsgs := map[string]*kcluster.ServerPool{}
 	for _, asg := range c.kubicornCluster.ServerPools {
-		poolName := GetAsgNodePoolName(asg.Name)
+		poolName := getAsgNodePoolName(asg.Name)
 		existingAsgs[poolName] = asg
 	}
 
@@ -993,27 +993,27 @@ func (c *AWSCluster) validateAMIs(masterAMI string, nodePools map[string]*amazon
 		log.Infof("Node pool %s image: %s", nodePoolName, node.Image)
 	}
 
-	//validImages, err := ListAMIs(location, nil)
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//var validImageMap = make(map[string]*ec2.Image, len(validImages))
-	//for _, image := range validImages {
-	//	if image.ImageId != nil {
-	//		validImageMap[*image.ImageId] = image
-	//	}
-	//}
-	//
-	//if validImageMap[masterAMI] == nil {
-	//	return constants.ErrorNotValidMasterImage
-	//}
-	//
-	//for _, node := range nodePools {
-	//	if validImageMap[node.Image] == nil {
-	//		return constants.ErrorNotValidNodeImage
-	//	}
-	//}
+	validImages, err := ListAMIs(location, nil)
+	if err != nil {
+		return err
+	}
+
+	var validImageMap = make(map[string]*ec2.Image, len(validImages))
+	for _, image := range validImages {
+		if image.ImageId != nil {
+			validImageMap[*image.ImageId] = image
+		}
+	}
+
+	if validImageMap[masterAMI] == nil {
+		return constants.ErrorNotValidMasterImage
+	}
+
+	for _, node := range nodePools {
+		if validImageMap[node.Image] == nil {
+			return constants.ErrorNotValidNodeImage
+		}
+	}
 
 	return nil
 
