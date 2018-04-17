@@ -9,14 +9,18 @@ import (
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
+	"time"
 )
 
 const unknown = "unknown"
 
 //ClusterModel describes the common cluster model
 type ClusterModel struct {
-	gorm.Model
-	Name             string `gorm:"unique"`
+	ID               uint `gorm:"primary_key"`
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+	DeletedAt        *time.Time `gorm:"unique_index:idx_unique_id" sql:"index"`
+	Name             string     `gorm:"unique_index:idx_unique_id"`
 	Location         string
 	NodeInstanceType string
 	Cloud            string
@@ -251,7 +255,7 @@ func QueryCluster(filter map[string]interface{}) ([]ClusterModel, error) {
 
 //GetSimpleClusterWithId returns a simple cluster model
 func GetSimpleClusterWithId(id uint) ClusterModel {
-	return ClusterModel{Model: gorm.Model{ID: id}}
+	return ClusterModel{ID: id}
 }
 
 //TableName sets the GoogleClusterModel's table name
