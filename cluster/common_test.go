@@ -329,11 +329,14 @@ var (
 			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
 		}{
 			CreateClusterAmazon: &amazon.CreateClusterAmazon{
-				Node: &amazon.CreateAmazonNode{
-					SpotPrice: clusterRequestSpotPrice,
-					MinCount:  clusterRequestNodeCount,
-					MaxCount:  clusterRequestNodeMaxCount,
-					Image:     clusterRequestNodeImage,
+				NodePools: map[string]*amazon.AmazonNodePool{
+					"pool1": {
+						InstanceType: clusterRequestNodeInstance,
+						SpotPrice: clusterRequestSpotPrice,
+						MinCount:  clusterRequestNodeCount,
+						MaxCount:  clusterRequestNodeMaxCount,
+						Image:     clusterRequestNodeImage,
+					},
 				},
 				Master: &amazon.CreateAmazonMaster{
 					InstanceType: clusterRequestMasterInstance,
@@ -379,11 +382,14 @@ var (
 			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
 		}{
 			CreateClusterAmazon: &amazon.CreateClusterAmazon{
-				Node: &amazon.CreateAmazonNode{
-					SpotPrice: clusterRequestSpotPrice,
-					MinCount:  clusterRequestNodeCount,
-					MaxCount:  clusterRequestNodeMaxCount,
-					Image:     clusterRequestNodeImage,
+				NodePools: map[string]*amazon.AmazonNodePool{
+					"pool1": {
+						InstanceType: clusterRequestNodeInstance,
+						SpotPrice: clusterRequestSpotPrice,
+						MinCount:  clusterRequestNodeCount,
+						MaxCount:  clusterRequestNodeMaxCount,
+						Image:     clusterRequestNodeImage,
+					},
 				},
 				Master: &amazon.CreateAmazonMaster{
 					InstanceType: clusterRequestMasterInstance,
@@ -407,11 +413,14 @@ var (
 			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
 		}{
 			CreateClusterAmazon: &amazon.CreateClusterAmazon{
-				Node: &amazon.CreateAmazonNode{
-					SpotPrice: clusterRequestSpotPrice,
-					MinCount:  clusterRequestNodeCount,
-					MaxCount:  clusterRequestNodeMaxCount,
-					Image:     clusterRequestNodeImage,
+				NodePools: map[string]*amazon.AmazonNodePool{
+					"pool1": {
+						InstanceType: clusterRequestNodeInstance,
+						SpotPrice: clusterRequestSpotPrice,
+						MinCount:  clusterRequestNodeCount,
+						MaxCount:  clusterRequestNodeMaxCount,
+						Image:     clusterRequestNodeImage,
+					},
 				},
 				Master: &amazon.CreateAmazonMaster{
 					InstanceType: clusterRequestMasterInstance,
@@ -594,10 +603,15 @@ var (
 		Cloud:            constants.Amazon,
 		OrganizationId:   organizationId,
 		Amazon: model.AmazonClusterModel{
-			NodeSpotPrice:      clusterRequestSpotPrice,
-			NodeMinCount:       clusterRequestNodeCount,
-			NodeMaxCount:       clusterRequestNodeMaxCount,
-			NodeImage:          clusterRequestNodeImage,
+			NodePools :         []*model.AmazonNodePoolsModel{
+			{
+				Name:								"pool1",
+				NodeInstanceType:		clusterRequestNodeInstance,
+				NodeSpotPrice:      clusterRequestSpotPrice,
+				NodeMinCount:       clusterRequestNodeCount,
+				NodeMaxCount:       clusterRequestNodeMaxCount,
+				NodeImage:          clusterRequestNodeImage,
+			}},
 			MasterInstanceType: clusterRequestMasterInstance,
 			MasterImage:        clusterRequestMasterImage,
 		},

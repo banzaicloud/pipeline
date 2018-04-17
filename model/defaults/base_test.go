@@ -164,11 +164,14 @@ var (
 					InstanceType: masterInstanceType,
 					Image:        masterImage,
 				},
-				Node: &amazon.AmazonProfileNode{
-					SpotPrice: spotPrice,
-					MinCount:  minCount,
-					MaxCount:  maxCount,
-					Image:     nodeImage,
+				NodePoolProfiles: map[string]*amazon.AmazonNodePool{
+					"pool1" : {
+						InstanceType: nodeInstanceType,
+						SpotPrice: 		spotPrice,
+						MinCount:  		minCount,
+						MaxCount:  		maxCount,
+						Image:     		nodeImage,
+					},
 				},
 			},
 		},
@@ -301,11 +304,14 @@ var (
 			Google *google.ClusterProfileGoogle `json:"google,omitempty"`
 		}{
 			Amazon: &amazon.ClusterProfileAmazon{
-				Node: &amazon.AmazonProfileNode{
-					SpotPrice: spotPrice,
-					MinCount:  minCount,
-					MaxCount:  maxCount,
-					Image:     nodeImage,
+				NodePoolProfiles: map[string]*amazon.AmazonNodePool{
+					"pool1" : {
+						InstanceType: nodeInstanceType,
+						SpotPrice: 		spotPrice,
+						MinCount:  		minCount,
+						MaxCount:  		maxCount,
+						Image:     		nodeImage,
+					},
 				},
 			},
 		},
