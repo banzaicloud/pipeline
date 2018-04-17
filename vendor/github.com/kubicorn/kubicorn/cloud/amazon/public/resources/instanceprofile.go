@@ -65,7 +65,7 @@ func (r *InstanceProfile) Actual(immutable *cluster.Cluster) (*cluster.Cluster, 
 		if err != nil {
 			return nil, nil, err
 		}
-		newResource.Identifier = *respInstanceProfile.InstanceProfile.InstanceProfileName
+		newResource.Identifier = *respInstanceProfile.InstanceProfile.InstanceProfileId
 		// Get Roles
 		if len(respInstanceProfile.InstanceProfile.Roles) > 0 {
 			//ListRolePolicies
