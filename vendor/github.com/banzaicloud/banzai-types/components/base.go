@@ -22,6 +22,7 @@ type CreateClusterRequest struct {
 	Cloud            string `json:"cloud" binding:"required"`
 	NodeInstanceType string `json:"nodeInstanceType"`
 	SecretId         string `json:"secret_id" binding:"required"`
+	ProfileName      string `json:"profile_name"`
 	Properties       struct {
 		CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
 		CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
@@ -148,10 +149,6 @@ func (r *CreateClusterRequest) validateMainFields() error {
 	if r.Cloud != constants.Kubernetes {
 		if len(r.Location) == 0 {
 			return constants.ErrorLocationEmpty
-		}
-
-		if len(r.NodeInstanceType) == 0 {
-			return constants.ErrorNodeInstanceTypeEmpty
 		}
 	}
 	return nil
@@ -282,4 +279,62 @@ type CreateClusterResponse struct {
 type ClusterDetailsResponse struct {
 	Name string `json:"name"`
 	Id   uint   `json:"id"`
+}
+
+// CreateClusterRequest creates a CreateClusterRequest model from profile
+func (p *ClusterProfileResponse) CreateClusterRequest(createRequest *CreateClusterRequest) (*CreateClusterRequest, error) {
+	response := &CreateClusterRequest{
+		Name:             createRequest.Name,
+		Location:         p.Location,
+		Cloud:            p.Cloud,
+		NodeInstanceType: p.NodeInstanceType,
+		SecretId:         createRequest.SecretId,
+		ProfileName:      p.Name,
+		Properties: struct {
+			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
+			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
+			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
+			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
+			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
+		}{},
+	}
+
+	switch p.Cloud {
+	case constants.Amazon:
+		response.Properties.CreateClusterAmazon = &amazon.CreateClusterAmazon{
+			Node: &amazon.CreateAmazonNode{
+				SpotPrice: p.Properties.Amazon.Node.SpotPrice,
+				MinCount:  p.Properties.Amazon.Node.MinCount,
+				MaxCount:  p.Properties.Amazon.Node.MaxCount,
+				Image:     p.Properties.Amazon.Node.Image,
+			},
+			Master: &amazon.CreateAmazonMaster{
+				InstanceType: p.Properties.Amazon.Master.InstanceType,
+				Image:        p.Properties.Amazon.Master.Image,
+			},
+		}
+	case constants.Azure:
+		a := createRequest.Properties.CreateClusterAzure
+		if a == nil || len(a.ResourceGroup) == 0 {
+			return nil, constants.ErrorResourceGroupRequired
+		}
+		response.Properties.CreateClusterAzure = &azure.CreateClusterAzure{
+			ResourceGroup:     a.ResourceGroup,
+			KubernetesVersion: p.Properties.Azure.KubernetesVersion,
+			NodePools:         p.Properties.Azure.NodePools,
+		}
+	case constants.Google:
+		g := createRequest.Properties.CreateClusterGoogle
+		if g == nil || len(g.Project) == 0 {
+			return nil, constants.ErrorProjectRequired
+		}
+		response.Properties.CreateClusterGoogle = &google.CreateClusterGoogle{
+			Project:     g.Project,
+			NodeVersion: p.Properties.Google.NodeVersion,
+			NodePools:   p.Properties.Google.NodePools,
+			Master:      p.Properties.Google.Master,
+		}
+	}
+
+	return response, nil
 }

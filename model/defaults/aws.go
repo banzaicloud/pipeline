@@ -43,10 +43,7 @@ func (d *AWSProfile) IsDefinedBefore() bool {
 }
 
 // GetProfile load profile from database and converts ClusterProfileResponse
-func (d *AWSProfile) GetProfile() (*components.ClusterProfileResponse, error) {
-	if err := loadFirst(&d); err != nil {
-		return nil, err
-	}
+func (d *AWSProfile) GetProfile() *components.ClusterProfileResponse {
 
 	return &components.ClusterProfileResponse{
 		Name:             d.DefaultModel.Name,
@@ -75,7 +72,7 @@ func (d *AWSProfile) GetProfile() (*components.ClusterProfileResponse, error) {
 				},
 			},
 		},
-	}, nil
+	}
 
 }
 

@@ -88,10 +88,7 @@ func (d *AKSProfile) GetType() string {
 }
 
 // GetProfile load profile from database and converts ClusterProfileResponse
-func (d *AKSProfile) GetProfile() (*components.ClusterProfileResponse, error) {
-	if err := loadFirst(&d); err != nil {
-		return nil, err
-	}
+func (d *AKSProfile) GetProfile() *components.ClusterProfileResponse {
 
 	nodePools := make(map[string]*azure.NodePoolCreate)
 	for _, np := range d.NodePools {
@@ -117,7 +114,7 @@ func (d *AKSProfile) GetProfile() (*components.ClusterProfileResponse, error) {
 				NodePools:         nodePools,
 			},
 		},
-	}, nil
+	}
 }
 
 // UpdateProfile update profile's data with ClusterProfileRequest's data and if bool is true then update in the database

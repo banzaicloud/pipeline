@@ -74,7 +74,7 @@ const (
 const (
 	TableNameClusters             = "clusters"
 	TableNameAmazonProperties     = "amazon_cluster_properties"
-	TableNameAmazonNodePools  	  = "amazon_node_pools"
+	TableNameAmazonNodePools      = "amazon_node_pools"
 	TableNameAzureProperties      = "azure_cluster_properties"
 	TableNameAzureNodePools       = "azure_node_pools"
 	TableNameGoogleProperties     = "google_cluster_properties"
@@ -119,6 +119,8 @@ var (
 	ErrorNotValidMasterVersion          = errors.New("not valid master version")
 	ErrorNotValidNodeVersion            = errors.New("not valid node version")
 	ErrorNotValidKubernetesVersion      = errors.New("not valid kubernetesVersion")
+	ErrorResourceGroupRequired          = errors.New("resource group is required")
+	ErrorProjectRequired                = errors.New("project is required")
 )
 
 // ### [ Keywords ] ###
