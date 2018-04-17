@@ -58,11 +58,8 @@ func TestCreateCommonClusterFromRequest(t *testing.T) {
 		{name: "not supported cloud", createRequest: notSupportedCloud, expectedModel: nil, expectedError: constants.ErrorNotSupportedCloudType},
 
 		{name: "aws empty location", createRequest: awsEmptyLocationCreate, expectedModel: nil, expectedError: constants.ErrorLocationEmpty},
-		{name: "aws empty nodeInstanceType", createRequest: awsEmptyNITCreate, expectedModel: nil, expectedError: constants.ErrorNodeInstanceTypeEmpty},
 		{name: "aks empty location", createRequest: aksEmptyLocationCreate, expectedModel: nil, expectedError: constants.ErrorLocationEmpty},
-		{name: "aks empty nodeInstanceType", createRequest: aksEmptyNITCreate, expectedModel: nil, expectedError: constants.ErrorNodeInstanceTypeEmpty},
 		{name: "gke empty location", createRequest: gkeEmptyLocationCreate, expectedModel: nil, expectedError: constants.ErrorLocationEmpty},
-		{name: "gke empty nodeInstanceType", createRequest: gkeEmptyNITCreate, expectedModel: nil, expectedError: constants.ErrorNodeInstanceTypeEmpty},
 		{name: "kube empty location and nodeInstanceType", createRequest: kubeEmptyLocationAndNIT, expectedModel: kubeEmptyLocAndNIT, expectedError: nil},
 	}
 
