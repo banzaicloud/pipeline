@@ -51,6 +51,12 @@
   version = "v0.3.0"
 
 [[projects]]
+  name = "github.com/Knetic/govaluate"
+  packages = ["."]
+  revision = "d216395917cc49052c7c7094cf57f09657ca08a8"
+  version = "v3.0.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/MakeNowJust/heredoc"
   packages = ["."]
@@ -162,6 +168,27 @@
   name = "github.com/beorn7/perks"
   packages = ["quantile"]
   revision = "3a771d992973f24aa725d07868b467d1ddfceafb"
+
+[[projects]]
+  name = "github.com/casbin/casbin"
+  packages = [
+    ".",
+    "config",
+    "file-adapter",
+    "model",
+    "persist",
+    "rbac",
+    "rbac/default-role-manager",
+    "util"
+  ]
+  revision = "3a17f2855cc12ad36fd614c590b9d18f46dfd65d"
+  version = "v1.4.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/casbin/gorm-adapter"
+  packages = ["."]
+  revision = "e56c6daebd5e8c657caf3bdf3a647803cf7b242d"
 
 [[projects]]
   name = "github.com/davecgh/go-spew"
@@ -655,6 +682,15 @@
   ]
   revision = "7829d3cf0caf42b5ddf2b2f82a9b5b8503f7dc5b"
   source = "github.com/banzaicloud/kubicorn"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/lib/pq"
+  packages = [
+    ".",
+    "oid"
+  ]
+  revision = "d34b9ff171c21ad295489235aec8b6626023cd04"
 
 [[projects]]
   name = "github.com/magiconair/properties"
@@ -1700,6 +1736,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "4c4856c00d17db42983915acae5753b712d473b40adf96275a7367994575d068"
+  inputs-digest = "775fadcf74ba89cda76039bd750d018b10f950a3c887eec51f7beeeaa70f44c4"
   solver-name = "gps-cdcl"
   solver-version = 1

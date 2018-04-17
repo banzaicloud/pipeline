@@ -214,3 +214,11 @@
 [[constraint]]
   branch = "master"
   name = "github.com/banzaicloud/kubicorn"
+
+[[constraint]]
+  name = "github.com/casbin/casbin"
+  version = "1.4.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/casbin/gorm-adapter"

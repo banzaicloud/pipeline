@@ -150,12 +150,21 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 		return nil, "", err
 	}
 
-	err = importGithubOrganizations(currentUser, context, githubExtraInfo.Token)
+	AddDefaultPolicyToUser(currentUser.Login)
+
+	AddDefaultPolicyToUser(currentUser.Login)
+
+	githubOrgIDs, err := importGithubOrganizations(currentUser, context, githubExtraInfo.Token)
+
+	if err == nil {
+		orgids := []uint{currentUser.Organizations[0].ID}
+		orgids = append(orgids, githubOrgIDs...)
+		AddOrgRoles(orgids...)
+		AddOrgRoleToUser(currentUser.Login, orgids...)
+	}
 
 	return currentUser, fmt.Sprint(db.NewScope(currentUser).PrimaryKeyValue()), err
 }
-
-//http://127.0.0.1:8000/
 
 func (bus BanzaiUserStorer) createUserInDroneDB(user *User, githubAccessToken string) error {
 	droneUser := &DroneUser{
@@ -223,7 +232,7 @@ func getGithubOrganizations(token string) ([]*Organization, error) {
 	return orgs, nil
 }
 
-func importGithubOrganizations(currentUser *User, context *auth.Context, githubToken string) error {
+func importGithubOrganizations(currentUser *User, context *auth.Context, githubToken string) ([]uint, error) {
 
 	githubOrgs, err := getGithubOrganizations(githubToken)
 	if err != nil {
@@ -231,26 +240,35 @@ func importGithubOrganizations(currentUser *User, context *auth.Context, githubT
 		githubOrgs = []*Organization{}
 	}
 
+	orgids := []uint{}
+
 	tx := context.Auth.GetDB(context.Request).Begin()
 	{
 		for _, githubOrg := range githubOrgs {
 			err = tx.Where(&githubOrg).FirstOrCreate(githubOrg).Error
 			if err != nil {
 				tx.Rollback()
-				return err
+				return nil, err
 			}
 			err = tx.Model(currentUser).Association("Organizations").Append(githubOrg).Error
 			if err != nil {
 				tx.Rollback()
-				return err
+				return nil, err
 			}
 			userRoleInOrg := UserOrganization{UserID: currentUser.ID, OrganizationID: githubOrg.ID}
 			err = tx.Model(&UserOrganization{}).Where(userRoleInOrg).Update("role", githubOrg.Role).Error
 			if err != nil {
 				tx.Rollback()
-				return err
+				return nil, err
 			}
+			orgids = append(orgids, githubOrg.ID)
 		}
 	}
-	return tx.Commit().Error
+
+	err = tx.Commit().Error
+	if err != nil {
+		return nil, err
+	}
+
+	return orgids, nil
 }

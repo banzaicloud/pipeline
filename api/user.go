@@ -121,6 +121,8 @@ func AddUser(c *gin.Context) {
 		return
 	}
 
+	auth.AddOrgRoleToUser(user.Login, organization.ID)
+
 	c.Status(http.StatusNoContent)
 }
 
@@ -177,7 +179,23 @@ func RemoveUser(c *gin.Context) {
 			Message: message,
 			Error:   message,
 		})
-	} else {
-		c.Status(http.StatusNoContent)
+		return
 	}
+
+	user, err := auth.GetCurrentUserFromDB(c.Request)
+	if err != nil {
+		message := "failed to query user for deletion: " + err.Error()
+		log.Info(message)
+		statusCode := auth.GormErrorToStatusCode(err)
+		c.AbortWithStatusJSON(statusCode, components.ErrorResponse{
+			Code:    statusCode,
+			Message: message,
+			Error:   message,
+		})
+		return
+	}
+
+	auth.DeleteOrgRoleFromUser(user.Login, organization.ID)
+
+	c.Status(http.StatusNoContent)
 }

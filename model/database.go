@@ -26,14 +26,14 @@ func initDatabase() {
 	db = ConnectDB(dbName)
 }
 
-func ConnectDB(dbName string) *gorm.DB {
-	log := logger.WithFields(logrus.Fields{"action": "ConnectDB"})
+func GetDataSource(dbName string) string {
+	log := logger.WithFields(logrus.Fields{"action": "GetDataSource"})
 	host := viper.GetString("database.host")
 	port := viper.GetString("database.port")
 	role := viper.GetString("database.role")
 	user := viper.GetString("database.user")
 	password := viper.GetString("database.password")
-	dataSource := "@tcp(" + host + ":" + port + ")/" + dbName + "?charset=utf8&parseTime=True&loc=Local"
+	dataSource := "@tcp(" + host + ":" + port + ")/" + dbName
 	if role != "" {
 		var err error
 		dataSource, err = database.DynamicSecretDataSource("mysql", role+dataSource)
@@ -44,6 +44,13 @@ func ConnectDB(dbName string) *gorm.DB {
 	} else {
 		dataSource = user + ":" + password + dataSource
 	}
+	return dataSource
+}
+
+func ConnectDB(dbName string) *gorm.DB {
+	log := logger.WithFields(logrus.Fields{"action": "ConnectDB"})
+	dataSource := GetDataSource(dbName)
+	dataSource += "?charset=utf8&parseTime=True&loc=Local"
 	database, err := gorm.Open("mysql", dataSource)
 	if err != nil {
 		log.Error("Database connection failed")
