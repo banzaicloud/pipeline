@@ -125,6 +125,7 @@ func main() {
 			orgs.HEAD("/:orgid/clusters/:id", api.FetchCluster)
 			orgs.GET("/:orgid/clusters/:id/config", api.GetClusterConfig)
 			orgs.GET("/:orgid/clusters/:id/apiendpoint", api.GetApiEndpoint)
+			orgs.GET("/:orgid/clusters/:id/nodes", api.GetClusterNodes)
 			orgs.POST("/:orgid/clusters/:id/monitoring", api.UpdateMonitoring)
 			orgs.GET("/:orgid/clusters/:id/endpoints", api.ListEndpoints)
 			orgs.GET("/:orgid/clusters/:id/deployments", api.ListDeployments)
