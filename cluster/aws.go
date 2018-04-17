@@ -445,7 +445,10 @@ func (c *AWSCluster) UpdateCluster(request *components.UpdateClusterRequest) err
 
 	log.Info("Create updated model")
 	updateCluster := &model.ClusterModel{
-		Model:            c.modelCluster.Model,
+		ID:               c.modelCluster.ID,
+		CreatedAt:        c.modelCluster.CreatedAt,
+		UpdatedAt:        c.modelCluster.UpdatedAt,
+		DeletedAt:        c.modelCluster.DeletedAt,
 		Name:             c.modelCluster.Name,
 		Location:         c.modelCluster.Location,
 		NodeInstanceType: c.modelCluster.NodeInstanceType,
