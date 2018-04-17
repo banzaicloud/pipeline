@@ -111,6 +111,7 @@ func main() {
 	v1 := router.Group(basePath + "/api/v1/")
 	{
 		v1.Use(auth.Handler)
+		v1.Use(auth.NewAuthorizer())
 		orgs := v1.Group("/orgs")
 		{
 			orgs.Use(api.OrganizationMiddleware)

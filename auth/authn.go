@@ -366,13 +366,6 @@ func Handler(c *gin.Context) {
 
 	hasScope := strings.Contains(claims.Scope, "api:invoke")
 
-	// TODO: metadata and group check for later hardening
-	/**
-	metadata, okMetadata := claims["scope"].(map[string]interface{})
-	authorization, okAuthorization := metadata["authorization"].(map[string]interface{})
-	groups, hasGroups := authorization["groups"].([]interface{})
-	**/
-
 	if !hasScope {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, btype.ErrorResponse{
 			Code:    http.StatusUnauthorized,
