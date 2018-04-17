@@ -143,7 +143,7 @@
   revision = "fd0dd6fe2c3d700a12c8e8b65e111f56db3dfb5f"
 
 [[projects]]
-  branch = "master"
+  branch = "update-creation"
   name = "github.com/banzaicloud/banzai-types"
   packages = [
     "components",
@@ -155,7 +155,7 @@
     "components/kubernetes",
     "constants"
   ]
-  revision = "c714e2e5fd1a0fef7e6a86ae41c0a2988c461215"
+  revision = "720a1aff453d15e162ccc482a5afbcc4f35e08a6"
 
 [[projects]]
   branch = "master"
@@ -1700,6 +1700,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "4c4856c00d17db42983915acae5753b712d473b40adf96275a7367994575d068"
+  inputs-digest = "0e22e78502cd6533f84022ca834885e577c8c6122ba8609da95602c1cc0412ea"
   solver-name = "gps-cdcl"
   solver-version = 1

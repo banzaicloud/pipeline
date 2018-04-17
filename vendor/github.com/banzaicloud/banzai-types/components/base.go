@@ -302,12 +302,7 @@ func (p *ClusterProfileResponse) CreateClusterRequest(createRequest *CreateClust
 	switch p.Cloud {
 	case constants.Amazon:
 		response.Properties.CreateClusterAmazon = &amazon.CreateClusterAmazon{
-			Node: &amazon.CreateAmazonNode{
-				SpotPrice: p.Properties.Amazon.Node.SpotPrice,
-				MinCount:  p.Properties.Amazon.Node.MinCount,
-				MaxCount:  p.Properties.Amazon.Node.MaxCount,
-				Image:     p.Properties.Amazon.Node.Image,
-			},
+			NodePools: p.Properties.Amazon.NodePoolProfiles,
 			Master: &amazon.CreateAmazonMaster{
 				InstanceType: p.Properties.Amazon.Master.InstanceType,
 				Image:        p.Properties.Amazon.Master.Image,
