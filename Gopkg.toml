@@ -84,7 +84,7 @@
   name = "github.com/banzaicloud/bank-vaults"
 
 [[constraint]]
-  branch = "update-creation"
+  branch = "master"
   name = "github.com/banzaicloud/banzai-types"
 
 [[constraint]]
