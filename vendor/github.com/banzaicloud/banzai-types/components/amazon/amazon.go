@@ -28,8 +28,8 @@ type UpdateClusterAmazon struct {
 }
 
 type UpdateAmazonNodePool struct {
-	MinCount int    `json:"minCount"`
-	MaxCount int    `json:"maxCount"`
+	MinCount int `json:"minCount"`
+	MaxCount int `json:"maxCount"`
 }
 
 // Validate validates amazon cluster create request
@@ -114,8 +114,8 @@ func (a *UpdateClusterAmazon) Validate() error {
 }
 
 type ClusterProfileAmazon struct {
-	Master           *AmazonProfileMaster       `json:"master,omitempty"`
-	NodePoolProfiles map[string]*AmazonNodePool `json:"nodePoolProfiles,omitempty"`
+	Master    *AmazonProfileMaster       `json:"master,omitempty"`
+	NodePools map[string]*AmazonNodePool `json:"nodePools,omitempty"`
 }
 
 type AmazonProfileMaster struct {
