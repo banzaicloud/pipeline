@@ -83,6 +83,7 @@ func main() {
 		&auth.UserOrganization{},
 		&auth.Organization{},
 		&defaults.AWSProfile{},
+		&defaults.AWSNodePoolProfile{},
 		&defaults.AKSProfile{},
 		&defaults.AKSNodePoolProfile{},
 		&defaults.GKEProfile{},

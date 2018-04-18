@@ -12,14 +12,35 @@ import (
 // AWSProfile describes an Amazon cluster profile
 type AWSProfile struct {
 	DefaultModel
-	Location           string `gorm:"default:'eu-west-1'"`
-	NodeInstanceType   string `gorm:"default:'m4.xlarge'"`
-	NodeImage          string `gorm:"default:'ami-16bfeb6f'"`
-	MasterInstanceType string `gorm:"default:'m4.xlarge'"`
-	MasterImage        string `gorm:"default:'ami-16bfeb6f'"`
-	NodeSpotPrice      string `gorm:"default:'0.2'"`
-	NodeMinCount       int    `gorm:"default:1"`
-	NodeMaxCount       int    `gorm:"default:2"`
+	Location           string                `gorm:"default:'eu-west-1'"`
+	MasterInstanceType string                `gorm:"default:'m4.xlarge'"`
+	MasterImage        string                `gorm:"default:'ami-16bfeb6f'"`
+	NodePools          []*AWSNodePoolProfile `gorm:"foreignkey:Name"`
+}
+
+// AWSNodePoolProfile describes an Amazon cluster profile's nodepools
+type AWSNodePoolProfile struct {
+	ID           uint   `gorm:"primary_key"`
+	InstanceType string `gorm:"default:'m4.xlarge'"`
+	Name         string `gorm:"unique_index:idx_model_name"`
+	NodeName     string `gorm:"unique_index:idx_model_name"`
+	SpotPrice    string `gorm:"default:'0.2'"`
+	MinCount     int    `gorm:"default:1"`
+	MaxCount     int    `gorm:"default:2"`
+	Image        string `gorm:"default:'ami-16bfeb6f'"`
+}
+
+const (
+	defaultSpotPrice    = "0.2"
+	defaultInstanceType = "m4.xlarge"
+	defaultMinCount     = 1
+	defaultMaxCount     = 2
+	defaultImage        = "ami-16bfeb6f"
+)
+
+// TableName overrides AWSNodePoolProfile's table name
+func (AWSNodePoolProfile) TableName() string {
+	return DefaultAmazonNodePoolProfileTablaName
 }
 
 // TableName overrides AWSProfile's table name
@@ -42,30 +63,69 @@ func (d *AWSProfile) IsDefinedBefore() bool {
 	return model.GetDB().First(&d).RowsAffected != int64(0)
 }
 
+// AfterFind loads nodepools to profile
+func (d *AWSProfile) AfterFind() error {
+	log.Info("AfterFind aws profile... load node pools")
+	return model.GetDB().Where(AWSNodePoolProfile{Name: d.Name}).Find(&d.NodePools).Error
+}
+
+// BeforeSave clears nodepools
+func (d *AWSProfile) BeforeSave() error {
+	log.Info("BeforeSave aws profile...")
+
+	db := model.GetDB()
+	var nodePools []*AWSNodePoolProfile
+	err := db.Where(AWSNodePoolProfile{
+		Name: d.Name,
+	}).Find(&nodePools).Delete(&nodePools).Error
+	if err != nil {
+		log.Errorf("Error during deleting saved nodepools: %s", err.Error())
+	}
+
+	return nil
+}
+
+// BeforeDelete deletes all nodepools to belongs to profile
+func (d *AWSProfile) BeforeDelete() error {
+	log.Info("BeforeDelete aws profile... delete all nodepool")
+
+	var nodePools []*AWSNodePoolProfile
+	if err := model.GetDB().Where(AWSNodePoolProfile{
+		Name: d.Name,
+	}).Find(&nodePools).Delete(&nodePools).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // GetProfile load profile from database and converts ClusterProfileResponse
 func (d *AWSProfile) GetProfile() *components.ClusterProfileResponse {
 
+	nodePools := make(map[string]*amazon.AmazonNodePool)
+	for _, np := range d.NodePools {
+		if np != nil {
+			nodePools[np.NodeName] = &amazon.AmazonNodePool{
+				InstanceType: np.InstanceType,
+				SpotPrice:    np.SpotPrice,
+				MinCount:     np.MinCount,
+				MaxCount:     np.MaxCount,
+				Image:        np.Image,
+			}
+		}
+	}
+
 	return &components.ClusterProfileResponse{
-		Name:             d.DefaultModel.Name,
-		Location:         d.Location,
-		Cloud:            constants.Amazon,
-		NodeInstanceType: d.NodeInstanceType,
+		Name:     d.DefaultModel.Name,
+		Location: d.Location,
+		Cloud:    constants.Amazon,
 		Properties: struct {
 			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
 			Google *google.ClusterProfileGoogle `json:"google,omitempty"`
 		}{
 			Amazon: &amazon.ClusterProfileAmazon{
-				NodePoolProfiles: map[string]*amazon.AmazonNodePool{
-					d.Name :
-					{
-						InstanceType: d.NodeInstanceType,
-						SpotPrice: 		d.NodeSpotPrice,
-						MinCount:  		d.NodeMinCount,
-						MaxCount: 		d.NodeMaxCount,
-						Image:     		d.NodeImage,
-					},
-				},
+				NodePools: nodePools,
 				Master: &amazon.AmazonProfileMaster{
 					InstanceType: d.MasterInstanceType,
 					Image:        d.MasterImage,
@@ -83,27 +143,52 @@ func (d *AWSProfile) UpdateProfile(r *components.ClusterProfileRequest, withSave
 		d.Location = r.Location
 	}
 
-	if len(r.NodeInstanceType) != 0 {
-		d.NodeInstanceType = r.NodeInstanceType
-	}
 	if r.Properties.Amazon != nil {
-		// TODO handle profile update properly
-		for _, nodePool := range r.Properties.Amazon.NodePoolProfiles {
-			if len(nodePool.SpotPrice) != 0 {
-				d.NodeSpotPrice = nodePool.SpotPrice
+
+		if len(r.Properties.Amazon.NodePools) != 0 {
+			var nodePools []*AWSNodePoolProfile
+			for npName, nodePool := range r.Properties.Amazon.NodePools {
+
+				spotPrice := defaultSpotPrice
+				instanceType := defaultInstanceType
+				minCount := defaultMinCount
+				maxCount := defaultMaxCount
+				image := defaultImage
+
+				if len(nodePool.SpotPrice) != 0 {
+					spotPrice = nodePool.SpotPrice
+				}
+
+				if len(nodePool.InstanceType) != 0 {
+					instanceType = nodePool.InstanceType
+				}
+
+				if nodePool.MinCount != 0 {
+					minCount = nodePool.MinCount
+				}
+
+				if nodePool.MaxCount != 0 {
+					maxCount = nodePool.MaxCount
+				}
+
+				if minCount > maxCount {
+					minCount = defaultMinCount
+					maxCount = defaultMaxCount
+				}
+
+				nodePools = append(nodePools, &AWSNodePoolProfile{
+					InstanceType: instanceType,
+					Name:         d.Name,
+					NodeName:     npName,
+					SpotPrice:    spotPrice,
+					MinCount:     minCount,
+					MaxCount:     maxCount,
+					Image:        image,
+				})
+
 			}
 
-			if nodePool.MinCount != 0 {
-				d.NodeMinCount = nodePool.MinCount
-			}
-
-			if nodePool.MaxCount != 0 {
-				d.NodeMaxCount = nodePool.MaxCount
-			}
-
-			if len(nodePool.Image) != 0 {
-				d.NodeImage = nodePool.Image
-			}
+			d.NodePools = nodePools
 		}
 
 		if r.Properties.Amazon.Master != nil {

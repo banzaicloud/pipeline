@@ -27,9 +27,9 @@ import (
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
 	"strings"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // Simple init for logging
@@ -247,7 +247,7 @@ func getStateStoreForCluster(clusterType *model.ClusterModel) (stateStore state.
 }
 
 func getMasterServerPool(cs *model.ClusterModel, nodeServerPool []*kcluster.ServerPool, uuidSuffix string) *kcluster.ServerPool {
-	var ingressRules = make([]*kcluster.IngressRule, 0, 2 + len(nodeServerPool))
+	var ingressRules = make([]*kcluster.IngressRule, 0, 2+len(nodeServerPool))
 	ingressRules = append(ingressRules, &kcluster.IngressRule{
 		IngressFromPort: "22",
 		IngressToPort:   "22",
