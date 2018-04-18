@@ -176,6 +176,10 @@ func (d *AWSProfile) UpdateProfile(r *components.ClusterProfileRequest, withSave
 					maxCount = defaultMaxCount
 				}
 
+				if len(nodePool.Image) != 0 {
+					image = nodePool.Image
+				}
+
 				nodePools = append(nodePools, &AWSNodePoolProfile{
 					InstanceType: instanceType,
 					Name:         d.Name,
