@@ -23,6 +23,7 @@ import (
 	btype "github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/utils"
 	"github.com/sirupsen/logrus"
 )
 
@@ -159,21 +160,65 @@ func Init() {
 	tokenStore = NewVaultTokenStore("pipeline")
 }
 
+func Install(engine *gin.Engine) {
+	authHandler := gin.WrapH(Auth.NewServeMux())
+
+	// We have to make the raw net/http handlers a bit Gin-ish
+	engine.Use(gin.WrapH(manager.SessionManager.Middleware(utils.NopHandler{})))
+	engine.Use(gin.WrapH(RedirectBack.Middleware(utils.NopHandler{})))
+
+	authGroup := engine.Group("/auth/")
+	{
+		authGroup.GET("/login", authHandler)
+		authGroup.GET("/logout", authHandler)
+		authGroup.GET("/register", authHandler)
+		authGroup.GET("/github/login", authHandler)
+		authGroup.GET("/github/logout", authHandler)
+		authGroup.GET("/github/register", authHandler)
+		authGroup.GET("/github/callback", authHandler)
+		authGroup.POST("/tokens", GenerateToken)
+		authGroup.GET("/tokens", GetTokens)
+		authGroup.GET("/tokens/:id", GetTokens)
+		authGroup.DELETE("/tokens/:id", DeleteToken)
+	}
+}
+
 //GenerateToken generates token from context
-// TODO: it should be possible to generate tokens via a token (not just session cookie)
 func GenerateToken(c *gin.Context) {
-	currentUser := GetCurrentUser(c.Request)
-	if currentUser == nil {
-		err := c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("Invalid session"))
-		log.Info(c.ClientIP(), err.Error())
-		return
+	var currentUser *User
+
+	if accessToken, ok := c.GetQuery("access_token"); ok {
+		githubUser, err := GetGithubUser(accessToken)
+		if err != nil {
+			err := c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("Invalid session"))
+			log.Info(c.ClientIP(), err.Error())
+			return
+		}
+		user := User{}
+		err = Auth.GetDB(c.Request).
+			Joins("left join auth_identities on users.id = auth_identities.user_id").
+			Where("auth_identities.uid = ?", githubUser.GetID()).
+			Find(&user).Error
+		if err != nil {
+			err := c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("Invalid session"))
+			log.Info(c.ClientIP(), err.Error())
+			return
+		}
+		currentUser = &user
+	} else {
+		currentUser = GetCurrentUser(c.Request)
+		if currentUser == nil {
+			err := c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("Invalid session"))
+			log.Info(c.ClientIP(), err.Error())
+			return
+		}
 	}
 
 	tokenRequest := struct {
 		Name string `json:"name,omitempty"`
 	}{Name: "generated"}
 
-	if c.Request.Method == http.MethodPost {
+	if c.Request.Method == http.MethodPost && c.Request.ContentLength > 0 {
 		if err := c.ShouldBindJSON(&tokenRequest); err != nil {
 			err := c.AbortWithError(http.StatusBadRequest, err)
 			log.Info(c.ClientIP(), err.Error())
