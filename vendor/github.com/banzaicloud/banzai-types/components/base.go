@@ -199,11 +199,10 @@ func (r *UpdateClusterRequest) preValidate() {
 }
 
 type ClusterProfileResponse struct {
-	Name             string `json:"name" binding:"required"`
-	Location         string `json:"location" binding:"required"`
-	Cloud            string `json:"cloud" binding:"required"`
-	NodeInstanceType string `json:"nodeInstanceType,omitempty"`
-	Properties       struct {
+	Name       string `json:"name" binding:"required"`
+	Location   string `json:"location" binding:"required"`
+	Cloud      string `json:"cloud" binding:"required"`
+	Properties struct {
 		Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 		Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
 		Google *google.ClusterProfileGoogle `json:"google,omitempty"`
@@ -284,12 +283,11 @@ type ClusterDetailsResponse struct {
 // CreateClusterRequest creates a CreateClusterRequest model from profile
 func (p *ClusterProfileResponse) CreateClusterRequest(createRequest *CreateClusterRequest) (*CreateClusterRequest, error) {
 	response := &CreateClusterRequest{
-		Name:             createRequest.Name,
-		Location:         p.Location,
-		Cloud:            p.Cloud,
-		NodeInstanceType: p.NodeInstanceType,
-		SecretId:         createRequest.SecretId,
-		ProfileName:      p.Name,
+		Name:        createRequest.Name,
+		Location:    p.Location,
+		Cloud:       p.Cloud,
+		SecretId:    createRequest.SecretId,
+		ProfileName: p.Name,
 		Properties: struct {
 			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
@@ -302,7 +300,7 @@ func (p *ClusterProfileResponse) CreateClusterRequest(createRequest *CreateClust
 	switch p.Cloud {
 	case constants.Amazon:
 		response.Properties.CreateClusterAmazon = &amazon.CreateClusterAmazon{
-			NodePools: p.Properties.Amazon.NodePoolProfiles,
+			NodePools: p.Properties.Amazon.NodePools,
 			Master: &amazon.CreateAmazonMaster{
 				InstanceType: p.Properties.Amazon.Master.InstanceType,
 				Image:        p.Properties.Amazon.Master.Image,
