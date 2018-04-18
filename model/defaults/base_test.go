@@ -164,13 +164,13 @@ var (
 					InstanceType: masterInstanceType,
 					Image:        masterImage,
 				},
-				NodePoolProfiles: map[string]*amazon.AmazonNodePool{
-					"pool1" : {
+				NodePools: map[string]*amazon.AmazonNodePool{
+					agentName: {
 						InstanceType: nodeInstanceType,
-						SpotPrice: 		spotPrice,
-						MinCount:  		minCount,
-						MaxCount:  		maxCount,
-						Image:     		nodeImage,
+						SpotPrice:    spotPrice,
+						MinCount:     minCount,
+						MaxCount:     maxCount,
+						Image:        nodeImage,
 					},
 				},
 			},
@@ -207,13 +207,18 @@ var (
 	fullAWS = defaults.AWSProfile{
 		DefaultModel:       defaults.DefaultModel{Name: name},
 		Location:           location,
-		NodeInstanceType:   nodeInstanceType,
-		NodeImage:          nodeImage,
 		MasterInstanceType: masterInstanceType,
 		MasterImage:        masterImage,
-		NodeSpotPrice:      spotPrice,
-		NodeMinCount:       minCount,
-		NodeMaxCount:       maxCount,
+		NodePools: []*defaults.AWSNodePoolProfile{
+			{
+				InstanceType: nodeInstanceType,
+				NodeName:     agentName,
+				SpotPrice:    spotPrice,
+				MinCount:     minCount,
+				MaxCount:     maxCount,
+				Image:        nodeImage,
+			},
+		},
 	}
 )
 
@@ -264,7 +269,6 @@ var (
 	masterAWS = defaults.AWSProfile{
 		DefaultModel:       defaults.DefaultModel{Name: name},
 		Location:           location,
-		NodeInstanceType:   nodeInstanceType,
 		MasterInstanceType: masterInstanceType,
 		MasterImage:        masterImage,
 	}
@@ -304,13 +308,13 @@ var (
 			Google *google.ClusterProfileGoogle `json:"google,omitempty"`
 		}{
 			Amazon: &amazon.ClusterProfileAmazon{
-				NodePoolProfiles: map[string]*amazon.AmazonNodePool{
-					"pool1" : {
+				NodePools: map[string]*amazon.AmazonNodePool{
+					agentName: {
 						InstanceType: nodeInstanceType,
-						SpotPrice: 		spotPrice,
-						MinCount:  		minCount,
-						MaxCount:  		maxCount,
-						Image:     		nodeImage,
+						SpotPrice:    spotPrice,
+						MinCount:     minCount,
+						MaxCount:     maxCount,
+						Image:        nodeImage,
 					},
 				},
 			},
@@ -331,13 +335,18 @@ var (
 	}
 
 	nodeAWS = defaults.AWSProfile{
-		DefaultModel:     defaults.DefaultModel{Name: name},
-		Location:         location,
-		NodeInstanceType: nodeInstanceType,
-		NodeImage:        nodeImage,
-		NodeSpotPrice:    spotPrice,
-		NodeMinCount:     minCount,
-		NodeMaxCount:     maxCount,
+		DefaultModel: defaults.DefaultModel{Name: name},
+		Location:     location,
+		NodePools: []*defaults.AWSNodePoolProfile{
+			{
+				InstanceType: nodeInstanceType,
+				NodeName:     agentName,
+				SpotPrice:    spotPrice,
+				MinCount:     minCount,
+				MaxCount:     maxCount,
+				Image:        nodeImage,
+			},
+		},
 	}
 )
 
@@ -374,8 +383,7 @@ var (
 	}
 
 	emptyAWS = defaults.AWSProfile{
-		DefaultModel:     defaults.DefaultModel{Name: name},
-		Location:         location,
-		NodeInstanceType: nodeInstanceType,
+		DefaultModel: defaults.DefaultModel{Name: name},
+		Location:     location,
 	}
 )
