@@ -18,6 +18,7 @@ var log *logrus.Entry
 // cluster profile table names
 const (
 	DefaultAmazonProfileTablaName         = "amazon_default_profile"
+	DefaultAmazonNodePoolProfileTablaName = "amazon_nodepool_default_profile"
 	DefaultAzureProfileTablaName          = "azure_default_profile"
 	DefaultAzureNodePoolProfileTablaName  = "azure_nodepool_default_profile"
 	DefaultGoogleProfileTablaName         = "google_default_profile"
@@ -89,7 +90,11 @@ func loadFirst(output interface{}) error {
 func GetDefaultProfiles() []ClusterProfile {
 	var defaults []ClusterProfile
 	defaults = append(defaults,
-		&AWSProfile{DefaultModel: DefaultModel{Name: GetDefaultProfileName()}},
+		&AWSProfile{DefaultModel: DefaultModel{Name: GetDefaultProfileName()},
+			NodePools: []*AWSNodePoolProfile{{
+				NodeName: DefaultNodeName,
+			}},
+		},
 		&AKSProfile{
 			DefaultModel: DefaultModel{Name: GetDefaultProfileName()},
 			NodePools: []*AKSNodePoolProfile{{
