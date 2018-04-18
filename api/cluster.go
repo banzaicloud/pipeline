@@ -155,7 +155,8 @@ func CreateCluster(c *gin.Context) {
 	// check exists cluster name
 	var existingCluster model.ClusterModel
 	database := model.GetDB()
-	database.First(&existingCluster, map[string]interface{}{"name": createClusterRequest.Name})
+	organizationID := auth.GetCurrentOrganization(c.Request).ID
+	database.First(&existingCluster, map[string]interface{}{"name": createClusterRequest.Name, "organization_id": organizationID})
 
 	if existingCluster.ID != 0 {
 		// duplicated entry

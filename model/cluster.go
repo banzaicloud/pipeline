@@ -24,7 +24,7 @@ type ClusterModel struct {
 	Location         string
 	NodeInstanceType string
 	Cloud            string
-	OrganizationId   uint
+	OrganizationId   uint `gorm:"unique_index:idx_unique_id"`
 	SecretId         string
 	Status           string
 	Amazon           AmazonClusterModel
@@ -36,7 +36,7 @@ type ClusterModel struct {
 
 //AmazonClusterModel describes the amazon cluster model
 type AmazonClusterModel struct {
-	ClusterModelId     uint                    `gorm:"primary_key"`
+	ClusterModelId     uint `gorm:"primary_key"`
 	MasterInstanceType string
 	MasterImage        string
 	NodePools          []*AmazonNodePoolsModel `gorm:"foreignkey:ClusterModelId"`
@@ -52,7 +52,7 @@ type AmazonNodePoolsModel struct {
 	NodeMaxCount     int
 	NodeImage        string
 	NodeInstanceType string
-	Delete           bool 	`gorm:"-"`
+	Delete           bool `gorm:"-"`
 }
 
 //AzureClusterModel describes the azure cluster model
@@ -202,12 +202,12 @@ func (cs *ClusterModel) String() string {
 		// Write AWS Node
 		for _, nodePool := range cs.Amazon.NodePools {
 			buffer.WriteString(fmt.Sprintf("NodePool Name: %s, InstanceType: %s, Spot price: %s, Min count: %d, Max count: %d, Node image: %s",
-					nodePool.Name,
-					nodePool.NodeInstanceType,
-					nodePool.NodeSpotPrice,
-					nodePool.NodeMinCount,
-					nodePool.NodeMaxCount,
-					nodePool.NodeImage))
+				nodePool.Name,
+				nodePool.NodeInstanceType,
+				nodePool.NodeSpotPrice,
+				nodePool.NodeMinCount,
+				nodePool.NodeMaxCount,
+				nodePool.NodeImage))
 		}
 
 	} else if cs.Cloud == constants.Google {
