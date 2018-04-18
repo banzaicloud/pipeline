@@ -119,20 +119,7 @@ func CreateCluster(c *gin.Context) {
 	// check exists cluster name
 	var existingCluster model.ClusterModel
 	database := model.GetDB()
-	database.Raw("SELECT * FROM "+model.ClusterModel.TableName(existingCluster)+" WHERE name = ?;",
-		createClusterRequest.Name).Scan(&existingCluster)
-
-	////TODO check if error handling is enough
-	//existingCluster, err := model.QueryCluster(filter)
-	//if err != nil {
-	//	log.Error(err)
-	//	c.JSON(http.StatusBadRequest, ErrorResponse{
-	//		Code:    http.StatusBadRequest,
-	//		Message: "Error parsing request",
-	//		Error:   err.Error(),
-	//	})
-	//	return
-	//}
+	database.First(&existingCluster, map[string]interface{}{"name": createClusterRequest.Name})
 
 	if existingCluster.ID != 0 {
 		// duplicated entry
