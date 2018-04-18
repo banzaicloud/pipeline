@@ -7,7 +7,6 @@ import (
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/go-errors/errors"
-	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
@@ -20,7 +19,6 @@ func CreateKubernetesClusterFromRequest(request *components.CreateClusterRequest
 	var cluster KubeCluster
 
 	cluster.modelCluster = &model.ClusterModel{
-		Model:            gorm.Model{},
 		Name:             request.Name,
 		Location:         request.Location,
 		NodeInstanceType: request.NodeInstanceType,
@@ -89,7 +87,7 @@ func (b *KubeCluster) GetStatus() (*components.GetClusterStatusResponse, error) 
 		log.Debug("Empty location and/or nodeInstanceType.. reload from db")
 		// reload from db
 		db := model.GetDB()
-		db.Find(&b.modelCluster, model.ClusterModel{Model: gorm.Model{ID: b.GetID()}})
+		db.Find(&b.modelCluster, model.ClusterModel{ID: b.GetID()})
 	}
 
 	return &components.GetClusterStatusResponse{
