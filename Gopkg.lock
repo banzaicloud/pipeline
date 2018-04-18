@@ -131,7 +131,7 @@
     "cluster",
     "utils"
   ]
-  revision = "4dbd3c21fae6151ce2d1b20065341a06b72661c8"
+  revision = "78816dc415eab088898d4defd6ab760c4f800f8c"
 
 [[projects]]
   branch = "master"
