@@ -139,3 +139,13 @@ func FromBToS(pointer *[]byte) string {
 	}
 	return ""
 }
+
+// AppendIfMissing appends string to a slice if it's not contains it
+func AppendIfMissing(slice []string, s string) []string {
+	for _, e := range slice {
+		if e == s {
+			return slice
+		}
+	}
+	return append(slice, s)
+}

@@ -244,7 +244,14 @@ func GetKubernetesVersions(manager ClusterManager, location string) ([]string, e
 	var versions []string
 	if resp.OrchestratorVersionProfileProperties != nil && resp.OrchestratorVersionProfileProperties.Orchestrators != nil {
 		for _, v := range *resp.OrchestratorVersionProfileProperties.Orchestrators {
-			versions = append(versions, *v.OrchestratorVersion)
+			if v.OrchestratorType != nil && *v.OrchestratorType == string(compute.Kubernetes) {
+				versions = utils.AppendIfMissing(versions, *v.OrchestratorVersion)
+				if v.Upgrades != nil {
+					for _, up := range *v.Upgrades {
+						versions = utils.AppendIfMissing(versions, *up.OrchestratorVersion)
+					}
+				}
+			}
 		}
 	}
 
