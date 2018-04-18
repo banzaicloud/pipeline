@@ -111,6 +111,11 @@ func main() {
 		authGroup.GET("/*w/*w", authHandler)
 	}
 
+	root := router.Group("/")
+	{
+		root.GET("/", api.RedirectRoot)
+	}
+
 	v1 := router.Group("/api/v1/")
 	{
 		v1.Use(auth.Handler)
