@@ -12,10 +12,10 @@ import (
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/model/defaults"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/banzaicloud/pipeline/model/defaults"
 )
 
 // TODO see who will win
@@ -176,7 +176,6 @@ func CreateCluster(c *gin.Context) {
 
 	// TODO check validation
 	// This is the common part of cluster flow
-	organizationID := auth.GetCurrentOrganization(c.Request).ID
 	commonCluster, err := cluster.CreateCommonClusterFromRequest(&createClusterRequest, organizationID)
 	if err != nil {
 		log.Errorf("Error during creating common cluster model: %s", err.Error())
