@@ -15,6 +15,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"github.com/banzaicloud/pipeline/model/defaults"
 )
 
 // TODO see who will win
@@ -112,6 +113,41 @@ func CreateCluster(c *gin.Context) {
 		})
 		return
 	}
+
+	if len(createClusterRequest.ProfileName) != 0 {
+		log.Infof("Fill data from profile[%s]", createClusterRequest.ProfileName)
+		profile, err := defaults.GetProfile(createClusterRequest.Cloud, createClusterRequest.ProfileName)
+		if err != nil {
+			log.Error(errors.Wrap(err, "Error during getting profile"))
+			c.JSON(http.StatusNotFound, components.ErrorResponse{
+				Code:    http.StatusNotFound,
+				Message: "Error during getting profile",
+				Error:   err.Error(),
+			})
+			return
+		}
+
+		log.Info("Create profile response")
+		profileResponse := profile.GetProfile()
+
+		log.Info("Create clusterRequest from profile")
+		newRequest, err := profileResponse.CreateClusterRequest(&createClusterRequest)
+		if err != nil {
+			log.Error(errors.Wrap(err, "Error creating request from profile"))
+			c.JSON(http.StatusBadRequest, components.ErrorResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Error creating request from profile",
+				Error:   err.Error(),
+			})
+			return
+		}
+
+		createClusterRequest = *newRequest
+
+		log.Infof("Modified clusterRequest: %v", createClusterRequest)
+
+	}
+
 	log.Debug("Parsing request succeeded")
 
 	log.Info("Searching entry with name: ", createClusterRequest.Name)
