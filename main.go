@@ -10,11 +10,9 @@ import (
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/model/defaults"
 	"github.com/banzaicloud/pipeline/notify"
-	"github.com/banzaicloud/pipeline/utils"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/qor/auth/auth_identity"
-	sessionManager "github.com/qor/session/manager"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -95,21 +93,14 @@ func main() {
 
 	defaults.SetDefaultValues()
 
-	router := gin.Default()
+	router := gin.New()
 
+	// These two paths can contain sensitive information, so it is advised not to log them out.
+	router.Use(gin.LoggerWithWriter(gin.DefaultWriter, "/auth/tokens", "/auth/github/callback"))
+	router.Use(gin.Recovery())
 	router.Use(cors.New(config.GetCORS()))
 
-	authHandler := gin.WrapH(auth.Auth.NewServeMux())
-
-	// We have to make the raw net/http handlers a bit Gin-ish
-	router.Use(gin.WrapH(sessionManager.SessionManager.Middleware(utils.NopHandler{})))
-	router.Use(gin.WrapH(auth.RedirectBack.Middleware(utils.NopHandler{})))
-
-	authGroup := router.Group("/auth/")
-	{
-		authGroup.GET("/*w", authHandler)
-		authGroup.GET("/*w/*w", authHandler)
-	}
+	auth.Install(router)
 
 	root := router.Group("/")
 	{

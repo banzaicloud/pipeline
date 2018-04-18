@@ -22,7 +22,7 @@ type GithubExtraInfo struct {
 
 //NewGithubAuthorizeHandler handler for Github auth
 func NewGithubAuthorizeHandler(provider *githubauth.GithubProvider) func(context *auth.Context) (*claims.Claims, error) {
-	log = logger.WithFields(logrus.Fields{"tag": "Auth"})
+	log := logger.WithFields(logrus.Fields{"tag": "Auth"})
 	return func(context *auth.Context) (*claims.Claims, error) {
 		var (
 			schema       auth.Schema
@@ -30,64 +30,77 @@ func NewGithubAuthorizeHandler(provider *githubauth.GithubProvider) func(context
 			authIdentity = reflect.New(utils.ModelType(context.Auth.Config.AuthIdentityModel)).Interface()
 			req          = context.Request
 			tx           = context.Auth.GetDB(req)
+			oauthCfg     = provider.OAuthConfig(context)
+			token        *oauth2.Token
 		)
 
-		state := req.URL.Query().Get("state")
-		claims, err := context.Auth.SessionStorer.ValidateClaims(state)
+		// A user can pass in pre-defined GitHub personal access token, let's check that first
+		// This should be used only for testing a non-web flow in CI for example
+		token = &oauth2.Token{AccessToken: req.URL.Query().Get("access_token")}
 
-		if err != nil || claims.Valid() != nil || claims.Subject != "state" {
-			log.Info(context.Request.RemoteAddr, auth.ErrUnauthorized.Error())
-			return nil, auth.ErrUnauthorized
+		if token.AccessToken == "" {
+			state := req.URL.Query().Get("state")
+			claims, err := context.Auth.SessionStorer.ValidateClaims(state)
+
+			if err != nil {
+				log.Info(context.Request.RemoteAddr, err.Error())
+				return nil, err
+			}
+
+			if claims.Valid() != nil || claims.Subject != "state" {
+				log.Info(context.Request.RemoteAddr, auth.ErrUnauthorized.Error())
+				return nil, auth.ErrUnauthorized
+			}
+
+			token, err = oauthCfg.Exchange(oauth2.NoContext, req.URL.Query().Get("code"))
+
+			if err != nil {
+				log.Info(context.Request.RemoteAddr, err.Error())
+				return nil, err
+			}
 		}
 
-		if err == nil {
-			oauthCfg := provider.OAuthConfig(context)
-			tkn, err := oauthCfg.Exchange(oauth2.NoContext, req.URL.Query().Get("code"))
-
-			if err != nil {
-				log.Info(context.Request.RemoteAddr, err.Error())
-				return nil, err
-			}
-
-			client := github.NewClient(oauthCfg.Client(oauth2.NoContext, tkn))
-			user, _, err := client.Users.Get(oauth2.NoContext, "")
-			if err != nil {
-				log.Info(context.Request.RemoteAddr, err.Error())
-				return nil, err
-			}
-
-			authInfo.Provider = provider.GetName()
-			authInfo.UID = fmt.Sprint(*user.ID)
-
-			if !tx.Model(authIdentity).Where(authInfo).Scan(&authInfo).RecordNotFound() {
-				return authInfo.ToClaims(), nil
-			}
-
-			{
-				schema.Provider = provider.GetName()
-				schema.UID = fmt.Sprint(*user.ID)
-				schema.Name = user.GetName()
-				schema.Email = user.GetEmail()
-				schema.Image = user.GetAvatarURL()
-				schema.RawInfo = &GithubExtraInfo{Login: user.GetLogin(), Token: tkn.AccessToken}
-			}
-			if _, userID, err := context.Auth.UserStorer.Save(&schema, context); err == nil {
-				if userID != "" {
-					authInfo.UserID = userID
-				}
-			} else {
-				return nil, err
-			}
-
-			if err = tx.Where(authInfo).FirstOrCreate(authIdentity).Error; err == nil {
-				return authInfo.ToClaims(), nil
-			}
-
+		client := github.NewClient(oauthCfg.Client(oauth2.NoContext, token))
+		user, _, err := client.Users.Get(oauth2.NoContext, "")
+		if err != nil {
 			log.Info(context.Request.RemoteAddr, err.Error())
 			return nil, err
+		}
+
+		authInfo.Provider = provider.GetName()
+		authInfo.UID = fmt.Sprint(*user.ID)
+
+		if !tx.Model(authIdentity).Where(authInfo).Scan(&authInfo).RecordNotFound() {
+			return authInfo.ToClaims(), nil
+		}
+
+		{
+			schema.Provider = provider.GetName()
+			schema.UID = fmt.Sprint(*user.ID)
+			schema.Name = user.GetName()
+			schema.Email = user.GetEmail()
+			schema.Image = user.GetAvatarURL()
+			schema.RawInfo = &GithubExtraInfo{Login: user.GetLogin(), Token: token.AccessToken}
+		}
+		if _, userID, err := context.Auth.UserStorer.Save(&schema, context); err == nil {
+			if userID != "" {
+				authInfo.UserID = userID
+			}
+		} else {
+			return nil, err
+		}
+
+		if err = tx.Where(authInfo).FirstOrCreate(authIdentity).Error; err == nil {
+			return authInfo.ToClaims(), nil
 		}
 
 		log.Info(context.Request.RemoteAddr, err.Error())
 		return nil, err
 	}
+}
+
+func GetGithubUser(accessToken string) (*github.User, error) {
+	client := github.NewClient(oauth2.NewClient(oauth2.NoContext, oauth2.StaticTokenSource(&oauth2.Token{AccessToken: accessToken})))
+	user, _, err := client.Users.Get(oauth2.NoContext, "")
+	return user, err
 }
