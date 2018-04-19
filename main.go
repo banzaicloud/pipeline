@@ -174,7 +174,7 @@ func main() {
 		v1.DELETE("/tokens/:id", auth.DeleteToken)
 	}
 
-	router.GET("/api", api.MetaHandler(router, "/api"))
+	router.GET(basePath+"/api", api.MetaHandler(router, basePath+"/api"))
 
 	notify.SlackNotify("API is already running")
 	var listenPort string
