@@ -17,13 +17,12 @@ type BanzaiResponse struct {
 }
 
 type CreateClusterRequest struct {
-	Name             string `json:"name" binding:"required"`
-	Location         string `json:"location"`
-	Cloud            string `json:"cloud" binding:"required"`
-	NodeInstanceType string `json:"nodeInstanceType"`
-	SecretId         string `json:"secret_id" binding:"required"`
-	ProfileName      string `json:"profile_name"`
-	Properties       struct {
+	Name        string `json:"name" binding:"required"`
+	Location    string `json:"location"`
+	Cloud       string `json:"cloud" binding:"required"`
+	SecretId    string `json:"secret_id" binding:"required"`
+	ProfileName string `json:"profile_name"`
+	Properties  struct {
 		CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
 		CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
 		CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
@@ -39,13 +38,22 @@ type ErrorResponse struct {
 }
 
 type GetClusterStatusResponse struct {
-	Status           string                      `json:"status"`
-	Name             string                      `json:"name"`
-	Location         string                      `json:"location"`
-	Cloud            string                      `json:"cloud"`
-	NodeInstanceType string                      `json:"nodeInstanceType,omitempty"`
-	ResourceID       uint                        `json:"id"`
-	NodePools        map[string]*google.NodePool `json:"nodePools,omitempty"`
+	Status     string                     `json:"status"`
+	Name       string                     `json:"name"`
+	Location   string                     `json:"location"`
+	Cloud      string                     `json:"cloud"`
+	ResourceID uint                       `json:"id"`
+	NodePools  map[string]*StatusNodePool `json:"nodePools,omitempty"`
+}
+
+type StatusNodePool struct {
+	Count          int    `json:"count,omitempty"`
+	InstanceType   string `json:"instance_type,omitempty"`
+	ServiceAccount string `json:"service_account,omitempty"`
+	SpotPrice      string `json:"spot_price,omitempty"`
+	MinCount       int    `json:"min_count,omitempty"`
+	MaxCount       int    `json:"max_count,omitempty"`
+	Image          string `json:"image,omitempty"`
 }
 
 type GetClusterConfigResponse struct {
@@ -210,11 +218,10 @@ type ClusterProfileResponse struct {
 }
 
 type ClusterProfileRequest struct {
-	Name             string `json:"name" binding:"required"`
-	Location         string `json:"location" binding:"required"`
-	Cloud            string `json:"cloud" binding:"required"`
-	NodeInstanceType string `json:"nodeInstanceType"`
-	Properties       struct {
+	Name       string `json:"name" binding:"required"`
+	Location   string `json:"location" binding:"required"`
+	Cloud      string `json:"cloud" binding:"required"`
+	Properties struct {
 		Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 		Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
 		Google *google.ClusterProfileGoogle `json:"google,omitempty"`

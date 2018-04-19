@@ -118,12 +118,11 @@ func CreateAWSClusterFromRequest(request *components.CreateClusterRequest, orgId
 	modelNodePools := createNodePoolsFromRequest(request.Properties.CreateClusterAmazon.NodePools)
 
 	cluster.modelCluster = &model.ClusterModel{
-		Name:             request.Name,
-		Location:         request.Location,
-		NodeInstanceType: request.NodeInstanceType,
-		Cloud:            request.Cloud,
-		SecretId:         request.SecretId,
-		OrganizationId:   orgId,
+		Name:           request.Name,
+		Location:       request.Location,
+		Cloud:          request.Cloud,
+		SecretId:       request.SecretId,
+		OrganizationId: orgId,
 		Amazon: model.AmazonClusterModel{
 			MasterInstanceType: request.Properties.CreateClusterAmazon.Master.InstanceType,
 			MasterImage:        request.Properties.CreateClusterAmazon.Master.Image,
@@ -486,13 +485,24 @@ func GetKubicornProfile(cs *model.ClusterModel) *kcluster.Cluster {
 func (c *AWSCluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 	log.Info("Start get cluster status (amazon)")
 
+	nodePools := make(map[string]*components.StatusNodePool)
+	for _, np := range c.modelCluster.Amazon.NodePools {
+		nodePools[np.Name] = &components.StatusNodePool{
+			InstanceType: np.NodeInstanceType,
+			SpotPrice:    np.NodeSpotPrice,
+			MinCount:     np.NodeMinCount,
+			MaxCount:     np.NodeMaxCount,
+			Image:        np.NodeImage,
+		}
+	}
+
 	return &components.GetClusterStatusResponse{
-		Status:           c.modelCluster.Status,
-		Name:             c.modelCluster.Name,
-		Location:         c.modelCluster.Location,
-		Cloud:            c.modelCluster.Cloud,
-		NodeInstanceType: c.modelCluster.NodeInstanceType,
-		ResourceID:       c.modelCluster.ID,
+		Status:     c.modelCluster.Status,
+		Name:       c.modelCluster.Name,
+		Location:   c.modelCluster.Location,
+		Cloud:      c.modelCluster.Cloud,
+		ResourceID: c.modelCluster.ID,
+		NodePools:  nodePools,
 	}, nil
 }
 
@@ -531,7 +541,6 @@ func (c *AWSCluster) UpdateCluster(request *components.UpdateClusterRequest) err
 		DeletedAt:        c.modelCluster.DeletedAt,
 		Name:             c.modelCluster.Name,
 		Location:         c.modelCluster.Location,
-		NodeInstanceType: c.modelCluster.NodeInstanceType,
 		Cloud:            request.Cloud,
 		OrganizationId:   c.modelCluster.OrganizationId,
 		SecretId:         c.modelCluster.SecretId,

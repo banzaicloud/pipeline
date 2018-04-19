@@ -62,14 +62,6 @@ func CreateGKEClusterFromRequest(request *components.CreateClusterRequest, orgId
 	log.Debug("Create ClusterModel struct from the request")
 	var cluster GKECluster
 
-	// if nodeInstanceType is not provided at node pool level
-	// than fall back to node instance type defined at cluster level
-	for _, nodePoolData := range request.Properties.CreateClusterGoogle.NodePools {
-		if len(request.NodeInstanceType) > 0 && len(nodePoolData.NodeInstanceType) == 0 {
-			nodePoolData.NodeInstanceType = request.NodeInstanceType
-		}
-	}
-
 	nodePools, err := createNodePoolsModelFromRequestData(request.Properties.CreateClusterGoogle.NodePools)
 
 	if err != nil {
@@ -77,12 +69,11 @@ func CreateGKEClusterFromRequest(request *components.CreateClusterRequest, orgId
 	}
 
 	cluster.modelCluster = &model.ClusterModel{
-		Name:             request.Name,
-		Location:         request.Location,
-		Cloud:            request.Cloud,
-		NodeInstanceType: request.NodeInstanceType,
-		OrganizationId:   orgId,
-		SecretId:         request.SecretId,
+		Name:           request.Name,
+		Location:       request.Location,
+		Cloud:          request.Cloud,
+		OrganizationId: orgId,
+		SecretId:       request.SecretId,
 		Google: model.GoogleClusterModel{
 			Project:       request.Properties.CreateClusterGoogle.Project,
 			MasterVersion: request.Properties.CreateClusterGoogle.Master.Version,
@@ -267,15 +258,22 @@ func (g *GKECluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 	log := logger.WithFields(logrus.Fields{"action": constants.TagGetClusterStatus})
 	log.Info("Create cluster status response")
 
-	nodePools, _ := createNodePoolsRequestDataFromNodePoolModel(g.modelCluster.Google.NodePools)
+	nodePools := make(map[string]*components.StatusNodePool)
+	for _, np := range g.modelCluster.Google.NodePools {
+		nodePools[np.Name] = &components.StatusNodePool{
+			Count:          np.NodeCount,
+			InstanceType:   np.NodeInstanceType,
+			ServiceAccount: np.ServiceAccount,
+		}
+	}
+
 	return &components.GetClusterStatusResponse{
-		Status:           g.modelCluster.Status,
-		Name:             g.modelCluster.Name,
-		Location:         g.modelCluster.Location,
-		Cloud:            g.modelCluster.Cloud,
-		NodeInstanceType: g.modelCluster.NodeInstanceType,
-		ResourceID:       g.modelCluster.ID,
-		NodePools:        nodePools,
+		Status:     g.modelCluster.Status,
+		Name:       g.modelCluster.Name,
+		Location:   g.modelCluster.Location,
+		Cloud:      g.modelCluster.Cloud,
+		ResourceID: g.modelCluster.ID,
+		NodePools:  nodePools,
 	}, nil
 }
 
@@ -999,7 +997,7 @@ func storeConfig(c *kubernetesCluster, name string) ([]byte, error) {
 	cluster := configCluster{
 		Cluster: dataCluster{
 			CertificateAuthorityData: string(c.RootCACert),
-			Server: host,
+			Server:                   host,
 		},
 		Name: c.Name,
 	}

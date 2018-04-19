@@ -21,7 +21,6 @@ func CreateKubernetesClusterFromRequest(request *components.CreateClusterRequest
 	cluster.modelCluster = &model.ClusterModel{
 		Name:             request.Name,
 		Location:         request.Location,
-		NodeInstanceType: request.NodeInstanceType,
 		Cloud:            request.Cloud,
 		OrganizationId:   orgId,
 		SecretId:         request.SecretId,
@@ -83,8 +82,8 @@ func (b *KubeCluster) GetType() string {
 // GetStatus gets cluster status
 func (b *KubeCluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 
-	if len(b.modelCluster.Location) == 0 || len(b.modelCluster.NodeInstanceType) == 0 {
-		log.Debug("Empty location and/or nodeInstanceType.. reload from db")
+	if len(b.modelCluster.Location) == 0 {
+		log.Debug("Empty location.. reload from db")
 		// reload from db
 		db := model.GetDB()
 		db.Find(&b.modelCluster, model.ClusterModel{ID: b.GetID()})
@@ -95,7 +94,6 @@ func (b *KubeCluster) GetStatus() (*components.GetClusterStatusResponse, error) 
 		Name:             b.GetName(),
 		Location:         b.modelCluster.Location,
 		Cloud:            constants.Kubernetes,
-		NodeInstanceType: b.modelCluster.NodeInstanceType,
 		ResourceID:       b.modelCluster.ID,
 	}, nil
 }
