@@ -10,6 +10,7 @@ import (
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/secret"
 	"reflect"
 	"testing"
 )
@@ -18,7 +19,7 @@ const (
 	clusterRequestName           = "testName"
 	clusterRequestLocation       = "testLocation"
 	clusterRequestNodeInstance   = "testInstance"
-	clusterRequestSecretId       = ""
+	clusterRequestSecretId       = "1234"
 	clusterRequestProject        = "testProject"
 	clusterRequestNodeCount      = 1
 	clusterRequestVersion        = "1.9.4-gke.1"
@@ -34,8 +35,10 @@ const (
 	clusterRequestMasterInstance = "testInstance"
 	clusterServiceAccount        = "testServiceAccount"
 	organizationId               = 1
+	organizationIdStr            = "1"
 	clusterKubeMetaKey           = "metaKey"
 	clusterKubeMetaValue         = "metaValue"
+	secretName                   = "testSecretName"
 )
 
 func TestCreateCommonClusterFromRequest(t *testing.T) {
@@ -60,7 +63,7 @@ func TestCreateCommonClusterFromRequest(t *testing.T) {
 		{name: "aws empty location", createRequest: awsEmptyLocationCreate, expectedModel: nil, expectedError: constants.ErrorLocationEmpty},
 		{name: "aks empty location", createRequest: aksEmptyLocationCreate, expectedModel: nil, expectedError: constants.ErrorLocationEmpty},
 		{name: "gke empty location", createRequest: gkeEmptyLocationCreate, expectedModel: nil, expectedError: constants.ErrorLocationEmpty},
-		{name: "kube empty location and nodeInstanceType", createRequest: kubeEmptyLocationAndNIT, expectedModel: kubeEmptyLocAndNIT, expectedError: nil},
+		{name: "kube empty location and nodeInstanceType", createRequest: kubeEmptyLocation, expectedModel: kubeEmptyLocAndNIT, expectedError: nil},
 	}
 
 	for _, tc := range cases {
@@ -143,13 +146,105 @@ func TestGKEKubernetesVersion(t *testing.T) {
 
 }
 
+// todo move
+var (
+	awsSecretRequest = secret.CreateSecretRequest{
+		Name:       secretName,
+		SecretType: constants.Amazon,
+		Values: map[string]string{
+			clusterKubeMetaKey: clusterKubeMetaValue,
+		},
+	}
+
+	aksSecretRequest = secret.CreateSecretRequest{
+		Name:       secretName,
+		SecretType: constants.Azure,
+		Values: map[string]string{
+			clusterKubeMetaKey: clusterKubeMetaValue,
+		},
+	}
+
+	gkeSecretRequest = secret.CreateSecretRequest{
+		Name:       secretName,
+		SecretType: constants.Google,
+		Values: map[string]string{
+			clusterKubeMetaKey: clusterKubeMetaValue,
+		},
+	}
+)
+
+var (
+	errAmazonGoogle = secret.MissmatchError{
+		SecretType: constants.Amazon,
+		ValidType:  constants.Google,
+	}
+
+	errAzureAmazon = secret.MissmatchError{
+		SecretType: constants.Azure,
+		ValidType:  constants.Amazon,
+	}
+
+	errGoogleAmazon = secret.MissmatchError{
+		SecretType: constants.Google,
+		ValidType:  constants.Amazon,
+	}
+)
+
+func TestGetSecretWithValidation(t *testing.T) {
+
+	cases := []struct {
+		name                 string
+		secretRequest        secret.CreateSecretRequest
+		createClusterRequest *components.CreateClusterRequest
+		err                  error
+	}{
+		{"aws", awsSecretRequest, awsCreateFull, nil},
+		{"aks", aksSecretRequest, aksCreateFull, nil},
+		{"gke", gkeSecretRequest, gkeCreateFull, nil},
+		{"aws wrong cloud field", awsSecretRequest, gkeCreateFull, errAmazonGoogle},
+		{"aks wrong cloud field", aksSecretRequest, awsCreateFull, errAzureAmazon},
+		{"gke wrong cloud field", gkeSecretRequest, awsCreateFull, errGoogleAmazon},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+
+			defer secret.Store.Delete(organizationIdStr, clusterRequestSecretId)
+
+			if err := secret.Store.Store(organizationIdStr, clusterRequestSecretId, tc.secretRequest); err != nil {
+				t.Errorf("Error during saving secret: %s", err.Error())
+				t.FailNow()
+			}
+
+			commonCluster, err := cluster.CreateCommonClusterFromRequest(tc.createClusterRequest, organizationId)
+			if err != nil {
+				t.Errorf("Error during create model from request: %s", err.Error())
+				t.FailNow()
+			}
+
+			_, err = commonCluster.GetSecretWithValidation()
+			if tc.err != nil {
+				if err == nil {
+					t.Errorf("Expected error: %s, but got non", tc.err.Error())
+					t.FailNow()
+				} else if !reflect.DeepEqual(tc.err, err) {
+					t.Errorf("Expected error: %s, but got: %s", tc.err.Error(), err.Error())
+					t.FailNow()
+				}
+			} else if err != nil {
+				t.Errorf("Error during secret validation: %v", err)
+				t.FailNow()
+			}
+		})
+	}
+
+}
+
 var (
 	gkeCreateFull = &components.CreateClusterRequest{
-		Name:             clusterRequestName,
-		Location:         clusterRequestLocation,
-		Cloud:            constants.Google,
-		NodeInstanceType: clusterRequestNodeInstance,
-		SecretId:         clusterRequestSecretId,
+		Name:     clusterRequestName,
+		Location: clusterRequestLocation,
+		Cloud:    constants.Google,
+		SecretId: clusterRequestSecretId,
 		Properties: struct {
 			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
@@ -175,41 +270,10 @@ var (
 	}
 
 	gkeEmptyLocationCreate = &components.CreateClusterRequest{
-		Name:             clusterRequestName,
-		Location:         "",
-		Cloud:            constants.Google,
-		NodeInstanceType: clusterRequestNodeInstance,
-		SecretId:         clusterRequestSecretId,
-		Properties: struct {
-			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
-			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
-			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
-			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
-			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
-		}{
-			CreateClusterGoogle: &google.CreateClusterGoogle{
-				Project:     clusterRequestProject,
-				NodeVersion: clusterRequestVersion,
-				NodePools: map[string]*google.NodePool{
-					"pool1": {
-						Count:            clusterRequestNodeCount,
-						NodeInstanceType: clusterRequestNodeInstance,
-						ServiceAccount:   clusterServiceAccount,
-					},
-				},
-				Master: &google.Master{
-					Version: clusterRequestVersion,
-				},
-			},
-		},
-	}
-
-	gkeEmptyNITCreate = &components.CreateClusterRequest{
-		Name:             clusterRequestName,
-		Location:         clusterRequestLocation,
-		Cloud:            constants.Google,
-		NodeInstanceType: "",
-		SecretId:         clusterRequestSecretId,
+		Name:     clusterRequestName,
+		Location: "",
+		Cloud:    constants.Google,
+		SecretId: clusterRequestSecretId,
 		Properties: struct {
 			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
@@ -235,11 +299,10 @@ var (
 	}
 
 	aksCreateFull = &components.CreateClusterRequest{
-		Name:             clusterRequestName,
-		Location:         clusterRequestLocation,
-		Cloud:            constants.Azure,
-		NodeInstanceType: clusterRequestNodeInstance,
-		SecretId:         clusterRequestSecretId,
+		Name:     clusterRequestName,
+		Location: clusterRequestLocation,
+		Cloud:    constants.Azure,
+		SecretId: clusterRequestSecretId,
 		Properties: struct {
 			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
@@ -261,37 +324,10 @@ var (
 	}
 
 	aksEmptyLocationCreate = &components.CreateClusterRequest{
-		Name:             clusterRequestName,
-		Location:         "",
-		Cloud:            constants.Azure,
-		NodeInstanceType: clusterRequestNodeInstance,
-		SecretId:         clusterRequestSecretId,
-		Properties: struct {
-			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
-			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
-			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
-			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
-			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
-		}{
-			CreateClusterAzure: &azure.CreateClusterAzure{
-				ResourceGroup:     clusterRequestRG,
-				KubernetesVersion: clusterRequestKubernetes,
-				NodePools: map[string]*azure.NodePoolCreate{
-					clusterRequestAgentName: {
-						Count:            clusterRequestNodeCount,
-						NodeInstanceType: clusterRequestNodeInstance,
-					},
-				},
-			},
-		},
-	}
-
-	aksEmptyNITCreate = &components.CreateClusterRequest{
-		Name:             clusterRequestName,
-		Location:         clusterRequestLocation,
-		Cloud:            constants.Azure,
-		NodeInstanceType: "",
-		SecretId:         clusterRequestSecretId,
+		Name:     clusterRequestName,
+		Location: "",
+		Cloud:    constants.Azure,
+		SecretId: clusterRequestSecretId,
 		Properties: struct {
 			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
@@ -313,11 +349,10 @@ var (
 	}
 
 	awsCreateFull = &components.CreateClusterRequest{
-		Name:             clusterRequestName,
-		Location:         clusterRequestLocation,
-		Cloud:            constants.Amazon,
-		NodeInstanceType: clusterRequestNodeInstance,
-		SecretId:         clusterRequestSecretId,
+		Name:     clusterRequestName,
+		Location: clusterRequestLocation,
+		Cloud:    constants.Amazon,
+		SecretId: clusterRequestSecretId,
 		Properties: struct {
 			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
@@ -344,11 +379,10 @@ var (
 	}
 
 	dummyCreateFull = &components.CreateClusterRequest{
-		Name:             clusterRequestName,
-		Location:         clusterRequestLocation,
-		Cloud:            constants.Dummy,
-		NodeInstanceType: clusterRequestNodeInstance,
-		SecretId:         clusterRequestSecretId,
+		Name:     clusterRequestName,
+		Location: clusterRequestLocation,
+		Cloud:    constants.Dummy,
+		SecretId: clusterRequestSecretId,
 		Properties: struct {
 			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
@@ -366,42 +400,10 @@ var (
 	}
 
 	awsEmptyLocationCreate = &components.CreateClusterRequest{
-		Name:             clusterRequestName,
-		Location:         "",
-		Cloud:            constants.Amazon,
-		NodeInstanceType: clusterRequestNodeInstance,
-		SecretId:         clusterRequestSecretId,
-		Properties: struct {
-			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
-			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
-			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
-			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
-			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
-		}{
-			CreateClusterAmazon: &amazon.CreateClusterAmazon{
-				NodePools: map[string]*amazon.AmazonNodePool{
-					"pool1": {
-						InstanceType: clusterRequestNodeInstance,
-						SpotPrice:    clusterRequestSpotPrice,
-						MinCount:     clusterRequestNodeCount,
-						MaxCount:     clusterRequestNodeMaxCount,
-						Image:        clusterRequestNodeImage,
-					},
-				},
-				Master: &amazon.CreateAmazonMaster{
-					InstanceType: clusterRequestMasterInstance,
-					Image:        clusterRequestMasterImage,
-				},
-			},
-		},
-	}
-
-	awsEmptyNITCreate = &components.CreateClusterRequest{
-		Name:             clusterRequestName,
-		Location:         clusterRequestLocation,
-		Cloud:            constants.Amazon,
-		NodeInstanceType: "",
-		SecretId:         clusterRequestSecretId,
+		Name:     clusterRequestName,
+		Location: "",
+		Cloud:    constants.Amazon,
+		SecretId: clusterRequestSecretId,
 		Properties: struct {
 			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
@@ -428,11 +430,10 @@ var (
 	}
 
 	kubeCreateFull = &components.CreateClusterRequest{
-		Name:             clusterRequestName,
-		Location:         clusterRequestLocation,
-		Cloud:            constants.Kubernetes,
-		NodeInstanceType: clusterRequestNodeInstance,
-		SecretId:         clusterRequestSecretId,
+		Name:     clusterRequestName,
+		Location: clusterRequestLocation,
+		Cloud:    constants.Kubernetes,
+		SecretId: clusterRequestSecretId,
 		Properties: struct {
 			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
@@ -448,12 +449,11 @@ var (
 		},
 	}
 
-	kubeEmptyLocationAndNIT = &components.CreateClusterRequest{
-		Name:             clusterRequestName,
-		Location:         "",
-		Cloud:            constants.Kubernetes,
-		NodeInstanceType: "",
-		SecretId:         clusterRequestSecretId,
+	kubeEmptyLocation = &components.CreateClusterRequest{
+		Name:     clusterRequestName,
+		Location: "",
+		Cloud:    constants.Kubernetes,
+		SecretId: clusterRequestSecretId,
 		Properties: struct {
 			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
@@ -470,11 +470,10 @@ var (
 	}
 
 	notSupportedCloud = &components.CreateClusterRequest{
-		Name:             clusterRequestName,
-		Location:         clusterRequestLocation,
-		Cloud:            "nonExistsCloud",
-		NodeInstanceType: clusterRequestNodeInstance,
-		SecretId:         clusterRequestSecretId,
+		Name:     clusterRequestName,
+		Location: clusterRequestLocation,
+		Cloud:    "nonExistsCloud",
+		SecretId: clusterRequestSecretId,
 		Properties: struct {
 			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
@@ -485,11 +484,10 @@ var (
 	}
 
 	gkeWrongK8sVersion = &components.CreateClusterRequest{
-		Name:             clusterRequestName,
-		Location:         clusterRequestLocation,
-		Cloud:            constants.Google,
-		NodeInstanceType: clusterRequestNodeInstance,
-		SecretId:         clusterRequestSecretId,
+		Name:     clusterRequestName,
+		Location: clusterRequestLocation,
+		Cloud:    constants.Google,
+		SecretId: clusterRequestSecretId,
 		Properties: struct {
 			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
@@ -515,11 +513,10 @@ var (
 	}
 
 	gkeDifferentK8sVersion = &components.CreateClusterRequest{
-		Name:             clusterRequestName,
-		Location:         clusterRequestLocation,
-		Cloud:            constants.Google,
-		NodeInstanceType: clusterRequestNodeInstance,
-		SecretId:         clusterRequestSecretId,
+		Name:     clusterRequestName,
+		Location: clusterRequestLocation,
+		Cloud:    constants.Google,
+		SecretId: clusterRequestSecretId,
 		Properties: struct {
 			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
@@ -547,14 +544,13 @@ var (
 
 var (
 	gkeModelFull = &model.ClusterModel{
-		Name:             clusterRequestName,
-		Location:         clusterRequestLocation,
-		NodeInstanceType: clusterRequestNodeInstance,
-		SecretId:         clusterRequestSecretId,
-		Cloud:            constants.Google,
-		OrganizationId:   organizationId,
-		Amazon:           model.AmazonClusterModel{},
-		Azure:            model.AzureClusterModel{},
+		Name:           clusterRequestName,
+		Location:       clusterRequestLocation,
+		SecretId:       clusterRequestSecretId,
+		Cloud:          constants.Google,
+		OrganizationId: organizationId,
+		Amazon:         model.AmazonClusterModel{},
+		Azure:          model.AzureClusterModel{},
 		Google: model.GoogleClusterModel{
 			Project:       clusterRequestProject,
 			MasterVersion: clusterRequestVersion,
@@ -571,13 +567,12 @@ var (
 	}
 
 	aksModelFull = &model.ClusterModel{
-		Name:             clusterRequestName,
-		Location:         clusterRequestLocation,
-		NodeInstanceType: clusterRequestNodeInstance,
-		SecretId:         clusterRequestSecretId,
-		Cloud:            constants.Azure,
-		OrganizationId:   organizationId,
-		Amazon:           model.AmazonClusterModel{},
+		Name:           clusterRequestName,
+		Location:       clusterRequestLocation,
+		SecretId:       clusterRequestSecretId,
+		Cloud:          constants.Azure,
+		OrganizationId: organizationId,
+		Amazon:         model.AmazonClusterModel{},
 		Azure: model.AzureClusterModel{
 			ResourceGroup:     clusterRequestRG,
 			KubernetesVersion: clusterRequestKubernetes,
@@ -593,12 +588,11 @@ var (
 	}
 
 	awsModelFull = &model.ClusterModel{
-		Name:             clusterRequestName,
-		Location:         clusterRequestLocation,
-		NodeInstanceType: clusterRequestNodeInstance,
-		SecretId:         clusterRequestSecretId,
-		Cloud:            constants.Amazon,
-		OrganizationId:   organizationId,
+		Name:           clusterRequestName,
+		Location:       clusterRequestLocation,
+		SecretId:       clusterRequestSecretId,
+		Cloud:          constants.Amazon,
+		OrganizationId: organizationId,
 		Amazon: model.AmazonClusterModel{
 			NodePools: []*model.AmazonNodePoolsModel{
 				{
@@ -617,15 +611,14 @@ var (
 	}
 
 	dummyModelFull = &model.ClusterModel{
-		Name:             clusterRequestName,
-		Location:         clusterRequestLocation,
-		NodeInstanceType: clusterRequestNodeInstance,
-		Cloud:            constants.Dummy,
-		OrganizationId:   organizationId,
-		SecretId:         clusterRequestSecretId,
-		Amazon:           model.AmazonClusterModel{},
-		Azure:            model.AzureClusterModel{},
-		Google:           model.GoogleClusterModel{},
+		Name:           clusterRequestName,
+		Location:       clusterRequestLocation,
+		Cloud:          constants.Dummy,
+		OrganizationId: organizationId,
+		SecretId:       clusterRequestSecretId,
+		Amazon:         model.AmazonClusterModel{},
+		Azure:          model.AzureClusterModel{},
+		Google:         model.GoogleClusterModel{},
 		Dummy: model.DummyClusterModel{
 			KubernetesVersion: clusterRequestKubernetes,
 			NodeCount:         clusterRequestNodeCount,
@@ -633,15 +626,14 @@ var (
 	}
 
 	kubeModelFull = &model.ClusterModel{
-		Name:             clusterRequestName,
-		Location:         clusterRequestLocation,
-		NodeInstanceType: clusterRequestNodeInstance,
-		SecretId:         clusterRequestSecretId,
-		Cloud:            constants.Kubernetes,
-		OrganizationId:   organizationId,
-		Amazon:           model.AmazonClusterModel{},
-		Azure:            model.AzureClusterModel{},
-		Google:           model.GoogleClusterModel{},
+		Name:           clusterRequestName,
+		Location:       clusterRequestLocation,
+		SecretId:       clusterRequestSecretId,
+		Cloud:          constants.Kubernetes,
+		OrganizationId: organizationId,
+		Amazon:         model.AmazonClusterModel{},
+		Azure:          model.AzureClusterModel{},
+		Google:         model.GoogleClusterModel{},
 		Kubernetes: model.KubernetesClusterModel{
 			Metadata: map[string]string{
 				clusterKubeMetaKey: clusterKubeMetaValue,
@@ -651,15 +643,14 @@ var (
 	}
 
 	kubeEmptyLocAndNIT = &model.ClusterModel{
-		Name:             clusterRequestName,
-		Location:         "",
-		NodeInstanceType: "",
-		SecretId:         clusterRequestSecretId,
-		Cloud:            constants.Kubernetes,
-		OrganizationId:   organizationId,
-		Amazon:           model.AmazonClusterModel{},
-		Azure:            model.AzureClusterModel{},
-		Google:           model.GoogleClusterModel{},
+		Name:           clusterRequestName,
+		Location:       "",
+		SecretId:       clusterRequestSecretId,
+		Cloud:          constants.Kubernetes,
+		OrganizationId: organizationId,
+		Amazon:         model.AmazonClusterModel{},
+		Azure:          model.AzureClusterModel{},
+		Google:         model.GoogleClusterModel{},
 		Kubernetes: model.KubernetesClusterModel{
 			Metadata: map[string]string{
 				clusterKubeMetaKey: clusterKubeMetaValue,
@@ -669,14 +660,13 @@ var (
 	}
 
 	gkeModelDifferentVersion = &model.ClusterModel{
-		Name:             clusterRequestName,
-		Location:         clusterRequestLocation,
-		NodeInstanceType: clusterRequestNodeInstance,
-		SecretId:         clusterRequestSecretId,
-		Cloud:            constants.Google,
-		OrganizationId:   organizationId,
-		Amazon:           model.AmazonClusterModel{},
-		Azure:            model.AzureClusterModel{},
+		Name:           clusterRequestName,
+		Location:       clusterRequestLocation,
+		SecretId:       clusterRequestSecretId,
+		Cloud:          constants.Google,
+		OrganizationId: organizationId,
+		Amazon:         model.AmazonClusterModel{},
+		Azure:          model.AzureClusterModel{},
 		Google: model.GoogleClusterModel{
 			Project:       clusterRequestProject,
 			MasterVersion: clusterRequestVersion2,

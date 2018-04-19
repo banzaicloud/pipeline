@@ -6,7 +6,6 @@ import (
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/go-errors/errors"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
@@ -19,11 +18,11 @@ func CreateKubernetesClusterFromRequest(request *components.CreateClusterRequest
 	var cluster KubeCluster
 
 	cluster.modelCluster = &model.ClusterModel{
-		Name:             request.Name,
-		Location:         request.Location,
-		Cloud:            request.Cloud,
-		OrganizationId:   orgId,
-		SecretId:         request.SecretId,
+		Name:           request.Name,
+		Location:       request.Location,
+		Cloud:          request.Cloud,
+		OrganizationId: orgId,
+		SecretId:       request.SecretId,
 		Kubernetes: model.KubernetesClusterModel{
 			Metadata: request.Properties.CreateKubernetes.Metadata,
 		},
@@ -35,6 +34,7 @@ func CreateKubernetesClusterFromRequest(request *components.CreateClusterRequest
 // KubeCluster struct for Build your own cluster
 type KubeCluster struct {
 	modelCluster *model.ClusterModel
+	secret       *secret.SecretsItemResponse
 	k8sConfig    []byte
 	APIEndpoint  string
 }
@@ -42,13 +42,10 @@ type KubeCluster struct {
 // CreateCluster creates a new cluster
 func (b *KubeCluster) CreateCluster() error {
 
-	clusterSecret, err := GetSecret(b)
+	// check secret type
+	_, err := b.GetSecretWithValidation()
 	if err != nil {
 		return err
-	}
-
-	if clusterSecret.SecretType != constants.Kubernetes {
-		return errors.Errorf("missmatch secret type %s versus %s", clusterSecret.SecretType, constants.Kubernetes)
 	}
 
 	return nil
@@ -61,7 +58,7 @@ func (b *KubeCluster) Persist(status string) error {
 
 // GetK8sConfig returns the Kubernetes config
 func (b *KubeCluster) GetK8sConfig() ([]byte, error) {
-	s, err := GetSecret(b)
+	s, err := b.GetSecretWithValidation()
 	if err != nil {
 		return nil, err
 	}
@@ -90,11 +87,11 @@ func (b *KubeCluster) GetStatus() (*components.GetClusterStatusResponse, error) 
 	}
 
 	return &components.GetClusterStatusResponse{
-		Status:           b.modelCluster.Status,
-		Name:             b.GetName(),
-		Location:         b.modelCluster.Location,
-		Cloud:            constants.Kubernetes,
-		ResourceID:       b.modelCluster.ID,
+		Status:     b.modelCluster.Status,
+		Name:       b.GetName(),
+		Location:   b.modelCluster.Location,
+		Cloud:      constants.Kubernetes,
+		ResourceID: b.modelCluster.ID,
 	}, nil
 }
 
@@ -143,7 +140,7 @@ func (b *KubeCluster) GetAPIEndpoint() (string, error) {
 	if b.APIEndpoint != "" {
 		return b.APIEndpoint, nil
 	}
-	secretItem, err := GetSecret(b)
+	secretItem, err := b.GetSecretWithValidation()
 	if err != nil {
 		return "", err
 	}
@@ -199,4 +196,22 @@ func (b *KubeCluster) GetClusterDetails() (*components.ClusterDetailsResponse, e
 // ValidateCreationFields validates all field
 func (b *KubeCluster) ValidateCreationFields(r *components.CreateClusterRequest) error {
 	return nil
+}
+
+// GetSecretWithValidation returns secret from vault
+func (b *KubeCluster) GetSecretWithValidation() (*secret.SecretsItemResponse, error) {
+	if b.secret == nil {
+		s, err := getSecret(b)
+		if err != nil {
+			return nil, err
+		}
+		b.secret = s
+	}
+
+	err := b.secret.ValidateSecretType(constants.Kubernetes)
+	if err != nil {
+		return nil, err
+	}
+
+	return b.secret, err
 }

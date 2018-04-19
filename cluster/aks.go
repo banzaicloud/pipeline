@@ -51,6 +51,7 @@ func CreateAKSClusterFromRequest(request *components.CreateClusterRequest, orgId
 type AKSCluster struct {
 	azureCluster *banzaiAzureTypes.Value //Don't use this directly
 	modelCluster *model.ClusterModel
+	secret       *secret.SecretsItemResponse
 	k8sConfig    []byte
 	APIEndpoint  string
 }
@@ -60,12 +61,9 @@ func (c *AKSCluster) GetOrg() uint {
 }
 
 func (c *AKSCluster) GetAKSClient() (*azureClient.AKSClient, error) {
-	clusterSecret, err := GetSecret(c)
+	clusterSecret, err := c.GetSecretWithValidation()
 	if err != nil {
 		return nil, err
-	}
-	if clusterSecret.SecretType != constants.Azure {
-		return nil, errors.Errorf("missmatch secret type %s versus %s", clusterSecret.SecretType, constants.Azure)
 	}
 	creds := &azureCluster.AKSCredential{
 		ClientId:       clusterSecret.Values[secret.AzureClientId],
@@ -301,16 +299,16 @@ func (c *AKSCluster) UpdateCluster(request *bTypes.UpdateClusterRequest) error {
 
 	if updatedCluster != nil {
 		updateCluster := &model.ClusterModel{
-			ID:               c.modelCluster.ID,
-			CreatedAt:        c.modelCluster.CreatedAt,
-			UpdatedAt:        c.modelCluster.UpdatedAt,
-			DeletedAt:        c.modelCluster.DeletedAt,
-			Name:             c.modelCluster.Name,
-			Location:         c.modelCluster.Location,
-			Cloud:            c.modelCluster.Cloud,
-			OrganizationId:   c.modelCluster.OrganizationId,
-			SecretId:         c.modelCluster.SecretId,
-			Status:           c.modelCluster.Status,
+			ID:             c.modelCluster.ID,
+			CreatedAt:      c.modelCluster.CreatedAt,
+			UpdatedAt:      c.modelCluster.UpdatedAt,
+			DeletedAt:      c.modelCluster.DeletedAt,
+			Name:           c.modelCluster.Name,
+			Location:       c.modelCluster.Location,
+			Cloud:          c.modelCluster.Cloud,
+			OrganizationId: c.modelCluster.OrganizationId,
+			SecretId:       c.modelCluster.SecretId,
+			Status:         c.modelCluster.Status,
 			Azure: model.AzureClusterModel{
 				ResourceGroup:     c.modelCluster.Azure.ResourceGroup,
 				KubernetesVersion: c.modelCluster.Azure.KubernetesVersion,
@@ -616,4 +614,22 @@ func (c *AKSCluster) validateKubernetesVersion(k8sVersion, location string) erro
 
 	return nil
 
+}
+
+// GetSecretWithValidation returns secret from vault
+func (c *AKSCluster) GetSecretWithValidation() (*secret.SecretsItemResponse, error) {
+	if c.secret == nil {
+		s, err := getSecret(c)
+		if err != nil {
+			return nil, err
+		}
+		c.secret = s
+	}
+
+	err := c.secret.ValidateSecretType(constants.Azure)
+	if err != nil {
+		return nil, err
+	}
+
+	return c.secret, err
 }

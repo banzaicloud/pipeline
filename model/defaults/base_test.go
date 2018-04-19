@@ -106,7 +106,6 @@ var (
 		Name:             name,
 		Location:         location,
 		Cloud:            constants.Google,
-		NodeInstanceType: nodeInstanceType,
 		Properties: struct {
 			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
@@ -153,7 +152,6 @@ var (
 		Name:             name,
 		Location:         location,
 		Cloud:            constants.Amazon,
-		NodeInstanceType: nodeInstanceType,
 		Properties: struct {
 			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
@@ -227,7 +225,6 @@ var (
 		Name:             name,
 		Location:         location,
 		Cloud:            constants.Google,
-		NodeInstanceType: nodeInstanceType,
 		Properties: struct {
 			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
@@ -245,7 +242,6 @@ var (
 		Name:             name,
 		Location:         location,
 		Cloud:            constants.Amazon,
-		NodeInstanceType: nodeInstanceType,
 		Properties: struct {
 			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
@@ -279,7 +275,6 @@ var (
 		Name:             name,
 		Location:         location,
 		Cloud:            constants.Google,
-		NodeInstanceType: nodeInstanceType,
 		Properties: struct {
 			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
@@ -301,7 +296,6 @@ var (
 		Name:             name,
 		Location:         location,
 		Cloud:            constants.Amazon,
-		NodeInstanceType: nodeInstanceType,
 		Properties: struct {
 			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
@@ -355,21 +349,18 @@ var (
 		Name:             name,
 		Location:         location,
 		Cloud:            constants.Google,
-		NodeInstanceType: nodeInstanceType,
 	}
 
 	emptyRequestAKS = &components.ClusterProfileRequest{
 		Name:             name,
 		Location:         location,
 		Cloud:            constants.Azure,
-		NodeInstanceType: nodeInstanceType,
 	}
 
 	emptyRequestAWS = &components.ClusterProfileRequest{
 		Name:             name,
 		Location:         location,
 		Cloud:            constants.Amazon,
-		NodeInstanceType: nodeInstanceType,
 	}
 
 	emptyGKE = defaults.GKEProfile{
