@@ -149,7 +149,7 @@
   revision = "fd0dd6fe2c3d700a12c8e8b65e111f56db3dfb5f"
 
 [[projects]]
-  branch = "master"
+  branch = "remove-nodeinstancetype"
   name = "github.com/banzaicloud/banzai-types"
   packages = [
     "components",
@@ -161,7 +161,7 @@
     "components/kubernetes",
     "constants"
   ]
-  revision = "6518c72ba951f542edd17a26e76850e82b29c015"
+  revision = "6ef735226433af63364bde256622f2fc4db94c83"
 
 [[projects]]
   branch = "master"
@@ -1736,6 +1736,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "775fadcf74ba89cda76039bd750d018b10f950a3c887eec51f7beeeaa70f44c4"
+  inputs-digest = "25e0df3ecbe541965c940610172070fbbb60f969789103f92d2da671a6e4bd44"
   solver-name = "gps-cdcl"
   solver-version = 1

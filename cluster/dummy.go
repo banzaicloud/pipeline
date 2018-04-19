@@ -23,12 +23,11 @@ func CreateDummyClusterFromRequest(request *components.CreateClusterRequest, org
 	var cluster DummyCluster
 
 	cluster.modelCluster = &model.ClusterModel{
-		Name:             request.Name,
-		Location:         request.Location,
-		NodeInstanceType: request.NodeInstanceType,
-		Cloud:            request.Cloud,
-		OrganizationId:   orgId,
-		SecretId:         request.SecretId,
+		Name:           request.Name,
+		Location:       request.Location,
+		Cloud:          request.Cloud,
+		OrganizationId: orgId,
+		SecretId:       request.SecretId,
 		Dummy: model.DummyClusterModel{
 			KubernetesVersion: request.Properties.CreateClusterDummy.Node.KubernetesVersion,
 			NodeCount:         request.Properties.CreateClusterDummy.Node.Count,
@@ -71,12 +70,12 @@ func (d *DummyCluster) GetType() string {
 //GetStatus gets cluster status
 func (d *DummyCluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 	return &components.GetClusterStatusResponse{
-		Status:           d.modelCluster.Status,
-		Name:             d.modelCluster.Name,
-		Location:         d.modelCluster.Location,
-		Cloud:            constants.Dummy,
-		NodeInstanceType: d.modelCluster.NodeInstanceType,
-		ResourceID:       d.GetID(),
+		Status:     d.modelCluster.Status,
+		Name:       d.modelCluster.Name,
+		Location:   d.modelCluster.Location,
+		Cloud:      constants.Dummy,
+		ResourceID: d.GetID(),
+		NodePools:  nil,
 	}, nil
 }
 

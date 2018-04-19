@@ -33,12 +33,11 @@ func CreateAKSClusterFromRequest(request *components.CreateClusterRequest, orgId
 	}
 
 	cluster.modelCluster = &model.ClusterModel{
-		Name:             request.Name,
-		Location:         request.Location,
-		NodeInstanceType: request.NodeInstanceType,
-		Cloud:            request.Cloud,
-		OrganizationId:   orgId,
-		SecretId:         request.SecretId,
+		Name:           request.Name,
+		Location:       request.Location,
+		Cloud:          request.Cloud,
+		OrganizationId: orgId,
+		SecretId:       request.SecretId,
 		Azure: model.AzureClusterModel{
 			ResourceGroup:     request.Properties.CreateClusterAzure.ResourceGroup,
 			KubernetesVersion: request.Properties.CreateClusterAzure.KubernetesVersion,
@@ -203,13 +202,23 @@ func (c *AKSCluster) GetStatus() (*bTypes.GetClusterStatusResponse, error) {
 	log := logger.WithFields(logrus.Fields{"action": constants.TagGetClusterStatus})
 	log.Info("Create cluster status response")
 
+	nodePools := make(map[string]*bTypes.StatusNodePool)
+	for _, np := range c.modelCluster.Azure.NodePools {
+		if np != nil {
+			nodePools[np.Name] = &bTypes.StatusNodePool{
+				Count:        np.Count,
+				InstanceType: np.NodeInstanceType,
+			}
+		}
+	}
+
 	return &components.GetClusterStatusResponse{
-		Status:           c.modelCluster.Status,
-		Name:             c.modelCluster.Name,
-		Location:         c.modelCluster.Location,
-		Cloud:            c.modelCluster.Cloud,
-		NodeInstanceType: c.modelCluster.NodeInstanceType,
-		ResourceID:       c.modelCluster.ID,
+		Status:     c.modelCluster.Status,
+		Name:       c.modelCluster.Name,
+		Location:   c.modelCluster.Location,
+		Cloud:      c.modelCluster.Cloud,
+		ResourceID: c.modelCluster.ID,
+		NodePools:  nodePools,
 	}, nil
 }
 
@@ -298,7 +307,6 @@ func (c *AKSCluster) UpdateCluster(request *bTypes.UpdateClusterRequest) error {
 			DeletedAt:        c.modelCluster.DeletedAt,
 			Name:             c.modelCluster.Name,
 			Location:         c.modelCluster.Location,
-			NodeInstanceType: c.modelCluster.NodeInstanceType,
 			Cloud:            c.modelCluster.Cloud,
 			OrganizationId:   c.modelCluster.OrganizationId,
 			SecretId:         c.modelCluster.SecretId,

@@ -16,27 +16,26 @@ const unknown = "unknown"
 
 //ClusterModel describes the common cluster model
 type ClusterModel struct {
-	ID               uint `gorm:"primary_key"`
-	CreatedAt        time.Time
-	UpdatedAt        time.Time
-	DeletedAt        *time.Time `gorm:"unique_index:idx_unique_id" sql:"index"`
-	Name             string     `gorm:"unique_index:idx_unique_id"`
-	Location         string
-	NodeInstanceType string
-	Cloud            string
-	OrganizationId   uint `gorm:"unique_index:idx_unique_id"`
-	SecretId         string
-	Status           string
-	Amazon           AmazonClusterModel
-	Azure            AzureClusterModel
-	Google           GoogleClusterModel
-	Dummy            DummyClusterModel
-	Kubernetes       KubernetesClusterModel
+	ID             uint       `gorm:"primary_key"`
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+	DeletedAt      *time.Time `gorm:"unique_index:idx_unique_id" sql:"index"`
+	Name           string     `gorm:"unique_index:idx_unique_id"`
+	Location       string
+	Cloud          string
+	OrganizationId uint       `gorm:"unique_index:idx_unique_id"`
+	SecretId       string
+	Status         string
+	Amazon         AmazonClusterModel
+	Azure          AzureClusterModel
+	Google         GoogleClusterModel
+	Dummy          DummyClusterModel
+	Kubernetes     KubernetesClusterModel
 }
 
 //AmazonClusterModel describes the amazon cluster model
 type AmazonClusterModel struct {
-	ClusterModelId     uint `gorm:"primary_key"`
+	ClusterModelId     uint                    `gorm:"primary_key"`
 	MasterInstanceType string
 	MasterImage        string
 	NodePools          []*AmazonNodePoolsModel `gorm:"foreignkey:ClusterModelId"`
@@ -52,12 +51,12 @@ type AmazonNodePoolsModel struct {
 	NodeMaxCount     int
 	NodeImage        string
 	NodeInstanceType string
-	Delete           bool `gorm:"-"`
+	Delete           bool   `gorm:"-"`
 }
 
 //AzureClusterModel describes the azure cluster model
 type AzureClusterModel struct {
-	ClusterModelId    uint `gorm:"primary_key"`
+	ClusterModelId    uint                  `gorm:"primary_key"`
 	ResourceGroup     string
 	KubernetesVersion string
 	NodePools         []*AzureNodePoolModel `gorm:"foreignkey:ClusterModelId"`
@@ -79,12 +78,12 @@ type GoogleNodePoolModel struct {
 	NodeCount        int
 	NodeInstanceType string
 	ServiceAccount   string
-	Delete           bool `gorm:"-"`
+	Delete           bool   `gorm:"-"`
 }
 
 //GoogleClusterModel describes the google cluster model
 type GoogleClusterModel struct {
-	ClusterModelId uint `gorm:"primary_key"`
+	ClusterModelId uint                   `gorm:"primary_key"`
 	Project        string
 	MasterVersion  string
 	NodeVersion    string
@@ -148,10 +147,6 @@ func (cs *ClusterModel) AfterFind() error {
 		cs.Location = unknown
 	}
 
-	if len(cs.NodeInstanceType) == 0 {
-		cs.NodeInstanceType = unknown
-	}
-
 	if cs.Cloud == constants.Kubernetes && cs.Kubernetes.MetadataRaw != nil && len(cs.Kubernetes.MetadataRaw) != 0 {
 		if out, err := utils.ConvertJson2Map(cs.Kubernetes.MetadataRaw); err != nil {
 			log.Errorf("Error during convert json to map: %s", err.Error())
@@ -188,7 +183,7 @@ func (ClusterModel) TableName() string {
 // String method prints formatted cluster fields
 func (cs *ClusterModel) String() string {
 	var buffer bytes.Buffer
-	buffer.WriteString(fmt.Sprintf("Id: %d, Creation date: %s, Cloud: %s, NodeInstanceType: %s, ", cs.ID, cs.CreatedAt, cs.Cloud, cs.NodeInstanceType))
+	buffer.WriteString(fmt.Sprintf("Id: %d, Creation date: %s, Cloud: %s, ", cs.ID, cs.CreatedAt, cs.Cloud))
 	if cs.Cloud == constants.Azure {
 		// Write AKS
 		buffer.WriteString(fmt.Sprintf("NodePools: %v, Kubernetes version: %s",
