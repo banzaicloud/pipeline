@@ -166,7 +166,7 @@ func (c *CreateSecretRequest) Validate() error {
 // Delete secret secret/orgs/:orgid:/:id: scope
 func (ss *secretStore) Delete(organizationID, secretID string) error {
 	log := logger.WithFields(logrus.Fields{"tag": "DeleteSecret"})
-	log.Debugf("Delete sectret: %s", fmt.Sprintf("secret/orgs/%s/%s", organizationID, secretID))
+	log.Debugf("Delete secret: %s", fmt.Sprintf("secret/orgs/%s/%s", organizationID, secretID))
 	_, err := ss.logical.Delete(fmt.Sprintf("secret/orgs/%s/%s", organizationID, secretID))
 	return err
 }
@@ -250,6 +250,29 @@ func (ss *secretStore) List(organizationID, secretType string) ([]SecretsItemRes
 }
 
 // GetValue returns the value under key
-func (s SecretsItemResponse) GetValue(key string) string {
+func (s *SecretsItemResponse) GetValue(key string) string {
 	return s.Values[key]
+}
+
+func (s *SecretsItemResponse) ValidateSecretType(validType string) error {
+	if s.SecretType != validType {
+		return MissmatchError{
+			SecretType: s.SecretType,
+			ValidType:  validType,
+		}
+	}
+	return nil
+}
+
+type MissmatchError struct {
+	Err        error
+	SecretType string
+	ValidType  string
+}
+
+func (m MissmatchError) Error() string {
+	if m.Err == nil {
+		return fmt.Sprintf("missmatch secret type %s versus %s", m.SecretType, m.ValidType)
+	}
+	return m.Err.Error()
 }

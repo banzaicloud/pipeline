@@ -16,14 +16,14 @@ const unknown = "unknown"
 
 //ClusterModel describes the common cluster model
 type ClusterModel struct {
-	ID             uint       `gorm:"primary_key"`
+	ID             uint `gorm:"primary_key"`
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 	DeletedAt      *time.Time `gorm:"unique_index:idx_unique_id" sql:"index"`
 	Name           string     `gorm:"unique_index:idx_unique_id"`
 	Location       string
 	Cloud          string
-	OrganizationId uint       `gorm:"unique_index:idx_unique_id"`
+	OrganizationId uint `gorm:"unique_index:idx_unique_id"`
 	SecretId       string
 	Status         string
 	Amazon         AmazonClusterModel
@@ -35,7 +35,7 @@ type ClusterModel struct {
 
 //AmazonClusterModel describes the amazon cluster model
 type AmazonClusterModel struct {
-	ClusterModelId     uint                    `gorm:"primary_key"`
+	ClusterModelId     uint `gorm:"primary_key"`
 	MasterInstanceType string
 	MasterImage        string
 	NodePools          []*AmazonNodePoolsModel `gorm:"foreignkey:ClusterModelId"`
@@ -51,12 +51,12 @@ type AmazonNodePoolsModel struct {
 	NodeMaxCount     int
 	NodeImage        string
 	NodeInstanceType string
-	Delete           bool   `gorm:"-"`
+	Delete           bool `gorm:"-"`
 }
 
 //AzureClusterModel describes the azure cluster model
 type AzureClusterModel struct {
-	ClusterModelId    uint                  `gorm:"primary_key"`
+	ClusterModelId    uint `gorm:"primary_key"`
 	ResourceGroup     string
 	KubernetesVersion string
 	NodePools         []*AzureNodePoolModel `gorm:"foreignkey:ClusterModelId"`
@@ -78,12 +78,12 @@ type GoogleNodePoolModel struct {
 	NodeCount        int
 	NodeInstanceType string
 	ServiceAccount   string
-	Delete           bool   `gorm:"-"`
+	Delete           bool `gorm:"-"`
 }
 
 //GoogleClusterModel describes the google cluster model
 type GoogleClusterModel struct {
-	ClusterModelId uint                   `gorm:"primary_key"`
+	ClusterModelId uint `gorm:"primary_key"`
 	Project        string
 	MasterVersion  string
 	NodeVersion    string

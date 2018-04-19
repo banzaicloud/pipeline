@@ -49,6 +49,7 @@ func SetCredentials(awscred *credentials.Credentials) func(*session.Options) err
 type AWSCluster struct {
 	kubicornCluster *kcluster.Cluster //Don't use this directly
 	modelCluster    *model.ClusterModel
+	secret          *secret.SecretsItemResponse
 	k8sConfig       []byte
 	APIEndpoint     string
 }
@@ -162,13 +163,11 @@ func (c *AWSCluster) CreateCluster() error {
 	runtimeParam := pkg.RuntimeParameters{
 		AwsProfile: "",
 	}
-	clusterSecret, err := GetSecret(c)
+	clusterSecret, err := c.GetSecretWithValidation()
 	if err != nil {
 		return err
 	}
-	if clusterSecret.SecretType != constants.Amazon {
-		return errors.Errorf("missmatch secret type %s versus %s", clusterSecret.SecretType, constants.Amazon)
-	}
+
 	awsCred := credentials.NewStaticCredentials(
 		clusterSecret.Values[secret.AwsAccessKeyId],
 		clusterSecret.Values[secret.AwsSecretAccessKey],
@@ -535,16 +534,16 @@ func (c *AWSCluster) UpdateCluster(request *components.UpdateClusterRequest) err
 
 	log.Info("Create updated model")
 	updateCluster := &model.ClusterModel{
-		ID:               c.modelCluster.ID,
-		CreatedAt:        c.modelCluster.CreatedAt,
-		UpdatedAt:        c.modelCluster.UpdatedAt,
-		DeletedAt:        c.modelCluster.DeletedAt,
-		Name:             c.modelCluster.Name,
-		Location:         c.modelCluster.Location,
-		Cloud:            request.Cloud,
-		OrganizationId:   c.modelCluster.OrganizationId,
-		SecretId:         c.modelCluster.SecretId,
-		Status:           c.modelCluster.Status,
+		ID:             c.modelCluster.ID,
+		CreatedAt:      c.modelCluster.CreatedAt,
+		UpdatedAt:      c.modelCluster.UpdatedAt,
+		DeletedAt:      c.modelCluster.DeletedAt,
+		Name:           c.modelCluster.Name,
+		Location:       c.modelCluster.Location,
+		Cloud:          request.Cloud,
+		OrganizationId: c.modelCluster.OrganizationId,
+		SecretId:       c.modelCluster.SecretId,
+		Status:         c.modelCluster.Status,
 		Amazon: model.AmazonClusterModel{
 			MasterInstanceType: c.modelCluster.Amazon.MasterInstanceType,
 			MasterImage:        c.modelCluster.Amazon.MasterImage,
@@ -571,13 +570,11 @@ func (c *AWSCluster) UpdateCluster(request *components.UpdateClusterRequest) err
 	runtimeParam := pkg.RuntimeParameters{
 		AwsProfile: "",
 	}
-	clusterSecret, err := GetSecret(c)
+	clusterSecret, err := c.GetSecretWithValidation()
 	if err != nil {
 		return err
 	}
-	if clusterSecret.SecretType != constants.Amazon {
-		return errors.Errorf("missmatch secret type %s versus %s", clusterSecret.SecretType, constants.Amazon)
-	}
+
 	awsCred := credentials.NewStaticCredentials(
 		clusterSecret.Values[secret.AwsAccessKeyId],
 		clusterSecret.Values[secret.AwsSecretAccessKey],
@@ -658,13 +655,11 @@ func (c *AWSCluster) DeleteCluster() error {
 	runtimeParam := pkg.RuntimeParameters{
 		AwsProfile: "",
 	}
-	clusterSecret, err := GetSecret(c)
+	clusterSecret, err := c.GetSecretWithValidation()
 	if err != nil {
 		return err
 	}
-	if clusterSecret.SecretType != constants.Amazon {
-		return errors.Errorf("missmatch secret type %s versus %s", clusterSecret.SecretType, constants.Amazon)
-	}
+
 	awsCred := credentials.NewStaticCredentials(
 		clusterSecret.Values[secret.AwsAccessKeyId],
 		clusterSecret.Values[secret.AwsSecretAccessKey],
@@ -1026,4 +1021,22 @@ func (c *AWSCluster) validateAMIs(masterAMI string, nodePools map[string]*amazon
 
 	return nil
 
+}
+
+// GetSecretWithValidation returns secret from vault
+func (c *AWSCluster) GetSecretWithValidation() (*secret.SecretsItemResponse, error) {
+	if c.secret == nil {
+		s, err := getSecret(c)
+		if err != nil {
+			return nil, err
+		}
+		c.secret = s
+	}
+
+	err := c.secret.ValidateSecretType(constants.Amazon)
+	if err != nil {
+		return nil, err
+	}
+
+	return c.secret, err
 }

@@ -111,6 +111,7 @@ func createNodePoolsModelFromRequestData(nodePoolsData map[string]*bGoogle.NodeP
 type GKECluster struct {
 	googleCluster *gke.Cluster //Don't use this directly
 	modelCluster  *model.ClusterModel
+	secret        *secret.SecretsItemResponse
 	k8sConfig     []byte
 	APIEndpoint   string
 }
@@ -997,7 +998,7 @@ func storeConfig(c *kubernetesCluster, name string) ([]byte, error) {
 	cluster := configCluster{
 		Cluster: dataCluster{
 			CertificateAuthorityData: string(c.RootCACert),
-			Server:                   host,
+			Server: host,
 		},
 		Name: c.Name,
 	}
@@ -1433,12 +1434,9 @@ func (g *GKECluster) getComputeService() (*gkeCompute.Service, error) {
 // newClientFromCredentials creates new client from credentials
 func (g *GKECluster) newClientFromCredentials() (*http.Client, error) {
 	// Get Secret from Vault
-	clusterSecret, err := GetSecret(g)
+	clusterSecret, err := g.GetSecretWithValidation()
 	if err != nil {
 		return nil, err
-	}
-	if clusterSecret.SecretType != constants.Google {
-		return nil, errors.Errorf("missmatch secret type %s versus %s", clusterSecret.SecretType, constants.Google)
 	}
 
 	// TODO https://github.com/mitchellh/mapstructure
@@ -1504,7 +1502,7 @@ func GetZones(orgId uint, secretId string) ([]string, error) {
 
 // getProjectId returns with project id from secret
 func (g *GKECluster) getProjectId() (string, error) {
-	s, err := GetSecret(g)
+	s, err := g.GetSecretWithValidation()
 	if err != nil {
 		return "", err
 	}
@@ -1653,4 +1651,22 @@ func (g *GKECluster) validateKubernetesVersion(masterVersion, nodeVersion, locat
 
 	return nil
 
+}
+
+// GetSecretWithValidation returns secret from vault
+func (g *GKECluster) GetSecretWithValidation() (*secret.SecretsItemResponse, error) {
+	if g.secret == nil {
+		s, err := getSecret(g)
+		if err != nil {
+			return nil, err
+		}
+		g.secret = s
+	}
+
+	err := g.secret.ValidateSecretType(constants.Google)
+	if err != nil {
+		return nil, err
+	}
+
+	return g.secret, err
 }

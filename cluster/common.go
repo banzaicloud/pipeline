@@ -42,9 +42,10 @@ type CommonCluster interface {
 	UpdateStatus(string) error
 	GetClusterDetails() (*bTypes.ClusterDetailsResponse, error)
 	ValidateCreationFields(r *bTypes.CreateClusterRequest) error
+	GetSecretWithValidation() (*secret.SecretsItemResponse, error)
 }
 
-func GetSecret(cluster CommonCluster) (*secret.SecretsItemResponse, error) {
+func getSecret(cluster CommonCluster) (*secret.SecretsItemResponse, error) {
 	org := strconv.FormatUint(uint64(cluster.GetOrg()), 10)
 	return secret.Store.Get(org, cluster.GetSecretID())
 }

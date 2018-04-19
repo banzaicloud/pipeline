@@ -10,6 +10,8 @@ type AmazonInfo struct {
 	BaseFields
 }
 
+var defaultRegion = "eu-west-1"
+
 // GetType returns cloud type
 func (a *AmazonInfo) GetType() string {
 	return constants.Amazon
@@ -22,7 +24,7 @@ func (a *AmazonInfo) GetNameRegexp() string {
 
 // GetLocations returns supported locations
 func (a *AmazonInfo) GetLocations() ([]string, error) {
-	if regions, err := cluster.ListRegions(""); err != nil {
+	if regions, err := cluster.ListRegions(defaultRegion); err != nil {
 		return nil, err
 	} else {
 		var locations []string

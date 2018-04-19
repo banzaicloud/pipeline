@@ -5,6 +5,7 @@ import (
 	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/secret"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
@@ -215,4 +216,11 @@ func (d *DummyCluster) GetClusterDetails() (*components.ClusterDetailsResponse, 
 // ValidateCreationFields validates all field
 func (d *DummyCluster) ValidateCreationFields(r *components.CreateClusterRequest) error {
 	return nil
+}
+
+// GetSecretWithValidation returns secret from vault
+func (d *DummyCluster) GetSecretWithValidation() (*secret.SecretsItemResponse, error) {
+	return &secret.SecretsItemResponse{
+		SecretType: constants.Dummy,
+	}, nil
 }

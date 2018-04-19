@@ -340,9 +340,6 @@ Response:
 	"secret_id": "{{secret_id}}",
 	"filter": {
 		"fields": [ "location" ]
-	},
-	"google": {
-		"project_id": "{{gke-projectId}}"
 	}
 }
 ```
@@ -371,9 +368,6 @@ Response:
 		"instanceType":{
 			"location": "asia-east1-a"
 		}
-	},
-	"google": {
-		"project_id": "{{gke-projectId}}"
 	}
 }
 ```
@@ -402,9 +396,6 @@ Response:
 		"k8sVersion": {
 			"location": "us-central1-a"
 		}
-	},
-	"google": {
-		"project_id": "{{gke-projectId}}"
 	}
 }
 ```

@@ -187,6 +187,18 @@ func CreateCluster(c *gin.Context) {
 		return
 	}
 
+	log.Infof("Validate secret[%s]", createClusterRequest.SecretId)
+	if _, err := commonCluster.GetSecretWithValidation(); err != nil {
+		log.Errorf("Error during getting secret: %s", err.Error())
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error during getting secret",
+			Error:   err.Error(),
+		})
+		return
+	}
+	log.Info("Secret validation passed")
+
 	log.Info("Validate creation fields")
 	if err := commonCluster.ValidateCreationFields(&createClusterRequest); err != nil {
 		log.Errorf("Error during request validation: %s", err.Error())
