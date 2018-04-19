@@ -160,6 +160,7 @@ func Init() {
 	tokenStore = NewVaultTokenStore("pipeline")
 }
 
+// Install the whole OAuth and JWT Token based auth/authz mechanism to the specified Gin Engine.
 func Install(engine *gin.Engine) {
 	authHandler := gin.WrapH(Auth.NewServeMux())
 
