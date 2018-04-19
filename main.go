@@ -107,7 +107,8 @@ func main() {
 		root.GET("/", api.RedirectRoot)
 	}
 
-	v1 := router.Group("/api/v1/")
+	basePath := viper.GetString("pipeline.basepath")
+	v1 := router.Group(basePath + "/api/v1/")
 	{
 		v1.Use(auth.Handler)
 		orgs := v1.Group("/orgs")
