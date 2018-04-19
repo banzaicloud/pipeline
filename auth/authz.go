@@ -113,20 +113,3 @@ func DeleteOrgRoleFromUser(username string, orgid uint) {
 func orgRoleName(orgid uint) string {
 	return fmt.Sprint("org-", orgid)
 }
-
-func addDefaultPolicies(username string, orgids ...uint) {
-	enforcer.AddPolicy(username, "/api/v1/orgs", "*")
-	enforcer.AddPolicy(username, "/api/v1/token", "*") // DEPRECATED
-	enforcer.AddPolicy(username, "/api/v1/tokens", "*")
-	for _, orgid := range orgids {
-		enforcer.AddRoleForUser(username, orgRoleName(orgid))
-	}
-}
-
-func DeleteOrgRoleFromUser(username string, orgid uint) {
-	enforcer.DeleteRoleForUser(username, orgRoleName(orgid))
-}
-
-func orgRoleName(orgid uint) string {
-	return fmt.Sprint("org-", orgid)
-}
