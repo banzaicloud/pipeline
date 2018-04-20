@@ -36,7 +36,7 @@ services:
     depends_on:
       - vault
       - db
-    restart: on-failure
+    restart: "no"
     command:
       - /bin/vault-enable-database.sh
     environment:
