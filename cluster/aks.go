@@ -200,10 +200,10 @@ func (c *AKSCluster) GetStatus() (*bTypes.GetClusterStatusResponse, error) {
 	log := logger.WithFields(logrus.Fields{"action": constants.TagGetClusterStatus})
 	log.Info("Create cluster status response")
 
-	nodePools := make(map[string]*bTypes.StatusNodePool)
+	nodePools := make(map[string]*bTypes.NodePoolStatus)
 	for _, np := range c.modelCluster.Azure.NodePools {
 		if np != nil {
-			nodePools[np.Name] = &bTypes.StatusNodePool{
+			nodePools[np.Name] = &bTypes.NodePoolStatus{
 				Count:        np.Count,
 				InstanceType: np.NodeInstanceType,
 			}

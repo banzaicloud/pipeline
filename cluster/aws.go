@@ -484,9 +484,9 @@ func GetKubicornProfile(cs *model.ClusterModel) *kcluster.Cluster {
 func (c *AWSCluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 	log.Info("Start get cluster status (amazon)")
 
-	nodePools := make(map[string]*components.StatusNodePool)
+	nodePools := make(map[string]*components.NodePoolStatus)
 	for _, np := range c.modelCluster.Amazon.NodePools {
-		nodePools[np.Name] = &components.StatusNodePool{
+		nodePools[np.Name] = &components.NodePoolStatus{
 			InstanceType: np.NodeInstanceType,
 			SpotPrice:    np.NodeSpotPrice,
 			MinCount:     np.NodeMinCount,
