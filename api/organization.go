@@ -139,6 +139,10 @@ func CreateOrganization(c *gin.Context) {
 		})
 		return
 	}
+
+	auth.AddOrgRoles(organization.ID)
+	auth.AddOrgRoleToUser(user.ID, organization.ID)
+
 	c.JSON(http.StatusOK, organization)
 }
 
