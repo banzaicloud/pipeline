@@ -49,9 +49,9 @@ func SetCredentials(awscred *credentials.Credentials) func(*session.Options) err
 type AWSCluster struct {
 	kubicornCluster *kcluster.Cluster //Don't use this directly
 	modelCluster    *model.ClusterModel
-	secret          *secret.SecretsItemResponse
 	k8sConfig       []byte
 	APIEndpoint     string
+	commonSecret
 }
 
 func (c *AWSCluster) GetOrg() uint {
@@ -486,12 +486,14 @@ func (c *AWSCluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 
 	nodePools := make(map[string]*components.NodePoolStatus)
 	for _, np := range c.modelCluster.Amazon.NodePools {
-		nodePools[np.Name] = &components.NodePoolStatus{
-			InstanceType: np.NodeInstanceType,
-			SpotPrice:    np.NodeSpotPrice,
-			MinCount:     np.NodeMinCount,
-			MaxCount:     np.NodeMaxCount,
-			Image:        np.NodeImage,
+		if np != nil {
+			nodePools[np.Name] = &components.NodePoolStatus{
+				InstanceType: np.NodeInstanceType,
+				SpotPrice:    np.NodeSpotPrice,
+				MinCount:     np.NodeMinCount,
+				MaxCount:     np.NodeMaxCount,
+				Image:        np.NodeImage,
+			}
 		}
 	}
 
@@ -1025,18 +1027,5 @@ func (c *AWSCluster) validateAMIs(masterAMI string, nodePools map[string]*amazon
 
 // GetSecretWithValidation returns secret from vault
 func (c *AWSCluster) GetSecretWithValidation() (*secret.SecretsItemResponse, error) {
-	if c.secret == nil {
-		s, err := getSecret(c)
-		if err != nil {
-			return nil, err
-		}
-		c.secret = s
-	}
-
-	err := c.secret.ValidateSecretType(constants.Amazon)
-	if err != nil {
-		return nil, err
-	}
-
-	return c.secret, err
+	return c.commonSecret.get(c)
 }

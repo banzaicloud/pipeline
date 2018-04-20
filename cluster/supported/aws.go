@@ -10,7 +10,7 @@ type AmazonInfo struct {
 	BaseFields
 }
 
-var defaultRegion = "eu-west-1"
+const defaultRegion = "eu-west-1"
 
 // GetType returns cloud type
 func (a *AmazonInfo) GetType() string {

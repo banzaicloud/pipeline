@@ -34,9 +34,9 @@ func CreateKubernetesClusterFromRequest(request *components.CreateClusterRequest
 // KubeCluster struct for Build your own cluster
 type KubeCluster struct {
 	modelCluster *model.ClusterModel
-	secret       *secret.SecretsItemResponse
 	k8sConfig    []byte
 	APIEndpoint  string
+	commonSecret
 }
 
 // CreateCluster creates a new cluster
@@ -200,18 +200,5 @@ func (b *KubeCluster) ValidateCreationFields(r *components.CreateClusterRequest)
 
 // GetSecretWithValidation returns secret from vault
 func (b *KubeCluster) GetSecretWithValidation() (*secret.SecretsItemResponse, error) {
-	if b.secret == nil {
-		s, err := getSecret(b)
-		if err != nil {
-			return nil, err
-		}
-		b.secret = s
-	}
-
-	err := b.secret.ValidateSecretType(constants.Kubernetes)
-	if err != nil {
-		return nil, err
-	}
-
-	return b.secret, err
+	return b.commonSecret.get(b)
 }
