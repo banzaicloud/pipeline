@@ -121,7 +121,7 @@ func AddUser(c *gin.Context) {
 		return
 	}
 
-	auth.AddOrgRoleToUser(user.Login, organization.ID)
+	auth.AddOrgRoleToUser(user.ID, organization.ID)
 
 	c.Status(http.StatusNoContent)
 }
@@ -195,7 +195,7 @@ func RemoveUser(c *gin.Context) {
 		return
 	}
 
-	auth.DeleteOrgRoleFromUser(user.Login, organization.ID)
+	auth.DeleteOrgRoleFromUser(user.ID, organization.ID)
 
 	c.Status(http.StatusNoContent)
 }
