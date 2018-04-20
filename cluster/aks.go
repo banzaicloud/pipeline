@@ -51,9 +51,9 @@ func CreateAKSClusterFromRequest(request *components.CreateClusterRequest, orgId
 type AKSCluster struct {
 	azureCluster *banzaiAzureTypes.Value //Don't use this directly
 	modelCluster *model.ClusterModel
-	secret       *secret.SecretsItemResponse
 	k8sConfig    []byte
 	APIEndpoint  string
+	commonSecret
 }
 
 func (c *AKSCluster) GetOrg() uint {
@@ -483,6 +483,7 @@ func getAKSClient(orgId uint, secretId string) (*azureClient.AKSClient, error) {
 		modelCluster: &model.ClusterModel{
 			OrganizationId: orgId,
 			SecretId:       secretId,
+			Cloud:          constants.Azure,
 		},
 	}
 
@@ -618,18 +619,5 @@ func (c *AKSCluster) validateKubernetesVersion(k8sVersion, location string) erro
 
 // GetSecretWithValidation returns secret from vault
 func (c *AKSCluster) GetSecretWithValidation() (*secret.SecretsItemResponse, error) {
-	if c.secret == nil {
-		s, err := getSecret(c)
-		if err != nil {
-			return nil, err
-		}
-		c.secret = s
-	}
-
-	err := c.secret.ValidateSecretType(constants.Azure)
-	if err != nil {
-		return nil, err
-	}
-
-	return c.secret, err
+	return c.commonSecret.get(c)
 }

@@ -111,9 +111,9 @@ func createNodePoolsModelFromRequestData(nodePoolsData map[string]*bGoogle.NodeP
 type GKECluster struct {
 	googleCluster *gke.Cluster //Don't use this directly
 	modelCluster  *model.ClusterModel
-	secret        *secret.SecretsItemResponse
 	k8sConfig     []byte
 	APIEndpoint   string
+	commonSecret
 }
 
 func (g *GKECluster) GetOrg() uint {
@@ -261,10 +261,12 @@ func (g *GKECluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 
 	nodePools := make(map[string]*components.NodePoolStatus)
 	for _, np := range g.modelCluster.Google.NodePools {
-		nodePools[np.Name] = &components.NodePoolStatus{
-			Count:          np.NodeCount,
-			InstanceType:   np.NodeInstanceType,
-			ServiceAccount: np.ServiceAccount,
+		if np != nil {
+			nodePools[np.Name] = &components.NodePoolStatus{
+				Count:          np.NodeCount,
+				InstanceType:   np.NodeInstanceType,
+				ServiceAccount: np.ServiceAccount,
+			}
 		}
 	}
 
@@ -998,7 +1000,7 @@ func storeConfig(c *kubernetesCluster, name string) ([]byte, error) {
 	cluster := configCluster{
 		Cluster: dataCluster{
 			CertificateAuthorityData: string(c.RootCACert),
-			Server: host,
+			Server:                   host,
 		},
 		Name: c.Name,
 	}
@@ -1293,20 +1295,23 @@ func (g *GKECluster) DeleteFromDatabase() error {
 	g.modelCluster = nil
 	return nil
 }
-
-// GetGkeServerConfig returns configuration info about the Kubernetes Engine service.
 func GetGkeServerConfig(orgId uint, secretId, zone string) (*gke.ServerConfig, error) {
-
-	log := logger.WithFields(logrus.Fields{"action": "GetGkeServerConfig"})
-
-	log.Info("Start getting configuration info")
-
 	g := GKECluster{
 		modelCluster: &model.ClusterModel{
 			OrganizationId: orgId,
 			SecretId:       secretId,
+			Cloud:          constants.Google,
 		},
 	}
+	return g.GetGkeServerConfig(zone)
+}
+
+// GetGkeServerConfig returns configuration info about the Kubernetes Engine service.
+func (g *GKECluster) GetGkeServerConfig(zone string) (*gke.ServerConfig, error) {
+
+	log := logger.WithFields(logrus.Fields{"action": "GetGkeServerConfig"})
+
+	log.Info("Start getting configuration info")
 
 	log.Info("Get Google service client")
 	if svc, err := g.getGoogleServiceClient(); err != nil {
@@ -1326,16 +1331,19 @@ func GetGkeServerConfig(orgId uint, secretId, zone string) (*gke.ServerConfig, e
 	}
 
 }
-
-// GetAllMachineTypesByZone lists supported machine types by zone
 func GetAllMachineTypesByZone(orgId uint, secretId, zone string) (map[string]components.MachineType, error) {
-
 	g := &GKECluster{
 		modelCluster: &model.ClusterModel{
 			OrganizationId: orgId,
 			SecretId:       secretId,
+			Cloud:          constants.Google,
 		},
 	}
+	return g.GetAllMachineTypesByZone(zone)
+}
+
+// GetAllMachineTypesByZone lists supported machine types by zone
+func (g *GKECluster) GetAllMachineTypesByZone(zone string) (map[string]components.MachineType, error) {
 
 	if computeService, err := g.getComputeService(); err != nil {
 		return nil, err
@@ -1349,15 +1357,20 @@ func GetAllMachineTypesByZone(orgId uint, secretId, zone string) (map[string]com
 	}
 }
 
-// GetAllMachineTypes lists all supported machine types
 func GetAllMachineTypes(orgId uint, secretId string) (map[string]components.MachineType, error) {
-
 	g := &GKECluster{
 		modelCluster: &model.ClusterModel{
 			OrganizationId: orgId,
 			SecretId:       secretId,
+			Cloud:          constants.Google,
 		},
 	}
+
+	return g.GetAllMachineTypes()
+}
+
+// GetAllMachineTypes lists all supported machine types
+func (g *GKECluster) GetAllMachineTypes() (map[string]components.MachineType, error) {
 
 	if computeService, err := g.getComputeService(); err != nil {
 		return nil, err
@@ -1468,15 +1481,19 @@ func (g *GKECluster) newClientFromCredentials() (*http.Client, error) {
 	return config.Client(context.TODO()), nil
 }
 
-// GetZones lists supported zones
 func GetZones(orgId uint, secretId string) ([]string, error) {
-
 	g := &GKECluster{
 		modelCluster: &model.ClusterModel{
 			OrganizationId: orgId,
 			SecretId:       secretId,
+			Cloud:          constants.Google,
 		},
 	}
+	return g.GetZones()
+}
+
+// GetZones lists supported zones
+func (g *GKECluster) GetZones() ([]string, error) {
 
 	if computeService, err := g.getComputeService(); err != nil {
 		return nil, err
@@ -1584,7 +1601,7 @@ func (g *GKECluster) ValidateCreationFields(r *components.CreateClusterRequest) 
 // validateLocation validates location
 func (g *GKECluster) validateLocation(location string) error {
 	log.Infof("Location: %s", location)
-	validLocations, err := GetZones(g.GetOrg(), g.GetSecretID())
+	validLocations, err := g.GetZones()
 	if err != nil {
 		return err
 	}
@@ -1610,7 +1627,7 @@ func (g *GKECluster) validateMachineType(nodePools map[string]*bGoogle.NodePool,
 
 	log.Infof("NodeInstanceTypes: %v", machineTypes)
 
-	validMachineTypes, err := GetAllMachineTypesByZone(g.GetOrg(), g.GetSecretID(), location)
+	validMachineTypes, err := g.GetAllMachineTypesByZone(location)
 	if err != nil {
 		return err
 	}
@@ -1630,7 +1647,7 @@ func (g *GKECluster) validateKubernetesVersion(masterVersion, nodeVersion, locat
 
 	log.Infof("Master version: %s", masterVersion)
 	log.Infof("Node version: %s", nodeVersion)
-	config, err := GetGkeServerConfig(g.GetOrg(), g.GetSecretID(), location)
+	config, err := g.GetGkeServerConfig(location)
 	if err != nil {
 		return err
 	}
@@ -1655,18 +1672,5 @@ func (g *GKECluster) validateKubernetesVersion(masterVersion, nodeVersion, locat
 
 // GetSecretWithValidation returns secret from vault
 func (g *GKECluster) GetSecretWithValidation() (*secret.SecretsItemResponse, error) {
-	if g.secret == nil {
-		s, err := getSecret(g)
-		if err != nil {
-			return nil, err
-		}
-		g.secret = s
-	}
-
-	err := g.secret.ValidateSecretType(constants.Google)
-	if err != nil {
-		return nil, err
-	}
-
-	return g.secret, err
+	return g.commonSecret.get(g)
 }

@@ -45,6 +45,30 @@ type CommonCluster interface {
 	GetSecretWithValidation() (*secret.SecretsItemResponse, error)
 }
 
+type commonSecret struct {
+	secret *secret.SecretsItemResponse
+}
+
+func (cs *commonSecret) get(cluster CommonCluster) (*secret.SecretsItemResponse, error) {
+	if cs.secret == nil {
+		log.Info("secret is nil.. load from vault")
+		s, err := getSecret(cluster)
+		if err != nil {
+			return nil, err
+		}
+		cs.secret = s
+	} else {
+		log.Info("Secret is loaded before")
+	}
+
+	err := cs.secret.ValidateSecretType(cluster.GetType())
+	if err != nil {
+		return nil, err
+	}
+
+	return cs.secret, err
+}
+
 func getSecret(cluster CommonCluster) (*secret.SecretsItemResponse, error) {
 	org := strconv.FormatUint(uint64(cluster.GetOrg()), 10)
 	return secret.Store.Get(org, cluster.GetSecretID())
