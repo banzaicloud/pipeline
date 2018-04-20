@@ -13,9 +13,11 @@ while ! nc -z db 3306; do
 done
 echo "DB launched"
 
-vault secrets disable secret
-
-vault secrets enable -version=1 -path=secret kv
+if vault secrets list -detailed | grep secret/ | grep -q version:2 ; then
+  echo "Detected version:2 secret kv store, replacing it with version:1..."
+  vault secrets disable secret
+  vault secrets enable -version=1 -path=secret kv
+fi
 
 vault secrets enable database
 
