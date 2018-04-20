@@ -3,7 +3,6 @@ package auth
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/banzaicloud/pipeline/model"
@@ -73,12 +72,12 @@ type Organization struct {
 
 //IDString returns the ID as string
 func (user *User) IDString() string {
-	return strconv.FormatUint(uint64(user.ID), 10)
+	return fmt.Sprint(user.ID)
 }
 
 //IDString returns the ID as string
 func (org *Organization) IDString() string {
-	return strconv.FormatUint(uint64(org.ID), 10)
+	return fmt.Sprint(org.ID)
 }
 
 //TableName sets DroneUser's table name
@@ -102,7 +101,7 @@ func GetCurrentOrganization(req *http.Request) *Organization {
 
 func GetCurrentUserFromDB(req *http.Request) (*User, error) {
 	if currentUser, ok := Auth.GetCurrentUser(req).(*User); ok {
-		claims := &claims.Claims{UserID: strconv.Itoa(int(currentUser.ID))}
+		claims := &claims.Claims{UserID: currentUser.IDString()}
 		context := &auth.Context{Auth: Auth, Claims: claims, Request: req}
 		user, err := Auth.UserStorer.Get(claims, context)
 		if err != nil {
@@ -150,9 +149,9 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 		return nil, "", err
 	}
 
-	AddDefaultPolicyToUser(currentUser.Login)
+	AddDefaultPolicyToUser(currentUser.ID)
 
-	AddDefaultPolicyToUser(currentUser.Login)
+	AddDefaultPolicyToUser(currentUser.ID)
 
 	githubOrgIDs, err := importGithubOrganizations(currentUser, context, githubExtraInfo.Token)
 
@@ -160,7 +159,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 		orgids := []uint{currentUser.Organizations[0].ID}
 		orgids = append(orgids, githubOrgIDs...)
 		AddOrgRoles(orgids...)
-		AddOrgRoleToUser(currentUser.Login, orgids...)
+		AddOrgRoleToUser(currentUser.ID, orgids...)
 	}
 
 	return currentUser, fmt.Sprint(db.NewScope(currentUser).PrimaryKeyValue()), err

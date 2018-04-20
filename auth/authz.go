@@ -60,20 +60,20 @@ type BearerAuthorizer struct {
 	enforcer *casbin.SyncedEnforcer
 }
 
-// GetUserName gets the user name from the request.
+// GetUserID gets the user name from the request.
 // Currently, only HTTP Bearer token authentication is supported
-func (a *BearerAuthorizer) GetUserName(r *http.Request) string {
+func (a *BearerAuthorizer) GetUserID(r *http.Request) string {
 	user := GetCurrentUser(r)
-	return user.Login
+	return user.IDString()
 }
 
 // CheckPermission checks the user/method/path combination from the request.
 // Returns true (permission granted) or false (permission forbidden)
 func (a *BearerAuthorizer) CheckPermission(r *http.Request) bool {
-	user := a.GetUserName(r)
+	userID := a.GetUserID(r)
 	method := r.Method
 	path := r.URL.Path
-	return a.enforcer.Enforce(user, path, method)
+	return a.enforcer.Enforce(userID, path, method)
 }
 
 // RequirePermission returns the 403 Forbidden to the client
@@ -88,8 +88,8 @@ func AddDefaultPolicies() {
 	enforcer.AddPolicy("default", basePath+"/api/v1/tokens", "*")
 }
 
-func AddDefaultPolicyToUser(username string) {
-	enforcer.AddRoleForUser(username, "default")
+func AddDefaultPolicyToUser(userID uint) {
+	enforcer.AddRoleForUser(fmt.Sprint(userID), "default")
 }
 
 func AddOrgRoles(orgids ...uint) {
@@ -100,14 +100,14 @@ func AddOrgRoles(orgids ...uint) {
 	}
 }
 
-func AddOrgRoleToUser(username string, orgids ...uint) {
+func AddOrgRoleToUser(userID uint, orgids ...uint) {
 	for _, orgid := range orgids {
-		enforcer.AddRoleForUser(username, orgRoleName(orgid))
+		enforcer.AddRoleForUser(fmt.Sprint(userID), orgRoleName(orgid))
 	}
 }
 
-func DeleteOrgRoleFromUser(username string, orgid uint) {
-	enforcer.DeleteRoleForUser(username, orgRoleName(orgid))
+func DeleteOrgRoleFromUser(userID uint, orgid uint) {
+	enforcer.DeleteRoleForUser(fmt.Sprint(userID), orgRoleName(orgid))
 }
 
 func orgRoleName(orgid uint) string {
