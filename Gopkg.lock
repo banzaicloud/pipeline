@@ -140,13 +140,13 @@
   revision = "78816dc415eab088898d4defd6ab760c4f800f8c"
 
 [[projects]]
-  branch = "master"
   name = "github.com/banzaicloud/bank-vaults"
   packages = [
     "database",
     "vault"
   ]
-  revision = "fd0dd6fe2c3d700a12c8e8b65e111f56db3dfb5f"
+  revision = "78ad1e7ece08f549a669aadc239d2d4e5f0aa9b7"
+  version = "0.1.0"
 
 [[projects]]
   branch = "master"
@@ -292,12 +292,6 @@
   packages = ["."]
   revision = "507f6050b8568533fb3f5504de8e5205fa62a114"
   version = "v1.6.0"
-
-[[projects]]
-  name = "github.com/fatih/structs"
-  packages = ["."]
-  revision = "a720dfa8df582c51dee1b36feabb906bde1588bd"
-  version = "v1.0"
 
 [[projects]]
   name = "github.com/fsnotify/fsnotify"
@@ -556,8 +550,8 @@
     "helper/parseutil",
     "helper/strutil"
   ]
-  revision = "7e1fbde40afee241f81ef08700e7987d86fc7242"
-  version = "v0.9.6"
+  revision = "5dd7f25f5c4b541f2da62d70075b6f82771a650d"
+  version = "v0.10.0"
 
 [[projects]]
   branch = "master"
@@ -1539,8 +1533,8 @@
     "pkg/urlutil",
     "pkg/version"
   ]
-  revision = "60abcdca41f544caaecb224acbfb92aee11e1f6e"
-  version = "v2.9.0-rc3"
+  revision = "030d2c066bcf5a37931e0169b7921f3758d97095"
+  version = "v2.9.0-rc4"
 
 [[projects]]
   branch = "master"
@@ -1650,7 +1644,6 @@
     "pkg/client/clientset_generated/internalclientset/typed/scheduling/internalversion",
     "pkg/client/clientset_generated/internalclientset/typed/settings/internalversion",
     "pkg/client/clientset_generated/internalclientset/typed/storage/internalversion",
-    "pkg/client/conditions",
     "pkg/cloudprovider",
     "pkg/controller",
     "pkg/controller/daemon",
@@ -1736,6 +1729,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "4c4856c00d17db42983915acae5753b712d473b40adf96275a7367994575d068"
+  inputs-digest = "b9d8e37e247b13fa458441343b84ef6513bf170f356acc1b5a02195f3d07d321"
   solver-name = "gps-cdcl"
   solver-version = 1
