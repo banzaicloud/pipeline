@@ -43,10 +43,10 @@ type GetClusterStatusResponse struct {
 	Location   string                     `json:"location"`
 	Cloud      string                     `json:"cloud"`
 	ResourceID uint                       `json:"id"`
-	NodePools  map[string]*StatusNodePool `json:"nodePools,omitempty"`
+	NodePools  map[string]*NodePoolStatus `json:"nodePools,omitempty"`
 }
 
-type StatusNodePool struct {
+type NodePoolStatus struct {
 	Count          int    `json:"count,omitempty"`
 	InstanceType   string `json:"instance_type,omitempty"`
 	ServiceAccount string `json:"service_account,omitempty"`

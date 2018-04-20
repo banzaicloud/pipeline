@@ -259,9 +259,9 @@ func (g *GKECluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 	log := logger.WithFields(logrus.Fields{"action": constants.TagGetClusterStatus})
 	log.Info("Create cluster status response")
 
-	nodePools := make(map[string]*components.StatusNodePool)
+	nodePools := make(map[string]*components.NodePoolStatus)
 	for _, np := range g.modelCluster.Google.NodePools {
-		nodePools[np.Name] = &components.StatusNodePool{
+		nodePools[np.Name] = &components.NodePoolStatus{
 			Count:          np.NodeCount,
 			InstanceType:   np.NodeInstanceType,
 			ServiceAccount: np.ServiceAccount,

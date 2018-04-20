@@ -41,6 +41,49 @@ const (
 	secretName                   = "testSecretName"
 )
 
+var (
+	awsSecretRequest = secret.CreateSecretRequest{
+		Name:       secretName,
+		SecretType: constants.Amazon,
+		Values: map[string]string{
+			clusterKubeMetaKey: clusterKubeMetaValue,
+		},
+	}
+
+	aksSecretRequest = secret.CreateSecretRequest{
+		Name:       secretName,
+		SecretType: constants.Azure,
+		Values: map[string]string{
+			clusterKubeMetaKey: clusterKubeMetaValue,
+		},
+	}
+
+	gkeSecretRequest = secret.CreateSecretRequest{
+		Name:       secretName,
+		SecretType: constants.Google,
+		Values: map[string]string{
+			clusterKubeMetaKey: clusterKubeMetaValue,
+		},
+	}
+)
+
+var (
+	errAmazonGoogle = secret.MissmatchError{
+		SecretType: constants.Amazon,
+		ValidType:  constants.Google,
+	}
+
+	errAzureAmazon = secret.MissmatchError{
+		SecretType: constants.Azure,
+		ValidType:  constants.Amazon,
+	}
+
+	errGoogleAmazon = secret.MissmatchError{
+		SecretType: constants.Google,
+		ValidType:  constants.Amazon,
+	}
+)
+
 func TestCreateCommonClusterFromRequest(t *testing.T) {
 
 	cases := []struct {
@@ -145,50 +188,6 @@ func TestGKEKubernetesVersion(t *testing.T) {
 	}
 
 }
-
-// todo move
-var (
-	awsSecretRequest = secret.CreateSecretRequest{
-		Name:       secretName,
-		SecretType: constants.Amazon,
-		Values: map[string]string{
-			clusterKubeMetaKey: clusterKubeMetaValue,
-		},
-	}
-
-	aksSecretRequest = secret.CreateSecretRequest{
-		Name:       secretName,
-		SecretType: constants.Azure,
-		Values: map[string]string{
-			clusterKubeMetaKey: clusterKubeMetaValue,
-		},
-	}
-
-	gkeSecretRequest = secret.CreateSecretRequest{
-		Name:       secretName,
-		SecretType: constants.Google,
-		Values: map[string]string{
-			clusterKubeMetaKey: clusterKubeMetaValue,
-		},
-	}
-)
-
-var (
-	errAmazonGoogle = secret.MissmatchError{
-		SecretType: constants.Amazon,
-		ValidType:  constants.Google,
-	}
-
-	errAzureAmazon = secret.MissmatchError{
-		SecretType: constants.Azure,
-		ValidType:  constants.Amazon,
-	}
-
-	errGoogleAmazon = secret.MissmatchError{
-		SecretType: constants.Google,
-		ValidType:  constants.Amazon,
-	}
-)
 
 func TestGetSecretWithValidation(t *testing.T) {
 

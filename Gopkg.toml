@@ -84,7 +84,7 @@
   name = "github.com/banzaicloud/bank-vaults"
 
 [[constraint]]
-  branch = "remove-nodeinstancetype"
+  branch = "master"
   name = "github.com/banzaicloud/banzai-types"
 
 [[constraint]]
