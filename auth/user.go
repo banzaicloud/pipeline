@@ -151,8 +151,6 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 
 	AddDefaultPolicyToUser(currentUser.ID)
 
-	AddDefaultPolicyToUser(currentUser.ID)
-
 	githubOrgIDs, err := importGithubOrganizations(currentUser, context, githubExtraInfo.Token)
 
 	if err == nil {
