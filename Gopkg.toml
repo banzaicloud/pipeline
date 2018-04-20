@@ -28,14 +28,6 @@
 
 [[override]]
   branch = "master"
-  name = "github.com/qor/render"
-
-[[override]]
-  branch = "master"
-  name = "github.com/qor/roles"
-
-[[override]]
-  branch = "master"
   name = "github.com/rackspace/gophercloud"
 
 [[override]]
@@ -80,8 +72,8 @@
   name = "github.com/banzaicloud/azure-aks-client"
 
 [[constraint]]
-  branch = "master"
   name = "github.com/banzaicloud/bank-vaults"
+  version = "0.1.0"
 
 [[constraint]]
   branch = "master"
@@ -110,10 +102,6 @@
 [[constraint]]
   name = "github.com/google/go-github"
   version = "15.0.0"
-
-[[constraint]]
-  name = "github.com/hashicorp/vault"
-  version = ">=0.9.6"
 
 [[constraint]]
   branch = "master"
@@ -211,7 +199,7 @@
   go-tests = true
   unused-packages = true
 
-[[constraint]]
+[[override]]
   branch = "master"
   name = "github.com/banzaicloud/kubicorn"
 
