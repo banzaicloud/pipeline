@@ -55,6 +55,7 @@ Response:
 `POST orgs/{orgId}/cloudinfo/amazon` with body:
 ```
 {
+  "secret_id": "{{secret_id}}",
 	"filter": {
 		"fields": [ "location" ]
 	}
@@ -81,6 +82,7 @@ Response:
 `POST orgs/{orgId}/cloudinfo/amazon` with body:
 ```
 {
+  "secret_id": "{{secret_id}}",
 	"filter": {
 		"fields": [ "image" ],
 		"image": {
@@ -109,6 +111,7 @@ Response:
 `POST orgs/{orgId}/cloudinfo/amazon` with body:
 ```
 {
+  "secret_id": "{{secret_id}}",
 	"filter": {
 		"fields": [ "instanceType" ],
 		"instanceType": {
@@ -143,6 +146,7 @@ Response:
 `POST orgs/{orgId}/cloudinfo/amazon` with body:
 ```
 {
+  "secret_id": "{{secret_id}}",
 	"filter": {
 		"fields": [
 			"location",

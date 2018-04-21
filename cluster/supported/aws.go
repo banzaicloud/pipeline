@@ -24,7 +24,12 @@ func (a *AmazonInfo) GetNameRegexp() string {
 
 // GetLocations returns supported locations
 func (a *AmazonInfo) GetLocations() ([]string, error) {
-	if regions, err := cluster.ListRegions(defaultRegion); err != nil {
+
+	if len(a.SecretId) == 0 {
+		return nil, constants.ErrorRequiredSecretId
+	}
+
+	if regions, err := cluster.ListRegions(a.OrgId, a.SecretId, defaultRegion); err != nil {
 		return nil, err
 	} else {
 		var locations []string
@@ -119,8 +124,8 @@ func (a *AmazonInfo) GetKubernetesVersion(*components.KubernetesFilter) (interfa
 }
 
 // processAMIList returns supported AMIs by region and tags
-func processAMIList(region string, tags []*string) (map[string][]string, error) {
-	amiList, err := cluster.ListAMIs(region, tags)
+func (a *AmazonInfo) processAMIList(region string, tags []*string) (map[string][]string, error) {
+	amiList, err := cluster.ListAMIs(a.OrgId, a.SecretId, region, tags)
 	if err != nil {
 		return nil, err
 	}
@@ -138,9 +143,14 @@ func processAMIList(region string, tags []*string) (map[string][]string, error) 
 
 // GetImages returns supported AMIs
 func (a *AmazonInfo) GetImages(filter *components.ImageFilter) (map[string][]string, error) {
+
+	if len(a.SecretId) == 0 {
+		return nil, constants.ErrorRequiredSecretId
+	}
+
 	if len(filter.Location) == 0 {
 		return nil, constants.ErrorRequiredLocation
 	}
 
-	return processAMIList(filter.Location, filter.Tags)
+	return a.processAMIList(filter.Location, filter.Tags)
 }

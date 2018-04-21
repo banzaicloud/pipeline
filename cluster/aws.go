@@ -868,11 +868,24 @@ func getKubicornLogLevel() int {
 }
 
 // ListRegions lists supported regions
-func ListRegions(region string) ([]*ec2.Region, error) {
+func ListRegions(orgId uint, secretId, region string) ([]*ec2.Region, error) {
+	c := &AWSCluster{
+		modelCluster: &model.ClusterModel{
+			OrganizationId: orgId,
+			SecretId:       secretId,
+			Cloud:          constants.Amazon,
+		},
+	}
+	return c.ListRegions(region)
+}
 
-	svc := newEC2Client(&aws.Config{
-		Region: &region,
-	})
+// ListRegions lists supported regions
+func (c *AWSCluster) ListRegions(region string) ([]*ec2.Region, error) {
+
+	svc, err := c.newEC2Client(region)
+	if err != nil {
+		return nil, err
+	}
 
 	resultRegions, err := svc.DescribeRegions(nil)
 	if err != nil {
@@ -883,11 +896,24 @@ func ListRegions(region string) ([]*ec2.Region, error) {
 }
 
 // ListAMIs returns supported AMIs by region and tags
-func ListAMIs(region string, tags []*string) ([]*ec2.Image, error) {
+func ListAMIs(orgId uint, secretId, region string, tags []*string) ([]*ec2.Image, error) {
+	c := &AWSCluster{
+		modelCluster: &model.ClusterModel{
+			OrganizationId: orgId,
+			SecretId:       secretId,
+			Cloud:          constants.Amazon,
+		},
+	}
+	return c.ListAMIs(region, tags)
+}
 
-	svc := newEC2Client(&aws.Config{
-		Region: &region,
-	})
+// ListAMIs returns supported AMIs by region and tags
+func (c *AWSCluster) ListAMIs(region string, tags []*string) ([]*ec2.Image, error) {
+
+	svc, err := c.newEC2Client(region)
+	if err != nil {
+		return nil, err
+	}
 
 	var input *ec2.DescribeImagesInput
 	if tags != nil {
@@ -911,13 +937,41 @@ func ListAMIs(region string, tags []*string) ([]*ec2.Image, error) {
 }
 
 // newEC2Client creates new EC2 client
-func newEC2Client(config *aws.Config) *ec2.EC2 {
+func (c *AWSCluster) newEC2Client(region string) (*ec2.EC2, error) {
 
-	sess := session.Must(session.NewSessionWithOptions(session.Options{
-		SharedConfigState: session.SharedConfigEnable,
-	}))
+	log.Info("create new ec2 client")
 
-	return ec2.New(sess, config)
+	clusterSecret, err := c.GetSecretWithValidation()
+	if err != nil {
+		return nil, err
+	}
+
+	awsCred := credentials.NewStaticCredentials(
+		clusterSecret.Values[secret.AwsAccessKeyId],
+		clusterSecret.Values[secret.AwsSecretAccessKey],
+		"",
+	)
+
+	// set aws log level
+	var lv aws.LogLevelType
+	if logger.Level == logrus.DebugLevel {
+		log.Info("set aws log level to debug")
+		lv = aws.LogDebug
+	} else {
+		log.Info("set aws log off")
+		lv = aws.LogOff
+	}
+
+	if sess, err := session.NewSession(&aws.Config{
+		Credentials: awsCred,
+		Region:      &region,
+		LogLevel:    &lv,
+	}); err != nil {
+		return nil, err
+	} else {
+		return ec2.New(sess), nil
+	}
+
 }
 
 // UpdateStatus updates cluster status in database
@@ -970,7 +1024,7 @@ func (c *AWSCluster) ValidateCreationFields(r *components.CreateClusterRequest) 
 // validateLocation validates location
 func (c *AWSCluster) validateLocation(location string) error {
 	log.Infof("Location: %s", location)
-	validRegions, err := ListRegions(location)
+	validRegions, err := c.ListRegions(location)
 	if err != nil {
 		return err
 	}
@@ -999,7 +1053,7 @@ func (c *AWSCluster) validateAMIs(masterAMI string, nodePools map[string]*amazon
 		log.Infof("Node pool %s image: %s", nodePoolName, node.Image)
 	}
 
-	validImages, err := ListAMIs(location, nil)
+	validImages, err := c.ListAMIs(location, nil)
 	if err != nil {
 		return err
 	}
