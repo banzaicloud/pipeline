@@ -1000,7 +1000,7 @@ func storeConfig(c *kubernetesCluster, name string) ([]byte, error) {
 	cluster := configCluster{
 		Cluster: dataCluster{
 			CertificateAuthorityData: string(c.RootCACert),
-			Server:                   host,
+			Server: host,
 		},
 		Name: c.Name,
 	}
