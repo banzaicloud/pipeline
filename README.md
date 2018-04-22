@@ -208,7 +208,7 @@ Pipeline is integrated with the [Casbin](https://github.com/casbin/) framework t
 * RESTful (with `path` support and all HTTP verbs)
 
 <p align="center">
-<img src="/docs/images/authz1" width="700">
+<img src="/docs/images/authz1.png" width="700">
 </p>
 
 #### Dynamic secrets 
