@@ -207,6 +207,10 @@ Pipeline is integrated with the [Casbin](https://github.com/casbin/) framework t
 * ABAC (attribute-based access control)
 * RESTful (with `path` support and all HTTP verbs)
 
+<p align="center">
+<img src="/docs/images/authz1" width="700">
+</p>
+
 #### Dynamic secrets 
 
 Vault does support dynamic secrets thus decided to add support and make the out of the box solution for all our supported deployments. To harden security each application gets a dedicated credential towards the requested service, this credential only belongs to the requesting application and has a fixed expiry time. Because the credential is dedicated it is possible to track down which application accessed the service and when and it is easy to revoke it because they are managed at a central place, Vault. Since Pipeline is running on Kubernetes we can apply Kubernetes Service Account based authentication to get the Vault tokens first which we can later exchange for a credential (username/password) based on our configured Vault role. Please see this diagram for further details about the sequence of events:
