@@ -67,6 +67,8 @@ services:
       DRONE_DATABASE_DRIVER:      mysql
       DRONE_DATABASE_DATASOURCE:  root:example@tcp(db:3306)/drone?parseTime=true
       DRONE_SECRET: "s3cr3t"
+    extra_hosts:
+      - pipeline:${LOCALHOST}
 
   drone-agent:
     image: banzaicloud/drone:0.3.0
