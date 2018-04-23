@@ -78,13 +78,6 @@ type ScopedClaims struct {
 	Text string `json:"text,omitempty"`
 }
 
-//DroneClaims struct to store the drone claim related things
-type DroneClaims struct {
-	*claims.Claims
-	Type string `json:"type,omitempty"`
-	Text string `json:"text,omitempty"`
-}
-
 func lookupAccessToken(userID, tokenID string) (*Token, error) {
 	return tokenStore.Lookup(userID, tokenID)
 }
@@ -422,25 +415,19 @@ func (sessionStorer *BanzaiSessionStorer) Update(w http.ResponseWriter, req *htt
 		return err
 	}
 
-	// Set the drone cookie as well
+	// Set the drone cookie as well, but that cookie's value is actually a Pipeline API token
 	currentUser := GetCurrentUser(req)
 	if currentUser == nil {
 		return fmt.Errorf("Can't get current user")
 	}
-	droneClaims := &DroneClaims{Claims: claims, Type: DroneSessionCookieType, Text: currentUser.Login}
-	droneToken, err := sessionStorer.SignedTokenWithDrone(droneClaims)
+
+	_, droneToken, err := createAndStoreAPIToken(claims.UserID, currentUser.Login, "Drone session token")
 	if err != nil {
 		log.Info(req.RemoteAddr, err.Error())
 		return err
 	}
 	SetCookie(w, req, DroneSessionCookie, droneToken)
 	return nil
-}
-
-// SignedTokenWithDrone generate signed token with Claims
-func (sessionStorer *BanzaiSessionStorer) SignedTokenWithDrone(claims *DroneClaims) (string, error) {
-	token := jwt.NewWithClaims(sessionStorer.SigningMethod, claims)
-	return token.SignedString(sessionStorer.SignedStringBytes)
 }
 
 // BanzaiLogoutHandler does the qor/auth DefaultLogoutHandler default logout behaviour + deleting the Drone cookie
