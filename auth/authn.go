@@ -78,6 +78,13 @@ type ScopedClaims struct {
 	Text string `json:"text,omitempty"`
 }
 
+//DroneClaims struct to store the drone claim related things
+type DroneClaims struct {
+	*claims.Claims
+	Type string `json:"type,omitempty"`
+	Text string `json:"text,omitempty"`
+}
+
 func lookupAccessToken(userID, tokenID string) (*Token, error) {
 	return tokenStore.Lookup(userID, tokenID)
 }
@@ -125,7 +132,6 @@ func Init() {
 				SigningMethod:  jwt.SigningMethodHS256,
 				SignedString:   signingKeyBase32,
 			},
-			SignedStringBytes: []byte(signingKeyBase32),
 		},
 		LogoutHandler: BanzaiLogoutHandler,
 		UserStorer:    BanzaiUserStorer{signingKeyBase32: signingKeyBase32, droneDB: initDroneDB()},
@@ -403,7 +409,6 @@ func saveUserIntoContext(c *gin.Context, claims *ScopedClaims) {
 //BanzaiSessionStorer stores the banzai session
 type BanzaiSessionStorer struct {
 	auth.SessionStorer
-	SignedStringBytes []byte
 }
 
 //Update updates the BanzaiSessionStorer
