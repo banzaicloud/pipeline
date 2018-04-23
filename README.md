@@ -32,6 +32,7 @@ _Pipeline is a RESTful API to deploy **cloud native** microservices in public cl
   - [Deploy using CI/CD](#deploy-using-cicd)
 - [Security](#security)
   - [Authentication](#authentication)
+  - [Authorization](#authorization)
   - [Dynamic secrets](#dynamic-secrets)
 - [Centralized logging](#centralized-logging)  
 - [Quick howto](#quick-howto)
@@ -76,14 +77,15 @@ Pipeline is architected in a way to allow pluggable implementations for provider
 
   * Microsoft AKS
   * Google GKE
+  * Amazon EKS
 
- There is work undergoig/planned for the following plugins:
+ There is work undergoing for the following plugins:
 
   * Oracle Managed Kubernetes
+  * Redhat OpenShift
   * Alibaba Cloud Managed Kubernetes
   * CoreOS Tectonic
-  * Redhat OpenShift
-
+  
 ## Architecture overview
 
 Pipeline enforces a typical **cloud native** architecture which takes full advantage of on-demand delivery, global deployment, elasticity, and higher-level services. It enables huge improvements in developer productivity, business agility, scalability, availability, utilization, and cost savings.
@@ -194,6 +196,19 @@ For the purpose of storeing tokens we choose HashiCorp's Vault. However there wa
 
 <p align="center">
 <img src="/docs/images//token-request-vault-flow.png" width="700">
+</p>
+
+#### Authorization
+
+Pipeline is integrated with the [Casbin](https://github.com/casbin/) framework to provide fine grained poliocy enforcements with support for different access control models: 
+
+* ACL (access control lists)
+* RBAC (role-based access control)
+* ABAC (attribute-based access control)
+* RESTful (with `path` support and all HTTP verbs)
+
+<p align="center">
+<img src="/docs/images/authz1.png" width="700">
 </p>
 
 #### Dynamic secrets 
