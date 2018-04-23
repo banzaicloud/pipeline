@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/dgrijalva/jwt-go"
 	jwtRequest "github.com/dgrijalva/jwt-go/request"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -192,7 +192,7 @@ func GenerateToken(c *gin.Context) {
 		githubUser, err := GetGithubUser(accessToken)
 		if err != nil {
 			err := c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("Invalid session"))
-			log.Info(c.ClientIP(), err.Error())
+			log.Info(c.ClientIP(), " ", err.Error())
 			return
 		}
 		user := User{}
@@ -202,36 +202,46 @@ func GenerateToken(c *gin.Context) {
 			Find(&user).Error
 		if err != nil {
 			err := c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("Invalid session"))
-			log.Info(c.ClientIP(), err.Error())
+			log.Info(c.ClientIP(), " ", err.Error())
 			return
 		}
 		currentUser = &user
 	} else {
+		Handler(c)
+		if c.IsAborted() {
+			return
+		}
 		currentUser = GetCurrentUser(c.Request)
 		if currentUser == nil {
 			err := c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("Invalid session"))
-			log.Info(c.ClientIP(), err.Error())
+			log.Info(c.ClientIP(), " ", err.Error())
 			return
 		}
 	}
 
 	tokenRequest := struct {
-		Name string `json:"name,omitempty"`
+		Name        string `json:"name,omitempty"`
+		VirtualUser string `json:"virtual_user,omitempty"`
 	}{Name: "generated"}
 
 	if c.Request.Method == http.MethodPost && c.Request.ContentLength > 0 {
 		if err := c.ShouldBindJSON(&tokenRequest); err != nil {
 			err := c.AbortWithError(http.StatusBadRequest, err)
-			log.Info(c.ClientIP(), err.Error())
+			log.Info(c.ClientIP(), " ", err.Error())
 			return
 		}
 	}
 
-	tokenID, signedToken, err := createAndStoreAPIToken(currentUser.IDString(), currentUser.Login, tokenRequest.Name)
+	userLogin := currentUser.Login
+	if tokenRequest.VirtualUser != "" {
+		userLogin = tokenRequest.VirtualUser
+	}
+
+	tokenID, signedToken, err := createAndStoreAPIToken(currentUser.IDString(), userLogin, tokenRequest.Name)
 
 	if err != nil {
 		err = c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("%s", err))
-		log.Info(c.ClientIP(), err.Error())
+		log.Info(c.ClientIP(), " ", err.Error())
 		return
 	}
 
@@ -276,7 +286,7 @@ func GetTokens(c *gin.Context) {
 	currentUser := GetCurrentUser(c.Request)
 	if currentUser == nil {
 		err := c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("Invalid session"))
-		log.Info(c.ClientIP(), err.Error())
+		log.Info(c.ClientIP(), " ", err.Error())
 		return
 	}
 	tokenID := c.Param("id")
@@ -351,7 +361,7 @@ func Handler(c *gin.Context) {
 				Message: "Invalid token",
 				Error:   err.Error(),
 			})
-		log.Info("Invalid token:", err)
+		log.Info("Invalid token: ", err)
 		return
 	}
 
@@ -396,8 +406,6 @@ func Handler(c *gin.Context) {
 	}
 
 	saveUserIntoContext(c, &claims)
-
-	c.Next()
 }
 
 func saveUserIntoContext(c *gin.Context, claims *ScopedClaims) {
