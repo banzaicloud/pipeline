@@ -173,7 +173,7 @@ func GetClusterNodes(c *gin.Context) {
 			Message: "Error during listing nodes",
 			Error:   err.Error(),
 		})
-
+		return
 	}
 	c.JSON(http.StatusOK, response)
 	return
