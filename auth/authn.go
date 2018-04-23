@@ -11,6 +11,7 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	jwtRequest "github.com/dgrijalva/jwt-go/request"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 	"github.com/qor/auth"
 	"github.com/qor/auth/authority"
 	"github.com/qor/auth/claims"
@@ -227,6 +228,18 @@ func GenerateToken(c *gin.Context) {
 		}
 	}
 
+	tokenID, signedToken, err := createAndStoreAPIToken(currentUser.IDString(), currentUser.Login, tokenRequest.Name)
+
+	if err != nil {
+		err = c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("%s", err))
+		log.Info(c.ClientIP(), err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"id": tokenID, "token": signedToken})
+}
+
+func createAndStoreAPIToken(userID string, userLogin string, tokenName string) (string, string, error) {
 	tokenID := uuid.NewV4().String()
 
 	// Create the Claims
@@ -236,31 +249,27 @@ func GenerateToken(c *gin.Context) {
 			Audience:  JwtAudience,
 			IssuedAt:  jwt.TimeFunc().Unix(),
 			ExpiresAt: 0,
-			Subject:   strconv.Itoa(int(currentUser.ID)),
+			Subject:   userID,
 			Id:        tokenID,
 		},
 		Scope: "api:invoke",        // "scope" for Pipeline
 		Type:  DroneUserCookieType, // "type" for Drone
-		Text:  currentUser.Login,   // "text" for Drone
+		Text:  userLogin,           // "text" for Drone
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	signedToken, err := token.SignedString([]byte(signingKeyBase32))
-
+	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	signedToken, err := jwtToken.SignedString([]byte(signingKeyBase32))
 	if err != nil {
-		err = c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Failed to sign token: %s", err))
-		log.Info(c.ClientIP(), err.Error())
-	} else {
-		userID := strconv.Itoa(int(currentUser.ID))
-		token := NewToken(tokenID, tokenRequest.Name)
-		err = tokenStore.Store(userID, token)
-		if err != nil {
-			err = c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Failed to store token: %s", err))
-			log.Info(c.ClientIP(), err.Error())
-		} else {
-			c.JSON(http.StatusOK, gin.H{"id": tokenID, "token": signedToken})
-		}
+		return "", "", errors.Wrap(err, "Failed to sign user token")
 	}
+
+	token := NewToken(tokenID, tokenName)
+	err = tokenStore.Store(userID, token)
+	if err != nil {
+		return "", "", errors.Wrap(err, "Failed to store user token")
+	}
+
+	return tokenID, signedToken, nil
 }
 
 // GetTokens returns the calling user's access tokens
