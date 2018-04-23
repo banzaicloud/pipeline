@@ -13,7 +13,9 @@
 docker-compose -f docker-compose-local.yml up -d
 ``` 
 
-This will create a `mysql`, `adminer` and `vault` container.
+This will create a `mysql`, `adminer` and `vault` container:
+ - Adminer MySQL GUI: http://localhost:8080 login with username/password `sparky/sparky123`
+ - Vault GUI: http://localhost:8200 login with token found in `cat ~/.vault-token`
 
 #### Create your config.toml
 
