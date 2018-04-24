@@ -85,14 +85,10 @@ type DroneClaims struct {
 	Text string `json:"text,omitempty"`
 }
 
-func lookupAccessToken(userID, tokenID string) (*Token, error) {
-	return tokenStore.Lookup(userID, tokenID)
-}
-
 func isTokenWhitelisted(claims *ScopedClaims) (bool, error) {
 	userID := claims.Subject
 	tokenID := claims.Id
-	token, err := lookupAccessToken(userID, tokenID)
+	token, err := tokenStore.Lookup(userID, tokenID)
 	return token != nil, err
 }
 
