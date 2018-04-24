@@ -467,7 +467,7 @@ type ChartList struct {
 	Charts []repo.ChartVersions `json:"charts"`
 }
 
-func ChartsGet(clusterName, queryName, queryRepo, queryVersion string) ([]ChartList, error) {
+func ChartsGet(clusterName, queryName, queryRepo, queryVersion, queryKeyword string) ([]ChartList, error) {
 
 	repoPath := fmt.Sprintf("%s/repository/repositories.yaml", generateHelmRepoPath(clusterName))
 	log.Debug("Helm repo path:", repoPath)
@@ -498,9 +498,13 @@ func ChartsGet(clusterName, queryName, queryRepo, queryVersion string) ([]ChartL
 			for n := range i.Entries {
 				log.Debugf("Chart: %s", n)
 				chartMatched, _ := regexp.MatchString(queryName, strings.ToLower(n))
-				if chartMatched || queryName == "" {
-					log.Debugf("Chart: %s Matched", n)
 
+				kwString := strings.ToLower(strings.Join(i.Entries[n][0].Keywords, " "))
+				log.Debugf("kwString: %s", kwString)
+
+				kwMatched, _ := regexp.MatchString(queryKeyword, kwString)
+				if (chartMatched || queryName == "") && (kwMatched || queryKeyword == "") {
+					log.Debugf("Chart: %s Matched", n)
 					if queryVersion == "latest" {
 						c.Charts = append(c.Charts, repo.ChartVersions{i.Entries[n][0]})
 					} else {
