@@ -195,7 +195,7 @@ func (bus BanzaiUserStorer) synchronizeDroneRepos(login string) {
 	}
 
 	// Create a temporary Drone API token
-	claims := &DroneClaims{Type: DroneUserCookieType, Text: login}
+	claims := &DroneClaims{Type: DroneUserTokenType, Text: login}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	apiToken, err := token.SignedString([]byte(bus.signingKeyBase32))
 	if err != nil {
