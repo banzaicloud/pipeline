@@ -22,6 +22,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+	"strconv"
+	"k8s.io/api/rbac/v1beta1"
 )
 
 const (
@@ -85,10 +87,49 @@ func PreInstall(helmInstall *helm.Install, kubeConfig []byte) error {
 				},
 			}},
 	}
+	clusterRoleBeta := &v1beta1.ClusterRole{
+		ObjectMeta: v1MetaData,
+		Rules: []v1beta1.PolicyRule{{
+			APIGroups: []string{
+				"*",
+			},
+			Resources: []string{
+				"*",
+			},
+			Verbs: []string{
+				"*",
+			},
+		},
+			{
+				NonResourceURLs: []string{
+					"*",
+				},
+				Verbs: []string{
+					"*",
+				},
+			}},
+	}
 	log.Info("create cluster roles")
 	clusterRoleName := helmInstall.ServiceAccount
+	// Get Kubernetes version from the client because before v1.8 a different API need to be used for
+	// Clusterrole creation
+	version , err := client.ServerVersion()
+	if err != nil {
+		log.Warnf("Error during getting the kubernetes version! %s", err.Error())
+		return err
+	}
+	log.Infof("Kubernetes version is: %s", version.GitVersion)
+	convertedVer, err := strconv.Atoi(version.Minor)
+	if err != nil {
+		log.Warnf("Cannot convert version to string %s", err.Error())
+		return err
+	}
 	for i := 0; i <= 5; i++ {
-		_, err = client.RbacV1().ClusterRoles().Create(clusterRole)
+		if convertedVer >= 8 {
+			_, err = client.RbacV1().ClusterRoles().Create(clusterRole)
+		} else {
+			_, err = client.RbacV1beta1().ClusterRoles().Create(clusterRoleBeta)
+		}
 		if err != nil {
 			if strings.Contains(err.Error(), "etcdserver: request timed out") {
 				time.Sleep(time.Duration(10) * time.Second)
