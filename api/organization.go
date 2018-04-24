@@ -30,11 +30,10 @@ func OrganizationMiddleware(c *gin.Context) {
 		return
 	}
 
-	user := auth.GetCurrentUser(c.Request)
 	organization := &auth.Organization{ID: uint(orgid)}
 
 	db := model.GetDB()
-	err = db.Model(user).Where(organization).Related(organization, "Organizations").Error
+	err = db.Where(organization).Find(organization).Error
 	if err != nil {
 		message := "error fetching organizations: " + err.Error()
 		log.Info(message)
