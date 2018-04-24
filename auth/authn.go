@@ -234,19 +234,40 @@ func GenerateToken(c *gin.Context) {
 		}
 	}
 
-	tokenType := DroneUserTokenType
+	isForVirtualUser := tokenRequest.VirtualUser != ""
+
+	userID := currentUser.IDString()
 	userLogin := currentUser.Login
-	if tokenRequest.VirtualUser != "" {
+	tokenType := DroneUserTokenType
+	if isForVirtualUser {
+		userID = tokenRequest.VirtualUser
 		userLogin = tokenRequest.VirtualUser
 		tokenType = DroneHookTokenType
 	}
 
-	tokenID, signedToken, err := createAndStoreAPIToken(currentUser.IDString(), userLogin, tokenType, tokenRequest.Name)
+	tokenID, signedToken, err := createAndStoreAPIToken(userID, userLogin, tokenType, tokenRequest.Name)
 
 	if err != nil {
 		err = c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("%s", err))
 		log.Info(c.ClientIP(), " ", err.Error())
 		return
+	}
+
+	if isForVirtualUser {
+		orgName := strings.Split(tokenRequest.VirtualUser, "/")[0]
+		organization := Organization{Name: orgName}
+		err = Auth.GetDB(c.Request).
+			Model(currentUser).
+			Where(&organization).
+			Related(&organization, "Organizations").Error
+		if err != nil {
+			statusCode := GormErrorToStatusCode(err)
+			err = c.AbortWithError(statusCode, err)
+			log.Info(c.ClientIP(), " ", err.Error())
+			return
+		}
+
+		AddOrgRoleForVirtualUser(userID, organization.ID)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"id": tokenID, "token": signedToken})
@@ -265,9 +286,9 @@ func createAndStoreAPIToken(userID string, userLogin string, tokenType DroneToke
 			Subject:   userID,
 			Id:        tokenID,
 		},
-		Scope: "api:invoke",       // "scope" for Pipeline
-		Type:  DroneUserTokenType, // "type" for Drone
-		Text:  userLogin,          // "text" for Drone
+		Scope: "api:invoke", // "scope" for Pipeline
+		Type:  tokenType,    // "type" for Drone
+		Text:  userLogin,    // "text" for Drone
 	}
 
 	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -355,7 +376,7 @@ func Handler(c *gin.Context) {
 		return
 	}
 
-	claims := ScopedClaims{}
+	var claims ScopedClaims
 	accessToken, err := jwtRequest.ParseFromRequest(c.Request, jwtRequest.OAuth2Extractor, hmacKeyFunc, jwtRequest.WithClaims(&claims))
 
 	if err != nil {
@@ -414,7 +435,11 @@ func Handler(c *gin.Context) {
 
 func saveUserIntoContext(c *gin.Context, claims *ScopedClaims) {
 	userID, _ := strconv.ParseUint(claims.Subject, 10, 32)
-	newContext := context.WithValue(c.Request.Context(), auth.CurrentUser, &User{ID: uint(userID)})
+	user := &User{
+		ID:    uint(userID),
+		Login: claims.Text, // This is needed for Drone virtual user tokens
+	}
+	newContext := context.WithValue(c.Request.Context(), auth.CurrentUser, user)
 	c.Request = c.Request.WithContext(newContext)
 }
 
