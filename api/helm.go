@@ -19,6 +19,7 @@ type ChartQuery struct {
 	Name    string `form:"name"`
 	Repo    string `form:"repo"`
 	Version string `form:"version"`
+	Keyword string `form:"keyword"`
 }
 
 // GetK8sConfig returns the Kubernetes config
@@ -568,7 +569,7 @@ func HelmCharts(c *gin.Context) {
 
 	log.Info(query)
 
-	response, err := helm.ChartsGet(clusterName, query.Name, query.Repo, query.Version)
+	response, err := helm.ChartsGet(clusterName, query.Name, query.Repo, query.Version, query.Keyword)
 	if err != nil {
 		log.Error("Error during get helm repo chart list.", err.Error())
 		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
