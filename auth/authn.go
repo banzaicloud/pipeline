@@ -28,14 +28,20 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// DroneTokenType represents one of the possible Drone token Types
+type DroneTokenType string
+
 // DroneSessionCookie holds the name of the Cookie Drone sets in the browser
 const DroneSessionCookie = "user_sess"
 
 // DroneSessionCookieType is the Drone token type used for browser sessions
 const DroneSessionCookieType = "sess"
 
-// DroneUserCookieType is the Drone token type used for API sessions
-const DroneUserCookieType = "user"
+// DroneUserTokenType is the Drone token type used for API sessions
+const DroneUserTokenType DroneTokenType = "user"
+
+// DroneHookTokenType is the Drone token type used for API sessions
+const DroneHookTokenType DroneTokenType = "hook"
 
 // For all Drone token types please see: https://github.com/drone/drone/blob/master/shared/token/token.go#L12
 
@@ -74,15 +80,15 @@ type ScopedClaims struct {
 	jwt.StandardClaims
 	Scope string `json:"scope,omitempty"`
 	// Drone
-	Type string `json:"type,omitempty"`
-	Text string `json:"text,omitempty"`
+	Type DroneTokenType `json:"type,omitempty"`
+	Text string         `json:"text,omitempty"`
 }
 
 //DroneClaims struct to store the drone claim related things
 type DroneClaims struct {
 	*claims.Claims
-	Type string `json:"type,omitempty"`
-	Text string `json:"text,omitempty"`
+	Type DroneTokenType `json:"type,omitempty"`
+	Text string         `json:"text,omitempty"`
 }
 
 func isTokenWhitelisted(claims *ScopedClaims) (bool, error) {
@@ -228,12 +234,14 @@ func GenerateToken(c *gin.Context) {
 		}
 	}
 
+	tokenType := DroneUserTokenType
 	userLogin := currentUser.Login
 	if tokenRequest.VirtualUser != "" {
 		userLogin = tokenRequest.VirtualUser
+		tokenType = DroneHookTokenType
 	}
 
-	tokenID, signedToken, err := createAndStoreAPIToken(currentUser.IDString(), userLogin, tokenRequest.Name)
+	tokenID, signedToken, err := createAndStoreAPIToken(currentUser.IDString(), userLogin, tokenType, tokenRequest.Name)
 
 	if err != nil {
 		err = c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("%s", err))
@@ -244,7 +252,7 @@ func GenerateToken(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"id": tokenID, "token": signedToken})
 }
 
-func createAndStoreAPIToken(userID string, userLogin string, tokenName string) (string, string, error) {
+func createAndStoreAPIToken(userID string, userLogin string, tokenType DroneTokenType, tokenName string) (string, string, error) {
 	tokenID := uuid.NewV4().String()
 
 	// Create the Claims
@@ -257,9 +265,9 @@ func createAndStoreAPIToken(userID string, userLogin string, tokenName string) (
 			Subject:   userID,
 			Id:        tokenID,
 		},
-		Scope: "api:invoke",        // "scope" for Pipeline
-		Type:  DroneUserCookieType, // "type" for Drone
-		Text:  userLogin,           // "text" for Drone
+		Scope: "api:invoke",       // "scope" for Pipeline
+		Type:  DroneUserTokenType, // "type" for Drone
+		Text:  userLogin,          // "text" for Drone
 	}
 
 	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -348,7 +356,7 @@ func Handler(c *gin.Context) {
 	}
 
 	claims := ScopedClaims{}
-	accessToken, err := jwtRequest.ParseFromRequestWithClaims(c.Request, jwtRequest.OAuth2Extractor, &claims, hmacKeyFunc)
+	accessToken, err := jwtRequest.ParseFromRequest(c.Request, jwtRequest.OAuth2Extractor, hmacKeyFunc, jwtRequest.WithClaims(&claims))
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized,
@@ -430,7 +438,7 @@ func (sessionStorer *BanzaiSessionStorer) Update(w http.ResponseWriter, req *htt
 		return fmt.Errorf("Can't get current user")
 	}
 
-	_, droneToken, err := createAndStoreAPIToken(claims.UserID, currentUser.Login, "Drone session token")
+	_, droneToken, err := createAndStoreAPIToken(claims.UserID, currentUser.Login, DroneUserTokenType, "Drone session token")
 	if err != nil {
 		log.Info(req.RemoteAddr, err.Error())
 		return err
