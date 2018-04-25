@@ -40,8 +40,8 @@ func AddSecrets(c *gin.Context) {
 		return
 	}
 	//Check if the received value is base64 encoded if not encode it.
-	if createSecretRequest.Values["K8Sconfig"] != "" {
-		createSecretRequest.Values["K8Sconfig"] = encodeStringToBase64(createSecretRequest.Values["K8Sconfig"])
+	if createSecretRequest.Values[secret.K8SConfig] != "" {
+		createSecretRequest.Values[secret.K8SConfig] = encodeStringToBase64(createSecretRequest.Values[secret.K8SConfig])
 	}
 
 
