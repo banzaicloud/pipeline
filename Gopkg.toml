@@ -56,7 +56,7 @@
 
 [[constraint]]
   name = "github.com/kubicorn/kubicorn"
-  branch = "fix-not-authorized"
+  branch = "master"
   source = "github.com/banzaicloud/kubicorn"
 
 [[constraint]]
@@ -76,7 +76,7 @@
   version = "0.1.0"
 
 [[constraint]]
-  branch = "update-aws"
+  branch = "master"
   name = "github.com/banzaicloud/banzai-types"
 
 [[constraint]]
@@ -199,8 +199,8 @@
   go-tests = true
   unused-packages = true
 
-[[constraint]]
-  branch = "fix-not-authorized"
+[[override]]
+  branch = "master"
   name = "github.com/banzaicloud/kubicorn"
 
 [[constraint]]

@@ -149,7 +149,7 @@
   version = "0.1.0"
 
 [[projects]]
-  branch = "update-aws"
+  branch = "master"
   name = "github.com/banzaicloud/banzai-types"
   packages = [
     "components",
@@ -161,7 +161,7 @@
     "components/kubernetes",
     "constants"
   ]
-  revision = "5f88b0cb6ef3749069ba45b30d95967388c914df"
+  revision = "b1642bd0ec6f8e3c6175c9d3fa7ae632a6d4b6a0"
 
 [[projects]]
   branch = "master"
@@ -634,7 +634,7 @@
   revision = "14d43f83481a37e992f5899de8581727b9ba7702"
 
 [[projects]]
-  branch = "fix-not-authorized"
+  branch = "master"
   name = "github.com/kubicorn/kubicorn"
   packages = [
     "apis/cluster",
@@ -674,7 +674,7 @@
     "state",
     "state/fs"
   ]
-  revision = "c6e734ccc5e37d5fb6848baad9433d035311b95b"
+  revision = "01eebfb2bf9b85cfea30a18e6b9dab209028294e"
   source = "github.com/banzaicloud/kubicorn"
 
 [[projects]]
@@ -1729,6 +1729,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "b9d8e37e247b13fa458441343b84ef6513bf170f356acc1b5a02195f3d07d321"
+  inputs-digest = "775fadcf74ba89cda76039bd750d018b10f950a3c887eec51f7beeeaa70f44c4"
   solver-name = "gps-cdcl"
   solver-version = 1
