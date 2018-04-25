@@ -34,6 +34,7 @@ import (
 )
 
 const (
+	// to avoid `ValidationError: 1 validation error detected: Value '{...}' at 'userData' failed to satisfy constraint: Member must have length less than or equal to 21847` error
 	maxNodePoolNumber = 4
 )
 
