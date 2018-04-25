@@ -102,12 +102,13 @@ func TestListSecrets(t *testing.T) {
 	cases := []struct {
 		name           string
 		secretType     string
+		repoName       string
 		expectedValues []secret.SecretsItemResponse
 	}{
-		{name: "List aws secrets", secretType: btypes.Amazon, expectedValues: awsExpectedItems},
-		{name: "List aks secrets", secretType: btypes.Azure, expectedValues: aksExpectedItems},
-		{name: "List gke secrets", secretType: btypes.Google, expectedValues: gkeExpectedItems},
-		{name: "List all secrets", secretType: "", expectedValues: allExpectedItems},
+		{name: "List aws secrets", secretType: btypes.Amazon, repoName: "", expectedValues: awsExpectedItems},
+		{name: "List aks secrets", secretType: btypes.Azure, repoName: "", expectedValues: aksExpectedItems},
+		{name: "List gke secrets", secretType: btypes.Google, repoName: "", expectedValues: gkeExpectedItems},
+		{name: "List all secrets", secretType: "", repoName: "" , expectedValues: allExpectedItems},
 	}
 
 	for _, tc := range cases {
@@ -115,7 +116,7 @@ func TestListSecrets(t *testing.T) {
 			if err := api.IsValidSecretType(tc.secretType); err != nil {
 				t.Errorf("Error during validate secret type: %s", err)
 			} else {
-				if items, err := secret.Store.List(orgId, tc.secretType); err != nil {
+				if items, err := secret.Store.List(orgId, tc.secretType, tc.repoName); err != nil {
 					t.Errorf("Error during listing secrets")
 				} else {
 					if !reflect.DeepEqual(tc.expectedValues, items) {
