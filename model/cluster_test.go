@@ -9,7 +9,6 @@ func TestGoogleClusterModelStringer(t *testing.T) {
 	// given
 	gcSingleNodePool := GoogleClusterModel{
 		ClusterModelId: 1,
-		Project:        "google-project-id",
 		MasterVersion:  "master-node-ver",
 		NodeVersion:    "node-ver",
 		NodePools: []*GoogleNodePoolModel{
@@ -19,7 +18,6 @@ func TestGoogleClusterModelStringer(t *testing.T) {
 
 	gcMultiNodePool := GoogleClusterModel{
 		ClusterModelId: 1,
-		Project:        "google-project-id",
 		MasterVersion:  "master-node-ver",
 		NodeVersion:    "node-ver",
 		NodePools: []*GoogleNodePoolModel{
