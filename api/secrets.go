@@ -40,7 +40,10 @@ func AddSecrets(c *gin.Context) {
 		return
 	}
 	//Check if the received value is base64 encoded if not encode it.
-	createSecretRequest.Values["K8Sconfig"] = encodeStringToBase64(createSecretRequest.Values["K8Sconfig"])
+	if createSecretRequest.Values["K8Sconfig"] != "" {
+		createSecretRequest.Values["K8Sconfig"] = encodeStringToBase64(createSecretRequest.Values["K8Sconfig"])
+	}
+
 
 	log.Info("Binding request succeeded")
 	log.Debugf("%#v", createSecretRequest)
@@ -78,6 +81,7 @@ func AddSecrets(c *gin.Context) {
 }
 
 // ListSecrets returns the user all secrets, if the secret type is filled, then filtered
+// if repo is set list the secrets for a given repo
 func ListSecrets(c *gin.Context) {
 
 	log = logger.WithFields(logrus.Fields{"tag": "List Secrets"})
@@ -85,9 +89,11 @@ func ListSecrets(c *gin.Context) {
 
 	log.Info("Get organization id and secret type from params")
 	organizationID := auth.GetCurrentOrganization(c.Request).IDString()
-	secretType := c.Param("type")
+	secretType := c.Query("type")
+	repoName := c.Query("reponame")
 	log.Infof("Organization id: %s", organizationID)
 	log.Infof("Secret type: %s", secretType)
+	log.Infof("Repository name: %s", repoName)
 
 	if err := IsValidSecretType(secretType); err != nil {
 		log.Errorf("Error validation secret type[%s]: %s", secretType, err.Error())
@@ -97,7 +103,7 @@ func ListSecrets(c *gin.Context) {
 			Error:   err.Error(),
 		})
 	} else {
-		if items, err := secret.Store.List(organizationID, secretType); err != nil {
+		if items, err := secret.Store.List(organizationID, secretType, repoName); err != nil {
 			log.Errorf("Error during listing secrets: %s", err.Error())
 			c.AbortWithStatusJSON(http.StatusBadRequest, components.ErrorResponse{
 				Code:    http.StatusBadRequest,

@@ -85,6 +85,7 @@ func GenerateSecretID() string {
 	log.Debug("Generating secret id")
 	return uuid.NewV4().String()
 }
+const repoSecretType = "repo"
 
 // DefaultRules key matching for types
 var DefaultRules = map[string][]string{
@@ -112,6 +113,10 @@ var DefaultRules = map[string][]string{
 	},
 	btypes.Kubernetes: {
 		K8SConfig,
+	},
+	repoSecretType: {
+		RepoName,
+		RepoSecret,
 	},
 }
 
@@ -148,6 +153,12 @@ const (
 	K8SConfig = "K8Sconfig"
 )
 
+// Repo keys
+const (
+	RepoName = "RepoName"
+	RepoSecret = "RepoSecret"
+)
+
 // Validate SecretRequest
 func (c *CreateSecretRequest) Validate() error {
 	requiresKeys, ok := DefaultRules[c.SecretType]
@@ -171,11 +182,17 @@ func (ss *secretStore) Delete(organizationID, secretID string) error {
 	return err
 }
 
-// Save secret secret/orgs/:orgid:/:id: scope
+// Save secret secret/orgs/:orgid:/:id: scope or to secret/orgs/:orgid:/:repo:/:id in case of repo secret
 func (ss *secretStore) Store(organizationID, secretID string, value CreateSecretRequest) error {
 	log := logger.WithFields(logrus.Fields{"tag": "StoreSecret"})
 	log.Infof("Storing secret")
-	path := fmt.Sprintf("secret/orgs/%s/%s", organizationID, secretID)
+	var path string
+	if value.SecretType != repoSecretType {
+		path = fmt.Sprintf("secret/orgs/%s/%s", organizationID, secretID)
+	} else {
+		path = fmt.Sprintf("secret/orgs/%s/%s/%s", organizationID, value.Values[RepoName], secretID)
+		delete(value.Values, RepoName)
+	}
 	data := map[string]interface{}{"value": value}
 	if _, err := ss.logical.Write(path, data); err != nil {
 		return errors.Wrap(err, "Error during storing secret")
@@ -212,13 +229,13 @@ func (ss *secretStore) Get(organizationID string, secretID string) (*SecretsItem
 }
 
 // List secret secret/orgs/:orgid:/ scope
-func (ss *secretStore) List(organizationID, secretType string) ([]SecretsItemResponse, error) {
+func (ss *secretStore) List(organizationID, secretType string, reponame string) ([]SecretsItemResponse, error) {
 	log := logger.WithFields(logrus.Fields{"tag": "ListSecret"})
 	log.Info("Listing secrets")
 	responseItems := make([]SecretsItemResponse, 0)
 
 	log.Debugf("Searching for organizations secrets [%s]", organizationID)
-	orgSecretPath := fmt.Sprintf("secret/orgs/%s", organizationID)
+	orgSecretPath := fmt.Sprintf("secret/orgs/%s/%s", organizationID, reponame)
 
 	if secret, err := ss.logical.List(orgSecretPath); err != nil {
 		log.Errorf("Error listing secrets: %s", err.Error())
@@ -227,11 +244,11 @@ func (ss *secretStore) List(organizationID, secretType string) ([]SecretsItemRes
 		keys := secret.Data["keys"].([]interface{})
 		for _, key := range keys {
 			secretID := key.(string)
-			if secret, err := ss.logical.Read(orgSecretPath + "/" + secretID); err != nil {
+			if readSecret, err := ss.logical.Read(orgSecretPath + "/" + secretID); err != nil {
 				log.Errorf("Error listing secrets: %s", err.Error())
 				return nil, err
-			} else if secret != nil {
-				secretData := secret.Data["value"].(map[string]interface{})
+			} else if readSecret != nil {
+				secretData := readSecret.Data["value"].(map[string]interface{})
 				sType := secretData["type"].(string)
 				if len(secretType) == 0 || sType == secretType {
 					sir := SecretsItemResponse{
