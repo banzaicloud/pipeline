@@ -7,7 +7,6 @@ import (
 )
 
 type CreateClusterGoogle struct {
-	Project     string               `json:"project"`
 	NodeVersion string               `json:"nodeVersion,omitempty"`
 	NodePools   map[string]*NodePool `json:"nodePools,omitempty"`
 	Master      *Master              `json:"master,omitempty"`
@@ -33,11 +32,6 @@ func (g *CreateClusterGoogle) Validate() error {
 
 	if g == nil {
 		return errors.New("Google is <nil>")
-	}
-
-	if len(g.Project) == 0 {
-		msg := "Project id is empty"
-		return errors.New(msg)
 	}
 
 	if g.NodePools == nil {

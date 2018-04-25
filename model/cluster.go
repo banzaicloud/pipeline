@@ -84,7 +84,6 @@ type GoogleNodePoolModel struct {
 //GoogleClusterModel describes the google cluster model
 type GoogleClusterModel struct {
 	ClusterModelId uint `gorm:"primary_key"`
-	Project        string
 	MasterVersion  string
 	NodeVersion    string
 	NodePools      []*GoogleNodePoolModel `gorm:"foreignkey:ClusterModelId"`

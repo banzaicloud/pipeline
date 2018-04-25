@@ -75,7 +75,6 @@ func CreateGKEClusterFromRequest(request *components.CreateClusterRequest, orgId
 		OrganizationId: orgId,
 		SecretId:       request.SecretId,
 		Google: model.GoogleClusterModel{
-			Project:       request.Properties.CreateClusterGoogle.Project,
 			MasterVersion: request.Properties.CreateClusterGoogle.Master.Version,
 			NodeVersion:   request.Properties.CreateClusterGoogle.NodeVersion,
 			NodePools:     nodePools,
@@ -132,9 +131,15 @@ func (g *GKECluster) GetGoogleCluster() (*gke.Cluster, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	secretItem, err := g.GetSecretWithValidation()
+	if err != nil {
+		return nil, err
+	}
+
 	cc := googleCluster{
 		Name:      g.modelCluster.Name,
-		ProjectID: g.modelCluster.Google.Project,
+		ProjectID: secretItem.GetValue(secret.ProjectId),
 		Zone:      g.modelCluster.Location,
 	}
 	cluster, err := getClusterGoogle(svc, cc)
@@ -178,8 +183,13 @@ func (g *GKECluster) CreateCluster() error {
 		return err
 	}
 
+	secretItem, err := g.GetSecretWithValidation()
+	if err != nil {
+		return err
+	}
+
 	cc := googleCluster{
-		ProjectID:     g.modelCluster.Google.Project,
+		ProjectID:     secretItem.GetValue(secret.ProjectId),
 		Zone:          g.modelCluster.Location,
 		Name:          g.modelCluster.Name,
 		MasterVersion: g.modelCluster.Google.MasterVersion,
@@ -291,8 +301,13 @@ func (g *GKECluster) DeleteCluster() error {
 		return constants.ErrorNilCluster
 	}
 
+	secretItem, err := g.GetSecretWithValidation()
+	if err != nil {
+		return err
+	}
+
 	gkec := googleCluster{
-		ProjectID: g.modelCluster.Google.Project,
+		ProjectID: secretItem.GetValue(secret.ProjectId),
 		Name:      g.modelCluster.Name,
 		Zone:      g.modelCluster.Location,
 	}
@@ -333,9 +348,14 @@ func (g *GKECluster) UpdateCluster(updateRequest *components.UpdateClusterReques
 		return err
 	}
 
+	secretItem, err := g.GetSecretWithValidation()
+	if err != nil {
+		return err
+	}
+
 	cc := googleCluster{
 		Name:          g.modelCluster.Name,
-		ProjectID:     g.modelCluster.Google.Project,
+		ProjectID:     secretItem.GetValue(secret.ProjectId),
 		Zone:          g.modelCluster.Location,
 		MasterVersion: updateRequest.Google.Master.Version,
 		NodePools:     updatedNodePools,
@@ -808,10 +828,15 @@ func (g *GKECluster) getGoogleKubernetesConfig() ([]byte, error) {
 	}
 	log.Info("Get Google Service Client succeeded")
 
+	secretItem, err := g.GetSecretWithValidation()
+	if err != nil {
+		return nil, err
+	}
+
 	log.Infof("Get google cluster with name %s", g.modelCluster.Name)
 	cl, err := getClusterGoogle(svc, googleCluster{
 		Name:      g.modelCluster.Name,
-		ProjectID: g.modelCluster.Google.Project,
+		ProjectID: secretItem.GetValue(secret.ProjectId),
 		Zone:      g.modelCluster.Location,
 	})
 
@@ -1543,8 +1568,13 @@ func (g *GKECluster) GetClusterDetails() (*components.ClusterDetailsResponse, er
 	}
 	log.Info("Get Google Service Client success")
 
+	secretItem, err := g.GetSecretWithValidation()
+	if err != nil {
+		return nil, err
+	}
+
 	log.Infof("Get google cluster with name %s", g.modelCluster.Name)
-	cl, err := svc.Projects.Zones.Clusters.Get(g.modelCluster.Google.Project, g.modelCluster.Location, g.modelCluster.Name).Context(context.Background()).Do()
+	cl, err := svc.Projects.Zones.Clusters.Get(secretItem.GetValue(secret.ProjectId), g.modelCluster.Location, g.modelCluster.Name).Context(context.Background()).Do()
 	if err != nil {
 		apiError := getBanzaiErrorFromError(err)
 		return nil, errors.New(apiError.Message)
