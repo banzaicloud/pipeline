@@ -360,7 +360,7 @@ var (
 			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
 		}{
 			CreateClusterAmazon: &amazon.CreateClusterAmazon{
-				NodePools: map[string]*amazon.AmazonNodePool{
+				NodePools: map[string]*amazon.NodePool{
 					"pool1": {
 						InstanceType: clusterRequestNodeInstance,
 						SpotPrice:    clusterRequestSpotPrice,
@@ -411,7 +411,7 @@ var (
 			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
 		}{
 			CreateClusterAmazon: &amazon.CreateClusterAmazon{
-				NodePools: map[string]*amazon.AmazonNodePool{
+				NodePools: map[string]*amazon.NodePool{
 					"pool1": {
 						InstanceType: clusterRequestNodeInstance,
 						SpotPrice:    clusterRequestSpotPrice,

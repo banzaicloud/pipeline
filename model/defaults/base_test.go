@@ -162,7 +162,7 @@ var (
 					InstanceType: masterInstanceType,
 					Image:        masterImage,
 				},
-				NodePools: map[string]*amazon.AmazonNodePool{
+				NodePools: map[string]*amazon.NodePool{
 					agentName: {
 						InstanceType: nodeInstanceType,
 						SpotPrice:    spotPrice,
@@ -302,7 +302,7 @@ var (
 			Google *google.ClusterProfileGoogle `json:"google,omitempty"`
 		}{
 			Amazon: &amazon.ClusterProfileAmazon{
-				NodePools: map[string]*amazon.AmazonNodePool{
+				NodePools: map[string]*amazon.NodePool{
 					agentName: {
 						InstanceType: nodeInstanceType,
 						SpotPrice:    spotPrice,
