@@ -20,7 +20,6 @@ const (
 	clusterRequestLocation       = "testLocation"
 	clusterRequestNodeInstance   = "testInstance"
 	clusterRequestSecretId       = "1234"
-	clusterRequestProject        = "testProject"
 	clusterRequestNodeCount      = 1
 	clusterRequestVersion        = "1.9.4-gke.1"
 	clusterRequestVersion2       = "1.8.7-gke.2"
@@ -160,11 +159,9 @@ func TestGKEKubernetesVersion(t *testing.T) {
 		{name: "version 2.3242.324", version: "2.3242.324", error: nil},
 		{name: "version 11.5", version: "11.5", error: nil},
 	}
-	// TODO: revise me
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			g := google.CreateClusterGoogle{
-				Project:     clusterRequestProject,
 				NodeVersion: tc.version,
 				NodePools: map[string]*google.NodePool{
 					"pool1": {
@@ -252,7 +249,6 @@ var (
 			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
 		}{
 			CreateClusterGoogle: &google.CreateClusterGoogle{
-				Project:     clusterRequestProject,
 				NodeVersion: clusterRequestVersion,
 				NodePools: map[string]*google.NodePool{
 					"pool1": {
@@ -281,7 +277,6 @@ var (
 			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
 		}{
 			CreateClusterGoogle: &google.CreateClusterGoogle{
-				Project:     clusterRequestProject,
 				NodeVersion: clusterRequestVersion,
 				NodePools: map[string]*google.NodePool{
 					"pool1": {
@@ -495,7 +490,6 @@ var (
 			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
 		}{
 			CreateClusterGoogle: &google.CreateClusterGoogle{
-				Project:     clusterRequestProject,
 				NodeVersion: clusterRequestVersion,
 				NodePools: map[string]*google.NodePool{
 					"pool1": {
@@ -524,7 +518,6 @@ var (
 			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
 		}{
 			CreateClusterGoogle: &google.CreateClusterGoogle{
-				Project:     clusterRequestProject,
 				NodeVersion: clusterRequestVersion,
 				NodePools: map[string]*google.NodePool{
 					"pool1": {
@@ -551,7 +544,6 @@ var (
 		Amazon:         model.AmazonClusterModel{},
 		Azure:          model.AzureClusterModel{},
 		Google: model.GoogleClusterModel{
-			Project:       clusterRequestProject,
 			MasterVersion: clusterRequestVersion,
 			NodeVersion:   clusterRequestVersion,
 			NodePools: []*model.GoogleNodePoolModel{
@@ -667,7 +659,6 @@ var (
 		Amazon:         model.AmazonClusterModel{},
 		Azure:          model.AzureClusterModel{},
 		Google: model.GoogleClusterModel{
-			Project:       clusterRequestProject,
 			MasterVersion: clusterRequestVersion2,
 			NodeVersion:   clusterRequestVersion,
 			NodePools: []*model.GoogleNodePoolModel{
