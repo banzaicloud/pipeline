@@ -1,0 +1,3757 @@
+openapi: 3.0.0
+info:
+  description: Pipeline v0.3.0 swagger
+  version: "0.3.0"
+  title: Pipeline API
+  contact:
+    email: info@banzaicloud.com
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+tags:
+  - name: cluster
+    description: Cluster realted funtions
+  - name: clusters
+    description: Clusters realted funtions
+  - name: deployment
+    description: Functions related for a deployment
+  - name: deployments
+    description: Deployment related functions for a cluster
+  - name: profiles
+    description: Cluster profiles related functions
+  - name: auth
+    description: Auth related functions
+  - name: secrets
+    description: Secrets related functions
+  - name: organizations
+    description: Organizations related functions
+  - name: common
+    description: Common API functions
+  - name: users
+    description: Users related functions
+  - name: info
+    description: Cloud config related functions
+
+paths:
+  '/api/v1/orgs/{orgId}/clusters':
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - clusters
+      summary: Create cluster
+      description: Create a new K8S cluster in the cloud
+      operationId: CreateCluster
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+      responses:
+        '202':
+          description: Cluster created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateClusterResponse_202'
+        '400':
+          description: Cluster creation failed
+          content:
+            application/json:
+             schema:
+                $ref: '#/components/schemas/CreateClusterResponse_400'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateClusterRequest'
+
+            examples:
+              AWS:
+                value:
+                  name: "awscluster-pipelineuser-123"
+                  location: "eu-west-1"
+                  cloud: "amazon"
+                  nodeInstanceType: "m4.xlarge"
+                  properties:
+                    properties:
+                      amazon:
+                        $ref: '#/components/schemas/CreateAmazonProperties'
+
+              AKS:
+                value:
+                  name: "azcluster-pipelineuser-123"
+                  location: "westeurope"
+                  cloud: "azure"
+                  nodeInstanceType: "Standard_D2_v2"
+                  properties:
+                    azure:
+                      $ref: '#/components/schemas/CreateAzureProperties'
+
+              GKE:
+                value:
+                  name: "gkecluster-pipelineuser-123"
+                  location: "us-central1-a"
+                  cloud: "google"
+                  nodeInstanceType: "n1-standard-1"
+                  properties:
+                    google:
+                      $ref: '#/components/schemas/CreateGoogleProperties'
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - clusters
+      summary: List clusters
+      operationId: ListClusters
+      description: Listing all the K8S clusters from the cloud
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: All cluster listed
+          content:
+            application/json:
+             schema:
+                $ref: '#/components/schemas/ClusterListResponse'
+        '400':
+          description: Error during listing clusters
+          content:
+            application/json:
+             schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+  '/api/v1/orgs/{orgId}/clusters/{id}':
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - cluster
+      summary: Get cluster status
+      description: Getting cluster status
+      operationId: GetCluster
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: id
+          in: path
+          description: Selected cluster identification (number)
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Getting cluster succeeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetClusterStatusResponse'
+        '400':
+          description: Error during getting cluster details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '404':
+          description: Cluster not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+
+    put:
+      security:
+        - bearerAuth: []
+      tags:
+        - cluster
+      summary: Update cluster
+      description: Updating an existing K8S cluster
+      operationId: UpdateCluster
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: id
+          in: path
+          description: Selected cluster identification (number)
+          required: true
+          schema:
+            type: integer
+      responses:
+        '202':
+          description: Cluster update accepted
+        '400':
+          description: Error during updating cluster
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '404':
+          description: Cluster not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateClusterRequest'
+
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - cluster
+      summary: Delete cluster
+      description: Deleting a K8S cluster
+      operationId: DeleteCluster
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: id
+          in: path
+          description: Selected cluster identification (number)
+          required: true
+          schema:
+            type: integer
+      responses:
+        '202':
+          description: Cluster deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterDelete_200'
+        '400':
+          description: Error during deleting cluster
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '404':
+          description: Cluster not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+
+    head:
+      security:
+        - bearerAuth: []
+      tags:
+        - cluster
+      summary: Get cluster status
+      operationId: GetClusterStatus
+      description: Getting the K8S cluster status
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: id
+          in: path
+          required: true
+          description: Selected cluster identification (number)
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Cluster deleted successfully
+        '400':
+          description: Error during getting cluster status
+        '401':
+          description: Unauthorized
+        '404':
+          description: Cluster not found
+
+  '/api/v1/orgs/{orgId}/clusters/{id}/config':
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+       - cluster
+      summary: Get a cluster config
+      operationId: GetClusterConfig
+      description: Getting a K8S cluster config file
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: id
+          in: path
+          required: true
+          description: Selected cluster identification (number)
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: "Getting config file succeeded"
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "encoded configuration file..."
+        '400':
+          description: "Error during getting config file"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '404':
+          description: "Cluster not found"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+
+  '/api/v1/orgs/{orgId}/clusters/{id}/apiendpoint':
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - cluster
+      summary: Get API endpoint
+      operationId: GetAPIEndpoint
+      description: Get API endpoint
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: id
+          in: path
+          required: true
+          description: Selected cluster identification (number)
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: "API endpoint showed"
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "35.195.56.31"
+        '400':
+          description: "Error during getting API endpoint"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '404':
+          description: "Cluster not found"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+
+  '/api/v1/orgs/{orgId}/clusters/{id}/monitoring':
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - cluster
+      summary: Update monitoring
+      operationId: UpdateMonitoring
+      description: Update monitoring
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: id
+          in: path
+          required: true
+          description: Selected cluster identification (number)
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: "Monitoring updated"
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "OK"
+
+  '/api/v1/orgs/{orgId}/clusters/{id}/endpoints':
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - cluster
+      summary: List service public endpoints
+      operationId: ListEndpoints
+      description: List service public endpoints
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: id
+          in: path
+          required: true
+          description: Selected cluster identification (number)
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: "Endpoints listed"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListEndpointsResponse'
+        '400':
+          description: "Error during getting endpoints"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '404':
+          description: "Cluster not found"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+
+  '/api/v1/orgs/{orgId}/clusters/{id}/nodes':
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - cluster
+      summary: List cluser nodes
+      operationId: ListNodes
+      description: List cluser nodes
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: id
+          in: path
+          required: true
+          description: Selected cluster identification (number)
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: "Nodes listed"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListNodesResponse'
+        '400':
+          description: "Error during getting endpoints"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '404':
+          description: "Cluster not found"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+
+
+  '/api/v1/orgs/{orgId}/clusters/{id}/helminit':
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+       - cluster
+      summary: Initialize Helm
+      operationId: HelmInit
+      description: Initialize helm in the cluster
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: id
+          in: path
+          required: true
+          description: Selected cluster identification (number)
+          schema:
+            type: integer
+      responses:
+        '201':
+          description: "Helm initialized int the cluster"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HelmInitResponse'
+        '400':
+          description: "Error during getting endpoints"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '404':
+          description: "Cluster not found"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HelmInitRequest'
+
+  '/api/v1/orgs/{orgId}/clusters/{id}/helm/repos':
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+       - helm
+      summary: List repositories
+      operationId: HelmInit
+      description: Listing Helm repositories in the cluster
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: id
+          in: path
+          required: true
+          description: Selected cluster identification (number)
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: "Repositories listed"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HelmReposListResponse'
+        '400':
+          description: "Error during getting endpoints"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '404':
+          description: "Cluster not found"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+       - helm
+      summary: Add Repo
+      operationId: HelmReposAdd
+      description: Add new Helm repository
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: id
+          in: path
+          required: true
+          description: Selected cluster identification (number)
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: "resource successfully added."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HelmReposAddResponse'
+        '400':
+          description: "Error adding Helm repo"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '404':
+          description: "Cluster not found"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HelmReposAddRequest'
+
+  '/api/v1/orgs/{orgId}/clusters/{id}/helm/repos/{repoName}':
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+       - helm
+      summary: Delete Repo
+      operationId: HelmReposDelete
+      description: Delete  Helm repository
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: id
+          in: path
+          required: true
+          description: Selected cluster identification (number)
+          schema:
+            type: integer
+        - name: repoName
+          in: path
+          required: true
+          description: Helm repo name
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "resource deleted successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HelmReposDeleteResponse'
+        '400':
+          description: "error deleting Helm repos"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '404':
+          description: "Cluster not found"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+
+
+  '/api/v1/orgs/{orgId}/clusters/{id}/helm/repos/{repoName}/update':
+    put:
+      security:
+        - bearerAuth: []
+      tags:
+       - helm
+      summary: Update Repo
+      operationId: HelmReposUpdate
+      description: Modify Helm repository
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: id
+          in: path
+          required: true
+          description: Selected cluster identification (number)
+          schema:
+            type: integer
+        - name: repoName
+          in: path
+          required: true
+          description: Helm repo name
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "resource modified successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HelmReposUpdateResponse'
+        '400':
+          description: "repo modification failed"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '404':
+          description: "Resource found"
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/ClusterNotFound'
+                  - $ref: '#/components/schemas/RepoNotFound'
+
+  '/api/v1/orgs/{orgId}/clusters/{id}/helm/charts/':
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+       - helm
+      summary: Chart List
+      operationId: HelmChartList
+      description: Get available Helm chart's list
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: id
+          in: path
+          required: true
+          description: Selected cluster identification (number)
+          schema:
+            type: integer
+        - name: name
+          in: query
+          required: false
+          description: Chart Name
+          schema:
+            type: string
+        - name: repo
+          in: query
+          required: false
+          description: Repo Name
+          schema:
+            type: string
+        - name: version
+          in: query
+          required: false
+          description: Chart version (latest)
+          schema:
+            type: string
+
+      responses:
+        '200':
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HelmChartsListResponse'
+        '400':
+          description: "error parsing request"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '404':
+          description: "Resource found"
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/ClusterNotFound'
+
+
+  '/api/v1/orgs/{orgId}/clusters/{id}/helm/chart/{repoName}/{chartName}/{chartVersion}':
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+       - helm
+      summary: Chart details
+      operationId: HelmChartDetails
+      description: Get helm chart details
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: id
+          in: path
+          required: true
+          description: Selected cluster identification (number)
+          schema:
+            type: integer
+        - name: repoName
+          in: path
+          required: true
+          description: Chart repository name
+          schema:
+            type: string
+        - name: chartName
+          in: path
+          required: true
+          description: Chart Name
+          schema:
+            type: string
+        - name: chartVersion
+          in: path
+          required: true
+          description: Chart version
+          schema:
+            type: string
+
+      responses:
+        '200':
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HelmChartDetailsResponse'
+        '400':
+          description: "error parsing request"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '404':
+          description: "Resource found"
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/ChartNotFound'
+
+
+
+  '/api/v1/orgs/{orgId}/clusters/{id}/deployments':
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - deployments
+      summary: List deployments
+      operationId: ListDeployments
+      description: Listing Helm deployments
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: id
+          in: path
+          required: true
+          description: Selected cluster identification (number)
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: "Deployments listed"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListDeploymentsResponse'
+        '400':
+          description: "Error during getting endpoints"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '404':
+          description: "Cluster not found"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - deployments
+      summary: Create a Helm deployment
+      operationId: CreateDeployment
+      description: Creating a Helm deployment
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: id
+          in: path
+          required: true
+          description: Selected cluster identification (number)
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDeploymentRequest'
+      responses:
+        '201':
+          description: "Deployment created successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateDeploymentResponse'
+        '401':
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '400':
+          description: "Error during creating deployment"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '404':
+          description: "Cluster not found"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+    head:
+      security:
+        - bearerAuth: []
+      tags:
+        - deployments
+      summary: Get tiller status
+      operationId: GetTillerStatus
+      description: Checking if tiller ready to accept deployments
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: id
+          in: path
+          required: true
+          description: Selected cluster identification (number)
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: "Tiller is available"
+        '400':
+          description: "Error during creating deployment"
+        '401':
+          description: "Unauthorized"
+        '404':
+          description: "Cluster not found"
+
+  '/api/v1/orgs/{orgId}/clusters/{id}/deployments/{name}':
+      delete:
+        security:
+          - bearerAuth: []
+        tags:
+          - deployment
+        summary: Delete deployment
+        operationId: DeleteDeployment
+        description: Deleting a Helm deployment
+        parameters:
+          - name: orgId
+            in: path
+            required: true
+            description: Organization identification
+            schema:
+              type: integer
+          - name: id
+            in: path
+            required: true
+            description: Selected cluster identification (number)
+            schema:
+              type: integer
+          - name: name
+            in: path
+            required: true
+            description: Deployment name
+            schema:
+              type: string
+        responses:
+          '200':
+            description: "Deployment deleted successfully"
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/DeleteDeploymentResponse'
+          '400':
+            description: "Error during delete deployment"
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/BaseError_400'
+          '401':
+            description: "Unauthorized"
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Unauthorized'
+          '404':
+            description: "Cluster not found"
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ClusterNotFound'
+
+      put:
+        security:
+          - bearerAuth: []
+        tags:
+          - deployment
+        summary: Update deployment
+        operationId: UpdateDeployment
+        description: Updating a Helm deployment
+        parameters:
+          - name: orgId
+            in: path
+            required: true
+            description: Organization identification
+            schema:
+              type: integer
+          - name: id
+            in: path
+            required: true
+            description: Selected cluster identification (number)
+            schema:
+              type: integer
+          - name: name
+            in: path
+            required: true
+            description: Deployment name
+            schema:
+              type: string
+        responses:
+          '501':
+            description: "Not implemented"
+      head:
+        tags:
+         - deployment
+        summary: Check deployment status
+        operationId: HelmDeploymentStatus
+        description: Checking the status of a deployment through the Helm client API
+        parameters:
+          - name: orgId
+            in: path
+            required: true
+            description: Organization identification
+            schema:
+              type: integer
+          - name: id
+            in: path
+            required: true
+            description: Selected cluster identification (number)
+            schema:
+              type: integer
+          - name: name
+            in: path
+            required: true
+            description: Deployment name
+            schema:
+              type: string
+        responses:
+          '200':
+            description: "Deployment status is OK"
+          '400':
+            description: "Error during checking deployment status"
+          '401':
+            description: "Unauthorized"
+          '404':
+            description: "Cluster not found"
+
+  '/api/v1/orgs/{orgId}/profiles/cluster/{type}':
+    get:
+      security:
+          - bearerAuth: []
+      tags:
+        - profiles
+      summary: List cluster profiles
+      operationId: ListProfiles
+      description: Listing cluster profiles by cloud type
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: type
+          in: path
+          required: true
+          description: Cloud type
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "Profiles listed"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileListResponse'
+        '400':
+            description: "Error during delete deployment"
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+
+  '/api/v1/orgs/{orgId}/profiles/cluster':
+    post:
+      security:
+          - bearerAuth: []
+      tags:
+        - profiles
+      summary: Add cluster profiles
+      operationId: AddProfiles
+      description: Add cluster profile
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddClusterProfileRequest'
+      responses:
+        '201':
+          description: "Cluster profile created successfully"
+        '400':
+            description: "Error during delete deployment"
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+
+    put:
+      security:
+          - bearerAuth: []
+      tags:
+        - profiles
+      summary: Update cluster profiles
+      operationId: UpdateProfiles
+      description: Update an existing cluster profile
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddClusterProfileRequest'
+      responses:
+        '201':
+          description: "Cluster profile updated successfully"
+        '400':
+          description: Error during updating cluster profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '404':
+          description: Cluster profile not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterProfileNotFound'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+
+  '/api/v1/orgs/{orgId}/profiles/cluster/{type}/{name}':
+    delete:
+      security:
+          - bearerAuth: []
+      tags:
+        - profiles
+      summary: Delete cluster profiles
+      operationId: DeleteProfiles
+      description: Delete cluster profiles by cloud type and name
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: type
+          in: path
+          required: true
+          description: Cloud type
+          schema:
+            type: string
+        - name: name
+          in: path
+          required: true
+          description: Cluster profile name
+          schema:
+            type: string
+      responses:
+        '201':
+          description: "Cluster profile deleted successfully"
+        '400':
+          description: Error during deleting cluster profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '404':
+          description: Cluster profile not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterProfileNotFound'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+
+  /token:
+    get:
+      security:
+          - bearerAuth: []
+      tags:
+        - auth
+      summary: Generate token
+      operationId: GetToken
+      description: Generate token
+      responses:
+        '200':
+          description: Token generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+  '/api/v1/orgs/{orgId}/secrets':
+    get:
+      security:
+          - bearerAuth: []
+      tags:
+        - secrets
+      summary: List secrets
+      operationId: GetSecrets
+      description: Listing secrets
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Secrets listed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecretsListResponse'
+        '400':
+          description: Error during listing secrets
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+    post:
+      security:
+          - bearerAuth: []
+      tags:
+        - secrets
+      summary: Add secrets
+      operationId: AddSecrets
+      description: Adding secrets
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSecretRequest'
+      responses:
+        '201':
+          description: Secret saved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateSecretResponse'
+        '400':
+          description: Error during adding secrets
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+
+  '/api/v1/orgs/{orgId}/secrets/{type}':
+    get:
+      security:
+          - bearerAuth: []
+      tags:
+        - secrets
+      summary: List secrets with filter
+      operationId: GetSecretsWithFilter
+      description: Listing secrets with filter
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: type
+          in: path
+          required: true
+          description: Secret type
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Secrets listed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecretsListResponse'
+        '400':
+          description: Error during listing secrets
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+
+  '/api/v1/orgs/{orgId}/allowed/secrets':
+    get:
+      security:
+          - bearerAuth: []
+      tags:
+        - secrets
+      summary: List allowed secret types
+      operationId: AllowedSecretsTypes
+      description: List allowed secret types and their required keys
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Allowed types listed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AllowedSecretTypesResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+
+  '/api/v1/orgs/{orgId}/allowed/secrets/{type}':
+    get:
+      security:
+          - bearerAuth: []
+      tags:
+        - secrets
+      summary: List required keys
+      operationId: AllowedSecretsTypesKeys
+      description: List required keys in the given secret type
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: type
+          in: path
+          required: true
+          description:  Secret type
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Required keys listed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequiredKeysResponse'
+        '400':
+          description: Error during listing secret types
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+
+  '/api/v1/orgs/{orgId}/secrets/{secretId}':
+    delete:
+      security:
+          - bearerAuth: []
+      tags:
+        - secrets
+      summary: Delete secrets
+      operationId: DeleteSecrets
+      description: Deleting secrets
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: secretId
+          in: path
+          required: true
+          description: Secret identification
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Secret deleted successfully
+        '400':
+          description: Error during deleting secrets
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '404':
+          description: Secrets not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecretsNotFound'
+
+  '/api/v1/orgs/{orgId}':
+    get:
+      security:
+          - bearerAuth: []
+      tags:
+        - organizations
+      summary: Get organization
+      operationId: GetOrg
+      description: Getting organization
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: "Organization getting successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationListItemResponse'
+        '400':
+          description: Error during getting organization
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '404':
+          description: Organization not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationNotFound'
+
+  '/api/v1/orgs':
+    get:
+      security:
+          - bearerAuth: []
+      tags:
+        - organizations
+      summary: List organizations
+      operationId: ListOrgs
+      description: Listing organizations
+      responses:
+        '200':
+          description: "Organizations listed successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationListResponse'
+        '400':
+          description: Error during listing organizations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+    post:
+      security:
+          - bearerAuth: []
+      tags:
+        - organizations
+      summary: Create organization
+      operationId: CreateOrg
+      description: Creating organization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "myOrgName"
+      responses:
+        '200':
+          description: "Organizations created successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationCreateResponse'
+        '400':
+          description: Error during creating organization
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+
+  '/api':
+    get:
+      tags:
+        - common
+      summary: List Pipeline API endpoints
+      operationId: ListEndpoints
+      description: Listing Pipeline API endpoint
+      responses:
+        '200':
+          description: "Endpoints listed"
+          content:
+            application/json:
+              schema:
+                type: array
+                example: [
+                  "/api/v1/orgs",
+                  "/api/v1/orgs/:orgid",
+                  ]
+
+  '/api/v1/orgs/{orgId}/users':
+    get:
+      security:
+          - bearerAuth: []
+      tags:
+        - users
+      summary: List users
+      operationId: ListUsers
+      description: Listing users
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: "Users listed"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListUserResponse'
+
+  '/api/v1/orgs/{orgId}/users/{userId}':
+    get:
+      security:
+          - bearerAuth: []
+      tags:
+        - users
+      summary: Get user
+      operationId: GetUsers
+      description: Getting user
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: userId
+          in: path
+          required: true
+          description: User identification
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: "Getting user succeeded"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  '/api/v1/orgs/{orgId}/cloudinfo':
+    get:
+      security:
+          - bearerAuth: []
+      tags:
+        - info
+      summary: Get supported cloud types
+      operationId: GetSupportedClouds
+      description: Get supported cloud types
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: "Supported clouds listed"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportedCloudsResponse'
+        '401':
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+
+  '/api/v1/orgs/{orgId}/cloudinfo/filters':
+    get:
+      security:
+          - bearerAuth: []
+      tags:
+        - info
+      summary: Get supported filter keys
+      operationId: GetSupportedFilter
+      description: Get supported filter types
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: "Supported filter words listed"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportedFiltersResponse'
+        '401':
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+
+  '/api/v1/orgs/{orgId}/cloudinfo/amazon':
+    post:
+      security:
+          - bearerAuth: []
+      tags:
+        - info
+      summary: Get all amazon config
+      operationId: GetAmazonConfig
+      description: Get all amazon config
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AmazonConfigRequest'
+      responses:
+        '200':
+          description: "Amazon config listed"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AmazonConfigResponse'
+        '400':
+          description: Error during listing config
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+
+  '/api/v1/orgs/{orgId}/cloudinfo/azure':
+    post:
+      security:
+          - bearerAuth: []
+      tags:
+        - info
+      summary: Get all azure config
+      operationId: GetAzureConfig
+      description: Get all azure config
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AzureConfigRequest'
+      responses:
+        '200':
+          description: "Azure config listed"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AzureConfigResponse'
+        '400':
+          description: Error during listing config
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+
+  '/api/v1/orgs/{orgId}/cloudinfo/google':
+    post:
+      security:
+          - bearerAuth: []
+      tags:
+        - info
+      summary: Get all google config
+      operationId: GetGoogleConfig
+      description: Get all google config
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GoogleConfigRequest'
+      responses:
+        '200':
+          description: "Azure config listed"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GoogleConfigResponse'
+        '400':
+          description: Error during listing config
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+
+    CreateClusterRequest:
+      type: object
+      required:
+        - name
+        - location
+        - cloud
+        - secret_id
+        - properties
+      properties:
+        name:
+          type: string
+          example: "gkecluster-pipelineuser-123"
+        location:
+          type: string
+          example: "us-central1-a"
+        cloud:
+          type: string
+          example: "google"
+        secret_id:
+          type: string
+          example: "62bc3c75-91fb-4670-bad4-24b401a9deac"
+        properties:
+          type: object
+          oneOf:
+            - $ref: '#/components/schemas/CreateAmazonProperties'
+            - $ref: '#/components/schemas/CreateAzureProperties'
+            - $ref: '#/components/schemas/CreateGoogleProperties'
+          example:
+            google:
+              project:
+                master:
+                  version: "1.8.7-gke.1"
+                nodePools:
+                  pool1:
+                    count: 1
+                    nodeInstanceType: "n1-standard-2"
+                nodeVersion: "1.8.7-gke.1"
+
+    CreateAmazonProperties:
+      type: object
+      required:
+        - amazon
+      properties:
+        amazon:
+          type: object
+          required:
+            - master
+            - nodePools
+          properties:
+            master:
+              type: object
+              properties:
+                instanceType:
+                  type: string
+                  example: "m4.xlarge"
+                image:
+                  type: string
+                  example: "ami-06d1667f"
+            nodePools:
+              type: object
+              properties:
+                pool1:
+                  $ref: '#/components/schemas/NodePoolsAmazon'
+
+    NodePoolsAmazon:
+      type: object
+      required:
+        - instanceType
+        - spotPrice
+        - minCount
+        - maxCount
+        - image
+      properties:
+        instanceType:
+          type: string
+          example: "m4.xlarge"
+        spotPrice:
+          type: string
+          example: "0.2"
+        minCount:
+          type: integer
+          example: 1
+        maxCount:
+          type: integer
+          example: 2
+        image:
+          type: string
+          example: "ami-06d1667f"
+
+    CreateAzureProperties:
+      type: object
+      required:
+        - azure
+      properties:
+        azure:
+          type: object
+          required:
+            - kubernetesVersion
+            - resourceGroup
+            - nodePools
+          properties:
+            resourceGroup:
+              type: string
+              example: "myRg"
+            kubernetesVersion:
+              type: string
+              example: "1.8.2"
+            nodePools:
+              type: object
+              properties:
+                agentpool1:
+                  $ref: '#/components/schemas/NodePoolsAzure'
+    
+    NodePoolsAzure:
+      type: object
+      required:
+        - count
+        - nodeInstanceType
+      properties:
+        count:
+          type: number
+          example: 1
+        nodeInstanceType:
+          type: string
+          example: "Standard_B2ms"
+    
+    CreateGoogleProperties:
+      type: object
+      required:
+        - google
+      properties:
+        google:
+          type: object
+          required:
+             - project
+             - master
+             - nodeVersion
+             - nodePools
+          properties:
+            project:
+              type: string
+              example: "projectId"
+            master:
+              type: object
+              properties:
+                version:
+                  type: string
+                  example: "1.8.7-gke.1"
+            nodeVersion:
+              type: string
+              example: "1.8.7-gke.1"
+            nodePools:
+              type: object
+              required:
+                - agentpool1
+              properties:
+                agentpool1:
+                  $ref: '#/components/schemas/NodePoolsGoogle'
+    
+    NodePoolsGoogle:
+      type: object
+      required:
+        - count
+        - nodeInstanceType
+      properties:
+        count:
+          type: number
+          example: 1
+        nodeInstanceType:
+          type: string
+          example: "n1-standard-2"      
+
+    CreateClusterResponse_202:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "gkecluster-pipelineuser-123"
+        id:
+          type: integer
+          example: 1
+
+    CreateClusterResponse_400:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 400
+        message:
+          type: string
+          example: Invalid version
+        error:
+          type: string
+          example: Invalid version
+
+    ClusterListResponse:
+      type: array
+      items:
+        $ref: '#/components/schemas/GetClusterStatusResponse'
+
+    BaseError_400:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 400
+        message:
+          type: string
+          example: "Error during process"
+        error:
+          type: string
+          example: "Error during process"
+
+    BaseError_500:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 500
+        message:
+          type: string
+          example: "Error during process"
+        error:
+          type: string
+          example: "Error during process"
+
+    ClusterNotFound:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 404
+        message:
+          type: string
+          example: "Cluster not found"
+        error:
+          type: string
+          example: "record not found"
+
+    RepoNotFound:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 404
+        message:
+          type: string
+          example: "repo not found"
+        error:
+          type: string
+          example: "repo not found"
+
+    ClusterProfileNotFound:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 404
+        message:
+          type: string
+          example: "Profile not found"
+        error:
+          type: string
+          example: "record not found"
+
+    ChartNotFound:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 404
+        message:
+          type: string
+          example: "Chart Not Found!"
+        error:
+          type: string
+          example: "Chart Not Found!"
+
+
+    UpdateClusterRequest:
+      type: object
+      required:
+        - cloud
+        - properties
+      properties:
+        cloud:
+          type: string
+          example: google
+        properties:
+          type: object
+          oneOf:
+            - $ref: '#/components/schemas/UpdateAmazonProperties'
+            - $ref: '#/components/schemas/UpdateAzureProperties'
+            - $ref: '#/components/schemas/UpdateGoogleProperties'
+          example:
+            google:
+              master:
+                version: "1.9.4-gke.1"
+              nodePools:
+                pool1:
+                  count: 2
+                  nodeInstanceType: "n1-standard-2"
+
+    UpdateAmazonProperties:
+      type: object
+      required:
+        - amazon
+      properties:
+        amazon:
+          type: object
+          required:
+            - nodePools
+          properties:
+            nodePools:
+              type: object
+              properties:
+                pool1:
+                  $ref: '#/components/schemas/UpdateNodePoolsAmazon'
+    
+    UpdateNodePoolsAmazon:
+      type: object
+      properties:
+        minCount:
+          type: number
+          example: 1
+        maxCount:
+          type: number
+          example: 2
+      
+    UpdateAzureProperties:
+      type: object
+      required:
+        - azure
+      properties:
+        azure:
+          type: object
+          properties:
+            nodePools:
+              type: object
+              properties:
+                pool1:
+                  type: object
+                  properties:
+                    count: 
+                      type: number
+                      example: 2
+
+    UpdateGoogleProperties:
+      type: object
+      properties:
+        master:
+          type: object
+          properties:
+            version:
+              type: string
+        nodePools:
+          type: object
+          properties:
+            pool1:
+              type: object
+              properties:
+                count:
+                  type: number
+                  example: 1
+                nodeInstanceType:
+                  type: string
+                  example: "n1-standard-2"
+
+    ClusterDelete_200:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 202
+        name:
+          type: string
+          example: "gkecluster-pipelineuser-123"
+        id:
+          type: integer
+          example: 1
+
+    Unauthorized:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 401
+        message:
+          type: string
+          example: "Invalid token"
+        error:
+          type: string
+          example: "token contains an invalid number of segments"
+
+    ListEndpointsResponse:
+      type: object
+      properties:
+        endpoints:
+          type: array
+          items:
+            $ref: '#/components/schemas/EndpointItem'
+
+
+    EndpointItem:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "pipeline-traefik"
+        host:
+          type: string
+          example: "11.11.11.111"
+        urls:
+          type: array
+          items:
+            $ref: '#/components/schemas/URLItem'
+          example:
+
+
+    URLItem:
+      type: object
+      properties:
+        servicename:
+          type: string
+          example: "serviceName"
+        url:
+          type: string
+          example: "url"
+
+
+    ListNodesResponse:
+      type: object
+      properties:
+        metadata:
+          type: object
+          properties:
+            selfLink:
+              type: string
+              example: "/api/v1/nodes"
+            resourceVersion:
+              type: string
+              example: "30123"
+    
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/NodeItem'
+
+    NodeItem:
+      type: object
+      properties:
+        metadata:
+          type: object
+          properties:
+            name:
+              type: string
+              example: "gke-gkecluster-feri-706-pool1-496eccb3-l25k"
+            selfLink:
+              type: string
+              example: "/api/v1/nodes/gke-gkecluster-feri-706-pool1-496eccb3-l25k"
+            uid:
+              type: string
+              example: "f214d7fb-41ae-11e8-a4ea-42010a8001da"
+            resourceVersion:
+              type: string
+              example: "30119"
+            creationTimestamp:
+              type: string
+              example: "2018-04-16T19:47:07Z"
+            labels:
+              type: object
+              properties:
+                beta.kubernetes.io/arch:
+                  type: string
+                  example: "amd64"
+                beta.kubernetes.io/fluentd-ds-ready:
+                  type: string
+                  example: "true"
+                beta.kubernetes.io/instance-type:
+                  type: string
+                  example: "n1-standard-2"
+                beta.kubernetes.io/os:
+                  type: string
+                  example: "linux"
+                cloud.google.com/gke-nodepool:
+                  type: string
+                  example: "pool1"
+                failure-domain.beta.kubernetes.io/region:
+                  type: string
+                  example: "us-central1"
+                failure-domain.beta.kubernetes.io/zone:
+                  type: string
+                  example: "us-central1-a"
+                kubernetes.io/hostname:
+                  type: string
+                  example: "gke-gkecluster-feri-706-pool1-496eccb3-l25k"
+            annotations:
+              type: object
+              properties:
+                node.alpha.kubernetes.io/ttl:
+                  type: string
+                  example: "0"
+                volumes.kubernetes.io/controller-managed-attach-detach:
+                  type: string
+                  example: "true"
+        spec:
+          type: object
+          properties:
+            podCIDR:
+              type: string
+              example: "10.48.0.0/24"
+            externalID:
+              type: string
+              example: "5935724476937880453"
+            providerID:
+              type: string
+              example: "gce://banzaitest/us-central1-a/gke-gkecluster-706-pool1-496eccb3-l25k"
+        status:
+          type: object
+          properties:
+            capacity:
+              type: object
+              properties:
+                cpu:
+                  type: string
+                  example: "2"
+                memory:
+                  type: string
+                  example: "7664776Ki"
+                pods:
+                  type: string
+                  example: "110"
+            allocatable:
+              type: object
+              properties:
+                cpu:
+                  type: string
+                  example: "1930m"
+                memory:
+                  type: string
+                  example: "5784712Ki"
+                pods:
+                  type: string
+                  example: "110"
+            conditions:
+              type: array
+              items:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    example: "KernelDeadlock"
+                  status:
+                    type: string
+                    example: "False"
+                  lastHeartbeatTime:
+                    type: string
+                    example: "2018-04-17T09:02:45Z"
+                  lastTransitionTime:
+                    type: string
+                    example: "2018-04-16T19:46:26Z"
+                  reason:
+                    type: string
+                    example: "KernelHasNoDeadlock"
+                  message:
+                    type: string
+                    example: "kernel has no deadlock"
+            addresses:
+              type: array
+              items:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    example: "InternalIP"
+                  address:
+                    type: string
+                    example: "10.128.0.2"
+
+            daemonEndpoints:
+              type: object
+              properties:
+                kubeletEndpoint:
+                  properties:
+                    Port:
+                      type: integer
+                      example: 10250
+            nodeInfo:
+              type: object
+              properties:
+                  machineID:
+                    type: string
+                    example: "10d8adda771410ca912a387cf7e5cb06"
+                  systemUUID:
+                    type: string
+                    example: "10D8ADDA-7714-10CA-912A-387CF7E5CB06"
+                  bootID:
+                    type: string
+                    example: "decb64ff-e662-410a-b862-04cb490b4772"
+                  kernelVersion:
+                    type: string
+                    example: "4.4.111+"
+                  osImage:
+                    type: string
+                    example: "Container-Optimized OS from Google"
+                  containerRuntimeVersion:
+                    type: string
+                    example: "docker://17.3.2"
+                  kubeletVersion:
+                      type: string
+                      example: "v1.9.4-gke.1"
+                  kubeProxyVersion:
+                      type: string
+                      example: "v1.9.4-gke.1"
+                  operatingSystem:
+                      type: string
+                      example: "linux"
+                  architecture:
+                      type: string
+                      example: "amd64"
+            images:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: array
+                    example: ["asia.gcr.io/google_containers/node-problem-detector@sha256:f95cab985c26b2f46e9bd43283e0bfa88860c14e0fb0649266babe8b65e", "eu.gcr.io/google_containers/node-problem-detector@sha256:f95cab985c26b2f46e9bd43283e0bfa88860c14e0fb0649266babe"]
+                  sizeBytes:
+                    type: integer
+                    example: 286572743
+ 
+    ListDeploymentsResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          name:
+            type: string
+            example: "pipeline"
+          chart:
+            type: string
+            example: "pipeline-cluster-ingress-0.0.1"
+          version:
+            type: integer
+            example: 1
+          updated:
+            type: string
+            example: "Wed Mar  7 09:56:57 2018"
+          status:
+            type: string
+            example: "DEPLOYED"
+
+    CreateDeploymentRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        releasename:
+          type: string
+        version:
+          type: string
+        values:
+          type: object
+      example:
+          name: "banzaicloud-stable/drone"
+
+
+    CreateDeploymentResponse:
+      type: object
+      properties:
+        release_name:
+          type: string
+          example: "vigilant-mandrill"
+        notes:
+          type: string
+          example: "deploy notes"
+
+    DeleteDeploymentResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 200
+        message:
+          type: string
+          example: "Deployment deleted!"
+        name:
+          type: string
+          example: "vigilant-mandrill"
+
+    HelmInitResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 201
+        message:
+          type: string
+          example: "helm initialising"
+
+    HelmInitRequest:
+      type: object
+      required:
+        - namespace
+        - service_account
+      properties:
+        kube_context:
+          type: string
+        namespace:
+          type: string
+        upgrade:
+          type: boolean
+        service_account:
+          type: string
+        canary_image:
+          type: boolean
+        tiller_image:
+          type: string
+        history_max:
+          type: integer
+      example:
+        namespace: "kube-system"
+        service_account: "tiller"
+        tiller_image: "gcr.io/kubernetes-helm/tiller:v2.7.2"
+
+    HelmReposListResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          name:
+            type: string
+            example: "stable"
+          cache:
+            type: string
+            example: "statestore/<cluster_name>/helm/repository/cache/stable-index.yaml"
+          url:
+            type: string
+            example: "https://kubernetes-charts.storage.googleapis.com"
+          certFile:
+            type: string
+            example: ""
+          keyFile:
+            type: string
+            example: ""
+          caFile:
+            type: string
+            example: ""
+
+    HelmReposAddResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 200
+        message:
+          type: string
+          example: "resource successfully added."
+        name:
+          type: string
+          example: "stable"
+          
+    HelmReposAddRequest:
+      type: object
+      required:
+        - name
+        - url
+      properties:
+        name:
+          type: string
+        url:
+          type: string
+        certFile:
+          type: string
+        keyFile:
+          type: string
+        caFile:
+          type: string
+      example:
+          name: "stable"
+          url: "https://kubernetes-charts.storage.googleapis.com"
+
+    HelmReposDeleteResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 200
+        message:
+          type: string
+          example: "resource deleted successfully"
+        name:
+          type: string
+          example: "stable"
+
+    HelmReposUpdateResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 200
+        message:
+          type: string
+          example: "resource modified successfully"
+        name:
+          type: string
+          example: "stable"
+
+    HelmChartsListResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          name:
+            type: string
+            example: "stable"
+          charts:
+            type: array
+            items:
+              type: array
+
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: "nginx-ingress"
+                  home:
+                    type: string
+                    example: "https://github.com/kubernetes/ingress-nginx"
+                  sources:
+                    type: array
+                    example: ["https://github.com/kubernetes/ingress-nginx"]
+                  version:
+                    type: string
+                    example: "0.13.1"
+                  description:
+                    type: string
+                    example: "An nginx Ingress controller that uses ConfigMap to store the nginx configuration."
+                  keywords:
+                    type: array
+                    example: ["ingress, nginx"]
+                  maintainers:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          example: "jackzampolin"                  
+                        email:
+                          type: string
+                          example: "jack.zampolin@gmail.com"                  
+                  engine:
+                    type: string
+                    example: "gotpl"
+
+                  icon:
+                    type: string
+                    example: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Nginx_logo.svg/500px-Nginx_logo.svg.png"
+                  appVersion:
+                    type: string
+                    example: "0.12.0"
+                  apiVersion:
+                    type: string
+                    example: "v1"
+                  deprecated:
+                    type: boolean
+                    example: flase
+                  urls:
+                    type: array
+                    example: ["https://kubernetes-charts.storage.googleapis.com/nginx-ingress-0.13.1.tgz"]
+                  created:
+                    type: string
+                    example: "2018-04-11T18:11:24.761440762Z"
+                  digest:
+                    type: string
+                    example: "cf66d1666019b3e1647ba4dbc06a66ee7db1184629ae3669e11a9f72208eb7aa"
+  
+    HelmChartDetailsResponse:
+        properties:
+          chart:
+            type: object
+            properties:
+              name:
+                type: string
+                example: "nginx-ingress"
+              home:
+                type: string
+                example: "https://github.com/kubernetes/ingress-nginx"
+              sources:
+                type: array
+                example: ["https://github.com/kubernetes/ingress-nginx"]
+              version:
+                type: string
+                example: "0.13.1"
+              description:
+                type: string
+                example: "An nginx Ingress controller that uses ConfigMap to store the nginx configuration."
+              keywords:
+                type: array
+                example: ["ingress, nginx"]
+              maintainers:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      example: "jackzampolin"                  
+                    email:
+                      type: string
+                      example: "jack.zampolin@gmail.com"                  
+              engine:
+                type: string
+                example: "gotpl"
+
+              icon:
+                type: string
+                example: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Nginx_logo.svg/500px-Nginx_logo.svg.png"
+              appVersion:
+                type: string
+                example: "0.12.0"
+              apiVersion:
+                type: string
+                example: "v1"
+              deprecated:
+                type: boolean
+                example: flase
+              urls:
+                type: array
+                example: ["https://kubernetes-charts.storage.googleapis.com/nginx-ingress-0.13.1.tgz"]
+              created:
+                type: string
+                example: "2018-04-11T18:11:24.761440762Z"
+              digest:
+                type: string
+                example: "cf66d1666019b3e1647ba4dbc06a66ee7db1184629ae3669e11a9f72208eb7aa"
+          values:
+            type: string
+            example: "IyMgbmdpbngtbGVnbyBzcGlucyB1cCBhIHNjYWxhYmxlIGluZ3Jlc3MgcHJvdmlkZXIgdGhhdCBjYW4gYWxzbyBwcm92aXNpb24gU1NMIGNlcnRzCiMjIFNlZSBodHRwczovL2dpdGh1Yi5jb20vamV0c3RhY2sva3ViZS1sZWdvL3RyZWUvbWFzdGVyL2V4YW1wbGVzL25naW54IGZvciBtb3JlIGluZm9ybWF0aW9uIG9uIGltcGxlbWVudGF0aW9uCgojIyBOZ2lueCBjb25maWd1cmF0aW9uCiMjIHJlZjogaHR0cHM6Ly9naXRodWIuY29tL2t1YmVybmV0ZXMvY29udHJpYi90cmVlL21hc3Rlci9pbmdyZXNzL2NvbnRyb2xsZXJzL25naW54I2F1dG9tYXRlZC1jZXJ0aWZpY2F0ZS1tYW5hZ2VtZW50LXdpdGgta3ViZS1sZWdvCiMjCm5naW54OgogIHJlcGxpY2FDb3VudDogMQogIGltYWdlOgogICAgcmVwb3NpdG9yeTogazhzLmdjci5pby9uZ2lueC1pbmdyZXNzLWNvbnRyb2xsZXIKICAgIHRhZzogIjAuOC4zIgogICAgcHVsbFBvbGljeTogSWZOb3RQcmVzZW50CiAgc2VydmljZToKICAgIHR5cGU6IExvYWRCYWxhbmNlcgogIG1vbml0b3Jpbmc6IGZhbHNlCiAgcmVzb3VyY2VzOgogICAgbGltaXRzOgogICAgICBjcHU6IDEKICAgICAgbWVtb3J5OiAyR2kKICAgIHJlcXVlc3RzOgogICAgICBjcHU6IDEKICAgICAgbWVtb3J5OiAxMjhNaQogIGNvbmZpZ21hcDoKICAgIHByb3h5X2Nvbm5lY3RfdGltZW91dDogIjMwIgogICAgcHJveHlfcmVhZF90aW1lb3V0OiAiNjAwIgogICAgcHJveHlfc2VuZF9pbWVvdXQ6ICI2MDAiCiAgICBoc3RzX2luY2x1ZGVfc3ViZG9tYWluczogImZhbHNlIgogICAgYm9keV9zaXplOiAiNjRtIgogICAgc2VydmVyX25hbWVfaGFzaF9idWNrZXRfc2l6ZTogIjI1NiIKICAgICMgVE9ETzogZmlndXJlIG91dCBob3cgdG8gZXhwb3NlIGB7bmdpbnhfYWRkcn06ODA4MC9uZ2lueF9zdGF0dXNgLCBvbiBleGlzdGluZyBzZXJ2aWNlIG9yIGNyZWF0ZSBuZXcgb25lPwogICAgZW5hYmxlX3Z0c19zdGF0dXM6ICJmYWxzZSIKCiMjIERlZmF1bHQgQmFja2VuZCBjb25maWd1cmF0aW9uCiMjIFRvIHJ1biBhIGRpZmZlcmVudCA0MDQgcGFnZSBmb3IgdGhlIG1hbmFnZWQgZG9tYWlucyBwbGVhc2Ugc2VlIHRoZSBkb2N1bWVudGF0aW9uIGJlbG93CiMjIHJlZjogaHR0cHM6Ly9naXRodWIuY29tL2t1YmVybmV0ZXMvY29udHJpYi90cmVlL21hc3Rlci80MDQtc2VydmVyCiMjCmRlZmF1bHQ6CiAgcmVwbGljYUNvdW50OiAxCiAgaW1hZ2U6CiAgICByZXBvc2l0b3J5OiBrOHMuZ2NyLmlvL2RlZmF1bHRiYWNrZW5kCiAgICB0YWc6ICIxLjAiCiAgICBwdWxsUG9saWN5OiBJZk5vdFByZXNlbnQKICByZXNvdXJjZXM6CiAgICBsaW1pdHM6CiAgICAgIGNwdTogMQogICAgICBtZW1vcnk6IDJHaQogICAgcmVxdWVzdHM6CiAgICAgIGNwdTogMQogICAgICBtZW1vcnk6IDEyOE1pCgojIyBrdWJlLWxlZ28gY29uZmlndXJhdGlvbgojIyByZWY6IGh0dHBzOi8vZ2l0aHViLmNvbS9qZXRzdGFjay9rdWJlLWxlZ28KIyMKbGVnbzoKICBlbmFibGVkOiBmYWxzZQogIHJlcGxpY2FDb3VudDogMQogIGltYWdlOgogICAgcmVwb3NpdG9yeTogamV0c3RhY2sva3ViZS1sZWdvCiAgICB0YWc6ICIwLjEuMyIKICAgIHB1bGxQb2xpY3k6IElmTm90UHJlc2VudAogIGNvbmZpZ21hcDoKICAgIGVtYWlsOiAibXlAZW1haWwudGxkIgogICAgIyBQcm9kdWN0aW9uIExldCdzIEVuY3J5cHQgc2VydmVyCiAgICAjIHVybDogImh0dHBzOi8vYWNtZS12MDEuYXBpLmxldHNlbmNyeXB0Lm9yZy9kaXJlY3RvcnkiCiAgICAjIFRlc3QgTGV0J3MgRW5jcnlwdCBzZXJ2ZXIKICAgIHVybDogImh0dHBzOi8vYWNtZS1zdGFnaW5nLmFwaS5sZXRzZW5jcnlwdC5vcmcvZGlyZWN0b3J5ICIKICByZXNvdXJjZXM6CiAgICBsaW1pdHM6CiAgICAgIGNwdTogMQogICAgICBtZW1vcnk6IDJHaQogICAgcmVxdWVzdHM6CiAgICAgIGNwdTogMQogICAgICBtZW1vcnk6IDEyOE1pCg=="
+          readme:
+            type: string
+            example: "IyBuZ2lueC1sZWdvCgoqKlRoaXMgY2hhcnQgaGFzIGJlZW4gZGVwcmVjYXRlZCBhcyBvZiB2ZXJzaW9uIDAuMi4xIGFuZCB3aWxsIG5vdCBiZSB1cGRhdGVkLiBQbGVhc2UgdXNlIHRoZSBuZ2lueC1pbmdyZXNzIGFuZCAob3B0aW9uYWwpIGt1YmUtbGVnbyBjaGFydHMgaW5zdGVhZC4qKgoKW25naW54LWxlZ29dKGh0dHBzOi8vZ2l0aHViLmNvbS9qZXRzdGFjay9rdWJlLWxlZ28vdHJlZS9tYXN0ZXIvZXhhbXBsZXMvbmdpbngpIGlzIGEgY2hhcnQgZm9yIGFuIFtgbmdpbnhgIGluZ3Jlc3NdKGh0dHBzOi8vZ2l0aHViLmNvbS9rdWJlcm5ldGVzL2NvbnRyaWIvdHJlZS9tYXN0ZXIvaW5ncmVzcy9jb250cm9sbGVycy9uZ2lueCkgd2l0aCBvcHRpb25hbCBzdXBwb3J0IGZvciBhdXRvbWF0aWNhbGx5IGdlbmVyYXRpbmcgYFNTTGAgY2VydCBmb3IgdGhlIG1hbmFnZWQgcm91dGVzLgoKVG8gdXNlIHRoaXMgaW5ncmVzcyBjb250b2xsZXIgYWRkIHRoZSBmb2xsb3dpbmcgYW5ub3RhdGlvbnMgdG8gdGhlIGBpbmdyZXNzYCByZXNvdXJjZXMgeW91IHdvdWxkIGxpa2UgdG8gcm91dGUgdGhyb3VnaCBpdDoKCmBgYHlhbWwKYXBpVmVyc2lvbjogZXh0ZW5zaW9ucy92MWJldGExCmtpbmQ6IEluZ3Jlc3MKbWV0YWRhdGE6CiAgbmFtZXNwYWNlOiBmb28KICBhbm5vdGF0aW9uczoKICAgICMgQWRkIHRvIHJvdXRlIHRocm91Z2ggdGhlIG5naW54IHNlcnZpY2UKICAgIGt1YmVybmV0ZXMuaW8vaW5ncmVzcy5jbGFzczogbmdpbngKICAgICMgQWRkIHRvIGdlbmVyYXRlIGNlcnRpZmljYXRlcyBmb3IgdGhpcyBpbmdyZXNzCiAgICBrdWJlcm5ldGVzLmlvL3Rscy1hY21lOiAidHJ1ZSIKc3BlYzoKICB0bHM6CiAgICAjIFdpdGggdGhpcyBjb25maWd1cmF0aW9uIGt1YmUtbGVnbyB3aWxsIGdlbmVyYXRlIGEgc2VjcmV0IGluIG5hbWVzcGFjZSBmb28gY2FsbGVkIGBleGFtcGxlLXRsc2AKICAgICMgZm9yIHRoZSBVUkwgYHd3dy5leGFtcGxlLmNvbWAKICAgIC0gaG9zdHM6CiAgICAgIC0gInd3dy5leGFtcGxlLmNvbSIKICAgICAgc2VjcmV0TmFtZTogZXhhbXBsZS10bHMKYGBgCgojIyBUTDtEUjsKCmBgYGJhc2gKJCBoZWxtIGluc3RhbGwgc3RhYmxlL2t1YmUtbGVnbwpgYGAKCiMjIEludHJvZHVjdGlvbgoKVGhpcyBjaGFydCBib290c3RyYXBzIGFuIG5naW54LWxlZ28gZGVwbG95bWVudCBvbiBhIFtLdWJlcm5ldGVzXShodHRwOi8va3ViZXJuZXRlcy5pbykgY2x1c3RlciB1c2luZyB0aGUgW0hlbG1dKGh0dHBzOi8vaGVsbS5zaCkgcGFja2FnZSBtYW5hZ2VyLgoKIyMgUHJlcmVxdWlzaXRlcwoKLSBLdWJlcm5ldGVzIDEuNCsgd2l0aCBCZXRhIEFQSXMgZW5hYmxlZAoKIyMgSW5zdGFsbGluZyB0aGUgQ2hhcnQKClRvIGluc3RhbGwgdGhlIGNoYXJ0IHdpdGggdGhlIHJlbGVhc2UgbmFtZSBgbXktcmVsZWFzZWA6CgpgYGBiYXNoCiQgaGVsbSBpbnN0YWxsIC0tbmFtZSBteS1yZWxlYXNlIHN0YWJsZS9uZ2lueC1sZWdvCmBgYAoKVGhlIGNvbW1hbmQgZGVwbG95cyBuZ2lueC1sZWdvIG9uIHRoZSBLdWJlcm5ldGVzIGNsdXN0ZXIgaW4gdGhlIGRlZmF1bHQgY29uZmlndXJhdGlvbi4gVGhlIFtjb25maWd1cmF0aW9uXSgjY29uZmlndXJhdGlvbikgc2VjdGlvbiBsaXN0cyB0aGUgcGFyYW1ldGVycyB0aGF0IGNhbiBiZSBjb25maWd1cmVkIGR1cmluZyBpbnN0YWxsYXRpb24uCgo+ICoqVGlwKio6IExpc3QgYWxsIHJlbGVhc2VzIHVzaW5nIGBoZWxtIGxpc3RgCgojIyBVbmluc3RhbGxpbmcgdGhlIENoYXJ0CgpUbyB1bmluc3RhbGwvZGVsZXRlIHRoZSBgbXktcmVsZWFzZWAgZGVwbG95bWVudDoKCmBgYGJhc2gKJCBoZWxtIGRlbGV0ZSBteS1yZWxlYXNlCmBgYAoKVGhlIGNvbW1hbmQgcmVtb3ZlcyBhbGwgdGhlIEt1YmVybmV0ZXMgY29tcG9uZW50cyBhc3NvY2lhdGVkIHdpdGggdGhlIGNoYXJ0IGFuZCBkZWxldGVzIHRoZSByZWxlYXNlLgoKIyMgQ29uZmlndXJhdGlvbgoKU2VlIGB2YWx1ZXMueWFtbGAgZm9yIGNvbmZpZ3VyYXRpb24gbm90ZXMuIFNwZWNpZnkgZWFjaCBwYXJhbWV0ZXIgdXNpbmcgdGhlIGAtLXNldCBrZXk9dmFsdWVbLGtleT12YWx1ZV1gIGFyZ3VtZW50IHRvIGBoZWxtIGluc3RhbGxgLiBGb3IgZXhhbXBsZSwKCmBgYGJhc2gKJCBoZWxtIGluc3RhbGwgLS1uYW1lIG15LXJlbGVhc2UgXAogIC0tc2V0IGxlZ28uZW5hYmxlZD1mYWxzZSBcCiAgICBzdGFibGUvbmdpbngtbGVnbwpgYGAKCkluc3RhbGxzIHRoZSBjaGFydCB3aXRob3V0IGt1YmUtbGVnbyBhbmQgdGhlIGFiaWxpdHkgdG8gZ2VuZXJhdGUgY2VydHMuCgpBbHRlcm5hdGl2ZWx5LCBhIFlBTUwgZmlsZSB0aGF0IHNwZWNpZmllcyB0aGUgdmFsdWVzIGZvciB0aGUgcGFyYW1ldGVycyBjYW4gYmUgcHJvdmlkZWQgd2hpbGUgaW5zdGFsbGluZyB0aGUgY2hhcnQuIEZvciBleGFtcGxlLAoKYGBgYmFzaAokIGhlbG0gaW5zdGFsbCAtLW5hbWUgbXktcmVsZWFzZSAtZiB2YWx1ZXMueWFtbCBzdGFibGUvbmdpbngtbGVnbwpgYGAKCj4gKipUaXAqKjogWW91IGNhbiB1c2UgdGhlIGRlZmF1bHQgW3ZhbHVlcy55YW1sXSh2YWx1ZXMueWFtbCkK"
+
+
+    ProfileListResponse:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "default"
+        location:
+          type: string
+          example: "us-central1-a"
+        cloud:
+          type: string
+          example: "google"
+        properties:
+          type: object
+          oneOf:
+            - $ref: '#/components/schemas/ClusterProfileAmazon'
+            - $ref: '#/components/schemas/ClusterProfileAzure'
+            - $ref: '#/components/schemas/ClusterProfileGoogle'
+          example:
+            google:
+              master:
+                version: "1.9.4-gke.1"
+              nodeVersion: "1.9.4-gke.1"
+              nodePools:
+                pool1:
+                  count: 1
+                  nodeInstanceType: "n1-standard-1"
+                  serviceAccount: ""
+
+    ClusterProfileAmazon:
+      type: object
+      properties:
+        amazon:
+          type: object
+          properties:
+            master:
+              type: object
+              properties:
+                instanceType:
+                  type: string
+                  example: "m4.xlarge"
+                image:
+                  type: string
+                  example: "ami-06d1667f"
+            nodePools:
+              type: object
+              properties:
+                pool1:
+                  type: object
+                  properties:
+                    instanceType: 
+                      type: string
+                      example: "m4.xlarge"
+                    spotPrice:
+                      type: string
+                      example: "0.2"
+                    minCount:
+                      type: integer
+                      example: 1
+                    maxCount:
+                      type: integer
+                      example: 2
+                    image:
+                      type: string
+                      example: "ami-06d1667f"
+
+    ClusterProfileAzure:
+      type: object
+      properties:
+        azure:
+          type: object
+          properties:
+            kubernetesVersion:
+              type: string
+              example: "1.9.2" 
+            nodePools:
+              type: object
+              properties:
+                pool1:
+                  type: object
+                  properties:
+                    count:
+                      type: integer
+                      example: 1
+                    nodeInstanceType:
+                      type: string
+                      example: "Standard_D2_v2"
+
+    ClusterProfileGoogle:
+      type: object
+      properties:
+        google:
+          type: object
+          properties:
+            master:
+              type: object
+              properties:
+                version:
+                  type: string
+                  example: "1.8.7-gke.1"
+            nodeVersion:
+              type: string
+              example: "1.8.7-gke.1"
+            nodePools:
+              type: object
+              properties:
+                pool1:
+                  type: object
+                  properties:
+                    count:
+                      type: number
+                      example: 1
+                    nodeInstanceType:
+                      type: string
+                      example: "n1-standard-1"
+                    serviceAccount:
+                      type: string
+                      example: ""
+
+    AddClusterProfileRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "myCluster-profile"
+        location:
+          type: string
+          example: "us-central1-a"
+        cloud:
+          type: string
+          example: "google"
+        properties:
+          type: object
+          oneOf:
+            - $ref: '#/components/schemas/AddClusterProfileAmazon'
+            - $ref: '#/components/schemas/AddClusterProfileAzure'
+            - $ref: '#/components/schemas/AddClusterProfileGoogle'
+          example:
+            google:
+              master:
+                version: "1.8.7-gke.1"
+              nodeVersion: "1.8.7-gke.1"
+              nodePools:
+                pool1:
+                  count: 1
+                  nodeInstanceType: "n1-standard-1"
+              
+
+    AddClusterProfileAmazon:
+      type: object
+      properties:
+        amazon:
+          type: object
+          properties:
+            master:
+              type: object
+              properties:
+                instanceType:
+                  type: string
+                  example: "m4.xlarge"
+                image:
+                  type: string
+                  example: "ami-06d1667f"
+            nodePools:
+              type: object
+              properties:
+                pool1:
+                  type: object
+                  properties:
+                    spotPrice:
+                      type: string
+                      example: "0.2"
+                    minCount:
+                      type: integer
+                      example: 1
+                    maxCount:
+                      type: integer
+                      example: 2
+                    image:
+                      type: string
+                      example: "ami-06d1667f"
+                    instanceType:
+                      type: string
+                      example: "m4.xlarge"
+
+    AddClusterProfileAzure:
+      type: object
+      properties:
+        azure:
+          type: object
+          properties:
+            nodePools:
+              type: object
+              properties:
+                pool1:
+                  type: object
+                  properties:
+                    count:
+                      type: integer
+                      example: 1
+                    nodeInstanceType:
+                      type: string
+                      example: "Standard_D2_v2"
+            kubernetesVersion:
+              type: string
+              example: "1.8.2"
+
+    AddClusterProfileGoogle:
+      type: object
+      properties:
+        google:
+          type: object
+          properties:
+            master:
+              type: object
+              properties:
+                version:
+                  type: string
+                  example: "1.8.7-gke.1"
+            nodeVersion:
+              type: string
+              example: "1.8.7-gke.1"
+            nodePools:
+              type: object
+              properties:
+                pool1:
+                  type: object
+                  properties:
+                    count:
+                      type: integer
+                      example: 1
+                    serviceAccount:
+                      type: string
+                      example: "serviceAccountExample"
+                    nodeInstanceType:
+                      type: string
+                      example: "n1-standard-2"
+
+    Token:
+      type: object
+      required:
+        - token
+      properties:
+        token:
+          type: string
+          example: "jkjb342hb424j3b24"
+
+    SecretsListResponse:
+      type: object
+      properties:
+        secrets:
+          type: array
+          items:
+            $ref: '#/components/schemas/SecretsListItem'
+
+    SecretsListItem:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "62bc3c75-91fb-4670-bad4-24b401a9deac"
+        name:
+          type: string
+          example: "My google secret"
+        type:
+          type: string
+          example: "google"
+
+    CreateSecretResponse:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "My google secret"
+        type:
+          type: string
+          example: "google"
+        secret_id:
+          type: string
+          example: "62bc3c75-91fb-4670-bad4-24b401a9deac"
+
+    CreateSecretRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "My google secret"
+        type:
+          type: string
+          example: "google"
+        values:
+          type: array
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/SecretKeyValueAmazon'
+              - $ref: '#/components/schemas/SecretKeyValueAzure'
+              - $ref: '#/components/schemas/SecretKeyValueGoogle'
+              - $ref: '#/components/schemas/SecretKeyValueKubernetes'
+          example:
+            type: string
+            project_id: string
+            private_key_id: string
+            private_key: string
+            client_email: string
+            client_id: string
+            auth_uri: string
+            token_uri: string
+            auth_provider_x509_cert_url: string
+            client_x509_cert_url: string
+
+    SecretKeyValueAmazon:
+      type: object
+      required:
+        - AWS_ACCESS_KEY_ID
+        - AWS_SECRET_ACCESS_KEY
+      properties:
+        AWS_ACCESS_KEY_ID:
+          type: string
+        AWS_SECRET_ACCESS_KEY:
+          type: string
+    
+    SecretKeyValueAzure:
+      type: object
+      required:
+        - AZURE_CLIENT_ID
+        - AZURE_CLIENT_SECRET
+        - AZURE_TENANT_ID
+        - AZURE_SUBSCRIPTION_ID
+      properties:
+        AZURE_CLIENT_ID:
+          type: string
+        AZURE_CLIENT_SECRET:
+          type: string
+        AZURE_TENANT_ID:
+          type: string
+        AZURE_SUBSCRIPTION_ID:
+          type: string
+    
+    SecretKeyValueGoogle:
+      type: object
+      required:
+        - type
+        - project_id
+        - private_key_id
+        - private_key
+        - client_email
+        - client_id
+        - auth_uri
+        - token_uri
+        - auth_provider_x509_cert_url
+        - client_x509_cert_url
+      properties:
+        type:
+          type: string
+        project_id:
+          type: string
+        private_key_id:
+          type: string
+        private_key:
+          type: string
+        client_email:
+          type: string
+        client_id:
+          type: string
+        auth_uri:
+          type: string
+        token_uri:
+          type: string
+        auth_provider_x509_cert_url:
+          type: string
+        client_x509_cert_url:
+          type: string
+
+    SecretKeyValueKubernetes:
+      type: object
+      properties:
+        K8Sconfig:
+          type: string
+      
+    SecretsNotFound:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 404
+        message:
+          type: string
+          example: "Secrets not found"
+        error:
+          type: string
+          example: "There are no secrets with [1] organization id and [15205947761] secret id"
+
+    OrganizationListResponse:
+      type: array
+      items:
+        $ref: '#/components/schemas/OrganizationListItemResponse'
+
+    OrganizationListItemResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        createdAt:
+          type: string
+          example: "2018-03-09T13:24:49+01:00"
+        updatedAt:
+          type: string
+          example: "2018-03-09T13:24:49+01:00"
+        name:
+          type: string
+          example: "myOrgName"
+
+    OrganizationCreateResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        createdAt:
+          type: string
+          example: "2018-03-09T13:24:49+01:00"
+        updatedAt:
+          type: string
+          example: "2018-03-09T13:24:49+01:00"
+        name:
+          type: string
+          example: "myOrgName"
+        users:
+          type: array
+          $ref: '#/components/schemas/User'
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        createdAt:
+          type: string
+          example: "2018-03-09T13:24:49+01:00"
+        updatedAt:
+          type: string
+          example: "2018-03-09T13:24:49+01:00"
+        name:
+          type: string
+          example: "myName"
+        email:
+          type: string
+          example: "my@email.com"
+        login:
+          type: string
+          example: "username"
+        image:
+          type: string
+          example: "githubImageUrl.com/imageId/3"
+        organizations:
+          type: object
+          example: null
+
+    OrganizationNotFound:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 404
+        message:
+          type: string
+          example: "Organization not found"
+        error:
+          type: string
+          example: "Organization not found"
+
+    AllowedSecretTypesResponse:
+      type: object
+      properties:
+        alllowed:
+          type: object
+          properties:
+            amazon:
+              type: array
+              items:
+                type: string
+              example: [ "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"]
+            azure:
+              type: array
+              items:
+                type: string
+              example: [ "AZURE_CLIENT_ID",  "AZURE_CLIENT_SECRET", "AZURE_TENANT_ID", "AZURE_SUBSCRIPTION_ID" ]
+            google:
+              type: array
+              items:
+                type: string
+              example: [
+                          "type",
+                          "project_id",
+                          "private_key_id",
+                          "private_key",
+                          "client_email",
+                          "client_id",
+                          "auth_uri",
+                          "token_uri",
+                          "auth_provider_x509_cert_url",
+                          "client_x509_cert_url"
+                        ]
+            kubernetes:
+              type: array
+              items:
+                type: string
+              example: [
+                        "K8Sconfig"
+                        ]
+
+    RequiredKeysResponse:
+      type: object
+      properties:
+        keys:
+          type: array
+          items:
+            type: string
+            example: [
+                      "type",
+                      "project_id",
+                      "private_key_id",
+                      "private_key",
+                      "client_email",
+                      "client_id",
+                      "auth_uri",
+                      "token_uri",
+                      "auth_provider_x509_cert_url",
+                      "client_x509_cert_url"
+                    ]
+
+    ListUserResponse:
+      type: array
+      items:
+        $ref: '#/components/schemas/User'
+
+    SupportedCloudsResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SupportedCloudItem'
+          
+    SupportedCloudItem:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Google Kubernetes Engine"
+        key:
+          type: string
+          example: "google"
+
+    SupportedFiltersResponse:
+      type: object
+      properties:
+        keys:
+          type: array
+          example: [
+                  "location",
+                  "instanceType",
+                  "k8sVersion",
+                  "image"
+                  ]
+
+    AmazonConfigRequest:
+      type: object
+      properties:
+        secret_id:
+          type: string
+          example: "myAmazonSecret"
+        filter:
+          type: object
+          properties:
+            fields:
+              type: array
+              example: [ "location", "instanceType", "image" ]
+            image:
+              type: object
+              properties:
+                tags:
+                  type: array
+                  example: [ "0.3.0" ]
+                location:
+                  type: string
+                  example: "eu-west-1"
+            instanceType:
+              type: object
+              properties:
+                location:
+                  type: string
+                  example: "eu-west-1"
+          
+    AzureConfigRequest:
+      type: object
+      properties:
+        secret_id:
+          type: string
+          example: "myAzureSecretId"
+        filter:
+          type: object
+          properties:
+            fields:
+              type: array
+              example: [ "location", "instanceType", "k8sVersion" ]
+            instanceType:
+              type: object
+              properties:
+                location:
+                  type: string
+                  example: "eastus"
+            k8sVersion:
+              type: object
+              properties:
+                location:
+                  type: string
+                  example: "eastus"
+
+    GoogleConfigRequest:
+      type: object
+      properties:
+        secret_id:
+          type: string
+          example: "myGoogleSecretId"
+        filter:
+          type: object
+          properties:
+            fields:
+              type: array
+              example: [ "location", "instanceType", "k8sVersion" ]
+            instanceType:
+              type: object
+              properties:
+                location:
+                  type: string
+                  example: "asia-east1-a"
+            k8sVersion:
+              type: object
+              properties:
+                location:
+                  type: string
+                  example: "us-central1-a"
+
+    AmazonConfigResponse:
+      type: object
+      properties:
+        type:
+          type: string
+          example: "amazon"
+        nameRegexp:
+          type: string
+          example: "^[A-z0-9-_]{1,255}$"
+        locations:
+          type: string
+          example: [ "ap-south-1", "us-east-2" ]
+        image:
+          type: object
+          properties:
+            eu-west-1:
+              type: array
+              example: [ "ami-6202561b", "ami-ece5b095" ]
+        nodeInstanceType:
+          type: object
+          properties:
+            eu-west-1:
+              type: array
+              example: [ "t2.nano", "t2.micro" ]      
+
+    AzureConfigResponse:
+      type: object
+      properties:
+        type:
+          type: string
+          example: "azure"
+        nameRegexp:
+          type: string
+          example: "^[a-z0-9_]{0,31}[a-z0-9]$"
+        locations:
+          type: string
+          example: [ "eastasia", "eastus" ]
+        nodeInstanceType:
+          type: object
+          properties:
+            eastus:
+              type: array
+              example: [ "Standard_B1ms", "Standard_B1s" ]
+        kubernetes_versions:
+          type: array
+          example: [ "1.8.1", "1.8.6" ]
+
+    GoogleConfigResponse:
+      type: object
+      properties:
+        type:
+          type: string
+          example: "google"
+        nameRegexp:
+          type: string
+          example: "^[a-z]$|^[a-z][a-z0-9-]{0,38}[a-z0-9]$"
+        locations:
+          type: string
+          example: [ "us-east1-c", "us-east1-d" ]
+        nodeInstanceType:
+          type: object
+          properties:
+            asia-east1-a:
+              type: array
+              example: [ "f1-micro", "g1-small" ]
+        kubernetes_versions:
+          type: object
+          properties:
+            defaultClusterVersion:
+              type: string
+              example: "1.8.8-gke.0"
+            defaultImageType:
+              type: string
+              example: "COS"
+            validImageTypes:
+              type: array
+              example: [ "COS" ]
+            validMasterVersions:
+              type: array
+              example: ["1.9.6-gke.0", "1.9.4-gke.1"]
+            validNodeVersions:
+              type: array
+              example: ["1.9.6-gke.0", "1.9.4-gke.1"]
+    
+    GetClusterStatusResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "RUNNING"
+        name: 
+          type: string
+          example: "myClusterName"
+        cloud:
+          type: string
+          example: "google"
+        location:
+          type: string
+          example: "us-central1-a"
+        id:
+          type: number
+          example: 1
+        nodePools:
+          type: object
+          properties:
+            pool1:
+              type: object
+              oneOf:
+                - $ref: '#/components/schemas/NodePoolsAmazon'
+                - $ref: '#/components/schemas/NodePoolsAzure'
+                - $ref: '#/components/schemas/NodePoolsGoogle'
+              example:
+                count: 1
+                nodeInstanceType: "n1-standard-1"
