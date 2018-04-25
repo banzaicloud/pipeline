@@ -149,7 +149,7 @@
   version = "0.1.0"
 
 [[projects]]
-  branch = "master"
+  branch = "update-aws"
   name = "github.com/banzaicloud/banzai-types"
   packages = [
     "components",
@@ -161,7 +161,7 @@
     "components/kubernetes",
     "constants"
   ]
-  revision = "f8ab2836b8017bc58092a1c12f5ce1d06151b4af"
+  revision = "5f88b0cb6ef3749069ba45b30d95967388c914df"
 
 [[projects]]
   branch = "master"
@@ -634,7 +634,7 @@
   revision = "14d43f83481a37e992f5899de8581727b9ba7702"
 
 [[projects]]
-  branch = "master"
+  branch = "fix-not-authorized"
   name = "github.com/kubicorn/kubicorn"
   packages = [
     "apis/cluster",
@@ -674,7 +674,7 @@
     "state",
     "state/fs"
   ]
-  revision = "7829d3cf0caf42b5ddf2b2f82a9b5b8503f7dc5b"
+  revision = "c6e734ccc5e37d5fb6848baad9433d035311b95b"
   source = "github.com/banzaicloud/kubicorn"
 
 [[projects]]

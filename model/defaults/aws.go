@@ -102,10 +102,10 @@ func (d *AWSProfile) BeforeDelete() error {
 // GetProfile load profile from database and converts ClusterProfileResponse
 func (d *AWSProfile) GetProfile() *components.ClusterProfileResponse {
 
-	nodePools := make(map[string]*amazon.AmazonNodePool)
+	nodePools := make(map[string]*amazon.NodePool)
 	for _, np := range d.NodePools {
 		if np != nil {
-			nodePools[np.NodeName] = &amazon.AmazonNodePool{
+			nodePools[np.NodeName] = &amazon.NodePool{
 				InstanceType: np.InstanceType,
 				SpotPrice:    np.SpotPrice,
 				MinCount:     np.MinCount,

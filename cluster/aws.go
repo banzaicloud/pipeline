@@ -13,6 +13,7 @@ import (
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/utils"
 	kcluster "github.com/kubicorn/kubicorn/apis/cluster"
 	"github.com/kubicorn/kubicorn/pkg"
 	"github.com/kubicorn/kubicorn/pkg/initapi"
@@ -30,6 +31,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
 	"strings"
+)
+
+const (
+	maxNodePoolNumber = 4
 )
 
 // Simple init for logging
@@ -133,7 +138,7 @@ func CreateAWSClusterFromRequest(request *components.CreateClusterRequest, orgId
 	return &cluster, nil
 }
 
-func createNodePoolsFromRequest(nodePools map[string]*amazon.AmazonNodePool) []*model.AmazonNodePoolsModel {
+func createNodePoolsFromRequest(nodePools map[string]*amazon.NodePool) []*model.AmazonNodePoolsModel {
 	var modelNodePools = make([]*model.AmazonNodePoolsModel, len(nodePools))
 	i := 0
 	for nodePoolName, nodePool := range nodePools {
@@ -359,7 +364,7 @@ func getNodeServerPool(clusterName string, location string, nodePool *model.Amaz
 			},
 		},
 		Type:     kcluster.ServerPoolTypeNode,
-		Name:     fmt.Sprintf("%s.node.%s", clusterName, nodePool.Name),
+		Name:     getNodeName(clusterName, nodePool.Name),
 		MinCount: nodePool.NodeMinCount,
 		MaxCount: nodePool.NodeMaxCount,
 		Image:    nodePool.NodeImage, //"ami-835b4efa"
@@ -414,7 +419,7 @@ func getNodeServerPool(clusterName string, location string, nodePool *model.Amaz
 		},
 		Subnets: []*kcluster.Subnet{
 			{
-				Name:     fmt.Sprintf("%s.node.%s", clusterName, nodePool.Name),
+				Name:     getNodeName(clusterName, nodePool.Name),
 				CIDR:     cidr,
 				Location: location,
 			},
@@ -432,7 +437,7 @@ func getNodeServerPool(clusterName string, location string, nodePool *model.Amaz
 					{
 						IngressFromPort: "0",
 						IngressToPort:   "65535",
-						IngressSource:   "10.0.0.0/24",
+						IngressSource:   "10.0.0.0/16",
 						IngressProtocol: "-1",
 					},
 				},
@@ -507,6 +512,16 @@ func (c *AWSCluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 	}, nil
 }
 
+// getExistingNodePoolByName returns existing NodePool from model nodepools by name
+func (c *AWSCluster) getExistingNodePoolByName(name string) *model.AmazonNodePoolsModel {
+	for _, np := range c.modelCluster.Amazon.NodePools {
+		if np != nil && np.Name == name {
+			return np
+		}
+	}
+	return nil
+}
+
 // UpdateCluster updates Amazon cluster in cloud
 func (c *AWSCluster) UpdateCluster(request *components.UpdateClusterRequest) error {
 
@@ -524,15 +539,37 @@ func (c *AWSCluster) UpdateCluster(request *components.UpdateClusterRequest) err
 		existingNodePools[nodePool.Name] = nodePool
 	}
 
-	updatedNodePools := make([]*model.AmazonNodePoolsModel, len(c.modelCluster.Amazon.NodePools))
-
 	existingAsgs := map[string]*kcluster.ServerPool{}
 	for _, asg := range c.kubicornCluster.ServerPools {
 		poolName := getAsgNodePoolName(asg.Name)
 		existingAsgs[poolName] = asg
 	}
 
-	//updatedAsgs := make([]*kcluster.ServerPool, len(c.modelCluster.Amazon.NodePools))
+	var updatedNodePools []*model.AmazonNodePoolsModel
+	for name, np := range request.Amazon.NodePools {
+		if np != nil {
+
+			existsNode := c.getExistingNodePoolByName(name)
+			var id uint
+			if existsNode != nil {
+				id = existsNode.ID
+			}
+			nodePoolModel := &model.AmazonNodePoolsModel{
+				ID:               id,
+				Name:             name,
+				NodeSpotPrice:    np.SpotPrice,
+				NodeMinCount:     np.MinCount,
+				NodeMaxCount:     np.MaxCount,
+				NodeImage:        np.Image,
+				NodeInstanceType: np.InstanceType,
+				Delete:           false,
+			}
+			updatedNodePools = append(updatedNodePools, nodePoolModel)
+
+		}
+	}
+
+	updatedNodePools = addMarkedForDeletePools(c.modelCluster.Amazon.NodePools, updatedNodePools)
 
 	log.Info("Create updated model")
 	updateCluster := &model.ClusterModel{
@@ -558,13 +595,49 @@ func (c *AWSCluster) UpdateCluster(request *components.UpdateClusterRequest) err
 	if err != nil {
 		return err
 	}
-	log.Debug("Resizing cluster: ", c.GetName())
+
+	existsNodePoolNumber := len(kubicornCluster.ServerPools) - 1
+	log.Infof("exists nodepool number: %d", existsNodePoolNumber)
+
 	kubicornCluster.ServerPools[0].MinCount = 1
 	kubicornCluster.ServerPools[0].MaxCount = 1
-	//log.Debugf("Worker pool min size from %d to %d", kubicornCluster.ServerPools[1].MinCount, updateCluster.Amazon.NodeMinCount)
-	//kubicornCluster.ServerPools[1].MinCount = updateCluster.Amazon.NodeMinCount
-	//log.Debugf("Worker pool max size from %d to %d", kubicornCluster.ServerPools[1].MaxCount, updateCluster.Amazon.NodeMaxCount)
-	//kubicornCluster.ServerPools[1].MaxCount = updateCluster.Amazon.NodeMaxCount
+
+	uuidSuffix := uuid.TimeOrderedUUID()
+	var missingIds []int
+	globalI := len(kubicornCluster.ServerPools) + 1
+	for i, np := range updatedNodePools {
+		id, err := findServerPool(kubicornCluster.ServerPools, c.GetName(), np.Name)
+		if !np.Delete {
+			if err != nil {
+				missingIds = append(missingIds, i)
+			} else {
+				log.Infof("[%d] Update existing nodepool: %s, min count: %d, max count: %d", id, np.Name, np.NodeMinCount, np.NodeMaxCount)
+				kubicornCluster.ServerPools[id].MinCount = np.NodeMinCount
+				kubicornCluster.ServerPools[id].MaxCount = np.NodeMaxCount
+			}
+		} else {
+			log.Infof("Nodepool mark for delete: %s", np.Name)
+			if err == nil {
+				// remove from kubicorn server pool
+				kubicornCluster.ServerPools[id].MinCount = 0
+				kubicornCluster.ServerPools[id].MaxCount = 0
+			}
+		}
+	}
+
+	newNodePools := len(missingIds)
+	log.Infof("new nodepool number: %d", newNodePools)
+	if newNodePools+existsNodePoolNumber >= maxNodePoolNumber {
+		return constants.ErrorTooMuchNodePool
+	}
+
+	// add new pools
+	for _, id := range missingIds {
+		log.Infof("Add nodepool: %s", updatedNodePools[id].Name)
+		sp := getNodeServerPool(c.modelCluster.Name, c.modelCluster.Location, updatedNodePools[id], fmt.Sprintf("10.0.%d.0/24", 100+globalI), uuidSuffix)
+		kubicornCluster.ServerPools = append(kubicornCluster.ServerPools, sp)
+		globalI += 1
+	}
 
 	log.Debug("Get reconciler")
 
@@ -613,7 +686,59 @@ func (c *AWSCluster) UpdateCluster(request *components.UpdateClusterRequest) err
 	log.Info("Save cluster to the statestore")
 	statestore.Commit(updated)
 
+	// mark for deletion the node pool model entries that has no corresponding node pool in the cluster
+	for _, np := range c.modelCluster.Amazon.NodePools {
+		found := false
+
+		for _, kubicornNodePool := range kubicornCluster.ServerPools {
+			if kubicornNodePool != nil {
+				if getNodeName(c.modelCluster.Name, np.Name) == kubicornNodePool.Name {
+					found = true
+					break
+				}
+			}
+		}
+
+		if !found {
+			np.Delete = true
+		}
+
+	}
+
 	return nil
+}
+
+// addMarkedForDeletePools adds delete "flag" for the proper pools
+func addMarkedForDeletePools(storedNodePools []*model.AmazonNodePoolsModel, updatedNodePools []*model.AmazonNodePoolsModel) []*model.AmazonNodePoolsModel {
+	for _, storedPool := range storedNodePools {
+		found := false
+		for _, updatedPool := range updatedNodePools {
+			if storedPool.Name == updatedPool.Name {
+				found = true
+				break
+			}
+		}
+		if !found {
+			storedPool.Delete = true
+			updatedNodePools = append(updatedNodePools, storedPool)
+		}
+	}
+	return updatedNodePools
+}
+
+// getNodeName returns node name
+func getNodeName(clusterName, name string) string {
+	return fmt.Sprintf("%s.node.%s", clusterName, name)
+}
+
+// findServerPool search serverPool in kubernetes pools by name
+func findServerPool(pools []*kcluster.ServerPool, clusterName, name string) (int, error) {
+	for i, pool := range pools {
+		if pool != nil && pool.Name == getNodeName(clusterName, name) {
+			return i, nil
+		}
+	}
+	return 0, constants.ErrorNodePoolNotFoundByName
 }
 
 //GetKubicornCluster returns a Kubicorn cluster
@@ -799,46 +924,32 @@ func getBootstrapScriptFromEnv(isMaster bool) string {
 
 //AddDefaultsToUpdate adds defaults to update request
 func (c *AWSCluster) AddDefaultsToUpdate(r *components.UpdateClusterRequest) {
-	log.Info("TODO")
-	// ---- [ Node check ] ---- //
-	//if r.UpdateAmazonNode == nil {
-	//	log.Info("'node' field is empty. Fill from stored data")
-	//	r.UpdateAmazonNode = &amazon.UpdateAmazonNode{
-	//		MinCount: c.modelCluster.Amazon.NodeMinCount,
-	//		MaxCount: c.modelCluster.Amazon.NodeMaxCount,
-	//	}
-	//}
-	//
-	//// ---- [ Node min count check ] ---- //
-	//if r.UpdateAmazonNode.MinCount == 0 {
-	//	defMinCount := c.modelCluster.Amazon.NodeMinCount
-	//	log.Info(constants.TagValidateUpdateCluster, "Node minCount set to default value: ", defMinCount)
-	//	r.UpdateAmazonNode.MinCount = defMinCount
-	//}
-	//
-	//// ---- [ Node max count check ] ---- //
-	//if r.UpdateAmazonNode.MaxCount == 0 {
-	//	defMaxCount := c.modelCluster.Amazon.NodeMaxCount
-	//	log.Info(constants.TagValidateUpdateCluster, "Node maxCount set to default value: ", defMaxCount)
-	//	r.UpdateAmazonNode.MaxCount = defMaxCount
-	//}
-
+	// no needed this time, validate failed if there's missing field(s)
 }
 
 //CheckEqualityToUpdate validates the update request
 func (c *AWSCluster) CheckEqualityToUpdate(r *components.UpdateClusterRequest) error {
 	// create update request struct with the stored data to check equality
-	//preCl := &amazon.UpdateClusterAmazon{
-	//	UpdateAmazonNode: &amazon.UpdateAmazonNode{
-	//		MinCount: c.modelCluster.Amazon.NodeMinCount,
-	//		MaxCount: c.modelCluster.Amazon.NodeMaxCount,
-	//	},
-	//}
+
+	preNodePools := make(map[string]*amazon.NodePool)
+	for _, preNp := range c.modelCluster.Amazon.NodePools {
+		preNodePools[preNp.Name] = &amazon.NodePool{
+			InstanceType: preNp.NodeInstanceType,
+			SpotPrice:    preNp.NodeSpotPrice,
+			MinCount:     preNp.NodeMinCount,
+			MaxCount:     preNp.NodeMaxCount,
+			Image:        preNp.NodeImage,
+		}
+	}
+
+	preCl := &amazon.UpdateClusterAmazon{
+		NodePools: preNodePools,
+	}
 
 	log.Info("Check stored & updated cluster equals")
 
 	// check equality
-	return nil //utils.IsDifferent(r.UpdateClusterAmazon, preCl)
+	return utils.IsDifferent(r.Amazon, preCl)
 }
 
 //DeleteFromDatabase deletes model from the database
@@ -1046,7 +1157,7 @@ func (c *AWSCluster) validateLocation(location string) error {
 }
 
 // validateAMIs validates AMIs
-func (c *AWSCluster) validateAMIs(masterAMI string, nodePools map[string]*amazon.AmazonNodePool, location string) error {
+func (c *AWSCluster) validateAMIs(masterAMI string, nodePools map[string]*amazon.NodePool, location string) error {
 
 	log.Infof("Master image: %s", masterAMI)
 	for nodePoolName, node := range nodePools {

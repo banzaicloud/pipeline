@@ -242,7 +242,7 @@ func (r *Lc) Apply(actual, expected cloud.Resource, immutable *cluster.Cluster) 
 			} else {
 				logger.Debug(err.Error())
 			}
-			if strings.Contains(err.Error(), "Invalid IamInstanceProfile") {
+			if strings.Contains(err.Error(), "Invalid IamInstanceProfile") || strings.Contains(err.Error(), "You are not authorized to perform this operation") {
 				logger.Debug("InstanceProfile missing waiting...")
 				time.Sleep(time.Duration(i) * time.Second * 2)
 				continue
