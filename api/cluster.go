@@ -199,19 +199,6 @@ func CreateCluster(c *gin.Context) {
 	}
 	log.Info("Secret validation passed")
 
-	log.Info("Validate creation fields")
-	if err := commonCluster.ValidateCreationFields(&createClusterRequest); err != nil {
-		log.Errorf("Error during request validation: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: err.Error(),
-			Error:   err.Error(),
-		})
-		return
-	}
-
-	log.Info("Validation passed")
-
 	// Persist the cluster in Database
 	err = commonCluster.Persist(constants.Creating)
 	if err != nil {
@@ -228,12 +215,22 @@ func CreateCluster(c *gin.Context) {
 		ResourceID: commonCluster.GetID(),
 	})
 
-	go postCreateCluster(commonCluster)
+	go postCreateCluster(commonCluster, &createClusterRequest)
 
 }
 
 // postCreateCluster creates a cluster (ASYNC)
-func postCreateCluster(commonCluster cluster.CommonCluster) error {
+func postCreateCluster(commonCluster cluster.CommonCluster, createClusterRequest *components.CreateClusterRequest) error {
+
+	log.Info("Validate creation fields")
+	if err := commonCluster.ValidateCreationFields(createClusterRequest); err != nil {
+		log.Errorf("Error during request validation: %s", err.Error())
+		commonCluster.UpdateStatus(constants.Error)
+		return err
+	}
+
+	log.Info("Validation passed")
+
 	// Create cluster
 	err := commonCluster.CreateCluster()
 	if err != nil {
