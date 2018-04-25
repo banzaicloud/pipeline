@@ -324,12 +324,7 @@ func (p *ClusterProfileResponse) CreateClusterRequest(createRequest *CreateClust
 			NodePools:         p.Properties.Azure.NodePools,
 		}
 	case constants.Google:
-		g := createRequest.Properties.CreateClusterGoogle
-		if g == nil || len(g.Project) == 0 {
-			return nil, constants.ErrorProjectRequired
-		}
 		response.Properties.CreateClusterGoogle = &google.CreateClusterGoogle{
-			Project:     g.Project,
 			NodeVersion: p.Properties.Google.NodeVersion,
 			NodePools:   p.Properties.Google.NodePools,
 			Master:      p.Properties.Google.Master,
