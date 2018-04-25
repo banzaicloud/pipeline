@@ -1,13 +1,12 @@
 package amazon
 
 import (
-	"errors"
 	"github.com/banzaicloud/banzai-types/constants"
 )
 
 type CreateClusterAmazon struct {
-	NodePools map[string]*AmazonNodePool `json:"nodePools,omitempty"`
-	Master    *CreateAmazonMaster        `json:"master,omitempty"`
+	NodePools map[string]*NodePool `json:"nodePools,omitempty"`
+	Master    *CreateAmazonMaster  `json:"master,omitempty"`
 }
 
 type CreateAmazonMaster struct {
@@ -15,7 +14,7 @@ type CreateAmazonMaster struct {
 	Image        string `json:"image"`
 }
 
-type AmazonNodePool struct {
+type NodePool struct {
 	InstanceType string `json:"instanceType"`
 	SpotPrice    string `json:"spotPrice"`
 	MinCount     int    `json:"minCount"`
@@ -24,12 +23,41 @@ type AmazonNodePool struct {
 }
 
 type UpdateClusterAmazon struct {
-	NodePools map[string]*UpdateAmazonNodePool `json:"nodePools,omitempty"`
+	NodePools map[string]*NodePool `json:"nodePools,omitempty"`
 }
 
-type UpdateAmazonNodePool struct {
-	MinCount int `json:"minCount"`
-	MaxCount int `json:"maxCount"`
+func (a *NodePool) Validate() error {
+	// ---- [ Node image check ] ---- //
+	if len(a.InstanceType) == 0 {
+		return constants.ErrorAmazonInstancetypeFieldIsEmpty
+	}
+
+	// ---- [ Node image check ] ---- //
+	if len(a.Image) == 0 {
+		return constants.ErrorAmazonImageFieldIsEmpty
+	}
+
+	// ---- [ Node min count check ] ---- //
+	if a.MinCount == 0 {
+		a.MinCount = constants.AmazonDefaultNodeMinCount
+	}
+
+	// ---- [ Node max count check ] ---- //
+	if a.MaxCount == 0 {
+		a.MaxCount = constants.AmazonDefaultNodeMaxCount
+	}
+
+	// ---- [ Node min count <= max count check ] ---- //
+	if a.MaxCount < a.MinCount {
+		return constants.ErrorAmazonMinMaxFieldError
+	}
+
+	// ---- [ Node spot price ] ---- //
+	if len(a.SpotPrice) == 0 {
+		a.SpotPrice = constants.AmazonDefaultNodeSpotPrice
+	}
+
+	return nil
 }
 
 // Validate validates amazon cluster create request
@@ -52,36 +80,9 @@ func (amazon *CreateClusterAmazon) Validate() error {
 		return constants.ErrorAmazonNodePoolFieldIsEmpty
 	}
 
-	for _, amazonNode := range amazon.NodePools {
-
-		// ---- [ Node image check ] ---- //
-		if len(amazonNode.InstanceType) == 0 {
-			return constants.ErrorAmazonInstancetypeFieldIsEmpty
-		}
-
-		// ---- [ Node image check ] ---- //
-		if len(amazonNode.Image) == 0 {
-			return constants.ErrorAmazonImageFieldIsEmpty
-		}
-
-		// ---- [ Node min count check ] ---- //
-		if amazonNode.MinCount == 0 {
-			amazonNode.MinCount = constants.AmazonDefaultNodeMinCount
-		}
-
-		// ---- [ Node max count check ] ---- //
-		if amazonNode.MaxCount == 0 {
-			amazonNode.MaxCount = constants.AmazonDefaultNodeMaxCount
-		}
-
-		// ---- [ Node min count <= max count check ] ---- //
-		if amazonNode.MaxCount < amazonNode.MinCount {
-			return constants.ErrorAmazonMinMaxFieldError
-		}
-
-		// ---- [ Node spot price ] ---- //
-		if len(amazonNode.SpotPrice) == 0 {
-			amazonNode.SpotPrice = constants.AmazonDefaultNodeSpotPrice
+	for _, np := range amazon.NodePools {
+		if err := np.Validate(); err != nil {
+			return err
 		}
 	}
 
@@ -95,18 +96,16 @@ func (a *UpdateClusterAmazon) Validate() error {
 
 	// ---- [ Amazon field check ] ---- //
 	if a == nil {
-		return errors.New("'amazon' field is empty")
+		return constants.ErrorAmazonFieldIsEmpty
 	}
 
 	if len(a.NodePools) == 0 {
-		msg := "At least one 'nodePool' is required."
-		return errors.New(msg)
+		return constants.ErrorAmazonNodePoolFieldIsEmpty
 	}
 
-	for _, amazonNode := range a.NodePools {
-		// ---- [ Node max count > min count check ] ---- //
-		if amazonNode.MaxCount < amazonNode.MinCount {
-			return errors.New("maxCount must be greater than mintCount")
+	for _, np := range a.NodePools {
+		if err := np.Validate(); err != nil {
+			return err
 		}
 	}
 
@@ -114,8 +113,8 @@ func (a *UpdateClusterAmazon) Validate() error {
 }
 
 type ClusterProfileAmazon struct {
-	Master    *AmazonProfileMaster       `json:"master,omitempty"`
-	NodePools map[string]*AmazonNodePool `json:"nodePools,omitempty"`
+	Master    *AmazonProfileMaster `json:"master,omitempty"`
+	NodePools map[string]*NodePool `json:"nodePools,omitempty"`
 }
 
 type AmazonProfileMaster struct {

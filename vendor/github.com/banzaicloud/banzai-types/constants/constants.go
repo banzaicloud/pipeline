@@ -121,6 +121,8 @@ var (
 	ErrorNotValidKubernetesVersion      = errors.New("not valid kubernetesVersion")
 	ErrorResourceGroupRequired          = errors.New("resource group is required")
 	ErrorProjectRequired                = errors.New("project is required")
+	ErrorTooMuchNodePool                = errors.New("too much nodepool")
+	ErrorNodePoolNotFoundByName         = errors.New("nodepool not found by name")
 )
 
 // ### [ Keywords ] ###

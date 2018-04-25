@@ -273,11 +273,28 @@ func (KubernetesClusterModel) TableName() string {
 	return constants.TableNameKubernetesProperties
 }
 
-func (googleClusterModel *GoogleClusterModel) AfterUpdate(scope *gorm.Scope) error {
+func (gc *GoogleClusterModel) AfterUpdate(scope *gorm.Scope) error {
 	log := logger.WithFields(logrus.Fields{"tag": "AfterUpdate"})
 	log.Info("Remove node pools marked for deletion")
 
-	for _, nodePoolModel := range googleClusterModel.NodePools {
+	for _, nodePoolModel := range gc.NodePools {
+		if nodePoolModel.Delete {
+			err := scope.DB().Delete(nodePoolModel).Error
+
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func (a *AmazonClusterModel) AfterUpdate(scope *gorm.Scope) error {
+	log := logger.WithFields(logrus.Fields{"tag": "AfterUpdate"})
+	log.Info("Remove node pools marked for deletion")
+
+	for _, nodePoolModel := range a.NodePools {
 		if nodePoolModel.Delete {
 			err := scope.DB().Delete(nodePoolModel).Error
 
