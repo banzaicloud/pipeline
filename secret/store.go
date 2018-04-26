@@ -85,6 +85,7 @@ func GenerateSecretID() string {
 	log.Debug("Generating secret id")
 	return uuid.NewV4().String()
 }
+
 const repoSecretType = "repo"
 
 // DefaultRules key matching for types
@@ -155,7 +156,7 @@ const (
 
 // Repo keys
 const (
-	RepoName = "RepoName"
+	RepoName   = "RepoName"
 	RepoSecret = "RepoSecret"
 )
 

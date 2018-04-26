@@ -161,7 +161,7 @@
     "components/kubernetes",
     "constants"
   ]
-  revision = "fbeb22aa4bc1c70490c47f07cce87b638b69eff9"
+  revision = "3f7e2e212d2c21c026896d2a57357d022a326418"
 
 [[projects]]
   branch = "master"

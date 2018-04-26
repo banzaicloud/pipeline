@@ -33,11 +33,6 @@ import (
 	"strings"
 )
 
-const (
-	// to avoid `ValidationError: 1 validation error detected: Value '{...}' at 'userData' failed to satisfy constraint: Member must have length less than or equal to 21847` error
-	maxNodePoolNumber = 4
-)
-
 // Simple init for logging
 func init() {
 	logger = config.Logger()
@@ -628,7 +623,7 @@ func (c *AWSCluster) UpdateCluster(request *components.UpdateClusterRequest) err
 
 	newNodePools := len(missingIds)
 	log.Infof("new nodepool number: %d", newNodePools)
-	if newNodePools+existsNodePoolNumber >= maxNodePoolNumber {
+	if newNodePools+existsNodePoolNumber >= constants.MaxNodePoolNumber {
 		return constants.ErrorTooMuchNodePool
 	}
 

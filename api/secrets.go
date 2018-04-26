@@ -44,7 +44,6 @@ func AddSecrets(c *gin.Context) {
 		createSecretRequest.Values[secret.K8SConfig] = encodeStringToBase64(createSecretRequest.Values[secret.K8SConfig])
 	}
 
-
 	log.Info("Binding request succeeded")
 	log.Debugf("%#v", createSecretRequest)
 
