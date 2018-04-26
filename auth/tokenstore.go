@@ -38,16 +38,19 @@ func parseToken(secret *vaultapi.Secret) (*Token, error) {
 	if secret == nil {
 		return nil, fmt.Errorf("Can't find Secret")
 	}
-	tokenData := secret.Data["token"].(map[string]interface{})
-	token := &Token{}
-	token.ID = tokenData["id"].(string)
-	token.Name = tokenData["name"].(string)
-	createdAt, err := time.Parse(time.RFC3339, tokenData["createdAt"].(string))
-	if err != nil {
-		return nil, err
+	if tokenData, ok := secret.Data["token"]; ok {
+		tokenData := tokenData.(map[string]interface{})
+		token := &Token{}
+		token.ID = tokenData["id"].(string)
+		token.Name = tokenData["name"].(string)
+		createdAt, err := time.Parse(time.RFC3339, tokenData["createdAt"].(string))
+		if err != nil {
+			return nil, err
+		}
+		token.CreatedAt = createdAt
+		return token, nil
 	}
-	token.CreatedAt = createdAt
-	return token, nil
+	return nil, fmt.Errorf("Can't find \"token\" in Secret")
 }
 
 // In-memory implementation
