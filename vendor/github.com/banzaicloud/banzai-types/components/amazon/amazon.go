@@ -80,6 +80,10 @@ func (amazon *CreateClusterAmazon) Validate() error {
 		return constants.ErrorAmazonNodePoolFieldIsEmpty
 	}
 
+	if len(amazon.NodePools) >= constants.MaxNodePoolNumber {
+		return constants.ErrorTooMuchNodePool
+	}
+
 	for _, np := range amazon.NodePools {
 		if err := np.Validate(); err != nil {
 			return err

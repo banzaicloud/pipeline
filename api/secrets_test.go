@@ -108,7 +108,7 @@ func TestListSecrets(t *testing.T) {
 		{name: "List aws secrets", secretType: btypes.Amazon, repoName: "", expectedValues: awsExpectedItems},
 		{name: "List aks secrets", secretType: btypes.Azure, repoName: "", expectedValues: aksExpectedItems},
 		{name: "List gke secrets", secretType: btypes.Google, repoName: "", expectedValues: gkeExpectedItems},
-		{name: "List all secrets", secretType: "", repoName: "" , expectedValues: allExpectedItems},
+		{name: "List all secrets", secretType: "", repoName: "", expectedValues: allExpectedItems},
 	}
 
 	for _, tc := range cases {
