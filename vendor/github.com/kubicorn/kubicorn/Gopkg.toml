@@ -1,0 +1,86 @@
+
+# Gopkg.toml example
+#
+# Refer to https://github.com/golang/dep/blob/master/docs/Gopkg.toml.md
+# for detailed Gopkg.toml documentation.
+#
+# required = ["github.com/user/thing/cmd/thing"]
+# ignored = ["github.com/user/project/pkgX", "bitbucket.org/user/project/pkgA/pkgY"]
+#
+# [[constraint]]
+#   name = "github.com/user/project"
+#   version = "1.0.0"
+#
+# [[constraint]]
+#   name = "github.com/user/project2"
+#   branch = "dev"
+#   source = "github.com/myfork/project2"
+#
+# [[override]]
+#  name = "github.com/x/y"
+#  version = "2.4.0"
+
+
+[[constraint]]
+  name = "github.com/c-bata/go-prompt"
+  version = "0.2.1"
+
+[[constraint]]
+  name = "github.com/digitalocean/godo"
+  version = "1.1.2"
+
+[[constraint]]
+  name = "github.com/fatih/color"
+  version = "1.6.0"
+
+[[constraint]]
+  name = "github.com/ghodss/yaml"
+  version = "1.0.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/kris-nova/lolgopher"
+
+[[constraint]]
+  name = "github.com/minio/minio-go"
+  version = "4.0.8"
+
+[[constraint]]
+  name = "github.com/packethost/packngo"
+  version = "0.1.0"
+
+[[constraint]]
+  name = "github.com/pkg/errors"
+  version = "0.8.0"
+
+[[constraint]]
+  name = "github.com/pkg/sftp"
+  version = "1.4.0"
+
+[[constraint]]
+  name = "github.com/rackspace/gophercloud"
+  version = "1.0.0"
+
+[[constraint]]
+  name = "github.com/spf13/cobra"
+  version = "0.0.1"
+
+[[constraint]]
+  name = "github.com/spf13/pflag"
+  version = "1.0.0"
+
+[[constraint]]
+  name = "github.com/tcnksm/go-gitconfig"
+  version = "0.1.2"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/yuroyoro/swalker"
+
+[[constraint]]
+  branch = "master"
+  name = "golang.org/x/oauth2"
+
+[[constraint]]
+  name = "gopkg.in/src-d/go-git.v4"
+  version = "v4.0.0-rc5"

@@ -1,0 +1,9 @@
+_state*
+.idea*
+.DS_Store
+bin/*
+.idea/
+banzai-types.iml
+.banzai-types
+banzai-types
+*.swp

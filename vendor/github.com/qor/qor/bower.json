@@ -1,0 +1,31 @@
+{
+  "name": "qor",
+  "description": "An enterprise-level open source content management system.",
+  "version": "0.1.0",
+  "license": "MIT",
+  "main": [
+    "admin/views/assets/javascripts/app.js",
+    "admin/views/assets/javascripts/qor.js",
+    "admin/views/assets/stylesheets/app.css",
+    "admin/views/assets/stylesheets/qor.css"
+  ],
+  "keywords": [
+    "qor",
+    "cms",
+    "go"
+  ],
+  "ignore": [
+    "**/.*",
+    "**/_*",
+    "node_modules",
+    "bower_components"
+  ],
+  "devDependencies": {
+    "jquery": "~2.1.4",
+    "material-design-icons": "~2.0.0",
+    "material-design-lite": "~1.0.5",
+    "html5-boilerplate": "~5.2.0",
+    "chosen": "~1.4.2",
+    "cropper": "~0.11.1"
+  }
+}
