@@ -1533,8 +1533,8 @@
     "pkg/urlutil",
     "pkg/version"
   ]
-  revision = "030d2c066bcf5a37931e0169b7921f3758d97095"
-  version = "v2.9.0-rc4"
+  revision = "bae89a63f456896555136d6392841dd7f6d9eca9"
+  version = "v2.9.0-rc5"
 
 [[projects]]
   branch = "master"
@@ -1729,6 +1729,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "775fadcf74ba89cda76039bd750d018b10f950a3c887eec51f7beeeaa70f44c4"
+  inputs-digest = "b9d8e37e247b13fa458441343b84ef6513bf170f356acc1b5a02195f3d07d321"
   solver-name = "gps-cdcl"
   solver-version = 1
