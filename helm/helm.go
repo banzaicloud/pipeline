@@ -9,6 +9,7 @@ import (
 	"archive/tar"
 	"compress/gzip"
 	"encoding/base64"
+	"encoding/json"
 	"github.com/Masterminds/sprig"
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/config"
@@ -37,22 +38,51 @@ func init() {
 	log = logger.WithFields(logrus.Fields{"action": "Helm"})
 }
 
-//getChartFile Download file from chart repository
-func getChartFile(url, fileName string) (string, error) {
+func getChartOption(file *gzip.Reader) (*SpotguideOptions, error) {
+	so := &SpotguideOptions{}
+	tarReader := tar.NewReader(file)
+	for {
+		header, err := tarReader.Next()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		if strings.Contains(header.Name, "spotguide.json") {
+			valuesContent := new(bytes.Buffer)
+			if _, err := io.Copy(valuesContent, tarReader); err != nil {
+				return nil, err
+			}
+			err := json.Unmarshal(valuesContent.Bytes(), so)
+			if err != nil {
+				return nil, err
+			}
+			return so, nil
+		}
+	}
+	return so, nil
+}
+
+func downloadFile(url string) (*gzip.Reader, error) {
 	resp, err := http.Get(url)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	tarContent := new(bytes.Buffer)
 	io.Copy(tarContent, resp.Body)
-
 	gzf, err := gzip.NewReader(tarContent)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	tarReader := tar.NewReader(gzf)
+	return gzf, nil
+}
+
+//getChartFile Download file from chart repository
+func getChartFile(file *gzip.Reader, fileName string) (string, error) {
+	tarReader := tar.NewReader(file)
 	for {
 		header, err := tarReader.Next()
 		if err == io.EOF {
@@ -520,12 +550,21 @@ func ChartsGet(clusterName, queryName, queryRepo, queryVersion, queryKeyword str
 	return cl, nil
 }
 
+type SpotguideOptions struct {
+	Name    string `json:name`
+	Type    string `json:type`
+	Default bool   `json:"default"`
+	Info    string `json:"info"`
+	Key     string `json:"key"`
+}
+
 type ChartDetails struct {
-	Name   string             `json:"name"`
-	Repo   string             `json:"repo"`
-	Chart  *repo.ChartVersion `json:"chart"`
-	Values string             `json:"values"`
-	Readme string             `json:"readme"`
+	Name    string             `json:"name"`
+	Repo    string             `json:"repo"`
+	Chart   *repo.ChartVersion `json:"chart"`
+	Values  string             `json:"values"`
+	Readme  string             `json:"readme"`
+	Options *SpotguideOptions  `json:"options"`
 }
 
 func ChartGet(clusterName, chartRepo, chartName, chartVersion string) (*ChartDetails, error) {
@@ -560,23 +599,32 @@ func ChartGet(clusterName, chartRepo, chartName, chartVersion string) (*ChartDet
 						if s.Version == chartVersion || chartVersion == "" {
 							chartSource := s.URLs[0]
 							log.Debugf("chartSource: %s", chartSource)
-							valuesStr, err := getChartFile(chartSource, "values.yaml")
+							reader, err := downloadFile(chartSource)
+							if err != nil {
+								return nil, err
+							}
+							valuesStr, err := getChartFile(reader, "values.yaml")
+							if err != nil {
+								return nil, err
+							}
+							options, err := getChartOption(reader)
 							if err != nil {
 								return nil, err
 							}
 							log.Debugf("values hash: %s", valuesStr)
 
-							readmeStr, err := getChartFile(chartSource, "README.md")
+							readmeStr, err := getChartFile(reader, "README.md")
 							if err != nil {
 								return nil, err
 							}
 							log.Debugf("readme hash: %s", readmeStr)
 							chartD = &ChartDetails{
-								Name:   chartName,
-								Repo:   chartRepo,
-								Chart:  s,
-								Values: valuesStr,
-								Readme: readmeStr,
+								Name:    chartName,
+								Repo:    chartRepo,
+								Chart:   s,
+								Values:  valuesStr,
+								Readme:  readmeStr,
+								Options: options,
 							}
 							return chartD, nil
 
