@@ -161,7 +161,7 @@
     "components/kubernetes",
     "constants"
   ]
-  revision = "3f7e2e212d2c21c026896d2a57357d022a326418"
+  revision = "5f5d4104deb3daffab5ca1def9041032e5870bbe"
 
 [[projects]]
   branch = "master"
@@ -1533,8 +1533,8 @@
     "pkg/urlutil",
     "pkg/version"
   ]
-  revision = "bae89a63f456896555136d6392841dd7f6d9eca9"
-  version = "v2.9.0-rc5"
+  revision = "f6025bb9ee7daf9fee0026541c90a6f557a3e0bc"
+  version = "v2.9.0"
 
 [[projects]]
   branch = "master"
