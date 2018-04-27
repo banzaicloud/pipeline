@@ -23,20 +23,46 @@ func GetSupportedClusterList(c *gin.Context) {
 	c.JSON(http.StatusOK, components.SupportedClustersResponse{
 		Items: []components.SupportedClusterItem{
 			{
-				Name: "Amazon Web Services",
-				Key:  constants.Amazon,
+				Name:    "Amazon Web Services",
+				Key:     constants.Amazon,
+				Enabled: true,
+				Icon:    "assets/images/amazon.png",
 			},
 			{
-				Name: "Azure Container Service",
-				Key:  constants.Azure,
+				Name:    "Azure Container Service",
+				Key:     constants.Azure,
+				Enabled: true,
+				Icon:    "assets/images/azure.png",
 			},
 			{
-				Name: "Google Kubernetes Engine",
-				Key:  constants.Google,
+				Name:    "Google Kubernetes Engine",
+				Key:     constants.Google,
+				Enabled: true,
+				Icon:    "assets/images/google.png",
 			},
 			{
-				Name: "Kubernetes Cluster",
-				Key:  constants.Kubernetes,
+				Name:    "Kubernetes Cluster",
+				Key:     constants.Kubernetes,
+				Enabled: true,
+				Icon:    "assets/images/kubernetes.png",
+			},
+			{
+				Name:    "Oracle Cluster",
+				Key:     "unknown",
+				Enabled: false,
+				Icon:    "assets/images/oracle.png",
+			},
+			{
+				Name:    "Amazon EKS",
+				Key:     "unknown",
+				Enabled: false,
+				Icon:    "assets/images/aws-eks.png",
+			},
+			{
+				Name:    "Digital Ocean",
+				Key:     "unknown",
+				Enabled: false,
+				Icon:    "assets/images/digital_ocean.png",
 			},
 		},
 	})
