@@ -225,9 +225,9 @@ func (g *GKECluster) CreateCluster() error {
 }
 
 //Persist save the cluster model
-func (g *GKECluster) Persist(status string) error {
+func (g *GKECluster) Persist(status, statusMessage string) error {
 	log.Infof("Model before save: %v", g.modelCluster)
-	return g.modelCluster.UpdateStatus(status)
+	return g.modelCluster.UpdateStatus(status, statusMessage)
 }
 
 //GetK8sConfig returns the Kubernetes config
@@ -281,12 +281,13 @@ func (g *GKECluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 	}
 
 	return &components.GetClusterStatusResponse{
-		Status:     g.modelCluster.Status,
-		Name:       g.modelCluster.Name,
-		Location:   g.modelCluster.Location,
-		Cloud:      g.modelCluster.Cloud,
-		ResourceID: g.modelCluster.ID,
-		NodePools:  nodePools,
+		Status:        g.modelCluster.Status,
+		StatusMessage: g.modelCluster.StatusMessage,
+		Name:          g.modelCluster.Name,
+		Location:      g.modelCluster.Location,
+		Cloud:         g.modelCluster.Cloud,
+		ResourceID:    g.modelCluster.ID,
+		NodePools:     nodePools,
 	}, nil
 }
 
@@ -1553,8 +1554,8 @@ func (g *GKECluster) getProjectId() (string, error) {
 }
 
 // UpdateStatus updates cluster status in database
-func (g *GKECluster) UpdateStatus(status string) error {
-	return g.modelCluster.UpdateStatus(status)
+func (g *GKECluster) UpdateStatus(status, statusMessage string) error {
+	return g.modelCluster.UpdateStatus(status, statusMessage)
 }
 
 // GetClusterDetails gets cluster details from cloud

@@ -43,9 +43,9 @@ func (d *DummyCluster) CreateCluster() error {
 }
 
 //Persist save the cluster model
-func (d *DummyCluster) Persist(status string) error {
+func (d *DummyCluster) Persist(status, statusMessage string) error {
 	log.Infof("Model before save: %v", d.modelCluster)
-	return d.modelCluster.UpdateStatus(status)
+	return d.modelCluster.UpdateStatus(status, statusMessage)
 }
 
 //GetK8sConfig returns the Kubernetes config
@@ -71,12 +71,13 @@ func (d *DummyCluster) GetType() string {
 //GetStatus gets cluster status
 func (d *DummyCluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 	return &components.GetClusterStatusResponse{
-		Status:     d.modelCluster.Status,
-		Name:       d.modelCluster.Name,
-		Location:   d.modelCluster.Location,
-		Cloud:      constants.Dummy,
-		ResourceID: d.GetID(),
-		NodePools:  nil,
+		Status:        d.modelCluster.Status,
+		StatusMessage: d.modelCluster.StatusMessage,
+		Name:          d.modelCluster.Name,
+		Location:      d.modelCluster.Location,
+		Cloud:         constants.Dummy,
+		ResourceID:    d.GetID(),
+		NodePools:     nil,
 	}, nil
 }
 
@@ -197,8 +198,8 @@ func CreateDummyClusterFromModel(clusterModel *model.ClusterModel) (*DummyCluste
 	return &dummyCluster, nil
 }
 
-func (d *DummyCluster) UpdateStatus(status string) error {
-	return d.modelCluster.UpdateStatus(status)
+func (d *DummyCluster) UpdateStatus(status, statusMessage string) error {
+	return d.modelCluster.UpdateStatus(status, statusMessage)
 }
 
 func (d *DummyCluster) GetClusterDetails() (*components.ClusterDetailsResponse, error) {

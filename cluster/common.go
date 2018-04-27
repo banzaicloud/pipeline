@@ -24,7 +24,7 @@ var log *logrus.Entry
 //CommonCluster interface for clusters
 type CommonCluster interface {
 	CreateCluster() error
-	Persist(string) error
+	Persist(string, string) error
 	GetK8sConfig() ([]byte, error)
 	GetName() string
 	GetType() string
@@ -39,7 +39,7 @@ type CommonCluster interface {
 	GetAPIEndpoint() (string, error)
 	DeleteFromDatabase() error
 	GetOrg() uint
-	UpdateStatus(string) error
+	UpdateStatus(string, string) error
 	GetClusterDetails() (*bTypes.ClusterDetailsResponse, error)
 	ValidateCreationFields(r *bTypes.CreateClusterRequest) error
 	GetSecretWithValidation() (*secret.SecretsItemResponse, error)

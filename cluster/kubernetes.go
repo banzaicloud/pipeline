@@ -52,8 +52,8 @@ func (b *KubeCluster) CreateCluster() error {
 }
 
 // Persist save the cluster model
-func (b *KubeCluster) Persist(status string) error {
-	return b.modelCluster.UpdateStatus(status)
+func (b *KubeCluster) Persist(status, statusMessage string) error {
+	return b.modelCluster.UpdateStatus(status, statusMessage)
 }
 
 // GetK8sConfig returns the Kubernetes config
@@ -87,11 +87,13 @@ func (b *KubeCluster) GetStatus() (*components.GetClusterStatusResponse, error) 
 	}
 
 	return &components.GetClusterStatusResponse{
-		Status:     b.modelCluster.Status,
-		Name:       b.GetName(),
-		Location:   b.modelCluster.Location,
-		Cloud:      constants.Kubernetes,
-		ResourceID: b.modelCluster.ID,
+		Status:        b.modelCluster.Status,
+		StatusMessage: b.modelCluster.StatusMessage,
+		Name:          b.GetName(),
+		Location:      b.modelCluster.Location,
+		Cloud:         constants.Kubernetes,
+		ResourceID:    b.modelCluster.ID,
+		NodePools:     nil,
 	}, nil
 }
 
@@ -177,8 +179,8 @@ func CreateKubernetesClusterFromModel(clusterModel *model.ClusterModel) (*KubeCl
 	return &kubeCluster, nil
 }
 
-func (b *KubeCluster) UpdateStatus(status string) error {
-	return b.modelCluster.UpdateStatus(status)
+func (b *KubeCluster) UpdateStatus(status, statusMessage string) error {
+	return b.modelCluster.UpdateStatus(status, statusMessage)
 }
 
 func (b *KubeCluster) GetClusterDetails() (*components.ClusterDetailsResponse, error) {

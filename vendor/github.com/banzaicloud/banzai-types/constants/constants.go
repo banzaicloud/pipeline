@@ -147,6 +147,11 @@ const (
 	Updating = "UPDATING"
 	Deleting = "DELETING"
 	Error    = "ERROR"
+
+	CreatingMessage = "Cluster is creating"
+	RunningMessage  = "Cluster is running"
+	UpdatingMessage = "Cluster is updating"
+	DeletingMessage = "Cluster is deleting"
 )
 
 const (
