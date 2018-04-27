@@ -115,8 +115,8 @@ func (r *ResponseWithValue) Update(code int, Value Value) {
 }
 
 type Config struct {
-	Location string `json:"location"`
-	Name     string `json:"name"`
+	Location   string `json:"location"`
+	Name       string `json:"name"`
 	Properties struct {
 		KubeConfig string `json:"kubeConfig"`
 	} `json:"properties"`

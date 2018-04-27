@@ -268,8 +268,10 @@ type SupportedClustersResponse struct {
 }
 
 type SupportedClusterItem struct {
-	Name string `json:"name" binding:"required"`
-	Key  string `json:"key" binding:"required"`
+	Name    string `json:"name" binding:"required"`
+	Key     string `json:"key" binding:"required"`
+	Enabled bool   `json:"enabled"`
+	Icon    string `json:"icon"`
 }
 
 type SupportedFilters struct {
