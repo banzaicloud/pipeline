@@ -140,6 +140,7 @@
 				"d0f14246-5844-420e-b9e6-1fe9f1886ca4",
 				"8f67c8dd-b57f-47fb-aac1-c3485841ca8b",
 				"7cea48aa-c2bb-479b-8455-7e3dbc23eba6",
+				"4c8cc9f1-e6cd-4b9e-9f34-a09a57551149",
 				"d2e32c9c-c70d-437b-a16a-774ba8e0f4b8"
 			],
 			"folders_order": [],
@@ -277,6 +278,7 @@
 				"7b18418d-1a23-44c2-a82e-0de2f7a4bcce",
 				"f00656e1-d264-4592-a96f-9fd28a1de8b4",
 				"fcf0aa5e-1f6f-42f8-a51a-ff37e5662e66",
+				"4a3ad663-e015-461e-b3dc-9f930d4d8f86",
 				"63f9e26a-af68-4103-a67a-63963571595c"
 			],
 			"folders_order": [],
@@ -678,7 +680,7 @@
 			"currentHelper": null,
 			"helperAttributes": null,
 			"collectionId": "88e9faec-75f0-4f88-a073-d6c3ac3b9a51",
-			"rawModeData": "{\n\t\"filter\": {\n\t\t\"fields\": [\"image\"],\n\t\t\"image\": {\n\t\t\t\"tags\": [\"0.3.0\"],\n\t\t\t\"location\": \"eu-west-1\"\n\t\t}\n\t}\n}",
+			"rawModeData": "{\n\t\"secret_id\": \"{{secret_id}}\",\n\t\"filter\": {\n\t\t\"fields\": [\"image\"],\n\t\t\"image\": {\n\t\t\t\"tags\": [\"0.3.0\"],\n\t\t\t\"location\": \"eu-west-1\"\n\t\t}\n\t}\n}",
 			"headers": "Authorization: Bearer {{token}}\n//Content-Type: application/json\n",
 			"pathVariables": []
 		},
@@ -712,7 +714,7 @@
 			"currentHelper": null,
 			"helperAttributes": null,
 			"collectionId": "88e9faec-75f0-4f88-a073-d6c3ac3b9a51",
-			"rawModeData": "{\n\t\"filter\": {\n\t\t\"fields\": [\"location\"]\n\t}\n}",
+			"rawModeData": "{\n\t\"secret_id\": \"{{secret_id}}\",\n\t\"filter\": {\n\t\t\"fields\": [\"location\"]\n\t}\n}",
 			"headers": "Authorization: Bearer {{token}}\n//Content-Type: application/json\n",
 			"pathVariables": []
 		},
@@ -1056,6 +1058,126 @@
 			"pathVariables": []
 		},
 		{
+			"id": "4a3ad663-e015-461e-b3dc-9f930d4d8f86",
+			"name": "Add secret Repo",
+			"url": "{{url}}/api/v1/orgs/{{orgId}}/secrets",
+			"description": "",
+			"data": [],
+			"dataMode": "raw",
+			"headerData": [
+				{
+					"key": "Authorization",
+					"value": "Bearer {{token}}",
+					"description": "",
+					"enabled": true
+				},
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": "",
+					"enabled": true
+				}
+			],
+			"method": "POST",
+			"pathVariableData": [],
+			"queryParams": [],
+			"auth": null,
+			"events": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "cb45eb73-c3d2-4c5a-a67f-e02bc754273d",
+						"type": "text/javascript",
+						"exec": [
+							"if (responseCode.code === 201) {",
+							"    tests[\"Response Code 201\"] = responseCode.code == 201;",
+							"",
+							"    pm.environment.set(\"timestampHeader\", new Date());",
+							"    var dataJSON = JSON.parse(responseBody);",
+							"    pm.environment.set(\"secret_id\", dataJSON.secret_id);",
+							"    tests[\"Secret ID: \" + dataJSON.secret_id] = true;",
+							"} else {",
+							"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+							"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+							"    console.warn(responseBody);",
+							"    postman.setNextRequest(null);",
+							"}",
+							""
+						]
+					}
+				}
+			],
+			"folder": "e76bf8cc-84e6-4fa6-a6a4-ad5cadd17d6d",
+			"preRequestScript": null,
+			"tests": "if (responseCode.code === 201) {\n    tests[\"Response Code 201\"] = responseCode.code == 201;\n\n    pm.environment.set(\"timestampHeader\", new Date());\n    var dataJSON = JSON.parse(responseBody);\n    pm.environment.set(\"secret_id\", dataJSON.secret_id);\n    tests[\"Secret ID: \" + dataJSON.secret_id] = true;\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    console.warn(responseBody);\n    postman.setNextRequest(null);\n}\n",
+			"currentHelper": null,
+			"helperAttributes": null,
+			"collectionId": "88e9faec-75f0-4f88-a073-d6c3ac3b9a51",
+			"rawModeData": "{\n\t\"name\": \"My repo secret\",\n\t\"type\": \"repo\",\n\t\"values\": {\n\t\t\"RepoName\": \"{{RepoName}}\",\n\t\t\"RepoSecret\": \"{{RepoSecret}}\"\n\t}\n}",
+			"headers": "Authorization: Bearer {{token}}\nContent-Type: application/json\n",
+			"pathVariables": []
+		},
+		{
+			"id": "4c8cc9f1-e6cd-4b9e-9f34-a09a57551149",
+			"name": "Cluster Create with profile GKE",
+			"url": "{{url}}/api/v1/orgs/{{orgId}}/clusters",
+			"description": "Creates a K8S cluster in the Google Kubernetes Engine",
+			"data": [],
+			"dataMode": "raw",
+			"headerData": [
+				{
+					"key": "Authorization",
+					"value": "Bearer {{token}}",
+					"enabled": true
+				},
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"enabled": true
+				}
+			],
+			"method": "POST",
+			"pathVariableData": [],
+			"queryParams": [],
+			"auth": null,
+			"events": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "fe99d227-5aab-4b02-a1a6-79cfd1fc8701",
+						"type": "text/javascript",
+						"exec": [
+							"if (responseCode.code === 202) {",
+							"    tests[\"Response Code 202\"] = responseCode.code == 202;",
+							"",
+							"    pm.environment.set(\"timestampHeader\", new Date());",
+							"    var dataJSON = JSON.parse(responseBody);",
+							"    pm.environment.set(\"cluster_id\", dataJSON.id);",
+							"    tests[\"Cluster ID: \" + dataJSON.id] = true;",
+							"",
+							"    postman.setNextRequest(\"Cluster Status\");",
+							"} else {",
+							"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+							"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+							"    console.warn(responseBody);",
+							"    postman.setNextRequest(null);",
+							"}",
+							""
+						]
+					}
+				}
+			],
+			"folder": "edc9cb3e-af79-4ee0-b6e0-67ace3197b2d",
+			"preRequestScript": null,
+			"tests": "if (responseCode.code === 202) {\n    tests[\"Response Code 202\"] = responseCode.code == 202;\n\n    pm.environment.set(\"timestampHeader\", new Date());\n    var dataJSON = JSON.parse(responseBody);\n    pm.environment.set(\"cluster_id\", dataJSON.id);\n    tests[\"Cluster ID: \" + dataJSON.id] = true;\n\n    postman.setNextRequest(\"Cluster Status\");\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    console.warn(responseBody);\n    postman.setNextRequest(null);\n}\n",
+			"currentHelper": null,
+			"helperAttributes": null,
+			"collectionId": "88e9faec-75f0-4f88-a073-d6c3ac3b9a51",
+			"rawModeData": "{\n\t\"name\":\"gkecluster-{{username}}-{{$randomInt}}\",\n\t\"secret_id\": \"{{secret_id}}\",\n\t\"cloud\": \"google\",\n\t\"profile_name\": \"default\",\n\t\"properties\": {\n\t\t\"google\": {\n           \n\t\t}\n\t}\n}",
+			"headers": "Authorization: Bearer {{token}}\nContent-Type: application/json\n",
+			"pathVariables": []
+		},
+		{
 			"id": "51586ce6-b1ea-456d-8392-9ad08f6b5513",
 			"name": "Deployment Delete  FakeAPP",
 			"url": "{{url}}/api/v1/orgs/{{orgId}}/clusters/{{cluster_id}}/deployments/pokollll-appp",
@@ -1195,7 +1317,7 @@
 			"currentHelper": null,
 			"helperAttributes": null,
 			"collectionId": "88e9faec-75f0-4f88-a073-d6c3ac3b9a51",
-			"rawModeData": "{\n\t\"filter\": {\n\t\t\"fields\": [ \"instanceType\" ],\n\t\t\"instanceType\": {\n\t\t\t\"location\": \"eu-west-1\"\n\t\t}\n\t}\n}",
+			"rawModeData": "{\n\t\"secret_id\": \"{{secret_id}}\",\n\t\"filter\": {\n\t\t\"fields\": [ \"instanceType\" ],\n\t\t\"instanceType\": {\n\t\t\t\"location\": \"eu-west-1\"\n\t\t}\n\t}\n}",
 			"headers": "Authorization: Bearer {{token}}\n//Content-Type: application/json\n",
 			"pathVariables": []
 		},
@@ -1549,7 +1671,7 @@
 			"currentHelper": null,
 			"helperAttributes": null,
 			"collectionId": "88e9faec-75f0-4f88-a073-d6c3ac3b9a51",
-			"rawModeData": "{\n  \"name\":\"awscluster-{{username}}-{{$randomInt}}\",\n  \"location\": \"eu-west-1\",\n  \"cloud\": \"amazon\",\n  \"secret_id\": \"{{secret_id}}\",\n  \"nodeInstanceType\": \"m4.xlarge\",\n  \"properties\": {\n        \"amazon\": {\n            \"nodePools\": {\n            \t\"pool1\":{\n            \t\t\"instanceType\": \"m4.xlarge\",\n\t            \t\"spotPrice\": \"0.2\",\n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n\t                \"image\": \"ami-16bfeb6f\"\t\n            \t}\n            },\n            \"master\": {\n                \"instanceType\": \"m4.xlarge\",\n                \"image\": \"ami-16bfeb6f\"\n            }\n        }\n    }\n}\n\n",
+			"rawModeData": "{\n  \"name\":\"awscluster-{{username}}-{{$randomInt}}\",\n  \"location\": \"eu-west-1\",\n  \"cloud\": \"amazon\",\n  \"secret_id\": \"{{secret_id}}\",\n  \"nodeInstanceType\": \"m4.xlarge\",\n  \"properties\": {\n        \"amazon\": {\n            \"nodePools\": {\n            \t\"pool1\": {\n            \t\t\"instanceType\": \"m4.xlarge\",\n\t            \t\"spotPrice\": \"0.2\",\n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n\t                \"image\": \"ami-16bfeb6f\"\t\n            \t}\n            },\n            \"master\": {\n                \"instanceType\": \"m4.xlarge\",\n                \"image\": \"ami-16bfeb6f\"\n            }\n        }\n    }\n}\n\n",
 			"headers": "Authorization: Bearer {{token}}\nContent-Type: application/json\n",
 			"pathVariables": []
 		},
@@ -1717,7 +1839,7 @@
 			"id": "7cea48aa-c2bb-479b-8455-7e3dbc23eba6",
 			"name": "Cluster Create with profile AKS",
 			"url": "{{url}}/api/v1/orgs/{{orgId}}/clusters",
-			"description": "Creates a K8S cluster in the Google Kubernetes Engine",
+			"description": "Creates a K8S cluster in the Azure Container Service",
 			"data": [],
 			"dataMode": "raw",
 			"headerData": [
@@ -1873,7 +1995,7 @@
 			"currentHelper": null,
 			"helperAttributes": null,
 			"collectionId": "88e9faec-75f0-4f88-a073-d6c3ac3b9a51",
-			"rawModeData": "{\n\t\"cloud\": \"amazon\",\n\t\"properties\": {\n\t\t\"amazon\": {\n\t\t\t\"nodePools\": {\n\t\t\t\t\"pool1\": {\n\t\t\t\t\t\"minCount\": 2,\n\t\t\t\t\t\"maxCount\": 3\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}",
+			"rawModeData": "{\n\t\"cloud\": \"amazon\",\n\t\"properties\": {\n\t\t\"amazon\": {\n\t\t\t\"nodePools\": {\n\t\t\t\t\"pool1\": {\n            \t\t\"instanceType\": \"m4.xlarge\",\n\t            \t\"spotPrice\": \"0.2\",\n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n\t                \"image\": \"ami-16bfeb6f\"\t\n            \t}\n\t\t\t}\n\t\t}\n\t}\n}",
 			"headers": "Authorization: Bearer {{token}}\nContent-Type: application/json\n",
 			"pathVariables": []
 		},
@@ -2020,9 +2142,9 @@
 		},
 		{
 			"id": "8f67c8dd-b57f-47fb-aac1-c3485841ca8b",
-			"name": "Cluster Create with profile GKE",
+			"name": "Cluster Create with profile AWS",
 			"url": "{{url}}/api/v1/orgs/{{orgId}}/clusters",
-			"description": "Creates a K8S cluster in the Google Kubernetes Engine",
+			"description": "Creates a K8S cluster in the Amazon Web Services",
 			"data": [],
 			"dataMode": "raw",
 			"headerData": [
@@ -2074,7 +2196,7 @@
 			"currentHelper": null,
 			"helperAttributes": null,
 			"collectionId": "88e9faec-75f0-4f88-a073-d6c3ac3b9a51",
-			"rawModeData": "{\n\t\"name\":\"gkecluster-{{username}}-{{$randomInt}}\",\n\t\"secret_id\": \"{{secret_id}}\",\n\t\"cloud\": \"google\",\n\t\"profile_name\": \"default\",\n\t\"properties\": {\n\t\t\"google\": {\n            \"project\":\"{{gke-projectId}}\"\n\t\t}\n\t}\n}",
+			"rawModeData": "{\n\t\"name\":\"awscluster-{{username}}-{{$randomInt}}\",\n\t\"secret_id\": \"{{secret_id}}\",\n\t\"cloud\": \"amazon\",\n\t\"profile_name\": \"default\",\n\t\"properties\": {\n\t\t\"amazon\": {\n           \n\t\t}\n\t}\n}",
 			"headers": "Authorization: Bearer {{token}}\nContent-Type: application/json\n",
 			"pathVariables": []
 		},
@@ -2134,7 +2256,7 @@
 			"currentHelper": null,
 			"helperAttributes": null,
 			"collectionId": "88e9faec-75f0-4f88-a073-d6c3ac3b9a51",
-			"rawModeData": "{\n    \"name\":\"gkecluster-{{username}}-{{$randomInt}}\",\n    \"location\": \"us-central1-a\",\n    \"cloud\": \"google\",\n    \"nodeInstanceType\": \"n1-standard-1\",\n    \"secret_id\": \"{{secret_id}}\",\n    \"properties\": {\n        \"google\": {\n            \"project\":\"{{gke-projectId}}\",\n            \"master\":{\n                \"version\":\"1.9.4-gke.1\"\n            },\n            \"nodeVersion\":\"1.9.4-gke.1\",\n            \"nodePools\": {\n                \"pool1\": {\n                    \"count\": 1,\n                    \"nodeInstanceType\": \"n1-standard-2\"\n                }\n            }\n        }\n    }\n}",
+			"rawModeData": "{\n    \"name\":\"gkecluster-{{username}}-{{$randomInt}}\",\n    \"location\": \"us-central1-a\",\n    \"cloud\": \"google\",\n    \"nodeInstanceType\": \"n1-standard-1\",\n    \"secret_id\": \"{{secret_id}}\",\n    \"properties\": {\n        \"google\": {\n            \"master\":{\n                \"version\":\"1.9.6-gke.1\"\n            },\n            \"nodeVersion\":\"1.9.6-gke.1\",\n            \"nodePools\": {\n                \"pool1\": {\n                    \"count\": 1,\n                    \"nodeInstanceType\": \"n1-standard-2\"\n                }\n            }\n        }\n    }\n}",
 			"headers": "Authorization: Bearer {{token}}\nContent-Type: application/json\n",
 			"pathVariables": []
 		},
@@ -2277,7 +2399,7 @@
 			"currentHelper": null,
 			"helperAttributes": null,
 			"collectionId": "88e9faec-75f0-4f88-a073-d6c3ac3b9a51",
-			"rawModeData": "{\n\t\"filter\": {\n\t\t\"fields\": [\n\t\t\t\"location\",\n\t\t\t\"image\",\n\t\t\t\"instanceType\"\n\t\t],\n\t\t\"image\": {\n\t\t\t\"tags\": [ \"0.3.0\" ],\n\t\t\t\"location\": \"eu-west-1\"\n\t\t},\n\t\t\"instanceType\": {\n\t\t\t\"location\": \"eu-west-1\"\n\t\t}\n\t}\n}",
+			"rawModeData": "{\n\t\"secret_id\": \"{{secret_id}}\",\n\t\"filter\": {\n\t\t\"fields\": [\n\t\t\t\"location\",\n\t\t\t\"image\",\n\t\t\t\"instanceType\"\n\t\t],\n\t\t\"image\": {\n\t\t\t\"tags\": [ \"0.3.0\" ],\n\t\t\t\"location\": \"eu-west-1\"\n\t\t},\n\t\t\"instanceType\": {\n\t\t\t\"location\": \"eu-west-1\"\n\t\t}\n\t}\n}",
 			"headers": "Authorization: Bearer {{token}}\n//Content-Type: application/json\n",
 			"pathVariables": []
 		},
@@ -2732,7 +2854,7 @@
 		{
 			"id": "bd9bc860-4a36-4292-983d-099471abcadd",
 			"name": "List secret with filter",
-			"url": "{{url}}/api/v1/orgs/{{orgId}}/secrets/{{secret_type}}",
+			"url": "{{url}}/api/v1/orgs/{{orgId}}/secrets?type={{cloud_type}}",
 			"description": "",
 			"data": null,
 			"dataMode": "params",
@@ -2746,7 +2868,15 @@
 			],
 			"method": "GET",
 			"pathVariableData": [],
-			"queryParams": [],
+			"queryParams": [
+				{
+					"key": "type",
+					"value": "{{cloud_type}}",
+					"equals": true,
+					"description": "",
+					"enabled": true
+				}
+			],
 			"auth": null,
 			"events": [],
 			"folder": "e76bf8cc-84e6-4fa6-a6a4-ad5cadd17d6d",
