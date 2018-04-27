@@ -200,7 +200,7 @@ func CreateCluster(c *gin.Context) {
 	log.Info("Secret validation passed")
 
 	// Persist the cluster in Database
-	err = commonCluster.Persist(constants.Creating)
+	err = commonCluster.Persist(constants.Creating, constants.CreatingMessage)
 	if err != nil {
 		log.Errorf("Error persisting cluster in database: %s", err.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
@@ -225,7 +225,7 @@ func postCreateCluster(commonCluster cluster.CommonCluster, createClusterRequest
 	log.Info("Validate creation fields")
 	if err := commonCluster.ValidateCreationFields(createClusterRequest); err != nil {
 		log.Errorf("Error during request validation: %s", err.Error())
-		commonCluster.UpdateStatus(constants.Error)
+		commonCluster.UpdateStatus(constants.Error, err.Error())
 		return err
 	}
 
@@ -235,11 +235,11 @@ func postCreateCluster(commonCluster cluster.CommonCluster, createClusterRequest
 	err := commonCluster.CreateCluster()
 	if err != nil {
 		log.Errorf("Error during cluster creation: %s", err.Error())
-		commonCluster.UpdateStatus(constants.Error)
+		commonCluster.UpdateStatus(constants.Error, err.Error())
 		return err
 	}
 
-	err = commonCluster.UpdateStatus(constants.Running)
+	err = commonCluster.UpdateStatus(constants.Running, constants.RunningMessage)
 	if err != nil {
 		log.Errorf("Error during updating cluster status: %s", err.Error())
 		return err
@@ -435,7 +435,7 @@ func UpdateCluster(c *gin.Context) {
 	}
 
 	// save the updated cluster to database
-	if err := commonCluster.Persist(constants.Updating); err != nil {
+	if err := commonCluster.Persist(constants.Updating, constants.UpdatingMessage); err != nil {
 		log.Errorf("Error during cluster save %s", err.Error())
 	}
 
@@ -453,11 +453,11 @@ func postUpdateCluster(commonCluster cluster.CommonCluster, updateRequest *compo
 	if err != nil {
 		// validation failed
 		log.Errorf("Update failed: %s", err.Error())
-		commonCluster.UpdateStatus(constants.Error)
+		commonCluster.UpdateStatus(constants.Error, err.Error())
 		return err
 	}
 
-	err = commonCluster.UpdateStatus(constants.Running)
+	err = commonCluster.UpdateStatus(constants.Running, constants.RunningMessage)
 	if err != nil {
 		log.Errorf("Error during update cluster status: %s", err.Error())
 		return err
@@ -496,7 +496,7 @@ func DeleteCluster(c *gin.Context) {
 // postDeleteCluster deletes a cluster (ASYNC)
 func postDeleteCluster(commonCluster cluster.CommonCluster, force bool) error {
 
-	err := commonCluster.UpdateStatus(constants.Deleting)
+	err := commonCluster.UpdateStatus(constants.Deleting, constants.DeletingMessage)
 	if err != nil {
 		log.Errorf("Error during updating cluster status: %s", err.Error())
 		return err
@@ -506,7 +506,7 @@ func postDeleteCluster(commonCluster cluster.CommonCluster, force bool) error {
 	c, err := commonCluster.GetK8sConfig()
 	if err != nil && !force {
 		log.Errorf("Error during getting kubeconfig: %s", err.Error())
-		commonCluster.UpdateStatus(constants.Error)
+		commonCluster.UpdateStatus(constants.Error, err.Error())
 		return err
 	}
 
@@ -520,7 +520,7 @@ func postDeleteCluster(commonCluster cluster.CommonCluster, force bool) error {
 	err = commonCluster.DeleteCluster()
 	if err != nil && !force {
 		log.Errorf(errors.Wrap(err, "Error during delete cluster").Error())
-		commonCluster.UpdateStatus(constants.Error)
+		commonCluster.UpdateStatus(constants.Error, err.Error())
 		return err
 	}
 
@@ -529,7 +529,7 @@ func postDeleteCluster(commonCluster cluster.CommonCluster, force bool) error {
 	err = commonCluster.DeleteFromDatabase()
 	if err != nil && !force {
 		log.Errorf(errors.Wrap(err, "Error during delete cluster from database").Error())
-		commonCluster.UpdateStatus(constants.Error)
+		commonCluster.UpdateStatus(constants.Error, err.Error())
 		return err
 	}
 

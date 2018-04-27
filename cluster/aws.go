@@ -152,8 +152,8 @@ func createNodePoolsFromRequest(nodePools map[string]*amazon.NodePool) []*model.
 }
 
 //Persist save the cluster model
-func (c *AWSCluster) Persist(status string) error {
-	return c.modelCluster.UpdateStatus(status)
+func (c *AWSCluster) Persist(status, statusMessage string) error {
+	return c.modelCluster.UpdateStatus(status, statusMessage)
 }
 
 //CreateCluster creates a new cluster
@@ -499,12 +499,13 @@ func (c *AWSCluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 	}
 
 	return &components.GetClusterStatusResponse{
-		Status:     c.modelCluster.Status,
-		Name:       c.modelCluster.Name,
-		Location:   c.modelCluster.Location,
-		Cloud:      c.modelCluster.Cloud,
-		ResourceID: c.modelCluster.ID,
-		NodePools:  nodePools,
+		Status:        c.modelCluster.Status,
+		StatusMessage: c.modelCluster.StatusMessage,
+		Name:          c.modelCluster.Name,
+		Location:      c.modelCluster.Location,
+		Cloud:         c.modelCluster.Cloud,
+		ResourceID:    c.modelCluster.ID,
+		NodePools:     nodePools,
 	}, nil
 }
 
@@ -1082,8 +1083,8 @@ func (c *AWSCluster) newEC2Client(region string) (*ec2.EC2, error) {
 }
 
 // UpdateStatus updates cluster status in database
-func (c *AWSCluster) UpdateStatus(status string) error {
-	return c.modelCluster.UpdateStatus(status)
+func (c *AWSCluster) UpdateStatus(status, statusMessage string) error {
+	return c.modelCluster.UpdateStatus(status, statusMessage)
 }
 
 // GetClusterDetails gets cluster details from cloud
