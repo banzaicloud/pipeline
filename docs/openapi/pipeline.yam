@@ -1506,7 +1506,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/BaseError_500'
 
-  '/api/v1/orgs/{orgId}/secrets/{type}':
+  '/api/v1/orgs/{orgId}/secrets?type={cloudtype}':
     get:
       security:
           - bearerAuth: []
@@ -1522,7 +1522,7 @@ paths:
           description: Organization identification
           schema:
             type: integer
-        - name: type
+        - name: cloudtype
           in: path
           required: true
           description: Secret type
@@ -1535,6 +1535,48 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SecretsListResponse'
+        '400':
+          description: Error during listing secrets
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+
+  '/api/v1/orgs/{orgId}/secrets?reponame={reponame}':
+    get:
+      security:
+          - bearerAuth: []
+      tags:
+        - secrets
+      summary: List secrets with filter
+      operationId: GetSecretsWithFilterRepo
+      description: Listing secrets with filter
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: reponame
+          in: path
+          required: true
+          description: Name of the selected repo
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Secrets listed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecretResponseRepo'
         '400':
           description: Error during listing secrets
           content:
@@ -2075,14 +2117,13 @@ components:
             - $ref: '#/components/schemas/CreateGoogleProperties'
           example:
             google:
-              project:
-                master:
-                  version: "1.8.7-gke.1"
-                nodePools:
-                  pool1:
-                    count: 1
-                    nodeInstanceType: "n1-standard-2"
-                nodeVersion: "1.8.7-gke.1"
+              master:
+                version: "1.8.7-gke.1"
+              nodePools:
+                pool1:
+                  count: 1
+                  nodeInstanceType: "n1-standard-2"
+              nodeVersion: "1.8.7-gke.1"
 
     CreateAmazonProperties:
       type: object
@@ -2180,14 +2221,10 @@ components:
         google:
           type: object
           required:
-             - project
              - master
              - nodeVersion
              - nodePools
           properties:
-            project:
-              type: string
-              example: "projectId"
             master:
               type: object
               properties:
@@ -3250,6 +3287,27 @@ components:
           items:
             $ref: '#/components/schemas/SecretsListItem'
 
+    SecretResponseRepo:
+      type: object
+      properties:
+        secret:
+          type: array
+          items:
+            $ref: '#/components/schemas/SecretsListItemRepo'
+
+    SecretsListItemRepo:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "62bc3c75-91fb-4670-bad4-24b401a9deac"
+        name:
+          type: string
+          example: "My repo secret"
+        type:
+          type: string
+          example: "repo"
+
     SecretsListItem:
       type: object
       properties:
@@ -3293,6 +3351,7 @@ components:
               - $ref: '#/components/schemas/SecretKeyValueAzure'
               - $ref: '#/components/schemas/SecretKeyValueGoogle'
               - $ref: '#/components/schemas/SecretKeyValueKubernetes'
+              - $ref: '#/components/schemas/SecretKeyValueRepo'
           example:
             type: string
             project_id: string
@@ -3373,7 +3432,15 @@ components:
       properties:
         K8Sconfig:
           type: string
-      
+
+    SecretKeyValueRepo:
+      type: object
+      properties:
+        RepoName:
+          type: string
+        RepoSecret:
+          type: string
+
     SecretsNotFound:
       type: object
       properties:
@@ -3724,14 +3791,17 @@ components:
             validNodeVersions:
               type: array
               example: ["1.9.6-gke.0", "1.9.4-gke.1"]
-    
+
     GetClusterStatusResponse:
       type: object
       properties:
         status:
           type: string
           example: "RUNNING"
-        name: 
+        status_message:
+          type: string
+          example: "Cluster is running"
+        name:
           type: string
           example: "myClusterName"
         cloud:
@@ -3749,9 +3819,48 @@ components:
             pool1:
               type: object
               oneOf:
-                - $ref: '#/components/schemas/NodePoolsAmazon'
-                - $ref: '#/components/schemas/NodePoolsAzure'
-                - $ref: '#/components/schemas/NodePoolsGoogle'
+                - $ref: '#/components/schemas/NodePoolStatusAmazon'
+                - $ref: '#/components/schemas/NodePoolStatusAzure'
+                - $ref: '#/components/schemas/NodePoolStatusGoogle'
               example:
                 count: 1
-                nodeInstanceType: "n1-standard-1"
+                instance_type: "n1-standard-1"
+
+    NodePoolStatusAmazon:
+      type: object
+      properties:
+        instance_type:
+          type: string
+          example: "m4.xlarge"
+        spot_price:
+          type: string
+          example: "0.2"
+        min_count:
+          type: number
+          example: 1
+        max_count:
+          type: number
+          example: 2
+        image:
+          type: string
+          example: "ami-16bfeb6f"
+
+    NodePoolStatusAzure:
+      type: object
+      properties:
+        count:
+          type: number
+          example: 1
+        instance_type:
+          type: string
+          example: "Standard_D4_v2"
+
+    NodePoolStatusGoogle:
+      type: object
+      properties:
+        count:
+          type: number
+          example: 1
+        instance_type:
+          type: string
+          example: "n1-standard-1"
