@@ -16,6 +16,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"io"
+	"io/ioutil"
 	"k8s.io/helm/pkg/chartutil"
 	"k8s.io/helm/pkg/getter"
 	"k8s.io/helm/pkg/helm"
@@ -38,9 +39,9 @@ func init() {
 	log = logger.WithFields(logrus.Fields{"action": "Helm"})
 }
 
-func getChartOption(file *gzip.Reader) (*SpotguideOptions, error) {
-	so := &SpotguideOptions{}
-	tarReader := tar.NewReader(file)
+func getChartOption(file []byte) (*SpotGuideFile, error) {
+	so := &SpotGuideFile{}
+	tarReader := tar.NewReader(bytes.NewReader(file))
 	for {
 		header, err := tarReader.Next()
 		if err == io.EOF {
@@ -64,7 +65,7 @@ func getChartOption(file *gzip.Reader) (*SpotguideOptions, error) {
 	return so, nil
 }
 
-func downloadFile(url string) (*gzip.Reader, error) {
+func downloadFile(url string) ([]byte, error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
@@ -77,12 +78,13 @@ func downloadFile(url string) (*gzip.Reader, error) {
 	if err != nil {
 		return nil, err
 	}
-	return gzf, nil
+	rawContent, _ := ioutil.ReadAll(gzf)
+	return rawContent, nil
 }
 
 //getChartFile Download file from chart repository
-func getChartFile(file *gzip.Reader, fileName string) (string, error) {
-	tarReader := tar.NewReader(file)
+func getChartFile(file []byte, fileName string) (string, error) {
+	tarReader := tar.NewReader(bytes.NewReader(file))
 	for {
 		header, err := tarReader.Next()
 		if err == io.EOF {
@@ -550,9 +552,13 @@ func ChartsGet(clusterName, queryName, queryRepo, queryVersion, queryKeyword str
 	return cl, nil
 }
 
+type SpotGuideFile struct {
+	Options []SpotguideOptions `json:"options"`
+}
+
 type SpotguideOptions struct {
-	Name    string `json:name`
-	Type    string `json:type`
+	Name    string `json:"name"`
+	Type    string `json:"type"`
 	Default bool   `json:"default"`
 	Info    string `json:"info"`
 	Key     string `json:"key"`
@@ -564,7 +570,7 @@ type ChartDetails struct {
 	Chart   *repo.ChartVersion `json:"chart"`
 	Values  string             `json:"values"`
 	Readme  string             `json:"readme"`
-	Options *SpotguideOptions  `json:"options"`
+	Options []SpotguideOptions `json:"options"`
 }
 
 func ChartGet(clusterName, chartRepo, chartName, chartVersion string) (*ChartDetails, error) {
@@ -624,7 +630,7 @@ func ChartGet(clusterName, chartRepo, chartName, chartVersion string) (*ChartDet
 								Chart:   s,
 								Values:  valuesStr,
 								Readme:  readmeStr,
-								Options: options,
+								Options: options.Options,
 							}
 							return chartD, nil
 
