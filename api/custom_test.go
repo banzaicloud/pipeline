@@ -82,24 +82,24 @@ func TestIngressEndpointUrls(t *testing.T) {
 
 	expectedEndpoints := []htype.EndPointURLs{
 		{
-			ServiceName:     "svc1_path1",
-			URL:             fmt.Sprint("http://", loadBalancerPublicHost, "/svc1_path1/"),
-			HelmReleaseName: dummyReleaseName,
+			Path:        "/svc1_path1",
+			URL:         fmt.Sprint("http://", loadBalancerPublicHost, "/svc1_path1/"),
+			ReleaseName: dummyReleaseName,
 		},
 		{
-			ServiceName:     "svc1_path2",
-			URL:             fmt.Sprint("http://", loadBalancerPublicHost, "/svc1_path2/"),
-			HelmReleaseName: dummyReleaseName,
+			Path:        "/svc1_path2",
+			URL:         fmt.Sprint("http://", loadBalancerPublicHost, "/svc1_path2/"),
+			ReleaseName: dummyReleaseName,
 		},
 		{
-			ServiceName:     "svc1_ui",
-			URL:             fmt.Sprint("http://", loadBalancerPublicHost, "/svc1_ui/"),
-			HelmReleaseName: dummyReleaseName,
+			Path:        "/svc1_ui",
+			URL:         fmt.Sprint("http://", loadBalancerPublicHost, "/svc1_ui/"),
+			ReleaseName: dummyReleaseName,
 		},
 		{
-			ServiceName:     "",
-			URL:             fmt.Sprint("http://", loadBalancerPublicHost, "/"),
-			HelmReleaseName: dummyReleaseName,
+			Path:        "/",
+			URL:         fmt.Sprint("http://", loadBalancerPublicHost, "/"),
+			ReleaseName: dummyReleaseName,
 		},
 	}
 
@@ -294,14 +294,14 @@ var (
 		Ports: make(map[string]int32),
 		EndPointURLs: []*htype.EndPointURLs{
 			{
-				ServiceName:     "svc1_path1",
-				URL:             fmt.Sprint("http://", dummyLoadBalancer, "/svc1_path1/"),
-				HelmReleaseName: dummyReleaseName,
+				Path:        "/svc1_path1",
+				URL:         fmt.Sprint("http://", dummyLoadBalancer, "/svc1_path1/"),
+				ReleaseName: dummyReleaseName,
 			},
 			{
-				ServiceName:     "svc1_path2",
-				URL:             fmt.Sprint("http://", dummyLoadBalancer, "/svc1_path2/"),
-				HelmReleaseName: dummyReleaseName,
+				Path:        "/svc1_path2",
+				URL:         fmt.Sprint("http://", dummyLoadBalancer, "/svc1_path2/"),
+				ReleaseName: dummyReleaseName,
 			},
 		},
 	}, {
@@ -342,6 +342,84 @@ func TestLoadBalancersWithIngressPaths(t *testing.T) {
 
 			if !reflect.DeepEqual(tc.expectedEndPointList, endpointList) {
 				t.Errorf("Expected: %#v, got: %#v", tc.expectedEndPointList, endpointList)
+			}
+		})
+	}
+}
+
+var (
+	serviceListWithPendingLoadBalancer = &v1.ServiceList{
+		Items: []v1.Service{{
+			ObjectMeta: v12.ObjectMeta{
+				Name: "serviceListWithPendingLoadBalancer",
+			},
+			Status: v1.ServiceStatus{
+				LoadBalancer: v1.LoadBalancerStatus{},
+				},
+			},
+		},
+		}
+
+	serviceListReadyLoadBalancer = &v1.ServiceList{
+		Items: []v1.Service{{
+			ObjectMeta: v12.ObjectMeta{
+				Name: "serviceListWithReadyLoadBalancer",
+			},
+			Status: v1.ServiceStatus{
+				LoadBalancer: v1.LoadBalancerStatus{
+					Ingress: []v1.LoadBalancerIngress{{
+						Hostname: dummyLoadBalancer,
+					},
+					},
+				},
+			},
+		},
+		},
+	}
+
+	serviceListWithPendingReadyLoadBalancer = &v1.ServiceList{
+		Items: []v1.Service{{
+			ObjectMeta: v12.ObjectMeta{
+				Name: "serviceWithPendingLoadBalancer",
+			},
+			Status: v1.ServiceStatus{
+				LoadBalancer: v1.LoadBalancerStatus{},
+			},
+		},
+			{
+				ObjectMeta: v12.ObjectMeta{
+					Name: "serviceWithReadyLoadBalancer",
+				},
+				Status: v1.ServiceStatus{
+					LoadBalancer: v1.LoadBalancerStatus{
+						Ingress: []v1.LoadBalancerIngress{{
+							Hostname: dummyLoadBalancer,
+						},
+						},
+					},
+				},
+			},
+		},
+	}
+)
+
+func TestPendingLoadBalancer(t *testing.T) {
+	cases := []struct {
+		testName					string
+		inputServiceList	*v1.ServiceList
+		expectedResult		bool
+	}{
+		{testName: "PendingLoadBalancer", inputServiceList: serviceListWithPendingLoadBalancer, expectedResult: true},
+		{testName: "ReadyLoadBalancer", inputServiceList: serviceListReadyLoadBalancer, expectedResult: false},
+		{testName: "MultipleLoadBalancer", inputServiceList: serviceListWithPendingReadyLoadBalancer, expectedResult: true},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.testName, func(t *testing.T) {
+			loadBalancerState := pendingLoadBalancer(tc.inputServiceList)
+
+			if loadBalancerState != tc.expectedResult {
+				t.Errorf("Expected: %#v, got: %#v", tc.expectedResult, loadBalancerState)
 			}
 		})
 	}

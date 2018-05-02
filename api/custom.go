@@ -17,6 +17,10 @@ import (
 func ListEndpoints(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": "ListEndpoints"})
 
+	releaseName := c.Query("releaseName")
+	log.Infof("Filtering for helm release name: %s", releaseName)
+	log.Info("if empty(\"\") all the endpoints will be returned")
+
 	kubeConfig, ok := GetK8sConfig(c)
 	if ok != true {
 		return
@@ -32,8 +36,14 @@ func ListEndpoints(c *gin.Context) {
 		})
 		return
 	}
+	listOptions := meta_v1.ListOptions{}
+	if releaseName != "" {
+		listOptions = meta_v1.ListOptions{
+			LabelSelector:        fmt.Sprintf("release=%s", releaseName),
+		}
+	}
 
-	serviceList, err := client.CoreV1().Services("").List(meta_v1.ListOptions{})
+	serviceList, err := client.CoreV1().Services("").List(listOptions)
 	if err != nil {
 		log.Errorf("Error listing services: %s", err.Error())
 		c.JSON(http.StatusNotFound, htype.ErrorResponse{
@@ -53,11 +63,37 @@ func ListEndpoints(c *gin.Context) {
 		})
 		return
 	}
+	if releaseName != "" {
+		if pendingLoadBalancer(serviceList) {
+			c.JSON(http.StatusAccepted, htype.StatusResponse{
+				Status:  http.StatusAccepted,
+				Message: "There is at least one LoadBalancer type service with Pending state",
+			})
+			return
+		}
+	}
 	endpointList := getLoadBalancersWithIngressPaths(serviceList, ingressList)
 
 	c.JSON(http.StatusOK, htype.EndpointResponse{
 		Endpoints: endpointList,
 	})
+}
+
+func pendingLoadBalancer(serviceList *v1.ServiceList) bool {
+	log := logger.WithFields(logrus.Fields{"tag": "pendingLoadBalancer"})
+	log.Info("Checking loadbalancer status..")
+
+	plb := map[string]struct{}{}
+
+	for _, service := range serviceList.Items {
+		if len(service.Status.LoadBalancer.Ingress) > 0 {
+			plb["false"] = struct{}{}
+		} else {
+			plb["true"] = struct{}{}
+		}
+	}
+	_, contains := plb["true"]
+	return contains
 }
 
 func getLoadBalancersWithIngressPaths(serviceList *v1.ServiceList, ingressList *v1beta1.IngressList) []*htype.EndpointItem {
@@ -123,9 +159,9 @@ func getIngressEndpoints(loadBalancerPublicHost string, ingress *v1beta1.Ingress
 			}
 			endpointUrls = append(endpointUrls,
 				htype.EndPointURLs{
-					ServiceName:     strings.Trim(path, "/"),
+					Path:            fmt.Sprintf("/%s", strings.Trim(path, "/")),
 					URL:             fmt.Sprint("http://", loadBalancerPublicHost, path),
-					HelmReleaseName: getIngressReleaseName(ingressPath.Backend, serviceList),
+					ReleaseName:     getIngressReleaseName(ingressPath.Backend, serviceList),
 				})
 		}
 	}
