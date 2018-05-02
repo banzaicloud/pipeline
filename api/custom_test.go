@@ -346,3 +346,81 @@ func TestLoadBalancersWithIngressPaths(t *testing.T) {
 		})
 	}
 }
+
+var (
+	serviceListWithPendingLoadBalancer = &v1.ServiceList{
+		Items: []v1.Service{{
+			ObjectMeta: v12.ObjectMeta{
+				Name: "serviceListWithPendingLoadBalancer",
+			},
+			Status: v1.ServiceStatus{
+				LoadBalancer: v1.LoadBalancerStatus{},
+				},
+			},
+		},
+		}
+
+	serviceListReadyLoadBalancer = &v1.ServiceList{
+		Items: []v1.Service{{
+			ObjectMeta: v12.ObjectMeta{
+				Name: "serviceListWithReadyLoadBalancer",
+			},
+			Status: v1.ServiceStatus{
+				LoadBalancer: v1.LoadBalancerStatus{
+					Ingress: []v1.LoadBalancerIngress{{
+						Hostname: dummyLoadBalancer,
+					},
+					},
+				},
+			},
+		},
+		},
+	}
+
+	serviceListWithPendingReadyLoadBalancer = &v1.ServiceList{
+		Items: []v1.Service{{
+			ObjectMeta: v12.ObjectMeta{
+				Name: "serviceWithPendingLoadBalancer",
+			},
+			Status: v1.ServiceStatus{
+				LoadBalancer: v1.LoadBalancerStatus{},
+			},
+		},
+			{
+				ObjectMeta: v12.ObjectMeta{
+					Name: "serviceWithReadyLoadBalancer",
+				},
+				Status: v1.ServiceStatus{
+					LoadBalancer: v1.LoadBalancerStatus{
+						Ingress: []v1.LoadBalancerIngress{{
+							Hostname: dummyLoadBalancer,
+						},
+						},
+					},
+				},
+			},
+		},
+	}
+)
+
+func TestPendingLoadBalancer(t *testing.T) {
+	cases := []struct {
+		testName					string
+		inputServiceList	*v1.ServiceList
+		expectedResult		bool
+	}{
+		{testName: "PendingLoadBalancer", inputServiceList: serviceListWithPendingLoadBalancer, expectedResult: true},
+		{testName: "ReadyLoadBalancer", inputServiceList: serviceListReadyLoadBalancer, expectedResult: false},
+		{testName: "MultipleLoadBalancer", inputServiceList: serviceListWithPendingReadyLoadBalancer, expectedResult: true},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.testName, func(t *testing.T) {
+			loadBalancerState := pendingLoadBalancer(tc.inputServiceList)
+
+			if loadBalancerState != tc.expectedResult {
+				t.Errorf("Expected: %#v, got: %#v", tc.expectedResult, loadBalancerState)
+			}
+		})
+	}
+}
