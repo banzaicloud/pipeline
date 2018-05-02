@@ -82,24 +82,24 @@ func TestIngressEndpointUrls(t *testing.T) {
 
 	expectedEndpoints := []htype.EndPointURLs{
 		{
-			ServiceName:     "svc1_path1",
-			URL:             fmt.Sprint("http://", loadBalancerPublicHost, "/svc1_path1/"),
-			HelmReleaseName: dummyReleaseName,
+			Path:        "/svc1_path1",
+			URL:         fmt.Sprint("http://", loadBalancerPublicHost, "/svc1_path1/"),
+			ReleaseName: dummyReleaseName,
 		},
 		{
-			ServiceName:     "svc1_path2",
-			URL:             fmt.Sprint("http://", loadBalancerPublicHost, "/svc1_path2/"),
-			HelmReleaseName: dummyReleaseName,
+			Path:        "/svc1_path2",
+			URL:         fmt.Sprint("http://", loadBalancerPublicHost, "/svc1_path2/"),
+			ReleaseName: dummyReleaseName,
 		},
 		{
-			ServiceName:     "svc1_ui",
-			URL:             fmt.Sprint("http://", loadBalancerPublicHost, "/svc1_ui/"),
-			HelmReleaseName: dummyReleaseName,
+			Path:        "/svc1_ui",
+			URL:         fmt.Sprint("http://", loadBalancerPublicHost, "/svc1_ui/"),
+			ReleaseName: dummyReleaseName,
 		},
 		{
-			ServiceName:     "",
-			URL:             fmt.Sprint("http://", loadBalancerPublicHost, "/"),
-			HelmReleaseName: dummyReleaseName,
+			Path:        "/",
+			URL:         fmt.Sprint("http://", loadBalancerPublicHost, "/"),
+			ReleaseName: dummyReleaseName,
 		},
 	}
 
@@ -294,14 +294,14 @@ var (
 		Ports: make(map[string]int32),
 		EndPointURLs: []*htype.EndPointURLs{
 			{
-				ServiceName:     "svc1_path1",
-				URL:             fmt.Sprint("http://", dummyLoadBalancer, "/svc1_path1/"),
-				HelmReleaseName: dummyReleaseName,
+				Path:        "/svc1_path1",
+				URL:         fmt.Sprint("http://", dummyLoadBalancer, "/svc1_path1/"),
+				ReleaseName: dummyReleaseName,
 			},
 			{
-				ServiceName:     "svc1_path2",
-				URL:             fmt.Sprint("http://", dummyLoadBalancer, "/svc1_path2/"),
-				HelmReleaseName: dummyReleaseName,
+				Path:        "/svc1_path2",
+				URL:         fmt.Sprint("http://", dummyLoadBalancer, "/svc1_path2/"),
+				ReleaseName: dummyReleaseName,
 			},
 		},
 	}, {

@@ -123,9 +123,9 @@ func getIngressEndpoints(loadBalancerPublicHost string, ingress *v1beta1.Ingress
 			}
 			endpointUrls = append(endpointUrls,
 				htype.EndPointURLs{
-					ServiceName:     strings.Trim(path, "/"),
+					Path:            fmt.Sprintf("/%s", strings.Trim(path, "/")),
 					URL:             fmt.Sprint("http://", loadBalancerPublicHost, path),
-					HelmReleaseName: getIngressReleaseName(ingressPath.Backend, serviceList),
+					ReleaseName:     getIngressReleaseName(ingressPath.Backend, serviceList),
 				})
 		}
 	}
