@@ -145,8 +145,8 @@
     "database",
     "vault"
   ]
-  revision = "78ad1e7ece08f549a669aadc239d2d4e5f0aa9b7"
-  version = "0.1.0"
+  revision = "4916dc88bd1318fdaad31de975a4aa70080e56b1"
+  version = "0.1.1"
 
 [[projects]]
   branch = "master"
@@ -1729,6 +1729,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "b9d8e37e247b13fa458441343b84ef6513bf170f356acc1b5a02195f3d07d321"
+  inputs-digest = "46c08e61759104ab31dc053ade67a0788aed930443e86c5ef7f14106e62e48e0"
   solver-name = "gps-cdcl"
   solver-version = 1
