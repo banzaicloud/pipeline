@@ -43,7 +43,7 @@ func init() {
 
 	viper.SetDefault("pipeline.listenport", 9090)
 	viper.SetDefault("pipeline.uipath", "/ui")
-	viper.SetDefault("pipeline.basepath", "/pipeline")
+	viper.SetDefault("pipeline.basepath", "")
 	viper.SetDefault("database.dialect", "mysql")
 	viper.SetDefault("database.port", 3306)
 	viper.SetDefault("database.host", "localhost")

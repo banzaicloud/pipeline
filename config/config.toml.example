@@ -5,6 +5,9 @@
 
 listenport = 9090
 
+# Url basepath, default is empty
+basepath = ""
+
 # Use to redirect url after login
 uipath = "/account/repos"
 
