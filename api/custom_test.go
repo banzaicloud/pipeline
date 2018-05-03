@@ -356,6 +356,9 @@ var (
 			Status: v1.ServiceStatus{
 				LoadBalancer: v1.LoadBalancerStatus{},
 				},
+				Spec: v1.ServiceSpec{
+					Type: "LoadBalancer",
+				},
 			},
 		},
 		}
@@ -385,6 +388,9 @@ var (
 			Status: v1.ServiceStatus{
 				LoadBalancer: v1.LoadBalancerStatus{},
 			},
+			Spec: v1.ServiceSpec{
+				Type: "LoadBalancer",
+			},
 		},
 			{
 				ObjectMeta: v12.ObjectMeta{
@@ -397,6 +403,9 @@ var (
 						},
 						},
 					},
+				},
+				Spec: v1.ServiceSpec{
+					Type: "LoadBalancer",
 				},
 			},
 		},
