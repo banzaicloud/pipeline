@@ -78,17 +78,17 @@ func ListEndpoints(c *gin.Context) {
 }
 
 func filterIngressList(ingressList *v1beta1.IngressList, releaseName string) *v1beta1.IngressList {
-	if releaseName != "" {
-		filteredIngresses := v1beta1.IngressList{}
-		for _, ingress := range ingressList.Items {
-			if strings.Contains(ingress.Name, releaseName) {
-				filteredIngresses.Items = append(filteredIngresses.Items, ingress)
-			}
-		}
-		return &filteredIngresses
-	} else {
+	if releaseName == "" {
 		return ingressList
 	}
+	filteredIngresses := v1beta1.IngressList{}
+	for _, ingress := range ingressList.Items {
+		if strings.Contains(ingress.Name, releaseName) {
+			filteredIngresses.Items = append(filteredIngresses.Items, ingress)
+		}
+	}
+	return &filteredIngresses
+
 }
 
 func pendingLoadBalancer(serviceList *v1.ServiceList) bool {
