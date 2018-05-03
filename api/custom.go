@@ -61,6 +61,15 @@ func ListEndpoints(c *gin.Context) {
 
 	ingressList = filterIngressList(ingressList, releaseName)
 
+	if ingressList.Items == nil {
+		c.JSON(http.StatusNotFound, htype.ErrorResponse{
+			Code:    http.StatusNotFound,
+			Message: fmt.Sprintf("Releasename: %s not found", releaseName),
+			Error:   fmt.Sprintf("Releasename: %s not found", releaseName),
+		})
+		return
+	}
+
 	if releaseName != "" {
 		if pendingLoadBalancer(serviceList) {
 			c.JSON(http.StatusAccepted, htype.StatusResponse{
@@ -81,7 +90,7 @@ func filterIngressList(ingressList *v1beta1.IngressList, releaseName string) *v1
 	if releaseName == "" {
 		return ingressList
 	}
-	filteredIngresses := v1beta1.IngressList{}
+	var filteredIngresses v1beta1.IngressList
 	for _, ingress := range ingressList.Items {
 		if strings.Contains(ingress.Name, releaseName) {
 			filteredIngresses.Items = append(filteredIngresses.Items, ingress)
