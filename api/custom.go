@@ -11,6 +11,7 @@ import (
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"net/http"
 	"strings"
+	"k8s.io/kubernetes/pkg/apis/core"
 )
 
 // ListEndpoints lists service public endpoints
@@ -36,14 +37,8 @@ func ListEndpoints(c *gin.Context) {
 		})
 		return
 	}
-	listOptions := meta_v1.ListOptions{}
-	if releaseName != "" {
-		listOptions = meta_v1.ListOptions{
-			LabelSelector:        fmt.Sprintf("release=%s", releaseName),
-		}
-	}
 
-	serviceList, err := client.CoreV1().Services("").List(listOptions)
+	serviceList, err := client.CoreV1().Services("").List(meta_v1.ListOptions{})
 	if err != nil {
 		log.Errorf("Error listing services: %s", err.Error())
 		c.JSON(http.StatusNotFound, htype.ErrorResponse{
@@ -63,6 +58,9 @@ func ListEndpoints(c *gin.Context) {
 		})
 		return
 	}
+
+	ingressList = filterIngressList(ingressList, releaseName)
+
 	if releaseName != "" {
 		if pendingLoadBalancer(serviceList) {
 			c.JSON(http.StatusAccepted, htype.StatusResponse{
@@ -79,6 +77,20 @@ func ListEndpoints(c *gin.Context) {
 	})
 }
 
+func filterIngressList(ingressList *v1beta1.IngressList, releaseName string) *v1beta1.IngressList {
+	if releaseName != "" {
+		filteredIngresses := v1beta1.IngressList{}
+		for _, ingress := range ingressList.Items {
+			if strings.Contains(ingress.Name, releaseName) {
+				filteredIngresses.Items = append(filteredIngresses.Items, ingress)
+			}
+		}
+		return &filteredIngresses
+	} else {
+		return ingressList
+	}
+}
+
 func pendingLoadBalancer(serviceList *v1.ServiceList) bool {
 	log := logger.WithFields(logrus.Fields{"tag": "pendingLoadBalancer"})
 	log.Info("Checking loadbalancer status..")
@@ -86,10 +98,12 @@ func pendingLoadBalancer(serviceList *v1.ServiceList) bool {
 	plb := map[string]struct{}{}
 
 	for _, service := range serviceList.Items {
-		if len(service.Status.LoadBalancer.Ingress) > 0 {
-			plb["false"] = struct{}{}
-		} else {
-			plb["true"] = struct{}{}
+		if string(service.Spec.Type) == string(core.ServiceTypeLoadBalancer) {
+			if len(service.Status.LoadBalancer.Ingress) > 0 {
+				plb["false"] = struct{}{}
+			} else {
+				plb["true"] = struct{}{}
+			}
 		}
 	}
 	_, contains := plb["true"]
