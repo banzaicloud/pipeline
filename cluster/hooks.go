@@ -11,6 +11,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 	"time"
+	"fmt"
 )
 
 //RunPostHooks calls posthook functions with created cluster
@@ -143,7 +144,7 @@ func InstallHelmPostHook(cluster CommonCluster) {
 	helmInstall := &htypes.Install{
 		Namespace:      "kube-system",
 		ServiceAccount: "tiller",
-		ImageSpec:      "gcr.io/kubernetes-helm/tiller:v2.7.2",
+		ImageSpec:      fmt.Sprintf("gcr.io/kubernetes-helm/tiller:%s", viper.GetString("helm.tillerVersion")),
 	}
 	kubeconfig, err := cluster.GetK8sConfig()
 	if err != nil {
