@@ -51,6 +51,7 @@ jwtaudience = "https://pipeline.banzaicloud.com"
 [helm]
 retryAttempt = 30
 retrySleepSeconds = 15
+tillerVersion = "v2.9.0"
 
 #helm repo URLs
 stableRepositoryURL = "https://kubernetes-charts.storage.googleapis.com"
