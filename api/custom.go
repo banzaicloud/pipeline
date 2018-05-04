@@ -69,16 +69,19 @@ func ListEndpoints(c *gin.Context) {
 		})
 		return
 	}
+	ownLoadBalancer := deploymentHasOwnLoadBalancer(serviceList, releaseName)
 
-	ingressList = filterIngressList(ingressList, releaseName)
+	if !ownLoadBalancer && releaseName != "" {
+		ingressList = filterIngressList(ingressList, releaseName)
 
-	if ingressList.Items == nil {
-		c.JSON(http.StatusNotFound, htype.ErrorResponse{
-			Code:    http.StatusNotFound,
-			Message: fmt.Sprintf("Releasename: %s does not have public endpoint exposed via ingress", releaseName),
-			Error:   fmt.Sprintf("Releasename: %s does not have public endpoint exposed via ingress", releaseName),
-		})
-		return
+		if ingressList.Items == nil {
+			c.JSON(http.StatusNotFound, htype.ErrorResponse{
+				Code:    http.StatusNotFound,
+				Message: fmt.Sprintf("Releasename: %s does not have public endpoint exposed via ingress", releaseName),
+				Error:   fmt.Sprintf("Releasename: %s does not have public endpoint exposed via ingress", releaseName),
+			})
+			return
+		}
 	}
 
 	if releaseName != "" {
@@ -90,6 +93,11 @@ func ListEndpoints(c *gin.Context) {
 			return
 		}
 	}
+
+	if ownLoadBalancer && releaseName != "" {
+		serviceList = filterServiceList(serviceList, releaseName)
+	}
+
 	endpointList := getLoadBalancersWithIngressPaths(serviceList, ingressList)
 
 	c.JSON(http.StatusOK, htype.EndpointResponse{
@@ -97,10 +105,29 @@ func ListEndpoints(c *gin.Context) {
 	})
 }
 
-func filterIngressList(ingressList *v1beta1.IngressList, releaseName string) *v1beta1.IngressList {
+func deploymentHasOwnLoadBalancer(serviceList *v1.ServiceList, releaseName string) bool {
 	if releaseName == "" {
-		return ingressList
+		return false
 	}
+	for _, service := range  serviceList.Items {
+		if strings.Contains(service.Name, releaseName) && string(service.Spec.Type) == string(core.ServiceTypeLoadBalancer){
+			return true
+		}
+	}
+	return false
+}
+
+func filterServiceList(serviceList *v1.ServiceList, releaseName string) *v1.ServiceList {
+	var filteredService v1.ServiceList
+	for _, service := range serviceList.Items {
+		if strings.Contains(service.Name, releaseName) {
+			filteredService.Items = append(filteredService.Items, service)
+		}
+	}
+	return &filteredService
+}
+
+func filterIngressList(ingressList *v1beta1.IngressList, releaseName string) *v1beta1.IngressList {
 	var filteredIngresses v1beta1.IngressList
 	for _, ingress := range ingressList.Items {
 		if strings.Contains(ingress.Name, releaseName) {
