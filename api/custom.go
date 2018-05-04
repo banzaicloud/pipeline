@@ -26,6 +26,17 @@ func ListEndpoints(c *gin.Context) {
 	if ok != true {
 		return
 	}
+	if releaseName != "" {
+		status, err := helm.GetDeploymentStatus(releaseName, kubeConfig)
+		if err != nil {
+			c.JSON(int(status), htype.ErrorResponse{
+				Code:    int(status),
+				Message: err.Error(),
+				Error:   err.Error(),
+			})
+			return
+		}
+	}
 
 	client, err := helm.GetK8sConnection(kubeConfig)
 	if err != nil {
@@ -64,8 +75,8 @@ func ListEndpoints(c *gin.Context) {
 	if ingressList.Items == nil {
 		c.JSON(http.StatusNotFound, htype.ErrorResponse{
 			Code:    http.StatusNotFound,
-			Message: fmt.Sprintf("Releasename: %s not found", releaseName),
-			Error:   fmt.Sprintf("Releasename: %s not found", releaseName),
+			Message: fmt.Sprintf("Releasename: %s does not have public endpoint exposed via ingress", releaseName),
+			Error:   fmt.Sprintf("Releasename: %s does not have public endpoint exposed via ingress", releaseName),
 		})
 		return
 	}
