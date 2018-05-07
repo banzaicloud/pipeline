@@ -56,10 +56,14 @@ list:
 fmt:
 	@gofmt -w ${GOFILES_NOVENDOR}
 
-.PHONY: check-fmt
 check-fmt:
 	PKGS="${GOFILES_NOVENDOR}" GOFMT="gofmt" ./scripts/fmt-check.sh
 
+check-misspell: install-misspell
+	PKGS="${GOFILES_NOVENDOR}" MISSPELL="misspell" ./scripts/misspell-check.sh
+
+misspell: install-misspell
+	misspell -w ${GOFILES_NOVENDOR}
 
 vet:
 	@go vet -composites=false ./...
@@ -74,4 +78,10 @@ install-golint:
 	GOLINT_CMD=$(shell command -v golint 2> /dev/null)
 ifndef GOLINT_CMD
 	go get github.com/golang/lint/golint
+endif
+
+install-misspell:
+	MISSPELL_CMD=$(shell command -v misspell 2> /dev/null)
+ifndef MISSPELL_CMD
+	go get -u github.com/client9/misspell/cmd/misspell
 endif

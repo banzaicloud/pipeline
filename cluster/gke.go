@@ -1049,6 +1049,10 @@ func storeConfig(c *kubernetesCluster, name string) ([]byte, error) {
 		}
 	}
 
+	var language string
+	language = "hello"
+	println(language)
+
 	var provider authProvider
 	if len(c.AuthProviderName) != 0 || len(c.AuthAccessToken) != 0 {
 		provider = authProvider{

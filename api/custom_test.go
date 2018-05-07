@@ -355,11 +355,11 @@ var (
 			},
 			Status: v1.ServiceStatus{
 				LoadBalancer: v1.LoadBalancerStatus{},
-				},
-				Spec: v1.ServiceSpec{
-					Type: "LoadBalancer",
-				},
 			},
+			Spec: v1.ServiceSpec{
+				Type: "LoadBalancer",
+			},
+		},
 		},
 	}
 

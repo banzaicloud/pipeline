@@ -9,9 +9,9 @@ import (
 	"k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/kubernetes/pkg/apis/core"
 	"net/http"
 	"strings"
-	"k8s.io/kubernetes/pkg/apis/core"
 )
 
 // ListEndpoints lists service public endpoints
@@ -47,12 +47,6 @@ func ListEndpoints(c *gin.Context) {
 			Error:   err.Error(),
 		})
 		return
-	}
-	listOptions := meta_v1.ListOptions{}
-	if releaseName != "" {
-		listOptions = meta_v1.ListOptions{
-			LabelSelector: fmt.Sprintf("release=%s", releaseName),
-		}
 	}
 
 	serviceList, err := client.CoreV1().Services("").List(meta_v1.ListOptions{})
@@ -116,8 +110,8 @@ func deploymentHasOwnLoadBalancer(serviceList *v1.ServiceList, releaseName strin
 	if releaseName == "" {
 		return false
 	}
-	for _, service := range  serviceList.Items {
-		if strings.Contains(service.Name, releaseName) && string(service.Spec.Type) == string(core.ServiceTypeLoadBalancer){
+	for _, service := range serviceList.Items {
+		if strings.Contains(service.Name, releaseName) && string(service.Spec.Type) == string(core.ServiceTypeLoadBalancer) {
 			return true
 		}
 	}

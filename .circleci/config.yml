@@ -36,6 +36,10 @@ jobs:
           command:
               make lint
       - run:
+          name: Run misspell
+          command:
+              make check-misspell
+      - run:
           name: Configure Vault
           command: |
             curl -H "X-Vault-Token: ${VAULT_TOKEN}" -X DELETE ${VAULT_ADDR}/v1/sys/mounts/secret
