@@ -28,6 +28,10 @@ jobs:
           command:
               make vet
       - run:
+          name: Run fmt
+          command:
+              make check-fmt
+      - run:
           name: Run golint
           command:
               make lint

@@ -56,6 +56,11 @@ list:
 fmt:
 	@gofmt -w ${GOFILES_NOVENDOR}
 
+.PHONY: check-fmt
+check-fmt:
+	PKGS="${GOFILES_NOVENDOR}" GOFMT="gofmt" ./scripts/fmt-check.sh
+
+
 vet:
 	@go vet -composites=false ./...
 
