@@ -39,6 +39,7 @@ func init() {
 	log = logger.WithFields(logrus.Fields{"action": "Cluster"})
 }
 
+// SetCredentials sets AWS credentials in session options
 func SetCredentials(awscred *credentials.Credentials) func(*session.Options) error {
 	return func(opts *session.Options) error {
 		opts.Config.Credentials = awscred
@@ -55,10 +56,12 @@ type AWSCluster struct {
 	commonSecret
 }
 
+// GetOrg gets org where the cluster belongs
 func (c *AWSCluster) GetOrg() uint {
 	return c.modelCluster.OrganizationId
 }
 
+// GetSecretID retrieves the secret id
 func (c *AWSCluster) GetSecretID() string {
 	return c.modelCluster.SecretId
 }
@@ -1070,16 +1073,16 @@ func (c *AWSCluster) newEC2Client(region string) (*ec2.EC2, error) {
 		lv = aws.LogOff
 	}
 
-	if sess, err := session.NewSession(&aws.Config{
+	sess, err := session.NewSession(&aws.Config{
 		Credentials: awsCred,
 		Region:      &region,
 		LogLevel:    &lv,
-	}); err != nil {
+	})
+	if err != nil {
 		return nil, err
-	} else {
-		return ec2.New(sess), nil
 	}
 
+	return ec2.New(sess), nil
 }
 
 // UpdateStatus updates cluster status in database

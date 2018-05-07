@@ -1,4 +1,3 @@
-// The DummyCluster mocks create/update/delete functions. For testing and UI mocks.
 package cluster
 
 import (
@@ -108,6 +107,7 @@ func (d *DummyCluster) CheckEqualityToUpdate(r *components.UpdateClusterRequest)
 	return nil
 }
 
+//AddDefaultsToUpdate adds defaults to update request
 func (d *DummyCluster) AddDefaultsToUpdate(r *components.UpdateClusterRequest) {
 
 }
@@ -133,6 +133,7 @@ func (d *DummyCluster) GetSecretID() string {
 	return d.modelCluster.SecretId
 }
 
+// createDummyConfig creates a (dummy) kubeconfig
 func createDummyConfig() *kubeConfig {
 	return &kubeConfig{
 		APIVersion: "v1",
@@ -198,10 +199,12 @@ func CreateDummyClusterFromModel(clusterModel *model.ClusterModel) (*DummyCluste
 	return &dummyCluster, nil
 }
 
+// UpdateStatus updates cluster status in database
 func (d *DummyCluster) UpdateStatus(status, statusMessage string) error {
 	return d.modelCluster.UpdateStatus(status, statusMessage)
 }
 
+// GetClusterDetails gets cluster details from cloud
 func (d *DummyCluster) GetClusterDetails() (*components.ClusterDetailsResponse, error) {
 	status, err := d.GetStatus()
 	if err != nil {

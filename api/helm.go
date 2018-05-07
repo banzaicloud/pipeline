@@ -15,6 +15,7 @@ import (
 	"net/http"
 )
 
+// ChartQuery describes a query to get available helm chart's list
 type ChartQuery struct {
 	Name    string `form:"name"`
 	Repo    string `form:"repo"`

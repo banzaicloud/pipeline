@@ -70,6 +70,7 @@ func IsDifferent(x interface{}, y interface{}) error {
 	return nil
 }
 
+// ConvertJson2Map converts []byte to map[string]string
 func ConvertJson2Map(js []byte) (map[string]string, error) {
 	var result map[string]string
 	err := json.Unmarshal(js, &result)

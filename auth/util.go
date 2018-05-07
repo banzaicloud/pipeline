@@ -54,7 +54,7 @@ func DelCookie(w http.ResponseWriter, r *http.Request, name string) {
 	http.SetCookie(w, &cookie)
 }
 
-// Translates GORM errors to HTTP status codes
+// GormErrorToStatusCode translates GORM errors to HTTP status codes
 func GormErrorToStatusCode(err error) int {
 	if err == gorm.ErrRecordNotFound {
 		return http.StatusNotFound

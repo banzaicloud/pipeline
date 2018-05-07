@@ -64,7 +64,7 @@ type AllowedFilteredSecretTypesResponse struct {
 	Keys []string `json:"keys"`
 }
 
-// AllowedFilteredSecretTypesResponse for API response for AllowedSecretTypes
+// AllowedSecretTypesResponse for API response for AllowedSecretTypes
 type AllowedSecretTypesResponse struct {
 	Allowed map[string][]string `json:"allowed"`
 }
@@ -272,6 +272,7 @@ func (s *SecretsItemResponse) GetValue(key string) string {
 	return s.Values[key]
 }
 
+// ValidateSecretType validates the secret type
 func (s *SecretsItemResponse) ValidateSecretType(validType string) error {
 	if s.SecretType != validType {
 		return MissmatchError{
@@ -282,6 +283,7 @@ func (s *SecretsItemResponse) ValidateSecretType(validType string) error {
 	return nil
 }
 
+// MissmatchError describe a secret error where the given and expected secret type is not equal
 type MissmatchError struct {
 	Err        error
 	SecretType string

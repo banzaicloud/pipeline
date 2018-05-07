@@ -103,9 +103,9 @@ const (
 
 var (
 	fullRequestGKE = &components.ClusterProfileRequest{
-		Name:             name,
-		Location:         location,
-		Cloud:            constants.Google,
+		Name:     name,
+		Location: location,
+		Cloud:    constants.Google,
 		Properties: struct {
 			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
@@ -149,9 +149,9 @@ var (
 	}
 
 	fullRequestAWS = &components.ClusterProfileRequest{
-		Name:             name,
-		Location:         location,
-		Cloud:            constants.Amazon,
+		Name:     name,
+		Location: location,
+		Cloud:    constants.Amazon,
 		Properties: struct {
 			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
@@ -222,9 +222,9 @@ var (
 
 var (
 	masterRequestGKE = &components.ClusterProfileRequest{
-		Name:             name,
-		Location:         location,
-		Cloud:            constants.Google,
+		Name:     name,
+		Location: location,
+		Cloud:    constants.Google,
 		Properties: struct {
 			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
@@ -239,9 +239,9 @@ var (
 	}
 
 	masterRequestAWS = &components.ClusterProfileRequest{
-		Name:             name,
-		Location:         location,
-		Cloud:            constants.Amazon,
+		Name:     name,
+		Location: location,
+		Cloud:    constants.Amazon,
 		Properties: struct {
 			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
@@ -272,9 +272,9 @@ var (
 
 var (
 	nodeRequestGKE = &components.ClusterProfileRequest{
-		Name:             name,
-		Location:         location,
-		Cloud:            constants.Google,
+		Name:     name,
+		Location: location,
+		Cloud:    constants.Google,
 		Properties: struct {
 			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
@@ -293,9 +293,9 @@ var (
 	}
 
 	nodeRequestAWS = &components.ClusterProfileRequest{
-		Name:             name,
-		Location:         location,
-		Cloud:            constants.Amazon,
+		Name:     name,
+		Location: location,
+		Cloud:    constants.Amazon,
 		Properties: struct {
 			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
@@ -346,21 +346,21 @@ var (
 
 var (
 	emptyRequestGKE = &components.ClusterProfileRequest{
-		Name:             name,
-		Location:         location,
-		Cloud:            constants.Google,
+		Name:     name,
+		Location: location,
+		Cloud:    constants.Google,
 	}
 
 	emptyRequestAKS = &components.ClusterProfileRequest{
-		Name:             name,
-		Location:         location,
-		Cloud:            constants.Azure,
+		Name:     name,
+		Location: location,
+		Cloud:    constants.Azure,
 	}
 
 	emptyRequestAWS = &components.ClusterProfileRequest{
-		Name:             name,
-		Location:         location,
-		Cloud:            constants.Amazon,
+		Name:     name,
+		Location: location,
+		Cloud:    constants.Amazon,
 	}
 
 	emptyGKE = defaults.GKEProfile{

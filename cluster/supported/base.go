@@ -11,6 +11,7 @@ var logger *logrus.Logger
 var log *logrus.Entry
 
 var (
+	// Keywords are the supported filter words
 	Keywords = []string{
 		constants.KeyWordLocation,
 		constants.KeyWordInstanceType,
@@ -36,7 +37,7 @@ type CloudInfoProvider interface {
 	GetImages(*components.ImageFilter) (map[string][]string, error)
 }
 
-// Base fields for cloud info types
+// BaseFields for cloud info types
 type BaseFields struct {
 	OrgId    uint
 	SecretId string

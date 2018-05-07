@@ -18,7 +18,7 @@ func TestIsValidSecretType(t *testing.T) {
 		{name: "Amazon secret type", secretType: btypes.Amazon, error: nil},
 		{name: "Azure secret type", secretType: btypes.Azure, error: nil},
 		{name: "Google secret type", secretType: btypes.Google, error: nil},
-		{name: "not supported secret type", secretType: invalidSecretType, error: api.NotSupportedSecretType},
+		{name: "not supported secret type", secretType: invalidSecretType, error: api.ErrNotSupportedSecretType},
 	}
 
 	for _, tc := range cases {
@@ -44,7 +44,7 @@ func TestListAllowedSecretTypes(t *testing.T) {
 		{name: "List aws required keys", secretType: btypes.Amazon, expectedResponse: awsRequiredKeys, error: nil},
 		{name: "List aks required keys", secretType: btypes.Azure, expectedResponse: aksRequiredKeys, error: nil},
 		{name: "List gke required keys", secretType: btypes.Google, expectedResponse: gkeRequiredKeys, error: nil},
-		{name: "Invalid secret type", secretType: invalidSecretType, expectedResponse: nil, error: api.NotSupportedSecretType},
+		{name: "Invalid secret type", secretType: invalidSecretType, expectedResponse: nil, error: api.ErrNotSupportedSecretType},
 	}
 
 	for _, tc := range cases {

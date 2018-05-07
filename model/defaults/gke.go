@@ -33,6 +33,7 @@ func (GKEProfile) TableName() string {
 	return DefaultGoogleProfileTablaName
 }
 
+// TableName overrides GKENodePoolProfile's table name
 func (GKENodePoolProfile) TableName() string {
 	return DefaultGoogleNodePoolProfileTablaName
 }

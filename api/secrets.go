@@ -15,7 +15,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var NotSupportedSecretType = errors.New("Not supported secret type")
+// ErrNotSupportedSecretType describe an error if the secret type is not supported
+var ErrNotSupportedSecretType = errors.New("Not supported secret type")
 
 // AddSecrets saves the given secret to vault
 func AddSecrets(c *gin.Context) {
@@ -198,7 +199,7 @@ func IsValidSecretType(secretType string) error {
 	if len(secretType) != 0 {
 		r := secret.DefaultRules[secretType]
 		if r == nil {
-			return NotSupportedSecretType
+			return ErrNotSupportedSecretType
 		}
 	}
 	return nil
@@ -212,19 +213,20 @@ func checkClustersBeforeDelete(orgId, secretId string) error {
 		"secret_id":       secretId,
 	}
 
-	if modelCluster, err := model.QueryCluster(filter); err != nil {
+	modelCluster, err := model.QueryCluster(filter)
+	if err != nil {
 		log.Infof("No cluster found in database with the given orgId[%s] and secretId[%s]", orgId, secretId)
 		return nil
-	} else {
-		for _, mc := range modelCluster {
-			if commonCluster, err := cluster.GetCommonClusterFromModel(&mc); err == nil {
-				if _, err := commonCluster.GetStatus(); err == nil {
-					return fmt.Errorf("there's a running cluster with this secret: %s[%d]", mc.Name, mc.ID)
-				}
+	}
+
+	for _, mc := range modelCluster {
+		if commonCluster, err := cluster.GetCommonClusterFromModel(&mc); err == nil {
+			if _, err := commonCluster.GetStatus(); err == nil {
+				return fmt.Errorf("there's a running cluster with this secret: %s[%d]", mc.Name, mc.ID)
 			}
 		}
-		return nil
 	}
+	return nil
 }
 
 // encodeStringToBase64 first checks if the string is encoded if yes returns it if no than encodes it.

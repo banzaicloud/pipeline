@@ -129,10 +129,11 @@ func GetCloudInfo(c *gin.Context) {
 // processCloudInfo returns the cloud info with the supported fields
 func processCloudInfo(cloudType string, r *components.CloudInfoRequest) (*components.GetCloudInfoResponse, error) {
 	log.Info("Create cloud info model")
-	if m, err := supported.GetCloudInfoModel(cloudType, r); err != nil {
+	m, err := supported.GetCloudInfoModel(cloudType, r)
+	if err != nil {
 		return nil, err
-	} else {
-		log.Info("Process filtering")
-		return supported.ProcessFilter(m, r)
 	}
+
+	log.Info("Process filtering")
+	return supported.ProcessFilter(m, r)
 }

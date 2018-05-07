@@ -10,7 +10,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// CreateKubeClusterFromRequest creates ClusterModel struct from the request
+// CreateKubernetesClusterFromRequest creates ClusterModel struct from the request
 func CreateKubernetesClusterFromRequest(request *components.CreateClusterRequest, orgId uint) (*KubeCluster, error) {
 
 	log := logger.WithFields(logrus.Fields{"action": constants.TagCreateCluster})
@@ -107,10 +107,6 @@ func (b *KubeCluster) UpdateCluster(*components.UpdateClusterRequest) error {
 	return nil
 }
 
-func (b *KubeCluster) UpdateClusterModelFromRequest(*components.UpdateClusterRequest) {
-	// BYOC not supports update cluster
-}
-
 // GetID returns the specified cluster id
 func (b *KubeCluster) GetID() uint {
 	return b.modelCluster.ID
@@ -179,10 +175,12 @@ func CreateKubernetesClusterFromModel(clusterModel *model.ClusterModel) (*KubeCl
 	return &kubeCluster, nil
 }
 
+// UpdateStatus updates cluster status in database
 func (b *KubeCluster) UpdateStatus(status, statusMessage string) error {
 	return b.modelCluster.UpdateStatus(status, statusMessage)
 }
 
+// GetClusterDetails gets cluster details from cloud
 func (b *KubeCluster) GetClusterDetails() (*components.ClusterDetailsResponse, error) {
 	status, err := b.GetStatus()
 	if err != nil {

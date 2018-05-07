@@ -48,6 +48,12 @@ func ListEndpoints(c *gin.Context) {
 		})
 		return
 	}
+	listOptions := meta_v1.ListOptions{}
+	if releaseName != "" {
+		listOptions = meta_v1.ListOptions{
+			LabelSelector: fmt.Sprintf("release=%s", releaseName),
+		}
+	}
 
 	serviceList, err := client.CoreV1().Services("").List(meta_v1.ListOptions{})
 	if err != nil {
@@ -221,9 +227,9 @@ func getIngressEndpoints(loadBalancerPublicHost string, ingress *v1beta1.Ingress
 			}
 			endpointUrls = append(endpointUrls,
 				htype.EndPointURLs{
-					Path:            fmt.Sprintf("/%s", strings.Trim(path, "/")),
-					URL:             fmt.Sprint("http://", loadBalancerPublicHost, path),
-					ReleaseName:     getIngressReleaseName(ingressPath.Backend, serviceList),
+					Path:        fmt.Sprintf("/%s", strings.Trim(path, "/")),
+					URL:         fmt.Sprint("http://", loadBalancerPublicHost, path),
+					ReleaseName: getIngressReleaseName(ingressPath.Backend, serviceList),
 				})
 		}
 	}

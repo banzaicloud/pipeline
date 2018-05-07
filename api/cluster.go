@@ -35,6 +35,7 @@ func ParseField(c *gin.Context) map[string]interface{} {
 	return map[string]interface{}{field: value}
 }
 
+// UpdateMonitoring updating prometheus
 func UpdateMonitoring(c *gin.Context) {
 	cluster.UpdatePrometheus()
 	c.String(http.StatusOK, "OK")
@@ -324,6 +325,7 @@ func GetClusterConfig(c *gin.Context) {
 	return
 }
 
+// GetApiEndpoint returns the Kubernetes Api endpoint
 func GetApiEndpoint(c *gin.Context) {
 
 	log := logger.WithFields(logrus.Fields{"tag": "GetApiEndpoint"})
