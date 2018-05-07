@@ -7,6 +7,7 @@ import (
 	"net/http"
 )
 
+// RedirectRoot sets redirect
 func RedirectRoot(c *gin.Context) {
 	currentUser := auth.Auth.GetCurrentUser(c.Request)
 	if currentUser != nil {

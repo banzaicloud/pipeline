@@ -6,6 +6,7 @@ import (
 	"github.com/banzaicloud/pipeline/cluster"
 )
 
+// GoogleInfo describes GKE with supported info
 type GoogleInfo struct {
 	BaseFields
 }
@@ -28,7 +29,7 @@ func (g *GoogleInfo) GetLocations() ([]string, error) {
 	return cluster.GetZones(g.OrgId, g.SecretId)
 }
 
-// GetLocations returns supported machine types
+// GetMachineTypes returns supported machine types
 func (g *GoogleInfo) GetMachineTypes() (map[string]components.MachineType, error) {
 	if len(g.SecretId) == 0 {
 		return nil, constants.ErrorRequiredSecretId
@@ -64,6 +65,7 @@ func (g *GoogleInfo) GetKubernetesVersion(filter *components.KubernetesFilter) (
 	return cluster.GetGkeServerConfig(g.OrgId, g.SecretId, filter.Location)
 }
 
+// GetImages returns with the supported images (in case of GKE is undefined)
 func (g *GoogleInfo) GetImages(filter *components.ImageFilter) (map[string][]string, error) {
 	return nil, nil
 }

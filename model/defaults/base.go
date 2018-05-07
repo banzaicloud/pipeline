@@ -25,6 +25,7 @@ const (
 	DefaultGoogleNodePoolProfileTablaName = "google_nodepool_default_profile"
 )
 
+// default node name for all provider
 const (
 	DefaultNodeName = "pool1"
 )

@@ -9,9 +9,9 @@ import (
 	"k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/kubernetes/pkg/apis/core"
 	"net/http"
 	"strings"
-	"k8s.io/kubernetes/pkg/apis/core"
 )
 
 // ListEndpoints lists service public endpoints
@@ -110,8 +110,8 @@ func deploymentHasOwnLoadBalancer(serviceList *v1.ServiceList, releaseName strin
 	if releaseName == "" {
 		return false
 	}
-	for _, service := range  serviceList.Items {
-		if strings.Contains(service.Name, releaseName) && string(service.Spec.Type) == string(core.ServiceTypeLoadBalancer){
+	for _, service := range serviceList.Items {
+		if strings.Contains(service.Name, releaseName) && string(service.Spec.Type) == string(core.ServiceTypeLoadBalancer) {
 			return true
 		}
 	}
@@ -221,9 +221,9 @@ func getIngressEndpoints(loadBalancerPublicHost string, ingress *v1beta1.Ingress
 			}
 			endpointUrls = append(endpointUrls,
 				htype.EndPointURLs{
-					Path:            fmt.Sprintf("/%s", strings.Trim(path, "/")),
-					URL:             fmt.Sprint("http://", loadBalancerPublicHost, path),
-					ReleaseName:     getIngressReleaseName(ingressPath.Backend, serviceList),
+					Path:        fmt.Sprintf("/%s", strings.Trim(path, "/")),
+					URL:         fmt.Sprint("http://", loadBalancerPublicHost, path),
+					ReleaseName: getIngressReleaseName(ingressPath.Backend, serviceList),
 				})
 		}
 	}

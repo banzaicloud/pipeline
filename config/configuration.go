@@ -96,11 +96,12 @@ func GetCORS() cors.Config {
 	return config
 }
 
+// GetStateStorePath returns the state store path
 func GetStateStorePath(clusterName string) string {
 	stateStorePath := viper.GetString("statestore.path")
 	if len(clusterName) == 0 {
 		return stateStorePath
-	} else {
-		return fmt.Sprintf("%s/%s", stateStorePath, clusterName)
 	}
+
+	return fmt.Sprintf("%s/%s", stateStorePath, clusterName)
 }

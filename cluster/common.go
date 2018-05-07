@@ -235,6 +235,7 @@ func getSigner(pemBytes []byte) (ssh.Signer, error) {
 	return signerwithoutpassphrase, err
 }
 
+// CleanStateStore deletes state store folder by cluster name
 func CleanStateStore(clusterName string) error {
 	stateStorePath := config.GetStateStorePath(clusterName)
 	return os.RemoveAll(stateStorePath)

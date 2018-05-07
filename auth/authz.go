@@ -40,7 +40,7 @@ func NewAuthorizer() gin.HandlerFunc {
 	model := casbin.NewModel(modelDefinition)
 	enforcer = casbin.NewSyncedEnforcer(model, adapter, logging)
 	enforcer.StartAutoLoadPolicy(10 * time.Second)
-	AddDefaultPolicies()
+	addDefaultPolicies()
 	return newAuthorizer(enforcer)
 }
 
@@ -81,17 +81,19 @@ func (a *BearerAuthorizer) RequirePermission(c *gin.Context) {
 	c.AbortWithStatus(http.StatusForbidden)
 }
 
-func AddDefaultPolicies() {
+func addDefaultPolicies() {
 	basePath := viper.GetString("pipeline.basepath")
 	enforcer.AddPolicy("default", basePath+"/api/v1/orgs", "*")
 	enforcer.AddPolicy("default", basePath+"/api/v1/token", "*") // DEPRECATED
 	enforcer.AddPolicy("default", basePath+"/api/v1/tokens", "*")
 }
 
-func AddDefaultPolicyToUser(userID uint) {
+// AddDefaultRoleForUser adds all the default non-org-specific role to a user.
+func AddDefaultRoleForUser(userID uint) {
 	enforcer.AddRoleForUser(fmt.Sprint(userID), "default")
 }
 
+// AddOrgRoles creates an organization role, by adding the default (*) org policies for the given organization.
 func AddOrgRoles(orgids ...uint) {
 	basePath := viper.GetString("pipeline.basepath")
 	for _, orgid := range orgids {
@@ -100,13 +102,15 @@ func AddOrgRoles(orgids ...uint) {
 	}
 }
 
-func AddOrgRoleToUser(userID uint, orgids ...uint) {
+// AddOrgRoleForUser adds a user to an organization by adding the associated organization role.
+func AddOrgRoleForUser(userID uint, orgids ...uint) {
 	for _, orgid := range orgids {
 		enforcer.AddRoleForUser(fmt.Sprint(userID), orgRoleName(orgid))
 	}
 }
 
-func DeleteOrgRoleFromUser(userID uint, orgid uint) {
+// DeleteOrgRoleForUser removes a user from an organization by removing the associated organization role.
+func DeleteOrgRoleForUser(userID uint, orgid uint) {
 	enforcer.DeleteRoleForUser(fmt.Sprint(userID), orgRoleName(orgid))
 }
 

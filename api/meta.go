@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// MetaHandler lists routes
 func MetaHandler(router *gin.Engine, subpath string) gin.HandlerFunc {
 	routes := []string{}
 	for _, route := range router.Routes() {

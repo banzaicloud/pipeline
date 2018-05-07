@@ -31,6 +31,7 @@ import (
 var logger *logrus.Logger
 var log *logrus.Entry
 
+// ErrRepoNotFound describe an error if helm repository not found
 var ErrRepoNotFound = errors.New("helm repository not found!")
 
 // Simple init for logging
@@ -351,6 +352,7 @@ func mergeValues(dest map[string]interface{}, src map[string]interface{}) map[st
 	return dest
 }
 
+// ReposGet returns repo
 func ReposGet(clusterName string) ([]*repo.Entry, error) {
 	repoPath := fmt.Sprintf("%s/repository/repositories.yaml", generateHelmRepoPath(clusterName))
 	log.Debug("Helm repo path:", repoPath)
@@ -366,6 +368,7 @@ func ReposGet(clusterName string) ([]*repo.Entry, error) {
 	return f.Repositories, nil
 }
 
+// ReposAdd adds repo(s)
 func ReposAdd(clusterName string, Hrepo *repo.Entry) error {
 
 	settings := createEnvSettings(generateHelmRepoPath(clusterName))
@@ -411,6 +414,7 @@ func ReposAdd(clusterName string, Hrepo *repo.Entry) error {
 	return nil
 }
 
+// ReposDelete deletes repo(s)
 func ReposDelete(clusterName, repoName string) error {
 	repoPath := generateHelmRepoPath(clusterName)
 	settings := createEnvSettings(repoPath)
@@ -439,6 +443,7 @@ func ReposDelete(clusterName, repoName string) error {
 
 }
 
+// ReposModify modifies repo(s)
 func ReposModify(clusterName, repoName string, newRepo *repo.Entry) error {
 	log.Debug("ReposModify")
 	repoPath := generateHelmRepoPath(clusterName)
@@ -464,6 +469,7 @@ func ReposModify(clusterName, repoName string, newRepo *repo.Entry) error {
 	return nil
 }
 
+// ReposUpdate updates a repo(s)
 func ReposUpdate(clusterName, repoName string) error {
 	repoPath := generateHelmRepoPath(clusterName)
 	settings := createEnvSettings(repoPath)
@@ -494,11 +500,13 @@ func ReposUpdate(clusterName, repoName string) error {
 	return ErrRepoNotFound
 }
 
+// ChartList describe a chart list
 type ChartList struct {
 	Name   string               `json:"name"`
 	Charts []repo.ChartVersions `json:"charts"`
 }
 
+// ChartsGet returns chart list
 func ChartsGet(clusterName, queryName, queryRepo, queryVersion, queryKeyword string) ([]ChartList, error) {
 
 	repoPath := fmt.Sprintf("%s/repository/repositories.yaml", generateHelmRepoPath(clusterName))
@@ -552,10 +560,12 @@ func ChartsGet(clusterName, queryName, queryRepo, queryVersion, queryKeyword str
 	return cl, nil
 }
 
+// SpotGuideFile describes a spotguide file with the options
 type SpotGuideFile struct {
 	Options []SpotguideOptions `json:"options"`
 }
 
+// SpotguideOptions describes a spotguide options
 type SpotguideOptions struct {
 	Name    string `json:"name"`
 	Type    string `json:"type"`
@@ -564,6 +574,7 @@ type SpotguideOptions struct {
 	Key     string `json:"key"`
 }
 
+// ChartDetails describes a chart details
 type ChartDetails struct {
 	Name    string             `json:"name"`
 	Repo    string             `json:"repo"`
@@ -573,6 +584,7 @@ type ChartDetails struct {
 	Options []SpotguideOptions `json:"options"`
 }
 
+// ChartGet returns chart details
 func ChartGet(clusterName, chartRepo, chartName, chartVersion string) (*ChartDetails, error) {
 
 	repoPath := fmt.Sprintf("%s/repository/repositories.yaml", generateHelmRepoPath(clusterName))

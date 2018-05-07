@@ -56,10 +56,12 @@ type AKSCluster struct {
 	commonSecret
 }
 
+// GetOrg gets org where the cluster belongs
 func (c *AKSCluster) GetOrg() uint {
 	return c.modelCluster.OrganizationId
 }
 
+// GetAKSClient creates an AKS client with the credentials
 func (c *AKSCluster) GetAKSClient() (*azureClient.AKSClient, error) {
 	clusterSecret, err := c.GetSecretWithValidation()
 	if err != nil {
@@ -78,6 +80,7 @@ func (c *AKSCluster) GetAKSClient() (*azureClient.AKSClient, error) {
 	return client, nil
 }
 
+// GetSecretID retrieves the secret id
 func (c *AKSCluster) GetSecretID() string {
 	return c.modelCluster.SecretId
 }
@@ -367,6 +370,7 @@ func (c *AKSCluster) GetModel() *model.ClusterModel {
 	return c.modelCluster
 }
 
+// GetAzureCluster returns cluster from cloud
 func (c *AKSCluster) GetAzureCluster() (*banzaiAzureTypes.Value, error) {
 	client, err := c.GetAKSClient()
 	if err != nil {

@@ -22,6 +22,7 @@ import (
 )
 
 const (
+	// CurrentOrganization current organization key
 	CurrentOrganization utils.ContextKey = "org"
 )
 
@@ -52,6 +53,7 @@ type DroneUser struct {
 	Synced int64  `gorm:"column:user_synced"`
 }
 
+// UserOrganization describes the user organization
 type UserOrganization struct {
 	UserID         uint
 	OrganizationID uint
@@ -85,6 +87,7 @@ func (DroneUser) TableName() string {
 	return "users"
 }
 
+// GetCurrentUser returns the current user
 func GetCurrentUser(req *http.Request) *User {
 	if currentUser, ok := Auth.GetCurrentUser(req).(*User); ok {
 		return currentUser
@@ -92,6 +95,7 @@ func GetCurrentUser(req *http.Request) *User {
 	return nil
 }
 
+// GetCurrentOrganization return the user's organization
 func GetCurrentOrganization(req *http.Request) *Organization {
 	if organization := req.Context().Value(CurrentOrganization); organization != nil {
 		return organization.(*Organization)
@@ -99,6 +103,7 @@ func GetCurrentOrganization(req *http.Request) *Organization {
 	return nil
 }
 
+// GetCurrentUserFromDB returns the current user from the database
 func GetCurrentUserFromDB(req *http.Request) (*User, error) {
 	if currentUser, ok := Auth.GetCurrentUser(req).(*User); ok {
 		claims := &claims.Claims{UserID: currentUser.IDString()}
@@ -149,7 +154,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 		return nil, "", err
 	}
 
-	AddDefaultPolicyToUser(currentUser.ID)
+	AddDefaultRoleForUser(currentUser.ID)
 
 	githubOrgIDs, err := importGithubOrganizations(currentUser, context, githubExtraInfo.Token)
 
@@ -157,7 +162,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 		orgids := []uint{currentUser.Organizations[0].ID}
 		orgids = append(orgids, githubOrgIDs...)
 		AddOrgRoles(orgids...)
-		AddOrgRoleToUser(currentUser.ID, orgids...)
+		AddOrgRoleForUser(currentUser.ID, orgids...)
 	}
 
 	return currentUser, fmt.Sprint(db.NewScope(currentUser).PrimaryKeyValue()), err

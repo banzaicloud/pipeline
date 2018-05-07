@@ -26,6 +26,7 @@ func initDatabase() {
 	db = ConnectDB(dbName)
 }
 
+// GetDataSource returns with datasource by database name
 func GetDataSource(dbName string) string {
 	log := logger.WithFields(logrus.Fields{"action": "GetDataSource"})
 	host := viper.GetString("database.host")
@@ -47,6 +48,7 @@ func GetDataSource(dbName string) string {
 	return dataSource
 }
 
+// ConnectDB connects to GORM
 func ConnectDB(dbName string) *gorm.DB {
 	log := logger.WithFields(logrus.Fields{"action": "ConnectDB"})
 	dataSource := GetDataSource(dbName)

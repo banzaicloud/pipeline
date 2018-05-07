@@ -355,13 +355,13 @@ var (
 			},
 			Status: v1.ServiceStatus{
 				LoadBalancer: v1.LoadBalancerStatus{},
-				},
-				Spec: v1.ServiceSpec{
-					Type: "LoadBalancer",
-				},
+			},
+			Spec: v1.ServiceSpec{
+				Type: "LoadBalancer",
 			},
 		},
-		}
+		},
+	}
 
 	serviceListReadyLoadBalancer = &v1.ServiceList{
 		Items: []v1.Service{{
@@ -414,9 +414,9 @@ var (
 
 func TestPendingLoadBalancer(t *testing.T) {
 	cases := []struct {
-		testName					string
-		inputServiceList	*v1.ServiceList
-		expectedResult		bool
+		testName         string
+		inputServiceList *v1.ServiceList
+		expectedResult   bool
 	}{
 		{testName: "PendingLoadBalancer", inputServiceList: serviceListWithPendingLoadBalancer, expectedResult: true},
 		{testName: "ReadyLoadBalancer", inputServiceList: serviceListReadyLoadBalancer, expectedResult: false},

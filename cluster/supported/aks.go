@@ -6,6 +6,7 @@ import (
 	"github.com/banzaicloud/pipeline/cluster"
 )
 
+// AzureInfo describes AKS with supported info
 type AzureInfo struct {
 	BaseFields
 }
@@ -50,6 +51,7 @@ func (a *AzureInfo) GetKubernetesVersion(filter *components.KubernetesFilter) (i
 	return cluster.GetKubernetesVersion(a.OrgId, a.SecretId, filter.Location)
 }
 
+// GetImages returns with the supported images (in case of AKS is undefined)
 func (a *AzureInfo) GetImages(filter *components.ImageFilter) (map[string][]string, error) {
 	return nil, nil
 }

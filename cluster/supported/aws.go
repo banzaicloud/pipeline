@@ -6,6 +6,7 @@ import (
 	"github.com/banzaicloud/pipeline/cluster"
 )
 
+// AmazonInfo describes AWS with supported info
 type AmazonInfo struct {
 	BaseFields
 }
@@ -29,15 +30,16 @@ func (a *AmazonInfo) GetLocations() ([]string, error) {
 		return nil, constants.ErrorRequiredSecretId
 	}
 
-	if regions, err := cluster.ListRegions(a.OrgId, a.SecretId, defaultRegion); err != nil {
+	regions, err := cluster.ListRegions(a.OrgId, a.SecretId, defaultRegion)
+	if err != nil {
 		return nil, err
-	} else {
-		var locations []string
-		for _, region := range regions {
-			locations = append(locations, *region.RegionName)
-		}
-		return locations, nil
 	}
+
+	var locations []string
+	for _, region := range regions {
+		locations = append(locations, *region.RegionName)
+	}
+	return locations, nil
 }
 
 // GetMachineTypes returns supported machine types

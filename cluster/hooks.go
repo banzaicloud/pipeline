@@ -1,6 +1,7 @@
 package cluster
 
 import (
+	"fmt"
 	htypes "github.com/banzaicloud/banzai-types/components/helm"
 	"github.com/banzaicloud/banzai-types/constants"
 	pipConfig "github.com/banzaicloud/pipeline/config"
@@ -11,7 +12,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 	"time"
-	"fmt"
 )
 
 //RunPostHooks calls posthook functions with created cluster

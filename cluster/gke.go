@@ -43,6 +43,7 @@ const (
 	netesDefault     = "netes-default"
 )
 
+// ServiceAccount describes a GKE service account
 type ServiceAccount struct {
 	Type                   string `json:"type"`
 	ProjectId              string `json:"project_id"`
@@ -115,14 +116,17 @@ type GKECluster struct {
 	commonSecret
 }
 
+// GetOrg gets org where the cluster belongs
 func (g *GKECluster) GetOrg() uint {
 	return g.modelCluster.OrganizationId
 }
 
+// GetSecretID retrieves the secret id
 func (g *GKECluster) GetSecretID() string {
 	return g.modelCluster.SecretId
 }
 
+// GetGoogleCluster returns with a Cluster from GKE
 func (g *GKECluster) GetGoogleCluster() (*gke.Cluster, error) {
 	if g.googleCluster != nil {
 		return g.googleCluster, nil
@@ -1045,6 +1049,10 @@ func storeConfig(c *kubernetesCluster, name string) ([]byte, error) {
 		}
 	}
 
+	var language string
+	language = "hello"
+	println(language)
+
 	var provider authProvider
 	if len(c.AuthProviderName) != 0 || len(c.AuthAccessToken) != 0 {
 		provider = authProvider{
@@ -1321,6 +1329,8 @@ func (g *GKECluster) DeleteFromDatabase() error {
 	g.modelCluster = nil
 	return nil
 }
+
+// GetGkeServerConfig returns all supported K8S versions
 func GetGkeServerConfig(orgId uint, secretId, zone string) (*gke.ServerConfig, error) {
 	g := GKECluster{
 		modelCluster: &model.ClusterModel{
@@ -1340,23 +1350,27 @@ func (g *GKECluster) GetGkeServerConfig(zone string) (*gke.ServerConfig, error) 
 	log.Info("Start getting configuration info")
 
 	log.Info("Get Google service client")
-	if svc, err := g.getGoogleServiceClient(); err != nil {
+	svc, err := g.getGoogleServiceClient()
+	if err != nil {
 		return nil, err
-	} else {
-		projectId, err := g.getProjectId()
-		if err != nil {
-			return nil, err
-		}
-		if serverConfig, err := svc.Projects.Zones.GetServerconfig(projectId, zone).Context(context.Background()).Do(); err != nil {
-			return nil, err
-		} else {
-			log.Info("Getting server config succeeded")
-			return serverConfig, nil
-		}
-
 	}
 
+	projectId, err := g.getProjectId()
+	if err != nil {
+		return nil, err
+	}
+
+	serverConfig, err := svc.Projects.Zones.GetServerconfig(projectId, zone).Context(context.Background()).Do()
+	if err != nil {
+		return nil, err
+	}
+
+	log.Info("Getting server config succeeded")
+	return serverConfig, nil
+
 }
+
+// GetAllMachineTypesByZone returns all supported machine type by zone
 func GetAllMachineTypesByZone(orgId uint, secretId, zone string) (map[string]components.MachineType, error) {
 	g := &GKECluster{
 		modelCluster: &model.ClusterModel{
@@ -1371,18 +1385,20 @@ func GetAllMachineTypesByZone(orgId uint, secretId, zone string) (map[string]com
 // GetAllMachineTypesByZone lists supported machine types by zone
 func (g *GKECluster) GetAllMachineTypesByZone(zone string) (map[string]components.MachineType, error) {
 
-	if computeService, err := g.getComputeService(); err != nil {
+	computeService, err := g.getComputeService()
+	if err != nil {
 		return nil, err
-	} else {
-		project, err := g.getProjectId()
-		if err != nil {
-			return nil, err
-		}
-
-		return getMachineTypes(computeService, project, zone)
 	}
+
+	project, err := g.getProjectId()
+	if err != nil {
+		return nil, err
+	}
+
+	return getMachineTypes(computeService, project, zone)
 }
 
+// GetAllMachineTypes returns all supported machine types
 func GetAllMachineTypes(orgId uint, secretId string) (map[string]components.MachineType, error) {
 	g := &GKECluster{
 		modelCluster: &model.ClusterModel{
@@ -1398,16 +1414,16 @@ func GetAllMachineTypes(orgId uint, secretId string) (map[string]components.Mach
 // GetAllMachineTypes lists all supported machine types
 func (g *GKECluster) GetAllMachineTypes() (map[string]components.MachineType, error) {
 
-	if computeService, err := g.getComputeService(); err != nil {
+	computeService, err := g.getComputeService()
+	if err != nil {
 		return nil, err
-	} else {
-		project, err := g.getProjectId()
-		if err != nil {
-			return nil, err
-		}
-		return getMachineTypesWithoutZones(computeService, project)
 	}
 
+	project, err := g.getProjectId()
+	if err != nil {
+		return nil, err
+	}
+	return getMachineTypesWithoutZones(computeService, project)
 }
 
 // getMachineTypesWithoutZones lists supported machine types in all zone
@@ -1456,6 +1472,7 @@ func getMachineTypes(csv *gkeCompute.Service, project, zone string) (map[string]
 	return response, nil
 }
 
+// getComputeService create a Compute Service from GKECluster
 func (g *GKECluster) getComputeService() (*gkeCompute.Service, error) {
 
 	//New client from credentials
@@ -1507,6 +1524,7 @@ func (g *GKECluster) newClientFromCredentials() (*http.Client, error) {
 	return config.Client(context.TODO()), nil
 }
 
+// GetZones lists all supported zones
 func GetZones(orgId uint, secretId string) ([]string, error) {
 	g := &GKECluster{
 		modelCluster: &model.ClusterModel{
@@ -1521,26 +1539,26 @@ func GetZones(orgId uint, secretId string) ([]string, error) {
 // GetZones lists supported zones
 func (g *GKECluster) GetZones() ([]string, error) {
 
-	if computeService, err := g.getComputeService(); err != nil {
+	computeService, err := g.getComputeService()
+	if err != nil {
 		return nil, err
-	} else {
-		project, err := g.getProjectId()
-		if err != nil {
-			return nil, err
-		}
-		var zones []string
-		req := computeService.Zones.List(project)
-		if err := req.Pages(context.Background(), func(page *gkeCompute.ZoneList) error {
-			for _, zone := range page.Items {
-				zones = append(zones, zone.Name)
-			}
-			return nil
-		}); err != nil {
-			return nil, err
-		}
-		return zones, nil
 	}
 
+	project, err := g.getProjectId()
+	if err != nil {
+		return nil, err
+	}
+	var zones []string
+	req := computeService.Zones.List(project)
+	if err := req.Pages(context.Background(), func(page *gkeCompute.ZoneList) error {
+		for _, zone := range page.Items {
+			zones = append(zones, zone.Name)
+		}
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	return zones, nil
 }
 
 // getProjectId returns with project id from secret

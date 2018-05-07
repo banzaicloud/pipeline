@@ -63,6 +63,7 @@ type AzureClusterModel struct {
 	NodePools         []*AzureNodePoolModel `gorm:"foreignkey:ClusterModelId"`
 }
 
+// AzureNodePoolModel describes azure node pools model of a cluster
 type AzureNodePoolModel struct {
 	ID               uint   `gorm:"primary_key"`
 	ClusterModelId   uint   `gorm:"unique_index:idx_modelid_name"`
@@ -90,6 +91,7 @@ type GoogleClusterModel struct {
 	NodePools      []*GoogleNodePoolModel `gorm:"foreignkey:ClusterModelId"`
 }
 
+// DummyClusterModel describes the dummy cluster model
 type DummyClusterModel struct {
 	ClusterModelId    uint `gorm:"primary_key"`
 	KubernetesVersion string
@@ -125,12 +127,12 @@ func (cs *ClusterModel) BeforeSave() error {
 	log.Info("Before save convert meta data")
 
 	if cs.Cloud == constants.Kubernetes && cs.Kubernetes.MetadataRaw != nil && len(cs.Kubernetes.MetadataRaw) != 0 {
-		if out, err := json.Marshal(cs.Kubernetes.Metadata); err != nil {
+		out, err := json.Marshal(cs.Kubernetes.Metadata)
+		if err != nil {
 			log.Errorf("Error during convert map to json: %s", err.Error())
 			return err
-		} else {
-			cs.Kubernetes.MetadataRaw = out
 		}
+		cs.Kubernetes.MetadataRaw = out
 	}
 
 	return nil
@@ -148,12 +150,12 @@ func (cs *ClusterModel) AfterFind() error {
 	}
 
 	if cs.Cloud == constants.Kubernetes && cs.Kubernetes.MetadataRaw != nil && len(cs.Kubernetes.MetadataRaw) != 0 {
-		if out, err := utils.ConvertJson2Map(cs.Kubernetes.MetadataRaw); err != nil {
+		out, err := utils.ConvertJson2Map(cs.Kubernetes.MetadataRaw)
+		if err != nil {
 			log.Errorf("Error during convert json to map: %s", err.Error())
 			return err
-		} else {
-			cs.Kubernetes.Metadata = out
 		}
+		cs.Kubernetes.Metadata = out
 	}
 
 	return nil
@@ -273,6 +275,7 @@ func (KubernetesClusterModel) TableName() string {
 	return constants.TableNameKubernetesProperties
 }
 
+// AfterUpdate removes marked node pool(s)
 func (gc *GoogleClusterModel) AfterUpdate(scope *gorm.Scope) error {
 	log := logger.WithFields(logrus.Fields{"tag": "AfterUpdate"})
 	log.Info("Remove node pools marked for deletion")
@@ -290,6 +293,7 @@ func (gc *GoogleClusterModel) AfterUpdate(scope *gorm.Scope) error {
 	return nil
 }
 
+// AfterUpdate removes marked node pool(s)
 func (a *AmazonClusterModel) AfterUpdate(scope *gorm.Scope) error {
 	log := logger.WithFields(logrus.Fields{"tag": "AfterUpdate"})
 	log.Info("Remove node pools marked for deletion")
@@ -307,6 +311,7 @@ func (a *AmazonClusterModel) AfterUpdate(scope *gorm.Scope) error {
 	return nil
 }
 
+// UpdateStatus updates the model's status and status message in database
 func (cs *ClusterModel) UpdateStatus(status, statusMessage string) error {
 	cs.Status = status
 	cs.StatusMessage = statusMessage

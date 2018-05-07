@@ -99,6 +99,7 @@ func NewGithubAuthorizeHandler(provider *githubauth.GithubProvider) func(context
 	}
 }
 
+// GetGithubUser returns github user by token
 func GetGithubUser(accessToken string) (*github.User, error) {
 	client := github.NewClient(oauth2.NewClient(oauth2.NoContext, oauth2.StaticTokenSource(&oauth2.Token{AccessToken: accessToken})))
 	user, _, err := client.Users.Get(oauth2.NoContext, "")

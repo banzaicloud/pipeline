@@ -39,6 +39,7 @@ func GetK8sConnection(kubeConfig []byte) (*kubernetes.Clientset, error) {
 	return client, nil
 }
 
+// GetK8sInClusterConnection returns Kubernetes in-cluster configuration
 func GetK8sInClusterConnection() (*kubernetes.Clientset, error) {
 	log.Info("Kubernetes in-cluster configuration.")
 	config, err := rest.InClusterConfig()
@@ -54,16 +55,17 @@ func GetK8sClientConfig(kubeConfig []byte) (*rest.Config, error) {
 	var config *rest.Config
 	var err error
 	if kubeConfig != nil {
-		if apiconfig, err := clientcmd.Load(kubeConfig); err != nil {
+		apiconfig, err := clientcmd.Load(kubeConfig)
+		if err != nil {
 			return nil, err
-		} else {
-			clientConfig := clientcmd.NewDefaultClientConfig(*apiconfig, &clientcmd.ConfigOverrides{})
-			config, err = clientConfig.ClientConfig()
-			if err != nil {
-				return nil, err
-			}
-			log.Debug("Use K8S RemoteCluster Config: ", config.ServerName)
 		}
+
+		clientConfig := clientcmd.NewDefaultClientConfig(*apiconfig, &clientcmd.ConfigOverrides{})
+		config, err = clientConfig.ClientConfig()
+		if err != nil {
+			return nil, err
+		}
+		log.Debug("Use K8S RemoteCluster Config: ", config.ServerName)
 	} else {
 		return nil, errors.New("kubeconfig value is nil")
 	}
