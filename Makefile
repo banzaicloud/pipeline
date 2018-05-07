@@ -4,6 +4,8 @@
 OS := $(shell uname -s)
 GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*")
 
+PKGS=$(shell go list ./... | grep -v /vendor)
+
 VERSION = 0.1.0
 GITREV = $(shell git rev-parse --short HEAD)
 
@@ -59,3 +61,12 @@ vet:
 
 test:
 	@go test -v ./...
+
+lint: install-golint
+	golint -min_confidence 0.9 -set_exit_status $(PKGS)
+
+install-golint:
+	GOLINT_CMD=$(shell command -v golint 2> /dev/null)
+ifndef GOLINT_CMD
+	go get github.com/golang/lint/golint
+endif
