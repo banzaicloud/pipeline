@@ -75,10 +75,11 @@ func ListEndpoints(c *gin.Context) {
 		ingressList = filterIngressList(ingressList, releaseName)
 
 		if ingressList.Items == nil {
+			message := fmt.Sprintf("Releasename: %s does not have public endpoint exposed via ingress", releaseName)
 			c.JSON(http.StatusNotFound, htype.ErrorResponse{
 				Code:    http.StatusNotFound,
-				Message: fmt.Sprintf("Releasename: %s does not have public endpoint exposed via ingress", releaseName),
-				Error:   fmt.Sprintf("Releasename: %s does not have public endpoint exposed via ingress", releaseName),
+				Message: message,
+				Error:   message,
 			})
 			return
 		}
