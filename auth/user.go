@@ -66,7 +66,7 @@ type Organization struct {
 	GithubID  *int64               `gorm:"unique" json:"githubId,omitempty"`
 	CreatedAt time.Time            `json:"createdAt"`
 	UpdatedAt time.Time            `json:"updatedAt"`
-	Name      string               `gorm:"not null" json:"name"`
+	Name      string               `gorm:"unique,not null" json:"name"`
 	Users     []User               `gorm:"many2many:user_organizations" json:"users,omitempty"`
 	Clusters  []model.ClusterModel `gorm:"foreignkey:organization_id" json:"clusters,omitempty"`
 	Role      string               `json:"-" gorm:"-"` // Used only internally
