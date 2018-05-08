@@ -63,13 +63,9 @@ func (d *AKSProfile) BeforeDelete() error {
 	log.Info("BeforeDelete aks profile... delete all nodepool")
 
 	var nodePools []*AKSNodePoolProfile
-	if err := model.GetDB().Where(AKSNodePoolProfile{
+	return model.GetDB().Where(AKSNodePoolProfile{
 		Name: d.Name,
-	}).Find(&nodePools).Delete(&nodePools).Error; err != nil {
-		return err
-	}
-
-	return nil
+	}).Find(&nodePools).Delete(&nodePools).Error
 }
 
 // SaveInstance saves cluster profile into database

@@ -90,13 +90,9 @@ func (d *AWSProfile) BeforeDelete() error {
 	log.Info("BeforeDelete aws profile... delete all nodepool")
 
 	var nodePools []*AWSNodePoolProfile
-	if err := model.GetDB().Where(AWSNodePoolProfile{
+	return model.GetDB().Where(AWSNodePoolProfile{
 		Name: d.Name,
-	}).Find(&nodePools).Delete(&nodePools).Error; err != nil {
-		return err
-	}
-
-	return nil
+	}).Find(&nodePools).Delete(&nodePools).Error
 }
 
 // GetProfile load profile from database and converts ClusterProfileResponse

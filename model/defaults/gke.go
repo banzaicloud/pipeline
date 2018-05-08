@@ -64,13 +64,9 @@ func (d *GKEProfile) BeforeDelete() error {
 	log.Info("BeforeDelete gke profile... delete all nodepool")
 
 	var nodePools []*GKENodePoolProfile
-	if err := model.GetDB().Where(GKENodePoolProfile{
+	return model.GetDB().Where(GKENodePoolProfile{
 		Name: d.Name,
-	}).Find(&nodePools).Delete(&nodePools).Error; err != nil {
-		return err
-	}
-
-	return nil
+	}).Find(&nodePools).Delete(&nodePools).Error
 }
 
 // SaveInstance saves cluster profile into database
