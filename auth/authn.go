@@ -254,7 +254,7 @@ func GenerateToken(c *gin.Context) {
 	}
 
 	if isForVirtualUser {
-		orgName := strings.Split(tokenRequest.VirtualUser, "/")[0]
+		orgName := GetOrgNameFromVirtualUser(tokenRequest.VirtualUser)
 		organization := Organization{Name: orgName}
 		err = Auth.GetDB(c.Request).
 			Model(currentUser).
@@ -437,8 +437,9 @@ func Handler(c *gin.Context) {
 func saveUserIntoContext(c *gin.Context, claims *ScopedClaims) {
 	userID, _ := strconv.ParseUint(claims.Subject, 10, 32)
 	user := &User{
-		ID:    uint(userID),
-		Login: claims.Text, // This is needed for Drone virtual user tokens
+		ID:      uint(userID),
+		Login:   claims.Text, // This is needed for Drone virtual user tokens
+		Virtual: claims.Type == DroneHookTokenType,
 	}
 	newContext := context.WithValue(c.Request.Context(), auth.CurrentUser, user)
 	c.Request = c.Request.WithContext(newContext)
@@ -477,4 +478,8 @@ func (sessionStorer *BanzaiSessionStorer) Update(w http.ResponseWriter, req *htt
 func BanzaiLogoutHandler(context *auth.Context) {
 	DelCookie(context.Writer, context.Request, DroneSessionCookie)
 	auth.DefaultLogoutHandler(context)
+}
+
+func GetOrgNameFromVirtualUser(virtualUser string) string {
+	return strings.Split(virtualUser, "/")[0]
 }
