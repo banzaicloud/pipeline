@@ -36,6 +36,7 @@ type User struct {
 	Login         string         `gorm:"unique;not null" form:"login" json:"login"`
 	Image         string         `form:"image" json:"image,omitempty"`
 	Organizations []Organization `gorm:"many2many:user_organizations" json:"organizations,omitempty"`
+	Virtual       bool           `json:"-" gorm:"-"` // Used only internally
 }
 
 //DroneUser struct
