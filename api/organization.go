@@ -72,8 +72,17 @@ func GetOrganizations(c *gin.Context) {
 
 	var organization = auth.Organization{ID: uint(id)}
 	var organizations []auth.Organization
+
 	db := model.GetDB()
-	err = db.Model(user).Where(&organization).Related(&organizations, "Organizations").Error
+
+	// Virtual users can list only the organizaion they are belonging to
+	if user.Virtual {
+		organization.Name = auth.GetOrgNameFromVirtualUser(user.Login)
+		err = db.Where(&organization).Find(&organizations).Error
+	} else {
+		err = db.Model(user).Where(&organization).Related(&organizations, "Organizations").Error
+	}
+
 	if err != nil {
 		message := "error fetching organizations"
 		log.Info(message + ": " + err.Error())
