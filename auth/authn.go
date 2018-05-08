@@ -267,7 +267,8 @@ func GenerateToken(c *gin.Context) {
 			return
 		}
 
-		AddOrgRoleForVirtualUser(userID, organization.ID)
+		AddDefaultRoleForVirtualUser(userID)
+		AddOrgRoleForUser(userID, organization.ID)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"id": tokenID, "token": signedToken})
