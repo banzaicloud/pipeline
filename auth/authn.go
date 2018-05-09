@@ -88,7 +88,7 @@ func lookupAccessToken(userID, tokenID string) (*Token, error) {
 	return tokenStore.Lookup(userID, tokenID)
 }
 
-func validateAccessToken(claims *ScopedClaims) (bool, error) {
+func isTokenWhitelisted(claims *ScopedClaims) (bool, error) {
 	userID := claims.Subject
 	tokenID := claims.Id
 	token, err := lookupAccessToken(userID, tokenID)
@@ -347,8 +347,19 @@ func Handler(c *gin.Context) {
 		return
 	}
 
-	isTokenValid, err := validateAccessToken(&claims)
-	if err != nil || !accessToken.Valid || !isTokenValid {
+	isTokenWhitelisted, err := isTokenWhitelisted(&claims)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError,
+			btype.ErrorResponse{
+				Code:    http.StatusInternalServerError,
+				Message: "Failed to validate user token",
+				Error:   err.Error(),
+			})
+		log.Info("Failed to lookup user token: ", err)
+		return
+	}
+
+	if !accessToken.Valid || !isTokenWhitelisted {
 		resp := btype.ErrorResponse{
 			Code:    http.StatusUnauthorized,
 			Message: "Invalid token",
