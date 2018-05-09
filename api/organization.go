@@ -14,7 +14,6 @@ import (
 )
 
 //OrganizationMiddleware parses the organization id from the request, queries it from the database and saves it to the current context
-//It also checks if the current (calling) user has access to this organization
 func OrganizationMiddleware(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": "OrganizationMiddleware"})
 	orgidParam := c.Param("orgid")

@@ -480,6 +480,7 @@ func BanzaiLogoutHandler(context *auth.Context) {
 	auth.DefaultLogoutHandler(context)
 }
 
+// GetOrgNameFromVirtualUser returns the organization name for which the virtual user has access
 func GetOrgNameFromVirtualUser(virtualUser string) string {
 	return strings.Split(virtualUser, "/")[0]
 }
