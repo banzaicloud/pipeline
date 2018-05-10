@@ -200,7 +200,7 @@ For the purpose of storeing tokens we choose HashiCorp's Vault. However there wa
 
 #### Authorization
 
-Pipeline is integrated with the [Casbin](https://github.com/casbin/) framework to provide fine grained poliocy enforcements with support for different access control models: 
+Pipeline is integrated with the [Casbin](https://github.com/casbin/) framework to provide fine grained policy enforcements with support for different access control models: 
 
 * ACL (access control lists)
 * RBAC (role-based access control)
