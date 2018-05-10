@@ -34,6 +34,7 @@ _Pipeline is a RESTful API to deploy **cloud native** microservices in public cl
   - [Authentication](#authentication)
   - [Authorization](#authorization)
   - [Dynamic secrets](#dynamic-secrets)
+- [Monitoring](#monitoring)  
 - [Centralized logging](#centralized-logging)  
 - [Quick howto](#quick-howto)
 - [Spotguide specification](#spotguide-specification)
@@ -223,9 +224,13 @@ As you can see with this solution [Pipeline](https://github.com/banzaicloud/pipe
 
 The code implementing the dynamic secret allocation for database connections and Vault configuration described above can be found in our open sourced project [Bank-Vaults](https://github.com/banzaicloud/bank-vaults/tree/master).
 
+### Monitoring
+
+Pipeline by default monitors the infrastructure, Kubernetes cluster and applications deployed with `spotguides`. We use Prometheus and we deploy federated Prometheus clusters (using TLS) to securely monitor the infrastructure. We deploy default Grafana dashboards and alerts based on the cluster layout and applications provisioned. Nevertheless, these can always be changed. For further information about monitoring please follow up these [posts](https://banzaicloud.com/tags/prometheus/).
+
 ### Centralized logging
 
-We are using fluentd and fluent-bit to move application logs towards a centralized location. To collect all logs we deploy fluent-bit as a `DemonSet`. These pods will mount the Docker container logs from the Host machine and transfer to the Fluentd service for further transformations.
+We are using fluentd and fluent-bit to move application logs towards a centralized location. To collect all logs we deploy fluent-bit as a `DemonSet`. These pods will mount the Docker container logs from the Host machine and transfer to the Fluentd service for further transformations. For further information about log collection please follow up these [posts](https://banzaicloud.com/tags/logging/).
 
 
 ![Pipeline PaaS](docs/images/pipeline-log.png)  
