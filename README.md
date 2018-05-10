@@ -228,6 +228,8 @@ The code implementing the dynamic secret allocation for database connections and
 
 Pipeline by default monitors the infrastructure, Kubernetes cluster and applications deployed with `spotguides`. We use Prometheus and we deploy federated Prometheus clusters (using TLS) to securely monitor the infrastructure. We deploy default Grafana dashboards and alerts based on the cluster layout and applications provisioned. Nevertheless, these can always be changed. For further information about monitoring please follow up these [posts](https://banzaicloud.com/tags/prometheus/).
 
+![Pipeline PaaS](docs/images/prometheus-federation.png) 
+
 ### Centralized logging
 
 We are using fluentd and fluent-bit to move application logs towards a centralized location. To collect all logs we deploy fluent-bit as a `DaemonSet`. These pods will mount the Docker container logs from the Host machine and transfer to the Fluentd service for further transformations. For further information about log collection please follow up these [posts](https://banzaicloud.com/tags/logging/).
