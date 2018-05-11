@@ -211,12 +211,27 @@ func CreateCluster(c *gin.Context, createClusterRequest *components.CreateCluste
 	err = commonCluster.Persist(constants.Creating, constants.CreatingMessage)
 	if err != nil {
 		log.Errorf("Error persisting cluster in database: %s", err.Error())
+		c.JSON(http.StatusInternalServerError, components.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: err.Error(),
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	log.Info("Validate creation fields")
+	if err := commonCluster.ValidateCreationFields(&createClusterRequest); err != nil {
+		log.Errorf("Error during request validation: %s", err.Error())
+		commonCluster.UpdateStatus(constants.Error, err.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: err.Error(),
 			Error:   err.Error(),
 		})
+		return
 	}
+
+	log.Info("Validation passed")
 
 	c.JSON(http.StatusAccepted, components.CreateClusterResponse{
 		Name:       commonCluster.GetName(),
@@ -229,16 +244,7 @@ func CreateCluster(c *gin.Context, createClusterRequest *components.CreateCluste
 }
 
 // postCreateCluster creates a cluster (ASYNC)
-func postCreateCluster(commonCluster cluster.CommonCluster, createClusterRequest *components.CreateClusterRequest) error {
-
-	log.Info("Validate creation fields")
-	if err := commonCluster.ValidateCreationFields(createClusterRequest); err != nil {
-		log.Errorf("Error during request validation: %s", err.Error())
-		commonCluster.UpdateStatus(constants.Error, err.Error())
-		return err
-	}
-
-	log.Info("Validation passed")
+func postCreateCluster(commonCluster cluster.CommonCluster) error {
 
 	// Create cluster
 	err := commonCluster.CreateCluster()
@@ -265,7 +271,6 @@ func postCreateCluster(commonCluster cluster.CommonCluster, createClusterRequest
 	go cluster.RunPostHooks(postHookFunctions, commonCluster)
 
 	return nil
-
 }
 
 // GetClusterStatus retrieves the cluster status
