@@ -9,7 +9,6 @@ import (
 	"archive/tar"
 	"compress/gzip"
 	"encoding/base64"
-	"encoding/json"
 	"github.com/Masterminds/sprig"
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/config"
@@ -38,32 +37,6 @@ var ErrRepoNotFound = errors.New("helm repository not found!")
 func init() {
 	logger = config.Logger()
 	log = logger.WithFields(logrus.Fields{"action": "Helm"})
-}
-
-func getChartOption(file []byte) (*SpotGuideFile, error) {
-	so := &SpotGuideFile{}
-	tarReader := tar.NewReader(bytes.NewReader(file))
-	for {
-		header, err := tarReader.Next()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return nil, err
-		}
-		if strings.Contains(header.Name, "spotguide.json") {
-			valuesContent := new(bytes.Buffer)
-			if _, err := io.Copy(valuesContent, tarReader); err != nil {
-				return nil, err
-			}
-			err := json.Unmarshal(valuesContent.Bytes(), so)
-			if err != nil {
-				return nil, err
-			}
-			return so, nil
-		}
-	}
-	return so, nil
 }
 
 func downloadFile(url string) ([]byte, error) {
@@ -160,7 +133,7 @@ func ListDeployments(filter *string, kubeConfig []byte) (*rls.ListReleasesRespon
 func UpgradeDeployment(deploymentName, chartName string, values []byte, reuseValues bool, kubeConfig []byte, path string) (*rls.UpdateReleaseResponse, error) {
 	//Map chartName as
 
-	downloadedChartPath, err := downloadChartFromRepo(chartName, generateHelmRepoPath(path))
+	downloadedChartPath, err := downloadChartFromRepo(chartName, GenerateHelmRepoPath(path))
 	if err != nil {
 		return nil, err
 	}
@@ -199,7 +172,7 @@ func CreateDeployment(chartName string, releaseName string, valueOverrides []byt
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagCreateDeployment})
 
 	log.Infof("Deploying chart='%s', release name='%s'.", chartName, releaseName)
-	downloadedChartPath, err := downloadChartFromRepo(chartName, generateHelmRepoPath(path))
+	downloadedChartPath, err := downloadChartFromRepo(chartName, GenerateHelmRepoPath(path))
 	if err != nil {
 		return nil, err
 	}
@@ -354,7 +327,7 @@ func mergeValues(dest map[string]interface{}, src map[string]interface{}) map[st
 
 // ReposGet returns repo
 func ReposGet(clusterName string) ([]*repo.Entry, error) {
-	repoPath := fmt.Sprintf("%s/repository/repositories.yaml", generateHelmRepoPath(clusterName))
+	repoPath := fmt.Sprintf("%s/repository/repositories.yaml", GenerateHelmRepoPath(clusterName))
 	log.Debug("Helm repo path:", repoPath)
 
 	f, err := repo.LoadRepositoriesFile(repoPath)
@@ -368,10 +341,14 @@ func ReposGet(clusterName string) ([]*repo.Entry, error) {
 	return f.Repositories, nil
 }
 
+func CreateRepo(path string) {
+
+}
+
 // ReposAdd adds repo(s)
 func ReposAdd(clusterName string, Hrepo *repo.Entry) error {
 
-	settings := createEnvSettings(generateHelmRepoPath(clusterName))
+	settings := createEnvSettings(GenerateHelmRepoPath(clusterName))
 	repoFile := settings.Home.RepositoryFile()
 	var f *repo.RepoFile
 	if _, err := os.Stat(repoFile); err != nil {
@@ -416,7 +393,7 @@ func ReposAdd(clusterName string, Hrepo *repo.Entry) error {
 
 // ReposDelete deletes repo(s)
 func ReposDelete(clusterName, repoName string) error {
-	repoPath := generateHelmRepoPath(clusterName)
+	repoPath := GenerateHelmRepoPath(clusterName)
 	settings := createEnvSettings(repoPath)
 	repoFile := settings.Home.RepositoryFile()
 	log.Debug("Repo File:", repoFile)
@@ -446,7 +423,7 @@ func ReposDelete(clusterName, repoName string) error {
 // ReposModify modifies repo(s)
 func ReposModify(clusterName, repoName string, newRepo *repo.Entry) error {
 	log.Debug("ReposModify")
-	repoPath := generateHelmRepoPath(clusterName)
+	repoPath := GenerateHelmRepoPath(clusterName)
 	settings := createEnvSettings(repoPath)
 	repoFile := settings.Home.RepositoryFile()
 	log.Debug("Repo File:", repoFile)
@@ -471,7 +448,7 @@ func ReposModify(clusterName, repoName string, newRepo *repo.Entry) error {
 
 // ReposUpdate updates a repo(s)
 func ReposUpdate(clusterName, repoName string) error {
-	repoPath := generateHelmRepoPath(clusterName)
+	repoPath := GenerateHelmRepoPath(clusterName)
 	settings := createEnvSettings(repoPath)
 	repoFile := settings.Home.RepositoryFile()
 	log.Debug("Repo File:", repoFile)
@@ -509,7 +486,7 @@ type ChartList struct {
 // ChartsGet returns chart list
 func ChartsGet(clusterName, queryName, queryRepo, queryVersion, queryKeyword string) ([]ChartList, error) {
 
-	repoPath := fmt.Sprintf("%s/repository/repositories.yaml", generateHelmRepoPath(clusterName))
+	repoPath := fmt.Sprintf("%s/repository/repositories.yaml", GenerateHelmRepoPath(clusterName))
 	log.Debug("Helm repo path:", repoPath)
 
 	f, err := repo.LoadRepositoriesFile(repoPath)
@@ -585,9 +562,9 @@ type ChartDetails struct {
 }
 
 // ChartGet returns chart details
-func ChartGet(clusterName, chartRepo, chartName, chartVersion string) (*ChartDetails, error) {
+func ChartGet(path, chartRepo, chartName, chartVersion string) (*ChartDetails, error) {
 
-	repoPath := fmt.Sprintf("%s/repository/repositories.yaml", generateHelmRepoPath(clusterName))
+	repoPath := fmt.Sprintf("%s/repository/repositories.yaml", path)
 	log.Debug("Helm repo path:", repoPath)
 	chartD := &ChartDetails{}
 	f, err := repo.LoadRepositoriesFile(repoPath)

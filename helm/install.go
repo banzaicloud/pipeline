@@ -172,7 +172,7 @@ func createEnvSettings(helmRepoHome string) helm_env.EnvSettings {
 	return settings
 }
 
-func generateHelmRepoPath(path string) string {
+func GenerateHelmRepoPath(path string) string {
 	var stateStorePath = config.GetStateStorePath("")
 	const helmPostFix = "helm"
 	return fmt.Sprintf("%s/%s/%s", stateStorePath, path, helmPostFix)
@@ -207,7 +207,7 @@ func downloadChartFromRepo(name, path string) (string, error) {
 // Installs helm client on the cluster
 func installHelmClient(path string) error {
 	log := logger.WithFields(logrus.Fields{"tag": "InstallHelmClient"})
-	settings := createEnvSettings(generateHelmRepoPath(path))
+	settings := createEnvSettings(GenerateHelmRepoPath(path))
 	if err := ensureDirectories(settings); err != nil {
 		return errors.Wrap(err, "Initializing helm directories failed!")
 	}

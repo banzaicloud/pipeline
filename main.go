@@ -7,6 +7,7 @@ import (
 	"github.com/banzaicloud/pipeline/api"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/model/defaults"
 	"github.com/banzaicloud/pipeline/notify"
@@ -50,6 +51,9 @@ func main() {
 	logger = initLog()
 	logger.Info("Pipeline initialization")
 
+	//Init catalog repository
+	helm.InitCatalogRepository()
+
 	// Ensure DB connection
 	db := model.GetDB()
 	// Initialise auth
@@ -76,6 +80,8 @@ func main() {
 		&model.GoogleNodePoolModel{},
 		&model.DummyClusterModel{},
 		&model.KubernetesClusterModel{},
+		&model.CatalogModel{},
+		&model.Deployments{},
 		&auth_identity.AuthIdentity{},
 		&auth.User{},
 		&auth.UserOrganization{},
@@ -93,6 +99,7 @@ func main() {
 
 	defaults.SetDefaultValues()
 
+	//Initialise Gin router
 	router := gin.New()
 
 	// These two paths can contain sensitive information, so it is advised not to log them out.
@@ -109,12 +116,16 @@ func main() {
 
 	basePath := viper.GetString("pipeline.basepath")
 	v1 := router.Group(basePath + "/api/v1/")
+	v1.GET("/functions", api.ListFunctions)
 	{
 		v1.Use(auth.Handler)
 		v1.Use(auth.NewAuthorizer())
 		orgs := v1.Group("/orgs")
 		{
 			orgs.Use(api.OrganizationMiddleware)
+			orgs.GET("/:orgid/applications", api.GetCatalogs)
+			orgs.GET("/:orgid/catalogs", api.ListCatalogs)
+			orgs.GET("/:orgid/catalogs/:name", api.CatalogDetails)
 			orgs.POST("/:orgid/clusters", api.CreateCluster)
 			//v1.GET("/status", api.Status)
 			orgs.GET("/:orgid/clusters", api.FetchClusters)

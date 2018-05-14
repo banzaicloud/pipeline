@@ -250,11 +250,6 @@ func QueryCluster(filter map[string]interface{}) ([]ClusterModel, error) {
 	return cluster, nil
 }
 
-//GetSimpleClusterWithId returns a simple cluster model
-func GetSimpleClusterWithId(id uint) ClusterModel {
-	return ClusterModel{ID: id}
-}
-
 //TableName sets the GoogleClusterModel's table name
 func (GoogleClusterModel) TableName() string {
 	return constants.TableNameGoogleProperties

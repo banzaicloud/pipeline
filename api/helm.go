@@ -603,7 +603,8 @@ func HelmChart(c *gin.Context) {
 	chartVersion := c.Param("version")
 	log.Debugln("version:", chartVersion)
 
-	response, err := helm.ChartGet(clusterName, chartRepo, chartName, chartVersion)
+	path := helm.GenerateHelmRepoPath(clusterName)
+	response, err := helm.ChartGet(path, chartRepo, chartName, chartVersion)
 	if err != nil {
 		log.Error("Error during get helm chart information.", err.Error())
 		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
