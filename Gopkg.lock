@@ -149,7 +149,7 @@
   version = "0.1.1"
 
 [[projects]]
-  branch = "master"
+  branch = "remove-nodepool-limit"
   name = "github.com/banzaicloud/banzai-types"
   packages = [
     "components",
@@ -161,7 +161,7 @@
     "components/kubernetes",
     "constants"
   ]
-  revision = "b47933848c28d9975fa5278cfed96ba00a0777ef"
+  revision = "4bc4bc262bd5de821308714a64f9babb7dc1a8bd"
 
 [[projects]]
   branch = "master"
@@ -634,7 +634,7 @@
   revision = "14d43f83481a37e992f5899de8581727b9ba7702"
 
 [[projects]]
-  branch = "master"
+  branch = "fix-userdata-issue"
   name = "github.com/kubicorn/kubicorn"
   packages = [
     "apis/cluster",
@@ -674,7 +674,7 @@
     "state",
     "state/fs"
   ]
-  revision = "01eebfb2bf9b85cfea30a18e6b9dab209028294e"
+  revision = "786911c5719805d06e8980ddcf7dacd39a7b6b95"
   source = "github.com/banzaicloud/kubicorn"
 
 [[projects]]
@@ -1513,6 +1513,7 @@
   version = "v7.0.0"
 
 [[projects]]
+  branch = "release-2.9"
   name = "k8s.io/helm"
   packages = [
     "cmd/helm/installer",
@@ -1541,7 +1542,6 @@
     "pkg/version"
   ]
   revision = "20adb27c7c5868466912eebdf6664e7390ebe710"
-  version = "v2.9.1"
 
 [[projects]]
   branch = "master"
@@ -1736,6 +1736,10 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
+<<<<<<< HEAD
   inputs-digest = "d410f1914bece419fcd4c0d152450c4d60f7e427292a42624d3c2f99844bfcb8"
+=======
+  inputs-digest = "c57eb322af0c6640bd93ef296b238c5547193c642b3d8d8cc25e352011547002"
+>>>>>>> f9cc9c1c... fix nodepool limitation in case of aws
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -121,7 +121,6 @@ var (
 	ErrorNotValidKubernetesVersion      = errors.New("not valid kubernetesVersion")
 	ErrorResourceGroupRequired          = errors.New("resource group is required")
 	ErrorProjectRequired                = errors.New("project is required")
-	ErrorTooMuchNodePool                = errors.New("too much nodepool")
 	ErrorNodePoolNotFoundByName         = errors.New("nodepool not found by name")
 )
 
@@ -152,9 +151,4 @@ const (
 	RunningMessage  = "Cluster is running"
 	UpdatingMessage = "Cluster is updating"
 	DeletingMessage = "Cluster is deleting"
-)
-
-const (
-	// to avoid `ValidationError: 1 validation error detected: Value '{...}' at 'userData' failed to satisfy constraint: Member must have length less than or equal to 21847` error
-	MaxNodePoolNumber = 4
 )
