@@ -15,8 +15,6 @@
 package script
 
 import (
-	"encoding/json"
-
 	"github.com/kubicorn/kubicorn/apis/cluster"
 	"github.com/kubicorn/kubicorn/pkg/parser"
 )
@@ -40,11 +38,11 @@ cd ~
 
 func BuildBootstrapScript(bootstrapScripts []string, cluster *cluster.Cluster) ([]byte, error) {
 	userData := []byte{}
-	scriptData, err := buildBootstrapSetupScript(cluster, kubicornDir, clusterAsJSONFileName)
-	if err != nil {
-		return nil, err
-	}
-	userData = append(userData, scriptData...)
+	//scriptData, err := buildBootstrapSetupScript(cluster, kubicornDir, clusterAsJSONFileName)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//userData = append(userData, scriptData...)
 
 	for _, bootstrapScript := range bootstrapScripts {
 		scriptData, err := fileresource.ReadFromResource(bootstrapScript)
@@ -57,18 +55,18 @@ func BuildBootstrapScript(bootstrapScripts []string, cluster *cluster.Cluster) (
 	return userData, nil
 }
 
-func buildBootstrapSetupScript(cluster *cluster.Cluster, dir, file string) ([]byte, error) {
-	userData := []byte(bootstrapInitScriptBase)
-
-	script := []byte("mkdir -p " + dir + "\ncat <<\"EOF\" > " + dir + "/" + file + "\n")
-
-	clusterJSON, err := json.Marshal(cluster)
-	if err != nil {
-		return nil, err
-	}
-
-	userData = append(userData, script...)
-	userData = append(userData, clusterJSON...)
-	userData = append(userData, []byte("\nEOF\n")...)
-	return userData, nil
-}
+//func buildBootstrapSetupScript(cluster *cluster.Cluster, dir, file string) ([]byte, error) {
+//	userData := []byte(bootstrapInitScriptBase)
+//
+//	script := []byte("mkdir -p " + dir + "\ncat <<\"EOF\" > " + dir + "/" + file + "\n")
+//
+//	clusterJSON, err := json.Marshal(cluster)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	userData = append(userData, script...)
+//	userData = append(userData, clusterJSON...)
+//	userData = append(userData, []byte("\nEOF\n")...)
+//	return userData, nil
+//}

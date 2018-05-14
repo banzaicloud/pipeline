@@ -56,7 +56,7 @@
 
 [[constraint]]
   name = "github.com/kubicorn/kubicorn"
-  branch = "master"
+  branch = "fix-userdata-issue"
   source = "github.com/banzaicloud/kubicorn"
 
 [[constraint]]
@@ -76,7 +76,7 @@
   version = "0.1.1"
 
 [[constraint]]
-  branch = "master"
+  branch = "remove-nodepool-limit"
   name = "github.com/banzaicloud/banzai-types"
 
 [[constraint]]
@@ -201,7 +201,7 @@
   non-go = true
 
 [[override]]
-  branch = "master"
+  branch = "fix-userdata-issue"
   name = "github.com/banzaicloud/kubicorn"
 
 [[constraint]]
