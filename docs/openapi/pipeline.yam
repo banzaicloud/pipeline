@@ -13,6 +13,8 @@ tags:
     description: Cluster realted funtions
   - name: clusters
     description: Clusters realted funtions
+  - name: catalogs
+    description: Application catalog
   - name: deployment
     description: Functions related for a deployment
   - name: deployments
@@ -33,6 +35,58 @@ tags:
     description: Cloud config related functions
 
 paths:
+  '/api/v1/orgs/{orgId}/catalogs':
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - catalogs
+      summary: List application catalogs
+      description: List all available application for lunch
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Application list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListCatalogResponse'
+
+  '/api/v1/orgs/{orgId}/applications/{appId}':
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - catalogs
+      summary: List application catalogs
+      description: List all available application for lunch
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: appId
+          in: path
+          required: true
+          description: Application identification
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Application list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationDetailsResponse'
+
   '/api/v1/orgs/{orgId}/clusters':
     post:
       security:
@@ -2087,6 +2141,54 @@ components:
       bearerFormat: JWT
 
   schemas:
+    ListCatalogResponse:
+      type: array
+      items:
+        type: object
+        $ref: '#/components/schemas/ListCatalogItem'
+
+    ListCatalogItem:
+      type: object
+      properties:
+        name:
+          type: string
+          example: spark-zeppelin
+        id:
+          type: integer
+          example: 1
+        description:
+          type: string
+          example: "Long description of Spark-Zeppelin application"
+        health:
+          type: string
+          example: "HEALTHY"
+
+    ApplicationDetailsResponse:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Spark-Zeppelin"
+        cluster:
+          type: object
+          properties:
+            name:
+              type: string
+              example: "ClusterName"
+            id:
+              type: integer
+              example: 0
+            deployments:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: "schuffle-service"
+                  state:
+                    type: string
+                    example: "ACTIVE"
 
     CreateClusterRequest:
       type: object
@@ -2199,7 +2301,7 @@ components:
               properties:
                 agentpool1:
                   $ref: '#/components/schemas/NodePoolsAzure'
-    
+
     NodePoolsAzure:
       type: object
       required:
@@ -2212,7 +2314,7 @@ components:
         nodeInstanceType:
           type: string
           example: "Standard_B2ms"
-    
+
     CreateGoogleProperties:
       type: object
       required:
@@ -2241,7 +2343,7 @@ components:
               properties:
                 agentpool1:
                   $ref: '#/components/schemas/NodePoolsGoogle'
-    
+
     NodePoolsGoogle:
       type: object
       required:
@@ -2253,7 +2355,7 @@ components:
           example: 1
         nodeInstanceType:
           type: string
-          example: "n1-standard-2"      
+          example: "n1-standard-2"
 
     CreateClusterResponse_202:
       type: object
@@ -2401,7 +2503,7 @@ components:
               properties:
                 pool1:
                   $ref: '#/components/schemas/UpdateNodePoolsAmazon'
-    
+
     UpdateNodePoolsAmazon:
       type: object
       properties:
@@ -2411,7 +2513,7 @@ components:
         maxCount:
           type: number
           example: 2
-      
+
     UpdateAzureProperties:
       type: object
       required:
@@ -2426,7 +2528,7 @@ components:
                 pool1:
                   type: object
                   properties:
-                    count: 
+                    count:
                       type: number
                       example: 2
 
@@ -2525,7 +2627,7 @@ components:
             resourceVersion:
               type: string
               example: "30123"
-    
+
         items:
           type: array
           items:
@@ -2714,7 +2816,7 @@ components:
                   sizeBytes:
                     type: integer
                     example: 286572743
- 
+
     ListDeploymentsResponse:
       type: array
       items:
@@ -2847,7 +2949,7 @@ components:
         name:
           type: string
           example: "stable"
-          
+
     HelmReposAddRequest:
       type: object
       required:
@@ -2935,10 +3037,10 @@ components:
                       properties:
                         name:
                           type: string
-                          example: "jackzampolin"                  
+                          example: "jackzampolin"
                         email:
                           type: string
-                          example: "jack.zampolin@gmail.com"                  
+                          example: "jack.zampolin@gmail.com"
                   engine:
                     type: string
                     example: "gotpl"
@@ -2964,7 +3066,7 @@ components:
                   digest:
                     type: string
                     example: "cf66d1666019b3e1647ba4dbc06a66ee7db1184629ae3669e11a9f72208eb7aa"
-  
+
     HelmChartDetailsResponse:
         properties:
           chart:
@@ -2995,10 +3097,10 @@ components:
                   properties:
                     name:
                       type: string
-                      example: "jackzampolin"                  
+                      example: "jackzampolin"
                     email:
                       type: string
-                      example: "jack.zampolin@gmail.com"                  
+                      example: "jack.zampolin@gmail.com"
               engine:
                 type: string
                 example: "gotpl"
@@ -3082,7 +3184,7 @@ components:
                 pool1:
                   type: object
                   properties:
-                    instanceType: 
+                    instanceType:
                       type: string
                       example: "m4.xlarge"
                     spotPrice:
@@ -3106,7 +3208,7 @@ components:
           properties:
             kubernetesVersion:
               type: string
-              example: "1.9.2" 
+              example: "1.9.2"
             nodePools:
               type: object
               properties:
@@ -3178,7 +3280,7 @@ components:
                 pool1:
                   count: 1
                   nodeInstanceType: "n1-standard-1"
-              
+
 
     AddClusterProfileAmazon:
       type: object
@@ -3374,7 +3476,7 @@ components:
           type: string
         AWS_SECRET_ACCESS_KEY:
           type: string
-    
+
     SecretKeyValueAzure:
       type: object
       required:
@@ -3391,7 +3493,7 @@ components:
           type: string
         AZURE_SUBSCRIPTION_ID:
           type: string
-    
+
     SecretKeyValueGoogle:
       type: object
       required:
@@ -3607,7 +3709,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/SupportedCloudItem'
-          
+
     SupportedCloudItem:
       type: object
       properties:
@@ -3657,7 +3759,7 @@ components:
                 location:
                   type: string
                   example: "eu-west-1"
-          
+
     AzureConfigRequest:
       type: object
       properties:
@@ -3731,7 +3833,7 @@ components:
           properties:
             eu-west-1:
               type: array
-              example: [ "t2.nano", "t2.micro" ]      
+              example: [ "t2.nano", "t2.micro" ]
 
     AzureConfigResponse:
       type: object
