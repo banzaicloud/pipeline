@@ -162,9 +162,11 @@ func (tokenStore vaultTokenStore) List(userID string) ([]*Token, error) {
 		return nil, err
 	}
 
-	keys := []interface{}{}
+	var keys []interface{}
 	if secret != nil {
-		keys = secret.Data["keys"].([]interface{})
+		if keysi := secret.Data["keys"]; keysi != nil {
+			keys = keysi.([]interface{})
+		}
 	}
 	tokens := make([]*Token, len(keys))
 
