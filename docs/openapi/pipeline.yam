@@ -9,6 +9,8 @@ info:
     name: Apache 2.0
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
 tags:
+  - name: applications
+    description: Application managed by Pipeline
   - name: cluster
     description: Cluster realted funtions
   - name: clusters
@@ -35,6 +37,7 @@ tags:
     description: Cloud config related functions
 
 paths:
+
   '/api/v1/orgs/{orgId}/catalogs':
     get:
       security:
@@ -58,12 +61,41 @@ paths:
               schema:
                 $ref: '#/components/schemas/ListCatalogResponse'
 
-  '/api/v1/orgs/{orgId}/applications/{appId}':
+  '/api/v1/orgs/{orgId}/catalogs/{catId}':
     get:
       security:
         - bearerAuth: []
       tags:
         - catalogs
+      summary: List application catalogs
+      description: List all available application for lunch
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: catId
+          in: path
+          required: true
+          description: Catalog identification
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Application list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogDetailsResponse'
+
+  '/api/v1/orgs/{orgId}/applications/{appId}':
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - applications
       summary: List application catalogs
       description: List all available application for lunch
       parameters:
@@ -2141,6 +2173,50 @@ components:
       bearerFormat: JWT
 
   schemas:
+    CatalogDetailsResponse:
+      type: object
+      properties:
+        cluster_name:
+          type: string
+          example: 0
+        cluster_id:
+          type: integer
+          example: 0
+        name:
+          type: string
+          example: "Zeppelin-Spark"
+        options:
+          type: array
+          items:
+            type: object
+            $ref: '#/components/schemas/CatalogOptions'
+        readme:
+          type: string
+          example: This is the Spark-Zeppelin Spotguide
+
+    CatalogOptions:
+      type: object
+      properties:
+        name:
+          type: string
+          example: spark-schuffle
+        type:
+          type: string
+          example: "boolean"
+        info:
+          type: string
+          example: Spark External Shuffle Service
+        default:
+          type: string
+          example: true
+        readonly:
+          type: boolean
+          example: true
+        key:
+          type: string
+          example: spark-shuffle.enabled
+
+
     ListCatalogResponse:
       type: array
       items:
