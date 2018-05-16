@@ -39,7 +39,7 @@ func init() {
 	log = logger.WithFields(logrus.Fields{"action": "Helm"})
 }
 
-func downloadFile(url string) ([]byte, error) {
+func DownloadFile(url string) ([]byte, error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
@@ -56,8 +56,8 @@ func downloadFile(url string) ([]byte, error) {
 	return rawContent, nil
 }
 
-//getChartFile Download file from chart repository
-func getChartFile(file []byte, fileName string) (string, error) {
+//GetChartFile Download file from chart repository
+func GetChartFile(file []byte, fileName string) (string, error) {
 	tarReader := tar.NewReader(bytes.NewReader(file))
 	for {
 		header, err := tarReader.Next()
@@ -132,12 +132,7 @@ func ListDeployments(filter *string, kubeConfig []byte) (*rls.ListReleasesRespon
 //UpgradeDeployment upgrades a Helm deployment
 func UpgradeDeployment(deploymentName, chartName string, values []byte, reuseValues bool, kubeConfig []byte, path string) (*rls.UpdateReleaseResponse, error) {
 	//Map chartName as
-
-	downloadedChartPath, err := downloadChartFromRepo(chartName, GenerateHelmRepoPath(path))
-	if err != nil {
-		return nil, err
-	}
-	chartRequested, err := chartutil.Load(downloadedChartPath)
+	chartRequested, err := chartutil.Load(path)
 	if err != nil {
 		return nil, fmt.Errorf("Error loading chart: %v", err)
 	}
@@ -171,13 +166,13 @@ func UpgradeDeployment(deploymentName, chartName string, values []byte, reuseVal
 func CreateDeployment(chartName string, releaseName string, valueOverrides []byte, kubeConfig []byte, path string) (*rls.InstallReleaseResponse, error) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagCreateDeployment})
 
-	log.Infof("Deploying chart='%s', release name='%s'.", chartName, releaseName)
-	downloadedChartPath, err := downloadChartFromRepo(chartName, GenerateHelmRepoPath(path))
+	log.Infof("Deploying chart=%q, release name=%q", chartName, releaseName)
+	downloadedChartPath, err := DownloadChartFromRepo(chartName, path)
 	if err != nil {
 		return nil, err
 	}
 
-	log.Infof("Loading chart '%s'", downloadedChartPath)
+	log.Infof("Loading chart '%s'", path)
 	chartRequested, err := chartutil.Load(downloadedChartPath)
 	if err != nil {
 		return nil, fmt.Errorf("Error loading chart: %v", err)
@@ -348,7 +343,7 @@ func CreateRepo(path string) {
 // ReposAdd adds repo(s)
 func ReposAdd(clusterName string, Hrepo *repo.Entry) error {
 
-	settings := createEnvSettings(GenerateHelmRepoPath(clusterName))
+	settings := CreateEnvSettings(GenerateHelmRepoPath(clusterName))
 	repoFile := settings.Home.RepositoryFile()
 	var f *repo.RepoFile
 	if _, err := os.Stat(repoFile); err != nil {
@@ -394,7 +389,7 @@ func ReposAdd(clusterName string, Hrepo *repo.Entry) error {
 // ReposDelete deletes repo(s)
 func ReposDelete(clusterName, repoName string) error {
 	repoPath := GenerateHelmRepoPath(clusterName)
-	settings := createEnvSettings(repoPath)
+	settings := CreateEnvSettings(repoPath)
 	repoFile := settings.Home.RepositoryFile()
 	log.Debug("Repo File:", repoFile)
 
@@ -424,7 +419,7 @@ func ReposDelete(clusterName, repoName string) error {
 func ReposModify(clusterName, repoName string, newRepo *repo.Entry) error {
 	log.Debug("ReposModify")
 	repoPath := GenerateHelmRepoPath(clusterName)
-	settings := createEnvSettings(repoPath)
+	settings := CreateEnvSettings(repoPath)
 	repoFile := settings.Home.RepositoryFile()
 	log.Debug("Repo File:", repoFile)
 	log.Debugf("New repo content: %#v", newRepo)
@@ -449,7 +444,7 @@ func ReposModify(clusterName, repoName string, newRepo *repo.Entry) error {
 // ReposUpdate updates a repo(s)
 func ReposUpdate(clusterName, repoName string) error {
 	repoPath := GenerateHelmRepoPath(clusterName)
-	settings := createEnvSettings(repoPath)
+	settings := CreateEnvSettings(repoPath)
 	repoFile := settings.Home.RepositoryFile()
 	log.Debug("Repo File:", repoFile)
 
@@ -537,28 +532,13 @@ func ChartsGet(clusterName, queryName, queryRepo, queryVersion, queryKeyword str
 	return cl, nil
 }
 
-// SpotGuideFile describes a spotguide file with the options
-type SpotGuideFile struct {
-	Options []SpotguideOptions `json:"options"`
-}
-
-// SpotguideOptions describes a spotguide options
-type SpotguideOptions struct {
-	Name    string `json:"name"`
-	Type    string `json:"type"`
-	Default bool   `json:"default"`
-	Info    string `json:"info"`
-	Key     string `json:"key"`
-}
-
 // ChartDetails describes a chart details
 type ChartDetails struct {
-	Name    string             `json:"name"`
-	Repo    string             `json:"repo"`
-	Chart   *repo.ChartVersion `json:"chart"`
-	Values  string             `json:"values"`
-	Readme  string             `json:"readme"`
-	Options []SpotguideOptions `json:"options"`
+	Name   string             `json:"name"`
+	Repo   string             `json:"repo"`
+	Chart  *repo.ChartVersion `json:"chart"`
+	Values string             `json:"values"`
+	Readme string             `json:"readme"`
 }
 
 // ChartGet returns chart details
@@ -594,32 +574,27 @@ func ChartGet(path, chartRepo, chartName, chartVersion string) (*ChartDetails, e
 						if s.Version == chartVersion || chartVersion == "" {
 							chartSource := s.URLs[0]
 							log.Debugf("chartSource: %s", chartSource)
-							reader, err := downloadFile(chartSource)
+							reader, err := DownloadFile(chartSource)
 							if err != nil {
 								return nil, err
 							}
-							valuesStr, err := getChartFile(reader, "values.yaml")
-							if err != nil {
-								return nil, err
-							}
-							options, err := getChartOption(reader)
+							valuesStr, err := GetChartFile(reader, "values.yaml")
 							if err != nil {
 								return nil, err
 							}
 							log.Debugf("values hash: %s", valuesStr)
 
-							readmeStr, err := getChartFile(reader, "README.md")
+							readmeStr, err := GetChartFile(reader, "README.md")
 							if err != nil {
 								return nil, err
 							}
 							log.Debugf("readme hash: %s", readmeStr)
 							chartD = &ChartDetails{
-								Name:    chartName,
-								Repo:    chartRepo,
-								Chart:   s,
-								Values:  valuesStr,
-								Readme:  readmeStr,
-								Options: options.Options,
+								Name:   chartName,
+								Repo:   chartRepo,
+								Chart:  s,
+								Values: valuesStr,
+								Readme: readmeStr,
 							}
 							return chartD, nil
 

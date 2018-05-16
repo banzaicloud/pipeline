@@ -26,12 +26,15 @@ type ClusterModel struct {
 	OrganizationId uint `gorm:"unique_index:idx_unique_id"`
 	SecretId       string
 	Status         string
+	Monitoring     bool
+	Logging        bool
 	StatusMessage  string
 	Amazon         AmazonClusterModel
 	Azure          AzureClusterModel
 	Google         GoogleClusterModel
 	Dummy          DummyClusterModel
 	Kubernetes     KubernetesClusterModel
+	Applications   []ApplicationModel `gorm:"foreignkey:ClusterID"`
 }
 
 //AmazonClusterModel describes the amazon cluster model

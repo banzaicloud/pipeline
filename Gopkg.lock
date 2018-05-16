@@ -1285,7 +1285,14 @@
 [[projects]]
   branch = "master"
   name = "k8s.io/apiextensions-apiserver"
-  packages = ["pkg/features"]
+  packages = [
+    "pkg/apis/apiextensions",
+    "pkg/apis/apiextensions/v1beta1",
+    "pkg/client/clientset/clientset",
+    "pkg/client/clientset/clientset/scheme",
+    "pkg/client/clientset/clientset/typed/apiextensions/v1beta1",
+    "pkg/features"
+  ]
   revision = "9beab23b266308fcd25e38a73285f95a88633da0"
 
 [[projects]]
@@ -1533,8 +1540,8 @@
     "pkg/urlutil",
     "pkg/version"
   ]
-  revision = "f6025bb9ee7daf9fee0026541c90a6f557a3e0bc"
-  version = "v2.9.0"
+  revision = "20adb27c7c5868466912eebdf6664e7390ebe710"
+  version = "v2.9.1"
 
 [[projects]]
   branch = "master"
@@ -1729,6 +1736,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "46c08e61759104ab31dc053ade67a0788aed930443e86c5ef7f14106e62e48e0"
+  inputs-digest = "d410f1914bece419fcd4c0d152450c4d60f7e427292a42624d3c2f99844bfcb8"
   solver-name = "gps-cdcl"
   solver-version = 1

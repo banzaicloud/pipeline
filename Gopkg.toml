@@ -211,3 +211,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/casbin/gorm-adapter"
+
+[[constraint]]
+  branch = "master"
+  name = "k8s.io/apiextensions-apiserver"
