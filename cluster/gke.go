@@ -1362,8 +1362,39 @@ func (g *GKECluster) GetGkeServerConfig(zone string) (*gke.ServerConfig, error) 
 	}
 
 	log.Info("Getting server config succeeded")
+
+	serverConfig.ValidMasterVersions = updateVersions(serverConfig.ValidMasterVersions)
+	serverConfig.ValidNodeVersions = updateVersions(serverConfig.ValidNodeVersions)
+
 	return serverConfig, nil
 
+}
+
+// updateVersions appends the `major.minor` K8S version format to the valid versions
+func updateVersions(validVersions []string) []string {
+
+	log.Info("append `major.minor` K8S version format to valid GKE versions")
+
+	var updatedVersions []string
+
+	for _, v := range validVersions {
+
+		version := strings.Split(v, ".")
+
+		if len(version) >= 2 {
+			majorMinor := fmt.Sprintf("%s.%s", version[0], version[1])
+			if !utils.Contains(updatedVersions, majorMinor) {
+				updatedVersions = append(updatedVersions, majorMinor, v)
+			} else {
+				updatedVersions = append(updatedVersions, v)
+			}
+		} else {
+			fmt.Println(v)
+		}
+
+	}
+
+	return updatedVersions
 }
 
 // GetAllMachineTypesByZone returns all supported machine type by zone
