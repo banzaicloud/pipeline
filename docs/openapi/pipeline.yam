@@ -90,6 +90,30 @@ paths:
               schema:
                 $ref: '#/components/schemas/CatalogDetailsResponse'
 
+  '/api/v1/orgs/{orgId}/applications':
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - applications
+      summary: Create new application based on catalog
+      description: Create new application based on Catalog definition s
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+
+      responses:
+       '201':
+         description: Application created
+         content:
+           application/json:
+             schema:
+              {}
+
   '/api/v1/orgs/{orgId}/applications/{appId}':
     get:
       security:
@@ -1510,6 +1534,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseError_500'
+
   '/api/v1/orgs/{orgId}/secrets':
     get:
       security:
@@ -1526,6 +1551,18 @@ paths:
           description: Organization identification
           schema:
             type: integer
+        - name: reponame
+          in: query
+          required: true
+          description: Name of the selected repo
+          schema:
+            type: string
+        - name: cloudtype
+          in: query
+          required: false
+          description: Secret type
+          schema:
+            type: string
       responses:
         '200':
           description: Secrets listed
@@ -1592,89 +1629,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/BaseError_500'
 
-  '/api/v1/orgs/{orgId}/secrets?type={cloudtype}':
-    get:
-      security:
-          - bearerAuth: []
-      tags:
-        - secrets
-      summary: List secrets with filter
-      operationId: GetSecretsWithFilter
-      description: Listing secrets with filter
-      parameters:
-        - name: orgId
-          in: path
-          required: true
-          description: Organization identification
-          schema:
-            type: integer
-        - name: cloudtype
-          in: path
-          required: true
-          description: Secret type
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Secrets listed
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SecretsListResponse'
-        '400':
-          description: Error during listing secrets
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseError_400'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Unauthorized'
-
-  '/api/v1/orgs/{orgId}/secrets?reponame={reponame}':
-    get:
-      security:
-          - bearerAuth: []
-      tags:
-        - secrets
-      summary: List secrets with filter
-      operationId: GetSecretsWithFilterRepo
-      description: Listing secrets with filter
-      parameters:
-        - name: orgId
-          in: path
-          required: true
-          description: Organization identification
-          schema:
-            type: integer
-        - name: reponame
-          in: path
-          required: true
-          description: Name of the selected repo
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Secrets listed
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SecretResponseRepo'
-        '400':
-          description: Error during listing secrets
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseError_400'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Unauthorized'
 
   '/api/v1/orgs/{orgId}/allowed/secrets':
     get:
@@ -2176,12 +2130,6 @@ components:
     CatalogDetailsResponse:
       type: object
       properties:
-        cluster_name:
-          type: string
-          example: 0
-        cluster_id:
-          type: integer
-          example: 0
         name:
           type: string
           example: "Zeppelin-Spark"
@@ -2239,32 +2187,54 @@ components:
           type: string
           example: "HEALTHY"
 
+    ApplicationListResponse:
+      type: array
+      items:
+        type: object
+        $ref: '#/components/schemas/ApplicationListItem'
+
+    ApplicationListItem:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Spark-Zeppelin"
+        cluster_name:
+          type: string
+          example: 0
+        cluster_id:
+          type: integer
+          example: 0
+
     ApplicationDetailsResponse:
       type: object
       properties:
         name:
           type: string
           example: "Spark-Zeppelin"
-        cluster:
-          type: object
-          properties:
-            name:
-              type: string
-              example: "ClusterName"
-            id:
-              type: integer
-              example: 0
-            deployments:
-              type: array
-              items:
-                type: object
-                properties:
-                  name:
-                    type: string
-                    example: "schuffle-service"
-                  state:
-                    type: string
-                    example: "ACTIVE"
+        cluster_name:
+          type: string
+          example: 0
+        cluster_id:
+          type: integer
+          example: 0
+        deployments:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                example: "schuffle-service"
+              release_name:
+                type: string
+                example: "schuffle-service"
+              state:
+                type: string
+                example: "ACTIVE"
+        readme:
+          type: string
+          example: Long readme about your application.
 
     CreateClusterRequest:
       type: object
