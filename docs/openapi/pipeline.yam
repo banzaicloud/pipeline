@@ -90,7 +90,29 @@ paths:
               schema:
                 $ref: '#/components/schemas/CatalogDetailsResponse'
 
+
   '/api/v1/orgs/{orgId}/applications':
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - applications
+      summary: List application catalogs
+      description: List all available application for lunch
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Application list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationListResponse'
     post:
       security:
         - bearerAuth: []
@@ -2201,7 +2223,7 @@ components:
           example: "Spark-Zeppelin"
         cluster_name:
           type: string
-          example: 0
+          example: "My Favourite Cluster"
         cluster_id:
           type: integer
           example: 0
