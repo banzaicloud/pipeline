@@ -1370,7 +1370,6 @@ func (g *GKECluster) GetGkeServerConfig(zone string) (*gke.ServerConfig, error) 
 
 }
 
-// updateVersions appends the `major.minor` K8S version format to the valid versions
 func updateVersions(validVersions []string) []string {
 
 	log.Info("append `major.minor` K8S version format to valid GKE versions")
@@ -1383,15 +1382,14 @@ func updateVersions(validVersions []string) []string {
 
 		if len(version) >= 2 {
 			majorMinor := fmt.Sprintf("%s.%s", version[0], version[1])
-			if !utils.Contains(updatedVersions, majorMinor) {
+			if !utils.Contains(updatedVersions, majorMinor) && majorMinor != v {
 				updatedVersions = append(updatedVersions, majorMinor, v)
-			} else {
+			} else if !utils.Contains(updatedVersions, v) {
 				updatedVersions = append(updatedVersions, v)
 			}
-		} else {
-			fmt.Println(v)
+		} else if !utils.Contains(updatedVersions, v) {
+			updatedVersions = append(updatedVersions, v)
 		}
-
 	}
 
 	return updatedVersions
