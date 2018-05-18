@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"context"
 	"encoding/base32"
 	"fmt"
 	"net/http"
@@ -9,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
-	jwtRequest "github.com/dgrijalva/jwt-go/request"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/qor/auth"
@@ -21,15 +19,13 @@ import (
 	"github.com/satori/go.uuid"
 	"github.com/spf13/viper"
 
+	bauth "github.com/banzaicloud/bank-vaults/auth"
 	btype "github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/sirupsen/logrus"
 )
-
-// DroneTokenType represents one of the possible Drone token Types
-type DroneTokenType string
 
 // DroneSessionCookie holds the name of the Cookie Drone sets in the browser
 const DroneSessionCookie = "user_sess"
@@ -38,10 +34,10 @@ const DroneSessionCookie = "user_sess"
 const DroneSessionCookieType = "sess"
 
 // DroneUserTokenType is the Drone token type used for API sessions
-const DroneUserTokenType DroneTokenType = "user"
+const DroneUserTokenType bauth.TokenType = "user"
 
 // DroneHookTokenType is the Drone token type used for API sessions
-const DroneHookTokenType DroneTokenType = "hook"
+const DroneHookTokenType bauth.TokenType = "hook"
 
 // For all Drone token types please see: https://github.com/drone/drone/blob/master/shared/token/token.go#L12
 
@@ -58,16 +54,16 @@ var (
 
 	authEnabled      bool
 	signingKeyBase32 string
-	tokenStore       TokenStore
+	tokenStore       bauth.TokenStore
 
 	// JwtIssuer ("iss") claim identifies principal that issued the JWT
 	JwtIssuer string
 
 	// JwtAudience ("aud") claim identifies the recipients that the JWT is intended for
 	JwtAudience string
-)
 
-// TODO se who will win
+	Handler gin.HandlerFunc
+)
 
 // Simple init for logging
 func init() {
@@ -75,30 +71,14 @@ func init() {
 	log = logger.WithFields(logrus.Fields{"tag": "Auth"})
 }
 
-//ScopedClaims struct to store the scoped claim related things
-type ScopedClaims struct {
-	jwt.StandardClaims
-	Scope string `json:"scope,omitempty"`
-	// Drone
-	Type DroneTokenType `json:"type,omitempty"`
-	Text string         `json:"text,omitempty"`
-}
-
 //DroneClaims struct to store the drone claim related things
 type DroneClaims struct {
 	*claims.Claims
-	Type DroneTokenType `json:"type,omitempty"`
-	Text string         `json:"text,omitempty"`
+	Type bauth.TokenType `json:"type,omitempty"`
+	Text string          `json:"text,omitempty"`
 }
 
-func isTokenWhitelisted(claims *ScopedClaims) (bool, error) {
-	userID := claims.Subject
-	tokenID := claims.Id
-	token, err := tokenStore.Lookup(userID, tokenID)
-	return token != nil, err
-}
-
-//Init initialize the auth
+// Init initializes the auth
 func Init() {
 	viper.SetDefault("auth.jwtissuer", "https://banzaicloud.com/")
 	viper.SetDefault("auth.jwtaudience", "https://pipeline.banzaicloud.com")
@@ -159,7 +139,24 @@ func Init() {
 		Auth: Auth,
 	})
 
-	tokenStore = NewVaultTokenStore("pipeline")
+	tokenStore = bauth.NewVaultTokenStore("pipeline")
+
+	jwtAuth := bauth.JWTAuth(tokenStore, signingKeyBase32, func(claims *bauth.ScopedClaims) interface{} {
+		userID, _ := strconv.ParseUint(claims.Subject, 10, 32)
+		return &User{
+			ID:      uint(userID),
+			Login:   claims.Text, // This is needed for Drone virtual user tokens
+			Virtual: claims.Type == DroneHookTokenType,
+		}
+	})
+
+	Handler = func(c *gin.Context) {
+		currentUser := Auth.GetCurrentUser(c.Request)
+		if currentUser != nil {
+			return
+		}
+		jwtAuth(c)
+	}
 }
 
 // Install the whole OAuth and JWT Token based auth/authz mechanism to the specified Gin Engine.
@@ -274,11 +271,11 @@ func GenerateToken(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"id": tokenID, "token": signedToken})
 }
 
-func createAndStoreAPIToken(userID string, userLogin string, tokenType DroneTokenType, tokenName string) (string, string, error) {
+func createAndStoreAPIToken(userID string, userLogin string, tokenType bauth.TokenType, tokenName string) (string, string, error) {
 	tokenID := uuid.NewV4().String()
 
 	// Create the Claims
-	claims := &ScopedClaims{
+	claims := &bauth.ScopedClaims{
 		StandardClaims: jwt.StandardClaims{
 			Issuer:    JwtIssuer,
 			Audience:  JwtAudience,
@@ -298,7 +295,7 @@ func createAndStoreAPIToken(userID string, userLogin string, tokenType DroneToke
 		return "", "", errors.Wrap(err, "Failed to sign user token")
 	}
 
-	token := NewToken(tokenID, tokenName)
+	token := bauth.NewToken(tokenID, tokenName)
 	err = tokenStore.Store(userID, token)
 	if err != nil {
 		return "", "", errors.Wrap(err, "Failed to store user token")
@@ -360,89 +357,6 @@ func DeleteToken(c *gin.Context) {
 			c.Status(http.StatusNoContent)
 		}
 	}
-}
-
-func hmacKeyFunc(token *jwt.Token) (interface{}, error) {
-	// Don't forget to validate the alg is what you expect:
-	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-		return nil, fmt.Errorf("Unexpected signing method: %v", token.Method.Alg())
-	}
-	return []byte(signingKeyBase32), nil
-}
-
-//Handler handles authentication
-func Handler(c *gin.Context) {
-	currentUser := Auth.GetCurrentUser(c.Request)
-	if currentUser != nil {
-		return
-	}
-
-	var claims ScopedClaims
-	accessToken, err := jwtRequest.ParseFromRequest(c.Request, jwtRequest.OAuth2Extractor, hmacKeyFunc, jwtRequest.WithClaims(&claims))
-
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusUnauthorized,
-			btype.ErrorResponse{
-				Code:    http.StatusUnauthorized,
-				Message: "Invalid token",
-				Error:   err.Error(),
-			})
-		log.Info("Invalid token: ", err)
-		return
-	}
-
-	isTokenWhitelisted, err := isTokenWhitelisted(&claims)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError,
-			btype.ErrorResponse{
-				Code:    http.StatusInternalServerError,
-				Message: "Failed to validate user token",
-				Error:   err.Error(),
-			})
-		log.Info("Failed to lookup user token: ", err)
-		return
-	}
-
-	if !accessToken.Valid || !isTokenWhitelisted {
-		resp := btype.ErrorResponse{
-			Code:    http.StatusUnauthorized,
-			Message: "Invalid token",
-		}
-		if err != nil {
-			resp.Error = err.Error()
-			log.Info("Invalid token: ", err)
-		} else {
-			resp.Error = ""
-			log.Info("Invalid token")
-		}
-		c.AbortWithStatusJSON(http.StatusUnauthorized, resp)
-		return
-	}
-
-	hasScope := strings.Contains(claims.Scope, "api:invoke")
-
-	if !hasScope {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, btype.ErrorResponse{
-			Code:    http.StatusUnauthorized,
-			Message: "Need more privileges",
-			Error:   err.Error(),
-		})
-		log.Info("Needs more privileges")
-		return
-	}
-
-	saveUserIntoContext(c, &claims)
-}
-
-func saveUserIntoContext(c *gin.Context, claims *ScopedClaims) {
-	userID, _ := strconv.ParseUint(claims.Subject, 10, 32)
-	user := &User{
-		ID:      uint(userID),
-		Login:   claims.Text, // This is needed for Drone virtual user tokens
-		Virtual: claims.Type == DroneHookTokenType,
-	}
-	newContext := context.WithValue(c.Request.Context(), auth.CurrentUser, user)
-	c.Request = c.Request.WithContext(newContext)
 }
 
 //BanzaiSessionStorer stores the banzai session
