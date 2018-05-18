@@ -73,7 +73,7 @@
 
 [[constraint]]
   name = "github.com/banzaicloud/bank-vaults"
-  version = "0.1.1"
+  branch = "jwt-auth"
 
 [[constraint]]
   branch = "master"
