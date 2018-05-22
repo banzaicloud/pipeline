@@ -865,7 +865,6 @@
   packages = [
     ".",
     "auth_identity",
-    "authority",
     "claims",
     "providers/github"
   ]
@@ -912,12 +911,6 @@
   packages = ["."]
   revision = "ecae0be66c1a6a441001b0b5eeef51f8bc27d42a"
   version = "v1.0"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/qor/roles"
-  packages = ["."]
-  revision = "d6375609fe3e5da46ad3a574fae244fb633e79c1"
 
 [[projects]]
   branch = "master"
@@ -1730,6 +1723,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a7cd3bc2aaa0db103b1f6bf4c10186ce1502b961533c8565132c5052d4fd9936"
+  inputs-digest = "8b55970da64bfa4309f256f14327d5854ef3bf3975fbe94e8bcecabca3a02b77"
   solver-name = "gps-cdcl"
   solver-version = 1
