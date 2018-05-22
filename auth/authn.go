@@ -53,6 +53,7 @@ var (
 	Authority *authority.Authority
 
 	authEnabled      bool
+	signingKey       string
 	signingKeyBase32 string
 	tokenStore       bauth.TokenStore
 
@@ -85,7 +86,7 @@ func Init() {
 	JwtIssuer = viper.GetString("auth.jwtissuer")
 	JwtAudience = viper.GetString("auth.jwtaudience")
 
-	signingKey := viper.GetString("auth.tokensigningkey")
+	signingKey = viper.GetString("auth.tokensigningkey")
 	if signingKey == "" {
 		panic("Token signing key is missing from configuration")
 	}
@@ -141,7 +142,7 @@ func Init() {
 
 	tokenStore = bauth.NewVaultTokenStore("pipeline")
 
-	jwtAuth := bauth.JWTAuth(tokenStore, signingKeyBase32, func(claims *bauth.ScopedClaims) interface{} {
+	jwtAuth := bauth.JWTAuth(tokenStore, signingKey, func(claims *bauth.ScopedClaims) interface{} {
 		userID, _ := strconv.ParseUint(claims.Subject, 10, 32)
 		return &User{
 			ID:      uint(userID),

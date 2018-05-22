@@ -10,13 +10,11 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	jwtRequest "github.com/dgrijalva/jwt-go/request"
 	"github.com/gin-gonic/gin"
+	"github.com/qor/qor/utils"
 )
 
-// ContextKey defined type used for context's key
-type ContextKey string
-
 // CurrentUser context key to get current user from Request
-const CurrentUser ContextKey = "current_user"
+const CurrentUser utils.ContextKey = "current_user"
 
 // TokenType represents one of the possible token Types
 type TokenType string
@@ -47,11 +45,6 @@ func JWTAuth(tokenStore TokenStore, signingKey string, claimConverter ClaimConve
 	}
 
 	return func(c *gin.Context) {
-
-		currentUser := c.Request.Context().Value(CurrentUser)
-		if currentUser != nil {
-			return
-		}
 
 		var claims ScopedClaims
 		accessToken, err := jwtRequest.ParseFromRequest(c.Request, jwtRequest.OAuth2Extractor, hmacKeyFunc, jwtRequest.WithClaims(&claims))
