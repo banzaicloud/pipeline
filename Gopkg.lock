@@ -140,14 +140,14 @@
   revision = "78816dc415eab088898d4defd6ab760c4f800f8c"
 
 [[projects]]
-  branch = "jwt-auth"
   name = "github.com/banzaicloud/bank-vaults"
   packages = [
     "auth",
     "database",
     "vault"
   ]
-  revision = "91e45ed950f1c00326acb92e304ffcf4ad0cc5d9"
+  revision = "803f047dc4e8a9bba3e63f25664d92de4bd3f40e"
+  version = "0.1.3"
 
 [[projects]]
   branch = "master"
@@ -1730,6 +1730,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "cac85cb67b58e6bb5ee13aa644322a0409e75f7648815fd01ce3c3c62c1fa222"
+  inputs-digest = "a7cd3bc2aaa0db103b1f6bf4c10186ce1502b961533c8565132c5052d4fd9936"
   solver-name = "gps-cdcl"
   solver-version = 1
