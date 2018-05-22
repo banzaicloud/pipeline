@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"encoding/json"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/jinzhu/gorm"
@@ -26,6 +27,8 @@ type ClusterModel struct {
 	OrganizationId uint `gorm:"unique_index:idx_unique_id"`
 	SecretId       string
 	Status         string
+	Monitoring     bool
+	Logging        bool
 	StatusMessage  string
 	Amazon         AmazonClusterModel
 	Azure          AzureClusterModel

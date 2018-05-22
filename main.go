@@ -80,8 +80,8 @@ func main() {
 		&model.GoogleNodePoolModel{},
 		&model.DummyClusterModel{},
 		&model.KubernetesClusterModel{},
-		&model.CatalogModel{},
-		&model.Deployments{},
+		&model.Deployment{},
+		&model.ApplicationModel{},
 		&auth_identity.AuthIdentity{},
 		&auth.User{},
 		&auth.UserOrganization{},
@@ -123,10 +123,14 @@ func main() {
 		orgs := v1.Group("/orgs")
 		{
 			orgs.Use(api.OrganizationMiddleware)
-			orgs.GET("/:orgid/applications", api.GetCatalogs)
-			orgs.GET("/:orgid/catalogs", api.ListCatalogs)
+
+			orgs.GET("/:orgid/applications", api.GetApplications)
+			orgs.POST("/:orgid/applications", api.CreateApplication)
+
+			orgs.GET("/:orgid/catalogs", api.GetCatalogs)
 			orgs.GET("/:orgid/catalogs/:name", api.CatalogDetails)
-			orgs.POST("/:orgid/clusters", api.CreateCluster)
+
+			orgs.POST("/:orgid/clusters", api.CreateClusterRequest)
 			//v1.GET("/status", api.Status)
 			orgs.GET("/:orgid/clusters", api.FetchClusters)
 			orgs.GET("/:orgid/clusters/:id", api.GetClusterStatus)

@@ -18,6 +18,47 @@ const CatalogRepositoryUrl = "http://kubernetes-charts.banzaicloud.com/branch/sp
 
 var CatalogPath = "./" + CatalogRepository
 
+type ApplicationDetails struct {
+	Resources ApplicationResources `json:"resources"`
+	Readme    string               `json:"readme"`
+	Options   ApplicationOptions   `json:"options"`
+}
+
+type ApplicationOptions struct {
+	Name    string `json:"name"`
+	Type    string `json:"type"`
+	Default bool   `json:"default"`
+	Info    string `json:"info"`
+	Key     string `json:"key"`
+}
+
+type ApplicationDependency struct {
+	Type      string           `json:"type"`
+	Values    []string         `json:"values"`
+	Namespace string           `json:"namespace"`
+	Chart     ApplicationChart `json:"chart"`
+}
+
+type ApplicationChart struct {
+	Name       string `json:"name"`
+	Repository string `json:"repository"`
+	Version    string `json:"version"`
+}
+
+type SpotguideFile struct {
+	Resources ApplicationResources             `json:"resources"`
+	Options   ApplicationOptions               `json:"options"`
+	Depends   map[string]ApplicationDependency `json:"depends"`
+}
+
+type ApplicationResources struct {
+	VCPU               int      `json:"vcpu"`
+	Memory             int      `json:"memory"`
+	Filters            []string `json:"filters"`
+	OnDemandPercentage int      `json:"on_demand_percentage"`
+	SameSize           bool     `json:"same_size"`
+}
+
 func InitCatalogRepository() error {
 	//Init the cluster catalog from a well known repository
 	helmEnv := createEnvSettings(CatalogPath)
@@ -83,8 +124,8 @@ func GetCatalogDetails(name string) (*ChartDetails, error) {
 	return cd, nil
 }
 
-func getChartOption(file []byte) (*SpotGuideFile, error) {
-	so := &SpotGuideFile{}
+func getChartOption(file []byte) (*SpotguideFile, error) {
+	so := &SpotguideFile{}
 	tarReader := tar.NewReader(bytes.NewReader(file))
 	for {
 		header, err := tarReader.Next()

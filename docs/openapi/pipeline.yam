@@ -2209,10 +2209,36 @@ components:
           type: string
           example: "HEALTHY"
 
+    ApplicationCreate:
+      type: object
+      properties:
+        resources:
+          $ref: '#/components/schemas/ApplicationResources'
+
+    ApplicationResources:
+      type: object
+      properties:
+        vcpu:
+          type: integer
+          example: 10
+        memory:
+          type: integer
+          example: 20
+        filters:
+          type: array
+          items:
+            type: string
+        on_demand_percentage:
+          type: integer
+          exmaple: 30
+        same_size:
+          type: boolean
+          example: true
+
+
     ApplicationListResponse:
       type: array
       items:
-        type: object
         $ref: '#/components/schemas/ApplicationListItem'
 
     ApplicationListItem:

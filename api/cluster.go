@@ -95,8 +95,7 @@ func GetCommonClusterNameFromRequest(c *gin.Context) (string, bool) {
 	return clusterName, true
 }
 
-// CreateCluster creates a K8S cluster in the cloud
-func CreateCluster(c *gin.Context) {
+func CreateClusterRequest(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagCreateCluster})
 	//TODO refactor logging here
 
@@ -114,6 +113,12 @@ func CreateCluster(c *gin.Context) {
 		})
 		return
 	}
+	CreateCluster(c, &createClusterRequest)
+}
+
+// CreateCluster creates a K8S cluster in the cloud
+func CreateCluster(c *gin.Context, createClusterRequest *components.CreateClusterRequest) {
+	log := logger.WithFields(logrus.Fields{"tag": constants.TagCreateCluster})
 
 	if len(createClusterRequest.ProfileName) != 0 {
 		log.Infof("Fill data from profile[%s]", createClusterRequest.ProfileName)
@@ -132,7 +137,7 @@ func CreateCluster(c *gin.Context) {
 		profileResponse := profile.GetProfile()
 
 		log.Info("Create clusterRequest from profile")
-		newRequest, err := profileResponse.CreateClusterRequest(&createClusterRequest)
+		newRequest, err := profileResponse.CreateClusterRequest(createClusterRequest)
 		if err != nil {
 			log.Error(errors.Wrap(err, "Error creating request from profile"))
 			c.JSON(http.StatusBadRequest, components.ErrorResponse{
@@ -143,7 +148,7 @@ func CreateCluster(c *gin.Context) {
 			return
 		}
 
-		createClusterRequest = *newRequest
+		createClusterRequest = newRequest
 
 		log.Infof("Modified clusterRequest: %v", createClusterRequest)
 
@@ -177,7 +182,7 @@ func CreateCluster(c *gin.Context) {
 
 	// TODO check validation
 	// This is the common part of cluster flow
-	commonCluster, err := cluster.CreateCommonClusterFromRequest(&createClusterRequest, organizationID)
+	commonCluster, err := cluster.CreateCommonClusterFromRequest(createClusterRequest, organizationID)
 	if err != nil {
 		log.Errorf("Error during creating common cluster model: %s", err.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
@@ -216,7 +221,7 @@ func CreateCluster(c *gin.Context) {
 		ResourceID: commonCluster.GetID(),
 	})
 
-	go postCreateCluster(commonCluster, &createClusterRequest)
+	go postCreateCluster(commonCluster, createClusterRequest)
 
 }
 

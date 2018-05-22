@@ -537,28 +537,14 @@ func ChartsGet(clusterName, queryName, queryRepo, queryVersion, queryKeyword str
 	return cl, nil
 }
 
-// SpotGuideFile describes a spotguide file with the options
-type SpotGuideFile struct {
-	Options []SpotguideOptions `json:"options"`
-}
-
-// SpotguideOptions describes a spotguide options
-type SpotguideOptions struct {
-	Name    string `json:"name"`
-	Type    string `json:"type"`
-	Default bool   `json:"default"`
-	Info    string `json:"info"`
-	Key     string `json:"key"`
-}
-
 // ChartDetails describes a chart details
 type ChartDetails struct {
-	Name    string             `json:"name"`
-	Repo    string             `json:"repo"`
-	Chart   *repo.ChartVersion `json:"chart"`
-	Values  string             `json:"values"`
-	Readme  string             `json:"readme"`
-	Options []SpotguideOptions `json:"options"`
+	Name      string             `json:"name"`
+	Repo      string             `json:"repo"`
+	Chart     *repo.ChartVersion `json:"chart"`
+	Values    string             `json:"values"`
+	Readme    string             `json:"readme"`
+	Spotguide *SpotguideFile     `json:"spotguide"`
 }
 
 // ChartGet returns chart details
@@ -602,7 +588,7 @@ func ChartGet(path, chartRepo, chartName, chartVersion string) (*ChartDetails, e
 							if err != nil {
 								return nil, err
 							}
-							options, err := getChartOption(reader)
+							spotguide, err := getChartOption(reader)
 							if err != nil {
 								return nil, err
 							}
@@ -614,12 +600,12 @@ func ChartGet(path, chartRepo, chartName, chartVersion string) (*ChartDetails, e
 							}
 							log.Debugf("readme hash: %s", readmeStr)
 							chartD = &ChartDetails{
-								Name:    chartName,
-								Repo:    chartRepo,
-								Chart:   s,
-								Values:  valuesStr,
-								Readme:  readmeStr,
-								Options: options.Options,
+								Name:      chartName,
+								Repo:      chartRepo,
+								Chart:     s,
+								Values:    valuesStr,
+								Readme:    readmeStr,
+								Spotguide: spotguide,
 							}
 							return chartD, nil
 

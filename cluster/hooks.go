@@ -20,6 +20,8 @@ var HookMap = map[string]func(interface{}) error{
 	"UpdatePrometheusPostHook":         UpdatePrometheusPostHook,
 	"InstallHelmPostHook":              InstallHelmPostHook,
 	"InstallIngressControllerPostHook": InstallIngressControllerPostHook,
+	"InstallMonitoring":                InstallMonitoring,
+	"InstallLogging":                   InstallLogging,
 }
 
 //RunPostHooks calls posthook functions with created cluster
@@ -27,6 +29,24 @@ func RunPostHooks(functionList []func(interface{}) error, createdCluster CommonC
 	for _, i := range functionList {
 		i(createdCluster)
 	}
+}
+
+func InstallMonitoring(input interface{}) error {
+	var cluster CommonCluster
+	if cluster, ok := input.(CommonCluster); !ok {
+		return errors.Errorf("Wrong parameter type: %T", cluster)
+	}
+	//TODO install & ensure monitoring
+	return installDeployment(cluster, "", "", nil)
+}
+
+func InstallLogging(input interface{}) error {
+	var cluster CommonCluster
+	if cluster, ok := input.(CommonCluster); !ok {
+		return errors.Errorf("Wrong parameter type: %T", cluster)
+	}
+	//TODO install & ensure logging
+	return installDeployment(cluster, "", "", nil)
 }
 
 //PersistKubernetesKeys is a basic version of persisting keys TODO check if we need this from API or anywhere else
@@ -109,12 +129,7 @@ func saveKeysToConfigmap(config *rest.Config, configName string, clusterName str
 	return nil
 }
 
-//InstallIngressControllerPostHook post hooks can't return value, they can log error and/or update state?
-func InstallIngressControllerPostHook(input interface{}) error {
-	var cluster CommonCluster
-	if cluster, ok := input.(CommonCluster); !ok {
-		return errors.Errorf("Wrong parameter type: %T", cluster)
-	}
+func installDeployment(cluster CommonCluster, deploymentName string, releaseName string, values []byte) error {
 	// --- [ Get K8S Config ] --- //
 	log = logger.WithFields(logrus.Fields{"action": "InstallIngressController"})
 
@@ -124,10 +139,7 @@ func InstallIngressControllerPostHook(input interface{}) error {
 		return err
 	}
 
-	deploymentName := "banzaicloud-stable/pipeline-cluster-ingress"
-	releaseName := "pipeline"
-
-	_, err = helm.CreateDeployment(deploymentName, releaseName, nil, kubeConfig, cluster.GetName())
+	_, err = helm.CreateDeployment(deploymentName, releaseName, values, kubeConfig, cluster.GetName())
 	if err != nil {
 		log.Errorf("Deploying '%s' failed due to: ", deploymentName)
 		log.Errorf("%s", err.Error())
@@ -135,16 +147,16 @@ func InstallIngressControllerPostHook(input interface{}) error {
 	}
 	log.Infof("'%s' installed", deploymentName)
 	return nil
+	return nil
 }
 
-//GetConfigPostHook functions with func(*cluster.Cluster) signature
-func GetConfigPostHook(cluster CommonCluster) {
-	log = logger.WithFields(logrus.Fields{"action": "PostHook"})
-	createdCluster, err := cluster.GetK8sConfig()
-	if err != nil {
-		log.Errorf("error during get config post hook: %v", createdCluster)
-		return
+//InstallIngressControllerPostHook post hooks can't return value, they can log error and/or update state?
+func InstallIngressControllerPostHook(input interface{}) error {
+	var cluster CommonCluster
+	if cluster, ok := input.(CommonCluster); !ok {
+		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
+	return installDeployment(cluster, "banzaicloud-stable/pipeline-cluster-ingress", "pipeline", nil)
 }
 
 //UpdatePrometheusPostHook updates a configmap used by Prometheus
