@@ -11,7 +11,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/qor/auth"
-	"github.com/qor/auth/authority"
 	"github.com/qor/auth/claims"
 	"github.com/qor/auth/providers/github"
 	"github.com/qor/redirect_back"
@@ -46,13 +45,9 @@ var (
 	logger *logrus.Logger
 	log    *logrus.Entry
 
-	RedirectBack *redirect_back.RedirectBack
+	redirectBack *redirect_back.RedirectBack
+	Auth         *auth.Auth
 
-	Auth *auth.Auth
-
-	Authority *authority.Authority
-
-	authEnabled      bool
 	signingKey       string
 	signingKeyBase32 string
 	tokenStore       bauth.TokenStore
@@ -93,7 +88,7 @@ func Init() {
 	signingKeyBase32 = base32.StdEncoding.EncodeToString([]byte(signingKey))
 
 	// A RedirectBack instance which constantly redirects to /ui
-	RedirectBack = redirect_back.New(&redirect_back.Config{
+	redirectBack = redirect_back.New(&redirect_back.Config{
 		SessionManager:  manager.SessionManager,
 		IgnoredPrefixes: []string{"/"},
 		IgnoreFunc: func(r *http.Request) bool {
@@ -105,7 +100,7 @@ func Init() {
 	// Initialize Auth with configuration
 	Auth = auth.New(&auth.Config{
 		DB:         model.GetDB(),
-		Redirector: auth.Redirector{RedirectBack},
+		Redirector: auth.Redirector{redirectBack},
 		UserModel:  User{},
 		ViewPaths:  []string{"views"},
 		SessionStorer: &BanzaiSessionStorer{
@@ -136,10 +131,6 @@ func Init() {
 	githubProvider.AuthorizeHandler = NewGithubAuthorizeHandler(githubProvider)
 	Auth.RegisterProvider(githubProvider)
 
-	Authority = authority.New(&authority.Config{
-		Auth: Auth,
-	})
-
 	tokenStore = bauth.NewVaultTokenStore("pipeline")
 
 	jwtAuth := bauth.JWTAuth(tokenStore, signingKey, func(claims *bauth.ScopedClaims) interface{} {
@@ -166,7 +157,7 @@ func Install(engine *gin.Engine) {
 
 	// We have to make the raw net/http handlers a bit Gin-ish
 	engine.Use(gin.WrapH(manager.SessionManager.Middleware(utils.NopHandler{})))
-	engine.Use(gin.WrapH(RedirectBack.Middleware(utils.NopHandler{})))
+	engine.Use(gin.WrapH(redirectBack.Middleware(utils.NopHandler{})))
 
 	authGroup := engine.Group("/auth/")
 	{
