@@ -6,6 +6,7 @@ bin/*
 pipeline.iml
 .pipeline
 pipeline
+!pipeline/
 statestore/*
 vault/*
 config/config.toml

@@ -161,3 +161,16 @@ type ClusterProfileAzure struct {
 	KubernetesVersion string                     `json:"kubernetesVersion"`
 	NodePools         map[string]*NodePoolCreate `json:"nodePools,omitempty"`
 }
+
+// CreateAzureObjectStoreBucketProperties describes an Azure ObjectStore Container Creation request
+type CreateAzureObjectStoreBucketProperties struct {
+	Location       string `json:"location" binding:"required"`
+	StorageAccount string `json:"storageAccount"`
+	ResourceGroup  string `json:"resourceGroup"`
+}
+
+// BlobStoragePropsForAzure describes the Azure specific properties
+type BlobStoragePropsForAzure struct {
+	ResourceGroup  string `json:"resourceGroup" binding:"required"`
+	StorageAccount string `json:"storageAccount" binding:"required"`
+}

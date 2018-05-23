@@ -30,7 +30,7 @@ const (
 	helmPostFix      = "helm"
 )
 
-//PreInstall create's ServiceAccount and AccountRoleBinding
+//PreInstall create's serviceAccount and AccountRoleBinding
 func PreInstall(helmInstall *helm.Install, kubeConfig []byte) error {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagHelmInstall})
 	log.Info("start pre-install")
@@ -111,7 +111,7 @@ func PreInstall(helmInstall *helm.Install, kubeConfig []byte) error {
 	}
 
 	log.Debugf("ClusterRole Name: %s", clusterRoleName)
-	log.Debugf("ServiceAccount Name: %s", helmInstall.ServiceAccount)
+	log.Debugf("serviceAccount Name: %s", helmInstall.ServiceAccount)
 	clusterRoleBinding := &v1.ClusterRoleBinding{
 		ObjectMeta: v1MetaData,
 		RoleRef: v1.RoleRef{
@@ -121,7 +121,7 @@ func PreInstall(helmInstall *helm.Install, kubeConfig []byte) error {
 		},
 		Subjects: []v1.Subject{
 			{
-				Kind:      "ServiceAccount",
+				Kind:      "serviceAccount",
 				Name:      helmInstall.ServiceAccount, // "tiller",
 				Namespace: helmInstall.Namespace,
 			}},

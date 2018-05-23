@@ -145,3 +145,9 @@ type AmazonProfileMaster struct {
 	InstanceType string `json:"instanceType"`
 	Image        string `json:"image"`
 }
+
+// CreateAmazonObjectStoreBucketProperties describes the properties of
+// S3 bucket creation request
+type CreateAmazonObjectStoreBucketProperties struct {
+	Location string `json:"location" binding:"required"`
+}
