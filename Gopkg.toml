@@ -211,3 +211,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/casbin/gorm-adapter"
+
+[[constraint]]
+  name = "cloud.google.com/go"
+  version = "0.20.0"
