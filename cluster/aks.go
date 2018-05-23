@@ -62,7 +62,7 @@ func (c *AKSCluster) GetOrg() uint {
 }
 
 // GetAKSClient creates an AKS client with the credentials
-func (c *AKSCluster) GetAKSClient() (*azureClient.AKSClient, error) {
+func (c *AKSCluster) GetAKSClient() (azureClient.ClusterManager, error) {
 	clusterSecret, err := c.GetSecretWithValidation()
 	if err != nil {
 		return nil, err
@@ -73,11 +73,7 @@ func (c *AKSCluster) GetAKSClient() (*azureClient.AKSClient, error) {
 		SubscriptionId: clusterSecret.Values[secret.AzureSubscriptionId],
 		TenantId:       clusterSecret.Values[secret.AzureTenantId],
 	}
-	client, err := azureClient.GetAKSClient(creds)
-	if err != nil {
-		return nil, err
-	}
-	return client, nil
+	return azureClient.GetAKSClient(creds)
 }
 
 // GetSecretID retrieves the secret id
@@ -154,6 +150,14 @@ func (c *AKSCluster) CreateCluster() error {
 	}
 	log.Info("Cluster is ready...")
 	c.azureCluster = &pollingResult.Value
+
+	log.Info("Assign Storage Account Contributor role for all VM")
+	err = azureClient.AssignStorageAccountContributorRole(client, c.modelCluster.Azure.ResourceGroup, c.modelCluster.Name, c.modelCluster.Location)
+	if err != nil {
+		return err
+	}
+	log.Info("Role assign succeeded")
+
 	return nil
 }
 
@@ -341,17 +345,17 @@ func (c *AKSCluster) getExistingNodePoolByName(name string) *model.AzureNodePool
 }
 
 // updateWithPolling sends update request to cloud and polling until it's not ready
-func (c *AKSCluster) updateWithPolling(client *azureClient.AKSClient, ccr *azureCluster.CreateClusterRequest) (*banzaiAzureTypes.ResponseWithValue, error) {
+func (c *AKSCluster) updateWithPolling(manager azureClient.ClusterManager, ccr *azureCluster.CreateClusterRequest) (*banzaiAzureTypes.ResponseWithValue, error) {
 
 	log.Info("Send update request to azure")
-	_, err := azureClient.CreateUpdateCluster(client, ccr)
+	_, err := azureClient.CreateUpdateCluster(manager, ccr)
 	if err != nil {
 		return nil, err
 	}
 
 	log.Info("Polling to check update")
 	// polling to check cluster updated
-	updatedCluster, err := azureClient.PollingCluster(client, c.modelCluster.Name, c.modelCluster.Azure.ResourceGroup)
+	updatedCluster, err := azureClient.PollingCluster(manager, c.modelCluster.Name, c.modelCluster.Azure.ResourceGroup)
 	if err != nil {
 		return nil, err
 	}
@@ -483,7 +487,7 @@ func GetKubernetesVersion(orgId uint, secretId, location string) ([]string, erro
 }
 
 // getAKSClient create AKSClient with the given organization id and secret id
-func getAKSClient(orgId uint, secretId string) (*azureClient.AKSClient, error) {
+func getAKSClient(orgId uint, secretId string) (azureClient.ClusterManager, error) {
 	c := AKSCluster{
 		modelCluster: &model.ClusterModel{
 			OrganizationId: orgId,
