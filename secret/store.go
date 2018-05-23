@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/cast"
 )
 
 var logger *logrus.Logger
@@ -86,7 +87,8 @@ func GenerateSecretID() string {
 	return uuid.NewV4().String()
 }
 
-const repoSecretType = "repo"
+// RepoSecretType marks secrets as of type "repo"
+const RepoSecretType = "repo"
 
 // DefaultRules key matching for types
 var DefaultRules = map[string][]string{
@@ -115,7 +117,7 @@ var DefaultRules = map[string][]string{
 	btypes.Kubernetes: {
 		K8SConfig,
 	},
-	repoSecretType: {
+	RepoSecretType: {
 		RepoName,
 		RepoSecret,
 	},
@@ -188,7 +190,7 @@ func (ss *secretStore) Store(organizationID, secretID string, value CreateSecret
 	log := logger.WithFields(logrus.Fields{"tag": "StoreSecret"})
 	log.Infof("Storing secret")
 	var path string
-	if value.SecretType != repoSecretType {
+	if value.SecretType != RepoSecretType {
 		path = fmt.Sprintf("secret/orgs/%s/%s", organizationID, secretID)
 	} else {
 		path = fmt.Sprintf("secret/orgs/%s/%s/%s", organizationID, value.Values[RepoName], secretID)
@@ -230,7 +232,7 @@ func (ss *secretStore) Get(organizationID string, secretID string) (*SecretsItem
 }
 
 // List secret secret/orgs/:orgid:/ scope
-func (ss *secretStore) List(organizationID, secretType string, reponame string) ([]SecretsItemResponse, error) {
+func (ss *secretStore) List(organizationID, secretType string, reponame string, addValues bool) ([]SecretsItemResponse, error) {
 	log := logger.WithFields(logrus.Fields{"tag": "ListSecret"})
 	log.Info("Listing secrets")
 	responseItems := make([]SecretsItemResponse, 0)
@@ -256,6 +258,9 @@ func (ss *secretStore) List(organizationID, secretType string, reponame string) 
 						ID:         key.(string),
 						Name:       secretData["name"].(string),
 						SecretType: sType,
+					}
+					if addValues {
+						sir.Values = cast.ToStringMapString(secretData["values"])
 					}
 					responseItems = append(responseItems, sir)
 				}
