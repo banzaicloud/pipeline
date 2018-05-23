@@ -31,10 +31,10 @@ func ListCommonObjectStoreBuckets(s *secret.SecretsItemResponse) (CommonObjectSt
 	}
 }
 
-func CreateCommonObjectStoreBuckets(name string, s *secret.SecretsItemResponse) (CommonObjectStore, error) {
+func CreateCommonObjectStoreBuckets(name string, zone string, s *secret.SecretsItemResponse) (CommonObjectStore, error) {
 	switch s.SecretType{
 	case constants.Amazon:
-		return &AmazonObjectStore{}, nil
+		return &AmazonObjectStore{bucketName: name, region: zone, secret: s}, nil
 	case constants.Google:
 		return &GoogleObjectStore{bucketName: name, projectId: s.Values["project_id"]}, nil
 	case constants.Azure:

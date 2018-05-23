@@ -17,9 +17,11 @@ type BanzaiResponse struct {
 }
 
 type CreateBucketRequest struct {
-	Name     string `json:"name" binding:"required"`
-	Location string `json:"location"`
 	SecretId string `json:"secret_id" binding:"required"`
+	Properties struct {
+		Name     string `json:"name" binding:"required"`
+		Location string `json:"location"`
+	} `json:"properties" binding:"required"`
 }
 
 type CreateClusterRequest struct {

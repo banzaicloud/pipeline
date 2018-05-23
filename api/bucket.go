@@ -89,7 +89,8 @@ func CreateObjectStoreBuckets(c *gin.Context) {
 	}
 	log.Debug("Secret validation successful")
 	log.Debug("Create CommonObjectStoreBuckets from request")
-	commonObjectStore, err := objectstore.CreateCommonObjectStoreBuckets(createBucketRequest.Name ,retrievedSecret)
+	commonObjectStore, err :=
+		objectstore.CreateCommonObjectStoreBuckets(createBucketRequest.Properties.Name ,createBucketRequest.Properties.Location, retrievedSecret)
 	if err != nil {
 		c.JSON(http.StatusNotImplemented, components.ErrorResponse{
 			Code: http.StatusNotImplemented,
