@@ -35,6 +35,11 @@ type UpdateClusterGoogle struct {
 	Master      *Master              `json:"master,omitempty"`
 }
 
+// CreateGoogleObjectStoreBucketProperties describes Google Object Store Bucket creation request
+type CreateGoogleObjectStoreBucketProperties struct {
+	Location string `json:"location,required"`
+}
+
 // Validate validates Google cluster create request
 func (g *CreateClusterGoogle) Validate() error {
 

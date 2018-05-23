@@ -10,6 +10,7 @@ import (
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/model/defaults"
 	"github.com/banzaicloud/pipeline/notify"
+	"github.com/banzaicloud/pipeline/objectstore"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -83,6 +84,9 @@ func main() {
 		&defaults.AKSNodePoolProfile{},
 		&defaults.GKEProfile{},
 		&defaults.GKENodePoolProfile{},
+		&objectstore.ManagedAmazonBucket{},
+		&objectstore.ManagedAzureBlobStore{},
+		&objectstore.ManagedGoogleBucket{},
 	).Error; err != nil {
 
 		panic(err)
@@ -162,6 +166,11 @@ func main() {
 			orgs.GET("/:orgid/users/:id", api.GetUsers)
 			orgs.POST("/:orgid/users/:id", api.AddUser)
 			orgs.DELETE("/:orgid/users/:id", api.RemoveUser)
+
+			orgs.GET("/:orgid/buckets", api.ListObjectStoreBuckets)
+			orgs.POST("/:orgid/buckets", api.CreateObjectStoreBuckets)
+			orgs.HEAD("/:orgid/buckets/:name", api.CheckObjectStoreBucket)
+			orgs.DELETE("/:orgid/buckets/:name", api.DeleteObjectStoreBucket)
 
 			orgs.GET("/:orgid/cloudinfo", api.GetSupportedClusterList)
 			orgs.GET("/:orgid/cloudinfo/filters", api.GetSupportedFilters)

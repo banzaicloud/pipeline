@@ -218,9 +218,18 @@
   name = "github.com/casbin/gorm-adapter"
 
 [[constraint]]
+
   branch = "master"
   name = "k8s.io/apiextensions-apiserver"
 
 [[constraint]]
   branch = "master"
   name = "github.com/banzaicloud/logrus-runtime-formatter"
+
+[[constraint]]
+  name = "cloud.google.com/go"
+  version = "0.20.0"
+
+[[constraint]]
+  name = "github.com/Azure/azure-storage-blob-go"
+  version = "0.1.4"
