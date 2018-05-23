@@ -162,7 +162,7 @@
     "components/kubernetes",
     "constants"
   ]
-  revision = "3c8fef070d3eeb6e209754cb30ed0744e423b759"
+  revision = "6215fd3290d88563c90827733bfe519f13456a05"
 
 [[projects]]
   branch = "master"
@@ -1730,6 +1730,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "8b55970da64bfa4309f256f14327d5854ef3bf3975fbe94e8bcecabca3a02b77"
+  inputs-digest = "7de6a359ccc1419f71689c6e1987aa00030d87833a08bf846747130121f5ad21"
   solver-name = "gps-cdcl"
   solver-version = 1
