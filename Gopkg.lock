@@ -11,10 +11,13 @@
   name = "github.com/Azure/azure-sdk-for-go"
   packages = [
     "profiles/2017-03-09/network/mgmt/network",
+    "services/authorization/mgmt/2015-07-01/authorization",
     "services/compute/mgmt/2018-04-01/compute",
     "services/containerservice/mgmt/2017-09-30/containerservice",
     "services/network/mgmt/2015-06-15/network",
+    "services/network/mgmt/2018-01-01/network",
     "services/resources/mgmt/2016-06-01/subscriptions",
+    "services/resources/mgmt/2017-05-10/resources",
     "services/resources/mgmt/2018-02-01/resources",
     "version"
   ]
@@ -130,14 +133,20 @@
   version = "v1.13.9"
 
 [[projects]]
-  branch = "master"
+  branch = "msi-and-vms"
   name = "github.com/banzaicloud/azure-aks-client"
   packages = [
     "client",
     "cluster",
+    "service/authorization",
+    "service/compute",
+    "service/containerservice",
+    "service/network",
+    "service/resources",
+    "service/subscriptions",
     "utils"
   ]
-  revision = "78816dc415eab088898d4defd6ab760c4f800f8c"
+  revision = "28a21449e012e4a64b41a9b71f742853fa481041"
 
 [[projects]]
   name = "github.com/banzaicloud/bank-vaults"
@@ -162,7 +171,11 @@
     "components/kubernetes",
     "constants"
   ]
+<<<<<<< HEAD
   revision = "6215fd3290d88563c90827733bfe519f13456a05"
+=======
+  revision = "a410b39ceb31a28eb4126774985f4d68c2e1836d"
+>>>>>>> support MSI and role assign in case of AKS
 
 [[projects]]
   branch = "master"
@@ -1730,6 +1743,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "7de6a359ccc1419f71689c6e1987aa00030d87833a08bf846747130121f5ad21"
+  inputs-digest = "0fec48a3476a3e69d5349dfe6b4115cc991feeb9764eb7b4ab9b1d5450b3c0ac"
   solver-name = "gps-cdcl"
   solver-version = 1
