@@ -1,11 +1,12 @@
 package api_test
 
 import (
+	"reflect"
+	"testing"
+
 	btypes "github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/api"
 	"github.com/banzaicloud/pipeline/secret"
-	"reflect"
-	"testing"
 )
 
 func TestIsValidSecretType(t *testing.T) {
@@ -116,7 +117,7 @@ func TestListSecrets(t *testing.T) {
 			if err := api.IsValidSecretType(tc.secretType); err != nil {
 				t.Errorf("Error during validate secret type: %s", err)
 			} else {
-				if items, err := secret.Store.List(orgId, tc.secretType, tc.repoName); err != nil {
+				if items, err := secret.Store.List(orgId, tc.secretType, tc.repoName, false); err != nil {
 					t.Errorf("Error during listing secrets")
 				} else {
 					if !reflect.DeepEqual(tc.expectedValues, items) {

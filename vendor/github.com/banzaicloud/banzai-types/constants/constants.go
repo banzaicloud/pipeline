@@ -4,34 +4,35 @@ import "errors"
 
 // ### [ Constants to log ] ### //
 const (
-	TagInit                  = "Init"
-	TagCreateCluster         = "CreateCluster"
-	TagValidateCreateCluster = "ValidateCreateCluster"
-	TagValidateUpdateCluster = "ValidateUpdateCluster"
-	TagGetClusterStatus      = "GetClusterStatus"
-	TagUpdateCluster         = "UpdateCluster"
-	TagGetCluster            = "GetCluster"
-	TagDeleteCluster         = "DeleteCluster"
-	TagDeleteDeployment      = "DeleteDeployment"
-	TagCreateDeployment      = "CreateDeployment"
-	TagListDeployments       = "ListDeployments"
-	TagPrometheus            = "Prometheus"
-	TagListClusters          = "ListClusters"
-	TagGetClusterInfo        = "GetClusterInfo"
-	TagFetchClusterConfig    = "FetchClusterConfig"
-	TagGetTillerStatus       = "GetTillerStatus"
-	TagFetchDeploymentStatus = "FetchDeploymentStatus"
-	TagStatus                = "Status"
-	TagSlack                 = "Slack"
-	TagAuth                  = "Auth"
-	TagDatabase              = "Database"
-	TagKubernetes            = "Kubernetes"
-	TagFormat                = "Format"
-	TagHelmInstall           = "HelmInstall"
-	TagGetClusterProfile     = "GetClusterProfile"
-	TagSetClusterProfile     = "SetClusterProfile"
-	TagUpdateClusterProfile  = "UpdateClusterProfile"
-	TagDeleteClusterProfile  = "DeleteClusterProfile"
+	TagInit                    = "Init"
+	TagCreateCluster           = "CreateCluster"
+	TagValidateCreateCluster   = "ValidateCreateCluster"
+	TagValidateUpdateCluster   = "ValidateUpdateCluster"
+	TagGetClusterStatus        = "GetClusterStatus"
+	TagUpdateCluster           = "UpdateCluster"
+	TagGetCluster              = "GetCluster"
+	TagDeleteCluster           = "DeleteCluster"
+	TagDeleteDeployment        = "DeleteDeployment"
+	TagCreateDeployment        = "CreateDeployment"
+	TagListDeployments         = "ListDeployments"
+	TagPrometheus              = "Prometheus"
+	TagListClusters            = "ListClusters"
+	TagGetClusterInfo          = "GetClusterInfo"
+	TagFetchClusterConfig      = "FetchClusterConfig"
+	TagInstallSecretsToCluster = "InstallSecretsToCluster"
+	TagGetTillerStatus         = "GetTillerStatus"
+	TagFetchDeploymentStatus   = "FetchDeploymentStatus"
+	TagStatus                  = "Status"
+	TagSlack                   = "Slack"
+	TagAuth                    = "Auth"
+	TagDatabase                = "Database"
+	TagKubernetes              = "Kubernetes"
+	TagFormat                  = "Format"
+	TagHelmInstall             = "HelmInstall"
+	TagGetClusterProfile       = "GetClusterProfile"
+	TagSetClusterProfile       = "SetClusterProfile"
+	TagUpdateClusterProfile    = "UpdateClusterProfile"
+	TagDeleteClusterProfile    = "DeleteClusterProfile"
 )
 
 // ### [ Constants to Azure cluster default values ] ### //
@@ -122,6 +123,7 @@ var (
 	ErrorResourceGroupRequired          = errors.New("resource group is required")
 	ErrorProjectRequired                = errors.New("project is required")
 	ErrorNodePoolNotFoundByName         = errors.New("nodepool not found by name")
+	ErrorNoInfrastructureRG             = errors.New("no infrastructure resource group found")
 )
 
 // ### [ Keywords ] ###

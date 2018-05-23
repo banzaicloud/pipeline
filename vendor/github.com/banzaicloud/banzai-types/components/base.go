@@ -3,6 +3,7 @@ package components
 import (
 	"bytes"
 	"fmt"
+
 	"github.com/banzaicloud/banzai-types/components/amazon"
 	"github.com/banzaicloud/banzai-types/components/azure"
 	"github.com/banzaicloud/banzai-types/components/dummy"
@@ -29,6 +30,11 @@ type CreateClusterRequest struct {
 		CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
 		CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
 	} `json:"properties" binding:"required"`
+}
+
+type InstallSecretsToClusterRequest struct {
+	Namespace string `json:"namespace" binding:"required"`
+	Repo      string `json:"repo" binding:"required"`
 }
 
 type ErrorResponse struct {
