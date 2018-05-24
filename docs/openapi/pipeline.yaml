@@ -44,8 +44,8 @@ paths:
         - bearerAuth: []
       tags:
         - catalogs
-      summary: List application catalogs
-      description: List all available application for lunch
+      summary: List catalogs
+      description: List all available catalogs
       parameters:
         - name: orgId
           in: path
@@ -60,15 +60,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ListCatalogResponse'
-
-  '/api/v1/orgs/{orgId}/catalogs/{catId}':
+  '/api/v1/orgs/{orgId}/catalogs/{name}':
     get:
       security:
         - bearerAuth: []
       tags:
         - catalogs
-      summary: List application catalogs
-      description: List all available application for lunch
+      summary: Get catalog details
+      description: Get details about specific catalog
       parameters:
         - name: orgId
           in: path
@@ -76,20 +75,25 @@ paths:
           description: Organization identification
           schema:
             type: integer
-        - name: catId
+        - name: name
           in: path
           required: true
-          description: Catalog identification
+          description: Catalog name
           schema:
-            type: integer
+            type: string
       responses:
         '200':
-          description: Application list
+          description: Catalog details
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/CatalogDetailsResponse'
-
+        '404':
+          description: Catalog missing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogNotFound'
 
   '/api/v1/orgs/{orgId}/applications':
     get:
@@ -2152,89 +2156,247 @@ components:
     CatalogDetailsResponse:
       type: object
       properties:
-        name:
-          type: string
-          example: "Zeppelin-Spark"
-        options:
-          type: array
-          items:
-            type: object
-            $ref: '#/components/schemas/CatalogOptions'
+        chart:
+          $ref: '#/components/schemas/CatalogChartInfo'
         readme:
           type: string
-          example: This is the Spark-Zeppelin Spotguide
+          format: byte
+          example: "TXlzcWwgUmVhZG1lLm1kIGluIGJhc2U2NAo="
+          description: Catalog Readme.md in base64 encoded string
+        spotguide:
+          type: object
+          properties:
+            resources:
+              $ref: '#/components/schemas/RequestedResources'
+            options:
+              type: array
+              items:
+                oneOf:
+                  - $ref: '#/components/schemas/CatalogOptionsMysqlDatabaseName'
+                  - $ref: '#/components/schemas/CatalogOptionsMysqlDatabaseSize'
+                  - $ref: '#/components/schemas/CatalogOptionsMysqlVersion'
+                  - $ref: '#/components/schemas/CatalogOptionsMonitor'
 
-    CatalogOptions:
+    CatalogChartInfo:
       type: object
       properties:
         name:
           type: string
-          example: spark-schuffle
+          example: mysql_pma
+        annotations:
+          type: object
+          properties:
+            displayName:
+              type: string
+              example: Mysql Server + PMA
+            longDescription:
+              type: string
+              example: Mysql Server with Mysql
+        icon:
+          type: string
+          format: uri
+          example: https://static.banzaicloud.com/catalog/mysql-logo.svg
+        description:
+          type: string
+          example: Mysql Server with Mysql
+        keywords:
+          type: array
+          example:
+            - mysql
+            - pma
+
+    CatalogOptionsMysqlDatabaseName:
+      type: object
+      properties:
+        name:
+          type: string
+          example: mysqlDatabaseName
         type:
           type: string
-          example: "boolean"
+          example: string
         info:
           type: string
-          example: Spark External Shuffle Service
+          example: Your mysql database name
         default:
           type: string
-          example: true
+          example: "your-mysql-database1"
         readonly:
+          type: boolean
+          example: false
+        enabled:
           type: boolean
           example: true
         key:
           type: string
-          example: spark-shuffle.enabled
+          example: mysql.database.name
 
-
-    ListCatalogResponse:
-      type: array
-      items:
-        type: object
-        $ref: '#/components/schemas/ListCatalogItem'
-
-    ListCatalogItem:
+    CatalogOptionsMysqlDatabaseSize:
       type: object
       properties:
         name:
           type: string
-          example: spark-zeppelin
-        id:
+          example: mysqlDatabaseSize
+        type:
+          type: string
+          example: string
+        info:
+          type: string
+          example: Your mysql database size in GB
+        default:
           type: integer
-          example: 1
+          example: "1"
+        readonly:
+          type: boolean
+          example: false
+        enabled:
+          type: boolean
+          example: true
+        key:
+          type: string
+          example: mysql.database.size
+
+    CatalogOptionsMysqlVersion:
+      type: object
+      properties:
+        name:
+          type: string
+          example: mysql_version
+        type:
+          type: string
+          example: "string"
+        info:
+          type: string
+          example: Mysql database version
+        default:
+          type: string
+          enum: [ "5.6", "5.7" ]
+          example: "5.6"
+        readonly:
+          type: boolean
+          example: false
+        key:
+          type: string
+          example: mysql.version
+
+    CatalogOptionsMonitor:
+      type: object
+      properties:
+        name:
+          type: string
+          example: monitor
+        type:
+          type: boolean
+          example: true
+        info:
+          type: string
+          example: Mysql monitoring
+        default:
+          type: boolean
+          example: true
+        readonly:
+          type: boolean
+          example: false
+        key:
+          type: string
+          example: monitor.enabled
+
+    CatalogNotFound:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 404
+        message:
+          type: string
+          example: catalog not found
+        error:
+          type: string
+          example: record not found
+
+    ListCatalogResponse:
+      type: array
+      items:
+        oneOf:
+          - $ref: '#/components/schemas/ListCatalogItem1'
+          - $ref: '#/components/schemas/ListCatalogItem2'
+
+    ListCatalogItem1:
+      type: object
+      properties:
+        name:
+          type: string
+          example: zeppelin-spark
+        displayName:
+          type: string
+          example: "Zeppelin UI + Spark on K8S"
         description:
           type: string
-          example: "Long description of Spark-Zeppelin application"
-        health:
+          example: Short description of Spark-Zeppelin application
+        icon:
           type: string
-          example: "HEALTHY"
+          format: uri
+          example: https://static.banzaicloud.com/catalog/zeppelin-spark-logo.svg
+        version:
+          type: string
+          example: 0.1.0
+
+    ListCatalogItem2:
+      type: object
+      properties:
+        name:
+          type: string
+          example: mysql
+        displayName:
+          type: string
+          example: Mysql database
+        description:
+          type: string
+          example: MySQL is the world's most popular open source database.
+        icon:
+          type: string
+          format: uri
+          example: https://static.banzaicloud.com/catalog/mysql-logo.svg
+        version:
+          type: string
+          example: 0.1.0
+
+    RequestedResources:
+      type: object
+      properties:
+        sumCpu:
+          type: integer
+          example: 8
+          description: Total CPU requested for the cluster
+        sumMem:
+          type: integer
+          example: 32
+          description: Total memory requested for the cluster (GB)
+        filters:
+          type: array
+          items:
+            type: string
+        sameSize:
+          type: boolean
+          example: true
+          description: If true, recommended instance types will have a similar size
+        onDemandPct:
+          type: integer
+          example: 10
+          description: Percentage of regular (on-demand) nodes in the recommended cluster
+        minNodes:
+          type: integer
+          example: 1
+          description: Minimum number of nodes in the recommended cluster
+        maxNodes:
+          type: integer
+          example: 3
+          description: Maximum number of nodes in the recommended cluster
 
     ApplicationCreate:
       type: object
       properties:
         resources:
           $ref: '#/components/schemas/ApplicationResources'
-
-    ApplicationResources:
-      type: object
-      properties:
-        vcpu:
-          type: integer
-          example: 10
-        memory:
-          type: integer
-          example: 20
-        filters:
-          type: array
-          items:
-            type: string
-        on_demand_percentage:
-          type: integer
-          exmaple: 30
-        same_size:
-          type: boolean
-          example: true
-
 
     ApplicationListResponse:
       type: array
