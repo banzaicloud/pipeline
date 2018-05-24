@@ -25,7 +25,7 @@ func ListObjectStoreBuckets(c *gin.Context) {
 	secretID := c.Param("secretid")
 
 	// Validate Secret
-	secret, err := secret.Store.Get(organizationID, secretID)
+	retrievedSecret, err := secret.Store.Get(organizationID, secretID)
 	if err != nil {
 		if strings.Contains(err.Error(), "there's no secret with this id") {
 			c.JSON(http.StatusBadRequest, components.ErrorResponse{
@@ -42,7 +42,7 @@ func ListObjectStoreBuckets(c *gin.Context) {
 		})
 		return
 	}
-	commonObjectStore, err := objectstore.ListCommonObjectStoreBuckets(secret)
+	commonObjectStore, err := objectstore.ListCommonObjectStoreBuckets(retrievedSecret)
 	if err != nil {
 
 	}
@@ -90,7 +90,7 @@ func CreateObjectStoreBuckets(c *gin.Context) {
 	log.Debug("Secret validation successful")
 	log.Debug("Create CommonObjectStoreBuckets from request")
 	commonObjectStore, err :=
-		objectstore.CreateCommonObjectStoreBuckets(createBucketRequest.Properties.Name ,createBucketRequest.Properties.Location, retrievedSecret)
+		objectstore.CreateCommonObjectStoreBuckets(createBucketRequest, retrievedSecret)
 	if err != nil {
 		c.JSON(http.StatusNotImplemented, components.ErrorResponse{
 			Code: http.StatusNotImplemented,
