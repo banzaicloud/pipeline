@@ -126,3 +126,9 @@ type ClusterProfileAzure struct {
 	KubernetesVersion string                     `json:"kubernetesVersion"`
 	NodePools         map[string]*NodePoolCreate `json:"nodePools,omitempty"`
 }
+
+type CreateAzureObjectStoreBucketProperties struct {
+	Location        string `json:"location" binding:"required"`
+	StorageAccount  string `json:"storage_account" binding:"required"`
+	ResourceGroup   string `json:"resource_group" binding:"required"`
+}

@@ -121,3 +121,7 @@ type AmazonProfileMaster struct {
 	InstanceType string `json:"instanceType"`
 	Image        string `json:"image"`
 }
+
+type CreateAmazonObjectStoreBucketProperties struct {
+	Location        string `json:"location" binding:"required"`
+}

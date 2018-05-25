@@ -18,11 +18,10 @@ type BanzaiResponse struct {
 
 type CreateBucketRequest struct {
 	SecretId string `json:"secret_id" binding:"required"`
+	Name     string `json:"name" binding:"required"`
 	Properties struct {
-		Name            string `json:"name" binding:"required"`
-		Location        string `json:"location"`
-		StorageAccount  string `json:"storage_account"`
-		ResourceGroup   string `json:"resource_group"`
+		CreateAmazonObjectStoreBucketProperties *amazon.CreateAmazonObjectStoreBucketProperties `json:"amazon,omitempty"`
+		CreateAzureObjectStoreBucketProperties  *azure.CreateAzureObjectStoreBucketProperties   `json:"azure,omitempty"`
 	} `json:"properties" binding:"required"`
 }
 

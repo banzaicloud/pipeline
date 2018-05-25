@@ -155,8 +155,8 @@ func main() {
 			orgs.POST("/:orgid/users/:id", api.AddUser)
 			orgs.DELETE("/:orgid/users/:id", api.RemoveUser)
 
-			orgs.GET(":orgid/buckets/:secretid", api.ListObjectStoreBuckets)
-			orgs.POST(":orgid/buckets", api.CreateObjectStoreBuckets)
+			orgs.GET("/:orgid/buckets/:secretid", api.ListObjectStoreBuckets)
+			orgs.POST("/:orgid/buckets", api.CreateObjectStoreBuckets)
 
 			orgs.GET("/:orgid/cloudinfo", api.GetSupportedClusterList)
 			orgs.GET("/:orgid/cloudinfo/filters", api.GetSupportedFilters)

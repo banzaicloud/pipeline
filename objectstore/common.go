@@ -36,19 +36,19 @@ func CreateCommonObjectStoreBuckets(createBucketRequest components.CreateBucketR
 	switch s.SecretType{
 	case constants.Amazon:
 		return &AmazonObjectStore{
-			bucketName: createBucketRequest.Properties.Name,
-			region: createBucketRequest.Properties.Location,
+			bucketName: createBucketRequest.Name,
+			region: createBucketRequest.Properties.CreateAmazonObjectStoreBucketProperties.Location,
 			secret: s}, nil
 	case constants.Google:
 		return &GoogleObjectStore{
-			bucketName: createBucketRequest.Properties.Name,
+			bucketName: createBucketRequest.Name,
 			projectId: s.Values["project_id"]}, nil
 	case constants.Azure:
 		return &AzureObjectStore{
-			bucketName: createBucketRequest.Properties.Name,
-			storageAccount: createBucketRequest.Properties.StorageAccount,
-			resourceGroup: createBucketRequest.Properties.ResourceGroup,
-			location: createBucketRequest.Properties.Location,
+			bucketName: createBucketRequest.Name,
+			storageAccount: createBucketRequest.Properties.CreateAzureObjectStoreBucketProperties.StorageAccount,
+			resourceGroup: createBucketRequest.Properties.CreateAzureObjectStoreBucketProperties.ResourceGroup,
+			location: createBucketRequest.Properties.CreateAzureObjectStoreBucketProperties.Location,
 			secret: s,}, nil
 	default:
 		return nil, fmt.Errorf("creating a bucket is not supported for %s", s)

@@ -140,3 +140,8 @@ func createStorageAccount(b *AzureObjectStore) error {
 	log.Info("StorageAccount creation request sent")
 	return nil
 }
+
+//func createResourceGroup(b *AzureObjectStore) error {
+//	gclient := resources.NewGroupsClient(b.secret.Values[secret.AzureSubscriptionId])
+//	gclient.CreateOrUpdate()
+//}
