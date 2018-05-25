@@ -15,6 +15,8 @@
 package script
 
 import (
+	"encoding/json"
+
 	"github.com/kubicorn/kubicorn/apis/cluster"
 	"github.com/kubicorn/kubicorn/pkg/parser"
 )
@@ -39,6 +41,12 @@ cd ~
 func BuildBootstrapScript(bootstrapScripts []string, cluster *cluster.Cluster) ([]byte, error) {
 	userData := []byte{}
 
+	scriptData, err := buildBootstrapSetupScript(cluster, kubicornDir, clusterAsJSONFileName)
+	if err != nil {
+		return nil, err
+	}
+	userData = append(userData, scriptData...)
+
 	for _, bootstrapScript := range bootstrapScripts {
 		scriptData, err := fileresource.ReadFromResource(bootstrapScript)
 		if err != nil {
@@ -48,4 +56,26 @@ func BuildBootstrapScript(bootstrapScripts []string, cluster *cluster.Cluster) (
 	}
 
 	return userData, nil
+}
+
+func buildBootstrapSetupScript(cl *cluster.Cluster, dir, file string) ([]byte, error) {
+	userData := []byte(bootstrapInitScriptBase)
+
+	script := []byte("mkdir -p " + dir + "\ncat <<\"EOF\" > " + dir + "/" + file + "\n")
+
+	clusterJSON, err := createClusterJson(*cl)
+	if err != nil {
+		return nil, err
+	}
+
+	userData = append(userData, script...)
+	userData = append(userData, clusterJSON...)
+	userData = append(userData, []byte("\nEOF\n")...)
+	return userData, nil
+}
+
+func createClusterJson(cl cluster.Cluster) ([]byte, error) {
+	master := []*cluster.ServerPool{cl.ServerPools[0]}
+	cl.ServerPools = master
+	return json.Marshal(cl)
 }
