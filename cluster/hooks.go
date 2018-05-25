@@ -165,10 +165,14 @@ func InstallHelmPostHook(cluster CommonCluster) {
 			_, err = helm.GetHelmClient(kubeConfig)
 			if err == nil {
 				return
+			} else {
+				log.Debugf("Error during getting helm client: %s", err.Error())
 			}
 			time.Sleep(time.Duration(retrySleepSeconds) * time.Second)
 		}
 		log.Error("Timeout during waiting for tiller to get ready")
+	} else {
+		log.Errorf("Error during retry helm install: %s", err.Error())
 	}
 }
 
