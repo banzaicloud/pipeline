@@ -16,12 +16,6 @@
   version = "v0.20.0"
 
 [[projects]]
-  name = "github.com/Azure/azure-pipeline-go"
-  packages = ["pipeline"]
-  revision = "098e490af5dc2a905cdc5b64cafda6887b29164b"
-  version = "0.1.6"
-
-[[projects]]
   name = "github.com/Azure/azure-sdk-for-go"
   packages = [
     "profiles/2017-03-09/network/mgmt/network",
@@ -143,12 +137,6 @@
   ]
   revision = "a580f1a44c64e950056e5151797c35c65ab3cb4b"
   version = "v1.13.9"
-
-[[projects]]
-  name = "github.com/azure/azure-storage-blob-go"
-  packages = ["2016-05-31/azblob"]
-  revision = "66ba96e49ebbdc3cd26970c6c675c906d304b5e2"
-  version = "0.1.4"
 
 [[projects]]
   branch = "master"
@@ -1781,6 +1769,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "bc9cf78c3fc75aebb3a88edb6e13d26c3172bb5c4266cf34f650f75c0ccc3a5f"
+  inputs-digest = "2f634c79411702efd935056df33b5bc309c7a1131d2d2d1dfe6d012cb9f91eab"
   solver-name = "gps-cdcl"
   solver-version = 1
