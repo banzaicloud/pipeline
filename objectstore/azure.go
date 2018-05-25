@@ -9,8 +9,9 @@ import (
 	"fmt"
 	"context"
 	"strings"
-	"github.com/azure/azure-storage-blob-go/2016-05-31/azblob"
+	"github.com/Azure/azure-storage-blob-go/2016-05-31/azblob"
 	"net/url"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-02-01/resources"
 )
 
 type AzureObjectStore struct {
@@ -141,7 +142,25 @@ func createStorageAccount(b *AzureObjectStore) error {
 	return nil
 }
 
-//func createResourceGroup(b *AzureObjectStore) error {
-//	gclient := resources.NewGroupsClient(b.secret.Values[secret.AzureSubscriptionId])
-//	gclient.CreateOrUpdate()
-//}
+func createResourceGroup(b *AzureObjectStore) error {
+	log := logger.WithFields(logrus.Fields{"tag": "CreateResourceGroup"})
+	gclient := resources.NewGroupsClient(b.secret.Values[secret.AzureSubscriptionId])
+	log.Info("Authenticating...")
+	authorizer, err := auth.NewClientCredentialsConfig(
+		b.secret.Values[secret.AzureClientId],
+		b.secret.Values[secret.AzureClientSecret],
+		b.secret.Values[secret.AzureTenantId]).Authorizer()
+	if err != nil {
+		log.Errorf("Error happened during authentication %s", err.Error())
+		return err
+	}
+	gclient.Authorizer = authorizer
+	result, err := gclient.CreateOrUpdate(context.TODO(), b.resourceGroup,
+		resources.Group{Location:   to.StringPtr(b.location)})
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+	log.Info(result.Status)
+	return nil
+}
