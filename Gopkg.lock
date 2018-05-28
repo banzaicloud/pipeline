@@ -869,7 +869,7 @@
   revision = "ff57fdc13a148d39c3e930cb27c7eaf82e376891"
 
 [[projects]]
-  branch = "deregister"
+  branch = "master"
   name = "github.com/qor/auth"
   packages = [
     ".",
@@ -877,7 +877,7 @@
     "claims",
     "providers/github"
   ]
-  revision = "7791a34fc4e729253c0139f079b2c63b302fcf99"
+  revision = "281d354825a572190e0dbf5cebccef69b28e4be1"
   source = "github.com/banzaicloud/auth"
 
 [[projects]]
@@ -1740,6 +1740,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "5784cde2f2c419cdbb15eb25ad8c7355f348bbf5e571e9d4e251dc3d7ef204ab"
+  inputs-digest = "f76f9ecff6341bdb724f730e90875ef83120f0ac6f6555987446c35b71a9cede"
   solver-name = "gps-cdcl"
   solver-version = 1

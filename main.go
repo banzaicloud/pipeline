@@ -13,7 +13,6 @@ import (
 	"github.com/banzaicloud/pipeline/notify"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/qor/auth/auth_identity"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -82,7 +81,7 @@ func main() {
 		&model.KubernetesClusterModel{},
 		&model.Deployment{},
 		&model.ApplicationModel{},
-		&auth_identity.AuthIdentity{},
+		&auth.AuthIdentity{},
 		&auth.User{},
 		&auth.UserOrganization{},
 		&auth.Organization{},
