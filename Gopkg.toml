@@ -128,7 +128,7 @@
   version = "2.0.0"
 
 [[constraint]]
-  branch = "deregister"
+  branch = "master"
   source = "github.com/banzaicloud/auth"
   name = "github.com/qor/auth"
 
