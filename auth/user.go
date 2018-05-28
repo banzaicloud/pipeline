@@ -15,6 +15,7 @@ import (
 	// blank import is used here for sql driver inclusion
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/qor/auth"
+	"github.com/qor/auth/auth_identity"
 	"github.com/qor/auth/claims"
 	"github.com/qor/qor/utils"
 	"github.com/sirupsen/logrus"
@@ -25,6 +26,15 @@ const (
 	// CurrentOrganization current organization key
 	CurrentOrganization utils.ContextKey = "org"
 )
+
+// AuthIdentity auth identity session model
+type AuthIdentity struct {
+	ID        uint      `gorm:"primary_key" json:"id"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+	auth_identity.Basic
+	auth_identity.SignLogs
+}
 
 //User struct
 type User struct {
@@ -67,7 +77,7 @@ type Organization struct {
 	GithubID  *int64               `gorm:"unique" json:"githubId,omitempty"`
 	CreatedAt time.Time            `json:"createdAt"`
 	UpdatedAt time.Time            `json:"updatedAt"`
-	Name      string               `gorm:"unique" json:"name"`
+	Name      string               `gorm:"unique;not null" json:"name"`
 	Users     []User               `gorm:"many2many:user_organizations" json:"users,omitempty"`
 	Clusters  []model.ClusterModel `gorm:"foreignkey:organization_id" json:"clusters,omitempty"`
 	Role      string               `json:"-" gorm:"-"` // Used only internally
@@ -131,7 +141,10 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 	log := logger.WithFields(logrus.Fields{"tag": "Auth"})
 
 	currentUser := &User{}
-	copier.Copy(currentUser, schema)
+	err = copier.Copy(currentUser, schema)
+	if err != nil {
+		return nil, "", err
+	}
 
 	// This assumes GitHub auth only right now
 	githubExtraInfo := schema.RawInfo.(*GithubExtraInfo)

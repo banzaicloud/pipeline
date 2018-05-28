@@ -123,6 +123,11 @@ func DeleteOrgRoleForUser(userID uint, orgid uint) {
 	enforcer.DeleteRoleForUser(fmt.Sprint(userID), orgRoleName(orgid))
 }
 
+// DeleteRolesForUser removes all roles for a given user.
+func DeleteRolesForUser(userID uint) {
+	enforcer.DeleteUser(fmt.Sprint(userID))
+}
+
 func orgRoleName(orgid uint) string {
 	return fmt.Sprint("org-", orgid)
 }
