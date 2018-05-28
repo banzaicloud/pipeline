@@ -10,6 +10,7 @@ type Provider interface {
 	Login(*Context)
 	Logout(*Context)
 	Register(*Context)
+	Deregister(*Context)
 	Callback(*Context)
 	ServeHTTP(*Context)
 }

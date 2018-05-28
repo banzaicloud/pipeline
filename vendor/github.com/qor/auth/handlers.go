@@ -82,6 +82,11 @@ var DefaultLogoutHandler = func(context *Context) {
 	context.Auth.Redirector.Redirect(context.Writer, context.Request, "logout")
 }
 
+// DefaultDeregisterHandler default deregister behaviour
+var DefaultDeregisterHandler = func(context *Context) {
+	http.NotFound(context.Writer, context.Request)
+}
+
 var cacheSince = time.Now().Format(http.TimeFormat)
 
 // DefaultAssetHandler render auth asset file

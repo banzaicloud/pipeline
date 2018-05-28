@@ -53,6 +53,8 @@ type Config struct {
 	RegisterHandler func(*Context, func(*Context) (*claims.Claims, error))
 	// LogoutHandler defined behaviour when request `{Auth Prefix}/logout`, default behaviour defined in http://godoc.org/github.com/qor/auth#pkg-variables
 	LogoutHandler func(*Context)
+	// DeregisterHandler defined behaviour when request `{Auth Prefix}/deregister`, default behaviour defined in http://godoc.org/github.com/qor/auth#pkg-variables
+	DeregisterHandler func(*Context)
 }
 
 // New initialize Auth
@@ -106,6 +108,10 @@ func New(config *Config) *Auth {
 
 	if config.RegisterHandler == nil {
 		config.RegisterHandler = DefaultRegisterHandler
+	}
+
+	if config.DeregisterHandler == nil {
+		config.DeregisterHandler = DefaultDeregisterHandler
 	}
 
 	if config.LogoutHandler == nil {
