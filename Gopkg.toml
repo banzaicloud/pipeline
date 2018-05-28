@@ -68,7 +68,7 @@
   version = "=1.13.9"
 
 [[constraint]]
-  branch = "msi-and-vms"
+  branch = "master"
   name = "github.com/banzaicloud/azure-aks-client"
 
 [[constraint]]

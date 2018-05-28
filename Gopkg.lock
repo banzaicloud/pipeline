@@ -133,7 +133,7 @@
   version = "v1.13.9"
 
 [[projects]]
-  branch = "msi-and-vms"
+  branch = "master"
   name = "github.com/banzaicloud/azure-aks-client"
   packages = [
     "client",
@@ -146,7 +146,7 @@
     "service/subscriptions",
     "utils"
   ]
-  revision = "28a21449e012e4a64b41a9b71f742853fa481041"
+  revision = "354eea55437b616667eda42a04b76660f71eb906"
 
 [[projects]]
   name = "github.com/banzaicloud/bank-vaults"
@@ -171,11 +171,7 @@
     "components/kubernetes",
     "constants"
   ]
-<<<<<<< HEAD
-  revision = "6215fd3290d88563c90827733bfe519f13456a05"
-=======
-  revision = "a410b39ceb31a28eb4126774985f4d68c2e1836d"
->>>>>>> support MSI and role assign in case of AKS
+  revision = "10d88a501368fa8e97c6f8c492a26780607fa3b3"
 
 [[projects]]
   branch = "master"
@@ -1736,6 +1732,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "0fec48a3476a3e69d5349dfe6b4115cc991feeb9764eb7b4ab9b1d5450b3c0ac"
+  inputs-digest = "7de6a359ccc1419f71689c6e1987aa00030d87833a08bf846747130121f5ad21"
   solver-name = "gps-cdcl"
   solver-version = 1
