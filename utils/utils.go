@@ -86,3 +86,18 @@ func Contains(slice []string, s string) bool {
 	}
 	return false
 }
+
+// ValidateCloudType validates if the passed cloudType is supported.
+// If a not supported cloud type is passed in than returns ErrorNotSupportedCloudType otherwise nil
+func ValidateCloudType(cloudType string) error {
+	switch cloudType {
+	case constants.Amazon:
+		return nil
+	case constants.Google:
+		return nil
+	case constants.Azure:
+		return nil
+	default:
+		return constants.ErrorNotSupportedCloudType
+	}
+}

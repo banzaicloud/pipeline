@@ -1,28 +1,28 @@
 package objectstore
 
 import (
-	"github.com/banzaicloud/pipeline/secret"
-	"github.com/sirupsen/logrus"
+	"context"
+	"fmt"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-02-01/resources"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage"
+	"github.com/Azure/azure-storage-blob-go/2016-05-31/azblob"
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/Azure/go-autorest/autorest/to"
-	"fmt"
-	"context"
-	"strings"
-	"github.com/Azure/azure-storage-blob-go/2016-05-31/azblob"
+	"github.com/banzaicloud/pipeline/secret"
+	"github.com/sirupsen/logrus"
 	"net/url"
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-02-01/resources"
+	"strings"
 )
 
 type AzureObjectStore struct {
-	bucketName string
 	storageAccount string
-	secret *secret.SecretsItemResponse
-	resourceGroup string
-	location string
+	secret         *secret.SecretsItemResponse
+	resourceGroup  string
+	location       string
 }
 
-func (b *AzureObjectStore) CreateBucket() error {
+func (b *AzureObjectStore) CreateBucket(bucketName string) error {
 	exists, err := checkStorageAccountExistence(b)
 	if !exists && err == nil {
 		err = createStorageAccount(b)
@@ -39,7 +39,7 @@ func (b *AzureObjectStore) CreateBucket() error {
 	}
 	p := azblob.NewPipeline(azblob.NewSharedKeyCredential(b.storageAccount, key), azblob.PipelineOptions{})
 	URL, _ := url.Parse(
-		fmt.Sprintf("https://%s.blob.core.windows.net/%s", b.storageAccount, b.bucketName))
+		fmt.Sprintf("https://%s.blob.core.windows.net/%s", b.storageAccount, bucketName))
 	containerURL := azblob.NewContainerURL(*URL, p)
 	_, err = containerURL.Create(context.Background(), azblob.Metadata{}, azblob.PublicAccessNone)
 	if err != nil {
@@ -48,7 +48,32 @@ func (b *AzureObjectStore) CreateBucket() error {
 	return nil
 }
 
-func (b *AzureObjectStore) DeleteBucket() error {
+func (b *AzureObjectStore) DeleteBucket(bucketName string) error {
+	log := logger.WithFields(logrus.Fields{"tag": "DeleteAzureBlobContainer"})
+	key, err := getStorageAccountKey(b)
+	if err != nil {
+		return err
+	}
+
+	p := azblob.NewPipeline(azblob.NewSharedKeyCredential(b.storageAccount, key), azblob.PipelineOptions{})
+	URL, _ := url.Parse(
+		fmt.Sprintf("https://%s.blob.core.windows.net/%s", b.storageAccount, bucketName))
+	containerURL := azblob.NewContainerURL(*URL, p)
+
+	_, err = containerURL.Delete(context.Background(), azblob.ContainerAccessConditions{})
+
+	if err != nil {
+		if storageErr, ok := err.(azblob.StorageError); ok {
+			log.Errorf("Deleting Azure Blob Container %s failed due to: %s", URL, storageErr.ServiceCode())
+			// azblob.ServiceCodeContainerNotFound
+			return fmt.Errorf("deleting Azure Blob Container %s failed due to: %s", URL, storageErr.ServiceCode())
+		}
+		log.Errorf("Deleting Azure Blob Container %s failed due to: %s", URL, err)
+		return err
+	}
+
+	log.Infof("Azure Blob Container %s deleted", URL)
+
 	return nil
 }
 
@@ -75,11 +100,8 @@ func getStorageAccountKey(b *AzureObjectStore) (string, error) {
 func createStorageAccountClient(s *secret.SecretsItemResponse) (*storage.AccountsClient, error) {
 	log := logger.WithFields(logrus.Fields{"tag": "CreateStorageAccountClient"})
 	accountClient := storage.NewAccountsClient(s.Values[secret.AzureSubscriptionId])
-	log.Info("Authenticating...")
-	authorizer, err := auth.NewClientCredentialsConfig(
-		s.Values[secret.AzureClientId],
-		s.Values[secret.AzureClientSecret],
-		s.Values[secret.AzureTenantId]).Authorizer()
+
+	authorizer, err := newAuthorizer(s)
 	if err != nil {
 		log.Errorf("Error happened during authentication %s", err.Error())
 		return nil, err
@@ -145,22 +167,35 @@ func createStorageAccount(b *AzureObjectStore) error {
 func createResourceGroup(b *AzureObjectStore) error {
 	log := logger.WithFields(logrus.Fields{"tag": "CreateResourceGroup"})
 	gclient := resources.NewGroupsClient(b.secret.Values[secret.AzureSubscriptionId])
-	log.Info("Authenticating...")
-	authorizer, err := auth.NewClientCredentialsConfig(
-		b.secret.Values[secret.AzureClientId],
-		b.secret.Values[secret.AzureClientSecret],
-		b.secret.Values[secret.AzureTenantId]).Authorizer()
+
+	authorizer, err := newAuthorizer(b.secret)
 	if err != nil {
 		log.Errorf("Error happened during authentication %s", err.Error())
 		return err
 	}
 	gclient.Authorizer = authorizer
 	result, err := gclient.CreateOrUpdate(context.TODO(), b.resourceGroup,
-		resources.Group{Location:   to.StringPtr(b.location)})
+		resources.Group{Location: to.StringPtr(b.location)})
 	if err != nil {
 		log.Error(err)
 		return err
 	}
 	log.Info(result.Status)
 	return nil
+}
+
+func newAuthorizer(s *secret.SecretsItemResponse) (autorest.Authorizer, error) {
+	log := logger.WithFields(logrus.Fields{"tag": "AzureAuthorizer"})
+	log.Info("Authenticating...")
+
+	authorizer, err := auth.NewClientCredentialsConfig(
+		s.Values[secret.AzureClientId],
+		s.Values[secret.AzureClientSecret],
+		s.Values[secret.AzureTenantId]).Authorizer()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return authorizer, nil
 }

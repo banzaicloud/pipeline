@@ -129,6 +129,6 @@ type ClusterProfileAzure struct {
 
 type CreateAzureObjectStoreBucketProperties struct {
 	Location        string `json:"location" binding:"required"`
-	StorageAccount  string `json:"storage_account" binding:"required"`
-	ResourceGroup   string `json:"resource_group" binding:"required"`
+	StorageAccount  string `json:"storageAccount" binding:"required"`
+	ResourceGroup   string `json:"resourceGroup" binding:"required"`
 }
