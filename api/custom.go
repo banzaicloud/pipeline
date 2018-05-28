@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"github.com/banzaicloud/banzai-types/components"
 	htype "github.com/banzaicloud/banzai-types/components/helm"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/gin-gonic/gin"
@@ -29,7 +30,7 @@ func ListEndpoints(c *gin.Context) {
 	if releaseName != "" {
 		status, err := helm.GetDeploymentStatus(releaseName, kubeConfig)
 		if err != nil {
-			c.JSON(int(status), htype.ErrorResponse{
+			c.JSON(int(status), components.ErrorResponse{
 				Code:    int(status),
 				Message: err.Error(),
 				Error:   err.Error(),
@@ -41,7 +42,7 @@ func ListEndpoints(c *gin.Context) {
 	client, err := helm.GetK8sConnection(kubeConfig)
 	if err != nil {
 		log.Errorf("Error getting k8s connection: %s", err.Error())
-		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error getting k8s connection",
 			Error:   err.Error(),
@@ -52,7 +53,7 @@ func ListEndpoints(c *gin.Context) {
 	serviceList, err := client.CoreV1().Services("").List(meta_v1.ListOptions{})
 	if err != nil {
 		log.Errorf("Error listing services: %s", err.Error())
-		c.JSON(http.StatusNotFound, htype.ErrorResponse{
+		c.JSON(http.StatusNotFound, components.ErrorResponse{
 			Code:    http.StatusNotFound,
 			Message: "Error during listing services",
 			Error:   err.Error(),
@@ -63,7 +64,7 @@ func ListEndpoints(c *gin.Context) {
 	ingressList, err := client.ExtensionsV1beta1().Ingresses("").List(meta_v1.ListOptions{})
 	if err != nil {
 		log.Errorf("Error listing ingresses: %s", err)
-		c.JSON(http.StatusInternalServerError, htype.ErrorResponse{
+		c.JSON(http.StatusInternalServerError, components.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: fmt.Sprintf("List kubernetes ingresses failed: %+v", err),
 		})
@@ -76,7 +77,7 @@ func ListEndpoints(c *gin.Context) {
 
 		if ingressList.Items == nil {
 			message := fmt.Sprintf("Releasename: %s does not have public endpoint exposed via ingress", releaseName)
-			c.JSON(http.StatusNotFound, htype.ErrorResponse{
+			c.JSON(http.StatusNotFound, components.ErrorResponse{
 				Code:    http.StatusNotFound,
 				Message: message,
 				Error:   message,
@@ -254,7 +255,7 @@ func GetClusterNodes(c *gin.Context) {
 	client, err := helm.GetK8sConnection(kubeConfig)
 	if err != nil {
 		log.Errorf("Error getting k8s connection: %s", err.Error())
-		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error getting k8s connection",
 			Error:   err.Error(),
@@ -266,7 +267,7 @@ func GetClusterNodes(c *gin.Context) {
 	log.Debugf("%s", response.String())
 	if err != nil {
 		log.Errorf("Error listing nodes: %s", err.Error())
-		c.JSON(http.StatusNotFound, htype.ErrorResponse{
+		c.JSON(http.StatusNotFound, components.ErrorResponse{
 			Code:    http.StatusNotFound,
 			Message: "Error during listing nodes",
 			Error:   err.Error(),

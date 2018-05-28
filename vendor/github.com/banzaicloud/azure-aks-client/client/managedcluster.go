@@ -58,7 +58,7 @@ func (a *aksClient) getCluster(resourceGroup, name string) (*containerservice.Ma
 	if err != nil {
 		return nil, err
 	}
-	a.LogInfo("Send request to Azure [%s in %s]", name, resourceGroup)
+	a.LogInfof("Send request to Azure [%s in %s]", name, resourceGroup)
 	return managedClusterClient.GetManagedCLuster(resourceGroup, name)
 }
 

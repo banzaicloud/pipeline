@@ -4,16 +4,19 @@ import (
 	"github.com/banzaicloud/banzai-types/constants"
 )
 
+// CreateClusterAmazon describes Pipeline's Amazon fields of a CreateCluster request
 type CreateClusterAmazon struct {
 	NodePools map[string]*NodePool `json:"nodePools,omitempty"`
 	Master    *CreateAmazonMaster  `json:"master,omitempty"`
 }
 
+// CreateAmazonMaster describes Amazon's master fields of a CreateCluster request
 type CreateAmazonMaster struct {
 	InstanceType string `json:"instanceType"`
 	Image        string `json:"image"`
 }
 
+// NodePool describes Amazon's node fields of a CreateCluster/Update request
 type NodePool struct {
 	InstanceType string `json:"instanceType"`
 	SpotPrice    string `json:"spotPrice"`
@@ -22,10 +25,12 @@ type NodePool struct {
 	Image        string `json:"image"`
 }
 
+// UpdateClusterAmazon describes Amazon's node fields of an UpdateCluster request
 type UpdateClusterAmazon struct {
 	NodePools map[string]*NodePool `json:"nodePools,omitempty"`
 }
 
+// Validate checks Amazon's node fields
 func (a *NodePool) Validate() error {
 	// ---- [ Node image check ] ---- //
 	if len(a.InstanceType) == 0 {
@@ -60,7 +65,7 @@ func (a *NodePool) Validate() error {
 	return nil
 }
 
-// Validate validates amazon cluster create request
+// Validate validates Amazon cluster create request
 func (amazon *CreateClusterAmazon) Validate() error {
 	if amazon == nil {
 		return constants.ErrorAmazonFieldIsEmpty
@@ -89,9 +94,8 @@ func (amazon *CreateClusterAmazon) Validate() error {
 	return nil
 }
 
-// ValidateAmazonRequest validates the update request (only amazon part). If any of the fields is missing, the method fills
+// Validate validates the update request (only amazon part). If any of the fields is missing, the method fills
 // with stored data.
-// func (r *UpdateClusterRequest) ValidateAmazonRequest(defaultValue ClusterSimple) (bool, string) {
 func (a *UpdateClusterAmazon) Validate() error {
 
 	// ---- [ Amazon field check ] ---- //
@@ -112,11 +116,13 @@ func (a *UpdateClusterAmazon) Validate() error {
 	return nil
 }
 
+// ClusterProfileAmazon describes an Amazon profile
 type ClusterProfileAmazon struct {
 	Master    *AmazonProfileMaster `json:"master,omitempty"`
 	NodePools map[string]*NodePool `json:"nodePools,omitempty"`
 }
 
+// AmazonProfileMaster describes an Amazon profile's master fields
 type AmazonProfileMaster struct {
 	InstanceType string `json:"instanceType"`
 	Image        string `json:"image"`

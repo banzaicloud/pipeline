@@ -12,11 +12,13 @@ import (
 	"github.com/banzaicloud/banzai-types/constants"
 )
 
+// BanzaiResponse describes Pipeline's responses
 type BanzaiResponse struct {
 	StatusCode int    `json:"status_code,omitempty"`
 	Message    string `json:"message,omitempty"`
 }
 
+// CreateClusterRequest describes a create cluster request
 type CreateClusterRequest struct {
 	Name        string `json:"name" binding:"required"`
 	Location    string `json:"location"`
@@ -32,17 +34,20 @@ type CreateClusterRequest struct {
 	} `json:"properties" binding:"required"`
 }
 
+// InstallSecretsToClusterRequest describes an InstallSecretToCluster request
 type InstallSecretsToClusterRequest struct {
 	Namespace string `json:"namespace" binding:"required"`
 	Repo      string `json:"repo" binding:"required"`
 }
 
+// ErrorResponse describes Pipeline's responses when an error occurred
 type ErrorResponse struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
 	Error   string `json:"error"`
 }
 
+// GetClusterStatusResponse describes Pipeline's GetClusterStatus API response
 type GetClusterStatusResponse struct {
 	Status        string                     `json:"status"`
 	StatusMessage string                     `json:"status_message,omitempty"`
@@ -53,6 +58,7 @@ type GetClusterStatusResponse struct {
 	NodePools     map[string]*NodePoolStatus `json:"nodePools,omitempty"`
 }
 
+// NodePoolStatus describes cluster's node status
 type NodePoolStatus struct {
 	Count          int    `json:"count,omitempty"`
 	InstanceType   string `json:"instance_type,omitempty"`
@@ -63,20 +69,24 @@ type NodePoolStatus struct {
 	Image          string `json:"image,omitempty"`
 }
 
+// GetClusterConfigResponse describes Pipeline's GetConfig API response
 type GetClusterConfigResponse struct {
 	Status int    `json:"status"`
 	Data   string `json:"data"`
 }
 
+// UpdateClusterResponse describes Pipeline's UpdateCluster API response
 type UpdateClusterResponse struct {
 	Status int `json:"status"`
 }
 
+// UpdateClusterRequest describes an update cluster request
 type UpdateClusterRequest struct {
 	Cloud            string `json:"cloud" binding:"required"`
 	UpdateProperties `json:"properties"`
 }
 
+// DeleteClusterResponse describes Pipeline's DeleteCluster API response
 type DeleteClusterResponse struct {
 	Status     int    `json:"status"`
 	Name       string `json:"name"`
@@ -84,6 +94,7 @@ type DeleteClusterResponse struct {
 	ResourceID uint   `json:"id"`
 }
 
+// UpdateProperties describes Pipeline's UpdateCluster request properties
 type UpdateProperties struct {
 	Amazon *amazon.UpdateClusterAmazon `json:"amazon,omitempty"`
 	Azure  *azure.UpdateClusterAzure   `json:"azure,omitempty"`
@@ -131,7 +142,7 @@ func (r *UpdateClusterRequest) String() string {
 	return buffer.String()
 }
 
-// The Validate method checks the request fields
+// Validate checks the request fields
 func (r *CreateClusterRequest) Validate() error {
 
 	if err := r.validateMainFields(); err != nil {
@@ -160,6 +171,7 @@ func (r *CreateClusterRequest) Validate() error {
 	}
 }
 
+// validateMainFields checks the request's main fields
 func (r *CreateClusterRequest) validateMainFields() error {
 	if r.Cloud != constants.Kubernetes {
 		if len(r.Location) == 0 {
@@ -169,7 +181,7 @@ func (r *CreateClusterRequest) validateMainFields() error {
 	return nil
 }
 
-// The Validate method checks the request fields
+// Validate checks the request fields
 func (r *UpdateClusterRequest) Validate() error {
 
 	r.preValidate()
@@ -213,6 +225,7 @@ func (r *UpdateClusterRequest) preValidate() {
 	}
 }
 
+// ClusterProfileResponse describes Pipeline's ClusterProfile API responses
 type ClusterProfileResponse struct {
 	Name       string `json:"name" binding:"required"`
 	Location   string `json:"location" binding:"required"`
@@ -224,6 +237,7 @@ type ClusterProfileResponse struct {
 	} `json:"properties" binding:"required"`
 }
 
+// ClusterProfileRequest describes CreateClusterProfile request
 type ClusterProfileRequest struct {
 	Name       string `json:"name" binding:"required"`
 	Location   string `json:"location" binding:"required"`
@@ -235,6 +249,7 @@ type ClusterProfileRequest struct {
 	} `json:"properties" binding:"required"`
 }
 
+// CloudInfoRequest describes Cloud info requests
 type CloudInfoRequest struct {
 	OrganizationId uint   `json:"-"`
 	SecretId       string `json:"secret_id,omitempty"`
@@ -246,19 +261,23 @@ type CloudInfoRequest struct {
 	} `json:"filter,omitempty"`
 }
 
+// InstanceFilter describes instance filter of cloud info
 type InstanceFilter struct {
 	Location string `json:"location,omitempty"`
 }
 
+// ImageFilter describes image filter of cloud info
 type ImageFilter struct {
 	Location string    `json:"location,omitempty"`
 	Tags     []*string `json:"tags,omitempty"`
 }
 
+// KubernetesFilter describes K8S version filter of cloud info
 type KubernetesFilter struct {
 	Location string `json:"location,omitempty"`
 }
 
+// GetCloudInfoResponse describes Pipeline's Cloud info API response
 type GetCloudInfoResponse struct {
 	Type               string                 `json:"type" binding:"required"`
 	NameRegexp         string                 `json:"nameRegexp,omitempty"`
@@ -268,12 +287,15 @@ type GetCloudInfoResponse struct {
 	Image              map[string][]string    `json:"image,omitempty"`
 }
 
+// MachineType describes an string slice which contains machine types
 type MachineType []string
 
+// SupportedClustersResponse describes the supported cloud providers
 type SupportedClustersResponse struct {
 	Items []SupportedClusterItem `json:"items"`
 }
 
+// SupportedClusterItem describes a supported cloud provider
 type SupportedClusterItem struct {
 	Name    string `json:"name" binding:"required"`
 	Key     string `json:"key" binding:"required"`
@@ -281,17 +303,20 @@ type SupportedClusterItem struct {
 	Icon    string `json:"icon"`
 }
 
+// SupportedFilters describes the supported filter keywords in case of Cloud info requests
 type SupportedFilters struct {
 	Keys []string `json:"keys"`
 }
 
+// CreateClusterResponse describes Pipeline's CreateCluster API response
 type CreateClusterResponse struct {
 	Name       string `json:"name"`
 	ResourceID uint   `json:"id"`
 }
 
-// todo expand with more fields
+// ClusterDetailsResponse describes Pipeline's GetClusterDetails API response
 type ClusterDetailsResponse struct {
+	// todo expand with more fields
 	Name string `json:"name"`
 	Id   uint   `json:"id"`
 }
