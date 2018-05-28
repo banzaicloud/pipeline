@@ -29,5 +29,5 @@ func (a *aksClient) findInfrastructureResourceGroup(resourceGroup, clusterName, 
 
 // getResourceGroupScope returns a resource group scope
 func (a *aksClient) getResourceGroupScope(infrastructureRgName string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/", a.azureSdk.ServicePrincipal.SubscriptionID, infrastructureRgName)
+	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s", a.azureSdk.ServicePrincipal.SubscriptionID, infrastructureRgName)
 }

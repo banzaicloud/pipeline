@@ -107,19 +107,44 @@ func (a *aksClient) assignStorageAccountContributorRole(resourceGroup, clusterNa
 		return err
 	}
 
+	a.LogInfo("List role assignments")
+	roleAssignments, err := roleAssignClient.ListRoleAssignments()
+	if err != nil {
+		return err
+	}
+
 	for _, vm := range virtualMachines {
 		principalID := vm.Identity.PrincipalID
-		a.LogInfof("Assign role [%s] with scope [%s] to VM [%s] with principalId[%s]", *role.ID, scope, *vm.Name, *principalID)
-		_, err := roleAssignClient.CreateRoleAssignment(scope, *role.ID, *principalID)
-		if err != nil {
-			return err
+		roleId := role.ID
+
+		if isRoleAssignedBefore(roleAssignments, scope, *roleId, *principalID) {
+			a.LogInfo("The role assignment already exists")
+		} else {
+			a.LogInfof("Assign role [%s] with scope [%s] to VM [%s] with principalId[%s]", *role.ID, scope, *vm.Name, *principalID)
+			_, err := roleAssignClient.CreateRoleAssignment(scope, *roleId, *principalID)
+			if err != nil {
+				return err
+			}
 		}
+
 	}
 
 	a.LogInfo("Role assigned to all VM")
 
 	return nil
 
+}
+
+func isRoleAssignedBefore(roleAssignments []authorization.RoleAssignment, scope, roleId, principalId string) bool {
+	for _, assignment := range roleAssignments {
+		if assignment.Properties != nil {
+			if *assignment.Properties.RoleDefinitionID == roleId && *assignment.Properties.Scope == scope && *assignment.Properties.PrincipalID == principalId {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 // deleteStorageAccountContributorRole deletes 'Storage Account Contributor' role for all VM in the given resource group

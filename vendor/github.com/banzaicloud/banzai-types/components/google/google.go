@@ -6,28 +6,33 @@ import (
 	"regexp"
 )
 
+// CreateClusterGoogle describes Pipeline's Google fields of a CreateCluster request
 type CreateClusterGoogle struct {
 	NodeVersion string               `json:"nodeVersion,omitempty"`
 	NodePools   map[string]*NodePool `json:"nodePools,omitempty"`
 	Master      *Master              `json:"master,omitempty"`
 }
 
+// Master describes Google's master fields of a CreateCluster request
 type Master struct {
 	Version string `json:"version"`
 }
 
+// NodePool describes Google's node fields of a CreateCluster/Update request
 type NodePool struct {
 	Count            int    `json:"count,omitempty"`
 	NodeInstanceType string `json:"nodeInstanceType,omitempty"`
 	ServiceAccount   string `json:"serviceAccount,omitempty"`
 }
 
+// UpdateClusterGoogle describes Google's node fields of an UpdateCluster request
 type UpdateClusterGoogle struct {
 	NodeVersion string               `json:"nodeVersion,omitempty"`
 	NodePools   map[string]*NodePool `json:"nodePools,omitempty"`
 	Master      *Master              `json:"master,omitempty"`
 }
 
+// Validate validates Google cluster create request
 func (g *CreateClusterGoogle) Validate() error {
 
 	if g == nil {
@@ -90,12 +95,14 @@ func (a *UpdateClusterGoogle) Validate() error {
 	return nil
 }
 
+// ClusterProfileGoogle describes an Amazon profile
 type ClusterProfileGoogle struct {
 	Master      *Master              `json:"master,omitempty"`
 	NodeVersion string               `json:"nodeVersion,omitempty"`
 	NodePools   map[string]*NodePool `json:"nodePools,omitempty"`
 }
 
+// isValidVersion validates the given K8S version
 func isValidVersion(version string) bool {
 	if len(version) == 0 {
 		return true

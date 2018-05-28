@@ -124,6 +124,7 @@ var (
 	ErrorProjectRequired                = errors.New("project is required")
 	ErrorNodePoolNotFoundByName         = errors.New("nodepool not found by name")
 	ErrorNoInfrastructureRG             = errors.New("no infrastructure resource group found")
+	ErrStateStorePathEmpty              = errors.New("statestore path cannot be empty")
 )
 
 // ### [ Keywords ] ###

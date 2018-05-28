@@ -1,5 +1,6 @@
 package helm
 
+// Install describes an Helm install request
 type Install struct {
 	// Name of the kubeconfig context to use
 	KubeContext string `json:"kube_context"`
@@ -23,16 +24,12 @@ type Install struct {
 	MaxHistory int `json:"history_max"`
 }
 
-type ErrorResponse struct {
-	Code    int    `json:"code"`
-	Message string `json:"message"`
-	Error   string `json:"error"`
-}
-
+// EndpointResponse describes a service public endpoints
 type EndpointResponse struct {
 	Endpoints []*EndpointItem `json:"endpoints"`
 }
 
+// EndpointItem describes a service public endpoint
 type EndpointItem struct {
 	Name         string           `json:"name"`
 	Host         string           `json:"host"`
@@ -40,29 +37,34 @@ type EndpointItem struct {
 	EndPointURLs []*EndPointURLs  `json:"urls"`
 }
 
+// EndPointURLs describes an endpoint url
 type EndPointURLs struct {
 	Path        string `json:"path"`
 	URL         string `json:"url"`
 	ReleaseName string `json:"release_name"`
 }
 
+// StatusResponse describes a Helm status response
 type StatusResponse struct {
 	Status  int    `json:"status"`
 	Message string `json:"message"`
 	Name    string `json:"name"`
 }
 
+// DeleteResponse describes a deployment delete response
 type DeleteResponse struct {
 	Status  int    `json:"status"`
 	Message string `json:"message"`
 	Name    string `json:"name"`
 }
 
+// InstallResponse describes a Helm install response
 type InstallResponse struct {
 	Status  int    `json:"status"`
 	Message string `json:"message"`
 }
 
+// CreateUpdateDeploymentResponse describes a create/update deployment response
 type CreateUpdateDeploymentResponse struct {
 	ReleaseName string `json:"release_name"`
 	Notes       string `json:"notes"`
@@ -77,6 +79,7 @@ type CreateUpdateDeploymentRequest struct {
 	Values      interface{} `json:"values"`
 }
 
+// ListDeploymentResponse describes a deployment list response
 type ListDeploymentResponse struct {
 	Name    string `json:"name"`
 	Chart   string `json:"chart"`
@@ -85,6 +88,7 @@ type ListDeploymentResponse struct {
 	Status  string `json:"status"`
 }
 
+// DeploymentStatusResponse describes a deployment status response
 type DeploymentStatusResponse struct {
 	Status  int    `json:"status"`
 	Message string `json:"message"`

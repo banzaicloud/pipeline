@@ -5,10 +5,12 @@ import (
 	"github.com/banzaicloud/banzai-types/constants"
 )
 
+// Values describes a list of Azure clusters
 type Values struct {
 	Value []Value `json:"value"`
 }
 
+// Value describes an Azure cluster
 type Value struct {
 	Id         string     `json:"id"`
 	Location   string     `json:"location"`
@@ -16,43 +18,51 @@ type Value struct {
 	Properties Properties `json:"properties"`
 }
 
+// Properties describes an Azure cluster properties
 type Properties struct {
 	ProvisioningState string    `json:"provisioningState"`
 	AgentPoolProfiles []Profile `json:"agentPoolProfiles"`
 	Fqdn              string    `json:"fqdn"`
 }
 
+// Profile describes an Azure agent pool
 type Profile struct {
 	Name   string `json:"name"`
 	Count  int    `json:"count"`
 	VmSize string `json:"vmSize"`
 }
 
+// ResponseWithValue describes an Azure cluster
 type ResponseWithValue struct {
 	StatusCode int   `json:"status_code"`
 	Value      Value `json:"message,omitempty"`
 }
 
+// ListResponse describes an Azure cluster list
 type ListResponse struct {
 	StatusCode int    `json:"status_code"`
 	Value      Values `json:"message"`
 }
 
+// CreateClusterAzure describes Azure fields of a CreateCluster request
 type CreateClusterAzure struct {
 	ResourceGroup     string                     `json:"resourceGroup"`
 	KubernetesVersion string                     `json:"kubernetesVersion"`
 	NodePools         map[string]*NodePoolCreate `json:"nodePools,omitempty"`
 }
 
+// NodePoolCreate describes Azure's node fields of a CreateCluster request
 type NodePoolCreate struct {
 	Count            int    `json:"count"`
 	NodeInstanceType string `json:"nodeInstanceType"`
 }
 
+// NodePoolUpdate describes Azure's node count of a UpdateCluster request
 type NodePoolUpdate struct {
 	Count int `json:"count"`
 }
 
+// UpdateClusterAzure describes Azure's node fields of an UpdateCluster request
 type UpdateClusterAzure struct {
 	NodePools map[string]*NodePoolUpdate `json:"nodePools,omitempty"`
 }
@@ -97,9 +107,8 @@ func (azure *CreateClusterAzure) Validate() error {
 	return nil
 }
 
-// ValidateAzureRequest validates the update request (only azure part). If any of the fields is missing, the method fills
+// Validate validates the update request (only azure part). If any of the fields is missing, the method fills
 // with stored data.
-// func (r *UpdateClusterRequest) ValidateAzureRequest(defaultValue components.ClusterSimple) (bool, string) {
 func (a *UpdateClusterAzure) Validate() error {
 	// ---- [ Azure field check ] ---- //
 	if a == nil {
@@ -109,11 +118,13 @@ func (a *UpdateClusterAzure) Validate() error {
 	return nil
 }
 
+// Update updates `ResponseWithValue` with the given response code and value
 func (r *ResponseWithValue) Update(code int, Value Value) {
 	r.Value = Value
 	r.StatusCode = code
 }
 
+// Config describes an Azure kubeconfig
 type Config struct {
 	Location   string `json:"location"`
 	Name       string `json:"name"`
@@ -122,6 +133,7 @@ type Config struct {
 	} `json:"properties"`
 }
 
+// ClusterProfileAzure describes an Azure profile
 type ClusterProfileAzure struct {
 	KubernetesVersion string                     `json:"kubernetesVersion"`
 	NodePools         map[string]*NodePoolCreate `json:"nodePools,omitempty"`
