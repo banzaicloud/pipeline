@@ -45,6 +45,8 @@ func (serveMux *serveMux) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 				provider.Logout(context)
 			case "register":
 				provider.Register(context)
+			case "deregister":
+				provider.Deregister(context)
 			case "callback":
 				provider.Callback(context)
 			default:
@@ -61,6 +63,9 @@ func (serveMux *serveMux) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		case "register":
 			// render register page
 			serveMux.Auth.Render.Execute("auth/register", context, req, w)
+		case "deregister":
+			// remove user from database
+			serveMux.Auth.DeregisterHandler(context)
 		case "logout":
 			// destroy login context
 			serveMux.Auth.LogoutHandler(context)
