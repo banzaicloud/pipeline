@@ -63,12 +63,6 @@ func (b *AzureObjectStore) DeleteBucket(bucketName string) error {
 	_, err = containerURL.Delete(context.Background(), azblob.ContainerAccessConditions{})
 
 	if err != nil {
-		if storageErr, ok := err.(azblob.StorageError); ok {
-			log.Errorf("Deleting Azure Blob Container %s failed due to: %s", URL, storageErr.ServiceCode())
-			// azblob.ServiceCodeContainerNotFound
-			return fmt.Errorf("deleting Azure Blob Container %s failed due to: %s", URL, storageErr.ServiceCode())
-		}
-		log.Errorf("Deleting Azure Blob Container %s failed due to: %s", URL, err)
 		return err
 	}
 
