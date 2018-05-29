@@ -4,6 +4,7 @@ import (
 	"fmt"
 	htypes "github.com/banzaicloud/banzai-types/components/helm"
 	"github.com/banzaicloud/banzai-types/constants"
+	"github.com/banzaicloud/pipeline/auth"
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/utils"
@@ -110,7 +111,13 @@ func InstallIngressControllerPostHook(cluster CommonCluster) {
 	deploymentName := "banzaicloud-stable/pipeline-cluster-ingress"
 	releaseName := "pipeline"
 
-	_, err = helm.CreateDeployment(deploymentName, releaseName, nil, kubeConfig, cluster.GetName())
+	org, err := auth.GetOrganizationById(cluster.GetOrganizationId())
+	if err != nil {
+		log.Errorf("Error during getting organization: %s", err.Error())
+		return
+	}
+
+	_, err = helm.CreateDeployment(deploymentName, releaseName, nil, kubeConfig, org.Name)
 	if err != nil {
 		log.Errorf("Deploying '%s' failed due to: ", deploymentName)
 		log.Errorf("%s", err.Error())
@@ -152,7 +159,7 @@ func InstallHelmPostHook(cluster CommonCluster) {
 		return
 	}
 
-	err = helm.RetryHelmInstall(helmInstall, kubeconfig, cluster.GetName())
+	err = helm.RetryHelmInstall(helmInstall, kubeconfig)
 	if err == nil {
 		// Get K8S Config //
 		kubeConfig, err := cluster.GetK8sConfig()

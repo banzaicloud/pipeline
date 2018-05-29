@@ -116,13 +116,15 @@ func DeleteAllDeployment(kubeconfig []byte) error {
 		return err
 	}
 	log.Info("Starting deleting deployments")
-	for _, r := range releaseResp.Releases {
-		log.Info("Trying to delete deployment ", r.Name)
-		err := DeleteDeployment(r.Name, kubeconfig)
-		if err != nil {
-			return err
+	if releaseResp != nil {
+		for _, r := range releaseResp.Releases {
+			log.Info("Trying to delete deployment ", r.Name)
+			err := DeleteDeployment(r.Name, kubeconfig)
+			if err != nil {
+				return err
+			}
+			log.Infof("Deployment %s successfully deleted", r.Name)
 		}
-		log.Infof("Deployment %s successfully deleted", r.Name)
 	}
 	return nil
 }
@@ -353,8 +355,8 @@ func mergeValues(dest map[string]interface{}, src map[string]interface{}) map[st
 }
 
 // ReposGet returns repo
-func ReposGet(clusterName string) ([]*repo.Entry, error) {
-	repoPath := fmt.Sprintf("%s/repository/repositories.yaml", generateHelmRepoPath(clusterName))
+func ReposGet(organizationName string) ([]*repo.Entry, error) {
+	repoPath := getHelmRepoPath(organizationName)
 	log.Debug("Helm repo path:", repoPath)
 
 	f, err := repo.LoadRepositoriesFile(repoPath)
@@ -386,7 +388,7 @@ func ReposAdd(clusterName string, Hrepo *repo.Entry) error {
 	}
 
 	for _, n := range f.Repositories {
-		log.Debug("repo", n.Name)
+		log.Debugf("repo: %s", n.Name)
 		if n.Name == Hrepo.Name {
 			return errors.New("Already added.")
 		}
@@ -507,9 +509,9 @@ type ChartList struct {
 }
 
 // ChartsGet returns chart list
-func ChartsGet(clusterName, queryName, queryRepo, queryVersion, queryKeyword string) ([]ChartList, error) {
+func ChartsGet(organizationName, queryName, queryRepo, queryVersion, queryKeyword string) ([]ChartList, error) {
 
-	repoPath := fmt.Sprintf("%s/repository/repositories.yaml", generateHelmRepoPath(clusterName))
+	repoPath := getHelmRepoPath(organizationName)
 	log.Debug("Helm repo path:", repoPath)
 
 	f, err := repo.LoadRepositoriesFile(repoPath)
@@ -585,9 +587,9 @@ type ChartDetails struct {
 }
 
 // ChartGet returns chart details
-func ChartGet(clusterName, chartRepo, chartName, chartVersion string) (*ChartDetails, error) {
+func ChartGet(organizationName, chartRepo, chartName, chartVersion string) (*ChartDetails, error) {
 
-	repoPath := fmt.Sprintf("%s/repository/repositories.yaml", generateHelmRepoPath(clusterName))
+	repoPath := getHelmRepoPath(organizationName)
 	log.Debug("Helm repo path:", repoPath)
 	chartD := &ChartDetails{}
 	f, err := repo.LoadRepositoriesFile(repoPath)
@@ -656,4 +658,8 @@ func ChartGet(clusterName, chartRepo, chartName, chartVersion string) (*ChartDet
 		}
 	}
 	return nil, nil
+}
+
+func getHelmRepoPath(orgName string) string {
+	return fmt.Sprintf("%s/repository/repositories.yaml", generateHelmRepoPath(orgName))
 }
