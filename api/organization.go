@@ -8,6 +8,8 @@ import (
 
 	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/cluster"
+	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -150,6 +152,8 @@ func CreateOrganization(c *gin.Context) {
 	auth.AddOrgRoles(organization.ID)
 	auth.AddOrgRoleForUser(user.ID, organization.ID)
 
+	helm.InstallLocalHelm(organization.Name)
+
 	c.JSON(http.StatusOK, organization)
 }
 
@@ -172,7 +176,8 @@ func DeleteOrganization(c *gin.Context) {
 	}
 
 	user := auth.GetCurrentUser(c.Request)
-	organization := &auth.Organization{ID: uint(id)}
+	organization, err := auth.GetOrganizationById(uint(id))
+	deleteName := organization.Name
 
 	err = deleteOrgFromDB(organization, user)
 	if err != nil {
@@ -185,6 +190,14 @@ func DeleteOrganization(c *gin.Context) {
 			Error:   message,
 		})
 	} else {
+
+		log.Infof("Clean org's statestore folder %s", deleteName)
+		if err := cluster.CleanStateStore(deleteName); err != nil {
+			log.Errorf("Statestore cleaning failed: %s", err.Error())
+		} else {
+			log.Info("Org's statestore folder cleaned")
+		}
+
 		c.Status(http.StatusNoContent)
 	}
 }

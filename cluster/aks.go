@@ -56,8 +56,8 @@ type AKSCluster struct {
 	commonSecret
 }
 
-// GetOrg gets org where the cluster belongs
-func (c *AKSCluster) GetOrg() uint {
+// GetOrganizationId gets org where the cluster belongs
+func (c *AKSCluster) GetOrganizationId() uint {
 	return c.modelCluster.OrganizationId
 }
 
@@ -567,7 +567,7 @@ func (c *AKSCluster) ValidateCreationFields(r *bTypes.CreateClusterRequest) erro
 // validateLocation validates location
 func (c *AKSCluster) validateLocation(location string) error {
 	log.Infof("Location: %s", location)
-	validLocations, err := GetLocations(c.GetOrg(), c.GetSecretID())
+	validLocations, err := GetLocations(c.GetOrganizationId(), c.GetSecretID())
 	if err != nil {
 		return err
 	}
@@ -593,7 +593,7 @@ func (c *AKSCluster) validateMachineType(nodePools map[string]*banzaiAzureTypes.
 
 	log.Infof("NodeInstanceTypes: %v", machineTypes)
 
-	validMachineTypes, err := GetMachineTypes(c.GetOrg(), c.GetSecretID(), location)
+	validMachineTypes, err := GetMachineTypes(c.GetOrganizationId(), c.GetSecretID(), location)
 	if err != nil {
 		return err
 	}
@@ -612,7 +612,7 @@ func (c *AKSCluster) validateMachineType(nodePools map[string]*banzaiAzureTypes.
 func (c *AKSCluster) validateKubernetesVersion(k8sVersion, location string) error {
 
 	log.Infof("K8SVersion: %s", k8sVersion)
-	validVersions, err := GetKubernetesVersion(c.GetOrg(), c.GetSecretID(), location)
+	validVersions, err := GetKubernetesVersion(c.GetOrganizationId(), c.GetSecretID(), location)
 	if err != nil {
 		return err
 	}

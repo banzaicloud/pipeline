@@ -2,7 +2,6 @@ package api
 
 import (
 	"github.com/banzaicloud/banzai-types/components"
-	htype "github.com/banzaicloud/banzai-types/components/helm"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/catalog"
 	"github.com/gin-gonic/gin"
@@ -26,7 +25,7 @@ func CatalogDetails(c *gin.Context) {
 	chartDetails, err := catalog.GetCatalogDetails(chartName)
 	if err != nil {
 		log.Errorf("Error parsing request: %s", err.Error())
-		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "error parsing request",
 			Error:   err.Error(),

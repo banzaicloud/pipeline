@@ -749,7 +749,7 @@ paths:
             schema:
               $ref: '#/components/schemas/HelmInitRequest'
 
-  '/api/v1/orgs/{orgId}/clusters/{id}/helm/repos':
+  '/api/v1/orgs/{orgId}/helm/repos':
     get:
       security:
         - bearerAuth: []
@@ -763,12 +763,6 @@ paths:
           in: path
           required: true
           description: Organization identification
-          schema:
-            type: integer
-        - name: id
-          in: path
-          required: true
-          description: Selected cluster identification (number)
           schema:
             type: integer
       responses:
@@ -812,12 +806,6 @@ paths:
           description: Organization identification
           schema:
             type: integer
-        - name: id
-          in: path
-          required: true
-          description: Selected cluster identification (number)
-          schema:
-            type: integer
       responses:
         '200':
           description: "resource successfully added."
@@ -850,7 +838,7 @@ paths:
             schema:
               $ref: '#/components/schemas/HelmReposAddRequest'
 
-  '/api/v1/orgs/{orgId}/clusters/{id}/helm/repos/{repoName}':
+  '/api/v1/orgs/{orgId}/helm/repos/{repoName}':
     delete:
       security:
         - bearerAuth: []
@@ -864,12 +852,6 @@ paths:
           in: path
           required: true
           description: Organization identification
-          schema:
-            type: integer
-        - name: id
-          in: path
-          required: true
-          description: Selected cluster identification (number)
           schema:
             type: integer
         - name: repoName
@@ -905,7 +887,7 @@ paths:
                 $ref: '#/components/schemas/ClusterNotFound'
 
 
-  '/api/v1/orgs/{orgId}/clusters/{id}/helm/repos/{repoName}/update':
+  '/api/v1/orgs/{orgId}/helm/repos/{repoName}/update':
     put:
       security:
         - bearerAuth: []
@@ -919,12 +901,6 @@ paths:
           in: path
           required: true
           description: Organization identification
-          schema:
-            type: integer
-        - name: id
-          in: path
-          required: true
-          description: Selected cluster identification (number)
           schema:
             type: integer
         - name: repoName
@@ -961,7 +937,7 @@ paths:
                   - $ref: '#/components/schemas/ClusterNotFound'
                   - $ref: '#/components/schemas/RepoNotFound'
 
-  '/api/v1/orgs/{orgId}/clusters/{id}/helm/charts/':
+  '/api/v1/orgs/{orgId}/helm/charts/':
     get:
       security:
         - bearerAuth: []
@@ -975,12 +951,6 @@ paths:
           in: path
           required: true
           description: Organization identification
-          schema:
-            type: integer
-        - name: id
-          in: path
-          required: true
-          description: Selected cluster identification (number)
           schema:
             type: integer
         - name: name
@@ -1029,7 +999,7 @@ paths:
                   $ref: '#/components/schemas/ClusterNotFound'
 
 
-  '/api/v1/orgs/{orgId}/clusters/{id}/helm/chart/{repoName}/{chartName}/{chartVersion}':
+  '/api/v1/orgs/{orgId}/helm/chart/{repoName}/{chartName}/{chartVersion}':
     get:
       security:
         - bearerAuth: []
@@ -1043,12 +1013,6 @@ paths:
           in: path
           required: true
           description: Organization identification
-          schema:
-            type: integer
-        - name: id
-          in: path
-          required: true
-          description: Selected cluster identification (number)
           schema:
             type: integer
         - name: repoName

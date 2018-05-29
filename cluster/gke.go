@@ -116,8 +116,8 @@ type GKECluster struct {
 	commonSecret
 }
 
-// GetOrg gets org where the cluster belongs
-func (g *GKECluster) GetOrg() uint {
+// GetOrganizationId gets org where the cluster belongs
+func (g *GKECluster) GetOrganizationId() uint {
 	return g.modelCluster.OrganizationId
 }
 

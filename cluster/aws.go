@@ -56,8 +56,8 @@ type AWSCluster struct {
 	commonSecret
 }
 
-// GetOrg gets org where the cluster belongs
-func (c *AWSCluster) GetOrg() uint {
+// GetOrganizationId gets org where the cluster belongs
+func (c *AWSCluster) GetOrganizationId() uint {
 	return c.modelCluster.OrganizationId
 }
 

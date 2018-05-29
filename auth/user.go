@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-errors/errors"
@@ -168,6 +169,11 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 		return nil, "", err
 	}
 
+	err = helm.InstallLocalHelm(currentUser.Organizations[0].Name)
+	if err != nil {
+		log.Errorf("Error during local helm install: %s", err.Error())
+	}
+
 	AddDefaultRoleForUser(currentUser.ID)
 
 	githubOrgIDs, err := importGithubOrganizations(currentUser, context, githubExtraInfo.Token)
@@ -287,4 +293,12 @@ func importGithubOrganizations(currentUser *User, context *auth.Context, githubT
 	}
 
 	return orgids, nil
+}
+
+// GetOrganizationById returns an organization from database by ID
+func GetOrganizationById(orgID uint) (*Organization, error) {
+	db := model.GetDB()
+	var org Organization
+	err := db.Find(&org, Organization{ID: orgID}).Error
+	return &org, err
 }
