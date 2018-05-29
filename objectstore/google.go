@@ -69,36 +69,29 @@ func (b *GoogleObjectStore) CreateBucket(bucketName string) error {
 }
 
 func (b *GoogleObjectStore) DeleteBucket(bucketName string) error {
-	log := logger.WithFields(logrus.Fields{"tag": "GoogleDeleteBucket"})
+	log := logger.WithFields(logrus.Fields{"tag": "GoogleObjectStore.DeleteBucket"})
 	ctx := context.Background()
 
 	log.Info("Getting credentials")
 	credentials, err := newGoogleCredentials(b)
 
 	if err != nil {
-		log.Errorf("Getting credentials failed due to: %s", err.Error())
+		log.Errorf("Getting credentials failed: %s", err.Error())
 		return err
 	}
 
-	log.Info("Creating new Google storage.Client")
-
 	client, err := storage.NewClient(ctx, option.WithCredentials(credentials))
 	if err != nil {
-		log.Errorf("Creating Google storage.Client failed due to: %s", err.Error())
+		log.Errorf("Creating Google storage.Client failed: %s", err.Error())
 		return err
 	}
 	defer client.Close()
 
-	log.Info("Google storage.Client created successfully")
-
 	bucket := client.Bucket(bucketName) // Which project should be billed for the operation, caller's or owners?
 
 	if err := bucket.Delete(ctx); err != nil {
-		log.Errorf("Could not delete GS bucket %s due to: %s", bucketName, err.Error())
 		return err
 	}
-
-	log.Infof("GS bucket %s deleted", bucketName)
 
 	return nil
 }

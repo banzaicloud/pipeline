@@ -46,15 +46,13 @@ func (b *AmazonObjectStore) CreateBucket(bucketName string) error {
 }
 
 func (b *AmazonObjectStore) DeleteBucket(bucketName string) error {
-	log := logger.WithFields(logrus.Fields{"tag": "AmazonDeleteBucket"})
-	log.Info("Creating S3Client...")
+	log := logger.WithFields(logrus.Fields{"tag": "AmazonObjectStore.DeleteBucket"})
+
 	svc, err := b.createS3Client()
 	if err != nil {
-		log.Error("Creating S3Client failed!")
+		log.Error("Creating S3Client failed: %s", err.Error())
 		return err
 	}
-	log.Info("S3Client create succeeded!")
-	log.Debugf("Region is: %s", b.region)
 
 	input := &s3.DeleteBucketInput{
 		Bucket: aws.String(bucketName),
@@ -62,7 +60,6 @@ func (b *AmazonObjectStore) DeleteBucket(bucketName string) error {
 
 	_, err = svc.DeleteBucket(input)
 	if err != nil {
-		log.Errorf("Could not delete S3 Bucket due to, %s", err.Error())
 		return err
 	}
 
@@ -73,8 +70,6 @@ func (b *AmazonObjectStore) DeleteBucket(bucketName string) error {
 		log.Errorf("Error occurred while waiting for the S3 Bucket to be deleted, %s", err.Error())
 		return err
 	}
-
-	log.Infof("S3 bucket %s deleted", bucketName)
 
 	return nil
 }

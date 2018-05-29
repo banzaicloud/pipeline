@@ -157,9 +157,9 @@ func main() {
 
 			orgs.GET("/:orgid/buckets/:secretId", api.ListObjectStoreBuckets)
 			orgs.POST("/:orgid/buckets", api.CreateObjectStoreBuckets)
-			orgs.DELETE("/:orgid/google/buckets/:name", api.DeleteObjectStoreBucketGoogle)
-			orgs.DELETE("/:orgid/amazon/buckets/:region/:name", api.DeleteObjectStoreBucketAmazon)
-			orgs.DELETE("/:orgid/azure/buckets/:resourceGroup/:storageAccount/:name", api.DeleteObjectStoreBucketAzure)
+			orgs.DELETE("/:orgid/google/buckets/:name", api.DeleteGoogleObjectStoteBucket)
+			orgs.DELETE("/:orgid/amazon/buckets/:region/:name", api.DeleteAmazonObjectStoreBucket)
+			orgs.DELETE("/:orgid/azure/buckets/:resourceGroup/:storageAccount/:name", api.DeleteAzureObjectStoreContainer)
 
 			orgs.GET("/:orgid/cloudinfo", api.GetSupportedClusterList)
 			orgs.GET("/:orgid/cloudinfo/filters", api.GetSupportedFilters)

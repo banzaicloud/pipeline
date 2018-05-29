@@ -128,6 +128,8 @@ func CreateObjectStoreBuckets(c *gin.Context) {
 	return
 }
 
+// getValidatedSecret looks up the secret by secretId under the given organisation
+// it also verifies if the found secret is of appropriate type for the given cloud provider
 func getValidatedSecret(organizationId, secretId, cloudType string) (*secret.SecretsItemResponse, error) {
 
 	// Validate Secret
@@ -152,48 +154,59 @@ func getValidatedSecret(organizationId, secretId, cloudType string) (*secret.Sec
 	return retrievedSecret, nil
 }
 
-// DeleteObjectStoreBucketGoogle deletes the GS bucket identified by name
-func DeleteObjectStoreBucketGoogle(c *gin.Context) {
+// DeleteGoogleObjectStoteBucket deletes the GS bucket identified by name
+func DeleteGoogleObjectStoteBucket(c *gin.Context) {
+	log := logger.WithFields(logrus.Fields{"tag": "DeleteGoogleObjectStoteBucket"})
 
 	name := c.Param("name")
-	log.Infof("Deleting GS bucket...%s", name)
 
 	organizationId := auth.GetCurrentOrganization(c.Request).IDString()
 	secretId := c.GetHeader("secretId")
+	log.Debugf("secretId=%s", secretId)
 
+	log.Infof("Deleting GS bucket: organisation id=%s, bucket=%s", organizationId, name)
 
 	retrievedSecret, err := getValidatedSecret(organizationId, secretId, constants.Google)
 	if err != nil {
+		log.Errorf("Secret validation failed: %s", err.Error())
 		replyWithErrorResponse(c, errorResponseFrom(err))
 		return
 	}
 
-
 	objectStore, err := objectstore.NewGoogleObjectStore(retrievedSecret)
 	if err != nil {
+		log.Errorf("Instantiating GoogleObjectStore failed: %s", err.Error())
 		replyWithErrorResponse(c, errorResponseFrom(err))
 		return
 	}
 
 	if err = objectStore.DeleteBucket(name); err != nil {
+		log.Errorf("Deleting GS bucket: organisation id=%s, bucket=%s failed: %s", organizationId, name, err.Error())
 		replyWithErrorResponse(c, errorResponseFrom(err))
 		return
 	}
+
+	log.Infof("GS bucket: organisation id=%s, bucket=%s deleted", organizationId, name)
 }
 
-// DeleteObjectStoreBucketAmazon deletes the S3 bucket identified by name
+// DeleteAmazonObjectStoreBucket deletes the S3 bucket identified by name
 // from the given region
-func DeleteObjectStoreBucketAmazon(c *gin.Context) {
+func DeleteAmazonObjectStoreBucket(c *gin.Context) {
+	log := logger.WithFields(logrus.Fields{"tag": "DeleteAmazonObjectStoreBucket"})
 
 	name := c.Param("name")
 	region := c.Param("region")
-	log.Infof("Deleting S3 bucket...%s", name)
+
 
 	organizationId := auth.GetCurrentOrganization(c.Request).IDString()
 	secretId := c.GetHeader("secretId")
+	log.Debugf("secretId=%s", secretId)
+
+	log.Infof("Deleting S3 bucket: organisation id=%s, region=%s, bucket=%s", organizationId, region, name)
 
 	retrievedSecret, err := getValidatedSecret(organizationId, secretId, constants.Amazon)
 	if err != nil {
+		log.Errorf("Secret validation failed: %s", err.Error())
 		replyWithErrorResponse(c, errorResponseFrom(err))
 		return
 	}
@@ -201,43 +214,50 @@ func DeleteObjectStoreBucketAmazon(c *gin.Context) {
 
 	objectStore, err := objectstore.NewAmazonObjectStore(retrievedSecret, region)
 	if err != nil {
+		log.Errorf("Instantiating AmazonObjectStore failed: %s", err.Error())
 		replyWithErrorResponse(c, errorResponseFrom(err))
 		return
 	}
 
 	if err = objectStore.DeleteBucket(name); err != nil {
+		log.Errorf("Deleting S3 bucket: organisation id=%s, region=%s, bucket=%s failed: %s", organizationId, region, name, err.Error())
 		replyWithErrorResponse(c, errorResponseFrom(err))
 		return
 	}
+	log.Infof("S3 bucket: organisation id=%s, region=%s, bucket=%s deleted", organizationId, region, name)
 
 }
 
-// DeleteObjectStoreBucketAzure deletes the Azure Blob Container identified by name
+// DeleteAzureObjectStoreContainer deletes the Azure Storage Container identified by name
 // from the given resource group and storage account
-func DeleteObjectStoreBucketAzure(c *gin.Context) {
+func DeleteAzureObjectStoreContainer(c *gin.Context) {
+	log := logger.WithFields(logrus.Fields{"tag": "DeleteAzureObjectStoreContainer"})
 
 	name := c.Param("name")
-	log.Infof("Deleting Azure container service...%s", name)
+	resourceGroup := c.Param("resourceGroup")
+	storageAccount := c.Param("storageAccount")
 
 	organizationId := auth.GetCurrentOrganization(c.Request).IDString()
 	secretId := c.GetHeader("secretId")
 
+	log.Infof("Deleting S3 bucket: organisation id=%s, resourceGroup=%s, storageAccount=%s, bucket=%s", organizationId, resourceGroup, storageAccount, name)
+
 	retrievedSecret, err := getValidatedSecret(organizationId, secretId, constants.Azure)
 	if err != nil {
+		log.Errorf("Secret validation failed: %s", err.Error())
 		replyWithErrorResponse(c, errorResponseFrom(err))
 		return
 	}
 
-	resourceGroup := c.Param("resourceGroup")
-	storageAccount := c.Param("storageAccount")
-
 	objectStore, err := objectstore.NewAzureObjectStore(retrievedSecret, resourceGroup, storageAccount)
 	if err != nil {
+		log.Errorf("Instantiating AzureObjectStore failed: %s", err.Error())
 		replyWithErrorResponse(c, errorResponseFrom(err))
 		return
 	}
 
 	if err = objectStore.DeleteBucket(name); err != nil {
+		log.Infof("Deleting S3 bucket: organisation id=%s, resourceGroup=%s, storageAccount=%s, bucket=%s", organizationId, resourceGroup, storageAccount, name)
 		replyWithErrorResponse(c, errorResponseFrom(err))
 		return
 	}
