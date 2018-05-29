@@ -447,6 +447,8 @@ func BanzaiDeregisterHandler(context *auth.Context) {
 	}
 
 	droneUser := DroneUser{Login: user.Login}
+	// We need to pass droneUser as well as the where clause, because Delete() filters by primary
+	// key by default: http://doc.gorm.io/crud.html#delete but here we need to delete by the Login
 	if err := DroneDB.Delete(droneUser, droneUser).Error; err != nil {
 		log.Errorln("Failed delete user from Drone:", err)
 		http.Error(context.Writer, err.Error(), http.StatusInternalServerError)
