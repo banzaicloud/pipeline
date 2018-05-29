@@ -91,8 +91,6 @@ func (b *GoogleObjectStore) DeleteBucket(bucketName string) error {
 
 	log.Info("Google storage.Client created successfully")
 
-	// TODO: check if bucket exists first and return 404 if not exists ??
-
 	bucket := client.Bucket(bucketName) // Which project should be billed for the operation, caller's or owners?
 
 	if err := bucket.Delete(ctx); err != nil {

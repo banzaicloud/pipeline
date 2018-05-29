@@ -12,7 +12,24 @@ import (
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"strings"
+	"google.golang.org/api/googleapi"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/Azure/go-autorest/autorest/validation"
+	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/azure-storage-blob-go/2016-05-31/azblob"
+	"fmt"
 )
+
+
+type  SecretNotFoundError struct {
+	errMessage string
+}
+
+func (err SecretNotFoundError) Error() string {
+	return err.errMessage
+}
+
 
 func ListObjectStoreBuckets(c *gin.Context) {
 	//TODO Add proper logging
@@ -22,10 +39,10 @@ func ListObjectStoreBuckets(c *gin.Context) {
 	organizationID := auth.GetCurrentOrganization(c.Request).IDString()
 	log.Infof("Organization id: %s", organizationID)
 
-	secretID := c.Param("secretid")
+	secretId := c.Param("secretId")
 
 	// Validate Secret
-	retrievedSecret, err := secret.Store.Get(organizationID, secretID)
+	retrievedSecret, err := secret.Store.Get(organizationID, secretId)
 	if err != nil {
 		if strings.Contains(err.Error(), "there's no secret with this id") {
 			c.JSON(http.StatusBadRequest, components.ErrorResponse{
@@ -111,87 +128,56 @@ func CreateObjectStoreBuckets(c *gin.Context) {
 	return
 }
 
-func deleteObjectStoreCommon(c *gin.Context, cloudType string) (string, *secret.SecretsItemResponse) {
-	log := logger.WithFields(logrus.Fields{"tag": "DeleteBucket"})
+func getValidatedSecret(organizationId, secretId, cloudType string) (*secret.SecretsItemResponse, error) {
 
-	name := c.Param("name")
-	log.Infof("Deleting bucket...%s", name)
-
-	log.Info("Get organization id from params")
-	organizationId := auth.GetCurrentOrganization(c.Request).IDString()
-	log.Infof("Organization id: %s", organizationId)
-
-	secretId := c.GetHeader("SecretId")
 	// Validate Secret
 	retrievedSecret, err := secret.Store.Get(organizationId, secretId)
 
 	if err != nil {
 		if strings.Contains(err.Error(), "there's no secret with this id") {
-			c.JSON(http.StatusBadRequest, components.ErrorResponse{
-				Code:    http.StatusBadRequest,
-				Error:   err.Error(),
-				Message: err.Error(),
-			})
-			return "", nil
+			return nil, SecretNotFoundError{ errMessage: err.Error() }
 		}
-		c.JSON(http.StatusInternalServerError, components.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Error:   err.Error(),
-			Message: err.Error(),
-		})
-		return "", nil
+
+		return nil, err
 	}
 
 	if err := utils.ValidateCloudType(cloudType); err != nil {
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Error:   err.Error(),
-			Message: err.Error(),
-		})
-
-		return "", nil
+		return nil, err
 	}
 
 	if err := retrievedSecret.ValidateSecretType(cloudType); err != nil {
-		log.Infof("The passed in secret %s has wrong type %s ! Expected secret type %s",
-			retrievedSecret.SecretType, retrievedSecret.SecretType, cloudType)
-
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Error:   err.Error(),
-			Message: err.Error(),
-		})
-
-		return "", nil
+		return nil, err
 	}
 
-	log.Debug("Secret validation successful")
-
-	return name, retrievedSecret
+	return retrievedSecret, nil
 }
 
 // DeleteObjectStoreBucketGoogle deletes the GS bucket identified by name
 func DeleteObjectStoreBucketGoogle(c *gin.Context) {
 
-	name, retrievedSecret := deleteObjectStoreCommon(c, constants.Google)
+	name := c.Param("name")
+	log.Infof("Deleting GS bucket...%s", name)
+
+	organizationId := auth.GetCurrentOrganization(c.Request).IDString()
+	secretId := c.GetHeader("secretId")
+
+
+	retrievedSecret, err := getValidatedSecret(organizationId, secretId, constants.Google)
+	if err != nil {
+		replyWithErrorResponse(c, errorResponseFrom(err))
+		return
+	}
+
 
 	objectStore, err := objectstore.NewGoogleObjectStore(retrievedSecret)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, components.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Error:   err.Error(),
-			Message: err.Error(),
-		})
-
+		replyWithErrorResponse(c, errorResponseFrom(err))
 		return
 	}
 
 	if err = objectStore.DeleteBucket(name); err != nil {
-		c.JSON(http.StatusInternalServerError, components.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Error:   err.Error(),
-			Message: err.Error(),
-		})
+		replyWithErrorResponse(c, errorResponseFrom(err))
+		return
 	}
 }
 
@@ -199,26 +185,29 @@ func DeleteObjectStoreBucketGoogle(c *gin.Context) {
 // from the given region
 func DeleteObjectStoreBucketAmazon(c *gin.Context) {
 
-	name, retrievedSecret := deleteObjectStoreCommon(c, constants.Amazon)
-	region := c.GetHeader("region")
+	name := c.Param("name")
+	region := c.Param("region")
+	log.Infof("Deleting S3 bucket...%s", name)
+
+	organizationId := auth.GetCurrentOrganization(c.Request).IDString()
+	secretId := c.GetHeader("secretId")
+
+	retrievedSecret, err := getValidatedSecret(organizationId, secretId, constants.Amazon)
+	if err != nil {
+		replyWithErrorResponse(c, errorResponseFrom(err))
+		return
+	}
+
 
 	objectStore, err := objectstore.NewAmazonObjectStore(retrievedSecret, region)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, components.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Error:   err.Error(),
-			Message: err.Error(),
-		})
-
+		replyWithErrorResponse(c, errorResponseFrom(err))
 		return
 	}
 
 	if err = objectStore.DeleteBucket(name); err != nil {
-		c.JSON(http.StatusInternalServerError, components.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Error:   err.Error(),
-			Message: err.Error(),
-		})
+		replyWithErrorResponse(c, errorResponseFrom(err))
+		return
 	}
 
 }
@@ -227,27 +216,127 @@ func DeleteObjectStoreBucketAmazon(c *gin.Context) {
 // from the given resource group and storage account
 func DeleteObjectStoreBucketAzure(c *gin.Context) {
 
-	name, retrievedSecret := deleteObjectStoreCommon(c, constants.Azure)
+	name := c.Param("name")
+	log.Infof("Deleting Azure container service...%s", name)
 
-	resourceGroup := c.GetHeader("ResourceGroup")
-	storageAccount := c.GetHeader("StorageAccount")
+	organizationId := auth.GetCurrentOrganization(c.Request).IDString()
+	secretId := c.GetHeader("secretId")
+
+	retrievedSecret, err := getValidatedSecret(organizationId, secretId, constants.Azure)
+	if err != nil {
+		replyWithErrorResponse(c, errorResponseFrom(err))
+		return
+	}
+
+	resourceGroup := c.Param("resourceGroup")
+	storageAccount := c.Param("storageAccount")
 
 	objectStore, err := objectstore.NewAzureObjectStore(retrievedSecret, resourceGroup, storageAccount)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, components.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Error:   err.Error(),
-			Message: err.Error(),
-		})
-
+		replyWithErrorResponse(c, errorResponseFrom(err))
 		return
 	}
 
 	if err = objectStore.DeleteBucket(name); err != nil {
-		c.JSON(http.StatusInternalServerError, components.ErrorResponse{
+		replyWithErrorResponse(c, errorResponseFrom(err))
+		return
+	}
+}
+
+
+func errorResponseFrom(err error) *components.ErrorResponse {
+
+	if err == constants.ErrorNotSupportedCloudType {
+		return &components.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Error:   err.Error(),
+			Message: err.Error(),
+		}
+	}
+
+	// google specific errors
+	if googleApiErr, ok := err.(*googleapi.Error); ok {
+		return &components.ErrorResponse{
+			Code:    googleApiErr.Code,
+			Error:   googleApiErr.Error(),
+			Message: googleApiErr.Message,
+		}
+	}
+
+	// aws specific errors
+	if awsErr, ok := err.(awserr.Error); ok {
+		code := http.StatusBadRequest
+		if awsReqFailure, ok := err.(awserr.RequestFailure); ok {
+			code = awsReqFailure.StatusCode()
+		}
+
+		return &components.ErrorResponse{
+			Code:    code,
+			Error:   awsErr.Error(),
+			Message: awsErr.Message(),
+		}
+	}
+
+	// azure specific errors
+	if azureErr, ok := err.(validation.Error); ok {
+		return &components.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Error:   azureErr.Error(),
+			Message: azureErr.Message,
+		}
+	}
+
+	if azureErr, ok := err.(azblob.StorageError); ok {
+		serviceCode := fmt.Sprint(azureErr.ServiceCode())
+
+		return &components.ErrorResponse{
+			Code:    azureErr.Response().StatusCode,
+			Error:   azureErr.Error(),
+			Message: serviceCode,
+		}
+	}
+
+	if azureErr, ok := err.(autorest.DetailedError); ok {
+		if azureErr.Original != nil {
+			if azureOrigErr, ok := azureErr.Original.(*azure.RequestError); ok {
+				return &components.ErrorResponse{
+					Code:    azureErr.Response.StatusCode,
+					Error:   azureOrigErr.ServiceError.Error(),
+					Message: azureOrigErr.ServiceError.Message,
+				}
+			}
+
+			return &components.ErrorResponse{
+				Code:    azureErr.Response.StatusCode,
+				Error:   azureErr.Original.Error(),
+				Message: azureErr.Message,
+			}
+		}
+
+		return &components.ErrorResponse{
+			Code:    azureErr.Response.StatusCode,
+			Error:   azureErr.Error(),
+			Message: azureErr.Message,
+		}
+	}
+
+	// pipeline specific errors
+	switch err.(type) {
+	case SecretNotFoundError, secret.MissmatchError:
+		return &components.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Error:   err.Error(),
+			Message: err.Error(),
+		}
+	default:
+		return &components.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Error:   err.Error(),
 			Message: err.Error(),
-		})
+		}
 	}
+}
+
+func replyWithErrorResponse(c *gin.Context, errorResponse *components.ErrorResponse) {
+	c.JSON(errorResponse.Code, errorResponse)
 }
