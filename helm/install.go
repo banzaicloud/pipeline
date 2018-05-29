@@ -148,13 +148,13 @@ func PreInstall(helmInstall *helm.Install, kubeConfig []byte) error {
 // RetryHelmInstall retries for a configurable time/interval
 // Azure AKS sometimes failing because of TLS handshake timeout, there are several issues on GitHub about that:
 // https://github.com/Azure/AKS/issues/112, https://github.com/Azure/AKS/issues/116, https://github.com/Azure/AKS/issues/14
-func RetryHelmInstall(helmInstall *helm.Install, kubeconfig []byte, path string) error {
+func RetryHelmInstall(helmInstall *helm.Install, kubeconfig []byte) error {
 	log := logger.WithFields(logrus.Fields{"tag": "RetryHelmInstall"})
 	retryAttempts := viper.GetInt(constants.HELM_RETRY_ATTEMPT_CONFIG)
 	retrySleepSeconds := viper.GetInt(constants.HELM_RETRY_SLEEP_SECONDS)
 	for i := 0; i <= retryAttempts; i++ {
 		log.Infof("Waiting %d/%d", i, retryAttempts)
-		err := Install(helmInstall, kubeconfig, path)
+		err := Install(helmInstall, kubeconfig)
 		if err != nil {
 			if strings.Contains(err.Error(), "net/http: TLS handshake timeout") {
 				time.Sleep(time.Duration(retrySleepSeconds) * time.Second)
@@ -301,14 +301,20 @@ func initRepo(repoName string, repoUrl string, env helm_env.EnvSettings) (*repo.
 	return &c, nil
 }
 
-// Install uses Kubernetes client to install Tiller.
-func Install(helmInstall *helm.Install, kubeConfig []byte, path string) error {
-	log := logger.WithFields(logrus.Fields{"tag": "InstallHelmClient"})
-	//Installing helm client
+// InstallLocalHelm install helm into the given path
+func InstallLocalHelm(path string) error {
+	log := logger.WithFields(logrus.Fields{"tag": "InstallLocalHelmClient"})
+
 	if err := installHelmClient(path); err != nil {
 		return err
 	}
 	log.Info("Helm client install succeeded")
+	return nil
+}
+
+// Install uses Kubernetes client to install Tiller.
+func Install(helmInstall *helm.Install, kubeConfig []byte) error {
+	log := logger.WithFields(logrus.Fields{"tag": "InstallHelmClient"})
 
 	err := PreInstall(helmInstall, kubeConfig)
 	if err != nil {

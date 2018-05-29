@@ -234,7 +234,8 @@
 			"order": [
 				"9629e4cc-7564-4c68-a9f6-7fc6d8d35faf",
 				"1942fd58-19a8-42de-9e26-044df0c791c0",
-				"cb4acf5d-7f7f-48f9-8d0c-bb9ef8f4e791"
+				"cb4acf5d-7f7f-48f9-8d0c-bb9ef8f4e791",
+				"ba96523b-01ab-4708-b6c4-926113d97de9"
 			],
 			"folders_order": [],
 			"collectionId": "88e9faec-75f0-4f88-a073-d6c3ac3b9a51",
@@ -366,11 +367,24 @@
 		{
 			"id": "0868fce5-940e-490a-a63c-001c9c61877a",
 			"name": "Repository Modify",
-			"url": "{{url}}/api/v1/orgs/{{orgId}}/clusters/{{cluster_id}}/helm/repos/{{repo_ name}}",
+			"url": "{{url}}/api/v1/orgs/{{orgId}}/helm/repos/{{repoName}}",
 			"description": null,
 			"data": [],
-			"dataMode": null,
-			"headerData": [],
+			"dataMode": "raw",
+			"headerData": [
+				{
+					"key": "Authorization",
+					"value": "Bearer {{token}}",
+					"description": "",
+					"enabled": true
+				},
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": "",
+					"enabled": true
+				}
+			],
 			"method": "PUT",
 			"pathVariableData": [],
 			"queryParams": [],
@@ -380,7 +394,8 @@
 			"currentHelper": null,
 			"helperAttributes": null,
 			"collectionId": "88e9faec-75f0-4f88-a073-d6c3ac3b9a51",
-			"headers": "",
+			"rawModeData": "{\n\t\"name\": \"banzaicloud-stable\",\n\t\"cache\": \"statestore/colin014/helm/repository/cache/banzaicloud-stable-index.yaml\",\n\t\"url\": \"http://kubernetes-charts.banzaicloud.com\",\n\t\"username\": \"\",\n\t\"password\": \"\",\n\t\"certFile\": \"\",\n\t\"keyFile\": \"\",\n\t\"caFile\": \"\"\n}",
+			"headers": "Authorization: Bearer {{token}}\nContent-Type: application/json\n",
 			"pathVariables": []
 		},
 		{
@@ -783,11 +798,18 @@
 		{
 			"id": "31a4405a-c1cf-41d8-b286-bdfbe2faa4cc",
 			"name": "Chart List",
-			"url": "{{url}}/api/v1/orgs/{{orgId}}/clusters/{{cluster_id}}/helm/charts",
+			"url": "{{url}}/api/v1/orgs/{{orgId}}/helm/charts",
 			"description": null,
 			"data": [],
 			"dataMode": null,
-			"headerData": [],
+			"headerData": [
+				{
+					"key": "Authorization",
+					"value": "Bearer {{token}}",
+					"description": "",
+					"enabled": true
+				}
+			],
 			"method": "GET",
 			"pathVariableData": [],
 			"queryParams": [],
@@ -797,17 +819,24 @@
 			"currentHelper": null,
 			"helperAttributes": null,
 			"collectionId": "88e9faec-75f0-4f88-a073-d6c3ac3b9a51",
-			"headers": "",
+			"headers": "Authorization: Bearer {{token}}\n",
 			"pathVariables": []
 		},
 		{
 			"id": "359a55cc-e7fe-43ed-9500-c8622efac512",
 			"name": "Repository List",
-			"url": "{{url}}/api/v1/orgs/{{orgId}}/clusters/{{cluster_id}}/helm/repos/",
+			"url": "{{url}}/api/v1/orgs/{{orgId}}/helm/repos/",
 			"description": null,
 			"data": [],
 			"dataMode": null,
-			"headerData": [],
+			"headerData": [
+				{
+					"key": "Authorization",
+					"value": "Bearer {{token}}",
+					"description": "",
+					"enabled": true
+				}
+			],
 			"method": "GET",
 			"pathVariableData": [],
 			"queryParams": [],
@@ -817,7 +846,7 @@
 			"currentHelper": null,
 			"helperAttributes": null,
 			"collectionId": "88e9faec-75f0-4f88-a073-d6c3ac3b9a51",
-			"headers": "",
+			"headers": "Authorization: Bearer {{token}}\n",
 			"pathVariables": []
 		},
 		{
@@ -1236,11 +1265,24 @@
 		{
 			"id": "51697e8c-0c7f-4ee3-ae4a-8042fd848178",
 			"name": "Repository Add",
-			"url": "{{url}}/api/v1/orgs/{{orgId}}/clusters/{{cluster_id}}/helm/repos/",
+			"url": "{{url}}/api/v1/orgs/{{orgId}}/helm/repos/",
 			"description": null,
 			"data": [],
-			"dataMode": null,
-			"headerData": [],
+			"dataMode": "raw",
+			"headerData": [
+				{
+					"key": "Authorization",
+					"value": "Bearer {{token}}",
+					"description": "",
+					"enabled": true
+				},
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": "",
+					"enabled": true
+				}
+			],
 			"method": "POST",
 			"pathVariableData": [],
 			"queryParams": [],
@@ -1250,7 +1292,8 @@
 			"currentHelper": null,
 			"helperAttributes": null,
 			"collectionId": "88e9faec-75f0-4f88-a073-d6c3ac3b9a51",
-			"headers": "",
+			"rawModeData": "{\n\t\"name\": \"banzaicloud-stable\",\n\t\"url\": \"http://kubernetes-charts.banzaicloud.com\"\n}",
+			"headers": "Authorization: Bearer {{token}}\nContent-Type: application/json\n",
 			"pathVariables": []
 		},
 		{
@@ -1324,11 +1367,18 @@
 		{
 			"id": "6390bab1-9a5d-4840-8698-5ce5373d485b",
 			"name": "Chart Details",
-			"url": "{{url}}/api/v1/orgs/{{org_id}}/clusters/{{cluster_id}}/helm/chart/{{repoName}}/{{chartName}}/{{chartVersion}}",
+			"url": "{{url}}/api/v1/orgs/{{orgId}}/helm/chart/{{repoName}}/{{chartName}}/{{chartVersion}}",
 			"description": null,
 			"data": [],
 			"dataMode": null,
-			"headerData": [],
+			"headerData": [
+				{
+					"key": "Authorization",
+					"value": "Bearer {{token}}",
+					"description": "",
+					"enabled": true
+				}
+			],
 			"method": "GET",
 			"pathVariableData": [],
 			"queryParams": [],
@@ -1338,7 +1388,7 @@
 			"currentHelper": null,
 			"helperAttributes": null,
 			"collectionId": "88e9faec-75f0-4f88-a073-d6c3ac3b9a51",
-			"headers": "",
+			"headers": "Authorization: Bearer {{token}}\n",
 			"pathVariables": []
 		},
 		{
@@ -2055,11 +2105,18 @@
 		{
 			"id": "84f91b5a-5dc4-4407-9374-ae6d11cc1a2c",
 			"name": "Repository Update",
-			"url": "{{url}}/api/v1/orgs/{{orgId}}/clusters/{{cluster_id}}/helm/repos/{{repo_name}}/update",
+			"url": "{{url}}/api/v1/orgs/{{orgId}}/helm/repos/{{repoName}}/update",
 			"description": null,
 			"data": [],
 			"dataMode": null,
-			"headerData": [],
+			"headerData": [
+				{
+					"key": "Authorization",
+					"value": "Bearer {{token}}",
+					"description": "",
+					"enabled": true
+				}
+			],
 			"method": "PUT",
 			"pathVariableData": [],
 			"queryParams": [],
@@ -2069,7 +2126,7 @@
 			"currentHelper": null,
 			"helperAttributes": null,
 			"collectionId": "88e9faec-75f0-4f88-a073-d6c3ac3b9a51",
-			"headers": "",
+			"headers": "Authorization: Bearer {{token}}\n",
 			"pathVariables": []
 		},
 		{
@@ -2256,7 +2313,7 @@
 			"currentHelper": null,
 			"helperAttributes": null,
 			"collectionId": "88e9faec-75f0-4f88-a073-d6c3ac3b9a51",
-			"rawModeData": "{\n    \"name\":\"gkecluster-{{username}}-{{$randomInt}}\",\n    \"location\": \"us-central1-a\",\n    \"cloud\": \"google\",\n    \"nodeInstanceType\": \"n1-standard-1\",\n    \"secret_id\": \"{{secret_id}}\",\n    \"properties\": {\n        \"google\": {\n            \"master\":{\n                \"version\":\"1.9.6-gke.1\"\n            },\n            \"nodeVersion\":\"1.9.6-gke.1\",\n            \"nodePools\": {\n                \"pool1\": {\n                    \"count\": 1,\n                    \"nodeInstanceType\": \"n1-standard-2\"\n                }\n            }\n        }\n    }\n}",
+			"rawModeData": "{\n    \"name\":\"gkecluster-{{username}}-{{$randomInt}}\",\n    \"location\": \"us-central1-a\",\n    \"cloud\": \"google\",\n    \"nodeInstanceType\": \"n1-standard-1\",\n    \"secret_id\": \"{{secret_id}}\",\n    \"properties\": {\n        \"google\": {\n            \"master\":{\n                \"version\":\"1.9\"\n            },\n            \"nodeVersion\":\"1.9\",\n            \"nodePools\": {\n                \"pool1\": {\n                    \"count\": 1,\n                    \"nodeInstanceType\": \"n1-standard-2\"\n                }\n            }\n        }\n    }\n}",
 			"headers": "Authorization: Bearer {{token}}\nContent-Type: application/json\n",
 			"pathVariables": []
 		},
@@ -2755,6 +2812,55 @@
 			"collectionId": "88e9faec-75f0-4f88-a073-d6c3ac3b9a51",
 			"rawModeData": "{\n\t\"secret_id\": \"{{secret_id}}\",\n\t\"filter\": {\n\t\t\"fields\": [\"location\"]\n\t}\n}",
 			"headers": "Authorization: Bearer {{token}}\n//Content-Type: application/json\n",
+			"pathVariables": []
+		},
+		{
+			"id": "ba96523b-01ab-4708-b6c4-926113d97de9",
+			"name": "Delete organization",
+			"url": "{{url}}/api/v1/orgs/{{orgId}}",
+			"description": "",
+			"data": [],
+			"dataMode": "raw",
+			"headerData": [
+				{
+					"key": "Authorization",
+					"value": "Bearer {{token}}",
+					"description": "",
+					"enabled": true
+				}
+			],
+			"method": "DELETE",
+			"pathVariableData": [],
+			"queryParams": [],
+			"auth": null,
+			"events": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "3ec8fcd0-b28c-4772-a4b4-9c280eb223b0",
+						"type": "text/javascript",
+						"exec": [
+							"if (responseCode.code === 204) {",
+							"    tests[\"Response Code 204\"] = responseCode.code == 204;",
+							"} else {",
+							"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+							"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+							"    console.warn(responseBody);",
+							"    postman.setNextRequest(null);",
+							"}",
+							""
+						]
+					}
+				}
+			],
+			"folder": "de16e6c1-f05f-4757-a857-b491c0baa57a",
+			"preRequestScript": null,
+			"tests": "if (responseCode.code === 204) {\n    tests[\"Response Code 204\"] = responseCode.code == 204;\n} else {\n    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );\n    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false\n    console.warn(responseBody);\n    postman.setNextRequest(null);\n}\n",
+			"currentHelper": null,
+			"helperAttributes": null,
+			"collectionId": "88e9faec-75f0-4f88-a073-d6c3ac3b9a51",
+			"rawModeData": "",
+			"headers": "Authorization: Bearer {{token}}\n",
 			"pathVariables": []
 		},
 		{
@@ -3414,7 +3520,7 @@
 		},
 		{
 			"id": "d2e32c9c-c70d-437b-a16a-774ba8e0f4b8",
-			"name": "Cluster LIst",
+			"name": "Cluster List",
 			"url": "{{url}}/api/v1/orgs/{{orgId}}/clusters",
 			"description": "Get the cluster details",
 			"data": [
@@ -3683,11 +3789,18 @@
 		{
 			"id": "e8098fe8-edf6-4bac-a81b-143ee4594178",
 			"name": "Repository Delete",
-			"url": "{{url}}/api/v1/orgs/{{orgId}}/clusters/{{cluster_id}}/helm/repos/{{repo_name}}",
+			"url": "{{url}}/api/v1/orgs/{{orgId}}/helm/repos/{{repoName}}",
 			"description": null,
 			"data": [],
 			"dataMode": null,
-			"headerData": [],
+			"headerData": [
+				{
+					"key": "Authorization",
+					"value": "Bearer {{token}}",
+					"description": "",
+					"enabled": true
+				}
+			],
 			"method": "DELETE",
 			"pathVariableData": [],
 			"queryParams": [],
@@ -3697,7 +3810,7 @@
 			"currentHelper": null,
 			"helperAttributes": null,
 			"collectionId": "88e9faec-75f0-4f88-a073-d6c3ac3b9a51",
-			"headers": "",
+			"headers": "Authorization: Bearer {{token}}\n",
 			"pathVariables": []
 		},
 		{
