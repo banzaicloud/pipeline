@@ -45,7 +45,6 @@ func AddSecrets(c *gin.Context) {
 	}
 
 	log.Info("Binding request succeeded")
-	log.Debugf("%#v", createSecretRequest)
 
 	log.Info("Start validation")
 	if err := createSecretRequest.Validate(); err != nil {
@@ -60,7 +59,7 @@ func AddSecrets(c *gin.Context) {
 	log.Info("Validation passed")
 
 	secretID := secret.GenerateSecretID()
-	if err := secret.Store.Store(organizationID, secretID, createSecretRequest); err != nil {
+	if err := secret.Store.Store(organizationID, secretID, &createSecretRequest); err != nil {
 		log.Errorf("Error during store: %s", err.Error())
 		c.AbortWithStatusJSON(http.StatusInternalServerError, components.ErrorResponse{
 			Code:    http.StatusInternalServerError,
@@ -73,9 +72,67 @@ func AddSecrets(c *gin.Context) {
 	log.Infof("Secret stored at: %s/%s", organizationID, secretID)
 
 	c.JSON(http.StatusCreated, secret.CreateSecretResponse{
-		Name:       createSecretRequest.Name,
-		SecretType: createSecretRequest.SecretType,
-		SecretID:   secretID,
+		Name: createSecretRequest.Name,
+		Type: createSecretRequest.Type,
+		ID:   secretID,
+	})
+}
+
+// UpdateSecrets update the given secret to vault
+func UpdateSecrets(c *gin.Context) {
+
+	log := logger.WithFields(logrus.Fields{"tag": "Update Secrets"})
+
+	organizationID := auth.GetCurrentOrganization(c.Request).IDString()
+	log.Debugf("Organization id: %s", organizationID)
+
+	secretID := c.Param("secretid")
+
+	var createSecretRequest secret.CreateSecretRequest
+	if err := c.ShouldBind(&createSecretRequest); err != nil {
+		log.Errorf("Error during binding CreateSecretRequest: %s", err.Error())
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error during binding",
+			Error:   err.Error(),
+		})
+		return
+	}
+	//Check if the received value is base64 encoded if not encode it.
+	if createSecretRequest.Values[secret.K8SConfig] != "" {
+		createSecretRequest.Values[secret.K8SConfig] = encodeStringToBase64(createSecretRequest.Values[secret.K8SConfig])
+	}
+
+	log.Info("Binding request succeeded")
+
+	log.Info("Start validation")
+	if err := createSecretRequest.Validate(); err != nil {
+		log.Errorf("Validation error: %s", err.Error())
+		c.AbortWithStatusJSON(http.StatusBadRequest, components.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Validation error",
+			Error:   err.Error(),
+		})
+		return
+	}
+	log.Info("Validation passed")
+
+	if err := secret.Store.Update(organizationID, secretID, &createSecretRequest); err != nil {
+		log.Errorf("Error during update: %s", err.Error())
+		c.AbortWithStatusJSON(http.StatusInternalServerError, components.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: "Error during update",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	log.Debugf("Secret updated at: %s/%s", organizationID, secretID)
+
+	c.JSON(http.StatusOK, secret.CreateSecretResponse{
+		Name: createSecretRequest.Name,
+		Type: createSecretRequest.Type,
+		ID:   secretID,
 	})
 }
 
@@ -84,25 +141,31 @@ func AddSecrets(c *gin.Context) {
 func ListSecrets(c *gin.Context) {
 
 	log := logger.WithFields(logrus.Fields{"tag": "List Secrets"})
-	log.Info("Start listing secrets")
 
-	log.Info("Get organization id and secret type from params")
 	organizationID := auth.GetCurrentOrganization(c.Request).IDString()
-	secretType := c.Query("type")
-	repoName := c.Query("reponame")
-	log.Infof("Organization id: %s", organizationID)
-	log.Infof("Secret type: %s", secretType)
-	log.Infof("Repository name: %s", repoName)
 
-	if err := IsValidSecretType(secretType); err != nil {
-		log.Errorf("Error validation secret type[%s]: %s", secretType, err.Error())
+	var query secret.ListSecretsQuery
+	err := c.BindQuery(&query)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Failed to parse query",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	log.Debugln("Organization:", organizationID, "type:", query.Type, "tag:", query.Tag, "values:", query.Values)
+
+	if err := IsValidSecretType(query.Type); err != nil {
+		log.Errorf("Error validation secret type[%s]: %s", query.Tag, err.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Not supported secret type",
 			Error:   err.Error(),
 		})
 	} else {
-		if items, err := secret.Store.List(organizationID, secretType, repoName, false); err != nil {
+		if items, err := secret.Store.List(organizationID, &query); err != nil {
 			log.Errorf("Error during listing secrets: %s", err.Error())
 			c.AbortWithStatusJSON(http.StatusBadRequest, components.ErrorResponse{
 				Code:    http.StatusBadRequest,
