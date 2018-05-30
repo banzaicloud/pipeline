@@ -26,13 +26,14 @@ type GithubProvider struct {
 
 // Config github Config
 type Config struct {
-	ClientID         string
-	ClientSecret     string
-	AuthorizeURL     string
-	TokenURL         string
-	RedirectURL      string
-	Scopes           []string
-	AuthorizeHandler func(*auth.Context) (*claims.Claims, error)
+	ClientID          string
+	ClientSecret      string
+	AuthorizeURL      string
+	TokenURL          string
+	RedirectURL       string
+	Scopes            []string
+	AuthorizeHandler  func(*auth.Context) (*claims.Claims, error)
+	DeregisterHandler func(*auth.Context)
 }
 
 func New(config *Config) *GithubProvider {
@@ -174,6 +175,15 @@ func (GithubProvider) Logout(context *auth.Context) {
 // Register implemented register with github provider
 func (provider GithubProvider) Register(context *auth.Context) {
 	provider.Login(context)
+}
+
+// Deregister implemented deregister with github provider
+func (provider GithubProvider) Deregister(context *auth.Context) {
+	if provider.DeregisterHandler != nil {
+		provider.DeregisterHandler(context)
+	} else {
+		context.Writer.WriteHeader(http.StatusNotImplemented)
+	}
 }
 
 // Callback implement Callback with github provider

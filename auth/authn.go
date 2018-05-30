@@ -9,8 +9,10 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 	"github.com/qor/auth"
+	"github.com/qor/auth/auth_identity"
 	"github.com/qor/auth/claims"
 	"github.com/qor/auth/providers/github"
 	"github.com/qor/redirect_back"
@@ -44,6 +46,8 @@ const DroneHookTokenType bauth.TokenType = "hook"
 var (
 	logger *logrus.Logger
 	log    *logrus.Entry
+
+	DroneDB *gorm.DB
 
 	redirectBack *redirect_back.RedirectBack
 	Auth         *auth.Auth
@@ -97,12 +101,15 @@ func Init() {
 		FallbackPath: viper.GetString("pipeline.uipath"),
 	})
 
+	DroneDB = initDroneDB()
+
 	// Initialize Auth with configuration
 	Auth = auth.New(&auth.Config{
-		DB:         model.GetDB(),
-		Redirector: auth.Redirector{redirectBack},
-		UserModel:  User{},
-		ViewPaths:  []string{"views"},
+		DB:                model.GetDB(),
+		Redirector:        auth.Redirector{redirectBack},
+		AuthIdentityModel: AuthIdentity{},
+		UserModel:         User{},
+		ViewPaths:         []string{"views"},
 		SessionStorer: &BanzaiSessionStorer{
 			SessionStorer: auth.SessionStorer{
 				SessionName:    "_auth_session",
@@ -111,8 +118,9 @@ func Init() {
 				SignedString:   signingKeyBase32,
 			},
 		},
-		LogoutHandler: BanzaiLogoutHandler,
-		UserStorer:    BanzaiUserStorer{signingKeyBase32: signingKeyBase32, droneDB: initDroneDB()},
+		UserStorer:        BanzaiUserStorer{signingKeyBase32: signingKeyBase32, droneDB: DroneDB},
+		LogoutHandler:     BanzaiLogoutHandler,
+		DeregisterHandler: BanzaiDeregisterHandler,
 	})
 
 	githubProvider := github.New(&github.Config{
@@ -151,11 +159,11 @@ func Init() {
 	}
 }
 
-// Install the whole OAuth and JWT Token based auth/authz mechanism to the specified Gin Engine.
+// Install the whole OAuth and JWT Token based authn/authz mechanism to the specified Gin Engine.
 func Install(engine *gin.Engine) {
-	authHandler := gin.WrapH(Auth.NewServeMux())
 
 	// We have to make the raw net/http handlers a bit Gin-ish
+	authHandler := gin.WrapH(Auth.NewServeMux())
 	engine.Use(gin.WrapH(manager.SessionManager.Middleware(utils.NopHandler{})))
 	engine.Use(gin.WrapH(redirectBack.Middleware(utils.NopHandler{})))
 
@@ -164,6 +172,7 @@ func Install(engine *gin.Engine) {
 		authGroup.GET("/login", authHandler)
 		authGroup.GET("/logout", authHandler)
 		authGroup.GET("/register", authHandler)
+		authGroup.POST("/deregister", authHandler)
 		authGroup.GET("/github/login", authHandler)
 		authGroup.GET("/github/logout", authHandler)
 		authGroup.GET("/github/register", authHandler)
@@ -384,6 +393,88 @@ func (sessionStorer *BanzaiSessionStorer) Update(w http.ResponseWriter, req *htt
 func BanzaiLogoutHandler(context *auth.Context) {
 	DelCookie(context.Writer, context.Request, DroneSessionCookie)
 	auth.DefaultLogoutHandler(context)
+}
+
+// BanzaiDeregisterHandler deletes the user and all his/her tokens from the database
+func BanzaiDeregisterHandler(context *auth.Context) {
+	user, err := GetCurrentUserFromDB(context.Request)
+	if user == nil {
+		http.Error(context.Writer, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	if err != nil {
+		http.Error(context.Writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	db := context.GetDB(context.Request)
+
+	userAdminOrganizations := []UserOrganization{}
+
+	// Query the organizations where the only admin is the current user.
+	if err := db.Raw("select * from user_organizations where role = ? and organization_id in (select distinct organization_id from user_organizations where user_id = ? and role = ?) group by organization_id having count(*) = 1", "admin", user.ID, "admin").Scan(&userAdminOrganizations).Error; err != nil {
+		log.Errorln("Failed select user only owned organizations:", err)
+		http.Error(context.Writer, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if len(userAdminOrganizations) != 0 {
+		orgs := []string{}
+		for _, org := range userAdminOrganizations {
+			orgs = append(orgs, fmt.Sprint(org.OrganizationID))
+		}
+		http.Error(context.Writer, "You must remove yourself, transfer ownership, or delete these organizations before you can delete your user: "+strings.Join(orgs, ", "), http.StatusBadRequest)
+		return
+	}
+
+	if err := db.Model(user).Association("Organizations").Clear().Error; err != nil {
+		log.Errorln("Failed delete user's organization associations:", err)
+		http.Error(context.Writer, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if err := db.Delete(user).Error; err != nil {
+		log.Errorln("Failed delete user from DB:", err)
+		http.Error(context.Writer, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	authIdentity := &AuthIdentity{Basic: auth_identity.Basic{UserID: user.IDString()}}
+	if err := db.Delete(authIdentity).Error; err != nil {
+		log.Errorln("Failed delete user's auth_identity from DB:", err)
+		http.Error(context.Writer, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	droneUser := DroneUser{Login: user.Login}
+	// We need to pass droneUser as well as the where clause, because Delete() filters by primary
+	// key by default: http://doc.gorm.io/crud.html#delete but here we need to delete by the Login
+	if err := DroneDB.Delete(droneUser, droneUser).Error; err != nil {
+		log.Errorln("Failed delete user from Drone:", err)
+		http.Error(context.Writer, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Delete Tokens
+	tokens, err := tokenStore.List(user.IDString())
+	if err != nil {
+		log.Errorln("Failed list user's tokens during user deletetion:", err)
+		http.Error(context.Writer, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	for _, token := range tokens {
+		err = tokenStore.Revoke(user.IDString(), token.ID)
+		if err != nil {
+			log.Errorln("Failed remove user's tokens during user deletetion:", err)
+			http.Error(context.Writer, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	// Delete Casbin roles
+	DeleteRolesForUser(user.ID)
+
+	BanzaiLogoutHandler(context)
 }
 
 // GetOrgNameFromVirtualUser returns the organization name for which the virtual user has access
