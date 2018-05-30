@@ -89,7 +89,7 @@ func TestAddSecret(t *testing.T) {
 				}
 			} else {
 				// valid request
-				if err := secret.Store.Store(orgId, tc.secretId, tc.request); err != nil {
+				if err := secret.Store.Store(orgId, tc.secretId, &tc.request); err != nil {
 					t.Errorf("Error during save secret: %s", err.Error())
 				}
 			}
@@ -103,13 +103,14 @@ func TestListSecrets(t *testing.T) {
 	cases := []struct {
 		name           string
 		secretType     string
-		repoName       string
+		tag            string
 		expectedValues []secret.SecretsItemResponse
 	}{
-		{name: "List aws secrets", secretType: btypes.Amazon, repoName: "", expectedValues: awsExpectedItems},
-		{name: "List aks secrets", secretType: btypes.Azure, repoName: "", expectedValues: aksExpectedItems},
-		{name: "List gke secrets", secretType: btypes.Google, repoName: "", expectedValues: gkeExpectedItems},
-		{name: "List all secrets", secretType: "", repoName: "", expectedValues: allExpectedItems},
+		{name: "List aws secrets", secretType: btypes.Amazon, tag: "", expectedValues: awsExpectedItems},
+		{name: "List aks secrets", secretType: btypes.Azure, tag: "", expectedValues: aksExpectedItems},
+		{name: "List gke secrets", secretType: btypes.Google, tag: "", expectedValues: gkeExpectedItems},
+		{name: "List all secrets", secretType: "", tag: "", expectedValues: allExpectedItems},
+		{name: "List repo:pipeline secrets", secretType: "", tag: "repo:pipeline", expectedValues: awsExpectedItems},
 	}
 
 	for _, tc := range cases {
@@ -117,7 +118,7 @@ func TestListSecrets(t *testing.T) {
 			if err := api.IsValidSecretType(tc.secretType); err != nil {
 				t.Errorf("Error during validate secret type: %s", err)
 			} else {
-				if items, err := secret.Store.List(orgId, tc.secretType, tc.repoName, false); err != nil {
+				if items, err := secret.Store.List(orgId, &secret.ListSecretsQuery{tc.secretType, tc.tag, false}); err != nil {
 					t.Errorf("Error during listing secrets")
 				} else {
 					if !reflect.DeepEqual(tc.expectedValues, items) {
@@ -194,17 +195,18 @@ const (
 // Create requests
 var (
 	awsCreateSecretRequest = secret.CreateSecretRequest{
-		Name:       secretName,
-		SecretType: btypes.Amazon,
+		Name: secretName,
+		Type: btypes.Amazon,
 		Values: map[string]string{
 			"AWS_ACCESS_KEY_ID":     awsAccessKeyId,
 			"AWS_SECRET_ACCESS_KEY": awsSecretAccessKey,
 		},
+		Tags: []string{"repo:pipeline"},
 	}
 
 	aksCreateSecretRequest = secret.CreateSecretRequest{
-		Name:       secretName,
-		SecretType: btypes.Azure,
+		Name: secretName,
+		Type: btypes.Azure,
 		Values: map[string]string{
 			"AZURE_CLIENT_ID":       aksClientId,
 			"AZURE_CLIENT_SECRET":   aksClientSecret,
@@ -214,8 +216,8 @@ var (
 	}
 
 	gkeCreateSecretRequest = secret.CreateSecretRequest{
-		Name:       secretName,
-		SecretType: btypes.Google,
+		Name: secretName,
+		Type: btypes.Google,
 		Values: map[string]string{
 			"type":                        gkeType,
 			"project_id":                  gkeProjectId,
@@ -231,16 +233,16 @@ var (
 	}
 
 	awsMissingKey = secret.CreateSecretRequest{
-		Name:       secretName,
-		SecretType: btypes.Amazon,
+		Name: secretName,
+		Type: btypes.Amazon,
 		Values: map[string]string{
 			"AWS_SECRET_ACCESS_KEY": awsSecretAccessKey,
 		},
 	}
 
 	aksMissingKey = secret.CreateSecretRequest{
-		Name:       secretName,
-		SecretType: btypes.Azure,
+		Name: secretName,
+		Type: btypes.Azure,
 		Values: map[string]string{
 			"AZURE_CLIENT_ID":       aksClientId,
 			"AZURE_TENANT_ID":       aksTenantId,
@@ -249,8 +251,8 @@ var (
 	}
 
 	gkeMissingKey = secret.CreateSecretRequest{
-		Name:       secretName,
-		SecretType: btypes.Google,
+		Name: secretName,
+		Type: btypes.Google,
 		Values: map[string]string{
 			"type":                        gkeType,
 			"project_id":                  gkeProjectId,
@@ -261,52 +263,62 @@ var (
 	}
 )
 
+func toHiddenValues(secretType string) map[string]string {
+	values := map[string]string{}
+	for _, key := range secret.DefaultRules[secretType] {
+		values[key] = "<hidden>"
+	}
+	return values
+}
+
 // Expected values after list
 var (
 	awsExpectedItems = []secret.SecretsItemResponse{
 		{
-			ID:         secretIdAmazon,
-			Name:       secretName,
-			SecretType: btypes.Amazon,
-			Values:     nil,
+			ID:     secretIdAmazon,
+			Name:   secretName,
+			Type:   btypes.Amazon,
+			Values: toHiddenValues(btypes.Amazon),
+			Tags:   awsCreateSecretRequest.Tags,
 		},
 	}
 
 	aksExpectedItems = []secret.SecretsItemResponse{
 		{
-			ID:         secretIdAzure,
-			Name:       secretName,
-			SecretType: btypes.Azure,
-			Values:     nil,
+			ID:     secretIdAzure,
+			Name:   secretName,
+			Type:   btypes.Azure,
+			Values: toHiddenValues(btypes.Azure),
 		},
 	}
 
 	gkeExpectedItems = []secret.SecretsItemResponse{
 		{
-			ID:         secretIdGoogle,
-			Name:       secretName,
-			SecretType: btypes.Google,
-			Values:     nil,
+			ID:     secretIdGoogle,
+			Name:   secretName,
+			Type:   btypes.Google,
+			Values: toHiddenValues(btypes.Google),
 		},
 	}
 
 	allExpectedItems = []secret.SecretsItemResponse{
 		{
-			ID:         secretIdAmazon,
-			Name:       secretName,
-			SecretType: btypes.Amazon,
-			Values:     nil,
+			ID:     secretIdAmazon,
+			Name:   secretName,
+			Type:   btypes.Amazon,
+			Values: toHiddenValues(btypes.Amazon),
+			Tags:   awsCreateSecretRequest.Tags,
 		},
 		{
-			ID:         secretIdAzure,
-			Name:       secretName,
-			SecretType: btypes.Azure,
-			Values:     nil,
+			ID:     secretIdAzure,
+			Name:   secretName,
+			Type:   btypes.Azure,
+			Values: toHiddenValues(btypes.Azure),
 		}, {
-			ID:         secretIdGoogle,
-			Name:       secretName,
-			SecretType: btypes.Google,
-			Values:     nil,
+			ID:     secretIdGoogle,
+			Name:   secretName,
+			Type:   btypes.Google,
+			Values: toHiddenValues(btypes.Google),
 		},
 	}
 )

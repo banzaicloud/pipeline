@@ -2,9 +2,10 @@ package secret
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/banzaicloud/bank-vaults/vault"
-	btypes "github.com/banzaicloud/banzai-types/constants"
+	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/config"
 	vaultapi "github.com/hashicorp/vault/api"
 	"github.com/pkg/errors"
@@ -18,11 +19,6 @@ var logger *logrus.Logger
 // Store object that wraps up vault logical store
 var Store *secretStore
 
-// Validated secret types
-const (
-	General = "GENERAL_SECRET"
-)
-
 func init() {
 	logger = config.Logger()
 	Store = newVaultSecretStore()
@@ -35,16 +31,17 @@ type secretStore struct {
 
 // CreateSecretResponse API response for AddSecrets
 type CreateSecretResponse struct {
-	Name       string `json:"name" binding:"required"`
-	SecretType string `json:"type" binding:"required"`
-	SecretID   string `json:"secret_id"`
+	Name string `json:"name" binding:"required"`
+	Type string `json:"type" binding:"required"`
+	ID   string `json:"id"`
 }
 
 // CreateSecretRequest param for Store.Store
 type CreateSecretRequest struct {
-	Name       string            `json:"name" binding:"required"`
-	SecretType string            `json:"type" binding:"required"`
-	Values     map[string]string `json:"values" binding:"required"`
+	Name   string            `json:"name" binding:"required"`
+	Type   string            `json:"type" binding:"required"`
+	Values map[string]string `json:"values" binding:"required"`
+	Tags   []string          `json:"tags"`
 }
 
 // ListSecretsResponse for API response for ListSecrets
@@ -54,10 +51,11 @@ type ListSecretsResponse struct {
 
 // SecretsItemResponse for GetSecret (no API endpoint for this!)
 type SecretsItemResponse struct {
-	ID         string            `json:"id"`
-	Name       string            `json:"name"`
-	SecretType string            `json:"type"`
-	Values     map[string]string `json:"-"`
+	ID     string            `json:"id"`
+	Name   string            `json:"name"`
+	Type   string            `json:"type"`
+	Values map[string]string `json:"values"`
+	Tags   []string          `json:"tags"`
 }
 
 // AllowedFilteredSecretTypesResponse for API response for AllowedSecretTypes/:type
@@ -82,27 +80,34 @@ func newVaultSecretStore() *secretStore {
 
 // GenerateSecretID uuid for new secrets
 func GenerateSecretID() string {
-	log := logger.WithFields(logrus.Fields{"tag": "Secret"})
-	log.Debug("Generating secret id")
 	return uuid.NewV4().String()
 }
 
-// RepoSecretType marks secrets as of type "repo"
-const RepoSecretType = "repo"
+// RepoTag creates a secret tag for repository mapping
+func RepoTag(repo string) string {
+	return fmt.Sprint("repo:", repo)
+}
+
+const (
+	// GenericSecret represents generic secret types, without schema
+	GenericSecret = "generic"
+	// AllSecrets represents generic secret types which selects all secrets
+	AllSecrets = ""
+)
 
 // DefaultRules key matching for types
 var DefaultRules = map[string][]string{
-	btypes.Amazon: {
+	constants.Amazon: {
 		AwsAccessKeyId,
 		AwsSecretAccessKey,
 	},
-	btypes.Azure: {
+	constants.Azure: {
 		AzureClientId,
 		AzureClientSecret,
 		AzureTenantId,
 		AzureSubscriptionId,
 	},
-	btypes.Google: {
+	constants.Google: {
 		Type,
 		ProjectId,
 		PrivateKeyId,
@@ -114,13 +119,10 @@ var DefaultRules = map[string][]string{
 		AuthX509Url,
 		ClientX509Url,
 	},
-	btypes.Kubernetes: {
+	constants.Kubernetes: {
 		K8SConfig,
 	},
-	RepoSecretType: {
-		RepoName,
-		RepoSecret,
-	},
+	GenericSecret: {},
 }
 
 // Amazon keys
@@ -156,120 +158,176 @@ const (
 	K8SConfig = "K8Sconfig"
 )
 
-// Repo keys
-const (
-	RepoName   = "RepoName"
-	RepoSecret = "RepoSecret"
-)
-
 // Validate SecretRequest
-func (c *CreateSecretRequest) Validate() error {
-	requiresKeys, ok := DefaultRules[c.SecretType]
+func (r *CreateSecretRequest) Validate() error {
+	requiredKeys, ok := DefaultRules[r.Type]
+
 	if !ok {
-		return errors.Errorf("wrong secret type: %s", c.SecretType)
+		return errors.Errorf("wrong secret type: %s", r.Type)
 	}
-	for _, key := range requiresKeys {
-		if _, ok := c.Values[key]; !ok {
+
+	for _, key := range requiredKeys {
+		if _, ok := r.Values[key]; !ok {
 			return errors.Errorf("missing key: %s", key)
 		}
-
 	}
+
 	return nil
 }
 
 // Delete secret secret/orgs/:orgid:/:id: scope
 func (ss *secretStore) Delete(organizationID, secretID string) error {
 	log := logger.WithFields(logrus.Fields{"tag": "DeleteSecret"})
-	log.Debugf("Delete secret: %s", fmt.Sprintf("secret/orgs/%s/%s", organizationID, secretID))
-	_, err := ss.logical.Delete(fmt.Sprintf("secret/orgs/%s/%s", organizationID, secretID))
-	return err
+
+	path := secretPath(organizationID, secretID)
+
+	log.Debugln("Delete secret:", path)
+
+	if _, err := ss.logical.Delete(path); err != nil {
+		return errors.Wrap(err, "Error during deleting secret")
+	}
+
+	return nil
 }
 
-// Save secret secret/orgs/:orgid:/:id: scope or to secret/orgs/:orgid:/:repo:/:id in case of repo secret
-func (ss *secretStore) Store(organizationID, secretID string, value CreateSecretRequest) error {
+// Save secret secret/orgs/:orgid:/:id: scope
+func (ss *secretStore) Store(organizationID, secretID string, value *CreateSecretRequest) error {
 	log := logger.WithFields(logrus.Fields{"tag": "StoreSecret"})
-	log.Infof("Storing secret")
-	var path string
-	if value.SecretType != RepoSecretType {
-		path = fmt.Sprintf("secret/orgs/%s/%s", organizationID, secretID)
-	} else {
-		path = fmt.Sprintf("secret/orgs/%s/%s/%s", organizationID, value.Values[RepoName], secretID)
-		delete(value.Values, RepoName)
-	}
+
+	path := secretPath(organizationID, secretID)
+
+	log.Debugln("Storing secret:", path)
+
 	data := map[string]interface{}{"value": value}
+
 	if _, err := ss.logical.Write(path, data); err != nil {
 		return errors.Wrap(err, "Error during storing secret")
 	}
+
+	return nil
+}
+
+// Update secret secret/orgs/:orgid:/:id: scope
+func (ss *secretStore) Update(organizationID, secretID string, value *CreateSecretRequest) error {
+	log := logger.WithFields(logrus.Fields{"tag": "UpdateSecret"})
+
+	path := secretPath(organizationID, secretID)
+
+	log.Debugln("Update secret:", path)
+
+	data := map[string]interface{}{"value": *value}
+
+	if _, err := ss.logical.Write(path, data); err != nil {
+		return errors.Wrap(err, "Error during updating secret")
+	}
+
 	return nil
 }
 
 // Retrieve secret secret/orgs/:orgid:/:id: scope
 func (ss *secretStore) Get(organizationID string, secretID string) (*SecretsItemResponse, error) {
-	secretPath := fmt.Sprintf("secret/orgs/%s/%s", organizationID, secretID)
-	secret, err := ss.logical.Read(secretPath)
+	log := logger.WithFields(logrus.Fields{"tag": "GetSecret"})
+
+	path := secretPath(organizationID, secretID)
+
+	log.Debugln("Get secret:", path)
+
+	secret, err := ss.logical.Read(path)
+
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Error during reading secret")
 	}
 
 	if secret == nil {
 		return nil, fmt.Errorf("there's no secret with this id: %s", secretID)
 	}
 
-	secretData := secret.Data["value"].(map[string]interface{})
+	data := secret.Data["value"].(map[string]interface{})
 	secretResp := &SecretsItemResponse{
-		ID:         secretID,
-		Name:       secretData["name"].(string),
-		SecretType: secretData["type"].(string),
+		ID:   secretID,
+		Name: data["name"].(string),
+		Type: data["type"].(string),
 	}
-	// Assert map[string]string to map[string]interface{}
-	parsedValues := make(map[string]string)
-	for k, v := range secretData["values"].(map[string]interface{}) {
-		parsedValues[k] = v.(string)
-	}
-	secretResp.Values = parsedValues
+
+	secretResp.Values = cast.ToStringMapString(data["values"])
 
 	return secretResp, nil
 }
 
+// ListSecretsQuery represent a secret listing filter
+type ListSecretsQuery struct {
+	Type   string `form:"type"`
+	Tag    string `form:"tag"`
+	Values bool   `form:"values"`
+}
+
 // List secret secret/orgs/:orgid:/ scope
-func (ss *secretStore) List(organizationID, secretType string, reponame string, addValues bool) ([]SecretsItemResponse, error) {
+func (ss *secretStore) List(organizationID string, query *ListSecretsQuery) ([]SecretsItemResponse, error) {
 	log := logger.WithFields(logrus.Fields{"tag": "ListSecret"})
-	log.Info("Listing secrets")
-	responseItems := make([]SecretsItemResponse, 0)
 
-	log.Debugf("Searching for organizations secrets [%s]", organizationID)
-	orgSecretPath := fmt.Sprintf("secret/orgs/%s/%s", organizationID, reponame)
+	log.Debugf("Searching for secrets [orgid: %s, query: %#v]", organizationID, query)
 
-	if secret, err := ss.logical.List(orgSecretPath); err != nil {
+	path := fmt.Sprintf("secret/orgs/%s", organizationID)
+
+	var responseItems []SecretsItemResponse
+
+	list, err := ss.logical.List(path)
+	if err != nil {
 		log.Errorf("Error listing secrets: %s", err.Error())
 		return nil, err
-	} else if secret != nil {
-		keys := secret.Data["keys"].([]interface{})
-		for _, key := range keys {
-			secretID := key.(string)
-			if readSecret, err := ss.logical.Read(orgSecretPath + "/" + secretID); err != nil {
+	}
+
+	if list != nil {
+
+		keys := cast.ToStringSlice(list.Data["keys"])
+
+		for _, secretID := range keys {
+
+			if secret, err := ss.logical.Read(path + "/" + secretID); err != nil {
+
 				log.Errorf("Error listing secrets: %s", err.Error())
 				return nil, err
-			} else if readSecret != nil {
-				secretData := readSecret.Data["value"].(map[string]interface{})
-				sType := secretData["type"].(string)
-				if len(secretType) == 0 || sType == secretType {
+
+			} else if secret != nil {
+
+				data := secret.Data["value"].(map[string]interface{})
+				sname := data["name"].(string)
+				stype := data["type"].(string)
+				stags := cast.ToStringSlice(data["tags"])
+
+				if (query.Type == AllSecrets || stype == query.Type) && (query.Tag == "" || hasTag(stags, query.Tag)) {
+
 					sir := SecretsItemResponse{
-						ID:         key.(string),
-						Name:       secretData["name"].(string),
-						SecretType: sType,
+						ID:     secretID,
+						Name:   sname,
+						Type:   stype,
+						Tags:   stags,
+						Values: cast.ToStringMapString(data["values"]),
 					}
-					if addValues {
-						sir.Values = cast.ToStringMapString(secretData["values"])
+
+					if !query.Values {
+						// Clear the values otherwise
+						for k := range sir.Values {
+							sir.Values[k] = "<hidden>"
+						}
 					}
+
 					responseItems = append(responseItems, sir)
 				}
 			}
 		}
-	} else {
-		return responseItems, nil
 	}
+
 	return responseItems, nil
+}
+
+func secretPath(organizationID, secretID string) string {
+	return fmt.Sprintf("secret/orgs/%s/%s", organizationID, secretID)
+}
+
+func hasTag(tags []string, tag string) bool {
+	index := sort.SearchStrings(tags, tag)
+	return index < len(tags) && tags[index] == tag
 }
 
 // GetValue returns the value under key
@@ -279,9 +337,9 @@ func (s *SecretsItemResponse) GetValue(key string) string {
 
 // ValidateSecretType validates the secret type
 func (s *SecretsItemResponse) ValidateSecretType(validType string) error {
-	if s.SecretType != validType {
+	if string(s.Type) != validType {
 		return MissmatchError{
-			SecretType: s.SecretType,
+			SecretType: s.Type,
 			ValidType:  validType,
 		}
 	}

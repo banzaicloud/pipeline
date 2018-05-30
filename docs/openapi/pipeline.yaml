@@ -1404,6 +1404,26 @@ paths:
           description: Organization identification
           schema:
             type: integer
+        - name: type
+          in: query
+          required: false
+          description: Secret's type to filter with
+          schema:
+            type: string
+            enum: [amazon, azure, google, kubernetes, generic]
+        - name: tag
+          in: query
+          required: false
+          description: The selected tag to filter with
+          schema:
+            type: string
+            example: "repo:pipeline"
+        - name: values
+          in: query
+          required: false
+          description: Marks if to present secret values or just the keys
+          schema:
+            type: boolean
       responses:
         '200':
           description: Secrets listed
@@ -1469,90 +1489,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseError_500'
-
-  '/api/v1/orgs/{orgId}/secrets?type={cloudtype}':
-    get:
-      security:
-          - bearerAuth: []
-      tags:
-        - secrets
-      summary: List secrets with filter
-      operationId: GetSecretsWithFilter
-      description: Listing secrets with filter
-      parameters:
-        - name: orgId
-          in: path
-          required: true
-          description: Organization identification
-          schema:
-            type: integer
-        - name: cloudtype
-          in: path
-          required: true
-          description: Secret type
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Secrets listed
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SecretsListResponse'
-        '400':
-          description: Error during listing secrets
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseError_400'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Unauthorized'
-
-  '/api/v1/orgs/{orgId}/secrets?reponame={reponame}':
-    get:
-      security:
-          - bearerAuth: []
-      tags:
-        - secrets
-      summary: List secrets with filter
-      operationId: GetSecretsWithFilterRepo
-      description: Listing secrets with filter
-      parameters:
-        - name: orgId
-          in: path
-          required: true
-          description: Organization identification
-          schema:
-            type: integer
-        - name: reponame
-          in: path
-          required: true
-          description: Name of the selected repo
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Secrets listed
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SecretResponseRepo'
-        '400':
-          description: Error during listing secrets
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseError_400'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Unauthorized'
 
   '/api/v1/orgs/{orgId}/allowed/secrets':
     get:
@@ -1627,6 +1563,64 @@ paths:
                 $ref: '#/components/schemas/Unauthorized'
 
   '/api/v1/orgs/{orgId}/secrets/{secretId}':
+    put:
+      security:
+        - bearerAuth: []
+      tags:
+        - secrets
+      summary: Update secrets
+      operationId: UpdateSecrets
+      description: Update secrets
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: secretId
+          in: path
+          required: true
+          description: Secret identification
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSecretRequest'
+      responses:
+        '200':
+          description: Secret updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateSecretResponse'
+        '400':
+          description: Error during updating secrets
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '404':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
     delete:
       security:
           - bearerAuth: []
@@ -3251,27 +3245,6 @@ components:
           items:
             $ref: '#/components/schemas/SecretsListItem'
 
-    SecretResponseRepo:
-      type: object
-      properties:
-        secret:
-          type: array
-          items:
-            $ref: '#/components/schemas/SecretsListItemRepo'
-
-    SecretsListItemRepo:
-      type: object
-      properties:
-        id:
-          type: string
-          example: "62bc3c75-91fb-4670-bad4-24b401a9deac"
-        name:
-          type: string
-          example: "My repo secret"
-        type:
-          type: string
-          example: "repo"
-
     SecretsListItem:
       type: object
       properties:
@@ -3284,6 +3257,19 @@ components:
         type:
           type: string
           example: "google"
+        values:
+          type: array
+          example:
+            type: "<hidden>"
+            project_id: "<hidden>"
+            private_key_id: "<hidden>"
+            private_key: "<hidden>"
+            client_email: "<hidden>"
+            client_id: "<hidden>"
+            auth_uri: "<hidden>"
+            token_uri: "<hidden>"
+            auth_provider_x509_cert_url: "<hidden>"
+            client_x509_cert_url: "<hidden>"
 
     CreateSecretResponse:
       type: object
@@ -3315,7 +3301,7 @@ components:
               - $ref: '#/components/schemas/SecretKeyValueAzure'
               - $ref: '#/components/schemas/SecretKeyValueGoogle'
               - $ref: '#/components/schemas/SecretKeyValueKubernetes'
-              - $ref: '#/components/schemas/SecretKeyValueRepo'
+              - $ref: '#/components/schemas/SecretKeyValueGeneric'
           example:
             type: string
             project_id: string
@@ -3397,12 +3383,10 @@ components:
         K8Sconfig:
           type: string
 
-    SecretKeyValueRepo:
+    SecretKeyValueGeneric:
       type: object
       properties:
-        RepoName:
-          type: string
-        RepoSecret:
+        any:
           type: string
 
     SecretsNotFound:

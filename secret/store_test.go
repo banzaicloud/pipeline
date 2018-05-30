@@ -1,10 +1,11 @@
 package secret_test
 
 import (
-	btypes "github.com/banzaicloud/banzai-types/constants"
-	"github.com/banzaicloud/pipeline/secret"
 	"reflect"
 	"testing"
+
+	btypes "github.com/banzaicloud/banzai-types/constants"
+	"github.com/banzaicloud/pipeline/secret"
 )
 
 func TestGetValue(t *testing.T) {
@@ -96,8 +97,8 @@ const (
 
 var (
 	awsCreateSecretFull = secret.CreateSecretRequest{
-		Name:       secretDesc,
-		SecretType: btypes.Amazon,
+		Name: secretDesc,
+		Type: btypes.Amazon,
 		Values: map[string]string{
 			secret.AwsAccessKeyId:     AwsAccessKeyId,
 			secret.AwsSecretAccessKey: AwsSecretAccessKey,
@@ -105,16 +106,16 @@ var (
 	}
 
 	awsMissingKey = secret.CreateSecretRequest{
-		Name:       secretDesc,
-		SecretType: btypes.Amazon,
+		Name: secretDesc,
+		Type: btypes.Amazon,
 		Values: map[string]string{
 			secret.AwsSecretAccessKey: AwsSecretAccessKey,
 		},
 	}
 
 	aksCreateSecretFull = secret.CreateSecretRequest{
-		Name:       secretDesc,
-		SecretType: btypes.Azure,
+		Name: secretDesc,
+		Type: btypes.Azure,
 		Values: map[string]string{
 			secret.AzureClientId:       AzureClientId,
 			secret.AzureClientSecret:   AzureClientSecret,
@@ -124,8 +125,8 @@ var (
 	}
 
 	aksMissingKey = secret.CreateSecretRequest{
-		Name:       secretDesc,
-		SecretType: btypes.Azure,
+		Name: secretDesc,
+		Type: btypes.Azure,
 		Values: map[string]string{
 			secret.AzureClientId:       AzureClientId,
 			secret.AzureSubscriptionId: AzureSubscriptionId,
@@ -133,8 +134,8 @@ var (
 	}
 
 	gkeCreateSecretFull = secret.CreateSecretRequest{
-		Name:       secretDesc,
-		SecretType: btypes.Google,
+		Name: secretDesc,
+		Type: btypes.Google,
 		Values: map[string]string{
 			secret.Type:          gkeType,
 			secret.ProjectId:     gkeProjectId,
@@ -150,8 +151,8 @@ var (
 	}
 
 	gkeMissingKey = secret.CreateSecretRequest{
-		Name:       secretDesc,
-		SecretType: btypes.Google,
+		Name: secretDesc,
+		Type: btypes.Google,
 		Values: map[string]string{
 			secret.Type:          gkeType,
 			secret.ProjectId:     gkeProjectId,
@@ -168,9 +169,9 @@ var (
 
 var (
 	secretItem1 = secret.SecretsItemResponse{
-		ID:         secretId,
-		Name:       secretDesc,
-		SecretType: btypes.Google,
+		ID:   secretId,
+		Name: secretDesc,
+		Type: btypes.Google,
 		Values: map[string]string{
 			secret.ProjectId: gkeProjectId,
 		},

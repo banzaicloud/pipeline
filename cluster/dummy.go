@@ -225,6 +225,6 @@ func (d *DummyCluster) ValidateCreationFields(r *components.CreateClusterRequest
 // GetSecretWithValidation returns secret from vault
 func (d *DummyCluster) GetSecretWithValidation() (*secret.SecretsItemResponse, error) {
 	return &secret.SecretsItemResponse{
-		SecretType: constants.Dummy,
+		Type: constants.Dummy,
 	}, nil
 }
