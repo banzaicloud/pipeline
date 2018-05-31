@@ -27,9 +27,12 @@ type Properties struct {
 
 // Profile describes an Azure agent pool
 type Profile struct {
-	Name   string `json:"name"`
-	Count  int    `json:"count"`
-	VmSize string `json:"vmSize"`
+	Name        string `json:"name"`
+	Autoscaling bool   `json:"autoscaling"`
+	MinCount    int    `json:"minCount"`
+	MaxCount    int    `json:"maxCount"`
+	Count       int    `json:"count"`
+	VmSize      string `json:"vmSize"`
 }
 
 // ResponseWithValue describes an Azure cluster
@@ -53,13 +56,19 @@ type CreateClusterAzure struct {
 
 // NodePoolCreate describes Azure's node fields of a CreateCluster request
 type NodePoolCreate struct {
+	Autoscaling      bool   `json:"autoscaling"`
+	MinCount         int    `json:"minCount"`
+	MaxCount         int    `json:"maxCount"`
 	Count            int    `json:"count"`
 	NodeInstanceType string `json:"nodeInstanceType"`
 }
 
 // NodePoolUpdate describes Azure's node count of a UpdateCluster request
 type NodePoolUpdate struct {
-	Count int `json:"count"`
+	Autoscaling bool `json:"autoscaling"`
+	MinCount    int  `json:"minCount"`
+	MaxCount    int  `json:"maxCount"`
+	Count       int  `json:"count"`
 }
 
 // UpdateClusterAzure describes Azure's node fields of an UpdateCluster request
@@ -90,9 +99,23 @@ func (azure *CreateClusterAzure) Validate() error {
 		return errors.New(msg)
 	}
 
-	for name, np := range azure.NodePools {
+	for _, np := range azure.NodePools {
+
+		// ---- [ Min & Max count fields are required in case of autoscaling ] ---- //
+		if np.Autoscaling {
+			if np.MinCount == 0 {
+				return constants.ErrorMinFieldRequiredError
+			}
+			if np.MaxCount == 0 {
+				return constants.ErrorMaxFieldRequiredError
+			}
+			if np.MaxCount < np.MinCount {
+				return constants.ErrorNodePoolMinMaxFieldError
+			}
+		}
+
 		if np.Count == 0 {
-			azure.NodePools[name].Count = constants.AzureDefaultAgentCount
+			np.Count = constants.DefaultNodeMinCount
 		}
 
 		if len(np.NodeInstanceType) == 0 {

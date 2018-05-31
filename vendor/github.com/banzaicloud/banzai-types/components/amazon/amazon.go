@@ -20,8 +20,10 @@ type CreateAmazonMaster struct {
 type NodePool struct {
 	InstanceType string `json:"instanceType"`
 	SpotPrice    string `json:"spotPrice"`
+	Autoscaling  bool   `json:"autoscaling"`
 	MinCount     int    `json:"minCount"`
 	MaxCount     int    `json:"maxCount"`
+	Count        int    `json:"count"`
 	Image        string `json:"image"`
 }
 
@@ -42,19 +44,35 @@ func (a *NodePool) Validate() error {
 		return constants.ErrorAmazonImageFieldIsEmpty
 	}
 
-	// ---- [ Node min count check ] ---- //
-	if a.MinCount == 0 {
-		a.MinCount = constants.AmazonDefaultNodeMinCount
-	}
+	// ---- [ Min & Max count fields are required in case of autoscaling ] ---- //
+	if a.Autoscaling {
 
-	// ---- [ Node max count check ] ---- //
-	if a.MaxCount == 0 {
-		a.MaxCount = constants.AmazonDefaultNodeMaxCount
+		if a.MinCount == 0 {
+			return constants.ErrorMinFieldRequiredError
+		}
+		if a.MaxCount == 0 {
+			return constants.ErrorMaxFieldRequiredError
+		}
+
+	} else {
+		// ---- [ Node min count check ] ---- //
+		if a.MinCount == 0 {
+			a.MinCount = constants.DefaultNodeMinCount
+		}
+
+		// ---- [ Node max count check ] ---- //
+		if a.MaxCount == 0 {
+			a.MaxCount = constants.DefaultNodeMaxCount
+		}
 	}
 
 	// ---- [ Node min count <= max count check ] ---- //
 	if a.MaxCount < a.MinCount {
-		return constants.ErrorAmazonMinMaxFieldError
+		return constants.ErrorNodePoolMinMaxFieldError
+	}
+
+	if a.Count == 0 {
+		a.Count = a.MinCount
 	}
 
 	// ---- [ Node spot price ] ---- //

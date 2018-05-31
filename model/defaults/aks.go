@@ -20,6 +20,9 @@ type AKSProfile struct {
 // AKSNodePoolProfile describes an Azure cluster profile's nodepools
 type AKSNodePoolProfile struct {
 	ID               uint   `gorm:"primary_key"`
+	Autoscaling      bool   `gorm:"default:false"`
+	MinCount         int    `gorm:"default:1"`
+	MaxCount         int    `gorm:"default:2"`
 	Count            int    `gorm:"default:1"`
 	NodeInstanceType string `gorm:"default:'Standard_D4_v2'"`
 	Name             string `gorm:"unique_index:idx_model_name"`
@@ -90,6 +93,9 @@ func (d *AKSProfile) GetProfile() *components.ClusterProfileResponse {
 	for _, np := range d.NodePools {
 		if np != nil {
 			nodePools[np.NodeName] = &azure.NodePoolCreate{
+				Autoscaling:      np.Autoscaling,
+				MinCount:         np.MinCount,
+				MaxCount:         np.MaxCount,
 				Count:            np.Count,
 				NodeInstanceType: np.NodeInstanceType,
 			}
@@ -130,6 +136,9 @@ func (d *AKSProfile) UpdateProfile(r *components.ClusterProfileRequest, withSave
 			var nodePools []*AKSNodePoolProfile
 			for name, np := range r.Properties.Azure.NodePools {
 				nodePools = append(nodePools, &AKSNodePoolProfile{
+					Autoscaling:      np.Autoscaling,
+					MinCount:         np.MinCount,
+					MaxCount:         np.MaxCount,
 					Count:            np.Count,
 					NodeInstanceType: np.NodeInstanceType,
 					Name:             d.Name,

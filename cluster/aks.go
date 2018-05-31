@@ -26,6 +26,9 @@ func CreateAKSClusterFromRequest(request *components.CreateClusterRequest, orgId
 		for name, np := range request.Properties.CreateClusterAzure.NodePools {
 			nodePools = append(nodePools, &model.AzureNodePoolModel{
 				Name:             name,
+				Autoscaling:      np.Autoscaling,
+				NodeMinCount:     np.MinCount,
+				NodeMaxCount:     np.MaxCount,
 				Count:            np.Count,
 				NodeInstanceType: np.NodeInstanceType,
 			})
@@ -291,6 +294,9 @@ func (c *AKSCluster) UpdateCluster(request *bTypes.UpdateClusterRequest) error {
 					ID:               existNodePool.ID,
 					ClusterModelId:   existNodePool.ClusterModelId,
 					Name:             name,
+					Autoscaling:      np.Autoscaling,
+					NodeMinCount:     np.MinCount,
+					NodeMaxCount:     np.MaxCount,
 					Count:            np.Count,
 					NodeInstanceType: existNodePool.NodeInstanceType,
 				})
@@ -411,7 +417,10 @@ func (c *AKSCluster) AddDefaultsToUpdate(r *components.UpdateClusterRequest) {
 		nodePools := make(map[string]*banzaiAzureTypes.NodePoolUpdate)
 		for _, np := range storedPools {
 			nodePools[np.Name] = &banzaiAzureTypes.NodePoolUpdate{
-				Count: np.Count,
+				Autoscaling: np.Autoscaling,
+				MinCount:    np.NodeMinCount,
+				MaxCount:    np.NodeMaxCount,
+				Count:       np.Count,
 			}
 		}
 		r.Azure.NodePools = nodePools
@@ -427,7 +436,10 @@ func (c *AKSCluster) CheckEqualityToUpdate(r *components.UpdateClusterRequest) e
 	for _, preP := range c.modelCluster.Azure.NodePools {
 		if preP != nil {
 			preProfiles[preP.Name] = &banzaiAzureTypes.NodePoolUpdate{
-				Count: preP.Count,
+				Autoscaling: preP.Autoscaling,
+				MinCount:    preP.NodeMinCount,
+				MaxCount:    preP.NodeMaxCount,
+				Count:       preP.Count,
 			}
 		}
 	}

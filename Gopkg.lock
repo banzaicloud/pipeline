@@ -149,14 +149,14 @@
   revision = "354eea55437b616667eda42a04b76660f71eb906"
 
 [[projects]]
+  branch = "master"
   name = "github.com/banzaicloud/bank-vaults"
   packages = [
     "auth",
     "database",
     "vault"
   ]
-  revision = "950d407647b0c77fb6425a500a00e3e17d959406"
-  version = "0.1.4"
+  revision = "d3746eb1736c50276bb42b08d5ad3609ed1fb8e6"
 
 [[projects]]
   branch = "master"
@@ -171,7 +171,7 @@
     "components/kubernetes",
     "constants"
   ]
-  revision = "10d88a501368fa8e97c6f8c492a26780607fa3b3"
+  revision = "55fa52a6f76dfb744cf04fcfeecb3f568e230e1d"
 
 [[projects]]
   branch = "master"
