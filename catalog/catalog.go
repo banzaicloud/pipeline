@@ -11,13 +11,14 @@ import (
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 	"io"
+	helm_env "k8s.io/helm/pkg/helm/environment"
 	"k8s.io/helm/pkg/repo"
 	"k8s.io/helm/pkg/strvals"
 	"regexp"
 	"strings"
 )
 
-const CatalogRepository = "catalog_repository"
+const CatalogRepository = "catalog"
 const CatalogRepositoryUrl = "http://kubernetes-charts.banzaicloud.com/branch/spotguide"
 
 var CatalogPath = "./" + CatalogRepository
@@ -66,6 +67,15 @@ type ApplicationResources struct {
 	SameSize           bool     `json:"same_size"`
 }
 
+type CatalogDetails struct {
+	Name      string             `json:"name"`
+	Repo      string             `json:"repo"`
+	Chart     *repo.ChartVersion `json:"chart"`
+	Values    string             `json:"values"`
+	Readme    string             `json:"readme"`
+	Spotguide *SpotguideFile     `json:"options"`
+}
+
 var logger *logrus.Logger
 var log *logrus.Entry
 
@@ -83,26 +93,31 @@ func CreateValuesFromOption(options []ApplicationOptions) ([]byte, error) {
 	return yaml.Marshal(base)
 }
 
-func InitCatalogRepository() error {
+func GenerateGatalogEnv(orgName string) helm_env.EnvSettings {
+	return helm.CreateEnvSettings(fmt.Sprintf("%s/%s", CatalogPath, orgName))
+}
+
+func EnsureCatalog(env helm_env.EnvSettings) error {
 	//Init the cluster catalog from a well known repository
-	helmEnv := helm.CreateEnvSettings(CatalogPath)
-	if err := helm.EnsureDirectories(helmEnv); err != nil {
+	if err := helm.EnsureDirectories(env); err != nil {
 		return errors.Wrap(err, "Initializing helm directories failed!")
 	}
-	cr, err := helm.InitRepo(CatalogRepository, CatalogRepositoryUrl, helmEnv)
+	catalogRepo := &repo.Entry{
+		Name:  CatalogRepository,
+		URL:   CatalogRepositoryUrl,
+		Cache: env.Home.CacheIndex(CatalogRepository),
+	}
+	_, err := helm.ReposAdd(env, catalogRepo)
 	if err != nil {
 		return err
-	}
-	repoFile := helmEnv.Home.RepositoryFile()
-	f := repo.NewRepoFile()
-	f.Add(cr)
-	if err := f.WriteFile(repoFile, 0644); err != nil {
-		return errors.Wrap(err, "cannot create file")
 	}
 	return nil
 }
 
-func ListCatalogs(queryName, queryVersion, queryKeyword string) ([]repo.ChartVersion, error) {
+func ListCatalogs(env helm_env.EnvSettings, queryName, queryVersion, queryKeyword string) ([]repo.ChartVersion, error) {
+	if err := EnsureCatalog(env); err != nil {
+		return nil, err
+	}
 	repoPath := fmt.Sprintf("%s/repository/repositories.yaml", CatalogPath)
 	log.Debug("Helm repo path:", repoPath)
 
@@ -136,8 +151,9 @@ func ListCatalogs(queryName, queryVersion, queryKeyword string) ([]repo.ChartVer
 }
 
 // Fixed repo for catalog
-func GetCatalogDetails(name string) (*CatalogDetails, error) {
-	cd, err := ChartGet(CatalogPath, CatalogRepository, name, "")
+func GetCatalogDetails(env helm_env.EnvSettings, name string) (*CatalogDetails, error) {
+
+	cd, err := ChartGet(env, CatalogRepository, name, "")
 	if err != nil {
 		return nil, err
 	}
@@ -184,21 +200,9 @@ func getChartOption(file []byte) (*SpotguideFile, error) {
 	return nil, nil
 }
 
-type CatalogDetails struct {
-	Name      string             `json:"name"`
-	Repo      string             `json:"repo"`
-	Chart     *repo.ChartVersion `json:"chart"`
-	Values    string             `json:"values"`
-	Readme    string             `json:"readme"`
-	Spotguide *SpotguideFile     `json:"options"`
-}
-
-func ChartGet(path, chartRepo, chartName, chartVersion string) (*CatalogDetails, error) {
-
-	repoPath := fmt.Sprintf("%s/repository/repositories.yaml", path)
-	log.Debug("Helm repo path:", repoPath)
+func ChartGet(env helm_env.EnvSettings, chartRepo, chartName, chartVersion string) (*CatalogDetails, error) {
 	chartD := &CatalogDetails{}
-	f, err := repo.LoadRepositoriesFile(repoPath)
+	f, err := repo.LoadRepositoriesFile(env.Home.RepositoryFile())
 	if err != nil {
 		return nil, err
 	}

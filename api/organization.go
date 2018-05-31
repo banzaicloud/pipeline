@@ -152,7 +152,7 @@ func CreateOrganization(c *gin.Context) {
 	auth.AddOrgRoles(organization.ID)
 	auth.AddOrgRoleForUser(user.ID, organization.ID)
 
-	helm.InstallLocalHelm(organization.Name)
+	helm.InstallLocalHelm(helm.GenerateHelmRepoEnv(organization.Name))
 
 	c.JSON(http.StatusOK, organization)
 }

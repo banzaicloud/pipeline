@@ -127,5 +127,5 @@ func CreateApplication(c *gin.Context) {
 		OrganizationId: orgId,
 	}
 	am.Save()
-	go application.CreateApplication(orgId, am, createApplicationRequest.Options, commonCluster)
+	go application.CreateApplication(am, createApplicationRequest.Options, commonCluster)
 }
