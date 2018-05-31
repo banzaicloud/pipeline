@@ -59,7 +59,7 @@ func GetSupportedClusterList(c *gin.Context) {
 				Icon:    "assets/images/open_shift.png",
 			},
 			{
-				Name:    "Oracke Kubernetes Engine",
+				Name:    "Oracle Kubernetes Engine",
 				Key:     "unknown",
 				Enabled: false,
 				Icon:    "assets/images/oracle.png",
@@ -75,12 +75,6 @@ func GetSupportedClusterList(c *gin.Context) {
 				Key:     "unknown",
 				Enabled: false,
 				Icon:    "assets/images/digital_ocean.png",
-			},
-			{
-				Name:    "Banzai Cloud Kubernetes Engine",
-				Key:     "unknown",
-				Enabled: false,
-				Icon:    "assets/banzai.png",
 			},
 		},
 	})
