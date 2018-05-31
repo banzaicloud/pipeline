@@ -42,14 +42,7 @@ func UpdateMonitoring(c *gin.Context) {
 	return
 }
 
-// GetCommonClusterFromRequest just a simple getter to build commonCluster object this handles error messages directly
-func GetCommonClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
-	filter := ParseField(c)
-
-	// Filter for organisation
-	filter["organization_id"] = c.Request.Context().Value(auth.CurrentOrganization).(*auth.Organization).ID
-
-	//TODO check gorm error
+func GetCommonClusterFromFilter(c *gin.Context, filter map[string]interface{}) (cluster.CommonCluster, bool) {
 	modelCluster, err := model.QueryCluster(filter)
 	if err != nil {
 		log.Errorf("Cluster not found: %s", err.Error())
@@ -82,6 +75,15 @@ func GetCommonClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
 		return nil, false
 	}
 	return commonCLuster, true
+}
+
+// GetCommonClusterFromRequest just a simple getter to build commonCluster object this handles error messages directly
+func GetCommonClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
+	filter := ParseField(c)
+
+	// Filter for organisation
+	filter["organization_id"] = c.Request.Context().Value(auth.CurrentOrganization).(*auth.Organization).ID
+	return GetCommonClusterFromFilter(c, filter)
 }
 
 //GetCommonClusterNameFromRequest get cluster name from cluster request
@@ -117,7 +119,7 @@ func CreateClusterRequest(c *gin.Context) {
 }
 
 // CreateCluster creates a K8S cluster in the cloud
-func CreateCluster(c *gin.Context, createClusterRequest *components.CreateClusterRequest) {
+func CreateCluster(c *gin.Context, createClusterRequest *components.CreateClusterRequest) cluster.CommonCluster {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagCreateCluster})
 
 	if len(createClusterRequest.ProfileName) != 0 {
@@ -130,7 +132,7 @@ func CreateCluster(c *gin.Context, createClusterRequest *components.CreateCluste
 				Message: "Error during getting profile",
 				Error:   err.Error(),
 			})
-			return
+			return nil
 		}
 
 		log.Info("Create profile response")
@@ -145,7 +147,7 @@ func CreateCluster(c *gin.Context, createClusterRequest *components.CreateCluste
 				Message: "Error creating request from profile",
 				Error:   err.Error(),
 			})
-			return
+			return nil
 		}
 
 		createClusterRequest = newRequest
@@ -173,7 +175,7 @@ func CreateCluster(c *gin.Context, createClusterRequest *components.CreateCluste
 			Message: err.Error(),
 			Error:   err.Error(),
 		})
-		return
+		return nil
 	}
 
 	log.Info("Creating new entry with cloud type: ", createClusterRequest.Cloud)
@@ -190,7 +192,7 @@ func CreateCluster(c *gin.Context, createClusterRequest *components.CreateCluste
 			Message: err.Error(),
 			Error:   err.Error(),
 		})
-		return
+		return nil
 	}
 
 	log.Infof("Validate secret[%s]", createClusterRequest.SecretId)
@@ -201,7 +203,7 @@ func CreateCluster(c *gin.Context, createClusterRequest *components.CreateCluste
 			Message: "Error during getting secret",
 			Error:   err.Error(),
 		})
-		return
+		return nil
 	}
 	log.Info("Secret validation passed")
 
@@ -223,6 +225,7 @@ func CreateCluster(c *gin.Context, createClusterRequest *components.CreateCluste
 
 	go postCreateCluster(commonCluster, createClusterRequest)
 
+	return commonCluster
 }
 
 // postCreateCluster creates a cluster (ASYNC)

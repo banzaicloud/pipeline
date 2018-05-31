@@ -4,8 +4,7 @@ import (
 	"github.com/banzaicloud/banzai-types/components"
 	htype "github.com/banzaicloud/banzai-types/components/helm"
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/helm"
-	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/catalog"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -24,7 +23,7 @@ type CreateCatalogsRequests struct {
 func CatalogDetails(c *gin.Context) {
 	chartName := c.Param("name")
 	log.Debugln("chartName:", chartName)
-	chartDetails, err := helm.GetCatalogDetails(chartName)
+	chartDetails, err := catalog.GetCatalogDetails(chartName)
 	if err != nil {
 		log.Errorf("Error parsing request: %s", err.Error())
 		c.JSON(http.StatusBadRequest, htype.ErrorResponse{
@@ -44,8 +43,13 @@ func GetCatalogs(c *gin.Context) {
 	filter := ParseField(c)
 	// Filter for organisation
 	filter["organization_id"] = c.Request.Context().Value(auth.CurrentOrganization).(*auth.Organization).ID
-	//catalogs := make([]model.ApplicationModel, 0)
-	catalogs, err := model.QueryCatalog(filter)
+
+	chartName := c.Param("name")
+	log.Debugln("chartName:", chartName)
+
+	chartVersion := c.Param("version")
+	log.Debugln("version:", chartVersion)
+	catalogs, err := catalog.ListCatalogs(chartName, chartVersion, "")
 	if err != nil {
 		log.Error("Empty cluster list")
 		c.JSON(http.StatusNotFound, components.ErrorResponse{

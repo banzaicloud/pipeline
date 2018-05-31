@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"encoding/json"
-	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/jinzhu/gorm"
@@ -35,6 +34,7 @@ type ClusterModel struct {
 	Google         GoogleClusterModel
 	Dummy          DummyClusterModel
 	Kubernetes     KubernetesClusterModel
+	Applications   []ApplicationModel `gorm:"foreignkey:ClusterID"`
 }
 
 //AmazonClusterModel describes the amazon cluster model

@@ -166,7 +166,7 @@ func RetryHelmInstall(helmInstall *helm.Install, kubeconfig []byte, path string)
 	return fmt.Errorf("timeout during helm install")
 }
 
-func createEnvSettings(helmRepoHome string) helm_env.EnvSettings {
+func CreateEnvSettings(helmRepoHome string) helm_env.EnvSettings {
 	var settings helm_env.EnvSettings
 	settings.Home = helmpath.Home(helmRepoHome)
 	return settings
@@ -178,9 +178,9 @@ func GenerateHelmRepoPath(path string) string {
 	return fmt.Sprintf("%s/%s/%s", stateStorePath, path, helmPostFix)
 }
 
-func downloadChartFromRepo(name, path string) (string, error) {
+func DownloadChartFromRepo(name, path string) (string, error) {
 	log := logger.WithFields(logrus.Fields{"tag": "DownloadChartFromRepo"})
-	settings := createEnvSettings(path)
+	settings := CreateEnvSettings(path)
 	dl := downloader.ChartDownloader{
 		HelmHome: settings.Home,
 		Getters:  getter.All(settings),
@@ -205,10 +205,10 @@ func downloadChartFromRepo(name, path string) (string, error) {
 }
 
 // Installs helm client on the cluster
-func installHelmClient(path string) error {
+func InstallHelmClient(path string) error {
 	log := logger.WithFields(logrus.Fields{"tag": "InstallHelmClient"})
-	settings := createEnvSettings(GenerateHelmRepoPath(path))
-	if err := ensureDirectories(settings); err != nil {
+	settings := CreateEnvSettings(GenerateHelmRepoPath(path))
+	if err := EnsureDirectories(settings); err != nil {
 		return errors.Wrap(err, "Initializing helm directories failed!")
 	}
 
@@ -220,7 +220,7 @@ func installHelmClient(path string) error {
 	return nil
 }
 
-func ensureDirectories(env helm_env.EnvSettings) error {
+func EnsureDirectories(env helm_env.EnvSettings) error {
 	log := logger.WithFields(logrus.Fields{"tag": "EnsureHelmDirectories"})
 	home := env.Home
 	configDirectories := []string{
@@ -261,11 +261,11 @@ func ensureDefaultRepos(env helm_env.EnvSettings) error {
 	if fi, err := os.Stat(repoFile); err != nil {
 		log.Infof("Creating %s", repoFile)
 		f := repo.NewRepoFile()
-		sr, err := initRepo(stableRepository, stableRepositoryURL, env)
+		sr, err := InitRepo(stableRepository, stableRepositoryURL, env)
 		if err != nil {
 			return errors.Wrapf(err, "cannot init stable repo")
 		}
-		br, err := initRepo(banzaiRepository, banzaiRepositoryURL, env)
+		br, err := InitRepo(banzaiRepository, banzaiRepositoryURL, env)
 		if err != nil {
 			return errors.Wrapf(err, "cannot init banzai repo")
 		}
@@ -279,7 +279,7 @@ func ensureDefaultRepos(env helm_env.EnvSettings) error {
 	return nil
 }
 
-func initRepo(repoName string, repoUrl string, env helm_env.EnvSettings) (*repo.Entry, error) {
+func InitRepo(repoName string, repoUrl string, env helm_env.EnvSettings) (*repo.Entry, error) {
 	log := logger.WithFields(logrus.Fields{"tag": "InitHelmRepositories"})
 	log.Infof("Adding %s repo with URL: %s", repoName, repoUrl)
 	c := repo.Entry{
@@ -305,7 +305,7 @@ func initRepo(repoName string, repoUrl string, env helm_env.EnvSettings) (*repo.
 func Install(helmInstall *helm.Install, kubeConfig []byte, path string) error {
 	log := logger.WithFields(logrus.Fields{"tag": "InstallHelmClient"})
 	//Installing helm client
-	if err := installHelmClient(path); err != nil {
+	if err := InstallHelmClient(path); err != nil {
 		return err
 	}
 	log.Info("Helm client install succeeded")

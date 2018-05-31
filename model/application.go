@@ -1,21 +1,45 @@
 package model
 
+import "github.com/jinzhu/gorm"
+
 type ApplicationModel struct {
-	ID             uint         `gorm:"primary_key"`
-	Name           string       `json:"name"`
-	OrganizationId uint         `gorm:"unique_index:idx_unique_id"`
-	Cluster        ClusterModel `json:"cluster"`
-	Deployments    []Deployment `json:"deployments"`
-	Resources      string       `json:"resources"`
+	gorm.Model
+	Name           string `json:"name"`
+	CatalogName    string `json:"catalogName"`
+	CatalogVersion string `json:"catalogVersion"`
+	Description    string `json:"description"`
+	Icon           string `json:"icon"`
+	OrganizationId uint   `json:"organizationId"`
+	ClusterID      uint
+	Deployments    []*Deployment `gorm:"foreignkey:ApplicationID" json:"deployments"`
+	Resources      string        `json:"resources"`
+	Status         string        `json:"status"`
 }
 
 type Deployment struct {
-	Name        string `json:"name"`
-	Chart       string `json:"chart"`
-	ReleaseName string `json:"release_name"`
-	Values      string `json:"values"`
-	Status      string `json:"status"`
-	WaitFor     string `json:"wait_for"`
+	gorm.Model
+	Name          string `json:"name"`
+	Chart         string `json:"chart"`
+	ReleaseName   string `json:"release_name"`
+	Values        string `json:"values"`
+	Status        string `json:"status"`
+	WaitFor       string `json:"waitFor"`
+	ApplicationID uint   `json:"applicationId"`
+}
+
+func (d *Deployment) Update(state string) error {
+	return GetDB().Model(d).Update("status", state).Error
+}
+
+func (d *Deployment) Create() error {
+	return GetDB().Create(d).Error
+}
+
+func (am ApplicationModel) GetCluster() ClusterModel {
+	db := GetDB()
+	var cluster ClusterModel
+	db.First(&cluster, am.ClusterID)
+	return cluster
 }
 
 func QueryCatalog(filter map[string]interface{}) ([]ApplicationModel, error) {

@@ -6,8 +6,8 @@ import (
 
 	"github.com/banzaicloud/pipeline/api"
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/catalog"
 	"github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/model/defaults"
 	"github.com/banzaicloud/pipeline/notify"
@@ -52,7 +52,7 @@ func main() {
 	logger.Info("Pipeline initialization")
 
 	//Init catalog repository
-	helm.InitCatalogRepository()
+	catalog.InitCatalogRepository()
 
 	// Ensure DB connection
 	db := model.GetDB()
