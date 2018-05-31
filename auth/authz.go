@@ -64,6 +64,9 @@ type BearerAuthorizer struct {
 // Currently, only HTTP Bearer token authentication is supported
 func (a *BearerAuthorizer) GetUserID(r *http.Request) string {
 	user := GetCurrentUser(r)
+	if user.ID == 0 {
+		return user.Login // This is needed for Drone virtual user tokens
+	}
 	return user.IDString()
 }
 
@@ -86,11 +89,17 @@ func addDefaultPolicies() {
 	enforcer.AddPolicy("default", basePath+"/api/v1/orgs", "*")
 	enforcer.AddPolicy("default", basePath+"/api/v1/token", "*") // DEPRECATED
 	enforcer.AddPolicy("default", basePath+"/api/v1/tokens", "*")
+	enforcer.AddPolicy("defaultVirtual", basePath+"/api/v1/orgs", "GET")
 }
 
 // AddDefaultRoleForUser adds all the default non-org-specific role to a user.
-func AddDefaultRoleForUser(userID uint) {
+func AddDefaultRoleForUser(userID interface{}) {
 	enforcer.AddRoleForUser(fmt.Sprint(userID), "default")
+}
+
+// AddDefaultRoleForVirtualUser adds org list role to a virtual user.
+func AddDefaultRoleForVirtualUser(userID interface{}) {
+	enforcer.AddRoleForUser(fmt.Sprint(userID), "defaultVirtual")
 }
 
 // AddOrgRoles creates an organization role, by adding the default (*) org policies for the given organization.
@@ -103,7 +112,7 @@ func AddOrgRoles(orgids ...uint) {
 }
 
 // AddOrgRoleForUser adds a user to an organization by adding the associated organization role.
-func AddOrgRoleForUser(userID uint, orgids ...uint) {
+func AddOrgRoleForUser(userID interface{}, orgids ...uint) {
 	for _, orgid := range orgids {
 		enforcer.AddRoleForUser(fmt.Sprint(userID), orgRoleName(orgid))
 	}
@@ -112,6 +121,11 @@ func AddOrgRoleForUser(userID uint, orgids ...uint) {
 // DeleteOrgRoleForUser removes a user from an organization by removing the associated organization role.
 func DeleteOrgRoleForUser(userID uint, orgid uint) {
 	enforcer.DeleteRoleForUser(fmt.Sprint(userID), orgRoleName(orgid))
+}
+
+// DeleteRolesForUser removes all roles for a given user.
+func DeleteRolesForUser(userID uint) {
+	enforcer.DeleteUser(fmt.Sprint(userID))
 }
 
 func orgRoleName(orgid uint) string {

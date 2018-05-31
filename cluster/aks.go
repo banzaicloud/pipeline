@@ -56,13 +56,13 @@ type AKSCluster struct {
 	commonSecret
 }
 
-// GetOrg gets org where the cluster belongs
-func (c *AKSCluster) GetOrg() uint {
+// GetOrganizationId gets org where the cluster belongs
+func (c *AKSCluster) GetOrganizationId() uint {
 	return c.modelCluster.OrganizationId
 }
 
 // GetAKSClient creates an AKS client with the credentials
-func (c *AKSCluster) GetAKSClient() (*azureClient.AKSClient, error) {
+func (c *AKSCluster) GetAKSClient() (azureClient.ClusterManager, error) {
 	clusterSecret, err := c.GetSecretWithValidation()
 	if err != nil {
 		return nil, err
@@ -73,11 +73,7 @@ func (c *AKSCluster) GetAKSClient() (*azureClient.AKSClient, error) {
 		SubscriptionId: clusterSecret.Values[secret.AzureSubscriptionId],
 		TenantId:       clusterSecret.Values[secret.AzureTenantId],
 	}
-	client, err := azureClient.GetAKSClient(creds)
-	if err != nil {
-		return nil, err
-	}
-	return client, nil
+	return azureClient.GetAKSClient(creds)
 }
 
 // GetSecretID retrieves the secret id
@@ -154,6 +150,14 @@ func (c *AKSCluster) CreateCluster() error {
 	}
 	log.Info("Cluster is ready...")
 	c.azureCluster = &pollingResult.Value
+
+	log.Info("Assign Storage Account Contributor role for all VM")
+	err = azureClient.AssignStorageAccountContributorRole(client, c.modelCluster.Azure.ResourceGroup, c.modelCluster.Name, c.modelCluster.Location)
+	if err != nil {
+		return err
+	}
+	log.Info("Role assign succeeded")
+
 	return nil
 }
 
@@ -341,17 +345,17 @@ func (c *AKSCluster) getExistingNodePoolByName(name string) *model.AzureNodePool
 }
 
 // updateWithPolling sends update request to cloud and polling until it's not ready
-func (c *AKSCluster) updateWithPolling(client *azureClient.AKSClient, ccr *azureCluster.CreateClusterRequest) (*banzaiAzureTypes.ResponseWithValue, error) {
+func (c *AKSCluster) updateWithPolling(manager azureClient.ClusterManager, ccr *azureCluster.CreateClusterRequest) (*banzaiAzureTypes.ResponseWithValue, error) {
 
 	log.Info("Send update request to azure")
-	_, err := azureClient.CreateUpdateCluster(client, ccr)
+	_, err := azureClient.CreateUpdateCluster(manager, ccr)
 	if err != nil {
 		return nil, err
 	}
 
 	log.Info("Polling to check update")
 	// polling to check cluster updated
-	updatedCluster, err := azureClient.PollingCluster(client, c.modelCluster.Name, c.modelCluster.Azure.ResourceGroup)
+	updatedCluster, err := azureClient.PollingCluster(manager, c.modelCluster.Name, c.modelCluster.Azure.ResourceGroup)
 	if err != nil {
 		return nil, err
 	}
@@ -483,7 +487,7 @@ func GetKubernetesVersion(orgId uint, secretId, location string) ([]string, erro
 }
 
 // getAKSClient create AKSClient with the given organization id and secret id
-func getAKSClient(orgId uint, secretId string) (*azureClient.AKSClient, error) {
+func getAKSClient(orgId uint, secretId string) (azureClient.ClusterManager, error) {
 	c := AKSCluster{
 		modelCluster: &model.ClusterModel{
 			OrganizationId: orgId,
@@ -563,7 +567,7 @@ func (c *AKSCluster) ValidateCreationFields(r *bTypes.CreateClusterRequest) erro
 // validateLocation validates location
 func (c *AKSCluster) validateLocation(location string) error {
 	log.Infof("Location: %s", location)
-	validLocations, err := GetLocations(c.GetOrg(), c.GetSecretID())
+	validLocations, err := GetLocations(c.GetOrganizationId(), c.GetSecretID())
 	if err != nil {
 		return err
 	}
@@ -589,7 +593,7 @@ func (c *AKSCluster) validateMachineType(nodePools map[string]*banzaiAzureTypes.
 
 	log.Infof("NodeInstanceTypes: %v", machineTypes)
 
-	validMachineTypes, err := GetMachineTypes(c.GetOrg(), c.GetSecretID(), location)
+	validMachineTypes, err := GetMachineTypes(c.GetOrganizationId(), c.GetSecretID(), location)
 	if err != nil {
 		return err
 	}
@@ -608,7 +612,7 @@ func (c *AKSCluster) validateMachineType(nodePools map[string]*banzaiAzureTypes.
 func (c *AKSCluster) validateKubernetesVersion(k8sVersion, location string) error {
 
 	log.Infof("K8SVersion: %s", k8sVersion)
-	validVersions, err := GetKubernetesVersion(c.GetOrg(), c.GetSecretID(), location)
+	validVersions, err := GetKubernetesVersion(c.GetOrganizationId(), c.GetSecretID(), location)
 	if err != nil {
 		return err
 	}

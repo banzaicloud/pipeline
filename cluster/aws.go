@@ -56,8 +56,8 @@ type AWSCluster struct {
 	commonSecret
 }
 
-// GetOrg gets org where the cluster belongs
-func (c *AWSCluster) GetOrg() uint {
+// GetOrganizationId gets org where the cluster belongs
+func (c *AWSCluster) GetOrganizationId() uint {
 	return c.modelCluster.OrganizationId
 }
 
@@ -596,9 +596,6 @@ func (c *AWSCluster) UpdateCluster(request *components.UpdateClusterRequest) err
 		return err
 	}
 
-	existsNodePoolNumber := len(kubicornCluster.ServerPools) - 1
-	log.Infof("exists nodepool number: %d", existsNodePoolNumber)
-
 	kubicornCluster.ServerPools[0].MinCount = 1
 	kubicornCluster.ServerPools[0].MaxCount = 1
 
@@ -623,12 +620,6 @@ func (c *AWSCluster) UpdateCluster(request *components.UpdateClusterRequest) err
 				kubicornCluster.ServerPools[id].MaxCount = 0
 			}
 		}
-	}
-
-	newNodePools := len(missingIds)
-	log.Infof("new nodepool number: %d", newNodePools)
-	if newNodePools+existsNodePoolNumber >= constants.MaxNodePoolNumber {
-		return constants.ErrorTooMuchNodePool
 	}
 
 	// add new pools

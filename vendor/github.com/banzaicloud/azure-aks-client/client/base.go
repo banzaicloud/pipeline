@@ -9,22 +9,48 @@ import (
 	"github.com/banzaicloud/azure-aks-client/utils"
 	"github.com/banzaicloud/banzai-types/components/azure"
 	"github.com/banzaicloud/banzai-types/constants"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
+	"github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-01-01/network"
 	"net/http"
 	"time"
 )
 
 type ClusterManager interface {
-	CreateOrUpdate(request *cluster.CreateClusterRequest, managedCluster *containerservice.ManagedCluster) (*azure.ResponseWithValue, error)
-	Delete(resourceGroup, name string) (*http.Response, error)
-	Get(resourceGroup, name string) (containerservice.ManagedCluster, error)
-	List() ([]containerservice.ManagedCluster, error)
-	GetAccessProfiles(resourceGroup, name, roleName string) (containerservice.ManagedClusterAccessProfile, error)
-	ListLocations() (subscriptions.LocationListResult, error)
-	ListVmSizes(location string) (result compute.VirtualMachineSizeListResult, err error)
-	ListVersions(locations, resourceType string) (result containerservice.OrchestratorVersionProfileListResult, err error)
+	createOrUpdateCluster(request *cluster.CreateClusterRequest, managedCluster *containerservice.ManagedCluster) (*azure.ResponseWithValue, error)
+	deleteCluster(resourceGroup, name string) (*http.Response, error)
+	getCluster(resourceGroup, name string) (*containerservice.ManagedCluster, error)
+	listClusters() ([]containerservice.ManagedCluster, error)
+	getAccessProfiles(resourceGroup, name, roleName string) (*containerservice.ManagedClusterAccessProfile, error)
 
-	GetClientId() string
-	GetClientSecret() string
+	listLocations() ([]subscriptions.Location, error)
+	listVirtualMachineSizes(location string) ([]compute.VirtualMachineSize, error)
+	listK8SVersions(locations, resourceType string) (result *containerservice.OrchestratorVersionProfileListResult, err error)
+
+	listResourceGroups() ([]resources.Group, error)
+	findInfrastructureResourceGroup(resourceGroup, clusterName, location string) (*resources.Group, error)
+
+	createVirtualMachine(rg, location, vnetName, subnetName, nsgName, ipName, vmName, nicName string) (*compute.VirtualMachine, error)
+	getVirtualMachine(resourceGroup, clusterName, location, vmName string) (*compute.VirtualMachine, error)
+	listVirtualMachines(resourceGroup, clusterName, location string) ([]compute.VirtualMachine, error)
+	enableManagedServiceIdentity(resourceGroup, clusterName, location string) error
+	disableManagedServiceIdentity(resourceGroup, clusterName, location string) error
+	assignStorageAccountContributorRole(resourceGroup, clusterName, location string) error
+	deleteStorageAccountContributorRole(resourceGroup, clusterName, location string) error
+
+	createNetworkInterface(rg, location, vnetName, subnetName, nsgName, ipName, nicName string) (*network.Interface, error)
+
+	listRoleAssignments() ([]authorization.RoleAssignment, error)
+	createRoleAssignment(scope, roleDefinitionId, principalId string) (*authorization.RoleAssignment, error)
+	deleteRoleAssignment(scope, roleAssignmentName string) (*authorization.RoleAssignment, error)
+
+	listRoleDefinitions(scope string) ([]authorization.RoleDefinition, error)
+	findRoleDefinitionByName(scope, roleName string) (*authorization.RoleDefinition, error)
+
+	getClientId() string
+	getClientSecret() string
+
+	With(i interface{})
 
 	LogDebug(args ...interface{})
 	LogInfo(args ...interface{})
@@ -57,10 +83,9 @@ func CreateUpdateCluster(manager ClusterManager, request *cluster.CreateClusterR
 	}
 	manager.LogInfo("Validate passed")
 
-	managedCluster := cluster.GetManagedCluster(request, manager.GetClientId(), manager.GetClientSecret())
+	managedCluster := cluster.GetManagedCluster(request, manager.getClientId(), manager.getClientSecret())
 	manager.LogDebugf("Created managed cluster model - %#v", &managedCluster)
-	manager.LogDebug("Send request to azure")
-	result, err := manager.CreateOrUpdate(request, managedCluster)
+	result, err := manager.createOrUpdateCluster(request, managedCluster)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +101,7 @@ func DeleteCluster(manager ClusterManager, name string, resourceGroup string) er
 	manager.LogInfof("Start deleting cluster %s in %s resource group", name, resourceGroup)
 	manager.LogDebug("Send request to azure")
 
-	response, err := manager.Delete(resourceGroup, name)
+	response, err := manager.deleteCluster(resourceGroup, name)
 	if err != nil {
 		return err
 	}
@@ -100,7 +125,7 @@ func PollingCluster(manager ClusterManager, name string, resourceGroup string) (
 	for isReady := false; !isReady; {
 
 		manager.LogDebug("Send request to azure")
-		managedCluster, err := manager.Get(resourceGroup, name)
+		managedCluster, err := manager.getCluster(resourceGroup, name)
 		if err != nil {
 			return nil, err
 		}
@@ -108,11 +133,11 @@ func PollingCluster(manager ClusterManager, name string, resourceGroup string) (
 		statusCode := managedCluster.StatusCode
 		manager.LogInfof("Cluster polling status code: %d", statusCode)
 
-		convertManagedClusterToValue(&managedCluster)
+		convertManagedClusterToValue(managedCluster)
 
 		switch statusCode {
 		case http.StatusOK:
-			response := convertManagedClusterToValue(&managedCluster)
+			response := convertManagedClusterToValue(managedCluster)
 
 			stage := utils.ToS(managedCluster.ProvisioningState)
 			manager.LogInfof("Cluster stage is %s", stage)
@@ -141,7 +166,7 @@ func GetCluster(manager ClusterManager, name string, resourceGroup string) (*azu
 
 	manager.LogInfof("Start getting aks cluster: %s [%s]", name, resourceGroup)
 
-	managedCluster, err := manager.Get(resourceGroup, name)
+	managedCluster, err := manager.getCluster(resourceGroup, name)
 	if err != nil {
 		return nil, err
 	}
@@ -150,7 +175,7 @@ func GetCluster(manager ClusterManager, name string, resourceGroup string) (*azu
 
 	return &azure.ResponseWithValue{
 		StatusCode: managedCluster.StatusCode,
-		Value:      *convertManagedClusterToValue(&managedCluster),
+		Value:      *convertManagedClusterToValue(managedCluster),
 	}, nil
 }
 
@@ -159,7 +184,7 @@ func GetCluster(manager ClusterManager, name string, resourceGroup string) (*azu
 func ListClusters(manager ClusterManager) (*azure.ListResponse, error) {
 	manager.LogInfo("Start listing clusters")
 
-	managedClusters, err := manager.List()
+	managedClusters, err := manager.listClusters()
 	if err != nil {
 		return nil, err
 	}
@@ -177,7 +202,7 @@ func GetClusterConfig(manager ClusterManager, name, resourceGroup, roleName stri
 	manager.LogInfof("Start getting %s cluster's config in %s, role name: %s", name, resourceGroup, roleName)
 
 	manager.LogDebug("Send request to azure")
-	profile, err := manager.GetAccessProfiles(resourceGroup, name, roleName)
+	profile, err := manager.getAccessProfiles(resourceGroup, name, roleName)
 	if err != nil {
 		return nil, err
 	}
@@ -199,16 +224,14 @@ func GetClusterConfig(manager ClusterManager, name, resourceGroup, roleName stri
 func GetLocations(manager ClusterManager) ([]string, error) {
 
 	manager.LogInfo("Start listing locations")
-	resp, err := manager.ListLocations()
+	locationList, err := manager.listLocations()
 	if err != nil {
 		return nil, err
 	}
 
 	var locations []string
-	if resp.Value != nil {
-		for _, loc := range *resp.Value {
-			locations = append(locations, *loc.Name)
-		}
+	for _, loc := range locationList {
+		locations = append(locations, *loc.Name)
 	}
 
 	return locations, nil
@@ -218,25 +241,106 @@ func GetLocations(manager ClusterManager) ([]string, error) {
 func GetVmSizes(manager ClusterManager, location string) ([]string, error) {
 
 	manager.LogInfo("Start listing vm sizes")
-	resp, err := manager.ListVmSizes(location)
+	virtualMachineSizes, err := manager.listVirtualMachineSizes(location)
 	if err != nil {
 		return nil, err
 	}
 
 	var sizes []string
-	if resp.Value != nil {
-		for _, vm := range *resp.Value {
-			sizes = append(sizes, *vm.Name)
-		}
+	for _, vm := range virtualMachineSizes {
+		sizes = append(sizes, *vm.Name)
 	}
 	return sizes, nil
+}
+
+// CreateNetworkInterface create a network interface
+func CreateNetworkInterface(manager ClusterManager, rg, location, vnetName, subnetName, nsgName, ipName, nicName string) (*network.Interface, error) {
+	manager.LogInfo("Start creating network interface")
+	return manager.createNetworkInterface(rg, location, vnetName, subnetName, nsgName, ipName, nicName)
+}
+
+// CreateVirtualMachine creates a VM
+func CreateVirtualMachine(manager ClusterManager, rg, location, vnetName, subnetName, nsgName, ipName, vmName, nicName string) (*compute.VirtualMachine, error) {
+	manager.LogInfo("Start creating virtual machine")
+	return manager.createVirtualMachine(rg, location, vnetName, subnetName, nsgName, ipName, vmName, nicName)
+}
+
+// ListVirtualMachines returns all VM
+func ListVirtualMachines(manager ClusterManager, resourceGroup, clusterName, location string) ([]compute.VirtualMachine, error) {
+	manager.LogInfo("Start listing virtual machines")
+	return manager.listVirtualMachines(resourceGroup, clusterName, location)
+}
+
+// DisableManagedServiceIdentity enables MSI
+func EnableManagedServiceIdentity(manager ClusterManager, resourceGroup, clusterName, location string) error {
+	manager.LogInfo("Start enabling MSI")
+	return manager.enableManagedServiceIdentity(resourceGroup, clusterName, location)
+}
+
+// DisableManagedServiceIdentity disables MSI
+func DisableManagedServiceIdentity(manager ClusterManager, resourceGroup, clusterName, location string) error {
+	manager.LogInfo("Start disabling MSI")
+	return manager.disableManagedServiceIdentity(resourceGroup, clusterName, location)
+}
+
+// getVirtualMachine retrieves information about a virtual machine
+func GetVirtualMachine(manager ClusterManager, resourceGroup, clusterName, location, vmName string) (*compute.VirtualMachine, error) {
+	manager.LogInfo("Start getting virtual machine")
+	return manager.getVirtualMachine(resourceGroup, clusterName, location, vmName)
+}
+
+// FindInfrastructureResourceGroup returns with the infrastructure resource group of the resource group
+func FindInfrastructureResourceGroup(manager ClusterManager, resourceGroup, clusterName, location string) (*resources.Group, error) {
+	manager.LogInfo("Start finding infrastructure resource group")
+	return manager.findInfrastructureResourceGroup(resourceGroup, clusterName, location)
+}
+
+// ListGroups returns all resource group
+func ListGroups(manager ClusterManager) ([]resources.Group, error) {
+	manager.LogInfo("Start listing resource groups")
+	return manager.listResourceGroups()
+}
+
+// ListRoleAssignments returns all role assignment
+func ListRoleAssignments(manager ClusterManager) ([]authorization.RoleAssignment, error) {
+	return manager.listRoleAssignments()
+}
+
+// CreateRoleAssignment creates role assignment
+func CreateRoleAssignment(manager ClusterManager, scope, roleDefinitionId, principalId string) (*authorization.RoleAssignment, error) {
+	return manager.createRoleAssignment(scope, roleDefinitionId, principalId)
+}
+
+// DeleteRoleAssignment deletes role assignment
+func DeleteRoleAssignment(manager ClusterManager, scope, assignmentName string) (*authorization.RoleAssignment, error) {
+	return manager.deleteRoleAssignment(scope, assignmentName)
+}
+
+// ListRoleDefinitions returns all role definition
+func ListRoleDefinitions(manager ClusterManager, scope string) ([]authorization.RoleDefinition, error) {
+	return manager.listRoleDefinitions(scope)
+}
+
+// FindRoleDefinitionByName filters all role definition by role name and scope
+func FindRoleDefinitionByName(manager ClusterManager, scope, roleName string) (*authorization.RoleDefinition, error) {
+	return manager.findRoleDefinitionByName(scope, roleName)
+}
+
+// AssignStorageAccountContributorRole assign 'Storage Account Contributor' role for all VM in the given resource group
+func AssignStorageAccountContributorRole(manager ClusterManager, resourceGroup, clusterName, location string) error {
+	return manager.assignStorageAccountContributorRole(resourceGroup, clusterName, location)
+}
+
+// DeleteStorageAccountContributorRole deletes 'Storage Account Contributor' role for all VM in the given resource group
+func DeleteStorageAccountContributorRole(manager ClusterManager, resourceGroup, clusterName, location string) error {
+	return manager.deleteStorageAccountContributorRole(resourceGroup, clusterName, location)
 }
 
 // GetKubernetesVersions returns a list of supported kubernetes version in the specified subscription
 func GetKubernetesVersions(manager ClusterManager, location string) ([]string, error) {
 
 	manager.LogInfo("Start listing Kubernetes versions")
-	resp, err := manager.ListVersions(location, string(compute.Kubernetes))
+	resp, err := manager.listK8SVersions(location, string(compute.Kubernetes))
 	if err != nil {
 		return nil, err
 	}

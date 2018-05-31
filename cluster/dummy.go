@@ -123,8 +123,8 @@ func (d *DummyCluster) DeleteFromDatabase() error {
 	return d.modelCluster.Delete()
 }
 
-//GetOrg gets org where the cluster belongs
-func (d *DummyCluster) GetOrg() uint {
+// GetOrganizationId gets org where the cluster belongs
+func (d *DummyCluster) GetOrganizationId() uint {
 	return d.modelCluster.OrganizationId
 }
 

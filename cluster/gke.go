@@ -116,8 +116,8 @@ type GKECluster struct {
 	commonSecret
 }
 
-// GetOrg gets org where the cluster belongs
-func (g *GKECluster) GetOrg() uint {
+// GetOrganizationId gets org where the cluster belongs
+func (g *GKECluster) GetOrganizationId() uint {
 	return g.modelCluster.OrganizationId
 }
 
@@ -1362,8 +1362,37 @@ func (g *GKECluster) GetGkeServerConfig(zone string) (*gke.ServerConfig, error) 
 	}
 
 	log.Info("Getting server config succeeded")
+
+	serverConfig.ValidMasterVersions = updateVersions(serverConfig.ValidMasterVersions)
+	serverConfig.ValidNodeVersions = updateVersions(serverConfig.ValidNodeVersions)
+
 	return serverConfig, nil
 
+}
+
+func updateVersions(validVersions []string) []string {
+
+	log.Info("append `major.minor` K8S version format to valid GKE versions")
+
+	var updatedVersions []string
+
+	for _, v := range validVersions {
+
+		version := strings.Split(v, ".")
+
+		if len(version) >= 2 {
+			majorMinor := fmt.Sprintf("%s.%s", version[0], version[1])
+			if !utils.Contains(updatedVersions, majorMinor) && majorMinor != v {
+				updatedVersions = append(updatedVersions, majorMinor, v)
+			} else if !utils.Contains(updatedVersions, v) {
+				updatedVersions = append(updatedVersions, v)
+			}
+		} else if !utils.Contains(updatedVersions, v) {
+			updatedVersions = append(updatedVersions, v)
+		}
+	}
+
+	return updatedVersions
 }
 
 // GetAllMachineTypesByZone returns all supported machine type by zone

@@ -11,10 +11,13 @@
   name = "github.com/Azure/azure-sdk-for-go"
   packages = [
     "profiles/2017-03-09/network/mgmt/network",
+    "services/authorization/mgmt/2015-07-01/authorization",
     "services/compute/mgmt/2018-04-01/compute",
     "services/containerservice/mgmt/2017-09-30/containerservice",
     "services/network/mgmt/2015-06-15/network",
+    "services/network/mgmt/2018-01-01/network",
     "services/resources/mgmt/2016-06-01/subscriptions",
+    "services/resources/mgmt/2017-05-10/resources",
     "services/resources/mgmt/2018-02-01/resources",
     "version"
   ]
@@ -135,18 +138,25 @@
   packages = [
     "client",
     "cluster",
+    "service/authorization",
+    "service/compute",
+    "service/containerservice",
+    "service/network",
+    "service/resources",
+    "service/subscriptions",
     "utils"
   ]
-  revision = "78816dc415eab088898d4defd6ab760c4f800f8c"
+  revision = "354eea55437b616667eda42a04b76660f71eb906"
 
 [[projects]]
   name = "github.com/banzaicloud/bank-vaults"
   packages = [
+    "auth",
     "database",
     "vault"
   ]
-  revision = "4916dc88bd1318fdaad31de975a4aa70080e56b1"
-  version = "0.1.1"
+  revision = "950d407647b0c77fb6425a500a00e3e17d959406"
+  version = "0.1.4"
 
 [[projects]]
   branch = "master"
@@ -161,7 +171,7 @@
     "components/kubernetes",
     "constants"
   ]
-  revision = "b47933848c28d9975fa5278cfed96ba00a0777ef"
+  revision = "10d88a501368fa8e97c6f8c492a26780607fa3b3"
 
 [[projects]]
   branch = "master"
@@ -674,7 +684,7 @@
     "state",
     "state/fs"
   ]
-  revision = "01eebfb2bf9b85cfea30a18e6b9dab209028294e"
+  revision = "3575f1fff96a3c71e0b458fa0bda30ba569e07ff"
   source = "github.com/banzaicloud/kubicorn"
 
 [[projects]]
@@ -864,11 +874,11 @@
   packages = [
     ".",
     "auth_identity",
-    "authority",
     "claims",
     "providers/github"
   ]
-  revision = "d0a475c04fd9ead5301ed7de9cc65776f58a4c87"
+  revision = "281d354825a572190e0dbf5cebccef69b28e4be1"
+  source = "github.com/banzaicloud/auth"
 
 [[projects]]
   branch = "master"
@@ -911,12 +921,6 @@
   packages = ["."]
   revision = "ecae0be66c1a6a441001b0b5eeef51f8bc27d42a"
   version = "v1.0"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/qor/roles"
-  packages = ["."]
-  revision = "d6375609fe3e5da46ad3a574fae244fb633e79c1"
 
 [[projects]]
   branch = "master"
@@ -1513,6 +1517,7 @@
   version = "v7.0.0"
 
 [[projects]]
+  branch = "release-2.9"
   name = "k8s.io/helm"
   packages = [
     "cmd/helm/installer",
@@ -1736,6 +1741,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d410f1914bece419fcd4c0d152450c4d60f7e427292a42624d3c2f99844bfcb8"
+  inputs-digest = "403021600d6d191e65873342972f9cc5f6af1309ed42e8b1eb06f8474cc231e7"
   solver-name = "gps-cdcl"
   solver-version = 1

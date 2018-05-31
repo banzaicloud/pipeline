@@ -38,7 +38,7 @@ type CommonCluster interface {
 	AddDefaultsToUpdate(*bTypes.UpdateClusterRequest)
 	GetAPIEndpoint() (string, error)
 	DeleteFromDatabase() error
-	GetOrg() uint
+	GetOrganizationId() uint
 	UpdateStatus(string, string) error
 	GetClusterDetails() (*bTypes.ClusterDetailsResponse, error)
 	ValidateCreationFields(r *bTypes.CreateClusterRequest) error
@@ -70,7 +70,7 @@ func (cs *commonSecret) get(cluster CommonCluster) (*secret.SecretsItemResponse,
 }
 
 func getSecret(cluster CommonCluster) (*secret.SecretsItemResponse, error) {
-	org := strconv.FormatUint(uint64(cluster.GetOrg()), 10)
+	org := strconv.FormatUint(uint64(cluster.GetOrganizationId()), 10)
 	return secret.Store.Get(org, cluster.GetSecretID())
 }
 
@@ -236,7 +236,10 @@ func getSigner(pemBytes []byte) (ssh.Signer, error) {
 }
 
 // CleanStateStore deletes state store folder by cluster name
-func CleanStateStore(clusterName string) error {
-	stateStorePath := config.GetStateStorePath(clusterName)
-	return os.RemoveAll(stateStorePath)
+func CleanStateStore(path string) error {
+	if len(path) != 0 {
+		stateStorePath := config.GetStateStorePath(path)
+		return os.RemoveAll(stateStorePath)
+	}
+	return constants.ErrStateStorePathEmpty
 }

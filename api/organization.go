@@ -8,13 +8,14 @@ import (
 
 	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/cluster"
+	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
 
 //OrganizationMiddleware parses the organization id from the request, queries it from the database and saves it to the current context
-//It also checks if the current (calling) user has access to this organization
 func OrganizationMiddleware(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": "OrganizationMiddleware"})
 	orgidParam := c.Param("orgid")
@@ -30,11 +31,10 @@ func OrganizationMiddleware(c *gin.Context) {
 		return
 	}
 
-	user := auth.GetCurrentUser(c.Request)
 	organization := &auth.Organization{ID: uint(orgid)}
 
 	db := model.GetDB()
-	err = db.Model(user).Where(organization).Related(organization, "Organizations").Error
+	err = db.Where(organization).Find(organization).Error
 	if err != nil {
 		message := "error fetching organizations: " + err.Error()
 		log.Info(message)
@@ -73,8 +73,17 @@ func GetOrganizations(c *gin.Context) {
 
 	var organization = auth.Organization{ID: uint(id)}
 	var organizations []auth.Organization
+
 	db := model.GetDB()
-	err = db.Model(user).Where(&organization).Related(&organizations, "Organizations").Error
+
+	// Virtual users can list only the organizaion they are belonging to
+	if user.Virtual {
+		organization.Name = auth.GetOrgNameFromVirtualUser(user.Login)
+		err = db.Where(&organization).Find(&organizations).Error
+	} else {
+		err = db.Model(user).Where(&organization).Related(&organizations, "Organizations").Error
+	}
+
 	if err != nil {
 		message := "error fetching organizations"
 		log.Info(message + ": " + err.Error())
@@ -143,6 +152,8 @@ func CreateOrganization(c *gin.Context) {
 	auth.AddOrgRoles(organization.ID)
 	auth.AddOrgRoleForUser(user.ID, organization.ID)
 
+	helm.InstallLocalHelm(organization.Name)
+
 	c.JSON(http.StatusOK, organization)
 }
 
@@ -165,7 +176,8 @@ func DeleteOrganization(c *gin.Context) {
 	}
 
 	user := auth.GetCurrentUser(c.Request)
-	organization := &auth.Organization{ID: uint(id)}
+	organization, err := auth.GetOrganizationById(uint(id))
+	deleteName := organization.Name
 
 	err = deleteOrgFromDB(organization, user)
 	if err != nil {
@@ -178,6 +190,14 @@ func DeleteOrganization(c *gin.Context) {
 			Error:   message,
 		})
 	} else {
+
+		log.Infof("Clean org's statestore folder %s", deleteName)
+		if err := cluster.CleanStateStore(deleteName); err != nil {
+			log.Errorf("Statestore cleaning failed: %s", err.Error())
+		} else {
+			log.Info("Org's statestore folder cleaned")
+		}
+
 		c.Status(http.StatusNoContent)
 	}
 }

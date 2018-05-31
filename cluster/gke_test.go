@@ -187,3 +187,87 @@ func TestCreateRequestNodePoolsFromNodePoolModel(t *testing.T) {
 		})
 	}
 }
+
+func TestUpdateVersions(t *testing.T) {
+
+	cases := []struct {
+		name   string
+		input  []string
+		output []string
+	}{
+		{name: "update K8S versions", input: okVersionsIn, output: okVersionsOut},
+		{name: "update K8S versions 2", input: okVersionsIn2, output: okVersionsOut2},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			output := updateVersions(tc.input)
+			if !reflect.DeepEqual(tc.output, output) {
+				t.Errorf("Expected output %v, got: %v", tc.output, output)
+			}
+		})
+	}
+
+}
+
+var (
+	okVersionsIn = []string{
+		"1.9.7-gke.0",
+		"1.9.6-gke.1",
+		"1.9.3-gke.0",
+		"1.8.12-gke.0",
+		"1.8.10-gke.0",
+		"1.8.8-gke.0",
+		"1.7.15-gke.0",
+		"1.7.12-gke.2",
+		"1.6.13-gke.1",
+		"1.5.7",
+	}
+
+	okVersionsIn2 = []string{
+		"1.9",
+		"1.9.6",
+		"1.9.3-gke.0",
+		"1.9.3-gke.0",
+		"1.8.12-gke.0",
+		"1.8",
+		"1.8.8-gke.0",
+		"1.7.15-gke.0",
+		"2",
+		"1.6",
+		"1.5.7",
+	}
+
+	okVersionsOut = []string{
+		"1.9",
+		"1.9.7-gke.0",
+		"1.9.6-gke.1",
+		"1.9.3-gke.0",
+		"1.8",
+		"1.8.12-gke.0",
+		"1.8.10-gke.0",
+		"1.8.8-gke.0",
+		"1.7",
+		"1.7.15-gke.0",
+		"1.7.12-gke.2",
+		"1.6",
+		"1.6.13-gke.1",
+		"1.5",
+		"1.5.7",
+	}
+
+	okVersionsOut2 = []string{
+		"1.9",
+		"1.9.6",
+		"1.9.3-gke.0",
+		"1.8",
+		"1.8.12-gke.0",
+		"1.8.8-gke.0",
+		"1.7",
+		"1.7.15-gke.0",
+		"2",
+		"1.6",
+		"1.5",
+		"1.5.7",
+	}
+)

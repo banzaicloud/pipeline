@@ -13,7 +13,6 @@ import (
 	"github.com/banzaicloud/pipeline/notify"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/qor/auth/auth_identity"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -82,7 +81,7 @@ func main() {
 		&model.KubernetesClusterModel{},
 		&model.Deployment{},
 		&model.ApplicationModel{},
-		&auth_identity.AuthIdentity{},
+		&auth.AuthIdentity{},
 		&auth.User{},
 		&auth.UserOrganization{},
 		&auth.Organization{},
@@ -136,6 +135,7 @@ func main() {
 			orgs.GET("/:orgid/clusters/:id", api.GetClusterStatus)
 			orgs.GET("/:orgid/clusters/:id/details", api.FetchCluster)
 			orgs.PUT("/:orgid/clusters/:id", api.UpdateCluster)
+			orgs.POST("/:orgid/clusters/:id/secrets", api.InstallSecretsToCluster)
 			orgs.DELETE("/:orgid/clusters/:id", api.DeleteCluster)
 			orgs.HEAD("/:orgid/clusters/:id", api.FetchCluster)
 			orgs.GET("/:orgid/clusters/:id/config", api.GetClusterConfig)
@@ -150,14 +150,14 @@ func main() {
 			orgs.PUT("/:orgid/clusters/:id/deployments/:name", api.UpgradeDeployment)
 			orgs.HEAD("/:orgid/clusters/:id/deployments/:name", api.HelmDeploymentStatus)
 			orgs.POST("/:orgid/clusters/:id/helminit", api.InitHelmOnCluster)
-			orgs.GET("/:orgid/clusters/:id/helm/repos", api.HelmReposGet)
-			orgs.POST("/:orgid/clusters/:id/helm/repos", api.HelmReposAdd)
-			orgs.PUT("/:orgid/clusters/:id/helm/repos/:name", api.HelmReposModify)
-			orgs.PUT("/:orgid/clusters/:id/helm/repos/:name/update", api.HelmReposUpdate)
-			orgs.DELETE("/:orgid/clusters/:id/helm/repos/:name", api.HelmReposDelete)
-			orgs.GET("/:orgid/clusters/:id/helm/charts", api.HelmCharts)
-			orgs.GET("/:orgid/clusters/:id/helm/chart/:reponame/:name/:version", api.HelmChart)
-			orgs.GET("/:orgid/clusters/:id/helm/chart/:reponame/:name", api.HelmChart)
+			orgs.GET("/:orgid/helm/repos", api.HelmReposGet)
+			orgs.POST("/:orgid/helm/repos", api.HelmReposAdd)
+			orgs.PUT("/:orgid/helm/repos/:name", api.HelmReposModify)
+			orgs.PUT("/:orgid/helm/repos/:name/update", api.HelmReposUpdate)
+			orgs.DELETE("/:orgid/helm/repos/:name", api.HelmReposDelete)
+			orgs.GET("/:orgid/helm/charts", api.HelmCharts)
+			orgs.GET("/:orgid/helm/chart/:reponame/:name/:version", api.HelmChart)
+			orgs.GET("/:orgid/helm/chart/:reponame/:name", api.HelmChart)
 			orgs.GET("/:orgid/profiles/cluster/:type", api.GetClusterProfiles)
 			orgs.POST("/:orgid/profiles/cluster", api.AddClusterProfile)
 			orgs.PUT("/:orgid/profiles/cluster", api.UpdateClusterProfile)

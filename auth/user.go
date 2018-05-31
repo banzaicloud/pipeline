@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-errors/errors"
@@ -15,6 +16,7 @@ import (
 	// blank import is used here for sql driver inclusion
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/qor/auth"
+	"github.com/qor/auth/auth_identity"
 	"github.com/qor/auth/claims"
 	"github.com/qor/qor/utils"
 	"github.com/sirupsen/logrus"
@@ -26,6 +28,15 @@ const (
 	CurrentOrganization utils.ContextKey = "org"
 )
 
+// AuthIdentity auth identity session model
+type AuthIdentity struct {
+	ID        uint      `gorm:"primary_key" json:"id"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+	auth_identity.Basic
+	auth_identity.SignLogs
+}
+
 //User struct
 type User struct {
 	ID            uint           `gorm:"primary_key" json:"id"`
@@ -36,6 +47,7 @@ type User struct {
 	Login         string         `gorm:"unique;not null" form:"login" json:"login"`
 	Image         string         `form:"image" json:"image,omitempty"`
 	Organizations []Organization `gorm:"many2many:user_organizations" json:"organizations,omitempty"`
+	Virtual       bool           `json:"-" gorm:"-"` // Used only internally
 }
 
 //DroneUser struct
@@ -66,7 +78,7 @@ type Organization struct {
 	GithubID  *int64               `gorm:"unique" json:"githubId,omitempty"`
 	CreatedAt time.Time            `json:"createdAt"`
 	UpdatedAt time.Time            `json:"updatedAt"`
-	Name      string               `gorm:"not null" json:"name"`
+	Name      string               `gorm:"unique;not null" json:"name"`
 	Users     []User               `gorm:"many2many:user_organizations" json:"users,omitempty"`
 	Clusters  []model.ClusterModel `gorm:"foreignkey:organization_id" json:"clusters,omitempty"`
 	Role      string               `json:"-" gorm:"-"` // Used only internally
@@ -130,7 +142,10 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 	log := logger.WithFields(logrus.Fields{"tag": "Auth"})
 
 	currentUser := &User{}
-	copier.Copy(currentUser, schema)
+	err = copier.Copy(currentUser, schema)
+	if err != nil {
+		return nil, "", err
+	}
 
 	// This assumes GitHub auth only right now
 	githubExtraInfo := schema.RawInfo.(*GithubExtraInfo)
@@ -152,6 +167,11 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 	err = db.Create(currentUser).Error
 	if err != nil {
 		return nil, "", err
+	}
+
+	err = helm.InstallLocalHelm(currentUser.Organizations[0].Name)
+	if err != nil {
+		log.Errorf("Error during local helm install: %s", err.Error())
 	}
 
 	AddDefaultRoleForUser(currentUser.ID)
@@ -195,7 +215,7 @@ func (bus BanzaiUserStorer) synchronizeDroneRepos(login string) {
 	}
 
 	// Create a temporary Drone API token
-	claims := &DroneClaims{Type: DroneUserCookieType, Text: login}
+	claims := &DroneClaims{Type: DroneUserTokenType, Text: login}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	apiToken, err := token.SignedString([]byte(bus.signingKeyBase32))
 	if err != nil {
@@ -273,4 +293,12 @@ func importGithubOrganizations(currentUser *User, context *auth.Context, githubT
 	}
 
 	return orgids, nil
+}
+
+// GetOrganizationById returns an organization from database by ID
+func GetOrganizationById(orgID uint) (*Organization, error) {
+	db := model.GetDB()
+	var org Organization
+	err := db.Find(&org, Organization{ID: orgID}).Error
+	return &org, err
 }

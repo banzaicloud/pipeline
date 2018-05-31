@@ -40,6 +40,7 @@ cd ~
 
 func BuildBootstrapScript(bootstrapScripts []string, cluster *cluster.Cluster) ([]byte, error) {
 	userData := []byte{}
+
 	scriptData, err := buildBootstrapSetupScript(cluster, kubicornDir, clusterAsJSONFileName)
 	if err != nil {
 		return nil, err
@@ -57,12 +58,12 @@ func BuildBootstrapScript(bootstrapScripts []string, cluster *cluster.Cluster) (
 	return userData, nil
 }
 
-func buildBootstrapSetupScript(cluster *cluster.Cluster, dir, file string) ([]byte, error) {
+func buildBootstrapSetupScript(cl *cluster.Cluster, dir, file string) ([]byte, error) {
 	userData := []byte(bootstrapInitScriptBase)
 
 	script := []byte("mkdir -p " + dir + "\ncat <<\"EOF\" > " + dir + "/" + file + "\n")
 
-	clusterJSON, err := json.Marshal(cluster)
+	clusterJSON, err := createClusterJson(*cl)
 	if err != nil {
 		return nil, err
 	}
@@ -71,4 +72,10 @@ func buildBootstrapSetupScript(cluster *cluster.Cluster, dir, file string) ([]by
 	userData = append(userData, clusterJSON...)
 	userData = append(userData, []byte("\nEOF\n")...)
 	return userData, nil
+}
+
+func createClusterJson(cl cluster.Cluster) ([]byte, error) {
+	master := []*cluster.ServerPool{cl.ServerPools[0]}
+	cl.ServerPools = master
+	return json.Marshal(cl)
 }

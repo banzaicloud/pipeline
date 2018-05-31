@@ -160,8 +160,8 @@ func (b *KubeCluster) DeleteFromDatabase() error {
 	return b.modelCluster.Delete()
 }
 
-// GetOrg returns the specified organization id
-func (b *KubeCluster) GetOrg() uint {
+// GetOrganizationId returns the specified organization id
+func (b *KubeCluster) GetOrganizationId() uint {
 	return b.modelCluster.OrganizationId
 }
 

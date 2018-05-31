@@ -1,18 +1,18 @@
 package auth
 
 import (
-	"context"
 	"encoding/base32"
 	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 
-	jwt "github.com/dgrijalva/jwt-go"
-	jwtRequest "github.com/dgrijalva/jwt-go/request"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/gorm"
+	"github.com/pkg/errors"
 	"github.com/qor/auth"
-	"github.com/qor/auth/authority"
+	"github.com/qor/auth/auth_identity"
 	"github.com/qor/auth/claims"
 	"github.com/qor/auth/providers/github"
 	"github.com/qor/redirect_back"
@@ -20,6 +20,7 @@ import (
 	"github.com/satori/go.uuid"
 	"github.com/spf13/viper"
 
+	bauth "github.com/banzaicloud/bank-vaults/auth"
 	btype "github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
@@ -33,8 +34,11 @@ const DroneSessionCookie = "user_sess"
 // DroneSessionCookieType is the Drone token type used for browser sessions
 const DroneSessionCookieType = "sess"
 
-// DroneUserCookieType is the Drone token type used for API sessions
-const DroneUserCookieType = "user"
+// DroneUserTokenType is the Drone token type used for API sessions
+const DroneUserTokenType bauth.TokenType = "user"
+
+// DroneHookTokenType is the Drone token type used for API sessions
+const DroneHookTokenType bauth.TokenType = "hook"
 
 // For all Drone token types please see: https://github.com/drone/drone/blob/master/shared/token/token.go#L12
 
@@ -43,24 +47,23 @@ var (
 	logger *logrus.Logger
 	log    *logrus.Entry
 
-	RedirectBack *redirect_back.RedirectBack
+	DroneDB *gorm.DB
 
-	Auth *auth.Auth
+	redirectBack *redirect_back.RedirectBack
+	Auth         *auth.Auth
 
-	Authority *authority.Authority
-
-	authEnabled      bool
+	signingKey       string
 	signingKeyBase32 string
-	tokenStore       TokenStore
+	tokenStore       bauth.TokenStore
 
 	// JwtIssuer ("iss") claim identifies principal that issued the JWT
 	JwtIssuer string
 
 	// JwtAudience ("aud") claim identifies the recipients that the JWT is intended for
 	JwtAudience string
-)
 
-// TODO se who will win
+	Handler gin.HandlerFunc
+)
 
 // Simple init for logging
 func init() {
@@ -68,48 +71,28 @@ func init() {
 	log = logger.WithFields(logrus.Fields{"tag": "Auth"})
 }
 
-//ScopedClaims struct to store the scoped claim related things
-type ScopedClaims struct {
-	jwt.StandardClaims
-	Scope string `json:"scope,omitempty"`
-	// Drone
-	Type string `json:"type,omitempty"`
-	Text string `json:"text,omitempty"`
-}
-
 //DroneClaims struct to store the drone claim related things
 type DroneClaims struct {
 	*claims.Claims
-	Type string `json:"type,omitempty"`
-	Text string `json:"text,omitempty"`
+	Type bauth.TokenType `json:"type,omitempty"`
+	Text string          `json:"text,omitempty"`
 }
 
-func lookupAccessToken(userID, tokenID string) (*Token, error) {
-	return tokenStore.Lookup(userID, tokenID)
-}
-
-func isTokenWhitelisted(claims *ScopedClaims) (bool, error) {
-	userID := claims.Subject
-	tokenID := claims.Id
-	token, err := lookupAccessToken(userID, tokenID)
-	return token != nil, err
-}
-
-//Init initialize the auth
+// Init initializes the auth
 func Init() {
 	viper.SetDefault("auth.jwtissuer", "https://banzaicloud.com/")
 	viper.SetDefault("auth.jwtaudience", "https://pipeline.banzaicloud.com")
 	JwtIssuer = viper.GetString("auth.jwtissuer")
 	JwtAudience = viper.GetString("auth.jwtaudience")
 
-	signingKey := viper.GetString("auth.tokensigningkey")
+	signingKey = viper.GetString("auth.tokensigningkey")
 	if signingKey == "" {
 		panic("Token signing key is missing from configuration")
 	}
 	signingKeyBase32 = base32.StdEncoding.EncodeToString([]byte(signingKey))
 
 	// A RedirectBack instance which constantly redirects to /ui
-	RedirectBack = redirect_back.New(&redirect_back.Config{
+	redirectBack = redirect_back.New(&redirect_back.Config{
 		SessionManager:  manager.SessionManager,
 		IgnoredPrefixes: []string{"/"},
 		IgnoreFunc: func(r *http.Request) bool {
@@ -118,12 +101,15 @@ func Init() {
 		FallbackPath: viper.GetString("pipeline.uipath"),
 	})
 
+	DroneDB = initDroneDB()
+
 	// Initialize Auth with configuration
 	Auth = auth.New(&auth.Config{
-		DB:         model.GetDB(),
-		Redirector: auth.Redirector{RedirectBack},
-		UserModel:  User{},
-		ViewPaths:  []string{"views"},
+		DB:                model.GetDB(),
+		Redirector:        auth.Redirector{redirectBack},
+		AuthIdentityModel: AuthIdentity{},
+		UserModel:         User{},
+		ViewPaths:         []string{"views"},
 		SessionStorer: &BanzaiSessionStorer{
 			SessionStorer: auth.SessionStorer{
 				SessionName:    "_auth_session",
@@ -131,10 +117,10 @@ func Init() {
 				SigningMethod:  jwt.SigningMethodHS256,
 				SignedString:   signingKeyBase32,
 			},
-			SignedStringBytes: []byte(signingKeyBase32),
 		},
-		LogoutHandler: BanzaiLogoutHandler,
-		UserStorer:    BanzaiUserStorer{signingKeyBase32: signingKeyBase32, droneDB: initDroneDB()},
+		UserStorer:        BanzaiUserStorer{signingKeyBase32: signingKeyBase32, droneDB: DroneDB},
+		LogoutHandler:     BanzaiLogoutHandler,
+		DeregisterHandler: BanzaiDeregisterHandler,
 	})
 
 	githubProvider := github.New(&github.Config{
@@ -153,26 +139,40 @@ func Init() {
 	githubProvider.AuthorizeHandler = NewGithubAuthorizeHandler(githubProvider)
 	Auth.RegisterProvider(githubProvider)
 
-	Authority = authority.New(&authority.Config{
-		Auth: Auth,
+	tokenStore = bauth.NewVaultTokenStore("pipeline")
+
+	jwtAuth := bauth.JWTAuth(tokenStore, signingKey, func(claims *bauth.ScopedClaims) interface{} {
+		userID, _ := strconv.ParseUint(claims.Subject, 10, 32)
+		return &User{
+			ID:      uint(userID),
+			Login:   claims.Text, // This is needed for Drone virtual user tokens
+			Virtual: claims.Type == DroneHookTokenType,
+		}
 	})
 
-	tokenStore = NewVaultTokenStore("pipeline")
+	Handler = func(c *gin.Context) {
+		currentUser := Auth.GetCurrentUser(c.Request)
+		if currentUser != nil {
+			return
+		}
+		jwtAuth(c)
+	}
 }
 
-// Install the whole OAuth and JWT Token based auth/authz mechanism to the specified Gin Engine.
+// Install the whole OAuth and JWT Token based authn/authz mechanism to the specified Gin Engine.
 func Install(engine *gin.Engine) {
-	authHandler := gin.WrapH(Auth.NewServeMux())
 
 	// We have to make the raw net/http handlers a bit Gin-ish
+	authHandler := gin.WrapH(Auth.NewServeMux())
 	engine.Use(gin.WrapH(manager.SessionManager.Middleware(utils.NopHandler{})))
-	engine.Use(gin.WrapH(RedirectBack.Middleware(utils.NopHandler{})))
+	engine.Use(gin.WrapH(redirectBack.Middleware(utils.NopHandler{})))
 
 	authGroup := engine.Group("/auth/")
 	{
 		authGroup.GET("/login", authHandler)
 		authGroup.GET("/logout", authHandler)
 		authGroup.GET("/register", authHandler)
+		authGroup.POST("/deregister", authHandler)
 		authGroup.GET("/github/login", authHandler)
 		authGroup.GET("/github/logout", authHandler)
 		authGroup.GET("/github/register", authHandler)
@@ -192,7 +192,7 @@ func GenerateToken(c *gin.Context) {
 		githubUser, err := GetGithubUser(accessToken)
 		if err != nil {
 			err := c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("Invalid session"))
-			log.Info(c.ClientIP(), err.Error())
+			log.Info(c.ClientIP(), " ", err.Error())
 			return
 		}
 		user := User{}
@@ -202,65 +202,107 @@ func GenerateToken(c *gin.Context) {
 			Find(&user).Error
 		if err != nil {
 			err := c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("Invalid session"))
-			log.Info(c.ClientIP(), err.Error())
+			log.Info(c.ClientIP(), " ", err.Error())
 			return
 		}
 		currentUser = &user
 	} else {
+		Handler(c)
+		if c.IsAborted() {
+			return
+		}
 		currentUser = GetCurrentUser(c.Request)
 		if currentUser == nil {
 			err := c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("Invalid session"))
-			log.Info(c.ClientIP(), err.Error())
+			log.Info(c.ClientIP(), " ", err.Error())
 			return
 		}
 	}
 
 	tokenRequest := struct {
-		Name string `json:"name,omitempty"`
+		Name        string `json:"name,omitempty"`
+		VirtualUser string `json:"virtual_user,omitempty"`
 	}{Name: "generated"}
 
 	if c.Request.Method == http.MethodPost && c.Request.ContentLength > 0 {
 		if err := c.ShouldBindJSON(&tokenRequest); err != nil {
 			err := c.AbortWithError(http.StatusBadRequest, err)
-			log.Info(c.ClientIP(), err.Error())
+			log.Info(c.ClientIP(), " ", err.Error())
 			return
 		}
 	}
 
+	isForVirtualUser := tokenRequest.VirtualUser != ""
+
+	userID := currentUser.IDString()
+	userLogin := currentUser.Login
+	tokenType := DroneUserTokenType
+	if isForVirtualUser {
+		userID = tokenRequest.VirtualUser
+		userLogin = tokenRequest.VirtualUser
+		tokenType = DroneHookTokenType
+	}
+
+	tokenID, signedToken, err := createAndStoreAPIToken(userID, userLogin, tokenType, tokenRequest.Name)
+
+	if err != nil {
+		err = c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("%s", err))
+		log.Info(c.ClientIP(), " ", err.Error())
+		return
+	}
+
+	if isForVirtualUser {
+		orgName := GetOrgNameFromVirtualUser(tokenRequest.VirtualUser)
+		organization := Organization{Name: orgName}
+		err = Auth.GetDB(c.Request).
+			Model(currentUser).
+			Where(&organization).
+			Related(&organization, "Organizations").Error
+		if err != nil {
+			statusCode := GormErrorToStatusCode(err)
+			err = c.AbortWithError(statusCode, err)
+			log.Info(c.ClientIP(), " ", err.Error())
+			return
+		}
+
+		AddDefaultRoleForVirtualUser(userID)
+		AddOrgRoleForUser(userID, organization.ID)
+	}
+
+	c.JSON(http.StatusOK, gin.H{"id": tokenID, "token": signedToken})
+}
+
+func createAndStoreAPIToken(userID string, userLogin string, tokenType bauth.TokenType, tokenName string) (string, string, error) {
 	tokenID := uuid.NewV4().String()
 
 	// Create the Claims
-	claims := &ScopedClaims{
+	claims := &bauth.ScopedClaims{
 		StandardClaims: jwt.StandardClaims{
 			Issuer:    JwtIssuer,
 			Audience:  JwtAudience,
 			IssuedAt:  jwt.TimeFunc().Unix(),
 			ExpiresAt: 0,
-			Subject:   strconv.Itoa(int(currentUser.ID)),
+			Subject:   userID,
 			Id:        tokenID,
 		},
-		Scope: "api:invoke",        // "scope" for Pipeline
-		Type:  DroneUserCookieType, // "type" for Drone
-		Text:  currentUser.Login,   // "text" for Drone
+		Scope: "api:invoke", // "scope" for Pipeline
+		Type:  tokenType,    // "type" for Drone
+		Text:  userLogin,    // "text" for Drone
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	signedToken, err := token.SignedString([]byte(signingKeyBase32))
-
+	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	signedToken, err := jwtToken.SignedString([]byte(signingKeyBase32))
 	if err != nil {
-		err = c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Failed to sign token: %s", err))
-		log.Info(c.ClientIP(), err.Error())
-	} else {
-		userID := strconv.Itoa(int(currentUser.ID))
-		token := NewToken(tokenID, tokenRequest.Name)
-		err = tokenStore.Store(userID, token)
-		if err != nil {
-			err = c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Failed to store token: %s", err))
-			log.Info(c.ClientIP(), err.Error())
-		} else {
-			c.JSON(http.StatusOK, gin.H{"id": tokenID, "token": signedToken})
-		}
+		return "", "", errors.Wrap(err, "Failed to sign user token")
 	}
+
+	token := bauth.NewToken(tokenID, tokenName)
+	err = tokenStore.Store(userID, token)
+	if err != nil {
+		return "", "", errors.Wrap(err, "Failed to store user token")
+	}
+
+	return tokenID, signedToken, nil
 }
 
 // GetTokens returns the calling user's access tokens
@@ -268,7 +310,7 @@ func GetTokens(c *gin.Context) {
 	currentUser := GetCurrentUser(c.Request)
 	if currentUser == nil {
 		err := c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("Invalid session"))
-		log.Info(c.ClientIP(), err.Error())
+		log.Info(c.ClientIP(), " ", err.Error())
 		return
 	}
 	tokenID := c.Param("id")
@@ -318,90 +360,9 @@ func DeleteToken(c *gin.Context) {
 	}
 }
 
-func hmacKeyFunc(token *jwt.Token) (interface{}, error) {
-	// Don't forget to validate the alg is what you expect:
-	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-		return nil, fmt.Errorf("Unexpected signing method: %v", token.Method.Alg())
-	}
-	return []byte(signingKeyBase32), nil
-}
-
-//Handler handles authentication
-func Handler(c *gin.Context) {
-	currentUser := Auth.GetCurrentUser(c.Request)
-	if currentUser != nil {
-		return
-	}
-
-	claims := ScopedClaims{}
-	accessToken, err := jwtRequest.ParseFromRequestWithClaims(c.Request, jwtRequest.OAuth2Extractor, &claims, hmacKeyFunc)
-
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusUnauthorized,
-			btype.ErrorResponse{
-				Code:    http.StatusUnauthorized,
-				Message: "Invalid token",
-				Error:   err.Error(),
-			})
-		log.Info("Invalid token:", err)
-		return
-	}
-
-	isTokenWhitelisted, err := isTokenWhitelisted(&claims)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError,
-			btype.ErrorResponse{
-				Code:    http.StatusInternalServerError,
-				Message: "Failed to validate user token",
-				Error:   err.Error(),
-			})
-		log.Info("Failed to lookup user token: ", err)
-		return
-	}
-
-	if !accessToken.Valid || !isTokenWhitelisted {
-		resp := btype.ErrorResponse{
-			Code:    http.StatusUnauthorized,
-			Message: "Invalid token",
-		}
-		if err != nil {
-			resp.Error = err.Error()
-			log.Info("Invalid token: ", err)
-		} else {
-			resp.Error = ""
-			log.Info("Invalid token")
-		}
-		c.AbortWithStatusJSON(http.StatusUnauthorized, resp)
-		return
-	}
-
-	hasScope := strings.Contains(claims.Scope, "api:invoke")
-
-	if !hasScope {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, btype.ErrorResponse{
-			Code:    http.StatusUnauthorized,
-			Message: "Need more privileges",
-			Error:   err.Error(),
-		})
-		log.Info("Needs more privileges")
-		return
-	}
-
-	saveUserIntoContext(c, &claims)
-
-	c.Next()
-}
-
-func saveUserIntoContext(c *gin.Context, claims *ScopedClaims) {
-	userID, _ := strconv.ParseUint(claims.Subject, 10, 32)
-	newContext := context.WithValue(c.Request.Context(), auth.CurrentUser, &User{ID: uint(userID)})
-	c.Request = c.Request.WithContext(newContext)
-}
-
 //BanzaiSessionStorer stores the banzai session
 type BanzaiSessionStorer struct {
 	auth.SessionStorer
-	SignedStringBytes []byte
 }
 
 //Update updates the BanzaiSessionStorer
@@ -413,13 +374,13 @@ func (sessionStorer *BanzaiSessionStorer) Update(w http.ResponseWriter, req *htt
 		return err
 	}
 
-	// Set the drone cookie as well
+	// Set the drone cookie as well, but that cookie's value is actually a Pipeline API token
 	currentUser := GetCurrentUser(req)
 	if currentUser == nil {
 		return fmt.Errorf("Can't get current user")
 	}
-	droneClaims := &DroneClaims{Claims: claims, Type: DroneSessionCookieType, Text: currentUser.Login}
-	droneToken, err := sessionStorer.SignedTokenWithDrone(droneClaims)
+
+	_, droneToken, err := createAndStoreAPIToken(claims.UserID, currentUser.Login, DroneUserTokenType, "Drone session token")
 	if err != nil {
 		log.Info(req.RemoteAddr, err.Error())
 		return err
@@ -428,14 +389,95 @@ func (sessionStorer *BanzaiSessionStorer) Update(w http.ResponseWriter, req *htt
 	return nil
 }
 
-// SignedTokenWithDrone generate signed token with Claims
-func (sessionStorer *BanzaiSessionStorer) SignedTokenWithDrone(claims *DroneClaims) (string, error) {
-	token := jwt.NewWithClaims(sessionStorer.SigningMethod, claims)
-	return token.SignedString(sessionStorer.SignedStringBytes)
-}
-
 // BanzaiLogoutHandler does the qor/auth DefaultLogoutHandler default logout behaviour + deleting the Drone cookie
 func BanzaiLogoutHandler(context *auth.Context) {
 	DelCookie(context.Writer, context.Request, DroneSessionCookie)
 	auth.DefaultLogoutHandler(context)
+}
+
+// BanzaiDeregisterHandler deletes the user and all his/her tokens from the database
+func BanzaiDeregisterHandler(context *auth.Context) {
+	user, err := GetCurrentUserFromDB(context.Request)
+	if user == nil {
+		http.Error(context.Writer, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	if err != nil {
+		http.Error(context.Writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	db := context.GetDB(context.Request)
+
+	userAdminOrganizations := []UserOrganization{}
+
+	// Query the organizations where the only admin is the current user.
+	if err := db.Raw("select * from user_organizations where role = ? and organization_id in (select distinct organization_id from user_organizations where user_id = ? and role = ?) group by organization_id having count(*) = 1", "admin", user.ID, "admin").Scan(&userAdminOrganizations).Error; err != nil {
+		log.Errorln("Failed select user only owned organizations:", err)
+		http.Error(context.Writer, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if len(userAdminOrganizations) != 0 {
+		orgs := []string{}
+		for _, org := range userAdminOrganizations {
+			orgs = append(orgs, fmt.Sprint(org.OrganizationID))
+		}
+		http.Error(context.Writer, "You must remove yourself, transfer ownership, or delete these organizations before you can delete your user: "+strings.Join(orgs, ", "), http.StatusBadRequest)
+		return
+	}
+
+	if err := db.Model(user).Association("Organizations").Clear().Error; err != nil {
+		log.Errorln("Failed delete user's organization associations:", err)
+		http.Error(context.Writer, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if err := db.Delete(user).Error; err != nil {
+		log.Errorln("Failed delete user from DB:", err)
+		http.Error(context.Writer, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	authIdentity := &AuthIdentity{Basic: auth_identity.Basic{UserID: user.IDString()}}
+	if err := db.Delete(authIdentity).Error; err != nil {
+		log.Errorln("Failed delete user's auth_identity from DB:", err)
+		http.Error(context.Writer, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	droneUser := DroneUser{Login: user.Login}
+	// We need to pass droneUser as well as the where clause, because Delete() filters by primary
+	// key by default: http://doc.gorm.io/crud.html#delete but here we need to delete by the Login
+	if err := DroneDB.Delete(droneUser, droneUser).Error; err != nil {
+		log.Errorln("Failed delete user from Drone:", err)
+		http.Error(context.Writer, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Delete Tokens
+	tokens, err := tokenStore.List(user.IDString())
+	if err != nil {
+		log.Errorln("Failed list user's tokens during user deletetion:", err)
+		http.Error(context.Writer, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	for _, token := range tokens {
+		err = tokenStore.Revoke(user.IDString(), token.ID)
+		if err != nil {
+			log.Errorln("Failed remove user's tokens during user deletetion:", err)
+			http.Error(context.Writer, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	// Delete Casbin roles
+	DeleteRolesForUser(user.ID)
+
+	BanzaiLogoutHandler(context)
+}
+
+// GetOrgNameFromVirtualUser returns the organization name for which the virtual user has access
+func GetOrgNameFromVirtualUser(virtualUser string) string {
+	return strings.Split(virtualUser, "/")[0]
 }
