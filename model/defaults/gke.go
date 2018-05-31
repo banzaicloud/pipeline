@@ -21,6 +21,9 @@ type GKEProfile struct {
 // GKENodePoolProfile describes a Google cluster profile's nodepools
 type GKENodePoolProfile struct {
 	ID               uint   `gorm:"primary_key"`
+	Autoscaling      bool   `gorm:"default:false"`
+	MinCount         int    `gorm:"default:1"`
+	MaxCount         int    `gorm:"default:2"`
 	Count            int    `gorm:"default:1"`
 	NodeInstanceType string `gorm:"default:'n1-standard-1'"`
 	Name             string `gorm:"unique_index:idx_model_name"`
@@ -91,6 +94,9 @@ func (d *GKEProfile) GetProfile() *components.ClusterProfileResponse {
 	if d.NodePools != nil {
 		for _, np := range d.NodePools {
 			nodePools[np.NodeName] = &google.NodePool{
+				Autoscaling:      np.Autoscaling,
+				MinCount:         np.MinCount,
+				MaxCount:         np.MaxCount,
 				Count:            np.Count,
 				NodeInstanceType: np.NodeInstanceType,
 				ServiceAccount:   np.ServiceAccount,
@@ -136,6 +142,9 @@ func (d *GKEProfile) UpdateProfile(r *components.ClusterProfileRequest, withSave
 			var nodePools []*GKENodePoolProfile
 			for name, np := range r.Properties.Google.NodePools {
 				nodePools = append(nodePools, &GKENodePoolProfile{
+					Autoscaling:      np.Autoscaling,
+					MinCount:         np.MinCount,
+					MaxCount:         np.MaxCount,
 					Count:            np.Count,
 					NodeInstanceType: np.NodeInstanceType,
 					Name:             d.Name,
