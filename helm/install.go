@@ -305,7 +305,7 @@ func InitRepo(repoName string, repoUrl string, env helm_env.EnvSettings) (*repo.
 func InstallLocalHelm(path string) error {
 	log := logger.WithFields(logrus.Fields{"tag": "InstallLocalHelmClient"})
 
-	if err := installHelmClient(path); err != nil {
+	if err := InstallHelmClient(path); err != nil {
 		return err
 	}
 	log.Info("Helm client install succeeded")

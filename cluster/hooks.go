@@ -140,23 +140,18 @@ func installDeployment(cluster CommonCluster, deploymentName string, releaseName
 		return err
 	}
 
-	deploymentName := "banzaicloud-stable/pipeline-cluster-ingress"
-	releaseName := "pipeline"
-
 	org, err := auth.GetOrganizationById(cluster.GetOrganizationId())
 	if err != nil {
 		log.Errorf("Error during getting organization: %s", err.Error())
-		return
+		return err
 	}
 
 	_, err = helm.CreateDeployment(deploymentName, releaseName, nil, kubeConfig, org.Name)
 	if err != nil {
-		log.Errorf("Deploying '%s' failed due to: ", deploymentName)
-		log.Errorf("%s", err.Error())
+		log.Errorf("Deploying '%s' failed due to: %s", deploymentName, err.Error())
 		return err
 	}
 	log.Infof("'%s' installed", deploymentName)
-	return nil
 	return nil
 }
 

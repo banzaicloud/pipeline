@@ -613,5 +613,5 @@ func ChartGet(organizationName, chartRepo, chartName, chartVersion string) (*Cha
 }
 
 func getHelmRepoPath(orgName string) string {
-	return fmt.Sprintf("%s/repository/repositories.yaml", generateHelmRepoPath(orgName))
+	return fmt.Sprintf("%s/repository/repositories.yaml", GenerateHelmRepoPath(orgName))
 }

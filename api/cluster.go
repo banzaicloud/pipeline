@@ -219,11 +219,11 @@ func CreateCluster(c *gin.Context, createClusterRequest *components.CreateCluste
 			Message: err.Error(),
 			Error:   err.Error(),
 		})
-		return
+		return nil
 	}
 
 	log.Info("Validate creation fields")
-	if err := commonCluster.ValidateCreationFields(&createClusterRequest); err != nil {
+	if err := commonCluster.ValidateCreationFields(createClusterRequest); err != nil {
 		log.Errorf("Error during request validation: %s", err.Error())
 		commonCluster.UpdateStatus(constants.Error, err.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
@@ -231,7 +231,7 @@ func CreateCluster(c *gin.Context, createClusterRequest *components.CreateCluste
 			Message: err.Error(),
 			Error:   err.Error(),
 		})
-		return
+		return nil
 	}
 
 	log.Info("Validation passed")
@@ -241,7 +241,7 @@ func CreateCluster(c *gin.Context, createClusterRequest *components.CreateCluste
 		ResourceID: commonCluster.GetID(),
 	})
 
-	go postCreateCluster(commonCluster, createClusterRequest)
+	go postCreateCluster(commonCluster)
 	return commonCluster
 }
 
