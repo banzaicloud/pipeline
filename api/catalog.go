@@ -8,21 +8,15 @@ import (
 	"net/http"
 )
 
-//TODO check if we need transformation
-type Catalog struct {
-}
-
-func GetCatalogDetails(c *gin.Context) {
-	//Infromation about your running catalog
-}
-
 type CreateCatalogsRequests struct {
 }
 
 func CatalogDetails(c *gin.Context) {
+	organization := auth.GetCurrentOrganization(c.Request)
+	env := catalog.GenerateGatalogEnv(organization.Name)
 	chartName := c.Param("name")
 	log.Debugln("chartName:", chartName)
-	chartDetails, err := catalog.GetCatalogDetails(chartName)
+	chartDetails, err := catalog.GetCatalogDetails(env, chartName)
 	if err != nil {
 		log.Errorf("Error parsing request: %s", err.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
@@ -38,17 +32,19 @@ func CatalogDetails(c *gin.Context) {
 
 //Get
 func GetCatalogs(c *gin.Context) {
+	organization := auth.GetCurrentOrganization(c.Request)
+	env := catalog.GenerateGatalogEnv(organization.Name)
 	// Initialise filter type
 	filter := ParseField(c)
 	// Filter for organisation
-	filter["organization_id"] = c.Request.Context().Value(auth.CurrentOrganization).(*auth.Organization).ID
+	filter["organization_id"] = organization.ID
 
 	chartName := c.Param("name")
 	log.Debugln("chartName:", chartName)
 
 	chartVersion := c.Param("version")
 	log.Debugln("version:", chartVersion)
-	catalogs, err := catalog.ListCatalogs(chartName, chartVersion, "")
+	catalogs, err := catalog.ListCatalogs(env, chartName, chartVersion, "")
 	if err != nil {
 		log.Error("Empty cluster list")
 		c.JSON(http.StatusNotFound, components.ErrorResponse{

@@ -6,7 +6,6 @@ import (
 
 	"github.com/banzaicloud/pipeline/api"
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/catalog"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/model/defaults"
@@ -49,9 +48,6 @@ func main() {
 
 	logger = initLog()
 	logger.Info("Pipeline initialization")
-
-	//Init catalog repository
-	catalog.InitCatalogRepository()
 
 	// Ensure DB connection
 	db := model.GetDB()

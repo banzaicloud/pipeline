@@ -2,6 +2,7 @@ package application
 
 import (
 	"fmt"
+	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/catalog"
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
@@ -11,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	helm_env "k8s.io/helm/pkg/helm/environment"
 	"time"
 )
 
@@ -31,8 +33,8 @@ func SetDeploymentState(app *model.ApplicationModel, depName string, state strin
 	}
 }
 
-func GetSpotGuide(name string) (*catalog.CatalogDetails, error) {
-	chart, err := catalog.GetCatalogDetails(name)
+func GetSpotGuide(env helm_env.EnvSettings, catalogName string) (*catalog.CatalogDetails, error) {
+	chart, err := catalog.GetCatalogDetails(env, catalogName)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +45,12 @@ func GetSpotGuide(name string) (*catalog.CatalogDetails, error) {
 }
 
 //Thiswill run in go rutine so
-func CreateApplication(orgId uint, am model.ApplicationModel, options []catalog.ApplicationOptions, cluster cluster.CommonCluster) error {
+func CreateApplication(am model.ApplicationModel, options []catalog.ApplicationOptions, cluster cluster.CommonCluster) error {
+	organization, err := auth.GetOrganizationById(am.OrganizationId)
+	if err != nil {
+		return err
+	}
+	env := catalog.GenerateGatalogEnv(organization.Name)
 	// Create database entry
 	cluster.GetStatus()
 	//Todo check if cluster ready
@@ -51,7 +58,7 @@ func CreateApplication(orgId uint, am model.ApplicationModel, options []catalog.
 	if err != nil {
 		return err
 	}
-	catalog, err := GetSpotGuide(am.CatalogName)
+	catalog, err := GetSpotGuide(env, am.CatalogName)
 	if err != nil {
 		model.GetDB().Model(&am).Update("status", err.Error())
 		return err
@@ -59,7 +66,7 @@ func CreateApplication(orgId uint, am model.ApplicationModel, options []catalog.
 	am.Icon = catalog.Chart.Icon
 	am.Description = catalog.Chart.Description
 	am.Save()
-	err = CreateApplicationSpotguide(&am, options, catalog, kubeConfig)
+	err = CreateApplicationSpotguide(env, &am, options, catalog, kubeConfig)
 	if err != nil {
 		model.GetDB().Model(&am).Update("status", err.Error())
 		return err
@@ -67,8 +74,7 @@ func CreateApplication(orgId uint, am model.ApplicationModel, options []catalog.
 	return nil
 }
 
-func CreateApplicationSpotguide(am *model.ApplicationModel, options []catalog.ApplicationOptions, catalogInfo *catalog.CatalogDetails, kubeConfig []byte) error {
-
+func CreateApplicationSpotguide(env helm_env.EnvSettings, am *model.ApplicationModel, options []catalog.ApplicationOptions, catalogInfo *catalog.CatalogDetails, kubeConfig []byte) error {
 	for _, dependency := range catalogInfo.Spotguide.Depends {
 		deployment := &model.Deployment{
 			Status: "PENDING",
@@ -91,7 +97,7 @@ func CreateApplicationSpotguide(am *model.ApplicationModel, options []catalog.Ap
 	am.Save()
 	// Ensure dependencies
 	for _, dependency := range catalogInfo.Spotguide.Depends {
-		err := EnsureDependency(dependency, kubeConfig)
+		err := EnsureDependency(env, dependency, kubeConfig)
 		if err != nil {
 			SetDeploymentState(am, dependency.Name, "FAILED")
 			break
@@ -110,7 +116,7 @@ func CreateApplicationSpotguide(am *model.ApplicationModel, options []catalog.Ap
 		return err
 	}
 	if !ok {
-		resp, err := helm.CreateDeployment(chart, "", values, kubeConfig, catalog.CatalogPath)
+		resp, err := helm.CreateDeployment(chart, "", values, kubeConfig, env)
 		if err != nil {
 			deployment.Update("FAILED")
 			return err
@@ -122,10 +128,10 @@ func CreateApplicationSpotguide(am *model.ApplicationModel, options []catalog.Ap
 	return nil
 }
 
-func EnsureDependency(dependency catalog.ApplicationDependency, kubeConfig []byte) error {
+func EnsureDependency(env helm_env.EnvSettings, dependency catalog.ApplicationDependency, kubeConfig []byte) error {
 	log.Debugf("Dependency: %#v", dependency)
 	if dependency.Type != "crd" {
-		EnsureChart(dependency, kubeConfig)
+		EnsureChart(env, dependency, kubeConfig)
 		return nil
 	}
 	ready, err := CheckCRD(kubeConfig, dependency.Values)
@@ -136,7 +142,7 @@ func EnsureDependency(dependency catalog.ApplicationDependency, kubeConfig []byt
 	if ready {
 		return nil
 	}
-	EnsureChart(dependency, kubeConfig)
+	EnsureChart(env, dependency, kubeConfig)
 	//Check if dependency is available 10 to timeout
 	for i := 0; i < 15; i++ {
 		// Check crd should come back with error if not
@@ -171,7 +177,7 @@ func ChartPresented(chartName string, kubeConfig []byte) (bool, error) {
 	return false, nil
 }
 
-func EnsureChart(dep catalog.ApplicationDependency, kubeConfig []byte) error {
+func EnsureChart(env helm_env.EnvSettings, dep catalog.ApplicationDependency, kubeConfig []byte) error {
 	ok, err := ChartPresented(dep.Chart.Name, kubeConfig)
 	if err != nil {
 		return err
@@ -180,7 +186,8 @@ func EnsureChart(dep catalog.ApplicationDependency, kubeConfig []byte) error {
 		return nil
 	}
 	chart := dep.Chart.Repository + "/" + dep.Chart.Name
-	helm.CreateDeployment(chart, "", nil, kubeConfig, catalog.CatalogPath)
+
+	helm.CreateDeployment(chart, "", nil, kubeConfig, env)
 	return nil
 }
 
