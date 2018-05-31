@@ -146,8 +146,10 @@ func createNodePoolsFromRequest(nodePools map[string]*amazon.NodePool) []*model.
 			NodeInstanceType: nodePool.InstanceType,
 			NodeSpotPrice:    nodePool.SpotPrice,
 			NodeImage:        nodePool.Image,
+			Autoscaling:      nodePool.Autoscaling,
 			NodeMinCount:     nodePool.MinCount,
 			NodeMaxCount:     nodePool.MaxCount,
+			Count:            nodePool.Count,
 		}
 		i++
 	}
@@ -558,8 +560,10 @@ func (c *AWSCluster) UpdateCluster(request *components.UpdateClusterRequest) err
 				ID:               id,
 				Name:             name,
 				NodeSpotPrice:    np.SpotPrice,
+				Autoscaling:      np.Autoscaling,
 				NodeMinCount:     np.MinCount,
 				NodeMaxCount:     np.MaxCount,
+				Count:            np.Count,
 				NodeImage:        np.Image,
 				NodeInstanceType: np.InstanceType,
 				Delete:           false,
@@ -927,8 +931,10 @@ func (c *AWSCluster) CheckEqualityToUpdate(r *components.UpdateClusterRequest) e
 		preNodePools[preNp.Name] = &amazon.NodePool{
 			InstanceType: preNp.NodeInstanceType,
 			SpotPrice:    preNp.NodeSpotPrice,
+			Autoscaling:  preNp.Autoscaling,
 			MinCount:     preNp.NodeMinCount,
 			MaxCount:     preNp.NodeMaxCount,
+			Count:        preNp.Count,
 			Image:        preNp.NodeImage,
 		}
 	}

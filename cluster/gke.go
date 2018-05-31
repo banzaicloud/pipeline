@@ -97,6 +97,9 @@ func createNodePoolsModelFromRequestData(nodePoolsData map[string]*bGoogle.NodeP
 	for nodePoolName, nodePoolData := range nodePoolsData {
 		nodePoolsModel[i] = &model.GoogleNodePoolModel{
 			Name:             nodePoolName,
+			Autoscaling:      nodePoolData.Autoscaling,
+			NodeMinCount:     nodePoolData.MinCount,
+			NodeMaxCount:     nodePoolData.MaxCount,
 			NodeCount:        nodePoolData.Count,
 			NodeInstanceType: nodePoolData.NodeInstanceType,
 			ServiceAccount:   nodePoolData.ServiceAccount,
@@ -396,10 +399,17 @@ func (g *GKECluster) updateModel(c *gke.Cluster, updatedNodePools []*gke.NodePoo
 				nodePoolModel.ServiceAccount = clusterNodePool.Config.ServiceAccount
 				nodePoolModel.NodeInstanceType = clusterNodePool.Config.MachineType
 
+				if clusterNodePool.Autoscaling != nil {
+					nodePoolModel.Autoscaling = clusterNodePool.Autoscaling.Enabled
+					nodePoolModel.NodeMinCount = int(clusterNodePool.Autoscaling.MinNodeCount)
+					nodePoolModel.NodeMaxCount = int(clusterNodePool.Autoscaling.MaxNodeCount)
+				}
+
 				// TODO: This is ugly but Google API doesn't expose the current node count for a node pool
 				for _, updatedNodePool := range updatedNodePools {
 					if updatedNodePool.Name == clusterNodePool.Name {
 						nodePoolModel.NodeCount = int(updatedNodePool.InitialNodeCount)
+
 						break
 					}
 				}
@@ -415,6 +425,11 @@ func (g *GKECluster) updateModel(c *gke.Cluster, updatedNodePools []*gke.NodePoo
 				ServiceAccount:   clusterNodePool.Config.ServiceAccount,
 				NodeInstanceType: clusterNodePool.Config.MachineType,
 				NodeCount:        int(clusterNodePool.InitialNodeCount),
+			}
+			if clusterNodePool.Autoscaling != nil {
+				nodePoolModelAdd.Autoscaling = clusterNodePool.Autoscaling.Enabled
+				nodePoolModelAdd.NodeMinCount = int(clusterNodePool.Autoscaling.MinNodeCount)
+				nodePoolModelAdd.NodeMaxCount = int(clusterNodePool.Autoscaling.MaxNodeCount)
 			}
 
 			newNodePoolsModels = append(newNodePoolsModels, nodePoolModelAdd)
@@ -565,11 +580,26 @@ func createNodePoolsFromClusterModel(clusterModel *model.GoogleClusterModel) ([]
 					"https://www.googleapis.com/auth/logging.write",
 					"https://www.googleapis.com/auth/monitoring",
 					"https://www.googleapis.com/auth/devstorage.read_write",
+					"https://www.googleapis.com/auth/cloud-platform",
+					"https://www.googleapis.com/auth/compute",
 				},
 			},
 			InitialNodeCount: int64(nodePoolModel.NodeCount),
 			Version:          clusterModel.NodeVersion,
 		}
+
+		if nodePoolModel.Autoscaling {
+			nodePools[i].Autoscaling = &gke.NodePoolAutoscaling{
+				Enabled:      true,
+				MinNodeCount: int64(nodePoolModel.NodeMinCount),
+				MaxNodeCount: int64(nodePoolModel.NodeMaxCount),
+			}
+		} else {
+			nodePools[i].Autoscaling = &gke.NodePoolAutoscaling{
+				Enabled: false,
+			}
+		}
+
 	}
 
 	return nodePools, nil
@@ -587,6 +617,9 @@ func createNodePoolsRequestDataFromNodePoolModel(nodePoolsModel []*model.GoogleN
 	for i := 0; i < nodePoolsCount; i++ {
 		nodePoolModel := nodePoolsModel[i]
 		nodePools[nodePoolModel.Name] = &bGoogle.NodePool{
+			Autoscaling:      nodePoolModel.Autoscaling,
+			MinCount:         nodePoolModel.NodeMinCount,
+			MaxCount:         nodePoolModel.NodeMaxCount,
 			Count:            nodePoolModel.NodeCount,
 			NodeInstanceType: nodePoolModel.NodeInstanceType,
 			ServiceAccount:   nodePoolModel.ServiceAccount,
@@ -765,6 +798,36 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster) (*gke.Cluster, 
 					}
 				}
 
+				if autoscalingHasBeenUpdated(nodePool, cluster.NodePools[i]) {
+					var updateCall *gke.Operation
+					var err error
+					if nodePool.Autoscaling.Enabled {
+						log.Infof("Updating node pool %s enable Autoscaling", nodePool.Name)
+						updateCall, err = svc.Projects.Zones.Clusters.NodePools.Autoscaling(cc.ProjectID, cc.Zone, cc.Name, nodePool.Name, &gke.SetNodePoolAutoscalingRequest{
+							Autoscaling: &gke.NodePoolAutoscaling{
+								Enabled:      true,
+								MinNodeCount: nodePool.Autoscaling.MinNodeCount,
+								MaxNodeCount: nodePool.Autoscaling.MaxNodeCount,
+							},
+						}).Context(context.Background()).Do()
+					} else {
+						log.Infof("Updating node pool %s disable Autoscaling", nodePool.Name)
+						updateCall, err = svc.Projects.Zones.Clusters.NodePools.Autoscaling(cc.ProjectID, cc.Zone, cc.Name, nodePool.Name, &gke.SetNodePoolAutoscalingRequest{
+							Autoscaling: &gke.NodePoolAutoscaling{
+								Enabled: false,
+							},
+						}).Context(context.Background()).Do()
+					}
+
+					if err != nil {
+						return nil, err
+					}
+					log.Infof("Node pool %s update is called for project %s, zone %s and cluster %s. Status Code %v", nodePool.Name, cc.ProjectID, cc.Zone, cc.Name, updateCall.HTTPStatusCode)
+					if updatedCluster, err = waitForCluster(svc, cc); err != nil {
+						return nil, err
+					}
+				}
+
 				if nodePool.InitialNodeCount > 0 {
 					log.Infof("Updating node size to %v for node pool %s", nodePool.InitialNodeCount, nodePool.Name)
 					updateCall, err := svc.Projects.Zones.Clusters.NodePools.SetSize(cc.ProjectID, cc.Zone, cc.Name, nodePool.Name, &gke.SetNodePoolSizeRequest{
@@ -803,6 +866,24 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster) (*gke.Cluster, 
 	}
 
 	return updatedCluster, nil
+}
+
+func autoscalingHasBeenUpdated(updatedNodePool *gke.NodePool, actualNodePool *gke.NodePool) bool {
+	if actualNodePool.Autoscaling == nil {
+		return updatedNodePool.Autoscaling.Enabled
+	}
+	if updatedNodePool.Autoscaling.Enabled && actualNodePool.Autoscaling.Enabled {
+		if updatedNodePool.Autoscaling.MinNodeCount != actualNodePool.Autoscaling.MinNodeCount {
+			return true
+		}
+		if updatedNodePool.Autoscaling.MaxNodeCount != actualNodePool.Autoscaling.MaxNodeCount {
+			return true
+		}
+		return false
+	} else if !updatedNodePool.Autoscaling.Enabled && !actualNodePool.Autoscaling.Enabled {
+		return false
+	}
+	return true
 }
 
 func waitForNodePool(svc *gke.Service, cc *googleCluster, nodePoolName string) error {
@@ -1251,6 +1332,11 @@ func (g *GKECluster) AddDefaultsToUpdate(r *components.UpdateClusterRequest) {
 				NodeInstanceType: nodePool.Config.MachineType,
 				ServiceAccount:   nodePool.Config.ServiceAccount,
 			}
+			if nodePool.Autoscaling != nil {
+				r.Google.NodePools[nodePool.Name].Autoscaling = nodePool.Autoscaling.Enabled
+				r.Google.NodePools[nodePool.Name].MinCount = int(nodePool.Autoscaling.MinNodeCount)
+				r.Google.NodePools[nodePool.Name].MaxCount = int(nodePool.Autoscaling.MaxNodeCount)
+			}
 		}
 	}
 	// ---- [ Master check ] ---- //
@@ -1273,7 +1359,7 @@ func (g *GKECluster) AddDefaultsToUpdate(r *components.UpdateClusterRequest) {
 			}
 			if i == len(g.modelCluster.Google.NodePools) {
 				// node pool not found in db; set count to default value
-				nodePoolData.Count = constants.GoogleDefaultNodeCount
+				nodePoolData.Count = constants.DefaultNodeMinCount
 				log.Warnf("Node count for node pool %s set to default value: ", name, nodePoolData.Count)
 			}
 		}

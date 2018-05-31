@@ -20,6 +20,9 @@ type Master struct {
 
 // NodePool describes Google's node fields of a CreateCluster/Update request
 type NodePool struct {
+	Autoscaling      bool   `json:"autoscaling"`
+	MinCount         int    `json:"minCount"`
+	MaxCount         int    `json:"maxCount"`
 	Count            int    `json:"count,omitempty"`
 	NodeInstanceType string `json:"nodeInstanceType,omitempty"`
 	ServiceAccount   string `json:"serviceAccount,omitempty"`
@@ -42,7 +45,7 @@ func (g *CreateClusterGoogle) Validate() error {
 	if g.NodePools == nil {
 		g.NodePools = map[string]*NodePool{
 			constants.GoogleDefaultNodePoolName: {
-				Count: constants.GoogleDefaultNodeCount,
+				Count: constants.DefaultNodeMinCount,
 			},
 		}
 	}
@@ -60,9 +63,24 @@ func (g *CreateClusterGoogle) Validate() error {
 	}
 
 	for _, nodePool := range g.NodePools {
-		if nodePool.Count == 0 {
-			nodePool.Count = constants.GoogleDefaultNodeCount
+
+		// ---- [ Min & Max count fields are required in case of autoscaling ] ---- //
+		if nodePool.Autoscaling {
+			if nodePool.MinCount == 0 {
+				return constants.ErrorMinFieldRequiredError
+			}
+			if nodePool.MaxCount == 0 {
+				return constants.ErrorMaxFieldRequiredError
+			}
+			if nodePool.MaxCount < nodePool.MinCount {
+				return constants.ErrorNodePoolMinMaxFieldError
+			}
 		}
+
+		if nodePool.Count == 0 {
+			nodePool.Count = constants.DefaultNodeMinCount
+		}
+
 	}
 
 	return nil

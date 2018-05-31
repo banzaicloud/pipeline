@@ -252,6 +252,9 @@ var (
 				NodeVersion: clusterRequestVersion,
 				NodePools: map[string]*google.NodePool{
 					"pool1": {
+						Autoscaling:      true,
+						MinCount:         clusterRequestNodeCount,
+						MaxCount:         clusterRequestNodeMaxCount,
 						Count:            clusterRequestNodeCount,
 						NodeInstanceType: clusterRequestNodeInstance,
 						ServiceAccount:   clusterServiceAccount,
@@ -309,6 +312,9 @@ var (
 				KubernetesVersion: clusterRequestKubernetes,
 				NodePools: map[string]*azure.NodePoolCreate{
 					clusterRequestAgentName: {
+						Autoscaling:      true,
+						MinCount:         clusterRequestNodeCount,
+						MaxCount:         clusterRequestNodeMaxCount,
 						Count:            clusterRequestNodeCount,
 						NodeInstanceType: clusterRequestNodeInstance,
 					},
@@ -359,6 +365,7 @@ var (
 					"pool1": {
 						InstanceType: clusterRequestNodeInstance,
 						SpotPrice:    clusterRequestSpotPrice,
+						Autoscaling:  true,
 						MinCount:     clusterRequestNodeCount,
 						MaxCount:     clusterRequestNodeMaxCount,
 						Image:        clusterRequestNodeImage,
@@ -549,6 +556,9 @@ var (
 			NodePools: []*model.GoogleNodePoolModel{
 				{
 					Name:             "pool1",
+					Autoscaling:      true,
+					NodeMinCount:     clusterRequestNodeCount,
+					NodeMaxCount:     clusterRequestNodeMaxCount,
 					NodeCount:        clusterRequestNodeCount,
 					NodeInstanceType: clusterRequestNodeInstance,
 					ServiceAccount:   clusterServiceAccount,
@@ -569,6 +579,9 @@ var (
 			KubernetesVersion: clusterRequestKubernetes,
 			NodePools: []*model.AzureNodePoolModel{
 				{
+					Autoscaling:      true,
+					NodeMinCount:     clusterRequestNodeCount,
+					NodeMaxCount:     clusterRequestNodeMaxCount,
 					Count:            clusterRequestNodeCount,
 					NodeInstanceType: clusterRequestNodeInstance,
 					Name:             clusterRequestAgentName,
@@ -590,6 +603,8 @@ var (
 					Name:             "pool1",
 					NodeInstanceType: clusterRequestNodeInstance,
 					NodeSpotPrice:    clusterRequestSpotPrice,
+					Autoscaling:      true,
+					Count:            clusterRequestNodeCount,
 					NodeMinCount:     clusterRequestNodeCount,
 					NodeMaxCount:     clusterRequestNodeMaxCount,
 					NodeImage:        clusterRequestNodeImage,
