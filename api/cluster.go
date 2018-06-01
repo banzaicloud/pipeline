@@ -241,7 +241,7 @@ func CreateCluster(c *gin.Context, createClusterRequest *components.CreateCluste
 		ResourceID: commonCluster.GetID(),
 	})
 
-	go postCreateCluster(commonCluster, createClusterRequest)
+	go postCreateCluster(commonCluster)
 	return commonCluster
 }
 

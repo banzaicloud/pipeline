@@ -204,7 +204,7 @@ func InstallHelmPostHook(input interface{}) error {
 			log.Infof("Waiting for tiller to come up %d/%d", i, retryAttempts)
 			_, err = helm.GetHelmClient(kubeConfig)
 			if err == nil {
-				return
+				return nil
 			}
 			log.Warnf("Error during getting helm client: %s", err.Error())
 			time.Sleep(time.Duration(retrySleepSeconds) * time.Second)
