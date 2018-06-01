@@ -149,14 +149,14 @@
   revision = "354eea55437b616667eda42a04b76660f71eb906"
 
 [[projects]]
+  branch = "master"
   name = "github.com/banzaicloud/bank-vaults"
   packages = [
     "auth",
     "database",
     "vault"
   ]
-  revision = "950d407647b0c77fb6425a500a00e3e17d959406"
-  version = "0.1.4"
+  revision = "d3746eb1736c50276bb42b08d5ad3609ed1fb8e6"
 
 [[projects]]
   branch = "master"
@@ -172,6 +172,12 @@
     "constants"
   ]
   revision = "10d88a501368fa8e97c6f8c492a26780607fa3b3"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/banzaicloud/logrus-runtime-formatter"
+  packages = ["."]
+  revision = "04abfd848b41948433e57af6d6b9f7f044ec9bad"
 
 [[projects]]
   branch = "master"
@@ -1546,7 +1552,6 @@
     "pkg/version"
   ]
   revision = "20adb27c7c5868466912eebdf6664e7390ebe710"
-  version = "v2.9.1"
 
 [[projects]]
   branch = "master"
@@ -1741,6 +1746,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "403021600d6d191e65873342972f9cc5f6af1309ed42e8b1eb06f8474cc231e7"
+  inputs-digest = "0e40da61ee58afb52f013807c815441e03d5e2ab9a4ef1f1991d2f8a81b37eb5"
   solver-name = "gps-cdcl"
   solver-version = 1

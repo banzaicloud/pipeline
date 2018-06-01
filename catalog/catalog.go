@@ -5,7 +5,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/banzaicloud/pipeline/config"
+	runtime "github.com/banzaicloud/logrus-runtime-formatter"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -22,6 +22,8 @@ const CatalogRepository = "catalog"
 const CatalogRepositoryUrl = "http://kubernetes-charts.banzaicloud.com/branch/spotguide"
 
 var CatalogPath = "./" + CatalogRepository
+
+//TODO when the API fixed this needs to move to banzai-types
 
 type ApplicationDetails struct {
 	Resources ApplicationResources `json:"resources"`
@@ -63,8 +65,8 @@ type ApplicationResources struct {
 	VCPU               int      `json:"vcpu"`
 	Memory             int      `json:"memory"`
 	Filters            []string `json:"filters"`
-	OnDemandPercentage int      `json:"on_demand_percentage"`
-	SameSize           bool     `json:"same_size"`
+	OnDemandPercentage int      `json:"onDemandPercentage"`
+	SameSize           bool     `json:"sameSize"`
 }
 
 type CatalogDetails struct {
@@ -76,12 +78,13 @@ type CatalogDetails struct {
 	Spotguide *SpotguideFile     `json:"options"`
 }
 
-var logger *logrus.Logger
-var log *logrus.Entry
+var log = logrus.New()
 
 func init() {
-	logger = config.Logger()
-	log = logger.WithFields(logrus.Fields{"action": "Helm"})
+	childFormatter := logrus.JSONFormatter{}
+	runtimeFormatter := &runtime.Formatter{ChildFormatter: &childFormatter}
+	log.Formatter = runtimeFormatter
+	log.Level = logrus.DebugLevel
 }
 
 func CreateValuesFromOption(options []ApplicationOptions) ([]byte, error) {
@@ -118,10 +121,7 @@ func ListCatalogs(env helm_env.EnvSettings, queryName, queryVersion, queryKeywor
 	if err := EnsureCatalog(env); err != nil {
 		return nil, err
 	}
-	repoPath := fmt.Sprintf("%s/repository/repositories.yaml", CatalogPath)
-	log.Debug("Helm repo path:", repoPath)
-
-	f, err := repo.LoadRepositoriesFile(repoPath)
+	f, err := repo.LoadRepositoriesFile(env.Home.RepositoryFile())
 	if err != nil {
 		return nil, err
 	}
@@ -132,6 +132,9 @@ func ListCatalogs(env helm_env.EnvSettings, queryName, queryVersion, queryKeywor
 	i, errIndx := repo.LoadIndexFile(f.Repositories[0].Cache)
 	if errIndx != nil {
 		return nil, errIndx
+	}
+	if queryKeyword == "" {
+		queryKeyword = "spotguide"
 	}
 	for n := range i.Entries {
 		log.Debugf("Chart: %s", n)

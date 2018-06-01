@@ -8,14 +8,6 @@ import (
 	"net/http"
 )
 
-//TODO check if we need transformation
-type Catalog struct {
-}
-
-func GetCatalogDetails(c *gin.Context) {
-	//Infromation about your running catalog
-}
-
 type CreateCatalogsRequests struct {
 }
 
