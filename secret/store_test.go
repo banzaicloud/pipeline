@@ -41,10 +41,12 @@ func TestCreateSecretValidate(t *testing.T) {
 		{name: "aws full", request: awsCreateSecretFull, isError: false},
 		{name: "aks full", request: aksCreateSecretFull, isError: false},
 		{name: "gke full", request: gkeCreateSecretFull, isError: false},
+		{name: "ssh full", request: sshCreateSecretFull, isError: false},
 
 		{name: "aws missing key", request: awsMissingKey, isError: true},
 		{name: "aks missing key", request: aksMissingKey, isError: true},
 		{name: "gke missing key", request: gkeMissingKey, isError: true},
+		{name: "ssh missing key", request: sshMissingKey, isError: true},
 	}
 
 	for _, tc := range cases {
@@ -93,6 +95,14 @@ const (
 	gkeTokenUri     = "token_uri"
 	gkeAuthCert     = "auth_provider_x509_cert_url"
 	gkeClientCert   = "client_x509_cert_url"
+)
+
+const (
+	SshUser                 = "user"
+	SshIdentifier           = "identifier"
+	SshPublicKeyData        = "public_key_data"
+	SshPublicKeyFingerprint = "public_key_fingerprint"
+	SshPrivateKeyData       = "private_key_data"
 )
 
 var (
@@ -163,6 +173,29 @@ var (
 			secret.TokenUri:      gkeTokenUri,
 			secret.AuthX509Url:   gkeAuthCert,
 			secret.ClientX509Url: gkeClientCert,
+		},
+	}
+
+	sshCreateSecretFull = secret.CreateSecretRequest{
+		Name: secretDesc,
+		Type: secret.SshSecretType,
+		Values: map[string]string{
+			secret.User:                 SshUser,
+			secret.Identifier:           SshIdentifier,
+			secret.PublicKeyData:        SshPublicKeyData,
+			secret.PublicKeyFingerprint: SshPublicKeyFingerprint,
+			secret.PrivateKeyData:       SshPrivateKeyData,
+		},
+	}
+
+	sshMissingKey = secret.CreateSecretRequest{
+		Name: secretDesc,
+		Type: secret.SshSecretType,
+		Values: map[string]string{
+			secret.User:                 SshUser,
+			secret.Identifier:           SshIdentifier,
+			secret.PublicKeyData:        SshPublicKeyData,
+			secret.PublicKeyFingerprint: SshPublicKeyFingerprint,
 		},
 	}
 )
