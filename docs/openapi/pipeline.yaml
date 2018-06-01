@@ -1360,22 +1360,22 @@ paths:
               schema:
                 $ref: '#/components/schemas/BaseError_500'
 
-  /token:
+  /auth/tokens:
     get:
       security:
           - bearerAuth: []
       tags:
         - auth
-      summary: Generate token
+      summary: List all API tokens
       operationId: GetToken
-      description: Generate token
+      description: List all API tokens
       responses:
         '200':
-          description: Token generated successfully
+          description: Tokens listed successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Token'
+                $ref: '#/components/schemas/TokenListResponse'
         '401':
           description: Unauthorized
           content:
@@ -1388,6 +1388,73 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseError_500'
+    post:
+      security:
+          - bearerAuth: []
+      tags:
+        - auth
+      summary: Generate token
+      operationId: GetToken
+      description: Generate token
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenCreateRequest'
+      responses:
+        '200':
+          description: Token generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenCreateResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+
+  /auth/tokens/{tokenId}:
+    delete:
+      security:
+          - bearerAuth: []
+      tags:
+        - auth
+      summary: Delete an API token
+      operationId: DeleteToken
+      description: Delete an API token
+      parameters:
+        - name: tokenId
+          in: path
+          required: true
+          description: Token identification
+          schema:
+            type: string
+            example: a4358708-c525-4c78-89c2-c1cbe0f3f76c
+      responses:
+        '204':
+          description: Token deleted successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+
   '/api/v1/orgs/{orgId}/secrets':
     get:
       security:
@@ -3228,14 +3295,56 @@ components:
                       type: string
                       example: "n1-standard-2"
 
-    Token:
+    TokenCreateRequest:
       type: object
       required:
-        - token
+        - name
       properties:
+        name:
+          type: string
+          example: my API token
+        virtualUser:
+          type: string
+          example: banzaicloud/pipeline
+
+    TokenCreateResponse:
+      type: object
+      required:
+        - id
+        - token
+        - name
+      properties:
+        id:
+          type: string
+          example: f24c74d7-53f3-4d78-b3d4-f23f89e81bec
         token:
           type: string
-          example: "jkjb342hb424j3b24"
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJodHRwczovL3BpcGVsaW5lLmJhbnphaWNsb3VkLmNvbSIsImp0aSI6ImYyNGM3NGQ3LTUzZjMtNGQ3OC1iM2Q0LWYyM2Y4OWU4MWJlYyIsImlhdCI6MTUyNzg0NTQ1OCwiaXNzIjoiaHR0cHM6Ly9iYW56YWljbG91ZC5jb20vIiwic3ViIjoiMSIsInNjb3BlIjoiYXBpOmludm9rZSIsInR5cGUiOiJ1c2VyIiwidGV4dCI6ImJvbmlmYWlkbyJ9.DMQcM0De3A_R1JOPDGqharh9NIjz-uBFeJgiq5JSej0
+        name:
+          type: string
+          example: my API token
+
+    TokenListResponse:
+      type: array
+      items:
+        $ref: '#/components/schemas/TokenListResponseItem'
+
+    TokenListResponseItem:
+      type: object
+      required:
+        - id
+        - createdAt
+        - name
+      properties:
+        id:
+          type: string
+          example: f24c74d7-53f3-4d78-b3d4-f23f89e81bec
+        createdAt:
+          type: string
+          example: "2018-06-01T11:26:40.044297036+02:00"
+        name:
+          type: string
+          example: my API token
 
     SecretsListResponse:
       type: object

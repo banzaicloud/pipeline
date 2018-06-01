@@ -221,7 +221,7 @@ func GenerateToken(c *gin.Context) {
 
 	tokenRequest := struct {
 		Name        string `json:"name,omitempty"`
-		VirtualUser string `json:"virtual_user,omitempty"`
+		VirtualUser string `json:"virtualUser,omitempty"`
 	}{Name: "generated"}
 
 	if c.Request.Method == http.MethodPost && c.Request.ContentLength > 0 {
