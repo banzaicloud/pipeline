@@ -45,14 +45,7 @@ func UpdateMonitoring(c *gin.Context) {
 	return
 }
 
-// GetCommonClusterFromRequest just a simple getter to build commonCluster object this handles error messages directly
-func GetCommonClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
-	filter := ParseField(c)
-
-	// Filter for organisation
-	filter["organization_id"] = c.Request.Context().Value(auth.CurrentOrganization).(*auth.Organization).ID
-
-	//TODO check gorm error
+func GetCommonClusterFromFilter(c *gin.Context, filter map[string]interface{}) (cluster.CommonCluster, bool) {
 	modelCluster, err := model.QueryCluster(filter)
 	if err != nil {
 		log.Errorf("Cluster not found: %s", err.Error())
@@ -87,6 +80,15 @@ func GetCommonClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
 	return commonCLuster, true
 }
 
+// GetCommonClusterFromRequest just a simple getter to build commonCluster object this handles error messages directly
+func GetCommonClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
+	filter := ParseField(c)
+
+	// Filter for organisation
+	filter["organization_id"] = c.Request.Context().Value(auth.CurrentOrganization).(*auth.Organization).ID
+	return GetCommonClusterFromFilter(c, filter)
+}
+
 //GetCommonClusterNameFromRequest get cluster name from cluster request
 func GetCommonClusterNameFromRequest(c *gin.Context) (string, bool) {
 	commonCluster, ok := GetCommonClusterFromRequest(c)
@@ -98,8 +100,7 @@ func GetCommonClusterNameFromRequest(c *gin.Context) (string, bool) {
 	return clusterName, true
 }
 
-// CreateCluster creates a K8S cluster in the cloud
-func CreateCluster(c *gin.Context) {
+func CreateClusterRequest(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagCreateCluster})
 	//TODO refactor logging here
 
@@ -117,6 +118,12 @@ func CreateCluster(c *gin.Context) {
 		})
 		return
 	}
+	CreateCluster(c, &createClusterRequest)
+}
+
+// CreateCluster creates a K8S cluster in the cloud
+func CreateCluster(c *gin.Context, createClusterRequest *components.CreateClusterRequest) cluster.CommonCluster {
+	log := logger.WithFields(logrus.Fields{"tag": constants.TagCreateCluster})
 
 	if len(createClusterRequest.ProfileName) != 0 {
 		log.Infof("Fill data from profile[%s]", createClusterRequest.ProfileName)
@@ -128,14 +135,14 @@ func CreateCluster(c *gin.Context) {
 				Message: "Error during getting profile",
 				Error:   err.Error(),
 			})
-			return
+			return nil
 		}
 
 		log.Info("Create profile response")
 		profileResponse := profile.GetProfile()
 
 		log.Info("Create clusterRequest from profile")
-		newRequest, err := profileResponse.CreateClusterRequest(&createClusterRequest)
+		newRequest, err := profileResponse.CreateClusterRequest(createClusterRequest)
 		if err != nil {
 			log.Error(errors.Wrap(err, "Error creating request from profile"))
 			c.JSON(http.StatusBadRequest, components.ErrorResponse{
@@ -143,10 +150,10 @@ func CreateCluster(c *gin.Context) {
 				Message: "Error creating request from profile",
 				Error:   err.Error(),
 			})
-			return
+			return nil
 		}
 
-		createClusterRequest = *newRequest
+		createClusterRequest = newRequest
 
 		log.Infof("Modified clusterRequest: %v", createClusterRequest)
 
@@ -171,7 +178,7 @@ func CreateCluster(c *gin.Context) {
 			Message: err.Error(),
 			Error:   err.Error(),
 		})
-		return
+		return nil
 	}
 
 	log.Info("Creating new entry with cloud type: ", createClusterRequest.Cloud)
@@ -180,7 +187,7 @@ func CreateCluster(c *gin.Context) {
 
 	// TODO check validation
 	// This is the common part of cluster flow
-	commonCluster, err := cluster.CreateCommonClusterFromRequest(&createClusterRequest, organizationID)
+	commonCluster, err := cluster.CreateCommonClusterFromRequest(createClusterRequest, organizationID)
 	if err != nil {
 		log.Errorf("Error during creating common cluster model: %s", err.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
@@ -188,7 +195,7 @@ func CreateCluster(c *gin.Context) {
 			Message: err.Error(),
 			Error:   err.Error(),
 		})
-		return
+		return nil
 	}
 
 	log.Infof("Validate secret[%s]", createClusterRequest.SecretId)
@@ -199,7 +206,7 @@ func CreateCluster(c *gin.Context) {
 			Message: "Error during getting secret",
 			Error:   err.Error(),
 		})
-		return
+		return nil
 	}
 	log.Info("Secret validation passed")
 
@@ -212,11 +219,11 @@ func CreateCluster(c *gin.Context) {
 			Message: err.Error(),
 			Error:   err.Error(),
 		})
-		return
+		return nil
 	}
 
 	log.Info("Validate creation fields")
-	if err := commonCluster.ValidateCreationFields(&createClusterRequest); err != nil {
+	if err := commonCluster.ValidateCreationFields(createClusterRequest); err != nil {
 		log.Errorf("Error during request validation: %s", err.Error())
 		commonCluster.UpdateStatus(constants.Error, err.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
@@ -224,7 +231,7 @@ func CreateCluster(c *gin.Context) {
 			Message: err.Error(),
 			Error:   err.Error(),
 		})
-		return
+		return nil
 	}
 
 	log.Info("Validation passed")
@@ -235,6 +242,7 @@ func CreateCluster(c *gin.Context) {
 	})
 
 	go postCreateCluster(commonCluster)
+	return commonCluster
 }
 
 // postCreateCluster creates a cluster (ASYNC)
@@ -256,7 +264,7 @@ func postCreateCluster(commonCluster cluster.CommonCluster) error {
 
 	// Apply PostHooks
 	// These are hardcoded posthooks maybe we will want a bit more dynamic
-	postHookFunctions := []func(commonCluster cluster.CommonCluster){
+	postHookFunctions := []func(commonCluster interface{}) error{
 		cluster.PersistKubernetesKeys,
 		cluster.UpdatePrometheusPostHook,
 		cluster.InstallHelmPostHook,

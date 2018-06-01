@@ -27,6 +27,7 @@ import (
 const (
 	stableRepository = "stable"
 	banzaiRepository = "banzaicloud-stable"
+	helmPostFix      = "helm"
 )
 
 //PreInstall create's ServiceAccount and AccountRoleBinding
@@ -166,32 +167,32 @@ func RetryHelmInstall(helmInstall *helm.Install, kubeconfig []byte) error {
 	return fmt.Errorf("timeout during helm install")
 }
 
-func createEnvSettings(helmRepoHome string) helm_env.EnvSettings {
+// Create env settings on a given path
+func CreateEnvSettings(helmRepoHome string) helm_env.EnvSettings {
 	var settings helm_env.EnvSettings
 	settings.Home = helmpath.Home(helmRepoHome)
 	return settings
 }
 
-func generateHelmRepoPath(path string) string {
+// Generate helm path based on orgName
+func GenerateHelmRepoEnv(orgName string) helm_env.EnvSettings {
 	var stateStorePath = config.GetStateStorePath("")
-	const helmPostFix = "helm"
-	return fmt.Sprintf("%s/%s/%s", stateStorePath, path, helmPostFix)
+	return CreateEnvSettings(fmt.Sprintf("%s/%s/%s", stateStorePath, orgName, helmPostFix))
 }
 
-func downloadChartFromRepo(name, path string) (string, error) {
+func DownloadChartFromRepo(name string, env helm_env.EnvSettings) (string, error) {
 	log := logger.WithFields(logrus.Fields{"tag": "DownloadChartFromRepo"})
-	settings := createEnvSettings(path)
 	dl := downloader.ChartDownloader{
-		HelmHome: settings.Home,
-		Getters:  getter.All(settings),
+		HelmHome: env.Home,
+		Getters:  getter.All(env),
 	}
-	if _, err := os.Stat(settings.Home.Archive()); os.IsNotExist(err) {
-		log.Infof("Creating '%s' directory.", settings.Home.Archive())
-		os.MkdirAll(settings.Home.Archive(), 0744)
+	if _, err := os.Stat(env.Home.Archive()); os.IsNotExist(err) {
+		log.Infof("Creating '%s' directory.", env.Home.Archive())
+		os.MkdirAll(env.Home.Archive(), 0744)
 	}
 
-	log.Infof("Downloading helm chart '%s' to '%s'", name, settings.Home.Archive())
-	filename, _, err := dl.DownloadTo(name, "", settings.Home.Archive())
+	log.Infof("Downloading helm chart '%s' to '%s'", name, env.Home.Archive())
+	filename, _, err := dl.DownloadTo(name, "", env.Home.Archive())
 	if err == nil {
 		lname, err := filepath.Abs(filename)
 		if err != nil {
@@ -204,23 +205,17 @@ func downloadChartFromRepo(name, path string) (string, error) {
 	return filename, errors.Wrapf(err, "Failed to download %q", name)
 }
 
-// Installs helm client on the cluster
-func installHelmClient(path string) error {
-	log := logger.WithFields(logrus.Fields{"tag": "InstallHelmClient"})
-	settings := createEnvSettings(generateHelmRepoPath(path))
-	if err := ensureDirectories(settings); err != nil {
+// Installs helm client on a given path
+func InstallHelmClient(env helm_env.EnvSettings) error {
+	if err := EnsureDirectories(env); err != nil {
 		return errors.Wrap(err, "Initializing helm directories failed!")
-	}
-
-	if err := ensureDefaultRepos(settings); err != nil {
-		return errors.Wrap(err, "Setting up default repos failed!")
 	}
 
 	log.Info("Initializing helm client succeeded, happy helming!")
 	return nil
 }
 
-func ensureDirectories(env helm_env.EnvSettings) error {
+func EnsureDirectories(env helm_env.EnvSettings) error {
 	log := logger.WithFields(logrus.Fields{"tag": "EnsureHelmDirectories"})
 	home := env.Home
 	configDirectories := []string{
@@ -250,65 +245,46 @@ func ensureDirectories(env helm_env.EnvSettings) error {
 
 func ensureDefaultRepos(env helm_env.EnvSettings) error {
 	log := logger.WithFields(logrus.Fields{"tag": "EnsureDefaultRepositories"})
-	home := env.Home
-	repoFile := home.RepositoryFile()
 
 	stableRepositoryURL := viper.GetString("helm.stableRepositoryURL")
 	banzaiRepositoryURL := viper.GetString("helm.banzaiRepositoryURL")
 
 	log.Infof("Setting up default helm repos.")
 
-	if fi, err := os.Stat(repoFile); err != nil {
-		log.Infof("Creating %s", repoFile)
-		f := repo.NewRepoFile()
-		sr, err := initRepo(stableRepository, stableRepositoryURL, env)
-		if err != nil {
-			return errors.Wrapf(err, "cannot init stable repo")
-		}
-		br, err := initRepo(banzaiRepository, banzaiRepositoryURL, env)
-		if err != nil {
-			return errors.Wrapf(err, "cannot init banzai repo")
-		}
-		f.Add(sr, br)
-		if err := f.WriteFile(repoFile, 0644); err != nil {
-			return errors.Wrap(err, "cannot create file")
-		}
-	} else if fi.IsDir() {
-		return errors.Errorf("%s must be a file, not a directory!", repoFile)
+	_, err := ReposAdd(
+		env,
+		&repo.Entry{
+			Name:  stableRepository,
+			URL:   stableRepositoryURL,
+			Cache: env.Home.CacheIndex(stableRepository),
+		})
+	if err != nil {
+		return errors.Wrapf(err, "cannot init repo: %s", stableRepository)
+	}
+	_, err = ReposAdd(
+		env,
+		&repo.Entry{
+			Name:  banzaiRepository,
+			URL:   banzaiRepositoryURL,
+			Cache: env.Home.CacheIndex(banzaiRepository),
+		})
+	if err != nil {
+		return errors.Wrapf(err, "cannot init repo: %s", banzaiRepository)
 	}
 	return nil
 }
 
-func initRepo(repoName string, repoUrl string, env helm_env.EnvSettings) (*repo.Entry, error) {
-	log := logger.WithFields(logrus.Fields{"tag": "InitHelmRepositories"})
-	log.Infof("Adding %s repo with URL: %s", repoName, repoUrl)
-	c := repo.Entry{
-		Name:  repoName,
-		URL:   repoUrl,
-		Cache: env.Home.CacheIndex(repoName),
-	}
-	r, err := repo.NewChartRepository(&c, getter.All(env))
-	if err != nil {
-		return nil, errors.Wrap(err, "Cannot create a new ChartRepo")
-	}
-
-	// In this case, the cacheFile is always absolute. So passing empty string
-	// is safe.
-	if err := r.DownloadIndexFile(""); err != nil {
-		return nil, errors.Errorf("Looks like %q is not a valid chart repository or cannot be reached: %s", repoUrl, err.Error())
-	}
-
-	return &c, nil
-}
-
 // InstallLocalHelm install helm into the given path
-func InstallLocalHelm(path string) error {
+func InstallLocalHelm(env helm_env.EnvSettings) error {
 	log := logger.WithFields(logrus.Fields{"tag": "InstallLocalHelmClient"})
-
-	if err := installHelmClient(path); err != nil {
+	if err := InstallHelmClient(env); err != nil {
 		return err
 	}
 	log.Info("Helm client install succeeded")
+	return nil
+	if err := ensureDefaultRepos(env); err != nil {
+		return errors.Wrap(err, "Setting up default repos failed!")
+	}
 	return nil
 }
 
