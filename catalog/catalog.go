@@ -28,14 +28,14 @@ var CatalogPath = "./" + CatalogRepository
 
 //TODO when the API fixed this needs to move to banzai-types
 
-// ApplicationDetails for API respone
+// ApplicationDetails for API response
 type ApplicationDetails struct {
 	Resources ApplicationResources `json:"resources"`
 	Readme    string               `json:"readme"`
 	Options   ApplicationOptions   `json:"options"`
 }
 
-// ApplicationOptions for API respone
+// ApplicationOptions for API response
 type ApplicationOptions struct {
 	Name     string `json:"name"`
 	Type     string `json:"type"`
@@ -78,7 +78,7 @@ type ApplicationResources struct {
 	SameSize           bool     `json:"sameSize"`
 }
 
-// CatalogDetails for API respone
+// CatalogDetails for API response
 type CatalogDetails struct {
 	Name      string             `json:"name"`
 	Repo      string             `json:"repo"`
