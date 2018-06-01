@@ -26,12 +26,15 @@ type ClusterModel struct {
 	OrganizationId uint `gorm:"unique_index:idx_unique_id"`
 	SecretId       string
 	Status         string
+	Monitoring     bool
+	Logging        bool
 	StatusMessage  string
 	Amazon         AmazonClusterModel
 	Azure          AzureClusterModel
 	Google         GoogleClusterModel
 	Dummy          DummyClusterModel
 	Kubernetes     KubernetesClusterModel
+	Applications   []ApplicationModel `gorm:"foreignkey:ClusterID"`
 }
 
 //AmazonClusterModel describes the amazon cluster model
@@ -256,11 +259,6 @@ func QueryCluster(filter map[string]interface{}) ([]ClusterModel, error) {
 		return nil, err
 	}
 	return cluster, nil
-}
-
-//GetSimpleClusterWithId returns a simple cluster model
-func GetSimpleClusterWithId(id uint) ClusterModel {
-	return ClusterModel{ID: id}
 }
 
 //TableName sets the GoogleClusterModel's table name

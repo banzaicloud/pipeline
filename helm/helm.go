@@ -9,7 +9,6 @@ import (
 	"archive/tar"
 	"compress/gzip"
 	"encoding/base64"
-	"encoding/json"
 	"github.com/Masterminds/sprig"
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/config"
@@ -20,6 +19,7 @@ import (
 	"k8s.io/helm/pkg/chartutil"
 	"k8s.io/helm/pkg/getter"
 	"k8s.io/helm/pkg/helm"
+	helm_env "k8s.io/helm/pkg/helm/environment"
 	"k8s.io/helm/pkg/proto/hapi/chart"
 	rls "k8s.io/helm/pkg/proto/hapi/services"
 	"k8s.io/helm/pkg/repo"
@@ -40,33 +40,7 @@ func init() {
 	log = logger.WithFields(logrus.Fields{"action": "Helm"})
 }
 
-func getChartOption(file []byte) (*SpotGuideFile, error) {
-	so := &SpotGuideFile{}
-	tarReader := tar.NewReader(bytes.NewReader(file))
-	for {
-		header, err := tarReader.Next()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return nil, err
-		}
-		if strings.Contains(header.Name, "spotguide.json") {
-			valuesContent := new(bytes.Buffer)
-			if _, err := io.Copy(valuesContent, tarReader); err != nil {
-				return nil, err
-			}
-			err := json.Unmarshal(valuesContent.Bytes(), so)
-			if err != nil {
-				return nil, err
-			}
-			return so, nil
-		}
-	}
-	return so, nil
-}
-
-func downloadFile(url string) ([]byte, error) {
+func DownloadFile(url string) ([]byte, error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
@@ -83,8 +57,8 @@ func downloadFile(url string) ([]byte, error) {
 	return rawContent, nil
 }
 
-//getChartFile Download file from chart repository
-func getChartFile(file []byte, fileName string) (string, error) {
+//GetChartFile Download file from chart repository
+func GetChartFile(file []byte, fileName string) (string, error) {
 	tarReader := tar.NewReader(bytes.NewReader(file))
 	for {
 		header, err := tarReader.Next()
@@ -159,13 +133,14 @@ func ListDeployments(filter *string, kubeConfig []byte) (*rls.ListReleasesRespon
 }
 
 //UpgradeDeployment upgrades a Helm deployment
-func UpgradeDeployment(deploymentName, chartName string, values []byte, reuseValues bool, kubeConfig []byte, path string) (*rls.UpdateReleaseResponse, error) {
+func UpgradeDeployment(releaseName, chartName string, values []byte, reuseValues bool, kubeConfig []byte, env helm_env.EnvSettings) (*rls.UpdateReleaseResponse, error) {
 	//Map chartName as
-
-	downloadedChartPath, err := downloadChartFromRepo(chartName, generateHelmRepoPath(path))
+	log.Infof("Deploying chart=%q, release name=%q", chartName, releaseName)
+	downloadedChartPath, err := DownloadChartFromRepo(chartName, env)
 	if err != nil {
 		return nil, err
 	}
+
 	chartRequested, err := chartutil.Load(downloadedChartPath)
 	if err != nil {
 		return nil, fmt.Errorf("Error loading chart: %v", err)
@@ -183,7 +158,7 @@ func UpgradeDeployment(deploymentName, chartName string, values []byte, reuseVal
 		return nil, err
 	}
 	upgradeRes, err := hClient.UpdateReleaseFromChart(
-		deploymentName,
+		releaseName,
 		chartRequested,
 		helm.UpdateValueOverrides(values),
 		helm.UpgradeDryRun(false),
@@ -197,16 +172,16 @@ func UpgradeDeployment(deploymentName, chartName string, values []byte, reuseVal
 }
 
 //CreateDeployment creates a Helm deployment
-func CreateDeployment(chartName string, releaseName string, valueOverrides []byte, kubeConfig []byte, path string) (*rls.InstallReleaseResponse, error) {
+func CreateDeployment(chartName string, releaseName string, valueOverrides []byte, kubeConfig []byte, env helm_env.EnvSettings) (*rls.InstallReleaseResponse, error) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagCreateDeployment})
 
-	log.Infof("Deploying chart='%s', release name='%s'.", chartName, releaseName)
-	downloadedChartPath, err := downloadChartFromRepo(chartName, generateHelmRepoPath(path))
+	log.Infof("Deploying chart=%q, release name=%q", chartName, releaseName)
+	downloadedChartPath, err := DownloadChartFromRepo(chartName, env)
 	if err != nil {
 		return nil, err
 	}
 
-	log.Infof("Loading chart '%s'", downloadedChartPath)
+	log.Infof("Loading chart '%s'", env)
 	chartRequested, err := chartutil.Load(downloadedChartPath)
 	if err != nil {
 		return nil, fmt.Errorf("Error loading chart: %v", err)
@@ -355,8 +330,8 @@ func mergeValues(dest map[string]interface{}, src map[string]interface{}) map[st
 }
 
 // ReposGet returns repo
-func ReposGet(organizationName string) ([]*repo.Entry, error) {
-	repoPath := getHelmRepoPath(organizationName)
+func ReposGet(env helm_env.EnvSettings) ([]*repo.Entry, error) {
+	repoPath := env.Home.RepositoryFile()
 	log.Debug("Helm repo path:", repoPath)
 
 	f, err := repo.LoadRepositoriesFile(repoPath)
@@ -370,11 +345,13 @@ func ReposGet(organizationName string) ([]*repo.Entry, error) {
 	return f.Repositories, nil
 }
 
-// ReposAdd adds repo(s)
-func ReposAdd(clusterName string, Hrepo *repo.Entry) error {
+func CreateRepo(path string) {
 
-	settings := createEnvSettings(generateHelmRepoPath(clusterName))
-	repoFile := settings.Home.RepositoryFile()
+}
+
+// ReposAdd adds repo(s)
+func ReposAdd(env helm_env.EnvSettings, Hrepo *repo.Entry) (bool, error) {
+	repoFile := env.Home.RepositoryFile()
 	var f *repo.RepoFile
 	if _, err := os.Stat(repoFile); err != nil {
 		log.Infof("Creating %s", repoFile)
@@ -382,7 +359,7 @@ func ReposAdd(clusterName string, Hrepo *repo.Entry) error {
 	} else {
 		f, err = repo.LoadRepositoriesFile(repoFile)
 		if err != nil {
-			return errors.Wrap(err, "Cannot create a new ChartRepo")
+			return false, errors.Wrap(err, "Cannot create a new ChartRepo")
 		}
 		log.Debugf("Profile file %q loaded.", repoFile)
 	}
@@ -390,37 +367,35 @@ func ReposAdd(clusterName string, Hrepo *repo.Entry) error {
 	for _, n := range f.Repositories {
 		log.Debugf("repo: %s", n.Name)
 		if n.Name == Hrepo.Name {
-			return errors.New("Already added.")
+			return false, nil
 		}
 	}
 
 	c := repo.Entry{
 		Name:  Hrepo.Name,
 		URL:   Hrepo.URL,
-		Cache: settings.Home.CacheIndex(Hrepo.Name),
+		Cache: env.Home.CacheIndex(Hrepo.Name),
 	}
-	r, err := repo.NewChartRepository(&c, getter.All(settings))
+	r, err := repo.NewChartRepository(&c, getter.All(env))
 	if err != nil {
-		return errors.Wrap(err, "Cannot create a new ChartRepo")
+		return false, errors.Wrap(err, "Cannot create a new ChartRepo")
 	}
 	log.Debug("New repo added:", Hrepo.Name)
 
 	errIdx := r.DownloadIndexFile("")
 	if errIdx != nil {
-		return errors.Wrap(errIdx, "Repo index download failed")
+		return false, errors.Wrap(errIdx, "Repo index download failed")
 	}
 	f.Add(&c)
 	if errW := f.WriteFile(repoFile, 0644); errW != nil {
-		return errors.Wrap(errW, "Cannot write helm repo profile file")
+		return false, errors.Wrap(errW, "Cannot write helm repo profile file")
 	}
-	return nil
+	return true, nil
 }
 
 // ReposDelete deletes repo(s)
-func ReposDelete(clusterName, repoName string) error {
-	repoPath := generateHelmRepoPath(clusterName)
-	settings := createEnvSettings(repoPath)
-	repoFile := settings.Home.RepositoryFile()
+func ReposDelete(env helm_env.EnvSettings, repoName string) error {
+	repoFile := env.Home.RepositoryFile()
 	log.Debug("Repo File:", repoFile)
 
 	r, err := repo.LoadRepositoriesFile(repoFile)
@@ -435,8 +410,8 @@ func ReposDelete(clusterName, repoName string) error {
 		return err
 	}
 
-	if _, err := os.Stat(settings.Home.CacheIndex(repoName)); err == nil {
-		err = os.Remove(settings.Home.CacheIndex(repoName))
+	if _, err := os.Stat(env.Home.CacheIndex(repoName)); err == nil {
+		err = os.Remove(env.Home.CacheIndex(repoName))
 		if err != nil {
 			return err
 		}
@@ -446,11 +421,9 @@ func ReposDelete(clusterName, repoName string) error {
 }
 
 // ReposModify modifies repo(s)
-func ReposModify(clusterName, repoName string, newRepo *repo.Entry) error {
+func ReposModify(env helm_env.EnvSettings, repoName string, newRepo *repo.Entry) error {
 	log.Debug("ReposModify")
-	repoPath := generateHelmRepoPath(clusterName)
-	settings := createEnvSettings(repoPath)
-	repoFile := settings.Home.RepositoryFile()
+	repoFile := env.Home.RepositoryFile()
 	log.Debug("Repo File:", repoFile)
 	log.Debugf("New repo content: %#v", newRepo)
 
@@ -472,10 +445,8 @@ func ReposModify(clusterName, repoName string, newRepo *repo.Entry) error {
 }
 
 // ReposUpdate updates a repo(s)
-func ReposUpdate(clusterName, repoName string) error {
-	repoPath := generateHelmRepoPath(clusterName)
-	settings := createEnvSettings(repoPath)
-	repoFile := settings.Home.RepositoryFile()
+func ReposUpdate(env helm_env.EnvSettings, repoName string) error {
+	repoFile := env.Home.RepositoryFile()
 	log.Debug("Repo File:", repoFile)
 
 	f, err := repo.LoadRepositoriesFile(repoFile)
@@ -486,7 +457,7 @@ func ReposUpdate(clusterName, repoName string) error {
 
 	for _, cfg := range f.Repositories {
 		if cfg.Name == repoName {
-			c, err := repo.NewChartRepository(cfg, getter.All(settings))
+			c, err := repo.NewChartRepository(cfg, getter.All(env))
 			if err != nil {
 				return errors.Wrap(err, "Cannot get ChartRepo")
 			}
@@ -509,12 +480,9 @@ type ChartList struct {
 }
 
 // ChartsGet returns chart list
-func ChartsGet(organizationName, queryName, queryRepo, queryVersion, queryKeyword string) ([]ChartList, error) {
-
-	repoPath := getHelmRepoPath(organizationName)
-	log.Debug("Helm repo path:", repoPath)
-
-	f, err := repo.LoadRepositoriesFile(repoPath)
+func ChartsGet(env helm_env.EnvSettings, queryName, queryRepo, queryVersion, queryKeyword string) ([]ChartList, error) {
+	log.Debug("Helm repo path:", env.Home.RepositoryFile())
+	f, err := repo.LoadRepositoriesFile(env.Home.RepositoryFile())
 	if err != nil {
 		return nil, err
 	}
@@ -562,34 +530,18 @@ func ChartsGet(organizationName, queryName, queryRepo, queryVersion, queryKeywor
 	return cl, nil
 }
 
-// SpotGuideFile describes a spotguide file with the options
-type SpotGuideFile struct {
-	Options []SpotguideOptions `json:"options"`
-}
-
-// SpotguideOptions describes a spotguide options
-type SpotguideOptions struct {
-	Name    string `json:"name"`
-	Type    string `json:"type"`
-	Default bool   `json:"default"`
-	Info    string `json:"info"`
-	Key     string `json:"key"`
-}
-
 // ChartDetails describes a chart details
 type ChartDetails struct {
-	Name    string             `json:"name"`
-	Repo    string             `json:"repo"`
-	Chart   *repo.ChartVersion `json:"chart"`
-	Values  string             `json:"values"`
-	Readme  string             `json:"readme"`
-	Options []SpotguideOptions `json:"options"`
+	Name   string             `json:"name"`
+	Repo   string             `json:"repo"`
+	Chart  *repo.ChartVersion `json:"chart"`
+	Values string             `json:"values"`
+	Readme string             `json:"readme"`
 }
 
 // ChartGet returns chart details
-func ChartGet(organizationName, chartRepo, chartName, chartVersion string) (*ChartDetails, error) {
-
-	repoPath := getHelmRepoPath(organizationName)
+func ChartGet(env helm_env.EnvSettings, chartRepo, chartName, chartVersion string) (*ChartDetails, error) {
+	repoPath := env.Home.RepositoryFile()
 	log.Debug("Helm repo path:", repoPath)
 	chartD := &ChartDetails{}
 	f, err := repo.LoadRepositoriesFile(repoPath)
@@ -619,32 +571,27 @@ func ChartGet(organizationName, chartRepo, chartName, chartVersion string) (*Cha
 						if s.Version == chartVersion || chartVersion == "" {
 							chartSource := s.URLs[0]
 							log.Debugf("chartSource: %s", chartSource)
-							reader, err := downloadFile(chartSource)
+							reader, err := DownloadFile(chartSource)
 							if err != nil {
 								return nil, err
 							}
-							valuesStr, err := getChartFile(reader, "values.yaml")
-							if err != nil {
-								return nil, err
-							}
-							options, err := getChartOption(reader)
+							valuesStr, err := GetChartFile(reader, "values.yaml")
 							if err != nil {
 								return nil, err
 							}
 							log.Debugf("values hash: %s", valuesStr)
 
-							readmeStr, err := getChartFile(reader, "README.md")
+							readmeStr, err := GetChartFile(reader, "README.md")
 							if err != nil {
 								return nil, err
 							}
 							log.Debugf("readme hash: %s", readmeStr)
 							chartD = &ChartDetails{
-								Name:    chartName,
-								Repo:    chartRepo,
-								Chart:   s,
-								Values:  valuesStr,
-								Readme:  readmeStr,
-								Options: options.Options,
+								Name:   chartName,
+								Repo:   chartRepo,
+								Chart:  s,
+								Values: valuesStr,
+								Readme: readmeStr,
 							}
 							return chartD, nil
 
@@ -658,8 +605,4 @@ func ChartGet(organizationName, chartRepo, chartName, chartVersion string) (*Cha
 		}
 	}
 	return nil, nil
-}
-
-func getHelmRepoPath(orgName string) string {
-	return fmt.Sprintf("%s/repository/repositories.yaml", generateHelmRepoPath(orgName))
 }
