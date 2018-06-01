@@ -2,6 +2,7 @@ package application
 
 import (
 	"fmt"
+	ctype "github.com/banzaicloud/banzai-types/components/catalog"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/catalog"
 	"github.com/banzaicloud/pipeline/cluster"
@@ -47,7 +48,7 @@ func GetSpotGuide(env helm_env.EnvSettings, catalogName string) (*catalog.Catalo
 }
 
 // CreateApplication will gather, create and manage an application deployment
-func CreateApplication(am model.ApplicationModel, options []catalog.ApplicationOptions, cluster cluster.CommonCluster) error {
+func CreateApplication(am model.ApplicationModel, options []ctype.ApplicationOptions, cluster cluster.CommonCluster) error {
 	organization, err := auth.GetOrganizationById(am.OrganizationId)
 	if err != nil {
 		return err
@@ -77,7 +78,7 @@ func CreateApplication(am model.ApplicationModel, options []catalog.ApplicationO
 }
 
 // CreateApplicationDeployment will deploy a Catalog with Dependency
-func CreateApplicationDeployment(env helm_env.EnvSettings, am *model.ApplicationModel, options []catalog.ApplicationOptions, catalogInfo *catalog.CatalogDetails, kubeConfig []byte) error {
+func CreateApplicationDeployment(env helm_env.EnvSettings, am *model.ApplicationModel, options []ctype.ApplicationOptions, catalogInfo *catalog.CatalogDetails, kubeConfig []byte) error {
 	for _, dependency := range catalogInfo.Spotguide.Depends {
 		deployment := &model.Deployment{
 			Status: "PENDING",
@@ -132,7 +133,7 @@ func CreateApplicationDeployment(env helm_env.EnvSettings, am *model.Application
 }
 
 // EnsureDependency ensure remote dependency on a given Kubernetes endpoint
-func EnsureDependency(env helm_env.EnvSettings, dependency catalog.ApplicationDependency, kubeConfig []byte) error {
+func EnsureDependency(env helm_env.EnvSettings, dependency ctype.ApplicationDependency, kubeConfig []byte) error {
 	log.Debugf("Dependency: %#v", dependency)
 	if dependency.Type != "crd" {
 		EnsureChart(env, dependency, kubeConfig)
@@ -183,7 +184,7 @@ func ChartPresented(chartName string, kubeConfig []byte) (bool, error) {
 }
 
 // EnsureChart ensures a given Helm chart is available on the given Kubernetes cluster
-func EnsureChart(env helm_env.EnvSettings, dep catalog.ApplicationDependency, kubeConfig []byte) error {
+func EnsureChart(env helm_env.EnvSettings, dep ctype.ApplicationDependency, kubeConfig []byte) error {
 	ok, err := ChartPresented(dep.Chart.Name, kubeConfig)
 	if err != nil {
 		return err

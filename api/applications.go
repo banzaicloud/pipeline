@@ -2,10 +2,10 @@ package api
 
 import (
 	"github.com/banzaicloud/banzai-types/components"
+	ctype "github.com/banzaicloud/banzai-types/components/catalog"
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/application"
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/catalog"
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/gin-gonic/gin"
@@ -80,7 +80,7 @@ type CreateApplicationRequest struct {
 	CatalogName string                           `json:"catalogName"`
 	Cluster     *components.CreateClusterRequest `json:"cluster"`
 	ClusterId   uint                             `json:"clusterId"`
-	Options     []catalog.ApplicationOptions     `json:"options"`
+	Options     []ctype.ApplicationOptions       `json:"options"`
 }
 
 // CreateApplication gin handler for API

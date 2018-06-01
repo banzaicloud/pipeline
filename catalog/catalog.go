@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	ctype "github.com/banzaicloud/banzai-types/components/catalog"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/pkg/errors"
@@ -29,69 +30,21 @@ var CatalogPath = "./" + CatalogRepository
 //TODO when the API fixed this needs to move to banzai-types
 
 // ApplicationDetails for API response
-type ApplicationDetails struct {
-	Resources ApplicationResources `json:"resources"`
-	Readme    string               `json:"readme"`
-	Options   ApplicationOptions   `json:"options"`
-}
-
-// ApplicationOptions for API response
-type ApplicationOptions struct {
-	Name     string `json:"name"`
-	Type     string `json:"type"`
-	Default  bool   `json:"default"`
-	Info     string `json:"info"`
-	Readonly bool   `json:"readonly"`
-	Key      string `json:"key"`
-	Value    string `json:"value"`
-}
-
-// ApplicationDependency for spotguide.yaml
-type ApplicationDependency struct {
-	Name      string           `json:"name"`
-	Type      string           `json:"type"`
-	Values    []string         `json:"values"`
-	Namespace string           `json:"namespace"`
-	Chart     ApplicationChart `json:"chart"`
-}
-
-// ApplicationChart for spotguide.yaml
-type ApplicationChart struct {
-	Name       string `json:"name"`
-	Repository string `json:"repository"`
-	Version    string `json:"version"`
-}
-
-// SpotguideFile to parse spotguide.yaml
-type SpotguideFile struct {
-	Resources *ApplicationResources   `json:"resources"`
-	Options   []ApplicationOptions    `json:"options"`
-	Depends   []ApplicationDependency `json:"depends"`
-}
-
-// ApplicationResources to parse spotguide.yaml
-type ApplicationResources struct {
-	VCPU               int      `json:"vcpu"`
-	Memory             int      `json:"memory"`
-	Filters            []string `json:"filters"`
-	OnDemandPercentage int      `json:"onDemandPercentage"`
-	SameSize           bool     `json:"sameSize"`
-}
-
-// CatalogDetails for API response
-type CatalogDetails struct {
-	Name      string             `json:"name"`
-	Repo      string             `json:"repo"`
-	Chart     *repo.ChartVersion `json:"chart"`
-	Values    string             `json:"values"`
-	Readme    string             `json:"readme"`
-	Spotguide *SpotguideFile     `json:"options"`
-}
 
 var log = config.Logger()
 
+// CatalogDetails for API response
+type CatalogDetails struct {
+	Name      string               `json:"name"`
+	Repo      string               `json:"repo"`
+	Chart     *repo.ChartVersion   `json:"chart"`
+	Values    string               `json:"values"`
+	Readme    string               `json:"readme"`
+	Spotguide *ctype.SpotguideFile `json:"options"`
+}
+
 // CreateValuesFromOption helper to parse ApplicationOptions into chart values
-func CreateValuesFromOption(options []ApplicationOptions) ([]byte, error) {
+func CreateValuesFromOption(options []ctype.ApplicationOptions) ([]byte, error) {
 	base := map[string]interface{}{}
 	for _, o := range options {
 		set := o.Key + "=" + o.Value
@@ -170,8 +123,8 @@ func GetCatalogDetails(env helm_env.EnvSettings, name string) (*CatalogDetails, 
 	return cd, nil
 }
 
-func getChartOption(file []byte) (*SpotguideFile, error) {
-	so := &SpotguideFile{}
+func getChartOption(file []byte) (*ctype.SpotguideFile, error) {
+	so := &ctype.SpotguideFile{}
 	tarReader := tar.NewReader(bytes.NewReader(file))
 	for {
 		header, err := tarReader.Next()
