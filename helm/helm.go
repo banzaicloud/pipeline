@@ -40,6 +40,7 @@ func init() {
 	log = logger.WithFields(logrus.Fields{"action": "Helm"})
 }
 
+// DownloadFile download file/unzip and untar and store it in memory
 func DownloadFile(url string) ([]byte, error) {
 	resp, err := http.Get(url)
 	if err != nil {
@@ -343,10 +344,6 @@ func ReposGet(env helm_env.EnvSettings) ([]*repo.Entry, error) {
 	}
 
 	return f.Repositories, nil
-}
-
-func CreateRepo(path string) {
-
 }
 
 // ReposAdd adds repo(s)

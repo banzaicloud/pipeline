@@ -14,6 +14,7 @@ import (
 	"net/http"
 )
 
+// ApplicationDetailsResponse for API
 type ApplicationDetailsResponse struct {
 	Name        string `json:"name"`
 	ClusterName string `json:"clusterName"`
@@ -25,6 +26,7 @@ type ApplicationDetailsResponse struct {
 	//Spotguide
 }
 
+// ApplicationListResponse for API TODO move to banzai-types
 type ApplicationListResponse struct {
 	Id          uint   `json:"id"`
 	Name        string `json:"name"`
@@ -35,6 +37,7 @@ type ApplicationListResponse struct {
 	Icon        string `json:"icon"`
 }
 
+// GetApplications gin handler for API
 func GetApplications(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": "GetApplications"})
 	log.Debug("List applications")
@@ -71,12 +74,7 @@ func GetApplications(c *gin.Context) {
 	return
 }
 
-func ApplicationDetails() {
-
-}
-
-//Create Application
-// Validate for Cluster xor ClusterId
+//CreateApplicationRequest  TODO Validate for Cluster xor ClusterId
 type CreateApplicationRequest struct {
 	Name        string                           `json:"name"`
 	CatalogName string                           `json:"catalogName"`
@@ -85,6 +83,7 @@ type CreateApplicationRequest struct {
 	Options     []catalog.ApplicationOptions     `json:"options"`
 }
 
+// CreateApplication gin handler for API
 func CreateApplication(c *gin.Context) {
 	// 1. Create Pending applications in database
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagCreateCluster})

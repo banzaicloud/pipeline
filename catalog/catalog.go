@@ -17,19 +17,25 @@ import (
 	"strings"
 )
 
+// CatalogRepository for universal catalog repo name
 const CatalogRepository = "catalog"
+
+// CatalogRepositoryUrl for universal catalog repo url
 const CatalogRepositoryUrl = "http://kubernetes-charts.banzaicloud.com/branch/spotguide"
 
+// CatalogPath TODO check if we need some special config/path
 var CatalogPath = "./" + CatalogRepository
 
 //TODO when the API fixed this needs to move to banzai-types
 
+// ApplicationDetails for API respone
 type ApplicationDetails struct {
 	Resources ApplicationResources `json:"resources"`
 	Readme    string               `json:"readme"`
 	Options   ApplicationOptions   `json:"options"`
 }
 
+// ApplicationOptions for API respone
 type ApplicationOptions struct {
 	Name     string `json:"name"`
 	Type     string `json:"type"`
@@ -40,6 +46,7 @@ type ApplicationOptions struct {
 	Value    string `json:"value"`
 }
 
+// ApplicationDependency for spotguide.yaml
 type ApplicationDependency struct {
 	Name      string           `json:"name"`
 	Type      string           `json:"type"`
@@ -48,18 +55,21 @@ type ApplicationDependency struct {
 	Chart     ApplicationChart `json:"chart"`
 }
 
+// ApplicationChart for spotguide.yaml
 type ApplicationChart struct {
 	Name       string `json:"name"`
 	Repository string `json:"repository"`
 	Version    string `json:"version"`
 }
 
+// SpotguideFile to parse spotguide.yaml
 type SpotguideFile struct {
 	Resources *ApplicationResources   `json:"resources"`
 	Options   []ApplicationOptions    `json:"options"`
 	Depends   []ApplicationDependency `json:"depends"`
 }
 
+// ApplicationResources to parse spotguide.yaml
 type ApplicationResources struct {
 	VCPU               int      `json:"vcpu"`
 	Memory             int      `json:"memory"`
@@ -68,6 +78,7 @@ type ApplicationResources struct {
 	SameSize           bool     `json:"sameSize"`
 }
 
+// CatalogDetails for API respone
 type CatalogDetails struct {
 	Name      string             `json:"name"`
 	Repo      string             `json:"repo"`
@@ -79,6 +90,7 @@ type CatalogDetails struct {
 
 var log = config.Logger()
 
+// CreateValuesFromOption helper to parse ApplicationOptions into chart values
 func CreateValuesFromOption(options []ApplicationOptions) ([]byte, error) {
 	base := map[string]interface{}{}
 	for _, o := range options {
@@ -88,10 +100,12 @@ func CreateValuesFromOption(options []ApplicationOptions) ([]byte, error) {
 	return yaml.Marshal(base)
 }
 
+// GenerateGatalogEnv helper to generate Catalog repo env
 func GenerateGatalogEnv(orgName string) helm_env.EnvSettings {
 	return helm.CreateEnvSettings(fmt.Sprintf("%s/%s", CatalogPath, orgName))
 }
 
+// EnsureCatalog ensure Catalog repo is ready
 func EnsureCatalog(env helm_env.EnvSettings) error {
 	//Init the cluster catalog from a well known repository
 	if err := helm.EnsureDirectories(env); err != nil {
@@ -109,6 +123,7 @@ func EnsureCatalog(env helm_env.EnvSettings) error {
 	return nil
 }
 
+// ListCatalogs for API
 func ListCatalogs(env helm_env.EnvSettings, queryName, queryVersion, queryKeyword string) ([]repo.ChartVersion, error) {
 	if err := EnsureCatalog(env); err != nil {
 		return nil, err
@@ -145,7 +160,7 @@ func ListCatalogs(env helm_env.EnvSettings, queryName, queryVersion, queryKeywor
 	return catalogs, nil
 }
 
-// Fixed repo for catalog
+// GetCatalogDetails for API
 func GetCatalogDetails(env helm_env.EnvSettings, name string) (*CatalogDetails, error) {
 
 	cd, err := ChartGet(env, CatalogRepository, name, "")
@@ -195,6 +210,7 @@ func getChartOption(file []byte) (*SpotguideFile, error) {
 	return nil, nil
 }
 
+// ChartGet modifiey helm.ChartGet to injet spotguide
 func ChartGet(env helm_env.EnvSettings, chartRepo, chartName, chartVersion string) (*CatalogDetails, error) {
 	chartD := &CatalogDetails{}
 	f, err := repo.LoadRepositoriesFile(env.Home.RepositoryFile())

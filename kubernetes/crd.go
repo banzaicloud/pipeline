@@ -45,6 +45,7 @@ func GetK8sClientConfig(kubeConfig []byte) (*rest.Config, error) {
 	return config, nil
 }
 
+// GetApiExtensionClient helper
 func GetApiExtensionClient(kubeConfig []byte) (*apiextcs.Clientset, error) {
 	config, err := GetK8sClientConfig(kubeConfig)
 	if err != nil {

@@ -8,9 +8,7 @@ import (
 	"net/http"
 )
 
-type CreateCatalogsRequests struct {
-}
-
+// CatalogDetails get detailed information about a catalog
 func CatalogDetails(c *gin.Context) {
 	organization := auth.GetCurrentOrganization(c.Request)
 	env := catalog.GenerateGatalogEnv(organization.Name)
@@ -30,7 +28,7 @@ func CatalogDetails(c *gin.Context) {
 	return
 }
 
-//Get
+// GetCatalogs List available Catalogs
 func GetCatalogs(c *gin.Context) {
 	organization := auth.GetCurrentOrganization(c.Request)
 	env := catalog.GenerateGatalogEnv(organization.Name)

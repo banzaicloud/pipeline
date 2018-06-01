@@ -167,19 +167,20 @@ func RetryHelmInstall(helmInstall *helm.Install, kubeconfig []byte) error {
 	return fmt.Errorf("timeout during helm install")
 }
 
-// Create env settings on a given path
+// CreateEnvSettings Create env settings on a given path
 func CreateEnvSettings(helmRepoHome string) helm_env.EnvSettings {
 	var settings helm_env.EnvSettings
 	settings.Home = helmpath.Home(helmRepoHome)
 	return settings
 }
 
-// Generate helm path based on orgName
+// GenerateHelmRepoEnv Generate helm path based on orgName
 func GenerateHelmRepoEnv(orgName string) helm_env.EnvSettings {
 	var stateStorePath = config.GetStateStorePath("")
 	return CreateEnvSettings(fmt.Sprintf("%s/%s/%s", stateStorePath, orgName, helmPostFix))
 }
 
+// DownloadChartFromRepo download a given chart
 func DownloadChartFromRepo(name string, env helm_env.EnvSettings) (string, error) {
 	log := logger.WithFields(logrus.Fields{"tag": "DownloadChartFromRepo"})
 	dl := downloader.ChartDownloader{
@@ -205,7 +206,7 @@ func DownloadChartFromRepo(name string, env helm_env.EnvSettings) (string, error
 	return filename, errors.Wrapf(err, "Failed to download %q", name)
 }
 
-// Installs helm client on a given path
+// InstallHelmClient Installs helm client on a given path
 func InstallHelmClient(env helm_env.EnvSettings) error {
 	if err := EnsureDirectories(env); err != nil {
 		return errors.Wrap(err, "Initializing helm directories failed!")
@@ -215,6 +216,7 @@ func InstallHelmClient(env helm_env.EnvSettings) error {
 	return nil
 }
 
+// EnsureDirectories for helm repo local install
 func EnsureDirectories(env helm_env.EnvSettings) error {
 	log := logger.WithFields(logrus.Fields{"tag": "EnsureHelmDirectories"})
 	home := env.Home
@@ -281,7 +283,7 @@ func InstallLocalHelm(env helm_env.EnvSettings) error {
 		return err
 	}
 	log.Info("Helm client install succeeded")
-	return nil
+
 	if err := ensureDefaultRepos(env); err != nil {
 		return errors.Wrap(err, "Setting up default repos failed!")
 	}

@@ -45,6 +45,7 @@ func UpdateMonitoring(c *gin.Context) {
 	return
 }
 
+// GetCommonClusterFromFilter get filtered cluster
 func GetCommonClusterFromFilter(c *gin.Context, filter map[string]interface{}) (cluster.CommonCluster, bool) {
 	modelCluster, err := model.QueryCluster(filter)
 	if err != nil {
@@ -100,6 +101,7 @@ func GetCommonClusterNameFromRequest(c *gin.Context) (string, bool) {
 	return clusterName, true
 }
 
+//CreateClusterRequest gin handler
 func CreateClusterRequest(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagCreateCluster})
 	//TODO refactor logging here

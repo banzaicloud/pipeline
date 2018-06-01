@@ -6,12 +6,7 @@ import (
 	"net/http"
 )
 
-// Apply the given functions to the cluster
-func ApplyFunctions(c *gin.Context) {
-
-}
-
-// List available functions to apply on clusters
+// ListFunctions List available functions to apply on clusters
 func ListFunctions(c *gin.Context) {
 	var functionList []string
 	for k := range cluster.HookMap {

@@ -24,6 +24,7 @@ func init() {
 	log = logger.WithFields(logrus.Fields{"action": "Helm"})
 }
 
+// SetDeploymentState Set a Deployment state related to an Application
 func SetDeploymentState(app *model.ApplicationModel, depName string, state string) {
 	for _, deployment := range app.Deployments {
 		if deployment.Name == depName {
@@ -33,6 +34,7 @@ func SetDeploymentState(app *model.ApplicationModel, depName string, state strin
 	}
 }
 
+// GetSpotGuide get spotguide definition based on catalog name
 func GetSpotGuide(env helm_env.EnvSettings, catalogName string) (*catalog.CatalogDetails, error) {
 	chart, err := catalog.GetCatalogDetails(env, catalogName)
 	if err != nil {
@@ -44,7 +46,7 @@ func GetSpotGuide(env helm_env.EnvSettings, catalogName string) (*catalog.Catalo
 	return chart, nil
 }
 
-//Thiswill run in go rutine so
+// CreateApplication will gather, create and manage an application deployment
 func CreateApplication(am model.ApplicationModel, options []catalog.ApplicationOptions, cluster cluster.CommonCluster) error {
 	organization, err := auth.GetOrganizationById(am.OrganizationId)
 	if err != nil {
@@ -66,7 +68,7 @@ func CreateApplication(am model.ApplicationModel, options []catalog.ApplicationO
 	am.Icon = catalog.Chart.Icon
 	am.Description = catalog.Chart.Description
 	am.Save()
-	err = CreateApplicationSpotguide(env, &am, options, catalog, kubeConfig)
+	err = CreateApplicationDeployment(env, &am, options, catalog, kubeConfig)
 	if err != nil {
 		model.GetDB().Model(&am).Update("status", err.Error())
 		return err
@@ -74,7 +76,8 @@ func CreateApplication(am model.ApplicationModel, options []catalog.ApplicationO
 	return nil
 }
 
-func CreateApplicationSpotguide(env helm_env.EnvSettings, am *model.ApplicationModel, options []catalog.ApplicationOptions, catalogInfo *catalog.CatalogDetails, kubeConfig []byte) error {
+// CreateApplicationDeployment will deploy a Catalog with Dependency
+func CreateApplicationDeployment(env helm_env.EnvSettings, am *model.ApplicationModel, options []catalog.ApplicationOptions, catalogInfo *catalog.CatalogDetails, kubeConfig []byte) error {
 	for _, dependency := range catalogInfo.Spotguide.Depends {
 		deployment := &model.Deployment{
 			Status: "PENDING",
@@ -128,6 +131,7 @@ func CreateApplicationSpotguide(env helm_env.EnvSettings, am *model.ApplicationM
 	return nil
 }
 
+// EnsureDependency ensure remote dependency on a given Kubernetes endpoint
 func EnsureDependency(env helm_env.EnvSettings, dependency catalog.ApplicationDependency, kubeConfig []byte) error {
 	log.Debugf("Dependency: %#v", dependency)
 	if dependency.Type != "crd" {
@@ -161,6 +165,7 @@ func EnsureDependency(env helm_env.EnvSettings, dependency catalog.ApplicationDe
 	return errors.Wrap(err, "dependency is not ready")
 }
 
+// ChartPresented check if a Chart presented on a given Kubernetes cluster
 func ChartPresented(chartName string, kubeConfig []byte) (bool, error) {
 	var filter string
 	chartList, err := helm.ListDeployments(&filter, kubeConfig)
@@ -177,6 +182,7 @@ func ChartPresented(chartName string, kubeConfig []byte) (bool, error) {
 	return false, nil
 }
 
+// EnsureChart ensures a given Helm chart is available on the given Kubernetes cluster
 func EnsureChart(env helm_env.EnvSettings, dep catalog.ApplicationDependency, kubeConfig []byte) error {
 	ok, err := ChartPresented(dep.Chart.Name, kubeConfig)
 	if err != nil {
@@ -191,6 +197,7 @@ func EnsureChart(env helm_env.EnvSettings, dep catalog.ApplicationDependency, ku
 	return nil
 }
 
+// CheckCRD check for CustomResourceDefinitions
 func CheckCRD(kubeConfig []byte, requiredCrds []string) (bool, error) {
 	clientset, err := k8s.GetApiExtensionClient(kubeConfig)
 	if err != nil {

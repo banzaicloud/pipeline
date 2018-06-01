@@ -16,6 +16,7 @@ import (
 	"time"
 )
 
+// HookMap for api hook endpoints
 var HookMap = map[string]func(interface{}) error{
 	"PersistKubernetesKeys":            PersistKubernetesKeys,
 	"UpdatePrometheusPostHook":         UpdatePrometheusPostHook,
@@ -32,6 +33,7 @@ func RunPostHooks(functionList []func(interface{}) error, createdCluster CommonC
 	}
 }
 
+// InstallMonitoring to install monitoring deployment
 func InstallMonitoring(input interface{}) error {
 	var cluster CommonCluster
 	if cluster, ok := input.(CommonCluster); !ok {
@@ -41,6 +43,7 @@ func InstallMonitoring(input interface{}) error {
 	return installDeployment(cluster, "", "", nil)
 }
 
+// InstallLogging to install logging deployment
 func InstallLogging(input interface{}) error {
 	var cluster CommonCluster
 	if cluster, ok := input.(CommonCluster); !ok {

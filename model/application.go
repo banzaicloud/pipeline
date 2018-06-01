@@ -2,6 +2,7 @@ package model
 
 import "github.com/jinzhu/gorm"
 
+// ApplicationModel for Application
 type ApplicationModel struct {
 	gorm.Model
 	Name           string `json:"name"`
@@ -16,6 +17,7 @@ type ApplicationModel struct {
 	Status         string        `json:"status"`
 }
 
+// Deployment for ApplicationModel
 type Deployment struct {
 	gorm.Model
 	Name          string `json:"name"`
@@ -27,14 +29,17 @@ type Deployment struct {
 	ApplicationID uint   `json:"applicationId"`
 }
 
+//Update Deployment
 func (d *Deployment) Update(state string) error {
 	return GetDB().Model(d).Update("status", state).Error
 }
 
+// Create Deployment
 func (d *Deployment) Create() error {
 	return GetDB().Create(d).Error
 }
 
+// GetCluster ApplicationModel
 func (am ApplicationModel) GetCluster() ClusterModel {
 	db := GetDB()
 	var cluster ClusterModel
@@ -42,50 +47,7 @@ func (am ApplicationModel) GetCluster() ClusterModel {
 	return cluster
 }
 
-func QueryCatalog(filter map[string]interface{}) ([]ApplicationModel, error) {
-	var catalogs []ApplicationModel
-	err := db.Where(filter).Find(&catalogs).Error
-	if err != nil {
-		return nil, err
-	}
-	return catalogs, nil
+//Save ApplicationModel the cluster to DB
+func (am *ApplicationModel) Save() error {
+	return GetDB().Save(&am).Error
 }
-
-//Save the cluster to DB
-func (cm *ApplicationModel) Save() error {
-	return GetDB().Save(&cm).Error
-}
-
-//
-//resources:
-//- vcpu: 32
-//memory: 32G
-//filter:
-//- gpu
-//- ena
-//- boostable
-//- high-iops
-//# Szazalekosan hany szazaleka legyen on-demand
-//on_demand_percentage: 50%
-//# hasonlo meretu instance tipusokat ajanljon.
-//same_size: true
-
-//depends:
-//- monitor:
-//type: crd
-//values:
-//- prometheuses.monitoring.coreos.com
-//- servicemonitors.monitoring.coreos.com
-//- alertmanagers.monitoring.coreos.com
-//namespace: monitoring
-//charts:
-//- name: pipeline-cluster-monitor
-//repository: alias:banzaicloud-stable
-//version: 0.0.1
-//- logging:
-//type: chart
-//namespace: default
-//charts:
-//- name: pipeline-cluster-log
-//repository: alias:banzaicloud-stable
-//version: 0.0.1
