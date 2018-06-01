@@ -25,8 +25,10 @@ type AWSNodePoolProfile struct {
 	Name         string `gorm:"unique_index:idx_model_name"`
 	NodeName     string `gorm:"unique_index:idx_model_name"`
 	SpotPrice    string `gorm:"default:'0.2'"`
+	Autoscaling  bool   `gorm:"default:false"`
 	MinCount     int    `gorm:"default:1"`
 	MaxCount     int    `gorm:"default:2"`
+	Count        int    `gorm:"default:1"`
 	Image        string `gorm:"default:'ami-16bfeb6f'"`
 }
 
@@ -104,8 +106,10 @@ func (d *AWSProfile) GetProfile() *components.ClusterProfileResponse {
 			nodePools[np.NodeName] = &amazon.NodePool{
 				InstanceType: np.InstanceType,
 				SpotPrice:    np.SpotPrice,
+				Autoscaling:  np.Autoscaling,
 				MinCount:     np.MinCount,
 				MaxCount:     np.MaxCount,
+				Count:        np.Count,
 				Image:        np.Image,
 			}
 		}
@@ -172,6 +176,11 @@ func (d *AWSProfile) UpdateProfile(r *components.ClusterProfileRequest, withSave
 					maxCount = defaultMaxCount
 				}
 
+				count := nodePool.Count
+				if count == 0 {
+					count = minCount
+				}
+
 				if len(nodePool.Image) != 0 {
 					image = nodePool.Image
 				}
@@ -181,8 +190,10 @@ func (d *AWSProfile) UpdateProfile(r *components.ClusterProfileRequest, withSave
 					Name:         d.Name,
 					NodeName:     npName,
 					SpotPrice:    spotPrice,
+					Autoscaling:  nodePool.Autoscaling,
 					MinCount:     minCount,
 					MaxCount:     maxCount,
+					Count:        count,
 					Image:        image,
 				})
 

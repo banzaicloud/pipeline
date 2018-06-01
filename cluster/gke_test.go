@@ -100,6 +100,8 @@ func TestCreateNodePoolsFromClusterModel(t *testing.T) {
 			"https://www.googleapis.com/auth/logging.write",
 			"https://www.googleapis.com/auth/monitoring",
 			"https://www.googleapis.com/auth/devstorage.read_write",
+			"https://www.googleapis.com/auth/cloud-platform",
+			"https://www.googleapis.com/auth/compute",
 		},
 	}
 
@@ -110,11 +112,13 @@ func TestCreateNodePoolsFromClusterModel(t *testing.T) {
 			"https://www.googleapis.com/auth/logging.write",
 			"https://www.googleapis.com/auth/monitoring",
 			"https://www.googleapis.com/auth/devstorage.read_write",
+			"https://www.googleapis.com/auth/cloud-platform",
+			"https://www.googleapis.com/auth/compute",
 		},
 	}
 	nodePools := []*gke.NodePool{
-		{Name: pool1Name, InitialNodeCount: pool1Count, Version: nodeVersion, Config: nodeConfig1},
-		{Name: pool2Name, InitialNodeCount: pool2Count, Version: nodeVersion, Config: nodeConfig2},
+		{Name: pool1Name, Autoscaling: &gke.NodePoolAutoscaling{Enabled: false, MinNodeCount: 0, MaxNodeCount: 0}, InitialNodeCount: pool1Count, Version: nodeVersion, Config: nodeConfig1},
+		{Name: pool2Name, Autoscaling: &gke.NodePoolAutoscaling{Enabled: false, MinNodeCount: 0, MaxNodeCount: 0}, InitialNodeCount: pool2Count, Version: nodeVersion, Config: nodeConfig2},
 	}
 
 	testCases := []struct {

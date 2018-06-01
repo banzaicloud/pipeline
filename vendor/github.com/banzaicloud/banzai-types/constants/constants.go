@@ -37,22 +37,24 @@ const (
 
 // ### [ Constants to Azure cluster default values ] ### //
 const (
-	AzureDefaultAgentCount        = 1
 	AzureDefaultAgentName         = "agentpool1"
 	AzureDefaultKubernetesVersion = "1.9.2"
+)
+
+// ### [ Constants to common cluster default values ] ### //
+const (
+	DefaultNodeMinCount = 1
+	DefaultNodeMaxCount = 2
 )
 
 // ### [ Constants to Amazon cluster default values ] ### //
 const (
 	AmazonDefaultMasterInstanceType = "m4.xlarge"
-	AmazonDefaultNodeMinCount       = 1
-	AmazonDefaultNodeMaxCount       = 1
 	AmazonDefaultNodeSpotPrice      = "0.2"
 )
 
 // ### [ Constants to Google cluster default values ] ### //
 const (
-	GoogleDefaultNodeCount    = 1
 	GoogleDefaultNodePoolName = "default-pool"
 )
 
@@ -93,7 +95,9 @@ var (
 	ErrorAmazonImageFieldIsEmpty        = errors.New("Required field 'image' is empty ")
 	ErrorAmazonNodePoolFieldIsEmpty     = errors.New("At least one 'nodePool' is required.")
 	ErrorAmazonInstancetypeFieldIsEmpty = errors.New("Required field 'instanceType' is empty ")
-	ErrorAmazonMinMaxFieldError         = errors.New("maxCount must be greater than mintCount")
+	ErrorNodePoolMinMaxFieldError       = errors.New("'maxCount' must be greater than 'minCount'")
+	ErrorMinFieldRequiredError          = errors.New("'minCount' must be set in case 'autoscaling' is set to true")
+	ErrorMaxFieldRequiredError          = errors.New("'maxCount' must be set in case 'autoscaling' is set to true")
 	ErrorGoogleClusterNameRegexp        = errors.New("Name must start with a lowercase letter followed by up to 40 lowercase letters, numbers, or hyphens, and cannot end with a hyphen.")
 	ErrorAzureClusterNameRegexp         = errors.New("Only numbers, lowercase letters and underscores are allowed under name property. In addition, the value cannot end with an underscore, and must also be less than 32 characters long.")
 	ErrorAzureClusterNameEmpty          = errors.New("The name should not be empty.")

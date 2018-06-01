@@ -23,7 +23,7 @@ func GetSupportedClusterList(c *gin.Context) {
 	c.JSON(http.StatusOK, components.SupportedClustersResponse{
 		Items: []components.SupportedClusterItem{
 			{
-				Name:    "Amazon Web Services",
+				Name:    "Amazon EC2",
 				Key:     constants.Amazon,
 				Enabled: true,
 				Icon:    "assets/images/amazon.png",
@@ -35,7 +35,7 @@ func GetSupportedClusterList(c *gin.Context) {
 				Icon:    "assets/images/aws-eks.png",
 			},
 			{
-				Name:    "Azure Container Service",
+				Name:    "Azure Kubernetes Service",
 				Key:     constants.Azure,
 				Enabled: true,
 				Icon:    "assets/images/azure.png",
@@ -53,25 +53,25 @@ func GetSupportedClusterList(c *gin.Context) {
 				Icon:    "assets/images/kubernetes.png",
 			},
 			{
-				Name:    "Open Shift",
+				Name:    "Red Hat OpenShift",
 				Key:     "unknown",
 				Enabled: false,
 				Icon:    "assets/images/open_shift.png",
 			},
 			{
-				Name:    "Oracle Cluster",
+				Name:    "Oracle Kubernetes Engine",
 				Key:     "unknown",
 				Enabled: false,
 				Icon:    "assets/images/oracle.png",
 			},
 			{
-				Name:    "Alibaba Cloud",
+				Name:    "Alibaba Kubernetes Container Service",
 				Key:     "unknown",
 				Enabled: false,
 				Icon:    "assets/images/alibaba_cloud.png",
 			},
 			{
-				Name:    "Digital Ocean",
+				Name:    "DigitalOcean Kubernetes",
 				Key:     "unknown",
 				Enabled: false,
 				Icon:    "assets/images/digital_ocean.png",
