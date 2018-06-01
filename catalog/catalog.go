@@ -5,10 +5,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	runtime "github.com/banzaicloud/logrus-runtime-formatter"
+	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 	"io"
 	helm_env "k8s.io/helm/pkg/helm/environment"
@@ -56,7 +55,7 @@ type ApplicationChart struct {
 }
 
 type SpotguideFile struct {
-	Resources ApplicationResources    `json:"resources"`
+	Resources *ApplicationResources   `json:"resources"`
 	Options   []ApplicationOptions    `json:"options"`
 	Depends   []ApplicationDependency `json:"depends"`
 }
@@ -78,14 +77,7 @@ type CatalogDetails struct {
 	Spotguide *SpotguideFile     `json:"options"`
 }
 
-var log = logrus.New()
-
-func init() {
-	childFormatter := logrus.JSONFormatter{}
-	runtimeFormatter := &runtime.Formatter{ChildFormatter: &childFormatter}
-	log.Formatter = runtimeFormatter
-	log.Level = logrus.DebugLevel
-}
+var log = config.Logger()
 
 func CreateValuesFromOption(options []ApplicationOptions) ([]byte, error) {
 	base := map[string]interface{}{}
