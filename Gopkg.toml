@@ -157,6 +157,10 @@
   version = "1.0.2"
 
 [[constraint]]
+  name = "github.com/spf13/cast"
+  version = "1.2.0"
+
+[[constraint]]
   branch = "master"
   name = "golang.org/x/crypto"
 

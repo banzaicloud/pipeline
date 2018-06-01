@@ -652,7 +652,7 @@ func FetchCluster(c *gin.Context) {
 //}
 //
 
-// InstallSecretsToCluster add all secrets from a repo to a cluster's namespace
+// InstallSecretsToCluster add all secrets from a repo to a cluster's namespace combined into one global secret named as the repo
 func InstallSecretsToCluster(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagInstallSecretsToCluster})
 	commonCluster, ok := GetCommonClusterFromRequest(c)
@@ -696,7 +696,8 @@ func InstallSecretsToCluster(c *gin.Context) {
 		return
 	}
 
-	items, err := secret.Store.List(organizationID, secret.RepoSecretType, request.Repo, true)
+	query := secret.ListSecretsQuery{Type: secret.AllSecrets, Tag: secret.RepoTag(request.Repo), Values: true}
+	items, err := secret.Store.List(organizationID, &query)
 	if err != nil {
 		log.Errorf("Error during listing secrets: %s", err.Error())
 		c.AbortWithStatusJSON(http.StatusInternalServerError, components.ErrorResponse{
@@ -707,7 +708,7 @@ func InstallSecretsToCluster(c *gin.Context) {
 		return
 	}
 
-	k8sSecret := v1.Secret{
+	secret := &v1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      request.Repo,
 			Namespace: request.Namespace,
@@ -715,9 +716,11 @@ func InstallSecretsToCluster(c *gin.Context) {
 		StringData: map[string]string{},
 	}
 	for _, item := range items {
-		k8sSecret.StringData[item.Name] = item.Values[secret.RepoSecret]
+		for k, v := range item.Values {
+			secret.StringData[k] = v
+		}
 	}
-	_, err = clusterClient.CoreV1().Secrets(request.Namespace).Create(&k8sSecret)
+	_, err = clusterClient.CoreV1().Secrets(request.Namespace).Create(secret)
 	if err != nil {
 		log.Errorf("Error during creating k8s secret: %s", err.Error())
 		c.AbortWithStatusJSON(http.StatusInternalServerError, components.ErrorResponse{

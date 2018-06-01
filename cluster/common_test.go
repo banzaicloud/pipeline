@@ -1,6 +1,9 @@
 package cluster_test
 
 import (
+	"reflect"
+	"testing"
+
 	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/banzai-types/components/amazon"
 	"github.com/banzaicloud/banzai-types/components/azure"
@@ -11,8 +14,6 @@ import (
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/secret"
-	"reflect"
-	"testing"
 )
 
 const (
@@ -42,24 +43,24 @@ const (
 
 var (
 	awsSecretRequest = secret.CreateSecretRequest{
-		Name:       secretName,
-		SecretType: constants.Amazon,
+		Name: secretName,
+		Type: constants.Amazon,
 		Values: map[string]string{
 			clusterKubeMetaKey: clusterKubeMetaValue,
 		},
 	}
 
 	aksSecretRequest = secret.CreateSecretRequest{
-		Name:       secretName,
-		SecretType: constants.Azure,
+		Name: secretName,
+		Type: constants.Azure,
 		Values: map[string]string{
 			clusterKubeMetaKey: clusterKubeMetaValue,
 		},
 	}
 
 	gkeSecretRequest = secret.CreateSecretRequest{
-		Name:       secretName,
-		SecretType: constants.Google,
+		Name: secretName,
+		Type: constants.Google,
 		Values: map[string]string{
 			clusterKubeMetaKey: clusterKubeMetaValue,
 		},
@@ -206,7 +207,7 @@ func TestGetSecretWithValidation(t *testing.T) {
 
 			defer secret.Store.Delete(organizationIdStr, clusterRequestSecretId)
 
-			if err := secret.Store.Store(organizationIdStr, clusterRequestSecretId, tc.secretRequest); err != nil {
+			if err := secret.Store.Store(organizationIdStr, clusterRequestSecretId, &tc.secretRequest); err != nil {
 				t.Errorf("Error during saving secret: %s", err.Error())
 				t.FailNow()
 			}
