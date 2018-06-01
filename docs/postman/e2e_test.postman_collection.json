@@ -1,14 +1,14 @@
 {
 	"info": {
-		"_postman_id": "0d1be4f9-7993-4985-a817-5ba1a3deb1a4",
-		"name": "End2End TEST Organizations",
+		"_postman_id": "fef3fd79-f0d3-4a75-840e-a0e0453bfd28",
+		"name": "End2End TEST Organizations copy",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
 			"name": "Clusters",
-			"description": "",
+			"description": null,
 			"item": [
 				{
 					"name": "Cluster Create AWS",
@@ -582,7 +582,7 @@
 		},
 		{
 			"name": "Cluster",
-			"description": "",
+			"description": null,
 			"item": [
 				{
 					"name": "Cluster Update AWS",
@@ -1492,8 +1492,59 @@
 			]
 		},
 		{
-			"name": "Deployments",
+			"name": "Catalogs",
 			"description": "",
+			"item": [
+				{
+					"name": "Catalog list",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/{{orgId}}/catalogs",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								"{{orgId}}",
+								"catalogs"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Catalog Details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/{{orgId}}/catalogs/zeppelin",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								"{{orgId}}",
+								"catalogs",
+								"zeppelin"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Deployments",
+			"description": null,
 			"item": [
 				{
 					"name": "Deployment Create",
@@ -1745,7 +1796,7 @@
 		},
 		{
 			"name": "Deployment",
-			"description": "",
+			"description": null,
 			"item": [
 				{
 					"name": "Deployment app Status",
@@ -2003,7 +2054,7 @@
 		},
 		{
 			"name": "Profiles",
-			"description": "",
+			"description": null,
 			"item": [
 				{
 					"name": "Create Profile AWS",
@@ -2457,7 +2508,7 @@
 		},
 		{
 			"name": "Secrets",
-			"description": "",
+			"description": null,
 			"item": [
 				{
 					"name": "List secret",
@@ -2469,7 +2520,10 @@
 								"value": "Bearer {{token}}"
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/{{orgId}}/secrets",
 							"host": [
@@ -2496,7 +2550,10 @@
 								"value": "Bearer {{token}}"
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/{{orgId}}/secrets?type={{secret_type}}&tag={{tag}}",
 							"host": [
@@ -2533,7 +2590,10 @@
 								"value": "Bearer {{token}}"
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/{{orgId}}/allowed/secrets",
 							"host": [
@@ -2876,7 +2936,10 @@
 								"value": "Bearer {{token}}"
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/{{orgId}}/secrets/{{secret_id}}",
 							"host": [
@@ -2958,7 +3021,7 @@
 		},
 		{
 			"name": "Organization",
-			"description": "",
+			"description": null,
 			"item": [
 				{
 					"name": "List organizations",
@@ -2990,7 +3053,10 @@
 								"value": "Bearer {{token}}"
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs",
 							"host": [
@@ -3035,7 +3101,10 @@
 								"value": "Bearer {{token}}"
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/{{orgId}}",
 							"host": [
@@ -3161,7 +3230,7 @@
 		},
 		{
 			"name": "Auth",
-			"description": "",
+			"description": null,
 			"item": [
 				{
 					"name": "Generate token",
@@ -3196,7 +3265,10 @@
 					"request": {
 						"method": "POST",
 						"header": [],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"url": {
 							"raw": "{{url}}/api/v1/tokens",
 							"host": [
@@ -3215,7 +3287,7 @@
 		},
 		{
 			"name": "User",
-			"description": "",
+			"description": null,
 			"item": [
 				{
 					"name": "Get users",
@@ -3227,7 +3299,10 @@
 								"value": "Bearer {{token}}"
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/{{orgId}}/users",
 							"host": [
@@ -3248,11 +3323,11 @@
 		},
 		{
 			"name": "Cloud info",
-			"description": "",
+			"description": null,
 			"item": [
 				{
 					"name": "Amazon",
-					"description": "",
+					"description": null,
 					"item": [
 						{
 							"name": "Get AWS cloud config",
@@ -3439,7 +3514,7 @@
 				},
 				{
 					"name": "Azure",
-					"description": "",
+					"description": null,
 					"item": [
 						{
 							"name": "Get AKS cloud config",
@@ -3626,7 +3701,7 @@
 				},
 				{
 					"name": "Google",
-					"description": "",
+					"description": null,
 					"item": [
 						{
 							"name": "Get GKE cloud config",
@@ -4127,7 +4202,10 @@
 			"request": {
 				"method": "GET",
 				"header": [],
-				"body": {},
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
 				"url": {
 					"raw": "{{url}}/api",
 					"host": [
