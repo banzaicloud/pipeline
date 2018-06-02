@@ -172,8 +172,13 @@ func UpgradeDeployment(releaseName, chartName string, values []byte, reuseValues
 	return upgradeRes, nil
 }
 
-//CreateDeployment creates a Helm deployment
+//CreateDeployment creates a Helm deployment in 'default' namespace
 func CreateDeployment(chartName string, releaseName string, valueOverrides []byte, kubeConfig []byte, env helm_env.EnvSettings) (*rls.InstallReleaseResponse, error) {
+	return CreateDeploymentInNameSpace(chartName, "default", releaseName, valueOverrides, kubeConfig, env)
+}
+
+//CreateDeploymentInNameSpace creates a Helm deployment in chosen namespace
+func CreateDeploymentInNameSpace(chartName string, namespace string, releaseName string, valueOverrides []byte, kubeConfig []byte, env helm_env.EnvSettings) (*rls.InstallReleaseResponse, error) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagCreateDeployment})
 
 	log.Infof("Deploying chart=%q, release name=%q", chartName, releaseName)
@@ -194,7 +199,6 @@ func CreateDeployment(chartName string, releaseName string, valueOverrides []byt
 	} else if err != chartutil.ErrRequirementsNotFound {
 		return nil, fmt.Errorf("cannot load requirements: %v", err)
 	}
-	var namespace = "default"
 	if len(strings.TrimSpace(releaseName)) == 0 {
 		releaseName, _ = generateName("")
 	}

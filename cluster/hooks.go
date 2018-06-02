@@ -9,6 +9,7 @@ import (
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
+	"github.com/ghodss/yaml"
 	"github.com/go-errors/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -25,6 +26,7 @@ var HookMap = map[string]func(interface{}) error{
 	"UpdatePrometheusPostHook":         UpdatePrometheusPostHook,
 	"InstallHelmPostHook":              InstallHelmPostHook,
 	"InstallIngressControllerPostHook": InstallIngressControllerPostHook,
+	"InstallClusterAutoscalerPostHook": InstallClusterAutoscalerPostHook,
 	"InstallMonitoring":                InstallMonitoring,
 	"InstallLogging":                   InstallLogging,
 }
@@ -63,7 +65,7 @@ func InstallMonitoring(input interface{}) error {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
 	//TODO install & ensure monitoring
-	return installDeployment(cluster, "", "", nil)
+	return installDeployment(cluster, "", "", nil, "InstallMonitoring")
 }
 
 // InstallLogging to install logging deployment
@@ -73,7 +75,7 @@ func InstallLogging(input interface{}) error {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
 	//TODO install & ensure logging
-	return installDeployment(cluster, "", "", nil)
+	return installDeployment(cluster, "", "", nil, "InstallLogging")
 }
 
 //PersistKubernetesKeys is a basic version of persisting keys TODO check if we need this from API or anywhere else
@@ -146,9 +148,9 @@ func saveKeysToConfigmap(config *rest.Config, configName string, clusterName str
 	return nil
 }
 
-func installDeployment(cluster CommonCluster, deploymentName string, releaseName string, values []byte) error {
+func installDeployment(cluster CommonCluster, deploymentName string, releaseName string, values []byte, actionName string) error {
 	// --- [ Get K8S Config ] --- //
-	log = logger.WithFields(logrus.Fields{"action": "InstallIngressController"})
+	log = logger.WithFields(logrus.Fields{"action": actionName})
 
 	kubeConfig, err := cluster.GetK8sConfig()
 	if err != nil {
@@ -177,7 +179,50 @@ func InstallIngressControllerPostHook(input interface{}) error {
 	if !ok {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
-	return installDeployment(cluster, "banzaicloud-stable/pipeline-cluster-ingress", "pipeline", nil)
+	return installDeployment(cluster, "banzaicloud-stable/pipeline-cluster-ingress", "pipeline", nil, "InstallIngressController")
+}
+
+//InstallClusterAutoscalerPostHook post hook only for AWS & Azure for now
+func InstallClusterAutoscalerPostHook(input interface{}) error {
+	cluster, ok := input.(CommonCluster)
+	if !ok {
+		return errors.Errorf("Wrong parameter type: %T", cluster)
+	}
+	log = logger.WithFields(logrus.Fields{"action": "InstallClusterAutoscaler"})
+
+	var nodeGroups []nodeGroup
+
+	switch cluster.GetType() {
+	case constants.Amazon:
+		nodeGroups = getAmazonNodeGroups(cluster)
+	case constants.Azure:
+		nodeGroups = getAzureNodeGroups(cluster)
+	default:
+		return nil
+	}
+
+	if len(nodeGroups) == 0 {
+		log.Info("No node groups configured for autoscaling")
+		return nil
+	}
+
+	var values *autoscalingInfo
+	switch cluster.GetType() {
+	case constants.Amazon:
+		values = createAutoscalingForAmazon(cluster, nodeGroups)
+	case constants.Azure:
+		values = createAutoscalingForAzure(cluster, nodeGroups)
+	default:
+		return nil
+	}
+
+	yamlValues, err := yaml.Marshal(*values)
+	if err != nil {
+		log.Errorf("Error during values marshal: %s", err.Error())
+		return errors.Errorf("Error during values marshal: %s", err.Error())
+	}
+	releaseName := "autoscaler"
+	return installDeployment(cluster, autoSalerChart, releaseName, yamlValues, "InstallClusterAutoscaler")
 }
 
 //UpdatePrometheusPostHook updates a configmap used by Prometheus
