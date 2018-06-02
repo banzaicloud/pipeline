@@ -270,6 +270,7 @@ func postCreateCluster(commonCluster cluster.CommonCluster) error {
 		cluster.UpdatePrometheusPostHook,
 		cluster.InstallHelmPostHook,
 		cluster.InstallIngressControllerPostHook,
+		cluster.InstallClusterAutoscalerPostHook,
 	}
 	go cluster.RunPostHooks(postHookFunctions, commonCluster)
 
