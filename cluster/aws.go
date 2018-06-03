@@ -187,6 +187,10 @@ func (c *AWSCluster) CreateCluster() error {
 	c.kubicornCluster = GetKubicornProfile(c.modelCluster)
 
 	sshSecretID, sshKey, err := pipelineSsh.KeyAdd(c.GetModel().OrganizationId, c.GetModel().ID)
+	if err != nil {
+		return err
+	}
+
 	c.GetModel().Amazon.SshSecretID = sshSecretID
 
 	c.kubicornCluster.SSH.PublicKeyData = []byte(sshKey.PublicKeyData)
