@@ -35,6 +35,8 @@ tags:
     description: Users related functions
   - name: info
     description: Cloud config related functions
+  - name: storage
+    description: Storage related functions
 
 paths:
 
@@ -449,7 +451,7 @@ paths:
             type: integer
       responses:
         '200':
-          description: Cluster deleted successfully
+          description: Cluster exists
         '400':
           description: Error during getting cluster status
         '401':
@@ -2240,6 +2242,236 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Unauthorized'
+
+  '/api/v1/orgs/{orgId}/buckets':
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - storage
+      summary: List object storage buckets
+      operationId: ListObjectStoreBuckets
+      description: List object store buckets accessible by the credentials referenced by the given secret.
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: secretId
+          in: header
+          required: true
+          description: Secret identification
+          schema:
+            type: string
+        - name: cloudType
+          in: query
+          schema:
+            type: string
+            enum: [amazon, google, azure]
+          required: true
+          description: Identifies the cloud provider
+        - name: location
+          in: query
+          schema:
+            type: string
+          description: Identifies the cloud region. Required by Amazon only.
+      responses:
+        '200':
+          description: "Storage buckets listed"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListStorageBucketsResponse'
+        '400':
+          description: "Bad request"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - storage
+      summary: Creates a new object store bucket with the given params
+      operationId: CreateObjectStoreBucket
+      description: Creates a new object store bucket on the Cloud provider referenced by the given secret. The credentials for creating the bucket is taken from the provided secret.
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+      responses:
+        '202':
+          description: "Storage bucket creation request accepted"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateObjectStoreBucketResponse'
+        '401':
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '400':
+          description: Error while creating storage bucket
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+      requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateObjectStoreBucketRequest'
+
+  '/api/v1/orgs/{orgId}/buckets/{name}':
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - storage
+      summary: Deletes the object store bucket with the given name
+      operationId: DeleteObjectStoreBucket
+      description: Deletes the object store bucket identified by the given name. The credentials for deleting the bucket is taken from the provided secret.
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: name
+          in: path
+          required: true
+          description: Bucket identification
+          schema:
+            type: integer
+        - name: secretId
+          in: header
+          required: true
+          description: Secret identification
+          schema:
+            type: string
+        - name: cloudType
+          in: query
+          description: Identifies the cloud provider
+          schema:
+            type: string
+            enum: [amazon, google, azure]
+          required: true
+        - name: resourceGroup
+          in: query
+          description: Azure resource group the storage account that holds the bucket (storage container) to be deleted
+          schema:
+            type: string
+        - name: storageAccount
+          in: query
+          description: Azure storage account to delete the bucket (storage container) from
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "Storage bucket deleted successfully"
+        '401':
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '400':
+          description: Error while deleting storage bucket
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '404':
+          description: Object store bucket not found
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+    head:
+      security:
+        - bearerAuth: []
+      tags:
+        - storage
+      summary: Get object store bucket status
+      operationId: GetObjectStoreBucketStatus
+      description: Retrieves the status of the object store bucket given its name
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: name
+          in: path
+          required: true
+          description: Bucket identification
+          schema:
+            type: integer
+        - name: secretId
+          in: header
+          required: true
+          description: Secret identification
+          schema:
+            type: string
+        - name: cloudType
+          in: query
+          description: Identifies the cloud provider
+          schema:
+            type: string
+            enum: [amazon, google, azure]
+          required: true
+        - name: resourceGroup
+          in: query
+          description: Azure resource group the storage account that holds the bucket (storage container) be checked
+          schema:
+            type: string
+        - name: storageAccount
+          in: query
+          description: Azure storage account to delete the bucket (storage container) to be checked
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "Object store buckets exists"
+        '401':
+          description: "Unauthorized"
+        '400':
+          description: Error while checking object store bucket status
+        '404':
+          description: Object store bucket not found
+        '500':
+          description: Internal server error
 
 components:
   securitySchemes:
@@ -4398,3 +4630,94 @@ components:
         instance_type:
           type: string
           example: "n1-standard-1"
+
+    CreateObjectStoreBucketRequest:
+      type: object
+      required:
+        - secretId
+        - name
+        - properties
+      properties:
+        secretId:
+          type: string
+        name:
+          type: string
+          example: "mybucket"
+        properties:
+          oneOf:
+          - $ref: '#/components/schemas/CreateAmazonObjectStoreBucketProperties'
+          - $ref: '#/components/schemas/CreateAzureObjectStoreBucketProperties'
+          - $ref: '#/components/schemas/CreateGoogleObjectStoreBucketProperties'
+
+    CreateAmazonObjectStoreBucketProperties:
+      type: object
+      required:
+        - location
+      properties:
+        location:
+          type: string
+          example: "eu-west-1"
+
+    CreateGoogleObjectStoreBucketProperties:
+      type: object
+      required:
+        - location
+      properties:
+        location:
+          type: string
+          example: "europe"
+
+    CreateAzureObjectStoreBucketProperties:
+      type: object
+      required:
+        - storageAccount
+        - resourceGroup
+        - location
+      properties:
+        storageAccount:
+          type: string
+          example: "mystorageaccount"
+        location:
+          type: string
+          example: "westeurope"
+        resourceGroup:
+          type: string
+
+    CreateObjectStoreBucketResponse:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          example: "mybucket"
+
+    BucketInfo:
+      type: object
+      required:
+        - name
+        - managed
+      properties:
+        name:
+          type: string
+          example: "mybucket"
+        managed:
+          type: boolean
+        azure:
+          $ref: '#/components/schemas/AzureBlobStorageProps'
+
+    ListStorageBucketsResponse:
+      type: array
+      items:
+        $ref: '#/components/schemas/BucketInfo'
+
+    AzureBlobStorageProps:
+      type: object
+      required:
+        - resourceGroup
+        - storageAccount
+      properties:
+        resourceGroup:
+          type: string
+        storageAccount:
+          type: string
