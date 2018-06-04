@@ -9,10 +9,14 @@ info:
     name: Apache 2.0
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
 tags:
+  - name: applications
+    description: Application managed by Pipeline
   - name: cluster
     description: Cluster realted funtions
   - name: clusters
     description: Clusters realted funtions
+  - name: catalogs
+    description: Application catalog
   - name: deployment
     description: Functions related for a deployment
   - name: deployments
@@ -33,6 +37,138 @@ tags:
     description: Cloud config related functions
 
 paths:
+
+  '/api/v1/orgs/{orgId}/catalogs':
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - catalogs
+      summary: List catalogs
+      description: List all available catalogs
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Application list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListCatalogResponse'
+  '/api/v1/orgs/{orgId}/catalogs/{name}':
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - catalogs
+      summary: Get catalog details
+      description: Get details about specific catalog
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: name
+          in: path
+          required: true
+          description: Catalog name
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Catalog details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogDetailsResponse'
+        '404':
+          description: Catalog missing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogNotFound'
+
+  '/api/v1/orgs/{orgId}/applications':
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - applications
+      summary: List application catalogs
+      description: List all available application for lunch
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Application list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationListResponse'
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - applications
+      summary: Create new application based on catalog
+      description: Create new application based on Catalog definition s
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+
+      responses:
+       '201':
+         description: Application created
+         content:
+           application/json:
+             schema:
+              {}
+
+  '/api/v1/orgs/{orgId}/applications/{appId}':
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - applications
+      summary: List application catalogs
+      description: List all available application for lunch
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: appId
+          in: path
+          required: true
+          description: Application identification
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Application list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationDetailsResponse'
+
   '/api/v1/orgs/{orgId}/clusters':
     post:
       security:
@@ -1556,7 +1692,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseError_500'
-
   '/api/v1/orgs/{orgId}/allowed/secrets':
     get:
       security:
@@ -2112,6 +2247,298 @@ components:
       bearerFormat: JWT
 
   schemas:
+    CatalogDetailsResponse:
+      type: object
+      properties:
+        chart:
+          $ref: '#/components/schemas/CatalogChartInfo'
+        readme:
+          type: string
+          format: byte
+          example: "TXlzcWwgUmVhZG1lLm1kIGluIGJhc2U2NAo="
+          description: Catalog Readme.md in base64 encoded string
+        spotguide:
+          type: object
+          properties:
+            resources:
+              $ref: '#/components/schemas/RequestedResources'
+            options:
+              type: array
+              items:
+                oneOf:
+                  - $ref: '#/components/schemas/CatalogOptionsMysqlDatabaseName'
+                  - $ref: '#/components/schemas/CatalogOptionsMysqlDatabaseSize'
+                  - $ref: '#/components/schemas/CatalogOptionsMysqlVersion'
+                  - $ref: '#/components/schemas/CatalogOptionsMonitor'
+
+    CatalogChartInfo:
+      type: object
+      properties:
+        name:
+          type: string
+          example: mysql_pma
+        annotations:
+          type: object
+          properties:
+            displayName:
+              type: string
+              example: Mysql Server + PMA
+            longDescription:
+              type: string
+              example: Mysql Server with Mysql
+        icon:
+          type: string
+          format: uri
+          example: https://static.banzaicloud.com/catalog/mysql-logo.svg
+        description:
+          type: string
+          example: Mysql Server with Mysql
+        keywords:
+          type: array
+          example:
+            - mysql
+            - pma
+
+    CatalogOptionsMysqlDatabaseName:
+      type: object
+      properties:
+        name:
+          type: string
+          example: mysqlDatabaseName
+        type:
+          type: string
+          example: string
+        info:
+          type: string
+          example: Your mysql database name
+        default:
+          type: string
+          example: "your-mysql-database1"
+        readonly:
+          type: boolean
+          example: false
+        enabled:
+          type: boolean
+          example: true
+        key:
+          type: string
+          example: mysql.database.name
+
+    CatalogOptionsMysqlDatabaseSize:
+      type: object
+      properties:
+        name:
+          type: string
+          example: mysqlDatabaseSize
+        type:
+          type: string
+          example: string
+        info:
+          type: string
+          example: Your mysql database size in GB
+        default:
+          type: integer
+          example: "1"
+        readonly:
+          type: boolean
+          example: false
+        enabled:
+          type: boolean
+          example: true
+        key:
+          type: string
+          example: mysql.database.size
+
+    CatalogOptionsMysqlVersion:
+      type: object
+      properties:
+        name:
+          type: string
+          example: mysql_version
+        type:
+          type: string
+          example: "string"
+        info:
+          type: string
+          example: Mysql database version
+        default:
+          type: string
+          enum: [ "5.6", "5.7" ]
+          example: "5.6"
+        readonly:
+          type: boolean
+          example: false
+        key:
+          type: string
+          example: mysql.version
+
+    CatalogOptionsMonitor:
+      type: object
+      properties:
+        name:
+          type: string
+          example: monitor
+        type:
+          type: boolean
+          example: true
+        info:
+          type: string
+          example: Mysql monitoring
+        default:
+          type: boolean
+          example: true
+        readonly:
+          type: boolean
+          example: false
+        key:
+          type: string
+          example: monitor.enabled
+
+    CatalogNotFound:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 404
+        message:
+          type: string
+          example: catalog not found
+        error:
+          type: string
+          example: record not found
+
+    ListCatalogResponse:
+      type: array
+      items:
+        oneOf:
+          - $ref: '#/components/schemas/ListCatalogItem1'
+          - $ref: '#/components/schemas/ListCatalogItem2'
+
+    ListCatalogItem1:
+      type: object
+      properties:
+        name:
+          type: string
+          example: zeppelin-spark
+        displayName:
+          type: string
+          example: "Zeppelin UI + Spark on K8S"
+        description:
+          type: string
+          example: Short description of Spark-Zeppelin application
+        icon:
+          type: string
+          format: uri
+          example: https://static.banzaicloud.com/catalog/zeppelin-spark-logo.svg
+        version:
+          type: string
+          example: 0.1.0
+
+    ListCatalogItem2:
+      type: object
+      properties:
+        name:
+          type: string
+          example: mysql
+        displayName:
+          type: string
+          example: Mysql database
+        description:
+          type: string
+          example: MySQL is the world's most popular open source database.
+        icon:
+          type: string
+          format: uri
+          example: https://static.banzaicloud.com/catalog/mysql-logo.svg
+        version:
+          type: string
+          example: 0.1.0
+
+    RequestedResources:
+      type: object
+      properties:
+        sumCpu:
+          type: integer
+          example: 8
+          description: Total CPU requested for the cluster
+        sumMem:
+          type: integer
+          example: 32
+          description: Total memory requested for the cluster (GB)
+        filters:
+          type: array
+          items:
+            type: string
+        sameSize:
+          type: boolean
+          example: true
+          description: If true, recommended instance types will have a similar size
+        onDemandPct:
+          type: integer
+          example: 10
+          description: Percentage of regular (on-demand) nodes in the recommended cluster
+        minNodes:
+          type: integer
+          example: 1
+          description: Minimum number of nodes in the recommended cluster
+        maxNodes:
+          type: integer
+          example: 3
+          description: Maximum number of nodes in the recommended cluster
+
+    ApplicationCreate:
+      type: object
+      properties:
+        resources:
+          $ref: '#/components/schemas/ApplicationResources'
+
+    ApplicationListResponse:
+      type: array
+      items:
+        $ref: '#/components/schemas/ApplicationListItem'
+
+    ApplicationListItem:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Spark-Zeppelin"
+        cluster_name:
+          type: string
+          example: "My Favourite Cluster"
+        cluster_id:
+          type: integer
+          example: 0
+
+    ApplicationDetailsResponse:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Spark-Zeppelin"
+        cluster_name:
+          type: string
+          example: 0
+        cluster_id:
+          type: integer
+          example: 0
+        deployments:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                example: "schuffle-service"
+              release_name:
+                type: string
+                example: "schuffle-service"
+              state:
+                type: string
+                example: "ACTIVE"
+        readme:
+          type: string
+          example: Long readme about your application.
 
     CreateClusterRequest:
       type: object

@@ -175,6 +175,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/banzaicloud/logrus-runtime-formatter"
+  packages = ["."]
+  revision = "04abfd848b41948433e57af6d6b9f7f044ec9bad"
+
+[[projects]]
+  branch = "master"
   name = "github.com/beorn7/perks"
   packages = ["quantile"]
   revision = "3a771d992973f24aa725d07868b467d1ddfceafb"
@@ -1289,7 +1295,14 @@
 [[projects]]
   branch = "master"
   name = "k8s.io/apiextensions-apiserver"
-  packages = ["pkg/features"]
+  packages = [
+    "pkg/apis/apiextensions",
+    "pkg/apis/apiextensions/v1beta1",
+    "pkg/client/clientset/clientset",
+    "pkg/client/clientset/clientset/scheme",
+    "pkg/client/clientset/clientset/typed/apiextensions/v1beta1",
+    "pkg/features"
+  ]
   revision = "9beab23b266308fcd25e38a73285f95a88633da0"
 
 [[projects]]

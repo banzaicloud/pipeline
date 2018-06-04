@@ -8,6 +8,7 @@ import (
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/utils"
+	"github.com/go-errors/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -15,15 +16,49 @@ import (
 	"time"
 )
 
+// HookMap for api hook endpoints
+var HookMap = map[string]func(interface{}) error{
+	"PersistKubernetesKeys":            PersistKubernetesKeys,
+	"UpdatePrometheusPostHook":         UpdatePrometheusPostHook,
+	"InstallHelmPostHook":              InstallHelmPostHook,
+	"InstallIngressControllerPostHook": InstallIngressControllerPostHook,
+	"InstallMonitoring":                InstallMonitoring,
+	"InstallLogging":                   InstallLogging,
+}
+
 //RunPostHooks calls posthook functions with created cluster
-func RunPostHooks(functionList []func(cluster CommonCluster), createdCluster CommonCluster) {
+func RunPostHooks(functionList []func(interface{}) error, createdCluster CommonCluster) {
 	for _, i := range functionList {
 		i(createdCluster)
 	}
 }
 
+// InstallMonitoring to install monitoring deployment
+func InstallMonitoring(input interface{}) error {
+	var cluster CommonCluster
+	if cluster, ok := input.(CommonCluster); !ok {
+		return errors.Errorf("Wrong parameter type: %T", cluster)
+	}
+	//TODO install & ensure monitoring
+	return installDeployment(cluster, "", "", nil)
+}
+
+// InstallLogging to install logging deployment
+func InstallLogging(input interface{}) error {
+	var cluster CommonCluster
+	if cluster, ok := input.(CommonCluster); !ok {
+		return errors.Errorf("Wrong parameter type: %T", cluster)
+	}
+	//TODO install & ensure logging
+	return installDeployment(cluster, "", "", nil)
+}
+
 //PersistKubernetesKeys is a basic version of persisting keys TODO check if we need this from API or anywhere else
-func PersistKubernetesKeys(cluster CommonCluster) {
+func PersistKubernetesKeys(input interface{}) error {
+	var cluster CommonCluster
+	if cluster, ok := input.(CommonCluster); !ok {
+		return errors.Errorf("Wrong parameter type: %T", cluster)
+	}
 	log = logger.WithFields(logrus.Fields{"action": "PersistKubernetesKeys"})
 	configPath := pipConfig.GetStateStorePath(cluster.GetName())
 	log.Infof("Statestore path is: %s", configPath)
@@ -43,30 +78,30 @@ func PersistKubernetesKeys(cluster CommonCluster) {
 	}
 	if err != nil {
 		log.Errorf("Error getting kubernetes config : %s", err)
-		return
+		return err
 	}
 	log.Infof("Starting to write kubernetes config: %s", configPath)
 	if err := utils.WriteToFile(kubeConfig, configPath+"/cluster.cfg"); err != nil {
 		log.Errorf("Error writing file: %s", err.Error())
-		return
+		return err
 	}
 	config, err = helm.GetK8sClientConfig(kubeConfig)
 	if err != nil {
 		log.Errorf("Error parsing kubernetes config : %s", err)
-		return
+		return err
 	}
 	log.Infof("Starting to write kubernetes related certs/keys for: %s", configPath)
 	if err := utils.WriteToFile(config.KeyData, configPath+"/client-key-data.pem"); err != nil {
 		log.Errorf("Error writing file: %s", err.Error())
-		return
+		return err
 	}
 	if err := utils.WriteToFile(config.CertData, configPath+"/client-certificate-data.pem"); err != nil {
 		log.Errorf("Error writing file: %s", err.Error())
-		return
+		return err
 	}
 	if err := utils.WriteToFile(config.CAData, configPath+"/certificate-authority-data.pem"); err != nil {
 		log.Errorf("Error writing file: %s", err.Error())
-		return
+		return err
 	}
 
 	configMapName := viper.GetString("monitor.configmap")
@@ -75,10 +110,11 @@ func PersistKubernetesKeys(cluster CommonCluster) {
 		log.Infof("save certificates to configmap: %s", configMapName)
 		if err := saveKeysToConfigmap(config, configMapName, cluster.GetName()); err != nil {
 			log.Errorf("error saving certs to configmap: %s", err)
-			return
+			return err
 		}
 	}
 	log.Infof("Writing kubernetes related certs/keys succeeded.")
+	return nil
 }
 
 func saveKeysToConfigmap(config *rest.Config, configName string, clusterName string) error {
@@ -97,52 +133,52 @@ func saveKeysToConfigmap(config *rest.Config, configName string, clusterName str
 	return nil
 }
 
-//InstallIngressControllerPostHook post hooks can't return value, they can log error and/or update state?
-func InstallIngressControllerPostHook(cluster CommonCluster) {
+func installDeployment(cluster CommonCluster, deploymentName string, releaseName string, values []byte) error {
 	// --- [ Get K8S Config ] --- //
 	log = logger.WithFields(logrus.Fields{"action": "InstallIngressController"})
 
 	kubeConfig, err := cluster.GetK8sConfig()
 	if err != nil {
 		log.Errorf("Unable to fetch config for posthook: %s", err.Error())
-		return
+		return err
 	}
-
-	deploymentName := "banzaicloud-stable/pipeline-cluster-ingress"
-	releaseName := "pipeline"
 
 	org, err := auth.GetOrganizationById(cluster.GetOrganizationId())
 	if err != nil {
 		log.Errorf("Error during getting organization: %s", err.Error())
-		return
+		return err
 	}
 
-	_, err = helm.CreateDeployment(deploymentName, releaseName, nil, kubeConfig, org.Name)
+	_, err = helm.CreateDeployment(deploymentName, releaseName, nil, kubeConfig, helm.CreateEnvSettings(org.Name))
 	if err != nil {
-		log.Errorf("Deploying '%s' failed due to: ", deploymentName)
-		log.Errorf("%s", err.Error())
-		return
+		log.Errorf("Deploying '%s' failed due to: %s", deploymentName, err.Error())
+		return err
 	}
 	log.Infof("'%s' installed", deploymentName)
+	return nil
 }
 
-//GetConfigPostHook functions with func(*cluster.Cluster) signature
-func GetConfigPostHook(cluster CommonCluster) {
-	log = logger.WithFields(logrus.Fields{"action": "PostHook"})
-	createdCluster, err := cluster.GetK8sConfig()
-	if err != nil {
-		log.Errorf("error during get config post hook: %v", createdCluster)
-		return
+//InstallIngressControllerPostHook post hooks can't return value, they can log error and/or update state?
+func InstallIngressControllerPostHook(input interface{}) error {
+	var cluster CommonCluster
+	if cluster, ok := input.(CommonCluster); !ok {
+		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
+	return installDeployment(cluster, "banzaicloud-stable/pipeline-cluster-ingress", "pipeline", nil)
 }
 
 //UpdatePrometheusPostHook updates a configmap used by Prometheus
-func UpdatePrometheusPostHook(_ CommonCluster) {
+func UpdatePrometheusPostHook(_ interface{}) error {
 	UpdatePrometheus()
+	return nil
 }
 
 //InstallHelmPostHook this posthook installs the helm related things
-func InstallHelmPostHook(cluster CommonCluster) {
+func InstallHelmPostHook(input interface{}) error {
+	var cluster CommonCluster
+	if cluster, ok := input.(CommonCluster); !ok {
+		return errors.Errorf("Wrong parameter type: %T", cluster)
+	}
 	log = logger.WithFields(logrus.Fields{"action": "PostHook"})
 
 	retryAttempts := viper.GetInt(constants.HELM_RETRY_ATTEMPT_CONFIG)
@@ -156,7 +192,7 @@ func InstallHelmPostHook(cluster CommonCluster) {
 	kubeconfig, err := cluster.GetK8sConfig()
 	if err != nil {
 		log.Errorf("Error retrieving kubernetes config: %s", err.Error())
-		return
+		return err
 	}
 
 	err = helm.RetryHelmInstall(helmInstall, kubeconfig)
@@ -164,14 +200,14 @@ func InstallHelmPostHook(cluster CommonCluster) {
 		// Get K8S Config //
 		kubeConfig, err := cluster.GetK8sConfig()
 		if err != nil {
-			return
+			return err
 		}
 		log.Info("Getting K8S Config Succeeded")
 		for i := 0; i <= retryAttempts; i++ {
 			log.Infof("Waiting for tiller to come up %d/%d", i, retryAttempts)
 			_, err = helm.GetHelmClient(kubeConfig)
 			if err == nil {
-				return
+				return nil
 			}
 			log.Warnf("Error during getting helm client: %s", err.Error())
 			time.Sleep(time.Duration(retrySleepSeconds) * time.Second)
@@ -180,6 +216,7 @@ func InstallHelmPostHook(cluster CommonCluster) {
 	} else {
 		log.Errorf("Error during retry helm install: %s", err.Error())
 	}
+	return nil
 }
 
 //UpdatePrometheus updates a configmap used by Prometheus

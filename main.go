@@ -71,6 +71,8 @@ func main() {
 		&model.GoogleNodePoolModel{},
 		&model.DummyClusterModel{},
 		&model.KubernetesClusterModel{},
+		&model.Deployment{},
+		&model.ApplicationModel{},
 		&auth.AuthIdentity{},
 		&auth.User{},
 		&auth.UserOrganization{},
@@ -88,6 +90,7 @@ func main() {
 
 	defaults.SetDefaultValues()
 
+	//Initialise Gin router
 	router := gin.New()
 
 	// These two paths can contain sensitive information, so it is advised not to log them out.
@@ -104,13 +107,21 @@ func main() {
 
 	basePath := viper.GetString("pipeline.basepath")
 	v1 := router.Group(basePath + "/api/v1/")
+	v1.GET("/functions", api.ListFunctions)
 	{
 		v1.Use(auth.Handler)
 		v1.Use(auth.NewAuthorizer())
 		orgs := v1.Group("/orgs")
 		{
 			orgs.Use(api.OrganizationMiddleware)
-			orgs.POST("/:orgid/clusters", api.CreateCluster)
+
+			orgs.GET("/:orgid/applications", api.GetApplications)
+			orgs.POST("/:orgid/applications", api.CreateApplication)
+
+			orgs.GET("/:orgid/catalogs", api.GetCatalogs)
+			orgs.GET("/:orgid/catalogs/:name", api.CatalogDetails)
+
+			orgs.POST("/:orgid/clusters", api.CreateClusterRequest)
 			//v1.GET("/status", api.Status)
 			orgs.GET("/:orgid/clusters", api.FetchClusters)
 			orgs.GET("/:orgid/clusters/:id", api.GetClusterStatus)
