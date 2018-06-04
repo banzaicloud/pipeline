@@ -3,7 +3,6 @@ package api
 import (
 	"net/http"
 
-	"encoding/base64"
 	"fmt"
 
 	"github.com/banzaicloud/banzai-types/components"
@@ -11,6 +10,7 @@ import (
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/go-errors/errors"
 	"github.com/sirupsen/logrus"
@@ -41,7 +41,7 @@ func AddSecrets(c *gin.Context) {
 	}
 	//Check if the received value is base64 encoded if not encode it.
 	if createSecretRequest.Values[secret.K8SConfig] != "" {
-		createSecretRequest.Values[secret.K8SConfig] = encodeStringToBase64(createSecretRequest.Values[secret.K8SConfig])
+		createSecretRequest.Values[secret.K8SConfig] = utils.EncodeStringToBase64(createSecretRequest.Values[secret.K8SConfig])
 	}
 
 	log.Info("Binding request succeeded")
@@ -100,7 +100,7 @@ func UpdateSecrets(c *gin.Context) {
 	}
 	//Check if the received value is base64 encoded if not encode it.
 	if createSecretRequest.Values[secret.K8SConfig] != "" {
-		createSecretRequest.Values[secret.K8SConfig] = encodeStringToBase64(createSecretRequest.Values[secret.K8SConfig])
+		createSecretRequest.Values[secret.K8SConfig] = utils.EncodeStringToBase64(createSecretRequest.Values[secret.K8SConfig])
 	}
 
 	log.Info("Binding request succeeded")
@@ -200,6 +200,13 @@ func DeleteSecrets(c *gin.Context) {
 			Message: fmt.Sprintf("Cluster found with this secret[%s]", secretID),
 			Error:   err.Error(),
 		})
+	} else if err := searchForbiddenTags(organizationID, secretID); err != nil {
+		log.Errorf("Error during deleting secrets: %s", err.Error())
+		c.AbortWithStatusJSON(http.StatusInternalServerError, components.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: "Error during deleting secrets",
+			Error:   err.Error(),
+		})
 	} else if err := secret.Store.Delete(organizationID, secretID); err != nil {
 		log.Errorf("Error during deleting secrets: %s", err.Error())
 		code := http.StatusInternalServerError
@@ -290,10 +297,12 @@ func checkClustersBeforeDelete(orgId, secretId string) error {
 	return nil
 }
 
-// encodeStringToBase64 first checks if the string is encoded if yes returns it if no than encodes it.
-func encodeStringToBase64(s string) string {
-	if _, err := base64.StdEncoding.DecodeString(s); err != nil {
-		return base64.StdEncoding.EncodeToString([]byte(s))
+func searchForbiddenTags(orgId, secretId string) error {
+
+	secretItem, err := secret.Store.Get(orgId, secretId)
+	if err != nil {
+		return err
 	}
-	return s
+
+	return secret.IsForbiddenTag(secretItem.Tags)
 }

@@ -54,9 +54,9 @@ func CreateAKSClusterFromRequest(request *components.CreateClusterRequest, orgId
 type AKSCluster struct {
 	azureCluster *banzaiAzureTypes.Value //Don't use this directly
 	modelCluster *model.ClusterModel
-	k8sConfig    []byte
 	APIEndpoint  string
 	commonSecret
+	commonConfig
 }
 
 // GetOrganizationId gets org where the cluster belongs
@@ -169,11 +169,8 @@ func (c *AKSCluster) Persist(status, statusMessage string) error {
 	return c.modelCluster.UpdateStatus(status, statusMessage)
 }
 
-//GetK8sConfig returns the Kubernetes config
-func (c *AKSCluster) GetK8sConfig() ([]byte, error) {
-	if c.k8sConfig != nil {
-		return c.k8sConfig, nil
-	}
+// DownloadK8sConfig downloads the kubeconfig file from cloud
+func (c *AKSCluster) DownloadK8sConfig() ([]byte, error) {
 	client, err := c.GetAKSClient()
 	if err != nil {
 		return nil, err
@@ -190,8 +187,8 @@ func (c *AKSCluster) GetK8sConfig() ([]byte, error) {
 		return nil, err
 	}
 	log.Info("Get k8s config succeeded")
-	c.k8sConfig = []byte(config.Properties.KubeConfig)
-	return c.k8sConfig, nil
+	kubeConfig := []byte(config.Properties.KubeConfig)
+	return kubeConfig, nil
 }
 
 //GetName returns the name of the cluster
@@ -641,4 +638,19 @@ func (c *AKSCluster) validateKubernetesVersion(k8sVersion, location string) erro
 // GetSecretWithValidation returns secret from vault
 func (c *AKSCluster) GetSecretWithValidation() (*secret.SecretsItemResponse, error) {
 	return c.commonSecret.get(c)
+}
+
+// SaveConfigSecretId saves the config secret id in database
+func (c *AKSCluster) SaveConfigSecretId(configSecretId string) error {
+	return c.modelCluster.UpdateConfigSecret(configSecretId)
+}
+
+// GetConfigSecretId return config secret id
+func (c *AKSCluster) GetConfigSecretId() string {
+	return c.modelCluster.ConfigSecretId
+}
+
+// GetK8sConfig returns the Kubernetes config
+func (c *AKSCluster) GetK8sConfig() ([]byte, error) {
+	return c.commonConfig.get(c)
 }

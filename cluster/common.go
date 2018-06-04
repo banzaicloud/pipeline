@@ -7,6 +7,7 @@ import (
 	"strings"
 	"syscall"
 
+	"encoding/base64"
 	bTypes "github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/config"
@@ -25,7 +26,7 @@ var log *logrus.Entry
 type CommonCluster interface {
 	CreateCluster() error
 	Persist(string, string) error
-	GetK8sConfig() ([]byte, error)
+	DownloadK8sConfig() ([]byte, error)
 	GetName() string
 	GetType() string
 	GetStatus() (*bTypes.GetClusterStatusResponse, error)
@@ -43,10 +44,17 @@ type CommonCluster interface {
 	GetClusterDetails() (*bTypes.ClusterDetailsResponse, error)
 	ValidateCreationFields(r *bTypes.CreateClusterRequest) error
 	GetSecretWithValidation() (*secret.SecretsItemResponse, error)
+	SaveConfigSecretId(string) error
+	GetConfigSecretId() string
+	GetK8sConfig() ([]byte, error)
 }
 
 type commonSecret struct {
 	secret *secret.SecretsItemResponse
+}
+
+type commonConfig struct {
+	config []byte
 }
 
 func (cs *commonSecret) get(cluster CommonCluster) (*secret.SecretsItemResponse, error) {
@@ -69,9 +77,34 @@ func (cs *commonSecret) get(cluster CommonCluster) (*secret.SecretsItemResponse,
 	return cs.secret, err
 }
 
+func (cc *commonConfig) get(cluster CommonCluster) ([]byte, error) {
+	if cc.config == nil {
+		log.Info("config is nil.. load from vault")
+		configSecret, err := getConfigSecret(cluster)
+		if err != nil {
+			return nil, err
+		}
+
+		configStr, err := base64.StdEncoding.DecodeString(configSecret.GetValue(secret.K8SConfig))
+		if err != nil {
+			return nil, err
+		}
+
+		cc.config = []byte(configStr)
+	} else {
+		log.Info("Config is loaded before")
+	}
+	return cc.config, nil
+}
+
 func getSecret(cluster CommonCluster) (*secret.SecretsItemResponse, error) {
 	org := strconv.FormatUint(uint64(cluster.GetOrganizationId()), 10)
 	return secret.Store.Get(org, cluster.GetSecretID())
+}
+
+func getConfigSecret(cluster CommonCluster) (*secret.SecretsItemResponse, error) {
+	org := strconv.FormatUint(uint64(cluster.GetOrganizationId()), 10)
+	return secret.Store.Get(org, cluster.GetConfigSecretId())
 }
 
 //GetCommonClusterFromModel extracts CommonCluster from a ClusterModel

@@ -51,9 +51,9 @@ func SetCredentials(awscred *credentials.Credentials) func(*session.Options) err
 type AWSCluster struct {
 	kubicornCluster *kcluster.Cluster //Don't use this directly
 	modelCluster    *model.ClusterModel
-	k8sConfig       []byte
 	APIEndpoint     string
 	commonSecret
+	commonConfig
 }
 
 // GetOrganizationId gets org where the cluster belongs
@@ -810,23 +810,14 @@ func (c *AWSCluster) DeleteCluster() error {
 	return nil
 }
 
-//GetK8sConfig returns the Kubernetes config
-func (c *AWSCluster) GetK8sConfig() ([]byte, error) {
-	if c.k8sConfig != nil {
-		return c.k8sConfig, nil
-	}
+// DownloadK8sConfig downloads the kubeconfig file from cloud
+func (c *AWSCluster) DownloadK8sConfig() ([]byte, error) {
 	kubicornCluster, err := c.GetKubicornCluster()
 	if err != nil {
 		err = errors.Wrap(err, "error getting kubicorn cluster")
 		return nil, err
 	}
-	kubeConfig, err := DownloadK8sConfig(kubicornCluster, fmt.Sprint(c.GetModel().OrganizationId), c.GetModel().ID)
-	if err != nil {
-		err = errors.Wrap(err, "error downloading kubernetes config")
-		return nil, err
-	}
-	c.k8sConfig = kubeConfig
-	return c.k8sConfig, nil
+	return DownloadK8sConfig(kubicornCluster, fmt.Sprint(c.GetModel().OrganizationId), c.GetModel().ID)
 }
 
 //DownloadK8sConfig downloads the Kubernetes config from the cluster
@@ -1090,7 +1081,7 @@ func (c *AWSCluster) GetClusterDetails() (*components.ClusterDetailsResponse, er
 	log := logger.WithFields(logrus.Fields{"tag": "GetClusterDetails"})
 	log.Info("Start getting cluster details")
 
-	c.GetK8sConfig()
+	c.DownloadK8sConfig()
 	c.GetAPIEndpoint()
 	kubicornCluster, err := c.GetKubicornCluster()
 	if err != nil {
@@ -1187,4 +1178,19 @@ func (c *AWSCluster) validateAMIs(masterAMI string, nodePools map[string]*amazon
 // GetSecretWithValidation returns secret from vault
 func (c *AWSCluster) GetSecretWithValidation() (*secret.SecretsItemResponse, error) {
 	return c.commonSecret.get(c)
+}
+
+// SaveConfigSecretId saves the config secret id in database
+func (c *AWSCluster) SaveConfigSecretId(configSecretId string) error {
+	return c.modelCluster.UpdateConfigSecret(configSecretId)
+}
+
+// GetConfigSecretId return config secret id
+func (c *AWSCluster) GetConfigSecretId() string {
+	return c.modelCluster.ConfigSecretId
+}
+
+// GetK8sConfig returns the Kubernetes config
+func (c *AWSCluster) GetK8sConfig() ([]byte, error) {
+	return c.commonConfig.get(c)
 }

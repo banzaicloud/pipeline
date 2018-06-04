@@ -6,9 +6,11 @@ import (
 
 	"encoding/json"
 	"github.com/banzaicloud/banzai-types/constants"
+	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
+	"strconv"
 	"time"
 )
 
@@ -25,6 +27,7 @@ type ClusterModel struct {
 	Cloud          string
 	OrganizationId uint `gorm:"unique_index:idx_unique_id"`
 	SecretId       string
+	ConfigSecretId string
 	Status         string
 	Monitoring     bool
 	Logging        bool
@@ -183,8 +186,20 @@ func (cs *ClusterModel) Save() error {
 	return nil
 }
 
+func (cs *ClusterModel) preDelete() error {
+	return secret.Store.Delete(strconv.Itoa(int(cs.OrganizationId)), cs.ConfigSecretId)
+}
+
 //Delete cluster from DB
 func (cs *ClusterModel) Delete() error {
+	log := logger.WithFields(logrus.Fields{"tag": "Delete"})
+
+	log.Info("Delete config secret")
+	err := cs.preDelete()
+	if err != nil {
+		log.Warnf("Error during deleting config secret: %s", err.Error())
+	}
+
 	db := GetDB()
 	return db.Delete(&cs).Error
 }
@@ -322,5 +337,11 @@ func (a *AmazonClusterModel) AfterUpdate(scope *gorm.Scope) error {
 func (cs *ClusterModel) UpdateStatus(status, statusMessage string) error {
 	cs.Status = status
 	cs.StatusMessage = statusMessage
+	return cs.Save()
+}
+
+// UpdateConfigSecret updates the model's config secret id in database
+func (cs *ClusterModel) UpdateConfigSecret(configSecretId string) error {
+	cs.ConfigSecretId = configSecretId
 	return cs.Save()
 }

@@ -177,6 +177,16 @@ const (
 	PrivateKeyData       = "private_key_data"
 )
 
+// Internal usage
+const (
+	TagKubeConfig = "KubeConfig"
+)
+
+// ForbiddenTags are not supported in secret creation
+var ForbiddenTags = []string{
+	TagKubeConfig,
+}
+
 // Validate SecretRequest
 func (r *CreateSecretRequest) Validate() error {
 	requiredKeys, ok := DefaultRules[r.Type]
@@ -270,6 +280,7 @@ func (ss *secretStore) Get(organizationID string, secretID string) (*SecretsItem
 		ID:   secretID,
 		Name: data["name"].(string),
 		Type: data["type"].(string),
+		Tags: cast.ToStringSlice(data["tags"]),
 	}
 
 	secretResp.Values = cast.ToStringMapString(data["values"])
@@ -335,7 +346,13 @@ func (ss *secretStore) List(organizationID string, query *ListSecretsQuery) ([]S
 						}
 					}
 
-					responseItems = append(responseItems, sir)
+					err := IsForbiddenTag(stags)
+					if err != nil {
+						log.Debugf("Secret[%s] with forbidden tag(s). Do not add to list", secretID)
+					} else {
+						responseItems = append(responseItems, sir)
+					}
+
 				}
 			}
 		}
@@ -381,4 +398,27 @@ func (m MissmatchError) Error() string {
 		return fmt.Sprintf("missmatch secret type %s versus %s", m.SecretType, m.ValidType)
 	}
 	return m.Err.Error()
+}
+
+// ForbiddenError describes a secret error where it contains forbidden tag
+type ForbiddenError struct {
+	ForbiddenTag string
+}
+
+func (f ForbiddenError) Error() string {
+	return fmt.Sprintf("secret contains a forbidden tag: %s", f.ForbiddenTag)
+}
+
+// IsForbiddenTag is looking for forbidden tags
+func IsForbiddenTag(tags []string) error {
+	for _, tag := range tags {
+		for _, forbiddenTag := range ForbiddenTags {
+			if tag == forbiddenTag {
+				return ForbiddenError{
+					ForbiddenTag: tag,
+				}
+			}
+		}
+	}
+	return nil
 }

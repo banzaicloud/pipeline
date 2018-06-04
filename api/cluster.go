@@ -267,6 +267,7 @@ func postCreateCluster(commonCluster cluster.CommonCluster) error {
 	// Apply PostHooks
 	// These are hardcoded posthooks maybe we will want a bit more dynamic
 	postHookFunctions := []func(commonCluster interface{}) error{
+		cluster.StoreKubeConfig,
 		cluster.PersistKubernetesKeys,
 		cluster.UpdatePrometheusPostHook,
 		cluster.InstallHelmPostHook,
