@@ -35,8 +35,8 @@ func RunPostHooks(functionList []func(interface{}) error, createdCluster CommonC
 
 // InstallMonitoring to install monitoring deployment
 func InstallMonitoring(input interface{}) error {
-	var cluster CommonCluster
-	if cluster, ok := input.(CommonCluster); !ok {
+	cluster, ok := input.(CommonCluster)
+	if !ok {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
 	//TODO install & ensure monitoring
@@ -45,8 +45,8 @@ func InstallMonitoring(input interface{}) error {
 
 // InstallLogging to install logging deployment
 func InstallLogging(input interface{}) error {
-	var cluster CommonCluster
-	if cluster, ok := input.(CommonCluster); !ok {
+	cluster, ok := input.(CommonCluster)
+	if !ok {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
 	//TODO install & ensure logging
@@ -55,8 +55,8 @@ func InstallLogging(input interface{}) error {
 
 //PersistKubernetesKeys is a basic version of persisting keys TODO check if we need this from API or anywhere else
 func PersistKubernetesKeys(input interface{}) error {
-	var cluster CommonCluster
-	if cluster, ok := input.(CommonCluster); !ok {
+	cluster, ok := input.(CommonCluster)
+	if !ok {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
 	log = logger.WithFields(logrus.Fields{"action": "PersistKubernetesKeys"})
@@ -160,8 +160,8 @@ func installDeployment(cluster CommonCluster, deploymentName string, releaseName
 
 //InstallIngressControllerPostHook post hooks can't return value, they can log error and/or update state?
 func InstallIngressControllerPostHook(input interface{}) error {
-	var cluster CommonCluster
-	if cluster, ok := input.(CommonCluster); !ok {
+	cluster, ok := input.(CommonCluster)
+	if !ok {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
 	return installDeployment(cluster, "banzaicloud-stable/pipeline-cluster-ingress", "pipeline", nil)
@@ -175,8 +175,8 @@ func UpdatePrometheusPostHook(_ interface{}) error {
 
 //InstallHelmPostHook this posthook installs the helm related things
 func InstallHelmPostHook(input interface{}) error {
-	var cluster CommonCluster
-	if cluster, ok := input.(CommonCluster); !ok {
+	cluster, ok := input.(CommonCluster)
+	if !ok {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
 	log = logger.WithFields(logrus.Fields{"action": "PostHook"})
