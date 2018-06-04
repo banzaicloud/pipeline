@@ -93,6 +93,8 @@ const (
 	GenericSecret = "generic"
 	// AllSecrets represents generic secret types which selects all secrets
 	AllSecrets = ""
+	// SshSecretType marks secrets as of type "ssh"
+	SshSecretType = "ssh"
 )
 
 // DefaultRules key matching for types
@@ -122,6 +124,14 @@ var DefaultRules = map[string][]string{
 	constants.Kubernetes: {
 		K8SConfig,
 	},
+	SshSecretType: {
+		User,
+		Identifier,
+		PublicKeyData,
+		PublicKeyFingerprint,
+		PrivateKeyData,
+	},
+
 	GenericSecret: {},
 }
 
@@ -156,6 +166,15 @@ const (
 // Kubernetes keys
 const (
 	K8SConfig = "K8Sconfig"
+)
+
+// Ssh keys
+const (
+	User                 = "user"
+	Identifier           = "identifier"
+	PublicKeyData        = "public_key_data"
+	PublicKeyFingerprint = "public_key_fingerprint"
+	PrivateKeyData       = "private_key_data"
 )
 
 // Validate SecretRequest
@@ -198,6 +217,8 @@ func (ss *secretStore) Store(organizationID, secretID string, value *CreateSecre
 
 	log.Debugln("Storing secret:", path)
 
+	sort.Strings(value.Tags)
+
 	data := map[string]interface{}{"value": value}
 
 	if _, err := ss.logical.Write(path, data); err != nil {
@@ -214,6 +235,8 @@ func (ss *secretStore) Update(organizationID, secretID string, value *CreateSecr
 	path := secretPath(organizationID, secretID)
 
 	log.Debugln("Update secret:", path)
+
+	sort.Strings(value.Tags)
 
 	data := map[string]interface{}{"value": *value}
 

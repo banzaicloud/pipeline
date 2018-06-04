@@ -1,7 +1,7 @@
 {
 	"info": {
-		"_postman_id": "fef3fd79-f0d3-4a75-840e-a0e0453bfd28",
-		"name": "End2End TEST Organizations copy",
+		"_postman_id": "f5a16c93-659a-44a1-be9d-8316f6f84c4c",
+		"name": "End2End TEST Organizations",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -1492,11 +1492,11 @@
 			]
 		},
 		{
-			"name": "Catalogs",
+			"name": "Catalog",
 			"description": "",
 			"item": [
 				{
-					"name": "Catalog list",
+					"name": "Catalog List",
 					"request": {
 						"method": "GET",
 						"header": [],
@@ -2771,6 +2771,65 @@
 						"body": {
 							"mode": "raw",
 							"raw": "{\n\t\"name\": \"My google secret\",\n\t\"type\": \"google\",\n\t\"values\": {\n\t\t\"type\": \"{{gke_type}}\",\n\t\t\"project_id\": \"{{gke-projectId}}\",\n\t\t\"private_key_id\": \"{{private_key_id}}\",\n\t\t\"private_key\": \"{{private_key}}\",\n\t\t\"client_email\": \"{{client_email}}\",\n\t\t\"client_id\": \"{{client_id}}\",\n\t\t\"auth_uri\": \"{{auth_uri}}\",\n\t\t\"token_uri\": \"{{token_uri}}\",\n\t\t\"auth_provider_x509_cert_url\": \"{{auth_provider_x509_cert_url}}\",\n\t\t\"client_x509_cert_url\": \"{{client_x509_cert_url}}\"\n\t}\n}"
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/{{orgId}}/secrets",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								"{{orgId}}",
+								"secrets"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add secret SSH",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "6196696f-c96b-4726-805a-f5334380d2ae",
+								"type": "text/javascript",
+								"exec": [
+									"if (responseCode.code === 201) {",
+									"    tests[\"Response Code 201\"] = responseCode.code == 201;",
+									"",
+									"    pm.environment.set(\"timestampHeader\", new Date());",
+									"    var dataJSON = JSON.parse(responseBody);",
+									"    pm.environment.set(\"secret_id\", dataJSON.secret_id);",
+									"    tests[\"Secret ID: \" + dataJSON.secret_id] = true;",
+									"} else {",
+									"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+									"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+									"    console.warn(responseBody);",
+									"    postman.setNextRequest(null);",
+									"}",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"name\": \"My ssh secret\",\n\t\"type\": \"ssh\",\n\t\"values\": {\n\t\t\"identifier\": \"\",\n\t\t\"private_key_data\": \"\",\n\t\t\"public_key_data\": \"\",\n\t\t\"public_key_fingerprint\": \"\",\n\t\t\"user\": \"\"\n\t}\n}\n"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/{{orgId}}/secrets",
@@ -4217,6 +4276,28 @@
 				}
 			},
 			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "844556e1-147c-408f-b994-fd3b011a6c78",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "55d10152-fb2d-44b5-bc60-84727e00e928",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
 		}
 	]
 }

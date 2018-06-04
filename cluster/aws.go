@@ -13,10 +13,10 @@ import (
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/secret"
+	pipelineSsh "github.com/banzaicloud/pipeline/ssh"
 	"github.com/banzaicloud/pipeline/utils"
 	kcluster "github.com/kubicorn/kubicorn/apis/cluster"
 	"github.com/kubicorn/kubicorn/pkg"
-	"github.com/kubicorn/kubicorn/pkg/initapi"
 	"github.com/kubicorn/kubicorn/pkg/kubeadm"
 	kubicornLogger "github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/kubicorn/kubicorn/pkg/uuid"
@@ -185,20 +185,18 @@ func (c *AWSCluster) CreateCluster() error {
 
 	//TODO check if this should be private
 	c.kubicornCluster = GetKubicornProfile(c.modelCluster)
-	sshKeyPath := viper.GetString("cloud.keypath")
-	//TODO move to the profile section
-	if sshKeyPath != "" {
-		log.Debug("Overwriting default SSH key path to:", sshKeyPath)
-		c.kubicornCluster.SSH.PublicKeyPath = sshKeyPath
-	}
 
-	log.Info("Init cluster")
-	newCluster, err := initapi.InitCluster(c.kubicornCluster)
-
+	sshSecretID, sshKey, err := pipelineSsh.KeyAdd(c.GetModel().OrganizationId, c.GetModel().ID)
 	if err != nil {
 		return err
 	}
 
+	c.GetModel().Amazon.SshSecretID = sshSecretID
+
+	c.kubicornCluster.SSH.PublicKeyData = []byte(sshKey.PublicKeyData)
+	c.kubicornCluster.SSH.PublicKeyFingerprint = sshKey.PublicKeyFingerprint
+
+	newCluster := c.kubicornCluster
 	log.Info("Get reconciler")
 	reconciler, err := pkg.GetReconciler(newCluster, &runtimeParam)
 
@@ -591,6 +589,7 @@ func (c *AWSCluster) UpdateCluster(request *components.UpdateClusterRequest) err
 			MasterInstanceType: c.modelCluster.Amazon.MasterInstanceType,
 			MasterImage:        c.modelCluster.Amazon.MasterImage,
 			NodePools:          updatedNodePools,
+			SshSecretID:        c.modelCluster.Amazon.SshSecretID,
 		},
 	}
 
@@ -821,7 +820,7 @@ func (c *AWSCluster) GetK8sConfig() ([]byte, error) {
 		err = errors.Wrap(err, "error getting kubicorn cluster")
 		return nil, err
 	}
-	kubeConfig, err := DownloadK8sConfig(kubicornCluster)
+	kubeConfig, err := DownloadK8sConfig(kubicornCluster, fmt.Sprint(c.GetModel().OrganizationId), c.GetModel().ID)
 	if err != nil {
 		err = errors.Wrap(err, "error downloading kubernetes config")
 		return nil, err
@@ -832,11 +831,9 @@ func (c *AWSCluster) GetK8sConfig() ([]byte, error) {
 
 //DownloadK8sConfig downloads the Kubernetes config from the cluster
 // Todo check first if config is locally available
-func DownloadK8sConfig(kubicornCluster *kcluster.Cluster) ([]byte, error) {
+func DownloadK8sConfig(kubicornCluster *kcluster.Cluster, organizationID string, ClusterID uint) ([]byte, error) {
 
 	user := kubicornCluster.SSH.User
-	pubKeyPath := expand(kubicornCluster.SSH.PublicKeyPath)
-	privKeyPath := strings.Replace(pubKeyPath, ".pub", "", 1)
 	address := fmt.Sprintf("%s:%s", kubicornCluster.KubernetesAPI.Endpoint, "22")
 
 	sshConfig := &ssh.ClientConfig{
@@ -849,12 +846,12 @@ func DownloadK8sConfig(kubicornCluster *kcluster.Cluster) ([]byte, error) {
 	} else {
 		remotePath = fmt.Sprintf("/home/%s/.kube/config", user)
 	}
-
-	pemBytes, err := ioutil.ReadFile(privKeyPath)
+	key, err := pipelineSsh.KeyGet(organizationID, ClusterID)
 	if err != nil {
-
 		return nil, err
 	}
+
+	pemBytes := []byte(key.PrivateKeyData)
 
 	signer, err := getSigner(pemBytes)
 	if err != nil {

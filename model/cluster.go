@@ -43,6 +43,7 @@ type AmazonClusterModel struct {
 	MasterInstanceType string
 	MasterImage        string
 	NodePools          []*AmazonNodePoolsModel `gorm:"foreignkey:ClusterModelId"`
+	SshSecretID        string
 }
 
 //AmazonNodePoolsModel describes Amazon node groups model of a cluster
