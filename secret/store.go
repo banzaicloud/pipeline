@@ -217,6 +217,8 @@ func (ss *secretStore) Store(organizationID, secretID string, value *CreateSecre
 
 	log.Debugln("Storing secret:", path)
 
+	sort.Strings(value.Tags)
+
 	data := map[string]interface{}{"value": value}
 
 	if _, err := ss.logical.Write(path, data); err != nil {
@@ -233,6 +235,8 @@ func (ss *secretStore) Update(organizationID, secretID string, value *CreateSecr
 	path := secretPath(organizationID, secretID)
 
 	log.Debugln("Update secret:", path)
+
+	sort.Strings(value.Tags)
 
 	data := map[string]interface{}{"value": *value}
 
