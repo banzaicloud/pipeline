@@ -1994,6 +1994,8 @@ paths:
             application/json:
               schema:
                 type: array
+                items:
+                  type: string
                 example: [
                   "/api/v1/orgs",
                   "/api/v1/orgs/:orgid",
@@ -2295,6 +2297,8 @@ components:
           example: Mysql Server with Mysql
         keywords:
           type: array
+          items:
+            type: string
           example:
             - mysql
             - pma
@@ -2485,12 +2489,6 @@ components:
           type: integer
           example: 3
           description: Maximum number of nodes in the recommended cluster
-
-    ApplicationCreate:
-      type: object
-      properties:
-        resources:
-          $ref: '#/components/schemas/ApplicationResources'
 
     ApplicationListResponse:
       type: array
@@ -3162,6 +3160,8 @@ components:
                 properties:
                   name:
                     type: array
+                    items:
+                      type: string
                     example: ["asia.gcr.io/google_containers/node-problem-detector@sha256:f95cab985c26b2f46e9bd43283e0bfa88860c14e0fb0649266babe8b65e", "eu.gcr.io/google_containers/node-problem-detector@sha256:f95cab985c26b2f46e9bd43283e0bfa88860c14e0fb0649266babe"]
                   sizeBytes:
                     type: integer
@@ -3370,6 +3370,8 @@ components:
                     example: "https://github.com/kubernetes/ingress-nginx"
                   sources:
                     type: array
+                    items:
+                      type: string
                     example: ["https://github.com/kubernetes/ingress-nginx"]
                   version:
                     type: string
@@ -3379,6 +3381,8 @@ components:
                     example: "An nginx Ingress controller that uses ConfigMap to store the nginx configuration."
                   keywords:
                     type: array
+                    items:
+                      type: string
                     example: ["ingress, nginx"]
                   maintainers:
                     type: array
@@ -3409,6 +3413,8 @@ components:
                     example: flase
                   urls:
                     type: array
+                    items:
+                      type: string
                     example: ["https://kubernetes-charts.storage.googleapis.com/nginx-ingress-0.13.1.tgz"]
                   created:
                     type: string
@@ -3430,6 +3436,8 @@ components:
                 example: "https://github.com/kubernetes/ingress-nginx"
               sources:
                 type: array
+                items:
+                  type: string
                 example: ["https://github.com/kubernetes/ingress-nginx"]
               version:
                 type: string
@@ -3439,6 +3447,8 @@ components:
                 example: "An nginx Ingress controller that uses ConfigMap to store the nginx configuration."
               keywords:
                 type: array
+                items:
+                  type: string
                 example: ["ingress, nginx"]
               maintainers:
                 type: array
@@ -3469,6 +3479,8 @@ components:
                 example: flase
               urls:
                 type: array
+                items:
+                  type: string
                 example: ["https://kubernetes-charts.storage.googleapis.com/nginx-ingress-0.13.1.tgz"]
               created:
                 type: string
@@ -3793,8 +3805,13 @@ components:
         type:
           type: string
           example: "google"
-        values:
+        tags:
           type: array
+          items:
+            type: string
+          example: [ "tag1", "tag2" ]
+        values:
+          type: object
           example:
             type: "<hidden>"
             project_id: "<hidden>"
@@ -3816,7 +3833,7 @@ components:
         type:
           type: string
           example: "google"
-        secret_id:
+        id:
           type: string
           example: "62bc3c75-91fb-4670-bad4-24b401a9deac"
 
@@ -3829,6 +3846,11 @@ components:
         type:
           type: string
           example: "google"
+        tags:
+          type: array
+          items:
+            type: string
+          example: [ "tag1", "tag2" ]
         values:
           type: array
           items:
@@ -3976,7 +3998,9 @@ components:
           example: "myOrgName"
         users:
           type: array
-          $ref: '#/components/schemas/User'
+          items:
+            $ref: '#/components/schemas/User'
+
 
     User:
       type: object
@@ -4107,6 +4131,8 @@ components:
       properties:
         keys:
           type: array
+          items:
+            type: string
           example: [
                   "location",
                   "instanceType",
@@ -4125,12 +4151,16 @@ components:
           properties:
             fields:
               type: array
+              items:
+                type: string
               example: [ "location", "instanceType", "image" ]
             image:
               type: object
               properties:
                 tags:
                   type: array
+                  items:
+                    type: string
                   example: [ "0.3.0" ]
                 location:
                   type: string
@@ -4153,6 +4183,8 @@ components:
           properties:
             fields:
               type: array
+              items:
+                type: string
               example: [ "location", "instanceType", "k8sVersion" ]
             instanceType:
               type: object
@@ -4178,6 +4210,8 @@ components:
           properties:
             fields:
               type: array
+              items:
+                type: string
               example: [ "location", "instanceType", "k8sVersion" ]
             instanceType:
               type: object
@@ -4209,12 +4243,16 @@ components:
           properties:
             eu-west-1:
               type: array
+              items:
+                type: string
               example: [ "ami-6202561b", "ami-ece5b095" ]
         nodeInstanceType:
           type: object
           properties:
             eu-west-1:
               type: array
+              items:
+                type: string
               example: [ "t2.nano", "t2.micro" ]
 
     AzureConfigResponse:
@@ -4234,9 +4272,13 @@ components:
           properties:
             eastus:
               type: array
+              items:
+                type: string
               example: [ "Standard_B1ms", "Standard_B1s" ]
         kubernetes_versions:
           type: array
+          items:
+            type: string
           example: [ "1.8.1", "1.8.6" ]
 
     GoogleConfigResponse:
@@ -4256,6 +4298,8 @@ components:
           properties:
             asia-east1-a:
               type: array
+              items:
+                type: string
               example: [ "f1-micro", "g1-small" ]
         kubernetes_versions:
           type: object
@@ -4268,12 +4312,18 @@ components:
               example: "COS"
             validImageTypes:
               type: array
+              items:
+                type: string
               example: [ "COS" ]
             validMasterVersions:
               type: array
+              items:
+                type: string
               example: ["1.9.6-gke.0", "1.9.4-gke.1"]
             validNodeVersions:
               type: array
+              items:
+                type: string
               example: ["1.9.6-gke.0", "1.9.4-gke.1"]
 
     GetClusterStatusResponse:
