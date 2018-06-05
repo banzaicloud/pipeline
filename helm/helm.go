@@ -28,6 +28,12 @@ import (
 	"regexp"
 )
 
+// DefaultNamespace default namespace
+const DefaultNamespace = "default"
+
+// SystemNamespace K8s system namespace
+const SystemNamespace = "kube-system"
+
 var logger *logrus.Logger
 var log *logrus.Entry
 
@@ -172,13 +178,8 @@ func UpgradeDeployment(releaseName, chartName string, values []byte, reuseValues
 	return upgradeRes, nil
 }
 
-//CreateDeployment creates a Helm deployment in 'default' namespace
-func CreateDeployment(chartName string, releaseName string, valueOverrides []byte, kubeConfig []byte, env helm_env.EnvSettings) (*rls.InstallReleaseResponse, error) {
-	return CreateDeploymentInNameSpace(chartName, "default", releaseName, valueOverrides, kubeConfig, env)
-}
-
-//CreateDeploymentInNameSpace creates a Helm deployment in chosen namespace
-func CreateDeploymentInNameSpace(chartName string, namespace string, releaseName string, valueOverrides []byte, kubeConfig []byte, env helm_env.EnvSettings) (*rls.InstallReleaseResponse, error) {
+//CreateDeployment creates a Helm deployment in chosen namespace
+func CreateDeployment(chartName string, namespace string, releaseName string, valueOverrides []byte, kubeConfig []byte, env helm_env.EnvSettings) (*rls.InstallReleaseResponse, error) {
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagCreateDeployment})
 
 	log.Infof("Deploying chart=%q, release name=%q", chartName, releaseName)
