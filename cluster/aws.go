@@ -1237,8 +1237,7 @@ func (c *AWSCluster) deleteSecurityGroup(svc *ec2.EC2, group *ec2.SecurityGroup)
 
 	log.Infof("Delete security group [%s]", *group.GroupId)
 
-	alive := true
-	for alive {
+	for {
 		if _, err := svc.DeleteSecurityGroup(&ec2.DeleteSecurityGroupInput{
 			GroupId: group.GroupId,
 		}); err != nil {
@@ -1251,7 +1250,7 @@ func (c *AWSCluster) deleteSecurityGroup(svc *ec2.EC2, group *ec2.SecurityGroup)
 			}
 			return err
 		}
-		alive = false
+		break
 	}
 
 	return nil
