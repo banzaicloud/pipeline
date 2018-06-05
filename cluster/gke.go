@@ -283,6 +283,8 @@ func (g *GKECluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 func (g *GKECluster) DeleteCluster() error {
 
 	log := logger.WithFields(logrus.Fields{"action": constants.TagDeleteCluster})
+	log.Info("Waiting for deleting deployments resources. (90sec)")
+	time.Sleep(time.Second * 90)
 
 	log.Info("Start delete google cluster")
 
