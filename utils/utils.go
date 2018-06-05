@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"github.com/banzaicloud/banzai-types/constants"
 	"io/ioutil"
@@ -85,4 +86,12 @@ func Contains(slice []string, s string) bool {
 		}
 	}
 	return false
+}
+
+// EncodeStringToBase64 first checks if the string is encoded if yes returns it if no than encodes it.
+func EncodeStringToBase64(s string) string {
+	if _, err := base64.StdEncoding.DecodeString(s); err != nil {
+		return base64.StdEncoding.EncodeToString([]byte(s))
+	}
+	return s
 }

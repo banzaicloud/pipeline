@@ -114,9 +114,9 @@ func createNodePoolsModelFromRequestData(nodePoolsData map[string]*bGoogle.NodeP
 type GKECluster struct {
 	googleCluster *gke.Cluster //Don't use this directly
 	modelCluster  *model.ClusterModel
-	k8sConfig     []byte
 	APIEndpoint   string
 	commonSecret
+	commonConfig
 }
 
 // GetOrganizationId gets org where the cluster belongs
@@ -237,12 +237,8 @@ func (g *GKECluster) Persist(status, statusMessage string) error {
 	return g.modelCluster.UpdateStatus(status, statusMessage)
 }
 
-//GetK8sConfig returns the Kubernetes config
-func (g *GKECluster) GetK8sConfig() ([]byte, error) {
-
-	if g.k8sConfig != nil {
-		return g.k8sConfig, nil
-	}
+// DownloadK8sConfig downloads the kubeconfig file from cloud
+func (g *GKECluster) DownloadK8sConfig() ([]byte, error) {
 	log := logger.WithFields(logrus.Fields{"action": constants.TagFetchClusterConfig})
 
 	config, err := g.getGoogleKubernetesConfig()
@@ -254,8 +250,6 @@ func (g *GKECluster) GetK8sConfig() ([]byte, error) {
 	}
 	// get config succeeded
 	log.Info("Get k8s config succeeded")
-
-	g.k8sConfig = config
 
 	return config, nil
 
@@ -1833,4 +1827,19 @@ func (g *GKECluster) validateKubernetesVersion(masterVersion, nodeVersion, locat
 // GetSecretWithValidation returns secret from vault
 func (g *GKECluster) GetSecretWithValidation() (*secret.SecretsItemResponse, error) {
 	return g.commonSecret.get(g)
+}
+
+// SaveConfigSecretId saves the config secret id in database
+func (g *GKECluster) SaveConfigSecretId(configSecretId string) error {
+	return g.modelCluster.UpdateConfigSecret(configSecretId)
+}
+
+// GetConfigSecretId return config secret id
+func (g *GKECluster) GetConfigSecretId() string {
+	return g.modelCluster.ConfigSecretId
+}
+
+// GetK8sConfig returns the Kubernetes config
+func (g *GKECluster) GetK8sConfig() ([]byte, error) {
+	return g.commonConfig.get(g)
 }

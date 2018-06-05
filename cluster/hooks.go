@@ -7,17 +7,20 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
+	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/go-errors/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
+	"strconv"
 	"time"
 )
 
 // HookMap for api hook endpoints
 var HookMap = map[string]func(interface{}) error{
+	"StoreKubeConfig":                  StoreKubeConfig,
 	"PersistKubernetesKeys":            PersistKubernetesKeys,
 	"UpdatePrometheusPostHook":         UpdatePrometheusPostHook,
 	"InstallHelmPostHook":              InstallHelmPostHook,
@@ -31,6 +34,26 @@ func RunPostHooks(functionList []func(interface{}) error, createdCluster CommonC
 	for _, i := range functionList {
 		i(createdCluster)
 	}
+}
+
+func pollingKubernetesConfig(cluster CommonCluster) ([]byte, error) {
+
+	retryCount := viper.GetInt("cloud.configRetryCount")
+	retrySleepTime := viper.GetInt("cloud.configRetrySleep")
+
+	var err error
+	var kubeConfig []byte
+	for i := 0; i < retryCount; i++ {
+		kubeConfig, err = cluster.DownloadK8sConfig()
+		if err != nil {
+			log.Infof("Error getting kubernetes config attempt %d/%d: %s. Waiting %d seconds", i, retryCount, err.Error(), retrySleepTime)
+			time.Sleep(time.Duration(retrySleepTime) * time.Second)
+			continue
+		}
+		break
+	}
+
+	return kubeConfig, err
 }
 
 // InstallMonitoring to install monitoring deployment
@@ -63,19 +86,9 @@ func PersistKubernetesKeys(input interface{}) error {
 	configPath := pipConfig.GetStateStorePath(cluster.GetName())
 	log.Infof("Statestore path is: %s", configPath)
 	var config *rest.Config
-	retryCount := viper.GetInt("cloud.configRetryCount")
-	retrySleepTime := viper.GetInt("cloud.configRetrySleep")
-	var err error
-	var kubeConfig []byte
-	for i := 0; i < retryCount; i++ {
-		kubeConfig, err = cluster.GetK8sConfig()
-		if err != nil {
-			log.Infof("Error getting kubernetes config attempt %d/%d: %s. Waiting %d seconds", i, retryCount, err.Error(), retrySleepTime)
-			time.Sleep(time.Duration(retrySleepTime) * time.Second)
-			continue
-		}
-		break
-	}
+
+	kubeConfig, err := cluster.GetK8sConfig()
+
 	if err != nil {
 		log.Errorf("Error getting kubernetes config : %s", err)
 		return err
@@ -226,4 +239,47 @@ func UpdatePrometheus() {
 	if err != nil {
 		log.Warn("Could not update prometheus configmap: %v", err)
 	}
+}
+
+// StoreKubeConfig saves kubeconfig into vault
+func StoreKubeConfig(input interface{}) error {
+
+	cluster, ok := input.(CommonCluster)
+	if !ok {
+		return errors.Errorf("Wrong parameter type: %T", cluster)
+	}
+
+	config, err := pollingKubernetesConfig(cluster)
+	if err != nil {
+		log.Errorf("Error downloading kubeconfig: %s", err.Error())
+		return err
+	}
+
+	encodedConfig := utils.EncodeStringToBase64(string(config))
+
+	secretID := secret.GenerateSecretID()
+	organizationId := strconv.Itoa(int(cluster.GetOrganizationId()))
+	createSecretRequest := secret.CreateSecretRequest{
+		Name: fmt.Sprintf("%s-config", cluster.GetName()), // todo ne latszodjon a secret listben!?
+		Type: secret.K8SConfig,
+		Values: map[string]string{
+			secret.K8SConfig: encodedConfig,
+		},
+		Tags: []string{secret.TagKubeConfig},
+	}
+
+	if err := secret.Store.Store(organizationId, secretID, &createSecretRequest); err != nil {
+		log.Errorf("Error during storing config: %s", err.Error())
+		return err
+	}
+
+	log.Info("Kubeconfig stored in vault")
+
+	log.Info("Update cluster model in DB with config secret id")
+	if err := cluster.SaveConfigSecretId(secretID); err != nil {
+		log.Errorf("Error during saving config secret id: %s", err.Error())
+		return err
+	}
+
+	return nil
 }

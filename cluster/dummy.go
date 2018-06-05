@@ -12,7 +12,6 @@ import (
 // DummyCluster struct for DC
 type DummyCluster struct {
 	modelCluster *model.ClusterModel
-	k8sConfig    []byte
 	APIEndpoint  string
 }
 
@@ -47,14 +46,9 @@ func (d *DummyCluster) Persist(status, statusMessage string) error {
 	return d.modelCluster.UpdateStatus(status, statusMessage)
 }
 
-//GetK8sConfig returns the Kubernetes config
-func (d *DummyCluster) GetK8sConfig() ([]byte, error) {
-	data, err := yaml.Marshal(createDummyConfig())
-	if err != nil {
-		return nil, err
-	}
-	d.k8sConfig = data
-	return data, nil
+// DownloadK8sConfig downloads the kubeconfig file from cloud
+func (d *DummyCluster) DownloadK8sConfig() ([]byte, error) {
+	return yaml.Marshal(createDummyConfig())
 }
 
 //GetName returns the name of the cluster
@@ -227,4 +221,19 @@ func (d *DummyCluster) GetSecretWithValidation() (*secret.SecretsItemResponse, e
 	return &secret.SecretsItemResponse{
 		Type: constants.Dummy,
 	}, nil
+}
+
+// SaveConfigSecretId saves the config secret id in database
+func (d *DummyCluster) SaveConfigSecretId(configSecretId string) error {
+	return d.modelCluster.UpdateConfigSecret(configSecretId)
+}
+
+// GetConfigSecretId return config secret id
+func (d *DummyCluster) GetConfigSecretId() string {
+	return d.modelCluster.ConfigSecretId
+}
+
+// GetK8sConfig returns the Kubernetes config
+func (d *DummyCluster) GetK8sConfig() ([]byte, error) {
+	return d.DownloadK8sConfig()
 }

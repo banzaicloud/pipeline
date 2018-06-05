@@ -56,8 +56,8 @@ func (b *KubeCluster) Persist(status, statusMessage string) error {
 	return b.modelCluster.UpdateStatus(status, statusMessage)
 }
 
-// GetK8sConfig returns the Kubernetes config
-func (b *KubeCluster) GetK8sConfig() ([]byte, error) {
+// DownloadK8sConfig downloads the kubeconfig file from cloud
+func (b *KubeCluster) DownloadK8sConfig() ([]byte, error) {
 	s, err := b.GetSecretWithValidation()
 	if err != nil {
 		return nil, err
@@ -201,4 +201,19 @@ func (b *KubeCluster) ValidateCreationFields(r *components.CreateClusterRequest)
 // GetSecretWithValidation returns secret from vault
 func (b *KubeCluster) GetSecretWithValidation() (*secret.SecretsItemResponse, error) {
 	return b.commonSecret.get(b)
+}
+
+// SaveConfigSecretId saves the config secret id in database
+func (b *KubeCluster) SaveConfigSecretId(configSecretId string) error {
+	return b.modelCluster.UpdateConfigSecret(configSecretId)
+}
+
+// GetConfigSecretId return config secret id
+func (b *KubeCluster) GetConfigSecretId() string {
+	return b.modelCluster.ConfigSecretId
+}
+
+// GetK8sConfig returns the Kubernetes config
+func (b *KubeCluster) GetK8sConfig() ([]byte, error) {
+	return b.DownloadK8sConfig()
 }

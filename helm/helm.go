@@ -120,7 +120,7 @@ func ListDeployments(filter *string, kubeConfig []byte) (*rls.ListReleasesRespon
 		//helm.ReleaseListNamespace(""),
 	}
 	if filter != nil {
-		log.Debug("Apply filters: ", filter)
+		log.Debug("Apply filters: ", *filter)
 		ops = append(ops, helm.ReleaseListFilter(*filter))
 	}
 	if err != nil {
