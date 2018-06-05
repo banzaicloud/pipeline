@@ -297,6 +297,8 @@ func checkClustersBeforeDelete(orgId, secretId string) error {
 	return nil
 }
 
+// searchForbiddenTags gets the secret by organization id and secret id and looks for forbidden tag(s)
+// Secrets cannot be created/deleted with these tags
 func searchForbiddenTags(orgId, secretId string) error {
 
 	secretItem, err := secret.Store.Get(orgId, secretId)
