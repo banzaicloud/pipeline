@@ -121,7 +121,7 @@ func PreInstall(helmInstall *helm.Install, kubeConfig []byte) error {
 		},
 		Subjects: []v1.Subject{
 			{
-				Kind:      "serviceAccount",
+				Kind:      "ServiceAccount",
 				Name:      helmInstall.ServiceAccount, // "tiller",
 				Namespace: helmInstall.Namespace,
 			}},
