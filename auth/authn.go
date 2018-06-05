@@ -134,6 +134,7 @@ func Init() {
 			"repo:status",
 			"user:email",
 			"read:org",
+			"public_repo", // For writing GitHub issues and starring
 		},
 	})
 	githubProvider.AuthorizeHandler = NewGithubAuthorizeHandler(githubProvider)
