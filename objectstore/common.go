@@ -4,6 +4,7 @@ import (
 	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/common"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/secret"
@@ -50,7 +51,7 @@ func NewObjectStore(cloudType string, s *secret.SecretsItemResponse, organizatio
 		}, nil
 	case constants.Google:
 		return &GoogleObjectStore{
-			serviceAccount: NewGoogleServiceAccount(s),
+			serviceAccount: common.NewGoogleServiceAccount(s),
 			org:            organization,
 		}, nil
 	case constants.Azure:

@@ -6,6 +6,7 @@ import (
 	"github.com/banzaicloud/banzai-types/components"
 	bGoogle "github.com/banzaicloud/banzai-types/components/google"
 	"github.com/banzaicloud/banzai-types/constants"
+	"github.com/banzaicloud/pipeline/common"
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/secret"
@@ -42,20 +43,6 @@ const (
 	clusterAdmin     = "cluster-admin"
 	netesDefault     = "netes-default"
 )
-
-// ServiceAccount describes a GKE service account
-type ServiceAccount struct {
-	Type                   string `json:"type"`
-	ProjectId              string `json:"project_id"`
-	PrivateKeyId           string `json:"private_key_id"`
-	PrivateKey             string `json:"private_key"`
-	ClientEmail            string `json:"client_email"`
-	ClientId               string `json:"client_id"`
-	AuthUri                string `json:"auth_uri"`
-	TokenUri               string `json:"token_uri"`
-	AuthProviderX50CertUrl string `json:"auth_provider_x509_cert_url"`
-	ClientX509CertUrl      string `json:"client_x509_cert_url"`
-}
 
 //CreateGKEClusterFromRequest creates ClusterModel struct from the request
 func CreateGKEClusterFromRequest(request *components.CreateClusterRequest, orgId uint) (*GKECluster, error) {
@@ -1602,18 +1589,8 @@ func (g *GKECluster) newClientFromCredentials() (*http.Client, error) {
 
 	// TODO https://github.com/mitchellh/mapstructure
 
-	credentials := ServiceAccount{
-		Type:                   clusterSecret.Values[secret.Type],
-		ProjectId:              clusterSecret.Values[secret.ProjectId],
-		PrivateKeyId:           clusterSecret.Values[secret.PrivateKeyId],
-		PrivateKey:             clusterSecret.Values[secret.PrivateKey],
-		ClientEmail:            clusterSecret.Values[secret.ClientEmail],
-		ClientId:               clusterSecret.Values[secret.ClientId],
-		AuthUri:                clusterSecret.Values[secret.AuthUri],
-		TokenUri:               clusterSecret.Values[secret.TokenUri],
-		AuthProviderX50CertUrl: clusterSecret.Values[secret.AuthX509Url],
-		ClientX509CertUrl:      clusterSecret.Values[secret.ClientX509Url],
-	}
+	credentials := common.NewGoogleServiceAccount(clusterSecret)
+
 	jsonConfig, err := json.Marshal(credentials)
 	if err != nil {
 		return nil, err
