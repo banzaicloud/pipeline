@@ -169,7 +169,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 		return nil, "", err
 	}
 
-	err = helm.InstallLocalHelm(helm.CreateEnvSettings(currentUser.Organizations[0].Name))
+	err = helm.InstallLocalHelm(helm.GenerateHelmRepoEnv(currentUser.Organizations[0].Name))
 	if err != nil {
 		log.Errorf("Error during local helm install: %s", err.Error())
 	}
