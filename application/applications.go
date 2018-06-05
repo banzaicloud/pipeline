@@ -120,7 +120,7 @@ func CreateApplicationDeployment(env helm_env.EnvSettings, am *model.Application
 		return err
 	}
 	if !ok {
-		resp, err := helm.CreateDeployment(chart, "", values, kubeConfig, env)
+		resp, err := helm.CreateDeployment(chart, helm.DefaultNamespace, "", values, kubeConfig, env)
 		if err != nil {
 			deployment.Update("FAILED")
 			return err
@@ -194,7 +194,7 @@ func EnsureChart(env helm_env.EnvSettings, dep ctype.ApplicationDependency, kube
 	}
 	chart := dep.Chart.Repository + "/" + dep.Chart.Name
 
-	helm.CreateDeployment(chart, "", nil, kubeConfig, env)
+	helm.CreateDeployment(chart, helm.DefaultNamespace, "", nil, kubeConfig, env)
 	return nil
 }
 

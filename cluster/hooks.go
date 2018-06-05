@@ -65,7 +65,7 @@ func InstallMonitoring(input interface{}) error {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
 	//TODO install & ensure monitoring
-	return installDeployment(cluster, "", "", nil, "InstallMonitoring")
+	return installDeployment(cluster, helm.DefaultNamespace, "", "", nil, "InstallMonitoring")
 }
 
 // InstallLogging to install logging deployment
@@ -75,7 +75,7 @@ func InstallLogging(input interface{}) error {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
 	//TODO install & ensure logging
-	return installDeployment(cluster, "", "", nil, "InstallLogging")
+	return installDeployment(cluster, helm.DefaultNamespace, "", "", nil, "InstallLogging")
 }
 
 //PersistKubernetesKeys is a basic version of persisting keys TODO check if we need this from API or anywhere else
@@ -148,7 +148,7 @@ func saveKeysToConfigmap(config *rest.Config, configName string, clusterName str
 	return nil
 }
 
-func installDeployment(cluster CommonCluster, deploymentName string, releaseName string, values []byte, actionName string) error {
+func installDeployment(cluster CommonCluster, namespace string, deploymentName string, releaseName string, values []byte, actionName string) error {
 	// --- [ Get K8S Config ] --- //
 	log = logger.WithFields(logrus.Fields{"action": actionName})
 
@@ -164,7 +164,7 @@ func installDeployment(cluster CommonCluster, deploymentName string, releaseName
 		return err
 	}
 
-	_, err = helm.CreateDeployment(deploymentName, releaseName, nil, kubeConfig, helm.GenerateHelmRepoEnv(org.Name))
+	_, err = helm.CreateDeployment(deploymentName, namespace, releaseName, values, kubeConfig, helm.GenerateHelmRepoEnv(org.Name))
 	if err != nil {
 		log.Errorf("Deploying '%s' failed due to: %s", deploymentName, err.Error())
 		return err
@@ -179,7 +179,7 @@ func InstallIngressControllerPostHook(input interface{}) error {
 	if !ok {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
-	return installDeployment(cluster, "banzaicloud-stable/pipeline-cluster-ingress", "pipeline", nil, "InstallIngressController")
+	return installDeployment(cluster, helm.DefaultNamespace, "banzaicloud-stable/pipeline-cluster-ingress", "pipeline", nil, "InstallIngressController")
 }
 
 //InstallClusterAutoscalerPostHook post hook only for AWS & Azure for now
@@ -222,7 +222,7 @@ func InstallClusterAutoscalerPostHook(input interface{}) error {
 		return errors.Errorf("Error during values marshal: %s", err.Error())
 	}
 	releaseName := "autoscaler"
-	return installDeployment(cluster, autoSalerChart, releaseName, yamlValues, "InstallClusterAutoscaler")
+	return installDeployment(cluster, helm.SystemNamespace, autoSalerChart, releaseName, yamlValues, "InstallClusterAutoscaler")
 }
 
 //UpdatePrometheusPostHook updates a configmap used by Prometheus

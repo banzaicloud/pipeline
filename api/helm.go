@@ -59,6 +59,7 @@ func CreateDeployment(c *gin.Context) {
 		return
 	}
 	release, err := helm.CreateDeployment(parsedRequest.deploymentName,
+		helm.DefaultNamespace,
 		parsedRequest.deploymentReleaseName,
 		parsedRequest.values,
 		parsedRequest.kubeConfig,
