@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"github.com/banzaicloud/banzai-types/components"
 	ctype "github.com/banzaicloud/banzai-types/components/catalog"
 	"github.com/banzaicloud/banzai-types/constants"
@@ -9,9 +10,11 @@ import (
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"net/http"
+	"strconv"
 )
 
 // ApplicationDetailsResponse for API
@@ -37,6 +40,42 @@ type ApplicationListResponse struct {
 	Icon        string `json:"icon"`
 }
 
+func ApplicationDetails(c *gin.Context) {
+	idParam := c.Param("id")
+	id, err := strconv.ParseUint(idParam, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: fmt.Sprintf("Invalid id=%q", idParam),
+			Error:   err.Error(),
+		})
+		return
+	}
+	db := model.GetDB()
+	application := &model.ApplicationModel{
+		Model: gorm.Model{
+			ID: uint(id),
+		},
+	}
+	var deployments []*model.Deployment
+	db.Model(application).Related(&deployments, "Deployments")
+	log.Debugf("Associated deployments: %#v", deployments)
+	organization := auth.GetCurrentOrganization(c.Request)
+	err = db.Model(organization).Related(application).Error
+	if err != nil {
+		log.Errorf("Error getting application: %s", err.Error())
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error listing clusters",
+			Error:   err.Error(),
+		})
+		return
+	}
+	application.Deployments = deployments
+	c.JSON(http.StatusOK, application)
+	return
+}
+
 // GetApplications gin handler for API
 func GetApplications(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": "GetApplications"})
@@ -45,7 +84,6 @@ func GetApplications(c *gin.Context) {
 	var applications []model.ApplicationModel //TODO change this to CommonClusterStatus
 	db := model.GetDB()
 	organization := auth.GetCurrentOrganization(c.Request)
-	organization.Name = ""
 	err := db.Model(organization).Related(&applications).Error
 	if err != nil {
 		log.Errorf("Error listing clusters: %s", err.Error())
@@ -103,7 +141,7 @@ func CreateApplication(c *gin.Context) {
 		})
 		return
 	}
-	orgId := c.Request.Context().Value(auth.CurrentOrganization).(*auth.Organization).ID
+	orgId := auth.GetCurrentOrganization(c.Request).ID
 	var commonCluster cluster.CommonCluster
 	// Create new cluster
 	if createApplicationRequest.Cluster != nil {

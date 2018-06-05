@@ -12,7 +12,7 @@ type ApplicationModel struct {
 	Icon           string `json:"icon"`
 	OrganizationId uint   `json:"organizationId"`
 	ClusterID      uint
-	Deployments    []*Deployment `gorm:"foreignkey:ApplicationID" json:"deployments"`
+	Deployments    []*Deployment `gorm:"foreignkey:application_id" json:"deployments"`
 	Resources      string        `json:"resources"`
 	Status         string        `json:"status"`
 }

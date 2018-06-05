@@ -25,6 +25,10 @@ func init() {
 	log = logger.WithFields(logrus.Fields{"action": "Helm"})
 }
 
+func GetApplicationDetails() (*model.ApplicationModel, error) {
+	return nil, nil
+}
+
 // SetDeploymentState Set a Deployment state related to an Application
 func SetDeploymentState(app *model.ApplicationModel, depName string, state string) {
 	for _, deployment := range app.Deployments {
@@ -59,6 +63,13 @@ func CreateApplication(am model.ApplicationModel, options []ctype.ApplicationOpt
 	//Todo check if cluster ready
 	kubeConfig, err := cluster.GetK8sConfig()
 	if err != nil {
+		model.GetDB().Model(&am).Update("status", err.Error())
+		return err
+	}
+	// We need to ensure that catalog repository is present
+	err = catalog.EnsureCatalog(env)
+	if err != nil {
+		model.GetDB().Model(&am).Update("status", err.Error())
 		return err
 	}
 	catalog, err := GetSpotGuide(env, am.CatalogName)
@@ -147,9 +158,23 @@ func EnsureDependency(env helm_env.EnvSettings, dependency ctype.ApplicationDepe
 	if ready {
 		return nil
 	}
+
 	EnsureChart(env, dependency, kubeConfig)
+
+	var retry int
+	var timeout int
+	if dependency.Retry != 0 {
+		retry = dependency.Retry
+	} else {
+		retry = 15
+	}
+	if dependency.Timeout != 0 {
+		retry = dependency.Timeout
+	} else {
+		timeout = 5
+	}
 	//Check if dependency is available 10 to timeout
-	for i := 0; i < 15; i++ {
+	for i := 0; i < retry; i++ {
 		// Check crd should come back with error if not
 		ready, err := CheckCRD(kubeConfig, dependency.Values)
 		if err != nil {
@@ -161,7 +186,7 @@ func EnsureDependency(env helm_env.EnvSettings, dependency ctype.ApplicationDepe
 			return nil
 		}
 		// Wait 2 sec for next check
-		time.Sleep(2 * time.Second)
+		time.Sleep(time.Duration(timeout) * time.Second)
 	}
 	return errors.Wrap(err, "dependency is not ready")
 }
@@ -192,7 +217,9 @@ func EnsureChart(env helm_env.EnvSettings, dep ctype.ApplicationDependency, kube
 	if ok {
 		return nil
 	}
-	chart := dep.Chart.Repository + "/" + dep.Chart.Name
+
+	// TODO this is a workaround to not implement repository handling
+	chart := catalog.CatalogRepository + "/" + dep.Chart.Name
 
 	helm.CreateDeployment(chart, helm.DefaultNamespace, "", nil, kubeConfig, env)
 	return nil

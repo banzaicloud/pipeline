@@ -129,6 +129,7 @@ func main() {
 
 			orgs.GET("/:orgid/applications", api.GetApplications)
 			orgs.POST("/:orgid/applications", api.CreateApplication)
+			orgs.GET("/:orgid/applications/:id", api.ApplicationDetails)
 
 			orgs.GET("/:orgid/catalogs", api.GetCatalogs)
 			orgs.GET("/:orgid/catalogs/:name", api.CatalogDetails)

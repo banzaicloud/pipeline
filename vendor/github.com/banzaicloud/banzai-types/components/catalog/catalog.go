@@ -25,6 +25,8 @@ type ApplicationDependency struct {
 	Values    []string         `json:"values"`
 	Namespace string           `json:"namespace"`
 	Chart     ApplicationChart `json:"chart"`
+	Timeout		int							 `json:"timeout"`
+	Retry 		int 						 `json:"retry"`
 }
 
 // ApplicationChart for spotguide.yaml
