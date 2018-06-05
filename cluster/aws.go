@@ -1081,7 +1081,7 @@ func (c *AWSCluster) GetClusterDetails() (*components.ClusterDetailsResponse, er
 	log := logger.WithFields(logrus.Fields{"tag": "GetClusterDetails"})
 	log.Info("Start getting cluster details")
 
-	c.DownloadK8sConfig()
+	c.GetK8sConfig()
 	c.GetAPIEndpoint()
 	kubicornCluster, err := c.GetKubicornCluster()
 	if err != nil {
