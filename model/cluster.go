@@ -37,7 +37,7 @@ type ClusterModel struct {
 	Google         GoogleClusterModel
 	Dummy          DummyClusterModel
 	Kubernetes     KubernetesClusterModel
-	Applications   []ApplicationModel `gorm:"foreignkey:ClusterID"`
+	Applications   []Application `gorm:"foreignkey:ClusterID"`
 }
 
 //AmazonClusterModel describes the amazon cluster model
