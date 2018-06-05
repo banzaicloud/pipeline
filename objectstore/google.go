@@ -6,8 +6,7 @@ import (
 	"errors"
 	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/cluster"
-	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/common"
 	"github.com/gin-gonic/gin/json"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2/google"
@@ -30,25 +29,8 @@ type ManagedGoogleBucket struct {
 // GoogleObjectStore stores all required parameters for container creation
 type GoogleObjectStore struct {
 	location       string
-	serviceAccount *cluster.ServiceAccount // TODO: serviceAccount type should be in a common place?
+	serviceAccount *common.ServiceAccount
 	org            *auth.Organization
-}
-
-// NewGoogleServiceAccount creates a service account for google
-// TODO: this logic is duplicate thus should be in a common place so as it can be used from gke.go:newClientFromCredentials() as well
-func NewGoogleServiceAccount(s *secret.SecretsItemResponse) *cluster.ServiceAccount {
-	return &cluster.ServiceAccount{
-		Type:                   s.Values[secret.Type],
-		ProjectId:              s.Values[secret.ProjectId],
-		PrivateKeyId:           s.Values[secret.PrivateKeyId],
-		PrivateKey:             s.Values[secret.PrivateKey],
-		ClientEmail:            s.Values[secret.ClientEmail],
-		ClientId:               s.Values[secret.ClientId],
-		AuthUri:                s.Values[secret.AuthUri],
-		TokenUri:               s.Values[secret.TokenUri],
-		AuthProviderX50CertUrl: s.Values[secret.AuthX509Url],
-		ClientX509CertUrl:      s.Values[secret.ClientX509Url],
-	}
 }
 
 // WithResourceGroup updates the resource group. Always return "not implemented" error
