@@ -122,9 +122,25 @@ func (d *DummyCluster) GetOrganizationId() uint {
 	return d.modelCluster.OrganizationId
 }
 
-//GetSecretID retrieves the secretid
-func (d *DummyCluster) GetSecretID() string {
+//GetSecretId retrieves the secret id
+func (d *DummyCluster) GetSecretId() string {
 	return d.modelCluster.SecretId
+}
+
+//GetSshSecretId retrieves the ssh secret id
+func (d *DummyCluster) GetSshSecretId() string {
+	return d.modelCluster.SshSecretId
+}
+
+// SaveSshSecretId saves the ssh secret id to database
+func (d *DummyCluster) SaveSshSecretId(sshSecretId string) error {
+	d.modelCluster.SshSecretId = sshSecretId
+	return nil
+}
+
+// RequiresSshPublicKey returns false
+func (d *DummyCluster) RequiresSshPublicKey() bool {
+	return true
 }
 
 // createDummyConfig creates a (dummy) kubeconfig
@@ -218,6 +234,13 @@ func (d *DummyCluster) ValidateCreationFields(r *components.CreateClusterRequest
 
 // GetSecretWithValidation returns secret from vault
 func (d *DummyCluster) GetSecretWithValidation() (*secret.SecretsItemResponse, error) {
+	return &secret.SecretsItemResponse{
+		Type: constants.Dummy,
+	}, nil
+}
+
+// GetSshSecretWithValidation returns ssh secret from vault
+func (d *DummyCluster) GetSshSecretWithValidation() (*secret.SecretsItemResponse, error) {
 	return &secret.SecretsItemResponse{
 		Type: constants.Dummy,
 	}, nil

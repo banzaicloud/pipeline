@@ -107,8 +107,7 @@ type GKECluster struct {
 	googleCluster *gke.Cluster //Don't use this directly
 	modelCluster  *model.ClusterModel
 	APIEndpoint   string
-	commonSecret
-	commonConfig
+	CommonClusterBase
 }
 
 // GetOrganizationId gets org where the cluster belongs
@@ -116,9 +115,19 @@ func (g *GKECluster) GetOrganizationId() uint {
 	return g.modelCluster.OrganizationId
 }
 
-// GetSecretID retrieves the secret id
-func (g *GKECluster) GetSecretID() string {
+// GetSecretId retrieves the secret id
+func (g *GKECluster) GetSecretId() string {
 	return g.modelCluster.SecretId
+}
+
+// GetSshSecretId retrieves the secret id
+func (g *GKECluster) GetSshSecretId() string {
+	return g.modelCluster.SshSecretId
+}
+
+// SaveSshSecretId saves the ssh secret id to database
+func (g *GKECluster) SaveSshSecretId(sshSecretId string) error {
+	return g.modelCluster.UpdateSshSecret(sshSecretId)
 }
 
 // GetGoogleCluster returns with a Cluster from GKE
@@ -2057,7 +2066,12 @@ func (g *GKECluster) validateKubernetesVersion(masterVersion, nodeVersion, locat
 
 // GetSecretWithValidation returns secret from vault
 func (g *GKECluster) GetSecretWithValidation() (*secret.SecretsItemResponse, error) {
-	return g.commonSecret.get(g)
+	return g.CommonClusterBase.getSecret(g)
+}
+
+// GetSshSecretWithValidation returns ssh secret from vault
+func (g *GKECluster) GetSshSecretWithValidation() (*secret.SecretsItemResponse, error) {
+	return g.CommonClusterBase.getSecret(g)
 }
 
 // SaveConfigSecretId saves the config secret id in database
@@ -2072,5 +2086,5 @@ func (g *GKECluster) GetConfigSecretId() string {
 
 // GetK8sConfig returns the Kubernetes config
 func (g *GKECluster) GetK8sConfig() ([]byte, error) {
-	return g.commonConfig.get(g)
+	return g.CommonClusterBase.getConfig(g)
 }

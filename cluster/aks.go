@@ -11,6 +11,7 @@ import (
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
+	pipelineSsh "github.com/banzaicloud/pipeline/ssh"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/go-errors/errors"
 	"github.com/sirupsen/logrus"
@@ -56,8 +57,7 @@ type AKSCluster struct {
 	azureCluster *banzaiAzureTypes.Value //Don't use this directly
 	modelCluster *model.ClusterModel
 	APIEndpoint  string
-	commonSecret
-	commonConfig
+	CommonClusterBase
 }
 
 // GetOrganizationId gets org where the cluster belongs
@@ -75,8 +75,8 @@ func (c *AKSCluster) GetAKSClient() (azureClient.ClusterManager, error) {
 	return azureClient.GetAKSClient(creds)
 }
 
-// GetSecretID retrieves the secret id
-func (c *AKSCluster) GetSecretID() string {
+// GetSecretId retrieves the secret id
+func (c *AKSCluster) GetSecretId() string {
 	return c.modelCluster.SecretId
 }
 
@@ -114,11 +114,19 @@ func (c *AKSCluster) CreateCluster() error {
 		}
 	}
 
+	clusterSshSecret, err := c.GetSshSecretWithValidation()
+	if err != nil {
+		return err
+	}
+
+	sshKey := pipelineSsh.NewKey(clusterSshSecret)
+
 	r := azureCluster.CreateClusterRequest{
 		Name:              c.modelCluster.Name,
 		Location:          c.modelCluster.Location,
 		ResourceGroup:     c.modelCluster.Azure.ResourceGroup,
 		KubernetesVersion: c.modelCluster.Azure.KubernetesVersion,
+		SSHPubKey:         sshKey.PublicKeyData,
 		Profiles:          profiles,
 	}
 	client, err := c.GetAKSClient()
@@ -572,7 +580,7 @@ func (c *AKSCluster) ValidateCreationFields(r *bTypes.CreateClusterRequest) erro
 // validateLocation validates location
 func (c *AKSCluster) validateLocation(location string) error {
 	log.Infof("Location: %s", location)
-	validLocations, err := GetLocations(c.GetOrganizationId(), c.GetSecretID())
+	validLocations, err := GetLocations(c.GetOrganizationId(), c.GetSecretId())
 	if err != nil {
 		return err
 	}
@@ -598,7 +606,7 @@ func (c *AKSCluster) validateMachineType(nodePools map[string]*banzaiAzureTypes.
 
 	log.Infof("NodeInstanceTypes: %v", machineTypes)
 
-	validMachineTypes, err := GetMachineTypes(c.GetOrganizationId(), c.GetSecretID(), location)
+	validMachineTypes, err := GetMachineTypes(c.GetOrganizationId(), c.GetSecretId(), location)
 	if err != nil {
 		return err
 	}
@@ -617,7 +625,7 @@ func (c *AKSCluster) validateMachineType(nodePools map[string]*banzaiAzureTypes.
 func (c *AKSCluster) validateKubernetesVersion(k8sVersion, location string) error {
 
 	log.Infof("K8SVersion: %s", k8sVersion)
-	validVersions, err := GetKubernetesVersion(c.GetOrganizationId(), c.GetSecretID(), location)
+	validVersions, err := GetKubernetesVersion(c.GetOrganizationId(), c.GetSecretId(), location)
 	if err != nil {
 		return err
 	}
@@ -633,7 +641,12 @@ func (c *AKSCluster) validateKubernetesVersion(k8sVersion, location string) erro
 
 // GetSecretWithValidation returns secret from vault
 func (c *AKSCluster) GetSecretWithValidation() (*secret.SecretsItemResponse, error) {
-	return c.commonSecret.get(c)
+	return c.CommonClusterBase.getSecret(c)
+}
+
+// GetSshSecretWithValidation returns ssh secret from vault
+func (c *AKSCluster) GetSshSecretWithValidation() (*secret.SecretsItemResponse, error) {
+	return c.CommonClusterBase.getSshSecret(c)
 }
 
 // SaveConfigSecretId saves the config secret id in database
@@ -646,7 +659,23 @@ func (c *AKSCluster) GetConfigSecretId() string {
 	return c.modelCluster.ConfigSecretId
 }
 
+// GetSshSecretId return ssh secret id
+func (c *AKSCluster) GetSshSecretId() string {
+	return c.modelCluster.SshSecretId
+}
+
+// SaveSshSecretId saves the ssh secret id to database
+func (c *AKSCluster) SaveSshSecretId(sshSecretId string) error {
+	return c.modelCluster.UpdateSshSecret(sshSecretId)
+}
+
 // GetK8sConfig returns the Kubernetes config
 func (c *AKSCluster) GetK8sConfig() ([]byte, error) {
-	return c.commonConfig.get(c)
+	return c.CommonClusterBase.getConfig(c)
+}
+
+// RequiresSshPublicKey returns true as a public ssh key is needed for bootstrapping
+// the cluster
+func (c *AKSCluster) RequiresSshPublicKey() bool {
+	return true
 }

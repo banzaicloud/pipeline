@@ -63,8 +63,7 @@ type AWSCluster struct {
 	kubicornCluster *kcluster.Cluster //Don't use this directly
 	modelCluster    *model.ClusterModel
 	APIEndpoint     string
-	commonSecret
-	commonConfig
+	CommonClusterBase
 }
 
 // GetOrganizationId gets org where the cluster belongs
@@ -72,9 +71,19 @@ func (c *AWSCluster) GetOrganizationId() uint {
 	return c.modelCluster.OrganizationId
 }
 
-// GetSecretID retrieves the secret id
-func (c *AWSCluster) GetSecretID() string {
+// GetSecretId retrieves the secret id
+func (c *AWSCluster) GetSecretId() string {
 	return c.modelCluster.SecretId
+}
+
+// GetSshSecretId retrieves the ssh secret id
+func (c *AWSCluster) GetSshSecretId() string {
+	return c.modelCluster.SshSecretId
+}
+
+// SaveSshSecretId saves the ssh secret id to database
+func (c *AWSCluster) SaveSshSecretId(sshSecretId string) error {
+	return c.modelCluster.UpdateSshSecret(sshSecretId)
 }
 
 //GetID returns the specified cluster id
@@ -186,19 +195,19 @@ func (c *AWSCluster) CreateCluster() error {
 		return err
 	}
 
+	clusterSshSecret, err := c.GetSshSecretWithValidation()
+	if err != nil {
+		return err
+	}
+
+	sshKey := pipelineSsh.NewKey(clusterSshSecret)
+
 	runtimeParam.AwsOptions = append(runtimeParam.AwsOptions, SetCredentials(awsCred))
 
 	kubicornLogger.Level = getKubicornLogLevel()
 
 	//TODO check if this should be private
 	c.kubicornCluster = GetKubicornProfile(c.modelCluster)
-
-	sshSecretID, sshKey, err := pipelineSsh.KeyAdd(c.GetModel().OrganizationId, c.GetModel().ID)
-	if err != nil {
-		return err
-	}
-
-	c.GetModel().Amazon.SshSecretID = sshSecretID
 
 	c.kubicornCluster.SSH.PublicKeyData = []byte(sshKey.PublicKeyData)
 	c.kubicornCluster.SSH.PublicKeyFingerprint = sshKey.PublicKeyFingerprint
@@ -246,6 +255,12 @@ func (c *AWSCluster) CreateCluster() error {
 	return nil
 }
 
+// RequiresSshPublicKey returns true as a public ssh key is needed for bootstrapping
+// the cluster
+func (c *AWSCluster) RequiresSshPublicKey() bool {
+	return true
+}
+
 //We return stateStore so update can use it.
 func getStateStoreForCluster(clusterType *model.ClusterModel) (stateStore state.ClusterStorer) {
 	stateStore = fs.NewFileSystemStore(&fs.FileSystemStoreOptions{
@@ -254,6 +269,8 @@ func getStateStoreForCluster(clusterType *model.ClusterModel) (stateStore state.
 	})
 	return stateStore
 }
+
+// RequiresSshPublicKey returns true if an ssh public key is needed for the cluster for bootstrapping it
 
 func getMasterServerPool(cs *model.ClusterModel, nodeServerPool []*kcluster.ServerPool, uuidSuffix string) *kcluster.ServerPool {
 	var ingressRules = make([]*kcluster.IngressRule, 0, 2+len(nodeServerPool))
@@ -591,12 +608,12 @@ func (c *AWSCluster) UpdateCluster(request *components.UpdateClusterRequest) err
 		Cloud:          request.Cloud,
 		OrganizationId: c.modelCluster.OrganizationId,
 		SecretId:       c.modelCluster.SecretId,
+		SshSecretId:    c.modelCluster.SshSecretId,
 		Status:         c.modelCluster.Status,
 		Amazon: model.AmazonClusterModel{
 			MasterInstanceType: c.modelCluster.Amazon.MasterInstanceType,
 			MasterImage:        c.modelCluster.Amazon.MasterImage,
 			NodePools:          updatedNodePools,
-			SshSecretID:        c.modelCluster.Amazon.SshSecretID,
 		},
 	}
 
@@ -823,12 +840,18 @@ func (c *AWSCluster) DownloadK8sConfig() ([]byte, error) {
 		err = errors.Wrap(err, "error getting kubicorn cluster")
 		return nil, err
 	}
-	return DownloadK8sConfig(kubicornCluster, fmt.Sprint(c.GetModel().OrganizationId), c.GetModel().ID)
+
+	sshSecret, err := c.GetSshSecretWithValidation()
+	if err != nil {
+		return nil, err
+	}
+
+	return DownloadK8sConfig(kubicornCluster, c.GetModel().OrganizationId, pipelineSsh.NewKey(sshSecret))
 }
 
 //DownloadK8sConfig downloads the Kubernetes config from the cluster
 // Todo check first if config is locally available
-func DownloadK8sConfig(kubicornCluster *kcluster.Cluster, organizationID string, ClusterID uint) ([]byte, error) {
+func DownloadK8sConfig(kubicornCluster *kcluster.Cluster, organizationID uint, key *pipelineSsh.Key) ([]byte, error) {
 
 	user := kubicornCluster.SSH.User
 	address := fmt.Sprintf("%s:%s", kubicornCluster.KubernetesAPI.Endpoint, "22")
@@ -842,10 +865,6 @@ func DownloadK8sConfig(kubicornCluster *kcluster.Cluster, organizationID string,
 		remotePath = "/root/.kube/config"
 	} else {
 		remotePath = fmt.Sprintf("/home/%s/.kube/config", user)
-	}
-	key, err := pipelineSsh.KeyGet(organizationID, ClusterID)
-	if err != nil {
-		return nil, err
 	}
 
 	pemBytes := []byte(key.PrivateKeyData)
@@ -1158,7 +1177,12 @@ func (c *AWSCluster) validateAMIs(masterAMI string, nodePools map[string]*amazon
 
 // GetSecretWithValidation returns secret from vault
 func (c *AWSCluster) GetSecretWithValidation() (*secret.SecretsItemResponse, error) {
-	return c.commonSecret.get(c)
+	return c.CommonClusterBase.getSecret(c)
+}
+
+// GetSshSecretWithValidation returns ssh secret from vault
+func (c *AWSCluster) GetSshSecretWithValidation() (*secret.SecretsItemResponse, error) {
+	return c.CommonClusterBase.getSshSecret(c)
 }
 
 // SaveConfigSecretId saves the config secret id in database
@@ -1173,7 +1197,7 @@ func (c *AWSCluster) GetConfigSecretId() string {
 
 // GetK8sConfig returns the Kubernetes config
 func (c *AWSCluster) GetK8sConfig() ([]byte, error) {
-	return c.commonConfig.get(c)
+	return c.CommonClusterBase.getConfig(c)
 }
 
 // listSecurityGroups listing security groups by VPC id

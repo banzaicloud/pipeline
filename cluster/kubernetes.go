@@ -37,7 +37,7 @@ type KubeCluster struct {
 	modelCluster *model.ClusterModel
 	k8sConfig    []byte
 	APIEndpoint  string
-	commonSecret
+	CommonClusterBase
 }
 
 // CreateCluster creates a new cluster
@@ -113,9 +113,19 @@ func (b *KubeCluster) GetID() uint {
 	return b.modelCluster.ID
 }
 
-// GetSecretID returns the specified secret id
-func (b *KubeCluster) GetSecretID() string {
+// GetSecretId returns the specified secret id
+func (b *KubeCluster) GetSecretId() string {
 	return b.modelCluster.SecretId
+}
+
+// GetSshSecretId returns the specified ssh secret id
+func (b *KubeCluster) GetSshSecretId() string {
+	return b.modelCluster.SshSecretId
+}
+
+// SaveSshSecretId saves the ssh secret id to database
+func (b *KubeCluster) SaveSshSecretId(sshSecretId string) error {
+	return b.modelCluster.UpdateSshSecret(sshSecretId)
 }
 
 // GetModel returns the whole clusterModel
@@ -201,7 +211,12 @@ func (b *KubeCluster) ValidateCreationFields(r *components.CreateClusterRequest)
 
 // GetSecretWithValidation returns secret from vault
 func (b *KubeCluster) GetSecretWithValidation() (*secret.SecretsItemResponse, error) {
-	return b.commonSecret.get(b)
+	return b.CommonClusterBase.getSecret(b)
+}
+
+// GetSshSecretWithValidation returns ssh secret from vault
+func (b *KubeCluster) GetSshSecretWithValidation() (*secret.SecretsItemResponse, error) {
+	return b.CommonClusterBase.getSecret(b)
 }
 
 // SaveConfigSecretId saves the config secret id in database
