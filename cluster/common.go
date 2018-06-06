@@ -34,7 +34,9 @@ type CommonCluster interface {
 	DeleteCluster() error
 	UpdateCluster(*bTypes.UpdateClusterRequest) error
 	GetID() uint
-	GetSecretID() string
+	GetSecretId() string
+	GetSshSecretId() string
+	SaveSshSecretId(string) error
 	GetModel() *model.ClusterModel
 	CheckEqualityToUpdate(*bTypes.UpdateClusterRequest) error
 	AddDefaultsToUpdate(*bTypes.UpdateClusterRequest)
@@ -45,43 +47,71 @@ type CommonCluster interface {
 	GetClusterDetails() (*bTypes.ClusterDetailsResponse, error)
 	ValidateCreationFields(r *bTypes.CreateClusterRequest) error
 	GetSecretWithValidation() (*secret.SecretsItemResponse, error)
+	GetSshSecretWithValidation() (*secret.SecretsItemResponse, error)
 	SaveConfigSecretId(string) error
 	GetConfigSecretId() string
 	GetK8sConfig() ([]byte, error)
+	RequiresSshPublicKey() bool
 }
 
-type commonSecret struct {
-	secret *secret.SecretsItemResponse
-}
+type CommonClusterBase struct {
+	secret    *secret.SecretsItemResponse
+	sshSecret *secret.SecretsItemResponse
 
-type commonConfig struct {
 	config []byte
 }
 
-func (cs *commonSecret) get(cluster CommonCluster) (*secret.SecretsItemResponse, error) {
-	if cs.secret == nil {
-		log.Info("secret is nil.. load from vault")
-		s, err := getSecret(cluster)
+// RequiresSshPublicKey returns true if an ssh public key is needed for the cluster for bootstrapping it.
+// The default is false.
+func (c *CommonClusterBase) RequiresSshPublicKey() bool {
+	return false
+}
+
+func (c *CommonClusterBase) getSecret(cluster CommonCluster) (*secret.SecretsItemResponse, error) {
+	if c.secret == nil {
+		log.Info("Secret is nil.. load from vault")
+		s, err := getSecret(cluster.GetOrganizationId(), cluster.GetSecretId())
 		if err != nil {
 			return nil, err
 		}
-		cs.secret = s
+		c.secret = s
 	} else {
 		log.Info("Secret is loaded before")
 	}
 
-	err := cs.secret.ValidateSecretType(cluster.GetType())
+	err := c.secret.ValidateSecretType(cluster.GetType())
 	if err != nil {
 		return nil, err
 	}
 
-	return cs.secret, err
+	return c.secret, err
 }
 
-func (cc *commonConfig) get(cluster CommonCluster) ([]byte, error) {
-	if cc.config == nil {
+func (c *CommonClusterBase) getSshSecret(cluster CommonCluster) (*secret.SecretsItemResponse, error) {
+	if c.sshSecret == nil {
+		log.Info("Ssh secret is nil.. load from vault")
+		s, err := getSecret(cluster.GetOrganizationId(), cluster.GetSshSecretId())
+		if err != nil {
+			log.Errorf("Get ssh key failed OrganizationID: %q, SshSecretID: %q  reason: %s", cluster.GetOrganizationId(), cluster.GetSshSecretId, err.Error())
+			return nil, err
+		}
+		c.sshSecret = s
+	} else {
+		log.Info("Secret is loaded before")
+	}
+
+	err := c.sshSecret.ValidateSecretType(pipConstants.SshSecretType)
+	if err != nil {
+		return nil, err
+	}
+
+	return c.sshSecret, err
+}
+
+func (c *CommonClusterBase) getConfig(cluster CommonCluster) ([]byte, error) {
+	if c.config == nil {
 		log.Info("config is nil.. load from vault")
-		configSecret, err := getConfigSecret(cluster)
+		configSecret, err := getSecret(cluster.GetOrganizationId(), cluster.GetConfigSecretId())
 		if err != nil {
 			return nil, err
 		}
@@ -91,21 +121,16 @@ func (cc *commonConfig) get(cluster CommonCluster) ([]byte, error) {
 			return nil, err
 		}
 
-		cc.config = []byte(configStr)
+		c.config = []byte(configStr)
 	} else {
 		log.Info("Config is loaded before")
 	}
-	return cc.config, nil
+	return c.config, nil
 }
 
-func getSecret(cluster CommonCluster) (*secret.SecretsItemResponse, error) {
-	org := strconv.FormatUint(uint64(cluster.GetOrganizationId()), 10)
-	return secret.Store.Get(org, cluster.GetSecretID())
-}
-
-func getConfigSecret(cluster CommonCluster) (*secret.SecretsItemResponse, error) {
-	org := strconv.FormatUint(uint64(cluster.GetOrganizationId()), 10)
-	return secret.Store.Get(org, cluster.GetConfigSecretId())
+func getSecret(organizationId uint, secretId string) (*secret.SecretsItemResponse, error) {
+	org := strconv.FormatUint(uint64(organizationId), 10)
+	return secret.Store.Get(org, secretId)
 }
 
 //GetCommonClusterFromModel extracts CommonCluster from a ClusterModel
@@ -167,15 +192,15 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 
 	case constants.Kubernetes:
 		// Create Kubernetes struct
-		KubernetesCluster, err := CreateKubernetesClusterFromModel(modelCluster)
+		kubernetesCluster, err := CreateKubernetesClusterFromModel(modelCluster)
 		if err != nil {
 			return nil, err
 		}
 
 		log.Info("Load Kubernetes props from database")
-		database.Where(model.KubernetesClusterModel{ClusterModelId: KubernetesCluster.modelCluster.ID}).First(&KubernetesCluster.modelCluster.Kubernetes)
+		database.Where(model.KubernetesClusterModel{ClusterModelId: kubernetesCluster.modelCluster.ID}).First(&kubernetesCluster.modelCluster.Kubernetes)
 
-		return KubernetesCluster, nil
+		return kubernetesCluster, nil
 	}
 
 	return nil, constants.ErrorNotSupportedCloudType

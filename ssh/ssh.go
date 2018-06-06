@@ -32,59 +32,41 @@ type Key struct {
 	PrivateKeyData       string `json:"PrivateKeyData,omitempty"`
 }
 
-// KeyGet SSH Key from Bank Vaults
-func KeyGet(organizationID string, ClusterID uint) (sshKey Key, err error) {
-	log := logger.WithFields(logrus.Fields{"tag": "KeyGet"})
-	log.Info("Get SSH key")
-	if organizationID == "" || ClusterID == 0 {
-		log.Debugf("KeyGet organizationID: %q ClusterID: %q", organizationID, ClusterID)
-		return sshKey, fmt.Errorf("parameter missing")
+// NewKey constructs a Ssh Key from the values stored
+// in the given secret
+func NewKey(s *secret.SecretsItemResponse) *Key {
+	return &Key{
+		User:                 s.Values[constants.User],
+		Identifier:           s.Values[constants.Identifier],
+		PublicKeyData:        s.Values[constants.PublicKeyData],
+		PublicKeyFingerprint: s.Values[constants.PublicKeyFingerprint],
+		PrivateKeyData:       s.Values[constants.PrivateKeyData],
 	}
-	db := model.GetDB()
-	awsProperties := &model.AmazonClusterModel{ClusterModelId: ClusterID}
-	if err := db.First(awsProperties).Error; err != nil {
-		log.Errorf("Get ssh key failed reason: %s", err.Error())
-		return sshKey, err
-	}
-
-	vaultContent, err := secret.Store.Get(organizationID, awsProperties.SshSecretID)
-	if err != nil {
-		log.Debugf("organizationID: %q, SshSecretID: %q", organizationID, awsProperties.SshSecretID)
-		log.Errorf("Get ssh key failed organizationID: %q, SshSecretID: %q  reason: %s", organizationID, awsProperties.SshSecretID, err.Error())
-		return sshKey, err
-	}
-	sshKey.User = vaultContent.Values[constants.User]
-	sshKey.Identifier = vaultContent.Values[constants.Identifier]
-	sshKey.PublicKeyData = vaultContent.Values[constants.PublicKeyData]
-	sshKey.PublicKeyFingerprint = vaultContent.Values[constants.PublicKeyFingerprint]
-	sshKey.PrivateKeyData = vaultContent.Values[constants.PrivateKeyData]
-	log.Debug("Get SSH Key Done.")
-	return sshKey, nil
 }
 
 // KeyAdd for Generate and store SSH key
-func KeyAdd(organizationID uint, clusterID uint) (secretID string, sshKey *Key, err error) {
+func KeyAdd(organizationId uint, clusterId uint) (string, error) {
 	log := logger.WithFields(logrus.Fields{"tag": "KeyAdd"})
 	log.Info("Generate and store SSH key ")
 
-	sshKey, err = KeyGenerator()
+	sshKey, err := KeyGenerator()
 	if err != nil {
 		log.Errorf("KeyGenerator failed reason: %s", err.Error())
-		return secretID, nil, err
+		return "", err
 	}
 
 	db := model.GetDB()
-	cluster := model.ClusterModel{ID: clusterID}
+	cluster := model.ClusterModel{ID: clusterId}
 	if err = db.First(&cluster).Error; err != nil {
 		log.Errorf("Cluster with id=% not found: %s", cluster.ID, err.Error())
-		return "", nil, err
+		return "", err
 	}
-	secretID, err = KeyStore(sshKey, organizationID, cluster.Name)
+	secretId, err := KeyStore(sshKey, organizationId, cluster.Name)
 	if err != nil {
 		log.Errorf("KeyStore failed reason: %s", err.Error())
-		return secretID, nil, err
+		return "", err
 	}
-	return secretID, sshKey, err
+	return secretId, nil
 }
 
 // KeyStore for store SSH Key to Bank Vaults
@@ -93,7 +75,7 @@ func KeyStore(key *Key, organizationID uint, clusterName string) (secretID strin
 	log.Info("Store SSH Key to Bank Vaults")
 	secretID = secret.GenerateSecretID()
 	var createSecretRequest secret.CreateSecretRequest
-	createSecretRequest.Type = "ssh"
+	createSecretRequest.Type = constants.SshSecretType
 	createSecretRequest.Name = clusterName
 
 	createSecretRequest.Values = map[string]string{

@@ -28,6 +28,7 @@ type ClusterModel struct {
 	OrganizationId uint `gorm:"unique_index:idx_unique_id"`
 	SecretId       string
 	ConfigSecretId string
+	SshSecretId    string
 	Status         string
 	Monitoring     bool
 	Logging        bool
@@ -46,7 +47,6 @@ type AmazonClusterModel struct {
 	MasterInstanceType string
 	MasterImage        string
 	NodePools          []*AmazonNodePoolsModel `gorm:"foreignkey:ClusterModelId"`
-	SshSecretID        string
 }
 
 //AmazonNodePoolsModel describes Amazon node groups model of a cluster
@@ -343,5 +343,11 @@ func (cs *ClusterModel) UpdateStatus(status, statusMessage string) error {
 // UpdateConfigSecret updates the model's config secret id in database
 func (cs *ClusterModel) UpdateConfigSecret(configSecretId string) error {
 	cs.ConfigSecretId = configSecretId
+	return cs.Save()
+}
+
+// UpdateSshSecret updates the model's ssh secret id in database
+func (cs *ClusterModel) UpdateSshSecret(sshSecretId string) error {
+	cs.SshSecretId = sshSecretId
 	return cs.Save()
 }

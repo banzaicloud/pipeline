@@ -15,6 +15,7 @@ import (
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/model/defaults"
 	"github.com/banzaicloud/pipeline/secret"
+	pipelineSsh "github.com/banzaicloud/pipeline/ssh"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -248,6 +249,22 @@ func CreateCluster(c *gin.Context, createClusterRequest *components.CreateCluste
 
 // postCreateCluster creates a cluster (ASYNC)
 func postCreateCluster(commonCluster cluster.CommonCluster) error {
+
+	// Check if public ssh key is needed for the cluster. If so and there is generate one and store it Vault
+	if len(commonCluster.GetSshSecretId()) == 0 && commonCluster.RequiresSshPublicKey() {
+		log.Infof("Generating Ssh Key for the cluster")
+
+		sshSecretId, err := pipelineSsh.KeyAdd(commonCluster.GetOrganizationId(), commonCluster.GetID())
+		if err != nil {
+			log.Errorf("Generating Ssh Key for organization id=%s, cluster id=%s failed: %s", commonCluster.GetOrganizationId(), commonCluster.GetID(), err.Error())
+			return err
+		}
+
+		if err := commonCluster.SaveSshSecretId(sshSecretId); err != nil {
+			log.Errorf("Error during cluster creation: %s", err.Error())
+			return err
+		}
+	}
 
 	// Create cluster
 	err := commonCluster.CreateCluster()
