@@ -59,7 +59,7 @@ func CreateDeployment(c *gin.Context) {
 		return
 	}
 	release, err := helm.CreateDeployment(parsedRequest.deploymentName,
-		helm.DefaultNamespace,
+		parsedRequest.namespace,
 		parsedRequest.deploymentReleaseName,
 		parsedRequest.values,
 		parsedRequest.kubeConfig,
@@ -319,6 +319,7 @@ type parsedDeploymentRequest struct {
 	deploymentName        string
 	deploymentReleaseName string
 	reuseValues           bool
+	namespace             string
 	values                []byte
 	kubeConfig            []byte
 	organizationName      string
@@ -352,6 +353,7 @@ func parseCreateUpdateDeploymentRequest(c *gin.Context) (*parsedDeploymentReques
 	pdr.deploymentName = deployment.Name
 	pdr.deploymentReleaseName = deployment.ReleaseName
 	pdr.reuseValues = deployment.ReUseValues
+	pdr.namespace = deployment.Namespace
 
 	if deployment.Values != "" {
 		parsedJSON, err := yaml.Marshal(deployment.Values)
