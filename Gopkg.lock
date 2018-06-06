@@ -186,13 +186,14 @@
     "components",
     "components/amazon",
     "components/azure",
+    "components/catalog",
     "components/dummy",
     "components/google",
     "components/helm",
     "components/kubernetes",
     "constants"
   ]
-  revision = "fee95afc39b373021abc4ae1c03bb91ee7f6df70"
+  revision = "fee85113370dfdd08d0df006e6e23214426736f0"
 
 [[projects]]
   branch = "master"
@@ -707,7 +708,6 @@
     "pkg/compare",
     "pkg/defaults",
     "pkg/hang",
-    "pkg/initapi",
     "pkg/kubeadm",
     "pkg/logger",
     "pkg/parser",
@@ -1804,6 +1804,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "641367b35aa9bbf35629722bcc3998cd60f977c95bf273f9cfe937ea635414e7"
+  inputs-digest = "bad21acb400f90638cc092074e4454b1a338e492b51e2bf0213c68744e3b0689"
   solver-name = "gps-cdcl"
   solver-version = 1

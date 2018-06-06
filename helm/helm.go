@@ -203,6 +203,10 @@ func CreateDeployment(chartName string, namespace string, releaseName string, va
 	if len(strings.TrimSpace(releaseName)) == 0 {
 		releaseName, _ = generateName("")
 	}
+	if namespace == "" {
+		log.Warn("Deployment namespace was not set failing back to default")
+		namespace = DefaultNamespace
+	}
 	hClient, err := GetHelmClient(kubeConfig)
 	if err != nil {
 		return nil, err

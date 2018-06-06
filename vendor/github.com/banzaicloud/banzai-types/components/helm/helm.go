@@ -76,6 +76,7 @@ type CreateUpdateDeploymentRequest struct {
 	ReleaseName string      `json:"release_name"`
 	Version     string      `json:"version"`
 	ReUseValues bool        `json:"reuse_values"`
+	Namespace   string      `json:"namespace"`
 	Values      interface{} `json:"values"`
 }
 
