@@ -2848,6 +2848,12 @@ components:
         spotPrice:
           type: string
           example: "0.2"
+        autoscaling:
+          type: boolean
+          example: true
+        count:
+          type: number
+          example: 1
         minCount:
           type: integer
           example: 1
@@ -2888,9 +2894,18 @@ components:
         - count
         - nodeInstanceType
       properties:
+        autoscaling:
+          type: boolean
+          example: true
         count:
           type: number
           example: 1
+        minCount:
+          type: integer
+          example: 1
+        maxCount:
+          type: integer
+          example: 2
         nodeInstanceType:
           type: string
           example: "Standard_B2ms"
@@ -2930,9 +2945,18 @@ components:
         - count
         - nodeInstanceType
       properties:
+        autoscaling:
+          type: boolean
+          example: true
         count:
           type: number
           example: 1
+        minCount:
+          type: integer
+          example: 1
+        maxCount:
+          type: integer
+          example: 2
         nodeInstanceType:
           type: string
           example: "n1-standard-2"
@@ -3087,6 +3111,12 @@ components:
     UpdateNodePoolsAmazon:
       type: object
       properties:
+        autoscaling:
+          type: boolean
+          example: true
+        count:
+          type: number
+          example: 2
         minCount:
           type: number
           example: 1
@@ -3108,7 +3138,16 @@ components:
                 pool1:
                   type: object
                   properties:
+                    autoscaling:
+                      type: boolean
+                      example: true
                     count:
+                      type: number
+                      example: 2
+                    minCount:
+                      type: number
+                      example: 1
+                    maxCount:
                       type: number
                       example: 2
 
@@ -3126,9 +3165,18 @@ components:
             pool1:
               type: object
               properties:
+                autoscaling:
+                  type: boolean
+                  example: true
                 count:
                   type: number
+                  example: 2
+                minCount:
+                  type: number
                   example: 1
+                maxCount:
+                  type: number
+                  example: 2
                 nodeInstanceType:
                   type: string
                   example: "n1-standard-2"
@@ -3784,11 +3832,17 @@ components:
                     spotPrice:
                       type: string
                       example: "0.2"
+                    autoscaling:
+                      type: boolean
+                      example: true
+                    count:
+                      type: number
+                      example: 1
                     minCount:
-                      type: integer
+                      type: number
                       example: 1
                     maxCount:
-                      type: integer
+                      type: number
                       example: 2
                     image:
                       type: string
@@ -3809,9 +3863,18 @@ components:
                 pool1:
                   type: object
                   properties:
+                    autoscaling:
+                      type: boolean
+                      example: true
                     count:
-                      type: integer
+                      type: number
                       example: 1
+                    minCount:
+                      type: number
+                      example: 1
+                    maxCount:
+                      type: number
+                      example: 2
                     nodeInstanceType:
                       type: string
                       example: "Standard_D2_v2"
@@ -3837,9 +3900,18 @@ components:
                 pool1:
                   type: object
                   properties:
+                    autoscaling:
+                      type: boolean
+                      example: true
                     count:
                       type: number
                       example: 1
+                    minCount:
+                      type: number
+                      example: 1
+                    maxCount:
+                      type: number
+                      example: 2
                     nodeInstanceType:
                       type: string
                       example: "n1-standard-1"
@@ -4601,10 +4673,16 @@ components:
         spot_price:
           type: string
           example: "0.2"
-        min_count:
+        autoscaling:
+          type: boolean
+          example: true
+        count:
           type: number
           example: 1
-        max_count:
+        minCount:
+          type: number
+          example: 1
+        maxCount:
           type: number
           example: 2
         image:
@@ -4614,9 +4692,18 @@ components:
     NodePoolStatusAzure:
       type: object
       properties:
+        autoscaling:
+          type: boolean
+          example: true
         count:
           type: number
           example: 1
+        minCount:
+          type: number
+          example: 1
+        maxCount:
+          type: number
+          example: 2
         instance_type:
           type: string
           example: "Standard_D4_v2"
@@ -4624,9 +4711,18 @@ components:
     NodePoolStatusGoogle:
       type: object
       properties:
+        autoscaling:
+          type: boolean
+          example: true
         count:
           type: number
           example: 1
+        minCount:
+          type: number
+          example: 1
+        maxCount:
+          type: number
+          example: 2
         instance_type:
           type: string
           example: "n1-standard-1"
