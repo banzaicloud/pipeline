@@ -12,8 +12,8 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/utils"
-	"github.com/go-errors/errors"
 	"github.com/jinzhu/copier"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	gkeCompute "google.golang.org/api/compute/v1"
@@ -41,6 +41,12 @@ const (
 	defaultNamespace = "default"
 	clusterAdmin     = "cluster-admin"
 	netesDefault     = "netes-default"
+)
+
+// constants to find Kubernetes resources
+const (
+	kubernetesIO = "kubernetes.io"
+	targetPrefix = "gke-"
 )
 
 //CreateGKEClusterFromRequest creates ClusterModel struct from the request
@@ -282,8 +288,8 @@ func (g *GKECluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 func (g *GKECluster) DeleteCluster() error {
 
 	log := logger.WithFields(logrus.Fields{"action": constants.TagDeleteCluster})
-	log.Info("Waiting for deleting deployments resources. (90sec)")
-	time.Sleep(time.Second * 90)
+
+	g.waitForResourcesDelete()
 
 	log.Info("Start delete google cluster")
 
@@ -310,6 +316,270 @@ func (g *GKECluster) DeleteCluster() error {
 	log.Info("Delete succeeded")
 	return nil
 
+}
+
+// waitForResourcesDelete waits until the Kubernetes destroys all the resources which it had created
+func (g *GKECluster) waitForResourcesDelete() interface{} {
+
+	log.Info("Waiting for deleting deployments resources")
+
+	log.Info("Create compute service")
+	csv, err := g.getComputeService()
+	if err != nil {
+		return errors.Wrap(err, "Error during creating compute service")
+	}
+
+	log.Info("Get project id")
+	project, err := g.getProjectId()
+	if err != nil {
+		return errors.Wrap(err, "Error during getting project id")
+	}
+
+	err = checkFirewalls(csv, project, g.modelCluster.Name)
+	if err != nil {
+		return errors.Wrap(err, "Error during checking firewalls")
+	}
+
+	err = checkLoadBalancerResources(csv, project, g.modelCluster.Location)
+	if err != nil {
+		return errors.Wrap(err, "Error during checking load balancer resources")
+	}
+
+	return nil
+}
+
+// checkLoadBalancerResources checks all load balancer resources deleted by Kubernetes
+func checkLoadBalancerResources(csv *gkeCompute.Service, project, zone string) error {
+
+	log.Info("Check load balancer resources")
+
+	log.Infof("Find region by zone[%s]", zone)
+	region, err := findRegionByZone(csv, project, zone)
+	if err != nil {
+		return err
+	}
+
+	regionName := region.Name
+	log.Infof("Region name: %s", regionName)
+
+	err = checkForwardingRules(csv, project, regionName)
+	if err != nil {
+		return err
+	}
+
+	return checkTargetPools(csv, project, regionName)
+}
+
+// checkTargetPools checks all target pools deleted by Kubernetes
+func checkTargetPools(csv *gkeCompute.Service, project, regionName string) error {
+
+	log.Infof("Check target pools(backends) in project[%s] and region[%s]", project, regionName)
+
+	log.Info("List target pools")
+	pools, err := listTargetPools(csv, project, regionName)
+	if err != nil {
+		return err
+	}
+
+	for _, pool := range pools {
+		if pool != nil {
+			for {
+				err := isTargetPoolDeleted(csv, project, regionName, pool.Name)
+				if err == nil {
+					log.Infof("Target pool[%s] deleted", pool.Name)
+					break
+				} else {
+					log.Warn(err.Error())
+					time.Sleep(time.Second * 5)
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+// isTargetPoolDeleted checks the given target pool is deleted by Kubernetes
+func isTargetPoolDeleted(csv *gkeCompute.Service, project, region, targetPoolName string) error {
+	log.Infof("Get target pool[%s]", targetPoolName)
+	_, err := csv.TargetPools.Get(project, region, targetPoolName).Context(context.Background()).Do()
+	if err != nil {
+		return notFoundGoogleError(err)
+	}
+
+	return fmt.Errorf("target pool[%s] is still alive", targetPoolName)
+}
+
+// listTargetPools returns all target pools in project and region
+func listTargetPools(csv *gkeCompute.Service, project, regionName string) ([]*gkeCompute.TargetPool, error) {
+	list, err := csv.TargetPools.List(project, regionName).Context(context.Background()).Do()
+	if err != nil {
+		return nil, err
+	}
+
+	return list.Items, nil
+}
+
+// checkForwardingRules checks all forwarding rules deleted by Kubernetes
+func checkForwardingRules(csv *gkeCompute.Service, project, regionName string) error {
+
+	log.Infof("Check forwarding rules(frontends) in project[%s] and region[%s]", project, regionName)
+
+	log.Info("List forwarding rules")
+	forwardingRules, err := listForwardingRules(csv, project, regionName)
+	if err != nil {
+		return err
+	}
+
+	log.Debugf("Forwarding rules: %d", len(forwardingRules))
+
+	for _, rule := range forwardingRules {
+		if rule != nil {
+			for {
+				err := isForwardingRuleDeleted(csv, project, regionName, rule.Name)
+				if err == nil {
+					log.Infof("Forwarding rule[%s] deleted", rule.Name)
+					break
+				} else {
+					log.Warn(err.Error())
+					time.Sleep(time.Second * 5)
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+// isForwardingRuleDeleted checks the given forwarding rule is deleted by Kubernetes
+func isForwardingRuleDeleted(csv *gkeCompute.Service, project, region, forwardingRule string) error {
+	log.Infof("Get forwarding rule[%s]", forwardingRule)
+	_, err := csv.ForwardingRules.Get(project, region, forwardingRule).Context(context.Background()).Do()
+	if err != nil {
+		return notFoundGoogleError(err)
+	}
+
+	return fmt.Errorf("forwarding rule[%s] is still alive", forwardingRule)
+}
+
+// notFoundGoogleError transforms an error into googleapi.Error
+func notFoundGoogleError(err error) error {
+	apiError, isOk := err.(*googleapi.Error)
+	if isOk {
+		if apiError.Code == http.StatusNotFound {
+			return nil
+		}
+	}
+	return err
+}
+
+// listForwardingRules returns all forwarding rule in project in region
+func listForwardingRules(csv *gkeCompute.Service, project, region string) ([]*gkeCompute.ForwardingRule, error) {
+	list, err := csv.ForwardingRules.List(project, region).Context(context.Background()).Do()
+	if err != nil {
+		return nil, err
+	}
+
+	return list.Items, nil
+}
+
+// findRegionByZone returns region by zone
+func findRegionByZone(csv *gkeCompute.Service, project, zone string) (*gkeCompute.Region, error) {
+
+	regions, err := listRegions(csv, project)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, r := range regions {
+		if r != nil {
+			for _, z := range r.Zones {
+				if z == getZoneScope(project, zone) {
+					return r, nil
+				}
+			}
+		}
+	}
+	return nil, fmt.Errorf("cannot find zone[%s] in regions", zone)
+}
+
+func getZoneScope(project, zone string) string {
+	return fmt.Sprintf("https://www.googleapis.com/compute/v1/projects/%s/zones/%s", project, zone)
+}
+
+// listRegions returns all region in project
+func listRegions(csv *gkeCompute.Service, project string) ([]*gkeCompute.Region, error) {
+	regionList, err := csv.Regions.List(project).Context(context.Background()).Do()
+	if err != nil {
+		return nil, err
+	}
+	return regionList.Items, nil
+}
+
+// checkFirewalls checks all load balancer resources deleted by Kubernetes
+func checkFirewalls(csv *gkeCompute.Service, project, clusterName string) error {
+
+	log.Info("Check firewalls")
+	log.Info("List firewalls")
+	firewalls, err := csv.Firewalls.List(project).Context(context.Background()).Do()
+	if err != nil {
+		return errors.Wrap(err, "Error during listing firewalls")
+	}
+
+	log.Infof("Find firewall(s) by target[%s]", clusterName)
+	k8sFirewalls := findFirewallRulesByTarget(firewalls.Items, clusterName)
+
+	for _, f := range k8sFirewalls {
+		for {
+			err := isFirewallDeleted(csv, project, f.Name)
+			if err == nil {
+				log.Infof("Firewall[%s] deleted", f.Name)
+				break
+			} else {
+				log.Warn(err.Error())
+				time.Sleep(time.Second * 5)
+			}
+		}
+	}
+
+	return nil
+}
+
+// isFirewallDeleted checks the given firewall is deleted by Kubernetes
+func isFirewallDeleted(csv *gkeCompute.Service, project, firewall string) error {
+
+	log.Infof("get firewall[%s] in project[%s]", firewall, project)
+
+	_, err := csv.Firewalls.Get(project, firewall).Context(context.Background()).Do()
+	if err != nil {
+		return notFoundGoogleError(err)
+	}
+
+	return fmt.Errorf("firewall[%s] is still alive", firewall)
+}
+
+// findFirewallRulesByTarget returns all firewalls which created by Kubernetes
+func findFirewallRulesByTarget(rules []*gkeCompute.Firewall, clusterName string) []*gkeCompute.Firewall {
+
+	var firewalls []*gkeCompute.Firewall
+	for _, r := range rules {
+		if r != nil {
+
+			if strings.Contains(r.Description, kubernetesIO) {
+
+				for _, tag := range r.TargetTags {
+					log.Debugf("Firewall rule[%s] target tag: %s", r.Name, tag)
+					if strings.HasPrefix(tag, targetPrefix+clusterName) {
+						log.Debugf("Append firewall list[%s]", r.Name)
+						firewalls = append(firewalls, r)
+					}
+				}
+
+			}
+		}
+	}
+
+	return firewalls
 }
 
 // UpdateCluster updates GKE cluster in cloud
