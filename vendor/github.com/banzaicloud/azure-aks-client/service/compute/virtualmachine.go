@@ -24,6 +24,7 @@ type CreateVmRequest struct {
 	Offer              string
 	Sku                string
 	NetworkInterfaceId string
+	SSHPubKey          string
 }
 
 // NewVirtualMachinesClient create a new 'VirtualMachinesClient' instance
@@ -66,7 +67,7 @@ func (vmc *VirtualMachinesClient) CreateVirtualMachine(r *CreateVmRequest) (*com
 						SSH: &compute.SSHConfiguration{
 							PublicKeys: &[]compute.SSHPublicKey{
 								{
-									KeyData: utils.S(utils.ReadPubRSA("id_rsa.pub")),
+									KeyData: utils.S(r.SSHPubKey),
 								},
 							},
 						},

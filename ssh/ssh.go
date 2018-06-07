@@ -8,6 +8,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/constants"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/sirupsen/logrus"
@@ -52,11 +53,11 @@ func KeyGet(organizationID string, ClusterID uint) (sshKey Key, err error) {
 		log.Errorf("Get ssh key failed organizationID: %q, SshSecretID: %q  reason: %s", organizationID, awsProperties.SshSecretID, err.Error())
 		return sshKey, err
 	}
-	sshKey.User = vaultContent.Values[secret.User]
-	sshKey.Identifier = vaultContent.Values[secret.Identifier]
-	sshKey.PublicKeyData = vaultContent.Values[secret.PublicKeyData]
-	sshKey.PublicKeyFingerprint = vaultContent.Values[secret.PublicKeyFingerprint]
-	sshKey.PrivateKeyData = vaultContent.Values[secret.PrivateKeyData]
+	sshKey.User = vaultContent.Values[constants.User]
+	sshKey.Identifier = vaultContent.Values[constants.Identifier]
+	sshKey.PublicKeyData = vaultContent.Values[constants.PublicKeyData]
+	sshKey.PublicKeyFingerprint = vaultContent.Values[constants.PublicKeyFingerprint]
+	sshKey.PrivateKeyData = vaultContent.Values[constants.PrivateKeyData]
 	log.Debug("Get SSH Key Done.")
 	return sshKey, nil
 }
@@ -96,11 +97,11 @@ func KeyStore(key *Key, organizationID uint, clusterName string) (secretID strin
 	createSecretRequest.Name = clusterName
 
 	createSecretRequest.Values = map[string]string{
-		secret.User:                 key.User,
-		secret.Identifier:           key.Identifier,
-		secret.PublicKeyData:        key.PublicKeyData,
-		secret.PublicKeyFingerprint: key.PublicKeyFingerprint,
-		secret.PrivateKeyData:       key.PrivateKeyData,
+		constants.User:                 key.User,
+		constants.Identifier:           key.Identifier,
+		constants.PublicKeyData:        key.PublicKeyData,
+		constants.PublicKeyFingerprint: key.PublicKeyFingerprint,
+		constants.PrivateKeyData:       key.PrivateKeyData,
 	}
 
 	if err := secret.Store.Store(fmt.Sprint(organizationID), secretID, &createSecretRequest); err != nil {

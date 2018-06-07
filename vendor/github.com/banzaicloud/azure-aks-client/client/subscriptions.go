@@ -12,3 +12,13 @@ func (a *aksClient) listLocations() ([]subscriptions.Location, error) {
 
 	return subsClient.ListLocations()
 }
+// listSubscriptions
+func (a *aksClient) listSubscriptions() ([]subscriptions.Subscription, error) {
+	a.LogInfo("List subscriptions")
+	subsClient, err := a.azureSdk.GetSubscriptionsClient()
+	if err != nil {
+		return nil, err
+	}
+
+	return subsClient.ListSubscriptions()
+}

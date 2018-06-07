@@ -3,11 +3,11 @@ package objectstore
 import (
 	"errors"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/auth/cloud"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/sirupsen/logrus"
 	"sort"
@@ -223,11 +223,8 @@ func createS3Client(region string, retrievedSecret *secret.SecretsItemResponse) 
 	log := logger.WithFields(logrus.Fields{"tag": "createS3Client"})
 	log.Info("Creating AWS session")
 	s, err := session.NewSession(&aws.Config{
-		Region: aws.String(region),
-		Credentials: credentials.NewStaticCredentials(
-			retrievedSecret.Values[secret.AwsAccessKeyId],
-			retrievedSecret.Values[secret.AwsSecretAccessKey],
-			""),
+		Region:      aws.String(region),
+		Credentials: cloud.CreateAWSCredentials(retrievedSecret.Values),
 	})
 
 	if err != nil {

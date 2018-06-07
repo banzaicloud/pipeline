@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/banzai-types/constants"
+	pipConstants "github.com/banzaicloud/pipeline/constants"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/sirupsen/logrus"
@@ -62,7 +63,7 @@ func (b *KubeCluster) DownloadK8sConfig() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	b.k8sConfig, err = base64.StdEncoding.DecodeString(s.GetValue(secret.K8SConfig))
+	b.k8sConfig, err = base64.StdEncoding.DecodeString(s.GetValue(pipConstants.K8SConfig))
 	return b.k8sConfig, err
 }
 
@@ -142,7 +143,7 @@ func (b *KubeCluster) GetAPIEndpoint() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	config, err := base64.StdEncoding.DecodeString(secretItem.GetValue(secret.K8SConfig))
+	config, err := base64.StdEncoding.DecodeString(secretItem.GetValue(pipConstants.K8SConfig))
 	if err != nil {
 		return "", err
 	}

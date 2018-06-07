@@ -6,6 +6,8 @@ import (
 
 	btypes "github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/api"
+	"github.com/banzaicloud/pipeline/auth/cloud"
+	pipConstants "github.com/banzaicloud/pipeline/constants"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -71,19 +73,20 @@ func TestAddSecret(t *testing.T) {
 		request  secret.CreateSecretRequest
 		secretId string
 		isError  bool
+		verifier cloud.Verifier
 	}{
-		{name: "add aws secret", request: awsCreateSecretRequest, secretId: secretIdAmazon, isError: false},
-		{name: "add aks secret", request: aksCreateSecretRequest, secretId: secretIdAzure, isError: false},
-		{name: "add gke secret", request: gkeCreateSecretRequest, secretId: secretIdGoogle, isError: false},
+		{name: "add aws secret", request: awsCreateSecretRequest, secretId: secretIdAmazon, isError: false, verifier: nil},
+		{name: "add aks secret", request: aksCreateSecretRequest, secretId: secretIdAzure, isError: false, verifier: nil},
+		{name: "add gke secret", request: gkeCreateSecretRequest, secretId: secretIdGoogle, isError: false, verifier: nil},
 
-		{name: "add aws secret (missing key(s))", request: awsMissingKey, isError: true},
-		{name: "add aks secret (missing key(s))", request: aksMissingKey, isError: true},
-		{name: "add gke secret (missing key(s))", request: gkeMissingKey, isError: true},
+		{name: "add aws secret (missing key(s))", request: awsMissingKey, isError: true, verifier: nil},
+		{name: "add aks secret (missing key(s))", request: aksMissingKey, isError: true, verifier: nil},
+		{name: "add gke secret (missing key(s))", request: gkeMissingKey, isError: true, verifier: nil},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			if err := tc.request.Validate(); err != nil {
+			if err := tc.request.Validate(tc.verifier); err != nil {
 				if !tc.isError {
 					t.Errorf("Error during validate request: %s", err.Error())
 				}
@@ -265,7 +268,7 @@ var (
 
 func toHiddenValues(secretType string) map[string]string {
 	values := map[string]string{}
-	for _, key := range secret.DefaultRules[secretType] {
+	for _, key := range pipConstants.DefaultRules[secretType] {
 		values[key] = "<hidden>"
 	}
 	return values
@@ -325,18 +328,18 @@ var (
 
 var (
 	allAllowedTypes = secret.AllowedSecretTypesResponse{
-		Allowed: secret.DefaultRules,
+		Allowed: pipConstants.DefaultRules,
 	}
 
 	awsRequiredKeys = secret.AllowedFilteredSecretTypesResponse{
-		Keys: secret.DefaultRules[btypes.Amazon],
+		Keys: pipConstants.DefaultRules[btypes.Amazon],
 	}
 
 	aksRequiredKeys = secret.AllowedFilteredSecretTypesResponse{
-		Keys: secret.DefaultRules[btypes.Azure],
+		Keys: pipConstants.DefaultRules[btypes.Azure],
 	}
 
 	gkeRequiredKeys = secret.AllowedFilteredSecretTypesResponse{
-		Keys: secret.DefaultRules[btypes.Google],
+		Keys: pipConstants.DefaultRules[btypes.Google],
 	}
 )

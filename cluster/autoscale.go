@@ -1,8 +1,8 @@
 package cluster
 
 import (
+	"github.com/banzaicloud/pipeline/constants"
 	"github.com/banzaicloud/pipeline/helm"
-	"github.com/banzaicloud/pipeline/secret"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -136,10 +136,10 @@ func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup) *autos
 		},
 		Rbac: rbac{Create: true},
 		Azure: azureInfo{
-			ClientID:          clusterSecret.Values[secret.AzureClientId],
-			ClientSecret:      clusterSecret.Values[secret.AzureClientSecret],
-			SubscriptionID:    clusterSecret.Values[secret.AzureSubscriptionId],
-			TenantID:          clusterSecret.Values[secret.AzureTenantId],
+			ClientID:          clusterSecret.Values[constants.AzureClientId],
+			ClientSecret:      clusterSecret.Values[constants.AzureClientSecret],
+			SubscriptionID:    clusterSecret.Values[constants.AzureSubscriptionId],
+			TenantID:          clusterSecret.Values[constants.AzureTenantId],
 			ResourceGroup:     cluster.GetModel().Azure.ResourceGroup,
 			NodeResourceGroup: *nodeResourceGroup,
 			ClusterName:       cluster.GetName(),

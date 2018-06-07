@@ -20,7 +20,7 @@ func GetManagedCluster(request *CreateClusterRequest, clientId string, secret st
 				SSH: &containerservice.SSHConfiguration{
 					PublicKeys: &[]containerservice.SSHPublicKey{
 						{
-							KeyData: utils.S(utils.ReadPubRSA("id_rsa.pub")),
+							KeyData: utils.S(request.SSHPubKey),
 						},
 					},
 				},
@@ -40,6 +40,7 @@ type CreateClusterRequest struct {
 	Location          string
 	ResourceGroup     string
 	KubernetesVersion string
+	SSHPubKey         string
 	Profiles          []containerservice.AgentPoolProfile
 }
 

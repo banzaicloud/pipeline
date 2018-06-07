@@ -5,6 +5,8 @@ import (
 	"testing"
 
 	btypes "github.com/banzaicloud/banzai-types/constants"
+	"github.com/banzaicloud/pipeline/auth/cloud"
+	pipConstants "github.com/banzaicloud/pipeline/constants"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -16,7 +18,7 @@ func TestGetValue(t *testing.T) {
 		searchedKey   string
 		expectedValue string
 	}{
-		{name: "gke project id", secretItem: secretItem1, searchedKey: secret.ProjectId, expectedValue: gkeProjectId},
+		{name: "gke project id", secretItem: secretItem1, searchedKey: pipConstants.ProjectId, expectedValue: gkeProjectId},
 		{name: "non", secretItem: secretItem1, searchedKey: secretProjectId2, expectedValue: ""},
 	}
 
@@ -34,24 +36,25 @@ func TestGetValue(t *testing.T) {
 func TestCreateSecretValidate(t *testing.T) {
 
 	cases := []struct {
-		name    string
-		request secret.CreateSecretRequest
-		isError bool
+		name     string
+		request  secret.CreateSecretRequest
+		isError  bool
+		verifier cloud.Verifier
 	}{
-		{name: "aws full", request: awsCreateSecretFull, isError: false},
-		{name: "aks full", request: aksCreateSecretFull, isError: false},
-		{name: "gke full", request: gkeCreateSecretFull, isError: false},
-		{name: "ssh full", request: sshCreateSecretFull, isError: false},
+		{name: "aws full", request: awsCreateSecretFull, isError: false, verifier: nil},
+		{name: "aks full", request: aksCreateSecretFull, isError: false, verifier: nil},
+		{name: "gke full", request: gkeCreateSecretFull, isError: false, verifier: nil},
+		{name: "ssh full", request: sshCreateSecretFull, isError: false, verifier: nil},
 
-		{name: "aws missing key", request: awsMissingKey, isError: true},
-		{name: "aks missing key", request: aksMissingKey, isError: true},
-		{name: "gke missing key", request: gkeMissingKey, isError: true},
-		{name: "ssh missing key", request: sshMissingKey, isError: true},
+		{name: "aws missing key", request: awsMissingKey, isError: true, verifier: nil},
+		{name: "aks missing key", request: aksMissingKey, isError: true, verifier: nil},
+		{name: "gke missing key", request: gkeMissingKey, isError: true, verifier: nil},
+		{name: "ssh missing key", request: sshMissingKey, isError: true, verifier: nil},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := tc.request.Validate()
+			err := tc.request.Validate(tc.verifier)
 
 			if err != nil {
 				if !tc.isError {
@@ -110,8 +113,8 @@ var (
 		Name: secretDesc,
 		Type: btypes.Amazon,
 		Values: map[string]string{
-			secret.AwsAccessKeyId:     AwsAccessKeyId,
-			secret.AwsSecretAccessKey: AwsSecretAccessKey,
+			pipConstants.AwsAccessKeyId:     AwsAccessKeyId,
+			pipConstants.AwsSecretAccessKey: AwsSecretAccessKey,
 		},
 	}
 
@@ -119,7 +122,7 @@ var (
 		Name: secretDesc,
 		Type: btypes.Amazon,
 		Values: map[string]string{
-			secret.AwsSecretAccessKey: AwsSecretAccessKey,
+			pipConstants.AwsSecretAccessKey: AwsSecretAccessKey,
 		},
 	}
 
@@ -127,10 +130,10 @@ var (
 		Name: secretDesc,
 		Type: btypes.Azure,
 		Values: map[string]string{
-			secret.AzureClientId:       AzureClientId,
-			secret.AzureClientSecret:   AzureClientSecret,
-			secret.AzureTenantId:       AzureTenantId,
-			secret.AzureSubscriptionId: AzureSubscriptionId,
+			pipConstants.AzureClientId:       AzureClientId,
+			pipConstants.AzureClientSecret:   AzureClientSecret,
+			pipConstants.AzureTenantId:       AzureTenantId,
+			pipConstants.AzureSubscriptionId: AzureSubscriptionId,
 		},
 	}
 
@@ -138,8 +141,8 @@ var (
 		Name: secretDesc,
 		Type: btypes.Azure,
 		Values: map[string]string{
-			secret.AzureClientId:       AzureClientId,
-			secret.AzureSubscriptionId: AzureSubscriptionId,
+			pipConstants.AzureClientId:       AzureClientId,
+			pipConstants.AzureSubscriptionId: AzureSubscriptionId,
 		},
 	}
 
@@ -147,16 +150,16 @@ var (
 		Name: secretDesc,
 		Type: btypes.Google,
 		Values: map[string]string{
-			secret.Type:          gkeType,
-			secret.ProjectId:     gkeProjectId,
-			secret.PrivateKeyId:  gkePrivateKeyId,
-			secret.PrivateKey:    gkePrivateKey,
-			secret.ClientEmail:   gkeClientEmail,
-			secret.ClientId:      gkeClientId,
-			secret.AuthUri:       gkeAuthUri,
-			secret.TokenUri:      gkeTokenUri,
-			secret.AuthX509Url:   gkeAuthCert,
-			secret.ClientX509Url: gkeClientCert,
+			pipConstants.Type:          gkeType,
+			pipConstants.ProjectId:     gkeProjectId,
+			pipConstants.PrivateKeyId:  gkePrivateKeyId,
+			pipConstants.PrivateKey:    gkePrivateKey,
+			pipConstants.ClientEmail:   gkeClientEmail,
+			pipConstants.ClientId:      gkeClientId,
+			pipConstants.AuthUri:       gkeAuthUri,
+			pipConstants.TokenUri:      gkeTokenUri,
+			pipConstants.AuthX509Url:   gkeAuthCert,
+			pipConstants.ClientX509Url: gkeClientCert,
 		},
 	}
 
@@ -164,38 +167,38 @@ var (
 		Name: secretDesc,
 		Type: btypes.Google,
 		Values: map[string]string{
-			secret.Type:          gkeType,
-			secret.ProjectId:     gkeProjectId,
-			secret.PrivateKeyId:  gkePrivateKeyId,
-			secret.PrivateKey:    gkePrivateKey,
-			secret.ClientId:      gkeClientId,
-			secret.AuthUri:       gkeAuthUri,
-			secret.TokenUri:      gkeTokenUri,
-			secret.AuthX509Url:   gkeAuthCert,
-			secret.ClientX509Url: gkeClientCert,
+			pipConstants.Type:          gkeType,
+			pipConstants.ProjectId:     gkeProjectId,
+			pipConstants.PrivateKeyId:  gkePrivateKeyId,
+			pipConstants.PrivateKey:    gkePrivateKey,
+			pipConstants.ClientId:      gkeClientId,
+			pipConstants.AuthUri:       gkeAuthUri,
+			pipConstants.TokenUri:      gkeTokenUri,
+			pipConstants.AuthX509Url:   gkeAuthCert,
+			pipConstants.ClientX509Url: gkeClientCert,
 		},
 	}
 
 	sshCreateSecretFull = secret.CreateSecretRequest{
 		Name: secretDesc,
-		Type: secret.SshSecretType,
+		Type: pipConstants.SshSecretType,
 		Values: map[string]string{
-			secret.User:                 SshUser,
-			secret.Identifier:           SshIdentifier,
-			secret.PublicKeyData:        SshPublicKeyData,
-			secret.PublicKeyFingerprint: SshPublicKeyFingerprint,
-			secret.PrivateKeyData:       SshPrivateKeyData,
+			pipConstants.User:                 SshUser,
+			pipConstants.Identifier:           SshIdentifier,
+			pipConstants.PublicKeyData:        SshPublicKeyData,
+			pipConstants.PublicKeyFingerprint: SshPublicKeyFingerprint,
+			pipConstants.PrivateKeyData:       SshPrivateKeyData,
 		},
 	}
 
 	sshMissingKey = secret.CreateSecretRequest{
 		Name: secretDesc,
-		Type: secret.SshSecretType,
+		Type: pipConstants.SshSecretType,
 		Values: map[string]string{
-			secret.User:                 SshUser,
-			secret.Identifier:           SshIdentifier,
-			secret.PublicKeyData:        SshPublicKeyData,
-			secret.PublicKeyFingerprint: SshPublicKeyFingerprint,
+			pipConstants.User:                 SshUser,
+			pipConstants.Identifier:           SshIdentifier,
+			pipConstants.PublicKeyData:        SshPublicKeyData,
+			pipConstants.PublicKeyFingerprint: SshPublicKeyFingerprint,
 		},
 	}
 )
@@ -206,7 +209,7 @@ var (
 		Name: secretDesc,
 		Type: btypes.Google,
 		Values: map[string]string{
-			secret.ProjectId: gkeProjectId,
+			pipConstants.ProjectId: gkeProjectId,
 		},
 	}
 )

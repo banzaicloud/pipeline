@@ -12,6 +12,7 @@ import (
 	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/banzai-types/components/azure"
 	pipelineAuth "github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/constants"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/sirupsen/logrus"
 	"net/http"
@@ -234,10 +235,10 @@ func (b *AzureObjectStore) ListBuckets() ([]*components.BucketInfo, error) {
 	log := logger.WithFields(logrus.Fields{"tag": "AzureObjectStore.ListBuckets"})
 
 	// get all resource groups
-	log.Infof("Getting all resource groups for subscription id=%s", b.secret.GetValue(secret.AzureSubscriptionId))
+	log.Infof("Getting all resource groups for subscription id=%s", b.secret.GetValue(constants.AzureSubscriptionId))
 	resourceGroups, err := getAllResourceGroups(b.secret)
 	if err != nil {
-		log.Errorf("Getting all resource groups for subscription id=%s failed: %s", b.secret.GetValue(secret.AzureSubscriptionId), err.Error())
+		log.Errorf("Getting all resource groups for subscription id=%s failed: %s", b.secret.GetValue(constants.AzureSubscriptionId), err.Error())
 		return nil, err
 	}
 
@@ -332,7 +333,7 @@ func getStorageAccountKey(s *secret.SecretsItemResponse, resourceGroup, storageA
 
 func createStorageAccountClient(s *secret.SecretsItemResponse) (*storage.AccountsClient, error) {
 	log := logger.WithFields(logrus.Fields{"tag": "CreateStorageAccountClient"})
-	accountClient := storage.NewAccountsClient(s.Values[secret.AzureSubscriptionId])
+	accountClient := storage.NewAccountsClient(s.Values[constants.AzureSubscriptionId])
 
 	authorizer, err := newAuthorizer(s)
 	if err != nil {
@@ -409,7 +410,7 @@ func createStorageAccount(b *AzureObjectStore) error {
 
 func createResourceGroup(b *AzureObjectStore) error {
 	log := logger.WithFields(logrus.Fields{"tag": "CreateResourceGroup"})
-	gclient := resources.NewGroupsClient(b.secret.Values[secret.AzureSubscriptionId])
+	gclient := resources.NewGroupsClient(b.secret.Values[constants.AzureSubscriptionId])
 
 	authorizer, err := newAuthorizer(b.secret)
 	if err != nil {
@@ -433,7 +434,7 @@ func createResourceGroup(b *AzureObjectStore) error {
 // getAllResourceGroups returns all resource groups using
 // the Azure credentials referenced by the provided secret
 func getAllResourceGroups(s *secret.SecretsItemResponse) ([]*resources.Group, error) {
-	rgClient := resources.NewGroupsClient(s.GetValue(secret.AzureSubscriptionId))
+	rgClient := resources.NewGroupsClient(s.GetValue(constants.AzureSubscriptionId))
 	authorizer, err := newAuthorizer(s)
 	if err != nil {
 		return nil, err
@@ -496,9 +497,9 @@ func getAllBlobContainers(storageAccountName, storageAccountKey string) ([]azblo
 
 func newAuthorizer(s *secret.SecretsItemResponse) (autorest.Authorizer, error) {
 	authorizer, err := auth.NewClientCredentialsConfig(
-		s.Values[secret.AzureClientId],
-		s.Values[secret.AzureClientSecret],
-		s.Values[secret.AzureTenantId]).Authorizer()
+		s.Values[constants.AzureClientId],
+		s.Values[constants.AzureClientSecret],
+		s.Values[constants.AzureTenantId]).Authorizer()
 
 	if err != nil {
 		return nil, err

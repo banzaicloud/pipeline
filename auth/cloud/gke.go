@@ -1,0 +1,118 @@
+package cloud
+
+import (
+	"context"
+	"github.com/banzaicloud/pipeline/constants"
+	"github.com/gin-gonic/gin/json"
+	"golang.org/x/oauth2/google"
+	"golang.org/x/oauth2/jwt"
+	gkeCompute "google.golang.org/api/compute/v1"
+	gke "google.golang.org/api/container/v1"
+	"net/http"
+)
+
+// gkeVerify for validation GKE credentials
+type gkeVerify struct {
+	svc *ServiceAccount
+}
+
+// CreateGKESecret create a new 'gkeVerify' instance
+func CreateGKESecret(values map[string]string) *gkeVerify {
+	return &gkeVerify{
+		svc: CreateServiceAccount(values),
+	}
+}
+
+// VerifySecret validates GKE credentials
+func (g *gkeVerify) VerifySecret() error {
+
+	config, err := createJWTConfig(g.svc)
+	if err != nil {
+		return err
+	}
+
+	err = g.refreshToken(config)
+	if err != nil {
+		return err
+	}
+
+	client := config.Client(context.Background())
+	return checkProject(client, g.svc.ProjectId)
+
+}
+
+// checkProject validates the project is exists
+func checkProject(client *http.Client, projectId string) error {
+	service, err := gkeCompute.New(client)
+	if err != nil {
+		return err
+	}
+
+	_, err = getProject(service, projectId)
+	return err
+}
+
+// getProject returns a project by project id
+func getProject(csv *gkeCompute.Service, projectId string) (*gkeCompute.Project, error) {
+	return csv.Projects.Get(projectId).Context(context.Background()).Do()
+}
+
+// refreshToken returns a token
+func (g *gkeVerify) refreshToken(config *jwt.Config) error {
+	tokenResource := config.TokenSource(context.Background())
+	_, err := tokenResource.Token()
+	return err
+}
+
+// ServiceAccount describes a GKE service account
+type ServiceAccount struct {
+	Type                   string `json:"type"`
+	ProjectId              string `json:"project_id"`
+	PrivateKeyId           string `json:"private_key_id"`
+	PrivateKey             string `json:"private_key"`
+	ClientEmail            string `json:"client_email"`
+	ClientId               string `json:"client_id"`
+	AuthUri                string `json:"auth_uri"`
+	TokenUri               string `json:"token_uri"`
+	AuthProviderX50CertUrl string `json:"auth_provider_x509_cert_url"`
+	ClientX509CertUrl      string `json:"client_x509_cert_url"`
+}
+
+// CreateServiceAccount creates a new 'ServiceAccount' instance
+func CreateServiceAccount(values map[string]string) *ServiceAccount {
+	return &ServiceAccount{
+		Type:                   values[constants.Type],
+		ProjectId:              values[constants.ProjectId],
+		PrivateKeyId:           values[constants.PrivateKeyId],
+		PrivateKey:             values[constants.PrivateKey],
+		ClientEmail:            values[constants.ClientEmail],
+		ClientId:               values[constants.ClientId],
+		AuthUri:                values[constants.AuthUri],
+		TokenUri:               values[constants.TokenUri],
+		AuthProviderX50CertUrl: values[constants.AuthX509Url],
+		ClientX509CertUrl:      values[constants.ClientX509Url],
+	}
+}
+
+// createJWTConfig parses credentials from JSON
+func createJWTConfig(credentials *ServiceAccount) (*jwt.Config, error) {
+	jsonConfig, err := json.Marshal(credentials)
+	if err != nil {
+		return nil, err
+	}
+
+	// Parse credentials from JSON
+	return google.JWTConfigFromJSON(jsonConfig, gke.CloudPlatformScope)
+}
+
+// CreateOath2Client creates a new OAuth2 client with credentials
+func CreateOath2Client(credentials *ServiceAccount) (*http.Client, error) {
+
+	config, err := createJWTConfig(credentials)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create oauth2 client with credential
+	return config.Client(context.TODO()), nil
+}

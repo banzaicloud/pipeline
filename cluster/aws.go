@@ -3,13 +3,13 @@ package cluster
 import (
 	"fmt"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/banzai-types/components/amazon"
 	"github.com/banzaicloud/banzai-types/constants"
+	"github.com/banzaicloud/pipeline/auth/cloud"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/secret"
@@ -180,16 +180,12 @@ func (c *AWSCluster) CreateCluster() error {
 	runtimeParam := pkg.RuntimeParameters{
 		AwsProfile: "",
 	}
-	clusterSecret, err := c.GetSecretWithValidation()
+
+	awsCred, err := c.createAWSCredentialsFromSecret()
 	if err != nil {
 		return err
 	}
 
-	awsCred := credentials.NewStaticCredentials(
-		clusterSecret.Values[secret.AwsAccessKeyId],
-		clusterSecret.Values[secret.AwsSecretAccessKey],
-		"",
-	)
 	runtimeParam.AwsOptions = append(runtimeParam.AwsOptions, SetCredentials(awsCred))
 
 	kubicornLogger.Level = getKubicornLogLevel()
@@ -650,16 +646,12 @@ func (c *AWSCluster) UpdateCluster(request *components.UpdateClusterRequest) err
 	runtimeParam := pkg.RuntimeParameters{
 		AwsProfile: "",
 	}
-	clusterSecret, err := c.GetSecretWithValidation()
+
+	awsCred, err := c.createAWSCredentialsFromSecret()
 	if err != nil {
 		return err
 	}
 
-	awsCred := credentials.NewStaticCredentials(
-		clusterSecret.Values[secret.AwsAccessKeyId],
-		clusterSecret.Values[secret.AwsSecretAccessKey],
-		"",
-	)
 	runtimeParam.AwsOptions = append(runtimeParam.AwsOptions, SetCredentials(awsCred))
 
 	reconciler, err := pkg.GetReconciler(kubicornCluster, &runtimeParam)
@@ -794,16 +786,12 @@ func (c *AWSCluster) DeleteCluster() error {
 	runtimeParam := pkg.RuntimeParameters{
 		AwsProfile: "",
 	}
-	clusterSecret, err := c.GetSecretWithValidation()
+
+	awsCred, err := c.createAWSCredentialsFromSecret()
 	if err != nil {
 		return err
 	}
 
-	awsCred := credentials.NewStaticCredentials(
-		clusterSecret.Values[secret.AwsAccessKeyId],
-		clusterSecret.Values[secret.AwsSecretAccessKey],
-		"",
-	)
 	runtimeParam.AwsOptions = append(runtimeParam.AwsOptions, SetCredentials(awsCred))
 
 	reconciler, err := pkg.GetReconciler(kubicornCluster, &runtimeParam)
@@ -1055,37 +1043,12 @@ func (c *AWSCluster) newEC2Client(region string) (*ec2.EC2, error) {
 
 	log.Info("create new ec2 client")
 
-	clusterSecret, err := c.GetSecretWithValidation()
+	awsCred, err := c.createAWSCredentialsFromSecret()
 	if err != nil {
 		return nil, err
 	}
 
-	awsCred := credentials.NewStaticCredentials(
-		clusterSecret.Values[secret.AwsAccessKeyId],
-		clusterSecret.Values[secret.AwsSecretAccessKey],
-		"",
-	)
-
-	// set aws log level
-	var lv aws.LogLevelType
-	if logger.Level == logrus.DebugLevel {
-		log.Info("set aws log level to debug")
-		lv = aws.LogDebug
-	} else {
-		log.Info("set aws log off")
-		lv = aws.LogOff
-	}
-
-	sess, err := session.NewSession(&aws.Config{
-		Credentials: awsCred,
-		Region:      &region,
-		LogLevel:    &lv,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return ec2.New(sess), nil
+	return cloud.CreateEC2Client(awsCred, region)
 }
 
 // UpdateStatus updates cluster status in database
@@ -1352,4 +1315,12 @@ func (c *AWSCluster) findELBSecurityGroups(groups []*ec2.SecurityGroup) []*ec2.S
 	}
 
 	return elbs
+}
+
+func (c *AWSCluster) createAWSCredentialsFromSecret() (*credentials.Credentials, error) {
+	clusterSecret, err := c.GetSecretWithValidation()
+	if err != nil {
+		return nil, err
+	}
+	return cloud.CreateAWSCredentials(clusterSecret.Values), nil
 }

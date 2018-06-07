@@ -30,7 +30,7 @@ type ClusterManager interface {
 	listResourceGroups() ([]resources.Group, error)
 	findInfrastructureResourceGroup(resourceGroup, clusterName, location string) (*resources.Group, error)
 
-	createVirtualMachine(rg, location, vnetName, subnetName, nsgName, ipName, vmName, nicName string) (*compute.VirtualMachine, error)
+	createVirtualMachine(rg, location, vnetName, subnetName, nsgName, ipName, vmName, nicName string, sshPubKey string) (*compute.VirtualMachine, error)
 	getVirtualMachine(resourceGroup, clusterName, location, vmName string) (*compute.VirtualMachine, error)
 	listVirtualMachines(resourceGroup, clusterName, location string) ([]compute.VirtualMachine, error)
 	enableManagedServiceIdentity(resourceGroup, clusterName, location string) error
@@ -46,6 +46,8 @@ type ClusterManager interface {
 
 	listRoleDefinitions(scope string) ([]authorization.RoleDefinition, error)
 	findRoleDefinitionByName(scope, roleName string) (*authorization.RoleDefinition, error)
+
+	validateCredentials() error
 
 	getClientId() string
 	getClientSecret() string
@@ -64,6 +66,12 @@ type ClusterManager interface {
 	LogErrorf(format string, args ...interface{})
 	LogFatalf(format string, args ...interface{})
 	LogPanicf(format string, args ...interface{})
+}
+
+// ValidateCredentials validates client credentials
+func ValidateCredentials(manager ClusterManager) error {
+	manager.LogInfo("Start checkCredentials")
+	return manager.validateCredentials()
 }
 
 // CreateUpdateCluster creates or updates a managed cluster with the specified configuration for agents and Kubernetes
@@ -260,9 +268,9 @@ func CreateNetworkInterface(manager ClusterManager, rg, location, vnetName, subn
 }
 
 // CreateVirtualMachine creates a VM
-func CreateVirtualMachine(manager ClusterManager, rg, location, vnetName, subnetName, nsgName, ipName, vmName, nicName string) (*compute.VirtualMachine, error) {
+func CreateVirtualMachine(manager ClusterManager, rg, location, vnetName, subnetName, nsgName, ipName, vmName, nicName string, sshPubkey string) (*compute.VirtualMachine, error) {
 	manager.LogInfo("Start creating virtual machine")
-	return manager.createVirtualMachine(rg, location, vnetName, subnetName, nsgName, ipName, vmName, nicName)
+	return manager.createVirtualMachine(rg, location, vnetName, subnetName, nsgName, ipName, vmName, nicName, sshPubkey)
 }
 
 // ListVirtualMachines returns all VM
