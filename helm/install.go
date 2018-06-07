@@ -175,9 +175,17 @@ func CreateEnvSettings(helmRepoHome string) helm_env.EnvSettings {
 }
 
 // GenerateHelmRepoEnv Generate helm path based on orgName
-func GenerateHelmRepoEnv(orgName string) helm_env.EnvSettings {
-	var stateStorePath = config.GetStateStorePath("")
-	return CreateEnvSettings(fmt.Sprintf("%s/%s/%s", stateStorePath, orgName, helmPostFix))
+func GenerateHelmRepoEnv(orgName string) (env helm_env.EnvSettings) {
+	var helmPath = config.GetHelmPath(orgName)
+	env = CreateEnvSettings(fmt.Sprintf("%s/%s", helmPath, helmPostFix))
+
+	// check local helm
+	if _, err := os.Stat(helmPath); os.IsNotExist(err) {
+		log.Infof("Helm directories [%s] not exists", helmPath)
+		InstallLocalHelm(env)
+	}
+
+	return
 }
 
 // DownloadChartFromRepo download a given chart

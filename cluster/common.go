@@ -304,3 +304,9 @@ func CleanStateStore(path string) error {
 	}
 	return constants.ErrStateStorePathEmpty
 }
+
+// CleanHelmFolder deletes helm path
+func CleanHelmFolder(organizationName string) error {
+	helmPath := config.GetHelmPath(organizationName)
+	return os.RemoveAll(helmPath)
+}
