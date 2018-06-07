@@ -10,6 +10,7 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
+	pipConstants "github.com/banzaicloud/pipeline/constants"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/model/defaults"
@@ -696,7 +697,7 @@ func InstallSecretsToCluster(c *gin.Context) {
 		return
 	}
 
-	query := secret.ListSecretsQuery{Type: secret.AllSecrets, Tag: secret.RepoTag(request.Repo), Values: true}
+	query := secret.ListSecretsQuery{Type: pipConstants.AllSecrets, Tag: secret.RepoTag(request.Repo), Values: true}
 	items, err := secret.Store.List(organizationID, &query)
 	if err != nil {
 		log.Errorf("Error during listing secrets: %s", err.Error())

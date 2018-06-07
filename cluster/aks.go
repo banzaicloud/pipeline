@@ -10,6 +10,7 @@ import (
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/go-errors/errors"
 	"github.com/sirupsen/logrus"
@@ -70,12 +71,7 @@ func (c *AKSCluster) GetAKSClient() (azureClient.ClusterManager, error) {
 	if err != nil {
 		return nil, err
 	}
-	creds := &azureCluster.AKSCredential{
-		ClientId:       clusterSecret.Values[secret.AzureClientId],
-		ClientSecret:   clusterSecret.Values[secret.AzureClientSecret],
-		SubscriptionId: clusterSecret.Values[secret.AzureSubscriptionId],
-		TenantId:       clusterSecret.Values[secret.AzureTenantId],
-	}
+	creds := verify.CreateAKSCredentials(clusterSecret.Values)
 	return azureClient.GetAKSClient(creds)
 }
 

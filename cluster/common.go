@@ -11,6 +11,7 @@ import (
 	bTypes "github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/config"
+	pipConstants "github.com/banzaicloud/pipeline/constants"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/sirupsen/logrus"
@@ -85,7 +86,7 @@ func (cc *commonConfig) get(cluster CommonCluster) ([]byte, error) {
 			return nil, err
 		}
 
-		configStr, err := base64.StdEncoding.DecodeString(configSecret.GetValue(secret.K8SConfig))
+		configStr, err := base64.StdEncoding.DecodeString(configSecret.GetValue(pipConstants.K8SConfig))
 		if err != nil {
 			return nil, err
 		}

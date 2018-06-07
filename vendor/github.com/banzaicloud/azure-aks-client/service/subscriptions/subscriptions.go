@@ -32,3 +32,13 @@ func (c *Client) ListLocations() ([]subscriptions.Location, error) {
 	}
 	return *resp.Value, nil
 }
+
+// ListSubscriptions gets all subscriptions for a tenant
+func (c *Client) ListSubscriptions() ([]subscriptions.Subscription, error) {
+	resp, err := c.client.List(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.Values(), nil
+}

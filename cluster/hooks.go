@@ -6,6 +6,7 @@ import (
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/auth"
 	pipConfig "github.com/banzaicloud/pipeline/config"
+	pipConstants "github.com/banzaicloud/pipeline/constants"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
@@ -306,11 +307,11 @@ func StoreKubeConfig(input interface{}) error {
 	organizationId := strconv.Itoa(int(cluster.GetOrganizationId()))
 	createSecretRequest := secret.CreateSecretRequest{
 		Name: fmt.Sprintf("%s-config", cluster.GetName()), // todo ne latszodjon a secret listben!?
-		Type: secret.K8SConfig,
+		Type: pipConstants.K8SConfig,
 		Values: map[string]string{
-			secret.K8SConfig: encodedConfig,
+			pipConstants.K8SConfig: encodedConfig,
 		},
-		Tags: []string{secret.TagKubeConfig},
+		Tags: []string{pipConstants.TagKubeConfig},
 	}
 
 	if err := secret.Store.Store(organizationId, secretID, &createSecretRequest); err != nil {

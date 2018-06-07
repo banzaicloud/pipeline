@@ -6,7 +6,7 @@ import (
 	"errors"
 	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/common"
+	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/gin-gonic/gin/json"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2/google"
@@ -29,7 +29,7 @@ type ManagedGoogleBucket struct {
 // GoogleObjectStore stores all required parameters for container creation
 type GoogleObjectStore struct {
 	location       string
-	serviceAccount *common.ServiceAccount
+	serviceAccount *verify.ServiceAccount
 	org            *auth.Organization
 }
 

@@ -6,7 +6,7 @@ import (
 )
 
 // createVirtualMachine creates a virtual machine with a systems assigned identity type
-func (a *aksClient) createVirtualMachine(rg, location, vnetName, subnetName, nsgName, ipName, vmName, nicName string) (*compute.VirtualMachine, error) {
+func (a *aksClient) createVirtualMachine(rg, location, vnetName, subnetName, nsgName, ipName, vmName, nicName string, sshPubKey string) (*compute.VirtualMachine, error) {
 
 	a.LogInfo("Get InterfacesClient")
 	nicClient, err := a.azureSdk.GetInterfacesClient()
@@ -41,6 +41,7 @@ func (a *aksClient) createVirtualMachine(rg, location, vnetName, subnetName, nsg
 		Publisher:          "Canonical",
 		Offer:              "UbuntuServer",
 		Sku:                "16.04.0-LTS",
+		SSHPubKey:          sshPubKey,
 		NetworkInterfaceId: *nic.ID,
 	})
 }

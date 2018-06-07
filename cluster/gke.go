@@ -6,17 +6,16 @@ import (
 	"github.com/banzaicloud/banzai-types/components"
 	bGoogle "github.com/banzaicloud/banzai-types/components/google"
 	"github.com/banzaicloud/banzai-types/constants"
-	"github.com/banzaicloud/pipeline/common"
 	pipConfig "github.com/banzaicloud/pipeline/config"
+	pipConstants "github.com/banzaicloud/pipeline/constants"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/utils"
-	"github.com/gin-gonic/gin/json"
 	"github.com/go-errors/errors"
 	"github.com/jinzhu/copier"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
-	"golang.org/x/oauth2/google"
 	gkeCompute "google.golang.org/api/compute/v1"
 	gke "google.golang.org/api/container/v1"
 	"google.golang.org/api/googleapi"
@@ -133,7 +132,7 @@ func (g *GKECluster) GetGoogleCluster() (*gke.Cluster, error) {
 
 	cc := googleCluster{
 		Name:      g.modelCluster.Name,
-		ProjectID: secretItem.GetValue(secret.ProjectId),
+		ProjectID: secretItem.GetValue(pipConstants.ProjectId),
 		Zone:      g.modelCluster.Location,
 	}
 	cluster, err := getClusterGoogle(svc, cc)
@@ -183,7 +182,7 @@ func (g *GKECluster) CreateCluster() error {
 	}
 
 	cc := googleCluster{
-		ProjectID:     secretItem.GetValue(secret.ProjectId),
+		ProjectID:     secretItem.GetValue(pipConstants.ProjectId),
 		Zone:          g.modelCluster.Location,
 		Name:          g.modelCluster.Name,
 		MasterVersion: g.modelCluster.Google.MasterVersion,
@@ -298,7 +297,7 @@ func (g *GKECluster) DeleteCluster() error {
 	}
 
 	gkec := googleCluster{
-		ProjectID: secretItem.GetValue(secret.ProjectId),
+		ProjectID: secretItem.GetValue(pipConstants.ProjectId),
 		Name:      g.modelCluster.Name,
 		Zone:      g.modelCluster.Location,
 	}
@@ -346,7 +345,7 @@ func (g *GKECluster) UpdateCluster(updateRequest *components.UpdateClusterReques
 
 	cc := googleCluster{
 		Name:          g.modelCluster.Name,
-		ProjectID:     secretItem.GetValue(secret.ProjectId),
+		ProjectID:     secretItem.GetValue(pipConstants.ProjectId),
 		Zone:          g.modelCluster.Location,
 		MasterVersion: updateRequest.Google.Master.Version,
 		NodePools:     updatedNodePools,
@@ -460,11 +459,7 @@ func (g *GKECluster) getGoogleServiceClient() (*gke.Service, error) {
 	}
 
 	//New client from credentials
-	service, err := gke.New(client)
-	if err != nil {
-		return nil, err
-	}
-	return service, nil
+	return gke.New(client)
 }
 
 // GKE cluster to google calls
@@ -905,7 +900,7 @@ func (g *GKECluster) getGoogleKubernetesConfig() ([]byte, error) {
 	log.Infof("Get google cluster with name %s", g.modelCluster.Name)
 	cl, err := getClusterGoogle(svc, googleCluster{
 		Name:      g.modelCluster.Name,
-		ProjectID: secretItem.GetValue(secret.ProjectId),
+		ProjectID: secretItem.GetValue(pipConstants.ProjectId),
 		Zone:      g.modelCluster.Location,
 	})
 
@@ -1591,21 +1586,8 @@ func (g *GKECluster) newClientFromCredentials() (*http.Client, error) {
 
 	// TODO https://github.com/mitchellh/mapstructure
 
-	credentials := common.NewGoogleServiceAccount(clusterSecret)
-
-	jsonConfig, err := json.Marshal(credentials)
-	if err != nil {
-		return nil, err
-	}
-
-	// Parse credentials from JSON
-	config, err := google.JWTConfigFromJSON(jsonConfig, gke.CloudPlatformScope)
-	if err != nil {
-		return nil, err
-	}
-
-	// Create oauth2 client with credential
-	return config.Client(context.TODO()), nil
+	credentials := verify.CreateServiceAccount(clusterSecret.Values)
+	return verify.CreateOath2Client(credentials)
 }
 
 // GetZones lists all supported zones
@@ -1652,7 +1634,7 @@ func (g *GKECluster) getProjectId() (string, error) {
 		return "", err
 	}
 
-	return s.GetValue(secret.ProjectId), nil
+	return s.GetValue(pipConstants.ProjectId), nil
 }
 
 // UpdateStatus updates cluster status in database
@@ -1677,7 +1659,7 @@ func (g *GKECluster) GetClusterDetails() (*components.ClusterDetailsResponse, er
 	}
 
 	log.Infof("Get google cluster with name %s", g.modelCluster.Name)
-	cl, err := svc.Projects.Zones.Clusters.Get(secretItem.GetValue(secret.ProjectId), g.modelCluster.Location, g.modelCluster.Name).Context(context.Background()).Do()
+	cl, err := svc.Projects.Zones.Clusters.Get(secretItem.GetValue(pipConstants.ProjectId), g.modelCluster.Location, g.modelCluster.Name).Context(context.Background()).Do()
 	if err != nil {
 		apiError := getBanzaiErrorFromError(err)
 		return nil, errors.New(apiError.Message)
