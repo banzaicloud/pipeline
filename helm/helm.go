@@ -340,8 +340,9 @@ func mergeValues(dest map[string]interface{}, src map[string]interface{}) map[st
 
 // ReposGet returns repo
 func ReposGet(env helm_env.EnvSettings) ([]*repo.Entry, error) {
+
 	repoPath := env.Home.RepositoryFile()
-	log.Debug("Helm repo path:", repoPath)
+	log.Debugf("Helm repo path: %s", repoPath)
 
 	f, err := repo.LoadRepositoriesFile(repoPath)
 	if err != nil {
@@ -385,7 +386,7 @@ func ReposAdd(env helm_env.EnvSettings, Hrepo *repo.Entry) (bool, error) {
 	if err != nil {
 		return false, errors.Wrap(err, "Cannot create a new ChartRepo")
 	}
-	log.Debug("New repo added:", Hrepo.Name)
+	log.Debugf("New repo added: %s", Hrepo.Name)
 
 	errIdx := r.DownloadIndexFile("")
 	if errIdx != nil {
@@ -401,7 +402,7 @@ func ReposAdd(env helm_env.EnvSettings, Hrepo *repo.Entry) (bool, error) {
 // ReposDelete deletes repo(s)
 func ReposDelete(env helm_env.EnvSettings, repoName string) error {
 	repoFile := env.Home.RepositoryFile()
-	log.Debug("Repo File:", repoFile)
+	log.Debugf("Repo File: %s", repoFile)
 
 	r, err := repo.LoadRepositoriesFile(repoFile)
 	if err != nil {
@@ -427,9 +428,10 @@ func ReposDelete(env helm_env.EnvSettings, repoName string) error {
 
 // ReposModify modifies repo(s)
 func ReposModify(env helm_env.EnvSettings, repoName string, newRepo *repo.Entry) error {
+
 	log.Debug("ReposModify")
 	repoFile := env.Home.RepositoryFile()
-	log.Debug("Repo File:", repoFile)
+	log.Debugf("Repo File: %s", repoFile)
 	log.Debugf("New repo content: %#v", newRepo)
 
 	f, err := repo.LoadRepositoriesFile(repoFile)
@@ -451,8 +453,9 @@ func ReposModify(env helm_env.EnvSettings, repoName string, newRepo *repo.Entry)
 
 // ReposUpdate updates a repo(s)
 func ReposUpdate(env helm_env.EnvSettings, repoName string) error {
+
 	repoFile := env.Home.RepositoryFile()
-	log.Debug("Repo File:", repoFile)
+	log.Debugf("Repo File: %s", repoFile)
 
 	f, err := repo.LoadRepositoriesFile(repoFile)
 
@@ -486,7 +489,7 @@ type ChartList struct {
 
 // ChartsGet returns chart list
 func ChartsGet(env helm_env.EnvSettings, queryName, queryRepo, queryVersion, queryKeyword string) ([]ChartList, error) {
-	log.Debug("Helm repo path:", env.Home.RepositoryFile())
+	log.Debugf("Helm repo path %s:", env.Home.RepositoryFile())
 	f, err := repo.LoadRepositoriesFile(env.Home.RepositoryFile())
 	if err != nil {
 		return nil, err
@@ -546,8 +549,9 @@ type ChartDetails struct {
 
 // ChartGet returns chart details
 func ChartGet(env helm_env.EnvSettings, chartRepo, chartName, chartVersion string) (*ChartDetails, error) {
+
 	repoPath := env.Home.RepositoryFile()
-	log.Debug("Helm repo path:", repoPath)
+	log.Debugf("Helm repo path: %s", repoPath)
 	chartD := &ChartDetails{}
 	f, err := repo.LoadRepositoriesFile(repoPath)
 	if err != nil {

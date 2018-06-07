@@ -192,7 +192,7 @@ func DeleteOrganization(c *gin.Context) {
 	} else {
 
 		log.Infof("Clean org's statestore folder %s", deleteName)
-		if err := cluster.CleanStateStore(deleteName); err != nil {
+		if err := cluster.CleanHelmFolder(deleteName); err != nil {
 			log.Errorf("Statestore cleaning failed: %s", err.Error())
 		} else {
 			log.Info("Org's statestore folder cleaned")

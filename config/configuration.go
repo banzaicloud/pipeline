@@ -11,6 +11,11 @@ import (
 	"github.com/spf13/viper"
 )
 
+const (
+	// local helm path
+	helmPath = "helm.path"
+)
+
 //Init initializes the configurations
 func init() {
 
@@ -29,6 +34,7 @@ func init() {
 	viper.SetDefault("helm.tillerVersion", "v2.9.0")
 	viper.SetDefault("helm.stableRepositoryURL", "https://kubernetes-charts.storage.googleapis.com")
 	viper.SetDefault("helm.banzaiRepositoryURL", "http://kubernetes-charts.banzaicloud.com")
+	viper.SetDefault(helmPath, "./orgs")
 	viper.SetDefault("cloud.defaultProfileName", "default")
 	viper.SetDefault("cloud.configRetryCount", 30)
 	viper.SetDefault("cloud.configRetrySleep", 15)
@@ -103,4 +109,9 @@ func GetStateStorePath(clusterName string) string {
 	}
 
 	return fmt.Sprintf("%s/%s", stateStorePath, clusterName)
+}
+
+// GetHelmPath returns local helm path
+func GetHelmPath(organizationName string) string {
+	return fmt.Sprintf("%s/%s", viper.GetString(helmPath), organizationName)
 }
