@@ -9,10 +9,10 @@ import (
 	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/banzai-types/components/amazon"
 	"github.com/banzaicloud/banzai-types/constants"
-	"github.com/banzaicloud/pipeline/auth/cloud"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/secret/verify"
 	pipelineSsh "github.com/banzaicloud/pipeline/ssh"
 	"github.com/banzaicloud/pipeline/utils"
 	kcluster "github.com/kubicorn/kubicorn/apis/cluster"
@@ -1048,7 +1048,7 @@ func (c *AWSCluster) newEC2Client(region string) (*ec2.EC2, error) {
 		return nil, err
 	}
 
-	return cloud.CreateEC2Client(awsCred, region)
+	return verify.CreateEC2Client(awsCred, region)
 }
 
 // UpdateStatus updates cluster status in database
@@ -1322,5 +1322,5 @@ func (c *AWSCluster) createAWSCredentialsFromSecret() (*credentials.Credentials,
 	if err != nil {
 		return nil, err
 	}
-	return cloud.CreateAWSCredentials(clusterSecret.Values), nil
+	return verify.CreateAWSCredentials(clusterSecret.Values), nil
 }

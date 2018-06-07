@@ -6,9 +6,9 @@ import (
 
 	btypes "github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/api"
-	"github.com/banzaicloud/pipeline/auth/cloud"
 	pipConstants "github.com/banzaicloud/pipeline/constants"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/secret/verify"
 )
 
 func TestIsValidSecretType(t *testing.T) {
@@ -73,7 +73,7 @@ func TestAddSecret(t *testing.T) {
 		request  secret.CreateSecretRequest
 		secretId string
 		isError  bool
-		verifier cloud.Verifier
+		verifier verify.Verifier
 	}{
 		{name: "add aws secret", request: awsCreateSecretRequest, secretId: secretIdAmazon, isError: false, verifier: nil},
 		{name: "add aks secret", request: aksCreateSecretRequest, secretId: secretIdAzure, isError: false, verifier: nil},

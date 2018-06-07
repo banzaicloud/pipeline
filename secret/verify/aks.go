@@ -1,4 +1,4 @@
-package cloud
+package verify
 
 import (
 	"github.com/banzaicloud/azure-aks-client/client"

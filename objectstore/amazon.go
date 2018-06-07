@@ -7,8 +7,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/auth/cloud"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/sirupsen/logrus"
 	"sort"
 	"strings"
@@ -224,7 +224,7 @@ func createS3Client(region string, retrievedSecret *secret.SecretsItemResponse) 
 	log.Info("Creating AWS session")
 	s, err := session.NewSession(&aws.Config{
 		Region:      aws.String(region),
-		Credentials: cloud.CreateAWSCredentials(retrievedSecret.Values),
+		Credentials: verify.CreateAWSCredentials(retrievedSecret.Values),
 	})
 
 	if err != nil {

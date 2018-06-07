@@ -1,4 +1,4 @@
-package cloud
+package verify
 
 import (
 	"github.com/aws/aws-sdk-go/aws"

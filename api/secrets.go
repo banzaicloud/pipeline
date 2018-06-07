@@ -7,11 +7,11 @@ import (
 
 	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/auth/cloud"
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/constants"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/go-errors/errors"
@@ -49,7 +49,7 @@ func AddSecrets(c *gin.Context) {
 	log.Info("Binding request succeeded")
 
 	log.Info("Start validation")
-	verifier := cloud.NewVerifier(createSecretRequest.Type, createSecretRequest.Values)
+	verifier := verify.NewVerifier(createSecretRequest.Type, createSecretRequest.Values)
 	if err := createSecretRequest.Validate(verifier); err != nil {
 		log.Errorf("Validation error: %s", err.Error())
 		c.AbortWithStatusJSON(http.StatusBadRequest, components.ErrorResponse{
@@ -109,7 +109,7 @@ func UpdateSecrets(c *gin.Context) {
 	log.Info("Binding request succeeded")
 
 	log.Info("Start validation")
-	verifier := cloud.NewVerifier(createSecretRequest.Type, createSecretRequest.Values)
+	verifier := verify.NewVerifier(createSecretRequest.Type, createSecretRequest.Values)
 	if err := createSecretRequest.Validate(verifier); err != nil {
 		log.Errorf("Validation error: %s", err.Error())
 		c.AbortWithStatusJSON(http.StatusBadRequest, components.ErrorResponse{

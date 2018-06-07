@@ -5,9 +5,9 @@ import (
 	"sort"
 
 	"github.com/banzaicloud/bank-vaults/vault"
-	"github.com/banzaicloud/pipeline/auth/cloud"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/constants"
+	"github.com/banzaicloud/pipeline/secret/verify"
 	vaultapi "github.com/hashicorp/vault/api"
 	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
@@ -90,7 +90,7 @@ func RepoTag(repo string) string {
 }
 
 // Validate SecretRequest
-func (r *CreateSecretRequest) Validate(verifier cloud.Verifier) error {
+func (r *CreateSecretRequest) Validate(verifier verify.Verifier) error {
 	requiredKeys, ok := constants.DefaultRules[r.Type]
 
 	if !ok {

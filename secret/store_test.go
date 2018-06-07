@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	btypes "github.com/banzaicloud/banzai-types/constants"
-	"github.com/banzaicloud/pipeline/auth/cloud"
 	pipConstants "github.com/banzaicloud/pipeline/constants"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/secret/verify"
 )
 
 func TestGetValue(t *testing.T) {
@@ -39,7 +39,7 @@ func TestCreateSecretValidate(t *testing.T) {
 		name     string
 		request  secret.CreateSecretRequest
 		isError  bool
-		verifier cloud.Verifier
+		verifier verify.Verifier
 	}{
 		{name: "aws full", request: awsCreateSecretFull, isError: false, verifier: nil},
 		{name: "aks full", request: aksCreateSecretFull, isError: false, verifier: nil},

@@ -6,11 +6,11 @@ import (
 	"github.com/banzaicloud/banzai-types/components"
 	bGoogle "github.com/banzaicloud/banzai-types/components/google"
 	"github.com/banzaicloud/banzai-types/constants"
-	"github.com/banzaicloud/pipeline/auth/cloud"
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	pipConstants "github.com/banzaicloud/pipeline/constants"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/go-errors/errors"
 	"github.com/jinzhu/copier"
@@ -1586,8 +1586,8 @@ func (g *GKECluster) newClientFromCredentials() (*http.Client, error) {
 
 	// TODO https://github.com/mitchellh/mapstructure
 
-	credentials := cloud.CreateServiceAccount(clusterSecret.Values)
-	return cloud.CreateOath2Client(credentials)
+	credentials := verify.CreateServiceAccount(clusterSecret.Values)
+	return verify.CreateOath2Client(credentials)
 }
 
 // GetZones lists all supported zones
