@@ -54,6 +54,8 @@ type CommonCluster interface {
 	RequiresSshPublicKey() bool
 }
 
+// CommonClusterBase holds the fields that is common to all cluster types
+// also provides default implementation for common interface methods.
 type CommonClusterBase struct {
 	secret    *secret.SecretsItemResponse
 	sshSecret *secret.SecretsItemResponse
