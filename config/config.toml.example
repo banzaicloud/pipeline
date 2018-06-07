@@ -32,9 +32,6 @@ configRetryCount = 30
 configRetrySleep = 15
 keypath = "~"
 
-# GKE credential path
-gkeCredentialPath = ""
-
 #[cors]
 
 [statestore]
