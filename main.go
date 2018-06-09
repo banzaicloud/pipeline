@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/banzaicloud/pipeline/api"
+	"github.com/banzaicloud/pipeline/audit"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
@@ -24,10 +25,11 @@ var Version string
 var GitRev string
 
 //Common logger for package
+var log *logrus.Logger
 var logger *logrus.Entry
 
 func initLog() *logrus.Entry {
-	log := config.Logger()
+	log = config.Logger()
 	logger := log.WithFields(logrus.Fields{"state": "init"})
 	return logger
 }
@@ -78,6 +80,7 @@ func main() {
 		&auth.User{},
 		&auth.UserOrganization{},
 		&auth.Organization{},
+		&audit.AuditEvent{},
 		&defaults.AWSProfile{},
 		&defaults.AWSNodePoolProfile{},
 		&defaults.AKSProfile{},
@@ -101,6 +104,7 @@ func main() {
 	router.Use(gin.LoggerWithWriter(gin.DefaultWriter, "/auth/tokens", "/auth/github/callback"))
 	router.Use(gin.Recovery())
 	router.Use(cors.New(config.GetCORS()))
+	router.Use(audit.LogWriter())
 
 	auth.Install(router)
 

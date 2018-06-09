@@ -381,7 +381,7 @@ func HelmReposGet(c *gin.Context) {
 
 	response, err := helm.ReposGet(helm.GenerateHelmRepoEnv(auth.GetCurrentOrganization(c.Request).Name))
 	if err != nil {
-		log.Error("Error during get helm repo list.", err.Error())
+		log.Errorf("Error during get helm repo list: %s", err.Error())
 		c.JSON(http.StatusInternalServerError, components.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: "Error listing helm repos",
@@ -493,7 +493,7 @@ func HelmReposModify(c *gin.Context) {
 			return
 
 		}
-		log.Error("Error during helm repo modified.", errModify.Error())
+		log.Errorf("Error during helm repo modified. %s", errModify.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Error:   errModify.Error(),
@@ -515,11 +515,11 @@ func HelmReposUpdate(c *gin.Context) {
 	log.Info("delete helm repository")
 
 	repoName := c.Param("name")
-	log.Debugln("repoName:", repoName)
+	log.Debugf("repoName: %s", repoName)
 	helmEnv := helm.GenerateHelmRepoEnv(auth.GetCurrentOrganization(c.Request).Name)
 	errUpdate := helm.ReposUpdate(helmEnv, repoName)
 	if errUpdate != nil {
-		log.Error("Error during helm repo update.", errUpdate.Error())
+		log.Errorf("Error during helm repo update. %s", errUpdate.Error())
 		c.JSON(http.StatusNotFound, components.ErrorResponse{
 			Code:    http.StatusNotFound,
 			Error:   errUpdate.Error(),
