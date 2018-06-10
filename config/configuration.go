@@ -55,6 +55,7 @@ func init() {
 	viper.SetDefault("database.user", "kellyslater")
 	viper.SetDefault("database.password", "pipemaster123!")
 	viper.SetDefault("database.dbname", "pipelinedb")
+	viper.SetDefault("audit.enabled", true)
 
 	ReleaseName := os.Getenv("KUBERNETES_RELEASE_NAME")
 	if ReleaseName == "" {

@@ -32,7 +32,6 @@ func (*closeableBuffer) Close() error {
 // AuditEvent holds all information related to a user interaction
 type AuditEvent struct {
 	Time       time.Time
-	Latency    time.Duration
 	ClientIP   string
 	UserAgent  string
 	Path       string
@@ -82,14 +81,8 @@ func LogWriter(notloggedPaths ...string) gin.HandlerFunc {
 		rawBody := bodyBuffer.Bytes()
 		c.Request.Body = bodyBuffer
 
-		// Process request
-		c.Next()
-
 		// Log only when path is not being skipped
 		if _, ok := skip[path]; !ok {
-			// Stop timer
-			end := time.Now()
-			latency := end.Sub(start)
 
 			// Filter out sensitive data from body
 			var body string
@@ -134,7 +127,6 @@ func LogWriter(notloggedPaths ...string) gin.HandlerFunc {
 
 			event := AuditEvent{
 				Time:       start,
-				Latency:    latency,
 				ClientIP:   clientIP,
 				UserAgent:  userAgent,
 				UserID:     userID,
