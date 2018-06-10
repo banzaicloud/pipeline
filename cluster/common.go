@@ -14,6 +14,7 @@ import (
 	pipConstants "github.com/banzaicloud/pipeline/constants"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/utils"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/terminal"
@@ -113,21 +114,66 @@ func (c *CommonClusterBase) getSshSecret(cluster CommonCluster) (*secret.Secrets
 func (c *CommonClusterBase) getConfig(cluster CommonCluster) ([]byte, error) {
 	if c.config == nil {
 		log.Info("config is nil.. load from vault")
+		var loadedConfig []byte
 		configSecret, err := getSecret(cluster.GetOrganizationId(), cluster.GetConfigSecretId())
 		if err != nil {
-			return nil, err
+			log.Warnf("Error during loading config from vault: %s", err.Error())
+			log.Info("Re-download config from cloud")
+			loadedConfig, err = cluster.DownloadK8sConfig()
+			if err != nil {
+				return nil, err
+			}
+
+			log.Info("Store K8S config in vault")
+			if err := StoreKubernetesConfig(cluster, loadedConfig); err != nil {
+				return nil, err
+			}
+
+		} else {
+			configStr, err := base64.StdEncoding.DecodeString(configSecret.GetValue(pipConstants.K8SConfig))
+			if err != nil {
+				return nil, err
+			}
+			loadedConfig = []byte(configStr)
 		}
 
-		configStr, err := base64.StdEncoding.DecodeString(configSecret.GetValue(pipConstants.K8SConfig))
-		if err != nil {
-			return nil, err
-		}
-
-		c.config = []byte(configStr)
+		c.config = loadedConfig
 	} else {
 		log.Info("Config is loaded before")
 	}
 	return c.config, nil
+}
+
+// StoreKubernetesConfig stores the given K8S config in vault
+func StoreKubernetesConfig(cluster CommonCluster, config []byte) error {
+
+	encodedConfig := utils.EncodeStringToBase64(string(config))
+
+	secretID := secret.GenerateSecretID()
+	organizationId := strconv.Itoa(int(cluster.GetOrganizationId()))
+	createSecretRequest := secret.CreateSecretRequest{
+		Name: fmt.Sprintf("%s-config", cluster.GetName()),
+		Type: pipConstants.K8SConfig,
+		Values: map[string]string{
+			pipConstants.K8SConfig: encodedConfig,
+		},
+		Tags: []string{pipConstants.TagKubeConfig},
+	}
+
+	if err := secret.Store.Store(organizationId, secretID, &createSecretRequest); err != nil {
+		log.Errorf("Error during storing config: %s", err.Error())
+		return err
+	}
+
+	log.Info("Kubeconfig stored in vault")
+
+	log.Info("Update cluster model in DB with config secret id")
+	if err := cluster.SaveConfigSecretId(secretID); err != nil {
+		log.Errorf("Error during saving config secret id: %s", err.Error())
+		return err
+	}
+
+	return nil
 }
 
 func getSecret(organizationId uint, secretId string) (*secret.SecretsItemResponse, error) {
