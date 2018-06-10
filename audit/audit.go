@@ -38,7 +38,7 @@ type AuditEvent struct {
 	Method     string
 	UserID     uint
 	StatusCode int
-	Body       string `sql:"TYPE:json"`
+	Body       *string `sql:"TYPE:json"`
 	Comment    string
 }
 
@@ -85,7 +85,7 @@ func LogWriter(notloggedPaths ...string) gin.HandlerFunc {
 		if _, ok := skip[path]; !ok {
 
 			// Filter out sensitive data from body
-			var body string
+			var body *string
 			if strings.Contains(path, "/secrets") && len(rawBody) > 0 {
 				data := map[string]interface{}{}
 				err := json.Unmarshal(rawBody, &data)
@@ -104,9 +104,11 @@ func LogWriter(notloggedPaths ...string) gin.HandlerFunc {
 					log.Errorln(err)
 					return
 				}
-				body = string(newBody)
-			} else {
-				body = string(rawBody)
+				newBodyString := string(newBody)
+				body = &newBodyString
+			} else if len(rawBody) > 0 {
+				newBodyString := string(rawBody)
+				body = &newBodyString
 			}
 
 			clientIP := c.ClientIP()
