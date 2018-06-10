@@ -104,7 +104,10 @@ func main() {
 	router.Use(gin.LoggerWithWriter(gin.DefaultWriter, "/auth/tokens", "/auth/github/callback"))
 	router.Use(gin.Recovery())
 	router.Use(cors.New(config.GetCORS()))
-	router.Use(audit.LogWriter())
+	if viper.GetBool("audit.enabled") {
+		log.Infoln("Audit enabled, installing Gin audit middleware")
+		router.Use(audit.LogWriter())
+	}
 
 	auth.Install(router)
 
