@@ -32,7 +32,7 @@ type ClusterModel struct {
 	Status         string
 	Monitoring     bool
 	Logging        bool
-	StatusMessage  string
+	StatusMessage  string `sql:"type:text;"`
 	Amazon         AmazonClusterModel
 	Azure          AzureClusterModel
 	Google         GoogleClusterModel
