@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/textproto"
 	"strings"
 	"time"
 
@@ -31,27 +32,24 @@ func (*closeableBuffer) Close() error {
 
 // AuditEvent holds all information related to a user interaction
 type AuditEvent struct {
-	Time       time.Time
+	ID         uint      `gorm:"primary_key"`
+	Time       time.Time `gorm:"index"`
 	ClientIP   string
 	UserAgent  string
 	Path       string
 	Method     string
 	UserID     uint
 	StatusCode int
-	Body       *string `sql:"TYPE:json"`
-	Comment    string
+	Body       *string `gorm:"type:json"`
+	Headers    string  `gorm:"type:json"`
 }
 
 // LogWriter instance is a Gin Middleware which logs all request data into MySQL audit_events table.
-func LogWriter(notloggedPaths ...string) gin.HandlerFunc {
-	var skip map[string]struct{}
+func LogWriter(notloggedPaths []string, whitelistedHeaders []string) gin.HandlerFunc {
+	skip := map[string]struct{}{}
 
-	if length := len(notloggedPaths); length > 0 {
-		skip = make(map[string]struct{}, length)
-
-		for _, path := range notloggedPaths {
-			skip[path] = struct{}{}
-		}
+	for _, path := range notloggedPaths {
+		skip[path] = struct{}{}
 	}
 
 	db := model.GetDB()
@@ -62,27 +60,27 @@ func LogWriter(notloggedPaths ...string) gin.HandlerFunc {
 		path := c.Request.URL.Path
 		raw := c.Request.URL.RawQuery
 
-		// Copy request body into a new buffer
-		bodyBuffer := &closeableBuffer{bytes.NewBuffer(nil)}
-
-		written, err := io.Copy(bodyBuffer, c.Request.Body)
-		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
-			log.Errorln(err)
-			return
-		}
-
-		if written != c.Request.ContentLength {
-			c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Failed to copy request body correctly"))
-			log.Errorln(err)
-			return
-		}
-
-		rawBody := bodyBuffer.Bytes()
-		c.Request.Body = bodyBuffer
-
 		// Log only when path is not being skipped
 		if _, ok := skip[path]; !ok {
+
+			// Copy request body into a new buffer, so other handlers can use it safely
+			bodyBuffer := &closeableBuffer{bytes.NewBuffer(nil)}
+
+			written, err := io.Copy(bodyBuffer, c.Request.Body)
+			if err != nil {
+				c.AbortWithError(http.StatusInternalServerError, err)
+				log.Errorln(err)
+				return
+			}
+
+			if written != c.Request.ContentLength {
+				c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Failed to copy request body correctly"))
+				log.Errorln(err)
+				return
+			}
+
+			rawBody := bodyBuffer.Bytes()
+			c.Request.Body = bodyBuffer
 
 			// Filter out sensitive data from body
 			var body *string
@@ -115,7 +113,6 @@ func LogWriter(notloggedPaths ...string) gin.HandlerFunc {
 			method := c.Request.Method
 			userAgent := c.Request.UserAgent()
 			statusCode := c.Writer.Status()
-			comment := c.Errors.ByType(gin.ErrorTypePrivate).String()
 
 			if raw != "" {
 				path = path + "?" + raw
@@ -127,6 +124,19 @@ func LogWriter(notloggedPaths ...string) gin.HandlerFunc {
 				userID = user.ID
 			}
 
+			filteredHeaders := http.Header{}
+			for _, header := range whitelistedHeaders {
+				if values := c.Request.Header[textproto.CanonicalMIMEHeaderKey(header)]; len(values) != 0 {
+					filteredHeaders[header] = values
+				}
+			}
+			headers, err := json.Marshal(filteredHeaders)
+			if err != nil {
+				c.AbortWithError(http.StatusInternalServerError, err)
+				log.Errorln(err)
+				return
+			}
+
 			event := AuditEvent{
 				Time:       start,
 				ClientIP:   clientIP,
@@ -134,9 +144,9 @@ func LogWriter(notloggedPaths ...string) gin.HandlerFunc {
 				UserID:     userID,
 				StatusCode: statusCode,
 				Method:     method,
-				Body:       body,
 				Path:       path,
-				Comment:    comment,
+				Body:       body,
+				Headers:    string(headers),
 			}
 
 			err = db.Save(&event).Error

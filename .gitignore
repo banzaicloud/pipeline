@@ -11,3 +11,4 @@ statestore/*
 vault/*
 config/config.toml
 *.swp
+orgs/
