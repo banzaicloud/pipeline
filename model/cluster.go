@@ -345,3 +345,11 @@ func (cs *ClusterModel) UpdateSshSecret(sshSecretId string) error {
 	cs.SshSecretId = sshSecretId
 	return cs.Save()
 }
+
+// ReloadFromDatabase load cluster from DB
+func (cs *ClusterModel) ReloadFromDatabase() error {
+	return GetDB().Where(ClusterModel{
+		ID:             cs.ID,
+		OrganizationId: cs.OrganizationId,
+	}, &cs).Error
+}

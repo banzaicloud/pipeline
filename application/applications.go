@@ -24,6 +24,7 @@ var log = config.Logger()
 
 // Application states
 const (
+	CREATING = "CREATING"
 	PENDING  = "PENDING"
 	FAILED   = "FAILED"
 	DEPLOYED = "DEPLOYED"
@@ -31,10 +32,21 @@ const (
 )
 
 // DeleteApplication TODO
-func DeleteApplication(app *model.Application) {
-	//1. Remove deployments
+func DeleteApplication(app *model.Application, kubeConfig []byte, force bool) error {
+	deployment, err := GetDeploymentByName(app, app.CatalogName)
+	if err != nil {
+		if force {
+			return nil
+		}
+		return err
+	}
 
-	//2. Delete cluster if requested
+	err = helm.DeleteDeployment(deployment.ReleaseName, kubeConfig)
+	if !force {
+		err = nil
+	}
+
+	return err
 }
 
 // GetDeploymentByName get a Deployment by Name
@@ -53,28 +65,34 @@ func GetSpotGuide(env helm_env.EnvSettings, catalogName string) (*catalog.Catalo
 	if err != nil {
 		return nil, err
 	}
-	if chart.Spotguide == nil {
+	if chart == nil || chart.Spotguide == nil {
 		return nil, errors.New("spotguide file is missing")
 	}
 	return chart, nil
 }
 
 // CreateApplication will gather, create and manage an application deployment
-func CreateApplication(am model.Application, options []ctype.ApplicationOptions, cluster cluster.CommonCluster) error {
+func CreateApplication(am model.Application, options []ctype.ApplicationOptions, commonCluster cluster.CommonCluster) error {
 	organization, err := auth.GetOrganizationById(am.OrganizationId)
 	if err != nil {
 		am.Update(model.Application{Status: FAILED, Message: err.Error()})
 		return err
 	}
-	env := catalog.GenerateGatalogEnv(organization.Name)
-	// Create database entry
-	cluster.GetStatus()
-	//Todo check if cluster ready
-	kubeConfig, err := cluster.GetK8sConfig()
+
+	log.Info("polling kubernetes config")
+	kubeConfig, err := cluster.PollingKubernetesConfig(commonCluster)
 	if err != nil {
 		am.Update(model.Application{Status: FAILED, Message: err.Error()})
 		return err
 	}
+
+	log.Info("waiting for tiller to come up")
+	if err := cluster.WaitingForTillerComeUp(kubeConfig); err != nil {
+		am.Update(model.Application{Status: FAILED, Message: err.Error()})
+		return err
+	}
+
+	env := catalog.GenerateCatalogEnv(organization.Name)
 	// We need to ensure that catalog repository is present
 	err = catalog.EnsureCatalog(env)
 	if err != nil {
@@ -270,7 +288,7 @@ func EnsureChart(env helm_env.EnvSettings, dep ctype.ApplicationDependency, kube
 	// TODO this is a workaround to not implement repository handling
 	chart := catalog.CatalogRepository + "/" + dep.Chart.Name
 
-	resp, err := helm.CreateDeployment(chart, "","",nil, kubeConfig, env)
+	resp, err := helm.CreateDeployment(chart, "", "", nil, kubeConfig, env)
 	if err != nil {
 		return "", err
 	}

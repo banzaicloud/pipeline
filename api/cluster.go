@@ -114,23 +114,32 @@ func CreateClusterRequest(c *gin.Context) {
 		})
 		return
 	}
-	CreateCluster(c, &createClusterRequest)
+
+	orgID := auth.GetCurrentOrganization(c.Request).ID
+	commonCluster, err := CreateCluster(&createClusterRequest, orgID)
+	if err != nil {
+		c.JSON(err.Code, err)
+		return
+	}
+
+	c.JSON(http.StatusAccepted, components.CreateClusterResponse{
+		Name:       commonCluster.GetName(),
+		ResourceID: commonCluster.GetID(),
+	})
 }
 
 // CreateCluster creates a K8S cluster in the cloud
-func CreateCluster(c *gin.Context, createClusterRequest *components.CreateClusterRequest) cluster.CommonCluster {
+func CreateCluster(createClusterRequest *components.CreateClusterRequest, organizationID uint) (cluster.CommonCluster, *components.ErrorResponse) {
 
 	if len(createClusterRequest.ProfileName) != 0 {
 		log.Infof("Fill data from profile[%s]", createClusterRequest.ProfileName)
 		profile, err := defaults.GetProfile(createClusterRequest.Cloud, createClusterRequest.ProfileName)
 		if err != nil {
-			log.Error(errors.Wrap(err, "Error during getting profile"))
-			c.JSON(http.StatusNotFound, components.ErrorResponse{
+			return nil, &components.ErrorResponse{
 				Code:    http.StatusNotFound,
 				Message: "Error during getting profile",
 				Error:   err.Error(),
-			})
-			return nil
+			}
 		}
 
 		log.Info("Create profile response")
@@ -139,13 +148,11 @@ func CreateCluster(c *gin.Context, createClusterRequest *components.CreateCluste
 		log.Info("Create clusterRequest from profile")
 		newRequest, err := profileResponse.CreateClusterRequest(createClusterRequest)
 		if err != nil {
-			log.Error(errors.Wrap(err, "Error creating request from profile"))
-			c.JSON(http.StatusBadRequest, components.ErrorResponse{
+			return nil, &components.ErrorResponse{
 				Code:    http.StatusBadRequest,
 				Message: "Error creating request from profile",
 				Error:   err.Error(),
-			})
-			return nil
+			}
 		}
 
 		createClusterRequest = newRequest
@@ -161,19 +168,16 @@ func CreateCluster(c *gin.Context, createClusterRequest *components.CreateCluste
 	// check exists cluster name
 	var existingCluster model.ClusterModel
 	database := model.GetDB()
-	organizationID := auth.GetCurrentOrganization(c.Request).ID
 	database.First(&existingCluster, map[string]interface{}{"name": createClusterRequest.Name, "organization_id": organizationID})
 
 	if existingCluster.ID != 0 {
 		// duplicated entry
 		err := fmt.Errorf("duplicate entry: %s", existingCluster.Name)
-		log.Error(err)
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		return nil, &components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: err.Error(),
 			Error:   err.Error(),
-		})
-		return nil
+		}
 	}
 
 	log.Info("Creating new entry with cloud type: ", createClusterRequest.Cloud)
@@ -182,60 +186,47 @@ func CreateCluster(c *gin.Context, createClusterRequest *components.CreateCluste
 	// This is the common part of cluster flow
 	commonCluster, err := cluster.CreateCommonClusterFromRequest(createClusterRequest, organizationID)
 	if err != nil {
-		log.Errorf("Error during creating common cluster model: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		return nil, &components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: err.Error(),
 			Error:   err.Error(),
-		})
-		return nil
+		}
 	}
 
 	log.Infof("Validate secret[%s]", createClusterRequest.SecretId)
 	if _, err := commonCluster.GetSecretWithValidation(); err != nil {
-		log.Errorf("Error during getting secret: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		return nil, &components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error during getting secret",
 			Error:   err.Error(),
-		})
-		return nil
+		}
 	}
 	log.Info("Secret validation passed")
 
 	// Persist the cluster in Database
 	err = commonCluster.Persist(constants.Creating, constants.CreatingMessage)
 	if err != nil {
-		log.Errorf("Error persisting cluster in database: %s", err.Error())
-		c.JSON(http.StatusInternalServerError, components.ErrorResponse{
+		return nil, &components.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: err.Error(),
 			Error:   err.Error(),
-		})
-		return nil
+		}
 	}
 
 	log.Info("Validate creation fields")
 	if err := commonCluster.ValidateCreationFields(createClusterRequest); err != nil {
-		log.Errorf("Error during request validation: %s", err.Error())
 		commonCluster.UpdateStatus(constants.Error, err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		return nil, &components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: err.Error(),
 			Error:   err.Error(),
-		})
-		return nil
+		}
 	}
 
 	log.Info("Validation passed")
 
-	c.JSON(http.StatusAccepted, components.CreateClusterResponse{
-		Name:       commonCluster.GetName(),
-		ResourceID: commonCluster.GetID(),
-	})
-
 	go postCreateCluster(commonCluster)
-	return commonCluster
+	return commonCluster, nil
 }
 
 // postCreateCluster creates a cluster (ASYNC)

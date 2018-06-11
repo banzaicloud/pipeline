@@ -1334,3 +1334,8 @@ func (c *AWSCluster) createAWSCredentialsFromSecret() (*credentials.Credentials,
 	}
 	return verify.CreateAWSCredentials(clusterSecret.Values), nil
 }
+
+// ReloadFromDatabase load cluster from DB
+func (c *AWSCluster) ReloadFromDatabase() error {
+	return c.modelCluster.ReloadFromDatabase()
+}

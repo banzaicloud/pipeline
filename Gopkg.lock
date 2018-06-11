@@ -195,6 +195,7 @@
   packages = [
     "components",
     "components/amazon",
+    "components/application",
     "components/azure",
     "components/catalog",
     "components/dummy",
