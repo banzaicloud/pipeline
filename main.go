@@ -101,12 +101,13 @@ func main() {
 	router := gin.New()
 
 	// These two paths can contain sensitive information, so it is advised not to log them out.
-	router.Use(gin.LoggerWithWriter(gin.DefaultWriter, "/auth/tokens", "/auth/github/callback"))
+	skipPaths := viper.GetStringSlice("audit.skippaths")
+	router.Use(gin.LoggerWithWriter(gin.DefaultWriter, skipPaths...))
 	router.Use(gin.Recovery())
 	router.Use(cors.New(config.GetCORS()))
 	if viper.GetBool("audit.enabled") {
 		log.Infoln("Audit enabled, installing Gin audit middleware")
-		router.Use(audit.LogWriter())
+		router.Use(audit.LogWriter(skipPaths, viper.GetStringSlice("audit.headers")))
 	}
 
 	auth.Install(router)

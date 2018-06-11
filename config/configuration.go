@@ -56,6 +56,8 @@ func init() {
 	viper.SetDefault("database.password", "pipemaster123!")
 	viper.SetDefault("database.dbname", "pipelinedb")
 	viper.SetDefault("audit.enabled", true)
+	viper.SetDefault("audit.headers", []string{"secretId"})
+	viper.SetDefault("audit.skippaths", []string{"/auth/github/callback"})
 
 	ReleaseName := os.Getenv("KUBERNETES_RELEASE_NAME")
 	if ReleaseName == "" {
