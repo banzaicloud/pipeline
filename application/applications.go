@@ -26,10 +26,13 @@ const (
 )
 
 // DeleteApplication TODO
-func DeleteApplication(app *model.Application) {
-	//1. Remove deployments
-
-	//2. Delete cluster if requested
+func DeleteApplication(app *model.Application, kubeConfig []byte) error {
+	deployment, err := GetDeploymentByName(app, app.CatalogName)
+	if err != nil {
+		return err
+	}
+	err = helm.DeleteDeployment(deployment.ReleaseName, kubeConfig)
+	return err
 }
 
 // GetDeploymentByName get a Deployment by Name
@@ -236,7 +239,7 @@ func EnsureChart(env helm_env.EnvSettings, dep ctype.ApplicationDependency, kube
 	// TODO this is a workaround to not implement repository handling
 	chart := catalog.CatalogRepository + "/" + dep.Chart.Name
 
-	resp, err := helm.CreateDeployment(chart, "","",nil, kubeConfig, env)
+	resp, err := helm.CreateDeployment(chart, "", "", nil, kubeConfig, env)
 	if err != nil {
 		return "", err
 	}

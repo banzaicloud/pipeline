@@ -42,8 +42,6 @@ type ApplicationListResponse struct {
 // DeleteApplications delete application
 func DeleteApplications(c *gin.Context) {
 	idParam := c.Param("id")
-	// Weather to delete cluster as well
-	//cluster := c.Query("cluster")
 	id, err := strconv.ParseUint(idParam, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
@@ -53,6 +51,7 @@ func DeleteApplications(c *gin.Context) {
 		})
 		return
 	}
+	// Build application model TODO refactor
 	db := model.GetDB()
 	app := &model.Application{
 		ID: uint(id),
@@ -66,13 +65,32 @@ func DeleteApplications(c *gin.Context) {
 		log.Errorf("Error getting application: %s", err.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
-			Message: "Error listing clusters",
+			Message: "Error getting application",
 			Error:   err.Error(),
 		})
 		return
 	}
 	app.Deployments = deployments
-	application.DeleteApplication(app)
+
+	// Get cluster for application
+	filter := make(map[string]interface{})
+	filter["organization_id"] = organization
+	filter["id"] = app.ClusterID
+	commonCluster, ok := GetCommonClusterFromFilter(c, filter)
+	if !ok {
+		return
+	}
+	config, err := commonCluster.GetK8sConfig()
+	if err != nil {
+		log.Errorf("Error getting cluster config: %s", err.Error())
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error getting cluster config",
+			Error:   err.Error(),
+		})
+		return
+	}
+	application.DeleteApplication(app, config)
 }
 
 // ApplicationDetails get application details

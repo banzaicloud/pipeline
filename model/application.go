@@ -9,9 +9,9 @@ var log = config.Logger()
 
 // Application for Application
 type Application struct {
-	ID             uint `gorm:"primary_key"`
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
+	ID             uint          `json:"id" gorm:"primary_key"`
+	CreatedAt      time.Time     `json:"createdAt"`
+	UpdatedAt      time.Time     `json:"updatedAt"`
 	DeletedAt      *time.Time    `json:"-" sql:"index"`
 	Name           string        `json:"name"`
 	CatalogName    string        `json:"catalogName"`
@@ -28,17 +28,16 @@ type Application struct {
 
 // Deployment for Application
 type Deployment struct {
-	ID            uint `gorm:"primary_key"`
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
+	ID            uint       `json:"id" gorm:"primary_key"`
+	CreatedAt     time.Time  `json:"createdAt"`
+	UpdatedAt     time.Time  `json:"updatedAt"`
 	DeletedAt     *time.Time `json:"-" sql:"index"`
 	Name          string     `json:"name"`
 	Chart         string     `json:"chart"`
-	ReleaseName   string     `json:"release_name"`
+	ReleaseName   string     `json:"releaseName"`
 	Values        string     `json:"values"`
 	Status        string     `json:"status"`
 	Message       string     `json:"message"`
-	WaitFor       string     `json:"waitFor"`
 	ApplicationID uint       `json:"applicationId"`
 }
 

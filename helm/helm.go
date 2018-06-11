@@ -188,7 +188,6 @@ func CreateDeployment(chartName string, namespace string, releaseName string, va
 		return nil, err
 	}
 
-
 	log.Infof("Loading chart from %q", env.Home)
 
 	chartRequested, err := chartutil.Load(downloadedChartPath)
