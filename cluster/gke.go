@@ -349,7 +349,7 @@ func (g *GKECluster) waitForResourcesDelete() interface{} {
 		return errors.Wrap(err, "Error during checking firewalls")
 	}
 
-	err = checkLoadBalancerResources(csv, project, g.modelCluster.Location)
+	err = checkLoadBalancerResources(csv, project, g.modelCluster.Location, g.modelCluster.Name)
 	if err != nil {
 		return errors.Wrap(err, "Error during checking load balancer resources")
 	}
@@ -358,7 +358,7 @@ func (g *GKECluster) waitForResourcesDelete() interface{} {
 }
 
 // checkLoadBalancerResources checks all load balancer resources deleted by Kubernetes
-func checkLoadBalancerResources(csv *gkeCompute.Service, project, zone string) error {
+func checkLoadBalancerResources(csv *gkeCompute.Service, project, zone, clusterName string) error {
 
 	log.Info("Check load balancer resources")
 
@@ -371,26 +371,29 @@ func checkLoadBalancerResources(csv *gkeCompute.Service, project, zone string) e
 	regionName := region.Name
 	log.Infof("Region name: %s", regionName)
 
-	err = checkForwardingRules(csv, project, regionName)
+	targetPools, err := checkTargetPools(csv, project, zone, regionName, clusterName)
 	if err != nil {
 		return err
 	}
 
-	return checkTargetPools(csv, project, regionName)
+	return checkForwardingRules(csv, targetPools, project, regionName)
 }
 
 // checkTargetPools checks all target pools deleted by Kubernetes
-func checkTargetPools(csv *gkeCompute.Service, project, regionName string) error {
+func checkTargetPools(csv *gkeCompute.Service, project, zone, regionName, clusterName string) ([]*gkeCompute.TargetPool, error) {
 
 	log.Infof("Check target pools(backends) in project[%s] and region[%s]", project, regionName)
 
 	log.Info("List target pools")
 	pools, err := listTargetPools(csv, project, regionName)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	for _, pool := range pools {
+	log.Infof("Find target pool(s) by instance[%s]", clusterName)
+	clusterTargetPools := findTargetPoolsByInstances(pools, project, zone, clusterName)
+
+	for _, pool := range clusterTargetPools {
 		if pool != nil {
 			for {
 				err := isTargetPoolDeleted(csv, project, regionName, pool.Name)
@@ -405,7 +408,33 @@ func checkTargetPools(csv *gkeCompute.Service, project, regionName string) error
 		}
 	}
 
-	return nil
+	return clusterTargetPools, nil
+}
+
+// findTargetPoolsByInstances returns all target pools which created by Kubernetes
+func findTargetPoolsByInstances(pools []*gkeCompute.TargetPool, project, zone, clusterName string) []*gkeCompute.TargetPool {
+
+	instancePrefix := getInstancePrefix(project, zone, clusterName)
+
+	var filteredPools []*gkeCompute.TargetPool
+	for _, p := range pools {
+		if p != nil {
+			if strings.Contains(p.Description, kubernetesIO) {
+				for _, i := range p.Instances {
+					if strings.HasPrefix(i, instancePrefix) {
+						filteredPools = append(filteredPools, p)
+					}
+				}
+			}
+		}
+	}
+
+	return filteredPools
+}
+
+// getInstancePrefix returns URL prefix to the given cluster's virtual machine instance
+func getInstancePrefix(project, zone, clusterName string) string {
+	return fmt.Sprintf("https://www.googleapis.com/compute/v1/projects/%s/zones/%s/instances/%s%s", project, zone, targetPrefix, clusterName)
 }
 
 // isTargetPoolDeleted checks the given target pool is deleted by Kubernetes
@@ -430,7 +459,7 @@ func listTargetPools(csv *gkeCompute.Service, project, regionName string) ([]*gk
 }
 
 // checkForwardingRules checks all forwarding rules deleted by Kubernetes
-func checkForwardingRules(csv *gkeCompute.Service, project, regionName string) error {
+func checkForwardingRules(csv *gkeCompute.Service, targetPools []*gkeCompute.TargetPool, project, regionName string) error {
 
 	log.Infof("Check forwarding rules(frontends) in project[%s] and region[%s]", project, regionName)
 
@@ -443,7 +472,7 @@ func checkForwardingRules(csv *gkeCompute.Service, project, regionName string) e
 	log.Debugf("Forwarding rules: %d", len(forwardingRules))
 
 	for _, rule := range forwardingRules {
-		if rule != nil {
+		if rule != nil && isClusterTarget(targetPools, project, regionName, rule.Target) {
 			for {
 				err := isForwardingRuleDeleted(csv, project, regionName, rule.Name)
 				if err == nil {
@@ -458,6 +487,21 @@ func checkForwardingRules(csv *gkeCompute.Service, project, regionName string) e
 	}
 
 	return nil
+}
+
+// isClusterTarget checks the target match with the deleting cluster
+func isClusterTarget(targetPools []*gkeCompute.TargetPool, project, region, targetPoolName string) bool {
+	for _, tp := range targetPools {
+		if tp != nil && tp.Name == getTargetUrl(project, region, targetPoolName) {
+			return true
+		}
+	}
+	return false
+}
+
+// getTargetUrl returns target url for gke cluster
+func getTargetUrl(project, region, targetPoolName string) string {
+	return fmt.Sprintf("https://www.googleapis.com/compute/v1/projects/%s/regions/%s/targetPools/%s", project, region, targetPoolName)
 }
 
 // isForwardingRuleDeleted checks the given forwarding rule is deleted by Kubernetes
