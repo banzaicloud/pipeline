@@ -10,7 +10,6 @@ import (
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"net/http"
@@ -40,6 +39,43 @@ type ApplicationListResponse struct {
 	Icon        string `json:"icon"`
 }
 
+// DeleteApplications delete application
+func DeleteApplications(c *gin.Context) {
+	idParam := c.Param("id")
+	// Weather to delete cluster as well
+	//cluster := c.Query("cluster")
+	id, err := strconv.ParseUint(idParam, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: fmt.Sprintf("Invalid id=%q", idParam),
+			Error:   err.Error(),
+		})
+		return
+	}
+	db := model.GetDB()
+	app := &model.Application{
+		ID: uint(id),
+	}
+	var deployments []*model.Deployment
+	db.Model(app).Related(&deployments, "Deployments")
+	log.Debugf("Associated deployments: %#v", deployments)
+	organization := auth.GetCurrentOrganization(c.Request)
+	err = db.Model(organization).Related(app).Error
+	if err != nil {
+		log.Errorf("Error getting application: %s", err.Error())
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error listing clusters",
+			Error:   err.Error(),
+		})
+		return
+	}
+	app.Deployments = deployments
+	application.DeleteApplication(app)
+}
+
+// ApplicationDetails get application details
 func ApplicationDetails(c *gin.Context) {
 	idParam := c.Param("id")
 	id, err := strconv.ParseUint(idParam, 10, 32)
@@ -52,10 +88,8 @@ func ApplicationDetails(c *gin.Context) {
 		return
 	}
 	db := model.GetDB()
-	application := &model.ApplicationModel{
-		Model: gorm.Model{
-			ID: uint(id),
-		},
+	application := &model.Application{
+		ID: uint(id),
 	}
 	var deployments []*model.Deployment
 	db.Model(application).Related(&deployments, "Deployments")
@@ -81,7 +115,7 @@ func GetApplications(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": "GetApplications"})
 	log.Debug("List applications")
 
-	var applications []model.ApplicationModel //TODO change this to CommonClusterStatus
+	var applications []model.Application //TODO change this to CommonClusterStatus
 	db := model.GetDB()
 	organization := auth.GetCurrentOrganization(c.Request)
 	err := db.Model(organization).Related(&applications).Error
@@ -157,7 +191,7 @@ func CreateApplication(c *gin.Context) {
 			return
 		}
 	}
-	am := model.ApplicationModel{
+	am := model.Application{
 		Name:           createApplicationRequest.Name,
 		CatalogName:    createApplicationRequest.CatalogName,
 		ClusterID:      commonCluster.GetModel().ID,

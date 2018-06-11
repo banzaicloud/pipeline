@@ -75,7 +75,7 @@ func main() {
 		&model.DummyClusterModel{},
 		&model.KubernetesClusterModel{},
 		&model.Deployment{},
-		&model.ApplicationModel{},
+		&model.Application{},
 		&auth.AuthIdentity{},
 		&auth.User{},
 		&auth.UserOrganization{},

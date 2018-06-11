@@ -1,53 +1,87 @@
 package model
 
-import "github.com/jinzhu/gorm"
+import (
+	"github.com/banzaicloud/pipeline/config"
+	"time"
+)
 
-// ApplicationModel for Application
-type ApplicationModel struct {
-	gorm.Model
-	Name           string `json:"name"`
-	CatalogName    string `json:"catalogName"`
-	CatalogVersion string `json:"catalogVersion"`
-	Description    string `json:"description"`
-	Icon           string `json:"icon"`
-	OrganizationId uint   `json:"organizationId"`
-	ClusterID      uint
+var log = config.Logger()
+
+// Application for Application
+type Application struct {
+	ID             uint `gorm:"primary_key"`
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+	DeletedAt      *time.Time    `json:"-" sql:"index"`
+	Name           string        `json:"name"`
+	CatalogName    string        `json:"catalogName"`
+	CatalogVersion string        `json:"catalogVersion"`
+	Description    string        `json:"description"`
+	Icon           string        `json:"icon"`
+	OrganizationId uint          `json:"organizationId"`
+	ClusterID      uint          `json:"clusterId"`
 	Deployments    []*Deployment `gorm:"foreignkey:application_id" json:"deployments"`
 	Resources      string        `json:"resources"`
 	Status         string        `json:"status"`
+	Message        string        `json:"message"`
 }
 
-// Deployment for ApplicationModel
+// Deployment for Application
 type Deployment struct {
-	gorm.Model
-	Name          string `json:"name"`
-	Chart         string `json:"chart"`
-	ReleaseName   string `json:"release_name"`
-	Values        string `json:"values"`
-	Status        string `json:"status"`
-	WaitFor       string `json:"waitFor"`
-	ApplicationID uint   `json:"applicationId"`
+	ID            uint `gorm:"primary_key"`
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	DeletedAt     *time.Time `json:"-" sql:"index"`
+	Name          string     `json:"name"`
+	Chart         string     `json:"chart"`
+	ReleaseName   string     `json:"release_name"`
+	Values        string     `json:"values"`
+	Status        string     `json:"status"`
+	Message       string     `json:"message"`
+	WaitFor       string     `json:"waitFor"`
+	ApplicationID uint       `json:"applicationId"`
 }
 
 //Update Deployment
-func (d *Deployment) Update(state string) error {
-	return GetDB().Model(d).Update("status", state).Error
+func (d *Deployment) Update(update Deployment) error {
+	err := GetDB().Model(d).Update(update).Error
+	if err != nil {
+		log.Error(err)
+	}
+	return err
 }
 
 // Create Deployment
 func (d *Deployment) Create() error {
-	return GetDB().Create(d).Error
+	err := GetDB().Create(d).Error
+	if err != nil {
+		log.Error(err)
+	}
+	return err
 }
 
-// GetCluster ApplicationModel
-func (am ApplicationModel) GetCluster() ClusterModel {
+// GetCluster Application
+func (am Application) GetCluster() ClusterModel {
 	db := GetDB()
 	var cluster ClusterModel
 	db.First(&cluster, am.ClusterID)
 	return cluster
 }
 
-//Save ApplicationModel the cluster to DB
-func (am *ApplicationModel) Save() error {
-	return GetDB().Save(&am).Error
+//Save Application the cluster to DB
+func (am *Application) Save() error {
+	err := GetDB().Save(&am).Error
+	if err != nil {
+		log.Error(err)
+	}
+	return err
+}
+
+// Update update fields for Application
+func (am *Application) Update(update Application) error {
+	err := GetDB().Model(am).Update(update).Error
+	if err != nil {
+		log.Error(err)
+	}
+	return err
 }
