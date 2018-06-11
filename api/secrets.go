@@ -61,11 +61,15 @@ func AddSecrets(c *gin.Context) {
 	}
 	log.Info("Validation passed")
 
-	secretID := secret.GenerateSecretID()
-	if err := secret.Store.Store(organizationID, secretID, &createSecretRequest); err != nil {
+	secretID, err := secret.Store.Store(organizationID, &createSecretRequest)
+	if err != nil {
+		statusCode := http.StatusInternalServerError
+		if secret.IsCASError(err) {
+			statusCode = http.StatusBadRequest
+		}
 		log.Errorf("Error during store: %s", err.Error())
-		c.AbortWithStatusJSON(http.StatusInternalServerError, components.ErrorResponse{
-			Code:    http.StatusInternalServerError,
+		c.AbortWithStatusJSON(statusCode, components.ErrorResponse{
+			Code:    statusCode,
 			Message: "Error during store",
 			Error:   err.Error(),
 		})
@@ -94,13 +98,25 @@ func UpdateSecrets(c *gin.Context) {
 	var createSecretRequest secret.CreateSecretRequest
 	if err := c.ShouldBind(&createSecretRequest); err != nil {
 		log.Errorf("Error during binding CreateSecretRequest: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.AbortWithStatusJSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error during binding",
 			Error:   err.Error(),
 		})
 		return
 	}
+
+	if createSecretRequest.Version == nil {
+		msg := "Error during binding CreateSecretRequest: version can't be empty"
+		log.Error(msg)
+		c.AbortWithStatusJSON(http.StatusBadRequest, components.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error during binding",
+			Error:   msg,
+		})
+		return
+	}
+
 	//Check if the received value is base64 encoded if not encode it.
 	if createSecretRequest.Values[constants.K8SConfig] != "" {
 		createSecretRequest.Values[constants.K8SConfig] = utils.EncodeStringToBase64(createSecretRequest.Values[constants.K8SConfig])
@@ -122,9 +138,13 @@ func UpdateSecrets(c *gin.Context) {
 	log.Info("Validation passed")
 
 	if err := secret.Store.Update(organizationID, secretID, &createSecretRequest); err != nil {
+		statusCode := http.StatusInternalServerError
+		if secret.IsCASError(err) {
+			statusCode = http.StatusBadRequest
+		}
 		log.Errorf("Error during update: %s", err.Error())
-		c.AbortWithStatusJSON(http.StatusInternalServerError, components.ErrorResponse{
-			Code:    http.StatusInternalServerError,
+		c.AbortWithStatusJSON(statusCode, components.ErrorResponse{
+			Code:    statusCode,
 			Message: "Error during update",
 			Error:   err.Error(),
 		})
@@ -177,7 +197,6 @@ func ListSecrets(c *gin.Context) {
 				Error:   err.Error(),
 			})
 		} else {
-			log.Infof("Listing secrets succeeded: %#v", items)
 			c.JSON(http.StatusOK, secret.ListSecretsResponse{
 				Secrets: items,
 			})

@@ -7,13 +7,14 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
+	"strings"
+
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/constants"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
-	"strings"
 )
 
 var logger *logrus.Logger
@@ -73,7 +74,6 @@ func KeyAdd(organizationId uint, clusterId uint) (string, error) {
 func KeyStore(key *Key, organizationID uint, clusterName string) (secretID string, err error) {
 	log := logger.WithFields(logrus.Fields{"tag": "KeyStore"})
 	log.Info("Store SSH Key to Bank Vaults")
-	secretID = secret.GenerateSecretID()
 	var createSecretRequest secret.CreateSecretRequest
 	createSecretRequest.Type = constants.SshSecretType
 	createSecretRequest.Name = clusterName
@@ -86,13 +86,15 @@ func KeyStore(key *Key, organizationID uint, clusterName string) (secretID strin
 		constants.PrivateKeyData:       key.PrivateKeyData,
 	}
 
-	if err := secret.Store.Store(fmt.Sprint(organizationID), secretID, &createSecretRequest); err != nil {
+	secretID, err = secret.Store.Store(fmt.Sprint(organizationID), &createSecretRequest)
+
+	if err != nil {
 		log.Errorf("Error during store: %s", err.Error())
 		return "", err
 	}
 
 	log.Info("SSH Key stored.")
-	return secretID, nil
+	return
 }
 
 // KeyGenerator for Generate new SSH Key

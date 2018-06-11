@@ -22,7 +22,7 @@ services:
       - 8080:8080
 
   vault:
-    image: vault:0.10.0
+    image: vault:0.10.2
     restart: always
     cap_add:
       - IPC_LOCK
