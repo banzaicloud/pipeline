@@ -1,7 +1,6 @@
 package application
 
 import (
-	"fmt"
 	ctype "github.com/banzaicloud/banzai-types/components/catalog"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/catalog"
@@ -11,28 +10,39 @@ import (
 	k8s "github.com/banzaicloud/pipeline/kubernetes"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	helm_env "k8s.io/helm/pkg/helm/environment"
 	"time"
 )
 
-var logger *logrus.Logger
-var log *logrus.Entry
+var log = config.Logger()
 
-func init() {
-	logger = config.Logger()
-	log = logger.WithFields(logrus.Fields{"action": "Helm"})
+// Application states
+const (
+	PENDING  = "PENDING"
+	FAILED   = "FAILED"
+	DEPLOYED = "DEPLOYED"
+	READY    = "READY"
+)
+
+// DeleteApplication TODO
+func DeleteApplication(app *model.Application, kubeConfig []byte) error {
+	deployment, err := GetDeploymentByName(app, app.CatalogName)
+	if err != nil {
+		return err
+	}
+	err = helm.DeleteDeployment(deployment.ReleaseName, kubeConfig)
+	return err
 }
 
-// SetDeploymentState Set a Deployment state related to an Application
-func SetDeploymentState(app *model.ApplicationModel, depName string, state string) {
+// GetDeploymentByName get a Deployment by Name
+func GetDeploymentByName(app *model.Application, depName string) (*model.Deployment, error) {
 	for _, deployment := range app.Deployments {
 		if deployment.Name == depName {
-			deployment.Status = state
-			model.GetDB().Save(deployment)
+			return deployment, nil
 		}
 	}
+	return nil, errors.New("deployment not found")
 }
 
 // GetSpotGuide get spotguide definition based on catalog name
@@ -42,15 +52,16 @@ func GetSpotGuide(env helm_env.EnvSettings, catalogName string) (*catalog.Catalo
 		return nil, err
 	}
 	if chart.Spotguide == nil {
-		return nil, errors.New("spotguide file is missing from spotguide.yaml")
+		return nil, errors.New("spotguide file is missing")
 	}
 	return chart, nil
 }
 
 // CreateApplication will gather, create and manage an application deployment
-func CreateApplication(am model.ApplicationModel, options []ctype.ApplicationOptions, cluster cluster.CommonCluster) error {
+func CreateApplication(am model.Application, options []ctype.ApplicationOptions, cluster cluster.CommonCluster) error {
 	organization, err := auth.GetOrganizationById(am.OrganizationId)
 	if err != nil {
+		am.Update(model.Application{Status: FAILED, Message: err.Error()})
 		return err
 	}
 	env := catalog.GenerateGatalogEnv(organization.Name)
@@ -59,97 +70,129 @@ func CreateApplication(am model.ApplicationModel, options []ctype.ApplicationOpt
 	//Todo check if cluster ready
 	kubeConfig, err := cluster.GetK8sConfig()
 	if err != nil {
+		am.Update(model.Application{Status: FAILED, Message: err.Error()})
+		return err
+	}
+	// We need to ensure that catalog repository is present
+	err = catalog.EnsureCatalog(env)
+	if err != nil {
+		am.Update(model.Application{Status: FAILED, Message: err.Error()})
 		return err
 	}
 	catalog, err := GetSpotGuide(env, am.CatalogName)
 	if err != nil {
-		model.GetDB().Model(&am).Update("status", err.Error())
+		am.Update(model.Application{Status: FAILED, Message: err.Error()})
 		return err
 	}
 	am.Icon = catalog.Chart.Icon
 	am.Description = catalog.Chart.Description
 	am.Save()
+
 	err = CreateApplicationDeployment(env, &am, options, catalog, kubeConfig)
 	if err != nil {
-		model.GetDB().Model(&am).Update("status", err.Error())
+		am.Update(model.Application{Status: FAILED, Message: err.Error()})
 		return err
 	}
 	return nil
 }
 
 // CreateApplicationDeployment will deploy a Catalog with Dependency
-func CreateApplicationDeployment(env helm_env.EnvSettings, am *model.ApplicationModel, options []ctype.ApplicationOptions, catalogInfo *catalog.CatalogDetails, kubeConfig []byte) error {
+func CreateApplicationDeployment(env helm_env.EnvSettings, am *model.Application, options []ctype.ApplicationOptions, catalogInfo *catalog.CatalogDetails, kubeConfig []byte) error {
+	// Iterate through dependecies and create DB objects
 	for _, dependency := range catalogInfo.Spotguide.Depends {
 		deployment := &model.Deployment{
-			Status: "PENDING",
+			Status: PENDING,
 			Name:   dependency.Name,
 			Chart:  dependency.Chart.Name,
 		}
 		model.GetDB().Save(&deployment)
 		am.Deployments = append(am.Deployments, deployment)
 	}
+	// Add the catalog itself
 	deployment := &model.Deployment{
-		Status: "PENDING",
+		Status: PENDING,
 		Name:   catalogInfo.Chart.Name,
 		Chart:  am.CatalogName,
 	}
 	model.GetDB().Save(deployment)
 	am.Deployments = append(am.Deployments, deployment)
-	for _, d := range am.Deployments {
-		log.Debugf("Deployment ID: %s", d.ID)
-	}
 	am.Save()
+
 	// Ensure dependencies
 	for _, dependency := range catalogInfo.Spotguide.Depends {
-		err := EnsureDependency(env, dependency, kubeConfig)
+		d, err := GetDeploymentByName(am, dependency.Name)
 		if err != nil {
-			SetDeploymentState(am, dependency.Name, "FAILED")
+			return err
+		}
+		releaseName, err := EnsureDependency(env, dependency, kubeConfig)
+		if err != nil {
+			d.Update(model.Deployment{Status: FAILED, Message: err.Error()})
 			break
 		}
-		SetDeploymentState(am, dependency.Name, "READY")
+		d.Update(model.Deployment{Status: READY, ReleaseName: releaseName})
 	}
 	// Install application
 	chart := catalog.CatalogRepository + "/" + am.CatalogName
 	values, err := catalog.CreateValuesFromOption(options)
 	if err != nil {
-		model.GetDB().Model(&am).Update("status", fmt.Sprintf("FAILED: %s", err))
+		am.Update(model.Application{Status: FAILED, Message: err.Error()})
 		return err
 	}
-	ok, err := ChartPresented(am.CatalogName, kubeConfig)
+	ok, releaseName, err := ChartPresented(am.CatalogName, kubeConfig)
 	if err != nil {
 		return err
 	}
 	if !ok {
 		resp, err := helm.CreateDeployment(chart, helm.DefaultNamespace, "", values, kubeConfig, env)
 		if err != nil {
-			deployment.Update("FAILED")
+			deployment.Update(model.Deployment{Status: FAILED, Message: err.Error()})
 			return err
 		}
 		model.GetDB().Model(deployment).Update("release_name", resp.Release.Name)
 	}
-	model.GetDB().Model(deployment).Update("status", "READY")
-	model.GetDB().Model(&am).Update("status", "DEPLOYED")
+	deployment.Update(model.Deployment{Status: READY, ReleaseName: releaseName})
+	am.Update(model.Application{Status: DEPLOYED})
 	return nil
 }
 
 // EnsureDependency ensure remote dependency on a given Kubernetes endpoint
-func EnsureDependency(env helm_env.EnvSettings, dependency ctype.ApplicationDependency, kubeConfig []byte) error {
+func EnsureDependency(env helm_env.EnvSettings, dependency ctype.ApplicationDependency, kubeConfig []byte) (releaseName string, err error) {
 	log.Debugf("Dependency: %#v", dependency)
 	if dependency.Type != "crd" {
-		EnsureChart(env, dependency, kubeConfig)
-		return nil
+		releaseName, err := EnsureChart(env, dependency, kubeConfig)
+		if err != nil {
+			return "", err
+		}
+		return releaseName, nil
 	}
 	ready, err := CheckCRD(kubeConfig, dependency.Values)
 	if err != nil {
 		// Break cycle on error
-		return err
+		return "", err
 	}
 	if ready {
-		return nil
+		return releaseName, nil
 	}
-	EnsureChart(env, dependency, kubeConfig)
+
+	releaseName, err = EnsureChart(env, dependency, kubeConfig)
+	if err != nil {
+		return "", err
+	}
+
+	var retry int
+	var timeout int
+	if dependency.Retry != 0 {
+		retry = dependency.Retry
+	} else {
+		retry = 15
+	}
+	if dependency.Timeout != 0 {
+		retry = dependency.Timeout
+	} else {
+		timeout = 5
+	}
 	//Check if dependency is available 10 to timeout
-	for i := 0; i < 15; i++ {
+	for i := 0; i < retry; i++ {
 		// Check crd should come back with error if not
 		ready, err := CheckCRD(kubeConfig, dependency.Values)
 		if err != nil {
@@ -158,44 +201,49 @@ func EnsureDependency(env helm_env.EnvSettings, dependency ctype.ApplicationDepe
 		}
 		// If no errors happened we exit
 		if ready {
-			return nil
+			return releaseName, nil
 		}
 		// Wait 2 sec for next check
-		time.Sleep(2 * time.Second)
+		time.Sleep(time.Duration(timeout) * time.Second)
 	}
-	return errors.Wrap(err, "dependency is not ready")
+	return "", errors.Wrap(err, "dependency is not ready")
 }
 
 // ChartPresented check if a Chart presented on a given Kubernetes cluster
-func ChartPresented(chartName string, kubeConfig []byte) (bool, error) {
+func ChartPresented(chartName string, kubeConfig []byte) (bool, string, error) {
 	var filter string
 	chartList, err := helm.ListDeployments(&filter, kubeConfig)
 	if err != nil {
-		return false, err
+		return false, "", err
 	}
 	for _, c := range chartList.Releases {
 		log.Debugf("Checking installed charts: %#v", c.Chart.Metadata.Name)
 		if c.Chart.Metadata.Name == chartName {
-			return true, nil
+			return true, c.Name, nil
 		}
 	}
 	log.Debugf("Dependency not found: %q", chartName)
-	return false, nil
+	return false, "", nil
 }
 
 // EnsureChart ensures a given Helm chart is available on the given Kubernetes cluster
-func EnsureChart(env helm_env.EnvSettings, dep ctype.ApplicationDependency, kubeConfig []byte) error {
-	ok, err := ChartPresented(dep.Chart.Name, kubeConfig)
+func EnsureChart(env helm_env.EnvSettings, dep ctype.ApplicationDependency, kubeConfig []byte) (releaseName string, err error) {
+	ok, releaseName, err := ChartPresented(dep.Chart.Name, kubeConfig)
 	if err != nil {
-		return err
+		return "", err
 	}
 	if ok {
-		return nil
+		return releaseName, nil
 	}
-	chart := dep.Chart.Repository + "/" + dep.Chart.Name
 
-	helm.CreateDeployment(chart, helm.DefaultNamespace, "", nil, kubeConfig, env)
-	return nil
+	// TODO this is a workaround to not implement repository handling
+	chart := catalog.CatalogRepository + "/" + dep.Chart.Name
+
+	resp, err := helm.CreateDeployment(chart, "", "", nil, kubeConfig, env)
+	if err != nil {
+		return "", err
+	}
+	return resp.Release.Name, nil
 }
 
 // CheckCRD check for CustomResourceDefinitions
