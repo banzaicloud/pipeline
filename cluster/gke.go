@@ -45,8 +45,9 @@ const (
 
 // constants to find Kubernetes resources
 const (
-	kubernetesIO = "kubernetes.io"
-	targetPrefix = "gke-"
+	kubernetesIO   = "kubernetes.io"
+	targetPrefix   = "gke-"
+	clusterNameKey = "cluster-name"
 )
 
 //CreateGKEClusterFromRequest creates ClusterModel struct from the request
@@ -298,7 +299,9 @@ func (g *GKECluster) DeleteCluster() error {
 
 	log := logger.WithFields(logrus.Fields{"action": constants.TagDeleteCluster})
 
-	g.waitForResourcesDelete()
+	if err := g.waitForResourcesDelete(); err != nil {
+		log.Warnf("error during wait for resources: %s", err.Error())
+	}
 
 	log.Info("Start delete google cluster")
 
@@ -328,7 +331,7 @@ func (g *GKECluster) DeleteCluster() error {
 }
 
 // waitForResourcesDelete waits until the Kubernetes destroys all the resources which it had created
-func (g *GKECluster) waitForResourcesDelete() interface{} {
+func (g *GKECluster) waitForResourcesDelete() error {
 
 	log.Info("Waiting for deleting deployments resources")
 
@@ -390,8 +393,14 @@ func checkTargetPools(csv *gkeCompute.Service, project, zone, regionName, cluste
 		return nil, err
 	}
 
-	log.Infof("Find target pool(s) by instance[%s]", clusterName)
-	clusterTargetPools := findTargetPoolsByInstances(pools, project, zone, clusterName)
+	log.Info("List instances")
+	instance, err := findInstanceByClusterName(csv, project, zone, clusterName)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Infof("Find target pool(s) by instance[%s]", instance.Name)
+	clusterTargetPools := findTargetPoolsByInstances(pools, instance.Name)
 
 	for _, pool := range clusterTargetPools {
 		if pool != nil {
@@ -412,29 +421,20 @@ func checkTargetPools(csv *gkeCompute.Service, project, zone, regionName, cluste
 }
 
 // findTargetPoolsByInstances returns all target pools which created by Kubernetes
-func findTargetPoolsByInstances(pools []*gkeCompute.TargetPool, project, zone, clusterName string) []*gkeCompute.TargetPool {
-
-	instancePrefix := getInstancePrefix(project, zone, clusterName)
+func findTargetPoolsByInstances(pools []*gkeCompute.TargetPool, instanceName string) []*gkeCompute.TargetPool {
 
 	var filteredPools []*gkeCompute.TargetPool
 	for _, p := range pools {
 		if p != nil {
-			if strings.Contains(p.Description, kubernetesIO) {
-				for _, i := range p.Instances {
-					if strings.HasPrefix(i, instancePrefix) {
-						filteredPools = append(filteredPools, p)
-					}
+			for _, i := range p.Instances {
+				if i == instanceName {
+					filteredPools = append(filteredPools, p)
 				}
 			}
 		}
 	}
 
 	return filteredPools
-}
-
-// getInstancePrefix returns URL prefix to the given cluster's virtual machine instance
-func getInstancePrefix(project, zone, clusterName string) string {
-	return fmt.Sprintf("https://www.googleapis.com/compute/v1/projects/%s/zones/%s/instances/%s%s", project, zone, targetPrefix, clusterName)
 }
 
 // isTargetPoolDeleted checks the given target pool is deleted by Kubernetes
@@ -2131,4 +2131,25 @@ func (g *GKECluster) GetConfigSecretId() string {
 // GetK8sConfig returns the Kubernetes config
 func (g *GKECluster) GetK8sConfig() ([]byte, error) {
 	return g.CommonClusterBase.getConfig(g)
+}
+
+// findInstanceByClusterName returns the cluster's instance
+func findInstanceByClusterName(csv *gkeCompute.Service, project, zone, clusterName string) (*gkeCompute.Instance, error) {
+
+	instances, err := csv.Instances.List(project, zone).Context(context.Background()).Do()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, instance := range instances.Items {
+		if instance != nil && instance.Metadata != nil {
+			for _, item := range instance.Metadata.Items {
+				if item != nil && item.Key == clusterNameKey && item.Value != nil && *item.Value == clusterName {
+					return instance, nil
+				}
+			}
+		}
+	}
+
+	return nil, fmt.Errorf("instance not found by cluster[%s]", clusterName)
 }
