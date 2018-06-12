@@ -1,8 +1,10 @@
 package api_test
 
 import (
-	"encoding/base64"
+	"crypto/sha256"
+	"fmt"
 	"reflect"
+	"sort"
 	"testing"
 	"time"
 
@@ -60,7 +62,7 @@ func TestListAllowedSecretTypes(t *testing.T) {
 				}
 			} else {
 				if !reflect.DeepEqual(tc.expectedResponse, response) {
-					t.Errorf("Expected response: %s, but got: %s", tc.expectedResponse, response)
+					t.Errorf("Expected response: %v, but got: %v", tc.expectedResponse, response)
 				}
 			}
 		})
@@ -128,8 +130,10 @@ func TestListSecrets(t *testing.T) {
 					for i := range items {
 						items[i].CreatedAt = time.Time{}
 					}
+					sort.Sort(sortableSecretsItemResponse(tc.expectedValues))
+					sort.Sort(sortableSecretsItemResponse(items))
 					if !reflect.DeepEqual(tc.expectedValues, items) {
-						t.Errorf("\nExpected values: %v\nbut got: %v", tc.expectedValues, items)
+						t.Errorf("\nExpected values: %#v\nbut got: %#v", tc.expectedValues, items)
 					}
 				}
 			}
@@ -156,7 +160,20 @@ func TestDeleteSecrets(t *testing.T) {
 			}
 		})
 	}
+}
 
+type sortableSecretsItemResponse []*secret.SecretsItemResponse
+
+func (s sortableSecretsItemResponse) Len() int {
+	return len(s)
+}
+
+func (s sortableSecretsItemResponse) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
+func (s sortableSecretsItemResponse) Less(i, j int) bool {
+	return s[i].Name < s[j].Name
 }
 
 var (
@@ -166,9 +183,9 @@ var (
 )
 
 var (
-	secretIdAmazon = base64.StdEncoding.EncodeToString([]byte(secretNameAmazon))
-	secretIdAzure  = base64.StdEncoding.EncodeToString([]byte(secretNameAzure))
-	secretIdGoogle = base64.StdEncoding.EncodeToString([]byte(secretNameGoogle))
+	secretIdAmazon = fmt.Sprintf("%x", sha256.Sum256([]byte(secretNameAmazon)))
+	secretIdAzure  = fmt.Sprintf("%x", sha256.Sum256([]byte(secretNameAzure)))
+	secretIdGoogle = fmt.Sprintf("%x", sha256.Sum256([]byte(secretNameGoogle)))
 )
 
 const (

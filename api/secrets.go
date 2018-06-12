@@ -64,13 +64,16 @@ func AddSecrets(c *gin.Context) {
 	secretID, err := secret.Store.Store(organizationID, &createSecretRequest)
 	if err != nil {
 		statusCode := http.StatusInternalServerError
+		message := "Error during store"
 		if secret.IsCASError(err) {
-			statusCode = http.StatusBadRequest
+			statusCode = http.StatusConflict
+			message = "Secret with this name already exists"
+		} else {
+			log.Errorf("Error during store: %s", err.Error())
 		}
-		log.Errorf("Error during store: %s", err.Error())
 		c.AbortWithStatusJSON(statusCode, components.ErrorResponse{
 			Code:    statusCode,
-			Message: "Error during store",
+			Message: message,
 			Error:   err.Error(),
 		})
 		return

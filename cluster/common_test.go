@@ -1,7 +1,8 @@
 package cluster_test
 
 import (
-	"encoding/base64"
+	"crypto/sha256"
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -42,7 +43,7 @@ const (
 )
 
 var (
-	clusterRequestSecretId = base64.StdEncoding.EncodeToString([]byte(secretName))
+	clusterRequestSecretId = fmt.Sprintf("%x", sha256.Sum256([]byte(secretName)))
 
 	awsSecretRequest = secret.CreateSecretRequest{
 		Name: secretName,

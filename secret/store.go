@@ -1,13 +1,12 @@
 package secret
 
 import (
+	"crypto/sha256"
+	"encoding/json"
 	"fmt"
 	"sort"
 	"strings"
 	"time"
-
-	"encoding/base64"
-	"encoding/json"
 
 	"github.com/banzaicloud/bank-vaults/vault"
 	"github.com/banzaicloud/pipeline/config"
@@ -87,7 +86,7 @@ func newVaultSecretStore() *secretStore {
 }
 
 func generateSecretID(request *CreateSecretRequest) string {
-	return base64.StdEncoding.EncodeToString([]byte(request.Name))
+	return fmt.Sprintf("%x", sha256.Sum256([]byte(request.Name)))
 }
 
 // RepoTag creates a secret tag for repository mapping
@@ -349,6 +348,7 @@ func IsForbiddenTag(tags []string) error {
 	return nil
 }
 
+// IsCASError detects if the underlying Vault error is caused by a CAS failure
 func IsCASError(err error) bool {
 	return strings.HasSuffix(err.Error(), "check-and-set parameter did not match the current version")
 }
