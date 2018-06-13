@@ -1,8 +1,12 @@
 package secret
 
 import (
+	"crypto/sha256"
+	"encoding/json"
 	"fmt"
 	"sort"
+	"strings"
+	"time"
 
 	"github.com/banzaicloud/bank-vaults/vault"
 	"github.com/banzaicloud/pipeline/config"
@@ -10,7 +14,6 @@ import (
 	"github.com/banzaicloud/pipeline/secret/verify"
 	vaultapi "github.com/hashicorp/vault/api"
 	"github.com/pkg/errors"
-	"github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cast"
 )
@@ -39,24 +42,27 @@ type CreateSecretResponse struct {
 
 // CreateSecretRequest param for Store.Store
 type CreateSecretRequest struct {
-	Name   string            `json:"name" binding:"required"`
-	Type   string            `json:"type" binding:"required"`
-	Values map[string]string `json:"values" binding:"required"`
-	Tags   []string          `json:"tags"`
+	Name    string            `json:"name" binding:"required"`
+	Type    string            `json:"type" binding:"required"`
+	Values  map[string]string `json:"values" binding:"required"`
+	Tags    []string          `json:"tags"`
+	Version *int              `json:"version,omitempty"`
 }
 
 // ListSecretsResponse for API response for ListSecrets
 type ListSecretsResponse struct {
-	Secrets []SecretsItemResponse `json:"secrets"`
+	Secrets []*SecretsItemResponse `json:"secrets"`
 }
 
 // SecretsItemResponse for GetSecret (no API endpoint for this!)
 type SecretsItemResponse struct {
-	ID     string            `json:"id"`
-	Name   string            `json:"name"`
-	Type   string            `json:"type"`
-	Values map[string]string `json:"values"`
-	Tags   []string          `json:"tags"`
+	ID        string            `json:"id"`
+	Name      string            `json:"name"`
+	Type      string            `json:"type"`
+	Values    map[string]string `json:"values"`
+	Tags      []string          `json:"tags"`
+	Version   int               `json:"version"`
+	CreatedAt time.Time         `json:"createdAt"`
 }
 
 // AllowedFilteredSecretTypesResponse for API response for AllowedSecretTypes/:type
@@ -79,9 +85,8 @@ func newVaultSecretStore() *secretStore {
 	return &secretStore{client: client, logical: logical}
 }
 
-// GenerateSecretID uuid for new secrets
-func GenerateSecretID() string {
-	return uuid.NewV4().String()
+func generateSecretID(request *CreateSecretRequest) string {
+	return fmt.Sprintf("%x", sha256.Sum256([]byte(request.Name)))
 }
 
 // RepoTag creates a secret tag for repository mapping
@@ -114,7 +119,7 @@ func (r *CreateSecretRequest) Validate(verifier verify.Verifier) error {
 func (ss *secretStore) Delete(organizationID, secretID string) error {
 	log := logger.WithFields(logrus.Fields{"tag": "DeleteSecret"})
 
-	path := secretPath(organizationID, secretID)
+	path := secretMetadataPath(organizationID, secretID)
 
 	log.Debugln("Delete secret:", path)
 
@@ -126,35 +131,41 @@ func (ss *secretStore) Delete(organizationID, secretID string) error {
 }
 
 // Save secret secret/orgs/:orgid:/:id: scope
-func (ss *secretStore) Store(organizationID, secretID string, value *CreateSecretRequest) error {
+func (ss *secretStore) Store(organizationID string, value *CreateSecretRequest) (string, error) {
 	log := logger.WithFields(logrus.Fields{"tag": "StoreSecret"})
 
-	path := secretPath(organizationID, secretID)
+	secretID := generateSecretID(value)
+	path := secretDataPath(organizationID, secretID)
 
 	log.Debugln("Storing secret:", path)
 
 	sort.Strings(value.Tags)
 
-	data := map[string]interface{}{"value": value}
+	value.Version = nil
+
+	data := vault.NewData(0, map[string]interface{}{"value": value})
 
 	if _, err := ss.logical.Write(path, data); err != nil {
-		return errors.Wrap(err, "Error during storing secret")
+		return "", errors.Wrap(err, "Error during storing secret")
 	}
 
-	return nil
+	return secretID, nil
 }
 
 // Update secret secret/orgs/:orgid:/:id: scope
 func (ss *secretStore) Update(organizationID, secretID string, value *CreateSecretRequest) error {
 	log := logger.WithFields(logrus.Fields{"tag": "UpdateSecret"})
 
-	path := secretPath(organizationID, secretID)
+	path := secretDataPath(organizationID, secretID)
 
 	log.Debugln("Update secret:", path)
 
 	sort.Strings(value.Tags)
 
-	data := map[string]interface{}{"value": *value}
+	version := *value.Version
+	value.Version = nil
+
+	data := vault.NewData(version, map[string]interface{}{"value": value})
 
 	if _, err := ss.logical.Write(path, data); err != nil {
 		return errors.Wrap(err, "Error during updating secret")
@@ -163,11 +174,44 @@ func (ss *secretStore) Update(organizationID, secretID string, value *CreateSecr
 	return nil
 }
 
+func parseSecret(secretID string, secret *vaultapi.Secret, values bool) (*SecretsItemResponse, error) {
+	data := cast.ToStringMap(secret.Data["data"])
+	metadata := cast.ToStringMap(secret.Data["metadata"])
+	value := data["value"].(map[string]interface{})
+	sname := value["name"].(string)
+	stype := value["type"].(string)
+	stags := cast.ToStringSlice(value["tags"])
+	version, _ := metadata["version"].(json.Number).Int64()
+	createdAt, err := time.Parse(time.RFC3339, metadata["created_time"].(string))
+	if err != nil {
+		return nil, err
+	}
+
+	sir := SecretsItemResponse{
+		ID:        secretID,
+		Name:      sname,
+		Type:      stype,
+		Tags:      stags,
+		Values:    cast.ToStringMapString(value["values"]),
+		Version:   int(version),
+		CreatedAt: createdAt,
+	}
+
+	if !values {
+		// Clear the values otherwise
+		for k := range sir.Values {
+			sir.Values[k] = "<hidden>"
+		}
+	}
+
+	return &sir, nil
+}
+
 // Retrieve secret secret/orgs/:orgid:/:id: scope
 func (ss *secretStore) Get(organizationID string, secretID string) (*SecretsItemResponse, error) {
 	log := logger.WithFields(logrus.Fields{"tag": "GetSecret"})
 
-	path := secretPath(organizationID, secretID)
+	path := secretDataPath(organizationID, secretID)
 
 	log.Debugln("Get secret:", path)
 
@@ -181,17 +225,7 @@ func (ss *secretStore) Get(organizationID string, secretID string) (*SecretsItem
 		return nil, fmt.Errorf("there's no secret with this id: %s", secretID)
 	}
 
-	data := secret.Data["value"].(map[string]interface{})
-	secretResp := &SecretsItemResponse{
-		ID:   secretID,
-		Name: data["name"].(string),
-		Type: data["type"].(string),
-		Tags: cast.ToStringSlice(data["tags"]),
-	}
-
-	secretResp.Values = cast.ToStringMapString(data["values"])
-
-	return secretResp, nil
+	return parseSecret(secretID, secret, true)
 }
 
 // ListSecretsQuery represent a secret listing filter
@@ -202,16 +236,16 @@ type ListSecretsQuery struct {
 }
 
 // List secret secret/orgs/:orgid:/ scope
-func (ss *secretStore) List(organizationID string, query *ListSecretsQuery) ([]SecretsItemResponse, error) {
+func (ss *secretStore) List(orgid string, query *ListSecretsQuery) ([]*SecretsItemResponse, error) {
 	log := logger.WithFields(logrus.Fields{"tag": "ListSecret"})
 
-	log.Debugf("Searching for secrets [orgid: %s, query: %#v]", organizationID, query)
+	log.Debugf("Searching for secrets [orgid: %s, query: %#v]", orgid, query)
 
-	path := fmt.Sprintf("secret/orgs/%s", organizationID)
+	listPath := fmt.Sprintf("secret/metadata/orgs/%s", orgid)
 
-	var responseItems []SecretsItemResponse
+	responseItems := []*SecretsItemResponse{}
 
-	list, err := ss.logical.List(path)
+	list, err := ss.logical.List(listPath)
 	if err != nil {
 		log.Errorf("Error listing secrets: %s", err.Error())
 		return nil, err
@@ -223,42 +257,23 @@ func (ss *secretStore) List(organizationID string, query *ListSecretsQuery) ([]S
 
 		for _, secretID := range keys {
 
-			if secret, err := ss.logical.Read(path + "/" + secretID); err != nil {
+			if secret, err := ss.logical.Read(secretDataPath(orgid, secretID)); err != nil {
 
 				log.Errorf("Error listing secrets: %s", err.Error())
 				return nil, err
 
 			} else if secret != nil {
 
-				data := secret.Data["value"].(map[string]interface{})
-				sname := data["name"].(string)
-				stype := data["type"].(string)
-				stags := cast.ToStringSlice(data["tags"])
+				sir, err := parseSecret(secretID, secret, query.Values)
+				if err != nil {
+					return nil, err
+				}
 
-				if (query.Type == constants.AllSecrets || stype == query.Type) && (query.Tag == "" || hasTag(stags, query.Tag)) {
+				if (query.Type == constants.AllSecrets || sir.Type == query.Type) &&
+					(query.Tag == "" || hasTag(sir.Tags, query.Tag)) &&
+					(IsForbiddenTag(sir.Tags) == nil) {
 
-					sir := SecretsItemResponse{
-						ID:     secretID,
-						Name:   sname,
-						Type:   stype,
-						Tags:   stags,
-						Values: cast.ToStringMapString(data["values"]),
-					}
-
-					if !query.Values {
-						// Clear the values otherwise
-						for k := range sir.Values {
-							sir.Values[k] = "<hidden>"
-						}
-					}
-
-					err := IsForbiddenTag(stags)
-					if err != nil {
-						log.Debugf("Secret[%s] with forbidden tag(s). Do not add to list", secretID)
-					} else {
-						responseItems = append(responseItems, sir)
-					}
-
+					responseItems = append(responseItems, sir)
 				}
 			}
 		}
@@ -267,8 +282,12 @@ func (ss *secretStore) List(organizationID string, query *ListSecretsQuery) ([]S
 	return responseItems, nil
 }
 
-func secretPath(organizationID, secretID string) string {
-	return fmt.Sprintf("secret/orgs/%s/%s", organizationID, secretID)
+func secretDataPath(organizationID, secretID string) string {
+	return fmt.Sprintf("secret/data/orgs/%s/%s", organizationID, secretID)
+}
+
+func secretMetadataPath(organizationID, secretID string) string {
+	return fmt.Sprintf("secret/metadata/orgs/%s/%s", organizationID, secretID)
 }
 
 func hasTag(tags []string, tag string) bool {
@@ -327,4 +346,9 @@ func IsForbiddenTag(tags []string) error {
 		}
 	}
 	return nil
+}
+
+// IsCASError detects if the underlying Vault error is caused by a CAS failure
+func IsCASError(err error) bool {
+	return strings.HasSuffix(err.Error(), "check-and-set parameter did not match the current version")
 }

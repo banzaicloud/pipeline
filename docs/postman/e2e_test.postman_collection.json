@@ -3007,7 +3007,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"name\": \"My amazon secret\",\n\t\"type\": \"amazon\",\n\t\"values\": {\n\t\t\"AWS_ACCESS_KEY_ID\": \"{{AWS_ACCESS_KEY_ID}}\",\n\t\t\"AWS_SECRET_ACCESS_KEY\": \"{{AWS_SECRET_ACCESS_KEY}}\"\n\t}\n}"
+							"raw": "{\n\t\"name\": \"My amazon secret\",\n\t\"type\": \"amazon\",\n\t\"values\": {\n\t\t\"AWS_ACCESS_KEY_ID\": \"{{AWS_ACCESS_KEY_ID}}\",\n\t\t\"AWS_SECRET_ACCESS_KEY\": \"{{AWS_SECRET_ACCESS_KEY}}\"\n\t}\n\t\"version\": 1}"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/{{orgId}}/secrets/{{secret_id}}",

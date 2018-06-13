@@ -8,6 +8,7 @@ import (
 	"syscall"
 
 	"encoding/base64"
+
 	bTypes "github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/config"
@@ -149,8 +150,7 @@ func StoreKubernetesConfig(cluster CommonCluster, config []byte) error {
 
 	encodedConfig := utils.EncodeStringToBase64(string(config))
 
-	secretID := secret.GenerateSecretID()
-	organizationId := strconv.Itoa(int(cluster.GetOrganizationId()))
+	organizationID := strconv.Itoa(int(cluster.GetOrganizationId()))
 	createSecretRequest := secret.CreateSecretRequest{
 		Name: fmt.Sprintf("%s-config", cluster.GetName()),
 		Type: pipConstants.K8SConfig,
@@ -160,7 +160,8 @@ func StoreKubernetesConfig(cluster CommonCluster, config []byte) error {
 		Tags: []string{pipConstants.TagKubeConfig},
 	}
 
-	if err := secret.Store.Store(organizationId, secretID, &createSecretRequest); err != nil {
+	secretID, err := secret.Store.Store(organizationID, &createSecretRequest)
+	if err != nil {
 		log.Errorf("Error during storing config: %s", err.Error())
 		return err
 	}

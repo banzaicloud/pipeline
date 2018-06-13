@@ -1,8 +1,12 @@
 package api_test
 
 import (
+	"crypto/sha256"
+	"fmt"
 	"reflect"
+	"sort"
 	"testing"
+	"time"
 
 	btypes "github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/api"
@@ -58,7 +62,7 @@ func TestListAllowedSecretTypes(t *testing.T) {
 				}
 			} else {
 				if !reflect.DeepEqual(tc.expectedResponse, response) {
-					t.Errorf("Expected response: %s, but got: %s", tc.expectedResponse, response)
+					t.Errorf("Expected response: %v, but got: %v", tc.expectedResponse, response)
 				}
 			}
 		})
@@ -71,13 +75,12 @@ func TestAddSecret(t *testing.T) {
 	cases := []struct {
 		name     string
 		request  secret.CreateSecretRequest
-		secretId string
 		isError  bool
 		verifier verify.Verifier
 	}{
-		{name: "add aws secret", request: awsCreateSecretRequest, secretId: secretIdAmazon, isError: false, verifier: nil},
-		{name: "add aks secret", request: aksCreateSecretRequest, secretId: secretIdAzure, isError: false, verifier: nil},
-		{name: "add gke secret", request: gkeCreateSecretRequest, secretId: secretIdGoogle, isError: false, verifier: nil},
+		{name: "add aws secret", request: awsCreateSecretRequest, isError: false, verifier: nil},
+		{name: "add aks secret", request: aksCreateSecretRequest, isError: false, verifier: nil},
+		{name: "add gke secret", request: gkeCreateSecretRequest, isError: false, verifier: nil},
 
 		{name: "add aws secret (missing key(s))", request: awsMissingKey, isError: true, verifier: nil},
 		{name: "add aks secret (missing key(s))", request: aksMissingKey, isError: true, verifier: nil},
@@ -92,13 +95,12 @@ func TestAddSecret(t *testing.T) {
 				}
 			} else {
 				// valid request
-				if err := secret.Store.Store(orgId, tc.secretId, &tc.request); err != nil {
+				if _, err := secret.Store.Store(orgId, &tc.request); err != nil {
 					t.Errorf("Error during save secret: %s", err.Error())
 				}
 			}
 		})
 	}
-
 }
 
 func TestListSecrets(t *testing.T) {
@@ -107,7 +109,7 @@ func TestListSecrets(t *testing.T) {
 		name           string
 		secretType     string
 		tag            string
-		expectedValues []secret.SecretsItemResponse
+		expectedValues []*secret.SecretsItemResponse
 	}{
 		{name: "List aws secrets", secretType: btypes.Amazon, tag: "", expectedValues: awsExpectedItems},
 		{name: "List aks secrets", secretType: btypes.Azure, tag: "", expectedValues: aksExpectedItems},
@@ -124,8 +126,14 @@ func TestListSecrets(t *testing.T) {
 				if items, err := secret.Store.List(orgId, &secret.ListSecretsQuery{tc.secretType, tc.tag, false}); err != nil {
 					t.Errorf("Error during listing secrets")
 				} else {
+					// Clear CreatedAt times, we don't know them
+					for i := range items {
+						items[i].CreatedAt = time.Time{}
+					}
+					sort.Sort(sortableSecretsItemResponse(tc.expectedValues))
+					sort.Sort(sortableSecretsItemResponse(items))
 					if !reflect.DeepEqual(tc.expectedValues, items) {
-						t.Errorf("Expected values: %v, but got: %v", tc.expectedValues, items)
+						t.Errorf("\nExpected values: %#v\nbut got: %#v", tc.expectedValues, items)
 					}
 				}
 			}
@@ -152,18 +160,39 @@ func TestDeleteSecrets(t *testing.T) {
 			}
 		})
 	}
-
 }
 
-const (
-	orgId          = "12345"
-	secretIdAmazon = "123"
-	secretIdAzure  = "124"
-	secretIdGoogle = "125"
+type sortableSecretsItemResponse []*secret.SecretsItemResponse
+
+func (s sortableSecretsItemResponse) Len() int {
+	return len(s)
+}
+
+func (s sortableSecretsItemResponse) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
+func (s sortableSecretsItemResponse) Less(i, j int) bool {
+	return s[i].Name < s[j].Name
+}
+
+var (
+	secretNameAmazon = "my aws secret"
+	secretNameAzure  = "my aks secret"
+	secretNameGoogle = "my gke secret"
+)
+
+var (
+	secretIdAmazon = fmt.Sprintf("%x", sha256.Sum256([]byte(secretNameAmazon)))
+	secretIdAzure  = fmt.Sprintf("%x", sha256.Sum256([]byte(secretNameAzure)))
+	secretIdGoogle = fmt.Sprintf("%x", sha256.Sum256([]byte(secretNameGoogle)))
 )
 
 const (
-	secretName        = "testName1"
+	orgId = "12345"
+)
+
+const (
 	invalidSecretType = "SOMETHING_ELSE"
 )
 
@@ -198,7 +227,7 @@ const (
 // Create requests
 var (
 	awsCreateSecretRequest = secret.CreateSecretRequest{
-		Name: secretName,
+		Name: secretNameAmazon,
 		Type: btypes.Amazon,
 		Values: map[string]string{
 			"AWS_ACCESS_KEY_ID":     awsAccessKeyId,
@@ -208,7 +237,7 @@ var (
 	}
 
 	aksCreateSecretRequest = secret.CreateSecretRequest{
-		Name: secretName,
+		Name: secretNameAzure,
 		Type: btypes.Azure,
 		Values: map[string]string{
 			"AZURE_CLIENT_ID":       aksClientId,
@@ -219,7 +248,7 @@ var (
 	}
 
 	gkeCreateSecretRequest = secret.CreateSecretRequest{
-		Name: secretName,
+		Name: secretNameGoogle,
 		Type: btypes.Google,
 		Values: map[string]string{
 			"type":                        gkeType,
@@ -236,7 +265,7 @@ var (
 	}
 
 	awsMissingKey = secret.CreateSecretRequest{
-		Name: secretName,
+		Name: secretNameAmazon,
 		Type: btypes.Amazon,
 		Values: map[string]string{
 			"AWS_SECRET_ACCESS_KEY": awsSecretAccessKey,
@@ -244,7 +273,7 @@ var (
 	}
 
 	aksMissingKey = secret.CreateSecretRequest{
-		Name: secretName,
+		Name: secretNameAzure,
 		Type: btypes.Azure,
 		Values: map[string]string{
 			"AZURE_CLIENT_ID":       aksClientId,
@@ -254,7 +283,7 @@ var (
 	}
 
 	gkeMissingKey = secret.CreateSecretRequest{
-		Name: secretName,
+		Name: secretNameGoogle,
 		Type: btypes.Google,
 		Values: map[string]string{
 			"type":                        gkeType,
@@ -276,52 +305,58 @@ func toHiddenValues(secretType string) map[string]string {
 
 // Expected values after list
 var (
-	awsExpectedItems = []secret.SecretsItemResponse{
+	awsExpectedItems = []*secret.SecretsItemResponse{
 		{
-			ID:     secretIdAmazon,
-			Name:   secretName,
-			Type:   btypes.Amazon,
-			Values: toHiddenValues(btypes.Amazon),
-			Tags:   awsCreateSecretRequest.Tags,
+			ID:      secretIdAmazon,
+			Name:    secretNameAmazon,
+			Type:    btypes.Amazon,
+			Values:  toHiddenValues(btypes.Amazon),
+			Tags:    awsCreateSecretRequest.Tags,
+			Version: 1,
 		},
 	}
 
-	aksExpectedItems = []secret.SecretsItemResponse{
+	aksExpectedItems = []*secret.SecretsItemResponse{
 		{
-			ID:     secretIdAzure,
-			Name:   secretName,
-			Type:   btypes.Azure,
-			Values: toHiddenValues(btypes.Azure),
+			ID:      secretIdAzure,
+			Name:    secretNameAzure,
+			Type:    btypes.Azure,
+			Values:  toHiddenValues(btypes.Azure),
+			Version: 1,
 		},
 	}
 
-	gkeExpectedItems = []secret.SecretsItemResponse{
+	gkeExpectedItems = []*secret.SecretsItemResponse{
 		{
-			ID:     secretIdGoogle,
-			Name:   secretName,
-			Type:   btypes.Google,
-			Values: toHiddenValues(btypes.Google),
+			ID:      secretIdGoogle,
+			Name:    secretNameGoogle,
+			Type:    btypes.Google,
+			Values:  toHiddenValues(btypes.Google),
+			Version: 1,
 		},
 	}
 
-	allExpectedItems = []secret.SecretsItemResponse{
+	allExpectedItems = []*secret.SecretsItemResponse{
 		{
-			ID:     secretIdAmazon,
-			Name:   secretName,
-			Type:   btypes.Amazon,
-			Values: toHiddenValues(btypes.Amazon),
-			Tags:   awsCreateSecretRequest.Tags,
+			ID:      secretIdGoogle,
+			Name:    secretNameGoogle,
+			Type:    btypes.Google,
+			Values:  toHiddenValues(btypes.Google),
+			Version: 1,
 		},
 		{
-			ID:     secretIdAzure,
-			Name:   secretName,
-			Type:   btypes.Azure,
-			Values: toHiddenValues(btypes.Azure),
+			ID:      secretIdAzure,
+			Name:    secretNameAzure,
+			Type:    btypes.Azure,
+			Values:  toHiddenValues(btypes.Azure),
+			Version: 1,
 		}, {
-			ID:     secretIdGoogle,
-			Name:   secretName,
-			Type:   btypes.Google,
-			Values: toHiddenValues(btypes.Google),
+			ID:      secretIdAmazon,
+			Name:    secretNameAmazon,
+			Type:    btypes.Amazon,
+			Values:  toHiddenValues(btypes.Amazon),
+			Tags:    awsCreateSecretRequest.Tags,
+			Version: 1,
 		},
 	}
 )

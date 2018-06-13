@@ -1,6 +1,8 @@
 package cluster_test
 
 import (
+	"crypto/sha256"
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -20,7 +22,6 @@ const (
 	clusterRequestName           = "testName"
 	clusterRequestLocation       = "testLocation"
 	clusterRequestNodeInstance   = "testInstance"
-	clusterRequestSecretId       = "1234"
 	clusterRequestNodeCount      = 1
 	clusterRequestVersion        = "1.9.4-gke.1"
 	clusterRequestVersion2       = "1.8.7-gke.2"
@@ -42,6 +43,8 @@ const (
 )
 
 var (
+	clusterRequestSecretId = fmt.Sprintf("%x", sha256.Sum256([]byte(secretName)))
+
 	awsSecretRequest = secret.CreateSecretRequest{
 		Name: secretName,
 		Type: constants.Amazon,
@@ -205,11 +208,11 @@ func TestGetSecretWithValidation(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 
-			defer secret.Store.Delete(organizationIdStr, clusterRequestSecretId)
-
-			if err := secret.Store.Store(organizationIdStr, clusterRequestSecretId, &tc.secretRequest); err != nil {
+			if secretID, err := secret.Store.Store(organizationIdStr, &tc.secretRequest); err != nil {
 				t.Errorf("Error during saving secret: %s", err.Error())
 				t.FailNow()
+			} else {
+				defer secret.Store.Delete(organizationIdStr, secretID)
 			}
 
 			commonCluster, err := cluster.CreateCommonClusterFromRequest(tc.createClusterRequest, organizationId)
