@@ -61,6 +61,7 @@ var (
 	// JwtAudience ("aud") claim identifies the recipients that the JWT is intended for
 	JwtAudience string
 
+	// Handler is the Gin authentication middleware
 	Handler gin.HandlerFunc
 )
 

@@ -47,6 +47,8 @@ func init() {
 	viper.SetDefault("statestore.path", fmt.Sprintf("%s/statestore/", pwd))
 
 	viper.SetDefault("pipeline.listenport", 9090)
+	viper.SetDefault("pipeline.certfile", "")
+	viper.SetDefault("pipeline.keyfile", "")
 	viper.SetDefault("pipeline.uipath", "/ui")
 	viper.SetDefault("pipeline.basepath", "")
 	viper.SetDefault("database.dialect", "mysql")
