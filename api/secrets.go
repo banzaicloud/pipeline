@@ -163,8 +163,8 @@ func UpdateSecrets(c *gin.Context) {
 	})
 }
 
-// ListSecrets returns the user all secrets, if the secret type is filled, then filtered
-// if repo is set list the secrets for a given repo
+// ListSecrets returns the user all secrets, if the secret type or tag is filled
+// then a filtered response is returned
 func ListSecrets(c *gin.Context) {
 
 	log := logger.WithFields(logrus.Fields{"tag": "List Secrets"})
@@ -192,7 +192,7 @@ func ListSecrets(c *gin.Context) {
 			Error:   err.Error(),
 		})
 	} else {
-		if items, err := secret.Store.List(organizationID, &query); err != nil {
+		if secrets, err := secret.Store.List(organizationID, &query); err != nil {
 			log.Errorf("Error during listing secrets: %s", err.Error())
 			c.AbortWithStatusJSON(http.StatusBadRequest, components.ErrorResponse{
 				Code:    http.StatusBadRequest,
@@ -200,9 +200,7 @@ func ListSecrets(c *gin.Context) {
 				Error:   err.Error(),
 			})
 		} else {
-			c.JSON(http.StatusOK, secret.ListSecretsResponse{
-				Secrets: items,
-			})
+			c.JSON(http.StatusOK, secrets)
 		}
 	}
 }
