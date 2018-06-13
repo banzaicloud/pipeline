@@ -31,10 +31,11 @@ jobs:
           name: Run fmt
           command:
               make check-fmt
-      - run:
-          name: Run golint
-          command:
-              make lint
+#      todo put back when this issue fixed: https://github.com/golang/lint/issues/402
+#      - run:
+#          name: Run golint
+#          command:
+#              make lint
       - run:
           name: Run misspell
           command:
