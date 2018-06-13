@@ -53,7 +53,7 @@ services:
       - 9000
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    command:
+    entrypoint:
       - /bin/drone-server
     environment:
       DRONE_HOST:                 http://localhost:8000
@@ -75,7 +75,7 @@ services:
       - drone-server
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    command:
+    entrypoint:
       - /bin/drone-agent
     environment:
       DRONE_SERVER: drone-server:9000
