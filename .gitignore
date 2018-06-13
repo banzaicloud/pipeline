@@ -12,3 +12,4 @@ vault/*
 config/config.toml
 *.swp
 orgs/
+*.pem
