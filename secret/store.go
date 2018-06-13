@@ -49,11 +49,6 @@ type CreateSecretRequest struct {
 	Version *int              `json:"version,omitempty"`
 }
 
-// ListSecretsResponse for API response for ListSecrets
-type ListSecretsResponse struct {
-	Secrets []*SecretsItemResponse `json:"secrets"`
-}
-
 // SecretsItemResponse for GetSecret (no API endpoint for this!)
 type SecretsItemResponse struct {
 	ID        string            `json:"id"`

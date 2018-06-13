@@ -4109,12 +4109,9 @@ components:
           example: my API token
 
     SecretsListResponse:
-      type: object
-      properties:
-        secrets:
-          type: array
-          items:
-            $ref: '#/components/schemas/SecretsListItem'
+      type: array
+      items:
+        $ref: '#/components/schemas/SecretsListItem'
 
     SecretsListItem:
       type: object
