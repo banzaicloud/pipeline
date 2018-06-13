@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/banzaicloud/banzai-types/components"
 	ctype "github.com/banzaicloud/banzai-types/components/catalog"
-	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/application"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
@@ -39,8 +38,7 @@ type ApplicationListResponse struct {
 	Icon        string `json:"icon"`
 }
 
-// DeleteApplications delete application
-func DeleteApplications(c *gin.Context) {
+func getApplicationFromRequest(c *gin.Context) (*model.Application, bool) {
 	idParam := c.Param("id")
 	id, err := strconv.ParseUint(idParam, 10, 32)
 	if err != nil {
@@ -49,35 +47,62 @@ func DeleteApplications(c *gin.Context) {
 			Message: fmt.Sprintf("Invalid id=%q", idParam),
 			Error:   err.Error(),
 		})
-		return
+		return nil, false
 	}
-	// Build application model TODO refactor
 	db := model.GetDB()
-	app := &model.Application{
+	application := &model.Application{
 		ID: uint(id),
 	}
-	var deployments []*model.Deployment
-	db.Model(app).Related(&deployments, "Deployments")
-	log.Debugf("Associated deployments: %#v", deployments)
 	organization := auth.GetCurrentOrganization(c.Request)
-	err = db.Model(organization).Related(app).Error
+	err = db.Model(organization).Related(application).Error
 	if err != nil {
 		log.Errorf("Error getting application: %s", err.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
-			Message: "Error getting application",
+			Message: "Error listing clusters",
 			Error:   err.Error(),
 		})
+		return nil, false
+	}
+	var deployments []*model.Deployment
+	db.Model(application).Related(&deployments, "Deployments")
+	log.Debugf("Associated deployments: %#v", deployments)
+	application.Deployments = deployments
+	return application, true
+}
+
+func getCluster(app *model.Application, c *gin.Context) (*model.ClusterModel, bool) {
+	clusterModel, err := app.GetCluster()
+	if err != nil {
+		log.Errorf("Error getting cluster: %s", err.Error())
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error getting cluster",
+			Error:   err.Error(),
+		})
+		return nil, false
+	}
+	return clusterModel, true
+}
+
+// DeleteApplications delete application
+func DeleteApplications(c *gin.Context) {
+	app, ok := getApplicationFromRequest(c)
+	if !ok {
 		return
 	}
-	app.Deployments = deployments
-
-	// Get cluster for application
-	filter := make(map[string]interface{})
-	filter["organization_id"] = organization
-	filter["id"] = app.ClusterID
-	commonCluster, ok := GetCommonClusterFromFilter(c, filter)
+	clusterModel, ok := getCluster(app, c)
 	if !ok {
+		return
+	}
+	commonCluster, err := cluster.GetCommonClusterFromModel(clusterModel)
+	if err != nil {
+		log.Errorf("Error getting cluster: %s", err.Error())
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error getting cluster",
+			Error:   err.Error(),
+		})
 		return
 	}
 	config, err := commonCluster.GetK8sConfig()
@@ -95,35 +120,10 @@ func DeleteApplications(c *gin.Context) {
 
 // ApplicationDetails get application details
 func ApplicationDetails(c *gin.Context) {
-	idParam := c.Param("id")
-	id, err := strconv.ParseUint(idParam, 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: fmt.Sprintf("Invalid id=%q", idParam),
-			Error:   err.Error(),
-		})
+	application, ok := getApplicationFromRequest(c)
+	if !ok {
 		return
 	}
-	db := model.GetDB()
-	application := &model.Application{
-		ID: uint(id),
-	}
-	var deployments []*model.Deployment
-	db.Model(application).Related(&deployments, "Deployments")
-	log.Debugf("Associated deployments: %#v", deployments)
-	organization := auth.GetCurrentOrganization(c.Request)
-	err = db.Model(organization).Related(application).Error
-	if err != nil {
-		log.Errorf("Error getting application: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error listing clusters",
-			Error:   err.Error(),
-		})
-		return
-	}
-	application.Deployments = deployments
 	c.JSON(http.StatusOK, application)
 	return
 }
@@ -147,15 +147,20 @@ func GetApplications(c *gin.Context) {
 		return
 	}
 	response := make([]ApplicationListResponse, 0)
+	log.Debugf("Apps: %#v", applications)
 	for _, app := range applications {
-		log.Debugf("Apps: %#v", applications)
+		//We silently fail on GetCluster
+		clusterModel, err := app.GetCluster()
+		if err != nil {
+			continue
+		}
 		item := ApplicationListResponse{
 			Id:          app.ID,
 			Name:        app.Name,
 			CatalogName: app.CatalogName,
 			Icon:        app.Icon,
-			ClusterId:   app.GetCluster().ID,
-			ClusterName: app.GetCluster().Name,
+			ClusterId:   clusterModel.ID,
+			ClusterName: clusterModel.Name,
 			Status:      app.Status,
 		}
 		response = append(response, item)
@@ -175,14 +180,6 @@ type CreateApplicationRequest struct {
 
 // CreateApplication gin handler for API
 func CreateApplication(c *gin.Context) {
-	// 1. Create Pending applications in database
-	log := logger.WithFields(logrus.Fields{"tag": constants.TagCreateCluster})
-	//TODO refactor logging here
-
-	log.Info("Cluster creation stared")
-
-	log.Debug("Bind json into CreateClusterRequest struct")
-	// bind request body to struct
 	var createApplicationRequest CreateApplicationRequest
 	if err := c.BindJSON(&createApplicationRequest); err != nil {
 		log.Error(errors.Wrap(err, "Error parsing request"))

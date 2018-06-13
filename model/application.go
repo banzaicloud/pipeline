@@ -60,11 +60,11 @@ func (d *Deployment) Create() error {
 }
 
 // GetCluster Application
-func (am Application) GetCluster() ClusterModel {
+func (am Application) GetCluster() (*ClusterModel, error) {
 	db := GetDB()
 	var cluster ClusterModel
-	db.First(&cluster, am.ClusterID)
-	return cluster
+	err := db.First(&cluster, am.ClusterID).Error
+	return &cluster, err
 }
 
 //Save Application the cluster to DB
