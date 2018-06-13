@@ -1819,6 +1819,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Unauthorized'
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Conflict'
         '500':
           description: Internal server error
           content:
@@ -3207,6 +3213,19 @@ components:
           type: string
           example: "token contains an invalid number of segments"
 
+    Conflict:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 409
+        message:
+          type: string
+          example: "Secret with this name already exists"
+        error:
+          type: string
+          example: "check-and-set parameter did not match the current version"
+
     ListEndpointsResponse:
       type: object
       properties:
@@ -4109,6 +4128,9 @@ components:
         type:
           type: string
           example: "google"
+        version:
+          type: integer
+          example: 1
         tags:
           type: array
           items:
@@ -4143,6 +4165,10 @@ components:
 
     CreateSecretRequest:
       type: object
+      required:
+        - name
+        - type
+        - values
       properties:
         name:
           type: string
@@ -4155,6 +4181,9 @@ components:
           items:
             type: string
           example: [ "tag1", "tag2" ]
+        version:
+          type: integer
+          example: 1
         values:
           type: array
           items:
