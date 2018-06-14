@@ -199,7 +199,7 @@
   branch = "master"
   name = "github.com/banzaicloud/logrus-runtime-formatter"
   packages = ["."]
-  revision = "04abfd848b41948433e57af6d6b9f7f044ec9bad"
+  revision = "e05401a90e2df371aef654aab6c8094898b9b9cc"
 
 [[projects]]
   branch = "master"
