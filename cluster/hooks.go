@@ -6,12 +6,14 @@ import (
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/auth"
 	pipConfig "github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/go-errors/errors"
 	"github.com/spf13/viper"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
+	"sync"
 	"time"
 )
 
@@ -25,7 +27,12 @@ var HookMap = map[string]func(interface{}) error{
 	"InstallClusterAutoscalerPostHook": InstallClusterAutoscalerPostHook,
 	"InstallMonitoring":                InstallMonitoring,
 	"InstallLogging":                   InstallLogging,
+	"RegisterDomainPostHook":           RegisterDomainPostHook,
 }
+
+// muxOrgDomain is a mutex used to sync access to external Dns service
+// in order to avoid registering the same domain twice
+var muxOrgDomain sync.Mutex
 
 //RunPostHooks calls posthook functions with created cluster
 func RunPostHooks(functionList []func(interface{}) error, createdCluster CommonCluster) {
@@ -262,4 +269,62 @@ func StoreKubeConfig(input interface{}) error {
 	}
 
 	return StoreKubernetesConfig(cluster, config)
+}
+
+// RegisterDomainPostHook registers a subdomain using the name of the current organisation
+// in external Dns service. It ensures that only one domain is registered per organisation.
+func RegisterDomainPostHook(input interface{}) error {
+	cluster, ok := input.(CommonCluster)
+	if !ok {
+		return errors.Errorf("Wrong parameter type: %T", cluster)
+	}
+
+	region := ""       // TODO: this should come from config or vault
+	awsSecretId := ""  // TODO: this should come from vault
+	awsSecretKey := "" // TODO: this should come form vault
+
+	// If no aws credentials for Route53 provided in Vault than exit as this functionality is not enabled
+	if len(region) == 0 || len(awsSecretId) == 0 || len(awsSecretKey) == 0 {
+		return nil
+	}
+
+	domainBase := viper.GetString("organization.domain")
+
+	orgId := cluster.GetOrganizationId()
+
+	// sync domain registration to avoid duplicates in case more clusters are created in parallel in the same org
+	muxOrgDomain.Lock()
+
+	defer muxOrgDomain.Unlock()
+
+	dnsSvc, err := dns.NewExternalDnsServiceClient(region, awsSecretId, awsSecretKey)
+	if err != nil {
+		log.Errorf("Creating external dns service client failed: %s", err.Error())
+		return err
+	}
+
+	org, err := auth.GetOrganizationById(orgId)
+	if err != nil {
+		log.Errorf("Retrieving organisation with id %d failed: %s", orgId, err.Error())
+		return err
+	}
+
+	domain := fmt.Sprintf("%s.%s", org.Name, domainBase)
+
+	registered, err := dnsSvc.IsDomainRegistered(orgId, domain)
+	if err != nil {
+		log.Errorf("Checking if domain '%s' is already regsitered failed: %s", domain, err.Error())
+		return err
+	}
+
+	if registered {
+		return nil // already registered, nothing to do
+	}
+
+	if err = dnsSvc.RegisterDomain(orgId, domain); err != nil {
+		log.Errorf("Registering domain '%s' failed: %s", domain, err.Error())
+		return err
+	}
+
+	return nil
 }

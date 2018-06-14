@@ -243,7 +243,7 @@ func CreateCluster(c *gin.Context, createClusterRequest *components.CreateCluste
 // postCreateCluster creates a cluster (ASYNC)
 func postCreateCluster(commonCluster cluster.CommonCluster) error {
 
-	// Check if public ssh key is needed for the cluster. If so and there is generate one and store it Vault
+	// Check if public ssh key is needed for the cluster. If so than generate one and store it Vault
 	if len(commonCluster.GetSshSecretId()) == 0 && commonCluster.RequiresSshPublicKey() {
 		log.Infof("Generating Ssh Key for the cluster")
 
@@ -280,6 +280,7 @@ func postCreateCluster(commonCluster cluster.CommonCluster) error {
 		cluster.PersistKubernetesKeys,
 		cluster.UpdatePrometheusPostHook,
 		cluster.InstallHelmPostHook,
+		cluster.RegisterDomainPostHook,
 		cluster.InstallIngressControllerPostHook,
 		cluster.InstallClusterAutoscalerPostHook,
 	}
