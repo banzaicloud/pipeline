@@ -54,7 +54,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\":\"awscluster-{{username}}-{{$randomInt}}\",\n  \"location\": \"eu-west-1\",\n  \"cloud\": \"amazon\",\n  \"secret_id\": \"{{secret_id}}\",\n  \"nodeInstanceType\": \"m4.xlarge\",\n  \"properties\": {\n        \"amazon\": {\n            \"nodePools\": {\n            \t\"pool1\": {\n            \t\t\"instanceType\": \"m4.xlarge\",\n\t            \t\"spotPrice\": \"0.2\",\n            \t\t\"autoscaling\": false, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n            \t\t\"count\": 1,\n\t                \"image\": \"ami-16bfeb6f\"\t\n            \t}\n            },\n            \"master\": {\n                \"instanceType\": \"m4.xlarge\",\n                \"image\": \"ami-16bfeb6f\"\n            }\n        }\n    }\n}\n\n"
+              "raw": "{\n  \"name\":\"awscluster-{{username}}-{{$randomInt}}\",\n  \"location\": \"eu-west-1\",\n  \"cloud\": \"amazon\",\n  \"secret_id\": \"{{secret_id}}\",\n  \"instanceType\": \"m4.xlarge\",\n  \"properties\": {\n        \"amazon\": {\n            \"nodePools\": {\n            \t\"pool1\": {\n            \t\t\"instanceType\": \"m4.xlarge\",\n\t            \t\"spotPrice\": \"0.2\",\n            \t\t\"autoscaling\": false, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n            \t\t\"count\": 1,\n\t                \"image\": \"ami-16bfeb6f\"\t\n            \t}\n            },\n            \"master\": {\n                \"instanceType\": \"m4.xlarge\",\n                \"image\": \"ami-16bfeb6f\"\n            }\n        }\n    }\n}\n\n"
             },
             "url": {
               "raw": "{{url}}/api/v1/orgs/{{orgId}}/clusters",
@@ -115,7 +115,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\":\"azcluster{{username}}{{$randomInt}}\",\n  \"location\": \"westeurope\",\n  \"cloud\": \"azure\",\n  \"secret_id\": \"{{secret_id}}\",\n  \"nodeInstanceType\": \"Standard_B2ms\",\n  \"properties\": {\n        \"azure\": {\n        \t\"resourceGroup\": \"{{az-resource-group}}\",\n        \t\"kubernetesVersion\": \"1.9.2\",\n            \"nodePools\": {\n            \t\"pool1\": {\n            \t\t\"autoscaling\": false, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n            \t\t\"count\": 1,\n                \t\"nodeInstanceType\": \"Standard_B2ms\"\n            \t},\n            \t\"pool2\": {\n            \t    \"autoscaling\": false, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n            \t\t\"count\": 1,\n                \t\"nodeInstanceType\": \"Standard_B2ms\"\n            \t}\n        \t}\n        }\n    }\n}"
+              "raw": "{\n  \"name\":\"azcluster{{username}}{{$randomInt}}\",\n  \"location\": \"westeurope\",\n  \"cloud\": \"azure\",\n  \"secret_id\": \"{{secret_id}}\",\n  \"instanceType\": \"Standard_B2ms\",\n  \"properties\": {\n        \"azure\": {\n        \t\"resourceGroup\": \"{{az-resource-group}}\",\n        \t\"kubernetesVersion\": \"1.9.2\",\n            \"nodePools\": {\n            \t\"pool1\": {\n            \t\t\"autoscaling\": false, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n            \t\t\"count\": 1,\n                \t\"instanceType\": \"Standard_B2ms\"\n            \t},\n            \t\"pool2\": {\n            \t    \"autoscaling\": false, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n            \t\t\"count\": 1,\n                \t\"instanceType\": \"Standard_B2ms\"\n            \t}\n        \t}\n        }\n    }\n}"
             },
             "url": {
               "raw": "{{url}}/api/v1/orgs/{{orgId}}/clusters",
@@ -176,7 +176,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"name\":\"gkecluster-{{username}}-{{$randomInt}}\",\n    \"location\": \"us-central1-a\",\n    \"cloud\": \"google\",\n    \"nodeInstanceType\": \"n1-standard-1\",\n    \"secret_id\": \"{{secret_id}}\",\n    \"properties\": {\n        \"google\": {\n            \"master\":{\n                \"version\":\"1.9\"\n            },\n            \"nodeVersion\":\"1.9\",\n            \"nodePools\": {\n                \"pool1\": {\n                    \"autoscaling\": false, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n                    \"count\": 1,\n                    \"nodeInstanceType\": \"n1-standard-2\"\n                }\n            }\n        }\n    }\n}"
+              "raw": "{\n    \"name\":\"gkecluster-{{username}}-{{$randomInt}}\",\n    \"location\": \"us-central1-a\",\n    \"cloud\": \"google\",\n    \"instanceType\": \"n1-standard-1\",\n    \"secret_id\": \"{{secret_id}}\",\n    \"properties\": {\n        \"google\": {\n            \"master\":{\n                \"version\":\"1.9\"\n            },\n            \"nodeVersion\":\"1.9\",\n            \"nodePools\": {\n                \"pool1\": {\n                    \"autoscaling\": false, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n                    \"count\": 1,\n                    \"instanceType\": \"n1-standard-2\"\n                }\n            }\n        }\n    }\n}"
             },
             "url": {
               "raw": "{{url}}/api/v1/orgs/{{orgId}}/clusters",
@@ -237,7 +237,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"name\":\"dummy-cluster-{{username}}-{{$randomInt}}\",\n    \"location\": \"dummyLocation\",\n    \"nodeInstanceType\": \"dummyInstanceType\",\n    \"secret_id\": \"{{secret_id}}\",\n    \"cloud\": \"dummy\",\n    \"properties\": {\n        \"dummy\": {\n            \n        }\n    }\n}"
+              "raw": "{\n    \"name\":\"dummy-cluster-{{username}}-{{$randomInt}}\",\n    \"location\": \"dummyLocation\",\n    \"instanceType\": \"dummyInstanceType\",\n    \"secret_id\": \"{{secret_id}}\",\n    \"cloud\": \"dummy\",\n    \"properties\": {\n        \"dummy\": {\n            \n        }\n    }\n}"
             },
             "url": {
               "raw": "{{url}}/api/v1/orgs/{{orgId}}/clusters",
@@ -721,7 +721,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"cloud\": \"google\",\n  \"properties\": {\n    \"google\": {\n       \"master\": {\n            \"version\": \"1.9.4-gke.1\"\n      },\n      \"nodePools\": {\n        \"pool1\": {\n            \"autoscaling\": false, \n\t        \"minCount\": 1,\n\t        \"maxCount\": 2,\n            \"count\" : 2,\n            \"nodeInstanceType\": \"n1-standard-2\"\n        }\n      }\n    }\n  }\n}"
+              "raw": "{\n  \"cloud\": \"google\",\n  \"properties\": {\n    \"google\": {\n       \"master\": {\n            \"version\": \"1.9.4-gke.1\"\n      },\n      \"nodePools\": {\n        \"pool1\": {\n            \"autoscaling\": false, \n\t        \"minCount\": 1,\n\t        \"maxCount\": 2,\n            \"count\" : 2,\n            \"instanceType\": \"n1-standard-2\"\n        }\n      }\n    }\n  }\n}"
             },
             "url": {
               "raw": "{{url}}/api/v1/orgs/{{orgId}}/clusters/{{cluster_id}}",
@@ -2119,7 +2119,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n\t\"name\": \"{{profile_name}}\",\n\t\"location\": \"westeurope\",\n\t\"cloud\": \"azure\",\n\t\"properties\": {\n\t\t\"azure\": {\n\t\t\t\"kubernetesVersion\": \"1.9.2\",\n\t\t\t\"nodePools\": {\n\t\t\t\t\"pool1\": {\n\t\t\t\t\t\"autoscaling\": false, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n            \t\t\"count\": 1,\n\t\t\t\t\t\"nodeInstanceType\": \"Standard_D2_v2\"\n\t\t\t\t},\n\t\t\t\t\"pool2\": {\n\t\t\t\t\t\"autoscaling\": false, \n\t                \"minCount\": 2,\n\t                \"maxCount\": 2,\n            \t\t\"count\": 2,\n\t\t\t\t\t\"nodeInstanceType\": \"Standard_D2_v2\"\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}"
+              "raw": "{\n\t\"name\": \"{{profile_name}}\",\n\t\"location\": \"westeurope\",\n\t\"cloud\": \"azure\",\n\t\"properties\": {\n\t\t\"azure\": {\n\t\t\t\"kubernetesVersion\": \"1.9.2\",\n\t\t\t\"nodePools\": {\n\t\t\t\t\"pool1\": {\n\t\t\t\t\t\"autoscaling\": false, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n            \t\t\"count\": 1,\n\t\t\t\t\t\"instanceType\": \"Standard_D2_v2\"\n\t\t\t\t},\n\t\t\t\t\"pool2\": {\n\t\t\t\t\t\"autoscaling\": false, \n\t                \"minCount\": 2,\n\t                \"maxCount\": 2,\n            \t\t\"count\": 2,\n\t\t\t\t\t\"instanceType\": \"Standard_D2_v2\"\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}"
             },
             "url": {
               "raw": "{{url}}/api/v1/orgs/{{orgId}}/profiles/cluster",
@@ -2174,7 +2174,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"name\": \"{{profile_name}}\",\n    \"location\": \"us-central1-a\",\n    \"cloud\": \"google\",\n    \"properties\": {\n        \"google\": {\n            \"master\":{\n                \"version\":\"1.9.4-gke.1\"\n            },\n            \"nodeVersion\":\"1.9.4-gke.1\",\n            \"nodePools\": {\n                \"pool1\": {\n                    \"autoscaling\": false, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n            \t\t\"count\": 1,\n                    \"nodeInstanceType\": \"n1-standard-2\"\n                },\n                \"pool2\": {\n                    \"autoscaling\": false, \n\t                \"minCount\": 2,\n\t                \"maxCount\": 2,\n            \t\t\"count\": 2,\n                    \"nodeInstanceType\": \"n1-standard-2\"\n                }\n            }\n        }\n    }\n}"
+              "raw": "{\n    \"name\": \"{{profile_name}}\",\n    \"location\": \"us-central1-a\",\n    \"cloud\": \"google\",\n    \"properties\": {\n        \"google\": {\n            \"master\":{\n                \"version\":\"1.9.4-gke.1\"\n            },\n            \"nodeVersion\":\"1.9.4-gke.1\",\n            \"nodePools\": {\n                \"pool1\": {\n                    \"autoscaling\": false, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n            \t\t\"count\": 1,\n                    \"instanceType\": \"n1-standard-2\"\n                },\n                \"pool2\": {\n                    \"autoscaling\": false, \n\t                \"minCount\": 2,\n\t                \"maxCount\": 2,\n            \t\t\"count\": 2,\n                    \"instanceType\": \"n1-standard-2\"\n                }\n            }\n        }\n    }\n}"
             },
             "url": {
               "raw": "{{url}}/api/v1/orgs/{{orgId}}/profiles/cluster",
@@ -2229,7 +2229,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"{{profile_name}}\",\n  \"location\": \"eu-west-1\",\n  \"cloud\": \"amazon\",\n  \"nodeInstanceType\": \"m4.xlarge\",\n  \"properties\": {\n    \"amazon\": {\n      \"master\": {\n        \"instanceType\": \"m4.xlarge\",\n        \"image\": \"ami-16bfeb6f\"\n      },\n      \"node\": {\n        \"spotPrice\": \"0.2\",\n        \"minCount\": 2,\n        \"maxCount\": 4,\n        \"image\": \"ami-16bfeb6f\"\n      }\n    }\n  }\n}"
+              "raw": "{\n  \"name\": \"{{profile_name}}\",\n  \"location\": \"eu-west-1\",\n  \"cloud\": \"amazon\",\n  \"instanceType\": \"m4.xlarge\",\n  \"properties\": {\n    \"amazon\": {\n      \"master\": {\n        \"instanceType\": \"m4.xlarge\",\n        \"image\": \"ami-16bfeb6f\"\n      },\n      \"node\": {\n        \"spotPrice\": \"0.2\",\n        \"minCount\": 2,\n        \"maxCount\": 4,\n        \"image\": \"ami-16bfeb6f\"\n      }\n    }\n  }\n}"
             },
             "url": {
               "raw": "{{url}}/api/v1/orgs/{{orgId}}/profiles/cluster",
@@ -2284,7 +2284,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n\t\"name\": \"{{profile_name}}\",\n\t\"location\": \"westeurope\",\n\t\"cloud\": \"azure\",\n\t\"properties\": {\n\t\t\"azure\": {\n\t\t\t\"kubernetesVersion\": \"1.9.2\",\n\t\t\t\"nodePools\": {\n\t\t\t\t\"pool1\": {\n\t\t\t\t\t\"count\": 2,\n\t\t\t\t\t\"nodeInstanceType\": \"Standard_D2_v2\"\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}"
+              "raw": "{\n\t\"name\": \"{{profile_name}}\",\n\t\"location\": \"westeurope\",\n\t\"cloud\": \"azure\",\n\t\"properties\": {\n\t\t\"azure\": {\n\t\t\t\"kubernetesVersion\": \"1.9.2\",\n\t\t\t\"nodePools\": {\n\t\t\t\t\"pool1\": {\n\t\t\t\t\t\"count\": 2,\n\t\t\t\t\t\"instanceType\": \"Standard_D2_v2\"\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}"
             },
             "url": {
               "raw": "{{url}}/api/v1/orgs/{{orgId}}/profiles/cluster",
@@ -2339,7 +2339,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"name\": \"{{profile_name}}\",\n    \"location\": \"us-central1-a\",\n    \"cloud\": \"google\",\n    \"properties\": {\n        \"google\": {\n            \"master\":{\n                \"version\":\"1.9.4-gke.1\"\n            },\n            \"nodeVersion\":\"1.9.4-gke.1\",\n            \"nodePools\": {\n                \"pool2\": {\n                    \"count\": 2,\n                    \"nodeInstanceType\": \"n1-standard-2\"\n                }\n            }\n        }\n    }\n}"
+              "raw": "{\n    \"name\": \"{{profile_name}}\",\n    \"location\": \"us-central1-a\",\n    \"cloud\": \"google\",\n    \"properties\": {\n        \"google\": {\n            \"master\":{\n                \"version\":\"1.9.4-gke.1\"\n            },\n            \"nodeVersion\":\"1.9.4-gke.1\",\n            \"nodePools\": {\n                \"pool2\": {\n                    \"count\": 2,\n                    \"instanceType\": \"n1-standard-2\"\n                }\n            }\n        }\n    }\n}"
             },
             "url": {
               "raw": "{{url}}/api/v1/orgs/{{orgId}}/profiles/cluster",
