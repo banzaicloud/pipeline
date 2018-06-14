@@ -274,14 +274,17 @@ type ClusterProfileRequest struct {
 
 // CloudInfoRequest describes Cloud info requests
 type CloudInfoRequest struct {
-	OrganizationId uint   `json:"-"`
-	SecretId       string `json:"secret_id,omitempty"`
-	Filter         *struct {
-		Fields           []string          `json:"fields,omitempty"`
-		InstanceType     *InstanceFilter   `json:"instanceType,omitempty"`
-		KubernetesFilter *KubernetesFilter `json:"k8sVersion,omitempty"`
-		ImageFilter      *ImageFilter      `json:"image,omitempty"`
-	} `json:"filter,omitempty"`
+	OrganizationId uint             `json:"-"`
+	SecretId       string           `json:"secret_id,omitempty"`
+	Filter         *CloudInfoFilter `json:"filter,omitempty"`
+}
+
+// CloudInfoFilter describes a filter in cloud info
+type CloudInfoFilter struct {
+	Fields           []string          `json:"fields,omitempty"`
+	InstanceType     *InstanceFilter   `json:"instanceType,omitempty"`
+	KubernetesFilter *KubernetesFilter `json:"k8sVersion,omitempty"`
+	ImageFilter      *ImageFilter      `json:"image,omitempty"`
 }
 
 // InstanceFilter describes instance filter of cloud info
@@ -324,11 +327,6 @@ type SupportedClusterItem struct {
 	Key     string `json:"key" binding:"required"`
 	Enabled bool   `json:"enabled"`
 	Icon    string `json:"icon"`
-}
-
-// SupportedFilters describes the supported filter keywords in case of Cloud info requests
-type SupportedFilters struct {
-	Keys []string `json:"keys"`
 }
 
 // CreateClusterResponse describes Pipeline's CreateCluster API response

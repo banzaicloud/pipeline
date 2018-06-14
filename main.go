@@ -181,8 +181,7 @@ func main() {
 			orgs.DELETE("/:orgid/buckets/:name", api.DeleteObjectStoreBucket)
 
 			orgs.GET("/:orgid/cloudinfo", api.GetSupportedClusterList)
-			orgs.GET("/:orgid/cloudinfo/filters", api.GetSupportedFilters)
-			orgs.POST("/:orgid/cloudinfo/:cloudtype", api.GetCloudInfo)
+			orgs.GET("/:orgid/cloudinfo/:cloudtype", api.GetCloudInfo)
 
 			orgs.GET("/:orgid/allowed/secrets/", api.ListAllowedSecretTypes)
 			orgs.GET("/:orgid/allowed/secrets/:type", api.ListAllowedSecretTypes)

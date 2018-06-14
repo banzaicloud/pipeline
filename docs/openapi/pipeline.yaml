@@ -2093,38 +2093,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/Unauthorized'
 
-  '/api/v1/orgs/{orgId}/cloudinfo/filters':
-    get:
-      security:
-          - bearerAuth: []
-      tags:
-        - info
-      summary: Get supported filter keys
-      operationId: GetSupportedFilter
-      description: Get supported filter types
-      parameters:
-        - name: orgId
-          in: path
-          required: true
-          description: Organization identification
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: "Supported filter words listed"
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SupportedFiltersResponse'
-        '401':
-          description: "Unauthorized"
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Unauthorized'
-
   '/api/v1/orgs/{orgId}/cloudinfo/amazon':
-    post:
+    get:
       security:
           - bearerAuth: []
       tags:
@@ -2139,12 +2109,31 @@ paths:
           description: Organization identification
           schema:
             type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AmazonConfigRequest'
+        - name: secret_id
+          in: query
+          required: true
+          description: Secret identifier
+          schema:
+            type: string
+        - name: fields
+          in: query
+          required: true
+          description: Filter fields
+          schema:
+            type: string
+            enum: ["location", "image", "instanceType"]
+        - name: tags
+          in: query
+          required: true
+          description: Tags filter
+          schema:
+            type: string
+        - name: location
+          in: query
+          required: true
+          description: Location filter
+          schema:
+            type: string
       responses:
         '200':
           description: "Amazon config listed"
@@ -2166,7 +2155,7 @@ paths:
                 $ref: '#/components/schemas/Unauthorized'
 
   '/api/v1/orgs/{orgId}/cloudinfo/azure':
-    post:
+    get:
       security:
           - bearerAuth: []
       tags:
@@ -2181,12 +2170,25 @@ paths:
           description: Organization identification
           schema:
             type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AzureConfigRequest'
+        - name: secret_id
+          in: query
+          required: true
+          description: Secret identifier
+          schema:
+            type: string
+        - name: fields
+          in: query
+          required: true
+          description: Filter fields
+          schema:
+            type: string
+            enum: ["location", "k8sVersion", "instanceType"]
+        - name: location
+          in: query
+          required: true
+          description: Location filter
+          schema:
+            type: string
       responses:
         '200':
           description: "Azure config listed"
@@ -2208,7 +2210,7 @@ paths:
                 $ref: '#/components/schemas/Unauthorized'
 
   '/api/v1/orgs/{orgId}/cloudinfo/google':
-    post:
+    get:
       security:
           - bearerAuth: []
       tags:
@@ -2223,12 +2225,25 @@ paths:
           description: Organization identification
           schema:
             type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GoogleConfigRequest'
+        - name: secret_id
+          in: query
+          required: true
+          description: Secret identifier
+          schema:
+            type: string
+        - name: fields
+          in: query
+          required: true
+          description: Filter fields
+          schema:
+            type: string
+            enum: ["location", "k8sVersion", "instanceType"]
+        - name: location
+          in: query
+          required: true
+          description: Location filter
+          schema:
+            type: string
       responses:
         '200':
           description: "Azure config listed"
@@ -4455,106 +4470,6 @@ components:
         key:
           type: string
           example: "google"
-
-    SupportedFiltersResponse:
-      type: object
-      properties:
-        keys:
-          type: array
-          items:
-            type: string
-          example: [
-                  "location",
-                  "instanceType",
-                  "k8sVersion",
-                  "image"
-                  ]
-
-    AmazonConfigRequest:
-      type: object
-      properties:
-        secret_id:
-          type: string
-          example: "myAmazonSecret"
-        filter:
-          type: object
-          properties:
-            fields:
-              type: array
-              items:
-                type: string
-              example: [ "location", "instanceType", "image" ]
-            image:
-              type: object
-              properties:
-                tags:
-                  type: array
-                  items:
-                    type: string
-                  example: [ "0.3.0" ]
-                location:
-                  type: string
-                  example: "eu-west-1"
-            instanceType:
-              type: object
-              properties:
-                location:
-                  type: string
-                  example: "eu-west-1"
-
-    AzureConfigRequest:
-      type: object
-      properties:
-        secret_id:
-          type: string
-          example: "myAzureSecretId"
-        filter:
-          type: object
-          properties:
-            fields:
-              type: array
-              items:
-                type: string
-              example: [ "location", "instanceType", "k8sVersion" ]
-            instanceType:
-              type: object
-              properties:
-                location:
-                  type: string
-                  example: "eastus"
-            k8sVersion:
-              type: object
-              properties:
-                location:
-                  type: string
-                  example: "eastus"
-
-    GoogleConfigRequest:
-      type: object
-      properties:
-        secret_id:
-          type: string
-          example: "myGoogleSecretId"
-        filter:
-          type: object
-          properties:
-            fields:
-              type: array
-              items:
-                type: string
-              example: [ "location", "instanceType", "k8sVersion" ]
-            instanceType:
-              type: object
-              properties:
-                location:
-                  type: string
-                  example: "asia-east1-a"
-            k8sVersion:
-              type: object
-              properties:
-                location:
-                  type: string
-                  example: "us-central1-a"
 
     AmazonConfigResponse:
       type: object

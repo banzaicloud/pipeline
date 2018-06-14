@@ -9,16 +9,6 @@ import (
 
 var log *logrus.Logger
 
-var (
-	// Keywords are the supported filter words
-	Keywords = []string{
-		constants.KeyWordLocation,
-		constants.KeyWordInstanceType,
-		constants.KeyWordKubernetesVersion,
-		constants.KeyWordImage,
-	}
-)
-
 // Simple init for logging
 func init() {
 	log = config.Logger()
