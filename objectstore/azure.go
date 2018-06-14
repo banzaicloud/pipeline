@@ -14,7 +14,6 @@ import (
 	pipelineAuth "github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/constants"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/sirupsen/logrus"
 	"net/http"
 	"net/url"
 	"sort"
@@ -65,7 +64,6 @@ func (b *AzureObjectStore) WithRegion(region string) error {
 // CreateBucket creates an Azure Object Store Blob with the provided name
 // within a generated/provided ResourceGroup and StorageAccount
 func (b *AzureObjectStore) CreateBucket(bucketName string) {
-	log := logger.WithFields(logrus.Fields{"tag": "CreateBucket"})
 
 	if b.resourceGroup == "" {
 		b.resourceGroup = generateResourceGroupName(b.location)
@@ -159,7 +157,6 @@ func (b *AzureObjectStore) CreateBucket(bucketName string) {
 // DeleteBucket deletes the Azure storage container identified by the specified name
 // under the current resource group, storage account provided the storage container is of 'managed` type
 func (b *AzureObjectStore) DeleteBucket(bucketName string) error {
-	log := logger.WithFields(logrus.Fields{"tag": "AzureObjectStore.DeleteBucket"})
 
 	managedBucket := &ManagedAzureBlobStore{}
 	searchCriteria := b.newManagedBucketSearchCriteria(bucketName)
@@ -196,7 +193,6 @@ func (b *AzureObjectStore) DeleteBucket(bucketName string) error {
 
 //CheckBucket check the status of the given Azure blob
 func (b *AzureObjectStore) CheckBucket(bucketName string) error {
-	log := logger.WithFields(logrus.Fields{"tag": "AzureObjectStore.CheckBucket"})
 	managedBucket := &ManagedAzureBlobStore{}
 	searchCriteria := b.newManagedBucketSearchCriteria(bucketName)
 	log.Info("Looking up managed bucket: name=%s", bucketName)
@@ -232,7 +228,6 @@ func (b *AzureObjectStore) CheckBucket(bucketName string) error {
 // referenced by the secret field. Azure storage containers buckets that were created by a user in the current
 // org are marked as 'managed`
 func (b *AzureObjectStore) ListBuckets() ([]*components.BucketInfo, error) {
-	log := logger.WithFields(logrus.Fields{"tag": "AzureObjectStore.ListBuckets"})
 
 	// get all resource groups
 	log.Infof("Getting all resource groups for subscription id=%s", b.secret.GetValue(constants.AzureSubscriptionId))
@@ -316,7 +311,6 @@ func (b *AzureObjectStore) ListBuckets() ([]*components.BucketInfo, error) {
 }
 
 func getStorageAccountKey(s *secret.SecretsItemResponse, resourceGroup, storageAccount string) (string, error) {
-	log := logger.WithFields(logrus.Fields{"tag": "GetStorageAccountKey"})
 	client, err := createStorageAccountClient(s)
 	if err != nil {
 		return "", err
@@ -332,7 +326,6 @@ func getStorageAccountKey(s *secret.SecretsItemResponse, resourceGroup, storageA
 }
 
 func createStorageAccountClient(s *secret.SecretsItemResponse) (*storage.AccountsClient, error) {
-	log := logger.WithFields(logrus.Fields{"tag": "CreateStorageAccountClient"})
 	accountClient := storage.NewAccountsClient(s.Values[constants.AzureSubscriptionId])
 
 	authorizer, err := newAuthorizer(s)
@@ -346,7 +339,6 @@ func createStorageAccountClient(s *secret.SecretsItemResponse) (*storage.Account
 }
 
 func checkStorageAccountExistence(b *AzureObjectStore) (bool, error) {
-	log := logger.WithFields(logrus.Fields{"tag": "CheckStorageAccount"})
 	storageAccountsClient, err := createStorageAccountClient(b.secret)
 	if err != nil {
 		return false, err
@@ -375,7 +367,6 @@ func checkStorageAccountExistence(b *AzureObjectStore) (bool, error) {
 }
 
 func createStorageAccount(b *AzureObjectStore) error {
-	log := logger.WithFields(logrus.Fields{"tag": "CreateStorageAccount"})
 	storageAccountsClient, err := createStorageAccountClient(b.secret)
 	if err != nil {
 		return err
@@ -409,7 +400,6 @@ func createStorageAccount(b *AzureObjectStore) error {
 }
 
 func createResourceGroup(b *AzureObjectStore) error {
-	log := logger.WithFields(logrus.Fields{"tag": "CreateResourceGroup"})
 	gclient := resources.NewGroupsClient(b.secret.Values[constants.AzureSubscriptionId])
 
 	authorizer, err := newAuthorizer(b.secret)

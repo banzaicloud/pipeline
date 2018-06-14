@@ -10,7 +10,6 @@ import (
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/ghodss/yaml"
 	"github.com/go-errors/errors"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
@@ -82,7 +81,6 @@ func PersistKubernetesKeys(input interface{}) error {
 	if !ok {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
-	log = logger.WithFields(logrus.Fields{"action": "PersistKubernetesKeys"})
 	configPath := pipConfig.GetStateStorePath(cluster.GetName())
 	log.Infof("Statestore path is: %s", configPath)
 	var config *rest.Config
@@ -148,8 +146,6 @@ func saveKeysToConfigmap(config *rest.Config, configName string, clusterName str
 
 func installDeployment(cluster CommonCluster, namespace string, deploymentName string, releaseName string, values []byte, actionName string) error {
 	// --- [ Get K8S Config ] --- //
-	log = logger.WithFields(logrus.Fields{"action": actionName})
-
 	kubeConfig, err := cluster.GetK8sConfig()
 	if err != nil {
 		log.Errorf("Unable to fetch config for posthook: %s", err.Error())
@@ -186,7 +182,6 @@ func InstallClusterAutoscalerPostHook(input interface{}) error {
 	if !ok {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
-	log = logger.WithFields(logrus.Fields{"action": "InstallClusterAutoscaler"})
 
 	var nodeGroups []nodeGroup
 
@@ -235,7 +230,6 @@ func InstallHelmPostHook(input interface{}) error {
 	if !ok {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
-	log = logger.WithFields(logrus.Fields{"action": "PostHook"})
 
 	retryAttempts := viper.GetInt(constants.HELM_RETRY_ATTEMPT_CONFIG)
 	retrySleepSeconds := viper.GetInt(constants.HELM_RETRY_SLEEP_SECONDS)
@@ -277,7 +271,6 @@ func InstallHelmPostHook(input interface{}) error {
 
 //UpdatePrometheus updates a configmap used by Prometheus
 func UpdatePrometheus() {
-	log = logger.WithFields(logrus.Fields{"tag": constants.TagPrometheus})
 	err := UpdatePrometheusConfig()
 	if err != nil {
 		log.Warn("Could not update prometheus configmap: %v", err)

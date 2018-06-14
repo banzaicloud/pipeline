@@ -4,13 +4,11 @@ import (
 	"fmt"
 	"github.com/banzaicloud/banzai-types/components"
 	htype "github.com/banzaicloud/banzai-types/components/helm"
-	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/ghodss/yaml"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"k8s.io/helm/pkg/proto/hapi/release"
 	"k8s.io/helm/pkg/repo"
 	"k8s.io/helm/pkg/timeconv"
@@ -27,7 +25,6 @@ type ChartQuery struct {
 
 // GetK8sConfig returns the Kubernetes config
 func GetK8sConfig(c *gin.Context) ([]byte, bool) {
-	log := logger.WithFields(logrus.Fields{"tag": "GetKubernetesConfig"})
 	commonCluster, ok := GetCommonClusterFromRequest(c)
 	if ok != true {
 		return nil, false
@@ -47,7 +44,6 @@ func GetK8sConfig(c *gin.Context) ([]byte, bool) {
 
 // CreateDeployment creates a Helm deployment
 func CreateDeployment(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"tag": constants.TagCreateDeployment})
 	parsedRequest, err := parseCreateUpdateDeploymentRequest(c)
 	if err != nil {
 		log.Error(err.Error())
@@ -91,7 +87,6 @@ func CreateDeployment(c *gin.Context) {
 
 // ListDeployments lists a Helm deployment
 func ListDeployments(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"tag": constants.TagListDeployments})
 	kubeConfig, ok := GetK8sConfig(c)
 	if ok != true {
 		return
@@ -129,7 +124,6 @@ func ListDeployments(c *gin.Context) {
 // HelmDeploymentStatus checks the status of a deployment through the helm client API
 func HelmDeploymentStatus(c *gin.Context) {
 
-	log := logger.WithFields(logrus.Fields{"tag": "DeploymentStatus"})
 	name := c.Param("name")
 	log.Infof("getting status for deployment: [%s]", name)
 
@@ -170,7 +164,6 @@ func HelmDeploymentStatus(c *gin.Context) {
 
 // InitHelmOnCluster installs Helm on AKS cluster and configure the Helm client
 func InitHelmOnCluster(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"tag": constants.TagHelmInstall})
 	log.Info("Start helm install")
 
 	commonCluster, ok := GetCommonClusterFromRequest(c)
@@ -221,7 +214,6 @@ func InitHelmOnCluster(c *gin.Context) {
 
 // GetTillerStatus checks if tiller ready to accept deployments
 func GetTillerStatus(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"tag": "GetTillerStatus"})
 	name := c.Param("name")
 	log.Infof("Retrieving status for deployment: %s", name)
 	kubeConfig, ok := GetK8sConfig(c)
@@ -249,7 +241,6 @@ func GetTillerStatus(c *gin.Context) {
 
 //UpgradeDeployment - Upgrades helm deployment, if --reuse-value is specified reuses the last release's value.
 func UpgradeDeployment(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"tag": "UpgradeDeployment"})
 	name := c.Param("name")
 	log.Infof("Upgrading deployment: %s", name)
 	parsedRequest, err := parseCreateUpdateDeploymentRequest(c)
@@ -290,7 +281,6 @@ func UpgradeDeployment(c *gin.Context) {
 
 //DeleteDeployment deletes a Helm deployment
 func DeleteDeployment(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"tag": "DeleteDeployment"})
 	name := c.Param("name")
 	log.Infof("Delete deployment: %s", name)
 	kubeConfig, ok := GetK8sConfig(c)
@@ -326,7 +316,6 @@ type parsedDeploymentRequest struct {
 }
 
 func parseCreateUpdateDeploymentRequest(c *gin.Context) (*parsedDeploymentRequest, error) {
-	log := logger.WithFields(logrus.Fields{"tag": "parseCreateUpdateDeploymentRequest"})
 	pdr := new(parsedDeploymentRequest)
 
 	commonCluster, ok := GetCommonClusterFromRequest(c)
@@ -375,7 +364,6 @@ func parseCreateUpdateDeploymentRequest(c *gin.Context) (*parsedDeploymentReques
 
 //HelmReposGet listing helm repositories in the cluster
 func HelmReposGet(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"tag": "HelmReposGet"})
 
 	log.Info("Get helm repository")
 
@@ -395,7 +383,6 @@ func HelmReposGet(c *gin.Context) {
 
 //HelmReposAdd add a new helm repository
 func HelmReposAdd(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"tag": "HelmReposAdd"})
 	log.Info("Add helm repository")
 
 	var repo *repo.Entry
@@ -430,7 +417,6 @@ func HelmReposAdd(c *gin.Context) {
 
 //HelmReposDelete delete the helm repository
 func HelmReposDelete(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"tag": "HelmReposDelete"})
 	log.Info("Delete helm repository")
 
 	repoName := c.Param("name")
@@ -464,7 +450,6 @@ func HelmReposDelete(c *gin.Context) {
 
 //HelmReposModify modify the helm repository
 func HelmReposModify(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"tag": "HelmReposModify"})
 	log.Info("modify helm repository")
 
 	repoName := c.Param("name")
@@ -511,7 +496,6 @@ func HelmReposModify(c *gin.Context) {
 
 // HelmReposUpdate update the helm repo
 func HelmReposUpdate(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"tag": "ReposUpdate"})
 	log.Info("delete helm repository")
 
 	repoName := c.Param("name")
@@ -537,7 +521,6 @@ func HelmReposUpdate(c *gin.Context) {
 
 //HelmCharts get available helm chart's list
 func HelmCharts(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"tag": "HelmCharts"})
 	log.Info("Get helm repository charts")
 
 	var query ChartQuery
@@ -570,7 +553,6 @@ func HelmCharts(c *gin.Context) {
 
 //HelmChart get helm chart details
 func HelmChart(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"tag": "HelmChart"})
 	log.Info("Get helm chart")
 
 	log.Debugf("%#v", c)

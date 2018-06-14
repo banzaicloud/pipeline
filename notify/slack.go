@@ -20,15 +20,14 @@ type Slack struct {
 	Channel   string `json:"channel"`
 }
 
-var logger *logrus.Logger
+var log *logrus.Logger
 
 func init() {
-	logger = config.Logger()
+	log = config.Logger()
 }
 
 //SlackNotify is pushing to Slack
 func SlackNotify(message string) error {
-	log := logger.WithFields(logrus.Fields{"tag": "NotifySlack"})
 	content := Slack{}
 
 	if len(os.Getenv("SLACK_WEBHOOK_URL")) <= 0 {

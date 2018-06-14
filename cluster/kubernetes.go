@@ -7,14 +7,12 @@ import (
 	pipConstants "github.com/banzaicloud/pipeline/constants"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
 
 // CreateKubernetesClusterFromRequest creates ClusterModel struct from the request
 func CreateKubernetesClusterFromRequest(request *components.CreateClusterRequest, orgId uint) (*KubeCluster, error) {
 
-	log := logger.WithFields(logrus.Fields{"action": constants.TagCreateCluster})
 	log.Debug("Create ClusterModel struct from the request")
 	var cluster KubeCluster
 
@@ -178,7 +176,6 @@ func (b *KubeCluster) GetOrganizationId() uint {
 
 // CreateKubernetesClusterFromModel converts ClusterModel to KubeCluster
 func CreateKubernetesClusterFromModel(clusterModel *model.ClusterModel) (*KubeCluster, error) {
-	log := logger.WithFields(logrus.Fields{"action": constants.TagGetCluster})
 	log.Debug("Create ClusterModel struct from the request")
 	kubeCluster := KubeCluster{
 		modelCluster: clusterModel,

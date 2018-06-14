@@ -6,7 +6,6 @@ import (
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -29,7 +28,6 @@ type PrometheusCfg struct {
 
 //UpdatePrometheusConfig updates the Prometheus configuration
 func UpdatePrometheusConfig() error {
-	log := logger.WithFields(logrus.Fields{"tag": "PrometheusConfig"})
 	//TODO configsets
 	if !viper.GetBool("monitor.enabled") {
 		log.Warn("Update monitoring configuration is disabled")

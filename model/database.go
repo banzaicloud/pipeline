@@ -14,11 +14,11 @@ import (
 
 var dbOnce sync.Once
 var db *gorm.DB
-var logger *logrus.Logger
+var log *logrus.Logger
 
 // Simple init for logging
 func init() {
-	logger = config.Logger()
+	log = config.Logger()
 }
 
 func initDatabase() {
@@ -28,7 +28,6 @@ func initDatabase() {
 
 // GetDataSource returns with datasource by database name
 func GetDataSource(dbName string) string {
-	log := logger.WithFields(logrus.Fields{"action": "GetDataSource"})
 	host := viper.GetString("database.host")
 	port := viper.GetString("database.port")
 	role := viper.GetString("database.role")
@@ -50,7 +49,6 @@ func GetDataSource(dbName string) string {
 
 // ConnectDB connects to GORM
 func ConnectDB(dbName string) *gorm.DB {
-	log := logger.WithFields(logrus.Fields{"action": "ConnectDB"})
 	dataSource := GetDataSource(dbName)
 	dataSource += "?charset=utf8&parseTime=True&loc=Local"
 	database, err := gorm.Open("mysql", dataSource)

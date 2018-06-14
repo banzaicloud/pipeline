@@ -14,12 +14,10 @@ import (
 	pipelineSsh "github.com/banzaicloud/pipeline/ssh"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/go-errors/errors"
-	"github.com/sirupsen/logrus"
 )
 
 //CreateAKSClusterFromRequest creates ClusterModel struct from the request
 func CreateAKSClusterFromRequest(request *components.CreateClusterRequest, orgId uint) (*AKSCluster, error) {
-	log := logger.WithFields(logrus.Fields{"action": constants.TagCreateCluster})
 	log.Debug("Create ClusterModel struct from the request")
 	var cluster AKSCluster
 
@@ -96,8 +94,6 @@ func (c *AKSCluster) GetAPIEndpoint() (string, error) {
 //CreateCluster creates a new cluster
 func (c *AKSCluster) CreateCluster() error {
 
-	log := logger.WithFields(logrus.Fields{"action": constants.TagCreateCluster})
-
 	// create profiles model for the request
 	var profiles []containerservice.AgentPoolProfile
 	if nodePools := c.modelCluster.Azure.NodePools; nodePools != nil {
@@ -134,7 +130,7 @@ func (c *AKSCluster) CreateCluster() error {
 		return err
 	}
 
-	client.With(log.Logger)
+	client.With(log)
 
 	// call creation
 	createdCluster, err := azureClient.CreateUpdateCluster(client, &r)
@@ -180,7 +176,7 @@ func (c *AKSCluster) DownloadK8sConfig() ([]byte, error) {
 		return nil, err
 	}
 
-	client.With(log.Logger)
+	client.With(log)
 
 	database := model.GetDB()
 	database.Where(model.AzureClusterModel{ClusterModelId: c.modelCluster.ID}).First(&c.modelCluster.Azure)
@@ -208,7 +204,6 @@ func (c *AKSCluster) GetType() string {
 //GetStatus gets cluster status
 func (c *AKSCluster) GetStatus() (*bTypes.GetClusterStatusResponse, error) {
 
-	log := logger.WithFields(logrus.Fields{"action": constants.TagGetClusterStatus})
 	log.Info("Create cluster status response")
 
 	nodePools := make(map[string]*bTypes.NodePoolStatus)
@@ -234,13 +229,12 @@ func (c *AKSCluster) GetStatus() (*bTypes.GetClusterStatusResponse, error) {
 
 // DeleteCluster deletes cluster from aks
 func (c *AKSCluster) DeleteCluster() error {
-	log := logger.WithFields(logrus.Fields{"action": constants.TagDeleteCluster})
 	client, err := c.GetAKSClient()
 	if err != nil {
 		return err
 	}
 
-	client.With(log.Logger)
+	client.With(log)
 
 	// set azure props
 	database := model.GetDB()
@@ -257,13 +251,12 @@ func (c *AKSCluster) DeleteCluster() error {
 
 // UpdateCluster updates AKS cluster in cloud
 func (c *AKSCluster) UpdateCluster(request *bTypes.UpdateClusterRequest) error {
-	log := logger.WithFields(logrus.Fields{"action": constants.TagUpdateCluster})
 	client, err := c.GetAKSClient()
 	if err != nil {
 		return err
 	}
 
-	client.With(log.Logger)
+	client.With(log)
 
 	// send separate requests because Azure not supports multiple nodepool modification
 	// Azure not supports adding and deleting nodepools
@@ -397,7 +390,6 @@ func (c *AKSCluster) GetAzureCluster() (*banzaiAzureTypes.Value, error) {
 
 //CreateAKSClusterFromModel creates ClusterModel struct from model
 func CreateAKSClusterFromModel(clusterModel *model.ClusterModel) (*AKSCluster, error) {
-	log := logger.WithFields(logrus.Fields{"action": constants.TagGetCluster})
 	log.Debug("Create ClusterModel struct from the request")
 	aksCluster := AKSCluster{
 		modelCluster: clusterModel,
@@ -520,13 +512,12 @@ func (c *AKSCluster) UpdateStatus(status, statusMessage string) error {
 // GetClusterDetails gets cluster details from cloud
 func (c *AKSCluster) GetClusterDetails() (*components.ClusterDetailsResponse, error) {
 
-	log := logger.WithFields(logrus.Fields{"action": "GetClusterDetails"})
 	client, err := c.GetAKSClient()
 	if err != nil {
 		return nil, err
 	}
 
-	client.With(log.Logger)
+	client.With(log)
 
 	resp, err := azureClient.GetCluster(client, c.modelCluster.Name, c.modelCluster.Azure.ResourceGroup)
 	if err != nil {

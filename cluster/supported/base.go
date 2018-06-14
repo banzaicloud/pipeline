@@ -7,8 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var logger *logrus.Logger
-var log *logrus.Entry
+var log *logrus.Logger
 
 var (
 	// Keywords are the supported filter words
@@ -22,8 +21,7 @@ var (
 
 // Simple init for logging
 func init() {
-	logger = config.Logger()
-	log = logger.WithFields(logrus.Fields{"tag": "Supported"})
+	log = config.Logger()
 }
 
 // CloudInfoProvider interface for cloud supports

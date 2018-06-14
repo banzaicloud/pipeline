@@ -12,10 +12,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var logger *logrus.Logger
+var log *logrus.Logger
 
+// Simple init for logging
 func init() {
-	logger = config.Logger()
+	log = config.Logger()
 }
 
 // ManagedBucketNotFoundError signals that managed bucket was not found in database.
@@ -83,28 +84,24 @@ func getManagedBucket(searchCriteria interface{}, managedBucket interface{}) err
 }
 
 func persistToDb(m interface{}) error {
-	log := logger.WithFields(logrus.Fields{"tag": "persistToDb"})
 	log.Info("Persisting Bucket Description to Db")
 	db := model.GetDB()
 	return db.Save(m).Error
 }
 
 func updateDBField(m interface{}, field interface{}) error {
-	log := logger.WithFields(logrus.Fields{"tag": "updateDBField"})
 	log.Info("Updating Bucket Description ")
 	db := model.GetDB()
 	return db.Model(m).Update(field).Error
 }
 
 func deleteFromDbByPK(m interface{}) error {
-	log := logger.WithFields(logrus.Fields{"tag": "deleteFromDbByPK"})
 	log.Info("Deleting from DB...")
 	db := model.GetDB()
 	return db.Delete(m).Error
 }
 
 func deleteFromDb(m interface{}) error {
-	log := logger.WithFields(logrus.Fields{"tag": "deleteFromDb"})
 	log.Info("Deleting from DB...")
 	db := model.GetDB()
 	return db.Delete(m, m).Error

@@ -23,14 +23,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// TODO see who will win
-var logger *logrus.Logger
-var log *logrus.Entry
+var log *logrus.Logger
 
 // Simple init for logging
 func init() {
-	logger = config.Logger()
-	log = logger.WithFields(logrus.Fields{"tag": "Cluster"})
+	log = config.Logger()
 }
 
 //ParseField is to restrict other query TODO investigate to just pass the hasmap
@@ -105,7 +102,6 @@ func GetCommonClusterNameFromRequest(c *gin.Context) (string, bool) {
 
 //CreateClusterRequest gin handler
 func CreateClusterRequest(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"tag": constants.TagCreateCluster})
 	//TODO refactor logging here
 
 	log.Info("Cluster creation started")
@@ -127,7 +123,6 @@ func CreateClusterRequest(c *gin.Context) {
 
 // CreateCluster creates a K8S cluster in the cloud
 func CreateCluster(c *gin.Context, createClusterRequest *components.CreateClusterRequest) cluster.CommonCluster {
-	log := logger.WithFields(logrus.Fields{"tag": constants.TagCreateCluster})
 
 	if len(createClusterRequest.ProfileName) != 0 {
 		log.Infof("Fill data from profile[%s]", createClusterRequest.ProfileName)
@@ -297,7 +292,6 @@ func postCreateCluster(commonCluster cluster.CommonCluster) error {
 
 // GetClusterStatus retrieves the cluster status
 func GetClusterStatus(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"tag": constants.TagGetClusterStatus})
 
 	commonCluster, ok := GetCommonClusterFromRequest(c)
 	if ok != true {
@@ -320,7 +314,6 @@ func GetClusterStatus(c *gin.Context) {
 
 // GetClusterConfig gets a cluster config
 func GetClusterConfig(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"tag": constants.TagFetchClusterConfig})
 	commonCluster, ok := GetCommonClusterFromRequest(c)
 	if ok != true {
 		return
@@ -363,7 +356,6 @@ func GetClusterConfig(c *gin.Context) {
 // GetApiEndpoint returns the Kubernetes Api endpoint
 func GetApiEndpoint(c *gin.Context) {
 
-	log := logger.WithFields(logrus.Fields{"tag": "GetApiEndpoint"})
 	log.Info("Start getting API endpoint")
 
 	log.Info("Create common cluster model from request")
@@ -392,7 +384,6 @@ func GetApiEndpoint(c *gin.Context) {
 
 // UpdateCluster updates a K8S cluster in the cloud (e.g. autoscale)
 func UpdateCluster(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"tag": constants.TagUpdateCluster})
 
 	// bind request body to UpdateClusterRequest struct
 	var updateRequest *components.UpdateClusterRequest
@@ -505,7 +496,6 @@ func postUpdateCluster(commonCluster cluster.CommonCluster, updateRequest *compo
 
 // DeleteCluster deletes a K8S cluster from the cloud
 func DeleteCluster(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"tag": constants.TagDeleteCluster})
 	commonCluster, ok := GetCommonClusterFromRequest(c)
 	if ok != true {
 		return
@@ -585,7 +575,6 @@ func postDeleteCluster(commonCluster cluster.CommonCluster, force bool) error {
 
 // FetchClusters fetches all the K8S clusters from the cloud
 func FetchClusters(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"tag": constants.TagGetCluster})
 	log.Info("Fetching clusters")
 
 	var clusters []model.ClusterModel //TODO change this to CommonClusterStatus
@@ -623,7 +612,6 @@ func FetchClusters(c *gin.Context) {
 
 // FetchCluster fetch a K8S cluster in the cloud
 func FetchCluster(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"tag": constants.TagGetClusterStatus})
 	commonCluster, ok := GetCommonClusterFromRequest(c)
 	if ok != true {
 		return
@@ -672,7 +660,6 @@ func FetchCluster(c *gin.Context) {
 
 // InstallSecretsToCluster add all secrets from a repo to a cluster's namespace combined into one global secret named as the repo
 func InstallSecretsToCluster(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"tag": constants.TagInstallSecretsToCluster})
 	commonCluster, ok := GetCommonClusterFromRequest(c)
 	if !ok {
 		return

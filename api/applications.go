@@ -3,14 +3,12 @@ package api
 import (
 	"github.com/banzaicloud/banzai-types/components"
 	ctype "github.com/banzaicloud/banzai-types/components/catalog"
-	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/application"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"net/http"
 )
 
@@ -39,7 +37,6 @@ type ApplicationListResponse struct {
 
 // GetApplications gin handler for API
 func GetApplications(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"tag": "GetApplications"})
 	log.Debug("List applications")
 
 	var applications []model.ApplicationModel //TODO change this to CommonClusterStatus
@@ -86,7 +83,6 @@ type CreateApplicationRequest struct {
 // CreateApplication gin handler for API
 func CreateApplication(c *gin.Context) {
 	// 1. Create Pending applications in database
-	log := logger.WithFields(logrus.Fields{"tag": constants.TagCreateCluster})
 	//TODO refactor logging here
 
 	log.Info("Cluster creation stared")

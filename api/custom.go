@@ -6,7 +6,6 @@ import (
 	htype "github.com/banzaicloud/banzai-types/components/helm"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 	"k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -17,7 +16,6 @@ import (
 
 // ListEndpoints lists service public endpoints
 func ListEndpoints(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"tag": "ListEndpoints"})
 
 	releaseName := c.Query("releaseName")
 	log.Infof("Filtering for helm release name: %s", releaseName)
@@ -141,7 +139,6 @@ func filterIngressList(ingressList *v1beta1.IngressList, releaseName string) *v1
 }
 
 func pendingLoadBalancer(serviceList *v1.ServiceList) bool {
-	log := logger.WithFields(logrus.Fields{"tag": "pendingLoadBalancer"})
 	log.Info("Checking loadbalancer status..")
 
 	plb := map[string]struct{}{}
@@ -245,7 +242,6 @@ func getIngressReleaseName(backend v1beta1.IngressBackend, serviceList *v1.Servi
 
 //GetClusterNodes Get node information
 func GetClusterNodes(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"tag": "GetClusterNodes"})
 
 	kubeConfig, ok := GetK8sConfig(c)
 	if ok != true {

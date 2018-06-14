@@ -11,9 +11,7 @@ import (
 	"time"
 )
 
-// TODO se who will win
-var logger *logrus.Logger
-var log *logrus.Entry
+var log *logrus.Logger
 
 // cluster profile table names
 const (
@@ -32,8 +30,7 @@ const (
 
 // Simple init for logging
 func init() {
-	logger = config.Logger()
-	log = logger.WithFields(logrus.Fields{"action": constants.TagGetClusterProfile})
+	log = config.Logger()
 }
 
 // SetDefaultValues saves the default cluster profile into the database if not exists yet

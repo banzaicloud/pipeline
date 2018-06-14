@@ -5,7 +5,6 @@ import (
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
 
@@ -17,7 +16,6 @@ type DummyCluster struct {
 
 // CreateDummyClusterFromRequest creates ClusterModel struct from the request
 func CreateDummyClusterFromRequest(request *components.CreateClusterRequest, orgId uint) (*DummyCluster, error) {
-	log := logger.WithFields(logrus.Fields{"action": constants.TagCreateCluster})
 	log.Debug("Create ClusterModel struct from the request")
 	var cluster DummyCluster
 
@@ -201,7 +199,6 @@ func createDummyConfig() *kubeConfig {
 
 //CreateDummyClusterFromModel creates the cluster from the model
 func CreateDummyClusterFromModel(clusterModel *model.ClusterModel) (*DummyCluster, error) {
-	log := logger.WithFields(logrus.Fields{"action": constants.TagGetCluster})
 	log.Debug("Create ClusterModel struct from the request")
 	dummyCluster := DummyCluster{
 		modelCluster: clusterModel,

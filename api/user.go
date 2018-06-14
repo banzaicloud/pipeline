@@ -9,13 +9,11 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 )
 
 // GetUsers gets a user or lists all users from an organizaion depending on the presence of the id paramater
 func GetUsers(c *gin.Context) {
 
-	log := logger.WithFields(logrus.Fields{"tag": "GetUsers"})
 	log.Info("Fetching users")
 
 	organization := auth.GetCurrentOrganization(c.Request)
@@ -70,7 +68,6 @@ func GetUsers(c *gin.Context) {
 // AddUser adds a user to an organization, role=admin|member has to be in the body, otherwise member is the default role.
 func AddUser(c *gin.Context) {
 
-	log := logger.WithFields(logrus.Fields{"tag": "AddUser"})
 	log.Info("Adding user to organization")
 
 	idParam := c.Param("id")
@@ -150,7 +147,6 @@ func addUserToOrgInDb(organization *auth.Organization, user *auth.User, role str
 // RemoveUser removes a user from an organization
 func RemoveUser(c *gin.Context) {
 
-	log := logger.WithFields(logrus.Fields{"tag": "DeleteUser"})
 	log.Info("Deleting user from organization")
 
 	organization := auth.GetCurrentOrganization(c.Request)

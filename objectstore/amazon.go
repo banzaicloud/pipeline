@@ -9,7 +9,6 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
-	"github.com/sirupsen/logrus"
 	"sort"
 	"strings"
 )
@@ -48,7 +47,6 @@ func (b *AmazonObjectStore) WithRegion(region string) error {
 
 // CreateBucket creates a S3 bucket with the provided name
 func (b *AmazonObjectStore) CreateBucket(bucketName string) {
-	log := logger.WithFields(logrus.Fields{"tag": "CreateBucket"})
 
 	managedBucket := &ManagedAmazonBucket{}
 	searchCriteria := b.newManagedBucketSearchCriteria(bucketName)
@@ -105,7 +103,6 @@ func (b *AmazonObjectStore) CreateBucket(bucketName string) {
 // DeleteBucket deletes the S3 bucket identified by the specified name
 // provided the storage container is of 'managed` type
 func (b *AmazonObjectStore) DeleteBucket(bucketName string) error {
-	log := logger.WithFields(logrus.Fields{"tag": "AmazonObjectStore.DeleteBucket"})
 
 	managedBucket := &ManagedAmazonBucket{}
 	searchCriteria := b.newManagedBucketSearchCriteria(bucketName)
@@ -149,7 +146,6 @@ func (b *AmazonObjectStore) DeleteBucket(bucketName string) error {
 
 //CheckBucket check the status of the given S3 bucket
 func (b *AmazonObjectStore) CheckBucket(bucketName string) error {
-	log := logger.WithFields(logrus.Fields{"tag": "AmazonObjectStore.CheckBucket"})
 	managedBucket := &ManagedAmazonBucket{}
 	searchCriteria := b.newManagedBucketSearchCriteria(bucketName)
 	log.Info("Looking up managed bucket: name=%s", bucketName)
@@ -176,7 +172,6 @@ func (b *AmazonObjectStore) CheckBucket(bucketName string) error {
 // referenced by the secret field. S3 buckets that were created by a user in the current
 // org are marked as 'managed`
 func (b *AmazonObjectStore) ListBuckets() ([]*components.BucketInfo, error) {
-	log := logger.WithFields(logrus.Fields{"tag": "AmazonObjectStore.ListBuckets"})
 
 	svc, err := createS3Client(b.region, b.secret)
 
@@ -220,7 +215,6 @@ func (b *AmazonObjectStore) ListBuckets() ([]*components.BucketInfo, error) {
 }
 
 func createS3Client(region string, retrievedSecret *secret.SecretsItemResponse) (*s3.S3, error) {
-	log := logger.WithFields(logrus.Fields{"tag": "createS3Client"})
 	log.Info("Creating AWS session")
 	s, err := session.NewSession(&aws.Config{
 		Region:      aws.String(region),
