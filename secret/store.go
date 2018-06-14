@@ -8,11 +8,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/spf13/viper"
+
 	"github.com/banzaicloud/bank-vaults/vault"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/constants"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	vaultapi "github.com/hashicorp/vault/api"
+	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cast"
@@ -62,12 +65,12 @@ type SecretsItemResponse struct {
 
 // AllowedFilteredSecretTypesResponse for API response for AllowedSecretTypes/:type
 type AllowedFilteredSecretTypesResponse struct {
-	Keys []string `json:"keys"`
+	Keys []constants.SecretField `json:"keys"`
 }
 
 // AllowedSecretTypesResponse for API response for AllowedSecretTypes
 type AllowedSecretTypesResponse struct {
-	Allowed map[string][]string `json:"allowed"`
+	Allowed map[string][]constants.SecretField `json:"allowed"`
 }
 
 func newVaultSecretStore() *secretStore {
@@ -91,15 +94,15 @@ func RepoTag(repo string) string {
 
 // Validate SecretRequest
 func (r *CreateSecretRequest) Validate(verifier verify.Verifier) error {
-	requiredKeys, ok := constants.DefaultRules[r.Type]
+	fields, ok := constants.DefaultRules[r.Type]
 
 	if !ok {
 		return errors.Errorf("wrong secret type: %s", r.Type)
 	}
 
-	for _, key := range requiredKeys {
-		if _, ok := r.Values[key]; !ok {
-			return errors.Errorf("missing key: %s", key)
+	for _, field := range fields {
+		if _, ok := r.Values[field.Name]; field.Required && !ok {
+			return errors.Errorf("missing key: %s", field.Name)
 		}
 	}
 
@@ -131,6 +134,22 @@ func (ss *secretStore) Store(organizationID string, value *CreateSecretRequest) 
 	path := secretDataPath(organizationID, secretID)
 
 	log.Debugln("Storing secret:", path)
+
+	// If we are not storing a full TLS secret instead of it's a request to generate one
+	if value.Type == constants.TLSSecretType && len(value.Values) <= 2 {
+		validity := value.Values[constants.TLSValidity]
+		if validity == "" {
+			validity = viper.GetString("tls.validity")
+		}
+		cc, err := GenerateTLS(value.Values[constants.TLSHosts], validity)
+		if err != nil {
+			return "", errors.Wrap(err, "Error during generating TLS secret")
+		}
+		err = mapstructure.Decode(cc, &value.Values)
+		if err != nil {
+			return "", errors.Wrap(err, "Error during decoding TLS secret")
+		}
+	}
 
 	sort.Strings(value.Tags)
 

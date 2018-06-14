@@ -1,9 +1,8 @@
 package api
 
 import (
-	"net/http"
-
 	"fmt"
+	"net/http"
 
 	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/pipeline/auth"

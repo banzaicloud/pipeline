@@ -1615,7 +1615,7 @@ paths:
           description: Secret's type to filter with
           schema:
             type: string
-            enum: [amazon, azure, google, kubernetes, generic]
+            enum: [amazon, azure, google, kubernetes, generic, tls, ssh]
         - name: tag
           in: query
           required: false
@@ -4190,7 +4190,7 @@ components:
           type: array
           items:
             type: string
-          example: [ "tag1", "tag2" ]
+          example: [ "repo:pipeline", "tag2" ]
         version:
           type: integer
           example: 1
@@ -4203,6 +4203,7 @@ components:
               - $ref: '#/components/schemas/SecretKeyValueGoogle'
               - $ref: '#/components/schemas/SecretKeyValueKubernetes'
               - $ref: '#/components/schemas/SecretKeyValueGeneric'
+              - $ref: '#/components/schemas/SecretKeyValueTLS'
           example:
             type: string
             project_id: string
@@ -4276,6 +4277,28 @@ components:
         auth_provider_x509_cert_url:
           type: string
         client_x509_cert_url:
+          type: string
+
+    SecretKeyValueTLS:
+      type: object
+      required:
+        - hosts
+      properties:
+        hosts:
+          type: string
+        validity:
+          type: string
+        caCert:
+          type: string
+        caKey:
+          type: string
+        serverCert:
+          type: string
+        serverKey:
+          type: string
+        clientCert:
+          type: string
+        clientKey:
           type: string
 
     SecretKeyValueKubernetes:

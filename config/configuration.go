@@ -60,6 +60,7 @@ func init() {
 	viper.SetDefault("audit.enabled", true)
 	viper.SetDefault("audit.headers", []string{"secretId"})
 	viper.SetDefault("audit.skippaths", []string{"/auth/github/callback"})
+	viper.SetDefault("tls.validity", "8760h") // 1 year
 
 	ReleaseName := os.Getenv("KUBERNETES_RELEASE_NAME")
 	if ReleaseName == "" {

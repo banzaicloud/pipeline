@@ -73,7 +73,7 @@ func KeyAdd(organizationId uint, clusterId uint) (string, error) {
 func KeyStore(key *Key, organizationID uint, clusterName string) (secretID string, err error) {
 	log.Info("Store SSH Key to Bank Vaults")
 	var createSecretRequest secret.CreateSecretRequest
-	createSecretRequest.Type = constants.SshSecretType
+	createSecretRequest.Type = constants.SSHSecretType
 	createSecretRequest.Name = clusterName
 
 	createSecretRequest.Values = map[string]string{
