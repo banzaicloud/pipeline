@@ -78,17 +78,6 @@ func GetSupportedClusterList(c *gin.Context) {
 
 }
 
-// GetSupportedFilters sends back the supported filter words
-func GetSupportedFilters(c *gin.Context) {
-
-	log.Info("Start getting filter keys")
-
-	c.JSON(http.StatusOK, components.SupportedFilters{
-		Keys: supported.Keywords,
-	})
-
-}
-
 // GetCloudInfo sends back the supported locations/k8sVersions/machineTypes
 func GetCloudInfo(c *gin.Context) {
 
@@ -100,15 +89,37 @@ func GetCloudInfo(c *gin.Context) {
 	cloudType := c.Param("cloudtype")
 	log.Debugf("Cloud type: %s", cloudType)
 
-	log.Info("Binding request")
-	var request components.CloudInfoRequest
-	if err := c.ShouldBindJSON(&request); err != nil {
-		log.Errorf("Error during binding request: %s", err.Error())
+	filterFields := getFieldsFromQuery(c)
+	log.Debugf("Filter fields: %v", filterFields)
+
+	tags := getTagsFromQuery(c)
+	log.Debugf("Tags: %v", tags)
+
+	secretId := getSecretIdFromQuery(c)
+	log.Debugf("Secret id: %s", secretId)
+
+	location := getLocationFromQuery(c)
+	log.Debugf("Location: %s", location)
+
+	request := &components.CloudInfoRequest{
+		OrganizationId: organizationID,
+		SecretId:       secretId,
+		Filter: &components.CloudInfoFilter{
+			Fields: filterFields,
+			InstanceType: &components.InstanceFilter{
+				Location: location,
+			},
+			KubernetesFilter: &components.KubernetesFilter{
+				Location: location,
+			},
+			ImageFilter: &components.ImageFilter{
+				Location: location,
+				Tags:     tags,
+			},
+		},
 	}
 
-	log.Info("Binding request succeeded")
-	request.OrganizationId = organizationID
-	if resp, err := processCloudInfo(cloudType, &request); err != nil {
+	if resp, err := processCloudInfo(cloudType, request); err != nil {
 		log.Errorf("Error during getting cloud info: %s", err.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
@@ -119,6 +130,32 @@ func GetCloudInfo(c *gin.Context) {
 		log.Debugf("Cloud info: %#v", resp)
 		c.JSON(http.StatusOK, resp)
 	}
+}
+
+// getFieldsFromQuery returns fields from query
+func getFieldsFromQuery(c *gin.Context) []string {
+	return c.QueryArray("fields")
+}
+
+// getTagsFromQuery returns tags from query
+func getTagsFromQuery(c *gin.Context) (tags []*string) {
+	array := c.QueryArray("tags")
+
+	for _, a := range array {
+		tags = append(tags, &a)
+	}
+
+	return
+}
+
+// getSecretIdFromQuery returns secret id from query
+func getSecretIdFromQuery(c *gin.Context) string {
+	return c.Query("secret_id")
+}
+
+// getLocationFromQuery returns location from query
+func getLocationFromQuery(c *gin.Context) string {
+	return c.Query("location")
 }
 
 // processCloudInfo returns the cloud info with the supported fields
