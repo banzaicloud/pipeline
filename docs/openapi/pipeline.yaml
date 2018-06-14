@@ -2836,7 +2836,6 @@ components:
         amazon:
           type: object
           required:
-            - master
             - nodePools
           properties:
             master:
@@ -2861,7 +2860,6 @@ components:
         - spotPrice
         - minCount
         - maxCount
-        - image
       properties:
         instanceType:
           type: string
