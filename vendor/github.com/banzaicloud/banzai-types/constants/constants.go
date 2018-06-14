@@ -51,6 +51,7 @@ const (
 const (
 	AmazonDefaultMasterInstanceType = "m4.xlarge"
 	AmazonDefaultNodeSpotPrice      = "0.2"
+	AmazonDefaultImage              = "ami-16bfeb6f"
 )
 
 // ### [ Constants to Google cluster default values ] ### //

@@ -165,6 +165,16 @@ func (r *UpdateClusterRequest) String() string {
 	return buffer.String()
 }
 
+// AddDefaults puts default values to optional field(s)
+func (r *CreateClusterRequest) AddDefaults() error {
+	switch r.Cloud {
+	case constants.Amazon:
+		return r.Properties.CreateClusterAmazon.AddDefaults()
+	default:
+		return nil
+	}
+}
+
 // Validate checks the request fields
 func (r *CreateClusterRequest) Validate() error {
 

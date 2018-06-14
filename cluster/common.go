@@ -261,6 +261,10 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 //CreateCommonClusterFromRequest creates a CommonCluster from a request
 func CreateCommonClusterFromRequest(createClusterRequest *bTypes.CreateClusterRequest, orgId uint) (CommonCluster, error) {
 
+	if err := createClusterRequest.AddDefaults(); err != nil {
+		return nil, err
+	}
+
 	// validate request
 	if err := createClusterRequest.Validate(); err != nil {
 		return nil, err
