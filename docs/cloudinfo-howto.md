@@ -42,7 +42,7 @@ Response:
 
 ## Amazon
 
-`POST orgs/{orgId}/cloudinfo/amazon` with empty body returns the cloud type and regexp for name:
+`GET orgs/{orgId}/cloudinfo/amazon` returns the cloud type and regexp for name:
 ```
 {
     "type": "amazon",
@@ -52,15 +52,8 @@ Response:
 
 #### Supported locations
 
-`POST orgs/{orgId}/cloudinfo/amazon` with body:
-```
-{
-  "secret_id": "{{secret_id}}",
-	"filter": {
-		"fields": [ "location" ]
-	}
-}
-```
+`GET orgs/{{orgId}}/cloudinfo/amazon?fields=location&secret_id={{secret_id}}`:
+
 Response:
 ```
 {
@@ -79,19 +72,7 @@ Response:
 ```
 
 #### Supported images
-`POST orgs/{orgId}/cloudinfo/amazon` with body:
-```
-{
-  "secret_id": "{{secret_id}}",
-	"filter": {
-		"fields": [ "image" ],
-		"image": {
-			"tags": [ "0.3.0" ],
-			"location": "eu-west-1"
-		}
-	}
-}
-```
+`GET orgs/{{orgId}}/cloudinfo/amazon?fields=image&tags=0.3.0&location=eu-west-1&secret_id={{secret_id}}`:
 
 Response:
 ```
@@ -108,18 +89,7 @@ Response:
 ```
 
 #### Supported instanceTypes
-`POST orgs/{orgId}/cloudinfo/amazon` with body:
-```
-{
-  "secret_id": "{{secret_id}}",
-	"filter": {
-		"fields": [ "instanceType" ],
-		"instanceType": {
-			"location": "eu-west-1"
-		}
-	}
-}
-```
+`GET orgs/{{orgId}}/cloudinfo/amazon?fields=instanceType&location=eu-west-1&secret_id={{secret_id}}`
 
 Response:
 ```
@@ -143,22 +113,8 @@ Response:
 
 
 #### All supported fields
-`POST orgs/{orgId}/cloudinfo/amazon` with body:
-```
-{
-  "secret_id": "{{secret_id}}",
-	"filter": {
-		"fields": [
-			"location",
-			"image"
-		],
-		"image": {
-			"tags": [ "0.3.0" ],
-			"location": "eu-west-1"
-		}
-	}
-}
-```
+`GET orgs/{{orgId}}/cloudinfo/amazon?fields=location&fields=image&fields=instanceType&tags=0.3.0&location=eu-west-1&secret_id={{secret_id}}`:
+
 Response:
 ```
 {
@@ -178,29 +134,29 @@ Response:
             "ami-6202561b",
             "ami-ece5b095"
         ]
+    },
+    "nodeInstanceType": {
+        "eu-west-1": [
+            "t2.nano",
+            "t2.micro",
+            "t2.small",
+            "t2.medium",
+            "t2.large",
+            "t2.xlarge",
+            "t2.2xlarge",
+            "m5.large"
+        ]
     }
+
 }
 ```
 
 ## Azure
-`POST orgs/{orgId}/cloudinfo/azure` with empty body returns the cloud type and regexp for name:
-```
-{
-    "type": "azure",
-    "nameRegexp": "^[a-z0-9_]{0,31}[a-z0-9]$"
-}
-```
+`GET orgs/{orgId}/cloudinfo/azure` returns the cloud type and regexp for name:
 
 #### Supported locations
-`POST orgs/{orgId}/cloudinfo/azure` with body:
-```
-{
-	"secret_id": "{{secret_id}}",
-	"filter": {
-		"fields": [ "location" ]
-	}
-}
-```
+`GET orgs/{{orgId}}/cloudinfo/azure?fields=location&secret_id={{secret_id}}`:
+
 Response:
 ```
 {
@@ -217,18 +173,8 @@ Response:
 }
 ```
 #### Supported node instance types
-`POST orgs/{orgId}/cloudinfo/azure` with body:
-```
-{
-	"secret_id": "{{secret_id}}",
-	"filter": {
-		"fields": [ "instanceType" ],
-		"instanceType":{
-			"location": "eastus"
-		}
-	}
-}
-```
+`GET orgs/{{orgId}}/cloudinfo/azure?fields=instanceType&location=eastus&secret_id={{secret_id}}`:
+
 Response:
 ```
 {
@@ -247,18 +193,8 @@ Response:
 }
 ```
 #### Supported Kubernetes versions
-`POST orgs/{orgId}/cloudinfo/azure` with body:
-```
-{
-	"secret_id": "{{secret_id}}",
-	"filter": {
-		"fields": [ "k8sVersion" ],
-		"k8sVersion":{
-			"location": "eastus"
-		}
-	}
-}
-```
+`GET orgs/{orgId}/cloudinfo/azure?fields=k8sVersion&location=eastus&secret_id={{secret_id}}`:
+
 Response:
 ```
 {
@@ -274,25 +210,8 @@ Response:
 ```
 
 #### All supported fields
-`POST orgs/{orgId}/cloudinfo/amazon` with body:
-```
-{
-	"secret_id": "{{secret_id}}",
-	"filter": {
-		"fields": [
-			"location",
-			"instanceType",
-			"k8sVersion"
-		],
-		"instanceType":{
-			"location": "eastus"
-		},
-		"k8sVersion": {
-			"location": "eastus"
-		}
-	}
-}
-```
+`GET orgs/{orgId}/cloudinfo/azure?fields=location&fields=instanceType&fields=k8sVersion&location=eastus&secret_id={{secret_id}}`:
+
 Response:
 ```
 {
@@ -329,7 +248,7 @@ Response:
 ```
 
 ## Google
-`POST orgs/{orgId}/cloudinfo/google` with empty body returns the cloud type and regexp for name:
+`GET orgs/{orgId}/cloudinfo/google` returns the cloud type and regexp for name:
 ```
 {
     "type": "google",
@@ -338,15 +257,8 @@ Response:
 ```
 
 #### Supported locations
-`POST orgs/{orgId}/cloudinfo/google` with body:
-```
-{
-	"secret_id": "{{secret_id}}",
-	"filter": {
-		"fields": [ "location" ]
-	}
-}
-```
+`GET orgs/{orgId}/cloudinfo/google?fields=location&secret_id={{secret_id}}`:
+
 Response:
 ```
 {
@@ -363,18 +275,8 @@ Response:
 }
 ```
 #### Supported node instance types
-`POST orgs/{orgId}/cloudinfo/google` with body:
-```
-{
-	"secret_id": "{{secret_id}}",
-	"filter": {
-		"fields": [ "instanceType" ],
-		"instanceType":{
-			"location": "asia-east1-a"
-		}
-	}
-}
-```
+`GET orgs/{orgId}/cloudinfo/google?fields=instanceType&location=asia-east1-a&secret_id={{secret_id}}`:
+
 Response:
 ```
 {
@@ -391,18 +293,8 @@ Response:
 }
 ```
 #### Supported Kubernetes versions
-`POST orgs/{orgId}/cloudinfo/google` with body:
-```
-{
-	"secret_id": "{{secret_id}}",
-	"filter": {
-		"fields": [ "k8sVersion" ],
-		"k8sVersion": {
-			"location": "us-central1-a"
-		}
-	}
-}
-```
+`GET orgs/{orgId}/cloudinfo/google?fields=k8sVersion&location=us-central1-a&secret_id={{secret_id}}`:
+
 Response:
 ```
 {
@@ -431,25 +323,8 @@ Response:
 }
 ```
 #### All supported fields
-`POST orgs/{orgId}/cloudinfo/google` with body:
-```
-{
-	"secret_id": "{{secret_id}}",
-	"filter": {
-		"fields": [
-			"location",
-			"instanceType",
-			"k8sVersion"
-		],
-		"instanceType":{
-			"location": "asia-east1-a"
-		},
-		"k8sVersion": {
-			"location": "us-central1-a"
-		}
-	}
-}
-```
+`GET orgs/{orgId}/cloudinfo/google?fields=location&fields=instanceType&fields=k8sVersion&location=us-central1-a&secret_id={{secret_id}}`:
+
 Response:
 ```
 {
