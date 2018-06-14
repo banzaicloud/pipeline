@@ -18,13 +18,13 @@ import (
 	"github.com/spf13/cast"
 )
 
-var logger *logrus.Logger
+var log *logrus.Logger
 
 // Store object that wraps up vault logical store
 var Store *secretStore
 
 func init() {
-	logger = config.Logger()
+	log = config.Logger()
 	Store = newVaultSecretStore()
 }
 
@@ -112,7 +112,6 @@ func (r *CreateSecretRequest) Validate(verifier verify.Verifier) error {
 
 // Delete secret secret/orgs/:orgid:/:id: scope
 func (ss *secretStore) Delete(organizationID, secretID string) error {
-	log := logger.WithFields(logrus.Fields{"tag": "DeleteSecret"})
 
 	path := secretMetadataPath(organizationID, secretID)
 
@@ -127,7 +126,6 @@ func (ss *secretStore) Delete(organizationID, secretID string) error {
 
 // Save secret secret/orgs/:orgid:/:id: scope
 func (ss *secretStore) Store(organizationID string, value *CreateSecretRequest) (string, error) {
-	log := logger.WithFields(logrus.Fields{"tag": "StoreSecret"})
 
 	secretID := generateSecretID(value)
 	path := secretDataPath(organizationID, secretID)
@@ -149,7 +147,6 @@ func (ss *secretStore) Store(organizationID string, value *CreateSecretRequest) 
 
 // Update secret secret/orgs/:orgid:/:id: scope
 func (ss *secretStore) Update(organizationID, secretID string, value *CreateSecretRequest) error {
-	log := logger.WithFields(logrus.Fields{"tag": "UpdateSecret"})
 
 	path := secretDataPath(organizationID, secretID)
 
@@ -204,7 +201,6 @@ func parseSecret(secretID string, secret *vaultapi.Secret, values bool) (*Secret
 
 // Retrieve secret secret/orgs/:orgid:/:id: scope
 func (ss *secretStore) Get(organizationID string, secretID string) (*SecretsItemResponse, error) {
-	log := logger.WithFields(logrus.Fields{"tag": "GetSecret"})
 
 	path := secretDataPath(organizationID, secretID)
 
@@ -232,7 +228,6 @@ type ListSecretsQuery struct {
 
 // List secret secret/orgs/:orgid:/ scope
 func (ss *secretStore) List(orgid string, query *ListSecretsQuery) ([]*SecretsItemResponse, error) {
-	log := logger.WithFields(logrus.Fields{"tag": "ListSecret"})
 
 	log.Debugf("Searching for secrets [orgid: %s, query: %#v]", orgid, query)
 

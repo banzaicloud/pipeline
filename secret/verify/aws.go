@@ -14,13 +14,11 @@ const (
 	defaultRegion = "eu-west-1"
 )
 
-var logger *logrus.Logger
-var log *logrus.Entry
+var log *logrus.Logger
 
 // Simple init for logging
 func init() {
-	logger = config.Logger()
-	log = logger.WithFields(logrus.Fields{"action": "Cluster"})
+	log = config.Logger()
 }
 
 // awsVerify for validation AWS credentials
@@ -52,7 +50,7 @@ func CreateEC2Client(credentials *credentials.Credentials, region string) (*ec2.
 
 	// set aws log level
 	var lv aws.LogLevelType
-	if logger.Level == logrus.DebugLevel {
+	if log.Level == logrus.DebugLevel {
 		log.Info("set aws log level to debug")
 		lv = aws.LogDebug
 	} else {

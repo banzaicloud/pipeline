@@ -11,12 +11,10 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-var logger *logrus.Logger
-var log *logrus.Entry
+var log *logrus.Logger
 
 func init() {
-	logger = config.Logger()
-	log = logger.WithFields(logrus.Fields{"action": "Helm"})
+	log = config.Logger()
 }
 
 //GetK8sClientConfig creates a Kubernetes client config

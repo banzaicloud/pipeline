@@ -15,7 +15,6 @@ import (
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"google.golang.org/api/googleapi"
 	"net/http"
 	"strings"
@@ -34,7 +33,6 @@ func (err SecretNotFoundError) Error() string {
 // ListObjectStoreBuckets returns the list of object storage buckets (object storage container in case of Azure)
 // that can be accessed with the credentials from the given secret
 func ListObjectStoreBuckets(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"tag": "ListObjectStoreBuckets"})
 
 	organization := auth.GetCurrentOrganization(c.Request)
 	organizationId := organization.IDString()
@@ -98,7 +96,6 @@ func ListObjectStoreBuckets(c *gin.Context) {
 // and also creating all requirements for them (eg.; ResourceGroup and StorageAccunt in case of Azure)
 // these informations are also stored to a database
 func CreateObjectStoreBuckets(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"tag": "CreateBucket"})
 	log.Info("Creating bucket...")
 	log.Info("Get organization id from params")
 	organization := auth.GetCurrentOrganization(c.Request)
@@ -162,7 +159,6 @@ func CreateObjectStoreBuckets(c *gin.Context) {
 
 // CheckObjectStoreBucket checks if the given there is a bucket exists with the given name
 func CheckObjectStoreBucket(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"tag": "CheckObjectStoreBucket"})
 	cloudType := c.Query("cloudType")
 	bucketName := c.Param("name")
 	log.Infof("Check if the bucket %s exists", bucketName)
@@ -226,7 +222,6 @@ func CheckObjectStoreBucket(c *gin.Context) {
 // DeleteObjectStoreBucket deletes object storage buckets (object storage container in case of Azure)
 // that can be accessed with the credentials from the given secret
 func DeleteObjectStoreBucket(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"tag": "DeleteObjectStoreBucket"})
 
 	name := c.Param("name")
 

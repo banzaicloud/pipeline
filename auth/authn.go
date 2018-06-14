@@ -44,8 +44,7 @@ const DroneHookTokenType bauth.TokenType = "hook"
 
 // Init authorization
 var (
-	logger *logrus.Logger
-	log    *logrus.Entry
+	log *logrus.Logger
 
 	DroneDB *gorm.DB
 
@@ -67,8 +66,7 @@ var (
 
 // Simple init for logging
 func init() {
-	logger = config.Logger()
-	log = logger.WithFields(logrus.Fields{"tag": "Auth"})
+	log = config.Logger()
 }
 
 //DroneClaims struct to store the drone claim related things

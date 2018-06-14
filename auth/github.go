@@ -10,7 +10,6 @@ import (
 	"github.com/qor/auth/claims"
 	githubauth "github.com/qor/auth/providers/github"
 	"github.com/qor/qor/utils"
-	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 )
 
@@ -22,7 +21,6 @@ type GithubExtraInfo struct {
 
 //NewGithubAuthorizeHandler handler for Github auth
 func NewGithubAuthorizeHandler(provider *githubauth.GithubProvider) func(context *auth.Context) (*claims.Claims, error) {
-	log := logger.WithFields(logrus.Fields{"tag": "Auth"})
 	return func(context *auth.Context) (*claims.Claims, error) {
 		var (
 			schema       auth.Schema

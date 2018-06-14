@@ -17,12 +17,10 @@ import (
 	"time"
 )
 
-var logger *logrus.Logger
-var log *logrus.Entry
+var log *logrus.Logger
 
 func init() {
-	logger = config.Logger()
-	log = logger.WithFields(logrus.Fields{"action": "Helm"})
+	log = config.Logger()
 }
 
 // SetDeploymentState Set a Deployment state related to an Application

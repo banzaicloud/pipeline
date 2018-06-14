@@ -6,7 +6,6 @@ import (
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	apiv1 "k8s.io/api/core/v1"
 	"k8s.io/api/rbac/v1"
@@ -32,7 +31,6 @@ const (
 
 //PreInstall create's serviceAccount and AccountRoleBinding
 func PreInstall(helmInstall *helm.Install, kubeConfig []byte) error {
-	log := logger.WithFields(logrus.Fields{"tag": constants.TagHelmInstall})
 	log.Info("start pre-install")
 
 	client, err := GetK8sConnection(kubeConfig)
@@ -150,7 +148,6 @@ func PreInstall(helmInstall *helm.Install, kubeConfig []byte) error {
 // Azure AKS sometimes failing because of TLS handshake timeout, there are several issues on GitHub about that:
 // https://github.com/Azure/AKS/issues/112, https://github.com/Azure/AKS/issues/116, https://github.com/Azure/AKS/issues/14
 func RetryHelmInstall(helmInstall *helm.Install, kubeconfig []byte) error {
-	log := logger.WithFields(logrus.Fields{"tag": "RetryHelmInstall"})
 	retryAttempts := viper.GetInt(constants.HELM_RETRY_ATTEMPT_CONFIG)
 	retrySleepSeconds := viper.GetInt(constants.HELM_RETRY_SLEEP_SECONDS)
 	for i := 0; i <= retryAttempts; i++ {
@@ -190,7 +187,6 @@ func GenerateHelmRepoEnv(orgName string) (env helm_env.EnvSettings) {
 
 // DownloadChartFromRepo download a given chart
 func DownloadChartFromRepo(name string, env helm_env.EnvSettings) (string, error) {
-	log := logger.WithFields(logrus.Fields{"tag": "DownloadChartFromRepo"})
 	dl := downloader.ChartDownloader{
 		HelmHome: env.Home,
 		Getters:  getter.All(env),
@@ -226,7 +222,6 @@ func InstallHelmClient(env helm_env.EnvSettings) error {
 
 // EnsureDirectories for helm repo local install
 func EnsureDirectories(env helm_env.EnvSettings) error {
-	log := logger.WithFields(logrus.Fields{"tag": "EnsureHelmDirectories"})
 	home := env.Home
 	configDirectories := []string{
 		home.String(),
@@ -254,7 +249,6 @@ func EnsureDirectories(env helm_env.EnvSettings) error {
 }
 
 func ensureDefaultRepos(env helm_env.EnvSettings) error {
-	log := logger.WithFields(logrus.Fields{"tag": "EnsureDefaultRepositories"})
 
 	stableRepositoryURL := viper.GetString("helm.stableRepositoryURL")
 	banzaiRepositoryURL := viper.GetString("helm.banzaiRepositoryURL")
@@ -286,7 +280,6 @@ func ensureDefaultRepos(env helm_env.EnvSettings) error {
 
 // InstallLocalHelm install helm into the given path
 func InstallLocalHelm(env helm_env.EnvSettings) error {
-	log := logger.WithFields(logrus.Fields{"tag": "InstallLocalHelmClient"})
 	if err := InstallHelmClient(env); err != nil {
 		return err
 	}
@@ -300,7 +293,6 @@ func InstallLocalHelm(env helm_env.EnvSettings) error {
 
 // Install uses Kubernetes client to install Tiller.
 func Install(helmInstall *helm.Install, kubeConfig []byte) error {
-	log := logger.WithFields(logrus.Fields{"tag": "InstallHelmClient"})
 
 	err := PreInstall(helmInstall, kubeConfig)
 	if err != nil {

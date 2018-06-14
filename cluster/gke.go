@@ -14,7 +14,6 @@ import (
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/jinzhu/copier"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	gkeCompute "google.golang.org/api/compute/v1"
 	gke "google.golang.org/api/container/v1"
@@ -52,7 +51,6 @@ const (
 
 //CreateGKEClusterFromRequest creates ClusterModel struct from the request
 func CreateGKEClusterFromRequest(request *components.CreateClusterRequest, orgId uint) (*GKECluster, error) {
-	log := logger.WithFields(logrus.Fields{"action": constants.TagCreateCluster})
 	log.Debug("Create ClusterModel struct from the request")
 	var cluster GKECluster
 
@@ -175,8 +173,6 @@ func (g *GKECluster) GetAPIEndpoint() (string, error) {
 //CreateCluster creates a new cluster
 func (g *GKECluster) CreateCluster() error {
 
-	log := logger.WithFields(logrus.Fields{"action": constants.TagCreateCluster})
-
 	log.Info("Start create cluster (Google)")
 
 	log.Info("Get Google Service Client")
@@ -241,7 +237,6 @@ func (g *GKECluster) Persist(status, statusMessage string) error {
 
 // DownloadK8sConfig downloads the kubeconfig file from cloud
 func (g *GKECluster) DownloadK8sConfig() ([]byte, error) {
-	log := logger.WithFields(logrus.Fields{"action": constants.TagFetchClusterConfig})
 
 	config, err := g.getGoogleKubernetesConfig()
 	if err != nil {
@@ -269,7 +264,6 @@ func (g *GKECluster) GetType() string {
 
 //GetStatus gets cluster status
 func (g *GKECluster) GetStatus() (*components.GetClusterStatusResponse, error) {
-	log := logger.WithFields(logrus.Fields{"action": constants.TagGetClusterStatus})
 	log.Info("Create cluster status response")
 
 	nodePools := make(map[string]*components.NodePoolStatus)
@@ -296,8 +290,6 @@ func (g *GKECluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 
 // DeleteCluster deletes cluster from google
 func (g *GKECluster) DeleteCluster() error {
-
-	log := logger.WithFields(logrus.Fields{"action": constants.TagDeleteCluster})
 
 	if err := g.waitForResourcesDelete(); err != nil {
 		log.Warnf("error during wait for resources: %s", err.Error())
@@ -638,7 +630,6 @@ func findFirewallRulesByTarget(rules []*gkeCompute.Firewall, clusterName string)
 // UpdateCluster updates GKE cluster in cloud
 func (g *GKECluster) UpdateCluster(updateRequest *components.UpdateClusterRequest) error {
 
-	log := logger.WithFields(logrus.Fields{"action": constants.TagUpdateCluster})
 	log.Info("Start updating cluster (google)")
 
 	svc, err := g.getGoogleServiceClient()
@@ -1602,7 +1593,6 @@ type providerConfig struct {
 
 //CreateGKEClusterFromModel creates ClusterModel struct from model
 func CreateGKEClusterFromModel(clusterModel *model.ClusterModel) (*GKECluster, error) {
-	log := logger.WithFields(logrus.Fields{"action": constants.TagGetCluster})
 	log.Debug("Create ClusterModel struct from the request")
 	gkeCluster := GKECluster{
 		modelCluster: clusterModel,
@@ -1612,8 +1602,6 @@ func CreateGKEClusterFromModel(clusterModel *model.ClusterModel) (*GKECluster, e
 
 //AddDefaultsToUpdate adds defaults to update request
 func (g *GKECluster) AddDefaultsToUpdate(r *components.UpdateClusterRequest) {
-
-	log := logger.WithFields(logrus.Fields{"action": "AddDefaultsToUpdate"})
 
 	// TODO: error handling
 	defGooglePools, _ := createNodePoolsFromClusterModel(&g.modelCluster.Google)
@@ -1685,8 +1673,6 @@ func (g *GKECluster) AddDefaultsToUpdate(r *components.UpdateClusterRequest) {
 //CheckEqualityToUpdate validates the update request
 func (g *GKECluster) CheckEqualityToUpdate(r *components.UpdateClusterRequest) error {
 
-	log := logger.WithFields(logrus.Fields{"action": "CheckEqualityToUpdate"})
-
 	// create update request struct with the stored data to check equality
 	nodePools, _ := createNodePoolsRequestDataFromNodePoolModel(g.modelCluster.Google.NodePools)
 	preCl := &bGoogle.UpdateClusterGoogle{
@@ -1727,8 +1713,6 @@ func GetGkeServerConfig(orgId uint, secretId, zone string) (*gke.ServerConfig, e
 
 // GetGkeServerConfig returns configuration info about the Kubernetes Engine service.
 func (g *GKECluster) GetGkeServerConfig(zone string) (*gke.ServerConfig, error) {
-
-	log := logger.WithFields(logrus.Fields{"action": "GetGkeServerConfig"})
 
 	log.Info("Start getting configuration info")
 
@@ -1967,7 +1951,6 @@ func (g *GKECluster) UpdateStatus(status, statusMessage string) error {
 
 // GetClusterDetails gets cluster details from cloud
 func (g *GKECluster) GetClusterDetails() (*components.ClusterDetailsResponse, error) {
-	log := logger.WithFields(logrus.Fields{"tag": "GetClusterDetails"})
 	log.Info("Get Google Service Client")
 	svc, err := g.getGoogleServiceClient()
 	if err != nil {

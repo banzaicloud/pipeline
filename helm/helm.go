@@ -10,7 +10,6 @@ import (
 	"compress/gzip"
 	"encoding/base64"
 	"github.com/Masterminds/sprig"
-	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -34,16 +33,14 @@ const DefaultNamespace = "default"
 // SystemNamespace K8s system namespace
 const SystemNamespace = "kube-system"
 
-var logger *logrus.Logger
-var log *logrus.Entry
+var log *logrus.Logger
 
 // ErrRepoNotFound describe an error if helm repository not found
 var ErrRepoNotFound = errors.New("helm repository not found!")
 
 // Simple init for logging
 func init() {
-	logger = config.Logger()
-	log = logger.WithFields(logrus.Fields{"action": "Helm"})
+	log = config.Logger()
 }
 
 // DownloadFile download file/unzip and untar and store it in memory
@@ -89,7 +86,6 @@ func GetChartFile(file []byte, fileName string) (string, error) {
 
 //DeleteAllDeployment deletes all Helm deployment
 func DeleteAllDeployment(kubeconfig []byte) error {
-	log := logger.WithFields(logrus.Fields{"tag": "DeleteAllDeployment"})
 	log.Info("Getting deployments....")
 	filter := ""
 	releaseResp, err := ListDeployments(&filter, kubeconfig)
@@ -112,7 +108,6 @@ func DeleteAllDeployment(kubeconfig []byte) error {
 
 //ListDeployments lists Helm deployments
 func ListDeployments(filter *string, kubeConfig []byte) (*rls.ListReleasesResponse, error) {
-	log := logger.WithFields(logrus.Fields{"tag": constants.TagListDeployments})
 	hClient, err := GetHelmClient(kubeConfig)
 	// TODO doc the options here
 	var sortBy = int32(2)
@@ -180,7 +175,6 @@ func UpgradeDeployment(releaseName, chartName string, values []byte, reuseValues
 
 //CreateDeployment creates a Helm deployment in chosen namespace
 func CreateDeployment(chartName string, namespace string, releaseName string, valueOverrides []byte, kubeConfig []byte, env helm_env.EnvSettings) (*rls.InstallReleaseResponse, error) {
-	log := logger.WithFields(logrus.Fields{"tag": constants.TagCreateDeployment})
 
 	log.Infof("Deploying chart=%q, release name=%q", chartName, releaseName)
 	downloadedChartPath, err := DownloadChartFromRepo(chartName, env)

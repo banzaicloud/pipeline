@@ -14,16 +14,13 @@ import (
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 var tillerTunnel *kube.Tunnel
 
 func init() {
-	logger = config.Logger()
-	log = logger.WithFields(logrus.Fields{"action": "Helm"})
+	log = config.Logger()
 }
 
 //GetK8sConnection creates a new Kubernetes client
@@ -77,7 +74,6 @@ func GetK8sClientConfig(kubeConfig []byte) (*rest.Config, error) {
 
 //GetHelmClient establishes Tunnel for Helm client TODO check client and config if both needed
 func GetHelmClient(kubeConfig []byte) (*helm.Client, error) {
-	log := logger.WithFields(logrus.Fields{"tag": constants.TagKubernetes})
 	log.Debug("Create kubernetes Client.")
 	config, err := GetK8sClientConfig(kubeConfig)
 	client, err := GetK8sConnection(kubeConfig)
@@ -98,7 +94,6 @@ func GetHelmClient(kubeConfig []byte) (*helm.Client, error) {
 
 //CheckDeploymentState checks the state of Helm deployment
 func CheckDeploymentState(kubeConfig []byte, releaseName string) (string, error) {
-	log := logger.WithFields(logrus.Fields{"tag": constants.TagKubernetes})
 	client, err := GetK8sConnection(kubeConfig)
 	filter := fmt.Sprintf("release=%s", releaseName)
 

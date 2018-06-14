@@ -8,7 +8,6 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/gin-gonic/gin/json"
-	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
@@ -51,7 +50,6 @@ func (b *GoogleObjectStore) WithRegion(region string) error {
 
 // CreateBucket creates a Google Bucket with the provided name and location
 func (b *GoogleObjectStore) CreateBucket(bucketName string) {
-	log := logger.WithFields(logrus.Fields{"tag": "CreateBucket"})
 
 	managedBucket := &ManagedGoogleBucket{}
 	searchCriteria := b.newManagedBucketSearchCriteria(bucketName)
@@ -113,7 +111,6 @@ func (b *GoogleObjectStore) CreateBucket(bucketName string) {
 // DeleteBucket deletes the GS bucket identified by the specified name
 // provided the storage container is of 'managed` type
 func (b *GoogleObjectStore) DeleteBucket(bucketName string) error {
-	log := logger.WithFields(logrus.Fields{"tag": "GoogleObjectStore.DeleteBucket"})
 
 	managedBucket := &ManagedGoogleBucket{}
 	searchCriteria := b.newManagedBucketSearchCriteria(bucketName)
@@ -156,7 +153,6 @@ func (b *GoogleObjectStore) DeleteBucket(bucketName string) error {
 
 //CheckBucket check the status of the given Google bucket
 func (b *GoogleObjectStore) CheckBucket(bucketName string) error {
-	log := logger.WithFields(logrus.Fields{"tag": "GoogleObjectStore.CheckBucket"})
 	managedBucket := &ManagedGoogleBucket{}
 	searchCriteria := b.newManagedBucketSearchCriteria(bucketName)
 	log.Info("Looking up managed bucket: name=%s", bucketName)
@@ -201,7 +197,6 @@ func (b *GoogleObjectStore) CheckBucket(bucketName string) error {
 // referenced by the secret field. GS buckets that were created by a user in the current
 // org are marked as 'managed`
 func (b *GoogleObjectStore) ListBuckets() ([]*components.BucketInfo, error) {
-	log := logger.WithFields(logrus.Fields{"tag": "GoogleObjectStore.ListBuckets"})
 
 	ctx := context.Background()
 

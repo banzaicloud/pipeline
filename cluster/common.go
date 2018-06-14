@@ -16,14 +16,18 @@ import (
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
+	"github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/terminal"
 )
 
-// TODO se who will win
-var logger *logrus.Logger
-var log *logrus.Entry
+var log *logrus.Logger
+
+// Simple init for logging
+func init() {
+	log = config.Logger()
+}
 
 //CommonCluster interface for clusters
 type CommonCluster interface {
@@ -186,7 +190,6 @@ func getSecret(organizationId uint, secretId string) (*secret.SecretsItemRespons
 func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster, error) {
 
 	database := model.GetDB()
-	log := logger.WithFields(logrus.Fields{"tag": "GetCommonClusterFromModel"})
 
 	cloudType := modelCluster.Cloud
 	switch cloudType {

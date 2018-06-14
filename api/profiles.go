@@ -7,7 +7,6 @@ import (
 	"github.com/banzaicloud/pipeline/model/defaults"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"net/http"
 )
 
@@ -19,8 +18,6 @@ const (
 // GetClusterProfiles handles /profiles/cluster/:type GET api endpoint.
 // Sends back the saved cluster profiles
 func GetClusterProfiles(c *gin.Context) {
-
-	log := logger.WithFields(logrus.Fields{"tag": constants.TagGetClusterProfile})
 
 	cloudType := c.Param(cloudTypeKey)
 	log.Infof("Start getting saved cluster profiles [%s]", cloudType)
@@ -43,7 +40,6 @@ func GetClusterProfiles(c *gin.Context) {
 // Saves ClusterProfileRequest data into the database.
 // Saving failed if profile with the given name is already exists
 func AddClusterProfile(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"tag": constants.TagSetClusterProfile})
 
 	log.Info("Start getting save cluster profile")
 
@@ -142,7 +138,6 @@ func convertRequestToProfile(request *components.ClusterProfileRequest) (default
 // Updates existing cluster profiles.
 // Updating failed if the name is the default name.
 func UpdateClusterProfile(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"tag": constants.TagUpdateClusterProfile})
 
 	log.Debug("Bind json into ClusterProfileRequest struct")
 	// bind request body to struct
@@ -196,7 +191,6 @@ func UpdateClusterProfile(c *gin.Context) {
 // Deletes saved cluster profile.
 // Deleting failed if the name is the default name.
 func DeleteClusterProfile(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"tag": constants.TagDeleteClusterProfile})
 
 	cloudType := c.Param(cloudTypeKey)
 	name := c.Param(nameKey)

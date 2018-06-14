@@ -17,11 +17,11 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-var logger *logrus.Logger
+var log *logrus.Logger
 
 // Simple init for logging
 func init() {
-	logger = config.Logger()
+	log = config.Logger()
 }
 
 //Key struct for store ssh key data
@@ -47,7 +47,6 @@ func NewKey(s *secret.SecretsItemResponse) *Key {
 
 // KeyAdd for Generate and store SSH key
 func KeyAdd(organizationId uint, clusterId uint) (string, error) {
-	log := logger.WithFields(logrus.Fields{"tag": "KeyAdd"})
 	log.Info("Generate and store SSH key ")
 
 	sshKey, err := KeyGenerator()
@@ -72,7 +71,6 @@ func KeyAdd(organizationId uint, clusterId uint) (string, error) {
 
 // KeyStore for store SSH Key to Bank Vaults
 func KeyStore(key *Key, organizationID uint, clusterName string) (secretID string, err error) {
-	log := logger.WithFields(logrus.Fields{"tag": "KeyStore"})
 	log.Info("Store SSH Key to Bank Vaults")
 	var createSecretRequest secret.CreateSecretRequest
 	createSecretRequest.Type = constants.SshSecretType
@@ -99,7 +97,6 @@ func KeyStore(key *Key, organizationID uint, clusterName string) (secretID strin
 
 // KeyGenerator for Generate new SSH Key
 func KeyGenerator() (*Key, error) {
-	log := logger.WithFields(logrus.Fields{"tag": "KeyGenerator"})
 	log.Info("Generate new ssh key")
 
 	key := new(Key)

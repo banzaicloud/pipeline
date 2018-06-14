@@ -19,7 +19,6 @@ import (
 	"github.com/qor/auth/auth_identity"
 	"github.com/qor/auth/claims"
 	"github.com/qor/qor/utils"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
@@ -139,7 +138,6 @@ type BanzaiUserStorer struct {
 // Save differs from the default UserStorer.Save() in that it
 // extracts Token and Login and saves to Drone DB as well
 func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (user interface{}, userID string, err error) {
-	log := logger.WithFields(logrus.Fields{"tag": "Auth"})
 
 	currentUser := &User{}
 	err = copier.Copy(currentUser, schema)

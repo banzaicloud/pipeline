@@ -12,12 +12,10 @@ import (
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 )
 
 //OrganizationMiddleware parses the organization id from the request, queries it from the database and saves it to the current context
 func OrganizationMiddleware(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"tag": "OrganizationMiddleware"})
 	orgidParam := c.Param("orgid")
 	orgid, err := strconv.ParseUint(orgidParam, 10, 32)
 	if err != nil {
@@ -53,7 +51,6 @@ func OrganizationMiddleware(c *gin.Context) {
 
 //GetOrganizations returns all organizations the user belongs to or a specific one from those by id
 func GetOrganizations(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"tag": "GetOrganizations"})
 	log.Info("Fetching organizations")
 
 	user := auth.GetCurrentUser(c.Request)
@@ -118,7 +115,6 @@ func GetOrganizations(c *gin.Context) {
 
 //CreateOrganization creates an organization for the calling user
 func CreateOrganization(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"tag": "CreateOrganization"})
 	log.Info("Creating organization")
 
 	var name struct {
@@ -159,7 +155,6 @@ func CreateOrganization(c *gin.Context) {
 
 //DeleteOrganization deletes an organizaion by id
 func DeleteOrganization(c *gin.Context) {
-	log := logger.WithFields(logrus.Fields{"tag": "DeleteOrganization"})
 	log.Info("Deleting organization")
 
 	idParam := c.Param("orgid")

@@ -9,7 +9,6 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/jinzhu/gorm"
-	"github.com/sirupsen/logrus"
 	"strconv"
 	"time"
 )
@@ -138,7 +137,6 @@ func (gc GoogleClusterModel) String() string {
 
 // BeforeSave converts the metadata into a json string in case of Kubernetes
 func (cs *ClusterModel) BeforeSave() error {
-	log := logger.WithFields(logrus.Fields{"tag": "BeforeSave"})
 	log.Info("Before save convert meta data")
 
 	if cs.Cloud == constants.Kubernetes && cs.Kubernetes.MetadataRaw != nil && len(cs.Kubernetes.MetadataRaw) != 0 {
@@ -157,7 +155,6 @@ func (cs *ClusterModel) BeforeSave() error {
 // to unknown if they are empty
 func (cs *ClusterModel) AfterFind() error {
 
-	log := logger.WithFields(logrus.Fields{"tag": "AfterFind"})
 	log.Info("After find convert metadata")
 
 	if len(cs.Location) == 0 {
@@ -192,7 +189,6 @@ func (cs *ClusterModel) preDelete() error {
 
 //Delete cluster from DB
 func (cs *ClusterModel) Delete() error {
-	log := logger.WithFields(logrus.Fields{"tag": "Delete"})
 
 	log.Info("Delete config secret")
 	err := cs.preDelete()
@@ -299,7 +295,6 @@ func (KubernetesClusterModel) TableName() string {
 
 // AfterUpdate removes marked node pool(s)
 func (gc *GoogleClusterModel) AfterUpdate(scope *gorm.Scope) error {
-	log := logger.WithFields(logrus.Fields{"tag": "AfterUpdate"})
 	log.Info("Remove node pools marked for deletion")
 
 	for _, nodePoolModel := range gc.NodePools {
@@ -317,7 +312,6 @@ func (gc *GoogleClusterModel) AfterUpdate(scope *gorm.Scope) error {
 
 // AfterUpdate removes marked node pool(s)
 func (a *AmazonClusterModel) AfterUpdate(scope *gorm.Scope) error {
-	log := logger.WithFields(logrus.Fields{"tag": "AfterUpdate"})
 	log.Info("Remove node pools marked for deletion")
 
 	for _, nodePoolModel := range a.NodePools {

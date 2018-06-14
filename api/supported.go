@@ -6,14 +6,11 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster/supported"
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 	"net/http"
 )
 
 // GetSupportedClusterList sends back the supported cluster list
 func GetSupportedClusterList(c *gin.Context) {
-
-	log := logger.WithFields(logrus.Fields{"tag": "GetSupportedClusterList"})
 
 	log.Info("Start getting supported clusters")
 
@@ -84,7 +81,6 @@ func GetSupportedClusterList(c *gin.Context) {
 // GetSupportedFilters sends back the supported filter words
 func GetSupportedFilters(c *gin.Context) {
 
-	log := logger.WithFields(logrus.Fields{"tag": "GetSupportedFilters"})
 	log.Info("Start getting filter keys")
 
 	c.JSON(http.StatusOK, components.SupportedFilters{
@@ -96,7 +92,6 @@ func GetSupportedFilters(c *gin.Context) {
 // GetCloudInfo sends back the supported locations/k8sVersions/machineTypes
 func GetCloudInfo(c *gin.Context) {
 
-	log := logger.WithFields(logrus.Fields{"tag": "GetCloudInfo"})
 	log.Info("Start getting cloud info")
 
 	organizationID := auth.GetCurrentOrganization(c.Request).ID

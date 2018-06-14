@@ -9,7 +9,6 @@ import (
 	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/banzai-types/components/amazon"
 	"github.com/banzaicloud/banzai-types/constants"
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
@@ -24,7 +23,6 @@ import (
 	"github.com/kubicorn/kubicorn/state/fs"
 	"github.com/pkg/errors"
 	"github.com/pkg/sftp"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
@@ -43,12 +41,6 @@ const (
 	dependencyViolation = "DependencyViolation"
 	notFoundGroup       = "InvalidGroup.NotFound"
 )
-
-// Simple init for logging
-func init() {
-	logger = config.Logger()
-	log = logger.WithFields(logrus.Fields{"action": "Cluster"})
-}
 
 // SetCredentials sets AWS credentials in session options
 func SetCredentials(awscred *credentials.Credentials) func(*session.Options) error {
@@ -120,7 +112,6 @@ func (c *AWSCluster) GetModel() *model.ClusterModel {
 
 //CreateAWSClusterFromModel creates ClusterModel struct from the kubicorn model
 func CreateAWSClusterFromModel(clusterModel *model.ClusterModel) (*AWSCluster, error) {
-	log := logger.WithFields(logrus.Fields{"action": constants.TagGetCluster})
 	log.Debug("Create ClusterModel struct from the request")
 	awsCluster := AWSCluster{
 		modelCluster: clusterModel,
@@ -136,7 +127,6 @@ func CreateAWSClusterFromModel(clusterModel *model.ClusterModel) (*AWSCluster, e
 
 //CreateAWSClusterFromRequest creates ClusterModel struct from the request
 func CreateAWSClusterFromRequest(request *components.CreateClusterRequest, orgId uint) (*AWSCluster, error) {
-	log := logger.WithFields(logrus.Fields{"action": constants.TagCreateCluster})
 	log.Debug("Create ClusterModel struct from the request")
 	var cluster AWSCluster
 
@@ -183,7 +173,6 @@ func (c *AWSCluster) Persist(status, statusMessage string) error {
 
 //CreateCluster creates a new cluster
 func (c *AWSCluster) CreateCluster() error {
-	log := logger.WithFields(logrus.Fields{"action": constants.TagCreateCluster})
 
 	// Set up credentials TODO simplify
 	runtimeParam := pkg.RuntimeParameters{
@@ -549,7 +538,6 @@ func (c *AWSCluster) getExistingNodePoolByName(name string) *model.AmazonNodePoo
 // UpdateCluster updates Amazon cluster in cloud
 func (c *AWSCluster) UpdateCluster(request *components.UpdateClusterRequest) error {
 
-	log := logger.WithFields(logrus.Fields{"action": constants.TagUpdateCluster})
 	kubicornLogger.Level = getKubicornLogLevel()
 
 	log.Info("Start updating cluster (amazon)")
@@ -780,8 +768,6 @@ func ReadCluster(modelCluster *model.ClusterModel) (*kcluster.Cluster, error) {
 
 // DeleteCluster deletes cluster from amazon
 func (c *AWSCluster) DeleteCluster() error {
-
-	log := logger.WithFields(logrus.Fields{"action": constants.TagDeleteCluster})
 
 	kubicornLogger.Level = getKubicornLogLevel()
 
@@ -1078,7 +1064,6 @@ func (c *AWSCluster) UpdateStatus(status, statusMessage string) error {
 // GetClusterDetails gets cluster details from cloud
 func (c *AWSCluster) GetClusterDetails() (*components.ClusterDetailsResponse, error) {
 
-	log := logger.WithFields(logrus.Fields{"tag": "GetClusterDetails"})
 	log.Info("Start getting cluster details")
 
 	c.GetK8sConfig()
