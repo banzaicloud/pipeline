@@ -181,7 +181,7 @@ var (
 
 	sshCreateSecretFull = secret.CreateSecretRequest{
 		Name: secretDesc,
-		Type: pipConstants.SshSecretType,
+		Type: pipConstants.SSHSecretType,
 		Values: map[string]string{
 			pipConstants.User:                 SshUser,
 			pipConstants.Identifier:           SshIdentifier,
@@ -193,7 +193,7 @@ var (
 
 	sshMissingKey = secret.CreateSecretRequest{
 		Name: secretDesc,
-		Type: pipConstants.SshSecretType,
+		Type: pipConstants.SSHSecretType,
 		Values: map[string]string{
 			pipConstants.User:                 SshUser,
 			pipConstants.Identifier:           SshIdentifier,

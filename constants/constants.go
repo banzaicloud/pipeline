@@ -1,51 +1,70 @@
 package constants
 
-import "github.com/banzaicloud/banzai-types/constants"
+import (
+	"github.com/banzaicloud/banzai-types/constants"
+)
+
+// SecretField describes how a secret field should be validated
+type SecretField struct {
+	Name     string `json:"name"`
+	Required bool   `json:"required"`
+}
 
 const (
 	// GenericSecret represents generic secret types, without schema
 	GenericSecret = "generic"
 	// AllSecrets represents generic secret types which selects all secrets
 	AllSecrets = ""
-	// SshSecretType marks secrets as of type "ssh"
-	SshSecretType = "ssh"
+	// SSHSecretType marks secrets as of type "ssh"
+	SSHSecretType = "ssh"
+	// TLSSecretType marks secrets as of type "tls"
+	TLSSecretType = "tls"
 )
 
 // DefaultRules key matching for types
-var DefaultRules = map[string][]string{
+var DefaultRules = map[string][]SecretField{
 	constants.Amazon: {
-		AwsAccessKeyId,
-		AwsSecretAccessKey,
+		SecretField{Name: AwsAccessKeyId, Required: true},
+		SecretField{Name: AwsSecretAccessKey, Required: true},
 	},
 	constants.Azure: {
-		AzureClientId,
-		AzureClientSecret,
-		AzureTenantId,
-		AzureSubscriptionId,
+		SecretField{Name: AzureClientId, Required: true},
+		SecretField{Name: AzureClientSecret, Required: true},
+		SecretField{Name: AzureTenantId, Required: true},
+		SecretField{Name: AzureSubscriptionId, Required: true},
 	},
 	constants.Google: {
-		Type,
-		ProjectId,
-		PrivateKeyId,
-		PrivateKey,
-		ClientEmail,
-		ClientId,
-		AuthUri,
-		TokenUri,
-		AuthX509Url,
-		ClientX509Url,
+		SecretField{Name: Type, Required: true},
+		SecretField{Name: ProjectId, Required: true},
+		SecretField{Name: PrivateKeyId, Required: true},
+		SecretField{Name: PrivateKey, Required: true},
+		SecretField{Name: ClientEmail, Required: true},
+		SecretField{Name: ClientId, Required: true},
+		SecretField{Name: AuthUri, Required: true},
+		SecretField{Name: TokenUri, Required: true},
+		SecretField{Name: AuthX509Url, Required: true},
+		SecretField{Name: ClientX509Url, Required: true},
 	},
 	constants.Kubernetes: {
-		K8SConfig,
+		SecretField{Name: K8SConfig, Required: true},
 	},
-	SshSecretType: {
-		User,
-		Identifier,
-		PublicKeyData,
-		PublicKeyFingerprint,
-		PrivateKeyData,
+	SSHSecretType: {
+		SecretField{Name: User, Required: true},
+		SecretField{Name: Identifier, Required: true},
+		SecretField{Name: PublicKeyData, Required: true},
+		SecretField{Name: PublicKeyFingerprint, Required: true},
+		SecretField{Name: PrivateKeyData, Required: true},
 	},
-
+	TLSSecretType: {
+		SecretField{Name: TLSHosts, Required: true},
+		SecretField{Name: TLSValidity, Required: false},
+		SecretField{Name: CACert, Required: false},
+		SecretField{Name: CAKey, Required: false},
+		SecretField{Name: ServerKey, Required: false},
+		SecretField{Name: ServerCert, Required: false},
+		SecretField{Name: ClientKey, Required: false},
+		SecretField{Name: ClientCert, Required: false},
+	},
 	GenericSecret: {},
 }
 
@@ -89,6 +108,18 @@ const (
 	PublicKeyData        = "public_key_data"
 	PublicKeyFingerprint = "public_key_fingerprint"
 	PrivateKeyData       = "private_key_data"
+)
+
+// TLS keys
+const (
+	TLSHosts    = "hosts"
+	TLSValidity = "validity"
+	CACert      = "caCert"
+	CAKey       = "caKey"
+	ServerKey   = "serverKey"
+	ServerCert  = "serverCert"
+	ClientKey   = "clientKey"
+	ClientCert  = "clientCert"
 )
 
 // Internal usage

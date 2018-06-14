@@ -108,7 +108,7 @@ func (c *CommonClusterBase) getSshSecret(cluster CommonCluster) (*secret.Secrets
 		log.Info("Secret is loaded before")
 	}
 
-	err := c.sshSecret.ValidateSecretType(pipConstants.SshSecretType)
+	err := c.sshSecret.ValidateSecretType(pipConstants.SSHSecretType)
 	if err != nil {
 		return nil, err
 	}

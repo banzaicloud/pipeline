@@ -297,8 +297,8 @@ var (
 
 func toHiddenValues(secretType string) map[string]string {
 	values := map[string]string{}
-	for _, key := range pipConstants.DefaultRules[secretType] {
-		values[key] = "<hidden>"
+	for _, field := range pipConstants.DefaultRules[secretType] {
+		values[field.Name] = "<hidden>"
 	}
 	return values
 }
