@@ -9,6 +9,7 @@ import (
 	"github.com/banzaicloud/pipeline/audit"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/dns/route53/model"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/model/defaults"
 	"github.com/banzaicloud/pipeline/notify"
@@ -93,6 +94,7 @@ func main() {
 		&objectstore.ManagedAmazonBucket{},
 		&objectstore.ManagedAzureBlobStore{},
 		&objectstore.ManagedGoogleBucket{},
+		&route53model.Route53Domain{},
 	).Error; err != nil {
 
 		panic(err)

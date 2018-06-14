@@ -65,6 +65,8 @@ func init() {
 	viper.SetDefault("audit.skippaths", []string{"/auth/github/callback"})
 	viper.SetDefault("tls.validity", "8760h") // 1 year
 
+	viper.SetDefault("organization.domain", "banzaicloud.io")
+
 	ReleaseName := os.Getenv("KUBERNETES_RELEASE_NAME")
 	if ReleaseName == "" {
 		ReleaseName = "pipeline"
