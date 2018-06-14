@@ -96,7 +96,7 @@ Response:
 {
     "type": "amazon",
     "nameRegexp": "^[A-z0-9-_]{1,255}$",
-    "nodeInstanceType": {
+    "instanceType": {
         "eu-west-1": [
             "t2.nano",
             "t2.micro",
@@ -180,7 +180,7 @@ Response:
 {
     "type": "azure",
     "nameRegexp": "^[a-z0-9_]{0,31}[a-z0-9]$",
-    "nodeInstanceType": {
+    "instanceType": {
         "eastus": [
             "Standard_B1ms",
             "Standard_B1s",
@@ -225,7 +225,7 @@ Response:
         "eastus2",
         "westus"
     ],
-    "nodeInstanceType": {
+    "instanceType": {
         "eastus": [
             "Standard_B1ms",
             "Standard_B1s",
@@ -282,7 +282,7 @@ Response:
 {
     "type": "google",
     "nameRegexp": "^[a-z]$|^[a-z][a-z0-9-]{0,38}[a-z0-9]$",
-    "nodeInstanceType": {
+    "instanceType": {
         "asia-east1-a": [
             "f1-micro",
             "g1-small",
@@ -338,7 +338,7 @@ Response:
         "us-east4-b",
         "us-east4-a"
     ],
-    "nodeInstanceType": {
+    "instanceType": {
         "asia-east1-a": [
             "f1-micro",
             "g1-small",
