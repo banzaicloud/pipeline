@@ -316,6 +316,7 @@ func (c *AKSCluster) UpdateCluster(request *bTypes.UpdateClusterRequest) error {
 			Cloud:          c.modelCluster.Cloud,
 			OrganizationId: c.modelCluster.OrganizationId,
 			SecretId:       c.modelCluster.SecretId,
+			ConfigSecretId: c.modelCluster.ConfigSecretId,
 			Status:         c.modelCluster.Status,
 			Azure: model.AzureClusterModel{
 				ResourceGroup:     c.modelCluster.Azure.ResourceGroup,

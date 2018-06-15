@@ -596,6 +596,7 @@ func (c *AWSCluster) UpdateCluster(request *components.UpdateClusterRequest) err
 		Cloud:          request.Cloud,
 		OrganizationId: c.modelCluster.OrganizationId,
 		SecretId:       c.modelCluster.SecretId,
+		ConfigSecretId: c.modelCluster.ConfigSecretId,
 		SshSecretId:    c.modelCluster.SshSecretId,
 		Status:         c.modelCluster.Status,
 		Amazon: model.AmazonClusterModel{
