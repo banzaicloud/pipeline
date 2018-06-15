@@ -40,6 +40,10 @@ jobs:
           command:
               make check-misspell
       - run:
+          name: Run ineffassign
+          command:
+              make ineffassign
+      - run:
           name: Run pipeline tests
           command: |
               cp config/config.toml.example config/config.toml
