@@ -60,7 +60,7 @@ type NodePoolCreate struct {
 	MinCount         int    `json:"minCount"`
 	MaxCount         int    `json:"maxCount"`
 	Count            int    `json:"count"`
-	NodeInstanceType string `json:"nodeInstanceType"`
+	NodeInstanceType string `json:"instanceType"`
 }
 
 // NodePoolUpdate describes Azure's node count of a UpdateCluster request

@@ -24,7 +24,7 @@ type NodePool struct {
 	MinCount         int    `json:"minCount"`
 	MaxCount         int    `json:"maxCount"`
 	Count            int    `json:"count,omitempty"`
-	NodeInstanceType string `json:"nodeInstanceType,omitempty"`
+	NodeInstanceType string `json:"instanceType,omitempty"`
 	ServiceAccount   string `json:"serviceAccount,omitempty"`
 }
 

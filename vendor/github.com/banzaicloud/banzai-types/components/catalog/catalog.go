@@ -9,17 +9,20 @@ type SpotguideFile struct {
 
 // ApplicationOptions for API response
 type ApplicationOptions struct {
-	Name     string `json:"name"`
-	Type     string `json:"type"`
-	Default  bool   `json:"default"`
-	Info     string `json:"info"`
-	Readonly bool   `json:"readonly"`
-	Key      string `json:"key"`
-	Value    string `json:"value"`
+	Name     string   `json:"name"`
+	Type     string   `json:"type"`
+	Default  bool     `json:"default"`
+	Label    string   `json:"label"`
+	Info     string   `json:"info"`
+	Readonly bool     `json:"readonly"`
+	Key      string   `json:"key"`
+	Value    string   `json:"value"`
+	Enum     []string `json:"enum"`
 }
 
 // ApplicationDependency for spotguide.yaml
 type ApplicationDependency struct {
+	Info      string           `json:"info"`
 	Name      string           `json:"name"`
 	Type      string           `json:"type"`
 	Values    []string         `json:"values"`
@@ -38,9 +41,14 @@ type ApplicationChart struct {
 
 // ApplicationResources to parse spotguide.yaml
 type ApplicationResources struct {
-	VCPU               int      `json:"vcpu"`
-	Memory             int      `json:"memory"`
-	Filters            []string `json:"filters"`
-	OnDemandPercentage int      `json:"onDemandPercentage"`
-	SameSize           bool     `json:"sameSize"`
+	SumCpu      float64  `json:"sumCpu" binding:"min=1"`
+	SumMem      float64  `json:"sumMem" binding:"min=1"`
+	MinNodes    int      `json:"minNodes,omitempty" binding:"min=1,ltefield=MaxNodes"`
+	MaxNodes    int      `json:"maxNodes,omitempty"`
+	SameSize    bool     `json:"sameSize,omitempty"`
+	OnDemandPct int      `json:"onDemandPct,omitempty" binding:"min=1,max=100"`
+	Zones       []string `json:"zones,omitempty" binding:"dive,zone"`
+	SumGpu      int      `json:"sumGpu,omitempty"`
+	AllowBurst  *bool    `json:"allowBurst,omitempty"`
+	NetworkPerf *string  `json:"networkPerf,omitempty"`
 }
