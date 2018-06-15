@@ -176,8 +176,8 @@
     "database",
     "vault"
   ]
-  revision = "a6b67e97e542cbaed3346416f4823ca958e8c2e0"
-  version = "0.2.0"
+  revision = "cf4ca7f1732e669e10bcea939c42e21b3807aa43"
+  version = "0.2.1"
 
 [[projects]]
   branch = "master"
