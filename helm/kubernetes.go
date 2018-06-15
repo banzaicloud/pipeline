@@ -76,6 +76,11 @@ func GetK8sClientConfig(kubeConfig []byte) (*rest.Config, error) {
 func GetHelmClient(kubeConfig []byte) (*helm.Client, error) {
 	log.Debug("Create kubernetes Client.")
 	config, err := GetK8sClientConfig(kubeConfig)
+	if err != nil {
+		log.Debug("Could not get K8S config")
+		return nil, err
+	}
+
 	client, err := GetK8sConnection(kubeConfig)
 	if err != nil {
 		log.Debug("Could not create kubernetes client from config.")
@@ -95,6 +100,10 @@ func GetHelmClient(kubeConfig []byte) (*helm.Client, error) {
 //CheckDeploymentState checks the state of Helm deployment
 func CheckDeploymentState(kubeConfig []byte, releaseName string) (string, error) {
 	client, err := GetK8sConnection(kubeConfig)
+	if err != nil {
+		return "", errors.Wrap(err, "Error during getting K8S config")
+	}
+
 	filter := fmt.Sprintf("release=%s", releaseName)
 
 	state := v1.PodRunning

@@ -134,6 +134,10 @@ func saveKeysToConfigmap(config *rest.Config, configName string, clusterName str
 		return err
 	}
 	configmap, err := client.CoreV1().ConfigMaps("default").Get(configName, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
 	configmap.Data[clusterName+"_client-key-data.pem"] = string(config.KeyData)
 	configmap.Data[clusterName+"_client-certificate-data.pem"] = string(config.CertData)
 	configmap.Data[clusterName+"_certificate-authority-data.pem"] = string(config.CAData)

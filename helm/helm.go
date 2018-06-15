@@ -546,7 +546,6 @@ func ChartGet(env helm_env.EnvSettings, chartRepo, chartName, chartVersion strin
 
 	repoPath := env.Home.RepositoryFile()
 	log.Debugf("Helm repo path: %s", repoPath)
-	chartD := &ChartDetails{}
 	f, err := repo.LoadRepositoriesFile(repoPath)
 	if err != nil {
 		return nil, err
@@ -589,7 +588,7 @@ func ChartGet(env helm_env.EnvSettings, chartRepo, chartName, chartVersion strin
 								return nil, err
 							}
 							log.Debugf("readme hash: %s", readmeStr)
-							chartD = &ChartDetails{
+							chartD := &ChartDetails{
 								Name:   chartName,
 								Repo:   chartRepo,
 								Chart:  s,

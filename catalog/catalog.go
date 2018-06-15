@@ -165,7 +165,6 @@ func getChartOption(file []byte) (*ctype.SpotguideFile, error) {
 
 // ChartGet modifiey helm.ChartGet to injet spotguide
 func ChartGet(env helm_env.EnvSettings, chartRepo, chartName, chartVersion string) (*CatalogDetails, error) {
-	chartD := &CatalogDetails{}
 	f, err := repo.LoadRepositoriesFile(env.Home.RepositoryFile())
 	if err != nil {
 		return nil, err
@@ -212,7 +211,7 @@ func ChartGet(env helm_env.EnvSettings, chartRepo, chartName, chartVersion strin
 								return nil, err
 							}
 							log.Debugf("readme hash: %s", readmeStr)
-							chartD = &CatalogDetails{
+							chartD := &CatalogDetails{
 								Name:      chartName,
 								Repo:      chartRepo,
 								Chart:     s,
