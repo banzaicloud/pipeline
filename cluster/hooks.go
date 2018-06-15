@@ -8,7 +8,6 @@ import (
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/utils"
-	"github.com/ghodss/yaml"
 	"github.com/go-errors/errors"
 	"github.com/spf13/viper"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -186,40 +185,7 @@ func InstallClusterAutoscalerPostHook(input interface{}) error {
 	if !ok {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
-
-	var nodeGroups []nodeGroup
-
-	switch cluster.GetType() {
-	case constants.Amazon:
-		nodeGroups = getAmazonNodeGroups(cluster)
-	case constants.Azure:
-		nodeGroups = getAzureNodeGroups(cluster)
-	default:
-		return nil
-	}
-
-	if len(nodeGroups) == 0 {
-		log.Info("No node groups configured for autoscaling")
-		return nil
-	}
-
-	var values *autoscalingInfo
-	switch cluster.GetType() {
-	case constants.Amazon:
-		values = createAutoscalingForAmazon(cluster, nodeGroups)
-	case constants.Azure:
-		values = createAutoscalingForAzure(cluster, nodeGroups)
-	default:
-		return nil
-	}
-
-	yamlValues, err := yaml.Marshal(*values)
-	if err != nil {
-		log.Errorf("Error during values marshal: %s", err.Error())
-		return errors.Errorf("Error during values marshal: %s", err.Error())
-	}
-	releaseName := "autoscaler"
-	return installDeployment(cluster, helm.SystemNamespace, autoSalerChart, releaseName, yamlValues, "InstallClusterAutoscaler")
+	return DeployClusterAutoscaler(cluster)
 }
 
 //UpdatePrometheusPostHook updates a configmap used by Prometheus
