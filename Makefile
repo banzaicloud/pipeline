@@ -88,3 +88,21 @@ endif
 
 clean_vendor:
 	find -L ./vendor -type l | xargs rm -rf
+
+ineffassign: install-ineffassign
+	ineffassign ${GOFILES_NOVENDOR}
+
+gocyclo: install-gocyclo
+	gocyclo -over 15 ${GOFILES_NOVENDOR}
+
+install-ineffassign:
+	INEFFASSIGN_CMD=$(shell command -v ineffassign 2> /dev/null)
+ifndef INEFFASSIGN_CMD
+	go get -u github.com/gordonklaus/ineffassign
+endif
+
+install-gocyclo:
+	GOCYCLO_CMD=$(shell command -v gocyclo 2> /dev/null)
+ifndef GOCYCLO_CMD
+	go get -u github.com/fzipp/gocyclo
+endif
