@@ -84,7 +84,7 @@ type GetClusterStatusResponse struct {
 // NodePoolStatus describes cluster's node status
 type NodePoolStatus struct {
 	Count          int    `json:"count,omitempty"`
-	InstanceType   string `json:"instance_type,omitempty"`
+	InstanceType   string `json:"instanceType,omitempty"`
 	ServiceAccount string `json:"service_account,omitempty"`
 	SpotPrice      string `json:"spot_price,omitempty"`
 	MinCount       int    `json:"min_count,omitempty"`
@@ -318,7 +318,7 @@ type GetCloudInfoResponse struct {
 	Type               string                 `json:"type" binding:"required"`
 	NameRegexp         string                 `json:"nameRegexp,omitempty"`
 	Locations          []string               `json:"locations,omitempty"`
-	NodeInstanceType   map[string]MachineType `json:"nodeInstanceType,omitempty"`
+	NodeInstanceType   map[string]MachineType `json:"instanceType,omitempty"`
 	KubernetesVersions interface{}            `json:"kubernetes_versions,omitempty"`
 	Image              map[string][]string    `json:"image,omitempty"`
 }

@@ -112,7 +112,7 @@ var (
 	ErrorWrongKubernetesVersion         = errors.New("Wrong kubernetes version for master/nodes. The required minimum kubernetes version is 1.8.x ")
 	ErrorDifferentKubernetesVersion     = errors.New("Different kubernetes version for master and nodes")
 	ErrorLocationEmpty                  = errors.New("Location field is empty")
-	ErrorNodeInstanceTypeEmpty          = errors.New("NodeInstanceType field is empty")
+	ErrorNodeInstanceTypeEmpty          = errors.New("instanceType field is empty")
 	ErrorRequiredLocation               = errors.New("location is required")
 	ErrorRequiredSecretId               = errors.New("Secret id is required")
 	ErrorCloudInfoK8SNotSupported       = errors.New("Not supported key in case of amazon")
