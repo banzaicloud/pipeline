@@ -1,16 +1,26 @@
 package cluster
 
 import (
+	banzaiConst "github.com/banzaicloud/banzai-types/constants"
+	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/constants"
 	"github.com/banzaicloud/pipeline/helm"
+	"github.com/ghodss/yaml"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const cloudProviderAzure = "azure"
 const cloudProviderAws = "aws"
-const autoSalerChart = "banzaicloud-stable/cluster-autoscaler"
+const autoScalerChart = "banzaicloud-stable/cluster-autoscaler"
 const expanderStrategy = "least-waste"
 const logLevel = "5"
+
+const releaseName = "autoscaler"
+
+type deploymentAction string
+
+const install deploymentAction = "Install"
+const upgrade deploymentAction = "Upgrade"
 
 type nodeGroup struct {
 	Name    string `json:"name"`
@@ -145,4 +155,102 @@ func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup) *autos
 			ClusterName:       cluster.GetName(),
 		},
 	}
+}
+
+//DeployClusterAutoscaler post hook only for AWS & Azure for now
+func DeployClusterAutoscaler(cluster CommonCluster) error {
+
+	var nodeGroups []nodeGroup
+
+	switch cluster.GetType() {
+	case banzaiConst.Amazon:
+		nodeGroups = getAmazonNodeGroups(cluster)
+	case banzaiConst.Azure:
+		nodeGroups = getAzureNodeGroups(cluster)
+	default:
+		return nil
+	}
+
+	kubeConfig, err := cluster.GetK8sConfig()
+	if err != nil {
+		log.Errorf("Unable to fetch K8S config %s", err.Error())
+		return err
+	}
+
+	if isAutoscalerDeployedAlready(releaseName, kubeConfig) {
+		if len(nodeGroups) == 0 {
+			// delete
+			err := helm.DeleteDeployment(releaseName, kubeConfig)
+			if err != nil {
+				log.Errorf("DeleteDeployment '%s' failed due to: %s", autoScalerChart, err.Error())
+				return err
+			}
+		} else {
+			// upgrade
+			return deployAutoscalerChart(cluster, nodeGroups, kubeConfig, upgrade)
+		}
+	} else {
+		if len(nodeGroups) == 0 {
+			// do nothing
+			log.Info("No node groups configured for autoscaling")
+			return nil
+		}
+		// install
+		return deployAutoscalerChart(cluster, nodeGroups, kubeConfig, install)
+
+	}
+
+	return nil
+}
+
+func isAutoscalerDeployedAlready(releaseName string, kubeConfig []byte) bool {
+	deployments, err := helm.ListDeployments(&releaseName, kubeConfig)
+	if err != nil {
+		log.Errorf("ListDeployments for '%s' failed due to: %s", autoScalerChart, err.Error())
+		return false
+	}
+	for _, release := range deployments.GetReleases() {
+		if release.Name == releaseName {
+			return true
+		}
+	}
+	return false
+}
+
+func deployAutoscalerChart(cluster CommonCluster, nodeGroups []nodeGroup, kubeConfig []byte, action deploymentAction) error {
+	var values *autoscalingInfo
+	switch cluster.GetType() {
+	case banzaiConst.Amazon:
+		values = createAutoscalingForAmazon(cluster, nodeGroups)
+	case banzaiConst.Azure:
+		values = createAutoscalingForAzure(cluster, nodeGroups)
+	default:
+		return nil
+	}
+	yamlValues, err := yaml.Marshal(*values)
+	if err != nil {
+		log.Errorf("Error during values marshal: %s", err.Error())
+		return err
+	}
+	org, err := auth.GetOrganizationById(cluster.GetOrganizationId())
+	if err != nil {
+		log.Errorf("Error during getting organization: %s", err.Error())
+		return err
+	}
+	switch action {
+	case install:
+		_, err = helm.CreateDeployment(autoScalerChart, helm.SystemNamespace, releaseName, yamlValues, kubeConfig, helm.GenerateHelmRepoEnv(org.Name))
+	case upgrade:
+		_, err = helm.UpgradeDeployment(releaseName, autoScalerChart, yamlValues, false, kubeConfig, helm.GenerateHelmRepoEnv(org.Name))
+	default:
+		return err
+	}
+
+	if err != nil {
+		log.Errorf("%s of chart '%s' failed due to: %s", action, autoScalerChart, err.Error())
+		return err
+	}
+
+	log.Infof("'%s' %sed", autoScalerChart, action)
+	return nil
 }

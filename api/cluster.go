@@ -491,7 +491,7 @@ func postUpdateCluster(commonCluster cluster.CommonCluster, updateRequest *compo
 		return err
 	}
 
-	return nil
+	return cluster.DeployClusterAutoscaler(commonCluster)
 }
 
 // DeleteCluster deletes a K8S cluster from the cloud
