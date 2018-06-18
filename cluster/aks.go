@@ -258,6 +258,13 @@ func (c *AKSCluster) UpdateCluster(request *bTypes.UpdateClusterRequest) error {
 
 	client.With(log)
 
+	clusterSshSecret, err := c.GetSshSecretWithValidation()
+	if err != nil {
+		return err
+	}
+
+	sshKey := pipelineSsh.NewKey(clusterSshSecret)
+
 	// send separate requests because Azure not supports multiple nodepool modification
 	// Azure not supports adding and deleting nodepools
 	var nodePoolAfterUpdate []*model.AzureNodePoolModel
@@ -275,6 +282,7 @@ func (c *AKSCluster) UpdateCluster(request *bTypes.UpdateClusterRequest) error {
 					Location:          c.modelCluster.Location,
 					ResourceGroup:     c.modelCluster.Azure.ResourceGroup,
 					KubernetesVersion: c.modelCluster.Azure.KubernetesVersion,
+					SSHPubKey:         sshKey.PublicKeyData,
 					Profiles: []containerservice.AgentPoolProfile{
 						{
 							Name:   &name,
@@ -317,6 +325,7 @@ func (c *AKSCluster) UpdateCluster(request *bTypes.UpdateClusterRequest) error {
 			OrganizationId: c.modelCluster.OrganizationId,
 			SecretId:       c.modelCluster.SecretId,
 			ConfigSecretId: c.modelCluster.ConfigSecretId,
+			SshSecretId:    c.modelCluster.SshSecretId,
 			Status:         c.modelCluster.Status,
 			Azure: model.AzureClusterModel{
 				ResourceGroup:     c.modelCluster.Azure.ResourceGroup,
