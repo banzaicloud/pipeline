@@ -4729,7 +4729,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n\t\"name\": \"my little application\",\n\t\"catalogName\": \"{{catalog_name}}\",\n\t\"cluster\": {\n\t\t\"name\": \"gkecluster-{{username}}-{{$randomInt}}\",\n\t\t\"location\": \"us-central1-a\",\n\t\t\"cloud\": \"google\",\n\t\t\"nodeInstanceType\": \"n1-standard-1\",\n\t\t\"secret_id\": \"{{secret_id}}\",\n\t\t\"properties\": {\n\t\t\t\"google\": {\n\t\t\t\t\"master\": {\n\t\t\t\t\t\"version\": \"1.9\"\n\t\t\t\t},\n\t\t\t\t\"nodeVersion\": \"1.9\",\n\t\t\t\t\"nodePools\": {\n\t\t\t\t\t\"pool1\": {\n\t\t\t\t\t\t\"count\": 1,\n\t\t\t\t\t\t\"nodeInstanceType\": \"n1-standard-2\"\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t},\n\t\"options\": []\n}"
+              "raw": "{\n\t\"name\": \"my little application\",\n\t\"catalogName\": \"{{catalog_name}}\",\n\t\"cluster\": {\n\t\t\"name\": \"gkecluster-{{username}}-{{$randomInt}}\",\n\t\t\"location\": \"us-central1-a\",\n\t\t\"cloud\": \"google\",\n\t\t\"instanceType\": \"n1-standard-1\",\n\t\t\"secret_id\": \"{{secret_id}}\",\n\t\t\"properties\": {\n\t\t\t\"google\": {\n\t\t\t\t\"master\": {\n\t\t\t\t\t\"version\": \"1.9\"\n\t\t\t\t},\n\t\t\t\t\"nodeVersion\": \"1.9\",\n\t\t\t\t\"nodePools\": {\n\t\t\t\t\t\"pool1\": {\n\t\t\t\t\t\t\"count\": 1,\n\t\t\t\t\t\t\"instanceType\": \"n1-standard-2\"\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t},\n\t\"options\": []\n}"
             },
             "url": {
               "raw": "{{url}}/api/v1/orgs/{{orgId}}/applications",
