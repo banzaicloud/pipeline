@@ -83,6 +83,7 @@ func CreateApplication(am model.Application, options []ctype.ApplicationOptions,
 
 	log.Info("waiting for tiller to come up")
 	if err := cluster.WaitingForTillerComeUp(kubeConfig); err != nil {
+		am.Update(model.Application{Status: FAILED, Message: err.Error()})
 		return err
 	}
 
