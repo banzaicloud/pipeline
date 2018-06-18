@@ -87,9 +87,9 @@ func GetSupportedFilters(c *gin.Context) {
 	log := logger.WithFields(logrus.Fields{"tag": "GetSupportedFilters"})
 	log.Info("Start getting filter keys")
 
-	c.JSON(http.StatusOK, components.SupportedFilters{
-		Keys: supported.Keywords,
-	})
+	//c.JSON(http.StatusOK, components.SupportedFilters{
+	//	Keys: supported.Keywords,
+	//})
 
 }
 

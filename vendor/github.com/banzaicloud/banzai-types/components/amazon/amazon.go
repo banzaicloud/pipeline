@@ -112,6 +112,33 @@ func (amazon *CreateClusterAmazon) Validate() error {
 	return nil
 }
 
+// AddDefaults puts default values to optional field(s)
+func (amazon *CreateClusterAmazon) AddDefaults() error {
+
+	if amazon == nil {
+		return constants.ErrorAmazonFieldIsEmpty
+	}
+
+	if amazon.Master == nil {
+		amazon.Master = &CreateAmazonMaster{
+			InstanceType: constants.AmazonDefaultMasterInstanceType,
+			Image:        constants.AmazonDefaultImage,
+		}
+	}
+
+	if len(amazon.NodePools) == 0 {
+		return constants.ErrorAmazonNodePoolFieldIsEmpty
+	}
+
+	for i, np := range amazon.NodePools {
+		if len(np.Image) == 0 {
+			amazon.NodePools[i].Image = constants.AmazonDefaultImage
+		}
+	}
+
+	return nil
+}
+
 // Validate validates the update request (only amazon part). If any of the fields is missing, the method fills
 // with stored data.
 func (a *UpdateClusterAmazon) Validate() error {

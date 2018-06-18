@@ -76,6 +76,15 @@ func (am *Application) Save() error {
 	return err
 }
 
+// Delete deletes application from the DB
+func (am *Application) Delete() error {
+	err := GetDB().Delete(&am).Error
+	if err != nil {
+		log.Error(err)
+	}
+	return err
+}
+
 // Update update fields for Application
 func (am *Application) Update(update Application) error {
 	err := GetDB().Model(am).Update(update).Error

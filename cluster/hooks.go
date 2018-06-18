@@ -36,12 +36,31 @@ func RunPostHooks(functionList []func(interface{}) error, createdCluster CommonC
 	}
 }
 
-func pollingKubernetesConfig(cluster CommonCluster) ([]byte, error) {
+// PollingKubernetesConfig polls kubeconfig from the cloud
+func PollingKubernetesConfig(cluster CommonCluster) ([]byte, error) {
+
+	var err error
+	status := constants.Creating
+
+	for status == constants.Creating {
+
+		log.Infof("Cluster status: %s", status)
+		sr, err := cluster.GetStatus()
+		if err != nil {
+			return nil, err
+		}
+		status = sr.Status
+
+		err = cluster.ReloadFromDatabase()
+		if err != nil {
+			return nil, err
+		}
+		time.Sleep(time.Second * 5)
+	}
 
 	retryCount := viper.GetInt("cloud.configRetryCount")
 	retrySleepTime := viper.GetInt("cloud.configRetrySleep")
 
-	var err error
 	var kubeConfig []byte
 	for i := 0; i < retryCount; i++ {
 		kubeConfig, err = cluster.DownloadK8sConfig()
@@ -54,6 +73,24 @@ func pollingKubernetesConfig(cluster CommonCluster) ([]byte, error) {
 	}
 
 	return kubeConfig, err
+}
+
+// WaitingForTillerComeUp waits until till to come up
+func WaitingForTillerComeUp(kubeConfig []byte) error {
+
+	retryAttempts := viper.GetInt(constants.HELM_RETRY_ATTEMPT_CONFIG)
+	retrySleepSeconds := viper.GetInt(constants.HELM_RETRY_SLEEP_SECONDS)
+
+	for i := 0; i <= retryAttempts; i++ {
+		log.Infof("Waiting for tiller to come up %d/%d", i, retryAttempts)
+		_, err := helm.GetHelmClient(kubeConfig)
+		if err == nil {
+			return nil
+		}
+		log.Warnf("Error during getting helm client: %s", err.Error())
+		time.Sleep(time.Duration(retrySleepSeconds) * time.Second)
+	}
+	return errors.New("Timeout during waiting for tiller to get ready")
 }
 
 // InstallMonitoring to install monitoring deployment
@@ -237,9 +274,6 @@ func InstallHelmPostHook(input interface{}) error {
 	}
 	log = logger.WithFields(logrus.Fields{"action": "PostHook"})
 
-	retryAttempts := viper.GetInt(constants.HELM_RETRY_ATTEMPT_CONFIG)
-	retrySleepSeconds := viper.GetInt(constants.HELM_RETRY_SLEEP_SECONDS)
-
 	helmInstall := &htypes.Install{
 		Namespace:      "kube-system",
 		ServiceAccount: "tiller",
@@ -253,22 +287,12 @@ func InstallHelmPostHook(input interface{}) error {
 
 	err = helm.RetryHelmInstall(helmInstall, kubeconfig)
 	if err == nil {
-		// Get K8S Config //
-		kubeConfig, err := cluster.GetK8sConfig()
-		if err != nil {
+		log.Info("Getting K8S Config Succeeded")
+
+		if err := WaitingForTillerComeUp(kubeconfig); err != nil {
 			return err
 		}
-		log.Info("Getting K8S Config Succeeded")
-		for i := 0; i <= retryAttempts; i++ {
-			log.Infof("Waiting for tiller to come up %d/%d", i, retryAttempts)
-			_, err = helm.GetHelmClient(kubeConfig)
-			if err == nil {
-				return nil
-			}
-			log.Warnf("Error during getting helm client: %s", err.Error())
-			time.Sleep(time.Duration(retrySleepSeconds) * time.Second)
-		}
-		log.Error("Timeout during waiting for tiller to get ready")
+
 	} else {
 		log.Errorf("Error during retry helm install: %s", err.Error())
 	}
@@ -292,7 +316,7 @@ func StoreKubeConfig(input interface{}) error {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
 
-	config, err := pollingKubernetesConfig(cluster)
+	config, err := PollingKubernetesConfig(cluster)
 	if err != nil {
 		log.Errorf("Error downloading kubeconfig: %s", err.Error())
 		return err

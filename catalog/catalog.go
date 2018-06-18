@@ -9,6 +9,7 @@ import (
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/pkg/errors"
+	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
 	"io"
 	helm_env "k8s.io/helm/pkg/helm/environment"
@@ -20,9 +21,6 @@ import (
 
 // CatalogRepository for universal catalog repo name
 const CatalogRepository = "catalog"
-
-// CatalogRepositoryUrl for universal catalog repo url
-const CatalogRepositoryUrl = "http://kubernetes-charts.banzaicloud.com/branch/spotguide"
 
 // CatalogPath TODO check if we need some special config/path
 var CatalogPath = "./" + CatalogRepository
@@ -53,8 +51,8 @@ func CreateValuesFromOption(options []ctype.ApplicationOptions) ([]byte, error) 
 	return yaml.Marshal(base)
 }
 
-// GenerateGatalogEnv helper to generate Catalog repo env
-func GenerateGatalogEnv(orgName string) helm_env.EnvSettings {
+// GenerateCatalogEnv helper to generate Catalog repo env
+func GenerateCatalogEnv(orgName string) helm_env.EnvSettings {
 	return helm.CreateEnvSettings(fmt.Sprintf("%s/%s", CatalogPath, orgName))
 }
 
@@ -66,7 +64,7 @@ func EnsureCatalog(env helm_env.EnvSettings) error {
 	}
 	catalogRepo := &repo.Entry{
 		Name:  CatalogRepository,
-		URL:   CatalogRepositoryUrl,
+		URL:   getCatalogRepositoryUrl(),
 		Cache: env.Home.CacheIndex(CatalogRepository),
 	}
 	_, err := helm.ReposAdd(env, catalogRepo)
@@ -232,4 +230,9 @@ func ChartGet(env helm_env.EnvSettings, chartRepo, chartName, chartVersion strin
 		}
 	}
 	return nil, nil
+}
+
+// getCatalogRepositoryUrl returns catalog repo url
+func getCatalogRepositoryUrl() string {
+	return viper.GetString("catalog.repositoryUrl")
 }

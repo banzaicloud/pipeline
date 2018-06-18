@@ -185,6 +185,7 @@
   packages = [
     "components",
     "components/amazon",
+    "components/application",
     "components/azure",
     "components/catalog",
     "components/dummy",
@@ -193,7 +194,7 @@
     "components/kubernetes",
     "constants"
   ]
-  revision = "34cecf2bfaae6d0eeb8e5d36b225aeeaad630df4"
+  revision = "c1f219d53602da673d989db915b93f2852e9bef0"
 
 [[projects]]
   branch = "master"
@@ -1804,6 +1805,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "41c960a0fafd42475eb00e5a1eeded33230cecce8a31576d576f3c6fa66519c4"
+  inputs-digest = "03caa0d9f5af58d6f1c7ba9f58aaac95fd254b8a25db19a5c73acbe9ce7299b3"
   solver-name = "gps-cdcl"
   solver-version = 1

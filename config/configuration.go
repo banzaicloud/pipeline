@@ -39,6 +39,7 @@ func init() {
 	viper.SetDefault("cloud.configRetryCount", 30)
 	viper.SetDefault("cloud.configRetrySleep", 15)
 	viper.SetDefault("logging.kubicornloglevel", "debug")
+	viper.SetDefault("catalog.repositoryUrl", "http://kubernetes-charts.banzaicloud.com/branch/spotguide")
 
 	pwd, err := os.Getwd()
 	if err != nil {

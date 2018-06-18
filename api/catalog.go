@@ -11,7 +11,7 @@ import (
 // CatalogDetails get detailed information about a catalog
 func CatalogDetails(c *gin.Context) {
 	organization := auth.GetCurrentOrganization(c.Request)
-	env := catalog.GenerateGatalogEnv(organization.Name)
+	env := catalog.GenerateCatalogEnv(organization.Name)
 	chartName := c.Param("name")
 	log.Debugln("chartName:", chartName)
 	chartDetails, err := catalog.GetCatalogDetails(env, chartName)
@@ -31,7 +31,7 @@ func CatalogDetails(c *gin.Context) {
 // GetCatalogs List available Catalogs
 func GetCatalogs(c *gin.Context) {
 	organization := auth.GetCurrentOrganization(c.Request)
-	env := catalog.GenerateGatalogEnv(organization.Name)
+	env := catalog.GenerateCatalogEnv(organization.Name)
 	// Initialise filter type
 	filter := ParseField(c)
 	// Filter for organisation

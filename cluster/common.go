@@ -53,6 +53,7 @@ type CommonCluster interface {
 	GetConfigSecretId() string
 	GetK8sConfig() ([]byte, error)
 	RequiresSshPublicKey() bool
+	ReloadFromDatabase() error
 }
 
 // CommonClusterBase holds the fields that is common to all cluster types
