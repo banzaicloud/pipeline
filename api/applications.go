@@ -3,7 +3,7 @@ package api
 import (
 	"fmt"
 	"github.com/banzaicloud/banzai-types/components"
-	ctype "github.com/banzaicloud/banzai-types/components/catalog"
+	bApplication "github.com/banzaicloud/banzai-types/components/application"
 	"github.com/banzaicloud/pipeline/application"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
@@ -14,29 +14,6 @@ import (
 	"net/http"
 	"strconv"
 )
-
-// ApplicationDetailsResponse for API
-type ApplicationDetailsResponse struct {
-	Name        string `json:"name"`
-	ClusterName string `json:"clusterName"`
-	ClusterId   int    `json:"clusterId"`
-	Status      string
-	Icon        string
-	Deployments []string
-	Error       string
-	//Spotguide
-}
-
-// ApplicationListResponse for API TODO move to banzai-types
-type ApplicationListResponse struct {
-	Id          uint   `json:"id"`
-	Name        string `json:"name"`
-	ClusterName string `json:"clusterName"`
-	ClusterId   uint   `json:"clusterId"`
-	Status      string `json:"status"`
-	CatalogName string `json:"catalogName"`
-	Icon        string `json:"icon"`
-}
 
 func getApplicationFromRequest(c *gin.Context) (*model.Application, bool) {
 	idParam := c.Param("id")
@@ -57,8 +34,9 @@ func getApplicationFromRequest(c *gin.Context) (*model.Application, bool) {
 	err = db.Model(organization).Related(application).Error
 	if err != nil {
 		log.Errorf("Error getting application: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
-			Code:    http.StatusBadRequest,
+		statusCode := auth.GormErrorToStatusCode(err)
+		c.JSON(statusCode, components.ErrorResponse{
+			Code:    statusCode,
 			Message: "Error listing clusters",
 			Error:   err.Error(),
 		})
@@ -87,6 +65,13 @@ func getCluster(app *model.Application, c *gin.Context) (*model.ClusterModel, bo
 
 // DeleteApplications delete application
 func DeleteApplications(c *gin.Context) {
+
+	forceParam := c.DefaultQuery("force", "false")
+	force, err := strconv.ParseBool(forceParam)
+	if err != nil {
+		force = false
+	}
+
 	app, ok := getApplicationFromRequest(c)
 	if !ok {
 		return
@@ -106,7 +91,7 @@ func DeleteApplications(c *gin.Context) {
 		return
 	}
 	config, err := commonCluster.GetK8sConfig()
-	if err != nil {
+	if err != nil && !force {
 		log.Errorf("Error getting cluster config: %s", err.Error())
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
 			Code:    http.StatusBadRequest,
@@ -115,7 +100,20 @@ func DeleteApplications(c *gin.Context) {
 		})
 		return
 	}
-	application.DeleteApplication(app, config)
+
+	if err := application.DeleteApplication(app, config, force); err != nil {
+		log.Errorf("Error during deleting application: %s", err.Error())
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error during deleting application",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	app.Delete()
+	c.Status(http.StatusOK)
+
 }
 
 // ApplicationDetails get application details
@@ -146,7 +144,7 @@ func GetApplications(c *gin.Context) {
 		})
 		return
 	}
-	response := make([]ApplicationListResponse, 0)
+	response := make([]bApplication.ListResponse, 0)
 	log.Debugf("Apps: %#v", applications)
 	for _, app := range applications {
 		//We silently fail on GetCluster
@@ -154,14 +152,15 @@ func GetApplications(c *gin.Context) {
 		if err != nil {
 			continue
 		}
-		item := ApplicationListResponse{
-			Id:          app.ID,
-			Name:        app.Name,
-			CatalogName: app.CatalogName,
-			Icon:        app.Icon,
-			ClusterId:   clusterModel.ID,
-			ClusterName: clusterModel.Name,
-			Status:      app.Status,
+		item := bApplication.ListResponse{
+			Id:            app.ID,
+			Name:          app.Name,
+			CatalogName:   app.CatalogName,
+			Icon:          app.Icon,
+			ClusterId:     clusterModel.ID,
+			ClusterName:   clusterModel.Name,
+			Status:        app.Status,
+			StatusMessage: app.Message,
 		}
 		response = append(response, item)
 	}
@@ -169,18 +168,9 @@ func GetApplications(c *gin.Context) {
 	return
 }
 
-//CreateApplicationRequest  TODO Validate for Cluster xor ClusterId
-type CreateApplicationRequest struct {
-	Name        string                           `json:"name"`
-	CatalogName string                           `json:"catalogName"`
-	Cluster     *components.CreateClusterRequest `json:"cluster"`
-	ClusterId   uint                             `json:"clusterId"`
-	Options     []ctype.ApplicationOptions       `json:"options"`
-}
-
 // CreateApplication gin handler for API
 func CreateApplication(c *gin.Context) {
-	var createApplicationRequest CreateApplicationRequest
+	var createApplicationRequest bApplication.CreateRequest
 	if err := c.BindJSON(&createApplicationRequest); err != nil {
 		log.Error(errors.Wrap(err, "Error parsing request"))
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
@@ -194,8 +184,13 @@ func CreateApplication(c *gin.Context) {
 	var commonCluster cluster.CommonCluster
 	// Create new cluster
 	if createApplicationRequest.Cluster != nil {
-		commonCluster = CreateCluster(c, createApplicationRequest.Cluster)
 		// Support existing cluster
+		var err *components.ErrorResponse
+		commonCluster, err = CreateCluster(createApplicationRequest.Cluster, orgId)
+		if err != nil {
+			c.JSON(err.Code, err)
+			return
+		}
 	} else {
 		filter := make(map[string]interface{})
 		filter["organization_id"] = orgId
@@ -211,7 +206,15 @@ func CreateApplication(c *gin.Context) {
 		CatalogName:    createApplicationRequest.CatalogName,
 		ClusterID:      commonCluster.GetModel().ID,
 		OrganizationId: orgId,
+		Status:         application.CREATING,
 	}
 	am.Save()
+
+	c.JSON(http.StatusAccepted, bApplication.CreateResponse{
+		Name:      createApplicationRequest.Name,
+		Id:        am.ID,
+		ClusterId: commonCluster.GetModel().ID,
+	})
+
 	go application.CreateApplication(am, createApplicationRequest.Options, commonCluster)
 }

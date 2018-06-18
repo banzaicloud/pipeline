@@ -84,7 +84,7 @@ type GetClusterStatusResponse struct {
 // NodePoolStatus describes cluster's node status
 type NodePoolStatus struct {
 	Count          int    `json:"count,omitempty"`
-	InstanceType   string `json:"instance_type,omitempty"`
+	InstanceType   string `json:"instanceType,omitempty"`
 	ServiceAccount string `json:"service_account,omitempty"`
 	SpotPrice      string `json:"spot_price,omitempty"`
 	MinCount       int    `json:"min_count,omitempty"`
@@ -163,6 +163,16 @@ func (r *UpdateClusterRequest) String() string {
 	}
 
 	return buffer.String()
+}
+
+// AddDefaults puts default values to optional field(s)
+func (r *CreateClusterRequest) AddDefaults() error {
+	switch r.Cloud {
+	case constants.Amazon:
+		return r.Properties.CreateClusterAmazon.AddDefaults()
+	default:
+		return nil
+	}
 }
 
 // Validate checks the request fields
@@ -274,14 +284,17 @@ type ClusterProfileRequest struct {
 
 // CloudInfoRequest describes Cloud info requests
 type CloudInfoRequest struct {
-	OrganizationId uint   `json:"-"`
-	SecretId       string `json:"secret_id,omitempty"`
-	Filter         *struct {
-		Fields           []string          `json:"fields,omitempty"`
-		InstanceType     *InstanceFilter   `json:"instanceType,omitempty"`
-		KubernetesFilter *KubernetesFilter `json:"k8sVersion,omitempty"`
-		ImageFilter      *ImageFilter      `json:"image,omitempty"`
-	} `json:"filter,omitempty"`
+	OrganizationId uint             `json:"-"`
+	SecretId       string           `json:"secret_id,omitempty"`
+	Filter         *CloudInfoFilter `json:"filter,omitempty"`
+}
+
+// CloudInfoFilter describes a filter in cloud info
+type CloudInfoFilter struct {
+	Fields           []string          `json:"fields,omitempty"`
+	InstanceType     *InstanceFilter   `json:"instanceType,omitempty"`
+	KubernetesFilter *KubernetesFilter `json:"k8sVersion,omitempty"`
+	ImageFilter      *ImageFilter      `json:"image,omitempty"`
 }
 
 // InstanceFilter describes instance filter of cloud info
@@ -305,7 +318,7 @@ type GetCloudInfoResponse struct {
 	Type               string                 `json:"type" binding:"required"`
 	NameRegexp         string                 `json:"nameRegexp,omitempty"`
 	Locations          []string               `json:"locations,omitempty"`
-	NodeInstanceType   map[string]MachineType `json:"nodeInstanceType,omitempty"`
+	NodeInstanceType   map[string]MachineType `json:"instanceType,omitempty"`
 	KubernetesVersions interface{}            `json:"kubernetes_versions,omitempty"`
 	Image              map[string][]string    `json:"image,omitempty"`
 }
@@ -324,11 +337,6 @@ type SupportedClusterItem struct {
 	Key     string `json:"key" binding:"required"`
 	Enabled bool   `json:"enabled"`
 	Icon    string `json:"icon"`
-}
-
-// SupportedFilters describes the supported filter keywords in case of Cloud info requests
-type SupportedFilters struct {
-	Keys []string `json:"keys"`
 }
 
 // CreateClusterResponse describes Pipeline's CreateCluster API response

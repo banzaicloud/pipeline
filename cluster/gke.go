@@ -2088,3 +2088,8 @@ func (g *GKECluster) GetConfigSecretId() string {
 func (g *GKECluster) GetK8sConfig() ([]byte, error) {
 	return g.CommonClusterBase.getConfig(g)
 }
+
+// ReloadFromDatabase load cluster from DBd
+func (g *GKECluster) ReloadFromDatabase() error {
+	return g.modelCluster.ReloadFromDatabase()
+}
