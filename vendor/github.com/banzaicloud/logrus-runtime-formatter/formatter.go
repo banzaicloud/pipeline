@@ -21,8 +21,8 @@ const LineKey = "line"
 const FileKey = "file"
 
 const (
-	logrusStackJump          = 5
-	logrusFieldlessStackJump = 7
+	logrusStackJump          = 4
+	logrusFieldlessStackJump = 6
 )
 
 // Formatter decorates log entries with function name and package name (optional) and line number (optional)
