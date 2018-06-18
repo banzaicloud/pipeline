@@ -219,7 +219,7 @@ paths:
                   name: "awscluster-pipelineuser-123"
                   location: "eu-west-1"
                   cloud: "amazon"
-                  nodeInstanceType: "m4.xlarge"
+                  instanceType: "m4.xlarge"
                   properties:
                     properties:
                       amazon:
@@ -230,7 +230,7 @@ paths:
                   name: "azcluster-pipelineuser-123"
                   location: "westeurope"
                   cloud: "azure"
-                  nodeInstanceType: "Standard_D2_v2"
+                  instanceType: "Standard_D2_v2"
                   properties:
                     azure:
                       $ref: '#/components/schemas/CreateAzureProperties'
@@ -240,7 +240,7 @@ paths:
                   name: "gkecluster-pipelineuser-123"
                   location: "us-central1-a"
                   cloud: "google"
-                  nodeInstanceType: "n1-standard-1"
+                  instanceType: "n1-standard-1"
                   properties:
                     google:
                       $ref: '#/components/schemas/CreateGoogleProperties'
@@ -2825,7 +2825,7 @@ components:
               nodePools:
                 pool1:
                   count: 1
-                  nodeInstanceType: "n1-standard-2"
+                  instanceType: "n1-standard-2"
               nodeVersion: "1.8.7-gke.1"
 
     CreateAmazonProperties:
@@ -2911,7 +2911,7 @@ components:
       type: object
       required:
         - count
-        - nodeInstanceType
+        - instanceType
       properties:
         autoscaling:
           type: boolean
@@ -2925,7 +2925,7 @@ components:
         maxCount:
           type: integer
           example: 2
-        nodeInstanceType:
+        instanceType:
           type: string
           example: "Standard_B2ms"
 
@@ -2962,7 +2962,7 @@ components:
       type: object
       required:
         - count
-        - nodeInstanceType
+        - instanceType
       properties:
         autoscaling:
           type: boolean
@@ -2976,7 +2976,7 @@ components:
         maxCount:
           type: integer
           example: 2
-        nodeInstanceType:
+        instanceType:
           type: string
           example: "n1-standard-2"
 
@@ -3109,7 +3109,7 @@ components:
               nodePools:
                 pool1:
                   count: 2
-                  nodeInstanceType: "n1-standard-2"
+                  instanceType: "n1-standard-2"
 
     UpdateAmazonProperties:
       type: object
@@ -3196,7 +3196,7 @@ components:
                 maxCount:
                   type: number
                   example: 2
-                nodeInstanceType:
+                instanceType:
                   type: string
                   example: "n1-standard-2"
 
@@ -3834,7 +3834,7 @@ components:
               nodePools:
                 pool1:
                   count: 1
-                  nodeInstanceType: "n1-standard-1"
+                  instanceType: "n1-standard-1"
                   serviceAccount: ""
 
     ClusterProfileAmazon:
@@ -3907,7 +3907,7 @@ components:
                     maxCount:
                       type: number
                       example: 2
-                    nodeInstanceType:
+                    instanceType:
                       type: string
                       example: "Standard_D2_v2"
 
@@ -3944,7 +3944,7 @@ components:
                     maxCount:
                       type: number
                       example: 2
-                    nodeInstanceType:
+                    instanceType:
                       type: string
                       example: "n1-standard-1"
                     serviceAccount:
@@ -3977,7 +3977,7 @@ components:
               nodePools:
                 pool1:
                   count: 1
-                  nodeInstanceType: "n1-standard-1"
+                  instanceType: "n1-standard-1"
 
 
     AddClusterProfileAmazon:
@@ -4032,7 +4032,7 @@ components:
                     count:
                       type: integer
                       example: 1
-                    nodeInstanceType:
+                    instanceType:
                       type: string
                       example: "Standard_D2_v2"
             kubernetesVersion:
@@ -4066,7 +4066,7 @@ components:
                     serviceAccount:
                       type: string
                       example: "serviceAccountExample"
-                    nodeInstanceType:
+                    instanceType:
                       type: string
                       example: "n1-standard-2"
 
@@ -4489,7 +4489,7 @@ components:
               items:
                 type: string
               example: [ "ami-6202561b", "ami-ece5b095" ]
-        nodeInstanceType:
+        instanceType:
           type: object
           properties:
             eu-west-1:
@@ -4510,7 +4510,7 @@ components:
         locations:
           type: string
           example: [ "eastasia", "eastus" ]
-        nodeInstanceType:
+        instanceType:
           type: object
           properties:
             eastus:
@@ -4536,7 +4536,7 @@ components:
         locations:
           type: string
           example: [ "us-east1-c", "us-east1-d" ]
-        nodeInstanceType:
+        instanceType:
           type: object
           properties:
             asia-east1-a:
@@ -4601,12 +4601,12 @@ components:
                 - $ref: '#/components/schemas/NodePoolStatusGoogle'
               example:
                 count: 1
-                instance_type: "n1-standard-1"
+                instanceType: "n1-standard-1"
 
     NodePoolStatusAmazon:
       type: object
       properties:
-        instance_type:
+        instanceType:
           type: string
           example: "m4.xlarge"
         spot_price:
@@ -4643,7 +4643,7 @@ components:
         maxCount:
           type: number
           example: 2
-        instance_type:
+        instanceType:
           type: string
           example: "Standard_D4_v2"
 
@@ -4662,7 +4662,7 @@ components:
         maxCount:
           type: number
           example: 2
-        instance_type:
+        instanceType:
           type: string
           example: "n1-standard-1"
 
