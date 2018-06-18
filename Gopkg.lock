@@ -170,14 +170,14 @@
   revision = "efe50b61dae850c04d4c825ac4914a3ae8611af0"
 
 [[projects]]
+  branch = "master"
   name = "github.com/banzaicloud/bank-vaults"
   packages = [
     "auth",
     "database",
     "vault"
   ]
-  revision = "cf4ca7f1732e669e10bcea939c42e21b3807aa43"
-  version = "0.2.1"
+  revision = "4044a049af01d1ab0d93d8d041528d4270de1aba"
 
 [[projects]]
   branch = "master"
@@ -199,7 +199,7 @@
   branch = "master"
   name = "github.com/banzaicloud/logrus-runtime-formatter"
   packages = ["."]
-  revision = "e05401a90e2df371aef654aab6c8094898b9b9cc"
+  revision = "12df4a18567f1e9635135cdc241c6917795e2cc7"
 
 [[projects]]
   branch = "master"
