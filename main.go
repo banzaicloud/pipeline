@@ -141,6 +141,7 @@ func main() {
 			orgs.GET("/:orgid/clusters/:id", api.GetClusterStatus)
 			orgs.GET("/:orgid/clusters/:id/details", api.FetchCluster)
 			orgs.PUT("/:orgid/clusters/:id", api.UpdateCluster)
+			orgs.PUT("/:orgid/clusters/:id/posthooks", api.ReRunPostHooks)
 			orgs.POST("/:orgid/clusters/:id/secrets", api.InstallSecretsToCluster)
 			orgs.DELETE("/:orgid/clusters/:id", api.DeleteCluster)
 			orgs.HEAD("/:orgid/clusters/:id", api.FetchCluster)

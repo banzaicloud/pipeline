@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/banzaicloud/banzai-types/components"
 	bApplication "github.com/banzaicloud/banzai-types/components/application"
+	"github.com/banzaicloud/banzai-types/components/catalog"
 	"github.com/banzaicloud/pipeline/application"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
@@ -168,6 +169,30 @@ func GetApplications(c *gin.Context) {
 	return
 }
 
+type CreateApplicationPost struct {
+	am     *model.Application
+	option []catalog.ApplicationOptions
+}
+
+func (c *CreateApplicationPost) Do(commonCluster cluster.CommonCluster) error {
+	c.Save(commonCluster.GetModel().ID)
+	return application.CreateApplication(c.am, c.option, commonCluster)
+}
+
+func (c *CreateApplicationPost) Error(commonCluster cluster.CommonCluster, err error) {
+	c.am.ClusterID = commonCluster.GetID()
+	c.am.Update(model.Application{Status: application.FAILED, Message: err.Error()})
+}
+
+func (c *CreateApplicationPost) Save(clusterId uint) {
+	c.am.ClusterID = clusterId
+	c.am.Save()
+}
+
+func (c *CreateApplicationPost) GetID() uint {
+	return c.am.ID
+}
+
 // CreateApplication gin handler for API
 func CreateApplication(c *gin.Context) {
 	var createApplicationRequest bApplication.CreateRequest
@@ -181,16 +206,30 @@ func CreateApplication(c *gin.Context) {
 		return
 	}
 	orgId := auth.GetCurrentOrganization(c.Request).ID
+
+	postFunction := &CreateApplicationPost{
+		am: &model.Application{
+			Name:           createApplicationRequest.Name,
+			CatalogName:    createApplicationRequest.CatalogName,
+			OrganizationId: orgId,
+			Status:         application.CREATING,
+		},
+		option: createApplicationRequest.Options,
+	}
+
 	var commonCluster cluster.CommonCluster
 	// Create new cluster
 	if createApplicationRequest.Cluster != nil {
 		// Support existing cluster
 		var err *components.ErrorResponse
-		commonCluster, err = CreateCluster(createApplicationRequest.Cluster, orgId)
+		commonCluster, err = CreateCluster(createApplicationRequest.Cluster, orgId, []cluster.PostFunctioner{postFunction})
 		if err != nil {
 			c.JSON(err.Code, err)
 			return
 		}
+
+		postFunction.Save(commonCluster.GetID())
+
 	} else {
 		filter := make(map[string]interface{})
 		filter["organization_id"] = orgId
@@ -200,21 +239,16 @@ func CreateApplication(c *gin.Context) {
 		if !ok {
 			return
 		}
+
+		postFunction.Save(commonCluster.GetID())
+
+		go postFunction.Do(commonCluster)
 	}
-	am := model.Application{
-		Name:           createApplicationRequest.Name,
-		CatalogName:    createApplicationRequest.CatalogName,
-		ClusterID:      commonCluster.GetModel().ID,
-		OrganizationId: orgId,
-		Status:         application.CREATING,
-	}
-	am.Save()
 
 	c.JSON(http.StatusAccepted, bApplication.CreateResponse{
 		Name:      createApplicationRequest.Name,
-		Id:        am.ID,
+		Id:        postFunction.GetID(),
 		ClusterId: commonCluster.GetModel().ID,
 	})
 
-	go application.CreateApplication(am, createApplicationRequest.Options, commonCluster)
 }

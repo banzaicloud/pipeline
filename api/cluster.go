@@ -124,7 +124,17 @@ func CreateClusterRequest(c *gin.Context) {
 	}
 
 	orgID := auth.GetCurrentOrganization(c.Request).ID
-	commonCluster, err := CreateCluster(&createClusterRequest, orgID)
+
+	posthookFunctions := createClusterRequest.PostHookFunctions
+	log.Infof("Get posthook function(s) by name(s): %v", posthookFunctions)
+	var ph []cluster.PostFunctioner
+	for _, f := range posthookFunctions {
+		ph = append(ph, cluster.HookMap[f])
+	}
+
+	log.Infof("Found posthooks: %v", ph)
+
+	commonCluster, err := CreateCluster(&createClusterRequest, orgID, ph)
 	if err != nil {
 		c.JSON(err.Code, err)
 		return
@@ -137,7 +147,9 @@ func CreateClusterRequest(c *gin.Context) {
 }
 
 // CreateCluster creates a K8S cluster in the cloud
-func CreateCluster(createClusterRequest *components.CreateClusterRequest, organizationID uint) (cluster.CommonCluster, *components.ErrorResponse) {
+func CreateCluster(createClusterRequest *components.CreateClusterRequest, organizationID uint,
+	postHooks []cluster.PostFunctioner) (cluster.CommonCluster, *components.ErrorResponse) {
+
 	log := logger.WithFields(logrus.Fields{"tag": constants.TagCreateCluster})
 
 	if len(createClusterRequest.ProfileName) != 0 {
@@ -234,12 +246,12 @@ func CreateCluster(createClusterRequest *components.CreateClusterRequest, organi
 
 	log.Info("Validation passed")
 
-	go postCreateCluster(commonCluster)
+	go postCreateCluster(commonCluster, postHooks)
 	return commonCluster, nil
 }
 
 // postCreateCluster creates a cluster (ASYNC)
-func postCreateCluster(commonCluster cluster.CommonCluster) error {
+func postCreateCluster(commonCluster cluster.CommonCluster, postHooks []cluster.PostFunctioner) error {
 
 	// Check if public ssh key is needed for the cluster. If so and there is generate one and store it Vault
 	if len(commonCluster.GetSshSecretId()) == 0 && commonCluster.RequiresSshPublicKey() {
@@ -273,15 +285,13 @@ func postCreateCluster(commonCluster cluster.CommonCluster) error {
 
 	// Apply PostHooks
 	// These are hardcoded posthooks maybe we will want a bit more dynamic
-	postHookFunctions := []func(commonCluster interface{}) error{
-		cluster.StoreKubeConfig,
-		cluster.PersistKubernetesKeys,
-		cluster.UpdatePrometheusPostHook,
-		cluster.InstallHelmPostHook,
-		cluster.InstallIngressControllerPostHook,
-		cluster.InstallClusterAutoscalerPostHook,
+	postHookFunctions := cluster.BasePostHookFunctions
+
+	if postHooks != nil && len(postHooks) != 0 {
+		postHookFunctions = append(postHookFunctions, postHooks...)
 	}
-	go cluster.RunPostHooks(postHookFunctions, commonCluster)
+
+	cluster.RunPostHooks(postHookFunctions, commonCluster)
 
 	return nil
 }
@@ -610,6 +620,24 @@ func FetchClusters(c *gin.Context) {
 		}
 	}
 	c.JSON(http.StatusOK, response)
+}
+
+func ReRunPostHooks(c *gin.Context) {
+
+	log.Info("Get common cluster")
+	commonCluster, ok := GetCommonClusterFromRequest(c)
+	if ok != true {
+		return
+	}
+
+	posthooks := cluster.BasePostHookFunctions
+
+	log.Infof("Cluster id: %d", commonCluster.GetID())
+	log.Infof("Run posthooks: %v", posthooks)
+
+	go cluster.RunPostHooks(posthooks, commonCluster)
+
+	c.Status(http.StatusOK)
 }
 
 // FetchCluster fetch a K8S cluster in the cloud

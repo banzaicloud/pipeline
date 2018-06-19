@@ -20,8 +20,8 @@ type BanzaiResponse struct {
 
 // CreateBucketRequest describes a storage bucket creation
 type CreateBucketRequest struct {
-	SecretId   string `json:"secret_id" binding:"required"`
-	Name       string `json:"name" binding:"required"`
+	SecretId string `json:"secret_id" binding:"required"`
+	Name     string `json:"name" binding:"required"`
 	Properties struct {
 		CreateAmazonObjectStoreBucketProperties *amazon.CreateAmazonObjectStoreBucketProperties `json:"amazon,omitempty"`
 		CreateAzureObjectStoreBucketProperties  *azure.CreateAzureObjectStoreBucketProperties   `json:"azure,omitempty"`
@@ -43,12 +43,13 @@ type BucketInfo struct {
 
 // CreateClusterRequest describes a create cluster request
 type CreateClusterRequest struct {
-	Name        string `json:"name" binding:"required"`
-	Location    string `json:"location"`
-	Cloud       string `json:"cloud" binding:"required"`
-	SecretId    string `json:"secret_id" binding:"required"`
-	ProfileName string `json:"profile_name"`
-	Properties  struct {
+	Name              string   `json:"name" binding:"required"`
+	Location          string   `json:"location"`
+	Cloud             string   `json:"cloud" binding:"required"`
+	SecretId          string   `json:"secret_id" binding:"required"`
+	ProfileName       string   `json:"profile_name"`
+	PostHookFunctions []string `json:"postHooks"`
+	Properties struct {
 		CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
 		CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
 		CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
@@ -105,7 +106,7 @@ type UpdateClusterResponse struct {
 
 // UpdateClusterRequest describes an update cluster request
 type UpdateClusterRequest struct {
-	Cloud            string `json:"cloud" binding:"required"`
+	Cloud string     `json:"cloud" binding:"required"`
 	UpdateProperties `json:"properties"`
 }
 
@@ -260,9 +261,9 @@ func (r *UpdateClusterRequest) preValidate() {
 
 // ClusterProfileResponse describes Pipeline's ClusterProfile API responses
 type ClusterProfileResponse struct {
-	Name       string `json:"name" binding:"required"`
-	Location   string `json:"location" binding:"required"`
-	Cloud      string `json:"cloud" binding:"required"`
+	Name     string `json:"name" binding:"required"`
+	Location string `json:"location" binding:"required"`
+	Cloud    string `json:"cloud" binding:"required"`
 	Properties struct {
 		Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 		Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
@@ -272,9 +273,9 @@ type ClusterProfileResponse struct {
 
 // ClusterProfileRequest describes CreateClusterProfile request
 type ClusterProfileRequest struct {
-	Name       string `json:"name" binding:"required"`
-	Location   string `json:"location" binding:"required"`
-	Cloud      string `json:"cloud" binding:"required"`
+	Name     string `json:"name" binding:"required"`
+	Location string `json:"location" binding:"required"`
+	Cloud    string `json:"cloud" binding:"required"`
 	Properties struct {
 		Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 		Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
