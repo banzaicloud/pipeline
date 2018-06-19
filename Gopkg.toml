@@ -54,6 +54,10 @@
   name = "github.com/Azure/azure-sdk-for-go"
   version = "=v15.0.0"
 
+[[override]]
+  name = "github.com/gin-gonic/gin"
+  branch = "master"
+
 [[constraint]]
   name = "github.com/kubicorn/kubicorn"
   branch = "master"
@@ -233,3 +237,8 @@
 [[constraint]]
   name = "github.com/Azure/azure-storage-blob-go"
   version = "0.1.4"
+
+[[constraint]]
+  name = "github.com/Depado/ginprom"
+  source = "github.com/banzaicloud/ginprom"
+  branch = "master"

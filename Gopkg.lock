@@ -75,6 +75,13 @@
   version = "v0.3.0"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/Depado/ginprom"
+  packages = ["."]
+  revision = "2a3f2367a53786899a4aa5004ced1994cae71a6c"
+  source = "github.com/banzaicloud/ginprom"
+
+[[projects]]
   name = "github.com/Knetic/govaluate"
   packages = ["."]
   revision = "d216395917cc49052c7c7094cf57f09657ca08a8"
@@ -193,7 +200,7 @@
     "components/kubernetes",
     "constants"
   ]
-  revision = "23985f844d623de49ef62f95464c59fcfe5976fa"
+  revision = "c1f219d53602da673d989db915b93f2852e9bef0"
 
 [[projects]]
   branch = "master"
@@ -871,7 +878,10 @@
 
 [[projects]]
   name = "github.com/prometheus/client_golang"
-  packages = ["prometheus"]
+  packages = [
+    "prometheus",
+    "prometheus/promhttp"
+  ]
   revision = "c5b7fccd204277076155f10851dad72b76a49317"
   version = "v0.8.0"
 
@@ -1810,6 +1820,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "41c960a0fafd42475eb00e5a1eeded33230cecce8a31576d576f3c6fa66519c4"
+  inputs-digest = "28fe3a526659419c900706308e8ddab0922b96a700205becbcb39ac5fcf5cc5b"
   solver-name = "gps-cdcl"
   solver-version = 1
