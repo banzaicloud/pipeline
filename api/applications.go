@@ -169,31 +169,31 @@ func GetApplications(c *gin.Context) {
 	return
 }
 
-// CreateApplicationPost describes create application posthook
-type CreateApplicationPost struct {
+// ApplicationPostHook describes create application posthook
+type ApplicationPostHook struct {
 	am     *model.Application
 	option []catalog.ApplicationOptions
 }
 
 // Do updates application in DB and call create application function
-func (c *CreateApplicationPost) Do(commonCluster cluster.CommonCluster) error {
+func (c *ApplicationPostHook) Do(commonCluster cluster.CommonCluster) error {
 	c.Save(commonCluster.GetModel().ID)
 	return application.CreateApplication(c.am, c.option, commonCluster)
 }
 
-func (c *CreateApplicationPost) Error(commonCluster cluster.CommonCluster, err error) {
+func (c *ApplicationPostHook) Error(commonCluster cluster.CommonCluster, err error) {
 	c.am.ClusterID = commonCluster.GetID()
 	c.am.Update(model.Application{Status: application.FAILED, Message: err.Error()})
 }
 
 // Save application to DB
-func (c *CreateApplicationPost) Save(clusterId uint) {
+func (c *ApplicationPostHook) Save(clusterId uint) {
 	c.am.ClusterID = clusterId
 	c.am.Save()
 }
 
 // GetID returns application identifier
-func (c *CreateApplicationPost) GetID() uint {
+func (c *ApplicationPostHook) GetID() uint {
 	return c.am.ID
 }
 
@@ -211,7 +211,7 @@ func CreateApplication(c *gin.Context) {
 	}
 	orgId := auth.GetCurrentOrganization(c.Request).ID
 
-	postFunction := &CreateApplicationPost{
+	postFunction := &ApplicationPostHook{
 		am: &model.Application{
 			Name:           createApplicationRequest.Name,
 			CatalogName:    createApplicationRequest.CatalogName,
