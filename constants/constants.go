@@ -67,7 +67,7 @@ var DefaultRules = map[string][]SecretField{
 		SecretField{Name: ClientKey, Required: false},
 		SecretField{Name: ClientCert, Required: false},
 	},
-		FnSecretType: {
+	FnSecretType: {
 		SecretField{Name: MasterToken, Required: true},
 	},
 	GenericSecret: {},
@@ -129,7 +129,7 @@ const (
 
 // Fn keys
 const (
-	MasterToken          = "master_token"
+	MasterToken = "master_token"
 )
 
 // Internal usage
