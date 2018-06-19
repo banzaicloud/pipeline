@@ -1,6 +1,7 @@
 package cluster
 
 import (
+	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/secret"
 	"k8s.io/api/core/v1"
@@ -8,43 +9,58 @@ import (
 )
 
 // InstallSecrets installs all secrets thats matches the query under the name into namespace of a Kubernetes cluster.
-func InstallSecrets(cc CommonCluster, query *secret.ListSecretsQuery, name, namespace string) error {
+// It returns the list of installed secret names and meta about how to mount them.
+func InstallSecrets(cc CommonCluster, query *components.ListSecretsQuery, namespace string) ([]components.SecretK8SSourceMeta, error) {
 
-	config, err := cc.GetK8sConfig()
+	k8sConfig, err := cc.GetK8sConfig()
 	if err != nil {
 		log.Errorf("Error during getting config: %s", err.Error())
-		return err
+		return nil, err
 	}
 
-	clusterClient, err := helm.GetK8sConnection(config)
+	return InstallSecretsByK8SConfig(k8sConfig, cc.GetOrganizationId(), query, namespace)
+}
+
+// InstallSecretsByK8SConfig is the same as InstallSecrets but use this if you already have a K8S config at hand.
+func InstallSecretsByK8SConfig(k8sConfig []byte, organizationID uint, query *components.ListSecretsQuery, namespace string) ([]components.SecretK8SSourceMeta, error) {
+
+	// Values are always needed in this case
+	query.Values = true
+
+	clusterClient, err := helm.GetK8sConnection(k8sConfig)
 	if err != nil {
 		log.Errorf("Error during building k8s client: %s", err.Error())
-		return err
+		return nil, err
 	}
 
-	items, err := secret.Store.List(cc.GetOrganizationId(), query)
+	secrets, err := secret.Store.List(organizationID, query)
 	if err != nil {
 		log.Errorf("Error during listing secrets: %s", err.Error())
-		return err
+		return nil, err
 	}
 
-	secret := &v1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
-		},
-		StringData: map[string]string{},
-	}
-	for _, item := range items {
-		for k, v := range item.Values {
-			secret.StringData[k] = v
+	var secretSources []components.SecretK8SSourceMeta
+
+	for _, secret := range secrets {
+		k8sSecret := &v1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      secret.Name,
+				Namespace: namespace,
+			},
+			StringData: map[string]string{},
 		}
-	}
-	_, err = clusterClient.CoreV1().Secrets(namespace).Create(secret)
-	if err != nil {
-		log.Errorf("Error during creating k8s secret: %s", err.Error())
-		return err
+		for k, v := range secret.Values {
+			k8sSecret.StringData[k] = v
+		}
+
+		_, err = clusterClient.CoreV1().Secrets(namespace).Create(k8sSecret)
+		if err != nil {
+			log.Errorf("Error during creating k8s secret: %s", err.Error())
+			return nil, err
+		}
+
+		secretSources = append(secretSources, secret.K8SSourceMeta())
 	}
 
-	return nil
+	return secretSources, nil
 }

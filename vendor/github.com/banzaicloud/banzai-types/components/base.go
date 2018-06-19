@@ -43,12 +43,13 @@ type BucketInfo struct {
 
 // CreateClusterRequest describes a create cluster request
 type CreateClusterRequest struct {
-	Name        string `json:"name" binding:"required"`
-	Location    string `json:"location"`
-	Cloud       string `json:"cloud" binding:"required"`
-	SecretId    string `json:"secret_id" binding:"required"`
-	ProfileName string `json:"profile_name"`
-	Properties  struct {
+	Name              string   `json:"name" binding:"required"`
+	Location          string   `json:"location"`
+	Cloud             string   `json:"cloud" binding:"required"`
+	SecretId          string   `json:"secret_id" binding:"required"`
+	ProfileName       string   `json:"profile_name"`
+	PostHookFunctions []string `json:"postHooks"`
+	Properties        struct {
 		CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
 		CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
 		CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
@@ -57,10 +58,33 @@ type CreateClusterRequest struct {
 	} `json:"properties" binding:"required"`
 }
 
+// ListSecretsQuery represent a secret listing filter
+type ListSecretsQuery struct {
+	Type   string `form:"type" json:"type"`
+	Tag    string `form:"tag" json:"tag"`
+	Values bool   `form:"values" json:"values"`
+}
+
 // InstallSecretsToClusterRequest describes an InstallSecretToCluster request
 type InstallSecretsToClusterRequest struct {
-	Namespace string `json:"namespace" binding:"required"`
-	Repo      string `json:"repo" binding:"required"`
+	Namespace string           `json:"namespace" binding:"required"`
+	Query     ListSecretsQuery `json:"query" binding:"required"`
+}
+
+// SecretSourcingMethod describes how an installed Secret should be sourced into a Pod in K8S
+type SecretSourcingMethod string
+
+const (
+	// EnvVar means the secret has to be sources an an env var
+	EnvVar SecretSourcingMethod = "env"
+	// Volume means the secret has to be mounted an a volume
+	Volume SecretSourcingMethod = "volume"
+)
+
+// SecretK8SSourceMeta describes which and how installed Secret should be sourced into a Pod in K8S
+type SecretK8SSourceMeta struct {
+	Name     string               `json:"name"`
+	Sourcing SecretSourcingMethod `json:"sourcing"`
 }
 
 // ErrorResponse describes Pipeline's responses when an error occurred

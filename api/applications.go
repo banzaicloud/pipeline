@@ -1,6 +1,8 @@
 package api
 
 import (
+	"net/http"
+
 	"github.com/banzaicloud/banzai-types/components"
 	ctype "github.com/banzaicloud/banzai-types/components/catalog"
 	"github.com/banzaicloud/pipeline/application"
@@ -9,7 +11,6 @@ import (
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
-	"net/http"
 )
 
 // ApplicationDetailsResponse for API
@@ -87,7 +88,7 @@ func CreateApplication(c *gin.Context) {
 
 	log.Info("Cluster creation stared")
 
-	log.Debug("Bind json into CreateClusterRequest struct")
+	log.Debug("Bind json into CreateApplicationRequest struct")
 	// bind request body to struct
 	var createApplicationRequest CreateApplicationRequest
 	if err := c.BindJSON(&createApplicationRequest); err != nil {

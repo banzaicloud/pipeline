@@ -1,6 +1,7 @@
 package constants
 
 import (
+	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/banzai-types/constants"
 )
 
@@ -8,6 +9,12 @@ import (
 type SecretField struct {
 	Name     string `json:"name"`
 	Required bool   `json:"required"`
+}
+
+// SecretMeta describes how a secret is built up and how it should be sourced
+type SecretMeta struct {
+	Fields   []SecretField                   `json:"fields"`
+	Sourcing components.SecretSourcingMethod `json:"Sourcing"`
 }
 
 const (
@@ -24,53 +31,77 @@ const (
 )
 
 // DefaultRules key matching for types
-var DefaultRules = map[string][]SecretField{
-	constants.Amazon: {
-		SecretField{Name: AwsAccessKeyId, Required: true},
-		SecretField{Name: AwsSecretAccessKey, Required: true},
+var DefaultRules = map[string]SecretMeta{
+	constants.Amazon: SecretMeta{
+		Fields: []SecretField{
+			{Name: AwsAccessKeyId, Required: true},
+			{Name: AwsSecretAccessKey, Required: true},
+		},
+		Sourcing: components.EnvVar,
 	},
-	constants.Azure: {
-		SecretField{Name: AzureClientId, Required: true},
-		SecretField{Name: AzureClientSecret, Required: true},
-		SecretField{Name: AzureTenantId, Required: true},
-		SecretField{Name: AzureSubscriptionId, Required: true},
+	constants.Azure: SecretMeta{
+		Fields: []SecretField{
+			{Name: AzureClientId, Required: true},
+			{Name: AzureClientSecret, Required: true},
+			{Name: AzureTenantId, Required: true},
+			{Name: AzureSubscriptionId, Required: true},
+		},
+		Sourcing: components.EnvVar,
 	},
-	constants.Google: {
-		SecretField{Name: Type, Required: true},
-		SecretField{Name: ProjectId, Required: true},
-		SecretField{Name: PrivateKeyId, Required: true},
-		SecretField{Name: PrivateKey, Required: true},
-		SecretField{Name: ClientEmail, Required: true},
-		SecretField{Name: ClientId, Required: true},
-		SecretField{Name: AuthUri, Required: true},
-		SecretField{Name: TokenUri, Required: true},
-		SecretField{Name: AuthX509Url, Required: true},
-		SecretField{Name: ClientX509Url, Required: true},
+	constants.Google: SecretMeta{
+		Fields: []SecretField{
+			{Name: Type, Required: true},
+			{Name: ProjectId, Required: true},
+			{Name: PrivateKeyId, Required: true},
+			{Name: PrivateKey, Required: true},
+			{Name: ClientEmail, Required: true},
+			{Name: ClientId, Required: true},
+			{Name: AuthUri, Required: true},
+			{Name: TokenUri, Required: true},
+			{Name: AuthX509Url, Required: true},
+			{Name: ClientX509Url, Required: true},
+		},
+		Sourcing: components.EnvVar,
 	},
-	constants.Kubernetes: {
-		SecretField{Name: K8SConfig, Required: true},
+	constants.Kubernetes: SecretMeta{
+		Fields: []SecretField{
+			{Name: K8SConfig, Required: true},
+		},
+		Sourcing: components.Volume,
 	},
-	SSHSecretType: {
-		SecretField{Name: User, Required: true},
-		SecretField{Name: Identifier, Required: true},
-		SecretField{Name: PublicKeyData, Required: true},
-		SecretField{Name: PublicKeyFingerprint, Required: true},
-		SecretField{Name: PrivateKeyData, Required: true},
+	SSHSecretType: SecretMeta{
+		Fields: []SecretField{
+			{Name: User, Required: true},
+			{Name: Identifier, Required: true},
+			{Name: PublicKeyData, Required: true},
+			{Name: PublicKeyFingerprint, Required: true},
+			{Name: PrivateKeyData, Required: true},
+		},
+		Sourcing: components.Volume,
 	},
-	TLSSecretType: {
-		SecretField{Name: TLSHosts, Required: true},
-		SecretField{Name: TLSValidity, Required: false},
-		SecretField{Name: CACert, Required: false},
-		SecretField{Name: CAKey, Required: false},
-		SecretField{Name: ServerKey, Required: false},
-		SecretField{Name: ServerCert, Required: false},
-		SecretField{Name: ClientKey, Required: false},
-		SecretField{Name: ClientCert, Required: false},
+	TLSSecretType: SecretMeta{
+		Fields: []SecretField{
+			{Name: TLSHosts, Required: true},
+			{Name: TLSValidity, Required: false},
+			{Name: CACert, Required: false},
+			{Name: CAKey, Required: false},
+			{Name: ServerKey, Required: false},
+			{Name: ServerCert, Required: false},
+			{Name: ClientKey, Required: false},
+			{Name: ClientCert, Required: false},
+		},
+		Sourcing: components.Volume,
 	},
-	FnSecretType: {
-		SecretField{Name: MasterToken, Required: true},
+	GenericSecret: SecretMeta{
+		Fields:   []SecretField{},
+		Sourcing: components.EnvVar,
 	},
-	GenericSecret: {},
+	FnSecretType: SecretMeta{
+		Fields: []SecretField{
+			{Name: MasterToken, Required: true},
+		},
+		Sourcing: components.EnvVar,
+	},
 }
 
 // Amazon keys

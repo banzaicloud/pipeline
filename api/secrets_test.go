@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/banzaicloud/banzai-types/components"
 	btypes "github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/api"
 	pipConstants "github.com/banzaicloud/pipeline/constants"
@@ -123,7 +124,7 @@ func TestListSecrets(t *testing.T) {
 			if err := api.IsValidSecretType(tc.secretType); err != nil {
 				t.Errorf("Error during validate secret type: %s", err)
 			} else {
-				if items, err := secret.Store.List(orgId, &secret.ListSecretsQuery{tc.secretType, tc.tag, false}); err != nil {
+				if items, err := secret.Store.List(orgId, &components.ListSecretsQuery{tc.secretType, tc.tag, false}); err != nil {
 					t.Errorf("Error during listing secrets")
 				} else {
 					// Clear CreatedAt times, we don't know them
@@ -177,9 +178,9 @@ func (s sortableSecretsItemResponse) Less(i, j int) bool {
 }
 
 var (
-	secretNameAmazon = "my aws secret"
-	secretNameAzure  = "my aks secret"
-	secretNameGoogle = "my gke secret"
+	secretNameAmazon = "my-aws-secret"
+	secretNameAzure  = "my-aks-secret"
+	secretNameGoogle = "my-gke-secret"
 )
 
 var (
@@ -297,7 +298,7 @@ var (
 
 func toHiddenValues(secretType string) map[string]string {
 	values := map[string]string{}
-	for _, field := range pipConstants.DefaultRules[secretType] {
+	for _, field := range pipConstants.DefaultRules[secretType].Fields {
 		values[field.Name] = "<hidden>"
 	}
 	return values
