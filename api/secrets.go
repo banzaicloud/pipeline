@@ -164,7 +164,7 @@ func ListSecrets(c *gin.Context) {
 
 	organizationID := auth.GetCurrentOrganization(c.Request).ID
 
-	var query secret.ListSecretsQuery
+	var query components.ListSecretsQuery
 	err := c.BindQuery(&query)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, components.ErrorResponse{
@@ -278,8 +278,7 @@ func GetAllowedTypes(secretType string) (interface{}, error) {
 // IsValidSecretType checks the given secret type is supported
 func IsValidSecretType(secretType string) error {
 	if len(secretType) != 0 {
-		r := constants.DefaultRules[secretType]
-		if r == nil {
+		if _, ok := constants.DefaultRules[secretType]; !ok {
 			return ErrNotSupportedSecretType
 		}
 	}

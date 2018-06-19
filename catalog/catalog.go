@@ -5,17 +5,18 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"regexp"
+	"strings"
+
 	ctype "github.com/banzaicloud/banzai-types/components/catalog"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
-	"io"
 	helm_env "k8s.io/helm/pkg/helm/environment"
 	"k8s.io/helm/pkg/repo"
 	"k8s.io/helm/pkg/strvals"
-	"regexp"
-	"strings"
 )
 
 // CatalogRepository for universal catalog repo name
@@ -40,7 +41,7 @@ type CatalogDetails struct {
 	Chart     *repo.ChartVersion   `json:"chart"`
 	Values    string               `json:"values"`
 	Readme    string               `json:"readme"`
-	Spotguide *ctype.SpotguideFile `json:"options"`
+	Spotguide *ctype.SpotguideFile `json:"spotguide"`
 }
 
 // CreateValuesFromOption helper to parse ApplicationOptions into chart values

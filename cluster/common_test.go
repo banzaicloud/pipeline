@@ -38,7 +38,7 @@ const (
 	organizationId               = 1
 	clusterKubeMetaKey           = "metaKey"
 	clusterKubeMetaValue         = "metaValue"
-	secretName                   = "testSecretName"
+	secretName                   = "test-secret-name"
 )
 
 var (

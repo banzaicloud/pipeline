@@ -2,19 +2,23 @@ package application
 
 import (
 	"fmt"
+	"time"
+
+	"github.com/banzaicloud/banzai-types/components"
 	ctype "github.com/banzaicloud/banzai-types/components/catalog"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/catalog"
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/constants"
 	"github.com/banzaicloud/pipeline/helm"
 	k8s "github.com/banzaicloud/pipeline/kubernetes"
 	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/secret"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	helm_env "k8s.io/helm/pkg/helm/environment"
-	"time"
 )
 
 var log *logrus.Logger
@@ -77,6 +81,28 @@ func CreateApplication(am model.ApplicationModel, options []ctype.ApplicationOpt
 
 // CreateApplicationDeployment will deploy a Catalog with Dependency
 func CreateApplicationDeployment(env helm_env.EnvSettings, am *model.ApplicationModel, options []ctype.ApplicationOptions, catalogInfo *catalog.CatalogDetails, kubeConfig []byte) error {
+
+	// Generate secrets for spotguide
+	secretTag := fmt.Sprintf("application:%d", am.ID)
+	for _, s := range catalogInfo.Spotguide.Secrets {
+		request := secret.CreateSecretRequest{
+			Name: s.Name,
+			Tags: []string{secretTag},
+		}
+		if s.TLS != nil {
+			request.Type = constants.TLSSecretType
+			request.Values["hosts"] = s.TLS.Hosts
+			request.Values["expiration"] = s.TLS.Expiration
+		}
+		if _, err := secret.Store.Store(am.OrganizationId, &request); err != nil {
+			return err
+		}
+	}
+
+	// Install secrets into cluster for spotguide
+	secretQuery := components.ListSecretsQuery{Type: constants.AllSecrets, Tag: secretTag}
+	cluster.InstallSecretsByK8SConfig(kubeConfig, am.OrganizationId, &secretQuery, helm.DefaultNamespace)
+
 	for _, dependency := range catalogInfo.Spotguide.Depends {
 		deployment := &model.Deployment{
 			Status: "PENDING",

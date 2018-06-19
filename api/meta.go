@@ -7,12 +7,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// MetaHandler lists routes
+// MetaHandler lists routes with their available methods
 func MetaHandler(router *gin.Engine, subpath string) gin.HandlerFunc {
-	routes := []string{}
+	routes := map[string][]string{}
 	for _, route := range router.Routes() {
 		if strings.HasPrefix(route.Path, subpath) {
-			routes = append(routes, route.Path)
+			routes[route.Path] = append(routes[route.Path], route.Method)
 		}
 	}
 	return func(c *gin.Context) {

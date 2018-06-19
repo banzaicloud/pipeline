@@ -10,11 +10,9 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
-	pipConstants "github.com/banzaicloud/pipeline/constants"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/model/defaults"
-	"github.com/banzaicloud/pipeline/secret"
 	pipelineSsh "github.com/banzaicloud/pipeline/ssh"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -665,7 +663,7 @@ func InstallSecretsToCluster(c *gin.Context) {
 	}
 
 	// bind request body to UpdateClusterRequest struct
-	var request *components.InstallSecretsToClusterRequest
+	var request components.InstallSecretsToClusterRequest
 	if err := c.BindJSON(&request); err != nil {
 		log.Errorf("Error parsing request: %s", err.Error())
 		c.AbortWithStatusJSON(http.StatusBadRequest, components.ErrorResponse{
@@ -676,12 +674,10 @@ func InstallSecretsToCluster(c *gin.Context) {
 		return
 	}
 
-	query := secret.ListSecretsQuery{Type: pipConstants.AllSecrets, Tag: secret.RepoTag(request.Repo), Values: true}
-
-	err := cluster.InstallSecrets(commonCluster, &query, request.Repo, request.Namespace)
+	secretSources, err := cluster.InstallSecrets(commonCluster, &request.Query, request.Namespace)
 
 	if err != nil {
-		log.Errorf("Error installing secrets [%v] into cluster [%d]: %s", query, commonCluster.GetID(), err.Error())
+		log.Errorf("Error installing secrets [%v] into cluster [%d]: %s", request.Query, commonCluster.GetID(), err.Error())
 		c.AbortWithStatusJSON(http.StatusInternalServerError, components.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: "Error installing secrets into cluster",
@@ -690,5 +686,5 @@ func InstallSecretsToCluster(c *gin.Context) {
 		return
 	}
 
-	c.Status(http.StatusOK)
+	c.JSON(http.StatusOK, secretSources)
 }

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/banzaicloud/bank-vaults/vault"
+	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/constants"
 	"github.com/banzaicloud/pipeline/secret/verify"
@@ -18,6 +19,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
+	"k8s.io/apimachinery/pkg/util/validation"
 )
 
 var log *logrus.Logger
@@ -62,14 +64,21 @@ type SecretsItemResponse struct {
 	CreatedAt time.Time         `json:"createdAt"`
 }
 
+func (secret *SecretsItemResponse) K8SSourceMeta() components.SecretK8SSourceMeta {
+	return components.SecretK8SSourceMeta{
+		Name:     secret.Name,
+		Sourcing: constants.DefaultRules[secret.Type].Sourcing,
+	}
+}
+
 // AllowedFilteredSecretTypesResponse for API response for AllowedSecretTypes/:type
 type AllowedFilteredSecretTypesResponse struct {
-	Keys []constants.SecretField `json:"keys"`
+	Keys constants.SecretMeta `json:"meta"`
 }
 
 // AllowedSecretTypesResponse for API response for AllowedSecretTypes
 type AllowedSecretTypesResponse struct {
-	Allowed map[string][]constants.SecretField `json:"allowed"`
+	Allowed map[string]constants.SecretMeta `json:"allowed"`
 }
 
 func newVaultSecretStore() *secretStore {
@@ -99,7 +108,7 @@ func (r *CreateSecretRequest) Validate(verifier verify.Verifier) error {
 		return errors.Errorf("wrong secret type: %s", r.Type)
 	}
 
-	for _, field := range fields {
+	for _, field := range fields.Fields {
 		if _, ok := r.Values[field.Name]; field.Required && !ok {
 			return errors.Errorf("missing key: %s", field.Name)
 		}
@@ -128,6 +137,11 @@ func (ss *secretStore) Delete(organizationID uint, secretID string) error {
 
 // Save secret secret/orgs/:orgid:/:id: scope
 func (ss *secretStore) Store(organizationID uint, value *CreateSecretRequest) (string, error) {
+
+	// We allow only Kubernetes compatible Secret names
+	if errorList := validation.IsDNS1123Subdomain(value.Name); errorList != nil {
+		return "", errors.New(errorList[0])
+	}
 
 	secretID := generateSecretID(value)
 	path := secretDataPath(organizationID, secretID)
@@ -165,6 +179,10 @@ func (ss *secretStore) Store(organizationID uint, value *CreateSecretRequest) (s
 
 // Update secret secret/orgs/:orgid:/:id: scope
 func (ss *secretStore) Update(organizationID uint, secretID string, value *CreateSecretRequest) error {
+
+	if generateSecretID(value) != secretID {
+		return errors.New("Secret name cannot be changed")
+	}
 
 	path := secretDataPath(organizationID, secretID)
 
@@ -237,15 +255,8 @@ func (ss *secretStore) Get(organizationID uint, secretID string) (*SecretsItemRe
 	return parseSecret(secretID, secret, true)
 }
 
-// ListSecretsQuery represent a secret listing filter
-type ListSecretsQuery struct {
-	Type   string `form:"type"`
-	Tag    string `form:"tag"`
-	Values bool   `form:"values"`
-}
-
 // List secret secret/orgs/:orgid:/ scope
-func (ss *secretStore) List(orgid uint, query *ListSecretsQuery) ([]*SecretsItemResponse, error) {
+func (ss *secretStore) List(orgid uint, query *components.ListSecretsQuery) ([]*SecretsItemResponse, error) {
 
 	log.Debugf("Searching for secrets [orgid: %d, query: %#v]", orgid, query)
 
