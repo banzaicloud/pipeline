@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/Depado/ginprom"
 	"github.com/banzaicloud/pipeline/api"
 	"github.com/banzaicloud/pipeline/audit"
 	"github.com/banzaicloud/pipeline/auth"
@@ -14,8 +15,10 @@ import (
 	"github.com/banzaicloud/pipeline/objectstore"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"net/http"
 )
 
 //Version of Pipeline
@@ -110,12 +113,22 @@ func main() {
 		router.Use(audit.LogWriter(skipPaths, viper.GetStringSlice("audit.headers")))
 	}
 
-	auth.Install(router)
-
 	root := router.Group("/")
 	{
 		root.GET("/", api.RedirectRoot)
 	}
+	// Add prometheus metric endpoint
+	if viper.GetBool("metrics.enabled") {
+		p := ginprom.New(
+			ginprom.Subsystem("gin"),
+		)
+		p.Use(router)
+		router.Use(p.Instrument())
+		http.Handle(viper.GetString("metrics.path"), promhttp.Handler())
+		go http.ListenAndServe("metrics.port", nil)
+	}
+
+	auth.Install(router)
 
 	basePath := viper.GetString("pipeline.basepath")
 	v1 := router.Group(basePath + "/api/v1/")
