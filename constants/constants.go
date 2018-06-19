@@ -187,3 +187,15 @@ const (
 var ForbiddenTags = []string{
 	TagKubeConfig,
 }
+
+// constants for posthooks
+const (
+	StoreKubeConfig                  = "StoreKubeConfig"
+	PersistKubernetesKeys            = "PersistKubernetesKeys"
+	UpdatePrometheusPostHook         = "UpdatePrometheusPostHook"
+	InstallHelmPostHook              = "InstallHelmPostHook"
+	InstallIngressControllerPostHook = "InstallIngressControllerPostHook"
+	InstallClusterAutoscalerPostHook = "InstallClusterAutoscalerPostHook"
+	InstallMonitoring                = "InstallMonitoring"
+	InstallLogging                   = "InstallLogging"
+)

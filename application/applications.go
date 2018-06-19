@@ -72,23 +72,15 @@ func GetSpotGuide(env helm_env.EnvSettings, catalogName string) (*catalog.Catalo
 }
 
 // CreateApplication will gather, create and manage an application deployment
-func CreateApplication(am model.Application, options []ctype.ApplicationOptions, commonCluster cluster.CommonCluster) error {
+func CreateApplication(am *model.Application, options []ctype.ApplicationOptions, commonCluster cluster.CommonCluster) error {
 	organization, err := auth.GetOrganizationById(am.OrganizationId)
 	if err != nil {
 		am.Update(model.Application{Status: FAILED, Message: err.Error()})
 		return err
 	}
 
-	log.Info("polling kubernetes config")
-	kubeConfig, err := cluster.PollingKubernetesConfig(commonCluster)
+	kubeConfig, err := commonCluster.GetK8sConfig()
 	if err != nil {
-		am.Update(model.Application{Status: FAILED, Message: err.Error()})
-		return err
-	}
-
-	log.Info("waiting for tiller to come up")
-	if err := cluster.WaitingForTillerComeUp(kubeConfig); err != nil {
-		am.Update(model.Application{Status: FAILED, Message: err.Error()})
 		return err
 	}
 
@@ -108,7 +100,7 @@ func CreateApplication(am model.Application, options []ctype.ApplicationOptions,
 	am.Description = catalog.Chart.Description
 	am.Save()
 
-	err = CreateApplicationDeployment(env, &am, options, catalog, kubeConfig)
+	err = CreateApplicationDeployment(env, am, options, catalog, kubeConfig)
 	if err != nil {
 		am.Update(model.Application{Status: FAILED, Message: err.Error()})
 		return err

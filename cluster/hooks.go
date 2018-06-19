@@ -17,28 +17,31 @@ import (
 	"time"
 )
 
-// HookMap for api hook endpoints
-var HookMap = map[string]func(interface{}) error{
-	"StoreKubeConfig":                  StoreKubeConfig,
-	"PersistKubernetesKeys":            PersistKubernetesKeys,
-	"UpdatePrometheusPostHook":         UpdatePrometheusPostHook,
-	"InstallHelmPostHook":              InstallHelmPostHook,
-	"InstallIngressControllerPostHook": InstallIngressControllerPostHook,
-	"InstallClusterAutoscalerPostHook": InstallClusterAutoscalerPostHook,
-	"InstallMonitoring":                InstallMonitoring,
-	"InstallLogging":                   InstallLogging,
-	"RegisterDomainPostHook":           RegisterDomainPostHook,
-}
-
 // muxOrgDomain is a mutex used to sync access to external Dns service
 // in order to avoid registering the same domain twice
 var muxOrgDomain sync.Mutex
 
 //RunPostHooks calls posthook functions with created cluster
-func RunPostHooks(functionList []func(interface{}) error, createdCluster CommonCluster) {
+func RunPostHooks(functionList []PostFunctioner, createdCluster CommonCluster) {
+	var err error
 	for _, i := range functionList {
-		i(createdCluster)
+		if i != nil {
+
+			if err == nil {
+				log.Infof("Start posthook function[%s]", i)
+				err = i.Do(createdCluster)
+				if err != nil {
+					log.Errorf("Error during posthook function[%s]: %s", i, err.Error())
+				}
+			}
+
+			if err != nil {
+				i.Error(createdCluster, err)
+			}
+
+		}
 	}
+
 }
 
 // PollingKubernetesConfig polls kubeconfig from the cloud
@@ -104,8 +107,8 @@ func InstallMonitoring(input interface{}) error {
 	if !ok {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
-	//TODO install & ensure monitoring
-	return installDeployment(cluster, helm.DefaultNamespace, "", "", nil, "InstallMonitoring")
+
+	return installDeployment(cluster, helm.DefaultNamespace, "banzaicloud-stable/pipeline-cluster-monitor", "pipeline-monitoring", nil, "InstallMonitoring")
 }
 
 // InstallLogging to install logging deployment
@@ -114,8 +117,8 @@ func InstallLogging(input interface{}) error {
 	if !ok {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
-	//TODO install & ensure logging
-	return installDeployment(cluster, helm.DefaultNamespace, "", "", nil, "InstallLogging")
+
+	return installDeployment(cluster, helm.DefaultNamespace, "banzaicloud-stable/pipeline-cluster-logging", "pipeline-logging", nil, "InstallLogging")
 }
 
 //PersistKubernetesKeys is a basic version of persisting keys TODO check if we need this from API or anywhere else
