@@ -19,6 +19,8 @@ const (
 	SSHSecretType = "ssh"
 	// TLSSecretType marks secrets as of type "tls"
 	TLSSecretType = "tls"
+	// FnSecretType marks secrets as of type "fn"
+	FnSecretType = "fn"
 )
 
 // DefaultRules key matching for types
@@ -64,6 +66,9 @@ var DefaultRules = map[string][]SecretField{
 		SecretField{Name: ServerCert, Required: false},
 		SecretField{Name: ClientKey, Required: false},
 		SecretField{Name: ClientCert, Required: false},
+	},
+		FnSecretType: {
+		SecretField{Name: MasterToken, Required: true},
 	},
 	GenericSecret: {},
 }
@@ -120,6 +125,11 @@ const (
 	ServerCert  = "serverCert"
 	ClientKey   = "clientKey"
 	ClientCert  = "clientCert"
+)
+
+// Fn keys
+const (
+	MasterToken          = "master_token"
 )
 
 // Internal usage
