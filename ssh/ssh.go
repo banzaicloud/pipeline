@@ -84,7 +84,7 @@ func KeyStore(key *Key, organizationID uint, clusterName string) (secretID strin
 		constants.PrivateKeyData:       key.PrivateKeyData,
 	}
 
-	secretID, err = secret.Store.Store(fmt.Sprint(organizationID), &createSecretRequest)
+	secretID, err = secret.Store.Store(organizationID, &createSecretRequest)
 
 	if err != nil {
 		log.Errorf("Error during store: %s", err.Error())

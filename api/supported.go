@@ -1,21 +1,19 @@
 package api
 
 import (
+	"net/http"
+
 	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster/supported"
 	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
 // GetSupportedClusterList sends back the supported cluster list
 func GetSupportedClusterList(c *gin.Context) {
 
 	log.Info("Start getting supported clusters")
-
-	organizationID := auth.GetCurrentOrganization(c.Request).IDString()
-	log.Infof("Organization id: %s", organizationID)
 
 	c.JSON(http.StatusOK, components.SupportedClustersResponse{
 		Items: []components.SupportedClusterItem{

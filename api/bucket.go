@@ -2,6 +2,9 @@ package api
 
 import (
 	"fmt"
+	"net/http"
+	"strings"
+
 	"github.com/Azure/azure-storage-blob-go/2016-05-31/azblob"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
@@ -16,8 +19,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"google.golang.org/api/googleapi"
-	"net/http"
-	"strings"
 )
 
 // SecretNotFoundError signals that a given secret was not found
@@ -35,7 +36,7 @@ func (err SecretNotFoundError) Error() string {
 func ListObjectStoreBuckets(c *gin.Context) {
 
 	organization := auth.GetCurrentOrganization(c.Request)
-	organizationId := organization.IDString()
+	organizationID := organization.ID
 
 	secretId := c.GetHeader("secretId")
 	if len(secretId) == 0 {
@@ -51,9 +52,9 @@ func ListObjectStoreBuckets(c *gin.Context) {
 		return
 	}
 
-	log.Infof("Retrieving object store buckets: organisation id=%s", organizationId)
+	log.Infof("Retrieving object store buckets: organization id=%d", organizationID)
 
-	retrievedSecret, err := getValidatedSecret(organizationId, secretId, cloudType)
+	retrievedSecret, err := getValidatedSecret(organizationID, secretId, cloudType)
 	if err != nil {
 		log.Errorf("Secret validation failed: %s", err.Error())
 		replyWithErrorResponse(c, errorResponseFrom(err))
@@ -83,7 +84,7 @@ func ListObjectStoreBuckets(c *gin.Context) {
 	bucketList, err := objectStore.ListBuckets()
 
 	if err != nil {
-		log.Errorf("Retrieving object store buckets: organisation id=%s failed: %s", organizationId, err.Error())
+		log.Errorf("Retrieving object store buckets: organization id=%d failed: %s", organizationID, err.Error())
 		replyWithErrorResponse(c, errorResponseFrom(err))
 		return
 	}
@@ -99,8 +100,8 @@ func CreateObjectStoreBuckets(c *gin.Context) {
 	log.Info("Creating bucket...")
 	log.Info("Get organization id from params")
 	organization := auth.GetCurrentOrganization(c.Request)
-	organizationID := organization.IDString()
-	log.Infof("Organization id: %s", organizationID)
+	organizationID := organization.ID
+	log.Infof("Organization id: %d", organizationID)
 
 	log.Debug("Bind json into CreateClusterRequest struct")
 	// bind request body to struct
@@ -164,8 +165,8 @@ func CheckObjectStoreBucket(c *gin.Context) {
 	log.Infof("Check if the bucket %s exists", bucketName)
 	log.Info("Get organization id from params")
 	organization := auth.GetCurrentOrganization(c.Request)
-	organizationID := organization.IDString()
-	log.Infof("Organization id: %s", organizationID)
+	organizationID := organization.ID
+	log.Infof("Organization id: %d", organizationID)
 	secretId := c.GetHeader("secretId")
 	if len(secretId) == 0 {
 		c.Status(requiredHeaderParamMissingErrorResponse("secretId").Code)
@@ -226,7 +227,7 @@ func DeleteObjectStoreBucket(c *gin.Context) {
 	name := c.Param("name")
 
 	organization := auth.GetCurrentOrganization(c.Request)
-	organizationId := organization.IDString()
+	organizationID := organization.ID
 	secretId := c.GetHeader("secretId")
 	if len(secretId) == 0 {
 		replyWithErrorResponse(c, requiredHeaderParamMissingErrorResponse("secretId"))
@@ -241,14 +242,14 @@ func DeleteObjectStoreBucket(c *gin.Context) {
 		return
 	}
 
-	retrievedSecret, err := getValidatedSecret(organizationId, secretId, cloudType)
+	retrievedSecret, err := getValidatedSecret(organizationID, secretId, cloudType)
 	if err != nil {
 		log.Errorf("Secret validation failed: %s", err.Error())
 		replyWithErrorResponse(c, errorResponseFrom(err))
 		return
 	}
 
-	log.Infof("Deleting object store bucket: organisation id=%s, bucket=%s", organizationId, name)
+	log.Infof("Deleting object store bucket: organization id=%d, bucket=%s", organizationID, name)
 
 	objectStore, err := objectstore.NewObjectStore(cloudType, retrievedSecret, organization)
 	if err != nil {
@@ -282,12 +283,12 @@ func DeleteObjectStoreBucket(c *gin.Context) {
 	}
 
 	if err = objectStore.DeleteBucket(name); err != nil {
-		log.Errorf("Deleting object store bucket: organisation id=%s, bucket=%s failed: %s", organizationId, name, err.Error())
+		log.Errorf("Deleting object store bucket: organization id=%d, bucket=%s failed: %s", organizationID, name, err.Error())
 		replyWithErrorResponse(c, errorResponseFrom(err))
 		return
 	}
 
-	log.Infof("Object store bucket: organisation id=%s, bucket=%s deleted", organizationId, name)
+	log.Infof("Object store bucket: organization id=%d, bucket=%s deleted", organizationID, name)
 
 }
 
@@ -415,7 +416,7 @@ func requiredHeaderParamMissingErrorResponse(headerParamName string) *components
 
 // getValidatedSecret looks up the secret by secretId under the given organisation
 // it also verifies if the found secret is of appropriate type for the given cloud provider
-func getValidatedSecret(organizationId, secretId, cloudType string) (*secret.SecretsItemResponse, error) {
+func getValidatedSecret(organizationId uint, secretId, cloudType string) (*secret.SecretsItemResponse, error) {
 
 	// Validate Secret
 	retrievedSecret, err := secret.Store.Get(organizationId, secretId)

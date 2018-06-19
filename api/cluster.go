@@ -19,8 +19,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var log *logrus.Logger
@@ -665,8 +663,6 @@ func InstallSecretsToCluster(c *gin.Context) {
 		return
 	}
 
-	organizationID := auth.GetCurrentOrganization(c.Request).IDString()
-
 	// bind request body to UpdateClusterRequest struct
 	var request *components.InstallSecretsToClusterRequest
 	if err := c.BindJSON(&request); err != nil {
@@ -679,58 +675,15 @@ func InstallSecretsToCluster(c *gin.Context) {
 		return
 	}
 
-	config, err := commonCluster.GetK8sConfig()
-	if err != nil {
-		log.Errorf("Error during getting config: %s", err.Error())
-		c.AbortWithStatusJSON(http.StatusInternalServerError, components.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: "Error during getting config",
-			Error:   err.Error(),
-		})
-		return
-	}
-
-	clusterClient, err := helm.GetK8sConnection(config)
-	if err != nil {
-		log.Errorf("Error during building k8s client: %s", err.Error())
-		c.AbortWithStatusJSON(http.StatusInternalServerError, components.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: "Error during building k8s client",
-			Error:   err.Error(),
-		})
-		return
-	}
-
 	query := secret.ListSecretsQuery{Type: pipConstants.AllSecrets, Tag: secret.RepoTag(request.Repo), Values: true}
-	items, err := secret.Store.List(organizationID, &query)
-	if err != nil {
-		log.Errorf("Error during listing secrets: %s", err.Error())
-		c.AbortWithStatusJSON(http.StatusInternalServerError, components.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: "Error during listing secrets",
-			Error:   err.Error(),
-		})
-		return
-	}
 
-	secret := &v1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      request.Repo,
-			Namespace: request.Namespace,
-		},
-		StringData: map[string]string{},
-	}
-	for _, item := range items {
-		for k, v := range item.Values {
-			secret.StringData[k] = v
-		}
-	}
-	_, err = clusterClient.CoreV1().Secrets(request.Namespace).Create(secret)
+	err := cluster.InstallSecrets(commonCluster, &query, request.Repo, request.Namespace)
+
 	if err != nil {
-		log.Errorf("Error during creating k8s secret: %s", err.Error())
+		log.Errorf("Error installing secrets [%v] into cluster [%d]: %s", query, commonCluster.GetID(), err.Error())
 		c.AbortWithStatusJSON(http.StatusInternalServerError, components.ErrorResponse{
 			Code:    http.StatusInternalServerError,
-			Message: "Error during creating k8s secret",
+			Message: "Error installing secrets into cluster",
 			Error:   err.Error(),
 		})
 		return

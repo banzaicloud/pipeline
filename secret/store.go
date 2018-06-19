@@ -8,8 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/spf13/viper"
-
 	"github.com/banzaicloud/bank-vaults/vault"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/constants"
@@ -19,6 +17,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cast"
+	"github.com/spf13/viper"
 )
 
 var log *logrus.Logger
@@ -114,7 +113,7 @@ func (r *CreateSecretRequest) Validate(verifier verify.Verifier) error {
 }
 
 // Delete secret secret/orgs/:orgid:/:id: scope
-func (ss *secretStore) Delete(organizationID, secretID string) error {
+func (ss *secretStore) Delete(organizationID uint, secretID string) error {
 
 	path := secretMetadataPath(organizationID, secretID)
 
@@ -128,7 +127,7 @@ func (ss *secretStore) Delete(organizationID, secretID string) error {
 }
 
 // Save secret secret/orgs/:orgid:/:id: scope
-func (ss *secretStore) Store(organizationID string, value *CreateSecretRequest) (string, error) {
+func (ss *secretStore) Store(organizationID uint, value *CreateSecretRequest) (string, error) {
 
 	secretID := generateSecretID(value)
 	path := secretDataPath(organizationID, secretID)
@@ -165,7 +164,7 @@ func (ss *secretStore) Store(organizationID string, value *CreateSecretRequest) 
 }
 
 // Update secret secret/orgs/:orgid:/:id: scope
-func (ss *secretStore) Update(organizationID, secretID string, value *CreateSecretRequest) error {
+func (ss *secretStore) Update(organizationID uint, secretID string, value *CreateSecretRequest) error {
 
 	path := secretDataPath(organizationID, secretID)
 
@@ -219,7 +218,7 @@ func parseSecret(secretID string, secret *vaultapi.Secret, values bool) (*Secret
 }
 
 // Retrieve secret secret/orgs/:orgid:/:id: scope
-func (ss *secretStore) Get(organizationID string, secretID string) (*SecretsItemResponse, error) {
+func (ss *secretStore) Get(organizationID uint, secretID string) (*SecretsItemResponse, error) {
 
 	path := secretDataPath(organizationID, secretID)
 
@@ -246,11 +245,11 @@ type ListSecretsQuery struct {
 }
 
 // List secret secret/orgs/:orgid:/ scope
-func (ss *secretStore) List(orgid string, query *ListSecretsQuery) ([]*SecretsItemResponse, error) {
+func (ss *secretStore) List(orgid uint, query *ListSecretsQuery) ([]*SecretsItemResponse, error) {
 
-	log.Debugf("Searching for secrets [orgid: %s, query: %#v]", orgid, query)
+	log.Debugf("Searching for secrets [orgid: %d, query: %#v]", orgid, query)
 
-	listPath := fmt.Sprintf("secret/metadata/orgs/%s", orgid)
+	listPath := fmt.Sprintf("secret/metadata/orgs/%d", orgid)
 
 	responseItems := []*SecretsItemResponse{}
 
@@ -291,12 +290,12 @@ func (ss *secretStore) List(orgid string, query *ListSecretsQuery) ([]*SecretsIt
 	return responseItems, nil
 }
 
-func secretDataPath(organizationID, secretID string) string {
-	return fmt.Sprintf("secret/data/orgs/%s/%s", organizationID, secretID)
+func secretDataPath(organizationID uint, secretID string) string {
+	return fmt.Sprintf("secret/data/orgs/%d/%s", organizationID, secretID)
 }
 
-func secretMetadataPath(organizationID, secretID string) string {
-	return fmt.Sprintf("secret/metadata/orgs/%s/%s", organizationID, secretID)
+func secretMetadataPath(organizationID uint, secretID string) string {
+	return fmt.Sprintf("secret/metadata/orgs/%d/%s", organizationID, secretID)
 }
 
 func hasTag(tags []string, tag string) bool {

@@ -25,8 +25,8 @@ func AddSecrets(c *gin.Context) {
 	log.Info("Start adding secrets")
 
 	log.Info("Get organization id from params")
-	organizationID := auth.GetCurrentOrganization(c.Request).IDString()
-	log.Infof("Organization id: %s", organizationID)
+	organizationID := auth.GetCurrentOrganization(c.Request).ID
+	log.Infof("Organization id: %d", organizationID)
 
 	var createSecretRequest secret.CreateSecretRequest
 	if err := c.ShouldBind(&createSecretRequest); err != nil {
@@ -88,8 +88,8 @@ func AddSecrets(c *gin.Context) {
 // UpdateSecrets update the given secret to vault
 func UpdateSecrets(c *gin.Context) {
 
-	organizationID := auth.GetCurrentOrganization(c.Request).IDString()
-	log.Debugf("Organization id: %s", organizationID)
+	organizationID := auth.GetCurrentOrganization(c.Request).ID
+	log.Debugf("Organization id: %d", organizationID)
 
 	secretID := c.Param("secretid")
 
@@ -162,7 +162,7 @@ func UpdateSecrets(c *gin.Context) {
 // then a filtered response is returned
 func ListSecrets(c *gin.Context) {
 
-	organizationID := auth.GetCurrentOrganization(c.Request).IDString()
+	organizationID := auth.GetCurrentOrganization(c.Request).ID
 
 	var query secret.ListSecretsQuery
 	err := c.BindQuery(&query)
@@ -203,8 +203,8 @@ func DeleteSecrets(c *gin.Context) {
 	log.Info("Start deleting secrets")
 
 	log.Info("Get organization id from params")
-	organizationID := auth.GetCurrentOrganization(c.Request).IDString()
-	log.Infof("Organization id: %s", organizationID)
+	organizationID := auth.GetCurrentOrganization(c.Request).ID
+	log.Infof("Organization id: %d", organizationID)
 
 	secretID := c.Param("secretid")
 
@@ -242,8 +242,6 @@ func DeleteSecrets(c *gin.Context) {
 func ListAllowedSecretTypes(c *gin.Context) {
 
 	log.Info("Start listing allowed types and required keys")
-	organizationID := auth.GetCurrentOrganization(c.Request).IDString()
-	log.Infof("Organization id: %s", organizationID)
 
 	secretType := c.Param("type")
 	log.Infof("Secret type: %s", secretType)
@@ -289,7 +287,7 @@ func IsValidSecretType(secretType string) error {
 }
 
 // checkClustersBeforeDelete returns error if there's a running cluster that created with the given secret
-func checkClustersBeforeDelete(orgId, secretId string) error {
+func checkClustersBeforeDelete(orgId uint, secretId string) error {
 
 	filter := map[string]interface{}{
 		"organization_id": orgId,
@@ -298,7 +296,7 @@ func checkClustersBeforeDelete(orgId, secretId string) error {
 
 	modelCluster, err := model.QueryCluster(filter)
 	if err != nil {
-		log.Infof("No cluster found in database with the given orgId[%s] and secretId[%s]", orgId, secretId)
+		log.Infof("No cluster found in database with the given orgId[%d] and secretId[%s]", orgId, secretId)
 		return nil
 	}
 
@@ -314,7 +312,7 @@ func checkClustersBeforeDelete(orgId, secretId string) error {
 
 // searchForbiddenTags gets the secret by organization id and secret id and looks for forbidden tag(s)
 // Secrets cannot be created/deleted with these tags
-func searchForbiddenTags(orgId, secretId string) error {
+func searchForbiddenTags(orgId uint, secretId string) error {
 
 	secretItem, err := secret.Store.Get(orgId, secretId)
 	if err != nil {

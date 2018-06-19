@@ -36,7 +36,6 @@ const (
 	clusterRequestMasterInstance = "testInstance"
 	clusterServiceAccount        = "testServiceAccount"
 	organizationId               = 1
-	organizationIdStr            = "1"
 	clusterKubeMetaKey           = "metaKey"
 	clusterKubeMetaValue         = "metaValue"
 	secretName                   = "testSecretName"
@@ -208,11 +207,11 @@ func TestGetSecretWithValidation(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 
-			if secretID, err := secret.Store.Store(organizationIdStr, &tc.secretRequest); err != nil {
+			if secretID, err := secret.Store.Store(organizationId, &tc.secretRequest); err != nil {
 				t.Errorf("Error during saving secret: %s", err.Error())
 				t.FailNow()
 			} else {
-				defer secret.Store.Delete(organizationIdStr, secretID)
+				defer secret.Store.Delete(organizationId, secretID)
 			}
 
 			commonCluster, err := cluster.CreateCommonClusterFromRequest(tc.createClusterRequest, organizationId)
