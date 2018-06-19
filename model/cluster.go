@@ -5,12 +5,12 @@ import (
 	"fmt"
 
 	"encoding/json"
+	"time"
+
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/jinzhu/gorm"
-	"strconv"
-	"time"
 )
 
 const unknown = "unknown"
@@ -184,7 +184,7 @@ func (cs *ClusterModel) Save() error {
 }
 
 func (cs *ClusterModel) preDelete() error {
-	return secret.Store.Delete(strconv.Itoa(int(cs.OrganizationId)), cs.ConfigSecretId)
+	return secret.Store.Delete(cs.OrganizationId, cs.ConfigSecretId)
 }
 
 //Delete cluster from DB

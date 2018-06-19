@@ -189,7 +189,7 @@ var (
 )
 
 const (
-	orgId = "12345"
+	orgId = 12345
 )
 
 const (

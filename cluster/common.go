@@ -3,7 +3,6 @@ package cluster
 import (
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 	"syscall"
 
@@ -154,7 +153,7 @@ func StoreKubernetesConfig(cluster CommonCluster, config []byte) error {
 
 	encodedConfig := utils.EncodeStringToBase64(string(config))
 
-	organizationID := strconv.Itoa(int(cluster.GetOrganizationId()))
+	organizationID := cluster.GetOrganizationId()
 	createSecretRequest := secret.CreateSecretRequest{
 		Name: fmt.Sprintf("%s-config", cluster.GetName()),
 		Type: pipConstants.K8SConfig,
@@ -182,8 +181,7 @@ func StoreKubernetesConfig(cluster CommonCluster, config []byte) error {
 }
 
 func getSecret(organizationId uint, secretId string) (*secret.SecretsItemResponse, error) {
-	org := strconv.FormatUint(uint64(organizationId), 10)
-	return secret.Store.Get(org, secretId)
+	return secret.Store.Get(organizationId, secretId)
 }
 
 //GetCommonClusterFromModel extracts CommonCluster from a ClusterModel
