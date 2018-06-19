@@ -459,6 +459,31 @@ paths:
         '404':
           description: Cluster not found
 
+  '/api/v1/orgs/{orgId}/clusters/{id}/posthooks':
+    put:
+      security:
+        - bearerAuth: []
+      tags:
+       - cluster
+      summary: Run posthook functions
+      operationId: ClusterPostHooks
+      description: Run posthook functions
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: id
+          in: path
+          required: true
+          description: Selected cluster identification (number)
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: "Posthooks started"
   '/api/v1/orgs/{orgId}/clusters/{id}/config':
     get:
       security:
@@ -2791,6 +2816,11 @@ components:
         secret_id:
           type: string
           example: "62bc3c75-91fb-4670-bad4-24b401a9deac"
+        postHooks:
+          type: array
+          items:
+            type: string
+          example: [ "InstallMonitoring", "InstallLogging" ]
         properties:
           type: object
           oneOf:
