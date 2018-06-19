@@ -169,11 +169,13 @@ func GetApplications(c *gin.Context) {
 	return
 }
 
+// CreateApplicationPost describes create application posthook
 type CreateApplicationPost struct {
 	am     *model.Application
 	option []catalog.ApplicationOptions
 }
 
+// Do updates application in DB and call create application function
 func (c *CreateApplicationPost) Do(commonCluster cluster.CommonCluster) error {
 	c.Save(commonCluster.GetModel().ID)
 	return application.CreateApplication(c.am, c.option, commonCluster)
@@ -184,11 +186,13 @@ func (c *CreateApplicationPost) Error(commonCluster cluster.CommonCluster, err e
 	c.am.Update(model.Application{Status: application.FAILED, Message: err.Error()})
 }
 
+// Save application to DB
 func (c *CreateApplicationPost) Save(clusterId uint) {
 	c.am.ClusterID = clusterId
 	c.am.Save()
 }
 
+// GetID returns application identifier
 func (c *CreateApplicationPost) GetID() uint {
 	return c.am.ID
 }

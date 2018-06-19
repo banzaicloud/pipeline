@@ -44,6 +44,7 @@ var HookMap = map[string]PostFunctioner{
 	},
 }
 
+// BasePostHookFunctions default posthook functions after cluster create
 var BasePostHookFunctions = []PostFunctioner{
 	HookMap[pipConstants.StoreKubeConfig],
 	HookMap[pipConstants.PersistKubernetesKeys],
@@ -53,11 +54,13 @@ var BasePostHookFunctions = []PostFunctioner{
 	HookMap[pipConstants.InstallClusterAutoscalerPostHook],
 }
 
+// PostFunctioner manages posthook functions
 type PostFunctioner interface {
 	Do(CommonCluster) error
 	Error(CommonCluster, error)
 }
 
+// ErrorHandler is the common struct which implement Error function
 type ErrorHandler struct {
 }
 
@@ -65,11 +68,13 @@ func (*ErrorHandler) Error(c CommonCluster, err error) {
 	c.UpdateStatus(constants.Error, err.Error())
 }
 
+// BasePostFunction describe a default posthook function
 type BasePostFunction struct {
 	f func(interface{}) error
 	ErrorHandler
 }
 
+// Do call function and pass CommonCluster as param
 func (b *BasePostFunction) Do(cluster CommonCluster) error {
 	return b.f(cluster)
 }

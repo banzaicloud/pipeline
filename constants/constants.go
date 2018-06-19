@@ -101,6 +101,7 @@ var ForbiddenTags = []string{
 	TagKubeConfig,
 }
 
+// constants for posthooks
 const (
 	StoreKubeConfig                  = "StoreKubeConfig"
 	PersistKubernetesKeys            = "PersistKubernetesKeys"

@@ -622,6 +622,7 @@ func FetchClusters(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
+// ReRunPostHooks handles {cluster_id}/posthooks API request
 func ReRunPostHooks(c *gin.Context) {
 
 	log.Info("Get common cluster")
