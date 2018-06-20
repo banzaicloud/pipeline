@@ -200,3 +200,10 @@ const (
 	InstallLogging                   = "InstallLogging"
 	RegisterDomainPostHook           = "RegisterDomainPostHook"
 )
+
+// Stable repository constants
+const (
+	StableRepository = "stable"
+	BanzaiRepository = "banzaicloud-stable"
+	HelmPostFix      = "helm"
+)

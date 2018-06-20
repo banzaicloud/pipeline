@@ -5,6 +5,7 @@ import (
 	"github.com/banzaicloud/banzai-types/components/helm"
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/config"
+	pipconstants "github.com/banzaicloud/pipeline/constants"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	apiv1 "k8s.io/api/core/v1"
@@ -21,12 +22,6 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
-)
-
-const (
-	stableRepository = "stable"
-	banzaiRepository = "banzaicloud-stable"
-	helmPostFix      = "helm"
 )
 
 //PreInstall create's serviceAccount and AccountRoleBinding
@@ -174,7 +169,7 @@ func CreateEnvSettings(helmRepoHome string) helm_env.EnvSettings {
 // GenerateHelmRepoEnv Generate helm path based on orgName
 func GenerateHelmRepoEnv(orgName string) (env helm_env.EnvSettings) {
 	var helmPath = config.GetHelmPath(orgName)
-	env = CreateEnvSettings(fmt.Sprintf("%s/%s", helmPath, helmPostFix))
+	env = CreateEnvSettings(fmt.Sprintf("%s/%s", helmPath, pipconstants.HelmPostFix))
 
 	// check local helm
 	if _, err := os.Stat(helmPath); os.IsNotExist(err) {
@@ -258,22 +253,22 @@ func ensureDefaultRepos(env helm_env.EnvSettings) error {
 	_, err := ReposAdd(
 		env,
 		&repo.Entry{
-			Name:  stableRepository,
+			Name:  pipconstants.StableRepository,
 			URL:   stableRepositoryURL,
-			Cache: env.Home.CacheIndex(stableRepository),
+			Cache: env.Home.CacheIndex(pipconstants.StableRepository),
 		})
 	if err != nil {
-		return errors.Wrapf(err, "cannot init repo: %s", stableRepository)
+		return errors.Wrapf(err, "cannot init repo: %s", pipconstants.StableRepository)
 	}
 	_, err = ReposAdd(
 		env,
 		&repo.Entry{
-			Name:  banzaiRepository,
+			Name:  pipconstants.BanzaiRepository,
 			URL:   banzaiRepositoryURL,
-			Cache: env.Home.CacheIndex(banzaiRepository),
+			Cache: env.Home.CacheIndex(pipconstants.BanzaiRepository),
 		})
 	if err != nil {
-		return errors.Wrapf(err, "cannot init repo: %s", banzaiRepository)
+		return errors.Wrapf(err, "cannot init repo: %s", pipconstants.BanzaiRepository)
 	}
 	return nil
 }

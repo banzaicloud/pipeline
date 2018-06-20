@@ -109,7 +109,7 @@ func CreateApplication(am *model.Application, options []ctype.ApplicationOptions
 }
 
 // CreateApplicationDeployment will deploy a Catalog with Dependency
-func CreateApplicationDeployment(env helm_env.EnvSettings, am *model.ApplicationModel, options []ctype.ApplicationOptions, catalogInfo *catalog.CatalogDetails, kubeConfig []byte) error {
+func CreateApplicationDeployment(env helm_env.EnvSettings, am *model.Application, options []ctype.ApplicationOptions, catalogInfo *catalog.CatalogDetails, kubeConfig []byte) error {
 
 	// Generate secrets for spotguide
 	secretTag := fmt.Sprintf("application:%d", am.ID)

@@ -6,6 +6,7 @@ import (
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/auth"
 	pipConfig "github.com/banzaicloud/pipeline/config"
+	pipconstants "github.com/banzaicloud/pipeline/constants"
 	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/utils"
@@ -107,8 +108,7 @@ func InstallMonitoring(input interface{}) error {
 	if !ok {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
-
-	return installDeployment(cluster, helm.DefaultNamespace, "banzaicloud-stable/pipeline-cluster-monitor", "pipeline-monitoring", nil, "InstallMonitoring")
+	return installDeployment(cluster, helm.DefaultNamespace, pipconstants.BanzaiRepository+"/pipeline-cluster-monitor", "pipeline-monitoring", nil, "InstallMonitoring")
 }
 
 // InstallLogging to install logging deployment
@@ -117,8 +117,7 @@ func InstallLogging(input interface{}) error {
 	if !ok {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
-
-	return installDeployment(cluster, helm.DefaultNamespace, "banzaicloud-stable/pipeline-cluster-logging", "pipeline-logging", nil, "InstallLogging")
+	return installDeployment(cluster, helm.DefaultNamespace, pipconstants.BanzaiRepository+"/pipeline-cluster-logging", "pipeline-logging", nil, "InstallLogging")
 }
 
 //PersistKubernetesKeys is a basic version of persisting keys TODO check if we need this from API or anywhere else
@@ -223,7 +222,7 @@ func InstallIngressControllerPostHook(input interface{}) error {
 	if !ok {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
-	return installDeployment(cluster, helm.DefaultNamespace, "banzaicloud-stable/pipeline-cluster-ingress", "pipeline", nil, "InstallIngressController")
+	return installDeployment(cluster, helm.DefaultNamespace, pipconstants.BanzaiRepository+"/pipeline-cluster-ingress", "pipeline", nil, "InstallIngressController")
 }
 
 //InstallClusterAutoscalerPostHook post hook only for AWS & Azure for now
