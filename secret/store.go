@@ -65,11 +65,28 @@ type SecretsItemResponse struct {
 	CreatedAt time.Time         `json:"createdAt"`
 }
 
-func (secret *SecretsItemResponse) K8SSourceMeta() components.SecretK8SSourceMeta {
+// K8SSourceMeta returns the meta information how to use this secret if installed to K8S
+func (s *SecretsItemResponse) K8SSourceMeta() components.SecretK8SSourceMeta {
 	return components.SecretK8SSourceMeta{
-		Name:     secret.Name,
-		Sourcing: constants.DefaultRules[secret.Type].Sourcing,
+		Name:     s.Name,
+		Sourcing: constants.DefaultRules[s.Type].Sourcing,
 	}
+}
+
+// GetValue returns the value under key
+func (s *SecretsItemResponse) GetValue(key string) string {
+	return s.Values[key]
+}
+
+// ValidateSecretType validates the secret type
+func (s *SecretsItemResponse) ValidateSecretType(validType string) error {
+	if string(s.Type) != validType {
+		return MissmatchError{
+			SecretType: s.Type,
+			ValidType:  validType,
+		}
+	}
+	return nil
 }
 
 // AllowedFilteredSecretTypesResponse for API response for AllowedSecretTypes/:type
@@ -294,22 +311,6 @@ func secretMetadataPath(organizationID uint, secretID string) string {
 func hasTag(tags []string, tag string) bool {
 	index := sort.SearchStrings(tags, tag)
 	return index < len(tags) && tags[index] == tag
-}
-
-// GetValue returns the value under key
-func (s *SecretsItemResponse) GetValue(key string) string {
-	return s.Values[key]
-}
-
-// ValidateSecretType validates the secret type
-func (s *SecretsItemResponse) ValidateSecretType(validType string) error {
-	if string(s.Type) != validType {
-		return MissmatchError{
-			SecretType: s.Type,
-			ValidType:  validType,
-		}
-	}
-	return nil
 }
 
 // MissmatchError describe a secret error where the given and expected secret type is not equal
