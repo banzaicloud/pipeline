@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -95,11 +96,6 @@ func generateSecretID(request *CreateSecretRequest) string {
 	return fmt.Sprintf("%x", sha256.Sum256([]byte(request.Name)))
 }
 
-// RepoTag creates a secret tag for repository mapping
-func RepoTag(repo string) string {
-	return fmt.Sprint("repo:", repo)
-}
-
 // Validate SecretRequest
 func (r *CreateSecretRequest) Validate(verifier verify.Verifier) error {
 	fields, ok := constants.DefaultRules[r.Type]
@@ -146,22 +142,8 @@ func (ss *secretStore) Store(organizationID uint, value *CreateSecretRequest) (s
 	secretID := generateSecretID(value)
 	path := secretDataPath(organizationID, secretID)
 
-	log.Debugln("Storing secret:", path)
-
-	// If we are not storing a full TLS secret instead of it's a request to generate one
-	if value.Type == constants.TLSSecretType && len(value.Values) <= 2 {
-		validity := value.Values[constants.TLSValidity]
-		if validity == "" {
-			validity = viper.GetString("tls.validity")
-		}
-		cc, err := GenerateTLS(value.Values[constants.TLSHosts], validity)
-		if err != nil {
-			return "", errors.Wrap(err, "Error during generating TLS secret")
-		}
-		err = mapstructure.Decode(cc, &value.Values)
-		if err != nil {
-			return "", errors.Wrap(err, "Error during decoding TLS secret")
-		}
+	if err := generateValuesIfNeeded(value); err != nil {
+		return "", err
 	}
 
 	sort.Strings(value.Tags)
@@ -370,4 +352,37 @@ func IsForbiddenTag(tags []string) error {
 // IsCASError detects if the underlying Vault error is caused by a CAS failure
 func IsCASError(err error) bool {
 	return strings.HasSuffix(err.Error(), "check-and-set parameter did not match the current version")
+}
+
+func generateValuesIfNeeded(value *CreateSecretRequest) error {
+	// If we are not storing a full TLS secret instead of it's a request to generate one
+	if value.Type == constants.TLSSecretType && len(value.Values) <= 2 {
+		validity := value.Values[constants.TLSValidity]
+		if validity == "" {
+			validity = viper.GetString("tls.validity")
+		}
+		cc, err := GenerateTLS(value.Values[constants.TLSHosts], validity)
+		if err != nil {
+			return errors.Wrap(err, "Error during generating TLS secret")
+		}
+		err = mapstructure.Decode(cc, &value.Values)
+		if err != nil {
+			return errors.Wrap(err, "Error during decoding TLS secret")
+		}
+		// If we are not storing a full TLS secret instead of it's a request to generate one
+	} else if value.Type == constants.PasswordSecretType {
+		methodAndLength := strings.Split(value.Values[constants.Password], ",")
+		if len(methodAndLength) == 2 {
+			length, err := strconv.Atoi(methodAndLength[1])
+			if err != nil {
+				return err
+			}
+			password, err := RandomString(methodAndLength[0], length)
+			if err != nil {
+				return err
+			}
+			value.Values[constants.Password] = password
+		}
+	}
+	return nil
 }

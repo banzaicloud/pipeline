@@ -905,7 +905,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"namespace\": \"default\",\n\t\"query\": {\n\t\t\"tag\": \"\"\n\t}\n}\n"
+							"raw": "{\n  \"namespace\": \"default\",\n  \"query\": {\n    \"tag\": \"\"\n  }\n}\n"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/{{orgId}}/clusters/{{cluster_id}}/secrets",
@@ -2682,6 +2682,122 @@
 						"body": {
 							"mode": "raw",
 							"raw": "{\n\t\"name\": \"my-amazon-secret\",\n\t\"type\": \"amazon\",\n\t\"values\": {\n\t\t\"AWS_ACCESS_KEY_ID\": \"{{AWS_ACCESS_KEY_ID}}\",\n\t\t\"AWS_SECRET_ACCESS_KEY\": \"{{AWS_SECRET_ACCESS_KEY}}\"\n\t}\n}"
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/{{orgId}}/secrets",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								"{{orgId}}",
+								"secrets"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add secret TLS",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (responseCode.code === 201) {",
+									"    tests[\"Response Code 201\"] = responseCode.code == 201;",
+									"",
+									"    pm.environment.set(\"timestampHeader\", new Date());",
+									"    var dataJSON = JSON.parse(responseBody);",
+									"    pm.environment.set(\"secret_id\", dataJSON.id);",
+									"    tests[\"Secret ID: \" + dataJSON.secret_id] = true;",
+									"} else {",
+									"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+									"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+									"    console.warn(responseBody);",
+									"    postman.setNextRequest(null);",
+									"}",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"name\": \"my-tls-secret\",\n\t\"type\": \"tls\",\n\t\"values\": {\n\t\t\"hosts\": \"localhost\"\n\t}\n}"
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/{{orgId}}/secrets",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								"{{orgId}}",
+								"secrets"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add secret TLS Copy",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (responseCode.code === 201) {",
+									"    tests[\"Response Code 201\"] = responseCode.code == 201;",
+									"",
+									"    pm.environment.set(\"timestampHeader\", new Date());",
+									"    var dataJSON = JSON.parse(responseBody);",
+									"    pm.environment.set(\"secret_id\", dataJSON.id);",
+									"    tests[\"Secret ID: \" + dataJSON.secret_id] = true;",
+									"} else {",
+									"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+									"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+									"    console.warn(responseBody);",
+									"    postman.setNextRequest(null);",
+									"}",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"name\": \"my-password-secret\",\n\t\"type\": \"password\",\n\t\"values\": {\n\t\t\"username\": \"root\",\n\t\t\"password\": \"randAlpha,16\"\n\t}\n}"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/{{orgId}}/secrets",

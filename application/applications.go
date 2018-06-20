@@ -91,8 +91,13 @@ func CreateApplicationDeployment(env helm_env.EnvSettings, am *model.Application
 		}
 		if s.TLS != nil {
 			request.Type = constants.TLSSecretType
-			request.Values["hosts"] = s.TLS.Hosts
-			request.Values["expiration"] = s.TLS.Expiration
+			request.Values[constants.TLSHosts] = s.TLS.Hosts
+			request.Values[constants.TLSValidity] = s.TLS.Validity
+		}
+		if s.Password != nil {
+			request.Type = constants.PasswordSecretType
+			request.Values[constants.Username] = s.Password.Username
+			request.Values[constants.Password] = s.Password.Password
 		}
 		if _, err := secret.Store.Store(am.OrganizationId, &request); err != nil {
 			return err
@@ -101,7 +106,10 @@ func CreateApplicationDeployment(env helm_env.EnvSettings, am *model.Application
 
 	// Install secrets into cluster for spotguide
 	secretQuery := components.ListSecretsQuery{Type: constants.AllSecrets, Tag: secretTag}
-	cluster.InstallSecretsByK8SConfig(kubeConfig, am.OrganizationId, &secretQuery, helm.DefaultNamespace)
+	_, err := cluster.InstallSecretsByK8SConfig(kubeConfig, am.OrganizationId, &secretQuery, helm.DefaultNamespace)
+	if err != nil {
+		return err
+	}
 
 	for _, dependency := range catalogInfo.Spotguide.Depends {
 		deployment := &model.Deployment{

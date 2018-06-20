@@ -28,6 +28,8 @@ const (
 	TLSSecretType = "tls"
 	// FnSecretType marks secrets as of type "fn"
 	FnSecretType = "fn"
+	// PasswordSecretType marks secrets as of type "password"
+	PasswordSecretType = "password"
 )
 
 // DefaultRules key matching for types
@@ -102,6 +104,13 @@ var DefaultRules = map[string]SecretMeta{
 		},
 		Sourcing: components.EnvVar,
 	},
+	PasswordSecretType: SecretMeta{
+		Fields: []SecretField{
+			{Name: Username, Required: true},
+			{Name: Password, Required: true},
+		},
+		Sourcing: components.EnvVar,
+	},
 }
 
 // Amazon keys
@@ -161,6 +170,12 @@ const (
 // Fn keys
 const (
 	MasterToken = "master_token"
+)
+
+// Password keys
+const (
+	Username = "username"
+	Password = "password"
 )
 
 // Internal usage
