@@ -370,7 +370,7 @@ func generateValuesIfNeeded(value *CreateSecretRequest) error {
 		if err != nil {
 			return errors.Wrap(err, "Error during decoding TLS secret")
 		}
-		// If we are not storing a full TLS secret instead of it's a request to generate one
+		// Generate a password if needed (if password is in method,length)
 	} else if value.Type == constants.PasswordSecretType {
 		methodAndLength := strings.Split(value.Values[constants.Password], ",")
 		if len(methodAndLength) == 2 {
