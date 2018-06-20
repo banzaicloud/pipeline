@@ -490,6 +490,12 @@ paths:
       responses:
         '200':
           description: "Posthooks started"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RunPostHook'
   '/api/v1/orgs/{orgId}/clusters/{id}/config':
     get:
       security:
@@ -4890,3 +4896,13 @@ components:
           type: string
         storageAccount:
           type: string
+
+    RunPostHook:
+      type: object
+      properties:
+        functions:
+          type: array
+          items:
+            type: string
+          example:  [ "InstallMonitoring" ]
+

@@ -42,6 +42,10 @@ var HookMap = map[string]PostFunctioner{
 		f:            InstallLogging,
 		ErrorHandler: ErrorHandler{},
 	},
+	pipConstants.RegisterDomainPostHook: &BasePostFunction{
+		f:            RegisterDomainPostHook,
+		ErrorHandler: ErrorHandler{},
+	},
 }
 
 // BasePostHookFunctions default posthook functions after cluster create
@@ -50,8 +54,14 @@ var BasePostHookFunctions = []PostFunctioner{
 	HookMap[pipConstants.PersistKubernetesKeys],
 	HookMap[pipConstants.UpdatePrometheusPostHook],
 	HookMap[pipConstants.InstallHelmPostHook],
+	HookMap[pipConstants.RegisterDomainPostHook],
 	HookMap[pipConstants.InstallIngressControllerPostHook],
 	HookMap[pipConstants.InstallClusterAutoscalerPostHook],
+}
+
+// RunPostHook describes a {cluster_id}/posthooks API request
+type RunPostHook struct {
+	Functions []string `json:"functions"`
 }
 
 // PostFunctioner manages posthook functions

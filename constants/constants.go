@@ -198,4 +198,5 @@ const (
 	InstallClusterAutoscalerPostHook = "InstallClusterAutoscalerPostHook"
 	InstallMonitoring                = "InstallMonitoring"
 	InstallLogging                   = "InstallLogging"
+	RegisterDomainPostHook           = "RegisterDomainPostHook"
 )

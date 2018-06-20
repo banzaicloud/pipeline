@@ -8,13 +8,11 @@ import (
 	"github.com/jinzhu/gorm"
 	// blank import is used here for simplicity
 	_ "github.com/jinzhu/gorm/dialects/mysql"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
 var dbOnce sync.Once
 var db *gorm.DB
-var log *logrus.Logger
 
 // Simple init for logging
 func init() {
