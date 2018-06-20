@@ -72,7 +72,10 @@ func GetChartFile(file []byte, fileName string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		if strings.Contains(header.Name, fileName) {
+		// We search for explicit path and the root directory is unknown.
+		// Apply regexp (<anything>/filename prevent false match like /root_dir/chart/abc/README.md
+		match, _ := regexp.MatchString("^([^/]*)/"+fileName+"$", header.Name)
+		if match {
 			valuesContent := new(bytes.Buffer)
 			if _, err := io.Copy(valuesContent, tarReader); err != nil {
 				return "", err
