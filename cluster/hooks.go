@@ -6,6 +6,7 @@ import (
 	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/auth"
 	pipConfig "github.com/banzaicloud/pipeline/config"
+	pipconstants "github.com/banzaicloud/pipeline/constants"
 	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/utils"
@@ -17,36 +18,58 @@ import (
 	"time"
 )
 
-// HookMap for api hook endpoints
-var HookMap = map[string]func(interface{}) error{
-	"StoreKubeConfig":                  StoreKubeConfig,
-	"PersistKubernetesKeys":            PersistKubernetesKeys,
-	"UpdatePrometheusPostHook":         UpdatePrometheusPostHook,
-	"InstallHelmPostHook":              InstallHelmPostHook,
-	"InstallIngressControllerPostHook": InstallIngressControllerPostHook,
-	"InstallClusterAutoscalerPostHook": InstallClusterAutoscalerPostHook,
-	"InstallMonitoring":                InstallMonitoring,
-	"InstallLogging":                   InstallLogging,
-	"RegisterDomainPostHook":           RegisterDomainPostHook,
-}
-
 // muxOrgDomain is a mutex used to sync access to external Dns service
 // in order to avoid registering the same domain twice
 var muxOrgDomain sync.Mutex
 
 //RunPostHooks calls posthook functions with created cluster
-func RunPostHooks(functionList []func(interface{}) error, createdCluster CommonCluster) {
+func RunPostHooks(functionList []PostFunctioner, createdCluster CommonCluster) {
+	var err error
 	for _, i := range functionList {
-		i(createdCluster)
+		if i != nil {
+
+			if err == nil {
+				log.Infof("Start posthook function[%s]", i)
+				err = i.Do(createdCluster)
+				if err != nil {
+					log.Errorf("Error during posthook function[%s]: %s", i, err.Error())
+				}
+			}
+
+			if err != nil {
+				i.Error(createdCluster, err)
+			}
+
+		}
 	}
+
 }
 
-func pollingKubernetesConfig(cluster CommonCluster) ([]byte, error) {
+// PollingKubernetesConfig polls kubeconfig from the cloud
+func PollingKubernetesConfig(cluster CommonCluster) ([]byte, error) {
+
+	var err error
+	status := constants.Creating
+
+	for status == constants.Creating {
+
+		log.Infof("Cluster status: %s", status)
+		sr, err := cluster.GetStatus()
+		if err != nil {
+			return nil, err
+		}
+		status = sr.Status
+
+		err = cluster.ReloadFromDatabase()
+		if err != nil {
+			return nil, err
+		}
+		time.Sleep(time.Second * 5)
+	}
 
 	retryCount := viper.GetInt("cloud.configRetryCount")
 	retrySleepTime := viper.GetInt("cloud.configRetrySleep")
 
-	var err error
 	var kubeConfig []byte
 	for i := 0; i < retryCount; i++ {
 		kubeConfig, err = cluster.DownloadK8sConfig()
@@ -61,14 +84,31 @@ func pollingKubernetesConfig(cluster CommonCluster) ([]byte, error) {
 	return kubeConfig, err
 }
 
+// WaitingForTillerComeUp waits until till to come up
+func WaitingForTillerComeUp(kubeConfig []byte) error {
+
+	retryAttempts := viper.GetInt(constants.HELM_RETRY_ATTEMPT_CONFIG)
+	retrySleepSeconds := viper.GetInt(constants.HELM_RETRY_SLEEP_SECONDS)
+
+	for i := 0; i <= retryAttempts; i++ {
+		log.Infof("Waiting for tiller to come up %d/%d", i, retryAttempts)
+		_, err := helm.GetHelmClient(kubeConfig)
+		if err == nil {
+			return nil
+		}
+		log.Warnf("Error during getting helm client: %s", err.Error())
+		time.Sleep(time.Duration(retrySleepSeconds) * time.Second)
+	}
+	return errors.New("Timeout during waiting for tiller to get ready")
+}
+
 // InstallMonitoring to install monitoring deployment
 func InstallMonitoring(input interface{}) error {
 	cluster, ok := input.(CommonCluster)
 	if !ok {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
-	//TODO install & ensure monitoring
-	return installDeployment(cluster, helm.DefaultNamespace, "", "", nil, "InstallMonitoring")
+	return installDeployment(cluster, helm.DefaultNamespace, pipconstants.BanzaiRepository+"/pipeline-cluster-monitor", "pipeline-monitoring", nil, "InstallMonitoring")
 }
 
 // InstallLogging to install logging deployment
@@ -77,8 +117,7 @@ func InstallLogging(input interface{}) error {
 	if !ok {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
-	//TODO install & ensure logging
-	return installDeployment(cluster, helm.DefaultNamespace, "", "", nil, "InstallLogging")
+	return installDeployment(cluster, helm.DefaultNamespace, pipconstants.BanzaiRepository+"/pipeline-cluster-logging", "pipeline-logging", nil, "InstallLogging")
 }
 
 //PersistKubernetesKeys is a basic version of persisting keys TODO check if we need this from API or anywhere else
@@ -183,7 +222,7 @@ func InstallIngressControllerPostHook(input interface{}) error {
 	if !ok {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
-	return installDeployment(cluster, helm.DefaultNamespace, "banzaicloud-stable/pipeline-cluster-ingress", "pipeline", nil, "InstallIngressController")
+	return installDeployment(cluster, helm.DefaultNamespace, pipconstants.BanzaiRepository+"/pipeline-cluster-ingress", "pipeline", nil, "InstallIngressController")
 }
 
 //InstallClusterAutoscalerPostHook post hook only for AWS & Azure for now
@@ -208,9 +247,6 @@ func InstallHelmPostHook(input interface{}) error {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
 
-	retryAttempts := viper.GetInt(constants.HELM_RETRY_ATTEMPT_CONFIG)
-	retrySleepSeconds := viper.GetInt(constants.HELM_RETRY_SLEEP_SECONDS)
-
 	helmInstall := &htypes.Install{
 		Namespace:      "kube-system",
 		ServiceAccount: "tiller",
@@ -224,22 +260,12 @@ func InstallHelmPostHook(input interface{}) error {
 
 	err = helm.RetryHelmInstall(helmInstall, kubeconfig)
 	if err == nil {
-		// Get K8S Config //
-		kubeConfig, err := cluster.GetK8sConfig()
-		if err != nil {
+		log.Info("Getting K8S Config Succeeded")
+
+		if err := WaitingForTillerComeUp(kubeconfig); err != nil {
 			return err
 		}
-		log.Info("Getting K8S Config Succeeded")
-		for i := 0; i <= retryAttempts; i++ {
-			log.Infof("Waiting for tiller to come up %d/%d", i, retryAttempts)
-			_, err = helm.GetHelmClient(kubeConfig)
-			if err == nil {
-				return nil
-			}
-			log.Warnf("Error during getting helm client: %s", err.Error())
-			time.Sleep(time.Duration(retrySleepSeconds) * time.Second)
-		}
-		log.Error("Timeout during waiting for tiller to get ready")
+
 	} else {
 		log.Errorf("Error during retry helm install: %s", err.Error())
 	}
@@ -262,7 +288,7 @@ func StoreKubeConfig(input interface{}) error {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
 
-	config, err := pollingKubernetesConfig(cluster)
+	config, err := PollingKubernetesConfig(cluster)
 	if err != nil {
 		log.Errorf("Error downloading kubeconfig: %s", err.Error())
 		return err

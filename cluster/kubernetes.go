@@ -230,3 +230,8 @@ func (b *KubeCluster) GetConfigSecretId() string {
 func (b *KubeCluster) GetK8sConfig() ([]byte, error) {
 	return b.DownloadK8sConfig()
 }
+
+// ReloadFromDatabase load cluster from DB
+func (b *KubeCluster) ReloadFromDatabase() error {
+	return b.modelCluster.ReloadFromDatabase()
+}

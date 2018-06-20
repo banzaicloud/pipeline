@@ -37,7 +37,7 @@ type ClusterModel struct {
 	Google         GoogleClusterModel
 	Dummy          DummyClusterModel
 	Kubernetes     KubernetesClusterModel
-	Applications   []ApplicationModel `gorm:"foreignkey:ClusterID"`
+	Applications   []Application `gorm:"foreignkey:ClusterID"`
 }
 
 //AmazonClusterModel describes the amazon cluster model
@@ -344,4 +344,12 @@ func (cs *ClusterModel) UpdateConfigSecret(configSecretId string) error {
 func (cs *ClusterModel) UpdateSshSecret(sshSecretId string) error {
 	cs.SshSecretId = sshSecretId
 	return cs.Save()
+}
+
+// ReloadFromDatabase load cluster from DB
+func (cs *ClusterModel) ReloadFromDatabase() error {
+	return GetDB().Where(ClusterModel{
+		ID:             cs.ID,
+		OrganizationId: cs.OrganizationId,
+	}, &cs).Error
 }

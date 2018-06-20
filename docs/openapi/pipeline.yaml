@@ -133,6 +133,12 @@ paths:
           description: Organization identification
           schema:
             type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateApplicationRequest'
 
       responses:
        '201':
@@ -148,8 +154,8 @@ paths:
         - bearerAuth: []
       tags:
         - applications
-      summary: List application catalogs
-      description: List all available application for lunch
+      summary: Get application details
+      description: Get application details with deployments
       parameters:
         - name: orgId
           in: path
@@ -211,7 +217,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateClusterRequest'
+              $ref: '#/components/schemas/CreateApplicationRequest'
 
             examples:
               AWS:
@@ -459,6 +465,37 @@ paths:
         '404':
           description: Cluster not found
 
+  '/api/v1/orgs/{orgId}/clusters/{id}/posthooks':
+    put:
+      security:
+        - bearerAuth: []
+      tags:
+       - cluster
+      summary: Run posthook functions
+      operationId: ClusterPostHooks
+      description: Run posthook functions
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: id
+          in: path
+          required: true
+          description: Selected cluster identification (number)
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: "Posthooks started"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RunPostHook'
   '/api/v1/orgs/{orgId}/clusters/{id}/config':
     get:
       security:
@@ -2751,15 +2788,36 @@ components:
     ApplicationListItem:
       type: object
       properties:
+        id:
+          type: integer
+          example: 1
         name:
           type: string
           example: "Spark-Zeppelin"
-        cluster_name:
+        createdAt:
+          type: string
+          example: "2018-06-11T14:28:13Z"
+        updatedAt:
+          type: string
+          example: "2018-06-11T14:28:24Z"
+        clusterName:
           type: string
           example: "My Favourite Cluster"
-        cluster_id:
+        clusterId:
           type: integer
           example: 0
+        status:
+          type: string
+          example: READY
+        catalogName:
+          type: string
+          example: spark-zeppelin
+        icon:
+          type: string
+          example: /assets/img/asd.png
+        statusMessage:
+          type: string
+          example: "The resource was not found."
 
     ApplicationDetailsResponse:
       type: object
@@ -2767,29 +2825,83 @@ components:
         name:
           type: string
           example: "Spark-Zeppelin"
+        createdAt:
+          type: string
+          example: "2018-06-11T14:28:12Z"
+        updatedAt:
+          type: string
+          example: "2018-06-11T14:28:12Z"
+        catalogName:
+          type: string
+          example: mysql-simple
+        description:
+          type: string
+          example: "Mysql simple description..."
+        icon:
+          type: string
+          example: "/assets/image/mysql.png"
+        organizationId:
+          type: integer
+          example: 1
         cluster_name:
           type: string
-          example: 0
+          example: "MyCluster"
         cluster_id:
           type: integer
           example: 0
-        deployments:
-          type: array
-          items:
-            type: object
-            properties:
-              name:
-                type: string
-                example: "schuffle-service"
-              release_name:
-                type: string
-                example: "schuffle-service"
-              state:
-                type: string
-                example: "ACTIVE"
         readme:
           type: string
           example: Long readme about your application.
+        deployments:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApplicationDeploymentItem'
+
+    ApplicationDeploymentItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        createdAt:
+          type: string
+          example: "2018-06-11T14:28:13Z"
+        updatedAt:
+          type: string
+          example: "2018-06-11T14:28:24Z"
+        name:
+          type: string
+          example: "monitor"
+        chart:
+          type: string
+          example: "etcd-operator"
+        releaseName:
+          type: string
+          example: "measly-quail"
+        status:
+          type: string
+          example: "READY"
+        message:
+           type: string
+           example: "Something bad happened"
+        applicationId:
+          type: integer
+          example: 1
+
+    CreateApplicationRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "MyApplication"
+        catalogName:
+          type: string
+          example: "mysql-simple"
+        clusterId:
+          type: integer
+          example: 0
+        cluster:
+          $ref: '#/components/schemas/CreateClusterRequest'
 
     CreateClusterRequest:
       type: object
@@ -2812,6 +2924,11 @@ components:
         secret_id:
           type: string
           example: "62bc3c75-91fb-4670-bad4-24b401a9deac"
+        postHooks:
+          type: array
+          items:
+            type: string
+          example: [ "InstallMonitoring", "InstallLogging" ]
         properties:
           type: object
           oneOf:
@@ -4779,3 +4896,13 @@ components:
           type: string
         storageAccount:
           type: string
+
+    RunPostHook:
+      type: object
+      properties:
+        functions:
+          type: array
+          items:
+            type: string
+          example:  [ "InstallMonitoring" ]
+

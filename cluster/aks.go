@@ -680,3 +680,8 @@ func (c *AKSCluster) GetK8sConfig() ([]byte, error) {
 func (c *AKSCluster) RequiresSshPublicKey() bool {
 	return true
 }
+
+// ReloadFromDatabase load cluster from DB
+func (c *AKSCluster) ReloadFromDatabase() error {
+	return c.modelCluster.ReloadFromDatabase()
+}
