@@ -54,6 +54,11 @@ var BasePostHookFunctions = []PostFunctioner{
 	HookMap[pipConstants.InstallClusterAutoscalerPostHook],
 }
 
+// RunPostHook describes a {cluster_id}/posthooks API request
+type RunPostHook struct {
+	Functions []string `json:"functions"`
+}
+
 // PostFunctioner manages posthook functions
 type PostFunctioner interface {
 	Do(CommonCluster) error

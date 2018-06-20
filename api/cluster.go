@@ -631,10 +631,28 @@ func ReRunPostHooks(c *gin.Context) {
 		return
 	}
 
-	posthooks := cluster.BasePostHookFunctions
+	var ph cluster.RunPostHook
+	if err := c.BindJSON(&ph); err != nil {
+		log.Errorf("error during binding request: %s", err.Error())
+		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "error during binding request",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	var posthooks []cluster.PostFunctioner
+	if len(ph.Functions) == 0 {
+		posthooks = cluster.BasePostHookFunctions
+	} else {
+		for _, f := range ph.Functions {
+			posthooks = append(posthooks, cluster.HookMap[f])
+		}
+	}
 
 	log.Infof("Cluster id: %d", commonCluster.GetID())
-	log.Infof("Run posthooks: %v", posthooks)
+	log.Infof("Run posthook(s): %v", posthooks)
 
 	go cluster.RunPostHooks(posthooks, commonCluster)
 
