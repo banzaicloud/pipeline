@@ -2,10 +2,9 @@ package helm
 
 import (
 	"fmt"
-	"github.com/banzaicloud/banzai-types/components/helm"
-	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/config"
-	pipconstants "github.com/banzaicloud/pipeline/constants"
+	"github.com/banzaicloud/pipeline/pkg/helm"
+	phelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	apiv1 "k8s.io/api/core/v1"
@@ -143,8 +142,8 @@ func PreInstall(helmInstall *helm.Install, kubeConfig []byte) error {
 // Azure AKS sometimes failing because of TLS handshake timeout, there are several issues on GitHub about that:
 // https://github.com/Azure/AKS/issues/112, https://github.com/Azure/AKS/issues/116, https://github.com/Azure/AKS/issues/14
 func RetryHelmInstall(helmInstall *helm.Install, kubeconfig []byte) error {
-	retryAttempts := viper.GetInt(constants.HELM_RETRY_ATTEMPT_CONFIG)
-	retrySleepSeconds := viper.GetInt(constants.HELM_RETRY_SLEEP_SECONDS)
+	retryAttempts := viper.GetInt(phelm.HELM_RETRY_ATTEMPT_CONFIG)
+	retrySleepSeconds := viper.GetInt(phelm.HELM_RETRY_SLEEP_SECONDS)
 	for i := 0; i <= retryAttempts; i++ {
 		log.Infof("Waiting %d/%d", i, retryAttempts)
 		err := Install(helmInstall, kubeconfig)
@@ -169,7 +168,7 @@ func CreateEnvSettings(helmRepoHome string) helm_env.EnvSettings {
 // GenerateHelmRepoEnv Generate helm path based on orgName
 func GenerateHelmRepoEnv(orgName string) (env helm_env.EnvSettings) {
 	var helmPath = config.GetHelmPath(orgName)
-	env = CreateEnvSettings(fmt.Sprintf("%s/%s", helmPath, pipconstants.HelmPostFix))
+	env = CreateEnvSettings(fmt.Sprintf("%s/%s", helmPath, phelm.HelmPostFix))
 
 	// check local helm
 	if _, err := os.Stat(helmPath); os.IsNotExist(err) {
@@ -253,22 +252,22 @@ func ensureDefaultRepos(env helm_env.EnvSettings) error {
 	_, err := ReposAdd(
 		env,
 		&repo.Entry{
-			Name:  pipconstants.StableRepository,
+			Name:  phelm.StableRepository,
 			URL:   stableRepositoryURL,
-			Cache: env.Home.CacheIndex(pipconstants.StableRepository),
+			Cache: env.Home.CacheIndex(phelm.StableRepository),
 		})
 	if err != nil {
-		return errors.Wrapf(err, "cannot init repo: %s", pipconstants.StableRepository)
+		return errors.Wrapf(err, "cannot init repo: %s", phelm.StableRepository)
 	}
 	_, err = ReposAdd(
 		env,
 		&repo.Entry{
-			Name:  pipconstants.BanzaiRepository,
+			Name:  phelm.BanzaiRepository,
 			URL:   banzaiRepositoryURL,
-			Cache: env.Home.CacheIndex(pipconstants.BanzaiRepository),
+			Cache: env.Home.CacheIndex(phelm.BanzaiRepository),
 		})
 	if err != nil {
-		return errors.Wrapf(err, "cannot init repo: %s", pipconstants.BanzaiRepository)
+		return errors.Wrapf(err, "cannot init repo: %s", phelm.BanzaiRepository)
 	}
 	return nil
 }

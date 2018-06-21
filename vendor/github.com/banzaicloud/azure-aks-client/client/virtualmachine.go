@@ -93,6 +93,9 @@ func (a *aksClient) enableManagedServiceIdentity(resourceGroup, clusterName, loc
 
 	a.LogInfof("List virtual machines in [%s]", resourceGroup)
 	vmList, err := a.listVirtualMachines(resourceGroup, clusterName, location)
+	if err != nil {
+		return err
+	}
 
 	for _, vm := range vmList {
 		a.LogInfof("Enable MSI in VM[%s]", *vm.Name)
@@ -114,6 +117,9 @@ func (a *aksClient) disableManagedServiceIdentity(resourceGroup, clusterName, lo
 
 	a.LogInfof("List virtual machines in [%s]", resourceGroup)
 	vmList, err := a.listVirtualMachines(resourceGroup, clusterName, location)
+	if err != nil {
+		return err
+	}
 
 	for _, vm := range vmList {
 		a.LogInfof("Disable MSI in VM[%s]", *vm.Name)

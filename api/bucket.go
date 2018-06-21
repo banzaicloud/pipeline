@@ -10,10 +10,12 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/banzaicloud/banzai-types/components"
-	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/objectstore"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/banzaicloud/pipeline/pkg/common"
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
+	"github.com/banzaicloud/pipeline/pkg/storage"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/gin-gonic/gin"
@@ -67,7 +69,7 @@ func ListObjectStoreBuckets(c *gin.Context) {
 		return
 	}
 
-	if cloudType == constants.Amazon {
+	if cloudType == pkgCluster.Amazon {
 		location := c.Query("location")
 
 		if len(location) == 0 {
@@ -105,10 +107,10 @@ func CreateObjectStoreBuckets(c *gin.Context) {
 
 	log.Debug("Bind json into CreateClusterRequest struct")
 	// bind request body to struct
-	var createBucketRequest components.CreateBucketRequest
+	var createBucketRequest storage.CreateBucketRequest
 	if err := c.BindJSON(&createBucketRequest); err != nil {
 		log.Error(errors.Wrap(err, "Error parsing request"))
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error parsing request",
 			Error:   err.Error(),
@@ -139,16 +141,16 @@ func CreateObjectStoreBuckets(c *gin.Context) {
 	}
 	log.Debug("CommonObjectStoreBuckets created")
 	log.Debug("Bucket creation started")
-	c.JSON(http.StatusAccepted, components.CreateBucketResponse{
+	c.JSON(http.StatusAccepted, storage.CreateBucketResponse{
 		Name: createBucketRequest.Name,
 	})
-	if cloudType == constants.Amazon {
+	if cloudType == pkgCluster.Amazon {
 		objectStore.WithRegion(createBucketRequest.Properties.CreateAmazonObjectStoreBucketProperties.Location)
 	}
-	if cloudType == constants.Google {
+	if cloudType == pkgCluster.Google {
 		objectStore.WithRegion(createBucketRequest.Properties.CreateGoogleObjectStoreBucketProperties.Location)
 	}
-	if cloudType == constants.Azure {
+	if cloudType == pkgCluster.Azure {
 		objectStore.WithRegion(createBucketRequest.Properties.CreateAzureObjectStoreBucketProperties.Location)
 		objectStore.WithResourceGroup(createBucketRequest.Properties.CreateAzureObjectStoreBucketProperties.ResourceGroup)
 		objectStore.WithStorageAccount(createBucketRequest.Properties.CreateAzureObjectStoreBucketProperties.StorageAccount)
@@ -188,7 +190,7 @@ func CheckObjectStoreBucket(c *gin.Context) {
 		c.Status(errorResponseFrom(err).Code)
 		return
 	}
-	if cloudType == constants.Azure {
+	if cloudType == pkgCluster.Azure {
 		resourceGroup := c.Query("resourceGroup")
 		if len(resourceGroup) == 0 {
 			c.Status(requiredQueryParamMissingErrorResponse("resourceGroup").Code)
@@ -258,7 +260,7 @@ func DeleteObjectStoreBucket(c *gin.Context) {
 		return
 	}
 
-	if cloudType == constants.Azure {
+	if cloudType == pkgCluster.Azure {
 		resourceGroup := c.Query("resourceGroup")
 		if len(resourceGroup) == 0 {
 			replyWithErrorResponse(c, requiredQueryParamMissingErrorResponse("resourceGroup"))
@@ -293,11 +295,11 @@ func DeleteObjectStoreBucket(c *gin.Context) {
 }
 
 // errorResponseFrom translates the given error into a components.ErrorResponse
-func errorResponseFrom(err error) *components.ErrorResponse {
+func errorResponseFrom(err error) *common.ErrorResponse {
 
 	// google specific errors
 	if googleApiErr, ok := err.(*googleapi.Error); ok {
-		return &components.ErrorResponse{
+		return &common.ErrorResponse{
 			Code:    googleApiErr.Code,
 			Error:   googleApiErr.Error(),
 			Message: googleApiErr.Message,
@@ -311,7 +313,7 @@ func errorResponseFrom(err error) *components.ErrorResponse {
 			code = awsReqFailure.StatusCode()
 		}
 
-		return &components.ErrorResponse{
+		return &common.ErrorResponse{
 			Code:    code,
 			Error:   awsErr.Error(),
 			Message: awsErr.Message(),
@@ -320,7 +322,7 @@ func errorResponseFrom(err error) *components.ErrorResponse {
 
 	// azure specific errors
 	if azureErr, ok := err.(validation.Error); ok {
-		return &components.ErrorResponse{
+		return &common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Error:   azureErr.Error(),
 			Message: azureErr.Message,
@@ -330,7 +332,7 @@ func errorResponseFrom(err error) *components.ErrorResponse {
 	if azureErr, ok := err.(azblob.StorageError); ok {
 		serviceCode := fmt.Sprint(azureErr.ServiceCode())
 
-		return &components.ErrorResponse{
+		return &common.ErrorResponse{
 			Code:    azureErr.Response().StatusCode,
 			Error:   azureErr.Error(),
 			Message: serviceCode,
@@ -340,21 +342,21 @@ func errorResponseFrom(err error) *components.ErrorResponse {
 	if azureErr, ok := err.(autorest.DetailedError); ok {
 		if azureErr.Original != nil {
 			if azureOrigErr, ok := azureErr.Original.(*azure.RequestError); ok {
-				return &components.ErrorResponse{
+				return &common.ErrorResponse{
 					Code:    azureErr.Response.StatusCode,
 					Error:   azureOrigErr.ServiceError.Error(),
 					Message: azureOrigErr.ServiceError.Message,
 				}
 			}
 
-			return &components.ErrorResponse{
+			return &common.ErrorResponse{
 				Code:    azureErr.Response.StatusCode,
 				Error:   azureErr.Original.Error(),
 				Message: azureErr.Message,
 			}
 		}
 
-		return &components.ErrorResponse{
+		return &common.ErrorResponse{
 			Code:    azureErr.Response.StatusCode,
 			Error:   azureErr.Error(),
 			Message: azureErr.Message,
@@ -362,8 +364,8 @@ func errorResponseFrom(err error) *components.ErrorResponse {
 	}
 
 	// pipeline specific errors
-	if err == constants.ErrorNotSupportedCloudType {
-		return &components.ErrorResponse{
+	if err == pkgErrors.ErrorNotSupportedCloudType {
+		return &common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Error:   err.Error(),
 			Message: err.Error(),
@@ -372,19 +374,19 @@ func errorResponseFrom(err error) *components.ErrorResponse {
 
 	switch err.(type) {
 	case SecretNotFoundError, secret.MissmatchError:
-		return &components.ErrorResponse{
+		return &common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Error:   err.Error(),
 			Message: err.Error(),
 		}
 	case objectstore.ManagedBucketNotFoundError:
-		return &components.ErrorResponse{
+		return &common.ErrorResponse{
 			Code:    http.StatusNotFound,
 			Error:   err.Error(),
 			Message: err.Error(),
 		}
 	default:
-		return &components.ErrorResponse{
+		return &common.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Error:   err.Error(),
 			Message: err.Error(),
@@ -392,13 +394,13 @@ func errorResponseFrom(err error) *components.ErrorResponse {
 	}
 }
 
-func replyWithErrorResponse(c *gin.Context, errorResponse *components.ErrorResponse) {
+func replyWithErrorResponse(c *gin.Context, errorResponse *common.ErrorResponse) {
 	c.JSON(errorResponse.Code, errorResponse)
 }
 
 // requiredQueryParamMissingErrorResponse creates an components.ErrorResponse denoting missing required query param
-func requiredQueryParamMissingErrorResponse(queryParamName string) *components.ErrorResponse {
-	return &components.ErrorResponse{
+func requiredQueryParamMissingErrorResponse(queryParamName string) *common.ErrorResponse {
+	return &common.ErrorResponse{
 		Code:    http.StatusBadRequest,
 		Error:   "Query parameter required.",
 		Message: fmt.Sprintf("Required query parameter '%s' is missing", queryParamName),
@@ -406,8 +408,8 @@ func requiredQueryParamMissingErrorResponse(queryParamName string) *components.E
 }
 
 // requiredHeaderParamMissingErrorResponse creates an components.ErrorResponse denoting missing required header param
-func requiredHeaderParamMissingErrorResponse(headerParamName string) *components.ErrorResponse {
-	return &components.ErrorResponse{
+func requiredHeaderParamMissingErrorResponse(headerParamName string) *common.ErrorResponse {
+	return &common.ErrorResponse{
 		Code:    http.StatusBadRequest,
 		Error:   "Header parameter required.",
 		Message: fmt.Sprintf("Required header parameter '%s' is missing", headerParamName),
@@ -440,15 +442,15 @@ func getValidatedSecret(organizationId uint, secretId, cloudType string) (*secre
 	return retrievedSecret, nil
 }
 
-func determineCloudProviderFromRequest(req components.CreateBucketRequest) (string, error) {
+func determineCloudProviderFromRequest(req storage.CreateBucketRequest) (string, error) {
 	if req.Properties.CreateAzureObjectStoreBucketProperties != nil {
-		return constants.Azure, nil
+		return pkgCluster.Azure, nil
 	}
 	if req.Properties.CreateAmazonObjectStoreBucketProperties != nil {
-		return constants.Amazon, nil
+		return pkgCluster.Amazon, nil
 	}
 	if req.Properties.CreateGoogleObjectStoreBucketProperties != nil {
-		return constants.Google, nil
+		return pkgCluster.Google, nil
 	}
-	return "", constants.ErrorNotSupportedCloudType
+	return "", pkgErrors.ErrorNotSupportedCloudType
 }

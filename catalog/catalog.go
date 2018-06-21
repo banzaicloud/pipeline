@@ -9,9 +9,9 @@ import (
 	"regexp"
 	"strings"
 
-	ctype "github.com/banzaicloud/banzai-types/components/catalog"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
+	pkgCatalog "github.com/banzaicloud/pipeline/pkg/catalog"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
@@ -34,16 +34,16 @@ var log = config.Logger()
 
 // CatalogDetails for API response
 type CatalogDetails struct {
-	Name      string               `json:"name"`
-	Repo      string               `json:"repo"`
-	Chart     *repo.ChartVersion   `json:"chart"`
-	Values    string               `json:"values"`
-	Readme    string               `json:"readme"`
-	Spotguide *ctype.SpotguideFile `json:"spotguide"`
+	Name      string                    `json:"name"`
+	Repo      string                    `json:"repo"`
+	Chart     *repo.ChartVersion        `json:"chart"`
+	Values    string                    `json:"values"`
+	Readme    string                    `json:"readme"`
+	Spotguide *pkgCatalog.SpotguideFile `json:"spotguide"`
 }
 
 // CreateValuesFromOption helper to parse ApplicationOptions into chart values
-func CreateValuesFromOption(options []ctype.ApplicationOptions) ([]byte, error) {
+func CreateValuesFromOption(options []pkgCatalog.ApplicationOptions) ([]byte, error) {
 	base := map[string]interface{}{}
 	for _, o := range options {
 		set := o.Key + "=" + o.Value
@@ -122,8 +122,8 @@ func GetCatalogDetails(env helm_env.EnvSettings, name string) (*CatalogDetails, 
 	return cd, nil
 }
 
-func getChartOption(file []byte) (*ctype.SpotguideFile, error) {
-	so := &ctype.SpotguideFile{}
+func getChartOption(file []byte) (*pkgCatalog.SpotguideFile, error) {
+	so := &pkgCatalog.SpotguideFile{}
 	tarReader := tar.NewReader(bytes.NewReader(file))
 	for {
 		header, err := tarReader.Next()

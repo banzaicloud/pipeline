@@ -2,13 +2,12 @@ package cluster
 
 import (
 	"fmt"
-	htypes "github.com/banzaicloud/banzai-types/components/helm"
-	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/auth"
 	pipConfig "github.com/banzaicloud/pipeline/config"
-	pipconstants "github.com/banzaicloud/pipeline/constants"
 	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/helm"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/go-errors/errors"
 	"github.com/spf13/viper"
@@ -49,9 +48,9 @@ func RunPostHooks(functionList []PostFunctioner, createdCluster CommonCluster) {
 func PollingKubernetesConfig(cluster CommonCluster) ([]byte, error) {
 
 	var err error
-	status := constants.Creating
+	status := pkgCluster.Creating
 
-	for status == constants.Creating {
+	for status == pkgCluster.Creating {
 
 		log.Infof("Cluster status: %s", status)
 		sr, err := cluster.GetStatus()
@@ -87,8 +86,8 @@ func PollingKubernetesConfig(cluster CommonCluster) ([]byte, error) {
 // WaitingForTillerComeUp waits until till to come up
 func WaitingForTillerComeUp(kubeConfig []byte) error {
 
-	retryAttempts := viper.GetInt(constants.HELM_RETRY_ATTEMPT_CONFIG)
-	retrySleepSeconds := viper.GetInt(constants.HELM_RETRY_SLEEP_SECONDS)
+	retryAttempts := viper.GetInt(pkgHelm.HELM_RETRY_ATTEMPT_CONFIG)
+	retrySleepSeconds := viper.GetInt(pkgHelm.HELM_RETRY_SLEEP_SECONDS)
 
 	for i := 0; i <= retryAttempts; i++ {
 		log.Infof("Waiting for tiller to come up %d/%d", i, retryAttempts)
@@ -108,7 +107,7 @@ func InstallMonitoring(input interface{}) error {
 	if !ok {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
-	return installDeployment(cluster, helm.DefaultNamespace, pipconstants.BanzaiRepository+"/pipeline-cluster-monitor", "pipeline-monitoring", nil, "InstallMonitoring")
+	return installDeployment(cluster, helm.DefaultNamespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-monitor", "pipeline-monitoring", nil, "InstallMonitoring")
 }
 
 // InstallLogging to install logging deployment
@@ -117,7 +116,7 @@ func InstallLogging(input interface{}) error {
 	if !ok {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
-	return installDeployment(cluster, helm.DefaultNamespace, pipconstants.BanzaiRepository+"/pipeline-cluster-logging", "pipeline-logging", nil, "InstallLogging")
+	return installDeployment(cluster, helm.DefaultNamespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-logging", "pipeline-logging", nil, "InstallLogging")
 }
 
 //PersistKubernetesKeys is a basic version of persisting keys TODO check if we need this from API or anywhere else
@@ -222,7 +221,7 @@ func InstallIngressControllerPostHook(input interface{}) error {
 	if !ok {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
-	return installDeployment(cluster, helm.DefaultNamespace, pipconstants.BanzaiRepository+"/pipeline-cluster-ingress", "pipeline", nil, "InstallIngressController")
+	return installDeployment(cluster, helm.DefaultNamespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-ingress", "pipeline", nil, "InstallIngressController")
 }
 
 //InstallClusterAutoscalerPostHook post hook only for AWS & Azure for now
@@ -247,7 +246,7 @@ func InstallHelmPostHook(input interface{}) error {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
 
-	helmInstall := &htypes.Install{
+	helmInstall := &pkgHelm.Install{
 		Namespace:      "kube-system",
 		ServiceAccount: "tiller",
 		ImageSpec:      fmt.Sprintf("gcr.io/kubernetes-helm/tiller:%s", viper.GetString("helm.tillerVersion")),

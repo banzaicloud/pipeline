@@ -1,9 +1,9 @@
 package containerservice
 
 import (
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice"
 	"context"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice"
+	"github.com/Azure/go-autorest/autorest"
 )
 
 // ManagedClustersClient responsible for AKS clusters

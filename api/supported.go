@@ -3,10 +3,10 @@ package api
 import (
 	"net/http"
 
-	"github.com/banzaicloud/banzai-types/components"
-	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster/supported"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/gin-gonic/gin"
 )
 
@@ -15,11 +15,11 @@ func GetSupportedClusterList(c *gin.Context) {
 
 	log.Info("Start getting supported clusters")
 
-	c.JSON(http.StatusOK, components.SupportedClustersResponse{
-		Items: []components.SupportedClusterItem{
+	c.JSON(http.StatusOK, pkgCluster.SupportedClustersResponse{
+		Items: []pkgCluster.SupportedClusterItem{
 			{
 				Name:    "Amazon EC2",
-				Key:     constants.Amazon,
+				Key:     pkgCluster.Amazon,
 				Enabled: true,
 				Icon:    "assets/images/amazon.png",
 			},
@@ -31,19 +31,19 @@ func GetSupportedClusterList(c *gin.Context) {
 			},
 			{
 				Name:    "Azure Kubernetes Service",
-				Key:     constants.Azure,
+				Key:     pkgCluster.Azure,
 				Enabled: true,
 				Icon:    "assets/images/azure.png",
 			},
 			{
 				Name:    "Google Kubernetes Engine",
-				Key:     constants.Google,
+				Key:     pkgCluster.Google,
 				Enabled: true,
 				Icon:    "assets/images/google.png",
 			},
 			{
 				Name:    "Kubernetes Cluster",
-				Key:     constants.Kubernetes,
+				Key:     pkgCluster.Kubernetes,
 				Enabled: true,
 				Icon:    "assets/images/kubernetes.png",
 			},
@@ -99,18 +99,18 @@ func GetCloudInfo(c *gin.Context) {
 	location := getLocationFromQuery(c)
 	log.Debugf("Location: %s", location)
 
-	request := &components.CloudInfoRequest{
+	request := &pkgCluster.CloudInfoRequest{
 		OrganizationId: organizationID,
 		SecretId:       secretId,
-		Filter: &components.CloudInfoFilter{
+		Filter: &pkgCluster.CloudInfoFilter{
 			Fields: filterFields,
-			InstanceType: &components.InstanceFilter{
+			InstanceType: &pkgCluster.InstanceFilter{
 				Location: location,
 			},
-			KubernetesFilter: &components.KubernetesFilter{
+			KubernetesFilter: &pkgCluster.KubernetesFilter{
 				Location: location,
 			},
-			ImageFilter: &components.ImageFilter{
+			ImageFilter: &pkgCluster.ImageFilter{
 				Location: location,
 				Tags:     tags,
 			},
@@ -119,7 +119,7 @@ func GetCloudInfo(c *gin.Context) {
 
 	if resp, err := processCloudInfo(cloudType, request); err != nil {
 		log.Errorf("Error during getting cloud info: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error during getting cloud info",
 			Error:   err.Error(),
@@ -157,7 +157,7 @@ func getLocationFromQuery(c *gin.Context) string {
 }
 
 // processCloudInfo returns the cloud info with the supported fields
-func processCloudInfo(cloudType string, r *components.CloudInfoRequest) (*components.GetCloudInfoResponse, error) {
+func processCloudInfo(cloudType string, r *pkgCluster.CloudInfoRequest) (*pkgCluster.GetCloudInfoResponse, error) {
 	log.Info("Create cloud info model")
 	m, err := supported.GetCloudInfoModel(cloudType, r)
 	if err != nil {

@@ -1,8 +1,8 @@
 package client
 
 import (
-	"github.com/Azure/go-autorest/autorest/adal"
 	"fmt"
+	"github.com/Azure/go-autorest/autorest/adal"
 )
 
 const (

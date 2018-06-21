@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/gin-gonic/gin"
 )
 
@@ -21,7 +21,7 @@ func OrganizationMiddleware(c *gin.Context) {
 	if err != nil {
 		message := fmt.Sprintf("error parsing organization id: %q", orgidParam)
 		log.Info(message)
-		c.AbortWithStatusJSON(http.StatusBadRequest, components.ErrorResponse{
+		c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: message,
 			Error:   message,
@@ -37,7 +37,7 @@ func OrganizationMiddleware(c *gin.Context) {
 		message := "error fetching organizations: " + err.Error()
 		log.Info(message)
 		statusCode := auth.GormErrorToStatusCode(err)
-		c.AbortWithStatusJSON(statusCode, components.ErrorResponse{
+		c.AbortWithStatusJSON(statusCode, common.ErrorResponse{
 			Code:    statusCode,
 			Message: message,
 			Error:   message,
@@ -60,7 +60,7 @@ func GetOrganizations(c *gin.Context) {
 	if idParam != "" && err != nil {
 		message := fmt.Sprintf("error parsing organization id: %s", err)
 		log.Info(message)
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: message,
 			Error:   message,
@@ -85,7 +85,7 @@ func GetOrganizations(c *gin.Context) {
 		message := "error fetching organizations"
 		log.Info(message + ": " + err.Error())
 		statusCode := auth.GormErrorToStatusCode(err)
-		c.AbortWithStatusJSON(statusCode, components.ErrorResponse{
+		c.AbortWithStatusJSON(statusCode, common.ErrorResponse{
 			Code:    statusCode,
 			Message: message,
 			Error:   message,
@@ -97,7 +97,7 @@ func GetOrganizations(c *gin.Context) {
 	} else if len(organizations) > 1 {
 		message := fmt.Sprintf("multiple organizations found with id: %q", idParam)
 		log.Info(message)
-		c.AbortWithStatusJSON(http.StatusConflict, components.ErrorResponse{
+		c.AbortWithStatusJSON(http.StatusConflict, common.ErrorResponse{
 			Code:    http.StatusConflict,
 			Message: message,
 			Error:   message,
@@ -105,7 +105,7 @@ func GetOrganizations(c *gin.Context) {
 	} else {
 		message := fmt.Sprintf("organization not found: %q", idParam)
 		log.Info(message)
-		c.AbortWithStatusJSON(http.StatusNotFound, components.ErrorResponse{
+		c.AbortWithStatusJSON(http.StatusNotFound, common.ErrorResponse{
 			Code:    http.StatusNotFound,
 			Message: message,
 			Error:   message,
@@ -121,7 +121,7 @@ func CreateOrganization(c *gin.Context) {
 		Name string `json:"name,omitempty"`
 	}
 	if err := c.ShouldBindJSON(&name); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, components.ErrorResponse{
+		c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: err.Error(),
 			Error:   err.Error(),
@@ -137,7 +137,7 @@ func CreateOrganization(c *gin.Context) {
 	if err != nil {
 		message := "error creating organization: " + err.Error()
 		log.Info(message)
-		c.AbortWithStatusJSON(http.StatusBadRequest, components.ErrorResponse{
+		c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: message,
 			Error:   message,
@@ -162,7 +162,7 @@ func DeleteOrganization(c *gin.Context) {
 	if err != nil {
 		message := fmt.Sprintf("error parsing organization id: %s", err)
 		log.Info(message)
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: message,
 			Error:   message,
@@ -179,7 +179,7 @@ func DeleteOrganization(c *gin.Context) {
 		message := "error deleting organizations: " + err.Error()
 		log.Info(message)
 		statusCode := auth.GormErrorToStatusCode(err)
-		c.AbortWithStatusJSON(statusCode, components.ErrorResponse{
+		c.AbortWithStatusJSON(statusCode, common.ErrorResponse{
 			Code:    statusCode,
 			Message: message,
 			Error:   message,

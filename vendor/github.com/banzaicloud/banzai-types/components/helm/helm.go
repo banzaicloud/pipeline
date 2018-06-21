@@ -1,6 +1,5 @@
 package helm
 
-// Install describes an Helm install request
 type Install struct {
 	// Name of the kubeconfig context to use
 	KubeContext string `json:"kube_context"`
@@ -24,12 +23,16 @@ type Install struct {
 	MaxHistory int `json:"history_max"`
 }
 
-// EndpointResponse describes a service public endpoints
+type ErrorResponse struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+	Error   string `json:"error"`
+}
+
 type EndpointResponse struct {
 	Endpoints []*EndpointItem `json:"endpoints"`
 }
 
-// EndpointItem describes a service public endpoint
 type EndpointItem struct {
 	Name         string           `json:"name"`
 	Host         string           `json:"host"`
@@ -37,50 +40,41 @@ type EndpointItem struct {
 	EndPointURLs []*EndPointURLs  `json:"urls"`
 }
 
-// EndPointURLs describes an endpoint url
 type EndPointURLs struct {
-	Path        string `json:"path"`
+	ServiceName string `json:"servicename"`
 	URL         string `json:"url"`
-	ReleaseName string `json:"release_name"`
 }
 
-// StatusResponse describes a Helm status response
 type StatusResponse struct {
 	Status  int    `json:"status"`
 	Message string `json:"message"`
 	Name    string `json:"name"`
 }
 
-// DeleteResponse describes a deployment delete response
 type DeleteResponse struct {
 	Status  int    `json:"status"`
 	Message string `json:"message"`
 	Name    string `json:"name"`
 }
 
-// InstallResponse describes a Helm install response
 type InstallResponse struct {
 	Status  int    `json:"status"`
 	Message string `json:"message"`
 }
 
-// CreateUpdateDeploymentResponse describes a create/update deployment response
-type CreateUpdateDeploymentResponse struct {
+type CreateDeploymentResponse struct {
 	ReleaseName string `json:"release_name"`
 	Notes       string `json:"notes"`
 }
 
-// CreateUpdateDeploymentRequest describes a Helm deployment
-type CreateUpdateDeploymentRequest struct {
+// CreateDeploymentRequest describes a Helm deployment
+type CreateDeploymentRequest struct {
 	Name        string      `json:"name" binding:"required"`
 	ReleaseName string      `json:"release_name"`
 	Version     string      `json:"version"`
-	ReUseValues bool        `json:"reuse_values"`
-	Namespace   string      `json:"namespace"`
 	Values      interface{} `json:"values"`
 }
 
-// ListDeploymentResponse describes a deployment list response
 type ListDeploymentResponse struct {
 	Name    string `json:"name"`
 	Chart   string `json:"chart"`
@@ -89,7 +83,6 @@ type ListDeploymentResponse struct {
 	Status  string `json:"status"`
 }
 
-// DeploymentStatusResponse describes a deployment status response
 type DeploymentStatusResponse struct {
 	Status  int    `json:"status"`
 	Message string `json:"message"`

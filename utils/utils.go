@@ -3,7 +3,8 @@ package utils
 import (
 	"encoding/base64"
 	"encoding/json"
-	"github.com/banzaicloud/banzai-types/constants"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -65,7 +66,7 @@ func WriteToFile(data []byte, file string) error {
 // IsDifferent compares x and y interfaces with deep equal
 func IsDifferent(x interface{}, y interface{}) error {
 	if reflect.DeepEqual(x, y) {
-		return constants.ErrorNotDifferentInterfaces
+		return pkgErrors.ErrorNotDifferentInterfaces
 	}
 
 	return nil
@@ -100,13 +101,13 @@ func EncodeStringToBase64(s string) string {
 // If a not supported cloud type is passed in than returns ErrorNotSupportedCloudType otherwise nil
 func ValidateCloudType(cloudType string) error {
 	switch cloudType {
-	case constants.Amazon:
+	case pkgCluster.Amazon:
 		return nil
-	case constants.Google:
+	case pkgCluster.Google:
 		return nil
-	case constants.Azure:
+	case pkgCluster.Azure:
 		return nil
 	default:
-		return constants.ErrorNotSupportedCloudType
+		return pkgErrors.ErrorNotSupportedCloudType
 	}
 }

@@ -2,11 +2,12 @@ package cluster
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice"
+	cError "github.com/banzaicloud/azure-aks-client/errors"
 	"github.com/banzaicloud/azure-aks-client/utils"
-	"github.com/banzaicloud/banzai-types/constants"
 	"regexp"
 )
 
+// GetManagedCluster creates a ManagedCluster type from CreateClusterRequest
 func GetManagedCluster(request *CreateClusterRequest, clientId string, secret string) *containerservice.ManagedCluster {
 	return &containerservice.ManagedCluster{
 		ManagedClusterProperties: &containerservice.ManagedClusterProperties{
@@ -35,6 +36,7 @@ func GetManagedCluster(request *CreateClusterRequest, clientId string, secret st
 	}
 }
 
+// CreateClusterRequest describes a cluster creation request
 type CreateClusterRequest struct {
 	Name              string
 	Location          string
@@ -44,18 +46,20 @@ type CreateClusterRequest struct {
 	Profiles          []containerservice.AgentPoolProfile
 }
 
+// Validate validates create request
 func (c CreateClusterRequest) Validate() error {
 
 	if len(c.Name) == 0 {
-		return constants.ErrorAzureClusterNameEmpty
+		return cError.ErrClusterNameEmpty
 	} else if len(c.Name) >= 32 {
-		return constants.ErrorAzureClusterNameTooLong
+		return cError.ErrClusterNameTooLong
 	}
 	if isMatch, _ := regexp.MatchString(RegexpForName, c.Name); !isMatch {
-		return constants.ErrorAzureClusterNameRegexp
+		return cError.ErrClusterNameRegexp
 	}
 
 	return nil
 }
 
+// RegexpForName describes cluster name regexp
 const RegexpForName = "^[a-z0-9_]{0,31}[a-z0-9]$"

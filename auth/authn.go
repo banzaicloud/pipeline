@@ -21,9 +21,9 @@ import (
 	"github.com/spf13/viper"
 
 	bauth "github.com/banzaicloud/bank-vaults/auth"
-	btype "github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/sirupsen/logrus"
 )
@@ -329,7 +329,7 @@ func GetTokens(c *gin.Context) {
 		} else if token != nil {
 			c.JSON(http.StatusOK, token)
 		} else {
-			c.AbortWithStatusJSON(http.StatusNotFound, btype.ErrorResponse{
+			c.AbortWithStatusJSON(http.StatusNotFound, pkgCommon.ErrorResponse{
 				Code:    http.StatusNotFound,
 				Message: "Token not found",
 				Error:   "Token not found",

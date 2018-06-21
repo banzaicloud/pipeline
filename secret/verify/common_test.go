@@ -1,8 +1,8 @@
 package verify
 
 import (
-	"github.com/banzaicloud/banzai-types/constants"
-	pipConstants "github.com/banzaicloud/pipeline/constants"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"reflect"
 	"testing"
 )
@@ -17,7 +17,7 @@ func TestNewVerifier(t *testing.T) {
 	}{
 		{
 			name:      "aws validator",
-			cloudType: constants.Amazon,
+			cloudType: pkgCluster.Amazon,
 			values:    awsCredentialsMap,
 			verifier: &awsVerify{
 				credentials: CreateAWSCredentials(awsCredentialsMap),
@@ -25,7 +25,7 @@ func TestNewVerifier(t *testing.T) {
 		},
 		{
 			name:      "aks validator",
-			cloudType: constants.Azure,
+			cloudType: pkgCluster.Azure,
 			values:    aksCredentialsMap,
 			verifier: &aksVerify{
 				credential: CreateAKSCredentials(aksCredentialsMap),
@@ -33,7 +33,7 @@ func TestNewVerifier(t *testing.T) {
 		},
 		{
 			name:      "gke validator",
-			cloudType: constants.Google,
+			cloudType: pkgCluster.Google,
 			values:    gkeCredentialsMap,
 			verifier: &gkeVerify{
 				svc: CreateServiceAccount(gkeCredentialsMap),
@@ -76,27 +76,27 @@ const (
 
 var (
 	awsCredentialsMap = map[string]string{
-		pipConstants.AwsAccessKeyId:     testAwsAccessKeyId,
-		pipConstants.AwsSecretAccessKey: testAwsSecretAccessKey,
+		pkgSecret.AwsAccessKeyId:     testAwsAccessKeyId,
+		pkgSecret.AwsSecretAccessKey: testAwsSecretAccessKey,
 	}
 
 	aksCredentialsMap = map[string]string{
-		pipConstants.AzureClientId:       testAzureClientId,
-		pipConstants.AzureClientSecret:   testAzureClientSecret,
-		pipConstants.AzureTenantId:       testAzureTenantId,
-		pipConstants.AzureSubscriptionId: testAzureSubscriptionId,
+		pkgSecret.AzureClientId:       testAzureClientId,
+		pkgSecret.AzureClientSecret:   testAzureClientSecret,
+		pkgSecret.AzureTenantId:       testAzureTenantId,
+		pkgSecret.AzureSubscriptionId: testAzureSubscriptionId,
 	}
 
 	gkeCredentialsMap = map[string]string{
-		pipConstants.Type:          testType,
-		pipConstants.ProjectId:     testProjectId,
-		pipConstants.PrivateKeyId:  testPrivateKeyId,
-		pipConstants.PrivateKey:    testPrivateKey,
-		pipConstants.ClientEmail:   testClientEmail,
-		pipConstants.ClientId:      testClientId,
-		pipConstants.AuthUri:       testAuthUri,
-		pipConstants.TokenUri:      testTokenUri,
-		pipConstants.AuthX509Url:   testAuthX509Url,
-		pipConstants.ClientX509Url: testClientX509Url,
+		pkgSecret.Type:          testType,
+		pkgSecret.ProjectId:     testProjectId,
+		pkgSecret.PrivateKeyId:  testPrivateKeyId,
+		pkgSecret.PrivateKey:    testPrivateKey,
+		pkgSecret.ClientEmail:   testClientEmail,
+		pkgSecret.ClientId:      testClientId,
+		pkgSecret.AuthUri:       testAuthUri,
+		pkgSecret.TokenUri:      testTokenUri,
+		pkgSecret.AuthX509Url:   testAuthX509Url,
+		pkgSecret.ClientX509Url: testClientX509Url,
 	}
 )

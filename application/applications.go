@@ -4,16 +4,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/banzaicloud/banzai-types/components"
-	ctype "github.com/banzaicloud/banzai-types/components/catalog"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/catalog"
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/constants"
 	"github.com/banzaicloud/pipeline/helm"
 	k8s "github.com/banzaicloud/pipeline/kubernetes"
 	"github.com/banzaicloud/pipeline/model"
+	pkgCatalog "github.com/banzaicloud/pipeline/pkg/catalog"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -72,7 +71,7 @@ func GetSpotGuide(env helm_env.EnvSettings, catalogName string) (*catalog.Catalo
 }
 
 // CreateApplication will gather, create and manage an application deployment
-func CreateApplication(am *model.Application, options []ctype.ApplicationOptions, commonCluster cluster.CommonCluster) error {
+func CreateApplication(am *model.Application, options []pkgCatalog.ApplicationOptions, commonCluster cluster.CommonCluster) error {
 	organization, err := auth.GetOrganizationById(am.OrganizationId)
 	if err != nil {
 		am.Update(model.Application{Status: FAILED, Message: err.Error()})
@@ -109,7 +108,7 @@ func CreateApplication(am *model.Application, options []ctype.ApplicationOptions
 }
 
 // CreateApplicationDeployment will deploy a Catalog with Dependency
-func CreateApplicationDeployment(env helm_env.EnvSettings, am *model.Application, options []ctype.ApplicationOptions, catalogInfo *catalog.CatalogDetails, kubeConfig []byte) error {
+func CreateApplicationDeployment(env helm_env.EnvSettings, am *model.Application, options []pkgCatalog.ApplicationOptions, catalogInfo *catalog.CatalogDetails, kubeConfig []byte) error {
 
 	// Generate secrets for spotguide
 	secretTag := fmt.Sprintf("application:%d", am.ID)
@@ -119,14 +118,14 @@ func CreateApplicationDeployment(env helm_env.EnvSettings, am *model.Application
 			Tags: []string{secretTag},
 		}
 		if s.TLS != nil {
-			request.Type = constants.TLSSecretType
-			request.Values[constants.TLSHosts] = s.TLS.Hosts
-			request.Values[constants.TLSValidity] = s.TLS.Validity
+			request.Type = pkgSecret.TLSSecretType
+			request.Values[pkgSecret.TLSHosts] = s.TLS.Hosts
+			request.Values[pkgSecret.TLSValidity] = s.TLS.Validity
 		}
 		if s.Password != nil {
-			request.Type = constants.PasswordSecretType
-			request.Values[constants.Username] = s.Password.Username
-			request.Values[constants.Password] = s.Password.Password
+			request.Type = pkgSecret.PasswordSecretType
+			request.Values[pkgSecret.Username] = s.Password.Username
+			request.Values[pkgSecret.Password] = s.Password.Password
 		}
 		if _, err := secret.Store.Store(am.OrganizationId, &request); err != nil {
 			return err
@@ -134,7 +133,7 @@ func CreateApplicationDeployment(env helm_env.EnvSettings, am *model.Application
 	}
 
 	// Install secrets into cluster for spotguide
-	secretQuery := components.ListSecretsQuery{Type: constants.AllSecrets, Tag: secretTag}
+	secretQuery := pkgSecret.ListSecretsQuery{Type: pkgSecret.AllSecrets, Tag: secretTag}
 	_, err := cluster.InstallSecretsByK8SConfig(kubeConfig, am.OrganizationId, &secretQuery, helm.DefaultNamespace)
 	if err != nil {
 		return err
@@ -197,7 +196,7 @@ func CreateApplicationDeployment(env helm_env.EnvSettings, am *model.Application
 }
 
 // EnsureDependency ensure remote dependency on a given Kubernetes endpoint
-func EnsureDependency(env helm_env.EnvSettings, dependency ctype.ApplicationDependency, kubeConfig []byte) (releaseName string, err error) {
+func EnsureDependency(env helm_env.EnvSettings, dependency pkgCatalog.ApplicationDependency, kubeConfig []byte) (releaseName string, err error) {
 	log.Debugf("Dependency: %#v", dependency)
 	if dependency.Type != "crd" {
 		releaseName, err := EnsureChart(env, dependency, kubeConfig)
@@ -268,7 +267,7 @@ func ChartPresented(chartName string, kubeConfig []byte) (bool, string, error) {
 }
 
 // EnsureChart ensures a given Helm chart is available on the given Kubernetes cluster
-func EnsureChart(env helm_env.EnvSettings, dep ctype.ApplicationDependency, kubeConfig []byte) (releaseName string, err error) {
+func EnsureChart(env helm_env.EnvSettings, dep pkgCatalog.ApplicationDependency, kubeConfig []byte) (releaseName string, err error) {
 	ok, releaseName, err := ChartPresented(dep.Chart.Name, kubeConfig)
 	if err != nil {
 		return "", err

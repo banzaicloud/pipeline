@@ -1,11 +1,11 @@
 package compute
 
 import (
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-04-01/compute"
-	"github.com/Azure/go-autorest/autorest/to"
-	"fmt"
 	"context"
+	"fmt"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-04-01/compute"
+	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/banzaicloud/azure-aks-client/utils"
 )
 

@@ -1,53 +1,74 @@
-package components
+package cluster
 
 import (
 	"bytes"
 	"fmt"
-
-	"github.com/banzaicloud/banzai-types/components/amazon"
-	"github.com/banzaicloud/banzai-types/components/azure"
-	"github.com/banzaicloud/banzai-types/components/dummy"
-	"github.com/banzaicloud/banzai-types/components/google"
-	"github.com/banzaicloud/banzai-types/components/kubernetes"
-	"github.com/banzaicloud/banzai-types/constants"
+	"github.com/banzaicloud/pipeline/pkg/cluster/amazon"
+	"github.com/banzaicloud/pipeline/pkg/cluster/azure"
+	"github.com/banzaicloud/pipeline/pkg/cluster/dummy"
+	"github.com/banzaicloud/pipeline/pkg/cluster/google"
+	"github.com/banzaicloud/pipeline/pkg/cluster/kubernetes"
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 )
 
-// BanzaiResponse describes Pipeline's responses
-type BanzaiResponse struct {
-	StatusCode int    `json:"status_code,omitempty"`
-	Message    string `json:"message,omitempty"`
-}
+// ### [ Cluster statuses ] ### //
+const (
+	Creating = "CREATING"
+	Running  = "RUNNING"
+	Updating = "UPDATING"
+	Deleting = "DELETING"
+	Error    = "ERROR"
 
-// CreateBucketRequest describes a storage bucket creation
-type CreateBucketRequest struct {
-	SecretId   string `json:"secret_id" binding:"required"`
-	Name       string `json:"name" binding:"required"`
-	Properties struct {
-		CreateAmazonObjectStoreBucketProperties *amazon.CreateAmazonObjectStoreBucketProperties `json:"amazon,omitempty"`
-		CreateAzureObjectStoreBucketProperties  *azure.CreateAzureObjectStoreBucketProperties   `json:"azure,omitempty"`
-		CreateGoogleObjectStoreBucketProperties *google.CreateGoogleObjectStoreBucketProperties `json:"google,omitempty"`
-	} `json:"properties" binding:"required"`
-}
+	CreatingMessage = "Cluster is creating"
+	RunningMessage  = "Cluster is running"
+	UpdatingMessage = "Cluster is updating"
+	DeletingMessage = "Cluster is deleting"
+)
 
-// CreateBucketResponse describes a storage bucket creation response
-type CreateBucketResponse struct {
-	Name string `json:"BucketName"`
-}
+// Cluster provider constants
+const (
+	Amazon     = "amazon"
+	Azure      = "azure"
+	Google     = "google"
+	Dummy      = "dummy"
+	Kubernetes = "kubernetes"
+)
 
-// BucketInfo desribes a storage bucket
-type BucketInfo struct {
-	Name    string                          `json:"name"  binding:"required"`
-	Managed bool                            `json:"managed" binding:"required"`
-	Azure   *azure.BlobStoragePropsForAzure `json:"azure,omitempty"`
-}
+// constants for posthooks
+const (
+	StoreKubeConfig                  = "StoreKubeConfig"
+	PersistKubernetesKeys            = "PersistKubernetesKeys"
+	UpdatePrometheusPostHook         = "UpdatePrometheusPostHook"
+	InstallHelmPostHook              = "InstallHelmPostHook"
+	InstallIngressControllerPostHook = "InstallIngressControllerPostHook"
+	InstallClusterAutoscalerPostHook = "InstallClusterAutoscalerPostHook"
+	InstallMonitoring                = "InstallMonitoring"
+	InstallLogging                   = "InstallLogging"
+	RegisterDomainPostHook           = "RegisterDomainPostHook"
+)
+
+// Provider name regexp
+const (
+	RegexpAWSName = `^[A-z0-9-_]{1,255}$`
+	RegexpAKSName = `^[a-z0-9_]{0,31}[a-z0-9]$`
+	RegexpGKEName = `^[a-z]$|^[a-z][a-z0-9-]{0,38}[a-z0-9]$`
+)
+
+// ### [ Keywords ] ###
+const (
+	KeyWordLocation          = "location"
+	KeyWordInstanceType      = "instanceType"
+	KeyWordKubernetesVersion = "k8sVersion"
+	KeyWordImage             = "image"
+)
 
 // CreateClusterRequest describes a create cluster request
 type CreateClusterRequest struct {
 	Name              string   `json:"name" binding:"required"`
 	Location          string   `json:"location"`
 	Cloud             string   `json:"cloud" binding:"required"`
-	SecretId          string   `json:"secret_id" binding:"required"`
-	ProfileName       string   `json:"profile_name"`
+	SecretId          string   `json:"secretId" binding:"required"`
+	ProfileName       string   `json:"profileName"`
 	PostHookFunctions []string `json:"postHooks"`
 	Properties        struct {
 		CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
@@ -58,46 +79,10 @@ type CreateClusterRequest struct {
 	} `json:"properties" binding:"required"`
 }
 
-// ListSecretsQuery represent a secret listing filter
-type ListSecretsQuery struct {
-	Type   string `form:"type" json:"type"`
-	Tag    string `form:"tag" json:"tag"`
-	Values bool   `form:"values" json:"values"`
-}
-
-// InstallSecretsToClusterRequest describes an InstallSecretToCluster request
-type InstallSecretsToClusterRequest struct {
-	Namespace string           `json:"namespace" binding:"required"`
-	Query     ListSecretsQuery `json:"query" binding:"required"`
-}
-
-// SecretSourcingMethod describes how an installed Secret should be sourced into a Pod in K8S
-type SecretSourcingMethod string
-
-const (
-	// EnvVar means the secret has to be sources an an env var
-	EnvVar SecretSourcingMethod = "env"
-	// Volume means the secret has to be mounted an a volume
-	Volume SecretSourcingMethod = "volume"
-)
-
-// SecretK8SSourceMeta describes which and how installed Secret should be sourced into a Pod in K8S
-type SecretK8SSourceMeta struct {
-	Name     string               `json:"name"`
-	Sourcing SecretSourcingMethod `json:"sourcing"`
-}
-
-// ErrorResponse describes Pipeline's responses when an error occurred
-type ErrorResponse struct {
-	Code    int    `json:"code"`
-	Message string `json:"message"`
-	Error   string `json:"error"`
-}
-
 // GetClusterStatusResponse describes Pipeline's GetClusterStatus API response
 type GetClusterStatusResponse struct {
 	Status        string                     `json:"status"`
-	StatusMessage string                     `json:"status_message,omitempty"`
+	StatusMessage string                     `json:"statusMessage,omitempty"`
 	Name          string                     `json:"name"`
 	Location      string                     `json:"location"`
 	Cloud         string                     `json:"cloud"`
@@ -109,10 +94,10 @@ type GetClusterStatusResponse struct {
 type NodePoolStatus struct {
 	Count          int    `json:"count,omitempty"`
 	InstanceType   string `json:"instanceType,omitempty"`
-	ServiceAccount string `json:"service_account,omitempty"`
-	SpotPrice      string `json:"spot_price,omitempty"`
-	MinCount       int    `json:"min_count,omitempty"`
-	MaxCount       int    `json:"max_count,omitempty"`
+	ServiceAccount string `json:"serviceAccount,omitempty"`
+	SpotPrice      string `json:"spotPrice,omitempty"`
+	MinCount       int    `json:"minCount,omitempty"`
+	MaxCount       int    `json:"maxCount,omitempty"`
 	Image          string `json:"image,omitempty"`
 }
 
@@ -153,11 +138,11 @@ type UpdateProperties struct {
 func (r *UpdateClusterRequest) String() string {
 	var buffer bytes.Buffer
 	buffer.WriteString(fmt.Sprintf("Cloud: %s, ", r.Cloud))
-	if r.Cloud == constants.Azure && r.Azure != nil && r.Azure.NodePools != nil {
+	if r.Cloud == Azure && r.Azure != nil && r.Azure.NodePools != nil {
 		// Write AKS
 		buffer.WriteString(fmt.Sprintf("Node pools: %v",
 			&r.Azure.NodePools))
-	} else if r.Cloud == constants.Amazon && r.Amazon != nil {
+	} else if r.Cloud == Amazon && r.Amazon != nil {
 		// Write AWS Node
 		for name, nodePool := range r.UpdateProperties.Amazon.NodePools {
 			buffer.WriteString(fmt.Sprintf("NodePool %s Min count: %d, Max count: %d",
@@ -165,7 +150,7 @@ func (r *UpdateClusterRequest) String() string {
 				nodePool.MinCount,
 				nodePool.MaxCount))
 		}
-	} else if r.Cloud == constants.Google && r.Google != nil {
+	} else if r.Cloud == Google && r.Google != nil {
 		// Write GKE Master
 		if r.Google.Master != nil {
 			buffer.WriteString(fmt.Sprintf("Master version: %s",
@@ -177,7 +162,7 @@ func (r *UpdateClusterRequest) String() string {
 		if r.Google.NodePools != nil {
 			buffer.WriteString(fmt.Sprintf("Node pools: %v", r.Google.NodePools))
 		}
-	} else if r.Cloud == constants.Dummy && r.Dummy != nil {
+	} else if r.Cloud == Dummy && r.Dummy != nil {
 		// Write Dummy node
 		if r.Dummy.Node != nil {
 			buffer.WriteString(fmt.Sprintf("Node count: %d, k8s version: %s",
@@ -192,7 +177,7 @@ func (r *UpdateClusterRequest) String() string {
 // AddDefaults puts default values to optional field(s)
 func (r *CreateClusterRequest) AddDefaults() error {
 	switch r.Cloud {
-	case constants.Amazon:
+	case Amazon:
 		return r.Properties.CreateClusterAmazon.AddDefaults()
 	default:
 		return nil
@@ -207,32 +192,32 @@ func (r *CreateClusterRequest) Validate() error {
 	}
 
 	switch r.Cloud {
-	case constants.Amazon:
+	case Amazon:
 		// amazon validate
 		return r.Properties.CreateClusterAmazon.Validate()
-	case constants.Azure:
+	case Azure:
 		// azure validate
 		return r.Properties.CreateClusterAzure.Validate()
-	case constants.Google:
+	case Google:
 		// google validate
 		return r.Properties.CreateClusterGoogle.Validate()
-	case constants.Dummy:
+	case Dummy:
 		// dummy validate
 		return r.Properties.CreateClusterDummy.Validate()
-	case constants.Kubernetes:
+	case Kubernetes:
 		// kubernetes validate
 		return r.Properties.CreateKubernetes.Validate()
 	default:
 		// not supported cloud type
-		return constants.ErrorNotSupportedCloudType
+		return pkgErrors.ErrorNotSupportedCloudType
 	}
 }
 
 // validateMainFields checks the request's main fields
 func (r *CreateClusterRequest) validateMainFields() error {
-	if r.Cloud != constants.Kubernetes {
+	if r.Cloud != Kubernetes {
 		if len(r.Location) == 0 {
-			return constants.ErrorLocationEmpty
+			return pkgErrors.ErrorLocationEmpty
 		}
 	}
 	return nil
@@ -244,20 +229,20 @@ func (r *UpdateClusterRequest) Validate() error {
 	r.preValidate()
 
 	switch r.Cloud {
-	case constants.Amazon:
+	case Amazon:
 		// amazon validate
 		return r.Amazon.Validate()
-	case constants.Azure:
+	case Azure:
 		// azure validate
 		return r.Azure.Validate()
-	case constants.Google:
+	case Google:
 		// google validate
 		return r.Google.Validate()
-	case constants.Dummy:
+	case Dummy:
 		return r.Dummy.Validate()
 	default:
 		// not supported cloud type
-		return constants.ErrorNotSupportedCloudType
+		return pkgErrors.ErrorNotSupportedCloudType
 	}
 
 }
@@ -265,17 +250,17 @@ func (r *UpdateClusterRequest) Validate() error {
 // preValidate resets other cloud type fields
 func (r *UpdateClusterRequest) preValidate() {
 	switch r.Cloud {
-	case constants.Amazon:
+	case Amazon:
 		// reset other fields
 		r.Azure = nil
 		r.Google = nil
 		break
-	case constants.Azure:
+	case Azure:
 		// reset other fields
 		r.Amazon = nil
 		r.Google = nil
 		break
-	case constants.Google:
+	case Google:
 		// reset other fields
 		r.Amazon = nil
 		r.Azure = nil
@@ -309,7 +294,7 @@ type ClusterProfileRequest struct {
 // CloudInfoRequest describes Cloud info requests
 type CloudInfoRequest struct {
 	OrganizationId uint             `json:"-"`
-	SecretId       string           `json:"secret_id,omitempty"`
+	SecretId       string           `json:"secretId,omitempty"`
 	Filter         *CloudInfoFilter `json:"filter,omitempty"`
 }
 
@@ -343,7 +328,7 @@ type GetCloudInfoResponse struct {
 	NameRegexp         string                 `json:"nameRegexp,omitempty"`
 	Locations          []string               `json:"locations,omitempty"`
 	NodeInstanceType   map[string]MachineType `json:"instanceType,omitempty"`
-	KubernetesVersions interface{}            `json:"kubernetes_versions,omitempty"`
+	KubernetesVersions interface{}            `json:"kubernetesVersions,omitempty"`
 	Image              map[string][]string    `json:"image,omitempty"`
 }
 
@@ -394,7 +379,7 @@ func (p *ClusterProfileResponse) CreateClusterRequest(createRequest *CreateClust
 	}
 
 	switch p.Cloud {
-	case constants.Amazon:
+	case Amazon:
 		response.Properties.CreateClusterAmazon = &amazon.CreateClusterAmazon{
 			NodePools: p.Properties.Amazon.NodePools,
 			Master: &amazon.CreateAmazonMaster{
@@ -402,17 +387,17 @@ func (p *ClusterProfileResponse) CreateClusterRequest(createRequest *CreateClust
 				Image:        p.Properties.Amazon.Master.Image,
 			},
 		}
-	case constants.Azure:
+	case Azure:
 		a := createRequest.Properties.CreateClusterAzure
 		if a == nil || len(a.ResourceGroup) == 0 {
-			return nil, constants.ErrorResourceGroupRequired
+			return nil, pkgErrors.ErrorResourceGroupRequired
 		}
 		response.Properties.CreateClusterAzure = &azure.CreateClusterAzure{
 			ResourceGroup:     a.ResourceGroup,
 			KubernetesVersion: p.Properties.Azure.KubernetesVersion,
 			NodePools:         p.Properties.Azure.NodePools,
 		}
-	case constants.Google:
+	case Google:
 		response.Properties.CreateClusterGoogle = &google.CreateClusterGoogle{
 			NodeVersion: p.Properties.Google.NodeVersion,
 			NodePools:   p.Properties.Google.NodePools,

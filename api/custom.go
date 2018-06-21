@@ -2,9 +2,9 @@ package api
 
 import (
 	"fmt"
-	"github.com/banzaicloud/banzai-types/components"
-	htype "github.com/banzaicloud/banzai-types/components/helm"
 	"github.com/banzaicloud/pipeline/helm"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/gin-gonic/gin"
 	"k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
@@ -28,7 +28,7 @@ func ListEndpoints(c *gin.Context) {
 	if releaseName != "" {
 		status, err := helm.GetDeploymentStatus(releaseName, kubeConfig)
 		if err != nil {
-			c.JSON(int(status), components.ErrorResponse{
+			c.JSON(int(status), pkgCommon.ErrorResponse{
 				Code:    int(status),
 				Message: err.Error(),
 				Error:   err.Error(),
@@ -40,7 +40,7 @@ func ListEndpoints(c *gin.Context) {
 	client, err := helm.GetK8sConnection(kubeConfig)
 	if err != nil {
 		log.Errorf("Error getting k8s connection: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error getting k8s connection",
 			Error:   err.Error(),
@@ -51,7 +51,7 @@ func ListEndpoints(c *gin.Context) {
 	serviceList, err := client.CoreV1().Services("").List(meta_v1.ListOptions{})
 	if err != nil {
 		log.Errorf("Error listing services: %s", err.Error())
-		c.JSON(http.StatusNotFound, components.ErrorResponse{
+		c.JSON(http.StatusNotFound, pkgCommon.ErrorResponse{
 			Code:    http.StatusNotFound,
 			Message: "Error during listing services",
 			Error:   err.Error(),
@@ -62,7 +62,7 @@ func ListEndpoints(c *gin.Context) {
 	ingressList, err := client.ExtensionsV1beta1().Ingresses("").List(meta_v1.ListOptions{})
 	if err != nil {
 		log.Errorf("Error listing ingresses: %s", err)
-		c.JSON(http.StatusInternalServerError, components.ErrorResponse{
+		c.JSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: fmt.Sprintf("List kubernetes ingresses failed: %+v", err),
 		})
@@ -75,7 +75,7 @@ func ListEndpoints(c *gin.Context) {
 
 		if ingressList.Items == nil {
 			message := fmt.Sprintf("Releasename: %s does not have public endpoint exposed via ingress", releaseName)
-			c.JSON(http.StatusNotFound, components.ErrorResponse{
+			c.JSON(http.StatusNotFound, pkgCommon.ErrorResponse{
 				Code:    http.StatusNotFound,
 				Message: message,
 				Error:   message,
@@ -86,7 +86,7 @@ func ListEndpoints(c *gin.Context) {
 
 	if releaseName != "" {
 		if pendingLoadBalancer(serviceList) {
-			c.JSON(http.StatusAccepted, htype.StatusResponse{
+			c.JSON(http.StatusAccepted, pkgHelm.StatusResponse{
 				Status:  http.StatusAccepted,
 				Message: "There is at least one LoadBalancer type service with Pending state",
 			})
@@ -100,7 +100,7 @@ func ListEndpoints(c *gin.Context) {
 
 	endpointList := getLoadBalancersWithIngressPaths(serviceList, ingressList)
 
-	c.JSON(http.StatusOK, htype.EndpointResponse{
+	c.JSON(http.StatusOK, pkgHelm.EndpointResponse{
 		Endpoints: endpointList,
 	})
 }
@@ -156,12 +156,12 @@ func pendingLoadBalancer(serviceList *v1.ServiceList) bool {
 	return contains
 }
 
-func getLoadBalancersWithIngressPaths(serviceList *v1.ServiceList, ingressList *v1beta1.IngressList) []*htype.EndpointItem {
-	var endpointList []*htype.EndpointItem
+func getLoadBalancersWithIngressPaths(serviceList *v1.ServiceList, ingressList *v1beta1.IngressList) []*pkgHelm.EndpointItem {
+	var endpointList []*pkgHelm.EndpointItem
 	const traefik = "traefik"
 
 	for _, service := range serviceList.Items {
-		var endpointURLs []*htype.EndPointURLs
+		var endpointURLs []*pkgHelm.EndPointURLs
 		log.Debugf("Service: %#v", service.Status)
 		if len(service.Status.LoadBalancer.Ingress) > 0 {
 			//TODO we should avoid differences on kubernetes level
@@ -188,7 +188,7 @@ func getLoadBalancersWithIngressPaths(serviceList *v1.ServiceList, ingressList *
 					}
 				}
 			}
-			endpointList = append(endpointList, &htype.EndpointItem{
+			endpointList = append(endpointList, &pkgHelm.EndpointItem{
 				Name:         service.Name,
 				Host:         publicIP,
 				Ports:        ports,
@@ -207,8 +207,8 @@ func getLoadBalancersWithIngressPaths(serviceList *v1.ServiceList, ingressList *
 //                     URL: http://{loadBalancerPublicHost}/{path from ingress rule}
 //                     HelmReleaseName: {helm generated release name}
 //             }
-func getIngressEndpoints(loadBalancerPublicHost string, ingress *v1beta1.Ingress, serviceList *v1.ServiceList) []htype.EndPointURLs {
-	var endpointUrls []htype.EndPointURLs
+func getIngressEndpoints(loadBalancerPublicHost string, ingress *v1beta1.Ingress, serviceList *v1.ServiceList) []pkgHelm.EndPointURLs {
+	var endpointUrls []pkgHelm.EndPointURLs
 
 	for _, ingressRule := range ingress.Spec.Rules {
 		for _, ingressPath := range ingressRule.HTTP.Paths {
@@ -218,7 +218,7 @@ func getIngressEndpoints(loadBalancerPublicHost string, ingress *v1beta1.Ingress
 				path += "/"
 			}
 			endpointUrls = append(endpointUrls,
-				htype.EndPointURLs{
+				pkgHelm.EndPointURLs{
 					Path:        fmt.Sprintf("/%s", strings.Trim(path, "/")),
 					URL:         fmt.Sprint("http://", loadBalancerPublicHost, path),
 					ReleaseName: getIngressReleaseName(ingressPath.Backend, serviceList),
@@ -251,7 +251,7 @@ func GetClusterNodes(c *gin.Context) {
 	client, err := helm.GetK8sConnection(kubeConfig)
 	if err != nil {
 		log.Errorf("Error getting k8s connection: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error getting k8s connection",
 			Error:   err.Error(),
@@ -263,7 +263,7 @@ func GetClusterNodes(c *gin.Context) {
 	log.Debugf("%s", response.String())
 	if err != nil {
 		log.Errorf("Error listing nodes: %s", err.Error())
-		c.JSON(http.StatusNotFound, components.ErrorResponse{
+		c.JSON(http.StatusNotFound, pkgCommon.ErrorResponse{
 			Code:    http.StatusNotFound,
 			Message: "Error during listing nodes",
 			Error:   err.Error(),

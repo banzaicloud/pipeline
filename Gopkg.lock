@@ -169,15 +169,17 @@
   packages = [
     "client",
     "cluster",
+    "errors",
     "service/authorization",
     "service/compute",
     "service/containerservice",
     "service/network",
     "service/resources",
     "service/subscriptions",
+    "types",
     "utils"
   ]
-  revision = "efe50b61dae850c04d4c825ac4914a3ae8611af0"
+  revision = "ebb6ef24cd5c253a2da0bca7a6a321b7d954b3a3"
 
 [[projects]]
   branch = "master"
@@ -190,21 +192,13 @@
   revision = "4044a049af01d1ab0d93d8d041528d4270de1aba"
 
 [[projects]]
-  branch = "master"
   name = "github.com/banzaicloud/banzai-types"
   packages = [
-    "components",
-    "components/amazon",
-    "components/application",
-    "components/azure",
-    "components/catalog",
-    "components/dummy",
-    "components/google",
     "components/helm",
-    "components/kubernetes",
     "constants"
   ]
-  revision = "037fe5ee1c291cbf2a7b2ad7fddee329d4e2111d"
+  revision = "960468e5fa2dcc62dcaf2c42b79268358660d31d"
+  version = "0.3.0"
 
 [[projects]]
   branch = "master"
@@ -1824,6 +1818,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "923f379c08be7e38150d8b10427d029bbe30b15335c7e8a994c0f432fa8171b5"
+  inputs-digest = "5a60e509cd8f4847c055b95a7ec15dbb46e107a57f26c3bafc1543b5d91c3a09"
   solver-name = "gps-cdcl"
   solver-version = 1

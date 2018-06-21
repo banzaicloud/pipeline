@@ -1,9 +1,9 @@
 package api
 
 import (
-	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/catalog"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -17,7 +17,7 @@ func CatalogDetails(c *gin.Context) {
 	chartDetails, err := catalog.GetCatalogDetails(env, chartName)
 	if err != nil {
 		log.Errorf("Error parsing request: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "error parsing request",
 			Error:   err.Error(),
@@ -45,7 +45,7 @@ func GetCatalogs(c *gin.Context) {
 	catalogs, err := catalog.ListCatalogs(env, chartName, chartVersion, "")
 	if err != nil {
 		log.Error("Empty cluster list")
-		c.JSON(http.StatusNotFound, components.ErrorResponse{
+		c.JSON(http.StatusNotFound, pkgCommon.ErrorResponse{
 			Code:    http.StatusNotFound,
 			Message: "Catalogs not found",
 			Error:   "Catalogs not found",

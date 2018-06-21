@@ -3,15 +3,12 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"os"
-
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"net/http"
 )
 
-// Create new AKS error
+// NewErr creates new AKS error
 // Params:
 // 1 - Message string
 // 2 - StatusCode int
@@ -28,11 +25,12 @@ func NewErr(params ...interface{}) *AKSError {
 		}
 	default:
 		return &AKSError{
-			Message: "unknown error happend",
+			Message: "unknown error happened",
 		}
 	}
 }
 
+// AKSError describes a client error
 type AKSError struct {
 	StatusCode int
 	Message    string
@@ -79,19 +77,13 @@ func ensureValueString(value interface{}) string {
 	}
 }
 
-func ReadPubRSA(filename string) string {
-	b, err := ioutil.ReadFile(os.Getenv("HOME") + "/.ssh/" + filename)
-	if err != nil {
-		fmt.Print(err)
-	}
-	return string(b)
-}
-
+// S converts string to string pointer
 func S(input string) *string {
 	s := input
 	return &s
 }
 
+// AzureServerError describes an Azure error
 type AzureServerError struct {
 	Message string `json:"message"`
 }

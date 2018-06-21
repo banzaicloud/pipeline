@@ -1,17 +1,17 @@
 package application
 
 import (
-	"github.com/banzaicloud/banzai-types/components"
-	"github.com/banzaicloud/banzai-types/components/catalog"
+	pkgCatalog "github.com/banzaicloud/pipeline/pkg/catalog"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
 //CreateRequest describes an application creation request
 type CreateRequest struct {
 	Name        string                           `json:"name" binding:"required"`
 	CatalogName string                           `json:"catalogName" binding:"required"`
-	Cluster     *components.CreateClusterRequest `json:"cluster"`
+	Cluster     *pkgCluster.CreateClusterRequest `json:"cluster"`
 	ClusterId   uint                             `json:"clusterId"`
-	Options     []catalog.ApplicationOptions     `json:"options"`
+	Options     []pkgCatalog.ApplicationOptions  `json:"options"`
 }
 
 // CreateResponse API response for CreateApplication

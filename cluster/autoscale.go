@@ -1,10 +1,10 @@
 package cluster
 
 import (
-	banzaiConst "github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/constants"
 	"github.com/banzaicloud/pipeline/helm"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/ghodss/yaml"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -146,10 +146,10 @@ func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup) *autos
 		},
 		Rbac: rbac{Create: true},
 		Azure: azureInfo{
-			ClientID:          clusterSecret.Values[constants.AzureClientId],
-			ClientSecret:      clusterSecret.Values[constants.AzureClientSecret],
-			SubscriptionID:    clusterSecret.Values[constants.AzureSubscriptionId],
-			TenantID:          clusterSecret.Values[constants.AzureTenantId],
+			ClientID:          clusterSecret.Values[pkgSecret.AzureClientId],
+			ClientSecret:      clusterSecret.Values[pkgSecret.AzureClientSecret],
+			SubscriptionID:    clusterSecret.Values[pkgSecret.AzureSubscriptionId],
+			TenantID:          clusterSecret.Values[pkgSecret.AzureTenantId],
 			ResourceGroup:     cluster.GetModel().Azure.ResourceGroup,
 			NodeResourceGroup: *nodeResourceGroup,
 			ClusterName:       cluster.GetName(),
@@ -163,9 +163,9 @@ func DeployClusterAutoscaler(cluster CommonCluster) error {
 	var nodeGroups []nodeGroup
 
 	switch cluster.GetType() {
-	case banzaiConst.Amazon:
+	case pkgCluster.Amazon:
 		nodeGroups = getAmazonNodeGroups(cluster)
-	case banzaiConst.Azure:
+	case pkgCluster.Azure:
 		nodeGroups = getAzureNodeGroups(cluster)
 	default:
 		return nil
@@ -220,9 +220,9 @@ func isAutoscalerDeployedAlready(releaseName string, kubeConfig []byte) bool {
 func deployAutoscalerChart(cluster CommonCluster, nodeGroups []nodeGroup, kubeConfig []byte, action deploymentAction) error {
 	var values *autoscalingInfo
 	switch cluster.GetType() {
-	case banzaiConst.Amazon:
+	case pkgCluster.Amazon:
 		values = createAutoscalingForAmazon(cluster, nodeGroups)
-	case banzaiConst.Azure:
+	case pkgCluster.Azure:
 		values = createAutoscalingForAzure(cluster, nodeGroups)
 	default:
 		return nil

@@ -9,10 +9,10 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/banzaicloud/banzai-types/components"
-	"github.com/banzaicloud/banzai-types/components/azure"
 	pipelineAuth "github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/constants"
+	pkgAzure "github.com/banzaicloud/pipeline/pkg/cluster/azure"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
+	pkgStorage "github.com/banzaicloud/pipeline/pkg/storage"
 	"github.com/banzaicloud/pipeline/secret"
 	"net/http"
 	"net/url"
@@ -227,17 +227,17 @@ func (b *AzureObjectStore) CheckBucket(bucketName string) error {
 // ListBuckets returns a list of Azure storage containers buckets that can be accessed with the credentials
 // referenced by the secret field. Azure storage containers buckets that were created by a user in the current
 // org are marked as 'managed`
-func (b *AzureObjectStore) ListBuckets() ([]*components.BucketInfo, error) {
+func (b *AzureObjectStore) ListBuckets() ([]*pkgStorage.BucketInfo, error) {
 
 	// get all resource groups
-	log.Infof("Getting all resource groups for subscription id=%s", b.secret.GetValue(constants.AzureSubscriptionId))
+	log.Infof("Getting all resource groups for subscription id=%s", b.secret.GetValue(pkgSecret.AzureSubscriptionId))
 	resourceGroups, err := getAllResourceGroups(b.secret)
 	if err != nil {
-		log.Errorf("Getting all resource groups for subscription id=%s failed: %s", b.secret.GetValue(constants.AzureSubscriptionId), err.Error())
+		log.Errorf("Getting all resource groups for subscription id=%s failed: %s", b.secret.GetValue(pkgSecret.AzureSubscriptionId), err.Error())
 		return nil, err
 	}
 
-	var buckets []*components.BucketInfo
+	var buckets []*pkgStorage.BucketInfo
 	// get all storage accounts
 	for _, rg := range resourceGroups {
 		log.Infof("Getting all storage accounts under resource group=%s", *(rg.Name))
@@ -269,10 +269,10 @@ func (b *AzureObjectStore) ListBuckets() ([]*components.BucketInfo, error) {
 			for i := 0; i < len(blobContainers); i++ {
 				blobContainer := blobContainers[i]
 
-				bucketInfo := &components.BucketInfo{
+				bucketInfo := &pkgStorage.BucketInfo{
 					Name:    blobContainer.Name,
 					Managed: false,
-					Azure: &azure.BlobStoragePropsForAzure{
+					Azure: &pkgAzure.BlobStoragePropsForAzure{
 						StorageAccount: accountName,
 						ResourceGroup:  *rg.Name,
 					},
@@ -326,7 +326,7 @@ func getStorageAccountKey(s *secret.SecretsItemResponse, resourceGroup, storageA
 }
 
 func createStorageAccountClient(s *secret.SecretsItemResponse) (*storage.AccountsClient, error) {
-	accountClient := storage.NewAccountsClient(s.Values[constants.AzureSubscriptionId])
+	accountClient := storage.NewAccountsClient(s.Values[pkgSecret.AzureSubscriptionId])
 
 	authorizer, err := newAuthorizer(s)
 	if err != nil {
@@ -400,7 +400,7 @@ func createStorageAccount(b *AzureObjectStore) error {
 }
 
 func createResourceGroup(b *AzureObjectStore) error {
-	gclient := resources.NewGroupsClient(b.secret.Values[constants.AzureSubscriptionId])
+	gclient := resources.NewGroupsClient(b.secret.Values[pkgSecret.AzureSubscriptionId])
 
 	authorizer, err := newAuthorizer(b.secret)
 	if err != nil {
@@ -424,7 +424,7 @@ func createResourceGroup(b *AzureObjectStore) error {
 // getAllResourceGroups returns all resource groups using
 // the Azure credentials referenced by the provided secret
 func getAllResourceGroups(s *secret.SecretsItemResponse) ([]*resources.Group, error) {
-	rgClient := resources.NewGroupsClient(s.GetValue(constants.AzureSubscriptionId))
+	rgClient := resources.NewGroupsClient(s.GetValue(pkgSecret.AzureSubscriptionId))
 	authorizer, err := newAuthorizer(s)
 	if err != nil {
 		return nil, err
@@ -487,9 +487,9 @@ func getAllBlobContainers(storageAccountName, storageAccountKey string) ([]azblo
 
 func newAuthorizer(s *secret.SecretsItemResponse) (autorest.Authorizer, error) {
 	authorizer, err := auth.NewClientCredentialsConfig(
-		s.Values[constants.AzureClientId],
-		s.Values[constants.AzureClientSecret],
-		s.Values[constants.AzureTenantId]).Authorizer()
+		s.Values[pkgSecret.AzureClientId],
+		s.Values[pkgSecret.AzureClientSecret],
+		s.Values[pkgSecret.AzureTenantId]).Authorizer()
 
 	if err != nil {
 		return nil, err

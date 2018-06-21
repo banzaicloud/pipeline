@@ -1,9 +1,9 @@
 package containerservice
 
 import (
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice"
 	"context"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice"
+	"github.com/Azure/go-autorest/autorest"
 )
 
 // ContainerServicesClient responsible for K8S versions
@@ -21,7 +21,7 @@ func NewContainerServicesClient(authorizer autorest.Authorizer, subscriptionId s
 	}
 }
 
-// ListOrchestrators lists all supported Kubernetes verison in the given location
+// ListOrchestrators lists all supported Kubernetes version in the given location
 func (csc *ContainerServicesClient) ListOrchestrators(location, resourceType string) (*containerservice.OrchestratorVersionProfileListResult, error) {
 	result, err := csc.client.ListOrchestrators(context.Background(), location, resourceType)
 	if err != nil {

@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/gin-gonic/gin"
 )
 
@@ -23,7 +23,7 @@ func GetUsers(c *gin.Context) {
 	if idParam != "" && err != nil {
 		message := fmt.Sprintf("error parsing user id: %s", err)
 		log.Info(message)
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: message,
 			Error:   message,
@@ -37,7 +37,7 @@ func GetUsers(c *gin.Context) {
 	if err != nil {
 		message := "failed to fetch users"
 		log.Info(message + ": " + err.Error())
-		c.AbortWithStatusJSON(http.StatusInternalServerError, components.ErrorResponse{
+		c.AbortWithStatusJSON(http.StatusInternalServerError, common.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: message,
 			Error:   message,
@@ -49,7 +49,7 @@ func GetUsers(c *gin.Context) {
 	} else if len(users) > 1 {
 		message := fmt.Sprintf("multiple users found with id: %d", id)
 		log.Info(message)
-		c.AbortWithStatusJSON(http.StatusConflict, components.ErrorResponse{
+		c.AbortWithStatusJSON(http.StatusConflict, common.ErrorResponse{
 			Code:    http.StatusConflict,
 			Message: message,
 			Error:   message,
@@ -57,7 +57,7 @@ func GetUsers(c *gin.Context) {
 	} else {
 		message := fmt.Sprintf("user not found with id: %d", id)
 		log.Info(message)
-		c.AbortWithStatusJSON(http.StatusNotFound, components.ErrorResponse{
+		c.AbortWithStatusJSON(http.StatusNotFound, common.ErrorResponse{
 			Code:    http.StatusNotFound,
 			Message: message,
 			Error:   message,
@@ -75,7 +75,7 @@ func AddUser(c *gin.Context) {
 	if err != nil {
 		message := fmt.Sprintf("error parsing user id: %s", err)
 		log.Info(message)
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: message,
 			Error:   message,
@@ -92,7 +92,7 @@ func AddUser(c *gin.Context) {
 		if err != nil {
 			message := fmt.Sprintf("error parsing role from request: %s", err)
 			log.Info(message)
-			c.JSON(http.StatusBadRequest, components.ErrorResponse{
+			c.JSON(http.StatusBadRequest, common.ErrorResponse{
 				Code:    http.StatusBadRequest,
 				Message: message,
 				Error:   message,
@@ -110,7 +110,7 @@ func AddUser(c *gin.Context) {
 		message := "failed to add user: " + err.Error()
 		log.Info(message)
 		statusCode := auth.GormErrorToStatusCode(err)
-		c.AbortWithStatusJSON(statusCode, components.ErrorResponse{
+		c.AbortWithStatusJSON(statusCode, common.ErrorResponse{
 			Code:    statusCode,
 			Message: message,
 			Error:   message,
@@ -156,7 +156,7 @@ func RemoveUser(c *gin.Context) {
 	if err != nil {
 		message := fmt.Sprintf("error parsing user id: %s", err)
 		log.Info(message)
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: message,
 			Error:   message,
@@ -170,7 +170,7 @@ func RemoveUser(c *gin.Context) {
 		message := "failed to delete user: " + err.Error()
 		log.Info(message)
 		statusCode := auth.GormErrorToStatusCode(err)
-		c.AbortWithStatusJSON(statusCode, components.ErrorResponse{
+		c.AbortWithStatusJSON(statusCode, common.ErrorResponse{
 			Code:    statusCode,
 			Message: message,
 			Error:   message,
@@ -183,7 +183,7 @@ func RemoveUser(c *gin.Context) {
 		message := "failed to query user for deletion: " + err.Error()
 		log.Info(message)
 		statusCode := auth.GormErrorToStatusCode(err)
-		c.AbortWithStatusJSON(statusCode, components.ErrorResponse{
+		c.AbortWithStatusJSON(statusCode, common.ErrorResponse{
 			Code:    statusCode,
 			Message: message,
 			Error:   message,

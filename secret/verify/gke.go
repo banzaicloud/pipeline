@@ -2,7 +2,7 @@ package verify
 
 import (
 	"context"
-	"github.com/banzaicloud/pipeline/constants"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/gin-gonic/gin/json"
 	"golang.org/x/oauth2/google"
 	"golang.org/x/oauth2/jwt"
@@ -81,16 +81,16 @@ type ServiceAccount struct {
 // CreateServiceAccount creates a new 'ServiceAccount' instance
 func CreateServiceAccount(values map[string]string) *ServiceAccount {
 	return &ServiceAccount{
-		Type:                   values[constants.Type],
-		ProjectId:              values[constants.ProjectId],
-		PrivateKeyId:           values[constants.PrivateKeyId],
-		PrivateKey:             values[constants.PrivateKey],
-		ClientEmail:            values[constants.ClientEmail],
-		ClientId:               values[constants.ClientId],
-		AuthUri:                values[constants.AuthUri],
-		TokenUri:               values[constants.TokenUri],
-		AuthProviderX50CertUrl: values[constants.AuthX509Url],
-		ClientX509CertUrl:      values[constants.ClientX509Url],
+		Type:                   values[pkgSecret.Type],
+		ProjectId:              values[pkgSecret.ProjectId],
+		PrivateKeyId:           values[pkgSecret.PrivateKeyId],
+		PrivateKey:             values[pkgSecret.PrivateKey],
+		ClientEmail:            values[pkgSecret.ClientEmail],
+		ClientId:               values[pkgSecret.ClientId],
+		AuthUri:                values[pkgSecret.AuthUri],
+		TokenUri:               values[pkgSecret.TokenUri],
+		AuthProviderX50CertUrl: values[pkgSecret.AuthX509Url],
+		ClientX509CertUrl:      values[pkgSecret.ClientX509Url],
 	}
 }
 

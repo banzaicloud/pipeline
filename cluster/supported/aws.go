@@ -1,9 +1,9 @@
 package supported
 
 import (
-	"github.com/banzaicloud/banzai-types/components"
-	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/cluster"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 )
 
 // AmazonInfo describes AWS with supported info
@@ -15,19 +15,19 @@ const defaultRegion = "eu-west-1"
 
 // GetType returns cloud type
 func (a *AmazonInfo) GetType() string {
-	return constants.Amazon
+	return pkgCluster.Amazon
 }
 
 // GetNameRegexp returns regexp for cluster name
 func (a *AmazonInfo) GetNameRegexp() string {
-	return constants.RegexpAWSName
+	return pkgCluster.RegexpAWSName
 }
 
 // GetLocations returns supported locations
 func (a *AmazonInfo) GetLocations() ([]string, error) {
 
 	if len(a.SecretId) == 0 {
-		return nil, constants.ErrorRequiredSecretId
+		return nil, pkgErrors.ErrorRequiredSecretId
 	}
 
 	regions, err := cluster.ListRegions(a.OrgId, a.SecretId, defaultRegion)
@@ -43,14 +43,14 @@ func (a *AmazonInfo) GetLocations() ([]string, error) {
 }
 
 // GetMachineTypes returns supported machine types
-func (a *AmazonInfo) GetMachineTypes() (map[string]components.MachineType, error) {
-	return nil, constants.ErrorRequiredLocation
+func (a *AmazonInfo) GetMachineTypes() (map[string]pkgCluster.MachineType, error) {
+	return nil, pkgErrors.ErrorRequiredLocation
 }
 
 // GetMachineTypesWithFilter returns supported machine types by location
-func (a *AmazonInfo) GetMachineTypesWithFilter(filter *components.InstanceFilter) (map[string]components.MachineType, error) {
+func (a *AmazonInfo) GetMachineTypesWithFilter(filter *pkgCluster.InstanceFilter) (map[string]pkgCluster.MachineType, error) {
 	// todo NOTE: until aws sdk dont support getting instance types
-	response := make(map[string]components.MachineType)
+	response := make(map[string]pkgCluster.MachineType)
 	response[filter.Location] = []string{
 		"t2.nano",
 		"t2.micro",
@@ -121,8 +121,8 @@ func (a *AmazonInfo) GetMachineTypesWithFilter(filter *components.InstanceFilter
 }
 
 // GetKubernetesVersion returns supported k8s versions
-func (a *AmazonInfo) GetKubernetesVersion(*components.KubernetesFilter) (interface{}, error) {
-	return nil, constants.ErrorCloudInfoK8SNotSupported
+func (a *AmazonInfo) GetKubernetesVersion(*pkgCluster.KubernetesFilter) (interface{}, error) {
+	return nil, pkgErrors.ErrorCloudInfoK8SNotSupported
 }
 
 // processAMIList returns supported AMIs by region and tags
@@ -144,14 +144,14 @@ func (a *AmazonInfo) processAMIList(region string, tags []*string) (map[string][
 }
 
 // GetImages returns supported AMIs
-func (a *AmazonInfo) GetImages(filter *components.ImageFilter) (map[string][]string, error) {
+func (a *AmazonInfo) GetImages(filter *pkgCluster.ImageFilter) (map[string][]string, error) {
 
 	if len(a.SecretId) == 0 {
-		return nil, constants.ErrorRequiredSecretId
+		return nil, pkgErrors.ErrorRequiredSecretId
 	}
 
 	if len(filter.Location) == 0 {
-		return nil, constants.ErrorRequiredLocation
+		return nil, pkgErrors.ErrorRequiredLocation
 	}
 
 	return a.processAMIList(filter.Location, filter.Tags)

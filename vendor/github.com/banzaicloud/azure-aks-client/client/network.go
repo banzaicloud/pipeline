@@ -71,7 +71,7 @@ func (a *aksClient) createNetworkInterface(rg, location, vnetName, subnetName, n
 				{
 					Name: to.StringPtr("ipConfig1"),
 					InterfaceIPConfigurationPropertiesFormat: &network.InterfaceIPConfigurationPropertiesFormat{
-						Subnet:                    &subnet,
+						Subnet: &subnet,
 						PrivateIPAllocationMethod: network.Dynamic,
 						PublicIPAddress:           &ip,
 					},
@@ -97,5 +97,9 @@ func (a *aksClient) createNetworkInterface(rg, location, vnetName, subnetName, n
 
 	a.LogInfo("Get InterfacesClient")
 	nicClient, err := a.azureSdk.GetInterfacesClient()
+	if err != nil {
+		return nil, err
+	}
+
 	return nicClient.CreateOrUpdateNetworkInterface(rg, nicName, nicParams)
 }

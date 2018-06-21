@@ -1,11 +1,12 @@
 package objectstore
 
 import (
-	"github.com/banzaicloud/banzai-types/components"
-	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
+	pkgStorage "github.com/banzaicloud/pipeline/pkg/storage"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/jinzhu/gorm"
@@ -32,7 +33,7 @@ func (err ManagedBucketNotFoundError) Error() string {
 // must implement
 type ObjectStore interface {
 	CreateBucket(string)
-	ListBuckets() ([]*components.BucketInfo, error)
+	ListBuckets() ([]*pkgStorage.BucketInfo, error)
 	DeleteBucket(string) error
 	CheckBucket(string) error
 
@@ -45,23 +46,23 @@ type ObjectStore interface {
 // the passed in secret and organization
 func NewObjectStore(cloudType string, s *secret.SecretsItemResponse, organization *auth.Organization) (ObjectStore, error) {
 	switch cloudType {
-	case constants.Amazon:
+	case pkgCluster.Amazon:
 		return &AmazonObjectStore{
 			secret: s,
 			org:    organization,
 		}, nil
-	case constants.Google:
+	case pkgCluster.Google:
 		return &GoogleObjectStore{
 			serviceAccount: verify.CreateServiceAccount(s.Values),
 			org:            organization,
 		}, nil
-	case constants.Azure:
+	case pkgCluster.Azure:
 		return &AzureObjectStore{
 			secret: s,
 			org:    organization,
 		}, nil
 	default:
-		return nil, constants.ErrorNotSupportedCloudType
+		return nil, pkgErrors.ErrorNotSupportedCloudType
 	}
 }
 

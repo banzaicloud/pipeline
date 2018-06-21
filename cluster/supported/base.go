@@ -1,9 +1,9 @@
 package supported
 
 import (
-	"github.com/banzaicloud/banzai-types/components"
-	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/config"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -19,10 +19,10 @@ type CloudInfoProvider interface {
 	GetType() string
 	GetNameRegexp() string
 	GetLocations() ([]string, error)
-	GetMachineTypes() (map[string]components.MachineType, error)
-	GetMachineTypesWithFilter(*components.InstanceFilter) (map[string]components.MachineType, error)
-	GetKubernetesVersion(*components.KubernetesFilter) (interface{}, error)
-	GetImages(*components.ImageFilter) (map[string][]string, error)
+	GetMachineTypes() (map[string]pkgCluster.MachineType, error)
+	GetMachineTypesWithFilter(*pkgCluster.InstanceFilter) (map[string]pkgCluster.MachineType, error)
+	GetKubernetesVersion(*pkgCluster.KubernetesFilter) (interface{}, error)
+	GetImages(*pkgCluster.ImageFilter) (map[string][]string, error)
 }
 
 // BaseFields for cloud info types
@@ -32,11 +32,11 @@ type BaseFields struct {
 }
 
 // GetCloudInfoModel creates CloudInfoProvider
-func GetCloudInfoModel(cloudType string, r *components.CloudInfoRequest) (CloudInfoProvider, error) {
+func GetCloudInfoModel(cloudType string, r *pkgCluster.CloudInfoRequest) (CloudInfoProvider, error) {
 	log.Infof("Cloud type: %s", cloudType)
 	switch cloudType {
 
-	case constants.Amazon:
+	case pkgCluster.Amazon:
 		return &AmazonInfo{
 			BaseFields: BaseFields{
 				OrgId:    r.OrganizationId,
@@ -44,7 +44,7 @@ func GetCloudInfoModel(cloudType string, r *components.CloudInfoRequest) (CloudI
 			},
 		}, nil
 
-	case constants.Google:
+	case pkgCluster.Google:
 		return &GoogleInfo{
 			BaseFields: BaseFields{
 				OrgId:    r.OrganizationId,
@@ -52,7 +52,7 @@ func GetCloudInfoModel(cloudType string, r *components.CloudInfoRequest) (CloudI
 			},
 		}, nil
 
-	case constants.Azure:
+	case pkgCluster.Azure:
 		return &AzureInfo{
 			BaseFields: BaseFields{
 				OrgId:    r.OrganizationId,
@@ -61,14 +61,14 @@ func GetCloudInfoModel(cloudType string, r *components.CloudInfoRequest) (CloudI
 		}, nil
 
 	default:
-		return nil, constants.ErrorNotSupportedCloudType
+		return nil, pkgErrors.ErrorNotSupportedCloudType
 	}
 }
 
 // ProcessFilter returns the proper supported fields, the CloudInfoRequest decide which
-func ProcessFilter(p CloudInfoProvider, r *components.CloudInfoRequest) (*components.GetCloudInfoResponse, error) {
+func ProcessFilter(p CloudInfoProvider, r *pkgCluster.CloudInfoRequest) (*pkgCluster.GetCloudInfoResponse, error) {
 
-	response := components.GetCloudInfoResponse{
+	response := pkgCluster.GetCloudInfoResponse{
 		Type:       p.GetType(),
 		NameRegexp: p.GetNameRegexp(),
 	}
@@ -76,14 +76,14 @@ func ProcessFilter(p CloudInfoProvider, r *components.CloudInfoRequest) (*compon
 		for _, field := range r.Filter.Fields {
 			switch field {
 
-			case constants.KeyWordLocation:
+			case pkgCluster.KeyWordLocation:
 				l, err := p.GetLocations()
 				if err != nil {
 					return nil, err
 				}
 				response.Locations = l
 
-			case constants.KeyWordInstanceType:
+			case pkgCluster.KeyWordInstanceType:
 				if r.Filter.InstanceType != nil {
 					log.Infof("Get machine types with filter [%#v]", *r.Filter.InstanceType)
 					// get machine types from spec zone
@@ -102,13 +102,13 @@ func ProcessFilter(p CloudInfoProvider, r *components.CloudInfoRequest) (*compon
 					response.NodeInstanceType = mt
 				}
 
-			case constants.KeyWordKubernetesVersion:
+			case pkgCluster.KeyWordKubernetesVersion:
 				versions, err := p.GetKubernetesVersion(r.Filter.KubernetesFilter)
 				if err != nil {
 					return nil, err
 				}
 				response.KubernetesVersions = versions
-			case constants.KeyWordImage:
+			case pkgCluster.KeyWordImage:
 				images, err := p.GetImages(r.Filter.ImageFilter)
 				if err != nil {
 					return nil, err
