@@ -8,6 +8,7 @@ import (
 	"github.com/banzaicloud/pipeline/helm"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
+	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/go-errors/errors"
 	"github.com/spf13/viper"
@@ -15,7 +16,6 @@ import (
 	"k8s.io/client-go/rest"
 	"sync"
 	"time"
-	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 )
 
 // muxOrgDomain is a mutex used to sync access to external Dns service
