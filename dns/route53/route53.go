@@ -11,12 +11,12 @@ import (
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/aws/aws-sdk-go/service/route53/route53iface"
 	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/pkg/cluster"
+	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/banzaicloud/pipeline/secret"
 	"github.com/sirupsen/logrus"
 	"strings"
 	"time"
-	"github.com/banzaicloud/pipeline/secret"
-	"github.com/banzaicloud/pipeline/pkg/cluster"
-	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 )
 
 var logger *logrus.Logger
@@ -29,7 +29,7 @@ const (
 	createHostedZoneComment            = "HostedZone created by Banzaicloud Pipeline"
 	iamUserNameTemplate                = "banzaicloud.route53.%s"
 	hostedZoneAccessPolicyNameTemplate = "BanzaicloudRoute53-%s"
-	iamUserAccessKeySecretName				 = "route53"
+	iamUserAccessKeySecretName         = "route53"
 )
 
 func loggerWithFields(fields logrus.Fields) *logrus.Entry {
@@ -305,8 +305,6 @@ func (dns *awsRoute53) UnregisterDomain(orgId uint, domain string) error {
 		}
 	}
 
-
-
 	if err := dns.stateStore.delete(state); err != nil {
 		log.Errorf("deleting domain state from state store failed: %s", extractErrorMessage(err))
 		return err
@@ -521,7 +519,7 @@ func (dns *awsRoute53) createHostedZoneIAMUser(userName, route53PolicyArn *strin
 	secretId, err := secret.Store.Store(ctx.state.organisationId, &secret.CreateSecretRequest{
 		Name: iamUserAccessKeySecretName,
 		Type: cluster.Amazon,
-		Tags: []string{ secretTypes.TagBanzaiHidden },
+		Tags: []string{secretTypes.TagBanzaiHidden},
 	})
 	ctx.registerRollback(func() error {
 		return secret.Store.Delete(ctx.state.organisationId, secretId)

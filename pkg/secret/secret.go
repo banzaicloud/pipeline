@@ -81,7 +81,7 @@ const (
 
 // Internal usage
 const (
-	TagKubeConfig = "KubeConfig"
+	TagKubeConfig   = "KubeConfig"
 	TagBanzaiHidden = "banzai:hidden"
 )
 
