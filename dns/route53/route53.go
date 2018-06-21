@@ -14,6 +14,9 @@ import (
 	"github.com/sirupsen/logrus"
 	"strings"
 	"time"
+	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/pkg/cluster"
+	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 )
 
 var logger *logrus.Logger
@@ -26,6 +29,7 @@ const (
 	createHostedZoneComment            = "HostedZone created by Banzaicloud Pipeline"
 	iamUserNameTemplate                = "banzaicloud.route53.%s"
 	hostedZoneAccessPolicyNameTemplate = "BanzaicloudRoute53-%s"
+	iamUserAccessKeySecretName				 = "route53"
 )
 
 func loggerWithFields(fields logrus.Fields) *logrus.Entry {
@@ -278,6 +282,31 @@ func (dns *awsRoute53) UnregisterDomain(orgId uint, domain string) error {
 		}
 	}
 
+	// delete route53 secret
+	secrets, err := secret.Store.List(orgId,
+		&secretTypes.ListSecretsQuery{
+			Type: cluster.Amazon,
+			Tag:  secretTypes.TagBanzaiHidden,
+		})
+
+	if err != nil {
+		dns.updateStateWithError(state, err)
+		return err
+	}
+
+	for _, item := range secrets {
+		if item.Name == iamUserAccessKeySecretName {
+			if err := secret.Store.Delete(orgId, item.ID); err != nil {
+				dns.updateStateWithError(state, err)
+				return err
+			}
+
+			break
+		}
+	}
+
+
+
 	if err := dns.stateStore.delete(state); err != nil {
 		log.Errorf("deleting domain state from state store failed: %s", extractErrorMessage(err))
 		return err
@@ -485,6 +514,20 @@ func (dns *awsRoute53) createHostedZoneIAMUser(userName, route53PolicyArn *strin
 	})
 	ctx.state.awsAccessKeyId = aws.StringValue(awsAccessKey.AccessKeyId)
 	if err := dns.stateStore.update(ctx.state); err != nil {
+		return err
+	}
+
+	// store route53 secret in Vault
+	secretId, err := secret.Store.Store(ctx.state.organisationId, &secret.CreateSecretRequest{
+		Name: iamUserAccessKeySecretName,
+		Type: cluster.Amazon,
+		Tags: []string{ secretTypes.TagBanzaiHidden },
+	})
+	ctx.registerRollback(func() error {
+		return secret.Store.Delete(ctx.state.organisationId, secretId)
+	})
+
+	if err != nil {
 		return err
 	}
 
