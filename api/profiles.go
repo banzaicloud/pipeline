@@ -1,10 +1,11 @@
 package api
 
 import (
-	"github.com/banzaicloud/banzai-types/components"
-	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/model/defaults"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"net/http"
@@ -25,7 +26,7 @@ func GetClusterProfiles(c *gin.Context) {
 	resp, err := getProfiles(cloudType)
 	if err != nil {
 		log.Errorf("Error during getting defaults to %s: %s", cloudType, err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: err.Error(),
 			Error:   err.Error(),
@@ -45,10 +46,10 @@ func AddClusterProfile(c *gin.Context) {
 
 	log.Debug("Bind json into ClusterProfileRequest struct")
 	// bind request body to struct
-	var profileRequest components.ClusterProfileRequest
+	var profileRequest pkgCluster.ClusterProfileRequest
 	if err := c.BindJSON(&profileRequest); err != nil {
 		log.Error(errors.Wrap(err, "Error parsing request"))
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error parsing request",
 			Error:   err.Error(),
@@ -61,7 +62,7 @@ func AddClusterProfile(c *gin.Context) {
 	// convert request into ClusterProfile model
 	if prof, err := convertRequestToProfile(&profileRequest); err != nil {
 		log.Error("Error during convert profile: &s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error during convert profile",
 			Error:   err.Error(),
@@ -73,7 +74,7 @@ func AddClusterProfile(c *gin.Context) {
 		if err := prof.SaveInstance(); err != nil {
 			// save failed
 			log.Errorf("Error during persist cluster profile: %s", err.Error())
-			c.JSON(http.StatusInternalServerError, components.ErrorResponse{
+			c.JSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
 				Code:    http.StatusInternalServerError,
 				Message: "Error during persist cluster profile",
 				Error:   err.Error(),
@@ -86,7 +87,7 @@ func AddClusterProfile(c *gin.Context) {
 	} else {
 		// profile with given name is already exists
 		log.Error("Cluster profile with the given name is already exists")
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Cluster profile with the given name is already exists, please update not create profile",
 			Error:   "Cluster profile with the given name is already exists, please update not create profile",
@@ -96,9 +97,9 @@ func AddClusterProfile(c *gin.Context) {
 }
 
 // getProfiles loads cluster profiles from database by cloud type
-func getProfiles(cloudType string) ([]components.ClusterProfileResponse, error) {
+func getProfiles(cloudType string) ([]pkgCluster.ClusterProfileResponse, error) {
 
-	var response []components.ClusterProfileResponse
+	var response []pkgCluster.ClusterProfileResponse
 	profiles, err := defaults.GetAllProfiles(cloudType)
 	if err != nil {
 		// error during getting profiles
@@ -113,23 +114,23 @@ func getProfiles(cloudType string) ([]components.ClusterProfileResponse, error) 
 }
 
 // convertRequestToProfile converts a ClusterProfileRequest into ClusterProfile
-func convertRequestToProfile(request *components.ClusterProfileRequest) (defaults.ClusterProfile, error) {
+func convertRequestToProfile(request *pkgCluster.ClusterProfileRequest) (defaults.ClusterProfile, error) {
 
 	switch request.Cloud {
-	case constants.Amazon:
+	case pkgCluster.Amazon:
 		var awsProfile defaults.AWSProfile
 		awsProfile.UpdateProfile(request, false)
 		return &awsProfile, nil
-	case constants.Azure:
+	case pkgCluster.Azure:
 		var aksProfile defaults.AKSProfile
 		aksProfile.UpdateProfile(request, false)
 		return &aksProfile, nil
-	case constants.Google:
+	case pkgCluster.Google:
 		var gkeProfile defaults.GKEProfile
 		gkeProfile.UpdateProfile(request, false)
 		return &gkeProfile, nil
 	default:
-		return nil, constants.ErrorNotSupportedCloudType
+		return nil, pkgErrors.ErrorNotSupportedCloudType
 	}
 
 }
@@ -141,10 +142,10 @@ func UpdateClusterProfile(c *gin.Context) {
 
 	log.Debug("Bind json into ClusterProfileRequest struct")
 	// bind request body to struct
-	var profileRequest components.ClusterProfileRequest
+	var profileRequest pkgCluster.ClusterProfileRequest
 	if err := c.BindJSON(&profileRequest); err != nil {
 		log.Error(errors.Wrap(err, "Error parsing request"))
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error parsing request",
 			Error:   err.Error(),
@@ -156,7 +157,7 @@ func UpdateClusterProfile(c *gin.Context) {
 	if defaults.GetDefaultProfileName() == profileRequest.Name {
 		// default profiles cannot updated
 		log.Error("The default profile cannot be updated") // todo move to constants
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "The default profile cannot be updated",
 			Error:   "The default profile cannot be updated",
@@ -174,7 +175,7 @@ func UpdateClusterProfile(c *gin.Context) {
 	} else if err := profile.UpdateProfile(&profileRequest, true); err != nil {
 		// updating failed
 		log.Error(errors.Wrap(err, "Error during update profile"))
-		c.JSON(http.StatusInternalServerError, components.ErrorResponse{
+		c.JSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: "Error during update profile",
 			Error:   err.Error(),
@@ -199,7 +200,7 @@ func DeleteClusterProfile(c *gin.Context) {
 	if defaults.GetDefaultProfileName() == name {
 		// default profile cannot deleted
 		log.Error("The default profile cannot be deleted")
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "The default profile cannot be deleted",
 			Error:   "The default profile cannot be deleted",
@@ -220,7 +221,7 @@ func DeleteClusterProfile(c *gin.Context) {
 		if err := profile.DeleteProfile(); err != nil {
 			// delete from db failed
 			log.Error(errors.Wrap(err, "Error during profile delete"))
-			c.JSON(http.StatusInternalServerError, components.ErrorResponse{
+			c.JSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
 				Code:    http.StatusInternalServerError,
 				Message: "Error during profile delete",
 				Error:   err.Error(),
@@ -242,7 +243,7 @@ func sendBackGetProfileErrorResponse(c *gin.Context, err error) {
 		msg = "Profile not found"
 	}
 
-	c.JSON(statusCode, components.ErrorResponse{
+	c.JSON(statusCode, pkgCommon.ErrorResponse{
 		Code:    statusCode,
 		Message: msg,
 		Error:   err.Error(),

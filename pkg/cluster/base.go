@@ -77,13 +77,6 @@ type CreateClusterRequest struct {
 	} `json:"properties" binding:"required"`
 }
 
-// ErrorResponse describes Pipeline's responses when an error occurred
-type ErrorResponse struct {
-	Code    int    `json:"code"`
-	Message string `json:"message"`
-	Error   string `json:"error"`
-}
-
 // GetClusterStatusResponse describes Pipeline's GetClusterStatus API response
 type GetClusterStatusResponse struct {
 	Status        string                     `json:"status"`

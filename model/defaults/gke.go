@@ -1,12 +1,11 @@
 package defaults
 
 import (
-	"github.com/banzaicloud/banzai-types/components"
-	"github.com/banzaicloud/banzai-types/components/amazon"
-	"github.com/banzaicloud/banzai-types/components/azure"
-	"github.com/banzaicloud/banzai-types/components/google"
-	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/model"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/banzaicloud/pipeline/pkg/cluster/amazon"
+	"github.com/banzaicloud/pipeline/pkg/cluster/azure"
+	"github.com/banzaicloud/pipeline/pkg/cluster/google"
 )
 
 // GKEProfile describes a Google cluster profile
@@ -84,11 +83,11 @@ func (d *GKEProfile) IsDefinedBefore() bool {
 
 // GetType returns profile's cloud type
 func (d *GKEProfile) GetType() string {
-	return constants.Google
+	return pkgCluster.Google
 }
 
 // GetProfile load profile from database and converts ClusterProfileResponse
-func (d *GKEProfile) GetProfile() *components.ClusterProfileResponse {
+func (d *GKEProfile) GetProfile() *pkgCluster.ClusterProfileResponse {
 
 	nodePools := make(map[string]*google.NodePool)
 	if d.NodePools != nil {
@@ -104,10 +103,10 @@ func (d *GKEProfile) GetProfile() *components.ClusterProfileResponse {
 		}
 	}
 
-	return &components.ClusterProfileResponse{
+	return &pkgCluster.ClusterProfileResponse{
 		Name:     d.DefaultModel.Name,
 		Location: d.Location,
-		Cloud:    constants.Google,
+		Cloud:    pkgCluster.Google,
 		Properties: struct {
 			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
@@ -125,7 +124,7 @@ func (d *GKEProfile) GetProfile() *components.ClusterProfileResponse {
 }
 
 // UpdateProfile update profile's data with ClusterProfileRequest's data and if bool is true then update in the database
-func (d *GKEProfile) UpdateProfile(r *components.ClusterProfileRequest, withSave bool) error {
+func (d *GKEProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave bool) error {
 
 	if len(r.Location) != 0 {
 		d.Location = r.Location

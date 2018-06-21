@@ -5,14 +5,15 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/banzaicloud/banzai-types/components"
-	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/model/defaults"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	pipelineSsh "github.com/banzaicloud/pipeline/ssh"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -45,7 +46,7 @@ func GetCommonClusterFromFilter(c *gin.Context, filter map[string]interface{}) (
 	modelCluster, err := model.QueryCluster(filter)
 	if err != nil {
 		log.Errorf("Cluster not found: %s", err.Error())
-		c.JSON(http.StatusNotFound, components.ErrorResponse{
+		c.JSON(http.StatusNotFound, pkgCommon.ErrorResponse{
 			Code:    http.StatusNotFound,
 			Message: "Cluster not found",
 			Error:   err.Error(),
@@ -55,7 +56,7 @@ func GetCommonClusterFromFilter(c *gin.Context, filter map[string]interface{}) (
 
 	if len(modelCluster) == 0 {
 		log.Error("Empty cluster list")
-		c.JSON(http.StatusNotFound, components.ErrorResponse{
+		c.JSON(http.StatusNotFound, pkgCommon.ErrorResponse{
 			Code:    http.StatusNotFound,
 			Message: "Cluster not found",
 			Error:   "",
@@ -66,7 +67,7 @@ func GetCommonClusterFromFilter(c *gin.Context, filter map[string]interface{}) (
 	commonCLuster, err := cluster.GetCommonClusterFromModel(&modelCluster[0])
 	if err != nil {
 		log.Errorf("GetCommonClusterFromModel failed: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error parsing request",
 			Error:   err.Error(),
@@ -104,10 +105,10 @@ func CreateClusterRequest(c *gin.Context) {
 
 	log.Debug("Bind json into CreateClusterRequest struct")
 	// bind request body to struct
-	var createClusterRequest components.CreateClusterRequest
+	var createClusterRequest pkgCluster.CreateClusterRequest
 	if err := c.BindJSON(&createClusterRequest); err != nil {
 		log.Error(errors.Wrap(err, "Error parsing request"))
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error parsing request",
 			Error:   err.Error(),
@@ -132,21 +133,21 @@ func CreateClusterRequest(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusAccepted, components.CreateClusterResponse{
+	c.JSON(http.StatusAccepted, pkgCluster.CreateClusterResponse{
 		Name:       commonCluster.GetName(),
 		ResourceID: commonCluster.GetID(),
 	})
 }
 
 // CreateCluster creates a K8S cluster in the cloud
-func CreateCluster(createClusterRequest *components.CreateClusterRequest, organizationID uint,
-	postHooks []cluster.PostFunctioner) (cluster.CommonCluster, *components.ErrorResponse) {
+func CreateCluster(createClusterRequest *pkgCluster.CreateClusterRequest, organizationID uint,
+	postHooks []cluster.PostFunctioner) (cluster.CommonCluster, *pkgCommon.ErrorResponse) {
 
 	if len(createClusterRequest.ProfileName) != 0 {
 		log.Infof("Fill data from profile[%s]", createClusterRequest.ProfileName)
 		profile, err := defaults.GetProfile(createClusterRequest.Cloud, createClusterRequest.ProfileName)
 		if err != nil {
-			return nil, &components.ErrorResponse{
+			return nil, &pkgCommon.ErrorResponse{
 				Code:    http.StatusNotFound,
 				Message: "Error during getting profile",
 				Error:   err.Error(),
@@ -159,7 +160,7 @@ func CreateCluster(createClusterRequest *components.CreateClusterRequest, organi
 		log.Info("Create clusterRequest from profile")
 		newRequest, err := profileResponse.CreateClusterRequest(createClusterRequest)
 		if err != nil {
-			return nil, &components.ErrorResponse{
+			return nil, &pkgCommon.ErrorResponse{
 				Code:    http.StatusBadRequest,
 				Message: "Error creating request from profile",
 				Error:   err.Error(),
@@ -184,7 +185,7 @@ func CreateCluster(createClusterRequest *components.CreateClusterRequest, organi
 	if existingCluster.ID != 0 {
 		// duplicated entry
 		err := fmt.Errorf("duplicate entry: %s", existingCluster.Name)
-		return nil, &components.ErrorResponse{
+		return nil, &pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: err.Error(),
 			Error:   err.Error(),
@@ -197,7 +198,7 @@ func CreateCluster(createClusterRequest *components.CreateClusterRequest, organi
 	// This is the common part of cluster flow
 	commonCluster, err := cluster.CreateCommonClusterFromRequest(createClusterRequest, organizationID)
 	if err != nil {
-		return nil, &components.ErrorResponse{
+		return nil, &pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: err.Error(),
 			Error:   err.Error(),
@@ -206,7 +207,7 @@ func CreateCluster(createClusterRequest *components.CreateClusterRequest, organi
 
 	log.Infof("Validate secret[%s]", createClusterRequest.SecretId)
 	if _, err := commonCluster.GetSecretWithValidation(); err != nil {
-		return nil, &components.ErrorResponse{
+		return nil, &pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error during getting secret",
 			Error:   err.Error(),
@@ -215,9 +216,9 @@ func CreateCluster(createClusterRequest *components.CreateClusterRequest, organi
 	log.Info("Secret validation passed")
 
 	// Persist the cluster in Database
-	err = commonCluster.Persist(constants.Creating, constants.CreatingMessage)
+	err = commonCluster.Persist(pkgCluster.Creating, pkgCluster.CreatingMessage)
 	if err != nil {
-		return nil, &components.ErrorResponse{
+		return nil, &pkgCommon.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: err.Error(),
 			Error:   err.Error(),
@@ -226,8 +227,8 @@ func CreateCluster(createClusterRequest *components.CreateClusterRequest, organi
 
 	log.Info("Validate creation fields")
 	if err := commonCluster.ValidateCreationFields(createClusterRequest); err != nil {
-		commonCluster.UpdateStatus(constants.Error, err.Error())
-		return nil, &components.ErrorResponse{
+		commonCluster.UpdateStatus(pkgCluster.Error, err.Error())
+		return nil, &pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: err.Error(),
 			Error:   err.Error(),
@@ -263,11 +264,11 @@ func postCreateCluster(commonCluster cluster.CommonCluster, postHooks []cluster.
 	err := commonCluster.CreateCluster()
 	if err != nil {
 		log.Errorf("Error during cluster creation: %s", err.Error())
-		commonCluster.UpdateStatus(constants.Error, err.Error())
+		commonCluster.UpdateStatus(pkgCluster.Error, err.Error())
 		return err
 	}
 
-	err = commonCluster.UpdateStatus(constants.Running, constants.RunningMessage)
+	err = commonCluster.UpdateStatus(pkgCluster.Running, pkgCluster.RunningMessage)
 	if err != nil {
 		log.Errorf("Error during updating cluster status: %s", err.Error())
 		return err
@@ -297,7 +298,7 @@ func GetClusterStatus(c *gin.Context) {
 	response, err := commonCluster.GetStatus()
 	if err != nil {
 		log.Errorf("Error during getting status: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error during getting status",
 			Error:   err.Error(),
@@ -317,7 +318,7 @@ func GetClusterConfig(c *gin.Context) {
 	config, err := commonCluster.GetK8sConfig()
 	if err != nil {
 		log.Errorf("Error during getting config: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error during getting config",
 			Error:   err.Error(),
@@ -339,7 +340,7 @@ func GetClusterConfig(c *gin.Context) {
 	log.Debug("Content-Type: ", contentType)
 	switch contentType {
 	case gin.MIMEJSON:
-		c.JSON(http.StatusOK, components.GetClusterConfigResponse{
+		c.JSON(http.StatusOK, pkgCluster.GetClusterConfigResponse{
 			Status: http.StatusOK,
 			Data:   string(config),
 		})
@@ -364,7 +365,7 @@ func GetApiEndpoint(c *gin.Context) {
 	endPoint, err := commonCluster.GetAPIEndpoint()
 	if err != nil {
 		log.Errorf("Error during getting api endpoint: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error getting endpoint",
 			Error:   err.Error(),
@@ -382,10 +383,10 @@ func GetApiEndpoint(c *gin.Context) {
 func UpdateCluster(c *gin.Context) {
 
 	// bind request body to UpdateClusterRequest struct
-	var updateRequest *components.UpdateClusterRequest
+	var updateRequest *pkgCluster.UpdateClusterRequest
 	if err := c.BindJSON(&updateRequest); err != nil {
 		log.Errorf("Error parsing request: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error parsing request",
 			Error:   err.Error(),
@@ -400,7 +401,7 @@ func UpdateCluster(c *gin.Context) {
 	if commonCluster.GetType() != updateRequest.Cloud {
 		msg := fmt.Sprintf("Stored cloud type [%s] and request cloud type [%s] not equal", commonCluster.GetType(), updateRequest.Cloud)
 		log.Errorf(msg)
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: msg,
 		})
@@ -411,7 +412,7 @@ func UpdateCluster(c *gin.Context) {
 	status, err := commonCluster.GetStatus()
 	if err != nil {
 		log.Errorf("Error checking status: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error checking status",
 			Error:   err.Error(),
@@ -421,10 +422,10 @@ func UpdateCluster(c *gin.Context) {
 
 	log.Infof("Cluster status: %s", status.Status)
 
-	if status.Status != constants.Running {
-		err := fmt.Errorf("cluster is not in %s state yet", constants.Running)
+	if status.Status != pkgCluster.Running {
+		err := fmt.Errorf("cluster is not in %s state yet", pkgCluster.Running)
 		log.Errorf("Error during checking cluster status: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error during checking cluster status",
 			Error:   err.Error(),
@@ -440,7 +441,7 @@ func UpdateCluster(c *gin.Context) {
 	log.Info("Check equality")
 	if err := commonCluster.CheckEqualityToUpdate(updateRequest); err != nil {
 		log.Errorf("Check changes failed: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: err.Error(),
 			Error:   err.Error(),
@@ -450,7 +451,7 @@ func UpdateCluster(c *gin.Context) {
 
 	if err := updateRequest.Validate(); err != nil {
 		log.Errorf("Validation failed: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: err.Error(),
 			Error:   err.Error(),
@@ -459,29 +460,29 @@ func UpdateCluster(c *gin.Context) {
 	}
 
 	// save the updated cluster to database
-	if err := commonCluster.Persist(constants.Updating, constants.UpdatingMessage); err != nil {
+	if err := commonCluster.Persist(pkgCluster.Updating, pkgCluster.UpdatingMessage); err != nil {
 		log.Errorf("Error during cluster save %s", err.Error())
 	}
 
 	go postUpdateCluster(commonCluster, updateRequest)
 
-	c.JSON(http.StatusAccepted, components.UpdateClusterResponse{
+	c.JSON(http.StatusAccepted, pkgCluster.UpdateClusterResponse{
 		Status: http.StatusAccepted,
 	})
 }
 
 // postUpdateCluster updates a cluster (ASYNC)
-func postUpdateCluster(commonCluster cluster.CommonCluster, updateRequest *components.UpdateClusterRequest) error {
+func postUpdateCluster(commonCluster cluster.CommonCluster, updateRequest *pkgCluster.UpdateClusterRequest) error {
 
 	err := commonCluster.UpdateCluster(updateRequest)
 	if err != nil {
 		// validation failed
 		log.Errorf("Update failed: %s", err.Error())
-		commonCluster.UpdateStatus(constants.Error, err.Error())
+		commonCluster.UpdateStatus(pkgCluster.Error, err.Error())
 		return err
 	}
 
-	err = commonCluster.UpdateStatus(constants.Running, constants.RunningMessage)
+	err = commonCluster.UpdateStatus(pkgCluster.Running, pkgCluster.RunningMessage)
 	if err != nil {
 		log.Errorf("Error during update cluster status: %s", err.Error())
 		return err
@@ -509,7 +510,7 @@ func DeleteCluster(c *gin.Context) {
 	deleteName := commonCluster.GetName()
 	deleteId := commonCluster.GetID()
 
-	c.JSON(http.StatusAccepted, components.DeleteClusterResponse{
+	c.JSON(http.StatusAccepted, pkgCluster.DeleteClusterResponse{
 		Status:     http.StatusAccepted,
 		Name:       deleteName,
 		ResourceID: deleteId,
@@ -519,7 +520,7 @@ func DeleteCluster(c *gin.Context) {
 // postDeleteCluster deletes a cluster (ASYNC)
 func postDeleteCluster(commonCluster cluster.CommonCluster, force bool) error {
 
-	err := commonCluster.UpdateStatus(constants.Deleting, constants.DeletingMessage)
+	err := commonCluster.UpdateStatus(pkgCluster.Deleting, pkgCluster.DeletingMessage)
 	if err != nil {
 		log.Errorf("Error during updating cluster status: %s", err.Error())
 		return err
@@ -529,7 +530,7 @@ func postDeleteCluster(commonCluster cluster.CommonCluster, force bool) error {
 	c, err := commonCluster.GetK8sConfig()
 	if err != nil && !force {
 		log.Errorf("Error during getting kubeconfig: %s", err.Error())
-		commonCluster.UpdateStatus(constants.Error, err.Error())
+		commonCluster.UpdateStatus(pkgCluster.Error, err.Error())
 		return err
 	}
 
@@ -543,7 +544,7 @@ func postDeleteCluster(commonCluster cluster.CommonCluster, force bool) error {
 	err = commonCluster.DeleteCluster()
 	if err != nil && !force {
 		log.Errorf(errors.Wrap(err, "Error during delete cluster").Error())
-		commonCluster.UpdateStatus(constants.Error, err.Error())
+		commonCluster.UpdateStatus(pkgCluster.Error, err.Error())
 		return err
 	}
 
@@ -552,7 +553,7 @@ func postDeleteCluster(commonCluster cluster.CommonCluster, force bool) error {
 	err = commonCluster.DeleteFromDatabase()
 	if err != nil && !force {
 		log.Errorf(errors.Wrap(err, "Error during delete cluster from database").Error())
-		commonCluster.UpdateStatus(constants.Error, err.Error())
+		commonCluster.UpdateStatus(pkgCluster.Error, err.Error())
 		return err
 	}
 
@@ -580,14 +581,14 @@ func FetchClusters(c *gin.Context) {
 	err := db.Model(organization).Related(&clusters).Error
 	if err != nil {
 		log.Errorf("Error listing clusters: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error listing clusters",
 			Error:   err.Error(),
 		})
 		return
 	}
-	response := make([]components.GetClusterStatusResponse, 0)
+	response := make([]pkgCluster.GetClusterStatusResponse, 0)
 	for _, cl := range clusters {
 		commonCluster, err := cluster.GetCommonClusterFromModel(&cl)
 		if err == nil {
@@ -618,7 +619,7 @@ func ReRunPostHooks(c *gin.Context) {
 	var ph cluster.RunPostHook
 	if err := c.BindJSON(&ph); err != nil {
 		log.Errorf("error during binding request: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "error during binding request",
 			Error:   err.Error(),
@@ -653,7 +654,7 @@ func FetchCluster(c *gin.Context) {
 	status, err := commonCluster.GetClusterDetails()
 	if err != nil {
 		log.Errorf("Error getting cluster: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error getting cluster",
 			Error:   err.Error(),
@@ -699,10 +700,10 @@ func InstallSecretsToCluster(c *gin.Context) {
 	}
 
 	// bind request body to UpdateClusterRequest struct
-	var request components.InstallSecretsToClusterRequest
+	var request pkgSecret.InstallSecretsToClusterRequest
 	if err := c.BindJSON(&request); err != nil {
 		log.Errorf("Error parsing request: %s", err.Error())
-		c.AbortWithStatusJSON(http.StatusBadRequest, components.ErrorResponse{
+		c.AbortWithStatusJSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error parsing request",
 			Error:   err.Error(),
@@ -714,7 +715,7 @@ func InstallSecretsToCluster(c *gin.Context) {
 
 	if err != nil {
 		log.Errorf("Error installing secrets [%v] into cluster [%d]: %s", request.Query, commonCluster.GetID(), err.Error())
-		c.AbortWithStatusJSON(http.StatusInternalServerError, components.ErrorResponse{
+		c.AbortWithStatusJSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: "Error installing secrets into cluster",
 			Error:   err.Error(),
