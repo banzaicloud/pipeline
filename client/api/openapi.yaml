@@ -1,0 +1,6122 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: info@banzaicloud.com
+  description: Pipeline v0.3.0 swagger
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: Pipeline API
+  version: 0.3.0
+servers:
+- url: http://localhost:9090
+tags:
+- description: Application managed by Pipeline
+  name: applications
+- description: Clusters realted funtions
+  name: clusters
+- description: Application catalog
+  name: catalogs
+- description: Functions related for a deployment
+  name: deployment
+- description: Deployment related functions for a cluster
+  name: deployments
+- description: Cluster profiles related functions
+  name: profiles
+- description: Auth related functions
+  name: auth
+- description: Secrets related functions
+  name: secrets
+- description: Organizations related functions
+  name: organizations
+- description: Common API functions
+  name: common
+- description: Users related functions
+  name: users
+- description: Cloud config related functions
+  name: info
+- description: Storage related functions
+  name: storage
+paths:
+  /api/v1/orgs/{orgId}/catalogs:
+    get:
+      description: List all available catalogs
+      operationId: ListCatalogs
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListCatalogResponse'
+          description: Catalog list
+      security:
+      - bearerAuth: []
+      summary: List catalogs
+      tags:
+      - catalogs
+  /api/v1/orgs/{orgId}/catalogs/{name}:
+    get:
+      description: Get details about specific catalog
+      operationId: GetCatalogDetail
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Catalog name
+        explode: false
+        in: path
+        name: name
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogDetailsResponse'
+          description: Catalog details
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogNotFound'
+          description: Catalog missing
+      security:
+      - bearerAuth: []
+      summary: Get catalog details
+      tags:
+      - catalogs
+  /api/v1/orgs/{orgId}/applications:
+    get:
+      description: List all available application for lunch
+      operationId: ListApplications
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationListResponse'
+          description: Application list
+      security:
+      - bearerAuth: []
+      summary: List application catalogs
+      tags:
+      - applications
+    post:
+      description: Create new application based on Catalog definition s
+      operationId: CreateApplication
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateApplicationRequest'
+        required: true
+      responses:
+        201:
+          content:
+            application/json:
+              schema: {}
+          description: Application created
+      security:
+      - bearerAuth: []
+      summary: Create new application based on catalog
+      tags:
+      - applications
+  /api/v1/orgs/{orgId}/applications/{appId}:
+    get:
+      description: Get application details with deployments
+      operationId: GetApplication
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Application identification
+        explode: false
+        in: path
+        name: appId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationDetailsResponse'
+          description: Application list
+      security:
+      - bearerAuth: []
+      summary: Get application details
+      tags:
+      - applications
+  /api/v1/orgs/{orgId}/clusters:
+    get:
+      description: Listing all the K8S clusters from the cloud
+      operationId: ListClusters
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/GetClusterStatusResponse'
+                type: array
+          description: All cluster listed
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during listing clusters
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+      security:
+      - bearerAuth: []
+      summary: List clusters
+      tags:
+      - clusters
+    post:
+      description: Create a new K8S cluster in the cloud
+      operationId: CreateCluster
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            examples:
+              AWS:
+                value:
+                  name: awscluster-pipelineuser-123
+                  location: eu-west-1
+                  cloud: amazon
+                  instanceType: m4.xlarge
+                  properties:
+                    properties:
+                      amazon:
+                        $ref: '#/components/schemas/CreateAmazonProperties'
+              AKS:
+                value:
+                  name: azcluster-pipelineuser-123
+                  location: westeurope
+                  cloud: azure
+                  instanceType: Standard_D2_v2
+                  properties:
+                    azure:
+                      $ref: '#/components/schemas/CreateAzureProperties'
+              GKE:
+                value:
+                  name: gkecluster-pipelineuser-123
+                  location: us-central1-a
+                  cloud: google
+                  instanceType: n1-standard-1
+                  properties:
+                    google:
+                      $ref: '#/components/schemas/CreateGoogleProperties'
+            schema:
+              $ref: '#/components/schemas/CreateApplicationRequest'
+        required: true
+      responses:
+        202:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateClusterResponse_202'
+          description: Cluster created successfully
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateClusterResponse_400'
+          description: Cluster creation failed
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+      security:
+      - bearerAuth: []
+      summary: Create cluster
+      tags:
+      - clusters
+  /api/v1/orgs/{orgId}/clusters/{id}:
+    delete:
+      description: Deleting a K8S cluster
+      operationId: DeleteCluster
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        202:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterDelete_200'
+          description: Cluster deleted successfully
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during deleting cluster
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+          description: Cluster not found
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Delete cluster
+      tags:
+      - clusters
+    get:
+      description: Getting cluster status
+      operationId: GetCluster
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetClusterStatusResponse'
+          description: Getting cluster succeeded
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during getting cluster details
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+          description: Cluster not found
+      security:
+      - bearerAuth: []
+      summary: Get cluster status
+      tags:
+      - clusters
+    head:
+      description: Getting the K8S cluster status
+      operationId: GetClusterStatus
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          description: Cluster exists
+        400:
+          description: Error during getting cluster status
+        401:
+          description: Unauthorized
+        404:
+          description: Cluster not found
+      security:
+      - bearerAuth: []
+      summary: Get cluster status
+      tags:
+      - clusters
+    put:
+      description: Updating an existing K8S cluster
+      operationId: UpdateCluster
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateClusterRequest'
+        required: true
+      responses:
+        202:
+          description: Cluster update accepted
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during updating cluster
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+          description: Cluster not found
+      security:
+      - bearerAuth: []
+      summary: Update cluster
+      tags:
+      - clusters
+  /api/v1/orgs/{orgId}/clusters/{id}/posthooks:
+    put:
+      description: Run posthook functions
+      operationId: ClusterPostHooks
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RunPostHook'
+        required: true
+      responses:
+        200:
+          description: Posthooks started
+      security:
+      - bearerAuth: []
+      summary: Run posthook functions
+      tags:
+      - clusters
+  /api/v1/orgs/{orgId}/clusters/{id}/config:
+    get:
+      description: Getting a K8S cluster config file
+      operationId: GetClusterConfig
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            text/plain:
+              schema:
+                example: encoded configuration file...
+                type: string
+          description: Getting config file succeeded
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during getting config file
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+          description: Cluster not found
+      security:
+      - bearerAuth: []
+      summary: Get a cluster config
+      tags:
+      - clusters
+  /api/v1/orgs/{orgId}/clusters/{id}/apiendpoint:
+    get:
+      description: Get API endpoint
+      operationId: GetAPIEndpoint
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            text/plain:
+              schema:
+                example: 35.195.56.31
+                type: string
+          description: API endpoint showed
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during getting API endpoint
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+          description: Cluster not found
+      security:
+      - bearerAuth: []
+      summary: Get API endpoint
+      tags:
+      - clusters
+  /api/v1/orgs/{orgId}/clusters/{id}/monitoring:
+    post:
+      description: Update monitoring
+      operationId: UpdateMonitoring
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            text/plain:
+              schema:
+                example: OK
+                type: string
+          description: Monitoring updated
+      security:
+      - bearerAuth: []
+      summary: Update monitoring
+      tags:
+      - clusters
+  /api/v1/orgs/{orgId}/clusters/{id}/endpoints:
+    get:
+      description: List service public endpoints
+      operationId: ListEndpoints
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListEndpointsResponse'
+          description: Endpoints listed
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during getting endpoints
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+          description: Cluster not found
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: List service public endpoints
+      tags:
+      - clusters
+  /api/v1/orgs/{orgId}/clusters/{id}/nodes:
+    get:
+      description: List cluser nodes
+      operationId: ListNodes
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListNodesResponse'
+          description: Nodes listed
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during getting endpoints
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+          description: Cluster not found
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: List cluser nodes
+      tags:
+      - clusters
+  /api/v1/orgs/{orgId}/clusters/{id}/helminit:
+    post:
+      description: Initialize helm in the cluster
+      operationId: HelmInit
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HelmInitRequest'
+        required: true
+      responses:
+        201:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HelmInitResponse'
+          description: Helm initialized int the cluster
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during getting endpoints
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+          description: Cluster not found
+      security:
+      - bearerAuth: []
+      summary: Initialize Helm
+      tags:
+      - clusters
+  /api/v1/orgs/{orgId}/clusters/{id}/secrets:
+    post:
+      description: Install secrets into cluster
+      operationId: InstallSecrets
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InstallSecretsRequest'
+        required: true
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/InstallSecretsResponseItem'
+                type: array
+          description: Secrets are installed into cluster
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during getting endpoints
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+          description: Cluster not found
+      security:
+      - bearerAuth: []
+      summary: Install secrets into cluster
+      tags:
+      - clusters
+  /api/v1/orgs/{orgId}/helm/repos:
+    get:
+      description: Listing Helm repositories in the cluster
+      operationId: HelmInit
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HelmReposListResponse'
+          description: Repositories listed
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during getting endpoints
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+          description: Cluster not found
+      security:
+      - bearerAuth: []
+      summary: List repositories
+      tags:
+      - helm
+    post:
+      description: Add new Helm repository
+      operationId: HelmReposAdd
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HelmReposAddRequest'
+        required: true
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HelmReposAddResponse'
+          description: resource successfully added.
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error adding Helm repo
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+          description: Cluster not found
+      security:
+      - bearerAuth: []
+      summary: Add Repo
+      tags:
+      - helm
+  /api/v1/orgs/{orgId}/helm/repos/{repoName}:
+    delete:
+      description: Delete  Helm repository
+      operationId: HelmReposDelete
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Helm repo name
+        explode: false
+        in: path
+        name: repoName
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HelmReposDeleteResponse'
+          description: resource deleted successfully
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: error deleting Helm repos
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+          description: Cluster not found
+      security:
+      - bearerAuth: []
+      summary: Delete Repo
+      tags:
+      - helm
+  /api/v1/orgs/{orgId}/helm/repos/{repoName}/update:
+    put:
+      description: Modify Helm repository
+      operationId: HelmReposUpdate
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Helm repo name
+        explode: false
+        in: path
+        name: repoName
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HelmReposUpdateResponse'
+          description: resource modified successfully
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: repo modification failed
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/ClusterNotFound'
+                - $ref: '#/components/schemas/RepoNotFound'
+          description: Resource found
+      security:
+      - bearerAuth: []
+      summary: Update Repo
+      tags:
+      - helm
+  /api/v1/orgs/{orgId}/helm/charts/:
+    get:
+      description: Get available Helm chart's list
+      operationId: HelmChartList
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Chart Name
+        explode: true
+        in: query
+        name: name
+        required: false
+        schema:
+          type: string
+        style: form
+      - description: Repo Name
+        explode: true
+        in: query
+        name: repo
+        required: false
+        schema:
+          type: string
+        style: form
+      - description: Chart version (latest)
+        explode: true
+        in: query
+        name: version
+        required: false
+        schema:
+          type: string
+        style: form
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HelmChartsListResponse'
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: error parsing request
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+          description: Resource found
+      security:
+      - bearerAuth: []
+      summary: Chart List
+      tags:
+      - helm
+  /api/v1/orgs/{orgId}/helm/chart/{repoName}/{chartName}/{chartVersion}:
+    get:
+      description: Get helm chart details
+      operationId: HelmChartDetails
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Chart repository name
+        explode: false
+        in: path
+        name: repoName
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Chart Name
+        explode: false
+        in: path
+        name: chartName
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Chart version
+        explode: false
+        in: path
+        name: chartVersion
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HelmChartDetailsResponse'
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: error parsing request
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChartNotFound'
+          description: Resource found
+      security:
+      - bearerAuth: []
+      summary: Chart details
+      tags:
+      - helm
+  /api/v1/orgs/{orgId}/clusters/{id}/deployments:
+    get:
+      description: Listing Helm deployments
+      operationId: ListDeployments
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListDeploymentsResponse'
+          description: Deployments listed
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during getting endpoints
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+          description: Cluster not found
+      security:
+      - bearerAuth: []
+      summary: List deployments
+      tags:
+      - deployments
+    head:
+      description: Checking if tiller ready to accept deployments
+      operationId: GetTillerStatus
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          description: Tiller is available
+        400:
+          description: Error during creating deployment
+        401:
+          description: Unauthorized
+        404:
+          description: Cluster not found
+      security:
+      - bearerAuth: []
+      summary: Get tiller status
+      tags:
+      - deployments
+    post:
+      description: Creating a Helm deployment
+      operationId: CreateDeployment
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDeploymentRequest'
+        required: true
+      responses:
+        201:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateDeploymentResponse'
+          description: Deployment created successfully
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during creating deployment
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+          description: Cluster not found
+      security:
+      - bearerAuth: []
+      summary: Create a Helm deployment
+      tags:
+      - deployments
+  /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name}:
+    delete:
+      description: Deleting a Helm deployment
+      operationId: DeleteDeployment
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Deployment name
+        explode: false
+        in: path
+        name: name
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteDeploymentResponse'
+          description: Deployment deleted successfully
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during delete deployment
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+          description: Cluster not found
+      security:
+      - bearerAuth: []
+      summary: Delete deployment
+      tags:
+      - deployment
+    head:
+      description: Checking the status of a deployment through the Helm client API
+      operationId: HelmDeploymentStatus
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Deployment name
+        explode: false
+        in: path
+        name: name
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        200:
+          description: Deployment status is OK
+        400:
+          description: Error during checking deployment status
+        401:
+          description: Unauthorized
+        404:
+          description: Cluster not found
+      security:
+      - bearerAuth: []
+      summary: Check deployment status
+      tags:
+      - deployment
+    put:
+      description: Updating a Helm deployment
+      operationId: UpdateDeployment
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Deployment name
+        explode: false
+        in: path
+        name: name
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        501:
+          description: Not implemented
+      security:
+      - bearerAuth: []
+      summary: Update deployment
+      tags:
+      - deployment
+  /api/v1/orgs/{orgId}/profiles/cluster/{type}:
+    get:
+      description: Listing cluster profiles by cloud type
+      operationId: ListProfiles
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Cloud type
+        explode: false
+        in: path
+        name: type
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileListResponse'
+          description: Profiles listed
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during delete deployment
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+      security:
+      - bearerAuth: []
+      summary: List cluster profiles
+      tags:
+      - profiles
+  /api/v1/orgs/{orgId}/profiles/cluster:
+    post:
+      description: Add cluster profile
+      operationId: AddProfiles
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddClusterProfileRequest'
+        required: true
+      responses:
+        201:
+          description: Cluster profile created successfully
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during delete deployment
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+      security:
+      - bearerAuth: []
+      summary: Add cluster profiles
+      tags:
+      - profiles
+    put:
+      description: Update an existing cluster profile
+      operationId: UpdateProfiles
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddClusterProfileRequest'
+        required: true
+      responses:
+        201:
+          description: Cluster profile updated successfully
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during updating cluster profile
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterProfileNotFound'
+          description: Cluster profile not found
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Update cluster profiles
+      tags:
+      - profiles
+  /api/v1/orgs/{orgId}/profiles/cluster/{type}/{name}:
+    delete:
+      description: Delete cluster profiles by cloud type and name
+      operationId: DeleteProfiles
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Cloud type
+        explode: false
+        in: path
+        name: type
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Cluster profile name
+        explode: false
+        in: path
+        name: name
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        201:
+          description: Cluster profile deleted successfully
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during deleting cluster profile
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterProfileNotFound'
+          description: Cluster profile not found
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Delete cluster profiles
+      tags:
+      - profiles
+  /auth/tokens:
+    get:
+      description: List all API tokens
+      operationId: GetTokens
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/TokenListResponseItem'
+                type: array
+          description: Tokens listed successfully
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: List all API tokens
+      tags:
+      - auth
+    post:
+      description: Generate token
+      operationId: GenerateToken
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenCreateRequest'
+        required: true
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenCreateResponse'
+          description: Token generated successfully
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Generate token
+      tags:
+      - auth
+  /auth/tokens/{tokenId}:
+    delete:
+      description: Delete an API token
+      operationId: DeleteToken
+      parameters:
+      - description: Token identification
+        explode: false
+        in: path
+        name: tokenId
+        required: true
+        schema:
+          example: a4358708-c525-4c78-89c2-c1cbe0f3f76c
+          type: string
+        style: simple
+      responses:
+        204:
+          description: Token deleted successfully
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Delete an API token
+      tags:
+      - auth
+  /api/v1/orgs/{orgId}/secrets:
+    get:
+      description: Listing secrets
+      operationId: GetSecrets
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Secret's type to filter with
+        explode: true
+        in: query
+        name: type
+        required: false
+        schema:
+          enum:
+          - amazon
+          - azure
+          - google
+          - kubernetes
+          - generic
+          - tls
+          - ssh
+          type: string
+        style: form
+      - description: The selected tag to filter with
+        explode: true
+        in: query
+        name: tag
+        required: false
+        schema:
+          example: repo:pipeline
+          type: string
+        style: form
+      - description: Marks if to present secret values or just the keys
+        explode: true
+        in: query
+        name: values
+        required: false
+        schema:
+          type: boolean
+        style: form
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/SecretsListItem'
+                type: array
+          description: Secrets listed
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during listing secrets
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+      security:
+      - bearerAuth: []
+      summary: List secrets
+      tags:
+      - secrets
+    post:
+      description: Adding secrets
+      operationId: AddSecrets
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSecretRequest'
+        required: true
+      responses:
+        201:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateSecretResponse'
+          description: Secret saved successfully
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during adding secrets
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Add secrets
+      tags:
+      - secrets
+  /api/v1/orgs/{orgId}/allowed/secrets:
+    get:
+      description: List allowed secret types and their required keys
+      operationId: AllowedSecretsTypes
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AllowedSecretTypesResponse'
+          description: Allowed types listed
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+      security:
+      - bearerAuth: []
+      summary: List allowed secret types
+      tags:
+      - secrets
+  /api/v1/orgs/{orgId}/allowed/secrets/{type}:
+    get:
+      description: List required keys in the given secret type
+      operationId: AllowedSecretsTypesKeys
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Secret type
+        explode: false
+        in: path
+        name: type
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequiredKeysResponse'
+          description: Required keys listed
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during listing secret types
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+      security:
+      - bearerAuth: []
+      summary: List required keys
+      tags:
+      - secrets
+  /api/v1/orgs/{orgId}/secrets/{secretId}:
+    delete:
+      description: Deleting secrets
+      operationId: DeleteSecrets
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Secret identification
+        explode: false
+        in: path
+        name: secretId
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        204:
+          description: Secret deleted successfully
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during deleting secrets
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecretsNotFound'
+          description: Secrets not found
+      security:
+      - bearerAuth: []
+      summary: Delete secrets
+      tags:
+      - secrets
+    put:
+      description: Update secrets
+      operationId: UpdateSecrets
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Secret identification
+        explode: false
+        in: path
+        name: secretId
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSecretRequest'
+        required: true
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateSecretResponse'
+          description: Secret updated successfully
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during updating secrets
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        409:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Conflict'
+          description: Conflict
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Update secrets
+      tags:
+      - secrets
+  /api/v1/orgs/{orgId}:
+    get:
+      description: Getting organization
+      operationId: GetOrg
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationListItemResponse'
+          description: Organization getting successfully
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during getting organization
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationNotFound'
+          description: Organization not found
+      security:
+      - bearerAuth: []
+      summary: Get organization
+      tags:
+      - organizations
+  /api/v1/orgs:
+    get:
+      description: Listing organizations
+      operationId: ListOrgs
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationListResponse'
+          description: Organizations listed successfully
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during listing organizations
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+      security:
+      - bearerAuth: []
+      summary: List organizations
+      tags:
+      - organizations
+    post:
+      description: Creating organization
+      operationId: CreateOrg
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/body'
+        required: true
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationCreateResponse'
+          description: Organizations created successfully
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during creating organization
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Create organization
+      tags:
+      - organizations
+  /api:
+    get:
+      description: Listing Pipeline API endpoint
+      operationId: ListEndpoints
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                example:
+                - /api/v1/orgs
+                - /api/v1/orgs/:orgid
+                items:
+                  type: string
+                type: array
+          description: Endpoints listed
+      summary: List Pipeline API endpoints
+      tags:
+      - common
+  /api/v1/orgs/{orgId}/users:
+    get:
+      description: Listing users
+      operationId: ListUsers
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListUserResponse'
+          description: Users listed
+      security:
+      - bearerAuth: []
+      summary: List users
+      tags:
+      - users
+  /api/v1/orgs/{orgId}/users/{userId}:
+    get:
+      description: Getting user
+      operationId: GetUsers
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: User identification
+        explode: false
+        in: path
+        name: userId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: Getting user succeeded
+      security:
+      - bearerAuth: []
+      summary: Get user
+      tags:
+      - users
+  /api/v1/orgs/{orgId}/cloudinfo:
+    get:
+      description: Get supported cloud types
+      operationId: GetSupportedClouds
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportedCloudsResponse'
+          description: Supported clouds listed
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+      security:
+      - bearerAuth: []
+      summary: Get supported cloud types
+      tags:
+      - info
+  /api/v1/orgs/{orgId}/cloudinfo/amazon:
+    get:
+      description: Get all amazon config
+      operationId: GetAmazonConfig
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Secret identifier
+        explode: true
+        in: query
+        name: secret_id
+        required: true
+        schema:
+          type: string
+        style: form
+      - description: Filter fields
+        explode: true
+        in: query
+        name: fields
+        required: true
+        schema:
+          enum:
+          - location
+          - image
+          - instanceType
+          type: string
+        style: form
+      - description: Tags filter
+        explode: true
+        in: query
+        name: tags
+        required: true
+        schema:
+          type: string
+        style: form
+      - description: Location filter
+        explode: true
+        in: query
+        name: location
+        required: true
+        schema:
+          type: string
+        style: form
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AmazonConfigResponse'
+          description: Amazon config listed
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during listing config
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+      security:
+      - bearerAuth: []
+      summary: Get all amazon config
+      tags:
+      - info
+  /api/v1/orgs/{orgId}/cloudinfo/azure:
+    get:
+      description: Get all azure config
+      operationId: GetAzureConfig
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Secret identifier
+        explode: true
+        in: query
+        name: secret_id
+        required: true
+        schema:
+          type: string
+        style: form
+      - description: Filter fields
+        explode: true
+        in: query
+        name: fields
+        required: true
+        schema:
+          enum:
+          - location
+          - k8sVersion
+          - instanceType
+          type: string
+        style: form
+      - description: Location filter
+        explode: true
+        in: query
+        name: location
+        required: true
+        schema:
+          type: string
+        style: form
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AzureConfigResponse'
+          description: Azure config listed
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during listing config
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+      security:
+      - bearerAuth: []
+      summary: Get all azure config
+      tags:
+      - info
+  /api/v1/orgs/{orgId}/cloudinfo/google:
+    get:
+      description: Get all google config
+      operationId: GetGoogleConfig
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Secret identifier
+        explode: true
+        in: query
+        name: secret_id
+        required: true
+        schema:
+          type: string
+        style: form
+      - description: Filter fields
+        explode: true
+        in: query
+        name: fields
+        required: true
+        schema:
+          enum:
+          - location
+          - k8sVersion
+          - instanceType
+          type: string
+        style: form
+      - description: Location filter
+        explode: true
+        in: query
+        name: location
+        required: true
+        schema:
+          type: string
+        style: form
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GoogleConfigResponse'
+          description: Azure config listed
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during listing config
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+      security:
+      - bearerAuth: []
+      summary: Get all google config
+      tags:
+      - info
+  /api/v1/orgs/{orgId}/buckets:
+    get:
+      description: List object store buckets accessible by the credentials referenced by the given secret.
+      operationId: ListObjectStoreBuckets
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Secret identification
+        explode: false
+        in: header
+        name: secretId
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Identifies the cloud provider
+        explode: true
+        in: query
+        name: cloudType
+        required: true
+        schema:
+          enum:
+          - amazon
+          - google
+          - azure
+          type: string
+        style: form
+      - description: Identifies the cloud region. Required by Amazon only.
+        explode: true
+        in: query
+        name: location
+        required: false
+        schema:
+          type: string
+        style: form
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListStorageBucketsResponse'
+          description: Storage buckets listed
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Bad request
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: List object storage buckets
+      tags:
+      - storage
+    post:
+      description: Creates a new object store bucket on the Cloud provider referenced by the given secret. The credentials for creating the bucket is taken from the provided secret.
+      operationId: CreateObjectStoreBucket
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateObjectStoreBucketRequest'
+        required: true
+      responses:
+        202:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateObjectStoreBucketResponse'
+          description: Storage bucket creation request accepted
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error while creating storage bucket
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Creates a new object store bucket with the given params
+      tags:
+      - storage
+  /api/v1/orgs/{orgId}/buckets/{name}:
+    delete:
+      description: Deletes the object store bucket identified by the given name. The credentials for deleting the bucket is taken from the provided secret.
+      operationId: DeleteObjectStoreBucket
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Bucket identification
+        explode: false
+        in: path
+        name: name
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Secret identification
+        explode: false
+        in: header
+        name: secretId
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Identifies the cloud provider
+        explode: true
+        in: query
+        name: cloudType
+        required: true
+        schema:
+          enum:
+          - amazon
+          - google
+          - azure
+          type: string
+        style: form
+      - description: Azure resource group the storage account that holds the bucket (storage container) to be deleted
+        explode: true
+        in: query
+        name: resourceGroup
+        required: false
+        schema:
+          type: string
+        style: form
+      - description: Azure storage account to delete the bucket (storage container) from
+        explode: true
+        in: query
+        name: storageAccount
+        required: false
+        schema:
+          type: string
+        style: form
+      responses:
+        200:
+          description: Storage bucket deleted successfully
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error while deleting storage bucket
+        404:
+          description: Object store bucket not found
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Deletes the object store bucket with the given name
+      tags:
+      - storage
+    head:
+      description: Retrieves the status of the object store bucket given its name
+      operationId: GetObjectStoreBucketStatus
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Bucket identification
+        explode: false
+        in: path
+        name: name
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Secret identification
+        explode: false
+        in: header
+        name: secretId
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Identifies the cloud provider
+        explode: true
+        in: query
+        name: cloudType
+        required: true
+        schema:
+          enum:
+          - amazon
+          - google
+          - azure
+          type: string
+        style: form
+      - description: Azure resource group the storage account that holds the bucket (storage container) be checked
+        explode: true
+        in: query
+        name: resourceGroup
+        required: false
+        schema:
+          type: string
+        style: form
+      - description: Azure storage account to delete the bucket (storage container) to be checked
+        explode: true
+        in: query
+        name: storageAccount
+        required: false
+        schema:
+          type: string
+        style: form
+      responses:
+        200:
+          description: Object store buckets exists
+        401:
+          description: Unauthorized
+        400:
+          description: Error while checking object store bucket status
+        404:
+          description: Object store bucket not found
+        500:
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Get object store bucket status
+      tags:
+      - storage
+components:
+  schemas:
+    CatalogDetailsResponse:
+      example:
+        spotguide:
+          options:
+          - ""
+          - ""
+          resources:
+            onDemandPct: 10
+            sumMem: 32
+            filters:
+            - filters
+            - filters
+            maxNodes: 3
+            sumCpu: 8
+            sameSize: true
+            minNodes: 1
+        readme: readme
+        chart:
+          keywords:
+          - mysql
+          - pma
+          name: mysql_pma
+          icon: https://static.banzaicloud.com/catalog/mysql-logo.svg
+          annotations:
+            longDescription: Mysql Server with Mysql
+            displayName: Mysql Server + PMA
+          description: Mysql Server with Mysql
+      properties:
+        chart:
+          $ref: '#/components/schemas/CatalogChartInfo'
+        readme:
+          description: Catalog Readme.md in base64 encoded string
+          format: byte
+          type: string
+        spotguide:
+          $ref: '#/components/schemas/CatalogDetailsResponse_spotguide'
+      type: object
+    CatalogChartInfo:
+      example:
+        keywords:
+        - mysql
+        - pma
+        name: mysql_pma
+        icon: https://static.banzaicloud.com/catalog/mysql-logo.svg
+        annotations:
+          longDescription: Mysql Server with Mysql
+          displayName: Mysql Server + PMA
+        description: Mysql Server with Mysql
+      properties:
+        name:
+          example: mysql_pma
+          type: string
+        annotations:
+          $ref: '#/components/schemas/CatalogChartInfo_annotations'
+        icon:
+          example: https://static.banzaicloud.com/catalog/mysql-logo.svg
+          format: uri
+          type: string
+        description:
+          example: Mysql Server with Mysql
+          type: string
+        keywords:
+          example:
+          - mysql
+          - pma
+          items:
+            type: string
+          type: array
+      type: object
+    CatalogOptionsMysqlDatabaseName:
+      properties:
+        name:
+          example: mysqlDatabaseName
+          type: string
+        type:
+          example: string
+          type: string
+        info:
+          example: Your mysql database name
+          type: string
+        default:
+          example: your-mysql-database1
+          type: string
+        readonly:
+          type: boolean
+        enabled:
+          type: boolean
+        key:
+          example: mysql.database.name
+          type: string
+      type: object
+    CatalogOptionsMysqlDatabaseSize:
+      properties:
+        name:
+          example: mysqlDatabaseSize
+          type: string
+        type:
+          example: string
+          type: string
+        info:
+          example: Your mysql database size in GB
+          type: string
+        default:
+          example: 1
+          format: int32
+          type: integer
+        readonly:
+          type: boolean
+        enabled:
+          type: boolean
+        key:
+          example: mysql.database.size
+          type: string
+      type: object
+    CatalogOptionsMysqlVersion:
+      properties:
+        name:
+          example: mysql_version
+          type: string
+        type:
+          example: string
+          type: string
+        info:
+          example: Mysql database version
+          type: string
+        default:
+          enum:
+          - "5.6"
+          - "5.7"
+          example: "5.6"
+          type: string
+        readonly:
+          type: boolean
+        key:
+          example: mysql.version
+          type: string
+      type: object
+    CatalogOptionsMonitor:
+      properties:
+        name:
+          example: monitor
+          type: string
+        type:
+          type: boolean
+        info:
+          example: Mysql monitoring
+          type: string
+        default:
+          type: boolean
+        readonly:
+          type: boolean
+        key:
+          example: monitor.enabled
+          type: string
+      type: object
+    CatalogNotFound:
+      properties:
+        code:
+          example: 404
+          format: int32
+          type: integer
+        message:
+          example: catalog not found
+          type: string
+        error:
+          example: record not found
+          type: string
+      type: object
+    ListCatalogResponse:
+      items:
+        oneOf:
+        - $ref: '#/components/schemas/ListCatalogItem1'
+        - $ref: '#/components/schemas/ListCatalogItem2'
+      type: array
+    ListCatalogItem1:
+      properties:
+        name:
+          example: zeppelin-spark
+          type: string
+        displayName:
+          example: Zeppelin UI + Spark on K8S
+          type: string
+        description:
+          example: Short description of Spark-Zeppelin application
+          type: string
+        icon:
+          example: https://static.banzaicloud.com/catalog/zeppelin-spark-logo.svg
+          format: uri
+          type: string
+        version:
+          example: 0.1.0
+          type: string
+      type: object
+    ListCatalogItem2:
+      properties:
+        name:
+          example: mysql
+          type: string
+        displayName:
+          example: Mysql database
+          type: string
+        description:
+          example: MySQL is the world's most popular open source database.
+          type: string
+        icon:
+          example: https://static.banzaicloud.com/catalog/mysql-logo.svg
+          format: uri
+          type: string
+        version:
+          example: 0.1.0
+          type: string
+      type: object
+    RequestedResources:
+      example:
+        onDemandPct: 10
+        sumMem: 32
+        filters:
+        - filters
+        - filters
+        maxNodes: 3
+        sumCpu: 8
+        sameSize: true
+        minNodes: 1
+      properties:
+        sumCpu:
+          description: Total CPU requested for the cluster
+          example: 8
+          format: int32
+          type: integer
+        sumMem:
+          description: Total memory requested for the cluster (GB)
+          example: 32
+          format: int32
+          type: integer
+        filters:
+          items:
+            type: string
+          type: array
+        sameSize:
+          description: If true, recommended instance types will have a similar size
+          type: boolean
+        onDemandPct:
+          description: Percentage of regular (on-demand) nodes in the recommended cluster
+          example: 10
+          format: int32
+          type: integer
+        minNodes:
+          description: Minimum number of nodes in the recommended cluster
+          example: 1
+          format: int32
+          type: integer
+        maxNodes:
+          description: Maximum number of nodes in the recommended cluster
+          example: 3
+          format: int32
+          type: integer
+      type: object
+    ApplicationListResponse:
+      items:
+        $ref: '#/components/schemas/ApplicationListItem'
+      type: array
+    ApplicationListItem:
+      properties:
+        id:
+          example: 1
+          format: int32
+          type: integer
+        name:
+          example: Spark-Zeppelin
+          type: string
+        createdAt:
+          example: 2018-06-11T14:28:13Z
+          type: string
+        updatedAt:
+          example: 2018-06-11T14:28:24Z
+          type: string
+        clusterName:
+          example: My Favourite Cluster
+          type: string
+        clusterId:
+          example: 0
+          format: int32
+          type: integer
+        status:
+          example: READY
+          type: string
+        catalogName:
+          example: spark-zeppelin
+          type: string
+        icon:
+          example: /assets/img/asd.png
+          type: string
+        statusMessage:
+          example: The resource was not found.
+          type: string
+      type: object
+    ApplicationDetailsResponse:
+      example:
+        catalogName: mysql-simple
+        organizationId: 1
+        createdAt: 2018-06-11T14:28:12Z
+        cluster_name: MyCluster
+        cluster_id: 0
+        deployments:
+        - createdAt: 2018-06-11T14:28:13Z
+          releaseName: measly-quail
+          name: monitor
+          id: 1
+          message: Something bad happened
+          applicationId: 1
+          chart: etcd-operator
+          updatedAt: 2018-06-11T14:28:24Z
+          status: READY
+        - createdAt: 2018-06-11T14:28:13Z
+          releaseName: measly-quail
+          name: monitor
+          id: 1
+          message: Something bad happened
+          applicationId: 1
+          chart: etcd-operator
+          updatedAt: 2018-06-11T14:28:24Z
+          status: READY
+        name: Spark-Zeppelin
+        icon: /assets/image/mysql.png
+        description: Mysql simple description...
+        readme: Long readme about your application.
+        updatedAt: 2018-06-11T14:28:12Z
+      properties:
+        name:
+          example: Spark-Zeppelin
+          type: string
+        createdAt:
+          example: 2018-06-11T14:28:12Z
+          type: string
+        updatedAt:
+          example: 2018-06-11T14:28:12Z
+          type: string
+        catalogName:
+          example: mysql-simple
+          type: string
+        description:
+          example: Mysql simple description...
+          type: string
+        icon:
+          example: /assets/image/mysql.png
+          type: string
+        organizationId:
+          example: 1
+          format: int32
+          type: integer
+        cluster_name:
+          example: MyCluster
+          type: string
+        cluster_id:
+          example: 0
+          format: int32
+          type: integer
+        readme:
+          example: Long readme about your application.
+          type: string
+        deployments:
+          items:
+            $ref: '#/components/schemas/ApplicationDeploymentItem'
+          type: array
+      type: object
+    ApplicationDeploymentItem:
+      example:
+        createdAt: 2018-06-11T14:28:13Z
+        releaseName: measly-quail
+        name: monitor
+        id: 1
+        message: Something bad happened
+        applicationId: 1
+        chart: etcd-operator
+        updatedAt: 2018-06-11T14:28:24Z
+        status: READY
+      properties:
+        id:
+          example: 1
+          format: int32
+          type: integer
+        createdAt:
+          example: 2018-06-11T14:28:13Z
+          type: string
+        updatedAt:
+          example: 2018-06-11T14:28:24Z
+          type: string
+        name:
+          example: monitor
+          type: string
+        chart:
+          example: etcd-operator
+          type: string
+        releaseName:
+          example: measly-quail
+          type: string
+        status:
+          example: READY
+          type: string
+        message:
+          example: Something bad happened
+          type: string
+        applicationId:
+          example: 1
+          format: int32
+          type: integer
+      type: object
+    CreateApplicationRequest:
+      example:
+        catalogName: mysql-simple
+        cluster:
+          cloud: google
+          secret_id: 62bc3c75-91fb-4670-bad4-24b401a9deac
+          name: gkecluster-pipelineuser-123
+          location: us-central1-a
+          postHooks:
+          - InstallMonitoring
+          - InstallLogging
+          properties:
+            google:
+              master:
+                version: 1.8.7-gke.1
+              nodePools:
+                pool1:
+                  count: 1
+                  instanceType: n1-standard-2
+              nodeVersion: 1.8.7-gke.1
+        name: MyApplication
+        clusterId: 0
+      properties:
+        name:
+          example: MyApplication
+          type: string
+        catalogName:
+          example: mysql-simple
+          type: string
+        clusterId:
+          example: 0
+          format: int32
+          type: integer
+        cluster:
+          $ref: '#/components/schemas/CreateClusterRequest'
+      type: object
+    CreateClusterRequest:
+      example:
+        cloud: google
+        secret_id: 62bc3c75-91fb-4670-bad4-24b401a9deac
+        name: gkecluster-pipelineuser-123
+        location: us-central1-a
+        postHooks:
+        - InstallMonitoring
+        - InstallLogging
+        properties:
+          google:
+            master:
+              version: 1.8.7-gke.1
+            nodePools:
+              pool1:
+                count: 1
+                instanceType: n1-standard-2
+            nodeVersion: 1.8.7-gke.1
+      properties:
+        name:
+          example: gkecluster-pipelineuser-123
+          type: string
+        location:
+          example: us-central1-a
+          type: string
+        cloud:
+          example: google
+          type: string
+        secret_id:
+          example: 62bc3c75-91fb-4670-bad4-24b401a9deac
+          type: string
+        postHooks:
+          example:
+          - InstallMonitoring
+          - InstallLogging
+          items:
+            type: string
+          type: array
+        properties:
+          example:
+            google:
+              master:
+                version: 1.8.7-gke.1
+              nodePools:
+                pool1:
+                  count: 1
+                  instanceType: n1-standard-2
+              nodeVersion: 1.8.7-gke.1
+          oneOf:
+          - $ref: '#/components/schemas/CreateAmazonProperties'
+          - $ref: '#/components/schemas/CreateAzureProperties'
+          - $ref: '#/components/schemas/CreateGoogleProperties'
+          type: object
+      required:
+      - cloud
+      - location
+      - name
+      - properties
+      - secret_id
+      type: object
+    CreateAmazonProperties:
+      properties:
+        amazon:
+          $ref: '#/components/schemas/CreateAmazonProperties_amazon'
+      required:
+      - amazon
+      type: object
+    NodePoolsAmazon:
+      properties:
+        instanceType:
+          example: m4.xlarge
+          type: string
+        spotPrice:
+          example: "0.2"
+          type: string
+        autoscaling:
+          type: boolean
+        count:
+          example: 1
+          type: number
+        minCount:
+          example: 1
+          format: int32
+          type: integer
+        maxCount:
+          example: 2
+          format: int32
+          type: integer
+        image:
+          example: ami-06d1667f
+          type: string
+      required:
+      - instanceType
+      - maxCount
+      - minCount
+      - spotPrice
+      type: object
+    CreateAzureProperties:
+      properties:
+        azure:
+          $ref: '#/components/schemas/CreateAzureProperties_azure'
+      required:
+      - azure
+      type: object
+    NodePoolsAzure:
+      properties:
+        autoscaling:
+          type: boolean
+        count:
+          example: 1
+          type: number
+        minCount:
+          example: 1
+          format: int32
+          type: integer
+        maxCount:
+          example: 2
+          format: int32
+          type: integer
+        instanceType:
+          example: Standard_B2ms
+          type: string
+      required:
+      - count
+      - instanceType
+      type: object
+    CreateGoogleProperties:
+      properties:
+        google:
+          $ref: '#/components/schemas/CreateGoogleProperties_google'
+      required:
+      - google
+      type: object
+    NodePoolsGoogle:
+      properties:
+        autoscaling:
+          type: boolean
+        count:
+          example: 1
+          type: number
+        minCount:
+          example: 1
+          format: int32
+          type: integer
+        maxCount:
+          example: 2
+          format: int32
+          type: integer
+        instanceType:
+          example: n1-standard-2
+          type: string
+      required:
+      - count
+      - instanceType
+      type: object
+    CreateClusterResponse_202:
+      example:
+        name: gkecluster-pipelineuser-123
+        id: 1
+      properties:
+        name:
+          example: gkecluster-pipelineuser-123
+          type: string
+        id:
+          example: 1
+          format: int32
+          type: integer
+      type: object
+    CreateClusterResponse_400:
+      properties:
+        code:
+          example: 400
+          format: int32
+          type: integer
+        message:
+          example: Invalid version
+          type: string
+        error:
+          example: Invalid version
+          type: string
+      type: object
+    ClusterListResponse:
+      items:
+        $ref: '#/components/schemas/GetClusterStatusResponse'
+      type: array
+    BaseError_400:
+      properties:
+        code:
+          example: 400
+          format: int32
+          type: integer
+        message:
+          example: Error during process
+          type: string
+        error:
+          example: Error during process
+          type: string
+      type: object
+    BaseError_500:
+      properties:
+        code:
+          example: 500
+          format: int32
+          type: integer
+        message:
+          example: Error during process
+          type: string
+        error:
+          example: Error during process
+          type: string
+      type: object
+    ClusterNotFound:
+      properties:
+        code:
+          example: 404
+          format: int32
+          type: integer
+        message:
+          example: Cluster not found
+          type: string
+        error:
+          example: record not found
+          type: string
+      type: object
+    RepoNotFound:
+      properties:
+        code:
+          example: 404
+          format: int32
+          type: integer
+        message:
+          example: repo not found
+          type: string
+        error:
+          example: repo not found
+          type: string
+      type: object
+    ClusterProfileNotFound:
+      properties:
+        code:
+          example: 404
+          format: int32
+          type: integer
+        message:
+          example: Profile not found
+          type: string
+        error:
+          example: record not found
+          type: string
+      type: object
+    ChartNotFound:
+      properties:
+        code:
+          example: 404
+          format: int32
+          type: integer
+        message:
+          example: Chart Not Found!
+          type: string
+        error:
+          example: Chart Not Found!
+          type: string
+      type: object
+    UpdateClusterRequest:
+      example:
+        cloud: google
+        properties:
+          google:
+            master:
+              version: 1.9.4-gke.1
+            nodePools:
+              pool1:
+                count: 2
+                instanceType: n1-standard-2
+      properties:
+        cloud:
+          example: google
+          type: string
+        properties:
+          example:
+            google:
+              master:
+                version: 1.9.4-gke.1
+              nodePools:
+                pool1:
+                  count: 2
+                  instanceType: n1-standard-2
+          oneOf:
+          - $ref: '#/components/schemas/UpdateAmazonProperties'
+          - $ref: '#/components/schemas/UpdateAzureProperties'
+          - $ref: '#/components/schemas/UpdateGoogleProperties'
+          type: object
+      required:
+      - cloud
+      - properties
+      type: object
+    UpdateAmazonProperties:
+      properties:
+        amazon:
+          $ref: '#/components/schemas/UpdateAmazonProperties_amazon'
+      required:
+      - amazon
+      type: object
+    UpdateNodePoolsAmazon:
+      properties:
+        autoscaling:
+          type: boolean
+        count:
+          example: 2
+          type: number
+        minCount:
+          example: 1
+          type: number
+        maxCount:
+          example: 2
+          type: number
+      type: object
+    UpdateAzureProperties:
+      properties:
+        azure:
+          $ref: '#/components/schemas/UpdateAzureProperties_azure'
+      required:
+      - azure
+      type: object
+    UpdateGoogleProperties:
+      properties:
+        master:
+          $ref: '#/components/schemas/UpdateGoogleProperties_master'
+        nodePools:
+          $ref: '#/components/schemas/UpdateGoogleProperties_nodePools'
+      type: object
+    ClusterDelete_200:
+      example:
+        name: gkecluster-pipelineuser-123
+        id: 1
+        status: 202
+      properties:
+        status:
+          example: 202
+          format: int32
+          type: integer
+        name:
+          example: gkecluster-pipelineuser-123
+          type: string
+        id:
+          example: 1
+          format: int32
+          type: integer
+      type: object
+    Unauthorized:
+      properties:
+        code:
+          example: 401
+          format: int32
+          type: integer
+        message:
+          example: Invalid token
+          type: string
+        error:
+          example: token contains an invalid number of segments
+          type: string
+      type: object
+    Conflict:
+      properties:
+        code:
+          example: 409
+          format: int32
+          type: integer
+        message:
+          example: Secret with this name already exists
+          type: string
+        error:
+          example: check-and-set parameter did not match the current version
+          type: string
+      type: object
+    ListEndpointsResponse:
+      example:
+        endpoints:
+        - urls:
+          - servicename: serviceName
+            url: url
+          - servicename: serviceName
+            url: url
+          name: pipeline-traefik
+          host: 11.11.11.111
+        - urls:
+          - servicename: serviceName
+            url: url
+          - servicename: serviceName
+            url: url
+          name: pipeline-traefik
+          host: 11.11.11.111
+      properties:
+        endpoints:
+          items:
+            $ref: '#/components/schemas/EndpointItem'
+          type: array
+      type: object
+    EndpointItem:
+      example:
+        urls:
+        - servicename: serviceName
+          url: url
+        - servicename: serviceName
+          url: url
+        name: pipeline-traefik
+        host: 11.11.11.111
+      properties:
+        name:
+          example: pipeline-traefik
+          type: string
+        host:
+          example: 11.11.11.111
+          type: string
+        urls:
+          items:
+            $ref: '#/components/schemas/URLItem'
+          type: array
+      type: object
+    URLItem:
+      example:
+        servicename: serviceName
+        url: url
+      properties:
+        servicename:
+          example: serviceName
+          type: string
+        url:
+          example: url
+          type: string
+      type: object
+    ListNodesResponse:
+      example:
+        metadata:
+          resourceVersion: "30123"
+          selfLink: /api/v1/nodes
+        items:
+        - metadata:
+            uid: f214d7fb-41ae-11e8-a4ea-42010a8001da
+            resourceVersion: "30119"
+            name: gke-gkecluster-feri-706-pool1-496eccb3-l25k
+            creationTimestamp: 2018-04-16T19:47:07Z
+            annotations:
+              node.alpha.kubernetes.io/ttl: "0"
+              volumes.kubernetes.io/controller-managed-attach-detach: "true"
+            selfLink: /api/v1/nodes/gke-gkecluster-feri-706-pool1-496eccb3-l25k
+            labels:
+              failure-domain.beta.kubernetes.io/zone: us-central1-a
+              kubernetes.io/hostname: gke-gkecluster-feri-706-pool1-496eccb3-l25k
+              beta.kubernetes.io/fluentd-ds-ready: "true"
+              cloud.google.com/gke-nodepool: pool1
+              failure-domain.beta.kubernetes.io/region: us-central1
+              beta.kubernetes.io/arch: amd64
+              beta.kubernetes.io/instance-type: n1-standard-2
+              beta.kubernetes.io/os: linux
+          spec:
+            providerID: gce://banzaitest/us-central1-a/gke-gkecluster-706-pool1-496eccb3-l25k
+            externalID: "5935724476937880453"
+            podCIDR: 10.48.0.0/24
+          status:
+            daemonEndpoints:
+              kubeletEndpoint: '{}'
+            allocatable:
+              memory: 5784712Ki
+              cpu: 1930m
+              pods: "110"
+            addresses:
+            - address: 10.128.0.2
+              type: InternalIP
+            - address: 10.128.0.2
+              type: InternalIP
+            images:
+            - name:
+              - asia.gcr.io/google_containers/node-problem-detector@sha256:f95cab985c26b2f46e9bd43283e0bfa88860c14e0fb0649266babe8b65e
+              - eu.gcr.io/google_containers/node-problem-detector@sha256:f95cab985c26b2f46e9bd43283e0bfa88860c14e0fb0649266babe
+              sizeBytes: 286572743
+            - name:
+              - asia.gcr.io/google_containers/node-problem-detector@sha256:f95cab985c26b2f46e9bd43283e0bfa88860c14e0fb0649266babe8b65e
+              - eu.gcr.io/google_containers/node-problem-detector@sha256:f95cab985c26b2f46e9bd43283e0bfa88860c14e0fb0649266babe
+              sizeBytes: 286572743
+            nodeInfo:
+              machineID: 10d8adda771410ca912a387cf7e5cb06
+              bootID: decb64ff-e662-410a-b862-04cb490b4772
+              kernelVersion: 4.4.111+
+              containerRuntimeVersion: docker://17.3.2
+              kubeletVersion: v1.9.4-gke.1
+              systemUUID: 10D8ADDA-7714-10CA-912A-387CF7E5CB06
+              kubeProxyVersion: v1.9.4-gke.1
+              operatingSystem: linux
+              osImage: Container-Optimized OS from Google
+              architecture: amd64
+            conditions:
+            - reason: KernelHasNoDeadlock
+              lastHeartbeatTime: 2018-04-17T09:02:45Z
+              type: KernelDeadlock
+              lastTransitionTime: 2018-04-16T19:46:26Z
+              message: kernel has no deadlock
+              status: False
+            - reason: KernelHasNoDeadlock
+              lastHeartbeatTime: 2018-04-17T09:02:45Z
+              type: KernelDeadlock
+              lastTransitionTime: 2018-04-16T19:46:26Z
+              message: kernel has no deadlock
+              status: False
+            capacity:
+              memory: 7664776Ki
+              cpu: "2"
+              pods: "110"
+        - metadata:
+            uid: f214d7fb-41ae-11e8-a4ea-42010a8001da
+            resourceVersion: "30119"
+            name: gke-gkecluster-feri-706-pool1-496eccb3-l25k
+            creationTimestamp: 2018-04-16T19:47:07Z
+            annotations:
+              node.alpha.kubernetes.io/ttl: "0"
+              volumes.kubernetes.io/controller-managed-attach-detach: "true"
+            selfLink: /api/v1/nodes/gke-gkecluster-feri-706-pool1-496eccb3-l25k
+            labels:
+              failure-domain.beta.kubernetes.io/zone: us-central1-a
+              kubernetes.io/hostname: gke-gkecluster-feri-706-pool1-496eccb3-l25k
+              beta.kubernetes.io/fluentd-ds-ready: "true"
+              cloud.google.com/gke-nodepool: pool1
+              failure-domain.beta.kubernetes.io/region: us-central1
+              beta.kubernetes.io/arch: amd64
+              beta.kubernetes.io/instance-type: n1-standard-2
+              beta.kubernetes.io/os: linux
+          spec:
+            providerID: gce://banzaitest/us-central1-a/gke-gkecluster-706-pool1-496eccb3-l25k
+            externalID: "5935724476937880453"
+            podCIDR: 10.48.0.0/24
+          status:
+            daemonEndpoints:
+              kubeletEndpoint: '{}'
+            allocatable:
+              memory: 5784712Ki
+              cpu: 1930m
+              pods: "110"
+            addresses:
+            - address: 10.128.0.2
+              type: InternalIP
+            - address: 10.128.0.2
+              type: InternalIP
+            images:
+            - name:
+              - asia.gcr.io/google_containers/node-problem-detector@sha256:f95cab985c26b2f46e9bd43283e0bfa88860c14e0fb0649266babe8b65e
+              - eu.gcr.io/google_containers/node-problem-detector@sha256:f95cab985c26b2f46e9bd43283e0bfa88860c14e0fb0649266babe
+              sizeBytes: 286572743
+            - name:
+              - asia.gcr.io/google_containers/node-problem-detector@sha256:f95cab985c26b2f46e9bd43283e0bfa88860c14e0fb0649266babe8b65e
+              - eu.gcr.io/google_containers/node-problem-detector@sha256:f95cab985c26b2f46e9bd43283e0bfa88860c14e0fb0649266babe
+              sizeBytes: 286572743
+            nodeInfo:
+              machineID: 10d8adda771410ca912a387cf7e5cb06
+              bootID: decb64ff-e662-410a-b862-04cb490b4772
+              kernelVersion: 4.4.111+
+              containerRuntimeVersion: docker://17.3.2
+              kubeletVersion: v1.9.4-gke.1
+              systemUUID: 10D8ADDA-7714-10CA-912A-387CF7E5CB06
+              kubeProxyVersion: v1.9.4-gke.1
+              operatingSystem: linux
+              osImage: Container-Optimized OS from Google
+              architecture: amd64
+            conditions:
+            - reason: KernelHasNoDeadlock
+              lastHeartbeatTime: 2018-04-17T09:02:45Z
+              type: KernelDeadlock
+              lastTransitionTime: 2018-04-16T19:46:26Z
+              message: kernel has no deadlock
+              status: False
+            - reason: KernelHasNoDeadlock
+              lastHeartbeatTime: 2018-04-17T09:02:45Z
+              type: KernelDeadlock
+              lastTransitionTime: 2018-04-16T19:46:26Z
+              message: kernel has no deadlock
+              status: False
+            capacity:
+              memory: 7664776Ki
+              cpu: "2"
+              pods: "110"
+      properties:
+        metadata:
+          $ref: '#/components/schemas/ListNodesResponse_metadata'
+        items:
+          items:
+            $ref: '#/components/schemas/NodeItem'
+          type: array
+      type: object
+    NodeItem:
+      example:
+        metadata:
+          uid: f214d7fb-41ae-11e8-a4ea-42010a8001da
+          resourceVersion: "30119"
+          name: gke-gkecluster-feri-706-pool1-496eccb3-l25k
+          creationTimestamp: 2018-04-16T19:47:07Z
+          annotations:
+            node.alpha.kubernetes.io/ttl: "0"
+            volumes.kubernetes.io/controller-managed-attach-detach: "true"
+          selfLink: /api/v1/nodes/gke-gkecluster-feri-706-pool1-496eccb3-l25k
+          labels:
+            failure-domain.beta.kubernetes.io/zone: us-central1-a
+            kubernetes.io/hostname: gke-gkecluster-feri-706-pool1-496eccb3-l25k
+            beta.kubernetes.io/fluentd-ds-ready: "true"
+            cloud.google.com/gke-nodepool: pool1
+            failure-domain.beta.kubernetes.io/region: us-central1
+            beta.kubernetes.io/arch: amd64
+            beta.kubernetes.io/instance-type: n1-standard-2
+            beta.kubernetes.io/os: linux
+        spec:
+          providerID: gce://banzaitest/us-central1-a/gke-gkecluster-706-pool1-496eccb3-l25k
+          externalID: "5935724476937880453"
+          podCIDR: 10.48.0.0/24
+        status:
+          daemonEndpoints:
+            kubeletEndpoint: '{}'
+          allocatable:
+            memory: 5784712Ki
+            cpu: 1930m
+            pods: "110"
+          addresses:
+          - address: 10.128.0.2
+            type: InternalIP
+          - address: 10.128.0.2
+            type: InternalIP
+          images:
+          - name:
+            - asia.gcr.io/google_containers/node-problem-detector@sha256:f95cab985c26b2f46e9bd43283e0bfa88860c14e0fb0649266babe8b65e
+            - eu.gcr.io/google_containers/node-problem-detector@sha256:f95cab985c26b2f46e9bd43283e0bfa88860c14e0fb0649266babe
+            sizeBytes: 286572743
+          - name:
+            - asia.gcr.io/google_containers/node-problem-detector@sha256:f95cab985c26b2f46e9bd43283e0bfa88860c14e0fb0649266babe8b65e
+            - eu.gcr.io/google_containers/node-problem-detector@sha256:f95cab985c26b2f46e9bd43283e0bfa88860c14e0fb0649266babe
+            sizeBytes: 286572743
+          nodeInfo:
+            machineID: 10d8adda771410ca912a387cf7e5cb06
+            bootID: decb64ff-e662-410a-b862-04cb490b4772
+            kernelVersion: 4.4.111+
+            containerRuntimeVersion: docker://17.3.2
+            kubeletVersion: v1.9.4-gke.1
+            systemUUID: 10D8ADDA-7714-10CA-912A-387CF7E5CB06
+            kubeProxyVersion: v1.9.4-gke.1
+            operatingSystem: linux
+            osImage: Container-Optimized OS from Google
+            architecture: amd64
+          conditions:
+          - reason: KernelHasNoDeadlock
+            lastHeartbeatTime: 2018-04-17T09:02:45Z
+            type: KernelDeadlock
+            lastTransitionTime: 2018-04-16T19:46:26Z
+            message: kernel has no deadlock
+            status: False
+          - reason: KernelHasNoDeadlock
+            lastHeartbeatTime: 2018-04-17T09:02:45Z
+            type: KernelDeadlock
+            lastTransitionTime: 2018-04-16T19:46:26Z
+            message: kernel has no deadlock
+            status: False
+          capacity:
+            memory: 7664776Ki
+            cpu: "2"
+            pods: "110"
+      properties:
+        metadata:
+          $ref: '#/components/schemas/NodeItem_metadata'
+        spec:
+          $ref: '#/components/schemas/NodeItem_spec'
+        status:
+          $ref: '#/components/schemas/NodeItem_status'
+      type: object
+    ListDeploymentsResponse:
+      items:
+        $ref: '#/components/schemas/ListDeploymentsResponse_inner'
+      type: array
+    CreateDeploymentRequest:
+      example:
+        name: banzaicloud-stable/drone
+      properties:
+        name:
+          type: string
+        releasename:
+          type: string
+        version:
+          type: string
+        values:
+          type: object
+      required:
+      - name
+      type: object
+    CreateDeploymentResponse:
+      example:
+        notes: deploy notes
+        release_name: vigilant-mandrill
+      properties:
+        release_name:
+          example: vigilant-mandrill
+          type: string
+        notes:
+          example: deploy notes
+          type: string
+      type: object
+    DeleteDeploymentResponse:
+      example:
+        name: vigilant-mandrill
+        message: Deployment deleted!
+        status: 200
+      properties:
+        status:
+          example: 200
+          format: int32
+          type: integer
+        message:
+          example: Deployment deleted!
+          type: string
+        name:
+          example: vigilant-mandrill
+          type: string
+      type: object
+    HelmInitResponse:
+      example:
+        message: helm initialising
+        status: 201
+      properties:
+        status:
+          example: 201
+          format: int32
+          type: integer
+        message:
+          example: helm initialising
+          type: string
+      type: object
+    HelmInitRequest:
+      example:
+        namespace: kube-system
+        service_account: tiller
+        tiller_image: gcr.io/kubernetes-helm/tiller:v2.7.2
+      properties:
+        kube_context:
+          type: string
+        namespace:
+          type: string
+        upgrade:
+          type: boolean
+        service_account:
+          type: string
+        canary_image:
+          type: boolean
+        tiller_image:
+          type: string
+        history_max:
+          format: int32
+          type: integer
+      required:
+      - namespace
+      - service_account
+      type: object
+    HelmReposListResponse:
+      items:
+        $ref: '#/components/schemas/HelmReposListResponse_inner'
+      type: array
+    HelmReposAddResponse:
+      example:
+        name: stable
+        message: resource successfully added.
+        status: 200
+      properties:
+        status:
+          example: 200
+          format: int32
+          type: integer
+        message:
+          example: resource successfully added.
+          type: string
+        name:
+          example: stable
+          type: string
+      type: object
+    HelmReposAddRequest:
+      example:
+        name: stable
+        url: https://kubernetes-charts.storage.googleapis.com
+      properties:
+        name:
+          type: string
+        url:
+          type: string
+        certFile:
+          type: string
+        keyFile:
+          type: string
+        caFile:
+          type: string
+      required:
+      - name
+      - url
+      type: object
+    HelmReposDeleteResponse:
+      example:
+        name: stable
+        message: resource deleted successfully
+        status: 200
+      properties:
+        status:
+          example: 200
+          format: int32
+          type: integer
+        message:
+          example: resource deleted successfully
+          type: string
+        name:
+          example: stable
+          type: string
+      type: object
+    HelmReposUpdateResponse:
+      example:
+        name: stable
+        message: resource modified successfully
+        status: 200
+      properties:
+        status:
+          example: 200
+          format: int32
+          type: integer
+        message:
+          example: resource modified successfully
+          type: string
+        name:
+          example: stable
+          type: string
+      type: object
+    HelmChartsListResponse:
+      items:
+        $ref: '#/components/schemas/HelmChartsListResponse_inner'
+      type: array
+    HelmChartDetailsResponse:
+      example:
+        values: IyMgbmdpbngtbGVnbyBzcGlucyB1cCBhIHNjYWxhYmxlIGluZ3Jlc3MgcHJvdmlkZXIgdGhhdCBjYW4gYWxzbyBwcm92aXNpb24gU1NMIGNlcnRzCiMjIFNlZSBodHRwczovL2dpdGh1Yi5jb20vamV0c3RhY2sva3ViZS1sZWdvL3RyZWUvbWFzdGVyL2V4YW1wbGVzL25naW54IGZvciBtb3JlIGluZm9ybWF0aW9uIG9uIGltcGxlbWVudGF0aW9uCgojIyBOZ2lueCBjb25maWd1cmF0aW9uCiMjIHJlZjogaHR0cHM6Ly9naXRodWIuY29tL2t1YmVybmV0ZXMvY29udHJpYi90cmVlL21hc3Rlci9pbmdyZXNzL2NvbnRyb2xsZXJzL25naW54I2F1dG9tYXRlZC1jZXJ0aWZpY2F0ZS1tYW5hZ2VtZW50LXdpdGgta3ViZS1sZWdvCiMjCm5naW54OgogIHJlcGxpY2FDb3VudDogMQogIGltYWdlOgogICAgcmVwb3NpdG9yeTogazhzLmdjci5pby9uZ2lueC1pbmdyZXNzLWNvbnRyb2xsZXIKICAgIHRhZzogIjAuOC4zIgogICAgcHVsbFBvbGljeTogSWZOb3RQcmVzZW50CiAgc2VydmljZToKICAgIHR5cGU6IExvYWRCYWxhbmNlcgogIG1vbml0b3Jpbmc6IGZhbHNlCiAgcmVzb3VyY2VzOgogICAgbGltaXRzOgogICAgICBjcHU6IDEKICAgICAgbWVtb3J5OiAyR2kKICAgIHJlcXVlc3RzOgogICAgICBjcHU6IDEKICAgICAgbWVtb3J5OiAxMjhNaQogIGNvbmZpZ21hcDoKICAgIHByb3h5X2Nvbm5lY3RfdGltZW91dDogIjMwIgogICAgcHJveHlfcmVhZF90aW1lb3V0OiAiNjAwIgogICAgcHJveHlfc2VuZF9pbWVvdXQ6ICI2MDAiCiAgICBoc3RzX2luY2x1ZGVfc3ViZG9tYWluczogImZhbHNlIgogICAgYm9keV9zaXplOiAiNjRtIgogICAgc2VydmVyX25hbWVfaGFzaF9idWNrZXRfc2l6ZTogIjI1NiIKICAgICMgVE9ETzogZmlndXJlIG91dCBob3cgdG8gZXhwb3NlIGB7bmdpbnhfYWRkcn06ODA4MC9uZ2lueF9zdGF0dXNgLCBvbiBleGlzdGluZyBzZXJ2aWNlIG9yIGNyZWF0ZSBuZXcgb25lPwogICAgZW5hYmxlX3Z0c19zdGF0dXM6ICJmYWxzZSIKCiMjIERlZmF1bHQgQmFja2VuZCBjb25maWd1cmF0aW9uCiMjIFRvIHJ1biBhIGRpZmZlcmVudCA0MDQgcGFnZSBmb3IgdGhlIG1hbmFnZWQgZG9tYWlucyBwbGVhc2Ugc2VlIHRoZSBkb2N1bWVudGF0aW9uIGJlbG93CiMjIHJlZjogaHR0cHM6Ly9naXRodWIuY29tL2t1YmVybmV0ZXMvY29udHJpYi90cmVlL21hc3Rlci80MDQtc2VydmVyCiMjCmRlZmF1bHQ6CiAgcmVwbGljYUNvdW50OiAxCiAgaW1hZ2U6CiAgICByZXBvc2l0b3J5OiBrOHMuZ2NyLmlvL2RlZmF1bHRiYWNrZW5kCiAgICB0YWc6ICIxLjAiCiAgICBwdWxsUG9saWN5OiBJZk5vdFByZXNlbnQKICByZXNvdXJjZXM6CiAgICBsaW1pdHM6CiAgICAgIGNwdTogMQogICAgICBtZW1vcnk6IDJHaQogICAgcmVxdWVzdHM6CiAgICAgIGNwdTogMQogICAgICBtZW1vcnk6IDEyOE1pCgojIyBrdWJlLWxlZ28gY29uZmlndXJhdGlvbgojIyByZWY6IGh0dHBzOi8vZ2l0aHViLmNvbS9qZXRzdGFjay9rdWJlLWxlZ28KIyMKbGVnbzoKICBlbmFibGVkOiBmYWxzZQogIHJlcGxpY2FDb3VudDogMQogIGltYWdlOgogICAgcmVwb3NpdG9yeTogamV0c3RhY2sva3ViZS1sZWdvCiAgICB0YWc6ICIwLjEuMyIKICAgIHB1bGxQb2xpY3k6IElmTm90UHJlc2VudAogIGNvbmZpZ21hcDoKICAgIGVtYWlsOiAibXlAZW1haWwudGxkIgogICAgIyBQcm9kdWN0aW9uIExldCdzIEVuY3J5cHQgc2VydmVyCiAgICAjIHVybDogImh0dHBzOi8vYWNtZS12MDEuYXBpLmxldHNlbmNyeXB0Lm9yZy9kaXJlY3RvcnkiCiAgICAjIFRlc3QgTGV0J3MgRW5jcnlwdCBzZXJ2ZXIKICAgIHVybDogImh0dHBzOi8vYWNtZS1zdGFnaW5nLmFwaS5sZXRzZW5jcnlwdC5vcmcvZGlyZWN0b3J5ICIKICByZXNvdXJjZXM6CiAgICBsaW1pdHM6CiAgICAgIGNwdTogMQogICAgICBtZW1vcnk6IDJHaQogICAgcmVxdWVzdHM6CiAgICAgIGNwdTogMQogICAgICBtZW1vcnk6IDEyOE1pCg==
+        readme: IyBuZ2lueC1sZWdvCgoqKlRoaXMgY2hhcnQgaGFzIGJlZW4gZGVwcmVjYXRlZCBhcyBvZiB2ZXJzaW9uIDAuMi4xIGFuZCB3aWxsIG5vdCBiZSB1cGRhdGVkLiBQbGVhc2UgdXNlIHRoZSBuZ2lueC1pbmdyZXNzIGFuZCAob3B0aW9uYWwpIGt1YmUtbGVnbyBjaGFydHMgaW5zdGVhZC4qKgoKW25naW54LWxlZ29dKGh0dHBzOi8vZ2l0aHViLmNvbS9qZXRzdGFjay9rdWJlLWxlZ28vdHJlZS9tYXN0ZXIvZXhhbXBsZXMvbmdpbngpIGlzIGEgY2hhcnQgZm9yIGFuIFtgbmdpbnhgIGluZ3Jlc3NdKGh0dHBzOi8vZ2l0aHViLmNvbS9rdWJlcm5ldGVzL2NvbnRyaWIvdHJlZS9tYXN0ZXIvaW5ncmVzcy9jb250cm9sbGVycy9uZ2lueCkgd2l0aCBvcHRpb25hbCBzdXBwb3J0IGZvciBhdXRvbWF0aWNhbGx5IGdlbmVyYXRpbmcgYFNTTGAgY2VydCBmb3IgdGhlIG1hbmFnZWQgcm91dGVzLgoKVG8gdXNlIHRoaXMgaW5ncmVzcyBjb250b2xsZXIgYWRkIHRoZSBmb2xsb3dpbmcgYW5ub3RhdGlvbnMgdG8gdGhlIGBpbmdyZXNzYCByZXNvdXJjZXMgeW91IHdvdWxkIGxpa2UgdG8gcm91dGUgdGhyb3VnaCBpdDoKCmBgYHlhbWwKYXBpVmVyc2lvbjogZXh0ZW5zaW9ucy92MWJldGExCmtpbmQ6IEluZ3Jlc3MKbWV0YWRhdGE6CiAgbmFtZXNwYWNlOiBmb28KICBhbm5vdGF0aW9uczoKICAgICMgQWRkIHRvIHJvdXRlIHRocm91Z2ggdGhlIG5naW54IHNlcnZpY2UKICAgIGt1YmVybmV0ZXMuaW8vaW5ncmVzcy5jbGFzczogbmdpbngKICAgICMgQWRkIHRvIGdlbmVyYXRlIGNlcnRpZmljYXRlcyBmb3IgdGhpcyBpbmdyZXNzCiAgICBrdWJlcm5ldGVzLmlvL3Rscy1hY21lOiAidHJ1ZSIKc3BlYzoKICB0bHM6CiAgICAjIFdpdGggdGhpcyBjb25maWd1cmF0aW9uIGt1YmUtbGVnbyB3aWxsIGdlbmVyYXRlIGEgc2VjcmV0IGluIG5hbWVzcGFjZSBmb28gY2FsbGVkIGBleGFtcGxlLXRsc2AKICAgICMgZm9yIHRoZSBVUkwgYHd3dy5leGFtcGxlLmNvbWAKICAgIC0gaG9zdHM6CiAgICAgIC0gInd3dy5leGFtcGxlLmNvbSIKICAgICAgc2VjcmV0TmFtZTogZXhhbXBsZS10bHMKYGBgCgojIyBUTDtEUjsKCmBgYGJhc2gKJCBoZWxtIGluc3RhbGwgc3RhYmxlL2t1YmUtbGVnbwpgYGAKCiMjIEludHJvZHVjdGlvbgoKVGhpcyBjaGFydCBib290c3RyYXBzIGFuIG5naW54LWxlZ28gZGVwbG95bWVudCBvbiBhIFtLdWJlcm5ldGVzXShodHRwOi8va3ViZXJuZXRlcy5pbykgY2x1c3RlciB1c2luZyB0aGUgW0hlbG1dKGh0dHBzOi8vaGVsbS5zaCkgcGFja2FnZSBtYW5hZ2VyLgoKIyMgUHJlcmVxdWlzaXRlcwoKLSBLdWJlcm5ldGVzIDEuNCsgd2l0aCBCZXRhIEFQSXMgZW5hYmxlZAoKIyMgSW5zdGFsbGluZyB0aGUgQ2hhcnQKClRvIGluc3RhbGwgdGhlIGNoYXJ0IHdpdGggdGhlIHJlbGVhc2UgbmFtZSBgbXktcmVsZWFzZWA6CgpgYGBiYXNoCiQgaGVsbSBpbnN0YWxsIC0tbmFtZSBteS1yZWxlYXNlIHN0YWJsZS9uZ2lueC1sZWdvCmBgYAoKVGhlIGNvbW1hbmQgZGVwbG95cyBuZ2lueC1sZWdvIG9uIHRoZSBLdWJlcm5ldGVzIGNsdXN0ZXIgaW4gdGhlIGRlZmF1bHQgY29uZmlndXJhdGlvbi4gVGhlIFtjb25maWd1cmF0aW9uXSgjY29uZmlndXJhdGlvbikgc2VjdGlvbiBsaXN0cyB0aGUgcGFyYW1ldGVycyB0aGF0IGNhbiBiZSBjb25maWd1cmVkIGR1cmluZyBpbnN0YWxsYXRpb24uCgo+ICoqVGlwKio6IExpc3QgYWxsIHJlbGVhc2VzIHVzaW5nIGBoZWxtIGxpc3RgCgojIyBVbmluc3RhbGxpbmcgdGhlIENoYXJ0CgpUbyB1bmluc3RhbGwvZGVsZXRlIHRoZSBgbXktcmVsZWFzZWAgZGVwbG95bWVudDoKCmBgYGJhc2gKJCBoZWxtIGRlbGV0ZSBteS1yZWxlYXNlCmBgYAoKVGhlIGNvbW1hbmQgcmVtb3ZlcyBhbGwgdGhlIEt1YmVybmV0ZXMgY29tcG9uZW50cyBhc3NvY2lhdGVkIHdpdGggdGhlIGNoYXJ0IGFuZCBkZWxldGVzIHRoZSByZWxlYXNlLgoKIyMgQ29uZmlndXJhdGlvbgoKU2VlIGB2YWx1ZXMueWFtbGAgZm9yIGNvbmZpZ3VyYXRpb24gbm90ZXMuIFNwZWNpZnkgZWFjaCBwYXJhbWV0ZXIgdXNpbmcgdGhlIGAtLXNldCBrZXk9dmFsdWVbLGtleT12YWx1ZV1gIGFyZ3VtZW50IHRvIGBoZWxtIGluc3RhbGxgLiBGb3IgZXhhbXBsZSwKCmBgYGJhc2gKJCBoZWxtIGluc3RhbGwgLS1uYW1lIG15LXJlbGVhc2UgXAogIC0tc2V0IGxlZ28uZW5hYmxlZD1mYWxzZSBcCiAgICBzdGFibGUvbmdpbngtbGVnbwpgYGAKCkluc3RhbGxzIHRoZSBjaGFydCB3aXRob3V0IGt1YmUtbGVnbyBhbmQgdGhlIGFiaWxpdHkgdG8gZ2VuZXJhdGUgY2VydHMuCgpBbHRlcm5hdGl2ZWx5LCBhIFlBTUwgZmlsZSB0aGF0IHNwZWNpZmllcyB0aGUgdmFsdWVzIGZvciB0aGUgcGFyYW1ldGVycyBjYW4gYmUgcHJvdmlkZWQgd2hpbGUgaW5zdGFsbGluZyB0aGUgY2hhcnQuIEZvciBleGFtcGxlLAoKYGBgYmFzaAokIGhlbG0gaW5zdGFsbCAtLW5hbWUgbXktcmVsZWFzZSAtZiB2YWx1ZXMueWFtbCBzdGFibGUvbmdpbngtbGVnbwpgYGAKCj4gKipUaXAqKjogWW91IGNhbiB1c2UgdGhlIGRlZmF1bHQgW3ZhbHVlcy55YW1sXSh2YWx1ZXMueWFtbCkK
+        chart:
+          maintainers:
+          - name: jackzampolin
+            email: jack.zampolin@gmail.com
+          - name: jackzampolin
+            email: jack.zampolin@gmail.com
+          appVersion: 0.12.0
+          sources:
+          - https://github.com/kubernetes/ingress-nginx
+          keywords:
+          - ingress, nginx
+          created: 2018-04-11T18:11:24.761440762Z
+          deprecated: false
+          icon: https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Nginx_logo.svg/500px-Nginx_logo.svg.png
+          description: An nginx Ingress controller that uses ConfigMap to store the nginx configuration.
+          version: 0.13.1
+          home: https://github.com/kubernetes/ingress-nginx
+          urls:
+          - https://kubernetes-charts.storage.googleapis.com/nginx-ingress-0.13.1.tgz
+          apiVersion: v1
+          engine: gotpl
+          name: nginx-ingress
+          digest: cf66d1666019b3e1647ba4dbc06a66ee7db1184629ae3669e11a9f72208eb7aa
+      properties:
+        chart:
+          $ref: '#/components/schemas/HelmChartDetailsResponse_chart'
+        values:
+          example: IyMgbmdpbngtbGVnbyBzcGlucyB1cCBhIHNjYWxhYmxlIGluZ3Jlc3MgcHJvdmlkZXIgdGhhdCBjYW4gYWxzbyBwcm92aXNpb24gU1NMIGNlcnRzCiMjIFNlZSBodHRwczovL2dpdGh1Yi5jb20vamV0c3RhY2sva3ViZS1sZWdvL3RyZWUvbWFzdGVyL2V4YW1wbGVzL25naW54IGZvciBtb3JlIGluZm9ybWF0aW9uIG9uIGltcGxlbWVudGF0aW9uCgojIyBOZ2lueCBjb25maWd1cmF0aW9uCiMjIHJlZjogaHR0cHM6Ly9naXRodWIuY29tL2t1YmVybmV0ZXMvY29udHJpYi90cmVlL21hc3Rlci9pbmdyZXNzL2NvbnRyb2xsZXJzL25naW54I2F1dG9tYXRlZC1jZXJ0aWZpY2F0ZS1tYW5hZ2VtZW50LXdpdGgta3ViZS1sZWdvCiMjCm5naW54OgogIHJlcGxpY2FDb3VudDogMQogIGltYWdlOgogICAgcmVwb3NpdG9yeTogazhzLmdjci5pby9uZ2lueC1pbmdyZXNzLWNvbnRyb2xsZXIKICAgIHRhZzogIjAuOC4zIgogICAgcHVsbFBvbGljeTogSWZOb3RQcmVzZW50CiAgc2VydmljZToKICAgIHR5cGU6IExvYWRCYWxhbmNlcgogIG1vbml0b3Jpbmc6IGZhbHNlCiAgcmVzb3VyY2VzOgogICAgbGltaXRzOgogICAgICBjcHU6IDEKICAgICAgbWVtb3J5OiAyR2kKICAgIHJlcXVlc3RzOgogICAgICBjcHU6IDEKICAgICAgbWVtb3J5OiAxMjhNaQogIGNvbmZpZ21hcDoKICAgIHByb3h5X2Nvbm5lY3RfdGltZW91dDogIjMwIgogICAgcHJveHlfcmVhZF90aW1lb3V0OiAiNjAwIgogICAgcHJveHlfc2VuZF9pbWVvdXQ6ICI2MDAiCiAgICBoc3RzX2luY2x1ZGVfc3ViZG9tYWluczogImZhbHNlIgogICAgYm9keV9zaXplOiAiNjRtIgogICAgc2VydmVyX25hbWVfaGFzaF9idWNrZXRfc2l6ZTogIjI1NiIKICAgICMgVE9ETzogZmlndXJlIG91dCBob3cgdG8gZXhwb3NlIGB7bmdpbnhfYWRkcn06ODA4MC9uZ2lueF9zdGF0dXNgLCBvbiBleGlzdGluZyBzZXJ2aWNlIG9yIGNyZWF0ZSBuZXcgb25lPwogICAgZW5hYmxlX3Z0c19zdGF0dXM6ICJmYWxzZSIKCiMjIERlZmF1bHQgQmFja2VuZCBjb25maWd1cmF0aW9uCiMjIFRvIHJ1biBhIGRpZmZlcmVudCA0MDQgcGFnZSBmb3IgdGhlIG1hbmFnZWQgZG9tYWlucyBwbGVhc2Ugc2VlIHRoZSBkb2N1bWVudGF0aW9uIGJlbG93CiMjIHJlZjogaHR0cHM6Ly9naXRodWIuY29tL2t1YmVybmV0ZXMvY29udHJpYi90cmVlL21hc3Rlci80MDQtc2VydmVyCiMjCmRlZmF1bHQ6CiAgcmVwbGljYUNvdW50OiAxCiAgaW1hZ2U6CiAgICByZXBvc2l0b3J5OiBrOHMuZ2NyLmlvL2RlZmF1bHRiYWNrZW5kCiAgICB0YWc6ICIxLjAiCiAgICBwdWxsUG9saWN5OiBJZk5vdFByZXNlbnQKICByZXNvdXJjZXM6CiAgICBsaW1pdHM6CiAgICAgIGNwdTogMQogICAgICBtZW1vcnk6IDJHaQogICAgcmVxdWVzdHM6CiAgICAgIGNwdTogMQogICAgICBtZW1vcnk6IDEyOE1pCgojIyBrdWJlLWxlZ28gY29uZmlndXJhdGlvbgojIyByZWY6IGh0dHBzOi8vZ2l0aHViLmNvbS9qZXRzdGFjay9rdWJlLWxlZ28KIyMKbGVnbzoKICBlbmFibGVkOiBmYWxzZQogIHJlcGxpY2FDb3VudDogMQogIGltYWdlOgogICAgcmVwb3NpdG9yeTogamV0c3RhY2sva3ViZS1sZWdvCiAgICB0YWc6ICIwLjEuMyIKICAgIHB1bGxQb2xpY3k6IElmTm90UHJlc2VudAogIGNvbmZpZ21hcDoKICAgIGVtYWlsOiAibXlAZW1haWwudGxkIgogICAgIyBQcm9kdWN0aW9uIExldCdzIEVuY3J5cHQgc2VydmVyCiAgICAjIHVybDogImh0dHBzOi8vYWNtZS12MDEuYXBpLmxldHNlbmNyeXB0Lm9yZy9kaXJlY3RvcnkiCiAgICAjIFRlc3QgTGV0J3MgRW5jcnlwdCBzZXJ2ZXIKICAgIHVybDogImh0dHBzOi8vYWNtZS1zdGFnaW5nLmFwaS5sZXRzZW5jcnlwdC5vcmcvZGlyZWN0b3J5ICIKICByZXNvdXJjZXM6CiAgICBsaW1pdHM6CiAgICAgIGNwdTogMQogICAgICBtZW1vcnk6IDJHaQogICAgcmVxdWVzdHM6CiAgICAgIGNwdTogMQogICAgICBtZW1vcnk6IDEyOE1pCg==
+          type: string
+        readme:
+          example: IyBuZ2lueC1sZWdvCgoqKlRoaXMgY2hhcnQgaGFzIGJlZW4gZGVwcmVjYXRlZCBhcyBvZiB2ZXJzaW9uIDAuMi4xIGFuZCB3aWxsIG5vdCBiZSB1cGRhdGVkLiBQbGVhc2UgdXNlIHRoZSBuZ2lueC1pbmdyZXNzIGFuZCAob3B0aW9uYWwpIGt1YmUtbGVnbyBjaGFydHMgaW5zdGVhZC4qKgoKW25naW54LWxlZ29dKGh0dHBzOi8vZ2l0aHViLmNvbS9qZXRzdGFjay9rdWJlLWxlZ28vdHJlZS9tYXN0ZXIvZXhhbXBsZXMvbmdpbngpIGlzIGEgY2hhcnQgZm9yIGFuIFtgbmdpbnhgIGluZ3Jlc3NdKGh0dHBzOi8vZ2l0aHViLmNvbS9rdWJlcm5ldGVzL2NvbnRyaWIvdHJlZS9tYXN0ZXIvaW5ncmVzcy9jb250cm9sbGVycy9uZ2lueCkgd2l0aCBvcHRpb25hbCBzdXBwb3J0IGZvciBhdXRvbWF0aWNhbGx5IGdlbmVyYXRpbmcgYFNTTGAgY2VydCBmb3IgdGhlIG1hbmFnZWQgcm91dGVzLgoKVG8gdXNlIHRoaXMgaW5ncmVzcyBjb250b2xsZXIgYWRkIHRoZSBmb2xsb3dpbmcgYW5ub3RhdGlvbnMgdG8gdGhlIGBpbmdyZXNzYCByZXNvdXJjZXMgeW91IHdvdWxkIGxpa2UgdG8gcm91dGUgdGhyb3VnaCBpdDoKCmBgYHlhbWwKYXBpVmVyc2lvbjogZXh0ZW5zaW9ucy92MWJldGExCmtpbmQ6IEluZ3Jlc3MKbWV0YWRhdGE6CiAgbmFtZXNwYWNlOiBmb28KICBhbm5vdGF0aW9uczoKICAgICMgQWRkIHRvIHJvdXRlIHRocm91Z2ggdGhlIG5naW54IHNlcnZpY2UKICAgIGt1YmVybmV0ZXMuaW8vaW5ncmVzcy5jbGFzczogbmdpbngKICAgICMgQWRkIHRvIGdlbmVyYXRlIGNlcnRpZmljYXRlcyBmb3IgdGhpcyBpbmdyZXNzCiAgICBrdWJlcm5ldGVzLmlvL3Rscy1hY21lOiAidHJ1ZSIKc3BlYzoKICB0bHM6CiAgICAjIFdpdGggdGhpcyBjb25maWd1cmF0aW9uIGt1YmUtbGVnbyB3aWxsIGdlbmVyYXRlIGEgc2VjcmV0IGluIG5hbWVzcGFjZSBmb28gY2FsbGVkIGBleGFtcGxlLXRsc2AKICAgICMgZm9yIHRoZSBVUkwgYHd3dy5leGFtcGxlLmNvbWAKICAgIC0gaG9zdHM6CiAgICAgIC0gInd3dy5leGFtcGxlLmNvbSIKICAgICAgc2VjcmV0TmFtZTogZXhhbXBsZS10bHMKYGBgCgojIyBUTDtEUjsKCmBgYGJhc2gKJCBoZWxtIGluc3RhbGwgc3RhYmxlL2t1YmUtbGVnbwpgYGAKCiMjIEludHJvZHVjdGlvbgoKVGhpcyBjaGFydCBib290c3RyYXBzIGFuIG5naW54LWxlZ28gZGVwbG95bWVudCBvbiBhIFtLdWJlcm5ldGVzXShodHRwOi8va3ViZXJuZXRlcy5pbykgY2x1c3RlciB1c2luZyB0aGUgW0hlbG1dKGh0dHBzOi8vaGVsbS5zaCkgcGFja2FnZSBtYW5hZ2VyLgoKIyMgUHJlcmVxdWlzaXRlcwoKLSBLdWJlcm5ldGVzIDEuNCsgd2l0aCBCZXRhIEFQSXMgZW5hYmxlZAoKIyMgSW5zdGFsbGluZyB0aGUgQ2hhcnQKClRvIGluc3RhbGwgdGhlIGNoYXJ0IHdpdGggdGhlIHJlbGVhc2UgbmFtZSBgbXktcmVsZWFzZWA6CgpgYGBiYXNoCiQgaGVsbSBpbnN0YWxsIC0tbmFtZSBteS1yZWxlYXNlIHN0YWJsZS9uZ2lueC1sZWdvCmBgYAoKVGhlIGNvbW1hbmQgZGVwbG95cyBuZ2lueC1sZWdvIG9uIHRoZSBLdWJlcm5ldGVzIGNsdXN0ZXIgaW4gdGhlIGRlZmF1bHQgY29uZmlndXJhdGlvbi4gVGhlIFtjb25maWd1cmF0aW9uXSgjY29uZmlndXJhdGlvbikgc2VjdGlvbiBsaXN0cyB0aGUgcGFyYW1ldGVycyB0aGF0IGNhbiBiZSBjb25maWd1cmVkIGR1cmluZyBpbnN0YWxsYXRpb24uCgo+ICoqVGlwKio6IExpc3QgYWxsIHJlbGVhc2VzIHVzaW5nIGBoZWxtIGxpc3RgCgojIyBVbmluc3RhbGxpbmcgdGhlIENoYXJ0CgpUbyB1bmluc3RhbGwvZGVsZXRlIHRoZSBgbXktcmVsZWFzZWAgZGVwbG95bWVudDoKCmBgYGJhc2gKJCBoZWxtIGRlbGV0ZSBteS1yZWxlYXNlCmBgYAoKVGhlIGNvbW1hbmQgcmVtb3ZlcyBhbGwgdGhlIEt1YmVybmV0ZXMgY29tcG9uZW50cyBhc3NvY2lhdGVkIHdpdGggdGhlIGNoYXJ0IGFuZCBkZWxldGVzIHRoZSByZWxlYXNlLgoKIyMgQ29uZmlndXJhdGlvbgoKU2VlIGB2YWx1ZXMueWFtbGAgZm9yIGNvbmZpZ3VyYXRpb24gbm90ZXMuIFNwZWNpZnkgZWFjaCBwYXJhbWV0ZXIgdXNpbmcgdGhlIGAtLXNldCBrZXk9dmFsdWVbLGtleT12YWx1ZV1gIGFyZ3VtZW50IHRvIGBoZWxtIGluc3RhbGxgLiBGb3IgZXhhbXBsZSwKCmBgYGJhc2gKJCBoZWxtIGluc3RhbGwgLS1uYW1lIG15LXJlbGVhc2UgXAogIC0tc2V0IGxlZ28uZW5hYmxlZD1mYWxzZSBcCiAgICBzdGFibGUvbmdpbngtbGVnbwpgYGAKCkluc3RhbGxzIHRoZSBjaGFydCB3aXRob3V0IGt1YmUtbGVnbyBhbmQgdGhlIGFiaWxpdHkgdG8gZ2VuZXJhdGUgY2VydHMuCgpBbHRlcm5hdGl2ZWx5LCBhIFlBTUwgZmlsZSB0aGF0IHNwZWNpZmllcyB0aGUgdmFsdWVzIGZvciB0aGUgcGFyYW1ldGVycyBjYW4gYmUgcHJvdmlkZWQgd2hpbGUgaW5zdGFsbGluZyB0aGUgY2hhcnQuIEZvciBleGFtcGxlLAoKYGBgYmFzaAokIGhlbG0gaW5zdGFsbCAtLW5hbWUgbXktcmVsZWFzZSAtZiB2YWx1ZXMueWFtbCBzdGFibGUvbmdpbngtbGVnbwpgYGAKCj4gKipUaXAqKjogWW91IGNhbiB1c2UgdGhlIGRlZmF1bHQgW3ZhbHVlcy55YW1sXSh2YWx1ZXMueWFtbCkK
+          type: string
+    InstallSecretsRequest:
+      example:
+        query:
+          tag: repo:pipeline
+          type: amazon
+        namespace: default
+      properties:
+        namespace:
+          example: default
+          type: string
+        query:
+          $ref: '#/components/schemas/InstallSecretsRequest_query'
+      required:
+      - namespace
+      type: object
+    InstallSecretsResponse:
+      items:
+        $ref: '#/components/schemas/InstallSecretsResponseItem'
+      type: array
+    InstallSecretsResponseItem:
+      example:
+        name: my-aws-secret
+        sourcing: env
+      properties:
+        name:
+          example: my-aws-secret
+          type: string
+        sourcing:
+          enum:
+          - env
+          - volume
+          type: string
+      required:
+      - name
+      - sourcing
+      type: object
+    ProfileListResponse:
+      example:
+        cloud: google
+        name: default
+        location: us-central1-a
+        properties:
+          google:
+            master:
+              version: 1.9.4-gke.1
+            nodeVersion: 1.9.4-gke.1
+            nodePools:
+              pool1:
+                count: 1
+                instanceType: n1-standard-1
+                serviceAccount: ""
+      properties:
+        name:
+          example: default
+          type: string
+        location:
+          example: us-central1-a
+          type: string
+        cloud:
+          example: google
+          type: string
+        properties:
+          example:
+            google:
+              master:
+                version: 1.9.4-gke.1
+              nodeVersion: 1.9.4-gke.1
+              nodePools:
+                pool1:
+                  count: 1
+                  instanceType: n1-standard-1
+                  serviceAccount: ""
+          oneOf:
+          - $ref: '#/components/schemas/ClusterProfileAmazon'
+          - $ref: '#/components/schemas/ClusterProfileAzure'
+          - $ref: '#/components/schemas/ClusterProfileGoogle'
+          type: object
+      type: object
+    ClusterProfileAmazon:
+      properties:
+        amazon:
+          $ref: '#/components/schemas/ClusterProfileAmazon_amazon'
+      type: object
+    ClusterProfileAzure:
+      properties:
+        azure:
+          $ref: '#/components/schemas/ClusterProfileAzure_azure'
+      type: object
+    ClusterProfileGoogle:
+      properties:
+        google:
+          $ref: '#/components/schemas/ClusterProfileGoogle_google'
+      type: object
+    AddClusterProfileRequest:
+      example:
+        cloud: google
+        name: myCluster-profile
+        location: us-central1-a
+        properties:
+          google:
+            master:
+              version: 1.8.7-gke.1
+            nodeVersion: 1.8.7-gke.1
+            nodePools:
+              pool1:
+                count: 1
+                instanceType: n1-standard-1
+      properties:
+        name:
+          example: myCluster-profile
+          type: string
+        location:
+          example: us-central1-a
+          type: string
+        cloud:
+          example: google
+          type: string
+        properties:
+          example:
+            google:
+              master:
+                version: 1.8.7-gke.1
+              nodeVersion: 1.8.7-gke.1
+              nodePools:
+                pool1:
+                  count: 1
+                  instanceType: n1-standard-1
+          oneOf:
+          - $ref: '#/components/schemas/AddClusterProfileAmazon'
+          - $ref: '#/components/schemas/AddClusterProfileAzure'
+          - $ref: '#/components/schemas/AddClusterProfileGoogle'
+          type: object
+      type: object
+    AddClusterProfileAmazon:
+      properties:
+        amazon:
+          $ref: '#/components/schemas/AddClusterProfileAmazon_amazon'
+      type: object
+    AddClusterProfileAzure:
+      properties:
+        azure:
+          $ref: '#/components/schemas/AddClusterProfileAzure_azure'
+      type: object
+    AddClusterProfileGoogle:
+      properties:
+        google:
+          $ref: '#/components/schemas/AddClusterProfileGoogle_google'
+      type: object
+    TokenCreateRequest:
+      example:
+        virtualUser: banzaicloud/pipeline
+        name: my API token
+      properties:
+        name:
+          example: my API token
+          type: string
+        virtualUser:
+          example: banzaicloud/pipeline
+          type: string
+      required:
+      - name
+      type: object
+    TokenCreateResponse:
+      example:
+        name: my API token
+        id: f24c74d7-53f3-4d78-b3d4-f23f89e81bec
+        token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJodHRwczovL3BpcGVsaW5lLmJhbnphaWNsb3VkLmNvbSIsImp0aSI6ImYyNGM3NGQ3LTUzZjMtNGQ3OC1iM2Q0LWYyM2Y4OWU4MWJlYyIsImlhdCI6MTUyNzg0NTQ1OCwiaXNzIjoiaHR0cHM6Ly9iYW56YWljbG91ZC5jb20vIiwic3ViIjoiMSIsInNjb3BlIjoiYXBpOmludm9rZSIsInR5cGUiOiJ1c2VyIiwidGV4dCI6ImJvbmlmYWlkbyJ9.DMQcM0De3A_R1JOPDGqharh9NIjz-uBFeJgiq5JSej0
+      properties:
+        id:
+          example: f24c74d7-53f3-4d78-b3d4-f23f89e81bec
+          type: string
+        token:
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJodHRwczovL3BpcGVsaW5lLmJhbnphaWNsb3VkLmNvbSIsImp0aSI6ImYyNGM3NGQ3LTUzZjMtNGQ3OC1iM2Q0LWYyM2Y4OWU4MWJlYyIsImlhdCI6MTUyNzg0NTQ1OCwiaXNzIjoiaHR0cHM6Ly9iYW56YWljbG91ZC5jb20vIiwic3ViIjoiMSIsInNjb3BlIjoiYXBpOmludm9rZSIsInR5cGUiOiJ1c2VyIiwidGV4dCI6ImJvbmlmYWlkbyJ9.DMQcM0De3A_R1JOPDGqharh9NIjz-uBFeJgiq5JSej0
+          type: string
+        name:
+          example: my API token
+          type: string
+      required:
+      - id
+      - name
+      - token
+      type: object
+    TokenListResponse:
+      items:
+        $ref: '#/components/schemas/TokenListResponseItem'
+      type: array
+    TokenListResponseItem:
+      example:
+        createdAt: 2018-06-01T11:26:40.044297036+02:00
+        name: my API token
+        id: f24c74d7-53f3-4d78-b3d4-f23f89e81bec
+      properties:
+        id:
+          example: f24c74d7-53f3-4d78-b3d4-f23f89e81bec
+          type: string
+        createdAt:
+          example: 2018-06-01T11:26:40.044297036+02:00
+          type: string
+        name:
+          example: my API token
+          type: string
+      required:
+      - createdAt
+      - id
+      - name
+      type: object
+    SecretsListResponse:
+      items:
+        $ref: '#/components/schemas/SecretsListItem'
+      type: array
+    SecretsListItem:
+      example:
+        values:
+          type: <hidden>
+          project_id: <hidden>
+          private_key_id: <hidden>
+          private_key: <hidden>
+          client_email: <hidden>
+          client_id: <hidden>
+          auth_uri: <hidden>
+          token_uri: <hidden>
+          auth_provider_x509_cert_url: <hidden>
+          client_x509_cert_url: <hidden>
+        name: My google secret
+        id: 62bc3c75-91fb-4670-bad4-24b401a9deac
+        type: google
+        version: 1
+        tags:
+        - tag1
+        - tag2
+      properties:
+        id:
+          example: 62bc3c75-91fb-4670-bad4-24b401a9deac
+          type: string
+        name:
+          example: My google secret
+          type: string
+        type:
+          example: google
+          type: string
+        version:
+          example: 1
+          format: int32
+          type: integer
+        tags:
+          example:
+          - tag1
+          - tag2
+          items:
+            type: string
+          type: array
+        values:
+          example:
+            type: <hidden>
+            project_id: <hidden>
+            private_key_id: <hidden>
+            private_key: <hidden>
+            client_email: <hidden>
+            client_id: <hidden>
+            auth_uri: <hidden>
+            token_uri: <hidden>
+            auth_provider_x509_cert_url: <hidden>
+            client_x509_cert_url: <hidden>
+          type: object
+      type: object
+    CreateSecretResponse:
+      example:
+        name: My google secret
+        id: 62bc3c75-91fb-4670-bad4-24b401a9deac
+        type: google
+      properties:
+        name:
+          example: My google secret
+          type: string
+        type:
+          example: google
+          type: string
+        id:
+          example: 62bc3c75-91fb-4670-bad4-24b401a9deac
+          type: string
+      type: object
+    CreateSecretRequest:
+      example:
+        values:
+          type: string
+          project_id: string
+          private_key_id: string
+          private_key: string
+          client_email: string
+          client_id: string
+          auth_uri: string
+          token_uri: string
+          auth_provider_x509_cert_url: string
+          client_x509_cert_url: string
+        name: My google secret
+        type: google
+        version: 1
+        tags:
+        - repo:pipeline
+        - tag2
+      properties:
+        name:
+          example: My google secret
+          type: string
+        type:
+          example: google
+          type: string
+        tags:
+          example:
+          - repo:pipeline
+          - tag2
+          items:
+            type: string
+          type: array
+        version:
+          example: 1
+          format: int32
+          type: integer
+        values:
+          example:
+            type: string
+            project_id: string
+            private_key_id: string
+            private_key: string
+            client_email: string
+            client_id: string
+            auth_uri: string
+            token_uri: string
+            auth_provider_x509_cert_url: string
+            client_x509_cert_url: string
+          oneOf:
+          - $ref: '#/components/schemas/SecretKeyValueAmazon'
+          - $ref: '#/components/schemas/SecretKeyValueAzure'
+          - $ref: '#/components/schemas/SecretKeyValueGoogle'
+          - $ref: '#/components/schemas/SecretKeyValueKubernetes'
+          - $ref: '#/components/schemas/SecretKeyValueGeneric'
+          - $ref: '#/components/schemas/SecretKeyValueTLS'
+          type: object
+      required:
+      - name
+      - type
+      - values
+      type: object
+    SecretKeyValueAmazon:
+      properties:
+        AWS_ACCESS_KEY_ID:
+          type: string
+        AWS_SECRET_ACCESS_KEY:
+          type: string
+      required:
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      type: object
+    SecretKeyValueAzure:
+      properties:
+        AZURE_CLIENT_ID:
+          type: string
+        AZURE_CLIENT_SECRET:
+          type: string
+        AZURE_TENANT_ID:
+          type: string
+        AZURE_SUBSCRIPTION_ID:
+          type: string
+      required:
+      - AZURE_CLIENT_ID
+      - AZURE_CLIENT_SECRET
+      - AZURE_SUBSCRIPTION_ID
+      - AZURE_TENANT_ID
+      type: object
+    SecretKeyValueGoogle:
+      properties:
+        type:
+          type: string
+        project_id:
+          type: string
+        private_key_id:
+          type: string
+        private_key:
+          type: string
+        client_email:
+          type: string
+        client_id:
+          type: string
+        auth_uri:
+          type: string
+        token_uri:
+          type: string
+        auth_provider_x509_cert_url:
+          type: string
+        client_x509_cert_url:
+          type: string
+      required:
+      - auth_provider_x509_cert_url
+      - auth_uri
+      - client_email
+      - client_id
+      - client_x509_cert_url
+      - private_key
+      - private_key_id
+      - project_id
+      - token_uri
+      - type
+      type: object
+    SecretKeyValueTLS:
+      properties:
+        hosts:
+          type: string
+        validity:
+          type: string
+        caCert:
+          type: string
+        caKey:
+          type: string
+        serverCert:
+          type: string
+        serverKey:
+          type: string
+        clientCert:
+          type: string
+        clientKey:
+          type: string
+      required:
+      - hosts
+      type: object
+    SecretKeyValueKubernetes:
+      properties:
+        K8Sconfig:
+          type: string
+      type: object
+    SecretKeyValueGeneric:
+      properties:
+        any:
+          type: string
+      type: object
+    SecretsNotFound:
+      properties:
+        code:
+          example: 404
+          format: int32
+          type: integer
+        message:
+          example: Secrets not found
+          type: string
+        error:
+          example: There are no secrets with [1] organization id and [15205947761] secret id
+          type: string
+      type: object
+    OrganizationListResponse:
+      items:
+        $ref: '#/components/schemas/OrganizationListItemResponse'
+      type: array
+    OrganizationListItemResponse:
+      example:
+        createdAt: 2018-03-09T13:24:49+01:00
+        name: myOrgName
+        id: 1
+        updatedAt: 2018-03-09T13:24:49+01:00
+      properties:
+        id:
+          example: 1
+          format: int32
+          type: integer
+        createdAt:
+          example: 2018-03-09T13:24:49+01:00
+          type: string
+        updatedAt:
+          example: 2018-03-09T13:24:49+01:00
+          type: string
+        name:
+          example: myOrgName
+          type: string
+      type: object
+    OrganizationCreateResponse:
+      example:
+        createdAt: 2018-03-09T13:24:49+01:00
+        name: myOrgName
+        id: 1
+        users:
+        - createdAt: 2018-03-09T13:24:49+01:00
+          image: githubImageUrl.com/imageId/3
+          name: myName
+          organizations: '{}'
+          id: 1
+          login: username
+          email: my@email.com
+          updatedAt: 2018-03-09T13:24:49+01:00
+        - createdAt: 2018-03-09T13:24:49+01:00
+          image: githubImageUrl.com/imageId/3
+          name: myName
+          organizations: '{}'
+          id: 1
+          login: username
+          email: my@email.com
+          updatedAt: 2018-03-09T13:24:49+01:00
+        updatedAt: 2018-03-09T13:24:49+01:00
+      properties:
+        id:
+          example: 1
+          format: int32
+          type: integer
+        createdAt:
+          example: 2018-03-09T13:24:49+01:00
+          type: string
+        updatedAt:
+          example: 2018-03-09T13:24:49+01:00
+          type: string
+        name:
+          example: myOrgName
+          type: string
+        users:
+          items:
+            $ref: '#/components/schemas/User'
+          type: array
+      type: object
+    User:
+      example:
+        createdAt: 2018-03-09T13:24:49+01:00
+        image: githubImageUrl.com/imageId/3
+        name: myName
+        organizations: '{}'
+        id: 1
+        login: username
+        email: my@email.com
+        updatedAt: 2018-03-09T13:24:49+01:00
+      properties:
+        id:
+          example: 1
+          format: int32
+          type: integer
+        createdAt:
+          example: 2018-03-09T13:24:49+01:00
+          type: string
+        updatedAt:
+          example: 2018-03-09T13:24:49+01:00
+          type: string
+        name:
+          example: myName
+          type: string
+        email:
+          example: my@email.com
+          type: string
+        login:
+          example: username
+          type: string
+        image:
+          example: githubImageUrl.com/imageId/3
+          type: string
+        organizations:
+          type: object
+      type: object
+    OrganizationNotFound:
+      properties:
+        code:
+          example: 404
+          format: int32
+          type: integer
+        message:
+          example: Organization not found
+          type: string
+        error:
+          example: Organization not found
+          type: string
+      type: object
+    AllowedSecretTypesResponse:
+      example:
+        alllowed:
+          amazon:
+          - AWS_ACCESS_KEY_ID
+          - AWS_SECRET_ACCESS_KEY
+          kubernetes:
+          - K8Sconfig
+          google:
+          - type
+          - project_id
+          - private_key_id
+          - private_key
+          - client_email
+          - client_id
+          - auth_uri
+          - token_uri
+          - auth_provider_x509_cert_url
+          - client_x509_cert_url
+          azure:
+          - AZURE_CLIENT_ID
+          - AZURE_CLIENT_SECRET
+          - AZURE_TENANT_ID
+          - AZURE_SUBSCRIPTION_ID
+      properties:
+        alllowed:
+          $ref: '#/components/schemas/AllowedSecretTypesResponse_alllowed'
+      type: object
+    RequiredKeysResponse:
+      example:
+        keys:
+        - '["type","project_id","private_key_id","private_key","client_email","client_id","auth_uri","token_uri","auth_provider_x509_cert_url","client_x509_cert_url"]'
+        - '["type","project_id","private_key_id","private_key","client_email","client_id","auth_uri","token_uri","auth_provider_x509_cert_url","client_x509_cert_url"]'
+      properties:
+        keys:
+          items:
+            example: '["type","project_id","private_key_id","private_key","client_email","client_id","auth_uri","token_uri","auth_provider_x509_cert_url","client_x509_cert_url"]'
+            type: string
+          type: array
+      type: object
+    ListUserResponse:
+      items:
+        $ref: '#/components/schemas/User'
+      type: array
+    SupportedCloudsResponse:
+      example:
+        items:
+        - name: Google Kubernetes Engine
+          key: google
+        - name: Google Kubernetes Engine
+          key: google
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/SupportedCloudItem'
+          type: array
+      type: object
+    SupportedCloudItem:
+      example:
+        name: Google Kubernetes Engine
+        key: google
+      properties:
+        name:
+          example: Google Kubernetes Engine
+          type: string
+        key:
+          example: google
+          type: string
+      type: object
+    AmazonConfigResponse:
+      example:
+        image:
+          eu-west-1:
+          - ami-6202561b
+          - ami-ece5b095
+        instanceType:
+          eu-west-1:
+          - t2.nano
+          - t2.micro
+        locations: '["ap-south-1","us-east-2"]'
+        nameRegexp: ^[A-z0-9-_]{1,255}$
+        type: amazon
+      properties:
+        type:
+          example: amazon
+          type: string
+        nameRegexp:
+          example: ^[A-z0-9-_]{1,255}$
+          type: string
+        locations:
+          example: '["ap-south-1","us-east-2"]'
+          type: string
+        image:
+          $ref: '#/components/schemas/AmazonConfigResponse_image'
+        instanceType:
+          $ref: '#/components/schemas/AmazonConfigResponse_instanceType'
+      type: object
+    AzureConfigResponse:
+      example:
+        kubernetes_versions:
+        - 1.8.1
+        - 1.8.6
+        instanceType:
+          eastus:
+          - Standard_B1ms
+          - Standard_B1s
+        locations: '["eastasia","eastus"]'
+        nameRegexp: ^[a-z0-9_]{0,31}[a-z0-9]$
+        type: azure
+      properties:
+        type:
+          example: azure
+          type: string
+        nameRegexp:
+          example: ^[a-z0-9_]{0,31}[a-z0-9]$
+          type: string
+        locations:
+          example: '["eastasia","eastus"]'
+          type: string
+        instanceType:
+          $ref: '#/components/schemas/AzureConfigResponse_instanceType'
+        kubernetes_versions:
+          example:
+          - 1.8.1
+          - 1.8.6
+          items:
+            type: string
+          type: array
+      type: object
+    GoogleConfigResponse:
+      example:
+        kubernetes_versions:
+          validMasterVersions:
+          - 1.9.6-gke.0
+          - 1.9.4-gke.1
+          validNodeVersions:
+          - 1.9.6-gke.0
+          - 1.9.4-gke.1
+          defaultImageType: COS
+          defaultClusterVersion: 1.8.8-gke.0
+          validImageTypes:
+          - COS
+        instanceType:
+          asia-east1-a:
+          - f1-micro
+          - g1-small
+        locations: '["us-east1-c","us-east1-d"]'
+        nameRegexp: ^[a-z]$|^[a-z][a-z0-9-]{0,38}[a-z0-9]$
+        type: google
+      properties:
+        type:
+          example: google
+          type: string
+        nameRegexp:
+          example: ^[a-z]$|^[a-z][a-z0-9-]{0,38}[a-z0-9]$
+          type: string
+        locations:
+          example: '["us-east1-c","us-east1-d"]'
+          type: string
+        instanceType:
+          $ref: '#/components/schemas/GoogleConfigResponse_instanceType'
+        kubernetes_versions:
+          $ref: '#/components/schemas/GoogleConfigResponse_kubernetes_versions'
+      type: object
+    GetClusterStatusResponse:
+      example:
+        status_message: Cluster is running
+        cloud: google
+        name: myClusterName
+        location: us-central1-a
+        id: 1
+        nodePools:
+          pool1:
+            count: 1
+            instanceType: n1-standard-1
+        status: RUNNING
+      properties:
+        status:
+          example: RUNNING
+          type: string
+        status_message:
+          example: Cluster is running
+          type: string
+        name:
+          example: myClusterName
+          type: string
+        cloud:
+          example: google
+          type: string
+        location:
+          example: us-central1-a
+          type: string
+        id:
+          example: 1
+          type: number
+        nodePools:
+          $ref: '#/components/schemas/GetClusterStatusResponse_nodePools'
+      type: object
+    NodePoolStatusAmazon:
+      properties:
+        instanceType:
+          example: m4.xlarge
+          type: string
+        spot_price:
+          example: "0.2"
+          type: string
+        autoscaling:
+          type: boolean
+        count:
+          example: 1
+          type: number
+        minCount:
+          example: 1
+          type: number
+        maxCount:
+          example: 2
+          type: number
+        image:
+          example: ami-16bfeb6f
+          type: string
+      type: object
+    NodePoolStatusAzure:
+      properties:
+        autoscaling:
+          type: boolean
+        count:
+          example: 1
+          type: number
+        minCount:
+          example: 1
+          type: number
+        maxCount:
+          example: 2
+          type: number
+        instanceType:
+          example: Standard_D4_v2
+          type: string
+      type: object
+    NodePoolStatusGoogle:
+      properties:
+        autoscaling:
+          type: boolean
+        count:
+          example: 1
+          type: number
+        minCount:
+          example: 1
+          type: number
+        maxCount:
+          example: 2
+          type: number
+        instanceType:
+          example: n1-standard-1
+          type: string
+      type: object
+    CreateObjectStoreBucketRequest:
+      example:
+        name: mybucket
+        secretId: secretId
+        properties: ""
+      properties:
+        secretId:
+          type: string
+        name:
+          example: mybucket
+          type: string
+        properties:
+          oneOf:
+          - $ref: '#/components/schemas/CreateAmazonObjectStoreBucketProperties'
+          - $ref: '#/components/schemas/CreateAzureObjectStoreBucketProperties'
+          - $ref: '#/components/schemas/CreateGoogleObjectStoreBucketProperties'
+      required:
+      - name
+      - properties
+      - secretId
+      type: object
+    CreateAmazonObjectStoreBucketProperties:
+      properties:
+        location:
+          example: eu-west-1
+          type: string
+      required:
+      - location
+      type: object
+    CreateGoogleObjectStoreBucketProperties:
+      properties:
+        location:
+          example: europe
+          type: string
+      required:
+      - location
+      type: object
+    CreateAzureObjectStoreBucketProperties:
+      properties:
+        storageAccount:
+          example: mystorageaccount
+          type: string
+        location:
+          example: westeurope
+          type: string
+        resourceGroup:
+          type: string
+      required:
+      - location
+      - resourceGroup
+      - storageAccount
+      type: object
+    CreateObjectStoreBucketResponse:
+      example:
+        name: mybucket
+      properties:
+        name:
+          example: mybucket
+          type: string
+      required:
+      - name
+      type: object
+    BucketInfo:
+      properties:
+        name:
+          example: mybucket
+          type: string
+        managed:
+          type: boolean
+        azure:
+          $ref: '#/components/schemas/AzureBlobStorageProps'
+      required:
+      - managed
+      - name
+      type: object
+    ListStorageBucketsResponse:
+      items:
+        $ref: '#/components/schemas/BucketInfo'
+      type: array
+    AzureBlobStorageProps:
+      properties:
+        resourceGroup:
+          type: string
+        storageAccount:
+          type: string
+      required:
+      - resourceGroup
+      - storageAccount
+      type: object
+    RunPostHook:
+      example:
+        functions:
+        - InstallMonitoring
+      properties:
+        functions:
+          example:
+          - InstallMonitoring
+          items:
+            type: string
+          type: array
+      type: object
+    body:
+      properties:
+        name:
+          example: myOrgName
+          type: string
+      type: object
+    CatalogDetailsResponse_spotguide:
+      example:
+        options:
+        - ""
+        - ""
+        resources:
+          onDemandPct: 10
+          sumMem: 32
+          filters:
+          - filters
+          - filters
+          maxNodes: 3
+          sumCpu: 8
+          sameSize: true
+          minNodes: 1
+      properties:
+        resources:
+          $ref: '#/components/schemas/RequestedResources'
+        options:
+          items:
+            oneOf:
+            - $ref: '#/components/schemas/CatalogOptionsMysqlDatabaseName'
+            - $ref: '#/components/schemas/CatalogOptionsMysqlDatabaseSize'
+            - $ref: '#/components/schemas/CatalogOptionsMysqlVersion'
+            - $ref: '#/components/schemas/CatalogOptionsMonitor'
+          type: array
+    CatalogChartInfo_annotations:
+      example:
+        longDescription: Mysql Server with Mysql
+        displayName: Mysql Server + PMA
+      properties:
+        displayName:
+          example: Mysql Server + PMA
+          type: string
+        longDescription:
+          example: Mysql Server with Mysql
+          type: string
+    CreateAmazonProperties_amazon_master:
+      properties:
+        instanceType:
+          example: m4.xlarge
+          type: string
+        image:
+          example: ami-06d1667f
+          type: string
+    CreateAmazonProperties_amazon_nodePools:
+      properties:
+        pool1:
+          $ref: '#/components/schemas/NodePoolsAmazon'
+    CreateAmazonProperties_amazon:
+      properties:
+        master:
+          $ref: '#/components/schemas/CreateAmazonProperties_amazon_master'
+        nodePools:
+          $ref: '#/components/schemas/CreateAmazonProperties_amazon_nodePools'
+    CreateAzureProperties_azure_nodePools:
+      properties:
+        agentpool1:
+          $ref: '#/components/schemas/NodePoolsAzure'
+    CreateAzureProperties_azure:
+      properties:
+        resourceGroup:
+          example: myRg
+          type: string
+        kubernetesVersion:
+          example: 1.8.2
+          type: string
+        nodePools:
+          $ref: '#/components/schemas/CreateAzureProperties_azure_nodePools'
+    CreateGoogleProperties_google_master:
+      properties:
+        version:
+          example: 1.8.7-gke.1
+          type: string
+    CreateGoogleProperties_google_nodePools:
+      properties:
+        agentpool1:
+          $ref: '#/components/schemas/NodePoolsGoogle'
+    CreateGoogleProperties_google:
+      properties:
+        master:
+          $ref: '#/components/schemas/CreateGoogleProperties_google_master'
+        nodeVersion:
+          example: 1.8.7-gke.1
+          type: string
+        nodePools:
+          $ref: '#/components/schemas/CreateGoogleProperties_google_nodePools'
+    UpdateAmazonProperties_amazon_nodePools:
+      properties:
+        pool1:
+          $ref: '#/components/schemas/UpdateNodePoolsAmazon'
+    UpdateAmazonProperties_amazon:
+      properties:
+        nodePools:
+          $ref: '#/components/schemas/UpdateAmazonProperties_amazon_nodePools'
+    UpdateAzureProperties_azure_nodePools_pool1:
+      properties:
+        autoscaling:
+          type: boolean
+        count:
+          example: 2
+          type: number
+        minCount:
+          example: 1
+          type: number
+        maxCount:
+          example: 2
+          type: number
+    UpdateAzureProperties_azure_nodePools:
+      properties:
+        pool1:
+          $ref: '#/components/schemas/UpdateAzureProperties_azure_nodePools_pool1'
+    UpdateAzureProperties_azure:
+      properties:
+        nodePools:
+          $ref: '#/components/schemas/UpdateAzureProperties_azure_nodePools'
+    UpdateGoogleProperties_master:
+      properties:
+        version:
+          type: string
+    UpdateGoogleProperties_nodePools_pool1:
+      properties:
+        autoscaling:
+          type: boolean
+        count:
+          example: 2
+          type: number
+        minCount:
+          example: 1
+          type: number
+        maxCount:
+          example: 2
+          type: number
+        instanceType:
+          example: n1-standard-2
+          type: string
+    UpdateGoogleProperties_nodePools:
+      properties:
+        pool1:
+          $ref: '#/components/schemas/UpdateGoogleProperties_nodePools_pool1'
+    ListNodesResponse_metadata:
+      example:
+        resourceVersion: "30123"
+        selfLink: /api/v1/nodes
+      properties:
+        selfLink:
+          example: /api/v1/nodes
+          type: string
+        resourceVersion:
+          example: "30123"
+          type: string
+    NodeItem_metadata_labels:
+      example:
+        failure-domain.beta.kubernetes.io/zone: us-central1-a
+        kubernetes.io/hostname: gke-gkecluster-feri-706-pool1-496eccb3-l25k
+        beta.kubernetes.io/fluentd-ds-ready: "true"
+        cloud.google.com/gke-nodepool: pool1
+        failure-domain.beta.kubernetes.io/region: us-central1
+        beta.kubernetes.io/arch: amd64
+        beta.kubernetes.io/instance-type: n1-standard-2
+        beta.kubernetes.io/os: linux
+      properties:
+        beta.kubernetes.io/arch:
+          example: amd64
+          type: string
+        beta.kubernetes.io/fluentd-ds-ready:
+          example: "true"
+          type: string
+        beta.kubernetes.io/instance-type:
+          example: n1-standard-2
+          type: string
+        beta.kubernetes.io/os:
+          example: linux
+          type: string
+        cloud.google.com/gke-nodepool:
+          example: pool1
+          type: string
+        failure-domain.beta.kubernetes.io/region:
+          example: us-central1
+          type: string
+        failure-domain.beta.kubernetes.io/zone:
+          example: us-central1-a
+          type: string
+        kubernetes.io/hostname:
+          example: gke-gkecluster-feri-706-pool1-496eccb3-l25k
+          type: string
+    NodeItem_metadata_annotations:
+      example:
+        node.alpha.kubernetes.io/ttl: "0"
+        volumes.kubernetes.io/controller-managed-attach-detach: "true"
+      properties:
+        node.alpha.kubernetes.io/ttl:
+          example: "0"
+          type: string
+        volumes.kubernetes.io/controller-managed-attach-detach:
+          example: "true"
+          type: string
+    NodeItem_metadata:
+      example:
+        uid: f214d7fb-41ae-11e8-a4ea-42010a8001da
+        resourceVersion: "30119"
+        name: gke-gkecluster-feri-706-pool1-496eccb3-l25k
+        creationTimestamp: 2018-04-16T19:47:07Z
+        annotations:
+          node.alpha.kubernetes.io/ttl: "0"
+          volumes.kubernetes.io/controller-managed-attach-detach: "true"
+        selfLink: /api/v1/nodes/gke-gkecluster-feri-706-pool1-496eccb3-l25k
+        labels:
+          failure-domain.beta.kubernetes.io/zone: us-central1-a
+          kubernetes.io/hostname: gke-gkecluster-feri-706-pool1-496eccb3-l25k
+          beta.kubernetes.io/fluentd-ds-ready: "true"
+          cloud.google.com/gke-nodepool: pool1
+          failure-domain.beta.kubernetes.io/region: us-central1
+          beta.kubernetes.io/arch: amd64
+          beta.kubernetes.io/instance-type: n1-standard-2
+          beta.kubernetes.io/os: linux
+      properties:
+        name:
+          example: gke-gkecluster-feri-706-pool1-496eccb3-l25k
+          type: string
+        selfLink:
+          example: /api/v1/nodes/gke-gkecluster-feri-706-pool1-496eccb3-l25k
+          type: string
+        uid:
+          example: f214d7fb-41ae-11e8-a4ea-42010a8001da
+          type: string
+        resourceVersion:
+          example: "30119"
+          type: string
+        creationTimestamp:
+          example: 2018-04-16T19:47:07Z
+          type: string
+        labels:
+          $ref: '#/components/schemas/NodeItem_metadata_labels'
+        annotations:
+          $ref: '#/components/schemas/NodeItem_metadata_annotations'
+    NodeItem_spec:
+      example:
+        providerID: gce://banzaitest/us-central1-a/gke-gkecluster-706-pool1-496eccb3-l25k
+        externalID: "5935724476937880453"
+        podCIDR: 10.48.0.0/24
+      properties:
+        podCIDR:
+          example: 10.48.0.0/24
+          type: string
+        externalID:
+          example: "5935724476937880453"
+          type: string
+        providerID:
+          example: gce://banzaitest/us-central1-a/gke-gkecluster-706-pool1-496eccb3-l25k
+          type: string
+    NodeItem_status_capacity:
+      example:
+        memory: 7664776Ki
+        cpu: "2"
+        pods: "110"
+      properties:
+        cpu:
+          example: "2"
+          type: string
+        memory:
+          example: 7664776Ki
+          type: string
+        pods:
+          example: "110"
+          type: string
+    NodeItem_status_allocatable:
+      example:
+        memory: 5784712Ki
+        cpu: 1930m
+        pods: "110"
+      properties:
+        cpu:
+          example: 1930m
+          type: string
+        memory:
+          example: 5784712Ki
+          type: string
+        pods:
+          example: "110"
+          type: string
+    NodeItem_status_conditions:
+      example:
+        reason: KernelHasNoDeadlock
+        lastHeartbeatTime: 2018-04-17T09:02:45Z
+        type: KernelDeadlock
+        lastTransitionTime: 2018-04-16T19:46:26Z
+        message: kernel has no deadlock
+        status: False
+      properties:
+        type:
+          example: KernelDeadlock
+          type: string
+        status:
+          example: False
+          type: string
+        lastHeartbeatTime:
+          example: 2018-04-17T09:02:45Z
+          type: string
+        lastTransitionTime:
+          example: 2018-04-16T19:46:26Z
+          type: string
+        reason:
+          example: KernelHasNoDeadlock
+          type: string
+        message:
+          example: kernel has no deadlock
+          type: string
+    NodeItem_status_addresses:
+      example:
+        address: 10.128.0.2
+        type: InternalIP
+      properties:
+        type:
+          example: InternalIP
+          type: string
+        address:
+          example: 10.128.0.2
+          type: string
+    NodeItem_status_daemonEndpoints:
+      example:
+        kubeletEndpoint: '{}'
+      properties:
+        kubeletEndpoint:
+          properties:
+            Port:
+              example: 10250
+              format: int32
+              type: integer
+    NodeItem_status_nodeInfo:
+      example:
+        machineID: 10d8adda771410ca912a387cf7e5cb06
+        bootID: decb64ff-e662-410a-b862-04cb490b4772
+        kernelVersion: 4.4.111+
+        containerRuntimeVersion: docker://17.3.2
+        kubeletVersion: v1.9.4-gke.1
+        systemUUID: 10D8ADDA-7714-10CA-912A-387CF7E5CB06
+        kubeProxyVersion: v1.9.4-gke.1
+        operatingSystem: linux
+        osImage: Container-Optimized OS from Google
+        architecture: amd64
+      properties:
+        machineID:
+          example: 10d8adda771410ca912a387cf7e5cb06
+          type: string
+        systemUUID:
+          example: 10D8ADDA-7714-10CA-912A-387CF7E5CB06
+          type: string
+        bootID:
+          example: decb64ff-e662-410a-b862-04cb490b4772
+          type: string
+        kernelVersion:
+          example: 4.4.111+
+          type: string
+        osImage:
+          example: Container-Optimized OS from Google
+          type: string
+        containerRuntimeVersion:
+          example: docker://17.3.2
+          type: string
+        kubeletVersion:
+          example: v1.9.4-gke.1
+          type: string
+        kubeProxyVersion:
+          example: v1.9.4-gke.1
+          type: string
+        operatingSystem:
+          example: linux
+          type: string
+        architecture:
+          example: amd64
+          type: string
+    NodeItem_status_images:
+      example:
+        name:
+        - asia.gcr.io/google_containers/node-problem-detector@sha256:f95cab985c26b2f46e9bd43283e0bfa88860c14e0fb0649266babe8b65e
+        - eu.gcr.io/google_containers/node-problem-detector@sha256:f95cab985c26b2f46e9bd43283e0bfa88860c14e0fb0649266babe
+        sizeBytes: 286572743
+      properties:
+        name:
+          example:
+          - asia.gcr.io/google_containers/node-problem-detector@sha256:f95cab985c26b2f46e9bd43283e0bfa88860c14e0fb0649266babe8b65e
+          - eu.gcr.io/google_containers/node-problem-detector@sha256:f95cab985c26b2f46e9bd43283e0bfa88860c14e0fb0649266babe
+          items:
+            type: string
+          type: array
+        sizeBytes:
+          example: 286572743
+          format: int32
+          type: integer
+    NodeItem_status:
+      example:
+        daemonEndpoints:
+          kubeletEndpoint: '{}'
+        allocatable:
+          memory: 5784712Ki
+          cpu: 1930m
+          pods: "110"
+        addresses:
+        - address: 10.128.0.2
+          type: InternalIP
+        - address: 10.128.0.2
+          type: InternalIP
+        images:
+        - name:
+          - asia.gcr.io/google_containers/node-problem-detector@sha256:f95cab985c26b2f46e9bd43283e0bfa88860c14e0fb0649266babe8b65e
+          - eu.gcr.io/google_containers/node-problem-detector@sha256:f95cab985c26b2f46e9bd43283e0bfa88860c14e0fb0649266babe
+          sizeBytes: 286572743
+        - name:
+          - asia.gcr.io/google_containers/node-problem-detector@sha256:f95cab985c26b2f46e9bd43283e0bfa88860c14e0fb0649266babe8b65e
+          - eu.gcr.io/google_containers/node-problem-detector@sha256:f95cab985c26b2f46e9bd43283e0bfa88860c14e0fb0649266babe
+          sizeBytes: 286572743
+        nodeInfo:
+          machineID: 10d8adda771410ca912a387cf7e5cb06
+          bootID: decb64ff-e662-410a-b862-04cb490b4772
+          kernelVersion: 4.4.111+
+          containerRuntimeVersion: docker://17.3.2
+          kubeletVersion: v1.9.4-gke.1
+          systemUUID: 10D8ADDA-7714-10CA-912A-387CF7E5CB06
+          kubeProxyVersion: v1.9.4-gke.1
+          operatingSystem: linux
+          osImage: Container-Optimized OS from Google
+          architecture: amd64
+        conditions:
+        - reason: KernelHasNoDeadlock
+          lastHeartbeatTime: 2018-04-17T09:02:45Z
+          type: KernelDeadlock
+          lastTransitionTime: 2018-04-16T19:46:26Z
+          message: kernel has no deadlock
+          status: False
+        - reason: KernelHasNoDeadlock
+          lastHeartbeatTime: 2018-04-17T09:02:45Z
+          type: KernelDeadlock
+          lastTransitionTime: 2018-04-16T19:46:26Z
+          message: kernel has no deadlock
+          status: False
+        capacity:
+          memory: 7664776Ki
+          cpu: "2"
+          pods: "110"
+      properties:
+        capacity:
+          $ref: '#/components/schemas/NodeItem_status_capacity'
+        allocatable:
+          $ref: '#/components/schemas/NodeItem_status_allocatable'
+        conditions:
+          items:
+            $ref: '#/components/schemas/NodeItem_status_conditions'
+          type: array
+        addresses:
+          items:
+            $ref: '#/components/schemas/NodeItem_status_addresses'
+          type: array
+        daemonEndpoints:
+          $ref: '#/components/schemas/NodeItem_status_daemonEndpoints'
+        nodeInfo:
+          $ref: '#/components/schemas/NodeItem_status_nodeInfo'
+        images:
+          items:
+            $ref: '#/components/schemas/NodeItem_status_images'
+          type: array
+    ListDeploymentsResponse_inner:
+      properties:
+        name:
+          example: pipeline
+          type: string
+        chart:
+          example: pipeline-cluster-ingress-0.0.1
+          type: string
+        version:
+          example: 1
+          format: int32
+          type: integer
+        updated:
+          example: Wed Mar  7 09:56:57 2018
+          type: string
+        status:
+          example: DEPLOYED
+          type: string
+    HelmReposListResponse_inner:
+      properties:
+        name:
+          example: stable
+          type: string
+        cache:
+          example: statestore/<cluster_name>/helm/repository/cache/stable-index.yaml
+          type: string
+        url:
+          example: https://kubernetes-charts.storage.googleapis.com
+          type: string
+        certFile:
+          type: string
+        keyFile:
+          type: string
+        caFile:
+          type: string
+    HelmChartsListResponse_inner:
+      properties:
+        name:
+          example: stable
+          type: string
+        charts:
+          items:
+            items:
+              properties:
+                name:
+                  example: nginx-ingress
+                  type: string
+                home:
+                  example: https://github.com/kubernetes/ingress-nginx
+                  type: string
+                sources:
+                  example:
+                  - https://github.com/kubernetes/ingress-nginx
+                  items:
+                    type: string
+                  type: array
+                version:
+                  example: 0.13.1
+                  type: string
+                description:
+                  example: An nginx Ingress controller that uses ConfigMap to store the nginx configuration.
+                  type: string
+                keywords:
+                  example:
+                  - ingress, nginx
+                  items:
+                    type: string
+                  type: array
+                maintainers:
+                  items:
+                    properties:
+                      name:
+                        example: jackzampolin
+                        type: string
+                      email:
+                        example: jack.zampolin@gmail.com
+                        type: string
+                    type: object
+                  type: array
+                engine:
+                  example: gotpl
+                  type: string
+                icon:
+                  example: https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Nginx_logo.svg/500px-Nginx_logo.svg.png
+                  type: string
+                appVersion:
+                  example: 0.12.0
+                  type: string
+                apiVersion:
+                  example: v1
+                  type: string
+                deprecated:
+                  example: false
+                  type: boolean
+                urls:
+                  example:
+                  - https://kubernetes-charts.storage.googleapis.com/nginx-ingress-0.13.1.tgz
+                  items:
+                    type: string
+                  type: array
+                created:
+                  example: 2018-04-11T18:11:24.761440762Z
+                  type: string
+                digest:
+                  example: cf66d1666019b3e1647ba4dbc06a66ee7db1184629ae3669e11a9f72208eb7aa
+                  type: string
+              type: object
+            type: array
+          type: array
+    HelmChartDetailsResponse_chart_maintainers:
+      example:
+        name: jackzampolin
+        email: jack.zampolin@gmail.com
+      properties:
+        name:
+          example: jackzampolin
+          type: string
+        email:
+          example: jack.zampolin@gmail.com
+          type: string
+    HelmChartDetailsResponse_chart:
+      example:
+        maintainers:
+        - name: jackzampolin
+          email: jack.zampolin@gmail.com
+        - name: jackzampolin
+          email: jack.zampolin@gmail.com
+        appVersion: 0.12.0
+        sources:
+        - https://github.com/kubernetes/ingress-nginx
+        keywords:
+        - ingress, nginx
+        created: 2018-04-11T18:11:24.761440762Z
+        deprecated: false
+        icon: https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Nginx_logo.svg/500px-Nginx_logo.svg.png
+        description: An nginx Ingress controller that uses ConfigMap to store the nginx configuration.
+        version: 0.13.1
+        home: https://github.com/kubernetes/ingress-nginx
+        urls:
+        - https://kubernetes-charts.storage.googleapis.com/nginx-ingress-0.13.1.tgz
+        apiVersion: v1
+        engine: gotpl
+        name: nginx-ingress
+        digest: cf66d1666019b3e1647ba4dbc06a66ee7db1184629ae3669e11a9f72208eb7aa
+      properties:
+        name:
+          example: nginx-ingress
+          type: string
+        home:
+          example: https://github.com/kubernetes/ingress-nginx
+          type: string
+        sources:
+          example:
+          - https://github.com/kubernetes/ingress-nginx
+          items:
+            type: string
+          type: array
+        version:
+          example: 0.13.1
+          type: string
+        description:
+          example: An nginx Ingress controller that uses ConfigMap to store the nginx configuration.
+          type: string
+        keywords:
+          example:
+          - ingress, nginx
+          items:
+            type: string
+          type: array
+        maintainers:
+          items:
+            $ref: '#/components/schemas/HelmChartDetailsResponse_chart_maintainers'
+          type: array
+        engine:
+          example: gotpl
+          type: string
+        icon:
+          example: https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Nginx_logo.svg/500px-Nginx_logo.svg.png
+          type: string
+        appVersion:
+          example: 0.12.0
+          type: string
+        apiVersion:
+          example: v1
+          type: string
+        deprecated:
+          example: false
+          type: boolean
+        urls:
+          example:
+          - https://kubernetes-charts.storage.googleapis.com/nginx-ingress-0.13.1.tgz
+          items:
+            type: string
+          type: array
+        created:
+          example: 2018-04-11T18:11:24.761440762Z
+          type: string
+        digest:
+          example: cf66d1666019b3e1647ba4dbc06a66ee7db1184629ae3669e11a9f72208eb7aa
+          type: string
+    InstallSecretsRequest_query:
+      example:
+        tag: repo:pipeline
+        type: amazon
+      properties:
+        type:
+          example: amazon
+          type: string
+        tag:
+          example: repo:pipeline
+          type: string
+    ClusterProfileAmazon_amazon_nodePools_pool1:
+      properties:
+        instanceType:
+          example: m4.xlarge
+          type: string
+        spotPrice:
+          example: "0.2"
+          type: string
+        autoscaling:
+          type: boolean
+        count:
+          example: 1
+          type: number
+        minCount:
+          example: 1
+          type: number
+        maxCount:
+          example: 2
+          type: number
+        image:
+          example: ami-06d1667f
+          type: string
+    ClusterProfileAmazon_amazon_nodePools:
+      properties:
+        pool1:
+          $ref: '#/components/schemas/ClusterProfileAmazon_amazon_nodePools_pool1'
+    ClusterProfileAmazon_amazon:
+      properties:
+        master:
+          $ref: '#/components/schemas/CreateAmazonProperties_amazon_master'
+        nodePools:
+          $ref: '#/components/schemas/ClusterProfileAmazon_amazon_nodePools'
+    ClusterProfileAzure_azure_nodePools_pool1:
+      properties:
+        autoscaling:
+          type: boolean
+        count:
+          example: 1
+          type: number
+        minCount:
+          example: 1
+          type: number
+        maxCount:
+          example: 2
+          type: number
+        instanceType:
+          example: Standard_D2_v2
+          type: string
+    ClusterProfileAzure_azure_nodePools:
+      properties:
+        pool1:
+          $ref: '#/components/schemas/ClusterProfileAzure_azure_nodePools_pool1'
+    ClusterProfileAzure_azure:
+      properties:
+        kubernetesVersion:
+          example: 1.9.2
+          type: string
+        nodePools:
+          $ref: '#/components/schemas/ClusterProfileAzure_azure_nodePools'
+    ClusterProfileGoogle_google_nodePools_pool1:
+      properties:
+        autoscaling:
+          type: boolean
+        count:
+          example: 1
+          type: number
+        minCount:
+          example: 1
+          type: number
+        maxCount:
+          example: 2
+          type: number
+        instanceType:
+          example: n1-standard-1
+          type: string
+        serviceAccount:
+          type: string
+    ClusterProfileGoogle_google_nodePools:
+      properties:
+        pool1:
+          $ref: '#/components/schemas/ClusterProfileGoogle_google_nodePools_pool1'
+    ClusterProfileGoogle_google:
+      properties:
+        master:
+          $ref: '#/components/schemas/CreateGoogleProperties_google_master'
+        nodeVersion:
+          example: 1.8.7-gke.1
+          type: string
+        nodePools:
+          $ref: '#/components/schemas/ClusterProfileGoogle_google_nodePools'
+    AddClusterProfileAmazon_amazon_nodePools_pool1:
+      properties:
+        spotPrice:
+          example: "0.2"
+          type: string
+        minCount:
+          example: 1
+          format: int32
+          type: integer
+        maxCount:
+          example: 2
+          format: int32
+          type: integer
+        image:
+          example: ami-06d1667f
+          type: string
+        instanceType:
+          example: m4.xlarge
+          type: string
+    AddClusterProfileAmazon_amazon_nodePools:
+      properties:
+        pool1:
+          $ref: '#/components/schemas/AddClusterProfileAmazon_amazon_nodePools_pool1'
+    AddClusterProfileAmazon_amazon:
+      properties:
+        master:
+          $ref: '#/components/schemas/CreateAmazonProperties_amazon_master'
+        nodePools:
+          $ref: '#/components/schemas/AddClusterProfileAmazon_amazon_nodePools'
+    AddClusterProfileAzure_azure_nodePools_pool1:
+      properties:
+        count:
+          example: 1
+          format: int32
+          type: integer
+        instanceType:
+          example: Standard_D2_v2
+          type: string
+    AddClusterProfileAzure_azure_nodePools:
+      properties:
+        pool1:
+          $ref: '#/components/schemas/AddClusterProfileAzure_azure_nodePools_pool1'
+    AddClusterProfileAzure_azure:
+      properties:
+        nodePools:
+          $ref: '#/components/schemas/AddClusterProfileAzure_azure_nodePools'
+        kubernetesVersion:
+          example: 1.8.2
+          type: string
+    AddClusterProfileGoogle_google_nodePools_pool1:
+      properties:
+        count:
+          example: 1
+          format: int32
+          type: integer
+        serviceAccount:
+          example: serviceAccountExample
+          type: string
+        instanceType:
+          example: n1-standard-2
+          type: string
+    AddClusterProfileGoogle_google_nodePools:
+      properties:
+        pool1:
+          $ref: '#/components/schemas/AddClusterProfileGoogle_google_nodePools_pool1'
+    AddClusterProfileGoogle_google:
+      properties:
+        master:
+          $ref: '#/components/schemas/CreateGoogleProperties_google_master'
+        nodeVersion:
+          example: 1.8.7-gke.1
+          type: string
+        nodePools:
+          $ref: '#/components/schemas/AddClusterProfileGoogle_google_nodePools'
+    AllowedSecretTypesResponse_alllowed:
+      example:
+        amazon:
+        - AWS_ACCESS_KEY_ID
+        - AWS_SECRET_ACCESS_KEY
+        kubernetes:
+        - K8Sconfig
+        google:
+        - type
+        - project_id
+        - private_key_id
+        - private_key
+        - client_email
+        - client_id
+        - auth_uri
+        - token_uri
+        - auth_provider_x509_cert_url
+        - client_x509_cert_url
+        azure:
+        - AZURE_CLIENT_ID
+        - AZURE_CLIENT_SECRET
+        - AZURE_TENANT_ID
+        - AZURE_SUBSCRIPTION_ID
+      properties:
+        amazon:
+          example:
+          - AWS_ACCESS_KEY_ID
+          - AWS_SECRET_ACCESS_KEY
+          items:
+            type: string
+          type: array
+        azure:
+          example:
+          - AZURE_CLIENT_ID
+          - AZURE_CLIENT_SECRET
+          - AZURE_TENANT_ID
+          - AZURE_SUBSCRIPTION_ID
+          items:
+            type: string
+          type: array
+        google:
+          example:
+          - type
+          - project_id
+          - private_key_id
+          - private_key
+          - client_email
+          - client_id
+          - auth_uri
+          - token_uri
+          - auth_provider_x509_cert_url
+          - client_x509_cert_url
+          items:
+            type: string
+          type: array
+        kubernetes:
+          example:
+          - K8Sconfig
+          items:
+            type: string
+          type: array
+    AmazonConfigResponse_image:
+      example:
+        eu-west-1:
+        - ami-6202561b
+        - ami-ece5b095
+      properties:
+        eu-west-1:
+          example:
+          - ami-6202561b
+          - ami-ece5b095
+          items:
+            type: string
+          type: array
+    AmazonConfigResponse_instanceType:
+      example:
+        eu-west-1:
+        - t2.nano
+        - t2.micro
+      properties:
+        eu-west-1:
+          example:
+          - t2.nano
+          - t2.micro
+          items:
+            type: string
+          type: array
+    AzureConfigResponse_instanceType:
+      example:
+        eastus:
+        - Standard_B1ms
+        - Standard_B1s
+      properties:
+        eastus:
+          example:
+          - Standard_B1ms
+          - Standard_B1s
+          items:
+            type: string
+          type: array
+    GoogleConfigResponse_instanceType:
+      example:
+        asia-east1-a:
+        - f1-micro
+        - g1-small
+      properties:
+        asia-east1-a:
+          example:
+          - f1-micro
+          - g1-small
+          items:
+            type: string
+          type: array
+    GoogleConfigResponse_kubernetes_versions:
+      example:
+        validMasterVersions:
+        - 1.9.6-gke.0
+        - 1.9.4-gke.1
+        validNodeVersions:
+        - 1.9.6-gke.0
+        - 1.9.4-gke.1
+        defaultImageType: COS
+        defaultClusterVersion: 1.8.8-gke.0
+        validImageTypes:
+        - COS
+      properties:
+        defaultClusterVersion:
+          example: 1.8.8-gke.0
+          type: string
+        defaultImageType:
+          example: COS
+          type: string
+        validImageTypes:
+          example:
+          - COS
+          items:
+            type: string
+          type: array
+        validMasterVersions:
+          example:
+          - 1.9.6-gke.0
+          - 1.9.4-gke.1
+          items:
+            type: string
+          type: array
+        validNodeVersions:
+          example:
+          - 1.9.6-gke.0
+          - 1.9.4-gke.1
+          items:
+            type: string
+          type: array
+    GetClusterStatusResponse_nodePools:
+      example:
+        pool1:
+          count: 1
+          instanceType: n1-standard-1
+      properties:
+        pool1:
+          example:
+            count: 1
+            instanceType: n1-standard-1
+          oneOf:
+          - $ref: '#/components/schemas/NodePoolStatusAmazon'
+          - $ref: '#/components/schemas/NodePoolStatusAzure'
+          - $ref: '#/components/schemas/NodePoolStatusGoogle'
+          type: object
+  securitySchemes:
+    bearerAuth:
+      bearerFormat: JWT
+      scheme: bearer
+      type: http
