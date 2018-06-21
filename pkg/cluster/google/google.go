@@ -1,7 +1,8 @@
 package google
 
 import (
-	"github.com/banzaicloud/banzai-types/constants"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/pkg/errors"
 	"regexp"
 )
@@ -49,8 +50,8 @@ func (g *CreateClusterGoogle) Validate() error {
 
 	if g.NodePools == nil {
 		g.NodePools = map[string]*NodePool{
-			constants.GoogleDefaultNodePoolName: {
-				Count: constants.DefaultNodeMinCount,
+			pkgCluster.GoogleDefaultNodePoolName: {
+				Count: pkgCluster.DefaultNodeMinCount,
 			},
 		}
 	}
@@ -60,11 +61,11 @@ func (g *CreateClusterGoogle) Validate() error {
 	}
 
 	if !isValidVersion(g.Master.Version) || !isValidVersion(g.NodeVersion) {
-		return constants.ErrorWrongKubernetesVersion
+		return pkgErrors.ErrorWrongKubernetesVersion
 	}
 
 	if g.Master.Version != g.NodeVersion {
-		return constants.ErrorDifferentKubernetesVersion
+		return pkgErrors.ErrorDifferentKubernetesVersion
 	}
 
 	for _, nodePool := range g.NodePools {
@@ -72,18 +73,18 @@ func (g *CreateClusterGoogle) Validate() error {
 		// ---- [ Min & Max count fields are required in case of autoscaling ] ---- //
 		if nodePool.Autoscaling {
 			if nodePool.MinCount == 0 {
-				return constants.ErrorMinFieldRequiredError
+				return pkgErrors.ErrorMinFieldRequiredError
 			}
 			if nodePool.MaxCount == 0 {
-				return constants.ErrorMaxFieldRequiredError
+				return pkgErrors.ErrorMaxFieldRequiredError
 			}
 			if nodePool.MaxCount < nodePool.MinCount {
-				return constants.ErrorNodePoolMinMaxFieldError
+				return pkgErrors.ErrorNodePoolMinMaxFieldError
 			}
 		}
 
 		if nodePool.Count == 0 {
-			nodePool.Count = constants.DefaultNodeMinCount
+			nodePool.Count = pkgCluster.DefaultNodeMinCount
 		}
 
 	}
@@ -102,17 +103,17 @@ func (a *UpdateClusterGoogle) Validate() error {
 
 	// check version
 	if (a.Master != nil && !isValidVersion(a.Master.Version)) || !isValidVersion(a.NodeVersion) {
-		return constants.ErrorWrongKubernetesVersion
+		return pkgErrors.ErrorWrongKubernetesVersion
 	}
 
 	// check version equality
 	if a.Master != nil && a.Master.Version != a.NodeVersion {
-		return constants.ErrorDifferentKubernetesVersion
+		return pkgErrors.ErrorDifferentKubernetesVersion
 	}
 
 	// if nodepools are provided in the update request check that it's not empty
 	if a.NodePools != nil && len(a.NodePools) == 0 {
-		return constants.ErrorNodePoolNotProvided
+		return pkgErrors.ErrorNodePoolNotProvided
 	}
 
 	return nil

@@ -2,16 +2,15 @@ package cluster
 
 import (
 	"encoding/base64"
-	"github.com/banzaicloud/banzai-types/components"
-	"github.com/banzaicloud/banzai-types/constants"
-	pipConstants "github.com/banzaicloud/pipeline/constants"
 	"github.com/banzaicloud/pipeline/model"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"gopkg.in/yaml.v2"
 )
 
 // CreateKubernetesClusterFromRequest creates ClusterModel struct from the request
-func CreateKubernetesClusterFromRequest(request *components.CreateClusterRequest, orgId uint) (*KubeCluster, error) {
+func CreateKubernetesClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint) (*KubeCluster, error) {
 
 	log.Debug("Create ClusterModel struct from the request")
 	var cluster KubeCluster
@@ -61,7 +60,7 @@ func (b *KubeCluster) DownloadK8sConfig() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	b.k8sConfig, err = base64.StdEncoding.DecodeString(s.GetValue(pipConstants.K8SConfig))
+	b.k8sConfig, err = base64.StdEncoding.DecodeString(s.GetValue(pkgSecret.K8SConfig))
 	return b.k8sConfig, err
 }
 
@@ -72,11 +71,11 @@ func (b *KubeCluster) GetName() string {
 
 // GetType returns the cloud type of the cluster
 func (b *KubeCluster) GetType() string {
-	return constants.Kubernetes
+	return pkgCluster.Kubernetes
 }
 
 // GetStatus gets cluster status
-func (b *KubeCluster) GetStatus() (*components.GetClusterStatusResponse, error) {
+func (b *KubeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 
 	if len(b.modelCluster.Location) == 0 {
 		log.Debug("Empty location.. reload from db")
@@ -85,12 +84,12 @@ func (b *KubeCluster) GetStatus() (*components.GetClusterStatusResponse, error) 
 		db.Find(&b.modelCluster, model.ClusterModel{ID: b.GetID()})
 	}
 
-	return &components.GetClusterStatusResponse{
+	return &pkgCluster.GetClusterStatusResponse{
 		Status:        b.modelCluster.Status,
 		StatusMessage: b.modelCluster.StatusMessage,
 		Name:          b.GetName(),
 		Location:      b.modelCluster.Location,
-		Cloud:         constants.Kubernetes,
+		Cloud:         pkgCluster.Kubernetes,
 		ResourceID:    b.modelCluster.ID,
 		NodePools:     nil,
 	}, nil
@@ -102,7 +101,7 @@ func (b *KubeCluster) DeleteCluster() error {
 }
 
 // UpdateCluster updates cluster in cloud, in this case no update function
-func (b *KubeCluster) UpdateCluster(*components.UpdateClusterRequest) error {
+func (b *KubeCluster) UpdateCluster(*pkgCluster.UpdateClusterRequest) error {
 	return nil
 }
 
@@ -132,12 +131,12 @@ func (b *KubeCluster) GetModel() *model.ClusterModel {
 }
 
 // CheckEqualityToUpdate validates the update request, in this case no update function
-func (b *KubeCluster) CheckEqualityToUpdate(*components.UpdateClusterRequest) error {
+func (b *KubeCluster) CheckEqualityToUpdate(*pkgCluster.UpdateClusterRequest) error {
 	return nil
 }
 
 // AddDefaultsToUpdate adds defaults to update request, in this case no update function
-func (b *KubeCluster) AddDefaultsToUpdate(*components.UpdateClusterRequest) {
+func (b *KubeCluster) AddDefaultsToUpdate(*pkgCluster.UpdateClusterRequest) {
 
 }
 
@@ -151,7 +150,7 @@ func (b *KubeCluster) GetAPIEndpoint() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	config, err := base64.StdEncoding.DecodeString(secretItem.GetValue(pipConstants.K8SConfig))
+	config, err := base64.StdEncoding.DecodeString(secretItem.GetValue(pkgSecret.K8SConfig))
 	if err != nil {
 		return "", err
 	}
@@ -189,20 +188,20 @@ func (b *KubeCluster) UpdateStatus(status, statusMessage string) error {
 }
 
 // GetClusterDetails gets cluster details from cloud
-func (b *KubeCluster) GetClusterDetails() (*components.ClusterDetailsResponse, error) {
+func (b *KubeCluster) GetClusterDetails() (*pkgCluster.ClusterDetailsResponse, error) {
 	status, err := b.GetStatus()
 	if err != nil {
 		return nil, err
 	}
 
-	return &components.ClusterDetailsResponse{
+	return &pkgCluster.ClusterDetailsResponse{
 		Name: status.Name,
 		Id:   status.ResourceID,
 	}, nil
 }
 
 // ValidateCreationFields validates all field
-func (b *KubeCluster) ValidateCreationFields(r *components.CreateClusterRequest) error {
+func (b *KubeCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
 	return nil
 }
 

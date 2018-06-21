@@ -4,11 +4,10 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice"
 	azureClient "github.com/banzaicloud/azure-aks-client/client"
 	azureCluster "github.com/banzaicloud/azure-aks-client/cluster"
-	"github.com/banzaicloud/banzai-types/components"
-	bTypes "github.com/banzaicloud/banzai-types/components"
-	banzaiAzureTypes "github.com/banzaicloud/banzai-types/components/azure"
-	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/model"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	pkgClusterAzure "github.com/banzaicloud/pipeline/pkg/cluster/azure"
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	pipelineSsh "github.com/banzaicloud/pipeline/ssh"
@@ -17,7 +16,7 @@ import (
 )
 
 //CreateAKSClusterFromRequest creates ClusterModel struct from the request
-func CreateAKSClusterFromRequest(request *components.CreateClusterRequest, orgId uint) (*AKSCluster, error) {
+func CreateAKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint) (*AKSCluster, error) {
 	log.Debug("Create ClusterModel struct from the request")
 	var cluster AKSCluster
 
@@ -52,7 +51,7 @@ func CreateAKSClusterFromRequest(request *components.CreateClusterRequest, orgId
 
 //AKSCluster struct for AKS cluster
 type AKSCluster struct {
-	azureCluster *banzaiAzureTypes.Value //Don't use this directly
+	azureCluster *pkgClusterAzure.Value //Don't use this directly
 	modelCluster *model.ClusterModel
 	APIEndpoint  string
 	CommonClusterBase
@@ -202,21 +201,21 @@ func (c *AKSCluster) GetType() string {
 }
 
 //GetStatus gets cluster status
-func (c *AKSCluster) GetStatus() (*bTypes.GetClusterStatusResponse, error) {
+func (c *AKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 
 	log.Info("Create cluster status response")
 
-	nodePools := make(map[string]*bTypes.NodePoolStatus)
+	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
 	for _, np := range c.modelCluster.Azure.NodePools {
 		if np != nil {
-			nodePools[np.Name] = &bTypes.NodePoolStatus{
+			nodePools[np.Name] = &pkgCluster.NodePoolStatus{
 				Count:        np.Count,
 				InstanceType: np.NodeInstanceType,
 			}
 		}
 	}
 
-	return &components.GetClusterStatusResponse{
+	return &pkgCluster.GetClusterStatusResponse{
 		Status:        c.modelCluster.Status,
 		StatusMessage: c.modelCluster.StatusMessage,
 		Name:          c.modelCluster.Name,
@@ -250,7 +249,7 @@ func (c *AKSCluster) DeleteCluster() error {
 }
 
 // UpdateCluster updates AKS cluster in cloud
-func (c *AKSCluster) UpdateCluster(request *bTypes.UpdateClusterRequest) error {
+func (c *AKSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest) error {
 	client, err := c.GetAKSClient()
 	if err != nil {
 		return err
@@ -268,7 +267,7 @@ func (c *AKSCluster) UpdateCluster(request *bTypes.UpdateClusterRequest) error {
 	// send separate requests because Azure not supports multiple nodepool modification
 	// Azure not supports adding and deleting nodepools
 	var nodePoolAfterUpdate []*model.AzureNodePoolModel
-	var updatedCluster *banzaiAzureTypes.ResponseWithValue
+	var updatedCluster *pkgClusterAzure.ResponseWithValue
 	if requestNodes := request.Azure.NodePools; requestNodes != nil {
 		for name, np := range requestNodes {
 			if existNodePool := c.getExistingNodePoolByName(name); np != nil && existNodePool != nil {
@@ -355,7 +354,7 @@ func (c *AKSCluster) getExistingNodePoolByName(name string) *model.AzureNodePool
 }
 
 // updateWithPolling sends update request to cloud and polling until it's not ready
-func (c *AKSCluster) updateWithPolling(manager azureClient.ClusterManager, ccr *azureCluster.CreateClusterRequest) (*banzaiAzureTypes.ResponseWithValue, error) {
+func (c *AKSCluster) updateWithPolling(manager azureClient.ClusterManager, ccr *azureCluster.CreateClusterRequest) (*pkgClusterAzure.ResponseWithValue, error) {
 
 	log.Info("Send update request to azure")
 	_, err := azureClient.CreateUpdateCluster(manager, ccr)
@@ -385,7 +384,7 @@ func (c *AKSCluster) GetModel() *model.ClusterModel {
 }
 
 // GetAzureCluster returns cluster from cloud
-func (c *AKSCluster) GetAzureCluster() (*banzaiAzureTypes.Value, error) {
+func (c *AKSCluster) GetAzureCluster() (*pkgClusterAzure.Value, error) {
 	client, err := c.GetAKSClient()
 	if err != nil {
 		return nil, err
@@ -408,18 +407,18 @@ func CreateAKSClusterFromModel(clusterModel *model.ClusterModel) (*AKSCluster, e
 }
 
 //AddDefaultsToUpdate adds defaults to update request
-func (c *AKSCluster) AddDefaultsToUpdate(r *components.UpdateClusterRequest) {
+func (c *AKSCluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
 
 	if r.Azure == nil {
 		log.Info("'azure' field is empty.")
-		r.Azure = &banzaiAzureTypes.UpdateClusterAzure{}
+		r.Azure = &pkgClusterAzure.UpdateClusterAzure{}
 	}
 
 	if len(r.Azure.NodePools) == 0 {
 		storedPools := c.modelCluster.Azure.NodePools
-		nodePools := make(map[string]*banzaiAzureTypes.NodePoolUpdate)
+		nodePools := make(map[string]*pkgClusterAzure.NodePoolUpdate)
 		for _, np := range storedPools {
-			nodePools[np.Name] = &banzaiAzureTypes.NodePoolUpdate{
+			nodePools[np.Name] = &pkgClusterAzure.NodePoolUpdate{
 				Autoscaling: np.Autoscaling,
 				MinCount:    np.NodeMinCount,
 				MaxCount:    np.NodeMaxCount,
@@ -432,13 +431,13 @@ func (c *AKSCluster) AddDefaultsToUpdate(r *components.UpdateClusterRequest) {
 }
 
 //CheckEqualityToUpdate validates the update request
-func (c *AKSCluster) CheckEqualityToUpdate(r *components.UpdateClusterRequest) error {
+func (c *AKSCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) error {
 	// create update request struct with the stored data to check equality
-	preProfiles := make(map[string]*banzaiAzureTypes.NodePoolUpdate)
+	preProfiles := make(map[string]*pkgClusterAzure.NodePoolUpdate)
 
 	for _, preP := range c.modelCluster.Azure.NodePools {
 		if preP != nil {
-			preProfiles[preP.Name] = &banzaiAzureTypes.NodePoolUpdate{
+			preProfiles[preP.Name] = &pkgClusterAzure.NodePoolUpdate{
 				Autoscaling: preP.Autoscaling,
 				MinCount:    preP.NodeMinCount,
 				MaxCount:    preP.NodeMaxCount,
@@ -447,7 +446,7 @@ func (c *AKSCluster) CheckEqualityToUpdate(r *components.UpdateClusterRequest) e
 		}
 	}
 
-	preCl := &banzaiAzureTypes.UpdateClusterAzure{
+	preCl := &pkgClusterAzure.UpdateClusterAzure{
 		NodePools: preProfiles,
 	}
 
@@ -478,13 +477,13 @@ func GetLocations(orgId uint, secretId string) ([]string, error) {
 }
 
 // GetMachineTypes lists all available virtual machine sizes for a subscription in a location.
-func GetMachineTypes(orgId uint, secretId, location string) (response map[string]components.MachineType, err error) {
+func GetMachineTypes(orgId uint, secretId, location string) (response map[string]pkgCluster.MachineType, err error) {
 	client, err := getAKSClient(orgId, secretId)
 	if err != nil {
 		return nil, err
 	}
 
-	response = make(map[string]components.MachineType)
+	response = make(map[string]pkgCluster.MachineType)
 	response[location], err = azureClient.GetVmSizes(client, location)
 
 	return
@@ -507,7 +506,7 @@ func getAKSClient(orgId uint, secretId string) (azureClient.ClusterManager, erro
 		modelCluster: &model.ClusterModel{
 			OrganizationId: orgId,
 			SecretId:       secretId,
-			Cloud:          constants.Azure,
+			Cloud:          pkgCluster.Azure,
 		},
 	}
 
@@ -520,7 +519,7 @@ func (c *AKSCluster) UpdateStatus(status, statusMessage string) error {
 }
 
 // GetClusterDetails gets cluster details from cloud
-func (c *AKSCluster) GetClusterDetails() (*components.ClusterDetailsResponse, error) {
+func (c *AKSCluster) GetClusterDetails() (*pkgCluster.ClusterDetailsResponse, error) {
 
 	client, err := c.GetAKSClient()
 	if err != nil {
@@ -537,17 +536,17 @@ func (c *AKSCluster) GetClusterDetails() (*components.ClusterDetailsResponse, er
 	stage := resp.Value.Properties.ProvisioningState
 	log.Info("Cluster stage is", stage)
 	if stage == "Succeeded" {
-		return &components.ClusterDetailsResponse{
+		return &pkgCluster.ClusterDetailsResponse{
 			Name: c.modelCluster.Name,
 			Id:   c.modelCluster.ID,
 		}, nil
 
 	}
-	return nil, constants.ErrorClusterNotReady
+	return nil, pkgErrors.ErrorClusterNotReady
 }
 
 // ValidateCreationFields validates all field
-func (c *AKSCluster) ValidateCreationFields(r *bTypes.CreateClusterRequest) error {
+func (c *AKSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
 
 	location := r.Location
 
@@ -589,14 +588,14 @@ func (c *AKSCluster) validateLocation(location string) error {
 	log.Infof("Valid locations: %#v", validLocations)
 
 	if isOk := utils.Contains(validLocations, location); !isOk {
-		return constants.ErrorNotValidLocation
+		return pkgErrors.ErrorNotValidLocation
 	}
 
 	return nil
 }
 
 // validateMachineType validates nodeInstanceTypes
-func (c *AKSCluster) validateMachineType(nodePools map[string]*banzaiAzureTypes.NodePoolCreate, location string) error {
+func (c *AKSCluster) validateMachineType(nodePools map[string]*pkgClusterAzure.NodePoolCreate, location string) error {
 
 	var machineTypes []string
 	for _, nodePool := range nodePools {
@@ -615,7 +614,7 @@ func (c *AKSCluster) validateMachineType(nodePools map[string]*banzaiAzureTypes.
 
 	for _, mt := range machineTypes {
 		if isOk := utils.Contains(validMachineTypes[location], mt); !isOk {
-			return constants.ErrorNotValidNodeInstanceType
+			return pkgErrors.ErrorNotValidNodeInstanceType
 		}
 	}
 
@@ -633,7 +632,7 @@ func (c *AKSCluster) validateKubernetesVersion(k8sVersion, location string) erro
 	log.Infof("Valid K8SVersions: %s", validVersions)
 
 	if isOk := utils.Contains(validVersions, k8sVersion); !isOk {
-		return constants.ErrorNotValidKubernetesVersion
+		return pkgErrors.ErrorNotValidKubernetesVersion
 	}
 
 	return nil

@@ -8,11 +8,11 @@ import (
 
 	"encoding/base64"
 
-	bTypes "github.com/banzaicloud/banzai-types/components"
-	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/config"
-	pipConstants "github.com/banzaicloud/pipeline/constants"
 	"github.com/banzaicloud/pipeline/model"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/kubicorn/kubicorn/pkg/logger"
@@ -35,22 +35,22 @@ type CommonCluster interface {
 	DownloadK8sConfig() ([]byte, error)
 	GetName() string
 	GetType() string
-	GetStatus() (*bTypes.GetClusterStatusResponse, error)
+	GetStatus() (*pkgCluster.GetClusterStatusResponse, error)
 	DeleteCluster() error
-	UpdateCluster(*bTypes.UpdateClusterRequest) error
+	UpdateCluster(*pkgCluster.UpdateClusterRequest) error
 	GetID() uint
 	GetSecretId() string
 	GetSshSecretId() string
 	SaveSshSecretId(string) error
 	GetModel() *model.ClusterModel
-	CheckEqualityToUpdate(*bTypes.UpdateClusterRequest) error
-	AddDefaultsToUpdate(*bTypes.UpdateClusterRequest)
+	CheckEqualityToUpdate(*pkgCluster.UpdateClusterRequest) error
+	AddDefaultsToUpdate(*pkgCluster.UpdateClusterRequest)
 	GetAPIEndpoint() (string, error)
 	DeleteFromDatabase() error
 	GetOrganizationId() uint
 	UpdateStatus(string, string) error
-	GetClusterDetails() (*bTypes.ClusterDetailsResponse, error)
-	ValidateCreationFields(r *bTypes.CreateClusterRequest) error
+	GetClusterDetails() (*pkgCluster.ClusterDetailsResponse, error)
+	ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error
 	GetSecretWithValidation() (*secret.SecretsItemResponse, error)
 	GetSshSecretWithValidation() (*secret.SecretsItemResponse, error)
 	SaveConfigSecretId(string) error
@@ -108,7 +108,7 @@ func (c *CommonClusterBase) getSshSecret(cluster CommonCluster) (*secret.Secrets
 		log.Info("Secret is loaded before")
 	}
 
-	err := c.sshSecret.ValidateSecretType(pipConstants.SSHSecretType)
+	err := c.sshSecret.ValidateSecretType(pkgSecret.SSHSecretType)
 	if err != nil {
 		return nil, err
 	}
@@ -135,7 +135,7 @@ func (c *CommonClusterBase) getConfig(cluster CommonCluster) ([]byte, error) {
 			}
 
 		} else {
-			configStr, err := base64.StdEncoding.DecodeString(configSecret.GetValue(pipConstants.K8SConfig))
+			configStr, err := base64.StdEncoding.DecodeString(configSecret.GetValue(pkgSecret.K8SConfig))
 			if err != nil {
 				return nil, err
 			}
@@ -157,11 +157,11 @@ func StoreKubernetesConfig(cluster CommonCluster, config []byte) error {
 	organizationID := cluster.GetOrganizationId()
 	createSecretRequest := secret.CreateSecretRequest{
 		Name: fmt.Sprintf("%s-config", cluster.GetName()),
-		Type: pipConstants.K8SConfig,
+		Type: pkgSecret.K8SConfig,
 		Values: map[string]string{
-			pipConstants.K8SConfig: encodedConfig,
+			pkgSecret.K8SConfig: encodedConfig,
 		},
-		Tags: []string{pipConstants.TagKubeConfig},
+		Tags: []string{pkgSecret.TagKubeConfig},
 	}
 
 	secretID, err := secret.Store.Store(organizationID, &createSecretRequest)
@@ -192,7 +192,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 
 	cloudType := modelCluster.Cloud
 	switch cloudType {
-	case constants.Amazon:
+	case pkgCluster.Amazon:
 		//Create Amazon struct
 		awsCluster, err := CreateAWSClusterFromModel(modelCluster)
 		if err != nil {
@@ -205,7 +205,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 
 		return awsCluster, nil
 
-	case constants.Azure:
+	case pkgCluster.Azure:
 		// Create Azure struct
 		aksCluster, err := CreateAKSClusterFromModel(modelCluster)
 		if err != nil {
@@ -218,7 +218,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 
 		return aksCluster, nil
 
-	case constants.Google:
+	case pkgCluster.Google:
 		// Create Google struct
 		gkeCluster, err := CreateGKEClusterFromModel(modelCluster)
 		if err != nil {
@@ -231,7 +231,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 
 		return gkeCluster, nil
 
-	case constants.Dummy:
+	case pkgCluster.Dummy:
 		dummyCluster, err := CreateDummyClusterFromModel(modelCluster)
 		if err != nil {
 			return nil, err
@@ -241,7 +241,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 
 		return dummyCluster, nil
 
-	case constants.Kubernetes:
+	case pkgCluster.Kubernetes:
 		// Create Kubernetes struct
 		kubernetesCluster, err := CreateKubernetesClusterFromModel(modelCluster)
 		if err != nil {
@@ -254,11 +254,11 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 		return kubernetesCluster, nil
 	}
 
-	return nil, constants.ErrorNotSupportedCloudType
+	return nil, pkgErrors.ErrorNotSupportedCloudType
 }
 
 //CreateCommonClusterFromRequest creates a CommonCluster from a request
-func CreateCommonClusterFromRequest(createClusterRequest *bTypes.CreateClusterRequest, orgId uint) (CommonCluster, error) {
+func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClusterRequest, orgId uint) (CommonCluster, error) {
 
 	if err := createClusterRequest.AddDefaults(); err != nil {
 		return nil, err
@@ -271,7 +271,7 @@ func CreateCommonClusterFromRequest(createClusterRequest *bTypes.CreateClusterRe
 
 	cloudType := createClusterRequest.Cloud
 	switch cloudType {
-	case constants.Amazon:
+	case pkgCluster.Amazon:
 		//Create Amazon struct
 		awsCluster, err := CreateAWSClusterFromRequest(createClusterRequest, orgId)
 		if err != nil {
@@ -279,7 +279,7 @@ func CreateCommonClusterFromRequest(createClusterRequest *bTypes.CreateClusterRe
 		}
 		return awsCluster, nil
 
-	case constants.Azure:
+	case pkgCluster.Azure:
 		// Create Azure struct
 		aksCluster, err := CreateAKSClusterFromRequest(createClusterRequest, orgId)
 		if err != nil {
@@ -287,7 +287,7 @@ func CreateCommonClusterFromRequest(createClusterRequest *bTypes.CreateClusterRe
 		}
 		return aksCluster, nil
 
-	case constants.Google:
+	case pkgCluster.Google:
 		// Create Google struct
 		gkeCluster, err := CreateGKEClusterFromRequest(createClusterRequest, orgId)
 		if err != nil {
@@ -295,7 +295,7 @@ func CreateCommonClusterFromRequest(createClusterRequest *bTypes.CreateClusterRe
 		}
 		return gkeCluster, nil
 
-	case constants.Dummy:
+	case pkgCluster.Dummy:
 		// Create Dummy struct
 		dummy, err := CreateDummyClusterFromRequest(createClusterRequest, orgId)
 		if err != nil {
@@ -304,7 +304,7 @@ func CreateCommonClusterFromRequest(createClusterRequest *bTypes.CreateClusterRe
 
 		return dummy, nil
 
-	case constants.Kubernetes:
+	case pkgCluster.Kubernetes:
 		// Create Kubernetes struct
 		kubeCluster, err := CreateKubernetesClusterFromRequest(createClusterRequest, orgId)
 		if err != nil {
@@ -313,7 +313,7 @@ func CreateCommonClusterFromRequest(createClusterRequest *bTypes.CreateClusterRe
 		return kubeCluster, nil
 	}
 
-	return nil, constants.ErrorNotSupportedCloudType
+	return nil, pkgErrors.ErrorNotSupportedCloudType
 }
 
 func home() string {
@@ -355,7 +355,7 @@ func CleanStateStore(path string) error {
 		stateStorePath := config.GetStateStorePath(path)
 		return os.RemoveAll(stateStorePath)
 	}
-	return constants.ErrStateStorePathEmpty
+	return pkgErrors.ErrStateStorePathEmpty
 }
 
 // CleanHelmFolder deletes helm path

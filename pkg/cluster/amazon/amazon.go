@@ -1,7 +1,8 @@
 package amazon
 
 import (
-	"github.com/banzaicloud/banzai-types/constants"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 )
 
 // CreateClusterAmazon describes Pipeline's Amazon fields of a CreateCluster request
@@ -36,39 +37,39 @@ type UpdateClusterAmazon struct {
 func (a *NodePool) Validate() error {
 	// ---- [ Node image check ] ---- //
 	if len(a.InstanceType) == 0 {
-		return constants.ErrorAmazonInstancetypeFieldIsEmpty
+		return pkgErrors.ErrorAmazonInstancetypeFieldIsEmpty
 	}
 
 	// ---- [ Node image check ] ---- //
 	if len(a.Image) == 0 {
-		return constants.ErrorAmazonImageFieldIsEmpty
+		return pkgErrors.ErrorAmazonImageFieldIsEmpty
 	}
 
 	// ---- [ Min & Max count fields are required in case of autoscaling ] ---- //
 	if a.Autoscaling {
 
 		if a.MinCount == 0 {
-			return constants.ErrorMinFieldRequiredError
+			return pkgErrors.ErrorMinFieldRequiredError
 		}
 		if a.MaxCount == 0 {
-			return constants.ErrorMaxFieldRequiredError
+			return pkgErrors.ErrorMaxFieldRequiredError
 		}
 
 	} else {
 		// ---- [ Node min count check ] ---- //
 		if a.MinCount == 0 {
-			a.MinCount = constants.DefaultNodeMinCount
+			a.MinCount = pkgCluster.DefaultNodeMinCount
 		}
 
 		// ---- [ Node max count check ] ---- //
 		if a.MaxCount == 0 {
-			a.MaxCount = constants.DefaultNodeMaxCount
+			a.MaxCount = pkgCluster.DefaultNodeMaxCount
 		}
 	}
 
 	// ---- [ Node min count <= max count check ] ---- //
 	if a.MaxCount < a.MinCount {
-		return constants.ErrorNodePoolMinMaxFieldError
+		return pkgErrors.ErrorNodePoolMinMaxFieldError
 	}
 
 	if a.Count == 0 {
@@ -77,7 +78,7 @@ func (a *NodePool) Validate() error {
 
 	// ---- [ Node spot price ] ---- //
 	if len(a.SpotPrice) == 0 {
-		a.SpotPrice = constants.AmazonDefaultNodeSpotPrice
+		a.SpotPrice = pkgCluster.AmazonDefaultNodeSpotPrice
 	}
 
 	return nil
@@ -86,21 +87,21 @@ func (a *NodePool) Validate() error {
 // Validate validates Amazon cluster create request
 func (amazon *CreateClusterAmazon) Validate() error {
 	if amazon == nil {
-		return constants.ErrorAmazonFieldIsEmpty
+		return pkgErrors.ErrorAmazonFieldIsEmpty
 	}
 	if amazon.Master == nil {
-		return constants.ErrorAmazonMasterFieldIsEmpty
+		return pkgErrors.ErrorAmazonMasterFieldIsEmpty
 	}
 	if amazon.Master.Image == "" {
-		return constants.ErrorAmazonImageFieldIsEmpty
+		return pkgErrors.ErrorAmazonImageFieldIsEmpty
 	}
 
 	if amazon.Master.InstanceType == "" {
-		amazon.Master.InstanceType = constants.AmazonDefaultMasterInstanceType
+		amazon.Master.InstanceType = pkgCluster.AmazonDefaultMasterInstanceType
 	}
 
 	if len(amazon.NodePools) == 0 {
-		return constants.ErrorAmazonNodePoolFieldIsEmpty
+		return pkgErrors.ErrorAmazonNodePoolFieldIsEmpty
 	}
 
 	for _, np := range amazon.NodePools {
@@ -116,23 +117,23 @@ func (amazon *CreateClusterAmazon) Validate() error {
 func (amazon *CreateClusterAmazon) AddDefaults() error {
 
 	if amazon == nil {
-		return constants.ErrorAmazonFieldIsEmpty
+		return pkgErrors.ErrorAmazonFieldIsEmpty
 	}
 
 	if amazon.Master == nil {
 		amazon.Master = &CreateAmazonMaster{
-			InstanceType: constants.AmazonDefaultMasterInstanceType,
-			Image:        constants.AmazonDefaultImage,
+			InstanceType: pkgCluster.AmazonDefaultMasterInstanceType,
+			Image:        pkgCluster.AmazonDefaultImage,
 		}
 	}
 
 	if len(amazon.NodePools) == 0 {
-		return constants.ErrorAmazonNodePoolFieldIsEmpty
+		return pkgErrors.ErrorAmazonNodePoolFieldIsEmpty
 	}
 
 	for i, np := range amazon.NodePools {
 		if len(np.Image) == 0 {
-			amazon.NodePools[i].Image = constants.AmazonDefaultImage
+			amazon.NodePools[i].Image = pkgCluster.AmazonDefaultImage
 		}
 	}
 
@@ -145,11 +146,11 @@ func (a *UpdateClusterAmazon) Validate() error {
 
 	// ---- [ Amazon field check ] ---- //
 	if a == nil {
-		return constants.ErrorAmazonFieldIsEmpty
+		return pkgErrors.ErrorAmazonFieldIsEmpty
 	}
 
 	if len(a.NodePools) == 0 {
-		return constants.ErrorAmazonNodePoolFieldIsEmpty
+		return pkgErrors.ErrorAmazonNodePoolFieldIsEmpty
 	}
 
 	for _, np := range a.NodePools {

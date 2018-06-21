@@ -1,9 +1,9 @@
 package cluster
 
 import (
-	bGoogle "github.com/banzaicloud/banzai-types/components/google"
-	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/model"
+	pkgClusterGoogle "github.com/banzaicloud/pipeline/pkg/cluster/google"
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	gke "google.golang.org/api/container/v1"
 	"reflect"
 	"testing"
@@ -40,9 +40,9 @@ var (
 
 func TestCreateNodePoolsModelFromRequestData(t *testing.T) {
 	// given
-	emptyNodePoolsData := map[string]*bGoogle.NodePool{}
+	emptyNodePoolsData := map[string]*pkgClusterGoogle.NodePool{}
 
-	modePoolsData := map[string]*bGoogle.NodePool{
+	modePoolsData := map[string]*pkgClusterGoogle.NodePool{
 		pool1Name: {Count: pool1Count, NodeInstanceType: pool1NodeInstanceType, ServiceAccount: pool1ServiceAccount},
 		pool2Name: {Count: pool2Count, NodeInstanceType: pool2NodeInstanceType, ServiceAccount: pool2ServiceAccount},
 	}
@@ -54,12 +54,12 @@ func TestCreateNodePoolsModelFromRequestData(t *testing.T) {
 
 	testCases := []struct {
 		name                   string
-		inputNodePoolsData     map[string]*bGoogle.NodePool
+		inputNodePoolsData     map[string]*pkgClusterGoogle.NodePool
 		expectedNodePoolsModel []*model.GoogleNodePoolModel
 		expectedErr            error
 	}{
-		{name: "create node pools model from nil", inputNodePoolsData: nil, expectedNodePoolsModel: nil, expectedErr: constants.ErrorNodePoolNotProvided},
-		{name: "create node pools model from empty", inputNodePoolsData: emptyNodePoolsData, expectedNodePoolsModel: nil, expectedErr: constants.ErrorNodePoolNotProvided},
+		{name: "create node pools model from nil", inputNodePoolsData: nil, expectedNodePoolsModel: nil, expectedErr: pkgErrors.ErrorNodePoolNotProvided},
+		{name: "create node pools model from empty", inputNodePoolsData: emptyNodePoolsData, expectedNodePoolsModel: nil, expectedErr: pkgErrors.ErrorNodePoolNotProvided},
 		{name: "create node pools model", inputNodePoolsData: modePoolsData, expectedNodePoolsModel: nodePoolsModel, expectedErr: nil},
 	}
 
@@ -127,8 +127,8 @@ func TestCreateNodePoolsFromClusterModel(t *testing.T) {
 		nodePools    []*gke.NodePool
 		err          error
 	}{
-		{name: "create node pools from nil model", clusterModel: clusterModelWithNilNodePools, nodePools: nil, err: constants.ErrorNodePoolNotProvided},
-		{name: "create node pools from empty model", clusterModel: clusterModelWithEmptyNodePools, nodePools: nil, err: constants.ErrorNodePoolNotProvided},
+		{name: "create node pools from nil model", clusterModel: clusterModelWithNilNodePools, nodePools: nil, err: pkgErrors.ErrorNodePoolNotProvided},
+		{name: "create node pools from empty model", clusterModel: clusterModelWithEmptyNodePools, nodePools: nil, err: pkgErrors.ErrorNodePoolNotProvided},
 		{name: "create node pools from model", clusterModel: clusterModel, nodePools: nodePools, err: nil},
 	}
 
@@ -151,7 +151,7 @@ func TestCreateNodePoolsFromClusterModel(t *testing.T) {
 
 func TestCreateRequestNodePoolsFromNodePoolModel(t *testing.T) {
 	// given
-	nodePoolsRequestData := map[string]*bGoogle.NodePool{
+	nodePoolsRequestData := map[string]*pkgClusterGoogle.NodePool{
 		pool1Name: {
 			Count:            pool1Count,
 			NodeInstanceType: pool1NodeInstanceType,
@@ -167,12 +167,12 @@ func TestCreateRequestNodePoolsFromNodePoolModel(t *testing.T) {
 	testCases := []struct {
 		name                 string
 		nodePoolsModel       []*model.GoogleNodePoolModel
-		nodePoolsRequestData map[string]*bGoogle.NodePool
+		nodePoolsRequestData map[string]*pkgClusterGoogle.NodePool
 		err                  error
 	}{
 		{name: "create request node pools from node pools model", nodePoolsModel: clusterModel.NodePools, nodePoolsRequestData: nodePoolsRequestData, err: nil},
-		{name: "create request node pools from nil model", nodePoolsModel: clusterModelWithNilNodePools.NodePools, nodePoolsRequestData: nil, err: constants.ErrorNodePoolNotProvided},
-		{name: "create request node pools from empty model", nodePoolsModel: clusterModelWithEmptyNodePools.NodePools, nodePoolsRequestData: nil, err: constants.ErrorNodePoolNotProvided},
+		{name: "create request node pools from nil model", nodePoolsModel: clusterModelWithNilNodePools.NodePools, nodePoolsRequestData: nil, err: pkgErrors.ErrorNodePoolNotProvided},
+		{name: "create request node pools from empty model", nodePoolsModel: clusterModelWithEmptyNodePools.NodePools, nodePoolsRequestData: nil, err: pkgErrors.ErrorNodePoolNotProvided},
 	}
 
 	for _, tc := range testCases {
