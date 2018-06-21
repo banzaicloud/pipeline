@@ -520,6 +520,10 @@ func (dns *awsRoute53) createHostedZoneIAMUser(userName, route53PolicyArn *strin
 		Name: iamUserAccessKeySecretName,
 		Type: cluster.Amazon,
 		Tags: []string{secretTypes.TagBanzaiHidden},
+		Values: map[string]string{
+			secretTypes.AwsAccessKeyId:     aws.StringValue(awsAccessKey.AccessKeyId),
+			secretTypes.AwsSecretAccessKey: aws.StringValue(awsAccessKey.SecretAccessKey),
+		},
 	})
 	ctx.registerRollback(func() error {
 		return secret.Store.Delete(ctx.state.organisationId, secretId)
