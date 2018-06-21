@@ -1,5 +1,10 @@
 package storage // CreateBucketRequest describes a storage bucket creation
-import "github.com/banzaicloud/pipeline/pkg/cluster/amazon"
+
+import (
+	"github.com/banzaicloud/pipeline/pkg/cluster/amazon"
+	"github.com/banzaicloud/pipeline/pkg/cluster/azure"
+	"github.com/banzaicloud/pipeline/pkg/cluster/google"
+)
 
 type CreateBucketRequest struct {
 	SecretId   string `json:"secret_id" binding:"required"`

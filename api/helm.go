@@ -2,10 +2,10 @@ package api
 
 import (
 	"fmt"
-	"github.com/banzaicloud/banzai-types/components"
-	htype "github.com/banzaicloud/banzai-types/components/helm"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/helm"
+	"github.com/banzaicloud/pipeline/pkg/common"
+	htype "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/ghodss/yaml"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -32,7 +32,7 @@ func GetK8sConfig(c *gin.Context) ([]byte, bool) {
 	kubeConfig, err := commonCluster.GetK8sConfig()
 	if err != nil {
 		log.Errorf("Error getting config: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error getting kubeconfig",
 			Error:   err.Error(),
@@ -47,7 +47,7 @@ func CreateDeployment(c *gin.Context) {
 	parsedRequest, err := parseCreateUpdateDeploymentRequest(c)
 	if err != nil {
 		log.Error(err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error during parsing request!",
 			Error:   errors.Cause(err).Error(),
@@ -63,7 +63,7 @@ func CreateDeployment(c *gin.Context) {
 	if err != nil {
 		//TODO distinguish error codes
 		log.Errorf("Error during create deployment. %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error creating deployment",
 			Error:   err.Error(),
@@ -96,7 +96,7 @@ func ListDeployments(c *gin.Context) {
 	response, err := helm.ListDeployments(nil, kubeConfig)
 	if err != nil {
 		log.Error("Error during create deployment.", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error listing deployments",
 			Error:   err.Error(),
@@ -174,7 +174,7 @@ func InitHelmOnCluster(c *gin.Context) {
 	kubeConfig, err := commonCluster.GetK8sConfig()
 	if err != nil {
 		log.Errorf("Error during getting kubeconfig: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error getting kubeconfig",
 			Error:   err.Error(),
@@ -186,7 +186,7 @@ func InitHelmOnCluster(c *gin.Context) {
 	if err := c.BindJSON(&helmInstall); err != nil {
 		// bind failed
 		log.Errorf("Required field is empty: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error parsing request",
 			Error:   err.Error(),
@@ -196,7 +196,7 @@ func InitHelmOnCluster(c *gin.Context) {
 	err = helm.Install(&helmInstall, kubeConfig)
 	if err != nil {
 		log.Errorf("Unable to install chart: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error installing helm",
 			Error:   err.Error(),
@@ -224,7 +224,7 @@ func GetTillerStatus(c *gin.Context) {
 	_, err := helm.ListDeployments(nil, kubeConfig)
 	if err != nil {
 		message := "Error connecting to tiller"
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: message,
 			Error:   err.Error(),
@@ -246,7 +246,7 @@ func UpgradeDeployment(c *gin.Context) {
 	parsedRequest, err := parseCreateUpdateDeploymentRequest(c)
 	if err != nil {
 		log.Error(err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error during parsing request!",
 			Error:   errors.Cause(err).Error(),
@@ -259,7 +259,7 @@ func UpgradeDeployment(c *gin.Context) {
 		parsedRequest.reuseValues, parsedRequest.kubeConfig, helm.GenerateHelmRepoEnv(parsedRequest.organizationName))
 	if err != nil {
 		log.Errorf("Error during upgrading deployment. %s", err.Error())
-		c.JSON(http.StatusInternalServerError, components.ErrorResponse{
+		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: "Error upgrading deployment",
 			Error:   err.Error(),
@@ -291,7 +291,7 @@ func DeleteDeployment(c *gin.Context) {
 	if err != nil {
 		// error during delete deployment
 		log.Errorf("Error deleting deployment: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error deleting deployment",
 			Error:   err.Error(),
@@ -370,7 +370,7 @@ func HelmReposGet(c *gin.Context) {
 	response, err := helm.ReposGet(helm.GenerateHelmRepoEnv(auth.GetCurrentOrganization(c.Request).Name))
 	if err != nil {
 		log.Errorf("Error during get helm repo list: %s", err.Error())
-		c.JSON(http.StatusInternalServerError, components.ErrorResponse{
+		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: "Error listing helm repos",
 			Error:   err.Error(),
@@ -389,7 +389,7 @@ func HelmReposAdd(c *gin.Context) {
 	err := c.BindJSON(&repo)
 	if err != nil {
 		log.Errorf("Error parsing request: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error parsing request",
 			Error:   err.Error(),
@@ -401,7 +401,7 @@ func HelmReposAdd(c *gin.Context) {
 	_, err = helm.ReposAdd(helmEnv, repo)
 	if err != nil {
 		log.Errorf("Error adding helm repo: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error adding helm repo",
 			Error:   err.Error(),
@@ -433,7 +433,7 @@ func HelmReposDelete(c *gin.Context) {
 			return
 
 		}
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "error deleting helm repos",
 			Error:   err.Error(),
@@ -459,7 +459,7 @@ func HelmReposModify(c *gin.Context) {
 	err := c.BindJSON(&newRepo)
 	if err != nil {
 		log.Errorf("Error parsing request: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "error parsing request",
 			Error:   err.Error(),
@@ -470,7 +470,7 @@ func HelmReposModify(c *gin.Context) {
 	errModify := helm.ReposModify(helmEnv, repoName, newRepo)
 	if errModify != nil {
 		if errModify == helm.ErrRepoNotFound {
-			c.JSON(http.StatusNotFound, components.ErrorResponse{
+			c.JSON(http.StatusNotFound, common.ErrorResponse{
 				Code:    http.StatusNotFound,
 				Error:   errModify.Error(),
 				Message: "repo not found",
@@ -479,7 +479,7 @@ func HelmReposModify(c *gin.Context) {
 
 		}
 		log.Errorf("Error during helm repo modified. %s", errModify.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Error:   errModify.Error(),
 			Message: "repo modification failed",
@@ -504,7 +504,7 @@ func HelmReposUpdate(c *gin.Context) {
 	errUpdate := helm.ReposUpdate(helmEnv, repoName)
 	if errUpdate != nil {
 		log.Errorf("Error during helm repo update. %s", errUpdate.Error())
-		c.JSON(http.StatusNotFound, components.ErrorResponse{
+		c.JSON(http.StatusNotFound, common.ErrorResponse{
 			Code:    http.StatusNotFound,
 			Error:   errUpdate.Error(),
 			Message: "repository update failed",
@@ -527,7 +527,7 @@ func HelmCharts(c *gin.Context) {
 	err := c.BindQuery(&query)
 	if err != nil {
 		log.Errorf("Error parsing request: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "error parsing request",
 			Error:   err.Error(),
@@ -540,7 +540,7 @@ func HelmCharts(c *gin.Context) {
 	response, err := helm.ChartsGet(helmEnv, query.Name, query.Repo, query.Version, query.Keyword)
 	if err != nil {
 		log.Error("Error during get helm repo chart list.", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error listing helm repo charts",
 			Error:   err.Error(),
@@ -569,7 +569,7 @@ func HelmChart(c *gin.Context) {
 	response, err := helm.ChartGet(helmEnv, chartRepo, chartName, chartVersion)
 	if err != nil {
 		log.Error("Error during get helm chart information.", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error during get helm chart information.",
 			Error:   err.Error(),
@@ -577,7 +577,7 @@ func HelmChart(c *gin.Context) {
 		return
 	}
 	if response == nil {
-		c.JSON(http.StatusNotFound, components.ErrorResponse{
+		c.JSON(http.StatusNotFound, common.ErrorResponse{
 			Code:    http.StatusNotFound,
 			Error:   "Chart Not Found!",
 			Message: "Chart Not Found!",
