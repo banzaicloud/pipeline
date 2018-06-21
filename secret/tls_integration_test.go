@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-func helloServer(w http.ResponseWriter, req *http.Request) {
+func helloServer(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
 	w.Write([]byte("This is an example TLS server.\n"))
 }

@@ -9,10 +9,9 @@ import (
 	"strings"
 	"time"
 
+	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/bank-vaults/vault"
-	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/constants"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	vaultapi "github.com/hashicorp/vault/api"
 	"github.com/mitchellh/mapstructure"
@@ -66,10 +65,10 @@ type SecretsItemResponse struct {
 }
 
 // K8SSourceMeta returns the meta information how to use this secret if installed to K8S
-func (s *SecretsItemResponse) K8SSourceMeta() components.SecretK8SSourceMeta {
-	return components.SecretK8SSourceMeta{
+func (s *SecretsItemResponse) K8SSourceMeta() secretTypes.K8SSourceMeta {
+	return secretTypes.K8SSourceMeta{
 		Name:     s.Name,
-		Sourcing: constants.DefaultRules[s.Type].Sourcing,
+		Sourcing: secretTypes.DefaultRules[s.Type].Sourcing,
 	}
 }
 
@@ -91,12 +90,12 @@ func (s *SecretsItemResponse) ValidateSecretType(validType string) error {
 
 // AllowedFilteredSecretTypesResponse for API response for AllowedSecretTypes/:type
 type AllowedFilteredSecretTypesResponse struct {
-	Keys constants.SecretMeta `json:"meta"`
+	Keys secretTypes.Meta `json:"meta"`
 }
 
 // AllowedSecretTypesResponse for API response for AllowedSecretTypes
 type AllowedSecretTypesResponse struct {
-	Allowed map[string]constants.SecretMeta `json:"allowed"`
+	Allowed map[string]secretTypes.Meta `json:"allowed"`
 }
 
 func newVaultSecretStore() *secretStore {
@@ -115,7 +114,7 @@ func generateSecretID(request *CreateSecretRequest) string {
 
 // Validate SecretRequest
 func (r *CreateSecretRequest) Validate(verifier verify.Verifier) error {
-	fields, ok := constants.DefaultRules[r.Type]
+	fields, ok := secretTypes.DefaultRules[r.Type]
 
 	if !ok {
 		return errors.Errorf("wrong secret type: %s", r.Type)
@@ -255,7 +254,7 @@ func (ss *secretStore) Get(organizationID uint, secretID string) (*SecretsItemRe
 }
 
 // List secret secret/orgs/:orgid:/ scope
-func (ss *secretStore) List(orgid uint, query *components.ListSecretsQuery) ([]*SecretsItemResponse, error) {
+func (ss *secretStore) List(orgid uint, query *secretTypes.ListSecretsQuery) ([]*SecretsItemResponse, error) {
 
 	log.Debugf("Searching for secrets [orgid: %d, query: %#v]", orgid, query)
 
@@ -287,7 +286,7 @@ func (ss *secretStore) List(orgid uint, query *components.ListSecretsQuery) ([]*
 					return nil, err
 				}
 
-				if (query.Type == constants.AllSecrets || sir.Type == query.Type) &&
+				if (query.Type == secretTypes.AllSecrets || sir.Type == query.Type) &&
 					(query.Tag == "" || hasTag(sir.Tags, query.Tag)) &&
 					(IsForbiddenTag(sir.Tags) == nil) {
 
@@ -339,7 +338,7 @@ func (f ForbiddenError) Error() string {
 // IsForbiddenTag is looking for forbidden tags
 func IsForbiddenTag(tags []string) error {
 	for _, tag := range tags {
-		for _, forbiddenTag := range constants.ForbiddenTags {
+		for _, forbiddenTag := range secretTypes.ForbiddenTags {
 			if tag == forbiddenTag {
 				return ForbiddenError{
 					ForbiddenTag: tag,
@@ -357,12 +356,12 @@ func IsCASError(err error) bool {
 
 func generateValuesIfNeeded(value *CreateSecretRequest) error {
 	// If we are not storing a full TLS secret instead of it's a request to generate one
-	if value.Type == constants.TLSSecretType && len(value.Values) <= 2 {
-		validity := value.Values[constants.TLSValidity]
+	if value.Type == secretTypes.TLSSecretType && len(value.Values) <= 2 {
+		validity := value.Values[secretTypes.TLSValidity]
 		if validity == "" {
 			validity = viper.GetString("tls.validity")
 		}
-		cc, err := GenerateTLS(value.Values[constants.TLSHosts], validity)
+		cc, err := GenerateTLS(value.Values[secretTypes.TLSHosts], validity)
 		if err != nil {
 			return errors.Wrap(err, "Error during generating TLS secret")
 		}
@@ -371,8 +370,8 @@ func generateValuesIfNeeded(value *CreateSecretRequest) error {
 			return errors.Wrap(err, "Error during decoding TLS secret")
 		}
 		// Generate a password if needed (if password is in method,length)
-	} else if value.Type == constants.PasswordSecretType {
-		methodAndLength := strings.Split(value.Values[constants.Password], ",")
+	} else if value.Type == secretTypes.PasswordSecretType {
+		methodAndLength := strings.Split(value.Values[secretTypes.Password], ",")
 		if len(methodAndLength) == 2 {
 			length, err := strconv.Atoi(methodAndLength[1])
 			if err != nil {
@@ -382,7 +381,7 @@ func generateValuesIfNeeded(value *CreateSecretRequest) error {
 			if err != nil {
 				return err
 			}
-			value.Values[constants.Password] = password
+			value.Values[secretTypes.Password] = password
 		}
 	}
 	return nil

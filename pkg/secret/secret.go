@@ -1,20 +1,17 @@
 package secret
 
-import (
-	"github.com/banzaicloud/pipeline/constants"
-	"github.com/banzaicloud/pipeline/secret"
-)
+import "github.com/banzaicloud/pipeline/pkg/cluster"
 
-// SecretField describes how a secret field should be validated
-type SecretField struct {
+// FieldMeta describes how a secret field should be validated
+type FieldMeta struct {
 	Name     string `json:"name"`
 	Required bool   `json:"required"`
 }
 
-// SecretMeta describes how a secret is built up and how it should be sourced
-type SecretMeta struct {
-	Fields   []SecretField               `json:"fields"`
-	Sourcing secret.SecretSourcingMethod `json:"Sourcing"`
+// Meta describes how a secret is built up and how it should be sourced
+type Meta struct {
+	Fields   []FieldMeta  `json:"fields"`
+	Sourcing SourcingMethod `json:"Sourcing"`
 }
 
 // Amazon keys
@@ -108,25 +105,25 @@ const (
 )
 
 // DefaultRules key matching for types
-var DefaultRules = map[string]SecretMeta{
-	constants.Amazon: SecretMeta{
-		Fields: []SecretField{
+var DefaultRules = map[string]Meta{
+	cluster.Amazon: {
+		Fields: []FieldMeta{
 			{Name: AwsAccessKeyId, Required: true},
 			{Name: AwsSecretAccessKey, Required: true},
 		},
-		Sourcing: components.EnvVar,
+		Sourcing: EnvVar,
 	},
-	constants.Azure: SecretMeta{
-		Fields: []SecretField{
+	cluster.Azure: {
+		Fields: []FieldMeta{
 			{Name: AzureClientId, Required: true},
 			{Name: AzureClientSecret, Required: true},
 			{Name: AzureTenantId, Required: true},
 			{Name: AzureSubscriptionId, Required: true},
 		},
-		Sourcing: components.EnvVar,
+		Sourcing: EnvVar,
 	},
-	constants.Google: SecretMeta{
-		Fields: []SecretField{
+	cluster.Google: {
+		Fields: []FieldMeta{
 			{Name: Type, Required: true},
 			{Name: ProjectId, Required: true},
 			{Name: PrivateKeyId, Required: true},
@@ -138,26 +135,26 @@ var DefaultRules = map[string]SecretMeta{
 			{Name: AuthX509Url, Required: true},
 			{Name: ClientX509Url, Required: true},
 		},
-		Sourcing: components.EnvVar,
+		Sourcing: EnvVar,
 	},
-	constants.Kubernetes: SecretMeta{
-		Fields: []SecretField{
+	cluster.Kubernetes: {
+		Fields: []FieldMeta{
 			{Name: K8SConfig, Required: true},
 		},
-		Sourcing: components.Volume,
+		Sourcing: Volume,
 	},
-	SSHSecretType: SecretMeta{
-		Fields: []SecretField{
+	SSHSecretType: {
+		Fields: []FieldMeta{
 			{Name: User, Required: true},
 			{Name: Identifier, Required: true},
 			{Name: PublicKeyData, Required: true},
 			{Name: PublicKeyFingerprint, Required: true},
 			{Name: PrivateKeyData, Required: true},
 		},
-		Sourcing: components.Volume,
+		Sourcing: Volume,
 	},
-	TLSSecretType: SecretMeta{
-		Fields: []SecretField{
+	TLSSecretType: {
+		Fields: []FieldMeta{
 			{Name: TLSHosts, Required: true},
 			{Name: TLSValidity, Required: false},
 			{Name: CACert, Required: false},
@@ -167,24 +164,24 @@ var DefaultRules = map[string]SecretMeta{
 			{Name: ClientKey, Required: false},
 			{Name: ClientCert, Required: false},
 		},
-		Sourcing: components.Volume,
+		Sourcing: Volume,
 	},
-	GenericSecret: SecretMeta{
-		Fields:   []SecretField{},
-		Sourcing: components.EnvVar,
+	GenericSecret: {
+		Fields:   []FieldMeta{},
+		Sourcing: EnvVar,
 	},
-	FnSecretType: SecretMeta{
-		Fields: []SecretField{
+	FnSecretType: {
+		Fields: []FieldMeta{
 			{Name: MasterToken, Required: true},
 		},
-		Sourcing: components.EnvVar,
+		Sourcing: EnvVar,
 	},
-	PasswordSecretType: SecretMeta{
-		Fields: []SecretField{
+	PasswordSecretType: {
+		Fields: []FieldMeta{
 			{Name: Username, Required: true},
 			{Name: Password, Required: true},
 		},
-		Sourcing: components.EnvVar,
+		Sourcing: EnvVar,
 	},
 }
 
@@ -201,18 +198,18 @@ type InstallSecretsToClusterRequest struct {
 	Query     ListSecretsQuery `json:"query" binding:"required"`
 }
 
-// SecretSourcingMethod describes how an installed Secret should be sourced into a Pod in K8S
-type SecretSourcingMethod string
+// SourcingMethod describes how an installed Secret should be sourced into a Pod in K8S
+type SourcingMethod string
 
 const (
 	// EnvVar means the secret has to be sources an an env var
-	EnvVar SecretSourcingMethod = "env"
+	EnvVar SourcingMethod = "env"
 	// Volume means the secret has to be mounted an a volume
-	Volume SecretSourcingMethod = "volume"
+	Volume SourcingMethod = "volume"
 )
 
-// SecretK8SSourceMeta describes which and how installed Secret should be sourced into a Pod in K8S
-type SecretK8SSourceMeta struct {
-	Name     string               `json:"name"`
-	Sourcing SecretSourcingMethod `json:"sourcing"`
+// K8SSourceMeta describes which and how installed Secret should be sourced into a Pod in K8S
+type K8SSourceMeta struct {
+	Name     string         `json:"name"`
+	Sourcing SourcingMethod `json:"sourcing"`
 }

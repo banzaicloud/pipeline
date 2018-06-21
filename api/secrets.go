@@ -4,16 +4,17 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/cluster"
-	"github.com/banzaicloud/pipeline/constants"
+	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/model"
+	clusterTypes "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/go-errors/errors"
+	"github.com/banzaicloud/pipeline/cluster"
+	"github.com/banzaicloud/pipeline/pkg/common"
 )
 
 // ErrNotSupportedSecretType describe an error if the secret type is not supported
@@ -31,7 +32,7 @@ func AddSecrets(c *gin.Context) {
 	var createSecretRequest secret.CreateSecretRequest
 	if err := c.ShouldBind(&createSecretRequest); err != nil {
 		log.Errorf("Error during binding CreateSecretRequest: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, clusterTypes.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error during binding",
 			Error:   err.Error(),
@@ -39,8 +40,8 @@ func AddSecrets(c *gin.Context) {
 		return
 	}
 	//Check if the received value is base64 encoded if not encode it.
-	if createSecretRequest.Values[constants.K8SConfig] != "" {
-		createSecretRequest.Values[constants.K8SConfig] = utils.EncodeStringToBase64(createSecretRequest.Values[constants.K8SConfig])
+	if createSecretRequest.Values[secretTypes.K8SConfig] != "" {
+		createSecretRequest.Values[secretTypes.K8SConfig] = utils.EncodeStringToBase64(createSecretRequest.Values[secretTypes.K8SConfig])
 	}
 
 	log.Info("Binding request succeeded")
@@ -49,7 +50,7 @@ func AddSecrets(c *gin.Context) {
 	verifier := verify.NewVerifier(createSecretRequest.Type, createSecretRequest.Values)
 	if err := createSecretRequest.Validate(verifier); err != nil {
 		log.Errorf("Validation error: %s", err.Error())
-		c.AbortWithStatusJSON(http.StatusBadRequest, components.ErrorResponse{
+		c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Validation error",
 			Error:   err.Error(),
@@ -68,7 +69,7 @@ func AddSecrets(c *gin.Context) {
 		} else {
 			log.Errorf("Error during store: %s", err.Error())
 		}
-		c.AbortWithStatusJSON(statusCode, components.ErrorResponse{
+		c.AbortWithStatusJSON(statusCode, common.ErrorResponse{
 			Code:    statusCode,
 			Message: message,
 			Error:   err.Error(),
@@ -96,7 +97,7 @@ func UpdateSecrets(c *gin.Context) {
 	var createSecretRequest secret.CreateSecretRequest
 	if err := c.ShouldBind(&createSecretRequest); err != nil {
 		log.Errorf("Error during binding CreateSecretRequest: %s", err.Error())
-		c.AbortWithStatusJSON(http.StatusBadRequest, components.ErrorResponse{
+		c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error during binding",
 			Error:   err.Error(),
@@ -107,7 +108,7 @@ func UpdateSecrets(c *gin.Context) {
 	if createSecretRequest.Version == nil {
 		msg := "Error during binding CreateSecretRequest: version can't be empty"
 		log.Error(msg)
-		c.AbortWithStatusJSON(http.StatusBadRequest, components.ErrorResponse{
+		c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error during binding",
 			Error:   msg,
@@ -116,8 +117,8 @@ func UpdateSecrets(c *gin.Context) {
 	}
 
 	//Check if the received value is base64 encoded if not encode it.
-	if createSecretRequest.Values[constants.K8SConfig] != "" {
-		createSecretRequest.Values[constants.K8SConfig] = utils.EncodeStringToBase64(createSecretRequest.Values[constants.K8SConfig])
+	if createSecretRequest.Values[secretTypes.K8SConfig] != "" {
+		createSecretRequest.Values[secretTypes.K8SConfig] = utils.EncodeStringToBase64(createSecretRequest.Values[secretTypes.K8SConfig])
 	}
 
 	log.Info("Binding request succeeded")
@@ -126,7 +127,7 @@ func UpdateSecrets(c *gin.Context) {
 	verifier := verify.NewVerifier(createSecretRequest.Type, createSecretRequest.Values)
 	if err := createSecretRequest.Validate(verifier); err != nil {
 		log.Errorf("Validation error: %s", err.Error())
-		c.AbortWithStatusJSON(http.StatusBadRequest, components.ErrorResponse{
+		c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Validation error",
 			Error:   err.Error(),
@@ -141,7 +142,7 @@ func UpdateSecrets(c *gin.Context) {
 			statusCode = http.StatusBadRequest
 		}
 		log.Errorf("Error during update: %s", err.Error())
-		c.AbortWithStatusJSON(statusCode, components.ErrorResponse{
+		c.AbortWithStatusJSON(statusCode, common.ErrorResponse{
 			Code:    statusCode,
 			Message: "Error during update",
 			Error:   err.Error(),
@@ -164,10 +165,10 @@ func ListSecrets(c *gin.Context) {
 
 	organizationID := auth.GetCurrentOrganization(c.Request).ID
 
-	var query components.ListSecretsQuery
+	var query secretTypes.ListSecretsQuery
 	err := c.BindQuery(&query)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Failed to parse query",
 			Error:   err.Error(),
@@ -179,7 +180,7 @@ func ListSecrets(c *gin.Context) {
 
 	if err := IsValidSecretType(query.Type); err != nil {
 		log.Errorf("Error validation secret type[%s]: %s", query.Tag, err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Not supported secret type",
 			Error:   err.Error(),
@@ -187,7 +188,7 @@ func ListSecrets(c *gin.Context) {
 	} else {
 		if secrets, err := secret.Store.List(organizationID, &query); err != nil {
 			log.Errorf("Error during listing secrets: %s", err.Error())
-			c.AbortWithStatusJSON(http.StatusBadRequest, components.ErrorResponse{
+			c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
 				Code:    http.StatusBadRequest,
 				Message: "Error during listing secrets",
 				Error:   err.Error(),
@@ -211,14 +212,14 @@ func DeleteSecrets(c *gin.Context) {
 	log.Infof("Check clusters before delete secret[%s]", secretID)
 	if err := checkClustersBeforeDelete(organizationID, secretID); err != nil {
 		log.Errorf("Cluster found with this secret[%s]: %s", secretID, err.Error())
-		c.AbortWithStatusJSON(http.StatusBadRequest, components.ErrorResponse{
+		c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: fmt.Sprintf("Cluster found with this secret[%s]", secretID),
 			Error:   err.Error(),
 		})
 	} else if err := searchForbiddenTags(organizationID, secretID); err != nil {
 		log.Errorf("Error during deleting secrets: %s", err.Error())
-		c.AbortWithStatusJSON(http.StatusInternalServerError, components.ErrorResponse{
+		c.AbortWithStatusJSON(http.StatusInternalServerError, common.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: "Error during deleting secrets",
 			Error:   err.Error(),
@@ -226,7 +227,7 @@ func DeleteSecrets(c *gin.Context) {
 	} else if err := secret.Store.Delete(organizationID, secretID); err != nil {
 		log.Errorf("Error during deleting secrets: %s", err.Error())
 		code := http.StatusInternalServerError
-		resp := components.ErrorResponse{
+		resp := common.ErrorResponse{
 			Code:    code,
 			Message: "Error during deleting secrets",
 			Error:   err.Error(),
@@ -248,7 +249,7 @@ func ListAllowedSecretTypes(c *gin.Context) {
 
 	if response, err := GetAllowedTypes(secretType); err != nil {
 		log.Errorf("Error during listing allowed types: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error during listing allowed types",
 			Error:   err.Error(),
@@ -263,14 +264,14 @@ func GetAllowedTypes(secretType string) (interface{}, error) {
 	if len(secretType) == 0 {
 		log.Info("List all types and keys")
 		return secret.AllowedSecretTypesResponse{
-			Allowed: constants.DefaultRules,
+			Allowed: secretTypes.DefaultRules,
 		}, nil
 	} else if err := IsValidSecretType(secretType); err != nil {
 		return nil, err
 	} else {
 		log.Info("Valid secret type. List filtered secret types")
 		return secret.AllowedFilteredSecretTypesResponse{
-			Keys: constants.DefaultRules[secretType],
+			Keys: secretTypes.DefaultRules[secretType],
 		}, nil
 	}
 }
@@ -278,7 +279,7 @@ func GetAllowedTypes(secretType string) (interface{}, error) {
 // IsValidSecretType checks the given secret type is supported
 func IsValidSecretType(secretType string) error {
 	if len(secretType) != 0 {
-		if _, ok := constants.DefaultRules[secretType]; !ok {
+		if _, ok := secretTypes.DefaultRules[secretType]; !ok {
 			return ErrNotSupportedSecretType
 		}
 	}
