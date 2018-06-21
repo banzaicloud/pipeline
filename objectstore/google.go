@@ -4,8 +4,8 @@ import (
 	"cloud.google.com/go/storage"
 	"context"
 	"errors"
-	"github.com/banzaicloud/banzai-types/components"
 	"github.com/banzaicloud/pipeline/auth"
+	pkgStorage "github.com/banzaicloud/pipeline/pkg/storage"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/gin-gonic/gin/json"
 	"golang.org/x/oauth2/google"
@@ -196,7 +196,7 @@ func (b *GoogleObjectStore) CheckBucket(bucketName string) error {
 // ListBuckets returns a list of GS buckets that can be accessed with the credentials
 // referenced by the secret field. GS buckets that were created by a user in the current
 // org are marked as 'managed`
-func (b *GoogleObjectStore) ListBuckets() ([]*components.BucketInfo, error) {
+func (b *GoogleObjectStore) ListBuckets() ([]*pkgStorage.BucketInfo, error) {
 
 	ctx := context.Background()
 
@@ -226,7 +226,7 @@ func (b *GoogleObjectStore) ListBuckets() ([]*components.BucketInfo, error) {
 		return nil, err
 	}
 
-	var bucketList []*components.BucketInfo
+	var bucketList []*pkgStorage.BucketInfo
 
 	for {
 		bucket, err := bucketsIterator.Next()
@@ -238,7 +238,7 @@ func (b *GoogleObjectStore) ListBuckets() ([]*components.BucketInfo, error) {
 			return nil, err
 		}
 
-		bucketInfo := &components.BucketInfo{Name: bucket.Name, Managed: false}
+		bucketInfo := &pkgStorage.BucketInfo{Name: bucket.Name, Managed: false}
 
 		// managedGoogleBuckets must be sorted in order to be able to perform binary search on it
 		idx := sort.Search(len(managedGoogleBuckets), func(i int) bool {

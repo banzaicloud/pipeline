@@ -2,13 +2,13 @@ package api
 
 import (
 	"fmt"
-	"github.com/banzaicloud/banzai-types/components"
-	bApplication "github.com/banzaicloud/banzai-types/components/application"
-	"github.com/banzaicloud/banzai-types/components/catalog"
 	"github.com/banzaicloud/pipeline/application"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/model"
+	pkgApplication "github.com/banzaicloud/pipeline/pkg/application"
+	pkgCatalog "github.com/banzaicloud/pipeline/pkg/catalog"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"net/http"
@@ -19,7 +19,7 @@ func getApplicationFromRequest(c *gin.Context) (*model.Application, bool) {
 	idParam := c.Param("id")
 	id, err := strconv.ParseUint(idParam, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: fmt.Sprintf("Invalid id=%q", idParam),
 			Error:   err.Error(),
@@ -35,7 +35,7 @@ func getApplicationFromRequest(c *gin.Context) (*model.Application, bool) {
 	if err != nil {
 		log.Errorf("Error getting application: %s", err.Error())
 		statusCode := auth.GormErrorToStatusCode(err)
-		c.JSON(statusCode, components.ErrorResponse{
+		c.JSON(statusCode, pkgCommon.ErrorResponse{
 			Code:    statusCode,
 			Message: "Error listing clusters",
 			Error:   err.Error(),
@@ -53,7 +53,7 @@ func getCluster(app *model.Application, c *gin.Context) (*model.ClusterModel, bo
 	clusterModel, err := app.GetCluster()
 	if err != nil {
 		log.Errorf("Error getting cluster: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error getting cluster",
 			Error:   err.Error(),
@@ -83,7 +83,7 @@ func DeleteApplications(c *gin.Context) {
 	commonCluster, err := cluster.GetCommonClusterFromModel(clusterModel)
 	if err != nil {
 		log.Errorf("Error getting cluster: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error getting cluster",
 			Error:   err.Error(),
@@ -93,7 +93,7 @@ func DeleteApplications(c *gin.Context) {
 	config, err := commonCluster.GetK8sConfig()
 	if err != nil && !force {
 		log.Errorf("Error getting cluster config: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error getting cluster config",
 			Error:   err.Error(),
@@ -103,7 +103,7 @@ func DeleteApplications(c *gin.Context) {
 
 	if err := application.DeleteApplication(app, config, force); err != nil {
 		log.Errorf("Error during deleting application: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error during deleting application",
 			Error:   err.Error(),
@@ -136,14 +136,14 @@ func GetApplications(c *gin.Context) {
 	err := db.Model(organization).Related(&applications).Error
 	if err != nil {
 		log.Errorf("Error listing clusters: %s", err.Error())
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error listing clusters",
 			Error:   err.Error(),
 		})
 		return
 	}
-	response := make([]bApplication.ListResponse, 0)
+	response := make([]pkgApplication.ListResponse, 0)
 	log.Debugf("Apps: %#v", applications)
 	for _, app := range applications {
 		//We silently fail on GetCluster
@@ -151,7 +151,7 @@ func GetApplications(c *gin.Context) {
 		if err != nil {
 			continue
 		}
-		item := bApplication.ListResponse{
+		item := pkgApplication.ListResponse{
 			Id:            app.ID,
 			Name:          app.Name,
 			CatalogName:   app.CatalogName,
@@ -170,7 +170,7 @@ func GetApplications(c *gin.Context) {
 // ApplicationPostHook describes create application posthook
 type ApplicationPostHook struct {
 	am     *model.Application
-	option []catalog.ApplicationOptions
+	option []pkgCatalog.ApplicationOptions
 }
 
 // Do updates application in DB and call create application function
@@ -197,10 +197,10 @@ func (c *ApplicationPostHook) GetID() uint {
 
 // CreateApplication gin handler for API
 func CreateApplication(c *gin.Context) {
-	var createApplicationRequest bApplication.CreateRequest
+	var createApplicationRequest pkgApplication.CreateRequest
 	if err := c.BindJSON(&createApplicationRequest); err != nil {
 		log.Error(errors.Wrap(err, "Error parsing request"))
-		c.JSON(http.StatusBadRequest, components.ErrorResponse{
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error parsing request",
 			Error:   err.Error(),
@@ -223,7 +223,7 @@ func CreateApplication(c *gin.Context) {
 	// Create new cluster
 	if createApplicationRequest.Cluster != nil {
 		// Support existing cluster
-		var err *components.ErrorResponse
+		var err *pkgCommon.ErrorResponse
 		commonCluster, err = CreateCluster(createApplicationRequest.Cluster, orgId, []cluster.PostFunctioner{postFunction})
 		if err != nil {
 			c.JSON(err.Code, err)
@@ -247,7 +247,7 @@ func CreateApplication(c *gin.Context) {
 		go postFunction.Do(commonCluster)
 	}
 
-	c.JSON(http.StatusAccepted, bApplication.CreateResponse{
+	c.JSON(http.StatusAccepted, pkgApplication.CreateResponse{
 		Name:      createApplicationRequest.Name,
 		Id:        postFunction.GetID(),
 		ClusterId: commonCluster.GetModel().ID,

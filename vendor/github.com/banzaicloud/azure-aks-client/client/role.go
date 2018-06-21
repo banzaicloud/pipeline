@@ -1,11 +1,15 @@
 package client
 
 import (
+	"fmt"
 	"github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-04-01/compute"
-	"fmt"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
+	clientAuthorization "github.com/banzaicloud/azure-aks-client/service/authorization"
+	clientCompute "github.com/banzaicloud/azure-aks-client/service/compute"
 )
 
+// Storage Account Contributor role constant
 const (
 	StorageAccountContributor = "Storage Account Contributor"
 )
@@ -89,16 +93,8 @@ func (a *aksClient) assignStorageAccountContributorRole(resourceGroup, clusterNa
 		return err
 	}
 
-	for _, vm := range virtualMachines {
-		if vm.Identity == nil || vm.Identity.Type != compute.ResourceIdentityTypeSystemAssigned {
-			a.LogInfof("Enable MSI in vm [%s]", *vm.ID)
-			_, err := vmClient.EnableManagedServiceIdentity(&vm, *irg.Name, location)
-			if err != nil {
-				return err
-			}
-		} else {
-			a.LogInfof("MSI is enabled before in vm [%s]", *vm.ID)
-		}
+	if err := a.enableMSIVMs(vmClient, virtualMachines, irg, location); err != nil {
+		return err
 	}
 
 	a.LogInfof("List virtual machines in %s rg", *irg.Name)
@@ -113,6 +109,17 @@ func (a *aksClient) assignStorageAccountContributorRole(resourceGroup, clusterNa
 		return err
 	}
 
+	if err := a.assignRoleVMs(roleAssignClient, roleAssignments, virtualMachines, role, scope); err != nil {
+		return err
+	}
+
+	a.LogInfo("Role assigned to all VM")
+
+	return nil
+
+}
+
+func (a *aksClient) assignRoleVMs(roleAssignClient *clientAuthorization.RoleAssignmentsClient, roleAssignments []authorization.RoleAssignment, virtualMachines []compute.VirtualMachine, role *authorization.RoleDefinition, scope string) error {
 	for _, vm := range virtualMachines {
 		principalID := vm.Identity.PrincipalID
 		roleId := role.ID
@@ -129,10 +136,24 @@ func (a *aksClient) assignStorageAccountContributorRole(resourceGroup, clusterNa
 
 	}
 
-	a.LogInfo("Role assigned to all VM")
+	return nil
+}
+
+func (a *aksClient) enableMSIVMs(vmClient *clientCompute.VirtualMachinesClient, virtualMachines []compute.VirtualMachine,
+	irg *resources.Group, location string) error {
+	for _, vm := range virtualMachines {
+		if vm.Identity == nil || vm.Identity.Type != compute.ResourceIdentityTypeSystemAssigned {
+			a.LogInfof("Enable MSI in vm [%s]", *vm.ID)
+			_, err := vmClient.EnableManagedServiceIdentity(&vm, *irg.Name, location)
+			if err != nil {
+				return err
+			}
+		} else {
+			a.LogInfof("MSI is enabled before in vm [%s]", *vm.ID)
+		}
+	}
 
 	return nil
-
 }
 
 func isRoleAssignedBefore(roleAssignments []authorization.RoleAssignment, scope, roleId, principalId string) bool {

@@ -1,12 +1,11 @@
 package defaults
 
 import (
-	"github.com/banzaicloud/banzai-types/components"
-	"github.com/banzaicloud/banzai-types/components/amazon"
-	"github.com/banzaicloud/banzai-types/components/azure"
-	"github.com/banzaicloud/banzai-types/components/google"
-	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/model"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/banzaicloud/pipeline/pkg/cluster/amazon"
+	"github.com/banzaicloud/pipeline/pkg/cluster/azure"
+	"github.com/banzaicloud/pipeline/pkg/cluster/google"
 )
 
 // AWSProfile describes an Amazon cluster profile
@@ -57,7 +56,7 @@ func (d *AWSProfile) SaveInstance() error {
 
 // GetType returns profile's cloud type
 func (d *AWSProfile) GetType() string {
-	return constants.Amazon
+	return pkgCluster.Amazon
 }
 
 // IsDefinedBefore returns true if database contains en entry with profile name
@@ -98,7 +97,7 @@ func (d *AWSProfile) BeforeDelete() error {
 }
 
 // GetProfile load profile from database and converts ClusterProfileResponse
-func (d *AWSProfile) GetProfile() *components.ClusterProfileResponse {
+func (d *AWSProfile) GetProfile() *pkgCluster.ClusterProfileResponse {
 
 	nodePools := make(map[string]*amazon.NodePool)
 	for _, np := range d.NodePools {
@@ -115,10 +114,10 @@ func (d *AWSProfile) GetProfile() *components.ClusterProfileResponse {
 		}
 	}
 
-	return &components.ClusterProfileResponse{
+	return &pkgCluster.ClusterProfileResponse{
 		Name:     d.DefaultModel.Name,
 		Location: d.Location,
-		Cloud:    constants.Amazon,
+		Cloud:    pkgCluster.Amazon,
 		Properties: struct {
 			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
@@ -126,7 +125,7 @@ func (d *AWSProfile) GetProfile() *components.ClusterProfileResponse {
 		}{
 			Amazon: &amazon.ClusterProfileAmazon{
 				NodePools: nodePools,
-				Master: &amazon.AmazonProfileMaster{
+				Master: &amazon.ProfileMaster{
 					InstanceType: d.MasterInstanceType,
 					Image:        d.MasterImage,
 				},
@@ -137,7 +136,7 @@ func (d *AWSProfile) GetProfile() *components.ClusterProfileResponse {
 }
 
 // UpdateProfile update profile's data with ClusterProfileRequest's data and if bool is true then update in the database
-func (d *AWSProfile) UpdateProfile(r *components.ClusterProfileRequest, withSave bool) error {
+func (d *AWSProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave bool) error {
 
 	if len(r.Location) != 0 {
 		d.Location = r.Location

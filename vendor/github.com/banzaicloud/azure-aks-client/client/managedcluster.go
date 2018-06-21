@@ -1,14 +1,14 @@
 package client
 
 import (
-	"github.com/banzaicloud/banzai-types/components/azure"
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice"
-	"io/ioutil"
-	"fmt"
-	"net/http"
-	"github.com/banzaicloud/azure-aks-client/utils"
-	"github.com/banzaicloud/azure-aks-client/cluster"
 	"encoding/json"
+	"fmt"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice"
+	"github.com/banzaicloud/azure-aks-client/cluster"
+	"github.com/banzaicloud/azure-aks-client/types"
+	"github.com/banzaicloud/azure-aks-client/utils"
+	"io/ioutil"
+	"net/http"
 )
 
 // createOrUpdateCluster creates or updates a managed cluster

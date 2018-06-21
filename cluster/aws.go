@@ -6,10 +6,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/banzaicloud/banzai-types/components"
-	"github.com/banzaicloud/banzai-types/components/amazon"
-	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/model"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/banzaicloud/pipeline/pkg/cluster/amazon"
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	pipelineSsh "github.com/banzaicloud/pipeline/ssh"
@@ -116,7 +116,7 @@ func CreateAWSClusterFromModel(clusterModel *model.ClusterModel) (*AWSCluster, e
 	awsCluster := AWSCluster{
 		modelCluster: clusterModel,
 	}
-	if awsCluster.modelCluster.Status == constants.Running {
+	if awsCluster.modelCluster.Status == pkgCluster.Running {
 		_, err := awsCluster.GetKubicornCluster()
 		if err != nil {
 			return nil, err
@@ -126,7 +126,7 @@ func CreateAWSClusterFromModel(clusterModel *model.ClusterModel) (*AWSCluster, e
 }
 
 //CreateAWSClusterFromRequest creates ClusterModel struct from the request
-func CreateAWSClusterFromRequest(request *components.CreateClusterRequest, orgId uint) (*AWSCluster, error) {
+func CreateAWSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint) (*AWSCluster, error) {
 	log.Debug("Create ClusterModel struct from the request")
 	var cluster AWSCluster
 
@@ -229,7 +229,7 @@ func (c *AWSCluster) CreateCluster() error {
 	}
 
 	if created == nil {
-		return constants.ErrorReconcile
+		return pkgErrors.ErrorReconcile
 	}
 
 	log.Debug("Created cluster:", created.Name)
@@ -498,13 +498,13 @@ func GetKubicornProfile(cs *model.ClusterModel) *kcluster.Cluster {
 }
 
 //GetStatus gets cluster status
-func (c *AWSCluster) GetStatus() (*components.GetClusterStatusResponse, error) {
+func (c *AWSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 	log.Info("Start get cluster status (amazon)")
 
-	nodePools := make(map[string]*components.NodePoolStatus)
+	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
 	for _, np := range c.modelCluster.Amazon.NodePools {
 		if np != nil {
-			nodePools[np.Name] = &components.NodePoolStatus{
+			nodePools[np.Name] = &pkgCluster.NodePoolStatus{
 				InstanceType: np.NodeInstanceType,
 				SpotPrice:    np.NodeSpotPrice,
 				MinCount:     np.NodeMinCount,
@@ -514,7 +514,7 @@ func (c *AWSCluster) GetStatus() (*components.GetClusterStatusResponse, error) {
 		}
 	}
 
-	return &components.GetClusterStatusResponse{
+	return &pkgCluster.GetClusterStatusResponse{
 		Status:        c.modelCluster.Status,
 		StatusMessage: c.modelCluster.StatusMessage,
 		Name:          c.modelCluster.Name,
@@ -536,14 +536,14 @@ func (c *AWSCluster) getExistingNodePoolByName(name string) *model.AmazonNodePoo
 }
 
 // UpdateCluster updates Amazon cluster in cloud
-func (c *AWSCluster) UpdateCluster(request *components.UpdateClusterRequest) error {
+func (c *AWSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest) error {
 
 	kubicornLogger.Level = getKubicornLogLevel()
 
 	log.Info("Start updating cluster (amazon)")
 
 	if request == nil {
-		return constants.ErrorEmptyUpdateRequest
+		return pkgErrors.ErrorEmptyUpdateRequest
 	}
 
 	existingNodePools := map[string]*model.AmazonNodePoolsModel{}
@@ -741,7 +741,7 @@ func findServerPool(pools []*kcluster.ServerPool, clusterName, name string) (int
 			return i, nil
 		}
 	}
-	return 0, constants.ErrorNodePoolNotFoundByName
+	return 0, pkgErrors.ErrorNodePoolNotFoundByName
 }
 
 //GetKubicornCluster returns a Kubicorn cluster
@@ -918,12 +918,12 @@ func getBootstrapScriptFromEnv(isMaster bool) string {
 }
 
 //AddDefaultsToUpdate adds defaults to update request
-func (c *AWSCluster) AddDefaultsToUpdate(r *components.UpdateClusterRequest) {
+func (c *AWSCluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
 	// no needed this time, validate failed if there's missing field(s)
 }
 
 //CheckEqualityToUpdate validates the update request
-func (c *AWSCluster) CheckEqualityToUpdate(r *components.UpdateClusterRequest) error {
+func (c *AWSCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) error {
 	// create update request struct with the stored data to check equality
 
 	preNodePools := make(map[string]*amazon.NodePool)
@@ -981,7 +981,7 @@ func ListRegions(orgId uint, secretId, region string) ([]*ec2.Region, error) {
 		modelCluster: &model.ClusterModel{
 			OrganizationId: orgId,
 			SecretId:       secretId,
-			Cloud:          constants.Amazon,
+			Cloud:          pkgCluster.Amazon,
 		},
 	}
 	return c.ListRegions(region)
@@ -1009,7 +1009,7 @@ func ListAMIs(orgId uint, secretId, region string, tags []*string) ([]*ec2.Image
 		modelCluster: &model.ClusterModel{
 			OrganizationId: orgId,
 			SecretId:       secretId,
-			Cloud:          constants.Amazon,
+			Cloud:          pkgCluster.Amazon,
 		},
 	}
 	return c.ListAMIs(region, tags)
@@ -1063,7 +1063,7 @@ func (c *AWSCluster) UpdateStatus(status, statusMessage string) error {
 }
 
 // GetClusterDetails gets cluster details from cloud
-func (c *AWSCluster) GetClusterDetails() (*components.ClusterDetailsResponse, error) {
+func (c *AWSCluster) GetClusterDetails() (*pkgCluster.ClusterDetailsResponse, error) {
 
 	log.Info("Start getting cluster details")
 
@@ -1074,14 +1074,14 @@ func (c *AWSCluster) GetClusterDetails() (*components.ClusterDetailsResponse, er
 		return nil, err
 	}
 
-	return &components.ClusterDetailsResponse{
+	return &pkgCluster.ClusterDetailsResponse{
 		Name: kubicornCluster.Name,
 		Id:   c.modelCluster.ID,
 	}, nil
 }
 
 // ValidateCreationFields validates all field
-func (c *AWSCluster) ValidateCreationFields(r *components.CreateClusterRequest) error {
+func (c *AWSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
 	location := r.Location
 
 	// Validate location
@@ -1121,7 +1121,7 @@ func (c *AWSCluster) validateLocation(location string) error {
 	}
 
 	if !isContains {
-		return constants.ErrorNotValidLocation
+		return pkgErrors.ErrorNotValidLocation
 	}
 
 	return nil
@@ -1148,12 +1148,12 @@ func (c *AWSCluster) validateAMIs(masterAMI string, nodePools map[string]*amazon
 	}
 
 	if validImageMap[masterAMI] == nil {
-		return constants.ErrorNotValidMasterImage
+		return pkgErrors.ErrorNotValidMasterImage
 	}
 
 	for _, node := range nodePools {
 		if validImageMap[node.Image] == nil {
-			return constants.ErrorNotValidNodeImage
+			return pkgErrors.ErrorNotValidNodeImage
 		}
 	}
 

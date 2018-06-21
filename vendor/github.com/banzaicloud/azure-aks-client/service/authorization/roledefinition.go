@@ -1,8 +1,8 @@
 package authorization
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization"
 	"context"
+	"github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization"
 	"github.com/Azure/go-autorest/autorest"
 )
 

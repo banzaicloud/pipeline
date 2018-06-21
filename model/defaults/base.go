@@ -2,10 +2,10 @@ package defaults
 
 import (
 	"fmt"
-	"github.com/banzaicloud/banzai-types/components"
-	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"time"
@@ -61,8 +61,8 @@ type ClusterProfile interface {
 	IsDefinedBefore() bool
 	SaveInstance() error
 	GetType() string
-	GetProfile() *components.ClusterProfileResponse
-	UpdateProfile(*components.ClusterProfileRequest, bool) error
+	GetProfile() *pkgCluster.ClusterProfileResponse
+	UpdateProfile(*pkgCluster.ClusterProfileRequest, bool) error
 	DeleteProfile() error
 }
 
@@ -116,21 +116,21 @@ func GetAllProfiles(cloudType string) ([]ClusterProfile, error) {
 
 	switch cloudType {
 
-	case constants.Amazon:
+	case pkgCluster.Amazon:
 		var awsProfiles []AWSProfile
 		db.Find(&awsProfiles)
 		for i := range awsProfiles {
 			defaults = append(defaults, &awsProfiles[i])
 		}
 
-	case constants.Azure:
+	case pkgCluster.Azure:
 		var aksProfiles []AKSProfile
 		db.Find(&aksProfiles)
 		for i := range aksProfiles {
 			defaults = append(defaults, &aksProfiles[i])
 		}
 
-	case constants.Google:
+	case pkgCluster.Google:
 		var gkeProfiles []GKEProfile
 		db.Find(&gkeProfiles)
 		for i := range gkeProfiles {
@@ -138,7 +138,7 @@ func GetAllProfiles(cloudType string) ([]ClusterProfile, error) {
 		}
 
 	default:
-		return nil, constants.ErrorNotSupportedCloudType
+		return nil, pkgErrors.ErrorNotSupportedCloudType
 	}
 
 	return defaults, nil
@@ -150,21 +150,21 @@ func GetProfile(cloudType string, name string) (ClusterProfile, error) {
 	db := model.GetDB()
 
 	switch cloudType {
-	case constants.Amazon:
+	case pkgCluster.Amazon:
 		var awsProfile AWSProfile
 		if err := db.Where(GKEProfile{DefaultModel: DefaultModel{Name: name}}).First(&awsProfile).Error; err != nil {
 			return nil, err
 		}
 		return &awsProfile, nil
 
-	case constants.Azure:
+	case pkgCluster.Azure:
 		var aksProfile AKSProfile
 		if err := db.Where(GKEProfile{DefaultModel: DefaultModel{Name: name}}).First(&aksProfile).Error; err != nil {
 			return nil, err
 		}
 		return &aksProfile, nil
 
-	case constants.Google:
+	case pkgCluster.Google:
 		var gkeProfile GKEProfile
 		if err := db.Where(GKEProfile{DefaultModel: DefaultModel{Name: name}}).First(&gkeProfile).Error; err != nil {
 			return nil, err
@@ -172,7 +172,7 @@ func GetProfile(cloudType string, name string) (ClusterProfile, error) {
 		return &gkeProfile, nil
 
 	default:
-		return nil, constants.ErrorNotSupportedCloudType
+		return nil, pkgErrors.ErrorNotSupportedCloudType
 	}
 
 }

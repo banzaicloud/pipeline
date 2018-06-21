@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"testing"
 
-	btypes "github.com/banzaicloud/banzai-types/constants"
-	pipConstants "github.com/banzaicloud/pipeline/constants"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 )
@@ -18,7 +18,7 @@ func TestGetValue(t *testing.T) {
 		searchedKey   string
 		expectedValue string
 	}{
-		{name: "gke project id", secretItem: secretItem1, searchedKey: pipConstants.ProjectId, expectedValue: gkeProjectId},
+		{name: "gke project id", secretItem: secretItem1, searchedKey: pkgSecret.ProjectId, expectedValue: gkeProjectId},
 		{name: "non", secretItem: secretItem1, searchedKey: secretProjectId2, expectedValue: ""},
 	}
 
@@ -111,94 +111,94 @@ const (
 var (
 	awsCreateSecretFull = secret.CreateSecretRequest{
 		Name: secretDesc,
-		Type: btypes.Amazon,
+		Type: pkgCluster.Amazon,
 		Values: map[string]string{
-			pipConstants.AwsAccessKeyId:     AwsAccessKeyId,
-			pipConstants.AwsSecretAccessKey: AwsSecretAccessKey,
+			pkgSecret.AwsAccessKeyId:     AwsAccessKeyId,
+			pkgSecret.AwsSecretAccessKey: AwsSecretAccessKey,
 		},
 	}
 
 	awsMissingKey = secret.CreateSecretRequest{
 		Name: secretDesc,
-		Type: btypes.Amazon,
+		Type: pkgCluster.Amazon,
 		Values: map[string]string{
-			pipConstants.AwsSecretAccessKey: AwsSecretAccessKey,
+			pkgSecret.AwsSecretAccessKey: AwsSecretAccessKey,
 		},
 	}
 
 	aksCreateSecretFull = secret.CreateSecretRequest{
 		Name: secretDesc,
-		Type: btypes.Azure,
+		Type: pkgCluster.Azure,
 		Values: map[string]string{
-			pipConstants.AzureClientId:       AzureClientId,
-			pipConstants.AzureClientSecret:   AzureClientSecret,
-			pipConstants.AzureTenantId:       AzureTenantId,
-			pipConstants.AzureSubscriptionId: AzureSubscriptionId,
+			pkgSecret.AzureClientId:       AzureClientId,
+			pkgSecret.AzureClientSecret:   AzureClientSecret,
+			pkgSecret.AzureTenantId:       AzureTenantId,
+			pkgSecret.AzureSubscriptionId: AzureSubscriptionId,
 		},
 	}
 
 	aksMissingKey = secret.CreateSecretRequest{
 		Name: secretDesc,
-		Type: btypes.Azure,
+		Type: pkgCluster.Azure,
 		Values: map[string]string{
-			pipConstants.AzureClientId:       AzureClientId,
-			pipConstants.AzureSubscriptionId: AzureSubscriptionId,
+			pkgSecret.AzureClientId:       AzureClientId,
+			pkgSecret.AzureSubscriptionId: AzureSubscriptionId,
 		},
 	}
 
 	gkeCreateSecretFull = secret.CreateSecretRequest{
 		Name: secretDesc,
-		Type: btypes.Google,
+		Type: pkgCluster.Google,
 		Values: map[string]string{
-			pipConstants.Type:          gkeType,
-			pipConstants.ProjectId:     gkeProjectId,
-			pipConstants.PrivateKeyId:  gkePrivateKeyId,
-			pipConstants.PrivateKey:    gkePrivateKey,
-			pipConstants.ClientEmail:   gkeClientEmail,
-			pipConstants.ClientId:      gkeClientId,
-			pipConstants.AuthUri:       gkeAuthUri,
-			pipConstants.TokenUri:      gkeTokenUri,
-			pipConstants.AuthX509Url:   gkeAuthCert,
-			pipConstants.ClientX509Url: gkeClientCert,
+			pkgSecret.Type:          gkeType,
+			pkgSecret.ProjectId:     gkeProjectId,
+			pkgSecret.PrivateKeyId:  gkePrivateKeyId,
+			pkgSecret.PrivateKey:    gkePrivateKey,
+			pkgSecret.ClientEmail:   gkeClientEmail,
+			pkgSecret.ClientId:      gkeClientId,
+			pkgSecret.AuthUri:       gkeAuthUri,
+			pkgSecret.TokenUri:      gkeTokenUri,
+			pkgSecret.AuthX509Url:   gkeAuthCert,
+			pkgSecret.ClientX509Url: gkeClientCert,
 		},
 	}
 
 	gkeMissingKey = secret.CreateSecretRequest{
 		Name: secretDesc,
-		Type: btypes.Google,
+		Type: pkgCluster.Google,
 		Values: map[string]string{
-			pipConstants.Type:          gkeType,
-			pipConstants.ProjectId:     gkeProjectId,
-			pipConstants.PrivateKeyId:  gkePrivateKeyId,
-			pipConstants.PrivateKey:    gkePrivateKey,
-			pipConstants.ClientId:      gkeClientId,
-			pipConstants.AuthUri:       gkeAuthUri,
-			pipConstants.TokenUri:      gkeTokenUri,
-			pipConstants.AuthX509Url:   gkeAuthCert,
-			pipConstants.ClientX509Url: gkeClientCert,
+			pkgSecret.Type:          gkeType,
+			pkgSecret.ProjectId:     gkeProjectId,
+			pkgSecret.PrivateKeyId:  gkePrivateKeyId,
+			pkgSecret.PrivateKey:    gkePrivateKey,
+			pkgSecret.ClientId:      gkeClientId,
+			pkgSecret.AuthUri:       gkeAuthUri,
+			pkgSecret.TokenUri:      gkeTokenUri,
+			pkgSecret.AuthX509Url:   gkeAuthCert,
+			pkgSecret.ClientX509Url: gkeClientCert,
 		},
 	}
 
 	sshCreateSecretFull = secret.CreateSecretRequest{
 		Name: secretDesc,
-		Type: pipConstants.SSHSecretType,
+		Type: pkgSecret.SSHSecretType,
 		Values: map[string]string{
-			pipConstants.User:                 SshUser,
-			pipConstants.Identifier:           SshIdentifier,
-			pipConstants.PublicKeyData:        SshPublicKeyData,
-			pipConstants.PublicKeyFingerprint: SshPublicKeyFingerprint,
-			pipConstants.PrivateKeyData:       SshPrivateKeyData,
+			pkgSecret.User:                 SshUser,
+			pkgSecret.Identifier:           SshIdentifier,
+			pkgSecret.PublicKeyData:        SshPublicKeyData,
+			pkgSecret.PublicKeyFingerprint: SshPublicKeyFingerprint,
+			pkgSecret.PrivateKeyData:       SshPrivateKeyData,
 		},
 	}
 
 	sshMissingKey = secret.CreateSecretRequest{
 		Name: secretDesc,
-		Type: pipConstants.SSHSecretType,
+		Type: pkgSecret.SSHSecretType,
 		Values: map[string]string{
-			pipConstants.User:                 SshUser,
-			pipConstants.Identifier:           SshIdentifier,
-			pipConstants.PublicKeyData:        SshPublicKeyData,
-			pipConstants.PublicKeyFingerprint: SshPublicKeyFingerprint,
+			pkgSecret.User:                 SshUser,
+			pkgSecret.Identifier:           SshIdentifier,
+			pkgSecret.PublicKeyData:        SshPublicKeyData,
+			pkgSecret.PublicKeyFingerprint: SshPublicKeyFingerprint,
 		},
 	}
 )
@@ -207,9 +207,9 @@ var (
 	secretItem1 = secret.SecretsItemResponse{
 		ID:   secretId,
 		Name: secretDesc,
-		Type: btypes.Google,
+		Type: pkgCluster.Google,
 		Values: map[string]string{
-			pipConstants.ProjectId: gkeProjectId,
+			pkgSecret.ProjectId: gkeProjectId,
 		},
 	}
 )

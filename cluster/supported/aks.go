@@ -1,9 +1,9 @@
 package supported
 
 import (
-	"github.com/banzaicloud/banzai-types/components"
-	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/cluster"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 )
 
 // AzureInfo describes AKS with supported info
@@ -13,12 +13,12 @@ type AzureInfo struct {
 
 // GetType returns cloud type
 func (a *AzureInfo) GetType() string {
-	return constants.Azure
+	return pkgCluster.Azure
 }
 
 // GetNameRegexp returns regexp for cluster name
 func (a *AzureInfo) GetNameRegexp() string {
-	return constants.RegexpAKSName
+	return pkgCluster.RegexpAKSName
 }
 
 // GetLocations returns supported locations
@@ -27,31 +27,31 @@ func (a *AzureInfo) GetLocations() ([]string, error) {
 }
 
 // GetMachineTypes returns supported machine types
-func (a *AzureInfo) GetMachineTypes() (map[string]components.MachineType, error) {
-	return nil, constants.ErrorRequiredLocation
+func (a *AzureInfo) GetMachineTypes() (map[string]pkgCluster.MachineType, error) {
+	return nil, pkgErrors.ErrorRequiredLocation
 }
 
 // GetMachineTypesWithFilter returns supported machine types by location
-func (a *AzureInfo) GetMachineTypesWithFilter(filter *components.InstanceFilter) (map[string]components.MachineType, error) {
+func (a *AzureInfo) GetMachineTypesWithFilter(filter *pkgCluster.InstanceFilter) (map[string]pkgCluster.MachineType, error) {
 
 	if len(filter.Location) == 0 {
-		return nil, constants.ErrorRequiredLocation
+		return nil, pkgErrors.ErrorRequiredLocation
 	}
 
 	return cluster.GetMachineTypes(a.OrgId, a.SecretId, filter.Location)
 }
 
 // GetKubernetesVersion returns supported k8s versions
-func (a *AzureInfo) GetKubernetesVersion(filter *components.KubernetesFilter) (interface{}, error) {
+func (a *AzureInfo) GetKubernetesVersion(filter *pkgCluster.KubernetesFilter) (interface{}, error) {
 
 	if filter == nil || len(filter.Location) == 0 {
-		return nil, constants.ErrorRequiredLocation
+		return nil, pkgErrors.ErrorRequiredLocation
 	}
 
 	return cluster.GetKubernetesVersion(a.OrgId, a.SecretId, filter.Location)
 }
 
 // GetImages returns with the supported images (in case of AKS is undefined)
-func (a *AzureInfo) GetImages(filter *components.ImageFilter) (map[string][]string, error) {
+func (a *AzureInfo) GetImages(filter *pkgCluster.ImageFilter) (map[string][]string, error) {
 	return nil, nil
 }

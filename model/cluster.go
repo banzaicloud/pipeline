@@ -7,13 +7,26 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/banzaicloud/banzai-types/constants"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/jinzhu/gorm"
 )
 
 const unknown = "unknown"
+
+//TableName constants
+const (
+	TableNameClusters             = "clusters"
+	TableNameAmazonProperties     = "amazon_cluster_properties"
+	TableNameAmazonNodePools      = "amazon_node_pools"
+	TableNameAzureProperties      = "azure_cluster_properties"
+	TableNameAzureNodePools       = "azure_node_pools"
+	TableNameGoogleProperties     = "google_cluster_properties"
+	TableNameGoogleNodePools      = "google_node_pools"
+	TableNameDummyProperties      = "dummy_cluster_properties"
+	TableNameKubernetesProperties = "kubernetes_cluster_properties"
+)
 
 //ClusterModel describes the common cluster model
 type ClusterModel struct {
@@ -139,7 +152,7 @@ func (gc GoogleClusterModel) String() string {
 func (cs *ClusterModel) BeforeSave() error {
 	log.Info("Before save convert meta data")
 
-	if cs.Cloud == constants.Kubernetes && cs.Kubernetes.MetadataRaw != nil && len(cs.Kubernetes.MetadataRaw) != 0 {
+	if cs.Cloud == pkgCluster.Kubernetes && cs.Kubernetes.MetadataRaw != nil && len(cs.Kubernetes.MetadataRaw) != 0 {
 		out, err := json.Marshal(cs.Kubernetes.Metadata)
 		if err != nil {
 			log.Errorf("Error during convert map to json: %s", err.Error())
@@ -161,7 +174,7 @@ func (cs *ClusterModel) AfterFind() error {
 		cs.Location = unknown
 	}
 
-	if cs.Cloud == constants.Kubernetes && cs.Kubernetes.MetadataRaw != nil && len(cs.Kubernetes.MetadataRaw) != 0 {
+	if cs.Cloud == pkgCluster.Kubernetes && cs.Kubernetes.MetadataRaw != nil && len(cs.Kubernetes.MetadataRaw) != 0 {
 		out, err := utils.ConvertJson2Map(cs.Kubernetes.MetadataRaw)
 		if err != nil {
 			log.Errorf("Error during convert json to map: %s", err.Error())
@@ -202,19 +215,19 @@ func (cs *ClusterModel) Delete() error {
 
 // TableName sets ClusterModel's table name
 func (ClusterModel) TableName() string {
-	return constants.TableNameClusters
+	return TableNameClusters
 }
 
 // String method prints formatted cluster fields
 func (cs *ClusterModel) String() string {
 	var buffer bytes.Buffer
 	buffer.WriteString(fmt.Sprintf("Id: %d, Creation date: %s, Cloud: %s, ", cs.ID, cs.CreatedAt, cs.Cloud))
-	if cs.Cloud == constants.Azure {
+	if cs.Cloud == pkgCluster.Azure {
 		// Write AKS
 		buffer.WriteString(fmt.Sprintf("NodePools: %v, Kubernetes version: %s",
 			cs.Azure.NodePools,
 			cs.Azure.KubernetesVersion))
-	} else if cs.Cloud == constants.Amazon {
+	} else if cs.Cloud == pkgCluster.Amazon {
 		// Write AWS Master
 		buffer.WriteString(fmt.Sprintf("Master instance type: %s, Master image: %s",
 			cs.Amazon.MasterInstanceType,
@@ -230,13 +243,13 @@ func (cs *ClusterModel) String() string {
 				nodePool.NodeImage))
 		}
 
-	} else if cs.Cloud == constants.Google {
+	} else if cs.Cloud == pkgCluster.Google {
 		buffer.WriteString(fmt.Sprint(cs.Google))
-	} else if cs.Cloud == constants.Dummy {
+	} else if cs.Cloud == pkgCluster.Dummy {
 		buffer.WriteString(fmt.Sprintf("Node count: %d, kubernetes version: %s",
 			cs.Dummy.NodeCount,
 			cs.Dummy.KubernetesVersion))
-	} else if cs.Cloud == constants.Kubernetes {
+	} else if cs.Cloud == pkgCluster.Kubernetes {
 		buffer.WriteString(fmt.Sprintf("Metadata: %#v", cs.Kubernetes.Metadata))
 	}
 
@@ -245,22 +258,22 @@ func (cs *ClusterModel) String() string {
 
 // TableName sets AmazonClusterModel's table name
 func (AmazonClusterModel) TableName() string {
-	return constants.TableNameAmazonProperties
+	return TableNameAmazonProperties
 }
 
 // TableName sets AmazonNodePoolsModel's table name
 func (AmazonNodePoolsModel) TableName() string {
-	return constants.TableNameAmazonNodePools
+	return TableNameAmazonNodePools
 }
 
 // TableName sets AzureClusterModel's table name
 func (AzureClusterModel) TableName() string {
-	return constants.TableNameAzureProperties
+	return TableNameAzureProperties
 }
 
 // TableName sets AzureNodePoolModel's table name
 func (AzureNodePoolModel) TableName() string {
-	return constants.TableNameAzureNodePools
+	return TableNameAzureNodePools
 }
 
 // QueryCluster get's the clusters from the DB
@@ -275,22 +288,22 @@ func QueryCluster(filter map[string]interface{}) ([]ClusterModel, error) {
 
 //TableName sets the GoogleClusterModel's table name
 func (GoogleClusterModel) TableName() string {
-	return constants.TableNameGoogleProperties
+	return TableNameGoogleProperties
 }
 
 //TableName sets the GoogleNodePoolModel's table name
 func (GoogleNodePoolModel) TableName() string {
-	return constants.TableNameGoogleNodePools
+	return TableNameGoogleNodePools
 }
 
 //TableName sets the DummyClusterModel's table name
 func (DummyClusterModel) TableName() string {
-	return constants.TableNameDummyProperties
+	return TableNameDummyProperties
 }
 
 //TableName sets the KubernetesClusterModel's table name
 func (KubernetesClusterModel) TableName() string {
-	return constants.TableNameKubernetesProperties
+	return TableNameKubernetesProperties
 }
 
 // AfterUpdate removes marked node pool(s)

@@ -6,8 +6,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const BaseUrl = "https://management.azure.com"
-
 type aksClient struct {
 	azureSdk *cluster.Sdk
 	logger   *logrus.Logger
@@ -41,9 +39,6 @@ func GetAKSClient(credentials *cluster.AKSCredential) (ClusterManager, error) {
 func (a *aksClient) With(i interface{}) {
 	if a != nil {
 		switch i.(type) {
-		case logrus.Logger:
-			logger := i.(logrus.Logger)
-			a.logger = &logger
 		case *logrus.Logger:
 			a.logger = i.(*logrus.Logger)
 		}

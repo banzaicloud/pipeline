@@ -8,10 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/banzaicloud/banzai-types/components"
-	btypes "github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/api"
-	pipConstants "github.com/banzaicloud/pipeline/constants"
+	clusterTypes "github.com/banzaicloud/pipeline/pkg/cluster"
+	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 )
@@ -23,9 +22,9 @@ func TestIsValidSecretType(t *testing.T) {
 		secretType string
 		error      error
 	}{
-		{name: "Amazon secret type", secretType: btypes.Amazon, error: nil},
-		{name: "Azure secret type", secretType: btypes.Azure, error: nil},
-		{name: "Google secret type", secretType: btypes.Google, error: nil},
+		{name: "Amazon secret type", secretType: clusterTypes.Amazon, error: nil},
+		{name: "Azure secret type", secretType: clusterTypes.Azure, error: nil},
+		{name: "Google secret type", secretType: clusterTypes.Google, error: nil},
 		{name: "not supported secret type", secretType: invalidSecretType, error: api.ErrNotSupportedSecretType},
 	}
 
@@ -49,9 +48,9 @@ func TestListAllowedSecretTypes(t *testing.T) {
 		error
 	}{
 		{name: "List all allowed secret types", secretType: "", expectedResponse: allAllowedTypes, error: nil},
-		{name: "List aws required keys", secretType: btypes.Amazon, expectedResponse: awsRequiredKeys, error: nil},
-		{name: "List aks required keys", secretType: btypes.Azure, expectedResponse: aksRequiredKeys, error: nil},
-		{name: "List gke required keys", secretType: btypes.Google, expectedResponse: gkeRequiredKeys, error: nil},
+		{name: "List aws required keys", secretType: clusterTypes.Amazon, expectedResponse: awsRequiredKeys, error: nil},
+		{name: "List aks required keys", secretType: clusterTypes.Azure, expectedResponse: aksRequiredKeys, error: nil},
+		{name: "List gke required keys", secretType: clusterTypes.Google, expectedResponse: gkeRequiredKeys, error: nil},
 		{name: "Invalid secret type", secretType: invalidSecretType, expectedResponse: nil, error: api.ErrNotSupportedSecretType},
 	}
 
@@ -112,9 +111,9 @@ func TestListSecrets(t *testing.T) {
 		tag            string
 		expectedValues []*secret.SecretsItemResponse
 	}{
-		{name: "List aws secrets", secretType: btypes.Amazon, tag: "", expectedValues: awsExpectedItems},
-		{name: "List aks secrets", secretType: btypes.Azure, tag: "", expectedValues: aksExpectedItems},
-		{name: "List gke secrets", secretType: btypes.Google, tag: "", expectedValues: gkeExpectedItems},
+		{name: "List aws secrets", secretType: clusterTypes.Amazon, tag: "", expectedValues: awsExpectedItems},
+		{name: "List aks secrets", secretType: clusterTypes.Azure, tag: "", expectedValues: aksExpectedItems},
+		{name: "List gke secrets", secretType: clusterTypes.Google, tag: "", expectedValues: gkeExpectedItems},
 		{name: "List all secrets", secretType: "", tag: "", expectedValues: allExpectedItems},
 		{name: "List repo:pipeline secrets", secretType: "", tag: "repo:pipeline", expectedValues: awsExpectedItems},
 	}
@@ -124,7 +123,7 @@ func TestListSecrets(t *testing.T) {
 			if err := api.IsValidSecretType(tc.secretType); err != nil {
 				t.Errorf("Error during validate secret type: %s", err)
 			} else {
-				if items, err := secret.Store.List(orgId, &components.ListSecretsQuery{tc.secretType, tc.tag, false}); err != nil {
+				if items, err := secret.Store.List(orgId, &secretTypes.ListSecretsQuery{tc.secretType, tc.tag, false}); err != nil {
 					t.Errorf("Error during listing secrets")
 				} else {
 					// Clear CreatedAt times, we don't know them
@@ -229,7 +228,7 @@ const (
 var (
 	awsCreateSecretRequest = secret.CreateSecretRequest{
 		Name: secretNameAmazon,
-		Type: btypes.Amazon,
+		Type: clusterTypes.Amazon,
 		Values: map[string]string{
 			"AWS_ACCESS_KEY_ID":     awsAccessKeyId,
 			"AWS_SECRET_ACCESS_KEY": awsSecretAccessKey,
@@ -239,7 +238,7 @@ var (
 
 	aksCreateSecretRequest = secret.CreateSecretRequest{
 		Name: secretNameAzure,
-		Type: btypes.Azure,
+		Type: clusterTypes.Azure,
 		Values: map[string]string{
 			"AZURE_CLIENT_ID":       aksClientId,
 			"AZURE_CLIENT_SECRET":   aksClientSecret,
@@ -250,7 +249,7 @@ var (
 
 	gkeCreateSecretRequest = secret.CreateSecretRequest{
 		Name: secretNameGoogle,
-		Type: btypes.Google,
+		Type: clusterTypes.Google,
 		Values: map[string]string{
 			"type":                        gkeType,
 			"project_id":                  gkeProjectId,
@@ -267,7 +266,7 @@ var (
 
 	awsMissingKey = secret.CreateSecretRequest{
 		Name: secretNameAmazon,
-		Type: btypes.Amazon,
+		Type: clusterTypes.Amazon,
 		Values: map[string]string{
 			"AWS_SECRET_ACCESS_KEY": awsSecretAccessKey,
 		},
@@ -275,7 +274,7 @@ var (
 
 	aksMissingKey = secret.CreateSecretRequest{
 		Name: secretNameAzure,
-		Type: btypes.Azure,
+		Type: clusterTypes.Azure,
 		Values: map[string]string{
 			"AZURE_CLIENT_ID":       aksClientId,
 			"AZURE_TENANT_ID":       aksTenantId,
@@ -285,7 +284,7 @@ var (
 
 	gkeMissingKey = secret.CreateSecretRequest{
 		Name: secretNameGoogle,
-		Type: btypes.Google,
+		Type: clusterTypes.Google,
 		Values: map[string]string{
 			"type":                        gkeType,
 			"project_id":                  gkeProjectId,
@@ -298,7 +297,7 @@ var (
 
 func toHiddenValues(secretType string) map[string]string {
 	values := map[string]string{}
-	for _, field := range pipConstants.DefaultRules[secretType].Fields {
+	for _, field := range secretTypes.DefaultRules[secretType].Fields {
 		values[field.Name] = "<hidden>"
 	}
 	return values
@@ -310,8 +309,8 @@ var (
 		{
 			ID:      secretIdAmazon,
 			Name:    secretNameAmazon,
-			Type:    btypes.Amazon,
-			Values:  toHiddenValues(btypes.Amazon),
+			Type:    clusterTypes.Amazon,
+			Values:  toHiddenValues(clusterTypes.Amazon),
 			Tags:    awsCreateSecretRequest.Tags,
 			Version: 1,
 		},
@@ -321,8 +320,8 @@ var (
 		{
 			ID:      secretIdAzure,
 			Name:    secretNameAzure,
-			Type:    btypes.Azure,
-			Values:  toHiddenValues(btypes.Azure),
+			Type:    clusterTypes.Azure,
+			Values:  toHiddenValues(clusterTypes.Azure),
 			Version: 1,
 		},
 	}
@@ -331,8 +330,8 @@ var (
 		{
 			ID:      secretIdGoogle,
 			Name:    secretNameGoogle,
-			Type:    btypes.Google,
-			Values:  toHiddenValues(btypes.Google),
+			Type:    clusterTypes.Google,
+			Values:  toHiddenValues(clusterTypes.Google),
 			Version: 1,
 		},
 	}
@@ -341,21 +340,21 @@ var (
 		{
 			ID:      secretIdGoogle,
 			Name:    secretNameGoogle,
-			Type:    btypes.Google,
-			Values:  toHiddenValues(btypes.Google),
+			Type:    clusterTypes.Google,
+			Values:  toHiddenValues(clusterTypes.Google),
 			Version: 1,
 		},
 		{
 			ID:      secretIdAzure,
 			Name:    secretNameAzure,
-			Type:    btypes.Azure,
-			Values:  toHiddenValues(btypes.Azure),
+			Type:    clusterTypes.Azure,
+			Values:  toHiddenValues(clusterTypes.Azure),
 			Version: 1,
 		}, {
 			ID:      secretIdAmazon,
 			Name:    secretNameAmazon,
-			Type:    btypes.Amazon,
-			Values:  toHiddenValues(btypes.Amazon),
+			Type:    clusterTypes.Amazon,
+			Values:  toHiddenValues(clusterTypes.Amazon),
 			Tags:    awsCreateSecretRequest.Tags,
 			Version: 1,
 		},
@@ -364,18 +363,18 @@ var (
 
 var (
 	allAllowedTypes = secret.AllowedSecretTypesResponse{
-		Allowed: pipConstants.DefaultRules,
+		Allowed: secretTypes.DefaultRules,
 	}
 
 	awsRequiredKeys = secret.AllowedFilteredSecretTypesResponse{
-		Keys: pipConstants.DefaultRules[btypes.Amazon],
+		Keys: secretTypes.DefaultRules[clusterTypes.Amazon],
 	}
 
 	aksRequiredKeys = secret.AllowedFilteredSecretTypesResponse{
-		Keys: pipConstants.DefaultRules[btypes.Azure],
+		Keys: secretTypes.DefaultRules[clusterTypes.Azure],
 	}
 
 	gkeRequiredKeys = secret.AllowedFilteredSecretTypesResponse{
-		Keys: pipConstants.DefaultRules[btypes.Google],
+		Keys: secretTypes.DefaultRules[clusterTypes.Google],
 	}
 )

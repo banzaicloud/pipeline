@@ -1,8 +1,8 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
 	"fmt"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
 )
 
 // listResourceGroups gets all the resource groups for a subscription

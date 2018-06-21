@@ -1,9 +1,8 @@
 package cluster
 
 import (
-	"github.com/banzaicloud/banzai-types/components"
-	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/model"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/secret"
 	"gopkg.in/yaml.v2"
 )
@@ -15,7 +14,7 @@ type DummyCluster struct {
 }
 
 // CreateDummyClusterFromRequest creates ClusterModel struct from the request
-func CreateDummyClusterFromRequest(request *components.CreateClusterRequest, orgId uint) (*DummyCluster, error) {
+func CreateDummyClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint) (*DummyCluster, error) {
 	log.Debug("Create ClusterModel struct from the request")
 	var cluster DummyCluster
 
@@ -56,17 +55,17 @@ func (d *DummyCluster) GetName() string {
 
 //GetType returns the cloud type of the cluster
 func (d *DummyCluster) GetType() string {
-	return constants.Dummy
+	return pkgCluster.Dummy
 }
 
 //GetStatus gets cluster status
-func (d *DummyCluster) GetStatus() (*components.GetClusterStatusResponse, error) {
-	return &components.GetClusterStatusResponse{
+func (d *DummyCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
+	return &pkgCluster.GetClusterStatusResponse{
 		Status:        d.modelCluster.Status,
 		StatusMessage: d.modelCluster.StatusMessage,
 		Name:          d.modelCluster.Name,
 		Location:      d.modelCluster.Location,
-		Cloud:         constants.Dummy,
+		Cloud:         pkgCluster.Dummy,
 		ResourceID:    d.GetID(),
 		NodePools:     nil,
 	}, nil
@@ -78,7 +77,7 @@ func (d *DummyCluster) DeleteCluster() error {
 }
 
 // UpdateCluster updates the dummy cluster
-func (d *DummyCluster) UpdateCluster(r *components.UpdateClusterRequest) error {
+func (d *DummyCluster) UpdateCluster(r *pkgCluster.UpdateClusterRequest) error {
 	d.modelCluster.Dummy.KubernetesVersion = r.Dummy.Node.KubernetesVersion
 	d.modelCluster.Dummy.NodeCount = r.Dummy.Node.Count
 	return nil
@@ -95,12 +94,12 @@ func (d *DummyCluster) GetModel() *model.ClusterModel {
 }
 
 //CheckEqualityToUpdate validates the update request
-func (d *DummyCluster) CheckEqualityToUpdate(r *components.UpdateClusterRequest) error {
+func (d *DummyCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) error {
 	return nil
 }
 
 //AddDefaultsToUpdate adds defaults to update request
-func (d *DummyCluster) AddDefaultsToUpdate(r *components.UpdateClusterRequest) {
+func (d *DummyCluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
 
 }
 
@@ -212,34 +211,34 @@ func (d *DummyCluster) UpdateStatus(status, statusMessage string) error {
 }
 
 // GetClusterDetails gets cluster details from cloud
-func (d *DummyCluster) GetClusterDetails() (*components.ClusterDetailsResponse, error) {
+func (d *DummyCluster) GetClusterDetails() (*pkgCluster.ClusterDetailsResponse, error) {
 	status, err := d.GetStatus()
 	if err != nil {
 		return nil, err
 	}
 
-	return &components.ClusterDetailsResponse{
+	return &pkgCluster.ClusterDetailsResponse{
 		Name: status.Name,
 		Id:   status.ResourceID,
 	}, nil
 }
 
 // ValidateCreationFields validates all field
-func (d *DummyCluster) ValidateCreationFields(r *components.CreateClusterRequest) error {
+func (d *DummyCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
 	return nil
 }
 
 // GetSecretWithValidation returns secret from vault
 func (d *DummyCluster) GetSecretWithValidation() (*secret.SecretsItemResponse, error) {
 	return &secret.SecretsItemResponse{
-		Type: constants.Dummy,
+		Type: pkgCluster.Dummy,
 	}, nil
 }
 
 // GetSshSecretWithValidation returns ssh secret from vault
 func (d *DummyCluster) GetSshSecretWithValidation() (*secret.SecretsItemResponse, error) {
 	return &secret.SecretsItemResponse{
-		Type: constants.Dummy,
+		Type: pkgCluster.Dummy,
 	}, nil
 }
 

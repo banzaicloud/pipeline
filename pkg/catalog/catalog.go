@@ -30,7 +30,7 @@ type ApplicationSecretPassword struct {
 
 // ApplicationSecretTLS to parse spotguide.yaml
 type ApplicationSecretTLS struct {
-	Hosts      string `json:"hosts" yaml:"hosts" binding:"required"`
+	Hosts    string `json:"hosts" yaml:"hosts" binding:"required"`
 	Validity string `json:"validity,omitempty" yaml:"validity,omitempty"`
 }
 

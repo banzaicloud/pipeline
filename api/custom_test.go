@@ -2,7 +2,7 @@ package api
 
 import (
 	"fmt"
-	htype "github.com/banzaicloud/banzai-types/components/helm"
+	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	v12 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -80,7 +80,7 @@ func TestIngressEndpointUrls(t *testing.T) {
 
 	loadBalancerPublicHost := "lb.url.com"
 
-	expectedEndpoints := []htype.EndPointURLs{
+	expectedEndpoints := []pkgHelm.EndPointURLs{
 		{
 			Path:        "/svc1_path1",
 			URL:         fmt.Sprint("http://", loadBalancerPublicHost, "/svc1_path1/"),
@@ -276,23 +276,23 @@ var (
 	}
 )
 var (
-	expectedEndpointListWithHostName = []*htype.EndpointItem{{
+	expectedEndpointListWithHostName = []*pkgHelm.EndpointItem{{
 		Name:         "serviceListWithHostName",
 		Host:         dummyLoadBalancer,
 		Ports:        make(map[string]int32),
 		EndPointURLs: nil,
 	}}
-	expectedEndpointListWithIP = []*htype.EndpointItem{{
+	expectedEndpointListWithIP = []*pkgHelm.EndpointItem{{
 		Name:         "serviceListWithIP",
 		Host:         dummyIP,
 		Ports:        make(map[string]int32),
 		EndPointURLs: nil,
 	}}
-	expectedEndpointWithMultipleLoadBalancer = []*htype.EndpointItem{{
+	expectedEndpointWithMultipleLoadBalancer = []*pkgHelm.EndpointItem{{
 		Name:  "loadBalancerWithIngress",
 		Host:  "dummy.loadbalancer",
 		Ports: make(map[string]int32),
-		EndPointURLs: []*htype.EndPointURLs{
+		EndPointURLs: []*pkgHelm.EndPointURLs{
 			{
 				Path:        "/svc1_path1",
 				URL:         fmt.Sprint("http://", dummyLoadBalancer, "/svc1_path1/"),
@@ -310,7 +310,7 @@ var (
 		Ports:        make(map[string]int32),
 		EndPointURLs: nil,
 	}}
-	expectedEndpointListWithPort = []*htype.EndpointItem{{
+	expectedEndpointListWithPort = []*pkgHelm.EndpointItem{{
 		Name: "loadBalancerWithPort",
 		Host: "dummy.loadbalancer",
 		Ports: map[string]int32{
@@ -327,7 +327,7 @@ func TestLoadBalancersWithIngressPaths(t *testing.T) {
 		testName             string
 		inputServiceList     *v1.ServiceList
 		inputIngressList     *v1beta1.IngressList
-		expectedEndPointList []*htype.EndpointItem
+		expectedEndPointList []*pkgHelm.EndpointItem
 	}{
 		{testName: "withoutLoadBalancer", inputServiceList: serviceListWithoutLoadBalancer, inputIngressList: nil, expectedEndPointList: nil},
 		{testName: "serviceWithHostName", inputServiceList: serviceListWithHostName, inputIngressList: nil, expectedEndPointList: expectedEndpointListWithHostName},

@@ -1,12 +1,11 @@
 package defaults_test
 
 import (
-	"github.com/banzaicloud/banzai-types/components"
-	"github.com/banzaicloud/banzai-types/components/amazon"
-	"github.com/banzaicloud/banzai-types/components/azure"
-	"github.com/banzaicloud/banzai-types/components/google"
-	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/model/defaults"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/banzaicloud/pipeline/pkg/cluster/amazon"
+	"github.com/banzaicloud/pipeline/pkg/cluster/azure"
+	"github.com/banzaicloud/pipeline/pkg/cluster/google"
 	"github.com/banzaicloud/pipeline/utils"
 	"testing"
 )
@@ -27,9 +26,9 @@ func TestGetType(t *testing.T) {
 		profile      defaults.ClusterProfile
 		expectedType string
 	}{
-		{"type gke", &defaults.GKEProfile{}, constants.Google},
-		{"type aks", &defaults.AKSProfile{}, constants.Azure},
-		{"type aws", &defaults.AWSProfile{}, constants.Amazon},
+		{"type gke", &defaults.GKEProfile{}, pkgCluster.Google},
+		{"type aks", &defaults.AKSProfile{}, pkgCluster.Azure},
+		{"type aws", &defaults.AWSProfile{}, pkgCluster.Amazon},
 	}
 
 	for _, tc := range cases {
@@ -48,7 +47,7 @@ func TestUpdateWithoutSave(t *testing.T) {
 	testCases := []struct {
 		name           string
 		basicProfile   defaults.ClusterProfile
-		request        *components.ClusterProfileRequest
+		request        *pkgCluster.ClusterProfileRequest
 		expectedResult defaults.ClusterProfile
 	}{
 		{"full request GKE", &defaults.GKEProfile{}, fullRequestGKE, &fullGKE},
@@ -102,10 +101,10 @@ const (
 )
 
 var (
-	fullRequestGKE = &components.ClusterProfileRequest{
+	fullRequestGKE = &pkgCluster.ClusterProfileRequest{
 		Name:     name,
 		Location: location,
-		Cloud:    constants.Google,
+		Cloud:    pkgCluster.Google,
 		Properties: struct {
 			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
@@ -127,10 +126,10 @@ var (
 		},
 	}
 
-	fullRequestAKS = &components.ClusterProfileRequest{
+	fullRequestAKS = &pkgCluster.ClusterProfileRequest{
 		Name:     name,
 		Location: location,
-		Cloud:    constants.Azure,
+		Cloud:    pkgCluster.Azure,
 		Properties: struct {
 			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
@@ -148,17 +147,17 @@ var (
 		},
 	}
 
-	fullRequestAWS = &components.ClusterProfileRequest{
+	fullRequestAWS = &pkgCluster.ClusterProfileRequest{
 		Name:     name,
 		Location: location,
-		Cloud:    constants.Amazon,
+		Cloud:    pkgCluster.Amazon,
 		Properties: struct {
 			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
 			Google *google.ClusterProfileGoogle `json:"google,omitempty"`
 		}{
 			Amazon: &amazon.ClusterProfileAmazon{
-				Master: &amazon.AmazonProfileMaster{
+				Master: &amazon.ProfileMaster{
 					InstanceType: masterInstanceType,
 					Image:        masterImage,
 				},
@@ -225,10 +224,10 @@ var (
 )
 
 var (
-	masterRequestGKE = &components.ClusterProfileRequest{
+	masterRequestGKE = &pkgCluster.ClusterProfileRequest{
 		Name:     name,
 		Location: location,
-		Cloud:    constants.Google,
+		Cloud:    pkgCluster.Google,
 		Properties: struct {
 			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
@@ -242,17 +241,17 @@ var (
 		},
 	}
 
-	masterRequestAWS = &components.ClusterProfileRequest{
+	masterRequestAWS = &pkgCluster.ClusterProfileRequest{
 		Name:     name,
 		Location: location,
-		Cloud:    constants.Amazon,
+		Cloud:    pkgCluster.Amazon,
 		Properties: struct {
 			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
 			Google *google.ClusterProfileGoogle `json:"google,omitempty"`
 		}{
 			Amazon: &amazon.ClusterProfileAmazon{
-				Master: &amazon.AmazonProfileMaster{
+				Master: &amazon.ProfileMaster{
 					InstanceType: masterInstanceType,
 					Image:        masterImage,
 				},
@@ -275,10 +274,10 @@ var (
 )
 
 var (
-	nodeRequestGKE = &components.ClusterProfileRequest{
+	nodeRequestGKE = &pkgCluster.ClusterProfileRequest{
 		Name:     name,
 		Location: location,
-		Cloud:    constants.Google,
+		Cloud:    pkgCluster.Google,
 		Properties: struct {
 			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
@@ -296,10 +295,10 @@ var (
 		},
 	}
 
-	nodeRequestAWS = &components.ClusterProfileRequest{
+	nodeRequestAWS = &pkgCluster.ClusterProfileRequest{
 		Name:     name,
 		Location: location,
-		Cloud:    constants.Amazon,
+		Cloud:    pkgCluster.Amazon,
 		Properties: struct {
 			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
@@ -353,22 +352,22 @@ var (
 )
 
 var (
-	emptyRequestGKE = &components.ClusterProfileRequest{
+	emptyRequestGKE = &pkgCluster.ClusterProfileRequest{
 		Name:     name,
 		Location: location,
-		Cloud:    constants.Google,
+		Cloud:    pkgCluster.Google,
 	}
 
-	emptyRequestAKS = &components.ClusterProfileRequest{
+	emptyRequestAKS = &pkgCluster.ClusterProfileRequest{
 		Name:     name,
 		Location: location,
-		Cloud:    constants.Azure,
+		Cloud:    pkgCluster.Azure,
 	}
 
-	emptyRequestAWS = &components.ClusterProfileRequest{
+	emptyRequestAWS = &pkgCluster.ClusterProfileRequest{
 		Name:     name,
 		Location: location,
-		Cloud:    constants.Amazon,
+		Cloud:    pkgCluster.Amazon,
 	}
 
 	emptyGKE = defaults.GKEProfile{

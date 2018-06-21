@@ -1,6 +1,6 @@
 package verify
 
-import "github.com/banzaicloud/banzai-types/constants"
+import pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 
 // Verifier validates cloud credentials
 type Verifier interface {
@@ -11,11 +11,11 @@ type Verifier interface {
 func NewVerifier(cloudType string, values map[string]string) Verifier {
 	switch cloudType {
 
-	case constants.Amazon:
+	case pkgCluster.Amazon:
 		return CreateAWSSecret(values)
-	case constants.Azure:
+	case pkgCluster.Azure:
 		return CreateAKSSecret(values)
-	case constants.Google:
+	case pkgCluster.Google:
 		return CreateGKESecret(values)
 	default:
 		return nil

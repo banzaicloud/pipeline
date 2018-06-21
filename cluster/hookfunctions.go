@@ -1,8 +1,7 @@
 package cluster
 
 import (
-	"github.com/banzaicloud/banzai-types/constants"
-	pipConstants "github.com/banzaicloud/pipeline/constants"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"reflect"
 	"runtime"
 	"strings"
@@ -10,39 +9,39 @@ import (
 
 // HookMap for api hook endpoints
 var HookMap = map[string]PostFunctioner{
-	pipConstants.StoreKubeConfig: &BasePostFunction{
+	pkgCluster.StoreKubeConfig: &BasePostFunction{
 		f:            StoreKubeConfig,
 		ErrorHandler: ErrorHandler{},
 	},
-	pipConstants.PersistKubernetesKeys: &BasePostFunction{
+	pkgCluster.PersistKubernetesKeys: &BasePostFunction{
 		f:            PersistKubernetesKeys,
 		ErrorHandler: ErrorHandler{},
 	},
-	pipConstants.UpdatePrometheusPostHook: &BasePostFunction{
+	pkgCluster.UpdatePrometheusPostHook: &BasePostFunction{
 		f:            UpdatePrometheusPostHook,
 		ErrorHandler: ErrorHandler{},
 	},
-	pipConstants.InstallHelmPostHook: &BasePostFunction{
+	pkgCluster.InstallHelmPostHook: &BasePostFunction{
 		f:            InstallHelmPostHook,
 		ErrorHandler: ErrorHandler{},
 	},
-	pipConstants.InstallIngressControllerPostHook: &BasePostFunction{
+	pkgCluster.InstallIngressControllerPostHook: &BasePostFunction{
 		f:            InstallIngressControllerPostHook,
 		ErrorHandler: ErrorHandler{},
 	},
-	pipConstants.InstallClusterAutoscalerPostHook: &BasePostFunction{
+	pkgCluster.InstallClusterAutoscalerPostHook: &BasePostFunction{
 		f:            InstallClusterAutoscalerPostHook,
 		ErrorHandler: ErrorHandler{},
 	},
-	pipConstants.InstallMonitoring: &BasePostFunction{
+	pkgCluster.InstallMonitoring: &BasePostFunction{
 		f:            InstallMonitoring,
 		ErrorHandler: ErrorHandler{},
 	},
-	pipConstants.InstallLogging: &BasePostFunction{
+	pkgCluster.InstallLogging: &BasePostFunction{
 		f:            InstallLogging,
 		ErrorHandler: ErrorHandler{},
 	},
-	pipConstants.RegisterDomainPostHook: &BasePostFunction{
+	pkgCluster.RegisterDomainPostHook: &BasePostFunction{
 		f:            RegisterDomainPostHook,
 		ErrorHandler: ErrorHandler{},
 	},
@@ -50,13 +49,13 @@ var HookMap = map[string]PostFunctioner{
 
 // BasePostHookFunctions default posthook functions after cluster create
 var BasePostHookFunctions = []PostFunctioner{
-	HookMap[pipConstants.StoreKubeConfig],
-	HookMap[pipConstants.PersistKubernetesKeys],
-	HookMap[pipConstants.UpdatePrometheusPostHook],
-	HookMap[pipConstants.InstallHelmPostHook],
-	HookMap[pipConstants.RegisterDomainPostHook],
-	HookMap[pipConstants.InstallIngressControllerPostHook],
-	HookMap[pipConstants.InstallClusterAutoscalerPostHook],
+	HookMap[pkgCluster.StoreKubeConfig],
+	HookMap[pkgCluster.PersistKubernetesKeys],
+	HookMap[pkgCluster.UpdatePrometheusPostHook],
+	HookMap[pkgCluster.InstallHelmPostHook],
+	HookMap[pkgCluster.RegisterDomainPostHook],
+	HookMap[pkgCluster.InstallIngressControllerPostHook],
+	HookMap[pkgCluster.InstallClusterAutoscalerPostHook],
 }
 
 // RunPostHook describes a {cluster_id}/posthooks API request
@@ -75,7 +74,7 @@ type ErrorHandler struct {
 }
 
 func (*ErrorHandler) Error(c CommonCluster, err error) {
-	c.UpdateStatus(constants.Error, err.Error())
+	c.UpdateStatus(pkgCluster.Error, err.Error())
 }
 
 // BasePostFunction describe a default posthook function

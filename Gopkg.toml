@@ -80,10 +80,6 @@
   branch = "master"
 
 [[constraint]]
-  branch = "master"
-  name = "github.com/banzaicloud/banzai-types"
-
-[[constraint]]
   name = "github.com/dgrijalva/jwt-go"
   version = "3.2.0"
 

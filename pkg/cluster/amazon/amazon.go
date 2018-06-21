@@ -1,7 +1,15 @@
 package amazon
 
 import (
-	"github.com/banzaicloud/banzai-types/constants"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
+)
+
+// ### [ Constants to Amazon cluster default values ] ### //
+const (
+	DefaultMasterInstanceType = "m4.xlarge"
+	DefaultNodeSpotPrice      = "0.2"
+	DefaultImage              = "ami-16bfeb6f"
 )
 
 // CreateClusterAmazon describes Pipeline's Amazon fields of a CreateCluster request
@@ -36,39 +44,39 @@ type UpdateClusterAmazon struct {
 func (a *NodePool) Validate() error {
 	// ---- [ Node image check ] ---- //
 	if len(a.InstanceType) == 0 {
-		return constants.ErrorAmazonInstancetypeFieldIsEmpty
+		return pkgErrors.ErrorAmazonInstancetypeFieldIsEmpty
 	}
 
 	// ---- [ Node image check ] ---- //
 	if len(a.Image) == 0 {
-		return constants.ErrorAmazonImageFieldIsEmpty
+		return pkgErrors.ErrorAmazonImageFieldIsEmpty
 	}
 
 	// ---- [ Min & Max count fields are required in case of autoscaling ] ---- //
 	if a.Autoscaling {
 
 		if a.MinCount == 0 {
-			return constants.ErrorMinFieldRequiredError
+			return pkgErrors.ErrorMinFieldRequiredError
 		}
 		if a.MaxCount == 0 {
-			return constants.ErrorMaxFieldRequiredError
+			return pkgErrors.ErrorMaxFieldRequiredError
 		}
 
 	} else {
 		// ---- [ Node min count check ] ---- //
 		if a.MinCount == 0 {
-			a.MinCount = constants.DefaultNodeMinCount
+			a.MinCount = pkgCommon.DefaultNodeMinCount
 		}
 
 		// ---- [ Node max count check ] ---- //
 		if a.MaxCount == 0 {
-			a.MaxCount = constants.DefaultNodeMaxCount
+			a.MaxCount = pkgCommon.DefaultNodeMaxCount
 		}
 	}
 
 	// ---- [ Node min count <= max count check ] ---- //
 	if a.MaxCount < a.MinCount {
-		return constants.ErrorNodePoolMinMaxFieldError
+		return pkgErrors.ErrorNodePoolMinMaxFieldError
 	}
 
 	if a.Count == 0 {
@@ -77,7 +85,7 @@ func (a *NodePool) Validate() error {
 
 	// ---- [ Node spot price ] ---- //
 	if len(a.SpotPrice) == 0 {
-		a.SpotPrice = constants.AmazonDefaultNodeSpotPrice
+		a.SpotPrice = DefaultNodeSpotPrice
 	}
 
 	return nil
@@ -86,21 +94,21 @@ func (a *NodePool) Validate() error {
 // Validate validates Amazon cluster create request
 func (amazon *CreateClusterAmazon) Validate() error {
 	if amazon == nil {
-		return constants.ErrorAmazonFieldIsEmpty
+		return pkgErrors.ErrorAmazonFieldIsEmpty
 	}
 	if amazon.Master == nil {
-		return constants.ErrorAmazonMasterFieldIsEmpty
+		return pkgErrors.ErrorAmazonMasterFieldIsEmpty
 	}
 	if amazon.Master.Image == "" {
-		return constants.ErrorAmazonImageFieldIsEmpty
+		return pkgErrors.ErrorAmazonImageFieldIsEmpty
 	}
 
 	if amazon.Master.InstanceType == "" {
-		amazon.Master.InstanceType = constants.AmazonDefaultMasterInstanceType
+		amazon.Master.InstanceType = DefaultMasterInstanceType
 	}
 
 	if len(amazon.NodePools) == 0 {
-		return constants.ErrorAmazonNodePoolFieldIsEmpty
+		return pkgErrors.ErrorAmazonNodePoolFieldIsEmpty
 	}
 
 	for _, np := range amazon.NodePools {
@@ -116,23 +124,23 @@ func (amazon *CreateClusterAmazon) Validate() error {
 func (amazon *CreateClusterAmazon) AddDefaults() error {
 
 	if amazon == nil {
-		return constants.ErrorAmazonFieldIsEmpty
+		return pkgErrors.ErrorAmazonFieldIsEmpty
 	}
 
 	if amazon.Master == nil {
 		amazon.Master = &CreateAmazonMaster{
-			InstanceType: constants.AmazonDefaultMasterInstanceType,
-			Image:        constants.AmazonDefaultImage,
+			InstanceType: DefaultMasterInstanceType,
+			Image:        DefaultImage,
 		}
 	}
 
 	if len(amazon.NodePools) == 0 {
-		return constants.ErrorAmazonNodePoolFieldIsEmpty
+		return pkgErrors.ErrorAmazonNodePoolFieldIsEmpty
 	}
 
 	for i, np := range amazon.NodePools {
 		if len(np.Image) == 0 {
-			amazon.NodePools[i].Image = constants.AmazonDefaultImage
+			amazon.NodePools[i].Image = DefaultImage
 		}
 	}
 
@@ -145,11 +153,11 @@ func (a *UpdateClusterAmazon) Validate() error {
 
 	// ---- [ Amazon field check ] ---- //
 	if a == nil {
-		return constants.ErrorAmazonFieldIsEmpty
+		return pkgErrors.ErrorAmazonFieldIsEmpty
 	}
 
 	if len(a.NodePools) == 0 {
-		return constants.ErrorAmazonNodePoolFieldIsEmpty
+		return pkgErrors.ErrorAmazonNodePoolFieldIsEmpty
 	}
 
 	for _, np := range a.NodePools {
@@ -163,12 +171,12 @@ func (a *UpdateClusterAmazon) Validate() error {
 
 // ClusterProfileAmazon describes an Amazon profile
 type ClusterProfileAmazon struct {
-	Master    *AmazonProfileMaster `json:"master,omitempty"`
+	Master    *ProfileMaster       `json:"master,omitempty"`
 	NodePools map[string]*NodePool `json:"nodePools,omitempty"`
 }
 
-// AmazonProfileMaster describes an Amazon profile's master fields
-type AmazonProfileMaster struct {
+// ProfileMaster describes an Amazon profile's master fields
+type ProfileMaster struct {
 	InstanceType string `json:"instanceType"`
 	Image        string `json:"image"`
 }

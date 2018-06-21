@@ -12,6 +12,7 @@ func (a *aksClient) listLocations() ([]subscriptions.Location, error) {
 
 	return subsClient.ListLocations()
 }
+
 // listSubscriptions
 func (a *aksClient) listSubscriptions() ([]subscriptions.Subscription, error) {
 	a.LogInfo("List subscriptions")

@@ -1,5 +1,7 @@
 package ssh
 
+// TODO this file has to be moved to the `secret` package
+
 import (
 	"bytes"
 	"crypto/rand"
@@ -10,8 +12,8 @@ import (
 	"strings"
 
 	"github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/constants"
 	"github.com/banzaicloud/pipeline/model"
+	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
@@ -37,11 +39,11 @@ type Key struct {
 // in the given secret
 func NewKey(s *secret.SecretsItemResponse) *Key {
 	return &Key{
-		User:                 s.Values[constants.User],
-		Identifier:           s.Values[constants.Identifier],
-		PublicKeyData:        s.Values[constants.PublicKeyData],
-		PublicKeyFingerprint: s.Values[constants.PublicKeyFingerprint],
-		PrivateKeyData:       s.Values[constants.PrivateKeyData],
+		User:                 s.Values[secretTypes.User],
+		Identifier:           s.Values[secretTypes.Identifier],
+		PublicKeyData:        s.Values[secretTypes.PublicKeyData],
+		PublicKeyFingerprint: s.Values[secretTypes.PublicKeyFingerprint],
+		PrivateKeyData:       s.Values[secretTypes.PrivateKeyData],
 	}
 }
 
@@ -73,15 +75,15 @@ func KeyAdd(organizationId uint, clusterId uint) (string, error) {
 func KeyStore(key *Key, organizationID uint, clusterName string) (secretID string, err error) {
 	log.Info("Store SSH Key to Bank Vaults")
 	var createSecretRequest secret.CreateSecretRequest
-	createSecretRequest.Type = constants.SSHSecretType
+	createSecretRequest.Type = secretTypes.SSHSecretType
 	createSecretRequest.Name = clusterName
 
 	createSecretRequest.Values = map[string]string{
-		constants.User:                 key.User,
-		constants.Identifier:           key.Identifier,
-		constants.PublicKeyData:        key.PublicKeyData,
-		constants.PublicKeyFingerprint: key.PublicKeyFingerprint,
-		constants.PrivateKeyData:       key.PrivateKeyData,
+		secretTypes.User:                 key.User,
+		secretTypes.Identifier:           key.Identifier,
+		secretTypes.PublicKeyData:        key.PublicKeyData,
+		secretTypes.PublicKeyFingerprint: key.PublicKeyFingerprint,
+		secretTypes.PrivateKeyData:       key.PrivateKeyData,
 	}
 
 	secretID, err = secret.Store.Store(organizationID, &createSecretRequest)

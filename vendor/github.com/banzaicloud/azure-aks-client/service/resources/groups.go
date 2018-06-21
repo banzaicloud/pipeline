@@ -1,11 +1,11 @@
 package resources
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
 	"context"
 	"fmt"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/banzaicloud/banzai-types/constants"
+	"github.com/banzaicloud/azure-aks-client/errors"
 )
 
 // ResourceGroupClient responsible for resource group
@@ -49,5 +49,5 @@ func (r *ResourceGroupClient) FindInfrastructureResourceGroup(resourceGroup, clu
 		}
 	}
 
-	return nil, constants.ErrorNoInfrastructureRG
+	return nil, errors.ErrNoInfrastructureRG
 }

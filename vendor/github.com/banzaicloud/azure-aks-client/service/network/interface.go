@@ -1,10 +1,10 @@
 package network
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-01-01/network"
-	"github.com/Azure/go-autorest/autorest"
 	"context"
 	"fmt"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-01-01/network"
+	"github.com/Azure/go-autorest/autorest"
 )
 
 // InterfacesClient responsible for network interfaces

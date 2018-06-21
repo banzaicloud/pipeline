@@ -514,7 +514,7 @@ func ChartsGet(env helm_env.EnvSettings, queryName, queryRepo, queryVersion, que
 			}
 			for n := range i.Entries {
 				log.Debugf("Chart: %s", n)
-				chartMatched, _ := regexp.MatchString(queryName, strings.ToLower(n))
+				chartMatched, _ := regexp.MatchString("^"+queryName+"$", strings.ToLower(n))
 
 				kwString := strings.ToLower(strings.Join(i.Entries[n][0].Keywords, " "))
 				log.Debugf("kwString: %s", kwString)

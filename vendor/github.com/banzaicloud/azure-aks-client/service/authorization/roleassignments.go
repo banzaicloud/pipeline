@@ -1,12 +1,12 @@
 package authorization
 
 import (
-	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/satori/go.uuid"
-	"github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization"
 	"context"
 	"fmt"
+	"github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization"
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/satori/go.uuid"
 )
 
 // RoleAssignmentsClient responsible for role assignments
@@ -44,7 +44,7 @@ func (r *RoleAssignmentsClient) GetRoleAssignmentByAssignedTo(principalID string
 	return r.listAssignments(filter)
 }
 
-// listAssignments gets all role assignments for the subscription
+// ListRoleAssignments gets all role assignments for the subscription
 func (r *RoleAssignmentsClient) ListRoleAssignments() ([]authorization.RoleAssignment, error) {
 	return r.listAssignments("")
 }

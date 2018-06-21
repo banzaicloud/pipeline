@@ -2,7 +2,14 @@ package azure
 
 import (
 	"errors"
-	"github.com/banzaicloud/banzai-types/constants"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
+)
+
+// ### [ Constants to Azure cluster default values ] ### //
+const (
+	DefaultAgentName         = "agentpool1"
+	DefaultKubernetesVersion = "1.9.2"
 )
 
 // Values describes a list of Azure clusters
@@ -104,18 +111,18 @@ func (azure *CreateClusterAzure) Validate() error {
 		// ---- [ Min & Max count fields are required in case of autoscaling ] ---- //
 		if np.Autoscaling {
 			if np.MinCount == 0 {
-				return constants.ErrorMinFieldRequiredError
+				return pkgErrors.ErrorMinFieldRequiredError
 			}
 			if np.MaxCount == 0 {
-				return constants.ErrorMaxFieldRequiredError
+				return pkgErrors.ErrorMaxFieldRequiredError
 			}
 			if np.MaxCount < np.MinCount {
-				return constants.ErrorNodePoolMinMaxFieldError
+				return pkgErrors.ErrorNodePoolMinMaxFieldError
 			}
 		}
 
 		if np.Count == 0 {
-			np.Count = constants.DefaultNodeMinCount
+			np.Count = pkgCommon.DefaultNodeMinCount
 		}
 
 		if len(np.NodeInstanceType) == 0 {
@@ -124,7 +131,7 @@ func (azure *CreateClusterAzure) Validate() error {
 	}
 
 	if len(azure.KubernetesVersion) == 0 {
-		azure.KubernetesVersion = constants.AzureDefaultKubernetesVersion
+		azure.KubernetesVersion = DefaultKubernetesVersion
 	}
 
 	return nil

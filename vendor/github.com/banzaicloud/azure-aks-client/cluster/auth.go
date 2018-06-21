@@ -1,24 +1,28 @@
 package cluster
 
 import (
-	"os"
-	"github.com/Azure/go-autorest/autorest/adal"
-	"github.com/banzaicloud/azure-aks-client/utils"
-	clientAuthorization "github.com/banzaicloud/azure-aks-client/service/authorization"
-	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/banzaicloud/azure-aks-client/service/resources"
-	"github.com/banzaicloud/azure-aks-client/service/network"
-	"github.com/banzaicloud/azure-aks-client/service/containerservice"
+	"github.com/Azure/go-autorest/autorest/adal"
+	"github.com/Azure/go-autorest/autorest/azure/auth"
+	clientAuthorization "github.com/banzaicloud/azure-aks-client/service/authorization"
 	"github.com/banzaicloud/azure-aks-client/service/compute"
+	"github.com/banzaicloud/azure-aks-client/service/containerservice"
+	"github.com/banzaicloud/azure-aks-client/service/network"
+	"github.com/banzaicloud/azure-aks-client/service/resources"
 	"github.com/banzaicloud/azure-aks-client/service/subscriptions"
+	"github.com/banzaicloud/azure-aks-client/utils"
+	"os"
 )
 
-const AzureClientId = "AZURE_CLIENT_ID"
-const AzureClientSecret = "AZURE_CLIENT_SECRET"
-const AzureSubscriptionId = "AZURE_SUBSCRIPTION_ID"
-const AzureTenantId = "AZURE_TENANT_ID"
+// keys to credential
+const (
+	AzureClientId       = "AZURE_CLIENT_ID"
+	AzureClientSecret   = "AZURE_CLIENT_SECRET"
+	AzureSubscriptionId = "AZURE_SUBSCRIPTION_ID"
+	AzureTenantId       = "AZURE_TENANT_ID"
+)
 
+// AKSCredential a credential
 type AKSCredential struct {
 	ClientId       string
 	ClientSecret   string
@@ -26,6 +30,7 @@ type AKSCredential struct {
 	TenantId       string
 }
 
+// Sdk contains all necessary client and credentials
 type Sdk struct {
 	ServicePrincipal        *ServicePrincipal
 	authorizer              autorest.Authorizer
@@ -44,6 +49,7 @@ type Sdk struct {
 	groupClient             *resources.ResourceGroupClient
 }
 
+// ServicePrincipal describes a service principal
 type ServicePrincipal struct {
 	ClientID           string
 	ClientSecret       string
@@ -53,6 +59,7 @@ type ServicePrincipal struct {
 	AuthenticatedToken *adal.ServicePrincipalToken
 }
 
+// Validate validate credentials
 func (a *AKSCredential) Validate() error {
 	msg := "missing credential: "
 	if len(a.ClientId) == 0 {

@@ -2,20 +2,21 @@ package client
 
 import (
 	"errors"
+	"github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-04-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice"
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
-	"github.com/banzaicloud/azure-aks-client/cluster"
-	"github.com/banzaicloud/azure-aks-client/utils"
-	"github.com/banzaicloud/banzai-types/components/azure"
-	"github.com/banzaicloud/banzai-types/constants"
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
-	"github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-01-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
+	"github.com/banzaicloud/azure-aks-client/cluster"
+	cErrors "github.com/banzaicloud/azure-aks-client/errors"
+	"github.com/banzaicloud/azure-aks-client/types"
+	"github.com/banzaicloud/azure-aks-client/utils"
 	"net/http"
 	"time"
 )
 
+// ClusterManager responsible for all cluster process
 type ClusterManager interface {
 	createOrUpdateCluster(request *cluster.CreateClusterRequest, managedCluster *containerservice.ManagedCluster) (*azure.ResponseWithValue, error)
 	deleteCluster(resourceGroup, name string) (*http.Response, error)
@@ -155,7 +156,7 @@ func PollingCluster(manager ClusterManager, name string, resourceGroup string) (
 				isReady = true
 				result.Update(http.StatusCreated, *response)
 			case stageFailed:
-				return nil, constants.ErrorAzureCLusterStageFailed
+				return nil, cErrors.ErrClusterStageFailed
 			default:
 				manager.LogInfo("Waiting for cluster ready...")
 				time.Sleep(waitInSeconds * time.Second)
@@ -279,7 +280,7 @@ func ListVirtualMachines(manager ClusterManager, resourceGroup, clusterName, loc
 	return manager.listVirtualMachines(resourceGroup, clusterName, location)
 }
 
-// DisableManagedServiceIdentity enables MSI
+// EnableManagedServiceIdentity enables MSI
 func EnableManagedServiceIdentity(manager ClusterManager, resourceGroup, clusterName, location string) error {
 	manager.LogInfo("Start enabling MSI")
 	return manager.enableManagedServiceIdentity(resourceGroup, clusterName, location)
@@ -291,7 +292,7 @@ func DisableManagedServiceIdentity(manager ClusterManager, resourceGroup, cluste
 	return manager.disableManagedServiceIdentity(resourceGroup, clusterName, location)
 }
 
-// getVirtualMachine retrieves information about a virtual machine
+// GetVirtualMachine retrieves information about a virtual machine
 func GetVirtualMachine(manager ClusterManager, resourceGroup, clusterName, location, vmName string) (*compute.VirtualMachine, error) {
 	manager.LogInfo("Start getting virtual machine")
 	return manager.getVirtualMachine(resourceGroup, clusterName, location, vmName)

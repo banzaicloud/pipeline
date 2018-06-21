@@ -1,12 +1,11 @@
 package defaults
 
 import (
-	"github.com/banzaicloud/banzai-types/components"
-	"github.com/banzaicloud/banzai-types/components/amazon"
-	"github.com/banzaicloud/banzai-types/components/azure"
-	"github.com/banzaicloud/banzai-types/components/google"
-	"github.com/banzaicloud/banzai-types/constants"
 	"github.com/banzaicloud/pipeline/model"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/banzaicloud/pipeline/pkg/cluster/amazon"
+	"github.com/banzaicloud/pipeline/pkg/cluster/azure"
+	"github.com/banzaicloud/pipeline/pkg/cluster/google"
 )
 
 // AKSProfile describes an Azure cluster profile
@@ -83,11 +82,11 @@ func (d *AKSProfile) IsDefinedBefore() bool {
 
 // GetType returns profile's cloud type
 func (d *AKSProfile) GetType() string {
-	return constants.Azure
+	return pkgCluster.Azure
 }
 
 // GetProfile load profile from database and converts ClusterProfileResponse
-func (d *AKSProfile) GetProfile() *components.ClusterProfileResponse {
+func (d *AKSProfile) GetProfile() *pkgCluster.ClusterProfileResponse {
 
 	nodePools := make(map[string]*azure.NodePoolCreate)
 	for _, np := range d.NodePools {
@@ -102,10 +101,10 @@ func (d *AKSProfile) GetProfile() *components.ClusterProfileResponse {
 		}
 	}
 
-	return &components.ClusterProfileResponse{
+	return &pkgCluster.ClusterProfileResponse{
 		Name:     d.DefaultModel.Name,
 		Location: d.Location,
-		Cloud:    constants.Azure,
+		Cloud:    pkgCluster.Azure,
 		Properties: struct {
 			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
@@ -120,7 +119,7 @@ func (d *AKSProfile) GetProfile() *components.ClusterProfileResponse {
 }
 
 // UpdateProfile update profile's data with ClusterProfileRequest's data and if bool is true then update in the database
-func (d *AKSProfile) UpdateProfile(r *components.ClusterProfileRequest, withSave bool) error {
+func (d *AKSProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave bool) error {
 	if len(r.Location) != 0 {
 		d.Location = r.Location
 	}
