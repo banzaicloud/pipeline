@@ -156,7 +156,7 @@ func StoreKubernetesConfig(cluster CommonCluster, config []byte) error {
 
 	organizationID := cluster.GetOrganizationId()
 	createSecretRequest := secret.CreateSecretRequest{
-		Name: fmt.Sprintf("%s-config", cluster.GetName()),
+		Name: fmt.Sprintf("cluster-%d-config", cluster.GetID()),
 		Type: pipConstants.K8SConfig,
 		Values: map[string]string{
 			pipConstants.K8SConfig: encodedConfig,
