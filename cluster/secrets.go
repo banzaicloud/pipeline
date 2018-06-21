@@ -2,8 +2,8 @@ package cluster
 
 import (
 	"github.com/banzaicloud/pipeline/helm"
-	"github.com/banzaicloud/pipeline/secret"
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/banzaicloud/pipeline/secret"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )

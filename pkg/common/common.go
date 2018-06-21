@@ -12,3 +12,9 @@ type ErrorResponse struct {
 	Message string `json:"message"`
 	Error   string `json:"error"`
 }
+
+// ### [ Constants to common cluster default values ] ### //
+const (
+	DefaultNodeMinCount = 1
+	DefaultNodeMaxCount = 2
+)

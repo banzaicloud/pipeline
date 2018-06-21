@@ -1,8 +1,15 @@
 package amazon
 
 import (
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
+)
+
+// ### [ Constants to Amazon cluster default values ] ### //
+const (
+	DefaultMasterInstanceType = "m4.xlarge"
+	DefaultNodeSpotPrice      = "0.2"
+	DefaultImage              = "ami-16bfeb6f"
 )
 
 // CreateClusterAmazon describes Pipeline's Amazon fields of a CreateCluster request
@@ -58,12 +65,12 @@ func (a *NodePool) Validate() error {
 	} else {
 		// ---- [ Node min count check ] ---- //
 		if a.MinCount == 0 {
-			a.MinCount = pkgCluster.DefaultNodeMinCount
+			a.MinCount = pkgCommon.DefaultNodeMinCount
 		}
 
 		// ---- [ Node max count check ] ---- //
 		if a.MaxCount == 0 {
-			a.MaxCount = pkgCluster.DefaultNodeMaxCount
+			a.MaxCount = pkgCommon.DefaultNodeMaxCount
 		}
 	}
 
@@ -78,7 +85,7 @@ func (a *NodePool) Validate() error {
 
 	// ---- [ Node spot price ] ---- //
 	if len(a.SpotPrice) == 0 {
-		a.SpotPrice = pkgCluster.AmazonDefaultNodeSpotPrice
+		a.SpotPrice = DefaultNodeSpotPrice
 	}
 
 	return nil
@@ -97,7 +104,7 @@ func (amazon *CreateClusterAmazon) Validate() error {
 	}
 
 	if amazon.Master.InstanceType == "" {
-		amazon.Master.InstanceType = pkgCluster.AmazonDefaultMasterInstanceType
+		amazon.Master.InstanceType = DefaultMasterInstanceType
 	}
 
 	if len(amazon.NodePools) == 0 {
@@ -122,8 +129,8 @@ func (amazon *CreateClusterAmazon) AddDefaults() error {
 
 	if amazon.Master == nil {
 		amazon.Master = &CreateAmazonMaster{
-			InstanceType: pkgCluster.AmazonDefaultMasterInstanceType,
-			Image:        pkgCluster.AmazonDefaultImage,
+			InstanceType: DefaultMasterInstanceType,
+			Image:        DefaultImage,
 		}
 	}
 
@@ -133,7 +140,7 @@ func (amazon *CreateClusterAmazon) AddDefaults() error {
 
 	for i, np := range amazon.NodePools {
 		if len(np.Image) == 0 {
-			amazon.NodePools[i].Image = pkgCluster.AmazonDefaultImage
+			amazon.NodePools[i].Image = DefaultImage
 		}
 	}
 
@@ -164,12 +171,12 @@ func (a *UpdateClusterAmazon) Validate() error {
 
 // ClusterProfileAmazon describes an Amazon profile
 type ClusterProfileAmazon struct {
-	Master    *AmazonProfileMaster `json:"master,omitempty"`
+	Master    *ProfileMaster       `json:"master,omitempty"`
 	NodePools map[string]*NodePool `json:"nodePools,omitempty"`
 }
 
 // AmazonProfileMaster describes an Amazon profile's master fields
-type AmazonProfileMaster struct {
+type ProfileMaster struct {
 	InstanceType string `json:"instanceType"`
 	Image        string `json:"image"`
 }

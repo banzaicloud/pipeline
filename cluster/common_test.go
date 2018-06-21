@@ -103,7 +103,7 @@ func TestCreateCommonClusterFromRequest(t *testing.T) {
 		{name: "kube create", createRequest: kubeCreateFull, expectedModel: kubeModelFull, expectedError: nil},
 
 		{name: "gke wrong k8s version", createRequest: gkeWrongK8sVersion, expectedModel: nil, expectedError: pkgErrors.ErrorWrongKubernetesVersion},
-		{name: "gke different k8s version", createRequest: gkeDifferentK8sVersion, expectedModel: gkeModelDifferentVersion, expectedError: constants.ErrorDifferentKubernetesVersion},
+		{name: "gke different k8s version", createRequest: gkeDifferentK8sVersion, expectedModel: gkeModelDifferentVersion, expectedError: pkgErrors.ErrorDifferentKubernetesVersion},
 
 		{name: "not supported cloud", createRequest: notSupportedCloud, expectedModel: nil, expectedError: pkgErrors.ErrorNotSupportedCloudType},
 
@@ -275,7 +275,7 @@ var (
 	gkeEmptyLocationCreate = &pkgCluster.CreateClusterRequest{
 		Name:     clusterRequestName,
 		Location: "",
-		Cloud:    constants.Google,
+		Cloud:    pkgCluster.Google,
 		SecretId: clusterRequestSecretId,
 		Properties: struct {
 			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`

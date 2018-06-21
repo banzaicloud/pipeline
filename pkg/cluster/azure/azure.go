@@ -2,8 +2,14 @@ package azure
 
 import (
 	"errors"
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
+)
+
+// ### [ Constants to Azure cluster default values ] ### //
+const (
+	DefaultAgentName         = "agentpool1"
+	DefaultKubernetesVersion = "1.9.2"
 )
 
 // Values describes a list of Azure clusters
@@ -116,7 +122,7 @@ func (azure *CreateClusterAzure) Validate() error {
 		}
 
 		if np.Count == 0 {
-			np.Count = pkgCluster.DefaultNodeMinCount
+			np.Count = pkgCommon.DefaultNodeMinCount
 		}
 
 		if len(np.NodeInstanceType) == 0 {
@@ -125,7 +131,7 @@ func (azure *CreateClusterAzure) Validate() error {
 	}
 
 	if len(azure.KubernetesVersion) == 0 {
-		azure.KubernetesVersion = pkgCluster.AzureDefaultKubernetesVersion
+		azure.KubernetesVersion = DefaultKubernetesVersion
 	}
 
 	return nil

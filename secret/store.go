@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/bank-vaults/vault"
 	"github.com/banzaicloud/pipeline/config"
+	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	vaultapi "github.com/hashicorp/vault/api"
 	"github.com/mitchellh/mapstructure"

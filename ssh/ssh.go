@@ -12,8 +12,8 @@ import (
 	"strings"
 
 	"github.com/banzaicloud/pipeline/config"
-	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/model"
+	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"

@@ -1,10 +1,15 @@
 package google
 
 import (
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/pkg/errors"
 	"regexp"
+)
+
+// ### [ Constants to Google cluster default values ] ### //
+const (
+	DefaultNodePoolName = "default-pool"
 )
 
 // CreateClusterGoogle describes Pipeline's Google fields of a CreateCluster request
@@ -50,8 +55,8 @@ func (g *CreateClusterGoogle) Validate() error {
 
 	if g.NodePools == nil {
 		g.NodePools = map[string]*NodePool{
-			pkgCluster.GoogleDefaultNodePoolName: {
-				Count: pkgCluster.DefaultNodeMinCount,
+			DefaultNodePoolName: {
+				Count: pkgCommon.DefaultNodeMinCount,
 			},
 		}
 	}
@@ -84,7 +89,7 @@ func (g *CreateClusterGoogle) Validate() error {
 		}
 
 		if nodePool.Count == 0 {
-			nodePool.Count = pkgCluster.DefaultNodeMinCount
+			nodePool.Count = pkgCommon.DefaultNodeMinCount
 		}
 
 	}

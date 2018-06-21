@@ -10,7 +10,7 @@ type FieldMeta struct {
 
 // Meta describes how a secret is built up and how it should be sourced
 type Meta struct {
-	Fields   []FieldMeta  `json:"fields"`
+	Fields   []FieldMeta    `json:"fields"`
 	Sourcing SourcingMethod `json:"Sourcing"`
 }
 

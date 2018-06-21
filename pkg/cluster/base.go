@@ -46,30 +46,6 @@ const (
 	RegisterDomainPostHook           = "RegisterDomainPostHook"
 )
 
-// ### [ Constants to Azure cluster default values ] ### //
-const (
-	AzureDefaultAgentName         = "agentpool1"
-	AzureDefaultKubernetesVersion = "1.9.2"
-)
-
-// ### [ Constants to common cluster default values ] ### //
-const (
-	DefaultNodeMinCount = 1
-	DefaultNodeMaxCount = 2
-)
-
-// ### [ Constants to Amazon cluster default values ] ### //
-const (
-	AmazonDefaultMasterInstanceType = "m4.xlarge"
-	AmazonDefaultNodeSpotPrice      = "0.2"
-	AmazonDefaultImage              = "ami-16bfeb6f"
-)
-
-// ### [ Constants to Google cluster default values ] ### //
-const (
-	GoogleDefaultNodePoolName = "default-pool"
-)
-
 const (
 	RegexpAWSName = `^[A-z0-9-_]{1,255}$`
 	RegexpAKSName = `^[a-z0-9_]{0,31}[a-z0-9]$`
@@ -84,19 +60,13 @@ const (
 	KeyWordImage             = "image"
 )
 
-// BanzaiResponse describes Pipeline's responses
-type BanzaiResponse struct {
-	StatusCode int    `json:"status_code,omitempty"`
-	Message    string `json:"message,omitempty"`
-}
-
 // CreateClusterRequest describes a create cluster request
 type CreateClusterRequest struct {
 	Name              string   `json:"name" binding:"required"`
 	Location          string   `json:"location"`
 	Cloud             string   `json:"cloud" binding:"required"`
-	SecretId          string   `json:"secret_id" binding:"required"`
-	ProfileName       string   `json:"profile_name"`
+	SecretId          string   `json:"secretId" binding:"required"`
+	ProfileName       string   `json:"profileName"`
 	PostHookFunctions []string `json:"postHooks"`
 	Properties        struct {
 		CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
@@ -117,7 +87,7 @@ type ErrorResponse struct {
 // GetClusterStatusResponse describes Pipeline's GetClusterStatus API response
 type GetClusterStatusResponse struct {
 	Status        string                     `json:"status"`
-	StatusMessage string                     `json:"status_message,omitempty"`
+	StatusMessage string                     `json:"statusMessage,omitempty"`
 	Name          string                     `json:"name"`
 	Location      string                     `json:"location"`
 	Cloud         string                     `json:"cloud"`
@@ -129,10 +99,10 @@ type GetClusterStatusResponse struct {
 type NodePoolStatus struct {
 	Count          int    `json:"count,omitempty"`
 	InstanceType   string `json:"instanceType,omitempty"`
-	ServiceAccount string `json:"service_account,omitempty"`
-	SpotPrice      string `json:"spot_price,omitempty"`
-	MinCount       int    `json:"min_count,omitempty"`
-	MaxCount       int    `json:"max_count,omitempty"`
+	ServiceAccount string `json:"serviceAccount,omitempty"`
+	SpotPrice      string `json:"spotPrice,omitempty"`
+	MinCount       int    `json:"minCount,omitempty"`
+	MaxCount       int    `json:"maxCount,omitempty"`
 	Image          string `json:"image,omitempty"`
 }
 
@@ -329,7 +299,7 @@ type ClusterProfileRequest struct {
 // CloudInfoRequest describes Cloud info requests
 type CloudInfoRequest struct {
 	OrganizationId uint             `json:"-"`
-	SecretId       string           `json:"secret_id,omitempty"`
+	SecretId       string           `json:"secretId,omitempty"`
 	Filter         *CloudInfoFilter `json:"filter,omitempty"`
 }
 
@@ -363,7 +333,7 @@ type GetCloudInfoResponse struct {
 	NameRegexp         string                 `json:"nameRegexp,omitempty"`
 	Locations          []string               `json:"locations,omitempty"`
 	NodeInstanceType   map[string]MachineType `json:"instanceType,omitempty"`
-	KubernetesVersions interface{}            `json:"kubernetes_versions,omitempty"`
+	KubernetesVersions interface{}            `json:"kubernetesVersions,omitempty"`
 	Image              map[string][]string    `json:"image,omitempty"`
 }
 
