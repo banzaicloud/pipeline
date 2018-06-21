@@ -15,6 +15,7 @@ import (
 	"k8s.io/client-go/rest"
 	"sync"
 	"time"
+	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 )
 
 // muxOrgDomain is a mutex used to sync access to external Dns service
@@ -299,9 +300,9 @@ func StoreKubeConfig(input interface{}) error {
 // RegisterDomainPostHook registers a subdomain using the name of the current organisation
 // in external Dns service. It ensures that only one domain is registered per organisation.
 func RegisterDomainPostHook(input interface{}) error {
-	cluster, ok := input.(CommonCluster)
+	commonCluster, ok := input.(CommonCluster)
 	if !ok {
-		return errors.Errorf("Wrong parameter type: %T", cluster)
+		return errors.Errorf("Wrong parameter type: %T", commonCluster)
 	}
 
 	region := ""       // TODO: this should come from config or vault
@@ -315,7 +316,7 @@ func RegisterDomainPostHook(input interface{}) error {
 
 	domainBase := viper.GetString("organization.domain")
 
-	orgId := cluster.GetOrganizationId()
+	orgId := commonCluster.GetOrganizationId()
 
 	// sync domain registration to avoid duplicates in case more clusters are created in parallel in the same org
 	muxOrgDomain.Lock()
@@ -342,12 +343,24 @@ func RegisterDomainPostHook(input interface{}) error {
 		return err
 	}
 
-	if registered {
-		return nil // already registered, nothing to do
+	if !registered {
+		if err = dnsSvc.RegisterDomain(orgId, domain); err != nil {
+			log.Errorf("Registering domain '%s' failed: %s", domain, err.Error())
+			return err
+		}
 	}
 
-	if err = dnsSvc.RegisterDomain(orgId, domain); err != nil {
-		log.Errorf("Registering domain '%s' failed: %s", domain, err.Error())
+	_, err = InstallSecrets(
+		commonCluster,
+		&secretTypes.ListSecretsQuery{
+			Type: pkgCluster.Amazon,
+			Tag:  secretTypes.TagBanzaiHidden,
+		},
+		helm.DefaultNamespace,
+	)
+
+	if err != nil {
+		log.Errorf("Failed to install route53 secret into cluster: %s", err.Error())
 		return err
 	}
 
