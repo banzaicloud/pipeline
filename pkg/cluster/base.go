@@ -1,4 +1,4 @@
-package components
+package types
 
 import (
 	"bytes"
@@ -12,33 +12,83 @@ import (
 	"github.com/banzaicloud/banzai-types/constants"
 )
 
+// ### [ Cluster statuses ] ### //
+const (
+	Creating = "CREATING"
+	Running  = "RUNNING"
+	Updating = "UPDATING"
+	Deleting = "DELETING"
+	Error    = "ERROR"
+
+	CreatingMessage = "Cluster is creating"
+	RunningMessage  = "Cluster is running"
+	UpdatingMessage = "Cluster is updating"
+	DeletingMessage = "Cluster is deleting"
+)
+
+const (
+	Amazon     = "amazon"
+	Azure      = "azure"
+	Google     = "google"
+	Dummy      = "dummy"
+	Kubernetes = "kubernetes"
+)
+
+// constants for posthooks
+const (
+	StoreKubeConfig                  = "StoreKubeConfig"
+	PersistKubernetesKeys            = "PersistKubernetesKeys"
+	UpdatePrometheusPostHook         = "UpdatePrometheusPostHook"
+	InstallHelmPostHook              = "InstallHelmPostHook"
+	InstallIngressControllerPostHook = "InstallIngressControllerPostHook"
+	InstallClusterAutoscalerPostHook = "InstallClusterAutoscalerPostHook"
+	InstallMonitoring                = "InstallMonitoring"
+	InstallLogging                   = "InstallLogging"
+	RegisterDomainPostHook           = "RegisterDomainPostHook"
+)
+
+// ### [ Constants to Azure cluster default values ] ### //
+const (
+	AzureDefaultAgentName         = "agentpool1"
+	AzureDefaultKubernetesVersion = "1.9.2"
+)
+
+// ### [ Constants to common cluster default values ] ### //
+const (
+	DefaultNodeMinCount = 1
+	DefaultNodeMaxCount = 2
+)
+
+// ### [ Constants to Amazon cluster default values ] ### //
+const (
+	AmazonDefaultMasterInstanceType = "m4.xlarge"
+	AmazonDefaultNodeSpotPrice      = "0.2"
+	AmazonDefaultImage              = "ami-16bfeb6f"
+)
+
+// ### [ Constants to Google cluster default values ] ### //
+const (
+	GoogleDefaultNodePoolName = "default-pool"
+)
+
+const (
+	RegexpAWSName = `^[A-z0-9-_]{1,255}$`
+	RegexpAKSName = `^[a-z0-9_]{0,31}[a-z0-9]$`
+	RegexpGKEName = `^[a-z]$|^[a-z][a-z0-9-]{0,38}[a-z0-9]$`
+)
+
+// ### [ Keywords ] ###
+const (
+	KeyWordLocation          = "location"
+	KeyWordInstanceType      = "instanceType"
+	KeyWordKubernetesVersion = "k8sVersion"
+	KeyWordImage             = "image"
+)
+
 // BanzaiResponse describes Pipeline's responses
 type BanzaiResponse struct {
 	StatusCode int    `json:"status_code,omitempty"`
 	Message    string `json:"message,omitempty"`
-}
-
-// CreateBucketRequest describes a storage bucket creation
-type CreateBucketRequest struct {
-	SecretId   string `json:"secret_id" binding:"required"`
-	Name       string `json:"name" binding:"required"`
-	Properties struct {
-		CreateAmazonObjectStoreBucketProperties *amazon.CreateAmazonObjectStoreBucketProperties `json:"amazon,omitempty"`
-		CreateAzureObjectStoreBucketProperties  *azure.CreateAzureObjectStoreBucketProperties   `json:"azure,omitempty"`
-		CreateGoogleObjectStoreBucketProperties *google.CreateGoogleObjectStoreBucketProperties `json:"google,omitempty"`
-	} `json:"properties" binding:"required"`
-}
-
-// CreateBucketResponse describes a storage bucket creation response
-type CreateBucketResponse struct {
-	Name string `json:"BucketName"`
-}
-
-// BucketInfo desribes a storage bucket
-type BucketInfo struct {
-	Name    string                          `json:"name"  binding:"required"`
-	Managed bool                            `json:"managed" binding:"required"`
-	Azure   *azure.BlobStoragePropsForAzure `json:"azure,omitempty"`
 }
 
 // CreateClusterRequest describes a create cluster request
@@ -56,35 +106,6 @@ type CreateClusterRequest struct {
 		CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
 		CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
 	} `json:"properties" binding:"required"`
-}
-
-// ListSecretsQuery represent a secret listing filter
-type ListSecretsQuery struct {
-	Type   string `form:"type" json:"type"`
-	Tag    string `form:"tag" json:"tag"`
-	Values bool   `form:"values" json:"values"`
-}
-
-// InstallSecretsToClusterRequest describes an InstallSecretToCluster request
-type InstallSecretsToClusterRequest struct {
-	Namespace string           `json:"namespace" binding:"required"`
-	Query     ListSecretsQuery `json:"query" binding:"required"`
-}
-
-// SecretSourcingMethod describes how an installed Secret should be sourced into a Pod in K8S
-type SecretSourcingMethod string
-
-const (
-	// EnvVar means the secret has to be sources an an env var
-	EnvVar SecretSourcingMethod = "env"
-	// Volume means the secret has to be mounted an a volume
-	Volume SecretSourcingMethod = "volume"
-)
-
-// SecretK8SSourceMeta describes which and how installed Secret should be sourced into a Pod in K8S
-type SecretK8SSourceMeta struct {
-	Name     string               `json:"name"`
-	Sourcing SecretSourcingMethod `json:"sourcing"`
 }
 
 // ErrorResponse describes Pipeline's responses when an error occurred

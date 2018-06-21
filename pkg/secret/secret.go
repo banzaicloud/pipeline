@@ -1,8 +1,8 @@
-package constants
+package secret
 
 import (
-	"github.com/banzaicloud/banzai-types/components"
-	"github.com/banzaicloud/banzai-types/constants"
+	"github.com/banzaicloud/pipeline/constants"
+	"github.com/banzaicloud/pipeline/secret"
 )
 
 // SecretField describes how a secret field should be validated
@@ -13,8 +13,83 @@ type SecretField struct {
 
 // SecretMeta describes how a secret is built up and how it should be sourced
 type SecretMeta struct {
-	Fields   []SecretField                   `json:"fields"`
-	Sourcing components.SecretSourcingMethod `json:"Sourcing"`
+	Fields   []SecretField               `json:"fields"`
+	Sourcing secret.SecretSourcingMethod `json:"Sourcing"`
+}
+
+// Amazon keys
+const (
+	AwsAccessKeyId     = "AWS_ACCESS_KEY_ID"
+	AwsSecretAccessKey = "AWS_SECRET_ACCESS_KEY"
+)
+
+// Azure keys
+const (
+	AzureClientId       = "AZURE_CLIENT_ID"
+	AzureClientSecret   = "AZURE_CLIENT_SECRET"
+	AzureTenantId       = "AZURE_TENANT_ID"
+	AzureSubscriptionId = "AZURE_SUBSCRIPTION_ID"
+)
+
+// Google keys
+const (
+	Type          = "type"
+	ProjectId     = "project_id"
+	PrivateKeyId  = "private_key_id"
+	PrivateKey    = "private_key"
+	ClientEmail   = "client_email"
+	ClientId      = "client_id"
+	AuthUri       = "auth_uri"
+	TokenUri      = "token_uri"
+	AuthX509Url   = "auth_provider_x509_cert_url"
+	ClientX509Url = "client_x509_cert_url"
+)
+
+// Kubernetes keys
+const (
+	K8SConfig = "K8Sconfig"
+)
+
+// Ssh keys
+const (
+	User                 = "user"
+	Identifier           = "identifier"
+	PublicKeyData        = "public_key_data"
+	PublicKeyFingerprint = "public_key_fingerprint"
+	PrivateKeyData       = "private_key_data"
+)
+
+// TLS keys
+const (
+	TLSHosts    = "hosts"
+	TLSValidity = "validity"
+	CACert      = "caCert"
+	CAKey       = "caKey"
+	ServerKey   = "serverKey"
+	ServerCert  = "serverCert"
+	ClientKey   = "clientKey"
+	ClientCert  = "clientCert"
+)
+
+// Fn keys
+const (
+	MasterToken = "master_token"
+)
+
+// Password keys
+const (
+	Username = "username"
+	Password = "password"
+)
+
+// Internal usage
+const (
+	TagKubeConfig = "KubeConfig"
+)
+
+// ForbiddenTags are not supported in secret creation
+var ForbiddenTags = []string{
+	TagKubeConfig,
 }
 
 const (
@@ -113,97 +188,31 @@ var DefaultRules = map[string]SecretMeta{
 	},
 }
 
-// Amazon keys
-const (
-	AwsAccessKeyId     = "AWS_ACCESS_KEY_ID"
-	AwsSecretAccessKey = "AWS_SECRET_ACCESS_KEY"
-)
-
-// Azure keys
-const (
-	AzureClientId       = "AZURE_CLIENT_ID"
-	AzureClientSecret   = "AZURE_CLIENT_SECRET"
-	AzureTenantId       = "AZURE_TENANT_ID"
-	AzureSubscriptionId = "AZURE_SUBSCRIPTION_ID"
-)
-
-// Google keys
-const (
-	Type          = "type"
-	ProjectId     = "project_id"
-	PrivateKeyId  = "private_key_id"
-	PrivateKey    = "private_key"
-	ClientEmail   = "client_email"
-	ClientId      = "client_id"
-	AuthUri       = "auth_uri"
-	TokenUri      = "token_uri"
-	AuthX509Url   = "auth_provider_x509_cert_url"
-	ClientX509Url = "client_x509_cert_url"
-)
-
-// Kubernetes keys
-const (
-	K8SConfig = "K8Sconfig"
-)
-
-// Ssh keys
-const (
-	User                 = "user"
-	Identifier           = "identifier"
-	PublicKeyData        = "public_key_data"
-	PublicKeyFingerprint = "public_key_fingerprint"
-	PrivateKeyData       = "private_key_data"
-)
-
-// TLS keys
-const (
-	TLSHosts    = "hosts"
-	TLSValidity = "validity"
-	CACert      = "caCert"
-	CAKey       = "caKey"
-	ServerKey   = "serverKey"
-	ServerCert  = "serverCert"
-	ClientKey   = "clientKey"
-	ClientCert  = "clientCert"
-)
-
-// Fn keys
-const (
-	MasterToken = "master_token"
-)
-
-// Password keys
-const (
-	Username = "username"
-	Password = "password"
-)
-
-// Internal usage
-const (
-	TagKubeConfig = "KubeConfig"
-)
-
-// ForbiddenTags are not supported in secret creation
-var ForbiddenTags = []string{
-	TagKubeConfig,
+// ListSecretsQuery represent a secret listing filter
+type ListSecretsQuery struct {
+	Type   string `form:"type" json:"type"`
+	Tag    string `form:"tag" json:"tag"`
+	Values bool   `form:"values" json:"values"`
 }
 
-// constants for posthooks
+// InstallSecretsToClusterRequest describes an InstallSecretToCluster request
+type InstallSecretsToClusterRequest struct {
+	Namespace string           `json:"namespace" binding:"required"`
+	Query     ListSecretsQuery `json:"query" binding:"required"`
+}
+
+// SecretSourcingMethod describes how an installed Secret should be sourced into a Pod in K8S
+type SecretSourcingMethod string
+
 const (
-	StoreKubeConfig                  = "StoreKubeConfig"
-	PersistKubernetesKeys            = "PersistKubernetesKeys"
-	UpdatePrometheusPostHook         = "UpdatePrometheusPostHook"
-	InstallHelmPostHook              = "InstallHelmPostHook"
-	InstallIngressControllerPostHook = "InstallIngressControllerPostHook"
-	InstallClusterAutoscalerPostHook = "InstallClusterAutoscalerPostHook"
-	InstallMonitoring                = "InstallMonitoring"
-	InstallLogging                   = "InstallLogging"
-	RegisterDomainPostHook           = "RegisterDomainPostHook"
+	// EnvVar means the secret has to be sources an an env var
+	EnvVar SecretSourcingMethod = "env"
+	// Volume means the secret has to be mounted an a volume
+	Volume SecretSourcingMethod = "volume"
 )
 
-// Stable repository constants
-const (
-	StableRepository = "stable"
-	BanzaiRepository = "banzaicloud-stable"
-	HelmPostFix      = "helm"
-)
+// SecretK8SSourceMeta describes which and how installed Secret should be sourced into a Pod in K8S
+type SecretK8SSourceMeta struct {
+	Name     string               `json:"name"`
+	Sourcing SecretSourcingMethod `json:"sourcing"`
+}

@@ -1,5 +1,18 @@
 package helm
 
+// ### [ Constants to helm]
+const (
+	HELM_RETRY_ATTEMPT_CONFIG = "helm.retryAttempt"
+	HELM_RETRY_SLEEP_SECONDS  = "helm.retrySleepSeconds"
+)
+
+// Stable repository constants
+const (
+	StableRepository = "stable"
+	BanzaiRepository = "banzaicloud-stable"
+	HelmPostFix      = "helm"
+)
+
 // Install describes an Helm install request
 type Install struct {
 	// Name of the kubeconfig context to use

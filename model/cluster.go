@@ -14,6 +14,17 @@ import (
 )
 
 const unknown = "unknown"
+const (
+	TableNameClusters             = "clusters"
+	TableNameAmazonProperties     = "amazon_cluster_properties"
+	TableNameAmazonNodePools      = "amazon_node_pools"
+	TableNameAzureProperties      = "azure_cluster_properties"
+	TableNameAzureNodePools       = "azure_node_pools"
+	TableNameGoogleProperties     = "google_cluster_properties"
+	TableNameGoogleNodePools      = "google_node_pools"
+	TableNameDummyProperties      = "dummy_cluster_properties"
+	TableNameKubernetesProperties = "kubernetes_cluster_properties"
+)
 
 //ClusterModel describes the common cluster model
 type ClusterModel struct {
