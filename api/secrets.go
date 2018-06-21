@@ -76,7 +76,7 @@ func AddSecrets(c *gin.Context) {
 		return
 	}
 
-	log.Infof("Secret stored at: %s/%s", organizationID, secretID)
+	log.Infof("Secret stored at: %d/%s", organizationID, secretID)
 
 	c.JSON(http.StatusCreated, secret.CreateSecretResponse{
 		Name: createSecretRequest.Name,

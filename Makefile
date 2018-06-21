@@ -2,10 +2,10 @@
 .PHONY: help build
 
 OS := $(shell uname -s)
-GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*")
+GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./client/*")
 SYMLINKS=$(shell find -L ./vendor -type l)
 
-PKGS=$(shell go list ./... | grep -v /vendor)
+PKGS=$(shell go list ./... | grep -v /client)
 
 VERSION = 0.1.0
 GITREV = $(shell git rev-parse --short HEAD)
@@ -21,10 +21,10 @@ clean:
 
 local: ## Starts local MySql and admin in docker
 	[ -e conf/config.toml ] || cp conf/config.toml.example conf/config.toml
-	docker-compose -f docker-compose-local.yml up -d
+	docker-compose -f docker-compose.yml up -d
 
 local-kill: ## Kills local MySql and admin
-	docker-compose -f docker-compose-local.yml kill
+	docker-compose -f docker-compose.yml kill
 
 docker-build: ## Builds go binary in docker image
 	docker run -it -v $(PWD):/go/src/github.com/banzaicloud/pipeline -w /go/src/github.com/banzaicloud/pipeline golang:1.10.1-alpine go build -o pipeline_linux .
@@ -87,8 +87,15 @@ ifndef MISSPELL_CMD
 	go get -u github.com/client9/misspell/cmd/misspell
 endif
 
-clean_vendor:
+clean-vendor:
 	find -L ./vendor -type l | xargs rm -rf
+
+generate-client:
+	docker run --rm -v ${PWD}:/local openapitools/openapi-generator-cli generate \
+	--additional-properties packageName=client \
+	-i /local/docs/openapi/pipeline.yaml \
+	-g go \
+	-o /local/client
 
 ineffassign: install-ineffassign
 	ineffassign ${GOFILES_NOVENDOR}
