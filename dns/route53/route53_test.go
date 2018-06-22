@@ -31,7 +31,7 @@ const (
 							{
             		"Effect": "Allow",
             		"Action": "route53:ChangeResourceRecordSets",
-            		"Resource": "arn:route53:route53:::hostedzone/testhostedzone1"
+                "Resource": "arn:aws:route53:::hostedzone/testhostedzone1"
         			},
         			{
             		"Effect": "Allow",
