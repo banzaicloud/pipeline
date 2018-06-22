@@ -14,7 +14,9 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/jinzhu/now"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"strings"
 	"time"
 )
@@ -33,8 +35,8 @@ const (
 )
 
 func loggerWithFields(fields logrus.Fields) *logrus.Entry {
-	log := logger.WithFields(fields)
 	fields["tag"] = "AmazonRoute53"
+	log := logger.WithFields(fields)
 
 	return log
 }
@@ -242,15 +244,7 @@ func (dns *awsRoute53) UnregisterDomain(orgId uint, domain string) error {
 		return err
 	}
 
-	// delete hosted zone
-	if len(state.domain) > 0 {
-		if err := dns.deleteHostedZone(aws.String(state.hostedZoneId)); err != nil {
-			dns.updateStateWithError(state, err)
-			return err
-		}
-	}
-
-	// detach policy from user
+	// detach policy from user first to avoid access to hosted zone while it's being deleted
 	if len(state.iamUser) > 0 && len(state.policyArn) > 0 {
 		if err := dns.detachUserPolicy(aws.String(state.iamUser), aws.String(state.policyArn)); err != nil {
 			dns.updateStateWithError(state, err)
@@ -305,6 +299,14 @@ func (dns *awsRoute53) UnregisterDomain(orgId uint, domain string) error {
 		}
 	}
 
+	// delete hosted zone
+	if len(state.domain) > 0 {
+		if err := dns.deleteHostedZone(aws.String(state.hostedZoneId)); err != nil {
+			dns.updateStateWithError(state, err)
+			return err
+		}
+	}
+
 	if err := dns.stateStore.delete(state); err != nil {
 		log.Errorf("deleting domain state from state store failed: %s", extractErrorMessage(err))
 		return err
@@ -313,6 +315,63 @@ func (dns *awsRoute53) UnregisterDomain(orgId uint, domain string) error {
 	log.Info("domain deleted")
 
 	return nil
+}
+
+// Cleanup unregisters the domains that were registered for the given organizations
+// with focus on optimizing hosted zones costs. This method expects a list of organizations
+// that don't use route53 any more thus should be cleaned up
+func (dns *awsRoute53) Cleanup() {
+	log := loggerWithFields(logrus.Fields{})
+
+	domainStates, err := dns.stateStore.listUnused()
+	if err != nil {
+		log.Errorf("retrieving domain states that are not used failed: %s", extractErrorMessage(err))
+		return
+	}
+
+	for i := 0; i < len(domainStates); i++ {
+		crtTime := time.Now()
+
+		hostedZoneAge := crtTime.Sub(domainStates[i].createdAt)
+
+		// According to Amazon Route53 pricing: https://aws.amazon.com/route53/pricing/
+		//
+		// To allow testing, a hosted zone that is deleted within 12 hours of creation is not charged
+
+		if hostedZoneAge < 12*time.Hour { //grace period
+			log.Infof("cleanup hosted zone '%s' as it is not used by organisation '%d' and it's age '%s' is less than 12hrs", domainStates[i].hostedZoneId, domainStates[i].organisationId, hostedZoneAge.String())
+
+			err := dns.UnregisterDomain(domainStates[i].organisationId, domainStates[i].domain)
+			if err != nil {
+				log.Errorf("cleanup hosted zone '%s' failed: %s", domainStates[i].hostedZoneId, err.Error())
+			}
+		} else {
+			// Since charging for hosted zones are not prorated for partial months if we exceeded the 12hrs we were already charged
+			// It has no sense to delete the hosted zone until the next billing period starts (the first day of each subsequent month)
+			// as the user may create a cluster in the organisation thus re-use the hosted zone that we were billed already for the month
+
+			// If we are just before the next billing period and there are no clusters in the organisation we should cleanup the hosted zone
+			// before entering the next billing period (the first day of the month)
+
+			tillEndOfMonth := now.EndOfMonth().Sub(crtTime)
+
+			maintenanceWindowMinute := viper.GetInt64("route53.maintenanceWindowMinute")
+
+			if tillEndOfMonth <= time.Duration(maintenanceWindowMinute)*time.Minute {
+				// if we are maintenanceWindowMinute minutes before the next billing period clean up the hosted zone
+
+				// if the window is not long enough there will be few hosted zones slipping over into next billing period)
+				log.Infof("cleanup hosted zone '%s' as it not used by organisation '%d'", domainStates[i].hostedZoneId, domainStates[i].organisationId)
+
+				err := dns.UnregisterDomain(domainStates[i].organisationId, domainStates[i].domain)
+				if err != nil {
+					log.Errorf("cleanup hosted zone '%s' failed: %s", domainStates[i].hostedZoneId, err.Error())
+				}
+			}
+		}
+
+	}
+
 }
 
 // createHostedZone creates a hosted zone on AWS Route53 with the given domain name
@@ -375,11 +434,40 @@ func (dns *awsRoute53) hostedZoneExists(domain string) (bool, error) {
 
 // deleteHostedZoneCallCount deletes the hosted zone with the given id from AWS Route53
 func (dns *awsRoute53) deleteHostedZone(id *string) error {
-	log := loggerWithFields(logrus.Fields{"hostedzone": aws.StringValue(id)})
+	log := loggerWithFields(logrus.Fields{"hosted zone": aws.StringValue(id)})
+
+	listResourceRecordSetsInput := &route53.ListResourceRecordSetsInput{HostedZoneId: id}
+	resourceRecordSets, err := dns.route53Svc.ListResourceRecordSets(listResourceRecordSetsInput)
+	if err != nil {
+		log.Errorf("retrieving resource record sets of the hosted zone failed: %s", extractErrorMessage(err))
+		return err
+	}
+
+	var resourceRecordSetChanges []*route53.Change
+
+	for _, resourceRecordSet := range resourceRecordSets.ResourceRecordSets {
+		if aws.StringValue(resourceRecordSet.Type) != "NS" && aws.StringValue(resourceRecordSet.Type) != "SOA" {
+			resourceRecordSetChanges = append(resourceRecordSetChanges, &route53.Change{Action: aws.String("DELETE"), ResourceRecordSet: resourceRecordSet})
+		}
+	}
+
+	if len(resourceRecordSetChanges) > 0 {
+		deleteResourceRecordSets := &route53.ChangeResourceRecordSetsInput{
+			HostedZoneId: id,
+			ChangeBatch: &route53.ChangeBatch{
+				Changes: resourceRecordSetChanges,
+			},
+		}
+		_, err = dns.route53Svc.ChangeResourceRecordSets(deleteResourceRecordSets)
+		if err != nil {
+			log.Errorf("deleting all resource record sets of the hosted zone failed: %s", extractErrorMessage(err))
+			return err
+		}
+	}
 
 	hostedZoneInput := &route53.DeleteHostedZoneInput{Id: id}
 
-	_, err := dns.route53Svc.DeleteHostedZone(hostedZoneInput)
+	_, err = dns.route53Svc.DeleteHostedZone(hostedZoneInput)
 	if err != nil {
 		log.Errorf("deleting hosted zone failed: %s", extractErrorMessage(err))
 	}

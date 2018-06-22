@@ -11,6 +11,7 @@ import (
 	"github.com/banzaicloud/pipeline/audit"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/dns/route53/model"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/model/defaults"
@@ -102,6 +103,17 @@ func main() {
 	}
 
 	defaults.SetDefaultValues()
+
+	// External DNS service
+	dnsSvc, err := dns.GetExternalDnsServiceClient()
+	if err != nil {
+		log.Errorf("Getting external dns service client failed: %s", err.Error())
+		panic(err)
+	}
+
+	if dnsSvc == nil {
+		log.Infof("External dns service functionality is not enabled")
+	}
 
 	//Initialise Gin router
 	router := gin.New()

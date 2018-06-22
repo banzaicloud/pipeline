@@ -1,5 +1,7 @@
 package route53
 
+import "time"
+
 // status
 const (
 	CREATING = "CREATING"
@@ -10,6 +12,7 @@ const (
 
 // domainState represents the state of a domain registered with Amazon Route53 DNS service
 type domainState struct {
+	createdAt      time.Time
 	organisationId uint
 	domain         string
 	hostedZoneId   string
