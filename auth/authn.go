@@ -272,7 +272,7 @@ func GenerateToken(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"id": tokenID, "token": signedToken})
 }
 
-func createAndStoreAPIToken(userID string, userLogin string, tokenType bauth.TokenType, tokenName string) (string, string, error) {
+func createAPIToken(userID string, userLogin string, tokenType bauth.TokenType) (string, string, error) {
 	tokenID := uuid.NewV4().String()
 
 	// Create the Claims
@@ -294,6 +294,15 @@ func createAndStoreAPIToken(userID string, userLogin string, tokenType bauth.Tok
 	signedToken, err := jwtToken.SignedString([]byte(signingKeyBase32))
 	if err != nil {
 		return "", "", errors.Wrap(err, "Failed to sign user token")
+	}
+
+	return tokenID, signedToken, nil
+}
+
+func createAndStoreAPIToken(userID string, userLogin string, tokenType bauth.TokenType, tokenName string) (string, string, error) {
+	tokenID, signedToken, err := createAPIToken(userID, userLogin, tokenType)
+	if err != nil {
+		return "", "", err
 	}
 
 	token := bauth.NewToken(tokenID, tokenName)
@@ -380,7 +389,7 @@ func (sessionStorer *BanzaiSessionStorer) Update(w http.ResponseWriter, req *htt
 		return fmt.Errorf("Can't get current user")
 	}
 
-	_, droneToken, err := createAndStoreAPIToken(claims.UserID, currentUser.Login, DroneUserTokenType, "Drone session token")
+	_, droneToken, err := createAPIToken(claims.UserID, currentUser.Login, DroneUserTokenType)
 	if err != nil {
 		log.Info(req.RemoteAddr, err.Error())
 		return err
