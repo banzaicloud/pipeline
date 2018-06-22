@@ -35,6 +35,7 @@ import (
 
 const (
 	statusRunning = "RUNNING"
+	statusDone    = "DONE"
 )
 
 const (
@@ -658,15 +659,17 @@ func (g *GKECluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 		return err
 	}
 
+	projectId := secretItem.GetValue(pkgSecret.ProjectId)
+
 	cc := googleCluster{
 		Name:          g.modelCluster.Name,
-		ProjectID:     secretItem.GetValue(pkgSecret.ProjectId),
+		ProjectID:     projectId,
 		Zone:          g.modelCluster.Location,
 		MasterVersion: updateRequest.Google.Master.Version,
 		NodePools:     updatedNodePools,
 	}
 
-	res, err := callUpdateClusterGoogle(svc, cc)
+	res, err := callUpdateClusterGoogle(svc, cc, g.modelCluster.Location, projectId)
 	if err != nil {
 		be := getBanzaiErrorFromError(err)
 		// TODO status code !?
@@ -997,7 +1000,7 @@ func (g *GKECluster) callDeleteCluster(cc *googleCluster) error {
 	return nil
 }
 
-func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster) (*gke.Cluster, error) {
+func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster, location, projectId string) (*gke.Cluster, error) {
 
 	var updatedCluster *gke.Cluster
 
@@ -1019,9 +1022,15 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster) (*gke.Cluster, 
 			return nil, err
 		}
 		log.Infof("Cluster %s update is called for project %s and zone %s. Status Code %v", cc.Name, cc.ProjectID, cc.Zone, updateCall.HTTPStatusCode)
-		if updatedCluster, err = waitForCluster(svc, cc); err != nil {
+		if err = waitForOperation(svc, location, projectId, updateCall.Name); err != nil {
 			return nil, err
 		}
+
+		updatedCluster, err = getClusterGoogle(svc, cc)
+		if err != nil {
+			return nil, err
+		}
+
 	}
 
 	// Collect node pools that have to be deleted and delete them before
@@ -1067,7 +1076,11 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster) (*gke.Cluster, 
 			return nil, err
 		}
 		log.Infof("Node pool %s delete is called for project %s, zone %s and cluster %s. Status Code %v", nodePoolName, cc.ProjectID, cc.Zone, cc.Name, deleteCall.HTTPStatusCode)
-		if updatedCluster, err = waitForCluster(svc, cc); err != nil {
+		if err = waitForOperation(svc, location, projectId, deleteCall.Name); err != nil {
+			return nil, err
+		}
+		updatedCluster, err = getClusterGoogle(svc, cc)
+		if err != nil {
 			return nil, err
 		}
 	}
@@ -1086,7 +1099,7 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster) (*gke.Cluster, 
 						return nil, err
 					}
 					log.Infof("Node pool %s update is called for project %s, zone %s and cluster %s. Status Code %v", nodePool.Name, cc.ProjectID, cc.Zone, cc.Name, updateCall.HTTPStatusCode)
-					if err := waitForNodePool(svc, &cc, nodePool.Name); err != nil {
+					if err := waitForOperation(svc, location, projectId, updateCall.Name); err != nil {
 						return nil, err
 					}
 				}
@@ -1094,31 +1107,41 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster) (*gke.Cluster, 
 				if autoscalingHasBeenUpdated(nodePool, cluster.NodePools[i]) {
 					var updateCall *gke.Operation
 					var err error
+
+					autoScalingInput := &gke.SetNodePoolAutoscalingRequest{
+						Autoscaling: &gke.NodePoolAutoscaling{
+							Enabled: false,
+						},
+					}
+
 					if nodePool.Autoscaling.Enabled {
 						log.Infof("Updating node pool %s enable Autoscaling", nodePool.Name)
-						updateCall, err = svc.Projects.Zones.Clusters.NodePools.Autoscaling(cc.ProjectID, cc.Zone, cc.Name, nodePool.Name, &gke.SetNodePoolAutoscalingRequest{
+						autoScalingInput = &gke.SetNodePoolAutoscalingRequest{
 							Autoscaling: &gke.NodePoolAutoscaling{
 								Enabled:      true,
 								MinNodeCount: nodePool.Autoscaling.MinNodeCount,
 								MaxNodeCount: nodePool.Autoscaling.MaxNodeCount,
 							},
-						}).Context(context.Background()).Do()
+						}
 					} else {
 						log.Infof("Updating node pool %s disable Autoscaling", nodePool.Name)
-						updateCall, err = svc.Projects.Zones.Clusters.NodePools.Autoscaling(cc.ProjectID, cc.Zone, cc.Name, nodePool.Name, &gke.SetNodePoolAutoscalingRequest{
-							Autoscaling: &gke.NodePoolAutoscaling{
-								Enabled: false,
-							},
-						}).Context(context.Background()).Do()
 					}
 
+					operation, err := svc.Projects.Zones.Clusters.NodePools.Autoscaling(cc.ProjectID, cc.Zone, cc.Name, nodePool.Name, autoScalingInput).Context(context.Background()).Do()
 					if err != nil {
 						return nil, err
 					}
+
 					log.Infof("Node pool %s update is called for project %s, zone %s and cluster %s. Status Code %v", nodePool.Name, cc.ProjectID, cc.Zone, cc.Name, updateCall.HTTPStatusCode)
-					if updatedCluster, err = waitForCluster(svc, cc); err != nil {
+					if err = waitForOperation(svc, location, projectId, operation.Name); err != nil {
 						return nil, err
 					}
+
+					updatedCluster, err = getClusterGoogle(svc, cc)
+					if err != nil {
+						return nil, err
+					}
+
 				}
 
 				if nodePool.InitialNodeCount > 0 {
@@ -1130,7 +1153,12 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster) (*gke.Cluster, 
 						return nil, err
 					}
 					log.Infof("Node pool %s size change is called for project %s, zone %s and cluster %s. Status Code %v", nodePool.Name, cc.ProjectID, cc.Zone, cc.Name, updateCall.HTTPStatusCode)
-					if updatedCluster, err = waitForCluster(svc, cc); err != nil {
+					if err = waitForOperation(svc, location, projectId, updateCall.Name); err != nil {
+						return nil, err
+					}
+
+					updatedCluster, err = getClusterGoogle(svc, cc)
+					if err != nil {
 						return nil, err
 					}
 				}
@@ -1153,9 +1181,15 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster) (*gke.Cluster, 
 			return nil, err
 		}
 		log.Infof("Node pool %s create is called for project %s, zone %s and cluster %s. Status Code %v", nodePoolToCreate.Name, cc.ProjectID, cc.Zone, cc.Name, createCall.HTTPStatusCode)
-		if updatedCluster, err = waitForCluster(svc, cc); err != nil {
+		if err = waitForOperation(svc, location, projectId, createCall.Name); err != nil {
 			return nil, err
 		}
+
+		updatedCluster, err = getClusterGoogle(svc, cc)
+		if err != nil {
+			return nil, err
+		}
+
 	}
 
 	return updatedCluster, nil
@@ -2141,4 +2175,22 @@ func findInstanceByClusterName(csv *gkeCompute.Service, project, zone, clusterNa
 // ReloadFromDatabase load cluster from DBd
 func (g *GKECluster) ReloadFromDatabase() error {
 	return g.modelCluster.ReloadFromDatabase()
+}
+
+func waitForOperation(svc *gke.Service, location, projectId, operationName string) error {
+
+	operationStatus := statusRunning
+	for operationStatus != statusDone {
+		resp, err := svc.Projects.Zones.Operations.Get(projectId, location, operationName).Context(context.Background()).Do()
+		if err != nil {
+			return err
+		}
+
+		operationStatus = resp.Status
+
+		log.Infof("Operation status: %s", operationStatus)
+		time.Sleep(time.Second * 5)
+	}
+
+	return nil
 }
