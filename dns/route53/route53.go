@@ -435,7 +435,7 @@ func (dns *awsRoute53) createHostedZoneRoute53Policy(hostedZoneId string) (*iam.
 							{
             		"Effect": "Allow",
             		"Action": "route53:ChangeResourceRecordSets",
-            		"Resource": "arn:route53:route53:::hostedzone/%s"
+                "Resource": "arn:aws:route53:::hostedzone/%s"
         			},
         			{
             		"Effect": "Allow",
