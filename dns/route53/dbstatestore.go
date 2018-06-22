@@ -1,8 +1,10 @@
 package route53
 
 import (
+	"fmt"
 	"github.com/banzaicloud/pipeline/dns/route53/model"
 	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
 // awsRoute53DatabaseStateStore is a database backed state store for
@@ -59,6 +61,31 @@ func (stateStore *awsRoute53DatabaseStateStore) find(orgId uint, domain string, 
 	return true, nil
 }
 
+// listUnused returns all the domain state entries from database that belong to organizations with no live clusters
+// thus the DNS domain entries earlier created for these domain are not used any more
+func (stateStore *awsRoute53DatabaseStateStore) listUnused() ([]domainState, error) {
+	db := model.GetDB()
+	var dbRecs []route53model.Route53Domain
+
+	sqlFilter := fmt.Sprintf("organization_id NOT IN (SELECT organization_id FROM clusters WHERE deleted_at is NULL AND status<>'%s')", cluster.Error)
+
+	err := db.Where(&route53model.Route53Domain{Status: CREATED}).Where(sqlFilter).Find(&dbRecs).Error
+	if err != nil {
+		return nil, err
+	}
+
+	var domainStates []domainState
+
+	for i := 0; i < len(dbRecs); i++ {
+		var state domainState
+
+		initStateFromRoute53Domain(&dbRecs[i], &state)
+		domainStates = append(domainStates, state)
+	}
+
+	return domainStates, nil
+}
+
 // delete deletes domain state from database
 func (stateStore *awsRoute53DatabaseStateStore) delete(state *domainState) error {
 	db := model.GetDB()
@@ -84,6 +111,7 @@ func createRoute53Domain(state *domainState) *route53model.Route53Domain {
 
 // initStateFromRoute53Domain initializes state from the passed db record
 func initStateFromRoute53Domain(dbRecord *route53model.Route53Domain, state *domainState) {
+	state.createdAt = dbRecord.CreatedAt
 	state.organisationId = dbRecord.OrganizationId
 	state.domain = dbRecord.Domain
 	state.status = dbRecord.Status

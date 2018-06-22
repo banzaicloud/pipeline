@@ -2,10 +2,7 @@ package cluster
 
 import (
 	"fmt"
-	"sync"
 	"time"
-
-	"github.com/spf13/cast"
 
 	"github.com/banzaicloud/pipeline/auth"
 	pipConfig "github.com/banzaicloud/pipeline/config"
@@ -14,17 +11,12 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
-	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/go-errors/errors"
 	"github.com/spf13/viper"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 )
-
-// muxOrgDomain is a mutex used to sync access to external Dns service
-// in order to avoid registering the same domain twice
-var muxOrgDomain sync.Mutex
 
 //RunPostHooks calls posthook functions with created cluster
 func RunPostHooks(functionList []PostFunctioner, createdCluster CommonCluster) {
@@ -309,43 +301,20 @@ func RegisterDomainPostHook(input interface{}) error {
 		return errors.Errorf("Wrong parameter type: %T", commonCluster)
 	}
 
-	// This is how the secrets are expected to be written in Vault:
-	// vault kv put secret/banzaicloud/aws AWS_REGION=... AWS_ACCESS_KEY_ID=... AWS_SECRET_ACCESS_KEY=...
-	awsCredentialsPath := viper.GetString("aws.credentials.path")
-	secret, err := secret.Store.Logical.Read(awsCredentialsPath)
-	if err != nil {
-		log.Errorf("Failed to read AWS credentials from Vault: %s", err.Error())
-		return err
-	}
-	if secret == nil {
-		log.Infoln("No AWS credentials for Route53 provided in Vault, exiting as this functionality is not enabled")
-		return nil
-	}
-
-	awsCredentials := cast.ToStringMapString(secret.Data["data"])
-	region := awsCredentials[secretTypes.AwsRegion]
-	awsSecretId := awsCredentials[secretTypes.AwsAccessKeyId]
-	awsSecretKey := awsCredentials[secretTypes.AwsSecretAccessKey]
-
-	if len(region) == 0 || len(awsSecretId) == 0 || len(awsSecretKey) == 0 {
-		log.Infoln("No AWS credentials for Route53 provided in Vault, exiting as this functionality is not enabled")
-		return nil
-	}
-
-	domainBase := viper.GetString("route53.domain")
-	route53SecretNamespace := viper.GetString("route53.secretNamespace")
+	domainBase := viper.GetString("dns.domain")
+	route53SecretNamespace := viper.GetString("dns.secretNamespace")
 
 	orgId := commonCluster.GetOrganizationId()
 
-	// sync domain registration to avoid duplicates in case more clusters are created in parallel in the same org
-	muxOrgDomain.Lock()
-
-	defer muxOrgDomain.Unlock()
-
-	dnsSvc, err := dns.NewExternalDnsServiceClient(region, awsSecretId, awsSecretKey)
+	dnsSvc, err := dns.GetExternalDnsServiceClient()
 	if err != nil {
-		log.Errorf("Creating external dns service client failed: %s", err.Error())
+		log.Errorf("Getting external dns service client failed: %s", err.Error())
 		return err
+	}
+
+	if dnsSvc == nil {
+		log.Infof("Exiting as external dns service functionality is not enabled")
+		return nil
 	}
 
 	org, err := auth.GetOrganizationById(orgId)
