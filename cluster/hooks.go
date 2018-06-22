@@ -332,7 +332,8 @@ func RegisterDomainPostHook(input interface{}) error {
 		return nil
 	}
 
-	domainBase := viper.GetString("organization.domain")
+	domainBase := viper.GetString("route53.domain")
+	route53SecretNamespace := viper.GetString("route53.secretNamespace")
 
 	orgId := commonCluster.GetOrganizationId()
 
@@ -374,7 +375,7 @@ func RegisterDomainPostHook(input interface{}) error {
 			Type: pkgCluster.Amazon,
 			Tag:  secretTypes.TagBanzaiHidden,
 		},
-		helm.DefaultNamespace,
+		route53SecretNamespace,
 	)
 
 	if err != nil {

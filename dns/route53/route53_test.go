@@ -413,6 +413,8 @@ func TestAwsRoute53_RegisterDomain(t *testing.T) {
 			if secretItem.Values[secretTypes.AwsAccessKeyId] == testAccessKeyId &&
 				secretItem.Values[secretTypes.AwsSecretAccessKey] == testAccessSecretKey {
 				route53SecretCount++
+
+				defer func() { secret.Store.Delete(testOrgId, secretItem.ID) }()
 			}
 		}
 	}
