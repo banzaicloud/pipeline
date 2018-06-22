@@ -2,6 +2,11 @@ package cluster
 
 import (
 	"fmt"
+	"sync"
+	"time"
+
+	"github.com/spf13/cast"
+
 	"github.com/banzaicloud/pipeline/auth"
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
@@ -9,13 +14,12 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/go-errors/errors"
 	"github.com/spf13/viper"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
-	"sync"
-	"time"
 )
 
 // muxOrgDomain is a mutex used to sync access to external Dns service
@@ -297,20 +301,34 @@ func StoreKubeConfig(input interface{}) error {
 	return StoreKubernetesConfig(cluster, config)
 }
 
-// RegisterDomainPostHook registers a subdomain using the name of the current organisation
-// in external Dns service. It ensures that only one domain is registered per organisation.
+// RegisterDomainPostHook registers a subdomain using the name of the current organization
+// in external Dns service. It ensures that only one domain is registered per organization.
 func RegisterDomainPostHook(input interface{}) error {
 	commonCluster, ok := input.(CommonCluster)
 	if !ok {
 		return errors.Errorf("Wrong parameter type: %T", commonCluster)
 	}
 
-	region := ""       // TODO: this should come from config or vault
-	awsSecretId := ""  // TODO: this should come from vault
-	awsSecretKey := "" // TODO: this should come form vault
+	// This is how the secrets are expected to be written in Vault:
+	// vault kv put secret/banzaicloud/aws AWS_REGION=... AWS_ACCESS_KEY_ID=... AWS_SECRET_ACCESS_KEY=...
+	awsCredentialsPath := viper.GetString("aws.credentials.path")
+	secret, err := secret.Store.Logical.Read(awsCredentialsPath)
+	if err != nil {
+		log.Errorf("Failed to read AWS credentials from Vault: %s", err.Error())
+		return err
+	}
+	if secret == nil {
+		log.Infoln("No AWS credentials for Route53 provided in Vault, exiting as this functionality is not enabled")
+		return nil
+	}
 
-	// If no aws credentials for Route53 provided in Vault than exit as this functionality is not enabled
+	awsCredentials := cast.ToStringMapString(secret.Data["data"])
+	region := awsCredentials[secretTypes.AwsRegion]
+	awsSecretId := awsCredentials[secretTypes.AwsAccessKeyId]
+	awsSecretKey := awsCredentials[secretTypes.AwsSecretAccessKey]
+
 	if len(region) == 0 || len(awsSecretId) == 0 || len(awsSecretKey) == 0 {
+		log.Infoln("No AWS credentials for Route53 provided in Vault, exiting as this functionality is not enabled")
 		return nil
 	}
 
@@ -331,7 +349,7 @@ func RegisterDomainPostHook(input interface{}) error {
 
 	org, err := auth.GetOrganizationById(orgId)
 	if err != nil {
-		log.Errorf("Retrieving organisation with id %d failed: %s", orgId, err.Error())
+		log.Errorf("Retrieving organization with id %d failed: %s", orgId, err.Error())
 		return err
 	}
 

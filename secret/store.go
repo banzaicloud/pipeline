@@ -33,8 +33,8 @@ func init() {
 }
 
 type secretStore struct {
-	client  *vault.Client
-	logical *vaultapi.Logical
+	Client  *vault.Client
+	Logical *vaultapi.Logical
 }
 
 // CreateSecretResponse API response for AddSecrets
@@ -105,7 +105,7 @@ func newVaultSecretStore() *secretStore {
 		panic(err)
 	}
 	logical := client.Vault().Logical()
-	return &secretStore{client: client, logical: logical}
+	return &secretStore{Client: client, Logical: logical}
 }
 
 func generateSecretID(request *CreateSecretRequest) string {
@@ -140,7 +140,7 @@ func (ss *secretStore) Delete(organizationID uint, secretID string) error {
 
 	log.Debugln("Delete secret:", path)
 
-	if _, err := ss.logical.Delete(path); err != nil {
+	if _, err := ss.Logical.Delete(path); err != nil {
 		return errors.Wrap(err, "Error during deleting secret")
 	}
 
@@ -168,7 +168,7 @@ func (ss *secretStore) Store(organizationID uint, value *CreateSecretRequest) (s
 
 	data := vault.NewData(0, map[string]interface{}{"value": value})
 
-	if _, err := ss.logical.Write(path, data); err != nil {
+	if _, err := ss.Logical.Write(path, data); err != nil {
 		return "", errors.Wrap(err, "Error during storing secret")
 	}
 
@@ -193,7 +193,7 @@ func (ss *secretStore) Update(organizationID uint, secretID string, value *Creat
 
 	data := vault.NewData(version, map[string]interface{}{"value": value})
 
-	if _, err := ss.logical.Write(path, data); err != nil {
+	if _, err := ss.Logical.Write(path, data); err != nil {
 		return errors.Wrap(err, "Error during updating secret")
 	}
 
@@ -240,7 +240,7 @@ func (ss *secretStore) Get(organizationID uint, secretID string) (*SecretsItemRe
 
 	log.Debugln("Get secret:", path)
 
-	secret, err := ss.logical.Read(path)
+	secret, err := ss.Logical.Read(path)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "Error during reading secret")
@@ -262,7 +262,7 @@ func (ss *secretStore) List(orgid uint, query *secretTypes.ListSecretsQuery) ([]
 
 	responseItems := []*SecretsItemResponse{}
 
-	list, err := ss.logical.List(listPath)
+	list, err := ss.Logical.List(listPath)
 	if err != nil {
 		log.Errorf("Error listing secrets: %s", err.Error())
 		return nil, err
@@ -274,7 +274,7 @@ func (ss *secretStore) List(orgid uint, query *secretTypes.ListSecretsQuery) ([]
 
 		for _, secretID := range keys {
 
-			if secret, err := ss.logical.Read(secretDataPath(orgid, secretID)); err != nil {
+			if secret, err := ss.Logical.Read(secretDataPath(orgid, secretID)); err != nil {
 
 				log.Errorf("Error listing secrets: %s", err.Error())
 				return nil, err

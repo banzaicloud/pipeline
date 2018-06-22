@@ -39,17 +39,17 @@ For accessing Vault the `VAULT_ADDR` env var has to be set, Pipeline stores JWT 
 export VAULT_ADDR=http://127.0.0.1:8200
 ```
 
-Depending on the cloud provider there are couple of env vars has to be set:
+#### Route53 credentials in Vault
 
-* AKS
-   * AZURE_CLIENT_ID
-   * AZURE_CLIENT_SECRET
-   * AZURE_TENANT_ID
-   * AZURE_SUBSCRIPTION_ID
-* Amazon
-   * AWS_ACCESS_KEY_ID
-   * AWS_SECRET_ACCESS_KEY
-*GCP
+Organizations created in the Pipeline will have a domain registered in AWS's Route53 DNS Service. For this
+the AWS credentials have to be available in Vault in the proper format (otherwise the feature is disabled):
+
+```bash
+vault kv put secret/banzaicloud/aws \
+    AWS_REGION=${AWS_REGION} \
+    AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+    AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+```
 
 #### GitHub OAuth App setup
 

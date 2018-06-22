@@ -38,6 +38,7 @@ func init() {
 	viper.SetDefault("cloud.defaultProfileName", "default")
 	viper.SetDefault("cloud.configRetryCount", 30)
 	viper.SetDefault("cloud.configRetrySleep", 15)
+	viper.SetDefault("aws.credentials.path", "secret/data/banzaicloud/aws")
 	viper.SetDefault("logging.kubicornloglevel", "debug")
 	viper.SetDefault("catalog.repositoryUrl", "http://kubernetes-charts.banzaicloud.com/branch/spotguide")
 
