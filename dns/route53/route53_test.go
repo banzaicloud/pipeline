@@ -7,6 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/aws/aws-sdk-go/service/route53/route53iface"
+	"github.com/banzaicloud/pipeline/pkg/cluster"
+	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/banzaicloud/pipeline/secret"
 	"github.com/pkg/errors"
 	"reflect"
 	"testing"
@@ -391,6 +394,31 @@ func TestAwsRoute53_RegisterDomain(t *testing.T) {
 
 	if reflect.DeepEqual(state, expected) == false {
 		t.Errorf("Expected %v, got %v", expected, state)
+	}
+
+	secrets, _ := secret.Store.List(testOrgId, &secretTypes.ListSecretsQuery{
+		Type:   cluster.Amazon,
+		Tag:    secretTypes.TagBanzaiHidden,
+		Values: true,
+	})
+
+	if len(secrets) != 1 {
+		t.Errorf("There should be one secret with name '%s' in Vault", iamUserAccessKeySecretName)
+	}
+
+	route53SecretCount := 0
+
+	for _, secretItem := range secrets {
+		if secretItem.Name == iamUserAccessKeySecretName {
+			if secretItem.Values[secretTypes.AwsAccessKeyId] == testAccessKeyId &&
+				secretItem.Values[secretTypes.AwsSecretAccessKey] == testAccessSecretKey {
+				route53SecretCount++
+			}
+		}
+	}
+
+	if route53SecretCount != 1 {
+		t.Errorf("There should be one route53 secret in Vault but got %d", route53SecretCount)
 	}
 
 }
