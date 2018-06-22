@@ -4,18 +4,20 @@ import "github.com/banzaicloud/pipeline/pkg/cluster"
 
 // FieldMeta describes how a secret field should be validated
 type FieldMeta struct {
-	Name     string `json:"name"`
-	Required bool   `json:"required"`
+	Name        string `json:"name"`
+	Required    bool   `json:"required"`
+	Description string `json:"description,omitempty"`
 }
 
 // Meta describes how a secret is built up and how it should be sourced
 type Meta struct {
 	Fields   []FieldMeta    `json:"fields"`
-	Sourcing SourcingMethod `json:"Sourcing"`
+	Sourcing SourcingMethod `json:"sourcing"`
 }
 
 // Amazon keys
 const (
+	AwsRegion          = "AWS_REGION"
 	AwsAccessKeyId     = "AWS_ACCESS_KEY_ID"
 	AwsSecretAccessKey = "AWS_SECRET_ACCESS_KEY"
 )
@@ -109,6 +111,7 @@ const (
 var DefaultRules = map[string]Meta{
 	cluster.Amazon: {
 		Fields: []FieldMeta{
+			{Name: AwsRegion, Required: false},
 			{Name: AwsAccessKeyId, Required: true},
 			{Name: AwsSecretAccessKey, Required: true},
 		},

@@ -133,7 +133,7 @@ func TestListSecrets(t *testing.T) {
 					sort.Sort(sortableSecretsItemResponse(tc.expectedValues))
 					sort.Sort(sortableSecretsItemResponse(items))
 					if !reflect.DeepEqual(tc.expectedValues, items) {
-						t.Errorf("\nExpected values: %#v\nbut got: %#v", tc.expectedValues, items)
+						t.Errorf("\nExpected values: %#+v\nbut got: %#+v", tc.expectedValues, items)
 					}
 				}
 			}
@@ -198,6 +198,7 @@ const (
 
 // AWS test constants
 const (
+	awsRegion          = "testRegion"
 	awsAccessKeyId     = "testAccessKeyId"
 	awsSecretAccessKey = "testSecretAccessKey"
 )
@@ -230,6 +231,7 @@ var (
 		Name: secretNameAmazon,
 		Type: clusterTypes.Amazon,
 		Values: map[string]string{
+			"AWS_REGION":            awsRegion,
 			"AWS_ACCESS_KEY_ID":     awsAccessKeyId,
 			"AWS_SECRET_ACCESS_KEY": awsSecretAccessKey,
 		},
