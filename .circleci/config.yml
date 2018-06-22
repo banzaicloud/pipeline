@@ -15,6 +15,10 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Check symlinks
+          command:
+              make check-symlinks
+      - run:
           name: Run dep ensure
           command: |
               curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
