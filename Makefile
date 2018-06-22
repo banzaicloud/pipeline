@@ -3,6 +3,7 @@
 
 OS := $(shell uname -s)
 GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*")
+SYMLINKS=$(shell find -L ./vendor -type l)
 
 PKGS=$(shell go list ./... | grep -v /vendor)
 
@@ -106,3 +107,6 @@ install-gocyclo:
 ifndef GOCYCLO_CMD
 	go get -u github.com/fzipp/gocyclo
 endif
+
+check-symlinks:
+	FILES="${SYMLINKS}" ./scripts/symlink-check.sh
