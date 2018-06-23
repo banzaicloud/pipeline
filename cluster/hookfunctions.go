@@ -50,7 +50,7 @@ var HookMap = map[string]PostFunctioner{
 // BasePostHookFunctions default posthook functions after cluster create
 var BasePostHookFunctions = []PostFunctioner{
 	HookMap[pkgCluster.StoreKubeConfig],
-	HookMap[pkgCluster.PersistKubernetesKeys],
+	//HookMap[pkgCluster.PersistKubernetesKeys],
 	HookMap[pkgCluster.UpdatePrometheusPostHook],
 	HookMap[pkgCluster.InstallHelmPostHook],
 	HookMap[pkgCluster.RegisterDomainPostHook],
