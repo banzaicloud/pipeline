@@ -8,11 +8,11 @@ info:
   license:
     name: Apache 2.0
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+servers:
+  - url: http://localhost:9090
 tags:
   - name: applications
     description: Application managed by Pipeline
-  - name: cluster
-    description: Cluster realted funtions
   - name: clusters
     description: Clusters realted funtions
   - name: catalogs
@@ -48,6 +48,7 @@ paths:
         - catalogs
       summary: List catalogs
       description: List all available catalogs
+      operationId: ListCatalogs
       parameters:
         - name: orgId
           in: path
@@ -57,11 +58,12 @@ paths:
             type: integer
       responses:
         '200':
-          description: Application list
+          description: Catalog list
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ListCatalogResponse'
+
   '/api/v1/orgs/{orgId}/catalogs/{name}':
     get:
       security:
@@ -70,6 +72,7 @@ paths:
         - catalogs
       summary: Get catalog details
       description: Get details about specific catalog
+      operationId: GetCatalogDetail
       parameters:
         - name: orgId
           in: path
@@ -105,6 +108,7 @@ paths:
         - applications
       summary: List application catalogs
       description: List all available application for lunch
+      operationId: ListApplications
       parameters:
         - name: orgId
           in: path
@@ -126,6 +130,7 @@ paths:
         - applications
       summary: Create new application based on catalog
       description: Create new application based on Catalog definition s
+      operationId: CreateApplication
       parameters:
         - name: orgId
           in: path
@@ -156,6 +161,7 @@ paths:
         - applications
       summary: Get application details
       description: Get application details with deployments
+      operationId: GetApplication
       parameters:
         - name: orgId
           in: path
@@ -271,7 +277,9 @@ paths:
           content:
             application/json:
              schema:
-                $ref: '#/components/schemas/ClusterListResponse'
+              type: array
+              items:
+                $ref: '#/components/schemas/GetClusterStatusResponse'
         '400':
           description: Error during listing clusters
           content:
@@ -289,7 +297,7 @@ paths:
       security:
         - bearerAuth: []
       tags:
-        - cluster
+        - clusters
       summary: Get cluster status
       description: Getting cluster status
       operationId: GetCluster
@@ -336,7 +344,7 @@ paths:
       security:
         - bearerAuth: []
       tags:
-        - cluster
+        - clusters
       summary: Update cluster
       description: Updating an existing K8S cluster
       operationId: UpdateCluster
@@ -385,7 +393,7 @@ paths:
       security:
         - bearerAuth: []
       tags:
-        - cluster
+        - clusters
       summary: Delete cluster
       description: Deleting a K8S cluster
       operationId: DeleteCluster
@@ -438,7 +446,7 @@ paths:
       security:
         - bearerAuth: []
       tags:
-        - cluster
+        - clusters
       summary: Get cluster status
       operationId: GetClusterStatus
       description: Getting the K8S cluster status
@@ -470,7 +478,7 @@ paths:
       security:
         - bearerAuth: []
       tags:
-       - cluster
+       - clusters
       summary: Run posthook functions
       operationId: ClusterPostHooks
       description: Run posthook functions
@@ -491,7 +499,7 @@ paths:
         '200':
           description: "Posthooks started"
       requestBody:
-        required: false
+        required: true
         content:
           application/json:
             schema:
@@ -501,7 +509,7 @@ paths:
       security:
         - bearerAuth: []
       tags:
-       - cluster
+       - clusters
       summary: Get a cluster config
       operationId: GetClusterConfig
       description: Getting a K8S cluster config file
@@ -550,7 +558,7 @@ paths:
       security:
         - bearerAuth: []
       tags:
-        - cluster
+        - clusters
       summary: Get API endpoint
       operationId: GetAPIEndpoint
       description: Get API endpoint
@@ -599,7 +607,7 @@ paths:
       security:
         - bearerAuth: []
       tags:
-        - cluster
+        - clusters
       summary: Update monitoring
       operationId: UpdateMonitoring
       description: Update monitoring
@@ -630,7 +638,7 @@ paths:
       security:
         - bearerAuth: []
       tags:
-        - cluster
+        - clusters
       summary: List service public endpoints
       operationId: ListEndpoints
       description: List service public endpoints
@@ -684,7 +692,7 @@ paths:
       security:
         - bearerAuth: []
       tags:
-        - cluster
+        - clusters
       summary: List cluser nodes
       operationId: ListNodes
       description: List cluser nodes
@@ -739,7 +747,7 @@ paths:
       security:
         - bearerAuth: []
       tags:
-       - cluster
+       - clusters
       summary: Initialize Helm
       operationId: HelmInit
       description: Initialize helm in the cluster
@@ -787,6 +795,62 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/HelmInitRequest'
+
+  '/api/v1/orgs/{orgId}/clusters/{id}/secrets':
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+       - clusters
+      summary: Install secrets into cluster
+      operationId: InstallSecrets
+      description: Install secrets into cluster
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: id
+          in: path
+          required: true
+          description: Selected cluster identification (number)
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: "Secrets are installed into cluster"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InstallSecretsResponseItem'
+        '400':
+          description: "Error during getting endpoints"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '404':
+          description: "Cluster not found"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InstallSecretsRequest'
 
   '/api/v1/orgs/{orgId}/helm/repos':
     get:
@@ -1370,6 +1434,8 @@ paths:
           '501':
             description: "Not implemented"
       head:
+        security:
+        - bearerAuth: []
         tags:
          - deployment
         summary: Check deployment status
@@ -1592,11 +1658,11 @@ paths:
   /auth/tokens:
     get:
       security:
-          - bearerAuth: []
+        - bearerAuth: []
       tags:
         - auth
       summary: List all API tokens
-      operationId: GetToken
+      operationId: GetTokens
       description: List all API tokens
       responses:
         '200':
@@ -1604,7 +1670,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TokenListResponse'
+                type: array
+                items:
+                  $ref: '#/components/schemas/TokenListResponseItem'
         '401':
           description: Unauthorized
           content:
@@ -1623,10 +1691,10 @@ paths:
       tags:
         - auth
       summary: Generate token
-      operationId: GetToken
+      operationId: GenerateToken
       description: Generate token
       requestBody:
-        required: false
+        required: true
         content:
           application/json:
             schema:
@@ -1726,7 +1794,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SecretsListResponse'
+                type: array
+                items:
+                  $ref: '#/components/schemas/SecretsListItem'
         '400':
           description: Error during listing secrets
           content:
@@ -3994,6 +4064,41 @@ components:
             type: string
             example: "IyBuZ2lueC1sZWdvCgoqKlRoaXMgY2hhcnQgaGFzIGJlZW4gZGVwcmVjYXRlZCBhcyBvZiB2ZXJzaW9uIDAuMi4xIGFuZCB3aWxsIG5vdCBiZSB1cGRhdGVkLiBQbGVhc2UgdXNlIHRoZSBuZ2lueC1pbmdyZXNzIGFuZCAob3B0aW9uYWwpIGt1YmUtbGVnbyBjaGFydHMgaW5zdGVhZC4qKgoKW25naW54LWxlZ29dKGh0dHBzOi8vZ2l0aHViLmNvbS9qZXRzdGFjay9rdWJlLWxlZ28vdHJlZS9tYXN0ZXIvZXhhbXBsZXMvbmdpbngpIGlzIGEgY2hhcnQgZm9yIGFuIFtgbmdpbnhgIGluZ3Jlc3NdKGh0dHBzOi8vZ2l0aHViLmNvbS9rdWJlcm5ldGVzL2NvbnRyaWIvdHJlZS9tYXN0ZXIvaW5ncmVzcy9jb250cm9sbGVycy9uZ2lueCkgd2l0aCBvcHRpb25hbCBzdXBwb3J0IGZvciBhdXRvbWF0aWNhbGx5IGdlbmVyYXRpbmcgYFNTTGAgY2VydCBmb3IgdGhlIG1hbmFnZWQgcm91dGVzLgoKVG8gdXNlIHRoaXMgaW5ncmVzcyBjb250b2xsZXIgYWRkIHRoZSBmb2xsb3dpbmcgYW5ub3RhdGlvbnMgdG8gdGhlIGBpbmdyZXNzYCByZXNvdXJjZXMgeW91IHdvdWxkIGxpa2UgdG8gcm91dGUgdGhyb3VnaCBpdDoKCmBgYHlhbWwKYXBpVmVyc2lvbjogZXh0ZW5zaW9ucy92MWJldGExCmtpbmQ6IEluZ3Jlc3MKbWV0YWRhdGE6CiAgbmFtZXNwYWNlOiBmb28KICBhbm5vdGF0aW9uczoKICAgICMgQWRkIHRvIHJvdXRlIHRocm91Z2ggdGhlIG5naW54IHNlcnZpY2UKICAgIGt1YmVybmV0ZXMuaW8vaW5ncmVzcy5jbGFzczogbmdpbngKICAgICMgQWRkIHRvIGdlbmVyYXRlIGNlcnRpZmljYXRlcyBmb3IgdGhpcyBpbmdyZXNzCiAgICBrdWJlcm5ldGVzLmlvL3Rscy1hY21lOiAidHJ1ZSIKc3BlYzoKICB0bHM6CiAgICAjIFdpdGggdGhpcyBjb25maWd1cmF0aW9uIGt1YmUtbGVnbyB3aWxsIGdlbmVyYXRlIGEgc2VjcmV0IGluIG5hbWVzcGFjZSBmb28gY2FsbGVkIGBleGFtcGxlLXRsc2AKICAgICMgZm9yIHRoZSBVUkwgYHd3dy5leGFtcGxlLmNvbWAKICAgIC0gaG9zdHM6CiAgICAgIC0gInd3dy5leGFtcGxlLmNvbSIKICAgICAgc2VjcmV0TmFtZTogZXhhbXBsZS10bHMKYGBgCgojIyBUTDtEUjsKCmBgYGJhc2gKJCBoZWxtIGluc3RhbGwgc3RhYmxlL2t1YmUtbGVnbwpgYGAKCiMjIEludHJvZHVjdGlvbgoKVGhpcyBjaGFydCBib290c3RyYXBzIGFuIG5naW54LWxlZ28gZGVwbG95bWVudCBvbiBhIFtLdWJlcm5ldGVzXShodHRwOi8va3ViZXJuZXRlcy5pbykgY2x1c3RlciB1c2luZyB0aGUgW0hlbG1dKGh0dHBzOi8vaGVsbS5zaCkgcGFja2FnZSBtYW5hZ2VyLgoKIyMgUHJlcmVxdWlzaXRlcwoKLSBLdWJlcm5ldGVzIDEuNCsgd2l0aCBCZXRhIEFQSXMgZW5hYmxlZAoKIyMgSW5zdGFsbGluZyB0aGUgQ2hhcnQKClRvIGluc3RhbGwgdGhlIGNoYXJ0IHdpdGggdGhlIHJlbGVhc2UgbmFtZSBgbXktcmVsZWFzZWA6CgpgYGBiYXNoCiQgaGVsbSBpbnN0YWxsIC0tbmFtZSBteS1yZWxlYXNlIHN0YWJsZS9uZ2lueC1sZWdvCmBgYAoKVGhlIGNvbW1hbmQgZGVwbG95cyBuZ2lueC1sZWdvIG9uIHRoZSBLdWJlcm5ldGVzIGNsdXN0ZXIgaW4gdGhlIGRlZmF1bHQgY29uZmlndXJhdGlvbi4gVGhlIFtjb25maWd1cmF0aW9uXSgjY29uZmlndXJhdGlvbikgc2VjdGlvbiBsaXN0cyB0aGUgcGFyYW1ldGVycyB0aGF0IGNhbiBiZSBjb25maWd1cmVkIGR1cmluZyBpbnN0YWxsYXRpb24uCgo+ICoqVGlwKio6IExpc3QgYWxsIHJlbGVhc2VzIHVzaW5nIGBoZWxtIGxpc3RgCgojIyBVbmluc3RhbGxpbmcgdGhlIENoYXJ0CgpUbyB1bmluc3RhbGwvZGVsZXRlIHRoZSBgbXktcmVsZWFzZWAgZGVwbG95bWVudDoKCmBgYGJhc2gKJCBoZWxtIGRlbGV0ZSBteS1yZWxlYXNlCmBgYAoKVGhlIGNvbW1hbmQgcmVtb3ZlcyBhbGwgdGhlIEt1YmVybmV0ZXMgY29tcG9uZW50cyBhc3NvY2lhdGVkIHdpdGggdGhlIGNoYXJ0IGFuZCBkZWxldGVzIHRoZSByZWxlYXNlLgoKIyMgQ29uZmlndXJhdGlvbgoKU2VlIGB2YWx1ZXMueWFtbGAgZm9yIGNvbmZpZ3VyYXRpb24gbm90ZXMuIFNwZWNpZnkgZWFjaCBwYXJhbWV0ZXIgdXNpbmcgdGhlIGAtLXNldCBrZXk9dmFsdWVbLGtleT12YWx1ZV1gIGFyZ3VtZW50IHRvIGBoZWxtIGluc3RhbGxgLiBGb3IgZXhhbXBsZSwKCmBgYGJhc2gKJCBoZWxtIGluc3RhbGwgLS1uYW1lIG15LXJlbGVhc2UgXAogIC0tc2V0IGxlZ28uZW5hYmxlZD1mYWxzZSBcCiAgICBzdGFibGUvbmdpbngtbGVnbwpgYGAKCkluc3RhbGxzIHRoZSBjaGFydCB3aXRob3V0IGt1YmUtbGVnbyBhbmQgdGhlIGFiaWxpdHkgdG8gZ2VuZXJhdGUgY2VydHMuCgpBbHRlcm5hdGl2ZWx5LCBhIFlBTUwgZmlsZSB0aGF0IHNwZWNpZmllcyB0aGUgdmFsdWVzIGZvciB0aGUgcGFyYW1ldGVycyBjYW4gYmUgcHJvdmlkZWQgd2hpbGUgaW5zdGFsbGluZyB0aGUgY2hhcnQuIEZvciBleGFtcGxlLAoKYGBgYmFzaAokIGhlbG0gaW5zdGFsbCAtLW5hbWUgbXktcmVsZWFzZSAtZiB2YWx1ZXMueWFtbCBzdGFibGUvbmdpbngtbGVnbwpgYGAKCj4gKipUaXAqKjogWW91IGNhbiB1c2UgdGhlIGRlZmF1bHQgW3ZhbHVlcy55YW1sXSh2YWx1ZXMueWFtbCkK"
 
+    InstallSecretsRequest:
+      type: object
+      required:
+        - namespace
+      properties:
+        namespace:
+          type: string
+          example: "default"
+        query:
+          type: object
+          properties:
+            type:
+              type: string
+              example: "amazon"
+            tag:
+              type: string
+              example: "repo:pipeline"
+
+    InstallSecretsResponse:
+      type: array
+      items:
+        $ref: '#/components/schemas/InstallSecretsResponseItem'
+
+    InstallSecretsResponseItem:
+      type: object
+      required:
+        - name
+        - sourcing
+      properties:
+        name:
+          type: string
+          example: "my-aws-secret"
+        sourcing:
+          type: string
+          enum: [env, volume]
 
     ProfileListResponse:
       type: object
@@ -4382,15 +4487,14 @@ components:
           type: integer
           example: 1
         values:
-          type: array
-          items:
-            oneOf:
-              - $ref: '#/components/schemas/SecretKeyValueAmazon'
-              - $ref: '#/components/schemas/SecretKeyValueAzure'
-              - $ref: '#/components/schemas/SecretKeyValueGoogle'
-              - $ref: '#/components/schemas/SecretKeyValueKubernetes'
-              - $ref: '#/components/schemas/SecretKeyValueGeneric'
-              - $ref: '#/components/schemas/SecretKeyValueTLS'
+          type: object
+          oneOf:
+            - $ref: '#/components/schemas/SecretKeyValueAmazon'
+            - $ref: '#/components/schemas/SecretKeyValueAzure'
+            - $ref: '#/components/schemas/SecretKeyValueGoogle'
+            - $ref: '#/components/schemas/SecretKeyValueKubernetes'
+            - $ref: '#/components/schemas/SecretKeyValueGeneric'
+            - $ref: '#/components/schemas/SecretKeyValueTLS'
           example:
             type: string
             project_id: string

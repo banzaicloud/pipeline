@@ -24,6 +24,11 @@ jobs:
               curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
               dep ensure -v
       - run:
+          name: Unwind vendor
+          command: |
+              rm -rf vendor/
+              git reset --hard
+      - run:
           name: Build
           command:
               make build
