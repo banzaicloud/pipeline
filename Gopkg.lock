@@ -118,6 +118,12 @@
   revision = "de5bf2ad457846296e2031421a34e2568e304e35"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/antihax/optional"
+  packages = ["."]
+  revision = "ca021399b1a6796ecb758292c6311ce0b28857fc"
+
+[[projects]]
   name = "github.com/aokoli/goutils"
   packages = ["."]
   revision = "3391d3790d23d03408670993e957e8f408993c34"
@@ -190,15 +196,6 @@
     "vault"
   ]
   revision = "4044a049af01d1ab0d93d8d041528d4270de1aba"
-
-[[projects]]
-  name = "github.com/banzaicloud/banzai-types"
-  packages = [
-    "components/helm",
-    "constants"
-  ]
-  revision = "960468e5fa2dcc62dcaf2c42b79268358660d31d"
-  version = "0.3.0"
 
 [[projects]]
   branch = "master"
@@ -1818,6 +1815,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "5a60e509cd8f4847c055b95a7ec15dbb46e107a57f26c3bafc1543b5d91c3a09"
+  inputs-digest = "5510dfc5d856760f6353cf7de713a5a9bed9c969cfa410d78abf08572cf3d0f2"
   solver-name = "gps-cdcl"
   solver-version = 1
