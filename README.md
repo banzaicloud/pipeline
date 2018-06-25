@@ -134,7 +134,13 @@ Vendoring all dependencies is essential to have a **go get**-able package. Go ve
 
 ### API specification
 
-Pipeline is using OpenAPI 3.0 to specify the API, and it's compatible with all Swagger tooling. The get the specification please follow this [link](https://github.com/banzaicloud/pipeline-openapi).
+Pipeline is using OpenAPI 3.0 to specify the API, and it's compatible with all Swagger tooling. The get the specification please follow this [link](https://github.com/banzaicloud/pipeline/blob/master/docs/openapi/pipeline.yaml).
+
+#### Generated API clients
+
+Based on our OpenAPI 3.0 descriptor we have generated language clients for different languages:
+
+- [Go](https://github.com/banzaicloud/pipeline/blob/master/client/README.md)
 
 ### Create Kubernetes clusters
 
