@@ -442,6 +442,31 @@ func ReposModify(env helm_env.EnvSettings, repoName string, newRepo *repo.Entry)
 		return ErrRepoNotFound
 	}
 
+	var formerRepo *repo.Entry
+	repos := f.Repositories
+	for _, r := range repos {
+		if r.Name == repoName {
+			formerRepo = r
+		}
+	}
+
+	if formerRepo != nil {
+		if len(newRepo.Name) == 0 {
+			newRepo.Name = formerRepo.Name
+			log.Infof("new repo name field is empty, replaced with: %s", formerRepo.Name)
+		}
+
+		if len(newRepo.URL) == 0 {
+			newRepo.URL = formerRepo.URL
+			log.Infof("new repo url field is empty, replaced with: %s", formerRepo.URL)
+		}
+
+		if len(newRepo.Cache) == 0 {
+			newRepo.Cache = formerRepo.Cache
+			log.Infof("new repo cache field is empty, replaced with: %s", formerRepo.Cache)
+		}
+	}
+
 	f.Update(newRepo)
 
 	if errW := f.WriteFile(repoFile, 0644); errW != nil {
@@ -488,7 +513,7 @@ type ChartList struct {
 
 // ChartsGet returns chart list
 func ChartsGet(env helm_env.EnvSettings, queryName, queryRepo, queryVersion, queryKeyword string) ([]ChartList, error) {
-	log.Debugf("Helm repo path %s:", env.Home.RepositoryFile())
+	log.Debugf("Helm repo path %s", env.Home.RepositoryFile())
 	f, err := repo.LoadRepositoriesFile(env.Home.RepositoryFile())
 	if err != nil {
 		return nil, err
