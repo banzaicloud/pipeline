@@ -60,10 +60,6 @@ func GetCatalogs(c *gin.Context) {
 func UpdateCatalogs(c *gin.Context) {
 	organization := auth.GetCurrentOrganization(c.Request)
 	env := catalog.GenerateCatalogEnv(organization.Name)
-	// Initialise filter type
-	filter := ParseField(c)
-	// Filter for organisation
-	filter["organization_id"] = organization.ID
 	err := catalog.CatalogUpdate(env)
 	if err != nil {
 		c.JSON(http.StatusNotFound, pkgCommon.ErrorResponse{
