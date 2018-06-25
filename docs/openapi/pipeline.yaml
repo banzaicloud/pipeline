@@ -925,6 +925,60 @@ paths:
               schema:
                 $ref: '#/components/schemas/ClusterNotFound'
 
+    put:
+      security:
+        - bearerAuth: []
+      tags:
+       - helm
+      summary: Modify Repo
+      operationId: HelmReposModify
+      description: Modify Helm repository
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: repoName
+          in: path
+          required: true
+          description: Helm repo name
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HelmReposModifyRequest'
+      responses:
+        '200':
+          description: "resource modified successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HelmReposUpdateResponse'
+        '400':
+          description: "repo modification failed"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '404':
+          description: "Resource found"
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/ClusterNotFound'
+                  - $ref: '#/components/schemas/RepoNotFound'
 
   '/api/v1/orgs/{orgId}/helm/repos/{repoName}/update':
     put:
@@ -3728,6 +3782,22 @@ components:
         name:
           type: string
           example: "stable"
+
+    HelmReposModifyRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        url:
+          type: string
+        certFile:
+          type: string
+        keyFile:
+          type: string
+        caFile:
+          type: string
+      example:
+          url: "https://kubernetes-charts.storage.googleapis.com"
 
     HelmReposAddRequest:
       type: object
