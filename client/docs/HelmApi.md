@@ -9,6 +9,7 @@ Method | HTTP request | Description
 [**HelmInit**](HelmApi.md#HelmInit) | **Get** /api/v1/orgs/{orgId}/helm/repos | List repositories
 [**HelmReposAdd**](HelmApi.md#HelmReposAdd) | **Post** /api/v1/orgs/{orgId}/helm/repos | Add Repo
 [**HelmReposDelete**](HelmApi.md#HelmReposDelete) | **Delete** /api/v1/orgs/{orgId}/helm/repos/{repoName} | Delete Repo
+[**HelmReposModify**](HelmApi.md#HelmReposModify) | **Put** /api/v1/orgs/{orgId}/helm/repos/{repoName} | Modify Repo
 [**HelmReposUpdate**](HelmApi.md#HelmReposUpdate) | **Put** /api/v1/orgs/{orgId}/helm/repos/{repoName}/update | Update Repo
 
 
@@ -164,6 +165,36 @@ Name | Type | Description  | Notes
 ### HTTP request headers
 
  - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **HelmReposModify**
+> HelmReposUpdateResponse HelmReposModify(ctx, orgId, repoName, helmReposModifyRequest)
+Modify Repo
+
+Modify Helm repository
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+  **orgId** | **int32**| Organization identification | 
+  **repoName** | **string**| Helm repo name | 
+  **helmReposModifyRequest** | [**HelmReposModifyRequest**](HelmReposModifyRequest.md)|  | 
+
+### Return type
+
+[**HelmReposUpdateResponse**](HelmReposUpdateResponse.md)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
  - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

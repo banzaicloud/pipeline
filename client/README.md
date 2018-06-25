@@ -64,6 +64,7 @@ Class | Method | HTTP request | Description
 *HelmApi* | [**HelmInit**](docs/HelmApi.md#helminit) | **Get** /api/v1/orgs/{orgId}/helm/repos | List repositories
 *HelmApi* | [**HelmReposAdd**](docs/HelmApi.md#helmreposadd) | **Post** /api/v1/orgs/{orgId}/helm/repos | Add Repo
 *HelmApi* | [**HelmReposDelete**](docs/HelmApi.md#helmreposdelete) | **Delete** /api/v1/orgs/{orgId}/helm/repos/{repoName} | Delete Repo
+*HelmApi* | [**HelmReposModify**](docs/HelmApi.md#helmreposmodify) | **Put** /api/v1/orgs/{orgId}/helm/repos/{repoName} | Modify Repo
 *HelmApi* | [**HelmReposUpdate**](docs/HelmApi.md#helmreposupdate) | **Put** /api/v1/orgs/{orgId}/helm/repos/{repoName}/update | Update Repo
 *InfoApi* | [**GetAmazonConfig**](docs/InfoApi.md#getamazonconfig) | **Get** /api/v1/orgs/{orgId}/cloudinfo/amazon | Get all amazon config
 *InfoApi* | [**GetAzureConfig**](docs/InfoApi.md#getazureconfig) | **Get** /api/v1/orgs/{orgId}/cloudinfo/azure | Get all azure config
@@ -191,6 +192,7 @@ Class | Method | HTTP request | Description
  - [HelmReposDeleteResponse](docs/HelmReposDeleteResponse.md)
  - [HelmReposListResponse](docs/HelmReposListResponse.md)
  - [HelmReposListResponseInner](docs/HelmReposListResponseInner.md)
+ - [HelmReposModifyRequest](docs/HelmReposModifyRequest.md)
  - [HelmReposUpdateResponse](docs/HelmReposUpdateResponse.md)
  - [InstallSecretsRequest](docs/InstallSecretsRequest.md)
  - [InstallSecretsRequestQuery](docs/InstallSecretsRequestQuery.md)

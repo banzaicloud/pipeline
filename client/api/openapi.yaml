@@ -1072,6 +1072,65 @@ paths:
       summary: Delete Repo
       tags:
       - helm
+    put:
+      description: Modify Helm repository
+      operationId: HelmReposModify
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Helm repo name
+        explode: false
+        in: path
+        name: repoName
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HelmReposModifyRequest'
+        required: true
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HelmReposUpdateResponse'
+          description: resource modified successfully
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: repo modification failed
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/ClusterNotFound'
+                - $ref: '#/components/schemas/RepoNotFound'
+          description: Resource found
+      security:
+      - bearerAuth: []
+      summary: Modify Repo
+      tags:
+      - helm
   /api/v1/orgs/{orgId}/helm/repos/{repoName}/update:
     put:
       description: Modify Helm repository
@@ -4092,6 +4151,21 @@ components:
           type: string
         name:
           example: stable
+          type: string
+      type: object
+    HelmReposModifyRequest:
+      example:
+        url: https://kubernetes-charts.storage.googleapis.com
+      properties:
+        name:
+          type: string
+        url:
+          type: string
+        certFile:
+          type: string
+        keyFile:
+          type: string
+        caFile:
           type: string
       type: object
     HelmReposAddRequest:
