@@ -33,9 +33,9 @@ Class | Method | HTTP request | Description
 *ApplicationsApi* | [**CreateApplication**](docs/ApplicationsApi.md#createapplication) | **Post** /api/v1/orgs/{orgId}/applications | Create new application based on catalog
 *ApplicationsApi* | [**GetApplication**](docs/ApplicationsApi.md#getapplication) | **Get** /api/v1/orgs/{orgId}/applications/{appId} | Get application details
 *ApplicationsApi* | [**ListApplications**](docs/ApplicationsApi.md#listapplications) | **Get** /api/v1/orgs/{orgId}/applications | List application catalogs
-*AuthApi* | [**DeleteToken**](docs/AuthApi.md#deletetoken) | **Delete** /auth/tokens/{tokenId} | Delete an API token
-*AuthApi* | [**GenerateToken**](docs/AuthApi.md#generatetoken) | **Post** /auth/tokens | Generate token
-*AuthApi* | [**GetTokens**](docs/AuthApi.md#gettokens) | **Get** /auth/tokens | List all API tokens
+*AuthApi* | [**CreateToken**](docs/AuthApi.md#createtoken) | **Post** /api/v1/tokens | Create token
+*AuthApi* | [**DeleteToken**](docs/AuthApi.md#deletetoken) | **Delete** /api/v1/tokens/{tokenId} | Delete an API token
+*AuthApi* | [**ListTokens**](docs/AuthApi.md#listtokens) | **Get** /api/v1/tokens | List all API tokens
 *CatalogsApi* | [**GetCatalogDetail**](docs/CatalogsApi.md#getcatalogdetail) | **Get** /api/v1/orgs/{orgId}/catalogs/{name} | Get catalog details
 *CatalogsApi* | [**ListCatalogs**](docs/CatalogsApi.md#listcatalogs) | **Get** /api/v1/orgs/{orgId}/catalogs | List catalogs
 *ClustersApi* | [**ClusterPostHooks**](docs/ClustersApi.md#clusterposthooks) | **Put** /api/v1/orgs/{orgId}/clusters/{id}/posthooks | Run posthook functions

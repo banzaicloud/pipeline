@@ -13,8 +13,9 @@ func main() {
 	ctx := context.WithValue(context.Background(), client.ContextAccessToken, os.Getenv("TOKEN"))
 	pipeline := client.NewAPIClient(config)
 
+	// Create a new token for a virtual user
 	tokenRequest := client.TokenCreateRequest{Name: "drone token", VirtualUser: "banzaicloud/pipeline"}
-	tokenResponse, _, err := pipeline.AuthApi.GenerateToken(ctx, tokenRequest)
+	tokenResponse, _, err := pipeline.AuthApi.CreateToken(ctx, tokenRequest)
 
 	if err != nil {
 		panic(err)

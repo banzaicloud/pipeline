@@ -6,7 +6,7 @@ Name | Type | Description | Notes
 **InstanceType** | **string** |  | 
 **SpotPrice** | **string** |  | 
 **Autoscaling** | **bool** |  | [optional] 
-**Count** | **float32** |  | [optional] 
+**Count** | **int32** |  | [optional] 
 **MinCount** | **int32** |  | 
 **MaxCount** | **int32** |  | 
 **Image** | **string** |  | [optional] 

@@ -16,6 +16,6 @@ type GetClusterStatusResponse struct {
 	Name string `json:"name,omitempty"`
 	Cloud string `json:"cloud,omitempty"`
 	Location string `json:"location,omitempty"`
-	Id float32 `json:"id,omitempty"`
+	Id int32 `json:"id,omitempty"`
 	NodePools GetClusterStatusResponseNodePools `json:"nodePools,omitempty"`
 }
