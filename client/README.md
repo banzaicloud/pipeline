@@ -38,6 +38,7 @@ Class | Method | HTTP request | Description
 *AuthApi* | [**ListTokens**](docs/AuthApi.md#listtokens) | **Get** /api/v1/tokens | List all API tokens
 *CatalogsApi* | [**GetCatalogDetail**](docs/CatalogsApi.md#getcatalogdetail) | **Get** /api/v1/orgs/{orgId}/catalogs/{name} | Get catalog details
 *CatalogsApi* | [**ListCatalogs**](docs/CatalogsApi.md#listcatalogs) | **Get** /api/v1/orgs/{orgId}/catalogs | List catalogs
+*CatalogsApi* | [**UpdateCatalogs**](docs/CatalogsApi.md#updatecatalogs) | **Put** /api/v1/orgs/{orgId}/catalogs/update | Update repository for catalog
 *ClustersApi* | [**ClusterPostHooks**](docs/ClustersApi.md#clusterposthooks) | **Put** /api/v1/orgs/{orgId}/clusters/{id}/posthooks | Run posthook functions
 *ClustersApi* | [**CreateCluster**](docs/ClustersApi.md#createcluster) | **Post** /api/v1/orgs/{orgId}/clusters | Create cluster
 *ClustersApi* | [**DeleteCluster**](docs/ClustersApi.md#deletecluster) | **Delete** /api/v1/orgs/{orgId}/clusters/{id} | Delete cluster

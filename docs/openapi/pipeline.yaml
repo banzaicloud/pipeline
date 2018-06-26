@@ -71,6 +71,7 @@ paths:
       tags:
         - catalogs
       summary: Update repository for catalog
+      operationId: UpdateCatalogs
       parameters:
         - name: orgId
           in: path
