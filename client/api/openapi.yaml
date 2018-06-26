@@ -2275,7 +2275,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OrganizationListResponse'
+                items:
+                  $ref: '#/components/schemas/OrganizationListItemResponse'
+                type: array
           description: Organizations listed successfully
         400:
           content:

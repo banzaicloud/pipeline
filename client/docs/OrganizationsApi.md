@@ -66,7 +66,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ListOrgs**
-> OrganizationListResponse ListOrgs(ctx, )
+> []OrganizationListItemResponse ListOrgs(ctx, )
 List organizations
 
 Listing organizations
@@ -76,7 +76,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-[**OrganizationListResponse**](OrganizationListResponse.md)
+[**[]OrganizationListItemResponse**](OrganizationListItemResponse.md)
 
 ### Authorization
 

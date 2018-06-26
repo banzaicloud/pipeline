@@ -263,15 +263,15 @@ func (a *OrganizationsApiService) GetOrg(ctx context.Context, orgId int32) (Orga
 OrganizationsApiService List organizations
 Listing organizations
  * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-@return OrganizationListResponse
+@return []OrganizationListItemResponse
 */
-func (a *OrganizationsApiService) ListOrgs(ctx context.Context) (OrganizationListResponse, *http.Response, error) {
+func (a *OrganizationsApiService) ListOrgs(ctx context.Context) ([]OrganizationListItemResponse, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody   interface{}
 		localVarFileName   string
 		localVarFileBytes  []byte
-		localVarReturnValue OrganizationListResponse
+		localVarReturnValue []OrganizationListItemResponse
 	)
 
 	// create path and map variables
@@ -328,7 +328,7 @@ func (a *OrganizationsApiService) ListOrgs(ctx context.Context) (OrganizationLis
 			error: localVarHttpResponse.Status,
 		}
 		if localVarHttpResponse.StatusCode == 200 {
-			var v OrganizationListResponse
+			var v []OrganizationListItemResponse
 			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
 				if err != nil {
 					newErr.error = err.Error()
