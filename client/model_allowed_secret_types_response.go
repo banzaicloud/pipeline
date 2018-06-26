@@ -11,5 +11,13 @@
 package client
 
 type AllowedSecretTypesResponse struct {
-	Alllowed AllowedSecretTypesResponseAlllowed `json:"alllowed,omitempty"`
+	Amazon AllowedSecretTypeResponse `json:"amazon,omitempty"`
+	Azure AllowedSecretTypeResponse `json:"azure,omitempty"`
+	Google AllowedSecretTypeResponse `json:"google,omitempty"`
+	Kubernetes AllowedSecretTypeResponse `json:"kubernetes,omitempty"`
+	Generic AllowedSecretTypeResponse `json:"generic,omitempty"`
+	Fn AllowedSecretTypeResponse `json:"fn,omitempty"`
+	Password AllowedSecretTypeResponse `json:"password,omitempty"`
+	Tls AllowedSecretTypeResponse `json:"tls,omitempty"`
+	Ssh AllowedSecretTypeResponse `json:"ssh,omitempty"`
 }

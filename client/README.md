@@ -78,8 +78,8 @@ Class | Method | HTTP request | Description
 *ProfilesApi* | [**ListProfiles**](docs/ProfilesApi.md#listprofiles) | **Get** /api/v1/orgs/{orgId}/profiles/cluster/{type} | List cluster profiles
 *ProfilesApi* | [**UpdateProfiles**](docs/ProfilesApi.md#updateprofiles) | **Put** /api/v1/orgs/{orgId}/profiles/cluster | Update cluster profiles
 *SecretsApi* | [**AddSecrets**](docs/SecretsApi.md#addsecrets) | **Post** /api/v1/orgs/{orgId}/secrets | Add secrets
-*SecretsApi* | [**AllowedSecretsTypes**](docs/SecretsApi.md#allowedsecretstypes) | **Get** /api/v1/orgs/{orgId}/allowed/secrets | List allowed secret types
-*SecretsApi* | [**AllowedSecretsTypesKeys**](docs/SecretsApi.md#allowedsecretstypeskeys) | **Get** /api/v1/orgs/{orgId}/allowed/secrets/{type} | List required keys
+*SecretsApi* | [**AllowedSecretsTypes**](docs/SecretsApi.md#allowedsecretstypes) | **Get** /api/v1/allowed/secrets | List allowed secret types
+*SecretsApi* | [**AllowedSecretsTypesKeys**](docs/SecretsApi.md#allowedsecretstypeskeys) | **Get** /api/v1/allowed/secrets/{type} | List required keys
 *SecretsApi* | [**DeleteSecrets**](docs/SecretsApi.md#deletesecrets) | **Delete** /api/v1/orgs/{orgId}/secrets/{secretId} | Delete secrets
 *SecretsApi* | [**GetSecret**](docs/SecretsApi.md#getsecret) | **Get** /api/v1/orgs/{orgId}/secrets/{secretId} | Get secret
 *SecretsApi* | [**GetSecrets**](docs/SecretsApi.md#getsecrets) | **Get** /api/v1/orgs/{orgId}/secrets | List secrets
@@ -107,8 +107,9 @@ Class | Method | HTTP request | Description
  - [AddClusterProfileGoogleGoogleNodePools](docs/AddClusterProfileGoogleGoogleNodePools.md)
  - [AddClusterProfileGoogleGoogleNodePoolsPool1](docs/AddClusterProfileGoogleGoogleNodePoolsPool1.md)
  - [AddClusterProfileRequest](docs/AddClusterProfileRequest.md)
+ - [AllowedSecretTypeResponse](docs/AllowedSecretTypeResponse.md)
+ - [AllowedSecretTypeResponseFields](docs/AllowedSecretTypeResponseFields.md)
  - [AllowedSecretTypesResponse](docs/AllowedSecretTypesResponse.md)
- - [AllowedSecretTypesResponseAlllowed](docs/AllowedSecretTypesResponseAlllowed.md)
  - [AmazonConfigResponse](docs/AmazonConfigResponse.md)
  - [AmazonConfigResponseImage](docs/AmazonConfigResponseImage.md)
  - [AmazonConfigResponseInstanceType](docs/AmazonConfigResponseInstanceType.md)
@@ -235,7 +236,6 @@ Class | Method | HTTP request | Description
  - [ProfileListResponse](docs/ProfileListResponse.md)
  - [RepoNotFound](docs/RepoNotFound.md)
  - [RequestedResources](docs/RequestedResources.md)
- - [RequiredKeysResponse](docs/RequiredKeysResponse.md)
  - [RunPostHook](docs/RunPostHook.md)
  - [SecretItem](docs/SecretItem.md)
  - [SecretKeyValueAmazon](docs/SecretKeyValueAmazon.md)

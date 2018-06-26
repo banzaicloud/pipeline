@@ -2027,20 +2027,10 @@ paths:
       summary: Add secrets
       tags:
       - secrets
-  /api/v1/orgs/{orgId}/allowed/secrets:
+  /api/v1/allowed/secrets:
     get:
       description: List allowed secret types and their required keys
       operationId: AllowedSecretsTypes
-      parameters:
-      - description: Organization identification
-        explode: false
-        in: path
-        name: orgId
-        required: true
-        schema:
-          format: int32
-          type: integer
-        style: simple
       responses:
         200:
           content:
@@ -2059,20 +2049,11 @@ paths:
       summary: List allowed secret types
       tags:
       - secrets
-  /api/v1/orgs/{orgId}/allowed/secrets/{type}:
+  /api/v1/allowed/secrets/{type}:
     get:
       description: List required keys in the given secret type
       operationId: AllowedSecretsTypesKeys
       parameters:
-      - description: Organization identification
-        explode: false
-        in: path
-        name: orgId
-        required: true
-        schema:
-          format: int32
-          type: integer
-        style: simple
       - description: Secret type
         explode: false
         in: path
@@ -2086,7 +2067,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RequiredKeysResponse'
+                $ref: '#/components/schemas/AllowedSecretTypeResponse'
           description: Required keys listed
         400:
           content:
@@ -4538,7 +4519,7 @@ components:
       type: array
     SecretItem:
       example:
-        updatedBy: 2
+        updatedBy: banzaiuser
         values:
           type: <hidden>
           project_id: <hidden>
@@ -4576,9 +4557,8 @@ components:
           format: date-time
           type: string
         updatedBy:
-          example: 2
-          format: int32
-          type: integer
+          example: banzaiuser
+          type: string
         tags:
           example:
           - tag1
@@ -4900,43 +4880,127 @@ components:
       type: object
     AllowedSecretTypesResponse:
       example:
-        alllowed:
-          amazon:
-          - AWS_ACCESS_KEY_ID
-          - AWS_SECRET_ACCESS_KEY
-          kubernetes:
-          - K8Sconfig
-          google:
-          - type
-          - project_id
-          - private_key_id
-          - private_key
-          - client_email
-          - client_id
-          - auth_uri
-          - token_uri
-          - auth_provider_x509_cert_url
-          - client_x509_cert_url
-          azure:
-          - AZURE_CLIENT_ID
-          - AZURE_CLIENT_SECRET
-          - AZURE_TENANT_ID
-          - AZURE_SUBSCRIPTION_ID
+        amazon:
+          fields:
+          - name: name
+            description: description
+            required: true
+          - name: name
+            description: description
+            required: true
+          sourcing: env
+        kubernetes:
+          fields:
+          - name: name
+            description: description
+            required: true
+          - name: name
+            description: description
+            required: true
+          sourcing: env
+        password:
+          fields:
+          - name: name
+            description: description
+            required: true
+          - name: name
+            description: description
+            required: true
+          sourcing: env
+        fn:
+          fields:
+          - name: name
+            description: description
+            required: true
+          - name: name
+            description: description
+            required: true
+          sourcing: env
+        ssh:
+          fields:
+          - name: name
+            description: description
+            required: true
+          - name: name
+            description: description
+            required: true
+          sourcing: env
+        google:
+          fields:
+          - name: name
+            description: description
+            required: true
+          - name: name
+            description: description
+            required: true
+          sourcing: env
+        tls:
+          fields:
+          - name: name
+            description: description
+            required: true
+          - name: name
+            description: description
+            required: true
+          sourcing: env
+        generic:
+          fields:
+          - name: name
+            description: description
+            required: true
+          - name: name
+            description: description
+            required: true
+          sourcing: env
+        azure:
+          fields:
+          - name: name
+            description: description
+            required: true
+          - name: name
+            description: description
+            required: true
+          sourcing: env
       properties:
-        alllowed:
-          $ref: '#/components/schemas/AllowedSecretTypesResponse_alllowed'
+        amazon:
+          $ref: '#/components/schemas/AllowedSecretTypeResponse'
+        azure:
+          $ref: '#/components/schemas/AllowedSecretTypeResponse'
+        google:
+          $ref: '#/components/schemas/AllowedSecretTypeResponse'
+        kubernetes:
+          $ref: '#/components/schemas/AllowedSecretTypeResponse'
+        generic:
+          $ref: '#/components/schemas/AllowedSecretTypeResponse'
+        fn:
+          $ref: '#/components/schemas/AllowedSecretTypeResponse'
+        password:
+          $ref: '#/components/schemas/AllowedSecretTypeResponse'
+        tls:
+          $ref: '#/components/schemas/AllowedSecretTypeResponse'
+        ssh:
+          $ref: '#/components/schemas/AllowedSecretTypeResponse'
       type: object
-    RequiredKeysResponse:
+    AllowedSecretTypeResponse:
       example:
-        keys:
-        - '["type","project_id","private_key_id","private_key","client_email","client_id","auth_uri","token_uri","auth_provider_x509_cert_url","client_x509_cert_url"]'
-        - '["type","project_id","private_key_id","private_key","client_email","client_id","auth_uri","token_uri","auth_provider_x509_cert_url","client_x509_cert_url"]'
+        fields:
+        - name: name
+          description: description
+          required: true
+        - name: name
+          description: description
+          required: true
+        sourcing: env
       properties:
-        keys:
+        fields:
           items:
-            example: '["type","project_id","private_key_id","private_key","client_email","client_id","auth_uri","token_uri","auth_provider_x509_cert_url","client_x509_cert_url"]'
-            type: string
+            $ref: '#/components/schemas/AllowedSecretTypeResponse_fields'
           type: array
+        sourcing:
+          enum:
+          - env
+          - volume
+          type: string
       type: object
     ListUserResponse:
       items:
@@ -6121,67 +6185,18 @@ components:
           type: string
         nodePools:
           $ref: '#/components/schemas/AddClusterProfileGoogle_google_nodePools'
-    AllowedSecretTypesResponse_alllowed:
+    AllowedSecretTypeResponse_fields:
       example:
-        amazon:
-        - AWS_ACCESS_KEY_ID
-        - AWS_SECRET_ACCESS_KEY
-        kubernetes:
-        - K8Sconfig
-        google:
-        - type
-        - project_id
-        - private_key_id
-        - private_key
-        - client_email
-        - client_id
-        - auth_uri
-        - token_uri
-        - auth_provider_x509_cert_url
-        - client_x509_cert_url
-        azure:
-        - AZURE_CLIENT_ID
-        - AZURE_CLIENT_SECRET
-        - AZURE_TENANT_ID
-        - AZURE_SUBSCRIPTION_ID
+        name: name
+        description: description
+        required: true
       properties:
-        amazon:
-          example:
-          - AWS_ACCESS_KEY_ID
-          - AWS_SECRET_ACCESS_KEY
-          items:
-            type: string
-          type: array
-        azure:
-          example:
-          - AZURE_CLIENT_ID
-          - AZURE_CLIENT_SECRET
-          - AZURE_TENANT_ID
-          - AZURE_SUBSCRIPTION_ID
-          items:
-            type: string
-          type: array
-        google:
-          example:
-          - type
-          - project_id
-          - private_key_id
-          - private_key
-          - client_email
-          - client_id
-          - auth_uri
-          - token_uri
-          - auth_provider_x509_cert_url
-          - client_x509_cert_url
-          items:
-            type: string
-          type: array
-        kubernetes:
-          example:
-          - K8Sconfig
-          items:
-            type: string
-          type: array
+        name:
+          type: string
+        required:
+          type: boolean
+        description:
+          type: string
     AmazonConfigResponse_image:
       example:
         eu-west-1:

@@ -1855,7 +1855,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseError_500'
-  '/api/v1/orgs/{orgId}/allowed/secrets':
+  '/api/v1/allowed/secrets':
     get:
       security:
           - bearerAuth: []
@@ -1864,13 +1864,6 @@ paths:
       summary: List allowed secret types
       operationId: AllowedSecretsTypes
       description: List allowed secret types and their required keys
-      parameters:
-        - name: orgId
-          in: path
-          required: true
-          description: Organization identification
-          schema:
-            type: integer
       responses:
         '200':
           description: Allowed types listed
@@ -1885,7 +1878,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Unauthorized'
 
-  '/api/v1/orgs/{orgId}/allowed/secrets/{type}':
+  '/api/v1/allowed/secrets/{type}':
     get:
       security:
           - bearerAuth: []
@@ -1895,12 +1888,6 @@ paths:
       operationId: AllowedSecretsTypesKeys
       description: List required keys in the given secret type
       parameters:
-        - name: orgId
-          in: path
-          required: true
-          description: Organization identification
-          schema:
-            type: integer
         - name: type
           in: path
           required: true
@@ -1913,7 +1900,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RequiredKeysResponse'
+                $ref: '#/components/schemas/AllowedSecretTypeResponse'
         '400':
           description: Error during listing secret types
           content:
@@ -4492,8 +4479,8 @@ components:
           format: date-time
           example: "2018-03-09T13:24:49+01:00"
         updatedBy:
-          type: integer
-          example: 2
+          type: string
+          example: banzaiuser
         tags:
           type: array
           items:
@@ -4764,62 +4751,42 @@ components:
     AllowedSecretTypesResponse:
       type: object
       properties:
-        alllowed:
-          type: object
-          properties:
-            amazon:
-              type: array
-              items:
-                type: string
-              example: [ "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"]
-            azure:
-              type: array
-              items:
-                type: string
-              example: [ "AZURE_CLIENT_ID",  "AZURE_CLIENT_SECRET", "AZURE_TENANT_ID", "AZURE_SUBSCRIPTION_ID" ]
-            google:
-              type: array
-              items:
-                type: string
-              example: [
-                          "type",
-                          "project_id",
-                          "private_key_id",
-                          "private_key",
-                          "client_email",
-                          "client_id",
-                          "auth_uri",
-                          "token_uri",
-                          "auth_provider_x509_cert_url",
-                          "client_x509_cert_url"
-                        ]
-            kubernetes:
-              type: array
-              items:
-                type: string
-              example: [
-                        "K8Sconfig"
-                        ]
+        amazon:
+          $ref: '#/components/schemas/AllowedSecretTypeResponse'
+        azure:
+          $ref: '#/components/schemas/AllowedSecretTypeResponse'
+        google:
+          $ref: '#/components/schemas/AllowedSecretTypeResponse'
+        kubernetes:
+          $ref: '#/components/schemas/AllowedSecretTypeResponse'
+        generic:
+          $ref: '#/components/schemas/AllowedSecretTypeResponse'
+        fn:
+          $ref: '#/components/schemas/AllowedSecretTypeResponse'
+        password:
+          $ref: '#/components/schemas/AllowedSecretTypeResponse'
+        tls:
+          $ref: '#/components/schemas/AllowedSecretTypeResponse'
+        ssh:
+          $ref: '#/components/schemas/AllowedSecretTypeResponse'
 
-    RequiredKeysResponse:
+    AllowedSecretTypeResponse:
       type: object
       properties:
-        keys:
+        fields:
           type: array
           items:
-            type: string
-            example: [
-                      "type",
-                      "project_id",
-                      "private_key_id",
-                      "private_key",
-                      "client_email",
-                      "client_id",
-                      "auth_uri",
-                      "token_uri",
-                      "auth_provider_x509_cert_url",
-                      "client_x509_cert_url"
-                    ]
+            type: object
+            properties:
+              name:
+                type: string
+              required:
+                type: boolean
+              description:
+                type: string
+        sourcing:
+          type: string
+          enum: [env, volume]
 
     ListUserResponse:
       type: array
