@@ -1796,7 +1796,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/SecretsListItem'
+                  $ref: '#/components/schemas/SecretItem'
         '400':
           description: Error during listing secrets
           content:
@@ -1928,6 +1928,58 @@ paths:
                 $ref: '#/components/schemas/Unauthorized'
 
   '/api/v1/orgs/{orgId}/secrets/{secretId}':
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - secrets
+      summary: Get secret
+      operationId: GetSecret
+      description: Get secret
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: secretId
+          in: path
+          required: true
+          description: Secret identification
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Secret returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecretItem'
+        '400':
+          description: Error during getting secret
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '404':
+          description: Secret not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecretsNotFound'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
     put:
       security:
         - bearerAuth: []
@@ -4418,23 +4470,30 @@ components:
     SecretsListResponse:
       type: array
       items:
-        $ref: '#/components/schemas/SecretsListItem'
+        $ref: '#/components/schemas/SecretItem'
 
-    SecretsListItem:
+    SecretItem:
       type: object
       properties:
         id:
           type: string
-          example: "62bc3c75-91fb-4670-bad4-24b401a9deac"
+          example: "6fa2288c361becce3e30ba4c41be7d8ba01e3580566f7acc76a7f99994474c46"
         name:
           type: string
-          example: "My google secret"
+          example: "my-google-secret"
         type:
           type: string
           example: "google"
         version:
           type: integer
           example: 1
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2018-03-09T13:24:49+01:00"
+        updatedBy:
+          type: integer
+          example: 2
         tags:
           type: array
           items:

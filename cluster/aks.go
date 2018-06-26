@@ -641,12 +641,12 @@ func (c *AKSCluster) validateKubernetesVersion(k8sVersion, location string) erro
 }
 
 // GetSecretWithValidation returns secret from vault
-func (c *AKSCluster) GetSecretWithValidation() (*secret.SecretsItemResponse, error) {
+func (c *AKSCluster) GetSecretWithValidation() (*secret.SecretItemResponse, error) {
 	return c.CommonClusterBase.getSecret(c)
 }
 
 // GetSshSecretWithValidation returns ssh secret from vault
-func (c *AKSCluster) GetSshSecretWithValidation() (*secret.SecretsItemResponse, error) {
+func (c *AKSCluster) GetSshSecretWithValidation() (*secret.SecretItemResponse, error) {
 	return c.CommonClusterBase.getSshSecret(c)
 }
 

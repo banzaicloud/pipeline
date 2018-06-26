@@ -2,6 +2,9 @@ package route53
 
 import (
 	"fmt"
+	"reflect"
+	"testing"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
@@ -11,8 +14,6 @@ import (
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/pkg/errors"
-	"reflect"
-	"testing"
 )
 
 const (
@@ -380,7 +381,7 @@ func TestAwsRoute53_RegisterDomain(t *testing.T) {
 	err := awsRoute53.RegisterDomain(testOrgId, testDomain)
 
 	if err != nil {
-		t.Errorf("Register domain should succeed")
+		t.Errorf("Register domain should succeed: %s", err.Error())
 	}
 
 	state := &domainState{}

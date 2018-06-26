@@ -51,8 +51,8 @@ type CommonCluster interface {
 	UpdateStatus(string, string) error
 	GetClusterDetails() (*pkgCluster.ClusterDetailsResponse, error)
 	ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error
-	GetSecretWithValidation() (*secret.SecretsItemResponse, error)
-	GetSshSecretWithValidation() (*secret.SecretsItemResponse, error)
+	GetSecretWithValidation() (*secret.SecretItemResponse, error)
+	GetSshSecretWithValidation() (*secret.SecretItemResponse, error)
 	SaveConfigSecretId(string) error
 	GetConfigSecretId() string
 	GetK8sConfig() ([]byte, error)
@@ -63,8 +63,8 @@ type CommonCluster interface {
 // CommonClusterBase holds the fields that is common to all cluster types
 // also provides default implementation for common interface methods.
 type CommonClusterBase struct {
-	secret    *secret.SecretsItemResponse
-	sshSecret *secret.SecretsItemResponse
+	secret    *secret.SecretItemResponse
+	sshSecret *secret.SecretItemResponse
 
 	config []byte
 }
@@ -75,7 +75,7 @@ func (c *CommonClusterBase) RequiresSshPublicKey() bool {
 	return false
 }
 
-func (c *CommonClusterBase) getSecret(cluster CommonCluster) (*secret.SecretsItemResponse, error) {
+func (c *CommonClusterBase) getSecret(cluster CommonCluster) (*secret.SecretItemResponse, error) {
 	if c.secret == nil {
 		log.Info("Secret is nil.. load from vault")
 		s, err := getSecret(cluster.GetOrganizationId(), cluster.GetSecretId())
@@ -95,7 +95,7 @@ func (c *CommonClusterBase) getSecret(cluster CommonCluster) (*secret.SecretsIte
 	return c.secret, err
 }
 
-func (c *CommonClusterBase) getSshSecret(cluster CommonCluster) (*secret.SecretsItemResponse, error) {
+func (c *CommonClusterBase) getSshSecret(cluster CommonCluster) (*secret.SecretItemResponse, error) {
 	if c.sshSecret == nil {
 		log.Info("Ssh secret is nil.. load from vault")
 		s, err := getSecret(cluster.GetOrganizationId(), cluster.GetSshSecretId())
@@ -181,7 +181,7 @@ func StoreKubernetesConfig(cluster CommonCluster, config []byte) error {
 	return nil
 }
 
-func getSecret(organizationId uint, secretId string) (*secret.SecretsItemResponse, error) {
+func getSecret(organizationId uint, secretId string) (*secret.SecretItemResponse, error) {
 	return secret.Store.Get(organizationId, secretId)
 }
 

@@ -1958,7 +1958,7 @@ paths:
             application/json:
               schema:
                 items:
-                  $ref: '#/components/schemas/SecretsListItem'
+                  $ref: '#/components/schemas/SecretItem'
                 type: array
           description: Secrets listed
         400:
@@ -2151,6 +2151,63 @@ paths:
       security:
       - bearerAuth: []
       summary: Delete secrets
+      tags:
+      - secrets
+    get:
+      description: Get secret
+      operationId: GetSecret
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Secret identification
+        explode: false
+        in: path
+        name: secretId
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecretItem'
+          description: Secret returned successfully
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during getting secret
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecretsNotFound'
+          description: Secret not found
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Get secret
       tags:
       - secrets
     put:
@@ -4477,10 +4534,11 @@ components:
       type: object
     SecretsListResponse:
       items:
-        $ref: '#/components/schemas/SecretsListItem'
+        $ref: '#/components/schemas/SecretItem'
       type: array
-    SecretsListItem:
+    SecretItem:
       example:
+        updatedBy: 2
         values:
           type: <hidden>
           project_id: <hidden>
@@ -4492,25 +4550,33 @@ components:
           token_uri: <hidden>
           auth_provider_x509_cert_url: <hidden>
           client_x509_cert_url: <hidden>
-        name: My google secret
-        id: 62bc3c75-91fb-4670-bad4-24b401a9deac
+        name: my-google-secret
+        id: 6fa2288c361becce3e30ba4c41be7d8ba01e3580566f7acc76a7f99994474c46
         type: google
         version: 1
+        updatedAt: 2000-01-23T04:56:07.000+00:00
         tags:
         - tag1
         - tag2
       properties:
         id:
-          example: 62bc3c75-91fb-4670-bad4-24b401a9deac
+          example: 6fa2288c361becce3e30ba4c41be7d8ba01e3580566f7acc76a7f99994474c46
           type: string
         name:
-          example: My google secret
+          example: my-google-secret
           type: string
         type:
           example: google
           type: string
         version:
           example: 1
+          format: int32
+          type: integer
+        updatedAt:
+          format: date-time
+          type: string
+        updatedBy:
+          example: 2
           format: int32
           type: integer
         tags:

@@ -3,6 +3,11 @@ package objectstore
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"net/url"
+	"sort"
+	"strings"
+
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-02-01/resources"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage"
 	"github.com/Azure/azure-storage-blob-go/2016-05-31/azblob"
@@ -14,10 +19,6 @@ import (
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	pkgStorage "github.com/banzaicloud/pipeline/pkg/storage"
 	"github.com/banzaicloud/pipeline/secret"
-	"net/http"
-	"net/url"
-	"sort"
-	"strings"
 )
 
 // ManagedAzureBlobStore is the schema for the DB
@@ -34,7 +35,7 @@ type ManagedAzureBlobStore struct {
 // AzureObjectStore stores all required parameters for container creation
 type AzureObjectStore struct {
 	storageAccount string
-	secret         *secret.SecretsItemResponse
+	secret         *secret.SecretItemResponse
 	resourceGroup  string
 	location       string
 	org            *pipelineAuth.Organization
@@ -310,7 +311,7 @@ func (b *AzureObjectStore) ListBuckets() ([]*pkgStorage.BucketInfo, error) {
 	return buckets, nil
 }
 
-func getStorageAccountKey(s *secret.SecretsItemResponse, resourceGroup, storageAccount string) (string, error) {
+func getStorageAccountKey(s *secret.SecretItemResponse, resourceGroup, storageAccount string) (string, error) {
 	client, err := createStorageAccountClient(s)
 	if err != nil {
 		return "", err
@@ -325,7 +326,7 @@ func getStorageAccountKey(s *secret.SecretsItemResponse, resourceGroup, storageA
 	return *key, nil
 }
 
-func createStorageAccountClient(s *secret.SecretsItemResponse) (*storage.AccountsClient, error) {
+func createStorageAccountClient(s *secret.SecretItemResponse) (*storage.AccountsClient, error) {
 	accountClient := storage.NewAccountsClient(s.Values[pkgSecret.AzureSubscriptionId])
 
 	authorizer, err := newAuthorizer(s)
@@ -423,7 +424,7 @@ func createResourceGroup(b *AzureObjectStore) error {
 
 // getAllResourceGroups returns all resource groups using
 // the Azure credentials referenced by the provided secret
-func getAllResourceGroups(s *secret.SecretsItemResponse) ([]*resources.Group, error) {
+func getAllResourceGroups(s *secret.SecretItemResponse) ([]*resources.Group, error) {
 	rgClient := resources.NewGroupsClient(s.GetValue(pkgSecret.AzureSubscriptionId))
 	authorizer, err := newAuthorizer(s)
 	if err != nil {
@@ -455,7 +456,7 @@ func getAllResourceGroups(s *secret.SecretsItemResponse) ([]*resources.Group, er
 
 // getAllStorageAccounts returns all storage accounts under the specified resource group
 // using the Azure credentials referenced by the provided secret
-func getAllStorageAccounts(s *secret.SecretsItemResponse, resourceGroupName string) (*[]storage.Account, error) {
+func getAllStorageAccounts(s *secret.SecretItemResponse, resourceGroupName string) (*[]storage.Account, error) {
 	client, err := createStorageAccountClient(s)
 	if err != nil {
 		return nil, err
@@ -485,7 +486,7 @@ func getAllBlobContainers(storageAccountName, storageAccountKey string) ([]azblo
 	return resp.Containers, nil
 }
 
-func newAuthorizer(s *secret.SecretsItemResponse) (autorest.Authorizer, error) {
+func newAuthorizer(s *secret.SecretItemResponse) (autorest.Authorizer, error) {
 	authorizer, err := auth.NewClientCredentialsConfig(
 		s.Values[pkgSecret.AzureClientId],
 		s.Values[pkgSecret.AzureClientSecret],

@@ -418,7 +418,7 @@ func requiredHeaderParamMissingErrorResponse(headerParamName string) *common.Err
 
 // getValidatedSecret looks up the secret by secretId under the given organisation
 // it also verifies if the found secret is of appropriate type for the given cloud provider
-func getValidatedSecret(organizationId uint, secretId, cloudType string) (*secret.SecretsItemResponse, error) {
+func getValidatedSecret(organizationId uint, secretId, cloudType string) (*secret.SecretItemResponse, error) {
 
 	// Validate Secret
 	retrievedSecret, err := secret.Store.Get(organizationId, secretId)

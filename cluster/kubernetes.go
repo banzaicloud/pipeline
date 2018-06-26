@@ -2,6 +2,7 @@ package cluster
 
 import (
 	"encoding/base64"
+
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
@@ -206,12 +207,12 @@ func (b *KubeCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest)
 }
 
 // GetSecretWithValidation returns secret from vault
-func (b *KubeCluster) GetSecretWithValidation() (*secret.SecretsItemResponse, error) {
+func (b *KubeCluster) GetSecretWithValidation() (*secret.SecretItemResponse, error) {
 	return b.CommonClusterBase.getSecret(b)
 }
 
 // GetSshSecretWithValidation returns ssh secret from vault
-func (b *KubeCluster) GetSshSecretWithValidation() (*secret.SecretsItemResponse, error) {
+func (b *KubeCluster) GetSshSecretWithValidation() (*secret.SecretItemResponse, error) {
 	return b.CommonClusterBase.getSecret(b)
 }
 

@@ -109,7 +109,7 @@ func TestListSecrets(t *testing.T) {
 		name           string
 		secretType     string
 		tag            string
-		expectedValues []*secret.SecretsItemResponse
+		expectedValues []*secret.SecretItemResponse
 	}{
 		{name: "List aws secrets", secretType: clusterTypes.Amazon, tag: "", expectedValues: awsExpectedItems},
 		{name: "List aks secrets", secretType: clusterTypes.Azure, tag: "", expectedValues: aksExpectedItems},
@@ -128,10 +128,10 @@ func TestListSecrets(t *testing.T) {
 				} else {
 					// Clear CreatedAt times, we don't know them
 					for i := range items {
-						items[i].CreatedAt = time.Time{}
+						items[i].UpdatedAt = time.Time{}
 					}
-					sort.Sort(sortableSecretsItemResponse(tc.expectedValues))
-					sort.Sort(sortableSecretsItemResponse(items))
+					sort.Sort(sortableSecretItemResponses(tc.expectedValues))
+					sort.Sort(sortableSecretItemResponses(items))
 					if !reflect.DeepEqual(tc.expectedValues, items) {
 						t.Errorf("\nExpected values: %#+v\nbut got: %#+v", tc.expectedValues, items)
 					}
@@ -162,17 +162,17 @@ func TestDeleteSecrets(t *testing.T) {
 	}
 }
 
-type sortableSecretsItemResponse []*secret.SecretsItemResponse
+type sortableSecretItemResponses []*secret.SecretItemResponse
 
-func (s sortableSecretsItemResponse) Len() int {
+func (s sortableSecretItemResponses) Len() int {
 	return len(s)
 }
 
-func (s sortableSecretsItemResponse) Swap(i, j int) {
+func (s sortableSecretItemResponses) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
 }
 
-func (s sortableSecretsItemResponse) Less(i, j int) bool {
+func (s sortableSecretItemResponses) Less(i, j int) bool {
 	return s[i].Name < s[j].Name
 }
 
@@ -307,7 +307,7 @@ func toHiddenValues(secretType string) map[string]string {
 
 // Expected values after list
 var (
-	awsExpectedItems = []*secret.SecretsItemResponse{
+	awsExpectedItems = []*secret.SecretItemResponse{
 		{
 			ID:      secretIdAmazon,
 			Name:    secretNameAmazon,
@@ -318,7 +318,7 @@ var (
 		},
 	}
 
-	aksExpectedItems = []*secret.SecretsItemResponse{
+	aksExpectedItems = []*secret.SecretItemResponse{
 		{
 			ID:      secretIdAzure,
 			Name:    secretNameAzure,
@@ -328,7 +328,7 @@ var (
 		},
 	}
 
-	gkeExpectedItems = []*secret.SecretsItemResponse{
+	gkeExpectedItems = []*secret.SecretItemResponse{
 		{
 			ID:      secretIdGoogle,
 			Name:    secretNameGoogle,
@@ -338,7 +338,7 @@ var (
 		},
 	}
 
-	allExpectedItems = []*secret.SecretsItemResponse{
+	allExpectedItems = []*secret.SecretItemResponse{
 		{
 			ID:      secretIdGoogle,
 			Name:    secretNameGoogle,

@@ -2,6 +2,9 @@ package objectstore
 
 import (
 	"errors"
+	"sort"
+	"strings"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -9,8 +12,6 @@ import (
 	pkgStorage "github.com/banzaicloud/pipeline/pkg/storage"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
-	"sort"
-	"strings"
 )
 
 // ManagedAmazonBucket is the schema for the DB
@@ -25,7 +26,7 @@ type ManagedAmazonBucket struct {
 // AmazonObjectStore stores all required parameters for container creation
 type AmazonObjectStore struct {
 	region string
-	secret *secret.SecretsItemResponse
+	secret *secret.SecretItemResponse
 	org    *auth.Organization
 }
 
@@ -214,7 +215,7 @@ func (b *AmazonObjectStore) ListBuckets() ([]*pkgStorage.BucketInfo, error) {
 	return bucketList, nil
 }
 
-func createS3Client(region string, retrievedSecret *secret.SecretsItemResponse) (*s3.S3, error) {
+func createS3Client(region string, retrievedSecret *secret.SecretItemResponse) (*s3.S3, error) {
 	log.Info("Creating AWS session")
 	s, err := session.NewSession(&aws.Config{
 		Region:      aws.String(region),
