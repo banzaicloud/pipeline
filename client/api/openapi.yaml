@@ -64,6 +64,27 @@ paths:
       summary: List catalogs
       tags:
       - catalogs
+  /api/v1/orgs/{orgId}/catalogs/update:
+    put:
+      operationId: UpdateCatalogs
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        202:
+          description: Catalog update
+      security:
+      - bearerAuth: []
+      summary: Update repository for catalog
+      tags:
+      - catalogs
   /api/v1/orgs/{orgId}/catalogs/{name}:
     get:
       description: Get details about specific catalog
