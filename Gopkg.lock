@@ -188,14 +188,14 @@
   revision = "ebb6ef24cd5c253a2da0bca7a6a321b7d954b3a3"
 
 [[projects]]
-  branch = "master"
   name = "github.com/banzaicloud/bank-vaults"
   packages = [
     "auth",
     "database",
     "vault"
   ]
-  revision = "4044a049af01d1ab0d93d8d041528d4270de1aba"
+  revision = "30a276bf4e8c7f8437a716b024add9cedd3fb5c8"
+  version = "0.2.2"
 
 [[projects]]
   branch = "master"
