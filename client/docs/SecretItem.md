@@ -1,4 +1,4 @@
-# SecretsListItem
+# SecretItem
 
 ## Properties
 Name | Type | Description | Notes
@@ -7,6 +7,8 @@ Name | Type | Description | Notes
 **Name** | **string** |  | [optional] 
 **Type** | **string** |  | [optional] 
 **Version** | **int32** |  | [optional] 
+**UpdatedAt** | [**time.Time**](time.Time.md) |  | [optional] 
+**UpdatedBy** | **int32** |  | [optional] 
 **Tags** | **[]string** |  | [optional] 
 **Values** | [**map[string]interface{}**](map[string]interface{}.md) |  | [optional] 
 

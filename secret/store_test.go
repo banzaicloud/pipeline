@@ -14,7 +14,7 @@ func TestGetValue(t *testing.T) {
 
 	cases := []struct {
 		name          string
-		secretItem    secret.SecretsItemResponse
+		secretItem    secret.SecretItemResponse
 		searchedKey   string
 		expectedValue string
 	}{
@@ -204,7 +204,7 @@ var (
 )
 
 var (
-	secretItem1 = secret.SecretsItemResponse{
+	secretItem1 = secret.SecretItemResponse{
 		ID:   secretId,
 		Name: secretDesc,
 		Type: pkgCluster.Google,

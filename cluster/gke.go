@@ -3,6 +3,12 @@ package cluster
 import (
 	"encoding/base64"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"os"
+	"strings"
+	"time"
+
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -20,17 +26,12 @@ import (
 	gke "google.golang.org/api/container/v1"
 	"google.golang.org/api/googleapi"
 	"gopkg.in/yaml.v2"
-	"io/ioutil"
 	"k8s.io/api/core/v1"
 	"k8s.io/api/rbac/v1beta1"
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"net/http"
-	"os"
-	"strings"
-	"time"
 )
 
 const (
@@ -2127,12 +2128,12 @@ func (g *GKECluster) validateKubernetesVersion(masterVersion, nodeVersion, locat
 }
 
 // GetSecretWithValidation returns secret from vault
-func (g *GKECluster) GetSecretWithValidation() (*secret.SecretsItemResponse, error) {
+func (g *GKECluster) GetSecretWithValidation() (*secret.SecretItemResponse, error) {
 	return g.CommonClusterBase.getSecret(g)
 }
 
 // GetSshSecretWithValidation returns ssh secret from vault
-func (g *GKECluster) GetSshSecretWithValidation() (*secret.SecretsItemResponse, error) {
+func (g *GKECluster) GetSshSecretWithValidation() (*secret.SecretItemResponse, error) {
 	return g.CommonClusterBase.getSecret(g)
 }
 

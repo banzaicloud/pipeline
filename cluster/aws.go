@@ -3,6 +3,11 @@ package cluster
 import (
 	"fmt"
 
+	"io/ioutil"
+	"os"
+	"strings"
+	"time"
+
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -25,11 +30,7 @@ import (
 	"github.com/pkg/sftp"
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/ssh"
-	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"os"
-	"strings"
-	"time"
 )
 
 var (
@@ -1162,12 +1163,12 @@ func (c *AWSCluster) validateAMIs(masterAMI string, nodePools map[string]*amazon
 }
 
 // GetSecretWithValidation returns secret from vault
-func (c *AWSCluster) GetSecretWithValidation() (*secret.SecretsItemResponse, error) {
+func (c *AWSCluster) GetSecretWithValidation() (*secret.SecretItemResponse, error) {
 	return c.CommonClusterBase.getSecret(c)
 }
 
 // GetSshSecretWithValidation returns ssh secret from vault
-func (c *AWSCluster) GetSshSecretWithValidation() (*secret.SecretsItemResponse, error) {
+func (c *AWSCluster) GetSshSecretWithValidation() (*secret.SecretItemResponse, error) {
 	return c.CommonClusterBase.getSshSecret(c)
 }
 

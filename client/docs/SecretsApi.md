@@ -8,6 +8,7 @@ Method | HTTP request | Description
 [**AllowedSecretsTypes**](SecretsApi.md#AllowedSecretsTypes) | **Get** /api/v1/orgs/{orgId}/allowed/secrets | List allowed secret types
 [**AllowedSecretsTypesKeys**](SecretsApi.md#AllowedSecretsTypesKeys) | **Get** /api/v1/orgs/{orgId}/allowed/secrets/{type} | List required keys
 [**DeleteSecrets**](SecretsApi.md#DeleteSecrets) | **Delete** /api/v1/orgs/{orgId}/secrets/{secretId} | Delete secrets
+[**GetSecret**](SecretsApi.md#GetSecret) | **Get** /api/v1/orgs/{orgId}/secrets/{secretId} | Get secret
 [**GetSecrets**](SecretsApi.md#GetSecrets) | **Get** /api/v1/orgs/{orgId}/secrets | List secrets
 [**UpdateSecrets**](SecretsApi.md#UpdateSecrets) | **Put** /api/v1/orgs/{orgId}/secrets/{secretId} | Update secrets
 
@@ -127,8 +128,37 @@ Name | Type | Description  | Notes
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **GetSecret**
+> SecretItem GetSecret(ctx, orgId, secretId)
+Get secret
+
+Get secret
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+  **orgId** | **int32**| Organization identification | 
+  **secretId** | **string**| Secret identification | 
+
+### Return type
+
+[**SecretItem**](SecretItem.md)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **GetSecrets**
-> []SecretsListItem GetSecrets(ctx, orgId, optional)
+> []SecretItem GetSecrets(ctx, orgId, optional)
 List secrets
 
 Listing secrets
@@ -153,7 +183,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**[]SecretsListItem**](SecretsListItem.md)
+[**[]SecretItem**](SecretItem.md)
 
 ### Authorization
 

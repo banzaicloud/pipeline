@@ -38,6 +38,9 @@ func AddSecrets(c *gin.Context) {
 		})
 		return
 	}
+
+	createSecretRequest.UpdatedBy = auth.GetCurrentUser(c.Request).ID
+
 	//Check if the received value is base64 encoded if not encode it.
 	if createSecretRequest.Values[secretTypes.K8SConfig] != "" {
 		createSecretRequest.Values[secretTypes.K8SConfig] = utils.EncodeStringToBase64(createSecretRequest.Values[secretTypes.K8SConfig])
@@ -85,13 +88,13 @@ func AddSecrets(c *gin.Context) {
 	})
 }
 
-// UpdateSecrets update the given secret to vault
+// UpdateSecrets updates the given secret in Vault
 func UpdateSecrets(c *gin.Context) {
 
 	organizationID := auth.GetCurrentOrganization(c.Request).ID
 	log.Debugf("Organization id: %d", organizationID)
 
-	secretID := c.Param("secretid")
+	secretID := c.Param("id")
 
 	var createSecretRequest secret.CreateSecretRequest
 	if err := c.ShouldBind(&createSecretRequest); err != nil {
@@ -114,6 +117,8 @@ func UpdateSecrets(c *gin.Context) {
 		})
 		return
 	}
+
+	createSecretRequest.UpdatedBy = auth.GetCurrentUser(c.Request).Login
 
 	//Check if the received value is base64 encoded if not encode it.
 	if createSecretRequest.Values[secretTypes.K8SConfig] != "" {
@@ -198,6 +203,25 @@ func ListSecrets(c *gin.Context) {
 	}
 }
 
+// GetSecret returns a secret by ID
+func GetSecret(c *gin.Context) {
+
+	organizationID := auth.GetCurrentOrganization(c.Request).ID
+
+	secretID := c.Param("id")
+
+	if secret, err := secret.Store.Get(organizationID, secretID); err != nil {
+		log.Errorf("Error during getting secret: %s", err.Error())
+		c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error during listing secret",
+			Error:   err.Error(),
+		})
+	} else {
+		c.JSON(http.StatusOK, secret)
+	}
+}
+
 // DeleteSecrets delete a secret with the given secret id
 func DeleteSecrets(c *gin.Context) {
 	log.Info("Start deleting secrets")
@@ -206,7 +230,7 @@ func DeleteSecrets(c *gin.Context) {
 	organizationID := auth.GetCurrentOrganization(c.Request).ID
 	log.Infof("Organization id: %d", organizationID)
 
-	secretID := c.Param("secretid")
+	secretID := c.Param("id")
 
 	log.Infof("Check clusters before delete secret[%s]", secretID)
 	if err := checkClustersBeforeDelete(organizationID, secretID); err != nil {
@@ -262,16 +286,12 @@ func ListAllowedSecretTypes(c *gin.Context) {
 func GetAllowedTypes(secretType string) (interface{}, error) {
 	if len(secretType) == 0 {
 		log.Info("List all types and keys")
-		return secret.AllowedSecretTypesResponse{
-			Allowed: secretTypes.DefaultRules,
-		}, nil
+		return secretTypes.DefaultRules, nil
 	} else if err := IsValidSecretType(secretType); err != nil {
 		return nil, err
 	} else {
 		log.Info("Valid secret type. List filtered secret types")
-		return secret.AllowedFilteredSecretTypesResponse{
-			Keys: secretTypes.DefaultRules[secretType],
-		}, nil
+		return secretTypes.DefaultRules[secretType], nil
 	}
 }
 

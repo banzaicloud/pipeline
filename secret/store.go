@@ -46,26 +46,28 @@ type CreateSecretResponse struct {
 
 // CreateSecretRequest param for Store.Store
 type CreateSecretRequest struct {
-	Name    string            `json:"name" binding:"required"`
-	Type    string            `json:"type" binding:"required"`
-	Values  map[string]string `json:"values" binding:"required"`
-	Tags    []string          `json:"tags"`
-	Version *int              `json:"version,omitempty"`
+	Name      string            `json:"name" binding:"required"`
+	Type      string            `json:"type" binding:"required"`
+	Values    map[string]string `json:"values" binding:"required"`
+	Tags      []string          `json:"tags"`
+	Version   *int              `json:"version,omitempty"`
+	UpdatedBy string            `json:"updatedBy"`
 }
 
-// SecretsItemResponse for GetSecret (no API endpoint for this!)
-type SecretsItemResponse struct {
+// SecretItemResponse for GetSecret
+type SecretItemResponse struct {
 	ID        string            `json:"id"`
 	Name      string            `json:"name"`
 	Type      string            `json:"type"`
 	Values    map[string]string `json:"values"`
 	Tags      []string          `json:"tags"`
-	Version   int               `json:"version"`
-	CreatedAt time.Time         `json:"createdAt"`
+	Version   uint              `json:"version"`
+	UpdatedAt time.Time         `json:"updatedAt"`
+	UpdatedBy string            `json:"updatedBy,omitempty"`
 }
 
 // K8SSourceMeta returns the meta information how to use this secret if installed to K8S
-func (s *SecretsItemResponse) K8SSourceMeta() secretTypes.K8SSourceMeta {
+func (s *SecretItemResponse) K8SSourceMeta() secretTypes.K8SSourceMeta {
 	return secretTypes.K8SSourceMeta{
 		Name:     s.Name,
 		Sourcing: secretTypes.DefaultRules[s.Type].Sourcing,
@@ -73,12 +75,12 @@ func (s *SecretsItemResponse) K8SSourceMeta() secretTypes.K8SSourceMeta {
 }
 
 // GetValue returns the value under key
-func (s *SecretsItemResponse) GetValue(key string) string {
+func (s *SecretItemResponse) GetValue(key string) string {
 	return s.Values[key]
 }
 
 // ValidateSecretType validates the secret type
-func (s *SecretsItemResponse) ValidateSecretType(validType string) error {
+func (s *SecretItemResponse) ValidateSecretType(validType string) error {
 	if string(s.Type) != validType {
 		return MissmatchError{
 			SecretType: s.Type,
@@ -94,9 +96,7 @@ type AllowedFilteredSecretTypesResponse struct {
 }
 
 // AllowedSecretTypesResponse for API response for AllowedSecretTypes
-type AllowedSecretTypesResponse struct {
-	Allowed map[string]secretTypes.Meta `json:"allowed"`
-}
+type AllowedSecretTypesResponse map[string]secretTypes.Meta
 
 func newVaultSecretStore() *secretStore {
 	role := "pipeline"
@@ -200,27 +200,37 @@ func (ss *secretStore) Update(organizationID uint, secretID string, value *Creat
 	return nil
 }
 
-func parseSecret(secretID string, secret *vaultapi.Secret, values bool) (*SecretsItemResponse, error) {
+func parseSecret(secretID string, secret *vaultapi.Secret, values bool) (*SecretItemResponse, error) {
+
 	data := cast.ToStringMap(secret.Data["data"])
 	metadata := cast.ToStringMap(secret.Data["metadata"])
+
 	value := data["value"].(map[string]interface{})
 	sname := value["name"].(string)
 	stype := value["type"].(string)
 	stags := cast.ToStringSlice(value["tags"])
 	version, _ := metadata["version"].(json.Number).Int64()
-	createdAt, err := time.Parse(time.RFC3339, metadata["created_time"].(string))
+
+	updatedAt, err := time.Parse(time.RFC3339, metadata["created_time"].(string))
 	if err != nil {
 		return nil, err
 	}
 
-	sir := SecretsItemResponse{
+	updatedBy := ""
+	updatedByRaw, ok := value["updatedBy"]
+	if ok {
+		updatedBy = updatedByRaw.(string)
+	}
+
+	sir := SecretItemResponse{
 		ID:        secretID,
 		Name:      sname,
 		Type:      stype,
 		Tags:      stags,
 		Values:    cast.ToStringMapString(value["values"]),
-		Version:   int(version),
-		CreatedAt: createdAt,
+		Version:   uint(version),
+		UpdatedAt: updatedAt,
+		UpdatedBy: updatedBy,
 	}
 
 	if !values {
@@ -234,7 +244,7 @@ func parseSecret(secretID string, secret *vaultapi.Secret, values bool) (*Secret
 }
 
 // Retrieve secret secret/orgs/:orgid:/:id: scope
-func (ss *secretStore) Get(organizationID uint, secretID string) (*SecretsItemResponse, error) {
+func (ss *secretStore) Get(organizationID uint, secretID string) (*SecretItemResponse, error) {
 
 	path := secretDataPath(organizationID, secretID)
 
@@ -254,13 +264,13 @@ func (ss *secretStore) Get(organizationID uint, secretID string) (*SecretsItemRe
 }
 
 // List secret secret/orgs/:orgid:/ scope
-func (ss *secretStore) List(orgid uint, query *secretTypes.ListSecretsQuery) ([]*SecretsItemResponse, error) {
+func (ss *secretStore) List(orgid uint, query *secretTypes.ListSecretsQuery) ([]*SecretItemResponse, error) {
 
 	log.Debugf("Searching for secrets [orgid: %d, query: %#v]", orgid, query)
 
 	listPath := fmt.Sprintf("secret/metadata/orgs/%d", orgid)
 
-	responseItems := []*SecretsItemResponse{}
+	responseItems := []*SecretItemResponse{}
 
 	list, err := ss.Logical.List(listPath)
 	if err != nil {

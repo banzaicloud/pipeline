@@ -229,15 +229,15 @@ func (d *DummyCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest
 }
 
 // GetSecretWithValidation returns secret from vault
-func (d *DummyCluster) GetSecretWithValidation() (*secret.SecretsItemResponse, error) {
-	return &secret.SecretsItemResponse{
+func (d *DummyCluster) GetSecretWithValidation() (*secret.SecretItemResponse, error) {
+	return &secret.SecretItemResponse{
 		Type: pkgCluster.Dummy,
 	}, nil
 }
 
 // GetSshSecretWithValidation returns ssh secret from vault
-func (d *DummyCluster) GetSshSecretWithValidation() (*secret.SecretsItemResponse, error) {
-	return &secret.SecretsItemResponse{
+func (d *DummyCluster) GetSshSecretWithValidation() (*secret.SecretItemResponse, error) {
+	return &secret.SecretItemResponse{
 		Type: pkgCluster.Dummy,
 	}, nil
 }

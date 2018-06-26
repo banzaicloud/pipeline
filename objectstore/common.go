@@ -44,7 +44,7 @@ type ObjectStore interface {
 
 // NewObjectStore creates a object store client for the given cloud type. The created object is initialized with
 // the passed in secret and organization
-func NewObjectStore(cloudType string, s *secret.SecretsItemResponse, organization *auth.Organization) (ObjectStore, error) {
+func NewObjectStore(cloudType string, s *secret.SecretItemResponse, organization *auth.Organization) (ObjectStore, error) {
 	switch cloudType {
 	case pkgCluster.Amazon:
 		return &AmazonObjectStore{

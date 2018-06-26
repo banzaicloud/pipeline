@@ -86,8 +86,9 @@ func (a *BearerAuthorizer) RequirePermission(c *gin.Context) {
 
 func addDefaultPolicies() {
 	basePath := viper.GetString("pipeline.basepath")
+	enforcer.AddPolicy("default", basePath+"/api/v1/allowed/secrets/*", "*")
 	enforcer.AddPolicy("default", basePath+"/api/v1/orgs", "*")
-	enforcer.AddPolicy("default", basePath+"/api/v1/token", "*") // DEPRECATED
+	enforcer.AddPolicy("default", basePath+"/api/v1/token", "*")
 	enforcer.AddPolicy("default", basePath+"/api/v1/tokens", "*")
 	enforcer.AddPolicy("defaultVirtual", basePath+"/api/v1/orgs", "GET")
 }

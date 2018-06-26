@@ -81,6 +81,7 @@ Class | Method | HTTP request | Description
 *SecretsApi* | [**AllowedSecretsTypes**](docs/SecretsApi.md#allowedsecretstypes) | **Get** /api/v1/orgs/{orgId}/allowed/secrets | List allowed secret types
 *SecretsApi* | [**AllowedSecretsTypesKeys**](docs/SecretsApi.md#allowedsecretstypeskeys) | **Get** /api/v1/orgs/{orgId}/allowed/secrets/{type} | List required keys
 *SecretsApi* | [**DeleteSecrets**](docs/SecretsApi.md#deletesecrets) | **Delete** /api/v1/orgs/{orgId}/secrets/{secretId} | Delete secrets
+*SecretsApi* | [**GetSecret**](docs/SecretsApi.md#getsecret) | **Get** /api/v1/orgs/{orgId}/secrets/{secretId} | Get secret
 *SecretsApi* | [**GetSecrets**](docs/SecretsApi.md#getsecrets) | **Get** /api/v1/orgs/{orgId}/secrets | List secrets
 *SecretsApi* | [**UpdateSecrets**](docs/SecretsApi.md#updatesecrets) | **Put** /api/v1/orgs/{orgId}/secrets/{secretId} | Update secrets
 *StorageApi* | [**CreateObjectStoreBucket**](docs/StorageApi.md#createobjectstorebucket) | **Post** /api/v1/orgs/{orgId}/buckets | Creates a new object store bucket with the given params
@@ -236,13 +237,13 @@ Class | Method | HTTP request | Description
  - [RequestedResources](docs/RequestedResources.md)
  - [RequiredKeysResponse](docs/RequiredKeysResponse.md)
  - [RunPostHook](docs/RunPostHook.md)
+ - [SecretItem](docs/SecretItem.md)
  - [SecretKeyValueAmazon](docs/SecretKeyValueAmazon.md)
  - [SecretKeyValueAzure](docs/SecretKeyValueAzure.md)
  - [SecretKeyValueGeneric](docs/SecretKeyValueGeneric.md)
  - [SecretKeyValueGoogle](docs/SecretKeyValueGoogle.md)
  - [SecretKeyValueKubernetes](docs/SecretKeyValueKubernetes.md)
  - [SecretKeyValueTls](docs/SecretKeyValueTls.md)
- - [SecretsListItem](docs/SecretsListItem.md)
  - [SecretsListResponse](docs/SecretsListResponse.md)
  - [SecretsNotFound](docs/SecretsNotFound.md)
  - [SupportedCloudItem](docs/SupportedCloudItem.md)

@@ -37,7 +37,7 @@ type Key struct {
 
 // NewKey constructs a Ssh Key from the values stored
 // in the given secret
-func NewKey(s *secret.SecretsItemResponse) *Key {
+func NewKey(s *secret.SecretItemResponse) *Key {
 	return &Key{
 		User:                 s.Values[secretTypes.User],
 		Identifier:           s.Values[secretTypes.Identifier],
