@@ -2092,7 +2092,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OrganizationListResponse'
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrganizationListItemResponse'
         '400':
           description: Error during listing organizations
           content:
