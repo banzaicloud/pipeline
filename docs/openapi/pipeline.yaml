@@ -1655,14 +1655,14 @@ paths:
               schema:
                 $ref: '#/components/schemas/BaseError_500'
 
-  /auth/tokens:
+  /api/v1/tokens:
     get:
       security:
         - bearerAuth: []
       tags:
         - auth
       summary: List all API tokens
-      operationId: GetTokens
+      operationId: ListTokens
       description: List all API tokens
       responses:
         '200':
@@ -1690,9 +1690,9 @@ paths:
           - bearerAuth: []
       tags:
         - auth
-      summary: Generate token
-      operationId: GenerateToken
-      description: Generate token
+      summary: Create token
+      operationId: CreateToken
+      description: Create token
       requestBody:
         required: true
         content:
@@ -1701,7 +1701,7 @@ paths:
               $ref: '#/components/schemas/TokenCreateRequest'
       responses:
         '200':
-          description: Token generated successfully
+          description: Token created successfully
           content:
             application/json:
               schema:
@@ -1719,7 +1719,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/BaseError_500'
 
-  /auth/tokens/{tokenId}:
+  /api/v1/tokens/{tokenId}:
     delete:
       security:
           - bearerAuth: []
@@ -3114,7 +3114,7 @@ components:
           type: boolean
           example: true
         count:
-          type: number
+          type: integer
           example: 1
         minCount:
           type: integer
@@ -3160,7 +3160,7 @@ components:
           type: boolean
           example: true
         count:
-          type: number
+          type: integer
           example: 1
         minCount:
           type: integer
@@ -3211,7 +3211,7 @@ components:
           type: boolean
           example: true
         count:
-          type: number
+          type: integer
           example: 1
         minCount:
           type: integer
@@ -3377,13 +3377,13 @@ components:
           type: boolean
           example: true
         count:
-          type: number
+          type: integer
           example: 2
         minCount:
-          type: number
+          type: integer
           example: 1
         maxCount:
-          type: number
+          type: integer
           example: 2
 
     UpdateAzureProperties:
@@ -3404,13 +3404,13 @@ components:
                       type: boolean
                       example: true
                     count:
-                      type: number
+                      type: integer
                       example: 2
                     minCount:
-                      type: number
+                      type: integer
                       example: 1
                     maxCount:
-                      type: number
+                      type: integer
                       example: 2
 
     UpdateGoogleProperties:
@@ -3431,13 +3431,13 @@ components:
                   type: boolean
                   example: true
                 count:
-                  type: number
+                  type: integer
                   example: 2
                 minCount:
-                  type: number
+                  type: integer
                   example: 1
                 maxCount:
-                  type: number
+                  type: integer
                   example: 2
                 instanceType:
                   type: string
@@ -4162,13 +4162,13 @@ components:
                       type: boolean
                       example: true
                     count:
-                      type: number
+                      type: integer
                       example: 1
                     minCount:
-                      type: number
+                      type: integer
                       example: 1
                     maxCount:
-                      type: number
+                      type: integer
                       example: 2
                     image:
                       type: string
@@ -4193,13 +4193,13 @@ components:
                       type: boolean
                       example: true
                     count:
-                      type: number
+                      type: integer
                       example: 1
                     minCount:
-                      type: number
+                      type: integer
                       example: 1
                     maxCount:
-                      type: number
+                      type: integer
                       example: 2
                     instanceType:
                       type: string
@@ -4230,13 +4230,13 @@ components:
                       type: boolean
                       example: true
                     count:
-                      type: number
+                      type: integer
                       example: 1
                     minCount:
-                      type: number
+                      type: integer
                       example: 1
                     maxCount:
-                      type: number
+                      type: integer
                       example: 2
                     instanceType:
                       type: string
@@ -4904,7 +4904,7 @@ components:
           type: string
           example: "us-central1-a"
         id:
-          type: number
+          type: integer
           example: 1
         nodePools:
           type: object
@@ -4932,13 +4932,13 @@ components:
           type: boolean
           example: true
         count:
-          type: number
+          type: integer
           example: 1
         minCount:
-          type: number
+          type: integer
           example: 1
         maxCount:
-          type: number
+          type: integer
           example: 2
         image:
           type: string
@@ -4951,13 +4951,13 @@ components:
           type: boolean
           example: true
         count:
-          type: number
+          type: integer
           example: 1
         minCount:
-          type: number
+          type: integer
           example: 1
         maxCount:
-          type: number
+          type: integer
           example: 2
         instanceType:
           type: string
@@ -4970,13 +4970,13 @@ components:
           type: boolean
           example: true
         count:
-          type: number
+          type: integer
           example: 1
         minCount:
-          type: number
+          type: integer
           example: 1
         maxCount:
-          type: number
+          type: integer
           example: 2
         instanceType:
           type: string

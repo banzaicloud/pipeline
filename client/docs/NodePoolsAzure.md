@@ -4,7 +4,7 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Autoscaling** | **bool** |  | [optional] 
-**Count** | **float32** |  | 
+**Count** | **int32** |  | 
 **MinCount** | **int32** |  | [optional] 
 **MaxCount** | **int32** |  | [optional] 
 **InstanceType** | **string** |  | 

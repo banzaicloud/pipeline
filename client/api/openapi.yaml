@@ -1808,10 +1808,10 @@ paths:
       summary: Delete cluster profiles
       tags:
       - profiles
-  /auth/tokens:
+  /api/v1/tokens:
     get:
       description: List all API tokens
-      operationId: GetTokens
+      operationId: ListTokens
       responses:
         200:
           content:
@@ -1839,8 +1839,8 @@ paths:
       tags:
       - auth
     post:
-      description: Generate token
-      operationId: GenerateToken
+      description: Create token
+      operationId: CreateToken
       requestBody:
         content:
           application/json:
@@ -1853,7 +1853,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TokenCreateResponse'
-          description: Token generated successfully
+          description: Token created successfully
         401:
           content:
             application/json:
@@ -1868,10 +1868,10 @@ paths:
           description: Internal server error
       security:
       - bearerAuth: []
-      summary: Generate token
+      summary: Create token
       tags:
       - auth
-  /auth/tokens/{tokenId}:
+  /api/v1/tokens/{tokenId}:
     delete:
       description: Delete an API token
       operationId: DeleteToken
@@ -3459,7 +3459,8 @@ components:
           type: boolean
         count:
           example: 1
-          type: number
+          format: int32
+          type: integer
         minCount:
           example: 1
           format: int32
@@ -3490,7 +3491,8 @@ components:
           type: boolean
         count:
           example: 1
-          type: number
+          format: int32
+          type: integer
         minCount:
           example: 1
           format: int32
@@ -3519,7 +3521,8 @@ components:
           type: boolean
         count:
           example: 1
-          type: number
+          format: int32
+          type: integer
         minCount:
           example: 1
           format: int32
@@ -3689,13 +3692,16 @@ components:
           type: boolean
         count:
           example: 2
-          type: number
+          format: int32
+          type: integer
         minCount:
           example: 1
-          type: number
+          format: int32
+          type: integer
         maxCount:
           example: 2
-          type: number
+          format: int32
+          type: integer
       type: object
     UpdateAzureProperties:
       properties:
@@ -5020,7 +5026,8 @@ components:
           type: string
         id:
           example: 1
-          type: number
+          format: int32
+          type: integer
         nodePools:
           $ref: '#/components/schemas/GetClusterStatusResponse_nodePools'
       type: object
@@ -5036,13 +5043,16 @@ components:
           type: boolean
         count:
           example: 1
-          type: number
+          format: int32
+          type: integer
         minCount:
           example: 1
-          type: number
+          format: int32
+          type: integer
         maxCount:
           example: 2
-          type: number
+          format: int32
+          type: integer
         image:
           example: ami-16bfeb6f
           type: string
@@ -5053,13 +5063,16 @@ components:
           type: boolean
         count:
           example: 1
-          type: number
+          format: int32
+          type: integer
         minCount:
           example: 1
-          type: number
+          format: int32
+          type: integer
         maxCount:
           example: 2
-          type: number
+          format: int32
+          type: integer
         instanceType:
           example: Standard_D4_v2
           type: string
@@ -5070,13 +5083,16 @@ components:
           type: boolean
         count:
           example: 1
-          type: number
+          format: int32
+          type: integer
         minCount:
           example: 1
-          type: number
+          format: int32
+          type: integer
         maxCount:
           example: 2
-          type: number
+          format: int32
+          type: integer
         instanceType:
           example: n1-standard-1
           type: string
@@ -5289,13 +5305,16 @@ components:
           type: boolean
         count:
           example: 2
-          type: number
+          format: int32
+          type: integer
         minCount:
           example: 1
-          type: number
+          format: int32
+          type: integer
         maxCount:
           example: 2
-          type: number
+          format: int32
+          type: integer
     UpdateAzureProperties_azure_nodePools:
       properties:
         pool1:
@@ -5314,13 +5333,16 @@ components:
           type: boolean
         count:
           example: 2
-          type: number
+          format: int32
+          type: integer
         minCount:
           example: 1
-          type: number
+          format: int32
+          type: integer
         maxCount:
           example: 2
-          type: number
+          format: int32
+          type: integer
         instanceType:
           example: n1-standard-2
           type: string
@@ -5872,13 +5894,16 @@ components:
           type: boolean
         count:
           example: 1
-          type: number
+          format: int32
+          type: integer
         minCount:
           example: 1
-          type: number
+          format: int32
+          type: integer
         maxCount:
           example: 2
-          type: number
+          format: int32
+          type: integer
         image:
           example: ami-06d1667f
           type: string
@@ -5898,13 +5923,16 @@ components:
           type: boolean
         count:
           example: 1
-          type: number
+          format: int32
+          type: integer
         minCount:
           example: 1
-          type: number
+          format: int32
+          type: integer
         maxCount:
           example: 2
-          type: number
+          format: int32
+          type: integer
         instanceType:
           example: Standard_D2_v2
           type: string
@@ -5925,13 +5953,16 @@ components:
           type: boolean
         count:
           example: 1
-          type: number
+          format: int32
+          type: integer
         minCount:
           example: 1
-          type: number
+          format: int32
+          type: integer
         maxCount:
           example: 2
-          type: number
+          format: int32
+          type: integer
         instanceType:
           example: n1-standard-1
           type: string

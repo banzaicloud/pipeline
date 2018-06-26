@@ -8,7 +8,7 @@ Name | Type | Description | Notes
 **Name** | **string** |  | [optional] 
 **Cloud** | **string** |  | [optional] 
 **Location** | **string** |  | [optional] 
-**Id** | **float32** |  | [optional] 
+**Id** | **int32** |  | [optional] 
 **NodePools** | [**GetClusterStatusResponseNodePools**](GetClusterStatusResponse_nodePools.md) |  | [optional] 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

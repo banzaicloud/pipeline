@@ -4,10 +4,38 @@ All URIs are relative to *http://localhost:9090*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**DeleteToken**](AuthApi.md#DeleteToken) | **Delete** /auth/tokens/{tokenId} | Delete an API token
-[**GenerateToken**](AuthApi.md#GenerateToken) | **Post** /auth/tokens | Generate token
-[**GetTokens**](AuthApi.md#GetTokens) | **Get** /auth/tokens | List all API tokens
+[**CreateToken**](AuthApi.md#CreateToken) | **Post** /api/v1/tokens | Create token
+[**DeleteToken**](AuthApi.md#DeleteToken) | **Delete** /api/v1/tokens/{tokenId} | Delete an API token
+[**ListTokens**](AuthApi.md#ListTokens) | **Get** /api/v1/tokens | List all API tokens
 
+
+# **CreateToken**
+> TokenCreateResponse CreateToken(ctx, tokenCreateRequest)
+Create token
+
+Create token
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+  **tokenCreateRequest** | [**TokenCreateRequest**](TokenCreateRequest.md)|  | 
+
+### Return type
+
+[**TokenCreateResponse**](TokenCreateResponse.md)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **DeleteToken**
 > DeleteToken(ctx, tokenId)
@@ -37,36 +65,8 @@ Name | Type | Description  | Notes
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **GenerateToken**
-> TokenCreateResponse GenerateToken(ctx, tokenCreateRequest)
-Generate token
-
-Generate token
-
-### Required Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
-  **tokenCreateRequest** | [**TokenCreateRequest**](TokenCreateRequest.md)|  | 
-
-### Return type
-
-[**TokenCreateResponse**](TokenCreateResponse.md)
-
-### Authorization
-
-[bearerAuth](../README.md#bearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: application/json
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **GetTokens**
-> []TokenListResponseItem GetTokens(ctx, )
+# **ListTokens**
+> []TokenListResponseItem ListTokens(ctx, )
 List all API tokens
 
 List all API tokens

@@ -14,7 +14,7 @@ type NodePoolsAmazon struct {
 	InstanceType string `json:"instanceType"`
 	SpotPrice string `json:"spotPrice"`
 	Autoscaling bool `json:"autoscaling,omitempty"`
-	Count float32 `json:"count,omitempty"`
+	Count int32 `json:"count,omitempty"`
 	MinCount int32 `json:"minCount"`
 	MaxCount int32 `json:"maxCount"`
 	Image string `json:"image,omitempty"`

@@ -12,8 +12,8 @@ package client
 
 type NodePoolStatusAzure struct {
 	Autoscaling bool `json:"autoscaling,omitempty"`
-	Count float32 `json:"count,omitempty"`
-	MinCount float32 `json:"minCount,omitempty"`
-	MaxCount float32 `json:"maxCount,omitempty"`
+	Count int32 `json:"count,omitempty"`
+	MinCount int32 `json:"minCount,omitempty"`
+	MaxCount int32 `json:"maxCount,omitempty"`
 	InstanceType string `json:"instanceType,omitempty"`
 }
