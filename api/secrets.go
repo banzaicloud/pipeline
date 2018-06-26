@@ -39,7 +39,7 @@ func AddSecrets(c *gin.Context) {
 		return
 	}
 
-	createSecretRequest.UpdatedBy = auth.GetCurrentUser(c.Request).ID
+	createSecretRequest.UpdatedBy = auth.GetCurrentUser(c.Request).Login
 
 	//Check if the received value is base64 encoded if not encode it.
 	if createSecretRequest.Values[secretTypes.K8SConfig] != "" {

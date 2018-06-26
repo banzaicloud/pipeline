@@ -5,8 +5,8 @@ All URIs are relative to *http://localhost:9090*
 Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**AddSecrets**](SecretsApi.md#AddSecrets) | **Post** /api/v1/orgs/{orgId}/secrets | Add secrets
-[**AllowedSecretsTypes**](SecretsApi.md#AllowedSecretsTypes) | **Get** /api/v1/orgs/{orgId}/allowed/secrets | List allowed secret types
-[**AllowedSecretsTypesKeys**](SecretsApi.md#AllowedSecretsTypesKeys) | **Get** /api/v1/orgs/{orgId}/allowed/secrets/{type} | List required keys
+[**AllowedSecretsTypes**](SecretsApi.md#AllowedSecretsTypes) | **Get** /api/v1/allowed/secrets | List allowed secret types
+[**AllowedSecretsTypesKeys**](SecretsApi.md#AllowedSecretsTypesKeys) | **Get** /api/v1/allowed/secrets/{type} | List required keys
 [**DeleteSecrets**](SecretsApi.md#DeleteSecrets) | **Delete** /api/v1/orgs/{orgId}/secrets/{secretId} | Delete secrets
 [**GetSecret**](SecretsApi.md#GetSecret) | **Get** /api/v1/orgs/{orgId}/secrets/{secretId} | Get secret
 [**GetSecrets**](SecretsApi.md#GetSecrets) | **Get** /api/v1/orgs/{orgId}/secrets | List secrets
@@ -43,17 +43,13 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **AllowedSecretsTypes**
-> AllowedSecretTypesResponse AllowedSecretsTypes(ctx, orgId)
+> AllowedSecretTypesResponse AllowedSecretsTypes(ctx, )
 List allowed secret types
 
 List allowed secret types and their required keys
 
 ### Required Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
-  **orgId** | **int32**| Organization identification | 
+This endpoint does not need any parameter.
 
 ### Return type
 
@@ -71,7 +67,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **AllowedSecretsTypesKeys**
-> RequiredKeysResponse AllowedSecretsTypesKeys(ctx, orgId, type_)
+> AllowedSecretTypeResponse AllowedSecretsTypesKeys(ctx, type_)
 List required keys
 
 List required keys in the given secret type
@@ -81,12 +77,11 @@ List required keys in the given secret type
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
-  **orgId** | **int32**| Organization identification | 
   **type_** | **string**| Secret type | 
 
 ### Return type
 
-[**RequiredKeysResponse**](RequiredKeysResponse.md)
+[**AllowedSecretTypeResponse**](AllowedSecretTypeResponse.md)
 
 ### Authorization
 

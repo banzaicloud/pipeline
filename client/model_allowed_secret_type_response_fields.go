@@ -10,6 +10,8 @@
 
 package client
 
-type RequiredKeysResponse struct {
-	Keys []string `json:"keys,omitempty"`
+type AllowedSecretTypeResponseFields struct {
+	Name string `json:"name,omitempty"`
+	Required bool `json:"required,omitempty"`
+	Description string `json:"description,omitempty"`
 }

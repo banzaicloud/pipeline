@@ -364,19 +364,11 @@ var (
 )
 
 var (
-	allAllowedTypes = secret.AllowedSecretTypesResponse{
-		Allowed: secretTypes.DefaultRules,
-	}
+	allAllowedTypes = secretTypes.DefaultRules
 
-	awsRequiredKeys = secret.AllowedFilteredSecretTypesResponse{
-		Keys: secretTypes.DefaultRules[clusterTypes.Amazon],
-	}
+	awsRequiredKeys = secretTypes.DefaultRules[clusterTypes.Amazon]
 
-	aksRequiredKeys = secret.AllowedFilteredSecretTypesResponse{
-		Keys: secretTypes.DefaultRules[clusterTypes.Azure],
-	}
+	aksRequiredKeys = secretTypes.DefaultRules[clusterTypes.Azure]
 
-	gkeRequiredKeys = secret.AllowedFilteredSecretTypesResponse{
-		Keys: secretTypes.DefaultRules[clusterTypes.Google],
-	}
+	gkeRequiredKeys = secretTypes.DefaultRules[clusterTypes.Google]
 )

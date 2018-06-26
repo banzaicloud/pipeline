@@ -8,7 +8,7 @@ Name | Type | Description | Notes
 **Type** | **string** |  | [optional] 
 **Version** | **int32** |  | [optional] 
 **UpdatedAt** | [**time.Time**](time.Time.md) |  | [optional] 
-**UpdatedBy** | **int32** |  | [optional] 
+**UpdatedBy** | **string** |  | [optional] 
 **Tags** | **[]string** |  | [optional] 
 **Values** | [**map[string]interface{}**](map[string]interface{}.md) |  | [optional] 
 
