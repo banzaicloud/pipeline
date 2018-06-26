@@ -18,16 +18,19 @@ import (
 )
 
 const (
-	testOrgId             uint = 1
-	testDomain                 = "test.domain"
-	testDomainInUse            = "inuse.domain"
-	testPolicyArn              = "testpolicyarn"
-	testHostedZoneIdShort      = "testhostedzone1"
-	testHostedZoneId           = "/hostedzone/testhostedzone1"
-	testIamUser                = "banzaicloud.route53.testhostedzone1"
-	testAccessKeyId            = "testaccesskeyid1"
-	testAccessSecretKey        = "testsecretkey1"
-	testPolicyDocument         = `{
+	testOrgId                uint = 1
+	testDomain                    = "test.domain"
+	testDomainInUse               = "inuse.domain"
+	testDomainMismatch            = "domain.mismatch"
+	testPolicyArn                 = "testpolicyarn"
+	testHostedZoneIdShort         = "testhostedzone1"
+	testHostedZoneId              = "/hostedzone/testhostedzone1"
+	testInUseHostedZoneId         = "/hostedzone/inuse.hostedzone.id"
+	testMismatchHostedZoneId      = "/hostedzone/mismatch.hostedzone.id"
+	testIamUser                   = "banzaicloud.route53.1"
+	testAccessKeyId               = "testaccesskeyid1"
+	testAccessSecretKey           = "testsecretkey1"
+	testPolicyDocument            = `{
 						"Version": "2012-10-17",
     				"Statement": [
 							{
@@ -46,6 +49,15 @@ const (
     				]
 					}`
 	testSomeErrMsg = "some error"
+)
+
+const (
+	tcRerunHostedZoneCreation    = "Rerun previously failed hosted zone creation"
+	tcRerunRoute53PolicyCreation = "Rerun previously failed route53 policy creation"
+	tcRerunIAMUserCreation       = "Rerun previously failed IAM user creation"
+	tcRerunAttachUserPolicy      = "Rerun previously failed attach policy to user"
+	tcUnregisterDomain           = "Unregister domain"
+	tcCleanup                    = "Cleanup"
 )
 
 var (
@@ -84,6 +96,15 @@ var (
 		errMsg:         "",
 	}
 
+	testDomainStateMismatch = &domainState{
+		organisationId: testOrgId,
+		domain:         testDomainMismatch,
+		hostedZoneId:   testHostedZoneIdShort,
+		status:         FAILED,
+		errMsg:         testSomeErrMsg,
+	}
+
+	// case when hosted zone creation failed
 	testDomainStateFailed1 = &domainState{
 		organisationId: testOrgId,
 		domain:         testDomain,
@@ -91,6 +112,7 @@ var (
 		errMsg:         testSomeErrMsg,
 	}
 
+	// case when route53 policy creation failed
 	testDomainStateFailed2 = &domainState{
 		organisationId: testOrgId,
 		domain:         testDomain,
@@ -99,6 +121,7 @@ var (
 		errMsg:         testSomeErrMsg,
 	}
 
+	// case when IAM user creation failed
 	testDomainStateFailed3 = &domainState{
 		organisationId: testOrgId,
 		domain:         testDomain,
@@ -108,6 +131,8 @@ var (
 		errMsg:         testSomeErrMsg,
 	}
 
+	// case when IAM user AWS access key creation failed
+	// or attaching route53 policy to user failed
 	testDomainStateFailed4 = &domainState{
 		organisationId: testOrgId,
 		domain:         testDomain,
@@ -191,6 +216,8 @@ func stateKey(orgId uint, domain string) string {
 type mockRoute53Svc struct {
 	route53iface.Route53API
 
+	testCaseName string
+
 	createHostedZoneCallCount         int
 	deleteHostedZoneCallCount         int
 	listResourceRecordSetsCallCount   int
@@ -198,6 +225,9 @@ type mockRoute53Svc struct {
 }
 
 func (mock *mockRoute53Svc) reset() {
+
+	mock.testCaseName = ""
+
 	mock.createHostedZoneCallCount = 0
 	mock.deleteHostedZoneCallCount = 0
 	mock.listResourceRecordSetsCallCount = 0
@@ -216,8 +246,28 @@ func (mock *mockRoute53Svc) CreateHostedZone(createHostedZone *route53.CreateHos
 }
 
 func (mock *mockRoute53Svc) ListHostedZonesByName(listHostedZonesByName *route53.ListHostedZonesByNameInput) (*route53.ListHostedZonesByNameOutput, error) {
-	if aws.StringValue(listHostedZonesByName.DNSName) != testDomain && aws.StringValue(listHostedZonesByName.DNSName) != testDomainInUse {
+	if aws.StringValue(listHostedZonesByName.DNSName) != testDomain &&
+		aws.StringValue(listHostedZonesByName.DNSName) != testDomainInUse &&
+		aws.StringValue(listHostedZonesByName.DNSName) != testDomainMismatch {
 		return nil, errors.New("route53.ListHostedZonesByName invoked with wrong domain name")
+	}
+
+	switch mock.testCaseName {
+	case tcRerunHostedZoneCreation:
+		return &route53.ListHostedZonesByNameOutput{}, nil
+	case tcRerunRoute53PolicyCreation,
+		tcRerunIAMUserCreation,
+		tcRerunAttachUserPolicy,
+		tcUnregisterDomain,
+		tcCleanup:
+		return &route53.ListHostedZonesByNameOutput{
+			HostedZones: []*route53.HostedZone{
+				{
+					Name: aws.String(testDomain + "."),
+					Id:   aws.String(testHostedZoneId),
+				},
+			},
+		}, nil
 	}
 
 	if aws.StringValue(listHostedZonesByName.DNSName) == testDomainInUse {
@@ -225,6 +275,18 @@ func (mock *mockRoute53Svc) ListHostedZonesByName(listHostedZonesByName *route53
 			HostedZones: []*route53.HostedZone{
 				{
 					Name: aws.String(testDomainInUse),
+					Id:   aws.String(testInUseHostedZoneId),
+				},
+			},
+		}, nil
+	}
+
+	if aws.StringValue(listHostedZonesByName.DNSName) == testDomainMismatch {
+		return &route53.ListHostedZonesByNameOutput{
+			HostedZones: []*route53.HostedZone{
+				{
+					Name: aws.String(testDomainMismatch + "."),
+					Id:   aws.String(testMismatchHostedZoneId),
 				},
 			},
 		}, nil
@@ -236,7 +298,7 @@ func (mock *mockRoute53Svc) ListHostedZonesByName(listHostedZonesByName *route53
 func (mock *mockRoute53Svc) DeleteHostedZone(deleteHostedZone *route53.DeleteHostedZoneInput) (*route53.DeleteHostedZoneOutput, error) {
 	mock.deleteHostedZoneCallCount++
 
-	if aws.StringValue(deleteHostedZone.Id) != testHostedZoneIdShort {
+	if aws.StringValue(deleteHostedZone.Id) != testHostedZoneId {
 		return nil, errors.New("route53.DeleteHostedZone invoked with wrong hosted zone id")
 	}
 	return &route53.DeleteHostedZoneOutput{}, nil
@@ -245,17 +307,36 @@ func (mock *mockRoute53Svc) DeleteHostedZone(deleteHostedZone *route53.DeleteHos
 func (mock *mockRoute53Svc) ListResourceRecordSets(listResourceRecordSets *route53.ListResourceRecordSetsInput) (*route53.ListResourceRecordSetsOutput, error) {
 	mock.listResourceRecordSetsCallCount++
 
-	if aws.StringValue(listResourceRecordSets.HostedZoneId) != testHostedZoneIdShort {
+	if aws.StringValue(listResourceRecordSets.HostedZoneId) != testHostedZoneId {
 		return nil, errors.New("route53.ListResourceRecordSets invoked with wrong hosted zone id")
 	}
 
-	return &route53.ListResourceRecordSetsOutput{}, nil
+	switch mock.testCaseName {
+	case tcUnregisterDomain, tcCleanup:
+		return &route53.ListResourceRecordSetsOutput{
+			ResourceRecordSets: []*route53.ResourceRecordSet{
+				{Type: aws.String("NS")},
+				{Type: aws.String("SOA")},
+				{Type: aws.String("A")},
+				{Type: aws.String("AAA")},
+			},
+		}, nil
+	}
+
+	return &route53.ListResourceRecordSetsOutput{
+		ResourceRecordSets: []*route53.ResourceRecordSet{
+			{Type: aws.String("NS")},
+			{Type: aws.String("SOA")},
+		},
+	}, nil
 }
 
 func (mock *mockRoute53Svc) ChangeResourceRecordSets(changeResourceRecordSets *route53.ChangeResourceRecordSetsInput) (*route53.ChangeResourceRecordSetsOutput, error) {
 	mock.changeResourceRecordSetsCallCount++
 
-	if aws.StringValue(changeResourceRecordSets.HostedZoneId) != testHostedZoneIdShort {
+	if !(aws.StringValue(changeResourceRecordSets.HostedZoneId) == testHostedZoneId &&
+		aws.StringValue(changeResourceRecordSets.ChangeBatch.Changes[0].Action) == "DELETE") {
+
 		return nil, errors.New("route53.ChangeResourceRecordSets invoked with wrong hosted zone id")
 	}
 
@@ -278,25 +359,37 @@ func (mock *mockRoute53SvcWithCreateHostedZoneFailing) CreateHostedZone(createHo
 type mockIamSvc struct {
 	iamiface.IAMAPI
 
-	createPolicyCallCount     int
-	deletePolicyCallCount     int
-	createUserCallCount       int
-	deleteUserCallCount       int
-	attachUserPolicyCallCount int
-	detachUserPolicyCallCount int
-	createAccessKeyCallCount  int
-	deleteAccessKeyCallCount  int
+	testCaseName string
+
+	createPolicyCallCount           int
+	getPolicyCallCount              int
+	getUserCallCount                int
+	deletePolicyCallCount           int
+	createUserCallCount             int
+	deleteUserCallCount             int
+	listAttachedUserPolicyCallCount int
+	attachUserPolicyCallCount       int
+	detachUserPolicyCallCount       int
+	createAccessKeyCallCount        int
+	deleteAccessKeyCallCount        int
+	listAccessKeyCallCount          int
 }
 
 func (mock *mockIamSvc) reset() {
+	mock.testCaseName = ""
+
 	mock.createPolicyCallCount = 0
+	mock.getPolicyCallCount = 0
 	mock.deletePolicyCallCount = 0
+	mock.getUserCallCount = 0
 	mock.createUserCallCount = 0
 	mock.deleteUserCallCount = 0
+	mock.listAttachedUserPolicyCallCount = 0
 	mock.attachUserPolicyCallCount = 0
 	mock.detachUserPolicyCallCount = 0
 	mock.createAccessKeyCallCount = 0
 	mock.deleteAccessKeyCallCount = 0
+	mock.listAccessKeyCallCount = 0
 }
 
 func (mock *mockIamSvc) CreatePolicy(createPolicy *iam.CreatePolicyInput) (*iam.CreatePolicyOutput, error) {
@@ -315,6 +408,26 @@ func (mock *mockIamSvc) CreatePolicy(createPolicy *iam.CreatePolicyInput) (*iam.
 	}, nil
 }
 
+func (mock *mockIamSvc) GetPolicy(getPolicy *iam.GetPolicyInput) (*iam.GetPolicyOutput, error) {
+	mock.getPolicyCallCount++
+
+	switch mock.testCaseName {
+	case tcRerunIAMUserCreation,
+		tcRerunAttachUserPolicy,
+		tcUnregisterDomain,
+		tcCleanup:
+		return &iam.GetPolicyOutput{
+			Policy: &iam.Policy{
+				Arn:          getPolicy.PolicyArn,
+				PolicyName:   aws.String(fmt.Sprintf("BanzaicloudRoute53-%s", testHostedZoneIdShort)),
+				IsAttachable: aws.Bool(true),
+			},
+		}, nil
+	}
+
+	return &iam.GetPolicyOutput{}, nil
+}
+
 func (mock *mockIamSvc) DeletePolicy(deletePolicy *iam.DeletePolicyInput) (*iam.DeletePolicyOutput, error) {
 	mock.deletePolicyCallCount++
 
@@ -322,6 +435,27 @@ func (mock *mockIamSvc) DeletePolicy(deletePolicy *iam.DeletePolicyInput) (*iam.
 		return nil, errors.New("iam.DeletePolicy invoked with wrong policy arn")
 	}
 	return &iam.DeletePolicyOutput{}, nil
+}
+
+func (mock *mockIamSvc) GetUser(user *iam.GetUserInput) (*iam.GetUserOutput, error) {
+	mock.getUserCallCount++
+
+	if aws.StringValue(user.UserName) != testIamUser {
+		return nil, errors.New("iam.GetUser invoked with wrong user name")
+	}
+
+	switch mock.testCaseName {
+	case tcRerunAttachUserPolicy,
+		tcUnregisterDomain,
+		tcCleanup:
+		return &iam.GetUserOutput{
+			User: &iam.User{
+				UserName: user.UserName,
+			},
+		}, nil
+	}
+
+	return &iam.GetUserOutput{}, nil
 }
 
 func (mock *mockIamSvc) CreateUser(createUser *iam.CreateUserInput) (*iam.CreateUserOutput, error) {
@@ -341,6 +475,21 @@ func (mock *mockIamSvc) DeleteUser(deleteUser *iam.DeleteUserInput) (*iam.Delete
 		return nil, errors.New("iam.DeleteUser invoked with wrong IAM user name")
 	}
 	return &iam.DeleteUserOutput{}, nil
+}
+
+func (mock *mockIamSvc) ListAttachedUserPolicies(listUserAttachedPolicies *iam.ListAttachedUserPoliciesInput) (*iam.ListAttachedUserPoliciesOutput, error) {
+	mock.listAttachedUserPolicyCallCount++
+
+	switch mock.testCaseName {
+	case tcUnregisterDomain, tcCleanup:
+		return &iam.ListAttachedUserPoliciesOutput{
+			AttachedPolicies: []*iam.AttachedPolicy{
+				{PolicyArn: aws.String(testPolicyArn)},
+			},
+		}, nil
+	}
+
+	return &iam.ListAttachedUserPoliciesOutput{}, nil
 }
 
 func (mock *mockIamSvc) AttachUserPolicy(attachUserPolicy *iam.AttachUserPolicyInput) (*iam.AttachUserPolicyOutput, error) {
@@ -385,6 +534,20 @@ func (mock *mockIamSvc) DeleteAccessKey(deleteAccessKey *iam.DeleteAccessKeyInpu
 	}
 
 	return &iam.DeleteAccessKeyOutput{}, nil
+}
+
+func (mock *mockIamSvc) ListAccessKeys(listAccessKeys *iam.ListAccessKeysInput) (*iam.ListAccessKeysOutput, error) {
+	mock.listAccessKeyCallCount++
+
+	switch mock.testCaseName {
+	case tcUnregisterDomain, tcCleanup:
+		return &iam.ListAccessKeysOutput{
+			AccessKeyMetadata: []*iam.AccessKeyMetadata{
+				{UserName: listAccessKeys.UserName, AccessKeyId: aws.String(testAccessKeyId)},
+			},
+		}, nil
+	}
+	return &iam.ListAccessKeysOutput{}, nil
 }
 
 // mockIamSvcWithCreatePolicyFailing is a IAM service API mock with CreatePolicy always failing
@@ -478,36 +641,6 @@ func TestAwsRoute53_RegisterDomain(t *testing.T) {
 		t.Errorf("There should be one route53 secret in Vault but got %d", route53SecretCount)
 	}
 
-}
-
-func TestAwsRoute53_RegisterDomain_AlreadyRegistered(t *testing.T) {
-	key := stateKey(testOrgId, testDomain)
-
-	stateStore := &inMemoryStateStore{
-		orgDomains: map[string]*domainState{key: testDomainStateCreated},
-	}
-
-	awsRoute53 := &awsRoute53{route53Svc: &mockRoute53Svc{}, iamSvc: &mockIamSvc{}, stateStore: stateStore}
-	expectedErrMsg := fmt.Sprintf("domain '%s' already registered", testDomain)
-
-	err := awsRoute53.RegisterDomain(testOrgId, testDomain)
-	if err.Error() != expectedErrMsg {
-		t.Errorf("Registering duplicate domain should return an error with error message: %s", expectedErrMsg)
-	}
-}
-
-func TestAwsRoute53_RegisterDomain_AlreadyInUse(t *testing.T) {
-	stateStore := &inMemoryStateStore{
-		orgDomains: make(map[string]*domainState),
-	}
-
-	awsRoute53 := &awsRoute53{route53Svc: &mockRoute53Svc{}, iamSvc: &mockIamSvc{}, stateStore: stateStore}
-	expectedErrMsg := fmt.Sprintf("domain '%s' is already in use", testDomainInUse)
-
-	err := awsRoute53.RegisterDomain(testOrgId, testDomainInUse)
-	if err.Error() != expectedErrMsg {
-		t.Errorf("Registering duplicate domain should return an error with error message: %s", expectedErrMsg)
-	}
 }
 
 func TestAwsRoute53_RegisterDomain_Fail(t *testing.T) {
@@ -617,6 +750,7 @@ func TestAwsRoute53_RegisterDomain_Fail(t *testing.T) {
 
 				route53Svc.reset()
 				iamSvcWithCreateAccessKeyFailing.reset()
+				cleanupVaultTestSecrets()
 
 			},
 		},
@@ -659,8 +793,8 @@ func TestAwsRoute53_UnregisterDomain(t *testing.T) {
 		orgDomains: map[string]*domainState{key: testDomainStateCreated},
 	}
 
-	route53Svc := &mockRoute53Svc{}
-	iamSvc := &mockIamSvc{}
+	route53Svc := &mockRoute53Svc{testCaseName: tcUnregisterDomain}
+	iamSvc := &mockIamSvc{testCaseName: tcUnregisterDomain}
 
 	awsRoute53 := &awsRoute53{route53Svc: route53Svc, iamSvc: iamSvc, stateStore: stateStore}
 
@@ -694,54 +828,74 @@ func TestAwsRoute53_UnregisterDomain(t *testing.T) {
 		t.Error("IAM user should be deleted")
 	}
 
+	if route53Svc.changeResourceRecordSetsCallCount != 1 {
+		t.Error("Record resource sets of the hosted zone should be deleted")
+	}
+
 	//reset mock call count
 	route53Svc.reset()
 	iamSvc.reset()
+
+	cleanupVaultTestSecrets()
 
 }
 
 func TestAwsRoute53_Cleanup(t *testing.T) {
 	key := stateKey(testOrgId, testDomain)
 
-	route53Svc := &mockRoute53Svc{}
-	iamSvc := &mockIamSvc{}
+	route53Svc := &mockRoute53Svc{testCaseName: tcCleanup}
+	iamSvc := &mockIamSvc{testCaseName: tcCleanup}
 
 	tests := []struct {
-		name                                                                                                                       string
-		state                                                                                                                      *domainState
-		found                                                                                                                      bool
-		deleteHostedZoneCallCount, detachUserPolicyCallCount, deletePolicyCallCount, deleteAccessKeyCallCount, deleteUserCallCount int
-		deleteHostedZoneCallMsg, detachUserPolicyCallMsg, deletePolicyCallMsg, deleteAccessKeyCallMsg, deleteUserCallMsg           string
+		name                              string
+		state                             *domainState
+		found                             bool
+		deleteHostedZoneCallCount         int
+		changeResourceRecordSetsCallCount int
+		detachUserPolicyCallCount         int
+		deletePolicyCallCount             int
+		deleteAccessKeyCallCount          int
+		deleteUserCallCount               int
+		deleteHostedZoneCallMsg           string
+		detachUserPolicyCallMsg           string
+		deletePolicyCallMsg               string
+		deleteAccessKeyCallMsg            string
+		deleteUserCallMsg                 string
+		changeResourceRecordSetsCallMsg   string
 	}{
 		{
 			name:  "Hosted zone younger than 12 hours should be cleaned up",
 			state: testDomainStateCreatedYoung,
 			found: false,
-			deleteHostedZoneCallCount: 1,
-			detachUserPolicyCallCount: 1,
-			deletePolicyCallCount:     1,
-			deleteAccessKeyCallCount:  1,
-			deleteUserCallCount:       1,
-			deleteHostedZoneCallMsg:   "Hosted zone should be deleted",
-			detachUserPolicyCallMsg:   "Policy should be detached from IAM user",
-			deletePolicyCallMsg:       "Access policy should be deleted",
-			deleteAccessKeyCallMsg:    "User Amazon access key should be deleted",
-			deleteUserCallMsg:         "IAM user should be deleted",
+			deleteHostedZoneCallCount:         1,
+			changeResourceRecordSetsCallCount: 1,
+			detachUserPolicyCallCount:         1,
+			deletePolicyCallCount:             1,
+			deleteAccessKeyCallCount:          1,
+			deleteUserCallCount:               1,
+			deleteHostedZoneCallMsg:           "Hosted zone should be deleted",
+			detachUserPolicyCallMsg:           "Policy should be detached from IAM user",
+			deletePolicyCallMsg:               "Access policy should be deleted",
+			deleteAccessKeyCallMsg:            "User Amazon access key should be deleted",
+			deleteUserCallMsg:                 "IAM user should be deleted",
+			changeResourceRecordSetsCallMsg:   "Hosted Zone resource record sets should be deleted",
 		},
 		{
 			name:  "Hosted zone older than 12 hours should not be cleaned up",
 			state: testDomainStateCreatedAged,
 			found: true,
-			deleteHostedZoneCallCount: 0,
-			detachUserPolicyCallCount: 0,
-			deletePolicyCallCount:     0,
-			deleteAccessKeyCallCount:  0,
-			deleteUserCallCount:       0,
-			deleteHostedZoneCallMsg:   "Hosted zone should not be deleted",
-			detachUserPolicyCallMsg:   "Policy should not be detached from IAM user",
-			deletePolicyCallMsg:       "Access policy should not be deleted",
-			deleteAccessKeyCallMsg:    "User Amazon access key should not be deleted",
-			deleteUserCallMsg:         "IAM user should not be deleted",
+			deleteHostedZoneCallCount:         0,
+			changeResourceRecordSetsCallCount: 0,
+			detachUserPolicyCallCount:         0,
+			deletePolicyCallCount:             0,
+			deleteAccessKeyCallCount:          0,
+			deleteUserCallCount:               0,
+			deleteHostedZoneCallMsg:           "Hosted zone should not be deleted",
+			detachUserPolicyCallMsg:           "Policy should not be detached from IAM user",
+			deletePolicyCallMsg:               "Access policy should not be deleted",
+			deleteAccessKeyCallMsg:            "User Amazon access key should not be deleted",
+			deleteUserCallMsg:                 "IAM user should not be deleted",
+			changeResourceRecordSetsCallMsg:   "Hosted Zone resource record sets should not be deleted",
 		},
 	}
 
@@ -766,6 +920,9 @@ func TestAwsRoute53_Cleanup(t *testing.T) {
 			if route53Svc.deleteHostedZoneCallCount != tc.deleteHostedZoneCallCount {
 				t.Error(tc.deleteHostedZoneCallMsg)
 			}
+			if route53Svc.changeResourceRecordSetsCallCount != tc.changeResourceRecordSetsCallCount {
+				t.Errorf(tc.deleteUserCallMsg)
+			}
 
 			if iamSvc.detachUserPolicyCallCount != tc.detachUserPolicyCallCount {
 				t.Error(tc.detachUserPolicyCallMsg)
@@ -786,7 +943,83 @@ func TestAwsRoute53_Cleanup(t *testing.T) {
 			//reset mock call count
 			route53Svc.reset()
 			iamSvc.reset()
+
+			cleanupVaultTestSecrets()
 		})
+	}
+
+}
+
+func TestAwsRoute53_RegisterDomainRerun(t *testing.T) {
+	key := stateKey(testOrgId, testDomain)
+
+	tests := []struct {
+		name  string
+		state *domainState
+	}{
+		{
+			name:  tcRerunHostedZoneCreation,
+			state: testDomainStateFailed1,
+		},
+		{
+			name:  tcRerunRoute53PolicyCreation,
+			state: testDomainStateFailed2,
+		},
+		{
+			name:  tcRerunIAMUserCreation,
+			state: testDomainStateFailed3,
+		},
+		{
+			name:  tcRerunAttachUserPolicy,
+			state: testDomainStateFailed4,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			route53Svc := &mockRoute53Svc{testCaseName: tc.name}
+			iamSvc := &mockIamSvc{testCaseName: tc.name}
+			stateStore := &inMemoryStateStore{
+				orgDomains: map[string]*domainState{key: tc.state},
+			}
+
+			awsRoute53 := &awsRoute53{route53Svc: route53Svc, iamSvc: iamSvc, stateStore: stateStore}
+
+			err := awsRoute53.RegisterDomain(testOrgId, testDomain)
+			if err != nil {
+				t.Errorf("Failed with unexpected error: %v", err)
+			}
+
+			actualState := &domainState{}
+			ok, _ := stateStore.find(testOrgId, testDomain, actualState)
+			if !ok {
+				t.Errorf("Statestore should not contain an entry for the registered domain '%s'", testDomain)
+			}
+
+			if reflect.DeepEqual(testDomainStateCreated, actualState) == false {
+				t.Errorf("Expected state for domain '%s': %v, got: %v", testDomain, testDomainStateCreated, actualState)
+			}
+
+			cleanupVaultTestSecrets()
+		})
+	}
+}
+
+func cleanupVaultTestSecrets() {
+	secrets, _ := secret.Store.List(testOrgId, &secretTypes.ListSecretsQuery{
+		Type:   cluster.Amazon,
+		Tag:    secretTypes.TagBanzaiHidden,
+		Values: true,
+	})
+
+	for _, secretItem := range secrets {
+		if secretItem.Name == iamUserAccessKeySecretName {
+			if secretItem.Values[secretTypes.AwsAccessKeyId] == testAccessKeyId &&
+				secretItem.Values[secretTypes.AwsSecretAccessKey] == testAccessSecretKey {
+
+				secret.Store.Delete(testOrgId, secretItem.ID)
+			}
+		}
 	}
 
 }

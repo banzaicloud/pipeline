@@ -313,7 +313,7 @@ func RegisterDomainPostHook(input interface{}) error {
 	}
 
 	if dnsSvc == nil {
-		log.Infof("Exiting as external dns service functionality is not enabled")
+		log.Info("Exiting as external dns service functionality is not enabled")
 		return nil
 	}
 
@@ -327,7 +327,7 @@ func RegisterDomainPostHook(input interface{}) error {
 
 	registered, err := dnsSvc.IsDomainRegistered(orgId, domain)
 	if err != nil {
-		log.Errorf("Checking if domain '%s' is already regsitered failed: %s", domain, err.Error())
+		log.Errorf("Checking if domain '%s' is already registered failed: %s", domain, err.Error())
 		return err
 	}
 
@@ -336,9 +336,12 @@ func RegisterDomainPostHook(input interface{}) error {
 			log.Errorf("Registering domain '%s' failed: %s", domain, err.Error())
 			return err
 		}
+	} else {
+		log.Infof("Domain '%s' already registered", domain)
+		return nil
 	}
 
-	_, err = InstallSecrets(
+	_, err = InstallOrUpdateSecrets(
 		commonCluster,
 		&secretTypes.ListSecretsQuery{
 			Type: pkgCluster.Amazon,
@@ -351,6 +354,8 @@ func RegisterDomainPostHook(input interface{}) error {
 		log.Errorf("Failed to install route53 secret into cluster: %s", err.Error())
 		return err
 	}
+
+	log.Info("route53 secret successfully installed into cluster")
 
 	return nil
 }

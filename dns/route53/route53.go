@@ -29,8 +29,8 @@ func init() {
 
 const (
 	createHostedZoneComment            = "HostedZone created by Banzaicloud Pipeline"
-	iamUserNameTemplate                = "banzaicloud.route53.%s"
-	hostedZoneAccessPolicyNameTemplate = "BanzaicloudRoute53-%s"
+	iamUserNameTemplate                = "banzaicloud.route53.%d"
+	hostedZoneAccessPolicyNameTemplate = "BanzaicloudRoute53-%d"
 	iamUserAccessKeySecretName         = "route53"
 )
 
@@ -128,76 +128,91 @@ func (dns *awsRoute53) IsDomainRegistered(orgId uint, domain string) (bool, erro
 		return false, err
 	}
 
-	return found, nil
+	if found && (state.status == CREATING || state.status == REMOVING) {
+		return false, fmt.Errorf("%s is in progress", state.status)
+	}
+
+	return found && state.status == CREATED, nil
 }
 
 // RegisterDomain registers the given domain with AWS Route53
 func (dns *awsRoute53) RegisterDomain(orgId uint, domain string) error {
 	log := loggerWithFields(logrus.Fields{"organisationId": orgId, "domain": domain})
 
-	// check statestore to see if domain was already registered
-	found, err := dns.IsDomainRegistered(orgId, domain)
+	state := &domainState{}
+	foundInStateStore, err := dns.stateStore.find(orgId, domain, state)
 	if err != nil {
+		log.Errorf("querying state store failed: %s", extractErrorMessage(err))
 		return err
 	}
 
-	if found {
-		msg := fmt.Sprintf("domain '%s' already registered", domain)
-		log.Error(msg)
-		return fmt.Errorf(msg)
+	if foundInStateStore && (state.status == CREATING || state.status == REMOVING) {
+		return fmt.Errorf("%s is in progress", state.status)
 	}
 
-	// check Route53 to see if domain is not is use yet
-	found, err = dns.hostedZoneExists(domain)
+	if foundInStateStore {
+		state.errMsg = ""
+		state.status = CREATING
+
+		err = dns.stateStore.update(state)
+
+	} else {
+		state.organisationId = orgId
+		state.domain = domain
+		state.status = CREATING
+
+		err = dns.stateStore.create(state)
+	}
+
 	if err != nil {
-		log.Errorf("querying if domain is already in use failed: %s", extractErrorMessage(err))
-		return err
-	}
-
-	if found {
-		msg := fmt.Sprintf("domain '%s' is already in use", domain)
-		log.Error(msg)
-		return fmt.Errorf(msg)
-	}
-
-	state := &domainState{
-		organisationId: orgId,
-		domain:         domain,
-		status:         CREATING,
-	}
-
-	if err := dns.stateStore.create(state); err != nil {
 		log.Errorf("updating state store failed: %s", extractErrorMessage(err))
 		return err
 	}
 
-	hostedZone, err := dns.createHostedZone(orgId, domain)
+	existingHostedZoneId, err := dns.hostedZoneExists(domain)
 	if err != nil {
-		dns.updateStateWithError(state, err)
+		log.Errorf("querying hosted zones for the domain failed: %s", extractErrorMessage(err))
 		return err
 	}
 
-	strippedHostedZoneId := strings.Replace(aws.StringValue(hostedZone.Id), "/hostedzone/", "", 1)
-
+	hostedZoneIdShort := stripHostedZoneId(existingHostedZoneId)
+	hostedZoneId := existingHostedZoneId
 	ctx := &context{state: state}
+
+	if existingHostedZoneId == "" {
+		hostedZone, err := dns.createHostedZone(orgId, domain)
+		if err != nil {
+			dns.updateStateWithError(state, err)
+			return err
+		}
+
+		hostedZoneIdShort = stripHostedZoneId(aws.StringValue(hostedZone.Id))
+		hostedZoneId = aws.StringValue(hostedZone.Id)
+
+	} else {
+		log.Infof("skip creating hosted zone in route53 as it already exists with id: '%s'", hostedZoneIdShort)
+	}
 
 	// register rollback function
 	ctx.registerRollback(func() error {
-		return dns.deleteHostedZone(aws.String(strippedHostedZoneId))
+		return dns.deleteHostedZone(aws.String(hostedZoneId))
 	})
 
-	state.hostedZoneId = strippedHostedZoneId
-	if err := dns.stateStore.update(state); err != nil {
-		log.Errorf("updating state store failed: %s", extractErrorMessage(err))
+	if state.hostedZoneId != hostedZoneIdShort {
+		state.hostedZoneId = hostedZoneIdShort
 
-		ctx.rollback()
-		return err
+		if err := dns.stateStore.update(state); err != nil {
+			log.Errorf("updating state store failed: %s", extractErrorMessage(err))
+
+			ctx.rollback()
+			return err
+		}
 	}
 
-	// set up auth for hosted zone
-	if err := dns.setHostedZoneAuthorisation(strippedHostedZoneId, ctx); err != nil {
+	// set up authz for hosted zone
+	if err := dns.setHostedZoneAuthorisation(hostedZoneIdShort, ctx); err != nil {
 		// cleanup
-		log.Errorf("setting authorisation for hosted zone '%s' failed: %s", strippedHostedZoneId, extractErrorMessage(err))
+		log.Errorf("setting authorisation for hosted zone '%s' failed: %s", hostedZoneIdShort, extractErrorMessage(err))
 
 		ctx.rollback()
 
@@ -244,33 +259,74 @@ func (dns *awsRoute53) UnregisterDomain(orgId uint, domain string) error {
 		return err
 	}
 
+	userName := getIAMUserName(orgId)
+	iamUser, err := dns.getIAMUser(aws.String(userName))
+	if err != nil {
+		log.Errorf("querying IAM user with user name '%s' failed: %s", userName, extractErrorMessage(err))
+		return err
+	}
+
 	// detach policy from user first to avoid access to hosted zone while it's being deleted
-	if len(state.iamUser) > 0 && len(state.policyArn) > 0 {
-		if err := dns.detachUserPolicy(aws.String(state.iamUser), aws.String(state.policyArn)); err != nil {
-			dns.updateStateWithError(state, err)
+	if iamUser != nil && len(state.policyArn) > 0 {
+		isPolicyAttached, err := dns.isUserPolicyAttached(aws.String(state.iamUser), aws.String(state.policyArn))
+		if err != nil {
+			log.Errorf("querying if policy '%s' is attached to user '%s' faied: %s", state.policyArn, state.iamUser, extractErrorMessage(err))
 			return err
+		}
+
+		if isPolicyAttached {
+			err := dns.detachUserPolicy(aws.String(state.iamUser), aws.String(state.policyArn))
+			if err != nil {
+				log.Errorf("detaching policy '%s' from IAM user '%s' failed: %s", state.policyArn, state.iamUser, extractErrorMessage(err))
+				dns.updateStateWithError(state, err)
+				return err
+			}
 		}
 	}
 
 	// delete  access policy
 	if len(state.policyArn) > 0 {
-		if err := dns.deletePolicy(aws.String(state.policyArn)); err != nil {
+		policy, err := dns.getHostedZoneRoute53Policy(state.policyArn)
+		if err != nil {
+			log.Errorf("querying policy '%s' failed: %s", state.policyArn, extractErrorMessage(err))
+			return err
+		}
+
+		if policy != nil {
+			if err := dns.deletePolicy(policy.Arn); err != nil {
+				log.Errorf("deleting policy '%s' failed: %s", aws.StringValue(policy.Arn), extractErrorMessage(err))
+				dns.updateStateWithError(state, err)
+				return err
+			}
+		}
+
+	}
+
+	// delete route53  access keys
+	if iamUser != nil {
+		awsAccessKeys, err := dns.getUserAmazonAccessKeys(iamUser.UserName)
+		if err != nil {
+			log.Errorf("querying IAM user '%s' access keys failed: %s", state.iamUser, extractErrorMessage(err))
 			dns.updateStateWithError(state, err)
 			return err
 		}
-	}
+		for _, awsAccessKey := range awsAccessKeys {
+			if err := dns.deleteAmazonAccessKey(awsAccessKey.UserName, awsAccessKey.AccessKeyId); err != nil {
 
-	// delete route53  access key
-	if len(state.iamUser) > 0 && len(state.awsAccessKeyId) > 0 {
-		if err := dns.deleteAmazonAccessKey(aws.String(state.iamUser), aws.String(state.awsAccessKeyId)); err != nil {
-			dns.updateStateWithError(state, err)
-			return err
+				log.Errorf("deleting Amazon access key '%s' of user '%s' failed: %s",
+					aws.StringValue(awsAccessKey.AccessKeyId),
+					aws.StringValue(awsAccessKey.UserName), extractErrorMessage(err))
+
+				dns.updateStateWithError(state, err)
+				return err
+			}
 		}
 	}
 
 	// delete IAM user
-	if len(state.iamUser) > 0 {
-		if err := dns.deleteIAMUser(aws.String(state.iamUser)); err != nil {
+	if iamUser != nil {
+		if err := dns.deleteIAMUser(iamUser.UserName); err != nil {
+			log.Errorf("deleting IAM user '%s' failed: %s", aws.StringValue(iamUser.UserName), extractErrorMessage(err))
 			dns.updateStateWithError(state, err)
 			return err
 		}
@@ -301,9 +357,20 @@ func (dns *awsRoute53) UnregisterDomain(orgId uint, domain string) error {
 
 	// delete hosted zone
 	if len(state.domain) > 0 {
-		if err := dns.deleteHostedZone(aws.String(state.hostedZoneId)); err != nil {
+		hostedZoneId, err := dns.hostedZoneExists(state.domain)
+		if err != nil {
+			log.Errorf("checking if hosted zone for domain '%s' exists failed: %s", state.domain, extractErrorMessage(err))
+
 			dns.updateStateWithError(state, err)
 			return err
+		}
+
+		if hostedZoneId != "" {
+			if err := dns.deleteHostedZone(aws.String(hostedZoneId)); err != nil {
+				log.Errorf("deleting hosted zone '%s' failed: %s", hostedZoneId, extractErrorMessage(err))
+				dns.updateStateWithError(state, err)
+				return err
+			}
 		}
 	}
 
@@ -411,25 +478,36 @@ func (dns *awsRoute53) getHostedZone(id *string) (*route53.HostedZone, error) {
 	return hostedZoneOutput.HostedZone, nil
 }
 
-// hostedZoneExists returns true if there is already a hosted zone created for the
-// given domain in Route53
-func (dns *awsRoute53) hostedZoneExists(domain string) (bool, error) {
+// hostedZoneExists returns hosted zone id if there is already a hosted zone created for the
+// given domain in Route53. If there are multiple hosted zones registered for the domain
+// that is considered an error
+func (dns *awsRoute53) hostedZoneExists(domain string) (string, error) {
 	input := &route53.ListHostedZonesByNameInput{DNSName: aws.String(domain)}
 
 	hostedZones, err := dns.route53Svc.ListHostedZonesByName(input)
 	if err != nil {
-		return false, err
+		return "", err
 	}
 
-	found := false
+	var foundHostedZoneIds []string
 	for _, hostedZone := range hostedZones.HostedZones {
-		if aws.StringValue(hostedZone.Name) == domain {
-			found = true
-			break
+		hostedZoneName := aws.StringValue(hostedZone.Name)
+		hostedZoneName = hostedZoneName[:len(hostedZoneName)-1] // remove trailing '.' from name
+
+		if hostedZoneName == domain {
+			foundHostedZoneIds = append(foundHostedZoneIds, aws.StringValue(hostedZone.Id))
 		}
 	}
 
-	return found, nil
+	if len(foundHostedZoneIds) > 1 {
+		return "", fmt.Errorf("multipe hosted zones %v found for domain '%s'", foundHostedZoneIds, domain)
+	}
+
+	if len(foundHostedZoneIds) == 0 {
+		return "", nil
+	}
+
+	return foundHostedZoneIds[0], nil
 }
 
 // deleteHostedZoneCallCount deletes the hosted zone with the given id from AWS Route53
@@ -481,24 +559,42 @@ func (dns *awsRoute53) deleteHostedZone(id *string) error {
 func (dns *awsRoute53) setHostedZoneAuthorisation(hostedZoneId string, ctx *context) error {
 	log := loggerWithFields(logrus.Fields{"hostedzone": hostedZoneId})
 
-	// create route53 policy
-	policy, err := dns.createHostedZoneRoute53Policy(hostedZoneId)
-	if err != nil {
-		return err
+	var policy *iam.Policy
+	var err error
+
+	if len(ctx.state.policyArn) > 0 {
+		policy, err = dns.getHostedZoneRoute53Policy(ctx.state.policyArn)
+		if err != nil {
+			log.Errorf("retrieving route53 policy '%s' failed: %s", ctx.state.policyArn, extractErrorMessage(err))
+			return err
+		}
+	}
+
+	if policy == nil {
+		// create route53 policy
+		policy, err = dns.createHostedZoneRoute53Policy(ctx.state.organisationId, hostedZoneId)
+		if err != nil {
+			return err
+		}
+	} else {
+		log.Infof("skip creating route53 policy for hosted zone as it already exists: arn='%s'", ctx.state.policyArn)
 	}
 
 	ctx.registerRollback(func() error {
 		return dns.deletePolicy(policy.Arn)
 	})
-	ctx.state.policyArn = aws.StringValue(policy.Arn)
-	if err := dns.stateStore.update(ctx.state); err != nil {
-		log.Errorf("failed to update state store: %s", extractErrorMessage(err))
-		return err
+
+	if ctx.state.policyArn != aws.StringValue(policy.Arn) {
+		ctx.state.policyArn = aws.StringValue(policy.Arn)
+		if err = dns.stateStore.update(ctx.state); err != nil {
+			log.Errorf("failed to update state store: %s", extractErrorMessage(err))
+			return err
+		}
 	}
 
 	// create IAM user
-	userName := aws.String(fmt.Sprintf(iamUserNameTemplate, hostedZoneId))
-	err = dns.createHostedZoneIAMUser(userName, policy.Arn, ctx)
+	userName := aws.String(getIAMUserName(ctx.state.organisationId))
+	err = dns.createHostedZoneIAMUser(userName, aws.String(ctx.state.policyArn), ctx)
 	if err != nil {
 		log.Errorf("setting up IAM user '%s' for hosted zone failed: %s", aws.StringValue(userName), extractErrorMessage(err))
 		return err
@@ -508,14 +604,32 @@ func (dns *awsRoute53) setHostedZoneAuthorisation(hostedZoneId string, ctx *cont
 	return nil
 }
 
+// getHostedZoneRoute53Policy retrieves the Route53 IAM policy identified by the given Arn
+func (dns *awsRoute53) getHostedZoneRoute53Policy(arn string) (*iam.Policy, error) {
+	getPolicy := &iam.GetPolicyInput{PolicyArn: aws.String(arn)}
+	policy, err := dns.iamSvc.GetPolicy(getPolicy)
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok {
+			if aerr.Code() == iam.ErrCodeNoSuchEntityException {
+				return nil, nil // no such policy
+			}
+		}
+
+		return nil, err
+	}
+
+	return policy.Policy, nil
+
+}
+
 // createHostedZoneRoute53Policy creates an AWS policy that allows listing route53 hosted zones and recordsets in general
 // also modifying only the records of the hosted zone identified by the given id.
-func (dns *awsRoute53) createHostedZoneRoute53Policy(hostedZoneId string) (*iam.Policy, error) {
+func (dns *awsRoute53) createHostedZoneRoute53Policy(orgId uint, hostedZoneId string) (*iam.Policy, error) {
 	log := loggerWithFields(logrus.Fields{"hostedzone": hostedZoneId})
 
 	policyInput := &iam.CreatePolicyInput{
-		Description: aws.String(fmt.Sprintf("Access permissions for hosted zone '%s'", hostedZoneId)),
-		PolicyName:  aws.String(fmt.Sprintf(hostedZoneAccessPolicyNameTemplate, hostedZoneId)),
+		Description: aws.String(fmt.Sprintf("Access permissions for hosted zone of the organisaton with id '%d'", orgId)),
+		PolicyName:  aws.String(fmt.Sprintf(hostedZoneAccessPolicyNameTemplate, orgId)),
 		PolicyDocument: aws.String(fmt.Sprintf(
 			`{
 						"Version": "2012-10-17",
@@ -565,57 +679,160 @@ func (dns *awsRoute53) deletePolicy(policyArn *string) error {
 
 // createHostedZoneIAMUser creates a IAM user and attaches the route53 policy identified by the given arn
 func (dns *awsRoute53) createHostedZoneIAMUser(userName, route53PolicyArn *string, ctx *context) error {
+	log := loggerWithFields(logrus.Fields{"IAMUser": aws.StringValue(userName), "policy": aws.StringValue(route53PolicyArn)})
 
-	// create IAM User
-	iamUser, err := dns.createIAMUser(userName)
+	iamUser, err := dns.getIAMUser(userName)
 	if err != nil {
 		return err
+	}
+
+	if iamUser == nil {
+		// create IAM User
+		iamUser, err = dns.createIAMUser(userName)
+		if err != nil {
+			return err
+		}
 	}
 
 	ctx.registerRollback(func() error {
 		return dns.deleteIAMUser(iamUser.UserName)
 	})
-	ctx.state.iamUser = aws.StringValue(iamUser.UserName)
-	if err := dns.stateStore.update(ctx.state); err != nil {
-		return err
+
+	if ctx.state.iamUser != aws.StringValue(iamUser.UserName) {
+		ctx.state.iamUser = aws.StringValue(iamUser.UserName)
+
+		if err := dns.stateStore.update(ctx.state); err != nil {
+			return err
+		}
+	} else {
+		log.Info("skip creating IAM user as it already exists")
 	}
 
 	// attach policy to user
-	if err = dns.attachUserPolicy(iamUser.UserName, route53PolicyArn); err != nil {
+
+	// check is the IAM user already has this policy attached
+	policyAlreadyAttached, err := dns.isUserPolicyAttached(userName, route53PolicyArn)
+	if err != nil {
 		return err
 	}
 
+	if !policyAlreadyAttached {
+		if err := dns.attachUserPolicy(aws.String(ctx.state.iamUser), route53PolicyArn); err != nil {
+			return err
+		}
+	} else {
+		log.Info("skip attaching policy to user as it is already attached")
+	}
+
 	ctx.registerRollback(func() error {
-		return dns.detachUserPolicy(iamUser.UserName, route53PolicyArn)
+		return dns.detachUserPolicy(aws.String(ctx.state.iamUser), route53PolicyArn)
 	})
 
-	// create route53 secret for IAM user
-	awsAccessKey, err := dns.createAmazonAccessKey(iamUser.UserName)
+	// setup Amazon access keys for IAM usser
+	err = dns.setupAmazonAccess(aws.StringValue(userName), ctx)
+
+	if err != nil {
+		log.Errorf("setting up Amazon access key for user failed: %s", extractErrorMessage(err))
+		return err
+	}
+
+	return nil
+}
+
+// setupAmazonAccess creates Amazon access key for the IAM user
+// and stores it in Vault. If there is a stale Amazon access key in Vault
+// creates a new Amazon access key and updates Vault
+func (dns *awsRoute53) setupAmazonAccess(iamUser string, ctx *context) error {
+	log := loggerWithFields(logrus.Fields{"userName": iamUser})
+
+	// route53 secret from Vault
+	route53Secret, err := dns.getRoute53Secret(ctx.state.organisationId)
+	if err != nil {
+		return err
+	}
+
+	// IAM user AWS access keys
+	userAccessKeys, err := dns.getUserAmazonAccessKeys(aws.String(iamUser))
+	if err != nil {
+		return err
+	}
+
+	var userAccessKeyMap = make(map[string]*iam.AccessKeyMetadata)
+	for _, userAccessKey := range userAccessKeys {
+		userAccessKeyMap[aws.StringValue(userAccessKey.AccessKeyId)] = userAccessKey
+	}
+
+	// if either the Amazon access key or it's corresponding secret from Vault
+	// we need to create(re-create in case of re-run) the Amazon access key
+	// as the Amazon access secret can be obtained only at creation
+	var createNewAccessKey = true
+	var accessKeyId string
+
+	if route53Secret != nil {
+		if route53SecretAwsAccessKeyId, ok := route53Secret.Values[secretTypes.AwsAccessKeyId]; ok {
+			if _, ok := userAccessKeyMap[route53SecretAwsAccessKeyId]; ok {
+				createNewAccessKey = false // the access key in Amazon and Vault matches, no need to create a new onw
+				accessKeyId = route53SecretAwsAccessKeyId
+			}
+		}
+	}
+
+	if !createNewAccessKey {
+		if ctx.state.awsAccessKeyId != accessKeyId { // update state store as it contains stale access key id
+			ctx.state.awsAccessKeyId = accessKeyId
+
+			if err := dns.stateStore.update(ctx.state); err != nil {
+				return err
+			}
+		}
+		log.Info("skip creating Amazon access key for user as it is already set up")
+
+		return nil
+	}
+
+	// new Amazon Access Key
+
+	// remove old access key from Amazon if there is any
+	if len(ctx.state.awsAccessKeyId) > 0 {
+		if userAccessKey, ok := userAccessKeyMap[ctx.state.awsAccessKeyId]; ok {
+			if err := dns.deleteAmazonAccessKey(userAccessKey.UserName, userAccessKey.AccessKeyId); err != nil {
+				return err
+			}
+		}
+	}
+
+	if route53Secret != nil {
+		if route53SecretAwsAccessKeyId, ok := route53Secret.Values[secretTypes.AwsAccessKeyId]; ok {
+			if userAccessKey, ok := userAccessKeyMap[route53SecretAwsAccessKeyId]; ok {
+				if err := dns.deleteAmazonAccessKey(userAccessKey.UserName, userAccessKey.AccessKeyId); err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	// create Amazon access key for user
+	awsAccessKey, err := dns.createAmazonAccessKey(aws.String(iamUser))
 	if err != nil {
 		return err
 	}
 
 	ctx.registerRollback(func() error {
-		return dns.deleteAmazonAccessKey(iamUser.UserName, awsAccessKey.AccessKeyId)
+		return dns.deleteAmazonAccessKey(aws.String(iamUser), awsAccessKey.AccessKeyId)
 	})
+
 	ctx.state.awsAccessKeyId = aws.StringValue(awsAccessKey.AccessKeyId)
+
 	if err := dns.stateStore.update(ctx.state); err != nil {
 		return err
 	}
 
 	// store route53 secret in Vault
-	secretId, err := secret.Store.Store(ctx.state.organisationId, &secret.CreateSecretRequest{
-		Name: iamUserAccessKeySecretName,
-		Type: cluster.Amazon,
-		Tags: []string{secretTypes.TagBanzaiHidden},
-		Values: map[string]string{
-			secretTypes.AwsAccessKeyId:     aws.StringValue(awsAccessKey.AccessKeyId),
-			secretTypes.AwsSecretAccessKey: aws.StringValue(awsAccessKey.SecretAccessKey),
-		},
-	})
-	ctx.registerRollback(func() error {
-		return secret.Store.Delete(ctx.state.organisationId, secretId)
-	})
+	if route53Secret != nil {
+		err = dns.storeRoute53Secret(route53Secret, aws.StringValue(awsAccessKey.AccessKeyId), aws.StringValue(awsAccessKey.SecretAccessKey), ctx)
+	} else {
+		err = dns.storeRoute53Secret(nil, aws.StringValue(awsAccessKey.AccessKeyId), aws.StringValue(awsAccessKey.SecretAccessKey), ctx)
+	}
 
 	if err != nil {
 		return err
@@ -644,6 +861,29 @@ func (dns *awsRoute53) createIAMUser(userName *string) (*iam.User, error) {
 	return iamUser.User, nil
 }
 
+// getIAMUser retrieves the Amazon IAM user with the given user name
+func (dns *awsRoute53) getIAMUser(userName *string) (*iam.User, error) {
+	log := loggerWithFields(logrus.Fields{"userName": aws.StringValue(userName)})
+
+	user := &iam.GetUserInput{
+		UserName: userName,
+	}
+
+	iamUser, err := dns.iamSvc.GetUser(user)
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok {
+			if aerr.Code() == iam.ErrCodeNoSuchEntityException {
+				return nil, nil // no such IAM user
+			}
+		}
+
+		log.Errorf("retrieving IAM user failed: %s", extractErrorMessage(err))
+		return nil, err
+	}
+
+	return iamUser.User, nil
+}
+
 // deleteIAMUser deletes the Amazon IAM user with the given name
 func (dns *awsRoute53) deleteIAMUser(userName *string) error {
 	log := loggerWithFields(logrus.Fields{"userName": aws.StringValue(userName)})
@@ -656,6 +896,25 @@ func (dns *awsRoute53) deleteIAMUser(userName *string) error {
 	log.Info("IAM user deleted")
 
 	return nil
+}
+
+// isUserPolicyAttached returns true is the policy given its Arn is attached to the specified IAM user
+func (dns *awsRoute53) isUserPolicyAttached(userName, policyArn *string) (bool, error) {
+	attachedUserPoliciesInput := &iam.ListAttachedUserPoliciesInput{UserName: userName}
+	attachedUserPolicies, err := dns.iamSvc.ListAttachedUserPolicies(attachedUserPoliciesInput)
+	if err != nil {
+		return false, err
+	}
+
+	found := false
+	for _, attachedPolicy := range attachedUserPolicies.AttachedPolicies {
+		if aws.StringValue(attachedPolicy.PolicyArn) == aws.StringValue(policyArn) {
+			found = true
+			break
+		}
+	}
+
+	return found, nil
 }
 
 // attachUserPolicy attaches the policy identified by the given arn to the IAM user identified
@@ -694,6 +953,42 @@ func (dns *awsRoute53) detachUserPolicy(userName, policyArn *string) error {
 	return nil
 }
 
+// isAmazonAccessKeyExists returns whether the specified IAM user has the given Amazon access key
+func (dns *awsRoute53) isAmazonAccessKeyExists(userName, accessKeyId *string) (bool, error) {
+	listAccessKeys := &iam.ListAccessKeysInput{
+		UserName: userName,
+	}
+
+	accessKeys, err := dns.iamSvc.ListAccessKeys(listAccessKeys)
+	if err != nil {
+		return false, err
+	}
+
+	found := false
+	for _, accessKey := range accessKeys.AccessKeyMetadata {
+		if aws.StringValue(accessKey.AccessKeyId) == aws.StringValue(accessKeyId) {
+			found = true
+			break
+		}
+	}
+
+	return found, nil
+}
+
+// getUserAmazonAccessKeys returns the list of Amazon access keys of the given IAM user
+func (dns *awsRoute53) getUserAmazonAccessKeys(userName *string) ([]*iam.AccessKeyMetadata, error) {
+	listAccessKeys := &iam.ListAccessKeysInput{
+		UserName: userName,
+	}
+
+	accessKeys, err := dns.iamSvc.ListAccessKeys(listAccessKeys)
+	if err != nil {
+		return nil, err
+	}
+
+	return accessKeys.AccessKeyMetadata, nil
+}
+
 // createAmazonAccessKey create Amazon access key for the IAM user identified by userName
 func (dns *awsRoute53) createAmazonAccessKey(userName *string) (*iam.AccessKey, error) {
 	log := loggerWithFields(logrus.Fields{"userName": aws.StringValue(userName)})
@@ -728,6 +1023,75 @@ func (dns *awsRoute53) deleteAmazonAccessKey(userName, accessKeyId *string) erro
 	return nil
 }
 
+// getRoute53Secret returns the secret from Vault that stores the IAM user
+// aws access credentials that is used for accessing the Route53 Amazon service
+func (dns *awsRoute53) getRoute53Secret(orgId uint) (*secret.SecretItemResponse, error) {
+	awsAccessSecrets, err := secret.Store.List(orgId,
+		&secretTypes.ListSecretsQuery{
+			Type:   cluster.Amazon,
+			Tag:    secretTypes.TagBanzaiHidden,
+			Values: true,
+		})
+
+	if err != nil {
+		return nil, err
+	}
+
+	// route53 secret
+	var route53Secrets []*secret.SecretItemResponse
+	for _, awsAccessSecret := range awsAccessSecrets {
+		if awsAccessSecret.Name == iamUserAccessKeySecretName {
+			route53Secrets = append(route53Secrets, awsAccessSecret)
+		}
+	}
+
+	if len(route53Secrets) > 1 {
+		return nil, fmt.Errorf("multiple secrets found with name '%s'", iamUserAccessKeySecretName)
+	}
+
+	if len(route53Secrets) == 1 {
+		return route53Secrets[0], nil
+	}
+
+	return nil, nil
+}
+
+// storeRoute53Secret stores the provided Amazon access key in Vault
+func (dns *awsRoute53) storeRoute53Secret(updateSecret *secret.SecretItemResponse, awsAccessKeyId, awsSecretAccessKey string, ctx *context) error {
+	req := &secret.CreateSecretRequest{
+		Name: iamUserAccessKeySecretName,
+		Type: cluster.Amazon,
+		Tags: []string{secretTypes.TagBanzaiHidden},
+		Values: map[string]string{
+			secretTypes.AwsAccessKeyId:     awsAccessKeyId,
+			secretTypes.AwsSecretAccessKey: awsSecretAccessKey,
+		},
+	}
+
+	var secretId string
+	var err error
+
+	if updateSecret != nil {
+		ver := int(updateSecret.Version)
+		req.Version = &ver
+
+		if err = secret.Store.Update(ctx.state.organisationId, updateSecret.ID, req); err != nil {
+			return err
+		}
+		secretId = updateSecret.ID
+	} else {
+		if secretId, err = secret.Store.Store(ctx.state.organisationId, req); err != nil {
+			return err
+		}
+	}
+
+	ctx.registerRollback(func() error {
+		return secret.Store.Delete(ctx.state.organisationId, secretId)
+	})
+
+	return nil
+}
+
 func (dns *awsRoute53) updateStateWithError(state *domainState, err error) {
 	state.status = FAILED
 	state.errMsg = extractErrorMessage(err)
@@ -741,4 +1105,12 @@ func extractErrorMessage(err error) string {
 	}
 
 	return err.Error()
+}
+
+func stripHostedZoneId(id string) string {
+	return strings.Replace(id, "/hostedzone/", "", 1)
+}
+
+func getIAMUserName(orgId uint) string {
+	return fmt.Sprintf(iamUserNameTemplate, orgId)
 }
