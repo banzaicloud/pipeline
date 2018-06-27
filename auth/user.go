@@ -164,7 +164,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 	db := context.Auth.GetDB(context.Request)
 	err = db.Create(currentUser).Error
 	if err != nil {
-		return nil, "", err
+		return nil, "", fmt.Errorf("Failed to create user organization: %s", err.Error())
 	}
 
 	err = helm.InstallLocalHelm(helm.GenerateHelmRepoEnv(currentUser.Organizations[0].Name))
