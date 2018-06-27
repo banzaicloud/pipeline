@@ -7,8 +7,14 @@ import (
 	"strconv"
 	"strings"
 
+	bauth "github.com/banzaicloud/bank-vaults/auth"
+	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/model"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	"github.com/banzaicloud/pipeline/utils"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/sessions"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 	"github.com/qor/auth"
@@ -16,16 +22,11 @@ import (
 	"github.com/qor/auth/claims"
 	"github.com/qor/auth/providers/github"
 	"github.com/qor/redirect_back"
-	"github.com/qor/session/manager"
+	"github.com/qor/session"
+	"github.com/qor/session/gorilla"
 	"github.com/satori/go.uuid"
-	"github.com/spf13/viper"
-
-	bauth "github.com/banzaicloud/bank-vaults/auth"
-	"github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/model"
-	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-	"github.com/banzaicloud/pipeline/utils"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 // DroneSessionCookie holds the name of the Cookie Drone sets in the browser
@@ -41,6 +42,12 @@ const DroneUserTokenType bauth.TokenType = "user"
 const DroneHookTokenType bauth.TokenType = "hook"
 
 // For all Drone token types please see: https://github.com/drone/drone/blob/master/shared/token/token.go#L12
+
+// SessionCookieMaxAge holds long an authenticated session should be valid in seconds
+const SessionCookieMaxAge = 30 * 24 * 60 * 60
+
+// SessionCookieHTTPOnly describes if the cookies should be accessible from HTTP requests only (no JS)
+const SessionCookieHTTPOnly = true
 
 // Init authorization
 var (
@@ -63,6 +70,9 @@ var (
 
 	// Handler is the Gin authentication middleware
 	Handler gin.HandlerFunc
+
+	// SessionManager is responsible for handling browser session Cookies
+	SessionManager session.ManagerInterface
 )
 
 // Simple init for logging
@@ -70,7 +80,7 @@ func init() {
 	log = config.Logger()
 }
 
-//DroneClaims struct to store the drone claim related things
+// DroneClaims struct to store the drone claim related things
 type DroneClaims struct {
 	*claims.Claims
 	Type bauth.TokenType `json:"type,omitempty"`
@@ -79,8 +89,6 @@ type DroneClaims struct {
 
 // Init initializes the auth
 func Init() {
-	viper.SetDefault("auth.jwtissuer", "https://banzaicloud.com/")
-	viper.SetDefault("auth.jwtaudience", "https://pipeline.banzaicloud.com")
 	JwtIssuer = viper.GetString("auth.jwtissuer")
 	JwtAudience = viper.GetString("auth.jwtaudience")
 
@@ -88,11 +96,25 @@ func Init() {
 	if signingKey == "" {
 		panic("Token signing key is missing from configuration")
 	}
-	signingKeyBase32 = base32.StdEncoding.EncodeToString([]byte(signingKey))
+	if len(signingKey) < 32 {
+		panic("Token signing key must be at least 32 characters")
+	}
+
+	signingKeyBytes := []byte(signingKey)
+	signingKeyBase32 = base32.StdEncoding.EncodeToString(signingKeyBytes)
+
+	cookieAuthenticationKey := signingKeyBytes
+	cookieEncryptionKey := signingKeyBytes[:32]
+
+	cookieStore := sessions.NewCookieStore(cookieAuthenticationKey, cookieEncryptionKey)
+	cookieStore.Options.MaxAge = SessionCookieMaxAge
+	cookieStore.Options.HttpOnly = SessionCookieHTTPOnly
+
+	SessionManager = gorilla.New("_banzai_session", cookieStore)
 
 	// A RedirectBack instance which constantly redirects to /ui
 	redirectBack = redirect_back.New(&redirect_back.Config{
-		SessionManager:  manager.SessionManager,
+		SessionManager:  SessionManager,
 		IgnoredPrefixes: []string{"/"},
 		IgnoreFunc: func(r *http.Request) bool {
 			return true
@@ -112,7 +134,7 @@ func Init() {
 		SessionStorer: &BanzaiSessionStorer{
 			SessionStorer: auth.SessionStorer{
 				SessionName:    "_auth_session",
-				SessionManager: manager.SessionManager,
+				SessionManager: SessionManager,
 				SigningMethod:  jwt.SigningMethodHS256,
 				SignedString:   signingKeyBase32,
 			},
@@ -164,7 +186,7 @@ func Install(engine *gin.Engine) {
 
 	// We have to make the raw net/http handlers a bit Gin-ish
 	authHandler := gin.WrapH(Auth.NewServeMux())
-	engine.Use(gin.WrapH(manager.SessionManager.Middleware(utils.NopHandler{})))
+	engine.Use(gin.WrapH(SessionManager.Middleware(utils.NopHandler{})))
 	engine.Use(gin.WrapH(redirectBack.Middleware(utils.NopHandler{})))
 
 	authGroup := engine.Group("/auth/")

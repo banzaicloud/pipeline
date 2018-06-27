@@ -3,7 +3,6 @@ package auth
 import (
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/jinzhu/gorm"
 )
@@ -34,9 +33,9 @@ func SetCookie(w http.ResponseWriter, r *http.Request, name, value string) {
 		Value:    value,
 		Path:     "/",
 		Domain:   r.URL.Host,
-		HttpOnly: true,
+		HttpOnly: SessionCookieHTTPOnly,
 		Secure:   IsHttps(r),
-		MaxAge:   int(30 * 24 * time.Hour.Seconds()),
+		MaxAge:   SessionCookieMaxAge,
 	}
 
 	http.SetCookie(w, &cookie)
