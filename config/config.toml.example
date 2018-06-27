@@ -44,7 +44,8 @@ path = ""
 clientid = ""
 clientsecret = ""
 
-tokensigningkey = "mys3cr3t"
+# This is just an example
+tokensigningkey = "Th1s!sMyR4Nd0MStri4gPleaseChangeIt"
 jwtissueer = "https://banzaicloud.com/"
 jwtaudience = "https://pipeline.banzaicloud.com"
 
