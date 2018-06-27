@@ -10,7 +10,7 @@
 #### Pipeline dependencies 
 
 ``` bash
-docker-compose -f docker-compose-local.yml up -d
+docker-compose -f docker-compose.yml up -d
 ``` 
 
 This will create a `mysql`, `adminer` and `vault` container:
