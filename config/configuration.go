@@ -48,6 +48,9 @@ func init() {
 	}
 	viper.SetDefault("statestore.path", fmt.Sprintf("%s/statestore/", pwd))
 
+	viper.SetDefault("auth.jwtissuer", "https://banzaicloud.com/")
+	viper.SetDefault("auth.jwtaudience", "https://pipeline.banzaicloud.com")
+
 	viper.SetDefault("pipeline.listenport", 9090)
 	viper.SetDefault("pipeline.certfile", "")
 	viper.SetDefault("pipeline.keyfile", "")
