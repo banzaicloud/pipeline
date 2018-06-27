@@ -423,18 +423,25 @@ func BanzaiDeregisterHandler(context *auth.Context) {
 	userAdminOrganizations := []UserOrganization{}
 
 	// Query the organizations where the only admin is the current user.
-	if err := db.Raw("select * from user_organizations where role = ? and organization_id in (select distinct organization_id from user_organizations where user_id = ? and role = ?) group by organization_id having count(*) = 1", "admin", user.ID, "admin").Scan(&userAdminOrganizations).Error; err != nil {
+	sql :=
+		`SELECT * FROM user_organizations WHERE role = ? AND organization_id IN
+		(SELECT DISTINCT organization_id FROM user_organizations WHERE user_id = ? AND role = ?)
+		GROUP BY user_id, organization_id
+		HAVING COUNT(*) = 1`
+
+	if err := db.Raw(sql, "admin", user.ID, "admin").Scan(&userAdminOrganizations).Error; err != nil {
 		log.Errorln("Failed select user only owned organizations:", err)
 		http.Error(context.Writer, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	// If there are any organizations with only this user as admin, throw an error
 	if len(userAdminOrganizations) != 0 {
 		orgs := []string{}
 		for _, org := range userAdminOrganizations {
 			orgs = append(orgs, fmt.Sprint(org.OrganizationID))
 		}
-		http.Error(context.Writer, "You must remove yourself, transfer ownership, or delete these organizations before you can delete your user: "+strings.Join(orgs, ", "), http.StatusBadRequest)
+		http.Error(context.Writer, "You must remove yourself or transfer ownership or delete these organizations before you can delete your user: "+strings.Join(orgs, ", "), http.StatusBadRequest)
 		return
 	}
 
@@ -473,6 +480,7 @@ func BanzaiDeregisterHandler(context *auth.Context) {
 		http.Error(context.Writer, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
 	for _, token := range tokens {
 		err = tokenStore.Revoke(user.IDString(), token.ID)
 		if err != nil {
