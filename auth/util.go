@@ -3,6 +3,7 @@ package auth
 import (
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/jinzhu/gorm"
 )
@@ -35,7 +36,7 @@ func SetCookie(w http.ResponseWriter, r *http.Request, name, value string) {
 		Domain:   r.URL.Host,
 		HttpOnly: true,
 		Secure:   IsHttps(r),
-		MaxAge:   2147483647, // the cookie value (token) is responsible for expiration
+		MaxAge:   int(30 * 24 * time.Hour.Seconds()),
 	}
 
 	http.SetCookie(w, &cookie)
