@@ -389,7 +389,9 @@ func (sessionStorer *BanzaiSessionStorer) Update(w http.ResponseWriter, req *htt
 		return fmt.Errorf("Can't get current user")
 	}
 
-	_, droneToken, err := createAPIToken(claims.UserID, currentUser.Login, DroneUserTokenType)
+	// Drone tokens have to stored in Vault, because they act as Pipeline API tokens as well
+	// TODO We need GC them somehow
+	_, droneToken, err := createAndStoreAPIToken(claims.UserID, currentUser.Login, DroneUserTokenType, "Drone session token")
 	if err != nil {
 		log.Info(req.RemoteAddr, err.Error())
 		return err
