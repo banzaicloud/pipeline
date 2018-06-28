@@ -2,15 +2,14 @@ package catalog
 
 // SpotguideFile to parse spotguide.yaml
 type SpotguideFile struct {
-	Resources *ApplicationResources   `json:"resources" yaml:"resources"`
-	Options   []ApplicationOptions    `json:"options" yaml:"options"`
-	Depends   []ApplicationDependency `json:"depends" yaml:"depends"`
-	Secrets   []ApplicationSecret     `json:"secrets" yaml:"secrets"`
+	Resources *ApplicationResources        `json:"resources" yaml:"resources"`
+	Options   []ApplicationOptions         `json:"options" yaml:"options"`
+	Depends   []ApplicationDependency      `json:"depends" yaml:"depends"`
+	Secrets   map[string]ApplicationSecret `json:"secrets" yaml:"secrets"`
 }
 
 // ApplicationSecret for API response
 type ApplicationSecret struct {
-	Name     string                     `json:"name" yaml:"name" binding:"required"`
 	Htaccess *ApplicationSecretHtaccess `json:"htaccess,omitempty" yaml:"htaccess,omitempty"`
 	Password *ApplicationSecretPassword `json:"password,omitempty" yaml:"password,omitempty"`
 	TLS      *ApplicationSecretTLS      `json:"tls,omitempty" yaml:"tls,omitempty"`
@@ -45,6 +44,7 @@ type ApplicationOptions struct {
 	Key      string   `json:"key" yaml:"key"`
 	Value    string   `json:"value" yaml:"value"`
 	Enum     []string `json:"enum" yaml:"enum"`
+	Ref      string   `json:"$ref,omitempty" yaml:"$ref,omitempty"`
 }
 
 // ApplicationDependency for spotguide.yaml
