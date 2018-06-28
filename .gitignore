@@ -13,3 +13,4 @@ config/config.toml
 *.swp
 orgs/
 *.pem
+*/main/main.go
