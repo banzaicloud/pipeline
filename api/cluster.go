@@ -14,7 +14,6 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
-	pipelineSsh "github.com/banzaicloud/pipeline/ssh"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -248,7 +247,7 @@ func postCreateCluster(commonCluster cluster.CommonCluster, postHooks []cluster.
 	if len(commonCluster.GetSshSecretId()) == 0 && commonCluster.RequiresSshPublicKey() {
 		log.Infof("Generating Ssh Key for the cluster")
 
-		sshSecretId, err := pipelineSsh.KeyAdd(commonCluster.GetOrganizationId(), commonCluster.GetID())
+		sshSecretId, err := commonCluster.GetModel().AddSshKey()
 		if err != nil {
 			log.Errorf("Generating Ssh Key for organization id=%s, cluster id=%s failed: %s", commonCluster.GetOrganizationId(), commonCluster.GetID(), err.Error())
 			return err

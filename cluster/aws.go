@@ -17,7 +17,6 @@ import (
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
-	pipelineSsh "github.com/banzaicloud/pipeline/ssh"
 	"github.com/banzaicloud/pipeline/utils"
 	kcluster "github.com/kubicorn/kubicorn/apis/cluster"
 	"github.com/kubicorn/kubicorn/pkg"
@@ -190,7 +189,7 @@ func (c *AWSCluster) CreateCluster() error {
 		return err
 	}
 
-	sshKey := pipelineSsh.NewKey(clusterSshSecret)
+	sshKey := secret.NewSSHKeyPair(clusterSshSecret)
 
 	runtimeParam.AwsOptions = append(runtimeParam.AwsOptions, SetCredentials(awsCred))
 
@@ -834,12 +833,12 @@ func (c *AWSCluster) DownloadK8sConfig() ([]byte, error) {
 		return nil, err
 	}
 
-	return DownloadK8sConfig(kubicornCluster, c.GetModel().OrganizationId, pipelineSsh.NewKey(sshSecret))
+	return DownloadK8sConfig(kubicornCluster, c.GetModel().OrganizationId, secret.NewSSHKeyPair(sshSecret))
 }
 
 //DownloadK8sConfig downloads the Kubernetes config from the cluster
 // Todo check first if config is locally available
-func DownloadK8sConfig(kubicornCluster *kcluster.Cluster, organizationID uint, key *pipelineSsh.Key) ([]byte, error) {
+func DownloadK8sConfig(kubicornCluster *kcluster.Cluster, organizationID uint, key *secret.SSHKeyPair) ([]byte, error) {
 
 	user := kubicornCluster.SSH.User
 	address := fmt.Sprintf("%s:%s", kubicornCluster.KubernetesAPI.Endpoint, "22")

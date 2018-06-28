@@ -11,7 +11,6 @@ import (
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
-	pipelineSsh "github.com/banzaicloud/pipeline/ssh"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/go-errors/errors"
 )
@@ -115,7 +114,7 @@ func (c *AKSCluster) CreateCluster() error {
 		return err
 	}
 
-	sshKey := pipelineSsh.NewKey(clusterSshSecret)
+	sshKey := secret.NewSSHKeyPair(clusterSshSecret)
 
 	r := azureCluster.CreateClusterRequest{
 		Name:              c.modelCluster.Name,
@@ -263,7 +262,7 @@ func (c *AKSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest) err
 		return err
 	}
 
-	sshKey := pipelineSsh.NewKey(clusterSshSecret)
+	sshKey := secret.NewSSHKeyPair(clusterSshSecret)
 
 	// send separate requests because Azure not supports multiple nodepool modification
 	// Azure not supports adding and deleting nodepools
