@@ -1991,6 +1991,14 @@ paths:
           format: int32
           type: integer
         style: simple
+      - description: validation is skipped or not
+        explode: true
+        in: query
+        name: validate
+        required: false
+        schema:
+          type: boolean
+        style: form
       requestBody:
         content:
           application/json:
@@ -2212,6 +2220,14 @@ paths:
         schema:
           type: string
         style: simple
+      - description: validation is skipped or not
+        explode: true
+        in: query
+        name: validate
+        required: false
+        schema:
+          type: boolean
+        style: form
       requestBody:
         content:
           application/json:
@@ -2258,6 +2274,60 @@ paths:
       security:
       - bearerAuth: []
       summary: Update secrets
+      tags:
+      - secrets
+  /api/v1/orgs/{orgId}/secrets/{secretId}/validate:
+    get:
+      description: Validate secret
+      operationId: ValidateSecret
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Secret identification
+        explode: false
+        in: path
+        name: secretId
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        200:
+          description: Valid secret
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during getting secret
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecretsNotFound'
+          description: Secret not found
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Validate secret
       tags:
       - secrets
   /api/v1/orgs/{orgId}:
@@ -2502,7 +2572,7 @@ paths:
       - description: Secret identifier
         explode: true
         in: query
-        name: secret_id
+        name: secretId
         required: true
         schema:
           type: string
@@ -2576,7 +2646,7 @@ paths:
       - description: Secret identifier
         explode: true
         in: query
-        name: secret_id
+        name: secretId
         required: true
         schema:
           type: string
@@ -2642,7 +2712,7 @@ paths:
       - description: Secret identifier
         explode: true
         in: query
-        name: secret_id
+        name: secretId
         required: true
         schema:
           type: string
@@ -3387,8 +3457,8 @@ components:
         catalogName: mysql-simple
         cluster:
           cloud: google
-          secret_id: 62bc3c75-91fb-4670-bad4-24b401a9deac
           name: gkecluster-pipelineuser-123
+          secretId: 62bc3c75-91fb-4670-bad4-24b401a9deac
           location: us-central1-a
           postHooks:
           - InstallMonitoring
@@ -3421,8 +3491,8 @@ components:
     CreateClusterRequest:
       example:
         cloud: google
-        secret_id: 62bc3c75-91fb-4670-bad4-24b401a9deac
         name: gkecluster-pipelineuser-123
+        secretId: 62bc3c75-91fb-4670-bad4-24b401a9deac
         location: us-central1-a
         postHooks:
         - InstallMonitoring
@@ -3446,7 +3516,7 @@ components:
         cloud:
           example: google
           type: string
-        secret_id:
+        secretId:
           example: 62bc3c75-91fb-4670-bad4-24b401a9deac
           type: string
         postHooks:
@@ -3476,7 +3546,7 @@ components:
       - location
       - name
       - properties
-      - secret_id
+      - secretId
       type: object
     CreateAmazonProperties:
       properties:
@@ -4585,6 +4655,7 @@ components:
         name: My google secret
         id: 62bc3c75-91fb-4670-bad4-24b401a9deac
         type: google
+        error: Validation failed
       properties:
         name:
           example: My google secret
@@ -4594,6 +4665,9 @@ components:
           type: string
         id:
           example: 62bc3c75-91fb-4670-bad4-24b401a9deac
+          type: string
+        error:
+          example: Validation failed
           type: string
       type: object
     CreateSecretRequest:

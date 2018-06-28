@@ -33,9 +33,16 @@ Adding secrets
  * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param orgId Organization identification
  * @param createSecretRequest
+ * @param optional nil or *AddSecretsOpts - Optional Parameters:
+ * @param "Validate" (optional.Bool) -  validation is skipped or not
 @return CreateSecretResponse
 */
-func (a *SecretsApiService) AddSecrets(ctx context.Context, orgId int32, createSecretRequest CreateSecretRequest) (CreateSecretResponse, *http.Response, error) {
+
+type AddSecretsOpts struct {
+    Validate optional.Bool
+}
+
+func (a *SecretsApiService) AddSecrets(ctx context.Context, orgId int32, createSecretRequest CreateSecretRequest, localVarOptionals *AddSecretsOpts) (CreateSecretResponse, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Post")
 		localVarPostBody   interface{}
@@ -52,6 +59,9 @@ func (a *SecretsApiService) AddSecrets(ctx context.Context, orgId int32, createS
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if localVarOptionals != nil && localVarOptionals.Validate.IsSet() {
+		localVarQueryParams.Add("validate", parameterToString(localVarOptionals.Validate.Value(), ""))
+	}
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{"application/json"}
 
@@ -705,9 +715,16 @@ Update secrets
  * @param orgId Organization identification
  * @param secretId Secret identification
  * @param createSecretRequest
+ * @param optional nil or *UpdateSecretsOpts - Optional Parameters:
+ * @param "Validate" (optional.Bool) -  validation is skipped or not
 @return CreateSecretResponse
 */
-func (a *SecretsApiService) UpdateSecrets(ctx context.Context, orgId int32, secretId string, createSecretRequest CreateSecretRequest) (CreateSecretResponse, *http.Response, error) {
+
+type UpdateSecretsOpts struct {
+    Validate optional.Bool
+}
+
+func (a *SecretsApiService) UpdateSecrets(ctx context.Context, orgId int32, secretId string, createSecretRequest CreateSecretRequest, localVarOptionals *UpdateSecretsOpts) (CreateSecretResponse, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Put")
 		localVarPostBody   interface{}
@@ -725,6 +742,9 @@ func (a *SecretsApiService) UpdateSecrets(ctx context.Context, orgId int32, secr
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if localVarOptionals != nil && localVarOptionals.Validate.IsSet() {
+		localVarQueryParams.Add("validate", parameterToString(localVarOptionals.Validate.Value(), ""))
+	}
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{"application/json"}
 
@@ -837,4 +857,112 @@ func (a *SecretsApiService) UpdateSecrets(ctx context.Context, orgId int32, secr
 	}
 
 	return localVarReturnValue, localVarHttpResponse, nil
+}
+
+/* 
+SecretsApiService Validate secret
+Validate secret
+ * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ * @param orgId Organization identification
+ * @param secretId Secret identification
+*/
+func (a *SecretsApiService) ValidateSecret(ctx context.Context, orgId int32, secretId string) (*http.Response, error) {
+	var (
+		localVarHttpMethod = strings.ToUpper("Get")
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+	)
+
+	// create path and map variables
+	localVarPath := a.client.cfg.BasePath + "/api/v1/orgs/{orgId}/secrets/{secretId}/validate"
+	localVarPath = strings.Replace(localVarPath, "{"+"orgId"+"}", fmt.Sprintf("%v", orgId), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"secretId"+"}", fmt.Sprintf("%v", secretId), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	// to determine the Content-Type header
+	localVarHttpContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
+	if localVarHttpContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHttpContentType
+	}
+
+	// to determine the Accept header
+	localVarHttpHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
+	if localVarHttpHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
+	}
+	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	localVarHttpResponse, err := a.client.callAPI(r)
+	if err != nil || localVarHttpResponse == nil {
+		return localVarHttpResponse, err
+	}
+
+	localVarBody, err := ioutil.ReadAll(localVarHttpResponse.Body)
+	localVarHttpResponse.Body.Close()
+	if err != nil {
+		return localVarHttpResponse, err
+	}
+
+	if localVarHttpResponse.StatusCode >= 300 {
+		newErr := GenericOpenAPIError{
+			body: localVarBody,
+			error: localVarHttpResponse.Status,
+		}
+		if localVarHttpResponse.StatusCode == 400 {
+			var v BaseError400
+			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
+				if err != nil {
+					newErr.error = err.Error()
+					return localVarHttpResponse, newErr
+				}
+				newErr.model = v
+				return localVarHttpResponse, newErr
+		}
+		if localVarHttpResponse.StatusCode == 401 {
+			var v Unauthorized
+			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
+				if err != nil {
+					newErr.error = err.Error()
+					return localVarHttpResponse, newErr
+				}
+				newErr.model = v
+				return localVarHttpResponse, newErr
+		}
+		if localVarHttpResponse.StatusCode == 404 {
+			var v SecretsNotFound
+			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
+				if err != nil {
+					newErr.error = err.Error()
+					return localVarHttpResponse, newErr
+				}
+				newErr.model = v
+				return localVarHttpResponse, newErr
+		}
+		if localVarHttpResponse.StatusCode == 500 {
+			var v BaseError500
+			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
+				if err != nil {
+					newErr.error = err.Error()
+					return localVarHttpResponse, newErr
+				}
+				newErr.model = v
+				return localVarHttpResponse, newErr
+		}
+		return localVarHttpResponse, newErr
+	}
+
+	return localVarHttpResponse, nil
 }

@@ -14,7 +14,7 @@ type CreateClusterRequest struct {
 	Name string `json:"name"`
 	Location string `json:"location"`
 	Cloud string `json:"cloud"`
-	SecretId string `json:"secret_id"`
+	SecretId string `json:"secretId"`
 	PostHooks []string `json:"postHooks,omitempty"`
 	Properties map[string]interface{} `json:"properties"`
 }
