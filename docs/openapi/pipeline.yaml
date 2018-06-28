@@ -1824,6 +1824,12 @@ paths:
           description: Organization identification
           schema:
             type: integer
+        - name: validate
+          in: query
+          required: false
+          description: validation is skipped or not
+          schema:
+            type: boolean
       requestBody:
         required: true
         content:
@@ -1988,6 +1994,12 @@ paths:
           description: Secret identification
           schema:
             type: string
+        - name: validate
+          in: query
+          required: false
+          description: validation is skipped or not
+          schema:
+            type: boolean
       requestBody:
         required: true
         content:
@@ -2073,6 +2085,57 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SecretsNotFound'
+
+  '/api/v1/orgs/{orgId}/secrets/{secretId}/validate':
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - secrets
+      summary: Validate secret
+      operationId: ValidateSecret
+      description: Validate secret
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: secretId
+          in: path
+          required: true
+          description: Secret identification
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Valid secret
+
+        '400':
+          description: Error during getting secret
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '404':
+          description: Secret not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecretsNotFound'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
 
   '/api/v1/orgs/{orgId}':
     get:
@@ -2311,7 +2374,7 @@ paths:
           description: Organization identification
           schema:
             type: integer
-        - name: secret_id
+        - name: secretId
           in: query
           required: true
           description: Secret identifier
@@ -2372,7 +2435,7 @@ paths:
           description: Organization identification
           schema:
             type: integer
-        - name: secret_id
+        - name: secretId
           in: query
           required: true
           description: Secret identifier
@@ -2427,7 +2490,7 @@ paths:
           description: Organization identification
           schema:
             type: integer
-        - name: secret_id
+        - name: secretId
           in: query
           required: true
           description: Secret identifier
@@ -3074,7 +3137,7 @@ components:
         - name
         - location
         - cloud
-        - secret_id
+        - secretId
         - properties
       properties:
         name:
@@ -3086,7 +3149,7 @@ components:
         cloud:
           type: string
           example: "google"
-        secret_id:
+        secretId:
           type: string
           example: "62bc3c75-91fb-4670-bad4-24b401a9deac"
         postHooks:
@@ -4512,6 +4575,9 @@ components:
         id:
           type: string
           example: "62bc3c75-91fb-4670-bad4-24b401a9deac"
+        error:
+          type: string
+          example: "Validation failed"
 
     CreateSecretRequest:
       type: object

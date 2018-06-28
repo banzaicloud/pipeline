@@ -84,6 +84,7 @@ Class | Method | HTTP request | Description
 *SecretsApi* | [**GetSecret**](docs/SecretsApi.md#getsecret) | **Get** /api/v1/orgs/{orgId}/secrets/{secretId} | Get secret
 *SecretsApi* | [**GetSecrets**](docs/SecretsApi.md#getsecrets) | **Get** /api/v1/orgs/{orgId}/secrets | List secrets
 *SecretsApi* | [**UpdateSecrets**](docs/SecretsApi.md#updatesecrets) | **Put** /api/v1/orgs/{orgId}/secrets/{secretId} | Update secrets
+*SecretsApi* | [**ValidateSecret**](docs/SecretsApi.md#validatesecret) | **Get** /api/v1/orgs/{orgId}/secrets/{secretId}/validate | Validate secret
 *StorageApi* | [**CreateObjectStoreBucket**](docs/StorageApi.md#createobjectstorebucket) | **Post** /api/v1/orgs/{orgId}/buckets | Creates a new object store bucket with the given params
 *StorageApi* | [**DeleteObjectStoreBucket**](docs/StorageApi.md#deleteobjectstorebucket) | **Delete** /api/v1/orgs/{orgId}/buckets/{name} | Deletes the object store bucket with the given name
 *StorageApi* | [**GetObjectStoreBucketStatus**](docs/StorageApi.md#getobjectstorebucketstatus) | **Head** /api/v1/orgs/{orgId}/buckets/{name} | Get object store bucket status

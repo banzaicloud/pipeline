@@ -39,9 +39,10 @@ type secretStore struct {
 
 // CreateSecretResponse API response for AddSecrets
 type CreateSecretResponse struct {
-	Name string `json:"name" binding:"required"`
-	Type string `json:"type" binding:"required"`
-	ID   string `json:"id"`
+	Name  string `json:"name" binding:"required"`
+	Type  string `json:"type" binding:"required"`
+	ID    string `json:"id"`
+	Error string `json:"error,omitempty"`
 }
 
 // CreateSecretRequest param for Store.Store

@@ -14,10 +14,69 @@ import (
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/go-errors/errors"
+	"strconv"
 )
 
 // ErrNotSupportedSecretType describe an error if the secret type is not supported
 var ErrNotSupportedSecretType = errors.New("Not supported secret type")
+
+// ValidateSecret validates the given secret
+func ValidateSecret(c *gin.Context) {
+
+	log.Info("start validation secret")
+
+	log.Info("Get organization id from params")
+	organizationID := auth.GetCurrentOrganization(c.Request).ID
+	log.Infof("Organization id [%d]", organizationID)
+
+	secretID := c.Param("id")
+	log.Infof("secret id [%d]", secretID)
+
+	secretItem, err := secret.Store.Get(organizationID, secretID)
+	if err != nil {
+		log.Errorf("Error during getting secret: %s", err.Error())
+		c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error during getting secret",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	version := int(secretItem.Version)
+
+	if ok, _ := validateSecret(c, &secret.CreateSecretRequest{
+		Name:      secretItem.Name,
+		Type:      secretItem.Type,
+		Values:    secretItem.Values,
+		Tags:      secretItem.Tags,
+		Version:   &version,
+		UpdatedBy: secretItem.UpdatedBy,
+	}, true); ok {
+		c.Status(http.StatusOK)
+	}
+
+}
+
+func validateSecret(c *gin.Context, createSecretRequest *secret.CreateSecretRequest, validate bool) (ok bool, validationError error) {
+
+	ok = true
+	log.Info("Start validation")
+	verifier := verify.NewVerifier(createSecretRequest.Type, createSecretRequest.Values)
+	if validationError = createSecretRequest.Validate(verifier); validationError != nil && validate {
+		ok = false
+		log.Errorf("Validation error: %s", validationError.Error())
+		c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Validation error",
+			Error:   validationError.Error(),
+		})
+	} else {
+		log.Info("Validation passed")
+	}
+
+	return
+}
 
 // AddSecrets saves the given secret to vault
 func AddSecrets(c *gin.Context) {
@@ -27,6 +86,14 @@ func AddSecrets(c *gin.Context) {
 	log.Info("Get organization id from params")
 	organizationID := auth.GetCurrentOrganization(c.Request).ID
 	log.Infof("Organization id: %d", organizationID)
+
+	validateParam := c.DefaultQuery("validate", "true")
+	validate, err := strconv.ParseBool(validateParam)
+	if err != nil {
+		validate = true
+	}
+
+	log.Infof("validate value %t", validate)
 
 	var createSecretRequest secret.CreateSecretRequest
 	if err := c.ShouldBind(&createSecretRequest); err != nil {
@@ -48,18 +115,11 @@ func AddSecrets(c *gin.Context) {
 
 	log.Info("Binding request succeeded")
 
-	log.Info("Start validation")
-	verifier := verify.NewVerifier(createSecretRequest.Type, createSecretRequest.Values)
-	if err := createSecretRequest.Validate(verifier); err != nil {
-		log.Errorf("Validation error: %s", err.Error())
-		c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Validation error",
-			Error:   err.Error(),
-		})
+	var validationError error
+	var ok bool
+	if ok, validationError = validateSecret(c, &createSecretRequest, validate); !ok {
 		return
 	}
-	log.Info("Validation passed")
 
 	secretID, err := secret.Store.Store(organizationID, &createSecretRequest)
 	if err != nil {
@@ -81,10 +141,16 @@ func AddSecrets(c *gin.Context) {
 
 	log.Infof("Secret stored at: %d/%s", organizationID, secretID)
 
+	var errorMsg string
+	if validationError != nil {
+		errorMsg = validationError.Error()
+	}
+
 	c.JSON(http.StatusCreated, secret.CreateSecretResponse{
-		Name: createSecretRequest.Name,
-		Type: createSecretRequest.Type,
-		ID:   secretID,
+		Name:  createSecretRequest.Name,
+		Type:  createSecretRequest.Type,
+		ID:    secretID,
+		Error: errorMsg,
 	})
 }
 
@@ -95,6 +161,14 @@ func UpdateSecrets(c *gin.Context) {
 	log.Debugf("Organization id: %d", organizationID)
 
 	secretID := c.Param("id")
+
+	validateParam := c.DefaultQuery("validate", "true")
+	validate, err := strconv.ParseBool(validateParam)
+	if err != nil {
+		validate = true
+	}
+
+	log.Infof("validate value %t", validate)
 
 	var createSecretRequest secret.CreateSecretRequest
 	if err := c.ShouldBind(&createSecretRequest); err != nil {
@@ -127,18 +201,11 @@ func UpdateSecrets(c *gin.Context) {
 
 	log.Info("Binding request succeeded")
 
-	log.Info("Start validation")
-	verifier := verify.NewVerifier(createSecretRequest.Type, createSecretRequest.Values)
-	if err := createSecretRequest.Validate(verifier); err != nil {
-		log.Errorf("Validation error: %s", err.Error())
-		c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Validation error",
-			Error:   err.Error(),
-		})
+	var validationError error
+	var ok bool
+	if ok, validationError = validateSecret(c, &createSecretRequest, validate); !ok {
 		return
 	}
-	log.Info("Validation passed")
 
 	if err := secret.Store.Update(organizationID, secretID, &createSecretRequest); err != nil {
 		statusCode := http.StatusInternalServerError
@@ -156,10 +223,16 @@ func UpdateSecrets(c *gin.Context) {
 
 	log.Debugf("Secret updated at: %s/%s", organizationID, secretID)
 
+	var errorMsg string
+	if validationError != nil {
+		errorMsg = validationError.Error()
+	}
+
 	c.JSON(http.StatusOK, secret.CreateSecretResponse{
-		Name: createSecretRequest.Name,
-		Type: createSecretRequest.Type,
-		ID:   secretID,
+		Name:  createSecretRequest.Name,
+		Type:  createSecretRequest.Type,
+		ID:    secretID,
+		Error: errorMsg,
 	})
 }
 

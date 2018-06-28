@@ -202,6 +202,7 @@ func main() {
 			orgs.POST("/:orgid/secrets", api.AddSecrets)
 			orgs.PUT("/:orgid/secrets/:id", api.UpdateSecrets)
 			orgs.DELETE("/:orgid/secrets/:id", api.DeleteSecrets)
+			orgs.GET("/:orgid/secrets/:id/validate", api.ValidateSecret)
 			orgs.GET("/:orgid/users", api.GetUsers)
 			orgs.GET("/:orgid/users/:id", api.GetUsers)
 			orgs.POST("/:orgid/users/:id", api.AddUser)
