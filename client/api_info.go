@@ -54,7 +54,7 @@ func (a *InfoApiService) GetAmazonConfig(ctx context.Context, orgId int32, secre
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-	localVarQueryParams.Add("secret_id", parameterToString(secretId, ""))
+	localVarQueryParams.Add("secretId", parameterToString(secretId, ""))
 	localVarQueryParams.Add("fields", parameterToString(fields, ""))
 	localVarQueryParams.Add("tags", parameterToString(tags, ""))
 	localVarQueryParams.Add("location", parameterToString(location, ""))
@@ -167,7 +167,7 @@ func (a *InfoApiService) GetAzureConfig(ctx context.Context, orgId int32, secret
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-	localVarQueryParams.Add("secret_id", parameterToString(secretId, ""))
+	localVarQueryParams.Add("secretId", parameterToString(secretId, ""))
 	localVarQueryParams.Add("fields", parameterToString(fields, ""))
 	localVarQueryParams.Add("location", parameterToString(location, ""))
 	// to determine the Content-Type header
@@ -279,7 +279,7 @@ func (a *InfoApiService) GetGoogleConfig(ctx context.Context, orgId int32, secre
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-	localVarQueryParams.Add("secret_id", parameterToString(secretId, ""))
+	localVarQueryParams.Add("secretId", parameterToString(secretId, ""))
 	localVarQueryParams.Add("fields", parameterToString(fields, ""))
 	localVarQueryParams.Add("location", parameterToString(location, ""))
 	// to determine the Content-Type header
