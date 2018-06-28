@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/banzaicloud/pipeline/client"
+	"github.com/antihax/optional"
 )
 
 // First you have to create a Pipeline Bearer token and put it into the TOKEN env variable.
@@ -32,7 +33,9 @@ func main() {
 		Tags:   []string{"banzai:hidden"},
 	}
 
-	secretResponse, _, err := pipeline.SecretsApi.AddSecrets(ctx, 2, secretRequest)
+	secretResponse, _, err := pipeline.SecretsApi.AddSecrets(ctx, 2, secretRequest, &client.AddSecretsOpts{
+		Validate: optional.NewBool(true),
+	})
 	if err != nil {
 		panic(err)
 	}
