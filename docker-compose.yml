@@ -43,7 +43,7 @@ services:
       VAULT_ADDR: http://vault:8200
     volumes:
       - $HOME:/root
-      - ./vault-enable-database.sh:/bin/vault-enable-database.sh
+      - ./scripts/vault-enable-database.sh:/bin/vault-enable-database.sh
 
   drone-server:
     image: banzaicloud/drone:0.3.0
