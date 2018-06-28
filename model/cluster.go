@@ -2,9 +2,8 @@ package model
 
 import (
 	"bytes"
-	"fmt"
-
 	"encoding/json"
+	"fmt"
 	"time"
 
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -357,6 +356,25 @@ func (cs *ClusterModel) UpdateConfigSecret(configSecretId string) error {
 func (cs *ClusterModel) UpdateSshSecret(sshSecretId string) error {
 	cs.SshSecretId = sshSecretId
 	return cs.Save()
+}
+
+// AddSshKey generates and associates an SSH key with the cluster
+func (cs *ClusterModel) AddSshKey() (string, error) {
+	log.Info("Generate and store SSH key ")
+
+	sshKey, err := secret.GenerateSSHKeyPair()
+	if err != nil {
+		log.Errorf("KeyGenerator failed reason: %s", err.Error())
+		return "", err
+	}
+
+	secretId, err := secret.StoreSSHKeyPair(sshKey, cs.OrganizationId, cs.Name)
+	if err != nil {
+		log.Errorf("KeyStore failed reason: %s", err.Error())
+		return "", err
+	}
+
+	return secretId, nil
 }
 
 // ReloadFromDatabase load cluster from DB

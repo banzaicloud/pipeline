@@ -1,12 +1,11 @@
 package cluster
 
 import (
+	"encoding/base64"
 	"fmt"
 	"os"
 	"strings"
 	"syscall"
-
-	"encoding/base64"
 
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"

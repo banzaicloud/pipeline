@@ -1,6 +1,4 @@
-package ssh
-
-// TODO this file has to be moved to the `secret` package
+package secret
 
 import (
 	"bytes"
@@ -11,23 +9,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/model"
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
-	"github.com/banzaicloud/pipeline/secret"
-	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 )
 
-var log *logrus.Logger
-
-// Simple init for logging
-func init() {
-	log = config.Logger()
-}
-
-//Key struct for store ssh key data
-type Key struct {
+// SSHKeyPair struct to store SSH key data
+type SSHKeyPair struct {
 	User                 string `json:"user,omitempty"`
 	Identifier           string `json:"identifier,omitempty"`
 	PublicKeyData        string `json:"publicKeyData,omitempty"`
@@ -35,10 +22,10 @@ type Key struct {
 	PrivateKeyData       string `json:"PrivateKeyData,omitempty"`
 }
 
-// NewKey constructs a Ssh Key from the values stored
+// NewSSHKeyPair constructs a SSH Key from the values stored
 // in the given secret
-func NewKey(s *secret.SecretItemResponse) *Key {
-	return &Key{
+func NewSSHKeyPair(s *SecretItemResponse) *SSHKeyPair {
+	return &SSHKeyPair{
 		User:                 s.Values[secretTypes.User],
 		Identifier:           s.Values[secretTypes.Identifier],
 		PublicKeyData:        s.Values[secretTypes.PublicKeyData],
@@ -47,34 +34,10 @@ func NewKey(s *secret.SecretItemResponse) *Key {
 	}
 }
 
-// KeyAdd for Generate and store SSH key
-func KeyAdd(organizationId uint, clusterId uint) (string, error) {
-	log.Info("Generate and store SSH key ")
-
-	sshKey, err := KeyGenerator()
-	if err != nil {
-		log.Errorf("KeyGenerator failed reason: %s", err.Error())
-		return "", err
-	}
-
-	db := model.GetDB()
-	cluster := model.ClusterModel{ID: clusterId}
-	if err = db.First(&cluster).Error; err != nil {
-		log.Errorf("Cluster with id=% not found: %s", cluster.ID, err.Error())
-		return "", err
-	}
-	secretId, err := KeyStore(sshKey, organizationId, cluster.Name)
-	if err != nil {
-		log.Errorf("KeyStore failed reason: %s", err.Error())
-		return "", err
-	}
-	return secretId, nil
-}
-
-// KeyStore for store SSH Key to Bank Vaults
-func KeyStore(key *Key, organizationID uint, clusterName string) (secretID string, err error) {
+// StoreSSHKeyPair to store SSH Key to Bank Vaults
+func StoreSSHKeyPair(key *SSHKeyPair, organizationID uint, clusterName string) (secretID string, err error) {
 	log.Info("Store SSH Key to Bank Vaults")
-	var createSecretRequest secret.CreateSecretRequest
+	var createSecretRequest CreateSecretRequest
 	createSecretRequest.Type = secretTypes.SSHSecretType
 	createSecretRequest.Name = clusterName
 
@@ -86,7 +49,7 @@ func KeyStore(key *Key, organizationID uint, clusterName string) (secretID strin
 		secretTypes.PrivateKeyData:       key.PrivateKeyData,
 	}
 
-	secretID, err = secret.Store.Store(organizationID, &createSecretRequest)
+	secretID, err = Store.Store(organizationID, &createSecretRequest)
 
 	if err != nil {
 		log.Errorf("Error during store: %s", err.Error())
@@ -97,11 +60,11 @@ func KeyStore(key *Key, organizationID uint, clusterName string) (secretID strin
 	return
 }
 
-// KeyGenerator for Generate new SSH Key
-func KeyGenerator() (*Key, error) {
-	log.Info("Generate new ssh key")
+// GenerateSSHKeyPair for Generate new SSH Key pair
+func GenerateSSHKeyPair() (*SSHKeyPair, error) {
+	log.Info("Generate new SSH key")
 
-	key := new(Key)
+	key := new(SSHKeyPair)
 
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
