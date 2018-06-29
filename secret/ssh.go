@@ -35,11 +35,12 @@ func NewSSHKeyPair(s *SecretItemResponse) *SSHKeyPair {
 }
 
 // StoreSSHKeyPair to store SSH Key to Bank Vaults
-func StoreSSHKeyPair(key *SSHKeyPair, organizationID uint, clusterName string) (secretID string, err error) {
+func StoreSSHKeyPair(key *SSHKeyPair, organizationID uint, clusterID uint, clusterName string) (secretID string, err error) {
 	log.Info("Store SSH Key to Bank Vaults")
 	var createSecretRequest CreateSecretRequest
 	createSecretRequest.Type = secretTypes.SSHSecretType
-	createSecretRequest.Name = clusterName
+	createSecretRequest.Name = fmt.Sprint("ssh-cluster-", clusterID)
+	createSecretRequest.Tags = []string{"cluster:" + clusterName}
 
 	createSecretRequest.Values = map[string]string{
 		secretTypes.User:                 key.User,
