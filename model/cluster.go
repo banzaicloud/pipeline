@@ -368,7 +368,7 @@ func (cs *ClusterModel) AddSshKey() (string, error) {
 		return "", err
 	}
 
-	secretId, err := secret.StoreSSHKeyPair(sshKey, cs.OrganizationId, cs.Name)
+	secretId, err := secret.StoreSSHKeyPair(sshKey, cs.OrganizationId, cs.ID, cs.Name)
 	if err != nil {
 		log.Errorf("KeyStore failed reason: %s", err.Error())
 		return "", err
