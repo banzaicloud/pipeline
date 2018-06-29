@@ -161,6 +161,7 @@ func main() {
 			orgs.DELETE("/:orgid/applications/:id", api.DeleteApplications)
 
 			orgs.GET("/:orgid/catalogs", api.GetCatalogs)
+			orgs.PUT("/:orgid/catalogs/update", api.UpdateCatalogs)
 			orgs.GET("/:orgid/catalogs/:name", api.CatalogDetails)
 
 			orgs.POST("/:orgid/clusters", api.CreateClusterRequest)

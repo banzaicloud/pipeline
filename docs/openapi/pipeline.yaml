@@ -64,6 +64,25 @@ paths:
               schema:
                 $ref: '#/components/schemas/ListCatalogResponse'
 
+  '/api/v1/orgs/{orgId}/catalogs/update':
+    put:
+      security:
+        - bearerAuth: []
+      tags:
+        - catalogs
+      summary: Update repository for catalog
+      operationId: UpdateCatalogs
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+      responses:
+        '202':
+          description: Catalog update
+
   '/api/v1/orgs/{orgId}/catalogs/{name}':
     get:
       security:

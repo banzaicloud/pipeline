@@ -15,6 +15,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
+	"k8s.io/helm/pkg/getter"
 	helm_env "k8s.io/helm/pkg/helm/environment"
 	"k8s.io/helm/pkg/repo"
 	"k8s.io/helm/pkg/strvals"
@@ -73,6 +74,29 @@ func EnsureCatalog(env helm_env.EnvSettings) error {
 		return err
 	}
 	return nil
+}
+
+// CatalogUpdate updates catalog repo
+func CatalogUpdate(env helm_env.EnvSettings) error {
+	f, err := repo.LoadRepositoriesFile(env.Home.RepositoryFile())
+
+	if err != nil {
+		return errors.Wrap(err, "can't load repositories file")
+	}
+	for _, cfg := range f.Repositories {
+		if cfg.Name == CatalogRepository {
+			c, err := repo.NewChartRepository(cfg, getter.All(env))
+			if err != nil {
+				return errors.Wrap(err, "cannot get ChartRepo")
+			}
+			errIdx := c.DownloadIndexFile("")
+			if errIdx != nil {
+				return errors.Wrap(errIdx, "Repo index download failed")
+			}
+			return nil
+		}
+	}
+	return errors.New("catalog not found")
 }
 
 // ListCatalogs for API

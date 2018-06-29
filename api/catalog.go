@@ -55,3 +55,19 @@ func GetCatalogs(c *gin.Context) {
 
 	c.JSON(http.StatusOK, catalogs)
 }
+
+// UpdateCatalogs will update helm repository under catalog
+func UpdateCatalogs(c *gin.Context) {
+	organization := auth.GetCurrentOrganization(c.Request)
+	env := catalog.GenerateCatalogEnv(organization.Name)
+	err := catalog.CatalogUpdate(env)
+	if err != nil {
+		c.JSON(http.StatusNotFound, pkgCommon.ErrorResponse{
+			Code:    http.StatusNotFound,
+			Message: "catalogs update failed",
+			Error:   "catalogs update failed",
+		})
+		return
+	}
+	c.Status(http.StatusAccepted)
+}
