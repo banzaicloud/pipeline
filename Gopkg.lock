@@ -188,14 +188,14 @@
   revision = "ebb6ef24cd5c253a2da0bca7a6a321b7d954b3a3"
 
 [[projects]]
+  branch = "master"
   name = "github.com/banzaicloud/bank-vaults"
   packages = [
     "auth",
     "database",
     "vault"
   ]
-  revision = "30a276bf4e8c7f8437a716b024add9cedd3fb5c8"
-  version = "0.2.2"
+  revision = "872ad29d3d282c73226ea1acccfde9ade3e0c408"
 
 [[projects]]
   branch = "master"
@@ -1077,6 +1077,12 @@
   version = "v1.0.2"
 
 [[projects]]
+  name = "github.com/technosophos/moniker"
+  packages = ["."]
+  revision = "a5dbd03a2245d554160e3ae6bfdcf969fe58b431"
+  version = "0.2.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/tent/http-link-go"
   packages = ["."]
@@ -1815,6 +1821,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "5510dfc5d856760f6353cf7de713a5a9bed9c969cfa410d78abf08572cf3d0f2"
+  inputs-digest = "4b81aeedc36403931fea913a840921a4655b333deb1dcb65d33db1e3b895b22d"
   solver-name = "gps-cdcl"
   solver-version = 1

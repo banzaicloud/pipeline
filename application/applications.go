@@ -14,6 +14,7 @@ import (
 	k8s "github.com/banzaicloud/pipeline/kubernetes"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCatalog "github.com/banzaicloud/pipeline/pkg/catalog"
+	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/pkg/errors"
@@ -116,12 +117,35 @@ func CreateApplication(am *model.Application, options []pkgCatalog.ApplicationOp
 	return nil
 }
 
+func getReleaseName(kubeConfig []byte) (string, error) {
+	// Check if we want filter
+	filter := ""
+	// Generate release name
+	var releaseName string
+	// Check if it exists regenerate on collision
+	lrs, err := helm.ListDeployments(&filter, kubeConfig)
+	if err != nil {
+		return "", err
+	}
+	for i := 0; i < 5; i++ {
+		releaseName = pkgHelm.GenerateReleaseName()
+		for _, release := range lrs.Releases {
+			if release.Name == releaseName {
+				continue
+			}
+		}
+		return releaseName, nil
+	}
+	return "", fmt.Errorf("release name collision: %s", releaseName)
+}
+
 // CreateApplicationDeployment will deploy a Catalog with Dependency
 func CreateApplicationDeployment(env helm_env.EnvSettings, am *model.Application, options []pkgCatalog.ApplicationOptions, catalogInfo *catalog.CatalogDetails, kubeConfig []byte) error {
 
-	// RELEASE_NAME TODO
-	// Helm function to generate name
-	releaseName := helm.DefaultNamespace
+	releaseName, err := getReleaseName(kubeConfig)
+	if err != nil {
+		return err
+	}
 
 	// Generate secrets for spotguide
 	secretTag := fmt.Sprintf("application:%d", am.ID)
@@ -152,7 +176,7 @@ func CreateApplicationDeployment(env helm_env.EnvSettings, am *model.Application
 
 	// Install secrets into cluster for spotguide
 	secretQuery := pkgSecret.ListSecretsQuery{Type: pkgSecret.AllSecrets, Tag: secretTag}
-	_, err := cluster.InstallSecretsByK8SConfig(kubeConfig, am.OrganizationId, &secretQuery, helm.DefaultNamespace)
+	_, err = cluster.InstallSecretsByK8SConfig(kubeConfig, am.OrganizationId, &secretQuery, helm.DefaultNamespace)
 	if err != nil {
 		return err
 	}

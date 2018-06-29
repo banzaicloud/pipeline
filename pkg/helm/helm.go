@@ -1,5 +1,7 @@
 package helm
 
+import "github.com/technosophos/moniker"
+
 // ### [ Constants to helm]
 const (
 	HELM_RETRY_ATTEMPT_CONFIG = "helm.retryAttempt"
@@ -12,6 +14,8 @@ const (
 	BanzaiRepository = "banzaicloud-stable"
 	HelmPostFix      = "helm"
 )
+
+const releaseNameMaxLen = 53
 
 // Install describes an Helm install request
 type Install struct {
@@ -106,4 +110,14 @@ type ListDeploymentResponse struct {
 type DeploymentStatusResponse struct {
 	Status  int    `json:"status"`
 	Message string `json:"message"`
+}
+
+// GenerateReleaseName Generate Helm like release name
+func GenerateReleaseName() string {
+	namer := moniker.New()
+	name := namer.NameSep("-")
+	if len(name) > releaseNameMaxLen {
+		name = name[:releaseNameMaxLen]
+	}
+	return name
 }
