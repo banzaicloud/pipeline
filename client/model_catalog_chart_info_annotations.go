@@ -11,6 +11,6 @@
 package client
 
 type CatalogChartInfoAnnotations struct {
-	DisplayName string `json:"displayName,omitempty"`
+	DisplayName     string `json:"displayName,omitempty"`
 	LongDescription string `json:"longDescription,omitempty"`
 }

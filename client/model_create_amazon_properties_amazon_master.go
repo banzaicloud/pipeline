@@ -12,5 +12,5 @@ package client
 
 type CreateAmazonPropertiesAmazonMaster struct {
 	InstanceType string `json:"instanceType,omitempty"`
-	Image string `json:"image,omitempty"`
+	Image        string `json:"image,omitempty"`
 }

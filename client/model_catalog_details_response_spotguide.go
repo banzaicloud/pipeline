@@ -11,6 +11,6 @@
 package client
 
 type CatalogDetailsResponseSpotguide struct {
-	Resources RequestedResources `json:"resources,omitempty"`
-	Options []map[string]interface{} `json:"options,omitempty"`
+	Resources RequestedResources       `json:"resources,omitempty"`
+	Options   []map[string]interface{} `json:"options,omitempty"`
 }

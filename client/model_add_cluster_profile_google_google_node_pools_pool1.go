@@ -11,7 +11,7 @@
 package client
 
 type AddClusterProfileGoogleGoogleNodePoolsPool1 struct {
-	Count int32 `json:"count,omitempty"`
+	Count          int32  `json:"count,omitempty"`
 	ServiceAccount string `json:"serviceAccount,omitempty"`
-	InstanceType string `json:"instanceType,omitempty"`
+	InstanceType   string `json:"instanceType,omitempty"`
 }

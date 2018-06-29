@@ -11,11 +11,11 @@
 package client
 
 type CatalogOptionsMysqlDatabaseSize struct {
-	Name string `json:"name,omitempty"`
-	Type string `json:"type,omitempty"`
-	Info string `json:"info,omitempty"`
-	Default int32 `json:"default,omitempty"`
-	Readonly bool `json:"readonly,omitempty"`
-	Enabled bool `json:"enabled,omitempty"`
-	Key string `json:"key,omitempty"`
+	Name     string `json:"name,omitempty"`
+	Type     string `json:"type,omitempty"`
+	Info     string `json:"info,omitempty"`
+	Default  int32  `json:"default,omitempty"`
+	Readonly bool   `json:"readonly,omitempty"`
+	Enabled  bool   `json:"enabled,omitempty"`
+	Key      string `json:"key,omitempty"`
 }

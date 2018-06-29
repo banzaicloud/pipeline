@@ -11,7 +11,7 @@
 package client
 
 type TokenCreateResponse struct {
-	Id string `json:"id"`
+	Id    string `json:"id"`
 	Token string `json:"token"`
-	Name string `json:"name"`
+	Name  string `json:"name"`
 }

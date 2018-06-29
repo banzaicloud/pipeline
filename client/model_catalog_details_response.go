@@ -13,6 +13,6 @@ package client
 type CatalogDetailsResponse struct {
 	Chart CatalogChartInfo `json:"chart,omitempty"`
 	// Catalog Readme.md in base64 encoded string
-	Readme string `json:"readme,omitempty"`
+	Readme    string                          `json:"readme,omitempty"`
 	Spotguide CatalogDetailsResponseSpotguide `json:"spotguide,omitempty"`
 }

@@ -11,12 +11,12 @@
 package client
 
 type SecretKeyValueTls struct {
-	Hosts string `json:"hosts"`
-	Validity string `json:"validity,omitempty"`
-	CaCert string `json:"caCert,omitempty"`
-	CaKey string `json:"caKey,omitempty"`
+	Hosts      string `json:"hosts"`
+	Validity   string `json:"validity,omitempty"`
+	CaCert     string `json:"caCert,omitempty"`
+	CaKey      string `json:"caKey,omitempty"`
 	ServerCert string `json:"serverCert,omitempty"`
-	ServerKey string `json:"serverKey,omitempty"`
+	ServerKey  string `json:"serverKey,omitempty"`
 	ClientCert string `json:"clientCert,omitempty"`
-	ClientKey string `json:"clientKey,omitempty"`
+	ClientKey  string `json:"clientKey,omitempty"`
 }

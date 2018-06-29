@@ -11,6 +11,6 @@
 package client
 
 type SecretKeyValueAmazon struct {
-	AWS_ACCESS_KEY_ID string `json:"AWS_ACCESS_KEY_ID"`
+	AWS_ACCESS_KEY_ID     string `json:"AWS_ACCESS_KEY_ID"`
 	AWS_SECRET_ACCESS_KEY string `json:"AWS_SECRET_ACCESS_KEY"`
 }

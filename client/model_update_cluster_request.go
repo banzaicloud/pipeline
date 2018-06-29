@@ -11,6 +11,6 @@
 package client
 
 type UpdateClusterRequest struct {
-	Cloud string `json:"cloud"`
+	Cloud      string                 `json:"cloud"`
 	Properties map[string]interface{} `json:"properties"`
 }

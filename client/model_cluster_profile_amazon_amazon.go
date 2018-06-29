@@ -11,6 +11,6 @@
 package client
 
 type ClusterProfileAmazonAmazon struct {
-	Master CreateAmazonPropertiesAmazonMaster `json:"master,omitempty"`
+	Master    CreateAmazonPropertiesAmazonMaster  `json:"master,omitempty"`
 	NodePools ClusterProfileAmazonAmazonNodePools `json:"nodePools,omitempty"`
 }

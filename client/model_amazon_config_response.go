@@ -11,9 +11,9 @@
 package client
 
 type AmazonConfigResponse struct {
-	Type string `json:"type,omitempty"`
-	NameRegexp string `json:"nameRegexp,omitempty"`
-	Locations string `json:"locations,omitempty"`
-	Image AmazonConfigResponseImage `json:"image,omitempty"`
+	Type         string                           `json:"type,omitempty"`
+	NameRegexp   string                           `json:"nameRegexp,omitempty"`
+	Locations    string                           `json:"locations,omitempty"`
+	Image        AmazonConfigResponseImage        `json:"image,omitempty"`
 	InstanceType AmazonConfigResponseInstanceType `json:"instanceType,omitempty"`
 }

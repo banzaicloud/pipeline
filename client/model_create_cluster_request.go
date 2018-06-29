@@ -11,10 +11,10 @@
 package client
 
 type CreateClusterRequest struct {
-	Name string `json:"name"`
-	Location string `json:"location"`
-	Cloud string `json:"cloud"`
-	SecretId string `json:"secretId"`
-	PostHooks []string `json:"postHooks,omitempty"`
+	Name       string                 `json:"name"`
+	Location   string                 `json:"location"`
+	Cloud      string                 `json:"cloud"`
+	SecretId   string                 `json:"secretId"`
+	PostHooks  []string               `json:"postHooks,omitempty"`
 	Properties map[string]interface{} `json:"properties"`
 }

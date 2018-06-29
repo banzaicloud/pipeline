@@ -11,7 +11,7 @@
 package client
 
 type TokenListResponseItem struct {
-	Id string `json:"id"`
+	Id        string `json:"id"`
 	CreatedAt string `json:"createdAt"`
-	Name string `json:"name"`
+	Name      string `json:"name"`
 }

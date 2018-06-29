@@ -11,6 +11,6 @@
 package client
 
 type TokenCreateRequest struct {
-	Name string `json:"name"`
+	Name        string `json:"name"`
 	VirtualUser string `json:"virtualUser,omitempty"`
 }

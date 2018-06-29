@@ -11,15 +11,15 @@
 package client
 
 type ApplicationDetailsResponse struct {
-	Name string `json:"name,omitempty"`
-	CreatedAt string `json:"createdAt,omitempty"`
-	UpdatedAt string `json:"updatedAt,omitempty"`
-	CatalogName string `json:"catalogName,omitempty"`
-	Description string `json:"description,omitempty"`
-	Icon string `json:"icon,omitempty"`
-	OrganizationId int32 `json:"organizationId,omitempty"`
-	ClusterName string `json:"cluster_name,omitempty"`
-	ClusterId int32 `json:"cluster_id,omitempty"`
-	Readme string `json:"readme,omitempty"`
-	Deployments []ApplicationDeploymentItem `json:"deployments,omitempty"`
+	Name           string                      `json:"name,omitempty"`
+	CreatedAt      string                      `json:"createdAt,omitempty"`
+	UpdatedAt      string                      `json:"updatedAt,omitempty"`
+	CatalogName    string                      `json:"catalogName,omitempty"`
+	Description    string                      `json:"description,omitempty"`
+	Icon           string                      `json:"icon,omitempty"`
+	OrganizationId int32                       `json:"organizationId,omitempty"`
+	ClusterName    string                      `json:"cluster_name,omitempty"`
+	ClusterId      int32                       `json:"cluster_id,omitempty"`
+	Readme         string                      `json:"readme,omitempty"`
+	Deployments    []ApplicationDeploymentItem `json:"deployments,omitempty"`
 }

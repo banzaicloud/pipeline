@@ -11,7 +11,7 @@
 package client
 
 type ClusterProfileGoogleGoogle struct {
-	Master CreateGooglePropertiesGoogleMaster `json:"master,omitempty"`
-	NodeVersion string `json:"nodeVersion,omitempty"`
-	NodePools ClusterProfileGoogleGoogleNodePools `json:"nodePools,omitempty"`
+	Master      CreateGooglePropertiesGoogleMaster  `json:"master,omitempty"`
+	NodeVersion string                              `json:"nodeVersion,omitempty"`
+	NodePools   ClusterProfileGoogleGoogleNodePools `json:"nodePools,omitempty"`
 }

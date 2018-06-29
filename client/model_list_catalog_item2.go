@@ -11,9 +11,9 @@
 package client
 
 type ListCatalogItem2 struct {
-	Name string `json:"name,omitempty"`
+	Name        string `json:"name,omitempty"`
 	DisplayName string `json:"displayName,omitempty"`
 	Description string `json:"description,omitempty"`
-	Icon string `json:"icon,omitempty"`
-	Version string `json:"version,omitempty"`
+	Icon        string `json:"icon,omitempty"`
+	Version     string `json:"version,omitempty"`
 }

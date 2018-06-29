@@ -11,6 +11,6 @@
 package client
 
 type InstallSecretsResponseItem struct {
-	Name string `json:"name"`
+	Name     string `json:"name"`
 	Sourcing string `json:"sourcing"`
 }

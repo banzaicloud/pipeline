@@ -11,9 +11,9 @@
 package client
 
 type ListDeploymentsResponseInner struct {
-	Name string `json:"name,omitempty"`
-	Chart string `json:"chart,omitempty"`
-	Version int32 `json:"version,omitempty"`
+	Name    string `json:"name,omitempty"`
+	Chart   string `json:"chart,omitempty"`
+	Version int32  `json:"version,omitempty"`
 	Updated string `json:"updated,omitempty"`
-	Status string `json:"status,omitempty"`
+	Status  string `json:"status,omitempty"`
 }

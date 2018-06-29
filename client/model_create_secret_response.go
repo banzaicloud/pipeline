@@ -11,8 +11,8 @@
 package client
 
 type CreateSecretResponse struct {
-	Name string `json:"name,omitempty"`
-	Type string `json:"type,omitempty"`
-	Id string `json:"id,omitempty"`
+	Name  string `json:"name,omitempty"`
+	Type  string `json:"type,omitempty"`
+	Id    string `json:"id,omitempty"`
 	Error string `json:"error,omitempty"`
 }

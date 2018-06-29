@@ -11,9 +11,9 @@
 package client
 
 type CatalogChartInfo struct {
-	Name string `json:"name,omitempty"`
+	Name        string                      `json:"name,omitempty"`
 	Annotations CatalogChartInfoAnnotations `json:"annotations,omitempty"`
-	Icon string `json:"icon,omitempty"`
-	Description string `json:"description,omitempty"`
-	Keywords []string `json:"keywords,omitempty"`
+	Icon        string                      `json:"icon,omitempty"`
+	Description string                      `json:"description,omitempty"`
+	Keywords    []string                    `json:"keywords,omitempty"`
 }

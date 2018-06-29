@@ -11,9 +11,9 @@
 package client
 
 type UpdateGooglePropertiesNodePoolsPool1 struct {
-	Autoscaling bool `json:"autoscaling,omitempty"`
-	Count int32 `json:"count,omitempty"`
-	MinCount int32 `json:"minCount,omitempty"`
-	MaxCount int32 `json:"maxCount,omitempty"`
+	Autoscaling  bool   `json:"autoscaling,omitempty"`
+	Count        int32  `json:"count,omitempty"`
+	MinCount     int32  `json:"minCount,omitempty"`
+	MaxCount     int32  `json:"maxCount,omitempty"`
 	InstanceType string `json:"instanceType,omitempty"`
 }

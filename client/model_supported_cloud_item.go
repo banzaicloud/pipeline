@@ -12,5 +12,5 @@ package client
 
 type SupportedCloudItem struct {
 	Name string `json:"name,omitempty"`
-	Key string `json:"key,omitempty"`
+	Key  string `json:"key,omitempty"`
 }

@@ -11,6 +11,6 @@
 package client
 
 type NodeItemMetadataAnnotations struct {
-	NodeAlphaKubernetesIottl string `json:"node.alpha.kubernetes.io/ttl,omitempty"`
+	NodeAlphaKubernetesIottl                         string `json:"node.alpha.kubernetes.io/ttl,omitempty"`
 	VolumesKubernetesIocontrollerManagedAttachDetach string `json:"volumes.kubernetes.io/controller-managed-attach-detach,omitempty"`
 }

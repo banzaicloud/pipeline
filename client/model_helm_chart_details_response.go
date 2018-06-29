@@ -11,7 +11,7 @@
 package client
 
 type HelmChartDetailsResponse struct {
-	Chart HelmChartDetailsResponseChart `json:"chart,omitempty"`
-	Values string `json:"values,omitempty"`
-	Readme string `json:"readme,omitempty"`
+	Chart  HelmChartDetailsResponseChart `json:"chart,omitempty"`
+	Values string                        `json:"values,omitempty"`
+	Readme string                        `json:"readme,omitempty"`
 }

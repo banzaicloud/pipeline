@@ -12,5 +12,5 @@ package client
 
 type CreateClusterResponse202 struct {
 	Name string `json:"name,omitempty"`
-	Id int32 `json:"id,omitempty"`
+	Id   int32  `json:"id,omitempty"`
 }

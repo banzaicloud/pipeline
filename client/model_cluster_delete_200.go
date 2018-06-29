@@ -11,7 +11,7 @@
 package client
 
 type ClusterDelete200 struct {
-	Status int32 `json:"status,omitempty"`
-	Name string `json:"name,omitempty"`
-	Id int32 `json:"id,omitempty"`
+	Status int32  `json:"status,omitempty"`
+	Name   string `json:"name,omitempty"`
+	Id     int32  `json:"id,omitempty"`
 }

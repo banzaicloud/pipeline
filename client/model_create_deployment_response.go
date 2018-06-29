@@ -12,5 +12,5 @@ package client
 
 type CreateDeploymentResponse struct {
 	ReleaseName string `json:"release_name,omitempty"`
-	Notes string `json:"notes,omitempty"`
+	Notes       string `json:"notes,omitempty"`
 }

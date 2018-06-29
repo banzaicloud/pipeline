@@ -11,8 +11,8 @@
 package client
 
 type CreateApplicationRequest struct {
-	Name string `json:"name,omitempty"`
-	CatalogName string `json:"catalogName,omitempty"`
-	ClusterId int32 `json:"clusterId,omitempty"`
-	Cluster CreateClusterRequest `json:"cluster,omitempty"`
+	Name        string               `json:"name,omitempty"`
+	CatalogName string               `json:"catalogName,omitempty"`
+	ClusterId   int32                `json:"clusterId,omitempty"`
+	Cluster     CreateClusterRequest `json:"cluster,omitempty"`
 }

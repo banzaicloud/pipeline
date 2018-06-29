@@ -11,10 +11,10 @@
 package client
 
 type CatalogOptionsMysqlVersion struct {
-	Name string `json:"name,omitempty"`
-	Type string `json:"type,omitempty"`
-	Info string `json:"info,omitempty"`
-	Default string `json:"default,omitempty"`
-	Readonly bool `json:"readonly,omitempty"`
-	Key string `json:"key,omitempty"`
+	Name     string `json:"name,omitempty"`
+	Type     string `json:"type,omitempty"`
+	Info     string `json:"info,omitempty"`
+	Default  string `json:"default,omitempty"`
+	Readonly bool   `json:"readonly,omitempty"`
+	Key      string `json:"key,omitempty"`
 }
