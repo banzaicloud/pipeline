@@ -11,6 +11,6 @@
 package client
 
 type NodeItemStatusImages struct {
-	Name []string `json:"name,omitempty"`
-	SizeBytes int32 `json:"sizeBytes,omitempty"`
+	Name      []string `json:"name,omitempty"`
+	SizeBytes int32    `json:"sizeBytes,omitempty"`
 }

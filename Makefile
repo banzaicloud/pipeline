@@ -96,6 +96,7 @@ generate-client:
 	-i /local/docs/openapi/pipeline.yaml \
 	-g go \
 	-o /local/client
+	go fmt ./client
 
 ineffassign: install-ineffassign
 	ineffassign ${GOFILES_NOVENDOR}

@@ -11,7 +11,7 @@
 package client
 
 type NodeItemSpec struct {
-	PodCIDR string `json:"podCIDR,omitempty"`
+	PodCIDR    string `json:"podCIDR,omitempty"`
 	ExternalID string `json:"externalID,omitempty"`
 	ProviderID string `json:"providerID,omitempty"`
 }

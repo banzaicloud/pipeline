@@ -12,5 +12,5 @@ package client
 
 type UrlItem struct {
 	Servicename string `json:"servicename,omitempty"`
-	Url string `json:"url,omitempty"`
+	Url         string `json:"url,omitempty"`
 }

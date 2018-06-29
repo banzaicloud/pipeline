@@ -11,11 +11,11 @@
 package client
 
 type NodeItemStatus struct {
-	Capacity NodeItemStatusCapacity `json:"capacity,omitempty"`
-	Allocatable NodeItemStatusAllocatable `json:"allocatable,omitempty"`
-	Conditions []NodeItemStatusConditions `json:"conditions,omitempty"`
-	Addresses []NodeItemStatusAddresses `json:"addresses,omitempty"`
+	Capacity        NodeItemStatusCapacity        `json:"capacity,omitempty"`
+	Allocatable     NodeItemStatusAllocatable     `json:"allocatable,omitempty"`
+	Conditions      []NodeItemStatusConditions    `json:"conditions,omitempty"`
+	Addresses       []NodeItemStatusAddresses     `json:"addresses,omitempty"`
 	DaemonEndpoints NodeItemStatusDaemonEndpoints `json:"daemonEndpoints,omitempty"`
-	NodeInfo NodeItemStatusNodeInfo `json:"nodeInfo,omitempty"`
-	Images []NodeItemStatusImages `json:"images,omitempty"`
+	NodeInfo        NodeItemStatusNodeInfo        `json:"nodeInfo,omitempty"`
+	Images          []NodeItemStatusImages        `json:"images,omitempty"`
 }

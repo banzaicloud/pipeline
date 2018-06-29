@@ -11,9 +11,9 @@
 package client
 
 type HelmReposAddRequest struct {
-	Name string `json:"name"`
-	Url string `json:"url"`
+	Name     string `json:"name"`
+	Url      string `json:"url"`
 	CertFile string `json:"certFile,omitempty"`
-	KeyFile string `json:"keyFile,omitempty"`
-	CaFile string `json:"caFile,omitempty"`
+	KeyFile  string `json:"keyFile,omitempty"`
+	CaFile   string `json:"caFile,omitempty"`
 }

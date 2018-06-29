@@ -11,6 +11,6 @@
 package client
 
 type HelmChartDetailsResponseChartMaintainers struct {
-	Name string `json:"name,omitempty"`
+	Name  string `json:"name,omitempty"`
 	Email string `json:"email,omitempty"`
 }

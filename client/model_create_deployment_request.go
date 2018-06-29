@@ -11,8 +11,8 @@
 package client
 
 type CreateDeploymentRequest struct {
-	Name string `json:"name"`
-	Releasename string `json:"releasename,omitempty"`
-	Version string `json:"version,omitempty"`
-	Values map[string]interface{} `json:"values,omitempty"`
+	Name        string                 `json:"name"`
+	Releasename string                 `json:"releasename,omitempty"`
+	Version     string                 `json:"version,omitempty"`
+	Values      map[string]interface{} `json:"values,omitempty"`
 }

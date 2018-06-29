@@ -11,7 +11,7 @@
 package client
 
 type CreateClusterResponse400 struct {
-	Code int32 `json:"code,omitempty"`
+	Code    int32  `json:"code,omitempty"`
 	Message string `json:"message,omitempty"`
-	Error string `json:"error,omitempty"`
+	Error   string `json:"error,omitempty"`
 }

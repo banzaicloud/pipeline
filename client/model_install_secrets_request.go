@@ -11,6 +11,6 @@
 package client
 
 type InstallSecretsRequest struct {
-	Namespace string `json:"namespace"`
-	Query InstallSecretsRequestQuery `json:"query,omitempty"`
+	Namespace string                     `json:"namespace"`
+	Query     InstallSecretsRequestQuery `json:"query,omitempty"`
 }

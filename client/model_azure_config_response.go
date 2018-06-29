@@ -11,9 +11,9 @@
 package client
 
 type AzureConfigResponse struct {
-	Type string `json:"type,omitempty"`
-	NameRegexp string `json:"nameRegexp,omitempty"`
-	Locations string `json:"locations,omitempty"`
-	InstanceType AzureConfigResponseInstanceType `json:"instanceType,omitempty"`
-	KubernetesVersions []string `json:"kubernetes_versions,omitempty"`
+	Type               string                          `json:"type,omitempty"`
+	NameRegexp         string                          `json:"nameRegexp,omitempty"`
+	Locations          string                          `json:"locations,omitempty"`
+	InstanceType       AzureConfigResponseInstanceType `json:"instanceType,omitempty"`
+	KubernetesVersions []string                        `json:"kubernetes_versions,omitempty"`
 }

@@ -11,9 +11,9 @@
 package client
 
 type AddClusterProfileAmazonAmazonNodePoolsPool1 struct {
-	SpotPrice string `json:"spotPrice,omitempty"`
-	MinCount int32 `json:"minCount,omitempty"`
-	MaxCount int32 `json:"maxCount,omitempty"`
-	Image string `json:"image,omitempty"`
+	SpotPrice    string `json:"spotPrice,omitempty"`
+	MinCount     int32  `json:"minCount,omitempty"`
+	MaxCount     int32  `json:"maxCount,omitempty"`
+	Image        string `json:"image,omitempty"`
 	InstanceType string `json:"instanceType,omitempty"`
 }

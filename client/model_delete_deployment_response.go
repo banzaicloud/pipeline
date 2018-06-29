@@ -11,7 +11,7 @@
 package client
 
 type DeleteDeploymentResponse struct {
-	Status int32 `json:"status,omitempty"`
+	Status  int32  `json:"status,omitempty"`
 	Message string `json:"message,omitempty"`
-	Name string `json:"name,omitempty"`
+	Name    string `json:"name,omitempty"`
 }

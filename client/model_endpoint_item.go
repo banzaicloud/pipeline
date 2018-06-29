@@ -11,7 +11,7 @@
 package client
 
 type EndpointItem struct {
-	Name string `json:"name,omitempty"`
-	Host string `json:"host,omitempty"`
+	Name string    `json:"name,omitempty"`
+	Host string    `json:"host,omitempty"`
 	Urls []UrlItem `json:"urls,omitempty"`
 }

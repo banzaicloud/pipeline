@@ -11,7 +11,7 @@
 package client
 
 type CreateObjectStoreBucketRequest struct {
-	SecretId string `json:"secretId"`
-	Name string `json:"name"`
+	SecretId   string                 `json:"secretId"`
+	Name       string                 `json:"name"`
 	Properties map[string]interface{} `json:"properties"`
 }

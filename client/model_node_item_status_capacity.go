@@ -11,7 +11,7 @@
 package client
 
 type NodeItemStatusCapacity struct {
-	Cpu string `json:"cpu,omitempty"`
+	Cpu    string `json:"cpu,omitempty"`
 	Memory string `json:"memory,omitempty"`
-	Pods string `json:"pods,omitempty"`
+	Pods   string `json:"pods,omitempty"`
 }

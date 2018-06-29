@@ -11,6 +11,6 @@
 package client
 
 type AddClusterProfileAzureAzure struct {
-	NodePools AddClusterProfileAzureAzureNodePools `json:"nodePools,omitempty"`
-	KubernetesVersion string `json:"kubernetesVersion,omitempty"`
+	NodePools         AddClusterProfileAzureAzureNodePools `json:"nodePools,omitempty"`
+	KubernetesVersion string                               `json:"kubernetesVersion,omitempty"`
 }

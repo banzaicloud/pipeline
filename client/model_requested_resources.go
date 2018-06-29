@@ -14,7 +14,7 @@ type RequestedResources struct {
 	// Total CPU requested for the cluster
 	SumCpu int32 `json:"sumCpu,omitempty"`
 	// Total memory requested for the cluster (GB)
-	SumMem int32 `json:"sumMem,omitempty"`
+	SumMem  int32    `json:"sumMem,omitempty"`
 	Filters []string `json:"filters,omitempty"`
 	// If true, recommended instance types will have a similar size
 	SameSize bool `json:"sameSize,omitempty"`

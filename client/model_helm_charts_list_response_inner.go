@@ -11,6 +11,6 @@
 package client
 
 type HelmChartsListResponseInner struct {
-	Name string `json:"name,omitempty"`
+	Name   string                     `json:"name,omitempty"`
 	Charts [][]map[string]interface{} `json:"charts,omitempty"`
 }

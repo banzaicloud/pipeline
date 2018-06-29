@@ -11,8 +11,8 @@
 package client
 
 type OrganizationListItemResponse struct {
-	Id int32 `json:"id,omitempty"`
+	Id        int32  `json:"id,omitempty"`
 	CreatedAt string `json:"createdAt,omitempty"`
 	UpdatedAt string `json:"updatedAt,omitempty"`
-	Name string `json:"name,omitempty"`
+	Name      string `json:"name,omitempty"`
 }

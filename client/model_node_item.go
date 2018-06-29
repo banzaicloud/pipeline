@@ -12,6 +12,6 @@ package client
 
 type NodeItem struct {
 	Metadata NodeItemMetadata `json:"metadata,omitempty"`
-	Spec NodeItemSpec `json:"spec,omitempty"`
-	Status NodeItemStatus `json:"status,omitempty"`
+	Spec     NodeItemSpec     `json:"spec,omitempty"`
+	Status   NodeItemStatus   `json:"status,omitempty"`
 }

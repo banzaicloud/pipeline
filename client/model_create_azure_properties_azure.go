@@ -11,7 +11,7 @@
 package client
 
 type CreateAzurePropertiesAzure struct {
-	ResourceGroup string `json:"resourceGroup,omitempty"`
-	KubernetesVersion string `json:"kubernetesVersion,omitempty"`
-	NodePools CreateAzurePropertiesAzureNodePools `json:"nodePools,omitempty"`
+	ResourceGroup     string                              `json:"resourceGroup,omitempty"`
+	KubernetesVersion string                              `json:"kubernetesVersion,omitempty"`
+	NodePools         CreateAzurePropertiesAzureNodePools `json:"nodePools,omitempty"`
 }

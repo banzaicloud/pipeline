@@ -11,6 +11,6 @@
 package client
 
 type AddClusterProfileAzureAzureNodePoolsPool1 struct {
-	Count int32 `json:"count,omitempty"`
+	Count        int32  `json:"count,omitempty"`
 	InstanceType string `json:"instanceType,omitempty"`
 }

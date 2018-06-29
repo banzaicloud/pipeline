@@ -11,6 +11,6 @@
 package client
 
 type AzureBlobStorageProps struct {
-	ResourceGroup string `json:"resourceGroup"`
+	ResourceGroup  string `json:"resourceGroup"`
 	StorageAccount string `json:"storageAccount"`
 }

@@ -11,11 +11,11 @@
 package client
 
 type GetClusterStatusResponse struct {
-	Status string `json:"status,omitempty"`
-	StatusMessage string `json:"status_message,omitempty"`
-	Name string `json:"name,omitempty"`
-	Cloud string `json:"cloud,omitempty"`
-	Location string `json:"location,omitempty"`
-	Id int32 `json:"id,omitempty"`
-	NodePools GetClusterStatusResponseNodePools `json:"nodePools,omitempty"`
+	Status        string                            `json:"status,omitempty"`
+	StatusMessage string                            `json:"status_message,omitempty"`
+	Name          string                            `json:"name,omitempty"`
+	Cloud         string                            `json:"cloud,omitempty"`
+	Location      string                            `json:"location,omitempty"`
+	Id            int32                             `json:"id,omitempty"`
+	NodePools     GetClusterStatusResponseNodePools `json:"nodePools,omitempty"`
 }

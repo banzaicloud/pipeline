@@ -11,8 +11,8 @@
 package client
 
 type SecretKeyValueAzure struct {
-	AZURE_CLIENT_ID string `json:"AZURE_CLIENT_ID"`
-	AZURE_CLIENT_SECRET string `json:"AZURE_CLIENT_SECRET"`
-	AZURE_TENANT_ID string `json:"AZURE_TENANT_ID"`
+	AZURE_CLIENT_ID       string `json:"AZURE_CLIENT_ID"`
+	AZURE_CLIENT_SECRET   string `json:"AZURE_CLIENT_SECRET"`
+	AZURE_TENANT_ID       string `json:"AZURE_TENANT_ID"`
 	AZURE_SUBSCRIPTION_ID string `json:"AZURE_SUBSCRIPTION_ID"`
 }

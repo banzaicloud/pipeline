@@ -11,9 +11,9 @@
 package client
 
 type GoogleConfigResponse struct {
-	Type string `json:"type,omitempty"`
-	NameRegexp string `json:"nameRegexp,omitempty"`
-	Locations string `json:"locations,omitempty"`
-	InstanceType GoogleConfigResponseInstanceType `json:"instanceType,omitempty"`
+	Type               string                                 `json:"type,omitempty"`
+	NameRegexp         string                                 `json:"nameRegexp,omitempty"`
+	Locations          string                                 `json:"locations,omitempty"`
+	InstanceType       GoogleConfigResponseInstanceType       `json:"instanceType,omitempty"`
 	KubernetesVersions GoogleConfigResponseKubernetesVersions `json:"kubernetes_versions,omitempty"`
 }

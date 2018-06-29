@@ -11,13 +11,13 @@
 package client
 
 type ApplicationDeploymentItem struct {
-	Id int32 `json:"id,omitempty"`
-	CreatedAt string `json:"createdAt,omitempty"`
-	UpdatedAt string `json:"updatedAt,omitempty"`
-	Name string `json:"name,omitempty"`
-	Chart string `json:"chart,omitempty"`
-	ReleaseName string `json:"releaseName,omitempty"`
-	Status string `json:"status,omitempty"`
-	Message string `json:"message,omitempty"`
-	ApplicationId int32 `json:"applicationId,omitempty"`
+	Id            int32  `json:"id,omitempty"`
+	CreatedAt     string `json:"createdAt,omitempty"`
+	UpdatedAt     string `json:"updatedAt,omitempty"`
+	Name          string `json:"name,omitempty"`
+	Chart         string `json:"chart,omitempty"`
+	ReleaseName   string `json:"releaseName,omitempty"`
+	Status        string `json:"status,omitempty"`
+	Message       string `json:"message,omitempty"`
+	ApplicationId int32  `json:"applicationId,omitempty"`
 }

@@ -11,10 +11,10 @@
 package client
 
 type NodeItemStatusConditions struct {
-	Type string `json:"type,omitempty"`
-	Status string `json:"status,omitempty"`
-	LastHeartbeatTime string `json:"lastHeartbeatTime,omitempty"`
+	Type               string `json:"type,omitempty"`
+	Status             string `json:"status,omitempty"`
+	LastHeartbeatTime  string `json:"lastHeartbeatTime,omitempty"`
 	LastTransitionTime string `json:"lastTransitionTime,omitempty"`
-	Reason string `json:"reason,omitempty"`
-	Message string `json:"message,omitempty"`
+	Reason             string `json:"reason,omitempty"`
+	Message            string `json:"message,omitempty"`
 }

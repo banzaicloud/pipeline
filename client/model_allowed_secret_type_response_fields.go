@@ -11,7 +11,7 @@
 package client
 
 type AllowedSecretTypeResponseFields struct {
-	Name string `json:"name,omitempty"`
-	Required bool `json:"required,omitempty"`
+	Name        string `json:"name,omitempty"`
+	Required    bool   `json:"required,omitempty"`
 	Description string `json:"description,omitempty"`
 }

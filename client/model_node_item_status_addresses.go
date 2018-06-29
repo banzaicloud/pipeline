@@ -11,6 +11,6 @@
 package client
 
 type NodeItemStatusAddresses struct {
-	Type string `json:"type,omitempty"`
+	Type    string `json:"type,omitempty"`
 	Address string `json:"address,omitempty"`
 }
