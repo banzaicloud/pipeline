@@ -500,7 +500,7 @@ func (dns *awsRoute53) hostedZoneExists(domain string) (string, error) {
 	}
 
 	if len(foundHostedZoneIds) > 1 {
-		return "", fmt.Errorf("multipe hosted zones %v found for domain '%s'", foundHostedZoneIds, domain)
+		return "", fmt.Errorf("multiple hosted zones %v found for domain '%s'", foundHostedZoneIds, domain)
 	}
 
 	if len(foundHostedZoneIds) == 0 {
@@ -628,7 +628,7 @@ func (dns *awsRoute53) createHostedZoneRoute53Policy(orgId uint, hostedZoneId st
 	log := loggerWithFields(logrus.Fields{"hostedzone": hostedZoneId})
 
 	policyInput := &iam.CreatePolicyInput{
-		Description: aws.String(fmt.Sprintf("Access permissions for hosted zone of the organisaton with id '%d'", orgId)),
+		Description: aws.String(fmt.Sprintf("Access permissions for hosted zone of the organisation with id '%d'", orgId)),
 		PolicyName:  aws.String(fmt.Sprintf(hostedZoneAccessPolicyNameTemplate, orgId)),
 		PolicyDocument: aws.String(fmt.Sprintf(
 			`{
