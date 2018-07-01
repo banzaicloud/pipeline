@@ -4597,6 +4597,12 @@ components:
         error:
           type: string
           example: "Validation failed"
+        updatedAt:
+          type: string
+          example: "2018-07-01T08:27:23.2636996Z"
+        updatedBy:
+          type: string
+          example: "username"
 
     CreateSecretRequest:
       type: object
