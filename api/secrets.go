@@ -146,11 +146,24 @@ func AddSecrets(c *gin.Context) {
 		errorMsg = validationError.Error()
 	}
 
+	s, err := secret.Store.Get(organizationID, secretID)
+	if err != nil {
+		log.Errorf("error during getting secret: %s", err.Error())
+		c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: err.Error(),
+			Error:   err.Error(),
+		})
+		return
+	}
+
 	c.JSON(http.StatusCreated, secret.CreateSecretResponse{
-		Name:  createSecretRequest.Name,
-		Type:  createSecretRequest.Type,
-		ID:    secretID,
-		Error: errorMsg,
+		Name:      s.Name,
+		Type:      s.Type,
+		ID:        secretID,
+		Error:     errorMsg,
+		UpdatedBy: s.UpdatedBy,
+		UpdatedAt: s.UpdatedAt,
 	})
 }
 
