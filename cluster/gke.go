@@ -650,6 +650,9 @@ func (g *GKECluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 	copier.Copy(&googleClusterModel, &g.modelCluster.Google)
 	googleClusterModel.NodePools = updateNodePoolsModel
 
+	googleClusterModel.NodeVersion = updateRequest.Google.NodeVersion
+	googleClusterModel.MasterVersion = updateRequest.Google.Master.Version
+
 	updatedNodePools, err := createNodePoolsFromClusterModel(&googleClusterModel)
 	if err != nil {
 		return err
@@ -1003,16 +1006,14 @@ func (g *GKECluster) callDeleteCluster(cc *googleCluster) error {
 
 func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster, location, projectId string) (*gke.Cluster, error) {
 
-	var updatedCluster *gke.Cluster
-
 	log.Infof("Updating cluster: %#v", cc)
 
-	cluster, err := getClusterGoogle(svc, cc)
+	updatedCluster, err := getClusterGoogle(svc, cc)
 	if err != nil {
 		return nil, err
 	}
 
-	if cc.MasterVersion != "" && cc.MasterVersion != cluster.CurrentMasterVersion {
+	if cc.MasterVersion != "" && cc.MasterVersion != updatedCluster.CurrentMasterVersion {
 		log.Infof("Updating master to %v version", cc.MasterVersion)
 		updateCall, err := svc.Projects.Zones.Clusters.Update(cc.ProjectID, cc.Zone, cc.Name, &gke.UpdateClusterRequest{
 			Update: &gke.ClusterUpdate{
@@ -1038,7 +1039,7 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster, location, proje
 	// resizing exiting ones or creating new ones to minimize tha chance
 	// of hitting quota limits
 	var nodePoolsToDelete []string
-	for _, currentClusterNodePool := range cluster.NodePools {
+	for _, currentClusterNodePool := range updatedCluster.NodePools {
 		var i int
 		for i = 0; i < len(cc.NodePools); i++ {
 			if currentClusterNodePool.Name == cc.NodePools[i].Name {
@@ -1055,12 +1056,12 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster, location, proje
 	var nodePoolsToCreate []*gke.NodePool
 	for _, nodePoolFromUpdReq := range cc.NodePools {
 		var i int
-		for i = 0; i < len(cluster.NodePools); i++ {
-			if nodePoolFromUpdReq.Name == cluster.NodePools[i].Name {
+		for i = 0; i < len(updatedCluster.NodePools); i++ {
+			if nodePoolFromUpdReq.Name == updatedCluster.NodePools[i].Name {
 				break
 			}
 		}
-		if i == len(cluster.NodePools) {
+		if i == len(updatedCluster.NodePools) {
 			nodePoolsToCreate = append(nodePoolsToCreate, nodePoolFromUpdReq)
 		}
 	}
@@ -1088,10 +1089,10 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster, location, proje
 
 	// Update node pools
 	for _, nodePool := range cc.NodePools {
-		for i := 0; i < len(cluster.NodePools); i++ {
-			if cluster.NodePools[i].Name == nodePool.Name {
+		for i := 0; i < len(updatedCluster.NodePools); i++ {
+			if updatedCluster.NodePools[i].Name == nodePool.Name {
 
-				if nodePool.Version != "" && nodePool.Version != cluster.NodePools[i].Version {
+				if nodePool.Version != "" && nodePool.Version != updatedCluster.NodePools[i].Version {
 					log.Infof("Updating node pool %s to %v version", nodePool.Name, nodePool.Version)
 					updateCall, err := svc.Projects.Zones.Clusters.NodePools.Update(cc.ProjectID, cc.Zone, cc.Name, nodePool.Name, &gke.UpdateNodePoolRequest{
 						NodeVersion: nodePool.Version,
@@ -1105,7 +1106,7 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster, location, proje
 					}
 				}
 
-				if autoscalingHasBeenUpdated(nodePool, cluster.NodePools[i]) {
+				if autoscalingHasBeenUpdated(nodePool, updatedCluster.NodePools[i]) {
 					var updateCall *gke.Operation
 					var err error
 
@@ -1145,7 +1146,7 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster, location, proje
 
 				}
 
-				if nodePool.InitialNodeCount > 0 {
+				if nodePool.InitialNodeCount > 0 && nodePool.InitialNodeCount != updatedCluster.NodePools[i].InitialNodeCount {
 					log.Infof("Updating node size to %v for node pool %s", nodePool.InitialNodeCount, nodePool.Name)
 					updateCall, err := svc.Projects.Zones.Clusters.NodePools.SetSize(cc.ProjectID, cc.Zone, cc.Name, nodePool.Name, &gke.SetNodePoolSizeRequest{
 						NodeCount: nodePool.InitialNodeCount,
