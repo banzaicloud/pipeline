@@ -650,6 +650,9 @@ func (g *GKECluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 	copier.Copy(&googleClusterModel, &g.modelCluster.Google)
 	googleClusterModel.NodePools = updateNodePoolsModel
 
+	googleClusterModel.NodeVersion = updateRequest.Google.NodeVersion
+	googleClusterModel.MasterVersion = updateRequest.Google.Master.Version
+
 	updatedNodePools, err := createNodePoolsFromClusterModel(&googleClusterModel)
 	if err != nil {
 		return err
