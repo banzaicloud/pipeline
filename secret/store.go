@@ -301,7 +301,7 @@ func (ss *secretStore) List(orgid uint, query *secretTypes.ListSecretsQuery) ([]
 
 				if (query.Type == secretTypes.AllSecrets || sir.Type == query.Type) &&
 					(query.Tag == "" || hasTag(sir.Tags, query.Tag)) &&
-					(IsForbiddenTag(sir.Tags) == nil) {
+					(HasForbiddenTag(sir.Tags) == nil) {
 
 					responseItems = append(responseItems, sir)
 				}
@@ -348,8 +348,8 @@ func (f ForbiddenError) Error() string {
 	return fmt.Sprintf("secret contains a forbidden tag: %s", f.ForbiddenTag)
 }
 
-// IsForbiddenTag is looking for forbidden tags
-func IsForbiddenTag(tags []string) error {
+// HasForbiddenTag is looking for forbidden tags
+func HasForbiddenTag(tags []string) error {
 	for _, tag := range tags {
 		for _, forbiddenTag := range secretTypes.ForbiddenTags {
 			if tag == forbiddenTag {
