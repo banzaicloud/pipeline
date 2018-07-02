@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/aws/aws-sdk-go/service/route53/route53iface"
+	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
@@ -19,6 +20,7 @@ import (
 
 const (
 	testOrgId                uint = 1
+	testOrgName                   = "testorg"
 	testDomain                    = "test.domain"
 	testDomainInUse               = "inuse.domain"
 	testDomainMismatch            = "domain.mismatch"
@@ -27,7 +29,7 @@ const (
 	testHostedZoneId              = "/hostedzone/testhostedzone1"
 	testInUseHostedZoneId         = "/hostedzone/inuse.hostedzone.id"
 	testMismatchHostedZoneId      = "/hostedzone/mismatch.hostedzone.id"
-	testIamUser                   = "banzaicloud.route53.1"
+	testIamUser                   = "banzaicloud.route53.testorg"
 	testAccessKeyId               = "testaccesskeyid1"
 	testAccessSecretKey           = "testsecretkey1"
 	testPolicyDocument            = `{
@@ -419,7 +421,7 @@ func (mock *mockIamSvc) GetPolicy(getPolicy *iam.GetPolicyInput) (*iam.GetPolicy
 		return &iam.GetPolicyOutput{
 			Policy: &iam.Policy{
 				Arn:          getPolicy.PolicyArn,
-				PolicyName:   aws.String(fmt.Sprintf("BanzaicloudRoute53-%s", testHostedZoneIdShort)),
+				PolicyName:   aws.String(fmt.Sprintf("BanzaicloudRoute53-%s", testOrgName)),
 				IsAttachable: aws.Bool(true),
 			},
 		}, nil
@@ -593,7 +595,7 @@ func TestAwsRoute53_RegisterDomain(t *testing.T) {
 		orgDomains: make(map[string]*domainState),
 	}
 
-	awsRoute53 := &awsRoute53{route53Svc: &mockRoute53Svc{}, iamSvc: &mockIamSvc{}, stateStore: stateStore}
+	awsRoute53 := &awsRoute53{route53Svc: &mockRoute53Svc{}, iamSvc: &mockIamSvc{}, stateStore: stateStore, getOrganization: getTestOrgById}
 
 	err := awsRoute53.RegisterDomain(testOrgId, testDomain)
 
@@ -762,7 +764,7 @@ func TestAwsRoute53_RegisterDomain_Fail(t *testing.T) {
 				orgDomains: make(map[string]*domainState),
 			}
 
-			awsRoute53 := &awsRoute53{route53Svc: tc.route53Svc, iamSvc: tc.iamSvc, stateStore: stateStore}
+			awsRoute53 := &awsRoute53{route53Svc: tc.route53Svc, iamSvc: tc.iamSvc, stateStore: stateStore, getOrganization: getTestOrgById}
 
 			err := awsRoute53.RegisterDomain(testOrgId, testDomain)
 			if err.Error() != tc.expectedErrMsg {
@@ -796,7 +798,7 @@ func TestAwsRoute53_UnregisterDomain(t *testing.T) {
 	route53Svc := &mockRoute53Svc{testCaseName: tcUnregisterDomain}
 	iamSvc := &mockIamSvc{testCaseName: tcUnregisterDomain}
 
-	awsRoute53 := &awsRoute53{route53Svc: route53Svc, iamSvc: iamSvc, stateStore: stateStore}
+	awsRoute53 := &awsRoute53{route53Svc: route53Svc, iamSvc: iamSvc, stateStore: stateStore, getOrganization: getTestOrgById}
 
 	err := awsRoute53.UnregisterDomain(testOrgId, testDomain)
 	if err != nil {
@@ -905,7 +907,7 @@ func TestAwsRoute53_Cleanup(t *testing.T) {
 				orgDomains: map[string]*domainState{key: tc.state},
 			}
 
-			awsRoute53 := &awsRoute53{route53Svc: route53Svc, iamSvc: iamSvc, stateStore: stateStore}
+			awsRoute53 := &awsRoute53{route53Svc: route53Svc, iamSvc: iamSvc, stateStore: stateStore, getOrganization: getTestOrgById}
 			awsRoute53.Cleanup()
 
 			found, _ := stateStore.find(testOrgId, testDomain, &domainState{})
@@ -983,7 +985,7 @@ func TestAwsRoute53_RegisterDomainRerun(t *testing.T) {
 				orgDomains: map[string]*domainState{key: tc.state},
 			}
 
-			awsRoute53 := &awsRoute53{route53Svc: route53Svc, iamSvc: iamSvc, stateStore: stateStore}
+			awsRoute53 := &awsRoute53{route53Svc: route53Svc, iamSvc: iamSvc, stateStore: stateStore, getOrganization: getTestOrgById}
 
 			err := awsRoute53.RegisterDomain(testOrgId, testDomain)
 			if err != nil {
@@ -1022,4 +1024,8 @@ func cleanupVaultTestSecrets() {
 		}
 	}
 
+}
+
+func getTestOrgById(orgId uint) (*auth.Organization, error) {
+	return &auth.Organization{ID: testOrgId, Name: testOrgName}, nil
 }

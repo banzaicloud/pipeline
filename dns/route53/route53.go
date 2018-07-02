@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/aws/aws-sdk-go/service/route53/route53iface"
+	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
@@ -29,8 +30,8 @@ func init() {
 
 const (
 	createHostedZoneComment            = "HostedZone created by Banzaicloud Pipeline"
-	iamUserNameTemplate                = "banzaicloud.route53.%d"
-	hostedZoneAccessPolicyNameTemplate = "BanzaicloudRoute53-%d"
+	iamUserNameTemplate                = "banzaicloud.route53.%s"
+	hostedZoneAccessPolicyNameTemplate = "BanzaicloudRoute53-%s"
 	iamUserAccessKeySecretName         = "route53"
 )
 
@@ -94,6 +95,8 @@ type awsRoute53 struct {
 	route53Svc route53iface.Route53API
 	iamSvc     iamiface.IAMAPI
 	stateStore awsRoute53StateStore
+
+	getOrganization func(orgId uint) (*auth.Organization, error)
 }
 
 // NewAwsRoute53 creates a new awsRoute53 using the provided region and route53 credentials
@@ -113,7 +116,7 @@ func NewAwsRoute53(region, awsSecretId, awsSecretKey string) (*awsRoute53, error
 		return nil, err
 	}
 
-	return &awsRoute53{route53Svc: route53.New(session), iamSvc: iam.New(session), stateStore: &awsRoute53DatabaseStateStore{}}, nil
+	return &awsRoute53{route53Svc: route53.New(session), iamSvc: iam.New(session), stateStore: &awsRoute53DatabaseStateStore{}, getOrganization: getOrgById}, nil
 }
 
 // IsDomainRegistered returns true if the domain has already been registered in Route53 for the given organisation
@@ -259,7 +262,12 @@ func (dns *awsRoute53) UnregisterDomain(orgId uint, domain string) error {
 		return err
 	}
 
-	userName := getIAMUserName(orgId)
+	org, err := dns.getOrganization(orgId)
+	if err != nil {
+		log.Errorf("retrieving organization details failed: %s", orgId, extractErrorMessage(err))
+		return err
+	}
+	userName := getIAMUserName(org)
 	iamUser, err := dns.getIAMUser(aws.String(userName))
 	if err != nil {
 		log.Errorf("querying IAM user with user name '%s' failed: %s", userName, extractErrorMessage(err))
@@ -593,7 +601,13 @@ func (dns *awsRoute53) setHostedZoneAuthorisation(hostedZoneId string, ctx *cont
 	}
 
 	// create IAM user
-	userName := aws.String(getIAMUserName(ctx.state.organisationId))
+	org, err := dns.getOrganization(ctx.state.organisationId)
+	if err != nil {
+		log.Errorf("retrieving organization with id %d failed: %s", ctx.state.organisationId, extractErrorMessage(err))
+		return err
+	}
+
+	userName := aws.String(getIAMUserName(org))
 	err = dns.createHostedZoneIAMUser(userName, aws.String(ctx.state.policyArn), ctx)
 	if err != nil {
 		log.Errorf("setting up IAM user '%s' for hosted zone failed: %s", aws.StringValue(userName), extractErrorMessage(err))
@@ -627,9 +641,15 @@ func (dns *awsRoute53) getHostedZoneRoute53Policy(arn string) (*iam.Policy, erro
 func (dns *awsRoute53) createHostedZoneRoute53Policy(orgId uint, hostedZoneId string) (*iam.Policy, error) {
 	log := loggerWithFields(logrus.Fields{"hostedzone": hostedZoneId})
 
+	org, err := dns.getOrganization(orgId)
+	if err != nil {
+		log.Errorf("retrieving organization with id %d failed: %s", orgId, extractErrorMessage(err))
+		return nil, err
+	}
+
 	policyInput := &iam.CreatePolicyInput{
-		Description: aws.String(fmt.Sprintf("Access permissions for hosted zone of the organisation with id '%d'", orgId)),
-		PolicyName:  aws.String(fmt.Sprintf(hostedZoneAccessPolicyNameTemplate, orgId)),
+		Description: aws.String(fmt.Sprintf("Access permissions for hosted zone of the '%s' organization", org.Name)),
+		PolicyName:  aws.String(fmt.Sprintf(hostedZoneAccessPolicyNameTemplate, org.Name)),
 		PolicyDocument: aws.String(fmt.Sprintf(
 			`{
 						"Version": "2012-10-17",
@@ -1111,6 +1131,15 @@ func stripHostedZoneId(id string) string {
 	return strings.Replace(id, "/hostedzone/", "", 1)
 }
 
-func getIAMUserName(orgId uint) string {
-	return fmt.Sprintf(iamUserNameTemplate, orgId)
+func getIAMUserName(org *auth.Organization) string {
+	return fmt.Sprintf(iamUserNameTemplate, org.Name)
+}
+
+func getOrgById(orgId uint) (*auth.Organization, error) {
+	org, err := auth.GetOrganizationById(orgId)
+	if err != nil {
+		return nil, err
+	}
+
+	return org, nil
 }
