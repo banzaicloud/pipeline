@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
@@ -14,7 +15,6 @@ import (
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/go-errors/errors"
-	"strconv"
 )
 
 // ErrNotSupportedSecretType describe an error if the secret type is not supported
@@ -213,6 +213,16 @@ func UpdateSecrets(c *gin.Context) {
 	}
 
 	log.Info("Binding request succeeded")
+
+	if err := searchForbiddenTags(organizationID, secretID); err != nil {
+		log.Errorf("Error during updating secrets: %s", err.Error())
+		c.AbortWithStatusJSON(http.StatusInternalServerError, common.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: "Error during updating secrets",
+			Error:   err.Error(),
+		})
+		return
+	}
 
 	var validationError error
 	var ok bool
@@ -424,5 +434,5 @@ func searchForbiddenTags(orgId uint, secretId string) error {
 		return err
 	}
 
-	return secret.IsForbiddenTag(secretItem.Tags)
+	return secret.HasForbiddenTag(secretItem.Tags)
 }
