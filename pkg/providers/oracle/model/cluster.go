@@ -176,7 +176,7 @@ func (c *Cluster) GetNodePoolByName(name string) *NodePool {
 	return &NodePool{}
 }
 
-// Delete cluster from DB
+// Cleanup removes node pools
 func (c *Cluster) Cleanup() error {
 
 	log.Info("Cleanup oke nodepool... delete all node pools")
@@ -210,16 +210,16 @@ func (d *NodePool) BeforeDelete() error {
 }
 
 // RemoveNodePools delete node pool records from the database
-func (d *Cluster) RemoveNodePools() error {
+func (c *Cluster) RemoveNodePools() error {
 
-	if d.ID == 0 {
+	if c.ID == 0 {
 		return nil
 	}
 
 	database.GetDB().LogMode(false)
 	var nodePools []*NodePool
 	err := database.GetDB().Where(NodePool{
-		ClusterID: d.ID,
+		ClusterID: c.ID,
 	}).Find(&nodePools).Delete(&nodePools).Error
 	if err != nil {
 		log.Errorf("Error during deleting saved nodepools: %s", err.Error())
@@ -230,10 +230,10 @@ func (d *Cluster) RemoveNodePools() error {
 }
 
 // BeforeSave clears nodepools
-func (d *Cluster) BeforeSave() error {
+func (c *Cluster) BeforeSave() error {
 	log.Info("BeforeSave oke cluster...")
 
-	d.RemoveNodePools()
+	c.RemoveNodePools()
 
 	log.Info("BeforeSave oke cluster...done")
 

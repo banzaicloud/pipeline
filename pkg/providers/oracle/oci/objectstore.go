@@ -8,6 +8,7 @@ import (
 	"github.com/oracle/oci-go-sdk/objectstorage"
 )
 
+// ObjectStorage is for managing Object store related calls of OCI
 type ObjectStorage struct {
 	oci             *OCI
 	client          *objectstorage.ObjectStorageClient

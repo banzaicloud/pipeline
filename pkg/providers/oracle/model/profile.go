@@ -20,6 +20,7 @@ func init() {
 	log = config.Logger()
 }
 
+// SQL table names
 const (
 	ProfileTableName               = "oracle_profiles"
 	ProfileNodePoolTableName       = "oracle_profiles_nodepools"

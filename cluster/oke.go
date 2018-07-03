@@ -28,7 +28,7 @@ func CreateOKEClusterFromModel(clusterModel *model.ClusterModel) (*OKECluster, e
 	return &okeCluster, nil
 }
 
-// CreateClusterFromRequest creates ClusterModel struct from the request
+// CreateOKEClusterFromRequest creates ClusterModel struct from the request
 func CreateOKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint) (*OKECluster, error) {
 	log.Debug("Create ClusterModel struct from the request")
 
@@ -52,27 +52,27 @@ func CreateOKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 }
 
 // CreateCluster creates a new cluster
-func (d *OKECluster) CreateCluster() error {
+func (o *OKECluster) CreateCluster() error {
 
 	log.Info("Start creating Oracle cluster")
 
-	cm, err := d.GetClusterManager()
+	cm, err := o.GetClusterManager()
 	if err != nil {
 		return err
 	}
 
-	return cm.ManageOKECluster(&d.modelCluster.Oracle)
+	return cm.ManageOKECluster(&o.modelCluster.Oracle)
 }
 
 // UpdateCluster updates the cluster
-func (d *OKECluster) UpdateCluster(r *pkgCluster.UpdateClusterRequest) error {
+func (o *OKECluster) UpdateCluster(r *pkgCluster.UpdateClusterRequest) error {
 
-	model, err := modelOracle.CreateModelFromUpdateRequest(d.modelCluster.Oracle, r)
+	model, err := modelOracle.CreateModelFromUpdateRequest(o.modelCluster.Oracle, r)
 	if err != nil {
 		return err
 	}
 
-	cm, err := d.GetClusterManager()
+	cm, err := o.GetClusterManager()
 	if err != nil {
 		return err
 	}
@@ -91,35 +91,35 @@ func (d *OKECluster) UpdateCluster(r *pkgCluster.UpdateClusterRequest) error {
 	}
 
 	model.NodePools = nodePools
-	d.modelCluster.Oracle = model
+	o.modelCluster.Oracle = model
 
 	return err
 }
 
 // DeleteCluster deletes cluster
-func (d *OKECluster) DeleteCluster() error {
+func (o *OKECluster) DeleteCluster() error {
 
 	// mark cluster model to deleting
-	d.modelCluster.Oracle.Delete = true
+	o.modelCluster.Oracle.Delete = true
 
-	cm, err := d.GetClusterManager()
+	cm, err := o.GetClusterManager()
 	if err != nil {
 		return err
 	}
 
-	return cm.ManageOKECluster(&d.modelCluster.Oracle)
+	return cm.ManageOKECluster(&o.modelCluster.Oracle)
 }
 
 //Persist save the cluster model
-func (d *OKECluster) Persist(status, statusMessage string) error {
+func (o *OKECluster) Persist(status, statusMessage string) error {
 
-	return d.modelCluster.UpdateStatus(status, statusMessage)
+	return o.modelCluster.UpdateStatus(status, statusMessage)
 }
 
 // DownloadK8sConfig downloads the kubeconfig file from cloud
-func (d *OKECluster) DownloadK8sConfig() ([]byte, error) {
+func (o *OKECluster) DownloadK8sConfig() ([]byte, error) {
 
-	oci, err := d.GetOCI()
+	oci, err := o.GetOCI()
 	if err != nil {
 		return nil, err
 	}
@@ -129,109 +129,109 @@ func (d *OKECluster) DownloadK8sConfig() ([]byte, error) {
 		return nil, err
 	}
 
-	return ce.GetK8SConfig(d.modelCluster.Oracle.OCID)
+	return ce.GetK8SConfig(o.modelCluster.Oracle.OCID)
 }
 
 //GetName returns the name of the cluster
-func (d *OKECluster) GetName() string {
-	return d.modelCluster.Name
+func (o *OKECluster) GetName() string {
+	return o.modelCluster.Name
 }
 
 //GetType returns the cloud type of the cluster
-func (d *OKECluster) GetType() string {
+func (o *OKECluster) GetType() string {
 	return pkgCluster.Oracle
 }
 
 //GetStatus gets cluster status
-func (d *OKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
+func (o *OKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 	return &pkgCluster.GetClusterStatusResponse{
-		Status:        d.modelCluster.Status,
-		StatusMessage: d.modelCluster.StatusMessage,
-		Name:          d.modelCluster.Name,
-		Location:      d.modelCluster.Location,
+		Status:        o.modelCluster.Status,
+		StatusMessage: o.modelCluster.StatusMessage,
+		Name:          o.modelCluster.Name,
+		Location:      o.modelCluster.Location,
 		Cloud:         pkgCluster.Oracle,
-		ResourceID:    d.GetID(),
+		ResourceID:    o.GetID(),
 		NodePools:     nil,
 	}, nil
 }
 
 //GetID returns the specified cluster id
-func (d *OKECluster) GetID() uint {
-	return d.modelCluster.ID
+func (o *OKECluster) GetID() uint {
+	return o.modelCluster.ID
 }
 
 //GetModel returns the whole clusterModel
-func (d *OKECluster) GetModel() *model.ClusterModel {
-	return d.modelCluster
+func (o *OKECluster) GetModel() *model.ClusterModel {
+	return o.modelCluster
 }
 
 //CheckEqualityToUpdate validates the update request
-func (d *OKECluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) error {
+func (o *OKECluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) error {
 	return nil
 }
 
 //AddDefaultsToUpdate adds defaults to update request
-func (d *OKECluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
+func (o *OKECluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
 
 }
 
 //GetAPIEndpoint returns the Kubernetes Api endpoint
-func (d *OKECluster) GetAPIEndpoint() (string, error) {
+func (o *OKECluster) GetAPIEndpoint() (string, error) {
 
-	oci, err := d.GetOCI()
+	oci, err := o.GetOCI()
 	if err != nil {
-		return d.APIEndpoint, err
+		return o.APIEndpoint, err
 	}
 
 	ce, err := oci.NewContainerEngineClient()
 	if err != nil {
-		return d.APIEndpoint, err
+		return o.APIEndpoint, err
 	}
 
-	cluster, err := ce.GetCluster(d.modelCluster.Oracle.OCID)
+	cluster, err := ce.GetCluster(o.modelCluster.Oracle.OCID)
 	if err != nil {
-		return d.APIEndpoint, err
+		return o.APIEndpoint, err
 	}
 
-	d.APIEndpoint = fmt.Sprintf("https://%s", *cluster.Endpoints.Kubernetes)
+	o.APIEndpoint = fmt.Sprintf("https://%s", *cluster.Endpoints.Kubernetes)
 
-	return d.APIEndpoint, nil
+	return o.APIEndpoint, nil
 }
 
 // DeleteFromDatabase deletes model from the database
-func (g *OKECluster) DeleteFromDatabase() error {
-	err := g.modelCluster.Delete()
+func (o *OKECluster) DeleteFromDatabase() error {
+	err := o.modelCluster.Delete()
 	if err != nil {
 		return err
 	}
 
-	err = g.modelCluster.Oracle.Cleanup()
+	err = o.modelCluster.Oracle.Cleanup()
 	if err != nil {
 		return err
 	}
 
-	g.modelCluster = nil
+	o.modelCluster = nil
 	return nil
 }
 
 // GetOrganizationId gets org where the cluster belongs
-func (d *OKECluster) GetOrganizationId() uint {
-	return d.modelCluster.OrganizationId
+func (o *OKECluster) GetOrganizationId() uint {
+	return o.modelCluster.OrganizationId
 }
 
 //GetSecretId retrieves the secret id
-func (d *OKECluster) GetSecretId() string {
-	return d.modelCluster.SecretId
+func (o *OKECluster) GetSecretId() string {
+	return o.modelCluster.SecretId
 }
 
 //GetSshSecretId retrieves the ssh secret id
-func (d *OKECluster) GetSshSecretId() string {
-	return d.modelCluster.SshSecretId
+func (o *OKECluster) GetSshSecretId() string {
+	return o.modelCluster.SshSecretId
 }
 
 // SaveSshSecretId saves the ssh secret id to database
-func (g *OKECluster) SaveSshSecretId(sshSecretId string) error {
-	return g.modelCluster.UpdateSshSecret(sshSecretId)
+func (o *OKECluster) SaveSshSecretId(sshSecretId string) error {
+	return o.modelCluster.UpdateSshSecret(sshSecretId)
 }
 
 //CreateClusterFromModel creates the cluster from the model
@@ -244,13 +244,13 @@ func CreateClusterFromModel(clusterModel *model.ClusterModel) (*OKECluster, erro
 }
 
 // UpdateStatus updates cluster status in database
-func (d *OKECluster) UpdateStatus(status, statusMessage string) error {
-	return d.modelCluster.UpdateStatus(status, statusMessage)
+func (o *OKECluster) UpdateStatus(status, statusMessage string) error {
+	return o.modelCluster.UpdateStatus(status, statusMessage)
 }
 
 // GetClusterDetails gets cluster details from cloud
-func (d *OKECluster) GetClusterDetails() (*pkgCluster.ClusterDetailsResponse, error) {
-	status, err := d.GetStatus()
+func (o *OKECluster) GetClusterDetails() (*pkgCluster.ClusterDetailsResponse, error) {
+	status, err := o.GetStatus()
 	if err != nil {
 		return nil, err
 	}
@@ -262,50 +262,50 @@ func (d *OKECluster) GetClusterDetails() (*pkgCluster.ClusterDetailsResponse, er
 }
 
 // ValidateCreationFields validates all field
-func (d *OKECluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
+func (o *OKECluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
 
-	cm, err := d.GetClusterManager()
+	cm, err := o.GetClusterManager()
 	if err != nil {
 		return err
 	}
 
-	return cm.ValidateModel(&d.modelCluster.Oracle)
+	return cm.ValidateModel(&o.modelCluster.Oracle)
 }
 
 // GetSecretWithValidation returns secret from vault
-func (g *OKECluster) GetSecretWithValidation() (*secret.SecretItemResponse, error) {
-	return g.CommonClusterBase.getSecret(g)
+func (o *OKECluster) GetSecretWithValidation() (*secret.SecretItemResponse, error) {
+	return o.CommonClusterBase.getSecret(o)
 }
 
 // GetSshSecretWithValidation returns ssh secret from vault
-func (g *OKECluster) GetSshSecretWithValidation() (*secret.SecretItemResponse, error) {
-	return g.CommonClusterBase.getSecret(g)
+func (o *OKECluster) GetSshSecretWithValidation() (*secret.SecretItemResponse, error) {
+	return o.CommonClusterBase.getSecret(o)
 }
 
 // SaveConfigSecretId saves the config secret id in database
-func (g *OKECluster) SaveConfigSecretId(configSecretId string) error {
-	return g.modelCluster.UpdateConfigSecret(configSecretId)
+func (o *OKECluster) SaveConfigSecretId(configSecretId string) error {
+	return o.modelCluster.UpdateConfigSecret(configSecretId)
 }
 
 // GetConfigSecretId return config secret id
-func (d *OKECluster) GetConfigSecretId() string {
-	return d.modelCluster.ConfigSecretId
+func (o *OKECluster) GetConfigSecretId() string {
+	return o.modelCluster.ConfigSecretId
 }
 
 // GetK8sConfig returns the Kubernetes config
-func (d *OKECluster) GetK8sConfig() ([]byte, error) {
-	return d.DownloadK8sConfig()
+func (o *OKECluster) GetK8sConfig() ([]byte, error) {
+	return o.DownloadK8sConfig()
 }
 
 // ReloadFromDatabase load cluster from DB
-func (d *OKECluster) ReloadFromDatabase() error {
-	return d.modelCluster.ReloadFromDatabase()
+func (o *OKECluster) ReloadFromDatabase() error {
+	return o.modelCluster.ReloadFromDatabase()
 }
 
 // GetClusterManager creates a new oracleClusterManager.ClusterManager
-func (d *OKECluster) GetClusterManager() (manager *oracleClusterManager.ClusterManager, err error) {
+func (o *OKECluster) GetClusterManager() (manager *oracleClusterManager.ClusterManager, err error) {
 
-	oci, err := d.GetOCI()
+	oci, err := o.GetOCI()
 	if err != nil {
 		return manager, err
 	}
@@ -314,9 +314,9 @@ func (d *OKECluster) GetClusterManager() (manager *oracleClusterManager.ClusterM
 }
 
 // GetOCI creates a new oci.OCI
-func (d *OKECluster) GetOCI() (OCI *oci.OCI, err error) {
+func (o *OKECluster) GetOCI() (OCI *oci.OCI, err error) {
 
-	s, err := d.CommonClusterBase.getSecret(d)
+	s, err := o.CommonClusterBase.getSecret(o)
 	if err != nil {
 		return OCI, err
 	}

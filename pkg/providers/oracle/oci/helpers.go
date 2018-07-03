@@ -1,9 +1,11 @@
 package oci
 
+// Strings holds strings in an array
 type Strings struct {
 	strings []string
 }
 
+// NodePoolOptions holds node pool options as Strings
 type NodePoolOptions struct {
 	Images             Strings
 	KubernetesVersions Strings

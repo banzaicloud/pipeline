@@ -5,6 +5,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/providers/oracle/oci"
 )
 
+// ClusterManager for managing Cluster state
 type ClusterManager struct {
 	oci *oci.OCI
 }
