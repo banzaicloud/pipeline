@@ -1,4 +1,4 @@
-package model
+package database
 
 import (
 	"sync"
@@ -6,6 +6,7 @@ import (
 	"github.com/banzaicloud/bank-vaults/database"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/jinzhu/gorm"
+	"github.com/sirupsen/logrus"
 	// blank import is used here for simplicity
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/spf13/viper"
@@ -13,6 +14,7 @@ import (
 
 var dbOnce sync.Once
 var db *gorm.DB
+var log *logrus.Logger
 
 // Simple init for logging
 func init() {
@@ -54,7 +56,7 @@ func ConnectDB(dbName string) *gorm.DB {
 		log.Error("Database connection failed")
 		panic(err.Error())
 	}
-	database.LogMode(true)
+	database.LogMode(false)
 	return database
 }
 

@@ -2,13 +2,14 @@ package defaults
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/database"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"time"
 )
 
 var log *logrus.Logger
@@ -75,13 +76,13 @@ type DefaultModel struct {
 
 // save saves the given data into database
 func save(i interface{}) error {
-	database := model.GetDB()
+	database := database.GetDB()
 	return database.Save(i).Error
 }
 
 // loadFirst find first record that match given conditions, order by primary key
 func loadFirst(output interface{}) error {
-	return model.GetDB().First(output).Error
+	return database.GetDB().First(output).Error
 }
 
 // GetDefaultProfiles create all types of clouds with default profile name
@@ -112,7 +113,7 @@ func GetDefaultProfiles() []ClusterProfile {
 func GetAllProfiles(cloudType string) ([]ClusterProfile, error) {
 
 	var defaults []ClusterProfile
-	db := model.GetDB()
+	db := database.GetDB()
 
 	switch cloudType {
 
@@ -147,7 +148,7 @@ func GetAllProfiles(cloudType string) ([]ClusterProfile, error) {
 
 // GetProfile finds cluster profile from database by given name and cloud type
 func GetProfile(cloudType string, name string) (ClusterProfile, error) {
-	db := model.GetDB()
+	db := database.GetDB()
 
 	switch cloudType {
 	case pkgCluster.Amazon:

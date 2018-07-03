@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/database"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/gin-gonic/gin"
 )
@@ -32,7 +32,7 @@ func GetUsers(c *gin.Context) {
 	}
 
 	var users []auth.User
-	db := model.GetDB()
+	db := database.GetDB()
 	err = db.Model(organization).Related(&users, "Users").Error
 	if err != nil {
 		message := "failed to fetch users"
@@ -124,7 +124,7 @@ func AddUser(c *gin.Context) {
 }
 
 func addUserToOrgInDb(organization *auth.Organization, user *auth.User, role string) error {
-	tx := model.GetDB().Begin()
+	tx := database.GetDB().Begin()
 	err := tx.Error
 	if err != nil {
 		tx.Rollback()
@@ -164,7 +164,7 @@ func RemoveUser(c *gin.Context) {
 		return
 	}
 
-	db := model.GetDB()
+	db := database.GetDB()
 	err = db.Model(organization).Association("Users").Delete(auth.User{ID: uint(id)}).Error
 	if err != nil {
 		message := "failed to delete user: " + err.Error()

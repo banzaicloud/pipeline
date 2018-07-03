@@ -1,7 +1,7 @@
 package defaults
 
 import (
-	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/database"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/amazon"
 	"github.com/banzaicloud/pipeline/pkg/cluster/azure"
@@ -61,20 +61,20 @@ func (d *AWSProfile) GetType() string {
 
 // IsDefinedBefore returns true if database contains en entry with profile name
 func (d *AWSProfile) IsDefinedBefore() bool {
-	return model.GetDB().First(&d).RowsAffected != int64(0)
+	return database.GetDB().First(&d).RowsAffected != int64(0)
 }
 
 // AfterFind loads nodepools to profile
 func (d *AWSProfile) AfterFind() error {
 	log.Info("AfterFind aws profile... load node pools")
-	return model.GetDB().Where(AWSNodePoolProfile{Name: d.Name}).Find(&d.NodePools).Error
+	return database.GetDB().Where(AWSNodePoolProfile{Name: d.Name}).Find(&d.NodePools).Error
 }
 
 // BeforeSave clears nodepools
 func (d *AWSProfile) BeforeSave() error {
 	log.Info("BeforeSave aws profile...")
 
-	db := model.GetDB()
+	db := database.GetDB()
 	var nodePools []*AWSNodePoolProfile
 	err := db.Where(AWSNodePoolProfile{
 		Name: d.Name,
@@ -91,7 +91,7 @@ func (d *AWSProfile) BeforeDelete() error {
 	log.Info("BeforeDelete aws profile... delete all nodepool")
 
 	var nodePools []*AWSNodePoolProfile
-	return model.GetDB().Where(AWSNodePoolProfile{
+	return database.GetDB().Where(AWSNodePoolProfile{
 		Name: d.Name,
 	}).Find(&nodePools).Delete(&nodePools).Error
 }
@@ -220,5 +220,5 @@ func (d *AWSProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave
 
 // DeleteProfile deletes cluster profile from database
 func (d *AWSProfile) DeleteProfile() error {
-	return model.GetDB().Delete(&d).Error
+	return database.GetDB().Delete(&d).Error
 }

@@ -5,6 +5,7 @@ import (
 	azureClient "github.com/banzaicloud/azure-aks-client/client"
 	azureCluster "github.com/banzaicloud/azure-aks-client/cluster"
 	azureType "github.com/banzaicloud/azure-aks-client/types"
+	"github.com/banzaicloud/pipeline/database"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgAzure "github.com/banzaicloud/pipeline/pkg/cluster/azure"
@@ -177,7 +178,7 @@ func (c *AKSCluster) DownloadK8sConfig() ([]byte, error) {
 
 	client.With(log)
 
-	database := model.GetDB()
+	database := database.GetDB()
 	database.Where(model.AzureClusterModel{ClusterModelId: c.modelCluster.ID}).First(&c.modelCluster.Azure)
 	//TODO check banzairesponses
 	config, err := azureClient.GetClusterConfig(client, c.modelCluster.Name, c.modelCluster.Azure.ResourceGroup, "clusterUser")
@@ -236,7 +237,7 @@ func (c *AKSCluster) DeleteCluster() error {
 	client.With(log)
 
 	// set azure props
-	database := model.GetDB()
+	database := database.GetDB()
 	database.Where(model.AzureClusterModel{ClusterModelId: c.modelCluster.ID}).First(&c.modelCluster.Azure)
 
 	err = azureClient.DeleteCluster(client, c.modelCluster.Name, c.modelCluster.Azure.ResourceGroup)

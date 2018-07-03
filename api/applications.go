@@ -2,17 +2,19 @@ package api
 
 import (
 	"fmt"
+	"net/http"
+	"strconv"
+
 	"github.com/banzaicloud/pipeline/application"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
+	"github.com/banzaicloud/pipeline/database"
 	"github.com/banzaicloud/pipeline/model"
 	pkgApplication "github.com/banzaicloud/pipeline/pkg/application"
 	pkgCatalog "github.com/banzaicloud/pipeline/pkg/catalog"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
-	"net/http"
-	"strconv"
 )
 
 func getApplicationFromRequest(c *gin.Context) (*model.Application, bool) {
@@ -26,7 +28,7 @@ func getApplicationFromRequest(c *gin.Context) (*model.Application, bool) {
 		})
 		return nil, false
 	}
-	db := model.GetDB()
+	db := database.GetDB()
 	application := &model.Application{
 		ID: uint(id),
 	}
@@ -131,7 +133,7 @@ func GetApplications(c *gin.Context) {
 	log.Debug("List applications")
 
 	var applications []model.Application //TODO change this to CommonClusterStatus
-	db := model.GetDB()
+	db := database.GetDB()
 	organization := auth.GetCurrentOrganization(c.Request)
 	err := db.Model(organization).Related(&applications).Error
 	if err != nil {

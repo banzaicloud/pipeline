@@ -1,14 +1,15 @@
 package api
 
 import (
-	"github.com/banzaicloud/pipeline/model"
+	"net/http"
+
+	"github.com/banzaicloud/pipeline/database"
 	"github.com/banzaicloud/pipeline/model/defaults"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
-	"net/http"
 )
 
 const (
@@ -238,7 +239,7 @@ func DeleteClusterProfile(c *gin.Context) {
 func sendBackGetProfileErrorResponse(c *gin.Context, err error) {
 	statusCode := http.StatusBadRequest
 	msg := "Error during getting profile"
-	if model.IsErrorGormNotFound(err) {
+	if database.IsErrorGormNotFound(err) {
 		statusCode = http.StatusNotFound
 		msg = "Profile not found"
 	}

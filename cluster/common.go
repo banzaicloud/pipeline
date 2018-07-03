@@ -8,6 +8,7 @@ import (
 	"syscall"
 
 	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/database"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
@@ -187,7 +188,7 @@ func getSecret(organizationId uint, secretId string) (*secret.SecretItemResponse
 //GetCommonClusterFromModel extracts CommonCluster from a ClusterModel
 func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster, error) {
 
-	database := model.GetDB()
+	database := database.GetDB()
 
 	cloudType := modelCluster.Cloud
 	switch cloudType {

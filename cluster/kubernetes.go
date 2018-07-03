@@ -3,6 +3,7 @@ package cluster
 import (
 	"encoding/base64"
 
+	"github.com/banzaicloud/pipeline/database"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
@@ -81,7 +82,7 @@ func (b *KubeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) 
 	if len(b.modelCluster.Location) == 0 {
 		log.Debug("Empty location.. reload from db")
 		// reload from db
-		db := model.GetDB()
+		db := database.GetDB()
 		db.Find(&b.modelCluster, model.ClusterModel{ID: b.GetID()})
 	}
 
