@@ -9,7 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// OCI
+// OCI is for managing OCI API calls
 type OCI struct {
 	config          common.ConfigurationProvider
 	logger          *logrus.Logger

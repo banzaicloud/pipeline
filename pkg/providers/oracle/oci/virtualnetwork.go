@@ -6,6 +6,7 @@ import (
 	"github.com/oracle/oci-go-sdk/core"
 )
 
+// VirtualNetwork is for managing Virtual Network related calls of OCI
 type VirtualNetwork struct {
 	oci             *OCI
 	client          *core.VirtualNetworkClient

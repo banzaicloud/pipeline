@@ -10,7 +10,7 @@ import (
 	"github.com/oracle/oci-go-sdk/example/helpers"
 )
 
-// ContainerEngine
+// ContainerEngine is for managing OKE related calls of OCI
 type ContainerEngine struct {
 	oci             *OCI
 	client          *containerengine.ContainerEngineClient
