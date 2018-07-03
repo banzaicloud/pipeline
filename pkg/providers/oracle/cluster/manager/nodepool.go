@@ -43,6 +43,10 @@ func (cm *ClusterManager) UpdateNodePool(clusterModel *model.Cluster, np *model.
 	}
 
 	nodePools, err := ce.ListClusterNodePoolsByName(clusterModel.OCID, np.Name)
+	if err != nil {
+		return err
+	}
+
 	if len(nodePools) != 1 {
 		return nil
 	}
@@ -98,6 +102,10 @@ func (cm *ClusterManager) AddNodePool(clusterModel *model.Cluster, np *model.Nod
 	}
 
 	nodePools, err := ce.ListClusterNodePoolsByName(clusterModel.OCID, np.Name)
+	if err != nil {
+		return err
+	}
+
 	if len(nodePools) > 0 {
 		return nil
 	}
