@@ -452,5 +452,8 @@ func determineCloudProviderFromRequest(req storage.CreateBucketRequest) (string,
 	if req.Properties.CreateGoogleObjectStoreBucketProperties != nil {
 		return pkgCluster.Google, nil
 	}
+	if req.Properties.CreateOracleObjectStoreBucketProperties != nil {
+		return pkgCluster.Oracle, nil
+	}
 	return "", pkgErrors.ErrorNotSupportedCloudType
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/cluster/amazon"
 	"github.com/banzaicloud/pipeline/pkg/cluster/azure"
 	"github.com/banzaicloud/pipeline/pkg/cluster/google"
+	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster"
 )
 
 // AKSProfile describes an Azure cluster profile
@@ -109,6 +110,7 @@ func (d *AKSProfile) GetProfile() *pkgCluster.ClusterProfileResponse {
 			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
 			Google *google.ClusterProfileGoogle `json:"google,omitempty"`
+			Oracle *oracle.Cluster              `json:"oracle,omitempty"`
 		}{
 			Azure: &azure.ClusterProfileAzure{
 				KubernetesVersion: d.KubernetesVersion,

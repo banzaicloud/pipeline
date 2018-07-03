@@ -242,3 +242,7 @@
 [[constraint]]
   name = "github.com/technosophos/moniker"
   version = "0.2.0"
+
+[[constraint]]
+  name = "github.com/oracle/oci-go-sdk"
+  version = "1.8.0"

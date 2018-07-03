@@ -3,13 +3,14 @@ package utils
 import (
 	"encoding/base64"
 	"encoding/json"
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
 	"reflect"
+
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 )
 
 //GetEnv retrieves ENV variable, fallback if not set
@@ -106,6 +107,8 @@ func ValidateCloudType(cloudType string) error {
 	case pkgCluster.Google:
 		return nil
 	case pkgCluster.Azure:
+		return nil
+	case pkgCluster.Oracle:
 		return nil
 	default:
 		return pkgErrors.ErrorNotSupportedCloudType

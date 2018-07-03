@@ -1,6 +1,9 @@
 package secret
 
-import "github.com/banzaicloud/pipeline/pkg/cluster"
+import (
+	"github.com/banzaicloud/pipeline/pkg/cluster"
+	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/secret"
+)
 
 // FieldMeta describes how a secret field should be validated
 type FieldMeta struct {
@@ -146,6 +149,16 @@ var DefaultRules = map[string]Meta{
 			{Name: K8SConfig, Required: true},
 		},
 		Sourcing: Volume,
+	},
+	cluster.Oracle: {
+		Fields: []FieldMeta{
+			{Name: oracle.UserOCID, Required: true},
+			{Name: oracle.TenancyOCID, Required: true},
+			{Name: oracle.APIKey, Required: true},
+			{Name: oracle.APIKeyFingerprint, Required: true},
+			{Name: oracle.Region, Required: true},
+			{Name: oracle.CompartmentOCID, Required: true},
+		},
 	},
 	SSHSecretType: {
 		Fields: []FieldMeta{

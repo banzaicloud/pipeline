@@ -16,6 +16,8 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/cluster/dummy"
 	"github.com/banzaicloud/pipeline/pkg/cluster/google"
 	"github.com/banzaicloud/pipeline/pkg/cluster/kubernetes"
+	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster"
+	modelOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -252,6 +254,7 @@ var (
 			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
 			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
 			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
+			CreateClusterOracle *oracle.Cluster              `json:"oracle,omitempty"`
 		}{
 			CreateClusterGoogle: &google.CreateClusterGoogle{
 				NodeVersion: clusterRequestVersion,
@@ -283,6 +286,7 @@ var (
 			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
 			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
 			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
+			CreateClusterOracle *oracle.Cluster              `json:"oracle,omitempty"`
 		}{
 			CreateClusterGoogle: &google.CreateClusterGoogle{
 				NodeVersion: clusterRequestVersion,
@@ -311,6 +315,7 @@ var (
 			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
 			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
 			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
+			CreateClusterOracle *oracle.Cluster              `json:"oracle,omitempty"`
 		}{
 			CreateClusterAzure: &azure.CreateClusterAzure{
 				ResourceGroup:     clusterRequestRG,
@@ -339,6 +344,7 @@ var (
 			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
 			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
 			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
+			CreateClusterOracle *oracle.Cluster              `json:"oracle,omitempty"`
 		}{
 			CreateClusterAzure: &azure.CreateClusterAzure{
 				ResourceGroup:     clusterRequestRG,
@@ -364,6 +370,7 @@ var (
 			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
 			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
 			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
+			CreateClusterOracle *oracle.Cluster              `json:"oracle,omitempty"`
 		}{
 			CreateClusterAmazon: &amazon.CreateClusterAmazon{
 				NodePools: map[string]*amazon.NodePool{
@@ -395,6 +402,7 @@ var (
 			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
 			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
 			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
+			CreateClusterOracle *oracle.Cluster              `json:"oracle,omitempty"`
 		}{
 			CreateClusterDummy: &dummy.CreateClusterDummy{
 				Node: &dummy.Node{
@@ -416,6 +424,7 @@ var (
 			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
 			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
 			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
+			CreateClusterOracle *oracle.Cluster              `json:"oracle,omitempty"`
 		}{
 			CreateClusterAmazon: &amazon.CreateClusterAmazon{
 				NodePools: map[string]*amazon.NodePool{
@@ -446,6 +455,7 @@ var (
 			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
 			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
 			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
+			CreateClusterOracle *oracle.Cluster              `json:"oracle,omitempty"`
 		}{
 			CreateKubernetes: &kubernetes.CreateKubernetes{
 				Metadata: map[string]string{
@@ -466,6 +476,7 @@ var (
 			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
 			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
 			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
+			CreateClusterOracle *oracle.Cluster              `json:"oracle,omitempty"`
 		}{
 			CreateKubernetes: &kubernetes.CreateKubernetes{
 				Metadata: map[string]string{
@@ -486,6 +497,7 @@ var (
 			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
 			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
 			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
+			CreateClusterOracle *oracle.Cluster              `json:"oracle,omitempty"`
 		}{},
 	}
 
@@ -500,6 +512,7 @@ var (
 			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
 			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
 			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
+			CreateClusterOracle *oracle.Cluster              `json:"oracle,omitempty"`
 		}{
 			CreateClusterGoogle: &google.CreateClusterGoogle{
 				NodeVersion: clusterRequestVersion,
@@ -528,6 +541,7 @@ var (
 			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
 			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
 			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
+			CreateClusterOracle *oracle.Cluster              `json:"oracle,omitempty"`
 		}{
 			CreateClusterGoogle: &google.CreateClusterGoogle{
 				NodeVersion: clusterRequestVersion,
@@ -570,6 +584,7 @@ var (
 				},
 			},
 		},
+		Oracle: modelOracle.Cluster{},
 	}
 
 	aksModelFull = &model.ClusterModel{
@@ -594,6 +609,7 @@ var (
 			},
 		},
 		Google: model.GoogleClusterModel{},
+		Oracle: modelOracle.Cluster{},
 	}
 
 	awsModelFull = &model.ClusterModel{
@@ -619,6 +635,7 @@ var (
 		},
 		Azure:  model.AzureClusterModel{},
 		Google: model.GoogleClusterModel{},
+		Oracle: modelOracle.Cluster{},
 	}
 
 	dummyModelFull = &model.ClusterModel{
@@ -634,6 +651,7 @@ var (
 			KubernetesVersion: clusterRequestKubernetes,
 			NodeCount:         clusterRequestNodeCount,
 		},
+		Oracle: modelOracle.Cluster{},
 	}
 
 	kubeModelFull = &model.ClusterModel{
@@ -651,6 +669,7 @@ var (
 			},
 			MetadataRaw: nil,
 		},
+		Oracle: modelOracle.Cluster{},
 	}
 
 	kubeEmptyLocAndNIT = &model.ClusterModel{
@@ -668,6 +687,7 @@ var (
 			},
 			MetadataRaw: nil,
 		},
+		Oracle: modelOracle.Cluster{},
 	}
 
 	gkeModelDifferentVersion = &model.ClusterModel{
@@ -690,5 +710,6 @@ var (
 				},
 			},
 		},
+		Oracle: modelOracle.Cluster{},
 	}
 )

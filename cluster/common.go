@@ -12,6 +12,7 @@ import (
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
+	modelOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
@@ -252,6 +253,18 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 		database.Where(model.KubernetesClusterModel{ClusterModelId: kubernetesCluster.modelCluster.ID}).First(&kubernetesCluster.modelCluster.Kubernetes)
 
 		return kubernetesCluster, nil
+
+	case pkgCluster.Oracle:
+		// Create Oracle struct
+		okeCluster, err := CreateOKEClusterFromModel(modelCluster)
+		if err != nil {
+			return nil, err
+		}
+
+		log.Info("Load Oracle props from database")
+		database.Where(modelOracle.Cluster{ClusterModelID: okeCluster.modelCluster.ID}).Preload("NodePools.Subnets").Preload("NodePools.Labels").First(&okeCluster.modelCluster.Oracle)
+
+		return okeCluster, nil
 	}
 
 	return nil, pkgErrors.ErrorNotSupportedCloudType
@@ -311,6 +324,15 @@ func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClust
 			return nil, err
 		}
 		return kubeCluster, nil
+
+	case pkgCluster.Oracle:
+		// Create Oracle struct
+		okeCluster, err := CreateOKEClusterFromRequest(createClusterRequest, orgId)
+		if err != nil {
+			return nil, err
+		}
+		return okeCluster, nil
+
 	}
 
 	return nil, pkgErrors.ErrorNotSupportedCloudType

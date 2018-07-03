@@ -6,6 +6,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/cluster/amazon"
 	"github.com/banzaicloud/pipeline/pkg/cluster/azure"
 	"github.com/banzaicloud/pipeline/pkg/cluster/google"
+	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster"
 )
 
 // AWSProfile describes an Amazon cluster profile
@@ -122,6 +123,7 @@ func (d *AWSProfile) GetProfile() *pkgCluster.ClusterProfileResponse {
 			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
 			Google *google.ClusterProfileGoogle `json:"google,omitempty"`
+			Oracle *oracle.Cluster              `json:"oracle,omitempty"`
 		}{
 			Amazon: &amazon.ClusterProfileAmazon{
 				NodePools: nodePools,
