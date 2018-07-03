@@ -17,8 +17,8 @@ var log *logrus.Logger
 var once sync.Once
 var errCreate error
 
-// externalDnsServiceClientSync is the  DnsServiceClient singleton instance if this functionality is enabled
-var dnsServiceClient *externalDnsServiceClientSync
+// dnsServiceClient is the  DnsServiceClient singleton instance if this functionality is enabled
+var dnsServiceClient DnsServiceClient
 
 var gc garbageCollector
 
