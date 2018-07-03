@@ -8,6 +8,7 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
+	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 )
@@ -130,6 +131,10 @@ func convertRequestToProfile(request *pkgCluster.ClusterProfileRequest) (default
 		var gkeProfile defaults.GKEProfile
 		gkeProfile.UpdateProfile(request, false)
 		return &gkeProfile, nil
+	case pkgCluster.Oracle:
+		var okeProfile oracle.Profile
+		okeProfile.UpdateProfile(request, false)
+		return &okeProfile, nil
 	default:
 		return nil, pkgErrors.ErrorNotSupportedCloudType
 	}

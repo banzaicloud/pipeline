@@ -8,6 +8,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/database"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	modelOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/jinzhu/gorm"
@@ -50,6 +51,7 @@ type ClusterModel struct {
 	Google         GoogleClusterModel
 	Dummy          DummyClusterModel
 	Kubernetes     KubernetesClusterModel
+	Oracle         modelOracle.Cluster
 	Applications   []Application `gorm:"foreignkey:ClusterID"`
 }
 

@@ -1,13 +1,15 @@
 package defaults_test
 
 import (
+	"testing"
+
 	"github.com/banzaicloud/pipeline/model/defaults"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/amazon"
 	"github.com/banzaicloud/pipeline/pkg/cluster/azure"
 	"github.com/banzaicloud/pipeline/pkg/cluster/google"
+	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster"
 	"github.com/banzaicloud/pipeline/utils"
-	"testing"
 )
 
 func TestTableName(t *testing.T) {
@@ -109,6 +111,7 @@ var (
 			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
 			Google *google.ClusterProfileGoogle `json:"google,omitempty"`
+			Oracle *oracle.Cluster              `json:"oracle,omitempty"`
 		}{
 			Google: &google.ClusterProfileGoogle{
 				Master: &google.Master{
@@ -134,6 +137,7 @@ var (
 			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
 			Google *google.ClusterProfileGoogle `json:"google,omitempty"`
+			Oracle *oracle.Cluster              `json:"oracle,omitempty"`
 		}{
 			Azure: &azure.ClusterProfileAzure{
 				KubernetesVersion: k8sVersion,
@@ -155,6 +159,7 @@ var (
 			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
 			Google *google.ClusterProfileGoogle `json:"google,omitempty"`
+			Oracle *oracle.Cluster              `json:"oracle,omitempty"`
 		}{
 			Amazon: &amazon.ClusterProfileAmazon{
 				Master: &amazon.ProfileMaster{
@@ -232,6 +237,7 @@ var (
 			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
 			Google *google.ClusterProfileGoogle `json:"google,omitempty"`
+			Oracle *oracle.Cluster              `json:"oracle,omitempty"`
 		}{
 			Google: &google.ClusterProfileGoogle{
 				Master: &google.Master{
@@ -249,6 +255,7 @@ var (
 			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
 			Google *google.ClusterProfileGoogle `json:"google,omitempty"`
+			Oracle *oracle.Cluster              `json:"oracle,omitempty"`
 		}{
 			Amazon: &amazon.ClusterProfileAmazon{
 				Master: &amazon.ProfileMaster{
@@ -282,6 +289,7 @@ var (
 			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
 			Google *google.ClusterProfileGoogle `json:"google,omitempty"`
+			Oracle *oracle.Cluster              `json:"oracle,omitempty"`
 		}{
 			Google: &google.ClusterProfileGoogle{
 				NodeVersion: version,
@@ -303,6 +311,7 @@ var (
 			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
 			Google *google.ClusterProfileGoogle `json:"google,omitempty"`
+			Oracle *oracle.Cluster              `json:"oracle,omitempty"`
 		}{
 			Amazon: &amazon.ClusterProfileAmazon{
 				NodePools: map[string]*amazon.NodePool{

@@ -238,3 +238,7 @@
   name = "github.com/Depado/ginprom"
   source = "github.com/banzaicloud/ginprom"
   branch = "master"
+
+[[constraint]]
+  name = "github.com/oracle/oci-go-sdk"
+  version = "1.8.0"

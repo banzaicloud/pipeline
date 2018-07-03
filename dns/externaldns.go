@@ -1,6 +1,9 @@
 package dns
 
 import (
+	"sync"
+	"time"
+
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns/route53"
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
@@ -8,8 +11,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
-	"sync"
-	"time"
 )
 
 var log *logrus.Logger

@@ -188,14 +188,14 @@
   revision = "ebb6ef24cd5c253a2da0bca7a6a321b7d954b3a3"
 
 [[projects]]
+  branch = "master"
   name = "github.com/banzaicloud/bank-vaults"
   packages = [
     "auth",
     "database",
     "vault"
   ]
-  revision = "30a276bf4e8c7f8437a716b024add9cedd3fb5c8"
-  version = "0.2.2"
+  revision = "15169e1b548d97bbaad2b9b1c3a70460b8f90bd1"
 
 [[projects]]
   branch = "master"
@@ -828,6 +828,20 @@
   ]
   revision = "d60099175f88c47cd379c4738d158884749ed235"
   version = "v1.0.1"
+
+[[projects]]
+  name = "github.com/oracle/oci-go-sdk"
+  packages = [
+    ".",
+    "common",
+    "containerengine",
+    "core",
+    "example/helpers",
+    "identity",
+    "objectstorage"
+  ]
+  revision = "a2ded717dc4bb4916c0416ec79f81718b576dbc4"
+  version = "v1.8.0"
 
 [[projects]]
   name = "github.com/packethost/packngo"
@@ -1815,6 +1829,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "5510dfc5d856760f6353cf7de713a5a9bed9c969cfa410d78abf08572cf3d0f2"
+  inputs-digest = "ddc3360cdc06b9b8a099a0e33e75c4d7adb2914d10c7026ac6a5d2866aeb0c2e"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -1,10 +1,12 @@
 package verify
 
 import (
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"reflect"
 	"testing"
+
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/secret"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 )
 
 func TestNewVerifier(t *testing.T) {
@@ -39,6 +41,12 @@ func TestNewVerifier(t *testing.T) {
 				svc: CreateServiceAccount(gkeCredentialsMap),
 			},
 		},
+		{
+			name:      "oci validator",
+			cloudType: pkgCluster.Oracle,
+			values:    OCICredentialMap,
+			verifier:  oracle.CreateOCISecret(OCICredentialMap),
+		},
 	}
 
 	for _, tc := range cases {
@@ -72,6 +80,12 @@ const (
 	testTokenUri      = "testTokenUri"
 	testAuthX509Url   = "testAuthX509Url"
 	testClientX509Url = "testClientX509Url"
+
+	testUserOCID           = "testUserOCID"
+	testTenancyOCID        = "testTenancyOCID"
+	testAPIKey             = "testAPIKey"
+	testAPIKeyFringerprint = "testAPIKeyFringerprint"
+	testRegion             = "testRegion"
 )
 
 var (
@@ -98,5 +112,13 @@ var (
 		pkgSecret.TokenUri:      testTokenUri,
 		pkgSecret.AuthX509Url:   testAuthX509Url,
 		pkgSecret.ClientX509Url: testClientX509Url,
+	}
+
+	OCICredentialMap = map[string]string{
+		oracle.UserOCID:          testUserOCID,
+		oracle.TenancyOCID:       testTenancyOCID,
+		oracle.APIKey:            testAPIKey,
+		oracle.APIKeyFingerprint: testAPIKeyFringerprint,
+		oracle.Region:            testRegion,
 	}
 )

@@ -8,6 +8,7 @@ import (
 	"github.com/banzaicloud/pipeline/database"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
+	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -138,6 +139,12 @@ func GetAllProfiles(cloudType string) ([]ClusterProfile, error) {
 			defaults = append(defaults, &gkeProfiles[i])
 		}
 
+	case pkgCluster.Oracle:
+		okeProfiles := oracle.GetProfiles()
+		for i := range okeProfiles {
+			defaults = append(defaults, &okeProfiles[i])
+		}
+
 	default:
 		return nil, pkgErrors.ErrorNotSupportedCloudType
 	}
@@ -171,6 +178,11 @@ func GetProfile(cloudType string, name string) (ClusterProfile, error) {
 			return nil, err
 		}
 		return &gkeProfile, nil
+
+	case pkgCluster.Oracle:
+		var okeProfile oracle.Profile
+		okeProfile, err := oracle.GetProfileByName(name)
+		return &okeProfile, err
 
 	default:
 		return nil, pkgErrors.ErrorNotSupportedCloudType

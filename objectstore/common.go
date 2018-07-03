@@ -61,6 +61,11 @@ func NewObjectStore(cloudType string, s *secret.SecretItemResponse, organization
 			secret: s,
 			org:    organization,
 		}, nil
+	case pkgCluster.Oracle:
+		return &OCIObjectStore{
+			secret: s,
+			org:    organization,
+		}, nil
 	default:
 		return nil, pkgErrors.ErrorNotSupportedCloudType
 	}
