@@ -16,7 +16,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/database"
 	"github.com/gin-gonic/gin"
 )
 
@@ -52,7 +52,7 @@ func LogWriter(notloggedPaths []string, whitelistedHeaders []string) gin.Handler
 		skip[path] = struct{}{}
 	}
 
-	db := model.GetDB()
+	db := database.GetDB()
 
 	return func(c *gin.Context) {
 		// Start timer

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/banzaicloud/pipeline/database"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
@@ -187,7 +188,7 @@ func (cs *ClusterModel) AfterFind() error {
 
 //Save the cluster to DB
 func (cs *ClusterModel) Save() error {
-	db := GetDB()
+	db := database.GetDB()
 	err := db.Save(&cs).Error
 	if err != nil {
 		return err
@@ -208,7 +209,7 @@ func (cs *ClusterModel) Delete() error {
 		log.Warnf("Error during deleting config secret: %s", err.Error())
 	}
 
-	db := GetDB()
+	db := database.GetDB()
 	return db.Delete(&cs).Error
 }
 
@@ -278,7 +279,7 @@ func (AzureNodePoolModel) TableName() string {
 // QueryCluster get's the clusters from the DB
 func QueryCluster(filter map[string]interface{}) ([]ClusterModel, error) {
 	var cluster []ClusterModel
-	err := db.Where(filter).Find(&cluster).Error
+	err := database.GetDB().Where(filter).Find(&cluster).Error
 	if err != nil {
 		return nil, err
 	}
@@ -379,7 +380,7 @@ func (cs *ClusterModel) AddSshKey() (string, error) {
 
 // ReloadFromDatabase load cluster from DB
 func (cs *ClusterModel) ReloadFromDatabase() error {
-	return GetDB().Where(ClusterModel{
+	return database.GetDB().Where(ClusterModel{
 		ID:             cs.ID,
 		OrganizationId: cs.OrganizationId,
 	}, &cs).Error

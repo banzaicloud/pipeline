@@ -8,8 +8,8 @@ import (
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
+	"github.com/banzaicloud/pipeline/database"
 	"github.com/banzaicloud/pipeline/helm"
-	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/gin-gonic/gin"
 )
@@ -31,7 +31,7 @@ func OrganizationMiddleware(c *gin.Context) {
 
 	organization := &auth.Organization{ID: uint(orgid)}
 
-	db := model.GetDB()
+	db := database.GetDB()
 	err = db.Where(organization).Find(organization).Error
 	if err != nil {
 		message := "error fetching organizations: " + err.Error()
@@ -71,7 +71,7 @@ func GetOrganizations(c *gin.Context) {
 	var organization = auth.Organization{ID: uint(id)}
 	var organizations []auth.Organization
 
-	db := model.GetDB()
+	db := database.GetDB()
 
 	// Virtual users can list only the organizaion they are belonging to
 	if user.Virtual {
@@ -132,7 +132,7 @@ func CreateOrganization(c *gin.Context) {
 	user := auth.GetCurrentUser(c.Request)
 	organization := &auth.Organization{Name: name.Name}
 
-	db := model.GetDB()
+	db := database.GetDB()
 	err := db.Model(user).Association("Organizations").Append(organization).Error
 	if err != nil {
 		message := "error creating organization: " + err.Error()
@@ -198,7 +198,7 @@ func DeleteOrganization(c *gin.Context) {
 }
 
 func deleteOrgFromDB(organization *auth.Organization, user *auth.User) error {
-	tx := model.GetDB().Begin()
+	tx := database.GetDB().Begin()
 	err := tx.Error
 	if err != nil {
 		tx.Rollback()

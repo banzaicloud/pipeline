@@ -1,8 +1,10 @@
 package model
 
 import (
-	"github.com/banzaicloud/pipeline/config"
 	"time"
+
+	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/database"
 )
 
 var log = config.Logger()
@@ -43,7 +45,7 @@ type Deployment struct {
 
 //Update Deployment
 func (d *Deployment) Update(update Deployment) error {
-	err := GetDB().Model(d).Update(update).Error
+	err := database.GetDB().Model(d).Update(update).Error
 	if err != nil {
 		log.Error(err)
 	}
@@ -52,7 +54,7 @@ func (d *Deployment) Update(update Deployment) error {
 
 // Create Deployment
 func (d *Deployment) Create() error {
-	err := GetDB().Create(d).Error
+	err := database.GetDB().Create(d).Error
 	if err != nil {
 		log.Error(err)
 	}
@@ -61,7 +63,7 @@ func (d *Deployment) Create() error {
 
 // GetCluster Application
 func (am Application) GetCluster() (*ClusterModel, error) {
-	db := GetDB()
+	db := database.GetDB()
 	var cluster ClusterModel
 	err := db.First(&cluster, am.ClusterID).Error
 	return &cluster, err
@@ -69,7 +71,7 @@ func (am Application) GetCluster() (*ClusterModel, error) {
 
 //Save Application the cluster to DB
 func (am *Application) Save() error {
-	err := GetDB().Save(&am).Error
+	err := database.GetDB().Save(&am).Error
 	if err != nil {
 		log.Error(err)
 	}
@@ -78,7 +80,7 @@ func (am *Application) Save() error {
 
 // Delete deletes application from the DB
 func (am *Application) Delete() error {
-	err := GetDB().Delete(&am).Error
+	err := database.GetDB().Delete(&am).Error
 	if err != nil {
 		log.Error(err)
 	}
@@ -87,7 +89,7 @@ func (am *Application) Delete() error {
 
 // Update update fields for Application
 func (am *Application) Update(update Application) error {
-	err := GetDB().Model(am).Update(update).Error
+	err := database.GetDB().Model(am).Update(update).Error
 	if err != nil {
 		log.Error(err)
 	}

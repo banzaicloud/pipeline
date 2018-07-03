@@ -9,7 +9,7 @@ import (
 
 	bauth "github.com/banzaicloud/bank-vaults/auth"
 	"github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/database"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/dgrijalva/jwt-go"
@@ -126,7 +126,7 @@ func Init() {
 
 	// Initialize Auth with configuration
 	Auth = auth.New(&auth.Config{
-		DB:                model.GetDB(),
+		DB:                database.GetDB(),
 		Redirector:        auth.Redirector{redirectBack},
 		AuthIdentityModel: AuthIdentity{},
 		UserModel:         User{},

@@ -11,6 +11,7 @@ import (
 	"github.com/banzaicloud/pipeline/audit"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/database"
 	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/dns/route53/model"
 	"github.com/banzaicloud/pipeline/model"
@@ -55,7 +56,7 @@ func main() {
 	logger.Info("Pipeline initialization")
 
 	// Ensure DB connection
-	db := model.GetDB()
+	db := database.GetDB()
 	// Initialize auth
 	auth.Init()
 

@@ -8,6 +8,7 @@ import (
 	"github.com/banzaicloud/pipeline/catalog"
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/database"
 	"github.com/banzaicloud/pipeline/helm"
 	k8s "github.com/banzaicloud/pipeline/kubernetes"
 	"github.com/banzaicloud/pipeline/model"
@@ -145,7 +146,7 @@ func CreateApplicationDeployment(env helm_env.EnvSettings, am *model.Application
 			Name:   dependency.Name,
 			Chart:  dependency.Chart.Name,
 		}
-		model.GetDB().Save(&deployment)
+		database.GetDB().Save(&deployment)
 		am.Deployments = append(am.Deployments, deployment)
 	}
 	// Add the catalog itself
@@ -154,7 +155,7 @@ func CreateApplicationDeployment(env helm_env.EnvSettings, am *model.Application
 		Name:   catalogInfo.Chart.Name,
 		Chart:  am.CatalogName,
 	}
-	model.GetDB().Save(deployment)
+	database.GetDB().Save(deployment)
 	am.Deployments = append(am.Deployments, deployment)
 	am.Save()
 
@@ -188,7 +189,7 @@ func CreateApplicationDeployment(env helm_env.EnvSettings, am *model.Application
 			deployment.Update(model.Deployment{Status: FAILED, Message: err.Error()})
 			return err
 		}
-		model.GetDB().Model(deployment).Update("release_name", resp.Release.Name)
+		database.GetDB().Model(deployment).Update("release_name", resp.Release.Name)
 	}
 	deployment.Update(model.Deployment{Status: READY, ReleaseName: releaseName})
 	am.Update(model.Application{Status: DEPLOYED})
