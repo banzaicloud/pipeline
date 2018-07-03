@@ -96,7 +96,7 @@ func (ProfileNodePoolLabel) TableName() string {
 	return ProfileNodePoolLabelTableName
 }
 
-// GetProfiles gets Profiles from datbase and eager loads node pools
+// GetProfiles gets Profiles from database and eager loads node pools
 func GetProfiles() []Profile {
 
 	var Profiles []Profile
