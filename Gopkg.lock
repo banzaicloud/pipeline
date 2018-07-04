@@ -1091,6 +1091,12 @@
   version = "v1.0.2"
 
 [[projects]]
+  name = "github.com/technosophos/moniker"
+  packages = ["."]
+  revision = "a5dbd03a2245d554160e3ae6bfdcf969fe58b431"
+  version = "0.2.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/tent/http-link-go"
   packages = ["."]

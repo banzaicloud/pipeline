@@ -2,6 +2,8 @@ package application
 
 import (
 	"fmt"
+	"reflect"
+	"strings"
 	"time"
 
 	"github.com/banzaicloud/pipeline/auth"
@@ -13,6 +15,7 @@ import (
 	k8s "github.com/banzaicloud/pipeline/kubernetes"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCatalog "github.com/banzaicloud/pipeline/pkg/catalog"
+	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/pkg/errors"
@@ -100,6 +103,13 @@ func CreateApplication(am *model.Application, options []pkgCatalog.ApplicationOp
 	am.Description = catalog.Chart.Description
 	am.Save()
 
+	// merge options and catalog (secret refs)
+	err = mergeRefValues(catalog, options)
+	if err != nil {
+		am.Update(model.Application{Status: FAILED, Message: err.Error()})
+		return err
+	}
+
 	err = CreateApplicationDeployment(env, am, options, catalog, kubeConfig)
 	if err != nil {
 		am.Update(model.Application{Status: FAILED, Message: err.Error()})
@@ -108,26 +118,58 @@ func CreateApplication(am *model.Application, options []pkgCatalog.ApplicationOp
 	return nil
 }
 
+func getReleaseName(kubeConfig []byte) (string, error) {
+	// Check if we want filter
+	filter := ""
+	// Generate release name
+	var releaseName string
+	// Check if it exists regenerate on collision
+	lrs, err := helm.ListDeployments(&filter, kubeConfig)
+	if err != nil {
+		return "", err
+	}
+	for i := 0; i < 5; i++ {
+		releaseName = pkgHelm.GenerateReleaseName()
+		for _, release := range lrs.Releases {
+			if release.Name == releaseName {
+				continue
+			}
+		}
+		return releaseName, nil
+	}
+	return "", fmt.Errorf("release name collision: %s", releaseName)
+}
+
 // CreateApplicationDeployment will deploy a Catalog with Dependency
 func CreateApplicationDeployment(env helm_env.EnvSettings, am *model.Application, options []pkgCatalog.ApplicationOptions, catalogInfo *catalog.CatalogDetails, kubeConfig []byte) error {
 
+	releaseName, err := getReleaseName(kubeConfig)
+	if err != nil {
+		return err
+	}
+
 	// Generate secrets for spotguide
 	secretTag := fmt.Sprintf("application:%d", am.ID)
-	for _, s := range catalogInfo.Spotguide.Secrets {
+
+	for name, s := range catalogInfo.Spotguide.Secrets {
+
 		request := secret.CreateSecretRequest{
-			Name: s.Name,
+			Name: releaseName + "-" + name,
 			Tags: []string{secretTag},
 		}
+
 		if s.TLS != nil {
 			request.Type = pkgSecret.TLSSecretType
 			request.Values[pkgSecret.TLSHosts] = s.TLS.Hosts
 			request.Values[pkgSecret.TLSValidity] = s.TLS.Validity
 		}
+
 		if s.Password != nil {
 			request.Type = pkgSecret.PasswordSecretType
 			request.Values[pkgSecret.Username] = s.Password.Username
 			request.Values[pkgSecret.Password] = s.Password.Password
 		}
+
 		if _, err := secret.Store.Store(am.OrganizationId, &request); err != nil {
 			return err
 		}
@@ -135,7 +177,7 @@ func CreateApplicationDeployment(env helm_env.EnvSettings, am *model.Application
 
 	// Install secrets into cluster for spotguide
 	secretQuery := pkgSecret.ListSecretsQuery{Type: pkgSecret.AllSecrets, Tag: secretTag}
-	_, err := cluster.InstallSecretsByK8SConfig(kubeConfig, am.OrganizationId, &secretQuery, helm.DefaultNamespace)
+	_, err = cluster.InstallSecretsByK8SConfig(kubeConfig, am.OrganizationId, &secretQuery, helm.DefaultNamespace)
 	if err != nil {
 		return err
 	}
@@ -165,7 +207,7 @@ func CreateApplicationDeployment(env helm_env.EnvSettings, am *model.Application
 		if err != nil {
 			return err
 		}
-		releaseName, err := EnsureDependency(env, dependency, kubeConfig)
+		releaseName, err := EnsureDependency(env, dependency, kubeConfig, releaseName)
 		if err != nil {
 			d.Update(model.Deployment{Status: FAILED, Message: err.Error()})
 			break
@@ -184,7 +226,7 @@ func CreateApplicationDeployment(env helm_env.EnvSettings, am *model.Application
 		return err
 	}
 	if !ok {
-		resp, err := helm.CreateDeployment(chart, helm.DefaultNamespace, "", values, kubeConfig, env)
+		resp, err := helm.CreateDeployment(chart, helm.DefaultNamespace, releaseName, values, kubeConfig, env)
 		if err != nil {
 			deployment.Update(model.Deployment{Status: FAILED, Message: err.Error()})
 			return err
@@ -197,10 +239,10 @@ func CreateApplicationDeployment(env helm_env.EnvSettings, am *model.Application
 }
 
 // EnsureDependency ensure remote dependency on a given Kubernetes endpoint
-func EnsureDependency(env helm_env.EnvSettings, dependency pkgCatalog.ApplicationDependency, kubeConfig []byte) (releaseName string, err error) {
+func EnsureDependency(env helm_env.EnvSettings, dependency pkgCatalog.ApplicationDependency, kubeConfig []byte, releaseName string) (string, error) {
 	log.Debugf("Dependency: %#v", dependency)
 	if dependency.Type != "crd" {
-		releaseName, err := EnsureChart(env, dependency, kubeConfig)
+		releaseName, err := EnsureChart(env, dependency, kubeConfig, releaseName)
 		if err != nil {
 			return "", err
 		}
@@ -215,7 +257,7 @@ func EnsureDependency(env helm_env.EnvSettings, dependency pkgCatalog.Applicatio
 		return releaseName, nil
 	}
 
-	releaseName, err = EnsureChart(env, dependency, kubeConfig)
+	releaseName, err = EnsureChart(env, dependency, kubeConfig, releaseName)
 	if err != nil {
 		return "", err
 	}
@@ -268,7 +310,7 @@ func ChartPresented(chartName string, kubeConfig []byte) (bool, string, error) {
 }
 
 // EnsureChart ensures a given Helm chart is available on the given Kubernetes cluster
-func EnsureChart(env helm_env.EnvSettings, dep pkgCatalog.ApplicationDependency, kubeConfig []byte) (releaseName string, err error) {
+func EnsureChart(env helm_env.EnvSettings, dep pkgCatalog.ApplicationDependency, kubeConfig []byte, releaseName string) (string, error) {
 	ok, releaseName, err := ChartPresented(dep.Chart.Name, kubeConfig)
 	if err != nil {
 		return "", err
@@ -280,7 +322,7 @@ func EnsureChart(env helm_env.EnvSettings, dep pkgCatalog.ApplicationDependency,
 	// TODO this is a workaround to not implement repository handling
 	chart := catalog.CatalogRepository + "/" + dep.Chart.Name
 
-	resp, err := helm.CreateDeployment(chart, "", "", nil, kubeConfig, env)
+	resp, err := helm.CreateDeployment(chart, dep.Namespace, releaseName, nil, kubeConfig, env)
 	if err != nil {
 		return "", err
 	}
@@ -320,4 +362,35 @@ func subSet(a, b []string) bool {
 		}
 	}
 	return true
+}
+
+func mergeRefValues(catalog *catalog.CatalogDetails, options []pkgCatalog.ApplicationOptions) error {
+	for _, option := range options {
+		if option.Ref != "" {
+			ref := strings.TrimPrefix(option.Ref, "#/")
+			field := reflect.ValueOf(*catalog.Spotguide)
+			path := strings.Split(ref, "/")
+			for _, fieldName := range path {
+				// skip double or ending slashes
+				if fieldName != "" {
+					if field.Kind() == reflect.Ptr {
+						field = field.Elem()
+					}
+					if field.Kind() == reflect.Map {
+						field = field.MapIndex(reflect.ValueOf(fieldName))
+					} else if field.Kind() == reflect.Struct {
+						field = field.FieldByName(strings.Title(fieldName))
+					} else {
+						return fmt.Errorf("Can't traverse '%s' ref in spotguide, type: %s", option.Ref, field.Kind().String())
+					}
+					if !field.IsValid() {
+						return fmt.Errorf("Can't find '%s' ref in spotguide", option.Ref)
+					}
+				}
+			}
+			value := reflect.ValueOf(option.Value)
+			field.Set(value)
+		}
+	}
+	return nil
 }
