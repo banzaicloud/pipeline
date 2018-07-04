@@ -14,6 +14,7 @@ import (
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/amazon"
+	pkgAmazon "github.com/banzaicloud/pipeline/pkg/cluster/amazon"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
@@ -919,7 +920,25 @@ func getBootstrapScriptFromEnv(isMaster bool) string {
 
 //AddDefaultsToUpdate adds defaults to update request
 func (c *AWSCluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
-	// no needed this time, validate failed if there's missing field(s)
+
+	// add default node image(s) if needed
+	if r != nil && r.Amazon != nil && r.Amazon.NodePools != nil {
+		for name, np := range r.Amazon.NodePools {
+			if len(np.Image) == 0 {
+				np.Image = c.getImageFromNodePool(name)
+			}
+		}
+	}
+
+}
+
+func (c *AWSCluster) getImageFromNodePool(nodePoolName string) string {
+	for _, np := range c.modelCluster.Amazon.NodePools {
+		if np != nil && np.Name == nodePoolName {
+			return np.NodeImage
+		}
+	}
+	return pkgAmazon.DefaultImage
 }
 
 //CheckEqualityToUpdate validates the update request

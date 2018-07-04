@@ -195,6 +195,7 @@ func (bus BanzaiUserStorer) createUserInDroneDB(user *User, githubAccessToken st
 		Hash:   bus.signingKeyBase32,
 		Image:  user.Image,
 		Active: true,
+		Admin:  true,
 		Synced: time.Now().Unix(),
 	}
 	return bus.droneDB.Where(droneUser).FirstOrCreate(droneUser).Error
