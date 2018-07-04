@@ -407,15 +407,15 @@ Add new Helm repository
  * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param orgId Organization identification
  * @param helmReposAddRequest
-@return HelmReposAddResponse
+@return HelmRepoListItem
 */
-func (a *HelmApiService) HelmReposAdd(ctx context.Context, orgId int32, helmReposAddRequest HelmReposAddRequest) (HelmReposAddResponse, *http.Response, error) {
+func (a *HelmApiService) HelmReposAdd(ctx context.Context, orgId int32, helmReposAddRequest HelmReposAddRequest) (HelmRepoListItem, *http.Response, error) {
 	var (
 		localVarHttpMethod  = strings.ToUpper("Post")
 		localVarPostBody    interface{}
 		localVarFileName    string
 		localVarFileBytes   []byte
-		localVarReturnValue HelmReposAddResponse
+		localVarReturnValue HelmRepoListItem
 	)
 
 	// create path and map variables
@@ -475,7 +475,7 @@ func (a *HelmApiService) HelmReposAdd(ctx context.Context, orgId int32, helmRepo
 			error: localVarHttpResponse.Status,
 		}
 		if localVarHttpResponse.StatusCode == 200 {
-			var v HelmReposAddResponse
+			var v HelmRepoListItem
 			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
 			if err != nil {
 				newErr.error = err.Error()

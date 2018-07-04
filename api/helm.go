@@ -408,10 +408,30 @@ func HelmReposAdd(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusOK, pkgHelm.StatusResponse{
-		Status:  http.StatusOK,
-		Message: "resource successfully added.",
-		Name:    repo.Name})
+
+	entries, err := helm.ReposGet(helmEnv)
+	if err != nil {
+		log.Errorf("Error during getting helm repo: %s", err.Error())
+		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error during getting helm repo",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	for _, entry := range entries {
+		if entry.Name == repo.Name {
+			c.JSON(http.StatusOK, entry)
+			return
+		}
+	}
+
+	c.JSON(http.StatusNotFound, pkgCommmon.ErrorResponse{
+		Code:    http.StatusNotFound,
+		Message: "Helm repo not found",
+	})
+
 	return
 }
 
