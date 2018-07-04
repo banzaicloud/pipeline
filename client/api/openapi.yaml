@@ -302,7 +302,7 @@ paths:
                     google:
                       $ref: '#/components/schemas/CreateGoogleProperties'
             schema:
-              $ref: '#/components/schemas/CreateApplicationRequest'
+              $ref: '#/components/schemas/CreateClusterRequest'
         required: true
       responses:
         202:
