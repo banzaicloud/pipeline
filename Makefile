@@ -70,7 +70,7 @@ vet:
 	@go vet -composites=false ./...
 
 test:
-	@go test -parallel 1 -v ./...
+	go list ./... | xargs -n1 go test -v -parallel 1
 
 lint: install-golint
 	golint -min_confidence 0.9 -set_exit_status $(PKGS)
