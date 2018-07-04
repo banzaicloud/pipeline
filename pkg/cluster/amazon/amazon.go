@@ -132,6 +132,16 @@ func (amazon *CreateClusterAmazon) AddDefaults() error {
 			InstanceType: DefaultMasterInstanceType,
 			Image:        DefaultImage,
 		}
+	} else {
+
+		if len(amazon.Master.InstanceType) == 0 {
+			amazon.Master.InstanceType = DefaultMasterInstanceType
+		}
+
+		if len(amazon.Master.Image) == 0 {
+			amazon.Master.Image = DefaultImage
+		}
+
 	}
 
 	if len(amazon.NodePools) == 0 {
