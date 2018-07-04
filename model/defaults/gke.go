@@ -1,11 +1,12 @@
 package defaults
 
 import (
-	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/database"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/amazon"
 	"github.com/banzaicloud/pipeline/pkg/cluster/azure"
 	"github.com/banzaicloud/pipeline/pkg/cluster/google"
+	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster"
 )
 
 // GKEProfile describes a Google cluster profile
@@ -43,7 +44,7 @@ func (GKENodePoolProfile) TableName() string {
 // AfterFind loads nodepools to profile
 func (d *GKEProfile) AfterFind() error {
 	log.Info("AfterFind gke profile... load node pools")
-	return model.GetDB().Where(GKENodePoolProfile{Name: d.Name}).Find(&d.NodePools).Error
+	return database.GetDB().Where(GKENodePoolProfile{Name: d.Name}).Find(&d.NodePools).Error
 }
 
 // BeforeSave clears nodepools
@@ -51,7 +52,7 @@ func (d *GKEProfile) BeforeSave() error {
 	log.Info("BeforeSave gke profile...")
 
 	var nodePools []*GKENodePoolProfile
-	err := model.GetDB().Where(GKENodePoolProfile{
+	err := database.GetDB().Where(GKENodePoolProfile{
 		Name: d.Name,
 	}).Find(&nodePools).Delete(&nodePools).Error
 	if err != nil {
@@ -66,7 +67,7 @@ func (d *GKEProfile) BeforeDelete() error {
 	log.Info("BeforeDelete gke profile... delete all nodepool")
 
 	var nodePools []*GKENodePoolProfile
-	return model.GetDB().Where(GKENodePoolProfile{
+	return database.GetDB().Where(GKENodePoolProfile{
 		Name: d.Name,
 	}).Find(&nodePools).Delete(&nodePools).Error
 }
@@ -78,7 +79,7 @@ func (d *GKEProfile) SaveInstance() error {
 
 // IsDefinedBefore returns true if database contains en entry with profile name
 func (d *GKEProfile) IsDefinedBefore() bool {
-	return model.GetDB().First(&d).RowsAffected != int64(0)
+	return database.GetDB().First(&d).RowsAffected != int64(0)
 }
 
 // GetType returns profile's cloud type
@@ -111,6 +112,7 @@ func (d *GKEProfile) GetProfile() *pkgCluster.ClusterProfileResponse {
 			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
 			Google *google.ClusterProfileGoogle `json:"google,omitempty"`
+			Oracle *oracle.Cluster              `json:"oracle,omitempty"`
 		}{
 			Google: &google.ClusterProfileGoogle{
 				Master: &google.Master{
@@ -168,5 +170,5 @@ func (d *GKEProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave
 
 // DeleteProfile deletes cluster profile from database
 func (d *GKEProfile) DeleteProfile() error {
-	return model.GetDB().Delete(&d).Error
+	return database.GetDB().Delete(&d).Error
 }

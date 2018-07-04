@@ -1,14 +1,16 @@
 package api
 
 import (
-	"github.com/banzaicloud/pipeline/model"
+	"net/http"
+
+	"github.com/banzaicloud/pipeline/database"
 	"github.com/banzaicloud/pipeline/model/defaults"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
+	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
-	"net/http"
 )
 
 const (
@@ -129,6 +131,10 @@ func convertRequestToProfile(request *pkgCluster.ClusterProfileRequest) (default
 		var gkeProfile defaults.GKEProfile
 		gkeProfile.UpdateProfile(request, false)
 		return &gkeProfile, nil
+	case pkgCluster.Oracle:
+		var okeProfile oracle.Profile
+		okeProfile.UpdateProfile(request, false)
+		return &okeProfile, nil
 	default:
 		return nil, pkgErrors.ErrorNotSupportedCloudType
 	}
@@ -238,7 +244,7 @@ func DeleteClusterProfile(c *gin.Context) {
 func sendBackGetProfileErrorResponse(c *gin.Context, err error) {
 	statusCode := http.StatusBadRequest
 	msg := "Error during getting profile"
-	if model.IsErrorGormNotFound(err) {
+	if database.IsErrorGormNotFound(err) {
 		statusCode = http.StatusNotFound
 		msg = "Profile not found"
 	}

@@ -1,6 +1,9 @@
 package verify
 
-import pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+import (
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/secret"
+)
 
 // Verifier validates cloud credentials
 type Verifier interface {
@@ -17,6 +20,8 @@ func NewVerifier(cloudType string, values map[string]string) Verifier {
 		return CreateAKSSecret(values)
 	case pkgCluster.Google:
 		return CreateGKESecret(values)
+	case pkgCluster.Oracle:
+		return oracle.CreateOCISecret(values)
 	default:
 		return nil
 	}

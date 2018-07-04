@@ -3,7 +3,7 @@ package objectstore
 import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/database"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	pkgStorage "github.com/banzaicloud/pipeline/pkg/storage"
@@ -61,6 +61,11 @@ func NewObjectStore(cloudType string, s *secret.SecretItemResponse, organization
 			secret: s,
 			org:    organization,
 		}, nil
+	case pkgCluster.Oracle:
+		return &OCIObjectStore{
+			secret: s,
+			org:    organization,
+		}, nil
 	default:
 		return nil, pkgErrors.ErrorNotSupportedCloudType
 	}
@@ -71,7 +76,7 @@ func NewObjectStore(cloudType string, s *secret.SecretItemResponse, organization
 // If no db record is found than returns with ManagedBucketNotFoundError
 func getManagedBucket(searchCriteria interface{}, managedBucket interface{}) error {
 
-	if err := model.GetDB().Where(searchCriteria).Find(managedBucket).Error; err != nil {
+	if err := database.GetDB().Where(searchCriteria).Find(managedBucket).Error; err != nil {
 
 		if err == gorm.ErrRecordNotFound {
 			return ManagedBucketNotFoundError{
@@ -86,30 +91,30 @@ func getManagedBucket(searchCriteria interface{}, managedBucket interface{}) err
 
 func persistToDb(m interface{}) error {
 	log.Info("Persisting Bucket Description to Db")
-	db := model.GetDB()
+	db := database.GetDB()
 	return db.Save(m).Error
 }
 
 func updateDBField(m interface{}, field interface{}) error {
 	log.Info("Updating Bucket Description ")
-	db := model.GetDB()
+	db := database.GetDB()
 	return db.Model(m).Update(field).Error
 }
 
 func deleteFromDbByPK(m interface{}) error {
 	log.Info("Deleting from DB...")
-	db := model.GetDB()
+	db := database.GetDB()
 	return db.Delete(m).Error
 }
 
 func deleteFromDb(m interface{}) error {
 	log.Info("Deleting from DB...")
-	db := model.GetDB()
+	db := database.GetDB()
 	return db.Delete(m, m).Error
 }
 
 // queryDb queries the database using the specified searchCriteria
 // and returns the returned records into result
 func queryWithOrderByDb(searchCriteria interface{}, orderBy interface{}, result interface{}) error {
-	return model.GetDB().Where(searchCriteria).Order(orderBy).Find(result).Error
+	return database.GetDB().Where(searchCriteria).Order(orderBy).Find(result).Error
 }

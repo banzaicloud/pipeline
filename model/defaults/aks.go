@@ -1,11 +1,12 @@
 package defaults
 
 import (
-	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/database"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/amazon"
 	"github.com/banzaicloud/pipeline/pkg/cluster/azure"
 	"github.com/banzaicloud/pipeline/pkg/cluster/google"
+	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster"
 )
 
 // AKSProfile describes an Azure cluster profile
@@ -41,14 +42,14 @@ func (AKSProfile) TableName() string {
 // AfterFind loads nodepools to profile
 func (d *AKSProfile) AfterFind() error {
 	log.Info("AfterFind aks profile... load node pools")
-	return model.GetDB().Where(AKSNodePoolProfile{Name: d.Name}).Find(&d.NodePools).Error
+	return database.GetDB().Where(AKSNodePoolProfile{Name: d.Name}).Find(&d.NodePools).Error
 }
 
 // BeforeSave clears nodepools
 func (d *AKSProfile) BeforeSave() error {
 	log.Info("BeforeSave aks profile...")
 
-	db := model.GetDB()
+	db := database.GetDB()
 	var nodePools []*AKSNodePoolProfile
 	err := db.Where(AKSNodePoolProfile{
 		Name: d.Name,
@@ -65,7 +66,7 @@ func (d *AKSProfile) BeforeDelete() error {
 	log.Info("BeforeDelete aks profile... delete all nodepool")
 
 	var nodePools []*AKSNodePoolProfile
-	return model.GetDB().Where(AKSNodePoolProfile{
+	return database.GetDB().Where(AKSNodePoolProfile{
 		Name: d.Name,
 	}).Find(&nodePools).Delete(&nodePools).Error
 }
@@ -77,7 +78,7 @@ func (d *AKSProfile) SaveInstance() error {
 
 // IsDefinedBefore returns true if database contains en entry with profile name
 func (d *AKSProfile) IsDefinedBefore() bool {
-	return model.GetDB().First(&d).RowsAffected != int64(0)
+	return database.GetDB().First(&d).RowsAffected != int64(0)
 }
 
 // GetType returns profile's cloud type
@@ -109,6 +110,7 @@ func (d *AKSProfile) GetProfile() *pkgCluster.ClusterProfileResponse {
 			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
 			Google *google.ClusterProfileGoogle `json:"google,omitempty"`
+			Oracle *oracle.Cluster              `json:"oracle,omitempty"`
 		}{
 			Azure: &azure.ClusterProfileAzure{
 				KubernetesVersion: d.KubernetesVersion,
@@ -158,5 +160,5 @@ func (d *AKSProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave
 
 // DeleteProfile deletes cluster profile from database
 func (d *AKSProfile) DeleteProfile() error {
-	return model.GetDB().Delete(&d).Error
+	return database.GetDB().Delete(&d).Error
 }

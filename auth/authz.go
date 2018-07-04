@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/database"
 	"github.com/casbin/casbin"
 	"github.com/casbin/gorm-adapter"
 	"github.com/gin-gonic/gin"
@@ -36,7 +36,7 @@ var enforcer *casbin.SyncedEnforcer
 // NewAuthorizer returns the MySQL based default authorizer
 func NewAuthorizer() gin.HandlerFunc {
 	dbName := viper.GetString("database.dbname")
-	adapter := gormadapter.NewAdapter("mysql", model.GetDataSource(dbName), true)
+	adapter := gormadapter.NewAdapter("mysql", database.GetDataSource(dbName), true)
 	model := casbin.NewModel(modelDefinition)
 	enforcer = casbin.NewSyncedEnforcer(model, adapter, logging)
 	enforcer.StartAutoLoadPolicy(10 * time.Second)

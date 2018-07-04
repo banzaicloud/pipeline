@@ -4,6 +4,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/cluster/amazon"
 	"github.com/banzaicloud/pipeline/pkg/cluster/azure"
 	"github.com/banzaicloud/pipeline/pkg/cluster/google"
+	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/objectstore"
 )
 
 // CreateBucketRequest to create bucket
@@ -14,6 +15,7 @@ type CreateBucketRequest struct {
 		CreateAmazonObjectStoreBucketProperties *amazon.CreateAmazonObjectStoreBucketProperties `json:"amazon,omitempty"`
 		CreateAzureObjectStoreBucketProperties  *azure.CreateAzureObjectStoreBucketProperties   `json:"azure,omitempty"`
 		CreateGoogleObjectStoreBucketProperties *google.CreateGoogleObjectStoreBucketProperties `json:"google,omitempty"`
+		CreateOracleObjectStoreBucketProperties *oracle.CreateObjectStoreBucketProperties       `json:"oracle,omitempty"`
 	} `json:"properties" binding:"required"`
 }
 

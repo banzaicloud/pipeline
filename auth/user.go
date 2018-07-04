@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/banzaicloud/pipeline/database"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/dgrijalva/jwt-go"
@@ -201,7 +202,7 @@ func (bus BanzaiUserStorer) createUserInDroneDB(user *User, githubAccessToken st
 }
 
 func initDroneDB() *gorm.DB {
-	return model.ConnectDB("drone")
+	return database.ConnectDB("drone")
 }
 
 // This method tries to call the Drone API on a best effort basis to fetch all repos before the user navigates there.
@@ -296,7 +297,7 @@ func importGithubOrganizations(currentUser *User, context *auth.Context, githubT
 
 // GetOrganizationById returns an organization from database by ID
 func GetOrganizationById(orgID uint) (*Organization, error) {
-	db := model.GetDB()
+	db := database.GetDB()
 	var org Organization
 	err := db.Find(&org, Organization{ID: orgID}).Error
 	return &org, err

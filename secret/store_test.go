@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/secret"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
@@ -45,11 +46,13 @@ func TestCreateSecretValidate(t *testing.T) {
 		{name: "aks full", request: aksCreateSecretFull, isError: false, verifier: nil},
 		{name: "gke full", request: gkeCreateSecretFull, isError: false, verifier: nil},
 		{name: "ssh full", request: sshCreateSecretFull, isError: false, verifier: nil},
+		{name: "oke full", request: okeCreateSecretFull, isError: false, verifier: nil},
 
 		{name: "aws missing key", request: awsMissingKey, isError: true, verifier: nil},
 		{name: "aks missing key", request: aksMissingKey, isError: true, verifier: nil},
 		{name: "gke missing key", request: gkeMissingKey, isError: true, verifier: nil},
 		{name: "ssh missing key", request: sshMissingKey, isError: true, verifier: nil},
+		{name: "oke missing key", request: okeMissingKey, isError: true, verifier: nil},
 	}
 
 	for _, tc := range cases {
@@ -199,6 +202,31 @@ var (
 			pkgSecret.Identifier:           SshIdentifier,
 			pkgSecret.PublicKeyData:        SshPublicKeyData,
 			pkgSecret.PublicKeyFingerprint: SshPublicKeyFingerprint,
+		},
+	}
+
+	okeCreateSecretFull = secret.CreateSecretRequest{
+		Name: secretDesc,
+		Type: pkgCluster.Oracle,
+		Values: map[string]string{
+			oracle.UserOCID:          oracle.UserOCID,
+			oracle.TenancyOCID:       oracle.TenancyOCID,
+			oracle.APIKey:            oracle.APIKey,
+			oracle.APIKeyFingerprint: oracle.APIKeyFingerprint,
+			oracle.Region:            oracle.Region,
+			oracle.CompartmentOCID:   oracle.CompartmentOCID,
+		},
+	}
+
+	okeMissingKey = secret.CreateSecretRequest{
+		Name: secretDesc,
+		Type: pkgCluster.Oracle,
+		Values: map[string]string{
+			oracle.UserOCID:          oracle.UserOCID,
+			oracle.TenancyOCID:       oracle.TenancyOCID,
+			oracle.APIKey:            oracle.APIKey,
+			oracle.APIKeyFingerprint: oracle.APIKeyFingerprint,
+			oracle.Region:            oracle.Region,
 		},
 	}
 )

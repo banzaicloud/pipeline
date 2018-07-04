@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/banzaicloud/pipeline/database"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	modelOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/jinzhu/gorm"
@@ -49,6 +51,7 @@ type ClusterModel struct {
 	Google         GoogleClusterModel
 	Dummy          DummyClusterModel
 	Kubernetes     KubernetesClusterModel
+	Oracle         modelOracle.Cluster
 	Applications   []Application `gorm:"foreignkey:ClusterID"`
 }
 
@@ -187,7 +190,7 @@ func (cs *ClusterModel) AfterFind() error {
 
 //Save the cluster to DB
 func (cs *ClusterModel) Save() error {
-	db := GetDB()
+	db := database.GetDB()
 	err := db.Save(&cs).Error
 	if err != nil {
 		return err
@@ -195,20 +198,27 @@ func (cs *ClusterModel) Save() error {
 	return nil
 }
 
-func (cs *ClusterModel) preDelete() error {
-	return secret.Store.Delete(cs.OrganizationId, cs.ConfigSecretId)
+func (cs *ClusterModel) preDelete() {
+
+	log.Info("Delete config secret")
+	if err := secret.Store.Delete(cs.OrganizationId, cs.ConfigSecretId); err != nil {
+		log.Warnf("Error during deleting config secret: %s", err.Error())
+	}
+
+	log.Info("Delete SSH secret")
+	if err := secret.Store.Delete(cs.OrganizationId, cs.SshSecretId); err != nil {
+		log.Warnf("Error during deleting config secret: %s", err.Error())
+	}
+
 }
 
 //Delete cluster from DB
 func (cs *ClusterModel) Delete() error {
 
 	log.Info("Delete config secret")
-	err := cs.preDelete()
-	if err != nil {
-		log.Warnf("Error during deleting config secret: %s", err.Error())
-	}
+	cs.preDelete()
 
-	db := GetDB()
+	db := database.GetDB()
 	return db.Delete(&cs).Error
 }
 
@@ -278,7 +288,7 @@ func (AzureNodePoolModel) TableName() string {
 // QueryCluster get's the clusters from the DB
 func QueryCluster(filter map[string]interface{}) ([]ClusterModel, error) {
 	var cluster []ClusterModel
-	err := db.Where(filter).Find(&cluster).Error
+	err := database.GetDB().Where(filter).Find(&cluster).Error
 	if err != nil {
 		return nil, err
 	}
@@ -379,7 +389,7 @@ func (cs *ClusterModel) AddSshKey() (string, error) {
 
 // ReloadFromDatabase load cluster from DB
 func (cs *ClusterModel) ReloadFromDatabase() error {
-	return GetDB().Where(ClusterModel{
+	return database.GetDB().Where(ClusterModel{
 		ID:             cs.ID,
 		OrganizationId: cs.OrganizationId,
 	}, &cs).Error

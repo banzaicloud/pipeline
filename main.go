@@ -11,6 +11,7 @@ import (
 	"github.com/banzaicloud/pipeline/audit"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/database"
 	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/dns/route53/model"
 	"github.com/banzaicloud/pipeline/model"
@@ -22,6 +23,9 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+
+	modelOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
+	modelOracleObjectstore "github.com/banzaicloud/pipeline/pkg/providers/oracle/model/objectstore"
 )
 
 //Version of Pipeline
@@ -55,7 +59,7 @@ func main() {
 	logger.Info("Pipeline initialization")
 
 	// Ensure DB connection
-	db := model.GetDB()
+	db := database.GetDB()
 	// Initialize auth
 	auth.Init()
 
@@ -101,6 +105,9 @@ func main() {
 
 		panic(err)
 	}
+
+	modelOracle.Init(logger)
+	modelOracleObjectstore.Init(logger)
 
 	defaults.SetDefaultValues()
 

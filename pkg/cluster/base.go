@@ -3,12 +3,14 @@ package cluster
 import (
 	"bytes"
 	"fmt"
+
 	"github.com/banzaicloud/pipeline/pkg/cluster/amazon"
 	"github.com/banzaicloud/pipeline/pkg/cluster/azure"
 	"github.com/banzaicloud/pipeline/pkg/cluster/dummy"
 	"github.com/banzaicloud/pipeline/pkg/cluster/google"
 	"github.com/banzaicloud/pipeline/pkg/cluster/kubernetes"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
+	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster"
 )
 
 // ### [ Cluster statuses ] ### //
@@ -32,6 +34,7 @@ const (
 	Google     = "google"
 	Dummy      = "dummy"
 	Kubernetes = "kubernetes"
+	Oracle     = "oracle"
 )
 
 // constants for posthooks
@@ -76,6 +79,7 @@ type CreateClusterRequest struct {
 		CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
 		CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
 		CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
+		CreateClusterOracle *oracle.Cluster              `json:"oracle,omitempty"`
 	} `json:"properties" binding:"required"`
 }
 
@@ -132,6 +136,7 @@ type UpdateProperties struct {
 	Azure  *azure.UpdateClusterAzure   `json:"azure,omitempty"`
 	Google *google.UpdateClusterGoogle `json:"google,omitempty"`
 	Dummy  *dummy.UpdateClusterDummy   `json:"dummy,omitempty"`
+	Oracle *oracle.Cluster             `json:"oracle,omitempty"`
 }
 
 // String method prints formatted update request fields
@@ -207,6 +212,9 @@ func (r *CreateClusterRequest) Validate() error {
 	case Kubernetes:
 		// kubernetes validate
 		return r.Properties.CreateKubernetes.Validate()
+	case Oracle:
+		// oracle validate
+		return r.Properties.CreateClusterOracle.Validate(false)
 	default:
 		// not supported cloud type
 		return pkgErrors.ErrorNotSupportedCloudType
@@ -240,6 +248,9 @@ func (r *UpdateClusterRequest) Validate() error {
 		return r.Google.Validate()
 	case Dummy:
 		return r.Dummy.Validate()
+	case Oracle:
+		// oracle validate
+		return r.Oracle.Validate(true)
 	default:
 		// not supported cloud type
 		return pkgErrors.ErrorNotSupportedCloudType
@@ -254,16 +265,24 @@ func (r *UpdateClusterRequest) preValidate() {
 		// reset other fields
 		r.Azure = nil
 		r.Google = nil
+		r.Oracle = nil
 		break
 	case Azure:
 		// reset other fields
 		r.Amazon = nil
 		r.Google = nil
+		r.Oracle = nil
 		break
 	case Google:
 		// reset other fields
 		r.Amazon = nil
 		r.Azure = nil
+		r.Oracle = nil
+	case Oracle:
+		// reset other fields
+		r.Amazon = nil
+		r.Azure = nil
+		r.Google = nil
 	}
 }
 
@@ -276,6 +295,7 @@ type ClusterProfileResponse struct {
 		Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 		Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
 		Google *google.ClusterProfileGoogle `json:"google,omitempty"`
+		Oracle *oracle.Cluster              `json:"oracle,omitempty"`
 	} `json:"properties" binding:"required"`
 }
 
@@ -288,6 +308,7 @@ type ClusterProfileRequest struct {
 		Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 		Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
 		Google *google.ClusterProfileGoogle `json:"google,omitempty"`
+		Oracle *oracle.Cluster              `json:"oracle,omitempty"`
 	} `json:"properties" binding:"required"`
 }
 
@@ -375,6 +396,7 @@ func (p *ClusterProfileResponse) CreateClusterRequest(createRequest *CreateClust
 			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
 			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
 			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
+			CreateClusterOracle *oracle.Cluster              `json:"oracle,omitempty"`
 		}{},
 	}
 
@@ -402,6 +424,14 @@ func (p *ClusterProfileResponse) CreateClusterRequest(createRequest *CreateClust
 			NodeVersion: p.Properties.Google.NodeVersion,
 			NodePools:   p.Properties.Google.NodePools,
 			Master:      p.Properties.Google.Master,
+		}
+	case Oracle:
+		response.Properties.CreateClusterOracle = &oracle.Cluster{
+			Version:     p.Properties.Oracle.Version,
+			NodePools:   p.Properties.Oracle.NodePools,
+			VCNID:       p.Properties.Oracle.VCNID,
+			LBSubnetID1: p.Properties.Oracle.LBSubnetID1,
+			LBSubnetID2: p.Properties.Oracle.LBSubnetID2,
 		}
 	}
 
