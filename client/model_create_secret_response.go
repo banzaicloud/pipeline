@@ -17,4 +17,5 @@ type CreateSecretResponse struct {
 	Error     string `json:"error,omitempty"`
 	UpdatedAt string `json:"updatedAt,omitempty"`
 	UpdatedBy string `json:"updatedBy,omitempty"`
+	Version   int32  `json:"version,omitempty"`
 }

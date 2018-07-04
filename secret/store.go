@@ -45,6 +45,7 @@ type CreateSecretResponse struct {
 	Error     string    `json:"error,omitempty"`
 	UpdatedAt time.Time `json:"updatedAt,omitempty"`
 	UpdatedBy string    `json:"updatedBy,omitempty"`
+	Version   uint      `json:"version,omitempty"`
 }
 
 // CreateSecretRequest param for Store.Store
