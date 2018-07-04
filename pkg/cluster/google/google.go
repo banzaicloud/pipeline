@@ -62,7 +62,11 @@ func (g *CreateClusterGoogle) Validate() error {
 	}
 
 	if g.Master == nil {
-		g.Master = &Master{}
+		g.Master = &Master{
+			Version: g.NodeVersion,
+		}
+	} else if len(g.NodeVersion) == 0 {
+		g.NodeVersion = g.Master.Version
 	}
 
 	if !isValidVersion(g.Master.Version) || !isValidVersion(g.NodeVersion) {

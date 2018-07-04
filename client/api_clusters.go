@@ -102,10 +102,10 @@ ClustersApiService Create cluster
 Create a new K8S cluster in the cloud
  * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param orgId Organization identification
- * @param createApplicationRequest
+ * @param createClusterRequest
 @return CreateClusterResponse202
 */
-func (a *ClustersApiService) CreateCluster(ctx context.Context, orgId int32, createApplicationRequest CreateApplicationRequest) (CreateClusterResponse202, *http.Response, error) {
+func (a *ClustersApiService) CreateCluster(ctx context.Context, orgId int32, createClusterRequest CreateClusterRequest) (CreateClusterResponse202, *http.Response, error) {
 	var (
 		localVarHttpMethod  = strings.ToUpper("Post")
 		localVarPostBody    interface{}
@@ -140,7 +140,7 @@ func (a *ClustersApiService) CreateCluster(ctx context.Context, orgId int32, cre
 		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
 	}
 	// body params
-	localVarPostBody = &createApplicationRequest
+	localVarPostBody = &createClusterRequest
 	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
 	if err != nil {
 		return localVarReturnValue, nil, err

@@ -242,7 +242,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateApplicationRequest'
+              $ref: '#/components/schemas/CreateClusterRequest'
 
             examples:
               AWS:
@@ -3301,8 +3301,6 @@ components:
         google:
           type: object
           required:
-             - master
-             - nodeVersion
              - nodePools
           properties:
             master:
