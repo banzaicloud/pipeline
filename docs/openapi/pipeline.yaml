@@ -4603,6 +4603,9 @@ components:
         updatedBy:
           type: string
           example: "username"
+        version:
+          type: integer
+          example: 1
 
     CreateSecretRequest:
       type: object
