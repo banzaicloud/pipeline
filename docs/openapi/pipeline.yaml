@@ -934,7 +934,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HelmReposAddResponse'
+                $ref: '#/components/schemas/HelmRepoListItem'
         '400':
           description: "Error adding Helm repo"
           content:
@@ -3942,26 +3942,29 @@ components:
     HelmReposListResponse:
       type: array
       items:
-        type: object
-        properties:
-          name:
-            type: string
-            example: "stable"
-          cache:
-            type: string
-            example: "statestore/<cluster_name>/helm/repository/cache/stable-index.yaml"
-          url:
-            type: string
-            example: "https://kubernetes-charts.storage.googleapis.com"
-          certFile:
-            type: string
-            example: ""
-          keyFile:
-            type: string
-            example: ""
-          caFile:
-            type: string
-            example: ""
+        $ref: '#/components/schemas/HelmRepoListItem'
+
+    HelmRepoListItem:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "stable"
+        cache:
+          type: string
+          example: "statestore/<cluster_name>/helm/repository/cache/stabl-index.yaml"
+        url:
+          type: string
+          example: "https://kubernetes-charts.storage.googleapis.com"
+        certFile:
+          type: string
+          example: ""
+        keyFile:
+          type: string
+          example: ""
+        caFile:
+          type: string
+          example: ""
 
     HelmReposAddResponse:
       type: object
