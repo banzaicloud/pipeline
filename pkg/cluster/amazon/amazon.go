@@ -42,7 +42,7 @@ type UpdateClusterAmazon struct {
 
 // Validate checks Amazon's node fields
 func (a *NodePool) Validate() error {
-	// ---- [ Node image check ] ---- //
+	// ---- [ Node instanceType check ] ---- //
 	if len(a.InstanceType) == 0 {
 		return pkgErrors.ErrorAmazonInstancetypeFieldIsEmpty
 	}

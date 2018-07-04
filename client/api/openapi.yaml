@@ -302,7 +302,7 @@ paths:
                     google:
                       $ref: '#/components/schemas/CreateGoogleProperties'
             schema:
-              $ref: '#/components/schemas/CreateApplicationRequest'
+              $ref: '#/components/schemas/CreateClusterRequest'
         required: true
       responses:
         202:
@@ -1016,7 +1016,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HelmReposAddResponse'
+                $ref: '#/components/schemas/HelmRepoListItem'
           description: resource successfully added.
         400:
           content:
@@ -4271,13 +4271,34 @@ components:
       type: object
     HelmReposListResponse:
       items:
-        $ref: '#/components/schemas/HelmReposListResponse_inner'
+        $ref: '#/components/schemas/HelmRepoListItem'
       type: array
-    HelmReposAddResponse:
+    HelmRepoListItem:
       example:
+        cache: statestore/<cluster_name>/helm/repository/cache/stabl-index.yaml
+        caFile: caFile
+        keyFile: keyFile
+        certFile: certFile
         name: stable
-        message: resource successfully added.
-        status: 200
+        url: https://kubernetes-charts.storage.googleapis.com
+      properties:
+        name:
+          example: stable
+          type: string
+        cache:
+          example: statestore/<cluster_name>/helm/repository/cache/stabl-index.yaml
+          type: string
+        url:
+          example: https://kubernetes-charts.storage.googleapis.com
+          type: string
+        certFile:
+          type: string
+        keyFile:
+          type: string
+        caFile:
+          type: string
+      type: object
+    HelmReposAddResponse:
       properties:
         status:
           example: 200
@@ -5926,23 +5947,6 @@ components:
           type: string
         status:
           example: DEPLOYED
-          type: string
-    HelmReposListResponse_inner:
-      properties:
-        name:
-          example: stable
-          type: string
-        cache:
-          example: statestore/<cluster_name>/helm/repository/cache/stable-index.yaml
-          type: string
-        url:
-          example: https://kubernetes-charts.storage.googleapis.com
-          type: string
-        certFile:
-          type: string
-        keyFile:
-          type: string
-        caFile:
           type: string
     HelmChartsListResponse_inner:
       properties:
