@@ -54,7 +54,8 @@ jobs:
       - run:
           name: Run pipeline tests
           command: |
-              cp config/config.toml.example config/config.toml
+              mkdir $HOME/config
+              cp config/config.toml.example $HOME/config/config.toml
               make test
           environment:
             VAULT_ADDR: http://localhost:8200
