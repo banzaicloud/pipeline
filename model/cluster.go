@@ -198,18 +198,25 @@ func (cs *ClusterModel) Save() error {
 	return nil
 }
 
-func (cs *ClusterModel) preDelete() error {
-	return secret.Store.Delete(cs.OrganizationId, cs.ConfigSecretId)
+func (cs *ClusterModel) preDelete() {
+
+	log.Info("Delete config secret")
+	if err := secret.Store.Delete(cs.OrganizationId, cs.ConfigSecretId); err != nil {
+		log.Warnf("Error during deleting config secret: %s", err.Error())
+	}
+
+	log.Info("Delete SSH secret")
+	if err := secret.Store.Delete(cs.OrganizationId, cs.SshSecretId); err != nil {
+		log.Warnf("Error during deleting config secret: %s", err.Error())
+	}
+
 }
 
 //Delete cluster from DB
 func (cs *ClusterModel) Delete() error {
 
 	log.Info("Delete config secret")
-	err := cs.preDelete()
-	if err != nil {
-		log.Warnf("Error during deleting config secret: %s", err.Error())
-	}
+	cs.preDelete()
 
 	db := database.GetDB()
 	return db.Delete(&cs).Error
