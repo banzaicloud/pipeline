@@ -62,3 +62,14 @@ jobs:
           environment:
             VAULT_ADDR: http://localhost:8200
             VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
+
+      - run:
+          name: Generate test reports
+          command:
+              make go-junit-report
+          when: always
+
+      - store_test_results:
+          path: test-results/
+      - store_artifacts:
+          path: test-results/

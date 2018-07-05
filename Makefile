@@ -70,7 +70,7 @@ vet:
 	@go vet -composites=false ./...
 
 test:
-	go list ./... | xargs -n1 go test -v -parallel 1
+	go list ./... | xargs -n1 go test -v -parallel 1 > test.txt
 
 lint: install-golint
 	golint -min_confidence 0.9 -set_exit_status $(PKGS)
@@ -118,3 +118,13 @@ endif
 
 check-symlinks:
 	FILES="${SYMLINKS}" ./scripts/symlink-check.sh
+
+install-go-junit-report:
+	GOLINT_CMD=$(shell command -v go-junit-report 2> /dev/null)
+ifndef GOLINT_CMD
+	go get -u github.com/jstemmer/go-junit-report
+endif
+
+go-junit-report: install-go-junit-report
+	$(shell mkdir -p test-results)
+	cat test.txt | go-junit-report > test-results/report.xml
