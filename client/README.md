@@ -44,7 +44,9 @@ Class | Method | HTTP request | Description
 *ClustersApi* | [**DeleteCluster**](docs/ClustersApi.md#deletecluster) | **Delete** /api/v1/orgs/{orgId}/clusters/{id} | Delete cluster
 *ClustersApi* | [**GetAPIEndpoint**](docs/ClustersApi.md#getapiendpoint) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/apiendpoint | Get API endpoint
 *ClustersApi* | [**GetCluster**](docs/ClustersApi.md#getcluster) | **Get** /api/v1/orgs/{orgId}/clusters/{id} | Get cluster status
+*ClustersApi* | [**GetClusterApplication**](docs/ClustersApi.md#getclusterapplication) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/application | Get cluster&#39;s applications
 *ClustersApi* | [**GetClusterConfig**](docs/ClustersApi.md#getclusterconfig) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/config | Get a cluster config
+*ClustersApi* | [**GetClusterDetails**](docs/ClustersApi.md#getclusterdetails) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/details | Get cluster details
 *ClustersApi* | [**GetClusterStatus**](docs/ClustersApi.md#getclusterstatus) | **Head** /api/v1/orgs/{orgId}/clusters/{id} | Get cluster status
 *ClustersApi* | [**HelmInit**](docs/ClustersApi.md#helminit) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/helminit | Initialize Helm
 *ClustersApi* | [**InstallSecrets**](docs/ClustersApi.md#installsecrets) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/secrets | Install secrets into cluster
@@ -136,7 +138,12 @@ Class | Method | HTTP request | Description
  - [CatalogOptionsMysqlDatabaseSize](docs/CatalogOptionsMysqlDatabaseSize.md)
  - [CatalogOptionsMysqlVersion](docs/CatalogOptionsMysqlVersion.md)
  - [ChartNotFound](docs/ChartNotFound.md)
+ - [ClusterApplicationList](docs/ClusterApplicationList.md)
  - [ClusterDelete200](docs/ClusterDelete200.md)
+ - [ClusterDetailsResponse](docs/ClusterDetailsResponse.md)
+ - [ClusterDetailsResponseNodePools](docs/ClusterDetailsResponseNodePools.md)
+ - [ClusterDetailsResponseNodePoolsPool1](docs/ClusterDetailsResponseNodePoolsPool1.md)
+ - [ClusterDetailsResponseTotalSummary](docs/ClusterDetailsResponseTotalSummary.md)
  - [ClusterListResponse](docs/ClusterListResponse.md)
  - [ClusterNotFound](docs/ClusterNotFound.md)
  - [ClusterProfileAmazon](docs/ClusterProfileAmazon.md)
@@ -238,6 +245,9 @@ Class | Method | HTTP request | Description
  - [ProfileListResponse](docs/ProfileListResponse.md)
  - [RepoNotFound](docs/RepoNotFound.md)
  - [RequestedResources](docs/RequestedResources.md)
+ - [ResourceItem](docs/ResourceItem.md)
+ - [ResourceSummaryItem](docs/ResourceSummaryItem.md)
+ - [ResourceSummaryItemIp100100180Euwest1ComputeInternal](docs/ResourceSummaryItemIp100100180Euwest1ComputeInternal.md)
  - [RunPostHook](docs/RunPostHook.md)
  - [SecretItem](docs/SecretItem.md)
  - [SecretKeyValueAmazon](docs/SecretKeyValueAmazon.md)

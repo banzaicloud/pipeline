@@ -11,10 +11,12 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/amazon"
 	pkgAmazon "github.com/banzaicloud/pipeline/pkg/cluster/amazon"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
@@ -41,6 +43,10 @@ var (
 const (
 	dependencyViolation = "DependencyViolation"
 	notFoundGroup       = "InvalidGroup.NotFound"
+)
+
+const (
+	filterForNodeName = "key-name"
 )
 
 // SetCredentials sets AWS credentials in session options
@@ -127,11 +133,11 @@ func CreateAWSClusterFromModel(clusterModel *model.ClusterModel) (*AWSCluster, e
 }
 
 //CreateAWSClusterFromRequest creates ClusterModel struct from the request
-func CreateAWSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint) (*AWSCluster, error) {
+func CreateAWSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId, userId uint) (*AWSCluster, error) {
 	log.Debug("Create ClusterModel struct from the request")
 	var cluster AWSCluster
 
-	modelNodePools := createNodePoolsFromRequest(request.Properties.CreateClusterAmazon.NodePools)
+	modelNodePools := createNodePoolsFromRequest(request.Properties.CreateClusterAmazon.NodePools, userId)
 
 	cluster.modelCluster = &model.ClusterModel{
 		Name:           request.Name,
@@ -139,6 +145,7 @@ func CreateAWSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 		Cloud:          request.Cloud,
 		SecretId:       request.SecretId,
 		OrganizationId: orgId,
+		CreatedBy:      userId,
 		Amazon: model.AmazonClusterModel{
 			MasterInstanceType: request.Properties.CreateClusterAmazon.Master.InstanceType,
 			MasterImage:        request.Properties.CreateClusterAmazon.Master.Image,
@@ -148,19 +155,21 @@ func CreateAWSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 	return &cluster, nil
 }
 
-func createNodePoolsFromRequest(nodePools map[string]*amazon.NodePool) []*model.AmazonNodePoolsModel {
+func createNodePoolsFromRequest(nodePools map[string]*amazon.NodePool, userId uint) []*model.AmazonNodePoolsModel {
 	var modelNodePools = make([]*model.AmazonNodePoolsModel, len(nodePools))
 	i := 0
 	for nodePoolName, nodePool := range nodePools {
 		modelNodePools[i] = &model.AmazonNodePoolsModel{
+			CreatedBy:        userId,
 			Name:             nodePoolName,
-			NodeInstanceType: nodePool.InstanceType,
 			NodeSpotPrice:    nodePool.SpotPrice,
-			NodeImage:        nodePool.Image,
 			Autoscaling:      nodePool.Autoscaling,
 			NodeMinCount:     nodePool.MinCount,
 			NodeMaxCount:     nodePool.MaxCount,
 			Count:            nodePool.Count,
+			NodeImage:        nodePool.Image,
+			NodeInstanceType: nodePool.InstanceType,
+			Delete:           false,
 		}
 		i++
 	}
@@ -515,6 +524,9 @@ func (c *AWSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		}
 	}
 
+	userId := c.modelCluster.CreatedBy
+	userName := auth.GetUserNickNameById(userId)
+
 	return &pkgCluster.GetClusterStatusResponse{
 		Status:        c.modelCluster.Status,
 		StatusMessage: c.modelCluster.StatusMessage,
@@ -522,7 +534,12 @@ func (c *AWSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		Location:      c.modelCluster.Location,
 		Cloud:         c.modelCluster.Cloud,
 		ResourceID:    c.modelCluster.ID,
-		NodePools:     nodePools,
+		CreatorBaseFields: pkgCommon.CreatorBaseFields{
+			CreatedAt:   utils.ConvertSecondsToTime(c.modelCluster.CreatedAt),
+			CreatorName: userName,
+			CreatorId:   userId,
+		},
+		NodePools: nodePools,
 	}, nil
 }
 
@@ -537,7 +554,7 @@ func (c *AWSCluster) getExistingNodePoolByName(name string) *model.AmazonNodePoo
 }
 
 // UpdateCluster updates Amazon cluster in cloud
-func (c *AWSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest) error {
+func (c *AWSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, userId uint) error {
 
 	kubicornLogger.Level = getKubicornLogLevel()
 
@@ -569,6 +586,8 @@ func (c *AWSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest) err
 			}
 			nodePoolModel := &model.AmazonNodePoolsModel{
 				ID:               id,
+				CreatedAt:        time.Now(),
+				CreatedBy:        userId,
 				Name:             name,
 				NodeSpotPrice:    np.SpotPrice,
 				Autoscaling:      np.Autoscaling,
@@ -1082,7 +1101,7 @@ func (c *AWSCluster) UpdateStatus(status, statusMessage string) error {
 }
 
 // GetClusterDetails gets cluster details from cloud
-func (c *AWSCluster) GetClusterDetails() (*pkgCluster.ClusterDetailsResponse, error) {
+func (c *AWSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 
 	log.Info("Start getting cluster details")
 
@@ -1093,9 +1112,35 @@ func (c *AWSCluster) GetClusterDetails() (*pkgCluster.ClusterDetailsResponse, er
 		return nil, err
 	}
 
-	return &pkgCluster.ClusterDetailsResponse{
-		Name: kubicornCluster.Name,
-		Id:   c.modelCluster.ID,
+	userId, userName := GetUserIdAndName(c.modelCluster)
+
+	nodePools := make(map[string]*pkgCluster.NodeDetails, 0)
+	for _, np := range c.modelCluster.Amazon.NodePools {
+		if np != nil {
+
+			userId := np.CreatedBy
+			userName := auth.GetUserNickNameById(userId)
+
+			nodePools[np.Name] = &pkgCluster.NodeDetails{
+				CreatorBaseFields: pkgCommon.CreatorBaseFields{
+					CreatedAt:   utils.ConvertSecondsToTime(np.CreatedAt),
+					CreatorName: userName,
+					CreatorId:   userId,
+				},
+			}
+		}
+	}
+
+	return &pkgCluster.DetailsResponse{
+		CreatorBaseFields: pkgCommon.CreatorBaseFields{
+			CreatedAt:   utils.ConvertSecondsToTime(c.modelCluster.CreatedAt),
+			CreatorName: userName,
+			CreatorId:   userId,
+		},
+		Name:      kubicornCluster.Name,
+		Id:        c.modelCluster.ID,
+		Location:  c.modelCluster.Location,
+		NodePools: nodePools,
 	}, nil
 }
 
@@ -1357,4 +1402,57 @@ func (c *AWSCluster) createAWSCredentialsFromSecret() (*credentials.Credentials,
 // ReloadFromDatabase load cluster from DB
 func (c *AWSCluster) ReloadFromDatabase() error {
 	return c.modelCluster.ReloadFromDatabase()
+}
+
+// ListNodeNames returns node names to label them
+func (c *AWSCluster) ListNodeNames() (labels pkgCommon.NodeNames, err error) {
+
+	var svc *ec2.EC2
+	svc, err = c.newEC2Client(c.modelCluster.Location)
+	if err != nil {
+		return
+	}
+
+	filterName := filterForNodeName
+
+	var out *ec2.DescribeInstancesOutput
+	out, err = svc.DescribeInstances(&ec2.DescribeInstancesInput{
+		Filters: []*ec2.Filter{
+			{
+				Name:   &filterName,
+				Values: []*string{&c.modelCluster.Name},
+			},
+		},
+	})
+	if err != nil {
+		return
+	}
+
+	labels = make(map[string][]string)
+
+	for _, np := range c.modelCluster.Amazon.NodePools {
+		if np != nil {
+			for _, r := range out.Reservations {
+				for _, i := range r.Instances {
+					if i != nil &&
+						hasTagWithNodeName(i.Tags, fmt.Sprintf("%s.node.%s", c.modelCluster.Name, np.Name)) &&
+						i.PrivateDnsName != nil {
+						labels[np.Name] = append(labels[np.Name], *i.PrivateDnsName)
+					}
+				}
+			}
+
+		}
+	}
+
+	return
+}
+
+func hasTagWithNodeName(tags []*ec2.Tag, nodeName string) bool {
+	for _, tag := range tags {
+		if tag != nil && tag.Key != nil && tag.Value != nil && *tag.Key == "Name" && *tag.Value == nodeName {
+			return true
+		}
+	}
+	return false
 }

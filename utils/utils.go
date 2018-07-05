@@ -11,6 +11,7 @@ import (
 
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
+	"time"
 )
 
 //GetEnv retrieves ENV variable, fallback if not set
@@ -113,4 +114,9 @@ func ValidateCloudType(cloudType string) error {
 	default:
 		return pkgErrors.ErrorNotSupportedCloudType
 	}
+}
+
+// ConvertSecondsToTime returns string format of seconds
+func ConvertSecondsToTime(t time.Time) string {
+	return t.Format(time.RFC3339)
 }

@@ -12,7 +12,19 @@ func TestGoogleClusterModelStringer(t *testing.T) {
 		MasterVersion:  "master-node-ver",
 		NodeVersion:    "node-ver",
 		NodePools: []*GoogleNodePoolModel{
-			{Name: "nodepool1", NodeCount: 2, NodeInstanceType: "n1-standard-1", ServiceAccount: "service-account"},
+			{
+				ID:               1,
+				CreatedBy:        1,
+				ClusterModelId:   1,
+				Name:             "nodepool1",
+				Autoscaling:      false,
+				NodeMinCount:     1,
+				NodeMaxCount:     2,
+				NodeCount:        2,
+				NodeInstanceType: "n1-standard-1",
+				ServiceAccount:   "service-account",
+				Delete:           false,
+			},
 		},
 	}
 
@@ -21,8 +33,28 @@ func TestGoogleClusterModelStringer(t *testing.T) {
 		MasterVersion:  "master-node-ver",
 		NodeVersion:    "node-ver",
 		NodePools: []*GoogleNodePoolModel{
-			{Name: "nodepool1", NodeCount: 2, NodeInstanceType: "n1-standard-1", ServiceAccount: "service-account"},
-			{Name: "nodepool2", NodeCount: 1, NodeInstanceType: "n1-standard-2", ServiceAccount: "service-account"},
+			{
+				ID:               1,
+				CreatedBy:        1,
+				Name:             "nodepool1",
+				Autoscaling:      false,
+				NodeMinCount:     1,
+				NodeMaxCount:     2,
+				NodeCount:        2,
+				NodeInstanceType: "n1-standard-1",
+				ServiceAccount:   "service-account",
+			},
+			{
+				ID:               1,
+				CreatedBy:        1,
+				Name:             "nodepool2",
+				Autoscaling:      false,
+				NodeMinCount:     1,
+				NodeMaxCount:     1,
+				NodeCount:        1,
+				NodeInstanceType: "n1-standard-2",
+				ServiceAccount:   "service-account",
+			},
 		},
 	}
 
@@ -34,14 +66,12 @@ func TestGoogleClusterModelStringer(t *testing.T) {
 		{
 			name:               "SingleNodePools",
 			googleClusterModel: gcSingleNodePool,
-			expected: "Master version: master-node-ver, Node version: node-ver, " +
-				"Node pools: [(Name: nodepool1, Instance type: n1-standard-1, Node count: 2, Service account: service-account)]",
+			expected:           "Master version: master-node-ver, Node version: node-ver, Node pools: [ID: 1, createdAt: 0001-01-01 00:00:00 +0000 UTC, createdBy: 1, Name: nodepool1, Autoscaling: false, NodeMinCount: 1, NodeMaxCount: 2, NodeCount: 2, ServiceAccount: service-account]",
 		},
 		{
 			name:               "MultipleNodePools",
 			googleClusterModel: gcMultiNodePool,
-			expected: "Master version: master-node-ver, Node version: node-ver, " +
-				"Node pools: [(Name: nodepool1, Instance type: n1-standard-1, Node count: 2, Service account: service-account) (Name: nodepool2, Instance type: n1-standard-2, Node count: 1, Service account: service-account)]",
+			expected:           "Master version: master-node-ver, Node version: node-ver, Node pools: [ID: 1, createdAt: 0001-01-01 00:00:00 +0000 UTC, createdBy: 1, Name: nodepool1, Autoscaling: false, NodeMinCount: 1, NodeMaxCount: 2, NodeCount: 2, ServiceAccount: service-account ID: 1, createdAt: 0001-01-01 00:00:00 +0000 UTC, createdBy: 1, Name: nodepool2, Autoscaling: false, NodeMinCount: 1, NodeMaxCount: 1, NodeCount: 1, ServiceAccount: service-account]",
 		},
 	}
 

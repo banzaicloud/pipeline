@@ -302,3 +302,24 @@ func GetOrganizationById(orgID uint) (*Organization, error) {
 	err := db.Find(&org, Organization{ID: orgID}).Error
 	return &org, err
 }
+
+// GetUserById returns user
+func GetUserById(userId uint) (*User, error) {
+	db := database.GetDB()
+	var user User
+	err := db.Find(&user, User{ID: userId}).Error
+	return &user, err
+}
+
+// GetUserNickNameById returns user's login name
+func GetUserNickNameById(userId uint) (userName string) {
+
+	log.Infof("Get username by id[%d]", userId)
+	if user, err := GetUserById(userId); err != nil {
+		log.Warnf("Error during getting user name: %s", err.Error())
+	} else {
+		userName = user.Login
+	}
+
+	return
+}

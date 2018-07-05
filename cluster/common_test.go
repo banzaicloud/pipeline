@@ -39,6 +39,7 @@ const (
 	clusterRequestMasterInstance = "testInstance"
 	clusterServiceAccount        = "testServiceAccount"
 	organizationId               = 1
+	userId                       = 1
 	clusterKubeMetaKey           = "metaKey"
 	clusterKubeMetaValue         = "metaValue"
 	secretName                   = "test-secret-name"
@@ -118,7 +119,7 @@ func TestCreateCommonClusterFromRequest(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 
-			commonCluster, err := cluster.CreateCommonClusterFromRequest(tc.createRequest, organizationId)
+			commonCluster, err := cluster.CreateCommonClusterFromRequest(tc.createRequest, organizationId, userId)
 
 			if tc.expectedError != nil {
 
@@ -218,7 +219,7 @@ func TestGetSecretWithValidation(t *testing.T) {
 				defer secret.Store.Delete(organizationId, secretID)
 			}
 
-			commonCluster, err := cluster.CreateCommonClusterFromRequest(tc.createClusterRequest, organizationId)
+			commonCluster, err := cluster.CreateCommonClusterFromRequest(tc.createClusterRequest, organizationId, userId)
 			if err != nil {
 				t.Errorf("Error during create model from request: %s", err.Error())
 				t.FailNow()
@@ -562,6 +563,7 @@ var (
 
 var (
 	gkeModelFull = &model.ClusterModel{
+		CreatedBy:      userId,
 		Name:           clusterRequestName,
 		Location:       clusterRequestLocation,
 		SecretId:       clusterRequestSecretId,
@@ -574,6 +576,7 @@ var (
 			NodeVersion:   clusterRequestVersion,
 			NodePools: []*model.GoogleNodePoolModel{
 				{
+					CreatedBy:        userId,
 					Name:             pool1Name,
 					Autoscaling:      true,
 					NodeMinCount:     clusterRequestNodeCount,
@@ -588,6 +591,7 @@ var (
 	}
 
 	aksModelFull = &model.ClusterModel{
+		CreatedBy:      userId,
 		Name:           clusterRequestName,
 		Location:       clusterRequestLocation,
 		SecretId:       clusterRequestSecretId,
@@ -599,6 +603,7 @@ var (
 			KubernetesVersion: clusterRequestKubernetes,
 			NodePools: []*model.AzureNodePoolModel{
 				{
+					CreatedBy:        userId,
 					Autoscaling:      true,
 					NodeMinCount:     clusterRequestNodeCount,
 					NodeMaxCount:     clusterRequestNodeMaxCount,
@@ -613,6 +618,7 @@ var (
 	}
 
 	awsModelFull = &model.ClusterModel{
+		CreatedBy:      userId,
 		Name:           clusterRequestName,
 		Location:       clusterRequestLocation,
 		SecretId:       clusterRequestSecretId,
@@ -621,6 +627,7 @@ var (
 		Amazon: model.AmazonClusterModel{
 			NodePools: []*model.AmazonNodePoolsModel{
 				{
+					CreatedBy:        userId,
 					Name:             pool1Name,
 					NodeInstanceType: clusterRequestNodeInstance,
 					NodeSpotPrice:    clusterRequestSpotPrice,
@@ -639,6 +646,7 @@ var (
 	}
 
 	dummyModelFull = &model.ClusterModel{
+		CreatedBy:      userId,
 		Name:           clusterRequestName,
 		Location:       clusterRequestLocation,
 		Cloud:          pkgCluster.Dummy,
@@ -655,6 +663,7 @@ var (
 	}
 
 	kubeModelFull = &model.ClusterModel{
+		CreatedBy:      userId,
 		Name:           clusterRequestName,
 		Location:       clusterRequestLocation,
 		SecretId:       clusterRequestSecretId,
@@ -673,6 +682,7 @@ var (
 	}
 
 	kubeEmptyLocAndNIT = &model.ClusterModel{
+		CreatedBy:      userId,
 		Name:           clusterRequestName,
 		Location:       "",
 		SecretId:       clusterRequestSecretId,
@@ -691,6 +701,7 @@ var (
 	}
 
 	gkeModelDifferentVersion = &model.ClusterModel{
+		CreatedBy:      userId,
 		Name:           clusterRequestName,
 		Location:       clusterRequestLocation,
 		SecretId:       clusterRequestSecretId,

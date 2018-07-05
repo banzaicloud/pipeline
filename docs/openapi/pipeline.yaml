@@ -492,6 +492,55 @@ paths:
         '404':
           description: Cluster not found
 
+  '/api/v1/orgs/{orgId}/clusters/{id}/details':
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - clusters
+      summary: Get cluster details
+      description: Getting cluster details
+      operationId: GetClusterDetails
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: id
+          in: path
+          description: Selected cluster identification (number)
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Getting cluster succeeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterDetailsResponse'
+        '400':
+          description: Error during getting cluster details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '404':
+          description: Cluster not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+
+
   '/api/v1/orgs/{orgId}/clusters/{id}/posthooks':
     put:
       security:
@@ -620,6 +669,56 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ClusterNotFound'
+
+  '/api/v1/orgs/{orgId}/clusters/{id}/application':
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+       - clusters
+      summary: Get cluster's applications
+      operationId: GetClusterApplication
+      description: Getting cluster's application list
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: id
+          in: path
+          required: true
+          description: Selected cluster identification (number)
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: "Getting cluster application list"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterApplicationList'
+        '400':
+          description: "Error during getting config file"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '404':
+          description: "Cluster not found"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+
+
 
   '/api/v1/orgs/{orgId}/clusters/{id}/monitoring':
     post:
@@ -3052,7 +3151,7 @@ components:
           example: "My Favourite Cluster"
         clusterId:
           type: integer
-          example: 0
+          example: 1
         status:
           type: string
           example: READY
@@ -3069,6 +3168,9 @@ components:
     ApplicationDetailsResponse:
       type: object
       properties:
+        id:
+          type: number
+          example: 1
         name:
           type: string
           example: "Spark-Zeppelin"
@@ -3081,6 +3183,9 @@ components:
         catalogName:
           type: string
           example: mysql-simple
+        catalogVersion:
+          type: string
+          example: ""
         description:
           type: string
           example: "Mysql simple description..."
@@ -3090,12 +3195,21 @@ components:
         organizationId:
           type: integer
           example: 1
-        cluster_name:
+        clusterName:
           type: string
           example: "MyCluster"
-        cluster_id:
+        clusterId:
           type: integer
-          example: 0
+          example: 1
+        resources:
+          type: string
+          example: ""
+        status:
+          type: string
+          example: "DEPLOYED"
+        message:
+          type: string
+          example: ""
         readme:
           type: string
           example: Long readme about your application.
@@ -3176,6 +3290,8 @@ components:
           items:
             type: string
           example: [ "InstallMonitoring", "InstallLogging" ]
+        profileName:
+          type: string
         properties:
           type: object
           oneOf:
@@ -3855,12 +3971,18 @@ components:
           version:
             type: integer
             example: 1
-          updated:
+          updatedAt:
             type: string
-            example: "Wed Mar  7 09:56:57 2018"
+            example: "2018-07-03T14:23:19+02:00"
           status:
             type: string
             example: "DEPLOYED"
+          namespace:
+            type: string
+            example: "default"
+          createdAt:
+            type: string
+            example: "2018-07-03T14:23:19+02:00"
 
     CreateDeploymentRequest:
       type: object
@@ -4588,7 +4710,7 @@ components:
       properties:
         name:
           type: string
-          example: "My google secret"
+          example: "My-google-secret"
         type:
           type: string
           example: "google"
@@ -5012,7 +5134,7 @@ components:
         status:
           type: string
           example: "RUNNING"
-        status_message:
+        statusMessage:
           type: string
           example: "Cluster is running"
         name:
@@ -5025,6 +5147,15 @@ components:
           type: string
           example: "us-central1-a"
         id:
+          type: integer
+          example: 1
+        createdAt:
+          type: string
+          example: "2018-07-03T14:23:19+02:00"
+        creatorName:
+          type: string
+          example: "userName"
+        creatorId:
           type: integer
           example: 1
         nodePools:
@@ -5202,4 +5333,99 @@ components:
           items:
             type: string
           example:  [ "InstallMonitoring" ]
+
+    ClusterApplicationList:
+      type: array
+      items:
+        $ref: '#/components/schemas/ApplicationDetailsResponse'
+
+
+    ClusterDetailsResponse:
+      type: object
+      properties:
+        createdAt:
+          type: string
+          example: "2018-07-03T14:19:26+02:00"
+        creatorName:
+          type: string
+          example: "userName"
+        creatorId:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "my-google-cluster"
+        id:
+          type: integer
+          example: 1
+        location:
+          type: string
+          example: "eu-west-1"
+        endpoint:
+          type: string
+          example: "34.240.231.134"
+        nodePools:
+          type: object
+          properties:
+            pool1:
+              type: object
+              properties:
+                createdAt:
+                  type: string
+                  example: "2018-07-03T14:19:26+02:00"
+                creatorName:
+                  type: string
+                  example: "colin014"
+                creatorId:
+                  type: integer
+                  example: 1
+                resourceSummary:
+                  $ref: '#/components/schemas/ResourceSummaryItem'
+        master:
+          $ref: '#/components/schemas/ResourceSummaryItem'
+        totalSummary:
+          type: object
+          properties:
+            cpu:
+              $ref: '#/components/schemas/ResourceItem'
+            memory:
+              $ref: '#/components/schemas/ResourceItem'
+
+    ResourceSummaryItem:
+      type: object
+      properties:
+        ip-10-0-100-180.eu-west-1.compute.internal:
+          type: object
+          properties:
+            status:
+              type: string
+              example: "Ready"
+            cpu:
+              $ref: '#/components/schemas/ResourceItem'
+            memory:
+              $ref: '#/components/schemas/ResourceItem'
+
+    ResourceItem:
+      type: object
+      properties:
+        capacity:
+          type: string
+          example: "4"
+        allocatable:
+          type: string
+          example: "4"
+        limit:
+          type: string
+          example: "100m"
+        request:
+          type: string
+          example: "380m"
+
+
+
+
+
+
+
+
 

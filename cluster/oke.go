@@ -5,6 +5,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	oracleClusterManager "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster/manager"
 	modelOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
 	"github.com/banzaicloud/pipeline/pkg/providers/oracle/oci"
@@ -65,8 +66,9 @@ func (o *OKECluster) CreateCluster() error {
 }
 
 // UpdateCluster updates the cluster
-func (o *OKECluster) UpdateCluster(r *pkgCluster.UpdateClusterRequest) error {
+func (o *OKECluster) UpdateCluster(r *pkgCluster.UpdateClusterRequest, userId uint) error {
 
+	// todo add userid to nodes
 	model, err := modelOracle.CreateModelFromUpdateRequest(o.modelCluster.Oracle, r)
 	if err != nil {
 		return err
@@ -249,13 +251,14 @@ func (o *OKECluster) UpdateStatus(status, statusMessage string) error {
 }
 
 // GetClusterDetails gets cluster details from cloud
-func (o *OKECluster) GetClusterDetails() (*pkgCluster.ClusterDetailsResponse, error) {
+func (o *OKECluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 	status, err := o.GetStatus()
 	if err != nil {
 		return nil, err
 	}
 
-	return &pkgCluster.ClusterDetailsResponse{
+	// todo needs to add other fields
+	return &pkgCluster.DetailsResponse{
 		Name: status.Name,
 		Id:   status.ResourceID,
 	}, nil
@@ -329,4 +332,10 @@ func (o *OKECluster) GetOCI() (OCI *oci.OCI, err error) {
 	OCI.SetLogger(log)
 
 	return OCI, err
+}
+
+// ListNodeNames returns node names to label them
+func (o *OKECluster) ListNodeNames() (pkgCommon.NodeNames, error) {
+	// todo implement
+	return pkgCommon.NodeNames{}, nil
 }

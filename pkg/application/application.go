@@ -3,6 +3,7 @@ package application
 import (
 	pkgCatalog "github.com/banzaicloud/pipeline/pkg/catalog"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 )
 
 //CreateRequest describes an application creation request
@@ -43,4 +44,5 @@ type ListResponse struct {
 	CatalogName   string `json:"catalogName"`
 	Icon          string `json:"icon"`
 	StatusMessage string `json:"statusMessage"`
+	pkgCommon.CreatorBaseFields
 }

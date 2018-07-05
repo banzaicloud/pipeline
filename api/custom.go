@@ -244,7 +244,7 @@ func getIngressReleaseName(backend v1beta1.IngressBackend, serviceList *v1.Servi
 func GetClusterNodes(c *gin.Context) {
 
 	kubeConfig, ok := GetK8sConfig(c)
-	if ok != true {
+	if !ok {
 		return
 	}
 
@@ -256,11 +256,11 @@ func GetClusterNodes(c *gin.Context) {
 			Message: "Error getting k8s connection",
 			Error:   err.Error(),
 		})
+
 		return
 	}
 
 	response, err := client.CoreV1().Nodes().List(meta_v1.ListOptions{})
-	log.Debugf("%s", response.String())
 	if err != nil {
 		log.Errorf("Error listing nodes: %s", err.Error())
 		c.JSON(http.StatusNotFound, pkgCommon.ErrorResponse{
@@ -268,8 +268,10 @@ func GetClusterNodes(c *gin.Context) {
 			Message: "Error during listing nodes",
 			Error:   err.Error(),
 		})
+
 		return
 	}
+
 	c.JSON(http.StatusOK, response)
-	return
+
 }

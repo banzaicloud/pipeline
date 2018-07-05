@@ -9,6 +9,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/cluster/dummy"
 	"github.com/banzaicloud/pipeline/pkg/cluster/google"
 	"github.com/banzaicloud/pipeline/pkg/cluster/kubernetes"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster"
 )
@@ -48,6 +49,7 @@ const (
 	InstallMonitoring                = "InstallMonitoring"
 	InstallLogging                   = "InstallLogging"
 	RegisterDomainPostHook           = "RegisterDomainPostHook"
+	LabelNodes                       = "LabelNodes"
 )
 
 // Provider name regexp
@@ -92,6 +94,7 @@ type GetClusterStatusResponse struct {
 	Cloud         string                     `json:"cloud"`
 	ResourceID    uint                       `json:"id"`
 	NodePools     map[string]*NodePoolStatus `json:"nodePools,omitempty"`
+	pkgCommon.CreatorBaseFields
 }
 
 // NodePoolStatus describes cluster's node status
@@ -375,11 +378,49 @@ type CreateClusterResponse struct {
 	ResourceID uint   `json:"id"`
 }
 
-// ClusterDetailsResponse describes Pipeline's GetClusterDetails API response
-type ClusterDetailsResponse struct {
-	// todo expand with more fields
-	Name string `json:"name"`
-	Id   uint   `json:"id"`
+// DetailsResponse describes Pipeline's GetClusterDetails API response
+type DetailsResponse struct {
+	pkgCommon.CreatorBaseFields
+	Name          string                     `json:"name"`
+	Id            uint                       `json:"id"`
+	Location      string                     `json:"location"`
+	MasterVersion string                     `json:"masterVersion,omitempty"`
+	Endpoint      string                     `json:"endpoint,omitempty"`
+	NodePools     map[string]*NodeDetails    `json:"nodePools,omitempty"`
+	Master        map[string]ResourceSummary `json:"master,omitempty"`
+	TotalSummary  *ResourceSummary           `json:"totalSummary,omitempty"`
+}
+
+// NodeDetails describes a cluster's node details
+type NodeDetails struct {
+	pkgCommon.CreatorBaseFields
+	Version         string                     `json:"version,omitempty"`
+	ResourceSummary map[string]ResourceSummary `json:"resourceSummary,omitempty"`
+}
+
+// ResourceSummary describes a node's resource summary with CPU and Memory capacity/request/limit/allocatable
+type ResourceSummary struct {
+	Cpu    *CPU    `json:"cpu,omitempty"`
+	Memory *Memory `json:"memory,omitempty"`
+	Status string  `json:"status,omitempty"`
+}
+
+// CPU describes CPU resource summary
+type CPU struct {
+	ResourceSummaryItem
+}
+
+// Memory describes Memory resource summary
+type Memory struct {
+	ResourceSummaryItem
+}
+
+// ResourceSummaryItem describes a resource summary with capacity/request/limit/allocatable
+type ResourceSummaryItem struct {
+	Capacity    string `json:"capacity,omitempty"`
+	Allocatable string `json:"allocatable,omitempty"`
+	Limit       string `json:"limit,omitempty"`
+	Request     string `json:"request,omitempty"`
 }
 
 // CreateClusterRequest creates a CreateClusterRequest model from profile

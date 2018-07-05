@@ -12,10 +12,13 @@ package client
 
 type GetClusterStatusResponse struct {
 	Status        string                            `json:"status,omitempty"`
-	StatusMessage string                            `json:"status_message,omitempty"`
+	StatusMessage string                            `json:"statusMessage,omitempty"`
 	Name          string                            `json:"name,omitempty"`
 	Cloud         string                            `json:"cloud,omitempty"`
 	Location      string                            `json:"location,omitempty"`
 	Id            int32                             `json:"id,omitempty"`
+	CreatedAt     string                            `json:"createdAt,omitempty"`
+	CreatorName   string                            `json:"creatorName,omitempty"`
+	CreatorId     int32                             `json:"creatorId,omitempty"`
 	NodePools     GetClusterStatusResponseNodePools `json:"nodePools,omitempty"`
 }

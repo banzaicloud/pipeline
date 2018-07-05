@@ -394,3 +394,12 @@ func mergeRefValues(catalog *catalog.CatalogDetails, options []pkgCatalog.Applic
 	}
 	return nil
 }
+
+// FindApplicationsByCluster loads applications from DB by clusterID
+func FindApplicationsByCluster(clusterId uint) (apps []model.Application, err error) {
+	log.Infof("loads applications by clusterID [%d]", clusterId)
+	db := database.GetDB()
+	err = db.Where(model.Application{ClusterID: clusterId}).Find(&apps).Error
+
+	return
+}

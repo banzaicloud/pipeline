@@ -3,7 +3,9 @@ package cluster
 import (
 	"github.com/banzaicloud/pipeline/model"
 	pkgClusterGoogle "github.com/banzaicloud/pipeline/pkg/cluster/google"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
+	"github.com/gin-gonic/gin/json"
 	gke "google.golang.org/api/container/v1"
 	"reflect"
 	"testing"
@@ -19,6 +21,8 @@ const (
 	pool2NodeInstanceType = "instanceType2"
 	pool2ServiceAccount   = "service-account-2"
 	nodeVersion           = "gke-1.9"
+
+	userId = 1
 )
 
 var (
@@ -48,8 +52,8 @@ func TestCreateNodePoolsModelFromRequestData(t *testing.T) {
 	}
 
 	nodePoolsModel := []*model.GoogleNodePoolModel{
-		{Name: pool1Name, NodeCount: pool1Count, NodeInstanceType: pool1NodeInstanceType, ServiceAccount: pool1ServiceAccount},
-		{Name: pool2Name, NodeCount: pool2Count, NodeInstanceType: pool2NodeInstanceType, ServiceAccount: pool2ServiceAccount},
+		{CreatedBy: userId, Name: pool1Name, NodeCount: pool1Count, NodeInstanceType: pool1NodeInstanceType, ServiceAccount: pool1ServiceAccount},
+		{CreatedBy: userId, Name: pool2Name, NodeCount: pool2Count, NodeInstanceType: pool2NodeInstanceType, ServiceAccount: pool2ServiceAccount},
 	}
 
 	testCases := []struct {
@@ -66,7 +70,7 @@ func TestCreateNodePoolsModelFromRequestData(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			// when
-			nodePoolsModel, err := createNodePoolsModelFromRequestData(tc.inputNodePoolsData)
+			nodePoolsModel, err := createNodePoolsModelFromRequestData(tc.inputNodePoolsData, userId)
 
 			// then
 			if tc.expectedErr != err {
@@ -85,7 +89,7 @@ func TestCreateNodePoolsModelFromRequestData(t *testing.T) {
 			}
 
 			if !reflect.DeepEqual(expected, actual) {
-				t.Errorf("Expected node pools model: %v, got: %v", tc.expectedNodePoolsModel, nodePoolsModel)
+				t.Errorf("Expected node pools model:\n%v, got:\n%v", tc.expectedNodePoolsModel, nodePoolsModel)
 			}
 		})
 	}
@@ -103,6 +107,7 @@ func TestCreateNodePoolsFromClusterModel(t *testing.T) {
 			"https://www.googleapis.com/auth/cloud-platform",
 			"https://www.googleapis.com/auth/compute",
 		},
+		Labels: map[string]string{pkgCommon.LabelKey: pool1Name},
 	}
 
 	nodeConfig2 := &gke.NodeConfig{
@@ -115,6 +120,7 @@ func TestCreateNodePoolsFromClusterModel(t *testing.T) {
 			"https://www.googleapis.com/auth/cloud-platform",
 			"https://www.googleapis.com/auth/compute",
 		},
+		Labels: map[string]string{pkgCommon.LabelKey: pool2Name},
 	}
 	nodePools := []*gke.NodePool{
 		{Name: pool1Name, Autoscaling: &gke.NodePoolAutoscaling{Enabled: false, MinNodeCount: 0, MaxNodeCount: 0}, InitialNodeCount: pool1Count, Version: nodeVersion, Config: nodeConfig1},
@@ -143,7 +149,18 @@ func TestCreateNodePoolsFromClusterModel(t *testing.T) {
 			}
 
 			if !reflect.DeepEqual(tc.nodePools, nodePools) {
-				t.Errorf("Expected node pools model: %v, got: %v", tc.nodePools, nodePools)
+
+				t.Error("Expected node pools:\n")
+				for _, np := range tc.nodePools {
+					data, _ := json.Marshal(*np)
+					t.Errorf("%v\n", string(data))
+				}
+
+				t.Error("Got:\n")
+				for _, np := range nodePools {
+					data, _ := json.Marshal(*np)
+					t.Errorf("%v\n", string(data))
+				}
 			}
 		})
 	}
