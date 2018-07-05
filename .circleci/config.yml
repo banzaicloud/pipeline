@@ -19,9 +19,11 @@ jobs:
           command:
               make check-symlinks
       - run:
-          name: Run dep ensure
+          name: Run dep ensure if necessary
           command: |
+            if [[ `git diff HEAD^ Gopkg.* vendor/` ]]; then
               dep ensure -v
+            fi
       - run:
           name: Unwind vendor
           command: |
