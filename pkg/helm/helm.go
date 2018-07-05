@@ -99,11 +99,13 @@ type CreateUpdateDeploymentRequest struct {
 
 // ListDeploymentResponse describes a deployment list response
 type ListDeploymentResponse struct {
-	Name    string `json:"name"`
-	Chart   string `json:"chart"`
-	Version int32  `json:"version"`
-	Updated string `json:"updated"`
-	Status  string `json:"status"`
+	Name      string `json:"name"`
+	Chart     string `json:"chart"`
+	Version   int32  `json:"version"`
+	Updated   string `json:"updatedAt"`
+	Status    string `json:"status"`
+	Namespace string `json:"namespace"`
+	CreatedAt string `json:"createdAt,omitempty"`
 }
 
 // DeploymentStatusResponse describes a deployment status response

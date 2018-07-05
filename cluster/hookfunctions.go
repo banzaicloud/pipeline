@@ -45,6 +45,10 @@ var HookMap = map[string]PostFunctioner{
 		f:            RegisterDomainPostHook,
 		ErrorHandler: ErrorHandler{},
 	},
+	pkgCluster.LabelNodes: &BasePostFunction{
+		f:            LabelNodes,
+		ErrorHandler: ErrorHandler{},
+	},
 }
 
 // BasePostHookFunctions default posthook functions after cluster create
@@ -56,6 +60,7 @@ var BasePostHookFunctions = []PostFunctioner{
 	HookMap[pkgCluster.RegisterDomainPostHook],
 	HookMap[pkgCluster.InstallIngressControllerPostHook],
 	HookMap[pkgCluster.InstallClusterAutoscalerPostHook],
+	HookMap[pkgCluster.LabelNodes],
 }
 
 // RunPostHook describes a {cluster_id}/posthooks API request

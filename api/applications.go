@@ -2,8 +2,6 @@ package api
 
 import (
 	"fmt"
-	"net/http"
-	"strconv"
 
 	"github.com/banzaicloud/pipeline/application"
 	"github.com/banzaicloud/pipeline/auth"
@@ -13,8 +11,11 @@ import (
 	pkgApplication "github.com/banzaicloud/pipeline/pkg/application"
 	pkgCatalog "github.com/banzaicloud/pipeline/pkg/catalog"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	"github.com/banzaicloud/pipeline/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
+	"net/http"
+	"strconv"
 )
 
 func getApplicationFromRequest(c *gin.Context) (*model.Application, bool) {
@@ -128,6 +129,31 @@ func ApplicationDetails(c *gin.Context) {
 	return
 }
 
+// GetApplicationsByCluster gin handler for API
+func GetApplicationsByCluster(c *gin.Context) {
+	log.Debug("List applications by cluster")
+
+	commonCluster, ok := GetCommonClusterFromRequest(c)
+	if ok != true {
+		return
+	}
+
+	clusterId := commonCluster.GetID()
+	log.Infof("find applications by cluster id [%d]", clusterId)
+	applications, err := application.FindApplicationsByCluster(clusterId)
+	if err != nil {
+		log.Errorf("error during getting applications")
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "error during getting applications",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, applications)
+
+}
+
 // GetApplications gin handler for API
 func GetApplications(c *gin.Context) {
 	log.Debug("List applications")
@@ -153,15 +179,24 @@ func GetApplications(c *gin.Context) {
 		if err != nil {
 			continue
 		}
+
+		userId := app.CreatedBy
+		userName := auth.GetUserNickNameById(userId)
+
 		item := pkgApplication.ListResponse{
 			Id:            app.ID,
 			Name:          app.Name,
+			ClusterName:   clusterModel.Name,
+			ClusterId:     clusterModel.ID,
+			Status:        app.Status,
 			CatalogName:   app.CatalogName,
 			Icon:          app.Icon,
-			ClusterId:     clusterModel.ID,
-			ClusterName:   clusterModel.Name,
-			Status:        app.Status,
 			StatusMessage: app.Message,
+			CreatorBaseFields: pkgCommon.CreatorBaseFields{
+				CreatedAt:   utils.ConvertSecondsToTime(app.CreatedAt),
+				CreatorName: userName,
+				CreatorId:   userId,
+			},
 		}
 		response = append(response, item)
 	}
@@ -209,7 +244,9 @@ func CreateApplication(c *gin.Context) {
 		})
 		return
 	}
+
 	orgId := auth.GetCurrentOrganization(c.Request).ID
+	userId := auth.GetCurrentUser(c.Request).ID
 
 	postFunction := &ApplicationPostHook{
 		am: &model.Application{
@@ -217,6 +254,7 @@ func CreateApplication(c *gin.Context) {
 			CatalogName:    createApplicationRequest.CatalogName,
 			OrganizationId: orgId,
 			Status:         application.CREATING,
+			CreatedBy:      userId,
 		},
 		option: createApplicationRequest.Options,
 	}
@@ -226,7 +264,7 @@ func CreateApplication(c *gin.Context) {
 	if createApplicationRequest.Cluster != nil {
 		// Support existing cluster
 		var err *pkgCommon.ErrorResponse
-		commonCluster, err = CreateCluster(createApplicationRequest.Cluster, orgId, []cluster.PostFunctioner{postFunction})
+		commonCluster, err = CreateCluster(createApplicationRequest.Cluster, orgId, userId, []cluster.PostFunctioner{postFunction})
 		if err != nil {
 			c.JSON(err.Code, err)
 			return

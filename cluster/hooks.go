@@ -9,13 +9,17 @@ import (
 	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/helm"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/go-errors/errors"
 	"github.com/spf13/viper"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	"strings"
 )
 
 //RunPostHooks calls posthook functions with created cluster
@@ -358,4 +362,64 @@ func RegisterDomainPostHook(input interface{}) error {
 	log.Info("route53 secret successfully installed into cluster")
 
 	return nil
+}
+
+// LabelNodes adds labels for all nodes
+func LabelNodes(input interface{}) error {
+
+	log.Info("start adding labels to nodes")
+
+	commonCluster, ok := input.(CommonCluster)
+	if !ok {
+		return errors.Errorf("Wrong parameter type: %T", commonCluster)
+	}
+
+	log.Infof("get K8S config")
+	kubeConfig, err := commonCluster.GetK8sConfig()
+	if err != nil {
+		return err
+	}
+
+	log.Info("get K8S connection")
+	client, err := helm.GetK8sConnection(kubeConfig)
+	if err != nil {
+		return err
+	}
+
+	log.Info("list node names")
+	nodeNames, err := commonCluster.ListNodeNames()
+	if err != nil {
+		return err
+	}
+
+	log.Infof("node names: %v", nodeNames)
+
+	for name, nodes := range nodeNames {
+
+		log.Infof("nodepool: [%s]", name)
+		for _, nodeName := range nodes {
+			log.Infof("add label to node [%s]", nodeName)
+			if err := addLabelsToNode(client, nodeName, map[string]string{pkgCommon.LabelKey: name}); err != nil {
+				log.Warnf("error during adding label to node [%s]: %s", nodeName, err.Error())
+			}
+		}
+	}
+
+	log.Info("add labels finished")
+
+	return nil
+}
+
+// addLabelsToNode add label to the given node
+func addLabelsToNode(client *kubernetes.Clientset, nodeName string, labels map[string]string) (err error) {
+
+	tokens := make([]string, 0, len(labels))
+	for k, v := range labels {
+		tokens = append(tokens, "\""+k+"\":\""+v+"\"")
+	}
+	labelString := "{" + strings.Join(tokens, ",") + "}"
+	patch := fmt.Sprintf(`{"metadata":{"labels":%v}}`, labelString)
+
+	_, err = client.CoreV1().Nodes().Patch(nodeName, types.MergePatchType, []byte(patch))
+	return
 }

@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/banzaicloud/pipeline/auth"
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -53,12 +54,11 @@ const (
 )
 
 //CreateGKEClusterFromRequest creates ClusterModel struct from the request
-func CreateGKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint) (*GKECluster, error) {
+func CreateGKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId, userId uint) (*GKECluster, error) {
 	log.Debug("Create ClusterModel struct from the request")
 	var cluster GKECluster
 
-	nodePools, err := createNodePoolsModelFromRequestData(request.Properties.CreateClusterGoogle.NodePools)
-
+	nodePools, err := createNodePoolsModelFromRequestData(request.Properties.CreateClusterGoogle.NodePools, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -69,6 +69,7 @@ func CreateGKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 		Cloud:          request.Cloud,
 		OrganizationId: orgId,
 		SecretId:       request.SecretId,
+		CreatedBy:      userId,
 		Google: model.GoogleClusterModel{
 			MasterVersion: request.Properties.CreateClusterGoogle.Master.Version,
 			NodeVersion:   request.Properties.CreateClusterGoogle.NodeVersion,
@@ -79,7 +80,7 @@ func CreateGKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 }
 
 //createNodePoolsModelFromRequestData creates an array of GoogleNodePoolModel from the nodePoolsData received through create/update requests
-func createNodePoolsModelFromRequestData(nodePoolsData map[string]*pkgClusterGoogle.NodePool) ([]*model.GoogleNodePoolModel, error) {
+func createNodePoolsModelFromRequestData(nodePoolsData map[string]*pkgClusterGoogle.NodePool, userId uint) ([]*model.GoogleNodePoolModel, error) {
 
 	nodePoolsCount := len(nodePoolsData)
 	if nodePoolsCount == 0 {
@@ -90,6 +91,7 @@ func createNodePoolsModelFromRequestData(nodePoolsData map[string]*pkgClusterGoo
 	i := 0
 	for nodePoolName, nodePoolData := range nodePoolsData {
 		nodePoolsModel[i] = &model.GoogleNodePoolModel{
+			CreatedBy:        userId,
 			Name:             nodePoolName,
 			Autoscaling:      nodePoolData.Autoscaling,
 			NodeMinCount:     nodePoolData.MinCount,
@@ -196,8 +198,10 @@ func (g *GKECluster) CreateCluster() error {
 		return err
 	}
 
+	projectId := secretItem.GetValue(pkgSecret.ProjectId)
+
 	cc := googleCluster{
-		ProjectID:     secretItem.GetValue(pkgSecret.ProjectId),
+		ProjectID:     projectId,
 		Zone:          g.modelCluster.Location,
 		Name:          g.modelCluster.Name,
 		MasterVersion: g.modelCluster.Google.MasterVersion,
@@ -219,7 +223,12 @@ func (g *GKECluster) CreateCluster() error {
 	log.Infof("Cluster %s create is called for project %s and zone %s. Status Code %v", cc.Name, cc.ProjectID, cc.Zone, createCall.HTTPStatusCode)
 
 	log.Info("Waiting for cluster...")
-	gkeCluster, err := waitForCluster(svc, cc)
+
+	if err := waitForOperation(svc, g.modelCluster.Location, projectId, createCall.Name); err != nil {
+		return err
+	}
+
+	gkeCluster, err := getClusterGoogle(svc, cc)
 	if err != nil {
 		be := getBanzaiErrorFromError(err)
 		// TODO status code !?
@@ -280,6 +289,9 @@ func (g *GKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		}
 	}
 
+	userId := g.modelCluster.CreatedBy
+	userName := auth.GetUserNickNameById(userId)
+
 	return &pkgCluster.GetClusterStatusResponse{
 		Status:        g.modelCluster.Status,
 		StatusMessage: g.modelCluster.StatusMessage,
@@ -288,6 +300,11 @@ func (g *GKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		Cloud:         g.modelCluster.Cloud,
 		ResourceID:    g.modelCluster.ID,
 		NodePools:     nodePools,
+		CreatorBaseFields: pkgCommon.CreatorBaseFields{
+			CreatedAt:   utils.ConvertSecondsToTime(g.modelCluster.CreatedAt),
+			CreatorName: userName,
+			CreatorId:   userId,
+		},
 	}, nil
 }
 
@@ -631,7 +648,7 @@ func findFirewallRulesByTarget(rules []*gkeCompute.Firewall, clusterName string)
 }
 
 // UpdateCluster updates GKE cluster in cloud
-func (g *GKECluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterRequest) error {
+func (g *GKECluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterRequest, userId uint) error {
 
 	log.Info("Start updating cluster (google)")
 
@@ -640,7 +657,7 @@ func (g *GKECluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 		return err
 	}
 
-	updateNodePoolsModel, err := createNodePoolsModelFromRequestData(updateRequest.Google.NodePools)
+	updateNodePoolsModel, err := createNodePoolsModelFromRequestData(updateRequest.Google.NodePools, userId)
 	if err != nil {
 		return err
 	}
@@ -874,6 +891,7 @@ func createNodePoolsFromClusterModel(clusterModel *model.GoogleClusterModel) ([]
 		nodePools[i] = &gke.NodePool{
 			Name: nodePoolModel.Name,
 			Config: &gke.NodeConfig{
+				Labels:         map[string]string{pkgCommon.LabelKey: nodePoolModel.Name},
 				MachineType:    nodePoolModel.NodeInstanceType,
 				ServiceAccount: nodePoolModel.ServiceAccount,
 				OauthScopes: []string{
@@ -951,31 +969,6 @@ func getBanzaiErrorFromError(err error) *pkgCommon.BanzaiResponse {
 	return &pkgCommon.BanzaiResponse{
 		StatusCode: http.StatusInternalServerError,
 		Message:    err.Error(),
-	}
-}
-func waitForCluster(svc *gke.Service, cc googleCluster) (*gke.Cluster, error) {
-
-	var message string
-	for {
-
-		cluster, err := getClusterGoogle(svc, cc)
-		if err != nil {
-			return nil, err
-		}
-
-		log.Infof("Cluster status: %s", cluster.Status)
-
-		if cluster.Status == statusRunning {
-			return cluster, nil
-		}
-
-		if cluster.Status != message {
-			log.Infof("%s cluster %s", string(cluster.Status), cc.Name)
-			message = cluster.Status
-		}
-
-		time.Sleep(time.Second * 5)
-
 	}
 }
 
@@ -1987,7 +1980,7 @@ func (g *GKECluster) UpdateStatus(status, statusMessage string) error {
 }
 
 // GetClusterDetails gets cluster details from cloud
-func (g *GKECluster) GetClusterDetails() (*pkgCluster.ClusterDetailsResponse, error) {
+func (g *GKECluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 	log.Info("Get Google Service Client")
 	svc, err := g.getGoogleServiceClient()
 	if err != nil {
@@ -2009,15 +2002,40 @@ func (g *GKECluster) GetClusterDetails() (*pkgCluster.ClusterDetailsResponse, er
 	}
 	log.Info("Get cluster success")
 	log.Infof("Cluster status is %s", cl.Status)
+
 	if statusRunning == cl.Status {
-		response := &pkgCluster.ClusterDetailsResponse{
-			//Status:           g.modelCluster.Status,
-			Name: g.modelCluster.Name,
-			Id:   g.modelCluster.ID,
-			//Location:         g.modelCluster.Location,
-			//Cloud:            g.modelCluster.Cloud,
-			//NodeInstanceType: g.modelCluster.NodeInstanceType,
-			//ResourceID:       g.modelCluster.ID,
+
+		userId, userName := GetUserIdAndName(g.modelCluster)
+		nodePools := make(map[string]*pkgCluster.NodeDetails)
+
+		for _, np := range g.modelCluster.Google.NodePools {
+			if np != nil {
+
+				userId := np.CreatedBy
+				userName := auth.GetUserNickNameById(userId)
+
+				nodePools[np.Name] = &pkgCluster.NodeDetails{
+					CreatorBaseFields: pkgCommon.CreatorBaseFields{
+						CreatedAt:   utils.ConvertSecondsToTime(np.CreatedAt),
+						CreatorName: userName,
+						CreatorId:   userId,
+					},
+					Version: g.modelCluster.Google.NodeVersion,
+				}
+			}
+		}
+
+		response := &pkgCluster.DetailsResponse{
+			CreatorBaseFields: pkgCommon.CreatorBaseFields{
+				CreatedAt:   utils.ConvertSecondsToTime(g.modelCluster.CreatedAt),
+				CreatorName: userName,
+				CreatorId:   userId,
+			},
+			Name:          g.modelCluster.Name,
+			Id:            g.modelCluster.ID,
+			Location:      g.modelCluster.Location,
+			MasterVersion: g.modelCluster.Google.MasterVersion,
+			NodePools:     nodePools,
 		}
 		return response, nil
 	}
@@ -2195,4 +2213,10 @@ func waitForOperation(svc *gke.Service, location, projectId, operationName strin
 	}
 
 	return nil
+}
+
+// ListNodeNames returns node names to label them
+func (g *GKECluster) ListNodeNames() (nodeNames pkgCommon.NodeNames, err error) {
+	// nodes are labeled in create request
+	return
 }

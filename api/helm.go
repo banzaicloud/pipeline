@@ -6,13 +6,14 @@ import (
 	"github.com/banzaicloud/pipeline/helm"
 	pkgCommmon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
+	"github.com/banzaicloud/pipeline/utils"
 	"github.com/ghodss/yaml"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"k8s.io/helm/pkg/proto/hapi/release"
 	"k8s.io/helm/pkg/repo"
-	"k8s.io/helm/pkg/timeconv"
 	"net/http"
+	"time"
 )
 
 // ChartQuery describes a query to get available helm chart's list
@@ -106,12 +107,19 @@ func ListDeployments(c *gin.Context) {
 	var releases []pkgHelm.ListDeploymentResponse
 	if response != nil && len(response.Releases) > 0 {
 		for _, r := range response.Releases {
+
+			createdAt := utils.ConvertSecondsToTime(time.Unix(r.Info.FirstDeployed.Seconds, 0))
+			updated := utils.ConvertSecondsToTime(time.Unix(r.Info.LastDeployed.Seconds, 0))
+
 			body := pkgHelm.ListDeploymentResponse{
-				Name:    r.Name,
-				Chart:   fmt.Sprintf("%s-%s", r.Chart.Metadata.Name, r.Chart.Metadata.Version),
-				Version: r.Version,
-				Updated: timeconv.String(r.Info.LastDeployed),
-				Status:  r.Info.Status.Code.String()}
+				Name:      r.Name,
+				Chart:     fmt.Sprintf("%s-%s", r.Chart.Metadata.Name, r.Chart.Metadata.Version),
+				Version:   r.Version,
+				Updated:   updated,
+				Status:    r.Info.Status.Code.String(),
+				Namespace: r.Namespace,
+				CreatedAt: createdAt,
+			}
 			releases = append(releases, body)
 		}
 	} else {

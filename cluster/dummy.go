@@ -1,9 +1,12 @@
 package cluster
 
 import (
+	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/utils"
 	"gopkg.in/yaml.v2"
 )
 
@@ -14,7 +17,7 @@ type DummyCluster struct {
 }
 
 // CreateDummyClusterFromRequest creates ClusterModel struct from the request
-func CreateDummyClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint) (*DummyCluster, error) {
+func CreateDummyClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId, userId uint) (*DummyCluster, error) {
 	log.Debug("Create ClusterModel struct from the request")
 	var cluster DummyCluster
 
@@ -23,6 +26,7 @@ func CreateDummyClusterFromRequest(request *pkgCluster.CreateClusterRequest, org
 		Location:       request.Location,
 		Cloud:          request.Cloud,
 		OrganizationId: orgId,
+		CreatedBy:      userId,
 		SecretId:       request.SecretId,
 		Dummy: model.DummyClusterModel{
 			KubernetesVersion: request.Properties.CreateClusterDummy.Node.KubernetesVersion,
@@ -60,6 +64,10 @@ func (d *DummyCluster) GetType() string {
 
 //GetStatus gets cluster status
 func (d *DummyCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
+
+	userId := d.modelCluster.CreatedBy
+	userName := auth.GetUserNickNameById(userId)
+
 	return &pkgCluster.GetClusterStatusResponse{
 		Status:        d.modelCluster.Status,
 		StatusMessage: d.modelCluster.StatusMessage,
@@ -67,7 +75,12 @@ func (d *DummyCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error)
 		Location:      d.modelCluster.Location,
 		Cloud:         pkgCluster.Dummy,
 		ResourceID:    d.GetID(),
-		NodePools:     nil,
+		CreatorBaseFields: pkgCommon.CreatorBaseFields{
+			CreatedAt:   utils.ConvertSecondsToTime(d.modelCluster.CreatedAt),
+			CreatorName: userName,
+			CreatorId:   userId,
+		},
+		NodePools: nil,
 	}, nil
 }
 
@@ -77,7 +90,7 @@ func (d *DummyCluster) DeleteCluster() error {
 }
 
 // UpdateCluster updates the dummy cluster
-func (d *DummyCluster) UpdateCluster(r *pkgCluster.UpdateClusterRequest) error {
+func (d *DummyCluster) UpdateCluster(r *pkgCluster.UpdateClusterRequest, _ uint) error {
 	d.modelCluster.Dummy.KubernetesVersion = r.Dummy.Node.KubernetesVersion
 	d.modelCluster.Dummy.NodeCount = r.Dummy.Node.Count
 	return nil
@@ -211,15 +224,18 @@ func (d *DummyCluster) UpdateStatus(status, statusMessage string) error {
 }
 
 // GetClusterDetails gets cluster details from cloud
-func (d *DummyCluster) GetClusterDetails() (*pkgCluster.ClusterDetailsResponse, error) {
+func (d *DummyCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 	status, err := d.GetStatus()
 	if err != nil {
 		return nil, err
 	}
 
-	return &pkgCluster.ClusterDetailsResponse{
-		Name: status.Name,
-		Id:   status.ResourceID,
+	return &pkgCluster.DetailsResponse{
+		CreatorBaseFields: pkgCommon.CreatorBaseFields{},
+		Name:              status.Name,
+		Id:                status.ResourceID,
+		Location:          status.Location,
+		MasterVersion:     "1.9.4",
 	}, nil
 }
 
@@ -260,4 +276,9 @@ func (d *DummyCluster) GetK8sConfig() ([]byte, error) {
 // ReloadFromDatabase load cluster from DB
 func (d *DummyCluster) ReloadFromDatabase() error {
 	return d.modelCluster.ReloadFromDatabase()
+}
+
+// ListNodeNames returns node names to label them
+func (d *DummyCluster) ListNodeNames() (nodeNames pkgCommon.NodeNames, err error) {
+	return
 }

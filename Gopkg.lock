@@ -1661,6 +1661,7 @@
     "pkg/api/resource",
     "pkg/api/service",
     "pkg/api/v1/pod",
+    "pkg/api/v1/resource",
     "pkg/apis/admissionregistration",
     "pkg/apis/admissionregistration/install",
     "pkg/apis/admissionregistration/v1alpha1",
@@ -1835,6 +1836,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "ddc3360cdc06b9b8a099a0e33e75c4d7adb2914d10c7026ac6a5d2866aeb0c2e"
+  inputs-digest = "7323e4d5444fb0b876be59a0d4ba4c6aa490ae71c6a3cb50962c9e24f103b5dd"
   solver-name = "gps-cdcl"
   solver-version = 1

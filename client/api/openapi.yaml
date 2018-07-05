@@ -529,6 +529,59 @@ paths:
       summary: Update cluster
       tags:
       - clusters
+  /api/v1/orgs/{orgId}/clusters/{id}/details:
+    get:
+      description: Getting cluster details
+      operationId: GetClusterDetails
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterDetailsResponse'
+          description: Getting cluster succeeded
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during getting cluster details
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+          description: Cluster not found
+      security:
+      - bearerAuth: []
+      summary: Get cluster details
+      tags:
+      - clusters
   /api/v1/orgs/{orgId}/clusters/{id}/posthooks:
     put:
       description: Run posthook functions
@@ -672,6 +725,59 @@ paths:
       security:
       - bearerAuth: []
       summary: Get API endpoint
+      tags:
+      - clusters
+  /api/v1/orgs/{orgId}/clusters/{id}/application:
+    get:
+      description: Getting cluster's application list
+      operationId: GetClusterApplication
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterApplicationList'
+          description: Getting cluster application list
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during getting config file
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+          description: Cluster not found
+      security:
+      - bearerAuth: []
+      summary: Get cluster's applications
       tags:
       - clusters
   /api/v1/orgs/{orgId}/clusters/{id}/monitoring:
@@ -3346,7 +3452,7 @@ components:
           example: My Favourite Cluster
           type: string
         clusterId:
-          example: 0
+          example: 1
           format: int32
           type: integer
         status:
@@ -3364,11 +3470,16 @@ components:
       type: object
     ApplicationDetailsResponse:
       example:
+        catalogVersion: catalogVersion
+        icon: /assets/image/mysql.png
+        description: Mysql simple description...
+        resources: resources
+        clusterId: 1
+        readme: Long readme about your application.
+        message: message
         catalogName: mysql-simple
         organizationId: 1
         createdAt: 2018-06-11T14:28:12Z
-        cluster_name: MyCluster
-        cluster_id: 0
         deployments:
         - createdAt: 2018-06-11T14:28:13Z
           releaseName: measly-quail
@@ -3388,12 +3499,15 @@ components:
           chart: etcd-operator
           updatedAt: 2018-06-11T14:28:24Z
           status: READY
+        clusterName: MyCluster
         name: Spark-Zeppelin
-        icon: /assets/image/mysql.png
-        description: Mysql simple description...
-        readme: Long readme about your application.
+        id: 1
         updatedAt: 2018-06-11T14:28:12Z
+        status: DEPLOYED
       properties:
+        id:
+          example: 1
+          type: number
         name:
           example: Spark-Zeppelin
           type: string
@@ -3406,6 +3520,8 @@ components:
         catalogName:
           example: mysql-simple
           type: string
+        catalogVersion:
+          type: string
         description:
           example: Mysql simple description...
           type: string
@@ -3416,13 +3532,20 @@ components:
           example: 1
           format: int32
           type: integer
-        cluster_name:
+        clusterName:
           example: MyCluster
           type: string
-        cluster_id:
-          example: 0
+        clusterId:
+          example: 1
           format: int32
           type: integer
+        resources:
+          type: string
+        status:
+          example: DEPLOYED
+          type: string
+        message:
+          type: string
         readme:
           example: Long readme about your application.
           type: string
@@ -3478,6 +3601,7 @@ components:
         catalogName: mysql-simple
         cluster:
           cloud: google
+          profileName: profileName
           name: gkecluster-pipelineuser-123
           secretId: 62bc3c75-91fb-4670-bad4-24b401a9deac
           location: us-central1-a
@@ -3512,6 +3636,7 @@ components:
     CreateClusterRequest:
       example:
         cloud: google
+        profileName: profileName
         name: gkecluster-pipelineuser-123
         secretId: 62bc3c75-91fb-4670-bad4-24b401a9deac
         location: us-central1-a
@@ -3547,6 +3672,8 @@ components:
           items:
             type: string
           type: array
+        profileName:
+          type: string
         properties:
           example:
             google:
@@ -4695,7 +4822,7 @@ components:
     CreateSecretResponse:
       example:
         updatedBy: username
-        name: My google secret
+        name: My-google-secret
         id: 62bc3c75-91fb-4670-bad4-24b401a9deac
         type: google
         error: Validation failed
@@ -4703,7 +4830,7 @@ components:
         updatedAt: 2018-07-01T08:27:23.2636996Z
       properties:
         name:
-          example: My google secret
+          example: My-google-secret
           type: string
         type:
           example: google
@@ -5257,21 +5384,24 @@ components:
       type: object
     GetClusterStatusResponse:
       example:
-        status_message: Cluster is running
         cloud: google
+        createdAt: 2018-07-03T14:23:19+02:00
         name: myClusterName
+        creatorName: userName
+        creatorId: 1
         location: us-central1-a
         id: 1
         nodePools:
           pool1:
             count: 1
             instanceType: n1-standard-1
+        statusMessage: Cluster is running
         status: RUNNING
       properties:
         status:
           example: RUNNING
           type: string
-        status_message:
+        statusMessage:
           example: Cluster is running
           type: string
         name:
@@ -5284,6 +5414,16 @@ components:
           example: us-central1-a
           type: string
         id:
+          example: 1
+          format: int32
+          type: integer
+        createdAt:
+          example: 2018-07-03T14:23:19+02:00
+          type: string
+        creatorName:
+          example: userName
+          type: string
+        creatorId:
           example: 1
           format: int32
           type: integer
@@ -5456,6 +5596,97 @@ components:
           items:
             type: string
           type: array
+      type: object
+    ClusterApplicationList:
+      items:
+        $ref: '#/components/schemas/ApplicationDetailsResponse'
+      type: array
+    ClusterDetailsResponse:
+      example:
+        createdAt: 2018-07-03T14:19:26+02:00
+        endpoint: 34.240.231.134
+        creatorName: userName
+        creatorId: 1
+        name: my-google-cluster
+        totalSummary:
+          memory:
+            allocatable: "4"
+            request: 380m
+            limit: 100m
+            capacity: "4"
+          cpu:
+            allocatable: "4"
+            request: 380m
+            limit: 100m
+            capacity: "4"
+        location: eu-west-1
+        id: 1
+        nodePools:
+          pool1:
+            createdAt: 2018-07-03T14:19:26+02:00
+            resourceSummary:
+              ip-10-0-100-180.eu-west-1.compute.internal: '{}'
+            creatorName: colin014
+            creatorId: 1
+        master:
+          ip-10-0-100-180.eu-west-1.compute.internal: '{}'
+      properties:
+        createdAt:
+          example: 2018-07-03T14:19:26+02:00
+          type: string
+        creatorName:
+          example: userName
+          type: string
+        creatorId:
+          example: 1
+          format: int32
+          type: integer
+        name:
+          example: my-google-cluster
+          type: string
+        id:
+          example: 1
+          format: int32
+          type: integer
+        location:
+          example: eu-west-1
+          type: string
+        endpoint:
+          example: 34.240.231.134
+          type: string
+        nodePools:
+          $ref: '#/components/schemas/ClusterDetailsResponse_nodePools'
+        master:
+          $ref: '#/components/schemas/ResourceSummaryItem'
+        totalSummary:
+          $ref: '#/components/schemas/ClusterDetailsResponse_totalSummary'
+      type: object
+    ResourceSummaryItem:
+      example:
+        ip-10-0-100-180.eu-west-1.compute.internal: '{}'
+      properties:
+        ip-10-0-100-180.eu-west-1.compute.internal:
+          $ref: ResourceSummaryItem_ip100100180.euwest1.compute.internal
+      type: object
+    ResourceItem:
+      example:
+        allocatable: "4"
+        request: 380m
+        limit: 100m
+        capacity: "4"
+      properties:
+        capacity:
+          example: "4"
+          type: string
+        allocatable:
+          example: "4"
+          type: string
+        limit:
+          example: 100m
+          type: string
+        request:
+          example: 380m
+          type: string
       type: object
     body:
       properties:
@@ -5942,11 +6173,17 @@ components:
           example: 1
           format: int32
           type: integer
-        updated:
-          example: Wed Mar  7 09:56:57 2018
+        updatedAt:
+          example: 2018-07-03T14:23:19+02:00
           type: string
         status:
           example: DEPLOYED
+          type: string
+        namespace:
+          example: default
+          type: string
+        createdAt:
+          example: 2018-07-03T14:23:19+02:00
           type: string
     HelmChartsListResponse_inner:
       properties:
@@ -6415,6 +6652,63 @@ components:
           - $ref: '#/components/schemas/NodePoolStatusAzure'
           - $ref: '#/components/schemas/NodePoolStatusGoogle'
           type: object
+    ClusterDetailsResponse_nodePools_pool1:
+      example:
+        createdAt: 2018-07-03T14:19:26+02:00
+        resourceSummary:
+          ip-10-0-100-180.eu-west-1.compute.internal: '{}'
+        creatorName: colin014
+        creatorId: 1
+      properties:
+        createdAt:
+          example: 2018-07-03T14:19:26+02:00
+          type: string
+        creatorName:
+          example: colin014
+          type: string
+        creatorId:
+          example: 1
+          format: int32
+          type: integer
+        resourceSummary:
+          $ref: '#/components/schemas/ResourceSummaryItem'
+    ClusterDetailsResponse_nodePools:
+      example:
+        pool1:
+          createdAt: 2018-07-03T14:19:26+02:00
+          resourceSummary:
+            ip-10-0-100-180.eu-west-1.compute.internal: '{}'
+          creatorName: colin014
+          creatorId: 1
+      properties:
+        pool1:
+          $ref: '#/components/schemas/ClusterDetailsResponse_nodePools_pool1'
+    ClusterDetailsResponse_totalSummary:
+      example:
+        memory:
+          allocatable: "4"
+          request: 380m
+          limit: 100m
+          capacity: "4"
+        cpu:
+          allocatable: "4"
+          request: 380m
+          limit: 100m
+          capacity: "4"
+      properties:
+        cpu:
+          $ref: '#/components/schemas/ResourceItem'
+        memory:
+          $ref: '#/components/schemas/ResourceItem'
+    ResourceSummaryItem_ip100100180.euwest1.compute.internal:
+      properties:
+        status:
+          example: Ready
+          type: string
+        cpu:
+          $ref: '#/components/schemas/ResourceItem'
+        memory:
+          $ref: '#/components/schemas/ResourceItem'
   securitySchemes:
     bearerAuth:
       bearerFormat: JWT

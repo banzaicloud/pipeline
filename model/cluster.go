@@ -53,6 +53,7 @@ type ClusterModel struct {
 	Kubernetes     KubernetesClusterModel
 	Oracle         modelOracle.Cluster
 	Applications   []Application `gorm:"foreignkey:ClusterID"`
+	CreatedBy      uint
 }
 
 //AmazonClusterModel describes the amazon cluster model
@@ -65,7 +66,9 @@ type AmazonClusterModel struct {
 
 //AmazonNodePoolsModel describes Amazon node groups model of a cluster
 type AmazonNodePoolsModel struct {
-	ID               uint   `gorm:"primary_key"`
+	ID               uint `gorm:"primary_key"`
+	CreatedAt        time.Time
+	CreatedBy        uint
 	ClusterModelId   uint   `gorm:"unique_index:idx_modelid_name"`
 	Name             string `gorm:"unique_index:idx_modelid_name"`
 	NodeSpotPrice    string
@@ -88,7 +91,9 @@ type AzureClusterModel struct {
 
 // AzureNodePoolModel describes azure node pools model of a cluster
 type AzureNodePoolModel struct {
-	ID               uint   `gorm:"primary_key"`
+	ID               uint `gorm:"primary_key"`
+	CreatedAt        time.Time
+	CreatedBy        uint
 	ClusterModelId   uint   `gorm:"unique_index:idx_modelid_name"`
 	Name             string `gorm:"unique_index:idx_modelid_name"`
 	Autoscaling      bool
@@ -100,7 +105,9 @@ type AzureNodePoolModel struct {
 
 //GoogleNodePoolModel describes google node pools model of a cluster
 type GoogleNodePoolModel struct {
-	ID               uint   `gorm:"primary_key"`
+	ID               uint `gorm:"primary_key"`
+	CreatedAt        time.Time
+	CreatedBy        uint
 	ClusterModelId   uint   `gorm:"unique_index:idx_modelid_name"`
 	Name             string `gorm:"unique_index:idx_modelid_name"`
 	Autoscaling      bool   `gorm:"default:false"`
@@ -135,8 +142,8 @@ type KubernetesClusterModel struct {
 }
 
 func (gn GoogleNodePoolModel) String() string {
-	return fmt.Sprintf("(Name: %s, Instance type: %s, Node count: %d, Service account: %s)",
-		gn.Name, gn.NodeInstanceType, gn.NodeCount, gn.ServiceAccount)
+	return fmt.Sprintf("ID: %d, createdAt: %v, createdBy: %d, Name: %s, Autoscaling: %v, NodeMinCount: %d, NodeMaxCount: %d, NodeCount: %d, ServiceAccount: %s",
+		gn.ID, gn.CreatedAt, gn.CreatedBy, gn.Name, gn.Autoscaling, gn.NodeMinCount, gn.NodeMaxCount, gn.NodeCount, gn.ServiceAccount)
 }
 
 func (gc GoogleClusterModel) String() string {
