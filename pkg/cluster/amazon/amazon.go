@@ -42,7 +42,7 @@ type UpdateClusterAmazon struct {
 
 // Validate checks Amazon's node fields
 func (a *NodePool) Validate() error {
-	// ---- [ Node image check ] ---- //
+	// ---- [ Node instanceType check ] ---- //
 	if len(a.InstanceType) == 0 {
 		return pkgErrors.ErrorAmazonInstancetypeFieldIsEmpty
 	}
@@ -132,6 +132,16 @@ func (amazon *CreateClusterAmazon) AddDefaults() error {
 			InstanceType: DefaultMasterInstanceType,
 			Image:        DefaultImage,
 		}
+	} else {
+
+		if len(amazon.Master.InstanceType) == 0 {
+			amazon.Master.InstanceType = DefaultMasterInstanceType
+		}
+
+		if len(amazon.Master.Image) == 0 {
+			amazon.Master.Image = DefaultImage
+		}
+
 	}
 
 	if len(amazon.NodePools) == 0 {
