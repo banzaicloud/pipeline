@@ -24,6 +24,17 @@ import (
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// CloseableBuffer is a bytes.Buffer which implements the io.ReadCloser interface for compatibility
+type CloseableBuffer struct {
+	*bytes.Buffer
+}
+
+// Close implements io.ReadCloser.Close() without doing anything, because of Buffer's in-memory essence
+func (CloseableBuffer) Close() error { return nil }
+
+// Make sure CloseableBuffer implements io.ReadCloser
+var _ io.ReadCloser = &CloseableBuffer{}
+
 func isNil(v reflect.Value) bool {
 	return v.Kind() == reflect.Ptr && v.IsNil()
 }
@@ -774,7 +785,12 @@ func addFromBody(response *http.Response, value *reflect.Value, field reflect.St
 	var iVal interface{}
 	switch encoding {
 	case "binary":
-		value.Set(reflect.ValueOf(response.Body))
+		byteArr, e := ioutil.ReadAll(response.Body)
+		if e != nil {
+			return e
+		}
+		body := &CloseableBuffer{Buffer: bytes.NewBuffer(byteArr)}
+		value.Set(reflect.ValueOf(body))
 		return
 	case "plain-text":
 		//Expects UTF-8

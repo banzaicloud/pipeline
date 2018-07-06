@@ -830,9 +830,9 @@
   version = "v1.0.1"
 
 [[projects]]
+  branch = "premature-body-closing-issue"
   name = "github.com/oracle/oci-go-sdk"
   packages = [
-    ".",
     "common",
     "containerengine",
     "core",
@@ -840,8 +840,8 @@
     "identity",
     "objectstorage"
   ]
-  revision = "a2ded717dc4bb4916c0416ec79f81718b576dbc4"
-  version = "v1.8.0"
+  revision = "90feff09f23e5991d2b1d48a272b261d7ab4d6a5"
+  source = "github.com/banzaicloud/oci-go-sdk"
 
 [[projects]]
   name = "github.com/packethost/packngo"
@@ -1635,7 +1635,6 @@
     "pkg/resolver",
     "pkg/strvals",
     "pkg/sympath",
-    "pkg/timeconv",
     "pkg/tlsutil",
     "pkg/urlutil",
     "pkg/version"
@@ -1836,6 +1835,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "7323e4d5444fb0b876be59a0d4ba4c6aa490ae71c6a3cb50962c9e24f103b5dd"
+  inputs-digest = "275840b9ab1fdeadc7cb54991a10856a2045b1e1c0c401cd032c7f54ca1555a9"
   solver-name = "gps-cdcl"
   solver-version = 1
