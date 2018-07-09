@@ -4,12 +4,15 @@ import (
 	"errors"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
+	"strconv"
+	"strings"
 )
 
 // ### [ Constants to Azure cluster default values ] ### //
 const (
-	DefaultAgentName         = "agentpool1"
-	DefaultKubernetesVersion = "1.9.2"
+	DefaultAgentName                      = "agentpool1"
+	DefaultKubernetesVersion              = "1.9.2"
+	MinKubernetesVersionWithAutoscalerStr = "1.9.6"
 )
 
 // CreateClusterAzure describes Azure fields of a CreateCluster request
@@ -61,6 +64,10 @@ func (azure *CreateClusterAzure) Validate() error {
 
 		// ---- [ Min & Max count fields are required in case of autoscaling ] ---- //
 		if np.Autoscaling {
+			err := checkVersionsIsNewerThen(azure.KubernetesVersion, MinKubernetesVersionWithAutoscalerStr)
+			if err != nil {
+				return err
+			}
 			if np.MinCount == 0 {
 				return pkgErrors.ErrorMinFieldRequiredError
 			}
@@ -85,6 +92,39 @@ func (azure *CreateClusterAzure) Validate() error {
 		azure.KubernetesVersion = DefaultKubernetesVersion
 	}
 
+	return nil
+}
+
+func parseVersion(version string) ([]int64, error) {
+	iArray := make([]int64, 3)
+	vArray := strings.Split(version, ".")
+	for idx, n := range vArray {
+		v, err := strconv.ParseInt(n, 10, 32)
+		if err != nil {
+			return nil, err
+		}
+		iArray[idx] = v
+	}
+	return iArray, nil
+}
+
+// return error in version is not at least minVersionStr
+func checkVersionsIsNewerThen(version, minVersionStr string) error {
+	minVersion, err := parseVersion(minVersionStr)
+	if err != nil {
+		return errors.New("Min version format is invalid: " + minVersionStr + " Example of correct format: '1.9.2'")
+	}
+	parsedVersion, err := parseVersion(version)
+	if err != nil {
+		return errors.New("Kubernetes version format in invalid: " + version + "Example of correct format: '1.9.2'")
+	}
+	for idx := range parsedVersion {
+		if parsedVersion[idx] > minVersion[idx] {
+			return nil
+		} else if parsedVersion[idx] < minVersion[idx] {
+			return errors.New("Autoscaler requires at least Kubernetes version: " + minVersionStr)
+		}
+	}
 	return nil
 }
 
