@@ -108,7 +108,7 @@ func parseVersion(version string) ([]int64, error) {
 	return iArray, nil
 }
 
-// return error in version is not at least minVersionStr
+// return error if version is not at least minVersionStr
 func checkVersionsIsNewerThen(version, minVersionStr string) error {
 	minVersion, err := parseVersion(minVersionStr)
 	if err != nil {
