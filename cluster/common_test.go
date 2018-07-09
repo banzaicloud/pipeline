@@ -30,7 +30,7 @@ const (
 	clusterRequestVersion2       = "1.8.7-gke.2"
 	clusterRequestWrongVersion   = "1.7.7-gke.1"
 	clusterRequestRG             = "testResourceGroup"
-	clusterRequestKubernetes     = "1.9.2"
+	clusterRequestKubernetes     = "1.9.6"
 	clusterRequestAgentName      = "testAgent"
 	clusterRequestSpotPrice      = "1.2"
 	clusterRequestNodeMaxCount   = 2
