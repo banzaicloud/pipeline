@@ -2,6 +2,8 @@ package api
 
 import (
 	"fmt"
+	"net/http"
+	"strconv"
 
 	"github.com/banzaicloud/pipeline/application"
 	"github.com/banzaicloud/pipeline/auth"
@@ -14,8 +16,6 @@ import (
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
-	"net/http"
-	"strconv"
 )
 
 func getApplicationFromRequest(c *gin.Context) (*model.Application, bool) {
@@ -235,9 +235,9 @@ func (c *ApplicationPostHook) GetID() uint {
 // CreateApplication gin handler for API
 func CreateApplication(c *gin.Context) {
 	var createApplicationRequest pkgApplication.CreateRequest
-	if err := c.BindJSON(&createApplicationRequest); err != nil {
+	if err := c.ShouldBindJSON(&createApplicationRequest); err != nil {
 		log.Error(errors.Wrap(err, "Error parsing request"))
-		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
+		c.AbortWithStatusJSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error parsing request",
 			Error:   err.Error(),
