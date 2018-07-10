@@ -127,6 +127,10 @@ func convertRequestToProfile(request *pkgCluster.ClusterProfileRequest) (default
 		var aksProfile defaults.AKSProfile
 		aksProfile.UpdateProfile(request, false)
 		return &aksProfile, nil
+	case pkgCluster.Eks:
+		var eksProfile defaults.EKSProfile
+		eksProfile.UpdateProfile(request, false)
+		return &eksProfile, nil
 	case pkgCluster.Google:
 		var gkeProfile defaults.GKEProfile
 		gkeProfile.UpdateProfile(request, false)

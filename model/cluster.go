@@ -21,6 +21,7 @@ const (
 	TableNameClusters             = "clusters"
 	TableNameAmazonProperties     = "amazon_cluster_properties"
 	TableNameAmazonNodePools      = "amazon_node_pools"
+	TableNameAmazonEksProperties  = "amazon_eks_cluster_properties"
 	TableNameAzureProperties      = "azure_cluster_properties"
 	TableNameAzureNodePools       = "azure_node_pools"
 	TableNameGoogleProperties     = "google_cluster_properties"
@@ -48,6 +49,7 @@ type ClusterModel struct {
 	StatusMessage  string `sql:"type:text;"`
 	Amazon         AmazonClusterModel
 	Azure          AzureClusterModel
+	Eks            AmazonEksClusterModel
 	Google         GoogleClusterModel
 	Dummy          DummyClusterModel
 	Kubernetes     KubernetesClusterModel
@@ -79,6 +81,16 @@ type AmazonNodePoolsModel struct {
 	NodeImage        string
 	NodeInstanceType string
 	Delete           bool `gorm:"-"`
+}
+
+//AmazonEksClusterModel describes the amazon cluster model
+type AmazonEksClusterModel struct {
+	ClusterModelId   uint `gorm:"primary_key"`
+	NodeImageId      string
+	NodeInstanceType string
+	Version          string //kubernetes "1.10"
+	NodeMinCount     int
+	NodeMaxCount     int
 }
 
 //AzureClusterModel describes the azure cluster model
@@ -280,6 +292,11 @@ func (AmazonClusterModel) TableName() string {
 // TableName sets AmazonNodePoolsModel's table name
 func (AmazonNodePoolsModel) TableName() string {
 	return TableNameAmazonNodePools
+}
+
+// TableName sets AmazonEksClusterModel's table name
+func (AmazonEksClusterModel) TableName() string {
+	return TableNameAmazonEksProperties
 }
 
 // TableName sets AzureClusterModel's table name

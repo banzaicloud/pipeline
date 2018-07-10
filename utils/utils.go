@@ -9,9 +9,10 @@ import (
 	"path/filepath"
 	"reflect"
 
+	"time"
+
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
-	"time"
 )
 
 //GetEnv retrieves ENV variable, fallback if not set
@@ -104,16 +105,15 @@ func EncodeStringToBase64(s string) string {
 func ValidateCloudType(cloudType string) error {
 	switch cloudType {
 	case pkgCluster.Amazon:
-		return nil
 	case pkgCluster.Google:
-		return nil
 	case pkgCluster.Azure:
-		return nil
 	case pkgCluster.Oracle:
+	case pkgCluster.Eks:
 		return nil
 	default:
 		return pkgErrors.ErrorNotSupportedCloudType
 	}
+	return nil
 }
 
 // ConvertSecondsToTime returns string format of seconds

@@ -132,6 +132,7 @@
 [[projects]]
   name = "github.com/aws/aws-sdk-go"
   packages = [
+    ".",
     "aws",
     "aws/awserr",
     "aws/awsutil",
@@ -142,23 +143,32 @@
     "aws/credentials/ec2rolecreds",
     "aws/credentials/endpointcreds",
     "aws/credentials/stscreds",
+    "aws/csm",
     "aws/defaults",
     "aws/ec2metadata",
     "aws/endpoints",
     "aws/request",
     "aws/session",
     "aws/signer/v4",
+    "internal/sdkio",
     "internal/sdkrand",
     "internal/shareddefaults",
     "private/protocol",
     "private/protocol/ec2query",
+    "private/protocol/eventstream",
+    "private/protocol/eventstream/eventstreamapi",
+    "private/protocol/json/jsonutil",
+    "private/protocol/jsonrpc",
     "private/protocol/query",
     "private/protocol/query/queryutil",
     "private/protocol/rest",
+    "private/protocol/restjson",
     "private/protocol/restxml",
     "private/protocol/xml/xmlutil",
     "service/autoscaling",
+    "service/cloudformation",
     "service/ec2",
+    "service/eks",
     "service/iam",
     "service/iam/iamiface",
     "service/route53",
@@ -166,8 +176,8 @@
     "service/s3",
     "service/sts"
   ]
-  revision = "a580f1a44c64e950056e5151797c35c65ab3cb4b"
-  version = "v1.13.9"
+  revision = "eeb327a02aac261d701e102e14993eae4d5ab844"
+  version = "v1.14.24"
 
 [[projects]]
   branch = "master"

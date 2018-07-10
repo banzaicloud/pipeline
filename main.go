@@ -65,12 +65,14 @@ func main() {
 
 	// Creating tables if not exists
 	logger.Info("Create table(s):",
-		model.ClusterModel.TableName(model.ClusterModel{}),
-		model.AmazonClusterModel.TableName(model.AmazonClusterModel{}),
-		model.AzureClusterModel.TableName(model.AzureClusterModel{}),
-		model.AzureNodePoolModel.TableName(model.AzureNodePoolModel{}),
-		model.GoogleClusterModel.TableName(model.GoogleClusterModel{}),
-		model.GoogleNodePoolModel.TableName(model.GoogleNodePoolModel{}),
+		model.ClusterModel{}.TableName(),
+		model.AmazonClusterModel{}.TableName(),
+		model.AmazonNodePoolsModel{}.TableName(),
+		model.AmazonEksClusterModel{}.TableName(),
+		model.AzureClusterModel{}.TableName(),
+		model.AzureNodePoolModel{}.TableName(),
+		model.GoogleClusterModel{}.TableName(),
+		model.GoogleNodePoolModel{}.TableName(),
 	)
 
 	// Create tables
@@ -78,6 +80,7 @@ func main() {
 		&model.ClusterModel{},
 		&model.AmazonClusterModel{},
 		&model.AmazonNodePoolsModel{},
+		&model.AmazonEksClusterModel{},
 		&model.AzureClusterModel{},
 		&model.AzureNodePoolModel{},
 		&model.GoogleClusterModel{},
@@ -93,6 +96,7 @@ func main() {
 		&audit.AuditEvent{},
 		&defaults.AWSProfile{},
 		&defaults.AWSNodePoolProfile{},
+		&defaults.EKSProfile{},
 		&defaults.AKSProfile{},
 		&defaults.AKSNodePoolProfile{},
 		&defaults.GKEProfile{},

@@ -294,6 +294,14 @@ func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClust
 		}
 		return awsCluster, nil
 
+	case pkgCluster.Eks:
+		//Create Eks struct
+		eksCluster, err := CreateEKSClusterFromRequest(createClusterRequest, orgId)
+		if err != nil {
+			return nil, err
+		}
+		return eksCluster, nil
+
 	case pkgCluster.Azure:
 		// Create Azure struct
 		aksCluster, err := CreateAKSClusterFromRequest(createClusterRequest, orgId, userId)

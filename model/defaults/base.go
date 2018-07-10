@@ -19,6 +19,7 @@ var log *logrus.Logger
 const (
 	DefaultAmazonProfileTablaName         = "amazon_default_profile"
 	DefaultAmazonNodePoolProfileTablaName = "amazon_nodepool_default_profile"
+	DefaultAmazonEksProfileTablaName      = "amazon_eks_default_profile"
 	DefaultAzureProfileTablaName          = "azure_default_profile"
 	DefaultAzureNodePoolProfileTablaName  = "azure_nodepool_default_profile"
 	DefaultGoogleProfileTablaName         = "google_default_profile"

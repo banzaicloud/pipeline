@@ -268,6 +268,14 @@ func getStateStoreForCluster(clusterType *model.ClusterModel) (stateStore state.
 	return stateStore
 }
 
+//We return stateStore so update can use it.
+func getGenericStateStoreForCluster(clusterName string) (stateStore *utils.GenericFileSystemStore) {
+	stateStore = utils.NewGenericFileSystemStore(&utils.GenericFileSystemStoreOptions{
+		AbsolutePath: fmt.Sprintf("statestore/%s", clusterName),
+	})
+	return stateStore
+}
+
 // RequiresSshPublicKey returns true if an ssh public key is needed for the cluster for bootstrapping it
 
 func getMasterServerPool(cs *model.ClusterModel, nodeServerPool []*kcluster.ServerPool, uuidSuffix string) *kcluster.ServerPool {
