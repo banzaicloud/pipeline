@@ -13,5 +13,5 @@ package client
 type CreateGooglePropertiesGoogle struct {
 	Master      CreateGooglePropertiesGoogleMaster `json:"master,omitempty"`
 	NodeVersion string                             `json:"nodeVersion,omitempty"`
-	NodePools   map[string]interface{}             `json:"nodePools,omitempty"`
+	NodePools   map[string]NodePoolsGoogle         `json:"nodePools,omitempty"`
 }

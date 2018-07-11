@@ -3329,8 +3329,8 @@ components:
                   example: "ami-06d1667f"
             nodePools:
               type: object
-              oneOf:
-                - $ref: '#/components/schemas/NodePoolsAmazon'
+              additionalProperties:
+                $ref: '#/components/schemas/NodePoolsAmazon'
 
     NodePoolsAmazon:
       type: object
@@ -3382,8 +3382,8 @@ components:
               example: "1.8.2"
             nodePools:
               type: object
-              oneOf:
-                - $ref: '#/components/schemas/NodePoolsAzure'
+              additionalProperties:
+                $ref: '#/components/schemas/NodePoolsAzure'
 
     NodePoolsAzure:
       type: object
@@ -3428,8 +3428,8 @@ components:
               example: "1.8.7-gke.1"
             nodePools:
               type: object
-              oneOf:
-                - $ref: '#/components/schemas/NodePoolsGoogle'
+              additionalProperties:
+                $ref: '#/components/schemas/NodePoolsGoogle'
 
     NodePoolsGoogle:
       type: object

@@ -12,5 +12,5 @@ package client
 
 type CreateAmazonPropertiesAmazon struct {
 	Master    CreateAmazonPropertiesAmazonMaster `json:"master,omitempty"`
-	NodePools map[string]interface{}             `json:"nodePools,omitempty"`
+	NodePools map[string]NodePoolsAmazon         `json:"nodePools,omitempty"`
 }
