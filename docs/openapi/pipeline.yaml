@@ -3329,9 +3329,8 @@ components:
                   example: "ami-06d1667f"
             nodePools:
               type: object
-              properties:
-                pool1:
-                  $ref: '#/components/schemas/NodePoolsAmazon'
+              oneOf:
+                - $ref: '#/components/schemas/NodePoolsAmazon'
 
     NodePoolsAmazon:
       type: object
@@ -3383,9 +3382,8 @@ components:
               example: "1.8.2"
             nodePools:
               type: object
-              properties:
-                agentpool1:
-                  $ref: '#/components/schemas/NodePoolsAzure'
+              oneOf:
+                - $ref: '#/components/schemas/NodePoolsAzure'
 
     NodePoolsAzure:
       type: object
@@ -3430,11 +3428,8 @@ components:
               example: "1.8.7-gke.1"
             nodePools:
               type: object
-              required:
-                - agentpool1
-              properties:
-                agentpool1:
-                  $ref: '#/components/schemas/NodePoolsGoogle'
+              oneOf:
+                - $ref: '#/components/schemas/NodePoolsGoogle'
 
     NodePoolsGoogle:
       type: object
@@ -3457,6 +3452,9 @@ components:
         instanceType:
           type: string
           example: "n1-standard-2"
+        serviceAccount:
+          type: string
+          example: ""
 
     CreateClusterResponse_202:
       type: object

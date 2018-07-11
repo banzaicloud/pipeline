@@ -3790,6 +3790,8 @@ components:
         instanceType:
           example: n1-standard-2
           type: string
+        serviceAccount:
+          type: string
       required:
       - count
       - instanceType
@@ -5739,20 +5741,14 @@ components:
         image:
           example: ami-06d1667f
           type: string
-    CreateAmazonProperties_amazon_nodePools:
-      properties:
-        pool1:
-          $ref: '#/components/schemas/NodePoolsAmazon'
     CreateAmazonProperties_amazon:
       properties:
         master:
           $ref: '#/components/schemas/CreateAmazonProperties_amazon_master'
         nodePools:
-          $ref: '#/components/schemas/CreateAmazonProperties_amazon_nodePools'
-    CreateAzureProperties_azure_nodePools:
-      properties:
-        agentpool1:
-          $ref: '#/components/schemas/NodePoolsAzure'
+          oneOf:
+          - $ref: '#/components/schemas/NodePoolsAmazon'
+          type: object
     CreateAzureProperties_azure:
       properties:
         resourceGroup:
@@ -5762,16 +5758,14 @@ components:
           example: 1.8.2
           type: string
         nodePools:
-          $ref: '#/components/schemas/CreateAzureProperties_azure_nodePools'
+          oneOf:
+          - $ref: '#/components/schemas/NodePoolsAzure'
+          type: object
     CreateGoogleProperties_google_master:
       properties:
         version:
           example: 1.8.7-gke.1
           type: string
-    CreateGoogleProperties_google_nodePools:
-      properties:
-        agentpool1:
-          $ref: '#/components/schemas/NodePoolsGoogle'
     CreateGoogleProperties_google:
       properties:
         master:
@@ -5780,7 +5774,9 @@ components:
           example: 1.8.7-gke.1
           type: string
         nodePools:
-          $ref: '#/components/schemas/CreateGoogleProperties_google_nodePools'
+          oneOf:
+          - $ref: '#/components/schemas/NodePoolsGoogle'
+          type: object
     UpdateAmazonProperties_amazon_nodePools:
       properties:
         pool1:
