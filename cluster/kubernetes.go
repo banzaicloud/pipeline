@@ -3,14 +3,12 @@ package cluster
 import (
 	"encoding/base64"
 
-	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/database"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/banzaicloud/pipeline/utils"
 	"gopkg.in/yaml.v2"
 )
 
@@ -90,22 +88,15 @@ func (b *KubeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) 
 		db.Find(&b.modelCluster, model.ClusterModel{ID: b.GetID()})
 	}
 
-	userId := b.modelCluster.CreatedBy
-	userName := auth.GetUserNickNameById(userId)
-
 	return &pkgCluster.GetClusterStatusResponse{
-		Status:        b.modelCluster.Status,
-		StatusMessage: b.modelCluster.StatusMessage,
-		Name:          b.GetName(),
-		Location:      b.modelCluster.Location,
-		Cloud:         pkgCluster.Kubernetes,
-		ResourceID:    b.modelCluster.ID,
-		CreatorBaseFields: pkgCommon.CreatorBaseFields{
-			CreatedAt:   utils.ConvertSecondsToTime(b.modelCluster.CreatedAt),
-			CreatorName: userName,
-			CreatorId:   userId,
-		},
-		NodePools: nil,
+		Status:            b.modelCluster.Status,
+		StatusMessage:     b.modelCluster.StatusMessage,
+		Name:              b.GetName(),
+		Location:          b.modelCluster.Location,
+		Cloud:             pkgCluster.Kubernetes,
+		ResourceID:        b.modelCluster.ID,
+		CreatorBaseFields: *NewCreatorBaseFields(b.modelCluster.CreatedAt, b.modelCluster.CreatedBy),
+		NodePools:         nil,
 	}, nil
 }
 
@@ -204,17 +195,11 @@ func (b *KubeCluster) UpdateStatus(status, statusMessage string) error {
 // GetClusterDetails gets cluster details from cloud
 func (b *KubeCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 
-	userId, userName := GetUserIdAndName(b.modelCluster)
-
 	return &pkgCluster.DetailsResponse{
-		CreatorBaseFields: pkgCommon.CreatorBaseFields{
-			CreatedAt:   utils.ConvertSecondsToTime(b.modelCluster.CreatedAt),
-			CreatorName: userName,
-			CreatorId:   userId,
-		},
-		Name:     b.modelCluster.Name,
-		Id:       b.modelCluster.ID,
-		Location: b.modelCluster.Location,
+		CreatorBaseFields: *NewCreatorBaseFields(b.modelCluster.CreatedAt, b.modelCluster.CreatedBy),
+		Name:              b.modelCluster.Name,
+		Id:                b.modelCluster.ID,
+		Location:          b.modelCluster.Location,
 	}, nil
 }
 

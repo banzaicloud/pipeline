@@ -22,6 +22,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/terminal"
+	"time"
 )
 
 var log *logrus.Logger
@@ -394,4 +395,19 @@ func GetUserIdAndName(modelCluster *model.ClusterModel) (userId uint, userName s
 	userId = modelCluster.CreatedBy
 	userName = auth.GetUserNickNameById(userId)
 	return
+}
+
+// NewCreatorBaseFields creates a new CreatorBaseFields instance from createdAt and createdBy
+func NewCreatorBaseFields(createdAt time.Time, createdBy uint) *pkgCommon.CreatorBaseFields {
+
+	var userName string
+	if createdBy != 0 {
+		userName = auth.GetUserNickNameById(createdBy)
+	}
+
+	return &pkgCommon.CreatorBaseFields{
+		CreatedAt:   utils.ConvertSecondsToTime(createdAt),
+		CreatorName: userName,
+		CreatorId:   createdBy,
+	}
 }

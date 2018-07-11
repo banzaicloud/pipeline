@@ -11,7 +11,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/amazon"
@@ -524,22 +523,15 @@ func (c *AWSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		}
 	}
 
-	userId := c.modelCluster.CreatedBy
-	userName := auth.GetUserNickNameById(userId)
-
 	return &pkgCluster.GetClusterStatusResponse{
-		Status:        c.modelCluster.Status,
-		StatusMessage: c.modelCluster.StatusMessage,
-		Name:          c.modelCluster.Name,
-		Location:      c.modelCluster.Location,
-		Cloud:         c.modelCluster.Cloud,
-		ResourceID:    c.modelCluster.ID,
-		CreatorBaseFields: pkgCommon.CreatorBaseFields{
-			CreatedAt:   utils.ConvertSecondsToTime(c.modelCluster.CreatedAt),
-			CreatorName: userName,
-			CreatorId:   userId,
-		},
-		NodePools: nodePools,
+		Status:            c.modelCluster.Status,
+		StatusMessage:     c.modelCluster.StatusMessage,
+		Name:              c.modelCluster.Name,
+		Location:          c.modelCluster.Location,
+		Cloud:             c.modelCluster.Cloud,
+		ResourceID:        c.modelCluster.ID,
+		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
+		NodePools:         nodePools,
 	}, nil
 }
 
@@ -1112,35 +1104,22 @@ func (c *AWSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 		return nil, err
 	}
 
-	userId, userName := GetUserIdAndName(c.modelCluster)
-
 	nodePools := make(map[string]*pkgCluster.NodeDetails, 0)
 	for _, np := range c.modelCluster.Amazon.NodePools {
 		if np != nil {
 
-			userId := np.CreatedBy
-			userName := auth.GetUserNickNameById(userId)
-
 			nodePools[np.Name] = &pkgCluster.NodeDetails{
-				CreatorBaseFields: pkgCommon.CreatorBaseFields{
-					CreatedAt:   utils.ConvertSecondsToTime(np.CreatedAt),
-					CreatorName: userName,
-					CreatorId:   userId,
-				},
+				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
 			}
 		}
 	}
 
 	return &pkgCluster.DetailsResponse{
-		CreatorBaseFields: pkgCommon.CreatorBaseFields{
-			CreatedAt:   utils.ConvertSecondsToTime(c.modelCluster.CreatedAt),
-			CreatorName: userName,
-			CreatorId:   userId,
-		},
-		Name:      kubicornCluster.Name,
-		Id:        c.modelCluster.ID,
-		Location:  c.modelCluster.Location,
-		NodePools: nodePools,
+		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
+		Name:              kubicornCluster.Name,
+		Id:                c.modelCluster.ID,
+		Location:          c.modelCluster.Location,
+		NodePools:         nodePools,
 	}, nil
 }
 

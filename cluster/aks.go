@@ -6,7 +6,6 @@ import (
 	azureClient "github.com/banzaicloud/azure-aks-client/client"
 	azureCluster "github.com/banzaicloud/azure-aks-client/cluster"
 	azureType "github.com/banzaicloud/azure-aks-client/types"
-	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/database"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -230,22 +229,15 @@ func (c *AKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		}
 	}
 
-	userId := c.modelCluster.CreatedBy
-	userName := auth.GetUserNickNameById(userId)
-
 	return &pkgCluster.GetClusterStatusResponse{
-		Status:        c.modelCluster.Status,
-		StatusMessage: c.modelCluster.StatusMessage,
-		Name:          c.modelCluster.Name,
-		Location:      c.modelCluster.Location,
-		Cloud:         c.modelCluster.Cloud,
-		ResourceID:    c.modelCluster.ID,
-		CreatorBaseFields: pkgCommon.CreatorBaseFields{
-			CreatedAt:   utils.ConvertSecondsToTime(c.modelCluster.CreatedAt),
-			CreatorName: userName,
-			CreatorId:   userId,
-		},
-		NodePools: nodePools,
+		Status:            c.modelCluster.Status,
+		StatusMessage:     c.modelCluster.StatusMessage,
+		Name:              c.modelCluster.Name,
+		Location:          c.modelCluster.Location,
+		Cloud:             c.modelCluster.Cloud,
+		ResourceID:        c.modelCluster.ID,
+		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
+		NodePools:         nodePools,
 	}, nil
 }
 
@@ -562,37 +554,24 @@ func (c *AKSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 	log.Info("Cluster stage is", stage)
 	if stage == statusSucceeded {
 
-		userId, userName := GetUserIdAndName(c.modelCluster)
-
 		nodePools := make(map[string]*pkgCluster.NodeDetails)
 
 		for _, np := range c.modelCluster.Azure.NodePools {
 			if np != nil {
 
-				userId := np.CreatedBy
-				userName := auth.GetUserNickNameById(userId)
-
 				nodePools[np.Name] = &pkgCluster.NodeDetails{
-					CreatorBaseFields: pkgCommon.CreatorBaseFields{
-						CreatedAt:   utils.ConvertSecondsToTime(np.CreatedAt),
-						CreatorName: userName,
-						CreatorId:   userId,
-					},
-					Version: c.modelCluster.Azure.KubernetesVersion,
+					CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
+					Version:           c.modelCluster.Azure.KubernetesVersion,
 				}
 			}
 		}
 
 		return &pkgCluster.DetailsResponse{
-			CreatorBaseFields: pkgCommon.CreatorBaseFields{
-				CreatedAt:   utils.ConvertSecondsToTime(c.modelCluster.CreatedAt),
-				CreatorName: userName,
-				CreatorId:   userId,
-			},
-			Name:      c.modelCluster.Name,
-			Id:        c.modelCluster.ID,
-			Location:  c.modelCluster.Location,
-			NodePools: nodePools,
+			CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
+			Name:              c.modelCluster.Name,
+			Id:                c.modelCluster.ID,
+			Location:          c.modelCluster.Location,
+			NodePools:         nodePools,
 		}, nil
 
 	}
