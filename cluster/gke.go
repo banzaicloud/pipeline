@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/banzaicloud/pipeline/auth"
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -289,22 +288,15 @@ func (g *GKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		}
 	}
 
-	userId := g.modelCluster.CreatedBy
-	userName := auth.GetUserNickNameById(userId)
-
 	return &pkgCluster.GetClusterStatusResponse{
-		Status:        g.modelCluster.Status,
-		StatusMessage: g.modelCluster.StatusMessage,
-		Name:          g.modelCluster.Name,
-		Location:      g.modelCluster.Location,
-		Cloud:         g.modelCluster.Cloud,
-		ResourceID:    g.modelCluster.ID,
-		NodePools:     nodePools,
-		CreatorBaseFields: pkgCommon.CreatorBaseFields{
-			CreatedAt:   utils.ConvertSecondsToTime(g.modelCluster.CreatedAt),
-			CreatorName: userName,
-			CreatorId:   userId,
-		},
+		Status:            g.modelCluster.Status,
+		StatusMessage:     g.modelCluster.StatusMessage,
+		Name:              g.modelCluster.Name,
+		Location:          g.modelCluster.Location,
+		Cloud:             g.modelCluster.Cloud,
+		ResourceID:        g.modelCluster.ID,
+		NodePools:         nodePools,
+		CreatorBaseFields: *NewCreatorBaseFields(g.modelCluster.CreatedAt, g.modelCluster.CreatedBy),
 	}, nil
 }
 
@@ -2005,37 +1997,26 @@ func (g *GKECluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 
 	if statusRunning == cl.Status {
 
-		userId, userName := GetUserIdAndName(g.modelCluster)
+		//userId, userName := GetUserIdAndName(g.modelCluster)
 		nodePools := make(map[string]*pkgCluster.NodeDetails)
 
 		for _, np := range g.modelCluster.Google.NodePools {
 			if np != nil {
 
-				userId := np.CreatedBy
-				userName := auth.GetUserNickNameById(userId)
-
 				nodePools[np.Name] = &pkgCluster.NodeDetails{
-					CreatorBaseFields: pkgCommon.CreatorBaseFields{
-						CreatedAt:   utils.ConvertSecondsToTime(np.CreatedAt),
-						CreatorName: userName,
-						CreatorId:   userId,
-					},
-					Version: g.modelCluster.Google.NodeVersion,
+					CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
+					Version:           g.modelCluster.Google.NodeVersion,
 				}
 			}
 		}
 
 		response := &pkgCluster.DetailsResponse{
-			CreatorBaseFields: pkgCommon.CreatorBaseFields{
-				CreatedAt:   utils.ConvertSecondsToTime(g.modelCluster.CreatedAt),
-				CreatorName: userName,
-				CreatorId:   userId,
-			},
-			Name:          g.modelCluster.Name,
-			Id:            g.modelCluster.ID,
-			Location:      g.modelCluster.Location,
-			MasterVersion: g.modelCluster.Google.MasterVersion,
-			NodePools:     nodePools,
+			CreatorBaseFields: *NewCreatorBaseFields(g.modelCluster.CreatedAt, g.modelCluster.CreatedBy),
+			Name:              g.modelCluster.Name,
+			Id:                g.modelCluster.ID,
+			Location:          g.modelCluster.Location,
+			MasterVersion:     g.modelCluster.Google.MasterVersion,
+			NodePools:         nodePools,
 		}
 		return response, nil
 	}

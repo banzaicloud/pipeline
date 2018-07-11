@@ -1,12 +1,10 @@
 package cluster
 
 import (
-	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/banzaicloud/pipeline/utils"
 	"gopkg.in/yaml.v2"
 )
 
@@ -65,22 +63,15 @@ func (d *DummyCluster) GetType() string {
 //GetStatus gets cluster status
 func (d *DummyCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 
-	userId := d.modelCluster.CreatedBy
-	userName := auth.GetUserNickNameById(userId)
-
 	return &pkgCluster.GetClusterStatusResponse{
-		Status:        d.modelCluster.Status,
-		StatusMessage: d.modelCluster.StatusMessage,
-		Name:          d.modelCluster.Name,
-		Location:      d.modelCluster.Location,
-		Cloud:         pkgCluster.Dummy,
-		ResourceID:    d.GetID(),
-		CreatorBaseFields: pkgCommon.CreatorBaseFields{
-			CreatedAt:   utils.ConvertSecondsToTime(d.modelCluster.CreatedAt),
-			CreatorName: userName,
-			CreatorId:   userId,
-		},
-		NodePools: nil,
+		Status:            d.modelCluster.Status,
+		StatusMessage:     d.modelCluster.StatusMessage,
+		Name:              d.modelCluster.Name,
+		Location:          d.modelCluster.Location,
+		Cloud:             pkgCluster.Dummy,
+		ResourceID:        d.GetID(),
+		CreatorBaseFields: *NewCreatorBaseFields(d.modelCluster.CreatedAt, d.modelCluster.CreatedBy),
+		NodePools:         nil,
 	}, nil
 }
 

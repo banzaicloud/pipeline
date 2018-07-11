@@ -13,7 +13,6 @@ import (
 	pkgApplication "github.com/banzaicloud/pipeline/pkg/application"
 	pkgCatalog "github.com/banzaicloud/pipeline/pkg/catalog"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-	"github.com/banzaicloud/pipeline/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 )
@@ -180,23 +179,16 @@ func GetApplications(c *gin.Context) {
 			continue
 		}
 
-		userId := app.CreatedBy
-		userName := auth.GetUserNickNameById(userId)
-
 		item := pkgApplication.ListResponse{
-			Id:            app.ID,
-			Name:          app.Name,
-			ClusterName:   clusterModel.Name,
-			ClusterId:     clusterModel.ID,
-			Status:        app.Status,
-			CatalogName:   app.CatalogName,
-			Icon:          app.Icon,
-			StatusMessage: app.Message,
-			CreatorBaseFields: pkgCommon.CreatorBaseFields{
-				CreatedAt:   utils.ConvertSecondsToTime(app.CreatedAt),
-				CreatorName: userName,
-				CreatorId:   userId,
-			},
+			Id:                app.ID,
+			Name:              app.Name,
+			ClusterName:       clusterModel.Name,
+			ClusterId:         clusterModel.ID,
+			Status:            app.Status,
+			CatalogName:       app.CatalogName,
+			Icon:              app.Icon,
+			StatusMessage:     app.Message,
+			CreatorBaseFields: *cluster.NewCreatorBaseFields(app.CreatedAt, app.CreatedBy),
 		}
 		response = append(response, item)
 	}
