@@ -5746,8 +5746,8 @@ components:
         master:
           $ref: '#/components/schemas/CreateAmazonProperties_amazon_master'
         nodePools:
-          oneOf:
-          - $ref: '#/components/schemas/NodePoolsAmazon'
+          additionalProperties:
+            $ref: '#/components/schemas/NodePoolsAmazon'
           type: object
     CreateAzureProperties_azure:
       properties:
@@ -5758,8 +5758,8 @@ components:
           example: 1.8.2
           type: string
         nodePools:
-          oneOf:
-          - $ref: '#/components/schemas/NodePoolsAzure'
+          additionalProperties:
+            $ref: '#/components/schemas/NodePoolsAzure'
           type: object
     CreateGoogleProperties_google_master:
       properties:
@@ -5774,8 +5774,8 @@ components:
           example: 1.8.7-gke.1
           type: string
         nodePools:
-          oneOf:
-          - $ref: '#/components/schemas/NodePoolsGoogle'
+          additionalProperties:
+            $ref: '#/components/schemas/NodePoolsGoogle'
           type: object
     UpdateAmazonProperties_amazon_nodePools:
       properties:
