@@ -54,7 +54,7 @@ func UpdatePrometheusConfig() error {
 	for _, cluster := range clusters {
 		commonCluster, err := GetCommonClusterFromModel(&cluster)
 		if err != nil {
-			log.Errorf("Can't fetch cluster from database: %s, err: %s", commonCluster.GetName(), err)
+			log.Errorf("Can't fetch cluster from database: %s, err: %s", cluster.Name, err)
 			continue
 		}
 		kubeEndpoint, err := commonCluster.GetAPIEndpoint()
