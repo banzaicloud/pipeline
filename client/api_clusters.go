@@ -694,15 +694,15 @@ Getting a K8S cluster config file
  * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param orgId Organization identification
  * @param id Selected cluster identification (number)
-@return string
+@return ClusterConfig
 */
-func (a *ClustersApiService) GetClusterConfig(ctx context.Context, orgId int32, id int32) (string, *http.Response, error) {
+func (a *ClustersApiService) GetClusterConfig(ctx context.Context, orgId int32, id int32) (ClusterConfig, *http.Response, error) {
 	var (
 		localVarHttpMethod  = strings.ToUpper("Get")
 		localVarPostBody    interface{}
 		localVarFileName    string
 		localVarFileBytes   []byte
-		localVarReturnValue string
+		localVarReturnValue ClusterConfig
 	)
 
 	// create path and map variables
@@ -724,7 +724,7 @@ func (a *ClustersApiService) GetClusterConfig(ctx context.Context, orgId int32, 
 	}
 
 	// to determine the Accept header
-	localVarHttpHeaderAccepts := []string{"text/plain", "application/json"}
+	localVarHttpHeaderAccepts := []string{"application/json"}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -761,7 +761,7 @@ func (a *ClustersApiService) GetClusterConfig(ctx context.Context, orgId int32, 
 			error: localVarHttpResponse.Status,
 		}
 		if localVarHttpResponse.StatusCode == 200 {
-			var v string
+			var v ClusterConfig
 			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
 			if err != nil {
 				newErr.error = err.Error()

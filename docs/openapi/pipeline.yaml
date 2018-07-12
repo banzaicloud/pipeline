@@ -598,10 +598,9 @@ paths:
         '200':
           description: "Getting config file succeeded"
           content:
-            text/plain:
+            application/json:
               schema:
-                type: string
-                example: "encoded configuration file..."
+                $ref: '#/components/schemas/ClusterConfig'
         '400':
           description: "Error during getting config file"
           content:
@@ -3536,6 +3535,16 @@ components:
           type: string
           example: "repo not found"
 
+    ClusterConfig:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 200
+        data:
+          type: string
+          example: "apiVersion: v1\nclusters...."
+ 
     ClusterProfileNotFound:
       type: object
       properties:

@@ -198,7 +198,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **GetClusterConfig**
-> string GetClusterConfig(ctx, orgId, id)
+> ClusterConfig GetClusterConfig(ctx, orgId, id)
 Get a cluster config
 
 Getting a K8S cluster config file
@@ -213,7 +213,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-**string**
+[**ClusterConfig**](ClusterConfig.md)
 
 ### Authorization
 
@@ -222,7 +222,7 @@ Name | Type | Description  | Notes
 ### HTTP request headers
 
  - **Content-Type**: Not defined
- - **Accept**: text/plain, application/json
+ - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
