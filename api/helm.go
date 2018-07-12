@@ -2,6 +2,9 @@ package api
 
 import (
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/helm"
 	pkgCommmon "github.com/banzaicloud/pipeline/pkg/common"
@@ -12,8 +15,6 @@ import (
 	"github.com/pkg/errors"
 	"k8s.io/helm/pkg/proto/hapi/release"
 	"k8s.io/helm/pkg/repo"
-	"net/http"
-	"time"
 )
 
 // ChartQuery describes a query to get available helm chart's list
@@ -237,7 +238,7 @@ func GetTillerStatus(c *gin.Context) {
 			Message: message,
 			Error:   err.Error(),
 		})
-		log.Error(message)
+		log.Errorln(message, err.Error())
 		return
 	}
 	c.JSON(http.StatusOK, pkgHelm.StatusResponse{
