@@ -34,10 +34,10 @@ func (*closeableBuffer) Close() error {
 type AuditEvent struct {
 	ID         uint      `gorm:"primary_key"`
 	Time       time.Time `gorm:"index"`
-	ClientIP   string
+	ClientIP   string    `gorm:"size:45"`
 	UserAgent  string
-	Path       string
-	Method     string
+	Path       string `gorm:"size:8000"`
+	Method     string `gorm:"size:6"`
 	UserID     uint
 	StatusCode int
 	Body       *string `gorm:"type:json"`
