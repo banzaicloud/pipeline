@@ -645,10 +645,9 @@ paths:
       responses:
         200:
           content:
-            text/plain:
+            application/json:
               schema:
-                example: encoded configuration file...
-                type: string
+                $ref: '#/components/schemas/ClusterConfig'
           description: Getting config file succeeded
         400:
           content:
@@ -3876,6 +3875,23 @@ components:
           type: string
         error:
           example: repo not found
+          type: string
+      type: object
+    ClusterConfig:
+      example:
+        data: |-
+          apiVersion: v1
+          clusters....
+        status: 200
+      properties:
+        status:
+          example: 200
+          format: int32
+          type: integer
+        data:
+          example: |-
+            apiVersion: v1
+            clusters....
           type: string
       type: object
     ClusterProfileNotFound:

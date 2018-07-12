@@ -139,6 +139,7 @@ Class | Method | HTTP request | Description
  - [CatalogOptionsMysqlVersion](docs/CatalogOptionsMysqlVersion.md)
  - [ChartNotFound](docs/ChartNotFound.md)
  - [ClusterApplicationList](docs/ClusterApplicationList.md)
+ - [ClusterConfig](docs/ClusterConfig.md)
  - [ClusterDelete200](docs/ClusterDelete200.md)
  - [ClusterDetailsResponse](docs/ClusterDetailsResponse.md)
  - [ClusterDetailsResponseNodePools](docs/ClusterDetailsResponseNodePools.md)
