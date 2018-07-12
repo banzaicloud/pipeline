@@ -7,6 +7,8 @@ import (
 	"strings"
 	"syscall"
 
+	"time"
+
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/database"
@@ -22,7 +24,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/terminal"
-	"time"
 )
 
 var log *logrus.Logger
@@ -127,29 +128,17 @@ func (c *CommonClusterBase) getConfig(cluster CommonCluster) ([]byte, error) {
 		var loadedConfig []byte
 		configSecret, err := getSecret(cluster.GetOrganizationId(), cluster.GetConfigSecretId())
 		if err != nil {
-			log.Warnf("Error during loading config from vault: %s", err.Error())
-			log.Info("Re-download config from cloud")
-			loadedConfig, err = cluster.DownloadK8sConfig()
-			if err != nil {
-				return nil, err
-			}
-
-			log.Info("Store K8S config in vault")
-			if err := StoreKubernetesConfig(cluster, loadedConfig); err != nil {
-				return nil, err
-			}
-
-		} else {
-			configStr, err := base64.StdEncoding.DecodeString(configSecret.GetValue(pkgSecret.K8SConfig))
-			if err != nil {
-				return nil, err
-			}
-			loadedConfig = []byte(configStr)
+			return nil, err
 		}
+		configStr, err := base64.StdEncoding.DecodeString(configSecret.GetValue(pkgSecret.K8SConfig))
+		if err != nil {
+			return nil, err
+		}
+		loadedConfig = []byte(configStr)
 
 		c.config = loadedConfig
 	} else {
-		log.Info("Config is loaded before")
+		log.Info("Config was loaded before")
 	}
 	return c.config, nil
 }

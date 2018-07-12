@@ -2,6 +2,7 @@ package cluster
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/banzaicloud/pipeline/auth"
@@ -19,53 +20,30 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"strings"
 )
 
 //RunPostHooks calls posthook functions with created cluster
-func RunPostHooks(functionList []PostFunctioner, createdCluster CommonCluster) {
+func RunPostHooks(functionList []PostFunctioner, createdCluster CommonCluster) error {
 	var err error
 	for _, i := range functionList {
 		if i != nil {
-
-			if err == nil {
-				log.Infof("Start posthook function[%s]", i)
-				err = i.Do(createdCluster)
-				if err != nil {
-					log.Errorf("Error during posthook function[%s]: %s", i, err.Error())
-				}
-			}
-
+			log.Infof("Start posthook function[%s]", i)
+			err = i.Do(createdCluster)
 			if err != nil {
+				log.Errorf("Error during posthook function[%s]: %s", i, err.Error())
 				i.Error(createdCluster, err)
+				return err
 			}
-
 		}
 	}
 
+	return createdCluster.UpdateStatus(pkgCluster.Running, pkgCluster.RunningMessage)
 }
 
 // PollingKubernetesConfig polls kubeconfig from the cloud
 func PollingKubernetesConfig(cluster CommonCluster) ([]byte, error) {
 
 	var err error
-	status := pkgCluster.Creating
-
-	for status == pkgCluster.Creating {
-
-		log.Infof("Cluster status: %s", status)
-		sr, err := cluster.GetStatus()
-		if err != nil {
-			return nil, err
-		}
-		status = sr.Status
-
-		err = cluster.ReloadFromDatabase()
-		if err != nil {
-			return nil, err
-		}
-		time.Sleep(time.Second * 5)
-	}
 
 	retryCount := viper.GetInt("cloud.configRetryCount")
 	retrySleepTime := viper.GetInt("cloud.configRetrySleep")

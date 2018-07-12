@@ -285,12 +285,6 @@ func postCreateCluster(commonCluster cluster.CommonCluster, postHooks []cluster.
 		return err
 	}
 
-	err = commonCluster.UpdateStatus(pkgCluster.Running, pkgCluster.RunningMessage)
-	if err != nil {
-		log.Errorf("Error during updating cluster status: %s", err.Error())
-		return err
-	}
-
 	// Apply PostHooks
 	// These are hardcoded posthooks maybe we will want a bit more dynamic
 	postHookFunctions := cluster.BasePostHookFunctions
@@ -299,7 +293,12 @@ func postCreateCluster(commonCluster cluster.CommonCluster, postHooks []cluster.
 		postHookFunctions = append(postHookFunctions, postHooks...)
 	}
 
-	cluster.RunPostHooks(postHookFunctions, commonCluster)
+	err = cluster.RunPostHooks(postHookFunctions, commonCluster)
+
+	if err != nil {
+		log.Errorf("Error during running cluster posthooks: %s", err.Error())
+		return err
+	}
 
 	return nil
 }
