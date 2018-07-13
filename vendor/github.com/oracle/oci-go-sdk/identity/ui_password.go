@@ -32,7 +32,7 @@ type UiPassword struct {
 	LifecycleState UiPasswordLifecycleStateEnum `mandatory:"false" json:"lifecycleState,omitempty"`
 
 	// The detailed status of INACTIVE lifecycleState.
-	InactiveStatus *int `mandatory:"false" json:"inactiveStatus"`
+	InactiveStatus *int64 `mandatory:"false" json:"inactiveStatus"`
 }
 
 func (m UiPassword) String() string {

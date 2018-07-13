@@ -29,7 +29,7 @@ type VolumeGroup struct {
 	Id *string `mandatory:"true" json:"id"`
 
 	// The aggregate size of the volume group in MBs.
-	SizeInMBs *int `mandatory:"true" json:"sizeInMBs"`
+	SizeInMBs *int64 `mandatory:"true" json:"sizeInMBs"`
 
 	// The date and time the volume group was created. Format defined by RFC3339.
 	TimeCreated *common.SDKTime `mandatory:"true" json:"timeCreated"`
@@ -52,7 +52,7 @@ type VolumeGroup struct {
 	LifecycleState VolumeGroupLifecycleStateEnum `mandatory:"false" json:"lifecycleState,omitempty"`
 
 	// The aggregate size of the volume group in GBs.
-	SizeInGBs *int `mandatory:"false" json:"sizeInGBs"`
+	SizeInGBs *int64 `mandatory:"false" json:"sizeInGBs"`
 
 	// The volume group source. The source is either another a list of
 	// volume IDs in the same availability domain, another volume group, or a volume group backup.
@@ -69,13 +69,13 @@ func (m *VolumeGroup) UnmarshalJSON(data []byte) (e error) {
 		DefinedTags        map[string]map[string]interface{} `json:"definedTags"`
 		FreeformTags       map[string]string                 `json:"freeformTags"`
 		LifecycleState     VolumeGroupLifecycleStateEnum     `json:"lifecycleState"`
-		SizeInGBs          *int                              `json:"sizeInGBs"`
+		SizeInGBs          *int64                            `json:"sizeInGBs"`
 		SourceDetails      volumegroupsourcedetails          `json:"sourceDetails"`
 		AvailabilityDomain *string                           `json:"availabilityDomain"`
 		CompartmentId      *string                           `json:"compartmentId"`
 		DisplayName        *string                           `json:"displayName"`
 		Id                 *string                           `json:"id"`
-		SizeInMBs          *int                              `json:"sizeInMBs"`
+		SizeInMBs          *int64                            `json:"sizeInMBs"`
 		TimeCreated        *common.SDKTime                   `json:"timeCreated"`
 		VolumeIds          []string                          `json:"volumeIds"`
 	}{}

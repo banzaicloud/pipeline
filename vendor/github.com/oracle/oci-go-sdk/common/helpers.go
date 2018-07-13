@@ -23,6 +23,11 @@ func Int(value int) *int {
 	return &value
 }
 
+// Int64 returns a pointer to the provided int64
+func Int64(value int64) *int64 {
+	return &value
+}
+
 // Uint returns a pointer to the provided uint
 func Uint(value uint) *uint {
 	return &value

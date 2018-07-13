@@ -43,7 +43,7 @@ type SmtpCredentialSummary struct {
 	LifecycleState SmtpCredentialSummaryLifecycleStateEnum `mandatory:"false" json:"lifecycleState,omitempty"`
 
 	// The detailed status of INACTIVE lifecycleState.
-	InactiveStatus *int `mandatory:"false" json:"inactiveStatus"`
+	InactiveStatus *int64 `mandatory:"false" json:"inactiveStatus"`
 }
 
 func (m SmtpCredentialSummary) String() string {

@@ -43,7 +43,7 @@ type CreateBootVolumeDetails struct {
 	FreeformTags map[string]string `mandatory:"false" json:"freeformTags"`
 
 	// The size of the volume in GBs.
-	SizeInGBs *int `mandatory:"false" json:"sizeInGBs"`
+	SizeInGBs *int64 `mandatory:"false" json:"sizeInGBs"`
 }
 
 func (m CreateBootVolumeDetails) String() string {
@@ -56,7 +56,7 @@ func (m *CreateBootVolumeDetails) UnmarshalJSON(data []byte) (e error) {
 		DefinedTags        map[string]map[string]interface{} `json:"definedTags"`
 		DisplayName        *string                           `json:"displayName"`
 		FreeformTags       map[string]string                 `json:"freeformTags"`
-		SizeInGBs          *int                              `json:"sizeInGBs"`
+		SizeInGBs          *int64                            `json:"sizeInGBs"`
 		AvailabilityDomain *string                           `json:"availabilityDomain"`
 		CompartmentId      *string                           `json:"compartmentId"`
 		SourceDetails      bootvolumesourcedetails           `json:"sourceDetails"`

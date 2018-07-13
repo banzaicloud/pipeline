@@ -80,7 +80,7 @@ type GetObjectResponse struct {
 	OpcMeta map[string]string `presentIn:"header-collection" prefix:"opc-meta-"`
 
 	// The object size in bytes.
-	ContentLength *int `presentIn:"header" name:"content-length"`
+	ContentLength *int64 `presentIn:"header" name:"content-length"`
 
 	// Content-Range header for range requests, per RFC 7233 (https://tools.ietf.org/rfc/rfc7233), section 4.2.
 	ContentRange *string `presentIn:"header" name:"content-range"`

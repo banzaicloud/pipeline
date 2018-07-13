@@ -35,7 +35,7 @@ type BootVolume struct {
 
 	// The size of the volume in MBs. The value must be a multiple of 1024.
 	// This field is deprecated. Please use sizeInGBs.
-	SizeInMBs *int `mandatory:"true" json:"sizeInMBs"`
+	SizeInMBs *int64 `mandatory:"true" json:"sizeInMBs"`
 
 	// The date and time the boot volume was created. Format defined by RFC3339.
 	TimeCreated *common.SDKTime `mandatory:"true" json:"timeCreated"`
@@ -62,7 +62,7 @@ type BootVolume struct {
 	IsHydrated *bool `mandatory:"false" json:"isHydrated"`
 
 	// The size of the boot volume in GBs.
-	SizeInGBs *int `mandatory:"false" json:"sizeInGBs"`
+	SizeInGBs *int64 `mandatory:"false" json:"sizeInGBs"`
 
 	// The boot volume source, either an existing boot volume in the same Availability Domain or a boot volume backup.
 	// If null, this means that the boot volume was created from an image.
@@ -84,14 +84,14 @@ func (m *BootVolume) UnmarshalJSON(data []byte) (e error) {
 		FreeformTags       map[string]string                 `json:"freeformTags"`
 		ImageId            *string                           `json:"imageId"`
 		IsHydrated         *bool                             `json:"isHydrated"`
-		SizeInGBs          *int                              `json:"sizeInGBs"`
+		SizeInGBs          *int64                            `json:"sizeInGBs"`
 		SourceDetails      bootvolumesourcedetails           `json:"sourceDetails"`
 		VolumeGroupId      *string                           `json:"volumeGroupId"`
 		AvailabilityDomain *string                           `json:"availabilityDomain"`
 		CompartmentId      *string                           `json:"compartmentId"`
 		Id                 *string                           `json:"id"`
 		LifecycleState     BootVolumeLifecycleStateEnum      `json:"lifecycleState"`
-		SizeInMBs          *int                              `json:"sizeInMBs"`
+		SizeInMBs          *int64                            `json:"sizeInMBs"`
 		TimeCreated        *common.SDKTime                   `json:"timeCreated"`
 	}{}
 

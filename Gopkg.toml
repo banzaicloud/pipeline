@@ -245,5 +245,4 @@
 
 [[constraint]]
   name = "github.com/oracle/oci-go-sdk"
-  source = "github.com/banzaicloud/oci-go-sdk"
-  branch = "premature-body-closing-issue"
+  version = "2.0.0"

@@ -22,7 +22,7 @@ type ObjectSummary struct {
 	Name *string `mandatory:"true" json:"name"`
 
 	// Size of the object in bytes.
-	Size *int `mandatory:"false" json:"size"`
+	Size *int64 `mandatory:"false" json:"size"`
 
 	// Base64-encoded MD5 hash of the object data.
 	Md5 *string `mandatory:"false" json:"md5"`
