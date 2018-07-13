@@ -74,7 +74,7 @@ type Image struct {
 
 	// Image size (1 MB = 1048576 bytes)
 	// Example: `47694`
-	SizeInMBs *int `mandatory:"false" json:"sizeInMBs"`
+	SizeInMBs *int64 `mandatory:"false" json:"sizeInMBs"`
 }
 
 func (m Image) String() string {

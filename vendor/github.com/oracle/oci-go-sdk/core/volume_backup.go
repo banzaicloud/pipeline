@@ -59,11 +59,11 @@ type VolumeBackup struct {
 	FreeformTags map[string]string `mandatory:"false" json:"freeformTags"`
 
 	// The size of the volume, in GBs.
-	SizeInGBs *int `mandatory:"false" json:"sizeInGBs"`
+	SizeInGBs *int64 `mandatory:"false" json:"sizeInGBs"`
 
 	// The size of the volume in MBs. The value must be a multiple of 1024.
 	// This field is deprecated. Please use sizeInGBs.
-	SizeInMBs *int `mandatory:"false" json:"sizeInMBs"`
+	SizeInMBs *int64 `mandatory:"false" json:"sizeInMBs"`
 
 	// Specifies whether the backup was created manually, or via scheduled backup policy.
 	SourceType VolumeBackupSourceTypeEnum `mandatory:"false" json:"sourceType,omitempty"`
@@ -73,12 +73,12 @@ type VolumeBackup struct {
 
 	// The size used by the backup, in GBs. It is typically smaller than sizeInGBs, depending on the space
 	// consumed on the volume and whether the backup is full or incremental.
-	UniqueSizeInGBs *int `mandatory:"false" json:"uniqueSizeInGBs"`
+	UniqueSizeInGBs *int64 `mandatory:"false" json:"uniqueSizeInGBs"`
 
 	// The size used by the backup, in MBs. It is typically smaller than sizeInMBs, depending on the space
 	// consumed on the volume and whether the backup is full or incremental.
 	// This field is deprecated. Please use uniqueSizeInGBs.
-	UniqueSizeInMbs *int `mandatory:"false" json:"uniqueSizeInMbs"`
+	UniqueSizeInMbs *int64 `mandatory:"false" json:"uniqueSizeInMbs"`
 
 	// The OCID of the volume.
 	VolumeId *string `mandatory:"false" json:"volumeId"`

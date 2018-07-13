@@ -30,7 +30,7 @@ type UploadPartRequest struct {
 	UploadPartNum *int `mandatory:"true" contributesTo:"query" name:"uploadPartNum"`
 
 	// The content length of the body.
-	ContentLength *int `mandatory:"true" contributesTo:"header" name:"Content-Length"`
+	ContentLength *int64 `mandatory:"true" contributesTo:"header" name:"Content-Length"`
 
 	// The part being uploaded to the Object Storage Service.
 	UploadPartBody io.ReadCloser `mandatory:"true" contributesTo:"body" encoding:"binary"`

@@ -61,7 +61,7 @@ type Saml2IdentityProvider struct {
 	RedirectUrl *string `mandatory:"true" json:"redirectUrl"`
 
 	// The detailed status of INACTIVE lifecycleState.
-	InactiveStatus *int `mandatory:"false" json:"inactiveStatus"`
+	InactiveStatus *int64 `mandatory:"false" json:"inactiveStatus"`
 
 	// Free-form tags for this resource. Each tag is a simple key-value pair with no predefined name, type, or namespace.
 	// For more information, see Resource Tags (https://docs.us-phoenix-1.oraclecloud.com/Content/General/Concepts/resourcetags.htm).
@@ -114,7 +114,7 @@ func (m Saml2IdentityProvider) GetLifecycleState() IdentityProviderLifecycleStat
 }
 
 //GetInactiveStatus returns InactiveStatus
-func (m Saml2IdentityProvider) GetInactiveStatus() *int {
+func (m Saml2IdentityProvider) GetInactiveStatus() *int64 {
 	return m.InactiveStatus
 }
 

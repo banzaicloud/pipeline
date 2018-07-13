@@ -126,7 +126,6 @@ func (client ContainerEngineClient) createKubeconfig(ctx context.Context, reques
 	var response CreateKubeconfigResponse
 	var httpResponse *http.Response
 	httpResponse, err = client.Call(ctx, &httpRequest)
-	defer common.CloseBodyIfValid(httpResponse)
 	response.RawResponse = httpResponse
 	if err != nil {
 		return response, err

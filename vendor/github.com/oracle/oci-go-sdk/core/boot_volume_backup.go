@@ -63,7 +63,7 @@ type BootVolumeBackup struct {
 	ImageId *string `mandatory:"false" json:"imageId"`
 
 	// The size of the boot volume, in GBs.
-	SizeInGBs *int `mandatory:"false" json:"sizeInGBs"`
+	SizeInGBs *int64 `mandatory:"false" json:"sizeInGBs"`
 
 	// Specifies whether the backup was created manually, or via scheduled backup policy.
 	SourceType BootVolumeBackupSourceTypeEnum `mandatory:"false" json:"sourceType,omitempty"`
@@ -76,7 +76,7 @@ type BootVolumeBackup struct {
 
 	// The size used by the backup, in GBs. It is typically smaller than sizeInGBs, depending on the space
 	// consumed on the boot volume and whether the backup is full or incremental.
-	UniqueSizeInGBs *int `mandatory:"false" json:"uniqueSizeInGBs"`
+	UniqueSizeInGBs *int64 `mandatory:"false" json:"uniqueSizeInGBs"`
 }
 
 func (m BootVolumeBackup) String() string {

@@ -55,7 +55,7 @@ type User struct {
 	// - bit 0: SUSPENDED (reserved for future use)
 	// - bit 1: DISABLED (reserved for future use)
 	// - bit 2: BLOCKED (the user has exceeded the maximum number of failed login attempts for the Console)
-	InactiveStatus *int `mandatory:"false" json:"inactiveStatus"`
+	InactiveStatus *int64 `mandatory:"false" json:"inactiveStatus"`
 
 	// Free-form tags for this resource. Each tag is a simple key-value pair with no predefined name, type, or namespace.
 	// For more information, see Resource Tags (https://docs.us-phoenix-1.oraclecloud.com/Content/General/Concepts/resourcetags.htm).

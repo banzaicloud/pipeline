@@ -50,7 +50,7 @@ type Compartment struct {
 	LifecycleState CompartmentLifecycleStateEnum `mandatory:"true" json:"lifecycleState"`
 
 	// The detailed status of INACTIVE lifecycleState.
-	InactiveStatus *int `mandatory:"false" json:"inactiveStatus"`
+	InactiveStatus *int64 `mandatory:"false" json:"inactiveStatus"`
 
 	// Free-form tags for this resource. Each tag is a simple key-value pair with no predefined name, type, or namespace.
 	// For more information, see Resource Tags (https://docs.us-phoenix-1.oraclecloud.com/Content/General/Concepts/resourcetags.htm).
