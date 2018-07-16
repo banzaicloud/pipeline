@@ -27,7 +27,7 @@ var log *logrus.Logger
 // Store object that wraps up vault logical store
 var Store *secretStore
 
-// Marks 'Not Found' errors for secrets
+// ErrSecretNotExists denotes 'Not Found' errors for secrets
 var ErrSecretNotExists = fmt.Errorf("There's no secret with this ID")
 
 func init() {
@@ -48,7 +48,7 @@ type CreateSecretResponse struct {
 	Error     string    `json:"error,omitempty"`
 	UpdatedAt time.Time `json:"updatedAt,omitempty"`
 	UpdatedBy string    `json:"updatedBy,omitempty"`
-	Version   uint      `json:"version,omitempty"`
+	Version   int       `json:"version,omitempty"`
 }
 
 // CreateSecretRequest param for Store.Store
@@ -115,6 +115,7 @@ func newVaultSecretStore() *secretStore {
 	return &secretStore{Client: client, Logical: logical}
 }
 
+// GenerateSecretID generates a "unique by name per organization" id for Secrets
 func GenerateSecretID(request *CreateSecretRequest) string {
 	return fmt.Sprintf("%x", sha256.Sum256([]byte(request.Name)))
 }

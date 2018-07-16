@@ -168,7 +168,7 @@ func StoreKubernetesConfig(cluster CommonCluster, config []byte) error {
 		createSecretRequest.Version = &(configSecret.Version)
 	}
 
-	secretID, err := secret.Store.Store(organizationID, &createSecretRequest)
+	err := secret.Store.Update(organizationID, secretID, &createSecretRequest)
 	if err != nil {
 		log.Errorf("Error during storing config: %s", err.Error())
 		return err
