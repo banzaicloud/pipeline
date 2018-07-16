@@ -27,6 +27,9 @@ var log *logrus.Logger
 // Store object that wraps up vault logical store
 var Store *secretStore
 
+// ErrSecretNotExists denotes 'Not Found' errors for secrets
+var ErrSecretNotExists = fmt.Errorf("There's no secret with this ID")
+
 func init() {
 	log = config.Logger()
 	Store = newVaultSecretStore()
@@ -45,7 +48,7 @@ type CreateSecretResponse struct {
 	Error     string    `json:"error,omitempty"`
 	UpdatedAt time.Time `json:"updatedAt,omitempty"`
 	UpdatedBy string    `json:"updatedBy,omitempty"`
-	Version   uint      `json:"version,omitempty"`
+	Version   int       `json:"version,omitempty"`
 }
 
 // CreateSecretRequest param for Store.Store
@@ -65,7 +68,7 @@ type SecretItemResponse struct {
 	Type      string            `json:"type"`
 	Values    map[string]string `json:"values"`
 	Tags      []string          `json:"tags"`
-	Version   uint              `json:"version"`
+	Version   int               `json:"version"`
 	UpdatedAt time.Time         `json:"updatedAt"`
 	UpdatedBy string            `json:"updatedBy,omitempty"`
 }
@@ -112,7 +115,8 @@ func newVaultSecretStore() *secretStore {
 	return &secretStore{Client: client, Logical: logical}
 }
 
-func generateSecretID(request *CreateSecretRequest) string {
+// GenerateSecretID generates a "unique by name per organization" id for Secrets
+func GenerateSecretID(request *CreateSecretRequest) string {
 	return fmt.Sprintf("%x", sha256.Sum256([]byte(request.Name)))
 }
 
@@ -159,7 +163,7 @@ func (ss *secretStore) Store(organizationID uint, value *CreateSecretRequest) (s
 		return "", errors.New(errorList[0])
 	}
 
-	secretID := generateSecretID(value)
+	secretID := GenerateSecretID(value)
 	path := secretDataPath(organizationID, secretID)
 
 	if err := generateValuesIfNeeded(value); err != nil {
@@ -182,7 +186,7 @@ func (ss *secretStore) Store(organizationID uint, value *CreateSecretRequest) (s
 // Update secret secret/orgs/:orgid:/:id: scope
 func (ss *secretStore) Update(organizationID uint, secretID string, value *CreateSecretRequest) error {
 
-	if generateSecretID(value) != secretID {
+	if GenerateSecretID(value) != secretID {
 		return errors.New("Secret name cannot be changed")
 	}
 
@@ -232,7 +236,7 @@ func parseSecret(secretID string, secret *vaultapi.Secret, values bool) (*Secret
 		Type:      stype,
 		Tags:      stags,
 		Values:    cast.ToStringMapString(value["values"]),
-		Version:   uint(version),
+		Version:   int(version),
 		UpdatedAt: updatedAt,
 		UpdatedBy: updatedBy,
 	}
@@ -261,7 +265,7 @@ func (ss *secretStore) Get(organizationID uint, secretID string) (*SecretItemRes
 	}
 
 	if secret == nil {
-		return nil, fmt.Errorf("there's no secret with this id: %s", secretID)
+		return nil, ErrSecretNotExists
 	}
 
 	return parseSecret(secretID, secret, true)

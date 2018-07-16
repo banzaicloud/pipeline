@@ -23,15 +23,22 @@ import (
 )
 
 //RunPostHooks calls posthook functions with created cluster
-func RunPostHooks(functionList []PostFunctioner, createdCluster CommonCluster) error {
+func RunPostHooks(postHooks []PostFunctioner, createdCluster CommonCluster) error {
 	var err error
-	for _, i := range functionList {
-		if i != nil {
-			log.Infof("Start posthook function[%s]", i)
-			err = i.Do(createdCluster)
+	for _, postHook := range postHooks {
+		if postHook != nil {
+			log.Infof("Start posthook function[%s]", postHook)
+			err = postHook.Do(createdCluster)
 			if err != nil {
-				log.Errorf("Error during posthook function[%s]: %s", i, err.Error())
-				i.Error(createdCluster, err)
+				log.Errorf("Error during posthook function[%s]: %s", postHook, err.Error())
+				postHook.Error(createdCluster, err)
+				return err
+			}
+
+			statusMsg := fmt.Sprintf("Posthook function finished: %s", postHook)
+			err = createdCluster.UpdateStatus(pkgCluster.Creating, statusMsg)
+			if err != nil {
+				log.Errorf("Error during posthook status update in db [%s]: %s", postHook, err.Error())
 				return err
 			}
 		}
