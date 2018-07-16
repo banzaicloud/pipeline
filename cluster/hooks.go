@@ -39,6 +39,7 @@ func RunPostHooks(postHooks []PostFunctioner, createdCluster CommonCluster) erro
 			err = createdCluster.UpdateStatus(pkgCluster.Creating, statusMsg)
 			if err != nil {
 				log.Errorf("Error during posthook status update in db [%s]: %s", postHook, err.Error())
+				return err
 			}
 		}
 	}
