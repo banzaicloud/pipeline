@@ -158,6 +158,16 @@ func StoreKubernetesConfig(cluster CommonCluster, config []byte) error {
 		Tags: []string{pkgSecret.TagKubeConfig},
 	}
 
+	secretID := secret.GenerateSecretID(&createSecretRequest)
+
+	// Try to get the secret version first
+	if configSecret, err := getSecret(organizationID, secretID); err != nil && err != secret.ErrSecretNotExists {
+		log.Errorf("Error during storing config: %s", err.Error())
+		return err
+	} else if configSecret != nil {
+		createSecretRequest.Version = &(configSecret.Version)
+	}
+
 	secretID, err := secret.Store.Store(organizationID, &createSecretRequest)
 	if err != nil {
 		log.Errorf("Error during storing config: %s", err.Error())
