@@ -137,6 +137,34 @@
   revision = "de5bf2ad457846296e2031421a34e2568e304e35"
 
 [[projects]]
+  digest = "1:2cc07b374da4b466e6af29406a45808bac115cd424ddb1bb9965dfe0f1fcf623"
+  name = "github.com/aliyun/alibaba-cloud-sdk-go"
+  packages = [
+    "sdk",
+    "sdk/auth",
+    "sdk/auth/credentials",
+    "sdk/auth/signers",
+    "sdk/endpoints",
+    "sdk/errors",
+    "sdk/requests",
+    "sdk/responses",
+    "sdk/utils",
+    "services/cs",
+    "services/ecs",
+  ]
+  pruneopts = "NUT"
+  revision = "f89d40533aa10b95f92ecb33bbf63bda457a259c"
+  version = "1.23.7"
+
+[[projects]]
+  digest = "1:fff66556e25e676b296f9f2c78853831911e6ae41d84303a9be7a534bd1c0901"
+  name = "github.com/aliyun/aliyun-oss-go-sdk"
+  packages = ["oss"]
+  pruneopts = "NUT"
+  revision = "36bf7aa2f916f274137aedd05d1d36f6a3c0f4a6"
+  version = "1.9.0"
+
+[[projects]]
   branch = "master"
   digest = "1:2b23c176460b7b078aeffc44d97515e13d7aa5857c1c2768b3e3defc0397626e"
   name = "github.com/antihax/optional"
@@ -2217,6 +2245,14 @@
     "github.com/Azure/go-autorest/autorest/to",
     "github.com/Azure/go-autorest/autorest/validation",
     "github.com/Masterminds/sprig",
+    "github.com/aliyun/alibaba-cloud-sdk-go/sdk",
+    "github.com/aliyun/alibaba-cloud-sdk-go/sdk/auth/credentials",
+    "github.com/aliyun/alibaba-cloud-sdk-go/sdk/errors",
+    "github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests",
+    "github.com/aliyun/alibaba-cloud-sdk-go/sdk/responses",
+    "github.com/aliyun/alibaba-cloud-sdk-go/services/cs",
+    "github.com/aliyun/alibaba-cloud-sdk-go/services/ecs",
+    "github.com/aliyun/aliyun-oss-go-sdk/oss",
     "github.com/antihax/optional",
     "github.com/aokoli/goutils",
     "github.com/aws/aws-sdk-go/aws",
@@ -2261,6 +2297,7 @@
     "github.com/jinzhu/gorm",
     "github.com/jinzhu/gorm/dialects/mysql",
     "github.com/jinzhu/now",
+    "github.com/jmespath/go-jmespath",
     "github.com/kubicorn/kubicorn/apis/cluster",
     "github.com/kubicorn/kubicorn/pkg",
     "github.com/kubicorn/kubicorn/pkg/kubeadm",

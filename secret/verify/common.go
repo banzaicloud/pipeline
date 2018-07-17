@@ -14,6 +14,8 @@ type Verifier interface {
 func NewVerifier(cloudType string, values map[string]string) Verifier {
 	switch cloudType {
 
+	case pkgCluster.Alibaba:
+		return CreateAlibabaSecret(values)
 	case pkgCluster.Amazon:
 		return CreateAWSSecret(values)
 	case pkgCluster.Azure:

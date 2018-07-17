@@ -18,6 +18,13 @@ type Meta struct {
 	Sourcing SourcingMethod `json:"sourcing"`
 }
 
+// Alibaba keys
+const (
+	AlibabaRegion          = "ALIBABA_REGION_ID"
+	AlibabaAccessKeyId     = "ALIBABA_ACCESS_KEY_ID"
+	AlibabaSecretAccessKey = "ALIBABA_ACCESS_KEY_SECRET"
+)
+
 // Amazon keys
 const (
 	AwsRegion          = "AWS_REGION"
@@ -112,6 +119,14 @@ const (
 
 // DefaultRules key matching for types
 var DefaultRules = map[string]Meta{
+	cluster.Alibaba: {
+		Fields: []FieldMeta{
+			{Name: AlibabaRegion, Required: false},
+			{Name: AlibabaAccessKeyId, Required: true},
+			{Name: AlibabaSecretAccessKey, Required: true},
+		},
+		Sourcing: EnvVar,
+	},
 	cluster.Amazon: {
 		Fields: []FieldMeta{
 			{Name: AwsRegion, Required: false},

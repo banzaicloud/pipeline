@@ -6,6 +6,7 @@ import (
 	"github.com/banzaicloud/pipeline/model/defaults"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
+	"github.com/banzaicloud/pipeline/pkg/cluster/alibaba"
 	"github.com/banzaicloud/pipeline/pkg/cluster/ec2"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/gke"
@@ -108,11 +109,12 @@ var (
 		Location: location,
 		Cloud:    pkgCluster.Google,
 		Properties: struct {
-			EC2 *ec2.ClusterProfileEC2 `json:"ec2,omitempty"`
-			EKS *eks.ClusterProfileEKS `json:"eks,omitempty"`
-			AKS *aks.ClusterProfileAKS `json:"aks,omitempty"`
-			GKE *gke.ClusterProfileGKE `json:"gke,omitempty"`
-			OKE *oracle.Cluster        `json:"oracle,omitempty"`
+			Alibaba *alibaba.ClusterProfileAlibaba `json:"alibaba,omitempty"`
+			EC2     *ec2.ClusterProfileEC2         `json:"ec2,omitempty"`
+			EKS     *eks.ClusterProfileEKS         `json:"eks,omitempty"`
+			AKS     *aks.ClusterProfileAKS         `json:"aks,omitempty"`
+			GKE     *gke.ClusterProfileGKE         `json:"gke,omitempty"`
+			OKE     *oracle.Cluster                `json:"oracle,omitempty"`
 		}{
 			GKE: &gke.ClusterProfileGKE{
 				Master: &gke.Master{
@@ -134,11 +136,12 @@ var (
 		Location: location,
 		Cloud:    pkgCluster.Azure,
 		Properties: struct {
-			EC2 *ec2.ClusterProfileEC2 `json:"ec2,omitempty"`
-			EKS *eks.ClusterProfileEKS `json:"eks,omitempty"`
-			AKS *aks.ClusterProfileAKS `json:"aks,omitempty"`
-			GKE *gke.ClusterProfileGKE `json:"gke,omitempty"`
-			OKE *oracle.Cluster        `json:"oracle,omitempty"`
+			Alibaba *alibaba.ClusterProfileAlibaba `json:"alibaba,omitempty"`
+			EC2     *ec2.ClusterProfileEC2         `json:"ec2,omitempty"`
+			EKS     *eks.ClusterProfileEKS         `json:"eks,omitempty"`
+			AKS     *aks.ClusterProfileAKS         `json:"aks,omitempty"`
+			GKE     *gke.ClusterProfileGKE         `json:"gke,omitempty"`
+			OKE     *oracle.Cluster                `json:"oracle,omitempty"`
 		}{
 			AKS: &aks.ClusterProfileAKS{
 				KubernetesVersion: k8sVersion,
@@ -157,11 +160,12 @@ var (
 		Location: location,
 		Cloud:    pkgCluster.Amazon,
 		Properties: struct {
-			EC2 *ec2.ClusterProfileEC2 `json:"ec2,omitempty"`
-			EKS *eks.ClusterProfileEKS `json:"eks,omitempty"`
-			AKS *aks.ClusterProfileAKS `json:"aks,omitempty"`
-			GKE *gke.ClusterProfileGKE `json:"gke,omitempty"`
-			OKE *oracle.Cluster        `json:"oracle,omitempty"`
+			Alibaba *alibaba.ClusterProfileAlibaba `json:"alibaba,omitempty"`
+			EC2     *ec2.ClusterProfileEC2         `json:"ec2,omitempty"`
+			EKS     *eks.ClusterProfileEKS         `json:"eks,omitempty"`
+			AKS     *aks.ClusterProfileAKS         `json:"aks,omitempty"`
+			GKE     *gke.ClusterProfileGKE         `json:"gke,omitempty"`
+			OKE     *oracle.Cluster                `json:"oracle,omitempty"`
 		}{
 			EC2: &ec2.ClusterProfileEC2{
 				Master: &ec2.ProfileMaster{
@@ -238,11 +242,12 @@ var (
 		Location: location,
 		Cloud:    pkgCluster.Google,
 		Properties: struct {
-			EC2 *ec2.ClusterProfileEC2 `json:"ec2,omitempty"`
-			EKS *eks.ClusterProfileEKS `json:"eks,omitempty"`
-			AKS *aks.ClusterProfileAKS `json:"aks,omitempty"`
-			GKE *gke.ClusterProfileGKE `json:"gke,omitempty"`
-			OKE *oracle.Cluster        `json:"oracle,omitempty"`
+			Alibaba *alibaba.ClusterProfileAlibaba `json:"alibaba,omitempty"`
+			EC2     *ec2.ClusterProfileEC2         `json:"ec2,omitempty"`
+			EKS     *eks.ClusterProfileEKS         `json:"eks,omitempty"`
+			AKS     *aks.ClusterProfileAKS         `json:"aks,omitempty"`
+			GKE     *gke.ClusterProfileGKE         `json:"gke,omitempty"`
+			OKE     *oracle.Cluster                `json:"oracle,omitempty"`
 		}{
 			GKE: &gke.ClusterProfileGKE{
 				Master: &gke.Master{
@@ -257,11 +262,12 @@ var (
 		Location: location,
 		Cloud:    pkgCluster.Amazon,
 		Properties: struct {
-			EC2 *ec2.ClusterProfileEC2 `json:"ec2,omitempty"`
-			EKS *eks.ClusterProfileEKS `json:"eks,omitempty"`
-			AKS *aks.ClusterProfileAKS `json:"aks,omitempty"`
-			GKE *gke.ClusterProfileGKE `json:"gke,omitempty"`
-			OKE *oracle.Cluster        `json:"oracle,omitempty"`
+			Alibaba *alibaba.ClusterProfileAlibaba `json:"alibaba,omitempty"`
+			EC2     *ec2.ClusterProfileEC2         `json:"ec2,omitempty"`
+			EKS     *eks.ClusterProfileEKS         `json:"eks,omitempty"`
+			AKS     *aks.ClusterProfileAKS         `json:"aks,omitempty"`
+			GKE     *gke.ClusterProfileGKE         `json:"gke,omitempty"`
+			OKE     *oracle.Cluster                `json:"oracle,omitempty"`
 		}{
 			EC2: &ec2.ClusterProfileEC2{
 				Master: &ec2.ProfileMaster{
@@ -292,11 +298,12 @@ var (
 		Location: location,
 		Cloud:    pkgCluster.Google,
 		Properties: struct {
-			EC2 *ec2.ClusterProfileEC2 `json:"ec2,omitempty"`
-			EKS *eks.ClusterProfileEKS `json:"eks,omitempty"`
-			AKS *aks.ClusterProfileAKS `json:"aks,omitempty"`
-			GKE *gke.ClusterProfileGKE `json:"gke,omitempty"`
-			OKE *oracle.Cluster        `json:"oracle,omitempty"`
+			Alibaba *alibaba.ClusterProfileAlibaba `json:"alibaba,omitempty"`
+			EC2     *ec2.ClusterProfileEC2         `json:"ec2,omitempty"`
+			EKS     *eks.ClusterProfileEKS         `json:"eks,omitempty"`
+			AKS     *aks.ClusterProfileAKS         `json:"aks,omitempty"`
+			GKE     *gke.ClusterProfileGKE         `json:"gke,omitempty"`
+			OKE     *oracle.Cluster                `json:"oracle,omitempty"`
 		}{
 			GKE: &gke.ClusterProfileGKE{
 				NodeVersion: version,
@@ -315,11 +322,12 @@ var (
 		Location: location,
 		Cloud:    pkgCluster.Amazon,
 		Properties: struct {
-			EC2 *ec2.ClusterProfileEC2 `json:"ec2,omitempty"`
-			EKS *eks.ClusterProfileEKS `json:"eks,omitempty"`
-			AKS *aks.ClusterProfileAKS `json:"aks,omitempty"`
-			GKE *gke.ClusterProfileGKE `json:"gke,omitempty"`
-			OKE *oracle.Cluster        `json:"oracle,omitempty"`
+			Alibaba *alibaba.ClusterProfileAlibaba `json:"alibaba,omitempty"`
+			EC2     *ec2.ClusterProfileEC2         `json:"ec2,omitempty"`
+			EKS     *eks.ClusterProfileEKS         `json:"eks,omitempty"`
+			AKS     *aks.ClusterProfileAKS         `json:"aks,omitempty"`
+			GKE     *gke.ClusterProfileGKE         `json:"gke,omitempty"`
+			OKE     *oracle.Cluster                `json:"oracle,omitempty"`
 		}{
 			EC2: &ec2.ClusterProfileEC2{
 				NodePools: map[string]*ec2.NodePool{

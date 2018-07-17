@@ -143,6 +143,9 @@ func CreateObjectStoreBuckets(c *gin.Context) {
 	c.JSON(http.StatusAccepted, CreateBucketResponse{
 		Name: createBucketRequest.Name,
 	})
+	if cloudType == pkgCluster.Alibaba {
+		objectStore.WithRegion(createBucketRequest.Properties.CreateAlibabaObjectStoreBucketProperties.Location)
+	}
 	if cloudType == pkgCluster.Amazon {
 		objectStore.WithRegion(createBucketRequest.Properties.Amazon.Location)
 	}
@@ -469,6 +472,9 @@ func getValidatedSecret(organizationId uint, secretId, cloudType string) (*secre
 }
 
 func determineCloudProviderFromRequest(req CreateBucketRequest) (string, error) {
+	if req.Properties.CreateAlibabaObjectStoreBucketProperties != nil {
+		return pkgCluster.Alibaba, nil
+	}
 	if req.Properties.Azure != nil {
 		return pkgCluster.Azure, nil
 	}

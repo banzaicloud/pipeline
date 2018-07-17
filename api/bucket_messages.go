@@ -1,14 +1,17 @@
 package api
 
+import "github.com/banzaicloud/pipeline/pkg/cluster/alibaba"
+
 // CreateBucketRequest to create bucket
 type CreateBucketRequest struct {
 	SecretId   string `json:"secret_id" binding:"required"`
 	Name       string `json:"name" binding:"required"`
 	Properties struct {
-		Amazon *CreateAmazonObjectStoreBucketProperties `json:"amazon,omitempty"`
-		Azure  *CreateAzureObjectStoreBucketProperties  `json:"azure,omitempty"`
-		Google *CreateGoogleObjectStoreBucketProperties `json:"google,omitempty"`
-		Oracle *CreateObjectStoreBucketProperties       `json:"oracle,omitempty"`
+		CreateAlibabaObjectStoreBucketProperties *alibaba.CreateAlibabaObjectStoreBucketProperties `json:"alibaba,omitempty"`
+		Amazon                                   *CreateAmazonObjectStoreBucketProperties          `json:"amazon,omitempty"`
+		Azure                                    *CreateAzureObjectStoreBucketProperties           `json:"azure,omitempty"`
+		Google                                   *CreateGoogleObjectStoreBucketProperties          `json:"google,omitempty"`
+		Oracle                                   *CreateObjectStoreBucketProperties                `json:"oracle,omitempty"`
 	} `json:"properties" binding:"required"`
 }
 

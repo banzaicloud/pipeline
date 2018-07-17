@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/banzaicloud/go-gin-prometheus"
 	"github.com/banzaicloud/pipeline/api"
 	"github.com/banzaicloud/pipeline/audit"
 	"github.com/banzaicloud/pipeline/auth"
@@ -12,20 +13,18 @@ import (
 	"github.com/banzaicloud/pipeline/database"
 	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/dns/route53/model"
+	"github.com/banzaicloud/pipeline/internal/gin/correlationid"
+	ginlog "github.com/banzaicloud/pipeline/internal/gin/log"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/model/defaults"
 	"github.com/banzaicloud/pipeline/notify"
 	"github.com/banzaicloud/pipeline/objectstore"
+	modelOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
+	modelOracleObjectstore "github.com/banzaicloud/pipeline/pkg/providers/oracle/model/objectstore"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-
-	"github.com/banzaicloud/go-gin-prometheus"
-	"github.com/banzaicloud/pipeline/internal/gin/correlationid"
-	ginlog "github.com/banzaicloud/pipeline/internal/gin/log"
-	modelOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
-	modelOracleObjectstore "github.com/banzaicloud/pipeline/pkg/providers/oracle/model/objectstore"
 )
 
 //Version of Pipeline
@@ -66,6 +65,8 @@ func main() {
 	var tables = []interface{}{&model.ClusterModel{},
 		&model.GKEClusterModel{},
 		&model.AmazonNodePoolsModel{},
+		&model.AlibabaClusterModel{},
+		&model.AlibabaNodePoolModel{},
 		&model.EC2ClusterModel{},
 		&model.EKSClusterModel{},
 		&model.AKSClusterModel{},
@@ -89,6 +90,7 @@ func main() {
 		&defaults.AKSNodePoolProfile{},
 		&defaults.GKEProfile{},
 		&defaults.GKENodePoolProfile{},
+		&objectstore.ManagedAlibabaBucket{},
 		&objectstore.ManagedAmazonBucket{},
 		&objectstore.ManagedGoogleBucket{},
 		&route53model.Route53Domain{}}
