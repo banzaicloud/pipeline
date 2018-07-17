@@ -250,3 +250,19 @@ version = "=v7.0.0"
 [[constraint]]
   branch = "master"
   name = "github.com/banzaicloud/go-gin-prometheus"
+
+[[constraint]]
+  name = "github.com/aliyun/alibaba-cloud-sdk-go"
+  version = "1.23.7"
+
+[[constraint]]
+  name = "github.com/aliyun/aliyun-oss-go-sdk"
+  version = "1.9.0"
+
+# master: Could not introduce github.com/aliyun/alibaba-cloud-sdk-go@master,
+# as it has a dependency on github.com/jmespath/go-jmespath with constraint ^0.2.2,
+# which has no overlap with the following existing constraints:
+#	0b12d6b5 from github.com/aws/aws-sdk-go@v1.13.9
+[[override]]
+  revision = "0b12d6b5"
+  name = "github.com/jmespath/go-jmespath"

@@ -27,6 +27,11 @@ func (ManagedBucketNotFoundError) NotFound() bool { return true }
 // the passed in secret and organization
 func NewObjectStore(cloudType string, s *secret.SecretItemResponse, organization *auth.Organization) (objectstore.ObjectStore, error) {
 	switch cloudType {
+	case pkgCluster.Alibaba:
+		return &AlibabaObjectStore{
+			secret: s,
+			org:    organization,
+		}, nil
 	case pkgCluster.Amazon:
 		return &AmazonObjectStore{
 			secret: s,

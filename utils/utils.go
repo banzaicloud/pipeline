@@ -104,6 +104,8 @@ func EncodeStringToBase64(s string) string {
 // If a not supported cloud type is passed in than returns ErrorNotSupportedCloudType otherwise nil
 func ValidateCloudType(cloudType string) error {
 	switch cloudType {
+	case pkgCluster.Alibaba:
+		return nil
 	case pkgCluster.Amazon:
 	case pkgCluster.Google:
 	case pkgCluster.Azure:

@@ -623,6 +623,9 @@ func postDeleteCluster(commonCluster cluster.CommonCluster, force bool) error {
 	} else {
 		log.Info("Cluster's statestore folder cleaned")
 	}
+
+	log.Info("Cluster deleted successfully")
+
 	return nil
 }
 

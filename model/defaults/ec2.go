@@ -4,6 +4,7 @@ import (
 	"github.com/banzaicloud/pipeline/database"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgAzure "github.com/banzaicloud/pipeline/pkg/cluster/aks"
+	"github.com/banzaicloud/pipeline/pkg/cluster/alibaba"
 	pkgAmazon "github.com/banzaicloud/pipeline/pkg/cluster/ec2"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	pkgGoogle "github.com/banzaicloud/pipeline/pkg/cluster/gke"
@@ -119,11 +120,12 @@ func (d *EC2Profile) GetProfile() *pkgCluster.ClusterProfileResponse {
 		Location: d.Location,
 		Cloud:    pkgCluster.Amazon,
 		Properties: struct {
-			EC2 *pkgAmazon.ClusterProfileEC2 `json:"ec2,omitempty"`
-			EKS *eks.ClusterProfileEKS       `json:"eks,omitempty"`
-			AKS *pkgAzure.ClusterProfileAKS  `json:"aks,omitempty"`
-			GKE *pkgGoogle.ClusterProfileGKE `json:"gke,omitempty"`
-			OKE *oracle.Cluster              `json:"oracle,omitempty"`
+			Alibaba *alibaba.ClusterProfileAlibaba `json:"alibaba,omitempty"`
+			EC2     *pkgAmazon.ClusterProfileEC2   `json:"ec2,omitempty"`
+			EKS     *eks.ClusterProfileEKS         `json:"eks,omitempty"`
+			AKS     *pkgAzure.ClusterProfileAKS    `json:"aks,omitempty"`
+			GKE     *pkgGoogle.ClusterProfileGKE   `json:"gke,omitempty"`
+			OKE     *oracle.Cluster                `json:"oracle,omitempty"`
 		}{
 			EC2: &pkgAmazon.ClusterProfileEC2{
 				NodePools: nodePools,
