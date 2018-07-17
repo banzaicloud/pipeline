@@ -815,6 +815,12 @@
   version = "1.0.0"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/mxk/go-flowrate"
+  packages = ["flowrate"]
+  revision = "cca7078d478f8520f85629ad7c68962d31ed7682"
+
+[[projects]]
   name = "github.com/opencontainers/go-digest"
   packages = ["."]
   revision = "279bed98673dd5bef374d3b6e4b09e2af76183bf"
@@ -1436,6 +1442,7 @@
     "pkg/util/json",
     "pkg/util/mergepatch",
     "pkg/util/net",
+    "pkg/util/proxy",
     "pkg/util/rand",
     "pkg/util/remotecommand",
     "pkg/util/runtime",
@@ -1834,6 +1841,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a573079560209435d3dc1387663974bf6d7238e8f39b2da84fc08dec02bc231b"
+  inputs-digest = "415a5603d27a0ee30586cbc11085a8a690b1b7270a5b60fd60af555f297329ed"
   solver-name = "gps-cdcl"
   solver-version = 1

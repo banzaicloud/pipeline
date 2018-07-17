@@ -180,6 +180,7 @@ func main() {
 			orgs.PUT("/:orgid/clusters/:id", api.UpdateCluster)
 			orgs.PUT("/:orgid/clusters/:id/posthooks", api.ReRunPostHooks)
 			orgs.POST("/:orgid/clusters/:id/secrets", api.InstallSecretsToCluster)
+			orgs.Any("/:orgid/clusters/:id/proxy/*path", api.ProxyToCluster)
 			orgs.DELETE("/:orgid/clusters/:id", api.DeleteCluster)
 			orgs.HEAD("/:orgid/clusters/:id", api.ClusterHEAD)
 			orgs.GET("/:orgid/clusters/:id/config", api.GetClusterConfig)
