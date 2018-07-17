@@ -6,7 +6,6 @@ import (
 	"os"
 	"strings"
 	"syscall"
-
 	"time"
 
 	"github.com/banzaicloud/pipeline/auth"

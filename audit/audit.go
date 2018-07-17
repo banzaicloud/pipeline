@@ -37,7 +37,7 @@ type AuditEvent struct {
 	ClientIP   string    `gorm:"size:45"`
 	UserAgent  string
 	Path       string `gorm:"size:8000"`
-	Method     string `gorm:"size:6"`
+	Method     string `gorm:"size:7"`
 	UserID     uint
 	StatusCode int
 	Body       *string `gorm:"type:json"`
