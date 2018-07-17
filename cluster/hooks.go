@@ -5,6 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/banzaicloud/pipeline/auth"
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
@@ -24,28 +26,38 @@ import (
 )
 
 //RunPostHooks calls posthook functions with created cluster
-func RunPostHooks(postHooks []PostFunctioner, createdCluster CommonCluster) error {
-	var err error
+func RunPostHooks(postHooks []PostFunctioner, cluster CommonCluster) (err error) {
+
+	log := log.WithFields(logrus.Fields{"cluster": cluster.GetName(), "org": cluster.GetOrganizationId()})
+
 	for _, postHook := range postHooks {
 		if postHook != nil {
 			log.Infof("Start posthook function[%s]", postHook)
-			err = postHook.Do(createdCluster)
+			err = postHook.Do(cluster)
 			if err != nil {
 				log.Errorf("Error during posthook function[%s]: %s", postHook, err.Error())
-				postHook.Error(createdCluster, err)
-				return err
+				postHook.Error(cluster, err)
+				return
 			}
 
 			statusMsg := fmt.Sprintf("Posthook function finished: %s", postHook)
-			err = createdCluster.UpdateStatus(pkgCluster.Creating, statusMsg)
+			err = cluster.UpdateStatus(pkgCluster.Creating, statusMsg)
 			if err != nil {
 				log.Errorf("Error during posthook status update in db [%s]: %s", postHook, err.Error())
-				return err
+				return
 			}
 		}
 	}
 
-	return createdCluster.UpdateStatus(pkgCluster.Running, pkgCluster.RunningMessage)
+	log.Info("Run all posthooks for cluster successfully.")
+
+	err = cluster.UpdateStatus(pkgCluster.Running, pkgCluster.RunningMessage)
+
+	if err != nil {
+		log.Errorf("Error during posthook status update in db: %s", err.Error())
+	}
+
+	return
 }
 
 // PollingKubernetesConfig polls kubeconfig from the cloud
@@ -195,16 +207,18 @@ func installDeployment(cluster CommonCluster, namespace string, deploymentName s
 
 	deployments, err := helm.ListDeployments(&releaseName, kubeConfig)
 	if err != nil {
-		log.Errorf("Unable to fetch deployments from helm: %s", err.Error())
+		log.Errorln("Unable to fetch deployments from helm:", err)
 		return err
 	}
 
 	var foundRelease *pkgHelmRelease.Release
 
-	for _, release := range deployments.Releases {
-		if release.Name == releaseName {
-			foundRelease = release
-			break
+	if deployments != nil {
+		for _, release := range deployments.Releases {
+			if release.Name == releaseName {
+				foundRelease = release
+				break
+			}
 		}
 	}
 
