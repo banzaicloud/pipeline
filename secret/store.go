@@ -196,8 +196,12 @@ func (ss *secretStore) Update(organizationID uint, secretID string, value *Creat
 
 	sort.Strings(value.Tags)
 
-	version := *value.Version
-	value.Version = nil
+	// If secret doesn't exists, create it.
+	version := 0
+	if value.Version != nil {
+		version = *value.Version
+		value.Version = nil
+	}
 
 	data := vault.NewData(version, map[string]interface{}{"value": value})
 
