@@ -1,20 +1,23 @@
 package helm
 
 import (
+	"archive/tar"
 	"bytes"
+	"compress/gzip"
+	"encoding/base64"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"os"
+	"regexp"
 	"strings"
 	"text/template"
 
-	"archive/tar"
-	"compress/gzip"
-	"encoding/base64"
 	"github.com/Masterminds/sprig"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"io"
-	"io/ioutil"
 	"k8s.io/helm/pkg/chartutil"
 	"k8s.io/helm/pkg/getter"
 	"k8s.io/helm/pkg/helm"
@@ -22,9 +25,6 @@ import (
 	"k8s.io/helm/pkg/proto/hapi/chart"
 	rls "k8s.io/helm/pkg/proto/hapi/services"
 	"k8s.io/helm/pkg/repo"
-	"net/http"
-	"os"
-	"regexp"
 )
 
 // DefaultNamespace default namespace
@@ -231,7 +231,7 @@ func DeleteDeployment(releaseName string, kubeConfig []byte) error {
 	if err != nil {
 		return err
 	}
-	//TODO sophisticate commant options
+	//TODO sophisticate command options
 	opts := []helm.DeleteOption{
 		helm.DeletePurge(true),
 	}

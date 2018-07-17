@@ -20,6 +20,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	pkgHelmRelease "k8s.io/helm/pkg/proto/hapi/release"
 )
 
 //RunPostHooks calls posthook functions with created cluster
@@ -190,6 +191,35 @@ func installDeployment(cluster CommonCluster, namespace string, deploymentName s
 	if err != nil {
 		log.Errorf("Error during getting organization: %s", err.Error())
 		return err
+	}
+
+	deployments, err := helm.ListDeployments(&releaseName, kubeConfig)
+	if err != nil {
+		log.Errorf("Unable to fetch deployments from helm: %s", err.Error())
+		return err
+	}
+
+	var foundRelease *pkgHelmRelease.Release
+
+	for _, release := range deployments.Releases {
+		if release.Name == releaseName {
+			foundRelease = release
+			break
+		}
+	}
+
+	if foundRelease != nil {
+		switch foundRelease.GetInfo().GetStatus().GetCode() {
+		case pkgHelmRelease.Status_DEPLOYED:
+			log.Infof("'%s' is already installed", deploymentName)
+			return nil
+		case pkgHelmRelease.Status_FAILED:
+			err = helm.DeleteDeployment(releaseName, kubeConfig)
+			if err != nil {
+				log.Errorf("Failed to deleted failed deployment '%s' due to: %s", deploymentName, err.Error())
+				return err
+			}
+		}
 	}
 
 	_, err = helm.CreateDeployment(deploymentName, namespace, releaseName, values, kubeConfig, helm.GenerateHelmRepoEnv(org.Name))
