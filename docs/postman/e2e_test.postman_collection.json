@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "7ec514b5-bedc-4c0d-ba07-1a81658f86ac",
+		"_postman_id": "3b338f9d-c4e4-4701-9e98-652a9d7626ed",
 		"name": "End2End TEST Organizations",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -2359,6 +2359,63 @@
 							]
 						},
 						"description": "Delete Deployment\n"
+					},
+					"response": []
+				},
+				{
+					"name": "Deployment Get",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "827b42ca-a6be-48b3-aad8-5d89810ddb2b",
+								"type": "text/javascript",
+								"exec": [
+									"if (responseCode.code === 200) {",
+									"    tests[\"Response Code 200\"] = responseCode.code == 200;",
+									"} else {",
+									"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+									"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+									"    postman.setNextRequest(null);",
+									"}",
+									" "
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/{{orgId}}/clusters/{{cluster_id}}/deployments/{{deployment_name}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								"{{orgId}}",
+								"clusters",
+								"{{cluster_id}}",
+								"deployments",
+								"{{deployment_name}}"
+							]
+						},
+						"description": "Get Deployment details\n"
 					},
 					"response": []
 				}
@@ -5566,7 +5623,7 @@
 		},
 		{
 			"name": "Applications",
-			"description": "",
+			"description": null,
 			"item": [
 				{
 					"name": "Application List",

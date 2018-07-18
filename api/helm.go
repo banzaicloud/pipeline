@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -114,7 +113,7 @@ func ListDeployments(c *gin.Context) {
 
 			body := pkgHelm.ListDeploymentResponse{
 				Name:      r.Name,
-				Chart:     fmt.Sprintf("%s-%s", r.Chart.Metadata.Name, r.Chart.Metadata.Version),
+				Chart:     helm.GetVersionedChartName(r.Chart.Metadata.Name, r.Chart.Metadata.Version),
 				Version:   r.Version,
 				Updated:   updated,
 				Status:    r.Info.Status.Code.String(),
@@ -169,6 +168,50 @@ func HelmDeploymentStatus(c *gin.Context) {
 		Status:  statusCode,
 		Message: msg,
 	})
+}
+
+// GetDeployment returns the details of a helm deployment
+func GetDeployment(c *gin.Context) {
+	name := c.Param("name")
+	log.Infof("getting details for deployment: [%s]", name)
+
+	kubeConfig, ok := GetK8sConfig(c)
+
+	if !ok {
+		log.Errorf("could not get the k8s config for querying the details of deployment: [%s]", name)
+		return
+	}
+
+	deploymentResponse, err := helm.GetDeployment(name, kubeConfig)
+	if err != nil {
+		log.Error("Error during getting deployment details: ", err.Error())
+
+		httpStatusCode := http.StatusInternalServerError
+		if _, ok := err.(*helm.DeploymentNotFoundError); ok {
+			httpStatusCode = http.StatusBadRequest
+		}
+
+		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
+			Code:    httpStatusCode,
+			Message: "Error getting deployment",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, pkgHelm.GetDeploymentResponse{
+		ReleaseName: deploymentResponse.ReleaseName,
+		Namespace:   deploymentResponse.Namespace,
+		Status:      deploymentResponse.Status,
+		Version:     deploymentResponse.Version,
+		Description: deploymentResponse.Description,
+		CreatedAt:   deploymentResponse.CreatedAt,
+		Updated:     deploymentResponse.Updated,
+		Notes:       deploymentResponse.Notes,
+		Chart:       deploymentResponse.Chart,
+		Values:      deploymentResponse.Values,
+	})
+
 }
 
 // InitHelmOnCluster installs Helm on AKS cluster and configure the Helm client

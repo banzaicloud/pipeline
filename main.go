@@ -190,6 +190,7 @@ func main() {
 			orgs.GET("/:orgid/clusters/:id/endpoints", api.ListEndpoints)
 			orgs.GET("/:orgid/clusters/:id/deployments", api.ListDeployments)
 			orgs.POST("/:orgid/clusters/:id/deployments", api.CreateDeployment)
+			orgs.GET("/:orgid/clusters/:id/deployments/:name", api.GetDeployment)
 			orgs.HEAD("/:orgid/clusters/:id/deployments", api.GetTillerStatus)
 			orgs.DELETE("/:orgid/clusters/:id/deployments/:name", api.DeleteDeployment)
 			orgs.PUT("/:orgid/clusters/:id/deployments/:name", api.UpgradeDeployment)

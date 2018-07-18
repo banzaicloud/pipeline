@@ -57,6 +57,7 @@ Class | Method | HTTP request | Description
 *ClustersApi* | [**UpdateMonitoring**](docs/ClustersApi.md#updatemonitoring) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/monitoring | Update monitoring
 *CommonApi* | [**ListEndpoints**](docs/CommonApi.md#listendpoints) | **Get** /api | List Pipeline API endpoints
 *DeploymentApi* | [**DeleteDeployment**](docs/DeploymentApi.md#deletedeployment) | **Delete** /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name} | Delete deployment
+*DeploymentApi* | [**GetDeployment**](docs/DeploymentApi.md#getdeployment) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name} | Get deployment details
 *DeploymentApi* | [**HelmDeploymentStatus**](docs/DeploymentApi.md#helmdeploymentstatus) | **Head** /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name} | Check deployment status
 *DeploymentApi* | [**UpdateDeployment**](docs/DeploymentApi.md#updatedeployment) | **Put** /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name} | Update deployment
 *DeploymentsApi* | [**CreateDeployment**](docs/DeploymentsApi.md#createdeployment) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/deployments | Create a Helm deployment
@@ -186,6 +187,7 @@ Class | Method | HTTP request | Description
  - [EndpointItem](docs/EndpointItem.md)
  - [GetClusterStatusResponse](docs/GetClusterStatusResponse.md)
  - [GetClusterStatusResponseNodePools](docs/GetClusterStatusResponseNodePools.md)
+ - [GetDeploymentResponse](docs/GetDeploymentResponse.md)
  - [GoogleConfigResponse](docs/GoogleConfigResponse.md)
  - [GoogleConfigResponseInstanceType](docs/GoogleConfigResponseInstanceType.md)
  - [GoogleConfigResponseKubernetesVersions](docs/GoogleConfigResponseKubernetesVersions.md)

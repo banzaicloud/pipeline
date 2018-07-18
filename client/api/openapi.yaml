@@ -127,7 +127,7 @@ paths:
       - catalogs
   /api/v1/orgs/{orgId}/applications:
     get:
-      description: List all available application for lunch
+      description: List all available application for launch
       operationId: ListApplications
       parameters:
       - description: Organization identification
@@ -1653,6 +1653,66 @@ paths:
       summary: Delete deployment
       tags:
       - deployment
+    get:
+      description: Retrieves the details of a deployment
+      operationId: GetDeployment
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Deployment name
+        explode: false
+        in: path
+        name: name
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetDeploymentResponse'
+          description: Deployment details
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Bad request
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Get deployment details
+      tags:
+      - deployment
     head:
       description: Checking the status of a deployment through the Helm client API
       operationId: HelmDeploymentStatus
@@ -1691,7 +1751,7 @@ paths:
         401:
           description: Unauthorized
         404:
-          description: Cluster not found
+          description: Deployment not found
       security:
       - bearerAuth: []
       summary: Check deployment status
@@ -4384,6 +4444,49 @@ components:
           type: string
         name:
           example: vigilant-mandrill
+          type: string
+      type: object
+    GetDeploymentResponse:
+      example:
+        createdAt: 2018-07-03T14:23:19+02:00
+        notes: notes
+        release_name: release_name
+        values: values
+        namespace: default
+        chart: mysql-0.7.0
+        version: 1
+        updatedAt: 2018-07-03T14:23:19+02:00
+        status: DEPLOYED
+      properties:
+        release_name:
+          example: release_name
+          type: string
+        chart:
+          example: mysql-0.7.0
+          type: string
+        namespace:
+          example: default
+          type: string
+        version:
+          example: 1
+          format: int32
+          type: integer
+        updatedAt:
+          example: 2018-07-03T14:23:19+02:00
+          type: string
+        status:
+          example: DEPLOYED
+          type: string
+        createdAt:
+          example: 2018-07-03T14:23:19+02:00
+          type: string
+        notes:
+          description: deployment notes in base64 encoded format
+          format: base64
+          type: string
+        values:
+          description: deployment values in base64 encoded YAML format
+          format: base64
           type: string
       type: object
     HelmInitResponse:

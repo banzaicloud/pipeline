@@ -126,7 +126,7 @@ paths:
       tags:
         - applications
       summary: List application catalogs
-      description: List all available application for lunch
+      description: List all available application for launch
       operationId: ListApplications
       parameters:
         - name: orgId
@@ -1585,7 +1585,60 @@ paths:
           '401':
             description: "Unauthorized"
           '404':
-            description: "Cluster not found"
+            description: "Deployment not found"
+      get:
+        security:
+          - bearerAuth: []
+        tags:
+          - deployment
+        summary: Get deployment details
+        operationId: GetDeployment
+        description: Retrieves the details of a deployment
+        parameters:
+          - name: orgId
+            in: path
+            required: true
+            description: Organization identification
+            schema:
+              type: integer
+          - name: id
+            in: path
+            required: true
+            description: Selected cluster identification (number)
+            schema:
+              type: integer
+          - name: name
+            in: path
+            required: true
+            description: Deployment name
+            schema:
+              type: string
+        responses:
+          '200':
+            description: "Deployment details"
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/GetDeploymentResponse'
+          '400':
+            description: "Bad request"
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/BaseError_400'
+          '401':
+            description: "Unauthorized"
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Unauthorized'
+          '500':
+            description: Internal server error
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/BaseError_500'
+
 
   '/api/v1/orgs/{orgId}/profiles/cluster/{type}':
     get:
@@ -4039,6 +4092,39 @@ components:
         name:
           type: string
           example: "vigilant-mandrill"
+
+    GetDeploymentResponse:
+      type: object
+      properties:
+        release_name:
+          type: string
+          example: "release_name"
+        chart:
+          type: string
+          example: "mysql-0.7.0"
+        namespace:
+          type: string
+          example: "default"
+        version:
+          type: integer
+          example: 1
+        updatedAt:
+          type: string
+          example: "2018-07-03T14:23:19+02:00"
+        status:
+          type: string
+          example: "DEPLOYED"
+        createdAt:
+          type: string
+          example: "2018-07-03T14:23:19+02:00"
+        notes:
+          type: string
+          format: base64
+          description: deployment notes in base64 encoded format
+        values:
+          type: string
+          format: base64
+          description: deployment values in base64 encoded YAML format
 
     HelmInitResponse:
       type: object
