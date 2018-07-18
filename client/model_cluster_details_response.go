@@ -16,6 +16,8 @@ type ClusterDetailsResponse struct {
 	CreatorId    int32                              `json:"creatorId,omitempty"`
 	Name         string                             `json:"name,omitempty"`
 	Id           int32                              `json:"id,omitempty"`
+	SecretId     string                             `json:"secretId,omitempty"`
+	SecretName   string                             `json:"secretName,omitempty"`
 	Location     string                             `json:"location,omitempty"`
 	Endpoint     string                             `json:"endpoint,omitempty"`
 	NodePools    ClusterDetailsResponseNodePools    `json:"nodePools,omitempty"`

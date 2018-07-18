@@ -720,6 +720,20 @@ func GetClusterDetails(c *gin.Context) {
 		log.Warnf("Error during adding summary: %s", err.Error())
 	}
 
+	secret, err := commonCluster.GetSecretWithValidation()
+	if err != nil {
+		log.Errorf("Error getting cluster secret: %s", err.Error())
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: "Error getting cluster secret",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	details.SecretId = secret.ID
+	details.SecretName = secret.Name
+
 	c.JSON(http.StatusOK, details)
 }
 
