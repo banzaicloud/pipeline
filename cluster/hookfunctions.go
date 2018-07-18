@@ -1,10 +1,11 @@
 package cluster
 
 import (
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"reflect"
 	"runtime"
 	"strings"
+
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
 // HookMap for api hook endpoints
@@ -27,6 +28,10 @@ var HookMap = map[string]PostFunctioner{
 	},
 	pkgCluster.InstallIngressControllerPostHook: &BasePostFunction{
 		f:            InstallIngressControllerPostHook,
+		ErrorHandler: ErrorHandler{},
+	},
+	pkgCluster.InstallKubernetesDashboardPostHook: &BasePostFunction{
+		f:            InstallKubernetesDashboardPostHook,
 		ErrorHandler: ErrorHandler{},
 	},
 	pkgCluster.InstallClusterAutoscalerPostHook: &BasePostFunction{
@@ -59,6 +64,7 @@ var BasePostHookFunctions = []PostFunctioner{
 	HookMap[pkgCluster.InstallHelmPostHook],
 	HookMap[pkgCluster.RegisterDomainPostHook],
 	HookMap[pkgCluster.InstallIngressControllerPostHook],
+	HookMap[pkgCluster.InstallKubernetesDashboardPostHook],
 	HookMap[pkgCluster.InstallClusterAutoscalerPostHook],
 	HookMap[pkgCluster.LabelNodes],
 }
