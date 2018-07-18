@@ -152,10 +152,8 @@ func Init() {
 		// The same as Drone's scopes
 		Scopes: []string{
 			"repo",
-			"repo:status",
 			"user:email",
 			"read:org",
-			"public_repo", // For writing GitHub issues and starring
 		},
 	})
 	githubProvider.AuthorizeHandler = NewGithubAuthorizeHandler(githubProvider)
