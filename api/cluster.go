@@ -138,15 +138,7 @@ func CreateClusterRequest(c *gin.Context) {
 	orgID := auth.GetCurrentOrganization(c.Request).ID
 	userID := auth.GetCurrentUser(c.Request).ID
 
-	posthookFunctions := createClusterRequest.PostHookFunctions
-	log.Infof("Get posthook function(s) by name(s): %v", posthookFunctions)
-	var ph []cluster.PostFunctioner
-	for _, f := range posthookFunctions {
-		ph = append(ph, cluster.HookMap[f])
-	}
-
-	log.Infof("Found posthooks: %v", ph)
-
+	ph := getPostHookFunctions(createClusterRequest.PostHooks)
 	commonCluster, err := CreateCluster(&createClusterRequest, orgID, userID, ph)
 	if err != nil {
 		c.JSON(err.Code, err)
@@ -157,6 +149,33 @@ func CreateClusterRequest(c *gin.Context) {
 		Name:       commonCluster.GetName(),
 		ResourceID: commonCluster.GetID(),
 	})
+}
+
+func getPostHookFunctions(postHooks pkgCluster.PostHooks) (ph []cluster.PostFunctioner) {
+
+	log.Info("Get posthook function(s)")
+
+	for postHookName, param := range postHooks {
+
+		function := cluster.HookMap[postHookName]
+		if function != nil {
+
+			if f, isOk := function.(*cluster.PostFunctionWithParam); isOk {
+				f.SetParams(param)
+				function = f
+			}
+
+			log.Infof("posthook function: %s", function)
+			log.Infof("posthook params: %#v", param)
+			ph = append(ph, function)
+		} else {
+			log.Warnf("there's no function with this name [%s]", postHookName)
+		}
+	}
+
+	log.Infof("Found posthooks: %v", ph)
+
+	return
 }
 
 // CreateCluster creates a K8S cluster in the cloud
@@ -648,7 +667,7 @@ func ReRunPostHooks(c *gin.Context) {
 		return
 	}
 
-	var ph cluster.RunPostHook
+	var ph pkgCluster.PostHooks
 	if err := c.BindJSON(&ph); err != nil {
 		log.Errorf("error during binding request: %s", err.Error())
 		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
@@ -660,12 +679,10 @@ func ReRunPostHooks(c *gin.Context) {
 	}
 
 	var posthooks []cluster.PostFunctioner
-	if len(ph.Functions) == 0 {
+	if len(ph) == 0 {
 		posthooks = cluster.BasePostHookFunctions
 	} else {
-		for _, f := range ph.Functions {
-			posthooks = append(posthooks, cluster.HookMap[f])
-		}
+		posthooks = getPostHookFunctions(ph)
 	}
 
 	log.Infof("Cluster id: %d", commonCluster.GetID())

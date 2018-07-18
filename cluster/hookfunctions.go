@@ -42,7 +42,7 @@ var HookMap = map[string]PostFunctioner{
 		f:            InstallMonitoring,
 		ErrorHandler: ErrorHandler{},
 	},
-	pkgCluster.InstallLogging: &BasePostFunction{
+	pkgCluster.InstallLogging: &PostFunctionWithParam{
 		f:            InstallLogging,
 		ErrorHandler: ErrorHandler{},
 	},
@@ -69,11 +69,6 @@ var BasePostHookFunctions = []PostFunctioner{
 	HookMap[pkgCluster.LabelNodes],
 }
 
-// RunPostHook describes a {cluster_id}/posthooks API request
-type RunPostHook struct {
-	Functions []string `json:"functions"`
-}
-
 // PostFunctioner manages posthook functions
 type PostFunctioner interface {
 	Do(CommonCluster) error
@@ -94,16 +89,40 @@ type BasePostFunction struct {
 	ErrorHandler
 }
 
+// PostFunctionWithParam describes a posthook function with params
+type PostFunctionWithParam struct {
+	f      func(interface{}, pkgCluster.PostHookParam) error
+	params pkgCluster.PostHookParam
+	ErrorHandler
+}
+
+// Do call function and pass CommonCluster and posthookParams
+func (p *PostFunctionWithParam) Do(cluster CommonCluster) error {
+	return p.f(cluster, p.params)
+}
+
 // Do call function and pass CommonCluster as param
 func (b *BasePostFunction) Do(cluster CommonCluster) error {
 	return b.f(cluster)
 }
 
 func (b *BasePostFunction) String() string {
+	return getFunctionName(b.f)
+}
 
-	function := runtime.FuncForPC(reflect.ValueOf(b.f).Pointer()).Name()
+func getFunctionName(f interface{}) string {
+	function := runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name()
 	packageEnd := strings.LastIndex(function, ".")
 	functionName := function[packageEnd+1:]
 
 	return functionName
+}
+
+func (p *PostFunctionWithParam) String() string {
+	return getFunctionName(p.f)
+}
+
+// SetParams sets posthook params
+func (p *PostFunctionWithParam) SetParams(params pkgCluster.PostHookParam) {
+	p.params = params
 }
