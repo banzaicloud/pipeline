@@ -383,6 +383,8 @@ type DetailsResponse struct {
 	pkgCommon.CreatorBaseFields
 	Name          string                     `json:"name"`
 	Id            uint                       `json:"id"`
+	SecretId      string                     `json:"secretId"`
+	SecretName    string                     `json:"secretName"`
 	Location      string                     `json:"location"`
 	MasterVersion string                     `json:"masterVersion,omitempty"`
 	Endpoint      string                     `json:"endpoint,omitempty"`

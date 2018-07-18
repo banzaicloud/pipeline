@@ -8,6 +8,8 @@ Name | Type | Description | Notes
 **CreatorId** | **int32** |  | [optional] 
 **Name** | **string** |  | [optional] 
 **Id** | **int32** |  | [optional] 
+**SecretId** | **string** |  | [optional] 
+**SecretName** | **string** |  | [optional] 
 **Location** | **string** |  | [optional] 
 **Endpoint** | **string** |  | [optional] 
 **NodePools** | [**ClusterDetailsResponseNodePools**](ClusterDetailsResponse_nodePools.md) |  | [optional] 

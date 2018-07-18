@@ -5630,10 +5630,12 @@ components:
     ClusterDetailsResponse:
       example:
         createdAt: 2018-07-03T14:19:26+02:00
+        secretName: paas-dev
         endpoint: 34.240.231.134
         creatorName: userName
         creatorId: 1
         name: my-google-cluster
+        secretId: c8f9c9fc3835b9a3721165afea97ffb78e1375552ab112ed54aee30b29c962ae
         totalSummary:
           memory:
             allocatable: "4"
@@ -5674,6 +5676,12 @@ components:
           example: 1
           format: int32
           type: integer
+        secretId:
+          example: c8f9c9fc3835b9a3721165afea97ffb78e1375552ab112ed54aee30b29c962ae
+          type: string
+        secretName:
+          example: paas-dev
+          type: string
         location:
           example: eu-west-1
           type: string
