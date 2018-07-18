@@ -3789,8 +3789,6 @@ components:
         instanceType:
           example: n1-standard-2
           type: string
-        serviceAccount:
-          type: string
       required:
       - count
       - instanceType
@@ -3962,6 +3960,12 @@ components:
       type: object
     UpdateNodePoolsAmazon:
       properties:
+        instanceType:
+          example: m4.xlarge
+          type: string
+        spotPrice:
+          example: "0.2"
+          type: string
         autoscaling:
           type: boolean
         count:
@@ -3976,6 +3980,9 @@ components:
           example: 2
           format: int32
           type: integer
+        image:
+          example: ami-4d485ca7
+          type: string
       type: object
     UpdateAzureProperties:
       properties:
@@ -3988,6 +3995,9 @@ components:
       properties:
         master:
           $ref: '#/components/schemas/UpdateGoogleProperties_master'
+        nodeVersion:
+          example: "1.9"
+          type: string
         nodePools:
           $ref: '#/components/schemas/UpdateGoogleProperties_nodePools'
       type: object
@@ -4614,7 +4624,6 @@ components:
               pool1:
                 count: 1
                 instanceType: n1-standard-1
-                serviceAccount: ""
       properties:
         name:
           example: default
@@ -4635,7 +4644,6 @@ components:
                 pool1:
                   count: 1
                   instanceType: n1-standard-1
-                  serviceAccount: ""
           oneOf:
           - $ref: '#/components/schemas/ClusterProfileAmazon'
           - $ref: '#/components/schemas/ClusterProfileAzure'
@@ -6457,8 +6465,6 @@ components:
         instanceType:
           example: n1-standard-1
           type: string
-        serviceAccount:
-          type: string
     ClusterProfileGoogle_google_nodePools:
       properties:
         pool1:
@@ -6527,9 +6533,6 @@ components:
           example: 1
           format: int32
           type: integer
-        serviceAccount:
-          example: serviceAccountExample
-          type: string
         instanceType:
           example: n1-standard-2
           type: string

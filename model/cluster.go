@@ -115,7 +115,6 @@ type GoogleNodePoolModel struct {
 	NodeMaxCount     int
 	NodeCount        int
 	NodeInstanceType string
-	ServiceAccount   string
 	Delete           bool `gorm:"-"`
 }
 
@@ -142,8 +141,8 @@ type KubernetesClusterModel struct {
 }
 
 func (gn GoogleNodePoolModel) String() string {
-	return fmt.Sprintf("ID: %d, createdAt: %v, createdBy: %d, Name: %s, Autoscaling: %v, NodeMinCount: %d, NodeMaxCount: %d, NodeCount: %d, ServiceAccount: %s",
-		gn.ID, gn.CreatedAt, gn.CreatedBy, gn.Name, gn.Autoscaling, gn.NodeMinCount, gn.NodeMaxCount, gn.NodeCount, gn.ServiceAccount)
+	return fmt.Sprintf("ID: %d, createdAt: %v, createdBy: %d, Name: %s, Autoscaling: %v, NodeMinCount: %d, NodeMaxCount: %d, NodeCount: %d",
+		gn.ID, gn.CreatedAt, gn.CreatedBy, gn.Name, gn.Autoscaling, gn.NodeMinCount, gn.NodeMaxCount, gn.NodeCount)
 }
 
 func (gc GoogleClusterModel) String() string {

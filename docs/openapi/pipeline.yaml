@@ -3451,9 +3451,6 @@ components:
         instanceType:
           type: string
           example: "n1-standard-2"
-        serviceAccount:
-          type: string
-          example: ""
 
     CreateClusterResponse_202:
       type: object
@@ -3544,7 +3541,7 @@ components:
         data:
           type: string
           example: "apiVersion: v1\nclusters...."
- 
+
     ClusterProfileNotFound:
       type: object
       properties:
@@ -3615,6 +3612,12 @@ components:
     UpdateNodePoolsAmazon:
       type: object
       properties:
+        instanceType:
+          type: string
+          example: "m4.xlarge"
+        spotPrice:
+          type: string
+          example: "0.2"
         autoscaling:
           type: boolean
           example: true
@@ -3627,6 +3630,9 @@ components:
         maxCount:
           type: integer
           example: 2
+        image:
+          type: string
+          example: "ami-4d485ca7"
 
     UpdateAzureProperties:
       type: object
@@ -3663,6 +3669,9 @@ components:
           properties:
             version:
               type: string
+        nodeVersion:
+          type: string
+          example: "1.9"
         nodePools:
           type: object
           properties:
@@ -4380,7 +4389,6 @@ components:
                 pool1:
                   count: 1
                   instanceType: "n1-standard-1"
-                  serviceAccount: ""
 
     ClusterProfileAmazon:
       type: object
@@ -4492,9 +4500,6 @@ components:
                     instanceType:
                       type: string
                       example: "n1-standard-1"
-                    serviceAccount:
-                      type: string
-                      example: ""
 
     AddClusterProfileRequest:
       type: object
@@ -4608,9 +4613,6 @@ components:
                     count:
                       type: integer
                       example: 1
-                    serviceAccount:
-                      type: string
-                      example: "serviceAccountExample"
                     instanceType:
                       type: string
                       example: "n1-standard-2"

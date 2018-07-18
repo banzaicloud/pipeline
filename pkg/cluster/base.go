@@ -99,13 +99,12 @@ type GetClusterStatusResponse struct {
 
 // NodePoolStatus describes cluster's node status
 type NodePoolStatus struct {
-	Count          int    `json:"count,omitempty"`
-	InstanceType   string `json:"instanceType,omitempty"`
-	ServiceAccount string `json:"serviceAccount,omitempty"`
-	SpotPrice      string `json:"spotPrice,omitempty"`
-	MinCount       int    `json:"minCount,omitempty"`
-	MaxCount       int    `json:"maxCount,omitempty"`
-	Image          string `json:"image,omitempty"`
+	Count        int    `json:"count,omitempty"`
+	InstanceType string `json:"instanceType,omitempty"`
+	SpotPrice    string `json:"spotPrice,omitempty"`
+	MinCount     int    `json:"minCount,omitempty"`
+	MaxCount     int    `json:"maxCount,omitempty"`
+	Image        string `json:"image,omitempty"`
 }
 
 // GetClusterConfigResponse describes Pipeline's GetConfig API response

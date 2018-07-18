@@ -37,7 +37,6 @@ const (
 	clusterRequestNodeImage      = "testImage"
 	clusterRequestMasterImage    = "testImage"
 	clusterRequestMasterInstance = "testInstance"
-	clusterServiceAccount        = "testServiceAccount"
 	organizationId               = 1
 	userId                       = 1
 	clusterKubeMetaKey           = "metaKey"
@@ -175,7 +174,6 @@ func TestGKEKubernetesVersion(t *testing.T) {
 					pool1Name: {
 						Count:            clusterRequestNodeCount,
 						NodeInstanceType: clusterRequestNodeInstance,
-						ServiceAccount:   clusterServiceAccount,
 					},
 				},
 				Master: &google.Master{
@@ -266,7 +264,6 @@ var (
 						MaxCount:         clusterRequestNodeMaxCount,
 						Count:            clusterRequestNodeCount,
 						NodeInstanceType: clusterRequestNodeInstance,
-						ServiceAccount:   clusterServiceAccount,
 					},
 				},
 				Master: &google.Master{
@@ -295,7 +292,6 @@ var (
 					pool1Name: {
 						Count:            clusterRequestNodeCount,
 						NodeInstanceType: clusterRequestNodeInstance,
-						ServiceAccount:   clusterServiceAccount,
 					},
 				},
 				Master: &google.Master{
@@ -521,7 +517,6 @@ var (
 					pool1Name: {
 						Count:            clusterRequestNodeCount,
 						NodeInstanceType: clusterRequestNodeInstance,
-						ServiceAccount:   clusterServiceAccount,
 					},
 				},
 				Master: &google.Master{
@@ -550,7 +545,6 @@ var (
 					pool1Name: {
 						Count:            clusterRequestNodeCount,
 						NodeInstanceType: clusterRequestNodeInstance,
-						ServiceAccount:   clusterServiceAccount,
 					},
 				},
 				Master: &google.Master{
@@ -583,7 +577,6 @@ var (
 					NodeMaxCount:     clusterRequestNodeMaxCount,
 					NodeCount:        clusterRequestNodeCount,
 					NodeInstanceType: clusterRequestNodeInstance,
-					ServiceAccount:   clusterServiceAccount,
 				},
 			},
 		},
@@ -717,7 +710,6 @@ var (
 					Name:             pool1Name,
 					NodeCount:        clusterRequestNodeCount,
 					NodeInstanceType: clusterRequestNodeInstance,
-					ServiceAccount:   clusterServiceAccount,
 				},
 			},
 		},

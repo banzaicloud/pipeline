@@ -15,11 +15,9 @@ const (
 	pool1Name             = "pool1"
 	pool1Count            = 1
 	pool1NodeInstanceType = "instanceType1"
-	pool1ServiceAccount   = "service-account-1"
 	pool2Name             = "pool2"
 	pool2Count            = 2
 	pool2NodeInstanceType = "instanceType2"
-	pool2ServiceAccount   = "service-account-2"
 	nodeVersion           = "gke-1.9"
 
 	userId = 1
@@ -36,8 +34,8 @@ var (
 	clusterModel = &model.GoogleClusterModel{
 		NodeVersion: nodeVersion,
 		NodePools: []*model.GoogleNodePoolModel{
-			{Name: pool1Name, NodeCount: pool1Count, NodeInstanceType: pool1NodeInstanceType, ServiceAccount: pool1ServiceAccount},
-			{Name: pool2Name, NodeCount: pool2Count, NodeInstanceType: pool2NodeInstanceType, ServiceAccount: pool2ServiceAccount},
+			{Name: pool1Name, NodeCount: pool1Count, NodeInstanceType: pool1NodeInstanceType},
+			{Name: pool2Name, NodeCount: pool2Count, NodeInstanceType: pool2NodeInstanceType},
 		},
 	}
 )
@@ -47,13 +45,13 @@ func TestCreateNodePoolsModelFromRequestData(t *testing.T) {
 	emptyNodePoolsData := map[string]*pkgClusterGoogle.NodePool{}
 
 	modePoolsData := map[string]*pkgClusterGoogle.NodePool{
-		pool1Name: {Count: pool1Count, NodeInstanceType: pool1NodeInstanceType, ServiceAccount: pool1ServiceAccount},
-		pool2Name: {Count: pool2Count, NodeInstanceType: pool2NodeInstanceType, ServiceAccount: pool2ServiceAccount},
+		pool1Name: {Count: pool1Count, NodeInstanceType: pool1NodeInstanceType},
+		pool2Name: {Count: pool2Count, NodeInstanceType: pool2NodeInstanceType},
 	}
 
 	nodePoolsModel := []*model.GoogleNodePoolModel{
-		{CreatedBy: userId, Name: pool1Name, NodeCount: pool1Count, NodeInstanceType: pool1NodeInstanceType, ServiceAccount: pool1ServiceAccount},
-		{CreatedBy: userId, Name: pool2Name, NodeCount: pool2Count, NodeInstanceType: pool2NodeInstanceType, ServiceAccount: pool2ServiceAccount},
+		{CreatedBy: userId, Name: pool1Name, NodeCount: pool1Count, NodeInstanceType: pool1NodeInstanceType},
+		{CreatedBy: userId, Name: pool2Name, NodeCount: pool2Count, NodeInstanceType: pool2NodeInstanceType},
 	}
 
 	testCases := []struct {
@@ -98,8 +96,7 @@ func TestCreateNodePoolsModelFromRequestData(t *testing.T) {
 func TestCreateNodePoolsFromClusterModel(t *testing.T) {
 	// given
 	nodeConfig1 := &gke.NodeConfig{
-		MachineType:    pool1NodeInstanceType,
-		ServiceAccount: pool1ServiceAccount,
+		MachineType: pool1NodeInstanceType,
 		OauthScopes: []string{
 			"https://www.googleapis.com/auth/logging.write",
 			"https://www.googleapis.com/auth/monitoring",
@@ -111,8 +108,7 @@ func TestCreateNodePoolsFromClusterModel(t *testing.T) {
 	}
 
 	nodeConfig2 := &gke.NodeConfig{
-		MachineType:    pool2NodeInstanceType,
-		ServiceAccount: pool2ServiceAccount,
+		MachineType: pool2NodeInstanceType,
 		OauthScopes: []string{
 			"https://www.googleapis.com/auth/logging.write",
 			"https://www.googleapis.com/auth/monitoring",
@@ -172,12 +168,10 @@ func TestCreateRequestNodePoolsFromNodePoolModel(t *testing.T) {
 		pool1Name: {
 			Count:            pool1Count,
 			NodeInstanceType: pool1NodeInstanceType,
-			ServiceAccount:   pool1ServiceAccount,
 		},
 		pool2Name: {
 			Count:            pool2Count,
 			NodeInstanceType: pool2NodeInstanceType,
-			ServiceAccount:   pool2ServiceAccount,
 		},
 	}
 

@@ -99,7 +99,6 @@ const (
 	minCount           = 1
 	maxCount           = 2
 	spotPrice          = "0.2"
-	serviceAccount     = "TestServiceAccount"
 )
 
 var (
@@ -122,7 +121,6 @@ var (
 					agentName: {
 						Count:            nodeCount,
 						NodeInstanceType: nodeInstanceType,
-						ServiceAccount:   serviceAccount,
 					},
 				},
 			},
