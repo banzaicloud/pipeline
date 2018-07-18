@@ -5,8 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sirupsen/logrus"
-
 	"github.com/banzaicloud/pipeline/auth"
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
@@ -17,6 +15,7 @@ import (
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/go-errors/errors"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -252,6 +251,15 @@ func InstallIngressControllerPostHook(input interface{}) error {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
 	return installDeployment(cluster, helm.DefaultNamespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-ingress", "pipeline", nil, "InstallIngressController")
+}
+
+//InstallKubernetesDashboardPostHook post hooks can't return value, they can log error and/or update state?
+func InstallKubernetesDashboardPostHook(input interface{}) error {
+	cluster, ok := input.(CommonCluster)
+	if !ok {
+		return errors.Errorf("Wrong parameter type: %T", cluster)
+	}
+	return installDeployment(cluster, helm.SystemNamespace, pkgHelm.StableRepository+"/kubernetes-dashboard", "dashboard", nil, "InstallKubernetesDashboard")
 }
 
 //InstallClusterAutoscalerPostHook post hook only for AWS & Azure for now
