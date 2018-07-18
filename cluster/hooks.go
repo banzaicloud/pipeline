@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"encoding/json"
 	"github.com/banzaicloud/pipeline/auth"
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
@@ -109,12 +110,35 @@ func InstallMonitoring(input interface{}) error {
 }
 
 // InstallLogging to install logging deployment
-func InstallLogging(input interface{}) error {
+func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 	cluster, ok := input.(CommonCluster)
 	if !ok {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
+
+	var loggingParam pkgCluster.LoggingParam
+	err := castToPostHookParam(&param, &loggingParam)
+	if err != nil {
+		return err
+	}
+
+	// todo use this
+	log.Infof("Params to logging operator: %s", loggingParam)
+
 	return installDeployment(cluster, helm.DefaultNamespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-logging", "pipeline-logging", nil, "InstallLogging")
+}
+
+func castToPostHookParam(data *pkgCluster.PostHookParam, output interface{}) (err error) {
+
+	var bytes []byte
+	bytes, err = json.Marshal(data)
+	if err != nil {
+		return
+	}
+
+	err = json.Unmarshal(bytes, &output)
+
+	return
 }
 
 //PersistKubernetesKeys is a basic version of persisting keys TODO check if we need this from API or anywhere else

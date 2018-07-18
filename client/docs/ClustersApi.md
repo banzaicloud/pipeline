@@ -23,7 +23,7 @@ Method | HTTP request | Description
 
 
 # **ClusterPostHooks**
-> ClusterPostHooks(ctx, orgId, id, runPostHook)
+> ClusterPostHooks(ctx, orgId, id, reRunPostHook)
 Run posthook functions
 
 Run posthook functions
@@ -35,7 +35,7 @@ Name | Type | Description  | Notes
  **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **orgId** | **int32**| Organization identification | 
   **id** | **int32**| Selected cluster identification (number) | 
-  **runPostHook** | [**RunPostHook**](RunPostHook.md)|  | 
+  **reRunPostHook** | [**ReRunPostHook**](ReRunPostHook.md)|  | 
 
 ### Return type
 

@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "3b338f9d-c4e4-4701-9e98-652a9d7626ed",
+		"_postman_id": "7ebe7b27-f539-4f52-b824-8568d241261f",
 		"name": "End2End TEST Organizations",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -1665,7 +1665,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"functions\":[ \"StoreKubeConfig\" ]\n}"
+							"raw": "{\n\t\"InstallLogging\": {\n    \t\"bucketName\": \"\",\n    \t\"region\": \"\",\n    \t\"secretId\": \"\"\n    }\t\n}\n"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/{{orgId}}/clusters/{{cluster_id}}/posthooks",
@@ -5662,7 +5662,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"MyApplication\",\n  \"catalogName\": \"mysql-simple\",\n  \"clusterId\": 0,\n  \"cluster\": {\n    \"name\": \"gkecluster-pipelineuser-1\",\n    \"location\": \"us-central1-a\",\n    \"cloud\": \"google\",\n    \"secretId\": \"{{secret_id}}\",\n    \"postHooks\": [\n      \"InstallMonitoring\",\n      \"InstallLogging\"\n    ],\n    \"profileName\": \"default\",\n    \"properties\": {\n      \"google\": {\n        \"master\": {\n          \"version\": \"1.9.7-gke.3\"\n        },\n        \"nodePools\": {\n          \"pool1\": {\n            \"count\": 1,\n            \"instanceType\": \"n1-standard-2\"\n          }\n        },\n        \"nodeVersion\": \"1.9.7-gke.3\"\n      }\n    }\n  }\n}"
+							"raw": "{\n  \"name\": \"MyApplication\",\n  \"catalogName\": \"mysql-simple\",\n  \"clusterId\": 0,\n  \"cluster\": {\n    \"name\": \"gkecluster-pipelineuser-1\",\n    \"location\": \"us-central1-a\",\n    \"cloud\": \"google\",\n    \"secretId\": \"{{secret_id}}\",\n    \"profileName\": \"default\",\n    \"properties\": {\n      \"google\": {\n        \"master\": {\n          \"version\": \"1.9.7-gke.3\"\n        },\n        \"nodePools\": {\n          \"pool1\": {\n            \"count\": 1,\n            \"instanceType\": \"n1-standard-2\"\n          }\n        },\n        \"nodeVersion\": \"1.9.7-gke.3\"\n      }\n    }\n  }\n}"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/{{orgId}}/applications",

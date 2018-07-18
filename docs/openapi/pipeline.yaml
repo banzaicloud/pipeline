@@ -571,7 +571,9 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RunPostHook'
+              $ref: '#/components/schemas/ReRunPostHook'
+
+
   '/api/v1/orgs/{orgId}/clusters/{id}/config':
     get:
       security:
@@ -3338,10 +3340,16 @@ components:
           type: string
           example: "62bc3c75-91fb-4670-bad4-24b401a9deac"
         postHooks:
-          type: array
-          items:
-            type: string
-          example: [ "InstallMonitoring", "InstallLogging" ]
+          type: object
+          oneOf:
+            - $ref: '#/components/schemas/LoggingPostHook'
+            - $ref: '#/components/schemas/BasePostHook'
+          example:
+            InstallLogging:
+              bucketName: "mybucketname"
+              region: "region"
+              secretId: "62bc3c75-91fb-4670-bad4-24b401a9deac"
+
         profileName:
           type: string
         properties:
@@ -5522,8 +5530,39 @@ components:
           type: string
           example: "380m"
 
+    BasePostHook:
+      type: object
+      properties:
+        PostHookFunctionName:
+          type: object
 
+    LoggingPostHook:
+      type: object
+      properties:
+        InstallLogging:
+          type: object
+          properties:
+            bucketName:
+              type: string
+              example: "mybucketname"
+            region:
+              type: string
+              example: "region"
+            secretId:
+              type: string
+              example: "62bc3c75-91fb-4670-bad4-24b401a9deac"
 
+    ReRunPostHook:
+      type: object
+      oneOf:
+        - $ref: '#/components/schemas/LoggingPostHook'
+        - $ref: '#/components/schemas/BasePostHook'
+      example:
+              example:
+                InstallLogging:
+                  bucketName: "mybucketname"
+                  region: "region"
+                  secretId: "62bc3c75-91fb-4670-bad4-24b401a9deac"
 
 
 

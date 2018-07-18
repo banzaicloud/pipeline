@@ -32,9 +32,9 @@ Run posthook functions
  * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param orgId Organization identification
  * @param id Selected cluster identification (number)
- * @param runPostHook
+ * @param reRunPostHook
 */
-func (a *ClustersApiService) ClusterPostHooks(ctx context.Context, orgId int32, id int32, runPostHook RunPostHook) (*http.Response, error) {
+func (a *ClustersApiService) ClusterPostHooks(ctx context.Context, orgId int32, id int32, reRunPostHook ReRunPostHook) (*http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Put")
 		localVarPostBody     interface{}
@@ -70,7 +70,7 @@ func (a *ClustersApiService) ClusterPostHooks(ctx context.Context, orgId int32, 
 		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
 	}
 	// body params
-	localVarPostBody = &runPostHook
+	localVarPostBody = &reRunPostHook
 	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFormFileName, localVarFileName, localVarFileBytes)
 	if err != nil {
 		return nil, err

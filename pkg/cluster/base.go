@@ -70,13 +70,13 @@ const (
 
 // CreateClusterRequest describes a create cluster request
 type CreateClusterRequest struct {
-	Name              string   `json:"name" binding:"required"`
-	Location          string   `json:"location"`
-	Cloud             string   `json:"cloud" binding:"required"`
-	SecretId          string   `json:"secretId" binding:"required"`
-	ProfileName       string   `json:"profileName"`
-	PostHookFunctions []string `json:"postHooks"`
-	Properties        struct {
+	Name        string    `json:"name" binding:"required"`
+	Location    string    `json:"location"`
+	Cloud       string    `json:"cloud" binding:"required"`
+	SecretId    string    `json:"secretId" binding:"required"`
+	ProfileName string    `json:"profileName"`
+	PostHooks   PostHooks `json:"postHooks"`
+	Properties  struct {
 		CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
 		CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
 		CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
@@ -85,6 +85,23 @@ type CreateClusterRequest struct {
 		CreateClusterOracle *oracle.Cluster              `json:"oracle,omitempty"`
 	} `json:"properties" binding:"required"`
 }
+
+// PostHookParam describes posthook params in create request
+type PostHookParam interface{}
+
+// LoggingParam describes the logging posthook params
+type LoggingParam struct {
+	BucketName string `json:"bucketName" binding:"required"`
+	Region     string `json:"region" binding:"required"`
+	SecretId   string `json:"secretId" binding:"required"`
+}
+
+func (p LoggingParam) String() string {
+	return fmt.Sprintf("bucketName: %s, region: %s, secretId: %s", p.BucketName, p.Region, p.SecretId)
+}
+
+// PostHooks describes a {cluster_id}/posthooks API request
+type PostHooks map[string]PostHookParam
 
 // GetClusterStatusResponse describes Pipeline's GetClusterStatus API response
 type GetClusterStatusResponse struct {
