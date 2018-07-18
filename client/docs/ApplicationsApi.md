@@ -71,7 +71,7 @@ Name | Type | Description  | Notes
 > ApplicationListResponse ListApplications(ctx, orgId)
 List application catalogs
 
-List all available application for lunch
+List all available application for launch
 
 ### Required Parameters
 

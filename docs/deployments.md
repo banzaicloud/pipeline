@@ -14,7 +14,7 @@ In order to get the `kubeconfig` you can do the following REST call:
 
 ```
 curl --request GET \
-  --url 'http://{{url}}/api/v1/clusters/{{cluster_id}}/config' \
+  --url 'http://{{url}}/api/v1/orgs/{{orgId}}/clusters/{{cluster_id}}/config' \
   --header 'Authorization: Bearer PIPELINE_TOKEN' \
   --header 'Content-Type: application/json'
 ```
@@ -25,7 +25,7 @@ Now you can add a deployment with the following REST call:
 
 ```
 curl --request POST \
-  --url 'http://{{url}}/api/v1/clusters/{{cluster_id}}/deployments' \
+  --url 'http://{{url}}/api/v1/orgs/{{orgId}}/clusters/{{cluster_id}}/deployments' \
   --header 'Authorization: Bearer PIPELINE_TOKEN' \
   --header 'Content-Type: application/json' \
   --data '{"name": "spark-shuffle"}'
@@ -36,17 +36,27 @@ Once the deployment is posted you can check the status with this HEAD call:
 
 ```
 curl --request HEAD \
-  --url 'http://{{url}}/api/v1/clusters/{{cluster_id}}/deployments/{{deployment_name}}' \
+  --url 'http://{{url}}/api/v1/orgs/{{orgId}}/clusters/{{cluster_id}}/deployments/{{deployment_name}}' \
   --header 'Authorization: Bearer PIPELINE_TOKEN' \
   --header 'Content-Type: application/json'
 ```
+
+##### Get deployment details
+
+```
+curl --request GET \
+  --url 'http://{{url}}/api/v1/orgs/{{orgId}}/clusters/{{cluster_id}}/deployments/{{deployment_name}}' \
+  --header 'Authorization: Bearer PIPELINE_TOKEN' \
+  --header 'Content-Type: application/json'
+```
+
 ##### Upgrade a deployment
 
 Deployments can be upgraded with the following PUT call:
 
 ```
 curl --request PUT \
-  --url 'http://{{url}}/api/v1/clusters/{{cluster_id}}/deployments/{{deployment_name}}' \
+  --url 'http://{{url}}/api/v1/orgs/{{orgId}}/clusters/{{cluster_id}}/deployments/{{deployment_name}}' \
   --header 'Authorization: Bearer PIPELINE_TOKEN' \
   --header 'Content-Type: application/x-www-form-urlencoded'
 ```
@@ -57,15 +67,12 @@ Finally a deployment can be deleted as well:
 
 ```
 curl --request DELETE \
-  --url 'http://{{url}}/api/v1/clusters/{{cluster_id}}/deployments/{{deployment_name}}' \
+  --url 'http://{{url}}/api/v1/orgs/{{orgId}}/clusters/{{cluster_id}}/deployments/{{deployment_name}}' \
   --header 'Authorization: Bearer PIPELINE_TOKEN' \
   --header 'Content-Type: application/x-www-form-urlencoded'
 ```
 
-We use these REST API calls as well and have collected them in a **Postman** collection:
+We use these REST API calls as well and have collected them in a **Postman** [collection](https://raw.githubusercontent.com/banzaicloud/pipeline/master/docs/postman/e2e_test.postman_collection.json)
 
-[![Run in Postman](https://run.pstmn.io/button.svg)](https://www.getpostman.com/collections/56684ef61ee236e8f30d)
-
-Alternatively you can access the same collection online as well following this [link](https://documenter.getpostman.com/view/3197144/end2end-test-v020/7TDmb19#intro).
 
 We have also created a Docker image that can be used to run the collection in a **containerized**  manner. Build the image from our GitHub [repository](https://github.com/banzaicloud/dockerized-newman) or pull it from the [Docker Hub](https://hub.docker.com/r/banzaicloud/dockerized-newman/).

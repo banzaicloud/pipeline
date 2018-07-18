@@ -207,7 +207,7 @@ func (a *ApplicationsApiService) GetApplication(ctx context.Context, orgId int32
 
 /*
 ApplicationsApiService List application catalogs
-List all available application for lunch
+List all available application for launch
  * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param orgId Organization identification
 @return ApplicationListResponse

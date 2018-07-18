@@ -16,6 +16,8 @@ import (
 
 	"github.com/Masterminds/sprig"
 	"github.com/banzaicloud/pipeline/config"
+	helm2 "github.com/banzaicloud/pipeline/pkg/helm"
+	"github.com/banzaicloud/pipeline/utils"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"k8s.io/helm/pkg/chartutil"
@@ -25,6 +27,7 @@ import (
 	"k8s.io/helm/pkg/proto/hapi/chart"
 	rls "k8s.io/helm/pkg/proto/hapi/services"
 	"k8s.io/helm/pkg/repo"
+	"time"
 )
 
 // DefaultNamespace default namespace
@@ -37,6 +40,16 @@ var log *logrus.Logger
 
 // ErrRepoNotFound describe an error if helm repository not found
 var ErrRepoNotFound = errors.New("helm repository not found!")
+
+// DeploymentNotFoundError is returned when a Helm related operation is executed on
+// a deployment (helm release) that doesn't exists
+type DeploymentNotFoundError struct {
+	HelmError error
+}
+
+func (e *DeploymentNotFoundError) Error() string {
+	return fmt.Sprintf("deployment not found: %s", e.HelmError)
+}
 
 // Simple init for logging
 func init() {
@@ -242,9 +255,55 @@ func DeleteDeployment(releaseName string, kubeConfig []byte) error {
 	return nil
 }
 
-//GetDeployment - N/A
-func GetDeployment() {
+// GetDeployment returns the details of a helm deployment
+func GetDeployment(releaseName string, kubeConfig []byte) (*helm2.GetDeploymentResponse, error) {
+	helmClient, err := GetHelmClient(kubeConfig)
+	if err != nil {
+		log.Errorf("Getting Helm client failed: %s", err.Error())
+		return nil, err
+	}
 
+	releaseContent, err := helmClient.ReleaseContent(releaseName)
+
+	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			return nil, &DeploymentNotFoundError{HelmError: err}
+		}
+		return nil, err
+	}
+
+	createdAt := utils.ConvertSecondsToTime(time.Unix(releaseContent.GetRelease().GetInfo().GetFirstDeployed().GetSeconds(), 0))
+	updatedAt := utils.ConvertSecondsToTime(time.Unix(releaseContent.GetRelease().GetInfo().GetLastDeployed().GetSeconds(), 0))
+	chart := GetVersionedChartName(releaseContent.GetRelease().GetChart().GetMetadata().GetName(), releaseContent.GetRelease().GetChart().GetMetadata().GetVersion())
+
+	notes := base64.StdEncoding.EncodeToString([]byte(releaseContent.GetRelease().GetInfo().GetStatus().GetNotes()))
+
+	cfg, err := chartutil.CoalesceValues(releaseContent.GetRelease().GetChart(), releaseContent.GetRelease().GetConfig())
+	if err != nil {
+		log.Errorf("Retrieving deployment values failed: %s", err.Error())
+		return nil, err
+	}
+
+	valuesYaml, err := cfg.YAML()
+	if err != nil {
+		log.Errorf("Converting deployment values to YAML format failed: %s", err.Error())
+		return nil, err
+	}
+
+	values := base64.StdEncoding.EncodeToString([]byte(valuesYaml))
+
+	return &helm2.GetDeploymentResponse{
+		ReleaseName: releaseContent.GetRelease().GetName(),
+		Namespace:   releaseContent.GetRelease().GetNamespace(),
+		Version:     releaseContent.GetRelease().GetVersion(),
+		Description: releaseContent.GetRelease().GetInfo().GetDescription(),
+		Status:      releaseContent.GetRelease().GetInfo().GetStatus().GetCode().String(),
+		Notes:       notes,
+		CreatedAt:   createdAt,
+		Updated:     updatedAt,
+		Chart:       chart,
+		Values:      values,
+	}, nil
 }
 
 // GetDeploymentStatus retrieves the status of the passed in release name.
@@ -637,4 +696,9 @@ func ChartGet(env helm_env.EnvSettings, chartRepo, chartName, chartVersion strin
 		}
 	}
 	return nil, nil
+}
+
+// GetVersionedChartName returns chart name enriched with version number
+func GetVersionedChartName(name, version string) string {
+	return fmt.Sprintf("%s-%s", name, version)
 }

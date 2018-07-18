@@ -114,6 +114,20 @@ type DeploymentStatusResponse struct {
 	Message string `json:"message"`
 }
 
+// GetDeploymentResponse describes the details of a helm deployment
+type GetDeploymentResponse struct {
+	ReleaseName string      `json:"release_name"`
+	Chart       string      `json:"chart"`
+	Namespace   string      `json:"namespace"`
+	Version     int32       `json:"version"`
+	Status      string      `json:"status"`
+	Description string      `json:"description"`
+	CreatedAt   string      `json:"createdAt,omitempty"`
+	Updated     string      `json:"updatedAt,omitempty"`
+	Notes       string      `json:"notes"`
+	Values      interface{} `json:"values"`
+}
+
 // GenerateReleaseName Generate Helm like release name
 func GenerateReleaseName() string {
 	namer := moniker.New()
