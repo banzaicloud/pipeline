@@ -577,6 +577,9 @@ func postDeleteCluster(commonCluster cluster.CommonCluster, force bool) error {
 		return err
 	}
 
+	// delete from proxy from kubeProxyCache if any
+	kubeProxyCache.Delete(GetGlobalClusterID(commonCluster))
+
 	// delete cluster from database
 	deleteName := commonCluster.GetName()
 	err = commonCluster.DeleteFromDatabase()
@@ -585,9 +588,6 @@ func postDeleteCluster(commonCluster cluster.CommonCluster, force bool) error {
 		commonCluster.UpdateStatus(pkgCluster.Error, err.Error())
 		return err
 	}
-
-	// delete from proxy from kubeProxyCache if any
-	kubeProxyCache.Delete(GetGlobalClusterID(commonCluster))
 
 	// Asyncron update prometheus
 	go cluster.UpdatePrometheus()
