@@ -97,7 +97,6 @@ func createNodePoolsModelFromRequestData(nodePoolsData map[string]*pkgClusterGoo
 			NodeMaxCount:     nodePoolData.MaxCount,
 			NodeCount:        nodePoolData.Count,
 			NodeInstanceType: nodePoolData.NodeInstanceType,
-			ServiceAccount:   nodePoolData.ServiceAccount,
 		}
 		i++
 	}
@@ -281,9 +280,8 @@ func (g *GKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 	for _, np := range g.modelCluster.Google.NodePools {
 		if np != nil {
 			nodePools[np.Name] = &pkgCluster.NodePoolStatus{
-				Count:          np.NodeCount,
-				InstanceType:   np.NodeInstanceType,
-				ServiceAccount: np.ServiceAccount,
+				Count:        np.NodeCount,
+				InstanceType: np.NodeInstanceType,
 			}
 		}
 	}
@@ -709,7 +707,6 @@ func (g *GKECluster) updateModel(c *gke.Cluster, updatedNodePools []*gke.NodePoo
 
 		for _, nodePoolModel := range g.modelCluster.Google.NodePools {
 			if clusterNodePool.Name == nodePoolModel.Name {
-				nodePoolModel.ServiceAccount = clusterNodePool.Config.ServiceAccount
 				nodePoolModel.NodeInstanceType = clusterNodePool.Config.MachineType
 
 				if clusterNodePool.Autoscaling != nil {
@@ -735,7 +732,6 @@ func (g *GKECluster) updateModel(c *gke.Cluster, updatedNodePools []*gke.NodePoo
 		if !updated {
 			nodePoolModelAdd := &model.GoogleNodePoolModel{
 				Name:             clusterNodePool.Name,
-				ServiceAccount:   clusterNodePool.Config.ServiceAccount,
 				NodeInstanceType: clusterNodePool.Config.MachineType,
 				NodeCount:        int(clusterNodePool.InitialNodeCount),
 			}
@@ -883,9 +879,8 @@ func createNodePoolsFromClusterModel(clusterModel *model.GoogleClusterModel) ([]
 		nodePools[i] = &gke.NodePool{
 			Name: nodePoolModel.Name,
 			Config: &gke.NodeConfig{
-				Labels:         map[string]string{pkgCommon.LabelKey: nodePoolModel.Name},
-				MachineType:    nodePoolModel.NodeInstanceType,
-				ServiceAccount: nodePoolModel.ServiceAccount,
+				Labels:      map[string]string{pkgCommon.LabelKey: nodePoolModel.Name},
+				MachineType: nodePoolModel.NodeInstanceType,
 				OauthScopes: []string{
 					"https://www.googleapis.com/auth/logging.write",
 					"https://www.googleapis.com/auth/monitoring",
@@ -932,7 +927,6 @@ func createNodePoolsRequestDataFromNodePoolModel(nodePoolsModel []*model.GoogleN
 			MaxCount:         nodePoolModel.NodeMaxCount,
 			Count:            nodePoolModel.NodeCount,
 			NodeInstanceType: nodePoolModel.NodeInstanceType,
-			ServiceAccount:   nodePoolModel.ServiceAccount,
 		}
 	}
 
@@ -1641,7 +1635,6 @@ func (g *GKECluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
 			r.Google.NodePools[nodePool.Name] = &pkgClusterGoogle.NodePool{
 				Count:            int(nodePool.InitialNodeCount),
 				NodeInstanceType: nodePool.Config.MachineType,
-				ServiceAccount:   nodePool.Config.ServiceAccount,
 			}
 			if nodePool.Autoscaling != nil {
 				r.Google.NodePools[nodePool.Name].Autoscaling = nodePool.Autoscaling.Enabled

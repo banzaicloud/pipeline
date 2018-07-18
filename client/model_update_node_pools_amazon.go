@@ -11,8 +11,11 @@
 package client
 
 type UpdateNodePoolsAmazon struct {
-	Autoscaling bool  `json:"autoscaling,omitempty"`
-	Count       int32 `json:"count,omitempty"`
-	MinCount    int32 `json:"minCount,omitempty"`
-	MaxCount    int32 `json:"maxCount,omitempty"`
+	InstanceType string `json:"instanceType,omitempty"`
+	SpotPrice    string `json:"spotPrice,omitempty"`
+	Autoscaling  bool   `json:"autoscaling,omitempty"`
+	Count        int32  `json:"count,omitempty"`
+	MinCount     int32  `json:"minCount,omitempty"`
+	MaxCount     int32  `json:"maxCount,omitempty"`
+	Image        string `json:"image,omitempty"`
 }

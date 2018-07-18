@@ -37,11 +37,12 @@ Creates a new object store bucket on the Cloud provider referenced by the given 
 */
 func (a *StorageApiService) CreateObjectStoreBucket(ctx context.Context, orgId int32, createObjectStoreBucketRequest CreateObjectStoreBucketRequest) (CreateObjectStoreBucketResponse, *http.Response, error) {
 	var (
-		localVarHttpMethod  = strings.ToUpper("Post")
-		localVarPostBody    interface{}
-		localVarFileName    string
-		localVarFileBytes   []byte
-		localVarReturnValue CreateObjectStoreBucketResponse
+		localVarHttpMethod   = strings.ToUpper("Post")
+		localVarPostBody     interface{}
+		localVarFormFileName string
+		localVarFileName     string
+		localVarFileBytes    []byte
+		localVarReturnValue  CreateObjectStoreBucketResponse
 	)
 
 	// create path and map variables
@@ -71,7 +72,7 @@ func (a *StorageApiService) CreateObjectStoreBucket(ctx context.Context, orgId i
 	}
 	// body params
 	localVarPostBody = &createObjectStoreBucketRequest
-	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
+	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFormFileName, localVarFileName, localVarFileBytes)
 	if err != nil {
 		return localVarReturnValue, nil, err
 	}
@@ -166,10 +167,11 @@ type DeleteObjectStoreBucketOpts struct {
 
 func (a *StorageApiService) DeleteObjectStoreBucket(ctx context.Context, orgId int32, name int32, secretId string, cloudType string, localVarOptionals *DeleteObjectStoreBucketOpts) (*http.Response, error) {
 	var (
-		localVarHttpMethod = strings.ToUpper("Delete")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
+		localVarHttpMethod   = strings.ToUpper("Delete")
+		localVarPostBody     interface{}
+		localVarFormFileName string
+		localVarFileName     string
+		localVarFileBytes    []byte
 	)
 
 	// create path and map variables
@@ -206,7 +208,7 @@ func (a *StorageApiService) DeleteObjectStoreBucket(ctx context.Context, orgId i
 		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
 	}
 	localVarHeaderParams["secretId"] = parameterToString(secretId, "")
-	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
+	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFormFileName, localVarFileName, localVarFileBytes)
 	if err != nil {
 		return nil, err
 	}
@@ -283,10 +285,11 @@ type GetObjectStoreBucketStatusOpts struct {
 
 func (a *StorageApiService) GetObjectStoreBucketStatus(ctx context.Context, orgId int32, name int32, secretId string, cloudType string, localVarOptionals *GetObjectStoreBucketStatusOpts) (*http.Response, error) {
 	var (
-		localVarHttpMethod = strings.ToUpper("Head")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
+		localVarHttpMethod   = strings.ToUpper("Head")
+		localVarPostBody     interface{}
+		localVarFormFileName string
+		localVarFileName     string
+		localVarFileBytes    []byte
 	)
 
 	// create path and map variables
@@ -323,7 +326,7 @@ func (a *StorageApiService) GetObjectStoreBucketStatus(ctx context.Context, orgI
 		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
 	}
 	localVarHeaderParams["secretId"] = parameterToString(secretId, "")
-	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
+	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFormFileName, localVarFileName, localVarFileBytes)
 	if err != nil {
 		return nil, err
 	}
@@ -368,11 +371,12 @@ type ListObjectStoreBucketsOpts struct {
 
 func (a *StorageApiService) ListObjectStoreBuckets(ctx context.Context, orgId int32, secretId string, cloudType string, localVarOptionals *ListObjectStoreBucketsOpts) (ListStorageBucketsResponse, *http.Response, error) {
 	var (
-		localVarHttpMethod  = strings.ToUpper("Get")
-		localVarPostBody    interface{}
-		localVarFileName    string
-		localVarFileBytes   []byte
-		localVarReturnValue ListStorageBucketsResponse
+		localVarHttpMethod   = strings.ToUpper("Get")
+		localVarPostBody     interface{}
+		localVarFormFileName string
+		localVarFileName     string
+		localVarFileBytes    []byte
+		localVarReturnValue  ListStorageBucketsResponse
 	)
 
 	// create path and map variables
@@ -405,7 +409,7 @@ func (a *StorageApiService) ListObjectStoreBuckets(ctx context.Context, orgId in
 		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
 	}
 	localVarHeaderParams["secretId"] = parameterToString(secretId, "")
-	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
+	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFormFileName, localVarFileName, localVarFileBytes)
 	if err != nil {
 		return localVarReturnValue, nil, err
 	}

@@ -28,7 +28,6 @@ type GKENodePoolProfile struct {
 	NodeInstanceType string `gorm:"default:'n1-standard-1'"`
 	Name             string `gorm:"unique_index:idx_model_name"`
 	NodeName         string `gorm:"unique_index:idx_model_name"`
-	ServiceAccount   string
 }
 
 // TableName overrides GKEProfile's table name
@@ -99,7 +98,6 @@ func (d *GKEProfile) GetProfile() *pkgCluster.ClusterProfileResponse {
 				MaxCount:         np.MaxCount,
 				Count:            np.Count,
 				NodeInstanceType: np.NodeInstanceType,
-				ServiceAccount:   np.ServiceAccount,
 			}
 		}
 	}
