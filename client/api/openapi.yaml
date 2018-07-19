@@ -1560,14 +1560,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateDeploymentRequest'
+              $ref: '#/components/schemas/CreateUpdateDeploymentRequest'
         required: true
       responses:
         201:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreateDeploymentResponse'
+                $ref: '#/components/schemas/CreateUpdateDeploymentResponse'
           description: Deployment created successfully
         401:
           content:
@@ -1787,9 +1787,37 @@ paths:
         schema:
           type: string
         style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUpdateDeploymentRequest'
+        required: true
       responses:
-        501:
-          description: Not implemented
+        201:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateUpdateDeploymentResponse'
+          description: Deployment updated successfully
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during creating deployment
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+          description: Cluster not found
       security:
       - bearerAuth: []
       summary: Update deployment
@@ -4409,27 +4437,32 @@ components:
       items:
         $ref: '#/components/schemas/ListDeploymentsResponse_inner'
       type: array
-    CreateDeploymentRequest:
+    CreateUpdateDeploymentRequest:
       example:
         name: banzaicloud-stable/drone
       properties:
         name:
           type: string
-        releasename:
+        namespace:
+          type: string
+        releaseName:
+          type: string
+        reuseValues:
           type: string
         version:
-          type: string
+          format: int32
+          type: integer
         values:
           type: object
       required:
       - name
       type: object
-    CreateDeploymentResponse:
+    CreateUpdateDeploymentResponse:
       example:
         notes: deploy notes
-        release_name: vigilant-mandrill
+        releaseName: vigilant-mandrill
       properties:
-        release_name:
+        releaseName:
           example: vigilant-mandrill
           type: string
         notes:

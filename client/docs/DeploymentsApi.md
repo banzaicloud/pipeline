@@ -10,7 +10,7 @@ Method | HTTP request | Description
 
 
 # **CreateDeployment**
-> CreateDeploymentResponse CreateDeployment(ctx, orgId, id, createDeploymentRequest)
+> CreateUpdateDeploymentResponse CreateDeployment(ctx, orgId, id, createUpdateDeploymentRequest)
 Create a Helm deployment
 
 Creating a Helm deployment
@@ -22,11 +22,11 @@ Name | Type | Description  | Notes
  **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **orgId** | **int32**| Organization identification | 
   **id** | **int32**| Selected cluster identification (number) | 
-  **createDeploymentRequest** | [**CreateDeploymentRequest**](CreateDeploymentRequest.md)|  | 
+  **createUpdateDeploymentRequest** | [**CreateUpdateDeploymentRequest**](CreateUpdateDeploymentRequest.md)|  | 
 
 ### Return type
 
-[**CreateDeploymentResponse**](CreateDeploymentResponse.md)
+[**CreateUpdateDeploymentResponse**](CreateUpdateDeploymentResponse.md)
 
 ### Authorization
 

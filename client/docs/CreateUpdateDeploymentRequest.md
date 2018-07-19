@@ -1,10 +1,12 @@
-# CreateDeploymentRequest
+# CreateUpdateDeploymentRequest
 
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Name** | **string** |  | 
-**Releasename** | **string** |  | [optional] 
+**Namespace** | **string** |  | [optional] 
+**ReleaseName** | **string** |  | [optional] 
+**ReuseValues** | **string** |  | [optional] 
 **Version** | **int32** |  | [optional] 
 **Values** | [**map[string]interface{}**](map[string]interface{}.md) |  | [optional] 
 
