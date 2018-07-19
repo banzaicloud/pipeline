@@ -5261,6 +5261,9 @@ components:
         creatorId:
           type: integer
           example: 1
+        region:
+          type: string
+          example: "us-central1"
         nodePools:
           type: object
           properties:
@@ -5473,6 +5476,9 @@ components:
         endpoint:
           type: string
           example: "34.240.231.134"
+        region:
+          type: string
+          example: "us-central1"
         nodePools:
           type: object
           properties:

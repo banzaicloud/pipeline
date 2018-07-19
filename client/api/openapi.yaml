@@ -5531,6 +5531,7 @@ components:
           pool1:
             count: 1
             instanceType: n1-standard-1
+        region: us-central1
         statusMessage: Cluster is running
         status: RUNNING
       properties:
@@ -5563,6 +5564,9 @@ components:
           example: 1
           format: int32
           type: integer
+        region:
+          example: us-central1
+          type: string
         nodePools:
           $ref: '#/components/schemas/GetClusterStatusResponse_nodePools'
       type: object
@@ -5736,13 +5740,15 @@ components:
       type: array
     ClusterDetailsResponse:
       example:
-        createdAt: 2018-07-03T14:19:26+02:00
         secretName: paas-dev
-        endpoint: 34.240.231.134
         creatorName: userName
         creatorId: 1
-        name: my-google-cluster
         secretId: c8f9c9fc3835b9a3721165afea97ffb78e1375552ab112ed54aee30b29c962ae
+        master:
+          ip-10-0-100-180.eu-west-1.compute.internal: '{}'
+        createdAt: 2018-07-03T14:19:26+02:00
+        endpoint: 34.240.231.134
+        name: my-google-cluster
         totalSummary:
           memory:
             allocatable: "4"
@@ -5763,8 +5769,7 @@ components:
               ip-10-0-100-180.eu-west-1.compute.internal: '{}'
             creatorName: colin014
             creatorId: 1
-        master:
-          ip-10-0-100-180.eu-west-1.compute.internal: '{}'
+        region: us-central1
       properties:
         createdAt:
           example: 2018-07-03T14:19:26+02:00
@@ -5794,6 +5799,9 @@ components:
           type: string
         endpoint:
           example: 34.240.231.134
+          type: string
+        region:
+          example: us-central1
           type: string
         nodePools:
           $ref: '#/components/schemas/ClusterDetailsResponse_nodePools'

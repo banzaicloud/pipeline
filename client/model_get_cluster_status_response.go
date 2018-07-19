@@ -20,5 +20,6 @@ type GetClusterStatusResponse struct {
 	CreatedAt     string                            `json:"createdAt,omitempty"`
 	CreatorName   string                            `json:"creatorName,omitempty"`
 	CreatorId     int32                             `json:"creatorId,omitempty"`
+	Region        string                            `json:"region,omitempty"`
 	NodePools     GetClusterStatusResponseNodePools `json:"nodePools,omitempty"`
 }

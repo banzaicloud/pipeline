@@ -123,6 +123,7 @@ type GoogleClusterModel struct {
 	ClusterModelId uint `gorm:"primary_key"`
 	MasterVersion  string
 	NodeVersion    string
+	Region         string
 	NodePools      []*GoogleNodePoolModel `gorm:"foreignkey:ClusterModelId"`
 }
 

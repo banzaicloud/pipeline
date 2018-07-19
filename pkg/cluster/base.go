@@ -113,6 +113,9 @@ type GetClusterStatusResponse struct {
 	ResourceID    uint                       `json:"id"`
 	NodePools     map[string]*NodePoolStatus `json:"nodePools,omitempty"`
 	pkgCommon.CreatorBaseFields
+
+	// ONLY in case of GKE
+	Region string `json:"region,omitempty"`
 }
 
 // NodePoolStatus describes cluster's node status
@@ -408,6 +411,9 @@ type DetailsResponse struct {
 	NodePools     map[string]*NodeDetails    `json:"nodePools,omitempty"`
 	Master        map[string]ResourceSummary `json:"master,omitempty"`
 	TotalSummary  *ResourceSummary           `json:"totalSummary,omitempty"`
+
+	// ONLY in case of GKE
+	Region string `json:"region,omitempty"`
 }
 
 // NodeDetails describes a cluster's node details

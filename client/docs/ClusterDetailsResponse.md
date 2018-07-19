@@ -12,6 +12,7 @@ Name | Type | Description | Notes
 **SecretName** | **string** |  | [optional] 
 **Location** | **string** |  | [optional] 
 **Endpoint** | **string** |  | [optional] 
+**Region** | **string** |  | [optional] 
 **NodePools** | [**ClusterDetailsResponseNodePools**](ClusterDetailsResponse_nodePools.md) |  | [optional] 
 **Master** | [**ResourceSummaryItem**](ResourceSummaryItem.md) |  | [optional] 
 **TotalSummary** | [**ClusterDetailsResponseTotalSummary**](ClusterDetailsResponse_totalSummary.md) |  | [optional] 

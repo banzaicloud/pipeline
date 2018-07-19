@@ -20,6 +20,7 @@ type ClusterDetailsResponse struct {
 	SecretName   string                             `json:"secretName,omitempty"`
 	Location     string                             `json:"location,omitempty"`
 	Endpoint     string                             `json:"endpoint,omitempty"`
+	Region       string                             `json:"region,omitempty"`
 	NodePools    ClusterDetailsResponseNodePools    `json:"nodePools,omitempty"`
 	Master       ResourceSummaryItem                `json:"master,omitempty"`
 	TotalSummary ClusterDetailsResponseTotalSummary `json:"totalSummary,omitempty"`
