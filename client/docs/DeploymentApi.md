@@ -101,7 +101,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **UpdateDeployment**
-> UpdateDeployment(ctx, orgId, id, name)
+> CreateUpdateDeploymentResponse UpdateDeployment(ctx, orgId, id, name, createUpdateDeploymentRequest)
 Update deployment
 
 Updating a Helm deployment
@@ -114,10 +114,11 @@ Name | Type | Description  | Notes
   **orgId** | **int32**| Organization identification | 
   **id** | **int32**| Selected cluster identification (number) | 
   **name** | **string**| Deployment name | 
+  **createUpdateDeploymentRequest** | [**CreateUpdateDeploymentRequest**](CreateUpdateDeploymentRequest.md)|  | 
 
 ### Return type
 
- (empty response body)
+[**CreateUpdateDeploymentResponse**](CreateUpdateDeploymentResponse.md)
 
 ### Authorization
 
@@ -125,8 +126,8 @@ Name | Type | Description  | Notes
 
 ### HTTP request headers
 
- - **Content-Type**: Not defined
- - **Accept**: Not defined
+ - **Content-Type**: application/json
+ - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

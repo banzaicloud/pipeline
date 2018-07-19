@@ -10,9 +10,11 @@
 
 package client
 
-type CreateDeploymentRequest struct {
+type CreateUpdateDeploymentRequest struct {
 	Name        string                 `json:"name"`
-	Releasename string                 `json:"releasename,omitempty"`
+	Namespace   string                 `json:"namespace,omitempty"`
+	ReleaseName string                 `json:"releaseName,omitempty"`
+	ReuseValues string                 `json:"reuseValues,omitempty"`
 	Version     int32                  `json:"version,omitempty"`
 	Values      map[string]interface{} `json:"values,omitempty"`
 }

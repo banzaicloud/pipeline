@@ -32,17 +32,17 @@ Creating a Helm deployment
  * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param orgId Organization identification
  * @param id Selected cluster identification (number)
- * @param createDeploymentRequest
-@return CreateDeploymentResponse
+ * @param createUpdateDeploymentRequest
+@return CreateUpdateDeploymentResponse
 */
-func (a *DeploymentsApiService) CreateDeployment(ctx context.Context, orgId int32, id int32, createDeploymentRequest CreateDeploymentRequest) (CreateDeploymentResponse, *http.Response, error) {
+func (a *DeploymentsApiService) CreateDeployment(ctx context.Context, orgId int32, id int32, createUpdateDeploymentRequest CreateUpdateDeploymentRequest) (CreateUpdateDeploymentResponse, *http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Post")
 		localVarPostBody     interface{}
 		localVarFormFileName string
 		localVarFileName     string
 		localVarFileBytes    []byte
-		localVarReturnValue  CreateDeploymentResponse
+		localVarReturnValue  CreateUpdateDeploymentResponse
 	)
 
 	// create path and map variables
@@ -72,7 +72,7 @@ func (a *DeploymentsApiService) CreateDeployment(ctx context.Context, orgId int3
 		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
 	}
 	// body params
-	localVarPostBody = &createDeploymentRequest
+	localVarPostBody = &createUpdateDeploymentRequest
 	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFormFileName, localVarFileName, localVarFileBytes)
 	if err != nil {
 		return localVarReturnValue, nil, err
@@ -103,7 +103,7 @@ func (a *DeploymentsApiService) CreateDeployment(ctx context.Context, orgId int3
 			error: localVarHttpResponse.Status,
 		}
 		if localVarHttpResponse.StatusCode == 201 {
-			var v CreateDeploymentResponse
+			var v CreateUpdateDeploymentResponse
 			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
 			if err != nil {
 				newErr.error = err.Error()

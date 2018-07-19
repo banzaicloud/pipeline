@@ -83,16 +83,16 @@ type InstallResponse struct {
 
 // CreateUpdateDeploymentResponse describes a create/update deployment response
 type CreateUpdateDeploymentResponse struct {
-	ReleaseName string `json:"release_name"`
+	ReleaseName string `json:"releaseName"`
 	Notes       string `json:"notes"`
 }
 
 // CreateUpdateDeploymentRequest describes a Helm deployment
 type CreateUpdateDeploymentRequest struct {
 	Name        string      `json:"name" binding:"required"`
-	ReleaseName string      `json:"release_name"`
-	Version     string      `json:"version"`
-	ReUseValues bool        `json:"reuse_values"`
+	ReleaseName string      `json:"releaseName"`
+	Version     int32       `json:"version"`
+	ReUseValues bool        `json:"reuseValues"`
 	Namespace   string      `json:"namespace"`
 	Values      interface{} `json:"values"`
 }
