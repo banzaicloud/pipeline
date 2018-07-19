@@ -514,6 +514,8 @@ func (c *AWSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 	for _, np := range c.modelCluster.Amazon.NodePools {
 		if np != nil {
 			nodePools[np.Name] = &pkgCluster.NodePoolStatus{
+				Autoscaling:  np.Autoscaling,
+				Count:        np.Count,
 				InstanceType: np.NodeInstanceType,
 				SpotPrice:    np.NodeSpotPrice,
 				MinCount:     np.NodeMinCount,
