@@ -4068,7 +4068,7 @@ components:
       items:
         type: object
         properties:
-          name:
+          releaseName:
             type: string
             example: "pipeline"
           chart:
@@ -4137,9 +4137,9 @@ components:
     GetDeploymentResponse:
       type: object
       properties:
-        release_name:
+        releaseName:
           type: string
-          example: "release_name"
+          example: "vigilant-mandrill"
         chart:
           type: string
           example: "mysql-0.7.0"

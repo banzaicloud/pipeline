@@ -11,7 +11,7 @@
 package client
 
 type GetDeploymentResponse struct {
-	ReleaseName string `json:"release_name,omitempty"`
+	ReleaseName string `json:"releaseName,omitempty"`
 	Chart       string `json:"chart,omitempty"`
 	Namespace   string `json:"namespace,omitempty"`
 	Version     int32  `json:"version,omitempty"`

@@ -4490,7 +4490,7 @@ components:
       example:
         createdAt: 2018-07-03T14:23:19+02:00
         notes: notes
-        release_name: release_name
+        releaseName: vigilant-mandrill
         values: values
         namespace: default
         chart: mysql-0.7.0
@@ -4498,8 +4498,8 @@ components:
         updatedAt: 2018-07-03T14:23:19+02:00
         status: DEPLOYED
       properties:
-        release_name:
-          example: release_name
+        releaseName:
+          example: vigilant-mandrill
           type: string
         chart:
           example: mysql-0.7.0
@@ -6360,7 +6360,7 @@ components:
           type: array
     ListDeploymentsResponse_inner:
       properties:
-        name:
+        releaseName:
           example: pipeline
           type: string
         chart:
