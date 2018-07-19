@@ -951,7 +951,7 @@ func (c *AWSCluster) getImageFromNodePool(nodePoolName string) string {
 			return np.NodeImage
 		}
 	}
-	return pkgAmazon.DefaultImage
+	return pkgAmazon.DefaultImages[c.modelCluster.Location]
 }
 
 //CheckEqualityToUpdate validates the update request

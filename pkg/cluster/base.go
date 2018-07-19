@@ -207,7 +207,7 @@ func (r *UpdateClusterRequest) String() string {
 func (r *CreateClusterRequest) AddDefaults() error {
 	switch r.Cloud {
 	case Amazon:
-		return r.Properties.CreateClusterAmazon.AddDefaults()
+		return r.Properties.CreateClusterAmazon.AddDefaults(r.Location)
 	default:
 		return nil
 	}

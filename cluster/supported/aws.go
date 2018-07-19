@@ -3,6 +3,7 @@ package supported
 import (
 	"github.com/banzaicloud/pipeline/cluster"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	pkgAmazon "github.com/banzaicloud/pipeline/pkg/cluster/amazon"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 )
 
@@ -10,8 +11,6 @@ import (
 type AmazonInfo struct {
 	BaseFields
 }
-
-const defaultRegion = "eu-west-1"
 
 // GetType returns cloud type
 func (a *AmazonInfo) GetType() string {
@@ -30,7 +29,7 @@ func (a *AmazonInfo) GetLocations() ([]string, error) {
 		return nil, pkgErrors.ErrorRequiredSecretId
 	}
 
-	regions, err := cluster.ListRegions(a.OrgId, a.SecretId, defaultRegion)
+	regions, err := cluster.ListRegions(a.OrgId, a.SecretId, pkgAmazon.DefaultRegion)
 	if err != nil {
 		return nil, err
 	}
