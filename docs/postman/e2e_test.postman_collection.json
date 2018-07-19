@@ -54,7 +54,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\":\"awscluster-{{username}}-{{$randomInt}}\",\n  \"location\": \"eu-west-1\",\n  \"cloud\": \"amazon\",\n  \"secretId\": \"{{secret_id}}\",\n  \"properties\": {\n        \"amazon\": {\n            \"nodePools\": {\n            \t\"pool1\": {\n            \t\t\"instanceType\": \"m4.xlarge\",\n\t            \t\"spotPrice\": \"0.2\",\n            \t\t\"autoscaling\": false, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n            \t\t\"count\": 1,\n\t                \"image\": \"ami-16bfeb6f\"\t\n            \t}\n            },\n            \"master\": {\n                \"instanceType\": \"m4.xlarge\",\n                \"image\": \"ami-16bfeb6f\"\n            }\n        }\n    }\n}\n\n"
+							"raw": "{\n  \"name\":\"awscluster-{{username}}-{{$randomInt}}\",\n  \"location\": \"eu-west-1\",\n  \"cloud\": \"amazon\",\n  \"secretId\": \"{{secret_id}}\",\n  \"properties\": {\n        \"amazon\": {\n            \"nodePools\": {\n            \t\"pool1\": {\n            \t\t\"instanceType\": \"m4.xlarge\",\n\t            \t\"spotPrice\": \"0.2\",\n            \t\t\"autoscaling\": false, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n            \t\t\"count\": 1,\n\t                \"image\": \"ami-4d485ca7\"\t\n            \t}\n            },\n            \"master\": {\n                \"instanceType\": \"m4.xlarge\",\n                \"image\": \"ami-4d485ca7\"\n            }\n        }\n    }\n}\n\n"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/{{orgId}}/clusters",
@@ -704,7 +704,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"cloud\": \"amazon\",\n\t\"properties\": {\n\t\t\"amazon\": {\n\t\t\t\"nodePools\": {\n\t\t\t\t\"pool1\": {\n            \t\t\"instanceType\": \"m4.xlarge\",\n\t            \t\"spotPrice\": \"0.2\",\n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n\t                \"image\": \"ami-16bfeb6f\"\t\n            \t}\n\t\t\t}\n\t\t}\n\t}\n}"
+							"raw": "{\n\t\"cloud\": \"amazon\",\n\t\"properties\": {\n\t\t\"amazon\": {\n\t\t\t\"nodePools\": {\n\t\t\t\t\"pool1\": {\n            \t\t\"instanceType\": \"m4.xlarge\",\n\t            \t\"spotPrice\": \"0.2\",\n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n\t                \"image\": \"ami-4d485ca7\"\t\n            \t}\n\t\t\t}\n\t\t}\n\t}\n}"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/{{orgId}}/clusters/{{cluster_id}}",
@@ -2460,7 +2460,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"name\": \"{{profile_name}}\",\n\t\"location\": \"eu-west-1\",\n\t\"cloud\": \"amazon\",\n\t\"properties\": {\n\t\t\"amazon\": {\n\t\t\t\"master\": {\n\t\t\t\t\"instanceType\": \"m4.xlarge\",\n\t\t\t\t\"image\": \"ami-16bfeb6f\"\n\t\t\t},\n\t\t\t\"nodePools\": {\n\t\t\t\t\"pool1\": {\n\t\t\t\t\t\"instanceType\": \"m4.xlarge\",\n            \t\t\"autoscaling\": false, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n            \t\t\"count\": 1,\n\t\t\t\t\t\"image\": \"ami-16bfeb6f\"\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}"
+							"raw": "{\n\t\"name\": \"{{profile_name}}\",\n\t\"location\": \"eu-west-1\",\n\t\"cloud\": \"amazon\",\n\t\"properties\": {\n\t\t\"amazon\": {\n\t\t\t\"master\": {\n\t\t\t\t\"instanceType\": \"m4.xlarge\",\n\t\t\t\t\"image\": \"ami-4d485ca7\"\n\t\t\t},\n\t\t\t\"nodePools\": {\n\t\t\t\t\"pool1\": {\n\t\t\t\t\t\"instanceType\": \"m4.xlarge\",\n            \t\t\"autoscaling\": false, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n            \t\t\"count\": 1,\n\t\t\t\t\t\"image\": \"ami-4d485ca7\"\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/{{orgId}}/profiles/cluster",
@@ -2676,7 +2676,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"{{profile_name}}\",\n  \"location\": \"eu-west-1\",\n  \"cloud\": \"amazon\",\n  \"instanceType\": \"m4.xlarge\",\n  \"properties\": {\n    \"amazon\": {\n      \"master\": {\n        \"instanceType\": \"m4.xlarge\",\n        \"image\": \"ami-16bfeb6f\"\n      },\n      \"node\": {\n        \"spotPrice\": \"0.2\",\n        \"minCount\": 2,\n        \"maxCount\": 4,\n        \"image\": \"ami-16bfeb6f\"\n      }\n    }\n  }\n}"
+							"raw": "{\n  \"name\": \"{{profile_name}}\",\n  \"location\": \"eu-west-1\",\n  \"cloud\": \"amazon\",\n  \"instanceType\": \"m4.xlarge\",\n  \"properties\": {\n    \"amazon\": {\n      \"master\": {\n        \"instanceType\": \"m4.xlarge\",\n        \"image\": \"ami-4d485ca7\"\n      },\n      \"node\": {\n        \"spotPrice\": \"0.2\",\n        \"minCount\": 2,\n        \"maxCount\": 4,\n        \"image\": \"ami-4d485ca7\"\n      }\n    }\n  }\n}"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/{{orgId}}/profiles/cluster",

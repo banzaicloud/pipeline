@@ -3,9 +3,10 @@ package defaults
 import (
 	"github.com/banzaicloud/pipeline/database"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/banzaicloud/pipeline/pkg/cluster/amazon"
-	"github.com/banzaicloud/pipeline/pkg/cluster/azure"
-	"github.com/banzaicloud/pipeline/pkg/cluster/google"
+	pkgAmazon "github.com/banzaicloud/pipeline/pkg/cluster/amazon"
+	pkgAzure "github.com/banzaicloud/pipeline/pkg/cluster/azure"
+	pkgGoogle "github.com/banzaicloud/pipeline/pkg/cluster/google"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster"
 )
 
@@ -14,7 +15,7 @@ type AWSProfile struct {
 	DefaultModel
 	Location           string                `gorm:"default:'eu-west-1'"`
 	MasterInstanceType string                `gorm:"default:'m4.xlarge'"`
-	MasterImage        string                `gorm:"default:'ami-16bfeb6f'"`
+	MasterImage        string                `gorm:"default:'ami-4d485ca7'"`
 	NodePools          []*AWSNodePoolProfile `gorm:"foreignkey:Name"`
 }
 
@@ -29,16 +30,8 @@ type AWSNodePoolProfile struct {
 	MinCount     int    `gorm:"default:1"`
 	MaxCount     int    `gorm:"default:2"`
 	Count        int    `gorm:"default:1"`
-	Image        string `gorm:"default:'ami-16bfeb6f'"`
+	Image        string `gorm:"default:'ami-4d485ca7'"`
 }
-
-const (
-	defaultSpotPrice    = "0.2"
-	defaultInstanceType = "m4.xlarge"
-	defaultMinCount     = 1
-	defaultMaxCount     = 2
-	defaultImage        = "ami-16bfeb6f"
-)
 
 // TableName overrides AWSNodePoolProfile's table name
 func (AWSNodePoolProfile) TableName() string {
@@ -100,10 +93,10 @@ func (d *AWSProfile) BeforeDelete() error {
 // GetProfile load profile from database and converts ClusterProfileResponse
 func (d *AWSProfile) GetProfile() *pkgCluster.ClusterProfileResponse {
 
-	nodePools := make(map[string]*amazon.NodePool)
+	nodePools := make(map[string]*pkgAmazon.NodePool)
 	for _, np := range d.NodePools {
 		if np != nil {
-			nodePools[np.NodeName] = &amazon.NodePool{
+			nodePools[np.NodeName] = &pkgAmazon.NodePool{
 				InstanceType: np.InstanceType,
 				SpotPrice:    np.SpotPrice,
 				Autoscaling:  np.Autoscaling,
@@ -120,14 +113,14 @@ func (d *AWSProfile) GetProfile() *pkgCluster.ClusterProfileResponse {
 		Location: d.Location,
 		Cloud:    pkgCluster.Amazon,
 		Properties: struct {
-			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
-			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
-			Google *google.ClusterProfileGoogle `json:"google,omitempty"`
-			Oracle *oracle.Cluster              `json:"oracle,omitempty"`
+			Amazon *pkgAmazon.ClusterProfileAmazon `json:"amazon,omitempty"`
+			Azure  *pkgAzure.ClusterProfileAzure   `json:"azure,omitempty"`
+			Google *pkgGoogle.ClusterProfileGoogle `json:"google,omitempty"`
+			Oracle *oracle.Cluster                 `json:"oracle,omitempty"`
 		}{
-			Amazon: &amazon.ClusterProfileAmazon{
+			Amazon: &pkgAmazon.ClusterProfileAmazon{
 				NodePools: nodePools,
-				Master: &amazon.ProfileMaster{
+				Master: &pkgAmazon.ProfileMaster{
 					InstanceType: d.MasterInstanceType,
 					Image:        d.MasterImage,
 				},
@@ -150,11 +143,11 @@ func (d *AWSProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave
 			var nodePools []*AWSNodePoolProfile
 			for npName, nodePool := range r.Properties.Amazon.NodePools {
 
-				spotPrice := defaultSpotPrice
-				instanceType := defaultInstanceType
-				minCount := defaultMinCount
-				maxCount := defaultMaxCount
-				image := defaultImage
+				spotPrice := pkgAmazon.DefaultSpotPrice
+				instanceType := pkgAmazon.DefaultInstanceType
+				minCount := pkgCommon.DefaultNodeMinCount
+				maxCount := pkgCommon.DefaultNodeMaxCount
+				image := pkgAmazon.DefaultImages[d.Location]
 
 				if len(nodePool.SpotPrice) != 0 {
 					spotPrice = nodePool.SpotPrice
@@ -173,8 +166,8 @@ func (d *AWSProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave
 				}
 
 				if minCount > maxCount {
-					minCount = defaultMinCount
-					maxCount = defaultMaxCount
+					minCount = pkgCommon.DefaultNodeMinCount
+					maxCount = pkgCommon.DefaultNodeMaxCount
 				}
 
 				count := nodePool.Count

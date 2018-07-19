@@ -5626,7 +5626,7 @@ components:
           format: int32
           type: integer
         image:
-          example: ami-16bfeb6f
+          example: ami-4d485ca7
           type: string
       type: object
     NodePoolStatusAzure:

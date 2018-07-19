@@ -5,13 +5,6 @@ import (
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 )
 
-// ### [ Constants to Amazon cluster default values ] ### //
-const (
-	DefaultMasterInstanceType = "m4.xlarge"
-	DefaultNodeSpotPrice      = "0.2"
-	DefaultImage              = "ami-16bfeb6f"
-)
-
 // CreateClusterAmazon describes Pipeline's Amazon fields of a CreateCluster request
 type CreateClusterAmazon struct {
 	NodePools map[string]*NodePool `json:"nodePools,omitempty"`
@@ -85,7 +78,7 @@ func (a *NodePool) Validate() error {
 
 	// ---- [ Node spot price ] ---- //
 	if len(a.SpotPrice) == 0 {
-		a.SpotPrice = DefaultNodeSpotPrice
+		a.SpotPrice = DefaultSpotPrice
 	}
 
 	return nil
@@ -104,7 +97,7 @@ func (amazon *CreateClusterAmazon) Validate() error {
 	}
 
 	if amazon.Master.InstanceType == "" {
-		amazon.Master.InstanceType = DefaultMasterInstanceType
+		amazon.Master.InstanceType = DefaultInstanceType
 	}
 
 	if len(amazon.NodePools) == 0 {
@@ -121,25 +114,27 @@ func (amazon *CreateClusterAmazon) Validate() error {
 }
 
 // AddDefaults puts default values to optional field(s)
-func (amazon *CreateClusterAmazon) AddDefaults() error {
+func (amazon *CreateClusterAmazon) AddDefaults(location string) error {
 
 	if amazon == nil {
 		return pkgErrors.ErrorAmazonFieldIsEmpty
 	}
 
+	defaultImage := DefaultImages[location]
+
 	if amazon.Master == nil {
 		amazon.Master = &CreateAmazonMaster{
-			InstanceType: DefaultMasterInstanceType,
-			Image:        DefaultImage,
+			InstanceType: DefaultInstanceType,
+			Image:        defaultImage,
 		}
 	} else {
 
 		if len(amazon.Master.InstanceType) == 0 {
-			amazon.Master.InstanceType = DefaultMasterInstanceType
+			amazon.Master.InstanceType = DefaultInstanceType
 		}
 
 		if len(amazon.Master.Image) == 0 {
-			amazon.Master.Image = DefaultImage
+			amazon.Master.Image = defaultImage
 		}
 
 	}
@@ -150,7 +145,7 @@ func (amazon *CreateClusterAmazon) AddDefaults() error {
 
 	for i, np := range amazon.NodePools {
 		if len(np.Image) == 0 {
-			amazon.NodePools[i].Image = DefaultImage
+			amazon.NodePools[i].Image = defaultImage
 		}
 	}
 
