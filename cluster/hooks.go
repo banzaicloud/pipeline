@@ -337,7 +337,7 @@ func InstallHelmPostHook(input interface{}) error {
 func UpdatePrometheus() {
 	err := UpdatePrometheusConfig()
 	if err != nil {
-		log.Warn("Could not update prometheus configmap: %v", err)
+		log.Warnf("Could not update prometheus configmap: %v", err)
 	}
 }
 

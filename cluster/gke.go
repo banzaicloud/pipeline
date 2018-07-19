@@ -1136,7 +1136,6 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster, location, proje
 				}
 
 				if autoscalingHasBeenUpdated(nodePool, updatedCluster.NodePools[i]) {
-					var updateCall *gke.Operation
 					var err error
 
 					autoScalingInput := &gke.SetNodePoolAutoscalingRequest{
@@ -1163,7 +1162,7 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster, location, proje
 						return nil, err
 					}
 
-					log.Infof("Node pool %s update is called for project %s, zone %s and cluster %s. Status Code %v", nodePool.Name, cc.ProjectID, cc.Zone, cc.Name, updateCall.HTTPStatusCode)
+					log.Infof("Node pool %s update is called for project %s, zone %s and cluster %s", nodePool.Name, cc.ProjectID, cc.Zone, cc.Name)
 					if err = waitForOperation(svc, location, projectId, operation.Name); err != nil {
 						return nil, err
 					}
@@ -2233,7 +2232,7 @@ func waitForOperation(svc *gke.Service, location, projectId, operationName strin
 
 		operationStatus = resp.Status
 
-		log.Infof("Operation status: %s", operationStatus)
+		log.Infof("Operation[%s] status: %s", resp.OperationType, operationStatus)
 		time.Sleep(time.Second * 5)
 	}
 
