@@ -235,6 +235,8 @@ func (g *GKECluster) CreateCluster() error {
 
 	g.googleCluster = gkeCluster
 
+	g.updateCurrentVersions(gkeCluster)
+
 	// set region
 	g.modelCluster.Google.Region, err = g.getRegionByZone(projectId, gkeCluster.Zone)
 	if err != nil {
@@ -242,6 +244,16 @@ func (g *GKECluster) CreateCluster() error {
 	}
 
 	return nil
+
+}
+
+func (g *GKECluster) updateCurrentVersions(gkeCluster *gke.Cluster) {
+
+	g.modelCluster.Google.MasterVersion = gkeCluster.CurrentMasterVersion
+	if len(gkeCluster.NodePools) != 0 && gkeCluster.NodePools[0] != nil {
+		// currently we didn't support different node versions
+		g.modelCluster.Google.NodeVersion = gkeCluster.NodePools[0].Version
+	}
 
 }
 
@@ -724,6 +736,8 @@ func (g *GKECluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 	}
 	log.Info("Cluster update succeeded")
 	g.googleCluster = res
+
+	g.updateCurrentVersions(res)
 
 	// update model to save
 	g.updateModel(res, updatedNodePools)
