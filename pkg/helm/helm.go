@@ -58,7 +58,7 @@ type EndpointItem struct {
 type EndPointURLs struct {
 	Path        string `json:"path"`
 	URL         string `json:"url"`
-	ReleaseName string `json:"release_name"`
+	ReleaseName string `json:"releaseName"`
 }
 
 // StatusResponse describes a Helm status response
@@ -99,7 +99,7 @@ type CreateUpdateDeploymentRequest struct {
 
 // ListDeploymentResponse describes a deployment list response
 type ListDeploymentResponse struct {
-	Name      string `json:"name"`
+	Name      string `json:"releaseName"`
 	Chart     string `json:"chart"`
 	Version   int32  `json:"version"`
 	Updated   string `json:"updatedAt"`
@@ -116,7 +116,7 @@ type DeploymentStatusResponse struct {
 
 // GetDeploymentResponse describes the details of a helm deployment
 type GetDeploymentResponse struct {
-	ReleaseName string      `json:"release_name"`
+	ReleaseName string      `json:"releaseName"`
 	Chart       string      `json:"chart"`
 	Namespace   string      `json:"namespace"`
 	Version     int32       `json:"version"`

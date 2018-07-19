@@ -3,7 +3,7 @@
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Name** | **string** |  | [optional] 
+**ReleaseName** | **string** |  | [optional] 
 **Chart** | **string** |  | [optional] 
 **Version** | **int32** |  | [optional] 
 **UpdatedAt** | **string** |  | [optional] 

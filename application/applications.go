@@ -231,7 +231,7 @@ func CreateApplicationDeployment(env helm_env.EnvSettings, am *model.Application
 			deployment.Update(model.Deployment{Status: FAILED, Message: err.Error()})
 			return err
 		}
-		database.GetDB().Model(deployment).Update("release_name", resp.Release.Name)
+		releaseName = resp.Release.Name
 	}
 	deployment.Update(model.Deployment{Status: READY, ReleaseName: releaseName})
 	am.Update(model.Application{Status: DEPLOYED})
