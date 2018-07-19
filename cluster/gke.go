@@ -286,8 +286,11 @@ func (g *GKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 	for _, np := range g.modelCluster.Google.NodePools {
 		if np != nil {
 			nodePools[np.Name] = &pkgCluster.NodePoolStatus{
+				Autoscaling:  np.Autoscaling,
 				Count:        np.NodeCount,
 				InstanceType: np.NodeInstanceType,
+				MinCount:     np.NodeMinCount,
+				MaxCount:     np.NodeMaxCount,
 			}
 		}
 	}

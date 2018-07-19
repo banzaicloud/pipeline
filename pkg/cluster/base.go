@@ -120,6 +120,7 @@ type GetClusterStatusResponse struct {
 
 // NodePoolStatus describes cluster's node status
 type NodePoolStatus struct {
+	Autoscaling  bool   `json:"autoscaling,omitempty"`
 	Count        int    `json:"count,omitempty"`
 	InstanceType string `json:"instanceType,omitempty"`
 	SpotPrice    string `json:"spotPrice,omitempty"`

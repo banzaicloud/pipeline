@@ -223,8 +223,11 @@ func (c *AKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 	for _, np := range c.modelCluster.Azure.NodePools {
 		if np != nil {
 			nodePools[np.Name] = &pkgCluster.NodePoolStatus{
+				Autoscaling:  np.Autoscaling,
 				Count:        np.Count,
 				InstanceType: np.NodeInstanceType,
+				MinCount:     np.NodeMinCount,
+				MaxCount:     np.NodeMaxCount,
 			}
 		}
 	}
