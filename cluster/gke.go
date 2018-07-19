@@ -235,6 +235,12 @@ func (g *GKECluster) CreateCluster() error {
 
 	g.googleCluster = gkeCluster
 
+	// set region
+	g.modelCluster.Google.Region, err = g.getRegionByZone(projectId, gkeCluster.Zone)
+	if err != nil {
+		log.Warnf("error during getting region: %s", err.Error())
+	}
+
 	return nil
 
 }
@@ -295,6 +301,7 @@ func (g *GKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		ResourceID:        g.modelCluster.ID,
 		NodePools:         nodePools,
 		CreatorBaseFields: *NewCreatorBaseFields(g.modelCluster.CreatedAt, g.modelCluster.CreatedBy),
+		Region:            g.modelCluster.Google.Region,
 	}, nil
 }
 
@@ -569,6 +576,32 @@ func listRegions(csv *gkeCompute.Service, project string) ([]*gkeCompute.Region,
 		return nil, err
 	}
 	return regionList.Items, nil
+}
+
+func (g *GKECluster) getRegionByZone(project string, zone string) (string, error) {
+
+	log.Infof("start getting region by zone[%s]", zone)
+	csv, err := g.getComputeService()
+	if err != nil {
+		return "", errors.Wrap(err, "Error during creating compute service")
+	}
+
+	regions, err := csv.Regions.List(project).Context(context.Background()).Do()
+	if err != nil {
+		return "", errors.Wrap(err, "Error during listing regions")
+	}
+
+	for _, i := range regions.Items {
+		for _, z := range i.Zones {
+			zoneScope := getZoneScope(project, zone)
+			if z == zoneScope {
+				log.Infof("match region: %s", i.Name)
+				return i.Name, nil
+			}
+		}
+	}
+
+	return "", fmt.Errorf("there's no zone [%s] in regions", zone)
 }
 
 // checkFirewalls checks all load balancer resources deleted by Kubernetes
@@ -2010,6 +2043,7 @@ func (g *GKECluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 			Location:          g.modelCluster.Location,
 			MasterVersion:     g.modelCluster.Google.MasterVersion,
 			NodePools:         nodePools,
+			Region:            g.modelCluster.Google.Region,
 		}
 		return response, nil
 	}
