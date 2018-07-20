@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/banzaicloud/bank-vaults/pkg/tls"
 	"github.com/banzaicloud/bank-vaults/vault"
 	"github.com/banzaicloud/pipeline/config"
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
@@ -383,7 +384,7 @@ func generateValuesIfNeeded(value *CreateSecretRequest) error {
 		if validity == "" {
 			validity = viper.GetString("tls.validity")
 		}
-		cc, err := GenerateTLS(value.Values[secretTypes.TLSHosts], validity)
+		cc, err := tls.GenerateTLS(value.Values[secretTypes.TLSHosts], validity)
 		if err != nil {
 			return errors.Wrap(err, "Error during generating TLS secret")
 		}

@@ -77,7 +77,7 @@
 
 [[constraint]]
   name = "github.com/banzaicloud/bank-vaults"
-  branch = "master"
+  version = "0.2.5"
 
 [[constraint]]
   name = "github.com/dgrijalva/jwt-go"
@@ -191,6 +191,11 @@
 [[constraint]]
   name = "k8s.io/client-go"
   version = "=v7.0.0"
+
+# This override is here because of bank-vaults client-go version doesn't match the pipeline's
+[[override]]
+name = "k8s.io/client-go"
+version = "=v7.0.0"
 
 [[constraint]]
   branch = "release-2.9"

@@ -1,4 +1,4 @@
-package secret
+package tls
 
 import (
 	"bytes"
@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-// CertificateChain represents a full certificate chain with a root CA, a server and client certificate
+// CertificateChain represents a full certificate chain with a root CA, a server, client and peer certificate
 // All values are in PEM format
 type CertificateChain struct {
 	CAKey      string `mapstructure:"caKey"`
@@ -22,9 +22,11 @@ type CertificateChain struct {
 	ServerCert string `mapstructure:"serverCert"`
 	ClientKey  string `mapstructure:"clientKey"`
 	ClientCert string `mapstructure:"clientCert"`
+	PeerKey    string `mapstructure:"peerKey"`
+	PeerCert   string `mapstructure:"peerCert"`
 }
 
-// GenerateTLS generates ca, server, and client TLS certificates.
+// GenerateTLS generates ca, server, client and peer TLS certificates.
 // hosts: Comma-separated hostnames and IPs to generate a certificate for
 // validity: Duration that certificate is valid for, in Go Duration format
 func GenerateTLS(hosts string, validity string) (*CertificateChain, error) {
@@ -147,6 +149,49 @@ func GenerateTLS(hosts string, validity string) (*CertificateChain, error) {
 		return nil, err
 	}
 
+	peerKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		return nil, err
+	}
+	peerKeyBytes, err := keyToBytes(peerKey)
+	if err != nil {
+		return nil, err
+	}
+
+	serialNumber, err = rand.Int(rand.Reader, serialNumberLimit)
+	if err != nil {
+		return nil, err
+	}
+	peerCertTemplate := x509.Certificate{
+		SerialNumber: serialNumber,
+		Subject: pkix.Name{
+			Organization: []string{"Banzai Cloud"},
+			CommonName:   "Banzai Genereted Peer Cert",
+		},
+		NotBefore:             notBefore,
+		NotAfter:              notAfter,
+		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth, x509.ExtKeyUsageClientAuth},
+		BasicConstraintsValid: true,
+		IsCA: false,
+	}
+	for _, h := range strings.Split(hosts, ",") {
+		if ip := net.ParseIP(h); ip != nil {
+			peerCertTemplate.IPAddresses = append(peerCertTemplate.IPAddresses, ip)
+		} else {
+			peerCertTemplate.DNSNames = append(peerCertTemplate.DNSNames, h)
+		}
+	}
+
+	peerCert, err := x509.CreateCertificate(rand.Reader, &peerCertTemplate, &caCertTemplate, &peerKey.PublicKey, caKey)
+	if err != nil {
+		return nil, err
+	}
+	peerCertBytes, err := certToBytes(peerCert)
+	if err != nil {
+		return nil, err
+	}
+
 	cc := CertificateChain{
 		CAKey:      string(caKeyBytes),
 		CACert:     string(caCertBytes),
@@ -154,6 +199,8 @@ func GenerateTLS(hosts string, validity string) (*CertificateChain, error) {
 		ServerCert: string(serverCertBytes),
 		ClientKey:  string(clientKeyBytes),
 		ClientCert: string(clientCertBytes),
+		PeerKey:    string(peerKeyBytes),
+		PeerCert:   string(peerCertBytes),
 	}
 
 	return &cc, nil
