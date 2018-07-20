@@ -56,7 +56,10 @@ func ConnectDB(dbName string) *gorm.DB {
 		log.Error("Database connection failed")
 		panic(err.Error())
 	}
-	database.LogMode(false)
+
+	enableLog := viper.GetBool("database.logging")
+	database.LogMode(enableLog)
+
 	return database
 }
 
