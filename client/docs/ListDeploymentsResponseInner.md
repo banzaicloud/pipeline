@@ -5,6 +5,8 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **ReleaseName** | **string** |  | [optional] 
 **Chart** | **string** |  | [optional] 
+**ChartName** | **string** |  | [optional] 
+**ChartVersion** | **string** |  | [optional] 
 **Version** | **int32** |  | [optional] 
 **UpdatedAt** | **string** |  | [optional] 
 **Status** | **string** |  | [optional] 

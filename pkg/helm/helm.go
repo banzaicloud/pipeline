@@ -89,23 +89,25 @@ type CreateUpdateDeploymentResponse struct {
 
 // CreateUpdateDeploymentRequest describes a Helm deployment
 type CreateUpdateDeploymentRequest struct {
-	Name        string      `json:"name" binding:"required"`
-	ReleaseName string      `json:"releaseName"`
-	Version     int32       `json:"version"`
-	ReUseValues bool        `json:"reuseValues"`
-	Namespace   string      `json:"namespace"`
-	Values      interface{} `json:"values"`
+	Name        string                 `json:"name" binding:"required"`
+	ReleaseName string                 `json:"releaseName"`
+	Version     int32                  `json:"version"`
+	ReUseValues bool                   `json:"reuseValues"`
+	Namespace   string                 `json:"namespace"`
+	Values      map[string]interface{} `json:"values,omitempty"`
 }
 
 // ListDeploymentResponse describes a deployment list response
 type ListDeploymentResponse struct {
-	Name      string `json:"releaseName"`
-	Chart     string `json:"chart"`
-	Version   int32  `json:"version"`
-	Updated   string `json:"updatedAt"`
-	Status    string `json:"status"`
-	Namespace string `json:"namespace"`
-	CreatedAt string `json:"createdAt,omitempty"`
+	Name         string `json:"releaseName"`
+	Chart        string `json:"chart"`
+	ChartName    string `json:"chartName"`
+	ChartVersion string `json:"chartVersion"`
+	Version      int32  `json:"version"`
+	Updated      string `json:"updatedAt"`
+	Status       string `json:"status"`
+	Namespace    string `json:"namespace"`
+	CreatedAt    string `json:"createdAt,omitempty"`
 }
 
 // DeploymentStatusResponse describes a deployment status response
@@ -116,16 +118,18 @@ type DeploymentStatusResponse struct {
 
 // GetDeploymentResponse describes the details of a helm deployment
 type GetDeploymentResponse struct {
-	ReleaseName string      `json:"releaseName"`
-	Chart       string      `json:"chart"`
-	Namespace   string      `json:"namespace"`
-	Version     int32       `json:"version"`
-	Status      string      `json:"status"`
-	Description string      `json:"description"`
-	CreatedAt   string      `json:"createdAt,omitempty"`
-	Updated     string      `json:"updatedAt,omitempty"`
-	Notes       string      `json:"notes"`
-	Values      interface{} `json:"values"`
+	ReleaseName  string                 `json:"releaseName"`
+	Chart        string                 `json:"chart"`
+	ChartName    string                 `json:"chartName"`
+	ChartVersion string                 `json:"chartVersion"`
+	Namespace    string                 `json:"namespace"`
+	Version      int32                  `json:"version"`
+	Status       string                 `json:"status"`
+	Description  string                 `json:"description"`
+	CreatedAt    string                 `json:"createdAt,omitempty"`
+	Updated      string                 `json:"updatedAt,omitempty"`
+	Notes        string                 `json:"notes"`
+	Values       map[string]interface{} `json:"values"`
 }
 
 // GenerateReleaseName Generate Helm like release name

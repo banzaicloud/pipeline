@@ -4439,34 +4439,52 @@ components:
       type: array
     CreateUpdateDeploymentRequest:
       example:
+        releaseName: singed-bee
+        values:
+          ingress:
+            enabled: "true"
         name: banzaicloud-stable/drone
+        namespace: default
+        reuseValues: true
+        version: 1
       properties:
         name:
+          example: banzaicloud-stable/drone
           type: string
         namespace:
+          example: default
           type: string
         releaseName:
+          example: singed-bee
           type: string
         reuseValues:
-          type: string
+          example: true
+          type: boolean
         version:
+          example: 1
           format: int32
           type: integer
         values:
+          additionalProperties: true
+          description: current values of the deployment
+          example:
+            ingress:
+              enabled: "true"
           type: object
       required:
       - name
       type: object
     CreateUpdateDeploymentResponse:
       example:
-        notes: deploy notes
+        notes: notes
         releaseName: vigilant-mandrill
       properties:
         releaseName:
           example: vigilant-mandrill
           type: string
         notes:
-          example: deploy notes
+          description: deployment notes in base64 encoded format
+          format: base64
           type: string
       type: object
     DeleteDeploymentResponse:
@@ -4490,8 +4508,12 @@ components:
       example:
         createdAt: 2018-07-03T14:23:19+02:00
         notes: notes
+        chartName: mysql
+        chartVersion: 0.7.0
         releaseName: vigilant-mandrill
-        values: values
+        values:
+          metrics:
+            enabled: "true"
         namespace: default
         chart: mysql-0.7.0
         version: 1
@@ -4503,6 +4525,12 @@ components:
           type: string
         chart:
           example: mysql-0.7.0
+          type: string
+        chartName:
+          example: mysql
+          type: string
+        chartVersion:
+          example: 0.7.0
           type: string
         namespace:
           example: default
@@ -4525,9 +4553,12 @@ components:
           format: base64
           type: string
         values:
-          description: deployment values in base64 encoded YAML format
-          format: base64
-          type: string
+          additionalProperties: true
+          description: current values of the deployment
+          example:
+            metrics:
+              enabled: "true"
+          type: object
       type: object
     HelmInitResponse:
       example:
@@ -6365,6 +6396,12 @@ components:
           type: string
         chart:
           example: pipeline-cluster-ingress-0.0.1
+          type: string
+        chartName:
+          example: pipeline-cluster-ingress
+          type: string
+        chartVersion:
+          example: 0.0.1
           type: string
         version:
           example: 1

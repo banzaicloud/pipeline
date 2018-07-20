@@ -4074,6 +4074,12 @@ components:
           chart:
             type: string
             example: "pipeline-cluster-ingress-0.0.1"
+          chartName:
+            type: string
+            example: "pipeline-cluster-ingress"
+          chartVersion:
+            type: string
+            example: "0.0.1"
           version:
             type: integer
             example: 1
@@ -4097,18 +4103,24 @@ components:
       properties:
         name:
           type: string
+          example: "banzaicloud-stable/drone"
         namespace:
           type: string
+          example: "default"
         releaseName:
           type: string
+          example: "singed-bee"
         reuseValues:
-          type: string
+          type: boolean
+          example: "true"
         version:
           type: integer
+          example: 1
         values:
           type: object
-      example:
-          name: "banzaicloud-stable/drone"
+          additionalProperties: true
+          description: current values of the deployment
+          example: { "ingress": { "enabled": "true" } }
 
 
     CreateUpdateDeploymentResponse:
@@ -4119,7 +4131,8 @@ components:
           example: "vigilant-mandrill"
         notes:
           type: string
-          example: "deploy notes"
+          format: base64
+          description: deployment notes in base64 encoded format
 
     DeleteDeploymentResponse:
       type: object
@@ -4143,6 +4156,12 @@ components:
         chart:
           type: string
           example: "mysql-0.7.0"
+        chartName:
+          type: string
+          example: "mysql"
+        chartVersion:
+          type: string
+          example: "0.7.0"
         namespace:
           type: string
           example: "default"
@@ -4163,9 +4182,10 @@ components:
           format: base64
           description: deployment notes in base64 encoded format
         values:
-          type: string
-          format: base64
-          description: deployment values in base64 encoded YAML format
+          type: object
+          additionalProperties: true
+          description: current values of the deployment
+          example: { "metrics": { "enabled": "true" } }
 
     HelmInitResponse:
       type: object
