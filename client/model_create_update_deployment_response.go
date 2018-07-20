@@ -12,5 +12,6 @@ package client
 
 type CreateUpdateDeploymentResponse struct {
 	ReleaseName string `json:"releaseName,omitempty"`
-	Notes       string `json:"notes,omitempty"`
+	// deployment notes in base64 encoded format
+	Notes string `json:"notes,omitempty"`
 }

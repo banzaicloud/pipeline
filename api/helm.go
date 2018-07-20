@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"encoding/base64"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/helm"
 	pkgCommmon "github.com/banzaicloud/pipeline/pkg/common"
@@ -73,8 +74,8 @@ func CreateDeployment(c *gin.Context) {
 	}
 	log.Info("Create deployment succeeded")
 
-	releaseName := release.Release.Name
-	releaseNotes := release.Release.Info.Status.Notes
+	releaseName := release.GetRelease().GetName()
+	releaseNotes := base64.StdEncoding.EncodeToString([]byte(release.GetRelease().GetInfo().GetStatus().GetNotes()))
 
 	log.Debug("Release name: ", releaseName)
 	log.Debug("Release notes: ", releaseNotes)
@@ -112,13 +113,15 @@ func ListDeployments(c *gin.Context) {
 			updated := utils.ConvertSecondsToTime(time.Unix(r.Info.LastDeployed.Seconds, 0))
 
 			body := pkgHelm.ListDeploymentResponse{
-				Name:      r.Name,
-				Chart:     helm.GetVersionedChartName(r.Chart.Metadata.Name, r.Chart.Metadata.Version),
-				Version:   r.Version,
-				Updated:   updated,
-				Status:    r.Info.Status.Code.String(),
-				Namespace: r.Namespace,
-				CreatedAt: createdAt,
+				Name:         r.Name,
+				Chart:        helm.GetVersionedChartName(r.Chart.Metadata.Name, r.Chart.Metadata.Version),
+				ChartName:    r.GetChart().GetMetadata().GetName(),
+				ChartVersion: r.GetChart().GetMetadata().GetVersion(),
+				Version:      r.Version,
+				Updated:      updated,
+				Status:       r.Info.Status.Code.String(),
+				Namespace:    r.Namespace,
+				CreatedAt:    createdAt,
 			}
 			releases = append(releases, body)
 		}
@@ -320,7 +323,7 @@ func UpgradeDeployment(c *gin.Context) {
 	}
 	log.Info("Upgrade deployment succeeded")
 
-	releaseNotes := release.Release.Info.Status.Notes
+	releaseNotes := base64.StdEncoding.EncodeToString([]byte(release.GetRelease().GetInfo().GetStatus().GetNotes()))
 
 	log.Debug("Release notes: ", releaseNotes)
 	response := pkgHelm.CreateUpdateDeploymentResponse{
@@ -396,7 +399,7 @@ func parseCreateUpdateDeploymentRequest(c *gin.Context) (*parsedDeploymentReques
 	pdr.reuseValues = deployment.ReUseValues
 	pdr.namespace = deployment.Namespace
 
-	if deployment.Values != "" {
+	if deployment.Values != nil {
 		pdr.values, err = yaml.Marshal(deployment.Values)
 		if err != nil {
 			return nil, errors.Wrap(err, "Can't parse Values:")

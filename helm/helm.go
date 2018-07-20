@@ -284,25 +284,21 @@ func GetDeployment(releaseName string, kubeConfig []byte) (*helm2.GetDeploymentR
 		return nil, err
 	}
 
-	valuesYaml, err := cfg.YAML()
-	if err != nil {
-		log.Errorf("Converting deployment values to YAML format failed: %s", err.Error())
-		return nil, err
-	}
-
-	values := base64.StdEncoding.EncodeToString([]byte(valuesYaml))
+	values := cfg.AsMap()
 
 	return &helm2.GetDeploymentResponse{
-		ReleaseName: releaseContent.GetRelease().GetName(),
-		Namespace:   releaseContent.GetRelease().GetNamespace(),
-		Version:     releaseContent.GetRelease().GetVersion(),
-		Description: releaseContent.GetRelease().GetInfo().GetDescription(),
-		Status:      releaseContent.GetRelease().GetInfo().GetStatus().GetCode().String(),
-		Notes:       notes,
-		CreatedAt:   createdAt,
-		Updated:     updatedAt,
-		Chart:       chart,
-		Values:      values,
+		ReleaseName:  releaseContent.GetRelease().GetName(),
+		Namespace:    releaseContent.GetRelease().GetNamespace(),
+		Version:      releaseContent.GetRelease().GetVersion(),
+		Description:  releaseContent.GetRelease().GetInfo().GetDescription(),
+		Status:       releaseContent.GetRelease().GetInfo().GetStatus().GetCode().String(),
+		Notes:        notes,
+		CreatedAt:    createdAt,
+		Updated:      updatedAt,
+		Chart:        chart,
+		ChartName:    releaseContent.GetRelease().GetChart().GetMetadata().GetName(),
+		ChartVersion: releaseContent.GetRelease().GetChart().GetMetadata().GetVersion(),
+		Values:       values,
 	}, nil
 }
 

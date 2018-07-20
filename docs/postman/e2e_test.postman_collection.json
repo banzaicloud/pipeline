@@ -2206,10 +2206,10 @@
 								"key": "Authorization",
 								"value": "Bearer {{token}}"
 							},
-							{
-								"key": "Content-Type",
-								"value": "application/x-www-form-urlencoded"
-							}
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
 						],
 						"body": {
 							"mode": "raw",
