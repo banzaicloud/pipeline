@@ -199,6 +199,7 @@ func CreateCluster(createClusterRequest *pkgCluster.CreateClusterRequest, organi
 		log.Info("Create clusterRequest from profile")
 		newRequest, err := profileResponse.CreateClusterRequest(createClusterRequest)
 		if err != nil {
+			log.Errorf("error during getting cluster request from profile: %s", err.Error())
 			return nil, &pkgCommon.ErrorResponse{
 				Code:    http.StatusBadRequest,
 				Message: "Error creating request from profile",
@@ -218,12 +219,13 @@ func CreateCluster(createClusterRequest *pkgCluster.CreateClusterRequest, organi
 
 	// check exists cluster name
 	var existingCluster model.ClusterModel
-	database := database.GetDB()
-	database.First(&existingCluster, map[string]interface{}{"name": createClusterRequest.Name, "organization_id": organizationID})
+	db := database.GetDB()
+	db.First(&existingCluster, map[string]interface{}{"name": createClusterRequest.Name, "organization_id": organizationID})
 
 	if existingCluster.ID != 0 {
 		// duplicated entry
 		err := fmt.Errorf("duplicate entry: %s", existingCluster.Name)
+		log.Errorf("error during create cluster: %s", err.Error())
 		return nil, &pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: err.Error(),
@@ -237,6 +239,7 @@ func CreateCluster(createClusterRequest *pkgCluster.CreateClusterRequest, organi
 	// This is the common part of cluster flow
 	commonCluster, err := cluster.CreateCommonClusterFromRequest(createClusterRequest, organizationID, userID)
 	if err != nil {
+		log.Errorf("error during create common cluster from request: %s", err.Error())
 		return nil, &pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: err.Error(),
@@ -246,6 +249,7 @@ func CreateCluster(createClusterRequest *pkgCluster.CreateClusterRequest, organi
 
 	log.Infof("Validate secret[%s]", createClusterRequest.SecretId)
 	if _, err := commonCluster.GetSecretWithValidation(); err != nil {
+		log.Errorf("error during secret validation: %s", err.Error())
 		return nil, &pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error during getting secret",
@@ -253,6 +257,18 @@ func CreateCluster(createClusterRequest *pkgCluster.CreateClusterRequest, organi
 		}
 	}
 	log.Info("Secret validation passed")
+
+	log.Info("Validate creation fields")
+	if err := commonCluster.ValidateCreationFields(createClusterRequest); err != nil {
+		log.Errorf("error during validate creation fields: %s", err.Error())
+		return nil, &pkgCommon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: err.Error(),
+			Error:   err.Error(),
+		}
+	}
+
+	log.Info("Validation passed")
 
 	// Persist the cluster in Database
 	err = commonCluster.Persist(pkgCluster.Creating, pkgCluster.CreatingMessage)
@@ -263,18 +279,6 @@ func CreateCluster(createClusterRequest *pkgCluster.CreateClusterRequest, organi
 			Error:   err.Error(),
 		}
 	}
-
-	log.Info("Validate creation fields")
-	if err := commonCluster.ValidateCreationFields(createClusterRequest); err != nil {
-		commonCluster.UpdateStatus(pkgCluster.Error, err.Error())
-		return nil, &pkgCommon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: err.Error(),
-			Error:   err.Error(),
-		}
-	}
-
-	log.Info("Validation passed")
 
 	go postCreateCluster(commonCluster, postHooks)
 	return commonCluster, nil
