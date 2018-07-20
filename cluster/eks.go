@@ -9,8 +9,6 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 
-	"net/url"
-
 	"github.com/banzaicloud/pipeline/secret"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -80,6 +78,15 @@ func (e *EKSCluster) SaveSshSecretId(sshSecretId string) error {
 //GetAPIEndpoint returns the Kubernetes Api endpoint
 func (e *EKSCluster) GetAPIEndpoint() (string, error) {
 	return e.APIEndpoint, nil
+}
+
+//CreateEKSClusterFromModel creates ClusterModel struct from the model
+func CreateEKSClusterFromModel(clusterModel *model.ClusterModel) (*EKSCluster, error) {
+	log.Debug("Create ClusterModel struct from the request")
+	eksCluster := EKSCluster{
+		modelCluster: clusterModel,
+	}
+	return &eksCluster, nil
 }
 
 func (e *EKSCluster) createAWSCredentialsFromSecret() (*credentials.Credentials, error) {
@@ -154,11 +161,7 @@ func (e *EKSCluster) CreateCluster() error {
 		return err
 	}
 
-	url, err := url.Parse(*creationContext.APIEndpoint)
-	if err != nil {
-		return err
-	}
-	e.APIEndpoint = url.Hostname()
+	e.APIEndpoint = *creationContext.APIEndpoint
 	e.CertificateAuthorityData = *creationContext.CertificateAuthorityData
 
 	createdCluster, err := e.GetCreatedClusterModel(creationContext)

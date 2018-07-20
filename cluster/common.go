@@ -208,6 +208,19 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 
 		return awsCluster, nil
 
+	case pkgCluster.Eks:
+		//Create Amazon EKS struct
+		eksCluster, err := CreateEKSClusterFromModel(modelCluster)
+		if err != nil {
+			return nil, err
+		}
+
+		log.Debug("Load EKS props from database")
+		database.Where(model.AmazonEksClusterModel{ClusterModelId: eksCluster.modelCluster.ID}).First(&eksCluster.modelCluster.Amazon)
+		//database.Model(&eksCluster.modelCluster.Eks).Related(&eksCluster.modelCluster.Eks.NodePools, "NodePools")
+
+		return eksCluster, nil
+
 	case pkgCluster.Azure:
 		// Create Azure struct
 		aksCluster, err := CreateAKSClusterFromModel(modelCluster)

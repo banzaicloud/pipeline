@@ -906,26 +906,32 @@ func (action *DeleteIAMRoleAction) ExecuteAction(input interface{}) (output inte
 	if err != nil {
 		return nil, err
 	}
-	//iam.GetRolePolicyInput{}
 
-	listRolePoliciesInput := &iam.ListRolePoliciesInput{
+	// For managed policies
+	managedPolicies := make([]*string, 0)
+	err = iamSvc.ListAttachedRolePoliciesPages(&iam.ListAttachedRolePoliciesInput{
 		RoleName: aws.String(action.RoleName),
-	}
+	}, func(page *iam.ListAttachedRolePoliciesOutput, lastPage bool) bool {
+		for _, v := range page.AttachedPolicies {
+			managedPolicies = append(managedPolicies, v.PolicyArn)
+		}
+		return len(page.AttachedPolicies) > 0
+	})
 
-	listRolePoliciesOutput, err := iamSvc.ListRolePolicies(listRolePoliciesInput)
 	if err != nil {
+		logger.Debug("ListAttachedRolePoliciesPages error: %v", err)
 		return nil, err
 	}
 
 	//detach role policies first
-	for _, policyName := range listRolePoliciesOutput.PolicyNames {
+	for _, policyName := range managedPolicies {
 		detachRolePolicyInput := &iam.DetachRolePolicyInput{
 			RoleName:  aws.String(action.RoleName),
 			PolicyArn: policyName, //TODO should we use ARN here?
 		}
 		_, err = iamSvc.DetachRolePolicy(detachRolePolicyInput)
 		if err != nil {
-			logger.Debug("DetachRole error: %v", err)
+			logger.Debug("DetachRolePolicy error: %v", err)
 			return nil, err
 		}
 	}
