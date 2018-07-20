@@ -19,6 +19,7 @@ user = "sparky"
 role = "pipeline"
 password = "sparky123"
 dbname = "sparky"
+logging = true
 
 [logging]
 logformat = "text"
