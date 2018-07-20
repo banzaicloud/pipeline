@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/eks"
+	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/model/defaults"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -19,6 +20,8 @@ import (
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
+	"k8s.io/api/core/v1"
+	"k8s.io/client-go/kubernetes"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api/v1"
 )
 
@@ -147,14 +150,6 @@ func (e *EKSCluster) CreateCluster() error {
 		//action.NewRevertStepsAction(), //ez fixen hibat dob, igy minden elozo lepest megprobal visszavonni az executor
 	}
 
-	fake := false //(FOR DEBUG ONLY) - ha nem szeretnenk megvarni, hogy 20 percig fusson az eks cluster creation(kb annyi ido amugy), allitsuk ezt true-ra, ez majd beallitja a szukseges fieldeket, semmit nem hiv meg kozben az aws-en
-	if fake {
-		actions = []utils.Action{}
-		fakeApiEndpoint := "https://foo.bar"
-		fakeAuthData := "TFMwdExTMUNSVWRKVGlCRFJWSlVTVVpKUTBGVVJTMHRMUzB0Q2sxSlNVTjVSRU5EUVdKRFowRjNTVUpCWjBsQ1FVUkJUa0puYTNGb2EybEhPWGN3UWtGUmMwWkJSRUZXVFZKTmQwVlJXVVJXVVZGRVJYZHdjbVJYU213S1kyMDFiR1JIVm5wTlFqUllSRlJGTkUxRVkzaE9SRVYzVFVSQk1FMHhiMWhFVkVrMFRVUmplRTFVUlhkTlJFRXdUVEZ2ZDBaVVJWUk5Ra1ZIUVRGVlJRcEJlRTFMWVROV2FWcFlTblZhV0ZKc1kzcERRMEZUU1hkRVVWbEtTMjlhU1doMlkwNUJVVVZDUWxGQlJHZG5SVkJCUkVORFFWRnZRMmRuUlVKQlRGUllDa04yU1VGSFlVaE1ZUzkwVEhORU9USlVORmgxWmxoVFppOU5ZWGdyUm1oNVl6Uk1SRlJyTkZweU5WSXlZVE0yZVVabE1XYzRRWFk1VERkWk9VeDBWVElLZHpSRU1FSklibmg1WVhWMFUyUjJPREpxTjBNeFNqZHNWV2xPU0cxWVZFbGpiV0pYVGt4VGVYWmlMMjk2YzBNNFNIWlVPVlZ3TlRBemRTdFhLMDlYTkFwT01ETjVSbXh6YVU1RmR6ZFFZV1UwTDJSVlRpOXRLM0ZFVW5KeVVHRkdibTV4VGtzemRGQlhOMmRrYWpFdldFbG1Ua2R3YlU1T2IyMTVUa3N2VWtkQ0NsZHVXalptU2prMmRHWlBXRzQyYUVKd09WcExRWGM0TDBWUFlWQTFNSEpwTVVoVUsxZDBZVVJpUXpGWGJrdElhbWwyU0dOelNrMHpVVFZaWjJOaWIwTUtVekpqVGpGVGNWSlROQzlrU0d4eGNHMXpiR1JDUW05MGVYaHJibXBIZWxSM0wxSXJVbGQzWVhSR2FHcDNiRFZXUlRKTGRHMVFMMHRTU1ROdFVWbFNUd3A2V1hGT1ZHZEZUWFJHSzJwTVVtcGpXVkJGUTBGM1JVRkJZVTFxVFVORmQwUm5XVVJXVWpCUVFWRklMMEpCVVVSQlowdHJUVUU0UjBFeFZXUkZkMFZDQ2k5M1VVWk5RVTFDUVdZNGQwUlJXVXBMYjFwSmFIWmpUa0ZSUlV4Q1VVRkVaMmRGUWtGS1RuaFJUMlpuWVhBeU5HY3hVMDFyTTNBMVpYUTVWRVJyUlRFS1lYWnVkVFZVUlVncmIzSXhTbE42V1dWcVlubFhOa0YyT1UweE5tZFNRWFZKWkVjeGFWZGlhbU5qTDBGUE5sbHlaa2RGVjFJeGJuRjFVV3BsV0c4elJBcGFXRWd3VVVwVk1GQlRhbmxUZWxkVU5FUk1jRFpQVlZWWlpHcG5SMUJuUlc1dFlqRXpZMDl4TkM4NFozY3lkRGhIV1VkVWNYbFFSV1ZyTUM5TVRqSkNDa3B5Y0RSbFdrbE9ZelZsYUROdllYQm9WVkpuVldWdVIyOVdhMWxZTVZjNU1IQlhXazAyVFZwS2RsQlJjM0ZIWjBaRFpsRXpZM1ZyYm5ZMGJDOVFPRUVLTWk4MUwwVlplVTE0YWtOa1owWkxkekJsTHpsME9YcFFOa3BLTm1OaGQybEpVbko2VFRaSFZIaExkREp1ZEVjNGVGRkZjbEJJVlZWNlNpdDFORXR5YlFwUVptRTRZelpQWkROM1JIQnFOSGhUYzAxVmNFTm5OamxXTlN0VVpHMXdVV0V5VG1kWmNUVXhjMjlsYUhrNGFrVnphRFZHYUhneFRtSlRSVDBLTFMwdExTMUZUa1FnUTBWU1ZFbEdTVU5CVkVVdExTMHRMUW89"
-		creationContext.APIEndpoint = &fakeApiEndpoint
-		creationContext.CertificateAuthorityData = &fakeAuthData
-	}
 	_, err = utils.NewActionExecutor(logrus.New()).ExecuteActions(actions, nil, true)
 	if err != nil {
 		fmt.Printf("EKS cluster create error: %v\n", err)
@@ -163,6 +158,37 @@ func (e *EKSCluster) CreateCluster() error {
 
 	e.APIEndpoint = *creationContext.APIEndpoint
 	e.CertificateAuthorityData, _ = base64.StdEncoding.DecodeString(*creationContext.CertificateAuthorityData)
+
+	// Create the aws-auth ConfigMap for letting other nodes join
+	// See: https://docs.aws.amazon.com/eks/latest/userguide/add-user-role.html
+	kubeConfig, err := e.DownloadK8sConfig()
+	if err != nil {
+		return err
+	}
+
+	restKubeConfig, err := helm.GetK8sClientConfig(kubeConfig)
+	if err != nil {
+		return err
+	}
+
+	kubeClient, err := kubernetes.NewForConfig(restKubeConfig)
+	if err != nil {
+		return err
+	}
+
+	awsAuthConfigMap := v1.ConfigMap{}
+	awsAuthConfigMap.Name = "aws-auth"
+	awsAuthConfigMap.Data = map[string]string{"mapRoles": fmt.Sprintf(
+		`- rolearn: %s
+	username: system:node:{{EC2PrivateDNSName}}
+	groups:
+	- system:bootstrappers
+	- system:nodes`, *creationContext.Role.Arn)}
+
+	_, err = kubeClient.CoreV1().ConfigMaps("kube-system").Create(&awsAuthConfigMap)
+	if err != nil {
+		return err
+	}
 
 	createdCluster, err := e.GetCreatedClusterModel(creationContext)
 	if err != nil {
