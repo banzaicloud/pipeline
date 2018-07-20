@@ -397,13 +397,9 @@ func parseCreateUpdateDeploymentRequest(c *gin.Context) (*parsedDeploymentReques
 	pdr.namespace = deployment.Namespace
 
 	if deployment.Values != "" {
-		parsedJSON, err := yaml.Marshal(deployment.Values)
+		pdr.values, err = yaml.Marshal(deployment.Values)
 		if err != nil {
 			return nil, errors.Wrap(err, "Can't parse Values:")
-		}
-		pdr.values, err = yaml.JSONToYAML(parsedJSON)
-		if err != nil {
-			return nil, errors.Wrap(err, "Can't convert json to yaml:")
 		}
 	}
 	pdr.kubeConfig, err = commonCluster.GetK8sConfig()
