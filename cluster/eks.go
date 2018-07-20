@@ -1,25 +1,25 @@
 package cluster
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
-
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/eks"
-	"github.com/banzaicloud/pipeline/model"
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-
-	"github.com/banzaicloud/pipeline/secret"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/eks"
+	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/model/defaults"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks/action"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/utils"
-	"github.com/kubicorn/kubicorn/state"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api/v1"
 )
 
 //CreateEKSClusterFromRequest creates ClusterModel struct from the request
@@ -51,7 +51,7 @@ type EKSCluster struct {
 	eksCluster               *eks.Cluster //Don't use this directly
 	modelCluster             *model.ClusterModel
 	APIEndpoint              string
-	CertificateAuthorityData string
+	CertificateAuthorityData []byte
 	CommonClusterBase
 }
 
@@ -162,7 +162,7 @@ func (e *EKSCluster) CreateCluster() error {
 	}
 
 	e.APIEndpoint = *creationContext.APIEndpoint
-	e.CertificateAuthorityData = *creationContext.CertificateAuthorityData
+	e.CertificateAuthorityData, _ = base64.StdEncoding.DecodeString(*creationContext.CertificateAuthorityData)
 
 	createdCluster, err := e.GetCreatedClusterModel(creationContext)
 	if err != nil {
@@ -170,12 +170,6 @@ func (e *EKSCluster) CreateCluster() error {
 	}
 	fmt.Printf("EKS cluster created: %s\n", createdCluster.Name)
 
-	log.Info("Get state store")
-	stateStore := getGenericStateStoreForCluster(createdCluster.Name)
-	if stateStore.Exists() {
-		return fmt.Errorf("state store [%s] exists, will not overwrite", e.modelCluster.Name)
-	}
-	stateStore.Commit(state.ClusterYamlFile, createdCluster)
 	return nil
 }
 
@@ -262,43 +256,40 @@ func (e *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 	return nil
 }
 
-func (e *EKSCluster) GenerateK8sConfig() *kubeConfig {
-	//TODO ezt a heptio-authenticator -os auth modszert kellene meg beletenni a configba
-	//config.AuthInfos = map[string]*clientcmdapi.AuthInfo{
-	//	"aws": {
-	//		Exec: &clientcmdapi.ExecConfig{
-	//			APIVersion: "client.authentication.k8s.io/v1alpha1",
-	//			Command:    "heptio-authenticator-aws",
-	//			Args:       []string{"token", "-i", e.modelCluster.Name},
-	//			Env:        []clientcmdapi.ExecEnvVar{*&clientcmdapi.ExecEnvVar{Name: "AWS_PROFILE", Value: "your_aws_profile_name"}},
-	//		},
-	//	},
-	//}
-
-	cfg := kubeConfig{
+func (e *EKSCluster) GenerateK8sConfig() *clientcmdapi.Config {
+	//TODO install
+	// go get github.com/kubernetes-sigs/aws-iam-authenticator/cmd/aws-iam-authenticator
+	cfg := clientcmdapi.Config{
 		APIVersion: "v1",
-		Clusters: []configCluster{
+		Clusters: []clientcmdapi.NamedCluster{
 			{
 				Name: e.modelCluster.Name,
-				Cluster: dataCluster{
+				Cluster: clientcmdapi.Cluster{
 					Server: e.APIEndpoint,
 					CertificateAuthorityData: e.CertificateAuthorityData,
 				},
 			},
 		},
-		Contexts: []configContext{
+		Contexts: []clientcmdapi.NamedContext{
 			{
 				Name: e.modelCluster.Name,
-				Context: contextData{
-					User:    "eks",
-					Cluster: e.modelCluster.Name,
+				Context: clientcmdapi.Context{
+					AuthInfo: "eks",
+					Cluster:  e.modelCluster.Name,
 				},
 			},
 		},
-		Users: []configUser{
+		AuthInfos: []clientcmdapi.NamedAuthInfo{
 			{
 				Name: "eks",
-				User: userData{},
+				AuthInfo: clientcmdapi.AuthInfo{
+					Exec: &clientcmdapi.ExecConfig{
+						APIVersion: "client.authentication.k8s.io/v1alpha1",
+						Command:    "aws-iam-authenticator",
+						Args:       []string{"token", "-i", e.modelCluster.Name},
+						// Env:        []clientcmdapi.ExecEnvVar{clientcmdapi.ExecEnvVar{Name: "AWS_PROFILE", Value: "your_aws_profile_name"}},
+					},
+				},
 			},
 		},
 		Kind:           "Config",
@@ -312,7 +303,7 @@ func (e *EKSCluster) DownloadK8sConfig() ([]byte, error) { //YAML data bytes
 	// defined here: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstancesLinux.html
 
 	config := e.GenerateK8sConfig()
-	bytes, err := yaml.Marshal(config)
+	bytes, err := json.Marshal(config)
 	return bytes, err
 }
 
