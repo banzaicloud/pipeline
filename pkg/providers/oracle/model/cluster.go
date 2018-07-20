@@ -216,7 +216,6 @@ func (c *Cluster) RemoveNodePools() error {
 		return nil
 	}
 
-	database.GetDB().LogMode(false)
 	var nodePools []*NodePool
 	err := database.GetDB().Where(NodePool{
 		ClusterID: c.ID,
@@ -224,7 +223,6 @@ func (c *Cluster) RemoveNodePools() error {
 	if err != nil {
 		log.Errorf("Error during deleting saved nodepools: %s", err.Error())
 	}
-	database.GetDB().LogMode(false)
 
 	return nil
 }
