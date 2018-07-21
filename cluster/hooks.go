@@ -259,7 +259,7 @@ func installDeployment(cluster CommonCluster, namespace string, deploymentName s
 		}
 	}
 
-	_, err = helm.CreateDeployment(deploymentName, namespace, releaseName, values, kubeConfig, helm.GenerateHelmRepoEnv(org.Name))
+	_, err = helm.CreateDeployment(deploymentName, "", namespace, releaseName, values, kubeConfig, helm.GenerateHelmRepoEnv(org.Name))
 	if err != nil {
 		log.Errorf("Deploying '%s' failed due to: %s", deploymentName, err.Error())
 		return err

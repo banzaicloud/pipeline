@@ -90,8 +90,8 @@ type CreateUpdateDeploymentResponse struct {
 // CreateUpdateDeploymentRequest describes a Helm deployment
 type CreateUpdateDeploymentRequest struct {
 	Name        string                 `json:"name" binding:"required"`
+	Version     string                 `json:"version,omitempty"`
 	ReleaseName string                 `json:"releaseName"`
-	Version     int32                  `json:"version"`
 	ReUseValues bool                   `json:"reuseValues"`
 	Namespace   string                 `json:"namespace"`
 	Values      map[string]interface{} `json:"values,omitempty"`

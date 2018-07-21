@@ -151,17 +151,17 @@ func ListDeployments(filter *string, kubeConfig []byte) (*rls.ListReleasesRespon
 }
 
 //UpgradeDeployment upgrades a Helm deployment
-func UpgradeDeployment(releaseName, chartName string, values []byte, reuseValues bool, kubeConfig []byte, env helm_env.EnvSettings) (*rls.UpdateReleaseResponse, error) {
+func UpgradeDeployment(releaseName, chartName, chartVersion string, values []byte, reuseValues bool, kubeConfig []byte, env helm_env.EnvSettings) (*rls.UpdateReleaseResponse, error) {
 	//Map chartName as
-	log.Infof("Deploying chart=%q, release name=%q", chartName, releaseName)
-	downloadedChartPath, err := DownloadChartFromRepo(chartName, env)
+	log.Infof("Deploying chart=%q, version=%q release name=%q", chartName, chartVersion, releaseName)
+	downloadedChartPath, err := DownloadChartFromRepo(chartName, chartVersion, env)
 	if err != nil {
 		return nil, err
 	}
 
 	chartRequested, err := chartutil.Load(downloadedChartPath)
 	if err != nil {
-		return nil, fmt.Errorf("Error loading chart: %v", err)
+		return nil, fmt.Errorf("error loading chart: %v", err)
 	}
 	if req, err := chartutil.LoadRequirements(chartRequested); err == nil {
 		if err := checkDependencies(chartRequested, req); err != nil {
@@ -190,10 +190,10 @@ func UpgradeDeployment(releaseName, chartName string, values []byte, reuseValues
 }
 
 //CreateDeployment creates a Helm deployment in chosen namespace
-func CreateDeployment(chartName string, namespace string, releaseName string, valueOverrides []byte, kubeConfig []byte, env helm_env.EnvSettings) (*rls.InstallReleaseResponse, error) {
+func CreateDeployment(chartName string, chartVersion, namespace string, releaseName string, valueOverrides []byte, kubeConfig []byte, env helm_env.EnvSettings) (*rls.InstallReleaseResponse, error) {
 
-	log.Infof("Deploying chart=%q, release name=%q", chartName, releaseName)
-	downloadedChartPath, err := DownloadChartFromRepo(chartName, env)
+	log.Infof("Deploying chart=%q, version=%q release name=%q", chartName, chartVersion, releaseName)
+	downloadedChartPath, err := DownloadChartFromRepo(chartName, chartVersion, env)
 	if err != nil {
 		return nil, err
 	}
@@ -202,7 +202,7 @@ func CreateDeployment(chartName string, namespace string, releaseName string, va
 
 	chartRequested, err := chartutil.Load(downloadedChartPath)
 	if err != nil {
-		return nil, fmt.Errorf("Error loading chart: %v", err)
+		return nil, fmt.Errorf("error loading chart: %v", err)
 	}
 	if req, err := chartutil.LoadRequirements(chartRequested); err == nil {
 		if err := checkDependencies(chartRequested, req); err != nil {
