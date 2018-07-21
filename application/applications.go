@@ -226,7 +226,7 @@ func CreateApplicationDeployment(env helm_env.EnvSettings, am *model.Application
 		return err
 	}
 	if !ok {
-		resp, err := helm.CreateDeployment(chart, helm.DefaultNamespace, releaseName, values, kubeConfig, env)
+		resp, err := helm.CreateDeployment(chart, "", helm.DefaultNamespace, releaseName, values, kubeConfig, env)
 		if err != nil {
 			deployment.Update(model.Deployment{Status: FAILED, Message: err.Error()})
 			return err
@@ -322,7 +322,7 @@ func EnsureChart(env helm_env.EnvSettings, dep pkgCatalog.ApplicationDependency,
 	// TODO this is a workaround to not implement repository handling
 	chart := catalog.CatalogRepository + "/" + dep.Chart.Name
 
-	resp, err := helm.CreateDeployment(chart, dep.Namespace, releaseName, nil, kubeConfig, env)
+	resp, err := helm.CreateDeployment(chart, "", dep.Namespace, releaseName, nil, kubeConfig, env)
 	if err != nil {
 		return "", err
 	}

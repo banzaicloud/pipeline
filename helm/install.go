@@ -180,7 +180,7 @@ func GenerateHelmRepoEnv(orgName string) (env helm_env.EnvSettings) {
 }
 
 // DownloadChartFromRepo download a given chart
-func DownloadChartFromRepo(name string, env helm_env.EnvSettings) (string, error) {
+func DownloadChartFromRepo(name, version string, env helm_env.EnvSettings) (string, error) {
 	dl := downloader.ChartDownloader{
 		HelmHome: env.Home,
 		Getters:  getter.All(env),
@@ -190,18 +190,18 @@ func DownloadChartFromRepo(name string, env helm_env.EnvSettings) (string, error
 		os.MkdirAll(env.Home.Archive(), 0744)
 	}
 
-	log.Infof("Downloading helm chart '%s' to '%s'", name, env.Home.Archive())
-	filename, _, err := dl.DownloadTo(name, "", env.Home.Archive())
+	log.Infof("Downloading helm chart %q, version %q to %q", name, version, env.Home.Archive())
+	filename, _, err := dl.DownloadTo(name, version, env.Home.Archive())
 	if err == nil {
 		lname, err := filepath.Abs(filename)
 		if err != nil {
 			return filename, errors.Wrapf(err, "Could not create absolute path from %s", filename)
 		}
-		log.Debugf("Fetched helm chart '%s' to '%s'", name, filename)
+		log.Debugf("Fetched helm chart %q, version %q to %q", name, version, filename)
 		return lname, nil
 	}
 
-	return filename, errors.Wrapf(err, "Failed to download %q", name)
+	return filename, errors.Wrapf(err, "Failed to download chart %q, version %q", name, version)
 }
 
 // InstallHelmClient Installs helm client on a given path

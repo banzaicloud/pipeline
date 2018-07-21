@@ -4104,6 +4104,10 @@ components:
         name:
           type: string
           example: "banzaicloud-stable/drone"
+        version:
+          type: string
+          example: "0.1.0"
+          description: "Version of the deployment. If not specified, the latest version is used."
         namespace:
           type: string
           example: "default"
@@ -4113,9 +4117,6 @@ components:
         reuseValues:
           type: boolean
           example: "true"
-        version:
-          type: integer
-          example: 1
         values:
           type: object
           additionalProperties: true

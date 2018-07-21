@@ -11,11 +11,12 @@
 package client
 
 type CreateUpdateDeploymentRequest struct {
-	Name        string `json:"name"`
+	Name string `json:"name"`
+	// Version of the deployment. If not specified, the latest version is used.
+	Version     string `json:"version,omitempty"`
 	Namespace   string `json:"namespace,omitempty"`
 	ReleaseName string `json:"releaseName,omitempty"`
 	ReuseValues bool   `json:"reuseValues,omitempty"`
-	Version     int32  `json:"version,omitempty"`
 	// current values of the deployment
 	Values map[string]interface{} `json:"values,omitempty"`
 }

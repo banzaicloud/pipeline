@@ -4446,10 +4446,14 @@ components:
         name: banzaicloud-stable/drone
         namespace: default
         reuseValues: true
-        version: 1
+        version: 0.1.0
       properties:
         name:
           example: banzaicloud-stable/drone
+          type: string
+        version:
+          description: Version of the deployment. If not specified, the latest version is used.
+          example: 0.1.0
           type: string
         namespace:
           example: default
@@ -4460,10 +4464,6 @@ components:
         reuseValues:
           example: true
           type: boolean
-        version:
-          example: 1
-          format: int32
-          type: integer
         values:
           additionalProperties: true
           description: current values of the deployment
