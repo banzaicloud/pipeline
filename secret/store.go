@@ -213,6 +213,32 @@ func (ss *secretStore) Update(organizationID uint, secretID string, value *Creat
 	return nil
 }
 
+// CreateOrUpdate create new secret or update if it's exist. secret/orgs/:orgid:/:id: scope
+func (ss *secretStore) CreateOrUpdate(organizationID uint, value *CreateSecretRequest) (string, error) {
+
+	secretID := GenerateSecretID(value)
+
+	// Try to get the secret version first
+	if secret, err := Store.Get(organizationID, secretID); err != nil && err != ErrSecretNotExists {
+		log.Errorf("Error during checking secret: %s", err.Error())
+		return "", err
+	} else if secret != nil {
+		value.Version = &(secret.Version)
+		err := Store.Update(organizationID, secretID, value)
+		if err != nil {
+			log.Errorf("Error during updating secret: %s", err.Error())
+			return "", err
+		}
+	} else {
+		secretID, err = Store.Store(organizationID, value)
+		if err != nil {
+			log.Errorf("Error during storing secret: %s", err.Error())
+			return "", err
+		}
+	}
+	return secretID, nil
+}
+
 func parseSecret(secretID string, secret *vaultapi.Secret, values bool) (*SecretItemResponse, error) {
 
 	data := cast.ToStringMap(secret.Data["data"])
