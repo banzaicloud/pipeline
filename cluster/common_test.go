@@ -34,6 +34,7 @@ const (
 	clusterRequestKubernetes     = "1.9.6"
 	clusterRequestAgentName      = "testAgent"
 	clusterRequestSpotPrice      = "1.2"
+	clusterRequestNodeMinCount   = 1
 	clusterRequestNodeMaxCount   = 2
 	clusterRequestNodeImage      = "testImage"
 	clusterRequestMasterImage    = "testImage"
@@ -58,7 +59,7 @@ var (
 	}
 	eksSecretRequest = secret.CreateSecretRequest{
 		Name: secretName,
-		Type: pkgCluster.Amazon,
+		Type: pkgCluster.Eks,
 		Values: map[string]string{
 			clusterKubeMetaKey: clusterKubeMetaValue,
 		},
@@ -95,6 +96,11 @@ var (
 	errGoogleAmazon = secret.MissmatchError{
 		SecretType: pkgCluster.Google,
 		ValidType:  pkgCluster.Amazon,
+	}
+
+	errEksGoogle = secret.MissmatchError{
+		SecretType: pkgCluster.Eks,
+		ValidType:  pkgCluster.Google,
 	}
 )
 
@@ -215,6 +221,7 @@ func TestGetSecretWithValidation(t *testing.T) {
 		{"aws wrong cloud field", awsSecretRequest, gkeCreateFull, errAmazonGoogle},
 		{"aks wrong cloud field", aksSecretRequest, awsCreateFull, errAzureAmazon},
 		{"gke wrong cloud field", gkeSecretRequest, awsCreateFull, errGoogleAmazon},
+		{"eks wrong cloud field", eksSecretRequest, gkeCreateFull, errEksGoogle},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -257,14 +264,13 @@ var (
 		Cloud:    pkgCluster.Google,
 		SecretId: clusterRequestSecretId,
 		Properties: struct {
-			CreateClusterAmazon    *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
-			CreateClusterEks       *eks.CreateClusterEks        `json:"eks,omitempty"`
-			CreateClusterAmazonEks *eks.CreateClusterEks        `json:"eks,omitempty"`
-			CreateClusterAzure     *azure.CreateClusterAzure    `json:"azure,omitempty"`
-			CreateClusterGoogle    *google.CreateClusterGoogle  `json:"google,omitempty"`
-			CreateClusterDummy     *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
-			CreateKubernetes       *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
-			CreateClusterOracle    *oracle.Cluster              `json:"oracle,omitempty"`
+			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
+			CreateClusterEks    *eks.CreateClusterEks        `json:"eks,omitempty"`
+			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
+			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
+			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
+			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
+			CreateClusterOracle *oracle.Cluster              `json:"oracle,omitempty"`
 		}{
 			CreateClusterGoogle: &google.CreateClusterGoogle{
 				NodeVersion: clusterRequestVersion,
@@ -290,14 +296,13 @@ var (
 		Cloud:    pkgCluster.Google,
 		SecretId: clusterRequestSecretId,
 		Properties: struct {
-			CreateClusterAmazon    *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
-			CreateClusterEks       *eks.CreateClusterEks        `json:"eks,omitempty"`
-			CreateClusterAmazonEks *eks.CreateClusterEks        `json:"eks,omitempty"`
-			CreateClusterAzure     *azure.CreateClusterAzure    `json:"azure,omitempty"`
-			CreateClusterGoogle    *google.CreateClusterGoogle  `json:"google,omitempty"`
-			CreateClusterDummy     *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
-			CreateKubernetes       *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
-			CreateClusterOracle    *oracle.Cluster              `json:"oracle,omitempty"`
+			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
+			CreateClusterEks    *eks.CreateClusterEks        `json:"eks,omitempty"`
+			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
+			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
+			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
+			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
+			CreateClusterOracle *oracle.Cluster              `json:"oracle,omitempty"`
 		}{
 			CreateClusterGoogle: &google.CreateClusterGoogle{
 				NodeVersion: clusterRequestVersion,
@@ -320,13 +325,13 @@ var (
 		Cloud:    pkgCluster.Azure,
 		SecretId: clusterRequestSecretId,
 		Properties: struct {
-			CreateClusterAmazon    *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
-			CreateClusterAmazonEks *eks.CreateClusterEks        `json:"eks,omitempty"`
-			CreateClusterAzure     *azure.CreateClusterAzure    `json:"azure,omitempty"`
-			CreateClusterGoogle    *google.CreateClusterGoogle  `json:"google,omitempty"`
-			CreateClusterDummy     *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
-			CreateKubernetes       *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
-			CreateClusterOracle    *oracle.Cluster              `json:"oracle,omitempty"`
+			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
+			CreateClusterEks    *eks.CreateClusterEks        `json:"eks,omitempty"`
+			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
+			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
+			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
+			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
+			CreateClusterOracle *oracle.Cluster              `json:"oracle,omitempty"`
 		}{
 			CreateClusterAzure: &azure.CreateClusterAzure{
 				ResourceGroup:     clusterRequestRG,
@@ -350,13 +355,13 @@ var (
 		Cloud:    pkgCluster.Azure,
 		SecretId: clusterRequestSecretId,
 		Properties: struct {
-			CreateClusterAmazon    *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
-			CreateClusterAmazonEks *eks.CreateClusterEks        `json:"eks,omitempty"`
-			CreateClusterAzure     *azure.CreateClusterAzure    `json:"azure,omitempty"`
-			CreateClusterGoogle    *google.CreateClusterGoogle  `json:"google,omitempty"`
-			CreateClusterDummy     *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
-			CreateKubernetes       *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
-			CreateClusterOracle    *oracle.Cluster              `json:"oracle,omitempty"`
+			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
+			CreateClusterEks    *eks.CreateClusterEks        `json:"eks,omitempty"`
+			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
+			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
+			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
+			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
+			CreateClusterOracle *oracle.Cluster              `json:"oracle,omitempty"`
 		}{
 			CreateClusterAzure: &azure.CreateClusterAzure{
 				ResourceGroup:     clusterRequestRG,
@@ -377,13 +382,13 @@ var (
 		Cloud:    pkgCluster.Amazon,
 		SecretId: clusterRequestSecretId,
 		Properties: struct {
-			CreateClusterAmazon    *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
-			CreateClusterAmazonEks *eks.CreateClusterEks        `json:"eks,omitempty"`
-			CreateClusterAzure     *azure.CreateClusterAzure    `json:"azure,omitempty"`
-			CreateClusterGoogle    *google.CreateClusterGoogle  `json:"google,omitempty"`
-			CreateClusterDummy     *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
-			CreateKubernetes       *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
-			CreateClusterOracle    *oracle.Cluster              `json:"oracle,omitempty"`
+			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
+			CreateClusterEks    *eks.CreateClusterEks        `json:"eks,omitempty"`
+			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
+			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
+			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
+			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
+			CreateClusterOracle *oracle.Cluster              `json:"oracle,omitempty"`
 		}{
 			CreateClusterAmazon: &amazon.CreateClusterAmazon{
 				NodePools: map[string]*amazon.NodePool{
@@ -404,19 +409,43 @@ var (
 		},
 	}
 
+	eksCreateFull = &pkgCluster.CreateClusterRequest{
+		Name:     clusterRequestName,
+		Location: clusterRequestLocation,
+		Cloud:    pkgCluster.Eks,
+		SecretId: clusterRequestSecretId,
+		Properties: struct {
+			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
+			CreateClusterEks    *eks.CreateClusterEks        `json:"eks,omitempty"`
+			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
+			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
+			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
+			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
+			CreateClusterOracle *oracle.Cluster              `json:"oracle,omitempty"`
+		}{
+			CreateClusterEks: &eks.CreateClusterEks{
+				NodeImageId:      clusterRequestNodeImage,
+				NodeInstanceType: clusterRequestNodeInstance,
+				Version:          clusterRequestVersion,
+				NodeMinCount:     clusterRequestNodeMinCount,
+				NodeMaxCount:     clusterRequestNodeMaxCount,
+			},
+		},
+	}
+
 	dummyCreateFull = &pkgCluster.CreateClusterRequest{
 		Name:     clusterRequestName,
 		Location: clusterRequestLocation,
 		Cloud:    pkgCluster.Dummy,
 		SecretId: clusterRequestSecretId,
 		Properties: struct {
-			CreateClusterAmazon    *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
-			CreateClusterAmazonEks *eks.CreateClusterEks        `json:"eks,omitempty"`
-			CreateClusterAzure     *azure.CreateClusterAzure    `json:"azure,omitempty"`
-			CreateClusterGoogle    *google.CreateClusterGoogle  `json:"google,omitempty"`
-			CreateClusterDummy     *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
-			CreateKubernetes       *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
-			CreateClusterOracle    *oracle.Cluster              `json:"oracle,omitempty"`
+			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
+			CreateClusterEks    *eks.CreateClusterEks        `json:"eks,omitempty"`
+			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
+			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
+			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
+			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
+			CreateClusterOracle *oracle.Cluster              `json:"oracle,omitempty"`
 		}{
 			CreateClusterDummy: &dummy.CreateClusterDummy{
 				Node: &dummy.Node{
@@ -433,13 +462,13 @@ var (
 		Cloud:    pkgCluster.Amazon,
 		SecretId: clusterRequestSecretId,
 		Properties: struct {
-			CreateClusterAmazon    *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
-			CreateClusterAmazonEks *eks.CreateClusterEks        `json:"eks,omitempty"`
-			CreateClusterAzure     *azure.CreateClusterAzure    `json:"azure,omitempty"`
-			CreateClusterGoogle    *google.CreateClusterGoogle  `json:"google,omitempty"`
-			CreateClusterDummy     *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
-			CreateKubernetes       *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
-			CreateClusterOracle    *oracle.Cluster              `json:"oracle,omitempty"`
+			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
+			CreateClusterEks    *eks.CreateClusterEks        `json:"eks,omitempty"`
+			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
+			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
+			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
+			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
+			CreateClusterOracle *oracle.Cluster              `json:"oracle,omitempty"`
 		}{
 			CreateClusterAmazon: &amazon.CreateClusterAmazon{
 				NodePools: map[string]*amazon.NodePool{
@@ -465,13 +494,13 @@ var (
 		Cloud:    pkgCluster.Kubernetes,
 		SecretId: clusterRequestSecretId,
 		Properties: struct {
-			CreateClusterAmazon    *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
-			CreateClusterAmazonEks *eks.CreateClusterEks        `json:"eks,omitempty"`
-			CreateClusterAzure     *azure.CreateClusterAzure    `json:"azure,omitempty"`
-			CreateClusterGoogle    *google.CreateClusterGoogle  `json:"google,omitempty"`
-			CreateClusterDummy     *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
-			CreateKubernetes       *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
-			CreateClusterOracle    *oracle.Cluster              `json:"oracle,omitempty"`
+			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
+			CreateClusterEks    *eks.CreateClusterEks        `json:"eks,omitempty"`
+			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
+			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
+			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
+			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
+			CreateClusterOracle *oracle.Cluster              `json:"oracle,omitempty"`
 		}{
 			CreateKubernetes: &kubernetes.CreateKubernetes{
 				Metadata: map[string]string{
@@ -487,13 +516,13 @@ var (
 		Cloud:    pkgCluster.Kubernetes,
 		SecretId: clusterRequestSecretId,
 		Properties: struct {
-			CreateClusterAmazon    *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
-			CreateClusterAmazonEks *eks.CreateClusterEks        `json:"eks,omitempty"`
-			CreateClusterAzure     *azure.CreateClusterAzure    `json:"azure,omitempty"`
-			CreateClusterGoogle    *google.CreateClusterGoogle  `json:"google,omitempty"`
-			CreateClusterDummy     *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
-			CreateKubernetes       *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
-			CreateClusterOracle    *oracle.Cluster              `json:"oracle,omitempty"`
+			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
+			CreateClusterEks    *eks.CreateClusterEks        `json:"eks,omitempty"`
+			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
+			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
+			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
+			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
+			CreateClusterOracle *oracle.Cluster              `json:"oracle,omitempty"`
 		}{
 			CreateKubernetes: &kubernetes.CreateKubernetes{
 				Metadata: map[string]string{
@@ -509,13 +538,13 @@ var (
 		Cloud:    "nonExistsCloud",
 		SecretId: clusterRequestSecretId,
 		Properties: struct {
-			CreateClusterAmazon    *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
-			CreateClusterAmazonEks *eks.CreateClusterEks        `json:"eks,omitempty"`
-			CreateClusterAzure     *azure.CreateClusterAzure    `json:"azure,omitempty"`
-			CreateClusterGoogle    *google.CreateClusterGoogle  `json:"google,omitempty"`
-			CreateClusterDummy     *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
-			CreateKubernetes       *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
-			CreateClusterOracle    *oracle.Cluster              `json:"oracle,omitempty"`
+			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
+			CreateClusterEks    *eks.CreateClusterEks        `json:"eks,omitempty"`
+			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
+			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
+			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
+			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
+			CreateClusterOracle *oracle.Cluster              `json:"oracle,omitempty"`
 		}{},
 	}
 
@@ -525,13 +554,13 @@ var (
 		Cloud:    pkgCluster.Google,
 		SecretId: clusterRequestSecretId,
 		Properties: struct {
-			CreateClusterAmazon    *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
-			CreateClusterAmazonEks *eks.CreateClusterEks        `json:"eks,omitempty"`
-			CreateClusterAzure     *azure.CreateClusterAzure    `json:"azure,omitempty"`
-			CreateClusterGoogle    *google.CreateClusterGoogle  `json:"google,omitempty"`
-			CreateClusterDummy     *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
-			CreateKubernetes       *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
-			CreateClusterOracle    *oracle.Cluster              `json:"oracle,omitempty"`
+			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
+			CreateClusterEks    *eks.CreateClusterEks        `json:"eks,omitempty"`
+			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
+			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
+			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
+			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
+			CreateClusterOracle *oracle.Cluster              `json:"oracle,omitempty"`
 		}{
 			CreateClusterGoogle: &google.CreateClusterGoogle{
 				NodeVersion: clusterRequestVersion,
@@ -554,13 +583,13 @@ var (
 		Cloud:    pkgCluster.Google,
 		SecretId: clusterRequestSecretId,
 		Properties: struct {
-			CreateClusterAmazon    *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
-			CreateClusterAmazonEks *eks.CreateClusterEks        `json:"eks,omitempty"`
-			CreateClusterAzure     *azure.CreateClusterAzure    `json:"azure,omitempty"`
-			CreateClusterGoogle    *google.CreateClusterGoogle  `json:"google,omitempty"`
-			CreateClusterDummy     *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
-			CreateKubernetes       *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
-			CreateClusterOracle    *oracle.Cluster              `json:"oracle,omitempty"`
+			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
+			CreateClusterEks    *eks.CreateClusterEks        `json:"eks,omitempty"`
+			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
+			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
+			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
+			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
+			CreateClusterOracle *oracle.Cluster              `json:"oracle,omitempty"`
 		}{
 			CreateClusterGoogle: &google.CreateClusterGoogle{
 				NodeVersion: clusterRequestVersion,

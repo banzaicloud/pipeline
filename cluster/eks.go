@@ -37,7 +37,6 @@ func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 		OrganizationId: orgId,
 		SecretId:       request.SecretId,
 
-		//TODO ha kihagyjuk a postnal a properties fieldet, ez elszall meg csak hibakodot sem ad vissza a szerver
 		Eks: model.AmazonEksClusterModel{
 			NodeImageId:      request.Properties.CreateClusterEks.NodeImageId,
 			NodeInstanceType: request.Properties.CreateClusterEks.NodeInstanceType,
