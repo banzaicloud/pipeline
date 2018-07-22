@@ -84,6 +84,7 @@ func init() {
 	viper.SetDefault("monitor.enabled", false)
 	viper.SetDefault("monitor.configmap", "")
 	viper.SetDefault("monitor.mountpath", "")
+	viper.SetDefault("monitor.grafanaAdminUsername", "admin")
 
 	// Find and read the config file
 	if err := viper.ReadInConfig(); err != nil {

@@ -108,7 +108,7 @@ func InstallMonitoring(input interface{}) error {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
 
-	const grafanaAdminUsername = "admin"
+	grafanaAdminUsername := viper.GetString("monitor.grafanaAdminUsername")
 	// Grafana password generator
 	grafanaAdminPass, err := secret.RandomString("randAlphaNum", 12)
 	if err != nil {
@@ -133,7 +133,7 @@ func InstallMonitoring(input interface{}) error {
 	}
 	log.Debugf("Grafana Secret Stored id: %s", secretID)
 
-	grafanaValues := fmt.Sprintf("{\"adminUser\": \"%s\",\"adminPassword\": \"%s\"}", grafanaAdminUsername, grafanaAdminPass)
+	grafanaValues := fmt.Sprintf("{\"grafana.adminUser\": \"%s\",\"grafana.adminPassword\": \"%s\"}", grafanaAdminUsername, grafanaAdminPass)
 	return installDeployment(cluster, "pipeline-infra", pkgHelm.BanzaiRepository+"/pipeline-cluster-monitor", "pipeline-monitoring", []byte(grafanaValues), "InstallMonitoring")
 }
 
