@@ -1,11 +1,11 @@
-# HelmChartDetailsResponse
+# HelmChartDetailsResponseVersions
 
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Name** | **string** |  | [optional] 
-**Repo** | **string** |  | [optional] 
-**Versions** | [**[]HelmChartDetailsResponseVersions**](HelmChartDetailsResponse_versions.md) |  | [optional] 
+**Chart** | [**HelmChartDetailsResponseChart**](HelmChartDetailsResponse_chart.md) |  | [optional] 
+**Values** | **string** |  | [optional] 
+**Readme** | **string** |  | [optional] 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

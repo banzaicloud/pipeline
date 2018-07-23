@@ -34,10 +34,16 @@ Get helm chart details
  * @param orgId Organization identification
  * @param repoName Chart repository name
  * @param chartName Chart Name
- * @param chartVersion Chart version
+ * @param optional nil or *HelmChartDetailsOpts - Optional Parameters:
+ * @param "Version" (optional.String) -  Chart version
 @return HelmChartDetailsResponse
 */
-func (a *HelmApiService) HelmChartDetails(ctx context.Context, orgId int32, repoName string, chartName string, chartVersion string) (HelmChartDetailsResponse, *http.Response, error) {
+
+type HelmChartDetailsOpts struct {
+	Version optional.String
+}
+
+func (a *HelmApiService) HelmChartDetails(ctx context.Context, orgId int32, repoName string, chartName string, localVarOptionals *HelmChartDetailsOpts) (HelmChartDetailsResponse, *http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Get")
 		localVarPostBody     interface{}
@@ -48,16 +54,18 @@ func (a *HelmApiService) HelmChartDetails(ctx context.Context, orgId int32, repo
 	)
 
 	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/api/v1/orgs/{orgId}/helm/chart/{repoName}/{chartName}/{chartVersion}"
+	localVarPath := a.client.cfg.BasePath + "/api/v1/orgs/{orgId}/helm/chart/{repoName}/{chartName}"
 	localVarPath = strings.Replace(localVarPath, "{"+"orgId"+"}", fmt.Sprintf("%v", orgId), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"repoName"+"}", fmt.Sprintf("%v", repoName), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"chartName"+"}", fmt.Sprintf("%v", chartName), -1)
-	localVarPath = strings.Replace(localVarPath, "{"+"chartVersion"+"}", fmt.Sprintf("%v", chartVersion), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if localVarOptionals != nil && localVarOptionals.Version.IsSet() {
+		localVarQueryParams.Add("version", parameterToString(localVarOptionals.Version.Value(), ""))
+	}
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{}
 

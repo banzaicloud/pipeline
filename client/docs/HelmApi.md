@@ -4,7 +4,7 @@ All URIs are relative to *http://localhost:9090*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**HelmChartDetails**](HelmApi.md#HelmChartDetails) | **Get** /api/v1/orgs/{orgId}/helm/chart/{repoName}/{chartName}/{chartVersion} | Chart details
+[**HelmChartDetails**](HelmApi.md#HelmChartDetails) | **Get** /api/v1/orgs/{orgId}/helm/chart/{repoName}/{chartName} | Chart details
 [**HelmChartList**](HelmApi.md#HelmChartList) | **Get** /api/v1/orgs/{orgId}/helm/charts/ | Chart List
 [**HelmInit**](HelmApi.md#HelmInit) | **Get** /api/v1/orgs/{orgId}/helm/repos | List repositories
 [**HelmReposAdd**](HelmApi.md#HelmReposAdd) | **Post** /api/v1/orgs/{orgId}/helm/repos | Add Repo
@@ -14,7 +14,7 @@ Method | HTTP request | Description
 
 
 # **HelmChartDetails**
-> HelmChartDetailsResponse HelmChartDetails(ctx, orgId, repoName, chartName, chartVersion)
+> HelmChartDetailsResponse HelmChartDetails(ctx, orgId, repoName, chartName, optional)
 Chart details
 
 Get helm chart details
@@ -27,7 +27,17 @@ Name | Type | Description  | Notes
   **orgId** | **int32**| Organization identification | 
   **repoName** | **string**| Chart repository name | 
   **chartName** | **string**| Chart Name | 
-  **chartVersion** | **string**| Chart version | 
+ **optional** | ***HelmChartDetailsOpts** | optional parameters | nil if no parameters
+
+### Optional Parameters
+Optional parameters are passed through a pointer to a HelmChartDetailsOpts struct
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+
+
+
+ **version** | **optional.String**| Chart version | 
 
 ### Return type
 
