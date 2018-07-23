@@ -636,7 +636,7 @@ func HelmChart(c *gin.Context) {
 	chartName := c.Param("name")
 	log.Debugln("chartName:", chartName)
 
-	chartVersion := c.Param("version")
+	chartVersion := c.DefaultQuery("version", "")
 	log.Debugln("version:", chartVersion)
 
 	helmEnv := helm.GenerateHelmRepoEnv(auth.GetCurrentOrganization(c.Request).Name)
