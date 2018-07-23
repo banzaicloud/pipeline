@@ -331,10 +331,10 @@ type CreateEksClusterAction struct {
 	kubernetesVersion string
 }
 
-func NewCreateEksClusterAction(creationContext *EksClusterCreationContext) *CreateEksClusterAction {
+func NewCreateEksClusterAction(creationContext *EksClusterCreationContext, kubernetesVersion string) *CreateEksClusterAction {
 	return &CreateEksClusterAction{
 		context:           creationContext,
-		kubernetesVersion: "1.10",
+		kubernetesVersion: kubernetesVersion,
 	}
 }
 
@@ -563,7 +563,7 @@ func (action *CreateWorkersVPCStackAction) ExecuteAction(input interface{}) (out
 				ParameterValue: aws.String(commaDelimitedSubnetIDs),
 			},
 		},
-		Tags:             []*cloudformation.Tag{&cloudformation.Tag{Key: aws.String("pipeline-created"), Value: aws.String("true")}},
+		Tags:             []*cloudformation.Tag{{Key: aws.String("pipeline-created"), Value: aws.String("true")}},
 		TemplateURL:      aws.String("https://amazon-eks.s3-us-west-2.amazonaws.com/1.10.3/2018-06-05/amazon-eks-nodegroup.yaml"),
 		TimeoutInMinutes: aws.Int64(10),
 	}

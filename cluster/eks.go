@@ -142,7 +142,7 @@ func (e *EKSCluster) CreateCluster() error {
 		action.NewCreateVPCAction(creationContext, eksStackName),
 		action.NewUploadSSHKeyAction(creationContext, sshSecret),
 		action.NewGenerateVPCConfigRequestAction(creationContext, eksStackName),
-		action.NewCreateEksClusterAction(creationContext),
+		action.NewCreateEksClusterAction(creationContext, e.modelCluster.Eks.Version),
 		action.NewLoadEksSettingsAction(creationContext),
 		action.NewCreateWorkersAction(creationContext, eksWorkerStackName, e.modelCluster.Eks.NodeMinCount, e.modelCluster.Eks.NodeMaxCount, e.modelCluster.Eks.NodeInstanceType, e.modelCluster.Eks.NodeImageId),
 		//action.NewDelayAction(10 * time.Minute), //pl ezzel lehet szimulalni ket lepes kozott egy kis varakozast, vagy varkakoztatni a kovetkezo lepest
@@ -156,7 +156,13 @@ func (e *EKSCluster) CreateCluster() error {
 	}
 
 	e.APIEndpoint = *creationContext.APIEndpoint
-	e.CertificateAuthorityData, _ = base64.StdEncoding.DecodeString(*creationContext.CertificateAuthorityData)
+	e.CertificateAuthorityData, err = base64.StdEncoding.DecodeString(aws.StringValue(creationContext.CertificateAuthorityData))
+
+	if err != nil {
+		log.Errorf("Decoding base64 format EKS K8s certificiate authority data failed: %s", err.Error())
+		return err
+	}
+
 
 	// Create the aws-auth ConfigMap for letting other nodes join
 	// See: https://docs.aws.amazon.com/eks/latest/userguide/add-user-role.html
@@ -182,7 +188,7 @@ func (e *EKSCluster) CreateCluster() error {
 	username: system:node:{{EC2PrivateDNSName}}
 	groups:
 	- system:bootstrappers
-	- system:nodes`, *creationContext.Role.Arn)}
+	- system:nodes`, aws.StringValue(creationContext.Role.Arn))}
 
 	_, err = kubeClient.CoreV1().ConfigMaps("kube-system").Create(&awsAuthConfigMap)
 	if err != nil {
