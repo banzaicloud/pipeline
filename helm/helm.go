@@ -36,6 +36,8 @@ const DefaultNamespace = "default"
 // SystemNamespace K8s system namespace
 const SystemNamespace = "kube-system"
 
+const versionAll = "all"
+
 var log *logrus.Logger
 
 // ErrRepoNotFound describe an error if helm repository not found
@@ -619,79 +621,113 @@ func ChartsGet(env helm_env.EnvSettings, queryName, queryRepo, queryVersion, que
 
 // ChartDetails describes a chart details
 type ChartDetails struct {
-	Name   string             `json:"name"`
-	Repo   string             `json:"repo"`
+	Name     string          `json:"name"`
+	Repo     string          `json:"repo"`
+	Versions []*ChartVersion `json:"versions"`
+}
+
+// ChartVersion describes a chart verion
+type ChartVersion struct {
 	Chart  *repo.ChartVersion `json:"chart"`
 	Values string             `json:"values"`
 	Readme string             `json:"readme"`
 }
 
 // ChartGet returns chart details
-func ChartGet(env helm_env.EnvSettings, chartRepo, chartName, chartVersion string) (*ChartDetails, error) {
+func ChartGet(env helm_env.EnvSettings, chartRepo, chartName, chartVersion string) (details *ChartDetails, err error) {
 
 	repoPath := env.Home.RepositoryFile()
 	log.Debugf("Helm repo path: %s", repoPath)
-	f, err := repo.LoadRepositoriesFile(repoPath)
+	var f *repo.RepoFile
+	f, err = repo.LoadRepositoriesFile(repoPath)
 	if err != nil {
-		return nil, err
+		return
 	}
+
 	if len(f.Repositories) == 0 {
-		return nil, nil
+		return
 	}
 
-	for _, r := range f.Repositories {
+	for _, repository := range f.Repositories {
 
-		log.Debugf("Repository: %s", r.Name)
+		log.Debugf("Repository: %s", repository.Name)
 
-		i, errIndx := repo.LoadIndexFile(r.Cache)
-		if errIndx != nil {
-			return nil, errIndx
+		var i *repo.IndexFile
+		i, err = repo.LoadIndexFile(repository.Cache)
+		if err != nil {
+			return
 		}
 
-		if r.Name == chartRepo {
+		details = &ChartDetails{
+			Name: chartName,
+			Repo: chartRepo,
+		}
 
-			for n := range i.Entries {
-				log.Debugf("Chart: %s", n)
-				if chartName == n {
+		if repository.Name == chartRepo {
 
-					for _, s := range i.Entries[n] {
-						if s.Version == chartVersion || chartVersion == "" {
-							chartSource := s.URLs[0]
-							log.Debugf("chartSource: %s", chartSource)
-							reader, err := DownloadFile(chartSource)
-							if err != nil {
-								return nil, err
-							}
-							valuesStr, err := GetChartFile(reader, "values.yaml")
-							if err != nil {
-								return nil, err
-							}
-							log.Debugf("values hash: %s", valuesStr)
+			for name, chartVersions := range i.Entries {
+				log.Debugf("Chart: %s", name)
+				if chartName == name {
+					for _, v := range chartVersions {
 
-							readmeStr, err := GetChartFile(reader, "README.md")
+						if v.Version == chartVersion || chartVersion == "" {
+
+							var ver *ChartVersion
+							ver, err = getChartVersion(v)
 							if err != nil {
-								return nil, err
+								return
 							}
-							log.Debugf("readme hash: %s", readmeStr)
-							chartD := &ChartDetails{
-								Name:   chartName,
-								Repo:   chartRepo,
-								Chart:  s,
-								Values: valuesStr,
-								Readme: readmeStr,
+							details.Versions = []*ChartVersion{ver}
+
+							return
+						} else if chartVersion == versionAll {
+							var ver *ChartVersion
+							ver, err = getChartVersion(v)
+							if err != nil {
+								log.Warnf("error during getting chart[%s - %s]: %s", v.Name, v.Version, err.Error())
+							} else {
+								details.Versions = append(details.Versions, ver)
 							}
-							return chartD, nil
 
 						}
 
 					}
+					return
 				}
 
 			}
 
 		}
 	}
-	return nil, nil
+	return
+}
+
+func getChartVersion(v *repo.ChartVersion) (*ChartVersion, error) {
+	log.Infof("get chart[%s - %s]", v.Name, v.Version)
+
+	chartSource := v.URLs[0]
+	log.Debugf("chartSource: %s", chartSource)
+	reader, err := DownloadFile(chartSource)
+	if err != nil {
+		return nil, err
+	}
+	valuesStr, err := GetChartFile(reader, "values.yaml")
+	if err != nil {
+		return nil, err
+	}
+	log.Debugf("values hash: %s", valuesStr)
+
+	readmeStr, err := GetChartFile(reader, "README.md")
+	if err != nil {
+		return nil, err
+	}
+	log.Debugf("readme hash: %s", readmeStr)
+
+	return &ChartVersion{
+		Chart:  v,
+		Values: valuesStr,
+		Readme: readmeStr,
+	}, nil
 }
 
 // GetVersionedChartName returns chart name enriched with version number
