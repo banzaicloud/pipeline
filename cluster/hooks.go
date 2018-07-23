@@ -14,6 +14,7 @@ import (
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/go-errors/errors"
 	"github.com/sirupsen/logrus"
@@ -106,7 +107,34 @@ func InstallMonitoring(input interface{}) error {
 	if !ok {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
-	return installDeployment(cluster, helm.DefaultNamespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-monitor", "pipeline-monitoring", nil, "InstallMonitoring")
+
+	grafanaAdminUsername := viper.GetString("monitor.grafanaAdminUsername")
+	// Grafana password generator
+	grafanaAdminPass, err := secret.RandomString("randAlphaNum", 12)
+	if err != nil {
+		return errors.Errorf("Grafana admin user password generator failed: %T", err)
+	}
+
+	clusterNameTag := fmt.Sprintf("cluster:%s", cluster.GetName())
+	createSecretRequest := secret.CreateSecretRequest{
+		Name: fmt.Sprintf("cluster-%d-grafana", cluster.GetID()),
+		Type: secretTypes.PasswordSecretType,
+		Values: map[string]string{
+			secretTypes.Username: grafanaAdminUsername,
+			secretTypes.Password: grafanaAdminPass,
+		},
+		Tags: []string{clusterNameTag, "app:grafana", "release:pipeline-monitoring"},
+	}
+
+	secretID, err := secret.Store.CreateOrUpdate(cluster.GetOrganizationId(), &createSecretRequest)
+	if err != nil {
+		log.Errorf("Error during storing grafana secret: %s", err.Error())
+		return err
+	}
+	log.Debugf("Grafana Secret Stored id: %s", secretID)
+
+	grafanaValues := fmt.Sprintf("{\"grafana.adminUser\": \"%s\",\"grafana.adminPassword\": \"%s\"}", grafanaAdminUsername, grafanaAdminPass)
+	return installDeployment(cluster, "pipeline-infra", pkgHelm.BanzaiRepository+"/pipeline-cluster-monitor", "pipeline-monitoring", []byte(grafanaValues), "InstallMonitoring")
 }
 
 // InstallLogging to install logging deployment
