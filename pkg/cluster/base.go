@@ -33,7 +33,6 @@ const (
 // Cluster provider constants
 const (
 	Amazon     = "amazon"
-	Eks        = "eks"
 	Azure      = "azure"
 	Google     = "google"
 	Dummy      = "dummy"
@@ -220,7 +219,11 @@ func (r *UpdateClusterRequest) String() string {
 func (r *CreateClusterRequest) AddDefaults() error {
 	switch r.Cloud {
 	case Amazon:
-		return r.Properties.CreateClusterAmazon.AddDefaults(r.Location)
+		if r.Properties.CreateClusterAmazon != nil {
+			return r.Properties.CreateClusterAmazon.AddDefaults(r.Location)
+		} else {
+			return r.Properties.CreateClusterEks.AddDefaults(r.Location)
+		}
 	case Oracle:
 		return r.Properties.CreateClusterOracle.AddDefaults()
 	default:
@@ -238,7 +241,11 @@ func (r *CreateClusterRequest) Validate() error {
 	switch r.Cloud {
 	case Amazon:
 		// amazon validate
-		return r.Properties.CreateClusterAmazon.Validate()
+		if r.Properties.CreateClusterAmazon != nil {
+			return r.Properties.CreateClusterAmazon.Validate()
+		} else {
+			return r.Properties.CreateClusterEks.Validate()
+		}
 	case Azure:
 		// azure validate
 		return r.Properties.CreateClusterAzure.Validate()
@@ -254,8 +261,6 @@ func (r *CreateClusterRequest) Validate() error {
 	case Oracle:
 		// oracle validate
 		return r.Properties.CreateClusterOracle.Validate(false)
-	case Eks:
-		return r.Properties.CreateClusterEks.Validate()
 	default:
 		// not supported cloud type
 		return pkgErrors.ErrorNotSupportedCloudType
@@ -500,20 +505,22 @@ func (p *ClusterProfileResponse) CreateClusterRequest(createRequest *CreateClust
 
 	switch p.Cloud {
 	case Amazon:
-		response.Properties.CreateClusterAmazon = &amazon.CreateClusterAmazon{
-			NodePools: p.Properties.Amazon.NodePools,
-			Master: &amazon.CreateAmazonMaster{
-				InstanceType: p.Properties.Amazon.Master.InstanceType,
-				Image:        p.Properties.Amazon.Master.Image,
-			},
-		}
-	case Eks:
-		response.Properties.CreateClusterEks = &eks.CreateClusterEks{
-			NodeImageId:      p.Properties.Eks.NodeImageId,
-			NodeInstanceType: p.Properties.Eks.NodeInstanceType,
-			Version:          p.Properties.Eks.Version,
-			NodeMinCount:     p.Properties.Eks.NodeMinCount,
-			NodeMaxCount:     p.Properties.Eks.NodeMaxCount,
+		if response.Properties.CreateClusterAmazon != nil {
+			response.Properties.CreateClusterAmazon = &amazon.CreateClusterAmazon{
+				NodePools: p.Properties.Amazon.NodePools,
+				Master: &amazon.CreateAmazonMaster{
+					InstanceType: p.Properties.Amazon.Master.InstanceType,
+					Image:        p.Properties.Amazon.Master.Image,
+				},
+			}
+		} else {
+			response.Properties.CreateClusterEks = &eks.CreateClusterEks{
+				NodeImageId:      p.Properties.Eks.NodeImageId,
+				NodeInstanceType: p.Properties.Eks.NodeInstanceType,
+				Version:          p.Properties.Eks.Version,
+				MinCount:         p.Properties.Eks.NodeMinCount,
+				MaxCount:         p.Properties.Eks.NodeMaxCount,
+			}
 		}
 	case Azure:
 		a := createRequest.Properties.CreateClusterAzure

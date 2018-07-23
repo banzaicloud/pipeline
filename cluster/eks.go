@@ -46,8 +46,8 @@ func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 			NodeImageId:      request.Properties.CreateClusterEks.NodeImageId,
 			NodeInstanceType: request.Properties.CreateClusterEks.NodeInstanceType,
 			Version:          request.Properties.CreateClusterEks.Version,
-			NodeMinCount:     request.Properties.CreateClusterEks.NodeMinCount,
-			NodeMaxCount:     request.Properties.CreateClusterEks.NodeMaxCount,
+			NodeMinCount:     request.Properties.CreateClusterEks.MinCount,
+			NodeMaxCount:     request.Properties.CreateClusterEks.MaxCount,
 		},
 	}
 	return &cluster, nil
@@ -408,7 +408,28 @@ func (e *EKSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 
 // ValidateCreationFields validates all fields
 func (e *EKSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
-	//TODO itt hianyzik az osszes input validalas
+	//TODO validate location, node AMIs
+	/*
+		location := r.Location
+
+		// Validate location
+		log.Info("Validate location")
+		if err := c.validateLocation(location); err != nil {
+			return err
+		}
+		log.Info("Validate location passed")
+
+		// Validate images
+		log.Info("Validate images")
+		masterImage := r.Properties.CreateClusterAmazon.Master.Image
+		if err := c.validateAMIs(masterImage, r.Properties.CreateClusterAmazon.NodePools, location); err != nil {
+			return err
+		}
+		log.Info("Validate images passed")
+
+		return nil
+
+	*/
 	return nil
 }
 

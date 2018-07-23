@@ -12,7 +12,6 @@ import (
 	"github.com/banzaicloud/bank-vaults/pkg/tls"
 	"github.com/banzaicloud/bank-vaults/vault"
 	"github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/pkg/cluster"
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	vaultapi "github.com/hashicorp/vault/api"
@@ -88,20 +87,9 @@ func (s *SecretItemResponse) GetValue(key string) string {
 	return s.Values[key]
 }
 
-//TODO temp solution so we don't need to create both eks and amazon type secrets for accessing amazon aws services
-var compatibleSecretTypes = map[string]string{
-	cluster.Amazon: cluster.Eks,
-	cluster.Eks:    cluster.Amazon,
-}
-
 // ValidateSecretType validates the secret type
 func (s *SecretItemResponse) ValidateSecretType(validType string) error {
 	if string(s.Type) != validType {
-		compatiblePair, found := compatibleSecretTypes[validType]
-
-		if found && compatiblePair == string(s.Type) {
-			return nil
-		}
 
 		return MissmatchError{
 			SecretType: s.Type,

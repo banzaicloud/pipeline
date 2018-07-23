@@ -196,30 +196,39 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 	cloudType := modelCluster.Cloud
 	switch cloudType {
 	case pkgCluster.Amazon:
-		//Create Amazon struct
-		awsCluster, err := CreateAWSClusterFromModel(modelCluster)
+
+		var c int
+		err := database.Model(&model.AmazonClusterModel{}).Where(&model.AmazonClusterModel{ClusterModelId: modelCluster.ID}).Count(&c).Error
 		if err != nil {
 			return nil, err
 		}
 
-		log.Debug("Load Amazon props from database")
-		database.Where(model.AmazonClusterModel{ClusterModelId: awsCluster.modelCluster.ID}).First(&awsCluster.modelCluster.Amazon)
-		database.Model(&awsCluster.modelCluster.Amazon).Related(&awsCluster.modelCluster.Amazon.NodePools, "NodePools")
+		if c > 0 {
+			//Create Amazon struct
+			awsCluster, err := CreateAWSClusterFromModel(modelCluster)
+			if err != nil {
+				return nil, err
+			}
 
-		return awsCluster, nil
+			log.Debug("Load Amazon props from database")
+			database.Where(model.AmazonClusterModel{ClusterModelId: awsCluster.modelCluster.ID}).First(&awsCluster.modelCluster.Amazon)
+			database.Model(&awsCluster.modelCluster.Amazon).Related(&awsCluster.modelCluster.Amazon.NodePools, "NodePools")
 
-	case pkgCluster.Eks:
-		//Create Amazon EKS struct
-		eksCluster, err := CreateEKSClusterFromModel(modelCluster)
-		if err != nil {
-			return nil, err
+			return awsCluster, nil
+
+		} else {
+			//Create Amazon EKS struct
+			eksCluster, err := CreateEKSClusterFromModel(modelCluster)
+			if err != nil {
+				return nil, err
+			}
+
+			log.Debug("Load EKS props from database")
+			database.Where(model.AmazonEksClusterModel{ClusterModelId: eksCluster.modelCluster.ID}).First(&eksCluster.modelCluster.Eks)
+			//database.Model(&eksCluster.modelCluster.Eks).Related(&eksCluster.modelCluster.Eks.NodePools, "NodePools")
+
+			return eksCluster, nil
 		}
-
-		log.Debug("Load EKS props from database")
-		database.Where(model.AmazonEksClusterModel{ClusterModelId: eksCluster.modelCluster.ID}).First(&eksCluster.modelCluster.Amazon)
-		//database.Model(&eksCluster.modelCluster.Eks).Related(&eksCluster.modelCluster.Eks.NodePools, "NodePools")
-
-		return eksCluster, nil
 
 	case pkgCluster.Azure:
 		// Create Azure struct
@@ -300,20 +309,21 @@ func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClust
 	cloudType := createClusterRequest.Cloud
 	switch cloudType {
 	case pkgCluster.Amazon:
-		//Create Amazon struct
-		awsCluster, err := CreateAWSClusterFromRequest(createClusterRequest, orgId, userId)
-		if err != nil {
-			return nil, err
+		if createClusterRequest.Properties.CreateClusterAmazon != nil {
+			//Create Amazon struct
+			awsCluster, err := CreateAWSClusterFromRequest(createClusterRequest, orgId, userId)
+			if err != nil {
+				return nil, err
+			}
+			return awsCluster, nil
+		} else {
+			//Create Eks struct
+			eksCluster, err := CreateEKSClusterFromRequest(createClusterRequest, orgId)
+			if err != nil {
+				return nil, err
+			}
+			return eksCluster, nil
 		}
-		return awsCluster, nil
-
-	case pkgCluster.Eks:
-		//Create Eks struct
-		eksCluster, err := CreateEKSClusterFromRequest(createClusterRequest, orgId)
-		if err != nil {
-			return nil, err
-		}
-		return eksCluster, nil
 
 	case pkgCluster.Azure:
 		// Create Azure struct

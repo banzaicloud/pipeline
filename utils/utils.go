@@ -108,7 +108,6 @@ func ValidateCloudType(cloudType string) error {
 	case pkgCluster.Google:
 	case pkgCluster.Azure:
 	case pkgCluster.Oracle:
-	case pkgCluster.Eks:
 		return nil
 	default:
 		return pkgErrors.ErrorNotSupportedCloudType

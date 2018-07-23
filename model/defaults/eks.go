@@ -31,7 +31,7 @@ func (d *EKSProfile) SaveInstance() error {
 
 // GetType returns profile's cloud type
 func (d *EKSProfile) GetType() string {
-	return pkgCluster.Eks
+	return pkgCluster.Amazon
 }
 
 // IsDefinedBefore returns true if database contains en entry with profile name
@@ -45,7 +45,7 @@ func (d *EKSProfile) GetProfile() *pkgCluster.ClusterProfileResponse {
 	return &pkgCluster.ClusterProfileResponse{
 		Name:     d.DefaultModel.Name,
 		Location: d.Region,
-		Cloud:    pkgCluster.Eks,
+		Cloud:    pkgCluster.Amazon,
 		Properties: struct {
 			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`

@@ -14,7 +14,7 @@ var (
 	ErrorAmazonInstancetypeFieldIsEmpty = errors.New("Required field 'instanceType' is empty ")
 
 	ErrorAmazonEksClusterNameRegexp        = errors.New("Up to 255 letters (uppercase and lowercase), numbers, hyphens, and underscores are allowed.")
-	ErrorAmazonEksFieldIsEmpty             = errors.New("Required field 'amazon' is empty.")
+	ErrorAmazonEksFieldIsEmpty             = errors.New("Required field 'eks' is empty.")
 	ErrorAmazonEksMasterFieldIsEmpty       = errors.New("Required field 'master' is empty.")
 	ErrorAmazonEksImageFieldIsEmpty        = errors.New("Required field 'image' is empty ")
 	ErrorAmazonEksNodePoolFieldIsEmpty     = errors.New("At least one 'nodePool' is required.")
