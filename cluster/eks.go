@@ -25,6 +25,13 @@ import (
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api/v1"
 )
 
+const authConfigMapTemplate = `- rolearn: %s
+  username: system:node:{{EC2PrivateDNSName}}
+  groups:
+  - system:bootstrappers
+  - system:nodes
+`
+
 //CreateEKSClusterFromRequest creates ClusterModel struct from the request
 func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint) (*EKSCluster, error) {
 	log.Debug("Create ClusterModel struct from the request")
@@ -163,7 +170,6 @@ func (e *EKSCluster) CreateCluster() error {
 		return err
 	}
 
-
 	// Create the aws-auth ConfigMap for letting other nodes join
 	// See: https://docs.aws.amazon.com/eks/latest/userguide/add-user-role.html
 	kubeConfig, err := e.DownloadK8sConfig()
@@ -183,12 +189,7 @@ func (e *EKSCluster) CreateCluster() error {
 
 	awsAuthConfigMap := v1.ConfigMap{}
 	awsAuthConfigMap.Name = "aws-auth"
-	awsAuthConfigMap.Data = map[string]string{"mapRoles": fmt.Sprintf(
-		`- rolearn: %s
-	username: system:node:{{EC2PrivateDNSName}}
-	groups:
-	- system:bootstrappers
-	- system:nodes`, aws.StringValue(creationContext.Role.Arn))}
+	awsAuthConfigMap.Data = map[string]string{"mapRoles": fmt.Sprintf(authConfigMapTemplate, creationContext.NodeInstanceRole)}
 
 	_, err = kubeClient.CoreV1().ConfigMaps("kube-system").Create(&awsAuthConfigMap)
 	if err != nil {
@@ -393,7 +394,8 @@ func (e *EKSCluster) DeleteFromDatabase() error {
 }
 
 func (e *EKSCluster) ListNodeNames() (nodeNames pkgCommon.NodeNames, err error) {
-	panic("not implemented")
+	// TODO not implemented
+	return pkgCommon.NodeNames{}, nil
 }
 
 func (e *EKSCluster) UpdateStatus(status string, statusMessage string) error {

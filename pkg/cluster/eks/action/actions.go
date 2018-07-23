@@ -25,6 +25,7 @@ import (
 type EksClusterCreationContext struct {
 	Session                  *session.Session
 	ClusterName              string
+	NodeInstanceRole         string
 	Role                     *iam.Role
 	SecurityGroupID          *string
 	SubnetIDs                []*string
@@ -596,6 +597,21 @@ func (action *CreateWorkersVPCStackAction) ExecuteAction(input interface{}) (out
 
 	if err != nil {
 		return nil, err
+	}
+
+	describeStacksOutput, err := cloudformationSrv.DescribeStacks(describeStacksInput)
+	if err != nil {
+		return
+	}
+
+	for _, output := range describeStacksOutput.Stacks[0].Outputs {
+		if *output.OutputKey == "NodeInstanceRole" {
+			action.context.NodeInstanceRole = *output.OutputValue
+		}
+	}
+
+	if action.context.NodeInstanceRole == "" {
+		return nil, fmt.Errorf("Failed to find NodeInstanceRole")
 	}
 
 	return nil, nil
