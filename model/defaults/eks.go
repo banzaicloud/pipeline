@@ -13,7 +13,7 @@ import (
 // EKSProfile describes an Amazon EKS cluster profile
 type EKSProfile struct {
 	DefaultModel
-	Region           string `gorm:"default:'eu-west-2'"`
+	Region           string `gorm:"default:'us-west-2'"`
 	NodeImageId      string `json:"nodeImageId,omitempty"`
 	NodeInstanceType string `json:"nodeInstanceType,omitempty"`
 	Version          string `json:"version,omitempty"`
