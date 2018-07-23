@@ -48,13 +48,13 @@ var _ RevocableAction = (*SubtractAction)(nil)
 
 type SubtractAction struct {
 	calculationResult *CalculationResult
-	ammount           int
+	amount            int
 }
 
-func NewSubtractAction(calculationResult *CalculationResult, ammount int) *SubtractAction {
+func NewSubtractAction(calculationResult *CalculationResult, amount int) *SubtractAction {
 	return &SubtractAction{
 		calculationResult: calculationResult,
-		ammount:           ammount,
+		amount:            amount,
 	}
 }
 
@@ -63,13 +63,13 @@ func (a *SubtractAction) GetName() string {
 }
 
 func (a *SubtractAction) ExecuteAction(input interface{}) (output interface{}, err error) {
-	a.calculationResult.value -= a.ammount
+	a.calculationResult.value -= a.amount
 	fmt.Printf("EXECUTE SUBTRACT OUTPUT: %v\n", a.calculationResult.value)
 	return a.calculationResult.value, nil
 }
 
 func (a *SubtractAction) UndoAction() (err error) {
-	a.calculationResult.value += a.ammount
+	a.calculationResult.value += a.amount
 	fmt.Printf("EXECUTE UNDO SUBTRACT OUTPUT: %v\n", a.calculationResult.value)
 	return nil
 }

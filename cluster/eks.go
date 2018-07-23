@@ -11,7 +11,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/model"
-	"github.com/banzaicloud/pipeline/model/defaults"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks/action"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
@@ -19,7 +18,6 @@ import (
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v2"
 	"k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api/v1"
@@ -167,7 +165,7 @@ func (e *EKSCluster) CreateCluster() error {
 	e.CertificateAuthorityData, err = base64.StdEncoding.DecodeString(aws.StringValue(creationContext.CertificateAuthorityData))
 
 	if err != nil {
-		log.Errorf("Decoding base64 format EKS K8s certificiate authority data failed: %s", err.Error())
+		log.Errorf("Decoding base64 format EKS K8s certificate authority data failed: %s", err.Error())
 		return err
 	}
 
@@ -197,11 +195,7 @@ func (e *EKSCluster) CreateCluster() error {
 		return err
 	}
 
-	createdCluster, err := e.getCreatedClusterModel(creationContext)
-	if err != nil {
-		return err
-	}
-	fmt.Printf("EKS cluster created: %s\n", createdCluster.Name)
+	fmt.Printf("EKS cluster created: %s\n", e.modelCluster.Name)
 
 	return nil
 }
@@ -245,8 +239,6 @@ func (e *EKSCluster) GetType() string {
 
 // DeleteCluster deletes cluster from google
 func (e *EKSCluster) DeleteCluster() error {
-	//TODO not tested
-
 	log.Info("Start delete EKS cluster")
 
 	awsCred, err := e.createAWSCredentialsFromSecret()
@@ -340,11 +332,7 @@ func (e *EKSCluster) DownloadK8sConfig() ([]byte, error) {
 func (e *EKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 
 	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
-	//TODO missing implementation..itt a nodepoolrol semmi infot nem adunk egyelore vissza,
-	//TODO mert egyelore nem poolokat, hanem egy stacket hozunk csak letre az ekshez.
-	//TODO ezt a stacket lehetne egy pool elemkent jelenleg visszaadni, vagy atalakitani, hogy
-	//TODO tobbet is tamogassunk
-
+	// TODO missing implementation
 	//for _, np := range e.modelCluster.Eks.NodePools {
 	//	if np != nil {
 	//		nodePools[np.Name] = &pkgCluster.NodePoolStatus{
@@ -458,24 +446,4 @@ func (e *EKSCluster) RequiresSshPublicKey() bool {
 // ReloadFromDatabase load cluster from DB
 func (e *EKSCluster) ReloadFromDatabase() error {
 	return e.modelCluster.ReloadFromDatabase()
-}
-func (e *EKSCluster) getCreatedClusterModel(context *action.EksClusterCreationContext) (*defaults.EksCluster, error) {
-
-	configBytes, err := yaml.Marshal(e.GenerateK8sConfig())
-	if err != nil {
-		return nil, err
-	}
-	return &defaults.EksCluster{
-		Name:             e.GetName(),
-		Cloud:            pkgCluster.Eks,
-		Region:           e.modelCluster.Location,
-		K8SVersion:       e.modelCluster.Eks.Version,
-		SSHPrivateKey:    []byte{},
-		NodeImageId:      e.modelCluster.Eks.NodeImageId,
-		NodeInstanceType: e.modelCluster.Eks.NodeInstanceType,
-		ApiEndpoint:      e.APIEndpoint,
-		MinNodes:         e.modelCluster.Eks.NodeMinCount,
-		MaxNodes:         e.modelCluster.Eks.NodeMaxCount,
-		KubeConfig:       string(configBytes),
-	}, nil
 }

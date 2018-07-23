@@ -61,13 +61,13 @@ func (ctx *ActionCallContext) executeContextAction() (interface{}, error) {
 	if selfError != nil {
 		ctx.OnFailed(selfError)
 		return selfOutput, selfError
-	} else {
-		nextOutput, err := ctx.OnCompleted(selfOutput)
-		if err != nil {
-			ctx.OnFailed(err)
-		}
-		return nextOutput, err
 	}
+
+	nextOutput, err := ctx.OnCompleted(selfOutput)
+	if err != nil {
+		ctx.OnFailed(err)
+	}
+	return nextOutput, err
 }
 
 //--

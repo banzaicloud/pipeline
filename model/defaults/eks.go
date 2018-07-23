@@ -85,18 +85,3 @@ func (d *EKSProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave
 func (d *EKSProfile) DeleteProfile() error {
 	return database.GetDB().Delete(&d).Error
 }
-
-type EksCluster struct {
-	Name       string
-	Cloud      string
-	Region     string
-	K8SVersion string
-
-	SSHPrivateKey    []byte
-	NodeImageId      string
-	NodeInstanceType string
-	ApiEndpoint      string
-	MinNodes         int
-	MaxNodes         int
-	KubeConfig       string
-}

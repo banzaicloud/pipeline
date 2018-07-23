@@ -241,7 +241,7 @@ func (action *CreateVPCAction) ExecuteAction(input interface{}) (output interfac
 	//}
 
 	//if !completed {
-	//	return nil, errors.New("Timeout occured during eks stack creation")
+	//	return nil, errors.New("Timeout occurred during eks stack creation")
 	//}
 
 	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(action.stackName)}
@@ -657,7 +657,7 @@ func (action *CreateWorkersVPCStackAction) UndoAction() (err error) {
 	_, err = cloudformationSrv.DeleteStack(deleteStackInput)
 
 	//TODO delete each created object
-	return nil
+	return
 }
 
 // ---
