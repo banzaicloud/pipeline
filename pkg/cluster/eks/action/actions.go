@@ -22,6 +22,7 @@ import (
 
 // --
 
+// EksClusterCreationContext describes the properties of an EKS cluster creation
 type EksClusterCreationContext struct {
 	Session                  *session.Session
 	ClusterName              string
@@ -37,6 +38,7 @@ type EksClusterCreationContext struct {
 	CertificateAuthorityData *string
 }
 
+// NewEksClusterCreationContext creates a new EksClusterCreationContext
 func NewEksClusterCreationContext(session *session.Session, clusterName string, sshKeyName string) *EksClusterCreationContext {
 	return &EksClusterCreationContext{
 		Session:     session,
@@ -45,11 +47,13 @@ func NewEksClusterCreationContext(session *session.Session, clusterName string, 
 	}
 }
 
+// EksClusterDeletionContext describes the properties of an EKS cluster deletion
 type EksClusterDeletionContext struct {
 	Session     *session.Session
 	ClusterName string
 }
 
+// NewEksClusterDeleteContext creates a new NewEksClusterDeleteContext
 func NewEksClusterDeleteContext(session *session.Session, clusterName string) *EksClusterDeletionContext {
 	return &EksClusterDeletionContext{
 		Session:     session,
@@ -61,6 +65,7 @@ func NewEksClusterDeleteContext(session *session.Session, clusterName string) *E
 
 var _ utils.RevocableAction = (*CreateVPCAction)(nil)
 
+// EnsureIAMRoleAction describes how to create an IAM role for EKS
 type EnsureIAMRoleAction struct {
 	context                   *EksClusterCreationContext
 	roleName                  string
@@ -68,6 +73,7 @@ type EnsureIAMRoleAction struct {
 	successfullyAttachedRoles []string
 }
 
+// NewEnsureIAMRoleAction creates a new NewEnsureIAMRoleAction
 func NewEnsureIAMRoleAction(creationContext *EksClusterCreationContext, roleName string) *EnsureIAMRoleAction {
 	return &EnsureIAMRoleAction{
 		context:  creationContext,
@@ -80,10 +86,12 @@ func NewEnsureIAMRoleAction(creationContext *EksClusterCreationContext, roleName
 	}
 }
 
+// GetName returns the name of this EnsureIAMRoleAction
 func (action *EnsureIAMRoleAction) GetName() string {
 	return "EnsureIAMRoleAction"
 }
 
+// ExecuteAction executes this EnsureIAMRoleAction
 func (action *EnsureIAMRoleAction) ExecuteAction(input interface{}) (output interface{}, err error) {
 	fmt.Printf("EXECUTE EnsureIAMRoleAction, role name: %s\n", action.roleName)
 
@@ -133,6 +141,7 @@ func (action *EnsureIAMRoleAction) ExecuteAction(input interface{}) (output inte
 	return outInstanceRole.Role, nil
 }
 
+// UndoAction rolls back this EnsureIAMRoleAction
 func (action *EnsureIAMRoleAction) UndoAction() (err error) {
 	fmt.Printf("EXECUTE UNDO EnsureIAMRoleAction, deleting role: %s\n", action.roleName)
 
@@ -162,6 +171,7 @@ func (action *EnsureIAMRoleAction) UndoAction() (err error) {
 
 var _ utils.RevocableAction = (*CreateVPCAction)(nil)
 
+// CreateVPCAction describes the properties of a VPC creation
 type CreateVPCAction struct {
 	context   *EksClusterCreationContext
 	stackName string
@@ -169,6 +179,7 @@ type CreateVPCAction struct {
 	//stackCreationTimeout       time.Duration
 }
 
+// NewCreateVPCAction creates a new CreateVPCAction
 func NewCreateVPCAction(creationContext *EksClusterCreationContext, stackName string) *CreateVPCAction {
 	return &CreateVPCAction{
 		context:   creationContext,
@@ -178,10 +189,12 @@ func NewCreateVPCAction(creationContext *EksClusterCreationContext, stackName st
 	}
 }
 
+// GetName returns the name of this CreateVPCAction
 func (action *CreateVPCAction) GetName() string {
 	return "CreateVPCAction"
 }
 
+// ExecuteAction executes this CreateVPCAction
 func (action *CreateVPCAction) ExecuteAction(input interface{}) (output interface{}, err error) {
 	fmt.Printf("EXECUTE CreateVPCAction, stack name: %s\n", action.stackName)
 
@@ -237,6 +250,7 @@ func (action *CreateVPCAction) ExecuteAction(input interface{}) (output interfac
 	return nil, err
 }
 
+// UndoAction rolls back this CreateVPCAction
 func (action *CreateVPCAction) UndoAction() (err error) {
 	fmt.Printf("EXECUTE UNDO CreateVPCAction, deleting stack: %s\n", action.stackName)
 	cloudformationSrv := cloudformation.New(action.context.Session)
@@ -252,11 +266,13 @@ func (action *CreateVPCAction) UndoAction() (err error) {
 
 var _ utils.RevocableAction = (*GenerateVPCConfigRequestAction)(nil)
 
+// GenerateVPCConfigRequestAction describes how to request a VPC config
 type GenerateVPCConfigRequestAction struct {
 	context   *EksClusterCreationContext
 	stackName string
 }
 
+// NewGenerateVPCConfigRequestAction creates a new GenerateVPCConfigRequestAction
 func NewGenerateVPCConfigRequestAction(creationContext *EksClusterCreationContext, stackName string) *GenerateVPCConfigRequestAction {
 	return &GenerateVPCConfigRequestAction{
 		context:   creationContext,
@@ -264,10 +280,12 @@ func NewGenerateVPCConfigRequestAction(creationContext *EksClusterCreationContex
 	}
 }
 
+// GetName returns the name of this GenerateVPCConfigRequestAction
 func (action *GenerateVPCConfigRequestAction) GetName() string {
 	return "GenerateVPCConfigRequestAction"
 }
 
+// ExecuteAction executes this GenerateVPCConfigRequestAction
 func (action *GenerateVPCConfigRequestAction) ExecuteAction(input interface{}) (output interface{}, err error) {
 	fmt.Printf("EXECUTE GenerateVPCConfigRequestAction, stack name: %s\n", action.stackName)
 	cloudformationSrv := cloudformation.New(action.context.Session)
@@ -318,6 +336,7 @@ func (action *GenerateVPCConfigRequestAction) ExecuteAction(input interface{}) (
 	}, nil
 }
 
+// UndoAction rolls back this GenerateVPCConfigRequestAction
 func (action *GenerateVPCConfigRequestAction) UndoAction() (err error) {
 	fmt.Printf("EXECUTE UNDO GenerateVPCConfigRequestAction, stack name: %s\n", action.stackName)
 	return nil
@@ -327,11 +346,13 @@ func (action *GenerateVPCConfigRequestAction) UndoAction() (err error) {
 
 var _ utils.RevocableAction = (*CreateEksClusterAction)(nil)
 
+// CreateEksClusterAction describes the properties of an EKS cluster creation
 type CreateEksClusterAction struct {
 	context           *EksClusterCreationContext
 	kubernetesVersion string
 }
 
+// NewCreateEksClusterAction creates a new CreateEksClusterAction
 func NewCreateEksClusterAction(creationContext *EksClusterCreationContext, kubernetesVersion string) *CreateEksClusterAction {
 	return &CreateEksClusterAction{
 		context:           creationContext,
@@ -339,10 +360,12 @@ func NewCreateEksClusterAction(creationContext *EksClusterCreationContext, kuber
 	}
 }
 
+// GetName returns the name of this CreateEksClusterAction
 func (action *CreateEksClusterAction) GetName() string {
 	return "CreateEksClusterAction"
 }
 
+// ExecuteAction executes this CreateEksClusterAction
 func (action *CreateEksClusterAction) ExecuteAction(input interface{}) (output interface{}, err error) {
 	vpcConfigRequest, ok := input.(*eks.VpcConfigRequest)
 
@@ -398,7 +421,7 @@ func (action *CreateEksClusterAction) ExecuteAction(input interface{}) (output i
 	describeClusterInput := &eks.DescribeClusterInput{
 		Name: aws.String(action.context.ClusterName),
 	}
-	err = action.WaitUntilClusterCreateComplete(describeClusterInput)
+	err = action.waitUntilClusterCreateComplete(describeClusterInput)
 	if err != nil {
 		return nil, err
 	}
@@ -408,11 +431,12 @@ func (action *CreateEksClusterAction) ExecuteAction(input interface{}) (output i
 	fmt.Println(result)
 	return result.Cluster, nil
 }
-func (action *CreateEksClusterAction) WaitUntilClusterCreateComplete(input *eks.DescribeClusterInput) error {
-	return action.WaitUntilClusterCreateCompleteWithContext(aws.BackgroundContext(), input)
+
+func (action *CreateEksClusterAction) waitUntilClusterCreateComplete(input *eks.DescribeClusterInput) error {
+	return action.waitUntilClusterCreateCompleteWithContext(aws.BackgroundContext(), input)
 }
 
-func (action *CreateEksClusterAction) WaitUntilClusterCreateCompleteWithContext(ctx aws.Context, input *eks.DescribeClusterInput, opts ...request.WaiterOption) error {
+func (action *CreateEksClusterAction) waitUntilClusterCreateCompleteWithContext(ctx aws.Context, input *eks.DescribeClusterInput, opts ...request.WaiterOption) error {
 	eksSvc := eks.New(action.context.Session)
 
 	w := request.Waiter{
@@ -459,6 +483,7 @@ func (action *CreateEksClusterAction) WaitUntilClusterCreateCompleteWithContext(
 	return w.WaitWithContext(ctx)
 }
 
+// UndoAction rolls back this CreateEksClusterAction
 func (action *CreateEksClusterAction) UndoAction() (err error) {
 	fmt.Printf("EXECUTE UNDO CreateEksClusterAction, cluster name %s\n", action.context.ClusterName)
 	eksSvc := eks.New(action.context.Session)
@@ -474,6 +499,7 @@ func (action *CreateEksClusterAction) UndoAction() (err error) {
 
 var _ utils.RevocableAction = (*CreateWorkersVPCStackAction)(nil)
 
+// CreateWorkersVPCStackAction describes the properties of a worker VPC creation
 type CreateWorkersVPCStackAction struct {
 	context          *EksClusterCreationContext
 	stackName        string
@@ -485,6 +511,7 @@ type CreateWorkersVPCStackAction struct {
 	//stackCreationTimeout       time.Duration
 }
 
+// NewCreateWorkersAction creates a new CreateWorkersVPCStackAction
 func NewCreateWorkersAction(creationContext *EksClusterCreationContext,
 	stackName string,
 	scalingMinSize int,
@@ -503,10 +530,12 @@ func NewCreateWorkersAction(creationContext *EksClusterCreationContext,
 	}
 }
 
+// GetName return the name of this action
 func (action *CreateWorkersVPCStackAction) GetName() string {
 	return "CreateWorkersVPCStackAction"
 }
 
+// ExecuteAction executes the CreateWorkersVPCStackAction
 func (action *CreateWorkersVPCStackAction) ExecuteAction(input interface{}) (output interface{}, err error) {
 	fmt.Printf("EXECUTE CreateWorkersVPCStackAction, stack name: %s\n", action.stackName)
 
@@ -617,6 +646,7 @@ func (action *CreateWorkersVPCStackAction) ExecuteAction(input interface{}) (out
 	return nil, nil
 }
 
+// UndoAction rolls back this CreateWorkersVPCStackAction
 func (action *CreateWorkersVPCStackAction) UndoAction() (err error) {
 	fmt.Printf("EXECUTE UNDO CreateWorkersVPCStackAction\n")
 	cloudformationSrv := cloudformation.New(action.context.Session)
@@ -634,11 +664,13 @@ func (action *CreateWorkersVPCStackAction) UndoAction() (err error) {
 
 var _ utils.RevocableAction = (*UploadSSHKeyAction)(nil)
 
+// UploadSSHKeyAction describes how to upload an SSH key
 type UploadSSHKeyAction struct {
 	context   *EksClusterCreationContext
 	sshSecret *secret.SecretItemResponse
 }
 
+// NewUploadSSHKeyAction creates a new UploadSSHKeyAction
 func NewUploadSSHKeyAction(context *EksClusterCreationContext, sshSecret *secret.SecretItemResponse) *UploadSSHKeyAction {
 	return &UploadSSHKeyAction{
 		context:   context,
@@ -646,10 +678,12 @@ func NewUploadSSHKeyAction(context *EksClusterCreationContext, sshSecret *secret
 	}
 }
 
+// GetName returns the name of this UploadSSHKeyAction
 func (action *UploadSSHKeyAction) GetName() string {
 	return "UploadSSHKeyAction"
 }
 
+// ExecuteAction executes this UploadSSHKeyAction
 func (action *UploadSSHKeyAction) ExecuteAction(input interface{}) (output interface{}, err error) {
 	fmt.Printf("EXECUTE UploadSSHKeyAction\n")
 
@@ -675,6 +709,7 @@ func (action *UploadSSHKeyAction) ExecuteAction(input interface{}) (output inter
 	return output, err
 }
 
+// UndoAction rolls back this UploadSSHKeyAction
 func (action *UploadSSHKeyAction) UndoAction() (err error) {
 	fmt.Printf("EXECUTE UNDO UploadSSHKeyAction\n")
 	//delete uploaded keypair
@@ -689,25 +724,29 @@ func (action *UploadSSHKeyAction) UndoAction() (err error) {
 
 // ---
 
-//RevertStepsAction can be used to intentionally revert all the steps (=simulate an error)
 var _ utils.RevocableAction = (*RevertStepsAction)(nil)
 
+// RevertStepsAction can be used to intentionally revert all the steps (=simulate an error)
 type RevertStepsAction struct {
 }
 
+// NewRevertStepsAction creates a new RevertStepsAction
 func NewRevertStepsAction() *RevertStepsAction {
 	return &RevertStepsAction{}
 }
 
+// GetName returns the name of this RevertStepsAction
 func (action *RevertStepsAction) GetName() string {
 	return "RevertStepsAction"
 }
 
+// ExecuteAction executes this RevertStepsAction
 func (action *RevertStepsAction) ExecuteAction(input interface{}) (output interface{}, err error) {
 	fmt.Printf("EXECUTE RevertStepsAction\n")
 	return nil, errors.New("Intentionally reverting everything")
 }
 
+// UndoAction rolls back this RevertStepsAction
 func (action *RevertStepsAction) UndoAction() (err error) {
 	fmt.Printf("EXECUTE UNDO RevertStepsAction\n")
 	return nil
@@ -715,29 +754,33 @@ func (action *RevertStepsAction) UndoAction() (err error) {
 
 // ---
 
-//DelayAction can be used to intentionally delay the next step
 var _ utils.RevocableAction = (*DelayAction)(nil)
 
+// DelayAction can be used to intentionally delay the next step
 type DelayAction struct {
 	delay time.Duration
 }
 
+// NewDelayAction creates a new DelayAction
 func NewDelayAction(delay time.Duration) *DelayAction {
 	return &DelayAction{
 		delay: delay,
 	}
 }
 
+// GetName returns the name of this DelayAction
 func (action *DelayAction) GetName() string {
 	return "DelayAction"
 }
 
+// ExecuteAction executes this DelayAction
 func (action *DelayAction) ExecuteAction(input interface{}) (output interface{}, err error) {
 	fmt.Printf("EXECUTE DelayAction\n")
 	time.Sleep(action.delay)
 	return input, nil
 }
 
+// UndoAction rolls back this DelayAction
 func (action *DelayAction) UndoAction() (err error) {
 	fmt.Printf("EXECUTE UNDO RevertStepsAction\n")
 	return nil
@@ -745,23 +788,26 @@ func (action *DelayAction) UndoAction() (err error) {
 
 // ---
 
-//DelayAction can be used to intentionally delay the next step
 var _ utils.RevocableAction = (*LoadEksSettingsAction)(nil)
 
+// LoadEksSettingsAction to describe the EKS cluster created
 type LoadEksSettingsAction struct {
 	context *EksClusterCreationContext
 }
 
+// NewLoadEksSettingsAction creates a new LoadEksSettingsAction
 func NewLoadEksSettingsAction(context *EksClusterCreationContext) *LoadEksSettingsAction {
 	return &LoadEksSettingsAction{
 		context: context,
 	}
 }
 
+// GetName returns the name of this LoadEksSettingsAction
 func (action *LoadEksSettingsAction) GetName() string {
 	return "LoadEksSettingsAction"
 }
 
+// ExecuteAction executes this LoadEksSettingsAction
 func (action *LoadEksSettingsAction) ExecuteAction(input interface{}) (output interface{}, err error) {
 	fmt.Printf("EXECUTE LoadEksSettingsAction\n")
 	eksSvc := eks.New(action.context.Session)
@@ -785,6 +831,7 @@ func (action *LoadEksSettingsAction) ExecuteAction(input interface{}) (output in
 	return input, nil
 }
 
+// UndoAction rolls back this LoadEksSettingsAction
 func (action *LoadEksSettingsAction) UndoAction() (err error) {
 	fmt.Printf("EXECUTE UNDO LoadEksSettingsAction\n")
 	return nil
@@ -794,11 +841,13 @@ func (action *LoadEksSettingsAction) UndoAction() (err error) {
 
 var _ utils.Action = (*DeleteStackAction)(nil)
 
+// DeleteStackAction deletes a stack
 type DeleteStackAction struct {
 	context   *EksClusterDeletionContext
 	StackName string
 }
 
+// NewDeleteStackAction creates a new DeleteStackAction
 func NewDeleteStackAction(context *EksClusterDeletionContext, stackName string) *DeleteStackAction {
 	return &DeleteStackAction{
 		context:   context,
@@ -806,10 +855,12 @@ func NewDeleteStackAction(context *EksClusterDeletionContext, stackName string) 
 	}
 }
 
+// GetName returns the name of this DeleteStackAction
 func (action *DeleteStackAction) GetName() string {
 	return "DeleteStackAction"
 }
 
+// ExecuteAction executes this DeleteStackAction
 func (action *DeleteStackAction) ExecuteAction(input interface{}) (output interface{}, err error) {
 	fmt.Printf("EXECUTE DeleteStackAction\n")
 
@@ -826,11 +877,13 @@ func (action *DeleteStackAction) ExecuteAction(input interface{}) (output interf
 
 var _ utils.Action = (*DeleteEksClusterAction)(nil)
 
+// DeleteEksClusterAction deletes an EKS cluster
 type DeleteEksClusterAction struct {
 	context        *EksClusterDeletionContext
 	EksClusterName string
 }
 
+// NewDeleteEksClusterAction creates a new DeleteEksClusterAction
 func NewDeleteEksClusterAction(context *EksClusterDeletionContext, eksClusterName string) *DeleteEksClusterAction {
 	return &DeleteEksClusterAction{
 		context:        context,
@@ -838,10 +891,12 @@ func NewDeleteEksClusterAction(context *EksClusterDeletionContext, eksClusterNam
 	}
 }
 
+// GetName returns the name of this DeleteEksClusterAction
 func (action *DeleteEksClusterAction) GetName() string {
 	return "DeleteEksClusterAction"
 }
 
+// ExecuteAction executes this DeleteEksClusterAction
 func (action *DeleteEksClusterAction) ExecuteAction(input interface{}) (output interface{}, err error) {
 	fmt.Printf("EXECUTE DeleteEksClusterAction\n")
 
@@ -857,11 +912,13 @@ func (action *DeleteEksClusterAction) ExecuteAction(input interface{}) (output i
 
 var _ utils.Action = (*DeleteSSHKeyAction)(nil)
 
+// DeleteSSHKeyAction deletes a generated SSH key
 type DeleteSSHKeyAction struct {
 	context    *EksClusterDeletionContext
 	SSHKeyName string
 }
 
+// NewDeleteSSHKeyAction creates a new DeleteSSHKeyAction
 func NewDeleteSSHKeyAction(context *EksClusterDeletionContext, sshKeyName string) *DeleteSSHKeyAction {
 	return &DeleteSSHKeyAction{
 		context:    context,
@@ -869,10 +926,12 @@ func NewDeleteSSHKeyAction(context *EksClusterDeletionContext, sshKeyName string
 	}
 }
 
+// GetName returns the name of this DeleteSSHKeyAction
 func (action *DeleteSSHKeyAction) GetName() string {
 	return "DeleteSSHKeyAction"
 }
 
+// ExecuteAction executes this DeleteSSHKeyAction
 func (action *DeleteSSHKeyAction) ExecuteAction(input interface{}) (output interface{}, err error) {
 	fmt.Printf("EXECUTE DeleteSSHKeyAction\n")
 
@@ -889,11 +948,13 @@ func (action *DeleteSSHKeyAction) ExecuteAction(input interface{}) (output inter
 
 var _ utils.Action = (*DeleteIAMRoleAction)(nil)
 
+// DeleteIAMRoleAction deletes an IAM role
 type DeleteIAMRoleAction struct {
 	context  *EksClusterDeletionContext
 	RoleName string
 }
 
+// NewDeleteIAMRoleAction creates a new DeleteIAMRoleAction
 func NewDeleteIAMRoleAction(context *EksClusterDeletionContext, roleName string) *DeleteIAMRoleAction {
 	return &DeleteIAMRoleAction{
 		context:  context,
@@ -901,10 +962,12 @@ func NewDeleteIAMRoleAction(context *EksClusterDeletionContext, roleName string)
 	}
 }
 
+// GetName returns the name of this DeleteIAMRoleAction
 func (action *DeleteIAMRoleAction) GetName() string {
 	return "DeleteIAMRoleAction"
 }
 
+// ExecuteAction executes this DeleteIAMRoleAction
 func (action *DeleteIAMRoleAction) ExecuteAction(input interface{}) (output interface{}, err error) {
 	fmt.Printf("EXECUTE DeleteIAMRoleAction, deleting role: %s\n", action.RoleName)
 
