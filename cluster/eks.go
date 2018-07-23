@@ -106,6 +106,7 @@ func (e *EKSCluster) createAWSCredentialsFromSecret() (*credentials.Credentials,
 	return verify.CreateAWSCredentials(clusterSecret.Values), nil
 }
 
+// CreateCluster creates an EKS cluster with cloudformation templates.
 func (e *EKSCluster) CreateCluster() error {
 	//TODO jelenleg nem lehet kulsoleg megadott role ARN-t vagy sajat SSH secret azonositot megadni, ehelyett ezeket mind legyartja ez a fuggveny
 	//TODO ha ezekre is szukseg van, akkor itt tobb atalakitas is kell, hogy pl a rollback(=undo) ne torolje ki a kulsoleg megadott role-t vagy ssh kulcsot
@@ -131,7 +132,7 @@ func (e *EKSCluster) CreateCluster() error {
 	roleName := e.generateIAMRoleNameForCluster()
 	eksStackName := e.generateEksStackNameForCluster()
 	eksWorkerStackName := e.generateEksWorkerStackNameForCluster()
-	sshKeyName := e.generateSshKeyNameForCluster()
+	sshKeyName := e.generateSSHKeyNameForCluster()
 
 	creationContext := action.NewEksClusterCreationContext(
 		session,
@@ -196,7 +197,7 @@ func (e *EKSCluster) CreateCluster() error {
 		return err
 	}
 
-	createdCluster, err := e.GetCreatedClusterModel(creationContext)
+	createdCluster, err := e.getCreatedClusterModel(creationContext)
 	if err != nil {
 		return err
 	}
@@ -205,7 +206,7 @@ func (e *EKSCluster) CreateCluster() error {
 	return nil
 }
 
-func (e *EKSCluster) generateSshKeyNameForCluster() string {
+func (e *EKSCluster) generateSSHKeyNameForCluster() string {
 	sshKeyName := "ssh-key-for-cluster-" + e.modelCluster.Name
 	return sshKeyName
 }
@@ -268,7 +269,7 @@ func (e *EKSCluster) DeleteCluster() error {
 	actions := []utils.Action{
 		action.NewDeleteStackAction(deleteContext, e.generateEksWorkerStackNameForCluster()),
 		action.NewDeleteEksClusterAction(deleteContext, e.modelCluster.Name),
-		action.NewDeleteSSHKeyAction(deleteContext, e.generateSshKeyNameForCluster()),
+		action.NewDeleteSSHKeyAction(deleteContext, e.generateSSHKeyNameForCluster()),
 		action.NewDeleteStackAction(deleteContext, e.generateEksStackNameForCluster()),
 		action.NewDeleteIAMRoleAction(deleteContext, e.generateIAMRoleNameForCluster()),
 	}
@@ -288,10 +289,10 @@ func (e *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 	return nil
 }
 
+// GenerateK8sConfig generates kube config for this EKS cluster which authenticates through the aws-iam-authenticator,
+// you have to install with: go get github.com/kubernetes-sigs/aws-iam-authenticator/cmd/aws-iam-authenticator
 func (e *EKSCluster) GenerateK8sConfig() *clientcmdapi.Config {
-	//TODO install
-	// go get github.com/kubernetes-sigs/aws-iam-authenticator/cmd/aws-iam-authenticator
-	cfg := clientcmdapi.Config{
+	return &clientcmdapi.Config{
 		APIVersion: "v1",
 		Clusters: []clientcmdapi.NamedCluster{
 			{
@@ -327,18 +328,15 @@ func (e *EKSCluster) GenerateK8sConfig() *clientcmdapi.Config {
 		Kind:           "Config",
 		CurrentContext: e.modelCluster.Name,
 	}
-	return &cfg
 }
 
-func (e *EKSCluster) DownloadK8sConfig() ([]byte, error) { //YAML data bytes
-	//user := "ec2-user"
-	// defined here: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstancesLinux.html
-
+// DownloadK8sConfig generates and marshalls the kube config for this cluster.
+func (e *EKSCluster) DownloadK8sConfig() ([]byte, error) {
 	config := e.GenerateK8sConfig()
-	bytes, err := json.Marshal(config)
-	return bytes, err
+	return json.Marshal(config)
 }
 
+// GetStatus describes the status of this EKS cluster.
 func (e *EKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 
 	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
@@ -368,22 +366,27 @@ func (e *EKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 	}, nil
 }
 
+// GetID returns the DB ID of this cluster
 func (e *EKSCluster) GetID() uint {
 	return e.modelCluster.ID
 }
 
+// GetModel returns the DB model of this cluster
 func (e *EKSCluster) GetModel() *model.ClusterModel {
 	return e.modelCluster
 }
 
+// CheckEqualityToUpdate validates the update request
 func (e *EKSCluster) CheckEqualityToUpdate(*pkgCluster.UpdateClusterRequest) error {
 	return nil //TODO missing
 }
 
+// AddDefaultsToUpdate adds defaults to update request
 func (e *EKSCluster) AddDefaultsToUpdate(*pkgCluster.UpdateClusterRequest) {
 	//TODO missing
 }
 
+// DeleteFromDatabase deletes model from the database
 func (e *EKSCluster) DeleteFromDatabase() error {
 	err := e.modelCluster.Delete()
 	if err != nil {
@@ -393,60 +396,70 @@ func (e *EKSCluster) DeleteFromDatabase() error {
 	return nil
 }
 
+// ListNodeNames returns node names to label them
 func (e *EKSCluster) ListNodeNames() (nodeNames pkgCommon.NodeNames, err error) {
-	// TODO not implemented
+	// TODO missing
 	return pkgCommon.NodeNames{}, nil
 }
 
+// UpdateStatus updates cluster status in database
 func (e *EKSCluster) UpdateStatus(status string, statusMessage string) error {
 	return e.modelCluster.UpdateStatus(status, statusMessage)
 }
 
+// GetClusterDetails gets cluster details from cloud
 func (e *EKSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 	log.Info("Start getting cluster details")
-	//TODO not tested
-	e.GetK8sConfig()
-	e.GetAPIEndpoint()
 
 	return &pkgCluster.DetailsResponse{
-		Name: e.modelCluster.Name,
-		Id:   e.modelCluster.ID,
+		Name:     e.modelCluster.Name,
+		Id:       e.modelCluster.ID,
+		Endpoint: e.APIEndpoint,
 	}, nil
 }
 
+// ValidateCreationFields validates all fields
 func (e *EKSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
 	//TODO itt hianyzik az osszes input validalas
 	return nil
 }
 
+// GetSecretWithValidation returns secret from vault
 func (e *EKSCluster) GetSecretWithValidation() (*secret.SecretItemResponse, error) {
 	return e.CommonClusterBase.getSecret(e)
 }
 
+// GetSshSecretWithValidation returns ssh secret from vault
 func (e *EKSCluster) GetSshSecretWithValidation() (*secret.SecretItemResponse, error) {
 	return e.CommonClusterBase.getSshSecret(e)
 }
 
+// SaveConfigSecretId saves the config secret id in database
 func (e *EKSCluster) SaveConfigSecretId(configSecretId string) error {
 	return e.modelCluster.UpdateConfigSecret(configSecretId)
 }
 
+// GetConfigSecretId return config secret id
 func (e *EKSCluster) GetConfigSecretId() string {
 	return e.modelCluster.ConfigSecretId
 }
 
+// GetK8sConfig returns the Kubernetes config
 func (e *EKSCluster) GetK8sConfig() ([]byte, error) {
 	return e.CommonClusterBase.getConfig(e)
 }
 
+// RequiresSshPublicKey returns true as a public ssh key is needed for bootstrapping
+// the cluster
 func (e *EKSCluster) RequiresSshPublicKey() bool {
 	return true
 }
 
+// ReloadFromDatabase load cluster from DB
 func (e *EKSCluster) ReloadFromDatabase() error {
 	return e.modelCluster.ReloadFromDatabase()
 }
-func (e *EKSCluster) GetCreatedClusterModel(context *action.EksClusterCreationContext) (*defaults.EksCluster, error) {
+func (e *EKSCluster) getCreatedClusterModel(context *action.EksClusterCreationContext) (*defaults.EksCluster, error) {
 
 	configBytes, err := yaml.Marshal(e.GenerateK8sConfig())
 	if err != nil {

@@ -42,6 +42,7 @@ func (a *UpdateClusterAmazonEKS) Validate() error {
 	return nil
 }
 
+// CertificateAuthority is a helper struct for AWS kube config JSON parsing
 type CertificateAuthority struct {
 	Data string `json:"data,omitempty"`
 }

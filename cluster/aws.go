@@ -1123,7 +1123,7 @@ func (c *AWSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 	}, nil
 }
 
-// ValidateCreationFields validates all field
+// ValidateCreationFields validates all fields
 func (c *AWSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
 	location := r.Location
 

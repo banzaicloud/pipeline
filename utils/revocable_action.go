@@ -2,16 +2,19 @@ package utils
 
 import "github.com/sirupsen/logrus"
 
+// Action is a named function which can be executed
 type Action interface {
 	GetName() string
 	ExecuteAction(input interface{}) (output interface{}, err error)
 }
 
+// RevocableAction is an Action which can be revoked
 type RevocableAction interface {
 	Action
 	UndoAction() (err error)
 }
 
+// ActionCallContext is context in which Actions can be executed
 type ActionCallContext struct {
 	Action           Action
 	RemainingActions []Action
@@ -19,6 +22,7 @@ type ActionCallContext struct {
 	TryToUndo        bool
 }
 
+// NewActionCallContext creates a new ActionCallContext
 func NewActionCallContext(action Action, remainingActions []Action, input interface{}, tryToUndoOnFail bool) *ActionCallContext {
 	return &ActionCallContext{
 		Action:           action,
@@ -28,6 +32,7 @@ func NewActionCallContext(action Action, remainingActions []Action, input interf
 	}
 }
 
+// OnCompleted is called back when an action has completed
 func (ctx *ActionCallContext) OnCompleted(output interface{}) (interface{}, error) {
 	if len(ctx.RemainingActions) == 0 {
 		return output, nil
@@ -38,6 +43,7 @@ func (ctx *ActionCallContext) OnCompleted(output interface{}) (interface{}, erro
 	return nextOutput, nextErr
 }
 
+// OnFailed is called back when an action has failed
 func (ctx *ActionCallContext) OnFailed(error error) {
 	if ctx.TryToUndo {
 		revocableAction, ok := ctx.Action.(RevocableAction)
@@ -66,16 +72,19 @@ func (ctx *ActionCallContext) executeContextAction() (interface{}, error) {
 
 //--
 
+// ActionExecutor executes Actions
 type ActionExecutor struct {
 	log *logrus.Logger
 }
 
+// NewActionExecutor creates a new ActionExecutor
 func NewActionExecutor(log *logrus.Logger) *ActionExecutor {
 	return &ActionExecutor{
 		log: log,
 	}
 }
 
+// ExecuteActions executes the defined Actions
 func (ae *ActionExecutor) ExecuteActions(actions []Action, input interface{}, tryToUndoOnFail bool) (output interface{}, error error) {
 	if len(actions) > 0 {
 		action := actions[0]
