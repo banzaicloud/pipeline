@@ -1,7 +1,6 @@
 package action
 
 import (
-	"encoding/base64"
 	"fmt"
 	"time"
 
@@ -13,12 +12,20 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
-	"github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
+	"github.com/sirupsen/logrus"
 )
+
+var log *logrus.Logger
+
+// Simple init for logging
+func init() {
+	log = config.Logger()
+}
 
 // --
 
@@ -93,7 +100,7 @@ func (action *EnsureIAMRoleAction) GetName() string {
 
 // ExecuteAction executes this EnsureIAMRoleAction
 func (action *EnsureIAMRoleAction) ExecuteAction(input interface{}) (output interface{}, err error) {
-	fmt.Printf("EXECUTE EnsureIAMRoleAction, role name: %s\n", action.roleName)
+	log.Infoln("EXECUTE EnsureIAMRoleAction, role name:", action.roleName)
 
 	iamSvc := iam.New(action.context.Session)
 	assumeRolePolicy := `{
@@ -120,7 +127,7 @@ func (action *EnsureIAMRoleAction) ExecuteAction(input interface{}) (output inte
 	outInstanceRole, err := iamSvc.CreateRole(roleinput)
 
 	if err != nil {
-		logger.Debug("CreateRole error: %v", err)
+		log.Errorln("CreateRole error:", err.Error())
 		return nil, err
 	}
 
@@ -131,7 +138,7 @@ func (action *EnsureIAMRoleAction) ExecuteAction(input interface{}) (output inte
 		}
 		_, err = iamSvc.AttachRolePolicy(attachRoleInput)
 		if err != nil {
-			logger.Debug("AttachRole error: %v", err)
+			log.Errorln("AttachRole error:", err.Error())
 			return nil, err
 		}
 		action.successfullyAttachedRoles = append(action.successfullyAttachedRoles, roleName)
@@ -143,7 +150,7 @@ func (action *EnsureIAMRoleAction) ExecuteAction(input interface{}) (output inte
 
 // UndoAction rolls back this EnsureIAMRoleAction
 func (action *EnsureIAMRoleAction) UndoAction() (err error) {
-	fmt.Printf("EXECUTE UNDO EnsureIAMRoleAction, deleting role: %s\n", action.roleName)
+	log.Infoln("EXECUTE UNDO EnsureIAMRoleAction, deleting role:", action.roleName)
 
 	iamSvc := iam.New(action.context.Session)
 
@@ -155,7 +162,7 @@ func (action *EnsureIAMRoleAction) UndoAction() (err error) {
 		}
 		_, err = iamSvc.DetachRolePolicy(detachRolePolicyInput)
 		if err != nil {
-			logger.Debug("DetachRole error: %v", err)
+			log.Debug("DetachRole error: %v", err)
 			return err
 		}
 	}
@@ -196,7 +203,7 @@ func (action *CreateVPCAction) GetName() string {
 
 // ExecuteAction executes this CreateVPCAction
 func (action *CreateVPCAction) ExecuteAction(input interface{}) (output interface{}, err error) {
-	fmt.Printf("EXECUTE CreateVPCAction, stack name: %s\n", action.stackName)
+	log.Infoln("EXECUTE CreateVPCAction, stack name:", action.stackName)
 
 	cloudformationSrv := cloudformation.New(action.context.Session)
 	createStackInput := &cloudformation.CreateStackInput{
@@ -252,7 +259,7 @@ func (action *CreateVPCAction) ExecuteAction(input interface{}) (output interfac
 
 // UndoAction rolls back this CreateVPCAction
 func (action *CreateVPCAction) UndoAction() (err error) {
-	fmt.Printf("EXECUTE UNDO CreateVPCAction, deleting stack: %s\n", action.stackName)
+	log.Infoln("EXECUTE UNDO CreateVPCAction, deleting stack:", action.stackName)
 	cloudformationSrv := cloudformation.New(action.context.Session)
 	deleteStackInput := &cloudformation.DeleteStackInput{
 		ClientRequestToken: aws.String(uuid.NewV4().String()),
@@ -287,7 +294,7 @@ func (action *GenerateVPCConfigRequestAction) GetName() string {
 
 // ExecuteAction executes this GenerateVPCConfigRequestAction
 func (action *GenerateVPCConfigRequestAction) ExecuteAction(input interface{}) (output interface{}, err error) {
-	fmt.Printf("EXECUTE GenerateVPCConfigRequestAction, stack name: %s\n", action.stackName)
+	log.Infoln("EXECUTE GenerateVPCConfigRequestAction, stack name:", action.stackName)
 	cloudformationSrv := cloudformation.New(action.context.Session)
 
 	describeStackResourcesInput := &cloudformation.DescribeStackResourcesInput{
@@ -324,7 +331,7 @@ func (action *GenerateVPCConfigRequestAction) ExecuteAction(input interface{}) (
 		return nil, errors.New("Unable to find VPC resource")
 	}
 
-	fmt.Printf("Stack resources: %v\n", stackResources)
+	log.Infof("Stack resources: %v", stackResources)
 
 	action.context.VpcID = vpcResource.PhysicalResourceId
 	action.context.SecurityGroupID = securityGroupResource.PhysicalResourceId
@@ -338,7 +345,7 @@ func (action *GenerateVPCConfigRequestAction) ExecuteAction(input interface{}) (
 
 // UndoAction rolls back this GenerateVPCConfigRequestAction
 func (action *GenerateVPCConfigRequestAction) UndoAction() (err error) {
-	fmt.Printf("EXECUTE UNDO GenerateVPCConfigRequestAction, stack name: %s\n", action.stackName)
+	log.Infoln("EXECUTE UNDO GenerateVPCConfigRequestAction, stack name:", action.stackName)
 	return nil
 }
 
@@ -372,7 +379,7 @@ func (action *CreateEksClusterAction) ExecuteAction(input interface{}) (output i
 	if !ok {
 		return nil, errors.New("input parameter must be a *VpcConfigRequest")
 	}
-	fmt.Printf("EXECUTE CreateEksClusterAction, cluster name: %s\n", action.context.ClusterName)
+	log.Infoln("EXECUTE CreateEksClusterAction, cluster name:", action.context.ClusterName)
 	eksSvc := eks.New(action.context.Session)
 
 	var roleArn *string
@@ -389,35 +396,18 @@ func (action *CreateEksClusterAction) ExecuteAction(input interface{}) (output i
 	result, err := eksSvc.CreateCluster(createClusterInput)
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
-			switch aerr.Code() {
-			case eks.ErrCodeResourceInUseException:
-				fmt.Println(eks.ErrCodeResourceInUseException, aerr.Error())
-			case eks.ErrCodeResourceLimitExceededException:
-				fmt.Println(eks.ErrCodeResourceLimitExceededException, aerr.Error())
-			case eks.ErrCodeInvalidParameterException:
-				fmt.Println(eks.ErrCodeInvalidParameterException, aerr.Error())
-			case eks.ErrCodeClientException:
-				fmt.Println(eks.ErrCodeClientException, aerr.Error())
-			case eks.ErrCodeServerException:
-				fmt.Println(eks.ErrCodeServerException, aerr.Error())
-			case eks.ErrCodeServiceUnavailableException:
-				fmt.Println(eks.ErrCodeServiceUnavailableException, aerr.Error())
-			case eks.ErrCodeUnsupportedAvailabilityZoneException:
-				fmt.Println(eks.ErrCodeUnsupportedAvailabilityZoneException, aerr.Error())
-			default:
-				fmt.Println(aerr.Error())
-			}
+			log.Errorf("CreateCluster error [%s]: %s", aerr.Code(), aerr.Error())
 		} else {
 			// Print the error, cast err to awserr.Error to get the Code and
 			// Message from an error.
-			fmt.Println(err.Error())
+			log.Errorf("CreateCluster error: %s", err.Error())
 		}
 		return nil, err
 	}
 
 	//wait for ready status
 	startTime := time.Now()
-	logger.Info("Waiting for eks cluster creation")
+	log.Info("Waiting for eks cluster creation")
 	describeClusterInput := &eks.DescribeClusterInput{
 		Name: aws.String(action.context.ClusterName),
 	}
@@ -426,9 +416,8 @@ func (action *CreateEksClusterAction) ExecuteAction(input interface{}) (output i
 		return nil, err
 	}
 	endTime := time.Now()
-	fmt.Printf("Eks cluster created successfully in %v\n", endTime.Sub(startTime).String())
+	log.Infoln("Eks cluster created successfully in", endTime.Sub(startTime).String())
 
-	fmt.Println(result)
 	return result.Cluster, nil
 }
 
@@ -485,7 +474,7 @@ func (action *CreateEksClusterAction) waitUntilClusterCreateCompleteWithContext(
 
 // UndoAction rolls back this CreateEksClusterAction
 func (action *CreateEksClusterAction) UndoAction() (err error) {
-	fmt.Printf("EXECUTE UNDO CreateEksClusterAction, cluster name %s\n", action.context.ClusterName)
+	log.Infoln("EXECUTE UNDO CreateEksClusterAction, cluster name", action.context.ClusterName)
 	eksSvc := eks.New(action.context.Session)
 
 	deleteClusterInput := &eks.DeleteClusterInput{
@@ -537,7 +526,7 @@ func (action *CreateWorkersVPCStackAction) GetName() string {
 
 // ExecuteAction executes the CreateWorkersVPCStackAction
 func (action *CreateWorkersVPCStackAction) ExecuteAction(input interface{}) (output interface{}, err error) {
-	fmt.Printf("EXECUTE CreateWorkersVPCStackAction, stack name: %s\n", action.stackName)
+	log.Infoln("EXECUTE CreateWorkersVPCStackAction, stack name:", action.stackName)
 
 	commaDelimitedSubnetIDs := ""
 	for i, subnetID := range action.context.SubnetIDs {
@@ -648,7 +637,7 @@ func (action *CreateWorkersVPCStackAction) ExecuteAction(input interface{}) (out
 
 // UndoAction rolls back this CreateWorkersVPCStackAction
 func (action *CreateWorkersVPCStackAction) UndoAction() (err error) {
-	fmt.Printf("EXECUTE UNDO CreateWorkersVPCStackAction\n")
+	log.Info("EXECUTE UNDO CreateWorkersVPCStackAction")
 	cloudformationSrv := cloudformation.New(action.context.Session)
 	deleteStackInput := &cloudformation.DeleteStackInput{
 		ClientRequestToken: aws.String(uuid.NewV4().String()),
@@ -685,12 +674,10 @@ func (action *UploadSSHKeyAction) GetName() string {
 
 // ExecuteAction executes this UploadSSHKeyAction
 func (action *UploadSSHKeyAction) ExecuteAction(input interface{}) (output interface{}, err error) {
-	fmt.Printf("EXECUTE UploadSSHKeyAction\n")
+	log.Info("EXECUTE UploadSSHKeyAction")
 
 	action.context.SSHKey = secret.NewSSHKeyPair(action.sshSecret)
 	ec2srv := ec2.New(action.context.Session)
-	base64encodedKey := base64.StdEncoding.EncodeToString([]byte(action.context.SSHKey.PublicKeyData))
-	fmt.Println(base64encodedKey)
 	importKeyPairInput := &ec2.ImportKeyPairInput{
 
 		// A unique name for the key pair.
@@ -711,7 +698,7 @@ func (action *UploadSSHKeyAction) ExecuteAction(input interface{}) (output inter
 
 // UndoAction rolls back this UploadSSHKeyAction
 func (action *UploadSSHKeyAction) UndoAction() (err error) {
-	fmt.Printf("EXECUTE UNDO UploadSSHKeyAction\n")
+	log.Info("EXECUTE UNDO UploadSSHKeyAction")
 	//delete uploaded keypair
 	ec2srv := ec2.New(action.context.Session)
 
@@ -742,13 +729,13 @@ func (action *RevertStepsAction) GetName() string {
 
 // ExecuteAction executes this RevertStepsAction
 func (action *RevertStepsAction) ExecuteAction(input interface{}) (output interface{}, err error) {
-	fmt.Printf("EXECUTE RevertStepsAction\n")
+	log.Info("EXECUTE RevertStepsAction")
 	return nil, errors.New("Intentionally reverting everything")
 }
 
 // UndoAction rolls back this RevertStepsAction
 func (action *RevertStepsAction) UndoAction() (err error) {
-	fmt.Printf("EXECUTE UNDO RevertStepsAction\n")
+	log.Info("EXECUTE UNDO RevertStepsAction")
 	return nil
 }
 
@@ -775,14 +762,14 @@ func (action *DelayAction) GetName() string {
 
 // ExecuteAction executes this DelayAction
 func (action *DelayAction) ExecuteAction(input interface{}) (output interface{}, err error) {
-	fmt.Printf("EXECUTE DelayAction\n")
+	log.Info("EXECUTE DelayAction")
 	time.Sleep(action.delay)
 	return input, nil
 }
 
 // UndoAction rolls back this DelayAction
 func (action *DelayAction) UndoAction() (err error) {
-	fmt.Printf("EXECUTE UNDO RevertStepsAction\n")
+	log.Info("EXECUTE UNDO RevertStepsAction")
 	return nil
 }
 
@@ -809,7 +796,7 @@ func (action *LoadEksSettingsAction) GetName() string {
 
 // ExecuteAction executes this LoadEksSettingsAction
 func (action *LoadEksSettingsAction) ExecuteAction(input interface{}) (output interface{}, err error) {
-	fmt.Printf("EXECUTE LoadEksSettingsAction\n")
+	log.Info("EXECUTE LoadEksSettingsAction")
 	eksSvc := eks.New(action.context.Session)
 	//Store API endpoint, etc..
 	describeClusterInput := &eks.DescribeClusterInput{
@@ -833,7 +820,7 @@ func (action *LoadEksSettingsAction) ExecuteAction(input interface{}) (output in
 
 // UndoAction rolls back this LoadEksSettingsAction
 func (action *LoadEksSettingsAction) UndoAction() (err error) {
-	fmt.Printf("EXECUTE UNDO LoadEksSettingsAction\n")
+	log.Info("EXECUTE UNDO LoadEksSettingsAction")
 	return nil
 }
 
@@ -862,7 +849,7 @@ func (action *DeleteStackAction) GetName() string {
 
 // ExecuteAction executes this DeleteStackAction
 func (action *DeleteStackAction) ExecuteAction(input interface{}) (output interface{}, err error) {
-	fmt.Printf("EXECUTE DeleteStackAction\n")
+	log.Info("EXECUTE DeleteStackAction")
 
 	//TODO handle non existing stack
 	cloudformationSrv := cloudformation.New(action.context.Session)
@@ -898,7 +885,7 @@ func (action *DeleteEksClusterAction) GetName() string {
 
 // ExecuteAction executes this DeleteEksClusterAction
 func (action *DeleteEksClusterAction) ExecuteAction(input interface{}) (output interface{}, err error) {
-	fmt.Printf("EXECUTE DeleteEksClusterAction\n")
+	log.Info("EXECUTE DeleteEksClusterAction")
 
 	//TODO handle non existing cluster
 	eksSrv := eks.New(action.context.Session)
@@ -933,7 +920,7 @@ func (action *DeleteSSHKeyAction) GetName() string {
 
 // ExecuteAction executes this DeleteSSHKeyAction
 func (action *DeleteSSHKeyAction) ExecuteAction(input interface{}) (output interface{}, err error) {
-	fmt.Printf("EXECUTE DeleteSSHKeyAction\n")
+	log.Info("EXECUTE DeleteSSHKeyAction")
 
 	//TODO handle non existing key
 	ec2srv := ec2.New(action.context.Session)
@@ -969,7 +956,7 @@ func (action *DeleteIAMRoleAction) GetName() string {
 
 // ExecuteAction executes this DeleteIAMRoleAction
 func (action *DeleteIAMRoleAction) ExecuteAction(input interface{}) (output interface{}, err error) {
-	fmt.Printf("EXECUTE DeleteIAMRoleAction, deleting role: %s\n", action.RoleName)
+	log.Infoln("EXECUTE DeleteIAMRoleAction, deleting role:", action.RoleName)
 
 	//TODO handle non existing role
 	// detach every role first
@@ -998,7 +985,7 @@ func (action *DeleteIAMRoleAction) ExecuteAction(input interface{}) (output inte
 	})
 
 	if err != nil {
-		logger.Debug("ListAttachedRolePoliciesPages error: %v", err)
+		log.Debug("ListAttachedRolePoliciesPages error: %v", err)
 		return nil, err
 	}
 
@@ -1010,7 +997,7 @@ func (action *DeleteIAMRoleAction) ExecuteAction(input interface{}) (output inte
 		}
 		_, err = iamSvc.DetachRolePolicy(detachRolePolicyInput)
 		if err != nil {
-			logger.Debug("DetachRolePolicy error: %v", err)
+			log.Debug("DetachRolePolicy error: %v", err)
 			return nil, err
 		}
 	}

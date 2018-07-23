@@ -157,7 +157,7 @@ func (e *EKSCluster) CreateCluster() error {
 
 	_, err = utils.NewActionExecutor(logrus.New()).ExecuteActions(actions, nil, true)
 	if err != nil {
-		fmt.Printf("EKS cluster create error: %v\n", err)
+		log.Errorln("EKS cluster create error:", err.Error())
 		return err
 	}
 
@@ -195,7 +195,7 @@ func (e *EKSCluster) CreateCluster() error {
 		return err
 	}
 
-	fmt.Printf("EKS cluster created: %s\n", e.modelCluster.Name)
+	log.Infoln("EKS cluster created:", e.modelCluster.Name)
 
 	return nil
 }
@@ -267,7 +267,7 @@ func (e *EKSCluster) DeleteCluster() error {
 	}
 	_, err = utils.NewActionExecutor(logrus.New()).ExecuteActions(actions, nil, false)
 	if err != nil {
-		fmt.Printf("EKS cluster delete error: %v\n", err)
+		log.Errorln("EKS cluster delete error:", err.Error())
 		return err
 	}
 
