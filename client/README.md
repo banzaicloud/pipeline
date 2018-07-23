@@ -63,7 +63,7 @@ Class | Method | HTTP request | Description
 *DeploymentsApi* | [**CreateDeployment**](docs/DeploymentsApi.md#createdeployment) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/deployments | Create a Helm deployment
 *DeploymentsApi* | [**GetTillerStatus**](docs/DeploymentsApi.md#gettillerstatus) | **Head** /api/v1/orgs/{orgId}/clusters/{id}/deployments | Get tiller status
 *DeploymentsApi* | [**ListDeployments**](docs/DeploymentsApi.md#listdeployments) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/deployments | List deployments
-*HelmApi* | [**HelmChartDetails**](docs/HelmApi.md#helmchartdetails) | **Get** /api/v1/orgs/{orgId}/helm/chart/{repoName}/{chartName}/{chartVersion} | Chart details
+*HelmApi* | [**HelmChartDetails**](docs/HelmApi.md#helmchartdetails) | **Get** /api/v1/orgs/{orgId}/helm/chart/{repoName}/{chartName} | Chart details
 *HelmApi* | [**HelmChartList**](docs/HelmApi.md#helmchartlist) | **Get** /api/v1/orgs/{orgId}/helm/charts/ | Chart List
 *HelmApi* | [**HelmInit**](docs/HelmApi.md#helminit) | **Get** /api/v1/orgs/{orgId}/helm/repos | List repositories
 *HelmApi* | [**HelmReposAdd**](docs/HelmApi.md#helmreposadd) | **Post** /api/v1/orgs/{orgId}/helm/repos | Add Repo
@@ -195,6 +195,7 @@ Class | Method | HTTP request | Description
  - [HelmChartDetailsResponse](docs/HelmChartDetailsResponse.md)
  - [HelmChartDetailsResponseChart](docs/HelmChartDetailsResponseChart.md)
  - [HelmChartDetailsResponseChartMaintainers](docs/HelmChartDetailsResponseChartMaintainers.md)
+ - [HelmChartDetailsResponseVersions](docs/HelmChartDetailsResponseVersions.md)
  - [HelmChartsListResponse](docs/HelmChartsListResponse.md)
  - [HelmChartsListResponseInner](docs/HelmChartsListResponseInner.md)
  - [HelmInitRequest](docs/HelmInitRequest.md)
