@@ -106,7 +106,6 @@ func (e *EKSCluster) createAWSCredentialsFromSecret() (*credentials.Credentials,
 
 // CreateCluster creates an EKS cluster with cloudformation templates.
 func (e *EKSCluster) CreateCluster() error {
-
 	log.Info("Start creating EKS cluster")
 
 	awsCred, err := e.createAWSCredentialsFromSecret()
@@ -122,8 +121,7 @@ func (e *EKSCluster) CreateCluster() error {
 		return err
 	}
 
-	//ez a role mondja majd meg, hogy mikhez lesz jogunk a tovabbiakban, szoval adnunk kell magunknak jogot eks inditashoz, stb
-	//ehhez is vagy role kell vagy aws access/secret key.
+	// role that controls access to resources for creating an EKS cluster
 
 	roleName := e.generateIAMRoleNameForCluster()
 	eksStackName := e.generateStackNameForCluster()

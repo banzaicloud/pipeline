@@ -83,16 +83,16 @@ Parameters:
     Type: Number
     Description: Maximum size of Node Group ASG.
     Default: 3
-    
+
   NodeAutoScalingInitSize:
     Type: Number
     Description: The initial size of Node Group ASG.
     Default: 1
-    
+
   NodeSpotPrice:
     Type: String
-    Description: The spot price for this Auto Scaling group
-  
+    Description: The spot price for this ASG
+
   ClusterName:
     Description: The cluster name provided when the cluster was created.  If it is incorrect, nodes will not be able to join the cluster.
     Type: String
@@ -100,6 +100,14 @@ Parameters:
   NodeGroupName:
     Description: Unique identifier for the Node Group.
     Type: String
+
+  EnableClusterAutoscaler:
+    Type: String
+    Description: Whether to enable Kubernetes cluster autoscaler for this ASG or not.
+    Default: disabled
+    AllowedValues:
+      - enabled
+      - disabled
 
   ClusterControlPlaneSecurityGroup:
     Description: The security group of the cluster control plane.
@@ -240,6 +248,7 @@ Metadata:
           default: "Worker Node Configuration"
         Parameters:
           - NodeGroupName
+          - EnableClusterAutoscaler
           - NodeAutoScalingGroupMinSize
           - NodeAutoScalingGroupMaxSize
           - NodeAutoScalingInitSize
@@ -283,7 +292,7 @@ Resources:
       Policies:
         -
           PolicyName: NodePolicy
-          PolicyDocument: 
+          PolicyDocument:
             Version: '2012-10-17'
             Statement:
             -
@@ -365,6 +374,17 @@ Resources:
       ToPort: 443
       FromPort: 443
 
+  NodeSecurityGroupSsh:
+    Type: AWS::EC2::SecurityGroupIngress
+    DependsOn: NodeSecurityGroup
+    Properties:
+      Description: Allow SSH access to node
+      GroupId: !Ref NodeSecurityGroup
+      CidrIp: '0.0.0.0/0'
+      IpProtocol: tcp
+      ToPort: 22
+      FromPort: 22
+
   NodeGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
@@ -378,13 +398,13 @@ Resources:
       - Key: Name
         Value: !Sub "${ClusterName}-${NodeGroupName}-Node"
         PropagateAtLaunch: 'true'
-      - Key: !Sub 'k8s.io/cluster/${ClusterName}'
+      - Key: !Sub 'kubernetes.io/cluster/${ClusterName}'
         Value: 'owned'
         PropagateAtLaunch: 'true'
-      - Key: "k8s.io/cluster-autoscaler/enabled"
-        Value: 'true'
+      - Key: !Sub "k8s.io/cluster-autoscaler/${EnableClusterAutoscaler}"
+        Value: ''
         PropagateAtLaunch: 'true'
-        
+
     UpdatePolicy:
       AutoScalingRollingUpdate:
         MinInstancesInService: '1'
