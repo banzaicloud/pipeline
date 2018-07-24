@@ -156,7 +156,7 @@ func (e *EKSCluster) CreateCluster() error {
 		actions = append(actions, createNodePoolAction)
 	}
 
-	_, err = utils.NewActionExecutor(logrus.New()).ExecuteActions(actions, nil, true)
+	_, err = utils.NewActionExecutor(log).ExecuteActions(actions, nil, true)
 	if err != nil {
 		log.Errorln("EKS cluster create error:", err.Error())
 		return err
