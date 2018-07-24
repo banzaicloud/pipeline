@@ -109,6 +109,9 @@ func (oci *OCI) GetTenancy() (t identity.Tenancy, err error) {
 	}
 
 	i, err := oci.NewIdentityClient()
+	if err != nil {
+		return t, err
+	}
 	oci.Tenancy, err = i.GetTenancy(tenancyID)
 
 	return oci.Tenancy, err
