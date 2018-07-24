@@ -155,6 +155,9 @@ func CreateObjectStoreBuckets(c *gin.Context) {
 		objectStore.WithResourceGroup(createBucketRequest.Properties.CreateAzureObjectStoreBucketProperties.ResourceGroup)
 		objectStore.WithStorageAccount(createBucketRequest.Properties.CreateAzureObjectStoreBucketProperties.StorageAccount)
 	}
+	if cloudType == pkgCluster.Oracle {
+		objectStore.WithRegion(createBucketRequest.Properties.CreateOracleObjectStoreBucketProperties.Location)
+	}
 
 	go objectStore.CreateBucket(createBucketRequest.Name)
 	return
@@ -209,6 +212,17 @@ func CheckObjectStoreBucket(c *gin.Context) {
 		}
 
 		if err = objectStore.WithStorageAccount(storageAccount); err != nil {
+			c.Status(errorResponseFrom(err).Code)
+			return
+		}
+	}
+	if cloudType == pkgCluster.Oracle {
+		location := c.Query("location")
+		if len(location) == 0 {
+			c.Status(requiredQueryParamMissingErrorResponse("location").Code)
+			return
+		}
+		if err = objectStore.WithRegion(location); err != nil {
 			c.Status(errorResponseFrom(err).Code)
 			return
 		}
@@ -280,6 +294,17 @@ func DeleteObjectStoreBucket(c *gin.Context) {
 
 		if err = objectStore.WithStorageAccount(storageAccount); err != nil {
 			replyWithErrorResponse(c, errorResponseFrom(err))
+			return
+		}
+	}
+	if cloudType == pkgCluster.Oracle {
+		location := c.Query("location")
+		if len(location) == 0 {
+			replyWithErrorResponse(c, requiredQueryParamMissingErrorResponse("location"))
+			return
+		}
+		if err = objectStore.WithRegion(location); err != nil {
+			c.Status(errorResponseFrom(err).Code)
 			return
 		}
 	}

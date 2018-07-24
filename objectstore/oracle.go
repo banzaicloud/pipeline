@@ -2,8 +2,7 @@ package objectstore
 
 import (
 	"errors"
-	"sort"
-	"strings"
+	"fmt"
 
 	pipelineAuth "github.com/banzaicloud/pipeline/auth"
 	model "github.com/banzaicloud/pipeline/pkg/providers/oracle/model/objectstore"
@@ -18,13 +17,19 @@ type OCIObjectStore struct {
 	secret        *secret.SecretItemResponse
 	org           *pipelineAuth.Organization
 	compartmentID string
+	location      string
 }
 
 // CreateBucket creates an Oracle object store bucket with the given name
 func (o *OCIObjectStore) CreateBucket(name string) {
 
+	oci, err := oci.NewOCI(verify.CreateOCICredential(o.secret.Values))
+	if err != nil {
+		log.Errorf("Bucket creation error: %s", err)
+	}
+
 	managedBucket := &model.ManagedOracleBucket{}
-	searchCriteria := o.newManagedBucketSearchCriteria(name)
+	searchCriteria := o.newManagedBucketSearchCriteria(name, o.location, oci.CompartmentOCID)
 	if err := getManagedBucket(searchCriteria, managedBucket); err != nil {
 		switch err.(type) {
 		case ManagedBucketNotFoundError:
@@ -34,19 +39,22 @@ func (o *OCIObjectStore) CreateBucket(name string) {
 		}
 	}
 
-	oci, err := oci.NewOCI(verify.CreateOCICredential(o.secret.Values))
+	err = oci.ChangeRegion(o.location)
 	if err != nil {
 		log.Errorf("Bucket creation error: %s", err)
+		return
 	}
 
 	client, err := oci.NewObjectStorageClient()
 	if err != nil {
 		log.Errorf("Bucket creation error: %s", err)
+		return
 	}
 
 	managedBucket.Name = name
 	managedBucket.Organization = *o.org
 	managedBucket.CompartmentID = oci.CompartmentOCID
+	managedBucket.Location = o.location
 
 	err = persistToDb(managedBucket)
 	if err != nil {
@@ -73,25 +81,42 @@ func (o *OCIObjectStore) ListBuckets() ([]*pkgStorage.BucketInfo, error) {
 		return nil, err
 	}
 
-	client, err := oci.NewObjectStorageClient()
+	identity, err := oci.NewIdentityClient()
 	if err != nil {
-		log.Errorf("Creating Oracle object storage client failed: %s", err.Error())
+		log.Errorf("Creating Oracle object identity client failed: %s", err.Error())
 		return nil, err
 	}
-
-	log.Info("Retrieving bucket list from Oracle")
-	buckets, err := client.GetBuckets()
+	regions, err := identity.GetSubscribedRegionNames()
 	if err != nil {
 		return nil, err
 	}
 
 	var bucketList []*pkgStorage.BucketInfo
-	for _, bucket := range buckets {
-		bucketInfo := &pkgStorage.BucketInfo{Name: *bucket.Name, Managed: false}
-		bucketList = append(bucketList, bucketInfo)
+	for _, region := range regions {
+		err := oci.ChangeRegion(region)
+		if err != nil {
+			return nil, err
+		}
+
+		client, err := oci.NewObjectStorageClient()
+		if err != nil {
+			log.Errorf("Creating Oracle object storage client failed: %s", err.Error())
+			return nil, err
+		}
+
+		log.Infof("Retrieving bucket list from Oracle/%s", region)
+		buckets, err := client.GetBuckets()
+		if err != nil {
+			return nil, err
+		}
+
+		for _, bucket := range buckets {
+			bucketInfo := &pkgStorage.BucketInfo{Name: *bucket.Name, Location: region, Managed: false}
+			bucketList = append(bucketList, bucketInfo)
+		}
 	}
 
-	o.MarkManagedBuckets(bucketList)
+	o.MarkManagedBuckets(bucketList, oci.CompartmentOCID)
 
 	return bucketList, nil
 }
@@ -99,18 +124,24 @@ func (o *OCIObjectStore) ListBuckets() ([]*pkgStorage.BucketInfo, error) {
 // DeleteBucket deletes the managed bucket with the given name from Oracle object store
 func (o *OCIObjectStore) DeleteBucket(name string) error {
 
-	managedBucket := &model.ManagedOracleBucket{}
-	searchCriteria := o.newManagedBucketSearchCriteria(name)
-
-	log.Info("Looking up managed bucket: name=%s", name)
-	if err := getManagedBucket(searchCriteria, managedBucket); err != nil {
-		return err
-	}
-
 	log.Info("Getting credentials")
 	oci, err := oci.NewOCI(verify.CreateOCICredential(o.secret.Values))
 	if err != nil {
 		log.Errorf("Getting credentials failed: %s", err.Error())
+		return err
+	}
+
+	managedBucket := &model.ManagedOracleBucket{}
+	searchCriteria := o.newManagedBucketSearchCriteria(name, o.location, oci.CompartmentOCID)
+
+	log.Infof("Looking up managed bucket: name=%s", name)
+	if err := getManagedBucket(searchCriteria, managedBucket); err != nil {
+		return err
+	}
+
+	err = oci.ChangeRegion(o.location)
+	if err != nil {
+		log.Errorf("Chaning Oracle region failed: %s", err.Error())
 		return err
 	}
 
@@ -135,8 +166,15 @@ func (o *OCIObjectStore) DeleteBucket(name string) error {
 // CheckBucket check the status of the given Oracle object store bucket
 func (o *OCIObjectStore) CheckBucket(name string) error {
 
+	log.Info("Getting credentials")
+	oci, err := oci.NewOCI(verify.CreateOCICredential(o.secret.Values))
+	if err != nil {
+		log.Errorf("Getting credentials failed: %s", err.Error())
+		return err
+	}
+
 	managedBucket := &model.ManagedOracleBucket{}
-	searchCriteria := o.newManagedBucketSearchCriteria(name)
+	searchCriteria := o.newManagedBucketSearchCriteria(name, o.location, oci.CompartmentOCID)
 
 	log.Infof("Looking up managed bucket: name=%s", name)
 	if err := getManagedBucket(searchCriteria, managedBucket); err != nil {
@@ -144,11 +182,9 @@ func (o *OCIObjectStore) CheckBucket(name string) error {
 		return err
 	}
 
-	log.Info("Getting credentials")
-	oci, err := oci.NewOCI(verify.CreateOCICredential(o.secret.Values))
+	err = oci.ChangeRegion(managedBucket.Location)
 	if err != nil {
-		log.Errorf("Getting credentials failed: %s", err.Error())
-		return err
+		log.Errorf("Bucket creation error: %s", err)
 	}
 
 	client, err := oci.NewObjectStorageClient()
@@ -173,35 +209,43 @@ func (o *OCIObjectStore) WithStorageAccount(name string) error {
 	return errors.New("not implemented")
 }
 
-// WithRegion always return "not implemented" error
-func (o *OCIObjectStore) WithRegion(name string) error {
-	return errors.New("not implemented")
+// WithRegion updates the region.
+func (o *OCIObjectStore) WithRegion(region string) error {
+	o.location = region
+	return nil
 }
 
 // newManagedBucketSearchCriteria returns the database search criteria to find managed bucket with the given name
-func (o *OCIObjectStore) newManagedBucketSearchCriteria(bucketName string) *model.ManagedOracleBucket {
+func (o *OCIObjectStore) newManagedBucketSearchCriteria(bucketName string, location string, compartmentID string) *model.ManagedOracleBucket {
 	return &model.ManagedOracleBucket{
-		OrgID: o.org.ID,
-		Name:  bucketName,
+		OrgID:         o.org.ID,
+		Name:          bucketName,
+		CompartmentID: compartmentID,
+		Location:      location,
 	}
 }
 
 // MarkManagedBuckets marks buckets by name to 'managed'
-func (o *OCIObjectStore) MarkManagedBuckets(buckets []*pkgStorage.BucketInfo) error {
+func (o *OCIObjectStore) MarkManagedBuckets(buckets []*pkgStorage.BucketInfo, compartmentID string) error {
 
+	// get managed buckets from database
 	managedBuckets, err := o.GetManagedBuckets()
 	if err != nil {
 		return err
 	}
 
+	// make map for search
+	mBuckets := make(map[string]string, 0)
+	for _, mBucket := range managedBuckets {
+		key := fmt.Sprintf("%s-%s-%s", mBucket.Name, mBucket.Location, mBucket.CompartmentID)
+		mBuckets[key] = key
+	}
+
 	log.Infof("Marking managed buckets by name")
-	for _, bucket := range buckets {
-		// managedBuckets must be sorted in order to be able to perform binary search on it
-		idx := sort.Search(len(managedBuckets), func(i int) bool {
-			return strings.Compare(managedBuckets[i].Name, bucket.Name) >= 0
-		})
-		if idx < len(managedBuckets) && strings.Compare(managedBuckets[idx].Name, bucket.Name) == 0 {
-			bucket.Managed = true
+	for _, bucketInfo := range buckets {
+		key := fmt.Sprintf("%s-%s-%s", bucketInfo.Name, bucketInfo.Location, compartmentID)
+		if mBuckets[key] == key {
+			bucketInfo.Managed = true
 		}
 	}
 
@@ -214,7 +258,7 @@ func (o *OCIObjectStore) GetManagedBuckets() ([]model.ManagedOracleBucket, error
 	log.Infof("Retrieving managed buckets")
 
 	var managedBuckets []model.ManagedOracleBucket
-	if err := queryWithOrderByDb(&model.ManagedOracleBucket{OrgID: o.org.ID}, "name asc", &managedBuckets); err != nil {
+	if err := queryWithOrderByDb(&model.ManagedOracleBucket{OrgID: o.org.ID}, "name asc, location asc", &managedBuckets); err != nil {
 		log.Errorf("Retrieving managed buckets in organisation id=%s failed: %s", err.Error())
 		return nil, err
 	}

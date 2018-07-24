@@ -15,7 +15,8 @@ type ManagedOracleBucket struct {
 	Organization  pipelineAuth.Organization `gorm:"foreignkey:OrgID"`
 	OrgID         uint                      `gorm:"index;not null"`
 	CompartmentID string
-	Name          string `gorm:"unique_index:bucketName"`
+	Name          string `gorm:"unique_index:bucketNameLocation"`
+	Location      string `gorm:"unique_index:bucketNameLocation"`
 }
 
 // TableName sets the NodePools table name
