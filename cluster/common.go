@@ -329,7 +329,7 @@ func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClust
 
 	case pkgCluster.Oracle:
 		// Create Oracle struct
-		okeCluster, err := CreateOKEClusterFromRequest(createClusterRequest, orgId)
+		okeCluster, err := CreateOKEClusterFromRequest(createClusterRequest, orgId, userId)
 		if err != nil {
 			return nil, err
 		}

@@ -22,48 +22,34 @@ func init() {
 
 // SQL table names
 const (
-	ProfileTableName               = "oracle_profiles"
-	ProfileNodePoolTableName       = "oracle_profiles_nodepools"
-	ProfileNodePoolSubnetTableName = "oracle_profiles_nodepools_subnets"
-	ProfileNodePoolLabelTableName  = "oracle_profiles_nodepools_labels"
+	ProfileTableName              = "oracle_profiles"
+	ProfileNodePoolTableName      = "oracle_profiles_nodepools"
+	ProfileNodePoolLabelTableName = "oracle_profiles_nodepools_labels"
 )
 
 // Profile describes the Oracle cluster profile model
 type Profile struct {
-	ID          uint   `gorm:"primary_key"`
-	Name        string `gorm:"unique_index:idx_modelid_name"`
-	Location    string `gorm:"default:'n/a'"`
-	Version     string `gorm:"default:'v1.10.3'"`
-	VCNID       string
-	LBSubnetID1 string
-	LBSubnetID2 string
-	NodePools   []*ProfileNodePool
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ID        uint   `gorm:"primary_key"`
+	Name      string `gorm:"unique_index:idx_modelid_name"`
+	Location  string `gorm:"default:'eu-frankfurt-1'"`
+	Version   string `gorm:"default:'v1.10.3'"`
+	NodePools []*ProfileNodePool
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 // ProfileNodePool describes Oracle node pool profile model of a cluster
 type ProfileNodePool struct {
-	ID                uint   `gorm:"primary_key"`
-	Name              string `gorm:"unique_index:idx_modelid_name"`
-	Image             string `gorm:"default:'Oracle-Linux-7.4'"`
-	Shape             string `gorm:"default:'VM.Standard1.1'"`
-	Version           string `gorm:"default:'v1.10.3'"`
-	QuantityPerSubnet int    `gorm:"default:1"`
-	Subnets           []*ProfileNodePoolSubnet
-	Labels            []*ProfileNodePoolLabel
-	ProfileID         uint `gorm:"unique_index:idx_modelid_name; foreignKey"`
-	CreatedAt         time.Time
-	UpdatedAt         time.Time
-}
-
-// ProfileNodePoolSubnet describes subnet profile for a NodePool profile
-type ProfileNodePoolSubnet struct {
-	ID                uint `gorm:"primary_key"`
-	SubnetID          string
-	ProfileNodePoolID uint
-	CreatedAt         time.Time
-	UpdatedAt         time.Time
+	ID        uint   `gorm:"primary_key"`
+	Name      string `gorm:"unique_index:idx_modelid_name"`
+	Count     uint   `gorm:"default:'1'"`
+	Image     string `gorm:"default:'Oracle-Linux-7.4'"`
+	Shape     string `gorm:"default:'VM.Standard1.1'"`
+	Version   string `gorm:"default:'v1.10.3'"`
+	Labels    []*ProfileNodePoolLabel
+	ProfileID uint `gorm:"unique_index:idx_modelid_name; foreignKey"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 // ProfileNodePoolLabel stores labels for node pools
@@ -86,11 +72,6 @@ func (ProfileNodePool) TableName() string {
 	return ProfileNodePoolTableName
 }
 
-// TableName overrides ProfileNodePoolSubnet table name
-func (ProfileNodePoolSubnet) TableName() string {
-	return ProfileNodePoolSubnetTableName
-}
-
 // TableName overrides ProfileNodePoolLabel table name
 func (ProfileNodePoolLabel) TableName() string {
 	return ProfileNodePoolLabelTableName
@@ -100,7 +81,7 @@ func (ProfileNodePoolLabel) TableName() string {
 func GetProfiles() []Profile {
 
 	var Profiles []Profile
-	database.GetDB().Preload("NodePools.Subnets").Preload("NodePools.Labels").Find(&Profiles)
+	database.GetDB().Preload("NodePools.Labels").Find(&Profiles)
 
 	return Profiles
 }
@@ -109,7 +90,7 @@ func GetProfiles() []Profile {
 func GetProfileByName(name string) (Profile, error) {
 
 	var profile Profile
-	err := database.GetDB().Where(Profile{Name: name}).Preload("NodePools.Subnets").Preload("NodePools.Labels").First(&profile).Error
+	err := database.GetDB().Where(Profile{Name: name}).Preload("NodePools.Labels").First(&profile).Error
 
 	return profile, err
 }
@@ -136,13 +117,10 @@ func (d *Profile) GetProfile() *pkgCluster.ClusterProfileResponse {
 	if d.NodePools != nil {
 		for _, np := range d.NodePools {
 			nodePools[np.Name] = &oracle.NodePool{
-				Version:           np.Version,
-				QuantityPerSubnet: np.QuantityPerSubnet,
-				Image:             np.Image,
-				Shape:             np.Shape,
-			}
-			for _, si := range np.Subnets {
-				nodePools[np.Name].SubnetIds = append(nodePools[np.Name].SubnetIds, si.SubnetID)
+				Version: np.Version,
+				Image:   np.Image,
+				Count:   np.Count,
+				Shape:   np.Shape,
 			}
 			nodePools[np.Name].Labels = make(map[string]string, 0)
 			for _, l := range np.Labels {
@@ -162,11 +140,8 @@ func (d *Profile) GetProfile() *pkgCluster.ClusterProfileResponse {
 			Oracle *oracle.Cluster              `json:"oracle,omitempty"`
 		}{
 			Oracle: &oracle.Cluster{
-				Version:     d.Version,
-				VCNID:       d.VCNID,
-				LBSubnetID1: d.LBSubnetID1,
-				LBSubnetID2: d.LBSubnetID2,
-				NodePools:   nodePools,
+				Version:   d.Version,
+				NodePools: nodePools,
 			},
 		},
 	}
@@ -180,25 +155,17 @@ func (d *Profile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave bo
 		s := r.Properties.Oracle
 
 		d.Version = s.Version
-		d.VCNID = s.VCNID
-		d.LBSubnetID1 = s.LBSubnetID1
-		d.LBSubnetID2 = s.LBSubnetID2
-		d.Location = "n/a"
+		d.Location = r.Location
 
 		if len(s.NodePools) != 0 {
 			var nodePools []*ProfileNodePool
 			for name, np := range s.NodePools {
 				nodePool := &ProfileNodePool{
-					Version:           np.Version,
-					QuantityPerSubnet: np.QuantityPerSubnet,
-					Image:             np.Image,
-					Shape:             np.Shape,
-					Name:              name,
-				}
-				for _, si := range np.SubnetIds {
-					nodePool.Subnets = append(nodePool.Subnets, &ProfileNodePoolSubnet{
-						SubnetID: si,
-					})
+					Version: np.Version,
+					Count:   np.Count,
+					Image:   np.Image,
+					Shape:   np.Shape,
+					Name:    name,
 				}
 				for name, value := range np.Labels {
 					nodePool.Labels = append(nodePool.Labels, &ProfileNodePoolLabel{
@@ -237,19 +204,11 @@ func (d *Profile) BeforeDelete() error {
 	}).Find(&nodePools).Delete(&nodePools).Error
 }
 
-// BeforeDelete deletes all subnets and labels belongs to the nodepool
+// BeforeDelete deletes all labels belongs to the nodepool
 func (d *ProfileNodePool) BeforeDelete() error {
-	log.Info("BeforeDelete oke nodepool... delete all subnets and labels")
+	log.Info("BeforeDelete oke nodepool... delete all labels")
 
-	var nodePoolSubnets []*ProfileNodePoolSubnet
 	var nodePoolLabels []*ProfileNodePoolLabel
-
-	err := database.GetDB().Where(ProfileNodePoolSubnet{
-		ProfileNodePoolID: d.ID,
-	}).Find(&nodePoolSubnets).Delete(&nodePoolSubnets).Error
-	if err != nil {
-		return err
-	}
 
 	return database.GetDB().Where(ProfileNodePoolLabel{
 		ProfileNodePoolID: d.ID,

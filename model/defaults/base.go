@@ -106,6 +106,12 @@ func GetDefaultProfiles() []ClusterProfile {
 			NodePools: []*GKENodePoolProfile{{
 				NodeName: DefaultNodeName,
 			}},
+		},
+		&oracle.Profile{
+			Name: GetDefaultProfileName(),
+			NodePools: []*oracle.ProfileNodePool{{
+				Name: DefaultNodeName,
+			}},
 		})
 	return defaults
 }

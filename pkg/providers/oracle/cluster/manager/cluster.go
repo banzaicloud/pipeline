@@ -50,7 +50,7 @@ func (cm *ClusterManager) CreateCluster(clusterModel *model.Cluster) error {
 // UpdateCluster updates the cluster
 func (cm *ClusterManager) UpdateCluster(clusterModel *model.Cluster) error {
 
-	cluster, err := cm.GetCluster(clusterModel.OCID)
+	cluster, err := cm.GetCluster(&clusterModel.OCID)
 	if err != nil {
 		return err
 	}
@@ -99,7 +99,7 @@ func (cm *ClusterManager) DeleteCluster(clusterModel *model.Cluster) error {
 		return err
 	}
 
-	cluster, err := cm.GetCluster(clusterModel.OCID)
+	cluster, err := cm.GetCluster(&clusterModel.OCID)
 	if err != nil {
 		return err
 	}
@@ -117,13 +117,13 @@ func (cm *ClusterManager) DeleteCluster(clusterModel *model.Cluster) error {
 	return ce.DeleteCluster(req)
 }
 
-// GetCluster gets cluster info by OCID
-func (cm *ClusterManager) GetCluster(OCID string) (cluster containerengine.Cluster, err error) {
+// GetCluster gets cluster info by id
+func (cm *ClusterManager) GetCluster(id *string) (cluster containerengine.Cluster, err error) {
 
 	ce, err := cm.oci.NewContainerEngineClient()
 	if err != nil {
 		return cluster, err
 	}
 
-	return ce.GetCluster(&OCID)
+	return ce.GetCluster(id)
 }
