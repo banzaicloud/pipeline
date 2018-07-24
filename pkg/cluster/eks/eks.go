@@ -1,17 +1,14 @@
 package eks
 
 import (
-	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	"github.com/banzaicloud/pipeline/pkg/cluster/amazon"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 )
 
 // CreateClusterEks describes Pipeline's Amazon EKS fields of a CreateCluster request
 type CreateClusterEks struct {
-	NodeImageId      string `json:"nodeImageId,omitempty"`
-	NodeInstanceType string `json:"nodeInstanceType,omitempty"`
-	Version          string `json:"version,omitempty"`
-	MinCount         int    `json:"minCount,omitempty"`
-	MaxCount         int    `json:"maxCount,omitempty"`
+	Version   string                      `json:"version,omitempty"`
+	NodePools map[string]*amazon.NodePool `json:"nodePools,omitempty"`
 }
 
 // UpdateClusterAmazonEKS describes Amazon EKS's node fields of an UpdateCluster request
@@ -25,41 +22,11 @@ func (eks *CreateClusterEks) Validate() error {
 		return pkgErrors.ErrorAmazonEksFieldIsEmpty
 	}
 
-	// TODO: support nodepools
-
-	/* if len(eks.NodePools) == 0 {
-		  return pkgErrors.ErrorAmazonEksNodePoolFieldIsEmpty
-	  }
-
-	 for _, np := range eks.NodePools {
+	for _, np := range eks.NodePools {
 		if err := np.Validate(); err != nil {
 			return err
 		}
 	}
-
-	return nil
-	}*/
-
-	// ---- [ Node min count check ] ---- //
-	if eks.MinCount == 0 {
-		eks.MinCount = pkgCommon.DefaultNodeMinCount
-	}
-
-	// ---- [ Node max count check ] ---- //
-	if eks.MaxCount == 0 {
-		eks.MaxCount = pkgCommon.DefaultNodeMaxCount
-	}
-
-	// ---- [ Node min count <= max count check ] ---- //
-	if eks.MaxCount < eks.MinCount {
-		return pkgErrors.ErrorNodePoolMinMaxFieldError
-	}
-
-	if len(eks.NodeInstanceType) == 0 {
-		eks.NodeInstanceType = DefaultInstanceType
-	}
-
-	// TODO: support spot price // ---- [ Node spot price ] ---- //
 
 	return nil
 }
@@ -72,19 +39,15 @@ func (eks *CreateClusterEks) AddDefaults(location string) error {
 
 	defaultImage := DefaultImages[location]
 
-	// TODO: add nodepool support
-	/*
-		if len(eks.NodePools) == 0 {
-			return pkgErrors.ErrorAmazonEksNodePoolFieldIsEmpty
-		}
+	if len(eks.NodePools) == 0 {
+		return pkgErrors.ErrorAmazonEksNodePoolFieldIsEmpty
+	}
 
-		for i, np := range eks.NodePools {
-			if len(np.Image) == 0 {
-				eks.NodePools[i].Image = defaultImage
-			}
+	for i, np := range eks.NodePools {
+		if len(np.Image) == 0 {
+			eks.NodePools[i].Image = defaultImage
 		}
-	*/
-	eks.NodeImageId = defaultImage
+	}
 
 	return nil
 }
@@ -110,11 +73,7 @@ type CertificateAuthority struct {
 
 // ClusterProfileEks describes an Amazon EKS profile
 type ClusterProfileEks struct {
-	NodeImageId      string `json:"nodeImageId,omitempty"`
-	NodeInstanceType string `json:"nodeInstanceType,omitempty"`
-	Version          string `json:"version,omitempty"`
-	NodeMinCount     int    `json:"nodeMinCount,omitempty"`
-	NodeMaxCount     int    `json:"nodeMaxCount,omitempty"`
+	Version string `json:"version,omitempty"`
 }
 
 // CreateAmazonEksObjectStoreBucketProperties describes the properties of

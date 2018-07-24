@@ -85,7 +85,7 @@ func NewActionExecutor(log *logrus.Logger) *ActionExecutor {
 }
 
 // ExecuteActions executes the defined Actions
-func (ae *ActionExecutor) ExecuteActions(actions []Action, input interface{}, tryToUndoOnFail bool) (output interface{}, error error) {
+func (ae *ActionExecutor) ExecuteActions(actions []Action, input interface{}, tryToUndoOnFail bool) (output interface{}, err error) {
 	if len(actions) > 0 {
 		action := actions[0]
 		ctx := NewActionCallContext(action, actions[1:], input, tryToUndoOnFail)

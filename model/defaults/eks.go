@@ -13,10 +13,11 @@ import (
 // EKSProfile describes an Amazon EKS cluster profile
 type EKSProfile struct {
 	DefaultModel
-	Region           string `gorm:"default:'us-west-2'"`
-	NodeImageId      string `json:"nodeImageId,omitempty"`
-	NodeInstanceType string `json:"nodeInstanceType,omitempty"`
-	Version          string `json:"version,omitempty"`
+	Region           string                `gorm:"default:'us-west-2'"`
+	NodeImageId      string                `json:"nodeImageId,omitempty"`
+	NodeInstanceType string                `json:"nodeInstanceType,omitempty"`
+	Version          string                `json:"version,omitempty"`
+	NodePools        []*AWSNodePoolProfile `gorm:"foreignkey:Name"`
 }
 
 // TableName overrides EKSProfile's table name
@@ -42,6 +43,21 @@ func (d *EKSProfile) IsDefinedBefore() bool {
 // GetProfile load profile from database and converts ClusterProfileResponse
 func (d *EKSProfile) GetProfile() *pkgCluster.ClusterProfileResponse {
 
+	nodePools := make(map[string]*amazon.NodePool)
+	for _, np := range d.NodePools {
+		if np != nil {
+			nodePools[np.NodeName] = &amazon.NodePool{
+				InstanceType: np.InstanceType,
+				SpotPrice:    np.SpotPrice,
+				Autoscaling:  np.Autoscaling,
+				MinCount:     np.MinCount,
+				MaxCount:     np.MaxCount,
+				Count:        np.Count,
+				Image:        np.Image,
+			}
+		}
+	}
+
 	return &pkgCluster.ClusterProfileResponse{
 		Name:     d.DefaultModel.Name,
 		Location: d.Region,
@@ -54,9 +70,7 @@ func (d *EKSProfile) GetProfile() *pkgCluster.ClusterProfileResponse {
 			Oracle *oracle.Cluster              `json:"oracle,omitempty"`
 		}{
 			Eks: &eks.ClusterProfileEks{
-				NodeImageId:      d.NodeImageId,
-				NodeInstanceType: d.NodeInstanceType,
-				Version:          d.Version,
+				Version: d.Version,
 			},
 		},
 	}

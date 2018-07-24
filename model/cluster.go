@@ -85,12 +85,9 @@ type AmazonNodePoolsModel struct {
 
 //AmazonEksClusterModel describes the amazon cluster model
 type AmazonEksClusterModel struct {
-	ClusterModelId   uint `gorm:"primary_key"`
-	NodeImageId      string
-	NodeInstanceType string
-	Version          string //kubernetes "1.10"
-	NodeMinCount     int
-	NodeMaxCount     int
+	ClusterModelId uint                    `gorm:"primary_key"`
+	Version        string                  //kubernetes "1.10"
+	NodePools      []*AmazonNodePoolsModel `gorm:"foreignkey:ClusterModelId"`
 }
 
 //AzureClusterModel describes the azure cluster model

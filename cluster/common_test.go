@@ -410,11 +410,17 @@ var (
 			CreateClusterOracle *oracle.Cluster              `json:"oracle,omitempty"`
 		}{
 			CreateClusterEks: &eks.CreateClusterEks{
-				NodeImageId:      clusterRequestNodeImage,
-				NodeInstanceType: clusterRequestNodeInstance,
-				Version:          clusterRequestVersion,
-				MinCount:         clusterRequestNodeMinCount,
-				MaxCount:         clusterRequestNodeMaxCount,
+				Version: clusterRequestVersion,
+				NodePools: map[string]*amazon.NodePool{
+					pool1Name: {
+						InstanceType: clusterRequestNodeInstance,
+						SpotPrice:    clusterRequestSpotPrice,
+						Autoscaling:  true,
+						MinCount:     clusterRequestNodeCount,
+						MaxCount:     clusterRequestNodeMaxCount,
+						Image:        clusterRequestNodeImage,
+					},
+				},
 			},
 		},
 	}

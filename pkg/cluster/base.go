@@ -221,9 +221,8 @@ func (r *CreateClusterRequest) AddDefaults() error {
 	case Amazon:
 		if r.Properties.CreateClusterAmazon != nil {
 			return r.Properties.CreateClusterAmazon.AddDefaults(r.Location)
-		} else {
-			return r.Properties.CreateClusterEks.AddDefaults(r.Location)
 		}
+		return r.Properties.CreateClusterEks.AddDefaults(r.Location)
 	case Oracle:
 		return r.Properties.CreateClusterOracle.AddDefaults()
 	default:
@@ -243,9 +242,9 @@ func (r *CreateClusterRequest) Validate() error {
 		// amazon validate
 		if r.Properties.CreateClusterAmazon != nil {
 			return r.Properties.CreateClusterAmazon.Validate()
-		} else {
-			return r.Properties.CreateClusterEks.Validate()
 		}
+		// amazon eks validate
+		return r.Properties.CreateClusterEks.Validate()
 	case Azure:
 		// azure validate
 		return r.Properties.CreateClusterAzure.Validate()
@@ -515,11 +514,8 @@ func (p *ClusterProfileResponse) CreateClusterRequest(createRequest *CreateClust
 			}
 		} else {
 			response.Properties.CreateClusterEks = &eks.CreateClusterEks{
-				NodeImageId:      p.Properties.Eks.NodeImageId,
-				NodeInstanceType: p.Properties.Eks.NodeInstanceType,
-				Version:          p.Properties.Eks.Version,
-				MinCount:         p.Properties.Eks.NodeMinCount,
-				MaxCount:         p.Properties.Eks.NodeMaxCount,
+				NodePools: p.Properties.Amazon.NodePools,
+				Version:   p.Properties.Eks.Version,
 			}
 		}
 	case Azure:

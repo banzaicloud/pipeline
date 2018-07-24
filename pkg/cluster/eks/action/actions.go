@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/pkg/errors"
@@ -382,8 +383,7 @@ func (action *CreateEksClusterAction) ExecuteAction(input interface{}) (output i
 	log.Infoln("EXECUTE CreateEksClusterAction, cluster name:", action.context.ClusterName)
 	eksSvc := eks.New(action.context.Session)
 
-	var roleArn *string
-	roleArn = action.context.Role.Arn
+	roleArn := action.context.Role.Arn
 
 	createClusterInput := &eks.CreateClusterInput{
 		ClientRequestToken: aws.String(uuid.NewV4().String()), //"1d2129a1-3d38-460a-9756-e5b91fddb951"
@@ -407,7 +407,7 @@ func (action *CreateEksClusterAction) ExecuteAction(input interface{}) (output i
 
 	//wait for ready status
 	startTime := time.Now()
-	log.Info("Waiting for eks cluster creation")
+	log.Info("Waiting for EKS cluster creation")
 	describeClusterInput := &eks.DescribeClusterInput{
 		Name: aws.String(action.context.ClusterName),
 	}
@@ -416,7 +416,7 @@ func (action *CreateEksClusterAction) ExecuteAction(input interface{}) (output i
 		return nil, err
 	}
 	endTime := time.Now()
-	log.Infoln("Eks cluster created successfully in", endTime.Sub(startTime).String())
+	log.Infoln("EKS cluster created successfully in", endTime.Sub(startTime).String())
 
 	return result.Cluster, nil
 }
@@ -486,10 +486,10 @@ func (action *CreateEksClusterAction) UndoAction() (err error) {
 
 // ---
 
-var _ utils.RevocableAction = (*CreateWorkersVPCStackAction)(nil)
+var _ utils.RevocableAction = (*CreateNodePoolStackAction)(nil)
 
-// CreateWorkersVPCStackAction describes the properties of a worker VPC creation
-type CreateWorkersVPCStackAction struct {
+// CreateNodePoolStackAction describes the properties of a nodePool VPC creation
+type CreateNodePoolStackAction struct {
 	context          *EksClusterCreationContext
 	stackName        string
 	scalingMinSize   int
@@ -500,33 +500,31 @@ type CreateWorkersVPCStackAction struct {
 	//stackCreationTimeout       time.Duration
 }
 
-// NewCreateWorkersAction creates a new CreateWorkersVPCStackAction
-func NewCreateWorkersAction(creationContext *EksClusterCreationContext,
+// NewCreateNodePoolStackAction creates a new CreateNodePoolStackAction
+func NewCreateNodePoolStackAction(
+	creationContext *EksClusterCreationContext,
 	stackName string,
-	scalingMinSize int,
-	scalingMaxSize int,
-	nodeInstanceType string,
-	nodeImageId string) *CreateWorkersVPCStackAction {
-	return &CreateWorkersVPCStackAction{
+	nodePool *model.AmazonNodePoolsModel) *CreateNodePoolStackAction {
+	return &CreateNodePoolStackAction{
 		context:          creationContext,
 		stackName:        stackName,
-		scalingMinSize:   scalingMinSize,
-		scalingMaxSize:   scalingMaxSize,
-		nodeInstanceType: nodeInstanceType,
-		nodeImageId:      nodeImageId,
+		scalingMinSize:   nodePool.NodeMinCount,
+		scalingMaxSize:   nodePool.NodeMaxCount,
+		nodeInstanceType: nodePool.NodeInstanceType,
+		nodeImageId:      nodePool.NodeImage,
 		//describeStacksTimeInterval: 10 * time.Second,
 		//stackCreationTimeout:       3 * time.Minute,
 	}
 }
 
 // GetName return the name of this action
-func (action *CreateWorkersVPCStackAction) GetName() string {
-	return "CreateWorkersVPCStackAction"
+func (action *CreateNodePoolStackAction) GetName() string {
+	return "CreateNodePoolStackAction"
 }
 
-// ExecuteAction executes the CreateWorkersVPCStackAction
-func (action *CreateWorkersVPCStackAction) ExecuteAction(input interface{}) (output interface{}, err error) {
-	log.Infoln("EXECUTE CreateWorkersVPCStackAction, stack name:", action.stackName)
+// ExecuteAction executes the CreateNodePoolStackAction
+func (action *CreateNodePoolStackAction) ExecuteAction(input interface{}) (output interface{}, err error) {
+	log.Infoln("EXECUTE CreateNodePoolStackAction, stack name:", action.stackName)
 
 	commaDelimitedSubnetIDs := ""
 	for i, subnetID := range action.context.SubnetIDs {
@@ -635,9 +633,9 @@ func (action *CreateWorkersVPCStackAction) ExecuteAction(input interface{}) (out
 	return nil, nil
 }
 
-// UndoAction rolls back this CreateWorkersVPCStackAction
-func (action *CreateWorkersVPCStackAction) UndoAction() (err error) {
-	log.Info("EXECUTE UNDO CreateWorkersVPCStackAction")
+// UndoAction rolls back this CreateNodePoolStackAction
+func (action *CreateNodePoolStackAction) UndoAction() (err error) {
+	log.Info("EXECUTE UNDO CreateNodePoolStackAction")
 	cloudformationSrv := cloudformation.New(action.context.Session)
 	deleteStackInput := &cloudformation.DeleteStackInput{
 		ClientRequestToken: aws.String(uuid.NewV4().String()),
@@ -862,30 +860,30 @@ func (action *DeleteStackAction) ExecuteAction(input interface{}) (output interf
 
 //--
 
-var _ utils.Action = (*DeleteEksClusterAction)(nil)
+var _ utils.Action = (*DeleteClusterAction)(nil)
 
-// DeleteEksClusterAction deletes an EKS cluster
-type DeleteEksClusterAction struct {
+// DeleteClusterAction deletes an EKS cluster
+type DeleteClusterAction struct {
 	context        *EksClusterDeletionContext
 	EksClusterName string
 }
 
-// NewDeleteEksClusterAction creates a new DeleteEksClusterAction
-func NewDeleteEksClusterAction(context *EksClusterDeletionContext, eksClusterName string) *DeleteEksClusterAction {
-	return &DeleteEksClusterAction{
+// NewDeleteClusterAction creates a new DeleteClusterAction
+func NewDeleteClusterAction(context *EksClusterDeletionContext, eksClusterName string) *DeleteClusterAction {
+	return &DeleteClusterAction{
 		context:        context,
 		EksClusterName: eksClusterName,
 	}
 }
 
-// GetName returns the name of this DeleteEksClusterAction
-func (action *DeleteEksClusterAction) GetName() string {
-	return "DeleteEksClusterAction"
+// GetName returns the name of this DeleteClusterAction
+func (action *DeleteClusterAction) GetName() string {
+	return "DeleteClusterAction"
 }
 
-// ExecuteAction executes this DeleteEksClusterAction
-func (action *DeleteEksClusterAction) ExecuteAction(input interface{}) (output interface{}, err error) {
-	log.Info("EXECUTE DeleteEksClusterAction")
+// ExecuteAction executes this DeleteClusterAction
+func (action *DeleteClusterAction) ExecuteAction(input interface{}) (output interface{}, err error) {
+	log.Info("EXECUTE DeleteClusterAction")
 
 	//TODO handle non existing cluster
 	eksSrv := eks.New(action.context.Session)

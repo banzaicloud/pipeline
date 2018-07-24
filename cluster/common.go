@@ -188,7 +188,7 @@ func getSecret(organizationId uint, secretId string) (*secret.SecretItemResponse
 	return secret.Store.Get(organizationId, secretId)
 }
 
-//GetCommonClusterFromModel extracts CommonCluster from a ClusterModel
+// GetCommonClusterFromModel extracts CommonCluster from a ClusterModel
 func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster, error) {
 
 	database := database.GetDB()
@@ -211,24 +211,29 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 			}
 
 			log.Debug("Load Amazon props from database")
-			database.Where(model.AmazonClusterModel{ClusterModelId: awsCluster.modelCluster.ID}).First(&awsCluster.modelCluster.Amazon)
-			database.Model(&awsCluster.modelCluster.Amazon).Related(&awsCluster.modelCluster.Amazon.NodePools, "NodePools")
-
-			return awsCluster, nil
-
-		} else {
-			//Create Amazon EKS struct
-			eksCluster, err := CreateEKSClusterFromModel(modelCluster)
+			err = database.Where(model.AmazonClusterModel{ClusterModelId: awsCluster.modelCluster.ID}).First(&awsCluster.modelCluster.Amazon).Error
 			if err != nil {
 				return nil, err
 			}
+			err = database.Model(&awsCluster.modelCluster.Amazon).Related(&awsCluster.modelCluster.Amazon.NodePools, "NodePools").Error
 
-			log.Debug("Load EKS props from database")
-			database.Where(model.AmazonEksClusterModel{ClusterModelId: eksCluster.modelCluster.ID}).First(&eksCluster.modelCluster.Eks)
-			//database.Model(&eksCluster.modelCluster.Eks).Related(&eksCluster.modelCluster.Eks.NodePools, "NodePools")
-
-			return eksCluster, nil
+			return awsCluster, err
 		}
+
+		//Create Amazon EKS struct
+		eksCluster, err := CreateEKSClusterFromModel(modelCluster)
+		if err != nil {
+			return nil, err
+		}
+
+		log.Debug("Load EKS props from database")
+		err = database.Where(model.AmazonEksClusterModel{ClusterModelId: eksCluster.modelCluster.ID}).First(&eksCluster.modelCluster.Eks).Error
+		if err != nil {
+			return nil, err
+		}
+		err = database.Model(&eksCluster.modelCluster.Eks).Related(&eksCluster.modelCluster.Eks.NodePools, "NodePools").Error
+
+		return eksCluster, err
 
 	case pkgCluster.Azure:
 		// Create Azure struct
@@ -238,10 +243,13 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 		}
 
 		log.Info("Load Azure props from database")
-		database.Where(model.AzureClusterModel{ClusterModelId: aksCluster.modelCluster.ID}).First(&aksCluster.modelCluster.Azure)
-		database.Model(&aksCluster.modelCluster.Azure).Related(&aksCluster.modelCluster.Azure.NodePools, "NodePools")
+		err = database.Where(model.AzureClusterModel{ClusterModelId: aksCluster.modelCluster.ID}).First(&aksCluster.modelCluster.Azure).Error
+		if err != nil {
+			return nil, err
+		}
+		err = database.Model(&aksCluster.modelCluster.Azure).Related(&aksCluster.modelCluster.Azure.NodePools, "NodePools").Error
 
-		return aksCluster, nil
+		return aksCluster, err
 
 	case pkgCluster.Google:
 		// Create Google struct
@@ -251,20 +259,24 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 		}
 
 		log.Info("Load Google props from database")
-		database.Where(model.GoogleClusterModel{ClusterModelId: gkeCluster.modelCluster.ID}).First(&gkeCluster.modelCluster.Google)
-		database.Model(&gkeCluster.modelCluster.Google).Related(&gkeCluster.modelCluster.Google.NodePools, "NodePools")
+		err = database.Where(model.GoogleClusterModel{ClusterModelId: gkeCluster.modelCluster.ID}).First(&gkeCluster.modelCluster.Google).Error
+		if err != nil {
+			return nil, err
+		}
+		err = database.Model(&gkeCluster.modelCluster.Google).Related(&gkeCluster.modelCluster.Google.NodePools, "NodePools").Error
 
-		return gkeCluster, nil
+		return gkeCluster, err
 
 	case pkgCluster.Dummy:
 		dummyCluster, err := CreateDummyClusterFromModel(modelCluster)
 		if err != nil {
 			return nil, err
 		}
-		log.Info("Load Dummy props from database")
-		database.Where(model.DummyClusterModel{ClusterModelId: dummyCluster.modelCluster.ID}).First(&dummyCluster.modelCluster.Dummy)
 
-		return dummyCluster, nil
+		log.Info("Load Dummy props from database")
+		err = database.Where(model.DummyClusterModel{ClusterModelId: dummyCluster.modelCluster.ID}).First(&dummyCluster.modelCluster.Dummy).Error
+
+		return dummyCluster, err
 
 	case pkgCluster.Kubernetes:
 		// Create Kubernetes struct
@@ -274,9 +286,9 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 		}
 
 		log.Info("Load Kubernetes props from database")
-		database.Where(model.KubernetesClusterModel{ClusterModelId: kubernetesCluster.modelCluster.ID}).First(&kubernetesCluster.modelCluster.Kubernetes)
+		err = database.Where(model.KubernetesClusterModel{ClusterModelId: kubernetesCluster.modelCluster.ID}).First(&kubernetesCluster.modelCluster.Kubernetes).Error
 
-		return kubernetesCluster, nil
+		return kubernetesCluster, err
 
 	case pkgCluster.Oracle:
 		// Create Oracle struct
@@ -286,9 +298,9 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 		}
 
 		log.Info("Load Oracle props from database")
-		database.Where(modelOracle.Cluster{ClusterModelID: okeCluster.modelCluster.ID}).Preload("NodePools.Subnets").Preload("NodePools.Labels").First(&okeCluster.modelCluster.Oracle)
+		err = database.Where(modelOracle.Cluster{ClusterModelID: okeCluster.modelCluster.ID}).Preload("NodePools.Subnets").Preload("NodePools.Labels").First(&okeCluster.modelCluster.Oracle).Error
 
-		return okeCluster, nil
+		return okeCluster, err
 	}
 
 	return nil, pkgErrors.ErrorNotSupportedCloudType
@@ -316,14 +328,14 @@ func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClust
 				return nil, err
 			}
 			return awsCluster, nil
-		} else {
-			//Create Eks struct
-			eksCluster, err := CreateEKSClusterFromRequest(createClusterRequest, orgId)
-			if err != nil {
-				return nil, err
-			}
-			return eksCluster, nil
 		}
+
+		//Create Eks struct
+		eksCluster, err := CreateEKSClusterFromRequest(createClusterRequest, orgId, userId)
+		if err != nil {
+			return nil, err
+		}
+		return eksCluster, nil
 
 	case pkgCluster.Azure:
 		// Create Azure struct

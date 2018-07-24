@@ -31,9 +31,11 @@ const authConfigMapTemplate = `- rolearn: %s
 `
 
 //CreateEKSClusterFromRequest creates ClusterModel struct from the request
-func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint) (*EKSCluster, error) {
+func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId uint) (*EKSCluster, error) {
 	log.Debug("Create ClusterModel struct from the request")
 	var cluster EKSCluster
+
+	modelNodePools := createNodePoolsFromRequest(request.Properties.CreateClusterEks.NodePools, userId)
 
 	cluster.modelCluster = &model.ClusterModel{
 		Name:           request.Name,
@@ -43,11 +45,8 @@ func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 		SecretId:       request.SecretId,
 
 		Eks: model.AmazonEksClusterModel{
-			NodeImageId:      request.Properties.CreateClusterEks.NodeImageId,
-			NodeInstanceType: request.Properties.CreateClusterEks.NodeInstanceType,
-			Version:          request.Properties.CreateClusterEks.Version,
-			NodeMinCount:     request.Properties.CreateClusterEks.MinCount,
-			NodeMaxCount:     request.Properties.CreateClusterEks.MaxCount,
+			Version:   request.Properties.CreateClusterEks.Version,
+			NodePools: modelNodePools,
 		},
 	}
 	return &cluster, nil
@@ -106,10 +105,8 @@ func (e *EKSCluster) createAWSCredentialsFromSecret() (*credentials.Credentials,
 
 // CreateCluster creates an EKS cluster with cloudformation templates.
 func (e *EKSCluster) CreateCluster() error {
-	//TODO jelenleg nem lehet kulsoleg megadott role ARN-t vagy sajat SSH secret azonositot megadni, ehelyett ezeket mind legyartja ez a fuggveny
-	//TODO ha ezekre is szukseg van, akkor itt tobb atalakitas is kell, hogy pl a rollback(=undo) ne torolje ki a kulsoleg megadott role-t vagy ssh kulcsot
 
-	log.Info("Start create cluster (Eks)")
+	log.Info("Start creating EKS cluster")
 
 	awsCred, err := e.createAWSCredentialsFromSecret()
 	if err != nil {
@@ -128,8 +125,7 @@ func (e *EKSCluster) CreateCluster() error {
 	//ehhez is vagy role kell vagy aws access/secret key.
 
 	roleName := e.generateIAMRoleNameForCluster()
-	eksStackName := e.generateEksStackNameForCluster()
-	eksWorkerStackName := e.generateEksWorkerStackNameForCluster()
+	eksStackName := e.generateStackNameForCluster()
 	sshKeyName := e.generateSSHKeyNameForCluster()
 
 	creationContext := action.NewEksClusterCreationContext(
@@ -150,9 +146,14 @@ func (e *EKSCluster) CreateCluster() error {
 		action.NewGenerateVPCConfigRequestAction(creationContext, eksStackName),
 		action.NewCreateEksClusterAction(creationContext, e.modelCluster.Eks.Version),
 		action.NewLoadEksSettingsAction(creationContext),
-		action.NewCreateWorkersAction(creationContext, eksWorkerStackName, e.modelCluster.Eks.NodeMinCount, e.modelCluster.Eks.NodeMaxCount, e.modelCluster.Eks.NodeInstanceType, e.modelCluster.Eks.NodeImageId),
 		//action.NewDelayAction(10 * time.Minute), //pl ezzel lehet szimulalni ket lepes kozott egy kis varakozast, vagy varkakoztatni a kovetkezo lepest
 		//action.NewRevertStepsAction(), //ez fixen hibat dob, igy minden elozo lepest megprobal visszavonni az executor
+	}
+
+	for _, nodePool := range e.modelCluster.Eks.NodePools {
+		nodePoolStackName := e.generateNodePoolStackName(nodePool.Name)
+		createNodePoolAction := action.NewCreateNodePoolStackAction(creationContext, nodePoolStackName, nodePool)
+		actions = append(actions, createNodePoolAction)
 	}
 
 	_, err = utils.NewActionExecutor(logrus.New()).ExecuteActions(actions, nil, true)
@@ -165,7 +166,7 @@ func (e *EKSCluster) CreateCluster() error {
 	e.CertificateAuthorityData, err = base64.StdEncoding.DecodeString(aws.StringValue(creationContext.CertificateAuthorityData))
 
 	if err != nil {
-		log.Errorf("Decoding base64 format EKS K8s certificate authority data failed: %s", err.Error())
+		log.Errorf("Decoding base64 format EKS K8S certificate authority data failed: %s", err.Error())
 		return err
 	}
 
@@ -205,34 +206,32 @@ func (e *EKSCluster) generateSSHKeyNameForCluster() string {
 	return sshKeyName
 }
 
-func (e *EKSCluster) generateEksWorkerStackNameForCluster() string {
-	eksWorkerStackName := e.modelCluster.Name + "-pipeline-eks-worker-stack"
-	return eksWorkerStackName
+func (e *EKSCluster) generateNodePoolStackName(nodePoolName string) string {
+	return e.modelCluster.Name + "-pipeline-eks-nodepool-" + nodePoolName
 }
 
-func (e *EKSCluster) generateEksStackNameForCluster() string {
-	eksStackName := e.modelCluster.Name + "-pipeline-eks-stack"
+func (e *EKSCluster) generateStackNameForCluster() string {
+	eksStackName := e.modelCluster.Name + "-pipeline-eks"
 	return eksStackName
 }
 
 func (e *EKSCluster) generateIAMRoleNameForCluster() string {
-	roleName := (e.modelCluster.Name) + "-pipeline-iam-role"
+	roleName := (e.modelCluster.Name) + "-pipeline-eks"
 	return roleName
 }
 
-//Persist save the cluster model
+// Persist saves the cluster model
 func (e *EKSCluster) Persist(status, statusMessage string) error {
 	log.Infof("Model before save: %v", e.modelCluster)
-	//TODO meg a region field erteke helytelen (ures) a db-ben
 	return e.modelCluster.UpdateStatus(status, statusMessage)
 }
 
-//GetName returns the name of the cluster
+// GetName returns the name of the cluster
 func (e *EKSCluster) GetName() string {
 	return e.modelCluster.Name
 }
 
-//GetType returns the cloud type of the cluster
+// GetType returns the cloud type of the cluster
 func (e *EKSCluster) GetType() string {
 	return e.modelCluster.Cloud
 }
@@ -259,12 +258,18 @@ func (e *EKSCluster) DeleteCluster() error {
 		e.modelCluster.Name,
 	)
 	actions := []utils.Action{
-		action.NewDeleteStackAction(deleteContext, e.generateEksWorkerStackNameForCluster()),
-		action.NewDeleteEksClusterAction(deleteContext, e.modelCluster.Name),
+		action.NewDeleteClusterAction(deleteContext, e.modelCluster.Name),
 		action.NewDeleteSSHKeyAction(deleteContext, e.generateSSHKeyNameForCluster()),
-		action.NewDeleteStackAction(deleteContext, e.generateEksStackNameForCluster()),
+		action.NewDeleteStackAction(deleteContext, e.generateStackNameForCluster()),
 		action.NewDeleteIAMRoleAction(deleteContext, e.generateIAMRoleNameForCluster()),
 	}
+
+	for _, nodePool := range e.modelCluster.Eks.NodePools {
+		nodePoolStackName := e.generateNodePoolStackName(nodePool.Name)
+		createStackAction := action.NewDeleteStackAction(deleteContext, nodePoolStackName)
+		actions = append(actions, createStackAction)
+	}
+
 	_, err = utils.NewActionExecutor(logrus.New()).ExecuteActions(actions, nil, false)
 	if err != nil {
 		log.Errorln("EKS cluster delete error:", err.Error())
@@ -276,8 +281,8 @@ func (e *EKSCluster) DeleteCluster() error {
 
 // UpdateCluster updates EKS cluster in cloud
 func (e *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterRequest, updatedBy uint) error {
-	//TODO missing implementation
-	log.Info("Start updating cluster (eks)")
+	// TODO missing implementation
+	log.Info("Start updating EKS cluster")
 	return nil
 }
 
