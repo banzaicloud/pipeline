@@ -34,7 +34,7 @@ func init() {
 type EksClusterCreationContext struct {
 	Session                  *session.Session
 	ClusterName              string
-	NodeInstanceRole         string
+	NodeInstanceRoles        []string
 	Role                     *iam.Role
 	SecurityGroupID          *string
 	SubnetIDs                []*string
@@ -621,13 +621,9 @@ func (action *CreateNodePoolStackAction) ExecuteAction(input interface{}) (outpu
 	}
 
 	for _, output := range describeStacksOutput.Stacks[0].Outputs {
-		if *output.OutputKey == "NodeInstanceRole" {
-			action.context.NodeInstanceRole = *output.OutputValue
+		if aws.StringValue(output.OutputKey) == "NodeInstanceRole" {
+			action.context.NodeInstanceRoles = append(action.context.NodeInstanceRoles, aws.StringValue(output.OutputValue))
 		}
-	}
-
-	if action.context.NodeInstanceRole == "" {
-		return nil, fmt.Errorf("Failed to find NodeInstanceRole")
 	}
 
 	return nil, nil

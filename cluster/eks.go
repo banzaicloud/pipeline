@@ -19,6 +19,7 @@ import (
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/sirupsen/logrus"
 	"k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api/v1"
 )
@@ -185,9 +186,14 @@ func (e *EKSCluster) CreateCluster() error {
 		return err
 	}
 
-	awsAuthConfigMap := v1.ConfigMap{}
-	awsAuthConfigMap.Name = "aws-auth"
-	awsAuthConfigMap.Data = map[string]string{"mapRoles": fmt.Sprintf(authConfigMapTemplate, creationContext.NodeInstanceRole)}
+	mapRoles := ""
+	for _, roleArn := range creationContext.NodeInstanceRoles {
+		mapRoles += fmt.Sprintf(authConfigMapTemplate, roleArn)
+	}
+	awsAuthConfigMap := v1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{Name: "aws-auth"},
+		Data:       map[string]string{"mapRoles": mapRoles},
+	}
 
 	_, err = kubeClient.CoreV1().ConfigMaps("kube-system").Create(&awsAuthConfigMap)
 	if err != nil {
