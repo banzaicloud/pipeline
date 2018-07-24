@@ -9,28 +9,63 @@ import (
 	"github.com/oracle/oci-go-sdk/containerengine"
 )
 
-// GetCluster gets cluster by it's OCID
-func (c *ContainerEngine) GetCluster(OCID string) (cluster containerengine.Cluster, err error) {
+// CreateCluster creates an OKE cluster specified in the request
+func (ce *ContainerEngine) CreateCluster(request containerengine.CreateClusterRequest) (clusterOCID string, err error) {
 
-	response, err := c.client.GetCluster(context.Background(), containerengine.GetClusterRequest{
-		ClusterId: &OCID,
-	})
+	response, err := ce.client.CreateCluster(context.Background(), request)
 	if err != nil {
-		return cluster, err
+		return clusterOCID, err
 	}
 
-	return response.Cluster, nil
+	workReqResp, err := ce.waitUntilWorkRequestComplete(*ce.client, response.OpcWorkRequestId)
+	if err != nil {
+		return clusterOCID, err
+	}
+
+	if workReqResp.WorkRequest.Status != containerengine.WorkRequestStatusSucceeded {
+		return clusterOCID, fmt.Errorf("WorkReqResp status: %s", workReqResp.WorkRequest.Status)
+	}
+
+	if workReqResp.WorkRequest.Status == containerengine.WorkRequestStatusSucceeded {
+		clusterOCID = *ce.getResourceID(workReqResp.Resources, containerengine.WorkRequestResourceActionTypeCreated, "CLUSTER")
+	}
+
+	return clusterOCID, err
+}
+
+// UpdateCluster updates an OKE cluster specified in the request
+func (ce *ContainerEngine) UpdateCluster(request containerengine.UpdateClusterRequest) (clusterOCID string, err error) {
+
+	response, err := ce.client.UpdateCluster(context.Background(), request)
+	if err != nil {
+		return clusterOCID, err
+	}
+
+	workReqResp, err := ce.waitUntilWorkRequestComplete(*ce.client, response.OpcWorkRequestId)
+	if err != nil {
+		return clusterOCID, err
+	}
+
+	if workReqResp.WorkRequest.Status != containerengine.WorkRequestStatusSucceeded {
+		return clusterOCID, fmt.Errorf("WorkReqResp status: %s", workReqResp.WorkRequest.Status)
+	}
+
+	if workReqResp.WorkRequest.Status == containerengine.WorkRequestStatusSucceeded {
+		clusterOCID = *ce.getResourceID(workReqResp.Resources, containerengine.WorkRequestResourceActionTypeUpdated, "CLUSTER")
+	}
+
+	return clusterOCID, err
 }
 
 // DeleteCluster removes an OKE cluster specified in the request
-func (c *ContainerEngine) DeleteCluster(request containerengine.DeleteClusterRequest) (err error) {
+func (ce *ContainerEngine) DeleteCluster(request containerengine.DeleteClusterRequest) (err error) {
 
-	response, err := c.client.DeleteCluster(context.Background(), request)
+	response, err := ce.client.DeleteCluster(context.Background(), request)
 	if err != nil {
 		return err
 	}
 
-	workReqResp, err := c.waitUntilWorkRequestComplete(*c.client, response.OpcWorkRequestId)
+	workReqResp, err := ce.waitUntilWorkRequestComplete(*ce.client, response.OpcWorkRequestId)
 	if err != nil {
 		return err
 	}
@@ -42,114 +77,66 @@ func (c *ContainerEngine) DeleteCluster(request containerengine.DeleteClusterReq
 	return nil
 }
 
-// CreateCluster creates an OKE cluster specified in the request
-func (c *ContainerEngine) CreateCluster(request containerengine.CreateClusterRequest) (clusterOCID string, err error) {
+// GetCluster gets a Cluster by id
+func (ce *ContainerEngine) GetCluster(id *string) (cluster containerengine.Cluster, err error) {
 
-	response, err := c.client.CreateCluster(context.Background(), request)
+	response, err := ce.client.GetCluster(context.Background(), containerengine.GetClusterRequest{
+		ClusterId: id,
+	})
 	if err != nil {
-		return clusterOCID, err
+		return cluster, err
 	}
 
-	workReqResp, err := c.waitUntilWorkRequestComplete(*c.client, response.OpcWorkRequestId)
-	if err != nil {
-		return clusterOCID, err
-	}
-
-	if workReqResp.WorkRequest.Status != containerengine.WorkRequestStatusSucceeded {
-		return clusterOCID, fmt.Errorf("WorkReqResp status: %s", workReqResp.WorkRequest.Status)
-	}
-
-	if workReqResp.WorkRequest.Status == containerengine.WorkRequestStatusSucceeded {
-		clusterOCID = *c.getResourceID(workReqResp.Resources, containerengine.WorkRequestResourceActionTypeCreated, "CLUSTER")
-	}
-
-	return clusterOCID, err
+	return response.Cluster, nil
 }
 
-// UpdateCluster updates an OKE cluster specified in the request
-func (c *ContainerEngine) UpdateCluster(request containerengine.UpdateClusterRequest) (clusterOCID string, err error) {
+// GetClusterByName gets a Cluster by name within a Compartment
+func (ce *ContainerEngine) GetClusterByName(name string) (cluster containerengine.ClusterSummary, err error) {
 
-	response, err := c.client.UpdateCluster(context.Background(), request)
+	clusters, err := ce.GetClustersByName(name)
 	if err != nil {
-		return clusterOCID, err
+		return cluster, err
 	}
 
-	workReqResp, err := c.waitUntilWorkRequestComplete(*c.client, response.OpcWorkRequestId)
-	if err != nil {
-		return clusterOCID, err
+	if len(clusters) < 1 {
+		return cluster, err
 	}
 
-	if workReqResp.WorkRequest.Status != containerengine.WorkRequestStatusSucceeded {
-		return clusterOCID, fmt.Errorf("WorkReqResp status: %s", workReqResp.WorkRequest.Status)
-	}
-
-	if workReqResp.WorkRequest.Status == containerengine.WorkRequestStatusSucceeded {
-		clusterOCID = *c.getResourceID(workReqResp.Resources, containerengine.WorkRequestResourceActionTypeUpdated, "CLUSTER")
-	}
-
-	return clusterOCID, err
+	return clusters[0], nil
 }
 
-// WaitingForClusterNodePoolActiveState waits until every node in the pool is in ACTIVE state
-func (c *ContainerEngine) WaitingForClusterNodePoolActiveState(OCID string) error {
+// GetClustersByName gets all Clusters by name within a Compartment
+func (ce *ContainerEngine) GetClustersByName(name string) (clusters []containerengine.ClusterSummary, err error) {
 
-	c.oci.logger.Info("Waiting for all nodepools state to be ACTIVE on all nodes")
-
-	for i := 0; i <= 60; i++ {
-
-		time.Sleep(time.Duration(20) * time.Second)
-
-		nodePools, err := c.ListClusterNodePools(OCID)
-		if err != nil {
-			return err
-		}
-
-		ok := true
-		for _, np := range nodePools {
-			if !c.IsNodePoolActive(*np.Id) {
-				ok = false
-			}
-		}
-
-		if ok {
-			return nil
-		}
-	}
-
-	return fmt.Errorf("Timeout during waiting for nodepools to activate")
-}
-
-// ListClusterByName gets clusters name
-func (c *ContainerEngine) ListClusterByName(name string) (clusters []containerengine.ClusterSummary, err error) {
 	request := containerengine.ListClustersRequest{
-		CompartmentId: common.String(c.CompartmentOCID),
+		CompartmentId: common.String(ce.CompartmentOCID),
 		Name:          common.String(name),
 	}
 
-	return c.listClusters(request)
-}
-
-// FilterClustersByNotInState filter cluster list by cluster state
-func (c *ContainerEngine) FilterClustersByNotInState(clusters []containerengine.ClusterSummary, state containerengine.ClusterSummaryLifecycleStateEnum) (filteredClusters []containerengine.ClusterSummary) {
-
-	for _, cluster := range clusters {
-		if cluster.LifecycleState != state {
-			filteredClusters = append(filteredClusters, cluster)
-		}
+	response, err := ce.client.ListClusters(context.Background(), request)
+	if err != nil {
+		return clusters, err
 	}
 
-	return filteredClusters
+	for _, item := range response.Items {
+		clusters = append(clusters, item)
+	}
+
+	return clusters, err
 }
 
-func (c *ContainerEngine) listClusters(request containerengine.ListClustersRequest) (clusters []containerengine.ClusterSummary, err error) {
+// GetClusters gets all Clusters within the Compartment
+func (ce *ContainerEngine) GetClusters() (clusters []containerengine.ClusterSummary, err error) {
 
-	request.Limit = common.Int(50)
+	request := containerengine.ListClustersRequest{
+		CompartmentId: common.String(ce.CompartmentOCID),
+	}
+	request.Limit = common.Int(20)
 
 	listFunc := func(request containerengine.ListClustersRequest) (containerengine.ListClustersResponse, error) {
-		return c.client.ListClusters(context.Background(), request)
+		return ce.client.ListClusters(context.Background(), request)
 	}
 
-	clusters = make([]containerengine.ClusterSummary, 0)
 	for r, err := listFunc(request); ; r, err = listFunc(request) {
 		if err != nil {
 			return clusters, err
@@ -169,4 +156,45 @@ func (c *ContainerEngine) listClusters(request containerengine.ListClustersReque
 	}
 
 	return clusters, err
+}
+
+// WaitingForClusterNodePoolActiveState waits until every node in the pool is in ACTIVE state
+func (ce *ContainerEngine) WaitingForClusterNodePoolActiveState(clusterID *string) error {
+
+	ce.oci.logger.Info("Waiting for all nodepools state to be ACTIVE on all nodes")
+
+	for i := 0; i <= 60; i++ {
+
+		time.Sleep(time.Duration(20) * time.Second)
+
+		nodePools, err := ce.GetNodePools(clusterID)
+		if err != nil {
+			return err
+		}
+
+		ok := true
+		for _, np := range nodePools {
+			if !ce.IsNodePoolActive(np.Id) {
+				ok = false
+			}
+		}
+
+		if ok {
+			return nil
+		}
+	}
+
+	return fmt.Errorf("Timeout during waiting for nodepools to activate")
+}
+
+// FilterClustersByNotInState filter cluster list by cluster state
+func (ce *ContainerEngine) FilterClustersByNotInState(clusters []containerengine.ClusterSummary, state containerengine.ClusterSummaryLifecycleStateEnum) (filteredClusters []containerengine.ClusterSummary) {
+
+	for _, cluster := range clusters {
+		if cluster.LifecycleState != state {
+			filteredClusters = append(filteredClusters, cluster)
+		}
+	}
+
+	return filteredClusters
 }

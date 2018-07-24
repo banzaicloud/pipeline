@@ -25,12 +25,12 @@ func (cm *ClusterManager) ValidateModel(clusterModel *model.Cluster) error {
 		return fmt.Errorf("Cannot delete cluster without Cluster OCID specified")
 	}
 
-	vcn, err := vn.GetVCN(m.VCNID)
+	vcn, err := vn.GetVCN(&m.VCNID)
 	if err != nil {
 		return fmt.Errorf("Invalid VCN OCID: %s", m.VCNID)
 	}
 
-	subnet, err := vn.GetSubnet(m.LBSubnetID1)
+	subnet, err := vn.GetSubnet(&m.LBSubnetID1)
 	if err != nil {
 		return fmt.Errorf("Invalid LB 1 Subnet OCID: %s", m.LBSubnetID1)
 	}
@@ -38,7 +38,7 @@ func (cm *ClusterManager) ValidateModel(clusterModel *model.Cluster) error {
 		return fmt.Errorf("Invalid LB 1 Subnet OCID: %s not in VCN[%s]", m.LBSubnetID1, *vcn.Id)
 	}
 
-	subnet, err = vn.GetSubnet(m.LBSubnetID2)
+	subnet, err = vn.GetSubnet(&m.LBSubnetID2)
 	if err != nil {
 		return fmt.Errorf("Invalid LB 2 Subnet OCID: %s", m.LBSubnetID2)
 	}
@@ -80,7 +80,7 @@ func (cm *ClusterManager) ValidateModel(clusterModel *model.Cluster) error {
 		}
 
 		for _, subnet := range np.Subnets {
-			if _, err := vn.GetSubnet(subnet.SubnetID); err != nil {
+			if _, err := vn.GetSubnet(&subnet.SubnetID); err != nil {
 				return fmt.Errorf("Invalid Subnet OCID: %s", subnet.SubnetID)
 			}
 		}

@@ -31,7 +31,7 @@ func (cm *ClusterManager) SyncNodePools(clusterModel *model.Cluster) error {
 		return err
 	}
 
-	return ce.WaitingForClusterNodePoolActiveState(clusterModel.OCID)
+	return ce.WaitingForClusterNodePoolActiveState(&clusterModel.OCID)
 }
 
 // UpdateNodePool updates node pool in a cluster
@@ -42,16 +42,14 @@ func (cm *ClusterManager) UpdateNodePool(clusterModel *model.Cluster, np *model.
 		return err
 	}
 
-	nodePools, err := ce.ListClusterNodePoolsByName(clusterModel.OCID, np.Name)
+	nodePool, err := ce.GetNodePoolByName(&clusterModel.OCID, np.Name)
 	if err != nil {
 		return err
 	}
 
-	if len(nodePools) != 1 {
+	if nodePool.Id == nil {
 		return nil
 	}
-
-	nodePool := nodePools[0]
 
 	cm.oci.GetLogger().Infof("Updating NodePool[%s]", *nodePool.Name)
 
@@ -90,7 +88,7 @@ func (cm *ClusterManager) DeleteNodePool(clusterModel *model.Cluster, np *model.
 		return err
 	}
 
-	return ce.DeleteClusterNodePoolByName(clusterModel.OCID, np.Name)
+	return ce.DeleteNodePoolByName(&clusterModel.OCID, np.Name)
 }
 
 // AddNodePool creates a new node pool in a cluster
@@ -101,12 +99,12 @@ func (cm *ClusterManager) AddNodePool(clusterModel *model.Cluster, np *model.Nod
 		return err
 	}
 
-	nodePools, err := ce.ListClusterNodePoolsByName(clusterModel.OCID, np.Name)
+	nodePool, err := ce.GetNodePoolByName(&clusterModel.OCID, np.Name)
 	if err != nil {
 		return err
 	}
 
-	if len(nodePools) > 0 {
+	if nodePool.Id == nil {
 		return nil
 	}
 

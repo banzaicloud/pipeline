@@ -53,7 +53,7 @@ func (o *OCIObjectStore) CreateBucket(name string) {
 		log.Errorf("Error happened during persisting bucket description to DB")
 		return
 	}
-	if err := client.CreateBucket(name); err != nil {
+	if _, err := client.CreateBucket(name); err != nil {
 		log.Errorf("Failed to create bucket: %s", err.Error())
 		if e := deleteFromDbByPK(managedBucket); e != nil {
 			log.Error(e.Error())
@@ -80,7 +80,7 @@ func (o *OCIObjectStore) ListBuckets() ([]*pkgStorage.BucketInfo, error) {
 	}
 
 	log.Info("Retrieving bucket list from Oracle")
-	buckets, err := client.ListBuckets()
+	buckets, err := client.GetBuckets()
 	if err != nil {
 		return nil, err
 	}

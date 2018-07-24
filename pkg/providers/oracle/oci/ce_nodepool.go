@@ -8,31 +8,17 @@ import (
 	"github.com/oracle/oci-go-sdk/containerengine"
 )
 
-// GetNodePool gets a node pool by it's OCID
-func (c *ContainerEngine) GetNodePool(OCID string) (nodepool containerengine.NodePool, err error) {
-
-	response, err := c.client.GetNodePool(context.Background(), containerengine.GetNodePoolRequest{
-		NodePoolId: &OCID,
-	})
-
-	if err != nil {
-		return nodepool, err
-	}
-
-	return response.NodePool, nil
-}
-
 // CreateNodePool creates node pool specified in the request
-func (c *ContainerEngine) CreateNodePool(request containerengine.CreateNodePoolRequest) (nodepoolOCID string, err error) {
+func (ce *ContainerEngine) CreateNodePool(request containerengine.CreateNodePoolRequest) (nodepoolOCID string, err error) {
 
 	ctx := context.Background()
 
-	response, err := c.client.CreateNodePool(ctx, request)
+	response, err := ce.client.CreateNodePool(ctx, request)
 	if err != nil {
 		return nodepoolOCID, err
 	}
 
-	workReqResp, err := c.waitUntilWorkRequestComplete(*c.client, response.OpcWorkRequestId)
+	workReqResp, err := ce.waitUntilWorkRequestComplete(*ce.client, response.OpcWorkRequestId)
 	if err != nil {
 		return nodepoolOCID, err
 	}
@@ -42,49 +28,47 @@ func (c *ContainerEngine) CreateNodePool(request containerengine.CreateNodePoolR
 	}
 
 	if workReqResp.WorkRequest.Status == containerengine.WorkRequestStatusSucceeded {
-		nodepoolOCID = *c.getResourceID(workReqResp.Resources, containerengine.WorkRequestResourceActionTypeCreated, "NODEPOOL")
+		nodepoolOCID = *ce.getResourceID(workReqResp.Resources, containerengine.WorkRequestResourceActionTypeCreated, "NODEPOOL")
 	}
 
 	return nodepoolOCID, err
 }
 
-// DeleteClusterNodePoolByName deletes a node pool in a cluster specified by it's name
-func (c *ContainerEngine) DeleteClusterNodePoolByName(clusterID string, name string) error {
+// UpdateNodePool updates a node pool specified in a request
+func (ce *ContainerEngine) UpdateNodePool(request containerengine.UpdateNodePoolRequest) (nodepoolOCID string, err error) {
 
-	nodePools, err := c.ListClusterNodePoolsByName(clusterID, name)
+	response, err := ce.client.UpdateNodePool(context.Background(), request)
 	if err != nil {
-		return err
+		return nodepoolOCID, err
 	}
 
-	if len(nodePools) == 0 {
-		return nil
+	workReqResp, err := ce.waitUntilWorkRequestComplete(*ce.client, response.OpcWorkRequestId)
+	if err != nil {
+		return nodepoolOCID, err
 	}
 
-	if len(nodePools) != 1 {
-		return fmt.Errorf("More than 1 Node Pools with name %s", name)
+	if workReqResp.WorkRequest.Status != containerengine.WorkRequestStatusSucceeded {
+		return nodepoolOCID, fmt.Errorf("WorkReqResp status: %s", workReqResp.WorkRequest.Status)
 	}
 
-	nodePool := nodePools[0]
-
-	request := containerengine.DeleteNodePoolRequest{
-		NodePoolId: nodePool.Id,
+	if workReqResp.WorkRequest.Status == containerengine.WorkRequestStatusSucceeded {
+		nodepoolOCID = *ce.getResourceID(workReqResp.Resources, containerengine.WorkRequestResourceActionTypeUpdated, "NODEPOOL")
 	}
 
-	c.oci.GetLogger().Infof("Deleting NodePool[%s]", *nodePool.Name)
-	c.DeleteNodePool(request)
-
-	return nil
+	return nodepoolOCID, err
 }
 
-// DeleteNodePool deletes a node pool specified in the request
-func (c *ContainerEngine) DeleteNodePool(request containerengine.DeleteNodePoolRequest) error {
+// DeleteNodePool deletes a node pool by id
+func (ce *ContainerEngine) DeleteNodePool(id *string) error {
 
-	response, err := c.client.DeleteNodePool(context.Background(), request)
+	response, err := ce.client.DeleteNodePool(context.Background(), containerengine.DeleteNodePoolRequest{
+		NodePoolId: id,
+	})
 	if err != nil {
 		return err
 	}
 
-	workReqResp, err := c.waitUntilWorkRequestComplete(*c.client, response.OpcWorkRequestId)
+	workReqResp, err := ce.waitUntilWorkRequestComplete(*ce.client, response.OpcWorkRequestId)
 	if err != nil {
 		return err
 	}
@@ -96,113 +80,75 @@ func (c *ContainerEngine) DeleteNodePool(request containerengine.DeleteNodePoolR
 	return nil
 }
 
-// UpdateNodePool updates a node pool specified in a request
-func (c *ContainerEngine) UpdateNodePool(request containerengine.UpdateNodePoolRequest) (nodepoolOCID string, err error) {
+// DeleteNodePoolByName deletes a node pool in a cluster by name
+func (ce *ContainerEngine) DeleteNodePoolByName(clusterID *string, name string) error {
 
-	response, err := c.client.UpdateNodePool(context.Background(), request)
+	nodePool, err := ce.GetNodePoolByName(clusterID, name)
 	if err != nil {
-		return nodepoolOCID, err
+		return err
 	}
 
-	workReqResp, err := c.waitUntilWorkRequestComplete(*c.client, response.OpcWorkRequestId)
-	if err != nil {
-		return nodepoolOCID, err
+	if nodePool.Id == nil {
+		return nil
 	}
 
-	if workReqResp.WorkRequest.Status != containerengine.WorkRequestStatusSucceeded {
-		return nodepoolOCID, fmt.Errorf("WorkReqResp status: %s", workReqResp.WorkRequest.Status)
-	}
+	ce.oci.GetLogger().Infof("Deleting NodePool[%s]", *nodePool.Name)
+	ce.DeleteNodePool(nodePool.Id)
 
-	if workReqResp.WorkRequest.Status == containerengine.WorkRequestStatusSucceeded {
-		nodepoolOCID = *c.getResourceID(workReqResp.Resources, containerengine.WorkRequestResourceActionTypeUpdated, "NODEPOOL")
-	}
-
-	return nodepoolOCID, err
+	return nil
 }
 
-// ListClusterNodePoolsByName gets node pools by cluster OCID and name
-func (c *ContainerEngine) ListClusterNodePoolsByName(clusterOCID string, name string) (nodepools []containerengine.NodePoolSummary, err error) {
+// GetNodePool gets a Node Pool by id
+func (ce *ContainerEngine) GetNodePool(id *string) (nodepool containerengine.NodePool, err error) {
+
+	response, err := ce.client.GetNodePool(context.Background(), containerengine.GetNodePoolRequest{
+		NodePoolId: id,
+	})
+
+	if err != nil {
+		return nodepool, err
+	}
+
+	return response.NodePool, nil
+}
+
+// GetNodePoolByName gets a Node Pool by name within a Cluster
+func (ce *ContainerEngine) GetNodePoolByName(clusterID *string, name string) (nodepool containerengine.NodePoolSummary, err error) {
+
 	request := containerengine.ListNodePoolsRequest{
-		CompartmentId: common.String(c.CompartmentOCID),
-		ClusterId:     common.String(clusterOCID),
+		CompartmentId: common.String(ce.CompartmentOCID),
+		ClusterId:     clusterID,
 		Name:          common.String(name),
 	}
 
-	return c.listNodePools(request)
-}
-
-// ListClusterNodePools gets node pools by cluster OCID
-func (c *ContainerEngine) ListClusterNodePools(clusterOCID string) (nodepools []containerengine.NodePoolSummary, err error) {
-	request := containerengine.ListNodePoolsRequest{
-		CompartmentId: common.String(c.CompartmentOCID),
-		ClusterId:     common.String(clusterOCID),
-	}
-
-	return c.listNodePools(request)
-}
-
-// IsNodePoolActive checks whether every node is in ACTIVE not DELETED state in a node pool
-func (c *ContainerEngine) IsNodePoolActive(OCID string) bool {
-
-	np, err := c.GetNodePool(OCID)
+	response, err := ce.client.ListNodePools(context.Background(), request)
 	if err != nil {
-		return false
+		return nodepool, err
 	}
 
-	neededCount := len(np.SubnetIds) * *np.QuantityPerSubnet
-
-	activeNodes := 0
-	for _, n := range np.Nodes {
-		if n.LifecycleState == containerengine.NodeLifecycleStateDeleted {
-			continue
-		}
-		if n.LifecycleState == containerengine.NodeLifecycleStateActive {
-			activeNodes++
-		} else {
-			c.oci.logger.Debugf("Node state: %s (%s)", n.LifecycleState, *n.LifecycleDetails)
-			break
+	if len(response.Items) < 1 {
+		return nodepool, &EntityNotFoundError{
+			Type: "Node Pool",
+			Id:   name,
 		}
 	}
 
-	if activeNodes == neededCount {
-		c.oci.logger.Infof("All nodes are in ACTIVE state in NodePool[%s]", *np.Name)
-		return true
+	return response.Items[0], err
+}
+
+// GetNodePools gets all Node Pools within a Cluster
+func (ce *ContainerEngine) GetNodePools(clusterID *string) (nodepools []containerengine.NodePoolSummary, err error) {
+
+	request := containerengine.ListNodePoolsRequest{
+		CompartmentId: common.String(ce.CompartmentOCID),
+		ClusterId:     clusterID,
 	}
-
-	return false
-}
-
-// GetDefaultNodePoolOptions gets default node pool options
-func (c *ContainerEngine) GetDefaultNodePoolOptions() (options NodePoolOptions, err error) {
-
-	return c.GetNodePoolOptions("all")
-}
-
-// GetNodePoolOptions gets available node pool options for a specified cluster OCID
-func (c *ContainerEngine) GetNodePoolOptions(clusterID string) (options NodePoolOptions, err error) {
-
-	request := containerengine.GetNodePoolOptionsRequest{
-		NodePoolOptionId: &clusterID,
-	}
-
-	r, err := c.client.GetNodePoolOptions(context.Background(), request)
-
-	return NodePoolOptions{
-		Images:             Strings{strings: r.Images},
-		KubernetesVersions: Strings{strings: r.KubernetesVersions},
-		Shapes:             Strings{strings: r.Shapes},
-	}, err
-}
-
-func (c *ContainerEngine) listNodePools(request containerengine.ListNodePoolsRequest) (nodepools []containerengine.NodePoolSummary, err error) {
-
-	request.Limit = common.Int(50)
+	request.Limit = common.Int(20)
 
 	listFunc := func(request containerengine.ListNodePoolsRequest) (containerengine.ListNodePoolsResponse, error) {
-		return c.client.ListNodePools(context.Background(), request)
+		return ce.client.ListNodePools(context.Background(), request)
 	}
 
-	nodepools = make([]containerengine.NodePoolSummary, 0)
 	for r, err := listFunc(request); ; r, err = listFunc(request) {
 		if err != nil {
 			return nodepools, err
@@ -222,4 +168,57 @@ func (c *ContainerEngine) listNodePools(request containerengine.ListNodePoolsReq
 	}
 
 	return nodepools, err
+}
+
+// IsNodePoolActive checks whether every node is in ACTIVE not DELETED state in a node pool
+func (ce *ContainerEngine) IsNodePoolActive(id *string) bool {
+
+	np, err := ce.GetNodePool(id)
+	if err != nil {
+		return false
+	}
+
+	neededCount := len(np.SubnetIds) * *np.QuantityPerSubnet
+
+	activeNodes := 0
+	for _, n := range np.Nodes {
+		if n.LifecycleState == containerengine.NodeLifecycleStateDeleted {
+			continue
+		}
+		if n.LifecycleState == containerengine.NodeLifecycleStateActive {
+			activeNodes++
+		} else {
+			ce.oci.logger.Debugf("Node state: %s (%s)", n.LifecycleState, *n.LifecycleDetails)
+			break
+		}
+	}
+
+	if activeNodes == neededCount {
+		ce.oci.logger.Infof("All nodes are in ACTIVE state in NodePool[%s]", *np.Name)
+		return true
+	}
+
+	return false
+}
+
+// GetDefaultNodePoolOptions gets default node pool options
+func (ce *ContainerEngine) GetDefaultNodePoolOptions() (options NodePoolOptions, err error) {
+
+	return ce.GetNodePoolOptions("all")
+}
+
+// GetNodePoolOptions gets available node pool options for a specified cluster OCID
+func (ce *ContainerEngine) GetNodePoolOptions(clusterID string) (options NodePoolOptions, err error) {
+
+	request := containerengine.GetNodePoolOptionsRequest{
+		NodePoolOptionId: &clusterID,
+	}
+
+	r, err := ce.client.GetNodePoolOptions(context.Background(), request)
+
+	return NodePoolOptions{
+		Images:             Strings{strings: r.Images},
+		KubernetesVersions: Strings{strings: r.KubernetesVersions},
+		Shapes:             Strings{strings: r.Shapes},
+	}, err
 }

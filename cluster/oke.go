@@ -190,7 +190,7 @@ func (o *OKECluster) GetAPIEndpoint() (string, error) {
 		return o.APIEndpoint, err
 	}
 
-	cluster, err := ce.GetCluster(o.modelCluster.Oracle.OCID)
+	cluster, err := ce.GetCluster(&o.modelCluster.Oracle.OCID)
 	if err != nil {
 		return o.APIEndpoint, err
 	}
