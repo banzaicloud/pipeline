@@ -21,9 +21,10 @@ type CreateBucketRequest struct {
 
 // BucketInfo desribes a storage bucket
 type BucketInfo struct {
-	Name    string                          `json:"name"  binding:"required"`
-	Managed bool                            `json:"managed" binding:"required"`
-	Azure   *azure.BlobStoragePropsForAzure `json:"azure,omitempty"`
+	Name     string                          `json:"name"  binding:"required"`
+	Managed  bool                            `json:"managed" binding:"required"`
+	Location string                          `json:"location,omitempty"`
+	Azure    *azure.BlobStoragePropsForAzure `json:"azure,omitempty"`
 }
 
 // CreateBucketResponse describes a storage bucket creation response
