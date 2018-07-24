@@ -60,6 +60,14 @@ func GetCloudInfoModel(cloudType string, r *pkgCluster.CloudInfoRequest) (CloudI
 			},
 		}, nil
 
+	case pkgCluster.Oracle:
+		return &OracleInfo{
+			BaseFields: BaseFields{
+				OrgId:    r.OrganizationId,
+				SecretId: r.SecretId,
+			},
+		}, nil
+
 	default:
 		return nil, pkgErrors.ErrorNotSupportedCloudType
 	}
@@ -84,7 +92,7 @@ func ProcessFilter(p CloudInfoProvider, r *pkgCluster.CloudInfoRequest) (*pkgClu
 				response.Locations = l
 
 			case pkgCluster.KeyWordInstanceType:
-				if r.Filter.InstanceType != nil {
+				if r.Filter.InstanceType != nil && r.Filter.InstanceType.Location != "" {
 					log.Infof("Get machine types with filter [%#v]", *r.Filter.InstanceType)
 					// get machine types from spec zone
 					mt, err := p.GetMachineTypesWithFilter(r.Filter.InstanceType)
