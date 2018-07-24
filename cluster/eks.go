@@ -146,8 +146,6 @@ func (e *EKSCluster) CreateCluster() error {
 		action.NewGenerateVPCConfigRequestAction(creationContext, eksStackName),
 		action.NewCreateEksClusterAction(creationContext, e.modelCluster.Eks.Version),
 		action.NewLoadEksSettingsAction(creationContext),
-		//action.NewDelayAction(10 * time.Minute), //pl ezzel lehet szimulalni ket lepes kozott egy kis varakozast, vagy varkakoztatni a kovetkezo lepest
-		//action.NewRevertStepsAction(), //ez fixen hibat dob, igy minden elozo lepest megprobal visszavonni az executor
 	}
 
 	for _, nodePool := range e.modelCluster.Eks.NodePools {
@@ -337,16 +335,19 @@ func (e *EKSCluster) DownloadK8sConfig() ([]byte, error) {
 func (e *EKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 
 	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
-	// TODO missing implementation
-	//for _, np := range e.modelCluster.Eks.NodePools {
-	//	if np != nil {
-	//		nodePools[np.Name] = &pkgCluster.NodePoolStatus{
-	//			Count:          np.NodeCount,
-	//			InstanceType:   np.NodeInstanceType,
-	//			ServiceAccount: np.ServiceAccount,
-	//		}
-	//	}
-	//}
+	for _, np := range e.modelCluster.Eks.NodePools {
+		if np != nil {
+			nodePools[np.Name] = &pkgCluster.NodePoolStatus{
+				Autoscaling:  np.Autoscaling,
+				Count:        np.Count,
+				InstanceType: np.NodeInstanceType,
+				SpotPrice:    np.NodeSpotPrice,
+				MinCount:     np.NodeMinCount,
+				MaxCount:     np.NodeMaxCount,
+				Image:        np.NodeImage,
+			}
+		}
+	}
 
 	return &pkgCluster.GetClusterStatusResponse{
 		Status:        e.modelCluster.Status,
@@ -355,7 +356,7 @@ func (e *EKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		Location:      e.modelCluster.Location,
 		Cloud:         e.modelCluster.Cloud,
 		ResourceID:    e.modelCluster.ID,
-		NodePools:     nodePools, //TODO not supported yet
+		NodePools:     nodePools,
 	}, nil
 }
 
