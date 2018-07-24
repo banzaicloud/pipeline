@@ -4,17 +4,18 @@ import (
 	"context"
 	"io/ioutil"
 	"strings"
+	"time"
 
 	"github.com/oracle/oci-go-sdk/common"
 	"github.com/oracle/oci-go-sdk/containerengine"
-	"github.com/oracle/oci-go-sdk/example/helpers"
 )
 
 // ContainerEngine is for managing OKE related calls of OCI
 type ContainerEngine struct {
-	oci             *OCI
-	client          *containerengine.ContainerEngineClient
 	CompartmentOCID string
+
+	oci    *OCI
+	client *containerengine.ContainerEngineClient
 }
 
 // NewContainerEngineClient creates a new ContainerEngine
@@ -35,7 +36,7 @@ func (oci *OCI) NewContainerEngineClient() (client *ContainerEngine, err error) 
 }
 
 // getResourceID return a resource ID based on the filter of resource actionType and entityType
-func (c *ContainerEngine) getResourceID(resources []containerengine.WorkRequestResource, actionType containerengine.WorkRequestResourceActionTypeEnum, entityType string) *string {
+func (ce *ContainerEngine) getResourceID(resources []containerengine.WorkRequestResource, actionType containerengine.WorkRequestResourceActionTypeEnum, entityType string) *string {
 	for _, resource := range resources {
 		if resource.ActionType == actionType && strings.ToUpper(*resource.EntityType) == entityType {
 			return resource.Identifier
@@ -46,29 +47,33 @@ func (c *ContainerEngine) getResourceID(resources []containerengine.WorkRequestR
 }
 
 // wait until work request finish
-func (c *ContainerEngine) waitUntilWorkRequestComplete(client containerengine.ContainerEngineClient, workReuqestID *string) (containerengine.GetWorkRequestResponse, error) {
+func (ce *ContainerEngine) waitUntilWorkRequestComplete(client containerengine.ContainerEngineClient, workReuqestID *string) (containerengine.GetWorkRequestResponse, error) {
 
 	// retry GetWorkRequest call until TimeFinished is set
-	shouldRetryFunc := func(r common.OCIOperationResponse) bool {
+	policy := common.NewRetryPolicy(uint(180), func(r common.OCIOperationResponse) bool {
 		return r.Response.(containerengine.GetWorkRequestResponse).TimeFinished == nil
-	}
+	}, func(r common.OCIOperationResponse) time.Duration {
+		return time.Duration(uint(10)) * time.Second
+	})
 
 	getWorkReq := containerengine.GetWorkRequestRequest{
-		WorkRequestId:   workReuqestID,
-		RequestMetadata: helpers.GetRequestMetadataWithCustomizedRetryPolicy(shouldRetryFunc),
+		WorkRequestId: workReuqestID,
+		RequestMetadata: common.RequestMetadata{
+			RetryPolicy: &policy,
+		},
 	}
 
 	return client.GetWorkRequest(context.Background(), getWorkReq)
 }
 
 // GetAvailableKubernetesVersions gets available K8S versions
-func (c *ContainerEngine) GetAvailableKubernetesVersions() (versions Strings, err error) {
+func (ce *ContainerEngine) GetAvailableKubernetesVersions() (versions Strings, err error) {
 
 	request := containerengine.GetClusterOptionsRequest{
 		ClusterOptionId: common.String("all"),
 	}
 
-	r, err := c.client.GetClusterOptions(context.Background(), request)
+	r, err := ce.client.GetClusterOptions(context.Background(), request)
 
 	return Strings{
 		strings: r.KubernetesVersions,
@@ -76,9 +81,9 @@ func (c *ContainerEngine) GetAvailableKubernetesVersions() (versions Strings, er
 }
 
 // GetK8SConfig generates and downloads K8S config
-func (c *ContainerEngine) GetK8SConfig(OCID string) ([]byte, error) {
+func (ce *ContainerEngine) GetK8SConfig(OCID string) ([]byte, error) {
 
-	response, err := c.client.CreateKubeconfig(context.Background(), containerengine.CreateKubeconfigRequest{
+	response, err := ce.client.CreateKubeconfig(context.Background(), containerengine.CreateKubeconfigRequest{
 		ClusterId: &OCID,
 	})
 

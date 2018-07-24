@@ -1,7 +1,6 @@
 package oci
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/oracle/oci-go-sdk/common"
@@ -13,6 +12,7 @@ import (
 type OCI struct {
 	config          common.ConfigurationProvider
 	logger          *logrus.Logger
+	credential      *Credential
 	Tenancy         identity.Tenancy
 	CompartmentOCID string
 }
@@ -25,22 +25,46 @@ type Credential struct {
 	APIKey            string
 	APIKeyFingerprint string
 	Region            string
+	Password          string
 }
 
 // NewOCI creates a new OCI Config and gets and caches tenancy info
 func NewOCI(credential *Credential) (oci *OCI, err error) {
 
-	config := common.NewRawConfigurationProvider(credential.TenancyOCID, credential.UserOCID, credential.Region, credential.APIKeyFingerprint, credential.APIKey, nil)
+	config := common.NewRawConfigurationProvider(credential.TenancyOCID, credential.UserOCID, credential.Region, credential.APIKeyFingerprint, credential.APIKey, common.String(credential.Password))
 
 	oci = &OCI{
-		config:          config,
-		logger:          logrus.New(),
 		CompartmentOCID: credential.CompartmentOCID,
+
+		config:     config,
+		logger:     logrus.New(),
+		credential: credential,
 	}
 
 	_, err = oci.GetTenancy()
 
 	return oci, err
+}
+
+// ChangeRegion changes region in the config to the specified one
+func (oci *OCI) ChangeRegion(regionName string) (err error) {
+
+	i, err := oci.NewIdentityClient()
+	if err != nil {
+		return err
+	}
+
+	err = i.IsRegionAvailable(regionName)
+	if err != nil {
+		return err
+	}
+
+	credential := oci.credential
+	config := common.NewRawConfigurationProvider(credential.TenancyOCID, credential.UserOCID, regionName, credential.APIKeyFingerprint, credential.APIKey, common.String(credential.Password))
+
+	oci.config = config
+
+	return nil
 }
 
 // SetLogger sets a logrus logger
@@ -84,21 +108,14 @@ func (oci *OCI) GetTenancy() (t identity.Tenancy, err error) {
 		return t, err
 	}
 
-	oci.Tenancy, err = oci.getTenancy(tenancyID)
+	i, err := oci.NewIdentityClient()
+	oci.Tenancy, err = i.GetTenancy(tenancyID)
 
 	return oci.Tenancy, err
 }
 
-func (oci *OCI) getTenancy(id string) (t identity.Tenancy, err error) {
+// GetConfig gives back oci.config
+func (oci *OCI) GetConfig() common.ConfigurationProvider {
 
-	client, err := identity.NewIdentityClientWithConfigurationProvider(oci.config)
-	if err != nil {
-		return t, err
-	}
-
-	r, err := client.GetTenancy(context.Background(), identity.GetTenancyRequest{
-		TenancyId: &id,
-	})
-
-	return r.Tenancy, err
+	return oci.config
 }

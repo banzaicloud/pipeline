@@ -16,7 +16,7 @@ func (cm *ClusterManager) CreateCluster(clusterModel *model.Cluster) error {
 		return err
 	}
 
-	clusters, err := ce.ListClusterByName(clusterModel.Name)
+	clusters, err := ce.GetClustersByName(clusterModel.Name)
 	if err != nil {
 		return err
 	}
@@ -125,5 +125,5 @@ func (cm *ClusterManager) GetCluster(OCID string) (cluster containerengine.Clust
 		return cluster, err
 	}
 
-	return ce.GetCluster(OCID)
+	return ce.GetCluster(&OCID)
 }

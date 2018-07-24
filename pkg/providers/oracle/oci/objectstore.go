@@ -8,12 +8,13 @@ import (
 	"github.com/oracle/oci-go-sdk/objectstorage"
 )
 
-// ObjectStorage is for managing Object store related calls of OCI
+// ObjectStorage is for managing Object Storage related calls of OCI
 type ObjectStorage struct {
-	oci             *OCI
-	client          *objectstorage.ObjectStorageClient
 	CompartmentOCID string
 	Namespace       string
+
+	oci    *OCI
+	client *objectstorage.ObjectStorageClient
 }
 
 // NewObjectStorageClient creates new ObjectStorage
@@ -33,76 +34,75 @@ func (oci *OCI) NewObjectStorageClient() (client *ObjectStorage, err error) {
 		return client, err
 	}
 
+	client.oci = oci
 	client.Namespace = *r.Value
 	client.CompartmentOCID = oci.CompartmentOCID
 
 	return client, nil
 }
 
-// GetBucket gets bucket by name
-func (c *ObjectStorage) GetBucket(name string) (bucket objectstorage.Bucket, err error) {
+// CreateBucket creates a bucket with the given name
+func (os *ObjectStorage) CreateBucket(name string) (bucket objectstorage.Bucket, err error) {
 
-	request := objectstorage.GetBucketRequest{
-		NamespaceName: &c.Namespace,
-	}
-	request.BucketName = &name
-
-	r, err := c.client.GetBucket(context.Background(), request)
+	response, err := os.client.CreateBucket(context.Background(), objectstorage.CreateBucketRequest{
+		NamespaceName: &os.Namespace,
+		CreateBucketDetails: objectstorage.CreateBucketDetails{
+			CompartmentId:    &os.CompartmentOCID,
+			Name:             &name,
+			PublicAccessType: objectstorage.CreateBucketDetailsPublicAccessTypeNopublicaccess,
+		},
+	})
 	if err != nil {
 		return bucket, err
 	}
 
-	if *r.CompartmentId != c.CompartmentOCID {
-		return r.Bucket, fmt.Errorf("Service error:BucketNotFound. The bucket '%s' does not exist in compartment '%s' in namespace '%s'.", name, c.CompartmentOCID, *request.NamespaceName)
-	}
-
-	return r.Bucket, nil
+	return response.Bucket, nil
 }
 
-// CreateBucket creates a bucket with the given name
-func (c *ObjectStorage) CreateBucket(name string) error {
+// DeleteBucket deletes an Object Storage bucket by name
+func (os *ObjectStorage) DeleteBucket(name string) error {
 
-	request := objectstorage.CreateBucketRequest{
-		NamespaceName: &c.Namespace,
-	}
-	request.CompartmentId = &c.CompartmentOCID
-	request.Name = &name
-	request.PublicAccessType = objectstorage.CreateBucketDetailsPublicAccessTypeNopublicaccess
-
-	_, err := c.client.CreateBucket(context.Background(), request)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// DeleteBucket deletes a bucket by name
-func (c *ObjectStorage) DeleteBucket(name string) error {
-
-	request := objectstorage.DeleteBucketRequest{
-		NamespaceName: &c.Namespace,
+	_, err := os.client.DeleteBucket(context.Background(), objectstorage.DeleteBucketRequest{
+		NamespaceName: &os.Namespace,
 		BucketName:    &name,
-	}
-	_, err := c.client.DeleteBucket(context.Background(), request)
+	})
 
 	return err
 }
 
-// ListBuckets gets object store buckets
-func (c *ObjectStorage) ListBuckets() (buckets []objectstorage.BucketSummary, err error) {
+// GetBucket gets an Object Storage bucket by name
+func (os *ObjectStorage) GetBucket(name string) (bucket objectstorage.Bucket, err error) {
+
+	request := objectstorage.GetBucketRequest{
+		NamespaceName: &os.Namespace,
+		BucketName:    &name,
+	}
+
+	response, err := os.client.GetBucket(context.Background(), request)
+	if err != nil {
+		return bucket, err
+	}
+
+	if *response.CompartmentId != os.CompartmentOCID {
+		return response.Bucket, fmt.Errorf("Service error:BucketNotFound. The bucket '%s' does not exist in compartment '%s' in namespace '%s'.", name, os.CompartmentOCID, *request.NamespaceName)
+	}
+
+	return response.Bucket, nil
+}
+
+// GetBuckets gets an Object Storage buckets
+func (os *ObjectStorage) GetBuckets() (buckets []objectstorage.BucketSummary, err error) {
 
 	request := objectstorage.ListBucketsRequest{
-		CompartmentId: common.String(c.CompartmentOCID),
-		NamespaceName: common.String(c.Namespace),
+		CompartmentId: common.String(os.CompartmentOCID),
+		NamespaceName: common.String(os.Namespace),
 	}
-	request.Limit = common.Int(1)
+	request.Limit = common.Int(20)
 
 	listFunc := func(request objectstorage.ListBucketsRequest) (objectstorage.ListBucketsResponse, error) {
-		return c.client.ListBuckets(context.Background(), request)
+		return os.client.ListBuckets(context.Background(), request)
 	}
 
-	buckets = make([]objectstorage.BucketSummary, 0)
 	for r, err := listFunc(request); ; r, err = listFunc(request) {
 		if err != nil {
 			return buckets, err
