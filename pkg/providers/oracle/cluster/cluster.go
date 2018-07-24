@@ -3,25 +3,104 @@ package cluster
 import (
 	"fmt"
 	"regexp"
+
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 )
 
 // Cluster describes Pipeline's Oracle fields of a Create/Update request
 type Cluster struct {
-	Version     string               `json:"version,omitempty"`
-	VCNID       string               `json:"vcnId,omitempty"`
-	LBSubnetID1 string               `json:"LBSubnetID1,omitempty"`
-	LBSubnetID2 string               `json:"LBSubnetID2,omitempty"`
-	NodePools   map[string]*NodePool `json:"nodePools,omitempty"`
+	Version   string               `json:"version"`
+	NodePools map[string]*NodePool `json:"nodePools,omitempty"`
+
+	vcnID       string
+	lbSubnetID1 string
+	lbSubnetID2 string
 }
 
 // NodePool describes Oracle's node fields of a Create/Update request
 type NodePool struct {
-	Version           string            `json:"version,omitempty"`
-	SubnetIds         []string          `json:"subnetIds,omitempty"`
-	Labels            map[string]string `json:"labels,omitempty"`
-	QuantityPerSubnet int               `json:"quantityPerSubnet,omitempty"`
-	Image             string            `json:"image,omitempty"`
-	Shape             string            `json:"shape,omitempty"`
+	Version string            `json:"version,omitempty"`
+	Count   uint              `json:"count,omitempty"`
+	Labels  map[string]string `json:"labels,omitempty"`
+	Image   string            `json:"image,omitempty"`
+	Shape   string            `json:"shape,omitempty"`
+
+	subnetIds         []string
+	quantityPerSubnet uint
+}
+
+// SetVCNID sets VCNID
+func (c *Cluster) SetVCNID(id string) {
+
+	c.vcnID = id
+}
+
+// GetVCNID gets VCNID
+func (c *Cluster) GetVCNID() (id string) {
+
+	return c.vcnID
+}
+
+// SetLBSubnetID1 sets LBSubnetID1
+func (c *Cluster) SetLBSubnetID1(id string) {
+
+	c.lbSubnetID1 = id
+}
+
+// GetLBSubnetID1 gets LBSubnetID1
+func (c *Cluster) GetLBSubnetID1() (id string) {
+
+	return c.lbSubnetID1
+}
+
+// SetLBSubnetID2 sets LBSubnetID2
+func (c *Cluster) SetLBSubnetID2(id string) {
+
+	c.lbSubnetID2 = id
+}
+
+// GetLBSubnetID2 gets LBSubnetID2
+func (c *Cluster) GetLBSubnetID2() (id string) {
+
+	return c.lbSubnetID2
+}
+
+// SetQuantityPerSubnet sets QuantityPerSubnet
+func (np *NodePool) SetQuantityPerSubnet(q uint) {
+
+	np.quantityPerSubnet = q
+}
+
+// GetQuantityPerSubnet gets QuantityPerSubnet
+func (np *NodePool) GetQuantityPerSubnet() (q uint) {
+
+	return np.quantityPerSubnet
+}
+
+// SetSubnetIDs sets SubnetIDs
+func (np *NodePool) SetSubnetIDs(ids []string) {
+
+	np.subnetIds = ids
+}
+
+// GetSubnetIDs gets SubnetIDs
+func (np *NodePool) GetSubnetIDs() (ids []string) {
+
+	return np.subnetIds
+}
+
+// AddDefaults adds default values to the request
+func (c *Cluster) AddDefaults() error {
+
+	if c == nil {
+		return nil
+	}
+
+	for name, np := range c.NodePools {
+		np.Labels[pkgCommon.LabelKey] = name
+	}
+
+	return nil
 }
 
 // Validate validates Oracle cluster create request
@@ -29,28 +108,6 @@ func (c *Cluster) Validate(update bool) error {
 
 	if c == nil {
 		return fmt.Errorf("Oracle is <nil>")
-	}
-
-	if !update {
-		if c.VCNID == "" {
-			return fmt.Errorf("VCN OCID must be specified")
-		}
-
-		if !isValidOCID(c.VCNID) {
-			return fmt.Errorf("VCN OCID wrong format: %s", c.VCNID)
-		}
-
-		if c.LBSubnetID1 == "" || c.LBSubnetID2 == "" {
-			return fmt.Errorf("2 LB subnet OCID must be specified")
-		}
-
-		if !isValidOCID(c.LBSubnetID1) {
-			return fmt.Errorf("LB1 OCID %s: wrong format", c.LBSubnetID1)
-		}
-
-		if !isValidOCID(c.LBSubnetID2) {
-			return fmt.Errorf("LB2 OCID %s: wrong format", c.LBSubnetID2)
-		}
 	}
 
 	if !isValidVersion(c.Version) {
@@ -62,14 +119,6 @@ func (c *Cluster) Validate(update bool) error {
 	}
 
 	for name, nodePool := range c.NodePools {
-		if len(nodePool.SubnetIds) < 1 {
-			return fmt.Errorf("There must be at least 1 subnet specified")
-		}
-		for _, subnetOCID := range nodePool.SubnetIds {
-			if !isValidOCID(subnetOCID) {
-				return fmt.Errorf("NodePool[%s] Subnet OCID %s: wrong format", name, subnetOCID)
-			}
-		}
 		if nodePool.Version != c.Version {
 			return fmt.Errorf("NodePool[%s]: Different k8s versions were specified for master and nodes", name)
 		}

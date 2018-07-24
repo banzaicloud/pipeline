@@ -28,6 +28,7 @@ type Cluster struct {
 	OCID           string `gorm:"column:ocid"`
 	ClusterModelID uint
 	NodePools      []*NodePool
+	CreatedBy      uint
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 	Delete         bool `gorm:"-"`
@@ -40,11 +41,12 @@ type NodePool struct {
 	Image             string `gorm:"default:'Oracle-Linux-7.4'"`
 	Shape             string `gorm:"default:'VM.Standard1.1'"`
 	Version           string `gorm:"default:'v1.10.3'"`
-	QuantityPerSubnet int    `gorm:"default:1"`
+	QuantityPerSubnet uint   `gorm:"default:1"`
 	OCID              string `gorm:"column:ocid"`
 	ClusterID         uint   `gorm:"unique_index:idx_clusterid_name"`
 	Subnets           []*NodePoolSubnet
 	Labels            []*NodePoolLabel
+	CreatedBy         uint
 	CreatedAt         time.Time
 	UpdatedAt         time.Time
 	Delete            bool `gorm:"-"`
@@ -91,29 +93,31 @@ func (NodePoolLabel) TableName() string {
 }
 
 // CreateModelFromCreateRequest create model from create request
-func CreateModelFromCreateRequest(r *pkgCluster.CreateClusterRequest) (cluster Cluster, err error) {
+func CreateModelFromCreateRequest(r *pkgCluster.CreateClusterRequest, userId uint) (cluster Cluster, err error) {
 
 	cluster.Name = r.Name
 
-	return CreateModelFromRequest(cluster, r.Properties.CreateClusterOracle)
+	return CreateModelFromRequest(cluster, r.Properties.CreateClusterOracle, userId)
 }
 
 // CreateModelFromUpdateRequest create model from update request
-func CreateModelFromUpdateRequest(current Cluster, r *pkgCluster.UpdateClusterRequest) (cluster Cluster, err error) {
+func CreateModelFromUpdateRequest(current Cluster, r *pkgCluster.UpdateClusterRequest, userId uint) (cluster Cluster, err error) {
 
-	return CreateModelFromRequest(current, r.UpdateProperties.Oracle)
+	return CreateModelFromRequest(current, r.UpdateProperties.Oracle, userId)
 }
 
 // CreateModelFromRequest creates model from request
-func CreateModelFromRequest(model Cluster, r *cluster.Cluster) (cluster Cluster, err error) {
+func CreateModelFromRequest(model Cluster, r *cluster.Cluster, userID uint) (cluster Cluster, err error) {
 
 	model.Version = r.Version
+	model.CreatedBy = userID
 
 	// reqest values only used when creating
 	if model.ID == 0 {
-		model.VCNID = r.VCNID
-		model.LBSubnetID1 = r.LBSubnetID1
-		model.LBSubnetID2 = r.LBSubnetID2
+		model.VCNID = r.GetVCNID()
+		model.LBSubnetID1 = r.GetLBSubnetID1()
+		model.LBSubnetID2 = r.GetLBSubnetID2()
+		model.CreatedBy = userID
 	}
 
 	// there should be at least 1 node pool defined
@@ -133,10 +137,11 @@ func CreateModelFromRequest(model Cluster, r *cluster.Cluster) (cluster Cluster,
 			nodePool.Subnets = make([]*NodePoolSubnet, 0)
 			nodePool.Labels = make([]*NodePoolLabel, 0)
 		}
+		nodePool.CreatedBy = userID
 		nodePool.Version = data.Version
-		nodePool.QuantityPerSubnet = data.QuantityPerSubnet
+		nodePool.QuantityPerSubnet = data.GetQuantityPerSubnet()
 
-		for _, subnetID := range data.SubnetIds {
+		for _, subnetID := range data.GetSubnetIDs() {
 			nodePool.Subnets = append(nodePool.Subnets, &NodePoolSubnet{
 				SubnetID: subnetID,
 			})
@@ -236,4 +241,29 @@ func (c *Cluster) BeforeSave() error {
 	log.Info("BeforeSave oke cluster...done")
 
 	return nil
+}
+
+// GetClusterRequestFromModel converts cluster model from database and to Cluster
+func (c *Cluster) GetClusterRequestFromModel() *cluster.Cluster {
+
+	nodePools := make(map[string]*cluster.NodePool)
+	if c.NodePools != nil {
+		for _, np := range c.NodePools {
+			nodePools[np.Name] = &cluster.NodePool{
+				Version: np.Version,
+				Image:   np.Image,
+				Count:   uint(int(np.QuantityPerSubnet) * len(np.Subnets)),
+				Shape:   np.Shape,
+			}
+			nodePools[np.Name].Labels = make(map[string]string, 0)
+			for _, l := range np.Labels {
+				nodePools[np.Name].Labels[l.Name] = l.Value
+			}
+		}
+	}
+
+	return &cluster.Cluster{
+		Version:   c.Version,
+		NodePools: nodePools,
+	}
 }

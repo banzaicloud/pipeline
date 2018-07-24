@@ -193,6 +193,7 @@ func (m *VCNManager) createVCN(name string, CIDR string) (vcn core.Vcn, err erro
 			CidrBlock:     common.String(CIDR),
 			CompartmentId: common.String(m.oci.CompartmentOCID),
 			DnsLabel:      common.String(CreateDNSLabel(name)),
+			FreeformTags:  map[string]string{"created-by": "pipeline"},
 		},
 	}
 

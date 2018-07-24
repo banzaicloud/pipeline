@@ -2,6 +2,8 @@ package manager
 
 import (
 	"github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
+	"github.com/banzaicloud/pipeline/pkg/providers/oracle/oci"
+	"github.com/oracle/oci-go-sdk/common"
 	"github.com/oracle/oci-go-sdk/containerengine"
 )
 
@@ -43,7 +45,7 @@ func (cm *ClusterManager) UpdateNodePool(clusterModel *model.Cluster, np *model.
 	}
 
 	nodePool, err := ce.GetNodePoolByName(&clusterModel.OCID, np.Name)
-	if err != nil {
+	if err != nil && !oci.IsEntityNotFoundError(err) {
 		return err
 	}
 
@@ -58,7 +60,7 @@ func (cm *ClusterManager) UpdateNodePool(clusterModel *model.Cluster, np *model.
 		UpdateNodePoolDetails: containerengine.UpdateNodePoolDetails{
 			Name:              &np.Name,
 			KubernetesVersion: &np.Version,
-			QuantityPerSubnet: &np.QuantityPerSubnet,
+			QuantityPerSubnet: common.Int(int(np.QuantityPerSubnet)),
 		},
 	}
 	for _, subnet := range np.Subnets {
@@ -100,11 +102,11 @@ func (cm *ClusterManager) AddNodePool(clusterModel *model.Cluster, np *model.Nod
 	}
 
 	nodePool, err := ce.GetNodePoolByName(&clusterModel.OCID, np.Name)
-	if err != nil {
+	if err != nil && !oci.IsEntityNotFoundError(err) {
 		return err
 	}
 
-	if nodePool.Id == nil {
+	if nodePool.Id != nil {
 		return nil
 	}
 
@@ -118,7 +120,7 @@ func (cm *ClusterManager) AddNodePool(clusterModel *model.Cluster, np *model.Nod
 	createNodePoolReq.KubernetesVersion = &np.Version
 	createNodePoolReq.NodeImageName = &np.Image
 	createNodePoolReq.NodeShape = &np.Shape
-	createNodePoolReq.QuantityPerSubnet = &np.QuantityPerSubnet
+	createNodePoolReq.QuantityPerSubnet = common.Int(int(np.QuantityPerSubnet))
 
 	for _, subnet := range np.Subnets {
 		createNodePoolReq.SubnetIds = append(createNodePoolReq.SubnetIds, subnet.SubnetID)

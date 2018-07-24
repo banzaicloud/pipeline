@@ -69,7 +69,7 @@ func (cm *ClusterManager) ValidateModel(clusterModel *model.Cluster) error {
 			return fmt.Errorf("Invalid node image '%s' at '%s'", np.Image, np.Name)
 		}
 		if !nodeOptions.Shapes.Has(np.Shape) {
-			return fmt.Errorf("Invalid shape '%s' at '%s'", np.Image, np.Name)
+			return fmt.Errorf("Invalid shape '%s' at '%s'", np.Shape, np.Name)
 		}
 		if len(np.Subnets) < 1 {
 			return fmt.Errorf("There must be at least 1 subnet specified")

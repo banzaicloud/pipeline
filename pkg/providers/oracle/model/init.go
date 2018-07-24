@@ -22,7 +22,6 @@ func Init(logger *logrus.Entry) error {
 		&NodePoolLabel{},
 		&Profile{},
 		&ProfileNodePool{},
-		&ProfileNodePoolSubnet{},
 		&ProfileNodePoolLabel{},
 	).Error
 }

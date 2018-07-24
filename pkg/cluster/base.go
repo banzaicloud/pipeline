@@ -208,6 +208,8 @@ func (r *CreateClusterRequest) AddDefaults() error {
 	switch r.Cloud {
 	case Amazon:
 		return r.Properties.CreateClusterAmazon.AddDefaults(r.Location)
+	case Oracle:
+		return r.Properties.CreateClusterOracle.AddDefaults()
 	default:
 		return nil
 	}
@@ -494,11 +496,8 @@ func (p *ClusterProfileResponse) CreateClusterRequest(createRequest *CreateClust
 		}
 	case Oracle:
 		response.Properties.CreateClusterOracle = &oracle.Cluster{
-			Version:     p.Properties.Oracle.Version,
-			NodePools:   p.Properties.Oracle.NodePools,
-			VCNID:       p.Properties.Oracle.VCNID,
-			LBSubnetID1: p.Properties.Oracle.LBSubnetID1,
-			LBSubnetID2: p.Properties.Oracle.LBSubnetID2,
+			Version:   p.Properties.Oracle.Version,
+			NodePools: p.Properties.Oracle.NodePools,
 		}
 	}
 
