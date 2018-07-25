@@ -101,14 +101,6 @@ Parameters:
     Description: Unique identifier for the Node Group.
     Type: String
 
-  EnableClusterAutoscaler:
-    Type: String
-    Description: Whether to enable Kubernetes cluster autoscaler for this ASG or not.
-    Default: disabled
-    AllowedValues:
-      - enabled
-      - disabled
-
   ClusterControlPlaneSecurityGroup:
     Description: The security group of the cluster control plane.
     Type: AWS::EC2::SecurityGroup::Id
@@ -248,7 +240,6 @@ Metadata:
           default: "Worker Node Configuration"
         Parameters:
           - NodeGroupName
-          - EnableClusterAutoscaler
           - NodeAutoScalingGroupMinSize
           - NodeAutoScalingGroupMaxSize
           - NodeAutoScalingInitSize
@@ -262,9 +253,10 @@ Metadata:
         Parameters:
           - VpcId
           - Subnets
+Conditions:
+  IsSpotInstance: !Not [ !Equals [ !Ref NodeSpotPrice, "" ] ]
 
 Resources:
-
   NodeInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
@@ -401,9 +393,6 @@ Resources:
       - Key: !Sub 'kubernetes.io/cluster/${ClusterName}'
         Value: 'owned'
         PropagateAtLaunch: 'true'
-      - Key: !Sub "k8s.io/cluster-autoscaler/${EnableClusterAutoscaler}"
-        Value: ''
-        PropagateAtLaunch: 'true'
 
     UpdatePolicy:
       AutoScalingRollingUpdate:
@@ -417,7 +406,7 @@ Resources:
       IamInstanceProfile: !Ref NodeInstanceProfile
       ImageId: !Ref NodeImageId
       InstanceType: !Ref NodeInstanceType
-      SpotPrice: !Ref NodeSpotPrice
+      SpotPrice: !If [ IsSpotInstance, !Ref NodeSpotPrice, !Ref "AWS::NoValue" ]
       KeyName: !Ref KeyName
       SecurityGroups:
       - !Ref NodeSecurityGroup

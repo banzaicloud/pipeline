@@ -19,6 +19,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
+	"strconv"
 )
 
 var log *logrus.Logger
@@ -636,14 +637,6 @@ Parameters:
     Description: Unique identifier for the Node Group.
     Type: String
 
-  EnableClusterAutoscaler:
-    Type: String
-    Description: Whether to enable Kubernetes cluster autoscaler for this ASG or not.
-    Default: disabled
-    AllowedValues:
-      - enabled
-      - disabled
-
   ClusterControlPlaneSecurityGroup:
     Description: The security group of the cluster control plane.
     Type: AWS::EC2::SecurityGroup::Id
@@ -783,7 +776,6 @@ Metadata:
           default: "Worker Node Configuration"
         Parameters:
           - NodeGroupName
-          - EnableClusterAutoscaler
           - NodeAutoScalingGroupMinSize
           - NodeAutoScalingGroupMaxSize
           - NodeAutoScalingInitSize
@@ -797,9 +789,10 @@ Metadata:
         Parameters:
           - VpcId
           - Subnets
+Conditions:
+  IsSpotInstance: !Not [ !Equals [ !Ref NodeSpotPrice, "" ] ]
 
 Resources:
-
   NodeInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
@@ -936,9 +929,6 @@ Resources:
       - Key: !Sub 'kubernetes.io/cluster/${ClusterName}'
         Value: 'owned'
         PropagateAtLaunch: 'true'
-      - Key: !Sub "k8s.io/cluster-autoscaler/${EnableClusterAutoscaler}"
-        Value: ''
-        PropagateAtLaunch: 'true'
 
     UpdatePolicy:
       AutoScalingRollingUpdate:
@@ -952,7 +942,7 @@ Resources:
       IamInstanceProfile: !Ref NodeInstanceProfile
       ImageId: !Ref NodeImageId
       InstanceType: !Ref NodeInstanceType
-      SpotPrice: !Ref NodeSpotPrice
+      SpotPrice: !If [ IsSpotInstance, !Ref NodeSpotPrice, !Ref "AWS::NoValue" ]
       KeyName: !Ref KeyName
       SecurityGroups:
       - !Ref NodeSecurityGroup
@@ -1007,9 +997,17 @@ Outputs:
 		}
 	}
 
-	clusterAutoscaling := "disabled"
+	tags := []*cloudformation.Tag{
+		{Key: aws.String("pipeline-created"), Value: aws.String("true")},
+	}
+
 	if action.autoScaling {
-		clusterAutoscaling = "enabled"
+		tags = append(tags, &cloudformation.Tag{Key: aws.String("k8s.io/cluster-autoscaler/enabled"), Value: aws.String("true")})
+	}
+
+	spotPriceParam := ""
+	if p, err := strconv.ParseFloat(action.nodeSpotPrice, 64); err == nil && p > 0.0 {
+		spotPriceParam = action.nodeSpotPrice
 	}
 
 	cloudformationSrv := cloudformation.New(action.context.Session)
@@ -1033,7 +1031,7 @@ Outputs:
 			},
 			{
 				ParameterKey:   aws.String("NodeSpotPrice"),
-				ParameterValue: aws.String(action.nodeSpotPrice),
+				ParameterValue: aws.String(spotPriceParam),
 			},
 			{
 				ParameterKey:   aws.String("NodeAutoScalingGroupMinSize"),
@@ -1046,10 +1044,6 @@ Outputs:
 			{
 				ParameterKey:   aws.String("NodeAutoScalingInitSize"),
 				ParameterValue: aws.String(fmt.Sprintf("%d", action.scalingInitSize)),
-			},
-			{
-				ParameterKey:   aws.String("EnableClusterAutoscaler"),
-				ParameterValue: aws.String(clusterAutoscaling),
 			},
 			{
 				ParameterKey:   aws.String("ClusterName"),
@@ -1071,7 +1065,7 @@ Outputs:
 				ParameterValue: aws.String(commaDelimitedSubnetIDs),
 			},
 		},
-		Tags:             []*cloudformation.Tag{{Key: aws.String("pipeline-created"), Value: aws.String("true")}},
+		Tags:             tags,
 		TemplateBody:     aws.String(templateBody),
 		TimeoutInMinutes: aws.Int64(10),
 	}
