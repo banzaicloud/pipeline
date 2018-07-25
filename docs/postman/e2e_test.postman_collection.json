@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "1fc7f580-50bf-48ec-b8a2-c857aa3f28b2",
+		"_postman_id": "0b413c1c-fc0a-4638-a532-b1b318b0e045",
 		"name": "End2End TEST Organizations",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -233,7 +233,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\":\"okecluster-demo-{{$randomInt}}\",\n    \"location\": \"n/a\",\n    \"cloud\": \"oracle\",\n    \"secretId\": \"{{secret_id}}\",\n    \"properties\": {\n        \"oracle\": {\n            \"version\":\"v1.9.7\",\n            \"vcnId\":\"ocid1.vcn.oc1.eu-frankfurt-1.aaaaaaaapwetdj5dqqji3fgisu6i24tiztzaxzqzfnmdxgsbsouwefwbkrxq\",\n            \"LBSubnetId1\": \"ocid1.subnet.oc1.eu-frankfurt-1.aaaaaaaanm5gywh3pgarwoz4w4kkdidqdjmi6jflkutctpox6jmw7xne4huq\",\n            \"LBSubnetId2\": \"ocid1.subnet.oc1.eu-frankfurt-1.aaaaaaaagau65hghxfsiapasa2dciqc6renvw6nelaxfugn5quc5d57f7ena\",\n            \"nodePools\": {\n                \"pool1\": {\n                \t\"version\":\"v1.9.7\",\n                \t\"subnetIds\": [ \n                \t\t\"ocid1.subnet.oc1.eu-frankfurt-1.aaaaaaaakad3ju4voqpep4uz3tprzbmgszt36i5re5rwwjmjsgyfkyeuxgba\"\n                \t],\n                \t\"quantityPerSubnet\": 1,\n                \t\"image\": \"Oracle-Linux-7.4\",\n                \t\"shape\": \"VM.Standard1.1\",\n                \t\"labels\": {\n                \t\t\"type\": \"general\"\n                \t}\n                }\n            }\n        }\n    }\n}"
+							"raw": "{\n    \"name\":\"okecluster-demo-{{$randomInt}}\",\n    \"location\": \"eu-frankfurt-1\",\n    \"cloud\": \"oracle\",\n    \"secretId\": \"{{secret_id}}\",\n    \"properties\": {\n        \"oracle\": {\n            \"version\":\"v1.9.7\",\n            \"nodePools\": {\n                \"pool1\": {\n                \t\"version\":\"v1.9.7\",\n                \t\"count\": 1,\n                \t\"image\": \"Oracle-Linux-7.4\",\n                \t\"shape\": \"VM.Standard1.1\",\n                \t\"labels\": {\n                \t\t\"type\": \"general\"\n                \t}\n                }\n            }\n        }\n    }\n}"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/{{orgId}}/clusters",
@@ -595,7 +595,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"name\":\"okecluster-{{$randomInt}}\",\n\t\"secretId\": \"{{secret_id}}\",\n\t\"cloud\": \"oracle\",\n\t\"profileName\": \"default2\",\n\t\"properties\": {\n\t\t\"oracle\": {\n           \n\t\t}\n\t}\n}"
+							"raw": "{\n\t\"name\":\"okecluster-{{$randomInt}}\",\n\t\"secretId\": \"{{secret_id}}\",\n\t\"cloud\": \"oracle\",\n\t\"profileName\": \"default\",\n\t\"properties\": {\n\t\t\"oracle\": {\n           \n\t\t}\n\t}\n}"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/{{orgId}}/clusters",
@@ -760,6 +760,57 @@
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"cloud\": \"google\",\n  \"properties\": {\n    \"google\": {\n       \"master\": {\n            \"version\": \"1.9.4-gke.1\"\n      },\n      \"nodePools\": {\n        \"pool1\": {\n            \"autoscaling\": false, \n\t        \"minCount\": 1,\n\t        \"maxCount\": 2,\n            \"count\" : 2,\n            \"instanceType\": \"n1-standard-2\"\n        }\n      }\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/{{orgId}}/clusters/{{cluster_id}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								"{{orgId}}",
+								"clusters",
+								"{{cluster_id}}"
+							]
+						},
+						"description": "Update an AKS cluster"
+					},
+					"response": []
+				},
+				{
+					"name": "Cluster Update OKE",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"",
+									"if (responseCode.code === 202) {",
+									"    tests[\"Response Code 202\"] = responseCode.code == 202;",
+									"} else {",
+									"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+									"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+									"    postman.setNextRequest(null);",
+									"}",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"cloud\": \"oracle\",\n    \"properties\": {\n        \"oracle\": {\n            \"version\":\"v1.9.7\",\n            \"nodePools\": {\n                \"pool1\": {\n                \t\"version\":\"v1.9.7\",\n                \t\"count\": 3,\n                \t\"labels\": {\n                \t\t\"type\": \"compute\"\n                \t}\n                },\n                \"pool2\": {\n                \t\"version\":\"v1.9.7\",\n                \t\"count\": 1,\n                \t\"image\": \"Oracle-Linux-7.4\",\n                \t\"shape\": \"VM.Standard1.1\",\n                \t\"labels\": {\n                \t\t\"type\": \"compute\"\n                \t}\n                }\n            }\n        }\n    }\n}\n"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/{{orgId}}/clusters/{{cluster_id}}",
@@ -1085,57 +1136,6 @@
 							]
 						},
 						"description": "Delete a K8S cluster from the cloud, cleans up resources"
-					},
-					"response": []
-				},
-				{
-					"name": "Cluster Update OKE",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"",
-									"if (responseCode.code === 202) {",
-									"    tests[\"Response Code 202\"] = responseCode.code == 202;",
-									"} else {",
-									"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
-									"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
-									"    postman.setNextRequest(null);",
-									"}",
-									""
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"cloud\": \"oracle\",\n    \"properties\": {\n        \"oracle\": {\n            \"version\":\"v1.10.3\",\n            \"nodePools\": {\n                \"pool3\": {\n                \t\"version\":\"v1.10.3\",\n                \t\"subnetIds\": [ \"ocid1.subnet.oc1.eu-frankfurt-1.aaaaaaaakad3ju4voqpep4uz3tprzbmgszt36i5re5rwwjmjsgyfkyeuxgba\" ],\n                \t\"quantityPerSubnet\": 1,\n                \t\"image\": \"Oracle-Linux-7.4\",\n                \t\"shape\": \"VM.Standard1.1\",\n                \t\"labels\": {\n                \t\t\"type\": \"compute\"\n                \t}\n                },\n                \"pool1\": {\n                \t\"version\":\"v1.10.3\",\n                \t\"subnetIds\": [ \"ocid1.subnet.oc1.eu-frankfurt-1.aaaaaaaakad3ju4voqpep4uz3tprzbmgszt36i5re5rwwjmjsgyfkyeuxgba\" ],\n                \t\"quantityPerSubnet\": 1,\n                \t\"labels\": {\n                \t\t\"type\": \"general2\"\n                \t}\n                }\n            }\n        }\n    }\n}\n"
-						},
-						"url": {
-							"raw": "{{url}}/api/v1/orgs/{{orgId}}/clusters/{{cluster_id}}",
-							"host": [
-								"{{url}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"orgs",
-								"{{orgId}}",
-								"clusters",
-								"{{cluster_id}}"
-							]
-						},
-						"description": "Update an AKS cluster"
 					},
 					"response": []
 				},
@@ -2621,7 +2621,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"basic\",\n    \"cloud\": \"oracle\",\n    \"location\": \"n/a\",\n    \"properties\": {\n        \"oracle\": {\n            \"version\":\"v1.9.7\",\n            \"vcnId\":\"ocid1.vcn.oc1.eu-frankfurt-1.aaaaaaaapwetdj5dqqji3fgisu6i24tiztzaxzqzfnmdxgsbsouwefwbkrxq\",\n            \"LBSubnetId1\": \"ocid1.subnet.oc1.eu-frankfurt-1.aaaaaaaanm5gywh3pgarwoz4w4kkdidqdjmi6jflkutctpox6jmw7xne4huq\",\n            \"LBSubnetId2\": \"ocid1.subnet.oc1.eu-frankfurt-1.aaaaaaaagau65hghxfsiapasa2dciqc6renvw6nelaxfugn5quc5d57f7ena\",\n            \"nodePools\": {\n                \"pool1\": {\n                \t\"version\":\"v1.9.7\",\n                \t\"subnetIds\": [ \"ocid1.subnet.oc1.eu-frankfurt-1.aaaaaaaakad3ju4voqpep4uz3tprzbmgszt36i5re5rwwjmjsgyfkyeuxgba\" ],\n                \t\"quantityPerSubnet\": 1,\n                \t\"image\": \"Oracle-Linux-7.4\",\n                \t\"shape\": \"VM.Standard1.1\",\n                \t\"labels\": {\n                \t\t\"type\": \"small-compute\"\n                \t}\n                }\n            }\n        }\n    }\n}"
+							"raw": "{\n    \"name\": \"basic-frankfurt-1\",\n    \"cloud\": \"oracle\",\n    \"location\": \"eu-frankfurt-1\",\n    \"properties\": {\n        \"oracle\": {\n            \"version\":\"v1.9.7\",\n            \"nodePools\": {\n                \"pool1\": {\n                \t\"version\":\"v1.9.7\",\n                \t\"count\": 3,\n                \t\"image\": \"Oracle-Linux-7.4\",\n                \t\"shape\": \"VM.Standard1.1\",\n                \t\"labels\": {\n                \t\t\"type\": \"small-compute\"\n                \t}\n                }\n            }\n        }\n    }\n}"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/{{orgId}}/profiles/cluster",
@@ -2837,7 +2837,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"basic\",\n    \"cloud\": \"oracle\",\n    \"location\": \"n/a\",\n    \"properties\": {\n        \"oracle\": {\n            \"version\":\"v1.10.3\",\n            \"vcnId\":\"ocid1.vcn.oc1.eu-frankfurt-1.aaaaaaaapwetdj5dqqji3fgisu6i24tiztzaxzqzfnmdxgsbsouwefwbkrxq\",\n            \"LBSubnetId1\": \"ocid1.subnet.oc1.eu-frankfurt-1.aaaaaaaanm5gywh3pgarwoz4w4kkdidqdjmi6jflkutctpox6jmw7xne4huq\",\n            \"LBSubnetId2\": \"ocid1.subnet.oc1.eu-frankfurt-1.aaaaaaaagau65hghxfsiapasa2dciqc6renvw6nelaxfugn5quc5d57f7ena\",\n            \"nodePools\": {\n                \"pool1\": {\n                \t\"version\":\"v1.10.3\",\n                \t\"subnetIds\": [ \"ocid1.subnet.oc1.eu-frankfurt-1.aaaaaaaakad3ju4voqpep4uz3tprzbmgszt36i5re5rwwjmjsgyfkyeuxgba\" ],\n                \t\"quantityPerSubnet\": 1,\n                \t\"image\": \"Oracle-Linux-7.4\",\n                \t\"shape\": \"VM.Standard1.1\",\n                \t\"labels\": {\n                \t\t\"type\": \"small-compute\"\n                \t}\n                }\n            }\n        }\n    }\n}"
+							"raw": "{\n    \"name\": \"basic-frankfurt-1\",\n    \"cloud\": \"oracle\",\n    \"location\": \"eu-frankfurt-1\",\n    \"properties\": {\n        \"oracle\": {\n            \"version\":\"v1.9.7\",\n            \"nodePools\": {\n                \"pool1\": {\n                \t\"version\":\"v1.9.7\",\n                \t\"count\": 2,\n                \t\"image\": \"Oracle-Linux-7.4\",\n                \t\"shape\": \"VM.Standard1.1\",\n                \t\"labels\": {\n                \t\t\"type\": \"small-compute\"\n                \t}\n                }\n            }\n        }\n    }\n}"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/{{orgId}}/profiles/cluster",
@@ -4150,46 +4150,6 @@
 					"response": []
 				},
 				{
-					"name": "ListBuckets Amazon",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "secretId",
-								"value": "{{secret_id}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{url}}/api/v1/orgs/{{orgId}}/buckets?cloudType=amazon&location={{am-location}}",
-							"host": [
-								"{{url}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"orgs",
-								"{{orgId}}",
-								"buckets"
-							],
-							"query": [
-								{
-									"key": "cloudType",
-									"value": "amazon"
-								},
-								{
-									"key": "location",
-									"value": "{{am-location}}"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "CreateBuckets Amazon",
 					"request": {
 						"method": "POST",
@@ -4307,7 +4267,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"secret_id\": \"{{secret_id}}\",\n\t\"name\": \"bbb\",\n\t\"properties\": {\n\t\t\"oracle\": {\n\t\t}\n\t}\n}"
+							"raw": "{\n\t\"secret_id\": \"{{secret_id}}\",\n\t\"name\": \"bbb\",\n\t\"properties\": {\n\t\t\"oracle\": {\n\t\t\t\"location\": \"eu-frankfurt-1\"\n\t\t}\n\t}\n}"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/{{orgId}}/buckets",
@@ -4320,6 +4280,46 @@
 								"orgs",
 								"{{orgId}}",
 								"buckets"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ListBuckets Amazon",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "secretId",
+								"value": "{{secret_id}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/{{orgId}}/buckets?cloudType=amazon&location={{am-location}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								"{{orgId}}",
+								"buckets"
+							],
+							"query": [
+								{
+									"key": "cloudType",
+									"value": "amazon"
+								},
+								{
+									"key": "location",
+									"value": "{{am-location}}"
+								}
 							]
 						}
 					},
@@ -4523,7 +4523,7 @@
 							"raw": ""
 						},
 						"url": {
-							"raw": "{{url}}/api/v1/orgs/{{orgId}}/buckets/{{bucketName}}?cloudType=oracle",
+							"raw": "{{url}}/api/v1/orgs/{{orgId}}/buckets/{{bucketName}}?cloudType=oracle&location=eu-frankfurt-1",
 							"host": [
 								"{{url}}"
 							],
@@ -4539,6 +4539,10 @@
 								{
 									"key": "cloudType",
 									"value": "oracle"
+								},
+								{
+									"key": "location",
+									"value": "eu-frankfurt-1"
 								}
 							]
 						}
@@ -5591,6 +5595,307 @@
 					"_postman_isSubFolder": true
 				},
 				{
+					"name": "Oracle",
+					"description": null,
+					"item": [
+						{
+							"name": "Get OKE cloud config",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"disabled": true
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/orgs/{{orgId}}/cloudinfo/oracle",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orgs",
+										"{{orgId}}",
+										"cloudinfo",
+										"oracle"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get OKE cloud config Locations",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"disabled": true
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/orgs/{{orgId}}/cloudinfo/oracle?fields=location&secret_id={{secret_id}}",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orgs",
+										"{{orgId}}",
+										"cloudinfo",
+										"oracle"
+									],
+									"query": [
+										{
+											"key": "fields",
+											"value": "location"
+										},
+										{
+											"key": "secret_id",
+											"value": "{{secret_id}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get OKE cloud config Images",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"disabled": true
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/orgs/{{orgId}}/cloudinfo/oracle?fields=image&location=eu-frankfurt-1&secret_id={{secret_id}}",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orgs",
+										"{{orgId}}",
+										"cloudinfo",
+										"oracle"
+									],
+									"query": [
+										{
+											"key": "fields",
+											"value": "image"
+										},
+										{
+											"key": "location",
+											"value": "eu-frankfurt-1"
+										},
+										{
+											"key": "secret_id",
+											"value": "{{secret_id}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get OKE cloud config NodeInstanceType",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"disabled": true
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/orgs/{{orgId}}/cloudinfo/oracle?fields=instanceType&location=eu-frankfurt-1&secret_id={{secret_id}}",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orgs",
+										"{{orgId}}",
+										"cloudinfo",
+										"oracle"
+									],
+									"query": [
+										{
+											"key": "fields",
+											"value": "instanceType"
+										},
+										{
+											"key": "location",
+											"value": "eu-frankfurt-1"
+										},
+										{
+											"key": "secret_id",
+											"value": "{{secret_id}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get OKE cloud config Kubernetes version",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"disabled": true
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/orgs/{{orgId}}/cloudinfo/oracle?fields=k8sVersion&location=eu-frankfurt-1&secret_id={{secret_id}}",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orgs",
+										"{{orgId}}",
+										"cloudinfo",
+										"oracle"
+									],
+									"query": [
+										{
+											"key": "fields",
+											"value": "k8sVersion"
+										},
+										{
+											"key": "location",
+											"value": "eu-frankfurt-1"
+										},
+										{
+											"key": "secret_id",
+											"value": "{{secret_id}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get OKE cloud config ALL field",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"disabled": true
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/orgs/{{orgId}}/cloudinfo/oracle?fields=location&fields=instanceType&fields=k8sVersion&fields=image&location=us-ashburn-1&secret_id={{secret_id}}",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orgs",
+										"{{orgId}}",
+										"cloudinfo",
+										"oracle"
+									],
+									"query": [
+										{
+											"key": "fields",
+											"value": "location"
+										},
+										{
+											"key": "fields",
+											"value": "instanceType"
+										},
+										{
+											"key": "fields",
+											"value": "k8sVersion"
+										},
+										{
+											"key": "fields",
+											"value": "image"
+										},
+										{
+											"key": "location",
+											"value": "us-ashburn-1"
+										},
+										{
+											"key": "secret_id",
+											"value": "{{secret_id}}"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
 					"name": "Get supported clusters types",
 					"request": {
 						"method": "GET",
@@ -5740,7 +6045,7 @@
 		"bearer": [
 			{
 				"key": "token",
-				"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJodHRwczovL3BpcGVsaW5lLmJhbnphaWNsb3VkLmNvbSIsImp0aSI6IjNkYWUxYzJiLTg2MjgtNDQ4MS1hZjMyLWU3OWUzNGJjMTExYyIsImlhdCI6MTUzMTIxOTQxNCwiaXNzIjoiaHR0cHM6Ly9iYW56YWljbG91ZC5jb20vIiwic3ViIjoiMSIsInNjb3BlIjoiYXBpOmludm9rZSIsInR5cGUiOiJ1c2VyIiwidGV4dCI6ImJvbmlmYWlkbyJ9.LtlOpD0i0qU6N7queT2smoyJHuGhAO0rPiowTWTuRXw",
+				"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJodHRwczovL3BpcGVsaW5lLmJhbnphaWNsb3VkLmNvbSIsImp0aSI6ImRjNzA1MWY3LTkwOGMtNDA1MS1hYWZjLWU1YWI4NWUzZWQ3YyIsImlhdCI6MTUzMjEwMTcxMiwiaXNzIjoiaHR0cHM6Ly9iYW56YWljbG91ZC5jb20vIiwic3ViIjoiMSIsInNjb3BlIjoiYXBpOmludm9rZSIsInR5cGUiOiJ1c2VyIiwidGV4dCI6IndheW56MHIifQ.Xnur1VOHGzkVcKKxT4Lb6ZwcrvaIN64huP_DiIzHMbk",
 				"type": "string"
 			}
 		]
