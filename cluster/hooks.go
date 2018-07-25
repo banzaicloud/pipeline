@@ -431,7 +431,6 @@ func RegisterDomainPostHook(input interface{}) error {
 		}
 	} else {
 		log.Infof("Domain '%s' already registered", domain)
-		return nil
 	}
 
 	_, err = InstallOrUpdateSecrets(
