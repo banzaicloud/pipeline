@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"path/filepath"
+
 	"github.com/gin-contrib/cors"
 	"github.com/spf13/viper"
 )
@@ -31,6 +33,8 @@ const (
 
 	//PipelineMonitorNamespace pipeline infra namespace key
 	PipelineMonitorNamespace = "infra.namespace"
+	// the location to get EKS Cloud Formation templates from
+	EksTemplateLocation = "eks.templateLocation"
 )
 
 //Init initializes the configurations
@@ -103,6 +107,7 @@ func init() {
 	viper.SetDefault("monitor.grafanaAdminUsername", "admin")
 
 	viper.SetDefault(PipelineMonitorNamespace, "pipeline-infra")
+	viper.SetDefault(EksTemplateLocation, filepath.Join(pwd, "templates", "eks"))
 
 	// Find and read the config file
 	if err := viper.ReadInConfig(); err != nil {

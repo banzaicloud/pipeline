@@ -220,6 +220,12 @@
   revision = "3a771d992973f24aa725d07868b467d1ddfceafb"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/bgentry/go-netrc"
+  packages = ["netrc"]
+  revision = "9fd32a8b3d3d3f9d43c341bfe098430e07609480"
+
+[[projects]]
   name = "github.com/casbin/casbin"
   packages = [
     ".",
@@ -562,6 +568,15 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/hashicorp/go-getter"
+  packages = [
+    ".",
+    "helper/url"
+  ]
+  revision = "a33f09ce9feed989941a4dfe08b3890a0f8aceb9"
+
+[[projects]]
+  branch = "master"
   name = "github.com/hashicorp/go-multierror"
   packages = ["."]
   revision = "b7773ae218740a7be65057fc60b366a49b538a44"
@@ -580,9 +595,21 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/hashicorp/go-safetemp"
+  packages = ["."]
+  revision = "b1a1dbde6fdc11e3ae79efd9039009e22d4ae240"
+
+[[projects]]
+  branch = "master"
   name = "github.com/hashicorp/go-sockaddr"
   packages = ["."]
   revision = "6d291a969b86c4b633730bfc6b8b9d64c3aafed9"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/hashicorp/go-version"
+  packages = ["."]
+  revision = "270f2f71b1ee587f3b609f00f422b76a6b28f348"
 
 [[projects]]
   branch = "master"
@@ -799,6 +826,12 @@
   name = "github.com/mitchellh/go-homedir"
   packages = ["."]
   revision = "b8bc1bf767474819792c23f32d8286a45736f1c6"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/mitchellh/go-testing-interface"
+  packages = ["."]
+  revision = "a61a99592b77c9ba629d254a693acffaeb4b7e28"
 
 [[projects]]
   branch = "master"
@@ -1136,6 +1169,17 @@
   packages = ["codec"]
   revision = "9831f2c3ac1068a78f50999a30db84270f647af6"
   version = "v1.1"
+
+[[projects]]
+  name = "github.com/ulikunitz/xz"
+  packages = [
+    ".",
+    "internal/hash",
+    "internal/xlog",
+    "lzma"
+  ]
+  revision = "0c6b41e72360850ca4f98dc341fd999726ea007f"
+  version = "v0.5.4"
 
 [[projects]]
   name = "go.opencensus.io"
