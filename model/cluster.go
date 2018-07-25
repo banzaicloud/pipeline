@@ -88,6 +88,7 @@ type AmazonEksClusterModel struct {
 	ClusterModelId uint                    `gorm:"primary_key"`
 	Version        string                  //kubernetes "1.10"
 	NodePools      []*AmazonNodePoolsModel `gorm:"foreignkey:ClusterModelId"`
+	AccessKeyID    string
 }
 
 //AzureClusterModel describes the azure cluster model

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"strconv"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/request"
@@ -19,7 +21,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
-	"strconv"
 )
 
 var log *logrus.Logger
@@ -1486,5 +1487,55 @@ func (action *DeleteIAMRoleAction) ExecuteAction(input interface{}) (output inte
 		RoleName: aws.String(action.RoleName),
 	}
 	_, err = iamSvc.DeleteRole(deleteRoleInput)
+	return nil, err
+}
+
+//--
+
+var _ utils.Action = (*DeleteUserAction)(nil)
+
+// DeleteUserAction deletes an IAM role
+type DeleteUserAction struct {
+	context     *EksClusterDeletionContext
+	userName    string
+	accessKeyID string
+}
+
+// NewDeleteUserAction creates a new DeleteUserAction
+func NewDeleteUserAction(context *EksClusterDeletionContext, userName, accessKeyID string) *DeleteUserAction {
+	return &DeleteUserAction{
+		context:     context,
+		userName:    userName,
+		accessKeyID: accessKeyID,
+	}
+}
+
+// GetName returns the name of this DeleteUserAction
+func (action *DeleteUserAction) GetName() string {
+	return "DeleteUserAction"
+}
+
+// ExecuteAction executes this DeleteUserAction
+func (action *DeleteUserAction) ExecuteAction(input interface{}) (output interface{}, err error) {
+	log.Infoln("EXECUTE DeleteUserAction, deleting user:", action.userName)
+
+	iamSvc := iam.New(action.context.Session)
+
+	deleteAccessKeyInput := &iam.DeleteAccessKeyInput{
+		AccessKeyId: aws.String(action.accessKeyID),
+		UserName:    aws.String(action.userName),
+	}
+
+	_, err = iamSvc.DeleteAccessKey(deleteAccessKeyInput)
+	if err != nil {
+		return nil, err
+	}
+
+	deleteUserInput := &iam.DeleteUserInput{
+		UserName: aws.String(action.userName),
+	}
+
+	_, err = iamSvc.DeleteUser(deleteUserInput)
+
 	return nil, err
 }

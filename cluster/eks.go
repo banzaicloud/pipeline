@@ -4,11 +4,13 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/eks"
+	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -17,18 +19,23 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/utils"
-	"github.com/sirupsen/logrus"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api/v1"
 )
 
-const authConfigMapTemplate = `- rolearn: %s
+const mapRolesTemplate = `- rolearn: %s
   username: system:node:{{EC2PrivateDNSName}}
   groups:
   - system:bootstrappers
   - system:nodes
+`
+
+const mapUsersTemplate = `- userarn: %s
+  username: %s
+  groups:
+  - system:masters
 `
 
 //CreateEKSClusterFromRequest creates ClusterModel struct from the request
@@ -59,6 +66,8 @@ type EKSCluster struct {
 	modelCluster             *model.ClusterModel
 	APIEndpoint              string
 	CertificateAuthorityData []byte
+	awsAccessKeyID           string
+	awsSecretAccessKey       string
 	CommonClusterBase
 }
 
@@ -167,8 +176,32 @@ func (e *EKSCluster) CreateCluster() error {
 		return err
 	}
 
-	// Create the aws-auth ConfigMap for letting other nodes join
+	// TODO make this an action
+	iamSvc := iam.New(session)
+
+	user, err := iamSvc.CreateUser(&iam.CreateUserInput{
+		UserName: aws.String(e.modelCluster.Name),
+	})
+	if err != nil {
+		return err
+	}
+
+	accessKey, err := iamSvc.CreateAccessKey(&iam.CreateAccessKeyInput{UserName: user.User.UserName})
+
+	// Create the aws-auth ConfigMap for letting other nodes join, and users access the API
 	// See: https://docs.aws.amazon.com/eks/latest/userguide/add-user-role.html
+
+	bootstrapCredentials, _ := awsCred.Get()
+	e.awsAccessKeyID = bootstrapCredentials.AccessKeyID
+	e.awsSecretAccessKey = bootstrapCredentials.SecretAccessKey
+
+	defer func() {
+		e.awsAccessKeyID = aws.StringValue(accessKey.AccessKey.AccessKeyId)
+		e.awsSecretAccessKey = aws.StringValue(accessKey.AccessKey.SecretAccessKey)
+		// AWS needs some time to distribute the access key to every service
+		time.Sleep(15 * time.Second)
+	}()
+
 	kubeConfig, err := e.DownloadK8sConfig()
 	if err != nil {
 		return err
@@ -186,16 +219,26 @@ func (e *EKSCluster) CreateCluster() error {
 
 	mapRoles := ""
 	for _, roleArn := range creationContext.NodeInstanceRoles {
-		mapRoles += fmt.Sprintf(authConfigMapTemplate, roleArn)
+		mapRoles += fmt.Sprintf(mapRolesTemplate, roleArn)
 	}
+	mapUsers := fmt.Sprintf(mapUsersTemplate, aws.StringValue(user.User.Arn), aws.StringValue(user.User.UserName))
 	awsAuthConfigMap := v1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{Name: "aws-auth"},
-		Data:       map[string]string{"mapRoles": mapRoles},
+		Data: map[string]string{
+			"mapRoles": mapRoles,
+			"mapUsers": mapUsers,
+		},
 	}
 
 	_, err = kubeClient.CoreV1().ConfigMaps("kube-system").Create(&awsAuthConfigMap)
 	if err != nil {
 		return err
+	}
+
+	e.modelCluster.Eks.AccessKeyID = aws.StringValue(accessKey.AccessKey.AccessKeyId)
+	err = e.modelCluster.Save()
+	if err != nil {
+		return nil
 	}
 
 	log.Infoln("EKS cluster created:", e.modelCluster.Name)
@@ -264,6 +307,7 @@ func (e *EKSCluster) DeleteCluster() error {
 		action.NewDeleteSSHKeyAction(deleteContext, e.generateSSHKeyNameForCluster()),
 		action.NewDeleteStackAction(deleteContext, e.generateStackNameForCluster()),
 		action.NewDeleteIAMRoleAction(deleteContext, e.generateIAMRoleNameForCluster()),
+		action.NewDeleteUserAction(deleteContext, e.modelCluster.Name, e.modelCluster.Eks.AccessKeyID),
 	}
 
 	for _, nodePool := range e.modelCluster.Eks.NodePools {
@@ -272,7 +316,7 @@ func (e *EKSCluster) DeleteCluster() error {
 		actions = append(actions, createStackAction)
 	}
 
-	_, err = utils.NewActionExecutor(logrus.New()).ExecuteActions(actions, nil, false)
+	_, err = utils.NewActionExecutor(log).ExecuteActions(actions, nil, false)
 	if err != nil {
 		log.Errorln("EKS cluster delete error:", err.Error())
 		return err
@@ -319,7 +363,10 @@ func (e *EKSCluster) GenerateK8sConfig() *clientcmdapi.Config {
 						APIVersion: "client.authentication.k8s.io/v1alpha1",
 						Command:    "aws-iam-authenticator",
 						Args:       []string{"token", "-i", e.modelCluster.Name},
-						// Env:        []clientcmdapi.ExecEnvVar{clientcmdapi.ExecEnvVar{Name: "AWS_PROFILE", Value: "your_aws_profile_name"}},
+						Env: []clientcmdapi.ExecEnvVar{
+							clientcmdapi.ExecEnvVar{Name: "AWS_ACCESS_KEY_ID", Value: e.awsAccessKeyID},
+							clientcmdapi.ExecEnvVar{Name: "AWS_SECRET_ACCESS_KEY", Value: e.awsSecretAccessKey},
+						},
 					},
 				},
 			},
