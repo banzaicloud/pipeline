@@ -79,3 +79,13 @@ func (i *Identity) GetSubscribedRegionNames() (regions map[string]string, err er
 
 	return regions, err
 }
+
+// GetCompartment gets a Compartment by id
+func (i *Identity) GetCompartment(id *string) (c identity.Compartment, err error) {
+
+	response, err := i.client.GetCompartment(context.Background(), identity.GetCompartmentRequest{
+		CompartmentId: id,
+	})
+
+	return response.Compartment, err
+}
