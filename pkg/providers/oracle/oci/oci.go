@@ -93,6 +93,21 @@ func (oci *OCI) Validate() error {
 		return fmt.Errorf("Invalid Tenancy ID: %s != %s", tenancyID, *oci.Tenancy.Id)
 	}
 
+	// check Compartment OCID validity
+	i, err := oci.NewIdentityClient()
+	if err != nil {
+		return err
+	}
+
+	_, err = i.GetCompartment(&oci.credential.CompartmentOCID)
+	if err != nil {
+		if err.Error() == "Service error:NotAuthorizedOrNotFound. Authorization failed or requested resource not found. http status code: 404" {
+			err = fmt.Errorf("Invalid Compartment OCID: %s", oci.credential.CompartmentOCID)
+		}
+
+		return err
+	}
+
 	return nil
 }
 
