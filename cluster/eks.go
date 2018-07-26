@@ -303,7 +303,8 @@ func (e *EKSCluster) DeleteCluster() error {
 		e.modelCluster.Name,
 	)
 	actions := []utils.Action{
-		action.NewDeleteClusterAction(deleteContext, e.modelCluster.Name),
+		action.NewWaitResourceDeletionAction(deleteContext),
+		action.NewDeleteClusterAction(deleteContext),
 		action.NewDeleteSSHKeyAction(deleteContext, e.generateSSHKeyNameForCluster()),
 		action.NewDeleteStackAction(deleteContext, e.generateStackNameForCluster()),
 		action.NewDeleteIAMRoleAction(deleteContext, e.generateIAMRoleNameForCluster()),

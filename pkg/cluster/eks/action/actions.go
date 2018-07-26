@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/eks"
+	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
@@ -899,15 +900,13 @@ var _ utils.Action = (*DeleteClusterAction)(nil)
 
 // DeleteClusterAction deletes an EKS cluster
 type DeleteClusterAction struct {
-	context        *EksClusterDeletionContext
-	EksClusterName string
+	context *EksClusterDeletionContext
 }
 
 // NewDeleteClusterAction creates a new DeleteClusterAction
-func NewDeleteClusterAction(context *EksClusterDeletionContext, eksClusterName string) *DeleteClusterAction {
+func NewDeleteClusterAction(context *EksClusterDeletionContext) *DeleteClusterAction {
 	return &DeleteClusterAction{
-		context:        context,
-		EksClusterName: eksClusterName,
+		context: context,
 	}
 }
 
@@ -923,7 +922,7 @@ func (action *DeleteClusterAction) ExecuteAction(input interface{}) (output inte
 	//TODO handle non existing cluster
 	eksSrv := eks.New(action.context.Session)
 	deleteClusterInput := &eks.DeleteClusterInput{
-		Name: aws.String(action.EksClusterName),
+		Name: aws.String(action.context.ClusterName),
 	}
 	return eksSrv.DeleteCluster(deleteClusterInput)
 }
@@ -962,6 +961,82 @@ func (action *DeleteSSHKeyAction) ExecuteAction(input interface{}) (output inter
 	}
 	output, err = ec2srv.DeleteKeyPair(deleteKeyPairInput)
 	return output, err
+}
+
+//--
+
+var _ utils.Action = (*WaitResourceDeletionAction)(nil)
+
+// WaitResourceDeletionAction deletes a generated SSH key
+type WaitResourceDeletionAction struct {
+	context *EksClusterDeletionContext
+}
+
+// NewWaitResourceDeletionAction creates a new WaitResourceDeletionAction
+func NewWaitResourceDeletionAction(context *EksClusterDeletionContext) *WaitResourceDeletionAction {
+	return &WaitResourceDeletionAction{
+		context: context,
+	}
+}
+
+// GetName returns the name of this WaitResourceDeletionAction
+func (action *WaitResourceDeletionAction) GetName() string {
+	return "WaitResourceDeletionAction"
+}
+
+// ExecuteAction executes this WaitResourceDeletionAction
+func (action *WaitResourceDeletionAction) ExecuteAction(input interface{}) (output interface{}, err error) {
+	log.Info("EXECUTE WaitResourceDeletionAction")
+
+	return nil, action.waitUntilELBsDeleted()
+}
+
+func (action *WaitResourceDeletionAction) waitUntilELBsDeleted() error {
+
+	elbService := elb.New(action.context.Session)
+	clusterTag := "kubernetes.io/cluster/" + action.context.ClusterName
+
+	for {
+
+		describeLoadBalancers := &elb.DescribeLoadBalancersInput{}
+		loadBalancers, err := elbService.DescribeLoadBalancers(describeLoadBalancers)
+		if err != nil {
+			return err
+		}
+
+		var loadBalancerNames []*string
+		for _, description := range loadBalancers.LoadBalancerDescriptions {
+			loadBalancerNames = append(loadBalancerNames, description.LoadBalancerName)
+		}
+
+		if len(loadBalancerNames) == 0 {
+			return nil
+		}
+
+		describeTagsInput := &elb.DescribeTagsInput{
+			LoadBalancerNames: loadBalancerNames,
+		}
+		describeTagsOutput, err := elbService.DescribeTags(describeTagsInput)
+		if err != nil {
+			return err
+		}
+
+		var result []*string
+		for _, tagDescription := range describeTagsOutput.TagDescriptions {
+			for _, tag := range tagDescription.Tags {
+				if aws.StringValue(tag.Key) == clusterTag {
+					result = append(result, tagDescription.LoadBalancerName)
+				}
+			}
+		}
+
+		if len(result) == 0 {
+			return nil
+		}
+
+		log.Infoln("There are", len(result), "ELBs left from cluster", action.context.ClusterName)
+		time.Sleep(10 * time.Second)
+	}
 }
 
 //--

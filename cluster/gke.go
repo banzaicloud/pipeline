@@ -357,7 +357,7 @@ func (g *GKECluster) DeleteCluster() error {
 // waitForResourcesDelete waits until the Kubernetes destroys all the resources which it had created
 func (g *GKECluster) waitForResourcesDelete() error {
 
-	log.Info("Waiting for deleting deployments resources")
+	log.Info("Waiting for deleting cluster resources")
 
 	log.Info("Create compute service")
 	csv, err := g.getComputeService()
