@@ -13,7 +13,7 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
-	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/go-errors/errors"
@@ -118,10 +118,10 @@ func InstallMonitoring(input interface{}) error {
 	clusterNameTag := fmt.Sprintf("cluster:%s", cluster.GetName())
 	createSecretRequest := secret.CreateSecretRequest{
 		Name: fmt.Sprintf("cluster-%d-grafana", cluster.GetID()),
-		Type: secretTypes.PasswordSecretType,
+		Type: pkgSecret.PasswordSecretType,
 		Values: map[string]string{
-			secretTypes.Username: grafanaAdminUsername,
-			secretTypes.Password: grafanaAdminPass,
+			pkgSecret.Username: grafanaAdminUsername,
+			pkgSecret.Password: grafanaAdminPass,
 		},
 		Tags: []string{clusterNameTag, "app:grafana", "release:pipeline-monitoring"},
 	}
@@ -433,23 +433,42 @@ func RegisterDomainPostHook(input interface{}) error {
 		log.Infof("Domain '%s' already registered", domain)
 	}
 
-	_, err = InstallOrUpdateSecrets(
+	secretSources, err := InstallOrUpdateSecrets(
 		commonCluster,
-		&secretTypes.ListSecretsQuery{
+		&pkgSecret.ListSecretsQuery{
 			Type: pkgCluster.Amazon,
-			Tag:  secretTypes.TagBanzaiHidden,
+			Tag:  pkgSecret.TagBanzaiHidden,
 		},
 		route53SecretNamespace,
 	)
-
 	if err != nil {
 		log.Errorf("Failed to install route53 secret into cluster: %s", err.Error())
 		return err
 	}
 
-	log.Info("route53 secret successfully installed into cluster")
+	secretID := secret.GenerateSecretIDFromName(secretSources[0].Name)
 
-	return nil
+	route53Secret, err := secret.Store.Get(orgId, secretID)
+	if err != nil {
+		log.Errorf("Failed to install route53 get secret : %s", err.Error())
+		return err
+	}
+
+	log.Info("route53 secret successfully installed into cluster.")
+
+	externalDnsValues := map[string]map[string]string{
+		"aws": {
+			"secretKey":     route53Secret.Values[pkgSecret.AwsSecretAccessKey],
+			"accessKey":     route53Secret.Values[pkgSecret.AwsAccessKeyId],
+			"region":        route53Secret.Values[pkgSecret.AwsRegion],
+			"domainFilters": domain,
+		},
+	}
+	externalDnsValuesJson, err := json.Marshal(externalDnsValues)
+	if err != nil {
+		log.Errorf("Json Convert Failed : %s", err.Error())
+	}
+	return installDeployment(commonCluster, route53SecretNamespace, pkgHelm.StableRepository+"/external-dns", "pipeline-dns", externalDnsValuesJson, "InstallMonitoring")
 }
 
 // LabelNodes adds labels for all nodes
