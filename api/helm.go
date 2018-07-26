@@ -204,16 +204,18 @@ func GetDeployment(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, pkgHelm.GetDeploymentResponse{
-		ReleaseName: deploymentResponse.ReleaseName,
-		Namespace:   deploymentResponse.Namespace,
-		Status:      deploymentResponse.Status,
-		Version:     deploymentResponse.Version,
-		Description: deploymentResponse.Description,
-		CreatedAt:   deploymentResponse.CreatedAt,
-		Updated:     deploymentResponse.Updated,
-		Notes:       deploymentResponse.Notes,
-		Chart:       deploymentResponse.Chart,
-		Values:      deploymentResponse.Values,
+		ReleaseName:  deploymentResponse.ReleaseName,
+		Namespace:    deploymentResponse.Namespace,
+		Status:       deploymentResponse.Status,
+		Version:      deploymentResponse.Version,
+		Description:  deploymentResponse.Description,
+		CreatedAt:    deploymentResponse.CreatedAt,
+		Updated:      deploymentResponse.Updated,
+		Notes:        deploymentResponse.Notes,
+		Chart:        deploymentResponse.Chart,
+		ChartName:    deploymentResponse.ChartName,
+		ChartVersion: deploymentResponse.ChartVersion,
+		Values:       deploymentResponse.Values,
 	})
 
 }
