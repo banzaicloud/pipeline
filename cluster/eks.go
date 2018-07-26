@@ -8,14 +8,18 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/aws/aws-sdk-go/service/pricing"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	pkgEks "github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks/action"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/utils"
@@ -365,8 +369,8 @@ func (e *EKSCluster) GenerateK8sConfig() *clientcmdapi.Config {
 						Command:    "aws-iam-authenticator",
 						Args:       []string{"token", "-i", e.modelCluster.Name},
 						Env: []clientcmdapi.ExecEnvVar{
-							clientcmdapi.ExecEnvVar{Name: "AWS_ACCESS_KEY_ID", Value: e.awsAccessKeyID},
-							clientcmdapi.ExecEnvVar{Name: "AWS_SECRET_ACCESS_KEY", Value: e.awsSecretAccessKey},
+							{Name: "AWS_ACCESS_KEY_ID", Value: e.awsAccessKeyID},
+							{Name: "AWS_SECRET_ACCESS_KEY", Value: e.awsSecretAccessKey},
 						},
 					},
 				},
@@ -466,28 +470,46 @@ func (e *EKSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 
 // ValidateCreationFields validates all fields
 func (e *EKSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
-	//TODO validate location, node AMIs
-	/*
-		location := r.Location
+	regions, err := ListEksRegions(e.GetOrganizationId(), e.GetSecretId())
+	if err != nil {
+		log.Errorf("Listing regions where EKS service is available failed: %s", err.Error())
+		return err
+	}
 
-		// Validate location
-		log.Info("Validate location")
-		if err := c.validateLocation(location); err != nil {
-			return err
+	regionFound := false
+	for _, region := range regions {
+		if region == r.Location {
+			regionFound = true
+			break
 		}
-		log.Info("Validate location passed")
+	}
 
-		// Validate images
-		log.Info("Validate images")
-		masterImage := r.Properties.CreateClusterAmazon.Master.Image
-		if err := c.validateAMIs(masterImage, r.Properties.CreateClusterAmazon.NodePools, location); err != nil {
-			return err
+	if !regionFound {
+		return pkgErrors.ErrorNotValidLocation
+	}
+
+	imagesInRegion, err := ListEksImages(r.Location)
+	if err != nil {
+		log.Errorf("Listing AMIs that that support EKS failed: %s", err.Error())
+		return err
+	}
+
+	for name, nodePool := range r.Properties.CreateClusterEks.NodePools {
+		images, ok := imagesInRegion[r.Location]
+		if !ok {
+			log.Errorf("Image %q provided for node pool %q is not valid", name, nodePool.Image)
+			return pkgErrors.ErrorNotValidNodeImage
 		}
-		log.Info("Validate images passed")
 
-		return nil
+		for _, image := range images {
+			if image != nodePool.Image {
+				log.Errorf("Image %q provided for node pool %q is not valid", name, nodePool.Image)
+				return pkgErrors.ErrorNotValidNodeImage
+			}
+		}
 
-	*/
+	}
+
 	return nil
 }
 
@@ -525,4 +547,74 @@ func (e *EKSCluster) RequiresSshPublicKey() bool {
 // ReloadFromDatabase load cluster from DB
 func (e *EKSCluster) ReloadFromDatabase() error {
 	return e.modelCluster.ReloadFromDatabase()
+}
+
+// ListEksRegions returns the regions in which AmazonEKS service is enabled
+func ListEksRegions(orgId uint, secretId string) ([]string, error) {
+	// AWS API https://docs.aws.amazon.com/sdk-for-go/api/aws/endpoints/ doesn't recognizes AmazonEKS service yet
+	// thus we can not use it to query what locations the service is enabled in.
+
+	// We'll use the pricing API to determine what locations the service is enabled in.
+
+	// TODO revisit this later when https://docs.aws.amazon.com/sdk-for-go/api/aws/endpoints/ starts supporting AmazonEKS
+
+	secret, err := secret.Store.Get(orgId, secretId)
+	if err != nil {
+		return nil, err
+	}
+
+	credentials := verify.CreateAWSCredentials(secret.Values)
+	session, err := session.NewSession(&aws.Config{
+		Region:      aws.String(pkgEks.UsEast1), // pricing API available in us-east-1
+		Credentials: credentials,
+	})
+
+	svc := pricing.New(session)
+
+	getAttrValuesInput := &pricing.GetAttributeValuesInput{
+		AttributeName: aws.String(pkgCluster.KeyWordLocation),
+		ServiceCode:   aws.String("AmazonEKS"),
+	}
+	attributeValues, err := svc.GetAttributeValues(getAttrValuesInput)
+	if err != nil {
+		return nil, err
+	}
+
+	var eksLocations []string
+	for _, attrValue := range attributeValues.AttributeValues {
+		eksLocations = append(eksLocations, aws.StringValue(attrValue.Value))
+	}
+
+	resolver := endpoints.DefaultResolver()
+	partitions := resolver.(endpoints.EnumPartitions).Partitions()
+
+	var eksRegionIds []string
+	for _, p := range partitions {
+		for _, r := range p.Regions() {
+			for _, eksLocation := range eksLocations {
+				if r.Description() == eksLocation {
+					eksRegionIds = append(eksRegionIds, r.ID())
+				}
+			}
+		}
+
+	}
+
+	return eksRegionIds, nil
+}
+
+// ListEksImages returns AMIs for EKS
+func ListEksImages(region string) (map[string][]string, error) {
+	// currently there are only two AMIs for EKS.
+	// TODO: revise this once there is AWS API for retrieving EKS AMIs dynamically at runtime
+	ami, ok := pkgEks.DefaultImages[region]
+	if ok {
+		return map[string][]string{
+			region: {ami},
+		}, nil
+	}
+
+	return map[string][]string{
+		region: {},
+	}, nil
 }

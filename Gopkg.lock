@@ -171,6 +171,7 @@
     "service/elb",
     "service/iam",
     "service/iam/iamiface",
+    "service/pricing",
     "service/route53",
     "service/route53/route53iface",
     "service/s3",

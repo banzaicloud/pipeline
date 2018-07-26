@@ -1,14 +1,14 @@
 package eks
 
 import (
-	"github.com/banzaicloud/pipeline/pkg/cluster/amazon"
+	pkgAmazon "github.com/banzaicloud/pipeline/pkg/cluster/amazon"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 )
 
 // CreateClusterEks describes Pipeline's Amazon EKS fields of a CreateCluster request
 type CreateClusterEks struct {
-	Version   string                      `json:"version,omitempty"`
-	NodePools map[string]*amazon.NodePool `json:"nodePools,omitempty"`
+	Version   string                         `json:"version,omitempty"`
+	NodePools map[string]*pkgAmazon.NodePool `json:"nodePools,omitempty"`
 }
 
 // UpdateClusterAmazonEKS describes Amazon EKS's node fields of an UpdateCluster request
@@ -20,6 +20,11 @@ type UpdateClusterAmazonEKS struct {
 func (eks *CreateClusterEks) Validate() error {
 	if eks == nil {
 		return pkgErrors.ErrorAmazonEksFieldIsEmpty
+	}
+
+	// validate K8s version
+	if !isValidVersion(eks.Version) {
+		return pkgErrors.ErrorNotValidKubernetesVersion
 	}
 
 	for _, np := range eks.NodePools {
@@ -64,6 +69,18 @@ func (eks *UpdateClusterAmazonEKS) Validate() error {
 	//TODO missing validate body
 
 	return nil
+}
+
+// isValidVersion validates the given K8S version
+func isValidVersion(version string) bool {
+	if len(version) == 0 {
+		return true
+	}
+
+	// currently only Kubernetes version 1.10 is supported by EKS
+	// TODO check if there is an AWS API that can tell us supported Kubernetes versions
+	return "1.10" == version
+
 }
 
 // CertificateAuthority is a helper struct for AWS kube config JSON parsing

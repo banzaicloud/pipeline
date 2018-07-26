@@ -396,7 +396,11 @@ func (action *CreateEksClusterAction) ExecuteAction(input interface{}) (output i
 		Name:               aws.String(action.context.ClusterName),
 		ResourcesVpcConfig: vpcConfigRequest,
 		RoleArn:            roleArn,
-		Version:            aws.String(action.kubernetesVersion),
+	}
+
+	// set Kubernetes version only if provided, otherwise the cloud provider default one will be used
+	if len(action.kubernetesVersion) > 0 {
+		createClusterInput.Version = aws.String(action.kubernetesVersion)
 	}
 
 	result, err := eksSvc.CreateCluster(createClusterInput)
