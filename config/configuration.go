@@ -72,7 +72,7 @@ func init() {
 	viper.SetDefault("tls.validity", "8760h") // 1 year
 
 	viper.SetDefault("dns.domain", "banzaicloud.io")
-	viper.SetDefault("dns.secretNamespace", "default")
+	viper.SetDefault("dns.secretNamespace", "pipeline-infra")
 	viper.SetDefault("dns.gcIntervalMinute", 1)
 	viper.SetDefault("route53.maintenanceWindowMinute", 15)
 

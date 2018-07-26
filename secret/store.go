@@ -116,9 +116,14 @@ func newVaultSecretStore() *secretStore {
 	return &secretStore{Client: client, Logical: logical}
 }
 
+// GenerateSecretIDFromName generates a "unique by name per organization" id for Secrets
+func GenerateSecretIDFromName(name string) string {
+	return fmt.Sprintf("%x", sha256.Sum256([]byte(name)))
+}
+
 // GenerateSecretID generates a "unique by name per organization" id for Secrets
 func GenerateSecretID(request *CreateSecretRequest) string {
-	return fmt.Sprintf("%x", sha256.Sum256([]byte(request.Name)))
+	return GenerateSecretIDFromName(request.Name)
 }
 
 // Validate SecretRequest
