@@ -568,6 +568,9 @@ func ListEksRegions(orgId uint, secretId string) ([]string, error) {
 		Region:      aws.String(pkgEks.UsEast1), // pricing API available in us-east-1
 		Credentials: credentials,
 	})
+	if err != nil {
+		return nil, err
+	}
 
 	svc := pricing.New(session)
 
