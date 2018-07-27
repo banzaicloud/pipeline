@@ -307,6 +307,22 @@ func (ss *secretStore) Get(organizationID uint, secretID string) (*SecretItemRes
 	return parseSecret(secretID, secret, true)
 }
 
+// Retrieve secret by secret Name secret/orgs/:orgid:/:id: scope
+func (ss *secretStore) GetByName(organizationID uint, name string) (*SecretItemResponse, error) {
+
+	secretID := GenerateSecretIDFromName(name)
+	secret, err := Store.Get(organizationID, secretID)
+	if err != nil {
+		return nil, errors.Wrap(err, "Error during reading secret")
+	}
+
+	if secret == nil {
+		return nil, ErrSecretNotExists
+	}
+
+	return secret, nil
+}
+
 // List secret secret/orgs/:orgid:/ scope
 func (ss *secretStore) List(orgid uint, query *secretTypes.ListSecretsQuery) ([]*SecretItemResponse, error) {
 

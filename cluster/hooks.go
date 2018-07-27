@@ -446,11 +446,9 @@ func RegisterDomainPostHook(input interface{}) error {
 		return err
 	}
 
-	secretID := secret.GenerateSecretIDFromName(secretSources[0].Name)
-
-	route53Secret, err := secret.Store.Get(orgId, secretID)
+	route53Secret, err := secret.Store.GetByName(orgId, secretSources[0].Name)
 	if err != nil {
-		log.Errorf("Failed to install route53 get secret : %s", err.Error())
+		log.Errorf("Failed to get the route53 secret : %s", err.Error())
 		return err
 	}
 
