@@ -21,11 +21,13 @@ import (
 const (
 	testOrgId                uint = 1
 	testOrgName                   = "testorg"
+	testBaseDomain                = "domain"
 	testDomain                    = "test.domain"
 	testDomainInUse               = "inuse.domain"
 	testDomainMismatch            = "domain.mismatch"
 	testPolicyArn                 = "testpolicyarn"
 	testHostedZoneIdShort         = "testhostedzone1"
+	testBaseHostedZoneId          = "/hostedzone/testhostedzonebase"
 	testHostedZoneId              = "/hostedzone/testhostedzone1"
 	testInUseHostedZoneId         = "/hostedzone/inuse.hostedzone.id"
 	testMismatchHostedZoneId      = "/hostedzone/mismatch.hostedzone.id"
@@ -247,8 +249,21 @@ func (mock *mockRoute53Svc) CreateHostedZone(createHostedZone *route53.CreateHos
 	}, nil
 }
 
+func (mock *mockRoute53Svc) GetHostedZone(getHostedZoneInput *route53.GetHostedZoneInput) (*route53.GetHostedZoneOutput, error) {
+	return &route53.GetHostedZoneOutput{
+		DelegationSet: &route53.DelegationSet{
+			NameServers: []*string{aws.String("ns1")},
+		},
+		HostedZone: &route53.HostedZone{
+			Id:   getHostedZoneInput.Id,
+			Name: aws.String(testDomain),
+		},
+	}, nil
+}
+
 func (mock *mockRoute53Svc) ListHostedZonesByName(listHostedZonesByName *route53.ListHostedZonesByNameInput) (*route53.ListHostedZonesByNameOutput, error) {
 	if aws.StringValue(listHostedZonesByName.DNSName) != testDomain &&
+		aws.StringValue(listHostedZonesByName.DNSName) != testBaseDomain &&
 		aws.StringValue(listHostedZonesByName.DNSName) != testDomainInUse &&
 		aws.StringValue(listHostedZonesByName.DNSName) != testDomainMismatch {
 		return nil, errors.New("route53.ListHostedZonesByName invoked with wrong domain name")
@@ -309,7 +324,8 @@ func (mock *mockRoute53Svc) DeleteHostedZone(deleteHostedZone *route53.DeleteHos
 func (mock *mockRoute53Svc) ListResourceRecordSets(listResourceRecordSets *route53.ListResourceRecordSetsInput) (*route53.ListResourceRecordSetsOutput, error) {
 	mock.listResourceRecordSetsCallCount++
 
-	if aws.StringValue(listResourceRecordSets.HostedZoneId) != testHostedZoneId {
+	if aws.StringValue(listResourceRecordSets.HostedZoneId) != testHostedZoneId &&
+		aws.StringValue(listResourceRecordSets.HostedZoneId) != testBaseHostedZoneId {
 		return nil, errors.New("route53.ListResourceRecordSets invoked with wrong hosted zone id")
 	}
 
@@ -336,13 +352,30 @@ func (mock *mockRoute53Svc) ListResourceRecordSets(listResourceRecordSets *route
 func (mock *mockRoute53Svc) ChangeResourceRecordSets(changeResourceRecordSets *route53.ChangeResourceRecordSetsInput) (*route53.ChangeResourceRecordSetsOutput, error) {
 	mock.changeResourceRecordSetsCallCount++
 
-	if !(aws.StringValue(changeResourceRecordSets.HostedZoneId) == testHostedZoneId &&
-		aws.StringValue(changeResourceRecordSets.ChangeBatch.Changes[0].Action) == "DELETE") {
+	if aws.StringValue(changeResourceRecordSets.HostedZoneId) != testBaseHostedZoneId &&
+		aws.StringValue(changeResourceRecordSets.HostedZoneId) != testHostedZoneId {
 
 		return nil, errors.New("route53.ChangeResourceRecordSets invoked with wrong hosted zone id")
 	}
 
-	return &route53.ChangeResourceRecordSetsOutput{}, nil
+	switch aws.StringValue(changeResourceRecordSets.HostedZoneId) {
+	case testBaseHostedZoneId:
+		if aws.StringValue(changeResourceRecordSets.ChangeBatch.Changes[0].Action) != route53.ChangeActionCreate {
+			return nil, errors.New("route53.ChangeResourceRecordSets invoked with wrong action")
+		}
+	case testHostedZoneId:
+		if aws.StringValue(changeResourceRecordSets.ChangeBatch.Changes[0].Action) != route53.ChangeActionDelete {
+			return nil, errors.New("route53.ChangeResourceRecordSets invoked with wrong action")
+		}
+	}
+
+	return &route53.ChangeResourceRecordSetsOutput{
+		ChangeInfo: &route53.ChangeInfo{Id: aws.String("changeid")},
+	}, nil
+}
+
+func (mock *mockRoute53Svc) WaitUntilResourceRecordSetsChanged(changeInput *route53.GetChangeInput) error {
+	return nil
 }
 
 // mockRoute53SvcWithCreateHostedZoneFailing is a Route53 API mock with CreateHostedZone always failing
@@ -595,7 +628,7 @@ func TestAwsRoute53_RegisterDomain(t *testing.T) {
 		orgDomains: make(map[string]*domainState),
 	}
 
-	awsRoute53 := &awsRoute53{route53Svc: &mockRoute53Svc{}, iamSvc: &mockIamSvc{}, stateStore: stateStore, getOrganization: getTestOrgById}
+	awsRoute53 := &awsRoute53{route53Svc: &mockRoute53Svc{}, iamSvc: &mockIamSvc{}, stateStore: stateStore, getOrganization: getTestOrgById, baseHostedZoneId: testBaseHostedZoneId}
 
 	err := awsRoute53.RegisterDomain(testOrgId, testDomain)
 
@@ -764,7 +797,7 @@ func TestAwsRoute53_RegisterDomain_Fail(t *testing.T) {
 				orgDomains: make(map[string]*domainState),
 			}
 
-			awsRoute53 := &awsRoute53{route53Svc: tc.route53Svc, iamSvc: tc.iamSvc, stateStore: stateStore, getOrganization: getTestOrgById}
+			awsRoute53 := &awsRoute53{route53Svc: tc.route53Svc, iamSvc: tc.iamSvc, stateStore: stateStore, getOrganization: getTestOrgById, baseHostedZoneId: testBaseHostedZoneId}
 
 			err := awsRoute53.RegisterDomain(testOrgId, testDomain)
 			if err.Error() != tc.expectedErrMsg {
@@ -798,7 +831,7 @@ func TestAwsRoute53_UnregisterDomain(t *testing.T) {
 	route53Svc := &mockRoute53Svc{testCaseName: tcUnregisterDomain}
 	iamSvc := &mockIamSvc{testCaseName: tcUnregisterDomain}
 
-	awsRoute53 := &awsRoute53{route53Svc: route53Svc, iamSvc: iamSvc, stateStore: stateStore, getOrganization: getTestOrgById}
+	awsRoute53 := &awsRoute53{route53Svc: route53Svc, iamSvc: iamSvc, stateStore: stateStore, getOrganization: getTestOrgById, baseHostedZoneId: testBaseHostedZoneId}
 
 	err := awsRoute53.UnregisterDomain(testOrgId, testDomain)
 	if err != nil {
@@ -907,7 +940,7 @@ func TestAwsRoute53_Cleanup(t *testing.T) {
 				orgDomains: map[string]*domainState{key: tc.state},
 			}
 
-			awsRoute53 := &awsRoute53{route53Svc: route53Svc, iamSvc: iamSvc, stateStore: stateStore, getOrganization: getTestOrgById}
+			awsRoute53 := &awsRoute53{route53Svc: route53Svc, iamSvc: iamSvc, stateStore: stateStore, getOrganization: getTestOrgById, baseHostedZoneId: testBaseHostedZoneId}
 			awsRoute53.Cleanup()
 
 			found, _ := stateStore.find(testOrgId, testDomain, &domainState{})
@@ -985,7 +1018,7 @@ func TestAwsRoute53_RegisterDomainRerun(t *testing.T) {
 				orgDomains: map[string]*domainState{key: tc.state},
 			}
 
-			awsRoute53 := &awsRoute53{route53Svc: route53Svc, iamSvc: iamSvc, stateStore: stateStore, getOrganization: getTestOrgById}
+			awsRoute53 := &awsRoute53{route53Svc: route53Svc, iamSvc: iamSvc, stateStore: stateStore, getOrganization: getTestOrgById, baseHostedZoneId: testBaseHostedZoneId}
 
 			err := awsRoute53.RegisterDomain(testOrgId, testDomain)
 			if err != nil {
@@ -1005,6 +1038,70 @@ func TestAwsRoute53_RegisterDomainRerun(t *testing.T) {
 			cleanupVaultTestSecrets()
 		})
 	}
+}
+
+func Test_nameServerMatch(t *testing.T) {
+	tests := []struct {
+		name     string
+		ds       *route53.DelegationSet
+		rrs      *route53.ResourceRecordSet
+		expected bool
+		msg      string
+	}{
+		{
+			name: "Test equality",
+			ds: &route53.DelegationSet{
+				NameServers: []*string{aws.String("server1"), aws.String("server2")},
+			},
+			rrs: &route53.ResourceRecordSet{
+				Type: aws.String(route53.RRTypeNs),
+				ResourceRecords: []*route53.ResourceRecord{
+					{Value: aws.String("server2")},
+					{Value: aws.String("server1")},
+				},
+			},
+			expected: true,
+			msg:      "Resource record set should match name servers from delegation set",
+		},
+		{
+			name: "Test inequality due to different name server list",
+			ds: &route53.DelegationSet{
+				NameServers: []*string{aws.String("server1"), aws.String("server2")},
+			},
+			rrs: &route53.ResourceRecordSet{
+				Type: aws.String(route53.RRTypeNs),
+				ResourceRecords: []*route53.ResourceRecord{
+					{Value: aws.String("server2")},
+				},
+			},
+			expected: false,
+			msg:      "Resource record set should not match name servers from delegation set",
+		},
+		{
+			name: "Test inequality due to resource record set type",
+			ds: &route53.DelegationSet{
+				NameServers: []*string{aws.String("server1"), aws.String("server2")},
+			},
+			rrs: &route53.ResourceRecordSet{
+				Type: aws.String(route53.RRTypeSoa),
+				ResourceRecords: []*route53.ResourceRecord{
+					{Value: aws.String("server2")},
+					{Value: aws.String("server1")},
+				},
+			},
+			expected: false,
+			msg:      "Resource record set should not match name servers from delegation set",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			if nameServerMatch(tc.ds, tc.rrs) != tc.expected {
+				t.Errorf(tc.msg)
+			}
+		})
+	}
+
 }
 
 func cleanupVaultTestSecrets() {

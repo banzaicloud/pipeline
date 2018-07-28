@@ -80,13 +80,12 @@ func newExternalDnsServiceClientInstance() {
 	dnsServiceClient = nil
 	errCreate = nil
 
-	gcInterval := time.Duration(viper.GetInt("dns.gcIntervalMinute")) * time.Minute
+	gcInterval := time.Duration(viper.GetInt(config.DNSGcIntervalMinute)) * time.Minute
 
 	// This is how the secrets are expected to be written in Vault:
 	// vault kv put secret/banzaicloud/aws AWS_REGION=... AWS_ACCESS_KEY_ID=... AWS_SECRET_ACCESS_KEY=...
 	awsCredentialsPath := viper.GetString("aws.credentials.path")
 
-	//var secret *api.Secret
 	secret, err := secret.Store.Logical.Read(awsCredentialsPath)
 	if err != nil {
 		log.Errorf("Failed to read AWS credentials from Vault: %s", err.Error())

@@ -14,6 +14,20 @@ import (
 const (
 	// local helm path
 	helmPath = "helm.path"
+
+	// DNSBaseDomain configuration key for the base domain setting
+	DNSBaseDomain = "dns.domain"
+
+	// DNSSecretNamespace configuration key for the K8s namespace setting
+	// external DNS services secrets are mounted to.
+	DNSSecretNamespace = "dns.secretNamespace"
+
+	// DNSGcIntervalMinute configuration key for the interval setting at which the DNS garbage collector runs
+	DNSGcIntervalMinute = "dns.gcIntervalMinute"
+
+	// Route53MaintenanceWndMinute configuration key for the maintenance window for Route53.
+	// This is the maintenance window before the next AWS Route53 pricing period starts
+	Route53MaintenanceWndMinute = "route53.maintenanceWindowMinute"
 )
 
 //Init initializes the configurations
@@ -70,11 +84,10 @@ func init() {
 	viper.SetDefault("audit.headers", []string{"secretId"})
 	viper.SetDefault("audit.skippaths", []string{"/auth/github/callback", "/pipeline/api"})
 	viper.SetDefault("tls.validity", "8760h") // 1 year
-
-	viper.SetDefault("dns.domain", "banzaicloud.io")
-	viper.SetDefault("dns.secretNamespace", "pipeline-infra")
-	viper.SetDefault("dns.gcIntervalMinute", 1)
-	viper.SetDefault("route53.maintenanceWindowMinute", 15)
+	viper.SetDefault(DNSBaseDomain, "banzaicloud.io")
+	viper.SetDefault(DNSSecretNamespace, "default")
+	viper.SetDefault(DNSGcIntervalMinute, 1)
+	viper.SetDefault(Route53MaintenanceWndMinute, 15)
 
 	ReleaseName := os.Getenv("KUBERNETES_RELEASE_NAME")
 	if ReleaseName == "" {
