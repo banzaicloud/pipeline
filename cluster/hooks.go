@@ -394,8 +394,8 @@ func RegisterDomainPostHook(input interface{}) error {
 		return errors.Errorf("Wrong parameter type: %T", commonCluster)
 	}
 
-	domainBase := viper.GetString("dns.domain")
-	route53SecretNamespace := viper.GetString("dns.secretNamespace")
+	domainBase := viper.GetString(pipConfig.DNSBaseDomain)
+	route53SecretNamespace := viper.GetString(pipConfig.DNSSecretNamespace)
 
 	orgId := commonCluster.GetOrganizationId()
 

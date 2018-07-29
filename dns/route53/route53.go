@@ -16,6 +16,7 @@ import (
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/jinzhu/now"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"strings"
@@ -92,9 +93,10 @@ func (ctx *context) rollback() {
 // and provides methods for managing domains through hosted zones
 // and roles to control access to the hosted zones
 type awsRoute53 struct {
-	route53Svc route53iface.Route53API
-	iamSvc     iamiface.IAMAPI
-	stateStore awsRoute53StateStore
+	route53Svc       route53iface.Route53API
+	iamSvc           iamiface.IAMAPI
+	stateStore       awsRoute53StateStore
+	baseHostedZoneId string // the id of the hosted zone of the base domain
 
 	getOrganization func(orgId uint) (*auth.Organization, error)
 }
@@ -102,6 +104,12 @@ type awsRoute53 struct {
 // NewAwsRoute53 creates a new awsRoute53 using the provided region and route53 credentials
 func NewAwsRoute53(region, awsSecretId, awsSecretKey string) (*awsRoute53, error) {
 	log := loggerWithFields(logrus.Fields{"region": region})
+
+	baseDomain := viper.GetString(config.DNSBaseDomain)
+	if len(baseDomain) == 0 {
+		log.Errorf("base domain is not configured !")
+		return nil, errors.New("base domain is not configured !")
+	}
 
 	creds := credentials.NewStaticCredentials(awsSecretId, awsSecretKey, "")
 
@@ -116,7 +124,21 @@ func NewAwsRoute53(region, awsSecretId, awsSecretKey string) (*awsRoute53, error
 		return nil, err
 	}
 
-	return &awsRoute53{route53Svc: route53.New(session), iamSvc: iam.New(session), stateStore: &awsRoute53DatabaseStateStore{}, getOrganization: getOrgById}, nil
+	awsRoute53 := &awsRoute53{route53Svc: route53.New(session), iamSvc: iam.New(session), stateStore: &awsRoute53DatabaseStateStore{}, getOrganization: getOrgById}
+
+	baseHostedZoneId, err := awsRoute53.hostedZoneExistsByDomain(baseDomain)
+	if err != nil {
+		log.Error("retrieving hosted zone for base domain '%s' failed: %s", baseDomain, extractErrorMessage(err))
+		return nil, err
+	}
+
+	if len(baseHostedZoneId) == 0 {
+		return nil, fmt.Errorf("hosted zone for base domain '%s' not found", baseDomain)
+	}
+
+	awsRoute53.baseHostedZoneId = baseHostedZoneId
+
+	return awsRoute53, nil
 }
 
 // IsDomainRegistered returns true if the domain has already been registered in Route53 for the given organisation
@@ -172,7 +194,7 @@ func (dns *awsRoute53) RegisterDomain(orgId uint, domain string) error {
 		return err
 	}
 
-	existingHostedZoneId, err := dns.hostedZoneExists(domain)
+	existingHostedZoneId, err := dns.hostedZoneExistsByDomain(domain)
 	if err != nil {
 		log.Errorf("querying hosted zones for the domain failed: %s", extractErrorMessage(err))
 		return err
@@ -224,6 +246,15 @@ func (dns *awsRoute53) RegisterDomain(orgId uint, domain string) error {
 	}
 
 	log.Info("authorisation for hosted zone configured")
+
+	// link the registered domain to base domain
+	if err := dns.chainToBaseDomain(hostedZoneId, ctx); err != nil {
+		log.Errorf("adding domain %q to base domain failed: %s", domain, extractErrorMessage(err))
+
+		ctx.rollback()
+		dns.updateStateWithError(state, err)
+		return err
+	}
 
 	state.status = CREATED
 	if err := dns.stateStore.update(state); err != nil {
@@ -365,7 +396,7 @@ func (dns *awsRoute53) UnregisterDomain(orgId uint, domain string) error {
 
 	// delete hosted zone
 	if len(state.domain) > 0 {
-		hostedZoneId, err := dns.hostedZoneExists(state.domain)
+		hostedZoneId, err := dns.hostedZoneExistsByDomain(state.domain)
 		if err != nil {
 			log.Errorf("checking if hosted zone for domain '%s' exists failed: %s", state.domain, extractErrorMessage(err))
 
@@ -380,6 +411,13 @@ func (dns *awsRoute53) UnregisterDomain(orgId uint, domain string) error {
 				return err
 			}
 		}
+	}
+
+	// unlink from parent base domain
+	if err := dns.unChainFromBaseDomain(state.domain); err != nil {
+		log.Errorf("removing domain '%s' from base domain failed: %s", state.domain, extractErrorMessage(err))
+		dns.updateStateWithError(state, err)
+		return err
 	}
 
 	if err := dns.stateStore.delete(state); err != nil {
@@ -430,7 +468,7 @@ func (dns *awsRoute53) Cleanup() {
 
 			tillEndOfMonth := now.EndOfMonth().Sub(crtTime)
 
-			maintenanceWindowMinute := viper.GetInt64("route53.maintenanceWindowMinute")
+			maintenanceWindowMinute := viper.GetInt64(config.Route53MaintenanceWndMinute)
 
 			if tillEndOfMonth <= time.Duration(maintenanceWindowMinute)*time.Minute {
 				// if we are maintenanceWindowMinute minutes before the next billing period clean up the hosted zone
@@ -474,8 +512,8 @@ func (dns *awsRoute53) createHostedZone(orgId uint, domain string) (*route53.Hos
 	return hostedZoneOutput.HostedZone, nil
 }
 
-// getHostedZone returns the hosted zone with given id from AWS Route53
-func (dns *awsRoute53) getHostedZone(id *string) (*route53.HostedZone, error) {
+// getHostedZoneWithNameServers returns the hosted zone and it name servers with given id from AWS Route53
+func (dns *awsRoute53) getHostedZoneWithNameServers(id *string) (*route53.GetHostedZoneOutput, error) {
 
 	hostedZoneInput := &route53.GetHostedZoneInput{Id: id}
 	hostedZoneOutput, err := dns.route53Svc.GetHostedZone(hostedZoneInput)
@@ -483,13 +521,24 @@ func (dns *awsRoute53) getHostedZone(id *string) (*route53.HostedZone, error) {
 		return nil, err
 	}
 
-	return hostedZoneOutput.HostedZone, nil
+	return hostedZoneOutput, nil
 }
 
-// hostedZoneExists returns hosted zone id if there is already a hosted zone created for the
+// getHostedZone returns the hosted zone with given id from AWS Route53
+func (dns *awsRoute53) getHostedZone(id *string) (*route53.HostedZone, error) {
+
+	h, err := dns.getHostedZoneWithNameServers(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return h.HostedZone, nil
+}
+
+// hostedZoneExistsByDomain returns hosted zone id if there is already a hosted zone created for the
 // given domain in Route53. If there are multiple hosted zones registered for the domain
 // that is considered an error
-func (dns *awsRoute53) hostedZoneExists(domain string) (string, error) {
+func (dns *awsRoute53) hostedZoneExistsByDomain(domain string) (string, error) {
 	input := &route53.ListHostedZonesByNameInput{DNSName: aws.String(domain)}
 
 	hostedZones, err := dns.route53Svc.ListHostedZonesByName(input)
@@ -529,22 +578,16 @@ func (dns *awsRoute53) deleteHostedZone(id *string) error {
 		return err
 	}
 
-	var resourceRecordSetChanges []*route53.Change
+	var resourceRecordSetChanges []*route53.ResourceRecordSet
 
 	for _, resourceRecordSet := range resourceRecordSets.ResourceRecordSets {
-		if aws.StringValue(resourceRecordSet.Type) != "NS" && aws.StringValue(resourceRecordSet.Type) != "SOA" {
-			resourceRecordSetChanges = append(resourceRecordSetChanges, &route53.Change{Action: aws.String("DELETE"), ResourceRecordSet: resourceRecordSet})
+		if aws.StringValue(resourceRecordSet.Type) != route53.RRTypeNs && aws.StringValue(resourceRecordSet.Type) != route53.RRTypeSoa {
+			resourceRecordSetChanges = append(resourceRecordSetChanges, resourceRecordSet)
 		}
 	}
 
 	if len(resourceRecordSetChanges) > 0 {
-		deleteResourceRecordSets := &route53.ChangeResourceRecordSetsInput{
-			HostedZoneId: id,
-			ChangeBatch: &route53.ChangeBatch{
-				Changes: resourceRecordSetChanges,
-			},
-		}
-		_, err = dns.route53Svc.ChangeResourceRecordSets(deleteResourceRecordSets)
+		err = dns.deleteResourceRecordSets(id, resourceRecordSetChanges)
 		if err != nil {
 			log.Errorf("deleting all resource record sets of the hosted zone failed: %s", extractErrorMessage(err))
 			return err
@@ -1112,6 +1155,174 @@ func (dns *awsRoute53) storeRoute53Secret(updateSecret *secret.SecretItemRespons
 	return nil
 }
 
+// chainToBaseDomain chains the given hosted zone representing a domain into
+// the hosted zone that corresponds to the parent base domain
+func (dns *awsRoute53) chainToBaseDomain(hostedZoneId string, ctx *context) error {
+	log := loggerWithFields(logrus.Fields{"hosted zone": hostedZoneId})
+
+	hostedZone, err := dns.getHostedZoneWithNameServers(aws.String(hostedZoneId))
+	if err != nil {
+		return err
+	}
+
+	resourceRecordSet, err := dns.getResourceRecordSetFromBaseHostedZone(hostedZone.HostedZone.Name)
+	if err != nil {
+		log.Errorf("getting resource record set from base hosted zone failed: %s", extractErrorMessage(err))
+		return err
+	}
+
+	if resourceRecordSet != nil {
+		// domain already linked to parent base domain. verify if NS resource records is in sync, if not update them
+		if nameServerMatch(hostedZone.DelegationSet, resourceRecordSet) {
+			log.Infoln("skip linking hosted zone to base hosted zone as it's already done !")
+			return nil
+		}
+
+		// update NS resource record set entry in base domain
+		resourceRecordSet.ResourceRecords = createResourceRecordsFromDelegationSet(hostedZone.DelegationSet)
+		err := dns.updateResourceRecordSets(aws.String(dns.baseHostedZoneId), []*route53.ResourceRecordSet{resourceRecordSet})
+		if err != nil {
+			return err
+		}
+	} else {
+		// domain not linked to base domain yet. Link it to parent
+		resourceRecordSet := &route53.ResourceRecordSet{
+			Name:            hostedZone.HostedZone.Name,
+			Type:            aws.String(route53.RRTypeNs),
+			ResourceRecords: createResourceRecordsFromDelegationSet(hostedZone.DelegationSet),
+			TTL:             aws.Int64(300),
+		}
+
+		err := dns.createResourceRecordSets(aws.String(dns.baseHostedZoneId), []*route53.ResourceRecordSet{resourceRecordSet})
+		if err != nil {
+			return err
+		}
+
+		// register rollback function
+		ctx.registerRollback(func() error {
+			return dns.deleteResourceRecordSets(aws.String(dns.baseHostedZoneId), []*route53.ResourceRecordSet{resourceRecordSet})
+		})
+	}
+	return nil
+}
+
+// unChainFromBaseDomain removes the ResourceRecordSet that corresponds to the passed domain from parent base hosted zone
+func (dns *awsRoute53) unChainFromBaseDomain(domain string) error {
+	log := loggerWithFields(logrus.Fields{"domain": domain})
+
+	log.Infoln("removing domain from base domain")
+
+	if !strings.HasSuffix(domain, ".") {
+		domain += "."
+
+	}
+	resourceRecordSet, err := dns.getResourceRecordSetFromBaseHostedZone(aws.String(domain))
+	if err != nil {
+		log.Errorf("getting resource record set from base hosted zone failed: %s", extractErrorMessage(err))
+		return err
+	}
+
+	if resourceRecordSet != nil {
+		return dns.deleteResourceRecordSets(aws.String(dns.baseHostedZoneId), []*route53.ResourceRecordSet{resourceRecordSet})
+	}
+
+	log.Infoln("skip removing domain from base domain as it's been already removed")
+	return nil
+}
+
+// getResourceRecordSetFromBaseHostedZone retrieves the NS type ResourceRecordSet that corresponds to the given record set name from base hosted zone
+// If none ResourceRecordSet found returns nil
+func (dns *awsRoute53) getResourceRecordSetFromBaseHostedZone(name *string) (*route53.ResourceRecordSet, error) {
+	baseHostedZone, err := dns.getHostedZone(aws.String(dns.baseHostedZoneId))
+	if err != nil {
+		return nil, err
+	}
+
+	listResourceRecordSets := &route53.ListResourceRecordSetsInput{
+		HostedZoneId:    baseHostedZone.Id,
+		StartRecordType: aws.String(route53.RRTypeNs),
+		StartRecordName: name,
+		MaxItems:        aws.String("1"),
+	}
+	res, err := dns.route53Svc.ListResourceRecordSets(listResourceRecordSets)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(res.ResourceRecordSets) > 0 && (aws.StringValue(res.ResourceRecordSets[0].Name) == aws.StringValue(name)) {
+		return res.ResourceRecordSets[0], nil
+	}
+
+	return nil, nil
+}
+
+// createResourceRecordSets creates a ResourceRecordSets in the hosted zone with the given id in Route53 service
+func (dns *awsRoute53) createResourceRecordSets(zoneId *string, rrs []*route53.ResourceRecordSet) error {
+	log := loggerWithFields(logrus.Fields{"hosted zone": aws.StringValue(zoneId)})
+
+	log.Infoln("adding resource record sets")
+	return dns.changeResourceRecordSet(aws.String(route53.ChangeActionCreate), zoneId, rrs)
+}
+
+// updateResourceRecordSets updates a ResourceRecordSets of a hosted zone with the given id in Route53 service
+func (dns *awsRoute53) updateResourceRecordSets(zoneId *string, rrs []*route53.ResourceRecordSet) error {
+	log := loggerWithFields(logrus.Fields{"hosted zone": aws.StringValue(zoneId)})
+
+	log.Infoln("updating resource record sets")
+	return dns.changeResourceRecordSet(aws.String(route53.ChangeActionUpsert), zoneId, rrs)
+}
+
+// deleteResourceRecordSets deletes the ResourceRecordSets of a hosted zone with the given id in Route53 service
+func (dns *awsRoute53) deleteResourceRecordSets(zoneId *string, rrs []*route53.ResourceRecordSet) error {
+	log := loggerWithFields(logrus.Fields{"hosted zone": aws.StringValue(zoneId)})
+
+	log.Infoln("deleting resource record sets")
+	return dns.changeResourceRecordSet(aws.String(route53.ChangeActionDelete), zoneId, rrs)
+}
+
+// changeResourceRecordSets executes the ChangeAction on the given ResourceRecordSets of a hosted zone
+func (dns *awsRoute53) changeResourceRecordSet(action, zoneId *string, rrs []*route53.ResourceRecordSet) error {
+	log := loggerWithFields(logrus.Fields{"hosted zone": aws.StringValue(zoneId), "action": aws.StringValue(action)})
+
+	log.Infoln("executing action on resource record sets")
+	var changes []*route53.Change
+
+	if len(rrs) == 0 {
+		return nil // nop
+	}
+
+	for _, r := range rrs {
+		changes = append(changes, &route53.Change{
+			Action:            action,
+			ResourceRecordSet: r,
+		})
+	}
+
+	changeInput := &route53.ChangeResourceRecordSetsInput{
+		HostedZoneId: zoneId,
+		ChangeBatch: &route53.ChangeBatch{
+			Changes: changes,
+		},
+	}
+
+	changeOutput, err := dns.route53Svc.ChangeResourceRecordSets(changeInput)
+	if err != nil {
+		return err
+	}
+
+	log.Infoln("wait until resource record sets changed")
+	err = dns.route53Svc.WaitUntilResourceRecordSetsChanged(
+		&route53.GetChangeInput{
+			Id: changeOutput.ChangeInfo.Id,
+		})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (dns *awsRoute53) updateStateWithError(state *domainState, err error) {
 	state.status = FAILED
 	state.errMsg = extractErrorMessage(err)
@@ -1142,4 +1353,40 @@ func getOrgById(orgId uint) (*auth.Organization, error) {
 	}
 
 	return org, nil
+}
+
+// nameServerMatch returns true of the name servers of the delegation set matches the
+// resource records in the provided resource records set, otherwise returns false
+func nameServerMatch(ds *route53.DelegationSet, rrs *route53.ResourceRecordSet) bool {
+	if aws.StringValue(rrs.Type) != route53.RRTypeNs {
+		return false // the resource record set must be of type NameServer
+	}
+
+	if len(ds.NameServers) != len(rrs.ResourceRecords) {
+		return false
+	}
+
+	for _, rr := range rrs.ResourceRecords {
+		var i int
+		for i = 0; i < len(ds.NameServers); i++ {
+			if aws.StringValue(rr.Value) == aws.StringValue(ds.NameServers[i]) {
+				break
+			}
+		}
+
+		if i == len(ds.NameServers) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func createResourceRecordsFromDelegationSet(ds *route53.DelegationSet) []*route53.ResourceRecord {
+	var rr []*route53.ResourceRecord
+	for _, nameServer := range ds.NameServers {
+		rr = append(rr, &route53.ResourceRecord{Value: nameServer})
+	}
+
+	return rr
 }
