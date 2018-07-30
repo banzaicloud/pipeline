@@ -195,8 +195,8 @@
     "pkg/tls",
     "vault"
   ]
-  revision = "27595f4a8a1a272bfa9d3e4e01b0ed95204dc749"
-  version = "0.2.5"
+  revision = "ec3af7e7b4abdd87d293838baf11e56e65556cd4"
+  version = "0.2.8"
 
 [[projects]]
   branch = "master"
@@ -842,7 +842,6 @@
     "common",
     "containerengine",
     "core",
-    "example/helpers",
     "identity",
     "objectstorage"
   ]
@@ -1842,6 +1841,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "71e753df49ba739d1cfc7f49d17275969191c7ffb2ba4fb38bf5424cd4f093c2"
+  inputs-digest = "60e628f5236163613adb05597d1b7578bd2c390824c3b9c3e9ecf7b33817344b"
   solver-name = "gps-cdcl"
   solver-version = 1
