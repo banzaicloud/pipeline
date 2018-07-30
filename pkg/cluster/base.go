@@ -94,6 +94,8 @@ type LoggingParam struct {
 	BucketName string `json:"bucketName" binding:"required"`
 	Region     string `json:"region" binding:"required"`
 	SecretId   string `json:"secretId" binding:"required"`
+	TLSEnabled bool   `json:"tlsEnabled"`
+	Namespace  string `json:"namespace" binding:"required"`
 }
 
 func (p LoggingParam) String() string {

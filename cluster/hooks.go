@@ -14,6 +14,7 @@ import (
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
+	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/go-errors/errors"
@@ -149,7 +150,28 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 	if err != nil {
 		return err
 	}
-
+	if loggingParam.TLSEnabled {
+		req := &secret.CreateSecretRequest{
+			Name: "tls-for-logging-operator",
+			Type: secretTypes.TLSSecretType,
+			Tags: []string{"logging-operator"},
+			Values: map[string]string{
+				secretTypes.TLSHosts: "fluent",
+			},
+		}
+		_, err := secret.Store.Store(cluster.GetOrganizationId(), req)
+		if err != nil {
+			return errors.Errorf("Failed generate TLS secrets to logging operator")
+		}
+		_, err = InstallOrUpdateSecrets(cluster,
+			&pkgSecret.ListSecretsQuery{
+				Type: secretTypes.TLSSecretType,
+				Tag:  "logging-operator",
+			}, loggingParam.Namespace)
+		if err != nil {
+			return errors.Errorf("Could not install created TLS secret to cluster!")
+		}
+	}
 	// todo use this
 	log.Infof("Params to logging operator: %s", loggingParam)
 
