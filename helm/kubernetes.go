@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"github.com/banzaicloud/pipeline/config"
 	"k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/pkg/errors"
@@ -128,4 +129,27 @@ func tearDown() {
 		log.Debug("Closing Tunnel.")
 		tillerTunnel.Close()
 	}
+}
+
+//CreateNamespaceIfNotExist Create Kubernetes Namespace if not exist.
+func CreateNamespaceIfNotExist(kubeConfig []byte, namespace string) error {
+	client, err := GetK8sConnection(kubeConfig)
+	if err != nil {
+		return errors.Wrap(err, "Error during getting K8S config")
+	}
+	_, err = client.CoreV1().Namespaces().Create(&v1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: namespace,
+		},
+	})
+	if apierrors.IsAlreadyExists(err) {
+		log.Debugf("Namespace: %s is already exist.", namespace)
+		return nil
+	} else if err != nil {
+		log.Errorf("Failed to create namespace %s: %v", namespace, err)
+		return err
+	}
+
+	log.Infof("Namespace: %s created.", namespace)
+	return nil
 }

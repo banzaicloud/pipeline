@@ -121,6 +121,11 @@ func InstallOrUpdateSecretsByK8SConfig(k8sConfig []byte, orgID uint, query *secr
 				break
 			}
 		}
+		err := helm.CreateNamespaceIfNotExist(k8sConfig, namespace)
+		if err != nil {
+			log.Errorf("Error checking namespace: %s", err.Error())
+			return nil, err
+		}
 
 		if k8sSecret == nil {
 			k8sSecret = &v1.Secret{

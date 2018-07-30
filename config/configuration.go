@@ -28,6 +28,9 @@ const (
 	// Route53MaintenanceWndMinute configuration key for the maintenance window for Route53.
 	// This is the maintenance window before the next AWS Route53 pricing period starts
 	Route53MaintenanceWndMinute = "route53.maintenanceWindowMinute"
+
+	//PipelineMonitorNamespace pipeline infra namespace key
+	PipelineMonitorNamespace = "infra.namespace"
 )
 
 //Init initializes the configurations
@@ -85,7 +88,7 @@ func init() {
 	viper.SetDefault("audit.skippaths", []string{"/auth/github/callback", "/pipeline/api"})
 	viper.SetDefault("tls.validity", "8760h") // 1 year
 	viper.SetDefault(DNSBaseDomain, "banzaicloud.io")
-	viper.SetDefault(DNSSecretNamespace, "default")
+	viper.SetDefault(DNSSecretNamespace, "pipeline-infra")
 	viper.SetDefault(DNSGcIntervalMinute, 1)
 	viper.SetDefault(Route53MaintenanceWndMinute, 15)
 
@@ -98,6 +101,8 @@ func init() {
 	viper.SetDefault("monitor.configmap", "")
 	viper.SetDefault("monitor.mountpath", "")
 	viper.SetDefault("monitor.grafanaAdminUsername", "admin")
+
+	viper.SetDefault(PipelineMonitorNamespace, "pipeline-infra")
 
 	// Find and read the config file
 	if err := viper.ReadInConfig(); err != nil {
