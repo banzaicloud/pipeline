@@ -110,6 +110,7 @@ func InstallMonitoring(input interface{}) error {
 	}
 
 	grafanaAdminUsername := viper.GetString("monitor.grafanaAdminUsername")
+	grafanaNamespace := viper.GetString(pipConfig.PipelineMonitorNamespace)
 	// Grafana password generator
 	grafanaAdminPass, err := secret.RandomString("randAlphaNum", 12)
 	if err != nil {
@@ -135,7 +136,7 @@ func InstallMonitoring(input interface{}) error {
 	log.Debugf("Grafana Secret Stored id: %s", secretID)
 
 	grafanaValues := fmt.Sprintf("{\"grafana.adminUser\": \"%s\",\"grafana.adminPassword\": \"%s\"}", grafanaAdminUsername, grafanaAdminPass)
-	return installDeployment(cluster, "pipeline-infra", pkgHelm.BanzaiRepository+"/pipeline-cluster-monitor", "pipeline-monitoring", []byte(grafanaValues), "InstallMonitoring")
+	return installDeployment(cluster, grafanaNamespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-monitor", "pipeline-monitoring", []byte(grafanaValues), "InstallMonitoring")
 }
 
 // InstallLogging to install logging deployment
