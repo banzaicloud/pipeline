@@ -85,4 +85,4 @@ maintenanceWindowMinute = 15
 
 # Pipeline infra environment namespace
 [infra]
-namespace = pipeline-infra
+namespace = "pipeline-infra"
