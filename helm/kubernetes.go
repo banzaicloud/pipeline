@@ -143,7 +143,7 @@ func CreateNamespaceIfNotExist(kubeConfig []byte, namespace string) error {
 		},
 	})
 	if apierrors.IsAlreadyExists(err) {
-		log.Debugf("Namespace: %s is already exist.", namespace)
+		log.Debugf("Namespace: %s already exist.", namespace)
 		return nil
 	} else if err != nil {
 		log.Errorf("Failed to create namespace %s: %v", namespace, err)
