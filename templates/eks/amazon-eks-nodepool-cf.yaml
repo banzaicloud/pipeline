@@ -388,7 +388,7 @@ Resources:
         !Ref Subnets
       Tags:
       - Key: Name
-        Value: !Sub "${ClusterName}-${NodeGroupName}-Node"
+        Value: !Sub "${ClusterName}-${NodeGroupName}"
         PropagateAtLaunch: 'true'
       - Key: !Sub 'kubernetes.io/cluster/${ClusterName}'
         Value: 'owned'
@@ -433,6 +433,7 @@ Resources:
               "sed -i s,REGION,", { Ref: "AWS::Region" }, ",g /etc/systemd/system/kubelet.service", "\n",
               "sed -i s,MAX_PODS,", { "Fn::FindInMap": [ MaxPodsPerNode, { Ref: NodeInstanceType }, MaxPods ] }, ",g /etc/systemd/system/kubelet.service", "\n",
               "sed -i s,MASTER_ENDPOINT,$MASTER_ENDPOINT,g /etc/systemd/system/kubelet.service", "\n",
+              "sed -i '/INTERNAL_IP/a --node-labels pipeline-nodepool-name=", { Ref: NodeGroupName } ," \\\\'  /etc/systemd/system/kubelet.service" , "\n",
               "sed -i s,INTERNAL_IP,$INTERNAL_IP,g /etc/systemd/system/kubelet.service", "\n",
               "DNS_CLUSTER_IP=10.100.0.10", "\n",
               "if [[ $INTERNAL_IP == 10.* ]] ; then DNS_CLUSTER_IP=172.20.0.10; fi", "\n",

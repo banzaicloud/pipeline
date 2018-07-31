@@ -24,10 +24,10 @@ import (
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/utils"
 	"k8s.io/api/core/v1"
+	storagev1 "k8s.io/api/storage/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api/v1"
-	storagev1 "k8s.io/api/storage/v1"
 )
 
 const mapRolesTemplate = `- rolearn: %s
@@ -227,8 +227,6 @@ func (e *EKSCluster) CreateCluster() error {
 	if err != nil {
 		return err
 	}
-
-
 
 	mapRoles := ""
 	for _, roleArn := range creationContext.NodeInstanceRoles {
@@ -457,8 +455,8 @@ func (e *EKSCluster) DeleteFromDatabase() error {
 
 // ListNodeNames returns node names to label them
 func (e *EKSCluster) ListNodeNames() (nodeNames pkgCommon.NodeNames, err error) {
-	// TODO missing
-	return pkgCommon.NodeNames{}, nil
+	// nodes are labeled in create request
+	return
 }
 
 // UpdateStatus updates cluster status in database
@@ -630,7 +628,6 @@ func ListEksImages(region string) (map[string][]string, error) {
 		region: {},
 	}, nil
 }
-
 
 // createDefaultStorageClass creates a default storage class as Amazon EKS clusters are not created with
 // any storage classes

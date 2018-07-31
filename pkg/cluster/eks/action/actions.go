@@ -500,6 +500,7 @@ var _ utils.RevocableAction = (*CreateNodePoolStackAction)(nil)
 type CreateNodePoolStackAction struct {
 	context          *EksClusterCreationContext
 	stackName        string
+	nodePoolName     string
 	scalingMinSize   int
 	scalingMaxSize   int
 	scalingInitSize  int
@@ -519,6 +520,7 @@ func NewCreateNodePoolStackAction(
 	return &CreateNodePoolStackAction{
 		context:          creationContext,
 		stackName:        stackName,
+		nodePoolName:     nodePool.Name,
 		scalingMinSize:   nodePool.NodeMinCount,
 		scalingMaxSize:   nodePool.NodeMaxCount,
 		scalingInitSize:  nodePool.Count,
@@ -609,7 +611,7 @@ func (action *CreateNodePoolStackAction) ExecuteAction(input interface{}) (outpu
 			},
 			{
 				ParameterKey:   aws.String("NodeGroupName"),
-				ParameterValue: aws.String(fmt.Sprintf("%s%s", action.stackName, "-nodegroup")),
+				ParameterValue: aws.String(action.nodePoolName),
 			},
 			{
 				ParameterKey:   aws.String("ClusterControlPlaneSecurityGroup"),
