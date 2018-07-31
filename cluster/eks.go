@@ -466,13 +466,51 @@ func (e *EKSCluster) UpdateStatus(status string, statusMessage string) error {
 
 // GetClusterDetails gets cluster details from cloud
 func (e *EKSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
-	log.Info("Start getting cluster details")
+	log.Infoln("Start getting cluster details")
 
-	return &pkgCluster.DetailsResponse{
-		Name:     e.modelCluster.Name,
-		Id:       e.modelCluster.ID,
-		Endpoint: e.APIEndpoint,
-	}, nil
+	awsCred, err := e.createAWSCredentialsFromSecret()
+	if err != nil {
+		return nil, err
+	}
+
+	session, err := session.NewSession(&aws.Config{
+		Region:      aws.String(e.modelCluster.Location),
+		Credentials: awsCred,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	eksSvc := eks.New(session)
+	describeCluster := &eks.DescribeClusterInput{Name: aws.String(e.GetName())}
+	clusterDesc, err := eksSvc.DescribeCluster(describeCluster)
+	if err != nil {
+		return nil, err
+	}
+
+	nodePools := make(map[string]*pkgCluster.NodeDetails)
+	for _, np := range e.modelCluster.Eks.NodePools {
+		if np != nil {
+			nodePools[np.Name] = &pkgCluster.NodeDetails{
+				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
+				Version:           aws.StringValue(clusterDesc.Cluster.Version),
+			}
+		}
+	}
+
+	if aws.StringValue(clusterDesc.Cluster.Status) == eks.ClusterStatusActive {
+		return &pkgCluster.DetailsResponse{
+			CreatorBaseFields: *NewCreatorBaseFields(e.modelCluster.CreatedAt, e.modelCluster.CreatedBy),
+			Name:              e.modelCluster.Name,
+			Id:                e.modelCluster.ID,
+			Location:          e.modelCluster.Location,
+			MasterVersion:     aws.StringValue(clusterDesc.Cluster.Version),
+			NodePools:         nodePools,
+			Endpoint:          e.APIEndpoint,
+		}, nil
+	}
+
+	return nil, pkgErrors.ErrorClusterNotReady
 }
 
 // ValidateCreationFields validates all fields
