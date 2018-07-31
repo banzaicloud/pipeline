@@ -5948,6 +5948,8 @@ components:
             bucketName: mybucketname
             region: region
             secretId: 62bc3c75-91fb-4670-bad4-24b401a9deac
+            tlsEnabled: true
+            namespace: default
       oneOf:
       - $ref: '#/components/schemas/LoggingPostHook'
       - $ref: '#/components/schemas/BasePostHook'

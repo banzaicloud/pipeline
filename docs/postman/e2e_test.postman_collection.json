@@ -1665,7 +1665,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"InstallLogging\": {\n    \t\"bucketName\": \"\",\n    \t\"region\": \"\",\n    \t\"secretId\": \"\"\n    }\t\n}\n"
+              "raw": "{\n\t\"InstallLogging\": {\n    \t\"bucketName\": \"\",\n    \t\"region\": \"\",\n    \t\"secretId\": \"\",\n       \t\"tlsEnabled\": ,\n       \t\"namespace\": \"\"\n    }\t\n}\n"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/{{orgId}}/clusters/{{cluster_id}}/posthooks",
