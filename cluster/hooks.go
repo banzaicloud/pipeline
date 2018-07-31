@@ -135,8 +135,18 @@ func InstallMonitoring(input interface{}) error {
 	}
 	log.Debugf("Grafana Secret Stored id: %s", secretID)
 
-	grafanaValues := fmt.Sprintf("{\"grafana.adminUser\": \"%s\",\"grafana.adminPassword\": \"%s\"}", grafanaAdminUsername, grafanaAdminPass)
-	return installDeployment(cluster, grafanaNamespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-monitor", "pipeline-monitoring", []byte(grafanaValues), "InstallMonitoring")
+	grafanaValues := map[string]map[string]string{
+		"grafana": {
+			"adminUser":     grafanaAdminUsername,
+			"adminPassword": grafanaAdminPass,
+		},
+	}
+	grafanaValuesJson, err := json.Marshal(grafanaValues)
+	if err != nil {
+		log.Errorf("Json Convert Failed : %s", err.Error())
+	}
+
+	return installDeployment(cluster, grafanaNamespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-monitor", "pipeline-monitoring", grafanaValuesJson, "InstallMonitoring")
 }
 
 // InstallLogging to install logging deployment
