@@ -140,6 +140,7 @@ func InstallMonitoring(input interface{}) error {
 
 // InstallLogging to install logging deployment
 func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
+	const loggingOperator = "logging-operator"
 	cluster, ok := input.(CommonCluster)
 	if !ok {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
@@ -150,13 +151,16 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 	if err != nil {
 		return err
 	}
-	if loggingParam.TLSEnabled {
+	if !checkIfTLSRelatedValuesArePresent(&loggingParam.GenTLSForLogging) {
+		return errors.Errorf("TLS related parameter is missing from request!")
+	}
+	if loggingParam.GenTLSForLogging.TLSEnabled {
 		req := &secret.CreateSecretRequest{
-			Name: "tls-for-logging-operator",
+			Name: loggingParam.GenTLSForLogging.GenTLSSecretName,
 			Type: secretTypes.TLSSecretType,
-			Tags: []string{"logging-operator"},
+			Tags: []string{loggingOperator},
 			Values: map[string]string{
-				secretTypes.TLSHosts: "fluent",
+				secretTypes.TLSHosts: loggingParam.GenTLSForLogging.TLSHost,
 			},
 		}
 		_, err := secret.Store.Store(cluster.GetOrganizationId(), req)
@@ -166,8 +170,8 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 		_, err = InstallOrUpdateSecrets(cluster,
 			&pkgSecret.ListSecretsQuery{
 				Type: secretTypes.TLSSecretType,
-				Tag:  "logging-operator",
-			}, loggingParam.Namespace)
+				Tag:  loggingOperator,
+			}, loggingParam.GenTLSForLogging.Namespace)
 		if err != nil {
 			return errors.Errorf("Could not install created TLS secret to cluster!")
 		}
@@ -176,6 +180,15 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 	log.Infof("Params to logging operator: %s", loggingParam)
 
 	return installDeployment(cluster, helm.DefaultNamespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-logging", "pipeline-logging", nil, "InstallLogging")
+}
+
+func checkIfTLSRelatedValuesArePresent(v *pkgCluster.GenTLSForLogging) bool {
+	if v.TLSEnabled {
+		if v.TLSHost == "" || v.GenTLSSecretName == "" || v.Namespace == "" {
+			return false
+		}
+	}
+	return true
 }
 
 func castToPostHookParam(data *pkgCluster.PostHookParam, output interface{}) (err error) {

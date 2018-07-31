@@ -11,7 +11,8 @@
 package client
 
 type LoggingPostHookInstallLogging struct {
-	BucketName string `json:"bucketName,omitempty"`
-	Region     string `json:"region,omitempty"`
-	SecretId   string `json:"secretId,omitempty"`
+	BucketName string           `json:"bucketName,omitempty"`
+	Region     string           `json:"region,omitempty"`
+	SecretId   string           `json:"secretId,omitempty"`
+	Tls        GenTlsForLogging `json:"tls,omitempty"`
 }
