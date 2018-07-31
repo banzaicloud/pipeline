@@ -5943,14 +5943,34 @@ components:
       type: object
     ReRunPostHook:
       example:
-        example:
-          InstallLogging:
-            bucketName: mybucketname
-            region: region
-            secretId: 62bc3c75-91fb-4670-bad4-24b401a9deac
+        InstallLogging:
+          bucketName: mybucketname
+          region: region
+          secretId: 62bc3c75-91fb-4670-bad4-24b401a9deac
+          tls:
+            tlsEnabled: true
+            genTlsSecretName: loggingSecret
+            namespace: default
+            tlsHost: fluent
       oneOf:
       - $ref: '#/components/schemas/LoggingPostHook'
       - $ref: '#/components/schemas/BasePostHook'
+      type: object
+    GenTLSForLogging:
+      properties:
+        tlsEnabled:
+          type: boolean
+        genTlsSecretName:
+          example: loggingSecret
+          type: string
+        namespace:
+          example: default
+          type: string
+        tlsHost:
+          example: fluent
+          type: string
+      required:
+      - tlsEnabled
       type: object
     body:
       properties:
@@ -7015,6 +7035,8 @@ components:
         secretId:
           example: 62bc3c75-91fb-4670-bad4-24b401a9deac
           type: string
+        tls:
+          $ref: '#/components/schemas/GenTLSForLogging'
   securitySchemes:
     bearerAuth:
       bearerFormat: JWT

@@ -89,11 +89,20 @@ type CreateClusterRequest struct {
 // PostHookParam describes posthook params in create request
 type PostHookParam interface{}
 
+// GenTLSForLogging describes the TLS related params for Logging
+type GenTLSForLogging struct {
+	TLSEnabled       bool   `json:"tlsEnabled" binding:"required"`
+	GenTLSSecretName string `json:"genTlsSecretName"`
+	Namespace        string `json:"namespace"`
+	TLSHost          string `json:"tlsHost"`
+}
+
 // LoggingParam describes the logging posthook params
 type LoggingParam struct {
-	BucketName string `json:"bucketName" binding:"required"`
-	Region     string `json:"region" binding:"required"`
-	SecretId   string `json:"secretId" binding:"required"`
+	BucketName       string           `json:"bucketName" binding:"required"`
+	Region           string           `json:"region" binding:"required"`
+	SecretId         string           `json:"secretId" binding:"required"`
+	GenTLSForLogging GenTLSForLogging `json:"tls" binding:"required"`
 }
 
 func (p LoggingParam) String() string {

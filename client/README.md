@@ -186,6 +186,7 @@ Class | Method | HTTP request | Description
  - [CreateUpdateDeploymentResponse](docs/CreateUpdateDeploymentResponse.md)
  - [DeleteDeploymentResponse](docs/DeleteDeploymentResponse.md)
  - [EndpointItem](docs/EndpointItem.md)
+ - [GenTlsForLogging](docs/GenTlsForLogging.md)
  - [GetClusterStatusResponse](docs/GetClusterStatusResponse.md)
  - [GetClusterStatusResponseNodePools](docs/GetClusterStatusResponseNodePools.md)
  - [GetDeploymentResponse](docs/GetDeploymentResponse.md)

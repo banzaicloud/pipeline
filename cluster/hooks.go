@@ -14,6 +14,7 @@ import (
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
+	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/go-errors/errors"
@@ -139,6 +140,7 @@ func InstallMonitoring(input interface{}) error {
 
 // InstallLogging to install logging deployment
 func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
+	const loggingOperator = "logging-operator"
 	cluster, ok := input.(CommonCluster)
 	if !ok {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
@@ -149,11 +151,44 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 	if err != nil {
 		return err
 	}
-
+	if !checkIfTLSRelatedValuesArePresent(&loggingParam.GenTLSForLogging) {
+		return errors.Errorf("TLS related parameter is missing from request!")
+	}
+	if loggingParam.GenTLSForLogging.TLSEnabled {
+		req := &secret.CreateSecretRequest{
+			Name: loggingParam.GenTLSForLogging.GenTLSSecretName,
+			Type: secretTypes.TLSSecretType,
+			Tags: []string{loggingOperator},
+			Values: map[string]string{
+				secretTypes.TLSHosts: loggingParam.GenTLSForLogging.TLSHost,
+			},
+		}
+		_, err := secret.Store.Store(cluster.GetOrganizationId(), req)
+		if err != nil {
+			return errors.Errorf("Failed generate TLS secrets to logging operator")
+		}
+		_, err = InstallOrUpdateSecrets(cluster,
+			&pkgSecret.ListSecretsQuery{
+				Type: secretTypes.TLSSecretType,
+				Tag:  loggingOperator,
+			}, loggingParam.GenTLSForLogging.Namespace)
+		if err != nil {
+			return errors.Errorf("Could not install created TLS secret to cluster!")
+		}
+	}
 	// todo use this
 	log.Infof("Params to logging operator: %s", loggingParam)
 
 	return installDeployment(cluster, helm.DefaultNamespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-logging", "pipeline-logging", nil, "InstallLogging")
+}
+
+func checkIfTLSRelatedValuesArePresent(v *pkgCluster.GenTLSForLogging) bool {
+	if v.TLSEnabled {
+		if v.TLSHost == "" || v.GenTLSSecretName == "" || v.Namespace == "" {
+			return false
+		}
+	}
+	return true
 }
 
 func castToPostHookParam(data *pkgCluster.PostHookParam, output interface{}) (err error) {
