@@ -1,13 +1,14 @@
 package eks
 
 import (
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/url"
+
 	"github.com/banzaicloud/pipeline/config"
-	"github.com/hashicorp/go-getter"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"io/ioutil"
-	"os"
-	"path/filepath"
 )
 
 const (
@@ -25,29 +26,31 @@ func init() {
 // getEksCloudFormationTemplate returns CloudFormation template with given name
 func getEksCloudFormationTemplate(name string) (string, error) {
 
-	stateStorePath := config.GetStateStorePath("")
-	dir, err := ioutil.TempDir(stateStorePath, "eks-templates")
-	if err != nil {
-		return "", err
-	}
-
-	defer os.RemoveAll(dir)
-
-	// path to save the CloudFormation template to
-	templatePath := filepath.Join(dir, "cf-template.yaml")
-
 	// location to retrieve the Cloud Formation template from
-	templateSrcLocation := filepath.Join(viper.GetString(config.EksTemplateLocation), name)
+	templatePath := viper.GetString(config.EksTemplateLocation) + "/" + name
 
-	log.Infof("Getting CloudFormation template from %q to %q", templateSrcLocation, templatePath)
+	log.Infof("Getting CloudFormation template from %q", templatePath)
 
-	err = getter.GetFile(templatePath, templateSrcLocation)
+	u, err := url.Parse(templatePath)
 	if err != nil {
-		log.Errorf("Getting CloudFormation template from %q failed: %s", templateSrcLocation, err.Error())
+		log.Errorf("Getting CloudFormation template from %q failed: %s", templatePath, err.Error())
 		return "", err
 	}
 
-	content, err := ioutil.ReadFile(templatePath)
+	var content []byte
+	if u.Scheme == "file" || u.Scheme == "" {
+		content, err = ioutil.ReadFile(templatePath)
+	} else if u.Scheme == "http" || u.Scheme == "https" {
+		var resp *http.Response
+		resp, err = http.Get(u.String())
+		if err == nil {
+			content, err = ioutil.ReadAll(resp.Body)
+			defer resp.Body.Close()
+		}
+	} else {
+		err = fmt.Errorf("Not supported scheme: %s", u.Scheme)
+	}
+
 	if err != nil {
 		log.Errorf("Reading CloudFormation template content from %q failed: %s", templatePath, err.Error())
 		return "", err
