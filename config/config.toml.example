@@ -82,3 +82,7 @@ gcIntervalMinute = 1
 # The window before the next AWS Route53 billing period starts when unused organisation level domains (which are older than 12hrs)
 # are cleaned up
 maintenanceWindowMinute = 15
+
+# Pipeline infra environment namespace
+[infra]
+namespace = pipeline-infra
