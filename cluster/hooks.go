@@ -143,7 +143,7 @@ func InstallMonitoring(input interface{}) error {
 	}
 	grafanaValuesJson, err := json.Marshal(grafanaValues)
 	if err != nil {
-		log.Errorf("Json Convert Failed : %s", err.Error())
+		return errors.Errorf("Json Convert Failed : %s", err.Error())
 	}
 
 	return installDeployment(cluster, grafanaNamespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-monitor", "pipeline-monitoring", grafanaValuesJson, "InstallMonitoring")
@@ -510,7 +510,7 @@ func RegisterDomainPostHook(input interface{}) error {
 	}
 	externalDnsValuesJson, err := json.Marshal(externalDnsValues)
 	if err != nil {
-		log.Errorf("Json Convert Failed : %s", err.Error())
+		return errors.Errorf("Json Convert Failed : %s", err.Error())
 	}
 	return installDeployment(commonCluster, route53SecretNamespace, pkgHelm.StableRepository+"/external-dns", "pipeline-dns", externalDnsValuesJson, "InstallMonitoring")
 }
