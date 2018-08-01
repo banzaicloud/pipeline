@@ -8,7 +8,7 @@ import (
 // Init initializes the models
 func Init(logger *logrus.Entry) error {
 
-	logger.Info("Create Oracle object store table(s):",
+	logger.Infoln("Create Oracle object store table(s):",
 		ManagedOracleBucket.TableName(ManagedOracleBucket{}),
 	)
 

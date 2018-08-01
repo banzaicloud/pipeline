@@ -7,6 +7,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/cluster/azure"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/google"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster"
 )
 
@@ -37,7 +38,7 @@ func (d *EKSProfile) GetType() string {
 
 // IsDefinedBefore returns true if database contains en entry with profile name
 func (d *EKSProfile) IsDefinedBefore() bool {
-	return database.GetDB().First(&d).RowsAffected != int64(0)
+	return database.GetDB().First(&d).RowsAffected != 0
 }
 
 // GetProfile load profile from database and converts ClusterProfileResponse
@@ -80,13 +81,72 @@ func (d *EKSProfile) GetProfile() *pkgCluster.ClusterProfileResponse {
 // UpdateProfile update profile's data with ClusterProfileRequest's data and if bool is true then update in the database
 func (d *EKSProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave bool) error {
 
-	//if len(r.Location) != 0 {
-	//	d.Location = r.Location
-	//}
+	if len(r.Location) != 0 {
+		d.Region = r.Location
+	}
 
 	if r.Properties.Eks != nil {
 
-		//TODO missing update body
+		if len(r.Properties.Eks.Version) != 0 {
+			d.Version = r.Properties.Eks.Version
+		}
+
+		if len(r.Properties.Eks.NodePools) != 0 {
+			var nodePools []*AWSNodePoolProfile
+			for npName, nodePool := range r.Properties.Eks.NodePools {
+
+				spotPrice := amazon.DefaultSpotPrice
+				instanceType := amazon.DefaultInstanceType
+				minCount := pkgCommon.DefaultNodeMinCount
+				maxCount := pkgCommon.DefaultNodeMaxCount
+				image := eks.DefaultImages[d.Region]
+
+				if len(nodePool.SpotPrice) != 0 {
+					spotPrice = nodePool.SpotPrice
+				}
+
+				if len(nodePool.InstanceType) != 0 {
+					instanceType = nodePool.InstanceType
+				}
+
+				if nodePool.MinCount != 0 {
+					minCount = nodePool.MinCount
+				}
+
+				if nodePool.MaxCount != 0 {
+					maxCount = nodePool.MaxCount
+				}
+
+				if minCount > maxCount {
+					minCount = pkgCommon.DefaultNodeMinCount
+					maxCount = pkgCommon.DefaultNodeMaxCount
+				}
+
+				count := nodePool.Count
+				if count == 0 {
+					count = minCount
+				}
+
+				if len(nodePool.Image) != 0 {
+					image = nodePool.Image
+				}
+
+				nodePools = append(nodePools, &AWSNodePoolProfile{
+					InstanceType: instanceType,
+					Name:         d.Name,
+					NodeName:     npName,
+					SpotPrice:    spotPrice,
+					Autoscaling:  nodePool.Autoscaling,
+					MinCount:     minCount,
+					MaxCount:     maxCount,
+					Count:        count,
+					Image:        image,
+				})
+
+			}
+
+			d.NodePools = nodePools
+		}
 	}
 	if withSave {
 		return d.SaveInstance()

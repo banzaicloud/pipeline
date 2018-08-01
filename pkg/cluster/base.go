@@ -33,6 +33,7 @@ const (
 // Cluster provider constants
 const (
 	Amazon     = "amazon"
+	AmazonEKS  = "eks"
 	Azure      = "azure"
 	Google     = "google"
 	Dummy      = "dummy"

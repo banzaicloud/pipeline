@@ -64,7 +64,7 @@ func main() {
 	auth.Init()
 
 	// Creating tables if not exists
-	logger.Info("Create table(s):",
+	logger.Infoln("Create table(s):",
 		model.ClusterModel{}.TableName(),
 		model.AmazonClusterModel{}.TableName(),
 		model.AmazonNodePoolsModel{}.TableName(),

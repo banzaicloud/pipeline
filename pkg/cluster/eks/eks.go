@@ -90,7 +90,8 @@ type CertificateAuthority struct {
 
 // ClusterProfileEks describes an Amazon EKS profile
 type ClusterProfileEks struct {
-	Version string `json:"version,omitempty"`
+	Version   string                         `json:"version,omitempty"`
+	NodePools map[string]*pkgAmazon.NodePool `json:"nodePools,omitempty"`
 }
 
 // CreateAmazonEksObjectStoreBucketProperties describes the properties of

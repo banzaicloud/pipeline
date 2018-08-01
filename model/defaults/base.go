@@ -96,6 +96,11 @@ func GetDefaultProfiles() []ClusterProfile {
 				NodeName: DefaultNodeName,
 			}},
 		},
+		&EKSProfile{DefaultModel: DefaultModel{Name: GetDefaultProfileName()},
+			NodePools: []*AWSNodePoolProfile{{
+				NodeName: DefaultNodeName,
+			}},
+		},
 		&AKSProfile{
 			DefaultModel: DefaultModel{Name: GetDefaultProfileName()},
 			NodePools: []*AKSNodePoolProfile{{
@@ -130,6 +135,13 @@ func GetAllProfiles(cloudType string) ([]ClusterProfile, error) {
 		db.Find(&awsProfiles)
 		for i := range awsProfiles {
 			defaults = append(defaults, &awsProfiles[i])
+		}
+
+	case pkgCluster.AmazonEKS:
+		var eksProfiles []EKSProfile
+		db.Find(&eksProfiles)
+		for i := range eksProfiles {
+			defaults = append(defaults, &eksProfiles[i])
 		}
 
 	case pkgCluster.Azure:
