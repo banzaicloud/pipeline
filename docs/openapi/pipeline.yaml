@@ -3434,6 +3434,7 @@ components:
             - $ref: '#/components/schemas/CreateAmazonProperties'
             - $ref: '#/components/schemas/CreateAzureProperties'
             - $ref: '#/components/schemas/CreateGoogleProperties'
+            - $ref: '#/components/schemas/CreateEksProperties'
           example:
             google:
               master:
@@ -3497,6 +3498,30 @@ components:
         image:
           type: string
           example: "ami-06d1667f"
+
+    CreateEksProperties:
+      type: object
+      required:
+        - eks
+      properties:
+        eks:
+          type: object
+          required:
+            - nodePools
+          properties:
+            master:
+              type: object
+              properties:
+                instanceType:
+                  type: string
+                  example: "m4.xlarge"
+                image:
+                  type: string
+                  example: "ami-06d1667f"
+            nodePools:
+              type: object
+              additionalProperties:
+                $ref: '#/components/schemas/NodePoolsAmazon'
 
     CreateAzureProperties:
       type: object
@@ -3721,6 +3746,7 @@ components:
             - $ref: '#/components/schemas/UpdateAmazonProperties'
             - $ref: '#/components/schemas/UpdateAzureProperties'
             - $ref: '#/components/schemas/UpdateGoogleProperties'
+            - $ref: '#/components/schemas/UpdateEksProperties'
           example:
             google:
               master:
@@ -3736,6 +3762,22 @@ components:
         - amazon
       properties:
         amazon:
+          type: object
+          required:
+            - nodePools
+          properties:
+            nodePools:
+              type: object
+              properties:
+                pool1:
+                  $ref: '#/components/schemas/UpdateNodePoolsAmazon'
+
+    UpdateEksProperties:
+      type: object
+      required:
+        - eks
+      properties:
+        eks:
           type: object
           required:
             - nodePools
