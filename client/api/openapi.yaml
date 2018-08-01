@@ -582,6 +582,59 @@ paths:
       summary: Get cluster details
       tags:
       - clusters
+  /api/v1/orgs/{orgId}/clusters/{id}/pods:
+    get:
+      description: Getting pod details
+      operationId: GetPodDetails
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PodDetailsResponse'
+          description: Getting cluster succeeded
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during getting cluster details
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+          description: Cluster not found
+      security:
+      - bearerAuth: []
+      summary: Get pod details
+      tags:
+      - clusters
   /api/v1/orgs/{orgId}/clusters/{id}/posthooks:
     put:
       description: Run posthook functions
@@ -5832,6 +5885,47 @@ components:
       items:
         $ref: '#/components/schemas/ApplicationDetailsResponse'
       type: array
+    PodDetailsResponse:
+      items:
+        $ref: '#/components/schemas/PodItem'
+      type: array
+    PodItem:
+      properties:
+        name:
+          example: pipeline-traefik-7c47dc7bd7-twzpl
+          type: string
+        namespace:
+          example: default
+          type: string
+        createdAt:
+          example: 2018-08-01T09:04:33+02:00
+          type: string
+        labels:
+          $ref: '#/components/schemas/PodItem_labels'
+        restartPolicy:
+          example: Always
+          type: string
+        conditions:
+          items:
+            $ref: '#/components/schemas/PodCondition'
+          type: array
+        resourceSummary:
+          $ref: '#/components/schemas/PodItem_resourceSummary'
+      type: object
+    PodCondition:
+      properties:
+        type:
+          example: Initialized
+          type: string
+        status:
+          example: True
+          type: string
+        lastProbeTime:
+          type: string
+        lastTransitionTime:
+          example: 2018-08-01T07:04:37Z
+          type: string
+      type: object
     ClusterDetailsResponse:
       example:
         secretName: paas-dev
@@ -5902,7 +5996,7 @@ components:
         master:
           $ref: '#/components/schemas/ResourceSummaryItem'
         totalSummary:
-          $ref: '#/components/schemas/ClusterDetailsResponse_totalSummary'
+          $ref: '#/components/schemas/PodItem_resourceSummary'
       type: object
     ResourceSummaryItem:
       example:
@@ -6967,6 +7061,34 @@ components:
           - $ref: '#/components/schemas/NodePoolStatusAzure'
           - $ref: '#/components/schemas/NodePoolStatusGoogle'
           type: object
+    PodItem_labels:
+      properties:
+        app:
+          example: pipeline-traefik
+          type: string
+        chart:
+          example: traefik-1.14.2
+          type: string
+        release:
+          example: pipeline
+          type: string
+    PodItem_resourceSummary:
+      example:
+        memory:
+          allocatable: "4"
+          request: 380m
+          limit: 100m
+          capacity: "4"
+        cpu:
+          allocatable: "4"
+          request: 380m
+          limit: 100m
+          capacity: "4"
+      properties:
+        cpu:
+          $ref: '#/components/schemas/ResourceItem'
+        memory:
+          $ref: '#/components/schemas/ResourceItem'
     ClusterDetailsResponse_nodePools_pool1:
       example:
         createdAt: 2018-07-03T14:19:26+02:00
@@ -6998,23 +7120,6 @@ components:
       properties:
         pool1:
           $ref: '#/components/schemas/ClusterDetailsResponse_nodePools_pool1'
-    ClusterDetailsResponse_totalSummary:
-      example:
-        memory:
-          allocatable: "4"
-          request: 380m
-          limit: 100m
-          capacity: "4"
-        cpu:
-          allocatable: "4"
-          request: 380m
-          limit: 100m
-          capacity: "4"
-      properties:
-        cpu:
-          $ref: '#/components/schemas/ResourceItem'
-        memory:
-          $ref: '#/components/schemas/ResourceItem'
     ResourceSummaryItem_ip100100180.euwest1.compute.internal:
       properties:
         status:

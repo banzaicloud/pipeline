@@ -176,6 +176,7 @@ func main() {
 			orgs.GET("/:orgid/clusters", api.FetchClusters)
 			orgs.GET("/:orgid/clusters/:id", api.GetClusterStatus)
 			orgs.GET("/:orgid/clusters/:id/details", api.GetClusterDetails)
+			orgs.GET("/:orgid/clusters/:id/pods", api.GetPodDetails)
 			orgs.GET("/:orgid/clusters/:id/application", api.GetApplicationsByCluster)
 			orgs.PUT("/:orgid/clusters/:id", api.UpdateCluster)
 			orgs.PUT("/:orgid/clusters/:id/posthooks", api.ReRunPostHooks)

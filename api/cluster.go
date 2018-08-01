@@ -18,6 +18,7 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/banzaicloud/pipeline/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -44,6 +45,11 @@ const (
 
 const (
 	int64QuantityExpectedBytes = 18
+)
+
+const (
+	zeroCPU    = "0 CPU"
+	zeroMemory = "0 B"
 )
 
 // Simple init for logging
@@ -722,6 +728,73 @@ func ClusterHEAD(c *gin.Context) {
 
 }
 
+// GetPodDetails returns all pods with details
+func GetPodDetails(c *gin.Context) {
+
+	commonCluster, isOk := GetCommonClusterFromRequest(c)
+	if !isOk {
+		return
+	}
+
+	response, err := describePods(commonCluster)
+	if err != nil {
+		log.Errorf("Error during getting pod details: %s", err.Error())
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error during getting pod details",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, response)
+
+}
+
+func describePods(commonCluster cluster.CommonCluster) (items []pkgCluster.PodDetailsResponse, err error) {
+
+	log.Info("get K8S config")
+	var kubeConfig []byte
+	kubeConfig, err = commonCluster.GetK8sConfig()
+	if err != nil {
+		return
+	}
+
+	log.Info("get k8S connection")
+	client, err := helm.GetK8sConnection(kubeConfig)
+	if err != nil {
+		return
+	}
+
+	log.Info("list pods")
+	var pods []v1.Pod
+	pods, err = listPods(client, "")
+	if err != nil {
+		return
+	}
+
+	log.Infof("pods: %d", len(pods))
+
+	for _, pod := range pods {
+		req, limits := calculatePodsTotalRequestsAndLimits([]v1.Pod{pod})
+
+		summary := getResourceSummary(nil, nil, req, limits)
+
+		items = append(items, pkgCluster.PodDetailsResponse{
+			Name:          pod.Name,
+			Namespace:     pod.Namespace,
+			CreatedAt:     utils.ConvertSecondsToTime(pod.CreationTimestamp.Time),
+			Labels:        pod.Labels,
+			RestartPolicy: string(pod.Spec.RestartPolicy),
+			Conditions:    pod.Status.Conditions,
+			Summary:       summary,
+		})
+	}
+
+	return
+
+}
+
 // GetClusterDetails fetch a K8S cluster in the cloud
 func GetClusterDetails(c *gin.Context) {
 	commonCluster, ok := GetCommonClusterFromRequest(c)
@@ -985,14 +1058,14 @@ func getNodeStatus(node *v1.Node) string {
 // getResourceSummary returns ResourceSummary type with the given data
 func getResourceSummary(capacity, allocatable, requests, limits map[v1.ResourceName]resource.Quantity) *pkgCluster.ResourceSummary {
 
-	var capMem string
-	var capCPU string
-	var allMem string
-	var allCPU string
-	var reqMem string
-	var reqCPU string
-	var limitMem string
-	var limitCPU string
+	var capMem = zeroMemory
+	var capCPU = zeroCPU
+	var allMem = zeroMemory
+	var allCPU = zeroCPU
+	var reqMem = zeroMemory
+	var reqCPU = zeroCPU
+	var limitMem = zeroMemory
+	var limitCPU = zeroCPU
 
 	if cpu, ok := capacity[v1.ResourceCPU]; ok {
 		capCPU = formatCPUQuantity(&cpu)
@@ -1059,8 +1132,6 @@ func formatMemoryQuantity(q *resource.Quantity) string {
 		return q.String()
 	}
 	number, exponent := rounded.AsCanonicalBase1024Bytes(result)
-
-	fmt.Println("number: ", string(number), ", exp: ", exponent)
 
 	i, err := strconv.Atoi(string(number))
 	if err != nil {
