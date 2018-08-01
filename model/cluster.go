@@ -355,6 +355,23 @@ func (gc *GoogleClusterModel) AfterUpdate(scope *gorm.Scope) error {
 }
 
 // AfterUpdate removes marked node pool(s)
+func (a *AmazonEksClusterModel) AfterUpdate(scope *gorm.Scope) error {
+	log.Info("Remove node pools marked for deletion")
+
+	for _, nodePoolModel := range a.NodePools {
+		if nodePoolModel.Delete {
+			err := scope.DB().Delete(nodePoolModel).Error
+
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+// AfterUpdate removes marked node pool(s)
 func (a *AmazonClusterModel) AfterUpdate(scope *gorm.Scope) error {
 	log.Info("Remove node pools marked for deletion")
 

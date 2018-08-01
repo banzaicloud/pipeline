@@ -21,6 +21,7 @@ var (
 	ErrorAmazonEksInstancetypeFieldIsEmpty = errors.New("Required field 'instanceType' is empty ")
 
 	ErrorNodePoolMinMaxFieldError   = errors.New("'maxCount' must be greater than 'minCount'")
+	ErrorNodePoolCountFieldError    = errors.New("'count' must be greater than or equal to 'minCount' and lower than or equal to 'maxCount'")
 	ErrorMinFieldRequiredError      = errors.New("'minCount' must be set in case 'autoscaling' is set to true")
 	ErrorMaxFieldRequiredError      = errors.New("'maxCount' must be set in case 'autoscaling' is set to true")
 	ErrorGoogleClusterNameRegexp    = errors.New("Name must start with a lowercase letter followed by up to 40 lowercase letters, numbers, or hyphens, and cannot end with a hyphen.")

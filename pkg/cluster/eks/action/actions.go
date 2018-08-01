@@ -23,9 +23,12 @@ import (
 	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
+	"strings"
 )
 
 var log *logrus.Logger
+
+const awsNoUpdatesError = "No updates are to be performed."
 
 // Simple init for logging
 func init() {
@@ -34,8 +37,8 @@ func init() {
 
 // --
 
-// EksClusterCreationContext describes the properties of an EKS cluster creation
-type EksClusterCreationContext struct {
+// EksClusterCreateUpdateContext describes the properties of an EKS cluster creation
+type EksClusterCreateUpdateContext struct {
 	Session                  *session.Session
 	ClusterName              string
 	NodeInstanceRoles        []string
@@ -50,12 +53,25 @@ type EksClusterCreationContext struct {
 	CertificateAuthorityData *string
 }
 
-// NewEksClusterCreationContext creates a new EksClusterCreationContext
-func NewEksClusterCreationContext(session *session.Session, clusterName string, sshKeyName string) *EksClusterCreationContext {
-	return &EksClusterCreationContext{
+// NewEksClusterCreationContext creates a new EksClusterCreateUpdateContext
+func NewEksClusterCreationContext(session *session.Session, clusterName string, sshKeyName string) *EksClusterCreateUpdateContext {
+	return &EksClusterCreateUpdateContext{
 		Session:     session,
 		ClusterName: clusterName,
 		SSHKeyName:  sshKeyName,
+	}
+}
+
+// NewEksClusterUpdateContext creates a new EksClusterCreateUpdateContext
+func NewEksClusterUpdateContext(session *session.Session, clusterName string,
+	securityGroupID *string, subnetIDs []*string, sshKeyName string, vpcID *string) *EksClusterCreateUpdateContext {
+	return &EksClusterCreateUpdateContext{
+		Session:         session,
+		ClusterName:     clusterName,
+		SecurityGroupID: securityGroupID,
+		SubnetIDs:       subnetIDs,
+		SSHKeyName:      sshKeyName,
+		VpcID:           vpcID,
 	}
 }
 
@@ -73,20 +89,18 @@ func NewEksClusterDeleteContext(session *session.Session, clusterName string) *E
 	}
 }
 
-// --
-
 var _ utils.RevocableAction = (*CreateVPCAction)(nil)
 
 // EnsureIAMRoleAction describes how to create an IAM role for EKS
 type EnsureIAMRoleAction struct {
-	context                   *EksClusterCreationContext
+	context                   *EksClusterCreateUpdateContext
 	roleName                  string
 	rolesToAttach             []string
 	successfullyAttachedRoles []string
 }
 
 // NewEnsureIAMRoleAction creates a new NewEnsureIAMRoleAction
-func NewEnsureIAMRoleAction(creationContext *EksClusterCreationContext, roleName string) *EnsureIAMRoleAction {
+func NewEnsureIAMRoleAction(creationContext *EksClusterCreateUpdateContext, roleName string) *EnsureIAMRoleAction {
 	return &EnsureIAMRoleAction{
 		context:  creationContext,
 		roleName: roleName,
@@ -185,14 +199,14 @@ var _ utils.RevocableAction = (*CreateVPCAction)(nil)
 
 // CreateVPCAction describes the properties of a VPC creation
 type CreateVPCAction struct {
-	context   *EksClusterCreationContext
+	context   *EksClusterCreateUpdateContext
 	stackName string
 	//describeStacksTimeInterval time.Duration
 	//stackCreationTimeout       time.Duration
 }
 
 // NewCreateVPCAction creates a new CreateVPCAction
-func NewCreateVPCAction(creationContext *EksClusterCreationContext, stackName string) *CreateVPCAction {
+func NewCreateVPCAction(creationContext *EksClusterCreateUpdateContext, stackName string) *CreateVPCAction {
 	return &CreateVPCAction{
 		context:   creationContext,
 		stackName: stackName,
@@ -282,12 +296,12 @@ var _ utils.RevocableAction = (*GenerateVPCConfigRequestAction)(nil)
 
 // GenerateVPCConfigRequestAction describes how to request a VPC config
 type GenerateVPCConfigRequestAction struct {
-	context   *EksClusterCreationContext
+	context   *EksClusterCreateUpdateContext
 	stackName string
 }
 
 // NewGenerateVPCConfigRequestAction creates a new GenerateVPCConfigRequestAction
-func NewGenerateVPCConfigRequestAction(creationContext *EksClusterCreationContext, stackName string) *GenerateVPCConfigRequestAction {
+func NewGenerateVPCConfigRequestAction(creationContext *EksClusterCreateUpdateContext, stackName string) *GenerateVPCConfigRequestAction {
 	return &GenerateVPCConfigRequestAction{
 		context:   creationContext,
 		stackName: stackName,
@@ -362,12 +376,12 @@ var _ utils.RevocableAction = (*CreateEksClusterAction)(nil)
 
 // CreateEksClusterAction describes the properties of an EKS cluster creation
 type CreateEksClusterAction struct {
-	context           *EksClusterCreationContext
+	context           *EksClusterCreateUpdateContext
 	kubernetesVersion string
 }
 
 // NewCreateEksClusterAction creates a new CreateEksClusterAction
-func NewCreateEksClusterAction(creationContext *EksClusterCreationContext, kubernetesVersion string) *CreateEksClusterAction {
+func NewCreateEksClusterAction(creationContext *EksClusterCreateUpdateContext, kubernetesVersion string) *CreateEksClusterAction {
 	return &CreateEksClusterAction{
 		context:           creationContext,
 		kubernetesVersion: kubernetesVersion,
@@ -494,11 +508,12 @@ func (action *CreateEksClusterAction) UndoAction() (err error) {
 
 // ---
 
-var _ utils.RevocableAction = (*CreateNodePoolStackAction)(nil)
+var _ utils.RevocableAction = (*CreateUpdateNodePoolStackAction)(nil)
 
-// CreateNodePoolStackAction describes the properties of a nodePool VPC creation
-type CreateNodePoolStackAction struct {
-	context          *EksClusterCreationContext
+// CreateUpdateNodePoolStackAction describes the properties of a nodePool VPC creation
+type CreateUpdateNodePoolStackAction struct {
+	context          *EksClusterCreateUpdateContext
+	isCreate         bool
 	stackName        string
 	nodePoolName     string
 	scalingMinSize   int
@@ -512,13 +527,15 @@ type CreateNodePoolStackAction struct {
 	//stackCreationTimeout       time.Duration
 }
 
-// NewCreateNodePoolStackAction creates a new CreateNodePoolStackAction
-func NewCreateNodePoolStackAction(
-	creationContext *EksClusterCreationContext,
+// NewCreateUpdateNodePoolStackAction creates a new CreateUpdateNodePoolStackAction
+func NewCreateUpdateNodePoolStackAction(
+	isCreate bool,
+	creationContext *EksClusterCreateUpdateContext,
 	stackName string,
-	nodePool *model.AmazonNodePoolsModel) *CreateNodePoolStackAction {
-	return &CreateNodePoolStackAction{
+	nodePool *model.AmazonNodePoolsModel) *CreateUpdateNodePoolStackAction {
+	return &CreateUpdateNodePoolStackAction{
 		context:          creationContext,
+		isCreate:         isCreate,
 		stackName:        stackName,
 		nodePoolName:     nodePool.Name,
 		scalingMinSize:   nodePool.NodeMinCount,
@@ -528,25 +545,30 @@ func NewCreateNodePoolStackAction(
 		nodeInstanceType: nodePool.NodeInstanceType,
 		nodeImageId:      nodePool.NodeImage,
 		nodeSpotPrice:    nodePool.NodeSpotPrice,
-		//describeStacksTimeInterval: 10 * time.Second,
-		//stackCreationTimeout:       3 * time.Minute,
 	}
 }
 
 // GetName return the name of this action
-func (action *CreateNodePoolStackAction) GetName() string {
-	return "CreateNodePoolStackAction"
+func (action *CreateUpdateNodePoolStackAction) GetName() string {
+	return "CreateUpdateNodePoolStackAction"
 }
 
-// ExecuteAction executes the CreateNodePoolStackAction
-func (action *CreateNodePoolStackAction) ExecuteAction(input interface{}) (output interface{}, err error) {
-	log.Infoln("EXECUTE CreateNodePoolStackAction, stack name:", action.stackName)
+// ExecuteAction executes the CreateUpdateNodePoolStackAction
+func (action *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (output interface{}, err error) {
+	if action.isCreate {
+		log.Infof("EXECUTE CreateUpdateNodePoolStackAction, create stack name: %v", action.stackName)
+	} else {
+		log.Infof("EXECUTE CreateUpdateNodePoolStackAction, update stack name: %v", action.stackName)
+	}
 
-	log.Infoln("Getting CloudFormation template for creating node pools for EKS cluster")
-	templateBody, err := pkgEks.GetNodePoolTemplate()
-	if err != nil {
-		log.Errorln("Getting CloudFormation template for node pools failed: ", err.Error())
-		return nil, err
+	templateBody := ""
+	if action.isCreate {
+		log.Infoln("Getting CloudFormation template for creating node pools for EKS cluster")
+		templateBody, err = pkgEks.GetNodePoolTemplate()
+		if err != nil {
+			log.Errorln("Getting CloudFormation template for node pools failed: ", err.Error())
+			return nil, err
+		}
 	}
 
 	commaDelimitedSubnetIDs := ""
@@ -570,92 +592,108 @@ func (action *CreateNodePoolStackAction) ExecuteAction(input interface{}) (outpu
 		spotPriceParam = action.nodeSpotPrice
 	}
 
-	cloudformationSrv := cloudformation.New(action.context.Session)
-	createStackInput := &cloudformation.CreateStackInput{
-		ClientRequestToken: aws.String(uuid.NewV4().String()),
-		DisableRollback:    aws.Bool(false),
-		StackName:          aws.String(action.stackName),
-		Capabilities:       []*string{aws.String(cloudformation.CapabilityCapabilityIam)},
-		Parameters: []*cloudformation.Parameter{
-			{
-				ParameterKey:   aws.String("KeyName"),
-				ParameterValue: aws.String(action.context.SSHKeyName),
-			},
-			{
-				ParameterKey:   aws.String("NodeImageId"),
-				ParameterValue: aws.String(action.nodeImageId),
-			},
-			{
-				ParameterKey:   aws.String("NodeInstanceType"),
-				ParameterValue: aws.String(action.nodeInstanceType),
-			},
-			{
-				ParameterKey:   aws.String("NodeSpotPrice"),
-				ParameterValue: aws.String(spotPriceParam),
-			},
-			{
-				ParameterKey:   aws.String("NodeAutoScalingGroupMinSize"),
-				ParameterValue: aws.String(fmt.Sprintf("%d", action.scalingMinSize)),
-			},
-			{
-				ParameterKey:   aws.String("NodeAutoScalingGroupMaxSize"),
-				ParameterValue: aws.String(fmt.Sprintf("%d", action.scalingMaxSize)),
-			},
-			{
-				ParameterKey:   aws.String("NodeAutoScalingInitSize"),
-				ParameterValue: aws.String(fmt.Sprintf("%d", action.scalingInitSize)),
-			},
-			{
-				ParameterKey:   aws.String("ClusterName"),
-				ParameterValue: aws.String(action.context.ClusterName),
-			},
-			{
-				ParameterKey:   aws.String("NodeGroupName"),
-				ParameterValue: aws.String(action.nodePoolName),
-			},
-			{
-				ParameterKey:   aws.String("ClusterControlPlaneSecurityGroup"),
-				ParameterValue: action.context.SecurityGroupID,
-			},
-			{
-				ParameterKey:   aws.String("VpcId"),
-				ParameterValue: action.context.VpcID,
-			}, {
-				ParameterKey:   aws.String("Subnets"),
-				ParameterValue: aws.String(commaDelimitedSubnetIDs),
-			},
+	stackParams := []*cloudformation.Parameter{
+		{
+			ParameterKey:   aws.String("KeyName"),
+			ParameterValue: aws.String(action.context.SSHKeyName),
 		},
-		Tags:             tags,
-		TemplateBody:     aws.String(templateBody),
-		TimeoutInMinutes: aws.Int64(10),
+		{
+			ParameterKey:   aws.String("NodeImageId"),
+			ParameterValue: aws.String(action.nodeImageId),
+		},
+		{
+			ParameterKey:   aws.String("NodeInstanceType"),
+			ParameterValue: aws.String(action.nodeInstanceType),
+		},
+		{
+			ParameterKey:   aws.String("NodeSpotPrice"),
+			ParameterValue: aws.String(spotPriceParam),
+		},
+		{
+			ParameterKey:   aws.String("NodeAutoScalingGroupMinSize"),
+			ParameterValue: aws.String(fmt.Sprintf("%d", action.scalingMinSize)),
+		},
+		{
+			ParameterKey:   aws.String("NodeAutoScalingGroupMaxSize"),
+			ParameterValue: aws.String(fmt.Sprintf("%d", action.scalingMaxSize)),
+		},
+		{
+			ParameterKey:   aws.String("NodeAutoScalingInitSize"),
+			ParameterValue: aws.String(fmt.Sprintf("%d", action.scalingInitSize)),
+		},
+		{
+			ParameterKey:   aws.String("ClusterName"),
+			ParameterValue: aws.String(action.context.ClusterName),
+		},
+		{
+			ParameterKey:   aws.String("NodeGroupName"),
+			ParameterValue: aws.String(action.nodePoolName),
+		},
+		{
+			ParameterKey:   aws.String("ClusterControlPlaneSecurityGroup"),
+			ParameterValue: action.context.SecurityGroupID,
+		},
+		{
+			ParameterKey:   aws.String("VpcId"),
+			ParameterValue: action.context.VpcID,
+		}, {
+			ParameterKey:   aws.String("Subnets"),
+			ParameterValue: aws.String(commaDelimitedSubnetIDs),
+		},
 	}
 
-	//startTime := time.Now()
-	_, err = cloudformationSrv.CreateStack(createStackInput)
-	if err != nil {
-		return
-	}
+	cloudformationSrv := cloudformation.New(action.context.Session)
 
-	//for time.Now().Before(startTime.Add(action.stackCreationTimeout)) {
-	//	stackStatuses, err := cloudformationSrv.DescribeStacks(&cloudformation.DescribeStacksInput{StackName: aws.String(action.stackName)})
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//
-	//	if len(stackStatuses.Stacks) != 1 {
-	//		return nil, errors.New(fmt.Sprintf("Got %d stack(s) instead of 1 after stack creation", len(stackStatuses.Stacks)))
-	//	}
-	//	stack := stackStatuses.Stacks[0]
-	//	fmt.Printf("stackStatus: %s\n", *stack.StackStatus)
-	//	if *stack.StackStatus == cloudformation.StackStatusCreateComplete {
-	//		completed = true
-	//		break
-	//	}
-	//	time.Sleep(action.describeStacksTimeInterval)
-	//}
+	waitOnCreateUpdte := true
+
+	// create stack
+	if action.isCreate {
+		createStackInput := &cloudformation.CreateStackInput{
+			ClientRequestToken: aws.String(uuid.NewV4().String()),
+			DisableRollback:    aws.Bool(false),
+			StackName:          aws.String(action.stackName),
+			Capabilities:       []*string{aws.String(cloudformation.CapabilityCapabilityIam)},
+			Parameters:         stackParams,
+			Tags:               tags,
+			TemplateBody:       aws.String(templateBody),
+			TimeoutInMinutes:   aws.Int64(10),
+		}
+		_, err = cloudformationSrv.CreateStack(createStackInput)
+		if err != nil {
+			return
+		}
+	} else {
+		// update stack
+		reuseTemplate := true
+		updateStackInput := &cloudformation.UpdateStackInput{
+			ClientRequestToken:  aws.String(uuid.NewV4().String()),
+			StackName:           aws.String(action.stackName),
+			Capabilities:        []*string{aws.String(cloudformation.CapabilityCapabilityIam)},
+			Parameters:          stackParams,
+			Tags:                tags,
+			UsePreviousTemplate: &reuseTemplate,
+		}
+
+		_, err = cloudformationSrv.UpdateStack(updateStackInput)
+		if err != nil {
+			if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "ValidationError" && strings.HasPrefix(awsErr.Message(), awsNoUpdatesError) {
+				// Get error details
+				log.Warnf("Nothing changed during update!")
+				waitOnCreateUpdte = false
+				err = nil
+			} else {
+				return nil, err
+			}
+		}
+	}
 
 	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(action.stackName)}
-	err = cloudformationSrv.WaitUntilStackCreateComplete(describeStacksInput)
+
+	if action.isCreate {
+		err = cloudformationSrv.WaitUntilStackCreateComplete(describeStacksInput)
+	} else if waitOnCreateUpdte {
+		err = cloudformationSrv.WaitUntilStackUpdateComplete(describeStacksInput)
+	}
 
 	if err != nil {
 		return nil, err
@@ -675,9 +713,9 @@ func (action *CreateNodePoolStackAction) ExecuteAction(input interface{}) (outpu
 	return nil, nil
 }
 
-// UndoAction rolls back this CreateNodePoolStackAction
-func (action *CreateNodePoolStackAction) UndoAction() (err error) {
-	log.Info("EXECUTE UNDO CreateNodePoolStackAction")
+// UndoAction rolls back this CreateUpdateNodePoolStackAction
+func (action *CreateUpdateNodePoolStackAction) UndoAction() (err error) {
+	log.Info("EXECUTE UNDO CreateUpdateNodePoolStackAction")
 	cloudformationSrv := cloudformation.New(action.context.Session)
 	deleteStackInput := &cloudformation.DeleteStackInput{
 		ClientRequestToken: aws.String(uuid.NewV4().String()),
@@ -695,12 +733,12 @@ var _ utils.RevocableAction = (*UploadSSHKeyAction)(nil)
 
 // UploadSSHKeyAction describes how to upload an SSH key
 type UploadSSHKeyAction struct {
-	context   *EksClusterCreationContext
+	context   *EksClusterCreateUpdateContext
 	sshSecret *secret.SecretItemResponse
 }
 
 // NewUploadSSHKeyAction creates a new UploadSSHKeyAction
-func NewUploadSSHKeyAction(context *EksClusterCreationContext, sshSecret *secret.SecretItemResponse) *UploadSSHKeyAction {
+func NewUploadSSHKeyAction(context *EksClusterCreateUpdateContext, sshSecret *secret.SecretItemResponse) *UploadSSHKeyAction {
 	return &UploadSSHKeyAction{
 		context:   context,
 		sshSecret: sshSecret,
@@ -819,11 +857,11 @@ var _ utils.RevocableAction = (*LoadEksSettingsAction)(nil)
 
 // LoadEksSettingsAction to describe the EKS cluster created
 type LoadEksSettingsAction struct {
-	context *EksClusterCreationContext
+	context *EksClusterCreateUpdateContext
 }
 
 // NewLoadEksSettingsAction creates a new LoadEksSettingsAction
-func NewLoadEksSettingsAction(context *EksClusterCreationContext) *LoadEksSettingsAction {
+func NewLoadEksSettingsAction(context *EksClusterCreateUpdateContext) *LoadEksSettingsAction {
 	return &LoadEksSettingsAction{
 		context: context,
 	}

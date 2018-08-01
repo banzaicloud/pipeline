@@ -3,19 +3,22 @@ package cluster
 import (
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"time"
 
+	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/autoscaling"
+	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/pricing"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/banzaicloud/pipeline/pkg/cluster/amazon"
 	pkgEks "github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks/action"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
@@ -28,6 +31,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api/v1"
+	"strings"
 )
 
 const mapRolesTemplate = `- rolearn: %s
@@ -163,7 +167,7 @@ func (e *EKSCluster) CreateCluster() error {
 
 	for _, nodePool := range e.modelCluster.Eks.NodePools {
 		nodePoolStackName := e.generateNodePoolStackName(nodePool.Name)
-		createNodePoolAction := action.NewCreateNodePoolStackAction(creationContext, nodePoolStackName, nodePool)
+		createNodePoolAction := action.NewCreateUpdateNodePoolStackAction(true, creationContext, nodePoolStackName, nodePool)
 		actions = append(actions, createNodePoolAction)
 	}
 
@@ -228,19 +232,10 @@ func (e *EKSCluster) CreateCluster() error {
 		return err
 	}
 
-	mapRoles := ""
-	for _, roleArn := range creationContext.NodeInstanceRoles {
-		mapRoles += fmt.Sprintf(mapRolesTemplate, roleArn)
+	awsAuthConfigMap, err := generateAwsAuthConfigMap(kubeClient, user.User, creationContext.NodeInstanceRoles)
+	if err != nil {
+		return err
 	}
-	mapUsers := fmt.Sprintf(mapUsersTemplate, aws.StringValue(user.User.Arn), aws.StringValue(user.User.UserName))
-	awsAuthConfigMap := v1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{Name: "aws-auth"},
-		Data: map[string]string{
-			"mapRoles": mapRoles,
-			"mapUsers": mapUsers,
-		},
-	}
-
 	_, err = kubeClient.CoreV1().ConfigMaps("kube-system").Create(&awsAuthConfigMap)
 	if err != nil {
 		return err
@@ -249,12 +244,28 @@ func (e *EKSCluster) CreateCluster() error {
 	e.modelCluster.Eks.AccessKeyID = aws.StringValue(accessKey.AccessKey.AccessKeyId)
 	err = e.modelCluster.Save()
 	if err != nil {
-		return nil
+		return err
 	}
 
 	log.Infoln("EKS cluster created:", e.modelCluster.Name)
 
 	return nil
+}
+
+func generateAwsAuthConfigMap(kubeClient *kubernetes.Clientset, user *iam.User, nodeInstanceRoles []string) (v1.ConfigMap, error) {
+	mapRoles := ""
+	for _, roleArn := range nodeInstanceRoles {
+		log.Debugf("add nodepool role arn: %v", roleArn)
+		mapRoles += fmt.Sprintf(mapRolesTemplate, roleArn)
+	}
+	mapUsers := fmt.Sprintf(mapUsersTemplate, aws.StringValue(user.Arn), aws.StringValue(user.UserName))
+	return v1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{Name: "aws-auth"},
+		Data: map[string]string{
+			"mapRoles": mapRoles,
+			"mapUsers": mapUsers,
+		},
+	}, nil
 }
 
 func (e *EKSCluster) generateSSHKeyNameForCluster() string {
@@ -337,11 +348,256 @@ func (e *EKSCluster) DeleteCluster() error {
 	return nil
 }
 
+func createNodePoolsFromUpdateRequest(requestedNodePools map[string]*amazon.NodePool,
+	currentNodePools []*model.AmazonNodePoolsModel, userId uint) ([]*model.AmazonNodePoolsModel, error) {
+
+	currentNodePoolMap := make(map[string]*model.AmazonNodePoolsModel, len(currentNodePools))
+	for _, nodePool := range currentNodePools {
+		currentNodePoolMap[nodePool.Name] = nodePool
+	}
+
+	updatedNodePools := make([]*model.AmazonNodePoolsModel, 0, len(requestedNodePools))
+
+	for nodePoolName, nodePool := range requestedNodePools {
+		if currentNodePoolMap[nodePoolName] != nil {
+			// update existing node pool
+			updatedNodePools = append(updatedNodePools, &model.AmazonNodePoolsModel{
+				ID:             currentNodePoolMap[nodePoolName].ID,
+				CreatedBy:      currentNodePoolMap[nodePoolName].CreatedBy,
+				CreatedAt:      currentNodePoolMap[nodePoolName].CreatedAt,
+				ClusterModelId: currentNodePoolMap[nodePoolName].ClusterModelId,
+				Name:           nodePoolName,
+				Autoscaling:    nodePool.Autoscaling,
+				NodeMinCount:   nodePool.MinCount,
+				NodeMaxCount:   nodePool.MaxCount,
+				Count:          nodePool.Count,
+				Delete:         false,
+			})
+
+		} else {
+			// new node pool
+
+			// ---- [ Node instanceType check ] ---- //
+			if len(nodePool.InstanceType) == 0 {
+				log.Errorf("instanceType is missing for nodePool %v", nodePoolName)
+				return nil, pkgErrors.ErrorInstancetypeFieldIsEmpty
+			}
+
+			// ---- [ Node image check ] ---- //
+			if len(nodePool.Image) == 0 {
+				log.Errorf("image is missing for nodePool %v", nodePoolName)
+				return nil, pkgErrors.ErrorAmazonImageFieldIsEmpty
+			}
+
+			// ---- [ Node spot price ] ---- //
+			if len(nodePool.SpotPrice) == 0 {
+				nodePool.SpotPrice = amazon.DefaultSpotPrice
+			}
+
+			updatedNodePools = append(updatedNodePools, &model.AmazonNodePoolsModel{
+				CreatedBy:        userId,
+				Name:             nodePoolName,
+				NodeInstanceType: nodePool.InstanceType,
+				NodeImage:        nodePool.Image,
+				NodeSpotPrice:    nodePool.SpotPrice,
+				Autoscaling:      nodePool.Autoscaling,
+				NodeMinCount:     nodePool.MinCount,
+				NodeMaxCount:     nodePool.MaxCount,
+				Count:            nodePool.Count,
+				Delete:           false,
+			})
+		}
+	}
+
+	for _, nodePool := range currentNodePools {
+		if requestedNodePools[nodePool.Name] == nil {
+			updatedNodePools = append(updatedNodePools, &model.AmazonNodePoolsModel{
+				ID:             nodePool.ID,
+				CreatedBy:      nodePool.CreatedBy,
+				CreatedAt:      nodePool.CreatedAt,
+				ClusterModelId: nodePool.ClusterModelId,
+				Name:           nodePool.Name,
+				Delete:         true,
+			})
+		}
+	}
+	return updatedNodePools, nil
+}
+
 // UpdateCluster updates EKS cluster in cloud
 func (e *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterRequest, updatedBy uint) error {
-	// TODO missing implementation
 	log.Info("Start updating EKS cluster")
+
+	awsCred, err := e.createAWSCredentialsFromSecret()
+	if err != nil {
+		return err
+	}
+
+	session, err := session.NewSession(&aws.Config{
+		Region:      aws.String(e.modelCluster.Location),
+		Credentials: awsCred,
+	})
+	if err != nil {
+		return err
+	}
+
+	actions := make([]utils.Action, 0, len(updateRequest.Eks.NodePools))
+
+	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(e.modelCluster.Name + "-pipeline-eks")}
+	cloudformationSrv := cloudformation.New(session)
+	autoscalingSrv := autoscaling.New(session)
+	describeStacksOutput, err := cloudformationSrv.DescribeStacks(describeStacksInput)
+	if err != nil {
+		return nil
+	}
+
+	var vpcId, subnetIds, securityGroupId string
+	for _, output := range describeStacksOutput.Stacks[0].Outputs {
+		switch *output.OutputKey {
+		case "SecurityGroups":
+			securityGroupId = *output.OutputValue
+		case "VpcId":
+			vpcId = *output.OutputValue
+		case "SubnetIds":
+			subnetIds = *output.OutputValue
+		}
+	}
+
+	modelNodePools, err := createNodePoolsFromUpdateRequest(updateRequest.Eks.NodePools, e.modelCluster.Eks.NodePools, updatedBy)
+	if err != nil {
+		return err
+	}
+
+	subnetIDs := make([]*string, 0)
+	for _, subnetId := range strings.Split(subnetIds, ",") {
+		subnetIDs = append(subnetIDs, &subnetId)
+	}
+
+	createUpdateContext := action.NewEksClusterUpdateContext(
+		session,
+		e.modelCluster.Name,
+		&securityGroupId,
+		subnetIDs,
+		e.generateSSHKeyNameForCluster(),
+		&vpcId)
+
+	deleteContext := action.NewEksClusterDeleteContext(
+		session,
+		e.modelCluster.Name,
+	)
+
+	for _, nodePool := range modelNodePools {
+
+		stackName := e.generateNodePoolStackName(nodePool.Name)
+		describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(stackName)}
+		describeStacksOutput, err := cloudformationSrv.DescribeStacks(describeStacksInput)
+		if err == nil {
+
+			if nodePool.Delete {
+				log.Infof("nodePool %v exists will be deleted", nodePool.Name)
+				deleteStackAction := action.NewDeleteStackAction(deleteContext, e.generateNodePoolStackName(nodePool.Name))
+				actions = append(actions, deleteStackAction)
+				continue
+			}
+
+			log.Infof("nodePool %v already exists will be updated", nodePool.Name)
+			// load params which are not updatable from nodeGroup Stack
+			for _, param := range describeStacksOutput.Stacks[0].Parameters {
+				switch *param.ParameterKey {
+				case "NodeImageId":
+					nodePool.NodeImage = *param.ParameterValue
+				case "NodeInstanceType":
+					nodePool.NodeInstanceType = *param.ParameterValue
+				case "NodeSpotPrice":
+					nodePool.NodeSpotPrice = *param.ParameterValue
+				}
+			}
+			// get current Desired count from ASG linked to nodeGroup stack if Autoscaling is enabled, as we don't to override
+			// in this case only min/max counts
+			if nodePool.Autoscaling {
+				asgCurrentDesiredSize, err := getAsgSize(cloudformationSrv, autoscalingSrv, stackName)
+				if err != nil {
+					log.Warnf("unable to load desiredSize from Asg: %v", err.Error())
+					nodePool.Count = nodePool.NodeMinCount
+					log.Warnf("setting desiredCount to minCount %v", nodePool.Count)
+				} else if asgCurrentDesiredSize != nil {
+					nodePool.Count = int(*asgCurrentDesiredSize)
+				}
+			}
+			updateStackAction := action.NewCreateUpdateNodePoolStackAction(false, createUpdateContext, e.generateNodePoolStackName(nodePool.Name), nodePool)
+			actions = append(actions, updateStackAction)
+		} else {
+			if nodePool.Delete {
+				log.Warnf("nodePool %v to be deleted doesn't exists: %v", nodePool.Name, err)
+				continue
+			}
+
+			log.Infof("nodePool %v doesn't exists will be created", nodePool.Name)
+
+			createNodePoolAction := action.NewCreateUpdateNodePoolStackAction(true, createUpdateContext, e.generateNodePoolStackName(nodePool.Name), nodePool)
+			actions = append(actions, createNodePoolAction)
+
+		}
+	}
+
+	_, err = utils.NewActionExecutor(log).ExecuteActions(actions, nil, false)
+	if err != nil {
+		log.Errorln("EKS cluster update error:", err.Error())
+		return err
+	}
+
+	iamSvc := iam.New(session)
+	user, err := iamSvc.GetUser(&iam.GetUserInput{
+		UserName: aws.String(e.modelCluster.Name),
+	})
+	if err != nil {
+		return err
+	}
+
+	config, err := e.GetK8sConfig()
+	if err != nil {
+		return err
+	}
+	kubeClient, err := helm.GetK8sConnection(config)
+	if err != nil {
+		return err
+	}
+
+	awsAuthConfigMap, err := generateAwsAuthConfigMap(kubeClient, user.User, createUpdateContext.NodeInstanceRoles)
+	if err != nil {
+		return err
+	}
+	_, err = kubeClient.CoreV1().ConfigMaps("kube-system").Update(&awsAuthConfigMap)
+	if err != nil {
+		return err
+	}
+
+	e.modelCluster.Eks.NodePools = modelNodePools
+
 	return nil
+}
+
+func getAsgSize(cloudformationSrv *cloudformation.CloudFormation, autoscalingSrv *autoscaling.AutoScaling, stackName string) (*int64, error) {
+	logResourceId := "NodeGroup"
+	describeStackResourceInput := &cloudformation.DescribeStackResourceInput{
+		LogicalResourceId: &logResourceId,
+		StackName:         aws.String(stackName)}
+	describeStacksOutput, err := cloudformationSrv.DescribeStackResource(describeStackResourceInput)
+	if err != nil {
+		return nil, err
+	}
+
+	describeAutoScalingGroupsInput := autoscaling.DescribeAutoScalingGroupsInput{
+		AutoScalingGroupNames: []*string{
+			describeStacksOutput.StackResourceDetail.PhysicalResourceId,
+		},
+	}
+	describeAutoScalingGroupsOutput, err := autoscalingSrv.DescribeAutoScalingGroups(&describeAutoScalingGroupsInput)
+	if err != nil {
+		return nil, err
+	}
+
+	return describeAutoScalingGroupsOutput.AutoScalingGroups[0].DesiredCapacity, nil
 }
 
 // GenerateK8sConfig generates kube config for this EKS cluster which authenticates through the aws-iam-authenticator,
@@ -439,8 +695,17 @@ func (e *EKSCluster) CheckEqualityToUpdate(*pkgCluster.UpdateClusterRequest) err
 }
 
 // AddDefaultsToUpdate adds defaults to update request
-func (e *EKSCluster) AddDefaultsToUpdate(*pkgCluster.UpdateClusterRequest) {
-	//TODO missing
+func (e *EKSCluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
+	defaultImage := pkgEks.DefaultImages[e.modelCluster.Location]
+
+	// add default node image(s) if needed
+	if r != nil && r.Eks != nil && r.Eks.NodePools != nil {
+		for _, np := range r.Eks.NodePools {
+			if len(np.Image) == 0 {
+				np.Image = defaultImage
+			}
+		}
+	}
 }
 
 // DeleteFromDatabase deletes model from the database

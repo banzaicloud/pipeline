@@ -13,7 +13,7 @@ type CreateClusterEks struct {
 
 // UpdateClusterAmazonEKS describes Amazon EKS's node fields of an UpdateCluster request
 type UpdateClusterAmazonEKS struct {
-	//TODO missing fields
+	NodePools map[string]*pkgAmazon.NodePool `json:"nodePools,omitempty"`
 }
 
 // Validate validates Amazon EKS cluster create request
@@ -66,7 +66,11 @@ func (eks *UpdateClusterAmazonEKS) Validate() error {
 		return pkgErrors.ErrorAmazonEksFieldIsEmpty
 	}
 
-	//TODO missing validate body
+	for _, np := range eks.NodePools {
+		if err := np.ValidateForUpdate(); err != nil {
+			return err
+		}
+	}
 
 	return nil
 }

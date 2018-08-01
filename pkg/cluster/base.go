@@ -170,6 +170,7 @@ type DeleteClusterResponse struct {
 // UpdateProperties describes Pipeline's UpdateCluster request properties
 type UpdateProperties struct {
 	Amazon *amazon.UpdateClusterAmazon `json:"amazon,omitempty"`
+	Eks    *eks.UpdateClusterAmazonEKS `json:"eks,omitempty"`
 	Azure  *azure.UpdateClusterAzure   `json:"azure,omitempty"`
 	Google *google.UpdateClusterGoogle `json:"google,omitempty"`
 	Dummy  *dummy.UpdateClusterDummy   `json:"dummy,omitempty"`
@@ -285,7 +286,11 @@ func (r *UpdateClusterRequest) Validate() error {
 	switch r.Cloud {
 	case Amazon:
 		// amazon validate
-		return r.Amazon.Validate()
+		if r.Amazon != nil {
+			return r.Amazon.Validate()
+		}
+		// amazon eks validate
+		return r.Eks.Validate()
 	case Azure:
 		// azure validate
 		return r.Azure.Validate()
