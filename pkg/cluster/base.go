@@ -12,6 +12,7 @@ import (
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster"
+	"k8s.io/api/core/v1"
 )
 
 // ### [ Cluster statuses ] ### //
@@ -426,6 +427,17 @@ type DetailsResponse struct {
 
 	// ONLY in case of GKE
 	Region string `json:"region,omitempty"`
+}
+
+// PodDetailsResponse describes a pod
+type PodDetailsResponse struct {
+	Name          string            `json:"name"`
+	Namespace     string            `json:"namespace"`
+	CreatedAt     string            `json:"createdAt"`
+	Labels        map[string]string `json:"labels,omitempty"`
+	RestartPolicy string            `json:"restartPolicy,omitempty"`
+	Conditions    []v1.PodCondition `json:"conditions,omitempty"`
+	Summary       *ResourceSummary  `json:"resourceSummary,omitempty"`
 }
 
 // NodeDetails describes a cluster's node details

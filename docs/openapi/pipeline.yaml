@@ -540,6 +540,53 @@ paths:
               schema:
                 $ref: '#/components/schemas/ClusterNotFound'
 
+  '/api/v1/orgs/{orgId}/clusters/{id}/pods':
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - clusters
+      summary: Get pod details
+      description: Getting pod details
+      operationId: GetPodDetails
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: id
+          in: path
+          description: Selected cluster identification (number)
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Getting cluster succeeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PodDetailsResponse'
+        '400':
+          description: Error during getting cluster details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '404':
+          description: Cluster not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
 
   '/api/v1/orgs/{orgId}/clusters/{id}/posthooks':
     put:
@@ -5509,6 +5556,66 @@ components:
       type: array
       items:
         $ref: '#/components/schemas/ApplicationDetailsResponse'
+
+    PodDetailsResponse:
+      type: array
+      items:
+        $ref: '#/components/schemas/PodItem'
+
+    PodItem:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "pipeline-traefik-7c47dc7bd7-twzpl"
+        namespace:
+          type: string
+          example: "default"
+        createdAt:
+          type: string
+          example: "2018-08-01T09:04:33+02:00"
+        labels:
+          type: object
+          properties:
+            app:
+              type: string
+              example: "pipeline-traefik"
+            chart:
+              type: string
+              example: "traefik-1.14.2"
+            release:
+              type: string
+              example: "pipeline"
+        restartPolicy:
+          type: string
+          example: "Always"
+        conditions:
+          type: array
+          items:
+            $ref: '#/components/schemas/PodCondition'
+        resourceSummary:
+          type: object
+          properties:
+            cpu:
+              $ref: '#/components/schemas/ResourceItem'
+            memory:
+              $ref: '#/components/schemas/ResourceItem'
+
+    PodCondition:
+      type: object
+      properties:
+        type:
+          type: string
+          example: "Initialized"
+        status:
+          type: string
+          example: "True"
+        lastProbeTime:
+          type: string
+          example: null
+        lastTransitionTime:
+          type: string
+          example: "2018-08-01T07:04:37Z"
 
 
     ClusterDetailsResponse:

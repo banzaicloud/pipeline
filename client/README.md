@@ -48,6 +48,7 @@ Class | Method | HTTP request | Description
 *ClustersApi* | [**GetClusterConfig**](docs/ClustersApi.md#getclusterconfig) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/config | Get a cluster config
 *ClustersApi* | [**GetClusterDetails**](docs/ClustersApi.md#getclusterdetails) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/details | Get cluster details
 *ClustersApi* | [**GetClusterStatus**](docs/ClustersApi.md#getclusterstatus) | **Head** /api/v1/orgs/{orgId}/clusters/{id} | Get cluster status
+*ClustersApi* | [**GetPodDetails**](docs/ClustersApi.md#getpoddetails) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/pods | Get pod details
 *ClustersApi* | [**HelmInit**](docs/ClustersApi.md#helminit) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/helminit | Initialize Helm
 *ClustersApi* | [**InstallSecrets**](docs/ClustersApi.md#installsecrets) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/secrets | Install secrets into cluster
 *ClustersApi* | [**ListClusters**](docs/ClustersApi.md#listclusters) | **Get** /api/v1/orgs/{orgId}/clusters | List clusters
@@ -146,7 +147,6 @@ Class | Method | HTTP request | Description
  - [ClusterDetailsResponse](docs/ClusterDetailsResponse.md)
  - [ClusterDetailsResponseNodePools](docs/ClusterDetailsResponseNodePools.md)
  - [ClusterDetailsResponseNodePoolsPool1](docs/ClusterDetailsResponseNodePoolsPool1.md)
- - [ClusterDetailsResponseTotalSummary](docs/ClusterDetailsResponseTotalSummary.md)
  - [ClusterListResponse](docs/ClusterListResponse.md)
  - [ClusterNotFound](docs/ClusterNotFound.md)
  - [ClusterProfileAmazon](docs/ClusterProfileAmazon.md)
@@ -247,6 +247,11 @@ Class | Method | HTTP request | Description
  - [OrganizationListItemResponse](docs/OrganizationListItemResponse.md)
  - [OrganizationListResponse](docs/OrganizationListResponse.md)
  - [OrganizationNotFound](docs/OrganizationNotFound.md)
+ - [PodCondition](docs/PodCondition.md)
+ - [PodDetailsResponse](docs/PodDetailsResponse.md)
+ - [PodItem](docs/PodItem.md)
+ - [PodItemLabels](docs/PodItemLabels.md)
+ - [PodItemResourceSummary](docs/PodItemResourceSummary.md)
  - [ProfileListResponse](docs/ProfileListResponse.md)
  - [ReRunPostHook](docs/ReRunPostHook.md)
  - [RepoNotFound](docs/RepoNotFound.md)
