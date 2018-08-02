@@ -194,6 +194,17 @@ func (stateStore *inMemoryStateStore) find(orgId uint, domain string, state *dom
 	return ok, nil
 }
 
+func (stateStore *inMemoryStateStore) findByStatus(status string) ([]domainState, error) {
+	var res []domainState
+	for _, v := range stateStore.orgDomains {
+		if v.status == status {
+			res = append(res, *v)
+		}
+	}
+
+	return res, nil
+}
+
 func (stateStore *inMemoryStateStore) listUnused() ([]domainState, error) {
 	key := stateKey(testOrgId, testDomain)
 	return []domainState{*stateStore.orgDomains[key]}, nil

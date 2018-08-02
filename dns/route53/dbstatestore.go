@@ -96,6 +96,28 @@ func (stateStore *awsRoute53DatabaseStateStore) delete(state *domainState) error
 	return db.Where(crit).Delete(&route53model.Route53Domain{}).Error
 }
 
+// findByStatus returns all the domain state entries from database that are in the specified status
+func (stateStore *awsRoute53DatabaseStateStore) findByStatus(status string) ([]domainState, error) {
+	db := database.GetDB()
+	var dbRecs []route53model.Route53Domain
+
+	crit := &route53model.Route53Domain{Status: status}
+	err := db.Where(crit).Find(&dbRecs).Error
+	if err != nil {
+		return nil, err
+	}
+
+	var domainStates []domainState
+	for i := 0; i < len(dbRecs); i++ {
+		var state domainState
+
+		initStateFromRoute53Domain(&dbRecs[i], &state)
+		domainStates = append(domainStates, state)
+	}
+
+	return domainStates, nil
+}
+
 // createRoute53Domain create a new Route53Domain instance initialized from the passed in state
 func createRoute53Domain(state *domainState) *route53model.Route53Domain {
 	return &route53model.Route53Domain{
