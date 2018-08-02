@@ -88,4 +88,4 @@ maintenanceWindowMinute = 15
 namespace = "pipeline-infra"
 
 [eks]
-templateLocation="https://raw.githubusercontent.com/banzaicloud/pipeline/eks/templates/eks"
+templateLocation="https://raw.githubusercontent.com/banzaicloud/pipeline/master/templates/eks"
