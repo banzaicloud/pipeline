@@ -954,10 +954,14 @@ func (c *AWSCluster) getImageFromNodePool(nodePoolName string) string {
 
 //CheckEqualityToUpdate validates the update request
 func (c *AWSCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) error {
-	// create update request struct with the stored data to check equality
+	return CheckEqualityToUpdate(r, c.modelCluster.Amazon.NodePools)
+}
 
+//CheckEqualityToUpdate validates the update request
+func CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest, nodePools []*model.AmazonNodePoolsModel) error {
+	// create update request struct with the stored data to check equality
 	preNodePools := make(map[string]*amazon.NodePool)
-	for _, preNp := range c.modelCluster.Amazon.NodePools {
+	for _, preNp := range nodePools {
 		preNodePools[preNp.Name] = &amazon.NodePool{
 			InstanceType: preNp.NodeInstanceType,
 			SpotPrice:    preNp.NodeSpotPrice,
