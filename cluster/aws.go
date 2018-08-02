@@ -268,8 +268,6 @@ func getStateStoreForCluster(clusterType *model.ClusterModel) (stateStore state.
 	return stateStore
 }
 
-// RequiresSshPublicKey returns true if an ssh public key is needed for the cluster for bootstrapping it
-
 func getMasterServerPool(cs *model.ClusterModel, nodeServerPool []*kcluster.ServerPool, uuidSuffix string) *kcluster.ServerPool {
 	var ingressRules = make([]*kcluster.IngressRule, 0, 2+len(nodeServerPool))
 	ingressRules = append(ingressRules, &kcluster.IngressRule{
@@ -1125,7 +1123,7 @@ func (c *AWSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 	}, nil
 }
 
-// ValidateCreationFields validates all field
+// ValidateCreationFields validates all fields
 func (c *AWSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
 	location := r.Location
 

@@ -3835,6 +3835,7 @@ components:
           - $ref: '#/components/schemas/CreateAmazonProperties'
           - $ref: '#/components/schemas/CreateAzureProperties'
           - $ref: '#/components/schemas/CreateGoogleProperties'
+          - $ref: '#/components/schemas/CreateEksProperties'
           type: object
       required:
       - cloud
@@ -3880,6 +3881,13 @@ components:
       - maxCount
       - minCount
       - spotPrice
+      type: object
+    CreateEksProperties:
+      properties:
+        eks:
+          $ref: '#/components/schemas/CreateAmazonProperties_amazon'
+      required:
+      - eks
       type: object
     CreateAzureProperties:
       properties:
@@ -4094,6 +4102,7 @@ components:
           - $ref: '#/components/schemas/UpdateAmazonProperties'
           - $ref: '#/components/schemas/UpdateAzureProperties'
           - $ref: '#/components/schemas/UpdateGoogleProperties'
+          - $ref: '#/components/schemas/UpdateEksProperties'
           type: object
       required:
       - cloud
@@ -4105,6 +4114,13 @@ components:
           $ref: '#/components/schemas/UpdateAmazonProperties_amazon'
       required:
       - amazon
+      type: object
+    UpdateEksProperties:
+      properties:
+        eks:
+          $ref: '#/components/schemas/UpdateAmazonProperties_amazon'
+      required:
+      - eks
       type: object
     UpdateNodePoolsAmazon:
       properties:
@@ -6098,6 +6114,7 @@ components:
             - $ref: '#/components/schemas/CatalogOptionsMysqlVersion'
             - $ref: '#/components/schemas/CatalogOptionsMonitor'
           type: array
+      type: object
     CatalogChartInfo_annotations:
       example:
         longDescription: Mysql Server with Mysql
@@ -6109,6 +6126,7 @@ components:
         longDescription:
           example: Mysql Server with Mysql
           type: string
+      type: object
     CreateAmazonProperties_amazon_master:
       properties:
         instanceType:
@@ -6117,6 +6135,7 @@ components:
         image:
           example: ami-06d1667f
           type: string
+      type: object
     CreateAmazonProperties_amazon:
       properties:
         master:
@@ -6125,6 +6144,7 @@ components:
           additionalProperties:
             $ref: '#/components/schemas/NodePoolsAmazon'
           type: object
+      type: object
     CreateAzureProperties_azure:
       properties:
         resourceGroup:
@@ -6137,11 +6157,13 @@ components:
           additionalProperties:
             $ref: '#/components/schemas/NodePoolsAzure'
           type: object
+      type: object
     CreateGoogleProperties_google_master:
       properties:
         version:
           example: 1.8.7-gke.1
           type: string
+      type: object
     CreateGoogleProperties_google:
       properties:
         master:
@@ -6153,14 +6175,17 @@ components:
           additionalProperties:
             $ref: '#/components/schemas/NodePoolsGoogle'
           type: object
+      type: object
     UpdateAmazonProperties_amazon_nodePools:
       properties:
         pool1:
           $ref: '#/components/schemas/UpdateNodePoolsAmazon'
+      type: object
     UpdateAmazonProperties_amazon:
       properties:
         nodePools:
           $ref: '#/components/schemas/UpdateAmazonProperties_amazon_nodePools'
+      type: object
     UpdateAzureProperties_azure_nodePools_pool1:
       properties:
         autoscaling:
@@ -6177,18 +6202,22 @@ components:
           example: 2
           format: int32
           type: integer
+      type: object
     UpdateAzureProperties_azure_nodePools:
       properties:
         pool1:
           $ref: '#/components/schemas/UpdateAzureProperties_azure_nodePools_pool1'
+      type: object
     UpdateAzureProperties_azure:
       properties:
         nodePools:
           $ref: '#/components/schemas/UpdateAzureProperties_azure_nodePools'
+      type: object
     UpdateGoogleProperties_master:
       properties:
         version:
           type: string
+      type: object
     UpdateGoogleProperties_nodePools_pool1:
       properties:
         autoscaling:
@@ -6208,10 +6237,12 @@ components:
         instanceType:
           example: n1-standard-2
           type: string
+      type: object
     UpdateGoogleProperties_nodePools:
       properties:
         pool1:
           $ref: '#/components/schemas/UpdateGoogleProperties_nodePools_pool1'
+      type: object
     ListNodesResponse_metadata:
       example:
         resourceVersion: "30123"
@@ -6223,6 +6254,7 @@ components:
         resourceVersion:
           example: "30123"
           type: string
+      type: object
     NodeItem_metadata_labels:
       example:
         failure-domain.beta.kubernetes.io/zone: us-central1-a
@@ -6258,6 +6290,7 @@ components:
         kubernetes.io/hostname:
           example: gke-gkecluster-feri-706-pool1-496eccb3-l25k
           type: string
+      type: object
     NodeItem_metadata_annotations:
       example:
         node.alpha.kubernetes.io/ttl: "0"
@@ -6269,6 +6302,7 @@ components:
         volumes.kubernetes.io/controller-managed-attach-detach:
           example: "true"
           type: string
+      type: object
     NodeItem_metadata:
       example:
         uid: f214d7fb-41ae-11e8-a4ea-42010a8001da
@@ -6308,6 +6342,7 @@ components:
           $ref: '#/components/schemas/NodeItem_metadata_labels'
         annotations:
           $ref: '#/components/schemas/NodeItem_metadata_annotations'
+      type: object
     NodeItem_spec:
       example:
         providerID: gce://banzaitest/us-central1-a/gke-gkecluster-706-pool1-496eccb3-l25k
@@ -6323,6 +6358,7 @@ components:
         providerID:
           example: gce://banzaitest/us-central1-a/gke-gkecluster-706-pool1-496eccb3-l25k
           type: string
+      type: object
     NodeItem_status_capacity:
       example:
         memory: 7664776Ki
@@ -6338,6 +6374,7 @@ components:
         pods:
           example: "110"
           type: string
+      type: object
     NodeItem_status_allocatable:
       example:
         memory: 5784712Ki
@@ -6353,6 +6390,7 @@ components:
         pods:
           example: "110"
           type: string
+      type: object
     NodeItem_status_conditions:
       example:
         reason: KernelHasNoDeadlock
@@ -6380,6 +6418,7 @@ components:
         message:
           example: kernel has no deadlock
           type: string
+      type: object
     NodeItem_status_addresses:
       example:
         address: 10.128.0.2
@@ -6391,6 +6430,7 @@ components:
         address:
           example: 10.128.0.2
           type: string
+      type: object
     NodeItem_status_daemonEndpoints:
       example:
         kubeletEndpoint: '{}'
@@ -6401,6 +6441,7 @@ components:
               example: 10250
               format: int32
               type: integer
+      type: object
     NodeItem_status_nodeInfo:
       example:
         machineID: 10d8adda771410ca912a387cf7e5cb06
@@ -6444,6 +6485,7 @@ components:
         architecture:
           example: amd64
           type: string
+      type: object
     NodeItem_status_images:
       example:
         name:
@@ -6462,6 +6504,7 @@ components:
           example: 286572743
           format: int32
           type: integer
+      type: object
     NodeItem_status:
       example:
         daemonEndpoints:
@@ -6533,6 +6576,7 @@ components:
           items:
             $ref: '#/components/schemas/NodeItem_status_images'
           type: array
+      type: object
     ListDeploymentsResponse_inner:
       properties:
         releaseName:
@@ -6563,6 +6607,7 @@ components:
         createdAt:
           example: 2018-07-03T14:23:19+02:00
           type: string
+      type: object
     HelmChartsListResponse_inner:
       properties:
         name:
@@ -6637,6 +6682,7 @@ components:
               type: object
             type: array
           type: array
+      type: object
     HelmChartDetailsResponse_chart_maintainers:
       example:
         name: jackzampolin
@@ -6648,6 +6694,7 @@ components:
         email:
           example: jack.zampolin@gmail.com
           type: string
+      type: object
     HelmChartDetailsResponse_chart:
       example:
         maintainers:
@@ -6728,6 +6775,7 @@ components:
         digest:
           example: cf66d1666019b3e1647ba4dbc06a66ee7db1184629ae3669e11a9f72208eb7aa
           type: string
+      type: object
     HelmChartDetailsResponse_versions:
       example:
         values: IyMgbmdpbngtbGVnbyBzcGlucyB1cCBhIHNjYWxhYmxlIGluZ3Jlc3MgcHJvdmlkZXIgdGhhdCBjYW4gYWxzbyBwcm92aXNpb24gU1NMIGNlcnRzCiMjIFNlZSBodHRwczovL2dpdGh1Yi5jb20vamV0c3RhY2sva3ViZS1sZWdvL3RyZWUvbWFzdGVyL2V4YW1wbGVzL25naW54IGZvciBtb3JlIGluZm9ybWF0aW9uIG9uIGltcGxlbWVudGF0aW9uCgojIyBOZ2lueCBjb25maWd1cmF0aW9uCiMjIHJlZjogaHR0cHM6Ly9naXRodWIuY29tL2t1YmVybmV0ZXMvY29udHJpYi90cmVlL21hc3Rlci9pbmdyZXNzL2NvbnRyb2xsZXJzL25naW54I2F1dG9tYXRlZC1jZXJ0aWZpY2F0ZS1tYW5hZ2VtZW50LXdpdGgta3ViZS1sZWdvCiMjCm5naW54OgogIHJlcGxpY2FDb3VudDogMQogIGltYWdlOgogICAgcmVwb3NpdG9yeTogazhzLmdjci5pby9uZ2lueC1pbmdyZXNzLWNvbnRyb2xsZXIKICAgIHRhZzogIjAuOC4zIgogICAgcHVsbFBvbGljeTogSWZOb3RQcmVzZW50CiAgc2VydmljZToKICAgIHR5cGU6IExvYWRCYWxhbmNlcgogIG1vbml0b3Jpbmc6IGZhbHNlCiAgcmVzb3VyY2VzOgogICAgbGltaXRzOgogICAgICBjcHU6IDEKICAgICAgbWVtb3J5OiAyR2kKICAgIHJlcXVlc3RzOgogICAgICBjcHU6IDEKICAgICAgbWVtb3J5OiAxMjhNaQogIGNvbmZpZ21hcDoKICAgIHByb3h5X2Nvbm5lY3RfdGltZW91dDogIjMwIgogICAgcHJveHlfcmVhZF90aW1lb3V0OiAiNjAwIgogICAgcHJveHlfc2VuZF9pbWVvdXQ6ICI2MDAiCiAgICBoc3RzX2luY2x1ZGVfc3ViZG9tYWluczogImZhbHNlIgogICAgYm9keV9zaXplOiAiNjRtIgogICAgc2VydmVyX25hbWVfaGFzaF9idWNrZXRfc2l6ZTogIjI1NiIKICAgICMgVE9ETzogZmlndXJlIG91dCBob3cgdG8gZXhwb3NlIGB7bmdpbnhfYWRkcn06ODA4MC9uZ2lueF9zdGF0dXNgLCBvbiBleGlzdGluZyBzZXJ2aWNlIG9yIGNyZWF0ZSBuZXcgb25lPwogICAgZW5hYmxlX3Z0c19zdGF0dXM6ICJmYWxzZSIKCiMjIERlZmF1bHQgQmFja2VuZCBjb25maWd1cmF0aW9uCiMjIFRvIHJ1biBhIGRpZmZlcmVudCA0MDQgcGFnZSBmb3IgdGhlIG1hbmFnZWQgZG9tYWlucyBwbGVhc2Ugc2VlIHRoZSBkb2N1bWVudGF0aW9uIGJlbG93CiMjIHJlZjogaHR0cHM6Ly9naXRodWIuY29tL2t1YmVybmV0ZXMvY29udHJpYi90cmVlL21hc3Rlci80MDQtc2VydmVyCiMjCmRlZmF1bHQ6CiAgcmVwbGljYUNvdW50OiAxCiAgaW1hZ2U6CiAgICByZXBvc2l0b3J5OiBrOHMuZ2NyLmlvL2RlZmF1bHRiYWNrZW5kCiAgICB0YWc6ICIxLjAiCiAgICBwdWxsUG9saWN5OiBJZk5vdFByZXNlbnQKICByZXNvdXJjZXM6CiAgICBsaW1pdHM6CiAgICAgIGNwdTogMQogICAgICBtZW1vcnk6IDJHaQogICAgcmVxdWVzdHM6CiAgICAgIGNwdTogMQogICAgICBtZW1vcnk6IDEyOE1pCgojIyBrdWJlLWxlZ28gY29uZmlndXJhdGlvbgojIyByZWY6IGh0dHBzOi8vZ2l0aHViLmNvbS9qZXRzdGFjay9rdWJlLWxlZ28KIyMKbGVnbzoKICBlbmFibGVkOiBmYWxzZQogIHJlcGxpY2FDb3VudDogMQogIGltYWdlOgogICAgcmVwb3NpdG9yeTogamV0c3RhY2sva3ViZS1sZWdvCiAgICB0YWc6ICIwLjEuMyIKICAgIHB1bGxQb2xpY3k6IElmTm90UHJlc2VudAogIGNvbmZpZ21hcDoKICAgIGVtYWlsOiAibXlAZW1haWwudGxkIgogICAgIyBQcm9kdWN0aW9uIExldCdzIEVuY3J5cHQgc2VydmVyCiAgICAjIHVybDogImh0dHBzOi8vYWNtZS12MDEuYXBpLmxldHNlbmNyeXB0Lm9yZy9kaXJlY3RvcnkiCiAgICAjIFRlc3QgTGV0J3MgRW5jcnlwdCBzZXJ2ZXIKICAgIHVybDogImh0dHBzOi8vYWNtZS1zdGFnaW5nLmFwaS5sZXRzZW5jcnlwdC5vcmcvZGlyZWN0b3J5ICIKICByZXNvdXJjZXM6CiAgICBsaW1pdHM6CiAgICAgIGNwdTogMQogICAgICBtZW1vcnk6IDJHaQogICAgcmVxdWVzdHM6CiAgICAgIGNwdTogMQogICAgICBtZW1vcnk6IDEyOE1pCg==
@@ -6764,6 +6812,7 @@ components:
         readme:
           example: IyBuZ2lueC1sZWdvCgoqKlRoaXMgY2hhcnQgaGFzIGJlZW4gZGVwcmVjYXRlZCBhcyBvZiB2ZXJzaW9uIDAuMi4xIGFuZCB3aWxsIG5vdCBiZSB1cGRhdGVkLiBQbGVhc2UgdXNlIHRoZSBuZ2lueC1pbmdyZXNzIGFuZCAob3B0aW9uYWwpIGt1YmUtbGVnbyBjaGFydHMgaW5zdGVhZC4qKgoKW25naW54LWxlZ29dKGh0dHBzOi8vZ2l0aHViLmNvbS9qZXRzdGFjay9rdWJlLWxlZ28vdHJlZS9tYXN0ZXIvZXhhbXBsZXMvbmdpbngpIGlzIGEgY2hhcnQgZm9yIGFuIFtgbmdpbnhgIGluZ3Jlc3NdKGh0dHBzOi8vZ2l0aHViLmNvbS9rdWJlcm5ldGVzL2NvbnRyaWIvdHJlZS9tYXN0ZXIvaW5ncmVzcy9jb250cm9sbGVycy9uZ2lueCkgd2l0aCBvcHRpb25hbCBzdXBwb3J0IGZvciBhdXRvbWF0aWNhbGx5IGdlbmVyYXRpbmcgYFNTTGAgY2VydCBmb3IgdGhlIG1hbmFnZWQgcm91dGVzLgoKVG8gdXNlIHRoaXMgaW5ncmVzcyBjb250b2xsZXIgYWRkIHRoZSBmb2xsb3dpbmcgYW5ub3RhdGlvbnMgdG8gdGhlIGBpbmdyZXNzYCByZXNvdXJjZXMgeW91IHdvdWxkIGxpa2UgdG8gcm91dGUgdGhyb3VnaCBpdDoKCmBgYHlhbWwKYXBpVmVyc2lvbjogZXh0ZW5zaW9ucy92MWJldGExCmtpbmQ6IEluZ3Jlc3MKbWV0YWRhdGE6CiAgbmFtZXNwYWNlOiBmb28KICBhbm5vdGF0aW9uczoKICAgICMgQWRkIHRvIHJvdXRlIHRocm91Z2ggdGhlIG5naW54IHNlcnZpY2UKICAgIGt1YmVybmV0ZXMuaW8vaW5ncmVzcy5jbGFzczogbmdpbngKICAgICMgQWRkIHRvIGdlbmVyYXRlIGNlcnRpZmljYXRlcyBmb3IgdGhpcyBpbmdyZXNzCiAgICBrdWJlcm5ldGVzLmlvL3Rscy1hY21lOiAidHJ1ZSIKc3BlYzoKICB0bHM6CiAgICAjIFdpdGggdGhpcyBjb25maWd1cmF0aW9uIGt1YmUtbGVnbyB3aWxsIGdlbmVyYXRlIGEgc2VjcmV0IGluIG5hbWVzcGFjZSBmb28gY2FsbGVkIGBleGFtcGxlLXRsc2AKICAgICMgZm9yIHRoZSBVUkwgYHd3dy5leGFtcGxlLmNvbWAKICAgIC0gaG9zdHM6CiAgICAgIC0gInd3dy5leGFtcGxlLmNvbSIKICAgICAgc2VjcmV0TmFtZTogZXhhbXBsZS10bHMKYGBgCgojIyBUTDtEUjsKCmBgYGJhc2gKJCBoZWxtIGluc3RhbGwgc3RhYmxlL2t1YmUtbGVnbwpgYGAKCiMjIEludHJvZHVjdGlvbgoKVGhpcyBjaGFydCBib290c3RyYXBzIGFuIG5naW54LWxlZ28gZGVwbG95bWVudCBvbiBhIFtLdWJlcm5ldGVzXShodHRwOi8va3ViZXJuZXRlcy5pbykgY2x1c3RlciB1c2luZyB0aGUgW0hlbG1dKGh0dHBzOi8vaGVsbS5zaCkgcGFja2FnZSBtYW5hZ2VyLgoKIyMgUHJlcmVxdWlzaXRlcwoKLSBLdWJlcm5ldGVzIDEuNCsgd2l0aCBCZXRhIEFQSXMgZW5hYmxlZAoKIyMgSW5zdGFsbGluZyB0aGUgQ2hhcnQKClRvIGluc3RhbGwgdGhlIGNoYXJ0IHdpdGggdGhlIHJlbGVhc2UgbmFtZSBgbXktcmVsZWFzZWA6CgpgYGBiYXNoCiQgaGVsbSBpbnN0YWxsIC0tbmFtZSBteS1yZWxlYXNlIHN0YWJsZS9uZ2lueC1sZWdvCmBgYAoKVGhlIGNvbW1hbmQgZGVwbG95cyBuZ2lueC1sZWdvIG9uIHRoZSBLdWJlcm5ldGVzIGNsdXN0ZXIgaW4gdGhlIGRlZmF1bHQgY29uZmlndXJhdGlvbi4gVGhlIFtjb25maWd1cmF0aW9uXSgjY29uZmlndXJhdGlvbikgc2VjdGlvbiBsaXN0cyB0aGUgcGFyYW1ldGVycyB0aGF0IGNhbiBiZSBjb25maWd1cmVkIGR1cmluZyBpbnN0YWxsYXRpb24uCgo+ICoqVGlwKio6IExpc3QgYWxsIHJlbGVhc2VzIHVzaW5nIGBoZWxtIGxpc3RgCgojIyBVbmluc3RhbGxpbmcgdGhlIENoYXJ0CgpUbyB1bmluc3RhbGwvZGVsZXRlIHRoZSBgbXktcmVsZWFzZWAgZGVwbG95bWVudDoKCmBgYGJhc2gKJCBoZWxtIGRlbGV0ZSBteS1yZWxlYXNlCmBgYAoKVGhlIGNvbW1hbmQgcmVtb3ZlcyBhbGwgdGhlIEt1YmVybmV0ZXMgY29tcG9uZW50cyBhc3NvY2lhdGVkIHdpdGggdGhlIGNoYXJ0IGFuZCBkZWxldGVzIHRoZSByZWxlYXNlLgoKIyMgQ29uZmlndXJhdGlvbgoKU2VlIGB2YWx1ZXMueWFtbGAgZm9yIGNvbmZpZ3VyYXRpb24gbm90ZXMuIFNwZWNpZnkgZWFjaCBwYXJhbWV0ZXIgdXNpbmcgdGhlIGAtLXNldCBrZXk9dmFsdWVbLGtleT12YWx1ZV1gIGFyZ3VtZW50IHRvIGBoZWxtIGluc3RhbGxgLiBGb3IgZXhhbXBsZSwKCmBgYGJhc2gKJCBoZWxtIGluc3RhbGwgLS1uYW1lIG15LXJlbGVhc2UgXAogIC0tc2V0IGxlZ28uZW5hYmxlZD1mYWxzZSBcCiAgICBzdGFibGUvbmdpbngtbGVnbwpgYGAKCkluc3RhbGxzIHRoZSBjaGFydCB3aXRob3V0IGt1YmUtbGVnbyBhbmQgdGhlIGFiaWxpdHkgdG8gZ2VuZXJhdGUgY2VydHMuCgpBbHRlcm5hdGl2ZWx5LCBhIFlBTUwgZmlsZSB0aGF0IHNwZWNpZmllcyB0aGUgdmFsdWVzIGZvciB0aGUgcGFyYW1ldGVycyBjYW4gYmUgcHJvdmlkZWQgd2hpbGUgaW5zdGFsbGluZyB0aGUgY2hhcnQuIEZvciBleGFtcGxlLAoKYGBgYmFzaAokIGhlbG0gaW5zdGFsbCAtLW5hbWUgbXktcmVsZWFzZSAtZiB2YWx1ZXMueWFtbCBzdGFibGUvbmdpbngtbGVnbwpgYGAKCj4gKipUaXAqKjogWW91IGNhbiB1c2UgdGhlIGRlZmF1bHQgW3ZhbHVlcy55YW1sXSh2YWx1ZXMueWFtbCkK
           type: string
+      type: object
     InstallSecretsRequest_query:
       example:
         tag: repo:pipeline
@@ -6775,6 +6824,7 @@ components:
         tag:
           example: repo:pipeline
           type: string
+      type: object
     ClusterProfileAmazon_amazon_nodePools_pool1:
       properties:
         instanceType:
@@ -6800,16 +6850,19 @@ components:
         image:
           example: ami-06d1667f
           type: string
+      type: object
     ClusterProfileAmazon_amazon_nodePools:
       properties:
         pool1:
           $ref: '#/components/schemas/ClusterProfileAmazon_amazon_nodePools_pool1'
+      type: object
     ClusterProfileAmazon_amazon:
       properties:
         master:
           $ref: '#/components/schemas/CreateAmazonProperties_amazon_master'
         nodePools:
           $ref: '#/components/schemas/ClusterProfileAmazon_amazon_nodePools'
+      type: object
     ClusterProfileAzure_azure_nodePools_pool1:
       properties:
         autoscaling:
@@ -6829,10 +6882,12 @@ components:
         instanceType:
           example: Standard_D2_v2
           type: string
+      type: object
     ClusterProfileAzure_azure_nodePools:
       properties:
         pool1:
           $ref: '#/components/schemas/ClusterProfileAzure_azure_nodePools_pool1'
+      type: object
     ClusterProfileAzure_azure:
       properties:
         kubernetesVersion:
@@ -6840,6 +6895,7 @@ components:
           type: string
         nodePools:
           $ref: '#/components/schemas/ClusterProfileAzure_azure_nodePools'
+      type: object
     ClusterProfileGoogle_google_nodePools_pool1:
       properties:
         autoscaling:
@@ -6859,10 +6915,12 @@ components:
         instanceType:
           example: n1-standard-1
           type: string
+      type: object
     ClusterProfileGoogle_google_nodePools:
       properties:
         pool1:
           $ref: '#/components/schemas/ClusterProfileGoogle_google_nodePools_pool1'
+      type: object
     ClusterProfileGoogle_google:
       properties:
         master:
@@ -6872,6 +6930,7 @@ components:
           type: string
         nodePools:
           $ref: '#/components/schemas/ClusterProfileGoogle_google_nodePools'
+      type: object
     AddClusterProfileAmazon_amazon_nodePools_pool1:
       properties:
         spotPrice:
@@ -6891,16 +6950,19 @@ components:
         instanceType:
           example: m4.xlarge
           type: string
+      type: object
     AddClusterProfileAmazon_amazon_nodePools:
       properties:
         pool1:
           $ref: '#/components/schemas/AddClusterProfileAmazon_amazon_nodePools_pool1'
+      type: object
     AddClusterProfileAmazon_amazon:
       properties:
         master:
           $ref: '#/components/schemas/CreateAmazonProperties_amazon_master'
         nodePools:
           $ref: '#/components/schemas/AddClusterProfileAmazon_amazon_nodePools'
+      type: object
     AddClusterProfileAzure_azure_nodePools_pool1:
       properties:
         count:
@@ -6910,10 +6972,12 @@ components:
         instanceType:
           example: Standard_D2_v2
           type: string
+      type: object
     AddClusterProfileAzure_azure_nodePools:
       properties:
         pool1:
           $ref: '#/components/schemas/AddClusterProfileAzure_azure_nodePools_pool1'
+      type: object
     AddClusterProfileAzure_azure:
       properties:
         nodePools:
@@ -6921,6 +6985,7 @@ components:
         kubernetesVersion:
           example: 1.8.2
           type: string
+      type: object
     AddClusterProfileGoogle_google_nodePools_pool1:
       properties:
         count:
@@ -6930,10 +6995,12 @@ components:
         instanceType:
           example: n1-standard-2
           type: string
+      type: object
     AddClusterProfileGoogle_google_nodePools:
       properties:
         pool1:
           $ref: '#/components/schemas/AddClusterProfileGoogle_google_nodePools_pool1'
+      type: object
     AddClusterProfileGoogle_google:
       properties:
         master:
@@ -6943,6 +7010,7 @@ components:
           type: string
         nodePools:
           $ref: '#/components/schemas/AddClusterProfileGoogle_google_nodePools'
+      type: object
     AllowedSecretTypeResponse_fields:
       example:
         name: name
@@ -6955,6 +7023,7 @@ components:
           type: boolean
         description:
           type: string
+      type: object
     AmazonConfigResponse_image:
       example:
         eu-west-1:
@@ -6968,6 +7037,7 @@ components:
           items:
             type: string
           type: array
+      type: object
     AmazonConfigResponse_instanceType:
       example:
         eu-west-1:
@@ -6981,6 +7051,7 @@ components:
           items:
             type: string
           type: array
+      type: object
     AzureConfigResponse_instanceType:
       example:
         eastus:
@@ -6994,6 +7065,7 @@ components:
           items:
             type: string
           type: array
+      type: object
     GoogleConfigResponse_instanceType:
       example:
         asia-east1-a:
@@ -7007,6 +7079,7 @@ components:
           items:
             type: string
           type: array
+      type: object
     GoogleConfigResponse_kubernetes_versions:
       example:
         validMasterVersions:
@@ -7046,6 +7119,7 @@ components:
           items:
             type: string
           type: array
+      type: object
     GetClusterStatusResponse_nodePools:
       example:
         pool1:
@@ -7061,6 +7135,7 @@ components:
           - $ref: '#/components/schemas/NodePoolStatusAzure'
           - $ref: '#/components/schemas/NodePoolStatusGoogle'
           type: object
+      type: object
     PodItem_labels:
       properties:
         app:
@@ -7072,6 +7147,7 @@ components:
         release:
           example: pipeline
           type: string
+      type: object
     PodItem_resourceSummary:
       example:
         memory:
@@ -7089,6 +7165,7 @@ components:
           $ref: '#/components/schemas/ResourceItem'
         memory:
           $ref: '#/components/schemas/ResourceItem'
+      type: object
     ClusterDetailsResponse_nodePools_pool1:
       example:
         createdAt: 2018-07-03T14:19:26+02:00
@@ -7109,6 +7186,7 @@ components:
           type: integer
         resourceSummary:
           $ref: '#/components/schemas/ResourceSummaryItem'
+      type: object
     ClusterDetailsResponse_nodePools:
       example:
         pool1:
@@ -7120,6 +7198,7 @@ components:
       properties:
         pool1:
           $ref: '#/components/schemas/ClusterDetailsResponse_nodePools_pool1'
+      type: object
     ResourceSummaryItem_ip100100180.euwest1.compute.internal:
       properties:
         status:
@@ -7129,6 +7208,7 @@ components:
           $ref: '#/components/schemas/ResourceItem'
         memory:
           $ref: '#/components/schemas/ResourceItem'
+      type: object
     LoggingPostHook_InstallLogging:
       properties:
         bucketName:
@@ -7142,6 +7222,7 @@ components:
           type: string
         tls:
           $ref: '#/components/schemas/GenTLSForLogging'
+      type: object
   securitySchemes:
     bearerAuth:
       bearerFormat: JWT

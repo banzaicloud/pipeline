@@ -192,7 +192,6 @@ func getPostHookFunctions(postHooks pkgCluster.PostHooks) (ph []cluster.PostFunc
 // CreateCluster creates a K8S cluster in the cloud
 func CreateCluster(createClusterRequest *pkgCluster.CreateClusterRequest, organizationID, userID uint,
 	postHooks []cluster.PostFunctioner) (cluster.CommonCluster, *pkgCommon.ErrorResponse) {
-
 	if len(createClusterRequest.ProfileName) != 0 {
 		log.Infof("Fill data from profile[%s]", createClusterRequest.ProfileName)
 		profile, err := defaults.GetProfile(createClusterRequest.Cloud, createClusterRequest.ProfileName)

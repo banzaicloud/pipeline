@@ -90,6 +90,7 @@ func (s *SecretItemResponse) GetValue(key string) string {
 // ValidateSecretType validates the secret type
 func (s *SecretItemResponse) ValidateSecretType(validType string) error {
 	if string(s.Type) != validType {
+
 		return MissmatchError{
 			SecretType: s.Type,
 			ValidType:  validType,

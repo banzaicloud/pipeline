@@ -120,9 +120,14 @@ func convertRequestToProfile(request *pkgCluster.ClusterProfileRequest) (default
 
 	switch request.Cloud {
 	case pkgCluster.Amazon:
-		var awsProfile defaults.AWSProfile
-		awsProfile.UpdateProfile(request, false)
-		return &awsProfile, nil
+		if request.Properties.Amazon != nil {
+			var awsProfile defaults.AWSProfile
+			awsProfile.UpdateProfile(request, false)
+			return &awsProfile, nil
+		}
+		var eksProfile defaults.EKSProfile
+		eksProfile.UpdateProfile(request, false)
+		return &eksProfile, nil
 	case pkgCluster.Azure:
 		var aksProfile defaults.AKSProfile
 		aksProfile.UpdateProfile(request, false)

@@ -7,6 +7,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/cluster/amazon"
 	"github.com/banzaicloud/pipeline/pkg/cluster/azure"
 	"github.com/banzaicloud/pipeline/pkg/cluster/dummy"
+	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/google"
 	"github.com/banzaicloud/pipeline/pkg/cluster/kubernetes"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
@@ -32,6 +33,7 @@ const (
 // Cluster provider constants
 const (
 	Amazon     = "amazon"
+	AmazonEKS  = "eks"
 	Azure      = "azure"
 	Google     = "google"
 	Dummy      = "dummy"
@@ -79,6 +81,7 @@ type CreateClusterRequest struct {
 	PostHooks   PostHooks `json:"postHooks"`
 	Properties  struct {
 		CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
+		CreateClusterEks    *eks.CreateClusterEks        `json:"eks,omitempty"`
 		CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
 		CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
 		CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
@@ -167,6 +170,7 @@ type DeleteClusterResponse struct {
 // UpdateProperties describes Pipeline's UpdateCluster request properties
 type UpdateProperties struct {
 	Amazon *amazon.UpdateClusterAmazon `json:"amazon,omitempty"`
+	Eks    *eks.UpdateClusterAmazonEKS `json:"eks,omitempty"`
 	Azure  *azure.UpdateClusterAzure   `json:"azure,omitempty"`
 	Google *google.UpdateClusterGoogle `json:"google,omitempty"`
 	Dummy  *dummy.UpdateClusterDummy   `json:"dummy,omitempty"`
@@ -217,7 +221,10 @@ func (r *UpdateClusterRequest) String() string {
 func (r *CreateClusterRequest) AddDefaults() error {
 	switch r.Cloud {
 	case Amazon:
-		return r.Properties.CreateClusterAmazon.AddDefaults(r.Location)
+		if r.Properties.CreateClusterAmazon != nil {
+			return r.Properties.CreateClusterAmazon.AddDefaults(r.Location)
+		}
+		return r.Properties.CreateClusterEks.AddDefaults(r.Location)
 	case Oracle:
 		return r.Properties.CreateClusterOracle.AddDefaults()
 	default:
@@ -235,7 +242,11 @@ func (r *CreateClusterRequest) Validate() error {
 	switch r.Cloud {
 	case Amazon:
 		// amazon validate
-		return r.Properties.CreateClusterAmazon.Validate()
+		if r.Properties.CreateClusterAmazon != nil {
+			return r.Properties.CreateClusterAmazon.Validate()
+		}
+		// amazon eks validate
+		return r.Properties.CreateClusterEks.Validate()
 	case Azure:
 		// azure validate
 		return r.Properties.CreateClusterAzure.Validate()
@@ -275,7 +286,11 @@ func (r *UpdateClusterRequest) Validate() error {
 	switch r.Cloud {
 	case Amazon:
 		// amazon validate
-		return r.Amazon.Validate()
+		if r.Amazon != nil {
+			return r.Amazon.Validate()
+		}
+		// amazon eks validate
+		return r.Eks.Validate()
 	case Azure:
 		// azure validate
 		return r.Azure.Validate()
@@ -330,6 +345,7 @@ type ClusterProfileResponse struct {
 	Properties struct {
 		Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 		Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
+		Eks    *eks.ClusterProfileEks       `json:"eks,omitempty"`
 		Google *google.ClusterProfileGoogle `json:"google,omitempty"`
 		Oracle *oracle.Cluster              `json:"oracle,omitempty"`
 	} `json:"properties" binding:"required"`
@@ -343,6 +359,7 @@ type ClusterProfileRequest struct {
 	Properties struct {
 		Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 		Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
+		Eks    *eks.ClusterProfileEks       `json:"eks,omitempty"`
 		Google *google.ClusterProfileGoogle `json:"google,omitempty"`
 		Oracle *oracle.Cluster              `json:"oracle,omitempty"`
 	} `json:"properties" binding:"required"`
@@ -482,6 +499,7 @@ func (p *ClusterProfileResponse) CreateClusterRequest(createRequest *CreateClust
 		ProfileName: p.Name,
 		Properties: struct {
 			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
+			CreateClusterEks    *eks.CreateClusterEks        `json:"eks,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
 			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
 			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
@@ -492,12 +510,19 @@ func (p *ClusterProfileResponse) CreateClusterRequest(createRequest *CreateClust
 
 	switch p.Cloud {
 	case Amazon:
-		response.Properties.CreateClusterAmazon = &amazon.CreateClusterAmazon{
-			NodePools: p.Properties.Amazon.NodePools,
-			Master: &amazon.CreateAmazonMaster{
-				InstanceType: p.Properties.Amazon.Master.InstanceType,
-				Image:        p.Properties.Amazon.Master.Image,
-			},
+		if response.Properties.CreateClusterAmazon != nil {
+			response.Properties.CreateClusterAmazon = &amazon.CreateClusterAmazon{
+				NodePools: p.Properties.Amazon.NodePools,
+				Master: &amazon.CreateAmazonMaster{
+					InstanceType: p.Properties.Amazon.Master.InstanceType,
+					Image:        p.Properties.Amazon.Master.Image,
+				},
+			}
+		} else {
+			response.Properties.CreateClusterEks = &eks.CreateClusterEks{
+				NodePools: p.Properties.Amazon.NodePools,
+				Version:   p.Properties.Eks.Version,
+			}
 		}
 	case Azure:
 		a := createRequest.Properties.CreateClusterAzure

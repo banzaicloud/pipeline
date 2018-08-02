@@ -14,6 +14,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/cluster/amazon"
 	"github.com/banzaicloud/pipeline/pkg/cluster/azure"
 	"github.com/banzaicloud/pipeline/pkg/cluster/dummy"
+	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/google"
 	"github.com/banzaicloud/pipeline/pkg/cluster/kubernetes"
 	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster"
@@ -33,6 +34,7 @@ const (
 	clusterRequestKubernetes     = "1.9.6"
 	clusterRequestAgentName      = "testAgent"
 	clusterRequestSpotPrice      = "1.2"
+	clusterRequestNodeMinCount   = 1
 	clusterRequestNodeMaxCount   = 2
 	clusterRequestNodeImage      = "testImage"
 	clusterRequestMasterImage    = "testImage"
@@ -249,6 +251,7 @@ var (
 		SecretId: clusterRequestSecretId,
 		Properties: struct {
 			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
+			CreateClusterEks    *eks.CreateClusterEks        `json:"eks,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
 			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
 			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
@@ -280,6 +283,7 @@ var (
 		SecretId: clusterRequestSecretId,
 		Properties: struct {
 			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
+			CreateClusterEks    *eks.CreateClusterEks        `json:"eks,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
 			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
 			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
@@ -308,6 +312,7 @@ var (
 		SecretId: clusterRequestSecretId,
 		Properties: struct {
 			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
+			CreateClusterEks    *eks.CreateClusterEks        `json:"eks,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
 			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
 			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
@@ -337,6 +342,7 @@ var (
 		SecretId: clusterRequestSecretId,
 		Properties: struct {
 			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
+			CreateClusterEks    *eks.CreateClusterEks        `json:"eks,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
 			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
 			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
@@ -363,6 +369,7 @@ var (
 		SecretId: clusterRequestSecretId,
 		Properties: struct {
 			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
+			CreateClusterEks    *eks.CreateClusterEks        `json:"eks,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
 			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
 			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
@@ -388,6 +395,36 @@ var (
 		},
 	}
 
+	eksCreateFull = &pkgCluster.CreateClusterRequest{
+		Name:     clusterRequestName,
+		Location: clusterRequestLocation,
+		Cloud:    pkgCluster.Amazon,
+		SecretId: clusterRequestSecretId,
+		Properties: struct {
+			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
+			CreateClusterEks    *eks.CreateClusterEks        `json:"eks,omitempty"`
+			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
+			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
+			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
+			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
+			CreateClusterOracle *oracle.Cluster              `json:"oracle,omitempty"`
+		}{
+			CreateClusterEks: &eks.CreateClusterEks{
+				Version: clusterRequestVersion,
+				NodePools: map[string]*amazon.NodePool{
+					pool1Name: {
+						InstanceType: clusterRequestNodeInstance,
+						SpotPrice:    clusterRequestSpotPrice,
+						Autoscaling:  true,
+						MinCount:     clusterRequestNodeCount,
+						MaxCount:     clusterRequestNodeMaxCount,
+						Image:        clusterRequestNodeImage,
+					},
+				},
+			},
+		},
+	}
+
 	dummyCreateFull = &pkgCluster.CreateClusterRequest{
 		Name:     clusterRequestName,
 		Location: clusterRequestLocation,
@@ -395,6 +432,7 @@ var (
 		SecretId: clusterRequestSecretId,
 		Properties: struct {
 			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
+			CreateClusterEks    *eks.CreateClusterEks        `json:"eks,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
 			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
 			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
@@ -417,6 +455,7 @@ var (
 		SecretId: clusterRequestSecretId,
 		Properties: struct {
 			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
+			CreateClusterEks    *eks.CreateClusterEks        `json:"eks,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
 			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
 			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
@@ -448,6 +487,7 @@ var (
 		SecretId: clusterRequestSecretId,
 		Properties: struct {
 			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
+			CreateClusterEks    *eks.CreateClusterEks        `json:"eks,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
 			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
 			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
@@ -469,6 +509,7 @@ var (
 		SecretId: clusterRequestSecretId,
 		Properties: struct {
 			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
+			CreateClusterEks    *eks.CreateClusterEks        `json:"eks,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
 			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
 			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
@@ -490,6 +531,7 @@ var (
 		SecretId: clusterRequestSecretId,
 		Properties: struct {
 			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
+			CreateClusterEks    *eks.CreateClusterEks        `json:"eks,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
 			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
 			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
@@ -505,6 +547,7 @@ var (
 		SecretId: clusterRequestSecretId,
 		Properties: struct {
 			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
+			CreateClusterEks    *eks.CreateClusterEks        `json:"eks,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
 			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
 			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
@@ -533,6 +576,7 @@ var (
 		SecretId: clusterRequestSecretId,
 		Properties: struct {
 			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
+			CreateClusterEks    *eks.CreateClusterEks        `json:"eks,omitempty"`
 			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
 			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
 			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`

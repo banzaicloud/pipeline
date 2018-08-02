@@ -4,14 +4,24 @@ import "errors"
 
 // ### [ Errors ] ### //
 var (
-	ErrorNotSupportedCloudType      = errors.New("Not supported cloud type")
-	ErrorAmazonClusterNameRegexp    = errors.New("Up to 255 letters (uppercase and lowercase), numbers, hyphens, and underscores are allowed.")
-	ErrorAmazonFieldIsEmpty         = errors.New("Required field 'amazon' is empty.")
-	ErrorAmazonMasterFieldIsEmpty   = errors.New("Required field 'master' is empty.")
-	ErrorAmazonImageFieldIsEmpty    = errors.New("Required field 'image' is empty ")
-	ErrorAmazonNodePoolFieldIsEmpty = errors.New("At least one 'nodePool' is required.")
-	ErrorInstancetypeFieldIsEmpty   = errors.New("Required field 'instanceType' is empty ")
+	ErrorNotSupportedCloudType          = errors.New("Not supported cloud type")
+	ErrorAmazonClusterNameRegexp        = errors.New("Up to 255 letters (uppercase and lowercase), numbers, hyphens, and underscores are allowed.")
+	ErrorAmazonFieldIsEmpty             = errors.New("Required field 'amazon' is empty.")
+	ErrorAmazonMasterFieldIsEmpty       = errors.New("Required field 'master' is empty.")
+	ErrorAmazonImageFieldIsEmpty        = errors.New("Required field 'image' is empty ")
+	ErrorAmazonNodePoolFieldIsEmpty     = errors.New("At least one 'nodePool' is required.")
+	ErrorInstancetypeFieldIsEmpty       = errors.New("Required field 'instanceType' is empty ")
+	ErrorAmazonInstancetypeFieldIsEmpty = errors.New("Required field 'instanceType' is empty ")
+
+	ErrorAmazonEksClusterNameRegexp        = errors.New("Up to 255 letters (uppercase and lowercase), numbers, hyphens, and underscores are allowed.")
+	ErrorAmazonEksFieldIsEmpty             = errors.New("Required field 'eks' is empty.")
+	ErrorAmazonEksMasterFieldIsEmpty       = errors.New("Required field 'master' is empty.")
+	ErrorAmazonEksImageFieldIsEmpty        = errors.New("Required field 'image' is empty ")
+	ErrorAmazonEksNodePoolFieldIsEmpty     = errors.New("At least one 'nodePool' is required.")
+	ErrorAmazonEksInstancetypeFieldIsEmpty = errors.New("Required field 'instanceType' is empty ")
+
 	ErrorNodePoolMinMaxFieldError   = errors.New("'maxCount' must be greater than 'minCount'")
+	ErrorNodePoolCountFieldError    = errors.New("'count' must be greater than or equal to 'minCount' and lower than or equal to 'maxCount'")
 	ErrorMinFieldRequiredError      = errors.New("'minCount' must be set in case 'autoscaling' is set to true")
 	ErrorMaxFieldRequiredError      = errors.New("'maxCount' must be set in case 'autoscaling' is set to true")
 	ErrorGoogleClusterNameRegexp    = errors.New("Name must start with a lowercase letter followed by up to 40 lowercase letters, numbers, or hyphens, and cannot end with a hyphen.")

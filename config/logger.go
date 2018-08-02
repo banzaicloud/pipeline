@@ -29,12 +29,12 @@ func Logger() *logrus.Logger {
 		}
 		var childFormatter logrus.Formatter
 		switch viper.GetString("log.logformat") {
-		case "text":
-			childFormatter = new(logrus.TextFormatter)
 		case "json":
 			childFormatter = new(logrus.JSONFormatter)
 		default:
-			childFormatter = new(logrus.TextFormatter)
+			textFormatter := new(logrus.TextFormatter)
+			textFormatter.FullTimestamp = true
+			childFormatter = textFormatter
 		}
 		runtimeFormatter := &runtime.Formatter{ChildFormatter: childFormatter}
 		logger.Formatter = runtimeFormatter

@@ -74,11 +74,56 @@ func (a *NodePool) Validate() error {
 
 	if a.Count == 0 {
 		a.Count = a.MinCount
+	} else {
+		if a.Count < a.MinCount || a.Count > a.MaxCount {
+			return pkgErrors.ErrorNodePoolCountFieldError
+		}
 	}
 
 	// ---- [ Node spot price ] ---- //
 	if len(a.SpotPrice) == 0 {
 		a.SpotPrice = DefaultSpotPrice
+	}
+
+	return nil
+}
+
+// ValidateForUpdate checks Amazon's node fields
+func (a *NodePool) ValidateForUpdate() error {
+
+	// ---- [ Min & Max count fields are required in case of autoscaling ] ---- //
+	if a.Autoscaling {
+
+		if a.MinCount == 0 {
+			return pkgErrors.ErrorMinFieldRequiredError
+		}
+		if a.MaxCount == 0 {
+			return pkgErrors.ErrorMaxFieldRequiredError
+		}
+
+	} else {
+		// ---- [ Node min count check ] ---- //
+		if a.MinCount == 0 {
+			a.MinCount = pkgCommon.DefaultNodeMinCount
+		}
+
+		// ---- [ Node max count check ] ---- //
+		if a.MaxCount == 0 {
+			a.MaxCount = pkgCommon.DefaultNodeMaxCount
+		}
+	}
+
+	// ---- [ Node min count <= max count check ] ---- //
+	if a.MaxCount < a.MinCount {
+		return pkgErrors.ErrorNodePoolMinMaxFieldError
+	}
+
+	if a.Count == 0 {
+		a.Count = a.MinCount
+	} else {
+		if a.Count < a.MinCount || a.Count > a.MaxCount {
+			return pkgErrors.ErrorNodePoolCountFieldError
+		}
 	}
 
 	return nil

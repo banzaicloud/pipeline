@@ -19,6 +19,7 @@ var log *logrus.Logger
 const (
 	DefaultAmazonProfileTablaName         = "amazon_default_profile"
 	DefaultAmazonNodePoolProfileTablaName = "amazon_nodepool_default_profile"
+	DefaultAmazonEksProfileTablaName      = "amazon_eks_default_profile"
 	DefaultAzureProfileTablaName          = "azure_default_profile"
 	DefaultAzureNodePoolProfileTablaName  = "azure_nodepool_default_profile"
 	DefaultGoogleProfileTablaName         = "google_default_profile"
@@ -95,6 +96,11 @@ func GetDefaultProfiles() []ClusterProfile {
 				NodeName: DefaultNodeName,
 			}},
 		},
+		&EKSProfile{DefaultModel: DefaultModel{Name: GetDefaultProfileName()},
+			NodePools: []*AWSNodePoolProfile{{
+				NodeName: DefaultNodeName,
+			}},
+		},
 		&AKSProfile{
 			DefaultModel: DefaultModel{Name: GetDefaultProfileName()},
 			NodePools: []*AKSNodePoolProfile{{
@@ -129,6 +135,13 @@ func GetAllProfiles(cloudType string) ([]ClusterProfile, error) {
 		db.Find(&awsProfiles)
 		for i := range awsProfiles {
 			defaults = append(defaults, &awsProfiles[i])
+		}
+
+	case pkgCluster.AmazonEKS:
+		var eksProfiles []EKSProfile
+		db.Find(&eksProfiles)
+		for i := range eksProfiles {
+			defaults = append(defaults, &eksProfiles[i])
 		}
 
 	case pkgCluster.Azure:

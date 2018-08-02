@@ -8,7 +8,7 @@ import (
 // Init initializes the models
 func Init(logger *logrus.Entry) error {
 
-	logger.Info("Create Oracle provider table(s):",
+	logger.Infoln("Create Oracle provider table(s):",
 		Cluster.TableName(Cluster{}),
 		NodePool.TableName(NodePool{}),
 		NodePoolSubnet.TableName(NodePoolSubnet{}),

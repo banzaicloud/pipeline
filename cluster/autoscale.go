@@ -53,11 +53,17 @@ type autoscalingInfo struct {
 	Rbac              rbac              `json:"rbac"`
 	AwsRegion         string            `json:"awsRegion"`
 	Azure             azureInfo         `json:"azure"`
+	AutoDiscovery     map[string]string `json:"autoDiscovery"`
+	SslCertPath       string            `json:"sslCertPath"`
 }
 
 func getAmazonNodeGroups(cluster CommonCluster) []nodeGroup {
 	var nodeGroups []nodeGroup
-	for _, nodePool := range cluster.GetModel().Amazon.NodePools {
+	nodePools := cluster.GetModel().Eks.NodePools
+	if len(nodePools) == 0 {
+		nodePools = cluster.GetModel().Amazon.NodePools
+	}
+	for _, nodePool := range nodePools {
 		if nodePool.Autoscaling {
 			nodeGroups = append(nodeGroups, nodeGroup{
 				Name:    cluster.GetName() + ".node." + nodePool.Name,
@@ -83,7 +89,7 @@ func getAzureNodeGroups(cluster CommonCluster) []nodeGroup {
 	return nodeGroups
 }
 
-func createAutoscalingForAmazon(cluster CommonCluster, groups []nodeGroup) *autoscalingInfo {
+func createAutoscalingForEc2(cluster CommonCluster, groups []nodeGroup) *autoscalingInfo {
 	return &autoscalingInfo{
 		CloudProvider:     cloudProviderAws,
 		AutoscalingGroups: groups,
@@ -93,6 +99,22 @@ func createAutoscalingForAmazon(cluster CommonCluster, groups []nodeGroup) *auto
 		},
 		Rbac:      rbac{Create: true},
 		AwsRegion: cluster.GetModel().Location,
+	}
+}
+
+func createAutoscalingForEks(cluster CommonCluster, groups []nodeGroup) *autoscalingInfo {
+	return &autoscalingInfo{
+		CloudProvider: cloudProviderAws,
+		ExtraArgs: map[string]string{
+			"v":        logLevel,
+			"expander": expanderStrategy,
+		},
+		Rbac:      rbac{Create: true},
+		AwsRegion: cluster.GetModel().Location,
+		AutoDiscovery: map[string]string{
+			"clusterName": cluster.GetName(),
+		},
+		SslCertPath: "/etc/ssl/certs/ca-bundle.crt",
 	}
 }
 
@@ -157,13 +179,14 @@ func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup) *autos
 	}
 }
 
-//DeployClusterAutoscaler post hook only for AWS & Azure for now
+//DeployClusterAutoscaler post hook only for AWS & EKS & Azure for now
 func DeployClusterAutoscaler(cluster CommonCluster) error {
 
 	var nodeGroups []nodeGroup
 
 	switch cluster.GetType() {
 	case pkgCluster.Amazon:
+		// nodeGroups are the same for EKS & EC2
 		nodeGroups = getAmazonNodeGroups(cluster)
 	case pkgCluster.Azure:
 		nodeGroups = getAzureNodeGroups(cluster)
@@ -178,6 +201,10 @@ func DeployClusterAutoscaler(cluster CommonCluster) error {
 	}
 
 	if isAutoscalerDeployedAlready(releaseName, kubeConfig) {
+		// no need to upgrade in case of EKS since we're using nodepool autodiscovery
+		if _, isEks := cluster.(*EKSCluster); isEks {
+			return nil
+		}
 		if len(nodeGroups) == 0 {
 			// delete
 			err := helm.DeleteDeployment(releaseName, kubeConfig)
@@ -221,7 +248,11 @@ func deployAutoscalerChart(cluster CommonCluster, nodeGroups []nodeGroup, kubeCo
 	var values *autoscalingInfo
 	switch cluster.GetType() {
 	case pkgCluster.Amazon:
-		values = createAutoscalingForAmazon(cluster, nodeGroups)
+		if _, isEks := cluster.(*EKSCluster); isEks {
+			values = createAutoscalingForEks(cluster, nodeGroups)
+		} else {
+			values = createAutoscalingForEc2(cluster, nodeGroups)
+		}
 	case pkgCluster.Azure:
 		values = createAutoscalingForAzure(cluster, nodeGroups)
 	default:

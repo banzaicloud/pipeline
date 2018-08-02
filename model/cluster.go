@@ -21,6 +21,7 @@ const (
 	TableNameClusters             = "clusters"
 	TableNameAmazonProperties     = "amazon_cluster_properties"
 	TableNameAmazonNodePools      = "amazon_node_pools"
+	TableNameAmazonEksProperties  = "amazon_eks_cluster_properties"
 	TableNameAzureProperties      = "azure_cluster_properties"
 	TableNameAzureNodePools       = "azure_node_pools"
 	TableNameGoogleProperties     = "google_cluster_properties"
@@ -48,6 +49,7 @@ type ClusterModel struct {
 	StatusMessage  string `sql:"type:text;"`
 	Amazon         AmazonClusterModel
 	Azure          AzureClusterModel
+	Eks            AmazonEksClusterModel
 	Google         GoogleClusterModel
 	Dummy          DummyClusterModel
 	Kubernetes     KubernetesClusterModel
@@ -79,6 +81,14 @@ type AmazonNodePoolsModel struct {
 	NodeImage        string
 	NodeInstanceType string
 	Delete           bool `gorm:"-"`
+}
+
+//AmazonEksClusterModel describes the amazon cluster model
+type AmazonEksClusterModel struct {
+	ClusterModelId uint                    `gorm:"primary_key"`
+	Version        string                  //kubernetes "1.10"
+	NodePools      []*AmazonNodePoolsModel `gorm:"foreignkey:ClusterModelId"`
+	AccessKeyID    string
 }
 
 //AzureClusterModel describes the azure cluster model
@@ -282,6 +292,11 @@ func (AmazonNodePoolsModel) TableName() string {
 	return TableNameAmazonNodePools
 }
 
+// TableName sets AmazonEksClusterModel's table name
+func (AmazonEksClusterModel) TableName() string {
+	return TableNameAmazonEksProperties
+}
+
 // TableName sets AzureClusterModel's table name
 func (AzureClusterModel) TableName() string {
 	return TableNameAzureProperties
@@ -327,6 +342,23 @@ func (gc *GoogleClusterModel) AfterUpdate(scope *gorm.Scope) error {
 	log.Info("Remove node pools marked for deletion")
 
 	for _, nodePoolModel := range gc.NodePools {
+		if nodePoolModel.Delete {
+			err := scope.DB().Delete(nodePoolModel).Error
+
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+// AfterUpdate removes marked node pool(s)
+func (a *AmazonEksClusterModel) AfterUpdate(scope *gorm.Scope) error {
+	log.Info("Remove node pools marked for deletion")
+
+	for _, nodePoolModel := range a.NodePools {
 		if nodePoolModel.Delete {
 			err := scope.DB().Delete(nodePoolModel).Error
 

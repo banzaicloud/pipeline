@@ -8,6 +8,7 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/amazon"
 	"github.com/banzaicloud/pipeline/pkg/cluster/azure"
+	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/google"
 	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster"
 	"github.com/sirupsen/logrus"
@@ -136,6 +137,7 @@ func (d *Profile) GetProfile() *pkgCluster.ClusterProfileResponse {
 		Properties: struct {
 			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
 			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
+			Eks    *eks.ClusterProfileEks       `json:"eks,omitempty"`
 			Google *google.ClusterProfileGoogle `json:"google,omitempty"`
 			Oracle *oracle.Cluster              `json:"oracle,omitempty"`
 		}{
