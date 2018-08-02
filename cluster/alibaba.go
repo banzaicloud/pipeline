@@ -22,6 +22,7 @@ import (
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
+	"github.com/banzaicloud/pipeline/utils"
 	"github.com/jmespath/go-jmespath"
 	"github.com/pkg/errors"
 )
@@ -173,7 +174,7 @@ func (c *AlibabaCluster) GetAlibabaECSClient(cfg *sdk.Config) (*ecs.Client, erro
 	return verify.CreateAlibabaECSClient(cred, c.modelCluster.Alibaba.RegionID, cfg)
 }
 
-func createAlibabaNodePoolsModelFromRequestData(pools alibaba.NodePools) ([]*model.AlibabaNodePoolModel, error) {
+func createAlibabaNodePoolsModelFromRequestData(pools alibaba.NodePools, userId uint) ([]*model.AlibabaNodePoolModel, error) {
 	nodePoolsCount := len(pools)
 	if nodePoolsCount == 0 {
 		return nil, pkgErrors.ErrorNodePoolNotProvided
@@ -183,6 +184,7 @@ func createAlibabaNodePoolsModelFromRequestData(pools alibaba.NodePools) ([]*mod
 	var i int
 	for _, pool := range pools {
 		res[i] = &model.AlibabaNodePoolModel{
+			CreatedBy:                userId,
 			WorkerInstanceType:       pool.WorkerInstanceType,
 			WorkerSystemDiskCategory: pool.WorkerSystemDiskCategory,
 			WorkerSystemDiskSize:     pool.WorkerSystemDiskSize,
@@ -204,11 +206,11 @@ func CreateAlibabaClusterFromModel(clusterModel *model.ClusterModel) (*AlibabaCl
 	return &alibabaCluster, nil
 }
 
-func CreateAlibabaClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint) (*AlibabaCluster, error) {
+func CreateAlibabaClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId, userId uint) (*AlibabaCluster, error) {
 	log.Debug("Create ClusterModel struct from the request")
 	var cluster AlibabaCluster
 
-	nodePools, err := createAlibabaNodePoolsModelFromRequestData(request.Properties.CreateClusterAlibaba.NodePools)
+	nodePools, err := createAlibabaNodePoolsModelFromRequestData(request.Properties.CreateClusterAlibaba.NodePools, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -521,6 +523,7 @@ func (c *AlibabaCluster) DeleteCluster() error {
 				return nil
 			}
 		}
+		log.Error("DeleteClusterResponse: %#v\n", resp)
 		return err
 	}
 
@@ -550,15 +553,27 @@ func (c *AlibabaCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest,
 		ImageID:                  c.modelCluster.Alibaba.NodePools[0].ImageID,
 		NumOfNodes:               c.modelCluster.Alibaba.NodePools[0].NumOfNodes,
 	}
+
+	// TODO missing merge of request and existing attributes
+
 	p, err := json.Marshal(&params)
+	if err != nil {
+		return err
+	}
 
 	setEndpoint(req)
 	setJSONContent(req, p)
 
 	resp, err := client.ScaleCluster(req)
+	if err != nil {
+		return err
+	}
 
 	var r alibabaClusterCreateResponse
 	err = json.Unmarshal(resp.GetHttpContentBytes(), &r)
+	if err != nil {
+		return err
+	}
 
 	cluster, err := waitForClusterState(client, r.ClusterID)
 	if err != nil {
@@ -590,12 +605,36 @@ func (c *AlibabaCluster) GetModel() *model.ClusterModel {
 	return c.modelCluster
 }
 
-func (c *AlibabaCluster) CheckEqualityToUpdate(*pkgCluster.UpdateClusterRequest) error {
-	panic("implement me")
+func (c *AlibabaCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) error {
+	// create update request struct with the stored data to check equality
+
+	preNodePools := make(map[string]*alibaba.NodePool)
+	for _, preNp := range c.modelCluster.Alibaba.NodePools {
+		preNodePools[preNp.Name] = &alibaba.NodePool{
+			WorkerInstanceType:       preNp.WorkerInstanceType,
+			WorkerSystemDiskCategory: preNp.WorkerSystemDiskCategory,
+			WorkerSystemDiskSize:     preNp.WorkerSystemDiskSize,
+			ImageID:                  preNp.ImageID,
+			NumOfNodes:               preNp.NumOfNodes,
+		}
+	}
+
+	preCl := &alibaba.UpdateClusterAlibaba{
+		NodePools: preNodePools,
+	}
+
+	log.Info("Check stored & updated cluster equals")
+
+	// check equality
+	return utils.IsDifferent(r.Alibaba, preCl)
 }
 
-func (c *AlibabaCluster) AddDefaultsToUpdate(*pkgCluster.UpdateClusterRequest) {
-	panic("implement me")
+func (c *AlibabaCluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
+	for _, np := range r.Alibaba.NodePools {
+		if np.ImageID == "" {
+			np.ImageID = alibaba.DefaultImage
+		}
+	}
 }
 
 func (c *AlibabaCluster) GetAPIEndpoint() (string, error) {

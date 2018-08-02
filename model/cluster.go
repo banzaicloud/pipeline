@@ -20,6 +20,7 @@ const unknown = "unknown"
 const (
 	TableNameClusters             = "clusters"
 	TableNameAlibabaProperties    = "alibaba_cluster_properties"
+	TableNameAlibabaNodePools     = "alibaba_node_pools"
 	TableNameAmazonProperties     = "amazon_cluster_properties"
 	TableNameAmazonNodePools      = "amazon_node_pools"
 	TableNameAmazonEksProperties  = "amazon_eks_cluster_properties"
@@ -64,6 +65,11 @@ type ClusterModel struct {
 
 // AlibabaNodePoolModel describes Alibaba node groups model of a cluster
 type AlibabaNodePoolModel struct {
+	ID                       uint `gorm:"primary_key"`
+	CreatedAt                time.Time
+	CreatedBy                uint
+	ClusterModelId           uint   `gorm:"unique_index:idx_modelid_name"`
+	Name                     string `gorm:"unique_index:idx_modelid_name"`
 	WorkerInstanceType       string
 	WorkerSystemDiskCategory string
 	WorkerSystemDiskSize     int
@@ -338,6 +344,11 @@ func (cs *ClusterModel) String() string {
 // TableName sets AlibabaClusterModel's table name
 func (AlibabaClusterModel) TableName() string {
 	return TableNameAlibabaProperties
+}
+
+// TableName sets AlibabaNodePoolModel's table name
+func (AlibabaNodePoolModel) TableName() string {
+	return TableNameAlibabaNodePools
 }
 
 // TableName sets AmazonClusterModel's table name

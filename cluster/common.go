@@ -341,7 +341,7 @@ func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClust
 	switch cloudType {
 	case pkgCluster.Alibaba:
 		//Create Amazon struct
-		alibabaCluster, err := CreateAlibabaClusterFromRequest(createClusterRequest, orgId)
+		alibabaCluster, err := CreateAlibabaClusterFromRequest(createClusterRequest, orgId, userId)
 		if err != nil {
 			return nil, err
 		}
