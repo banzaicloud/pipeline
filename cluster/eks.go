@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
+	"errors"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -443,7 +444,8 @@ func (e *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 
 	actions := make([]utils.Action, 0, len(updateRequest.Eks.NodePools))
 
-	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(e.modelCluster.Name + "-pipeline-eks")}
+	clusterStackName := e.generateStackNameForCluster()
+	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(clusterStackName)}
 	cloudformationSrv := cloudformation.New(session)
 	autoscalingSrv := autoscaling.New(session)
 	describeStacksOutput, err := cloudformationSrv.DescribeStacks(describeStacksInput)
@@ -463,21 +465,26 @@ func (e *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 		}
 	}
 
+	if len(securityGroupId) == 0 {
+		return errors.New("securityGroupId output not found on stack: " + clusterStackName)
+	}
+	if len(vpcId) == 0 {
+		return errors.New("vpcId output not found on stack: " + clusterStackName)
+	}
+	if len(subnetIds) == 0 {
+		return errors.New("subnetIds output not found on stack: " + clusterStackName)
+	}
+
 	modelNodePools, err := createNodePoolsFromUpdateRequest(updateRequest.Eks.NodePools, e.modelCluster.Eks.NodePools, updatedBy)
 	if err != nil {
 		return err
-	}
-
-	subnetIDs := make([]*string, 0)
-	for _, subnetId := range strings.Split(subnetIds, ",") {
-		subnetIDs = append(subnetIDs, &subnetId)
 	}
 
 	createUpdateContext := action.NewEksClusterUpdateContext(
 		session,
 		e.modelCluster.Name,
 		&securityGroupId,
-		subnetIDs,
+		aws.StringSlice(strings.Split(subnetIds, ",")),
 		e.generateSSHKeyNameForCluster(),
 		&vpcId)
 
@@ -492,14 +499,14 @@ func (e *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 		describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(stackName)}
 		describeStacksOutput, err := cloudformationSrv.DescribeStacks(describeStacksInput)
 		if err == nil {
-
+			// delete nodePool
 			if nodePool.Delete {
 				log.Infof("nodePool %v exists will be deleted", nodePool.Name)
 				deleteStackAction := action.NewDeleteStackAction(deleteContext, e.generateNodePoolStackName(nodePool.Name))
 				actions = append(actions, deleteStackAction)
 				continue
 			}
-
+			// update nodePool
 			log.Infof("nodePool %v already exists will be updated", nodePool.Name)
 			// load params which are not updatable from nodeGroup Stack
 			for _, param := range describeStacksOutput.Stacks[0].Parameters {
@@ -514,16 +521,27 @@ func (e *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 			}
 			// get current Desired count from ASG linked to nodeGroup stack if Autoscaling is enabled, as we don't to override
 			// in this case only min/max counts
-			if nodePool.Autoscaling {
-				asgCurrentDesiredSize, err := getAsgSize(cloudformationSrv, autoscalingSrv, stackName)
-				if err != nil {
-					log.Warnf("unable to load desiredSize from Asg: %v", err.Error())
-					nodePool.Count = nodePool.NodeMinCount
-					log.Warnf("setting desiredCount to minCount %v", nodePool.Count)
-				} else if asgCurrentDesiredSize != nil {
-					nodePool.Count = int(*asgCurrentDesiredSize)
-				}
+			group, err := getAutoScalingGroup(cloudformationSrv, autoscalingSrv, stackName)
+			if err != nil {
+				log.Errorf("unable to find Asg for stack: %v", stackName)
+				return err
 			}
+
+			// override nodePool.Count with current DesiredCapacity in case of autoscale, as we don't want allow direct
+			// setting of DesiredCapacity via API, however we have to limit it to be between new min, max values.
+			if nodePool.Autoscaling {
+				if group.DesiredCapacity != nil {
+					nodePool.Count = int(*group.DesiredCapacity)
+				}
+				if nodePool.Count < nodePool.NodeMinCount {
+					nodePool.Count = nodePool.NodeMinCount
+				}
+				if nodePool.Count > nodePool.NodeMaxCount {
+					nodePool.Count = nodePool.NodeMaxCount
+				}
+				log.Infof("DesiredCapacity for %v will be: %v", *group.AutoScalingGroupARN, nodePool.Count)
+			}
+
 			updateStackAction := action.NewCreateUpdateNodePoolStackAction(false, createUpdateContext, e.generateNodePoolStackName(nodePool.Name), nodePool)
 			actions = append(actions, updateStackAction)
 		} else {
@@ -531,12 +549,10 @@ func (e *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 				log.Warnf("nodePool %v to be deleted doesn't exists: %v", nodePool.Name, err)
 				continue
 			}
-
+			// create nodePool
 			log.Infof("nodePool %v doesn't exists will be created", nodePool.Name)
-
 			createNodePoolAction := action.NewCreateUpdateNodePoolStackAction(true, createUpdateContext, e.generateNodePoolStackName(nodePool.Name), nodePool)
 			actions = append(actions, createNodePoolAction)
-
 		}
 	}
 
@@ -577,7 +593,7 @@ func (e *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 	return nil
 }
 
-func getAsgSize(cloudformationSrv *cloudformation.CloudFormation, autoscalingSrv *autoscaling.AutoScaling, stackName string) (*int64, error) {
+func getAutoScalingGroup(cloudformationSrv *cloudformation.CloudFormation, autoscalingSrv *autoscaling.AutoScaling, stackName string) (*autoscaling.Group, error) {
 	logResourceId := "NodeGroup"
 	describeStackResourceInput := &cloudformation.DescribeStackResourceInput{
 		LogicalResourceId: &logResourceId,
@@ -597,7 +613,7 @@ func getAsgSize(cloudformationSrv *cloudformation.CloudFormation, autoscalingSrv
 		return nil, err
 	}
 
-	return describeAutoScalingGroupsOutput.AutoScalingGroups[0].DesiredCapacity, nil
+	return describeAutoScalingGroupsOutput.AutoScalingGroups[0], nil
 }
 
 // GenerateK8sConfig generates kube config for this EKS cluster which authenticates through the aws-iam-authenticator,
@@ -690,8 +706,8 @@ func (e *EKSCluster) GetModel() *model.ClusterModel {
 }
 
 // CheckEqualityToUpdate validates the update request
-func (e *EKSCluster) CheckEqualityToUpdate(*pkgCluster.UpdateClusterRequest) error {
-	return nil //TODO missing
+func (e *EKSCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) error {
+	return CheckEqualityToUpdate(r, e.modelCluster.Eks.NodePools)
 }
 
 // AddDefaultsToUpdate adds defaults to update request

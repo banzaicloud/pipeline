@@ -1,7 +1,7 @@
 {
 	"info": {
 		"name": "End2End TEST Organizations",
-		"_postman_id": "bda35648-8d4e-c280-507a-c3adfbeb317d",
+		"_postman_id": "e93c60ce-4784-1d35-169a-1f368b0f5ff1",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -882,7 +882,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"cloud\": \"eks\",\n\t\"properties\": {\n\t\t\"eks\": {\n\t\t\t\"nodePools\": {\n\t\t\t\t\"pool1\": {\n            \t\t\"autoscaling\": true, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 3\n            \t},\n            \t\"newpool1\": {\n            \t\t\"autoscaling\": true, \n            \t\t\"instanceType\": \"m4.xlarge\",\n\t            \t\"spotPrice\": \"0.2\",\n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n\t                \"image\": \"ami-4d485ca7\"\t\n            \t}\n\t\t\t}\n\t\t}\n\t}\n}"
+							"raw": "{\n\t\"cloud\": \"amazon\",\n\t\"properties\": {\n\t\t\"eks\": {\n\t\t\t\"nodePools\": {\n\t\t\t\t\"pool1\": {\n            \t\t\"autoscaling\": true, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 3\n            \t},\n            \t\"newpool1\": {\n            \t\t\"autoscaling\": true, \n            \t\t\"instanceType\": \"m4.xlarge\",\n\t            \t\"spotPrice\": \"0.2\",\n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n\t                \"image\": \"ami-4d485ca7\"\t\n            \t}\n\t\t\t}\n\t\t}\n\t}\n}"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/{{orgId}}/clusters/{{cluster_id}}",
