@@ -242,3 +242,8 @@ func (b *KubeCluster) ReloadFromDatabase() error {
 func (b *KubeCluster) ListNodeNames() (nodeNames pkgCommon.NodeNames, err error) {
 	return
 }
+
+// RbacEnabled returns true if rbac enabled on the cluster
+func (b *KubeCluster) RbacEnabled() bool {
+	return b.modelCluster.RbacEnabled
+}

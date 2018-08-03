@@ -2244,3 +2244,8 @@ func (g *GKECluster) ListNodeNames() (nodeNames pkgCommon.NodeNames, err error) 
 	// nodes are labeled in create request
 	return
 }
+
+// RbacEnabled returns true if rbac enabled on the cluster
+func (g *GKECluster) RbacEnabled() bool {
+	return g.modelCluster.RbacEnabled
+}

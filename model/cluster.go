@@ -44,6 +44,7 @@ type ClusterModel struct {
 	ConfigSecretId string
 	SshSecretId    string
 	Status         string
+	RbacEnabled    bool
 	Monitoring     bool
 	Logging        bool
 	StatusMessage  string `sql:"type:text;"`
