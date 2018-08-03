@@ -517,3 +517,8 @@ func (o *OKECluster) ListNodeNames() (nodeNames pkgCommon.NodeNames, err error) 
 	// nodes are labeled in create request
 	return
 }
+
+// RbacEnabled returns true if rbac enabled on the cluster
+func (o *OKECluster) RbacEnabled() bool {
+	return o.modelCluster.RbacEnabled
+}

@@ -752,3 +752,8 @@ func (c *AKSCluster) ListNodeNames() (labels pkgCommon.NodeNames, err error) {
 
 	return
 }
+
+// RbacEnabled returns true if rbac enabled on the cluster
+func (c *AKSCluster) RbacEnabled() bool {
+	return c.modelCluster.RbacEnabled
+}

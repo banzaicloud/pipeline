@@ -135,11 +135,20 @@ func InstallMonitoring(input interface{}) error {
 	}
 	log.Debugf("Grafana Secret Stored id: %s", secretID)
 
-	grafanaValues := map[string]map[string]string{
-		"grafana": {
+	orgId := cluster.GetOrganizationId()
+	org, err := auth.GetOrganizationById(orgId)
+	if err != nil {
+		log.Errorf("Retrieving organization with id %d failed: %s", orgId, err.Error())
+		return err
+	}
+
+	domain := fmt.Sprintf("%s.%s", org.Name, viper.GetString(pipConfig.DNSBaseDomain))
+	grafanaValues := map[string]interface{}{
+		"grafana": map[string]string{
 			"adminUser":     grafanaAdminUsername,
 			"adminPassword": grafanaAdminPass,
 		},
+		"ingress": map[string][]string{"hosts": {fmt.Sprintf("%s.%s", org.Name, domain)}},
 	}
 	grafanaValuesJson, err := json.Marshal(grafanaValues)
 	if err != nil {
@@ -500,14 +509,19 @@ func RegisterDomainPostHook(input interface{}) error {
 
 	log.Info("route53 secret successfully installed into cluster.")
 
-	externalDnsValues := map[string]map[string]string{
-		"aws": {
-			"secretKey":     route53Secret.Values[pkgSecret.AwsSecretAccessKey],
-			"accessKey":     route53Secret.Values[pkgSecret.AwsAccessKeyId],
-			"region":        route53Secret.Values[pkgSecret.AwsRegion],
-			"domainFilters": domain,
+	externalDnsValues := map[string]interface{}{
+		"rbac": map[string]bool{
+			"create": commonCluster.RbacEnabled() == true,
 		},
+		"aws": map[string]string{
+			"secretKey": route53Secret.Values[pkgSecret.AwsSecretAccessKey],
+			"accessKey": route53Secret.Values[pkgSecret.AwsAccessKeyId],
+			"region":    route53Secret.Values[pkgSecret.AwsRegion],
+		},
+		"domainFilters": []string{domain},
+		"policy":        "sync",
 	}
+
 	externalDnsValuesJson, err := json.Marshal(externalDnsValues)
 	if err != nil {
 		return errors.Errorf("Json Convert Failed : %s", err.Error())

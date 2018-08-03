@@ -273,3 +273,8 @@ func (d *DummyCluster) ReloadFromDatabase() error {
 func (d *DummyCluster) ListNodeNames() (nodeNames pkgCommon.NodeNames, err error) {
 	return
 }
+
+// RbacEnabled returns true if rbac enabled on the cluster
+func (d *DummyCluster) RbacEnabled() bool {
+	return d.modelCluster.RbacEnabled
+}
