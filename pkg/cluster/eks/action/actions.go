@@ -2,9 +2,10 @@ package action
 
 import (
 	"fmt"
-	"time"
-
 	"strconv"
+	"strings"
+	"sync"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -23,7 +24,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
-	"strings"
 )
 
 var log *logrus.Logger
@@ -39,6 +39,7 @@ func init() {
 
 // EksClusterCreateUpdateContext describes the properties of an EKS cluster creation
 type EksClusterCreateUpdateContext struct {
+	sync.Mutex
 	Session                  *session.Session
 	ClusterName              string
 	NodeInstanceRoles        []string
@@ -227,7 +228,7 @@ func (action *CreateVPCAction) ExecuteAction(input interface{}) (output interfac
 	log.Infoln("Getting CloudFormation template for creating VPC for EKS cluster")
 	templateBody, err := pkgEks.GetVPCTemplate()
 	if err != nil {
-		log.Errorln("Getting CloudFormation template for VPC failed: ", err.Error())
+		log.Errorln("Getting CloudFormation template for VPC failed:", err.Error())
 		return nil, err
 	}
 
@@ -512,40 +513,25 @@ var _ utils.RevocableAction = (*CreateUpdateNodePoolStackAction)(nil)
 
 // CreateUpdateNodePoolStackAction describes the properties of a nodePool VPC creation
 type CreateUpdateNodePoolStackAction struct {
-	context          *EksClusterCreateUpdateContext
-	isCreate         bool
-	stackName        string
-	nodePoolName     string
-	scalingMinSize   int
-	scalingMaxSize   int
-	scalingInitSize  int
-	autoScaling      bool
-	nodeInstanceType string
-	nodeImageId      string
-	nodeSpotPrice    string
-	//describeStacksTimeInterval time.Duration
-	//stackCreationTimeout       time.Duration
+	context   *EksClusterCreateUpdateContext
+	isCreate  bool
+	nodePools []*model.AmazonNodePoolsModel
 }
 
 // NewCreateUpdateNodePoolStackAction creates a new CreateUpdateNodePoolStackAction
 func NewCreateUpdateNodePoolStackAction(
 	isCreate bool,
 	creationContext *EksClusterCreateUpdateContext,
-	stackName string,
-	nodePool *model.AmazonNodePoolsModel) *CreateUpdateNodePoolStackAction {
+	nodePools ...*model.AmazonNodePoolsModel) *CreateUpdateNodePoolStackAction {
 	return &CreateUpdateNodePoolStackAction{
-		context:          creationContext,
-		isCreate:         isCreate,
-		stackName:        stackName,
-		nodePoolName:     nodePool.Name,
-		scalingMinSize:   nodePool.NodeMinCount,
-		scalingMaxSize:   nodePool.NodeMaxCount,
-		scalingInitSize:  nodePool.Count,
-		autoScaling:      nodePool.Autoscaling,
-		nodeInstanceType: nodePool.NodeInstanceType,
-		nodeImageId:      nodePool.NodeImage,
-		nodeSpotPrice:    nodePool.NodeSpotPrice,
+		context:   creationContext,
+		isCreate:  isCreate,
+		nodePools: nodePools,
 	}
+}
+
+func (action *CreateUpdateNodePoolStackAction) generateStackName(nodePool *model.AmazonNodePoolsModel) string {
+	return action.context.ClusterName + "-pipeline-eks-nodepool-" + nodePool.Name
 }
 
 // GetName return the name of this action
@@ -553,176 +539,210 @@ func (action *CreateUpdateNodePoolStackAction) GetName() string {
 	return "CreateUpdateNodePoolStackAction"
 }
 
-// ExecuteAction executes the CreateUpdateNodePoolStackAction
+// ExecuteAction executes the CreateUpdateNodePoolStackAction in parallel for each node pool
 func (action *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (output interface{}, err error) {
-	if action.isCreate {
-		log.Infof("EXECUTE CreateUpdateNodePoolStackAction, create stack name: %v", action.stackName)
-	} else {
-		log.Infof("EXECUTE CreateUpdateNodePoolStackAction, update stack name: %v", action.stackName)
-	}
 
-	templateBody := ""
-	if action.isCreate {
-		log.Infoln("Getting CloudFormation template for creating node pools for EKS cluster")
-		templateBody, err = pkgEks.GetNodePoolTemplate()
-		if err != nil {
-			log.Errorln("Getting CloudFormation template for node pools failed: ", err.Error())
-			return nil, err
-		}
-	}
+	errorChan := make(chan error, len(action.nodePools))
 
-	commaDelimitedSubnetIDs := ""
-	for i, subnetID := range action.context.SubnetIDs {
-		commaDelimitedSubnetIDs = commaDelimitedSubnetIDs + *subnetID
-		if i != len(action.context.SubnetIDs)-1 {
-			commaDelimitedSubnetIDs = commaDelimitedSubnetIDs + ","
-		}
-	}
+	for _, nodePool := range action.nodePools {
 
-	tags := []*cloudformation.Tag{
-		{Key: aws.String("pipeline-created"), Value: aws.String("true")},
-	}
+		go func(nodePool *model.AmazonNodePoolsModel) {
 
-	if action.autoScaling {
-		tags = append(tags, &cloudformation.Tag{Key: aws.String("k8s.io/cluster-autoscaler/enabled"), Value: aws.String("true")})
-	}
+			stackName := action.generateStackName(nodePool)
 
-	spotPriceParam := ""
-	if p, err := strconv.ParseFloat(action.nodeSpotPrice, 64); err == nil && p > 0.0 {
-		spotPriceParam = action.nodeSpotPrice
-	}
-
-	stackParams := []*cloudformation.Parameter{
-		{
-			ParameterKey:   aws.String("KeyName"),
-			ParameterValue: aws.String(action.context.SSHKeyName),
-		},
-		{
-			ParameterKey:   aws.String("NodeImageId"),
-			ParameterValue: aws.String(action.nodeImageId),
-		},
-		{
-			ParameterKey:   aws.String("NodeInstanceType"),
-			ParameterValue: aws.String(action.nodeInstanceType),
-		},
-		{
-			ParameterKey:   aws.String("NodeSpotPrice"),
-			ParameterValue: aws.String(spotPriceParam),
-		},
-		{
-			ParameterKey:   aws.String("NodeAutoScalingGroupMinSize"),
-			ParameterValue: aws.String(fmt.Sprintf("%d", action.scalingMinSize)),
-		},
-		{
-			ParameterKey:   aws.String("NodeAutoScalingGroupMaxSize"),
-			ParameterValue: aws.String(fmt.Sprintf("%d", action.scalingMaxSize)),
-		},
-		{
-			ParameterKey:   aws.String("NodeAutoScalingInitSize"),
-			ParameterValue: aws.String(fmt.Sprintf("%d", action.scalingInitSize)),
-		},
-		{
-			ParameterKey:   aws.String("ClusterName"),
-			ParameterValue: aws.String(action.context.ClusterName),
-		},
-		{
-			ParameterKey:   aws.String("NodeGroupName"),
-			ParameterValue: aws.String(action.nodePoolName),
-		},
-		{
-			ParameterKey:   aws.String("ClusterControlPlaneSecurityGroup"),
-			ParameterValue: action.context.SecurityGroupID,
-		},
-		{
-			ParameterKey:   aws.String("VpcId"),
-			ParameterValue: action.context.VpcID,
-		}, {
-			ParameterKey:   aws.String("Subnets"),
-			ParameterValue: aws.String(commaDelimitedSubnetIDs),
-		},
-	}
-
-	cloudformationSrv := cloudformation.New(action.context.Session)
-
-	waitOnCreateUpdte := true
-
-	// create stack
-	if action.isCreate {
-		createStackInput := &cloudformation.CreateStackInput{
-			ClientRequestToken: aws.String(uuid.NewV4().String()),
-			DisableRollback:    aws.Bool(false),
-			StackName:          aws.String(action.stackName),
-			Capabilities:       []*string{aws.String(cloudformation.CapabilityCapabilityIam)},
-			Parameters:         stackParams,
-			Tags:               tags,
-			TemplateBody:       aws.String(templateBody),
-			TimeoutInMinutes:   aws.Int64(10),
-		}
-		_, err = cloudformationSrv.CreateStack(createStackInput)
-		if err != nil {
-			return
-		}
-	} else {
-		// update stack
-		reuseTemplate := true
-		updateStackInput := &cloudformation.UpdateStackInput{
-			ClientRequestToken:  aws.String(uuid.NewV4().String()),
-			StackName:           aws.String(action.stackName),
-			Capabilities:        []*string{aws.String(cloudformation.CapabilityCapabilityIam)},
-			Parameters:          stackParams,
-			Tags:                tags,
-			UsePreviousTemplate: &reuseTemplate,
-		}
-
-		_, err = cloudformationSrv.UpdateStack(updateStackInput)
-		if err != nil {
-			if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "ValidationError" && strings.HasPrefix(awsErr.Message(), awsNoUpdatesError) {
-				// Get error details
-				log.Warnf("Nothing changed during update!")
-				waitOnCreateUpdte = false
-				err = nil
+			if action.isCreate {
+				log.Infoln("EXECUTE CreateUpdateNodePoolStackAction, create stack name:", stackName)
 			} else {
-				return nil, err
+				log.Infoln("EXECUTE CreateUpdateNodePoolStackAction, update stack name:", stackName)
 			}
+
+			templateBody := ""
+			if action.isCreate {
+				log.Infoln("Getting CloudFormation template for creating node pools for EKS cluster")
+				templateBody, err = pkgEks.GetNodePoolTemplate()
+				if err != nil {
+					log.Errorln("Getting CloudFormation template for node pools failed: ", err.Error())
+					errorChan <- err
+					return
+				}
+			}
+
+			commaDelimitedSubnetIDs := ""
+			for i, subnetID := range action.context.SubnetIDs {
+				commaDelimitedSubnetIDs = commaDelimitedSubnetIDs + *subnetID
+				if i != len(action.context.SubnetIDs)-1 {
+					commaDelimitedSubnetIDs = commaDelimitedSubnetIDs + ","
+				}
+			}
+
+			tags := []*cloudformation.Tag{
+				{Key: aws.String("pipeline-created"), Value: aws.String("true")},
+			}
+
+			if nodePool.Autoscaling {
+				tags = append(tags, &cloudformation.Tag{Key: aws.String("k8s.io/cluster-autoscaler/enabled"), Value: aws.String("true")})
+			}
+
+			spotPriceParam := ""
+			if p, err := strconv.ParseFloat(nodePool.NodeSpotPrice, 64); err == nil && p > 0.0 {
+				spotPriceParam = nodePool.NodeSpotPrice
+			}
+
+			stackParams := []*cloudformation.Parameter{
+				{
+					ParameterKey:   aws.String("KeyName"),
+					ParameterValue: aws.String(action.context.SSHKeyName),
+				},
+				{
+					ParameterKey:   aws.String("NodeImageId"),
+					ParameterValue: aws.String(nodePool.NodeImage),
+				},
+				{
+					ParameterKey:   aws.String("NodeInstanceType"),
+					ParameterValue: aws.String(nodePool.NodeInstanceType),
+				},
+				{
+					ParameterKey:   aws.String("NodeSpotPrice"),
+					ParameterValue: aws.String(spotPriceParam),
+				},
+				{
+					ParameterKey:   aws.String("NodeAutoScalingGroupMinSize"),
+					ParameterValue: aws.String(fmt.Sprintf("%d", nodePool.NodeMinCount)),
+				},
+				{
+					ParameterKey:   aws.String("NodeAutoScalingGroupMaxSize"),
+					ParameterValue: aws.String(fmt.Sprintf("%d", nodePool.NodeMaxCount)),
+				},
+				{
+					ParameterKey:   aws.String("NodeAutoScalingInitSize"),
+					ParameterValue: aws.String(fmt.Sprintf("%d", nodePool.Count)),
+				},
+				{
+					ParameterKey:   aws.String("ClusterName"),
+					ParameterValue: aws.String(action.context.ClusterName),
+				},
+				{
+					ParameterKey:   aws.String("NodeGroupName"),
+					ParameterValue: aws.String(nodePool.Name),
+				},
+				{
+					ParameterKey:   aws.String("ClusterControlPlaneSecurityGroup"),
+					ParameterValue: action.context.SecurityGroupID,
+				},
+				{
+					ParameterKey:   aws.String("VpcId"),
+					ParameterValue: action.context.VpcID,
+				}, {
+					ParameterKey:   aws.String("Subnets"),
+					ParameterValue: aws.String(commaDelimitedSubnetIDs),
+				},
+			}
+
+			cloudformationSrv := cloudformation.New(action.context.Session)
+
+			waitOnCreateUpdte := true
+
+			// create stack
+			if action.isCreate {
+				createStackInput := &cloudformation.CreateStackInput{
+					ClientRequestToken: aws.String(uuid.NewV4().String()),
+					DisableRollback:    aws.Bool(false),
+					StackName:          aws.String(stackName),
+					Capabilities:       []*string{aws.String(cloudformation.CapabilityCapabilityIam)},
+					Parameters:         stackParams,
+					Tags:               tags,
+					TemplateBody:       aws.String(templateBody),
+					TimeoutInMinutes:   aws.Int64(10),
+				}
+				_, err = cloudformationSrv.CreateStack(createStackInput)
+				if err != nil {
+					errorChan <- err
+					return
+				}
+			} else {
+				// update stack
+				reuseTemplate := true
+				updateStackInput := &cloudformation.UpdateStackInput{
+					ClientRequestToken:  aws.String(uuid.NewV4().String()),
+					StackName:           aws.String(stackName),
+					Capabilities:        []*string{aws.String(cloudformation.CapabilityCapabilityIam)},
+					Parameters:          stackParams,
+					Tags:                tags,
+					UsePreviousTemplate: &reuseTemplate,
+				}
+
+				_, err = cloudformationSrv.UpdateStack(updateStackInput)
+				if err != nil {
+					if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "ValidationError" && strings.HasPrefix(awsErr.Message(), awsNoUpdatesError) {
+						// Get error details
+						log.Warnf("Nothing changed during update!")
+						waitOnCreateUpdte = false
+						err = nil
+					} else {
+						errorChan <- err
+						return
+					}
+				}
+			}
+
+			describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(stackName)}
+
+			if action.isCreate {
+				err = cloudformationSrv.WaitUntilStackCreateComplete(describeStacksInput)
+			} else if waitOnCreateUpdte {
+				err = cloudformationSrv.WaitUntilStackUpdateComplete(describeStacksInput)
+			}
+
+			if err != nil {
+				errorChan <- err
+				return
+			}
+
+			describeStacksOutput, err := cloudformationSrv.DescribeStacks(describeStacksInput)
+			if err != nil {
+				errorChan <- err
+				return
+			}
+
+			action.context.Lock()
+			for _, output := range describeStacksOutput.Stacks[0].Outputs {
+				if aws.StringValue(output.OutputKey) == "NodeInstanceRole" {
+					action.context.NodeInstanceRoles = append(action.context.NodeInstanceRoles, aws.StringValue(output.OutputValue))
+				}
+			}
+			action.context.Unlock()
+
+			errorChan <- nil
+
+		}(nodePool)
+	}
+
+	// wait for goroutines to finish
+	for i := 0; i < len(action.nodePools); i++ {
+		createErr := <-errorChan
+		if createErr != nil {
+			err = createErr
 		}
 	}
 
-	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(action.stackName)}
-
-	if action.isCreate {
-		err = cloudformationSrv.WaitUntilStackCreateComplete(describeStacksInput)
-	} else if waitOnCreateUpdte {
-		err = cloudformationSrv.WaitUntilStackUpdateComplete(describeStacksInput)
-	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	describeStacksOutput, err := cloudformationSrv.DescribeStacks(describeStacksInput)
-	if err != nil {
-		return
-	}
-
-	for _, output := range describeStacksOutput.Stacks[0].Outputs {
-		if aws.StringValue(output.OutputKey) == "NodeInstanceRole" {
-			action.context.NodeInstanceRoles = append(action.context.NodeInstanceRoles, aws.StringValue(output.OutputValue))
-		}
-	}
-
-	return nil, nil
+	return nil, err
 }
 
 // UndoAction rolls back this CreateUpdateNodePoolStackAction
 func (action *CreateUpdateNodePoolStackAction) UndoAction() (err error) {
-	log.Info("EXECUTE UNDO CreateUpdateNodePoolStackAction")
-	cloudformationSrv := cloudformation.New(action.context.Session)
-	deleteStackInput := &cloudformation.DeleteStackInput{
-		ClientRequestToken: aws.String(uuid.NewV4().String()),
-		StackName:          aws.String(action.stackName),
+	for _, nodepool := range action.nodePools {
+		log.Info("EXECUTE UNDO CreateUpdateNodePoolStackAction")
+		cloudformationSrv := cloudformation.New(action.context.Session)
+		deleteStackInput := &cloudformation.DeleteStackInput{
+			ClientRequestToken: aws.String(uuid.NewV4().String()),
+			StackName:          aws.String(action.generateStackName(nodepool)),
+		}
+		_, deleteErr := cloudformationSrv.DeleteStack(deleteStackInput)
+		if deleteErr != nil {
+			log.Errorln("Error during deleting CloudFormation stack:", err.Error())
+			err = deleteErr
+		}
 	}
-	_, err = cloudformationSrv.DeleteStack(deleteStackInput)
-
 	//TODO delete each created object
 	return
 }

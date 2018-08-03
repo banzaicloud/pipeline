@@ -3,10 +3,11 @@ package cluster
 import (
 	"encoding/base64"
 	"encoding/json"
-	"time"
-
 	"errors"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/endpoints"
@@ -32,7 +33,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api/v1"
-	"strings"
 )
 
 const mapRolesTemplate = `- rolearn: %s
@@ -166,12 +166,7 @@ func (e *EKSCluster) CreateCluster() error {
 		action.NewGenerateVPCConfigRequestAction(creationContext, eksStackName),
 		action.NewCreateEksClusterAction(creationContext, e.modelCluster.Eks.Version),
 		action.NewLoadEksSettingsAction(creationContext),
-	}
-
-	for _, nodePool := range e.modelCluster.Eks.NodePools {
-		nodePoolStackName := e.generateNodePoolStackName(nodePool.Name)
-		createNodePoolAction := action.NewCreateUpdateNodePoolStackAction(true, creationContext, nodePoolStackName, nodePool)
-		actions = append(actions, createNodePoolAction)
+		action.NewCreateUpdateNodePoolStackAction(true, creationContext, e.modelCluster.Eks.NodePools...),
 	}
 
 	_, err = utils.NewActionExecutor(log).ExecuteActions(actions, nil, true)
@@ -272,22 +267,19 @@ func generateAwsAuthConfigMap(kubeClient *kubernetes.Clientset, user *iam.User, 
 }
 
 func (e *EKSCluster) generateSSHKeyNameForCluster() string {
-	sshKeyName := "ssh-key-for-cluster-" + e.modelCluster.Name
-	return sshKeyName
+	return e.modelCluster.Name + "-pipeline-eks-ssh"
 }
 
-func (e *EKSCluster) generateNodePoolStackName(nodePoolName string) string {
-	return e.modelCluster.Name + "-pipeline-eks-nodepool-" + nodePoolName
+func (e *EKSCluster) generateNodePoolStackName(nodePool *model.AmazonNodePoolsModel) string {
+	return e.modelCluster.Name + "-pipeline-eks-nodepool-" + nodePool.Name
 }
 
 func (e *EKSCluster) generateStackNameForCluster() string {
-	eksStackName := e.modelCluster.Name + "-pipeline-eks"
-	return eksStackName
+	return e.modelCluster.Name + "-pipeline-eks"
 }
 
 func (e *EKSCluster) generateIAMRoleNameForCluster() string {
-	roleName := (e.modelCluster.Name) + "-pipeline-eks"
-	return roleName
+	return e.modelCluster.Name + "-pipeline-eks"
 }
 
 // Persist saves the cluster model
@@ -328,7 +320,6 @@ func (e *EKSCluster) DeleteCluster() error {
 		e.modelCluster.Name,
 	)
 	actions := []utils.Action{
-		action.NewWaitResourceDeletionAction(deleteContext),
 		action.NewDeleteClusterAction(deleteContext),
 		action.NewDeleteSSHKeyAction(deleteContext, e.generateSSHKeyNameForCluster()),
 		action.NewDeleteStackAction(deleteContext, e.generateStackNameForCluster()),
@@ -337,10 +328,12 @@ func (e *EKSCluster) DeleteCluster() error {
 	}
 
 	for _, nodePool := range e.modelCluster.Eks.NodePools {
-		nodePoolStackName := e.generateNodePoolStackName(nodePool.Name)
-		createStackAction := action.NewDeleteStackAction(deleteContext, nodePoolStackName)
-		actions = append(actions, createStackAction)
+		nodePoolStackName := e.generateNodePoolStackName(nodePool)
+		deleteStackAction := action.NewDeleteStackAction(deleteContext, nodePoolStackName)
+		actions = append([]utils.Action{deleteStackAction}, actions...)
 	}
+
+	actions = append([]utils.Action{action.NewWaitResourceDeletionAction(deleteContext)}, actions...)
 
 	_, err = utils.NewActionExecutor(log).ExecuteActions(actions, nil, false)
 	if err != nil {
@@ -495,16 +488,19 @@ func (e *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 		e.modelCluster.Name,
 	)
 
+	nodePoolsToCreate := []*model.AmazonNodePoolsModel{}
+	nodePoolsToUpdate := []*model.AmazonNodePoolsModel{}
+
 	for _, nodePool := range modelNodePools {
 
-		stackName := e.generateNodePoolStackName(nodePool.Name)
+		stackName := e.generateNodePoolStackName(nodePool)
 		describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(stackName)}
 		describeStacksOutput, err := cloudformationSrv.DescribeStacks(describeStacksInput)
 		if err == nil {
 			// delete nodePool
 			if nodePool.Delete {
 				log.Infof("nodePool %v exists will be deleted", nodePool.Name)
-				deleteStackAction := action.NewDeleteStackAction(deleteContext, e.generateNodePoolStackName(nodePool.Name))
+				deleteStackAction := action.NewDeleteStackAction(deleteContext, e.generateNodePoolStackName(nodePool))
 				actions = append(actions, deleteStackAction)
 				continue
 			}
@@ -544,8 +540,7 @@ func (e *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 				log.Infof("DesiredCapacity for %v will be: %v", *group.AutoScalingGroupARN, nodePool.Count)
 			}
 
-			updateStackAction := action.NewCreateUpdateNodePoolStackAction(false, createUpdateContext, e.generateNodePoolStackName(nodePool.Name), nodePool)
-			actions = append(actions, updateStackAction)
+			nodePoolsToUpdate = append(nodePoolsToUpdate, nodePool)
 		} else {
 			if nodePool.Delete {
 				log.Warnf("nodePool %v to be deleted doesn't exists: %v", nodePool.Name, err)
@@ -553,9 +548,18 @@ func (e *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 			}
 			// create nodePool
 			log.Infof("nodePool %v doesn't exists will be created", nodePool.Name)
-			createNodePoolAction := action.NewCreateUpdateNodePoolStackAction(true, createUpdateContext, e.generateNodePoolStackName(nodePool.Name), nodePool)
-			actions = append(actions, createNodePoolAction)
+			nodePoolsToCreate = append(nodePoolsToCreate, nodePool)
 		}
+	}
+
+	for _, nodePool := range nodePoolsToCreate {
+		createNodePoolAction := action.NewCreateUpdateNodePoolStackAction(true, createUpdateContext, nodePool)
+		actions = append(actions, createNodePoolAction)
+	}
+
+	for _, nodePool := range nodePoolsToUpdate {
+		updateNodePoolAction := action.NewCreateUpdateNodePoolStackAction(false, createUpdateContext, nodePool)
+		actions = append(actions, updateNodePoolAction)
 	}
 
 	_, err = utils.NewActionExecutor(log).ExecuteActions(actions, nil, false)
