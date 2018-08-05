@@ -171,7 +171,7 @@ func UnsubscribeDnsEvents(id uuid.UUID) {
 }
 
 func observeDnsEvents() {
-	if dnsServiceClient == nil || dnsNotificationsChannel == nil{
+	if dnsServiceClient == nil || dnsNotificationsChannel == nil {
 		return
 	}
 

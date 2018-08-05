@@ -543,54 +543,57 @@ func (dns *awsRoute53) Cleanup() {
 
 	wg.Add(len(domainStates))
 	for _, domainState := range domainStates {
-
-		go func() {
-			defer wg.Done()
-
-			crtTime := time.Now()
-
-			hostedZoneAge := crtTime.Sub(domainState.createdAt)
-
-			// According to Amazon Route53 pricing: https://aws.amazon.com/route53/pricing/
-			//
-			// To allow testing, a hosted zone that is deleted within 12 hours of creation is not charged
-
-			if hostedZoneAge < 12*time.Hour { //grace period
-				log.Infof("cleanup hosted zone '%s' as it is not used by organisation '%d' and it's age '%s' is less than 12hrs", domainState.hostedZoneId, domainState.organisationId, hostedZoneAge.String())
-
-				err := dns.UnregisterDomain(domainState.organisationId, domainState.domain)
-				if err != nil {
-					log.Errorf("cleanup hosted zone '%s' failed: %s", domainState.hostedZoneId, err.Error())
-				}
-			} else {
-				// Since charging for hosted zones are not prorated for partial months if we exceeded the 12hrs we were already charged
-				// It has no sense to delete the hosted zone until the next billing period starts (the first day of each subsequent month)
-				// as the user may create a cluster in the organisation thus re-use the hosted zone that we were billed already for the month
-
-				// If we are just before the next billing period and there are no clusters in the organisation we should cleanup the hosted zone
-				// before entering the next billing period (the first day of the month)
-
-				tillEndOfMonth := now.EndOfMonth().Sub(crtTime)
-
-				maintenanceWindowMinute := viper.GetInt64(config.Route53MaintenanceWndMinute)
-
-				if tillEndOfMonth <= time.Duration(maintenanceWindowMinute)*time.Minute {
-					// if we are maintenanceWindowMinute minutes before the next billing period clean up the hosted zone
-
-					// if the window is not long enough there will be few hosted zones slipping over into next billing period)
-					log.Infof("cleanup hosted zone '%s' as it not used by organisation '%d'", domainState.hostedZoneId, domainState.organisationId)
-
-					err := dns.UnregisterDomain(domainState.organisationId, domainState.domain)
-					if err != nil {
-						log.Errorf("cleanup hosted zone '%s' failed: %s", domainState.hostedZoneId, err.Error())
-					}
-				}
-			}
-		}()
-
-	} // for
+		go dns.cleanup(&wg, &domainState)
+	}
 
 	wg.Wait()
+}
+
+func (dns *awsRoute53) cleanup(wg *sync.WaitGroup, domainState *domainState) {
+	log := loggerWithFields(logrus.Fields{})
+
+	defer wg.Done()
+
+	crtTime := time.Now()
+
+	hostedZoneAge := crtTime.Sub(domainState.createdAt)
+
+	// According to Amazon Route53 pricing: https://aws.amazon.com/route53/pricing/
+	//
+	// To allow testing, a hosted zone that is deleted within 12 hours of creation is not charged
+
+	if hostedZoneAge < 12*time.Hour { //grace period
+		log.Infof("cleanup hosted zone '%s' as it is not used by organisation '%d' and it's age '%s' is less than 12hrs", domainState.hostedZoneId, domainState.organisationId, hostedZoneAge.String())
+
+		err := dns.UnregisterDomain(domainState.organisationId, domainState.domain)
+		if err != nil {
+			log.Errorf("cleanup hosted zone '%s' failed: %s", domainState.hostedZoneId, err.Error())
+		}
+	} else {
+		// Since charging for hosted zones are not prorated for partial months if we exceeded the 12hrs we were already charged
+		// It has no sense to delete the hosted zone until the next billing period starts (the first day of each subsequent month)
+		// as the user may create a cluster in the organisation thus re-use the hosted zone that we were billed already for the month
+
+		// If we are just before the next billing period and there are no clusters in the organisation we should cleanup the hosted zone
+		// before entering the next billing period (the first day of the month)
+
+		tillEndOfMonth := now.EndOfMonth().Sub(crtTime)
+
+		maintenanceWindowMinute := viper.GetInt64(config.Route53MaintenanceWndMinute)
+
+		if tillEndOfMonth <= time.Duration(maintenanceWindowMinute)*time.Minute {
+			// if we are maintenanceWindowMinute minutes before the next billing period clean up the hosted zone
+
+			// if the window is not long enough there will be few hosted zones slipping over into next billing period)
+			log.Infof("cleanup hosted zone '%s' as it not used by organisation '%d'", domainState.hostedZoneId, domainState.organisationId)
+
+			err := dns.UnregisterDomain(domainState.organisationId, domainState.domain)
+			if err != nil {
+				log.Errorf("cleanup hosted zone '%s' failed: %s", domainState.hostedZoneId, err.Error())
+			}
+		}
+	}
+
 }
 
 // ProcessUnfinishedTasks continues processing in-progress domain registrations/unregistrations
