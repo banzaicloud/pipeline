@@ -42,8 +42,9 @@ type EksClusterCreateUpdateContext struct {
 	sync.Mutex
 	Session                  *session.Session
 	ClusterName              string
-	NodeInstanceRoles        []string
-	Role                     *iam.Role
+	ClusterRoleArn           string
+	NodeInstanceRoleID       *string
+	NodeInstanceRoleArn      string
 	SecurityGroupID          *string
 	SubnetIDs                []*string
 	SSHKeyName               string
@@ -65,14 +66,15 @@ func NewEksClusterCreationContext(session *session.Session, clusterName string, 
 
 // NewEksClusterUpdateContext creates a new EksClusterCreateUpdateContext
 func NewEksClusterUpdateContext(session *session.Session, clusterName string,
-	securityGroupID *string, subnetIDs []*string, sshKeyName string, vpcID *string) *EksClusterCreateUpdateContext {
+	securityGroupID *string, subnetIDs []*string, sshKeyName string, vpcID *string, nodeInstanceRoleId *string) *EksClusterCreateUpdateContext {
 	return &EksClusterCreateUpdateContext{
-		Session:         session,
-		ClusterName:     clusterName,
-		SecurityGroupID: securityGroupID,
-		SubnetIDs:       subnetIDs,
-		SSHKeyName:      sshKeyName,
-		VpcID:           vpcID,
+		Session:            session,
+		ClusterName:        clusterName,
+		SecurityGroupID:    securityGroupID,
+		SubnetIDs:          subnetIDs,
+		SSHKeyName:         sshKeyName,
+		VpcID:              vpcID,
+		NodeInstanceRoleID: nodeInstanceRoleId,
 	}
 }
 
@@ -90,125 +92,21 @@ func NewEksClusterDeleteContext(session *session.Session, clusterName string) *E
 	}
 }
 
-var _ utils.RevocableAction = (*CreateVPCAction)(nil)
-
-// EnsureIAMRoleAction describes how to create an IAM role for EKS
-type EnsureIAMRoleAction struct {
-	context                   *EksClusterCreateUpdateContext
-	roleName                  string
-	rolesToAttach             []string
-	successfullyAttachedRoles []string
-}
-
-// NewEnsureIAMRoleAction creates a new NewEnsureIAMRoleAction
-func NewEnsureIAMRoleAction(creationContext *EksClusterCreateUpdateContext, roleName string) *EnsureIAMRoleAction {
-	return &EnsureIAMRoleAction{
-		context:  creationContext,
-		roleName: roleName,
-		rolesToAttach: []string{
-			"arn:aws:iam::aws:policy/AmazonEKSClusterPolicy",
-			"arn:aws:iam::aws:policy/AmazonEKSServicePolicy",
-		},
-		successfullyAttachedRoles: []string{},
-	}
-}
-
-// GetName returns the name of this EnsureIAMRoleAction
-func (action *EnsureIAMRoleAction) GetName() string {
-	return "EnsureIAMRoleAction"
-}
-
-// ExecuteAction executes this EnsureIAMRoleAction
-func (action *EnsureIAMRoleAction) ExecuteAction(input interface{}) (output interface{}, err error) {
-	log.Infoln("EXECUTE EnsureIAMRoleAction, role name:", action.roleName)
-
-	iamSvc := iam.New(action.context.Session)
-	assumeRolePolicy := `{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "eks.amazonaws.com"
-      },
-      "Action": "sts:AssumeRole"
-    }
-  ]
-}`
-
-	roleinput := &iam.CreateRoleInput{
-		AssumeRolePolicyDocument: &assumeRolePolicy,
-		RoleName:                 aws.String(action.roleName),
-		Description:              aws.String("EKS Creation Role created by Pipeline"),
-		Path:                     aws.String("/"),
-		MaxSessionDuration:       aws.Int64(3600),
-	}
-	//irName := ""
-	outInstanceRole, err := iamSvc.CreateRole(roleinput)
-
-	if err != nil {
-		log.Errorln("CreateRole error:", err.Error())
-		return nil, err
-	}
-
-	for _, roleName := range action.rolesToAttach {
-		attachRoleInput := &iam.AttachRolePolicyInput{
-			RoleName:  outInstanceRole.Role.RoleName,
-			PolicyArn: aws.String(roleName),
-		}
-		_, err = iamSvc.AttachRolePolicy(attachRoleInput)
-		if err != nil {
-			log.Errorln("AttachRole error:", err.Error())
-			return nil, err
-		}
-		action.successfullyAttachedRoles = append(action.successfullyAttachedRoles, roleName)
-	}
-	action.context.Role = outInstanceRole.Role
-
-	return outInstanceRole.Role, nil
-}
-
-// UndoAction rolls back this EnsureIAMRoleAction
-func (action *EnsureIAMRoleAction) UndoAction() (err error) {
-	log.Infoln("EXECUTE UNDO EnsureIAMRoleAction, deleting role:", action.roleName)
-
-	iamSvc := iam.New(action.context.Session)
-
-	//detach role policies first
-	for _, roleName := range action.successfullyAttachedRoles {
-		detachRolePolicyInput := &iam.DetachRolePolicyInput{
-			RoleName:  action.context.Role.RoleName,
-			PolicyArn: aws.String(roleName),
-		}
-		_, err = iamSvc.DetachRolePolicy(detachRolePolicyInput)
-		if err != nil {
-			log.Debug("DetachRole error: %v", err)
-			return err
-		}
-	}
-	//delete role
-	deleteRoleInput := &iam.DeleteRoleInput{
-		RoleName: aws.String(action.roleName),
-	}
-	_, err = iamSvc.DeleteRole(deleteRoleInput)
-	return err
-}
-
 // --
 
-var _ utils.RevocableAction = (*CreateVPCAction)(nil)
+var _ utils.RevocableAction = (*CreateVPCAndRolesAction)(nil)
 
-// CreateVPCAction describes the properties of a VPC creation
-type CreateVPCAction struct {
+// CreateVPCAndRolesAction describes the properties of a VPC creation
+type CreateVPCAndRolesAction struct {
 	context   *EksClusterCreateUpdateContext
 	stackName string
 	//describeStacksTimeInterval time.Duration
 	//stackCreationTimeout       time.Duration
 }
 
-// NewCreateVPCAction creates a new CreateVPCAction
-func NewCreateVPCAction(creationContext *EksClusterCreateUpdateContext, stackName string) *CreateVPCAction {
-	return &CreateVPCAction{
+// NewCreateVPCAndRolesAction creates a new CreateVPCAndRolesAction
+func NewCreateVPCAndRolesAction(creationContext *EksClusterCreateUpdateContext, stackName string) *CreateVPCAndRolesAction {
+	return &CreateVPCAndRolesAction{
 		context:   creationContext,
 		stackName: stackName,
 		//describeStacksTimeInterval: 10 * time.Second,
@@ -216,14 +114,14 @@ func NewCreateVPCAction(creationContext *EksClusterCreateUpdateContext, stackNam
 	}
 }
 
-// GetName returns the name of this CreateVPCAction
-func (action *CreateVPCAction) GetName() string {
-	return "CreateVPCAction"
+// GetName returns the name of this CreateVPCAndRolesAction
+func (action *CreateVPCAndRolesAction) GetName() string {
+	return "CreateVPCAndRolesAction"
 }
 
-// ExecuteAction executes this CreateVPCAction
-func (action *CreateVPCAction) ExecuteAction(input interface{}) (output interface{}, err error) {
-	log.Infoln("EXECUTE CreateVPCAction, stack name:", action.stackName)
+// ExecuteAction executes this CreateVPCAndRolesAction
+func (action *CreateVPCAndRolesAction) ExecuteAction(input interface{}) (output interface{}, err error) {
+	log.Infoln("EXECUTE CreateVPCAndRolesAction, stack name:", action.stackName)
 
 	log.Infoln("Getting CloudFormation template for creating VPC for EKS cluster")
 	templateBody, err := pkgEks.GetVPCTemplate()
@@ -237,41 +135,16 @@ func (action *CreateVPCAction) ExecuteAction(input interface{}) (output interfac
 		//Capabilities:       []*string{},
 		ClientRequestToken: aws.String(uuid.NewV4().String()),
 		DisableRollback:    aws.Bool(false),
-
-		StackName:        aws.String(action.stackName),
-		Tags:             []*cloudformation.Tag{{Key: aws.String("pipeline-created"), Value: aws.String("true")}},
-		TemplateBody:     aws.String(templateBody),
-		TimeoutInMinutes: aws.Int64(10),
+		Capabilities:       []*string{aws.String(cloudformation.CapabilityCapabilityIam)},
+		StackName:          aws.String(action.stackName),
+		Tags:               []*cloudformation.Tag{{Key: aws.String("pipeline-created"), Value: aws.String("true")}},
+		TemplateBody:       aws.String(templateBody),
+		TimeoutInMinutes:   aws.Int64(10),
 	}
-	//startTime := time.Now()
 	_, err = cloudformationSrv.CreateStack(createStackInput)
 	if err != nil {
 		return
 	}
-
-	//action.context.VpcID = createStackOutput.StackId
-	//completed := false
-	//for time.Now().Before(startTime.Add(action.stackCreationTimeout)) {
-	//	stackStatuses, err := cloudformationSrv.DescribeStacks(&cloudformation.DescribeStacksInput{StackName: aws.String(action.stackName)})
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//
-	//	if len(stackStatuses.Stacks) != 1 {
-	//		return nil, errors.New(fmt.Sprintf("Got %d stack(s) instead of 1 after stack creation", len(stackStatuses.Stacks)))
-	//	}
-	//	stack := stackStatuses.Stacks[0]
-	//	fmt.Printf("stackStatus: %s\n", *stack.StackStatus)
-	//	if *stack.StackStatus == cloudformation.StackStatusCreateComplete {
-	//		completed = true
-	//		break
-	//	}
-	//	time.Sleep(action.describeStacksTimeInterval)
-	//}
-
-	//if !completed {
-	//	return nil, errors.New("Timeout occurred during eks stack creation")
-	//}
 
 	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(action.stackName)}
 	err = cloudformationSrv.WaitUntilStackCreateComplete(describeStacksInput)
@@ -279,9 +152,9 @@ func (action *CreateVPCAction) ExecuteAction(input interface{}) (output interfac
 	return nil, err
 }
 
-// UndoAction rolls back this CreateVPCAction
-func (action *CreateVPCAction) UndoAction() (err error) {
-	log.Infoln("EXECUTE UNDO CreateVPCAction, deleting stack:", action.stackName)
+// UndoAction rolls back this CreateVPCAndRolesAction
+func (action *CreateVPCAndRolesAction) UndoAction() (err error) {
+	log.Infoln("EXECUTE UNDO CreateVPCAndRolesAction, deleting stack:", action.stackName)
 	cloudformationSrv := cloudformation.New(action.context.Session)
 	deleteStackInput := &cloudformation.DeleteStackInput{
 		ClientRequestToken: aws.String(uuid.NewV4().String()),
@@ -352,12 +225,38 @@ func (action *GenerateVPCConfigRequestAction) ExecuteAction(input interface{}) (
 	if !found {
 		return nil, errors.New("Unable to find VPC resource")
 	}
+	nodeInstanceProfileResource, found := stackResourceMap["NodeInstanceRole"]
+	if !found {
+		return nil, errors.New("Unable to find NodeInstanceRole resource")
+	}
 
 	log.Infof("Stack resources: %v", stackResources)
 
 	action.context.VpcID = vpcResource.PhysicalResourceId
 	action.context.SecurityGroupID = securityGroupResource.PhysicalResourceId
 	action.context.SubnetIDs = []*string{subnet01resource.PhysicalResourceId, subnet02resource.PhysicalResourceId, subnet03resource.PhysicalResourceId}
+	action.context.NodeInstanceRoleID = nodeInstanceProfileResource.PhysicalResourceId
+
+	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(action.stackName)}
+	describeStacksOutput, err := cloudformationSrv.DescribeStacks(describeStacksInput)
+	if err != nil {
+		return nil, errors.New("Unable to find stack " + action.stackName)
+	}
+
+	var clusterRoleArn, nodeInstanceRoleArn string
+	for _, output := range describeStacksOutput.Stacks[0].Outputs {
+		switch *output.OutputKey {
+		case "ClusterRoleArn":
+			clusterRoleArn = *output.OutputValue
+		case "NodeInstanceRoleArn":
+			nodeInstanceRoleArn = *output.OutputValue
+		}
+	}
+	log.Infof("cluster role ARN: %v", clusterRoleArn)
+	action.context.ClusterRoleArn = clusterRoleArn
+
+	log.Infof("nodeInstanceRoleArn role ARN: %v", nodeInstanceRoleArn)
+	action.context.NodeInstanceRoleArn = nodeInstanceRoleArn
 
 	return &eks.VpcConfigRequest{
 		SecurityGroupIds: []*string{action.context.SecurityGroupID},
@@ -404,13 +303,13 @@ func (action *CreateEksClusterAction) ExecuteAction(input interface{}) (output i
 	log.Infoln("EXECUTE CreateEksClusterAction, cluster name:", action.context.ClusterName)
 	eksSvc := eks.New(action.context.Session)
 
-	roleArn := action.context.Role.Arn
+	roleArn := action.context.ClusterRoleArn
 
 	createClusterInput := &eks.CreateClusterInput{
 		ClientRequestToken: aws.String(uuid.NewV4().String()),
 		Name:               aws.String(action.context.ClusterName),
 		ResourcesVpcConfig: vpcConfigRequest,
-		RoleArn:            roleArn,
+		RoleArn:            &roleArn,
 	}
 
 	// set Kubernetes version only if provided, otherwise the cloud provider default one will be used
@@ -636,6 +535,10 @@ func (action *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) 
 					ParameterKey:   aws.String("Subnets"),
 					ParameterValue: aws.String(commaDelimitedSubnetIDs),
 				},
+				{
+					ParameterKey:   aws.String("NodeInstanceRoleId"),
+					ParameterValue: action.context.NodeInstanceRoleID,
+				},
 			}
 
 			cloudformationSrv := cloudformation.New(action.context.Session)
@@ -698,19 +601,11 @@ func (action *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) 
 				return
 			}
 
-			describeStacksOutput, err := cloudformationSrv.DescribeStacks(describeStacksInput)
+			_, err := cloudformationSrv.DescribeStacks(describeStacksInput)
 			if err != nil {
 				errorChan <- err
 				return
 			}
-
-			action.context.Lock()
-			for _, output := range describeStacksOutput.Stacks[0].Outputs {
-				if aws.StringValue(output.OutputKey) == "NodeInstanceRole" {
-					action.context.NodeInstanceRoles = append(action.context.NodeInstanceRoles, aws.StringValue(output.OutputValue))
-				}
-			}
-			action.context.Unlock()
 
 			errorChan <- nil
 
