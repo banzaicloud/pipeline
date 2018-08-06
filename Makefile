@@ -68,11 +68,11 @@ lint: bin/golangci-lint ## Run linter
 fmt:
 	@gofmt -w ${GOFILES_NOVENDOR}
 
-bin/missspell: ## Install misspell
+bin/misspell: ## Install misspell
 	@mkdir -p ./bin/
 	curl -sfL https://git.io/misspell | bash -s -- -b ./bin/ v${MISSPELL_VERSION}
 
-misspell: bin/missspell ## Fix spelling mistakes
+misspell: bin/misspell ## Fix spelling mistakes
 	misspell -w ${GOFILES_NOVENDOR}
 
 test:

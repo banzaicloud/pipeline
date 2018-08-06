@@ -10,6 +10,9 @@ linters-settings:
     min-complexity: 15
 
 linters:
+  enable:
+    - misspell
+    - gofmt
   disable:
     - errcheck
     - structcheck
@@ -17,3 +20,4 @@ linters:
     - gas
     - megacheck
     - varcheck
+  fast: false
