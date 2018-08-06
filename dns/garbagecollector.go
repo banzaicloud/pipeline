@@ -1,6 +1,8 @@
 package dns
 
 import (
+	pipConfig "github.com/banzaicloud/pipeline/config"
+	"github.com/spf13/viper"
 	"time"
 )
 
@@ -26,7 +28,9 @@ func (gc *garbageCollectorImpl) start() error {
 
 	go func() {
 		for range gc.ticker.C {
-			log.Debug("DNS garbage collector running")
+			if viper.GetString(pipConfig.DNSGcLogLevel) == "debug" {
+				log.Debug("DNS garbage collector running")
+			}
 			gc.dnsServiceClient.Cleanup()
 		}
 	}()
