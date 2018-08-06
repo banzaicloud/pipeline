@@ -63,6 +63,7 @@ type CommonCluster interface {
 	RequiresSshPublicKey() bool
 	ReloadFromDatabase() error
 	ListNodeNames() (pkgCommon.NodeNames, error)
+	RbacEnabled() bool
 }
 
 // CommonClusterBase holds the fields that is common to all cluster types

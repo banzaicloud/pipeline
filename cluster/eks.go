@@ -146,6 +146,8 @@ func (e *EKSCluster) CreateCluster() error {
 	eksStackName := e.generateStackNameForCluster()
 	sshKeyName := e.generateSSHKeyNameForCluster()
 
+	e.modelCluster.RbacEnabled = true
+
 	creationContext := action.NewEksClusterCreationContext(
 		session,
 		e.modelCluster.Name,
@@ -971,4 +973,9 @@ func createDefaultStorageClass(kubernetesClient *kubernetes.Clientset) error {
 	_, err := kubernetesClient.StorageV1().StorageClasses().Create(&defaultStorageClass)
 
 	return err
+}
+
+// RbacEnabled returns true if rbac enabled on the cluster
+func (e *EKSCluster) RbacEnabled() bool {
+	return e.modelCluster.RbacEnabled
 }

@@ -1439,3 +1439,8 @@ func hasTagWithNodeName(tags []*ec2.Tag, nodeName string) bool {
 	}
 	return false
 }
+
+// RbacEnabled returns true if rbac enabled on the cluster
+func (c *AWSCluster) RbacEnabled() bool {
+	return c.modelCluster.RbacEnabled
+}
