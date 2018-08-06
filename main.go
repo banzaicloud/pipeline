@@ -123,7 +123,7 @@ func main() {
 	}
 
 	if dnsSvc == nil {
-		log.Infof("External dns service functionality is not enabled")
+		log.Infoln("External dns service functionality is not enabled")
 	}
 
 	//Initialise Gin router

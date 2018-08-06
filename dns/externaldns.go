@@ -8,6 +8,7 @@ import (
 	"github.com/banzaicloud/pipeline/dns/route53"
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
@@ -18,10 +19,24 @@ var log *logrus.Logger
 var once sync.Once
 var errCreate error
 
-// dnsServiceClient is the  DnsServiceClient singleton instance if this functionality is enabled
+// dnsServiceClient is the DnsServiceClient singleton instance if this functionality is enabled
 var dnsServiceClient DnsServiceClient
 
 var gc garbageCollector
+
+// dnsNotificationsChannel is used to receive DNS related events from Route53 and fan out the events to consumers.
+var dnsNotificationsChannel chan interface{}
+
+// dnsEventsConsumers stores the channels through which subscribers receive DNS events
+var dnsEventsConsumers map[uuid.UUID]chan<- interface{}
+
+var mux sync.RWMutex
+
+// DnsEventsSubscription represents a subscription to Dns events
+type DnsEventsSubscription struct {
+	Id     uuid.UUID
+	Events <-chan interface{}
+}
 
 // Simple init for logging
 func init() {
@@ -34,46 +49,7 @@ type DnsServiceClient interface {
 	UnregisterDomain(orgId uint, domain string) error
 	IsDomainRegistered(orgId uint, domain string) (bool, error)
 	Cleanup()
-}
-
-type externalDnsServiceClientSync struct {
-	// muxOrgDomain is a mutex used to sync access to external Dns service
-	muxOrgDomain sync.Mutex
-
-	dnsSvcClientImpl DnsServiceClient
-}
-
-// RegisterDomain registers a domain in external DNS service
-func (dns *externalDnsServiceClientSync) RegisterDomain(orgId uint, domain string) error {
-	dns.muxOrgDomain.Lock()
-	defer dns.muxOrgDomain.Unlock()
-
-	return dns.dnsSvcClientImpl.RegisterDomain(orgId, domain)
-}
-
-// UnregisterDomain unregisters a domain in external DNS service
-func (dns *externalDnsServiceClientSync) UnregisterDomain(orgId uint, domain string) error {
-	dns.muxOrgDomain.Lock()
-	defer dns.muxOrgDomain.Unlock()
-
-	return dns.dnsSvcClientImpl.UnregisterDomain(orgId, domain)
-}
-
-// IsDomainRegistered returns true if domain is registered in external DNS service
-func (dns *externalDnsServiceClientSync) IsDomainRegistered(orgId uint, domain string) (bool, error) {
-	dns.muxOrgDomain.Lock()
-	defer dns.muxOrgDomain.Unlock()
-
-	return dns.dnsSvcClientImpl.IsDomainRegistered(orgId, domain)
-}
-
-// Cleanup cleans up unused domains
-func (dns *externalDnsServiceClientSync) Cleanup() {
-	dns.muxOrgDomain.Lock()
-	defer dns.muxOrgDomain.Unlock()
-
-	dns.dnsSvcClientImpl.Cleanup()
-
+	ProcessUnfinishedTasks()
 }
 
 func newExternalDnsServiceClientInstance() {
@@ -84,7 +60,7 @@ func newExternalDnsServiceClientInstance() {
 
 	// This is how the secrets are expected to be written in Vault:
 	// vault kv put secret/banzaicloud/aws AWS_REGION=... AWS_ACCESS_KEY_ID=... AWS_SECRET_ACCESS_KEY=...
-	awsCredentialsPath := viper.GetString("aws.credentials.path")
+	awsCredentialsPath := viper.GetString(config.AwsCredentialPath)
 
 	secret, err := secret.Store.Logical.Read(awsCredentialsPath)
 	if err != nil {
@@ -108,25 +84,39 @@ func newExternalDnsServiceClientInstance() {
 		return
 	}
 
-	awsRoute53, err := route53.NewAwsRoute53(region, awsSecretId, awsSecretKey)
+	dnsNotificationsChannel = make(chan interface{})
+	awsRoute53, err := route53.NewAwsRoute53(region, awsSecretId, awsSecretKey, dnsNotificationsChannel)
 	if err != nil {
 		errCreate = err
+
+		close(dnsNotificationsChannel)
 		return
 	}
+	dnsServiceClient = awsRoute53
 
-	dnsServiceClient = &externalDnsServiceClientSync{dnsSvcClientImpl: awsRoute53}
-
+	// initiate and start DNS garbage collector
 	garbageCollector, err := newGarbageCollector(dnsServiceClient, gcInterval)
 
 	if err != nil {
 		errCreate = err
+		close(dnsNotificationsChannel)
 		return
 	}
 
 	gc = garbageCollector
 	if err := gc.start(); err != nil {
+		close(dnsNotificationsChannel)
 		errCreate = err
+		return
 	}
+
+	dnsEventsConsumers = make(map[uuid.UUID]chan<- interface{})
+
+	// start DNS events observer
+	go observeDnsEvents()
+
+	// process in progress domain registration/un-registration
+	dnsServiceClient.ProcessUnfinishedTasks()
 }
 
 // GetExternalDnsServiceClient creates a new external dns service client
@@ -139,4 +129,64 @@ func GetExternalDnsServiceClient() (DnsServiceClient, error) {
 
 	return dnsServiceClient, errCreate
 
+}
+
+// SubscribeDnsEvents returns DnsEventsSubscription to caller.
+// The subscriber can receive DNS domain related events from
+// the Events field of the subscription
+func SubscribeDnsEvents() *DnsEventsSubscription {
+	if dnsServiceClient == nil {
+		return nil
+	}
+
+	mux.Lock()
+	defer mux.Unlock()
+
+	eventsChannel := make(chan interface{})
+	subscription := DnsEventsSubscription{
+		Id:     uuid.NewV4(),
+		Events: eventsChannel,
+	}
+
+	dnsEventsConsumers[subscription.Id] = eventsChannel
+
+	return &subscription
+}
+
+// UnsubscribeDnsEvents deletes the subscription with the given id
+func UnsubscribeDnsEvents(id uuid.UUID) {
+	if dnsServiceClient == nil {
+		return
+	}
+
+	mux.Lock()
+	defer mux.Unlock()
+
+	if eventsChannel, ok := dnsEventsConsumers[id]; ok {
+		delete(dnsEventsConsumers, id)
+
+		close(eventsChannel)
+	}
+
+}
+
+func observeDnsEvents() {
+	if dnsServiceClient == nil || dnsNotificationsChannel == nil {
+		return
+	}
+
+	for event := range dnsNotificationsChannel {
+		log.Debugf("DNS event observer: received event %v", event)
+		notifySubscribers(event)
+	}
+}
+
+func notifySubscribers(event interface{}) {
+	mux.RLock()
+	defer mux.RUnlock()
+
+	log.Debugf("DNS event observer: publishing event %v to subscribers", event)
+	for _, eventsChannel := range dnsEventsConsumers {
+		eventsChannel <- event
+	}
 }

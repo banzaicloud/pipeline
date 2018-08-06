@@ -19,7 +19,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"strings"
+	"sync"
 	"time"
 )
 
@@ -89,20 +89,43 @@ func (ctx *context) rollback() {
 
 }
 
+type workerTask struct {
+	operation      operationType
+	organisationId uint
+	domain         string
+
+	responseQueue chan<- workerResponse
+}
+
+type workerResponse struct {
+	result interface{}
+	error  error
+}
+
 // awsRoute53 represents Amazon Route53 DNS service
 // and provides methods for managing domains through hosted zones
 // and roles to control access to the hosted zones
 type awsRoute53 struct {
+	// used to sync access to workers
+	muxWorkers sync.Mutex
+
+	// orgDomainWorkers maps organisation id to the channel of the worker that
+	// serves Route53 operations for the organisation. There is one worker allocated for each
+	// organisation
+	orgDomainWorkers map[uint]chan workerTask
+
 	route53Svc       route53iface.Route53API
 	iamSvc           iamiface.IAMAPI
 	stateStore       awsRoute53StateStore
 	baseHostedZoneId string // the id of the hosted zone of the base domain
 
 	getOrganization func(orgId uint) (*auth.Organization, error)
+
+	notificationChannel chan<- interface{}
 }
 
 // NewAwsRoute53 creates a new awsRoute53 using the provided region and route53 credentials
-func NewAwsRoute53(region, awsSecretId, awsSecretKey string) (*awsRoute53, error) {
+func NewAwsRoute53(region, awsSecretId, awsSecretKey string, notifications chan interface{}) (*awsRoute53, error) {
 	log := loggerWithFields(logrus.Fields{"region": region})
 
 	baseDomain := viper.GetString(config.DNSBaseDomain)
@@ -124,11 +147,17 @@ func NewAwsRoute53(region, awsSecretId, awsSecretKey string) (*awsRoute53, error
 		return nil, err
 	}
 
-	awsRoute53 := &awsRoute53{route53Svc: route53.New(session), iamSvc: iam.New(session), stateStore: &awsRoute53DatabaseStateStore{}, getOrganization: getOrgById}
+	awsRoute53 := &awsRoute53{
+		route53Svc:          route53.New(session),
+		iamSvc:              iam.New(session),
+		stateStore:          &awsRoute53DatabaseStateStore{},
+		getOrganization:     getOrgById,
+		notificationChannel: notifications,
+	}
 
 	baseHostedZoneId, err := awsRoute53.hostedZoneExistsByDomain(baseDomain)
 	if err != nil {
-		log.Error("retrieving hosted zone for base domain '%s' failed: %s", baseDomain, extractErrorMessage(err))
+		log.Errorf("retrieving hosted zone for base domain '%s' failed: %s", baseDomain, extractErrorMessage(err))
 		return nil, err
 	}
 
@@ -143,6 +172,70 @@ func NewAwsRoute53(region, awsSecretId, awsSecretKey string) (*awsRoute53, error
 
 // IsDomainRegistered returns true if the domain has already been registered in Route53 for the given organisation
 func (dns *awsRoute53) IsDomainRegistered(orgId uint, domain string) (bool, error) {
+	responseQueue := make(chan workerResponse)
+
+	dns.getWorker(orgId) <- newWorkerTask(isDomainRegistered, orgId, domain, responseQueue)
+	defer close(responseQueue)
+
+	response := <-responseQueue
+	return response.result.(bool), response.error
+}
+
+// RegisterDomain registers the given domain with AWS Route53
+func (dns *awsRoute53) RegisterDomain(orgId uint, domain string) error {
+	responseQueue := make(chan workerResponse)
+
+	dns.getWorker(orgId) <- newWorkerTask(registerDomain, orgId, domain, responseQueue)
+	defer close(responseQueue)
+
+	response := <-responseQueue
+
+	if dns.notificationChannel != nil {
+		if response.error != nil {
+			dns.notificationChannel <- RegisterDomainFailedEvent{
+				DomainEvent: *createCommonEvent(orgId, domain),
+				Cause:       response.error,
+			}
+
+		} else {
+			dns.notificationChannel <- RegisterDomainSucceededEvent{
+				DomainEvent: *createCommonEvent(orgId, domain),
+			}
+		}
+	}
+
+	return response.error
+}
+
+// UnregisterDomain delete the hosted zone with given domain from AWS Route53, also it removes the user access policy
+// that was created to allow access to the hosted zone and the IAM user that was created for accessing the hosted zone.
+func (dns *awsRoute53) UnregisterDomain(orgId uint, domain string) error {
+	responseQueue := make(chan workerResponse)
+
+	dns.getWorker(orgId) <- newWorkerTask(unregisterDomain, orgId, domain, responseQueue)
+	defer close(responseQueue)
+
+	response := <-responseQueue
+
+	if dns.notificationChannel != nil {
+		if response.error != nil {
+			dns.notificationChannel <- UnregisterDomainFailedEvent{
+				DomainEvent: *createCommonEvent(orgId, domain),
+				Cause:       response.error,
+			}
+
+		} else {
+			dns.notificationChannel <- UnregisterDomainSucceededEvent{
+				DomainEvent: *createCommonEvent(orgId, domain),
+			}
+		}
+	}
+
+	return response.error
+}
+
+// isDomainRegistered returns true if the domain has already been registered in Route53 for the given organisation
+func (dns *awsRoute53) isDomainRegistered(orgId uint, domain string) (bool, error) {
 	log := loggerWithFields(logrus.Fields{"organisationId": orgId, "domain": domain})
 
 	// check statestore to see if domain was already registered
@@ -153,15 +246,11 @@ func (dns *awsRoute53) IsDomainRegistered(orgId uint, domain string) (bool, erro
 		return false, err
 	}
 
-	if found && (state.status == CREATING || state.status == REMOVING) {
-		return false, fmt.Errorf("%s is in progress", state.status)
-	}
-
 	return found && state.status == CREATED, nil
 }
 
 // RegisterDomain registers the given domain with AWS Route53
-func (dns *awsRoute53) RegisterDomain(orgId uint, domain string) error {
+func (dns *awsRoute53) registerDomain(orgId uint, domain string) error {
 	log := loggerWithFields(logrus.Fields{"organisationId": orgId, "domain": domain})
 
 	state := &domainState{}
@@ -171,7 +260,7 @@ func (dns *awsRoute53) RegisterDomain(orgId uint, domain string) error {
 		return err
 	}
 
-	if foundInStateStore && (state.status == CREATING || state.status == REMOVING) {
+	if foundInStateStore && state.status == REMOVING {
 		return fmt.Errorf("%s is in progress", state.status)
 	}
 
@@ -269,7 +358,7 @@ func (dns *awsRoute53) RegisterDomain(orgId uint, domain string) error {
 
 // UnregisterDomain delete the hosted zone with given domain from AWS Route53, also it removes the user access policy
 // that was created to allow access to the hosted zone and the IAM user that was created for accessing the hosted zone.
-func (dns *awsRoute53) UnregisterDomain(orgId uint, domain string) error {
+func (dns *awsRoute53) unregisterDomain(orgId uint, domain string) error {
 	log := loggerWithFields(logrus.Fields{"organisationId": orgId, "domain": domain})
 
 	log.Info("unregistering domain")
@@ -285,6 +374,10 @@ func (dns *awsRoute53) UnregisterDomain(orgId uint, domain string) error {
 		msg := fmt.Sprintf("domain '%s' not found in state store", domain)
 		log.Errorf(msg)
 		return fmt.Errorf(msg)
+	}
+
+	if found && state.status == CREATING {
+		return fmt.Errorf("%s is in progress", state.status)
 	}
 
 	state.status = REMOVING
@@ -438,368 +531,102 @@ func (dns *awsRoute53) Cleanup() {
 
 	domainStates, err := dns.stateStore.listUnused()
 	if err != nil {
-		log.Errorf("retrieving domain states that are not used failed: %s", extractErrorMessage(err))
+		log.Errorf("retrieving domains that are not used failed: %s", extractErrorMessage(err))
 		return
 	}
 
-	for i := 0; i < len(domainStates); i++ {
-		crtTime := time.Now()
+	if len(domainStates) == 0 {
+		return
+	}
 
-		hostedZoneAge := crtTime.Sub(domainStates[i].createdAt)
+	var wg sync.WaitGroup
 
-		// According to Amazon Route53 pricing: https://aws.amazon.com/route53/pricing/
-		//
-		// To allow testing, a hosted zone that is deleted within 12 hours of creation is not charged
+	wg.Add(len(domainStates))
+	for _, domainState := range domainStates {
+		go dns.cleanup(&wg, &domainState)
+	}
 
-		if hostedZoneAge < 12*time.Hour { //grace period
-			log.Infof("cleanup hosted zone '%s' as it is not used by organisation '%d' and it's age '%s' is less than 12hrs", domainStates[i].hostedZoneId, domainStates[i].organisationId, hostedZoneAge.String())
+	wg.Wait()
+}
 
-			err := dns.UnregisterDomain(domainStates[i].organisationId, domainStates[i].domain)
+func (dns *awsRoute53) cleanup(wg *sync.WaitGroup, domainState *domainState) {
+	log := loggerWithFields(logrus.Fields{})
+
+	defer wg.Done()
+
+	crtTime := time.Now()
+
+	hostedZoneAge := crtTime.Sub(domainState.createdAt)
+
+	// According to Amazon Route53 pricing: https://aws.amazon.com/route53/pricing/
+	//
+	// To allow testing, a hosted zone that is deleted within 12 hours of creation is not charged
+
+	if hostedZoneAge < 12*time.Hour { //grace period
+		log.Infof("cleanup hosted zone '%s' as it is not used by organisation '%d' and it's age '%s' is less than 12hrs", domainState.hostedZoneId, domainState.organisationId, hostedZoneAge.String())
+
+		err := dns.UnregisterDomain(domainState.organisationId, domainState.domain)
+		if err != nil {
+			log.Errorf("cleanup hosted zone '%s' failed: %s", domainState.hostedZoneId, err.Error())
+		}
+	} else {
+		// Since charging for hosted zones are not prorated for partial months if we exceeded the 12hrs we were already charged
+		// It has no sense to delete the hosted zone until the next billing period starts (the first day of each subsequent month)
+		// as the user may create a cluster in the organisation thus re-use the hosted zone that we were billed already for the month
+
+		// If we are just before the next billing period and there are no clusters in the organisation we should cleanup the hosted zone
+		// before entering the next billing period (the first day of the month)
+
+		tillEndOfMonth := now.EndOfMonth().Sub(crtTime)
+
+		maintenanceWindowMinute := viper.GetInt64(config.Route53MaintenanceWndMinute)
+
+		if tillEndOfMonth <= time.Duration(maintenanceWindowMinute)*time.Minute {
+			// if we are maintenanceWindowMinute minutes before the next billing period clean up the hosted zone
+
+			// if the window is not long enough there will be few hosted zones slipping over into next billing period)
+			log.Infof("cleanup hosted zone '%s' as it not used by organisation '%d'", domainState.hostedZoneId, domainState.organisationId)
+
+			err := dns.UnregisterDomain(domainState.organisationId, domainState.domain)
 			if err != nil {
-				log.Errorf("cleanup hosted zone '%s' failed: %s", domainStates[i].hostedZoneId, err.Error())
-			}
-		} else {
-			// Since charging for hosted zones are not prorated for partial months if we exceeded the 12hrs we were already charged
-			// It has no sense to delete the hosted zone until the next billing period starts (the first day of each subsequent month)
-			// as the user may create a cluster in the organisation thus re-use the hosted zone that we were billed already for the month
-
-			// If we are just before the next billing period and there are no clusters in the organisation we should cleanup the hosted zone
-			// before entering the next billing period (the first day of the month)
-
-			tillEndOfMonth := now.EndOfMonth().Sub(crtTime)
-
-			maintenanceWindowMinute := viper.GetInt64(config.Route53MaintenanceWndMinute)
-
-			if tillEndOfMonth <= time.Duration(maintenanceWindowMinute)*time.Minute {
-				// if we are maintenanceWindowMinute minutes before the next billing period clean up the hosted zone
-
-				// if the window is not long enough there will be few hosted zones slipping over into next billing period)
-				log.Infof("cleanup hosted zone '%s' as it not used by organisation '%d'", domainStates[i].hostedZoneId, domainStates[i].organisationId)
-
-				err := dns.UnregisterDomain(domainStates[i].organisationId, domainStates[i].domain)
-				if err != nil {
-					log.Errorf("cleanup hosted zone '%s' failed: %s", domainStates[i].hostedZoneId, err.Error())
-				}
+				log.Errorf("cleanup hosted zone '%s' failed: %s", domainState.hostedZoneId, err.Error())
 			}
 		}
-
 	}
 
 }
 
-// createHostedZone creates a hosted zone on AWS Route53 with the given domain name
-func (dns *awsRoute53) createHostedZone(orgId uint, domain string) (*route53.HostedZone, error) {
-	log := loggerWithFields(logrus.Fields{"domain": domain})
+// ProcessUnfinishedTasks continues processing in-progress domain registrations/unregistrations
+func (dns *awsRoute53) ProcessUnfinishedTasks() {
+	log := loggerWithFields(logrus.Fields{})
 
-	hostedZoneInput := &route53.CreateHostedZoneInput{
-		CallerReference: aws.String(fmt.Sprintf("banzaicloud-pipepine-%d", time.Now().UnixNano())),
-		Name:            aws.String(domain),
-		HostedZoneConfig: &route53.HostedZoneConfig{
-			Comment:     aws.String(createHostedZoneComment),
-			PrivateZone: aws.Bool(false),
-		},
-	}
-
-	hostedZoneOutput, err := dns.route53Svc.CreateHostedZone(hostedZoneInput)
-
+	// continue processing unfinished domain registrations
+	pendingUnregister, err := dns.stateStore.findByStatus(REMOVING)
 	if err != nil {
-		log.Errorf("creating Route53 hosted zone failed: %s", extractErrorMessage(err))
-		return nil, err
+		log.Errorf("retrieving domains pending removal failed: %s", err.Error())
+		return
 	}
 
-	log.Infof("route53 hosted zone created")
+	for i := 0; i < len(pendingUnregister); i++ {
+		domainState := pendingUnregister[i]
+		log.Infof("continue un-registering domain '%s'", domainState.domain)
 
-	return hostedZoneOutput.HostedZone, nil
-}
+		go dns.UnregisterDomain(domainState.organisationId, domainState.domain)
+	}
 
-// getHostedZoneWithNameServers returns the hosted zone and it name servers with given id from AWS Route53
-func (dns *awsRoute53) getHostedZoneWithNameServers(id *string) (*route53.GetHostedZoneOutput, error) {
-
-	hostedZoneInput := &route53.GetHostedZoneInput{Id: id}
-	hostedZoneOutput, err := dns.route53Svc.GetHostedZone(hostedZoneInput)
+	// continue processing unfinished domain registrations
+	pendingRegister, err := dns.stateStore.findByStatus(CREATING)
 	if err != nil {
-		return nil, err
+		log.Errorf("retrieving domains pending registration failed: %s", err.Error())
+		return
 	}
 
-	return hostedZoneOutput, nil
-}
+	for i := 0; i < len(pendingRegister); i++ {
+		domainState := pendingRegister[i]
+		log.Infof("continue registering domain '%s'", domainState.domain)
 
-// getHostedZone returns the hosted zone with given id from AWS Route53
-func (dns *awsRoute53) getHostedZone(id *string) (*route53.HostedZone, error) {
-
-	h, err := dns.getHostedZoneWithNameServers(id)
-	if err != nil {
-		return nil, err
+		go dns.RegisterDomain(domainState.organisationId, domainState.domain)
 	}
-
-	return h.HostedZone, nil
-}
-
-// hostedZoneExistsByDomain returns hosted zone id if there is already a hosted zone created for the
-// given domain in Route53. If there are multiple hosted zones registered for the domain
-// that is considered an error
-func (dns *awsRoute53) hostedZoneExistsByDomain(domain string) (string, error) {
-	input := &route53.ListHostedZonesByNameInput{DNSName: aws.String(domain)}
-
-	hostedZones, err := dns.route53Svc.ListHostedZonesByName(input)
-	if err != nil {
-		return "", err
-	}
-
-	var foundHostedZoneIds []string
-	for _, hostedZone := range hostedZones.HostedZones {
-		hostedZoneName := aws.StringValue(hostedZone.Name)
-		hostedZoneName = hostedZoneName[:len(hostedZoneName)-1] // remove trailing '.' from name
-
-		if hostedZoneName == domain {
-			foundHostedZoneIds = append(foundHostedZoneIds, aws.StringValue(hostedZone.Id))
-		}
-	}
-
-	if len(foundHostedZoneIds) > 1 {
-		return "", fmt.Errorf("multiple hosted zones %v found for domain '%s'", foundHostedZoneIds, domain)
-	}
-
-	if len(foundHostedZoneIds) == 0 {
-		return "", nil
-	}
-
-	return foundHostedZoneIds[0], nil
-}
-
-// deleteHostedZoneCallCount deletes the hosted zone with the given id from AWS Route53
-func (dns *awsRoute53) deleteHostedZone(id *string) error {
-	log := loggerWithFields(logrus.Fields{"hosted zone": aws.StringValue(id)})
-
-	listResourceRecordSetsInput := &route53.ListResourceRecordSetsInput{HostedZoneId: id}
-	resourceRecordSets, err := dns.route53Svc.ListResourceRecordSets(listResourceRecordSetsInput)
-	if err != nil {
-		log.Errorf("retrieving resource record sets of the hosted zone failed: %s", extractErrorMessage(err))
-		return err
-	}
-
-	var resourceRecordSetChanges []*route53.ResourceRecordSet
-
-	for _, resourceRecordSet := range resourceRecordSets.ResourceRecordSets {
-		if aws.StringValue(resourceRecordSet.Type) != route53.RRTypeNs && aws.StringValue(resourceRecordSet.Type) != route53.RRTypeSoa {
-			resourceRecordSetChanges = append(resourceRecordSetChanges, resourceRecordSet)
-		}
-	}
-
-	if len(resourceRecordSetChanges) > 0 {
-		err = dns.deleteResourceRecordSets(id, resourceRecordSetChanges)
-		if err != nil {
-			log.Errorf("deleting all resource record sets of the hosted zone failed: %s", extractErrorMessage(err))
-			return err
-		}
-	}
-
-	hostedZoneInput := &route53.DeleteHostedZoneInput{Id: id}
-
-	_, err = dns.route53Svc.DeleteHostedZone(hostedZoneInput)
-	if err != nil {
-		log.Errorf("deleting hosted zone failed: %s", extractErrorMessage(err))
-	}
-	log.Infof("hosted zone deleted")
-
-	return err
-}
-
-// setHostedZoneAuthorisation sets up authorisation for the Route53 hosted zone identified by the specified id.
-// It creates a policy that allows changing only the specified hosted zone and a IAM user with the policy attached.
-func (dns *awsRoute53) setHostedZoneAuthorisation(hostedZoneId string, ctx *context) error {
-	log := loggerWithFields(logrus.Fields{"hostedzone": hostedZoneId})
-
-	var policy *iam.Policy
-	var err error
-
-	if len(ctx.state.policyArn) > 0 {
-		policy, err = dns.getHostedZoneRoute53Policy(ctx.state.policyArn)
-		if err != nil {
-			log.Errorf("retrieving route53 policy '%s' failed: %s", ctx.state.policyArn, extractErrorMessage(err))
-			return err
-		}
-	}
-
-	if policy == nil {
-		// create route53 policy
-		policy, err = dns.createHostedZoneRoute53Policy(ctx.state.organisationId, hostedZoneId)
-		if err != nil {
-			return err
-		}
-	} else {
-		log.Infof("skip creating route53 policy for hosted zone as it already exists: arn='%s'", ctx.state.policyArn)
-	}
-
-	ctx.registerRollback(func() error {
-		return dns.deletePolicy(policy.Arn)
-	})
-
-	if ctx.state.policyArn != aws.StringValue(policy.Arn) {
-		ctx.state.policyArn = aws.StringValue(policy.Arn)
-		if err = dns.stateStore.update(ctx.state); err != nil {
-			log.Errorf("failed to update state store: %s", extractErrorMessage(err))
-			return err
-		}
-	}
-
-	// create IAM user
-	org, err := dns.getOrganization(ctx.state.organisationId)
-	if err != nil {
-		log.Errorf("retrieving organization with id %d failed: %s", ctx.state.organisationId, extractErrorMessage(err))
-		return err
-	}
-
-	userName := aws.String(getIAMUserName(org))
-	err = dns.createHostedZoneIAMUser(userName, aws.String(ctx.state.policyArn), ctx)
-	if err != nil {
-		log.Errorf("setting up IAM user '%s' for hosted zone failed: %s", aws.StringValue(userName), extractErrorMessage(err))
-		return err
-	}
-	log.Info("IAM user for hosted zone has been set up")
-
-	return nil
-}
-
-// getHostedZoneRoute53Policy retrieves the Route53 IAM policy identified by the given Arn
-func (dns *awsRoute53) getHostedZoneRoute53Policy(arn string) (*iam.Policy, error) {
-	getPolicy := &iam.GetPolicyInput{PolicyArn: aws.String(arn)}
-	policy, err := dns.iamSvc.GetPolicy(getPolicy)
-	if err != nil {
-		if aerr, ok := err.(awserr.Error); ok {
-			if aerr.Code() == iam.ErrCodeNoSuchEntityException {
-				return nil, nil // no such policy
-			}
-		}
-
-		return nil, err
-	}
-
-	return policy.Policy, nil
-
-}
-
-// createHostedZoneRoute53Policy creates an AWS policy that allows listing route53 hosted zones and recordsets in general
-// also modifying only the records of the hosted zone identified by the given id.
-func (dns *awsRoute53) createHostedZoneRoute53Policy(orgId uint, hostedZoneId string) (*iam.Policy, error) {
-	log := loggerWithFields(logrus.Fields{"hostedzone": hostedZoneId})
-
-	org, err := dns.getOrganization(orgId)
-	if err != nil {
-		log.Errorf("retrieving organization with id %d failed: %s", orgId, extractErrorMessage(err))
-		return nil, err
-	}
-
-	policyInput := &iam.CreatePolicyInput{
-		Description: aws.String(fmt.Sprintf("Access permissions for hosted zone of the '%s' organization", org.Name)),
-		PolicyName:  aws.String(fmt.Sprintf(hostedZoneAccessPolicyNameTemplate, org.Name)),
-		PolicyDocument: aws.String(fmt.Sprintf(
-			`{
-						"Version": "2012-10-17",
-    				"Statement": [
-							{
-            		"Effect": "Allow",
-            		"Action": "route53:ChangeResourceRecordSets",
-                "Resource": "arn:aws:route53:::hostedzone/%s"
-        			},
-        			{
-            		"Effect": "Allow",
-								"Action": [
-                	"route53:ListHostedZones",
-                	"route53:ListResourceRecordSets"
-            		],
-            		"Resource": "*"
-        			}
-    				]
-					}`, hostedZoneId),
-		),
-	}
-
-	policy, err := dns.iamSvc.CreatePolicy(policyInput)
-	if err != nil {
-		log.Errorf("creating access policy for hosted zone failed: %s", extractErrorMessage(err))
-		return nil, err
-	}
-
-	log.Infof("access policy for hosted zone created: arn=%s", aws.StringValue(policy.Policy.Arn))
-
-	return policy.Policy, nil
-}
-
-// deletePolicy deletes the amazon policy identified by the provided arn
-func (dns *awsRoute53) deletePolicy(policyArn *string) error {
-	log := loggerWithFields(logrus.Fields{"policy": aws.StringValue(policyArn)})
-
-	_, err := dns.iamSvc.DeletePolicy(&iam.DeletePolicyInput{PolicyArn: policyArn})
-	if err != nil {
-		log.Errorf("deleting access policy failed: %s", extractErrorMessage(err))
-	}
-
-	log.Info("access policy deleted")
-
-	return err
-}
-
-// createHostedZoneIAMUser creates a IAM user and attaches the route53 policy identified by the given arn
-func (dns *awsRoute53) createHostedZoneIAMUser(userName, route53PolicyArn *string, ctx *context) error {
-	log := loggerWithFields(logrus.Fields{"IAMUser": aws.StringValue(userName), "policy": aws.StringValue(route53PolicyArn)})
-
-	iamUser, err := dns.getIAMUser(userName)
-	if err != nil {
-		return err
-	}
-
-	if iamUser == nil {
-		// create IAM User
-		iamUser, err = dns.createIAMUser(userName)
-		if err != nil {
-			return err
-		}
-	}
-
-	ctx.registerRollback(func() error {
-		return dns.deleteIAMUser(iamUser.UserName)
-	})
-
-	if ctx.state.iamUser != aws.StringValue(iamUser.UserName) {
-		ctx.state.iamUser = aws.StringValue(iamUser.UserName)
-
-		if err := dns.stateStore.update(ctx.state); err != nil {
-			return err
-		}
-	} else {
-		log.Info("skip creating IAM user as it already exists")
-	}
-
-	// attach policy to user
-
-	// check is the IAM user already has this policy attached
-	policyAlreadyAttached, err := dns.isUserPolicyAttached(userName, route53PolicyArn)
-	if err != nil {
-		return err
-	}
-
-	if !policyAlreadyAttached {
-		if err := dns.attachUserPolicy(aws.String(ctx.state.iamUser), route53PolicyArn); err != nil {
-			return err
-		}
-	} else {
-		log.Info("skip attaching policy to user as it is already attached")
-	}
-
-	ctx.registerRollback(func() error {
-		return dns.detachUserPolicy(aws.String(ctx.state.iamUser), route53PolicyArn)
-	})
-
-	// setup Amazon access keys for IAM usser
-	err = dns.setupAmazonAccess(aws.StringValue(userName), ctx)
-
-	if err != nil {
-		log.Errorf("setting up Amazon access key for user failed: %s", extractErrorMessage(err))
-		return err
-	}
-
-	return nil
 }
 
 // setupAmazonAccess creates Amazon access key for the IAM user
@@ -904,188 +731,6 @@ func (dns *awsRoute53) setupAmazonAccess(iamUser string, ctx *context) error {
 	return nil
 }
 
-// createIAMUser creates a Amazon IAM user with the given name and with no login access to console
-// Returns the created IAM user in case of success
-func (dns *awsRoute53) createIAMUser(userName *string) (*iam.User, error) {
-	log := loggerWithFields(logrus.Fields{"userName": aws.StringValue(userName)})
-
-	userInput := &iam.CreateUserInput{
-		UserName: userName,
-	}
-
-	iamUser, err := dns.iamSvc.CreateUser(userInput)
-	if err != nil {
-		log.Errorf("creating IAM user failed: %s", extractErrorMessage(err))
-		return nil, err
-	}
-
-	log.Info("IAM user created")
-
-	return iamUser.User, nil
-}
-
-// getIAMUser retrieves the Amazon IAM user with the given user name
-func (dns *awsRoute53) getIAMUser(userName *string) (*iam.User, error) {
-	log := loggerWithFields(logrus.Fields{"userName": aws.StringValue(userName)})
-
-	user := &iam.GetUserInput{
-		UserName: userName,
-	}
-
-	iamUser, err := dns.iamSvc.GetUser(user)
-	if err != nil {
-		if aerr, ok := err.(awserr.Error); ok {
-			if aerr.Code() == iam.ErrCodeNoSuchEntityException {
-				return nil, nil // no such IAM user
-			}
-		}
-
-		log.Errorf("retrieving IAM user failed: %s", extractErrorMessage(err))
-		return nil, err
-	}
-
-	return iamUser.User, nil
-}
-
-// deleteIAMUser deletes the Amazon IAM user with the given name
-func (dns *awsRoute53) deleteIAMUser(userName *string) error {
-	log := loggerWithFields(logrus.Fields{"userName": aws.StringValue(userName)})
-
-	if _, err := dns.iamSvc.DeleteUser(&iam.DeleteUserInput{UserName: userName}); err != nil {
-		log.Errorf("deleting IAM user failed: %s", extractErrorMessage(err))
-		return err
-	}
-
-	log.Info("IAM user deleted")
-
-	return nil
-}
-
-// isUserPolicyAttached returns true is the policy given its Arn is attached to the specified IAM user
-func (dns *awsRoute53) isUserPolicyAttached(userName, policyArn *string) (bool, error) {
-	attachedUserPoliciesInput := &iam.ListAttachedUserPoliciesInput{UserName: userName}
-	attachedUserPolicies, err := dns.iamSvc.ListAttachedUserPolicies(attachedUserPoliciesInput)
-	if err != nil {
-		return false, err
-	}
-
-	found := false
-	for _, attachedPolicy := range attachedUserPolicies.AttachedPolicies {
-		if aws.StringValue(attachedPolicy.PolicyArn) == aws.StringValue(policyArn) {
-			found = true
-			break
-		}
-	}
-
-	return found, nil
-}
-
-// attachUserPolicy attaches the policy identified by the given arn to the IAM user identified
-// by the given name
-func (dns *awsRoute53) attachUserPolicy(userName, policyArn *string) error {
-	log := loggerWithFields(logrus.Fields{"userName": aws.StringValue(userName), "policy": aws.StringValue(policyArn)})
-
-	userPolicyInput := &iam.AttachUserPolicyInput{
-		UserName:  userName,
-		PolicyArn: policyArn,
-	}
-
-	_, err := dns.iamSvc.AttachUserPolicy(userPolicyInput)
-	if err != nil {
-		log.Errorf("attaching access policy to IAM user failed: %s", extractErrorMessage(err))
-		return err
-	}
-
-	log.Info("access policy attached to IAM user")
-
-	return nil
-}
-
-// detachUserPolicy detaches the access policy identified by policyArn from the IAM User identified by userName
-func (dns *awsRoute53) detachUserPolicy(userName, policyArn *string) error {
-	log := loggerWithFields(logrus.Fields{"userName": aws.StringValue(userName), "policy": aws.StringValue(policyArn)})
-
-	_, err := dns.iamSvc.DetachUserPolicy(&iam.DetachUserPolicyInput{PolicyArn: policyArn, UserName: userName})
-	if err != nil {
-		log.Errorf("detaching policy from IAM user failed: %s", extractErrorMessage(err))
-		return err
-	}
-
-	log.Info("policy detached from IAM user")
-
-	return nil
-}
-
-// isAmazonAccessKeyExists returns whether the specified IAM user has the given Amazon access key
-func (dns *awsRoute53) isAmazonAccessKeyExists(userName, accessKeyId *string) (bool, error) {
-	listAccessKeys := &iam.ListAccessKeysInput{
-		UserName: userName,
-	}
-
-	accessKeys, err := dns.iamSvc.ListAccessKeys(listAccessKeys)
-	if err != nil {
-		return false, err
-	}
-
-	found := false
-	for _, accessKey := range accessKeys.AccessKeyMetadata {
-		if aws.StringValue(accessKey.AccessKeyId) == aws.StringValue(accessKeyId) {
-			found = true
-			break
-		}
-	}
-
-	return found, nil
-}
-
-// getUserAmazonAccessKeys returns the list of Amazon access keys of the given IAM user
-func (dns *awsRoute53) getUserAmazonAccessKeys(userName *string) ([]*iam.AccessKeyMetadata, error) {
-	listAccessKeys := &iam.ListAccessKeysInput{
-		UserName: userName,
-	}
-
-	accessKeys, err := dns.iamSvc.ListAccessKeys(listAccessKeys)
-	if err != nil {
-		return nil, err
-	}
-
-	return accessKeys.AccessKeyMetadata, nil
-}
-
-// createAmazonAccessKey create Amazon access key for the IAM user identified by userName
-func (dns *awsRoute53) createAmazonAccessKey(userName *string) (*iam.AccessKey, error) {
-	log := loggerWithFields(logrus.Fields{"userName": aws.StringValue(userName)})
-
-	accessKeyInput := &iam.CreateAccessKeyInput{UserName: userName}
-
-	accessKey, err := dns.iamSvc.CreateAccessKey(accessKeyInput)
-	if err != nil {
-		log.Errorf("creating Amazon access key for IAM user failed: %s", extractErrorMessage(err))
-		return nil, err
-	}
-
-	log.Info("Amazon access key for IAM user created")
-
-	return accessKey.AccessKey, nil
-}
-
-// deleteAmazonAccessKey deletes the Amazon access key of the user
-func (dns *awsRoute53) deleteAmazonAccessKey(userName, accessKeyId *string) error {
-	log := loggerWithFields(logrus.Fields{"userName": aws.StringValue(userName), "accessKeyId": aws.StringValue(accessKeyId)})
-
-	accessKeyInput := &iam.DeleteAccessKeyInput{AccessKeyId: accessKeyId, UserName: userName}
-
-	_, err := dns.iamSvc.DeleteAccessKey(accessKeyInput)
-	if err != nil {
-		log.Errorf("deleting Amazon access key failed: %s", extractErrorMessage(err))
-		return err
-	}
-
-	log.Info("Amazon access key deleted")
-
-	return nil
-}
-
 // getRoute53Secret returns the secret from Vault that stores the IAM user
 // aws access credentials that is used for accessing the Route53 Amazon service
 func (dns *awsRoute53) getRoute53Secret(orgId uint) (*secret.SecretItemResponse, error) {
@@ -1155,174 +800,6 @@ func (dns *awsRoute53) storeRoute53Secret(updateSecret *secret.SecretItemRespons
 	return nil
 }
 
-// chainToBaseDomain chains the given hosted zone representing a domain into
-// the hosted zone that corresponds to the parent base domain
-func (dns *awsRoute53) chainToBaseDomain(hostedZoneId string, ctx *context) error {
-	log := loggerWithFields(logrus.Fields{"hosted zone": hostedZoneId})
-
-	hostedZone, err := dns.getHostedZoneWithNameServers(aws.String(hostedZoneId))
-	if err != nil {
-		return err
-	}
-
-	resourceRecordSet, err := dns.getResourceRecordSetFromBaseHostedZone(hostedZone.HostedZone.Name)
-	if err != nil {
-		log.Errorf("getting resource record set from base hosted zone failed: %s", extractErrorMessage(err))
-		return err
-	}
-
-	if resourceRecordSet != nil {
-		// domain already linked to parent base domain. verify if NS resource records is in sync, if not update them
-		if nameServerMatch(hostedZone.DelegationSet, resourceRecordSet) {
-			log.Infoln("skip linking hosted zone to base hosted zone as it's already done !")
-			return nil
-		}
-
-		// update NS resource record set entry in base domain
-		resourceRecordSet.ResourceRecords = createResourceRecordsFromDelegationSet(hostedZone.DelegationSet)
-		err := dns.updateResourceRecordSets(aws.String(dns.baseHostedZoneId), []*route53.ResourceRecordSet{resourceRecordSet})
-		if err != nil {
-			return err
-		}
-	} else {
-		// domain not linked to base domain yet. Link it to parent
-		resourceRecordSet := &route53.ResourceRecordSet{
-			Name:            hostedZone.HostedZone.Name,
-			Type:            aws.String(route53.RRTypeNs),
-			ResourceRecords: createResourceRecordsFromDelegationSet(hostedZone.DelegationSet),
-			TTL:             aws.Int64(300),
-		}
-
-		err := dns.createResourceRecordSets(aws.String(dns.baseHostedZoneId), []*route53.ResourceRecordSet{resourceRecordSet})
-		if err != nil {
-			return err
-		}
-
-		// register rollback function
-		ctx.registerRollback(func() error {
-			return dns.deleteResourceRecordSets(aws.String(dns.baseHostedZoneId), []*route53.ResourceRecordSet{resourceRecordSet})
-		})
-	}
-	return nil
-}
-
-// unChainFromBaseDomain removes the ResourceRecordSet that corresponds to the passed domain from parent base hosted zone
-func (dns *awsRoute53) unChainFromBaseDomain(domain string) error {
-	log := loggerWithFields(logrus.Fields{"domain": domain})
-
-	log.Infoln("removing domain from base domain")
-
-	if !strings.HasSuffix(domain, ".") {
-		domain += "."
-
-	}
-	resourceRecordSet, err := dns.getResourceRecordSetFromBaseHostedZone(aws.String(domain))
-	if err != nil {
-		log.Errorf("getting resource record set from base hosted zone failed: %s", extractErrorMessage(err))
-		return err
-	}
-
-	if resourceRecordSet != nil {
-		return dns.deleteResourceRecordSets(aws.String(dns.baseHostedZoneId), []*route53.ResourceRecordSet{resourceRecordSet})
-	}
-
-	log.Infoln("skip removing domain from base domain as it's been already removed")
-	return nil
-}
-
-// getResourceRecordSetFromBaseHostedZone retrieves the NS type ResourceRecordSet that corresponds to the given record set name from base hosted zone
-// If none ResourceRecordSet found returns nil
-func (dns *awsRoute53) getResourceRecordSetFromBaseHostedZone(name *string) (*route53.ResourceRecordSet, error) {
-	baseHostedZone, err := dns.getHostedZone(aws.String(dns.baseHostedZoneId))
-	if err != nil {
-		return nil, err
-	}
-
-	listResourceRecordSets := &route53.ListResourceRecordSetsInput{
-		HostedZoneId:    baseHostedZone.Id,
-		StartRecordType: aws.String(route53.RRTypeNs),
-		StartRecordName: name,
-		MaxItems:        aws.String("1"),
-	}
-	res, err := dns.route53Svc.ListResourceRecordSets(listResourceRecordSets)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(res.ResourceRecordSets) > 0 && (aws.StringValue(res.ResourceRecordSets[0].Name) == aws.StringValue(name)) {
-		return res.ResourceRecordSets[0], nil
-	}
-
-	return nil, nil
-}
-
-// createResourceRecordSets creates a ResourceRecordSets in the hosted zone with the given id in Route53 service
-func (dns *awsRoute53) createResourceRecordSets(zoneId *string, rrs []*route53.ResourceRecordSet) error {
-	log := loggerWithFields(logrus.Fields{"hosted zone": aws.StringValue(zoneId)})
-
-	log.Infoln("adding resource record sets")
-	return dns.changeResourceRecordSet(aws.String(route53.ChangeActionCreate), zoneId, rrs)
-}
-
-// updateResourceRecordSets updates a ResourceRecordSets of a hosted zone with the given id in Route53 service
-func (dns *awsRoute53) updateResourceRecordSets(zoneId *string, rrs []*route53.ResourceRecordSet) error {
-	log := loggerWithFields(logrus.Fields{"hosted zone": aws.StringValue(zoneId)})
-
-	log.Infoln("updating resource record sets")
-	return dns.changeResourceRecordSet(aws.String(route53.ChangeActionUpsert), zoneId, rrs)
-}
-
-// deleteResourceRecordSets deletes the ResourceRecordSets of a hosted zone with the given id in Route53 service
-func (dns *awsRoute53) deleteResourceRecordSets(zoneId *string, rrs []*route53.ResourceRecordSet) error {
-	log := loggerWithFields(logrus.Fields{"hosted zone": aws.StringValue(zoneId)})
-
-	log.Infoln("deleting resource record sets")
-	return dns.changeResourceRecordSet(aws.String(route53.ChangeActionDelete), zoneId, rrs)
-}
-
-// changeResourceRecordSets executes the ChangeAction on the given ResourceRecordSets of a hosted zone
-func (dns *awsRoute53) changeResourceRecordSet(action, zoneId *string, rrs []*route53.ResourceRecordSet) error {
-	log := loggerWithFields(logrus.Fields{"hosted zone": aws.StringValue(zoneId), "action": aws.StringValue(action)})
-
-	log.Infoln("executing action on resource record sets")
-	var changes []*route53.Change
-
-	if len(rrs) == 0 {
-		return nil // nop
-	}
-
-	for _, r := range rrs {
-		changes = append(changes, &route53.Change{
-			Action:            action,
-			ResourceRecordSet: r,
-		})
-	}
-
-	changeInput := &route53.ChangeResourceRecordSetsInput{
-		HostedZoneId: zoneId,
-		ChangeBatch: &route53.ChangeBatch{
-			Changes: changes,
-		},
-	}
-
-	changeOutput, err := dns.route53Svc.ChangeResourceRecordSets(changeInput)
-	if err != nil {
-		return err
-	}
-
-	log.Infoln("wait until resource record sets changed")
-	err = dns.route53Svc.WaitUntilResourceRecordSetsChanged(
-		&route53.GetChangeInput{
-			Id: changeOutput.ChangeInfo.Id,
-		})
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (dns *awsRoute53) updateStateWithError(state *domainState, err error) {
 	state.status = FAILED
 	state.errMsg = extractErrorMessage(err)
@@ -1338,14 +815,6 @@ func extractErrorMessage(err error) string {
 	return err.Error()
 }
 
-func stripHostedZoneId(id string) string {
-	return strings.Replace(id, "/hostedzone/", "", 1)
-}
-
-func getIAMUserName(org *auth.Organization) string {
-	return fmt.Sprintf(iamUserNameTemplate, org.Name)
-}
-
 func getOrgById(orgId uint) (*auth.Organization, error) {
 	org, err := auth.GetOrganizationById(orgId)
 	if err != nil {
@@ -1355,38 +824,64 @@ func getOrgById(orgId uint) (*auth.Organization, error) {
 	return org, nil
 }
 
-// nameServerMatch returns true of the name servers of the delegation set matches the
-// resource records in the provided resource records set, otherwise returns false
-func nameServerMatch(ds *route53.DelegationSet, rrs *route53.ResourceRecordSet) bool {
-	if aws.StringValue(rrs.Type) != route53.RRTypeNs {
-		return false // the resource record set must be of type NameServer
+// getWorker returns a worker that handles route53 related requests for the given organisation.
+// It ensures that there is only one worker assigned for an organisation
+func (dns *awsRoute53) getWorker(orgId uint) chan workerTask {
+	dns.muxWorkers.Lock()
+	defer dns.muxWorkers.Unlock()
+
+	if dns.orgDomainWorkers == nil {
+		dns.orgDomainWorkers = make(map[uint]chan workerTask)
 	}
 
-	if len(ds.NameServers) != len(rrs.ResourceRecords) {
-		return false
+	worker, ok := dns.orgDomainWorkers[orgId]
+	if !ok {
+		worker = dns.startNewWorker()
+		dns.orgDomainWorkers[orgId] = worker
 	}
 
-	for _, rr := range rrs.ResourceRecords {
-		var i int
-		for i = 0; i < len(ds.NameServers); i++ {
-			if aws.StringValue(rr.Value) == aws.StringValue(ds.NameServers[i]) {
-				break
+	return worker
+}
+
+// startNewWorker launches a new worker and returns the input channel through which
+// it accepts tasks to executed. Tasks are executed in receiving order sequentially.
+func (dns *awsRoute53) startNewWorker() chan workerTask {
+	workQueue := make(chan workerTask)
+
+	go func() {
+		for task := range workQueue {
+			switch task.operation {
+			case isDomainRegistered:
+				ok, err := dns.isDomainRegistered(task.organisationId, task.domain)
+				task.responseQueue <- workerResponse{error: err, result: ok}
+			case registerDomain:
+				err := dns.registerDomain(task.organisationId, task.domain)
+				task.responseQueue <- workerResponse{error: err}
+			case unregisterDomain:
+				err := dns.unregisterDomain(task.organisationId, task.domain)
+				task.responseQueue <- workerResponse{error: err}
+			default:
+				task.responseQueue <- workerResponse{error: fmt.Errorf("operation %q not supported", task.operation)}
 			}
 		}
 
-		if i == len(ds.NameServers) {
-			return false
-		}
-	}
+	}()
 
-	return true
+	return workQueue
 }
 
-func createResourceRecordsFromDelegationSet(ds *route53.DelegationSet) []*route53.ResourceRecord {
-	var rr []*route53.ResourceRecord
-	for _, nameServer := range ds.NameServers {
-		rr = append(rr, &route53.ResourceRecord{Value: nameServer})
+func newWorkerTask(operation operationType, orgId uint, domain string, responseQueue chan<- workerResponse) workerTask {
+	return workerTask{
+		operation:      operation,
+		organisationId: orgId,
+		domain:         domain,
+		responseQueue:  responseQueue,
 	}
+}
 
-	return rr
+func createCommonEvent(orgId uint, domain string) *DomainEvent {
+	return &DomainEvent{
+		Domain:         domain,
+		OrganisationId: orgId,
+	}
 }

@@ -7,10 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"path/filepath"
-
 	"github.com/gin-contrib/cors"
 	"github.com/spf13/viper"
+	"path/filepath"
 )
 
 const (
@@ -40,6 +39,9 @@ const (
 	// EksTemplateLocation is the configuration key the location to get EKS Cloud Formation templates from
 	// the location to get EKS Cloud Formation templates from
 	EksTemplateLocation = "eks.templateLocation"
+
+	// AwsCredentialPath is the path in Vault to get AWS credentials from for Pipeline
+	AwsCredentialPath = "aws.credentials.path"
 )
 
 //Init initializes the configurations
@@ -64,7 +66,7 @@ func init() {
 	viper.SetDefault("cloud.defaultProfileName", "default")
 	viper.SetDefault("cloud.configRetryCount", 30)
 	viper.SetDefault("cloud.configRetrySleep", 15)
-	viper.SetDefault("aws.credentials.path", "secret/data/banzaicloud/aws")
+	viper.SetDefault(AwsCredentialPath, "secret/data/banzaicloud/aws")
 	viper.SetDefault("logging.kubicornloglevel", "debug")
 	viper.SetDefault("catalog.repositoryUrl", "http://kubernetes-charts.banzaicloud.com/branch/spotguide")
 
