@@ -31,7 +31,7 @@ const (
 
 	// Route53MaintenanceWndMinute configuration key for the maintenance window for Route53.
 	// This is the maintenance window before the next AWS Route53 pricing period starts
-	Route53MaintenanceWndMinute = "route53.mainthelm.banzaiRepositoryURenanceWindowMinute"
+	Route53MaintenanceWndMinute = "route53.maintenanceWindowMinute"
 
 	//PipelineMonitorNamespace pipeline infra namespace key
 	PipelineMonitorNamespace = "infra.namespace"
