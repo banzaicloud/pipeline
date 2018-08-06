@@ -10,6 +10,9 @@ PKGS=$(shell go list ./... | grep -v /client)
 VERSION = 0.1.0
 GITREV = $(shell git rev-parse --short HEAD)
 
+GOLANGCI_VERSION = 1.9.3
+MISSPELL_VERSION = 0.3.4
+
 build: ## Builds binary package
 	go build -v -ldflags "-X main.Version=$(VERSION) -X main.GitRev=$(GITREV)" .
 
@@ -54,38 +57,26 @@ ec2-list-instances: ## Lists aws ec2 instances, for alternative regions use: AWS
 list:
 	@$(MAKE) -pRrn : -f $(MAKEFILE_LIST) 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | egrep -v -e '^[^[:alnum:]]' -e '^$@$$' | sort
 
+bin/golangci-lint: ## Install golangci linter
+	@mkdir -p ./bin/
+	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | bash -s -- -b ./bin/ v${GOLANGCI_VERSION}
+
+.PHONY: lint
+lint: bin/golangci-lint ## Run linter
+	@bin/golangci-lint run
+
 fmt:
 	@gofmt -w ${GOFILES_NOVENDOR}
 
-check-fmt:
-	PKGS="${GOFILES_NOVENDOR}" GOFMT="gofmt" ./scripts/fmt-check.sh
+bin/missspell: ## Install misspell
+	@mkdir -p ./bin/
+	curl -sfL https://git.io/misspell | bash -s -- -b ./bin/ v${MISSPELL_VERSION}
 
-check-misspell: install-misspell
-	PKGS="${GOFILES_NOVENDOR}" MISSPELL="misspell" ./scripts/misspell-check.sh
-
-misspell: install-misspell
+misspell: bin/missspell ## Fix spelling mistakes
 	misspell -w ${GOFILES_NOVENDOR}
-
-vet:
-	@go vet -composites=false ./...
 
 test:
 	./scripts/test.sh
-
-lint: install-golint
-	golint -min_confidence 0.9 -set_exit_status $(PKGS)
-
-install-golint:
-	GOLINT_CMD=$(shell command -v golint 2> /dev/null)
-ifndef GOLINT_CMD
-	go get github.com/golang/lint/golint
-endif
-
-install-misspell:
-	MISSPELL_CMD=$(shell command -v misspell 2> /dev/null)
-ifndef MISSPELL_CMD
-	go get -u github.com/client9/misspell/cmd/misspell
-endif
 
 clean-vendor:
 	find -L ./vendor -type l | xargs rm -rf
@@ -97,24 +88,6 @@ generate-client:
 	-g go \
 	-o /local/client
 	go fmt ./client
-
-ineffassign: install-ineffassign
-	ineffassign ${GOFILES_NOVENDOR}
-
-gocyclo: install-gocyclo
-	gocyclo -over 15 ${GOFILES_NOVENDOR}
-
-install-ineffassign:
-	INEFFASSIGN_CMD=$(shell command -v ineffassign 2> /dev/null)
-ifndef INEFFASSIGN_CMD
-	go get -u github.com/gordonklaus/ineffassign
-endif
-
-install-gocyclo:
-	GOCYCLO_CMD=$(shell command -v gocyclo 2> /dev/null)
-ifndef GOCYCLO_CMD
-	go get -u github.com/fzipp/gocyclo
-endif
 
 check-symlinks:
 	FILES="${SYMLINKS}" ./scripts/symlink-check.sh

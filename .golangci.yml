@@ -1,0 +1,20 @@
+run:
+  skip-dirs:
+    - client
+
+linters-settings:
+  golint:
+    min-confidence: 0.9
+
+  gocyclo:
+    min-complexity: 15
+
+linters:
+  disable:
+    - errcheck
+    - structcheck
+    - deadcode
+    - gas
+    - megacheck
+    - varcheck
+    - govet
