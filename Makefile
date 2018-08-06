@@ -11,7 +11,7 @@ VERSION = 0.1.0
 GITREV = $(shell git rev-parse --short HEAD)
 
 build: ## Builds binary package
-	go build  -ldflags "-X main.Version=$(VERSION) -X main.GitRev=$(GITREV)" .
+	go build -v -ldflags "-X main.Version=$(VERSION) -X main.GitRev=$(GITREV)" .
 
 build-ci:
 	CGO_ENABLED=0 GOOS=linux go build .

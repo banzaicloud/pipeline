@@ -218,12 +218,16 @@ func (g *GKECluster) CreateCluster() error {
 		// TODO status code !?
 		return errors.New(be.Message)
 	}
-	log.Infof("Cluster %s create is called for project %s and zone %s. Status Code %v", cc.Name, cc.ProjectID, cc.Zone, createCall.HTTPStatusCode)
 
-	log.Info("Waiting for cluster...")
+	if createCall != nil {
+		log.Infof("Cluster %s create is called for project %s and zone %s. Status Code %v", cc.Name, cc.ProjectID, cc.Zone)
+		log.Info("Waiting for cluster...")
 
-	if err := waitForOperation(svc, g.modelCluster.Location, projectId, createCall.Name); err != nil {
-		return err
+		if err := waitForOperation(svc, g.modelCluster.Location, projectId, createCall.Name); err != nil {
+			return err
+		}
+	} else {
+		log.Info("Cluster %s already exists.", g.modelCluster.Name)
 	}
 
 	gkeCluster, err := getClusterGoogle(svc, cc)
