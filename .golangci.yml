@@ -12,6 +12,7 @@ linters-settings:
 linters:
   enable:
     - misspell
+    - gofmt
   disable:
     - errcheck
     - structcheck

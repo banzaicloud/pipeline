@@ -11,7 +11,7 @@ func TestMergeRefValues(t *testing.T) {
 	catalog := catalog.CatalogDetails{
 		Spotguide: &pkgCatalog.SpotguideFile{
 			Secrets: map[string]pkgCatalog.ApplicationSecret{
-				"mysql-password": pkgCatalog.ApplicationSecret{
+				"mysql-password": {
 					Password: &pkgCatalog.ApplicationSecretPassword{},
 				}},
 		},
