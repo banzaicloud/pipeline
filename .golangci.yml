@@ -17,4 +17,3 @@ linters:
     - gas
     - megacheck
     - varcheck
-    - govet

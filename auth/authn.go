@@ -127,7 +127,7 @@ func Init() {
 	// Initialize Auth with configuration
 	Auth = auth.New(&auth.Config{
 		DB:                database.GetDB(),
-		Redirector:        auth.Redirector{redirectBack},
+		Redirector:        auth.Redirector{RedirectBack: redirectBack},
 		AuthIdentityModel: AuthIdentity{},
 		UserModel:         User{},
 		ViewPaths:         []string{"views"},
