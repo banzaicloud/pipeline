@@ -34,25 +34,9 @@ jobs:
           command:
               make build
       - run:
-          name: Run go vet
-          command:
-              make vet
-      - run:
-          name: Run fmt
-          command:
-              make check-fmt
-      - run:
-          name: Run golint
+          name: Run linter
           command:
               make lint
-      - run:
-          name: Run misspell
-          command:
-              make check-misspell
-      - run:
-          name: Run ineffassign
-          command:
-              make ineffassign
       - run:
           name: Run pipeline tests
           command: |
