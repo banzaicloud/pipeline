@@ -77,6 +77,8 @@ secretNamespace = "default"
 # The interval in mintutes at which the garbage collector runs to clean up unused organisation level domains
 gcIntervalMinute = 1
 
+gcLogLevel = "debug"
+
 # AWS Route53 config
 [route53]
 # The window before the next AWS Route53 billing period starts when unused organisation level domains (which are older than 12hrs)

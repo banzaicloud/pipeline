@@ -27,6 +27,9 @@ const (
 	// DNSGcIntervalMinute configuration key for the interval setting at which the DNS garbage collector runs
 	DNSGcIntervalMinute = "dns.gcIntervalMinute"
 
+	// DNSGcLogLevel configuration key for the DNS garbage collector logging level default value: "debug"
+	DNSGcLogLevel = "dns.gcLogLevel"
+
 	// Route53MaintenanceWndMinute configuration key for the maintenance window for Route53.
 	// This is the maintenance window before the next AWS Route53 pricing period starts
 	Route53MaintenanceWndMinute = "route53.maintenanceWindowMinute"
@@ -96,6 +99,7 @@ func init() {
 	viper.SetDefault(DNSBaseDomain, "banzaicloud.io")
 	viper.SetDefault(DNSSecretNamespace, "pipeline-infra")
 	viper.SetDefault(DNSGcIntervalMinute, 1)
+	viper.SetDefault(DNSGcLogLevel, "debug")
 	viper.SetDefault(Route53MaintenanceWndMinute, 15)
 
 	ReleaseName := os.Getenv("KUBERNETES_RELEASE_NAME")
