@@ -141,8 +141,6 @@ func (e *EKSCluster) CreateCluster() error {
 	}
 
 	// role that controls access to resources for creating an EKS cluster
-
-	roleName := e.generateIAMRoleNameForCluster()
 	eksStackName := e.generateStackNameForCluster()
 	sshKeyName := e.generateSSHKeyNameForCluster()
 
@@ -160,8 +158,7 @@ func (e *EKSCluster) CreateCluster() error {
 	}
 
 	actions := []utils.Action{
-		action.NewEnsureIAMRoleAction(creationContext, roleName),
-		action.NewCreateVPCAction(creationContext, eksStackName),
+		action.NewCreateVPCAndRolesAction(creationContext, eksStackName),
 		action.NewUploadSSHKeyAction(creationContext, sshSecret),
 		action.NewGenerateVPCConfigRequestAction(creationContext, eksStackName),
 		action.NewCreateEksClusterAction(creationContext, e.modelCluster.Eks.Version),
@@ -230,9 +227,12 @@ func (e *EKSCluster) CreateCluster() error {
 		return err
 	}
 
-	awsAuthConfigMap, err := generateAwsAuthConfigMap(kubeClient, user.User, creationContext.NodeInstanceRoles)
-	if err != nil {
-		return err
+	awsAuthConfigMap := v1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{Name: "aws-auth"},
+		Data: map[string]string{
+			"mapRoles": fmt.Sprintf(mapRolesTemplate, creationContext.NodeInstanceRoleArn),
+			"mapUsers": fmt.Sprintf(mapUsersTemplate, aws.StringValue(user.User.Arn), aws.StringValue(user.User.UserName)),
+		},
 	}
 	_, err = kubeClient.CoreV1().ConfigMaps("kube-system").Create(&awsAuthConfigMap)
 	if err != nil {
@@ -248,22 +248,6 @@ func (e *EKSCluster) CreateCluster() error {
 	log.Infoln("EKS cluster created:", e.modelCluster.Name)
 
 	return nil
-}
-
-func generateAwsAuthConfigMap(kubeClient *kubernetes.Clientset, user *iam.User, nodeInstanceRoles []string) (v1.ConfigMap, error) {
-	mapRoles := ""
-	for _, roleArn := range nodeInstanceRoles {
-		log.Debugf("add nodepool role arn: %v", roleArn)
-		mapRoles += fmt.Sprintf(mapRolesTemplate, roleArn)
-	}
-	mapUsers := fmt.Sprintf(mapUsersTemplate, aws.StringValue(user.Arn), aws.StringValue(user.UserName))
-	return v1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{Name: "aws-auth"},
-		Data: map[string]string{
-			"mapRoles": mapRoles,
-			"mapUsers": mapUsers,
-		},
-	}, nil
 }
 
 func (e *EKSCluster) generateSSHKeyNameForCluster() string {
@@ -319,19 +303,22 @@ func (e *EKSCluster) DeleteCluster() error {
 		session,
 		e.modelCluster.Name,
 	)
-	actions := []utils.Action{
-		action.NewDeleteClusterAction(deleteContext),
-		action.NewDeleteSSHKeyAction(deleteContext, e.generateSSHKeyNameForCluster()),
-		action.NewDeleteStackAction(deleteContext, e.generateStackNameForCluster()),
-		action.NewDeleteIAMRoleAction(deleteContext, e.generateIAMRoleNameForCluster()),
-		action.NewDeleteUserAction(deleteContext, e.modelCluster.Name, e.modelCluster.Eks.AccessKeyID),
-	}
+	actions := make([]utils.Action, 0, len(e.modelCluster.Eks.NodePools)+5)
 
 	for _, nodePool := range e.modelCluster.Eks.NodePools {
 		nodePoolStackName := e.generateNodePoolStackName(nodePool)
 		deleteStackAction := action.NewDeleteStackAction(deleteContext, nodePoolStackName)
 		actions = append([]utils.Action{deleteStackAction}, actions...)
 	}
+
+	actions = append([]utils.Action{action.NewWaitResourceDeletionAction(deleteContext)}, actions...)
+
+	actions = append(actions, []utils.Action{
+		action.NewDeleteClusterAction(deleteContext),
+		action.NewDeleteSSHKeyAction(deleteContext, e.generateSSHKeyNameForCluster()),
+		action.NewDeleteStackAction(deleteContext, e.generateStackNameForCluster()),
+		action.NewDeleteUserAction(deleteContext, e.modelCluster.Name, e.modelCluster.Eks.AccessKeyID),
+	}...)
 
 	actions = append([]utils.Action{action.NewWaitResourceDeletionAction(deleteContext)}, actions...)
 
@@ -448,7 +435,7 @@ func (e *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 		return nil
 	}
 
-	var vpcId, subnetIds, securityGroupId string
+	var vpcId, subnetIds, securityGroupId, nodeInstanceRoleId string
 	for _, output := range describeStacksOutput.Stacks[0].Outputs {
 		switch *output.OutputKey {
 		case "SecurityGroups":
@@ -457,6 +444,8 @@ func (e *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 			vpcId = *output.OutputValue
 		case "SubnetIds":
 			subnetIds = *output.OutputValue
+		case "NodeInstanceRoleId":
+			nodeInstanceRoleId = *output.OutputValue
 		}
 	}
 
@@ -481,7 +470,9 @@ func (e *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 		&securityGroupId,
 		aws.StringSlice(strings.Split(subnetIds, ",")),
 		e.generateSSHKeyNameForCluster(),
-		&vpcId)
+		&vpcId,
+		&nodeInstanceRoleId,
+	)
 
 	deleteContext := action.NewEksClusterDeleteContext(
 		session,
@@ -565,32 +556,6 @@ func (e *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 	_, err = utils.NewActionExecutor(log).ExecuteActions(actions, nil, false)
 	if err != nil {
 		log.Errorln("EKS cluster update error:", err.Error())
-		return err
-	}
-
-	iamSvc := iam.New(session)
-	user, err := iamSvc.GetUser(&iam.GetUserInput{
-		UserName: aws.String(e.modelCluster.Name),
-	})
-	if err != nil {
-		return err
-	}
-
-	config, err := e.GetK8sConfig()
-	if err != nil {
-		return err
-	}
-	kubeClient, err := helm.GetK8sConnection(config)
-	if err != nil {
-		return err
-	}
-
-	awsAuthConfigMap, err := generateAwsAuthConfigMap(kubeClient, user.User, createUpdateContext.NodeInstanceRoles)
-	if err != nil {
-		return err
-	}
-	_, err = kubeClient.CoreV1().ConfigMaps("kube-system").Update(&awsAuthConfigMap)
-	if err != nil {
 		return err
 	}
 

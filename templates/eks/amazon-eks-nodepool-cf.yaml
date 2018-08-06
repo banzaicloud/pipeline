@@ -113,6 +113,10 @@ Parameters:
     Description: The subnets where workers can be created.
     Type: List<AWS::EC2::Subnet::Id>
 
+  NodeInstanceRoleId:
+    Description: The role for node IAM profile
+    Type: String
+
 Mappings:
   MaxPodsPerNode:
     c4.large:
@@ -262,55 +266,7 @@ Resources:
     Properties:
       Path: "/"
       Roles:
-      - !Ref NodeInstanceRole
-
-  NodeInstanceRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-        - Effect: Allow
-          Principal:
-            Service:
-            - ec2.amazonaws.com
-          Action:
-          - sts:AssumeRole
-      Path: "/"
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
-        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
-        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
-      Policies:
-        -
-          PolicyName: NodePolicy
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-            -
-              Effect: "Allow"
-              Action:
-              - ec2:Describe*
-              - ecr:GetAuthorizationToken
-              - ecr:BatchCheckLayerAvailability
-              - ecr:GetDownloadUrlForLayer
-              - ecr:GetRepositoryPolicy
-              - ecr:DescribeRepositories
-              - ecr:ListImages
-              - ecr:BatchGetImage
-              - s3:ListBucket
-              - s3:GetObject
-              - s3:PutObject
-              - s3:ListObjects
-              - s3:DeleteObject
-              - autoscaling:DescribeAutoScalingGroups
-              - autoscaling:UpdateAutoScalingGroup
-              - autoscaling:DescribeAutoScalingInstances
-              - autoscaling:DescribeTags
-              - autoscaling:DescribeLaunchConfigurations
-              - autoscaling:SetDesiredCapacity
-              - autoscaling:TerminateInstanceInAutoScalingGroup
-              Resource: "*"
+      - !Ref NodeInstanceRoleId
 
   NodeSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -449,7 +405,3 @@ Resources:
             ]
           ]
 
-Outputs:
-  NodeInstanceRole:
-    Description: The node instance role
-    Value: !GetAtt NodeInstanceRole.Arn
