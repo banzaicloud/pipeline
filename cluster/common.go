@@ -20,17 +20,9 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/kubicorn/kubicorn/pkg/logger"
-	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/terminal"
 )
-
-var log *logrus.Logger
-
-// Simple init for logging
-func init() {
-	log = config.Logger()
-}
 
 //CommonCluster interface for clusters
 type CommonCluster interface {

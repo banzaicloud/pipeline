@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"math"
 	"net/http"
 	"strconv"
 	"strings"
@@ -10,7 +11,6 @@ import (
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/database"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/model"
@@ -21,17 +21,13 @@ import (
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/client-go/kubernetes"
 	resourceHelper "k8s.io/kubernetes/pkg/api/v1/resource"
-	"math"
 )
-
-var log *logrus.Logger
 
 const (
 	awsLabelMaster = "node-role.kubernetes.io/master"
@@ -51,11 +47,6 @@ const (
 	zeroCPU    = "0 CPU"
 	zeroMemory = "0 B"
 )
-
-// Simple init for logging
-func init() {
-	log = config.Logger()
-}
 
 //ParseField is to restrict other query TODO investigate to just pass the hasmap
 func ParseField(c *gin.Context) map[string]interface{} {

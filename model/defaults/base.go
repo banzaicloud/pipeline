@@ -4,16 +4,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/database"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
-
-var log *logrus.Logger
 
 // cluster profile table names
 const (
@@ -30,11 +26,6 @@ const (
 const (
 	DefaultNodeName = "pool1"
 )
-
-// Simple init for logging
-func init() {
-	log = config.Logger()
-}
 
 // SetDefaultValues saves the default cluster profile into the database if not exists yet
 func SetDefaultValues() error {

@@ -11,19 +11,15 @@ import (
 
 	"github.com/banzaicloud/bank-vaults/pkg/tls"
 	"github.com/banzaicloud/bank-vaults/vault"
-	"github.com/banzaicloud/pipeline/config"
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	vaultapi "github.com/hashicorp/vault/api"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 	"k8s.io/apimachinery/pkg/util/validation"
 )
-
-var log *logrus.Logger
 
 // Store object that wraps up vault logical store
 var Store *secretStore
@@ -32,7 +28,6 @@ var Store *secretStore
 var ErrSecretNotExists = fmt.Errorf("There's no secret with this ID")
 
 func init() {
-	log = config.Logger()
 	Store = newVaultSecretStore()
 }
 

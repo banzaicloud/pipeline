@@ -74,11 +74,11 @@ func (ctx *ActionCallContext) executeContextAction() (interface{}, error) {
 
 // ActionExecutor executes Actions
 type ActionExecutor struct {
-	log *logrus.Logger
+	log logrus.FieldLogger
 }
 
 // NewActionExecutor creates a new ActionExecutor
-func NewActionExecutor(log *logrus.Logger) *ActionExecutor {
+func NewActionExecutor(log logrus.FieldLogger) *ActionExecutor {
 	return &ActionExecutor{
 		log: log,
 	}

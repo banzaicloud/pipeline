@@ -15,26 +15,15 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
 	pkgEks "github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
-	"github.com/sirupsen/logrus"
 )
 
-var log *logrus.Logger
-
 const awsNoUpdatesError = "No updates are to be performed."
-
-// Simple init for logging
-func init() {
-	log = config.Logger()
-}
-
-// --
 
 // EksClusterCreateUpdateContext describes the properties of an EKS cluster creation
 type EksClusterCreateUpdateContext struct {
@@ -684,7 +673,6 @@ func (action *UploadSSHKeyAction) ExecuteAction(input interface{}) (output inter
 	action.context.SSHKey = secret.NewSSHKeyPair(action.sshSecret)
 	ec2srv := ec2.New(action.context.Session)
 	importKeyPairInput := &ec2.ImportKeyPairInput{
-
 		// A unique name for the key pair.
 		// KeyName is a required field
 		KeyName: aws.String(action.context.SSHKeyName),

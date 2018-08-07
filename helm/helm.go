@@ -13,13 +13,12 @@ import (
 	"regexp"
 	"strings"
 	"text/template"
+	"time"
 
 	"github.com/Masterminds/sprig"
-	"github.com/banzaicloud/pipeline/config"
 	helm2 "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"k8s.io/helm/pkg/chartutil"
 	"k8s.io/helm/pkg/getter"
 	"k8s.io/helm/pkg/helm"
@@ -27,7 +26,6 @@ import (
 	"k8s.io/helm/pkg/proto/hapi/chart"
 	rls "k8s.io/helm/pkg/proto/hapi/services"
 	"k8s.io/helm/pkg/repo"
-	"time"
 )
 
 // DefaultNamespace default namespace
@@ -37,8 +35,6 @@ const DefaultNamespace = "default"
 const SystemNamespace = "kube-system"
 
 const versionAll = "all"
-
-var log *logrus.Logger
 
 // ErrRepoNotFound describe an error if helm repository not found
 var ErrRepoNotFound = errors.New("helm repository not found!")
@@ -51,11 +47,6 @@ type DeploymentNotFoundError struct {
 
 func (e *DeploymentNotFoundError) Error() string {
 	return fmt.Sprintf("deployment not found: %s", e.HelmError)
-}
-
-// Simple init for logging
-func init() {
-	log = config.Logger()
 }
 
 // DownloadFile download file/unzip and untar and store it in memory

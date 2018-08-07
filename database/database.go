@@ -4,9 +4,7 @@ import (
 	"sync"
 
 	"github.com/banzaicloud/bank-vaults/database"
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/jinzhu/gorm"
-	"github.com/sirupsen/logrus"
 	// blank import is used here for simplicity
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/spf13/viper"
@@ -14,12 +12,6 @@ import (
 
 var dbOnce sync.Once
 var db *gorm.DB
-var log *logrus.Logger
-
-// Simple init for logging
-func init() {
-	log = config.Logger()
-}
 
 func initDatabase() {
 	dbName := viper.GetString("database.dbname")

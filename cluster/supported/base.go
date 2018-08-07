@@ -1,18 +1,9 @@
 package supported
 
 import (
-	"github.com/banzaicloud/pipeline/config"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
-
-var log *logrus.Logger
-
-// Simple init for logging
-func init() {
-	log = config.Logger()
-}
 
 // CloudInfoProvider interface for cloud supports
 type CloudInfoProvider interface {
