@@ -38,21 +38,19 @@ func init() {
 
 // SetDefaultValues saves the default cluster profile into the database if not exists yet
 func SetDefaultValues() error {
-
-	log.Info("Save default cluster profiles")
+	log.Info("setting up default cluster profiles")
 
 	defaults := GetDefaultProfiles()
+
 	for _, d := range defaults {
-		if !d.IsDefinedBefore() {
-			// the table not contains the default profile
-			log.Infof("%s default table NOT contains the default values. Fill it...", d.GetType())
+		if !d.IsDefinedBefore() { // the table not contains the default profile
+			log.WithField("type", d.GetType()).Info("default profile is missing. Setting up...")
+
 			if err := d.SaveInstance(); err != nil {
-				// save failed
-				return fmt.Errorf("Could not save default values[%s]: %s", d.GetType(), err.Error())
+				return fmt.Errorf("could not save default values[%s]: %s", d.GetType(), err.Error())
 			}
-		} else {
-			// it's already exists
-			log.Infof("%s default table already contains the default values", d.GetType())
+		} else { // default profile already exists
+			log.WithField("type", d.GetType()).Info("default profile is already set up")
 		}
 	}
 
