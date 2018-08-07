@@ -23,7 +23,7 @@ clean:
 	rm -f pipeline
 
 local: ## Starts local MySql and admin in docker
-	[ -e conf/config.toml ] || cp conf/config.toml.example conf/config.toml
+	[ -e config/config.toml ] || cp config/config.toml.example config/config.toml
 	docker-compose -f docker-compose.yml up -d
 
 local-kill: ## Kills local MySql and admin

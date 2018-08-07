@@ -2,10 +2,8 @@ package main
 
 import (
 	"fmt"
-	"net/http"
 	"os"
 
-	"github.com/Depado/ginprom"
 	"github.com/banzaicloud/pipeline/api"
 	"github.com/banzaicloud/pipeline/audit"
 	"github.com/banzaicloud/pipeline/auth"
@@ -19,10 +17,10 @@ import (
 	"github.com/banzaicloud/pipeline/objectstore"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 
+	"github.com/banzaicloud/go-gin-prometheus"
 	"github.com/banzaicloud/pipeline/internal/gin/correlationid"
 	ginlog "github.com/banzaicloud/pipeline/internal/gin/log"
 	modelOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
@@ -150,13 +148,9 @@ func main() {
 	}
 	// Add prometheus metric endpoint
 	if viper.GetBool("metrics.enabled") {
-		p := ginprom.New(
-			ginprom.Subsystem("gin"),
-		)
+		p := ginprometheus.NewPrometheus("http", []string{})
+		p.SetListenAddress(viper.GetString("metrics.port"))
 		p.Use(router)
-		router.Use(p.Instrument())
-		http.Handle(viper.GetString("metrics.path"), promhttp.Handler())
-		go http.ListenAndServe("metrics.port", nil)
 	}
 
 	auth.Install(router)

@@ -85,7 +85,6 @@ func init() {
 	viper.SetDefault("pipeline.uipath", "/ui")
 	viper.SetDefault("pipeline.basepath", "")
 	viper.SetDefault("metrics.enabled", false)
-	viper.SetDefault("metrics.path", "/metrics")
 	viper.SetDefault("metrics.port", ":9900")
 	viper.SetDefault("database.dialect", "mysql")
 	viper.SetDefault("database.port", 3306)

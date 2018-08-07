@@ -240,14 +240,13 @@ version = "=v7.0.0"
   version = "0.1.4"
 
 [[constraint]]
-  name = "github.com/Depado/ginprom"
-  source = "github.com/banzaicloud/ginprom"
-  branch = "master"
-
-[[constraint]]
   name = "github.com/technosophos/moniker"
   version = "0.2.0"
 
 [[constraint]]
   name = "github.com/oracle/oci-go-sdk"
   version = "2.0.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/banzaicloud/go-gin-prometheus"
