@@ -68,6 +68,9 @@ var (
 	// JwtAudience ("aud") claim identifies the recipients that the JWT is intended for
 	JwtAudience string
 
+	// CookieDomain is the domain field for cookies
+	CookieDomain string
+
 	// Handler is the Gin authentication middleware
 	Handler gin.HandlerFunc
 
@@ -91,6 +94,7 @@ type DroneClaims struct {
 func Init() {
 	JwtIssuer = viper.GetString("auth.jwtissuer")
 	JwtAudience = viper.GetString("auth.jwtaudience")
+	CookieDomain = viper.GetString("auth.cookieDomain")
 
 	signingKey = viper.GetString("auth.tokensigningkey")
 	if signingKey == "" {
@@ -109,6 +113,10 @@ func Init() {
 	cookieStore := sessions.NewCookieStore(cookieAuthenticationKey, cookieEncryptionKey)
 	cookieStore.Options.MaxAge = SessionCookieMaxAge
 	cookieStore.Options.HttpOnly = SessionCookieHTTPOnly
+	cookieStore.Options.Secure = true
+	if CookieDomain != "" {
+		cookieStore.Options.Domain = CookieDomain
+	}
 
 	SessionManager = gorilla.New("_banzai_session", cookieStore)
 
