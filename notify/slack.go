@@ -3,8 +3,6 @@ package notify
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/banzaicloud/pipeline/config"
-	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -18,12 +16,6 @@ type Slack struct {
 	IconEmoji string `json:"iconemoji"`
 	IconUrl   string `json:"iconurl"`
 	Channel   string `json:"channel"`
-}
-
-var log *logrus.Logger
-
-func init() {
-	log = config.Logger()
 }
 
 //SlackNotify is pushing to Slack

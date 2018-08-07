@@ -11,7 +11,7 @@ import (
 // OCI is for managing OCI API calls
 type OCI struct {
 	config          common.ConfigurationProvider
-	logger          *logrus.Logger
+	logger          logrus.FieldLogger
 	credential      *Credential
 	Tenancy         identity.Tenancy
 	CompartmentOCID string
@@ -68,13 +68,13 @@ func (oci *OCI) ChangeRegion(regionName string) (err error) {
 }
 
 // SetLogger sets a logrus logger
-func (oci *OCI) SetLogger(logger *logrus.Logger) {
+func (oci *OCI) SetLogger(logger logrus.FieldLogger) {
 
 	oci.logger = logger
 }
 
 // GetLogger gets the previously set logrus logger
-func (oci *OCI) GetLogger() *logrus.Logger {
+func (oci *OCI) GetLogger() logrus.FieldLogger {
 
 	return oci.logger
 }

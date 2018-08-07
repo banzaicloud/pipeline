@@ -9,12 +9,9 @@ import (
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/satori/go.uuid"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )
-
-var log *logrus.Logger
 
 var once sync.Once
 var errCreate error
@@ -36,11 +33,6 @@ var mux sync.RWMutex
 type DnsEventsSubscription struct {
 	Id     uuid.UUID
 	Events <-chan interface{}
-}
-
-// Simple init for logging
-func init() {
-	log = config.Logger()
 }
 
 // DnsServiceClient contains the operations for managing domains in a Dns Service

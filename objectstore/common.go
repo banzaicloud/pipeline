@@ -2,7 +2,6 @@ package objectstore
 
 import (
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/database"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
@@ -10,15 +9,7 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/jinzhu/gorm"
-	"github.com/sirupsen/logrus"
 )
-
-var log *logrus.Logger
-
-// Simple init for logging
-func init() {
-	log = config.Logger()
-}
 
 // ManagedBucketNotFoundError signals that managed bucket was not found in database.
 type ManagedBucketNotFoundError struct {

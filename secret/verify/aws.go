@@ -5,18 +5,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/banzaicloud/pipeline/config"
 	pkgAmazon "github.com/banzaicloud/pipeline/pkg/cluster/amazon"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/sirupsen/logrus"
 )
-
-var log *logrus.Logger
-
-// Simple init for logging
-func init() {
-	log = config.Logger()
-}
 
 // awsVerify for validation AWS credentials
 type awsVerify struct {

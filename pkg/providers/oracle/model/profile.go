@@ -3,7 +3,6 @@ package model
 import (
 	"time"
 
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/database"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/amazon"
@@ -11,15 +10,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/google"
 	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster"
-	"github.com/sirupsen/logrus"
 )
-
-var log *logrus.Logger
-
-// Simple init for logging
-func init() {
-	log = config.Logger()
-}
 
 // SQL table names
 const (

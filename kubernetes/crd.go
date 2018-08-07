@@ -1,21 +1,15 @@
 package kubernetes
 
 import (
-	apiextcs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	//metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"fmt"
-	"github.com/banzaicloud/pipeline/config"
+
+	apiextcs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
+
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 )
-
-var log *logrus.Logger
-
-func init() {
-	log = config.Logger()
-}
 
 //GetK8sClientConfig creates a Kubernetes client config
 //This is a duplicate from Helm

@@ -7,7 +7,6 @@ import (
 	"net/url"
 
 	"github.com/banzaicloud/pipeline/config"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
@@ -15,13 +14,6 @@ const (
 	eksVPCTemplateName      = "amazon-eks-vpc-cf.yaml"
 	eksNodePoolTemplateName = "amazon-eks-nodepool-cf.yaml"
 )
-
-var log *logrus.Logger
-
-// Simple init for logging
-func init() {
-	log = config.Logger()
-}
 
 // getEksCloudFormationTemplate returns CloudFormation template with given name
 func getEksCloudFormationTemplate(name string) (string, error) {
