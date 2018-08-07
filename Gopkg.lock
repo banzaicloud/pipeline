@@ -89,15 +89,6 @@
   version = "v0.3.0"
 
 [[projects]]
-  branch = "master"
-  digest = "1:f58a0600fe9dcea69a2cede149a345eff66f194a43e41aa4a8cc1ced28ee934f"
-  name = "github.com/Depado/ginprom"
-  packages = ["."]
-  pruneopts = "NUT"
-  revision = "2a3f2367a53786899a4aa5004ced1994cae71a6c"
-  source = "github.com/banzaicloud/ginprom"
-
-[[projects]]
   digest = "1:a8bc08e25d94bdcbf8ea54ee8e4b2a00a8c3b6957501b4fdb1a6d303e5292f6d"
   name = "github.com/Knetic/govaluate"
   packages = ["."]
@@ -246,6 +237,14 @@
   pruneopts = "NUT"
   revision = "ec3af7e7b4abdd87d293838baf11e56e65556cd4"
   version = "0.2.8"
+
+[[projects]]
+  branch = "master"
+  digest = "1:59c4662beaf0aee5e6bbbbde4d904da4228b77568483d57aa8b93de1088afcb4"
+  name = "github.com/banzaicloud/go-gin-prometheus"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "9d3e5dc55c9e9c846035b317168e9705d6fbffb3"
 
 [[projects]]
   branch = "master"
@@ -1132,15 +1131,15 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:03bca087b180bf24c4f9060775f137775550a0834e18f0bca0520a868679dbd7"
+  digest = "1:167888737cd5a7d9cac6422e1216be91a687d5c6c752dfb88ba6879d179159e7"
   name = "github.com/prometheus/client_golang"
   packages = [
     "prometheus",
     "prometheus/promhttp",
   ]
   pruneopts = "NUT"
-  revision = "c5b7fccd204277076155f10851dad72b76a49317"
-  version = "v0.8.0"
+  revision = "967789050ba94deca04a5e84cce8ad472ce313c1"
+  version = "v0.9.0-pre1"
 
 [[projects]]
   branch = "master"
@@ -2217,7 +2216,6 @@
     "github.com/Azure/go-autorest/autorest/azure/auth",
     "github.com/Azure/go-autorest/autorest/to",
     "github.com/Azure/go-autorest/autorest/validation",
-    "github.com/Depado/ginprom",
     "github.com/Masterminds/sprig",
     "github.com/antihax/optional",
     "github.com/aokoli/goutils",
@@ -2245,6 +2243,7 @@
     "github.com/banzaicloud/bank-vaults/database",
     "github.com/banzaicloud/bank-vaults/pkg/tls",
     "github.com/banzaicloud/bank-vaults/vault",
+    "github.com/banzaicloud/go-gin-prometheus",
     "github.com/banzaicloud/logrus-runtime-formatter",
     "github.com/casbin/casbin",
     "github.com/casbin/gorm-adapter",
@@ -2277,7 +2276,6 @@
     "github.com/oracle/oci-go-sdk/objectstorage",
     "github.com/pkg/errors",
     "github.com/pkg/sftp",
-    "github.com/prometheus/client_golang/prometheus/promhttp",
     "github.com/prometheus/common/model",
     "github.com/prometheus/prometheus/config",
     "github.com/qor/auth",
