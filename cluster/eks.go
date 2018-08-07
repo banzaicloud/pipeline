@@ -311,8 +311,6 @@ func (e *EKSCluster) DeleteCluster() error {
 		actions = append([]utils.Action{deleteStackAction}, actions...)
 	}
 
-	actions = append([]utils.Action{action.NewWaitResourceDeletionAction(deleteContext)}, actions...)
-
 	actions = append(actions, []utils.Action{
 		action.NewDeleteClusterAction(deleteContext),
 		action.NewDeleteSSHKeyAction(deleteContext, e.generateSSHKeyNameForCluster()),
