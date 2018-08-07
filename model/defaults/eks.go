@@ -33,7 +33,7 @@ func (d *EKSProfile) SaveInstance() error {
 
 // GetType returns profile's cloud type
 func (d *EKSProfile) GetType() string {
-	return pkgCluster.Amazon
+	return pkgCluster.AmazonEKS
 }
 
 // IsDefinedBefore returns true if database contains en entry with profile name

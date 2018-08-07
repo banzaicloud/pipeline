@@ -112,7 +112,10 @@ func main() {
 	modelOracle.Init(logger)
 	modelOracleObjectstore.Init(logger)
 
-	defaults.SetDefaultValues()
+	err := defaults.SetDefaultValues()
+	if err != nil {
+		panic(err)
+	}
 
 	// External DNS service
 	dnsSvc, err := dns.GetExternalDnsServiceClient()

@@ -38,21 +38,19 @@ func init() {
 
 // SetDefaultValues saves the default cluster profile into the database if not exists yet
 func SetDefaultValues() error {
-
-	log.Info("Save default cluster profiles")
+	log.Info("setting up default cluster profiles")
 
 	defaults := GetDefaultProfiles()
+
 	for _, d := range defaults {
-		if !d.IsDefinedBefore() {
-			// the table not contains the default profile
-			log.Infof("%s default table NOT contains the default values. Fill it...", d.GetType())
+		if !d.IsDefinedBefore() { // the table not contains the default profile
+			log.WithField("type", d.GetType()).Info("default profile is missing. Setting up...")
+
 			if err := d.SaveInstance(); err != nil {
-				// save failed
-				return fmt.Errorf("Could not save default values[%s]: %s", d.GetType(), err.Error())
+				return fmt.Errorf("could not save default values[%s]: %s", d.GetType(), err.Error())
 			}
-		} else {
-			// it's already exists
-			log.Infof("%s default table already contains the default values", d.GetType())
+		} else { // default profile already exists
+			log.WithField("type", d.GetType()).Info("default profile is already set up")
 		}
 	}
 
@@ -87,19 +85,19 @@ func loadFirst(output interface{}) error {
 	return database.GetDB().First(output).Error
 }
 
-// GetDefaultProfiles create all types of clouds with default profile name
+// GetDefaultProfiles returns all types of clouds with default profile name.
 func GetDefaultProfiles() []ClusterProfile {
-	var defaults []ClusterProfile
-	defaults = append(defaults,
-		&AWSProfile{DefaultModel: DefaultModel{Name: GetDefaultProfileName()},
+	return []ClusterProfile{
+		&AWSProfile{
+			DefaultModel: DefaultModel{Name: GetDefaultProfileName()},
+
+			// Note: if the amazon provider ever gets removed, this should be moved to the amazon EKS profile
 			NodePools: []*AWSNodePoolProfile{{
 				NodeName: DefaultNodeName,
 			}},
 		},
-		&EKSProfile{DefaultModel: DefaultModel{Name: GetDefaultProfileName()},
-			NodePools: []*AWSNodePoolProfile{{
-				NodeName: DefaultNodeName,
-			}},
+		&EKSProfile{
+			DefaultModel: DefaultModel{Name: GetDefaultProfileName()},
 		},
 		&AKSProfile{
 			DefaultModel: DefaultModel{Name: GetDefaultProfileName()},
@@ -118,8 +116,8 @@ func GetDefaultProfiles() []ClusterProfile {
 			NodePools: []*oracle.ProfileNodePool{{
 				Name: DefaultNodeName,
 			}},
-		})
-	return defaults
+		},
+	}
 }
 
 // GetAllProfiles loads all saved cluster profile from database by given cloud type
