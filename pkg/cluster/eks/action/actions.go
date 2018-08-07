@@ -452,6 +452,7 @@ func (action *CreateUpdateNodePoolStackAction) GetName() string {
 func (action *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (output interface{}, err error) {
 
 	errorChan := make(chan error, len(action.nodePools))
+	defer close(errorChan)
 
 	for _, nodePool := range action.nodePools {
 
