@@ -87,19 +87,19 @@ func loadFirst(output interface{}) error {
 	return database.GetDB().First(output).Error
 }
 
-// GetDefaultProfiles create all types of clouds with default profile name
+// GetDefaultProfiles returns all types of clouds with default profile name.
 func GetDefaultProfiles() []ClusterProfile {
-	var defaults []ClusterProfile
-	defaults = append(defaults,
-		&AWSProfile{DefaultModel: DefaultModel{Name: GetDefaultProfileName()},
+	return []ClusterProfile{
+		&AWSProfile{
+			DefaultModel: DefaultModel{Name: GetDefaultProfileName()},
+
+			// Note: if the amazon provider ever gets removed, this should be moved to the amazon EKS profile
 			NodePools: []*AWSNodePoolProfile{{
 				NodeName: DefaultNodeName,
 			}},
 		},
-		&EKSProfile{DefaultModel: DefaultModel{Name: GetDefaultProfileName()},
-			NodePools: []*AWSNodePoolProfile{{
-				NodeName: DefaultNodeName,
-			}},
+		&EKSProfile{
+			DefaultModel: DefaultModel{Name: GetDefaultProfileName()},
 		},
 		&AKSProfile{
 			DefaultModel: DefaultModel{Name: GetDefaultProfileName()},
@@ -118,8 +118,8 @@ func GetDefaultProfiles() []ClusterProfile {
 			NodePools: []*oracle.ProfileNodePool{{
 				Name: DefaultNodeName,
 			}},
-		})
-	return defaults
+		},
+	}
 }
 
 // GetAllProfiles loads all saved cluster profile from database by given cloud type
