@@ -2,9 +2,8 @@ package main
 
 import (
 	"fmt"
-	"os"
-
 	"net/http"
+	"os"
 
 	"github.com/Depado/ginprom"
 	"github.com/banzaicloud/pipeline/api"
@@ -25,6 +24,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/pipeline/internal/gin/correlationid"
+	ginlog "github.com/banzaicloud/pipeline/internal/gin/log"
 	modelOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
 	modelOracleObjectstore "github.com/banzaicloud/pipeline/pkg/providers/oracle/model/objectstore"
 )
@@ -133,7 +133,7 @@ func main() {
 	// These two paths can contain sensitive information, so it is advised not to log them out.
 	skipPaths := viper.GetStringSlice("audit.skippaths")
 	router.Use(correlationid.Middleware())
-	router.Use(gin.LoggerWithWriter(gin.DefaultWriter, skipPaths...))
+	router.Use(ginlog.Middleware(log, skipPaths...))
 	router.Use(gin.Recovery())
 	router.Use(cors.New(config.GetCORS()))
 	if viper.GetBool("audit.enabled") {
