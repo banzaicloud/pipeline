@@ -28,11 +28,16 @@ func IsHttps(r *http.Request) bool {
 
 // SetCookie writes the cookie value.
 func SetCookie(w http.ResponseWriter, r *http.Request, name, value string) {
+	cookieDomain := r.URL.Host
+	if CookieDomain != "" {
+		cookieDomain = CookieDomain
+	}
+
 	cookie := http.Cookie{
 		Name:     name,
 		Value:    value,
 		Path:     "/",
-		Domain:   r.URL.Host,
+		Domain:   cookieDomain,
 		HttpOnly: SessionCookieHTTPOnly,
 		Secure:   IsHttps(r),
 		MaxAge:   SessionCookieMaxAge,
