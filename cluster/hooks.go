@@ -196,10 +196,10 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 			return errors.Errorf("Could not install created TLS secret to cluster!")
 		}
 	}
-	// todo use this
+	// TODO loggingParam contains bucket related infos, think this through how we are going to use this info
 	log.Infof("Params to logging operator: %s", loggingParam)
 
-	return installDeployment(cluster, helm.DefaultNamespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-logging", "pipeline-logging", nil, "InstallLogging")
+	return installDeployment(cluster, helm.DefaultNamespace, pkgHelm.BanzaiRepository+"/logging-operator", "pipeline-logging", nil, "InstallLogging")
 }
 
 func checkIfTLSRelatedValuesArePresent(v *pkgCluster.GenTLSForLogging) bool {
