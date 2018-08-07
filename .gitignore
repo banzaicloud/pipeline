@@ -1,9 +1,6 @@
 _state*
-.idea*
 .DS_Store
 bin/*
-.idea/
-pipeline.iml
 .pipeline
 pipeline
 !pipeline/
@@ -16,3 +13,9 @@ orgs/
 */main/main.go
 catalog/**/*.yaml
 test.txt
+
+# IDE integration
+/.idea/*
+!/.idea/runConfigurations/
+!/.idea/modules.xml
+!/.idea/*.iml
