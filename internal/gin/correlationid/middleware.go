@@ -1,0 +1,54 @@
+package correlationid
+
+import (
+	"github.com/gin-gonic/gin"
+	"github.com/satori/go.uuid"
+)
+
+// ContextKey is the key the retrieved (or generated) correlation ID is stored under in the gin Context.
+const ContextKey = "correlationid"
+
+// Default correlation ID header
+const defaultHeader = "Correlation-ID"
+
+// MiddlewareOption configures the correlation ID middleware.
+type MiddlewareOption interface {
+	apply(*middleware)
+}
+
+// Header configures the header from where the correlation ID will be retrieved.
+type Header string
+
+// apply implements the MiddlewareOption interface.
+func (h Header) apply(m *middleware) {
+	m.header = string(h)
+}
+
+// Middleware returns a gin compatible handler.
+func Middleware(opts ...MiddlewareOption) gin.HandlerFunc {
+	m := new(middleware)
+
+	for _, opt := range opts {
+		opt.apply(m)
+	}
+
+	if m.header == "" {
+		m.header = defaultHeader
+	}
+
+	return m.Handle
+}
+
+type middleware struct {
+	header string
+}
+
+func (m *middleware) Handle(ctx *gin.Context) {
+	if header := ctx.GetHeader(m.header); header != "" {
+		ctx.Set(ContextKey, header)
+	} else {
+		ctx.Set(ContextKey, uuid.NewV4().String())
+	}
+
+	ctx.Next()
+}

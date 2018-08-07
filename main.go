@@ -24,6 +24,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 
+	"github.com/banzaicloud/pipeline/internal/gin/correlationid"
 	modelOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
 	modelOracleObjectstore "github.com/banzaicloud/pipeline/pkg/providers/oracle/model/objectstore"
 )
@@ -131,6 +132,7 @@ func main() {
 
 	// These two paths can contain sensitive information, so it is advised not to log them out.
 	skipPaths := viper.GetStringSlice("audit.skippaths")
+	router.Use(correlationid.Middleware())
 	router.Use(gin.LoggerWithWriter(gin.DefaultWriter, skipPaths...))
 	router.Use(gin.Recovery())
 	router.Use(cors.New(config.GetCORS()))
