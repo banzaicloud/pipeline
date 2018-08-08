@@ -433,11 +433,13 @@ func (e *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 		return nil
 	}
 
-	var vpcId, subnetIds, securityGroupId, nodeInstanceRoleId string
+	var vpcId, subnetIds, securityGroupId, nodeSecurityGroupId, nodeInstanceRoleId string
 	for _, output := range describeStacksOutput.Stacks[0].Outputs {
 		switch *output.OutputKey {
 		case "SecurityGroups":
 			securityGroupId = *output.OutputValue
+		case "NodeSecurityGroup":
+			nodeSecurityGroupId = *output.OutputValue
 		case "VpcId":
 			vpcId = *output.OutputValue
 		case "SubnetIds":
@@ -466,6 +468,7 @@ func (e *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 		session,
 		e.modelCluster.Name,
 		&securityGroupId,
+		&nodeSecurityGroupId,
 		aws.StringSlice(strings.Split(subnetIds, ",")),
 		e.generateSSHKeyNameForCluster(),
 		&vpcId,

@@ -105,6 +105,10 @@ Parameters:
     Description: The security group of the cluster control plane.
     Type: AWS::EC2::SecurityGroup::Id
 
+  NodeSecurityGroup:
+    Description: Security group for all nodes in the cluster.
+    Type: AWS::EC2::SecurityGroup::Id
+
   VpcId:
     Description: The VPC of the worker instances
     Type: AWS::EC2::VPC::Id
@@ -239,6 +243,7 @@ Metadata:
         Parameters:
           - ClusterName
           - ClusterControlPlaneSecurityGroup
+          - NodeSecurityGroup
       -
         Label:
           default: "Worker Node Configuration"
@@ -268,19 +273,8 @@ Resources:
       Roles:
       - !Ref NodeInstanceRoleId
 
-  NodeSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: Security group for all nodes in the cluster
-      VpcId:
-        !Ref VpcId
-      Tags:
-      - Key: !Sub "kubernetes.io/cluster/${ClusterName}"
-        Value: 'owned'
-
   NodeSecurityGroupIngress:
     Type: AWS::EC2::SecurityGroupIngress
-    DependsOn: NodeSecurityGroup
     Properties:
       Description: Allow node to communicate with each other
       GroupId: !Ref NodeSecurityGroup
@@ -291,7 +285,6 @@ Resources:
 
   NodeSecurityGroupFromControlPlaneIngress:
     Type: AWS::EC2::SecurityGroupIngress
-    DependsOn: NodeSecurityGroup
     Properties:
       Description: Allow worker Kubelets and pods to receive communication from the cluster control plane
       GroupId: !Ref NodeSecurityGroup
@@ -302,7 +295,6 @@ Resources:
 
   ControlPlaneEgressToNodeSecurityGroup:
     Type: AWS::EC2::SecurityGroupEgress
-    DependsOn: NodeSecurityGroup
     Properties:
       Description: Allow the cluster control plane to communicate with worker Kubelet and pods
       GroupId: !Ref ClusterControlPlaneSecurityGroup
@@ -313,7 +305,6 @@ Resources:
 
   ClusterControlPlaneSecurityGroupIngress:
     Type: AWS::EC2::SecurityGroupIngress
-    DependsOn: NodeSecurityGroup
     Properties:
       Description: Allow pods to communicate with the cluster API Server
       GroupId: !Ref ClusterControlPlaneSecurityGroup
@@ -324,7 +315,6 @@ Resources:
 
   NodeSecurityGroupSsh:
     Type: AWS::EC2::SecurityGroupIngress
-    DependsOn: NodeSecurityGroup
     Properties:
       Description: Allow SSH access to node
       GroupId: !Ref NodeSecurityGroup
