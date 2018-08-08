@@ -41,20 +41,22 @@ type EksClusterCreateUpdateContext struct {
 	ProvidedRoleArn          string
 	APIEndpoint              *string
 	CertificateAuthorityData *string
+	NodePoolTemplate         string
 }
 
 // NewEksClusterCreationContext creates a new EksClusterCreateUpdateContext
-func NewEksClusterCreationContext(session *session.Session, clusterName string, sshKeyName string) *EksClusterCreateUpdateContext {
+func NewEksClusterCreationContext(session *session.Session, clusterName, sshKeyName, nodePoolTemplate string) *EksClusterCreateUpdateContext {
 	return &EksClusterCreateUpdateContext{
-		Session:     session,
-		ClusterName: clusterName,
-		SSHKeyName:  sshKeyName,
+		Session:          session,
+		ClusterName:      clusterName,
+		SSHKeyName:       sshKeyName,
+		NodePoolTemplate: nodePoolTemplate,
 	}
 }
 
 // NewEksClusterUpdateContext creates a new EksClusterCreateUpdateContext
 func NewEksClusterUpdateContext(session *session.Session, clusterName string,
-	securityGroupID *string, nodeSecurityGroupID *string, subnetIDs []*string, sshKeyName string, vpcID *string, nodeInstanceRoleId *string) *EksClusterCreateUpdateContext {
+	securityGroupID *string, nodeSecurityGroupID *string, subnetIDs []*string, sshKeyName, nodePoolTemplate string, vpcID *string, nodeInstanceRoleId *string) *EksClusterCreateUpdateContext {
 	return &EksClusterCreateUpdateContext{
 		Session:             session,
 		ClusterName:         clusterName,
@@ -62,6 +64,7 @@ func NewEksClusterUpdateContext(session *session.Session, clusterName string,
 		NodeSecurityGroupID: nodeSecurityGroupID,
 		SubnetIDs:           subnetIDs,
 		SSHKeyName:          sshKeyName,
+		NodePoolTemplate:    nodePoolTemplate,
 		VpcID:               vpcID,
 		NodeInstanceRoleID:  nodeInstanceRoleId,
 	}
@@ -466,17 +469,6 @@ func (action *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) 
 				log.Infoln("EXECUTE CreateUpdateNodePoolStackAction, update stack name:", stackName)
 			}
 
-			templateBody := ""
-			if action.isCreate {
-				log.Infoln("Getting CloudFormation template for creating node pools for EKS cluster")
-				templateBody, err = pkgEks.GetNodePoolTemplate()
-				if err != nil {
-					log.Errorln("Getting CloudFormation template for node pools failed: ", err.Error())
-					errorChan <- err
-					return
-				}
-			}
-
 			commaDelimitedSubnetIDs := ""
 			for i, subnetID := range action.context.SubnetIDs {
 				commaDelimitedSubnetIDs = commaDelimitedSubnetIDs + *subnetID
@@ -558,7 +550,7 @@ func (action *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) 
 
 			cloudformationSrv := cloudformation.New(action.context.Session)
 
-			waitOnCreateUpdte := true
+			waitOnCreateUpdate := true
 
 			// create stack
 			if action.isCreate {
@@ -569,7 +561,7 @@ func (action *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) 
 					Capabilities:       []*string{aws.String(cloudformation.CapabilityCapabilityIam)},
 					Parameters:         stackParams,
 					Tags:               tags,
-					TemplateBody:       aws.String(templateBody),
+					TemplateBody:       aws.String(action.context.NodePoolTemplate),
 					TimeoutInMinutes:   aws.Int64(10),
 				}
 				_, err = cloudformationSrv.CreateStack(createStackInput)
@@ -594,7 +586,7 @@ func (action *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) 
 					if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "ValidationError" && strings.HasPrefix(awsErr.Message(), awsNoUpdatesError) {
 						// Get error details
 						log.Warnf("Nothing changed during update!")
-						waitOnCreateUpdte = false
+						waitOnCreateUpdate = false
 						err = nil
 					} else {
 						errorChan <- err
@@ -607,7 +599,7 @@ func (action *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) 
 
 			if action.isCreate {
 				err = cloudformationSrv.WaitUntilStackCreateComplete(describeStacksInput)
-			} else if waitOnCreateUpdte {
+			} else if waitOnCreateUpdate {
 				err = cloudformationSrv.WaitUntilStackUpdateComplete(describeStacksInput)
 			}
 
@@ -838,15 +830,15 @@ var _ utils.Action = (*DeleteStackAction)(nil)
 
 // DeleteStackAction deletes a stack
 type DeleteStackAction struct {
-	context   *EksClusterDeletionContext
-	StackName string
+	context    *EksClusterDeletionContext
+	StackNames []string
 }
 
-// NewDeleteStackAction creates a new DeleteStackAction
-func NewDeleteStackAction(context *EksClusterDeletionContext, stackName string) *DeleteStackAction {
+// NewDeleteStacksAction creates a new DeleteStackAction
+func NewDeleteStacksAction(context *EksClusterDeletionContext, stackNames ...string) *DeleteStackAction {
 	return &DeleteStackAction{
-		context:   context,
-		StackName: stackName,
+		context:    context,
+		StackNames: stackNames,
 	}
 }
 
@@ -857,23 +849,44 @@ func (action *DeleteStackAction) GetName() string {
 
 // ExecuteAction executes this DeleteStackAction
 func (action *DeleteStackAction) ExecuteAction(input interface{}) (output interface{}, err error) {
-	log.Info("EXECUTE DeleteStackAction")
+	log.Infof("EXECUTE DeleteStackAction: %q", action.StackNames)
 
-	cloudformationSrv := cloudformation.New(action.context.Session)
-	deleteStackInput := &cloudformation.DeleteStackInput{
-		ClientRequestToken: aws.String(uuid.NewV4().String()),
-		StackName:          aws.String(action.StackName),
-	}
-	_, err = cloudformationSrv.DeleteStack(deleteStackInput)
-	if err != nil {
-		return nil, err
+	errorChan := make(chan error, len(action.StackNames))
+
+	for _, stackName := range action.StackNames {
+		go func(stackName string) {
+			cloudformationSrv := cloudformation.New(action.context.Session)
+			deleteStackInput := &cloudformation.DeleteStackInput{
+				ClientRequestToken: aws.String(uuid.NewV4().String()),
+				StackName:          aws.String(stackName),
+			}
+			_, err = cloudformationSrv.DeleteStack(deleteStackInput)
+			if err != nil {
+				errorChan <- err
+				return
+			}
+
+			describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(stackName)}
+			err = cloudformationSrv.WaitUntilStackDeleteComplete(describeStacksInput)
+			if err != nil {
+				logFailedStackEvents(stackName, cloudformationSrv)
+
+				errorChan <- err
+				return
+			}
+
+			errorChan <- nil
+		}(stackName)
 	}
 
-	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(action.StackName)}
-	err = cloudformationSrv.WaitUntilStackDeleteComplete(describeStacksInput)
-	if err != nil {
-		logFailedStackEvents(action.StackName, cloudformationSrv)
+	// wait for goroutines to finish
+	for i := 0; i < len(action.StackNames); i++ {
+		deleteErr := <-errorChan
+		if deleteErr != nil {
+			err = deleteErr
+		}
 	}
+
 	return nil, err
 }
 

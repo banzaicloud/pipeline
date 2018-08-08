@@ -147,10 +147,18 @@ func (e *EKSCluster) CreateCluster() error {
 
 	e.modelCluster.RbacEnabled = true
 
+	log.Infoln("Getting CloudFormation template for creating node pools for EKS cluster")
+	nodePoolTemplate, err := pkgEks.GetNodePoolTemplate()
+	if err != nil {
+		log.Errorln("Getting CloudFormation template for node pools failed: ", err.Error())
+		return err
+	}
+
 	creationContext := action.NewEksClusterCreationContext(
 		session,
 		e.modelCluster.Name,
 		sshKeyName,
+		nodePoolTemplate,
 	)
 
 	sshSecret, err := e.GetSshSecretWithValidation()
@@ -302,23 +310,23 @@ func (e *EKSCluster) DeleteCluster() error {
 		session,
 		e.modelCluster.Name,
 	)
-	actions := make([]utils.Action, 0, len(e.modelCluster.Eks.NodePools)+5)
+	var actions []utils.Action
+	actions = append(actions, action.NewWaitResourceDeletionAction(deleteContext)) // wait for ELBs to be deleted
 
+	nodePoolStacks := make([]string, 0, len(e.modelCluster.Eks.NodePools))
 	for _, nodePool := range e.modelCluster.Eks.NodePools {
 		nodePoolStackName := e.generateNodePoolStackName(nodePool)
-		deleteStackAction := action.NewDeleteStackAction(deleteContext, nodePoolStackName)
-		actions = append([]utils.Action{deleteStackAction}, actions...)
+		nodePoolStacks = append(nodePoolStacks, nodePoolStackName)
 	}
+	deleteNodePoolsAction := action.NewDeleteStacksAction(deleteContext, nodePoolStacks...)
 
-	actions = append(actions, []utils.Action{
+	actions = append(actions,
+		deleteNodePoolsAction,
 		action.NewDeleteClusterAction(deleteContext),
 		action.NewDeleteSSHKeyAction(deleteContext, e.generateSSHKeyNameForCluster()),
-		action.NewDeleteStackAction(deleteContext, e.generateStackNameForCluster()),
+		action.NewDeleteStacksAction(deleteContext, e.generateStackNameForCluster()),
 		action.NewDeleteUserAction(deleteContext, e.modelCluster.Name, e.modelCluster.Eks.AccessKeyID),
-	}...)
-
-	actions = append([]utils.Action{action.NewWaitResourceDeletionAction(deleteContext)}, actions...)
-
+	)
 	_, err = utils.NewActionExecutor(log).ExecuteActions(actions, nil, false)
 	if err != nil {
 		log.Errorln("EKS cluster delete error:", err.Error())
@@ -421,7 +429,7 @@ func (e *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 		return err
 	}
 
-	actions := make([]utils.Action, 0, len(updateRequest.Eks.NodePools))
+	var actions []utils.Action
 
 	clusterStackName := e.generateStackNameForCluster()
 	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(clusterStackName)}
@@ -458,6 +466,12 @@ func (e *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 		return errors.New("subnetIds output not found on stack: " + clusterStackName)
 	}
 
+	nodePoolTemplate, err := pkgEks.GetNodePoolTemplate()
+	if err != nil {
+		log.Errorln("Getting CloudFormation template for node pools failed: ", err.Error())
+		return err
+	}
+
 	modelNodePools, err := createNodePoolsFromUpdateRequest(updateRequest.Eks.NodePools, e.modelCluster.Eks.NodePools, updatedBy)
 	if err != nil {
 		return err
@@ -470,6 +484,7 @@ func (e *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 		&nodeSecurityGroupId,
 		aws.StringSlice(strings.Split(subnetIds, ",")),
 		e.generateSSHKeyNameForCluster(),
+		nodePoolTemplate,
 		&vpcId,
 		&nodeInstanceRoleId,
 	)
@@ -479,8 +494,9 @@ func (e *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 		e.modelCluster.Name,
 	)
 
-	nodePoolsToCreate := []*model.AmazonNodePoolsModel{}
-	nodePoolsToUpdate := []*model.AmazonNodePoolsModel{}
+	var nodePoolsToCreate []*model.AmazonNodePoolsModel
+	var nodePoolsToUpdate []*model.AmazonNodePoolsModel
+	var nodePoolsToDelete []string
 
 	for _, nodePool := range modelNodePools {
 
@@ -491,8 +507,7 @@ func (e *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 			// delete nodePool
 			if nodePool.Delete {
 				log.Infof("nodePool %v exists will be deleted", nodePool.Name)
-				deleteStackAction := action.NewDeleteStackAction(deleteContext, e.generateNodePoolStackName(nodePool))
-				actions = append(actions, deleteStackAction)
+				nodePoolsToDelete = append(nodePoolsToDelete, e.generateNodePoolStackName(nodePool))
 				continue
 			}
 			// update nodePool
@@ -543,15 +558,11 @@ func (e *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 		}
 	}
 
-	for _, nodePool := range nodePoolsToCreate {
-		createNodePoolAction := action.NewCreateUpdateNodePoolStackAction(true, createUpdateContext, nodePool)
-		actions = append(actions, createNodePoolAction)
-	}
+	deleteNodePoolAction := action.NewDeleteStacksAction(deleteContext, nodePoolsToDelete...)
+	createNodePoolAction := action.NewCreateUpdateNodePoolStackAction(true, createUpdateContext, nodePoolsToCreate...)
+	updateNodePoolAction := action.NewCreateUpdateNodePoolStackAction(false, createUpdateContext, nodePoolsToUpdate...)
 
-	for _, nodePool := range nodePoolsToUpdate {
-		updateNodePoolAction := action.NewCreateUpdateNodePoolStackAction(false, createUpdateContext, nodePool)
-		actions = append(actions, updateNodePoolAction)
-	}
+	actions = append(actions, deleteNodePoolAction, createNodePoolAction, updateNodePoolAction)
 
 	_, err = utils.NewActionExecutor(log).ExecuteActions(actions, nil, false)
 	if err != nil {
