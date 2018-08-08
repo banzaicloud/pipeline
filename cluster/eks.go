@@ -19,6 +19,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/pricing"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/model"
+	pkgAmazon "github.com/banzaicloud/pipeline/pkg/amazon"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/amazon"
 	pkgEks "github.com/banzaicloud/pipeline/pkg/cluster/eks"
@@ -183,14 +184,12 @@ func (e *EKSCluster) CreateCluster() error {
 	// TODO make this an action
 	iamSvc := iam.New(session)
 
-	user, err := iamSvc.CreateUser(&iam.CreateUserInput{
-		UserName: aws.String(e.modelCluster.Name),
-	})
+	user, err := pkgAmazon.CreateIAMUser(iamSvc, aws.String(e.modelCluster.Name))
 	if err != nil {
 		return err
 	}
 
-	accessKey, err := iamSvc.CreateAccessKey(&iam.CreateAccessKeyInput{UserName: user.User.UserName})
+	accessKey, err := pkgAmazon.CreateAmazonAccessKey(iamSvc, user.UserName)
 
 	// Create the aws-auth ConfigMap for letting other nodes join, and users access the API
 	// See: https://docs.aws.amazon.com/eks/latest/userguide/add-user-role.html
@@ -200,8 +199,8 @@ func (e *EKSCluster) CreateCluster() error {
 	e.awsSecretAccessKey = bootstrapCredentials.SecretAccessKey
 
 	defer func() {
-		e.awsAccessKeyID = aws.StringValue(accessKey.AccessKey.AccessKeyId)
-		e.awsSecretAccessKey = aws.StringValue(accessKey.AccessKey.SecretAccessKey)
+		e.awsAccessKeyID = aws.StringValue(accessKey.AccessKeyId)
+		e.awsSecretAccessKey = aws.StringValue(accessKey.SecretAccessKey)
 		// AWS needs some time to distribute the access key to every service
 		time.Sleep(15 * time.Second)
 	}()
@@ -231,7 +230,7 @@ func (e *EKSCluster) CreateCluster() error {
 		ObjectMeta: metav1.ObjectMeta{Name: "aws-auth"},
 		Data: map[string]string{
 			"mapRoles": fmt.Sprintf(mapRolesTemplate, creationContext.NodeInstanceRoleArn),
-			"mapUsers": fmt.Sprintf(mapUsersTemplate, aws.StringValue(user.User.Arn), aws.StringValue(user.User.UserName)),
+			"mapUsers": fmt.Sprintf(mapUsersTemplate, aws.StringValue(user.Arn), aws.StringValue(user.UserName)),
 		},
 	}
 	_, err = kubeClient.CoreV1().ConfigMaps("kube-system").Create(&awsAuthConfigMap)
@@ -239,7 +238,7 @@ func (e *EKSCluster) CreateCluster() error {
 		return err
 	}
 
-	e.modelCluster.Eks.AccessKeyID = aws.StringValue(accessKey.AccessKey.AccessKeyId)
+	e.modelCluster.Eks.AccessKeyID = aws.StringValue(accessKey.AccessKeyId)
 	err = e.modelCluster.Save()
 	if err != nil {
 		return err

@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/route53/route53iface"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/pkg/amazon"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
@@ -400,7 +401,7 @@ func (dns *awsRoute53) unregisterDomain(orgId uint, domain string) error {
 
 	// detach policy from user first to avoid access to hosted zone while it's being deleted
 	if iamUser != nil && len(state.policyArn) > 0 {
-		isPolicyAttached, err := dns.isUserPolicyAttached(aws.String(state.iamUser), aws.String(state.policyArn))
+		isPolicyAttached, err := amazon.IsUserPolicyAttached(dns.iamSvc, aws.String(state.iamUser), aws.String(state.policyArn))
 		if err != nil {
 			log.Errorf("querying if policy '%s' is attached to user '%s' faied: %s", state.policyArn, state.iamUser, extractErrorMessage(err))
 			return err
@@ -418,7 +419,7 @@ func (dns *awsRoute53) unregisterDomain(orgId uint, domain string) error {
 
 	// delete  access policy
 	if len(state.policyArn) > 0 {
-		policy, err := dns.getHostedZoneRoute53Policy(state.policyArn)
+		policy, err := amazon.GetPolicy(dns.iamSvc, state.policyArn)
 		if err != nil {
 			log.Errorf("querying policy '%s' failed: %s", state.policyArn, extractErrorMessage(err))
 			return err
@@ -436,7 +437,7 @@ func (dns *awsRoute53) unregisterDomain(orgId uint, domain string) error {
 
 	// delete route53  access keys
 	if iamUser != nil {
-		awsAccessKeys, err := dns.getUserAmazonAccessKeys(iamUser.UserName)
+		awsAccessKeys, err := amazon.GetUserAmazonAccessKeys(dns.iamSvc, iamUser.UserName)
 		if err != nil {
 			log.Errorf("querying IAM user '%s' access keys failed: %s", state.iamUser, extractErrorMessage(err))
 			dns.updateStateWithError(state, err)
@@ -642,7 +643,7 @@ func (dns *awsRoute53) setupAmazonAccess(iamUser string, ctx *context) error {
 	}
 
 	// IAM user AWS access keys
-	userAccessKeys, err := dns.getUserAmazonAccessKeys(aws.String(iamUser))
+	userAccessKeys, err := amazon.GetUserAmazonAccessKeys(dns.iamSvc, aws.String(iamUser))
 	if err != nil {
 		return err
 	}

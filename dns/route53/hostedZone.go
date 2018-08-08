@@ -5,6 +5,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/route53"
+	"github.com/banzaicloud/pipeline/pkg/amazon"
 	"github.com/sirupsen/logrus"
 	"strings"
 	"time"
@@ -137,7 +138,7 @@ func (dns *awsRoute53) setHostedZoneAuthorisation(hostedZoneId string, ctx *cont
 	var err error
 
 	if len(ctx.state.policyArn) > 0 {
-		policy, err = dns.getHostedZoneRoute53Policy(ctx.state.policyArn)
+		policy, err = amazon.GetPolicy(dns.iamSvc, ctx.state.policyArn)
 		if err != nil {
 			log.Errorf("retrieving route53 policy '%s' failed: %s", ctx.state.policyArn, extractErrorMessage(err))
 			return err
@@ -218,7 +219,7 @@ func (dns *awsRoute53) createHostedZoneIAMUser(userName, route53PolicyArn *strin
 	// attach policy to user
 
 	// check is the IAM user already has this policy attached
-	policyAlreadyAttached, err := dns.isUserPolicyAttached(userName, route53PolicyArn)
+	policyAlreadyAttached, err := amazon.IsUserPolicyAttached(dns.iamSvc, userName, route53PolicyArn)
 	if err != nil {
 		return err
 	}
