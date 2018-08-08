@@ -29,6 +29,9 @@ import (
 	"github.com/spf13/viper"
 )
 
+// PipelineSessionCookie holds the name of the Cookie Pipeline sets in the browser
+const PipelineSessionCookie = "_banzai_session"
+
 // DroneSessionCookie holds the name of the Cookie Drone sets in the browser
 const DroneSessionCookie = "user_sess"
 
@@ -118,7 +121,7 @@ func Init() {
 		cookieStore.Options.Domain = CookieDomain
 	}
 
-	SessionManager = gorilla.New("_banzai_session", cookieStore)
+	SessionManager = gorilla.New(PipelineSessionCookie, cookieStore)
 
 	// A RedirectBack instance which constantly redirects to /ui
 	redirectBack = redirect_back.New(&redirect_back.Config{
@@ -428,9 +431,10 @@ func (sessionStorer *BanzaiSessionStorer) Update(w http.ResponseWriter, req *htt
 	return nil
 }
 
-// BanzaiLogoutHandler does the qor/auth DefaultLogoutHandler default logout behaviour + deleting the Drone cookie
+// BanzaiLogoutHandler does the qor/auth DefaultLogoutHandler default logout behavior + deleting the Drone cookie
 func BanzaiLogoutHandler(context *auth.Context) {
 	DelCookie(context.Writer, context.Request, DroneSessionCookie)
+	DelCookie(context.Writer, context.Request, PipelineSessionCookie)
 	auth.DefaultLogoutHandler(context)
 }
 
