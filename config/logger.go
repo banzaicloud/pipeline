@@ -1,43 +1,46 @@
 package config
 
 import (
-	runtime "github.com/banzaicloud/logrus-runtime-formatter"
+	"sync"
+
+	"github.com/banzaicloud/logrus-runtime-formatter"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
 var logger *logrus.Logger
+var loggerOnce sync.Once
 
-//Logger is a configured Logrus logger
+// Logger is a configured Logrus logger
 func Logger() *logrus.Logger {
-	if logger == nil {
-		logger = logrus.New()
-		switch viper.GetString("logging.loglevel") {
-		case "debug":
-			logger.Level = logrus.DebugLevel
-		case "info":
-			logger.Level = logrus.InfoLevel
-		case "warn":
-			logger.Level = logrus.WarnLevel
-		case "error":
-			logger.Level = logrus.ErrorLevel
-		case "fatal":
-			logger.Level = logrus.FatalLevel
-		default:
-			//logrus.WithField("dev.loglevel", viper.GetString("dev.loglevel")).Warning("Invalid log level. Defaulting to info.")
-			logger.Level = logrus.InfoLevel
-		}
-		var childFormatter logrus.Formatter
-		switch viper.GetString("log.logformat") {
-		case "json":
-			childFormatter = new(logrus.JSONFormatter)
-		default:
-			textFormatter := new(logrus.TextFormatter)
-			textFormatter.FullTimestamp = true
-			childFormatter = textFormatter
-		}
-		runtimeFormatter := &runtime.Formatter{ChildFormatter: childFormatter}
-		logger.Formatter = runtimeFormatter
+	loggerOnce.Do(func() { logger = newLogger() })
+
+	return logger
+}
+
+func newLogger() *logrus.Logger {
+	logger := logrus.New()
+
+	level, err := logrus.ParseLevel(viper.GetString("logging.loglevel"))
+	if err != nil {
+		level = logrus.InfoLevel
 	}
+
+	logger.Level = level
+
+	var childFormatter logrus.Formatter
+
+	switch viper.GetString("log.logformat") {
+	case "json":
+		childFormatter = new(logrus.JSONFormatter)
+
+	default:
+		textFormatter := new(logrus.TextFormatter)
+		textFormatter.FullTimestamp = true
+		childFormatter = textFormatter
+	}
+
+	logger.Formatter = &runtime.Formatter{ChildFormatter: childFormatter}
+
 	return logger
 }
