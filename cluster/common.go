@@ -76,14 +76,12 @@ func (c *CommonClusterBase) RequiresSshPublicKey() bool {
 
 func (c *CommonClusterBase) getSecret(cluster CommonCluster) (*secret.SecretItemResponse, error) {
 	if c.secret == nil {
-		log.Info("Secret is nil.. load from vault")
+		log.Debug("Secret is nil.. load from vault")
 		s, err := getSecret(cluster.GetOrganizationId(), cluster.GetSecretId())
 		if err != nil {
 			return nil, err
 		}
 		c.secret = s
-	} else {
-		log.Info("Secret is loaded before")
 	}
 
 	err := c.secret.ValidateSecretType(cluster.GetCloud())
@@ -96,28 +94,25 @@ func (c *CommonClusterBase) getSecret(cluster CommonCluster) (*secret.SecretItem
 
 func (c *CommonClusterBase) getSshSecret(cluster CommonCluster) (*secret.SecretItemResponse, error) {
 	if c.sshSecret == nil {
-		log.Info("Ssh secret is nil.. load from vault")
+		log.Debug("SSH secret is nil.. load from vault")
 		s, err := getSecret(cluster.GetOrganizationId(), cluster.GetSshSecretId())
 		if err != nil {
-			log.Errorf("Get ssh key failed OrganizationID: %d, SshSecretID: %s reason: %s", cluster.GetOrganizationId(), cluster.GetSshSecretId(), err.Error())
 			return nil, err
 		}
 		c.sshSecret = s
-	} else {
-		log.Info("Secret is loaded before")
+
+		err = c.sshSecret.ValidateSecretType(pkgSecret.SSHSecretType)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	err := c.sshSecret.ValidateSecretType(pkgSecret.SSHSecretType)
-	if err != nil {
-		return nil, err
-	}
-
-	return c.sshSecret, err
+	return c.sshSecret, nil
 }
 
 func (c *CommonClusterBase) getConfig(cluster CommonCluster) ([]byte, error) {
 	if c.config == nil {
-		log.Info("config is nil.. load from vault")
+		log.Debug("k8s config is nil.. load from vault")
 		var loadedConfig []byte
 		configSecret, err := getSecret(cluster.GetOrganizationId(), cluster.GetConfigSecretId())
 		if err != nil {
@@ -130,8 +125,6 @@ func (c *CommonClusterBase) getConfig(cluster CommonCluster) ([]byte, error) {
 		loadedConfig = []byte(configStr)
 
 		c.config = loadedConfig
-	} else {
-		log.Info("Config was loaded before")
 	}
 	return c.config, nil
 }
@@ -155,7 +148,6 @@ func StoreKubernetesConfig(cluster CommonCluster, config []byte) error {
 
 	// Try to get the secret version first
 	if configSecret, err := getSecret(organizationID, secretID); err != nil && err != secret.ErrSecretNotExists {
-		log.Errorf("Error during storing config: %s", err.Error())
 		return err
 	} else if configSecret != nil {
 		createSecretRequest.Version = &(configSecret.Version)
@@ -163,7 +155,6 @@ func StoreKubernetesConfig(cluster CommonCluster, config []byte) error {
 
 	err := secret.Store.Update(organizationID, secretID, &createSecretRequest)
 	if err != nil {
-		log.Errorf("Error during storing config: %s", err.Error())
 		return err
 	}
 

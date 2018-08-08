@@ -643,7 +643,13 @@ func (c *AlibabaCluster) GetAPIEndpoint() (string, error) {
 	}
 
 	client, err := c.GetAlibabaCSClient(nil)
+	if err != nil {
+		return "", err
+	}
 	inf, err := getConnectionInfo(client, c.modelCluster.Alibaba.ClusterID)
+	if err != nil {
+		return "", err
+	}
 	u, err := url.Parse(inf.InternetURI)
 	if err != nil {
 		return "", err
