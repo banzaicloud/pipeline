@@ -33,6 +33,7 @@ type EksClusterCreateUpdateContext struct {
 	NodeInstanceRoleID       *string
 	NodeInstanceRoleArn      string
 	SecurityGroupID          *string
+	NodeSecurityGroupID      *string
 	SubnetIDs                []*string
 	SSHKeyName               string
 	SSHKey                   *secret.SSHKeyPair
@@ -53,15 +54,16 @@ func NewEksClusterCreationContext(session *session.Session, clusterName string, 
 
 // NewEksClusterUpdateContext creates a new EksClusterCreateUpdateContext
 func NewEksClusterUpdateContext(session *session.Session, clusterName string,
-	securityGroupID *string, subnetIDs []*string, sshKeyName string, vpcID *string, nodeInstanceRoleId *string) *EksClusterCreateUpdateContext {
+	securityGroupID *string, nodeSecurityGroupID *string, subnetIDs []*string, sshKeyName string, vpcID *string, nodeInstanceRoleId *string) *EksClusterCreateUpdateContext {
 	return &EksClusterCreateUpdateContext{
-		Session:            session,
-		ClusterName:        clusterName,
-		SecurityGroupID:    securityGroupID,
-		SubnetIDs:          subnetIDs,
-		SSHKeyName:         sshKeyName,
-		VpcID:              vpcID,
-		NodeInstanceRoleID: nodeInstanceRoleId,
+		Session:             session,
+		ClusterName:         clusterName,
+		SecurityGroupID:     securityGroupID,
+		NodeSecurityGroupID: nodeSecurityGroupID,
+		SubnetIDs:           subnetIDs,
+		SSHKeyName:          sshKeyName,
+		VpcID:               vpcID,
+		NodeInstanceRoleID:  nodeInstanceRoleId,
 	}
 }
 
@@ -117,6 +119,13 @@ func (action *CreateVPCAndRolesAction) ExecuteAction(input interface{}) (output 
 		return nil, err
 	}
 
+	stackParams := []*cloudformation.Parameter{
+		{
+			ParameterKey:   aws.String("ClusterName"),
+			ParameterValue: aws.String(action.context.ClusterName),
+		},
+	}
+
 	cloudformationSrv := cloudformation.New(action.context.Session)
 	createStackInput := &cloudformation.CreateStackInput{
 		//Capabilities:       []*string{},
@@ -124,6 +133,7 @@ func (action *CreateVPCAndRolesAction) ExecuteAction(input interface{}) (output 
 		DisableRollback:    aws.Bool(false),
 		Capabilities:       []*string{aws.String(cloudformation.CapabilityCapabilityIam)},
 		StackName:          aws.String(action.stackName),
+		Parameters:         stackParams,
 		Tags:               []*cloudformation.Tag{{Key: aws.String("pipeline-created"), Value: aws.String("true")}},
 		TemplateBody:       aws.String(templateBody),
 		TimeoutInMinutes:   aws.Int64(10),
@@ -208,6 +218,10 @@ func (action *GenerateVPCConfigRequestAction) ExecuteAction(input interface{}) (
 	if !found {
 		return nil, errors.New("Unable to find ControlPlaneSecurityGroup resource")
 	}
+	nodeSecurityGroup, found := stackResourceMap["NodeSecurityGroup"]
+	if !found {
+		return nil, errors.New("Unable to find NodeSecurityGroup resource")
+	}
 	subnet01resource, found := stackResourceMap["Subnet01"]
 	if !found {
 		return nil, errors.New("Unable to find Subnet02 resource")
@@ -215,10 +229,6 @@ func (action *GenerateVPCConfigRequestAction) ExecuteAction(input interface{}) (
 	subnet02resource, found := stackResourceMap["Subnet02"]
 	if !found {
 		return nil, errors.New("Unable to find Subnet01 resource")
-	}
-	subnet03resource, found := stackResourceMap["Subnet03"]
-	if !found {
-		return nil, errors.New("Unable to find Subnet03 resource")
 	}
 	vpcResource, found := stackResourceMap["VPC"]
 	if !found {
@@ -233,8 +243,9 @@ func (action *GenerateVPCConfigRequestAction) ExecuteAction(input interface{}) (
 
 	action.context.VpcID = vpcResource.PhysicalResourceId
 	action.context.SecurityGroupID = securityGroupResource.PhysicalResourceId
-	action.context.SubnetIDs = []*string{subnet01resource.PhysicalResourceId, subnet02resource.PhysicalResourceId, subnet03resource.PhysicalResourceId}
+	action.context.SubnetIDs = []*string{subnet01resource.PhysicalResourceId, subnet02resource.PhysicalResourceId}
 	action.context.NodeInstanceRoleID = nodeInstanceProfileResource.PhysicalResourceId
+	action.context.NodeSecurityGroupID = nodeSecurityGroup.PhysicalResourceId
 
 	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(action.stackName)}
 	describeStacksOutput, err := cloudformationSrv.DescribeStacks(describeStacksInput)
@@ -529,6 +540,10 @@ func (action *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) 
 					ParameterValue: action.context.SecurityGroupID,
 				},
 				{
+					ParameterKey:   aws.String("NodeSecurityGroup"),
+					ParameterValue: action.context.NodeSecurityGroupID,
+				},
+				{
 					ParameterKey:   aws.String("VpcId"),
 					ParameterValue: action.context.VpcID,
 				}, {
@@ -795,7 +810,7 @@ func (action *LoadEksSettingsAction) ExecuteAction(input interface{}) (output in
 	describeClusterInput := &eks.DescribeClusterInput{
 		Name: aws.String(action.context.ClusterName),
 	}
-	clusterInfo, err := eksSvc.DescribeCluster(describeClusterInput) //...ha kellene vmi info az eks clusterrol
+	clusterInfo, err := eksSvc.DescribeCluster(describeClusterInput)
 	if err != nil {
 		return nil, err
 	}
