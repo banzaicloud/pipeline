@@ -73,21 +73,24 @@ const (
 
 // CreateClusterRequest describes a create cluster request
 type CreateClusterRequest struct {
-	Name        string    `json:"name" binding:"required"`
-	Location    string    `json:"location"`
-	Cloud       string    `json:"cloud" binding:"required"`
-	SecretId    string    `json:"secretId" binding:"required"`
-	ProfileName string    `json:"profileName"`
-	PostHooks   PostHooks `json:"postHooks"`
-	Properties  struct {
-		CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
-		CreateClusterEks    *eks.CreateClusterEks        `json:"eks,omitempty"`
-		CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
-		CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
-		CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
-		CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
-		CreateClusterOracle *oracle.Cluster              `json:"oracle,omitempty"`
-	} `json:"properties" binding:"required"`
+	Name        string                   `json:"name" binding:"required"`
+	Location    string                   `json:"location"`
+	Cloud       string                   `json:"cloud" binding:"required"`
+	SecretId    string                   `json:"secretId" binding:"required"`
+	ProfileName string                   `json:"profileName"`
+	PostHooks   PostHooks                `json:"postHooks"`
+	Properties  *CreateClusterProperties `json:"properties" binding:"required"`
+}
+
+// CreateClusterProperties contains the cluster flavor specific properties.
+type CreateClusterProperties struct {
+	CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
+	CreateClusterEks    *eks.CreateClusterEks        `json:"eks,omitempty"`
+	CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
+	CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
+	CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
+	CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
+	CreateClusterOracle *oracle.Cluster              `json:"oracle,omitempty"`
 }
 
 // PostHookParam describes posthook params in create request
@@ -497,15 +500,7 @@ func (p *ClusterProfileResponse) CreateClusterRequest(createRequest *CreateClust
 		Cloud:       p.Cloud,
 		SecretId:    createRequest.SecretId,
 		ProfileName: p.Name,
-		Properties: struct {
-			CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
-			CreateClusterEks    *eks.CreateClusterEks        `json:"eks,omitempty"`
-			CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
-			CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
-			CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
-			CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
-			CreateClusterOracle *oracle.Cluster              `json:"oracle,omitempty"`
-		}{},
+		Properties:  &CreateClusterProperties{},
 	}
 
 	switch p.Cloud {
