@@ -3,9 +3,9 @@ package route53
 import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/pkg/amazon"
 	"github.com/sirupsen/logrus"
 )
 
@@ -14,49 +14,35 @@ import (
 func (dns *awsRoute53) createIAMUser(userName *string) (*iam.User, error) {
 	log := loggerWithFields(logrus.Fields{"userName": aws.StringValue(userName)})
 
-	userInput := &iam.CreateUserInput{
-		UserName: userName,
-	}
-
-	iamUser, err := dns.iamSvc.CreateUser(userInput)
+	user, err := amazon.CreateIAMUser(dns.iamSvc, userName)
 	if err != nil {
 		log.Errorf("creating IAM user failed: %s", extractErrorMessage(err))
 		return nil, err
 	}
 
-	log.Info("IAM user created")
-
-	return iamUser.User, nil
+	log.Infoln("IAM user created")
+	return user, nil
 }
 
 // getIAMUser retrieves the Amazon IAM user with the given user name
 func (dns *awsRoute53) getIAMUser(userName *string) (*iam.User, error) {
 	log := loggerWithFields(logrus.Fields{"userName": aws.StringValue(userName)})
 
-	user := &iam.GetUserInput{
-		UserName: userName,
-	}
-
-	iamUser, err := dns.iamSvc.GetUser(user)
+	user, err := amazon.GetIAMUser(dns.iamSvc, userName)
 	if err != nil {
-		if aerr, ok := err.(awserr.Error); ok {
-			if aerr.Code() == iam.ErrCodeNoSuchEntityException {
-				return nil, nil // no such IAM user
-			}
-		}
-
 		log.Errorf("retrieving IAM user failed: %s", extractErrorMessage(err))
 		return nil, err
 	}
 
-	return iamUser.User, nil
+	return user, nil
+
 }
 
 // deleteIAMUser deletes the Amazon IAM user with the given name
 func (dns *awsRoute53) deleteIAMUser(userName *string) error {
 	log := loggerWithFields(logrus.Fields{"userName": aws.StringValue(userName)})
 
-	if _, err := dns.iamSvc.DeleteUser(&iam.DeleteUserInput{UserName: userName}); err != nil {
+	if err := amazon.DeleteIAMUser(dns.iamSvc, userName); err != nil {
 		log.Errorf("deleting IAM user failed: %s", extractErrorMessage(err))
 		return err
 	}
@@ -66,57 +52,19 @@ func (dns *awsRoute53) deleteIAMUser(userName *string) error {
 	return nil
 }
 
-// isAmazonAccessKeyExists returns whether the specified IAM user has the given Amazon access key
-func (dns *awsRoute53) isAmazonAccessKeyExists(userName, accessKeyId *string) (bool, error) {
-	listAccessKeys := &iam.ListAccessKeysInput{
-		UserName: userName,
-	}
-
-	accessKeys, err := dns.iamSvc.ListAccessKeys(listAccessKeys)
-	if err != nil {
-		return false, err
-	}
-
-	found := false
-	for _, accessKey := range accessKeys.AccessKeyMetadata {
-		if aws.StringValue(accessKey.AccessKeyId) == aws.StringValue(accessKeyId) {
-			found = true
-			break
-		}
-	}
-
-	return found, nil
-}
-
-// getUserAmazonAccessKeys returns the list of Amazon access keys of the given IAM user
-func (dns *awsRoute53) getUserAmazonAccessKeys(userName *string) ([]*iam.AccessKeyMetadata, error) {
-	listAccessKeys := &iam.ListAccessKeysInput{
-		UserName: userName,
-	}
-
-	accessKeys, err := dns.iamSvc.ListAccessKeys(listAccessKeys)
-	if err != nil {
-		return nil, err
-	}
-
-	return accessKeys.AccessKeyMetadata, nil
-}
-
 // createAmazonAccessKey create Amazon access key for the IAM user identified by userName
 func (dns *awsRoute53) createAmazonAccessKey(userName *string) (*iam.AccessKey, error) {
 	log := loggerWithFields(logrus.Fields{"userName": aws.StringValue(userName)})
 
-	accessKeyInput := &iam.CreateAccessKeyInput{UserName: userName}
-
-	accessKey, err := dns.iamSvc.CreateAccessKey(accessKeyInput)
+	accessKey, err := amazon.CreateAmazonAccessKey(dns.iamSvc, userName)
 	if err != nil {
 		log.Errorf("creating Amazon access key for IAM user failed: %s", extractErrorMessage(err))
 		return nil, err
 	}
 
-	log.Info("Amazon access key for IAM user created")
+	log.Infoln("Amazon access key for IAM user created")
 
-	return accessKey.AccessKey, nil
+	return accessKey, nil
 }
 
 // deleteAmazonAccessKey deletes the Amazon access key of the user
