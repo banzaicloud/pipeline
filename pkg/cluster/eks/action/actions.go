@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -28,7 +27,6 @@ const awsNoUpdatesError = "No updates are to be performed."
 
 // EksClusterCreateUpdateContext describes the properties of an EKS cluster creation
 type EksClusterCreateUpdateContext struct {
-	sync.Mutex
 	Session                  *session.Session
 	ClusterName              string
 	ClusterRoleArn           string
@@ -137,8 +135,20 @@ func (action *CreateVPCAndRolesAction) ExecuteAction(input interface{}) (output 
 
 	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(action.stackName)}
 	err = cloudformationSrv.WaitUntilStackCreateComplete(describeStacksInput)
-
+	if err != nil {
+		logFailedStackEvents(action.stackName, cloudformationSrv)
+	}
 	return nil, err
+}
+
+func logFailedStackEvents(stackName string, cloudformationSrv *cloudformation.CloudFormation) {
+	describeStackEventsInput := &cloudformation.DescribeStackEventsInput{StackName: aws.String(stackName)}
+	describeStackEventsOutput, _ := cloudformationSrv.DescribeStackEvents(describeStackEventsInput)
+	for _, event := range describeStackEventsOutput.StackEvents {
+		if strings.HasSuffix(*event.ResourceStatus, "FAILED") {
+			log.Errorf("stack %v event %v %v %v", aws.String(stackName), aws.StringValue(event.LogicalResourceId), aws.StringValue(event.ResourceStatus), aws.StringValue(event.ResourceStatusReason))
+		}
+	}
 }
 
 // UndoAction rolls back this CreateVPCAndRolesAction
@@ -431,6 +441,7 @@ func (action *CreateUpdateNodePoolStackAction) GetName() string {
 func (action *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (output interface{}, err error) {
 
 	errorChan := make(chan error, len(action.nodePools))
+	defer close(errorChan)
 
 	for _, nodePool := range action.nodePools {
 
@@ -586,6 +597,7 @@ func (action *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) 
 			}
 
 			if err != nil {
+				logFailedStackEvents(stackName, cloudformationSrv)
 				errorChan <- err
 				return
 			}
@@ -832,13 +844,22 @@ func (action *DeleteStackAction) GetName() string {
 func (action *DeleteStackAction) ExecuteAction(input interface{}) (output interface{}, err error) {
 	log.Info("EXECUTE DeleteStackAction")
 
-	//TODO handle non existing stack
 	cloudformationSrv := cloudformation.New(action.context.Session)
 	deleteStackInput := &cloudformation.DeleteStackInput{
 		ClientRequestToken: aws.String(uuid.NewV4().String()),
 		StackName:          aws.String(action.StackName),
 	}
-	return cloudformationSrv.DeleteStack(deleteStackInput)
+	_, err = cloudformationSrv.DeleteStack(deleteStackInput)
+	if err != nil {
+		return nil, err
+	}
+
+	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(action.StackName)}
+	err = cloudformationSrv.WaitUntilStackDeleteComplete(describeStacksInput)
+	if err != nil {
+		logFailedStackEvents(action.StackName, cloudformationSrv)
+	}
+	return nil, err
 }
 
 //--
