@@ -17,5 +17,5 @@ type ObjectStoreModel struct {
 
 // TableName changes the default table name.
 func (ObjectStoreModel) TableName() string {
-	return "azure_blob_store"
+	return "azure_blob_stores"
 }
