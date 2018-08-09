@@ -1,12 +1,12 @@
-package amazon
+package ec2
 
 import (
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 )
 
-// CreateClusterAmazon describes Pipeline's Amazon fields of a CreateCluster request
-type CreateClusterAmazon struct {
+// CreateClusterEC2 describes Pipeline's Amazon fields of a CreateCluster request
+type CreateClusterEC2 struct {
 	NodePools map[string]*NodePool `json:"nodePools,omitempty"`
 	Master    *CreateAmazonMaster  `json:"master,omitempty"`
 }
@@ -130,7 +130,7 @@ func (a *NodePool) ValidateForUpdate() error {
 }
 
 // Validate validates Amazon cluster create request
-func (amazon *CreateClusterAmazon) Validate() error {
+func (amazon *CreateClusterEC2) Validate() error {
 	if amazon == nil {
 		return pkgErrors.ErrorAmazonFieldIsEmpty
 	}
@@ -159,7 +159,7 @@ func (amazon *CreateClusterAmazon) Validate() error {
 }
 
 // AddDefaults puts default values to optional field(s)
-func (amazon *CreateClusterAmazon) AddDefaults(location string) error {
+func (amazon *CreateClusterEC2) AddDefaults(location string) error {
 
 	if amazon == nil {
 		return pkgErrors.ErrorAmazonFieldIsEmpty
@@ -197,7 +197,7 @@ func (amazon *CreateClusterAmazon) AddDefaults(location string) error {
 	return nil
 }
 
-// Validate validates the update request (only amazon part). If any of the fields is missing, the method fills
+// Validate validates the update request (only ec2 part). If any of the fields is missing, the method fills
 // with stored data.
 func (a *UpdateClusterAmazon) Validate() error {
 
@@ -219,8 +219,8 @@ func (a *UpdateClusterAmazon) Validate() error {
 	return nil
 }
 
-// ClusterProfileAmazon describes an Amazon profile
-type ClusterProfileAmazon struct {
+// ClusterProfileEC2 describes an Amazon profile
+type ClusterProfileEC2 struct {
 	Master    *ProfileMaster       `json:"master,omitempty"`
 	NodePools map[string]*NodePool `json:"nodePools,omitempty"`
 }

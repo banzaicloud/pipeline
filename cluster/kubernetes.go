@@ -25,6 +25,7 @@ func CreateKubernetesClusterFromRequest(request *pkgCluster.CreateClusterRequest
 		OrganizationId: orgId,
 		CreatedBy:      userId,
 		SecretId:       request.SecretId,
+		Distribution:   pkgCluster.Unknown,
 		Kubernetes: model.KubernetesClusterModel{
 			Metadata: request.Properties.CreateKubernetes.Metadata,
 		},
@@ -73,9 +74,14 @@ func (b *KubeCluster) GetName() string {
 	return b.modelCluster.Name
 }
 
-// GetType returns the cloud type of the cluster
-func (b *KubeCluster) GetType() string {
+// GetCloud returns the cloud type of the cluster
+func (b *KubeCluster) GetCloud() string {
 	return pkgCluster.Kubernetes
+}
+
+// GetDistribution returns the distribution type of the cluster
+func (b *KubeCluster) GetDistribution() string {
+	return b.modelCluster.Distribution
 }
 
 // GetStatus gets cluster status
@@ -94,6 +100,7 @@ func (b *KubeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) 
 		Name:              b.GetName(),
 		Location:          b.modelCluster.Location,
 		Cloud:             pkgCluster.Kubernetes,
+		Distribution:      b.modelCluster.Distribution,
 		ResourceID:        b.modelCluster.ID,
 		CreatorBaseFields: *NewCreatorBaseFields(b.modelCluster.CreatedAt, b.modelCluster.CreatedBy),
 		NodePools:         nil,

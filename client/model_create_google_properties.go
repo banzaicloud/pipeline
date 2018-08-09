@@ -11,5 +11,5 @@
 package client
 
 type CreateGoogleProperties struct {
-	Google CreateGooglePropertiesGoogle `json:"google"`
+	Google CreateGooglePropertiesGoogle `json:"gke"`
 }

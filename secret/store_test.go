@@ -46,13 +46,13 @@ func TestCreateSecretValidate(t *testing.T) {
 		{name: "aks full", request: aksCreateSecretFull, isError: false, verifier: nil},
 		{name: "gke full", request: gkeCreateSecretFull, isError: false, verifier: nil},
 		{name: "ssh full", request: sshCreateSecretFull, isError: false, verifier: nil},
-		{name: "oke full", request: okeCreateSecretFull, isError: false, verifier: nil},
+		{name: "oracle full", request: okeCreateSecretFull, isError: false, verifier: nil},
 
 		{name: "aws missing key", request: awsMissingKey, isError: true, verifier: nil},
 		{name: "aks missing key", request: aksMissingKey, isError: true, verifier: nil},
 		{name: "gke missing key", request: gkeMissingKey, isError: true, verifier: nil},
 		{name: "ssh missing key", request: sshMissingKey, isError: true, verifier: nil},
-		{name: "oke missing key", request: okeMissingKey, isError: true, verifier: nil},
+		{name: "oracle missing key", request: okeMissingKey, isError: true, verifier: nil},
 	}
 
 	for _, tc := range cases {

@@ -3,10 +3,10 @@ package defaults
 import (
 	"github.com/banzaicloud/pipeline/database"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/banzaicloud/pipeline/pkg/cluster/amazon"
-	"github.com/banzaicloud/pipeline/pkg/cluster/azure"
+	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
+	"github.com/banzaicloud/pipeline/pkg/cluster/ec2"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
-	"github.com/banzaicloud/pipeline/pkg/cluster/google"
+	"github.com/banzaicloud/pipeline/pkg/cluster/gke"
 	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster"
 )
 
@@ -32,12 +32,12 @@ type AKSNodePoolProfile struct {
 
 // TableName overrides AKSNodePoolProfile's table name
 func (AKSNodePoolProfile) TableName() string {
-	return DefaultAzureNodePoolProfileTablaName
+	return DefaultAKSNodePoolProfileTableName
 }
 
 // TableName overrides AKSProfile's table name
 func (AKSProfile) TableName() string {
-	return DefaultAzureProfileTablaName
+	return DefaultAKSProfileTableName
 }
 
 // AfterFind loads nodepools to profile
@@ -82,18 +82,23 @@ func (d *AKSProfile) IsDefinedBefore() bool {
 	return database.GetDB().First(&d).RowsAffected != int64(0)
 }
 
-// GetType returns profile's cloud type
-func (d *AKSProfile) GetType() string {
+// GetCloud returns profile's cloud type
+func (d *AKSProfile) GetCloud() string {
 	return pkgCluster.Azure
+}
+
+// GetDistribution returns profile's distribution type
+func (d *AKSProfile) GetDistribution() string {
+	return pkgCluster.AKS
 }
 
 // GetProfile load profile from database and converts ClusterProfileResponse
 func (d *AKSProfile) GetProfile() *pkgCluster.ClusterProfileResponse {
 
-	nodePools := make(map[string]*azure.NodePoolCreate)
+	nodePools := make(map[string]*aks.NodePoolCreate)
 	for _, np := range d.NodePools {
 		if np != nil {
-			nodePools[np.NodeName] = &azure.NodePoolCreate{
+			nodePools[np.NodeName] = &aks.NodePoolCreate{
 				Autoscaling:      np.Autoscaling,
 				MinCount:         np.MinCount,
 				MaxCount:         np.MaxCount,
@@ -108,13 +113,13 @@ func (d *AKSProfile) GetProfile() *pkgCluster.ClusterProfileResponse {
 		Location: d.Location,
 		Cloud:    pkgCluster.Azure,
 		Properties: struct {
-			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
-			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
-			Eks    *eks.ClusterProfileEks       `json:"eks,omitempty"`
-			Google *google.ClusterProfileGoogle `json:"google,omitempty"`
-			Oracle *oracle.Cluster              `json:"oracle,omitempty"`
+			EC2 *ec2.ClusterProfileEC2 `json:"ec2,omitempty"`
+			EKS *eks.ClusterProfileEKS `json:"eks,omitempty"`
+			AKS *aks.ClusterProfileAKS `json:"aks,omitempty"`
+			GKE *gke.ClusterProfileGKE `json:"gke,omitempty"`
+			OKE *oracle.Cluster        `json:"oracle,omitempty"`
 		}{
-			Azure: &azure.ClusterProfileAzure{
+			AKS: &aks.ClusterProfileAKS{
 				KubernetesVersion: d.KubernetesVersion,
 				NodePools:         nodePools,
 			},
@@ -128,16 +133,16 @@ func (d *AKSProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave
 		d.Location = r.Location
 	}
 
-	if r.Properties.Azure != nil {
+	if r.Properties.AKS != nil {
 
-		if len(r.Properties.Azure.KubernetesVersion) != 0 {
-			d.KubernetesVersion = r.Properties.Azure.KubernetesVersion
+		if len(r.Properties.AKS.KubernetesVersion) != 0 {
+			d.KubernetesVersion = r.Properties.AKS.KubernetesVersion
 		}
 
-		if len(r.Properties.Azure.NodePools) != 0 {
+		if len(r.Properties.AKS.NodePools) != 0 {
 
 			var nodePools []*AKSNodePoolProfile
-			for name, np := range r.Properties.Azure.NodePools {
+			for name, np := range r.Properties.AKS.NodePools {
 				nodePools = append(nodePools, &AKSNodePoolProfile{
 					Autoscaling:      np.Autoscaling,
 					MinCount:         np.MinCount,

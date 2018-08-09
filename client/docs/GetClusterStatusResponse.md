@@ -7,6 +7,7 @@ Name | Type | Description | Notes
 **StatusMessage** | **string** |  | [optional] 
 **Name** | **string** |  | [optional] 
 **Cloud** | **string** |  | [optional] 
+**Distribution** | **string** |  | [optional] 
 **Location** | **string** |  | [optional] 
 **Id** | **int32** |  | [optional] 
 **CreatedAt** | **string** |  | [optional] 

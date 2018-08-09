@@ -13,8 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/banzaicloud/pipeline/pkg/cluster/amazon"
-	pkgAmazon "github.com/banzaicloud/pipeline/pkg/cluster/amazon"
+	pkgEC2 "github.com/banzaicloud/pipeline/pkg/cluster/ec2"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/secret"
@@ -56,8 +55,8 @@ func SetCredentials(awscred *credentials.Credentials) func(*session.Options) err
 	}
 }
 
-//AWSCluster struct for AWS cluster
-type AWSCluster struct {
+//EC2Cluster struct for EC2 cluster
+type EC2Cluster struct {
 	kubicornCluster *kcluster.Cluster //Don't use this directly
 	modelCluster    *model.ClusterModel
 	APIEndpoint     string
@@ -65,32 +64,32 @@ type AWSCluster struct {
 }
 
 // GetOrganizationId gets org where the cluster belongs
-func (c *AWSCluster) GetOrganizationId() uint {
+func (c *EC2Cluster) GetOrganizationId() uint {
 	return c.modelCluster.OrganizationId
 }
 
 // GetSecretId retrieves the secret id
-func (c *AWSCluster) GetSecretId() string {
+func (c *EC2Cluster) GetSecretId() string {
 	return c.modelCluster.SecretId
 }
 
 // GetSshSecretId retrieves the ssh secret id
-func (c *AWSCluster) GetSshSecretId() string {
+func (c *EC2Cluster) GetSshSecretId() string {
 	return c.modelCluster.SshSecretId
 }
 
 // SaveSshSecretId saves the ssh secret id to database
-func (c *AWSCluster) SaveSshSecretId(sshSecretId string) error {
+func (c *EC2Cluster) SaveSshSecretId(sshSecretId string) error {
 	return c.modelCluster.UpdateSshSecret(sshSecretId)
 }
 
 //GetID returns the specified cluster id
-func (c *AWSCluster) GetID() uint {
+func (c *EC2Cluster) GetID() uint {
 	return c.modelCluster.ID
 }
 
 //GetAPIEndpoint returns the Kubernetes Api endpoint
-func (c *AWSCluster) GetAPIEndpoint() (string, error) {
+func (c *EC2Cluster) GetAPIEndpoint() (string, error) {
 	if c.APIEndpoint != "" {
 		return c.APIEndpoint, nil
 	}
@@ -102,59 +101,65 @@ func (c *AWSCluster) GetAPIEndpoint() (string, error) {
 }
 
 //GetName returns the name of the cluster
-func (c *AWSCluster) GetName() string {
+func (c *EC2Cluster) GetName() string {
 	return c.modelCluster.Name
 }
 
-//GetType returns the cloud type of the cluster
-func (c *AWSCluster) GetType() string {
+// GetCloud returns the cloud type of the cluster
+func (c *EC2Cluster) GetCloud() string {
 	return c.modelCluster.Cloud
 }
 
+// GetDistribution returns the distribution type of the cluster
+func (c *EC2Cluster) GetDistribution() string {
+	return c.modelCluster.Distribution
+}
+
 //GetModel returns the whole clusterModel
-func (c *AWSCluster) GetModel() *model.ClusterModel {
+func (c *EC2Cluster) GetModel() *model.ClusterModel {
 	return c.modelCluster
 }
 
-//CreateAWSClusterFromModel creates ClusterModel struct from the kubicorn model
-func CreateAWSClusterFromModel(clusterModel *model.ClusterModel) (*AWSCluster, error) {
+//CreateEC2ClusterFromModel creates ClusterModel struct from the kubicorn model
+func CreateEC2ClusterFromModel(clusterModel *model.ClusterModel) (*EC2Cluster, error) {
 	log.Debug("Create ClusterModel struct from the request")
-	awsCluster := AWSCluster{
+	ec2Cluster := EC2Cluster{
 		modelCluster: clusterModel,
 	}
-	if awsCluster.modelCluster.Status == pkgCluster.Running {
-		_, err := awsCluster.GetKubicornCluster()
+	if ec2Cluster.modelCluster.Status == pkgCluster.Running {
+		_, err := ec2Cluster.GetKubicornCluster()
 		if err != nil {
 			return nil, err
 		}
 	}
-	return &awsCluster, nil
+	return &ec2Cluster, nil
 }
 
-//CreateAWSClusterFromRequest creates ClusterModel struct from the request
-func CreateAWSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId, userId uint) (*AWSCluster, error) {
+//CreateEC2ClusterFromRequest creates ClusterModel struct from the request
+func CreateEC2ClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId, userId uint) (*EC2Cluster, error) {
 	log.Debug("Create ClusterModel struct from the request")
-	var cluster AWSCluster
+	var cluster EC2Cluster
 
-	modelNodePools := createNodePoolsFromRequest(request.Properties.CreateClusterAmazon.NodePools, userId)
+	modelNodePools := createNodePoolsFromRequest(request.Properties.CreateClusterEC2.NodePools, userId)
 
 	cluster.modelCluster = &model.ClusterModel{
 		Name:           request.Name,
 		Location:       request.Location,
 		Cloud:          request.Cloud,
 		SecretId:       request.SecretId,
+		Distribution:   pkgCluster.EC2,
 		OrganizationId: orgId,
 		CreatedBy:      userId,
-		Amazon: model.AmazonClusterModel{
-			MasterInstanceType: request.Properties.CreateClusterAmazon.Master.InstanceType,
-			MasterImage:        request.Properties.CreateClusterAmazon.Master.Image,
+		EC2: model.EC2ClusterModel{
+			MasterInstanceType: request.Properties.CreateClusterEC2.Master.InstanceType,
+			MasterImage:        request.Properties.CreateClusterEC2.Master.Image,
 			NodePools:          modelNodePools,
 		},
 	}
 	return &cluster, nil
 }
 
-func createNodePoolsFromRequest(nodePools map[string]*amazon.NodePool, userId uint) []*model.AmazonNodePoolsModel {
+func createNodePoolsFromRequest(nodePools map[string]*pkgEC2.NodePool, userId uint) []*model.AmazonNodePoolsModel {
 	var modelNodePools = make([]*model.AmazonNodePoolsModel, len(nodePools))
 	i := 0
 	for nodePoolName, nodePool := range nodePools {
@@ -176,12 +181,12 @@ func createNodePoolsFromRequest(nodePools map[string]*amazon.NodePool, userId ui
 }
 
 //Persist save the cluster model
-func (c *AWSCluster) Persist(status, statusMessage string) error {
+func (c *EC2Cluster) Persist(status, statusMessage string) error {
 	return c.modelCluster.UpdateStatus(status, statusMessage)
 }
 
 //CreateCluster creates a new cluster
-func (c *AWSCluster) CreateCluster() error {
+func (c *EC2Cluster) CreateCluster() error {
 
 	// Set up credentials TODO simplify
 	runtimeParam := pkg.RuntimeParameters{
@@ -255,7 +260,7 @@ func (c *AWSCluster) CreateCluster() error {
 
 // RequiresSshPublicKey returns true as a public ssh key is needed for bootstrapping
 // the cluster
-func (c *AWSCluster) RequiresSshPublicKey() bool {
+func (c *EC2Cluster) RequiresSshPublicKey() bool {
 	return true
 }
 
@@ -297,8 +302,8 @@ func getMasterServerPool(cs *model.ClusterModel, nodeServerPool []*kcluster.Serv
 		Name:     fmt.Sprintf("%s.master", cs.Name),
 		MinCount: 1,
 		MaxCount: 1,
-		Image:    cs.Amazon.MasterImage, //"ami-835b4efa"
-		Size:     cs.Amazon.MasterInstanceType,
+		Image:    cs.EC2.MasterImage, //"ami-835b4efa"
+		Size:     cs.EC2.MasterInstanceType,
 		BootstrapScripts: []string{
 			getBootstrapScriptFromEnv(true),
 		},
@@ -469,8 +474,8 @@ func getNodeServerPool(clusterName string, location string, nodePool *model.Amaz
 func GetKubicornProfile(cs *model.ClusterModel) *kcluster.Cluster {
 
 	uuidSuffix := uuid.TimeOrderedUUID()
-	var nodeServerPool = make([]*kcluster.ServerPool, len(cs.Amazon.NodePools))
-	for i, nodePool := range cs.Amazon.NodePools {
+	var nodeServerPool = make([]*kcluster.ServerPool, len(cs.EC2.NodePools))
+	for i, nodePool := range cs.EC2.NodePools {
 		nodeServerPool[i] = getNodeServerPool(cs.Name, cs.Location, nodePool, fmt.Sprintf("10.0.%d.0/24", 100+i), uuidSuffix)
 	}
 	var masterServerPool = []*kcluster.ServerPool{
@@ -505,11 +510,11 @@ func GetKubicornProfile(cs *model.ClusterModel) *kcluster.Cluster {
 }
 
 //GetStatus gets cluster status
-func (c *AWSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
-	log.Info("Start get cluster status (amazon)")
+func (c *EC2Cluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
+	log.Info("Start get cluster status (ec2)")
 
 	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
-	for _, np := range c.modelCluster.Amazon.NodePools {
+	for _, np := range c.modelCluster.EC2.NodePools {
 		if np != nil {
 			nodePools[np.Name] = &pkgCluster.NodePoolStatus{
 				Autoscaling:  np.Autoscaling,
@@ -529,6 +534,7 @@ func (c *AWSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		Name:              c.modelCluster.Name,
 		Location:          c.modelCluster.Location,
 		Cloud:             c.modelCluster.Cloud,
+		Distribution:      c.modelCluster.Distribution,
 		ResourceID:        c.modelCluster.ID,
 		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
 		NodePools:         nodePools,
@@ -536,8 +542,8 @@ func (c *AWSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 }
 
 // getExistingNodePoolByName returns existing NodePool from model nodepools by name
-func (c *AWSCluster) getExistingNodePoolByName(name string) *model.AmazonNodePoolsModel {
-	for _, np := range c.modelCluster.Amazon.NodePools {
+func (c *EC2Cluster) getExistingNodePoolByName(name string) *model.AmazonNodePoolsModel {
+	for _, np := range c.modelCluster.EC2.NodePools {
 		if np != nil && np.Name == name {
 			return np
 		}
@@ -546,18 +552,18 @@ func (c *AWSCluster) getExistingNodePoolByName(name string) *model.AmazonNodePoo
 }
 
 // UpdateCluster updates Amazon cluster in cloud
-func (c *AWSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, userId uint) error {
+func (c *EC2Cluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, userId uint) error {
 
 	kubicornLogger.Level = getKubicornLogLevel()
 
-	log.Info("Start updating cluster (amazon)")
+	log.Info("Start updating cluster (ec2)")
 
 	if request == nil {
 		return pkgErrors.ErrorEmptyUpdateRequest
 	}
 
 	existingNodePools := map[string]*model.AmazonNodePoolsModel{}
-	for _, nodePool := range c.modelCluster.Amazon.NodePools {
+	for _, nodePool := range c.modelCluster.EC2.NodePools {
 		existingNodePools[nodePool.Name] = nodePool
 	}
 
@@ -568,7 +574,7 @@ func (c *AWSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, use
 	}
 
 	var updatedNodePools []*model.AmazonNodePoolsModel
-	for name, np := range request.Amazon.NodePools {
+	for name, np := range request.EC2.NodePools {
 		if np != nil {
 
 			existsNode := c.getExistingNodePoolByName(name)
@@ -595,7 +601,7 @@ func (c *AWSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, use
 		}
 	}
 
-	updatedNodePools = addMarkedForDeletePools(c.modelCluster.Amazon.NodePools, updatedNodePools)
+	updatedNodePools = addMarkedForDeletePools(c.modelCluster.EC2.NodePools, updatedNodePools)
 
 	log.Info("Create updated model")
 	updateCluster := &model.ClusterModel{
@@ -611,9 +617,9 @@ func (c *AWSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, use
 		ConfigSecretId: c.modelCluster.ConfigSecretId,
 		SshSecretId:    c.modelCluster.SshSecretId,
 		Status:         c.modelCluster.Status,
-		Amazon: model.AmazonClusterModel{
-			MasterInstanceType: c.modelCluster.Amazon.MasterInstanceType,
-			MasterImage:        c.modelCluster.Amazon.MasterImage,
+		EC2: model.EC2ClusterModel{
+			MasterInstanceType: c.modelCluster.EC2.MasterInstanceType,
+			MasterImage:        c.modelCluster.EC2.MasterImage,
 			NodePools:          updatedNodePools,
 		},
 	}
@@ -692,7 +698,7 @@ func (c *AWSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, use
 		return err
 	}
 
-	//Update AWS model
+	//Update EC2 model
 	c.modelCluster = updateCluster
 	c.kubicornCluster = kubicornCluster //This is redundant TODO check if it's ok
 
@@ -702,7 +708,7 @@ func (c *AWSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, use
 	statestore.Commit(updated)
 
 	// mark for deletion the node pool model entries that has no corresponding node pool in the cluster
-	for _, np := range c.modelCluster.Amazon.NodePools {
+	for _, np := range c.modelCluster.EC2.NodePools {
 		found := false
 
 		for _, kubicornNodePool := range kubicornCluster.ServerPools {
@@ -757,7 +763,7 @@ func findServerPool(pools []*kcluster.ServerPool, clusterName, name string) (int
 }
 
 //GetKubicornCluster returns a Kubicorn cluster
-func (c *AWSCluster) GetKubicornCluster() (*kcluster.Cluster, error) {
+func (c *EC2Cluster) GetKubicornCluster() (*kcluster.Cluster, error) {
 	if c.kubicornCluster != nil {
 		return c.kubicornCluster, nil
 	}
@@ -779,12 +785,12 @@ func ReadCluster(modelCluster *model.ClusterModel) (*kcluster.Cluster, error) {
 	return readCluster, nil
 }
 
-// DeleteCluster deletes cluster from amazon
-func (c *AWSCluster) DeleteCluster() error {
+// DeleteCluster deletes cluster from ec2
+func (c *EC2Cluster) DeleteCluster() error {
 
 	kubicornLogger.Level = getKubicornLogLevel()
 
-	log.Info("Start delete amazon cluster")
+	log.Info("Start delete ec2 cluster")
 	kubicornCluster, err := c.GetKubicornCluster()
 	if err != nil {
 		return err
@@ -833,7 +839,7 @@ func (c *AWSCluster) DeleteCluster() error {
 }
 
 // DownloadK8sConfig downloads the kubeconfig file from cloud
-func (c *AWSCluster) DownloadK8sConfig() ([]byte, error) {
+func (c *EC2Cluster) DownloadK8sConfig() ([]byte, error) {
 	kubicornCluster, err := c.GetKubicornCluster()
 	if err != nil {
 		err = errors.Wrap(err, "error getting kubicorn cluster")
@@ -930,11 +936,11 @@ func getBootstrapScriptFromEnv(isMaster bool) string {
 }
 
 //AddDefaultsToUpdate adds defaults to update request
-func (c *AWSCluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
+func (c *EC2Cluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
 
 	// add default node image(s) if needed
-	if r != nil && r.Amazon != nil && r.Amazon.NodePools != nil {
-		for name, np := range r.Amazon.NodePools {
+	if r != nil && r.EC2 != nil && r.EC2.NodePools != nil {
+		for name, np := range r.EC2.NodePools {
 			if len(np.Image) == 0 {
 				np.Image = c.getImageFromNodePool(name)
 			}
@@ -943,26 +949,26 @@ func (c *AWSCluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
 
 }
 
-func (c *AWSCluster) getImageFromNodePool(nodePoolName string) string {
-	for _, np := range c.modelCluster.Amazon.NodePools {
+func (c *EC2Cluster) getImageFromNodePool(nodePoolName string) string {
+	for _, np := range c.modelCluster.EC2.NodePools {
 		if np != nil && np.Name == nodePoolName {
 			return np.NodeImage
 		}
 	}
-	return pkgAmazon.DefaultImages[c.modelCluster.Location]
+	return pkgEC2.DefaultImages[c.modelCluster.Location]
 }
 
 //CheckEqualityToUpdate validates the update request
-func (c *AWSCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) error {
-	return CheckEqualityToUpdate(r, c.modelCluster.Amazon.NodePools)
+func (c *EC2Cluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) error {
+	return CheckEqualityToUpdate(r, c.modelCluster.EC2.NodePools)
 }
 
 //CheckEqualityToUpdate validates the update request
 func CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest, nodePools []*model.AmazonNodePoolsModel) error {
 	// create update request struct with the stored data to check equality
-	preNodePools := make(map[string]*amazon.NodePool)
+	preNodePools := make(map[string]*pkgEC2.NodePool)
 	for _, preNp := range nodePools {
-		preNodePools[preNp.Name] = &amazon.NodePool{
+		preNodePools[preNp.Name] = &pkgEC2.NodePool{
 			InstanceType: preNp.NodeInstanceType,
 			SpotPrice:    preNp.NodeSpotPrice,
 			Autoscaling:  preNp.Autoscaling,
@@ -973,18 +979,18 @@ func CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest, nodePools []*mode
 		}
 	}
 
-	preCl := &amazon.UpdateClusterAmazon{
+	preCl := &pkgEC2.UpdateClusterAmazon{
 		NodePools: preNodePools,
 	}
 
 	log.Info("Check stored & updated cluster equals")
 
 	// check equality
-	return utils.IsDifferent(r.Amazon, preCl)
+	return utils.IsDifferent(r.EC2, preCl)
 }
 
 //DeleteFromDatabase deletes model from the database
-func (c *AWSCluster) DeleteFromDatabase() error {
+func (c *EC2Cluster) DeleteFromDatabase() error {
 	err := c.modelCluster.Delete()
 	if err != nil {
 		return err
@@ -1011,7 +1017,7 @@ func getKubicornLogLevel() int {
 
 // ListRegions lists supported regions
 func ListRegions(orgId uint, secretId, region string) ([]*ec2.Region, error) {
-	c := &AWSCluster{
+	c := &EC2Cluster{
 		modelCluster: &model.ClusterModel{
 			OrganizationId: orgId,
 			SecretId:       secretId,
@@ -1022,7 +1028,7 @@ func ListRegions(orgId uint, secretId, region string) ([]*ec2.Region, error) {
 }
 
 // ListRegions lists supported regions
-func (c *AWSCluster) ListRegions(region string) ([]*ec2.Region, error) {
+func (c *EC2Cluster) ListRegions(region string) ([]*ec2.Region, error) {
 
 	svc, err := c.newEC2Client(region)
 	if err != nil {
@@ -1039,7 +1045,7 @@ func (c *AWSCluster) ListRegions(region string) ([]*ec2.Region, error) {
 
 // ListAMIs returns supported AMIs by region and tags
 func ListAMIs(orgId uint, secretId, region string, tags []*string) ([]*ec2.Image, error) {
-	c := &AWSCluster{
+	c := &EC2Cluster{
 		modelCluster: &model.ClusterModel{
 			OrganizationId: orgId,
 			SecretId:       secretId,
@@ -1050,7 +1056,7 @@ func ListAMIs(orgId uint, secretId, region string, tags []*string) ([]*ec2.Image
 }
 
 // ListAMIs returns supported AMIs by region and tags
-func (c *AWSCluster) ListAMIs(region string, tags []*string) ([]*ec2.Image, error) {
+func (c *EC2Cluster) ListAMIs(region string, tags []*string) ([]*ec2.Image, error) {
 
 	svc, err := c.newEC2Client(region)
 	if err != nil {
@@ -1079,7 +1085,7 @@ func (c *AWSCluster) ListAMIs(region string, tags []*string) ([]*ec2.Image, erro
 }
 
 // newEC2Client creates new EC2 client
-func (c *AWSCluster) newEC2Client(region string) (*ec2.EC2, error) {
+func (c *EC2Cluster) newEC2Client(region string) (*ec2.EC2, error) {
 
 	log.Info("create new ec2 client")
 
@@ -1092,12 +1098,12 @@ func (c *AWSCluster) newEC2Client(region string) (*ec2.EC2, error) {
 }
 
 // UpdateStatus updates cluster status in database
-func (c *AWSCluster) UpdateStatus(status, statusMessage string) error {
+func (c *EC2Cluster) UpdateStatus(status, statusMessage string) error {
 	return c.modelCluster.UpdateStatus(status, statusMessage)
 }
 
 // GetClusterDetails gets cluster details from cloud
-func (c *AWSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
+func (c *EC2Cluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 
 	log.Info("Start getting cluster details")
 
@@ -1109,7 +1115,7 @@ func (c *AWSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 	}
 
 	nodePools := make(map[string]*pkgCluster.NodeDetails, 0)
-	for _, np := range c.modelCluster.Amazon.NodePools {
+	for _, np := range c.modelCluster.EC2.NodePools {
 		if np != nil {
 
 			nodePools[np.Name] = &pkgCluster.NodeDetails{
@@ -1128,7 +1134,7 @@ func (c *AWSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 }
 
 // ValidateCreationFields validates all fields
-func (c *AWSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
+func (c *EC2Cluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
 	location := r.Location
 
 	// Validate location
@@ -1140,8 +1146,8 @@ func (c *AWSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) 
 
 	// Validate images
 	log.Info("Validate images")
-	masterImage := r.Properties.CreateClusterAmazon.Master.Image
-	if err := c.validateAMIs(masterImage, r.Properties.CreateClusterAmazon.NodePools, location); err != nil {
+	masterImage := r.Properties.CreateClusterEC2.Master.Image
+	if err := c.validateAMIs(masterImage, r.Properties.CreateClusterEC2.NodePools, location); err != nil {
 		return err
 	}
 	log.Info("Validate images passed")
@@ -1151,7 +1157,7 @@ func (c *AWSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) 
 }
 
 // validateLocation validates location
-func (c *AWSCluster) validateLocation(location string) error {
+func (c *EC2Cluster) validateLocation(location string) error {
 	log.Infof("Location: %s", location)
 	validRegions, err := c.ListRegions(location)
 	if err != nil {
@@ -1175,7 +1181,7 @@ func (c *AWSCluster) validateLocation(location string) error {
 }
 
 // validateAMIs validates AMIs
-func (c *AWSCluster) validateAMIs(masterAMI string, nodePools map[string]*amazon.NodePool, location string) error {
+func (c *EC2Cluster) validateAMIs(masterAMI string, nodePools map[string]*pkgEC2.NodePool, location string) error {
 
 	log.Infof("Master image: %s", masterAMI)
 	for nodePoolName, node := range nodePools {
@@ -1209,32 +1215,32 @@ func (c *AWSCluster) validateAMIs(masterAMI string, nodePools map[string]*amazon
 }
 
 // GetSecretWithValidation returns secret from vault
-func (c *AWSCluster) GetSecretWithValidation() (*secret.SecretItemResponse, error) {
+func (c *EC2Cluster) GetSecretWithValidation() (*secret.SecretItemResponse, error) {
 	return c.CommonClusterBase.getSecret(c)
 }
 
 // GetSshSecretWithValidation returns ssh secret from vault
-func (c *AWSCluster) GetSshSecretWithValidation() (*secret.SecretItemResponse, error) {
+func (c *EC2Cluster) GetSshSecretWithValidation() (*secret.SecretItemResponse, error) {
 	return c.CommonClusterBase.getSshSecret(c)
 }
 
 // SaveConfigSecretId saves the config secret id in database
-func (c *AWSCluster) SaveConfigSecretId(configSecretId string) error {
+func (c *EC2Cluster) SaveConfigSecretId(configSecretId string) error {
 	return c.modelCluster.UpdateConfigSecret(configSecretId)
 }
 
 // GetConfigSecretId return config secret id
-func (c *AWSCluster) GetConfigSecretId() string {
+func (c *EC2Cluster) GetConfigSecretId() string {
 	return c.modelCluster.ConfigSecretId
 }
 
 // GetK8sConfig returns the Kubernetes config
-func (c *AWSCluster) GetK8sConfig() ([]byte, error) {
+func (c *EC2Cluster) GetK8sConfig() ([]byte, error) {
 	return c.CommonClusterBase.getConfig(c)
 }
 
 // listSecurityGroups listing security groups by VPC id
-func (c *AWSCluster) listSecurityGroups(svc *ec2.EC2, vpcId string) ([]*ec2.SecurityGroup, error) {
+func (c *EC2Cluster) listSecurityGroups(svc *ec2.EC2, vpcId string) ([]*ec2.SecurityGroup, error) {
 
 	output, err := svc.DescribeSecurityGroups(&ec2.DescribeSecurityGroupsInput{
 		Filters: []*ec2.Filter{
@@ -1253,7 +1259,7 @@ func (c *AWSCluster) listSecurityGroups(svc *ec2.EC2, vpcId string) ([]*ec2.Secu
 }
 
 // deleteSecurityGroup deletes a security group by group params
-func (c *AWSCluster) deleteSecurityGroup(svc *ec2.EC2, group *ec2.SecurityGroup) error {
+func (c *EC2Cluster) deleteSecurityGroup(svc *ec2.EC2, group *ec2.SecurityGroup) error {
 
 	log.Infof("Delete security group [%s]", *group.GroupId)
 
@@ -1277,7 +1283,7 @@ func (c *AWSCluster) deleteSecurityGroup(svc *ec2.EC2, group *ec2.SecurityGroup)
 }
 
 // revokeELBDependency remove all ELB dependency
-func (c *AWSCluster) revokeELBDependency(vpcId string) error {
+func (c *EC2Cluster) revokeELBDependency(vpcId string) error {
 
 	log.Info("Revoke all ELB security group dependency")
 
@@ -1316,7 +1322,7 @@ func (c *AWSCluster) revokeELBDependency(vpcId string) error {
 }
 
 // revokeELBSecurityGroupDependency removes all ELB dependency ingress rules from security groups
-func (c *AWSCluster) revokeELBSecurityGroupDependency(svc *ec2.EC2, groups []*ec2.SecurityGroup, sourceGroup *ec2.SecurityGroup) error {
+func (c *EC2Cluster) revokeELBSecurityGroupDependency(svc *ec2.EC2, groups []*ec2.SecurityGroup, sourceGroup *ec2.SecurityGroup) error {
 
 	for _, group := range groups {
 		if group != nil && len(group.IpPermissions) != 0 {
@@ -1339,7 +1345,7 @@ func (c *AWSCluster) revokeELBSecurityGroupDependency(svc *ec2.EC2, groups []*ec
 }
 
 // revokeSecurityGroupIngress removes an ingress rules from a security group
-func (c *AWSCluster) revokeSecurityGroupIngress(svc *ec2.EC2, sg, sourceGroup *ec2.SecurityGroup, permission *ec2.IpPermission) error {
+func (c *EC2Cluster) revokeSecurityGroupIngress(svc *ec2.EC2, sg, sourceGroup *ec2.SecurityGroup, permission *ec2.IpPermission) error {
 
 	log.Infof("Revoke security group ingress [ %s // %s ]", *sg.GroupId, *sourceGroup.GroupId)
 
@@ -1354,7 +1360,7 @@ func (c *AWSCluster) revokeSecurityGroupIngress(svc *ec2.EC2, sg, sourceGroup *e
 }
 
 // findELBSecurityGroups looks for ELB security group(s)
-func (c *AWSCluster) findELBSecurityGroups(groups []*ec2.SecurityGroup) []*ec2.SecurityGroup {
+func (c *EC2Cluster) findELBSecurityGroups(groups []*ec2.SecurityGroup) []*ec2.SecurityGroup {
 
 	var elbs []*ec2.SecurityGroup
 
@@ -1374,7 +1380,7 @@ func (c *AWSCluster) findELBSecurityGroups(groups []*ec2.SecurityGroup) []*ec2.S
 	return elbs
 }
 
-func (c *AWSCluster) createAWSCredentialsFromSecret() (*credentials.Credentials, error) {
+func (c *EC2Cluster) createAWSCredentialsFromSecret() (*credentials.Credentials, error) {
 	clusterSecret, err := c.GetSecretWithValidation()
 	if err != nil {
 		return nil, err
@@ -1383,12 +1389,12 @@ func (c *AWSCluster) createAWSCredentialsFromSecret() (*credentials.Credentials,
 }
 
 // ReloadFromDatabase load cluster from DB
-func (c *AWSCluster) ReloadFromDatabase() error {
+func (c *EC2Cluster) ReloadFromDatabase() error {
 	return c.modelCluster.ReloadFromDatabase()
 }
 
 // ListNodeNames returns node names to label them
-func (c *AWSCluster) ListNodeNames() (labels pkgCommon.NodeNames, err error) {
+func (c *EC2Cluster) ListNodeNames() (labels pkgCommon.NodeNames, err error) {
 
 	var svc *ec2.EC2
 	svc, err = c.newEC2Client(c.modelCluster.Location)
@@ -1413,7 +1419,7 @@ func (c *AWSCluster) ListNodeNames() (labels pkgCommon.NodeNames, err error) {
 
 	labels = make(map[string][]string)
 
-	for _, np := range c.modelCluster.Amazon.NodePools {
+	for _, np := range c.modelCluster.EC2.NodePools {
 		if np != nil {
 			for _, r := range out.Reservations {
 				for _, i := range r.Instances {
@@ -1441,6 +1447,6 @@ func hasTagWithNodeName(tags []*ec2.Tag, nodeName string) bool {
 }
 
 // RbacEnabled returns true if rbac enabled on the cluster
-func (c *AWSCluster) RbacEnabled() bool {
+func (c *EC2Cluster) RbacEnabled() bool {
 	return c.modelCluster.RbacEnabled
 }

@@ -65,25 +65,25 @@ func main() {
 	// Creating tables if not exists
 	logger.Infoln("Create table(s):",
 		model.ClusterModel{}.TableName(),
-		model.AmazonClusterModel{}.TableName(),
+		model.EC2ClusterModel{}.TableName(),
 		model.AmazonNodePoolsModel{}.TableName(),
-		model.AmazonEksClusterModel{}.TableName(),
-		model.AzureClusterModel{}.TableName(),
-		model.AzureNodePoolModel{}.TableName(),
-		model.GoogleClusterModel{}.TableName(),
-		model.GoogleNodePoolModel{}.TableName(),
+		model.EKSClusterModel{}.TableName(),
+		model.AKSClusterModel{}.TableName(),
+		model.AKSNodePoolModel{}.TableName(),
+		model.GKEClusterModel{}.TableName(),
+		model.GKENodePoolModel{}.TableName(),
 	)
 
 	// Create tables
 	if err := db.AutoMigrate(
 		&model.ClusterModel{},
-		&model.AmazonClusterModel{},
+		&model.GKEClusterModel{},
 		&model.AmazonNodePoolsModel{},
-		&model.AmazonEksClusterModel{},
-		&model.AzureClusterModel{},
-		&model.AzureNodePoolModel{},
-		&model.GoogleClusterModel{},
-		&model.GoogleNodePoolModel{},
+		&model.EKSClusterModel{},
+		&model.AKSClusterModel{},
+		&model.AKSNodePoolModel{},
+		&model.GKEClusterModel{},
+		&model.GKENodePoolModel{},
 		&model.DummyClusterModel{},
 		&model.KubernetesClusterModel{},
 		&model.Deployment{},
@@ -93,9 +93,10 @@ func main() {
 		&auth.UserOrganization{},
 		&auth.Organization{},
 		&audit.AuditEvent{},
-		&defaults.AWSProfile{},
-		&defaults.AWSNodePoolProfile{},
+		&defaults.EC2Profile{},
+		&defaults.EC2NodePoolProfile{},
 		&defaults.EKSProfile{},
+		&defaults.EKSNodePoolProfile{},
 		&defaults.AKSProfile{},
 		&defaults.AKSNodePoolProfile{},
 		&defaults.GKEProfile{},
@@ -207,10 +208,10 @@ func main() {
 			orgs.DELETE("/:orgid/helm/repos/:name", api.HelmReposDelete)
 			orgs.GET("/:orgid/helm/charts", api.HelmCharts)
 			orgs.GET("/:orgid/helm/chart/:reponame/:name", api.HelmChart)
-			orgs.GET("/:orgid/profiles/cluster/:type", api.GetClusterProfiles)
+			orgs.GET("/:orgid/profiles/cluster/:distribution", api.GetClusterProfiles)
 			orgs.POST("/:orgid/profiles/cluster", api.AddClusterProfile)
 			orgs.PUT("/:orgid/profiles/cluster", api.UpdateClusterProfile)
-			orgs.DELETE("/:orgid/profiles/cluster/:type/:name", api.DeleteClusterProfile)
+			orgs.DELETE("/:orgid/profiles/cluster/:distribution/:name", api.DeleteClusterProfile)
 			orgs.GET("/:orgid/secrets", api.ListSecrets)
 			orgs.GET("/:orgid/secrets/:id", api.GetSecret)
 			orgs.POST("/:orgid/secrets", api.AddSecrets)

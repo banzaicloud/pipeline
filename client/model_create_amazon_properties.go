@@ -11,5 +11,5 @@
 package client
 
 type CreateAmazonProperties struct {
-	Amazon CreateAmazonPropertiesAmazon `json:"amazon"`
+	Amazon CreateAmazonPropertiesAmazon `json:"ec2"`
 }

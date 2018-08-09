@@ -39,6 +39,7 @@ type ClusterModel struct {
 	Name           string     `gorm:"unique_index:idx_unique_id"`
 	Location       string
 	Cloud          string
+	Distribution   string
 	OrganizationId uint `gorm:"unique_index:idx_unique_id"`
 	SecretId       string
 	ConfigSecretId string
@@ -48,19 +49,19 @@ type ClusterModel struct {
 	Monitoring     bool
 	Logging        bool
 	StatusMessage  string `sql:"type:text;"`
-	Amazon         AmazonClusterModel
-	Azure          AzureClusterModel
-	Eks            AmazonEksClusterModel
-	Google         GoogleClusterModel
+	EC2            EC2ClusterModel
+	AKS            AKSClusterModel
+	EKS            EKSClusterModel
+	GKE            GKEClusterModel
 	Dummy          DummyClusterModel
 	Kubernetes     KubernetesClusterModel
-	Oracle         modelOracle.Cluster
+	OKE            modelOracle.Cluster
 	Applications   []Application `gorm:"foreignkey:ClusterID"`
 	CreatedBy      uint
 }
 
-//AmazonClusterModel describes the amazon cluster model
-type AmazonClusterModel struct {
+//EC2ClusterModel describes the ec2 cluster model
+type EC2ClusterModel struct {
 	ClusterModelId     uint `gorm:"primary_key"`
 	MasterInstanceType string
 	MasterImage        string
@@ -84,24 +85,24 @@ type AmazonNodePoolsModel struct {
 	Delete           bool `gorm:"-"`
 }
 
-//AmazonEksClusterModel describes the amazon cluster model
-type AmazonEksClusterModel struct {
+//EKSClusterModel describes the ec2 cluster model
+type EKSClusterModel struct {
 	ClusterModelId uint                    `gorm:"primary_key"`
 	Version        string                  //kubernetes "1.10"
 	NodePools      []*AmazonNodePoolsModel `gorm:"foreignkey:ClusterModelId"`
 	AccessKeyID    string
 }
 
-//AzureClusterModel describes the azure cluster model
-type AzureClusterModel struct {
+//AKSClusterModel describes the aks cluster model
+type AKSClusterModel struct {
 	ClusterModelId    uint `gorm:"primary_key"`
 	ResourceGroup     string
 	KubernetesVersion string
-	NodePools         []*AzureNodePoolModel `gorm:"foreignkey:ClusterModelId"`
+	NodePools         []*AKSNodePoolModel `gorm:"foreignkey:ClusterModelId"`
 }
 
-// AzureNodePoolModel describes azure node pools model of a cluster
-type AzureNodePoolModel struct {
+// AKSNodePoolModel describes AKS node pools model of a cluster
+type AKSNodePoolModel struct {
 	ID               uint `gorm:"primary_key"`
 	CreatedAt        time.Time
 	CreatedBy        uint
@@ -114,8 +115,8 @@ type AzureNodePoolModel struct {
 	NodeInstanceType string
 }
 
-//GoogleNodePoolModel describes google node pools model of a cluster
-type GoogleNodePoolModel struct {
+//GKENodePoolModel describes GKE node pools model of a cluster
+type GKENodePoolModel struct {
 	ID               uint `gorm:"primary_key"`
 	CreatedAt        time.Time
 	CreatedBy        uint
@@ -129,13 +130,13 @@ type GoogleNodePoolModel struct {
 	Delete           bool `gorm:"-"`
 }
 
-//GoogleClusterModel describes the google cluster model
-type GoogleClusterModel struct {
+//GKEClusterModel describes the gke cluster model
+type GKEClusterModel struct {
 	ClusterModelId uint `gorm:"primary_key"`
 	MasterVersion  string
 	NodeVersion    string
 	Region         string
-	NodePools      []*GoogleNodePoolModel `gorm:"foreignkey:ClusterModelId"`
+	NodePools      []*GKENodePoolModel `gorm:"foreignkey:ClusterModelId"`
 }
 
 // DummyClusterModel describes the dummy cluster model
@@ -152,12 +153,12 @@ type KubernetesClusterModel struct {
 	MetadataRaw    []byte            `gorm:"meta_data"`
 }
 
-func (gn GoogleNodePoolModel) String() string {
+func (gn GKENodePoolModel) String() string {
 	return fmt.Sprintf("ID: %d, createdAt: %v, createdBy: %d, Name: %s, Autoscaling: %v, NodeMinCount: %d, NodeMaxCount: %d, NodeCount: %d",
 		gn.ID, gn.CreatedAt, gn.CreatedBy, gn.Name, gn.Autoscaling, gn.NodeMinCount, gn.NodeMaxCount, gn.NodeCount)
 }
 
-func (gc GoogleClusterModel) String() string {
+func (gc GKEClusterModel) String() string {
 	var buffer bytes.Buffer
 
 	buffer.WriteString(fmt.Sprintf("Master version: %s, Node version: %s, Node pools: %s",
@@ -248,35 +249,60 @@ func (ClusterModel) TableName() string {
 // String method prints formatted cluster fields
 func (cs *ClusterModel) String() string {
 	var buffer bytes.Buffer
-	buffer.WriteString(fmt.Sprintf("Id: %d, Creation date: %s, Cloud: %s, ", cs.ID, cs.CreatedAt, cs.Cloud))
-	if cs.Cloud == pkgCluster.Azure {
-		// Write AKS
-		buffer.WriteString(fmt.Sprintf("NodePools: %v, Kubernetes version: %s",
-			cs.Azure.NodePools,
-			cs.Azure.KubernetesVersion))
-	} else if cs.Cloud == pkgCluster.Amazon {
-		// Write AWS Master
+	buffer.WriteString(fmt.Sprintf("Id: %d, Creation date: %s, Cloud: %s, Distribution: %s, ", cs.ID, cs.CreatedAt, cs.Cloud, cs.Distribution))
+
+	switch cs.Distribution {
+	case pkgCluster.EC2:
+		// Write EC2 Master
 		buffer.WriteString(fmt.Sprintf("Master instance type: %s, Master image: %s",
-			cs.Amazon.MasterInstanceType,
-			cs.Amazon.MasterImage))
-		// Write AWS Node
-		for _, nodePool := range cs.Amazon.NodePools {
-			buffer.WriteString(fmt.Sprintf("NodePool Name: %s, InstanceType: %s, Spot price: %s, Min count: %d, Max count: %d, Node image: %s",
+			cs.EC2.MasterInstanceType,
+			cs.EC2.MasterImage))
+
+		// Write EC2 Node
+		for _, nodePool := range cs.EC2.NodePools {
+			buffer.WriteString(fmt.Sprintf("NodePool Name: %s, Autoscaling: %v, InstanceType: %s, Spot price: %s, Min count: %d, Max count: %d, Count: %d, Node image: %s",
 				nodePool.Name,
+				nodePool.Autoscaling,
 				nodePool.NodeInstanceType,
 				nodePool.NodeSpotPrice,
 				nodePool.NodeMinCount,
 				nodePool.NodeMaxCount,
+				nodePool.Count,
 				nodePool.NodeImage))
 		}
+	case pkgCluster.EKS:
+		// Write EKS Master
+		buffer.WriteString(fmt.Sprintf("Master version: %s",
+			cs.EKS.Version))
 
-	} else if cs.Cloud == pkgCluster.Google {
-		buffer.WriteString(fmt.Sprint(cs.Google))
-	} else if cs.Cloud == pkgCluster.Dummy {
+		// Write EKS Node
+		for _, nodePool := range cs.EKS.NodePools {
+			buffer.WriteString(fmt.Sprintf("NodePool Name: %s, Autoscaling: %v, InstanceType: %s, Spot price: %s, Min count: %d, Max count: %d, Count: %d, Node image: %s",
+				nodePool.Name,
+				nodePool.Autoscaling,
+				nodePool.NodeInstanceType,
+				nodePool.NodeSpotPrice,
+				nodePool.NodeMinCount,
+				nodePool.NodeMaxCount,
+				nodePool.Count,
+				nodePool.NodeImage))
+		}
+	case pkgCluster.AKS:
+		// Write AKS
+		buffer.WriteString(fmt.Sprintf("NodePools: %v, Kubernetes version: %s",
+			cs.AKS.NodePools,
+			cs.AKS.KubernetesVersion))
+	case pkgCluster.GKE:
+		// Write GKE
+		buffer.WriteString(fmt.Sprintf("NodePools: %v, Master version: %s, Node version: %s",
+			cs.GKE.NodePools,
+			cs.GKE.MasterVersion,
+			cs.GKE.NodeVersion))
+	case pkgCluster.Dummy:
 		buffer.WriteString(fmt.Sprintf("Node count: %d, kubernetes version: %s",
 			cs.Dummy.NodeCount,
 			cs.Dummy.KubernetesVersion))
-	} else if cs.Cloud == pkgCluster.Kubernetes {
+	case pkgCluster.Kubernetes:
 		buffer.WriteString(fmt.Sprintf("Metadata: %#v", cs.Kubernetes.Metadata))
 	}
 
@@ -284,7 +310,7 @@ func (cs *ClusterModel) String() string {
 }
 
 // TableName sets AmazonClusterModel's table name
-func (AmazonClusterModel) TableName() string {
+func (EC2ClusterModel) TableName() string {
 	return TableNameAmazonProperties
 }
 
@@ -293,18 +319,18 @@ func (AmazonNodePoolsModel) TableName() string {
 	return TableNameAmazonNodePools
 }
 
-// TableName sets AmazonEksClusterModel's table name
-func (AmazonEksClusterModel) TableName() string {
+// TableName sets EKSClusterModel's table name
+func (EKSClusterModel) TableName() string {
 	return TableNameAmazonEksProperties
 }
 
 // TableName sets AzureClusterModel's table name
-func (AzureClusterModel) TableName() string {
+func (AKSClusterModel) TableName() string {
 	return TableNameAzureProperties
 }
 
 // TableName sets AzureNodePoolModel's table name
-func (AzureNodePoolModel) TableName() string {
+func (AKSNodePoolModel) TableName() string {
 	return TableNameAzureNodePools
 }
 
@@ -319,12 +345,12 @@ func QueryCluster(filter map[string]interface{}) ([]ClusterModel, error) {
 }
 
 //TableName sets the GoogleClusterModel's table name
-func (GoogleClusterModel) TableName() string {
+func (GKEClusterModel) TableName() string {
 	return TableNameGoogleProperties
 }
 
 //TableName sets the GoogleNodePoolModel's table name
-func (GoogleNodePoolModel) TableName() string {
+func (GKENodePoolModel) TableName() string {
 	return TableNameGoogleNodePools
 }
 
@@ -339,7 +365,7 @@ func (KubernetesClusterModel) TableName() string {
 }
 
 // AfterUpdate removes marked node pool(s)
-func (gc *GoogleClusterModel) AfterUpdate(scope *gorm.Scope) error {
+func (gc *GKEClusterModel) AfterUpdate(scope *gorm.Scope) error {
 	log.Info("Remove node pools marked for deletion")
 
 	for _, nodePoolModel := range gc.NodePools {
@@ -356,7 +382,7 @@ func (gc *GoogleClusterModel) AfterUpdate(scope *gorm.Scope) error {
 }
 
 // AfterUpdate removes marked node pool(s)
-func (a *AmazonEksClusterModel) AfterUpdate(scope *gorm.Scope) error {
+func (a *EKSClusterModel) AfterUpdate(scope *gorm.Scope) error {
 	log.Info("Remove node pools marked for deletion")
 
 	for _, nodePoolModel := range a.NodePools {
@@ -373,7 +399,7 @@ func (a *AmazonEksClusterModel) AfterUpdate(scope *gorm.Scope) error {
 }
 
 // AfterUpdate removes marked node pool(s)
-func (a *AmazonClusterModel) AfterUpdate(scope *gorm.Scope) error {
+func (a *EC2ClusterModel) AfterUpdate(scope *gorm.Scope) error {
 	log.Info("Remove node pools marked for deletion")
 
 	for _, nodePoolModel := range a.NodePools {

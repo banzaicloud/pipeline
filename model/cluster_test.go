@@ -7,11 +7,11 @@ import (
 
 func TestGoogleClusterModelStringer(t *testing.T) {
 	// given
-	gcSingleNodePool := GoogleClusterModel{
+	gcSingleNodePool := GKEClusterModel{
 		ClusterModelId: 1,
 		MasterVersion:  "master-node-ver",
 		NodeVersion:    "node-ver",
-		NodePools: []*GoogleNodePoolModel{
+		NodePools: []*GKENodePoolModel{
 			{
 				ID:               1,
 				CreatedBy:        1,
@@ -27,11 +27,11 @@ func TestGoogleClusterModelStringer(t *testing.T) {
 		},
 	}
 
-	gcMultiNodePool := GoogleClusterModel{
+	gcMultiNodePool := GKEClusterModel{
 		ClusterModelId: 1,
 		MasterVersion:  "master-node-ver",
 		NodeVersion:    "node-ver",
-		NodePools: []*GoogleNodePoolModel{
+		NodePools: []*GKENodePoolModel{
 			{
 				ID:               1,
 				CreatedBy:        1,
@@ -57,7 +57,7 @@ func TestGoogleClusterModelStringer(t *testing.T) {
 
 	cases := []struct {
 		name               string
-		googleClusterModel GoogleClusterModel
+		googleClusterModel GKEClusterModel
 		expected           string
 	}{
 		{

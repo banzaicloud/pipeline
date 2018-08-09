@@ -11,5 +11,5 @@
 package client
 
 type AddClusterProfileAzure struct {
-	Azure AddClusterProfileAzureAzure `json:"azure,omitempty"`
+	Azure AddClusterProfileAzureAzure `json:"aks,omitempty"`
 }

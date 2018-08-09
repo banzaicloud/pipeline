@@ -97,13 +97,13 @@ func CreateModelFromCreateRequest(r *pkgCluster.CreateClusterRequest, userId uin
 
 	cluster.Name = r.Name
 
-	return CreateModelFromRequest(cluster, r.Properties.CreateClusterOracle, userId)
+	return CreateModelFromRequest(cluster, r.Properties.CreateClusterOKE, userId)
 }
 
 // CreateModelFromUpdateRequest create model from update request
 func CreateModelFromUpdateRequest(current Cluster, r *pkgCluster.UpdateClusterRequest, userId uint) (cluster Cluster, err error) {
 
-	return CreateModelFromRequest(current, r.UpdateProperties.Oracle, userId)
+	return CreateModelFromRequest(current, r.UpdateProperties.OKE, userId)
 }
 
 // CreateModelFromRequest creates model from request
@@ -184,7 +184,7 @@ func (c *Cluster) GetNodePoolByName(name string) *NodePool {
 // Cleanup removes node pools
 func (c *Cluster) Cleanup() error {
 
-	log.Info("Cleanup oke nodepool... delete all node pools")
+	log.Info("Cleanup oracle nodepool... delete all node pools")
 
 	err := c.RemoveNodePools()
 	if err != nil {
@@ -197,7 +197,7 @@ func (c *Cluster) Cleanup() error {
 
 // BeforeDelete deletes all subnets and labels belongs to the nodepool
 func (d *NodePool) BeforeDelete() error {
-	log.Info("BeforeDelete oke nodepool... delete all subnets and labels")
+	log.Info("BeforeDelete oracle nodepool... delete all subnets and labels")
 
 	var nodePoolSubnets []*NodePoolSubnet
 	var nodePoolLabels []*NodePoolLabel
@@ -234,11 +234,11 @@ func (c *Cluster) RemoveNodePools() error {
 
 // BeforeSave clears nodepools
 func (c *Cluster) BeforeSave() error {
-	log.Info("BeforeSave oke cluster...")
+	log.Info("BeforeSave oracle cluster...")
 
 	c.RemoveNodePools()
 
-	log.Info("BeforeSave oke cluster...done")
+	log.Info("BeforeSave oracle cluster...done")
 
 	return nil
 }

@@ -6,7 +6,7 @@ import "errors"
 var (
 	ErrorNotSupportedCloudType          = errors.New("Not supported cloud type")
 	ErrorAmazonClusterNameRegexp        = errors.New("Up to 255 letters (uppercase and lowercase), numbers, hyphens, and underscores are allowed.")
-	ErrorAmazonFieldIsEmpty             = errors.New("Required field 'amazon' is empty.")
+	ErrorAmazonFieldIsEmpty             = errors.New("Required field 'ec2' is empty.")
 	ErrorAmazonMasterFieldIsEmpty       = errors.New("Required field 'master' is empty.")
 	ErrorAmazonImageFieldIsEmpty        = errors.New("Required field 'image' is empty ")
 	ErrorAmazonNodePoolFieldIsEmpty     = errors.New("At least one 'nodePool' is required.")

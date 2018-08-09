@@ -3,7 +3,7 @@ package supported
 import (
 	"github.com/banzaicloud/pipeline/cluster"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	pkgAmazon "github.com/banzaicloud/pipeline/pkg/cluster/amazon"
+	pkgAmazon "github.com/banzaicloud/pipeline/pkg/cluster/ec2"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 )
 
