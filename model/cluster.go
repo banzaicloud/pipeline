@@ -51,7 +51,7 @@ type ClusterModel struct {
 	Monitoring     bool
 	Logging        bool
 	StatusMessage  string `sql:"type:text;"`
-	Alibaba        AlibabaClusterModel
+	ACCS           ACCSClusterModel
 	EC2            EC2ClusterModel
 	AKS            AKSClusterModel
 	EKS            EKSClusterModel
@@ -63,8 +63,8 @@ type ClusterModel struct {
 	CreatedBy      uint
 }
 
-// AlibabaNodePoolModel describes Alibaba node groups model of a cluster
-type AlibabaNodePoolModel struct {
+// ACCSNodePoolModel describes Alibaba Cloud CS node groups model of a cluster
+type ACCSNodePoolModel struct {
 	ID                       uint `gorm:"primary_key"`
 	CreatedAt                time.Time
 	CreatedBy                uint
@@ -77,8 +77,8 @@ type AlibabaNodePoolModel struct {
 	NumOfNodes               int
 }
 
-// AlibabaClusterModel describes the Alibaba cluster model
-type AlibabaClusterModel struct {
+// AlibabaClusterModel describes the Alibaba Cloud CS cluster model
+type ACCSClusterModel struct {
 	ClusterModelId           uint `gorm:"primary_key"`
 	ClusterID                string
 	RegionID                 string
@@ -89,7 +89,7 @@ type AlibabaClusterModel struct {
 	LoginPassword            string
 	SNATEntry                bool
 	SSHFlags                 bool
-	NodePools                []*AlibabaNodePoolModel `gorm:"foreignkey:ClusterModelId"`
+	NodePools                []*ACCSNodePoolModel `gorm:"foreignkey:ClusterModelId"`
 }
 
 //EC2ClusterModel describes the ec2 cluster model
@@ -341,13 +341,13 @@ func (cs *ClusterModel) String() string {
 	return buffer.String()
 }
 
-// TableName sets AlibabaClusterModel's table name
-func (AlibabaClusterModel) TableName() string {
+// TableName sets ACCSClusterModel's table name
+func (ACCSClusterModel) TableName() string {
 	return TableNameAlibabaProperties
 }
 
-// TableName sets AlibabaNodePoolModel's table name
-func (AlibabaNodePoolModel) TableName() string {
+// TableName sets ACCSNodePoolModel's table name
+func (ACCSNodePoolModel) TableName() string {
 	return TableNameAlibabaNodePools
 }
 

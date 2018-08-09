@@ -2,9 +2,9 @@ package cluster
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
-	"strconv"
 	"strings"
 	"time"
 
@@ -17,7 +17,7 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/banzaicloud/pipeline/pkg/cluster/alibaba"
+	"github.com/banzaicloud/pipeline/pkg/cluster/accs"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/secret"
@@ -131,9 +131,9 @@ type clusterConfigResponse struct {
 	Config string `json:"config"`
 }
 
-var _ CommonCluster = (*AlibabaCluster)(nil)
+var _ CommonCluster = (*ACCSCluster)(nil)
 
-type AlibabaCluster struct {
+type ACCSCluster struct {
 	csClient       *cs.Client
 	ecsClient      *ecs.Client
 	alibabaCluster *alibabaDescribeClusterResponse
@@ -142,48 +142,48 @@ type AlibabaCluster struct {
 	CommonClusterBase
 }
 
-func (*AlibabaCluster) RbacEnabled() bool {
+func (*ACCSCluster) RbacEnabled() bool {
 	return true
 }
 
-func (*AlibabaCluster) RequiresSshPublicKey() bool {
+func (*ACCSCluster) RequiresSshPublicKey() bool {
 	return true
 }
 
-func (*AlibabaCluster) ListNodeNames() (pkgCommon.NodeNames, error) {
+func (*ACCSCluster) ListNodeNames() (pkgCommon.NodeNames, error) {
 	return nil, nil
 }
 
 // GetAlibabaCSClient creates an Alibaba Container Service client with the credentials
-func (c *AlibabaCluster) GetAlibabaCSClient(cfg *sdk.Config) (*cs.Client, error) {
+func (c *ACCSCluster) GetAlibabaCSClient(cfg *sdk.Config) (*cs.Client, error) {
 	cred, err := c.createAlibabaCredentialsFromSecret()
 	if err != nil {
 		return nil, err
 	}
 
-	return verify.CreateAlibabaCSClient(cred, c.modelCluster.Alibaba.RegionID, cfg)
+	return verify.CreateAlibabaCSClient(cred, c.modelCluster.ACCS.RegionID, cfg)
 }
 
 // GetAlibabaECSClient creates an Alibaba Elastic Compute Service client with the credentials
-func (c *AlibabaCluster) GetAlibabaECSClient(cfg *sdk.Config) (*ecs.Client, error) {
+func (c *ACCSCluster) GetAlibabaECSClient(cfg *sdk.Config) (*ecs.Client, error) {
 	cred, err := c.createAlibabaCredentialsFromSecret()
 	if err != nil {
 		return nil, err
 	}
 
-	return verify.CreateAlibabaECSClient(cred, c.modelCluster.Alibaba.RegionID, cfg)
+	return verify.CreateAlibabaECSClient(cred, c.modelCluster.ACCS.RegionID, cfg)
 }
 
-func createAlibabaNodePoolsModelFromRequestData(pools alibaba.NodePools, userId uint) ([]*model.AlibabaNodePoolModel, error) {
+func createACCSNodePoolsModelFromRequestData(pools accs.NodePools, userId uint) ([]*model.ACCSNodePoolModel, error) {
 	nodePoolsCount := len(pools)
 	if nodePoolsCount == 0 {
 		return nil, pkgErrors.ErrorNodePoolNotProvided
 	}
 
-	var res = make([]*model.AlibabaNodePoolModel, len(pools))
+	var res = make([]*model.ACCSNodePoolModel, len(pools))
 	var i int
 	for _, pool := range pools {
-		res[i] = &model.AlibabaNodePoolModel{
+		res[i] = &model.ACCSNodePoolModel{
 			CreatedBy:                userId,
 			WorkerInstanceType:       pool.WorkerInstanceType,
 			WorkerSystemDiskCategory: pool.WorkerSystemDiskCategory,
@@ -197,20 +197,20 @@ func createAlibabaNodePoolsModelFromRequestData(pools alibaba.NodePools, userId 
 	return res, nil
 }
 
-//CreateAlibabaClusterFromModel creates ClusterModel struct from the Alibaba model
-func CreateAlibabaClusterFromModel(clusterModel *model.ClusterModel) (*AlibabaCluster, error) {
+//CreateACCSClusterFromModel creates ClusterModel struct from the Alibaba model
+func CreateACCSClusterFromModel(clusterModel *model.ClusterModel) (*ACCSCluster, error) {
 	log.Debug("Create ClusterModel struct from the model")
-	alibabaCluster := AlibabaCluster{
+	alibabaCluster := ACCSCluster{
 		modelCluster: clusterModel,
 	}
 	return &alibabaCluster, nil
 }
 
-func CreateAlibabaClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId, userId uint) (*AlibabaCluster, error) {
+func CreateACCSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId, userId uint) (*ACCSCluster, error) {
 	log.Debug("Create ClusterModel struct from the request")
-	var cluster AlibabaCluster
+	var cluster ACCSCluster
 
-	nodePools, err := createAlibabaNodePoolsModelFromRequestData(request.Properties.CreateClusterAlibaba.NodePools, userId)
+	nodePools, err := createACCSNodePoolsModelFromRequestData(request.Properties.CreateClusterACCS.NodePools, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -221,12 +221,12 @@ func CreateAlibabaClusterFromRequest(request *pkgCluster.CreateClusterRequest, o
 		Cloud:          request.Cloud,
 		OrganizationId: orgId,
 		SecretId:       request.SecretId,
-		Alibaba: model.AlibabaClusterModel{
-			RegionID:                 request.Properties.CreateClusterAlibaba.RegionID,
-			ZoneID:                   request.Properties.CreateClusterAlibaba.ZoneID,
-			MasterInstanceType:       request.Properties.CreateClusterAlibaba.MasterInstanceType,
-			MasterSystemDiskCategory: request.Properties.CreateClusterAlibaba.MasterSystemDiskCategory,
-			MasterSystemDiskSize:     request.Properties.CreateClusterAlibaba.MasterSystemDiskSize,
+		ACCS: model.ACCSClusterModel{
+			RegionID:                 request.Properties.CreateClusterACCS.RegionID,
+			ZoneID:                   request.Properties.CreateClusterACCS.ZoneID,
+			MasterInstanceType:       request.Properties.CreateClusterACCS.MasterInstanceType,
+			MasterSystemDiskCategory: request.Properties.CreateClusterACCS.MasterSystemDiskCategory,
+			MasterSystemDiskSize:     request.Properties.CreateClusterACCS.MasterSystemDiskSize,
 			LoginPassword:            "",
 			SNATEntry:                true,
 			SSHFlags:                 true,
@@ -236,7 +236,7 @@ func CreateAlibabaClusterFromRequest(request *pkgCluster.CreateClusterRequest, o
 	return &cluster, nil
 }
 
-func (c *AlibabaCluster) CreateCluster() error {
+func (c *ACCSCluster) CreateCluster() error {
 	log.Info("Start create cluster (Alibaba)")
 
 	// TODO: create method for this
@@ -261,20 +261,20 @@ func (c *AlibabaCluster) CreateCluster() error {
 	params := alibabaClusterCreateParams{
 		ClusterType:              "Kubernetes",
 		Name:                     c.modelCluster.Name,
-		RegionID:                 c.modelCluster.Alibaba.RegionID,                              // "eu-central-1"
-		ZoneID:                   c.modelCluster.Alibaba.ZoneID,                                // "eu-central-1a"
-		MasterInstanceType:       c.modelCluster.Alibaba.MasterInstanceType,                    // "ecs.sn1.large",
-		MasterSystemDiskCategory: c.modelCluster.Alibaba.MasterSystemDiskCategory,              // "cloud_efficiency",
-		MasterSystemDiskSize:     c.modelCluster.Alibaba.MasterSystemDiskSize,                  // 40,
-		WorkerInstanceType:       c.modelCluster.Alibaba.NodePools[0].WorkerInstanceType,       // "ecs.sn1.large",
-		WorkerSystemDiskCategory: c.modelCluster.Alibaba.NodePools[0].WorkerSystemDiskCategory, // "cloud_efficiency",
-		WorkerSystemDiskSize:     c.modelCluster.Alibaba.NodePools[0].WorkerSystemDiskSize,     // 40,
-		LoginPassword:            c.modelCluster.Alibaba.LoginPassword,                         // TODO: change me to KeyPair
+		RegionID:                 c.modelCluster.ACCS.RegionID,                              // "eu-central-1"
+		ZoneID:                   c.modelCluster.ACCS.ZoneID,                                // "eu-central-1a"
+		MasterInstanceType:       c.modelCluster.ACCS.MasterInstanceType,                    // "ecs.sn1.large",
+		MasterSystemDiskCategory: c.modelCluster.ACCS.MasterSystemDiskCategory,              // "cloud_efficiency",
+		MasterSystemDiskSize:     c.modelCluster.ACCS.MasterSystemDiskSize,                  // 40,
+		WorkerInstanceType:       c.modelCluster.ACCS.NodePools[0].WorkerInstanceType,       // "ecs.sn1.large",
+		WorkerSystemDiskCategory: c.modelCluster.ACCS.NodePools[0].WorkerSystemDiskCategory, // "cloud_efficiency",
+		WorkerSystemDiskSize:     c.modelCluster.ACCS.NodePools[0].WorkerSystemDiskSize,     // 40,
+		LoginPassword:            c.modelCluster.ACCS.LoginPassword,                         // TODO: change me to KeyPair
 		// KeyPair:                  sshKey.PublicKeyData, // this one should be a keypair name, so keypair should be uploaded
-		ImageID:    c.modelCluster.Alibaba.NodePools[0].ImageID,    // "centos_7",
-		NumOfNodes: c.modelCluster.Alibaba.NodePools[0].NumOfNodes, // 1,
-		SNATEntry:  c.modelCluster.Alibaba.SNATEntry,               // true,
-		SSHFlags:   c.modelCluster.Alibaba.SSHFlags,                // true,
+		ImageID:    c.modelCluster.ACCS.NodePools[0].ImageID,    // "centos_7",
+		NumOfNodes: c.modelCluster.ACCS.NodePools[0].NumOfNodes, // 1,
+		SNATEntry:  c.modelCluster.ACCS.SNATEntry,               // true,
+		SSHFlags:   c.modelCluster.ACCS.SSHFlags,                // true,
 	}
 	p, err := json.Marshal(&params)
 	if err != nil {
@@ -312,7 +312,7 @@ func (c *AlibabaCluster) CreateCluster() error {
 	}
 	c.alibabaCluster = aliCluster
 
-	c.modelCluster.Alibaba.ClusterID = r.ClusterID
+	c.modelCluster.ACCS.ClusterID = r.ClusterID
 	return c.modelCluster.Save()
 }
 
@@ -426,12 +426,12 @@ func waitForClusterState(client *cs.Client, clusterID string) (*alibabaDescribeC
 	}
 }
 
-func (c *AlibabaCluster) Persist(status, statusMessage string) error {
+func (c *ACCSCluster) Persist(status, statusMessage string) error {
 	log.Infof("Model before save: %v", c.modelCluster)
 	return c.modelCluster.UpdateStatus(status, statusMessage)
 }
 
-func (c *AlibabaCluster) DownloadK8sConfig() ([]byte, error) {
+func (c *ACCSCluster) DownloadK8sConfig() ([]byte, error) {
 	cfg := sdk.NewConfig()
 	cfg.AutoRetry = false
 	cfg.Debug = true
@@ -442,7 +442,7 @@ func (c *AlibabaCluster) DownloadK8sConfig() ([]byte, error) {
 		return nil, err
 	}
 
-	downloadConfigRequest := createObtainClusterConfigRequest(c.modelCluster.Alibaba.ClusterID)
+	downloadConfigRequest := createObtainClusterConfigRequest(c.modelCluster.ACCS.ClusterID)
 	setEndpoint(downloadConfigRequest)
 
 	downloadConfigResponse := createObtainClusterConfigResponse()
@@ -462,24 +462,24 @@ func (c *AlibabaCluster) DownloadK8sConfig() ([]byte, error) {
 }
 
 // GetCloud returns the cloud type of the cluster
-func (c *AlibabaCluster) GetCloud() string {
+func (c *ACCSCluster) GetCloud() string {
 	return c.modelCluster.Cloud
 }
 
 // GetDistribution returns the distribution type of the cluster
-func (c *AlibabaCluster) GetDistribution() string {
+func (c *ACCSCluster) GetDistribution() string {
 	return c.modelCluster.Distribution
 }
 
-func (c *AlibabaCluster) GetName() string {
+func (c *ACCSCluster) GetName() string {
 	return c.modelCluster.Name
 }
 
-func (c *AlibabaCluster) GetType() string {
+func (c *ACCSCluster) GetType() string {
 	return c.modelCluster.Cloud
 }
 
-func (c *AlibabaCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
+func (c *ACCSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 	log.Info("Create cluster status response")
 
 	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
@@ -503,7 +503,7 @@ func (c *AlibabaCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, erro
 	}, nil
 }
 
-func (c *AlibabaCluster) DeleteCluster() error {
+func (c *ACCSCluster) DeleteCluster() error {
 	log.Info("Start deleting cluster (alibaba)")
 
 	client, err := c.GetAlibabaCSClient(nil)
@@ -512,7 +512,7 @@ func (c *AlibabaCluster) DeleteCluster() error {
 	}
 
 	req := cs.CreateDeleteClusterRequest()
-	req.ClusterId = c.modelCluster.Alibaba.ClusterID
+	req.ClusterId = c.modelCluster.ACCS.ClusterID
 
 	setEndpoint(req)
 	resp, err := client.DeleteCluster(req)
@@ -523,18 +523,18 @@ func (c *AlibabaCluster) DeleteCluster() error {
 				return nil
 			}
 		}
-		log.Error("DeleteClusterResponse: %#v\n", resp)
+		log.Errorf("DeleteClusterResponse: %#v\n", resp)
 		return err
 	}
 
 	if resp.GetHttpStatus() != http.StatusAccepted {
-		return errors.New("Unexpected http status code: " + strconv.Itoa(resp.GetHttpStatus()))
+		return fmt.Errorf("Unexpected http status code: %d", resp.GetHttpStatus())
 	}
 
 	return nil
 }
 
-func (c *AlibabaCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, userId uint) error {
+func (c *ACCSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, userId uint) error {
 	log.Info("Start updating cluster (alibaba)")
 
 	client, err := c.GetAlibabaCSClient(nil)
@@ -543,9 +543,9 @@ func (c *AlibabaCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest,
 	}
 
 	req := cs.CreateScaleClusterRequest()
-	req.ClusterId = c.modelCluster.Alibaba.ClusterID
+	req.ClusterId = c.modelCluster.ACCS.ClusterID
 
-	nodePoolModels, err := createAlibabaNodePoolsModelFromRequestData(request.Alibaba.NodePools, userId)
+	nodePoolModels, err := createACCSNodePoolsModelFromRequestData(request.ACCS.NodePools, userId)
 	if err != nil {
 		return err
 	}
@@ -555,7 +555,7 @@ func (c *AlibabaCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest,
 		WorkerInstanceType:       nodePoolModels[0].WorkerInstanceType,
 		WorkerSystemDiskCategory: nodePoolModels[0].WorkerSystemDiskCategory,
 		WorkerSystemDiskSize:     nodePoolModels[0].WorkerSystemDiskSize,
-		LoginPassword:            c.modelCluster.Alibaba.LoginPassword,
+		LoginPassword:            c.modelCluster.ACCS.LoginPassword,
 		ImageID:                  nodePoolModels[0].ImageID,
 		NumOfNodes:               nodePoolModels[0].NumOfNodes,
 	}
@@ -584,40 +584,40 @@ func (c *AlibabaCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest,
 		return err
 	}
 
-	updatedNodePools := make([]*model.AlibabaNodePoolModel, 0, 1)
+	updatedNodePools := make([]*model.ACCSNodePoolModel, 0, 1)
 	updatedNodePools = append(updatedNodePools, nodePoolModels[0])
-	c.modelCluster.Alibaba.NodePools = updatedNodePools
+	c.modelCluster.ACCS.NodePools = updatedNodePools
 	c.alibabaCluster = cluster
 
 	return nil
 }
 
-func (c *AlibabaCluster) GetID() uint {
+func (c *ACCSCluster) GetID() uint {
 	return c.modelCluster.ID
 }
 
-func (c *AlibabaCluster) GetSecretId() string {
+func (c *ACCSCluster) GetSecretId() string {
 	return c.modelCluster.SecretId
 }
 
-func (c *AlibabaCluster) GetSshSecretId() string {
+func (c *ACCSCluster) GetSshSecretId() string {
 	return c.modelCluster.SshSecretId
 }
 
-func (c *AlibabaCluster) SaveSshSecretId(sshSecretId string) error {
+func (c *ACCSCluster) SaveSshSecretId(sshSecretId string) error {
 	return c.modelCluster.UpdateSshSecret(sshSecretId)
 }
 
-func (c *AlibabaCluster) GetModel() *model.ClusterModel {
+func (c *ACCSCluster) GetModel() *model.ClusterModel {
 	return c.modelCluster
 }
 
-func (c *AlibabaCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) error {
+func (c *ACCSCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) error {
 	// create update request struct with the stored data to check equality
 
-	preNodePools := make(map[string]*alibaba.NodePool)
-	for _, preNp := range c.modelCluster.Alibaba.NodePools {
-		preNodePools[preNp.Name] = &alibaba.NodePool{
+	preNodePools := make(map[string]*accs.NodePool)
+	for _, preNp := range c.modelCluster.ACCS.NodePools {
+		preNodePools[preNp.Name] = &accs.NodePool{
 			WorkerInstanceType:       preNp.WorkerInstanceType,
 			WorkerSystemDiskCategory: preNp.WorkerSystemDiskCategory,
 			WorkerSystemDiskSize:     preNp.WorkerSystemDiskSize,
@@ -626,25 +626,25 @@ func (c *AlibabaCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterReques
 		}
 	}
 
-	preCl := &alibaba.UpdateClusterAlibaba{
+	preCl := &accs.UpdateClusterACCS{
 		NodePools: preNodePools,
 	}
 
 	log.Info("Check stored & updated cluster equals")
 
 	// check equality
-	return utils.IsDifferent(r.Alibaba, preCl)
+	return utils.IsDifferent(r.ACCS, preCl)
 }
 
-func (c *AlibabaCluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
-	for _, np := range r.Alibaba.NodePools {
+func (c *ACCSCluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
+	for _, np := range r.ACCS.NodePools {
 		if np.ImageID == "" {
-			np.ImageID = alibaba.DefaultImage
+			np.ImageID = accs.DefaultImage
 		}
 	}
 }
 
-func (c *AlibabaCluster) GetAPIEndpoint() (string, error) {
+func (c *ACCSCluster) GetAPIEndpoint() (string, error) {
 	if c.APIEndpoint != "" {
 		return c.APIEndpoint, nil
 	}
@@ -653,7 +653,7 @@ func (c *AlibabaCluster) GetAPIEndpoint() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	inf, err := getConnectionInfo(client, c.modelCluster.Alibaba.ClusterID)
+	inf, err := getConnectionInfo(client, c.modelCluster.ACCS.ClusterID)
 	if err != nil {
 		return "", err
 	}
@@ -665,7 +665,7 @@ func (c *AlibabaCluster) GetAPIEndpoint() (string, error) {
 	return c.APIEndpoint, nil
 }
 
-func (c *AlibabaCluster) DeleteFromDatabase() error {
+func (c *ACCSCluster) DeleteFromDatabase() error {
 	err := c.modelCluster.Delete()
 	if err != nil {
 		return err
@@ -674,21 +674,21 @@ func (c *AlibabaCluster) DeleteFromDatabase() error {
 	return nil
 }
 
-func (c *AlibabaCluster) GetOrganizationId() uint {
+func (c *ACCSCluster) GetOrganizationId() uint {
 	return c.modelCluster.OrganizationId
 }
 
-func (c *AlibabaCluster) UpdateStatus(status, statusMessage string) error {
+func (c *ACCSCluster) UpdateStatus(status, statusMessage string) error {
 	return c.modelCluster.UpdateStatus(status, statusMessage)
 }
 
-func (c *AlibabaCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
+func (c *ACCSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 	client, err := c.GetAlibabaCSClient(nil)
 	if err != nil {
 		return nil, err
 	}
 
-	r, err := getClusterDetails(client, c.modelCluster.Alibaba.ClusterID)
+	r, err := getClusterDetails(client, c.modelCluster.ACCS.ClusterID)
 	if err != nil {
 		return nil, err
 	}
@@ -719,7 +719,7 @@ func stringInSlice(a string, list []string) bool {
 	return false
 }
 
-func (c *AlibabaCluster) validateRegion(regionID string) error {
+func (c *ACCSCluster) validateRegion(regionID string) error {
 	client, err := c.GetAlibabaECSClient(nil)
 	if err != nil {
 		return err
@@ -755,7 +755,7 @@ func (c *AlibabaCluster) validateRegion(regionID string) error {
 	return nil
 }
 
-func (c *AlibabaCluster) validateZone(regionID, zoneID string) error {
+func (c *ACCSCluster) validateZone(regionID, zoneID string) error {
 	client, err := c.GetAlibabaECSClient(nil)
 	if err != nil {
 		return err
@@ -792,7 +792,7 @@ func (c *AlibabaCluster) validateZone(regionID, zoneID string) error {
 	return nil
 }
 
-func (c *AlibabaCluster) validateInstanceType(regionID, zoneID, instanceType string) error {
+func (c *ACCSCluster) validateInstanceType(regionID, zoneID, instanceType string) error {
 	client, err := c.GetAlibabaECSClient(nil)
 	if err != nil {
 		return err
@@ -829,7 +829,7 @@ func (c *AlibabaCluster) validateInstanceType(regionID, zoneID, instanceType str
 	return nil
 }
 
-func (c *AlibabaCluster) validateSystemDiskCategories(regionID, zoneID, diskCategory string) error {
+func (c *ACCSCluster) validateSystemDiskCategories(regionID, zoneID, diskCategory string) error {
 	client, err := c.GetAlibabaECSClient(nil)
 	if err != nil {
 		return err
@@ -866,12 +866,12 @@ func (c *AlibabaCluster) validateSystemDiskCategories(regionID, zoneID, diskCate
 	return nil
 }
 
-func (c *AlibabaCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
+func (c *ACCSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
 	var (
-		region       = r.Properties.CreateClusterAlibaba.RegionID
-		zone         = r.Properties.CreateClusterAlibaba.ZoneID
-		instanceType = r.Properties.CreateClusterAlibaba.MasterInstanceType
-		diskCategory = r.Properties.CreateClusterAlibaba.MasterSystemDiskCategory
+		region       = r.Properties.CreateClusterACCS.RegionID
+		zone         = r.Properties.CreateClusterACCS.ZoneID
+		instanceType = r.Properties.CreateClusterACCS.MasterInstanceType
+		diskCategory = r.Properties.CreateClusterACCS.MasterSystemDiskCategory
 	)
 	err := c.validateRegion(region)
 	if err != nil {
@@ -893,7 +893,7 @@ func (c *AlibabaCluster) ValidateCreationFields(r *pkgCluster.CreateClusterReque
 		return err
 	}
 
-	for _, np := range r.Properties.CreateClusterAlibaba.NodePools {
+	for _, np := range r.Properties.CreateClusterACCS.NodePools {
 		var (
 			instanceType = np.WorkerInstanceType
 			diskCategory = np.WorkerSystemDiskCategory
@@ -913,31 +913,31 @@ func (c *AlibabaCluster) ValidateCreationFields(r *pkgCluster.CreateClusterReque
 	return nil
 }
 
-func (c *AlibabaCluster) GetSecretWithValidation() (*secret.SecretItemResponse, error) {
+func (c *ACCSCluster) GetSecretWithValidation() (*secret.SecretItemResponse, error) {
 	return c.CommonClusterBase.getSecret(c)
 }
 
-func (c *AlibabaCluster) GetSshSecretWithValidation() (*secret.SecretItemResponse, error) {
+func (c *ACCSCluster) GetSshSecretWithValidation() (*secret.SecretItemResponse, error) {
 	return c.CommonClusterBase.getSshSecret(c)
 }
 
-func (c *AlibabaCluster) SaveConfigSecretId(configSecretId string) error {
+func (c *ACCSCluster) SaveConfigSecretId(configSecretId string) error {
 	return c.modelCluster.UpdateConfigSecret(configSecretId)
 }
 
-func (c *AlibabaCluster) GetConfigSecretId() string {
+func (c *ACCSCluster) GetConfigSecretId() string {
 	return c.modelCluster.ConfigSecretId
 }
 
-func (c *AlibabaCluster) GetK8sConfig() ([]byte, error) {
+func (c *ACCSCluster) GetK8sConfig() ([]byte, error) {
 	return c.CommonClusterBase.getConfig(c)
 }
 
-func (c *AlibabaCluster) ReloadFromDatabase() error {
+func (c *ACCSCluster) ReloadFromDatabase() error {
 	return c.modelCluster.ReloadFromDatabase()
 }
 
-func (c *AlibabaCluster) createAlibabaCredentialsFromSecret() (*credentials.AccessKeyCredential, error) {
+func (c *ACCSCluster) createAlibabaCredentialsFromSecret() (*credentials.AccessKeyCredential, error) {
 	clusterSecret, err := c.GetSecretWithValidation()
 	if err != nil {
 		return nil, err
