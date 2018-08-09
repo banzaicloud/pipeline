@@ -21,6 +21,8 @@ func (err ManagedBucketNotFoundError) Error() string {
 	return err.errMessage
 }
 
+func (ManagedBucketNotFoundError) NotFound() bool { return true }
+
 // NewObjectStore creates a object store client for the given cloud type. The created object is initialized with
 // the passed in secret and organization
 func NewObjectStore(cloudType string, s *secret.SecretItemResponse, organization *auth.Organization) (objectstore.ObjectStore, error) {
