@@ -112,8 +112,12 @@ func main() {
 
 	modelOracle.Init(logger)
 	modelOracleObjectstore.Init(logger)
+	err := Migrate(db, logger)
+	if err != nil {
+		panic(err)
+	}
 
-	err := defaults.SetDefaultValues()
+	err = defaults.SetDefaultValues()
 	if err != nil {
 		panic(err)
 	}
