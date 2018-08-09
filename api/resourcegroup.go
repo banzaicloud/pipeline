@@ -10,11 +10,13 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+const sercretIdKey = "secretId"
+
 // GetResourceGroups lists resource groups by secret
 func GetResourceGroups(c *gin.Context) {
 
 	orgID := auth.GetCurrentOrganization(c.Request).ID
-	secretId := c.Query("secretId")
+	secretId := getSecretIdFromHeader(c)
 
 	log := log.WithFields(logrus.Fields{"secret": secretId, "org": orgID})
 
@@ -78,7 +80,7 @@ func AddResourceGroups(c *gin.Context) {
 func DeleteResourceGroups(c *gin.Context) {
 
 	orgID := auth.GetCurrentOrganization(c.Request).ID
-	secretId := c.Query("secretId")
+	secretId := getSecretIdFromHeader(c)
 	name := c.Param("name")
 
 	log := log.WithFields(logrus.Fields{"secret": secretId, "org": orgID, "bucketName": name})
@@ -99,4 +101,8 @@ func DeleteResourceGroups(c *gin.Context) {
 
 	c.Status(http.StatusAccepted)
 
+}
+
+func getSecretIdFromHeader(c *gin.Context) string {
+	return c.GetHeader(sercretIdKey)
 }
