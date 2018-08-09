@@ -21,6 +21,7 @@ import (
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
+	"github.com/sirupsen/logrus"
 )
 
 const awsNoUpdatesError = "No updates are to be performed."
@@ -92,50 +93,48 @@ var _ utils.RevocableAction = (*CreateVPCAndRolesAction)(nil)
 type CreateVPCAndRolesAction struct {
 	context   *EksClusterCreateUpdateContext
 	stackName string
-	//describeStacksTimeInterval time.Duration
-	//stackCreationTimeout       time.Duration
+	log       logrus.FieldLogger
 }
 
 // NewCreateVPCAndRolesAction creates a new CreateVPCAndRolesAction
-func NewCreateVPCAndRolesAction(creationContext *EksClusterCreateUpdateContext, stackName string) *CreateVPCAndRolesAction {
+func NewCreateVPCAndRolesAction(log logrus.FieldLogger, creationContext *EksClusterCreateUpdateContext, stackName string) *CreateVPCAndRolesAction {
 	return &CreateVPCAndRolesAction{
 		context:   creationContext,
 		stackName: stackName,
-		//describeStacksTimeInterval: 10 * time.Second,
-		//stackCreationTimeout:       3 * time.Minute,
+		log:       log,
 	}
 }
 
 // GetName returns the name of this CreateVPCAndRolesAction
-func (action *CreateVPCAndRolesAction) GetName() string {
+func (a *CreateVPCAndRolesAction) GetName() string {
 	return "CreateVPCAndRolesAction"
 }
 
 // ExecuteAction executes this CreateVPCAndRolesAction
-func (action *CreateVPCAndRolesAction) ExecuteAction(input interface{}) (output interface{}, err error) {
-	log.Infoln("EXECUTE CreateVPCAndRolesAction, stack name:", action.stackName)
+func (a *CreateVPCAndRolesAction) ExecuteAction(input interface{}) (output interface{}, err error) {
+	a.log.Infoln("EXECUTE CreateVPCAndRolesAction, stack name:", a.stackName)
 
-	log.Infoln("Getting CloudFormation template for creating VPC for EKS cluster")
+	a.log.Infoln("Getting CloudFormation template for creating VPC for EKS cluster")
 	templateBody, err := pkgEks.GetVPCTemplate()
 	if err != nil {
-		log.Errorln("Getting CloudFormation template for VPC failed:", err.Error())
+		a.log.Errorln("Getting CloudFormation template for VPC failed:", err.Error())
 		return nil, err
 	}
 
 	stackParams := []*cloudformation.Parameter{
 		{
 			ParameterKey:   aws.String("ClusterName"),
-			ParameterValue: aws.String(action.context.ClusterName),
+			ParameterValue: aws.String(a.context.ClusterName),
 		},
 	}
 
-	cloudformationSrv := cloudformation.New(action.context.Session)
+	cloudformationSrv := cloudformation.New(a.context.Session)
 	createStackInput := &cloudformation.CreateStackInput{
 		//Capabilities:       []*string{},
 		ClientRequestToken: aws.String(uuid.NewV4().String()),
 		DisableRollback:    aws.Bool(false),
 		Capabilities:       []*string{aws.String(cloudformation.CapabilityCapabilityIam)},
-		StackName:          aws.String(action.stackName),
+		StackName:          aws.String(a.stackName),
 		Parameters:         stackParams,
 		Tags:               []*cloudformation.Tag{{Key: aws.String("pipeline-created"), Value: aws.String("true")}},
 		TemplateBody:       aws.String(templateBody),
@@ -146,15 +145,15 @@ func (action *CreateVPCAndRolesAction) ExecuteAction(input interface{}) (output 
 		return
 	}
 
-	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(action.stackName)}
+	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(a.stackName)}
 	err = cloudformationSrv.WaitUntilStackCreateComplete(describeStacksInput)
 	if err != nil {
-		logFailedStackEvents(action.stackName, cloudformationSrv)
+		logFailedStackEvents(a.log, a.stackName, cloudformationSrv)
 	}
 	return nil, err
 }
 
-func logFailedStackEvents(stackName string, cloudformationSrv *cloudformation.CloudFormation) {
+func logFailedStackEvents(log logrus.FieldLogger, stackName string, cloudformationSrv *cloudformation.CloudFormation) {
 	describeStackEventsInput := &cloudformation.DescribeStackEventsInput{StackName: aws.String(stackName)}
 	describeStackEventsOutput, _ := cloudformationSrv.DescribeStackEvents(describeStackEventsInput)
 	for _, event := range describeStackEventsOutput.StackEvents {
@@ -165,12 +164,12 @@ func logFailedStackEvents(stackName string, cloudformationSrv *cloudformation.Cl
 }
 
 // UndoAction rolls back this CreateVPCAndRolesAction
-func (action *CreateVPCAndRolesAction) UndoAction() (err error) {
-	log.Infoln("EXECUTE UNDO CreateVPCAndRolesAction, deleting stack:", action.stackName)
-	cloudformationSrv := cloudformation.New(action.context.Session)
+func (a *CreateVPCAndRolesAction) UndoAction() (err error) {
+	a.log.Infoln("EXECUTE UNDO CreateVPCAndRolesAction, deleting stack:", a.stackName)
+	cloudformationSrv := cloudformation.New(a.context.Session)
 	deleteStackInput := &cloudformation.DeleteStackInput{
 		ClientRequestToken: aws.String(uuid.NewV4().String()),
-		StackName:          aws.String(action.stackName),
+		StackName:          aws.String(a.stackName),
 	}
 	_, err = cloudformationSrv.DeleteStack(deleteStackInput)
 	return err
@@ -184,28 +183,30 @@ var _ utils.RevocableAction = (*GenerateVPCConfigRequestAction)(nil)
 type GenerateVPCConfigRequestAction struct {
 	context   *EksClusterCreateUpdateContext
 	stackName string
+	log       logrus.FieldLogger
 }
 
 // NewGenerateVPCConfigRequestAction creates a new GenerateVPCConfigRequestAction
-func NewGenerateVPCConfigRequestAction(creationContext *EksClusterCreateUpdateContext, stackName string) *GenerateVPCConfigRequestAction {
+func NewGenerateVPCConfigRequestAction(log logrus.FieldLogger, creationContext *EksClusterCreateUpdateContext, stackName string) *GenerateVPCConfigRequestAction {
 	return &GenerateVPCConfigRequestAction{
 		context:   creationContext,
 		stackName: stackName,
+		log:       log,
 	}
 }
 
 // GetName returns the name of this GenerateVPCConfigRequestAction
-func (action *GenerateVPCConfigRequestAction) GetName() string {
+func (a *GenerateVPCConfigRequestAction) GetName() string {
 	return "GenerateVPCConfigRequestAction"
 }
 
 // ExecuteAction executes this GenerateVPCConfigRequestAction
-func (action *GenerateVPCConfigRequestAction) ExecuteAction(input interface{}) (output interface{}, err error) {
-	log.Infoln("EXECUTE GenerateVPCConfigRequestAction, stack name:", action.stackName)
-	cloudformationSrv := cloudformation.New(action.context.Session)
+func (a *GenerateVPCConfigRequestAction) ExecuteAction(input interface{}) (output interface{}, err error) {
+	a.log.Infoln("EXECUTE GenerateVPCConfigRequestAction, stack name:", a.stackName)
+	cloudformationSrv := cloudformation.New(a.context.Session)
 
 	describeStackResourcesInput := &cloudformation.DescribeStackResourcesInput{
-		StackName: aws.String(action.stackName),
+		StackName: aws.String(a.stackName),
 	}
 
 	stackResources, err := cloudformationSrv.DescribeStackResources(describeStackResourcesInput)
@@ -242,18 +243,18 @@ func (action *GenerateVPCConfigRequestAction) ExecuteAction(input interface{}) (
 		return nil, errors.New("Unable to find NodeInstanceRole resource")
 	}
 
-	log.Infof("Stack resources: %v", stackResources)
+	a.log.Infof("Stack resources: %v", stackResources)
 
-	action.context.VpcID = vpcResource.PhysicalResourceId
-	action.context.SecurityGroupID = securityGroupResource.PhysicalResourceId
-	action.context.SubnetIDs = []*string{subnet01resource.PhysicalResourceId, subnet02resource.PhysicalResourceId}
-	action.context.NodeInstanceRoleID = nodeInstanceProfileResource.PhysicalResourceId
-	action.context.NodeSecurityGroupID = nodeSecurityGroup.PhysicalResourceId
+	a.context.VpcID = vpcResource.PhysicalResourceId
+	a.context.SecurityGroupID = securityGroupResource.PhysicalResourceId
+	a.context.SubnetIDs = []*string{subnet01resource.PhysicalResourceId, subnet02resource.PhysicalResourceId}
+	a.context.NodeInstanceRoleID = nodeInstanceProfileResource.PhysicalResourceId
+	a.context.NodeSecurityGroupID = nodeSecurityGroup.PhysicalResourceId
 
-	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(action.stackName)}
+	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(a.stackName)}
 	describeStacksOutput, err := cloudformationSrv.DescribeStacks(describeStacksInput)
 	if err != nil {
-		return nil, errors.New("Unable to find stack " + action.stackName)
+		return nil, errors.New("Unable to find stack " + a.stackName)
 	}
 
 	var clusterRoleArn, nodeInstanceRoleArn string
@@ -265,21 +266,21 @@ func (action *GenerateVPCConfigRequestAction) ExecuteAction(input interface{}) (
 			nodeInstanceRoleArn = *output.OutputValue
 		}
 	}
-	log.Infof("cluster role ARN: %v", clusterRoleArn)
-	action.context.ClusterRoleArn = clusterRoleArn
+	a.log.Infof("cluster role ARN: %v", clusterRoleArn)
+	a.context.ClusterRoleArn = clusterRoleArn
 
-	log.Infof("nodeInstanceRoleArn role ARN: %v", nodeInstanceRoleArn)
-	action.context.NodeInstanceRoleArn = nodeInstanceRoleArn
+	a.log.Infof("nodeInstanceRoleArn role ARN: %v", nodeInstanceRoleArn)
+	a.context.NodeInstanceRoleArn = nodeInstanceRoleArn
 
 	return &eks.VpcConfigRequest{
-		SecurityGroupIds: []*string{action.context.SecurityGroupID},
-		SubnetIds:        action.context.SubnetIDs,
+		SecurityGroupIds: []*string{a.context.SecurityGroupID},
+		SubnetIds:        a.context.SubnetIDs,
 	}, nil
 }
 
 // UndoAction rolls back this GenerateVPCConfigRequestAction
-func (action *GenerateVPCConfigRequestAction) UndoAction() (err error) {
-	log.Infoln("EXECUTE UNDO GenerateVPCConfigRequestAction, stack name:", action.stackName)
+func (a *GenerateVPCConfigRequestAction) UndoAction() (err error) {
+	a.log.Infoln("EXECUTE UNDO GenerateVPCConfigRequestAction, stack name:", a.stackName)
 	return nil
 }
 
@@ -291,77 +292,79 @@ var _ utils.RevocableAction = (*CreateEksClusterAction)(nil)
 type CreateEksClusterAction struct {
 	context           *EksClusterCreateUpdateContext
 	kubernetesVersion string
+	log               logrus.FieldLogger
 }
 
 // NewCreateEksClusterAction creates a new CreateEksClusterAction
-func NewCreateEksClusterAction(creationContext *EksClusterCreateUpdateContext, kubernetesVersion string) *CreateEksClusterAction {
+func NewCreateEksClusterAction(log logrus.FieldLogger, creationContext *EksClusterCreateUpdateContext, kubernetesVersion string) *CreateEksClusterAction {
 	return &CreateEksClusterAction{
 		context:           creationContext,
 		kubernetesVersion: kubernetesVersion,
+		log:               log,
 	}
 }
 
 // GetName returns the name of this CreateEksClusterAction
-func (action *CreateEksClusterAction) GetName() string {
+func (a *CreateEksClusterAction) GetName() string {
 	return "CreateEksClusterAction"
 }
 
 // ExecuteAction executes this CreateEksClusterAction
-func (action *CreateEksClusterAction) ExecuteAction(input interface{}) (output interface{}, err error) {
+func (a *CreateEksClusterAction) ExecuteAction(input interface{}) (output interface{}, err error) {
 	vpcConfigRequest, ok := input.(*eks.VpcConfigRequest)
 
 	if !ok {
 		return nil, errors.New("input parameter must be a *VpcConfigRequest")
 	}
-	log.Infoln("EXECUTE CreateEksClusterAction, cluster name:", action.context.ClusterName)
-	eksSvc := eks.New(action.context.Session)
+	a.log.Infoln("EXECUTE CreateEksClusterAction, cluster name")
+	eksSvc := eks.New(a.context.Session)
 
-	roleArn := action.context.ClusterRoleArn
+	roleArn := a.context.ClusterRoleArn
 
 	createClusterInput := &eks.CreateClusterInput{
 		ClientRequestToken: aws.String(uuid.NewV4().String()),
-		Name:               aws.String(action.context.ClusterName),
+		Name:               aws.String(a.context.ClusterName),
 		ResourcesVpcConfig: vpcConfigRequest,
 		RoleArn:            &roleArn,
 	}
 
 	// set Kubernetes version only if provided, otherwise the cloud provider default one will be used
-	if len(action.kubernetesVersion) > 0 {
-		createClusterInput.Version = aws.String(action.kubernetesVersion)
+	if len(a.kubernetesVersion) > 0 {
+		createClusterInput.Version = aws.String(a.kubernetesVersion)
 	}
 
 	result, err := eksSvc.CreateCluster(createClusterInput)
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
-			log.Errorf("CreateCluster error [%s]: %s", aerr.Code(), aerr.Error())
+			a.log.Errorf("CreateCluster error [%s]: %s", aerr.Code(), aerr.Error())
 		} else {
-			log.Errorf("CreateCluster error: %s", err.Error())
+			a.log.Errorf("CreateCluster error: %s", err.Error())
 		}
 		return nil, err
 	}
 
 	//wait for ready status
 	startTime := time.Now()
-	log.Info("Waiting for EKS cluster creation")
+	a.log.Info("Waiting for EKS cluster creation")
 	describeClusterInput := &eks.DescribeClusterInput{
-		Name: aws.String(action.context.ClusterName),
+		Name: aws.String(a.context.ClusterName),
 	}
-	err = action.waitUntilClusterCreateComplete(describeClusterInput)
+	err = a.waitUntilClusterCreateComplete(describeClusterInput)
 	if err != nil {
 		return nil, err
 	}
 	endTime := time.Now()
-	log.Infoln("EKS cluster created successfully in", endTime.Sub(startTime).String())
+	a.log.Infoln("EKS cluster created successfully in", endTime.Sub(startTime).String())
 
 	return result.Cluster, nil
 }
 
-func (action *CreateEksClusterAction) waitUntilClusterCreateComplete(input *eks.DescribeClusterInput) error {
-	return action.waitUntilClusterCreateCompleteWithContext(aws.BackgroundContext(), input)
+func (a *CreateEksClusterAction) waitUntilClusterCreateComplete(input *eks.DescribeClusterInput) error {
+	return a.waitUntilClusterCreateCompleteWithContext(aws.BackgroundContext(), input)
 }
 
-func (action *CreateEksClusterAction) waitUntilClusterCreateCompleteWithContext(ctx aws.Context, input *eks.DescribeClusterInput, opts ...request.WaiterOption) error {
-	eksSvc := eks.New(action.context.Session)
+func (a *CreateEksClusterAction) waitUntilClusterCreateCompleteWithContext(ctx aws.Context, input *eks.DescribeClusterInput, opts ...request.WaiterOption) error {
+	eksSvc := eks.New(a.context.Session)
 
 	w := request.Waiter{
 		Name:        "WaitUntilClusterCreateComplete",
@@ -408,12 +411,12 @@ func (action *CreateEksClusterAction) waitUntilClusterCreateCompleteWithContext(
 }
 
 // UndoAction rolls back this CreateEksClusterAction
-func (action *CreateEksClusterAction) UndoAction() (err error) {
-	log.Infoln("EXECUTE UNDO CreateEksClusterAction, cluster name", action.context.ClusterName)
-	eksSvc := eks.New(action.context.Session)
+func (a *CreateEksClusterAction) UndoAction() (err error) {
+	a.log.Infoln("EXECUTE UNDO CreateEksClusterAction")
+	eksSvc := eks.New(a.context.Session)
 
 	deleteClusterInput := &eks.DeleteClusterInput{
-		Name: aws.String(action.context.ClusterName),
+		Name: aws.String(a.context.ClusterName),
 	}
 	_, err = eksSvc.DeleteCluster(deleteClusterInput)
 	return err
@@ -428,10 +431,12 @@ type CreateUpdateNodePoolStackAction struct {
 	context   *EksClusterCreateUpdateContext
 	isCreate  bool
 	nodePools []*model.AmazonNodePoolsModel
+	log       logrus.FieldLogger
 }
 
 // NewCreateUpdateNodePoolStackAction creates a new CreateUpdateNodePoolStackAction
 func NewCreateUpdateNodePoolStackAction(
+	log logrus.FieldLogger,
 	isCreate bool,
 	creationContext *EksClusterCreateUpdateContext,
 	nodePools ...*model.AmazonNodePoolsModel) *CreateUpdateNodePoolStackAction {
@@ -439,6 +444,7 @@ func NewCreateUpdateNodePoolStackAction(
 		context:   creationContext,
 		isCreate:  isCreate,
 		nodePools: nodePools,
+		log:       log,
 	}
 }
 
@@ -452,27 +458,27 @@ func (action *CreateUpdateNodePoolStackAction) GetName() string {
 }
 
 // ExecuteAction executes the CreateUpdateNodePoolStackAction in parallel for each node pool
-func (action *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (output interface{}, err error) {
+func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (output interface{}, err error) {
 
-	errorChan := make(chan error, len(action.nodePools))
+	errorChan := make(chan error, len(a.nodePools))
 	defer close(errorChan)
 
-	for _, nodePool := range action.nodePools {
+	for _, nodePool := range a.nodePools {
 
 		go func(nodePool *model.AmazonNodePoolsModel) {
 
-			stackName := action.generateStackName(nodePool)
+			stackName := a.generateStackName(nodePool)
 
-			if action.isCreate {
-				log.Infoln("EXECUTE CreateUpdateNodePoolStackAction, create stack name:", stackName)
+			if a.isCreate {
+				a.log.Infoln("EXECUTE CreateUpdateNodePoolStackAction, create stack name:", stackName)
 			} else {
-				log.Infoln("EXECUTE CreateUpdateNodePoolStackAction, update stack name:", stackName)
+				a.log.Infoln("EXECUTE CreateUpdateNodePoolStackAction, update stack name:", stackName)
 			}
 
 			commaDelimitedSubnetIDs := ""
-			for i, subnetID := range action.context.SubnetIDs {
+			for i, subnetID := range a.context.SubnetIDs {
 				commaDelimitedSubnetIDs = commaDelimitedSubnetIDs + *subnetID
-				if i != len(action.context.SubnetIDs)-1 {
+				if i != len(a.context.SubnetIDs)-1 {
 					commaDelimitedSubnetIDs = commaDelimitedSubnetIDs + ","
 				}
 			}
@@ -493,7 +499,7 @@ func (action *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) 
 			stackParams := []*cloudformation.Parameter{
 				{
 					ParameterKey:   aws.String("KeyName"),
-					ParameterValue: aws.String(action.context.SSHKeyName),
+					ParameterValue: aws.String(a.context.SSHKeyName),
 				},
 				{
 					ParameterKey:   aws.String("NodeImageId"),
@@ -521,7 +527,7 @@ func (action *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) 
 				},
 				{
 					ParameterKey:   aws.String("ClusterName"),
-					ParameterValue: aws.String(action.context.ClusterName),
+					ParameterValue: aws.String(a.context.ClusterName),
 				},
 				{
 					ParameterKey:   aws.String("NodeGroupName"),
@@ -529,31 +535,31 @@ func (action *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) 
 				},
 				{
 					ParameterKey:   aws.String("ClusterControlPlaneSecurityGroup"),
-					ParameterValue: action.context.SecurityGroupID,
+					ParameterValue: a.context.SecurityGroupID,
 				},
 				{
 					ParameterKey:   aws.String("NodeSecurityGroup"),
-					ParameterValue: action.context.NodeSecurityGroupID,
+					ParameterValue: a.context.NodeSecurityGroupID,
 				},
 				{
 					ParameterKey:   aws.String("VpcId"),
-					ParameterValue: action.context.VpcID,
+					ParameterValue: a.context.VpcID,
 				}, {
 					ParameterKey:   aws.String("Subnets"),
 					ParameterValue: aws.String(commaDelimitedSubnetIDs),
 				},
 				{
 					ParameterKey:   aws.String("NodeInstanceRoleId"),
-					ParameterValue: action.context.NodeInstanceRoleID,
+					ParameterValue: a.context.NodeInstanceRoleID,
 				},
 			}
 
-			cloudformationSrv := cloudformation.New(action.context.Session)
+			cloudformationSrv := cloudformation.New(a.context.Session)
 
 			waitOnCreateUpdate := true
 
 			// create stack
-			if action.isCreate {
+			if a.isCreate {
 				createStackInput := &cloudformation.CreateStackInput{
 					ClientRequestToken: aws.String(uuid.NewV4().String()),
 					DisableRollback:    aws.Bool(false),
@@ -561,7 +567,7 @@ func (action *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) 
 					Capabilities:       []*string{aws.String(cloudformation.CapabilityCapabilityIam)},
 					Parameters:         stackParams,
 					Tags:               tags,
-					TemplateBody:       aws.String(action.context.NodePoolTemplate),
+					TemplateBody:       aws.String(a.context.NodePoolTemplate),
 					TimeoutInMinutes:   aws.Int64(10),
 				}
 				_, err = cloudformationSrv.CreateStack(createStackInput)
@@ -585,7 +591,7 @@ func (action *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) 
 				if err != nil {
 					if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "ValidationError" && strings.HasPrefix(awsErr.Message(), awsNoUpdatesError) {
 						// Get error details
-						log.Warnf("Nothing changed during update!")
+						a.log.Warnf("Nothing changed during update!")
 						waitOnCreateUpdate = false
 						err = nil
 					} else {
@@ -597,14 +603,14 @@ func (action *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) 
 
 			describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(stackName)}
 
-			if action.isCreate {
+			if a.isCreate {
 				err = cloudformationSrv.WaitUntilStackCreateComplete(describeStacksInput)
 			} else if waitOnCreateUpdate {
 				err = cloudformationSrv.WaitUntilStackUpdateComplete(describeStacksInput)
 			}
 
 			if err != nil {
-				logFailedStackEvents(stackName, cloudformationSrv)
+				logFailedStackEvents(a.log, stackName, cloudformationSrv)
 				errorChan <- err
 				return
 			}
@@ -621,7 +627,7 @@ func (action *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) 
 	}
 
 	// wait for goroutines to finish
-	for i := 0; i < len(action.nodePools); i++ {
+	for i := 0; i < len(a.nodePools); i++ {
 		createErr := <-errorChan
 		if createErr != nil {
 			err = createErr
@@ -632,17 +638,17 @@ func (action *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) 
 }
 
 // UndoAction rolls back this CreateUpdateNodePoolStackAction
-func (action *CreateUpdateNodePoolStackAction) UndoAction() (err error) {
-	for _, nodepool := range action.nodePools {
-		log.Info("EXECUTE UNDO CreateUpdateNodePoolStackAction")
-		cloudformationSrv := cloudformation.New(action.context.Session)
+func (a *CreateUpdateNodePoolStackAction) UndoAction() (err error) {
+	for _, nodepool := range a.nodePools {
+		a.log.Info("EXECUTE UNDO CreateUpdateNodePoolStackAction")
+		cloudformationSrv := cloudformation.New(a.context.Session)
 		deleteStackInput := &cloudformation.DeleteStackInput{
 			ClientRequestToken: aws.String(uuid.NewV4().String()),
-			StackName:          aws.String(action.generateStackName(nodepool)),
+			StackName:          aws.String(a.generateStackName(nodepool)),
 		}
 		_, deleteErr := cloudformationSrv.DeleteStack(deleteStackInput)
 		if deleteErr != nil {
-			log.Errorln("Error during deleting CloudFormation stack:", err.Error())
+			a.log.Errorln("Error during deleting CloudFormation stack:", err.Error())
 			err = deleteErr
 		}
 	}
@@ -658,31 +664,33 @@ var _ utils.RevocableAction = (*UploadSSHKeyAction)(nil)
 type UploadSSHKeyAction struct {
 	context   *EksClusterCreateUpdateContext
 	sshSecret *secret.SecretItemResponse
+	log       logrus.FieldLogger
 }
 
 // NewUploadSSHKeyAction creates a new UploadSSHKeyAction
-func NewUploadSSHKeyAction(context *EksClusterCreateUpdateContext, sshSecret *secret.SecretItemResponse) *UploadSSHKeyAction {
+func NewUploadSSHKeyAction(log logrus.FieldLogger, context *EksClusterCreateUpdateContext, sshSecret *secret.SecretItemResponse) *UploadSSHKeyAction {
 	return &UploadSSHKeyAction{
 		context:   context,
 		sshSecret: sshSecret,
+		log:       log,
 	}
 }
 
 // GetName returns the name of this UploadSSHKeyAction
-func (action *UploadSSHKeyAction) GetName() string {
+func (a *UploadSSHKeyAction) GetName() string {
 	return "UploadSSHKeyAction"
 }
 
 // ExecuteAction executes this UploadSSHKeyAction
-func (action *UploadSSHKeyAction) ExecuteAction(input interface{}) (output interface{}, err error) {
-	log.Info("EXECUTE UploadSSHKeyAction")
+func (a *UploadSSHKeyAction) ExecuteAction(input interface{}) (output interface{}, err error) {
+	a.log.Info("EXECUTE UploadSSHKeyAction")
 
-	action.context.SSHKey = secret.NewSSHKeyPair(action.sshSecret)
-	ec2srv := ec2.New(action.context.Session)
+	a.context.SSHKey = secret.NewSSHKeyPair(a.sshSecret)
+	ec2srv := ec2.New(a.context.Session)
 	importKeyPairInput := &ec2.ImportKeyPairInput{
 		// A unique name for the key pair.
 		// KeyName is a required field
-		KeyName: aws.String(action.context.SSHKeyName),
+		KeyName: aws.String(a.context.SSHKeyName),
 
 		// The public key. For API calls, the text must be base64-encoded. For command
 		// line tools, base64 encoding is performed for you.
@@ -690,20 +698,20 @@ func (action *UploadSSHKeyAction) ExecuteAction(input interface{}) (output inter
 		// PublicKeyMaterial is automatically base64 encoded/decoded by the SDK.
 		//
 		// PublicKeyMaterial is a required field
-		PublicKeyMaterial: []byte(action.context.SSHKey.PublicKeyData), // []byte `locationName:"publicKeyMaterial" type:"blob" required:"true"`
+		PublicKeyMaterial: []byte(a.context.SSHKey.PublicKeyData), // []byte `locationName:"publicKeyMaterial" type:"blob" required:"true"`
 	}
 	output, err = ec2srv.ImportKeyPair(importKeyPairInput)
 	return output, err
 }
 
 // UndoAction rolls back this UploadSSHKeyAction
-func (action *UploadSSHKeyAction) UndoAction() (err error) {
-	log.Info("EXECUTE UNDO UploadSSHKeyAction")
+func (a *UploadSSHKeyAction) UndoAction() (err error) {
+	a.log.Info("EXECUTE UNDO UploadSSHKeyAction")
 	//delete uploaded keypair
-	ec2srv := ec2.New(action.context.Session)
+	ec2srv := ec2.New(a.context.Session)
 
 	deleteKeyPairInput := &ec2.DeleteKeyPairInput{
-		KeyName: aws.String(action.context.SSHKeyName),
+		KeyName: aws.String(a.context.SSHKeyName),
 	}
 	_, err = ec2srv.DeleteKeyPair(deleteKeyPairInput)
 	return err
@@ -715,61 +723,28 @@ var _ utils.RevocableAction = (*RevertStepsAction)(nil)
 
 // RevertStepsAction can be used to intentionally revert all the steps (=simulate an error)
 type RevertStepsAction struct {
+	log logrus.FieldLogger
 }
 
 // NewRevertStepsAction creates a new RevertStepsAction
-func NewRevertStepsAction() *RevertStepsAction {
-	return &RevertStepsAction{}
+func NewRevertStepsAction(log logrus.FieldLogger) *RevertStepsAction {
+	return &RevertStepsAction{log: log}
 }
 
 // GetName returns the name of this RevertStepsAction
-func (action *RevertStepsAction) GetName() string {
+func (a *RevertStepsAction) GetName() string {
 	return "RevertStepsAction"
 }
 
 // ExecuteAction executes this RevertStepsAction
-func (action *RevertStepsAction) ExecuteAction(input interface{}) (output interface{}, err error) {
-	log.Info("EXECUTE RevertStepsAction")
+func (a *RevertStepsAction) ExecuteAction(input interface{}) (output interface{}, err error) {
+	a.log.Info("EXECUTE RevertStepsAction")
 	return nil, errors.New("Intentionally reverting everything")
 }
 
 // UndoAction rolls back this RevertStepsAction
-func (action *RevertStepsAction) UndoAction() (err error) {
-	log.Info("EXECUTE UNDO RevertStepsAction")
-	return nil
-}
-
-// ---
-
-var _ utils.RevocableAction = (*DelayAction)(nil)
-
-// DelayAction can be used to intentionally delay the next step
-type DelayAction struct {
-	delay time.Duration
-}
-
-// NewDelayAction creates a new DelayAction
-func NewDelayAction(delay time.Duration) *DelayAction {
-	return &DelayAction{
-		delay: delay,
-	}
-}
-
-// GetName returns the name of this DelayAction
-func (action *DelayAction) GetName() string {
-	return "DelayAction"
-}
-
-// ExecuteAction executes this DelayAction
-func (action *DelayAction) ExecuteAction(input interface{}) (output interface{}, err error) {
-	log.Info("EXECUTE DelayAction")
-	time.Sleep(action.delay)
-	return input, nil
-}
-
-// UndoAction rolls back this DelayAction
-func (action *DelayAction) UndoAction() (err error) {
-	log.Info("EXECUTE UNDO RevertStepsAction")
+func (a *RevertStepsAction) UndoAction() (err error) {
+	a.log.Info("EXECUTE UNDO RevertStepsAction")
 	return nil
 }
 
@@ -780,27 +755,29 @@ var _ utils.RevocableAction = (*LoadEksSettingsAction)(nil)
 // LoadEksSettingsAction to describe the EKS cluster created
 type LoadEksSettingsAction struct {
 	context *EksClusterCreateUpdateContext
+	log     logrus.FieldLogger
 }
 
 // NewLoadEksSettingsAction creates a new LoadEksSettingsAction
-func NewLoadEksSettingsAction(context *EksClusterCreateUpdateContext) *LoadEksSettingsAction {
+func NewLoadEksSettingsAction(log logrus.FieldLogger, context *EksClusterCreateUpdateContext) *LoadEksSettingsAction {
 	return &LoadEksSettingsAction{
 		context: context,
+		log:     log,
 	}
 }
 
 // GetName returns the name of this LoadEksSettingsAction
-func (action *LoadEksSettingsAction) GetName() string {
+func (a *LoadEksSettingsAction) GetName() string {
 	return "LoadEksSettingsAction"
 }
 
 // ExecuteAction executes this LoadEksSettingsAction
-func (action *LoadEksSettingsAction) ExecuteAction(input interface{}) (output interface{}, err error) {
-	log.Info("EXECUTE LoadEksSettingsAction")
-	eksSvc := eks.New(action.context.Session)
+func (a *LoadEksSettingsAction) ExecuteAction(input interface{}) (output interface{}, err error) {
+	a.log.Info("EXECUTE LoadEksSettingsAction")
+	eksSvc := eks.New(a.context.Session)
 	//Store API endpoint, etc..
 	describeClusterInput := &eks.DescribeClusterInput{
-		Name: aws.String(action.context.ClusterName),
+		Name: aws.String(a.context.ClusterName),
 	}
 	clusterInfo, err := eksSvc.DescribeCluster(describeClusterInput)
 	if err != nil {
@@ -811,16 +788,16 @@ func (action *LoadEksSettingsAction) ExecuteAction(input interface{}) (output in
 		return nil, errors.New("Unable to get EKS Cluster info")
 	}
 
-	action.context.APIEndpoint = cluster.Endpoint
-	action.context.CertificateAuthorityData = cluster.CertificateAuthority.Data
+	a.context.APIEndpoint = cluster.Endpoint
+	a.context.CertificateAuthorityData = cluster.CertificateAuthority.Data
 	//TODO store settings in db
 
 	return input, nil
 }
 
 // UndoAction rolls back this LoadEksSettingsAction
-func (action *LoadEksSettingsAction) UndoAction() (err error) {
-	log.Info("EXECUTE UNDO LoadEksSettingsAction")
+func (a *LoadEksSettingsAction) UndoAction() (err error) {
+	a.log.Info("EXECUTE UNDO LoadEksSettingsAction")
 	return nil
 }
 
@@ -832,30 +809,32 @@ var _ utils.Action = (*DeleteStackAction)(nil)
 type DeleteStackAction struct {
 	context    *EksClusterDeletionContext
 	StackNames []string
+	log        logrus.FieldLogger
 }
 
 // NewDeleteStacksAction creates a new DeleteStackAction
-func NewDeleteStacksAction(context *EksClusterDeletionContext, stackNames ...string) *DeleteStackAction {
+func NewDeleteStacksAction(log logrus.FieldLogger, context *EksClusterDeletionContext, stackNames ...string) *DeleteStackAction {
 	return &DeleteStackAction{
 		context:    context,
 		StackNames: stackNames,
+		log:        log,
 	}
 }
 
 // GetName returns the name of this DeleteStackAction
-func (action *DeleteStackAction) GetName() string {
+func (a *DeleteStackAction) GetName() string {
 	return "DeleteStackAction"
 }
 
 // ExecuteAction executes this DeleteStackAction
-func (action *DeleteStackAction) ExecuteAction(input interface{}) (output interface{}, err error) {
-	log.Infof("EXECUTE DeleteStackAction: %q", action.StackNames)
+func (a *DeleteStackAction) ExecuteAction(input interface{}) (output interface{}, err error) {
+	a.log.Infof("EXECUTE DeleteStackAction: %q", a.StackNames)
 
-	errorChan := make(chan error, len(action.StackNames))
+	errorChan := make(chan error, len(a.StackNames))
 
-	for _, stackName := range action.StackNames {
+	for _, stackName := range a.StackNames {
 		go func(stackName string) {
-			cloudformationSrv := cloudformation.New(action.context.Session)
+			cloudformationSrv := cloudformation.New(a.context.Session)
 			deleteStackInput := &cloudformation.DeleteStackInput{
 				ClientRequestToken: aws.String(uuid.NewV4().String()),
 				StackName:          aws.String(stackName),
@@ -869,7 +848,7 @@ func (action *DeleteStackAction) ExecuteAction(input interface{}) (output interf
 			describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(stackName)}
 			err = cloudformationSrv.WaitUntilStackDeleteComplete(describeStacksInput)
 			if err != nil {
-				logFailedStackEvents(stackName, cloudformationSrv)
+				logFailedStackEvents(a.log, stackName, cloudformationSrv)
 
 				errorChan <- err
 				return
@@ -880,7 +859,7 @@ func (action *DeleteStackAction) ExecuteAction(input interface{}) (output interf
 	}
 
 	// wait for goroutines to finish
-	for i := 0; i < len(action.StackNames); i++ {
+	for i := 0; i < len(a.StackNames); i++ {
 		deleteErr := <-errorChan
 		if deleteErr != nil {
 			err = deleteErr
@@ -897,28 +876,30 @@ var _ utils.Action = (*DeleteClusterAction)(nil)
 // DeleteClusterAction deletes an EKS cluster
 type DeleteClusterAction struct {
 	context *EksClusterDeletionContext
+	log     logrus.FieldLogger
 }
 
 // NewDeleteClusterAction creates a new DeleteClusterAction
-func NewDeleteClusterAction(context *EksClusterDeletionContext) *DeleteClusterAction {
+func NewDeleteClusterAction(log logrus.FieldLogger, context *EksClusterDeletionContext) *DeleteClusterAction {
 	return &DeleteClusterAction{
 		context: context,
+		log:     log,
 	}
 }
 
 // GetName returns the name of this DeleteClusterAction
-func (action *DeleteClusterAction) GetName() string {
+func (a *DeleteClusterAction) GetName() string {
 	return "DeleteClusterAction"
 }
 
 // ExecuteAction executes this DeleteClusterAction
-func (action *DeleteClusterAction) ExecuteAction(input interface{}) (output interface{}, err error) {
-	log.Info("EXECUTE DeleteClusterAction")
+func (a *DeleteClusterAction) ExecuteAction(input interface{}) (output interface{}, err error) {
+	a.log.Info("EXECUTE DeleteClusterAction")
 
 	//TODO handle non existing cluster
-	eksSrv := eks.New(action.context.Session)
+	eksSrv := eks.New(a.context.Session)
 	deleteClusterInput := &eks.DeleteClusterInput{
-		Name: aws.String(action.context.ClusterName),
+		Name: aws.String(a.context.ClusterName),
 	}
 	return eksSrv.DeleteCluster(deleteClusterInput)
 }
@@ -931,32 +912,33 @@ var _ utils.Action = (*DeleteSSHKeyAction)(nil)
 type DeleteSSHKeyAction struct {
 	context    *EksClusterDeletionContext
 	SSHKeyName string
+	log        logrus.FieldLogger
 }
 
 // NewDeleteSSHKeyAction creates a new DeleteSSHKeyAction
-func NewDeleteSSHKeyAction(context *EksClusterDeletionContext, sshKeyName string) *DeleteSSHKeyAction {
+func NewDeleteSSHKeyAction(log logrus.FieldLogger, context *EksClusterDeletionContext, sshKeyName string) *DeleteSSHKeyAction {
 	return &DeleteSSHKeyAction{
 		context:    context,
 		SSHKeyName: sshKeyName,
+		log:        log,
 	}
 }
 
 // GetName returns the name of this DeleteSSHKeyAction
-func (action *DeleteSSHKeyAction) GetName() string {
+func (a *DeleteSSHKeyAction) GetName() string {
 	return "DeleteSSHKeyAction"
 }
 
 // ExecuteAction executes this DeleteSSHKeyAction
-func (action *DeleteSSHKeyAction) ExecuteAction(input interface{}) (output interface{}, err error) {
-	log.Info("EXECUTE DeleteSSHKeyAction")
+func (a *DeleteSSHKeyAction) ExecuteAction(input interface{}) (output interface{}, err error) {
+	a.log.Info("EXECUTE DeleteSSHKeyAction")
 
 	//TODO handle non existing key
-	ec2srv := ec2.New(action.context.Session)
+	ec2srv := ec2.New(a.context.Session)
 	deleteKeyPairInput := &ec2.DeleteKeyPairInput{
-		KeyName: aws.String(action.SSHKeyName),
+		KeyName: aws.String(a.SSHKeyName),
 	}
-	output, err = ec2srv.DeleteKeyPair(deleteKeyPairInput)
-	return output, err
+	return ec2srv.DeleteKeyPair(deleteKeyPairInput)
 }
 
 //--
@@ -966,31 +948,33 @@ var _ utils.Action = (*WaitResourceDeletionAction)(nil)
 // WaitResourceDeletionAction deletes a generated SSH key
 type WaitResourceDeletionAction struct {
 	context *EksClusterDeletionContext
+	log     logrus.FieldLogger
 }
 
 // NewWaitResourceDeletionAction creates a new WaitResourceDeletionAction
-func NewWaitResourceDeletionAction(context *EksClusterDeletionContext) *WaitResourceDeletionAction {
+func NewWaitResourceDeletionAction(log logrus.FieldLogger, context *EksClusterDeletionContext) *WaitResourceDeletionAction {
 	return &WaitResourceDeletionAction{
 		context: context,
+		log:     log,
 	}
 }
 
 // GetName returns the name of this WaitResourceDeletionAction
-func (action *WaitResourceDeletionAction) GetName() string {
+func (a *WaitResourceDeletionAction) GetName() string {
 	return "WaitResourceDeletionAction"
 }
 
 // ExecuteAction executes this WaitResourceDeletionAction
-func (action *WaitResourceDeletionAction) ExecuteAction(input interface{}) (output interface{}, err error) {
-	log.Info("EXECUTE WaitResourceDeletionAction")
+func (a *WaitResourceDeletionAction) ExecuteAction(input interface{}) (output interface{}, err error) {
+	a.log.Info("EXECUTE WaitResourceDeletionAction")
 
-	return nil, action.waitUntilELBsDeleted()
+	return nil, a.waitUntilELBsDeleted()
 }
 
-func (action *WaitResourceDeletionAction) waitUntilELBsDeleted() error {
+func (a *WaitResourceDeletionAction) waitUntilELBsDeleted() error {
 
-	elbService := elb.New(action.context.Session)
-	clusterTag := "kubernetes.io/cluster/" + action.context.ClusterName
+	elbService := elb.New(a.context.Session)
+	clusterTag := "kubernetes.io/cluster/" + a.context.ClusterName
 
 	for {
 
@@ -1030,87 +1014,9 @@ func (action *WaitResourceDeletionAction) waitUntilELBsDeleted() error {
 			return nil
 		}
 
-		log.Infoln("There are", len(result), "ELBs left from cluster", action.context.ClusterName)
+		a.log.Infoln("There are", len(result), "ELBs left from cluster")
 		time.Sleep(10 * time.Second)
 	}
-}
-
-//--
-
-var _ utils.Action = (*DeleteIAMRoleAction)(nil)
-
-// DeleteIAMRoleAction deletes an IAM role
-type DeleteIAMRoleAction struct {
-	context  *EksClusterDeletionContext
-	RoleName string
-}
-
-// NewDeleteIAMRoleAction creates a new DeleteIAMRoleAction
-func NewDeleteIAMRoleAction(context *EksClusterDeletionContext, roleName string) *DeleteIAMRoleAction {
-	return &DeleteIAMRoleAction{
-		context:  context,
-		RoleName: roleName,
-	}
-}
-
-// GetName returns the name of this DeleteIAMRoleAction
-func (action *DeleteIAMRoleAction) GetName() string {
-	return "DeleteIAMRoleAction"
-}
-
-// ExecuteAction executes this DeleteIAMRoleAction
-func (action *DeleteIAMRoleAction) ExecuteAction(input interface{}) (output interface{}, err error) {
-	log.Infoln("EXECUTE DeleteIAMRoleAction, deleting role:", action.RoleName)
-
-	//TODO handle non existing role
-	// detach every role first
-	// then delete role
-
-	iamSvc := iam.New(action.context.Session)
-
-	getRoleInput := &iam.GetRoleInput{
-		RoleName: aws.String(action.RoleName),
-	}
-
-	_, err = iamSvc.GetRole(getRoleInput)
-	if err != nil {
-		return nil, err
-	}
-
-	// For managed policies
-	managedPolicies := make([]*string, 0)
-	err = iamSvc.ListAttachedRolePoliciesPages(&iam.ListAttachedRolePoliciesInput{
-		RoleName: aws.String(action.RoleName),
-	}, func(page *iam.ListAttachedRolePoliciesOutput, lastPage bool) bool {
-		for _, v := range page.AttachedPolicies {
-			managedPolicies = append(managedPolicies, v.PolicyArn)
-		}
-		return len(page.AttachedPolicies) > 0
-	})
-
-	if err != nil {
-		log.Debug("ListAttachedRolePoliciesPages error: %v", err)
-		return nil, err
-	}
-
-	//detach role policies first
-	for _, policyName := range managedPolicies {
-		detachRolePolicyInput := &iam.DetachRolePolicyInput{
-			RoleName:  aws.String(action.RoleName),
-			PolicyArn: policyName, //TODO should we use ARN here?
-		}
-		_, err = iamSvc.DetachRolePolicy(detachRolePolicyInput)
-		if err != nil {
-			log.Debug("DetachRolePolicy error: %v", err)
-			return nil, err
-		}
-	}
-	//delete role
-	deleteRoleInput := &iam.DeleteRoleInput{
-		RoleName: aws.String(action.RoleName),
-	}
-	_, err = iamSvc.DeleteRole(deleteRoleInput)
-	return nil, err
 }
 
 //--
@@ -1122,14 +1028,16 @@ type DeleteUserAction struct {
 	context     *EksClusterDeletionContext
 	userName    string
 	accessKeyID string
+	log         logrus.FieldLogger
 }
 
 // NewDeleteUserAction creates a new DeleteUserAction
-func NewDeleteUserAction(context *EksClusterDeletionContext, userName, accessKeyID string) *DeleteUserAction {
+func NewDeleteUserAction(log logrus.FieldLogger, context *EksClusterDeletionContext, userName, accessKeyID string) *DeleteUserAction {
 	return &DeleteUserAction{
 		context:     context,
 		userName:    userName,
 		accessKeyID: accessKeyID,
+		log:         log,
 	}
 }
 
@@ -1139,14 +1047,14 @@ func (action *DeleteUserAction) GetName() string {
 }
 
 // ExecuteAction executes this DeleteUserAction
-func (action *DeleteUserAction) ExecuteAction(input interface{}) (output interface{}, err error) {
-	log.Infoln("EXECUTE DeleteUserAction, deleting user:", action.userName)
+func (a *DeleteUserAction) ExecuteAction(input interface{}) (output interface{}, err error) {
+	a.log.Infoln("EXECUTE DeleteUserAction, deleting user:", a.userName)
 
-	iamSvc := iam.New(action.context.Session)
+	iamSvc := iam.New(a.context.Session)
 
 	deleteAccessKeyInput := &iam.DeleteAccessKeyInput{
-		AccessKeyId: aws.String(action.accessKeyID),
-		UserName:    aws.String(action.userName),
+		AccessKeyId: aws.String(a.accessKeyID),
+		UserName:    aws.String(a.userName),
 	}
 
 	_, err = iamSvc.DeleteAccessKey(deleteAccessKeyInput)
@@ -1155,7 +1063,7 @@ func (action *DeleteUserAction) ExecuteAction(input interface{}) (output interfa
 	}
 
 	deleteUserInput := &iam.DeleteUserInput{
-		UserName: aws.String(action.userName),
+		UserName: aws.String(a.userName),
 	}
 
 	_, err = iamSvc.DeleteUser(deleteUserInput)
