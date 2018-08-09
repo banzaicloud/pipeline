@@ -91,7 +91,6 @@ func main() {
 		&defaults.GKENodePoolProfile{},
 		&objectstore.ManagedAlibabaBucket{},
 		&objectstore.ManagedAmazonBucket{},
-		&objectstore.ManagedGoogleBucket{},
 		&route53model.Route53Domain{}}
 
 	var tableNames string
@@ -101,7 +100,7 @@ func main() {
 
 	logger.WithFields(logrus.Fields{
 		"table_names": strings.TrimSpace(tableNames),
-	}).Info("migrating provider tables")
+	}).Info("migrating tables")
 
 	// Create tables
 	if err := db.AutoMigrate(tables...).Error; err != nil {
