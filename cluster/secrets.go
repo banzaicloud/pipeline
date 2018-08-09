@@ -1,6 +1,8 @@
 package cluster
 
 import (
+	"fmt"
+
 	"github.com/banzaicloud/pipeline/helm"
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
@@ -162,8 +164,7 @@ func InstallOrUpdateSecretsByK8SConfig(k8sConfig []byte, orgID uint, query *secr
 func InstallSecretWithVaultID(cc CommonCluster, secretID, namespace string) (*secretTypes.K8SSourceMeta, error) {
 	k8sConfig, err := cc.GetK8sConfig()
 	if err != nil {
-		log.Errorf("Error during getting config: %s", err.Error())
-		return nil, err
+		return nil, fmt.Errorf("error during getting config: %s", err.Error())
 	}
 	return InstallSecretWithVaultIDByK8SConfig(k8sConfig, cc.GetOrganizationId(), secretID, namespace)
 }
@@ -173,14 +174,12 @@ func InstallSecretWithVaultIDByK8SConfig(k8sConfig []byte, orgID uint, secretID,
 
 	clusterClient, err := helm.GetK8sConnection(k8sConfig)
 	if err != nil {
-		log.Errorf("Error during building k8s client: %s", err.Error())
-		return nil, err
+		return nil, fmt.Errorf("error during getting config: %s", err.Error())
 	}
 
 	resolvedSecret, err := secret.Store.Get(orgID, secretID)
 	if err != nil {
-		log.Errorf("Error during getting secrets with ID %s: %s", secretID, err.Error())
-		return nil, err
+		return nil, fmt.Errorf("error during getting secrets with ID %s: %s", secretID, err.Error())
 	}
 
 	var secretSources secretTypes.K8SSourceMeta
@@ -198,8 +197,7 @@ func InstallSecretWithVaultIDByK8SConfig(k8sConfig []byte, orgID uint, secretID,
 
 	_, err = clusterClient.CoreV1().Secrets(namespace).Create(k8sSecret)
 	if err != nil {
-		log.Errorf("Error during creating k8s secret: %s", err.Error())
-		return nil, err
+		return nil, fmt.Errorf("error during creating k8s secret: %s", err.Error())
 	}
 
 	secretSources = resolvedSecret.K8SSourceMeta()
