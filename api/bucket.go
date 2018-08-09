@@ -144,10 +144,10 @@ func CreateObjectStoreBuckets(c *gin.Context) {
 		Name: createBucketRequest.Name,
 	})
 	if cloudType == pkgCluster.Amazon {
-		objectStore.WithRegion(createBucketRequest.Properties.CreateAmazonObjectStoreBucketProperties.Location)
+		objectStore.WithRegion(createBucketRequest.Properties.Amazon.Location)
 	}
 	if cloudType == pkgCluster.Google {
-		objectStore.WithRegion(createBucketRequest.Properties.CreateGoogleObjectStoreBucketProperties.Location)
+		objectStore.WithRegion(createBucketRequest.Properties.Google.Location)
 	}
 	if cloudType == pkgCluster.Azure {
 		objectStore.WithRegion(createBucketRequest.Properties.Azure.Location)
@@ -155,7 +155,7 @@ func CreateObjectStoreBuckets(c *gin.Context) {
 		objectStore.WithStorageAccount(createBucketRequest.Properties.Azure.StorageAccount)
 	}
 	if cloudType == pkgCluster.Oracle {
-		objectStore.WithRegion(createBucketRequest.Properties.CreateOracleObjectStoreBucketProperties.Location)
+		objectStore.WithRegion(createBucketRequest.Properties.Oracle.Location)
 	}
 
 	go objectStore.CreateBucket(createBucketRequest.Name)
@@ -472,13 +472,13 @@ func determineCloudProviderFromRequest(req CreateBucketRequest) (string, error) 
 	if req.Properties.Azure != nil {
 		return pkgCluster.Azure, nil
 	}
-	if req.Properties.CreateAmazonObjectStoreBucketProperties != nil {
+	if req.Properties.Amazon != nil {
 		return pkgCluster.Amazon, nil
 	}
-	if req.Properties.CreateGoogleObjectStoreBucketProperties != nil {
+	if req.Properties.Google != nil {
 		return pkgCluster.Google, nil
 	}
-	if req.Properties.CreateOracleObjectStoreBucketProperties != nil {
+	if req.Properties.Oracle != nil {
 		return pkgCluster.Oracle, nil
 	}
 	return "", pkgErrors.ErrorNotSupportedCloudType
