@@ -6130,7 +6130,11 @@ components:
               ip-10-0-100-180.eu-west-1.compute.internal: '{}'
             creatorName: colin014
             creatorId: 1
+            count: 1
+            minCount: 0
+            maxCount: 1
         region: us-central1
+        status: RUNNING
       properties:
         createdAt:
           example: 2018-07-03T14:19:26+02:00
@@ -6163,6 +6167,9 @@ components:
           type: string
         region:
           example: us-central1
+          type: string
+        status:
+          example: RUNNING
           type: string
         nodePools:
           $ref: '#/components/schemas/ClusterDetailsResponse_nodePools'
@@ -7405,6 +7412,9 @@ components:
           ip-10-0-100-180.eu-west-1.compute.internal: '{}'
         creatorName: colin014
         creatorId: 1
+        count: 1
+        minCount: 0
+        maxCount: 1
       properties:
         createdAt:
           example: 2018-07-03T14:19:26+02:00
@@ -7413,6 +7423,17 @@ components:
           example: colin014
           type: string
         creatorId:
+          example: 1
+          format: int32
+          type: integer
+        count:
+          example: 1
+          format: int32
+          type: integer
+        minCount:
+          format: int32
+          type: integer
+        maxCount:
           example: 1
           format: int32
           type: integer
@@ -7427,6 +7448,9 @@ components:
             ip-10-0-100-180.eu-west-1.compute.internal: '{}'
           creatorName: colin014
           creatorId: 1
+          count: 1
+          minCount: 0
+          maxCount: 1
       properties:
         pool1:
           $ref: '#/components/schemas/ClusterDetailsResponse_nodePools_pool1'

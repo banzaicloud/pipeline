@@ -14,5 +14,8 @@ type ClusterDetailsResponseNodePoolsPool1 struct {
 	CreatedAt       string              `json:"createdAt,omitempty"`
 	CreatorName     string              `json:"creatorName,omitempty"`
 	CreatorId       int32               `json:"creatorId,omitempty"`
+	Count           int32               `json:"count,omitempty"`
+	MinCount        int32               `json:"minCount,omitempty"`
+	MaxCount        int32               `json:"maxCount,omitempty"`
 	ResourceSummary ResourceSummaryItem `json:"resourceSummary,omitempty"`
 }

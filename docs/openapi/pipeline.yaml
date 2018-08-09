@@ -5895,6 +5895,9 @@ components:
         region:
           type: string
           example: "us-central1"
+        status:
+          type: string
+          example: "RUNNING"
         nodePools:
           type: object
           properties:
@@ -5908,6 +5911,14 @@ components:
                   type: string
                   example: "colin014"
                 creatorId:
+                  type: integer
+                  example: 1
+                count:
+                  type: integer
+                  example: 1
+                minCount:
+                  type: integer
+                maxCount:
                   type: integer
                   example: 1
                 resourceSummary:

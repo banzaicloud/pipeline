@@ -767,6 +767,9 @@ func (e *EKSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 			nodePools[np.Name] = &pkgCluster.NodeDetails{
 				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
 				Version:           aws.StringValue(clusterDesc.Cluster.Version),
+				Count:             np.Count,
+				MinCount:          np.NodeMinCount,
+				MaxCount:          np.NodeMaxCount,
 			}
 		}
 	}
@@ -780,6 +783,7 @@ func (e *EKSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 			MasterVersion:     aws.StringValue(clusterDesc.Cluster.Version),
 			NodePools:         nodePools,
 			Endpoint:          e.APIEndpoint,
+			Status:            e.modelCluster.Status,
 		}, nil
 	}
 
