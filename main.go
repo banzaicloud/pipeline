@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/banzaicloud/pipeline/api"
 	"github.com/banzaicloud/pipeline/audit"
@@ -62,23 +63,10 @@ func main() {
 	// Initialize auth
 	auth.Init()
 
-	// Creating tables if not exists
-	logger.Infoln("Create table(s):",
-		model.ClusterModel{}.TableName(),
-		model.EC2ClusterModel{}.TableName(),
-		model.AmazonNodePoolsModel{}.TableName(),
-		model.EKSClusterModel{}.TableName(),
-		model.AKSClusterModel{}.TableName(),
-		model.AKSNodePoolModel{}.TableName(),
-		model.GKEClusterModel{}.TableName(),
-		model.GKENodePoolModel{}.TableName(),
-	)
-
-	// Create tables
-	if err := db.AutoMigrate(
-		&model.ClusterModel{},
+	var tables = []interface{}{&model.ClusterModel{},
 		&model.GKEClusterModel{},
 		&model.AmazonNodePoolsModel{},
+		&model.EC2ClusterModel{},
 		&model.EKSClusterModel{},
 		&model.AKSClusterModel{},
 		&model.AKSNodePoolModel{},
@@ -103,9 +91,19 @@ func main() {
 		&defaults.GKENodePoolProfile{},
 		&objectstore.ManagedAmazonBucket{},
 		&objectstore.ManagedGoogleBucket{},
-		&route53model.Route53Domain{},
-	).Error; err != nil {
+		&route53model.Route53Domain{}}
 
+	var tableNames string
+	for _, table := range tables {
+		tableNames += fmt.Sprintf(" %s", db.NewScope(table).TableName())
+	}
+
+	logger.WithFields(logrus.Fields{
+		"table_names": strings.TrimSpace(tableNames),
+	}).Info("migrating provider tables")
+
+	// Create tables
+	if err := db.AutoMigrate(tables...).Error; err != nil {
 		panic(err)
 	}
 
