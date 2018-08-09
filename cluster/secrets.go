@@ -157,3 +157,52 @@ func InstallOrUpdateSecretsByK8SConfig(k8sConfig []byte, orgID uint, query *secr
 
 	return secretSources, nil
 }
+
+// InstallSecretWithVaultID installs a secret which determined by the vaultID to the given namespace
+func InstallSecretWithVaultID(cc CommonCluster, secretID, namespace string) (*secretTypes.K8SSourceMeta, error) {
+	k8sConfig, err := cc.GetK8sConfig()
+	if err != nil {
+		log.Errorf("Error during getting config: %s", err.Error())
+		return nil, err
+	}
+	return InstallSecretWithVaultIDByK8SConfig(k8sConfig, cc.GetOrganizationId(), secretID, namespace)
+}
+
+// InstallSecretWithVaultIDByK8SConfig is the same as InstallSecretWithVaultID but use this if you already have a K8S config at hand.
+func InstallSecretWithVaultIDByK8SConfig(k8sConfig []byte, orgID uint, secretID, namespace string) (*secretTypes.K8SSourceMeta, error) {
+
+	clusterClient, err := helm.GetK8sConnection(k8sConfig)
+	if err != nil {
+		log.Errorf("Error during building k8s client: %s", err.Error())
+		return nil, err
+	}
+
+	resolvedSecret, err := secret.Store.Get(orgID, secretID)
+	if err != nil {
+		log.Errorf("Error during getting secrets with ID %s: %s", secretID, err.Error())
+		return nil, err
+	}
+
+	var secretSources secretTypes.K8SSourceMeta
+
+	k8sSecret := &v1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      resolvedSecret.Name,
+			Namespace: namespace,
+		},
+		StringData: map[string]string{},
+	}
+	for k, v := range resolvedSecret.Values {
+		k8sSecret.StringData[k] = v
+	}
+
+	_, err = clusterClient.CoreV1().Secrets(namespace).Create(k8sSecret)
+	if err != nil {
+		log.Errorf("Error during creating k8s secret: %s", err.Error())
+		return nil, err
+	}
+
+	secretSources = resolvedSecret.K8SSourceMeta()
+
+	return &secretSources, nil
+}
