@@ -6,6 +6,7 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/objectstore"
+	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
 	"github.com/banzaicloud/pipeline/pkg/providers/azure"
 	"github.com/banzaicloud/pipeline/pkg/providers/google"
 	"github.com/banzaicloud/pipeline/secret"
@@ -34,10 +35,7 @@ func NewObjectStore(cloudType string, s *secret.SecretItemResponse, organization
 			org:    organization,
 		}, nil
 	case pkgCluster.Amazon:
-		return &AmazonObjectStore{
-			secret: s,
-			org:    organization,
-		}, nil
+		return amazon.NewObjectStore(organization, s, database.GetDB(), log), nil
 	case pkgCluster.Google:
 		return google.NewObjectStore(organization, verify.CreateServiceAccount(s.Values), database.GetDB(), log), nil
 	case pkgCluster.Azure:
