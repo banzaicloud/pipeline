@@ -15,11 +15,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/eks"
-	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/pricing"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/model"
-	pkgAmazon "github.com/banzaicloud/pipeline/pkg/amazon"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/ec2"
 	pkgEks "github.com/banzaicloud/pipeline/pkg/cluster/eks"
@@ -186,7 +184,7 @@ func (e *EKSCluster) CreateCluster() error {
 		return err
 	}
 
-	e.APIEndpoint = *creationContext.APIEndpoint
+	e.APIEndpoint = aws.StringValue(creationContext.APIEndpoint)
 	e.CertificateAuthorityData, err = base64.StdEncoding.DecodeString(aws.StringValue(creationContext.CertificateAuthorityData))
 
 	if err != nil {
@@ -194,26 +192,15 @@ func (e *EKSCluster) CreateCluster() error {
 		return err
 	}
 
-	// TODO make this an action
-	iamSvc := iam.New(session)
-
-	user, err := pkgAmazon.CreateIAMUser(iamSvc, aws.String(e.modelCluster.Name))
-	if err != nil {
-		return err
-	}
-
-	accessKey, err := pkgAmazon.CreateAmazonAccessKey(iamSvc, user.UserName)
-
 	// Create the aws-auth ConfigMap for letting other nodes join, and users access the API
 	// See: https://docs.aws.amazon.com/eks/latest/userguide/add-user-role.html
-
 	bootstrapCredentials, _ := awsCred.Get()
 	e.awsAccessKeyID = bootstrapCredentials.AccessKeyID
 	e.awsSecretAccessKey = bootstrapCredentials.SecretAccessKey
 
 	defer func() {
-		e.awsAccessKeyID = aws.StringValue(accessKey.AccessKeyId)
-		e.awsSecretAccessKey = aws.StringValue(accessKey.SecretAccessKey)
+		e.awsAccessKeyID = creationContext.ClusterUserAccessKeyId
+		e.awsSecretAccessKey = creationContext.ClusterUserSecretAccessKey
 		// AWS needs some time to distribute the access key to every service
 		time.Sleep(15 * time.Second)
 	}()
@@ -243,7 +230,7 @@ func (e *EKSCluster) CreateCluster() error {
 		ObjectMeta: metav1.ObjectMeta{Name: "aws-auth"},
 		Data: map[string]string{
 			"mapRoles": fmt.Sprintf(mapRolesTemplate, creationContext.NodeInstanceRoleArn),
-			"mapUsers": fmt.Sprintf(mapUsersTemplate, aws.StringValue(user.Arn), aws.StringValue(user.UserName)),
+			"mapUsers": fmt.Sprintf(mapUsersTemplate, creationContext.ClusterUserArn, creationContext.ClusterName),
 		},
 	}
 	_, err = kubeClient.CoreV1().ConfigMaps("kube-system").Create(&awsAuthConfigMap)
@@ -251,7 +238,6 @@ func (e *EKSCluster) CreateCluster() error {
 		return err
 	}
 
-	e.modelCluster.EKS.AccessKeyID = aws.StringValue(accessKey.AccessKeyId)
 	err = e.modelCluster.Save()
 	if err != nil {
 		return err
@@ -335,7 +321,6 @@ func (e *EKSCluster) DeleteCluster() error {
 		action.NewDeleteClusterAction(e.log, deleteContext),
 		action.NewDeleteSSHKeyAction(e.log, deleteContext, e.generateSSHKeyNameForCluster()),
 		action.NewDeleteStacksAction(e.log, deleteContext, e.generateStackNameForCluster()),
-		action.NewDeleteUserAction(e.log, deleteContext, e.modelCluster.Name, e.modelCluster.EKS.AccessKeyID),
 	)
 	_, err = utils.NewActionExecutor(e.log).ExecuteActions(actions, nil, false)
 	if err != nil {
@@ -449,19 +434,25 @@ func (e *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 		return nil
 	}
 
-	var vpcId, subnetIds, securityGroupId, nodeSecurityGroupId, nodeInstanceRoleId string
+	var vpcId, subnetIds, securityGroupId, nodeSecurityGroupId, nodeInstanceRoleId, clusterUserArn, clusterUserAccessKeyId, clusterUserSecretAccessKey string
 	for _, output := range describeStacksOutput.Stacks[0].Outputs {
-		switch *output.OutputKey {
+		switch aws.StringValue(output.OutputKey) {
 		case "SecurityGroups":
-			securityGroupId = *output.OutputValue
+			securityGroupId = aws.StringValue(output.OutputValue)
 		case "NodeSecurityGroup":
-			nodeSecurityGroupId = *output.OutputValue
+			nodeSecurityGroupId = aws.StringValue(output.OutputValue)
 		case "VpcId":
-			vpcId = *output.OutputValue
+			vpcId = aws.StringValue(output.OutputValue)
 		case "SubnetIds":
-			subnetIds = *output.OutputValue
+			subnetIds = aws.StringValue(output.OutputValue)
 		case "NodeInstanceRoleId":
-			nodeInstanceRoleId = *output.OutputValue
+			nodeInstanceRoleId = aws.StringValue(output.OutputValue)
+		case "ClusterUserArn":
+			clusterUserArn = aws.StringValue(output.OutputValue)
+		case "ClusterUserAccessKeyId":
+			clusterUserAccessKeyId = aws.StringValue(output.OutputValue)
+		case "ClusterUserSecretAccessKey":
+			clusterUserSecretAccessKey = aws.StringValue(output.OutputValue)
 		}
 	}
 
@@ -489,13 +480,16 @@ func (e *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 	createUpdateContext := action.NewEksClusterUpdateContext(
 		session,
 		e.modelCluster.Name,
-		&securityGroupId,
-		&nodeSecurityGroupId,
+		aws.String(securityGroupId),
+		aws.String(nodeSecurityGroupId),
 		aws.StringSlice(strings.Split(subnetIds, ",")),
 		e.generateSSHKeyNameForCluster(),
 		nodePoolTemplate,
-		&vpcId,
-		&nodeInstanceRoleId,
+		aws.String(vpcId),
+		aws.String(nodeInstanceRoleId),
+		clusterUserArn,
+		clusterUserAccessKeyId,
+		clusterUserSecretAccessKey,
 	)
 
 	deleteContext := action.NewEksClusterDeleteContext(
@@ -515,7 +509,7 @@ func (e *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 		if err == nil {
 			// delete nodePool
 			if nodePool.Delete {
-				e.log.Infof("nodePool %v exists will be deleted", nodePool.Name)
+				e.log.Infof("nodePool %v will be deleted", nodePool.Name)
 				nodePoolsToDelete = append(nodePoolsToDelete, e.generateNodePoolStackName(nodePool))
 				continue
 			}
@@ -536,7 +530,7 @@ func (e *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 			// in this case only min/max counts
 			group, err := getAutoScalingGroup(cloudformationSrv, autoscalingSrv, stackName)
 			if err != nil {
-				e.log.Errorf("unable to find Asg for stack: %v", stackName)
+				e.log.Errorf("unable to find ASG for stack: %v", stackName)
 				return err
 			}
 

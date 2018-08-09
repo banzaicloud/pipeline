@@ -14,7 +14,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/elb"
-	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/banzaicloud/pipeline/model"
 	pkgEks "github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	"github.com/banzaicloud/pipeline/secret"
@@ -28,21 +27,24 @@ const awsNoUpdatesError = "No updates are to be performed."
 
 // EksClusterCreateUpdateContext describes the properties of an EKS cluster creation
 type EksClusterCreateUpdateContext struct {
-	Session                  *session.Session
-	ClusterName              string
-	ClusterRoleArn           string
-	NodeInstanceRoleID       *string
-	NodeInstanceRoleArn      string
-	SecurityGroupID          *string
-	NodeSecurityGroupID      *string
-	SubnetIDs                []*string
-	SSHKeyName               string
-	SSHKey                   *secret.SSHKeyPair
-	VpcID                    *string
-	ProvidedRoleArn          string
-	APIEndpoint              *string
-	CertificateAuthorityData *string
-	NodePoolTemplate         string
+	Session                    *session.Session
+	ClusterName                string
+	ClusterRoleArn             string
+	NodeInstanceRoleID         *string
+	NodeInstanceRoleArn        string
+	SecurityGroupID            *string
+	NodeSecurityGroupID        *string
+	SubnetIDs                  []*string
+	SSHKeyName                 string
+	SSHKey                     *secret.SSHKeyPair
+	VpcID                      *string
+	ProvidedRoleArn            string
+	APIEndpoint                *string
+	CertificateAuthorityData   *string
+	NodePoolTemplate           string
+	ClusterUserArn             string
+	ClusterUserAccessKeyId     string
+	ClusterUserSecretAccessKey string
 }
 
 // NewEksClusterCreationContext creates a new EksClusterCreateUpdateContext
@@ -57,17 +59,20 @@ func NewEksClusterCreationContext(session *session.Session, clusterName, sshKeyN
 
 // NewEksClusterUpdateContext creates a new EksClusterCreateUpdateContext
 func NewEksClusterUpdateContext(session *session.Session, clusterName string,
-	securityGroupID *string, nodeSecurityGroupID *string, subnetIDs []*string, sshKeyName, nodePoolTemplate string, vpcID *string, nodeInstanceRoleId *string) *EksClusterCreateUpdateContext {
+	securityGroupID *string, nodeSecurityGroupID *string, subnetIDs []*string, sshKeyName, nodePoolTemplate string, vpcID *string, nodeInstanceRoleId *string, clusterUserArn, clusterUserAccessKeyId, clusterUserSecretAccessKey string) *EksClusterCreateUpdateContext {
 	return &EksClusterCreateUpdateContext{
-		Session:             session,
-		ClusterName:         clusterName,
-		SecurityGroupID:     securityGroupID,
-		NodeSecurityGroupID: nodeSecurityGroupID,
-		SubnetIDs:           subnetIDs,
-		SSHKeyName:          sshKeyName,
-		NodePoolTemplate:    nodePoolTemplate,
-		VpcID:               vpcID,
-		NodeInstanceRoleID:  nodeInstanceRoleId,
+		Session:                    session,
+		ClusterName:                clusterName,
+		SecurityGroupID:            securityGroupID,
+		NodeSecurityGroupID:        nodeSecurityGroupID,
+		SubnetIDs:                  subnetIDs,
+		SSHKeyName:                 sshKeyName,
+		NodePoolTemplate:           nodePoolTemplate,
+		VpcID:                      vpcID,
+		NodeInstanceRoleID:         nodeInstanceRoleId,
+		ClusterUserArn:             clusterUserArn,
+		ClusterUserAccessKeyId:     clusterUserAccessKeyId,
+		ClusterUserSecretAccessKey: clusterUserSecretAccessKey,
 	}
 }
 
@@ -129,16 +134,20 @@ func (a *CreateVPCAndRolesAction) ExecuteAction(input interface{}) (output inter
 	}
 
 	cloudformationSrv := cloudformation.New(a.context.Session)
+
 	createStackInput := &cloudformation.CreateStackInput{
 		//Capabilities:       []*string{},
 		ClientRequestToken: aws.String(uuid.NewV4().String()),
 		DisableRollback:    aws.Bool(false),
-		Capabilities:       []*string{aws.String(cloudformation.CapabilityCapabilityIam)},
-		StackName:          aws.String(a.stackName),
-		Parameters:         stackParams,
-		Tags:               []*cloudformation.Tag{{Key: aws.String("pipeline-created"), Value: aws.String("true")}},
-		TemplateBody:       aws.String(templateBody),
-		TimeoutInMinutes:   aws.Int64(10),
+		Capabilities: []*string{
+			aws.String(cloudformation.CapabilityCapabilityIam),
+			aws.String(cloudformation.CapabilityCapabilityNamedIam),
+		},
+		StackName:        aws.String(a.stackName),
+		Parameters:       stackParams,
+		Tags:             []*cloudformation.Tag{{Key: aws.String("pipeline-created"), Value: aws.String("true")}},
+		TemplateBody:     aws.String(templateBody),
+		TimeoutInMinutes: aws.Int64(10),
 	}
 	_, err = cloudformationSrv.CreateStack(createStackInput)
 	if err != nil {
@@ -257,13 +266,19 @@ func (a *GenerateVPCConfigRequestAction) ExecuteAction(input interface{}) (outpu
 		return nil, errors.New("Unable to find stack " + a.stackName)
 	}
 
-	var clusterRoleArn, nodeInstanceRoleArn string
+	var clusterRoleArn, nodeInstanceRoleArn, clusterUserArn, clusterUserAccessKeyId, clusterUserSecretAccessKey string
 	for _, output := range describeStacksOutput.Stacks[0].Outputs {
-		switch *output.OutputKey {
+		switch aws.StringValue(output.OutputKey) {
 		case "ClusterRoleArn":
-			clusterRoleArn = *output.OutputValue
+			clusterRoleArn = aws.StringValue(output.OutputValue)
 		case "NodeInstanceRoleArn":
-			nodeInstanceRoleArn = *output.OutputValue
+			nodeInstanceRoleArn = aws.StringValue(output.OutputValue)
+		case "ClusterUserArn":
+			clusterUserArn = aws.StringValue(output.OutputValue)
+		case "ClusterUserAccessKeyId":
+			clusterUserAccessKeyId = aws.StringValue(output.OutputValue)
+		case "ClusterUserSecretAccessKey":
+			clusterUserSecretAccessKey = aws.StringValue(output.OutputValue)
 		}
 	}
 	a.log.Infof("cluster role ARN: %v", clusterRoleArn)
@@ -271,6 +286,13 @@ func (a *GenerateVPCConfigRequestAction) ExecuteAction(input interface{}) (outpu
 
 	a.log.Infof("nodeInstanceRoleArn role ARN: %v", nodeInstanceRoleArn)
 	a.context.NodeInstanceRoleArn = nodeInstanceRoleArn
+
+	a.log.Infof("cluster user ARN: %v", clusterUserArn)
+	a.context.ClusterUserArn = clusterUserArn
+
+	a.log.Infof("cluster user access key id: %v", clusterUserAccessKeyId)
+	a.context.ClusterUserAccessKeyId = clusterUserAccessKeyId
+	a.context.ClusterUserSecretAccessKey = clusterUserSecretAccessKey
 
 	return &eks.VpcConfigRequest{
 		SecurityGroupIds: []*string{a.context.SecurityGroupID},
@@ -831,6 +853,7 @@ func (a *DeleteStackAction) ExecuteAction(input interface{}) (output interface{}
 	a.log.Infof("EXECUTE DeleteStackAction: %q", a.StackNames)
 
 	errorChan := make(chan error, len(a.StackNames))
+	defer close(errorChan)
 
 	for _, stackName := range a.StackNames {
 		go func(stackName string) {
@@ -1017,56 +1040,4 @@ func (a *WaitResourceDeletionAction) waitUntilELBsDeleted() error {
 		a.log.Infoln("There are", len(result), "ELBs left from cluster")
 		time.Sleep(10 * time.Second)
 	}
-}
-
-//--
-
-var _ utils.Action = (*DeleteUserAction)(nil)
-
-// DeleteUserAction deletes an IAM role
-type DeleteUserAction struct {
-	context     *EksClusterDeletionContext
-	userName    string
-	accessKeyID string
-	log         logrus.FieldLogger
-}
-
-// NewDeleteUserAction creates a new DeleteUserAction
-func NewDeleteUserAction(log logrus.FieldLogger, context *EksClusterDeletionContext, userName, accessKeyID string) *DeleteUserAction {
-	return &DeleteUserAction{
-		context:     context,
-		userName:    userName,
-		accessKeyID: accessKeyID,
-		log:         log,
-	}
-}
-
-// GetName returns the name of this DeleteUserAction
-func (a *DeleteUserAction) GetName() string {
-	return "DeleteUserAction"
-}
-
-// ExecuteAction executes this DeleteUserAction
-func (a *DeleteUserAction) ExecuteAction(input interface{}) (output interface{}, err error) {
-	a.log.Infoln("EXECUTE DeleteUserAction, deleting user:", a.userName)
-
-	iamSvc := iam.New(a.context.Session)
-
-	deleteAccessKeyInput := &iam.DeleteAccessKeyInput{
-		AccessKeyId: aws.String(a.accessKeyID),
-		UserName:    aws.String(a.userName),
-	}
-
-	_, err = iamSvc.DeleteAccessKey(deleteAccessKeyInput)
-	if err != nil {
-		return nil, err
-	}
-
-	deleteUserInput := &iam.DeleteUserInput{
-		UserName: aws.String(a.userName),
-	}
-
-	_, err = iamSvc.DeleteUser(deleteUserInput)
-
-	return nil, err
 }
