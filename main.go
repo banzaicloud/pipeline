@@ -90,7 +90,6 @@ func main() {
 		&defaults.GKEProfile{},
 		&defaults.GKENodePoolProfile{},
 		&objectstore.ManagedAlibabaBucket{},
-		&objectstore.ManagedAmazonBucket{},
 		&route53model.Route53Domain{}}
 
 	var tableNames string
