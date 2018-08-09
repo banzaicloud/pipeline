@@ -1,10 +1,10 @@
 package api
 
 import (
+	"encoding/base64"
 	"net/http"
 	"time"
 
-	"encoding/base64"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/helm"
 	pkgCommmon "github.com/banzaicloud/pipeline/pkg/common"

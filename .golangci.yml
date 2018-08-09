@@ -13,6 +13,8 @@ linters:
   enable:
     - misspell
     - gofmt
+    - golint
+    - goimports
   disable:
     - errcheck
     - structcheck

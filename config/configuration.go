@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/spf13/viper"
-	"path/filepath"
 )
 
 const (

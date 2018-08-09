@@ -448,12 +448,12 @@ func NewCreateUpdateNodePoolStackAction(
 	}
 }
 
-func (action *CreateUpdateNodePoolStackAction) generateStackName(nodePool *model.AmazonNodePoolsModel) string {
-	return action.context.ClusterName + "-pipeline-eks-nodepool-" + nodePool.Name
+func (a *CreateUpdateNodePoolStackAction) generateStackName(nodePool *model.AmazonNodePoolsModel) string {
+	return a.context.ClusterName + "-pipeline-eks-nodepool-" + nodePool.Name
 }
 
 // GetName return the name of this action
-func (action *CreateUpdateNodePoolStackAction) GetName() string {
+func (a *CreateUpdateNodePoolStackAction) GetName() string {
 	return "CreateUpdateNodePoolStackAction"
 }
 
@@ -1042,7 +1042,7 @@ func NewDeleteUserAction(log logrus.FieldLogger, context *EksClusterDeletionCont
 }
 
 // GetName returns the name of this DeleteUserAction
-func (action *DeleteUserAction) GetName() string {
+func (a *DeleteUserAction) GetName() string {
 	return "DeleteUserAction"
 }
 

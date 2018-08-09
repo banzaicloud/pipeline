@@ -1,8 +1,9 @@
 package secret_test
 
 import (
-	"github.com/banzaicloud/pipeline/secret"
 	"testing"
+
+	"github.com/banzaicloud/pipeline/secret"
 )
 
 func TestRandomString(t *testing.T) {

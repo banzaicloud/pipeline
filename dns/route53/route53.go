@@ -2,6 +2,9 @@ package route53
 
 import (
 	"fmt"
+	"sync"
+	"time"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -20,8 +23,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"sync"
-	"time"
 )
 
 var logger *logrus.Logger
@@ -50,7 +51,6 @@ type rollbackFunc func() error
 
 // context represents an object that can be used pass data across function calls
 type context struct {
-
 	// state collects current state of domain across multiple function calls
 	state *domainState
 

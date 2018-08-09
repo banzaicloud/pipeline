@@ -1,11 +1,12 @@
 package api
 
 import (
+	"net/http"
+
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/catalog"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
 // CatalogDetails get detailed information about a catalog

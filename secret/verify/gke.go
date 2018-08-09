@@ -2,13 +2,14 @@ package verify
 
 import (
 	"context"
+	"net/http"
+
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/gin-gonic/gin/json"
 	"golang.org/x/oauth2/google"
 	"golang.org/x/oauth2/jwt"
 	gkeCompute "google.golang.org/api/compute/v1"
 	gke "google.golang.org/api/container/v1"
-	"net/http"
 )
 
 // gkeVerify for validation GKE credentials

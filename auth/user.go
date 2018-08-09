@@ -13,14 +13,13 @@ import (
 	"github.com/google/go-github/github"
 	"github.com/jinzhu/copier"
 	"github.com/jinzhu/gorm"
-	"golang.org/x/oauth2"
-	// blank import is used here for sql driver inclusion
-	_ "github.com/jinzhu/gorm/dialects/mysql"
+	_ "github.com/jinzhu/gorm/dialects/mysql" // blank import is used here for sql driver inclusion
 	"github.com/qor/auth"
 	"github.com/qor/auth/auth_identity"
 	"github.com/qor/auth/claims"
 	"github.com/qor/qor/utils"
 	"github.com/spf13/viper"
+	"golang.org/x/oauth2"
 )
 
 const (

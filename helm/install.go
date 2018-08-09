@@ -2,6 +2,11 @@ package helm
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
+
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/pkg/helm"
 	phelm "github.com/banzaicloud/pipeline/pkg/helm"
@@ -17,10 +22,6 @@ import (
 	helm_env "k8s.io/helm/pkg/helm/environment"
 	"k8s.io/helm/pkg/helm/helmpath"
 	"k8s.io/helm/pkg/repo"
-	"os"
-	"path/filepath"
-	"strings"
-	"time"
 )
 
 //PreInstall create's serviceAccount and AccountRoleBinding

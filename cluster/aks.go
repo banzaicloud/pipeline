@@ -1,6 +1,8 @@
 package cluster
 
 import (
+	"time"
+
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-04-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice"
 	azureClient "github.com/banzaicloud/azure-aks-client/client"
@@ -16,7 +18,6 @@ import (
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/go-errors/errors"
-	"time"
 )
 
 const (

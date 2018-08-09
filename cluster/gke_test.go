@@ -1,14 +1,15 @@
 package cluster
 
 import (
+	"reflect"
+	"testing"
+
 	"github.com/banzaicloud/pipeline/model"
 	pkgClusterGoogle "github.com/banzaicloud/pipeline/pkg/cluster/gke"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/gin-gonic/gin/json"
 	gke "google.golang.org/api/container/v1"
-	"reflect"
-	"testing"
 )
 
 const (

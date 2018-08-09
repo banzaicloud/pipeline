@@ -1,10 +1,11 @@
 package cluster
 
 import (
+	"net/url"
+
 	"github.com/prometheus/common/model"
 	promcfg "github.com/prometheus/prometheus/config"
 	"gopkg.in/yaml.v2"
-	"net/url"
 )
 
 //GenerateConfig generates prometheus config

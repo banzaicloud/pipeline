@@ -1,10 +1,11 @@
 package gke
 
 import (
+	"regexp"
+
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/pkg/errors"
-	"regexp"
 )
 
 // ### [ Constants to Google cluster default values ] ### //
