@@ -3028,7 +3028,7 @@ paths:
       summary: Get all google config
       tags:
       - info
-  /api/v1/orgs/{orgId}/azure/resourcegroup:
+  /api/v1/orgs/{orgId}/azure/resourcegroups:
     get:
       description: Get all resource groups
       operationId: GetResourceGroup
@@ -3043,13 +3043,13 @@ paths:
           type: integer
         style: simple
       - description: Secret identifier
-        explode: true
-        in: query
+        explode: false
+        in: header
         name: secretId
         required: true
         schema:
           type: string
-        style: form
+        style: simple
       responses:
         200:
           content:
@@ -3122,7 +3122,7 @@ paths:
       summary: Create resource groups
       tags:
       - info
-  /api/v1/orgs/{orgId}/azure/resourcegroup/{name}:
+  /api/v1/orgs/{orgId}/azure/resourcegroups/{name}:
     delete:
       description: Delete resource group
       operationId: DeleteResourceGroup
@@ -3146,13 +3146,13 @@ paths:
           type: integer
         style: simple
       - description: Secret identifier
-        explode: true
-        in: query
+        explode: false
+        in: header
         name: secretId
         required: true
         schema:
           type: string
-        style: form
+        style: simple
       responses:
         202:
           description: Azure resource group deleted

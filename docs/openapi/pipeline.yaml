@@ -2795,7 +2795,7 @@ paths:
         schema:
           type: integer
       - name: secretId
-        in: query
+        in: header
         required: true
         description: Secret identifier
         schema:
@@ -2890,7 +2890,7 @@ paths:
         schema:
           type: integer
       - name: secretId
-        in: query
+        in: header
         required: true
         description: Secret identifier
         schema:

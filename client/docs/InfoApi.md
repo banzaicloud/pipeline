@@ -4,12 +4,12 @@ All URIs are relative to *http://localhost:9090*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**CreateResourceGroup**](InfoApi.md#CreateResourceGroup) | **Post** /api/v1/orgs/{orgId}/azure/resourcegroup | Create resource groups
-[**DeleteResourceGroup**](InfoApi.md#DeleteResourceGroup) | **Delete** /api/v1/orgs/{orgId}/azure/resourcegroup/{name} | Delete resource group
+[**CreateResourceGroup**](InfoApi.md#CreateResourceGroup) | **Post** /api/v1/orgs/{orgId}/azure/resourcegroups | Create resource groups
+[**DeleteResourceGroup**](InfoApi.md#DeleteResourceGroup) | **Delete** /api/v1/orgs/{orgId}/azure/resourcegroups/{name} | Delete resource group
 [**GetAmazonConfig**](InfoApi.md#GetAmazonConfig) | **Get** /api/v1/orgs/{orgId}/cloudinfo/amazon | Get all amazon config
 [**GetAzureConfig**](InfoApi.md#GetAzureConfig) | **Get** /api/v1/orgs/{orgId}/cloudinfo/azure | Get all azure config
 [**GetGoogleConfig**](InfoApi.md#GetGoogleConfig) | **Get** /api/v1/orgs/{orgId}/cloudinfo/google | Get all google config
-[**GetResourceGroup**](InfoApi.md#GetResourceGroup) | **Get** /api/v1/orgs/{orgId}/azure/resourcegroup | Get all resource groups
+[**GetResourceGroup**](InfoApi.md#GetResourceGroup) | **Get** /api/v1/orgs/{orgId}/azure/resourcegroups | Get all resource groups
 [**GetSupportedClouds**](InfoApi.md#GetSupportedClouds) | **Get** /api/v1/orgs/{orgId}/cloudinfo | Get supported cloud types
 
 

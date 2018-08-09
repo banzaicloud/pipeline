@@ -45,7 +45,7 @@ func (a *InfoApiService) CreateResourceGroup(ctx context.Context, orgId int32, c
 	)
 
 	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/api/v1/orgs/{orgId}/azure/resourcegroup"
+	localVarPath := a.client.cfg.BasePath + "/api/v1/orgs/{orgId}/azure/resourcegroups"
 	localVarPath = strings.Replace(localVarPath, "{"+"orgId"+"}", fmt.Sprintf("%v", orgId), -1)
 
 	localVarHeaderParams := make(map[string]string)
@@ -154,7 +154,7 @@ func (a *InfoApiService) DeleteResourceGroup(ctx context.Context, orgId int32, n
 	)
 
 	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/api/v1/orgs/{orgId}/azure/resourcegroup/{name}"
+	localVarPath := a.client.cfg.BasePath + "/api/v1/orgs/{orgId}/azure/resourcegroups/{name}"
 	localVarPath = strings.Replace(localVarPath, "{"+"orgId"+"}", fmt.Sprintf("%v", orgId), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"name"+"}", fmt.Sprintf("%v", name), -1)
 
@@ -162,7 +162,6 @@ func (a *InfoApiService) DeleteResourceGroup(ctx context.Context, orgId int32, n
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-	localVarQueryParams.Add("secretId", parameterToString(secretId, ""))
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{}
 
@@ -180,6 +179,7 @@ func (a *InfoApiService) DeleteResourceGroup(ctx context.Context, orgId int32, n
 	if localVarHttpHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
 	}
+	localVarHeaderParams["secretId"] = parameterToString(secretId, "")
 	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFormFileName, localVarFileName, localVarFileBytes)
 	if err != nil {
 		return nil, err
@@ -587,14 +587,13 @@ func (a *InfoApiService) GetResourceGroup(ctx context.Context, orgId int32, secr
 	)
 
 	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/api/v1/orgs/{orgId}/azure/resourcegroup"
+	localVarPath := a.client.cfg.BasePath + "/api/v1/orgs/{orgId}/azure/resourcegroups"
 	localVarPath = strings.Replace(localVarPath, "{"+"orgId"+"}", fmt.Sprintf("%v", orgId), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-	localVarQueryParams.Add("secretId", parameterToString(secretId, ""))
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{}
 
@@ -612,6 +611,7 @@ func (a *InfoApiService) GetResourceGroup(ctx context.Context, orgId int32, secr
 	if localVarHttpHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
 	}
+	localVarHeaderParams["secretId"] = parameterToString(secretId, "")
 	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFormFileName, localVarFileName, localVarFileBytes)
 	if err != nil {
 		return localVarReturnValue, nil, err
