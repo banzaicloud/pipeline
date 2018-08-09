@@ -543,18 +543,22 @@ func (c *AlibabaCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest,
 	}
 
 	req := cs.CreateScaleClusterRequest()
-
 	req.ClusterId = c.modelCluster.Alibaba.ClusterID
-	params := alibabaScaleClusterParams{
-		WorkerInstanceType:       c.modelCluster.Alibaba.NodePools[0].WorkerInstanceType,
-		WorkerSystemDiskCategory: c.modelCluster.Alibaba.NodePools[0].WorkerSystemDiskCategory,
-		WorkerSystemDiskSize:     c.modelCluster.Alibaba.NodePools[0].WorkerSystemDiskSize,
-		LoginPassword:            c.modelCluster.Alibaba.LoginPassword,
-		ImageID:                  c.modelCluster.Alibaba.NodePools[0].ImageID,
-		NumOfNodes:               c.modelCluster.Alibaba.NodePools[0].NumOfNodes,
-	}
 
-	// TODO missing merge of request and existing attributes
+	nodePoolModels, err := createAlibabaNodePoolsModelFromRequestData(request.Alibaba.NodePools, userId)
+	if err != nil {
+		return err
+	}
+	params := alibabaScaleClusterParams{
+		DisableRollback:          true,
+		TimeoutMins:              60,
+		WorkerInstanceType:       nodePoolModels[0].WorkerInstanceType,
+		WorkerSystemDiskCategory: nodePoolModels[0].WorkerSystemDiskCategory,
+		WorkerSystemDiskSize:     nodePoolModels[0].WorkerSystemDiskSize,
+		LoginPassword:            c.modelCluster.Alibaba.LoginPassword,
+		ImageID:                  nodePoolModels[0].ImageID,
+		NumOfNodes:               nodePoolModels[0].NumOfNodes,
+	}
 
 	p, err := json.Marshal(&params)
 	if err != nil {
@@ -580,6 +584,9 @@ func (c *AlibabaCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest,
 		return err
 	}
 
+	updatedNodePools := make([]*model.AlibabaNodePoolModel, 0, 1)
+	updatedNodePools = append(updatedNodePools, nodePoolModels[0])
+	c.modelCluster.Alibaba.NodePools = updatedNodePools
 	c.alibabaCluster = cluster
 
 	return nil
