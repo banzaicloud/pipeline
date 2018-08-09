@@ -102,7 +102,6 @@ func main() {
 		&defaults.GKEProfile{},
 		&defaults.GKENodePoolProfile{},
 		&objectstore.ManagedAmazonBucket{},
-		&objectstore.ManagedAzureBlobStore{},
 		&objectstore.ManagedGoogleBucket{},
 		&route53model.Route53Domain{},
 	).Error; err != nil {
