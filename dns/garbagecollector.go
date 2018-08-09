@@ -1,9 +1,10 @@
 package dns
 
 import (
+	"time"
+
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/spf13/viper"
-	"time"
 )
 
 // garbageCollector is the interface for domain garbage collector implementations.

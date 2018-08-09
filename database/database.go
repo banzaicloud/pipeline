@@ -5,8 +5,7 @@ import (
 
 	"github.com/banzaicloud/bank-vaults/database"
 	"github.com/jinzhu/gorm"
-	// blank import is used here for simplicity
-	_ "github.com/jinzhu/gorm/dialects/mysql"
+	_ "github.com/jinzhu/gorm/dialects/mysql" // blank import is used here for simplicity
 	"github.com/spf13/viper"
 )
 

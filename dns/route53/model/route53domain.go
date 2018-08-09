@@ -1,8 +1,9 @@
 package route53model
 
 import (
-	"github.com/banzaicloud/pipeline/auth"
 	"time"
+
+	"github.com/banzaicloud/pipeline/auth"
 )
 
 // Route53Domain describes the database model

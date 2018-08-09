@@ -2,10 +2,11 @@ package aks
 
 import (
 	"errors"
-	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"strconv"
 	"strings"
+
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 )
 
 // ### [ Constants to Azure cluster default values ] ### //
