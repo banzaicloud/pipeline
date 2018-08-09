@@ -1,4 +1,4 @@
-package alibaba
+package accs
 
 import (
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
@@ -26,9 +26,9 @@ type NodePool struct {
 
 type NodePools map[string]*NodePool
 
-// CreateClusterAlibaba
+// CreateClusterACCS
 // TODO: decide to use cameCase instead of original alibaba field names.
-type CreateClusterAlibaba struct {
+type CreateClusterACCS struct {
 	RegionID                 string    `json:"region_id"`
 	ZoneID                   string    `json:"zoneid"`
 	MasterInstanceType       string    `json:"master_instance_type,omitempty"`
@@ -38,13 +38,13 @@ type CreateClusterAlibaba struct {
 	NodePools                NodePools `json:"nodePools,omitempty"`
 }
 
-// UpdateClusterAlibaba describes Alibaba's node fields of an UpdateCluster request
-type UpdateClusterAlibaba struct {
+// UpdateClusterACCS describes Alibaba's node fields of an UpdateCluster request
+type UpdateClusterACCS struct {
 	NodePools NodePools `json:"nodePools,omitempty"`
 }
 
 // AddDefaults puts default values to optional field(s)
-func (c *CreateClusterAlibaba) AddDefaults() error {
+func (c *CreateClusterACCS) AddDefaults() error {
 	if c.MasterInstanceType == "" {
 		c.MasterInstanceType = DefaultMasterInstanceType
 	}
@@ -97,7 +97,7 @@ func ValidateNodePools(nps NodePools) error {
 	return nil
 }
 
-func (c *CreateClusterAlibaba) Validate() error {
+func (c *CreateClusterACCS) Validate() error {
 	if c == nil {
 		return pkgErrors.ErrorAlibabaFieldIsEmpty
 	}
@@ -114,7 +114,7 @@ func (c *CreateClusterAlibaba) Validate() error {
 	return ValidateNodePools(c.NodePools)
 }
 
-func (c *UpdateClusterAlibaba) Validate() error {
+func (c *UpdateClusterACCS) Validate() error {
 	if c == nil {
 		return pkgErrors.ErrorAlibabaFieldIsEmpty
 	}
@@ -122,8 +122,8 @@ func (c *UpdateClusterAlibaba) Validate() error {
 	return ValidateNodePools(c.NodePools)
 }
 
-// ClusterProfileAlibaba describes an Alibaba profile
-type ClusterProfileAlibaba struct {
+// ClusterProfileACCS describes an Alibaba CS profile
+type ClusterProfileACCS struct {
 	RegionID  string               `json:"region_id"`
 	ZoneID    string               `json:"zoneid"`
 	NodePools map[string]*NodePool `json:"nodePools,omitempty"`

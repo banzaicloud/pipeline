@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"fmt"
 
+	"github.com/banzaicloud/pipeline/pkg/cluster/accs"
 	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
-	"github.com/banzaicloud/pipeline/pkg/cluster/alibaba"
 	"github.com/banzaicloud/pipeline/pkg/cluster/dummy"
 	"github.com/banzaicloud/pipeline/pkg/cluster/ec2"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
@@ -95,14 +95,14 @@ type CreateClusterRequest struct {
 
 // CreateClusterProperties contains the cluster flavor specific properties.
 type CreateClusterProperties struct {
-	CreateClusterAlibaba *alibaba.CreateClusterAlibaba `json:"alibaba,omitempty"`
-	CreateClusterEC2     *ec2.CreateClusterEC2         `json:"ec2,omitempty"`
-	CreateClusterEKS     *eks.CreateClusterEKS         `json:"eks,omitempty"`
-	CreateClusterAKS     *aks.CreateClusterAKS         `json:"aks,omitempty"`
-	CreateClusterGKE     *gke.CreateClusterGKE         `json:"gke,omitempty"`
-	CreateClusterDummy   *dummy.CreateClusterDummy     `json:"dummy,omitempty"`
-	CreateKubernetes     *kubernetes.CreateKubernetes  `json:"kubernetes,omitempty"`
-	CreateClusterOKE     *oke.Cluster                  `json:"oracle,omitempty"`
+	CreateClusterACCS  *accs.CreateClusterACCS      `json:"accs,omitempty"`
+	CreateClusterEC2   *ec2.CreateClusterEC2        `json:"ec2,omitempty"`
+	CreateClusterEKS   *eks.CreateClusterEKS        `json:"eks,omitempty"`
+	CreateClusterAKS   *aks.CreateClusterAKS        `json:"aks,omitempty"`
+	CreateClusterGKE   *gke.CreateClusterGKE        `json:"gke,omitempty"`
+	CreateClusterDummy *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
+	CreateKubernetes   *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
+	CreateClusterOKE   *oke.Cluster                 `json:"oracle,omitempty"`
 }
 
 // PostHookParam describes posthook params in create request
@@ -185,13 +185,13 @@ type DeleteClusterResponse struct {
 
 // UpdateProperties describes Pipeline's UpdateCluster request properties
 type UpdateProperties struct {
-	Alibaba *alibaba.UpdateClusterAlibaba `json:"alibaba,omitempty"`
-	EC2     *ec2.UpdateClusterAmazon      `json:"ec2,omitempty"`
-	EKS     *eks.UpdateClusterAmazonEKS   `json:"eks,omitempty"`
-	AKS     *aks.UpdateClusterAzure       `json:"aks,omitempty"`
-	GKE     *gke.UpdateClusterGoogle      `json:"gke,omitempty"`
-	Dummy   *dummy.UpdateClusterDummy     `json:"dummy,omitempty"`
-	OKE     *oke.Cluster                  `json:"oracle,omitempty"`
+	ACCS  *accs.UpdateClusterACCS     `json:"accs,omitempty"`
+	EC2   *ec2.UpdateClusterAmazon    `json:"ec2,omitempty"`
+	EKS   *eks.UpdateClusterAmazonEKS `json:"eks,omitempty"`
+	AKS   *aks.UpdateClusterAzure     `json:"aks,omitempty"`
+	GKE   *gke.UpdateClusterGoogle    `json:"gke,omitempty"`
+	Dummy *dummy.UpdateClusterDummy   `json:"dummy,omitempty"`
+	OKE   *oke.Cluster                `json:"oracle,omitempty"`
 }
 
 // String method prints formatted update request fields
@@ -291,7 +291,7 @@ func (r *CreateClusterRequest) Validate() error {
 	switch r.Cloud {
 	case Alibaba:
 		// alibaba validate
-		return r.Properties.CreateClusterAlibaba.Validate()
+		return r.Properties.CreateClusterACCS.Validate()
 	case Amazon:
 		// ec2 validate
 		if r.Properties.CreateClusterEC2 != nil {
@@ -338,7 +338,7 @@ func (r *UpdateClusterRequest) Validate() error {
 	switch r.Cloud {
 	case Alibaba:
 		// alibaba validate
-		return r.Alibaba.Validate()
+		return r.ACCS.Validate()
 	case Amazon:
 		// ec2 validate
 		if r.EC2 != nil {
@@ -377,27 +377,27 @@ func (r *UpdateClusterRequest) preValidate() {
 		break
 	case Amazon:
 		// reset other fields
-		r.Alibaba = nil
+		r.ACCS = nil
 		r.AKS = nil
 		r.GKE = nil
 		r.OKE = nil
 		break
 	case Azure:
 		// reset other fields
-		r.Alibaba = nil
+		r.ACCS = nil
 		r.EC2 = nil
 		r.GKE = nil
 		r.OKE = nil
 		break
 	case Google:
 		// reset other fields
-		r.Alibaba = nil
+		r.ACCS = nil
 		r.EC2 = nil
 		r.AKS = nil
 		r.OKE = nil
 	case Oracle:
 		// reset other fields
-		r.Alibaba = nil
+		r.ACCS = nil
 		r.EC2 = nil
 		r.AKS = nil
 		r.OKE = nil
@@ -410,12 +410,12 @@ type ClusterProfileResponse struct {
 	Location   string `json:"location" binding:"required"`
 	Cloud      string `json:"cloud" binding:"required"`
 	Properties struct {
-		Alibaba *alibaba.ClusterProfileAlibaba `json:"alibaba,omitempty"`
-		EC2     *ec2.ClusterProfileEC2         `json:"ec2,omitempty"`
-		EKS     *eks.ClusterProfileEKS         `json:"eks,omitempty"`
-		AKS     *aks.ClusterProfileAKS         `json:"aks,omitempty"`
-		GKE     *gke.ClusterProfileGKE         `json:"gke,omitempty"`
-		OKE     *oke.Cluster                   `json:"oracle,omitempty"`
+		ACCS *accs.ClusterProfileACCS `json:"accs,omitempty"`
+		EC2  *ec2.ClusterProfileEC2   `json:"ec2,omitempty"`
+		EKS  *eks.ClusterProfileEKS   `json:"eks,omitempty"`
+		AKS  *aks.ClusterProfileAKS   `json:"aks,omitempty"`
+		GKE  *gke.ClusterProfileGKE   `json:"gke,omitempty"`
+		OKE  *oke.Cluster             `json:"oracle,omitempty"`
 	} `json:"properties" binding:"required"`
 }
 
@@ -425,12 +425,12 @@ type ClusterProfileRequest struct {
 	Location   string `json:"location" binding:"required"`
 	Cloud      string `json:"cloud" binding:"required"`
 	Properties struct {
-		Alibaba *alibaba.ClusterProfileAlibaba `json:"alibaba,omitempty"`
-		EC2     *ec2.ClusterProfileEC2         `json:"ec2,omitempty"`
-		EKS     *eks.ClusterProfileEKS         `json:"eks,omitempty"`
-		AKS     *aks.ClusterProfileAKS         `json:"aks,omitempty"`
-		GKE     *gke.ClusterProfileGKE         `json:"gke,omitempty"`
-		OKE     *oke.Cluster                   `json:"oracle,omitempty"`
+		ACCS *accs.ClusterProfileACCS `json:"accs,omitempty"`
+		EC2  *ec2.ClusterProfileEC2   `json:"ec2,omitempty"`
+		EKS  *eks.ClusterProfileEKS   `json:"eks,omitempty"`
+		AKS  *aks.ClusterProfileAKS   `json:"aks,omitempty"`
+		GKE  *gke.ClusterProfileGKE   `json:"gke,omitempty"`
+		OKE  *oke.Cluster             `json:"oracle,omitempty"`
 	} `json:"properties" binding:"required"`
 }
 
@@ -571,10 +571,10 @@ func (p *ClusterProfileResponse) CreateClusterRequest(createRequest *CreateClust
 
 	switch p.Cloud { // todo distribution???
 	case Alibaba:
-		response.Properties.CreateClusterAlibaba = &alibaba.CreateClusterAlibaba{
-			RegionID:  p.Properties.Alibaba.RegionID,
-			ZoneID:    p.Properties.Alibaba.ZoneID,
-			NodePools: p.Properties.Alibaba.NodePools,
+		response.Properties.CreateClusterACCS = &accs.CreateClusterACCS{
+			RegionID:  p.Properties.ACCS.RegionID,
+			ZoneID:    p.Properties.ACCS.ZoneID,
+			NodePools: p.Properties.ACCS.NodePools,
 		}
 	case Amazon:
 		if response.Properties.CreateClusterEC2 != nil {
