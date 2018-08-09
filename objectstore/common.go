@@ -7,6 +7,7 @@ import (
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/objectstore"
 	"github.com/banzaicloud/pipeline/pkg/providers/azure"
+	"github.com/banzaicloud/pipeline/pkg/providers/google"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/jinzhu/gorm"
@@ -38,10 +39,7 @@ func NewObjectStore(cloudType string, s *secret.SecretItemResponse, organization
 			org:    organization,
 		}, nil
 	case pkgCluster.Google:
-		return &GoogleObjectStore{
-			serviceAccount: verify.CreateServiceAccount(s.Values),
-			org:            organization,
-		}, nil
+		return google.NewObjectStore(organization, verify.CreateServiceAccount(s.Values), database.GetDB(), log), nil
 	case pkgCluster.Azure:
 		return azure.NewObjectStore(organization, s, database.GetDB(), log), nil
 	case pkgCluster.Oracle:
