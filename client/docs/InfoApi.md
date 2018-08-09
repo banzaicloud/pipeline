@@ -4,11 +4,73 @@ All URIs are relative to *http://localhost:9090*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
+[**CreateResourceGroup**](InfoApi.md#CreateResourceGroup) | **Post** /api/v1/orgs/{orgId}/azure/resourcegroup | Create resource groups
+[**DeleteResourceGroup**](InfoApi.md#DeleteResourceGroup) | **Delete** /api/v1/orgs/{orgId}/azure/resourcegroup/{name} | Delete resource group
 [**GetAmazonConfig**](InfoApi.md#GetAmazonConfig) | **Get** /api/v1/orgs/{orgId}/cloudinfo/amazon | Get all amazon config
 [**GetAzureConfig**](InfoApi.md#GetAzureConfig) | **Get** /api/v1/orgs/{orgId}/cloudinfo/azure | Get all azure config
 [**GetGoogleConfig**](InfoApi.md#GetGoogleConfig) | **Get** /api/v1/orgs/{orgId}/cloudinfo/google | Get all google config
+[**GetResourceGroup**](InfoApi.md#GetResourceGroup) | **Get** /api/v1/orgs/{orgId}/azure/resourcegroup | Get all resource groups
 [**GetSupportedClouds**](InfoApi.md#GetSupportedClouds) | **Get** /api/v1/orgs/{orgId}/cloudinfo | Get supported cloud types
 
+
+# **CreateResourceGroup**
+> ResourceGroupCreated CreateResourceGroup(ctx, orgId, createResourceGroup)
+Create resource groups
+
+Create resource groups
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+  **orgId** | **int32**| Organization identification | 
+  **createResourceGroup** | [**CreateResourceGroup**](CreateResourceGroup.md)|  | 
+
+### Return type
+
+[**ResourceGroupCreated**](ResourceGroupCreated.md)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **DeleteResourceGroup**
+> DeleteResourceGroup(ctx, orgId, name, secretId)
+Delete resource group
+
+Delete resource group
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+  **orgId** | **int32**| Organization identification | 
+  **name** | **int32**| Resource group name | 
+  **secretId** | **string**| Secret identifier | 
+
+### Return type
+
+ (empty response body)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **GetAmazonConfig**
 > AmazonConfigResponse GetAmazonConfig(ctx, orgId, secretId, fields, tags, location)
@@ -92,6 +154,35 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**GoogleConfigResponse**](GoogleConfigResponse.md)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **GetResourceGroup**
+> []string GetResourceGroup(ctx, orgId, secretId)
+Get all resource groups
+
+Get all resource groups
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+  **orgId** | **int32**| Organization identification | 
+  **secretId** | **string**| Secret identifier | 
+
+### Return type
+
+**[]string**
 
 ### Authorization
 

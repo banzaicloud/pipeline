@@ -3028,6 +3028,151 @@ paths:
       summary: Get all google config
       tags:
       - info
+  /api/v1/orgs/{orgId}/azure/resourcegroup:
+    get:
+      description: Get all resource groups
+      operationId: GetResourceGroup
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Secret identifier
+        explode: true
+        in: query
+        name: secretId
+        required: true
+        schema:
+          type: string
+        style: form
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                example:
+                - resourceGroup1
+                - resourceGroup2
+                items:
+                  type: string
+                type: array
+          description: Azure resource groups listed
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during listing resource groups
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+      security:
+      - bearerAuth: []
+      summary: Get all resource groups
+      tags:
+      - info
+    post:
+      description: Create resource groups
+      operationId: CreateResourceGroup
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateResourceGroup'
+        required: true
+      responses:
+        201:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResourceGroupCreated'
+          description: Azure resource group created
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during listing resource groups
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+      security:
+      - bearerAuth: []
+      summary: Create resource groups
+      tags:
+      - info
+  /api/v1/orgs/{orgId}/azure/resourcegroup/{name}:
+    delete:
+      description: Delete resource group
+      operationId: DeleteResourceGroup
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Resource group name
+        explode: false
+        in: path
+        name: name
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Secret identifier
+        explode: true
+        in: query
+        name: secretId
+        required: true
+        schema:
+          type: string
+        style: form
+      responses:
+        202:
+          description: Azure resource group deleted
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during listing resource groups
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+      security:
+      - bearerAuth: []
+      summary: Delete resource group
+      tags:
+      - info
   /api/v1/orgs/{orgId}/buckets:
     get:
       description: List object store buckets accessible by the credentials referenced by the given secret.
@@ -6093,6 +6238,34 @@ components:
           type: string
       required:
       - tlsEnabled
+      type: object
+    CreateResourceGroup:
+      example:
+        name: newResourceGroupName
+        secretId: 62bc3c75-91fb-4670-bad4-24b401a9deac
+        location: westeurope
+      properties:
+        name:
+          example: newResourceGroupName
+          type: string
+        location:
+          example: westeurope
+          type: string
+        secretId:
+          example: 62bc3c75-91fb-4670-bad4-24b401a9deac
+          type: string
+      required:
+      - location
+      - name
+      - secretId
+      type: object
+    ResourceGroupCreated:
+      example:
+        name: NewResourceGroupName
+      properties:
+        name:
+          example: NewResourceGroupName
+          type: string
       type: object
     body:
       properties:

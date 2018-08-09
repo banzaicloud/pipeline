@@ -71,9 +71,12 @@ Class | Method | HTTP request | Description
 *HelmApi* | [**HelmReposDelete**](docs/HelmApi.md#helmreposdelete) | **Delete** /api/v1/orgs/{orgId}/helm/repos/{repoName} | Delete Repo
 *HelmApi* | [**HelmReposModify**](docs/HelmApi.md#helmreposmodify) | **Put** /api/v1/orgs/{orgId}/helm/repos/{repoName} | Modify Repo
 *HelmApi* | [**HelmReposUpdate**](docs/HelmApi.md#helmreposupdate) | **Put** /api/v1/orgs/{orgId}/helm/repos/{repoName}/update | Update Repo
+*InfoApi* | [**CreateResourceGroup**](docs/InfoApi.md#createresourcegroup) | **Post** /api/v1/orgs/{orgId}/azure/resourcegroup | Create resource groups
+*InfoApi* | [**DeleteResourceGroup**](docs/InfoApi.md#deleteresourcegroup) | **Delete** /api/v1/orgs/{orgId}/azure/resourcegroup/{name} | Delete resource group
 *InfoApi* | [**GetAmazonConfig**](docs/InfoApi.md#getamazonconfig) | **Get** /api/v1/orgs/{orgId}/cloudinfo/amazon | Get all amazon config
 *InfoApi* | [**GetAzureConfig**](docs/InfoApi.md#getazureconfig) | **Get** /api/v1/orgs/{orgId}/cloudinfo/azure | Get all azure config
 *InfoApi* | [**GetGoogleConfig**](docs/InfoApi.md#getgoogleconfig) | **Get** /api/v1/orgs/{orgId}/cloudinfo/google | Get all google config
+*InfoApi* | [**GetResourceGroup**](docs/InfoApi.md#getresourcegroup) | **Get** /api/v1/orgs/{orgId}/azure/resourcegroup | Get all resource groups
 *InfoApi* | [**GetSupportedClouds**](docs/InfoApi.md#getsupportedclouds) | **Get** /api/v1/orgs/{orgId}/cloudinfo | Get supported cloud types
 *OrganizationsApi* | [**CreateOrg**](docs/OrganizationsApi.md#createorg) | **Post** /api/v1/orgs | Create organization
 *OrganizationsApi* | [**GetOrg**](docs/OrganizationsApi.md#getorg) | **Get** /api/v1/orgs/{orgId} | Get organization
@@ -186,6 +189,7 @@ Class | Method | HTTP request | Description
  - [CreateGoogleObjectStoreBucketProperties](docs/CreateGoogleObjectStoreBucketProperties.md)
  - [CreateObjectStoreBucketRequest](docs/CreateObjectStoreBucketRequest.md)
  - [CreateObjectStoreBucketResponse](docs/CreateObjectStoreBucketResponse.md)
+ - [CreateResourceGroup](docs/CreateResourceGroup.md)
  - [CreateSecretRequest](docs/CreateSecretRequest.md)
  - [CreateSecretResponse](docs/CreateSecretResponse.md)
  - [CreateUpdateDeploymentRequest](docs/CreateUpdateDeploymentRequest.md)
@@ -262,6 +266,7 @@ Class | Method | HTTP request | Description
  - [ReRunPostHook](docs/ReRunPostHook.md)
  - [RepoNotFound](docs/RepoNotFound.md)
  - [RequestedResources](docs/RequestedResources.md)
+ - [ResourceGroupCreated](docs/ResourceGroupCreated.md)
  - [ResourceItem](docs/ResourceItem.md)
  - [ResourceSummaryItem](docs/ResourceSummaryItem.md)
  - [ResourceSummaryItemIp100100180Euwest1ComputeInternal](docs/ResourceSummaryItemIp100100180Euwest1ComputeInternal.md)

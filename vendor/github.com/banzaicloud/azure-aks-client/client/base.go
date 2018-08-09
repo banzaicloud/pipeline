@@ -28,6 +28,8 @@ type ClusterManager interface {
 	listVirtualMachineSizes(location string) ([]compute.VirtualMachineSize, error)
 	listK8SVersions(locations, resourceType string) (result *containerservice.OrchestratorVersionProfileListResult, err error)
 
+	createOrUpdateResourceGroup(resourceGroup, location string) (*resources.Group, error)
+	deleteResourceGroup(resourceGroup string) error
 	listResourceGroups() ([]resources.Group, error)
 	findInfrastructureResourceGroup(resourceGroup, clusterName, location string) (*resources.Group, error)
 
@@ -203,6 +205,32 @@ func ListClusters(manager ClusterManager) (*azure.ListResponse, error) {
 		Value: convertManagedClustersToValues(managedClusters),
 	}}
 	return &response, nil
+}
+
+// CreateOrUpdateResourceGroup creates/updates a resource group
+func CreateOrUpdateResourceGroup(manager ClusterManager, resourceGroup, location string) (*resources.Group, error) {
+
+	manager.LogInfof("Start creating/updating resource group [%s] in location [%s]", resourceGroup, location)
+
+	return manager.createOrUpdateResourceGroup(resourceGroup, location)
+
+}
+
+// DeleteResourceGroup creates a new resource group
+func DeleteResourceGroup(manager ClusterManager, resourceGroup string) error {
+
+	manager.LogInfof("Start deleting resource group [%s]", resourceGroup)
+
+	return manager.deleteResourceGroup(resourceGroup)
+
+}
+
+// ListResourceGroups lists resource groups
+func ListResourceGroups(manager ClusterManager) ([]resources.Group, error) {
+
+	manager.LogInfo("Start listing resource groups")
+
+	return manager.listResourceGroups()
 }
 
 // GetClusterConfig gets the given cluster kubeconfig
