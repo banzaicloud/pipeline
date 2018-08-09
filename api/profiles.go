@@ -14,20 +14,20 @@ import (
 )
 
 const (
-	cloudTypeKey = "type"
-	nameKey      = "name"
+	distributionTypeKey = "distribution"
+	nameKey             = "name"
 )
 
 // GetClusterProfiles handles /profiles/cluster/:type GET api endpoint.
 // Sends back the saved cluster profiles
 func GetClusterProfiles(c *gin.Context) {
 
-	cloudType := c.Param(cloudTypeKey)
-	log.Infof("Start getting saved cluster profiles [%s]", cloudType)
+	distributionType := c.Param(distributionTypeKey)
+	log.Infof("Start getting saved cluster profiles [%s]", distributionType)
 
-	resp, err := getProfiles(cloudType)
+	resp, err := getProfiles(distributionType)
 	if err != nil {
-		log.Errorf("Error during getting defaults to %s: %s", cloudType, err.Error())
+		log.Errorf("Error during getting defaults to %s: %s", distributionType, err.Error())
 		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: err.Error(),
@@ -98,11 +98,11 @@ func AddClusterProfile(c *gin.Context) {
 
 }
 
-// getProfiles loads cluster profiles from database by cloud type
-func getProfiles(cloudType string) ([]pkgCluster.ClusterProfileResponse, error) {
+// getProfiles loads cluster profiles from database by distribution
+func getProfiles(distribution string) ([]pkgCluster.ClusterProfileResponse, error) {
 
 	var response []pkgCluster.ClusterProfileResponse
-	profiles, err := defaults.GetAllProfiles(cloudType)
+	profiles, err := defaults.GetAllProfiles(distribution)
 	if err != nil {
 		// error during getting profiles
 		return nil, err
@@ -120,10 +120,10 @@ func convertRequestToProfile(request *pkgCluster.ClusterProfileRequest) (default
 
 	switch request.Cloud {
 	case pkgCluster.Amazon:
-		if request.Properties.Amazon != nil {
-			var awsProfile defaults.AWSProfile
-			awsProfile.UpdateProfile(request, false)
-			return &awsProfile, nil
+		if request.Properties.EC2 != nil {
+			var ec2Profile defaults.EC2Profile
+			ec2Profile.UpdateProfile(request, false)
+			return &ec2Profile, nil
 		}
 		var eksProfile defaults.EKSProfile
 		eksProfile.UpdateProfile(request, false)
@@ -204,9 +204,9 @@ func UpdateClusterProfile(c *gin.Context) {
 // Deleting failed if the name is the default name.
 func DeleteClusterProfile(c *gin.Context) {
 
-	cloudType := c.Param(cloudTypeKey)
+	distribution := c.Param(distributionTypeKey)
 	name := c.Param(nameKey)
-	log.Infof("Start deleting cluster profile: %s[%s]", name, cloudType)
+	log.Infof("Start deleting cluster profile: %s[%s]", name, distribution)
 
 	if defaults.GetDefaultProfileName() == name {
 		// default profile cannot deleted
@@ -219,10 +219,10 @@ func DeleteClusterProfile(c *gin.Context) {
 		return
 	}
 
-	log.Infof("Load cluster profile from database: %s[%s]", name, cloudType)
+	log.Infof("Load cluster profile from database: %s[%s]", name, distribution)
 
 	// load cluster profile from database
-	if profile, err := defaults.GetProfile(cloudType, name); err != nil {
+	if profile, err := defaults.GetProfile(distribution, name); err != nil {
 		// load from database failed
 		log.Error(errors.Wrap(err, "Error during getting profile"))
 		sendBackGetProfileErrorResponse(c, err)

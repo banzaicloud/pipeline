@@ -1,12 +1,12 @@
 package eks
 
 import (
-	pkgAmazon "github.com/banzaicloud/pipeline/pkg/cluster/amazon"
+	pkgAmazon "github.com/banzaicloud/pipeline/pkg/cluster/ec2"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 )
 
-// CreateClusterEks describes Pipeline's Amazon EKS fields of a CreateCluster request
-type CreateClusterEks struct {
+// CreateClusterEKS describes Pipeline's Amazon EKS fields of a CreateCluster request
+type CreateClusterEKS struct {
 	Version   string                         `json:"version,omitempty"`
 	NodePools map[string]*pkgAmazon.NodePool `json:"nodePools,omitempty"`
 }
@@ -17,7 +17,7 @@ type UpdateClusterAmazonEKS struct {
 }
 
 // Validate validates Amazon EKS cluster create request
-func (eks *CreateClusterEks) Validate() error {
+func (eks *CreateClusterEKS) Validate() error {
 	if eks == nil {
 		return pkgErrors.ErrorAmazonEksFieldIsEmpty
 	}
@@ -37,7 +37,7 @@ func (eks *CreateClusterEks) Validate() error {
 }
 
 // AddDefaults puts default values to optional field(s)
-func (eks *CreateClusterEks) AddDefaults(location string) error {
+func (eks *CreateClusterEKS) AddDefaults(location string) error {
 	if eks == nil {
 		return pkgErrors.ErrorAmazonEksFieldIsEmpty
 	}
@@ -92,8 +92,8 @@ type CertificateAuthority struct {
 	Data string `json:"data,omitempty"`
 }
 
-// ClusterProfileEks describes an Amazon EKS profile
-type ClusterProfileEks struct {
+// ClusterProfileEKS describes an Amazon EKS profile
+type ClusterProfileEKS struct {
 	Version   string                         `json:"version,omitempty"`
 	NodePools map[string]*pkgAmazon.NodePool `json:"nodePools,omitempty"`
 }

@@ -30,7 +30,8 @@ type CommonCluster interface {
 	Persist(string, string) error
 	DownloadK8sConfig() ([]byte, error)
 	GetName() string
-	GetType() string
+	GetCloud() string
+	GetDistribution() string
 	GetStatus() (*pkgCluster.GetClusterStatusResponse, error)
 	DeleteCluster() error
 	UpdateCluster(*pkgCluster.UpdateClusterRequest, uint) error
@@ -85,7 +86,7 @@ func (c *CommonClusterBase) getSecret(cluster CommonCluster) (*secret.SecretItem
 		log.Info("Secret is loaded before")
 	}
 
-	err := c.secret.ValidateSecretType(cluster.GetType())
+	err := c.secret.ValidateSecretType(cluster.GetCloud())
 	if err != nil {
 		return nil, err
 	}
@@ -184,31 +185,31 @@ func getSecret(organizationId uint, secretId string) (*secret.SecretItemResponse
 // GetCommonClusterFromModel extracts CommonCluster from a ClusterModel
 func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster, error) {
 
-	database := database.GetDB()
+	db := database.GetDB()
 
 	cloudType := modelCluster.Cloud
 	switch cloudType {
 	case pkgCluster.Amazon:
 
 		var c int
-		err := database.Model(&model.AmazonClusterModel{}).Where(&model.AmazonClusterModel{ClusterModelId: modelCluster.ID}).Count(&c).Error
+		err := db.Model(&model.EC2ClusterModel{}).Where(&model.EC2ClusterModel{ClusterModelId: modelCluster.ID}).Count(&c).Error
 		if err != nil {
 			return nil, err
 		}
 
 		if c > 0 {
 			//Create Amazon struct
-			awsCluster, err := CreateAWSClusterFromModel(modelCluster)
+			awsCluster, err := CreateEC2ClusterFromModel(modelCluster)
 			if err != nil {
 				return nil, err
 			}
 
 			log.Debug("Load Amazon props from database")
-			err = database.Where(model.AmazonClusterModel{ClusterModelId: awsCluster.modelCluster.ID}).First(&awsCluster.modelCluster.Amazon).Error
+			err = db.Where(model.EC2ClusterModel{ClusterModelId: awsCluster.modelCluster.ID}).First(&awsCluster.modelCluster.EC2).Error
 			if err != nil {
 				return nil, err
 			}
-			err = database.Model(&awsCluster.modelCluster.Amazon).Related(&awsCluster.modelCluster.Amazon.NodePools, "NodePools").Error
+			err = db.Model(&awsCluster.modelCluster.EC2).Related(&awsCluster.modelCluster.EC2.NodePools, "NodePools").Error
 
 			return awsCluster, err
 		}
@@ -220,11 +221,11 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 		}
 
 		log.Debug("Load EKS props from database")
-		err = database.Where(model.AmazonEksClusterModel{ClusterModelId: eksCluster.modelCluster.ID}).First(&eksCluster.modelCluster.Eks).Error
+		err = db.Where(model.EKSClusterModel{ClusterModelId: eksCluster.modelCluster.ID}).First(&eksCluster.modelCluster.EKS).Error
 		if err != nil {
 			return nil, err
 		}
-		err = database.Model(&eksCluster.modelCluster.Eks).Related(&eksCluster.modelCluster.Eks.NodePools, "NodePools").Error
+		err = db.Model(&eksCluster.modelCluster.EKS).Related(&eksCluster.modelCluster.EKS.NodePools, "NodePools").Error
 
 		return eksCluster, err
 
@@ -236,11 +237,11 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 		}
 
 		log.Info("Load Azure props from database")
-		err = database.Where(model.AzureClusterModel{ClusterModelId: aksCluster.modelCluster.ID}).First(&aksCluster.modelCluster.Azure).Error
+		err = db.Where(model.AKSClusterModel{ClusterModelId: aksCluster.modelCluster.ID}).First(&aksCluster.modelCluster.AKS).Error
 		if err != nil {
 			return nil, err
 		}
-		err = database.Model(&aksCluster.modelCluster.Azure).Related(&aksCluster.modelCluster.Azure.NodePools, "NodePools").Error
+		err = db.Model(&aksCluster.modelCluster.AKS).Related(&aksCluster.modelCluster.AKS.NodePools, "NodePools").Error
 
 		return aksCluster, err
 
@@ -252,11 +253,11 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 		}
 
 		log.Info("Load Google props from database")
-		err = database.Where(model.GoogleClusterModel{ClusterModelId: gkeCluster.modelCluster.ID}).First(&gkeCluster.modelCluster.Google).Error
+		err = db.Where(model.GKEClusterModel{ClusterModelId: gkeCluster.modelCluster.ID}).First(&gkeCluster.modelCluster.GKE).Error
 		if err != nil {
 			return nil, err
 		}
-		err = database.Model(&gkeCluster.modelCluster.Google).Related(&gkeCluster.modelCluster.Google.NodePools, "NodePools").Error
+		err = db.Model(&gkeCluster.modelCluster.GKE).Related(&gkeCluster.modelCluster.GKE.NodePools, "NodePools").Error
 
 		return gkeCluster, err
 
@@ -267,7 +268,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 		}
 
 		log.Info("Load Dummy props from database")
-		err = database.Where(model.DummyClusterModel{ClusterModelId: dummyCluster.modelCluster.ID}).First(&dummyCluster.modelCluster.Dummy).Error
+		err = db.Where(model.DummyClusterModel{ClusterModelId: dummyCluster.modelCluster.ID}).First(&dummyCluster.modelCluster.Dummy).Error
 
 		return dummyCluster, err
 
@@ -279,7 +280,12 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 		}
 
 		log.Info("Load Kubernetes props from database")
-		err = database.Where(model.KubernetesClusterModel{ClusterModelId: kubernetesCluster.modelCluster.ID}).First(&kubernetesCluster.modelCluster.Kubernetes).Error
+		err = db.Where(model.KubernetesClusterModel{ClusterModelId: kubernetesCluster.modelCluster.ID}).First(&kubernetesCluster.modelCluster.Kubernetes).Error
+		if database.IsErrorGormNotFound(err) {
+			// metadata not set so there's no properties in DB
+			log.Warnf(err.Error())
+			err = nil
+		}
 
 		return kubernetesCluster, err
 
@@ -291,7 +297,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 		}
 
 		log.Info("Load Oracle props from database")
-		err = database.Where(modelOracle.Cluster{ClusterModelID: okeCluster.modelCluster.ID}).Preload("NodePools.Subnets").Preload("NodePools.Labels").First(&okeCluster.modelCluster.Oracle).Error
+		err = db.Where(modelOracle.Cluster{ClusterModelID: okeCluster.modelCluster.ID}).Preload("NodePools.Subnets").Preload("NodePools.Labels").First(&okeCluster.modelCluster.OKE).Error
 
 		return okeCluster, err
 	}
@@ -314,16 +320,16 @@ func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClust
 	cloudType := createClusterRequest.Cloud
 	switch cloudType {
 	case pkgCluster.Amazon:
-		if createClusterRequest.Properties.CreateClusterAmazon != nil {
-			//Create Amazon struct
-			awsCluster, err := CreateAWSClusterFromRequest(createClusterRequest, orgId, userId)
+		if createClusterRequest.Properties.CreateClusterEC2 != nil {
+			//Create EC2 struct
+			ec2Cluster, err := CreateEC2ClusterFromRequest(createClusterRequest, orgId, userId)
 			if err != nil {
 				return nil, err
 			}
-			return awsCluster, nil
+			return ec2Cluster, nil
 		}
 
-		//Create Eks struct
+		//Create EKS struct
 		eksCluster, err := CreateEKSClusterFromRequest(createClusterRequest, orgId, userId)
 		if err != nil {
 			return nil, err
@@ -331,7 +337,7 @@ func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClust
 		return eksCluster, nil
 
 	case pkgCluster.Azure:
-		// Create Azure struct
+		// Create AKS struct
 		aksCluster, err := CreateAKSClusterFromRequest(createClusterRequest, orgId, userId)
 		if err != nil {
 			return nil, err
@@ -339,7 +345,7 @@ func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClust
 		return aksCluster, nil
 
 	case pkgCluster.Google:
-		// Create Google struct
+		// Create GKE struct
 		gkeCluster, err := CreateGKEClusterFromRequest(createClusterRequest, orgId, userId)
 		if err != nil {
 			return nil, err
@@ -364,7 +370,7 @@ func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClust
 		return kubeCluster, nil
 
 	case pkgCluster.Oracle:
-		// Create Oracle struct
+		// Create OKE struct
 		okeCluster, err := CreateOKEClusterFromRequest(createClusterRequest, orgId, userId)
 		if err != nil {
 			return nil, err

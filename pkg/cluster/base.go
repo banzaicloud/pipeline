@@ -4,15 +4,15 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/banzaicloud/pipeline/pkg/cluster/amazon"
-	"github.com/banzaicloud/pipeline/pkg/cluster/azure"
+	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/dummy"
+	"github.com/banzaicloud/pipeline/pkg/cluster/ec2"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
-	"github.com/banzaicloud/pipeline/pkg/cluster/google"
+	"github.com/banzaicloud/pipeline/pkg/cluster/gke"
 	"github.com/banzaicloud/pipeline/pkg/cluster/kubernetes"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
-	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster"
+	oke "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster"
 	"k8s.io/api/core/v1"
 )
 
@@ -30,15 +30,24 @@ const (
 	DeletingMessage = "Cluster is deleting"
 )
 
-// Cluster provider constants
+// Cloud constants
 const (
 	Amazon     = "amazon"
-	AmazonEKS  = "eks"
 	Azure      = "azure"
 	Google     = "google"
 	Dummy      = "dummy"
 	Kubernetes = "kubernetes"
 	Oracle     = "oracle"
+)
+
+// Distribution constants
+const (
+	EC2     = "ec2"
+	EKS     = "eks"
+	AKS     = "aks"
+	GKE     = "gke"
+	OKE     = "oracle"
+	Unknown = "unknown"
 )
 
 // constants for posthooks
@@ -84,13 +93,13 @@ type CreateClusterRequest struct {
 
 // CreateClusterProperties contains the cluster flavor specific properties.
 type CreateClusterProperties struct {
-	CreateClusterAmazon *amazon.CreateClusterAmazon  `json:"amazon,omitempty"`
-	CreateClusterEks    *eks.CreateClusterEks        `json:"eks,omitempty"`
-	CreateClusterAzure  *azure.CreateClusterAzure    `json:"azure,omitempty"`
-	CreateClusterGoogle *google.CreateClusterGoogle  `json:"google,omitempty"`
-	CreateClusterDummy  *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
-	CreateKubernetes    *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
-	CreateClusterOracle *oracle.Cluster              `json:"oracle,omitempty"`
+	CreateClusterEC2   *ec2.CreateClusterEC2        `json:"ec2,omitempty"`
+	CreateClusterEKS   *eks.CreateClusterEKS        `json:"eks,omitempty"`
+	CreateClusterAKS   *aks.CreateClusterAKS        `json:"aks,omitempty"`
+	CreateClusterGKE   *gke.CreateClusterGKE        `json:"gke,omitempty"`
+	CreateClusterDummy *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
+	CreateKubernetes   *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
+	CreateClusterOKE   *oke.Cluster                 `json:"oracle,omitempty"`
 }
 
 // PostHookParam describes posthook params in create request
@@ -126,6 +135,7 @@ type GetClusterStatusResponse struct {
 	Name          string                     `json:"name"`
 	Location      string                     `json:"location"`
 	Cloud         string                     `json:"cloud"`
+	Distribution  string                     `json:"distribution"`
 	ResourceID    uint                       `json:"id"`
 	NodePools     map[string]*NodePoolStatus `json:"nodePools,omitempty"`
 	pkgCommon.CreatorBaseFields
@@ -172,41 +182,62 @@ type DeleteClusterResponse struct {
 
 // UpdateProperties describes Pipeline's UpdateCluster request properties
 type UpdateProperties struct {
-	Amazon *amazon.UpdateClusterAmazon `json:"amazon,omitempty"`
-	Eks    *eks.UpdateClusterAmazonEKS `json:"eks,omitempty"`
-	Azure  *azure.UpdateClusterAzure   `json:"azure,omitempty"`
-	Google *google.UpdateClusterGoogle `json:"google,omitempty"`
-	Dummy  *dummy.UpdateClusterDummy   `json:"dummy,omitempty"`
-	Oracle *oracle.Cluster             `json:"oracle,omitempty"`
+	EC2   *ec2.UpdateClusterAmazon    `json:"ec2,omitempty"`
+	EKS   *eks.UpdateClusterAmazonEKS `json:"eks,omitempty"`
+	AKS   *aks.UpdateClusterAzure     `json:"aks,omitempty"`
+	GKE   *gke.UpdateClusterGoogle    `json:"gke,omitempty"`
+	Dummy *dummy.UpdateClusterDummy   `json:"dummy,omitempty"`
+	OKE   *oke.Cluster                `json:"oracle,omitempty"`
 }
 
 // String method prints formatted update request fields
-func (r *UpdateClusterRequest) String() string {
+func (r *UpdateClusterRequest) String() string { // todo expand
 	var buffer bytes.Buffer
 	buffer.WriteString(fmt.Sprintf("Cloud: %s, ", r.Cloud))
-	if r.Cloud == Azure && r.Azure != nil && r.Azure.NodePools != nil {
+	if r.Cloud == Azure && r.AKS != nil && r.AKS.NodePools != nil {
 		// Write AKS
-		buffer.WriteString(fmt.Sprintf("Node pools: %v",
-			&r.Azure.NodePools))
-	} else if r.Cloud == Amazon && r.Amazon != nil {
-		// Write AWS Node
-		for name, nodePool := range r.UpdateProperties.Amazon.NodePools {
-			buffer.WriteString(fmt.Sprintf("NodePool %s Min count: %d, Max count: %d",
-				name,
-				nodePool.MinCount,
-				nodePool.MaxCount))
+		buffer.WriteString(fmt.Sprintf("Node pools: %v", &r.AKS.NodePools))
+	} else if r.Cloud == Amazon {
+		if r.EC2 != nil {
+			// Write EC2 Node
+			for name, nodePool := range r.UpdateProperties.EC2.NodePools {
+				buffer.WriteString(fmt.Sprintf("NodePool %s Min count: %d, Max count: %d, Count: %d, Image: %s, Autoscaling: %v, InstanceType: %s, Spot price: %s",
+					name,
+					nodePool.MinCount,
+					nodePool.MaxCount,
+					nodePool.Count,
+					nodePool.Image,
+					nodePool.Autoscaling,
+					nodePool.InstanceType,
+					nodePool.SpotPrice,
+				))
+			}
+		} else if r.EKS != nil {
+			// Write EKS Node
+			for name, nodePool := range r.UpdateProperties.EKS.NodePools {
+				buffer.WriteString(fmt.Sprintf("NodePool %s Min count: %d, Max count: %d, Count: %d, Image: %s, Autoscaling: %v, InstanceType: %s, Spot price: %s",
+					name,
+					nodePool.MinCount,
+					nodePool.MaxCount,
+					nodePool.Count,
+					nodePool.Image,
+					nodePool.Autoscaling,
+					nodePool.InstanceType,
+					nodePool.SpotPrice,
+				))
+			}
 		}
-	} else if r.Cloud == Google && r.Google != nil {
+	} else if r.Cloud == Google && r.GKE != nil {
 		// Write GKE Master
-		if r.Google.Master != nil {
+		if r.GKE.Master != nil {
 			buffer.WriteString(fmt.Sprintf("Master version: %s",
-				r.Google.Master.Version))
+				r.GKE.Master.Version))
 		}
 
 		// Write GKE Node version
-		buffer.WriteString(fmt.Sprintf("Node version: %s", r.Google.NodeVersion))
-		if r.Google.NodePools != nil {
-			buffer.WriteString(fmt.Sprintf("Node pools: %v", r.Google.NodePools))
+		buffer.WriteString(fmt.Sprintf("Node version: %s", r.GKE.NodeVersion))
+		if r.GKE.NodePools != nil {
+			buffer.WriteString(fmt.Sprintf("Node pools: %v", r.GKE.NodePools))
 		}
 	} else if r.Cloud == Dummy && r.Dummy != nil {
 		// Write Dummy node
@@ -214,6 +245,17 @@ func (r *UpdateClusterRequest) String() string {
 			buffer.WriteString(fmt.Sprintf("Node count: %d, k8s version: %s",
 				r.Dummy.Node.Count,
 				r.Dummy.Node.KubernetesVersion))
+		}
+	} else if r.Cloud == Oracle && r.OKE != nil {
+		buffer.WriteString(fmt.Sprintf("Master version: %s", r.OKE.Version))
+		for name, nodePool := range r.UpdateProperties.OKE.NodePools {
+			buffer.WriteString(fmt.Sprintf("NodePool %s Count: %d Version: %s Image: %s Shape: %s Labels: %v",
+				name,
+				nodePool.Count,
+				nodePool.Version,
+				nodePool.Image,
+				nodePool.Shape,
+				nodePool.Labels))
 		}
 	}
 
@@ -224,12 +266,12 @@ func (r *UpdateClusterRequest) String() string {
 func (r *CreateClusterRequest) AddDefaults() error {
 	switch r.Cloud {
 	case Amazon:
-		if r.Properties.CreateClusterAmazon != nil {
-			return r.Properties.CreateClusterAmazon.AddDefaults(r.Location)
+		if r.Properties.CreateClusterEC2 != nil {
+			return r.Properties.CreateClusterEC2.AddDefaults(r.Location)
 		}
-		return r.Properties.CreateClusterEks.AddDefaults(r.Location)
+		return r.Properties.CreateClusterEKS.AddDefaults(r.Location)
 	case Oracle:
-		return r.Properties.CreateClusterOracle.AddDefaults()
+		return r.Properties.CreateClusterOKE.AddDefaults()
 	default:
 		return nil
 	}
@@ -244,18 +286,18 @@ func (r *CreateClusterRequest) Validate() error {
 
 	switch r.Cloud {
 	case Amazon:
-		// amazon validate
-		if r.Properties.CreateClusterAmazon != nil {
-			return r.Properties.CreateClusterAmazon.Validate()
+		// ec2 validate
+		if r.Properties.CreateClusterEC2 != nil {
+			return r.Properties.CreateClusterEC2.Validate()
 		}
-		// amazon eks validate
-		return r.Properties.CreateClusterEks.Validate()
+		// ec2 eks validate
+		return r.Properties.CreateClusterEKS.Validate()
 	case Azure:
-		// azure validate
-		return r.Properties.CreateClusterAzure.Validate()
+		// aks validate
+		return r.Properties.CreateClusterAKS.Validate()
 	case Google:
-		// google validate
-		return r.Properties.CreateClusterGoogle.Validate()
+		// gke validate
+		return r.Properties.CreateClusterGKE.Validate()
 	case Dummy:
 		// dummy validate
 		return r.Properties.CreateClusterDummy.Validate()
@@ -264,7 +306,7 @@ func (r *CreateClusterRequest) Validate() error {
 		return r.Properties.CreateKubernetes.Validate()
 	case Oracle:
 		// oracle validate
-		return r.Properties.CreateClusterOracle.Validate(false)
+		return r.Properties.CreateClusterOKE.Validate(false)
 	default:
 		// not supported cloud type
 		return pkgErrors.ErrorNotSupportedCloudType
@@ -288,23 +330,23 @@ func (r *UpdateClusterRequest) Validate() error {
 
 	switch r.Cloud {
 	case Amazon:
-		// amazon validate
-		if r.Amazon != nil {
-			return r.Amazon.Validate()
+		// ec2 validate
+		if r.EC2 != nil {
+			return r.EC2.Validate()
 		}
-		// amazon eks validate
-		return r.Eks.Validate()
+		// ec2 eks validate
+		return r.EKS.Validate()
 	case Azure:
-		// azure validate
-		return r.Azure.Validate()
+		// aks validate
+		return r.AKS.Validate()
 	case Google:
-		// google validate
-		return r.Google.Validate()
+		// gke validate
+		return r.GKE.Validate()
 	case Dummy:
 		return r.Dummy.Validate()
 	case Oracle:
 		// oracle validate
-		return r.Oracle.Validate(true)
+		return r.OKE.Validate(true)
 	default:
 		// not supported cloud type
 		return pkgErrors.ErrorNotSupportedCloudType
@@ -317,26 +359,26 @@ func (r *UpdateClusterRequest) preValidate() {
 	switch r.Cloud {
 	case Amazon:
 		// reset other fields
-		r.Azure = nil
-		r.Google = nil
-		r.Oracle = nil
+		r.AKS = nil
+		r.GKE = nil
+		r.OKE = nil
 		break
 	case Azure:
 		// reset other fields
-		r.Amazon = nil
-		r.Google = nil
-		r.Oracle = nil
+		r.EC2 = nil
+		r.GKE = nil
+		r.OKE = nil
 		break
 	case Google:
 		// reset other fields
-		r.Amazon = nil
-		r.Azure = nil
-		r.Oracle = nil
+		r.EC2 = nil
+		r.AKS = nil
+		r.OKE = nil
 	case Oracle:
 		// reset other fields
-		r.Amazon = nil
-		r.Azure = nil
-		r.Google = nil
+		r.EC2 = nil
+		r.AKS = nil
+		r.OKE = nil
 	}
 }
 
@@ -346,11 +388,11 @@ type ClusterProfileResponse struct {
 	Location   string `json:"location" binding:"required"`
 	Cloud      string `json:"cloud" binding:"required"`
 	Properties struct {
-		Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
-		Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
-		Eks    *eks.ClusterProfileEks       `json:"eks,omitempty"`
-		Google *google.ClusterProfileGoogle `json:"google,omitempty"`
-		Oracle *oracle.Cluster              `json:"oracle,omitempty"`
+		EC2 *ec2.ClusterProfileEC2 `json:"ec2,omitempty"`
+		EKS *eks.ClusterProfileEKS `json:"eks,omitempty"`
+		AKS *aks.ClusterProfileAKS `json:"aks,omitempty"`
+		GKE *gke.ClusterProfileGKE `json:"gke,omitempty"`
+		OKE *oke.Cluster           `json:"oracle,omitempty"`
 	} `json:"properties" binding:"required"`
 }
 
@@ -360,11 +402,11 @@ type ClusterProfileRequest struct {
 	Location   string `json:"location" binding:"required"`
 	Cloud      string `json:"cloud" binding:"required"`
 	Properties struct {
-		Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
-		Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
-		Eks    *eks.ClusterProfileEks       `json:"eks,omitempty"`
-		Google *google.ClusterProfileGoogle `json:"google,omitempty"`
-		Oracle *oracle.Cluster              `json:"oracle,omitempty"`
+		EC2 *ec2.ClusterProfileEC2 `json:"ec2,omitempty"`
+		EKS *eks.ClusterProfileEKS `json:"eks,omitempty"`
+		AKS *aks.ClusterProfileAKS `json:"aks,omitempty"`
+		GKE *gke.ClusterProfileGKE `json:"gke,omitempty"`
+		OKE *oke.Cluster           `json:"oracle,omitempty"`
 	} `json:"properties" binding:"required"`
 }
 
@@ -503,42 +545,42 @@ func (p *ClusterProfileResponse) CreateClusterRequest(createRequest *CreateClust
 		Properties:  &CreateClusterProperties{},
 	}
 
-	switch p.Cloud {
+	switch p.Cloud { // todo distribution???
 	case Amazon:
-		if response.Properties.CreateClusterAmazon != nil {
-			response.Properties.CreateClusterAmazon = &amazon.CreateClusterAmazon{
-				NodePools: p.Properties.Amazon.NodePools,
-				Master: &amazon.CreateAmazonMaster{
-					InstanceType: p.Properties.Amazon.Master.InstanceType,
-					Image:        p.Properties.Amazon.Master.Image,
+		if response.Properties.CreateClusterEC2 != nil {
+			response.Properties.CreateClusterEC2 = &ec2.CreateClusterEC2{
+				NodePools: p.Properties.EC2.NodePools,
+				Master: &ec2.CreateAmazonMaster{
+					InstanceType: p.Properties.EC2.Master.InstanceType,
+					Image:        p.Properties.EC2.Master.Image,
 				},
 			}
 		} else {
-			response.Properties.CreateClusterEks = &eks.CreateClusterEks{
-				NodePools: p.Properties.Amazon.NodePools,
-				Version:   p.Properties.Eks.Version,
+			response.Properties.CreateClusterEKS = &eks.CreateClusterEKS{
+				NodePools: p.Properties.EKS.NodePools,
+				Version:   p.Properties.EKS.Version,
 			}
 		}
 	case Azure:
-		a := createRequest.Properties.CreateClusterAzure
+		a := createRequest.Properties.CreateClusterAKS
 		if a == nil || len(a.ResourceGroup) == 0 {
 			return nil, pkgErrors.ErrorResourceGroupRequired
 		}
-		response.Properties.CreateClusterAzure = &azure.CreateClusterAzure{
+		response.Properties.CreateClusterAKS = &aks.CreateClusterAKS{
 			ResourceGroup:     a.ResourceGroup,
-			KubernetesVersion: p.Properties.Azure.KubernetesVersion,
-			NodePools:         p.Properties.Azure.NodePools,
+			KubernetesVersion: p.Properties.AKS.KubernetesVersion,
+			NodePools:         p.Properties.AKS.NodePools,
 		}
 	case Google:
-		response.Properties.CreateClusterGoogle = &google.CreateClusterGoogle{
-			NodeVersion: p.Properties.Google.NodeVersion,
-			NodePools:   p.Properties.Google.NodePools,
-			Master:      p.Properties.Google.Master,
+		response.Properties.CreateClusterGKE = &gke.CreateClusterGKE{
+			NodeVersion: p.Properties.GKE.NodeVersion,
+			NodePools:   p.Properties.GKE.NodePools,
+			Master:      p.Properties.GKE.Master,
 		}
 	case Oracle:
-		response.Properties.CreateClusterOracle = &oracle.Cluster{
-			Version:   p.Properties.Oracle.Version,
-			NodePools: p.Properties.Oracle.NodePools,
+		response.Properties.CreateClusterOKE = &oke.Cluster{
+			Version:   p.Properties.OKE.Version,
+			NodePools: p.Properties.OKE.NodePools,
 		}
 	}
 

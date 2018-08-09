@@ -9,14 +9,13 @@ import (
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/banzaicloud/pipeline/pkg/cluster/amazon"
-	"github.com/banzaicloud/pipeline/pkg/cluster/azure"
+	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/dummy"
+	"github.com/banzaicloud/pipeline/pkg/cluster/ec2"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
-	"github.com/banzaicloud/pipeline/pkg/cluster/google"
+	"github.com/banzaicloud/pipeline/pkg/cluster/gke"
 	"github.com/banzaicloud/pipeline/pkg/cluster/kubernetes"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
-	modelOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -30,6 +29,7 @@ const (
 	clusterRequestWrongVersion   = "1.7.7-gke.1"
 	clusterRequestRG             = "testResourceGroup"
 	clusterRequestKubernetes     = "1.9.6"
+	clusterRequestKubernetesEKS  = "1.10"
 	clusterRequestAgentName      = "testAgent"
 	clusterRequestSpotPrice      = "1.2"
 	clusterRequestNodeMinCount   = 1
@@ -48,7 +48,7 @@ const (
 var (
 	clusterRequestSecretId = fmt.Sprintf("%x", sha256.Sum256([]byte(secretName)))
 
-	awsSecretRequest = secret.CreateSecretRequest{
+	amazonSecretRequest = secret.CreateSecretRequest{
 		Name: secretName,
 		Type: pkgCluster.Amazon,
 		Values: map[string]string{
@@ -100,7 +100,7 @@ func TestCreateCommonClusterFromRequest(t *testing.T) {
 	}{
 		{name: "gke create", createRequest: gkeCreateFull, expectedModel: gkeModelFull, expectedError: nil},
 		{name: "aks create", createRequest: aksCreateFull, expectedModel: aksModelFull, expectedError: nil},
-		{name: "aws create", createRequest: awsCreateFull, expectedModel: awsModelFull, expectedError: nil},
+		{name: "ec2 create", createRequest: ec2CreateFull, expectedModel: ec2ModelFull, expectedError: nil},
 		{name: "dummy create", createRequest: dummyCreateFull, expectedModel: dummyModelFull, expectedError: nil},
 		{name: "kube create", createRequest: kubeCreateFull, expectedModel: kubeModelFull, expectedError: nil},
 
@@ -109,7 +109,7 @@ func TestCreateCommonClusterFromRequest(t *testing.T) {
 
 		{name: "not supported cloud", createRequest: notSupportedCloud, expectedModel: nil, expectedError: pkgErrors.ErrorNotSupportedCloudType},
 
-		{name: "aws empty location", createRequest: awsEmptyLocationCreate, expectedModel: nil, expectedError: pkgErrors.ErrorLocationEmpty},
+		{name: "ec2 empty location", createRequest: ec2EmptyLocationCreate, expectedModel: nil, expectedError: pkgErrors.ErrorLocationEmpty},
 		{name: "aks empty location", createRequest: aksEmptyLocationCreate, expectedModel: nil, expectedError: pkgErrors.ErrorLocationEmpty},
 		{name: "gke empty location", createRequest: gkeEmptyLocationCreate, expectedModel: nil, expectedError: pkgErrors.ErrorLocationEmpty},
 		{name: "kube empty location and nodeInstanceType", createRequest: kubeEmptyLocation, expectedModel: kubeEmptyLocAndNIT, expectedError: nil},
@@ -168,15 +168,15 @@ func TestGKEKubernetesVersion(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			g := google.CreateClusterGoogle{
+			g := gke.CreateClusterGKE{
 				NodeVersion: tc.version,
-				NodePools: map[string]*google.NodePool{
+				NodePools: map[string]*gke.NodePool{
 					pool1Name: {
 						Count:            clusterRequestNodeCount,
 						NodeInstanceType: clusterRequestNodeInstance,
 					},
 				},
-				Master: &google.Master{
+				Master: &gke.Master{
 					Version: tc.version,
 				},
 			}
@@ -200,12 +200,12 @@ func TestGetSecretWithValidation(t *testing.T) {
 		createClusterRequest *pkgCluster.CreateClusterRequest
 		err                  error
 	}{
-		{"aws", awsSecretRequest, awsCreateFull, nil},
+		{"amazon", amazonSecretRequest, ec2CreateFull, nil},
 		{"aks", aksSecretRequest, aksCreateFull, nil},
 		{"gke", gkeSecretRequest, gkeCreateFull, nil},
-		{"aws wrong cloud field", awsSecretRequest, gkeCreateFull, errAmazonGoogle},
-		{"aks wrong cloud field", aksSecretRequest, awsCreateFull, errAzureAmazon},
-		{"gke wrong cloud field", gkeSecretRequest, awsCreateFull, errGoogleAmazon},
+		{"amazon wrong cloud field", amazonSecretRequest, gkeCreateFull, errAmazonGoogle},
+		{"aks wrong cloud field", aksSecretRequest, ec2CreateFull, errAzureAmazon},
+		{"gke wrong cloud field", gkeSecretRequest, ec2CreateFull, errGoogleAmazon},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -248,9 +248,9 @@ var (
 		Cloud:    pkgCluster.Google,
 		SecretId: clusterRequestSecretId,
 		Properties: &pkgCluster.CreateClusterProperties{
-			CreateClusterGoogle: &google.CreateClusterGoogle{
+			CreateClusterGKE: &gke.CreateClusterGKE{
 				NodeVersion: clusterRequestVersion,
-				NodePools: map[string]*google.NodePool{
+				NodePools: map[string]*gke.NodePool{
 					pool1Name: {
 						Autoscaling:      true,
 						MinCount:         clusterRequestNodeCount,
@@ -259,7 +259,7 @@ var (
 						NodeInstanceType: clusterRequestNodeInstance,
 					},
 				},
-				Master: &google.Master{
+				Master: &gke.Master{
 					Version: clusterRequestVersion,
 				},
 			},
@@ -272,15 +272,15 @@ var (
 		Cloud:    pkgCluster.Google,
 		SecretId: clusterRequestSecretId,
 		Properties: &pkgCluster.CreateClusterProperties{
-			CreateClusterGoogle: &google.CreateClusterGoogle{
+			CreateClusterGKE: &gke.CreateClusterGKE{
 				NodeVersion: clusterRequestVersion,
-				NodePools: map[string]*google.NodePool{
+				NodePools: map[string]*gke.NodePool{
 					pool1Name: {
 						Count:            clusterRequestNodeCount,
 						NodeInstanceType: clusterRequestNodeInstance,
 					},
 				},
-				Master: &google.Master{
+				Master: &gke.Master{
 					Version: clusterRequestVersion,
 				},
 			},
@@ -293,10 +293,10 @@ var (
 		Cloud:    pkgCluster.Azure,
 		SecretId: clusterRequestSecretId,
 		Properties: &pkgCluster.CreateClusterProperties{
-			CreateClusterAzure: &azure.CreateClusterAzure{
+			CreateClusterAKS: &aks.CreateClusterAKS{
 				ResourceGroup:     clusterRequestRG,
 				KubernetesVersion: clusterRequestKubernetes,
-				NodePools: map[string]*azure.NodePoolCreate{
+				NodePools: map[string]*aks.NodePoolCreate{
 					clusterRequestAgentName: {
 						Autoscaling:      true,
 						MinCount:         clusterRequestNodeCount,
@@ -315,10 +315,10 @@ var (
 		Cloud:    pkgCluster.Azure,
 		SecretId: clusterRequestSecretId,
 		Properties: &pkgCluster.CreateClusterProperties{
-			CreateClusterAzure: &azure.CreateClusterAzure{
+			CreateClusterAKS: &aks.CreateClusterAKS{
 				ResourceGroup:     clusterRequestRG,
 				KubernetesVersion: clusterRequestKubernetes,
-				NodePools: map[string]*azure.NodePoolCreate{
+				NodePools: map[string]*aks.NodePoolCreate{
 					clusterRequestAgentName: {
 						Count:            clusterRequestNodeCount,
 						NodeInstanceType: clusterRequestNodeInstance,
@@ -328,14 +328,14 @@ var (
 		},
 	}
 
-	awsCreateFull = &pkgCluster.CreateClusterRequest{
+	ec2CreateFull = &pkgCluster.CreateClusterRequest{
 		Name:     clusterRequestName,
 		Location: clusterRequestLocation,
 		Cloud:    pkgCluster.Amazon,
 		SecretId: clusterRequestSecretId,
 		Properties: &pkgCluster.CreateClusterProperties{
-			CreateClusterAmazon: &amazon.CreateClusterAmazon{
-				NodePools: map[string]*amazon.NodePool{
+			CreateClusterEC2: &ec2.CreateClusterEC2{
+				NodePools: map[string]*ec2.NodePool{
 					pool1Name: {
 						InstanceType: clusterRequestNodeInstance,
 						SpotPrice:    clusterRequestSpotPrice,
@@ -345,7 +345,7 @@ var (
 						Image:        clusterRequestNodeImage,
 					},
 				},
-				Master: &amazon.CreateAmazonMaster{
+				Master: &ec2.CreateAmazonMaster{
 					InstanceType: clusterRequestMasterInstance,
 					Image:        clusterRequestMasterImage,
 				},
@@ -359,15 +359,16 @@ var (
 		Cloud:    pkgCluster.Amazon,
 		SecretId: clusterRequestSecretId,
 		Properties: &pkgCluster.CreateClusterProperties{
-			CreateClusterEks: &eks.CreateClusterEks{
-				Version: clusterRequestVersion,
-				NodePools: map[string]*amazon.NodePool{
+			CreateClusterEKS: &eks.CreateClusterEKS{
+				Version: clusterRequestKubernetesEKS,
+				NodePools: map[string]*ec2.NodePool{
 					pool1Name: {
 						InstanceType: clusterRequestNodeInstance,
 						SpotPrice:    clusterRequestSpotPrice,
 						Autoscaling:  true,
-						MinCount:     clusterRequestNodeCount,
+						MinCount:     clusterRequestNodeMinCount,
 						MaxCount:     clusterRequestNodeMaxCount,
+						Count:        clusterRequestNodeCount,
 						Image:        clusterRequestNodeImage,
 					},
 				},
@@ -390,14 +391,14 @@ var (
 		},
 	}
 
-	awsEmptyLocationCreate = &pkgCluster.CreateClusterRequest{
+	ec2EmptyLocationCreate = &pkgCluster.CreateClusterRequest{
 		Name:     clusterRequestName,
 		Location: "",
 		Cloud:    pkgCluster.Amazon,
 		SecretId: clusterRequestSecretId,
 		Properties: &pkgCluster.CreateClusterProperties{
-			CreateClusterAmazon: &amazon.CreateClusterAmazon{
-				NodePools: map[string]*amazon.NodePool{
+			CreateClusterEC2: &ec2.CreateClusterEC2{
+				NodePools: map[string]*ec2.NodePool{
 					pool1Name: {
 						InstanceType: clusterRequestNodeInstance,
 						SpotPrice:    clusterRequestSpotPrice,
@@ -406,7 +407,7 @@ var (
 						Image:        clusterRequestNodeImage,
 					},
 				},
-				Master: &amazon.CreateAmazonMaster{
+				Master: &ec2.CreateAmazonMaster{
 					InstanceType: clusterRequestMasterInstance,
 					Image:        clusterRequestMasterImage,
 				},
@@ -456,15 +457,15 @@ var (
 		Cloud:    pkgCluster.Google,
 		SecretId: clusterRequestSecretId,
 		Properties: &pkgCluster.CreateClusterProperties{
-			CreateClusterGoogle: &google.CreateClusterGoogle{
+			CreateClusterGKE: &gke.CreateClusterGKE{
 				NodeVersion: clusterRequestVersion,
-				NodePools: map[string]*google.NodePool{
+				NodePools: map[string]*gke.NodePool{
 					pool1Name: {
 						Count:            clusterRequestNodeCount,
 						NodeInstanceType: clusterRequestNodeInstance,
 					},
 				},
-				Master: &google.Master{
+				Master: &gke.Master{
 					Version: clusterRequestWrongVersion,
 				},
 			},
@@ -477,15 +478,15 @@ var (
 		Cloud:    pkgCluster.Google,
 		SecretId: clusterRequestSecretId,
 		Properties: &pkgCluster.CreateClusterProperties{
-			CreateClusterGoogle: &google.CreateClusterGoogle{
+			CreateClusterGKE: &gke.CreateClusterGKE{
 				NodeVersion: clusterRequestVersion,
-				NodePools: map[string]*google.NodePool{
+				NodePools: map[string]*gke.NodePool{
 					pool1Name: {
 						Count:            clusterRequestNodeCount,
 						NodeInstanceType: clusterRequestNodeInstance,
 					},
 				},
-				Master: &google.Master{
+				Master: &gke.Master{
 					Version: clusterRequestVersion2,
 				},
 			},
@@ -500,13 +501,12 @@ var (
 		Location:       clusterRequestLocation,
 		SecretId:       clusterRequestSecretId,
 		Cloud:          pkgCluster.Google,
+		Distribution:   pkgCluster.GKE,
 		OrganizationId: organizationId,
-		Amazon:         model.AmazonClusterModel{},
-		Azure:          model.AzureClusterModel{},
-		Google: model.GoogleClusterModel{
+		GKE: model.GKEClusterModel{
 			MasterVersion: clusterRequestVersion,
 			NodeVersion:   clusterRequestVersion,
-			NodePools: []*model.GoogleNodePoolModel{
+			NodePools: []*model.GKENodePoolModel{
 				{
 					CreatedBy:        userId,
 					Name:             pool1Name,
@@ -518,7 +518,6 @@ var (
 				},
 			},
 		},
-		Oracle: modelOracle.Cluster{},
 	}
 
 	aksModelFull = &model.ClusterModel{
@@ -527,12 +526,12 @@ var (
 		Location:       clusterRequestLocation,
 		SecretId:       clusterRequestSecretId,
 		Cloud:          pkgCluster.Azure,
+		Distribution:   pkgCluster.AKS,
 		OrganizationId: organizationId,
-		Amazon:         model.AmazonClusterModel{},
-		Azure: model.AzureClusterModel{
+		AKS: model.AKSClusterModel{
 			ResourceGroup:     clusterRequestRG,
 			KubernetesVersion: clusterRequestKubernetes,
-			NodePools: []*model.AzureNodePoolModel{
+			NodePools: []*model.AKSNodePoolModel{
 				{
 					CreatedBy:        userId,
 					Autoscaling:      true,
@@ -544,18 +543,17 @@ var (
 				},
 			},
 		},
-		Google: model.GoogleClusterModel{},
-		Oracle: modelOracle.Cluster{},
 	}
 
-	awsModelFull = &model.ClusterModel{
+	ec2ModelFull = &model.ClusterModel{
 		CreatedBy:      userId,
 		Name:           clusterRequestName,
 		Location:       clusterRequestLocation,
 		SecretId:       clusterRequestSecretId,
 		Cloud:          pkgCluster.Amazon,
+		Distribution:   pkgCluster.EC2,
 		OrganizationId: organizationId,
-		Amazon: model.AmazonClusterModel{
+		EC2: model.EC2ClusterModel{
 			NodePools: []*model.AmazonNodePoolsModel{
 				{
 					CreatedBy:        userId,
@@ -571,9 +569,6 @@ var (
 			MasterInstanceType: clusterRequestMasterInstance,
 			MasterImage:        clusterRequestMasterImage,
 		},
-		Azure:  model.AzureClusterModel{},
-		Google: model.GoogleClusterModel{},
-		Oracle: modelOracle.Cluster{},
 	}
 
 	dummyModelFull = &model.ClusterModel{
@@ -581,16 +576,13 @@ var (
 		Name:           clusterRequestName,
 		Location:       clusterRequestLocation,
 		Cloud:          pkgCluster.Dummy,
+		Distribution:   pkgCluster.Dummy,
 		OrganizationId: organizationId,
 		SecretId:       clusterRequestSecretId,
-		Amazon:         model.AmazonClusterModel{},
-		Azure:          model.AzureClusterModel{},
-		Google:         model.GoogleClusterModel{},
 		Dummy: model.DummyClusterModel{
 			KubernetesVersion: clusterRequestKubernetes,
 			NodeCount:         clusterRequestNodeCount,
 		},
-		Oracle: modelOracle.Cluster{},
 	}
 
 	kubeModelFull = &model.ClusterModel{
@@ -599,17 +591,14 @@ var (
 		Location:       clusterRequestLocation,
 		SecretId:       clusterRequestSecretId,
 		Cloud:          pkgCluster.Kubernetes,
+		Distribution:   pkgCluster.Unknown,
 		OrganizationId: organizationId,
-		Amazon:         model.AmazonClusterModel{},
-		Azure:          model.AzureClusterModel{},
-		Google:         model.GoogleClusterModel{},
 		Kubernetes: model.KubernetesClusterModel{
 			Metadata: map[string]string{
 				clusterKubeMetaKey: clusterKubeMetaValue,
 			},
 			MetadataRaw: nil,
 		},
-		Oracle: modelOracle.Cluster{},
 	}
 
 	kubeEmptyLocAndNIT = &model.ClusterModel{
@@ -618,17 +607,14 @@ var (
 		Location:       "",
 		SecretId:       clusterRequestSecretId,
 		Cloud:          pkgCluster.Kubernetes,
+		Distribution:   pkgCluster.Unknown,
 		OrganizationId: organizationId,
-		Amazon:         model.AmazonClusterModel{},
-		Azure:          model.AzureClusterModel{},
-		Google:         model.GoogleClusterModel{},
 		Kubernetes: model.KubernetesClusterModel{
 			Metadata: map[string]string{
 				clusterKubeMetaKey: clusterKubeMetaValue,
 			},
 			MetadataRaw: nil,
 		},
-		Oracle: modelOracle.Cluster{},
 	}
 
 	gkeModelDifferentVersion = &model.ClusterModel{
@@ -637,13 +623,12 @@ var (
 		Location:       clusterRequestLocation,
 		SecretId:       clusterRequestSecretId,
 		Cloud:          pkgCluster.Google,
+		Distribution:   pkgCluster.GKE,
 		OrganizationId: organizationId,
-		Amazon:         model.AmazonClusterModel{},
-		Azure:          model.AzureClusterModel{},
-		Google: model.GoogleClusterModel{
+		GKE: model.GKEClusterModel{
 			MasterVersion: clusterRequestVersion2,
 			NodeVersion:   clusterRequestVersion,
-			NodePools: []*model.GoogleNodePoolModel{
+			NodePools: []*model.GKENodePoolModel{
 				{
 					Name:             pool1Name,
 					NodeCount:        clusterRequestNodeCount,
@@ -651,6 +636,5 @@ var (
 				},
 			},
 		},
-		Oracle: modelOracle.Cluster{},
 	}
 )

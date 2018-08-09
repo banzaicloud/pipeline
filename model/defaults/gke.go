@@ -3,10 +3,10 @@ package defaults
 import (
 	"github.com/banzaicloud/pipeline/database"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/banzaicloud/pipeline/pkg/cluster/amazon"
-	"github.com/banzaicloud/pipeline/pkg/cluster/azure"
+	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
+	"github.com/banzaicloud/pipeline/pkg/cluster/ec2"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
-	"github.com/banzaicloud/pipeline/pkg/cluster/google"
+	"github.com/banzaicloud/pipeline/pkg/cluster/gke"
 	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster"
 )
 
@@ -33,12 +33,12 @@ type GKENodePoolProfile struct {
 
 // TableName overrides GKEProfile's table name
 func (GKEProfile) TableName() string {
-	return DefaultGoogleProfileTablaName
+	return DefaultGKEProfileTableName
 }
 
 // TableName overrides GKENodePoolProfile's table name
 func (GKENodePoolProfile) TableName() string {
-	return DefaultGoogleNodePoolProfileTablaName
+	return DefaultGKENodePoolProfileTableName
 }
 
 // AfterFind loads nodepools to profile
@@ -82,18 +82,23 @@ func (d *GKEProfile) IsDefinedBefore() bool {
 	return database.GetDB().First(&d).RowsAffected != int64(0)
 }
 
-// GetType returns profile's cloud type
-func (d *GKEProfile) GetType() string {
+// GetCloud returns profile's cloud type
+func (d *GKEProfile) GetCloud() string {
 	return pkgCluster.Google
+}
+
+// GetDistribution returns profile's distribution type
+func (d *GKEProfile) GetDistribution() string {
+	return pkgCluster.GKE
 }
 
 // GetProfile load profile from database and converts ClusterProfileResponse
 func (d *GKEProfile) GetProfile() *pkgCluster.ClusterProfileResponse {
 
-	nodePools := make(map[string]*google.NodePool)
+	nodePools := make(map[string]*gke.NodePool)
 	if d.NodePools != nil {
 		for _, np := range d.NodePools {
-			nodePools[np.NodeName] = &google.NodePool{
+			nodePools[np.NodeName] = &gke.NodePool{
 				Autoscaling:      np.Autoscaling,
 				MinCount:         np.MinCount,
 				MaxCount:         np.MaxCount,
@@ -108,14 +113,14 @@ func (d *GKEProfile) GetProfile() *pkgCluster.ClusterProfileResponse {
 		Location: d.Location,
 		Cloud:    pkgCluster.Google,
 		Properties: struct {
-			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
-			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
-			Eks    *eks.ClusterProfileEks       `json:"eks,omitempty"`
-			Google *google.ClusterProfileGoogle `json:"google,omitempty"`
-			Oracle *oracle.Cluster              `json:"oracle,omitempty"`
+			EC2 *ec2.ClusterProfileEC2 `json:"ec2,omitempty"`
+			EKS *eks.ClusterProfileEKS `json:"eks,omitempty"`
+			AKS *aks.ClusterProfileAKS `json:"aks,omitempty"`
+			GKE *gke.ClusterProfileGKE `json:"gke,omitempty"`
+			OKE *oracle.Cluster        `json:"oracle,omitempty"`
 		}{
-			Google: &google.ClusterProfileGoogle{
-				Master: &google.Master{
+			GKE: &gke.ClusterProfileGKE{
+				Master: &gke.Master{
 					Version: d.MasterVersion,
 				},
 				NodeVersion: d.NodeVersion,
@@ -132,16 +137,16 @@ func (d *GKEProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave
 		d.Location = r.Location
 	}
 
-	if r.Properties.Google != nil {
+	if r.Properties.GKE != nil {
 
-		if len(r.Properties.Google.NodeVersion) != 0 {
-			d.NodeVersion = r.Properties.Google.NodeVersion
+		if len(r.Properties.GKE.NodeVersion) != 0 {
+			d.NodeVersion = r.Properties.GKE.NodeVersion
 		}
 
-		if len(r.Properties.Google.NodePools) != 0 {
+		if len(r.Properties.GKE.NodePools) != 0 {
 
 			var nodePools []*GKENodePoolProfile
-			for name, np := range r.Properties.Google.NodePools {
+			for name, np := range r.Properties.GKE.NodePools {
 				nodePools = append(nodePools, &GKENodePoolProfile{
 					Autoscaling:      np.Autoscaling,
 					MinCount:         np.MinCount,
@@ -156,8 +161,8 @@ func (d *GKEProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave
 			d.NodePools = nodePools
 		}
 
-		if r.Properties.Google.Master != nil {
-			d.MasterVersion = r.Properties.Google.Master.Version
+		if r.Properties.GKE.Master != nil {
+			d.MasterVersion = r.Properties.GKE.Master.Version
 		}
 	}
 

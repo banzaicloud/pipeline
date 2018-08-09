@@ -245,16 +245,16 @@ paths:
               $ref: '#/components/schemas/CreateClusterRequest'
 
             examples:
-              AWS:
+              EC2:
                 value:
-                  name: "awscluster-pipelineuser-123"
+                  name: "ec2cluster-pipelineuser-123"
                   location: "eu-west-1"
                   cloud: "amazon"
                   instanceType: "m4.xlarge"
                   properties:
                     properties:
-                      amazon:
-                        $ref: '#/components/schemas/CreateAmazonProperties'
+                      ec2:
+                        $ref: '#/components/schemas/CreateEC2Properties'
 
               AKS:
                 value:
@@ -263,8 +263,8 @@ paths:
                   cloud: "azure"
                   instanceType: "Standard_D2_v2"
                   properties:
-                    azure:
-                      $ref: '#/components/schemas/CreateAzureProperties'
+                    aks:
+                      $ref: '#/components/schemas/CreateAKSProperties'
 
               GKE:
                 value:
@@ -273,8 +273,8 @@ paths:
                   cloud: "google"
                   instanceType: "n1-standard-1"
                   properties:
-                    google:
-                      $ref: '#/components/schemas/CreateGoogleProperties'
+                    gke:
+                      $ref: '#/components/schemas/CreateGKEProperties'
     get:
       security:
         - bearerAuth: []
@@ -1718,7 +1718,7 @@ paths:
                   $ref: '#/components/schemas/BaseError_500'
 
 
-  '/api/v1/orgs/{orgId}/profiles/cluster/{type}':
+  '/api/v1/orgs/{orgId}/profiles/cluster/{distribution}':
     get:
       security:
           - bearerAuth: []
@@ -1734,10 +1734,10 @@ paths:
           description: Organization identification
           schema:
             type: integer
-        - name: type
+        - name: distribution
           in: path
           required: true
-          description: Cloud type
+          description: Distribution type
           schema:
             type: string
       responses:
@@ -1847,7 +1847,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/BaseError_500'
 
-  '/api/v1/orgs/{orgId}/profiles/cluster/{type}/{name}':
+  '/api/v1/orgs/{orgId}/profiles/cluster/{distribution}/{name}':
     delete:
       security:
           - bearerAuth: []
@@ -1863,10 +1863,10 @@ paths:
           description: Organization identification
           schema:
             type: integer
-        - name: type
+        - name: distribution
           in: path
           required: true
-          description: Cloud type
+          description: Distribution type
           schema:
             type: string
         - name: name
@@ -3431,12 +3431,12 @@ components:
         properties:
           type: object
           oneOf:
-            - $ref: '#/components/schemas/CreateAmazonProperties'
-            - $ref: '#/components/schemas/CreateAzureProperties'
-            - $ref: '#/components/schemas/CreateGoogleProperties'
-            - $ref: '#/components/schemas/CreateEksProperties'
+            - $ref: '#/components/schemas/CreateEC2Properties'
+            - $ref: '#/components/schemas/CreateAKSProperties'
+            - $ref: '#/components/schemas/CreateGKEProperties'
+            - $ref: '#/components/schemas/CreateEKSProperties'
           example:
-            google:
+            gke:
               master:
                 version: "1.8.7-gke.1"
               nodePools:
@@ -3445,12 +3445,12 @@ components:
                   instanceType: "n1-standard-2"
               nodeVersion: "1.8.7-gke.1"
 
-    CreateAmazonProperties:
+    CreateEC2Properties:
       type: object
       required:
-        - amazon
+        - ec2
       properties:
-        amazon:
+        ec2:
           type: object
           required:
             - nodePools
@@ -3499,7 +3499,7 @@ components:
           type: string
           example: "ami-06d1667f"
 
-    CreateEksProperties:
+    CreateEKSProperties:
       type: object
       required:
         - eks
@@ -3523,12 +3523,12 @@ components:
               additionalProperties:
                 $ref: '#/components/schemas/NodePoolsAmazon'
 
-    CreateAzureProperties:
+    CreateAKSProperties:
       type: object
       required:
-        - azure
+        - aks
       properties:
-        azure:
+        aks:
           type: object
           required:
             - kubernetesVersion
@@ -3568,12 +3568,12 @@ components:
           type: string
           example: "Standard_B2ms"
 
-    CreateGoogleProperties:
+    CreateGKEProperties:
       type: object
       required:
-        - google
+        - gke
       properties:
-        google:
+        gke:
           type: object
           required:
              - nodePools
@@ -3636,11 +3636,6 @@ components:
         error:
           type: string
           example: Invalid version
-
-    ClusterListResponse:
-      type: array
-      items:
-        $ref: '#/components/schemas/GetClusterStatusResponse'
 
     BaseError_400:
       type: object
@@ -4625,11 +4620,12 @@ components:
         properties:
           type: object
           oneOf:
-            - $ref: '#/components/schemas/ClusterProfileAmazon'
-            - $ref: '#/components/schemas/ClusterProfileAzure'
-            - $ref: '#/components/schemas/ClusterProfileGoogle'
+            - $ref: '#/components/schemas/ClusterProfileEC2'
+            - $ref: '#/components/schemas/ClusterProfileEKS'
+            - $ref: '#/components/schemas/ClusterProfileAKS'
+            - $ref: '#/components/schemas/ClusterProfileGKE'
           example:
-            google:
+            gke:
               master:
                 version: "1.9.4-gke.1"
               nodeVersion: "1.9.4-gke.1"
@@ -4638,10 +4634,10 @@ components:
                   count: 1
                   instanceType: "n1-standard-1"
 
-    ClusterProfileAmazon:
+    ClusterProfileEC2:
       type: object
       properties:
-        amazon:
+        ec2:
           type: object
           properties:
             master:
@@ -4680,11 +4676,48 @@ components:
                     image:
                       type: string
                       example: "ami-06d1667f"
-
-    ClusterProfileAzure:
+    
+    ClusterProfileEKS:
       type: object
       properties:
-        azure:
+        eks:
+          type: object
+          properties:
+            version:
+              type: string
+              example: "1.10"
+            nodePools:
+              type: object
+              properties:
+                pool1:
+                  type: object
+                  properties:
+                    instanceType:
+                      type: string
+                      example: "t2.medium"
+                    spotPrice:
+                      type: string
+                      example: "0.2"
+                    autoscaling:
+                      type: boolean
+                      example: true
+                    count:
+                      type: integer
+                      example: 1
+                    minCount:
+                      type: integer
+                      example: 1
+                    maxCount:
+                      type: integer
+                      example: 2
+                    image:
+                      type: string
+                      example: "ami-73a6e20b"    
+
+    ClusterProfileAKS:
+      type: object
+      properties:
+        aks:
           type: object
           properties:
             kubernetesVersion:
@@ -4712,10 +4745,10 @@ components:
                       type: string
                       example: "Standard_D2_v2"
 
-    ClusterProfileGoogle:
+    ClusterProfileGKE:
       type: object
       properties:
-        google:
+        gke:
           type: object
           properties:
             master:
@@ -4764,11 +4797,12 @@ components:
         properties:
           type: object
           oneOf:
-            - $ref: '#/components/schemas/AddClusterProfileAmazon'
-            - $ref: '#/components/schemas/AddClusterProfileAzure'
-            - $ref: '#/components/schemas/AddClusterProfileGoogle'
+            - $ref: '#/components/schemas/AddClusterProfileEC2'
+            - $ref: '#/components/schemas/AddClusterProfileEKS'
+            - $ref: '#/components/schemas/AddClusterProfileAKS'
+            - $ref: '#/components/schemas/AddClusterProfileGKE'
           example:
-            google:
+            gke:
               master:
                 version: "1.8.7-gke.1"
               nodeVersion: "1.8.7-gke.1"
@@ -4778,10 +4812,10 @@ components:
                   instanceType: "n1-standard-1"
 
 
-    AddClusterProfileAmazon:
+    AddClusterProfileEC2:
       type: object
       properties:
-        amazon:
+        ec2:
           type: object
           properties:
             master:
@@ -4814,11 +4848,42 @@ components:
                     instanceType:
                       type: string
                       example: "m4.xlarge"
-
-    AddClusterProfileAzure:
+                      
+    AddClusterProfileEKS:
       type: object
       properties:
-        azure:
+        eks:
+          type: object
+          properties:
+            version:
+              type: string
+              example: "1.10"
+            nodePools:
+              type: object
+              properties:
+                pool1:
+                  type: object
+                  properties:
+                    spotPrice:
+                      type: string
+                      example: "0.2"
+                    minCount:
+                      type: integer
+                      example: 1
+                    maxCount:
+                      type: integer
+                      example: 2
+                    image:
+                      type: string
+                      example: "ami-06d1667f"
+                    instanceType:
+                      type: string
+                      example: "m4.xlarge"
+
+    AddClusterProfileAKS:
+      type: object
+      properties:
+        aks:
           type: object
           properties:
             nodePools:
@@ -4837,10 +4902,10 @@ components:
               type: string
               example: "1.8.2"
 
-    AddClusterProfileGoogle:
+    AddClusterProfileGKE:
       type: object
       properties:
-        google:
+        gke:
           type: object
           properties:
             master:
@@ -5400,6 +5465,9 @@ components:
         cloud:
           type: string
           example: "google"
+        distribution:
+          type: string
+          example: "gke"
         location:
           type: string
           example: "us-central1-a"

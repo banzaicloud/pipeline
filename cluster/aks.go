@@ -9,7 +9,7 @@ import (
 	"github.com/banzaicloud/pipeline/database"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	pkgAzure "github.com/banzaicloud/pipeline/pkg/cluster/azure"
+	pkgAzure "github.com/banzaicloud/pipeline/pkg/cluster/aks"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/secret"
@@ -32,10 +32,10 @@ func CreateAKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 	log.Debug("Create ClusterModel struct from the request")
 	var cluster AKSCluster
 
-	var nodePools []*model.AzureNodePoolModel
-	if request.Properties.CreateClusterAzure.NodePools != nil {
-		for name, np := range request.Properties.CreateClusterAzure.NodePools {
-			nodePools = append(nodePools, &model.AzureNodePoolModel{
+	var nodePools []*model.AKSNodePoolModel
+	if request.Properties.CreateClusterAKS.NodePools != nil {
+		for name, np := range request.Properties.CreateClusterAKS.NodePools {
+			nodePools = append(nodePools, &model.AKSNodePoolModel{
 				CreatedBy:        userId,
 				Name:             name,
 				Autoscaling:      np.Autoscaling,
@@ -54,9 +54,10 @@ func CreateAKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 		OrganizationId: orgId,
 		CreatedBy:      userId,
 		SecretId:       request.SecretId,
-		Azure: model.AzureClusterModel{
-			ResourceGroup:     request.Properties.CreateClusterAzure.ResourceGroup,
-			KubernetesVersion: request.Properties.CreateClusterAzure.KubernetesVersion,
+		Distribution:   pkgCluster.AKS,
+		AKS: model.AKSClusterModel{
+			ResourceGroup:     request.Properties.CreateClusterAKS.ResourceGroup,
+			KubernetesVersion: request.Properties.CreateClusterAKS.KubernetesVersion,
 			NodePools:         nodePools,
 		},
 	}
@@ -109,7 +110,7 @@ func (c *AKSCluster) CreateCluster() error {
 
 	// create profiles model for the request
 	var profiles []containerservice.AgentPoolProfile
-	if nodePools := c.modelCluster.Azure.NodePools; nodePools != nil {
+	if nodePools := c.modelCluster.AKS.NodePools; nodePools != nil {
 		for _, np := range nodePools {
 			if np != nil {
 				count := int32(np.Count)
@@ -133,8 +134,8 @@ func (c *AKSCluster) CreateCluster() error {
 	r := azureCluster.CreateClusterRequest{
 		Name:              c.modelCluster.Name,
 		Location:          c.modelCluster.Location,
-		ResourceGroup:     c.modelCluster.Azure.ResourceGroup,
-		KubernetesVersion: c.modelCluster.Azure.KubernetesVersion,
+		ResourceGroup:     c.modelCluster.AKS.ResourceGroup,
+		KubernetesVersion: c.modelCluster.AKS.KubernetesVersion,
 		SSHPubKey:         sshKey.PublicKeyData,
 		Profiles:          profiles,
 	}
@@ -168,7 +169,7 @@ func (c *AKSCluster) CreateCluster() error {
 	c.azureCluster = &pollingResult.Value
 
 	log.Info("Assign Storage Account Contributor role for all VM")
-	err = azureClient.AssignStorageAccountContributorRole(client, c.modelCluster.Azure.ResourceGroup, c.modelCluster.Name, c.modelCluster.Location)
+	err = azureClient.AssignStorageAccountContributorRole(client, c.modelCluster.AKS.ResourceGroup, c.modelCluster.Name, c.modelCluster.Location)
 	if err != nil {
 		return err
 	}
@@ -192,9 +193,9 @@ func (c *AKSCluster) DownloadK8sConfig() ([]byte, error) {
 	client.With(log)
 
 	database := database.GetDB()
-	database.Where(model.AzureClusterModel{ClusterModelId: c.modelCluster.ID}).First(&c.modelCluster.Azure)
+	database.Where(model.AKSClusterModel{ClusterModelId: c.modelCluster.ID}).First(&c.modelCluster.AKS)
 	//TODO check banzairesponses
-	config, err := azureClient.GetClusterConfig(client, c.modelCluster.Name, c.modelCluster.Azure.ResourceGroup, "clusterUser")
+	config, err := azureClient.GetClusterConfig(client, c.modelCluster.Name, c.modelCluster.AKS.ResourceGroup, "clusterUser")
 	if err != nil {
 		// TODO status code !?
 		return nil, err
@@ -209,9 +210,14 @@ func (c *AKSCluster) GetName() string {
 	return c.modelCluster.Name
 }
 
-//GetType returns the cloud type of the cluster
-func (c *AKSCluster) GetType() string {
+// GetCloud returns the cloud type of the cluster
+func (c *AKSCluster) GetCloud() string {
 	return c.modelCluster.Cloud
+}
+
+// GetDistribution returns the distribution type of the cluster
+func (c *AKSCluster) GetDistribution() string {
+	return c.modelCluster.Distribution
 }
 
 //GetStatus gets cluster status
@@ -220,7 +226,7 @@ func (c *AKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 	log.Info("Create cluster status response")
 
 	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
-	for _, np := range c.modelCluster.Azure.NodePools {
+	for _, np := range c.modelCluster.AKS.NodePools {
 		if np != nil {
 			nodePools[np.Name] = &pkgCluster.NodePoolStatus{
 				Autoscaling:  np.Autoscaling,
@@ -238,6 +244,7 @@ func (c *AKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		Name:              c.modelCluster.Name,
 		Location:          c.modelCluster.Location,
 		Cloud:             c.modelCluster.Cloud,
+		Distribution:      c.modelCluster.Distribution,
 		ResourceID:        c.modelCluster.ID,
 		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
 		NodePools:         nodePools,
@@ -253,11 +260,11 @@ func (c *AKSCluster) DeleteCluster() error {
 
 	client.With(log)
 
-	// set azure props
+	// set aks props
 	database := database.GetDB()
-	database.Where(model.AzureClusterModel{ClusterModelId: c.modelCluster.ID}).First(&c.modelCluster.Azure)
+	database.Where(model.AKSClusterModel{ClusterModelId: c.modelCluster.ID}).First(&c.modelCluster.AKS)
 
-	err = azureClient.DeleteCluster(client, c.modelCluster.Name, c.modelCluster.Azure.ResourceGroup)
+	err = azureClient.DeleteCluster(client, c.modelCluster.Name, c.modelCluster.AKS.ResourceGroup)
 	if err != nil {
 		log.Info("Delete succeeded")
 		return nil
@@ -284,9 +291,9 @@ func (c *AKSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, use
 
 	// send separate requests because Azure not supports multiple nodepool modification
 	// Azure not supports adding and deleting nodepools
-	var nodePoolAfterUpdate []*model.AzureNodePoolModel
+	var nodePoolAfterUpdate []*model.AKSNodePoolModel
 	var updatedCluster *azureType.ResponseWithValue
-	if requestNodes := request.Azure.NodePools; requestNodes != nil {
+	if requestNodes := request.AKS.NodePools; requestNodes != nil {
 		for name, np := range requestNodes {
 			if existNodePool := c.getExistingNodePoolByName(name); np != nil && existNodePool != nil {
 				log.Infof("NodePool is exists[%s], update...", name)
@@ -297,8 +304,8 @@ func (c *AKSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, use
 				ccr := azureCluster.CreateClusterRequest{
 					Name:              c.modelCluster.Name,
 					Location:          c.modelCluster.Location,
-					ResourceGroup:     c.modelCluster.Azure.ResourceGroup,
-					KubernetesVersion: c.modelCluster.Azure.KubernetesVersion,
+					ResourceGroup:     c.modelCluster.AKS.ResourceGroup,
+					KubernetesVersion: c.modelCluster.AKS.KubernetesVersion,
 					SSHPubKey:         sshKey.PublicKeyData,
 					Profiles: []containerservice.AgentPoolProfile{
 						{
@@ -309,7 +316,7 @@ func (c *AKSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, use
 					},
 				}
 
-				nodePoolAfterUpdate = append(nodePoolAfterUpdate, &model.AzureNodePoolModel{
+				nodePoolAfterUpdate = append(nodePoolAfterUpdate, &model.AKSNodePoolModel{
 					ID:               existNodePool.ID,
 					CreatedAt:        time.Now(),
 					CreatedBy:        userId,
@@ -346,9 +353,9 @@ func (c *AKSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, use
 			ConfigSecretId: c.modelCluster.ConfigSecretId,
 			SshSecretId:    c.modelCluster.SshSecretId,
 			Status:         c.modelCluster.Status,
-			Azure: model.AzureClusterModel{
-				ResourceGroup:     c.modelCluster.Azure.ResourceGroup,
-				KubernetesVersion: c.modelCluster.Azure.KubernetesVersion,
+			AKS: model.AKSClusterModel{
+				ResourceGroup:     c.modelCluster.AKS.ResourceGroup,
+				KubernetesVersion: c.modelCluster.AKS.KubernetesVersion,
 				NodePools:         nodePoolAfterUpdate,
 			},
 		}
@@ -360,9 +367,9 @@ func (c *AKSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, use
 }
 
 // getExistingNodePoolByName returns saved NodePool by name
-func (c *AKSCluster) getExistingNodePoolByName(name string) *model.AzureNodePoolModel {
+func (c *AKSCluster) getExistingNodePoolByName(name string) *model.AKSNodePoolModel {
 
-	if nodePools := c.modelCluster.Azure.NodePools; nodePools != nil {
+	if nodePools := c.modelCluster.AKS.NodePools; nodePools != nil {
 		for _, nodePool := range nodePools {
 			if nodePool != nil && nodePool.Name == name {
 				return nodePool
@@ -376,7 +383,7 @@ func (c *AKSCluster) getExistingNodePoolByName(name string) *model.AzureNodePool
 // updateWithPolling sends update request to cloud and polling until it's not ready
 func (c *AKSCluster) updateWithPolling(manager azureClient.ClusterManager, ccr *azureCluster.CreateClusterRequest) (*azureType.ResponseWithValue, error) {
 
-	log.Info("Send update request to azure")
+	log.Info("Send update request to aks")
 	_, err := azureClient.CreateUpdateCluster(manager, ccr)
 	if err != nil {
 		return nil, err
@@ -384,7 +391,7 @@ func (c *AKSCluster) updateWithPolling(manager azureClient.ClusterManager, ccr *
 
 	log.Info("Polling to check update")
 	// polling to check cluster updated
-	updatedCluster, err := azureClient.PollingCluster(manager, c.modelCluster.Name, c.modelCluster.Azure.ResourceGroup)
+	updatedCluster, err := azureClient.PollingCluster(manager, c.modelCluster.Name, c.modelCluster.AKS.ResourceGroup)
 	if err != nil {
 		return nil, err
 	}
@@ -409,7 +416,7 @@ func (c *AKSCluster) GetAzureCluster() (*azureType.Value, error) {
 	if err != nil {
 		return nil, err
 	}
-	resp, err := azureClient.GetCluster(client, c.modelCluster.Name, c.modelCluster.Azure.ResourceGroup)
+	resp, err := azureClient.GetCluster(client, c.modelCluster.Name, c.modelCluster.AKS.ResourceGroup)
 	if err != nil {
 		return nil, err
 	}
@@ -429,13 +436,13 @@ func CreateAKSClusterFromModel(clusterModel *model.ClusterModel) (*AKSCluster, e
 //AddDefaultsToUpdate adds defaults to update request
 func (c *AKSCluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
 
-	if r.Azure == nil {
-		log.Info("'azure' field is empty.")
-		r.Azure = &pkgAzure.UpdateClusterAzure{}
+	if r.AKS == nil {
+		log.Info("'aks' field is empty.")
+		r.AKS = &pkgAzure.UpdateClusterAzure{}
 	}
 
-	if len(r.Azure.NodePools) == 0 {
-		storedPools := c.modelCluster.Azure.NodePools
+	if len(r.AKS.NodePools) == 0 {
+		storedPools := c.modelCluster.AKS.NodePools
 		nodePools := make(map[string]*pkgAzure.NodePoolUpdate)
 		for _, np := range storedPools {
 			nodePools[np.Name] = &pkgAzure.NodePoolUpdate{
@@ -445,7 +452,7 @@ func (c *AKSCluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
 				Count:       np.Count,
 			}
 		}
-		r.Azure.NodePools = nodePools
+		r.AKS.NodePools = nodePools
 	}
 
 }
@@ -455,7 +462,7 @@ func (c *AKSCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) e
 	// create update request struct with the stored data to check equality
 	preProfiles := make(map[string]*pkgAzure.NodePoolUpdate)
 
-	for _, preP := range c.modelCluster.Azure.NodePools {
+	for _, preP := range c.modelCluster.AKS.NodePools {
 		if preP != nil {
 			preProfiles[preP.Name] = &pkgAzure.NodePoolUpdate{
 				Autoscaling: preP.Autoscaling,
@@ -473,7 +480,7 @@ func (c *AKSCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) e
 	log.Info("Check stored & updated cluster equals")
 
 	// check equality
-	return utils.IsDifferent(r.Azure, preCl)
+	return utils.IsDifferent(r.AKS, preCl)
 }
 
 //DeleteFromDatabase deletes model from the database
@@ -548,7 +555,7 @@ func (c *AKSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 
 	client.With(log)
 
-	resp, err := azureClient.GetCluster(client, c.modelCluster.Name, c.modelCluster.Azure.ResourceGroup)
+	resp, err := azureClient.GetCluster(client, c.modelCluster.Name, c.modelCluster.AKS.ResourceGroup)
 	if err != nil {
 		return nil, errors.New(err)
 	}
@@ -559,12 +566,12 @@ func (c *AKSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 
 		nodePools := make(map[string]*pkgCluster.NodeDetails)
 
-		for _, np := range c.modelCluster.Azure.NodePools {
+		for _, np := range c.modelCluster.AKS.NodePools {
 			if np != nil {
 
 				nodePools[np.Name] = &pkgCluster.NodeDetails{
 					CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
-					Version:           c.modelCluster.Azure.KubernetesVersion,
+					Version:           c.modelCluster.AKS.KubernetesVersion,
 				}
 			}
 		}
@@ -594,7 +601,7 @@ func (c *AKSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) 
 	log.Info("Validate location passed")
 
 	// Validate machine types
-	nodePools := r.Properties.CreateClusterAzure.NodePools
+	nodePools := r.Properties.CreateClusterAKS.NodePools
 	log.Info("Validate nodePools")
 	if err := c.validateMachineType(nodePools, location); err != nil {
 		return err
@@ -603,7 +610,7 @@ func (c *AKSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) 
 
 	// Validate kubernetes version
 	log.Info("Validate kubernetesVersion")
-	k8sVersion := r.Properties.CreateClusterAzure.KubernetesVersion
+	k8sVersion := r.Properties.CreateClusterAKS.KubernetesVersion
 	if err := c.validateKubernetesVersion(k8sVersion, location); err != nil {
 		return err
 	}
@@ -735,8 +742,8 @@ func (c *AKSCluster) ListNodeNames() (labels pkgCommon.NodeNames, err error) {
 	labels = make(map[string][]string)
 
 	var vms []compute.VirtualMachine
-	vms, err = azureClient.ListVirtualMachines(client, c.modelCluster.Azure.ResourceGroup, c.modelCluster.Name, c.modelCluster.Location)
-	for _, np := range c.modelCluster.Azure.NodePools {
+	vms, err = azureClient.ListVirtualMachines(client, c.modelCluster.AKS.ResourceGroup, c.modelCluster.Name, c.modelCluster.Location)
+	for _, np := range c.modelCluster.AKS.NodePools {
 		if np != nil {
 			for _, vm := range vms {
 				if vm.OsProfile != nil && vm.OsProfile.ComputerName != nil {

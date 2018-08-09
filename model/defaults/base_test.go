@@ -5,10 +5,10 @@ import (
 
 	"github.com/banzaicloud/pipeline/model/defaults"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/banzaicloud/pipeline/pkg/cluster/amazon"
-	"github.com/banzaicloud/pipeline/pkg/cluster/azure"
+	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
+	"github.com/banzaicloud/pipeline/pkg/cluster/ec2"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
-	"github.com/banzaicloud/pipeline/pkg/cluster/google"
+	"github.com/banzaicloud/pipeline/pkg/cluster/gke"
 	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster"
 	"github.com/banzaicloud/pipeline/utils"
 )
@@ -16,8 +16,8 @@ import (
 func TestTableName(t *testing.T) {
 
 	tableName := defaults.GKEProfile.TableName(defaults.GKEProfile{})
-	if defaults.DefaultGoogleProfileTablaName != tableName {
-		t.Errorf("Expected table name: %s, got: %s", defaults.DefaultGoogleProfileTablaName, tableName)
+	if defaults.DefaultGKEProfileTableName != tableName {
+		t.Errorf("Expected table name: %s, got: %s", defaults.DefaultGKEProfileTableName, tableName)
 	}
 
 }
@@ -31,12 +31,12 @@ func TestGetType(t *testing.T) {
 	}{
 		{"type gke", &defaults.GKEProfile{}, pkgCluster.Google},
 		{"type aks", &defaults.AKSProfile{}, pkgCluster.Azure},
-		{"type aws", &defaults.AWSProfile{}, pkgCluster.Amazon},
+		{"type ec2", &defaults.EC2Profile{}, pkgCluster.Amazon}, // todo expand with other distribution
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			currentType := tc.profile.GetType()
+			currentType := tc.profile.GetCloud()
 			if tc.expectedType != currentType {
 				t.Errorf("Expected cloud type: %s, got: %s", tc.expectedType, currentType)
 			}
@@ -61,10 +61,10 @@ func TestUpdateWithoutSave(t *testing.T) {
 		{"full request AKS", &defaults.AKSProfile{}, fullRequestAKS, &fullAKS},
 		{"just basic update AKS", &defaults.AKSProfile{}, emptyRequestAKS, &emptyAKS},
 
-		{"full request AWS", &defaults.AWSProfile{}, fullRequestAWS, &fullAWS},
-		{"just master update AWS", &defaults.AWSProfile{}, masterRequestAWS, &masterAWS},
-		{"just node update AWS", &defaults.AWSProfile{}, nodeRequestAWS, &nodeAWS},
-		{"just basic update AWS", &defaults.AWSProfile{}, emptyRequestAWS, &emptyAWS},
+		{"full request EC2", &defaults.EC2Profile{}, fullRequestEC2, &fullEC2},
+		{"just master update EC2", &defaults.EC2Profile{}, masterRequestEC2, &masterEC2},
+		{"just node update EC2", &defaults.EC2Profile{}, nodeRequestEC2, &nodeEC2},
+		{"just basic update EC2", &defaults.EC2Profile{}, emptyRequestEC2, &emptyEC2}, // todo expand
 	}
 
 	for _, tc := range testCases {
@@ -108,18 +108,18 @@ var (
 		Location: location,
 		Cloud:    pkgCluster.Google,
 		Properties: struct {
-			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
-			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
-			Eks    *eks.ClusterProfileEks       `json:"eks,omitempty"`
-			Google *google.ClusterProfileGoogle `json:"google,omitempty"`
-			Oracle *oracle.Cluster              `json:"oracle,omitempty"`
+			EC2 *ec2.ClusterProfileEC2 `json:"ec2,omitempty"`
+			EKS *eks.ClusterProfileEKS `json:"eks,omitempty"`
+			AKS *aks.ClusterProfileAKS `json:"aks,omitempty"`
+			GKE *gke.ClusterProfileGKE `json:"gke,omitempty"`
+			OKE *oracle.Cluster        `json:"oracle,omitempty"`
 		}{
-			Google: &google.ClusterProfileGoogle{
-				Master: &google.Master{
+			GKE: &gke.ClusterProfileGKE{
+				Master: &gke.Master{
 					Version: version,
 				},
 				NodeVersion: version,
-				NodePools: map[string]*google.NodePool{
+				NodePools: map[string]*gke.NodePool{
 					agentName: {
 						Count:            nodeCount,
 						NodeInstanceType: nodeInstanceType,
@@ -134,15 +134,15 @@ var (
 		Location: location,
 		Cloud:    pkgCluster.Azure,
 		Properties: struct {
-			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
-			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
-			Eks    *eks.ClusterProfileEks       `json:"eks,omitempty"`
-			Google *google.ClusterProfileGoogle `json:"google,omitempty"`
-			Oracle *oracle.Cluster              `json:"oracle,omitempty"`
+			EC2 *ec2.ClusterProfileEC2 `json:"ec2,omitempty"`
+			EKS *eks.ClusterProfileEKS `json:"eks,omitempty"`
+			AKS *aks.ClusterProfileAKS `json:"aks,omitempty"`
+			GKE *gke.ClusterProfileGKE `json:"gke,omitempty"`
+			OKE *oracle.Cluster        `json:"oracle,omitempty"`
 		}{
-			Azure: &azure.ClusterProfileAzure{
+			AKS: &aks.ClusterProfileAKS{
 				KubernetesVersion: k8sVersion,
-				NodePools: map[string]*azure.NodePoolCreate{
+				NodePools: map[string]*aks.NodePoolCreate{
 					agentName: {
 						Count:            nodeCount,
 						NodeInstanceType: nodeInstanceType,
@@ -152,23 +152,23 @@ var (
 		},
 	}
 
-	fullRequestAWS = &pkgCluster.ClusterProfileRequest{
+	fullRequestEC2 = &pkgCluster.ClusterProfileRequest{
 		Name:     name,
 		Location: location,
 		Cloud:    pkgCluster.Amazon,
 		Properties: struct {
-			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
-			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
-			Eks    *eks.ClusterProfileEks       `json:"eks,omitempty"`
-			Google *google.ClusterProfileGoogle `json:"google,omitempty"`
-			Oracle *oracle.Cluster              `json:"oracle,omitempty"`
+			EC2 *ec2.ClusterProfileEC2 `json:"ec2,omitempty"`
+			EKS *eks.ClusterProfileEKS `json:"eks,omitempty"`
+			AKS *aks.ClusterProfileAKS `json:"aks,omitempty"`
+			GKE *gke.ClusterProfileGKE `json:"gke,omitempty"`
+			OKE *oracle.Cluster        `json:"oracle,omitempty"`
 		}{
-			Amazon: &amazon.ClusterProfileAmazon{
-				Master: &amazon.ProfileMaster{
+			EC2: &ec2.ClusterProfileEC2{
+				Master: &ec2.ProfileMaster{
 					InstanceType: masterInstanceType,
 					Image:        masterImage,
 				},
-				NodePools: map[string]*amazon.NodePool{
+				NodePools: map[string]*ec2.NodePool{
 					agentName: {
 						InstanceType: nodeInstanceType,
 						SpotPrice:    spotPrice,
@@ -210,21 +210,23 @@ var (
 		},
 	}
 
-	fullAWS = defaults.AWSProfile{
+	fullEC2 = defaults.EC2Profile{
 		DefaultModel:       defaults.DefaultModel{Name: name},
 		Location:           location,
 		MasterInstanceType: masterInstanceType,
 		MasterImage:        masterImage,
-		NodePools: []*defaults.AWSNodePoolProfile{
+		NodePools: []*defaults.EC2NodePoolProfile{
 			{
-				InstanceType: nodeInstanceType,
-				NodeName:     agentName,
-				SpotPrice:    spotPrice,
-				Autoscaling:  true,
-				MinCount:     minCount,
-				MaxCount:     maxCount,
-				Count:        minCount,
-				Image:        nodeImage,
+				AmazonNodePoolProfileBaseFields: defaults.AmazonNodePoolProfileBaseFields{
+					InstanceType: nodeInstanceType,
+					NodeName:     agentName,
+					SpotPrice:    spotPrice,
+					Autoscaling:  true,
+					MinCount:     minCount,
+					MaxCount:     maxCount,
+					Count:        minCount,
+				},
+				Image: nodeImage,
 			},
 		},
 	}
@@ -236,33 +238,33 @@ var (
 		Location: location,
 		Cloud:    pkgCluster.Google,
 		Properties: struct {
-			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
-			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
-			Eks    *eks.ClusterProfileEks       `json:"eks,omitempty"`
-			Google *google.ClusterProfileGoogle `json:"google,omitempty"`
-			Oracle *oracle.Cluster              `json:"oracle,omitempty"`
+			EC2 *ec2.ClusterProfileEC2 `json:"ec2,omitempty"`
+			EKS *eks.ClusterProfileEKS `json:"eks,omitempty"`
+			AKS *aks.ClusterProfileAKS `json:"aks,omitempty"`
+			GKE *gke.ClusterProfileGKE `json:"gke,omitempty"`
+			OKE *oracle.Cluster        `json:"oracle,omitempty"`
 		}{
-			Google: &google.ClusterProfileGoogle{
-				Master: &google.Master{
+			GKE: &gke.ClusterProfileGKE{
+				Master: &gke.Master{
 					Version: version,
 				},
 			},
 		},
 	}
 
-	masterRequestAWS = &pkgCluster.ClusterProfileRequest{
+	masterRequestEC2 = &pkgCluster.ClusterProfileRequest{
 		Name:     name,
 		Location: location,
 		Cloud:    pkgCluster.Amazon,
 		Properties: struct {
-			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
-			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
-			Eks    *eks.ClusterProfileEks       `json:"eks,omitempty"`
-			Google *google.ClusterProfileGoogle `json:"google,omitempty"`
-			Oracle *oracle.Cluster              `json:"oracle,omitempty"`
+			EC2 *ec2.ClusterProfileEC2 `json:"ec2,omitempty"`
+			EKS *eks.ClusterProfileEKS `json:"eks,omitempty"`
+			AKS *aks.ClusterProfileAKS `json:"aks,omitempty"`
+			GKE *gke.ClusterProfileGKE `json:"gke,omitempty"`
+			OKE *oracle.Cluster        `json:"oracle,omitempty"`
 		}{
-			Amazon: &amazon.ClusterProfileAmazon{
-				Master: &amazon.ProfileMaster{
+			EC2: &ec2.ClusterProfileEC2{
+				Master: &ec2.ProfileMaster{
 					InstanceType: masterInstanceType,
 					Image:        masterImage,
 				},
@@ -276,7 +278,7 @@ var (
 		MasterVersion: version,
 	}
 
-	masterAWS = defaults.AWSProfile{
+	masterEC2 = defaults.EC2Profile{
 		DefaultModel:       defaults.DefaultModel{Name: name},
 		Location:           location,
 		MasterInstanceType: masterInstanceType,
@@ -290,15 +292,15 @@ var (
 		Location: location,
 		Cloud:    pkgCluster.Google,
 		Properties: struct {
-			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
-			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
-			Eks    *eks.ClusterProfileEks       `json:"eks,omitempty"`
-			Google *google.ClusterProfileGoogle `json:"google,omitempty"`
-			Oracle *oracle.Cluster              `json:"oracle,omitempty"`
+			EC2 *ec2.ClusterProfileEC2 `json:"ec2,omitempty"`
+			EKS *eks.ClusterProfileEKS `json:"eks,omitempty"`
+			AKS *aks.ClusterProfileAKS `json:"aks,omitempty"`
+			GKE *gke.ClusterProfileGKE `json:"gke,omitempty"`
+			OKE *oracle.Cluster        `json:"oracle,omitempty"`
 		}{
-			Google: &google.ClusterProfileGoogle{
+			GKE: &gke.ClusterProfileGKE{
 				NodeVersion: version,
-				NodePools: map[string]*google.NodePool{
+				NodePools: map[string]*gke.NodePool{
 					agentName: {
 						Count:            nodeCount,
 						NodeInstanceType: nodeInstanceType,
@@ -308,19 +310,19 @@ var (
 		},
 	}
 
-	nodeRequestAWS = &pkgCluster.ClusterProfileRequest{
+	nodeRequestEC2 = &pkgCluster.ClusterProfileRequest{
 		Name:     name,
 		Location: location,
 		Cloud:    pkgCluster.Amazon,
 		Properties: struct {
-			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
-			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
-			Eks    *eks.ClusterProfileEks       `json:"eks,omitempty"`
-			Google *google.ClusterProfileGoogle `json:"google,omitempty"`
-			Oracle *oracle.Cluster              `json:"oracle,omitempty"`
+			EC2 *ec2.ClusterProfileEC2 `json:"ec2,omitempty"`
+			EKS *eks.ClusterProfileEKS `json:"eks,omitempty"`
+			AKS *aks.ClusterProfileAKS `json:"aks,omitempty"`
+			GKE *gke.ClusterProfileGKE `json:"gke,omitempty"`
+			OKE *oracle.Cluster        `json:"oracle,omitempty"`
 		}{
-			Amazon: &amazon.ClusterProfileAmazon{
-				NodePools: map[string]*amazon.NodePool{
+			EC2: &ec2.ClusterProfileEC2{
+				NodePools: map[string]*ec2.NodePool{
 					agentName: {
 						InstanceType: nodeInstanceType,
 						SpotPrice:    spotPrice,
@@ -348,19 +350,21 @@ var (
 		},
 	}
 
-	nodeAWS = defaults.AWSProfile{
+	nodeEC2 = defaults.EC2Profile{
 		DefaultModel: defaults.DefaultModel{Name: name},
 		Location:     location,
-		NodePools: []*defaults.AWSNodePoolProfile{
+		NodePools: []*defaults.EC2NodePoolProfile{
 			{
-				InstanceType: nodeInstanceType,
-				NodeName:     agentName,
-				SpotPrice:    spotPrice,
-				Autoscaling:  true,
-				MinCount:     minCount,
-				MaxCount:     maxCount,
-				Count:        minCount,
-				Image:        nodeImage,
+				AmazonNodePoolProfileBaseFields: defaults.AmazonNodePoolProfileBaseFields{
+					InstanceType: nodeInstanceType,
+					NodeName:     agentName,
+					SpotPrice:    spotPrice,
+					Autoscaling:  true,
+					MinCount:     minCount,
+					MaxCount:     maxCount,
+					Count:        minCount,
+				},
+				Image: nodeImage,
 			},
 		},
 	}
@@ -379,7 +383,7 @@ var (
 		Cloud:    pkgCluster.Azure,
 	}
 
-	emptyRequestAWS = &pkgCluster.ClusterProfileRequest{
+	emptyRequestEC2 = &pkgCluster.ClusterProfileRequest{
 		Name:     name,
 		Location: location,
 		Cloud:    pkgCluster.Amazon,
@@ -395,7 +399,7 @@ var (
 		Location:     location,
 	}
 
-	emptyAWS = defaults.AWSProfile{
+	emptyEC2 = defaults.EC2Profile{
 		DefaultModel: defaults.DefaultModel{Name: name},
 		Location:     location,
 	}

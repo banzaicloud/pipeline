@@ -1,4 +1,4 @@
-package google
+package gke
 
 import (
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
@@ -12,8 +12,8 @@ const (
 	DefaultNodePoolName = "default-pool"
 )
 
-// CreateClusterGoogle describes Pipeline's Google fields of a CreateCluster request
-type CreateClusterGoogle struct {
+// CreateClusterGKE describes Pipeline's Google fields of a CreateCluster request
+type CreateClusterGKE struct {
 	NodeVersion string               `json:"nodeVersion,omitempty"`
 	NodePools   map[string]*NodePool `json:"nodePools,omitempty"`
 	Master      *Master              `json:"master,omitempty"`
@@ -46,7 +46,7 @@ type CreateGoogleObjectStoreBucketProperties struct {
 }
 
 // Validate validates Google cluster create request
-func (g *CreateClusterGoogle) Validate() error {
+func (g *CreateClusterGKE) Validate() error {
 
 	if g == nil {
 		return errors.New("Google is <nil>")
@@ -100,13 +100,13 @@ func (g *CreateClusterGoogle) Validate() error {
 	return nil
 }
 
-// Validate validates the update request (only google part). If any of the fields is missing, the method fills
+// Validate validates the update request (only gke part). If any of the fields is missing, the method fills
 // with stored data.
 func (a *UpdateClusterGoogle) Validate() error {
 
 	// ---- [ Google field check ] ---- //
 	if a == nil {
-		return errors.New("'google' field is empty")
+		return errors.New("'gke' field is empty")
 	}
 
 	// check version
@@ -127,8 +127,8 @@ func (a *UpdateClusterGoogle) Validate() error {
 	return nil
 }
 
-// ClusterProfileGoogle describes an Amazon profile
-type ClusterProfileGoogle struct {
+// ClusterProfileGKE describes an Amazon profile
+type ClusterProfileGKE struct {
 	Master      *Master              `json:"master,omitempty"`
 	NodeVersion string               `json:"nodeVersion,omitempty"`
 	NodePools   map[string]*NodePool `json:"nodePools,omitempty"`

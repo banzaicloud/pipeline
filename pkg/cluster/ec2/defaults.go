@@ -1,4 +1,4 @@
-package amazon
+package ec2
 
 // ### [ Constants to Amazon cluster default values ] ### //
 const (

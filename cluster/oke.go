@@ -46,6 +46,7 @@ func CreateOKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 		OrganizationId: orgId,
 		SecretId:       request.SecretId,
 		CreatedBy:      userId,
+		Distribution:   pkgCluster.OKE,
 	}
 
 	VCNID, err := oke.CreatePreconfiguredVCN(request.Name)
@@ -53,18 +54,18 @@ func CreateOKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 		return &oke, err
 	}
 
-	properties, err := oke.PopulateNetworkValues(request.Properties.CreateClusterOracle, VCNID)
+	properties, err := oke.PopulateNetworkValues(request.Properties.CreateClusterOKE, VCNID)
 	if err != nil {
 		return &oke, err
 	}
-	request.Properties.CreateClusterOracle = properties
+	request.Properties.CreateClusterOKE = properties
 
 	Model, err := modelOracle.CreateModelFromCreateRequest(request, userId)
 	if err != nil {
 		return &oke, err
 	}
 
-	oke.modelCluster.Oracle = Model
+	oke.modelCluster.OKE = Model
 
 	return &oke, nil
 }
@@ -79,19 +80,19 @@ func (o *OKECluster) CreateCluster() error {
 		return err
 	}
 
-	return cm.ManageOKECluster(&o.modelCluster.Oracle)
+	return cm.ManageOKECluster(&o.modelCluster.OKE)
 }
 
 // UpdateCluster updates the cluster
 func (o *OKECluster) UpdateCluster(r *pkgCluster.UpdateClusterRequest, userId uint) error {
 
-	updated, err := o.PopulateNetworkValues(r.UpdateProperties.Oracle, o.modelCluster.Oracle.VCNID)
+	updated, err := o.PopulateNetworkValues(r.UpdateProperties.OKE, o.modelCluster.OKE.VCNID)
 	if err != nil {
 		return err
 	}
-	r.UpdateProperties.Oracle = updated
+	r.UpdateProperties.OKE = updated
 
-	model, err := modelOracle.CreateModelFromUpdateRequest(o.modelCluster.Oracle, r, userId)
+	model, err := modelOracle.CreateModelFromUpdateRequest(o.modelCluster.OKE, r, userId)
 	if err != nil {
 		return err
 	}
@@ -115,7 +116,7 @@ func (o *OKECluster) UpdateCluster(r *pkgCluster.UpdateClusterRequest, userId ui
 	}
 
 	model.NodePools = nodePools
-	o.modelCluster.Oracle = model
+	o.modelCluster.OKE = model
 
 	return err
 }
@@ -124,19 +125,19 @@ func (o *OKECluster) UpdateCluster(r *pkgCluster.UpdateClusterRequest, userId ui
 func (o *OKECluster) DeleteCluster() error {
 
 	// mark cluster model to deleting
-	o.modelCluster.Oracle.Delete = true
+	o.modelCluster.OKE.Delete = true
 
 	cm, err := o.GetClusterManager()
 	if err != nil {
 		return err
 	}
 
-	err = cm.ManageOKECluster(&o.modelCluster.Oracle)
+	err = cm.ManageOKECluster(&o.modelCluster.OKE)
 	if err != nil {
 		return err
 	}
 
-	err = o.DeletePreconfiguredVCN(o.modelCluster.Oracle.VCNID)
+	err = o.DeletePreconfiguredVCN(o.modelCluster.OKE.VCNID)
 	if err != nil {
 		return err
 	}
@@ -163,7 +164,7 @@ func (o *OKECluster) DownloadK8sConfig() ([]byte, error) {
 		return nil, err
 	}
 
-	return ce.GetK8SConfig(o.modelCluster.Oracle.OCID)
+	return ce.GetK8SConfig(o.modelCluster.OKE.OCID)
 }
 
 //GetName returns the name of the cluster
@@ -171,16 +172,21 @@ func (o *OKECluster) GetName() string {
 	return o.modelCluster.Name
 }
 
-//GetType returns the cloud type of the cluster
-func (o *OKECluster) GetType() string {
+// GetCloud returns the cloud type of the cluster
+func (o *OKECluster) GetCloud() string {
 	return pkgCluster.Oracle
+}
+
+// GetDistribution returns the distribution type of the cluster
+func (o *OKECluster) GetDistribution() string {
+	return o.modelCluster.Distribution
 }
 
 //GetStatus gets cluster status
 func (o *OKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 
 	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
-	for _, np := range o.modelCluster.Oracle.NodePools {
+	for _, np := range o.modelCluster.OKE.NodePools {
 		if np != nil {
 			count := int(np.QuantityPerSubnet) * len(np.Subnets)
 			nodePools[np.Name] = &pkgCluster.NodePoolStatus{
@@ -200,6 +206,7 @@ func (o *OKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		Name:              o.modelCluster.Name,
 		Location:          o.modelCluster.Location,
 		Cloud:             pkgCluster.Oracle,
+		Distribution:      o.modelCluster.Distribution,
 		ResourceID:        o.GetID(),
 		CreatorBaseFields: *NewCreatorBaseFields(o.modelCluster.CreatedAt, o.modelCluster.CreatedBy),
 		NodePools:         nodePools,
@@ -219,17 +226,17 @@ func (o *OKECluster) GetModel() *model.ClusterModel {
 //CheckEqualityToUpdate validates the update request
 func (o *OKECluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) error {
 
-	cluster := o.modelCluster.Oracle.GetClusterRequestFromModel()
+	cluster := o.modelCluster.OKE.GetClusterRequestFromModel()
 
 	log.Info("Check stored & updated cluster equals")
 
-	return utils.IsDifferent(r.Oracle, cluster)
+	return utils.IsDifferent(r.OKE, cluster)
 }
 
 //AddDefaultsToUpdate adds defaults to update request
 func (o *OKECluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
 
-	r.UpdateProperties.Oracle.AddDefaults()
+	r.UpdateProperties.OKE.AddDefaults()
 }
 
 //GetAPIEndpoint returns the Kubernetes Api endpoint
@@ -245,7 +252,7 @@ func (o *OKECluster) GetAPIEndpoint() (string, error) {
 		return o.APIEndpoint, err
 	}
 
-	cluster, err := ce.GetCluster(&o.modelCluster.Oracle.OCID)
+	cluster, err := ce.GetCluster(&o.modelCluster.OKE.OCID)
 	if err != nil {
 		return o.APIEndpoint, err
 	}
@@ -262,7 +269,7 @@ func (o *OKECluster) DeleteFromDatabase() error {
 		return err
 	}
 
-	err = o.modelCluster.Oracle.Cleanup()
+	err = o.modelCluster.OKE.Cleanup()
 	if err != nil {
 		return err
 	}
@@ -309,7 +316,7 @@ func (o *OKECluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 		return nil, err
 	}
 
-	cluster, err := ce.GetCluster(&o.modelCluster.Oracle.OCID)
+	cluster, err := ce.GetCluster(&o.modelCluster.OKE.OCID)
 	if err != nil {
 		return nil, err
 	}
@@ -324,7 +331,7 @@ func (o *OKECluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 	}
 
 	nodePools := make(map[string]*pkgCluster.NodeDetails)
-	for _, np := range o.modelCluster.Oracle.NodePools {
+	for _, np := range o.modelCluster.OKE.NodePools {
 		if np != nil {
 			nodePools[np.Name] = &pkgCluster.NodeDetails{
 				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
@@ -339,7 +346,7 @@ func (o *OKECluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 		Name:              status.Name,
 		Id:                status.ResourceID,
 		Location:          status.Location,
-		MasterVersion:     o.modelCluster.Oracle.Version,
+		MasterVersion:     o.modelCluster.OKE.Version,
 		NodePools:         nodePools,
 	}, nil
 }
@@ -352,7 +359,7 @@ func (o *OKECluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) 
 		return err
 	}
 
-	return cm.ValidateModel(&o.modelCluster.Oracle)
+	return cm.ValidateModel(&o.modelCluster.OKE)
 }
 
 // GetSecretWithValidation returns secret from vault

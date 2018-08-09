@@ -13,13 +13,17 @@ import (
 
 // cluster profile table names
 const (
-	DefaultAmazonProfileTablaName         = "amazon_default_profile"
-	DefaultAmazonNodePoolProfileTablaName = "amazon_nodepool_default_profile"
-	DefaultAmazonEksProfileTablaName      = "amazon_eks_default_profile"
-	DefaultAzureProfileTablaName          = "azure_default_profile"
-	DefaultAzureNodePoolProfileTablaName  = "azure_nodepool_default_profile"
-	DefaultGoogleProfileTablaName         = "google_default_profile"
-	DefaultGoogleNodePoolProfileTablaName = "google_nodepool_default_profile"
+	DefaultEC2ProfileTableName         = "profiles_ec2"
+	DefaultEC2NodePoolProfileTableName = "profiles_nodepools_ec2"
+
+	DefaultEKSProfileTableName         = "profiles_eks"
+	DefaultEKSNodePoolProfileTableName = "profiles_nodepools_eks"
+
+	DefaultAKSProfileTableName         = "profiles_aks"
+	DefaultAKSNodePoolProfileTableName = "profiles_nodepools_aks"
+
+	DefaultGKEProfileTableName         = "profiles_gke"
+	DefaultGKENodePoolProfileTableName = "profiles_nodepools_gke"
 )
 
 // default node name for all provider
@@ -35,13 +39,13 @@ func SetDefaultValues() error {
 
 	for _, d := range defaults {
 		if !d.IsDefinedBefore() { // the table not contains the default profile
-			log.WithField("type", d.GetType()).Info("default profile is missing. Setting up...")
+			log.WithField("cloud", d.GetCloud()).Info("default profile is missing. Setting up...")
 
 			if err := d.SaveInstance(); err != nil {
-				return fmt.Errorf("could not save default values[%s]: %s", d.GetType(), err.Error())
+				return fmt.Errorf("could not save default values[%s]: %s", d.GetCloud(), err.Error())
 			}
 		} else { // default profile already exists
-			log.WithField("type", d.GetType()).Info("default profile is already set up")
+			log.WithField("cloud", d.GetCloud()).Info("default profile is already set up")
 		}
 	}
 
@@ -52,7 +56,8 @@ func SetDefaultValues() error {
 type ClusterProfile interface {
 	IsDefinedBefore() bool
 	SaveInstance() error
-	GetType() string
+	GetCloud() string
+	GetDistribution() string
 	GetProfile() *pkgCluster.ClusterProfileResponse
 	UpdateProfile(*pkgCluster.ClusterProfileRequest, bool) error
 	DeleteProfile() error
@@ -79,16 +84,21 @@ func loadFirst(output interface{}) error {
 // GetDefaultProfiles returns all types of clouds with default profile name.
 func GetDefaultProfiles() []ClusterProfile {
 	return []ClusterProfile{
-		&AWSProfile{
+		&EC2Profile{
 			DefaultModel: DefaultModel{Name: GetDefaultProfileName()},
-
-			// Note: if the amazon provider ever gets removed, this should be moved to the amazon EKS profile
-			NodePools: []*AWSNodePoolProfile{{
-				NodeName: DefaultNodeName,
+			NodePools: []*EC2NodePoolProfile{{
+				AmazonNodePoolProfileBaseFields: AmazonNodePoolProfileBaseFields{
+					NodeName: DefaultNodeName,
+				},
 			}},
 		},
 		&EKSProfile{
 			DefaultModel: DefaultModel{Name: GetDefaultProfileName()},
+			NodePools: []*EKSNodePoolProfile{{
+				AmazonNodePoolProfileBaseFields: AmazonNodePoolProfileBaseFields{
+					NodeName: DefaultNodeName,
+				},
+			}},
 		},
 		&AKSProfile{
 			DefaultModel: DefaultModel{Name: GetDefaultProfileName()},
@@ -112,42 +122,42 @@ func GetDefaultProfiles() []ClusterProfile {
 }
 
 // GetAllProfiles loads all saved cluster profile from database by given cloud type
-func GetAllProfiles(cloudType string) ([]ClusterProfile, error) {
+func GetAllProfiles(distribution string) ([]ClusterProfile, error) {
 
 	var defaults []ClusterProfile
 	db := database.GetDB()
 
-	switch cloudType {
+	switch distribution {
 
-	case pkgCluster.Amazon:
-		var awsProfiles []AWSProfile
+	case pkgCluster.EC2:
+		var awsProfiles []EC2Profile
 		db.Find(&awsProfiles)
 		for i := range awsProfiles {
 			defaults = append(defaults, &awsProfiles[i])
 		}
 
-	case pkgCluster.AmazonEKS:
+	case pkgCluster.EKS:
 		var eksProfiles []EKSProfile
 		db.Find(&eksProfiles)
 		for i := range eksProfiles {
 			defaults = append(defaults, &eksProfiles[i])
 		}
 
-	case pkgCluster.Azure:
+	case pkgCluster.AKS:
 		var aksProfiles []AKSProfile
 		db.Find(&aksProfiles)
 		for i := range aksProfiles {
 			defaults = append(defaults, &aksProfiles[i])
 		}
 
-	case pkgCluster.Google:
+	case pkgCluster.GKE:
 		var gkeProfiles []GKEProfile
 		db.Find(&gkeProfiles)
 		for i := range gkeProfiles {
 			defaults = append(defaults, &gkeProfiles[i])
 		}
 
-	case pkgCluster.Oracle:
+	case pkgCluster.OKE:
 		okeProfiles := oracle.GetProfiles()
 		for i := range okeProfiles {
 			defaults = append(defaults, &okeProfiles[i])
@@ -162,32 +172,39 @@ func GetAllProfiles(cloudType string) ([]ClusterProfile, error) {
 }
 
 // GetProfile finds cluster profile from database by given name and cloud type
-func GetProfile(cloudType string, name string) (ClusterProfile, error) {
+func GetProfile(distribution string, name string) (ClusterProfile, error) {
 	db := database.GetDB()
 
-	switch cloudType {
-	case pkgCluster.Amazon:
-		var awsProfile AWSProfile
-		if err := db.Where(GKEProfile{DefaultModel: DefaultModel{Name: name}}).First(&awsProfile).Error; err != nil {
+	switch distribution {
+	case pkgCluster.EC2:
+		var ec2Profile EC2Profile
+		if err := db.Where(EC2Profile{DefaultModel: DefaultModel{Name: name}}).First(&ec2Profile).Error; err != nil {
 			return nil, err
 		}
-		return &awsProfile, nil
+		return &ec2Profile, nil
 
-	case pkgCluster.Azure:
+	case pkgCluster.EKS:
+		var ec2Profile EKSProfile
+		if err := db.Where(EKSProfile{DefaultModel: DefaultModel{Name: name}}).First(&ec2Profile).Error; err != nil {
+			return nil, err
+		}
+		return &ec2Profile, nil
+
+	case pkgCluster.AKS:
 		var aksProfile AKSProfile
 		if err := db.Where(GKEProfile{DefaultModel: DefaultModel{Name: name}}).First(&aksProfile).Error; err != nil {
 			return nil, err
 		}
 		return &aksProfile, nil
 
-	case pkgCluster.Google:
+	case pkgCluster.GKE:
 		var gkeProfile GKEProfile
 		if err := db.Where(GKEProfile{DefaultModel: DefaultModel{Name: name}}).First(&gkeProfile).Error; err != nil {
 			return nil, err
 		}
 		return &gkeProfile, nil
 
-	case pkgCluster.Oracle:
+	case pkgCluster.OKE:
 		var okeProfile oracle.Profile
 		okeProfile, err := oracle.GetProfileByName(name)
 		return &okeProfile, err

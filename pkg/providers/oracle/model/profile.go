@@ -5,18 +5,18 @@ import (
 
 	"github.com/banzaicloud/pipeline/database"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/banzaicloud/pipeline/pkg/cluster/amazon"
-	"github.com/banzaicloud/pipeline/pkg/cluster/azure"
+	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
+	"github.com/banzaicloud/pipeline/pkg/cluster/ec2"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
-	"github.com/banzaicloud/pipeline/pkg/cluster/google"
+	"github.com/banzaicloud/pipeline/pkg/cluster/gke"
 	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster"
 )
 
 // SQL table names
 const (
-	ProfileTableName              = "oracle_profiles"
-	ProfileNodePoolTableName      = "oracle_profiles_nodepools"
-	ProfileNodePoolLabelTableName = "oracle_profiles_nodepools_labels"
+	ProfileTableName              = "profiles_oke"
+	ProfileNodePoolTableName      = "profiles_nodepools_oke"
+	ProfileNodePoolLabelTableName = "profiles_nodepools_oke_labels"
 )
 
 // Profile describes the Oracle cluster profile model
@@ -97,9 +97,14 @@ func (d *Profile) IsDefinedBefore() bool {
 	return database.GetDB().First(&d, Profile{Name: d.Name}).RowsAffected != int64(0)
 }
 
-// GetType returns profile's cloud type
-func (d *Profile) GetType() string {
+// GetCloud returns profile's cloud type
+func (d *Profile) GetCloud() string {
 	return pkgCluster.Oracle
+}
+
+// GetDistribution returns profile's distribution type
+func (d *Profile) GetDistribution() string {
+	return pkgCluster.OKE
 }
 
 // GetProfile load profile from database and converts ClusterProfileResponse
@@ -126,13 +131,13 @@ func (d *Profile) GetProfile() *pkgCluster.ClusterProfileResponse {
 		Location: d.Location,
 		Cloud:    pkgCluster.Oracle,
 		Properties: struct {
-			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
-			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
-			Eks    *eks.ClusterProfileEks       `json:"eks,omitempty"`
-			Google *google.ClusterProfileGoogle `json:"google,omitempty"`
-			Oracle *oracle.Cluster              `json:"oracle,omitempty"`
+			EC2 *ec2.ClusterProfileEC2 `json:"ec2,omitempty"`
+			EKS *eks.ClusterProfileEKS `json:"eks,omitempty"`
+			AKS *aks.ClusterProfileAKS `json:"aks,omitempty"`
+			GKE *gke.ClusterProfileGKE `json:"gke,omitempty"`
+			OKE *oracle.Cluster        `json:"oracle,omitempty"`
 		}{
-			Oracle: &oracle.Cluster{
+			OKE: &oracle.Cluster{
 				Version:   d.Version,
 				NodePools: nodePools,
 			},
@@ -145,7 +150,7 @@ func (d *Profile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave bo
 
 	if r != nil {
 
-		s := r.Properties.Oracle
+		s := r.Properties.OKE
 
 		d.Version = s.Version
 		d.Location = r.Location
@@ -189,7 +194,7 @@ func (d *Profile) DeleteProfile() error {
 
 // BeforeDelete deletes all nodepools to belongs to profile
 func (d *Profile) BeforeDelete() error {
-	log.Info("BeforeDelete oke profile... delete all nodepool")
+	log.Info("BeforeDelete oracle profile... delete all nodepool")
 
 	var nodePools []*ProfileNodePool
 	return database.GetDB().Where(ProfileNodePool{
@@ -199,7 +204,7 @@ func (d *Profile) BeforeDelete() error {
 
 // BeforeDelete deletes all labels belongs to the nodepool
 func (d *ProfileNodePool) BeforeDelete() error {
-	log.Info("BeforeDelete oke nodepool... delete all labels")
+	log.Info("BeforeDelete oracle nodepool... delete all labels")
 
 	var nodePoolLabels []*ProfileNodePoolLabel
 
@@ -210,7 +215,7 @@ func (d *ProfileNodePool) BeforeDelete() error {
 
 // BeforeSave clears nodepools
 func (d *Profile) BeforeSave() error {
-	log.Info("BeforeSave oke profile...")
+	log.Info("BeforeSave oracle profile...")
 
 	if d.ID == 0 {
 		return nil

@@ -15,7 +15,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/Azure/go-autorest/autorest/to"
 	pipelineAuth "github.com/banzaicloud/pipeline/auth"
-	pkgAzure "github.com/banzaicloud/pipeline/pkg/cluster/azure"
+	pkgAzure "github.com/banzaicloud/pipeline/pkg/cluster/aks"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	pkgStorage "github.com/banzaicloud/pipeline/pkg/storage"
 	"github.com/banzaicloud/pipeline/secret"

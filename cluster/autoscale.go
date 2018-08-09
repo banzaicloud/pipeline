@@ -3,6 +3,7 @@ package cluster
 import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/helm"
+	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/ghodss/yaml"
@@ -59,10 +60,15 @@ type autoscalingInfo struct {
 
 func getAmazonNodeGroups(cluster CommonCluster) []nodeGroup {
 	var nodeGroups []nodeGroup
-	nodePools := cluster.GetModel().Eks.NodePools
-	if len(nodePools) == 0 {
-		nodePools = cluster.GetModel().Amazon.NodePools
+
+	var nodePools []*model.AmazonNodePoolsModel
+	switch cluster.GetDistribution() {
+	case pkgCluster.EC2:
+		nodePools = cluster.GetModel().EC2.NodePools
+	case pkgCluster.EKS:
+		nodePools = cluster.GetModel().EKS.NodePools
 	}
+
 	for _, nodePool := range nodePools {
 		if nodePool.Autoscaling {
 			nodeGroups = append(nodeGroups, nodeGroup{
@@ -77,7 +83,7 @@ func getAmazonNodeGroups(cluster CommonCluster) []nodeGroup {
 
 func getAzureNodeGroups(cluster CommonCluster) []nodeGroup {
 	var nodeGroups []nodeGroup
-	for _, nodePool := range cluster.GetModel().Azure.NodePools {
+	for _, nodePool := range cluster.GetModel().AKS.NodePools {
 		if nodePool.Autoscaling {
 			nodeGroups = append(nodeGroups, nodeGroup{
 				Name:    nodePool.Name,
@@ -172,7 +178,7 @@ func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup) *autos
 			ClientSecret:      clusterSecret.Values[pkgSecret.AzureClientSecret],
 			SubscriptionID:    clusterSecret.Values[pkgSecret.AzureSubscriptionId],
 			TenantID:          clusterSecret.Values[pkgSecret.AzureTenantId],
-			ResourceGroup:     cluster.GetModel().Azure.ResourceGroup,
+			ResourceGroup:     cluster.GetModel().AKS.ResourceGroup,
 			NodeResourceGroup: *nodeResourceGroup,
 			ClusterName:       cluster.GetName(),
 		},
@@ -184,7 +190,7 @@ func DeployClusterAutoscaler(cluster CommonCluster) error {
 
 	var nodeGroups []nodeGroup
 
-	switch cluster.GetType() {
+	switch cluster.GetCloud() {
 	case pkgCluster.Amazon:
 		// nodeGroups are the same for EKS & EC2
 		nodeGroups = getAmazonNodeGroups(cluster)
@@ -246,14 +252,12 @@ func isAutoscalerDeployedAlready(releaseName string, kubeConfig []byte) bool {
 
 func deployAutoscalerChart(cluster CommonCluster, nodeGroups []nodeGroup, kubeConfig []byte, action deploymentAction) error {
 	var values *autoscalingInfo
-	switch cluster.GetType() {
-	case pkgCluster.Amazon:
-		if _, isEks := cluster.(*EKSCluster); isEks {
-			values = createAutoscalingForEks(cluster, nodeGroups)
-		} else {
-			values = createAutoscalingForEc2(cluster, nodeGroups)
-		}
-	case pkgCluster.Azure:
+	switch cluster.GetDistribution() {
+	case pkgCluster.EKS:
+		values = createAutoscalingForEks(cluster, nodeGroups)
+	case pkgCluster.EC2:
+		values = createAutoscalingForEc2(cluster, nodeGroups)
+	case pkgCluster.AKS:
 		values = createAutoscalingForAzure(cluster, nodeGroups)
 	default:
 		return nil

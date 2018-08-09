@@ -3,7 +3,7 @@
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Eks** | [**CreateAmazonPropertiesAmazon**](CreateAmazonProperties_amazon.md) |  | 
+**Eks** | [**CreateEc2PropertiesEc2**](CreateEC2Properties_ec2.md) |  | 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

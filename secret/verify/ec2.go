@@ -5,7 +5,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	pkgAmazon "github.com/banzaicloud/pipeline/pkg/cluster/amazon"
+	pkgAmazon "github.com/banzaicloud/pipeline/pkg/cluster/ec2"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/sirupsen/logrus"
 )

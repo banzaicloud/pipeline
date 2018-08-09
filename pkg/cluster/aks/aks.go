@@ -1,4 +1,4 @@
-package azure
+package aks
 
 import (
 	"errors"
@@ -15,8 +15,8 @@ const (
 	MinKubernetesVersionWithAutoscalerStr = "1.9.6"
 )
 
-// CreateClusterAzure describes Azure fields of a CreateCluster request
-type CreateClusterAzure struct {
+// CreateClusterAKS describes Azure fields of a CreateCluster request
+type CreateClusterAKS struct {
 	ResourceGroup     string                     `json:"resourceGroup"`
 	KubernetesVersion string                     `json:"kubernetesVersion"`
 	NodePools         map[string]*NodePoolCreate `json:"nodePools,omitempty"`
@@ -44,8 +44,8 @@ type UpdateClusterAzure struct {
 	NodePools map[string]*NodePoolUpdate `json:"nodePools,omitempty"`
 }
 
-// Validate validates azure cluster create request
-func (azure *CreateClusterAzure) Validate() error {
+// Validate validates aks cluster create request
+func (azure *CreateClusterAKS) Validate() error {
 
 	if azure == nil {
 		return pkgErrors.ErrorAzureFieldIsEmpty
@@ -116,7 +116,7 @@ func checkVersionsIsNewerThen(version, minVersionStr string) error {
 	}
 	parsedVersion, err := parseVersion(version)
 	if err != nil {
-		return errors.New("Kubernetes version format in invalid: " + version + "Example of correct format: '1.9.2'")
+		return errors.New("Kubernetes version format is invalid: " + version + "Example of correct format: '1.9.2'")
 	}
 	for idx := range parsedVersion {
 		if parsedVersion[idx] > minVersion[idx] {
@@ -128,19 +128,19 @@ func checkVersionsIsNewerThen(version, minVersionStr string) error {
 	return nil
 }
 
-// Validate validates the update request (only azure part). If any of the fields is missing, the method fills
+// Validate validates the update request (only aks part). If any of the fields is missing, the method fills
 // with stored data.
 func (a *UpdateClusterAzure) Validate() error {
 	// ---- [ Azure field check ] ---- //
 	if a == nil {
-		return errors.New("'azure' field is empty") // todo move to errors
+		return errors.New("'aks' field is empty") // todo move to errors
 	}
 
 	return nil
 }
 
-// ClusterProfileAzure describes an Azure profile
-type ClusterProfileAzure struct {
+// ClusterProfileAKS describes an Azure profile
+type ClusterProfileAKS struct {
 	KubernetesVersion string                     `json:"kubernetesVersion"`
 	NodePools         map[string]*NodePoolCreate `json:"nodePools,omitempty"`
 }

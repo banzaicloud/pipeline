@@ -3,10 +3,10 @@ package defaults
 import (
 	"github.com/banzaicloud/pipeline/database"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/banzaicloud/pipeline/pkg/cluster/amazon"
-	"github.com/banzaicloud/pipeline/pkg/cluster/azure"
+	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
+	"github.com/banzaicloud/pipeline/pkg/cluster/ec2"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
-	"github.com/banzaicloud/pipeline/pkg/cluster/google"
+	"github.com/banzaicloud/pipeline/pkg/cluster/gke"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster"
 )
@@ -14,16 +14,25 @@ import (
 // EKSProfile describes an Amazon EKS cluster profile
 type EKSProfile struct {
 	DefaultModel
-	Region           string                `gorm:"default:'us-west-2'"`
-	NodeImageId      string                `json:"nodeImageId,omitempty"`
-	NodeInstanceType string                `json:"nodeInstanceType,omitempty"`
-	Version          string                `json:"version,omitempty"`
-	NodePools        []*AWSNodePoolProfile `gorm:"foreignkey:Name"`
+	Region    string                `gorm:"default:'us-west-2'"`
+	Version   string                `gorm:"default:'1.10'"`
+	NodePools []*EKSNodePoolProfile `gorm:"foreignkey:Name"`
+}
+
+// EKSNodePoolProfile describes an EKS cluster profile's nodepools
+type EKSNodePoolProfile struct {
+	AmazonNodePoolProfileBaseFields
+	Image string `gorm:"default:'ami-73a6e20b'"`
 }
 
 // TableName overrides EKSProfile's table name
 func (EKSProfile) TableName() string {
-	return DefaultAmazonEksProfileTablaName
+	return DefaultEKSProfileTableName
+}
+
+// TableName overrides EKSNodePoolProfile's table name
+func (EKSNodePoolProfile) TableName() string {
+	return DefaultEKSNodePoolProfileTableName
 }
 
 // SaveInstance saves cluster profile into database
@@ -31,9 +40,14 @@ func (d *EKSProfile) SaveInstance() error {
 	return save(d)
 }
 
-// GetType returns profile's cloud type
-func (d *EKSProfile) GetType() string {
-	return pkgCluster.AmazonEKS
+// GetCloud returns profile's cloud type
+func (d *EKSProfile) GetCloud() string {
+	return pkgCluster.Amazon
+}
+
+// GetDistribution returns profile's distribution type
+func (d *EKSProfile) GetDistribution() string {
+	return pkgCluster.EKS
 }
 
 // IsDefinedBefore returns true if database contains en entry with profile name
@@ -44,10 +58,10 @@ func (d *EKSProfile) IsDefinedBefore() bool {
 // GetProfile load profile from database and converts ClusterProfileResponse
 func (d *EKSProfile) GetProfile() *pkgCluster.ClusterProfileResponse {
 
-	nodePools := make(map[string]*amazon.NodePool)
+	nodePools := make(map[string]*ec2.NodePool)
 	for _, np := range d.NodePools {
 		if np != nil {
-			nodePools[np.NodeName] = &amazon.NodePool{
+			nodePools[np.NodeName] = &ec2.NodePool{
 				InstanceType: np.InstanceType,
 				SpotPrice:    np.SpotPrice,
 				Autoscaling:  np.Autoscaling,
@@ -64,14 +78,15 @@ func (d *EKSProfile) GetProfile() *pkgCluster.ClusterProfileResponse {
 		Location: d.Region,
 		Cloud:    pkgCluster.Amazon,
 		Properties: struct {
-			Amazon *amazon.ClusterProfileAmazon `json:"amazon,omitempty"`
-			Azure  *azure.ClusterProfileAzure   `json:"azure,omitempty"`
-			Eks    *eks.ClusterProfileEks       `json:"eks,omitempty"`
-			Google *google.ClusterProfileGoogle `json:"google,omitempty"`
-			Oracle *oracle.Cluster              `json:"oracle,omitempty"`
+			EC2 *ec2.ClusterProfileEC2 `json:"ec2,omitempty"`
+			EKS *eks.ClusterProfileEKS `json:"eks,omitempty"`
+			AKS *aks.ClusterProfileAKS `json:"aks,omitempty"`
+			GKE *gke.ClusterProfileGKE `json:"gke,omitempty"`
+			OKE *oracle.Cluster        `json:"oracle,omitempty"`
 		}{
-			Eks: &eks.ClusterProfileEks{
-				Version: d.Version,
+			EKS: &eks.ClusterProfileEKS{
+				Version:   d.Version,
+				NodePools: nodePools,
 			},
 		},
 	}
@@ -85,18 +100,18 @@ func (d *EKSProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave
 		d.Region = r.Location
 	}
 
-	if r.Properties.Eks != nil {
+	if r.Properties.EKS != nil {
 
-		if len(r.Properties.Eks.Version) != 0 {
-			d.Version = r.Properties.Eks.Version
+		if len(r.Properties.EKS.Version) != 0 {
+			d.Version = r.Properties.EKS.Version
 		}
 
-		if len(r.Properties.Eks.NodePools) != 0 {
-			var nodePools []*AWSNodePoolProfile
-			for npName, nodePool := range r.Properties.Eks.NodePools {
+		if len(r.Properties.EKS.NodePools) != 0 {
+			var nodePools []*EKSNodePoolProfile
+			for npName, nodePool := range r.Properties.EKS.NodePools {
 
-				spotPrice := amazon.DefaultSpotPrice
-				instanceType := amazon.DefaultInstanceType
+				spotPrice := ec2.DefaultSpotPrice
+				instanceType := ec2.DefaultInstanceType
 				minCount := pkgCommon.DefaultNodeMinCount
 				maxCount := pkgCommon.DefaultNodeMaxCount
 				image := eks.DefaultImages[d.Region]
@@ -131,16 +146,18 @@ func (d *EKSProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave
 					image = nodePool.Image
 				}
 
-				nodePools = append(nodePools, &AWSNodePoolProfile{
-					InstanceType: instanceType,
-					Name:         d.Name,
-					NodeName:     npName,
-					SpotPrice:    spotPrice,
-					Autoscaling:  nodePool.Autoscaling,
-					MinCount:     minCount,
-					MaxCount:     maxCount,
-					Count:        count,
-					Image:        image,
+				nodePools = append(nodePools, &EKSNodePoolProfile{
+					AmazonNodePoolProfileBaseFields: AmazonNodePoolProfileBaseFields{
+						InstanceType: instanceType,
+						Name:         d.Name,
+						NodeName:     npName,
+						SpotPrice:    spotPrice,
+						Autoscaling:  nodePool.Autoscaling,
+						MinCount:     minCount,
+						MaxCount:     maxCount,
+						Count:        count,
+					},
+					Image: image,
 				})
 
 			}
@@ -158,4 +175,44 @@ func (d *EKSProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave
 // DeleteProfile deletes cluster profile from database
 func (d *EKSProfile) DeleteProfile() error {
 	return database.GetDB().Delete(&d).Error
+}
+
+// AfterFind loads nodepools to profile
+func (d *EKSProfile) AfterFind() error {
+	log.Info("AfterFind eks profile... load node pools")
+	return database.GetDB().Where(EKSNodePoolProfile{
+		AmazonNodePoolProfileBaseFields: AmazonNodePoolProfileBaseFields{
+			Name: d.Name,
+		},
+	}).Find(&d.NodePools).Error
+}
+
+// BeforeSave clears nodepools
+func (d *EKSProfile) BeforeSave() error {
+	log.Info("BeforeSave eks profile...")
+
+	db := database.GetDB()
+	var nodePools []*EKSNodePoolProfile
+	err := db.Where(EKSNodePoolProfile{
+		AmazonNodePoolProfileBaseFields: AmazonNodePoolProfileBaseFields{
+			Name: d.Name,
+		},
+	}).Find(&nodePools).Delete(&nodePools).Error
+	if err != nil {
+		log.Errorf("Error during deleting saved nodepools: %s", err.Error())
+	}
+
+	return nil
+}
+
+// BeforeDelete deletes all nodepools to belongs to profile
+func (d *EKSProfile) BeforeDelete() error {
+	log.Info("BeforeDelete eks profile... delete all nodepool")
+
+	var nodePools []*EKSNodePoolProfile
+	return database.GetDB().Where(EKSNodePoolProfile{
+		AmazonNodePoolProfileBaseFields: AmazonNodePoolProfileBaseFields{
+			Name: d.Name,
+		},
+	}).Find(&nodePools).Delete(&nodePools).Error
 }

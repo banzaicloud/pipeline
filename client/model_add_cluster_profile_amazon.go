@@ -11,5 +11,5 @@
 package client
 
 type AddClusterProfileAmazon struct {
-	Amazon AddClusterProfileAmazonAmazon `json:"amazon,omitempty"`
+	Amazon AddClusterProfileAmazonAmazon `json:"ec2,omitempty"`
 }

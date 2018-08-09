@@ -11,5 +11,5 @@
 package client
 
 type CreateAzureProperties struct {
-	Azure CreateAzurePropertiesAzure `json:"azure"`
+	Azure CreateAzurePropertiesAzure `json:"aks"`
 }

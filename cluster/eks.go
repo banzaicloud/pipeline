@@ -21,7 +21,7 @@ import (
 	"github.com/banzaicloud/pipeline/model"
 	pkgAmazon "github.com/banzaicloud/pipeline/pkg/amazon"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/banzaicloud/pipeline/pkg/cluster/amazon"
+	"github.com/banzaicloud/pipeline/pkg/cluster/ec2"
 	pkgEks "github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks/action"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
@@ -54,7 +54,7 @@ func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 	log.Debug("Create ClusterModel struct from the request")
 	var cluster EKSCluster
 
-	modelNodePools := createNodePoolsFromRequest(request.Properties.CreateClusterEks.NodePools, userId)
+	modelNodePools := createNodePoolsFromRequest(request.Properties.CreateClusterEKS.NodePools, userId)
 
 	cluster.modelCluster = &model.ClusterModel{
 		Name:           request.Name,
@@ -62,9 +62,9 @@ func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 		Cloud:          request.Cloud,
 		OrganizationId: orgId,
 		SecretId:       request.SecretId,
-
-		Eks: model.AmazonEksClusterModel{
-			Version:   request.Properties.CreateClusterEks.Version,
+		Distribution:   pkgCluster.EKS,
+		EKS: model.EKSClusterModel{
+			Version:   request.Properties.CreateClusterEKS.Version,
 			NodePools: modelNodePools,
 		},
 	}
@@ -170,9 +170,9 @@ func (e *EKSCluster) CreateCluster() error {
 		action.NewCreateVPCAndRolesAction(creationContext, eksStackName),
 		action.NewUploadSSHKeyAction(creationContext, sshSecret),
 		action.NewGenerateVPCConfigRequestAction(creationContext, eksStackName),
-		action.NewCreateEksClusterAction(creationContext, e.modelCluster.Eks.Version),
+		action.NewCreateEksClusterAction(creationContext, e.modelCluster.EKS.Version),
 		action.NewLoadEksSettingsAction(creationContext),
-		action.NewCreateUpdateNodePoolStackAction(true, creationContext, e.modelCluster.Eks.NodePools...),
+		action.NewCreateUpdateNodePoolStackAction(true, creationContext, e.modelCluster.EKS.NodePools...),
 	}
 
 	_, err = utils.NewActionExecutor(log).ExecuteActions(actions, nil, true)
@@ -246,7 +246,7 @@ func (e *EKSCluster) CreateCluster() error {
 		return err
 	}
 
-	e.modelCluster.Eks.AccessKeyID = aws.StringValue(accessKey.AccessKeyId)
+	e.modelCluster.EKS.AccessKeyID = aws.StringValue(accessKey.AccessKeyId)
 	err = e.modelCluster.Save()
 	if err != nil {
 		return err
@@ -284,12 +284,17 @@ func (e *EKSCluster) GetName() string {
 	return e.modelCluster.Name
 }
 
-// GetType returns the cloud type of the cluster
-func (e *EKSCluster) GetType() string {
+// GetCloud returns the cloud type of the cluster
+func (e *EKSCluster) GetCloud() string {
 	return e.modelCluster.Cloud
 }
 
-// DeleteCluster deletes cluster from google
+// GetDistribution returns the distribution type of the cluster
+func (e *EKSCluster) GetDistribution() string {
+	return e.modelCluster.Distribution
+}
+
+// DeleteCluster deletes cluster from EKS
 func (e *EKSCluster) DeleteCluster() error {
 	log.Info("Start delete EKS cluster")
 
@@ -313,8 +318,8 @@ func (e *EKSCluster) DeleteCluster() error {
 	var actions []utils.Action
 	actions = append(actions, action.NewWaitResourceDeletionAction(deleteContext)) // wait for ELBs to be deleted
 
-	nodePoolStacks := make([]string, 0, len(e.modelCluster.Eks.NodePools))
-	for _, nodePool := range e.modelCluster.Eks.NodePools {
+	nodePoolStacks := make([]string, 0, len(e.modelCluster.EKS.NodePools))
+	for _, nodePool := range e.modelCluster.EKS.NodePools {
 		nodePoolStackName := e.generateNodePoolStackName(nodePool)
 		nodePoolStacks = append(nodePoolStacks, nodePoolStackName)
 	}
@@ -325,7 +330,7 @@ func (e *EKSCluster) DeleteCluster() error {
 		action.NewDeleteClusterAction(deleteContext),
 		action.NewDeleteSSHKeyAction(deleteContext, e.generateSSHKeyNameForCluster()),
 		action.NewDeleteStacksAction(deleteContext, e.generateStackNameForCluster()),
-		action.NewDeleteUserAction(deleteContext, e.modelCluster.Name, e.modelCluster.Eks.AccessKeyID),
+		action.NewDeleteUserAction(deleteContext, e.modelCluster.Name, e.modelCluster.EKS.AccessKeyID),
 	)
 	_, err = utils.NewActionExecutor(log).ExecuteActions(actions, nil, false)
 	if err != nil {
@@ -336,7 +341,7 @@ func (e *EKSCluster) DeleteCluster() error {
 	return nil
 }
 
-func createNodePoolsFromUpdateRequest(requestedNodePools map[string]*amazon.NodePool,
+func createNodePoolsFromUpdateRequest(requestedNodePools map[string]*ec2.NodePool,
 	currentNodePools []*model.AmazonNodePoolsModel, userId uint) ([]*model.AmazonNodePoolsModel, error) {
 
 	currentNodePoolMap := make(map[string]*model.AmazonNodePoolsModel, len(currentNodePools))
@@ -379,7 +384,7 @@ func createNodePoolsFromUpdateRequest(requestedNodePools map[string]*amazon.Node
 
 			// ---- [ Node spot price ] ---- //
 			if len(nodePool.SpotPrice) == 0 {
-				nodePool.SpotPrice = amazon.DefaultSpotPrice
+				nodePool.SpotPrice = ec2.DefaultSpotPrice
 			}
 
 			updatedNodePools = append(updatedNodePools, &model.AmazonNodePoolsModel{
@@ -472,7 +477,7 @@ func (e *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 		return err
 	}
 
-	modelNodePools, err := createNodePoolsFromUpdateRequest(updateRequest.Eks.NodePools, e.modelCluster.Eks.NodePools, updatedBy)
+	modelNodePools, err := createNodePoolsFromUpdateRequest(updateRequest.EKS.NodePools, e.modelCluster.EKS.NodePools, updatedBy)
 	if err != nil {
 		return err
 	}
@@ -570,7 +575,7 @@ func (e *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 		return err
 	}
 
-	e.modelCluster.Eks.NodePools = modelNodePools
+	e.modelCluster.EKS.NodePools = modelNodePools
 
 	return nil
 }
@@ -652,7 +657,7 @@ func (e *EKSCluster) DownloadK8sConfig() ([]byte, error) {
 func (e *EKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 
 	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
-	for _, np := range e.modelCluster.Eks.NodePools {
+	for _, np := range e.modelCluster.EKS.NodePools {
 		if np != nil {
 			nodePools[np.Name] = &pkgCluster.NodePoolStatus{
 				Autoscaling:  np.Autoscaling,
@@ -672,6 +677,7 @@ func (e *EKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		Name:          e.modelCluster.Name,
 		Location:      e.modelCluster.Location,
 		Cloud:         e.modelCluster.Cloud,
+		Distribution:  e.modelCluster.Distribution,
 		ResourceID:    e.modelCluster.ID,
 		NodePools:     nodePools,
 	}, nil
@@ -689,7 +695,7 @@ func (e *EKSCluster) GetModel() *model.ClusterModel {
 
 // CheckEqualityToUpdate validates the update request
 func (e *EKSCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) error {
-	return CheckEqualityToUpdate(r, e.modelCluster.Eks.NodePools)
+	return CheckEqualityToUpdate(r, e.modelCluster.EKS.NodePools)
 }
 
 // AddDefaultsToUpdate adds defaults to update request
@@ -697,8 +703,8 @@ func (e *EKSCluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
 	defaultImage := pkgEks.DefaultImages[e.modelCluster.Location]
 
 	// add default node image(s) if needed
-	if r != nil && r.Eks != nil && r.Eks.NodePools != nil {
-		for _, np := range r.Eks.NodePools {
+	if r != nil && r.EKS != nil && r.EKS.NodePools != nil {
+		for _, np := range r.EKS.NodePools {
 			if len(np.Image) == 0 {
 				np.Image = defaultImage
 			}
@@ -752,7 +758,7 @@ func (e *EKSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 	}
 
 	nodePools := make(map[string]*pkgCluster.NodeDetails)
-	for _, np := range e.modelCluster.Eks.NodePools {
+	for _, np := range e.modelCluster.EKS.NodePools {
 		if np != nil {
 			nodePools[np.Name] = &pkgCluster.NodeDetails{
 				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
@@ -802,7 +808,7 @@ func (e *EKSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) 
 		return err
 	}
 
-	for name, nodePool := range r.Properties.CreateClusterEks.NodePools {
+	for name, nodePool := range r.Properties.CreateClusterEKS.NodePools {
 		images, ok := imagesInRegion[r.Location]
 		if !ok {
 			log.Errorf("Image %q provided for node pool %q is not valid", name, nodePool.Image)

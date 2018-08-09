@@ -121,10 +121,10 @@ ProfilesApiService Delete cluster profiles
 Delete cluster profiles by cloud type and name
  * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param orgId Organization identification
- * @param type_ Cloud type
+ * @param distribution Distribution type
  * @param name Cluster profile name
 */
-func (a *ProfilesApiService) DeleteProfiles(ctx context.Context, orgId int32, type_ string, name string) (*http.Response, error) {
+func (a *ProfilesApiService) DeleteProfiles(ctx context.Context, orgId int32, distribution string, name string) (*http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Delete")
 		localVarPostBody     interface{}
@@ -134,9 +134,9 @@ func (a *ProfilesApiService) DeleteProfiles(ctx context.Context, orgId int32, ty
 	)
 
 	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/api/v1/orgs/{orgId}/profiles/cluster/{type}/{name}"
+	localVarPath := a.client.cfg.BasePath + "/api/v1/orgs/{orgId}/profiles/cluster/{distribution}/{name}"
 	localVarPath = strings.Replace(localVarPath, "{"+"orgId"+"}", fmt.Sprintf("%v", orgId), -1)
-	localVarPath = strings.Replace(localVarPath, "{"+"type"+"}", fmt.Sprintf("%v", type_), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"distribution"+"}", fmt.Sprintf("%v", distribution), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"name"+"}", fmt.Sprintf("%v", name), -1)
 
 	localVarHeaderParams := make(map[string]string)
@@ -232,10 +232,10 @@ ProfilesApiService List cluster profiles
 Listing cluster profiles by cloud type
  * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param orgId Organization identification
- * @param type_ Cloud type
+ * @param distribution Distribution type
 @return ProfileListResponse
 */
-func (a *ProfilesApiService) ListProfiles(ctx context.Context, orgId int32, type_ string) (ProfileListResponse, *http.Response, error) {
+func (a *ProfilesApiService) ListProfiles(ctx context.Context, orgId int32, distribution string) (ProfileListResponse, *http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Get")
 		localVarPostBody     interface{}
@@ -246,9 +246,9 @@ func (a *ProfilesApiService) ListProfiles(ctx context.Context, orgId int32, type
 	)
 
 	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/api/v1/orgs/{orgId}/profiles/cluster/{type}"
+	localVarPath := a.client.cfg.BasePath + "/api/v1/orgs/{orgId}/profiles/cluster/{distribution}"
 	localVarPath = strings.Replace(localVarPath, "{"+"orgId"+"}", fmt.Sprintf("%v", orgId), -1)
-	localVarPath = strings.Replace(localVarPath, "{"+"type"+"}", fmt.Sprintf("%v", type_), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"distribution"+"}", fmt.Sprintf("%v", distribution), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}

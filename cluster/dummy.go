@@ -26,6 +26,7 @@ func CreateDummyClusterFromRequest(request *pkgCluster.CreateClusterRequest, org
 		OrganizationId: orgId,
 		CreatedBy:      userId,
 		SecretId:       request.SecretId,
+		Distribution:   pkgCluster.Dummy,
 		Dummy: model.DummyClusterModel{
 			KubernetesVersion: request.Properties.CreateClusterDummy.Node.KubernetesVersion,
 			NodeCount:         request.Properties.CreateClusterDummy.Node.Count,
@@ -55,9 +56,14 @@ func (d *DummyCluster) GetName() string {
 	return d.modelCluster.Name
 }
 
-//GetType returns the cloud type of the cluster
-func (d *DummyCluster) GetType() string {
+//GetCloud returns the cloud type of the cluster
+func (d *DummyCluster) GetCloud() string {
 	return pkgCluster.Dummy
+}
+
+// GetDistribution returns the distribution type of the cluster
+func (d *DummyCluster) GetDistribution() string {
+	return d.modelCluster.Distribution
 }
 
 //GetStatus gets cluster status
@@ -69,6 +75,7 @@ func (d *DummyCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error)
 		Name:              d.modelCluster.Name,
 		Location:          d.modelCluster.Location,
 		Cloud:             pkgCluster.Dummy,
+		Distribution:      pkgCluster.Dummy,
 		ResourceID:        d.GetID(),
 		CreatorBaseFields: *NewCreatorBaseFields(d.modelCluster.CreatedAt, d.modelCluster.CreatedBy),
 		NodePools:         nil,

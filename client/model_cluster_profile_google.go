@@ -11,5 +11,5 @@
 package client
 
 type ClusterProfileGoogle struct {
-	Google ClusterProfileGoogleGoogle `json:"google,omitempty"`
+	Google ClusterProfileGoogleGoogle `json:"gke,omitempty"`
 }

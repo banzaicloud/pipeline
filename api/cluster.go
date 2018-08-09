@@ -441,8 +441,8 @@ func UpdateCluster(c *gin.Context) {
 		return
 	}
 
-	if commonCluster.GetType() != updateRequest.Cloud {
-		msg := fmt.Sprintf("Stored cloud type [%s] and request cloud type [%s] not equal", commonCluster.GetType(), updateRequest.Cloud)
+	if commonCluster.GetCloud() != updateRequest.Cloud {
+		msg := fmt.Sprintf("Stored cloud type [%s] and request cloud type [%s] not equal", commonCluster.GetCloud(), updateRequest.Cloud)
 		log.Errorf(msg)
 		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
@@ -857,10 +857,10 @@ func addResourceSummaryToDetails(commonCluster cluster.CommonCluster, details *p
 
 	}
 
-	// add master summary, in case of Amazon
-	if commonCluster.GetType() == pkgCluster.Amazon {
+	// add master summary, in case of EC2
+	if commonCluster.GetDistribution() == pkgCluster.EC2 {
 
-		log.Info("cloud type is amazon, add master summary")
+		log.Info("distribution is ec2, add master summary")
 		if err := addMasterSummaryToDetails(client, details); err != nil {
 			return err
 		}
