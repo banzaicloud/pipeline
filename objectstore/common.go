@@ -5,6 +5,7 @@ import (
 	"github.com/banzaicloud/pipeline/database"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
+	"github.com/banzaicloud/pipeline/pkg/providers/azure"
 	pkgStorage "github.com/banzaicloud/pipeline/pkg/storage"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
@@ -24,7 +25,7 @@ func (err ManagedBucketNotFoundError) Error() string {
 // must implement
 type ObjectStore interface {
 	CreateBucket(string)
-	ListBuckets() ([]*pkgStorage.BucketInfo, error)
+	ListBuckets() ([]*pkgStorage.BucketInfo, error) // TODO: do we need this structure?
 	DeleteBucket(string) error
 	CheckBucket(string) error
 
@@ -48,10 +49,7 @@ func NewObjectStore(cloudType string, s *secret.SecretItemResponse, organization
 			org:            organization,
 		}, nil
 	case pkgCluster.Azure:
-		return &AzureObjectStore{
-			secret: s,
-			org:    organization,
-		}, nil
+		return azure.NewObjectStore(organization, s, database.GetDB(), log), nil
 	case pkgCluster.Oracle:
 		return &OCIObjectStore{
 			secret: s,

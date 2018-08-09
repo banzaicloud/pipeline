@@ -397,6 +397,14 @@ func errorResponseFrom(err error) *common.ErrorResponse {
 		}
 	}
 
+	if isNotFound(err) {
+		return &common.ErrorResponse{
+			Code:    http.StatusNotFound,
+			Error:   err.Error(),
+			Message: err.Error(),
+		}
+	}
+
 	switch err.(type) {
 	case SecretNotFoundError, secret.MissmatchError:
 		return &common.ErrorResponse{
