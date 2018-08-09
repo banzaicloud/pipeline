@@ -1,11 +1,11 @@
 package cluster
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
-	"encoding/json"
 	"github.com/banzaicloud/pipeline/auth"
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
@@ -17,6 +17,7 @@ import (
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
+	"github.com/ghodss/yaml"
 	"github.com/go-errors/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -196,10 +197,27 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 			return errors.Errorf("Could not install created TLS secret to cluster!")
 		}
 	}
-	// TODO loggingParam contains bucket related infos, think this through how we are going to use this info
-	log.Infof("Params to logging operator: %s", loggingParam)
+	// Install output related secret
+	installedSecretValues, err := InstallSecretWithVaultID(cluster, loggingParam.SecretId, loggingParam.GenTLSForLogging.Namespace)
+	if err != nil {
+		return err
+	}
 
-	return installDeployment(cluster, helm.DefaultNamespace, pkgHelm.BanzaiRepository+"/logging-operator", "pipeline-logging", nil, "InstallLogging")
+	err = installDeployment(cluster, helm.DefaultNamespace, pkgHelm.BanzaiRepository+"/logging-operator", "pipeline-logging", nil, "InstallLogging")
+	if err != nil {
+		return err
+	}
+	loggingValues := map[string]interface{}{
+		"s3output": map[string]interface{}{
+			"bucketname": loggingParam.BucketName,
+			"region":     loggingParam.Region,
+			"secretname": installedSecretValues.Name,
+		}}
+	marshaledValues, err := yaml.Marshal(loggingValues)
+	if err != nil {
+		return err
+	}
+	return installDeployment(cluster, helm.DefaultNamespace, pkgHelm.BanzaiRepository+"/s3-output", "pipeline-logging-output", marshaledValues, "ConfigureLoggingOutPut")
 }
 
 func checkIfTLSRelatedValuesArePresent(v *pkgCluster.GenTLSForLogging) bool {
