@@ -92,10 +92,17 @@ func main() {
 		&objectstore.ManagedGoogleBucket{},
 		&route53model.Route53Domain{}}
 
-	logger.Infoln("Create table(s):", tables)
+	var tableNames string
+	for _, table := range tables {
+		tableNames += fmt.Sprintf(" %s", db.NewScope(table).TableName())
+	}
+
+	logger.WithFields(logrus.Fields{
+		"table_names": tableNames,
+	}).Info("migrating provider tables")
 
 	// Create tables
-	if err := db.AutoMigrate(tables).Error; err != nil {
+	if err := db.AutoMigrate(tables...).Error; err != nil {
 		panic(err)
 	}
 
