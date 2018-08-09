@@ -411,12 +411,6 @@ func errorResponseFrom(err error) *common.ErrorResponse {
 			Error:   err.Error(),
 			Message: err.Error(),
 		}
-	case objectstore.ManagedBucketNotFoundError:
-		return &common.ErrorResponse{
-			Code:    http.StatusNotFound,
-			Error:   err.Error(),
-			Message: err.Error(),
-		}
 	default:
 		return &common.ErrorResponse{
 			Code:    http.StatusInternalServerError,
