@@ -62,23 +62,10 @@ func main() {
 	// Initialize auth
 	auth.Init()
 
-	// Creating tables if not exists
-	logger.Infoln("Create table(s):",
-		model.ClusterModel{}.TableName(),
-		model.EC2ClusterModel{}.TableName(),
-		model.AmazonNodePoolsModel{}.TableName(),
-		model.EKSClusterModel{}.TableName(),
-		model.AKSClusterModel{}.TableName(),
-		model.AKSNodePoolModel{}.TableName(),
-		model.GKEClusterModel{}.TableName(),
-		model.GKENodePoolModel{}.TableName(),
-	)
-
-	// Create tables
-	if err := db.AutoMigrate(
-		&model.ClusterModel{},
+	var tables = []interface{}{&model.ClusterModel{},
 		&model.GKEClusterModel{},
 		&model.AmazonNodePoolsModel{},
+		&model.EC2ClusterModel{},
 		&model.EKSClusterModel{},
 		&model.AKSClusterModel{},
 		&model.AKSNodePoolModel{},
@@ -103,9 +90,12 @@ func main() {
 		&defaults.GKENodePoolProfile{},
 		&objectstore.ManagedAmazonBucket{},
 		&objectstore.ManagedGoogleBucket{},
-		&route53model.Route53Domain{},
-	).Error; err != nil {
+		&route53model.Route53Domain{}}
 
+	logger.Infoln("Create table(s):", tables)
+
+	// Create tables
+	if err := db.AutoMigrate(tables).Error; err != nil {
 		panic(err)
 	}
 
