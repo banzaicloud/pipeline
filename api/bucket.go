@@ -151,9 +151,9 @@ func CreateObjectStoreBuckets(c *gin.Context) {
 		objectStore.WithRegion(createBucketRequest.Properties.CreateGoogleObjectStoreBucketProperties.Location)
 	}
 	if cloudType == pkgCluster.Azure {
-		objectStore.WithRegion(createBucketRequest.Properties.CreateAzureObjectStoreBucketProperties.Location)
-		objectStore.WithResourceGroup(createBucketRequest.Properties.CreateAzureObjectStoreBucketProperties.ResourceGroup)
-		objectStore.WithStorageAccount(createBucketRequest.Properties.CreateAzureObjectStoreBucketProperties.StorageAccount)
+		objectStore.WithRegion(createBucketRequest.Properties.Azure.Location)
+		objectStore.WithResourceGroup(createBucketRequest.Properties.Azure.ResourceGroup)
+		objectStore.WithStorageAccount(createBucketRequest.Properties.Azure.StorageAccount)
 	}
 	if cloudType == pkgCluster.Oracle {
 		objectStore.WithRegion(createBucketRequest.Properties.CreateOracleObjectStoreBucketProperties.Location)
@@ -476,7 +476,7 @@ func getValidatedSecret(organizationId uint, secretId, cloudType string) (*secre
 }
 
 func determineCloudProviderFromRequest(req storage.CreateBucketRequest) (string, error) {
-	if req.Properties.CreateAzureObjectStoreBucketProperties != nil {
+	if req.Properties.Azure != nil {
 		return pkgCluster.Azure, nil
 	}
 	if req.Properties.CreateAmazonObjectStoreBucketProperties != nil {

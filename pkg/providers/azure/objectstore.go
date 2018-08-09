@@ -15,7 +15,6 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/Azure/go-autorest/autorest/to"
 	pipelineAuth "github.com/banzaicloud/pipeline/auth"
-	pkgAzure "github.com/banzaicloud/pipeline/pkg/cluster/aks"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	pkgStorage "github.com/banzaicloud/pipeline/pkg/storage"
 	"github.com/banzaicloud/pipeline/secret"
@@ -472,7 +471,7 @@ func (s *ObjectStore) ListBuckets() ([]*pkgStorage.BucketInfo, error) {
 				bucketInfo := &pkgStorage.BucketInfo{
 					Name:    blobContainer.Name,
 					Managed: false,
-					Azure: &pkgAzure.BlobStoragePropsForAzure{
+					Azure: &pkgStorage.BlobStoragePropsForAzure{
 						StorageAccount: accountName,
 						ResourceGroup:  *rg.Name,
 					},

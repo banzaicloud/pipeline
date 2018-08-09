@@ -1,7 +1,6 @@
-package storage // CreateBucketRequest describes a storage bucket creation
+package storage
 
 import (
-	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/ec2"
 	"github.com/banzaicloud/pipeline/pkg/cluster/gke"
 	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/objectstore"
@@ -13,18 +12,17 @@ type CreateBucketRequest struct {
 	Name       string `json:"name" binding:"required"`
 	Properties struct {
 		CreateAmazonObjectStoreBucketProperties *ec2.CreateAmazonObjectStoreBucketProperties `json:"ec2,omitempty"`
-		CreateAzureObjectStoreBucketProperties  *aks.CreateAzureObjectStoreBucketProperties  `json:"aks,omitempty"`
+		Azure                                   *CreateAzureObjectStoreBucketProperties      `json:"aks,omitempty"`
 		CreateGoogleObjectStoreBucketProperties *gke.CreateGoogleObjectStoreBucketProperties `json:"gke,omitempty"`
 		CreateOracleObjectStoreBucketProperties *oracle.CreateObjectStoreBucketProperties    `json:"oracle,omitempty"`
 	} `json:"properties" binding:"required"`
 }
 
-// BucketInfo desribes a storage bucket
-type BucketInfo struct {
-	Name     string                        `json:"name"  binding:"required"`
-	Managed  bool                          `json:"managed" binding:"required"`
-	Location string                        `json:"location,omitempty"`
-	Azure    *aks.BlobStoragePropsForAzure `json:"aks,omitempty"`
+// Azure describes an Azure ObjectStore Container Creation request
+type CreateAzureObjectStoreBucketProperties struct {
+	Location       string `json:"location" binding:"required"`
+	StorageAccount string `json:"storageAccount"`
+	ResourceGroup  string `json:"resourceGroup"`
 }
 
 // CreateBucketResponse describes a storage bucket creation response
