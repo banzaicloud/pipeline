@@ -7,7 +7,7 @@ import (
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/objectstore"
 	"github.com/banzaicloud/pipeline/pkg/providers/azure"
-		"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/jinzhu/gorm"
 )
@@ -73,22 +73,10 @@ func persistToDb(m interface{}) error {
 	return db.Save(m).Error
 }
 
-func updateDBField(m interface{}, field interface{}) error {
-	log.Info("Updating Bucket Description ")
-	db := database.GetDB()
-	return db.Model(m).Update(field).Error
-}
-
 func deleteFromDbByPK(m interface{}) error {
 	log.Info("Deleting from DB...")
 	db := database.GetDB()
 	return db.Delete(m).Error
-}
-
-func deleteFromDb(m interface{}) error {
-	log.Info("Deleting from DB...")
-	db := database.GetDB()
-	return db.Delete(m, m).Error
 }
 
 // queryDb queries the database using the specified searchCriteria
