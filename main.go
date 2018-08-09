@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/banzaicloud/pipeline/api"
 	"github.com/banzaicloud/pipeline/audit"
@@ -98,7 +99,7 @@ func main() {
 	}
 
 	logger.WithFields(logrus.Fields{
-		"table_names": tableNames,
+		"table_names": strings.TrimSpace(tableNames),
 	}).Info("migrating provider tables")
 
 	// Create tables
