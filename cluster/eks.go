@@ -29,6 +29,7 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/utils"
+	"github.com/sirupsen/logrus"
 	"k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -52,7 +53,9 @@ const mapUsersTemplate = `- userarn: %s
 //CreateEKSClusterFromRequest creates ClusterModel struct from the request
 func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId uint) (*EKSCluster, error) {
 	log.Debug("Create ClusterModel struct from the request")
-	var cluster EKSCluster
+	cluster := EKSCluster{
+		log: log.WithField("cluster", request.Name),
+	}
 
 	modelNodePools := createNodePoolsFromRequest(request.Properties.CreateClusterEKS.NodePools, userId)
 
@@ -79,6 +82,7 @@ type EKSCluster struct {
 	CertificateAuthorityData []byte
 	awsAccessKeyID           string
 	awsSecretAccessKey       string
+	log                      logrus.FieldLogger
 	CommonClusterBase
 }
 
@@ -112,6 +116,7 @@ func CreateEKSClusterFromModel(clusterModel *model.ClusterModel) (*EKSCluster, e
 	log.Debug("Create ClusterModel struct from the request")
 	eksCluster := EKSCluster{
 		modelCluster: clusterModel,
+		log:          log.WithField("cluster", clusterModel.Name),
 	}
 	return &eksCluster, nil
 }
@@ -126,7 +131,7 @@ func (e *EKSCluster) createAWSCredentialsFromSecret() (*credentials.Credentials,
 
 // CreateCluster creates an EKS cluster with cloudformation templates.
 func (e *EKSCluster) CreateCluster() error {
-	log.Info("Start creating EKS cluster")
+	e.log.Info("Start creating EKS cluster")
 
 	awsCred, err := e.createAWSCredentialsFromSecret()
 	if err != nil {
@@ -167,17 +172,17 @@ func (e *EKSCluster) CreateCluster() error {
 	}
 
 	actions := []utils.Action{
-		action.NewCreateVPCAndRolesAction(creationContext, eksStackName),
-		action.NewUploadSSHKeyAction(creationContext, sshSecret),
-		action.NewGenerateVPCConfigRequestAction(creationContext, eksStackName),
-		action.NewCreateEksClusterAction(creationContext, e.modelCluster.EKS.Version),
-		action.NewLoadEksSettingsAction(creationContext),
-		action.NewCreateUpdateNodePoolStackAction(true, creationContext, e.modelCluster.EKS.NodePools...),
+		action.NewCreateVPCAndRolesAction(e.log, creationContext, eksStackName),
+		action.NewUploadSSHKeyAction(e.log, creationContext, sshSecret),
+		action.NewGenerateVPCConfigRequestAction(e.log, creationContext, eksStackName),
+		action.NewCreateEksClusterAction(e.log, creationContext, e.modelCluster.EKS.Version),
+		action.NewLoadEksSettingsAction(e.log, creationContext),
+		action.NewCreateUpdateNodePoolStackAction(e.log, true, creationContext, e.modelCluster.EKS.NodePools...),
 	}
 
-	_, err = utils.NewActionExecutor(log).ExecuteActions(actions, nil, true)
+	_, err = utils.NewActionExecutor(e.log).ExecuteActions(actions, nil, true)
 	if err != nil {
-		log.Errorln("EKS cluster create error:", err.Error())
+		e.log.Errorln("EKS cluster create error:", err.Error())
 		return err
 	}
 
@@ -185,7 +190,7 @@ func (e *EKSCluster) CreateCluster() error {
 	e.CertificateAuthorityData, err = base64.StdEncoding.DecodeString(aws.StringValue(creationContext.CertificateAuthorityData))
 
 	if err != nil {
-		log.Errorf("Decoding base64 format EKS K8S certificate authority data failed: %s", err.Error())
+		e.log.Errorf("Decoding base64 format EKS K8S certificate authority data failed: %s", err.Error())
 		return err
 	}
 
@@ -252,7 +257,7 @@ func (e *EKSCluster) CreateCluster() error {
 		return err
 	}
 
-	log.Infoln("EKS cluster created:", e.modelCluster.Name)
+	e.log.Info("EKS cluster created.")
 
 	return nil
 }
@@ -275,7 +280,7 @@ func (e *EKSCluster) generateIAMRoleNameForCluster() string {
 
 // Persist saves the cluster model
 func (e *EKSCluster) Persist(status, statusMessage string) error {
-	log.Infof("Model before save: %v", e.modelCluster)
+	e.log.Infof("Model before save: %v", e.modelCluster)
 	return e.modelCluster.UpdateStatus(status, statusMessage)
 }
 
@@ -296,7 +301,7 @@ func (e *EKSCluster) GetDistribution() string {
 
 // DeleteCluster deletes cluster from EKS
 func (e *EKSCluster) DeleteCluster() error {
-	log.Info("Start delete EKS cluster")
+	e.log.Info("Start delete EKS cluster")
 
 	awsCred, err := e.createAWSCredentialsFromSecret()
 	if err != nil {
@@ -316,36 +321,35 @@ func (e *EKSCluster) DeleteCluster() error {
 		e.modelCluster.Name,
 	)
 	var actions []utils.Action
-	actions = append(actions, action.NewWaitResourceDeletionAction(deleteContext)) // wait for ELBs to be deleted
+	actions = append(actions, action.NewWaitResourceDeletionAction(e.log, deleteContext)) // wait for ELBs to be deleted
 
 	nodePoolStacks := make([]string, 0, len(e.modelCluster.EKS.NodePools))
 	for _, nodePool := range e.modelCluster.EKS.NodePools {
 		nodePoolStackName := e.generateNodePoolStackName(nodePool)
 		nodePoolStacks = append(nodePoolStacks, nodePoolStackName)
 	}
-	deleteNodePoolsAction := action.NewDeleteStacksAction(deleteContext, nodePoolStacks...)
+	deleteNodePoolsAction := action.NewDeleteStacksAction(e.log, deleteContext, nodePoolStacks...)
 
 	actions = append(actions,
 		deleteNodePoolsAction,
-		action.NewDeleteClusterAction(deleteContext),
-		action.NewDeleteSSHKeyAction(deleteContext, e.generateSSHKeyNameForCluster()),
-		action.NewDeleteStacksAction(deleteContext, e.generateStackNameForCluster()),
-		action.NewDeleteUserAction(deleteContext, e.modelCluster.Name, e.modelCluster.EKS.AccessKeyID),
+		action.NewDeleteClusterAction(e.log, deleteContext),
+		action.NewDeleteSSHKeyAction(e.log, deleteContext, e.generateSSHKeyNameForCluster()),
+		action.NewDeleteStacksAction(e.log, deleteContext, e.generateStackNameForCluster()),
+		action.NewDeleteUserAction(e.log, deleteContext, e.modelCluster.Name, e.modelCluster.EKS.AccessKeyID),
 	)
-	_, err = utils.NewActionExecutor(log).ExecuteActions(actions, nil, false)
+	_, err = utils.NewActionExecutor(e.log).ExecuteActions(actions, nil, false)
 	if err != nil {
-		log.Errorln("EKS cluster delete error:", err.Error())
+		e.log.Errorln("EKS cluster delete error:", err.Error())
 		return err
 	}
 
 	return nil
 }
 
-func createNodePoolsFromUpdateRequest(requestedNodePools map[string]*ec2.NodePool,
-	currentNodePools []*model.AmazonNodePoolsModel, userId uint) ([]*model.AmazonNodePoolsModel, error) {
+func (e *EKSCluster) createNodePoolsFromUpdateRequest(requestedNodePools map[string]*ec2.NodePool, userId uint) ([]*model.AmazonNodePoolsModel, error) {
 
-	currentNodePoolMap := make(map[string]*model.AmazonNodePoolsModel, len(currentNodePools))
-	for _, nodePool := range currentNodePools {
+	currentNodePoolMap := make(map[string]*model.AmazonNodePoolsModel, len(e.modelCluster.EKS.NodePools))
+	for _, nodePool := range e.modelCluster.EKS.NodePools {
 		currentNodePoolMap[nodePool.Name] = nodePool
 	}
 
@@ -372,13 +376,13 @@ func createNodePoolsFromUpdateRequest(requestedNodePools map[string]*ec2.NodePoo
 
 			// ---- [ Node instanceType check ] ---- //
 			if len(nodePool.InstanceType) == 0 {
-				log.Errorf("instanceType is missing for nodePool %v", nodePoolName)
+				e.log.Errorf("instanceType is missing for nodePool %v", nodePoolName)
 				return nil, pkgErrors.ErrorInstancetypeFieldIsEmpty
 			}
 
 			// ---- [ Node image check ] ---- //
 			if len(nodePool.Image) == 0 {
-				log.Errorf("image is missing for nodePool %v", nodePoolName)
+				e.log.Errorf("image is missing for nodePool %v", nodePoolName)
 				return nil, pkgErrors.ErrorAmazonImageFieldIsEmpty
 			}
 
@@ -402,7 +406,7 @@ func createNodePoolsFromUpdateRequest(requestedNodePools map[string]*ec2.NodePoo
 		}
 	}
 
-	for _, nodePool := range currentNodePools {
+	for _, nodePool := range e.modelCluster.EKS.NodePools {
 		if requestedNodePools[nodePool.Name] == nil {
 			updatedNodePools = append(updatedNodePools, &model.AmazonNodePoolsModel{
 				ID:             nodePool.ID,
@@ -419,7 +423,7 @@ func createNodePoolsFromUpdateRequest(requestedNodePools map[string]*ec2.NodePoo
 
 // UpdateCluster updates EKS cluster in cloud
 func (e *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterRequest, updatedBy uint) error {
-	log.Info("Start updating EKS cluster")
+	e.log.Info("Start updating EKS cluster")
 
 	awsCred, err := e.createAWSCredentialsFromSecret()
 	if err != nil {
@@ -477,7 +481,7 @@ func (e *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 		return err
 	}
 
-	modelNodePools, err := createNodePoolsFromUpdateRequest(updateRequest.EKS.NodePools, e.modelCluster.EKS.NodePools, updatedBy)
+	modelNodePools, err := e.createNodePoolsFromUpdateRequest(updateRequest.EKS.NodePools, updatedBy)
 	if err != nil {
 		return err
 	}
@@ -511,12 +515,12 @@ func (e *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 		if err == nil {
 			// delete nodePool
 			if nodePool.Delete {
-				log.Infof("nodePool %v exists will be deleted", nodePool.Name)
+				e.log.Infof("nodePool %v exists will be deleted", nodePool.Name)
 				nodePoolsToDelete = append(nodePoolsToDelete, e.generateNodePoolStackName(nodePool))
 				continue
 			}
 			// update nodePool
-			log.Infof("nodePool %v already exists will be updated", nodePool.Name)
+			e.log.Infof("nodePool %v already exists will be updated", nodePool.Name)
 			// load params which are not updatable from nodeGroup Stack
 			for _, param := range describeStacksOutput.Stacks[0].Parameters {
 				switch *param.ParameterKey {
@@ -532,7 +536,7 @@ func (e *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 			// in this case only min/max counts
 			group, err := getAutoScalingGroup(cloudformationSrv, autoscalingSrv, stackName)
 			if err != nil {
-				log.Errorf("unable to find Asg for stack: %v", stackName)
+				e.log.Errorf("unable to find Asg for stack: %v", stackName)
 				return err
 			}
 
@@ -548,30 +552,30 @@ func (e *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 				if nodePool.Count > nodePool.NodeMaxCount {
 					nodePool.Count = nodePool.NodeMaxCount
 				}
-				log.Infof("DesiredCapacity for %v will be: %v", *group.AutoScalingGroupARN, nodePool.Count)
+				e.log.Infof("DesiredCapacity for %v will be: %v", *group.AutoScalingGroupARN, nodePool.Count)
 			}
 
 			nodePoolsToUpdate = append(nodePoolsToUpdate, nodePool)
 		} else {
 			if nodePool.Delete {
-				log.Warnf("nodePool %v to be deleted doesn't exists: %v", nodePool.Name, err)
+				e.log.Warnf("nodePool %v to be deleted doesn't exists: %v", nodePool.Name, err)
 				continue
 			}
 			// create nodePool
-			log.Infof("nodePool %v doesn't exists will be created", nodePool.Name)
+			e.log.Infof("nodePool %v doesn't exists will be created", nodePool.Name)
 			nodePoolsToCreate = append(nodePoolsToCreate, nodePool)
 		}
 	}
 
-	deleteNodePoolAction := action.NewDeleteStacksAction(deleteContext, nodePoolsToDelete...)
-	createNodePoolAction := action.NewCreateUpdateNodePoolStackAction(true, createUpdateContext, nodePoolsToCreate...)
-	updateNodePoolAction := action.NewCreateUpdateNodePoolStackAction(false, createUpdateContext, nodePoolsToUpdate...)
+	deleteNodePoolAction := action.NewDeleteStacksAction(e.log, deleteContext, nodePoolsToDelete...)
+	createNodePoolAction := action.NewCreateUpdateNodePoolStackAction(e.log, true, createUpdateContext, nodePoolsToCreate...)
+	updateNodePoolAction := action.NewCreateUpdateNodePoolStackAction(e.log, false, createUpdateContext, nodePoolsToUpdate...)
 
 	actions = append(actions, deleteNodePoolAction, createNodePoolAction, updateNodePoolAction)
 
-	_, err = utils.NewActionExecutor(log).ExecuteActions(actions, nil, false)
+	_, err = utils.NewActionExecutor(e.log).ExecuteActions(actions, nil, false)
 	if err != nil {
-		log.Errorln("EKS cluster update error:", err.Error())
+		e.log.Errorln("EKS cluster update error:", err.Error())
 		return err
 	}
 
@@ -735,7 +739,7 @@ func (e *EKSCluster) UpdateStatus(status string, statusMessage string) error {
 
 // GetClusterDetails gets cluster details from cloud
 func (e *EKSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
-	log.Infoln("Start getting cluster details")
+	e.log.Infoln("Getting cluster details")
 
 	awsCred, err := e.createAWSCredentialsFromSecret()
 	if err != nil {
@@ -786,7 +790,7 @@ func (e *EKSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 func (e *EKSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
 	regions, err := ListEksRegions(e.GetOrganizationId(), e.GetSecretId())
 	if err != nil {
-		log.Errorf("Listing regions where EKS service is available failed: %s", err.Error())
+		e.log.Errorf("Listing regions where EKS service is available failed: %s", err.Error())
 		return err
 	}
 
@@ -804,20 +808,20 @@ func (e *EKSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) 
 
 	imagesInRegion, err := ListEksImages(r.Location)
 	if err != nil {
-		log.Errorf("Listing AMIs that that support EKS failed: %s", err.Error())
+		e.log.Errorf("Listing AMIs that that support EKS failed: %s", err.Error())
 		return err
 	}
 
 	for name, nodePool := range r.Properties.CreateClusterEKS.NodePools {
 		images, ok := imagesInRegion[r.Location]
 		if !ok {
-			log.Errorf("Image %q provided for node pool %q is not valid", name, nodePool.Image)
+			e.log.Errorf("Image %q provided for node pool %q is not valid", name, nodePool.Image)
 			return pkgErrors.ErrorNotValidNodeImage
 		}
 
 		for _, image := range images {
 			if image != nodePool.Image {
-				log.Errorf("Image %q provided for node pool %q is not valid", name, nodePool.Image)
+				e.log.Errorf("Image %q provided for node pool %q is not valid", name, nodePool.Image)
 				return pkgErrors.ErrorNotValidNodeImage
 			}
 		}
