@@ -234,6 +234,10 @@ func main() {
 			orgs.GET("/:orgid/cloudinfo", api.GetSupportedClusterList)
 			orgs.GET("/:orgid/cloudinfo/:cloudtype", api.GetCloudInfo)
 
+			orgs.GET("/:orgid/azure/resourcegroups", api.GetResourceGroups)
+			orgs.POST("/:orgid/azure/resourcegroups", api.AddResourceGroups)
+			orgs.DELETE("/:orgid/azure/resourcegroups/:name", api.DeleteResourceGroups)
+
 			orgs.GET("/:orgid", api.GetOrganizations)
 			orgs.DELETE("/:orgid", api.DeleteOrganization)
 		}

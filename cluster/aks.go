@@ -765,3 +765,56 @@ func (c *AKSCluster) ListNodeNames() (labels pkgCommon.NodeNames, err error) {
 func (c *AKSCluster) RbacEnabled() bool {
 	return c.modelCluster.RbacEnabled
 }
+
+// ListResourceGroups returns all resource group
+func ListResourceGroups(orgId uint, secretId string) ([]string, error) {
+
+	client, err := getAKSClient(orgId, secretId)
+	if err != nil {
+		return nil, err
+	}
+
+	client.With(log)
+
+	groups, err := azureClient.ListGroups(client)
+	if err != nil {
+		return nil, err
+	}
+
+	var groupNames []string
+	for _, g := range groups {
+		if g.Name != nil {
+			groupNames = append(groupNames, *g.Name)
+		}
+	}
+
+	return groupNames, nil
+}
+
+// CreateOrUpdateResourceGroup creates or updates a resource group
+func CreateOrUpdateResourceGroup(orgId uint, secretId, rgName, location string) error {
+
+	client, err := getAKSClient(orgId, secretId)
+	if err != nil {
+		return err
+	}
+
+	client.With(log)
+
+	_, err = azureClient.CreateOrUpdateResourceGroup(client, rgName, location)
+	return err
+
+}
+
+// DeleteResourceGroup creates or updates a resource group
+func DeleteResourceGroup(orgId uint, secretId, rgName string) error {
+
+	client, err := getAKSClient(orgId, secretId)
+	if err != nil {
+		return err
+	}
+
+	client.With(log)
+
+	return azureClient.DeleteResourceGroup(client, rgName)
+}

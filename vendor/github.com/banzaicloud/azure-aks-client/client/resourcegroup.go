@@ -5,6 +5,26 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
 )
 
+func (a *aksClient) createOrUpdateResourceGroup(resourceGroup, location string) (*resources.Group, error) {
+	a.LogInfo("Get ResourceGroupClient")
+	groupClient, err := a.azureSdk.GetResourceGroupClient()
+	if err != nil {
+		return nil, err
+	}
+
+	return groupClient.CreateOrUpdate(resourceGroup, location)
+}
+
+func (a *aksClient) deleteResourceGroup(resourceGroup string) error {
+	a.LogInfo("Get ResourceGroupClient")
+	groupClient, err := a.azureSdk.GetResourceGroupClient()
+	if err != nil {
+		return err
+	}
+
+	return groupClient.Delete(resourceGroup)
+}
+
 // listResourceGroups gets all the resource groups for a subscription
 func (a *aksClient) listResourceGroups() ([]resources.Group, error) {
 	a.LogInfo("Get ResourceGroupClient")

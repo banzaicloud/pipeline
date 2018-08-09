@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/banzaicloud/azure-aks-client/errors"
 )
 
@@ -32,6 +33,30 @@ func (r *ResourceGroupClient) ListGroups() ([]resources.Group, error) {
 	}
 
 	return page.Values(), nil
+}
+
+// CreateOrUpdate creates/updates a resource group in the given location with the given name
+func (r *ResourceGroupClient) CreateOrUpdate(resourceGroup, location string) (*resources.Group, error) {
+
+	group, err := r.client.CreateOrUpdate(context.Background(), resourceGroup, resources.Group{
+		Location: to.StringPtr(location),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &group, nil
+
+}
+
+// Delete deletes an existing resource group by name
+func (r *ResourceGroupClient) Delete(resourceGroup string) error {
+	future, err := r.client.Delete(context.Background(), resourceGroup)
+	if err != nil {
+		return err
+	}
+
+	return future.WaitForCompletion(context.Background(), r.client.Client)
 }
 
 // FindInfrastructureResourceGroup returns with the infrastructure resource group of the resource group

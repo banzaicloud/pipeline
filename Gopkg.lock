@@ -235,7 +235,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:1f8d5f2003b413120a4186c9057483fd33c88760524a0f067abeba5804193312"
+  digest = "1:70f71b6fba14f54398f87e554a894df9cdaccbbbca4c844e7ebabe77459d4fee"
   name = "github.com/banzaicloud/azure-aks-client"
   packages = [
     "client",
@@ -251,7 +251,7 @@
     "utils",
   ]
   pruneopts = "NUT"
-  revision = "ebb6ef24cd5c253a2da0bca7a6a321b7d954b3a3"
+  revision = "72e04c1bddb8e7246cc69496f942d35fc26aeb23"
 
 [[projects]]
   digest = "1:a66f6606f1372e61d6766d413b223f01e850efdee6319eb3f50f9e2344fc6ad1"
