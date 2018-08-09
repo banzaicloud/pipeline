@@ -15,8 +15,8 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/Azure/go-autorest/autorest/to"
 	pipelineAuth "github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/pkg/objectstore"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
-	pkgStorage "github.com/banzaicloud/pipeline/pkg/storage"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
@@ -423,7 +423,7 @@ func (s *ObjectStore) CheckBucket(bucketName string) error {
 // ListBuckets returns a list of Azure storage containers buckets that can be accessed with the credentials
 // referenced by the secret field. Azure storage containers buckets that were created by a user in the current
 // org are marked as 'managed'.
-func (s *ObjectStore) ListBuckets() ([]*pkgStorage.BucketInfo, error) {
+func (s *ObjectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 	logger := s.logger.WithFields(logrus.Fields{
 		"organization":    s.org.ID,
 		"subscription_id": s.secret.GetValue(pkgSecret.AzureSubscriptionId),
@@ -436,7 +436,7 @@ func (s *ObjectStore) ListBuckets() ([]*pkgStorage.BucketInfo, error) {
 		return nil, fmt.Errorf("getting all resource groups failed: %s", err.Error())
 	}
 
-	var buckets []*pkgStorage.BucketInfo
+	var buckets []*objectstore.BucketInfo
 
 	for _, rg := range resourceGroups {
 		logger.WithField("resource_group", *(rg.Name)).Info("getting all storage accounts under resource group")
@@ -468,10 +468,10 @@ func (s *ObjectStore) ListBuckets() ([]*pkgStorage.BucketInfo, error) {
 			for i := 0; i < len(blobContainers); i++ {
 				blobContainer := blobContainers[i]
 
-				bucketInfo := &pkgStorage.BucketInfo{
+				bucketInfo := &objectstore.BucketInfo{
 					Name:    blobContainer.Name,
 					Managed: false,
-					Azure: &pkgStorage.BlobStoragePropsForAzure{
+					Azure: &objectstore.BlobStoragePropsForAzure{
 						StorageAccount: accountName,
 						ResourceGroup:  *rg.Name,
 					},

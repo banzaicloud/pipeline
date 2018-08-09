@@ -5,10 +5,10 @@ import (
 	"fmt"
 
 	pipelineAuth "github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/pkg/objectstore"
 	model "github.com/banzaicloud/pipeline/pkg/providers/oracle/model/objectstore"
 	"github.com/banzaicloud/pipeline/pkg/providers/oracle/oci"
 	verify "github.com/banzaicloud/pipeline/pkg/providers/oracle/secret"
-	pkgStorage "github.com/banzaicloud/pipeline/pkg/storage"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -72,7 +72,7 @@ func (o *OCIObjectStore) CreateBucket(name string) {
 }
 
 // ListBuckets list all buckets in Oracle object store
-func (o *OCIObjectStore) ListBuckets() ([]*pkgStorage.BucketInfo, error) {
+func (o *OCIObjectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 
 	log.Info("Getting credentials")
 	oci, err := oci.NewOCI(verify.CreateOCICredential(o.secret.Values))
@@ -91,7 +91,7 @@ func (o *OCIObjectStore) ListBuckets() ([]*pkgStorage.BucketInfo, error) {
 		return nil, err
 	}
 
-	var bucketList []*pkgStorage.BucketInfo
+	var bucketList []*objectstore.BucketInfo
 	for _, region := range regions {
 		err := oci.ChangeRegion(region)
 		if err != nil {
@@ -111,7 +111,7 @@ func (o *OCIObjectStore) ListBuckets() ([]*pkgStorage.BucketInfo, error) {
 		}
 
 		for _, bucket := range buckets {
-			bucketInfo := &pkgStorage.BucketInfo{Name: *bucket.Name, Location: region, Managed: false}
+			bucketInfo := &objectstore.BucketInfo{Name: *bucket.Name, Location: region, Managed: false}
 			bucketList = append(bucketList, bucketInfo)
 		}
 	}
@@ -226,7 +226,7 @@ func (o *OCIObjectStore) newManagedBucketSearchCriteria(bucketName string, locat
 }
 
 // MarkManagedBuckets marks buckets by name to 'managed'
-func (o *OCIObjectStore) MarkManagedBuckets(buckets []*pkgStorage.BucketInfo, compartmentID string) error {
+func (o *OCIObjectStore) MarkManagedBuckets(buckets []*objectstore.BucketInfo, compartmentID string) error {
 
 	// get managed buckets from database
 	managedBuckets, err := o.GetManagedBuckets()

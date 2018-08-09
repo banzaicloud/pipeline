@@ -1,4 +1,17 @@
-package storage
+package objectstore
+
+// ObjectStore is the interface that cloud specific object store implementation
+// must implement
+type ObjectStore interface {
+	CreateBucket(string)
+	ListBuckets() ([]*BucketInfo, error)
+	DeleteBucket(string) error
+	CheckBucket(string) error
+
+	WithResourceGroup(string) error
+	WithStorageAccount(string) error
+	WithRegion(string) error
+}
 
 // BucketInfo desribes a storage bucket
 type BucketInfo struct {
