@@ -9,7 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/banzaicloud/pipeline/auth"
-	pkgStorage "github.com/banzaicloud/pipeline/pkg/storage"
+	"github.com/banzaicloud/pipeline/pkg/objectstore"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 )
@@ -172,7 +172,7 @@ func (b *AmazonObjectStore) CheckBucket(bucketName string) error {
 // ListBuckets returns a list of S3 buckets that can be accessed with the credentials
 // referenced by the secret field. S3 buckets that were created by a user in the current
 // org are marked as 'managed`
-func (b *AmazonObjectStore) ListBuckets() ([]*pkgStorage.BucketInfo, error) {
+func (b *AmazonObjectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 
 	svc, err := createS3Client(b.region, b.secret)
 
@@ -197,14 +197,14 @@ func (b *AmazonObjectStore) ListBuckets() ([]*pkgStorage.BucketInfo, error) {
 		return nil, err
 	}
 
-	var bucketList []*pkgStorage.BucketInfo
+	var bucketList []*objectstore.BucketInfo
 	for _, bucket := range buckets.Buckets {
 		// managedAmazonBuckets must be sorted in order to be able to perform binary search on it
 		idx := sort.Search(len(managedAmazonBuckets), func(i int) bool {
 			return strings.Compare(managedAmazonBuckets[i].Name, *bucket.Name) >= 0
 		})
 
-		bucketInfo := &pkgStorage.BucketInfo{Name: *bucket.Name, Managed: false}
+		bucketInfo := &objectstore.BucketInfo{Name: *bucket.Name, Managed: false}
 		if idx < len(managedAmazonBuckets) && strings.Compare(managedAmazonBuckets[idx].Name, *bucket.Name) == 0 {
 			bucketInfo.Managed = true
 		}

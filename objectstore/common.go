@@ -5,9 +5,9 @@ import (
 	"github.com/banzaicloud/pipeline/database"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
+	"github.com/banzaicloud/pipeline/pkg/objectstore"
 	"github.com/banzaicloud/pipeline/pkg/providers/azure"
-	pkgStorage "github.com/banzaicloud/pipeline/pkg/storage"
-	"github.com/banzaicloud/pipeline/secret"
+		"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/jinzhu/gorm"
 )
@@ -21,22 +21,9 @@ func (err ManagedBucketNotFoundError) Error() string {
 	return err.errMessage
 }
 
-// ObjectStore is the interface that cloud specific object store implementation
-// must implement
-type ObjectStore interface {
-	CreateBucket(string)
-	ListBuckets() ([]*pkgStorage.BucketInfo, error) // TODO: do we need this structure?
-	DeleteBucket(string) error
-	CheckBucket(string) error
-
-	WithResourceGroup(string) error
-	WithStorageAccount(string) error
-	WithRegion(string) error
-}
-
 // NewObjectStore creates a object store client for the given cloud type. The created object is initialized with
 // the passed in secret and organization
-func NewObjectStore(cloudType string, s *secret.SecretItemResponse, organization *auth.Organization) (ObjectStore, error) {
+func NewObjectStore(cloudType string, s *secret.SecretItemResponse, organization *auth.Organization) (objectstore.ObjectStore, error) {
 	switch cloudType {
 	case pkgCluster.Amazon:
 		return &AmazonObjectStore{

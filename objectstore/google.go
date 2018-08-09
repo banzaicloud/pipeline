@@ -1,19 +1,20 @@
 package objectstore
 
 import (
-	"cloud.google.com/go/storage"
 	"context"
 	"errors"
+	"sort"
+	"strings"
+
+	"cloud.google.com/go/storage"
 	"github.com/banzaicloud/pipeline/auth"
-	pkgStorage "github.com/banzaicloud/pipeline/pkg/storage"
+	"github.com/banzaicloud/pipeline/pkg/objectstore"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/gin-gonic/gin/json"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 	apiStorage "google.golang.org/api/storage/v1"
-	"sort"
-	"strings"
 )
 
 // ManagedGoogleBucket is the schema for the DB
@@ -196,7 +197,7 @@ func (b *GoogleObjectStore) CheckBucket(bucketName string) error {
 // ListBuckets returns a list of GS buckets that can be accessed with the credentials
 // referenced by the secret field. GS buckets that were created by a user in the current
 // org are marked as 'managed`
-func (b *GoogleObjectStore) ListBuckets() ([]*pkgStorage.BucketInfo, error) {
+func (b *GoogleObjectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 
 	ctx := context.Background()
 
@@ -226,7 +227,7 @@ func (b *GoogleObjectStore) ListBuckets() ([]*pkgStorage.BucketInfo, error) {
 		return nil, err
 	}
 
-	var bucketList []*pkgStorage.BucketInfo
+	var bucketList []*objectstore.BucketInfo
 
 	for {
 		bucket, err := bucketsIterator.Next()
@@ -238,7 +239,7 @@ func (b *GoogleObjectStore) ListBuckets() ([]*pkgStorage.BucketInfo, error) {
 			return nil, err
 		}
 
-		bucketInfo := &pkgStorage.BucketInfo{Name: bucket.Name, Managed: false}
+		bucketInfo := &objectstore.BucketInfo{Name: bucket.Name, Managed: false}
 
 		// managedGoogleBuckets must be sorted in order to be able to perform binary search on it
 		idx := sort.Search(len(managedGoogleBuckets), func(i int) bool {

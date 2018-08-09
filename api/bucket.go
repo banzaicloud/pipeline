@@ -15,7 +15,6 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
-	"github.com/banzaicloud/pipeline/pkg/storage"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/gin-gonic/gin"
@@ -107,7 +106,7 @@ func CreateObjectStoreBuckets(c *gin.Context) {
 
 	log.Debug("Bind json into CreateClusterRequest struct")
 	// bind request body to struct
-	var createBucketRequest storage.CreateBucketRequest
+	var createBucketRequest CreateBucketRequest
 	if err := c.BindJSON(&createBucketRequest); err != nil {
 		log.Error(errors.Wrap(err, "Error parsing request"))
 		c.JSON(http.StatusBadRequest, common.ErrorResponse{
@@ -141,7 +140,7 @@ func CreateObjectStoreBuckets(c *gin.Context) {
 	}
 	log.Debug("CommonObjectStoreBuckets created")
 	log.Debug("Bucket creation started")
-	c.JSON(http.StatusAccepted, storage.CreateBucketResponse{
+	c.JSON(http.StatusAccepted, CreateBucketResponse{
 		Name: createBucketRequest.Name,
 	})
 	if cloudType == pkgCluster.Amazon {
@@ -475,7 +474,7 @@ func getValidatedSecret(organizationId uint, secretId, cloudType string) (*secre
 	return retrievedSecret, nil
 }
 
-func determineCloudProviderFromRequest(req storage.CreateBucketRequest) (string, error) {
+func determineCloudProviderFromRequest(req CreateBucketRequest) (string, error) {
 	if req.Properties.Azure != nil {
 		return pkgCluster.Azure, nil
 	}

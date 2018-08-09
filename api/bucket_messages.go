@@ -1,4 +1,4 @@
-package storage
+package api
 
 import (
 	"github.com/banzaicloud/pipeline/pkg/cluster/ec2"
@@ -18,7 +18,7 @@ type CreateBucketRequest struct {
 	} `json:"properties" binding:"required"`
 }
 
-// Azure describes an Azure ObjectStore Container Creation request
+// CreateAzureObjectStoreBucketProperties describes an Azure ObjectStore Container Creation request
 type CreateAzureObjectStoreBucketProperties struct {
 	Location       string `json:"location" binding:"required"`
 	StorageAccount string `json:"storageAccount"`
