@@ -573,6 +573,9 @@ func (c *AKSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 				nodePools[np.Name] = &pkgCluster.NodeDetails{
 					CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
 					Version:           c.modelCluster.AKS.KubernetesVersion,
+					Count:             np.Count,
+					MinCount:          np.NodeMinCount,
+					MaxCount:          np.NodeMaxCount,
 				}
 			}
 		}
@@ -583,6 +586,7 @@ func (c *AKSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 			Id:                c.modelCluster.ID,
 			Location:          c.modelCluster.Location,
 			NodePools:         nodePools,
+			Status:            c.modelCluster.Status,
 		}, nil
 
 	}

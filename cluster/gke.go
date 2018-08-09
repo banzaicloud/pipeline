@@ -2059,6 +2059,9 @@ func (g *GKECluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 				nodePools[np.Name] = &pkgCluster.NodeDetails{
 					CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
 					Version:           g.modelCluster.GKE.NodeVersion,
+					Count:             np.NodeCount,
+					MinCount:          np.NodeMinCount,
+					MaxCount:          np.NodeMaxCount,
 				}
 			}
 		}
@@ -2071,6 +2074,7 @@ func (g *GKECluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 			MasterVersion:     g.modelCluster.GKE.MasterVersion,
 			NodePools:         nodePools,
 			Region:            g.modelCluster.GKE.Region,
+			Status:            g.modelCluster.Status,
 		}
 		return response, nil
 	}

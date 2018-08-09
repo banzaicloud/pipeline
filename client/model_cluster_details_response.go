@@ -21,6 +21,7 @@ type ClusterDetailsResponse struct {
 	Location     string                          `json:"location,omitempty"`
 	Endpoint     string                          `json:"endpoint,omitempty"`
 	Region       string                          `json:"region,omitempty"`
+	Status       string                          `json:"status,omitempty"`
 	NodePools    ClusterDetailsResponseNodePools `json:"nodePools,omitempty"`
 	Master       ResourceSummaryItem             `json:"master,omitempty"`
 	TotalSummary PodItemResourceSummary          `json:"totalSummary,omitempty"`

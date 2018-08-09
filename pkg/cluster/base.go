@@ -510,6 +510,7 @@ type DetailsResponse struct {
 	NodePools     map[string]*NodeDetails    `json:"nodePools,omitempty"`
 	Master        map[string]ResourceSummary `json:"master,omitempty"`
 	TotalSummary  *ResourceSummary           `json:"totalSummary,omitempty"`
+	Status        string                     `json:"status"`
 
 	// ONLY in case of GKE
 	Region string `json:"region,omitempty"`
@@ -531,6 +532,9 @@ type NodeDetails struct {
 	pkgCommon.CreatorBaseFields
 	Version         string                     `json:"version,omitempty"`
 	ResourceSummary map[string]ResourceSummary `json:"resourceSummary,omitempty"`
+	Count           int                        `json:"count,omitempty"`
+	MinCount        int                        `json:"minCount,omitempty"`
+	MaxCount        int                        `json:"maxCount,omitempty"`
 }
 
 // ResourceSummary describes a node's resource summary with CPU and Memory capacity/request/limit/allocatable

@@ -13,6 +13,7 @@ Name | Type | Description | Notes
 **Location** | **string** |  | [optional] 
 **Endpoint** | **string** |  | [optional] 
 **Region** | **string** |  | [optional] 
+**Status** | **string** |  | [optional] 
 **NodePools** | [**ClusterDetailsResponseNodePools**](ClusterDetailsResponse_nodePools.md) |  | [optional] 
 **Master** | [**ResourceSummaryItem**](ResourceSummaryItem.md) |  | [optional] 
 **TotalSummary** | [**PodItemResourceSummary**](PodItem_resourceSummary.md) |  | [optional] 

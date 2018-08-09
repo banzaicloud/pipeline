@@ -2,7 +2,6 @@ package cluster
 
 import (
 	"fmt"
-
 	"io/ioutil"
 	"os"
 	"strings"
@@ -1120,6 +1119,9 @@ func (c *EC2Cluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 
 			nodePools[np.Name] = &pkgCluster.NodeDetails{
 				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
+				Count:             np.Count,
+				MinCount:          np.NodeMinCount,
+				MaxCount:          np.NodeMaxCount,
 			}
 		}
 	}
@@ -1130,6 +1132,7 @@ func (c *EC2Cluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 		Id:                c.modelCluster.ID,
 		Location:          c.modelCluster.Location,
 		NodePools:         nodePools,
+		Status:            c.modelCluster.Status,
 	}, nil
 }
 

@@ -348,6 +348,7 @@ func (o *OKECluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 		Location:          status.Location,
 		MasterVersion:     o.modelCluster.OKE.Version,
 		NodePools:         nodePools,
+		Status:            o.modelCluster.Status,
 	}, nil
 }
 
