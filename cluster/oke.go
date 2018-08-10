@@ -388,11 +388,6 @@ func (o *OKECluster) GetK8sConfig() ([]byte, error) {
 	return o.DownloadK8sConfig()
 }
 
-// ReloadFromDatabase load cluster from DB
-func (o *OKECluster) ReloadFromDatabase() error {
-	return o.modelCluster.ReloadFromDatabase()
-}
-
 // GetClusterManager creates a new oracleClusterManager.ClusterManager
 func (o *OKECluster) GetClusterManager() (manager *oracleClusterManager.ClusterManager, err error) {
 

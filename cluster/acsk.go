@@ -933,10 +933,6 @@ func (c *ACSKCluster) GetK8sConfig() ([]byte, error) {
 	return c.CommonClusterBase.getConfig(c)
 }
 
-func (c *ACSKCluster) ReloadFromDatabase() error {
-	return c.modelCluster.ReloadFromDatabase()
-}
-
 func (c *ACSKCluster) createAlibabaCredentialsFromSecret() (*credentials.AccessKeyCredential, error) {
 	clusterSecret, err := c.GetSecretWithValidation()
 	if err != nil {

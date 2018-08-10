@@ -728,11 +728,6 @@ func (c *AKSCluster) RequiresSshPublicKey() bool {
 	return true
 }
 
-// ReloadFromDatabase load cluster from DB
-func (c *AKSCluster) ReloadFromDatabase() error {
-	return c.modelCluster.ReloadFromDatabase()
-}
-
 // ListNodeNames returns node names to label them
 func (c *AKSCluster) ListNodeNames() (labels pkgCommon.NodeNames, err error) {
 
