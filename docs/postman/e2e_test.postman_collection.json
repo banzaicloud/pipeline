@@ -1,17 +1,78 @@
 {
 	"info": {
-		"_postman_id": "21c12fca-1efe-4d14-81da-ec180322fdaa",
+		"_postman_id": "b26d171c-1193-45b2-b2a0-8c0947ddf531",
 		"name": "End2End TEST Organizations",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
-			"_postman_id": "dae4567c-4fad-49f0-85eb-cc7f5e615d23",
 			"name": "Clusters",
 			"item": [
 				{
-					"_postman_id": "c3bb56a4-6483-47de-8d55-51e597f38c80",
+					"name": "Cluster Create ACSK",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (responseCode.code === 202) {",
+									"    tests[\"Response Code 202\"] = responseCode.code == 202;",
+									"",
+									"    pm.environment.set(\"timestampHeader\", new Date());",
+									"    var dataJSON = JSON.parse(responseBody);",
+									"    pm.environment.set(\"cluster_id\", dataJSON.id);",
+									"    tests[\"Cluster ID: \" + dataJSON.id] = true;",
+									"",
+									"    tests[\"Response Time\"] = pm.expect(pm.response.responseTime).to.be.below(80500)",
+									"",
+									"    postman.setNextRequest(\"Cluster Status\");",
+									"} else {",
+									"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+									"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+									"    console.warn(responseBody);",
+									"    postman.setNextRequest(null);",
+									"}",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\":\"alibabacluster-{{username}}-{{$randomInt}}\",\n  \"location\": \"eu-west-1\",\n  \"cloud\": \"alibaba\",\n  \"secretId\": \"{{secret_id}}\",\n  \"properties\": {\n        \"acsk\": {\n        \t\"regionId\": \"eu-central-1\",\n        \t\"zoneId\": \"eu-central-1a\",\n        \t\"masterInstanceType\": \"ecs.sn1ne.large\",\n        \t\"masterSystemDiskCategory\": \"cloud_efficiency\",\n            \"nodePools\": {\n            \t\"pool1\": {\n            \t\t\"count\": 1,\n            \t\t\"image\": \"centos_7\",\n            \t\t\"instanceType\": \"ecs.sn1ne.large\",\n\t\t        \t\"systemDiskCategory\": \"cloud_efficiency\"\n            \t}\n            }\n        }\n    }\n}\n\n"
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/{{orgId}}/clusters",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								"{{orgId}}",
+								"clusters"
+							]
+						},
+						"description": "Creates a K8S cluster in the Amazon Web Services"
+					},
+					"response": []
+				},
+				{
 					"name": "Cluster Create EC2",
 					"event": [
 						{
@@ -75,7 +136,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "0eb7086a-d21f-412f-acbc-70fa0f5f34f2",
 					"name": "Cluster Create AKS",
 					"event": [
 						{
@@ -137,7 +197,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "af6026c4-b198-4e95-9820-272a55f50667",
 					"name": "Cluster Create EKS",
 					"event": [
 						{
@@ -201,7 +260,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "c6f0f802-d823-4918-aad6-857f8c8c4e75",
 					"name": "Cluster Create GKE",
 					"event": [
 						{
@@ -263,7 +321,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "85c4582c-c8fc-4e36-bf68-bfd8e4fe12a2",
 					"name": "Cluster Create OKE",
 					"event": [
 						{
@@ -321,7 +378,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "5ab7939e-b429-490e-a119-1adf11a1b33a",
 					"name": "Cluster Create Dummy",
 					"event": [
 						{
@@ -383,7 +439,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "210a3117-778f-4086-85e0-d7f61348d9f8",
 					"name": "Cluster Create Kubernetes",
 					"event": [
 						{
@@ -445,7 +500,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "93b92403-02e9-4434-9a04-d835de3172a2",
 					"name": "Cluster Create with profile AWS",
 					"event": [
 						{
@@ -507,7 +561,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "aa694e9a-1604-42d3-be4c-bfcca04cc074",
 					"name": "Cluster Create with profile EKS",
 					"event": [
 						{
@@ -569,7 +622,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "bed8d933-0bf3-4373-8e4f-53f06842ce94",
 					"name": "Cluster Create with profile AKS",
 					"event": [
 						{
@@ -631,7 +683,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "41d7207e-ac9f-4b7a-9521-b88c122ecf3b",
 					"name": "Cluster Create with profile GKE",
 					"event": [
 						{
@@ -693,7 +744,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "383ed8c1-18a7-45f6-9bad-ae63e353ff72",
 					"name": "Cluster Create with profile OKE",
 					"event": [
 						{
@@ -751,7 +801,61 @@
 					"response": []
 				},
 				{
-					"_postman_id": "92a91b1a-df0f-4815-ae5f-063c38bfaaec",
+					"name": "Cluster Update ACSK",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"",
+									"if (responseCode.code === 202) {",
+									"    tests[\"Response Code 202\"] = responseCode.code == 202;",
+									"} else {",
+									"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+									"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+									"    postman.setNextRequest(null);",
+									"}",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"cloud\": \"alibaba\",\n  \"properties\": {\n        \"alibaba\": {\n            \"nodePools\": {\n            \t\"pool1\": {\n            \t\t\"count\": 2\n            \t}\n            }\n        }\n    }\n}\n\n"
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/{{orgId}}/clusters/{{cluster_id}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								"{{orgId}}",
+								"clusters",
+								"{{cluster_id}}"
+							]
+						},
+						"description": "Update an AWS cluster"
+					},
+					"response": []
+				},
+				{
 					"name": "Cluster Update AKS",
 					"event": [
 						{
@@ -807,7 +911,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "4de4a407-2244-4ed4-9f91-b394907a28d2",
 					"name": "Cluster Update AWS",
 					"event": [
 						{
@@ -863,7 +966,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "aa245f9b-d50d-4230-a6f2-6e2259d25fb1",
 					"name": "Cluster Update EKS",
 					"event": [
 						{
@@ -919,7 +1021,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "7d7c9a10-17df-4a85-b29a-1120e289b071",
 					"name": "Cluster Update GKE",
 					"event": [
 						{
@@ -975,7 +1076,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "cd7738e8-d421-4e5c-8abe-1e34b3d4868a",
 					"name": "Cluster Update OKE",
 					"event": [
 						{
@@ -1027,7 +1127,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "9e2ff156-d912-42b0-90b2-a39550c66de2",
 					"name": "Cluster Update Dummy",
 					"event": [
 						{
@@ -1083,7 +1182,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "4836818c-62c6-4960-8a79-e79e7b3b0381",
 					"name": "Helm init",
 					"event": [
 						{
@@ -1149,7 +1247,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "724c8e21-590a-4d95-9d66-54d3d2b32f4f",
 					"name": "Install secrets",
 					"event": [
 						{
@@ -1215,7 +1312,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "7499a575-d03f-4976-9ebd-3cd1239158b1",
 					"name": "Cluster Delete  FakeID",
 					"event": [
 						{
@@ -1282,7 +1378,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "6ee3cab8-508b-4ed1-a7cf-fb1b76ebf8dd",
 					"name": "Cluster Delete ",
 					"event": [
 						{
@@ -1341,7 +1436,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "f653c86a-c5e6-4b31-8a36-fda27961b86e",
 					"name": "Get cluster status",
 					"event": [
 						{
@@ -1406,7 +1500,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "7d146452-2474-4b3a-b82a-32d4226b937a",
 					"name": "Fetch cluster Details",
 					"event": [
 						{
@@ -1467,7 +1560,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "05310536-645e-44d0-87fc-72d67fb618e1",
 					"name": "Fetch cluster pod details",
 					"event": [
 						{
@@ -1534,7 +1626,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "40e89a30-fe75-478c-a2ae-379a4ee4b9fc",
 					"name": "Get cluster nodes",
 					"request": {
 						"method": "GET",
@@ -1572,7 +1663,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "86fd4c44-62ba-4a5e-b249-3b835b4239bc",
 					"name": "Cluster List",
 					"event": [
 						{
@@ -1643,7 +1733,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "fb8f184c-298d-4d49-9cff-4a5a9e65a4af",
 					"name": "Cluster Config",
 					"event": [
 						{
@@ -1716,7 +1805,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "59bedf8a-5eb8-46d9-91f0-2450fd96d001",
 					"name": "Cluster Public Endpoints",
 					"event": [
 						{
@@ -1774,7 +1862,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "28155869-2a83-457d-979d-60a019a65817",
 					"name": "Cluster API endpoints",
 					"event": [
 						{
@@ -1832,7 +1919,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "e8c53d74-221b-4613-bc28-cf6fa42c20d0",
 					"name": "Update monitoring",
 					"event": [
 						{
@@ -1890,7 +1976,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "6fccab30-ccc1-49a1-94e0-df4e2fb484a7",
 					"name": "Re-run cluster posthooks",
 					"event": [
 						{
@@ -1957,7 +2042,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "2e2c2d31-3f99-40c8-9f94-e47bdca285ad",
 					"name": "Get cluster applications",
 					"request": {
 						"method": "GET",
@@ -1995,7 +2079,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "296e9963-f45f-4af0-a758-7b596cce6569",
 					"name": "Cluster Status",
 					"event": [
 						{
@@ -2062,11 +2145,9 @@
 			]
 		},
 		{
-			"_postman_id": "8e1438f4-7d7a-4251-bb28-f08f283a7791",
 			"name": "Catalog",
 			"item": [
 				{
-					"_postman_id": "f5c3a016-e20f-42df-8e9c-d9a2cc0f2ec5",
 					"name": "Catalog List",
 					"request": {
 						"method": "GET",
@@ -2092,7 +2173,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "ae35f55d-e6f5-4ce6-8eee-e087cc5bf0a5",
 					"name": "Catalog Details",
 					"request": {
 						"method": "GET",
@@ -2121,11 +2201,9 @@
 			]
 		},
 		{
-			"_postman_id": "1338d333-efc8-45fe-9644-c87ee9ea9a19",
 			"name": "Deployments",
 			"item": [
 				{
-					"_postman_id": "589b7ef2-f001-4ad1-ab82-a7fb803ac9d3",
 					"name": "Deployment Create",
 					"event": [
 						{
@@ -2185,7 +2263,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "6dac87e3-a880-433c-8345-e6b1ebd02f5b",
 					"name": "Deployment Create Fake APP",
 					"event": [
 						{
@@ -2252,7 +2329,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "d43de6fb-a8d1-44c2-bcf5-fd9bef7068ce",
 					"name": "List Deployment",
 					"event": [
 						{
@@ -2308,7 +2384,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "b5c67b45-874a-4503-aa0b-43901dbf736d",
 					"name": "Deployment Init Status",
 					"event": [
 						{
@@ -2376,11 +2451,9 @@
 			]
 		},
 		{
-			"_postman_id": "de405256-feec-460f-84e8-18d97dd84a01",
 			"name": "Deployment",
 			"item": [
 				{
-					"_postman_id": "28296be2-73b8-42b4-8f32-9eb0a6d5107e",
 					"name": "Deployment app Status",
 					"event": [
 						{
@@ -2447,7 +2520,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "08e32a78-93c1-46a6-bfd0-17d589d3671d",
 					"name": "Deployment Upgrade",
 					"event": [
 						{
@@ -2504,7 +2576,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "0b343f76-f243-47c2-91b9-0751ab6ad778",
 					"name": "Deployment Delete ",
 					"event": [
 						{
@@ -2570,7 +2641,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "84616c55-5ed8-43e8-a148-a505710733f2",
 					"name": "Deployment Delete  FakeAPP",
 					"event": [
 						{
@@ -2633,7 +2703,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "71737ca8-52f3-498d-a2c7-c8c38a68cc3b",
 					"name": "Deployment Get",
 					"event": [
 						{
@@ -2692,11 +2761,9 @@
 			]
 		},
 		{
-			"_postman_id": "e09a4e20-9777-4a05-9c59-8d34e3ce7719",
 			"name": "Profiles",
 			"item": [
 				{
-					"_postman_id": "5a84d6ad-1c0c-452f-b7f3-0877fba6cb2d",
 					"name": "Create Profile EC2",
 					"event": [
 						{
@@ -2752,7 +2819,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "09fe649a-a38b-4e4a-ace7-01ed0b6d258a",
 					"name": "Create Profile EKS",
 					"event": [
 						{
@@ -2808,7 +2874,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "4373718c-96d4-46d1-9088-d81479ecf5dd",
 					"name": "Create Profile AKS",
 					"event": [
 						{
@@ -2864,7 +2929,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "521eb715-c853-4f46-b6bf-9b2dac768fea",
 					"name": "Create Profile GKE",
 					"event": [
 						{
@@ -2920,7 +2984,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "3256ab77-c299-473e-af7d-8dfa218f2c29",
 					"name": "Create Profile OKE",
 					"event": [
 						{
@@ -2972,7 +3035,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "ca1e978d-2143-42c0-be62-527395427609",
 					"name": "Update Profile EC2",
 					"event": [
 						{
@@ -3028,7 +3090,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "94de92ae-cfbe-4577-837e-7c3017ec690b",
 					"name": "Update Profile EKS",
 					"event": [
 						{
@@ -3084,7 +3145,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "1abc92e7-2d40-446a-bd27-ded5bee1247d",
 					"name": "Update Profile AKS",
 					"event": [
 						{
@@ -3140,7 +3200,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "db18d9f5-7f5c-41c7-9d66-aa7183dda72a",
 					"name": "Update Profile GKE",
 					"event": [
 						{
@@ -3196,7 +3255,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "b0843acf-1e63-4496-aef8-afea3b4be532",
 					"name": "Update Profile OKE",
 					"event": [
 						{
@@ -3248,7 +3306,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "7fd44d44-5fdf-4938-827d-74c3b891f25a",
 					"name": "List profiles",
 					"event": [
 						{
@@ -3305,7 +3362,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "96694fe4-b76f-4171-9a5a-b8b731004ea7",
 					"name": "Delete profile",
 					"event": [
 						{
@@ -3362,11 +3418,9 @@
 			]
 		},
 		{
-			"_postman_id": "b5425df9-ae23-4b92-aee7-372045a8c4ea",
 			"name": "Secrets",
 			"item": [
 				{
-					"_postman_id": "25b73637-338f-4528-a4a6-7a3f5456a089",
 					"name": "List secret",
 					"request": {
 						"method": "GET",
@@ -3397,7 +3451,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "95630b5d-7e6f-40d2-a948-016fad40b91c",
 					"name": "Get secret",
 					"request": {
 						"method": "GET",
@@ -3429,7 +3482,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "bfc89d1d-c0c9-4314-b537-30dcc9676810",
 					"name": "List secret with filters",
 					"request": {
 						"method": "GET",
@@ -3470,7 +3522,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "1ee434fb-a3a5-4044-9f13-dc01ae04c6ec",
 					"name": "List allowed secret types and required keys",
 					"request": {
 						"method": "GET",
@@ -3502,7 +3553,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "4996ce11-0891-44a9-aa3c-7b8deadf893f",
 					"name": "Add secret Amazon",
 					"event": [
 						{
@@ -3561,7 +3611,64 @@
 					"response": []
 				},
 				{
-					"_postman_id": "39dc8f3f-3c10-4231-a5ae-536e1bee7422",
+					"name": "Add secret Alibaba",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (responseCode.code === 201) {",
+									"    tests[\"Response Code 201\"] = responseCode.code == 201;",
+									"",
+									"    pm.environment.set(\"timestampHeader\", new Date());",
+									"    var dataJSON = JSON.parse(responseBody);",
+									"    pm.environment.set(\"secret_id\", dataJSON.id);",
+									"    tests[\"Secret ID: \" + dataJSON.id] = true;",
+									"} else {",
+									"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+									"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+									"    console.warn(responseBody);",
+									"    postman.setNextRequest(null);",
+									"}",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"name\": \"my-alibaba-secret-{{$randomInt}}\",\n\t\"type\": \"alibaba\",\n\t\"values\": {\n\t\t\"ALIBABA_ACCESS_KEY_ID\": \"{{ALIBABA_ACCESS_KEY_ID}}\",\n\t\t\"ALIBABA_ACCESS_KEY_SECRET\": \"{{ALIBABA_ACCESS_KEY_SECRET}}\"\n\t}\n}"
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/{{orgId}}/secrets",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								"{{orgId}}",
+								"secrets"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Add secret TLS",
 					"event": [
 						{
@@ -3620,7 +3727,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "79f95e20-0d1f-41d5-b898-b660ac90994d",
 					"name": "Add secret TLS Copy",
 					"event": [
 						{
@@ -3679,7 +3785,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "da9f0458-5125-4493-8030-0d876d5d0762",
 					"name": "Add secret Azure",
 					"event": [
 						{
@@ -3738,7 +3843,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "eae9b82c-9e53-4358-9774-3a1c66aa3a2d",
 					"name": "Add secret Google",
 					"event": [
 						{
@@ -3797,7 +3901,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "fa8e1f37-7766-43ca-9e79-660203e0aae2",
 					"name": "Add secret Oracle",
 					"event": [
 						{
@@ -3852,7 +3955,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "6bf56fea-f8bf-42ef-9af6-7003f6ca0a3e",
 					"name": "Add secret SSH",
 					"event": [
 						{
@@ -3911,7 +4013,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "34cd1281-418a-4914-b1f7-517696ead280",
 					"name": "Add secret KUBERNETES",
 					"event": [
 						{
@@ -3970,7 +4071,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "4d1ed267-8a81-40a7-918c-2193d37f6db6",
 					"name": "Add secret Generic",
 					"event": [
 						{
@@ -4029,7 +4129,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "04789fc6-8801-4bf3-8065-a82fc72df435",
 					"name": "Delete secret",
 					"event": [
 						{
@@ -4080,7 +4179,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "a93eea96-374a-4263-930e-6a2f52c11892",
 					"name": "Update secret",
 					"event": [
 						{
@@ -4140,7 +4238,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "14d4f226-6b76-4681-8de9-4ea4e1390a2b",
 					"name": "Validate secret",
 					"request": {
 						"method": "GET",
@@ -4175,11 +4272,9 @@
 			]
 		},
 		{
-			"_postman_id": "49463cdc-9856-4235-970d-e57d6e8af471",
 			"name": "Organization",
 			"item": [
 				{
-					"_postman_id": "ad55b707-030f-4d26-877b-cb0586b86e45",
 					"name": "List organizations",
 					"event": [
 						{
@@ -4227,7 +4322,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "d7a757cf-80aa-44b8-9781-e78872b8d69e",
 					"name": "Get organization",
 					"event": [
 						{
@@ -4276,7 +4370,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "51369db6-ea88-4f17-869a-45eb6a964e6f",
 					"name": "Create organization",
 					"event": [
 						{
@@ -4333,7 +4426,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "02f2f202-0028-4eb3-a3c7-7d67bf8a36a8",
 					"name": "Delete organization",
 					"event": [
 						{
@@ -4384,11 +4476,9 @@
 			]
 		},
 		{
-			"_postman_id": "4a0dd551-82af-40e9-bd30-14510a01b490",
 			"name": "Auth",
 			"item": [
 				{
-					"_postman_id": "cf3dd7ed-214b-4353-9142-722fe38487f1",
 					"name": "Generate token",
 					"event": [
 						{
@@ -4441,11 +4531,9 @@
 			]
 		},
 		{
-			"_postman_id": "bb09a3e3-cbbe-4fed-9836-5567195c7847",
 			"name": "User",
 			"item": [
 				{
-					"_postman_id": "d45295f3-d044-46f0-9b24-7a3899cefb66",
 					"name": "Get users",
 					"request": {
 						"method": "GET",
@@ -4476,7 +4564,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "d3ff8dd6-c200-4f98-94a8-a6b29783e5be",
 					"name": "Add users to organization",
 					"request": {
 						"method": "POST",
@@ -4514,11 +4601,9 @@
 			]
 		},
 		{
-			"_postman_id": "66c8cb62-45e5-4639-a6f8-7ae8050d864e",
 			"name": "ObjectStore",
 			"item": [
 				{
-					"_postman_id": "e406edda-7b14-4976-b6c5-b52c659f37b0",
 					"name": "CheckBucket",
 					"request": {
 						"method": "HEAD",
@@ -4557,7 +4642,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "d9271139-4f40-4683-9d90-dbc714426a3e",
 					"name": "CreateBuckets Amazon",
 					"request": {
 						"method": "POST",
@@ -4592,7 +4676,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "67dc8059-91d2-484d-b345-9769f0544731",
 					"name": "CreateBuckets Azure",
 					"request": {
 						"method": "POST",
@@ -4627,7 +4710,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "49694903-95a1-41f5-96b1-46f2c5d2cff9",
 					"name": "CreateBuckets Google",
 					"request": {
 						"method": "POST",
@@ -4662,7 +4744,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "bb5fbe88-4631-4593-9317-d127aadb1748",
 					"name": "CreateBuckets Oracle",
 					"request": {
 						"method": "POST",
@@ -4697,7 +4778,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "3fc67bdd-49d5-4c67-b325-2317d47c17a7",
 					"name": "ListBuckets Amazon",
 					"request": {
 						"method": "GET",
@@ -4738,7 +4818,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "6dfd3fb8-909e-476c-94be-328a2fa3b5b7",
 					"name": "ListBuckets Azure",
 					"request": {
 						"method": "GET",
@@ -4775,7 +4854,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "2e0d0133-dc04-4629-99e1-29b65d6ddf6a",
 					"name": "ListBuckets Google",
 					"request": {
 						"method": "GET",
@@ -4812,7 +4890,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "704d20ea-b4fc-4255-8fe4-f2d795c0368b",
 					"name": "ListBuckets Oracle",
 					"request": {
 						"method": "GET",
@@ -4849,7 +4926,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "6a7a00c2-04bc-4581-8a77-1fa905327b58",
 					"name": "DeleteBucket Google",
 					"request": {
 						"method": "DELETE",
@@ -4888,7 +4964,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "bfe0017d-50a9-4d62-953d-cd6d684ed5b7",
 					"name": "DeleteBucket Amazon",
 					"request": {
 						"method": "DELETE",
@@ -4926,7 +5001,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "aecc774e-9ac7-445a-a720-1355b4afe550",
 					"name": "DeleteBucket Oracle",
 					"request": {
 						"method": "DELETE",
@@ -4968,7 +5042,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "9ee92c5b-470c-4c32-bc06-4ef87db68d38",
 					"name": "DeleteContainer Azure",
 					"request": {
 						"method": "DELETE",
@@ -5016,11 +5089,9 @@
 			]
 		},
 		{
-			"_postman_id": "a20b0a85-afc1-4dc1-bfd1-3fb665a29da0",
 			"name": "Helm",
 			"item": [
 				{
-					"_postman_id": "3bc0baa6-5764-41d3-87f5-a093f2c4556b",
 					"name": "Chart List",
 					"request": {
 						"method": "GET",
@@ -5052,7 +5123,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "e2573dc3-7738-4e72-a6cd-87b277b008f3",
 					"name": "Chart Details",
 					"request": {
 						"method": "GET",
@@ -5092,7 +5162,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "112ae9dd-8a3a-4156-8aec-1900b6bda4c9",
 					"name": "Repository List",
 					"request": {
 						"method": "GET",
@@ -5125,7 +5194,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "43013e92-312f-4c2a-9ac7-4d94fb339127",
 					"name": "Repository Add",
 					"request": {
 						"method": "POST",
@@ -5162,7 +5230,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "d97ef229-9f14-427d-9106-fd8fb77fe431",
 					"name": "Repository Delete",
 					"request": {
 						"method": "DELETE",
@@ -5195,7 +5262,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "9feb7006-4170-4d12-9c77-9747627ea955",
 					"name": "Repository Modify",
 					"request": {
 						"method": "PUT",
@@ -5232,7 +5298,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "79208227-f3a9-4307-9c5b-987675b32920",
 					"name": "Repository Update",
 					"request": {
 						"method": "PUT",
@@ -5268,15 +5333,12 @@
 			]
 		},
 		{
-			"_postman_id": "a71668d3-8754-42ca-be21-30615a1e6b04",
 			"name": "Cloud info",
 			"item": [
 				{
-					"_postman_id": "1d7cd169-8b9e-4896-aed9-9922fb0dee2c",
 					"name": "Amazon",
 					"item": [
 						{
-							"_postman_id": "bb0195c0-b1d1-4a23-9576-0a590431db24",
 							"name": "Get Amazon cloud config",
 							"request": {
 								"method": "GET",
@@ -5313,7 +5375,6 @@
 							"response": []
 						},
 						{
-							"_postman_id": "ed3ec00e-bbc9-45a7-a38f-0e6e87e6fc4a",
 							"name": "Get Amazon cloud config Locations",
 							"request": {
 								"method": "GET",
@@ -5356,7 +5417,6 @@
 							"response": []
 						},
 						{
-							"_postman_id": "e495a09b-c94f-4a85-a19c-b15b12b1c1a7",
 							"name": "Get Amazon cloud config Images",
 							"request": {
 								"method": "GET",
@@ -5411,7 +5471,6 @@
 							"response": []
 						},
 						{
-							"_postman_id": "cb473e4c-44ba-402a-8b90-3533b64b2921",
 							"name": "Get Amazon cloud config NodeInstanceType",
 							"request": {
 								"method": "GET",
@@ -5462,7 +5521,6 @@
 							"response": []
 						},
 						{
-							"_postman_id": "31721e69-838b-4d80-ac60-8f7a8c26bfb5",
 							"name": "Get Amazon cloud config ALL field",
 							"request": {
 								"method": "GET",
@@ -5528,11 +5586,9 @@
 					"_postman_isSubFolder": true
 				},
 				{
-					"_postman_id": "c5bc3821-b3df-4684-a91c-8210049f2de6",
 					"name": "Azure",
 					"item": [
 						{
-							"_postman_id": "1e660950-8d8c-48a9-9bc8-f36978d6f5a5",
 							"name": "Get Azure cloud config",
 							"request": {
 								"method": "GET",
@@ -5569,7 +5625,6 @@
 							"response": []
 						},
 						{
-							"_postman_id": "f6dd8301-802a-493e-aa56-2fc3da586f2f",
 							"name": "Get Azure cloud config Locations",
 							"request": {
 								"method": "GET",
@@ -5616,7 +5671,6 @@
 							"response": []
 						},
 						{
-							"_postman_id": "6daf95a6-ef5e-4838-a1d6-8ae6c9155369",
 							"name": "Get Azure cloud config NodeInsatnceTypes",
 							"request": {
 								"method": "GET",
@@ -5667,7 +5721,6 @@
 							"response": []
 						},
 						{
-							"_postman_id": "087c65c4-849e-4281-a4b1-b1f2e2f9bb35",
 							"name": "Get Azure cloud config Kubernetes version",
 							"request": {
 								"method": "GET",
@@ -5718,7 +5771,6 @@
 							"response": []
 						},
 						{
-							"_postman_id": "4339f34d-9753-4b6f-9f83-48fd193349aa",
 							"name": "Get Azure cloud config ALL field",
 							"request": {
 								"method": "GET",
@@ -5780,11 +5832,9 @@
 					"_postman_isSubFolder": true
 				},
 				{
-					"_postman_id": "11fc4ade-40ce-415e-be61-c4ea32050902",
 					"name": "Google",
 					"item": [
 						{
-							"_postman_id": "dc1046c2-4695-41a5-aa22-ee225cac3354",
 							"name": "Get Google cloud config",
 							"request": {
 								"method": "GET",
@@ -5821,7 +5871,6 @@
 							"response": []
 						},
 						{
-							"_postman_id": "e5a81d11-ce47-4cb9-9f26-4e5177b56946",
 							"name": "Get Google cloud config Locations",
 							"request": {
 								"method": "GET",
@@ -5872,7 +5921,6 @@
 							"response": []
 						},
 						{
-							"_postman_id": "7b94acf4-ee7a-41cb-b3dc-7a1ea3cbcd45",
 							"name": "Get Google cloud config NodeInsatnceTypes",
 							"request": {
 								"method": "GET",
@@ -5923,7 +5971,6 @@
 							"response": []
 						},
 						{
-							"_postman_id": "f609659e-f586-4156-b88c-54a912af589a",
 							"name": "Get Google cloud config Kubernetes version",
 							"request": {
 								"method": "GET",
@@ -5974,7 +6021,6 @@
 							"response": []
 						},
 						{
-							"_postman_id": "ceaef1c3-27ff-41c6-a3ca-1437008c4abb",
 							"name": "Get Google cloud config ALL field",
 							"request": {
 								"method": "GET",
@@ -6036,11 +6082,9 @@
 					"_postman_isSubFolder": true
 				},
 				{
-					"_postman_id": "1d89f080-e39b-4570-a22b-aa5f72c1fccc",
 					"name": "Oracle",
 					"item": [
 						{
-							"_postman_id": "2c78fb5c-3c08-4c16-bdce-ca48ef734604",
 							"name": "Get Oracle cloud config",
 							"request": {
 								"method": "GET",
@@ -6077,7 +6121,6 @@
 							"response": []
 						},
 						{
-							"_postman_id": "41835a23-d404-4b58-aab8-fdf224e2f818",
 							"name": "Get Oracle cloud config Locations",
 							"request": {
 								"method": "GET",
@@ -6124,7 +6167,6 @@
 							"response": []
 						},
 						{
-							"_postman_id": "1728e48e-9d5b-42ab-9f5e-821b56319276",
 							"name": "Get Oracle cloud config Images",
 							"request": {
 								"method": "GET",
@@ -6175,7 +6217,6 @@
 							"response": []
 						},
 						{
-							"_postman_id": "188b8a4a-42fc-4061-859b-eab462923ae2",
 							"name": "Get Oracle cloud config NodeInstanceType",
 							"request": {
 								"method": "GET",
@@ -6226,7 +6267,6 @@
 							"response": []
 						},
 						{
-							"_postman_id": "b72ccfb9-7145-4a84-8d8f-3a218e12fb98",
 							"name": "Get Oracle cloud config Kubernetes version",
 							"request": {
 								"method": "GET",
@@ -6277,7 +6317,6 @@
 							"response": []
 						},
 						{
-							"_postman_id": "efd9118f-ec8c-4a21-a7f5-7d4e44cf9161",
 							"name": "Get Oracle cloud config ALL field",
 							"request": {
 								"method": "GET",
@@ -6343,7 +6382,6 @@
 					"_postman_isSubFolder": true
 				},
 				{
-					"_postman_id": "ad326839-3478-44c1-94b9-f458040a069d",
 					"name": "Get supported clusters types",
 					"request": {
 						"method": "GET",
@@ -6380,11 +6418,9 @@
 			]
 		},
 		{
-			"_postman_id": "3a97012e-2e5a-4e55-b616-4d6834220439",
 			"name": "Applications",
 			"item": [
 				{
-					"_postman_id": "a80162f9-9b9c-485b-b02f-020cd267d70d",
 					"name": "Application List",
 					"request": {
 						"method": "GET",
@@ -6410,7 +6446,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "0a6cadff-6fa0-4633-aaf6-a9527537b90b",
 					"name": "Application Create",
 					"request": {
 						"method": "POST",
@@ -6441,7 +6476,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "606c95e6-da44-413e-86ea-1e994d0ccda1",
 					"name": "Application Details",
 					"request": {
 						"method": "GET",
@@ -6470,11 +6504,9 @@
 			]
 		},
 		{
-			"_postman_id": "de2c38eb-8fe3-4d1e-b3ce-4623dc65f174",
 			"name": "Resource groups",
 			"item": [
 				{
-					"_postman_id": "9fcde808-93e9-4f39-9589-4de50f25d6db",
 					"name": "List resource group",
 					"request": {
 						"method": "GET",
@@ -6510,7 +6542,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "3a3d1e2a-af05-49c5-9b5d-4e800e67a1f0",
 					"name": "Create resource group",
 					"event": [
 						{
@@ -6573,7 +6604,6 @@
 					"response": []
 				},
 				{
-					"_postman_id": "b8ebb460-765e-4508-b462-625fc74bbc55",
 					"name": "Delete resource group",
 					"request": {
 						"method": "DELETE",
@@ -6616,7 +6646,6 @@
 			]
 		},
 		{
-			"_postman_id": "04cafd20-04bd-4dc0-ae67-11b7c24dd28b",
 			"name": "Get API Endpoints",
 			"request": {
 				"method": "GET",
@@ -6636,6 +6665,38 @@
 				}
 			},
 			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJodHRwczovL3BpcGVsaW5lLmJhbnphaWNsb3VkLmNvbSIsImp0aSI6Ijg5YjY3NzI1LTFmNjYtNDg1Mi1iNjljLTlhMzYyY2UwY2M1YiIsImlhdCI6MTUzMzkwODIwNywiaXNzIjoiaHR0cHM6Ly9iYW56YWljbG91ZC5jb20vIiwic3ViIjoiMSIsInNjb3BlIjoiYXBpOmludm9rZSIsInR5cGUiOiJ1c2VyIiwidGV4dCI6ImJvbmlmYWlkbyJ9.EhwVGSXhgBb7IPKgo61R-VNRSi9qlHYCmjOpYKXQTDI",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "5cfcfbdb-9fe1-4cab-9b82-e3d6808a59d6",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "fc13eae6-5e8d-4024-9f9c-0fc8ef4b6e19",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
 		}
 	]
 }
