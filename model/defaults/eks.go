@@ -3,7 +3,7 @@ package defaults
 import (
 	"github.com/banzaicloud/pipeline/database"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/banzaicloud/pipeline/pkg/cluster/accs"
+	"github.com/banzaicloud/pipeline/pkg/cluster/acsk"
 	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/ec2"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
@@ -79,7 +79,7 @@ func (d *EKSProfile) GetProfile() *pkgCluster.ClusterProfileResponse {
 		Location: d.Region,
 		Cloud:    pkgCluster.Amazon,
 		Properties: struct {
-			ACCS *accs.ClusterProfileACCS `json:"accs,omitempty"`
+			ACSK *acsk.ClusterProfileACSK `json:"acsk,omitempty"`
 			EC2  *ec2.ClusterProfileEC2   `json:"ec2,omitempty"`
 			EKS  *eks.ClusterProfileEKS   `json:"eks,omitempty"`
 			AKS  *aks.ClusterProfileAKS   `json:"aks,omitempty"`

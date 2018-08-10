@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/banzaicloud/pipeline/pkg/cluster/accs"
+	"github.com/banzaicloud/pipeline/pkg/cluster/acsk"
 	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/dummy"
 	"github.com/banzaicloud/pipeline/pkg/cluster/ec2"
@@ -95,7 +95,7 @@ type CreateClusterRequest struct {
 
 // CreateClusterProperties contains the cluster flavor specific properties.
 type CreateClusterProperties struct {
-	CreateClusterACCS  *accs.CreateClusterACCS      `json:"accs,omitempty"`
+	CreateClusterACSK  *acsk.CreateClusterACSK      `json:"acsk,omitempty"`
 	CreateClusterEC2   *ec2.CreateClusterEC2        `json:"ec2,omitempty"`
 	CreateClusterEKS   *eks.CreateClusterEKS        `json:"eks,omitempty"`
 	CreateClusterAKS   *aks.CreateClusterAKS        `json:"aks,omitempty"`
@@ -185,7 +185,7 @@ type DeleteClusterResponse struct {
 
 // UpdateProperties describes Pipeline's UpdateCluster request properties
 type UpdateProperties struct {
-	ACCS  *accs.UpdateClusterACCS     `json:"accs,omitempty"`
+	ACSK  *acsk.UpdateClusterACSK     `json:"acsk,omitempty"`
 	EC2   *ec2.UpdateClusterAmazon    `json:"ec2,omitempty"`
 	EKS   *eks.UpdateClusterAmazonEKS `json:"eks,omitempty"`
 	AKS   *aks.UpdateClusterAzure     `json:"aks,omitempty"`
@@ -291,7 +291,7 @@ func (r *CreateClusterRequest) Validate() error {
 	switch r.Cloud {
 	case Alibaba:
 		// alibaba validate
-		return r.Properties.CreateClusterACCS.Validate()
+		return r.Properties.CreateClusterACSK.Validate()
 	case Amazon:
 		// ec2 validate
 		if r.Properties.CreateClusterEC2 != nil {
@@ -338,7 +338,7 @@ func (r *UpdateClusterRequest) Validate() error {
 	switch r.Cloud {
 	case Alibaba:
 		// alibaba validate
-		return r.ACCS.Validate()
+		return r.ACSK.Validate()
 	case Amazon:
 		// ec2 validate
 		if r.EC2 != nil {
@@ -377,27 +377,27 @@ func (r *UpdateClusterRequest) preValidate() {
 		break
 	case Amazon:
 		// reset other fields
-		r.ACCS = nil
+		r.ACSK = nil
 		r.AKS = nil
 		r.GKE = nil
 		r.OKE = nil
 		break
 	case Azure:
 		// reset other fields
-		r.ACCS = nil
+		r.ACSK = nil
 		r.EC2 = nil
 		r.GKE = nil
 		r.OKE = nil
 		break
 	case Google:
 		// reset other fields
-		r.ACCS = nil
+		r.ACSK = nil
 		r.EC2 = nil
 		r.AKS = nil
 		r.OKE = nil
 	case Oracle:
 		// reset other fields
-		r.ACCS = nil
+		r.ACSK = nil
 		r.EC2 = nil
 		r.AKS = nil
 		r.OKE = nil
@@ -410,7 +410,7 @@ type ClusterProfileResponse struct {
 	Location   string `json:"location" binding:"required"`
 	Cloud      string `json:"cloud" binding:"required"`
 	Properties struct {
-		ACCS *accs.ClusterProfileACCS `json:"accs,omitempty"`
+		ACSK *acsk.ClusterProfileACSK `json:"acsk,omitempty"`
 		EC2  *ec2.ClusterProfileEC2   `json:"ec2,omitempty"`
 		EKS  *eks.ClusterProfileEKS   `json:"eks,omitempty"`
 		AKS  *aks.ClusterProfileAKS   `json:"aks,omitempty"`
@@ -425,7 +425,7 @@ type ClusterProfileRequest struct {
 	Location   string `json:"location" binding:"required"`
 	Cloud      string `json:"cloud" binding:"required"`
 	Properties struct {
-		ACCS *accs.ClusterProfileACCS `json:"accs,omitempty"`
+		ACSK *acsk.ClusterProfileACSK `json:"acsk,omitempty"`
 		EC2  *ec2.ClusterProfileEC2   `json:"ec2,omitempty"`
 		EKS  *eks.ClusterProfileEKS   `json:"eks,omitempty"`
 		AKS  *aks.ClusterProfileAKS   `json:"aks,omitempty"`
@@ -575,10 +575,10 @@ func (p *ClusterProfileResponse) CreateClusterRequest(createRequest *CreateClust
 
 	switch p.Cloud { // todo distribution???
 	case Alibaba:
-		response.Properties.CreateClusterACCS = &accs.CreateClusterACCS{
-			RegionID:  p.Properties.ACCS.RegionID,
-			ZoneID:    p.Properties.ACCS.ZoneID,
-			NodePools: p.Properties.ACCS.NodePools,
+		response.Properties.CreateClusterACSK = &acsk.CreateClusterACSK{
+			RegionID:  p.Properties.ACSK.RegionID,
+			ZoneID:    p.Properties.ACSK.ZoneID,
+			NodePools: p.Properties.ACSK.NodePools,
 		}
 	case Amazon:
 		if response.Properties.CreateClusterEC2 != nil {

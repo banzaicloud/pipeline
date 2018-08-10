@@ -1,4 +1,4 @@
-package accs
+package acsk
 
 import (
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
@@ -26,8 +26,8 @@ type NodePool struct {
 
 type NodePools map[string]*NodePool
 
-// CreateClusterACCS
-type CreateClusterACCS struct {
+// CreateClusterACSK
+type CreateClusterACSK struct {
 	RegionID                 string    `json:"regionId"`
 	ZoneID                   string    `json:"zoneId"`
 	MasterInstanceType       string    `json:"masterInstanceType,omitempty"`
@@ -37,13 +37,13 @@ type CreateClusterACCS struct {
 	NodePools                NodePools `json:"nodePools,omitempty"`
 }
 
-// UpdateClusterACCS describes Alibaba's node fields of an UpdateCluster request
-type UpdateClusterACCS struct {
+// UpdateClusterACSK describes Alibaba's node fields of an UpdateCluster request
+type UpdateClusterACSK struct {
 	NodePools NodePools `json:"nodePools,omitempty"`
 }
 
 // AddDefaults puts default values to optional field(s)
-func (c *CreateClusterACCS) AddDefaults() error {
+func (c *CreateClusterACSK) AddDefaults() error {
 	if c.MasterInstanceType == "" {
 		c.MasterInstanceType = DefaultMasterInstanceType
 	}
@@ -96,7 +96,7 @@ func ValidateNodePools(nps NodePools) error {
 	return nil
 }
 
-func (c *CreateClusterACCS) Validate() error {
+func (c *CreateClusterACSK) Validate() error {
 	if c == nil {
 		return pkgErrors.ErrorAlibabaFieldIsEmpty
 	}
@@ -113,7 +113,7 @@ func (c *CreateClusterACCS) Validate() error {
 	return ValidateNodePools(c.NodePools)
 }
 
-func (c *UpdateClusterACCS) Validate() error {
+func (c *UpdateClusterACSK) Validate() error {
 	if c == nil {
 		return pkgErrors.ErrorAlibabaFieldIsEmpty
 	}
@@ -121,8 +121,8 @@ func (c *UpdateClusterACCS) Validate() error {
 	return ValidateNodePools(c.NodePools)
 }
 
-// ClusterProfileACCS describes an Alibaba CS profile
-type ClusterProfileACCS struct {
+// ClusterProfileACSK describes an Alibaba CS profile
+type ClusterProfileACSK struct {
 	RegionID  string               `json:"regionId"`
 	ZoneID    string               `json:"zoneId"`
 	NodePools map[string]*NodePool `json:"nodePools,omitempty"`
