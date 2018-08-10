@@ -4855,7 +4855,7 @@ components:
                     image:
                       type: string
                       example: "ami-06d1667f"
-    
+
     ClusterProfileEKS:
       type: object
       properties:
@@ -4891,7 +4891,7 @@ components:
                       example: 2
                     image:
                       type: string
-                      example: "ami-73a6e20b"    
+                      example: "ami-0ea01e1d1dea65b5"
 
     ClusterProfileAKS:
       type: object
@@ -5028,7 +5028,7 @@ components:
                     instanceType:
                       type: string
                       example: "m4.xlarge"
-                      
+
     AddClusterProfileEKS:
       type: object
       properties:
@@ -6143,8 +6143,8 @@ components:
         tlsHost:
           type: string
           example: "fluent"
-          
-          
+
+
     CreateResourceGroup:
       type: object
       required:

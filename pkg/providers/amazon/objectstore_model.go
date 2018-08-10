@@ -1,4 +1,4 @@
-package azure
+package amazon
 
 import "github.com/banzaicloud/pipeline/auth"
 
@@ -9,13 +9,11 @@ type ObjectStoreModel struct {
 	Organization   auth.Organization `gorm:"foreignkey:OrganizationID"`
 	OrganizationID uint              `gorm:"index;not null"`
 
-	Name           string `gorm:"unique_index:idx_bucket_name"`
-	ResourceGroup  string `gorm:"unique_index:idx_bucket_name"`
-	StorageAccount string `gorm:"unique_index:idx_bucket_name"`
-	Location       string
+	Name   string `gorm:"unique_index:idx_bucket_name"`
+	Region string
 }
 
 // TableName changes the default table name.
 func (ObjectStoreModel) TableName() string {
-	return "azure_blob_stores"
+	return "amazon_buckets"
 }
