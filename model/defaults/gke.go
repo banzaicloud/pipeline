@@ -3,12 +3,7 @@ package defaults
 import (
 	"github.com/banzaicloud/pipeline/database"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/banzaicloud/pipeline/pkg/cluster/acsk"
-	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
-	"github.com/banzaicloud/pipeline/pkg/cluster/ec2"
-	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/gke"
-	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster"
 )
 
 // GKEProfile describes a Google cluster profile
@@ -113,14 +108,7 @@ func (d *GKEProfile) GetProfile() *pkgCluster.ClusterProfileResponse {
 		Name:     d.DefaultModel.Name,
 		Location: d.Location,
 		Cloud:    pkgCluster.Google,
-		Properties: struct {
-			ACSK *acsk.ClusterProfileACSK `json:"acsk,omitempty"`
-			EC2  *ec2.ClusterProfileEC2   `json:"ec2,omitempty"`
-			EKS  *eks.ClusterProfileEKS   `json:"eks,omitempty"`
-			AKS  *aks.ClusterProfileAKS   `json:"aks,omitempty"`
-			GKE  *gke.ClusterProfileGKE   `json:"gke,omitempty"`
-			OKE  *oracle.Cluster          `json:"oke,omitempty"`
-		}{
+		Properties: &pkgCluster.ClusterProfileProperties{
 			GKE: &gke.ClusterProfileGKE{
 				Master: &gke.Master{
 					Version: d.MasterVersion,

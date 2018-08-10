@@ -3,13 +3,8 @@ package defaults
 import (
 	"github.com/banzaicloud/pipeline/database"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/banzaicloud/pipeline/pkg/cluster/acsk"
-	pkgAzure "github.com/banzaicloud/pipeline/pkg/cluster/aks"
 	pkgAmazon "github.com/banzaicloud/pipeline/pkg/cluster/ec2"
-	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
-	pkgGoogle "github.com/banzaicloud/pipeline/pkg/cluster/gke"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster"
 )
 
 // EC2Profile describes an Amazon cluster profile
@@ -119,14 +114,7 @@ func (d *EC2Profile) GetProfile() *pkgCluster.ClusterProfileResponse {
 		Name:     d.DefaultModel.Name,
 		Location: d.Location,
 		Cloud:    pkgCluster.Amazon,
-		Properties: struct {
-			ACSK *acsk.ClusterProfileACSK     `json:"acsk,omitempty"`
-			EC2  *pkgAmazon.ClusterProfileEC2 `json:"ec2,omitempty"`
-			EKS  *eks.ClusterProfileEKS       `json:"eks,omitempty"`
-			AKS  *pkgAzure.ClusterProfileAKS  `json:"aks,omitempty"`
-			GKE  *pkgGoogle.ClusterProfileGKE `json:"gke,omitempty"`
-			OKE  *oracle.Cluster              `json:"oke,omitempty"`
-		}{
+		Properties: &pkgCluster.ClusterProfileProperties{
 			EC2: &pkgAmazon.ClusterProfileEC2{
 				NodePools: nodePools,
 				Master: &pkgAmazon.ProfileMaster{
