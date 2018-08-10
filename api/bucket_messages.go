@@ -1,18 +1,22 @@
 package api
 
-import "github.com/banzaicloud/pipeline/pkg/cluster/accs"
-
 // CreateBucketRequest to create bucket
 type CreateBucketRequest struct {
 	SecretId   string `json:"secret_id" binding:"required"`
 	Name       string `json:"name" binding:"required"`
 	Properties struct {
-		CreateAlibabaObjectStoreBucketProperties *accs.CreateAlibabaObjectStoreBucketProperties `json:"alibaba,omitempty"`
-		Amazon                                   *CreateAmazonObjectStoreBucketProperties       `json:"amazon,omitempty"`
-		Azure                                    *CreateAzureObjectStoreBucketProperties        `json:"azure,omitempty"`
-		Google                                   *CreateGoogleObjectStoreBucketProperties       `json:"google,omitempty"`
-		Oracle                                   *CreateObjectStoreBucketProperties             `json:"oracle,omitempty"`
+		Alibaba *CreateAlibabaObjectStoreBucketProperties `json:"alibaba,omitempty"`
+		Amazon  *CreateAmazonObjectStoreBucketProperties  `json:"amazon,omitempty"`
+		Azure   *CreateAzureObjectStoreBucketProperties   `json:"azure,omitempty"`
+		Google  *CreateGoogleObjectStoreBucketProperties  `json:"google,omitempty"`
+		Oracle  *CreateObjectStoreBucketProperties        `json:"oracle,omitempty"`
 	} `json:"properties" binding:"required"`
+}
+
+// CreateAlibabaObjectStoreBucketProperties describes the properties of
+// an OSS bucket creation request
+type CreateAlibabaObjectStoreBucketProperties struct {
+	Location string `json:"location" binding:"required"`
 }
 
 // CreateAmazonObjectStoreBucketProperties describes the properties of

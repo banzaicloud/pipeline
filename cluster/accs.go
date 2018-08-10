@@ -184,12 +184,12 @@ func createACCSNodePoolsModelFromRequestData(pools accs.NodePools, userId uint) 
 	var i int
 	for _, pool := range pools {
 		res[i] = &model.ACCSNodePoolModel{
-			CreatedBy:                userId,
-			WorkerInstanceType:       pool.WorkerInstanceType,
-			WorkerSystemDiskCategory: pool.WorkerSystemDiskCategory,
-			WorkerSystemDiskSize:     pool.WorkerSystemDiskSize,
-			ImageID:                  pool.ImageID,
-			NumOfNodes:               pool.NumOfNodes,
+			CreatedBy:          userId,
+			InstanceType:       pool.InstanceType,
+			SystemDiskCategory: pool.SystemDiskCategory,
+			SystemDiskSize:     pool.SystemDiskSize,
+			Image:              pool.Image,
+			Count:              pool.Count,
 		}
 		i++
 	}
@@ -261,20 +261,20 @@ func (c *ACCSCluster) CreateCluster() error {
 	params := alibabaClusterCreateParams{
 		ClusterType:              "Kubernetes",
 		Name:                     c.modelCluster.Name,
-		RegionID:                 c.modelCluster.ACCS.RegionID,                              // "eu-central-1"
-		ZoneID:                   c.modelCluster.ACCS.ZoneID,                                // "eu-central-1a"
-		MasterInstanceType:       c.modelCluster.ACCS.MasterInstanceType,                    // "ecs.sn1.large",
-		MasterSystemDiskCategory: c.modelCluster.ACCS.MasterSystemDiskCategory,              // "cloud_efficiency",
-		MasterSystemDiskSize:     c.modelCluster.ACCS.MasterSystemDiskSize,                  // 40,
-		WorkerInstanceType:       c.modelCluster.ACCS.NodePools[0].WorkerInstanceType,       // "ecs.sn1.large",
-		WorkerSystemDiskCategory: c.modelCluster.ACCS.NodePools[0].WorkerSystemDiskCategory, // "cloud_efficiency",
-		WorkerSystemDiskSize:     c.modelCluster.ACCS.NodePools[0].WorkerSystemDiskSize,     // 40,
-		LoginPassword:            c.modelCluster.ACCS.LoginPassword,                         // TODO: change me to KeyPair
+		RegionID:                 c.modelCluster.ACCS.RegionID,                        // "eu-central-1"
+		ZoneID:                   c.modelCluster.ACCS.ZoneID,                          // "eu-central-1a"
+		MasterInstanceType:       c.modelCluster.ACCS.MasterInstanceType,              // "ecs.sn1.large",
+		MasterSystemDiskCategory: c.modelCluster.ACCS.MasterSystemDiskCategory,        // "cloud_efficiency",
+		MasterSystemDiskSize:     c.modelCluster.ACCS.MasterSystemDiskSize,            // 40,
+		WorkerInstanceType:       c.modelCluster.ACCS.NodePools[0].InstanceType,       // "ecs.sn1.large",
+		WorkerSystemDiskCategory: c.modelCluster.ACCS.NodePools[0].SystemDiskCategory, // "cloud_efficiency",
+		WorkerSystemDiskSize:     c.modelCluster.ACCS.NodePools[0].SystemDiskSize,     // 40,
+		LoginPassword:            c.modelCluster.ACCS.LoginPassword,                   // TODO: change me to KeyPair
 		// KeyPair:                  sshKey.PublicKeyData, // this one should be a keypair name, so keypair should be uploaded
-		ImageID:    c.modelCluster.ACCS.NodePools[0].ImageID,    // "centos_7",
-		NumOfNodes: c.modelCluster.ACCS.NodePools[0].NumOfNodes, // 1,
-		SNATEntry:  c.modelCluster.ACCS.SNATEntry,               // true,
-		SSHFlags:   c.modelCluster.ACCS.SSHFlags,                // true,
+		ImageID:    c.modelCluster.ACCS.NodePools[0].Image, // "centos_7",
+		NumOfNodes: c.modelCluster.ACCS.NodePools[0].Count, // 1,
+		SNATEntry:  c.modelCluster.ACCS.SNATEntry,          // true,
+		SSHFlags:   c.modelCluster.ACCS.SSHFlags,           // true,
 	}
 	p, err := json.Marshal(&params)
 	if err != nil {
@@ -382,15 +382,15 @@ func getConnectionInfo(client *cs.Client, clusterID string) (inf alibabaConnecti
 		}
 	}
 	if inf.JumpHost == "" {
-		err = errors.New("ssh jump host not found")
+		err = errors.New("JumpHost not found")
 		return
 	}
 	if inf.IntranetURI == "" {
-		err = errors.New("ssh jump host not found")
+		err = errors.New("IntranetURI not found")
 		return
 	}
 	if inf.InternetURI == "" {
-		err = errors.New("ssh jump host not found")
+		err = errors.New("InternetURI not found")
 		return
 	}
 
@@ -552,12 +552,12 @@ func (c *ACCSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, us
 	params := alibabaScaleClusterParams{
 		DisableRollback:          true,
 		TimeoutMins:              60,
-		WorkerInstanceType:       nodePoolModels[0].WorkerInstanceType,
-		WorkerSystemDiskCategory: nodePoolModels[0].WorkerSystemDiskCategory,
-		WorkerSystemDiskSize:     nodePoolModels[0].WorkerSystemDiskSize,
+		WorkerInstanceType:       nodePoolModels[0].InstanceType,
+		WorkerSystemDiskCategory: nodePoolModels[0].SystemDiskCategory,
+		WorkerSystemDiskSize:     nodePoolModels[0].SystemDiskSize,
 		LoginPassword:            c.modelCluster.ACCS.LoginPassword,
-		ImageID:                  nodePoolModels[0].ImageID,
-		NumOfNodes:               nodePoolModels[0].NumOfNodes,
+		ImageID:                  nodePoolModels[0].Image,
+		NumOfNodes:               nodePoolModels[0].Count,
 	}
 
 	p, err := json.Marshal(&params)
@@ -618,11 +618,11 @@ func (c *ACCSCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) 
 	preNodePools := make(map[string]*accs.NodePool)
 	for _, preNp := range c.modelCluster.ACCS.NodePools {
 		preNodePools[preNp.Name] = &accs.NodePool{
-			WorkerInstanceType:       preNp.WorkerInstanceType,
-			WorkerSystemDiskCategory: preNp.WorkerSystemDiskCategory,
-			WorkerSystemDiskSize:     preNp.WorkerSystemDiskSize,
-			ImageID:                  preNp.ImageID,
-			NumOfNodes:               preNp.NumOfNodes,
+			InstanceType:       preNp.InstanceType,
+			SystemDiskCategory: preNp.SystemDiskCategory,
+			SystemDiskSize:     preNp.SystemDiskSize,
+			Image:              preNp.Image,
+			Count:              preNp.Count,
 		}
 	}
 
@@ -638,8 +638,8 @@ func (c *ACCSCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) 
 
 func (c *ACCSCluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
 	for _, np := range r.ACCS.NodePools {
-		if np.ImageID == "" {
-			np.ImageID = accs.DefaultImage
+		if np.Image == "" {
+			np.Image = accs.DefaultImage
 		}
 	}
 }
@@ -895,8 +895,8 @@ func (c *ACCSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest)
 
 	for _, np := range r.Properties.CreateClusterACCS.NodePools {
 		var (
-			instanceType = np.WorkerInstanceType
-			diskCategory = np.WorkerSystemDiskCategory
+			instanceType = np.InstanceType
+			diskCategory = np.SystemDiskCategory
 		)
 
 		err = c.validateInstanceType(region, zone, instanceType)
