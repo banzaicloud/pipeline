@@ -37,6 +37,7 @@ _Pipeline is a RESTful API to deploy **cloud native** microservices in public cl
   - [Dynamic secrets](#dynamic-secrets)
 - [Monitoring](#monitoring)  
 - [Centralized logging](#centralized-logging)  
+- [Operators](#operators)
 - [Quick howto](#quick-howto)
 - [Spotguide specification](#spotguide-specification)
   - [Big data](#big-data)
