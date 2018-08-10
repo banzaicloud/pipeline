@@ -114,7 +114,7 @@ var (
 			EKS  *eks.ClusterProfileEKS   `json:"eks,omitempty"`
 			AKS  *aks.ClusterProfileAKS   `json:"aks,omitempty"`
 			GKE  *gke.ClusterProfileGKE   `json:"gke,omitempty"`
-			OKE  *oracle.Cluster          `json:"oracle,omitempty"`
+			OKE  *oracle.Cluster          `json:"oke,omitempty"`
 		}{
 			GKE: &gke.ClusterProfileGKE{
 				Master: &gke.Master{
@@ -141,7 +141,7 @@ var (
 			EKS  *eks.ClusterProfileEKS   `json:"eks,omitempty"`
 			AKS  *aks.ClusterProfileAKS   `json:"aks,omitempty"`
 			GKE  *gke.ClusterProfileGKE   `json:"gke,omitempty"`
-			OKE  *oracle.Cluster          `json:"oracle,omitempty"`
+			OKE  *oracle.Cluster          `json:"oke,omitempty"`
 		}{
 			AKS: &aks.ClusterProfileAKS{
 				KubernetesVersion: k8sVersion,
@@ -165,7 +165,7 @@ var (
 			EKS  *eks.ClusterProfileEKS   `json:"eks,omitempty"`
 			AKS  *aks.ClusterProfileAKS   `json:"aks,omitempty"`
 			GKE  *gke.ClusterProfileGKE   `json:"gke,omitempty"`
-			OKE  *oracle.Cluster          `json:"oracle,omitempty"`
+			OKE  *oracle.Cluster          `json:"oke,omitempty"`
 		}{
 			EC2: &ec2.ClusterProfileEC2{
 				Master: &ec2.ProfileMaster{
@@ -247,7 +247,7 @@ var (
 			EKS  *eks.ClusterProfileEKS   `json:"eks,omitempty"`
 			AKS  *aks.ClusterProfileAKS   `json:"aks,omitempty"`
 			GKE  *gke.ClusterProfileGKE   `json:"gke,omitempty"`
-			OKE  *oracle.Cluster          `json:"oracle,omitempty"`
+			OKE  *oracle.Cluster          `json:"oke,omitempty"`
 		}{
 			GKE: &gke.ClusterProfileGKE{
 				Master: &gke.Master{
@@ -267,7 +267,7 @@ var (
 			EKS  *eks.ClusterProfileEKS   `json:"eks,omitempty"`
 			AKS  *aks.ClusterProfileAKS   `json:"aks,omitempty"`
 			GKE  *gke.ClusterProfileGKE   `json:"gke,omitempty"`
-			OKE  *oracle.Cluster          `json:"oracle,omitempty"`
+			OKE  *oracle.Cluster          `json:"oke,omitempty"`
 		}{
 			EC2: &ec2.ClusterProfileEC2{
 				Master: &ec2.ProfileMaster{
@@ -303,7 +303,7 @@ var (
 			EKS  *eks.ClusterProfileEKS   `json:"eks,omitempty"`
 			AKS  *aks.ClusterProfileAKS   `json:"aks,omitempty"`
 			GKE  *gke.ClusterProfileGKE   `json:"gke,omitempty"`
-			OKE  *oracle.Cluster          `json:"oracle,omitempty"`
+			OKE  *oracle.Cluster          `json:"oke,omitempty"`
 		}{
 			GKE: &gke.ClusterProfileGKE{
 				NodeVersion: version,
@@ -327,7 +327,7 @@ var (
 			EKS  *eks.ClusterProfileEKS   `json:"eks,omitempty"`
 			AKS  *aks.ClusterProfileAKS   `json:"aks,omitempty"`
 			GKE  *gke.ClusterProfileGKE   `json:"gke,omitempty"`
-			OKE  *oracle.Cluster          `json:"oracle,omitempty"`
+			OKE  *oracle.Cluster          `json:"oke,omitempty"`
 		}{
 			EC2: &ec2.ClusterProfileEC2{
 				NodePools: map[string]*ec2.NodePool{

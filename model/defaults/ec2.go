@@ -125,7 +125,7 @@ func (d *EC2Profile) GetProfile() *pkgCluster.ClusterProfileResponse {
 			EKS  *eks.ClusterProfileEKS       `json:"eks,omitempty"`
 			AKS  *pkgAzure.ClusterProfileAKS  `json:"aks,omitempty"`
 			GKE  *pkgGoogle.ClusterProfileGKE `json:"gke,omitempty"`
-			OKE  *oracle.Cluster              `json:"oracle,omitempty"`
+			OKE  *oracle.Cluster              `json:"oke,omitempty"`
 		}{
 			EC2: &pkgAmazon.ClusterProfileEC2{
 				NodePools: nodePools,

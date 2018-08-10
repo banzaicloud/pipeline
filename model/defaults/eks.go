@@ -84,7 +84,7 @@ func (d *EKSProfile) GetProfile() *pkgCluster.ClusterProfileResponse {
 			EKS  *eks.ClusterProfileEKS   `json:"eks,omitempty"`
 			AKS  *aks.ClusterProfileAKS   `json:"aks,omitempty"`
 			GKE  *gke.ClusterProfileGKE   `json:"gke,omitempty"`
-			OKE  *oracle.Cluster          `json:"oracle,omitempty"`
+			OKE  *oracle.Cluster          `json:"oke,omitempty"`
 		}{
 			EKS: &eks.ClusterProfileEKS{
 				Version:   d.Version,

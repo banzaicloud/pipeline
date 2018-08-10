@@ -102,7 +102,7 @@ type CreateClusterProperties struct {
 	CreateClusterGKE   *gke.CreateClusterGKE        `json:"gke,omitempty"`
 	CreateClusterDummy *dummy.CreateClusterDummy    `json:"dummy,omitempty"`
 	CreateKubernetes   *kubernetes.CreateKubernetes `json:"kubernetes,omitempty"`
-	CreateClusterOKE   *oke.Cluster                 `json:"oracle,omitempty"`
+	CreateClusterOKE   *oke.Cluster                 `json:"oke,omitempty"`
 }
 
 // PostHookParam describes posthook params in create request
@@ -191,7 +191,7 @@ type UpdateProperties struct {
 	AKS   *aks.UpdateClusterAzure     `json:"aks,omitempty"`
 	GKE   *gke.UpdateClusterGoogle    `json:"gke,omitempty"`
 	Dummy *dummy.UpdateClusterDummy   `json:"dummy,omitempty"`
-	OKE   *oke.Cluster                `json:"oracle,omitempty"`
+	OKE   *oke.Cluster                `json:"oke,omitempty"`
 }
 
 // String method prints formatted update request fields
@@ -415,7 +415,7 @@ type ClusterProfileResponse struct {
 		EKS  *eks.ClusterProfileEKS   `json:"eks,omitempty"`
 		AKS  *aks.ClusterProfileAKS   `json:"aks,omitempty"`
 		GKE  *gke.ClusterProfileGKE   `json:"gke,omitempty"`
-		OKE  *oke.Cluster             `json:"oracle,omitempty"`
+		OKE  *oke.Cluster             `json:"oke,omitempty"`
 	} `json:"properties" binding:"required"`
 }
 
@@ -430,7 +430,7 @@ type ClusterProfileRequest struct {
 		EKS  *eks.ClusterProfileEKS   `json:"eks,omitempty"`
 		AKS  *aks.ClusterProfileAKS   `json:"aks,omitempty"`
 		GKE  *gke.ClusterProfileGKE   `json:"gke,omitempty"`
-		OKE  *oke.Cluster             `json:"oracle,omitempty"`
+		OKE  *oke.Cluster             `json:"oke,omitempty"`
 	} `json:"properties" binding:"required"`
 }
 
