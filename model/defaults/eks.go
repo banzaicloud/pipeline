@@ -3,13 +3,9 @@ package defaults
 import (
 	"github.com/banzaicloud/pipeline/database"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/banzaicloud/pipeline/pkg/cluster/acsk"
-	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/ec2"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
-	"github.com/banzaicloud/pipeline/pkg/cluster/gke"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster"
 )
 
 // EKSProfile describes an Amazon EKS cluster profile
@@ -78,14 +74,7 @@ func (d *EKSProfile) GetProfile() *pkgCluster.ClusterProfileResponse {
 		Name:     d.DefaultModel.Name,
 		Location: d.Region,
 		Cloud:    pkgCluster.Amazon,
-		Properties: struct {
-			ACSK *acsk.ClusterProfileACSK `json:"acsk,omitempty"`
-			EC2  *ec2.ClusterProfileEC2   `json:"ec2,omitempty"`
-			EKS  *eks.ClusterProfileEKS   `json:"eks,omitempty"`
-			AKS  *aks.ClusterProfileAKS   `json:"aks,omitempty"`
-			GKE  *gke.ClusterProfileGKE   `json:"gke,omitempty"`
-			OKE  *oracle.Cluster          `json:"oke,omitempty"`
-		}{
+		Properties: &pkgCluster.ClusterProfileProperties{
 			EKS: &eks.ClusterProfileEKS{
 				Version:   d.Version,
 				NodePools: nodePools,
