@@ -6,6 +6,7 @@ Name | Type | Description | Notes
 **Amazon** | [**AllowedSecretTypeResponse**](AllowedSecretTypeResponse.md) |  | [optional] 
 **Azure** | [**AllowedSecretTypeResponse**](AllowedSecretTypeResponse.md) |  | [optional] 
 **Google** | [**AllowedSecretTypeResponse**](AllowedSecretTypeResponse.md) |  | [optional] 
+**Oracle** | [**AllowedSecretTypeResponse**](AllowedSecretTypeResponse.md) |  | [optional] 
 **Kubernetes** | [**AllowedSecretTypeResponse**](AllowedSecretTypeResponse.md) |  | [optional] 
 **Generic** | [**AllowedSecretTypeResponse**](AllowedSecretTypeResponse.md) |  | [optional] 
 **Fn** | [**AllowedSecretTypeResponse**](AllowedSecretTypeResponse.md) |  | [optional] 
