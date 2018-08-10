@@ -406,32 +406,27 @@ func (r *UpdateClusterRequest) preValidate() {
 
 // ClusterProfileResponse describes Pipeline's ClusterProfile API responses
 type ClusterProfileResponse struct {
-	Name       string `json:"name" binding:"required"`
-	Location   string `json:"location" binding:"required"`
-	Cloud      string `json:"cloud" binding:"required"`
-	Properties struct {
-		ACSK *acsk.ClusterProfileACSK `json:"acsk,omitempty"`
-		EC2  *ec2.ClusterProfileEC2   `json:"ec2,omitempty"`
-		EKS  *eks.ClusterProfileEKS   `json:"eks,omitempty"`
-		AKS  *aks.ClusterProfileAKS   `json:"aks,omitempty"`
-		GKE  *gke.ClusterProfileGKE   `json:"gke,omitempty"`
-		OKE  *oke.Cluster             `json:"oke,omitempty"`
-	} `json:"properties" binding:"required"`
+	Name       string                    `json:"name" binding:"required"`
+	Location   string                    `json:"location" binding:"required"`
+	Cloud      string                    `json:"cloud" binding:"required"`
+	Properties *ClusterProfileProperties `json:"properties" binding:"required"`
 }
 
 // ClusterProfileRequest describes CreateClusterProfile request
 type ClusterProfileRequest struct {
-	Name       string `json:"name" binding:"required"`
-	Location   string `json:"location" binding:"required"`
-	Cloud      string `json:"cloud" binding:"required"`
-	Properties struct {
-		ACSK *acsk.ClusterProfileACSK `json:"acsk,omitempty"`
-		EC2  *ec2.ClusterProfileEC2   `json:"ec2,omitempty"`
-		EKS  *eks.ClusterProfileEKS   `json:"eks,omitempty"`
-		AKS  *aks.ClusterProfileAKS   `json:"aks,omitempty"`
-		GKE  *gke.ClusterProfileGKE   `json:"gke,omitempty"`
-		OKE  *oke.Cluster             `json:"oke,omitempty"`
-	} `json:"properties" binding:"required"`
+	Name       string                    `json:"name" binding:"required"`
+	Location   string                    `json:"location" binding:"required"`
+	Cloud      string                    `json:"cloud" binding:"required"`
+	Properties *ClusterProfileProperties `json:"properties" binding:"required"`
+}
+
+type ClusterProfileProperties struct {
+	ACSK *acsk.ClusterProfileACSK `json:"acsk,omitempty"`
+	EC2  *ec2.ClusterProfileEC2   `json:"ec2,omitempty"`
+	EKS  *eks.ClusterProfileEKS   `json:"eks,omitempty"`
+	AKS  *aks.ClusterProfileAKS   `json:"aks,omitempty"`
+	GKE  *gke.ClusterProfileGKE   `json:"gke,omitempty"`
+	OKE  *oke.Cluster             `json:"oke,omitempty"`
 }
 
 // CloudInfoRequest describes Cloud info requests
