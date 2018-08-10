@@ -14,6 +14,7 @@ type AllowedSecretTypesResponse struct {
 	Amazon     AllowedSecretTypeResponse `json:"amazon,omitempty"`
 	Azure      AllowedSecretTypeResponse `json:"azure,omitempty"`
 	Google     AllowedSecretTypeResponse `json:"google,omitempty"`
+	Oracle     AllowedSecretTypeResponse `json:"oracle,omitempty"`
 	Kubernetes AllowedSecretTypeResponse `json:"kubernetes,omitempty"`
 	Generic    AllowedSecretTypeResponse `json:"generic,omitempty"`
 	Fn         AllowedSecretTypeResponse `json:"fn,omitempty"`
