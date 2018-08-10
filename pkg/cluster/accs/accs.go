@@ -16,25 +16,24 @@ const (
 
 // NodePool describes Alibaba's node fields of a CreateCluster/Update request
 type NodePool struct {
-	WorkerInstanceType       string `json:"worker_instance_type,omitempty"`
-	WorkerSystemDiskCategory string `json:"worker_system_disk_category,omitempty"`
-	WorkerSystemDiskSize     int    `json:"worker_system_disk_size,omitempty"`
-	LoginPassword            string `json:"login_password,omitempty"`
-	ImageID                  string `json:"image_id,omitempty"`
-	NumOfNodes               int    `json:"num_of_nodes"`
+	InstanceType       string `json:"instanceType"`
+	SystemDiskCategory string `json:"systemDiskCategory,omitempty"`
+	SystemDiskSize     int    `json:"systemDiskSize,omitempty"`
+	LoginPassword      string `json:"loginPassword,omitempty"`
+	Count              int    `json:"count"`
+	Image              string `json:"image"`
 }
 
 type NodePools map[string]*NodePool
 
 // CreateClusterACCS
-// TODO: decide to use cameCase instead of original alibaba field names.
 type CreateClusterACCS struct {
-	RegionID                 string    `json:"region_id"`
-	ZoneID                   string    `json:"zoneid"`
-	MasterInstanceType       string    `json:"master_instance_type,omitempty"`
-	MasterSystemDiskCategory string    `json:"master_system_disk_category,omitempty"`
-	MasterSystemDiskSize     int       `json:"master_system_disk_size,omitempty"`
-	KeyPair                  string    `json:"key_pair,omitempty"`
+	RegionID                 string    `json:"regionId"`
+	ZoneID                   string    `json:"zoneId"`
+	MasterInstanceType       string    `json:"masterInstanceType,omitempty"`
+	MasterSystemDiskCategory string    `json:"masterSystemDiskCategory,omitempty"`
+	MasterSystemDiskSize     int       `json:"masterSystemDiskSize,omitempty"`
+	KeyPair                  string    `json:"keyPair,omitempty"`
 	NodePools                NodePools `json:"nodePools,omitempty"`
 }
 
@@ -59,17 +58,17 @@ func (c *CreateClusterACCS) AddDefaults() error {
 		return pkgErrors.ErrorAlibabaNodePoolFieldIsEmpty
 	}
 	for i, np := range c.NodePools {
-		if np.WorkerInstanceType == "" {
-			c.NodePools[i].WorkerInstanceType = DefaultWorkerInstanceType
+		if np.InstanceType == "" {
+			c.NodePools[i].InstanceType = DefaultWorkerInstanceType
 		}
-		if np.WorkerSystemDiskCategory == "" {
-			c.NodePools[i].WorkerSystemDiskCategory = DefaultWorkerSystemDiskCategory
+		if np.SystemDiskCategory == "" {
+			c.NodePools[i].SystemDiskCategory = DefaultWorkerSystemDiskCategory
 		}
-		if np.WorkerSystemDiskSize < DefaultWorkerSystemDiskSize {
-			c.NodePools[i].WorkerSystemDiskSize = DefaultWorkerSystemDiskSize
+		if np.SystemDiskSize < DefaultWorkerSystemDiskSize {
+			c.NodePools[i].SystemDiskSize = DefaultWorkerSystemDiskSize
 		}
-		if np.ImageID == "" {
-			c.NodePools[i].ImageID = DefaultImage
+		if np.Image == "" {
+			c.NodePools[i].Image = DefaultImage
 		}
 	}
 
@@ -87,10 +86,10 @@ func ValidateNodePools(nps NodePools) error {
 	}
 
 	for _, np := range nps {
-		if np.NumOfNodes < 1 {
+		if np.Count < 1 {
 			return pkgErrors.ErrorAlibabaMinNumberOfNodes
 		}
-		if np.ImageID != DefaultImage {
+		if np.Image != DefaultImage {
 			return pkgErrors.ErrorNotValidNodeImage
 		}
 	}
@@ -124,13 +123,7 @@ func (c *UpdateClusterACCS) Validate() error {
 
 // ClusterProfileACCS describes an Alibaba CS profile
 type ClusterProfileACCS struct {
-	RegionID  string               `json:"region_id"`
-	ZoneID    string               `json:"zoneid"`
+	RegionID  string               `json:"regionId"`
+	ZoneID    string               `json:"zoneId"`
 	NodePools map[string]*NodePool `json:"nodePools,omitempty"`
-}
-
-// CreateAlibabaObjectStoreBucketProperties describes the properties of
-// an OSS bucket creation request
-type CreateAlibabaObjectStoreBucketProperties struct {
-	Location string `json:"location" binding:"required"`
 }

@@ -60,7 +60,7 @@ func (b *AlibabaObjectStore) CreateBucket(bucketName string) {
 	}
 	err = svc.CreateBucket(managedBucket.Name)
 	if err != nil {
-		log.Errorf("Could not create a new S3 Bucket, %s", err.Error())
+		log.Errorf("Could not create a new OSS Bucket, %s", err.Error())
 		if e := deleteFromDbByPK(managedBucket); e != nil {
 			log.Error(e.Error())
 		}
@@ -123,7 +123,7 @@ func (b *AlibabaObjectStore) DeleteBucket(bucketName string) error {
 
 	svc, err := createAlibabaOSSClient(managedBucket.Region, b.secret)
 	if err != nil {
-		log.Errorf("Creating S3Client failed: %s", err.Error())
+		log.Errorf("Creating OSSClient failed: %s", err.Error())
 		return err
 	}
 
@@ -134,7 +134,7 @@ func (b *AlibabaObjectStore) DeleteBucket(bucketName string) error {
 
 	// TODO: wait for bucket creation.
 	if err = deleteFromDbByPK(managedBucket); err != nil {
-		log.Errorf("Deleting managed S3 bucket from database failed: %s", err.Error())
+		log.Errorf("Deleting managed OSS bucket from database failed: %s", err.Error())
 		return err
 	}
 
@@ -165,11 +165,11 @@ func (b *AlibabaObjectStore) CheckBucket(bucketName string) error {
 }
 
 func (AlibabaObjectStore) WithResourceGroup(string) error {
-	panic("implement me")
+	return nil
 }
 
 func (AlibabaObjectStore) WithStorageAccount(string) error {
-	panic("implement me")
+	return nil
 }
 
 func (b *AlibabaObjectStore) WithRegion(region string) error {
