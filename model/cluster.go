@@ -51,7 +51,7 @@ type ClusterModel struct {
 	Monitoring     bool
 	Logging        bool
 	StatusMessage  string `sql:"type:text;"`
-	ACCS           ACCSClusterModel
+	ACSK           ACSKClusterModel
 	EC2            EC2ClusterModel
 	AKS            AKSClusterModel
 	EKS            EKSClusterModel
@@ -63,8 +63,8 @@ type ClusterModel struct {
 	CreatedBy      uint
 }
 
-// ACCSNodePoolModel describes Alibaba Cloud CS node groups model of a cluster
-type ACCSNodePoolModel struct {
+// ACSKNodePoolModel describes Alibaba Cloud CS node groups model of a cluster
+type ACSKNodePoolModel struct {
 	ID                 uint `gorm:"primary_key"`
 	CreatedAt          time.Time
 	CreatedBy          uint
@@ -77,8 +77,8 @@ type ACCSNodePoolModel struct {
 	Count              int
 }
 
-// AlibabaClusterModel describes the Alibaba Cloud CS cluster model
-type ACCSClusterModel struct {
+// ACSKClusterModel describes the Alibaba Cloud CS cluster model
+type ACSKClusterModel struct {
 	ClusterModelId           uint `gorm:"primary_key"`
 	ClusterID                string
 	RegionID                 string
@@ -89,7 +89,7 @@ type ACCSClusterModel struct {
 	LoginPassword            string
 	SNATEntry                bool
 	SSHFlags                 bool
-	NodePools                []*ACCSNodePoolModel `gorm:"foreignkey:ClusterModelId"`
+	NodePools                []*ACSKNodePoolModel `gorm:"foreignkey:ClusterModelId"`
 }
 
 //EC2ClusterModel describes the ec2 cluster model
@@ -341,13 +341,13 @@ func (cs *ClusterModel) String() string {
 	return buffer.String()
 }
 
-// TableName sets ACCSClusterModel's table name
-func (ACCSClusterModel) TableName() string {
+// TableName sets ACSKClusterModel's table name
+func (ACSKClusterModel) TableName() string {
 	return TableNameAlibabaProperties
 }
 
-// TableName sets ACCSNodePoolModel's table name
-func (ACCSNodePoolModel) TableName() string {
+// TableName sets ACSKNodePoolModel's table name
+func (ACSKNodePoolModel) TableName() string {
 	return TableNameAlibabaNodePools
 }
 

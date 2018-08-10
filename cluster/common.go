@@ -182,18 +182,18 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 	switch cloudType {
 	case pkgCluster.Alibaba:
 		//Create Alibaba struct
-		alibabaCluster, err := CreateACCSClusterFromModel(modelCluster)
+		alibabaCluster, err := CreateACSKClusterFromModel(modelCluster)
 		if err != nil {
 			return nil, err
 		}
 
 		log.Debug("Load Alibaba props from database")
-		err = db.Where(model.ACCSClusterModel{ClusterModelId: alibabaCluster.modelCluster.ID}).First(&alibabaCluster.modelCluster.ACCS).Error
+		err = db.Where(model.ACSKClusterModel{ClusterModelId: alibabaCluster.modelCluster.ID}).First(&alibabaCluster.modelCluster.ACSK).Error
 		if err != nil {
 			return nil, err
 		}
 
-		err = db.Model(&alibabaCluster.modelCluster.ACCS).Related(&alibabaCluster.modelCluster.ACCS.NodePools, "NodePools").Error
+		err = db.Model(&alibabaCluster.modelCluster.ACSK).Related(&alibabaCluster.modelCluster.ACSK.NodePools, "NodePools").Error
 		if err != nil {
 			return nil, err
 		}
@@ -332,7 +332,7 @@ func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClust
 	switch cloudType {
 	case pkgCluster.Alibaba:
 		//Create Alibaba struct
-		alibabaCluster, err := CreateACCSClusterFromRequest(createClusterRequest, orgId, userId)
+		alibabaCluster, err := CreateACSKClusterFromRequest(createClusterRequest, orgId, userId)
 		if err != nil {
 			return nil, err
 		}
