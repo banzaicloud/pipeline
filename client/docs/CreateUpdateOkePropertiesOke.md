@@ -1,9 +1,10 @@
-# CreateAzureObjectStoreBucketProperties
+# CreateUpdateOkePropertiesOke
 
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Azure** | [**CreateAzureObjectStoreBucketPropertiesAzure**](CreateAzureObjectStoreBucketProperties_azure.md) |  | [optional] 
+**Version** | **string** |  | [optional] 
+**NodePools** | [**map[string]NodePoolsOracle**](NodePoolsOracle.md) |  | [optional] 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

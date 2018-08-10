@@ -344,16 +344,18 @@ func (e *EKSCluster) createNodePoolsFromUpdateRequest(requestedNodePools map[str
 		if currentNodePoolMap[nodePoolName] != nil {
 			// update existing node pool
 			updatedNodePools = append(updatedNodePools, &model.AmazonNodePoolsModel{
-				ID:             currentNodePoolMap[nodePoolName].ID,
-				CreatedBy:      currentNodePoolMap[nodePoolName].CreatedBy,
-				CreatedAt:      currentNodePoolMap[nodePoolName].CreatedAt,
-				ClusterModelId: currentNodePoolMap[nodePoolName].ClusterModelId,
-				Name:           nodePoolName,
-				Autoscaling:    nodePool.Autoscaling,
-				NodeMinCount:   nodePool.MinCount,
-				NodeMaxCount:   nodePool.MaxCount,
-				Count:          nodePool.Count,
-				Delete:         false,
+				ID:               currentNodePoolMap[nodePoolName].ID,
+				CreatedBy:        currentNodePoolMap[nodePoolName].CreatedBy,
+				CreatedAt:        currentNodePoolMap[nodePoolName].CreatedAt,
+				ClusterModelId:   currentNodePoolMap[nodePoolName].ClusterModelId,
+				Name:             nodePoolName,
+				NodeInstanceType: nodePool.InstanceType,
+				NodeImage:        nodePool.Image,
+				Autoscaling:      nodePool.Autoscaling,
+				NodeMinCount:     nodePool.MinCount,
+				NodeMaxCount:     nodePool.MaxCount,
+				Count:            nodePool.Count,
+				Delete:           false,
 			})
 
 		} else {
@@ -858,11 +860,6 @@ func (e *EKSCluster) GetK8sConfig() ([]byte, error) {
 // the cluster
 func (e *EKSCluster) RequiresSshPublicKey() bool {
 	return true
-}
-
-// ReloadFromDatabase load cluster from DB
-func (e *EKSCluster) ReloadFromDatabase() error {
-	return e.modelCluster.ReloadFromDatabase()
 }
 
 // ListEksRegions returns the regions in which AmazonEKS service is enabled

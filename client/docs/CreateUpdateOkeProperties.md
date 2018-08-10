@@ -1,9 +1,9 @@
-# CreateAzureObjectStoreBucketProperties
+# CreateUpdateOkeProperties
 
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Azure** | [**CreateAzureObjectStoreBucketPropertiesAzure**](CreateAzureObjectStoreBucketProperties_azure.md) |  | [optional] 
+**Oke** | [**CreateUpdateOkePropertiesOke**](CreateUpdateOKEProperties_oke.md) |  | 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

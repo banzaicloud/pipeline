@@ -54,7 +54,6 @@ type CommonCluster interface {
 	GetConfigSecretId() string
 	GetK8sConfig() ([]byte, error)
 	RequiresSshPublicKey() bool
-	ReloadFromDatabase() error
 	ListNodeNames() (pkgCommon.NodeNames, error)
 	RbacEnabled() bool
 }

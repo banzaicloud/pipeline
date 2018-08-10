@@ -10,6 +10,6 @@
 
 package client
 
-type CreateGoogleObjectStoreBucketProperties struct {
-	Google CreateGoogleObjectStoreBucketPropertiesGoogle `json:"google,omitempty"`
+type CreateUpdateOkeProperties struct {
+	Oke CreateUpdateOkePropertiesOke `json:"oke"`
 }
