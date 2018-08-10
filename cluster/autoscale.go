@@ -169,6 +169,9 @@ func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup) *autos
 			"expander": expanderStrategy,
 		},
 		Rbac: rbac{Create: true},
+		AutoDiscovery: map[string]string{
+			"clusterName": cluster.GetName(),
+		},
 		Azure: azureInfo{
 			ClientID:          clusterSecret.Values[pkgSecret.AzureClientId],
 			ClientSecret:      clusterSecret.Values[pkgSecret.AzureClientSecret],
