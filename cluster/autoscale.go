@@ -43,6 +43,10 @@ type azureInfo struct {
 	ClusterName       string `json:"clusterName"`
 }
 
+type autoDiscovery struct {
+	ClusterName string `json:"clusterName"`
+}
+
 type autoscalingInfo struct {
 	CloudProvider     string            `json:"cloudProvider"`
 	AutoscalingGroups []nodeGroup       `json:"autoscalingGroups"`
@@ -50,8 +54,8 @@ type autoscalingInfo struct {
 	Rbac              rbac              `json:"rbac"`
 	AwsRegion         string            `json:"awsRegion"`
 	Azure             azureInfo         `json:"azure"`
-	AutoDiscovery     map[string]string `json:"autoDiscovery"`
-	SslCertPath       string            `json:"sslCertPath"`
+	AutoDiscovery     autoDiscovery     `json:"autoDiscovery"`
+	SslCertPath       *string           `json:"sslCertPath,omitempty"`
 }
 
 func getAmazonNodeGroups(cluster CommonCluster) []nodeGroup {
@@ -105,6 +109,7 @@ func createAutoscalingForEc2(cluster CommonCluster, groups []nodeGroup) *autosca
 }
 
 func createAutoscalingForEks(cluster CommonCluster, groups []nodeGroup) *autoscalingInfo {
+	eksCertPath := "/etc/ssl/certs/ca-bundle.crt"
 	return &autoscalingInfo{
 		CloudProvider: cloudProviderAws,
 		ExtraArgs: map[string]string{
@@ -113,10 +118,10 @@ func createAutoscalingForEks(cluster CommonCluster, groups []nodeGroup) *autosca
 		},
 		Rbac:      rbac{Create: true},
 		AwsRegion: cluster.GetModel().Location,
-		AutoDiscovery: map[string]string{
-			"clusterName": cluster.GetName(),
+		AutoDiscovery: autoDiscovery{
+			ClusterName: cluster.GetName(),
 		},
-		SslCertPath: "/etc/ssl/certs/ca-bundle.crt",
+		SslCertPath: &eksCertPath,
 	}
 }
 
