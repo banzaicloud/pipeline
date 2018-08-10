@@ -14,10 +14,9 @@ import (
 
 // OCIObjectStore stores all required parameters for container creation
 type OCIObjectStore struct {
-	secret        *secret.SecretItemResponse
-	org           *pipelineAuth.Organization
-	compartmentID string
-	location      string
+	secret   *secret.SecretItemResponse
+	org      *pipelineAuth.Organization
+	location string
 }
 
 // CreateBucket creates an Oracle object store bucket with the given name

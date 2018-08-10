@@ -127,11 +127,6 @@ func (f *FilterServer) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	rw.Write([]byte("<h3>Unauthorized</h3>"))
 }
 
-// Server is a http.Handler which proxies Kubernetes APIs to remote API server.
-type Server struct {
-	handler http.Handler
-}
-
 type responder struct{}
 
 func (r *responder) Error(w http.ResponseWriter, req *http.Request, err error) {

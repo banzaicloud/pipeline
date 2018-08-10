@@ -74,7 +74,6 @@ func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 
 //EKSCluster struct for EKS cluster
 type EKSCluster struct {
-	eksCluster               *eks.Cluster //Don't use this directly
 	modelCluster             *model.ClusterModel
 	APIEndpoint              string
 	CertificateAuthorityData []byte

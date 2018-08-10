@@ -17,7 +17,6 @@ linters:
     - goimports
   disable:
     - errcheck
-    - structcheck
     - gas
     - megacheck
     - varcheck
