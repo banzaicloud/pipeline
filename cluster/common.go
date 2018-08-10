@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"os"
-	"strings"
 	"syscall"
 	"time"
 
@@ -399,18 +398,6 @@ func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClust
 	}
 
 	return nil, pkgErrors.ErrorNotSupportedCloudType
-}
-
-func home() string {
-	home := os.Getenv("HOME")
-	return home
-}
-
-func expand(path string) string {
-	if strings.Contains(path, "~") {
-		return strings.Replace(path, "~", home(), 1)
-	}
-	return path
 }
 
 func getSigner(pemBytes []byte) (ssh.Signer, error) {

@@ -353,7 +353,7 @@ var (
 		},
 	}
 
-	eksCreateFull = &pkgCluster.CreateClusterRequest{
+	eksCreateFull = &pkgCluster.CreateClusterRequest{ // nolint deadcode
 		Name:     clusterRequestName,
 		Location: clusterRequestLocation,
 		Cloud:    pkgCluster.Amazon,

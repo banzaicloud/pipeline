@@ -1254,25 +1254,6 @@ func autoscalingHasBeenUpdated(updatedNodePool *gke.NodePool, actualNodePool *gk
 	return true
 }
 
-func waitForNodePool(svc *gke.Service, cc *googleCluster, nodePoolName string) error {
-	var message string
-	for {
-		nodepool, err := svc.Projects.Zones.Clusters.NodePools.Get(cc.ProjectID, cc.Zone, cc.Name, nodePoolName).Context(context.TODO()).Do()
-		if err != nil {
-			return err
-		}
-		if nodepool.Status == statusRunning {
-			log.Infof("NodePool %v is running", nodePoolName)
-			return nil
-		}
-		if nodepool.Status != message {
-			log.Infof("%v NodePool %v", string(nodepool.Status), nodePoolName)
-			message = nodepool.Status
-		}
-		time.Sleep(time.Second * 5)
-	}
-}
-
 func (g *GKECluster) getGoogleKubernetesConfig() ([]byte, error) {
 
 	log.Info("Get Google Service Client")
