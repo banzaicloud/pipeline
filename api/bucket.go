@@ -68,7 +68,7 @@ func ListObjectStoreBuckets(c *gin.Context) {
 		return
 	}
 
-	if cloudType == pkgCluster.Amazon {
+	if cloudType == pkgCluster.Amazon || cloudType == pkgCluster.Alibaba {
 		location := c.Query("location")
 
 		if len(location) == 0 {
