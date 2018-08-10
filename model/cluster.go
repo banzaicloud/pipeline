@@ -493,11 +493,3 @@ func (cs *ClusterModel) AddSshKey() (string, error) {
 
 	return secretId, nil
 }
-
-// ReloadFromDatabase load cluster from DB
-func (cs *ClusterModel) ReloadFromDatabase() error {
-	return database.GetDB().Where(ClusterModel{
-		ID:             cs.ID,
-		OrganizationId: cs.OrganizationId,
-	}, &cs).Error
-}

@@ -862,11 +862,6 @@ func (e *EKSCluster) RequiresSshPublicKey() bool {
 	return true
 }
 
-// ReloadFromDatabase load cluster from DB
-func (e *EKSCluster) ReloadFromDatabase() error {
-	return e.modelCluster.ReloadFromDatabase()
-}
-
 // ListEksRegions returns the regions in which AmazonEKS service is enabled
 func ListEksRegions(orgId uint, secretId string) ([]string, error) {
 	// AWS API https://docs.aws.amazon.com/sdk-for-go/api/aws/endpoints/ doesn't recognizes AmazonEKS service yet

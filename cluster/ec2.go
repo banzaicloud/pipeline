@@ -1391,11 +1391,6 @@ func (c *EC2Cluster) createAWSCredentialsFromSecret() (*credentials.Credentials,
 	return verify.CreateAWSCredentials(clusterSecret.Values), nil
 }
 
-// ReloadFromDatabase load cluster from DB
-func (c *EC2Cluster) ReloadFromDatabase() error {
-	return c.modelCluster.ReloadFromDatabase()
-}
-
 // ListNodeNames returns node names to label them
 func (c *EC2Cluster) ListNodeNames() (labels pkgCommon.NodeNames, err error) {
 

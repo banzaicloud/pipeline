@@ -271,11 +271,6 @@ func (d *DummyCluster) GetK8sConfig() ([]byte, error) {
 	return d.DownloadK8sConfig()
 }
 
-// ReloadFromDatabase load cluster from DB
-func (d *DummyCluster) ReloadFromDatabase() error {
-	return d.modelCluster.ReloadFromDatabase()
-}
-
 // ListNodeNames returns node names to label them
 func (d *DummyCluster) ListNodeNames() (nodeNames pkgCommon.NodeNames, err error) {
 	return
