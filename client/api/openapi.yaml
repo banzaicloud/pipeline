@@ -7078,7 +7078,7 @@ components:
           format: int32
           type: integer
         image:
-          example: ami-73a6e20b
+          example: ami-0ea01e1d1dea65b5
           type: string
       type: object
     ClusterProfileEKS_eks_nodePools:
