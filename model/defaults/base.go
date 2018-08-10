@@ -76,11 +76,6 @@ func save(i interface{}) error {
 	return database.Save(i).Error
 }
 
-// loadFirst find first record that match given conditions, order by primary key
-func loadFirst(output interface{}) error {
-	return database.GetDB().First(output).Error
-}
-
 // GetDefaultProfiles returns all types of clouds with default profile name.
 func GetDefaultProfiles() []ClusterProfile {
 	return []ClusterProfile{

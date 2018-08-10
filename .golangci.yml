@@ -18,7 +18,6 @@ linters:
   disable:
     - errcheck
     - structcheck
-    - deadcode
     - gas
     - megacheck
     - varcheck

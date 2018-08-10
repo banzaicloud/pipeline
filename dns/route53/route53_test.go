@@ -100,14 +100,6 @@ var (
 		errMsg:         "",
 	}
 
-	testDomainStateMismatch = &domainState{
-		organisationId: testOrgId,
-		domain:         testDomainMismatch,
-		hostedZoneId:   testHostedZoneIdShort,
-		status:         FAILED,
-		errMsg:         testSomeErrMsg,
-	}
-
 	// case when hosted zone creation failed
 	testDomainStateFailed1 = &domainState{
 		organisationId: testOrgId,

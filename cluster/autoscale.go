@@ -33,10 +33,6 @@ type rbac struct {
 	Create bool `json:"create"`
 }
 
-type awsInfo struct {
-	AwsRegion string `json:"awsRegion"`
-}
-
 type azureInfo struct {
 	ClientID          string `json:"clientID"`
 	ClientSecret      string `json:"clientSecret"`
