@@ -63,10 +63,9 @@ func main() {
 	auth.Init()
 
 	var tables = []interface{}{&model.ClusterModel{},
-		&model.GKEClusterModel{},
+		&model.ACSKClusterModel{},
+		&model.ACSKNodePoolModel{},
 		&model.AmazonNodePoolsModel{},
-		&model.ACCSClusterModel{},
-		&model.ACCSNodePoolModel{},
 		&model.EC2ClusterModel{},
 		&model.EKSClusterModel{},
 		&model.AKSClusterModel{},
