@@ -2212,11 +2212,6 @@ func findInstanceByClusterName(csv *gkeCompute.Service, project, zone, clusterNa
 	return nil, fmt.Errorf("instance not found by cluster[%s]", clusterName)
 }
 
-// ReloadFromDatabase load cluster from DBd
-func (g *GKECluster) ReloadFromDatabase() error {
-	return g.modelCluster.ReloadFromDatabase()
-}
-
 func waitForOperation(svc *gke.Service, location, projectId, operationName string) error {
 
 	operationStatus := statusRunning
