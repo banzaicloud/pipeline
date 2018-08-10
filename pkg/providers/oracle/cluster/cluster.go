@@ -133,13 +133,6 @@ func (c *Cluster) Validate(update bool) error {
 	return nil
 }
 
-// isValidOCID validates the given OCID
-func isValidOCID(ocid string) bool {
-
-	isOK, _ := regexp.MatchString("^([0-9a-zA-Z-_]+[.:])([0-9a-zA-Z-_]*[.:]){3,}([0-9a-zA-Z-_]+)$", ocid)
-	return isOK
-}
-
 // isValidVersion validates the given K8S version
 func isValidVersion(version string) bool {
 

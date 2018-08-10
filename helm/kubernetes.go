@@ -3,7 +3,6 @@ package helm
 import (
 	"fmt"
 
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/pkg/errors"
 	"k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -17,10 +16,6 @@ import (
 )
 
 var tillerTunnel *kube.Tunnel
-
-func init() {
-	log = config.Logger()
-}
 
 //GetK8sConnection creates a new Kubernetes client
 func GetK8sConnection(kubeConfig []byte) (*kubernetes.Clientset, error) {
@@ -120,13 +115,6 @@ func CheckDeploymentState(kubeConfig []byte, releaseName string) (string, error)
 		}
 	}
 	return string(state), nil
-}
-
-func tearDown() {
-	if tillerTunnel != nil {
-		log.Debug("Closing Tunnel.")
-		tillerTunnel.Close()
-	}
 }
 
 //CreateNamespaceIfNotExist Create Kubernetes Namespace if not exist.

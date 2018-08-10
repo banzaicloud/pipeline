@@ -74,7 +74,6 @@ func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 
 //EKSCluster struct for EKS cluster
 type EKSCluster struct {
-	eksCluster               *eks.Cluster //Don't use this directly
 	modelCluster             *model.ClusterModel
 	APIEndpoint              string
 	CertificateAuthorityData []byte
@@ -860,11 +859,6 @@ func (e *EKSCluster) GetK8sConfig() ([]byte, error) {
 // the cluster
 func (e *EKSCluster) RequiresSshPublicKey() bool {
 	return true
-}
-
-// ReloadFromDatabase load cluster from DB
-func (e *EKSCluster) ReloadFromDatabase() error {
-	return e.modelCluster.ReloadFromDatabase()
 }
 
 // ListEksRegions returns the regions in which AmazonEKS service is enabled

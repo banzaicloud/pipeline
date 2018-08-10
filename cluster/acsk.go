@@ -134,8 +134,6 @@ type clusterConfigResponse struct {
 var _ CommonCluster = (*ACSKCluster)(nil)
 
 type ACSKCluster struct {
-	csClient       *cs.Client
-	ecsClient      *ecs.Client
 	alibabaCluster *alibabaDescribeClusterResponse
 	modelCluster   *model.ClusterModel
 	APIEndpoint    string
@@ -931,10 +929,6 @@ func (c *ACSKCluster) GetConfigSecretId() string {
 
 func (c *ACSKCluster) GetK8sConfig() ([]byte, error) {
 	return c.CommonClusterBase.getConfig(c)
-}
-
-func (c *ACSKCluster) ReloadFromDatabase() error {
-	return c.modelCluster.ReloadFromDatabase()
 }
 
 func (c *ACSKCluster) createAlibabaCredentialsFromSecret() (*credentials.AccessKeyCredential, error) {

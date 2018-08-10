@@ -13,11 +13,6 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-type prometheusTarget struct {
-	Targets []string          `json:"targets"`
-	Labels  map[string]string `json:"labels"`
-}
-
 //PrometheusCfg describes Prometheus config
 type PrometheusCfg struct {
 	Endpoint     string

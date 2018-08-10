@@ -3981,6 +3981,7 @@ components:
           - $ref: '#/components/schemas/CreateAKSProperties'
           - $ref: '#/components/schemas/CreateGKEProperties'
           - $ref: '#/components/schemas/CreateEKSProperties'
+          - $ref: '#/components/schemas/CreateUpdateOKEProperties'
           type: object
       required:
       - cloud
@@ -4094,6 +4095,35 @@ components:
       - count
       - instanceType
       type: object
+    CreateUpdateOKEProperties:
+      properties:
+        oke:
+          $ref: '#/components/schemas/CreateUpdateOKEProperties_oke'
+      required:
+      - oke
+      type: object
+    NodePoolsOracle:
+      properties:
+        version:
+          example: v1.9.7
+          type: string
+        count:
+          example: 1
+          format: int32
+          type: integer
+        image:
+          example: Oracle-Linux-7.4
+          type: string
+        shape:
+          example: VM.Standard1.1
+          type: string
+        labels:
+          additionalProperties:
+            $ref: '#/components/schemas/LabelsOracle'
+      type: object
+    LabelsOracle:
+      example: labelValue
+      type: string
     CreateClusterResponse_202:
       example:
         name: gkecluster-pipelineuser-123
@@ -4244,6 +4274,7 @@ components:
           - $ref: '#/components/schemas/UpdateAzureProperties'
           - $ref: '#/components/schemas/UpdateGoogleProperties'
           - $ref: '#/components/schemas/UpdateEksProperties'
+          - $ref: '#/components/schemas/CreateUpdateOKEProperties'
           type: object
       required:
       - cloud
@@ -5124,6 +5155,7 @@ components:
           - $ref: '#/components/schemas/AddClusterProfileEKS'
           - $ref: '#/components/schemas/AddClusterProfileAKS'
           - $ref: '#/components/schemas/AddClusterProfileGKE'
+          - $ref: '#/components/schemas/CreateUpdateOKEProperties'
           type: object
       type: object
     AddClusterProfileEC2:
@@ -5357,6 +5389,7 @@ components:
           - $ref: '#/components/schemas/SecretKeyValueAmazon'
           - $ref: '#/components/schemas/SecretKeyValueAzure'
           - $ref: '#/components/schemas/SecretKeyValueGoogle'
+          - $ref: '#/components/schemas/SecretKeyValueOracle'
           - $ref: '#/components/schemas/SecretKeyValueKubernetes'
           - $ref: '#/components/schemas/SecretKeyValueGeneric'
           - $ref: '#/components/schemas/SecretKeyValueTLS'
@@ -5425,6 +5458,28 @@ components:
       - project_id
       - token_uri
       - type
+      type: object
+    SecretKeyValueOracle:
+      properties:
+        user_ocid:
+          type: string
+        tenancy_ocid:
+          type: string
+        api_key:
+          type: string
+        api_key_fingerprint:
+          type: string
+        region:
+          type: string
+        client_id:
+          type: string
+      required:
+      - api_key
+      - api_key_fingerprint
+      - compartment_ocid
+      - region
+      - tenancy_ocid
+      - user_ocid
       type: object
     SecretKeyValueTLS:
       properties:
@@ -5615,6 +5670,15 @@ components:
             description: description
             required: true
           sourcing: env
+        oracle:
+          fields:
+          - name: name
+            description: description
+            required: true
+          - name: name
+            description: description
+            required: true
+          sourcing: env
         fn:
           fields:
           - name: name
@@ -5675,6 +5739,8 @@ components:
         azure:
           $ref: '#/components/schemas/AllowedSecretTypeResponse'
         google:
+          $ref: '#/components/schemas/AllowedSecretTypeResponse'
+        oracle:
           $ref: '#/components/schemas/AllowedSecretTypeResponse'
         kubernetes:
           $ref: '#/components/schemas/AllowedSecretTypeResponse'
@@ -5956,6 +6022,29 @@ components:
           example: n1-standard-1
           type: string
       type: object
+    NodePoolStatusOracle:
+      properties:
+        count:
+          example: 1
+          format: int32
+          type: integer
+        minCount:
+          example: 1
+          format: int32
+          type: integer
+        maxCount:
+          example: 2
+          format: int32
+          type: integer
+        instanceType:
+          example: VM.Standard1.1
+          type: string
+        image:
+          example: ami-4d485ca7
+          type: string
+        autoscaling:
+          type: boolean
+      type: object
     CreateObjectStoreBucketRequest:
       example:
         name: mybucket
@@ -5972,6 +6061,7 @@ components:
           - $ref: '#/components/schemas/CreateAmazonObjectStoreBucketProperties'
           - $ref: '#/components/schemas/CreateAzureObjectStoreBucketProperties'
           - $ref: '#/components/schemas/CreateGoogleObjectStoreBucketProperties'
+          - $ref: '#/components/schemas/CreateOracleObjectStoreBucketProperties'
       required:
       - name
       - properties
@@ -5979,34 +6069,23 @@ components:
       type: object
     CreateAmazonObjectStoreBucketProperties:
       properties:
-        location:
-          example: eu-west-1
-          type: string
-      required:
-      - location
+        amazon:
+          $ref: '#/components/schemas/CreateAmazonObjectStoreBucketProperties_amazon'
       type: object
     CreateGoogleObjectStoreBucketProperties:
       properties:
-        location:
-          example: europe
-          type: string
-      required:
-      - location
+        google:
+          $ref: '#/components/schemas/CreateGoogleObjectStoreBucketProperties_google'
       type: object
     CreateAzureObjectStoreBucketProperties:
       properties:
-        storageAccount:
-          example: mystorageaccount
-          type: string
-        location:
-          example: westeurope
-          type: string
-        resourceGroup:
-          type: string
-      required:
-      - location
-      - resourceGroup
-      - storageAccount
+        azure:
+          $ref: '#/components/schemas/CreateAzureObjectStoreBucketProperties_azure'
+      type: object
+    CreateOracleObjectStoreBucketProperties:
+      properties:
+        oracle:
+          $ref: '#/components/schemas/CreateOracleObjectStoreBucketProperties_oracle'
       type: object
     CreateObjectStoreBucketResponse:
       example:
@@ -6366,6 +6445,16 @@ components:
         nodePools:
           additionalProperties:
             $ref: '#/components/schemas/NodePoolsGoogle'
+          type: object
+      type: object
+    CreateUpdateOKEProperties_oke:
+      properties:
+        version:
+          example: v1.9.7
+          type: string
+        nodePools:
+          additionalProperties:
+            $ref: '#/components/schemas/NodePoolsOracle'
           type: object
       type: object
     UpdateAmazonProperties_amazon_nodePools:
@@ -7373,7 +7462,36 @@ components:
           - $ref: '#/components/schemas/NodePoolStatusAmazon'
           - $ref: '#/components/schemas/NodePoolStatusAzure'
           - $ref: '#/components/schemas/NodePoolStatusGoogle'
+          - $ref: '#/components/schemas/NodePoolStatusOracle'
           type: object
+      type: object
+    CreateAmazonObjectStoreBucketProperties_amazon:
+      properties:
+        location:
+          example: eu-west-1
+          type: string
+      type: object
+    CreateGoogleObjectStoreBucketProperties_google:
+      properties:
+        location:
+          example: europe
+          type: string
+      type: object
+    CreateAzureObjectStoreBucketProperties_azure:
+      properties:
+        storageAccount:
+          example: mystorageaccount
+          type: string
+        location:
+          example: westeurope
+          type: string
+        resourceGroup:
+          type: string
+      type: object
+    CreateOracleObjectStoreBucketProperties_oracle:
+      properties:
+        location:
+          type: string
       type: object
     PodItem_labels:
       properties:
