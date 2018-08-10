@@ -134,8 +134,6 @@ type clusterConfigResponse struct {
 var _ CommonCluster = (*ACSKCluster)(nil)
 
 type ACSKCluster struct {
-	csClient       *cs.Client
-	ecsClient      *ecs.Client
 	alibabaCluster *alibabaDescribeClusterResponse
 	modelCluster   *model.ClusterModel
 	APIEndpoint    string
