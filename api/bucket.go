@@ -11,6 +11,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/internal/gin/correlationid"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
@@ -19,6 +20,7 @@ import (
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"google.golang.org/api/googleapi"
 )
 
@@ -33,8 +35,9 @@ func (err SecretNotFoundError) Error() string {
 }
 
 // ListObjectStoreBuckets returns the list of object storage buckets (object storage container in case of Azure)
-// that can be accessed with the credentials from the given secret
+// that can be accessed with the credentials from the given secret.
 func ListObjectStoreBuckets(c *gin.Context) {
+	logger := correlationid.Logger(log, c)
 
 	organization := auth.GetCurrentOrganization(c.Request)
 	organizationID := organization.ID
@@ -42,29 +45,37 @@ func ListObjectStoreBuckets(c *gin.Context) {
 	secretId := c.GetHeader("secretId")
 	if len(secretId) == 0 {
 		replyWithErrorResponse(c, requiredHeaderParamMissingErrorResponse("secretId"))
+
 		return
 	}
-
-	log.Debugf("secretId=%s", secretId)
 
 	cloudType := c.Query("cloudType")
 	if len(cloudType) == 0 {
 		replyWithErrorResponse(c, requiredQueryParamMissingErrorResponse("cloudType"))
+
 		return
 	}
 
-	log.Infof("Retrieving object store buckets: organization id=%d", organizationID)
+	logger = logger.WithFields(logrus.Fields{
+		"organization": organizationID,
+		"secret":       secretId,
+		"provider":     cloudType,
+	})
+
+	logger.Infof("retrieving object store buckets")
 
 	retrievedSecret, err := getValidatedSecret(organizationID, secretId, cloudType)
 	if err != nil {
-		log.Errorf("Secret validation failed: %s", err.Error())
+		logger.Errorf("secret validation failed: %s", err.Error())
 		replyWithErrorResponse(c, errorResponseFrom(err))
+
 		return
 	}
 
-	objectStore, err := providers.NewObjectStore(cloudType, retrievedSecret, organization, log)
+	objectStore, err := providers.NewObjectStore(cloudType, retrievedSecret, organization, logger)
 	if err != nil {
 		replyWithErrorResponse(c, errorResponseFrom(err))
+
 		return
 	}
 
@@ -73,11 +84,13 @@ func ListObjectStoreBuckets(c *gin.Context) {
 
 		if len(location) == 0 {
 			replyWithErrorResponse(c, requiredQueryParamMissingErrorResponse("location"))
+
 			return
 		}
 
 		if err = objectStore.WithRegion(location); err != nil {
 			replyWithErrorResponse(c, errorResponseFrom(err))
+
 			return
 		}
 	}
@@ -85,63 +98,76 @@ func ListObjectStoreBuckets(c *gin.Context) {
 	bucketList, err := objectStore.ListBuckets()
 
 	if err != nil {
-		log.Errorf("Retrieving object store buckets: organization id=%d failed: %s", organizationID, err.Error())
+		logger.Errorf("retrieving object store buckets failed: %s", organizationID, err.Error())
 		replyWithErrorResponse(c, errorResponseFrom(err))
+
 		return
 	}
 
 	c.JSON(http.StatusOK, bucketList)
-	return
 }
 
 // CreateObjectStoreBuckets creates an objectstore bucket (blob container in case of Azure)
-// and also creating all requirements for them (eg.; ResourceGroup and StorageAccunt in case of Azure)
-// these informations are also stored to a database
+// and also creates all requirements for them (eg.; ResourceGroup and StorageAccunt in case of Azure).
+// These information are also stored to a database.
 func CreateObjectStoreBuckets(c *gin.Context) {
-	log.Info("Creating bucket...")
-	log.Info("Get organization id from params")
+	logger := correlationid.Logger(log, c)
+
 	organization := auth.GetCurrentOrganization(c.Request)
 	organizationID := organization.ID
-	log.Infof("Organization id: %d", organizationID)
 
-	log.Debug("Bind json into CreateClusterRequest struct")
-	// bind request body to struct
+	logger = logger.WithField("organization", organizationID)
+
+	logger.Debug("bind json into CreateClusterRequest struct")
+
 	var createBucketRequest CreateBucketRequest
 	if err := c.BindJSON(&createBucketRequest); err != nil {
-		log.Error(errors.Wrap(err, "Error parsing request"))
+		logger.Error(errors.Wrap(err, "Error parsing request"))
+
 		c.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error parsing request",
 			Error:   err.Error(),
 		})
-		return
-	}
-	cloudType, err := determineCloudProviderFromRequest(createBucketRequest)
-	if err != nil {
-		replyWithErrorResponse(c, errorResponseFrom(err))
+
 		return
 	}
 
-	log.Debug("Validating secret")
-	retrievedSecret, err := getValidatedSecret(organizationID, createBucketRequest.SecretId,
-		cloudType)
-	if err != nil {
-		log.Errorf("Secret validation failed: %s", err.Error())
-		replyWithErrorResponse(c, errorResponseFrom(err))
-		return
-	}
-	log.Debug("Secret validation successful")
-	log.Debug("Create CommonObjectStoreBuckets")
-	objectStore, err := providers.NewObjectStore(cloudType, retrievedSecret, organization, log)
+	cloudType, err := determineCloudProviderFromRequest(createBucketRequest)
 	if err != nil {
 		replyWithErrorResponse(c, errorResponseFrom(err))
+
 		return
 	}
-	log.Debug("CommonObjectStoreBuckets created")
-	log.Debug("Bucket creation started")
+
+	logger = logger.WithFields(logrus.Fields{
+		"secret":   createBucketRequest.SecretId,
+		"provider": cloudType,
+	})
+
+	logger.Debug("validating secret")
+	retrievedSecret, err := getValidatedSecret(organizationID, createBucketRequest.SecretId, cloudType)
+	if err != nil {
+		logger.Errorf("secret validation failed: %s", err.Error())
+		replyWithErrorResponse(c, errorResponseFrom(err))
+
+		return
+	}
+	logger.Debug("secret validation successful")
+
+	objectStore, err := providers.NewObjectStore(cloudType, retrievedSecret, organization, logger)
+	if err != nil {
+		replyWithErrorResponse(c, errorResponseFrom(err))
+
+		return
+	}
+
+	logger.Debug("bucket creation started")
+
 	c.JSON(http.StatusAccepted, CreateBucketResponse{
 		Name: createBucketRequest.Name,
 	})
+
 	if cloudType == pkgCluster.Alibaba {
 		objectStore.WithRegion(createBucketRequest.Properties.Alibaba.Location)
 	}
@@ -161,116 +187,155 @@ func CreateObjectStoreBuckets(c *gin.Context) {
 	}
 
 	go objectStore.CreateBucket(createBucketRequest.Name)
+
 	return
 }
 
 // CheckObjectStoreBucket checks if the given there is a bucket exists with the given name
 func CheckObjectStoreBucket(c *gin.Context) {
-	cloudType := c.Query("cloudType")
-	bucketName := c.Param("name")
-	log.Infof("Check if the bucket %s exists", bucketName)
-	log.Info("Get organization id from params")
+	logger := correlationid.Logger(log, c)
+
 	organization := auth.GetCurrentOrganization(c.Request)
 	organizationID := organization.ID
-	log.Infof("Organization id: %d", organizationID)
+
 	secretId := c.GetHeader("secretId")
 	if len(secretId) == 0 {
-		c.Status(requiredHeaderParamMissingErrorResponse("secretId").Code)
+		replyWithErrorResponse(c, requiredHeaderParamMissingErrorResponse("secretId"))
+
 		return
 	}
-	log.Debugf("secretId=%s", secretId)
+
+	cloudType := c.Query("cloudType")
+	if len(cloudType) == 0 {
+		replyWithErrorResponse(c, requiredQueryParamMissingErrorResponse("cloudType"))
+
+		return
+	}
+
+	bucketName := c.Param("name")
+
+	logger = logger.WithFields(logrus.Fields{
+		"organization": organizationID,
+		"secret":       secretId,
+		"provider":     cloudType,
+		"bucket":       bucketName,
+	})
 
 	retrievedSecret, err := getValidatedSecret(organizationID, secretId, cloudType)
 	if err != nil {
-		log.Errorf("Secret validation failed: %s", err.Error())
+		logger.Errorf("secret validation failed: %s", err.Error())
 		c.Status(errorResponseFrom(err).Code)
+
 		return
 	}
-	log.Debug("Create CommonObjectStoreBuckets")
-	objectStore, err := providers.NewObjectStore(cloudType, retrievedSecret, organization, log)
+
+	objectStore, err := providers.NewObjectStore(cloudType, retrievedSecret, organization, logger)
 	if err != nil {
-		log.Errorf("Instantiating object store client for cloudType=%s failed: %s", cloudType, err.Error())
+		logger.Errorf("Instantiating object store client for failed: %s", err.Error())
 		c.Status(errorResponseFrom(err).Code)
+
 		return
 	}
 	if cloudType == pkgCluster.Azure {
 		resourceGroup := c.Query("resourceGroup")
 		if len(resourceGroup) == 0 {
 			c.Status(requiredQueryParamMissingErrorResponse("resourceGroup").Code)
+
 			return
 		}
 
 		storageAccount := c.Query("storageAccount")
 		if len(storageAccount) == 0 {
 			c.Status(requiredQueryParamMissingErrorResponse("storageAccount").Code)
+
 			return
 		}
 
 		if err = objectStore.WithResourceGroup(resourceGroup); err != nil {
 			c.Status(errorResponseFrom(err).Code)
+
 			return
 		}
 
 		if err = objectStore.WithStorageAccount(storageAccount); err != nil {
 			c.Status(errorResponseFrom(err).Code)
+
 			return
 		}
 	}
+
 	if cloudType == pkgCluster.Oracle || cloudType == pkgCluster.Amazon || cloudType == pkgCluster.Alibaba {
 		location := c.Query("location")
+
 		if len(location) == 0 {
 			c.Status(requiredQueryParamMissingErrorResponse("location").Code)
+
 			return
 		}
+
 		if err = objectStore.WithRegion(location); err != nil {
 			c.Status(errorResponseFrom(err).Code)
+
 			return
 		}
 	}
-	log.Debug("CommonObjectStoreBuckets created")
+
 	err = objectStore.CheckBucket(bucketName)
 	if err != nil {
 		c.Status(errorResponseFrom(err).Code)
+
 		return
 	}
+
 	c.Status(http.StatusOK)
 }
 
 // DeleteObjectStoreBucket deletes object storage buckets (object storage container in case of Azure)
 // that can be accessed with the credentials from the given secret
 func DeleteObjectStoreBucket(c *gin.Context) {
-
-	name := c.Param("name")
+	logger := correlationid.Logger(log, c)
 
 	organization := auth.GetCurrentOrganization(c.Request)
 	organizationID := organization.ID
+
 	secretId := c.GetHeader("secretId")
 	if len(secretId) == 0 {
 		replyWithErrorResponse(c, requiredHeaderParamMissingErrorResponse("secretId"))
+
 		return
 	}
-
-	log.Debugf("secretId=%s", secretId)
 
 	cloudType := c.Query("cloudType")
 	if len(cloudType) == 0 {
 		replyWithErrorResponse(c, requiredQueryParamMissingErrorResponse("cloudType"))
+
 		return
 	}
+
+	bucketName := c.Param("name")
+
+	logger = logger.WithFields(logrus.Fields{
+		"organization": organizationID,
+		"secret":       secretId,
+		"provider":     cloudType,
+		"bucket":       bucketName,
+	})
 
 	retrievedSecret, err := getValidatedSecret(organizationID, secretId, cloudType)
 	if err != nil {
-		log.Errorf("Secret validation failed: %s", err.Error())
+		logger.Errorf("secret validation failed: %s", err.Error())
 		replyWithErrorResponse(c, errorResponseFrom(err))
+
 		return
 	}
 
-	log.Infof("Deleting object store bucket: organization id=%d, bucket=%s", organizationID, name)
+	logger.Infof("deleting object store bucket")
 
-	objectStore, err := providers.NewObjectStore(cloudType, retrievedSecret, organization, log)
+	objectStore, err := providers.NewObjectStore(cloudType, retrievedSecret, organization, logger)
 	if err != nil {
-		log.Errorf("Instantiating object store client for cloudType=%s failed: %s", cloudType, err.Error())
+		logger.Errorf("instantiating object store client failed: %s", err.Error())
 		replyWithErrorResponse(c, errorResponseFrom(err))
+
 		return
 	}
 
@@ -278,22 +343,26 @@ func DeleteObjectStoreBucket(c *gin.Context) {
 		resourceGroup := c.Query("resourceGroup")
 		if len(resourceGroup) == 0 {
 			replyWithErrorResponse(c, requiredQueryParamMissingErrorResponse("resourceGroup"))
+
 			return
 		}
 
 		storageAccount := c.Query("storageAccount")
 		if len(storageAccount) == 0 {
 			replyWithErrorResponse(c, requiredQueryParamMissingErrorResponse("storageAccount"))
+
 			return
 		}
 
 		if err = objectStore.WithResourceGroup(resourceGroup); err != nil {
 			replyWithErrorResponse(c, errorResponseFrom(err))
+
 			return
 		}
 
 		if err = objectStore.WithStorageAccount(storageAccount); err != nil {
 			replyWithErrorResponse(c, errorResponseFrom(err))
+
 			return
 		}
 	}
@@ -301,22 +370,25 @@ func DeleteObjectStoreBucket(c *gin.Context) {
 		location := c.Query("location")
 		if len(location) == 0 {
 			replyWithErrorResponse(c, requiredQueryParamMissingErrorResponse("location"))
+
 			return
 		}
+
 		if err = objectStore.WithRegion(location); err != nil {
 			c.Status(errorResponseFrom(err).Code)
+
 			return
 		}
 	}
 
-	if err = objectStore.DeleteBucket(name); err != nil {
-		log.Errorf("Deleting object store bucket: organization id=%d, bucket=%s failed: %s", organizationID, name, err.Error())
+	if err = objectStore.DeleteBucket(bucketName); err != nil {
+		logger.Errorf("deleting object store bucket failed: %s", err.Error())
 		replyWithErrorResponse(c, errorResponseFrom(err))
+
 		return
 	}
 
-	log.Infof("Object store bucket: organization id=%d, bucket=%s deleted", organizationID, name)
-
+	logger.Infof("object store bucket deleted")
 }
 
 // errorResponseFrom translates the given error into a components.ErrorResponse

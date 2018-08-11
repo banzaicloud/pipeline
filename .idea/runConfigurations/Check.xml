@@ -2,6 +2,6 @@
   <configuration default="false" name="Check" type="CompoundRunConfigurationType" factoryName="Compound Run Configuration">
     <toRun type="GoTestRunConfiguration" name="Tests" />
     <toRun type="MAKEFILE_TARGET_RUN_CONFIGURATION" name="Lint" />
-    <method />
+    <method v="2" />
   </configuration>
 </component>

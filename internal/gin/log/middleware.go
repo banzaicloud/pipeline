@@ -8,6 +8,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+const correlationIdField = "correlation-id"
+
 // Middleware returns a gin compatible handler.
 func Middleware(logger logrus.FieldLogger, notlogged ...string) gin.HandlerFunc {
 	var skip map[string]struct{}
@@ -49,7 +51,7 @@ func Middleware(logger logrus.FieldLogger, notlogged ...string) gin.HandlerFunc 
 			}
 
 			if cid := c.GetString(correlationid.ContextKey); cid != "" {
-				fields["correlation-id"] = cid
+				fields[correlationIdField] = cid
 			}
 
 			entry := logger.WithFields(fields)
