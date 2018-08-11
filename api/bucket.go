@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/gin/correlationid"
+	"github.com/banzaicloud/pipeline/internal/gin/utils"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
@@ -42,16 +43,16 @@ func ListObjectStoreBuckets(c *gin.Context) {
 	organization := auth.GetCurrentOrganization(c.Request)
 	organizationID := organization.ID
 
-	secretId := c.GetHeader("secretId")
-	if len(secretId) == 0 {
-		replyWithErrorResponse(c, requiredHeaderParamMissingErrorResponse("secretId"))
+	secretId, ok := ginutils.GetRequiredHeader(c, "secretId")
+	if !ok {
+		logger.Debug("missing secret id")
 
 		return
 	}
 
-	cloudType := c.Query("cloudType")
-	if len(cloudType) == 0 {
-		replyWithErrorResponse(c, requiredQueryParamMissingErrorResponse("cloudType"))
+	cloudType, ok := ginutils.RequiredQuery(c, "cloudType")
+	if !ok {
+		logger.Debug("missing provider")
 
 		return
 	}
@@ -67,29 +68,28 @@ func ListObjectStoreBuckets(c *gin.Context) {
 	retrievedSecret, err := getValidatedSecret(organizationID, secretId, cloudType)
 	if err != nil {
 		logger.Errorf("secret validation failed: %s", err.Error())
-		replyWithErrorResponse(c, errorResponseFrom(err))
+		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
 
 		return
 	}
 
 	objectStore, err := providers.NewObjectStore(cloudType, retrievedSecret, organization, logger)
 	if err != nil {
-		replyWithErrorResponse(c, errorResponseFrom(err))
+		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
 
 		return
 	}
 
 	if cloudType == pkgCluster.Amazon || cloudType == pkgCluster.Alibaba {
-		location := c.Query("location")
-
-		if len(location) == 0 {
-			replyWithErrorResponse(c, requiredQueryParamMissingErrorResponse("location"))
+		location, ok := ginutils.RequiredQuery(c, "location")
+		if !ok {
+			logger.Debug("missing location")
 
 			return
 		}
 
 		if err = objectStore.WithRegion(location); err != nil {
-			replyWithErrorResponse(c, errorResponseFrom(err))
+			ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
 
 			return
 		}
@@ -99,7 +99,7 @@ func ListObjectStoreBuckets(c *gin.Context) {
 
 	if err != nil {
 		logger.Errorf("retrieving object store buckets failed: %s", organizationID, err.Error())
-		replyWithErrorResponse(c, errorResponseFrom(err))
+		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
 
 		return
 	}
@@ -135,7 +135,7 @@ func CreateObjectStoreBuckets(c *gin.Context) {
 
 	cloudType, err := determineCloudProviderFromRequest(createBucketRequest)
 	if err != nil {
-		replyWithErrorResponse(c, errorResponseFrom(err))
+		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
 
 		return
 	}
@@ -149,7 +149,7 @@ func CreateObjectStoreBuckets(c *gin.Context) {
 	retrievedSecret, err := getValidatedSecret(organizationID, createBucketRequest.SecretId, cloudType)
 	if err != nil {
 		logger.Errorf("secret validation failed: %s", err.Error())
-		replyWithErrorResponse(c, errorResponseFrom(err))
+		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
 
 		return
 	}
@@ -157,7 +157,7 @@ func CreateObjectStoreBuckets(c *gin.Context) {
 
 	objectStore, err := providers.NewObjectStore(cloudType, retrievedSecret, organization, logger)
 	if err != nil {
-		replyWithErrorResponse(c, errorResponseFrom(err))
+		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
 
 		return
 	}
@@ -198,16 +198,16 @@ func CheckObjectStoreBucket(c *gin.Context) {
 	organization := auth.GetCurrentOrganization(c.Request)
 	organizationID := organization.ID
 
-	secretId := c.GetHeader("secretId")
-	if len(secretId) == 0 {
-		replyWithErrorResponse(c, requiredHeaderParamMissingErrorResponse("secretId"))
+	secretId, ok := ginutils.GetRequiredHeader(c, "secretId")
+	if !ok {
+		logger.Debug("missing secret id")
 
 		return
 	}
 
-	cloudType := c.Query("cloudType")
-	if len(cloudType) == 0 {
-		replyWithErrorResponse(c, requiredQueryParamMissingErrorResponse("cloudType"))
+	cloudType, ok := ginutils.RequiredQuery(c, "cloudType")
+	if !ok {
+		logger.Debug("missing provider")
 
 		return
 	}
@@ -237,16 +237,16 @@ func CheckObjectStoreBucket(c *gin.Context) {
 		return
 	}
 	if cloudType == pkgCluster.Azure {
-		resourceGroup := c.Query("resourceGroup")
-		if len(resourceGroup) == 0 {
-			c.Status(requiredQueryParamMissingErrorResponse("resourceGroup").Code)
+		resourceGroup, ok := ginutils.RequiredQuery(c, "resourceGroup")
+		if !ok {
+			logger.Debug("missing resource group")
 
 			return
 		}
 
-		storageAccount := c.Query("storageAccount")
-		if len(storageAccount) == 0 {
-			c.Status(requiredQueryParamMissingErrorResponse("storageAccount").Code)
+		storageAccount, ok := ginutils.RequiredQuery(c, "storageAccount")
+		if !ok {
+			logger.Debug("missing storage account")
 
 			return
 		}
@@ -265,10 +265,9 @@ func CheckObjectStoreBucket(c *gin.Context) {
 	}
 
 	if cloudType == pkgCluster.Oracle || cloudType == pkgCluster.Amazon || cloudType == pkgCluster.Alibaba {
-		location := c.Query("location")
-
-		if len(location) == 0 {
-			c.Status(requiredQueryParamMissingErrorResponse("location").Code)
+		location, ok := ginutils.RequiredQuery(c, "location")
+		if !ok {
+			logger.Debug("missing location")
 
 			return
 		}
@@ -298,16 +297,16 @@ func DeleteObjectStoreBucket(c *gin.Context) {
 	organization := auth.GetCurrentOrganization(c.Request)
 	organizationID := organization.ID
 
-	secretId := c.GetHeader("secretId")
-	if len(secretId) == 0 {
-		replyWithErrorResponse(c, requiredHeaderParamMissingErrorResponse("secretId"))
+	secretId, ok := ginutils.GetRequiredHeader(c, "secretId")
+	if !ok {
+		logger.Debug("missing secret id")
 
 		return
 	}
 
-	cloudType := c.Query("cloudType")
-	if len(cloudType) == 0 {
-		replyWithErrorResponse(c, requiredQueryParamMissingErrorResponse("cloudType"))
+	cloudType, ok := ginutils.RequiredQuery(c, "cloudType")
+	if !ok {
+		logger.Debug("missing provider")
 
 		return
 	}
@@ -324,7 +323,7 @@ func DeleteObjectStoreBucket(c *gin.Context) {
 	retrievedSecret, err := getValidatedSecret(organizationID, secretId, cloudType)
 	if err != nil {
 		logger.Errorf("secret validation failed: %s", err.Error())
-		replyWithErrorResponse(c, errorResponseFrom(err))
+		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
 
 		return
 	}
@@ -334,42 +333,42 @@ func DeleteObjectStoreBucket(c *gin.Context) {
 	objectStore, err := providers.NewObjectStore(cloudType, retrievedSecret, organization, logger)
 	if err != nil {
 		logger.Errorf("instantiating object store client failed: %s", err.Error())
-		replyWithErrorResponse(c, errorResponseFrom(err))
+		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
 
 		return
 	}
 
 	if cloudType == pkgCluster.Azure {
-		resourceGroup := c.Query("resourceGroup")
-		if len(resourceGroup) == 0 {
-			replyWithErrorResponse(c, requiredQueryParamMissingErrorResponse("resourceGroup"))
+		resourceGroup, ok := ginutils.RequiredQuery(c, "resourceGroup")
+		if !ok {
+			logger.Debug("missing resource group")
 
 			return
 		}
 
-		storageAccount := c.Query("storageAccount")
-		if len(storageAccount) == 0 {
-			replyWithErrorResponse(c, requiredQueryParamMissingErrorResponse("storageAccount"))
+		storageAccount, ok := ginutils.RequiredQuery(c, "storageAccount")
+		if !ok {
+			logger.Debug("missing storage account")
 
 			return
 		}
 
 		if err = objectStore.WithResourceGroup(resourceGroup); err != nil {
-			replyWithErrorResponse(c, errorResponseFrom(err))
+			ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
 
 			return
 		}
 
 		if err = objectStore.WithStorageAccount(storageAccount); err != nil {
-			replyWithErrorResponse(c, errorResponseFrom(err))
+			ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
 
 			return
 		}
 	}
 	if cloudType == pkgCluster.Oracle {
-		location := c.Query("location")
-		if len(location) == 0 {
-			replyWithErrorResponse(c, requiredQueryParamMissingErrorResponse("location"))
+		location, ok := ginutils.RequiredQuery(c, "location")
+		if !ok {
+			logger.Debug("missing location")
 
 			return
 		}
@@ -383,7 +382,7 @@ func DeleteObjectStoreBucket(c *gin.Context) {
 
 	if err = objectStore.DeleteBucket(bucketName); err != nil {
 		logger.Errorf("deleting object store bucket failed: %s", err.Error())
-		replyWithErrorResponse(c, errorResponseFrom(err))
+		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
 
 		return
 	}
@@ -490,28 +489,6 @@ func errorResponseFrom(err error) *common.ErrorResponse {
 			Error:   err.Error(),
 			Message: err.Error(),
 		}
-	}
-}
-
-func replyWithErrorResponse(c *gin.Context, errorResponse *common.ErrorResponse) {
-	c.JSON(errorResponse.Code, errorResponse)
-}
-
-// requiredQueryParamMissingErrorResponse creates an components.ErrorResponse denoting missing required query param
-func requiredQueryParamMissingErrorResponse(queryParamName string) *common.ErrorResponse {
-	return &common.ErrorResponse{
-		Code:    http.StatusBadRequest,
-		Error:   "Query parameter required.",
-		Message: fmt.Sprintf("Required query parameter '%s' is missing", queryParamName),
-	}
-}
-
-// requiredHeaderParamMissingErrorResponse creates an components.ErrorResponse denoting missing required header param
-func requiredHeaderParamMissingErrorResponse(headerParamName string) *common.ErrorResponse {
-	return &common.ErrorResponse{
-		Code:    http.StatusBadRequest,
-		Error:   "Header parameter required.",
-		Message: fmt.Sprintf("Required header parameter '%s' is missing", headerParamName),
 	}
 }
 
