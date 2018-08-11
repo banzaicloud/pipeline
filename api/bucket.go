@@ -218,7 +218,7 @@ func CheckObjectStoreBucket(c *gin.Context) {
 			return
 		}
 	}
-	if cloudType == pkgCluster.Oracle {
+	if cloudType == pkgCluster.Oracle || cloudType == pkgCluster.Amazon || cloudType == pkgCluster.Alibaba {
 		location := c.Query("location")
 		if len(location) == 0 {
 			c.Status(requiredQueryParamMissingErrorResponse("location").Code)

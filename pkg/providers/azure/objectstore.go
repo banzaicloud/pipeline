@@ -382,17 +382,7 @@ func (s *ObjectStore) CheckBucket(bucketName string) error {
 	storageAccount := s.getStorageAccount()
 
 	logger := s.getLogger(bucketName)
-
-	bucket := &ObjectStoreModel{}
-	searchCriteria := s.searchCriteria(bucketName)
-
 	logger.Info("looking for bucket")
-
-	if err := s.db.Where(searchCriteria).Find(bucket).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return bucketNotFoundError{}
-		}
-	}
 
 	_, err := s.checkStorageAccountExistence(resourceGroup, storageAccount)
 	if err != nil && !strings.Contains(err.Error(), "is already taken") {

@@ -142,14 +142,7 @@ func (b *AlibabaObjectStore) DeleteBucket(bucketName string) error {
 }
 
 func (b *AlibabaObjectStore) CheckBucket(bucketName string) error {
-	managedBucket := &ManagedAlibabaBucket{}
-	searchCriteria := b.newManagedBucketSearchCriteria(bucketName)
-	log.Info("Looking up managed bucket: name=%s", bucketName)
-	if err := getManagedBucket(searchCriteria, managedBucket); err != nil {
-		return ManagedBucketNotFoundError{}
-	}
-
-	svc, err := createAlibabaOSSClient(managedBucket.Region, b.secret)
+	svc, err := createAlibabaOSSClient(b.region, b.secret)
 
 	if err != nil {
 		log.Errorf("Creating AlibabaOSSClient failed: %s", err.Error())

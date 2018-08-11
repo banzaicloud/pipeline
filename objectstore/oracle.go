@@ -172,16 +172,7 @@ func (o *OCIObjectStore) CheckBucket(name string) error {
 		return err
 	}
 
-	managedBucket := &model.ManagedOracleBucket{}
-	searchCriteria := o.newManagedBucketSearchCriteria(name, o.location, oci.CompartmentOCID)
-
-	log.Infof("Looking up managed bucket: name=%s", name)
-	if err := getManagedBucket(searchCriteria, managedBucket); err != nil {
-		log.Error(err)
-		return err
-	}
-
-	err = oci.ChangeRegion(managedBucket.Location)
+	err = oci.ChangeRegion(o.location)
 	if err != nil {
 		log.Errorf("Bucket creation error: %s", err)
 	}
