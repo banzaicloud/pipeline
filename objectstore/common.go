@@ -1,16 +1,7 @@
 package objectstore
 
 import (
-	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/database"
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
-	"github.com/banzaicloud/pipeline/pkg/objectstore"
-	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
-	"github.com/banzaicloud/pipeline/pkg/providers/azure"
-	"github.com/banzaicloud/pipeline/pkg/providers/google"
-	"github.com/banzaicloud/pipeline/secret"
-	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/jinzhu/gorm"
 )
 
@@ -24,31 +15,6 @@ func (err ManagedBucketNotFoundError) Error() string {
 }
 
 func (ManagedBucketNotFoundError) NotFound() bool { return true }
-
-// NewObjectStore creates a object store client for the given cloud type. The created object is initialized with
-// the passed in secret and organization
-func NewObjectStore(cloudType string, s *secret.SecretItemResponse, organization *auth.Organization) (objectstore.ObjectStore, error) {
-	switch cloudType {
-	case pkgCluster.Alibaba:
-		return &AlibabaObjectStore{
-			secret: s,
-			org:    organization,
-		}, nil
-	case pkgCluster.Amazon:
-		return amazon.NewObjectStore(organization, s, database.GetDB(), log), nil
-	case pkgCluster.Google:
-		return google.NewObjectStore(organization, verify.CreateServiceAccount(s.Values), database.GetDB(), log), nil
-	case pkgCluster.Azure:
-		return azure.NewObjectStore(organization, s, database.GetDB(), log), nil
-	case pkgCluster.Oracle:
-		return &OCIObjectStore{
-			secret: s,
-			org:    organization,
-		}, nil
-	default:
-		return nil, pkgErrors.ErrorNotSupportedCloudType
-	}
-}
 
 // getManagedBucket looks up the managed bucket record in the database based on the specified
 // searchCriteria and writes the db record into the managedBucket argument.
