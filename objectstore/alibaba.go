@@ -27,6 +27,10 @@ type AlibabaObjectStore struct {
 	org    *auth.Organization
 }
 
+func NewAlibabaObjectStore(secret *secret.SecretItemResponse, org *auth.Organization) *AlibabaObjectStore {
+	return &AlibabaObjectStore{secret: secret, org: org}
+}
+
 var _ objectstore.ObjectStore = (*AlibabaObjectStore)(nil)
 
 func (b *AlibabaObjectStore) CreateBucket(bucketName string) {
