@@ -35,9 +35,9 @@ func (err SecretNotFoundError) Error() string {
 	return err.errMessage
 }
 
-// ListObjectStoreBuckets returns the list of object storage buckets (object storage container in case of Azure)
+// ListBuckets returns the list of object storage buckets (object storage container in case of Azure)
 // that can be accessed with the credentials from the given secret.
-func ListObjectStoreBuckets(c *gin.Context) {
+func ListBuckets(c *gin.Context) {
 	logger := correlationid.Logger(log, c)
 
 	organization := auth.GetCurrentOrganization(c.Request)
@@ -107,10 +107,10 @@ func ListObjectStoreBuckets(c *gin.Context) {
 	c.JSON(http.StatusOK, bucketList)
 }
 
-// CreateObjectStoreBuckets creates an objectstore bucket (blob container in case of Azure)
+// CreateBucket creates an objectstore bucket (blob container in case of Azure)
 // and also creates all requirements for them (eg.; ResourceGroup and StorageAccunt in case of Azure).
 // These information are also stored to a database.
-func CreateObjectStoreBuckets(c *gin.Context) {
+func CreateBucket(c *gin.Context) {
 	logger := correlationid.Logger(log, c)
 
 	organization := auth.GetCurrentOrganization(c.Request)
@@ -191,8 +191,8 @@ func CreateObjectStoreBuckets(c *gin.Context) {
 	return
 }
 
-// CheckObjectStoreBucket checks if the given there is a bucket exists with the given name
-func CheckObjectStoreBucket(c *gin.Context) {
+// CheckBucket checks if the given there is a bucket exists with the given name
+func CheckBucket(c *gin.Context) {
 	logger := correlationid.Logger(log, c)
 
 	organization := auth.GetCurrentOrganization(c.Request)
@@ -289,9 +289,9 @@ func CheckObjectStoreBucket(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-// DeleteObjectStoreBucket deletes object storage buckets (object storage container in case of Azure)
+// DeleteBucket deletes object storage buckets (object storage container in case of Azure)
 // that can be accessed with the credentials from the given secret
-func DeleteObjectStoreBucket(c *gin.Context) {
+func DeleteBucket(c *gin.Context) {
 	logger := correlationid.Logger(log, c)
 
 	organization := auth.GetCurrentOrganization(c.Request)
