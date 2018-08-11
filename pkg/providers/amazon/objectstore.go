@@ -1,14 +1,17 @@
 package amazon
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"sort"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/pkg/objectstore"
 	"github.com/banzaicloud/pipeline/secret"
@@ -189,19 +192,20 @@ func (s *ObjectStore) DeleteBucket(bucketName string) error {
 func (s *ObjectStore) CheckBucket(bucketName string) error {
 	logger := s.getLogger(bucketName)
 
-	bucket := &ObjectStoreModel{}
-	searchCriteria := s.searchCriteria(bucketName)
+	logger.Infoln("looking for bucket")
 
-	logger.Info("looking for bucket")
+	logger.Infoln("getting region that hosts the bucket")
 
-	if err := s.db.Where(searchCriteria).Find(bucket).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return bucketNotFoundError{}
+	bucketRegion, err := getBucketRegion(s.region, bucketName, s.secret)
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok && aerr.Code() == "NotFound" {
+			logrus.Infof("the specified bucket not found: %s", aerr.Error())
 		}
+		return err
 	}
 
 	logger.Info("creating S3 client")
-	svc, err := createS3Client(bucket.Region, s.secret)
+	svc, err := createS3Client(*bucketRegion, s.secret)
 	if err != nil {
 		return fmt.Errorf("creating S3 client failed: %s", err.Error())
 	}
@@ -212,6 +216,9 @@ func (s *ObjectStore) CheckBucket(bucketName string) error {
 
 	_, err = svc.HeadBucket(input)
 	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok {
+			logrus.Infof("the specified bucket not found: %s", aerr.Error())
+		}
 		return err
 	}
 
@@ -278,6 +285,23 @@ func createS3Client(region string, retrievedSecret *secret.SecretItemResponse) (
 	}
 
 	return s3.New(s), nil
+}
+
+func getBucketRegion(regionHint, bucketName string, retrievedSecret *secret.SecretItemResponse) (*string, error) {
+	s, err := session.NewSession(&aws.Config{
+		Credentials: verify.CreateAWSCredentials(retrievedSecret.Values),
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("error creating AWS session %s", err.Error())
+	}
+
+	bucketRegion, err := s3manager.GetBucketRegion(context.Background(), s, bucketName, regionHint)
+	if err != nil {
+		return nil, err
+	}
+
+	return &bucketRegion, nil
 }
 
 // searchCriteria returns the database search criteria to find bucket with the given name.

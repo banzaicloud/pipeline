@@ -3117,16 +3117,21 @@ paths:
           description: Identifies the cloud provider
           schema:
             type: string
-            enum: [amazon, google, azure]
+            enum: [amazon, google, azure, oracle, alibaba]
           required: true
         - name: resourceGroup
           in: query
-          description: Azure resource group the storage account that holds the bucket (storage container) be checked
+          description: Azure resource group to lookup the bucket(storage container) under. Required only on Azure cloud provider.
           schema:
             type: string
         - name: storageAccount
           in: query
-          description: Azure storage account to delete the bucket (storage container) to be checked
+          description: Azure storage account to lookup the bucket(storage container) under. Required only on Azure cloud provider.
+          schema:
+            type: string
+        - name: location
+          in: query
+          description: The region to lookup the bucket under. Required on Amazon, Oracle and Alibaba cloud providers.
           schema:
             type: string
       responses:
@@ -3748,7 +3753,7 @@ components:
         instanceType:
           type: string
           example: "n1-standard-2"
-          
+
     CreateUpdateOKEProperties:
       type: object
       required:
@@ -3767,7 +3772,7 @@ components:
               type: object
               additionalProperties:
                 $ref: '#/components/schemas/NodePoolsOracle'
-    
+
     NodePoolsOracle:
       type: object
       properties:
@@ -3785,12 +3790,12 @@ components:
           example: "VM.Standard1.1"
         labels:
           additionalProperties:
-            $ref: '#/components/schemas/LabelsOracle'          
+            $ref: '#/components/schemas/LabelsOracle'
 
     LabelsOracle:
       type: string
       example: "labelValue"
-        
+
 
     CreateClusterResponse_202:
       type: object
@@ -5337,7 +5342,7 @@ components:
           type: string
         client_x509_cert_url:
           type: string
-    
+
     SecretKeyValueOracle:
       type: object
       required:
@@ -5768,7 +5773,7 @@ components:
         instanceType:
           type: string
           example: "n1-standard-1"
-    
+
     NodePoolStatusOracle:
       type: object
       properties:
@@ -5790,7 +5795,7 @@ components:
         autoscaling:
           type: boolean
           example: false
-        
+
 
     CreateObjectStoreBucketRequest:
       type: object
@@ -5838,7 +5843,7 @@ components:
     CreateAzureObjectStoreBucketProperties:
       type: object
       properties:
-        azure:    
+        azure:
           type: object
           required:
             - storageAccount
@@ -5853,7 +5858,7 @@ components:
               example: "westeurope"
             resourceGroup:
               type: string
-    
+
     CreateOracleObjectStoreBucketProperties:
       type: object
       properties:

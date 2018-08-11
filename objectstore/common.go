@@ -69,7 +69,7 @@ func getManagedBucket(searchCriteria interface{}, managedBucket interface{}) err
 }
 
 func persistToDb(m interface{}) error {
-	log.Info("Persisting Bucket Description to Db")
+	log.Info("Persisting Bucket to Db")
 	db := database.GetDB()
 	return db.Save(m).Error
 }

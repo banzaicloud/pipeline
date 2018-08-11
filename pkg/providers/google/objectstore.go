@@ -202,17 +202,7 @@ func (s *ObjectStore) DeleteBucket(bucketName string) error {
 // CheckBucket checks the status of the given Google bucket.
 func (s *ObjectStore) CheckBucket(bucketName string) error {
 	logger := s.getLogger(bucketName)
-
-	bucket := &ObjectStoreModel{}
-	searchCriteria := s.searchCriteria(bucketName)
-
 	logger.Info("looking for bucket")
-
-	if err := s.db.Where(searchCriteria).Find(bucket).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return bucketNotFoundError{}
-		}
-	}
 
 	logger.Info("getting credentials")
 	credentials, err := s.newGoogleCredentials()
