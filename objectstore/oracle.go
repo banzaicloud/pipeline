@@ -19,6 +19,10 @@ type OCIObjectStore struct {
 	location string
 }
 
+func NewOracleObjectStore(secret *secret.SecretItemResponse, org *pipelineAuth.Organization) *OCIObjectStore {
+	return &OCIObjectStore{secret: secret, org: org}
+}
+
 // CreateBucket creates an Oracle object store bucket with the given name
 func (o *OCIObjectStore) CreateBucket(name string) {
 

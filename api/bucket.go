@@ -11,10 +11,10 @@ import (
 	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/objectstore"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
+	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/gin-gonic/gin"
@@ -62,7 +62,7 @@ func ListObjectStoreBuckets(c *gin.Context) {
 		return
 	}
 
-	objectStore, err := objectstore.NewObjectStore(cloudType, retrievedSecret, organization)
+	objectStore, err := providers.NewObjectStore(cloudType, retrievedSecret, organization, log)
 	if err != nil {
 		replyWithErrorResponse(c, errorResponseFrom(err))
 		return
@@ -132,8 +132,7 @@ func CreateObjectStoreBuckets(c *gin.Context) {
 	}
 	log.Debug("Secret validation successful")
 	log.Debug("Create CommonObjectStoreBuckets")
-	objectStore, err :=
-		objectstore.NewObjectStore(cloudType, retrievedSecret, organization)
+	objectStore, err := providers.NewObjectStore(cloudType, retrievedSecret, organization, log)
 	if err != nil {
 		replyWithErrorResponse(c, errorResponseFrom(err))
 		return
@@ -188,8 +187,7 @@ func CheckObjectStoreBucket(c *gin.Context) {
 		return
 	}
 	log.Debug("Create CommonObjectStoreBuckets")
-	objectStore, err :=
-		objectstore.NewObjectStore(cloudType, retrievedSecret, organization)
+	objectStore, err := providers.NewObjectStore(cloudType, retrievedSecret, organization, log)
 	if err != nil {
 		log.Errorf("Instantiating object store client for cloudType=%s failed: %s", cloudType, err.Error())
 		c.Status(errorResponseFrom(err).Code)
@@ -269,7 +267,7 @@ func DeleteObjectStoreBucket(c *gin.Context) {
 
 	log.Infof("Deleting object store bucket: organization id=%d, bucket=%s", organizationID, name)
 
-	objectStore, err := objectstore.NewObjectStore(cloudType, retrievedSecret, organization)
+	objectStore, err := providers.NewObjectStore(cloudType, retrievedSecret, organization, log)
 	if err != nil {
 		log.Errorf("Instantiating object store client for cloudType=%s failed: %s", cloudType, err.Error())
 		replyWithErrorResponse(c, errorResponseFrom(err))
