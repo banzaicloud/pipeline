@@ -173,14 +173,24 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 	if err != nil {
 		return err
 	}
-	if !checkIfTLSRelatedValuesArePresent(&loggingParam.GenTLSForLogging) {
-		return errors.Errorf("TLS related parameter is missing from request!")
+	// This makes no sense since we can't check if it default false or set false
+	//if !checkIfTLSRelatedValuesArePresent(&loggingParam.GenTLSForLogging) {
+	//	return errors.Errorf("TLS related parameter is missing from request!")
+	//}
+	loggingParam.GenTLSForLogging.TLSEnabled = true
+	// Set TLS default values (default True)
+	if loggingParam.GenTLSForLogging.Namespace == "" {
+		loggingParam.GenTLSForLogging.Namespace = "default"
 	}
+	if loggingParam.GenTLSForLogging.TLSHost == "" {
+		loggingParam.GenTLSForLogging.TLSHost = "fluentd." + loggingParam.GenTLSForLogging.Namespace + ".svc.cluster.local"
+	}
+
 	if loggingParam.GenTLSForLogging.TLSEnabled {
 		req := &secret.CreateSecretRequest{
 			Name: loggingParam.GenTLSForLogging.GenTLSSecretName,
 			Type: secretTypes.TLSSecretType,
-			Tags: []string{loggingOperator},
+			Tags: []string{loggingOperator, "cluster:" + string(cluster.GetID())},
 			Values: map[string]string{
 				secretTypes.TLSHosts: loggingParam.GenTLSForLogging.TLSHost,
 			},
@@ -221,14 +231,14 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 	return installDeployment(cluster, helm.DefaultNamespace, pkgHelm.BanzaiRepository+"/s3-output", "pipeline-logging-output", marshaledValues, "ConfigureLoggingOutPut")
 }
 
-func checkIfTLSRelatedValuesArePresent(v *pkgCluster.GenTLSForLogging) bool {
-	if v.TLSEnabled {
-		if v.TLSHost == "" || v.GenTLSSecretName == "" || v.Namespace == "" {
-			return false
-		}
-	}
-	return true
-}
+//func checkIfTLSRelatedValuesArePresent(v *pkgCluster.GenTLSForLogging) bool {
+//	if v.TLSEnabled {
+//		if v.TLSHost == "" || v.GenTLSSecretName == "" || v.Namespace == "" {
+//			return false
+//		}
+//	}
+//	return true
+//}
 
 func castToPostHookParam(data *pkgCluster.PostHookParam, output interface{}) (err error) {
 
