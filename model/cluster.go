@@ -34,6 +34,7 @@ const (
 )
 
 //ClusterModel describes the common cluster model
+// Note: this model is being moved to github.com/banzaicloud/pipeline/pkg/model.ClusterModel
 type ClusterModel struct {
 	ID             uint `gorm:"primary_key"`
 	CreatedAt      time.Time
