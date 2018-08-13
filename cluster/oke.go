@@ -14,7 +14,6 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/providers/oracle/oci"
 	secretOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/secret"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/banzaicloud/pipeline/utils"
 )
 
 // OKECluster struct for OKE cluster
@@ -230,7 +229,7 @@ func (o *OKECluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) e
 
 	log.Info("Check stored & updated cluster equals")
 
-	return utils.IsDifferent(r.OKE, cluster)
+	return isDifferent(r.OKE, cluster)
 }
 
 //AddDefaultsToUpdate adds defaults to update request

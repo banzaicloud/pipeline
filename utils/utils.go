@@ -7,28 +7,8 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"reflect"
-
 	"time"
-
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 )
-
-//GetEnv retrieves ENV variable, fallback if not set
-func GetEnv(envKey, defaultValue string) string {
-	value, exists := os.LookupEnv(envKey)
-	if !exists {
-		value = defaultValue
-	}
-	return value
-}
-
-//GetHomeDir retrieves Home on Linux
-func GetHomeDir() string {
-	//Linux
-	return os.Getenv("HOME")
-}
 
 //NopHandler is an empty handler to help net/http -> Gin conversions
 type NopHandler struct{}
@@ -66,15 +46,6 @@ func WriteToFile(data []byte, file string) error {
 	return err
 }
 
-// IsDifferent compares x and y interfaces with deep equal
-func IsDifferent(x interface{}, y interface{}) error {
-	if reflect.DeepEqual(x, y) {
-		return pkgErrors.ErrorNotDifferentInterfaces
-	}
-
-	return nil
-}
-
 // ConvertJson2Map converts []byte to map[string]string
 func ConvertJson2Map(js []byte) (map[string]string, error) {
 	var result map[string]string
@@ -98,23 +69,6 @@ func EncodeStringToBase64(s string) string {
 		return base64.StdEncoding.EncodeToString([]byte(s))
 	}
 	return s
-}
-
-// ValidateCloudType validates if the passed cloudType is supported.
-// If a not supported cloud type is passed in than returns ErrorNotSupportedCloudType otherwise nil
-func ValidateCloudType(cloudType string) error {
-	switch cloudType {
-	case pkgCluster.Alibaba:
-		return nil
-	case pkgCluster.Amazon:
-	case pkgCluster.Google:
-	case pkgCluster.Azure:
-	case pkgCluster.Oracle:
-		return nil
-	default:
-		return pkgErrors.ErrorNotSupportedCloudType
-	}
-	return nil
 }
 
 // ConvertSecondsToTime returns string format of seconds

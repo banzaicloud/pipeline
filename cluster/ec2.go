@@ -17,7 +17,6 @@ import (
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
-	"github.com/banzaicloud/pipeline/utils"
 	kcluster "github.com/kubicorn/kubicorn/apis/cluster"
 	"github.com/kubicorn/kubicorn/pkg"
 	"github.com/kubicorn/kubicorn/pkg/kubeadm"
@@ -985,7 +984,7 @@ func CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest, nodePools []*mode
 	log.Info("Check stored & updated cluster equals")
 
 	// check equality
-	return utils.IsDifferent(r.EC2, preCl)
+	return isDifferent(r.EC2, preCl)
 }
 
 //DeleteFromDatabase deletes model from the database
