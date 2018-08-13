@@ -1,25 +1,27 @@
 package objectstore
 
 import (
-	pipelineAuth "github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/auth"
 )
 
 // TableName constants
 const (
-	ManagedOracleBucketTableName = "managed_oracle_buckets"
+	BucketsTableName = "oracle_buckets"
 )
 
-// ManagedOracleBucket is the schema for the DB
-type ManagedOracleBucket struct {
-	ID            uint                      `gorm:"primary_key"`
-	Organization  pipelineAuth.Organization `gorm:"foreignkey:OrgID"`
-	OrgID         uint                      `gorm:"index;not null"`
-	CompartmentID string
-	Name          string `gorm:"unique_index:bucketNameLocation"`
-	Location      string `gorm:"unique_index:bucketNameLocation"`
+// ObjectStoreBucket is the schema for the DB
+type ObjectStoreBucket struct {
+	ID uint `gorm:"primary_key"`
+
+	Organization auth.Organization `gorm:"foreignkey:OrgID"`
+	OrgID        uint              `gorm:"index;not null"`
+
+	CompartmentID string `gorm:"unique_index:bucketNameLocationCompartment"`
+	Name          string `gorm:"unique_index:bucketNameLocationCompartment"`
+	Location      string `gorm:"unique_index:bucketNameLocationCompartment"`
 }
 
-// TableName sets the NodePools table name
-func (ManagedOracleBucket) TableName() string {
-	return ManagedOracleBucketTableName
+// TableName sets the ObjectStoreBucket table name
+func (ObjectStoreBucket) TableName() string {
+	return BucketsTableName
 }

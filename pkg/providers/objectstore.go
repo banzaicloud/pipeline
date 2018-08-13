@@ -33,7 +33,7 @@ func NewObjectStore(provider string, s *secret.SecretItemResponse, organization 
 		return azure.NewObjectStore(organization, s, database.GetDB(), logger), nil
 
 	case oracle.Provider:
-		return _objectstore.NewOracleObjectStore(s, organization), nil
+		return oracle.NewObjectStore(organization, s, database.GetDB(), logger), nil
 
 	default:
 		return nil, pkgErrors.ErrorNotSupportedCloudType

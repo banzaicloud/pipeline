@@ -19,8 +19,6 @@ import (
 	"github.com/banzaicloud/pipeline/model/defaults"
 	"github.com/banzaicloud/pipeline/notify"
 	"github.com/banzaicloud/pipeline/objectstore"
-	modelOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
-	modelOracleObjectstore "github.com/banzaicloud/pipeline/pkg/providers/oracle/model/objectstore"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -106,8 +104,6 @@ func main() {
 		panic(err)
 	}
 
-	modelOracle.Init(logger)
-	modelOracleObjectstore.Init(logger)
 	err := Migrate(db, logger)
 	if err != nil {
 		panic(err)
