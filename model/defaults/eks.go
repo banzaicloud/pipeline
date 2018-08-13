@@ -19,7 +19,7 @@ type EKSProfile struct {
 // EKSNodePoolProfile describes an EKS cluster profile's nodepools
 type EKSNodePoolProfile struct {
 	AmazonNodePoolProfileBaseFields
-	Image string `gorm:"default:'ami-0ea01e1d1dea65b5'"`
+	Image string `gorm:"default:'ami-0ea01e1d1dea65b5c'"`
 }
 
 // TableName overrides EKSProfile's table name
