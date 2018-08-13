@@ -143,13 +143,14 @@ func InstallMonitoring(input interface{}) error {
 		return err
 	}
 
-	domain := fmt.Sprintf("%s.%s", org.Name, viper.GetString(pipConfig.DNSBaseDomain))
+	host := fmt.Sprintf("%s.%s.%s", cluster.GetName(), org.Name, viper.GetString(pipConfig.DNSBaseDomain))
+	log.Debugf("grafana ingress host: %s", host)
 	grafanaValues := map[string]interface{}{
-		"grafana": map[string]string{
+		"grafana": map[string]interface{}{
 			"adminUser":     grafanaAdminUsername,
 			"adminPassword": grafanaAdminPass,
+			"ingress":       map[string][]string{"hosts": {host}},
 		},
-		"ingress": map[string][]string{"hosts": {fmt.Sprintf("%s.%s", org.Name, domain)}},
 	}
 	grafanaValuesJson, err := json.Marshal(grafanaValues)
 	if err != nil {
