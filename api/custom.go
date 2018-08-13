@@ -9,6 +9,7 @@ import (
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	"k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -163,7 +164,7 @@ func getLoadBalancersWithIngressPaths(serviceList *v1.ServiceList, ingressList *
 
 	for _, service := range serviceList.Items {
 		var endpointURLs []*pkgHelm.EndPointURLs
-		log.Debugf("Service Name: %s in Namespace: %s", service.Name, service.Namespace)
+		log := log.WithFields(logrus.Fields{"serviceName": service.Name, "serviceNamespace": service.Namespace})
 		if len(service.Status.LoadBalancer.Ingress) > 0 {
 			//TODO we should avoid differences on kubernetes level
 			var publicEndpoint string
