@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"reflect"
 	"time"
 
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -48,15 +47,6 @@ func WriteToFile(data []byte, file string) error {
 
 	err = os.Rename(tmpfi.Name(), file)
 	return err
-}
-
-// IsDifferent compares x and y interfaces with deep equal
-func IsDifferent(x interface{}, y interface{}) error {
-	if reflect.DeepEqual(x, y) {
-		return pkgErrors.ErrorNotDifferentInterfaces
-	}
-
-	return nil
 }
 
 // ConvertJson2Map converts []byte to map[string]string

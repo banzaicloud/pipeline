@@ -462,7 +462,7 @@ func (c *AKSCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) e
 	log.Info("Check stored & updated cluster equals")
 
 	// check equality
-	return utils.IsDifferent(r.AKS, preCl)
+	return isDifferent(r.AKS, preCl)
 }
 
 //DeleteFromDatabase deletes model from the database

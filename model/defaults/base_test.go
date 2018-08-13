@@ -1,6 +1,7 @@
 package defaults_test
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/banzaicloud/pipeline/model/defaults"
@@ -8,7 +9,6 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/ec2"
 	"github.com/banzaicloud/pipeline/pkg/cluster/gke"
-	"github.com/banzaicloud/pipeline/utils"
 )
 
 func TestTableName(t *testing.T) {
@@ -74,7 +74,7 @@ func TestUpdateWithoutSave(t *testing.T) {
 				t.Errorf("Expected error <nil>, got: %s", err.Error())
 			}
 
-			if err := utils.IsDifferent(tc.expectedResult, tc.basicProfile); err == nil {
+			if !reflect.DeepEqual(tc.expectedResult, tc.basicProfile) {
 				t.Errorf("Expected result: %#v, got: %#v", tc.expectedResult, tc.basicProfile)
 			}
 

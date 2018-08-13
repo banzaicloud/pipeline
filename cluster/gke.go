@@ -1742,7 +1742,7 @@ func (g *GKECluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) e
 	log.Info("Check stored & updated cluster equals")
 
 	// check equality
-	return utils.IsDifferent(r.GKE, preCl)
+	return isDifferent(r.GKE, preCl)
 }
 
 //DeleteFromDatabase deletes model from the database
