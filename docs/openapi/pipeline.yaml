@@ -4896,7 +4896,7 @@ components:
                       example: 2
                     image:
                       type: string
-                      example: "ami-0ea01e1d1dea65b5"
+                      example: "ami-0ea01e1d1dea65b5c"
 
     ClusterProfileAKS:
       type: object

@@ -1,17 +1,17 @@
 {
 	"info": {
-		"_postman_id": "171c2976-1253-47b5-a910-73e9f43427fd",
+		"_postman_id": "cff8bef9-9b17-4637-b4b7-26f6681f0dd6",
 		"name": "End2End TEST Organizations",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
-			"_postman_id": "33250de7-5634-43fb-8cfd-37ea36eb4adb",
+			"_postman_id": "5372c327-46d4-46b0-ac55-3bafbc7b480d",
 			"name": "Clusters",
 			"item": [
 				{
-					"_postman_id": "33561738-47db-4754-b5bd-75a73324338b",
+					"_postman_id": "879b9a70-4a69-42f9-b8fc-13cb0f7110a9",
 					"name": "Cluster Create ACSK",
 					"event": [
 						{
@@ -78,7 +78,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "8f6831ad-c799-4b5c-b877-d32aa60b3dd7",
+					"_postman_id": "075991d5-5bb9-4da3-b2d0-231150617ccc",
 					"name": "Cluster Create EC2",
 					"event": [
 						{
@@ -145,7 +145,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "3d1fc01f-1098-407c-8b38-66d7d6479e04",
+					"_postman_id": "306ff571-5ea5-48e7-af76-427f83e32706",
 					"name": "Cluster Create AKS",
 					"event": [
 						{
@@ -210,7 +210,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "4ad5f7f4-02fd-4da2-b580-b5f2f9466f39",
+					"_postman_id": "0823ccb4-6717-44e1-bb28-36da79de2f8e",
 					"name": "Cluster Create EKS",
 					"event": [
 						{
@@ -250,7 +250,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\":\"ekscluster-{{username}}-{{$randomInt}}\",\n  \"location\": \"us-west-2\",\n  \"cloud\": \"amazon\",\n  \"secretId\": \"{{secret_id}}\",\n  \"properties\": {\n        \"eks\": {\n\t\t\t\"version\":\"1.10\",\n            \"nodePools\": {\n            \t\"pool1\": {\n            \t\t\"instanceType\": \"t2.medium\",\n\t            \t\"spotPrice\": \"0.2\",\n            \t\t\"autoscaling\": false,\n\t                \"minCount\": 1,\n\t                \"maxCount\": 1,\n            \t\t\"count\": 1,\n\t                \"image\": \"ami-0ea01e1d1dea65b5\"\n            \t}\n            }\n        }\n    }\n}"
+							"raw": "{\n  \"name\":\"ekscluster-{{username}}-{{$randomInt}}\",\n  \"location\": \"us-west-2\",\n  \"cloud\": \"amazon\",\n  \"secretId\": \"{{secret_id}}\",\n  \"properties\": {\n        \"eks\": {\n\t\t\t\"version\":\"1.10\",\n            \"nodePools\": {\n            \t\"pool1\": {\n            \t\t\"instanceType\": \"t2.medium\",\n\t            \t\"spotPrice\": \"0.2\",\n            \t\t\"autoscaling\": false,\n\t                \"minCount\": 1,\n\t                \"maxCount\": 1,\n            \t\t\"count\": 1,\n\t                \"image\": \"ami-0ea01e1d1dea65b5c\"\n            \t}\n            }\n        }\n    }\n}"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters",
@@ -277,7 +277,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "6b4211f2-ffc9-4887-b207-516723923b34",
+					"_postman_id": "9a5a4f64-23b9-4bc1-8375-74e929853131",
 					"name": "Cluster Create GKE",
 					"event": [
 						{
@@ -342,7 +342,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "2fad503b-57b1-4e10-bfac-a94b43cb5874",
+					"_postman_id": "5a5f6d34-6d8d-4f5e-82e6-d7f7f2b1e395",
 					"name": "Cluster Create OKE",
 					"event": [
 						{
@@ -407,7 +407,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "ea3e28a8-2991-4c07-97fc-3703527841fc",
+					"_postman_id": "81230047-219d-494c-8bd7-58cc278e7804",
 					"name": "Cluster Create Dummy",
 					"event": [
 						{
@@ -472,7 +472,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "02a24991-d361-45f9-8f00-da4bab9aac90",
+					"_postman_id": "065cf4a5-0e4d-4a92-ad64-7c0266d305cf",
 					"name": "Cluster Create Kubernetes",
 					"event": [
 						{
@@ -537,7 +537,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "c13aa96d-814b-43dc-bdf3-351e56f66d0b",
+					"_postman_id": "ba31ae4e-5958-4e93-a2c0-50bb0175fb34",
 					"name": "Cluster Create with profile AWS",
 					"event": [
 						{
@@ -602,7 +602,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "59e6d331-5573-4db9-9ed5-0eb978796515",
+					"_postman_id": "5a1b3f3f-cdbc-4646-af01-68bf3f0210e5",
 					"name": "Cluster Create with profile EKS",
 					"event": [
 						{
@@ -667,7 +667,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "c3caef5e-756d-4702-bfcd-84c8cde00026",
+					"_postman_id": "8a4ff55d-3643-4764-9307-f178ec5a4a76",
 					"name": "Cluster Create with profile AKS",
 					"event": [
 						{
@@ -732,7 +732,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "63f27c19-d262-4edd-89c1-7bce3f45bb67",
+					"_postman_id": "4301d511-1cb1-48c2-81ce-5759e7a90bcd",
 					"name": "Cluster Create with profile GKE",
 					"event": [
 						{
@@ -797,7 +797,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "2fdeb9b8-377d-466b-90e0-90a4859bf437",
+					"_postman_id": "011202ea-9209-432f-8cdb-c321c60cbe32",
 					"name": "Cluster Create with profile OKE",
 					"event": [
 						{
@@ -862,7 +862,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "46839b86-1a10-49f6-9b1c-19bf3464d6c3",
+					"_postman_id": "680d99f7-b9c1-40e5-abd1-5d6374a16891",
 					"name": "Cluster Update ACSK",
 					"event": [
 						{
@@ -926,7 +926,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "3e747c69-ae20-4ac4-b711-01acb76f68f0",
+					"_postman_id": "13abfd89-a78c-4998-ae62-c85b7d9ed67f",
 					"name": "Cluster Update AKS",
 					"event": [
 						{
@@ -990,7 +990,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "2561af2b-b8e1-49f3-b0c3-9db44c9ee8b3",
+					"_postman_id": "1099e95e-6ca5-4d63-93d2-09ba09fd1730",
 					"name": "Cluster Update AWS",
 					"event": [
 						{
@@ -1054,7 +1054,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "5d09cebe-54cc-4b63-8913-5ff70daefd65",
+					"_postman_id": "f19b2c78-fc22-437f-9008-15a84bb44657",
 					"name": "Cluster Update EKS",
 					"event": [
 						{
@@ -1085,7 +1085,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"cloud\": \"amazon\",\n\t\"properties\": {\n\t\t\"eks\": {\n\t\t\t\"nodePools\": {\n\t\t\t\t\"pool1\": {\n            \t\t\"autoscaling\": true, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 3\n            \t},\n            \t\"newpool1\": {\n            \t\t\"autoscaling\": true, \n            \t\t\"instanceType\": \"m4.xlarge\",\n\t            \t\"spotPrice\": \"0.2\",\n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n\t                \"image\": \"ami-4d485ca7\"\t\n            \t}\n\t\t\t}\n\t\t}\n\t}\n}"
+							"raw": "{\n\t\"cloud\": \"amazon\",\n\t\"properties\": {\n\t\t\"eks\": {\n\t\t\t\"nodePools\": {\n\t\t\t\t\"pool1\": {\n            \t\t\"autoscaling\": true, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 3\n            \t},\n            \t\"newpool1\": {\n            \t\t\"autoscaling\": true, \n            \t\t\"instanceType\": \"m4.xlarge\",\n\t            \t\"spotPrice\": \"0.2\",\n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n\t                \"image\": \"ami-0ea01e1d1dea65b5c\"\t\n            \t}\n\t\t\t}\n\t\t}\n\t}\n}"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:cluster_id",
@@ -1118,7 +1118,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "5af04f0f-8247-4463-9b8d-18c8a5e58d78",
+					"_postman_id": "caac2c0d-b325-464f-b241-b4f10baacc1b",
 					"name": "Cluster Update GKE",
 					"event": [
 						{
@@ -1182,7 +1182,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "58d5c59a-1bda-4cd3-89d8-6659f046e44d",
+					"_postman_id": "617deb35-3949-484b-9014-81cc95ae79a1",
 					"name": "Cluster Update OKE",
 					"event": [
 						{
@@ -1246,7 +1246,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "687f0765-9d47-4704-a3ed-d05f47911aed",
+					"_postman_id": "df2ed20c-d0fb-4d3b-9fab-6f90c12f5c74",
 					"name": "Cluster Update Dummy",
 					"event": [
 						{
@@ -1310,7 +1310,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "401bdc6b-1654-4496-a7e7-5b289defe122",
+					"_postman_id": "c9f665bc-99c3-467c-8256-43c61cd2783c",
 					"name": "Helm init",
 					"event": [
 						{
@@ -1384,7 +1384,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "bb737fad-ef05-4ecb-8e67-eca3cfb478a1",
+					"_postman_id": "da7b3057-034d-450d-a7e8-3d47b40ae9ea",
 					"name": "Install secrets",
 					"event": [
 						{
@@ -1458,7 +1458,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "a89de512-ff75-4ed8-b61e-ff23d715cadb",
+					"_postman_id": "9c3b007e-18a8-49a2-97a2-727e50c7e9a6",
 					"name": "Cluster Delete  FakeID",
 					"event": [
 						{
@@ -1528,7 +1528,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "bd904a2d-a094-40da-8912-ec3d035ea8db",
+					"_postman_id": "c1b19b71-9c26-4ef5-aa77-8871797179dd",
 					"name": "Cluster Delete ",
 					"event": [
 						{
@@ -1595,7 +1595,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "b035175e-67db-4c47-a866-5f562847a99b",
+					"_postman_id": "b2c0e7e2-cc36-44dd-9c65-4391bee4b174",
 					"name": "Get cluster status",
 					"event": [
 						{
@@ -1668,7 +1668,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "f5dc7567-7195-4b8c-8020-860703f7b94c",
+					"_postman_id": "2d5f38fd-5c86-494c-872b-ff5ce296a94f",
 					"name": "Fetch cluster Details",
 					"event": [
 						{
@@ -1737,7 +1737,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "97cc3695-7cc1-48ad-99d9-0d52390a03a5",
+					"_postman_id": "b244437a-0adb-4eda-b8ae-65479a6a2fb8",
 					"name": "Fetch cluster pod details",
 					"event": [
 						{
@@ -1812,7 +1812,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "a4cd9eeb-3bec-4d5a-83d4-30c681d721d1",
+					"_postman_id": "a6febdf7-4f86-418b-8a76-c190ffe0c02f",
 					"name": "Get cluster nodes",
 					"request": {
 						"method": "GET",
@@ -1858,7 +1858,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "4f886253-315f-4348-be18-297eeb39ca00",
+					"_postman_id": "571af7c2-1ac6-4e84-8177-dab2afedf954",
 					"name": "Cluster List",
 					"event": [
 						{
@@ -1932,7 +1932,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "4e4bcb80-8042-45fc-b9ff-58b0dff48860",
+					"_postman_id": "d89e6337-8bac-461a-aa3e-6acbc5f77817",
 					"name": "Cluster Config",
 					"event": [
 						{
@@ -2013,7 +2013,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "9df13fa3-6774-4fa5-8a05-8612ab2ec8aa",
+					"_postman_id": "5cfc1f7f-73f8-4d7a-a7d0-cf8b511c83a9",
 					"name": "Cluster Public Endpoints",
 					"event": [
 						{
@@ -2079,7 +2079,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "44c8f910-2045-4875-8274-eff64e5b31f0",
+					"_postman_id": "9d461737-06fd-4b12-af87-066d03c069a6",
 					"name": "Cluster API endpoints",
 					"event": [
 						{
@@ -2145,7 +2145,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "5908a950-95d3-453d-a775-6e08e9948128",
+					"_postman_id": "5eed4bee-e0ae-461a-ae33-4ca6779f272f",
 					"name": "Update monitoring",
 					"event": [
 						{
@@ -2211,7 +2211,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "e3dfc017-7665-4377-9f65-cfd1eb7b72e2",
+					"_postman_id": "d1315773-6e5d-486f-a8a6-bdf9e283e84e",
 					"name": "Re-run cluster posthooks",
 					"event": [
 						{
@@ -2286,7 +2286,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "8c61674b-9db1-4425-be93-1fb3a35b59b5",
+					"_postman_id": "9b1dc697-0ce9-48b6-a1ef-ca822527636b",
 					"name": "Get cluster applications",
 					"request": {
 						"method": "GET",
@@ -2332,7 +2332,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "103af2e9-0c27-4fff-af4d-6400e1db375f",
+					"_postman_id": "9d7cb90f-03bf-47ca-8ae8-b2118f0a4e99",
 					"name": "Cluster Status",
 					"event": [
 						{
@@ -2407,11 +2407,11 @@
 			]
 		},
 		{
-			"_postman_id": "e97412a2-b8d5-4e7c-a53b-3ac75c0adb47",
+			"_postman_id": "94fe5bf2-67c0-49af-bcdd-32f6a6122e09",
 			"name": "Catalog",
 			"item": [
 				{
-					"_postman_id": "4a5e611a-80a7-46f0-bfd6-0d06daaa29f6",
+					"_postman_id": "76117516-b223-4519-9349-cb2d79eaf976",
 					"name": "Catalog List",
 					"request": {
 						"method": "GET",
@@ -2444,7 +2444,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "dad097ad-0ca7-42f2-8326-ca2ef62f0b58",
+					"_postman_id": "13e073c9-b58e-4940-b92d-2547862cce71",
 					"name": "Catalog Details",
 					"request": {
 						"method": "GET",
@@ -2480,11 +2480,11 @@
 			]
 		},
 		{
-			"_postman_id": "f01cce31-4cb8-4a2f-9c8e-1452e2493e35",
+			"_postman_id": "afd9bf55-e3eb-4e46-a9d8-dd1c6b1edc48",
 			"name": "Deployments",
 			"item": [
 				{
-					"_postman_id": "32f3c001-5033-4049-bfb0-1c8fd7167ec2",
+					"_postman_id": "c2e771f3-4ab9-4181-9dfe-51d3747e10e7",
 					"name": "Deployment Create",
 					"event": [
 						{
@@ -2552,7 +2552,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "3aed22e9-314b-4f3f-a28d-3dfd8c9cc3da",
+					"_postman_id": "d665d683-62aa-4e7e-b5f3-95293c48d900",
 					"name": "Deployment Create Fake APP",
 					"event": [
 						{
@@ -2627,7 +2627,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "aee22ce2-7be2-4a18-95e8-0ad3433d5bd6",
+					"_postman_id": "6ff8540d-d78e-459d-837f-8ee11d47443b",
 					"name": "List Deployment",
 					"event": [
 						{
@@ -2691,7 +2691,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "00023f61-bfd4-43b0-90e2-5977c91664f4",
+					"_postman_id": "36986ba8-e81a-444b-a380-264fba70e3a4",
 					"name": "Deployment Init Status",
 					"event": [
 						{
@@ -2767,11 +2767,11 @@
 			]
 		},
 		{
-			"_postman_id": "76bb85cf-84f5-41d0-9fdc-0cf43f6d5a0a",
+			"_postman_id": "ca6afae4-a5e2-41d4-ad00-a8da6c0e19c1",
 			"name": "Deployment",
 			"item": [
 				{
-					"_postman_id": "b5418aed-52e8-4d73-96cf-a6f432267ad9",
+					"_postman_id": "d5ba94d6-d18a-461e-8e87-013210e5233c",
 					"name": "Deployment app Status",
 					"event": [
 						{
@@ -2851,7 +2851,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "ab75a017-ee43-49e3-91f7-ccc3058e9b1a",
+					"_postman_id": "2d1fe7f8-1012-44a7-b422-76383a660fc4",
 					"name": "Deployment Upgrade",
 					"event": [
 						{
@@ -2921,7 +2921,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "3587d480-1aa7-4759-bc06-b1a8504aad27",
+					"_postman_id": "75a79052-95be-4e48-a362-b7a4f66bb27b",
 					"name": "Deployment Delete ",
 					"event": [
 						{
@@ -3000,7 +3000,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "9641780c-cb81-45bd-946e-af5f687d4b49",
+					"_postman_id": "4032a29a-9dd1-4c1a-89f4-b8f3f251473d",
 					"name": "Deployment Delete  FakeAPP",
 					"event": [
 						{
@@ -3071,7 +3071,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "4e33f7ad-207c-4da8-8d5a-a21acb577ae8",
+					"_postman_id": "64a089ea-8c93-40e6-9409-6eb323d2fcb0",
 					"name": "Deployment Get",
 					"event": [
 						{
@@ -3143,11 +3143,11 @@
 			]
 		},
 		{
-			"_postman_id": "5cda8498-a7d7-40f3-a69f-e0cb40172a0f",
+			"_postman_id": "36996adb-268d-4a63-887b-c9a64c04093d",
 			"name": "Profiles",
 			"item": [
 				{
-					"_postman_id": "37a55a04-5d06-403f-bc1b-12d9a2686ea4",
+					"_postman_id": "fd23f057-a628-49f7-a51f-cef857efef6a",
 					"name": "Create Profile EC2",
 					"event": [
 						{
@@ -3206,7 +3206,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "3934869a-39f5-4ca0-a111-2b9c5e6d0893",
+					"_postman_id": "132eae7d-e3d5-4a1c-a09c-69c52c4a6955",
 					"name": "Create Profile EKS",
 					"event": [
 						{
@@ -3237,7 +3237,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"name\": \"{{profile_name}}\",\n\t\"location\": \"us-west-2\",\n\t\"cloud\": \"amazon\",\n\t\"properties\": {\n\t\t\"eks\": {\n\t\t\t\"nodePools\": {\n\t\t\t\t\"pool1\": {\n\t\t\t\t\t\"instanceType\": \"m4.xlarge\",\n            \t\t\"autoscaling\": false, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n            \t\t\"count\": 1,\n\t\t\t\t\t\"image\": \"ami-4d485ca7\"\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}"
+							"raw": "{\n\t\"name\": \"{{profile_name}}\",\n\t\"location\": \"us-west-2\",\n\t\"cloud\": \"amazon\",\n\t\"properties\": {\n\t\t\"eks\": {\n\t\t\t\"nodePools\": {\n\t\t\t\t\"pool1\": {\n\t\t\t\t\t\"instanceType\": \"m4.xlarge\",\n            \t\t\"autoscaling\": false, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n            \t\t\"count\": 1,\n\t\t\t\t\t\"image\": \"ami-0ea01e1d1dea65b5c\"\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/profiles/cluster",
@@ -3265,7 +3265,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "c174cd16-fe75-4408-99dc-beae9678db59",
+					"_postman_id": "e1ea5bc4-8248-4dab-994e-3cd5f148a926",
 					"name": "Create Profile AKS",
 					"event": [
 						{
@@ -3324,7 +3324,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "4f28e45c-4df2-4331-84d9-d145af839b86",
+					"_postman_id": "84a98e0b-764f-4ff8-9b09-1eff9af30d5a",
 					"name": "Create Profile GKE",
 					"event": [
 						{
@@ -3383,7 +3383,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "a5c1c1ef-a795-457b-b3a1-2a24877aa77c",
+					"_postman_id": "fd9d7f3d-0981-45dc-85d8-f8080254f3c8",
 					"name": "Create Profile OKE",
 					"event": [
 						{
@@ -3442,7 +3442,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "04e17ad1-732d-4766-9efb-b1dd0a4aa846",
+					"_postman_id": "7384392e-1c22-459d-b40b-a5502c1b68df",
 					"name": "Update Profile EC2",
 					"event": [
 						{
@@ -3501,7 +3501,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "2c385301-f8aa-4f12-94ef-20b21121ac32",
+					"_postman_id": "0e300b0f-a7c5-474a-ad33-8125bc2ca4bd",
 					"name": "Update Profile EKS",
 					"event": [
 						{
@@ -3532,7 +3532,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"{{profile_name}}\",\n  \"location\": \"us-west-2\",\n  \"cloud\": \"amazon\",\n  \"instanceType\": \"m4.xlarge\",\n  \"properties\": {\n    \"eks\": {\n      \"node\": {\n        \"spotPrice\": \"0.2\",\n        \"minCount\": 2,\n        \"maxCount\": 4,\n        \"image\": \"ami-4d485ca7\"\n      }\n    }\n  }\n}"
+							"raw": "{\n  \"name\": \"{{profile_name}}\",\n  \"location\": \"us-west-2\",\n  \"cloud\": \"amazon\",\n  \"instanceType\": \"m4.xlarge\",\n  \"properties\": {\n    \"eks\": {\n      \"node\": {\n        \"spotPrice\": \"0.2\",\n        \"minCount\": 2,\n        \"maxCount\": 4,\n        \"image\": \"ami-0ea01e1d1dea65b5c\"\n      }\n    }\n  }\n}"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/profiles/cluster",
@@ -3560,7 +3560,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "90a7dbca-a07a-4dd7-93a4-5e941993bd1b",
+					"_postman_id": "66d8574e-a812-4623-8c13-12639b3d8844",
 					"name": "Update Profile AKS",
 					"event": [
 						{
@@ -3619,7 +3619,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "f9f6de29-b417-417f-995d-dd4cc197d8a1",
+					"_postman_id": "13b43f18-d509-4412-bd08-63c2cfc18b33",
 					"name": "Update Profile GKE",
 					"event": [
 						{
@@ -3678,7 +3678,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "49b421d3-c199-4c3e-8e82-fda3e2b81f33",
+					"_postman_id": "2db69332-1d24-4019-a744-7902a0b996cc",
 					"name": "Update Profile OKE",
 					"event": [
 						{
@@ -3737,7 +3737,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "87f94d21-a7c2-45fd-8472-2cdb63a04197",
+					"_postman_id": "1f0d4109-8a1e-47d5-8ce7-6083dad4c223",
 					"name": "List profiles",
 					"event": [
 						{
@@ -3802,7 +3802,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "03d59218-9ef1-4a1c-a790-e24231df3a55",
+					"_postman_id": "6c1bacb6-455a-46b1-9c98-3a8b2f7bd9fd",
 					"name": "Delete profile",
 					"event": [
 						{
@@ -3871,11 +3871,11 @@
 			]
 		},
 		{
-			"_postman_id": "eb455738-ee89-4314-83a9-c2037aa592a9",
+			"_postman_id": "feef9621-c115-4916-b71f-5af2ce6abf2f",
 			"name": "Secrets",
 			"item": [
 				{
-					"_postman_id": "fb405d01-21e8-4450-9b03-95662c022798",
+					"_postman_id": "10d98ff7-04fb-49b9-8dfc-95064bd50e1c",
 					"name": "List secret",
 					"request": {
 						"method": "GET",
@@ -3908,7 +3908,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "1dcfe873-571f-4761-8309-5a9707485348",
+					"_postman_id": "067d2927-5ecd-46bf-9100-8b7c15258375",
 					"name": "Get secret",
 					"request": {
 						"method": "GET",
@@ -3947,7 +3947,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "286bd090-4f56-4bb6-8a6e-5c3a9dab510b",
+					"_postman_id": "96513b2a-cd8a-45c3-988a-293c74cec82c",
 					"name": "List secret with filters",
 					"request": {
 						"method": "GET",
@@ -3992,7 +3992,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "0c460aee-c905-4cb7-8a9d-38d5cc34545d",
+					"_postman_id": "01992127-1b90-4dee-9a87-ee3a153a2a3e",
 					"name": "List allowed secret types and required keys",
 					"request": {
 						"method": "GET",
@@ -4026,7 +4026,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "785965c9-0547-450a-8002-1b428833659c",
+					"_postman_id": "90282407-973f-4957-953d-47818443a8b5",
 					"name": "Add secret Amazon",
 					"event": [
 						{
@@ -4088,7 +4088,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "b1f8a249-9b7b-449d-859d-df237d4e1b7a",
+					"_postman_id": "2da1dc5c-5f48-468f-ba1c-d911bc4ed5e6",
 					"name": "Add secret Alibaba",
 					"event": [
 						{
@@ -4150,7 +4150,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "052fe58a-3bca-4327-a755-42fccb9541ea",
+					"_postman_id": "94abfc0a-4e58-4122-9fa6-118c268bac1f",
 					"name": "Add secret TLS",
 					"event": [
 						{
@@ -4212,7 +4212,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "6d5c5f43-f808-4689-91ce-b6a53318ef74",
+					"_postman_id": "62b600a0-dd38-4c5e-bbd8-dd6e20b10820",
 					"name": "Add secret TLS Copy",
 					"event": [
 						{
@@ -4274,7 +4274,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "d5822c7e-3f1e-47d4-bc84-6629d2a3dbec",
+					"_postman_id": "4550bd40-3ab8-4a0d-b402-f20ea3746701",
 					"name": "Add secret Azure",
 					"event": [
 						{
@@ -4336,7 +4336,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "be7f6f92-da14-4877-9afe-685938f198f2",
+					"_postman_id": "f81b2fc6-9c7b-413c-b5bd-862e853538af",
 					"name": "Add secret Google",
 					"event": [
 						{
@@ -4398,7 +4398,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "5b0bf7d7-13e5-4330-bde1-f56491b1ed7f",
+					"_postman_id": "09d07b6f-e2c8-4b2a-ac4c-6c1c300efa5d",
 					"name": "Add secret Oracle",
 					"event": [
 						{
@@ -4460,7 +4460,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "29375a25-264e-42bd-9c8c-8b4023869b46",
+					"_postman_id": "c6e814ea-b9b3-485f-91fa-2717eaa8340e",
 					"name": "Add secret SSH",
 					"event": [
 						{
@@ -4522,7 +4522,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "7e8eed1a-4447-4c81-bb09-288267f31642",
+					"_postman_id": "6692d105-05fc-45c6-ae85-7fefe06e3e4a",
 					"name": "Add secret KUBERNETES",
 					"event": [
 						{
@@ -4584,7 +4584,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "78c6eddd-201d-4dd2-b1fb-660dde0bea10",
+					"_postman_id": "a0168471-bc23-4a09-a70a-f5aaceca5291",
 					"name": "Add secret Generic",
 					"event": [
 						{
@@ -4646,7 +4646,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "b7bbca94-ff56-45a6-a060-fa0392cab034",
+					"_postman_id": "da4ee5fe-7a7c-4586-8b16-6022cc56b94b",
 					"name": "Delete secret",
 					"event": [
 						{
@@ -4704,7 +4704,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "e50b350c-f20d-4ff2-8677-509d9484e27b",
+					"_postman_id": "07540d27-53d8-4dd2-9202-55c39fe55be6",
 					"name": "Update secret",
 					"event": [
 						{
@@ -4772,7 +4772,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "99d6f02a-2e47-4ce5-9791-b02ee8e25d58",
+					"_postman_id": "430e003b-c2da-4c7c-a4c2-b543c847b28e",
 					"name": "Validate secret",
 					"request": {
 						"method": "GET",
@@ -4814,11 +4814,11 @@
 			]
 		},
 		{
-			"_postman_id": "10d58f44-daa7-45aa-9699-60af9f60cb22",
+			"_postman_id": "d36370ad-09af-47f8-88ec-1f51af36dd58",
 			"name": "Organization",
 			"item": [
 				{
-					"_postman_id": "6a9c6b47-c505-471e-82c8-7565a7ede6e1",
+					"_postman_id": "75fa65b4-c157-45a5-8cad-3917e3b764ac",
 					"name": "List organizations",
 					"event": [
 						{
@@ -4861,7 +4861,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "887fcc2a-9436-45b7-953b-9ce78f18d879",
+					"_postman_id": "3a873a55-23c0-4143-a777-38e697a7f688",
 					"name": "Get organization",
 					"event": [
 						{
@@ -4912,7 +4912,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "7685dbf0-32a1-4fb2-9aef-44860ff9346b",
+					"_postman_id": "b7da2134-01ab-464f-96c1-b6599f35c7f6",
 					"name": "Create organization",
 					"event": [
 						{
@@ -4965,7 +4965,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "17b79d60-8787-4845-b174-ab7b2582b9ad",
+					"_postman_id": "75cd02c3-3306-4d7e-95fd-fc38f80d2061",
 					"name": "Delete organization",
 					"event": [
 						{
@@ -5018,11 +5018,11 @@
 			]
 		},
 		{
-			"_postman_id": "e0c58c12-9f52-4c76-b8c9-184a4c46f81e",
+			"_postman_id": "0501ead8-12a7-4f31-aba5-810a87f09488",
 			"name": "Auth",
 			"item": [
 				{
-					"_postman_id": "9006b006-12f4-4255-b12b-971595ffb130",
+					"_postman_id": "37f54172-1fbb-4b86-9fcc-2355ceae87cf",
 					"name": "Generate token",
 					"event": [
 						{
@@ -5075,11 +5075,11 @@
 			]
 		},
 		{
-			"_postman_id": "848fd183-4086-43de-807c-3aa758b3a740",
+			"_postman_id": "8812b858-4618-4325-9a6c-6bcbd91f2291",
 			"name": "User",
 			"item": [
 				{
-					"_postman_id": "0a6a1c97-9ccc-420f-bea8-ea263b759c98",
+					"_postman_id": "64c467c2-c140-4ac8-984f-91408429d8a8",
 					"name": "Get users",
 					"request": {
 						"method": "GET",
@@ -5112,7 +5112,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "360bbaa4-4462-4960-9b14-f9b8043b22e6",
+					"_postman_id": "517bfb40-9f54-4624-843c-01ba63dd7067",
 					"name": "Add users to organization",
 					"request": {
 						"method": "POST",
@@ -5158,11 +5158,11 @@
 			]
 		},
 		{
-			"_postman_id": "3f33c472-f1d6-400b-b78a-50143a1d18dc",
+			"_postman_id": "db1aa39e-9d25-49ae-ac0b-bb821054ecf0",
 			"name": "ObjectStore",
 			"item": [
 				{
-					"_postman_id": "1ff42743-ae96-4465-8430-363b020d6c73",
+					"_postman_id": "638596ff-3bd1-4742-bc73-7a3a67c58dc2",
 					"name": "CheckBucket",
 					"request": {
 						"method": "HEAD",
@@ -5215,7 +5215,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "f1cfb05d-ecbb-4dbf-b0f8-cfb1de8bde63",
+					"_postman_id": "eb9340e6-3376-4960-bbba-9adc6ffaeeed",
 					"name": "CreateBuckets Amazon",
 					"request": {
 						"method": "POST",
@@ -5258,7 +5258,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "7a80643b-66aa-4a58-9106-34028af3a08e",
+					"_postman_id": "187987c6-b722-47bc-9092-2a29c167d4a8",
 					"name": "CreateBuckets Azure",
 					"request": {
 						"method": "POST",
@@ -5301,7 +5301,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "a09a00e6-2b23-4cdc-a43c-31f065bd00e1",
+					"_postman_id": "bb4cda80-b90b-4030-8393-6b1bd5fdcca3",
 					"name": "CreateBuckets Google",
 					"request": {
 						"method": "POST",
@@ -5344,7 +5344,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "cba67731-430e-46cf-916f-33c0fa576564",
+					"_postman_id": "ca58eb67-6c94-4622-b911-91b39f9390a1",
 					"name": "CreateBuckets Oracle",
 					"request": {
 						"method": "POST",
@@ -5387,7 +5387,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "ce0ed4a2-8415-4a8e-9bcc-2880402e01de",
+					"_postman_id": "d4f428eb-3406-4223-b7d3-271071ee6b91",
 					"name": "ListBuckets Amazon",
 					"request": {
 						"method": "GET",
@@ -5438,7 +5438,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "1a8165be-931d-43f2-9a32-dda5d749c8b6",
+					"_postman_id": "af1d94e5-b24a-4fea-9758-dc3545abe166",
 					"name": "ListBuckets Azure",
 					"request": {
 						"method": "GET",
@@ -5484,7 +5484,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "e0b0704b-87cc-4b6e-8f60-5564a30523a7",
+					"_postman_id": "4b8cace5-2c74-437e-8d96-03b6f49a3a0c",
 					"name": "ListBuckets Google",
 					"request": {
 						"method": "GET",
@@ -5530,7 +5530,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "d4cbecea-8ae2-4292-bc78-51275aade26e",
+					"_postman_id": "340f79cf-c3ba-4d77-838b-4931b5a92eaf",
 					"name": "ListBuckets Oracle",
 					"request": {
 						"method": "GET",
@@ -5576,7 +5576,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "760ab1a7-763e-4e54-b832-000fa71b7307",
+					"_postman_id": "fc77a95e-43d4-4b7e-aaed-1bf808e0602c",
 					"name": "DeleteBucket Amazon",
 					"request": {
 						"method": "DELETE",
@@ -5628,7 +5628,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "eee3ed0d-27bb-48a1-b198-dec9fad760d0",
+					"_postman_id": "ded58ae2-c0d2-4cd2-93c1-69b08654575f",
 					"name": "DeleteContainer Azure",
 					"request": {
 						"method": "DELETE",
@@ -5690,7 +5690,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "dce60262-05d2-47c3-9550-bdbc2d6a34dc",
+					"_postman_id": "83b03a10-1871-452a-95cf-916c3a9eb8da",
 					"name": "DeleteBucket Google",
 					"request": {
 						"method": "DELETE",
@@ -5743,7 +5743,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "ada8f44c-a471-4a1b-84d7-c4b50d7ab0b5",
+					"_postman_id": "67efe883-7a58-4833-94d8-91ce41877a64",
 					"name": "DeleteBucket Oracle",
 					"request": {
 						"method": "DELETE",
@@ -5802,11 +5802,11 @@
 			]
 		},
 		{
-			"_postman_id": "a5474dfa-e370-4d3f-9fcd-2947710e6093",
+			"_postman_id": "02c5cc09-4723-48b9-ab20-c90dd059d052",
 			"name": "Helm",
 			"item": [
 				{
-					"_postman_id": "e8cbef90-fccd-4f81-a8e5-7c545917061b",
+					"_postman_id": "2ee7126b-d8b8-4563-85f0-9222a3a46522",
 					"name": "Chart List",
 					"request": {
 						"method": "GET",
@@ -5840,7 +5840,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "7398eb8d-360d-477e-95b6-30a600946ea0",
+					"_postman_id": "314bd061-8dca-4237-9e03-b9b0075f7bbf",
 					"name": "Chart Details",
 					"request": {
 						"method": "GET",
@@ -5893,7 +5893,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "63fca612-d7a8-4e00-9c3f-8d7bf0781e1c",
+					"_postman_id": "9f831cc6-1314-4f78-813f-c2dd2e016887",
 					"name": "Repository List",
 					"request": {
 						"method": "GET",
@@ -5928,7 +5928,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "27804121-716b-4c59-9860-ed3df6ec09b4",
+					"_postman_id": "42e7e581-4013-4094-9903-4518ec9a5f3e",
 					"name": "Repository Add",
 					"request": {
 						"method": "POST",
@@ -5968,7 +5968,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "c84a4d49-9b49-49c6-978e-2f71778cb029",
+					"_postman_id": "90674451-28dc-469b-b608-06e40262d7aa",
 					"name": "Repository Delete",
 					"request": {
 						"method": "DELETE",
@@ -6008,7 +6008,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "06d89148-ec56-4aac-bcd0-a47d72d2d893",
+					"_postman_id": "71c63f9b-19af-40f6-a638-b2c67b77894e",
 					"name": "Repository Modify",
 					"request": {
 						"method": "PUT",
@@ -6053,7 +6053,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "b102a858-8eb5-4bd9-9f2b-cbc33a1f8b93",
+					"_postman_id": "1abb204b-40ed-43da-ad5b-4ecb9c7530e2",
 					"name": "Repository Update",
 					"request": {
 						"method": "PUT",
@@ -6096,15 +6096,15 @@
 			]
 		},
 		{
-			"_postman_id": "100fe18f-2bbe-4df4-9fb1-578b5ee50eb2",
+			"_postman_id": "59a4f5ac-bc3e-4adf-be50-427e4b8d5f84",
 			"name": "Cloud info",
 			"item": [
 				{
-					"_postman_id": "57cbe64c-90a4-42ed-9b49-389150bef553",
+					"_postman_id": "ecffa3e1-fa82-4170-8115-fd9fa1c902f5",
 					"name": "Amazon",
 					"item": [
 						{
-							"_postman_id": "781ffdb7-02ec-4149-90fd-6631bcec1b1d",
+							"_postman_id": "7004b935-0a1a-4613-b9d6-eb172937fa46",
 							"name": "Get Amazon cloud config",
 							"request": {
 								"method": "GET",
@@ -6138,7 +6138,7 @@
 							"response": []
 						},
 						{
-							"_postman_id": "c24cae31-9d7a-4969-8ffd-09a4c8e316ec",
+							"_postman_id": "d9289194-2d68-4933-b90c-98e142b2fd19",
 							"name": "Get Amazon cloud config Locations",
 							"request": {
 								"method": "GET",
@@ -6179,7 +6179,7 @@
 							"response": []
 						},
 						{
-							"_postman_id": "4f7096fb-7d6d-4c1a-baf2-252e3314548d",
+							"_postman_id": "7e026b5d-1d82-4c63-b83a-89c8642d5a35",
 							"name": "Get Amazon cloud config Images",
 							"request": {
 								"method": "GET",
@@ -6235,7 +6235,7 @@
 							"response": []
 						},
 						{
-							"_postman_id": "dafac62c-bc4a-4ba7-a978-12a924fbefbf",
+							"_postman_id": "b5f5246d-35e6-41be-bad7-03f40f95f0ad",
 							"name": "Get Amazon cloud config InstanceType",
 							"request": {
 								"method": "GET",
@@ -6286,7 +6286,7 @@
 							"response": []
 						},
 						{
-							"_postman_id": "adca84c9-71ec-48f6-8404-83b871a0385e",
+							"_postman_id": "1e67eeee-c7c9-446b-bbf2-657ef12cbfa9",
 							"name": "Get Amazon cloud config ALL field",
 							"request": {
 								"method": "GET",
@@ -6355,11 +6355,11 @@
 					"_postman_isSubFolder": true
 				},
 				{
-					"_postman_id": "02113860-5355-4de2-b91f-59c5efb07079",
+					"_postman_id": "e38a4938-3aa4-49bc-ada7-5af61a33ceeb",
 					"name": "Azure",
 					"item": [
 						{
-							"_postman_id": "d7ee9e16-c920-442f-acf0-edb21e5c4fb9",
+							"_postman_id": "b5ce4ce9-ed23-44d1-bdf4-f300d807314e",
 							"name": "Get Azure cloud config",
 							"request": {
 								"method": "GET",
@@ -6393,7 +6393,7 @@
 							"response": []
 						},
 						{
-							"_postman_id": "e64a0a97-2a5f-4086-8895-f357ec6b6ba5",
+							"_postman_id": "77d0a7ec-5bef-43df-a50c-80a44c45532c",
 							"name": "Get Azure cloud config Locations",
 							"request": {
 								"method": "GET",
@@ -6439,7 +6439,7 @@
 							"response": []
 						},
 						{
-							"_postman_id": "2b7891a7-3efc-4a3b-be10-59b19ef595f3",
+							"_postman_id": "ee83c8c5-ff98-427c-93ff-8ff5bd56c66f",
 							"name": "Get Azure cloud config NodeInsatnceTypes",
 							"request": {
 								"method": "GET",
@@ -6490,7 +6490,7 @@
 							"response": []
 						},
 						{
-							"_postman_id": "e288ab0c-58cb-4010-9993-93c186184b34",
+							"_postman_id": "c98e2094-70b4-400b-912a-a5744745ff64",
 							"name": "Get Azure cloud config Kubernetes version",
 							"request": {
 								"method": "GET",
@@ -6541,7 +6541,7 @@
 							"response": []
 						},
 						{
-							"_postman_id": "e0248241-4c5a-4487-9de6-eb94eedd234a",
+							"_postman_id": "fe186255-2373-4766-9575-ae26f430be26",
 							"name": "Get Azure cloud config ALL field",
 							"request": {
 								"method": "GET",
@@ -6605,11 +6605,11 @@
 					"_postman_isSubFolder": true
 				},
 				{
-					"_postman_id": "ee10888d-a790-41a9-93e0-e88dd94f938b",
+					"_postman_id": "fc2b8816-2a45-4185-9e92-5a14fb447bff",
 					"name": "Google",
 					"item": [
 						{
-							"_postman_id": "c91ca451-afac-459c-b220-5f5a368ddacc",
+							"_postman_id": "732c0e33-cee4-439e-a2c4-d8378e1585bf",
 							"name": "Get Google cloud config",
 							"request": {
 								"method": "GET",
@@ -6643,7 +6643,7 @@
 							"response": []
 						},
 						{
-							"_postman_id": "6468fffd-17bf-4df7-acd0-acd9dd295729",
+							"_postman_id": "0dd9d1ef-78f3-4dd4-ade8-fee8d519d802",
 							"name": "Get Google cloud config Locations",
 							"request": {
 								"method": "GET",
@@ -6689,7 +6689,7 @@
 							"response": []
 						},
 						{
-							"_postman_id": "f6fe6d8e-45d5-44fb-9711-4f15618163d4",
+							"_postman_id": "6420aa1f-97d6-4b07-b110-5b8e8555f9da",
 							"name": "Get Google cloud config InsatnceTypes",
 							"request": {
 								"method": "GET",
@@ -6740,7 +6740,7 @@
 							"response": []
 						},
 						{
-							"_postman_id": "3e4bc1b8-c2a1-4821-961a-e1e010d92fac",
+							"_postman_id": "2095a866-c6cf-4028-b230-68e281c8eaeb",
 							"name": "Get Google cloud config Kubernetes version",
 							"request": {
 								"method": "GET",
@@ -6791,7 +6791,7 @@
 							"response": []
 						},
 						{
-							"_postman_id": "6fba9b52-313c-4a7d-ac83-b855def50408",
+							"_postman_id": "769f7a6b-5c35-435b-a573-9e1b13281875",
 							"name": "Get Google cloud config ALL field",
 							"request": {
 								"method": "GET",
@@ -6855,11 +6855,11 @@
 					"_postman_isSubFolder": true
 				},
 				{
-					"_postman_id": "77db5965-e2e4-433b-b5e1-10599fcd6b1e",
+					"_postman_id": "46eef04d-53c9-41d9-a42c-255a4efeedfb",
 					"name": "Oracle",
 					"item": [
 						{
-							"_postman_id": "2542a231-c731-4530-bf23-54139092ee0c",
+							"_postman_id": "4fe4e0c4-d859-4a53-bd9b-12dab60ca01d",
 							"name": "Get Oracle cloud config",
 							"request": {
 								"method": "GET",
@@ -6893,7 +6893,7 @@
 							"response": []
 						},
 						{
-							"_postman_id": "c380d989-cb13-4f93-8d49-05605dcc565a",
+							"_postman_id": "38fd0b12-b0b4-4f49-89f6-6e91fa2558fe",
 							"name": "Get Oracle cloud config Locations",
 							"request": {
 								"method": "GET",
@@ -6939,7 +6939,7 @@
 							"response": []
 						},
 						{
-							"_postman_id": "f51efc9e-268a-4efd-a892-e19569734719",
+							"_postman_id": "e69914d7-ae03-4ced-b9a2-48c66cdede33",
 							"name": "Get Oracle cloud config Images",
 							"request": {
 								"method": "GET",
@@ -6990,7 +6990,7 @@
 							"response": []
 						},
 						{
-							"_postman_id": "388ac506-2866-435e-9b2c-af90b5949956",
+							"_postman_id": "1268911e-4ca2-4388-80aa-a12095e867c0",
 							"name": "Get Oracle cloud config InstanceType",
 							"request": {
 								"method": "GET",
@@ -7041,7 +7041,7 @@
 							"response": []
 						},
 						{
-							"_postman_id": "db1e228c-4973-4a1f-a4ba-a3d56cc17947",
+							"_postman_id": "3e415617-5dab-4a2f-8c9a-c87b6dcbdc3e",
 							"name": "Get Oracle cloud config Kubernetes version",
 							"request": {
 								"method": "GET",
@@ -7092,7 +7092,7 @@
 							"response": []
 						},
 						{
-							"_postman_id": "61d4a711-5218-4eb4-9cfb-a1f82cf33686",
+							"_postman_id": "ca4ad157-b3fa-4d94-80ca-7e7918694ade",
 							"name": "Get Oracle cloud config ALL field",
 							"request": {
 								"method": "GET",
@@ -7161,7 +7161,7 @@
 					"_postman_isSubFolder": true
 				},
 				{
-					"_postman_id": "1dfded7c-e071-4efc-935b-62a803fd0989",
+					"_postman_id": "0131f93c-7c23-4580-a8fa-02c8c1fb354a",
 					"name": "Get supported clusters types",
 					"request": {
 						"method": "GET",
@@ -7201,11 +7201,11 @@
 			]
 		},
 		{
-			"_postman_id": "299acfb3-900e-4e8f-92fe-03c472b5bf4b",
+			"_postman_id": "ac8ba09a-eb7e-4482-be3a-cb1b256fcd56",
 			"name": "Applications",
 			"item": [
 				{
-					"_postman_id": "dceebda0-ad07-440a-ac3a-ebde22d16907",
+					"_postman_id": "32148b2d-d9e5-4e52-8e92-71ad9842e5c4",
 					"name": "Application List",
 					"request": {
 						"method": "GET",
@@ -7238,7 +7238,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "abb88c69-f8f5-48b0-a4b8-25bf824597c0",
+					"_postman_id": "e62c9c52-cb35-4081-a93f-e03b7f51a9c5",
 					"name": "Application Create",
 					"request": {
 						"method": "POST",
@@ -7276,7 +7276,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "15bfd913-49ad-4989-bca5-3858bf87927a",
+					"_postman_id": "05974673-ee43-46f0-aedb-a6ceb175fe77",
 					"name": "Application Details",
 					"request": {
 						"method": "GET",
@@ -7317,11 +7317,11 @@
 			]
 		},
 		{
-			"_postman_id": "f01bd3d8-51ef-496a-a27f-f404b1e36bd4",
+			"_postman_id": "75c07bb3-b5dc-4b11-91a7-b2fe96f8c757",
 			"name": "Resource groups",
 			"item": [
 				{
-					"_postman_id": "b3ceaf5d-5a67-4f6a-ba0b-a6750c3692a6",
+					"_postman_id": "8e9e4e3a-fe2b-4062-ad32-b4e2b6625c30",
 					"name": "List resource group",
 					"request": {
 						"method": "GET",
@@ -7361,7 +7361,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "890f3639-815c-40d6-a661-b26a4811ef1b",
+					"_postman_id": "09985dc4-9354-4e3b-b600-1540ea9b45d7",
 					"name": "Create resource group",
 					"event": [
 						{
@@ -7427,7 +7427,7 @@
 					"response": []
 				},
 				{
-					"_postman_id": "d83f80b5-f381-4b83-8aa6-bea86683d9e8",
+					"_postman_id": "e0a34abc-745f-43a6-b0d5-13c635d17cb8",
 					"name": "Delete resource group",
 					"request": {
 						"method": "DELETE",
@@ -7479,7 +7479,7 @@
 			]
 		},
 		{
-			"_postman_id": "06c2b2c2-c234-446a-af72-6627e03f58ae",
+			"_postman_id": "efdbdfb1-24c5-4d1a-a172-d8e4fc7abdf0",
 			"name": "Get API Endpoints",
 			"request": {
 				"method": "GET",
@@ -7506,7 +7506,7 @@
 		"bearer": [
 			{
 				"key": "token",
-				"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJodHRwczovL3BpcGVsaW5lLmJhbnphaWNsb3VkLmNvbSIsImp0aSI6Ijg5YjY3NzI1LTFmNjYtNDg1Mi1iNjljLTlhMzYyY2UwY2M1YiIsImlhdCI6MTUzMzkwODIwNywiaXNzIjoiaHR0cHM6Ly9iYW56YWljbG91ZC5jb20vIiwic3ViIjoiMSIsInNjb3BlIjoiYXBpOmludm9rZSIsInR5cGUiOiJ1c2VyIiwidGV4dCI6ImJvbmlmYWlkbyJ9.EhwVGSXhgBb7IPKgo61R-VNRSi9qlHYCmjOpYKXQTDI",
+				"value": "{{token}}",
 				"type": "string"
 			}
 		]
