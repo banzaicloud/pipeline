@@ -42,6 +42,10 @@ const (
 
 	// AwsCredentialPath is the path in Vault to get AWS credentials from for Pipeline
 	AwsCredentialPath = "aws.credentials.path"
+
+	// Config keys to GKE resource delete
+	GKEResourceDeleteWaitAttempt  = "gke.resourceDeleteWaitAttempt"
+	GKEResourceDeleteSleepSeconds = "gke.resourceDeleteSleepSeconds"
 )
 
 //Init initializes the configurations
@@ -102,6 +106,9 @@ func init() {
 	viper.SetDefault(DNSGcIntervalMinute, 1)
 	viper.SetDefault(DNSGcLogLevel, "debug")
 	viper.SetDefault(Route53MaintenanceWndMinute, 15)
+
+	viper.SetDefault(GKEResourceDeleteWaitAttempt, 12)
+	viper.SetDefault(GKEResourceDeleteSleepSeconds, 5)
 
 	ReleaseName := os.Getenv("KUBERNETES_RELEASE_NAME")
 	if ReleaseName == "" {
