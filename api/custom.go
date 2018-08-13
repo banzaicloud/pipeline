@@ -9,6 +9,7 @@ import (
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	"k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -163,15 +164,16 @@ func getLoadBalancersWithIngressPaths(serviceList *v1.ServiceList, ingressList *
 
 	for _, service := range serviceList.Items {
 		var endpointURLs []*pkgHelm.EndPointURLs
-		log.Debugf("Service: %#v", service.Status)
+		log := log.WithFields(logrus.Fields{"serviceName": service.Name, "serviceNamespace": service.Namespace})
 		if len(service.Status.LoadBalancer.Ingress) > 0 {
 			//TODO we should avoid differences on kubernetes level
-			var publicIP string
+			var publicEndpoint string
 			if service.Status.LoadBalancer.Ingress[0].Hostname != "" {
-				publicIP = service.Status.LoadBalancer.Ingress[0].Hostname
+				publicEndpoint = service.Status.LoadBalancer.Ingress[0].Hostname
 			} else {
-				publicIP = service.Status.LoadBalancer.Ingress[0].IP
+				publicEndpoint = service.Status.LoadBalancer.Ingress[0].IP
 			}
+			log.Debugf("publicEndpoint: %s", publicEndpoint)
 			ports := make(map[string]int32)
 			if len(service.Spec.Ports) > 0 {
 				for _, port := range service.Spec.Ports {
@@ -182,7 +184,16 @@ func getLoadBalancersWithIngressPaths(serviceList *v1.ServiceList, ingressList *
 				for _, ingress := range ingressList.Items {
 					log.Debugf("Inspecting ingress: %s", ingress.Name)
 					if ingress.Annotations["kubernetes.io/ingress.class"] == traefik {
-						endpoints := getIngressEndpoints(publicIP, &ingress, serviceList)
+						if len(ingress.Spec.Rules) > 0 {
+							for _, rule := range ingress.Spec.Rules {
+								if rule.Host != "" {
+									publicEndpoint = rule.Host
+									log.Debugf("new publicEndpoint: %s", publicEndpoint)
+									break
+								}
+							}
+						}
+						endpoints := getIngressEndpoints(publicEndpoint, &ingress, serviceList)
 						for i := 0; i < len(endpoints); i++ {
 							endpointURLs = append(endpointURLs, &(endpoints[i]))
 						}
@@ -191,7 +202,7 @@ func getLoadBalancersWithIngressPaths(serviceList *v1.ServiceList, ingressList *
 			}
 			endpointList = append(endpointList, &pkgHelm.EndpointItem{
 				Name:         service.Name,
-				Host:         publicIP,
+				Host:         publicEndpoint,
 				Ports:        ports,
 				EndPointURLs: endpointURLs,
 			})
