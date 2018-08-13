@@ -8,7 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
-
 	"time"
 
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
