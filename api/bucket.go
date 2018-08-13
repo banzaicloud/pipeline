@@ -18,7 +18,6 @@ import (
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/banzaicloud/pipeline/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -378,7 +377,7 @@ func getValidatedSecret(organizationId uint, secretId, cloudType string) (*secre
 		return nil, err
 	}
 
-	if err := utils.ValidateCloudType(retrievedSecret.Type); err != nil {
+	if err := pkgCluster.ValidateCloudType(retrievedSecret.Type); err != nil {
 		return nil, err
 	}
 

@@ -8,9 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"time"
-
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 )
 
 //NopHandler is an empty handler to help net/http -> Gin conversions
@@ -72,23 +69,6 @@ func EncodeStringToBase64(s string) string {
 		return base64.StdEncoding.EncodeToString([]byte(s))
 	}
 	return s
-}
-
-// ValidateCloudType validates if the passed cloudType is supported.
-// If a not supported cloud type is passed in than returns ErrorNotSupportedCloudType otherwise nil
-func ValidateCloudType(cloudType string) error {
-	switch cloudType {
-	case pkgCluster.Alibaba:
-		return nil
-	case pkgCluster.Amazon:
-	case pkgCluster.Google:
-	case pkgCluster.Azure:
-	case pkgCluster.Oracle:
-		return nil
-	default:
-		return pkgErrors.ErrorNotSupportedCloudType
-	}
-	return nil
 }
 
 // ConvertSecondsToTime returns string format of seconds
