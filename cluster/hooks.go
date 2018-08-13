@@ -413,7 +413,8 @@ func InstallHorizontalPodAutoscalerPostHook(input interface{}) error {
 	if !ok {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
-	return installDeployment(cluster, helm.DefaultNamespace, pkgHelm.BanzaiRepository+"/hpa-operator", "pipeline-hpa", nil, "InstallHorizontalPodAutoscaler")
+	infraNamespace := viper.GetString(pipConfig.PipelineMonitorNamespace)
+	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/hpa-operator", "pipeline-hpa", nil, "InstallHorizontalPodAutoscaler")
 }
 
 //UpdatePrometheusPostHook updates a configmap used by Prometheus
