@@ -109,8 +109,9 @@ Name | Type | Description  | Notes
 
 
 
- **resourceGroup** | **optional.String**| Azure resource group the storage account that holds the bucket (storage container) be checked | 
- **storageAccount** | **optional.String**| Azure storage account to delete the bucket (storage container) to be checked | 
+ **resourceGroup** | **optional.String**| Azure resource group to lookup the bucket(storage container) under. Required only on Azure cloud provider. | 
+ **storageAccount** | **optional.String**| Azure storage account to lookup the bucket(storage container) under. Required only on Azure cloud provider. | 
+ **location** | **optional.String**| The region to lookup the bucket under. Required on Amazon, Oracle and Alibaba cloud providers. | 
 
 ### Return type
 

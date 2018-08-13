@@ -3421,9 +3421,11 @@ paths:
           - amazon
           - google
           - azure
+          - oracle
+          - alibaba
           type: string
         style: form
-      - description: Azure resource group the storage account that holds the bucket (storage container) be checked
+      - description: Azure resource group to lookup the bucket(storage container) under. Required only on Azure cloud provider.
         explode: true
         in: query
         name: resourceGroup
@@ -3431,10 +3433,18 @@ paths:
         schema:
           type: string
         style: form
-      - description: Azure storage account to delete the bucket (storage container) to be checked
+      - description: Azure storage account to lookup the bucket(storage container) under. Required only on Azure cloud provider.
         explode: true
         in: query
         name: storageAccount
+        required: false
+        schema:
+          type: string
+        style: form
+      - description: The region to lookup the bucket under. Required on Amazon, Oracle and Alibaba cloud providers.
+        explode: true
+        in: query
+        name: location
         required: false
         schema:
           type: string
@@ -7167,7 +7177,7 @@ components:
           format: int32
           type: integer
         image:
-          example: ami-0ea01e1d1dea65b5
+          example: ami-0ea01e1d1dea65b5c
           type: string
       type: object
     ClusterProfileEKS_eks_nodePools:

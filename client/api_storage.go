@@ -274,13 +274,15 @@ Retrieves the status of the object store bucket given its name
  * @param secretId Secret identification
  * @param cloudType Identifies the cloud provider
  * @param optional nil or *GetObjectStoreBucketStatusOpts - Optional Parameters:
- * @param "ResourceGroup" (optional.String) -  Azure resource group the storage account that holds the bucket (storage container) be checked
- * @param "StorageAccount" (optional.String) -  Azure storage account to delete the bucket (storage container) to be checked
+ * @param "ResourceGroup" (optional.String) -  Azure resource group to lookup the bucket(storage container) under. Required only on Azure cloud provider.
+ * @param "StorageAccount" (optional.String) -  Azure storage account to lookup the bucket(storage container) under. Required only on Azure cloud provider.
+ * @param "Location" (optional.String) -  The region to lookup the bucket under. Required on Amazon, Oracle and Alibaba cloud providers.
 */
 
 type GetObjectStoreBucketStatusOpts struct {
 	ResourceGroup  optional.String
 	StorageAccount optional.String
+	Location       optional.String
 }
 
 func (a *StorageApiService) GetObjectStoreBucketStatus(ctx context.Context, orgId int32, name int32, secretId string, cloudType string, localVarOptionals *GetObjectStoreBucketStatusOpts) (*http.Response, error) {
@@ -307,6 +309,9 @@ func (a *StorageApiService) GetObjectStoreBucketStatus(ctx context.Context, orgI
 	}
 	if localVarOptionals != nil && localVarOptionals.StorageAccount.IsSet() {
 		localVarQueryParams.Add("storageAccount", parameterToString(localVarOptionals.StorageAccount.Value(), ""))
+	}
+	if localVarOptionals != nil && localVarOptionals.Location.IsSet() {
+		localVarQueryParams.Add("location", parameterToString(localVarOptionals.Location.Value(), ""))
 	}
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{}
