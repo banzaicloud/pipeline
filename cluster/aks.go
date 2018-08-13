@@ -341,26 +341,7 @@ func (c *AKSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, use
 	}
 
 	if updatedCluster != nil {
-		updateCluster := &model.ClusterModel{
-			ID:             c.modelCluster.ID,
-			CreatedAt:      c.modelCluster.CreatedAt,
-			UpdatedAt:      c.modelCluster.UpdatedAt,
-			DeletedAt:      c.modelCluster.DeletedAt,
-			Name:           c.modelCluster.Name,
-			Location:       c.modelCluster.Location,
-			Cloud:          c.modelCluster.Cloud,
-			OrganizationId: c.modelCluster.OrganizationId,
-			SecretId:       c.modelCluster.SecretId,
-			ConfigSecretId: c.modelCluster.ConfigSecretId,
-			SshSecretId:    c.modelCluster.SshSecretId,
-			Status:         c.modelCluster.Status,
-			AKS: model.AKSClusterModel{
-				ResourceGroup:     c.modelCluster.AKS.ResourceGroup,
-				KubernetesVersion: c.modelCluster.AKS.KubernetesVersion,
-				NodePools:         nodePoolAfterUpdate,
-			},
-		}
-		c.modelCluster = updateCluster
+		c.modelCluster.AKS.NodePools = nodePoolAfterUpdate
 		c.azureCluster = &updatedCluster.Value
 	}
 
