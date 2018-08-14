@@ -196,7 +196,7 @@ func (c *EC2Cluster) CreateCluster() error {
 		return err
 	}
 
-	clusterSshSecret, err := c.GetSshSecretWithValidation()
+	clusterSshSecret, err := c.getSshSecret(c)
 	if err != nil {
 		return err
 	}
@@ -844,7 +844,7 @@ func (c *EC2Cluster) DownloadK8sConfig() ([]byte, error) {
 		return nil, err
 	}
 
-	sshSecret, err := c.GetSshSecretWithValidation()
+	sshSecret, err := c.getSshSecret(c)
 	if err != nil {
 		return nil, err
 	}
@@ -1219,11 +1219,6 @@ func (c *EC2Cluster) validateAMIs(masterAMI string, nodePools map[string]*pkgEC2
 // GetSecretWithValidation returns secret from vault
 func (c *EC2Cluster) GetSecretWithValidation() (*secret.SecretItemResponse, error) {
 	return c.CommonClusterBase.getSecret(c)
-}
-
-// GetSshSecretWithValidation returns ssh secret from vault
-func (c *EC2Cluster) GetSshSecretWithValidation() (*secret.SecretItemResponse, error) {
-	return c.CommonClusterBase.getSshSecret(c)
 }
 
 // SaveConfigSecretId saves the config secret id in database

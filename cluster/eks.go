@@ -2,7 +2,6 @@ package cluster
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -27,6 +26,7 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/utils"
+	"github.com/ghodss/yaml"
 	"github.com/sirupsen/logrus"
 	"k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
@@ -164,7 +164,7 @@ func (e *EKSCluster) CreateCluster() error {
 		nodePoolTemplate,
 	)
 
-	sshSecret, err := e.GetSshSecretWithValidation()
+	sshSecret, err := e.getSshSecret(e)
 	if err != nil {
 		return err
 	}
@@ -650,7 +650,7 @@ func (e *EKSCluster) GenerateK8sConfig() *clientcmdapi.Config {
 // DownloadK8sConfig generates and marshalls the kube config for this cluster.
 func (e *EKSCluster) DownloadK8sConfig() ([]byte, error) {
 	config := e.GenerateK8sConfig()
-	return json.Marshal(config)
+	return yaml.Marshal(config)
 }
 
 // GetStatus describes the status of this EKS cluster.
@@ -835,11 +835,6 @@ func (e *EKSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) 
 // GetSecretWithValidation returns secret from vault
 func (e *EKSCluster) GetSecretWithValidation() (*secret.SecretItemResponse, error) {
 	return e.CommonClusterBase.getSecret(e)
-}
-
-// GetSshSecretWithValidation returns ssh secret from vault
-func (e *EKSCluster) GetSshSecretWithValidation() (*secret.SecretItemResponse, error) {
-	return e.CommonClusterBase.getSshSecret(e)
 }
 
 // SaveConfigSecretId saves the config secret id in database
