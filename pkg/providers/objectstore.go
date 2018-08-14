@@ -44,10 +44,7 @@ func NewObjectStore(ctx *ObjectStoreContext, logger logrus.FieldLogger) (objects
 		return azure.NewObjectStore(ctx.Organization, ctx.Secret, ctx.Location, ctx.ResourceGroup, ctx.StorageAccount, database.GetDB(), logger), nil
 
 	case google.Provider:
-		s := google.NewObjectStore(ctx.Organization, verify.CreateServiceAccount(ctx.Secret.Values), database.GetDB(), logger)
-		s.WithRegion(ctx.Location)
-
-		return s, nil
+		return google.NewObjectStore(ctx.Organization, verify.CreateServiceAccount(ctx.Secret.Values), ctx.Location, database.GetDB(), logger), nil
 
 	case oracle.Provider:
 		s := _objectstore.NewOracleObjectStore(ctx.Secret, ctx.Organization)
