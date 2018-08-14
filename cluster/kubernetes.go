@@ -220,11 +220,6 @@ func (b *KubeCluster) GetSecretWithValidation() (*secret.SecretItemResponse, err
 	return b.CommonClusterBase.getSecret(b)
 }
 
-// GetSshSecretWithValidation returns ssh secret from vault
-func (b *KubeCluster) GetSshSecretWithValidation() (*secret.SecretItemResponse, error) {
-	return b.CommonClusterBase.getSecret(b)
-}
-
 // SaveConfigSecretId saves the config secret id in database
 func (b *KubeCluster) SaveConfigSecretId(configSecretId string) error {
 	return b.modelCluster.UpdateConfigSecret(configSecretId)

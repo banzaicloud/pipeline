@@ -164,7 +164,7 @@ func (e *EKSCluster) CreateCluster() error {
 		nodePoolTemplate,
 	)
 
-	sshSecret, err := e.GetSshSecretWithValidation()
+	sshSecret, err := e.getSshSecret(e)
 	if err != nil {
 		return err
 	}
@@ -835,11 +835,6 @@ func (e *EKSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) 
 // GetSecretWithValidation returns secret from vault
 func (e *EKSCluster) GetSecretWithValidation() (*secret.SecretItemResponse, error) {
 	return e.CommonClusterBase.getSecret(e)
-}
-
-// GetSshSecretWithValidation returns ssh secret from vault
-func (e *EKSCluster) GetSshSecretWithValidation() (*secret.SecretItemResponse, error) {
-	return e.CommonClusterBase.getSshSecret(e)
 }
 
 // SaveConfigSecretId saves the config secret id in database

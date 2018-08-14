@@ -2171,11 +2171,6 @@ func (g *GKECluster) GetSecretWithValidation() (*secret.SecretItemResponse, erro
 	return g.CommonClusterBase.getSecret(g)
 }
 
-// GetSshSecretWithValidation returns ssh secret from vault
-func (g *GKECluster) GetSshSecretWithValidation() (*secret.SecretItemResponse, error) {
-	return g.CommonClusterBase.getSecret(g)
-}
-
 // SaveConfigSecretId saves the config secret id in database
 func (g *GKECluster) SaveConfigSecretId(configSecretId string) error {
 	return g.modelCluster.UpdateConfigSecret(configSecretId)
