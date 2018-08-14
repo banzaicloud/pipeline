@@ -6,6 +6,7 @@
     <envs>
       <env name="VAULT_ADDR" value="http://127.0.0.1:8200" />
       <env name="PIPELINE_CONFIG_DIR" value="$PROJECT_DIR$/config" />
+      <env name="CGO_ENABLED" value="0" />
     </envs>
     <framework value="gotest" />
     <kind value="DIRECTORY" />
