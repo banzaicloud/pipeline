@@ -7,10 +7,6 @@ type ObjectStore interface {
 	ListBuckets() ([]*BucketInfo, error)
 	DeleteBucket(string) error
 	CheckBucket(string) error
-
-	WithResourceGroup(string) error
-	WithStorageAccount(string) error
-	WithRegion(string) error
 }
 
 // BucketInfo desribes a storage bucket

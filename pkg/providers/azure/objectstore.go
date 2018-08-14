@@ -35,37 +35,36 @@ func (bucketNotFoundError) NotFound() bool { return true }
 //
 // Note: calling methods on this struct is not thread safe currently.
 type ObjectStore struct {
-	db     *gorm.DB
-	logger logrus.FieldLogger
-
-	org    *pipelineAuth.Organization
-	secret *secret.SecretItemResponse
-
 	storageAccount string
 	resourceGroup  string
 	location       string
+	secret         *secret.SecretItemResponse
+
+	org *pipelineAuth.Organization
+
+	db     *gorm.DB
+	logger logrus.FieldLogger
 }
 
 // NewObjectStore returns a new object store instance.
 func NewObjectStore(
-	org *pipelineAuth.Organization,
+	location string,
+	resourceGroup string,
+	storageAccount string,
 	secret *secret.SecretItemResponse,
+	org *pipelineAuth.Organization,
 	db *gorm.DB,
 	logger logrus.FieldLogger,
 ) *ObjectStore {
 	return &ObjectStore{
-		db:     db,
-		logger: logger,
-		org:    org,
-		secret: secret,
+		location:       location,
+		resourceGroup:  resourceGroup,
+		storageAccount: storageAccount,
+		secret:         secret,
+		db:             db,
+		logger:         logger,
+		org:            org,
 	}
-}
-
-// WithResourceGroup updates the resource group.
-func (s *ObjectStore) WithResourceGroup(resourceGroup string) error {
-	s.resourceGroup = resourceGroup
-
-	return nil
 }
 
 // getResourceGroup returns the given resource group or generates one.
@@ -80,13 +79,6 @@ func (s *ObjectStore) getResourceGroup() string {
 	return resourceGroup
 }
 
-// WithStorageAccount updates the storage account.
-func (s *ObjectStore) WithStorageAccount(storageAccount string) error {
-	s.storageAccount = storageAccount
-
-	return nil
-}
-
 // getStorageAccount returns the given storage account or or falls back to a default one.
 func (s *ObjectStore) getStorageAccount() string {
 	storageAccount := s.storageAccount
@@ -96,13 +88,6 @@ func (s *ObjectStore) getStorageAccount() string {
 	}
 
 	return storageAccount
-}
-
-// WithRegion updates the region.
-func (s *ObjectStore) WithRegion(region string) error {
-	s.location = region
-
-	return nil
 }
 
 func (s *ObjectStore) getLogger(bucketName string) logrus.FieldLogger {

@@ -2,7 +2,6 @@ package google
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -41,6 +40,7 @@ type ObjectStore struct {
 func NewObjectStore(
 	org *auth.Organization,
 	serviceAccount *verify.ServiceAccount,
+	location string,
 	db *gorm.DB,
 	logger logrus.FieldLogger,
 ) *ObjectStore {
@@ -49,24 +49,8 @@ func NewObjectStore(
 		logger:         logger,
 		org:            org,
 		serviceAccount: serviceAccount,
+		location:       location,
 	}
-}
-
-// WithResourceGroup updates the resource group. Always return "not implemented" error
-func (s *ObjectStore) WithResourceGroup(resourceGroup string) error {
-	return errors.New("not implemented")
-}
-
-// WithStorageAccount updates the storage account. Always return "not implemented" error
-func (s *ObjectStore) WithStorageAccount(storageAccount string) error {
-	return errors.New("not implemented")
-}
-
-// WithRegion updates the region.
-func (s *ObjectStore) WithRegion(region string) error {
-	s.location = region
-
-	return nil
 }
 
 func (s *ObjectStore) getLogger(bucketName string) logrus.FieldLogger {
