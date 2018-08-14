@@ -21,6 +21,8 @@ import (
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/jinzhu/copier"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"golang.org/x/net/context"
 	gkeCompute "google.golang.org/api/compute/v1"
 	gke "google.golang.org/api/container/v1"
@@ -221,10 +223,10 @@ func (g *GKECluster) CreateCluster() error {
 	}
 
 	if createCall != nil {
-		log.Infof("Cluster %s create is called for project %s and zone %s. Status Code %v", cc.Name, cc.ProjectID, cc.Zone)
+		log.Infof("Cluster %s create is called for project %s and zone %s", cc.Name, cc.ProjectID, cc.Zone)
 		log.Info("Waiting for cluster...")
 
-		if err := waitForOperation(svc, g.modelCluster.Location, projectId, createCall.Name); err != nil {
+		if err := waitForOperation(newContainerOperation(svc), g.modelCluster.Location, projectId, createCall.Name); err != nil {
 			return err
 		}
 	} else {
@@ -335,7 +337,7 @@ func (g *GKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 func (g *GKECluster) DeleteCluster() error {
 
 	if err := g.waitForResourcesDelete(); err != nil {
-		log.Warnf("error during wait for resources: %s", err.Error())
+		return err
 	}
 
 	log.Info("Start delete gke cluster")
@@ -368,6 +370,8 @@ func (g *GKECluster) DeleteCluster() error {
 // waitForResourcesDelete waits until the Kubernetes destroys all the resources which it had created
 func (g *GKECluster) waitForResourcesDelete() error {
 
+	log := log.WithFields(logrus.Fields{"cluster": g.modelCluster.Name, "zone": g.modelCluster.Location})
+
 	log.Info("Waiting for deleting cluster resources")
 
 	log.Info("Create compute service")
@@ -382,193 +386,34 @@ func (g *GKECluster) waitForResourcesDelete() error {
 		return errors.Wrap(err, "Error during getting project id")
 	}
 
-	err = checkFirewalls(csv, project, g.modelCluster.Name)
-	if err != nil {
-		return errors.Wrap(err, "Error during checking firewalls")
-	}
-
-	err = checkLoadBalancerResources(csv, project, g.modelCluster.Location, g.modelCluster.Name)
-	if err != nil {
-		return errors.Wrap(err, "Error during checking load balancer resources")
-	}
-
-	return nil
-}
-
-// checkLoadBalancerResources checks all load balancer resources deleted by Kubernetes
-func checkLoadBalancerResources(csv *gkeCompute.Service, project, zone, clusterName string) error {
-
-	log.Info("Check load balancer resources")
-
-	log.Infof("Find region by zone[%s]", zone)
+	clusterName := g.modelCluster.Name
+	zone := g.modelCluster.Location
+	log.Info("Find region by zone")
 	region, err := findRegionByZone(csv, project, zone)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "Error during finding region by zone")
 	}
 
 	regionName := region.Name
 	log.Infof("Region name: %s", regionName)
 
-	targetPools, err := checkTargetPools(csv, project, zone, regionName, clusterName)
+	lb := newLoadBalancerHelper(csv, project, regionName, zone, clusterName)
+
+	maxAttempts := viper.GetInt(pipConfig.GKEResourceDeleteWaitAttempt)
+	sleepSeconds := viper.GetInt(pipConfig.GKEResourceDeleteSleepSeconds)
+
+	checkers := resourceCheckers{
+		newFirewallChecker(csv, project, clusterName),
+		newTargetPoolsChecker(csv, project, clusterName, regionName, zone, lb),
+		newForwardingRulesChecker(csv, project, regionName, lb),
+	}
+
+	err = checkResources(checkers, maxAttempts, sleepSeconds)
 	if err != nil {
-		return err
-	}
-
-	return checkForwardingRules(csv, targetPools, project, regionName)
-}
-
-// checkTargetPools checks all target pools deleted by Kubernetes
-func checkTargetPools(csv *gkeCompute.Service, project, zone, regionName, clusterName string) ([]*gkeCompute.TargetPool, error) {
-
-	log.Infof("Check target pools(backends) in project[%s] and region[%s]", project, regionName)
-
-	log.Info("List target pools")
-	pools, err := listTargetPools(csv, project, regionName)
-	if err != nil {
-		return nil, err
-	}
-
-	log.Info("List instances")
-	instance, err := findInstanceByClusterName(csv, project, zone, clusterName)
-	if err != nil {
-		return nil, err
-	}
-
-	log.Infof("Find target pool(s) by instance[%s]", instance.Name)
-	clusterTargetPools := findTargetPoolsByInstances(pools, instance.Name)
-
-	for _, pool := range clusterTargetPools {
-		if pool != nil {
-			for {
-				err := isTargetPoolDeleted(csv, project, regionName, pool.Name)
-				if err == nil {
-					log.Infof("Target pool[%s] deleted", pool.Name)
-					break
-				} else {
-					log.Warn(err.Error())
-					time.Sleep(time.Second * 5)
-				}
-			}
-		}
-	}
-
-	return clusterTargetPools, nil
-}
-
-// findTargetPoolsByInstances returns all target pools which created by Kubernetes
-func findTargetPoolsByInstances(pools []*gkeCompute.TargetPool, instanceName string) []*gkeCompute.TargetPool {
-
-	var filteredPools []*gkeCompute.TargetPool
-	for _, p := range pools {
-		if p != nil {
-			for _, i := range p.Instances {
-				if i == instanceName {
-					filteredPools = append(filteredPools, p)
-				}
-			}
-		}
-	}
-
-	return filteredPools
-}
-
-// isTargetPoolDeleted checks the given target pool is deleted by Kubernetes
-func isTargetPoolDeleted(csv *gkeCompute.Service, project, region, targetPoolName string) error {
-	log.Infof("Get target pool[%s]", targetPoolName)
-	_, err := csv.TargetPools.Get(project, region, targetPoolName).Context(context.Background()).Do()
-	if err != nil {
-		return notFoundGoogleError(err)
-	}
-
-	return fmt.Errorf("target pool[%s] is still alive", targetPoolName)
-}
-
-// listTargetPools returns all target pools in project and region
-func listTargetPools(csv *gkeCompute.Service, project, regionName string) ([]*gkeCompute.TargetPool, error) {
-	list, err := csv.TargetPools.List(project, regionName).Context(context.Background()).Do()
-	if err != nil {
-		return nil, err
-	}
-
-	return list.Items, nil
-}
-
-// checkForwardingRules checks all forwarding rules deleted by Kubernetes
-func checkForwardingRules(csv *gkeCompute.Service, targetPools []*gkeCompute.TargetPool, project, regionName string) error {
-
-	log.Infof("Check forwarding rules(frontends) in project[%s] and region[%s]", project, regionName)
-
-	log.Info("List forwarding rules")
-	forwardingRules, err := listForwardingRules(csv, project, regionName)
-	if err != nil {
-		return err
-	}
-
-	log.Debugf("Forwarding rules: %d", len(forwardingRules))
-
-	for _, rule := range forwardingRules {
-		if rule != nil && isClusterTarget(targetPools, project, regionName, rule.Target) {
-			for {
-				err := isForwardingRuleDeleted(csv, project, regionName, rule.Name)
-				if err == nil {
-					log.Infof("Forwarding rule[%s] deleted", rule.Name)
-					break
-				} else {
-					log.Warn(err.Error())
-					time.Sleep(time.Second * 5)
-				}
-			}
-		}
+		return errors.Wrap(err, "Error during checking resources")
 	}
 
 	return nil
-}
-
-// isClusterTarget checks the target match with the deleting cluster
-func isClusterTarget(targetPools []*gkeCompute.TargetPool, project, region, targetPoolName string) bool {
-	for _, tp := range targetPools {
-		if tp != nil && tp.Name == getTargetUrl(project, region, targetPoolName) {
-			return true
-		}
-	}
-	return false
-}
-
-// getTargetUrl returns target url for gke cluster
-func getTargetUrl(project, region, targetPoolName string) string {
-	return fmt.Sprintf("https://www.googleapis.com/compute/v1/projects/%s/regions/%s/targetPools/%s", project, region, targetPoolName)
-}
-
-// isForwardingRuleDeleted checks the given forwarding rule is deleted by Kubernetes
-func isForwardingRuleDeleted(csv *gkeCompute.Service, project, region, forwardingRule string) error {
-	log.Infof("Get forwarding rule[%s]", forwardingRule)
-	_, err := csv.ForwardingRules.Get(project, region, forwardingRule).Context(context.Background()).Do()
-	if err != nil {
-		return notFoundGoogleError(err)
-	}
-
-	return fmt.Errorf("forwarding rule[%s] is still alive", forwardingRule)
-}
-
-// notFoundGoogleError transforms an error into googleapi.Error
-func notFoundGoogleError(err error) error {
-	apiError, isOk := err.(*googleapi.Error)
-	if isOk {
-		if apiError.Code == http.StatusNotFound {
-			return nil
-		}
-	}
-	return err
-}
-
-// listForwardingRules returns all forwarding rule in project in region
-func listForwardingRules(csv *gkeCompute.Service, project, region string) ([]*gkeCompute.ForwardingRule, error) {
-	list, err := csv.ForwardingRules.List(project, region).Context(context.Background()).Do()
-	if err != nil {
-		return nil, err
-	}
-
-	return list.Items, nil
 }
 
 // findRegionByZone returns region by zone
@@ -630,70 +475,52 @@ func (g *GKECluster) getRegionByZone(project string, zone string) (string, error
 	return "", fmt.Errorf("there's no zone [%s] in regions", zone)
 }
 
-// checkFirewalls checks all load balancer resources deleted by Kubernetes
-func checkFirewalls(csv *gkeCompute.Service, project, clusterName string) error {
+// checkResources checks all load balancer resources deleted by Kubernetes
+func checkResources(checkers resourceCheckers, maxAttempts, sleepSeconds int) error {
 
-	log.Info("Check firewalls")
-	log.Info("List firewalls")
-	firewalls, err := csv.Firewalls.List(project).Context(context.Background()).Do()
-	if err != nil {
-		return errors.Wrap(err, "Error during listing firewalls")
-	}
+	for _, rc := range checkers {
 
-	log.Infof("Find firewall(s) by target[%s]", clusterName)
-	k8sFirewalls := findFirewallRulesByTarget(firewalls.Items, clusterName)
+		log := log.WithFields(logrus.Fields{"type": rc.getType()})
 
-	for _, f := range k8sFirewalls {
-		for {
-			err := isFirewallDeleted(csv, project, f.Name)
-			if err == nil {
-				log.Infof("Firewall[%s] deleted", f.Name)
-				break
-			} else {
-				log.Warn(err.Error())
-				time.Sleep(time.Second * 5)
+		log.Info("list resources")
+
+		resources, err := rc.list()
+		if err != nil {
+			return err
+		}
+
+		for _, resource := range resources {
+
+			log := log.WithFields(logrus.Fields{"resource": resource, "type": rc.getType()})
+
+			attempt := 0
+			deleted := false
+
+			for attempt < maxAttempts && !deleted {
+				log.Debugf("Waiting for resource to be deleted %d/%d", attempt, maxAttempts)
+				err := rc.isResourceDeleted(resource)
+				if err == nil {
+					log.Info("Resource deleted")
+					deleted = true
+					break
+				} else {
+					log.Warn(err.Error())
+					time.Sleep(time.Second * time.Duration(sleepSeconds))
+				}
+				attempt++
 			}
+
+			if !deleted {
+				log.Info("force delete")
+				if err := rc.forceDelete(resource); err != nil {
+					return err
+				}
+			}
+
 		}
 	}
 
 	return nil
-}
-
-// isFirewallDeleted checks the given firewall is deleted by Kubernetes
-func isFirewallDeleted(csv *gkeCompute.Service, project, firewall string) error {
-
-	log.Infof("get firewall[%s] in project[%s]", firewall, project)
-
-	_, err := csv.Firewalls.Get(project, firewall).Context(context.Background()).Do()
-	if err != nil {
-		return notFoundGoogleError(err)
-	}
-
-	return fmt.Errorf("firewall[%s] is still alive", firewall)
-}
-
-// findFirewallRulesByTarget returns all firewalls which created by Kubernetes
-func findFirewallRulesByTarget(rules []*gkeCompute.Firewall, clusterName string) []*gkeCompute.Firewall {
-
-	var firewalls []*gkeCompute.Firewall
-	for _, r := range rules {
-		if r != nil {
-
-			if strings.Contains(r.Description, kubernetesIO) {
-
-				for _, tag := range r.TargetTags {
-					log.Debugf("Firewall rule[%s] target tag: %s", r.Name, tag)
-					if strings.HasPrefix(tag, targetPrefix+clusterName) {
-						log.Debugf("Append firewall list[%s]", r.Name)
-						firewalls = append(firewalls, r)
-					}
-				}
-
-			}
-		}
-	}
-
-	return firewalls
 }
 
 // UpdateCluster updates GKE cluster in cloud
@@ -1064,7 +891,7 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster, location, proje
 			return nil, err
 		}
 		log.Infof("Cluster %s update is called for project %s and zone %s. Status Code %v", cc.Name, cc.ProjectID, cc.Zone, updateCall.HTTPStatusCode)
-		if err = waitForOperation(svc, location, projectId, updateCall.Name); err != nil {
+		if err = waitForOperation(newContainerOperation(svc), location, projectId, updateCall.Name); err != nil {
 			return nil, err
 		}
 
@@ -1118,7 +945,7 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster, location, proje
 			return nil, err
 		}
 		log.Infof("Node pool %s delete is called for project %s, zone %s and cluster %s. Status Code %v", nodePoolName, cc.ProjectID, cc.Zone, cc.Name, deleteCall.HTTPStatusCode)
-		if err = waitForOperation(svc, location, projectId, deleteCall.Name); err != nil {
+		if err = waitForOperation(newContainerOperation(svc), location, projectId, deleteCall.Name); err != nil {
 			return nil, err
 		}
 		updatedCluster, err = getClusterGoogle(svc, cc)
@@ -1141,7 +968,7 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster, location, proje
 						return nil, err
 					}
 					log.Infof("Node pool %s update is called for project %s, zone %s and cluster %s. Status Code %v", nodePool.Name, cc.ProjectID, cc.Zone, cc.Name, updateCall.HTTPStatusCode)
-					if err := waitForOperation(svc, location, projectId, updateCall.Name); err != nil {
+					if err := waitForOperation(newContainerOperation(svc), location, projectId, updateCall.Name); err != nil {
 						return nil, err
 					}
 				}
@@ -1174,7 +1001,7 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster, location, proje
 					}
 
 					log.Infof("Node pool %s update is called for project %s, zone %s and cluster %s", nodePool.Name, cc.ProjectID, cc.Zone, cc.Name)
-					if err = waitForOperation(svc, location, projectId, operation.Name); err != nil {
+					if err = waitForOperation(newContainerOperation(svc), location, projectId, operation.Name); err != nil {
 						return nil, err
 					}
 
@@ -1194,7 +1021,7 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster, location, proje
 						return nil, err
 					}
 					log.Infof("Node pool %s size change is called for project %s, zone %s and cluster %s. Status Code %v", nodePool.Name, cc.ProjectID, cc.Zone, cc.Name, updateCall.HTTPStatusCode)
-					if err = waitForOperation(svc, location, projectId, updateCall.Name); err != nil {
+					if err = waitForOperation(newContainerOperation(svc), location, projectId, updateCall.Name); err != nil {
 						return nil, err
 					}
 
@@ -1222,7 +1049,7 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster, location, proje
 			return nil, err
 		}
 		log.Infof("Node pool %s create is called for project %s, zone %s and cluster %s. Status Code %v", nodePoolToCreate.Name, cc.ProjectID, cc.Zone, cc.Name, createCall.HTTPStatusCode)
-		if err = waitForOperation(svc, location, projectId, createCall.Name); err != nil {
+		if err = waitForOperation(newContainerOperation(svc), location, projectId, createCall.Name); err != nil {
 			return nil, err
 		}
 
@@ -2186,39 +2013,23 @@ func (g *GKECluster) GetK8sConfig() ([]byte, error) {
 	return g.CommonClusterBase.getConfig(g)
 }
 
-// findInstanceByClusterName returns the cluster's instance
-func findInstanceByClusterName(csv *gkeCompute.Service, project, zone, clusterName string) (*gkeCompute.Instance, error) {
+func waitForOperation(getter OperationInfoer, location, projectId, operationName string) error {
 
-	instances, err := csv.Instances.List(project, zone).Context(context.Background()).Do()
-	if err != nil {
-		return nil, err
-	}
+	log := log.WithFields(logrus.Fields{"operation": operationName})
 
-	for _, instance := range instances.Items {
-		if instance != nil && instance.Metadata != nil {
-			for _, item := range instance.Metadata.Items {
-				if item != nil && item.Key == clusterNameKey && item.Value != nil && *item.Value == clusterName {
-					return instance, nil
-				}
-			}
-		}
-	}
+	log.Info("start checking operation status")
 
-	return nil, fmt.Errorf("instance not found by cluster[%s]", clusterName)
-}
-
-func waitForOperation(svc *gke.Service, location, projectId, operationName string) error {
-
+	var operationType string
+	var err error
 	operationStatus := statusRunning
 	for operationStatus != statusDone {
-		resp, err := svc.Projects.Zones.Operations.Get(projectId, location, operationName).Context(context.Background()).Do()
+
+		operationStatus, operationType, err = getter.GetInfo(projectId, location, operationName)
 		if err != nil {
 			return err
 		}
 
-		operationStatus = resp.Status
-
-		log.Infof("Operation[%s] status: %s", resp.OperationType, operationStatus)
+		log.Infof("Operation[%s] status: %s", operationType, operationStatus)
 		time.Sleep(time.Second * 5)
 	}
 
