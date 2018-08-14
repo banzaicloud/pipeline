@@ -38,10 +38,7 @@ func NewObjectStore(ctx *ObjectStoreContext, logger logrus.FieldLogger) (objects
 		return _objectstore.NewAlibabaObjectStore(ctx.Secret, ctx.Organization, ctx.Location), nil
 
 	case amazon.Provider:
-		s := amazon.NewObjectStore(ctx.Organization, ctx.Secret, database.GetDB(), logger)
-		s.WithRegion(ctx.Location)
-
-		return s, nil
+		return amazon.NewObjectStore(ctx.Organization, ctx.Secret, ctx.Location, database.GetDB(), logger), nil
 
 	case azure.Provider:
 		s := azure.NewObjectStore(ctx.Organization, ctx.Secret, database.GetDB(), logger)
