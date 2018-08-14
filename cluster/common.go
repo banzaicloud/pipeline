@@ -48,7 +48,6 @@ type CommonCluster interface {
 	GetClusterDetails() (*pkgCluster.DetailsResponse, error)
 	ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error
 	GetSecretWithValidation() (*secret.SecretItemResponse, error)
-	GetSshSecretWithValidation() (*secret.SecretItemResponse, error)
 	SaveConfigSecretId(string) error
 	GetConfigSecretId() string
 	GetK8sConfig() ([]byte, error)

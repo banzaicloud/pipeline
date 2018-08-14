@@ -367,11 +367,6 @@ func (o *OKECluster) GetSecretWithValidation() (*secret.SecretItemResponse, erro
 	return o.CommonClusterBase.getSecret(o)
 }
 
-// GetSshSecretWithValidation returns ssh secret from vault
-func (o *OKECluster) GetSshSecretWithValidation() (*secret.SecretItemResponse, error) {
-	return o.CommonClusterBase.getSecret(o)
-}
-
 // SaveConfigSecretId saves the config secret id in database
 func (o *OKECluster) SaveConfigSecretId(configSecretId string) error {
 	return o.modelCluster.UpdateConfigSecret(configSecretId)

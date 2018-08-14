@@ -246,7 +246,7 @@ func (c *ACSKCluster) CreateCluster() error {
 		return err
 	}
 
-	clusterSshSecret, err := c.GetSshSecretWithValidation()
+	clusterSshSecret, err := c.getSshSecret(c)
 	if err != nil {
 		return err
 	}
@@ -912,10 +912,6 @@ func (c *ACSKCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest)
 
 func (c *ACSKCluster) GetSecretWithValidation() (*secret.SecretItemResponse, error) {
 	return c.CommonClusterBase.getSecret(c)
-}
-
-func (c *ACSKCluster) GetSshSecretWithValidation() (*secret.SecretItemResponse, error) {
-	return c.CommonClusterBase.getSshSecret(c)
 }
 
 func (c *ACSKCluster) SaveConfigSecretId(configSecretId string) error {
