@@ -16,24 +16,55 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// ObjectStoreContext describes all parameters necessary to create a cloud provider agnostic object store instance.
+type ObjectStoreContext struct {
+	Provider     string
+	Secret       *secret.SecretItemResponse
+	Organization *auth.Organization
+
+	// Location (or region) is used by some cloud providers to determine where the bucket should be created.
+	Location string
+
+	// Azure specific parameters
+	ResourceGroup  string
+	StorageAccount string
+}
+
 // NewObjectStore creates an object store client for the given cloud provider.
 // The created object is initialized with the passed in secret and organization.
-func NewObjectStore(provider string, s *secret.SecretItemResponse, organization *auth.Organization, logger logrus.FieldLogger) (objectstore.ObjectStore, error) {
-	switch provider {
+func NewObjectStore(ctx *ObjectStoreContext, logger logrus.FieldLogger) (objectstore.ObjectStore, error) {
+	switch ctx.Provider {
 	case alibaba.Provider:
-		return _objectstore.NewAlibabaObjectStore(s, organization), nil
+		s := _objectstore.NewAlibabaObjectStore(ctx.Secret, ctx.Organization)
+		s.WithRegion(ctx.Location)
+
+		return s, nil
 
 	case amazon.Provider:
-		return amazon.NewObjectStore(organization, s, database.GetDB(), logger), nil
+		s := amazon.NewObjectStore(ctx.Organization, ctx.Secret, database.GetDB(), logger)
+		s.WithRegion(ctx.Location)
 
-	case google.Provider:
-		return google.NewObjectStore(organization, verify.CreateServiceAccount(s.Values), database.GetDB(), logger), nil
+		return s, nil
 
 	case azure.Provider:
-		return azure.NewObjectStore(organization, s, database.GetDB(), logger), nil
+		s := azure.NewObjectStore(ctx.Organization, ctx.Secret, database.GetDB(), logger)
+		s.WithRegion(ctx.Location)
+		s.WithResourceGroup(ctx.ResourceGroup)
+		s.WithStorageAccount(ctx.StorageAccount)
+
+		return s, nil
+
+	case google.Provider:
+		s := google.NewObjectStore(ctx.Organization, verify.CreateServiceAccount(ctx.Secret.Values), database.GetDB(), logger)
+		s.WithRegion(ctx.Location)
+
+		return s, nil
 
 	case oracle.Provider:
-		return _objectstore.NewOracleObjectStore(s, organization), nil
+		s := _objectstore.NewOracleObjectStore(ctx.Secret, ctx.Organization)
+		s.WithRegion(ctx.Location)
+
+		return s, nil
 
 	default:
 		return nil, pkgErrors.ErrorNotSupportedCloudType
