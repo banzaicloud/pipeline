@@ -50,22 +50,21 @@ type ObjectStore struct {
 func NewObjectStore(
 	org *pipelineAuth.Organization,
 	secret *secret.SecretItemResponse,
+	location string,
+	resourceGroup string,
+	storageAccount string,
 	db *gorm.DB,
 	logger logrus.FieldLogger,
 ) *ObjectStore {
 	return &ObjectStore{
-		db:     db,
-		logger: logger,
-		org:    org,
-		secret: secret,
+		db:             db,
+		logger:         logger,
+		org:            org,
+		secret:         secret,
+		location:       location,
+		resourceGroup:  resourceGroup,
+		storageAccount: storageAccount,
 	}
-}
-
-// WithResourceGroup updates the resource group.
-func (s *ObjectStore) WithResourceGroup(resourceGroup string) error {
-	s.resourceGroup = resourceGroup
-
-	return nil
 }
 
 // getResourceGroup returns the given resource group or generates one.
@@ -80,13 +79,6 @@ func (s *ObjectStore) getResourceGroup() string {
 	return resourceGroup
 }
 
-// WithStorageAccount updates the storage account.
-func (s *ObjectStore) WithStorageAccount(storageAccount string) error {
-	s.storageAccount = storageAccount
-
-	return nil
-}
-
 // getStorageAccount returns the given storage account or or falls back to a default one.
 func (s *ObjectStore) getStorageAccount() string {
 	storageAccount := s.storageAccount
@@ -96,13 +88,6 @@ func (s *ObjectStore) getStorageAccount() string {
 	}
 
 	return storageAccount
-}
-
-// WithRegion updates the region.
-func (s *ObjectStore) WithRegion(region string) error {
-	s.location = region
-
-	return nil
 }
 
 func (s *ObjectStore) getLogger(bucketName string) logrus.FieldLogger {
