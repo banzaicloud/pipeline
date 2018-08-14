@@ -176,7 +176,7 @@ func CheckBucket(c *gin.Context) {
 	logger := correlationid.Logger(log, c)
 
 	bucketName := c.Param("name")
-	logger = logrus.WithField("bucket", bucketName)
+	logger = logger.WithField("bucket", bucketName)
 
 	organization, secret, cloudType, ok := getBucketContext(c, logger)
 	if !ok {
@@ -249,7 +249,7 @@ func DeleteBucket(c *gin.Context) {
 	logger := correlationid.Logger(log, c)
 
 	bucketName := c.Param("name")
-	logger = logrus.WithField("bucket", bucketName)
+	logger = logger.WithField("bucket", bucketName)
 
 	organization, secret, cloudType, ok := getBucketContext(c, logger)
 	if !ok {
