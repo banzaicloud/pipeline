@@ -68,6 +68,7 @@ func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 			Version:   request.Properties.CreateClusterEKS.Version,
 			NodePools: modelNodePools,
 		},
+		CreatedBy: userId,
 	}
 	return &cluster, nil
 }
@@ -671,14 +672,15 @@ func (e *EKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 	}
 
 	return &pkgCluster.GetClusterStatusResponse{
-		Status:        e.modelCluster.Status,
-		StatusMessage: e.modelCluster.StatusMessage,
-		Name:          e.modelCluster.Name,
-		Location:      e.modelCluster.Location,
-		Cloud:         e.modelCluster.Cloud,
-		Distribution:  e.modelCluster.Distribution,
-		ResourceID:    e.modelCluster.ID,
-		NodePools:     nodePools,
+		Status:            e.modelCluster.Status,
+		StatusMessage:     e.modelCluster.StatusMessage,
+		Name:              e.modelCluster.Name,
+		Location:          e.modelCluster.Location,
+		Cloud:             e.modelCluster.Cloud,
+		Distribution:      e.modelCluster.Distribution,
+		ResourceID:        e.modelCluster.ID,
+		NodePools:         nodePools,
+		CreatorBaseFields: *NewCreatorBaseFields(e.modelCluster.CreatedAt, e.modelCluster.CreatedBy),
 	}, nil
 }
 

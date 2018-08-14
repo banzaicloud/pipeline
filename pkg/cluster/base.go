@@ -54,17 +54,18 @@ const (
 
 // constants for posthooks
 const (
-	StoreKubeConfig                    = "StoreKubeConfig"
-	PersistKubernetesKeys              = "PersistKubernetesKeys"
-	UpdatePrometheusPostHook           = "UpdatePrometheusPostHook"
-	InstallHelmPostHook                = "InstallHelmPostHook"
-	InstallIngressControllerPostHook   = "InstallIngressControllerPostHook"
-	InstallKubernetesDashboardPostHook = "InstallKubernetesDashboardPostHook"
-	InstallClusterAutoscalerPostHook   = "InstallClusterAutoscalerPostHook"
-	InstallMonitoring                  = "InstallMonitoring"
-	InstallLogging                     = "InstallLogging"
-	RegisterDomainPostHook             = "RegisterDomainPostHook"
-	LabelNodes                         = "LabelNodes"
+	StoreKubeConfig                        = "StoreKubeConfig"
+	PersistKubernetesKeys                  = "PersistKubernetesKeys"
+	UpdatePrometheusPostHook               = "UpdatePrometheusPostHook"
+	InstallHelmPostHook                    = "InstallHelmPostHook"
+	InstallIngressControllerPostHook       = "InstallIngressControllerPostHook"
+	InstallKubernetesDashboardPostHook     = "InstallKubernetesDashboardPostHook"
+	InstallClusterAutoscalerPostHook       = "InstallClusterAutoscalerPostHook"
+	InstallHorizontalPodAutoscalerPostHook = "InstallHorizontalPodAutoscalerPostHook"
+	InstallMonitoring                      = "InstallMonitoring"
+	InstallLogging                         = "InstallLogging"
+	RegisterDomainPostHook                 = "RegisterDomainPostHook"
+	LabelNodes                             = "LabelNodes"
 )
 
 // Provider name regexp

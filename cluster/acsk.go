@@ -22,7 +22,6 @@ import (
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
-	"github.com/banzaicloud/pipeline/utils"
 	"github.com/jmespath/go-jmespath"
 	"github.com/pkg/errors"
 )
@@ -631,7 +630,7 @@ func (c *ACSKCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) 
 	log.Info("Check stored & updated cluster equals")
 
 	// check equality
-	return utils.IsDifferent(r.ACSK, preCl)
+	return isDifferent(r.ACSK, preCl)
 }
 
 func (c *ACSKCluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {

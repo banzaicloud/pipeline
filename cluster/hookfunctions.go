@@ -38,6 +38,10 @@ var HookMap = map[string]PostFunctioner{
 		f:            InstallClusterAutoscalerPostHook,
 		ErrorHandler: ErrorHandler{},
 	},
+	pkgCluster.InstallHorizontalPodAutoscalerPostHook: &BasePostFunction{
+		f:            InstallHorizontalPodAutoscalerPostHook,
+		ErrorHandler: ErrorHandler{},
+	},
 	pkgCluster.InstallMonitoring: &BasePostFunction{
 		f:            InstallMonitoring,
 		ErrorHandler: ErrorHandler{},
@@ -66,6 +70,7 @@ var BasePostHookFunctions = []PostFunctioner{
 	HookMap[pkgCluster.InstallIngressControllerPostHook],
 	HookMap[pkgCluster.InstallKubernetesDashboardPostHook],
 	HookMap[pkgCluster.InstallClusterAutoscalerPostHook],
+	HookMap[pkgCluster.InstallHorizontalPodAutoscalerPostHook],
 	HookMap[pkgCluster.LabelNodes],
 }
 
