@@ -18,7 +18,6 @@ import (
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
-	"github.com/kubicorn/kubicorn/pkg/logger"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/terminal"
 )
@@ -401,7 +400,7 @@ func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClust
 func getSigner(pemBytes []byte) (ssh.Signer, error) {
 	signerwithoutpassphrase, err := ssh.ParsePrivateKey(pemBytes)
 	if err != nil {
-		logger.Debug(err.Error())
+		log.Debug(err.Error())
 		fmt.Print("SSH Key Passphrase [none]: ")
 		passPhrase, err := terminal.ReadPassword(int(syscall.Stdin))
 		fmt.Println("")
