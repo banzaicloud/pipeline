@@ -414,7 +414,25 @@ func InstallHorizontalPodAutoscalerPostHook(input interface{}) error {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
 	infraNamespace := viper.GetString(pipConfig.PipelineMonitorNamespace)
-	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/hpa-operator", "pipeline-hpa", nil, "InstallHorizontalPodAutoscaler")
+
+	var valuesOverride []byte
+  // install metricsServer for Amazon & Azure
+	switch cluster.GetCloud() {
+	case pkgCluster.Amazon, pkgCluster.Azure:
+		values := &map[string]map[string]string{
+			"metricsServer": {
+				"enabled": "true",
+			},
+		}
+		yamlValues, err := yaml.Marshal(*values)
+		if err != nil {
+			log.Errorf("Error during values marshal: %s", err.Error())
+			return err
+		}
+		valuesOverride = yamlValues
+	}
+
+	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/hpa-operator", "pipeline-hpa", valuesOverride, "InstallHorizontalPodAutoscaler")
 }
 
 //UpdatePrometheusPostHook updates a configmap used by Prometheus
