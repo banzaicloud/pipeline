@@ -1,7 +1,6 @@
 package objectstore
 
 import (
-	"errors"
 	"fmt"
 
 	pipelineAuth "github.com/banzaicloud/pipeline/auth"
@@ -19,8 +18,8 @@ type OCIObjectStore struct {
 	location string
 }
 
-func NewOracleObjectStore(secret *secret.SecretItemResponse, org *pipelineAuth.Organization) *OCIObjectStore {
-	return &OCIObjectStore{secret: secret, org: org}
+func NewOracleObjectStore(secret *secret.SecretItemResponse, org *pipelineAuth.Organization, location string) *OCIObjectStore {
+	return &OCIObjectStore{secret: secret, org: org, location: location}
 }
 
 // CreateBucket creates an Oracle object store bucket with the given name
@@ -191,22 +190,6 @@ func (o *OCIObjectStore) CheckBucket(name string) error {
 	_, err = client.GetBucket(name)
 
 	return err
-}
-
-// WithResourceGroup always return "not implemented" error
-func (o *OCIObjectStore) WithResourceGroup(name string) error {
-	return errors.New("not implemented")
-}
-
-// WithStorageAccount always return "not implemented" error
-func (o *OCIObjectStore) WithStorageAccount(name string) error {
-	return errors.New("not implemented")
-}
-
-// WithRegion updates the region.
-func (o *OCIObjectStore) WithRegion(region string) error {
-	o.location = region
-	return nil
 }
 
 // newManagedBucketSearchCriteria returns the database search criteria to find managed bucket with the given name

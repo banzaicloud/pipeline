@@ -47,10 +47,7 @@ func NewObjectStore(ctx *ObjectStoreContext, logger logrus.FieldLogger) (objects
 		return google.NewObjectStore(ctx.Organization, verify.CreateServiceAccount(ctx.Secret.Values), ctx.Location, database.GetDB(), logger), nil
 
 	case oracle.Provider:
-		s := _objectstore.NewOracleObjectStore(ctx.Secret, ctx.Organization)
-		s.WithRegion(ctx.Location)
-
-		return s, nil
+		return _objectstore.NewOracleObjectStore(ctx.Secret, ctx.Organization, ctx.Location), nil
 
 	default:
 		return nil, pkgErrors.ErrorNotSupportedCloudType
