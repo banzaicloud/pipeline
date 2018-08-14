@@ -125,7 +125,7 @@ func (c *AKSCluster) CreateCluster() error {
 		}
 	}
 
-	clusterSshSecret, err := c.GetSshSecretWithValidation()
+	clusterSshSecret, err := c.getSshSecret(c)
 	if err != nil {
 		return err
 	}
@@ -283,7 +283,7 @@ func (c *AKSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, use
 
 	client.With(log)
 
-	clusterSshSecret, err := c.GetSshSecretWithValidation()
+	clusterSshSecret, err := c.getSshSecret(c)
 	if err != nil {
 		return err
 	}
@@ -671,11 +671,6 @@ func (c *AKSCluster) validateKubernetesVersion(k8sVersion, location string) erro
 // GetSecretWithValidation returns secret from vault
 func (c *AKSCluster) GetSecretWithValidation() (*secret.SecretItemResponse, error) {
 	return c.CommonClusterBase.getSecret(c)
-}
-
-// GetSshSecretWithValidation returns ssh secret from vault
-func (c *AKSCluster) GetSshSecretWithValidation() (*secret.SecretItemResponse, error) {
-	return c.CommonClusterBase.getSshSecret(c)
 }
 
 // SaveConfigSecretId saves the config secret id in database

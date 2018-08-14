@@ -249,13 +249,6 @@ func (d *DummyCluster) GetSecretWithValidation() (*secret.SecretItemResponse, er
 	}, nil
 }
 
-// GetSshSecretWithValidation returns ssh secret from vault
-func (d *DummyCluster) GetSshSecretWithValidation() (*secret.SecretItemResponse, error) {
-	return &secret.SecretItemResponse{
-		Type: pkgCluster.Dummy,
-	}, nil
-}
-
 // SaveConfigSecretId saves the config secret id in database
 func (d *DummyCluster) SaveConfigSecretId(configSecretId string) error {
 	return d.modelCluster.UpdateConfigSecret(configSecretId)
