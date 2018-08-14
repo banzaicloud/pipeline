@@ -2,7 +2,6 @@ package amazon
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -27,45 +26,30 @@ func (bucketNotFoundError) NotFound() bool { return true }
 
 // ObjectStore stores all required parameters for bucket creation.
 type ObjectStore struct {
+	region string
+	secret *secret.SecretItemResponse
+
+	org *auth.Organization
+
 	db     *gorm.DB
 	logger logrus.FieldLogger
-
-	secret *secret.SecretItemResponse
-	org    *auth.Organization
-
-	region string
 }
 
 // NewObjectStore returns a new object store instance.
 func NewObjectStore(
-	org *auth.Organization,
+	region string,
 	secret *secret.SecretItemResponse,
+	org *auth.Organization,
 	db *gorm.DB,
 	logger logrus.FieldLogger,
 ) *ObjectStore {
 	return &ObjectStore{
+		region: region,
+		secret: secret,
+		org:    org,
 		db:     db,
 		logger: logger,
-		org:    org,
-		secret: secret,
 	}
-}
-
-// WithResourceGroup updates the resource group. Always return "not implemented" error
-func (s *ObjectStore) WithResourceGroup(resourceGroup string) error {
-	return errors.New("not implemented")
-}
-
-// WithStorageAccount updates the storage account. Always return "not implemented" error
-func (s *ObjectStore) WithStorageAccount(storageAccount string) error {
-	return errors.New("not implemented")
-}
-
-// WithRegion updates the region.
-func (s *ObjectStore) WithRegion(region string) error {
-	s.region = region
-
-	return nil
 }
 
 func (s *ObjectStore) getLogger(bucketName string) logrus.FieldLogger {

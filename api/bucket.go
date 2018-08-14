@@ -42,14 +42,14 @@ func ListBuckets(c *gin.Context) {
 
 	logger.Infof("retrieving object store buckets")
 
-	objectStore, err := providers.NewObjectStore(cloudType, secret, organization, logger)
-	if err != nil {
-		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
-
-		return
+	objectStoreCtx := &providers.ObjectStoreContext{
+		Provider:     cloudType,
+		Secret:       secret,
+		Organization: organization,
 	}
 
-	if cloudType == pkgCluster.Amazon || cloudType == pkgCluster.Alibaba {
+	switch cloudType {
+	case providers.Alibaba, providers.Amazon:
 		location, ok := ginutils.RequiredQuery(c, "location")
 		if !ok {
 			logger.Debug("missing location")
@@ -57,11 +57,14 @@ func ListBuckets(c *gin.Context) {
 			return
 		}
 
-		if err = objectStore.WithRegion(location); err != nil {
-			ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
+		objectStoreCtx.Location = location
+	}
 
-			return
-		}
+	objectStore, err := providers.NewObjectStore(objectStoreCtx, logger)
+	if err != nil {
+		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
+
+		return
 	}
 
 	bucketList, err := objectStore.ListBuckets()
@@ -125,7 +128,32 @@ func CreateBucket(c *gin.Context) {
 
 	logger.Debug("secret validation successful")
 
-	objectStore, err := providers.NewObjectStore(cloudType, retrievedSecret, organization, logger)
+	objectStoreCtx := &providers.ObjectStoreContext{
+		Provider:     cloudType,
+		Secret:       retrievedSecret,
+		Organization: organization,
+	}
+
+	switch cloudType {
+	case providers.Alibaba:
+		objectStoreCtx.Location = createBucketRequest.Properties.Alibaba.Location
+
+	case providers.Amazon:
+		objectStoreCtx.Location = createBucketRequest.Properties.Amazon.Location
+
+	case providers.Google:
+		objectStoreCtx.Location = createBucketRequest.Properties.Google.Location
+
+	case providers.Azure:
+		objectStoreCtx.Location = createBucketRequest.Properties.Azure.Location
+		objectStoreCtx.ResourceGroup = createBucketRequest.Properties.Azure.ResourceGroup
+		objectStoreCtx.StorageAccount = createBucketRequest.Properties.Azure.StorageAccount
+
+	case providers.Oracle:
+		objectStoreCtx.Location = createBucketRequest.Properties.Oracle.Location
+	}
+
+	objectStore, err := providers.NewObjectStore(objectStoreCtx, logger)
 	if err != nil {
 		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
 
@@ -138,24 +166,6 @@ func CreateBucket(c *gin.Context) {
 		Name: createBucketRequest.Name,
 	})
 
-	if cloudType == pkgCluster.Alibaba {
-		objectStore.WithRegion(createBucketRequest.Properties.Alibaba.Location)
-	}
-	if cloudType == pkgCluster.Amazon {
-		objectStore.WithRegion(createBucketRequest.Properties.Amazon.Location)
-	}
-	if cloudType == pkgCluster.Google {
-		objectStore.WithRegion(createBucketRequest.Properties.Google.Location)
-	}
-	if cloudType == pkgCluster.Azure {
-		objectStore.WithRegion(createBucketRequest.Properties.Azure.Location)
-		objectStore.WithResourceGroup(createBucketRequest.Properties.Azure.ResourceGroup)
-		objectStore.WithStorageAccount(createBucketRequest.Properties.Azure.StorageAccount)
-	}
-	if cloudType == pkgCluster.Oracle {
-		objectStore.WithRegion(createBucketRequest.Properties.Oracle.Location)
-	}
-
 	go objectStore.CreateBucket(createBucketRequest.Name)
 
 	return
@@ -166,7 +176,7 @@ func CheckBucket(c *gin.Context) {
 	logger := correlationid.Logger(log, c)
 
 	bucketName := c.Param("name")
-	logger = logrus.WithField("bucket", bucketName)
+	logger = logger.WithField("bucket", bucketName)
 
 	organization, secret, cloudType, ok := getBucketContext(c, logger)
 	if !ok {
@@ -179,14 +189,24 @@ func CheckBucket(c *gin.Context) {
 		"provider":     cloudType,
 	})
 
-	objectStore, err := providers.NewObjectStore(cloudType, secret, organization, logger)
-	if err != nil {
-		logger.Errorf("instantiating object store client for failed: %s", err.Error())
-		c.Status(errorResponseFrom(err).Code)
-
-		return
+	objectStoreCtx := &providers.ObjectStoreContext{
+		Provider:     cloudType,
+		Secret:       secret,
+		Organization: organization,
 	}
-	if cloudType == pkgCluster.Azure {
+
+	switch cloudType {
+	case providers.Alibaba, providers.Amazon, providers.Oracle:
+		location, ok := ginutils.RequiredQuery(c, "location")
+		if !ok {
+			logger.Debug("missing location")
+
+			return
+		}
+
+		objectStoreCtx.Location = location
+
+	case providers.Azure:
 		resourceGroup, ok := ginutils.RequiredQuery(c, "resourceGroup")
 		if !ok {
 			logger.Debug("missing resource group")
@@ -201,32 +221,16 @@ func CheckBucket(c *gin.Context) {
 			return
 		}
 
-		if err = objectStore.WithResourceGroup(resourceGroup); err != nil {
-			c.Status(errorResponseFrom(err).Code)
-
-			return
-		}
-
-		if err = objectStore.WithStorageAccount(storageAccount); err != nil {
-			c.Status(errorResponseFrom(err).Code)
-
-			return
-		}
+		objectStoreCtx.ResourceGroup = resourceGroup
+		objectStoreCtx.StorageAccount = storageAccount
 	}
 
-	if cloudType == pkgCluster.Oracle || cloudType == pkgCluster.Amazon || cloudType == pkgCluster.Alibaba {
-		location, ok := ginutils.RequiredQuery(c, "location")
-		if !ok {
-			logger.Debug("missing location")
+	objectStore, err := providers.NewObjectStore(objectStoreCtx, logger)
+	if err != nil {
+		logger.Errorf("instantiating object store client for failed: %s", err.Error())
+		c.Status(errorResponseFrom(err).Code)
 
-			return
-		}
-
-		if err = objectStore.WithRegion(location); err != nil {
-			c.Status(errorResponseFrom(err).Code)
-
-			return
-		}
+		return
 	}
 
 	err = objectStore.CheckBucket(bucketName)
@@ -245,7 +249,7 @@ func DeleteBucket(c *gin.Context) {
 	logger := correlationid.Logger(log, c)
 
 	bucketName := c.Param("name")
-	logger = logrus.WithField("bucket", bucketName)
+	logger = logger.WithField("bucket", bucketName)
 
 	organization, secret, cloudType, ok := getBucketContext(c, logger)
 	if !ok {
@@ -260,15 +264,24 @@ func DeleteBucket(c *gin.Context) {
 
 	logger.Infof("deleting object store bucket")
 
-	objectStore, err := providers.NewObjectStore(cloudType, secret, organization, logger)
-	if err != nil {
-		logger.Errorf("instantiating object store client failed: %s", err.Error())
-		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
-
-		return
+	objectStoreCtx := &providers.ObjectStoreContext{
+		Provider:     cloudType,
+		Secret:       secret,
+		Organization: organization,
 	}
 
-	if cloudType == pkgCluster.Azure {
+	switch cloudType {
+	case providers.Oracle:
+		location, ok := ginutils.RequiredQuery(c, "location")
+		if !ok {
+			logger.Debug("missing location")
+
+			return
+		}
+
+		objectStoreCtx.Location = location
+
+	case providers.Azure:
 		resourceGroup, ok := ginutils.RequiredQuery(c, "resourceGroup")
 		if !ok {
 			logger.Debug("missing resource group")
@@ -283,31 +296,16 @@ func DeleteBucket(c *gin.Context) {
 			return
 		}
 
-		if err = objectStore.WithResourceGroup(resourceGroup); err != nil {
-			ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
-
-			return
-		}
-
-		if err = objectStore.WithStorageAccount(storageAccount); err != nil {
-			ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
-
-			return
-		}
+		objectStoreCtx.ResourceGroup = resourceGroup
+		objectStoreCtx.StorageAccount = storageAccount
 	}
-	if cloudType == pkgCluster.Oracle {
-		location, ok := ginutils.RequiredQuery(c, "location")
-		if !ok {
-			logger.Debug("missing location")
 
-			return
-		}
+	objectStore, err := providers.NewObjectStore(objectStoreCtx, logger)
+	if err != nil {
+		logger.Errorf("instantiating object store client failed: %s", err.Error())
+		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
 
-		if err = objectStore.WithRegion(location); err != nil {
-			c.Status(errorResponseFrom(err).Code)
-
-			return
-		}
+		return
 	}
 
 	if err = objectStore.DeleteBucket(bucketName); err != nil {

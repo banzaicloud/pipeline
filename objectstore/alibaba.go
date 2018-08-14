@@ -23,12 +23,17 @@ type ManagedAlibabaBucket struct {
 
 type AlibabaObjectStore struct {
 	region string
+
 	secret *secret.SecretItemResponse
 	org    *auth.Organization
 }
 
-func NewAlibabaObjectStore(secret *secret.SecretItemResponse, org *auth.Organization) *AlibabaObjectStore {
-	return &AlibabaObjectStore{secret: secret, org: org}
+func NewAlibabaObjectStore(region string, secret *secret.SecretItemResponse, org *auth.Organization) *AlibabaObjectStore {
+	return &AlibabaObjectStore{
+		region: region,
+		secret: secret,
+		org:    org,
+	}
 }
 
 var _ objectstore.ObjectStore = (*AlibabaObjectStore)(nil)
@@ -158,19 +163,6 @@ func (b *AlibabaObjectStore) CheckBucket(bucketName string) error {
 		return err
 	}
 
-	return nil
-}
-
-func (AlibabaObjectStore) WithResourceGroup(string) error {
-	return nil
-}
-
-func (AlibabaObjectStore) WithStorageAccount(string) error {
-	return nil
-}
-
-func (b *AlibabaObjectStore) WithRegion(region string) error {
-	b.region = region
 	return nil
 }
 
