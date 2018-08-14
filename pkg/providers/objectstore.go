@@ -35,10 +35,7 @@ type ObjectStoreContext struct {
 func NewObjectStore(ctx *ObjectStoreContext, logger logrus.FieldLogger) (objectstore.ObjectStore, error) {
 	switch ctx.Provider {
 	case alibaba.Provider:
-		s := _objectstore.NewAlibabaObjectStore(ctx.Secret, ctx.Organization)
-		s.WithRegion(ctx.Location)
-
-		return s, nil
+		return _objectstore.NewAlibabaObjectStore(ctx.Secret, ctx.Organization, ctx.Location), nil
 
 	case amazon.Provider:
 		s := amazon.NewObjectStore(ctx.Organization, ctx.Secret, database.GetDB(), logger)
