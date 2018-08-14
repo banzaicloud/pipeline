@@ -4,6 +4,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
 	"github.com/banzaicloud/pipeline/pkg/providers/azure"
 	"github.com/banzaicloud/pipeline/pkg/providers/google"
+	"github.com/banzaicloud/pipeline/pkg/providers/oracle"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 )
@@ -19,6 +20,10 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	}
 
 	if err := google.Migrate(db, logger); err != nil {
+		return err
+	}
+
+	if err := oracle.Migrate(db, logger); err != nil {
 		return err
 	}
 
