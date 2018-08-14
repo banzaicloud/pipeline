@@ -416,10 +416,10 @@ func InstallHorizontalPodAutoscalerPostHook(input interface{}) error {
 	infraNamespace := viper.GetString(pipConfig.PipelineMonitorNamespace)
 
 	var valuesOverride []byte
-  // install metricsServer for Amazon & Azure
+	// install metricsServer for Amazon & Azure
 	switch cluster.GetCloud() {
 	case pkgCluster.Amazon, pkgCluster.Azure:
-		values := map[string] map[string]string{
+		values := map[string]map[string]string{
 			"metricsServer": {
 				"enabled": "true",
 			},
