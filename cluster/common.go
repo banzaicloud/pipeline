@@ -22,37 +22,48 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
-//CommonCluster interface for clusters
+// CommonCluster interface for clusters.
 type CommonCluster interface {
-	CreateCluster() error
-	Persist(string, string) error
-	DownloadK8sConfig() ([]byte, error)
+	// Entity properties
+	GetID() uint
+	GetOrganizationId() uint
 	GetName() string
 	GetCloud() string
 	GetDistribution() string
-	GetStatus() (*pkgCluster.GetClusterStatusResponse, error)
-	DeleteCluster() error
-	UpdateCluster(*pkgCluster.UpdateClusterRequest, uint) error
-	GetID() uint
+
+	// Secrets
 	GetSecretId() string
 	GetSshSecretId() string
 	SaveSshSecretId(string) error
-	GetModel() *model.ClusterModel
-	CheckEqualityToUpdate(*pkgCluster.UpdateClusterRequest) error
-	AddDefaultsToUpdate(*pkgCluster.UpdateClusterRequest)
-	GetAPIEndpoint() (string, error)
-	DeleteFromDatabase() error
-	GetOrganizationId() uint
-	UpdateStatus(string, string) error
-	GetClusterDetails() (*pkgCluster.DetailsResponse, error)
-	ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error
-	GetSecretWithValidation() (*secret.SecretItemResponse, error)
 	SaveConfigSecretId(string) error
 	GetConfigSecretId() string
+	GetSecretWithValidation() (*secret.SecretItemResponse, error)
+
+	// Persistence
+	GetModel() *model.ClusterModel
+	Persist(string, string) error
+	UpdateStatus(string, string) error
+	DeleteFromDatabase() error
+
+	// Cluster management
+	CreateCluster() error
+	ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error
+	UpdateCluster(*pkgCluster.UpdateClusterRequest, uint) error
+	CheckEqualityToUpdate(*pkgCluster.UpdateClusterRequest) error
+	AddDefaultsToUpdate(*pkgCluster.UpdateClusterRequest)
+	DeleteCluster() error
+
+	// Kubernetes
+	DownloadK8sConfig() ([]byte, error)
+	GetAPIEndpoint() (string, error)
 	GetK8sConfig() ([]byte, error)
 	RequiresSshPublicKey() bool
-	ListNodeNames() (pkgCommon.NodeNames, error)
 	RbacEnabled() bool
+
+	// Cluster info
+	GetStatus() (*pkgCluster.GetClusterStatusResponse, error)
+	GetClusterDetails() (*pkgCluster.DetailsResponse, error)
+	ListNodeNames() (pkgCommon.NodeNames, error)
 }
 
 // CommonClusterBase holds the fields that is common to all cluster types
