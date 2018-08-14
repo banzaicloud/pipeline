@@ -375,7 +375,7 @@ func getValidatedSecret(organizationId uint, secretId, cloudType string) (*secre
 		return nil, err
 	}
 
-	if err := pkgCluster.ValidateCloudType(retrievedSecret.Type); err != nil {
+	if err := providers.ValidateProvider(retrievedSecret.Type); err != nil {
 		return nil, err
 	}
 
