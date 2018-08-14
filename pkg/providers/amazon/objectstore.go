@@ -26,29 +26,29 @@ func (bucketNotFoundError) NotFound() bool { return true }
 
 // ObjectStore stores all required parameters for bucket creation.
 type ObjectStore struct {
+	region string
+	secret *secret.SecretItemResponse
+
+	org *auth.Organization
+
 	db     *gorm.DB
 	logger logrus.FieldLogger
-
-	secret *secret.SecretItemResponse
-	org    *auth.Organization
-
-	region string
 }
 
 // NewObjectStore returns a new object store instance.
 func NewObjectStore(
-	org *auth.Organization,
-	secret *secret.SecretItemResponse,
 	region string,
+	secret *secret.SecretItemResponse,
+	org *auth.Organization,
 	db *gorm.DB,
 	logger logrus.FieldLogger,
 ) *ObjectStore {
 	return &ObjectStore{
+		region: region,
+		secret: secret,
+		org:    org,
 		db:     db,
 		logger: logger,
-		org:    org,
-		secret: secret,
-		region: region,
 	}
 }
 

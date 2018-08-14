@@ -6,11 +6,9 @@ import (
 	_objectstore "github.com/banzaicloud/pipeline/objectstore"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/objectstore"
-	"github.com/banzaicloud/pipeline/pkg/providers/alibaba"
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
 	"github.com/banzaicloud/pipeline/pkg/providers/azure"
 	"github.com/banzaicloud/pipeline/pkg/providers/google"
-	"github.com/banzaicloud/pipeline/pkg/providers/oracle"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/sirupsen/logrus"
@@ -33,21 +31,23 @@ type ObjectStoreContext struct {
 // NewObjectStore creates an object store client for the given cloud provider.
 // The created object is initialized with the passed in secret and organization.
 func NewObjectStore(ctx *ObjectStoreContext, logger logrus.FieldLogger) (objectstore.ObjectStore, error) {
+	db := database.GetDB()
+
 	switch ctx.Provider {
-	case alibaba.Provider:
-		return _objectstore.NewAlibabaObjectStore(ctx.Secret, ctx.Organization, ctx.Location), nil
+	case Alibaba:
+		return _objectstore.NewAlibabaObjectStore(ctx.Location, ctx.Secret, ctx.Organization), nil
 
-	case amazon.Provider:
-		return amazon.NewObjectStore(ctx.Organization, ctx.Secret, ctx.Location, database.GetDB(), logger), nil
+	case Amazon:
+		return amazon.NewObjectStore(ctx.Location, ctx.Secret, ctx.Organization, db, logger), nil
 
-	case azure.Provider:
-		return azure.NewObjectStore(ctx.Organization, ctx.Secret, ctx.Location, ctx.ResourceGroup, ctx.StorageAccount, database.GetDB(), logger), nil
+	case Azure:
+		return azure.NewObjectStore(ctx.Location, ctx.ResourceGroup, ctx.StorageAccount, ctx.Secret, ctx.Organization, db, logger), nil
 
-	case google.Provider:
-		return google.NewObjectStore(ctx.Organization, verify.CreateServiceAccount(ctx.Secret.Values), ctx.Location, database.GetDB(), logger), nil
+	case Google:
+		return google.NewObjectStore(ctx.Organization, verify.CreateServiceAccount(ctx.Secret.Values), ctx.Location, db, logger), nil
 
-	case oracle.Provider:
-		return _objectstore.NewOracleObjectStore(ctx.Secret, ctx.Organization, ctx.Location), nil
+	case Oracle:
+		return _objectstore.NewOracleObjectStore(ctx.Location, ctx.Secret, ctx.Organization), nil
 
 	default:
 		return nil, pkgErrors.ErrorNotSupportedCloudType

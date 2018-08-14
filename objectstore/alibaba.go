@@ -28,8 +28,12 @@ type AlibabaObjectStore struct {
 	org    *auth.Organization
 }
 
-func NewAlibabaObjectStore(secret *secret.SecretItemResponse, org *auth.Organization, region string) *AlibabaObjectStore {
-	return &AlibabaObjectStore{secret: secret, org: org, region: region}
+func NewAlibabaObjectStore(region string, secret *secret.SecretItemResponse, org *auth.Organization) *AlibabaObjectStore {
+	return &AlibabaObjectStore{
+		region: region,
+		secret: secret,
+		org:    org,
+	}
 }
 
 var _ objectstore.ObjectStore = (*AlibabaObjectStore)(nil)

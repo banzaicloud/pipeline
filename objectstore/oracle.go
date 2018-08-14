@@ -13,13 +13,18 @@ import (
 
 // OCIObjectStore stores all required parameters for container creation
 type OCIObjectStore struct {
-	secret   *secret.SecretItemResponse
-	org      *pipelineAuth.Organization
 	location string
+	secret   *secret.SecretItemResponse
+
+	org *pipelineAuth.Organization
 }
 
-func NewOracleObjectStore(secret *secret.SecretItemResponse, org *pipelineAuth.Organization, location string) *OCIObjectStore {
-	return &OCIObjectStore{secret: secret, org: org, location: location}
+func NewOracleObjectStore(location string, secret *secret.SecretItemResponse, org *pipelineAuth.Organization) *OCIObjectStore {
+	return &OCIObjectStore{
+		location: location,
+		secret:   secret,
+		org:      org,
+	}
 }
 
 // CreateBucket creates an Oracle object store bucket with the given name

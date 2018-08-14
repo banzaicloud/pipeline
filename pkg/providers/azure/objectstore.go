@@ -35,35 +35,35 @@ func (bucketNotFoundError) NotFound() bool { return true }
 //
 // Note: calling methods on this struct is not thread safe currently.
 type ObjectStore struct {
-	db     *gorm.DB
-	logger logrus.FieldLogger
-
-	org    *pipelineAuth.Organization
-	secret *secret.SecretItemResponse
-
 	storageAccount string
 	resourceGroup  string
 	location       string
+	secret         *secret.SecretItemResponse
+
+	org *pipelineAuth.Organization
+
+	db     *gorm.DB
+	logger logrus.FieldLogger
 }
 
 // NewObjectStore returns a new object store instance.
 func NewObjectStore(
-	org *pipelineAuth.Organization,
-	secret *secret.SecretItemResponse,
 	location string,
 	resourceGroup string,
 	storageAccount string,
+	secret *secret.SecretItemResponse,
+	org *pipelineAuth.Organization,
 	db *gorm.DB,
 	logger logrus.FieldLogger,
 ) *ObjectStore {
 	return &ObjectStore{
-		db:             db,
-		logger:         logger,
-		org:            org,
-		secret:         secret,
 		location:       location,
 		resourceGroup:  resourceGroup,
 		storageAccount: storageAccount,
+		secret:         secret,
+		db:             db,
+		logger:         logger,
+		org:            org,
 	}
 }
 
