@@ -1,7 +1,7 @@
 package defaults
 
 import (
-	"github.com/banzaicloud/pipeline/database"
+	"github.com/banzaicloud/pipeline/config"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/gke"
 )
@@ -40,7 +40,7 @@ func (GKENodePoolProfile) TableName() string {
 // AfterFind loads nodepools to profile
 func (d *GKEProfile) AfterFind() error {
 	log.Info("AfterFind gke profile... load node pools")
-	return database.GetDB().Where(GKENodePoolProfile{Name: d.Name}).Find(&d.NodePools).Error
+	return config.DB().Where(GKENodePoolProfile{Name: d.Name}).Find(&d.NodePools).Error
 }
 
 // BeforeSave clears nodepools
@@ -48,7 +48,7 @@ func (d *GKEProfile) BeforeSave() error {
 	log.Info("BeforeSave gke profile...")
 
 	var nodePools []*GKENodePoolProfile
-	err := database.GetDB().Where(GKENodePoolProfile{
+	err := config.DB().Where(GKENodePoolProfile{
 		Name: d.Name,
 	}).Find(&nodePools).Delete(&nodePools).Error
 	if err != nil {
@@ -63,7 +63,7 @@ func (d *GKEProfile) BeforeDelete() error {
 	log.Info("BeforeDelete gke profile... delete all nodepool")
 
 	var nodePools []*GKENodePoolProfile
-	return database.GetDB().Where(GKENodePoolProfile{
+	return config.DB().Where(GKENodePoolProfile{
 		Name: d.Name,
 	}).Find(&nodePools).Delete(&nodePools).Error
 }
@@ -75,7 +75,7 @@ func (d *GKEProfile) SaveInstance() error {
 
 // IsDefinedBefore returns true if database contains en entry with profile name
 func (d *GKEProfile) IsDefinedBefore() bool {
-	return database.GetDB().First(&d).RowsAffected != int64(0)
+	return config.DB().First(&d).RowsAffected != int64(0)
 }
 
 // GetCloud returns profile's cloud type
@@ -165,5 +165,5 @@ func (d *GKEProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave
 
 // DeleteProfile deletes cluster profile from database
 func (d *GKEProfile) DeleteProfile() error {
-	return database.GetDB().Delete(&d).Error
+	return config.DB().Delete(&d).Error
 }

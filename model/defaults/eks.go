@@ -1,7 +1,7 @@
 package defaults
 
 import (
-	"github.com/banzaicloud/pipeline/database"
+	"github.com/banzaicloud/pipeline/config"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/ec2"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
@@ -49,7 +49,7 @@ func (d *EKSProfile) GetDistribution() string {
 
 // IsDefinedBefore returns true if database contains en entry with profile name
 func (d *EKSProfile) IsDefinedBefore() bool {
-	return database.GetDB().First(&d).RowsAffected != 0
+	return config.DB().First(&d).RowsAffected != 0
 }
 
 // GetProfile load profile from database and converts ClusterProfileResponse
@@ -165,13 +165,13 @@ func (d *EKSProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave
 
 // DeleteProfile deletes cluster profile from database
 func (d *EKSProfile) DeleteProfile() error {
-	return database.GetDB().Delete(&d).Error
+	return config.DB().Delete(&d).Error
 }
 
 // AfterFind loads nodepools to profile
 func (d *EKSProfile) AfterFind() error {
 	log.Info("AfterFind eks profile... load node pools")
-	return database.GetDB().Where(EKSNodePoolProfile{
+	return config.DB().Where(EKSNodePoolProfile{
 		AmazonNodePoolProfileBaseFields: AmazonNodePoolProfileBaseFields{
 			Name: d.Name,
 		},
@@ -182,7 +182,7 @@ func (d *EKSProfile) AfterFind() error {
 func (d *EKSProfile) BeforeSave() error {
 	log.Info("BeforeSave eks profile...")
 
-	db := database.GetDB()
+	db := config.DB()
 	var nodePools []*EKSNodePoolProfile
 	err := db.Where(EKSNodePoolProfile{
 		AmazonNodePoolProfileBaseFields: AmazonNodePoolProfileBaseFields{
@@ -201,7 +201,7 @@ func (d *EKSProfile) BeforeDelete() error {
 	log.Info("BeforeDelete eks profile... delete all nodepool")
 
 	var nodePools []*EKSNodePoolProfile
-	return database.GetDB().Where(EKSNodePoolProfile{
+	return config.DB().Where(EKSNodePoolProfile{
 		AmazonNodePoolProfileBaseFields: AmazonNodePoolProfileBaseFields{
 			Name: d.Name,
 		},

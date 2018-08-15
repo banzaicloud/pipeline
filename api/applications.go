@@ -8,7 +8,7 @@ import (
 	"github.com/banzaicloud/pipeline/application"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
-	"github.com/banzaicloud/pipeline/database"
+	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
 	pkgApplication "github.com/banzaicloud/pipeline/pkg/application"
 	pkgCatalog "github.com/banzaicloud/pipeline/pkg/catalog"
@@ -28,7 +28,7 @@ func getApplicationFromRequest(c *gin.Context) (*model.Application, bool) {
 		})
 		return nil, false
 	}
-	db := database.GetDB()
+	db := config.DB()
 	application := &model.Application{
 		ID: uint(id),
 	}
@@ -158,7 +158,7 @@ func GetApplications(c *gin.Context) {
 	log.Debug("List applications")
 
 	var applications []model.Application //TODO change this to CommonClusterStatus
-	db := database.GetDB()
+	db := config.DB()
 	organization := auth.GetCurrentOrganization(c.Request)
 	err := db.Model(organization).Related(&applications).Error
 	if err != nil {

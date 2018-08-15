@@ -9,7 +9,6 @@ import (
 
 	bauth "github.com/banzaicloud/bank-vaults/auth"
 	"github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/database"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/dgrijalva/jwt-go"
@@ -94,7 +93,7 @@ type DroneClaims struct {
 }
 
 // Init initializes the auth
-func Init() {
+func Init(db *gorm.DB) {
 	JwtIssuer = viper.GetString("auth.jwtissuer")
 	JwtAudience = viper.GetString("auth.jwtaudience")
 	CookieDomain = viper.GetString("auth.cookieDomain")
@@ -133,11 +132,11 @@ func Init() {
 		FallbackPath: viper.GetString("pipeline.uipath"),
 	})
 
-	DroneDB = initDroneDB()
+	DroneDB = db
 
 	// Initialize Auth with configuration
 	Auth = auth.New(&auth.Config{
-		DB:                database.GetDB(),
+		DB:                config.DB(),
 		Redirector:        auth.Redirector{RedirectBack: redirectBack},
 		AuthIdentityModel: AuthIdentity{},
 		UserModel:         User{},

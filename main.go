@@ -10,7 +10,6 @@ import (
 	"github.com/banzaicloud/pipeline/audit"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/database"
 	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/dns/route53/model"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
@@ -55,10 +54,20 @@ func main() {
 	logger = initLog()
 	logger.Info("Pipeline initialization")
 
-	// Ensure DB connection
-	db := database.GetDB()
+	// Connect to database
+	db := config.DB()
+	droneDb, err := config.DroneDB()
+	if err != nil {
+		logger.Panic(err.Error())
+	}
+
+	casbinDSN, err := config.CasbinDSN()
+	if err != nil {
+		logger.Panic(err.Error())
+	}
+
 	// Initialize auth
-	auth.Init()
+	auth.Init(droneDb)
 
 	var tables = []interface{}{&model.ClusterModel{},
 		&model.ACSKClusterModel{},
@@ -104,7 +113,7 @@ func main() {
 		panic(err)
 	}
 
-	err := Migrate(db, logger)
+	err = Migrate(db, logger)
 	if err != nil {
 		panic(err)
 	}
@@ -157,7 +166,7 @@ func main() {
 	v1.GET("/functions", api.ListFunctions)
 	{
 		v1.Use(auth.Handler)
-		v1.Use(auth.NewAuthorizer())
+		v1.Use(auth.NewAuthorizer(casbinDSN))
 		orgs := v1.Group("/orgs")
 		{
 			orgs.Use(api.OrganizationMiddleware)

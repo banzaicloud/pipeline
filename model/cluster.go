@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/banzaicloud/pipeline/database"
+	"github.com/banzaicloud/pipeline/config"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	modelOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
 	"github.com/banzaicloud/pipeline/secret"
@@ -240,7 +240,7 @@ func (cs *ClusterModel) AfterFind() error {
 
 //Save the cluster to DB
 func (cs *ClusterModel) Save() error {
-	db := database.GetDB()
+	db := config.DB()
 	err := db.Save(&cs).Error
 	if err != nil {
 		return err
@@ -268,7 +268,7 @@ func (cs *ClusterModel) Delete() error {
 	log.Info("Delete config secret")
 	cs.preDelete()
 
-	db := database.GetDB()
+	db := config.DB()
 	return db.Delete(&cs).Error
 }
 
@@ -378,7 +378,7 @@ func (AKSNodePoolModel) TableName() string {
 // QueryCluster get's the clusters from the DB
 func QueryCluster(filter map[string]interface{}) ([]ClusterModel, error) {
 	var cluster []ClusterModel
-	err := database.GetDB().Where(filter).Find(&cluster).Error
+	err := config.DB().Where(filter).Find(&cluster).Error
 	if err != nil {
 		return nil, err
 	}

@@ -11,7 +11,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
-	"github.com/banzaicloud/pipeline/database"
+	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/model/defaults"
@@ -222,7 +222,7 @@ func CreateCluster(createClusterRequest *pkgCluster.CreateClusterRequest, organi
 
 	// check exists cluster name
 	var existingCluster model.ClusterModel
-	db := database.GetDB()
+	db := config.DB()
 	db.First(&existingCluster, map[string]interface{}{"name": createClusterRequest.Name, "organization_id": organizationID})
 
 	if existingCluster.ID != 0 {
@@ -646,7 +646,7 @@ func FetchClusters(c *gin.Context) {
 	log.Info("Fetching clusters")
 
 	var clusters []model.ClusterModel //TODO change this to CommonClusterStatus
-	db := database.GetDB()
+	db := config.DB()
 	organization := auth.GetCurrentOrganization(c.Request)
 	organization.Name = ""
 	err := db.Model(organization).Related(&clusters).Error

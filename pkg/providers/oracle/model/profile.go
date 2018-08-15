@@ -3,7 +3,7 @@ package model
 import (
 	"time"
 
-	"github.com/banzaicloud/pipeline/database"
+	"github.com/banzaicloud/pipeline/config"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster"
 )
@@ -69,7 +69,7 @@ func (ProfileNodePoolLabel) TableName() string {
 func GetProfiles() []Profile {
 
 	var Profiles []Profile
-	database.GetDB().Preload("NodePools.Labels").Find(&Profiles)
+	config.DB().Preload("NodePools.Labels").Find(&Profiles)
 
 	return Profiles
 }
@@ -78,19 +78,19 @@ func GetProfiles() []Profile {
 func GetProfileByName(name string) (Profile, error) {
 
 	var profile Profile
-	err := database.GetDB().Where(Profile{Name: name}).Preload("NodePools.Labels").First(&profile).Error
+	err := config.DB().Where(Profile{Name: name}).Preload("NodePools.Labels").First(&profile).Error
 
 	return profile, err
 }
 
 // SaveInstance saves cluster profile into database
 func (d *Profile) SaveInstance() error {
-	return database.GetDB().Save(d).Error
+	return config.DB().Save(d).Error
 }
 
 // IsDefinedBefore returns true if database contains en entry with profile name
 func (d *Profile) IsDefinedBefore() bool {
-	return database.GetDB().First(&d, Profile{Name: d.Name}).RowsAffected != int64(0)
+	return config.DB().First(&d, Profile{Name: d.Name}).RowsAffected != int64(0)
 }
 
 // GetCloud returns profile's cloud type
@@ -179,7 +179,7 @@ func (d *Profile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave bo
 
 // DeleteProfile deletes cluster profile from database
 func (d *Profile) DeleteProfile() error {
-	return database.GetDB().Delete(&d).Error
+	return config.DB().Delete(&d).Error
 }
 
 // BeforeDelete deletes all nodepools to belongs to profile
@@ -187,7 +187,7 @@ func (d *Profile) BeforeDelete() error {
 	log.Info("BeforeDelete oracle profile... delete all nodepool")
 
 	var nodePools []*ProfileNodePool
-	return database.GetDB().Where(ProfileNodePool{
+	return config.DB().Where(ProfileNodePool{
 		ProfileID: d.ID,
 	}).Find(&nodePools).Delete(&nodePools).Error
 }
@@ -198,7 +198,7 @@ func (d *ProfileNodePool) BeforeDelete() error {
 
 	var nodePoolLabels []*ProfileNodePoolLabel
 
-	return database.GetDB().Where(ProfileNodePoolLabel{
+	return config.DB().Where(ProfileNodePoolLabel{
 		ProfileNodePoolID: d.ID,
 	}).Find(&nodePoolLabels).Delete(&nodePoolLabels).Error
 }
@@ -212,7 +212,7 @@ func (d *Profile) BeforeSave() error {
 	}
 
 	var nodePools []*ProfileNodePool
-	err := database.GetDB().Where(ProfileNodePool{
+	err := config.DB().Where(ProfileNodePool{
 		ProfileID: d.ID,
 	}).Find(&nodePools).Delete(&nodePools).Error
 	if err != nil {

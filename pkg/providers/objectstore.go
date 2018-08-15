@@ -2,7 +2,7 @@ package providers
 
 import (
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/database"
+	"github.com/banzaicloud/pipeline/config"
 	_objectstore "github.com/banzaicloud/pipeline/objectstore"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/objectstore"
@@ -32,7 +32,7 @@ type ObjectStoreContext struct {
 // NewObjectStore creates an object store client for the given cloud provider.
 // The created object is initialized with the passed in secret and organization.
 func NewObjectStore(ctx *ObjectStoreContext, logger logrus.FieldLogger) (objectstore.ObjectStore, error) {
-	db := database.GetDB()
+	db := config.DB()
 
 	switch ctx.Provider {
 	case Alibaba:
