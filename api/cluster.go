@@ -18,9 +18,11 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -287,14 +289,24 @@ func CreateCluster(createClusterRequest *pkgCluster.CreateClusterRequest, organi
 
 // postCreateCluster creates a cluster (ASYNC)
 func postCreateCluster(commonCluster cluster.CommonCluster, postHooks []cluster.PostFunctioner) error {
+	log := log.WithFields(logrus.Fields{
+		"organization": commonCluster.GetOrganizationId(),
+		"cluster": commonCluster.GetName(),
+	})
 
 	// Check if public ssh key is needed for the cluster. If so and there is generate one and store it Vault
 	if len(commonCluster.GetSshSecretId()) == 0 && commonCluster.RequiresSshPublicKey() {
 		log.Infof("Generating Ssh Key for the cluster")
 
-		sshSecretId, err := commonCluster.GetModel().AddSshKey()
+		sshKey, err := secret.GenerateSSHKeyPair()
 		if err != nil {
-			log.Errorf("Generating Ssh Key for organization id=%s, cluster id=%s failed: %s", commonCluster.GetOrganizationId(), commonCluster.GetID(), err.Error())
+			log.Errorf("KeyGenerator failed reason: %s", err.Error())
+			return err
+		}
+
+		sshSecretId, err := secret.StoreSSHKeyPair(sshKey, commonCluster.GetOrganizationId(), commonCluster.GetID(), commonCluster.GetName())
+		if err != nil {
+			log.Errorf("KeyStore failed reason: %s", err.Error())
 			return err
 		}
 
