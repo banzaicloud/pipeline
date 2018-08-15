@@ -13,6 +13,7 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
+	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
@@ -21,6 +22,7 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"k8s.io/api/rbac/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
@@ -402,7 +404,114 @@ func InstallKubernetesDashboardPostHook(input interface{}) error {
 	if !ok {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
-	return installDeployment(cluster, helm.SystemNamespace, pkgHelm.StableRepository+"/kubernetes-dashboard", "dashboard", nil, "InstallKubernetesDashboard")
+
+	k8sDashboardNameSpace := helm.SystemNamespace
+	k8sDashboardReleaseName := "dashboard"
+	var valuesJson []byte
+
+	if cluster.RbacEnabled() {
+		// create service account
+		kubeConfig, err := cluster.GetK8sConfig()
+		if err != nil {
+			log.Errorf("Unable to fetch config for posthook: %s", err.Error())
+			return err
+		}
+
+		client, err := helm.GetK8sConnection(kubeConfig)
+		if err != nil {
+			log.Errorf("Could not get kubernetes client: %s", err)
+			return err
+		}
+
+		// service account
+		k8sDashboardServiceAccountName := k8sDashboardReleaseName
+		serviceAccount, err := k8sutil.GetOrCreateServiceAccount(log, client, k8sDashboardNameSpace, k8sDashboardServiceAccountName)
+		if err != nil {
+			return err
+		}
+
+		// cluster role based on https://github.com/helm/charts/blob/master/stable/kubernetes-dashboard/templates/role.yaml
+		clusterRoleName := k8sDashboardReleaseName
+		rules := []v1beta1.PolicyRule{
+			// Allow to list all
+			{
+				APIGroups: []string{"*"},
+				Resources: []string{"*"},
+				Verbs:     []string{"list", "get"},
+			},
+			// # Allow Dashboard to create 'kubernetes-dashboard-key-holder' secret.
+			{
+				APIGroups: []string{""},
+				Resources: []string{"secrets"},
+				Verbs:     []string{"create"},
+			},
+			// # Allow Dashboard to list and create 'kubernetes-dashboard-settings' config map.
+			{
+				APIGroups: []string{""},
+				Resources: []string{"configmaps"},
+				Verbs:     []string{"create"},
+			},
+			// # Allow Dashboard to get, update and delete Dashboard exclusive secrets.
+			{
+				APIGroups:     []string{""},
+				Resources:     []string{"secrets"},
+				ResourceNames: []string{"kubernetes-dashboard-key-holder", fmt.Sprintf("kubernetes-dashboard-%s", k8sDashboardReleaseName)},
+				Verbs:         []string{"update", "delete"},
+			},
+			// # Allow Dashboard to get and update 'kubernetes-dashboard-settings' config map.
+			{
+				APIGroups:     []string{""},
+				Resources:     []string{"configmaps"},
+				ResourceNames: []string{"kubernetes-dashboard-settings"},
+				Verbs:         []string{"update"},
+			},
+			// # Allow Dashboard to get metrics from heapster.
+			{
+				APIGroups:     []string{""},
+				Resources:     []string{"services"},
+				ResourceNames: []string{"heapster"},
+				Verbs:         []string{"proxy"},
+			},
+			{
+				APIGroups:     []string{""},
+				Resources:     []string{"services/proxy"},
+				ResourceNames: []string{"heapster", "http:heapster:", "https:heapster:"},
+				Verbs:         []string{"get"},
+			},
+		}
+
+		clusterRole, err := k8sutil.GetOrCreateClusterRole(log, client, clusterRoleName, rules)
+		if err != nil {
+			return err
+		}
+
+		// cluster role binding
+		clusterRoleBindingName := k8sDashboardReleaseName
+		_, err = k8sutil.GetOrCreateClusterRoleBinding(log, client, clusterRoleBindingName, serviceAccount, clusterRole)
+		if err != nil {
+			return err
+		}
+
+		values := map[string]interface{}{
+			"rbac": map[string]bool{
+				"create":           false,
+				"clusterAdminRole": false,
+			},
+			"serviceAccount": map[string]interface{}{
+				"create": false,
+				"name":   serviceAccount.Name,
+			},
+		}
+
+		valuesJson, err = json.Marshal(values)
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return installDeployment(cluster, k8sDashboardNameSpace, pkgHelm.StableRepository+"/kubernetes-dashboard", k8sDashboardReleaseName, valuesJson, "InstallKubernetesDashboard")
+
 }
 
 //InstallClusterAutoscalerPostHook post hook only for AWS & Azure for now
