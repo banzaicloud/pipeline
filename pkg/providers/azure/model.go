@@ -10,7 +10,7 @@ import (
 // Migrate executes the table migrations for the provider.
 func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	tables := []interface{}{
-		&ObjectStoreModel{},
+		&ObjectStoreBucketModel{},
 	}
 
 	var tableNames string
