@@ -7,8 +7,8 @@ const (
 	bucketsTableName = "google_buckets"
 )
 
-// ObjectStoreModel is the schema for the DB
-type ObjectStoreModel struct {
+// ObjectStoreBucketModel is the schema for the DB.
+type ObjectStoreBucketModel struct {
 	ID uint `gorm:"primary_key"`
 
 	Organization   auth.Organization `gorm:"foreignkey:OrganizationID"`
@@ -19,6 +19,6 @@ type ObjectStoreModel struct {
 }
 
 // TableName changes the default table name.
-func (ObjectStoreModel) TableName() string {
+func (ObjectStoreBucketModel) TableName() string {
 	return bucketsTableName
 }
