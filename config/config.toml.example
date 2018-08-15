@@ -94,3 +94,7 @@ namespace = "pipeline-infra"
 
 [eks]
 templateLocation="https://raw.githubusercontent.com/banzaicloud/pipeline/master/templates/eks"
+
+[gke]
+resourceDeleteWaitAttempt = 12
+resourceDeleteSleepSeconds = 5
