@@ -25,11 +25,15 @@ import (
 // Store object that wraps up vault logical store
 var Store *secretStore
 
+// RestrictedStore object that wraps the main secret store and restricts access to certain items
+var RestrictedStore *restrictedSecretStore
+
 // ErrSecretNotExists denotes 'Not Found' errors for secrets
 var ErrSecretNotExists = fmt.Errorf("There's no secret with this ID")
 
 func init() {
 	Store = newVaultSecretStore()
+	RestrictedStore = &restrictedSecretStore{Store}
 }
 
 type secretStore struct {
@@ -152,7 +156,7 @@ func (ss *secretStore) DeleteByClusterID(orgID uint, clusterID uint) error {
 	secrets, err := Store.List(orgID,
 		&secretTypes.ListSecretsQuery{
 			Tag: clusterIdTag,
-		}, true)
+		})
 
 	if err != nil {
 		log.Errorf("Error during list secrets: %s", err.Error())
@@ -348,7 +352,7 @@ func (ss *secretStore) GetByName(organizationID uint, name string) (*SecretItemR
 }
 
 // List secret secret/orgs/:orgid:/ scope
-func (ss *secretStore) List(orgid uint, query *secretTypes.ListSecretsQuery, internalCall bool) ([]*SecretItemResponse, error) {
+func (ss *secretStore) List(orgid uint, query *secretTypes.ListSecretsQuery) ([]*SecretItemResponse, error) {
 
 	log.Debugf("Searching for secrets [orgid: %d, query: %#v]", orgid, query)
 
@@ -381,8 +385,7 @@ func (ss *secretStore) List(orgid uint, query *secretTypes.ListSecretsQuery, int
 				}
 
 				if (query.Type == secretTypes.AllSecrets || sir.Type == query.Type) &&
-					(query.Tag == "" || hasTag(sir.Tags, query.Tag)) &&
-					(internalCall || HasForbiddenTag(sir.Tags) == nil) {
+					(query.Tag == "" || hasTag(sir.Tags, query.Tag)) {
 
 					responseItems = append(responseItems, sir)
 				}
@@ -418,29 +421,6 @@ func (m MissmatchError) Error() string {
 		return fmt.Sprintf("missmatch secret type %s versus %s", m.SecretType, m.ValidType)
 	}
 	return m.Err.Error()
-}
-
-// ForbiddenError describes a secret error where it contains forbidden tag
-type ForbiddenError struct {
-	ForbiddenTag string
-}
-
-func (f ForbiddenError) Error() string {
-	return fmt.Sprintf("secret contains a forbidden tag: %s", f.ForbiddenTag)
-}
-
-// HasForbiddenTag is looking for forbidden tags
-func HasForbiddenTag(tags []string) error {
-	for _, tag := range tags {
-		for _, forbiddenTag := range secretTypes.ForbiddenTags {
-			if tag == forbiddenTag {
-				return ForbiddenError{
-					ForbiddenTag: tag,
-				}
-			}
-		}
-	}
-	return nil
 }
 
 // IsCASError detects if the underlying Vault error is caused by a CAS failure

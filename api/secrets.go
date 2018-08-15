@@ -32,7 +32,7 @@ func ValidateSecret(c *gin.Context) {
 	secretID := c.Param("id")
 	log.Infof("secret id [%d]", secretID)
 
-	secretItem, err := secret.Store.Get(organizationID, secretID)
+	secretItem, err := secret.RestrictedStore.Get(organizationID, secretID)
 	if err != nil {
 		log.Errorf("Error during getting secret: %s", err.Error())
 		c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
@@ -121,7 +121,7 @@ func AddSecrets(c *gin.Context) {
 		return
 	}
 
-	secretID, err := secret.Store.Store(organizationID, &createSecretRequest)
+	secretID, err := secret.RestrictedStore.Store(organizationID, &createSecretRequest)
 	if err != nil {
 		statusCode := http.StatusInternalServerError
 		message := "Error during store"
@@ -146,7 +146,7 @@ func AddSecrets(c *gin.Context) {
 		errorMsg = validationError.Error()
 	}
 
-	s, err := secret.Store.Get(organizationID, secretID)
+	s, err := secret.RestrictedStore.Get(organizationID, secretID)
 	if err != nil {
 		log.Errorf("error during getting secret: %s", err.Error())
 		c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
@@ -215,23 +215,13 @@ func UpdateSecrets(c *gin.Context) {
 
 	log.Info("Binding request succeeded")
 
-	if err := searchForbiddenTags(organizationID, secretID); err != nil {
-		log.Errorf("Error during updating secrets: %s", err.Error())
-		c.AbortWithStatusJSON(http.StatusInternalServerError, common.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: "Error during updating secrets",
-			Error:   err.Error(),
-		})
-		return
-	}
-
 	var validationError error
 	var ok bool
 	if ok, validationError = validateSecret(c, &createSecretRequest, validate); !ok {
 		return
 	}
 
-	if err := secret.Store.Update(organizationID, secretID, &createSecretRequest); err != nil {
+	if err := secret.RestrictedStore.Update(organizationID, secretID, &createSecretRequest); err != nil {
 		statusCode := http.StatusInternalServerError
 		if secret.IsCASError(err) {
 			statusCode = http.StatusBadRequest
@@ -247,7 +237,7 @@ func UpdateSecrets(c *gin.Context) {
 
 	log.Debugf("Secret updated at: %s/%s", organizationID, secretID)
 
-	s, err := secret.Store.Get(organizationID, secretID)
+	s, err := secret.RestrictedStore.Get(organizationID, secretID)
 	if err != nil {
 		log.Errorf("error during getting secret: %s", err.Error())
 		c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
@@ -301,7 +291,7 @@ func ListSecrets(c *gin.Context) {
 			Error:   err.Error(),
 		})
 	} else {
-		if secrets, err := secret.Store.List(organizationID, &query, false); err != nil {
+		if secrets, err := secret.RestrictedStore.List(organizationID, &query); err != nil {
 			log.Errorf("Error during listing secrets: %s", err.Error())
 			c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
 				Code:    http.StatusBadRequest,
@@ -321,7 +311,7 @@ func GetSecret(c *gin.Context) {
 
 	secretID := c.Param("id")
 
-	if secret, err := secret.Store.Get(organizationID, secretID); err != nil {
+	if secret, err := secret.RestrictedStore.Get(organizationID, secretID); err != nil {
 		log.Errorf("Error during getting secret: %s", err.Error())
 		c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
@@ -351,14 +341,7 @@ func DeleteSecrets(c *gin.Context) {
 			Message: fmt.Sprintf("Cluster found with this secret[%s]", secretID),
 			Error:   err.Error(),
 		})
-	} else if err := searchForbiddenTags(organizationID, secretID); err != nil {
-		log.Errorf("Error during deleting secrets: %s", err.Error())
-		c.AbortWithStatusJSON(http.StatusInternalServerError, common.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: "Error during deleting secrets",
-			Error:   err.Error(),
-		})
-	} else if err := secret.Store.Delete(organizationID, secretID); err != nil {
+	} else if err := secret.RestrictedStore.Delete(organizationID, secretID); err != nil {
 		log.Errorf("Error during deleting secrets: %s", err.Error())
 		code := http.StatusInternalServerError
 		resp := common.ErrorResponse{
@@ -438,16 +421,4 @@ func checkClustersBeforeDelete(orgId uint, secretId string) error {
 		}
 	}
 	return nil
-}
-
-// searchForbiddenTags gets the secret by organization id and secret id and looks for forbidden tag(s)
-// Secrets cannot be created/deleted with these tags
-func searchForbiddenTags(orgId uint, secretId string) error {
-
-	secretItem, err := secret.Store.Get(orgId, secretId)
-	if err != nil {
-		return err
-	}
-
-	return secret.HasForbiddenTag(secretItem.Tags)
 }
