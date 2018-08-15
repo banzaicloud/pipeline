@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/banzaicloud/pipeline/database"
+	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/dgrijalva/jwt-go"
@@ -200,10 +200,6 @@ func (bus BanzaiUserStorer) createUserInDroneDB(user *User, githubAccessToken st
 	return bus.droneDB.Where(droneUser).FirstOrCreate(droneUser).Error
 }
 
-func initDroneDB() *gorm.DB {
-	return database.ConnectDB("drone")
-}
-
 // This method tries to call the Drone API on a best effort basis to fetch all repos before the user navigates there.
 func (bus BanzaiUserStorer) synchronizeDroneRepos(login string) {
 	droneURL := viper.GetString("drone.url")
@@ -296,7 +292,7 @@ func importGithubOrganizations(currentUser *User, context *auth.Context, githubT
 
 // GetOrganizationById returns an organization from database by ID
 func GetOrganizationById(orgID uint) (*Organization, error) {
-	db := database.GetDB()
+	db := config.DB()
 	var org Organization
 	err := db.Find(&org, Organization{ID: orgID}).Error
 	return &org, err
@@ -304,7 +300,7 @@ func GetOrganizationById(orgID uint) (*Organization, error) {
 
 // GetUserById returns user
 func GetUserById(userId uint) (*User, error) {
-	db := database.GetDB()
+	db := config.DB()
 	var user User
 	err := db.Find(&user, User{ID: userId}).Error
 	return &user, err

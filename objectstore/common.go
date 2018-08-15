@@ -1,7 +1,7 @@
 package objectstore
 
 import (
-	"github.com/banzaicloud/pipeline/database"
+	"github.com/banzaicloud/pipeline/config"
 	"github.com/jinzhu/gorm"
 )
 
@@ -21,7 +21,7 @@ func (ManagedBucketNotFoundError) NotFound() bool { return true }
 // If no db record is found than returns with ManagedBucketNotFoundError
 func getManagedBucket(searchCriteria interface{}, managedBucket interface{}) error {
 
-	if err := database.GetDB().Where(searchCriteria).Find(managedBucket).Error; err != nil {
+	if err := config.DB().Where(searchCriteria).Find(managedBucket).Error; err != nil {
 
 		if err == gorm.ErrRecordNotFound {
 			return ManagedBucketNotFoundError{
@@ -36,18 +36,18 @@ func getManagedBucket(searchCriteria interface{}, managedBucket interface{}) err
 
 func persistToDb(m interface{}) error {
 	log.Info("Persisting Bucket to Db")
-	db := database.GetDB()
+	db := config.DB()
 	return db.Save(m).Error
 }
 
 func deleteFromDbByPK(m interface{}) error {
 	log.Info("Deleting from DB...")
-	db := database.GetDB()
+	db := config.DB()
 	return db.Delete(m).Error
 }
 
 // queryDb queries the database using the specified searchCriteria
 // and returns the returned records into result
 func queryWithOrderByDb(searchCriteria interface{}, orderBy interface{}, result interface{}) error {
-	return database.GetDB().Where(searchCriteria).Order(orderBy).Find(result).Error
+	return config.DB().Where(searchCriteria).Order(orderBy).Find(result).Error
 }

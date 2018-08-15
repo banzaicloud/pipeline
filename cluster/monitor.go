@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	pipConfig "github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/database"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
@@ -42,7 +41,7 @@ func UpdatePrometheusConfig() error {
 	configMapPath := viper.GetString("monitor.mountpath")
 
 	var clusters []model.ClusterModel
-	db := database.GetDB()
+	db := pipConfig.DB()
 	db.Find(&clusters)
 	var prometheusConfig []PrometheusCfg
 	//Gathering information about clusters

@@ -1,7 +1,7 @@
 package defaults
 
 import (
-	"github.com/banzaicloud/pipeline/database"
+	"github.com/banzaicloud/pipeline/config"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgAmazon "github.com/banzaicloud/pipeline/pkg/cluster/ec2"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
@@ -49,13 +49,13 @@ func (d *EC2Profile) GetDistribution() string {
 
 // IsDefinedBefore returns true if database contains en entry with profile name
 func (d *EC2Profile) IsDefinedBefore() bool {
-	return database.GetDB().First(&d).RowsAffected != int64(0)
+	return config.DB().First(&d).RowsAffected != int64(0)
 }
 
 // AfterFind loads nodepools to profile
 func (d *EC2Profile) AfterFind() error {
 	log.Info("AfterFind ec2 profile... load node pools")
-	return database.GetDB().Where(EC2NodePoolProfile{
+	return config.DB().Where(EC2NodePoolProfile{
 		AmazonNodePoolProfileBaseFields: AmazonNodePoolProfileBaseFields{
 			Name: d.Name,
 		},
@@ -66,7 +66,7 @@ func (d *EC2Profile) AfterFind() error {
 func (d *EC2Profile) BeforeSave() error {
 	log.Info("BeforeSave ec2 profile...")
 
-	db := database.GetDB()
+	db := config.DB()
 	var nodePools []*EC2NodePoolProfile
 	err := db.Where(EC2NodePoolProfile{
 		AmazonNodePoolProfileBaseFields: AmazonNodePoolProfileBaseFields{
@@ -85,7 +85,7 @@ func (d *EC2Profile) BeforeDelete() error {
 	log.Info("BeforeDelete ec2 profile... delete all nodepool")
 
 	var nodePools []*EC2NodePoolProfile
-	return database.GetDB().Where(EC2NodePoolProfile{
+	return config.DB().Where(EC2NodePoolProfile{
 		AmazonNodePoolProfileBaseFields: AmazonNodePoolProfileBaseFields{
 			Name: d.Name,
 		},
@@ -214,5 +214,5 @@ func (d *EC2Profile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave
 
 // DeleteProfile deletes cluster profile from database
 func (d *EC2Profile) DeleteProfile() error {
-	return database.GetDB().Delete(&d).Error
+	return config.DB().Delete(&d).Error
 }

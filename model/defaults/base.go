@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/banzaicloud/pipeline/database"
+	"github.com/banzaicloud/pipeline/config"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
@@ -72,7 +72,7 @@ type DefaultModel struct {
 
 // save saves the given data into database
 func save(i interface{}) error {
-	database := database.GetDB()
+	database := config.DB()
 	return database.Save(i).Error
 }
 
@@ -120,7 +120,7 @@ func GetDefaultProfiles() []ClusterProfile {
 func GetAllProfiles(distribution string) ([]ClusterProfile, error) {
 
 	var defaults []ClusterProfile
-	db := database.GetDB()
+	db := config.DB()
 
 	switch distribution {
 
@@ -168,7 +168,7 @@ func GetAllProfiles(distribution string) ([]ClusterProfile, error) {
 
 // GetProfile finds cluster profile from database by given name and cloud type
 func GetProfile(distribution string, name string) (ClusterProfile, error) {
-	db := database.GetDB()
+	db := config.DB()
 
 	switch distribution {
 	case pkgCluster.EC2:

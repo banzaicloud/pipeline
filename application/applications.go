@@ -10,7 +10,6 @@ import (
 	"github.com/banzaicloud/pipeline/catalog"
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/database"
 	"github.com/banzaicloud/pipeline/helm"
 	k8s "github.com/banzaicloud/pipeline/kubernetes"
 	"github.com/banzaicloud/pipeline/model"
@@ -188,7 +187,7 @@ func CreateApplicationDeployment(env helm_env.EnvSettings, am *model.Application
 			Name:   dependency.Name,
 			Chart:  dependency.Chart.Name,
 		}
-		database.GetDB().Save(&deployment)
+		config.DB().Save(&deployment)
 		am.Deployments = append(am.Deployments, deployment)
 	}
 	// Add the catalog itself
@@ -197,7 +196,7 @@ func CreateApplicationDeployment(env helm_env.EnvSettings, am *model.Application
 		Name:   catalogInfo.Chart.Name,
 		Chart:  am.CatalogName,
 	}
-	database.GetDB().Save(deployment)
+	config.DB().Save(deployment)
 	am.Deployments = append(am.Deployments, deployment)
 	am.Save()
 
@@ -398,7 +397,7 @@ func mergeRefValues(catalog *catalog.CatalogDetails, options []pkgCatalog.Applic
 // FindApplicationsByCluster loads applications from DB by clusterID
 func FindApplicationsByCluster(clusterId uint) (apps []model.Application, err error) {
 	log.Infof("loads applications by clusterID [%d]", clusterId)
-	db := database.GetDB()
+	db := config.DB()
 	err = db.Where(model.Application{ClusterID: clusterId}).Find(&apps).Error
 
 	return

@@ -3,7 +3,7 @@ package model
 import (
 	"time"
 
-	"github.com/banzaicloud/pipeline/database"
+	"github.com/banzaicloud/pipeline/config"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster"
@@ -191,7 +191,7 @@ func (c *Cluster) Cleanup() error {
 		return err
 	}
 
-	db := database.GetDB()
+	db := config.DB()
 	return db.Delete(&c).Error
 }
 
@@ -202,14 +202,14 @@ func (d *NodePool) BeforeDelete() error {
 	var nodePoolSubnets []*NodePoolSubnet
 	var nodePoolLabels []*NodePoolLabel
 
-	err := database.GetDB().Where(NodePoolSubnet{
+	err := config.DB().Where(NodePoolSubnet{
 		NodePoolID: d.ID,
 	}).Find(&nodePoolSubnets).Delete(&nodePoolSubnets).Error
 	if err != nil {
 		return err
 	}
 
-	return database.GetDB().Where(NodePoolLabel{
+	return config.DB().Where(NodePoolLabel{
 		NodePoolID: d.ID,
 	}).Find(&nodePoolLabels).Delete(&nodePoolLabels).Error
 }
@@ -222,7 +222,7 @@ func (c *Cluster) RemoveNodePools() error {
 	}
 
 	var nodePools []*NodePool
-	err := database.GetDB().Where(NodePool{
+	err := config.DB().Where(NodePool{
 		ClusterID: c.ID,
 	}).Find(&nodePools).Delete(&nodePools).Error
 	if err != nil {
