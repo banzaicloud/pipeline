@@ -249,7 +249,7 @@ func DeleteClusterProfile(c *gin.Context) {
 func sendBackGetProfileErrorResponse(c *gin.Context, err error) {
 	statusCode := http.StatusBadRequest
 	msg := "Error during getting profile"
-	if database.IsErrorGormNotFound(err) {
+	if database.IsRecordNotFoundError(err) {
 		statusCode = http.StatusNotFound
 		msg = "Profile not found"
 	}
