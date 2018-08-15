@@ -118,6 +118,11 @@ func (g *GKECluster) GetOrganizationId() uint {
 	return g.modelCluster.OrganizationId
 }
 
+// GetLocation gets where the cluster is.
+func (g *GKECluster) GetLocation() string {
+	return g.modelCluster.Location
+}
+
 // GetSecretId retrieves the secret id
 func (g *GKECluster) GetSecretId() string {
 	return g.modelCluster.SecretId

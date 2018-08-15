@@ -601,6 +601,11 @@ func (c *ACSKCluster) GetSshSecretId() string {
 	return c.modelCluster.SshSecretId
 }
 
+// GetLocation gets where the cluster is.
+func (c *ACSKCluster) GetLocation() string {
+	return c.modelCluster.Location
+}
+
 func (c *ACSKCluster) SaveSshSecretId(sshSecretId string) error {
 	return c.modelCluster.UpdateSshSecret(sshSecretId)
 }

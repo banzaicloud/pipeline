@@ -30,6 +30,7 @@ type CommonCluster interface {
 	GetName() string
 	GetCloud() string
 	GetDistribution() string
+	GetLocation() string
 
 	// Secrets
 	GetSecretId() string

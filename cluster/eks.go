@@ -89,6 +89,11 @@ func (e *EKSCluster) GetOrganizationId() uint {
 	return e.modelCluster.OrganizationId
 }
 
+// GetLocation gets where the cluster is.
+func (e *EKSCluster) GetLocation() string {
+	return e.modelCluster.Location
+}
+
 // GetSecretId retrieves the secret id
 func (e *EKSCluster) GetSecretId() string {
 	return e.modelCluster.SecretId

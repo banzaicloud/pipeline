@@ -115,7 +115,7 @@ func createAutoscalingForEc2(cluster CommonCluster, groups []nodeGroup) *autosca
 			"expander": expanderStrategy,
 		},
 		Rbac:      rbac{Create: true},
-		AwsRegion: cluster.GetModel().Location,
+		AwsRegion: cluster.GetLocation(),
 	}
 }
 
@@ -128,7 +128,7 @@ func createAutoscalingForEks(cluster CommonCluster, groups []nodeGroup) *autosca
 			"expander": expanderStrategy,
 		},
 		Rbac:      rbac{Create: true},
-		AwsRegion: cluster.GetModel().Location,
+		AwsRegion: cluster.GetLocation(),
 		AutoDiscovery: autoDiscovery{
 			ClusterName: cluster.GetName(),
 		},
