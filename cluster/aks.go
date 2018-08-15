@@ -78,6 +78,11 @@ func (c *AKSCluster) GetOrganizationId() uint {
 	return c.modelCluster.OrganizationId
 }
 
+// GetLocation gets where the cluster is.
+func (c *AKSCluster) GetLocation() string {
+	return c.modelCluster.Location
+}
+
 // GetAKSClient creates an AKS client with the credentials
 func (c *AKSCluster) GetAKSClient() (azureClient.ClusterManager, error) {
 	clusterSecret, err := c.GetSecretWithValidation()
@@ -792,4 +797,24 @@ func DeleteResourceGroup(orgId uint, secretId, rgName string) error {
 	client.With(log)
 
 	return azureClient.DeleteResourceGroup(client, rgName)
+}
+
+// GetAKSNodePools returns AKS node pools from a common cluster.
+func GetAKSNodePools(cluster CommonCluster) ([]*model.AKSNodePoolModel, error) {
+	akscluster, ok := cluster.(*AKSCluster)
+	if !ok {
+		return nil, ErrInvalidClusterInstance
+	}
+
+	return akscluster.modelCluster.AKS.NodePools, nil
+}
+
+// GetAKSResourceGroup returns AKS resource group from a common cluster.
+func GetAKSResourceGroup(cluster CommonCluster) (string, error) {
+	akscluster, ok := cluster.(*AKSCluster)
+	if !ok {
+		return "", ErrInvalidClusterInstance
+	}
+
+	return akscluster.modelCluster.AKS.ResourceGroup, nil
 }

@@ -66,6 +66,11 @@ func (c *EC2Cluster) GetOrganizationId() uint {
 	return c.modelCluster.OrganizationId
 }
 
+// GetLocation gets where the cluster is.
+func (c *EC2Cluster) GetLocation() string {
+	return c.modelCluster.Location
+}
+
 // GetSecretId retrieves the secret id
 func (c *EC2Cluster) GetSecretId() string {
 	return c.modelCluster.SecretId
@@ -849,7 +854,7 @@ func (c *EC2Cluster) DownloadK8sConfig() ([]byte, error) {
 		return nil, err
 	}
 
-	return DownloadK8sConfig(kubicornCluster, c.GetModel().OrganizationId, secret.NewSSHKeyPair(sshSecret))
+	return DownloadK8sConfig(kubicornCluster, c.GetOrganizationId(), secret.NewSSHKeyPair(sshSecret))
 }
 
 //DownloadK8sConfig downloads the Kubernetes config from the cluster
@@ -1441,4 +1446,14 @@ func hasTagWithNodeName(tags []*ec2.Tag, nodeName string) bool {
 // RbacEnabled returns true if rbac enabled on the cluster
 func (c *EC2Cluster) RbacEnabled() bool {
 	return c.modelCluster.RbacEnabled
+}
+
+// GetEC2NodePools returns EC2 node pools from a common cluster.
+func GetEC2NodePools(cluster CommonCluster) ([]*model.AmazonNodePoolsModel, error) {
+	ec2cluster, ok := cluster.(*EC2Cluster)
+	if !ok {
+		return nil, ErrInvalidClusterInstance
+	}
+
+	return ec2cluster.modelCluster.EC2.NodePools, nil
 }

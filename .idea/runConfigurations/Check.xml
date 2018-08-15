@@ -1,6 +1,0 @@
-<component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Check" type="CompoundRunConfigurationType" factoryName="Compound Run Configuration">
-    <toRun type="GoTestRunConfiguration" name="Tests" />
-    <method />
-  </configuration>
-</component>

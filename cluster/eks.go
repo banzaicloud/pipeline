@@ -89,6 +89,11 @@ func (e *EKSCluster) GetOrganizationId() uint {
 	return e.modelCluster.OrganizationId
 }
 
+// GetLocation gets where the cluster is.
+func (e *EKSCluster) GetLocation() string {
+	return e.modelCluster.Location
+}
+
 // GetSecretId retrieves the secret id
 func (e *EKSCluster) GetSecretId() string {
 	return e.modelCluster.SecretId
@@ -955,4 +960,14 @@ func createDefaultStorageClass(kubernetesClient *kubernetes.Clientset) error {
 // RbacEnabled returns true if rbac enabled on the cluster
 func (e *EKSCluster) RbacEnabled() bool {
 	return e.modelCluster.RbacEnabled
+}
+
+// GetEKSNodePools returns EKS node pools from a common cluster.
+func GetEKSNodePools(cluster CommonCluster) ([]*model.AmazonNodePoolsModel, error) {
+	ekscluster, ok := cluster.(*EKSCluster)
+	if !ok {
+		return nil, ErrInvalidClusterInstance
+	}
+
+	return ekscluster.modelCluster.EKS.NodePools, nil
 }

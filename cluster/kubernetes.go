@@ -185,6 +185,11 @@ func (b *KubeCluster) GetOrganizationId() uint {
 	return b.modelCluster.OrganizationId
 }
 
+// GetLocation gets where the cluster is.
+func (b *KubeCluster) GetLocation() string {
+	return b.modelCluster.Location
+}
+
 // CreateKubernetesClusterFromModel converts ClusterModel to KubeCluster
 func CreateKubernetesClusterFromModel(clusterModel *model.ClusterModel) (*KubeCluster, error) {
 	log.Debug("Create ClusterModel struct from the request")

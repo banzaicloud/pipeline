@@ -30,6 +30,7 @@ type CommonCluster interface {
 	GetName() string
 	GetCloud() string
 	GetDistribution() string
+	GetLocation() string
 
 	// Secrets
 	GetSecretId() string
@@ -40,7 +41,6 @@ type CommonCluster interface {
 	GetSecretWithValidation() (*secret.SecretItemResponse, error)
 
 	// Persistence
-	GetModel() *model.ClusterModel
 	Persist(string, string) error
 	UpdateStatus(string, string) error
 	DeleteFromDatabase() error

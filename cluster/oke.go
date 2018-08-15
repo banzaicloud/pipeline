@@ -282,6 +282,11 @@ func (o *OKECluster) GetOrganizationId() uint {
 	return o.modelCluster.OrganizationId
 }
 
+// GetLocation gets where the cluster is.
+func (o *OKECluster) GetLocation() string {
+	return o.modelCluster.Location
+}
+
 //GetSecretId retrieves the secret id
 func (o *OKECluster) GetSecretId() string {
 	return o.modelCluster.SecretId
