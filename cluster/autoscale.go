@@ -7,6 +7,7 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/ghodss/yaml"
+	"github.com/pkg/errors"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -58,15 +59,20 @@ type autoscalingInfo struct {
 	SslCertPath       *string           `json:"sslCertPath,omitempty"`
 }
 
-func getAmazonNodeGroups(cluster CommonCluster) []nodeGroup {
+func getAmazonNodeGroups(cluster CommonCluster) ([]nodeGroup, error) {
 	var nodeGroups []nodeGroup
 
 	var nodePools []*model.AmazonNodePoolsModel
+	var err error
 	switch cluster.GetDistribution() {
 	case pkgCluster.EC2:
-		nodePools = cluster.GetModel().EC2.NodePools
+		nodePools, err = GetEC2NodePools(cluster)
 	case pkgCluster.EKS:
-		nodePools = cluster.GetModel().EKS.NodePools
+		nodePools, err = GetEKSNodePools(cluster)
+	}
+
+	if err != nil {
+		return nil, err
 	}
 
 	for _, nodePool := range nodePools {
@@ -78,12 +84,17 @@ func getAmazonNodeGroups(cluster CommonCluster) []nodeGroup {
 			})
 		}
 	}
-	return nodeGroups
+	return nodeGroups, nil
 }
 
-func getAzureNodeGroups(cluster CommonCluster) []nodeGroup {
+func getAzureNodeGroups(cluster CommonCluster) ([]nodeGroup, error) {
 	var nodeGroups []nodeGroup
-	for _, nodePool := range cluster.GetModel().AKS.NodePools {
+
+	nodePools, err := GetAKSNodePools(cluster)
+	if err != nil {
+		return nil, err
+	}
+	for _, nodePool := range nodePools {
 		if nodePool.Autoscaling {
 			nodeGroups = append(nodeGroups, nodeGroup{
 				Name:    nodePool.Name,
@@ -92,7 +103,7 @@ func getAzureNodeGroups(cluster CommonCluster) []nodeGroup {
 			})
 		}
 	}
-	return nodeGroups
+	return nodeGroups, nil
 }
 
 func createAutoscalingForEc2(cluster CommonCluster, groups []nodeGroup) *autoscalingInfo {
@@ -190,15 +201,20 @@ func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup) *autos
 func DeployClusterAutoscaler(cluster CommonCluster) error {
 
 	var nodeGroups []nodeGroup
+	var err error
 
 	switch cluster.GetCloud() {
 	case pkgCluster.Amazon:
 		// nodeGroups are the same for EKS & EC2
-		nodeGroups = getAmazonNodeGroups(cluster)
+		nodeGroups, err = getAmazonNodeGroups(cluster)
 	case pkgCluster.Azure:
-		nodeGroups = getAzureNodeGroups(cluster)
+		nodeGroups, err = getAzureNodeGroups(cluster)
 	default:
 		return nil
+	}
+
+	if err != nil {
+		return errors.Wrap(err, "unable to fetch node pools")
 	}
 
 	kubeConfig, err := cluster.GetK8sConfig()

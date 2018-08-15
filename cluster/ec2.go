@@ -1442,3 +1442,13 @@ func hasTagWithNodeName(tags []*ec2.Tag, nodeName string) bool {
 func (c *EC2Cluster) RbacEnabled() bool {
 	return c.modelCluster.RbacEnabled
 }
+
+// GetEC2NodePools returns EC2 node pools from a common cluster.
+func GetEC2NodePools(cluster CommonCluster) ([]*model.AmazonNodePoolsModel, error) {
+	ec2cluster, ok := cluster.(*EC2Cluster)
+	if !ok {
+		return nil, errors.New("invalid cluster instance")
+	}
+
+	return ec2cluster.modelCluster.EC2.NodePools, nil
+}

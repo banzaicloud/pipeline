@@ -956,3 +956,13 @@ func createDefaultStorageClass(kubernetesClient *kubernetes.Clientset) error {
 func (e *EKSCluster) RbacEnabled() bool {
 	return e.modelCluster.RbacEnabled
 }
+
+// GetEKSNodePools returns EKS node pools from a common cluster.
+func GetEKSNodePools(cluster CommonCluster) ([]*model.AmazonNodePoolsModel, error) {
+	ekscluster, ok := cluster.(*EKSCluster)
+	if !ok {
+		return nil, errors.New("invalid cluster instance")
+	}
+
+	return ekscluster.modelCluster.EKS.NodePools, nil
+}
