@@ -177,6 +177,11 @@ func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup) *autos
 		return nil
 	}
 
+	resourceGroup, err := GetAKSResourceGroup(cluster)
+	if err != nil {
+		log.Errorf("could not get resource group: %s", err.Error())
+	}
+
 	return &autoscalingInfo{
 		CloudProvider:     cloudProviderAzure,
 		AutoscalingGroups: groups,
@@ -190,7 +195,7 @@ func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup) *autos
 			ClientSecret:      clusterSecret.Values[pkgSecret.AzureClientSecret],
 			SubscriptionID:    clusterSecret.Values[pkgSecret.AzureSubscriptionId],
 			TenantID:          clusterSecret.Values[pkgSecret.AzureTenantId],
-			ResourceGroup:     cluster.GetModel().AKS.ResourceGroup,
+			ResourceGroup:     resourceGroup,
 			NodeResourceGroup: *nodeResourceGroup,
 			ClusterName:       cluster.GetName(),
 		},

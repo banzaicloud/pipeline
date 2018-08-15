@@ -808,3 +808,13 @@ func GetAKSNodePools(cluster CommonCluster) ([]*model.AKSNodePoolModel, error) {
 
 	return akscluster.modelCluster.AKS.NodePools, nil
 }
+
+// GetAKSResourceGroup returns AKS resource group from a common cluster.
+func GetAKSResourceGroup(cluster CommonCluster) (string, error) {
+	akscluster, ok := cluster.(*AKSCluster)
+	if !ok {
+		return "", errors.New("invalid cluster instance")
+	}
+
+	return akscluster.modelCluster.AKS.ResourceGroup, nil
+}
