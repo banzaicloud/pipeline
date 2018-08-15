@@ -13,6 +13,7 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
+	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
@@ -417,7 +418,7 @@ func InstallKubernetesDashboardPostHook(input interface{}) error {
 
 		// service account
 		k8sDashboardServiceAccountName := k8sDashboardReleaseName
-		serviceAccount, err := utils.GetOrCreateServiceAccount(log, client, k8sDashboardNameSpace, k8sDashboardServiceAccountName)
+		serviceAccount, err := k8sutil.GetOrCreateServiceAccount(log, client, k8sDashboardNameSpace, k8sDashboardServiceAccountName)
 		if err != nil {
 			return err
 		}
@@ -472,14 +473,14 @@ func InstallKubernetesDashboardPostHook(input interface{}) error {
 			},
 		}
 
-		clusterRole, err := utils.GetOrCreateClusterRole(log, client, clusterRoleName, rules)
+		clusterRole, err := k8sutil.GetOrCreateClusterRole(log, client, clusterRoleName, rules)
 		if err != nil {
 			return err
 		}
 
 		// cluster role binding
 		clusterRoleBindingName := k8sDashboardReleaseName
-		_, err = utils.GetOrCreateClusterRoleBinding(log, client, clusterRoleBindingName, serviceAccount, clusterRole)
+		_, err = k8sutil.GetOrCreateClusterRoleBinding(log, client, clusterRoleBindingName, serviceAccount, clusterRole)
 		if err != nil {
 			return err
 		}
