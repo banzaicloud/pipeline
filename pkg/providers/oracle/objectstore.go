@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/pkg/objectstore"
+	"github.com/banzaicloud/pipeline/internal/objectstore"
 	"github.com/banzaicloud/pipeline/pkg/providers/oracle/oci"
 	osecret "github.com/banzaicloud/pipeline/pkg/providers/oracle/secret"
 	"github.com/banzaicloud/pipeline/secret"

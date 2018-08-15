@@ -11,12 +11,14 @@ import (
 	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/internal/objectstore"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/utils"
+	"github.com/banzaicloud/pipeline/internal/providers"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
-	"github.com/banzaicloud/pipeline/pkg/providers"
+	pkgProviders "github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -49,7 +51,7 @@ func ListBuckets(c *gin.Context) {
 	}
 
 	switch cloudType {
-	case providers.Alibaba, providers.Amazon:
+	case pkgProviders.Alibaba, pkgProviders.Amazon:
 		location, ok := ginutils.RequiredQuery(c, "location")
 		if !ok {
 			logger.Debug("missing location")
@@ -135,21 +137,21 @@ func CreateBucket(c *gin.Context) {
 	}
 
 	switch cloudType {
-	case providers.Alibaba:
+	case pkgProviders.Alibaba:
 		objectStoreCtx.Location = createBucketRequest.Properties.Alibaba.Location
 
-	case providers.Amazon:
+	case pkgProviders.Amazon:
 		objectStoreCtx.Location = createBucketRequest.Properties.Amazon.Location
 
-	case providers.Google:
+	case pkgProviders.Google:
 		objectStoreCtx.Location = createBucketRequest.Properties.Google.Location
 
-	case providers.Azure:
+	case pkgProviders.Azure:
 		objectStoreCtx.Location = createBucketRequest.Properties.Azure.Location
 		objectStoreCtx.ResourceGroup = createBucketRequest.Properties.Azure.ResourceGroup
 		objectStoreCtx.StorageAccount = createBucketRequest.Properties.Azure.StorageAccount
 
-	case providers.Oracle:
+	case pkgProviders.Oracle:
 		objectStoreCtx.Location = createBucketRequest.Properties.Oracle.Location
 	}
 
@@ -196,7 +198,7 @@ func CheckBucket(c *gin.Context) {
 	}
 
 	switch cloudType {
-	case providers.Alibaba, providers.Amazon, providers.Oracle:
+	case pkgProviders.Alibaba, pkgProviders.Amazon, pkgProviders.Oracle:
 		location, ok := ginutils.RequiredQuery(c, "location")
 		if !ok {
 			logger.Debug("missing location")
@@ -206,7 +208,7 @@ func CheckBucket(c *gin.Context) {
 
 		objectStoreCtx.Location = location
 
-	case providers.Azure:
+	case pkgProviders.Azure:
 		resourceGroup, ok := ginutils.RequiredQuery(c, "resourceGroup")
 		if !ok {
 			logger.Debug("missing resource group")
@@ -235,6 +237,7 @@ func CheckBucket(c *gin.Context) {
 
 	err = objectStore.CheckBucket(bucketName)
 	if err != nil {
+		logger.Error(err)
 		c.Status(errorResponseFrom(err).Code)
 
 		return
@@ -271,7 +274,7 @@ func DeleteBucket(c *gin.Context) {
 	}
 
 	switch cloudType {
-	case providers.Oracle:
+	case pkgProviders.Oracle:
 		location, ok := ginutils.RequiredQuery(c, "location")
 		if !ok {
 			logger.Debug("missing location")
@@ -281,7 +284,7 @@ func DeleteBucket(c *gin.Context) {
 
 		objectStoreCtx.Location = location
 
-	case providers.Azure:
+	case pkgProviders.Azure:
 		resourceGroup, ok := ginutils.RequiredQuery(c, "resourceGroup")
 		if !ok {
 			logger.Debug("missing resource group")
@@ -375,7 +378,7 @@ func getValidatedSecret(organizationId uint, secretId, cloudType string) (*secre
 		return nil, err
 	}
 
-	if err := providers.ValidateProvider(retrievedSecret.Type); err != nil {
+	if err := pkgProviders.ValidateProvider(retrievedSecret.Type); err != nil {
 		return nil, err
 	}
 
@@ -407,6 +410,13 @@ func determineCloudProviderFromRequest(req CreateBucketRequest) (string, error) 
 
 // errorResponseFrom translates the given error into a components.ErrorResponse
 func errorResponseFrom(err error) *common.ErrorResponse {
+	if objectstore.IsNotFoundError(err) {
+		return &common.ErrorResponse{
+			Code:    http.StatusNotFound,
+			Error:   err.Error(),
+			Message: err.Error(),
+		}
+	}
 
 	// google specific errors
 	if googleApiErr, ok := err.(*googleapi.Error); ok {
@@ -478,14 +488,6 @@ func errorResponseFrom(err error) *common.ErrorResponse {
 	if err == pkgErrors.ErrorNotSupportedCloudType {
 		return &common.ErrorResponse{
 			Code:    http.StatusBadRequest,
-			Error:   err.Error(),
-			Message: err.Error(),
-		}
-	}
-
-	if isNotFound(err) {
-		return &common.ErrorResponse{
-			Code:    http.StatusNotFound,
 			Error:   err.Error(),
 			Message: err.Error(),
 		}

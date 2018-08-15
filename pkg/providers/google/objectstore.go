@@ -8,7 +8,7 @@ import (
 
 	"cloud.google.com/go/storage"
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/pkg/objectstore"
+	"github.com/banzaicloud/pipeline/internal/objectstore"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/gin-gonic/gin/json"
 	"github.com/jinzhu/gorm"
