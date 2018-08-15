@@ -66,6 +66,11 @@ func (c *EC2Cluster) GetOrganizationId() uint {
 	return c.modelCluster.OrganizationId
 }
 
+// GetLocation gets where the cluster is.
+func (c *EC2Cluster) GetLocation() string {
+	return c.modelCluster.Location
+}
+
 // GetSecretId retrieves the secret id
 func (c *EC2Cluster) GetSecretId() string {
 	return c.modelCluster.SecretId

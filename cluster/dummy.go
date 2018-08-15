@@ -130,6 +130,11 @@ func (d *DummyCluster) GetOrganizationId() uint {
 	return d.modelCluster.OrganizationId
 }
 
+// GetLocation gets where the cluster is.
+func (d *DummyCluster) GetLocation() string {
+	return d.modelCluster.Location
+}
+
 //GetSecretId retrieves the secret id
 func (d *DummyCluster) GetSecretId() string {
 	return d.modelCluster.SecretId

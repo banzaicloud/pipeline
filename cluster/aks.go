@@ -78,6 +78,11 @@ func (c *AKSCluster) GetOrganizationId() uint {
 	return c.modelCluster.OrganizationId
 }
 
+// GetLocation gets where the cluster is.
+func (c *AKSCluster) GetLocation() string {
+	return c.modelCluster.Location
+}
+
 // GetAKSClient creates an AKS client with the credentials
 func (c *AKSCluster) GetAKSClient() (azureClient.ClusterManager, error) {
 	clusterSecret, err := c.GetSecretWithValidation()
