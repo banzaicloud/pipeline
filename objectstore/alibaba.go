@@ -7,7 +7,7 @@ import (
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/pkg/objectstore"
+	"github.com/banzaicloud/pipeline/internal/objectstore"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 )
@@ -36,7 +36,7 @@ func NewAlibabaObjectStore(region string, secret *secret.SecretItemResponse, org
 	}
 }
 
-var _ objectstore.ObjectStore = (*AlibabaObjectStore)(nil)
+var _ objectstore.ObjectStoreService = (*AlibabaObjectStore)(nil)
 
 func (b *AlibabaObjectStore) CreateBucket(bucketName string) {
 	managedBucket := &ManagedAlibabaBucket{}
