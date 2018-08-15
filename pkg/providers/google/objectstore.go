@@ -12,7 +12,6 @@ import (
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/gin-gonic/gin/json"
 	"github.com/jinzhu/gorm"
-	"github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/iterator"
@@ -231,6 +230,8 @@ func (s *ObjectStore) CheckBucket(bucketName string) error {
 // referenced by the secret field. GS buckets that were created by a user in the current
 // org are marked as 'managed`
 func (s *ObjectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
+	logger := s.logger
+
 	logger.Info("getting credentials")
 	credentials, err := s.newGoogleCredentials()
 
