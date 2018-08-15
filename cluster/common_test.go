@@ -137,8 +137,13 @@ func TestCreateCommonClusterFromRequest(t *testing.T) {
 					t.FailNow()
 				}
 
-				if !reflect.DeepEqual(commonCluster.GetModel(), tc.expectedModel) {
-					t.Errorf("Expected model: %v, got: %v", tc.expectedModel, commonCluster.GetModel())
+				modelAccessor, ok := commonCluster.(interface{ GetModel() *model.ClusterModel })
+				if !ok {
+					t.Fatal("model cannot be accessed")
+				}
+
+				if !reflect.DeepEqual(modelAccessor.GetModel(), tc.expectedModel) {
+					t.Errorf("Expected model: %v, got: %v", tc.expectedModel, modelAccessor.GetModel())
 				}
 			}
 
