@@ -250,7 +250,7 @@ func (cs *ClusterModel) Save() error {
 }
 
 func (cs *ClusterModel) preDelete() {
-	log := log.WithFields(logrus.Fields{"organisationId": cs.OrganizationId, "clusterID": cs.ID})
+	log := log.WithFields(logrus.Fields{"organization": cs.OrganizationId, "cluster": cs.ID})
 
 	log.Info("Delete unused cluster secrets")
 	if err := secret.Store.DeleteByClusterID(cs.OrganizationId, cs.ID); err != nil {
