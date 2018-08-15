@@ -121,7 +121,7 @@ func InstallMonitoring(input interface{}) error {
 	}
 
 	clusterNameTag := fmt.Sprintf("cluster:%s", cluster.GetName())
-	clusterIdTag := fmt.Sprintf("clusterid: %d", cluster.GetID())
+	clusterIdTag := fmt.Sprintf("clusterid:%d", cluster.GetID())
 
 	createSecretRequest := secret.CreateSecretRequest{
 		Name: fmt.Sprintf("cluster-%d-grafana", cluster.GetID()),
