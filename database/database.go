@@ -60,7 +60,7 @@ func GetDB() *gorm.DB {
 	return db
 }
 
-//IsErrorGormNotFound returns gorm.ErrRecordNotFound
-func IsErrorGormNotFound(err error) bool {
-	return err == gorm.ErrRecordNotFound
+// IsRecordNotFoundError returns true if the error was triggered by a record not being found.
+func IsRecordNotFoundError(err error) bool {
+	return gorm.IsRecordNotFoundError(err)
 }
