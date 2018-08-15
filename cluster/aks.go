@@ -793,3 +793,13 @@ func DeleteResourceGroup(orgId uint, secretId, rgName string) error {
 
 	return azureClient.DeleteResourceGroup(client, rgName)
 }
+
+// GetAKSNodePools returns AKS node pools from a common cluster.
+func GetAKSNodePools(cluster CommonCluster) ([]*model.AKSNodePoolModel, error) {
+	akscluster, ok := cluster.(*AKSCluster)
+	if !ok {
+		return nil, errors.New("invalid cluster instance")
+	}
+
+	return akscluster.modelCluster.AKS.NodePools, nil
+}
