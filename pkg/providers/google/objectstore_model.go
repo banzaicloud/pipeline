@@ -2,6 +2,11 @@ package google
 
 import "github.com/banzaicloud/pipeline/auth"
 
+// TableName constants
+const (
+	bucketsTableName = "google_buckets"
+)
+
 // ObjectStoreModel is the schema for the DB
 type ObjectStoreModel struct {
 	ID uint `gorm:"primary_key"`
@@ -15,5 +20,5 @@ type ObjectStoreModel struct {
 
 // TableName changes the default table name.
 func (ObjectStoreModel) TableName() string {
-	return "google_buckets"
+	return bucketsTableName
 }
