@@ -56,7 +56,7 @@ func (o *ObjectStore) CreateBucket(name string) {
 		return
 	}
 
-	bucket := &ObjectStoreModel{}
+	bucket := &ObjectStoreBucketModel{}
 	searchCriteria := o.newBucketSearchCriteria(name, o.location, oci.CompartmentOCID)
 	if err := o.getBucketFromDB(searchCriteria, bucket); err != nil {
 		if _, ok := err.(bucketNotFoundError); !ok {
@@ -168,7 +168,7 @@ func (o *ObjectStore) DeleteBucket(name string) error {
 		return err
 	}
 
-	bucket := &ObjectStoreModel{}
+	bucket := &ObjectStoreBucketModel{}
 	searchCriteria := o.newBucketSearchCriteria(name, o.location, oci.CompartmentOCID)
 	if err := o.getBucketFromDB(searchCriteria, bucket); err != nil {
 		return err
@@ -258,13 +258,13 @@ func (o *ObjectStore) markManagedBuckets(buckets []*objectstore.BucketInfo, comp
 }
 
 // getBucketsFromDB gives back object store buckets from DB
-func (o *ObjectStore) getBucketsFromDB() ([]ObjectStoreModel, error) {
+func (o *ObjectStore) getBucketsFromDB() ([]ObjectStoreBucketModel, error) {
 
 	logger := o.getLogger()
 	logger.Debug("Retrieving managed buckets from DB")
 
-	var buckets []ObjectStoreModel
-	if err := o.db.Where(&ObjectStoreModel{OrgID: o.org.ID}).Order("name asc, location asc").Find(&buckets).Error; err != nil {
+	var buckets []ObjectStoreBucketModel
+	if err := o.db.Where(&ObjectStoreBucketModel{OrgID: o.org.ID}).Order("name asc, location asc").Find(&buckets).Error; err != nil {
 		logger.Errorf("Retrieving managed buckets failed: %s", err.Error())
 		return nil, err
 	}
@@ -274,7 +274,7 @@ func (o *ObjectStore) getBucketsFromDB() ([]ObjectStoreModel, error) {
 
 // getBucketFromDB looks up the managed bucket record in the database based on the specified searchCriteria
 // If no db record is found than returns with bucketNotFoundError
-func (o *ObjectStore) getBucketFromDB(searchCriteria *ObjectStoreModel, managedBucket *ObjectStoreModel) error {
+func (o *ObjectStore) getBucketFromDB(searchCriteria *ObjectStoreBucketModel, managedBucket *ObjectStoreBucketModel) error {
 
 	logger := o.getLogger()
 	logger.Debug("Searching for managed bucket in DB")
@@ -291,8 +291,8 @@ func (o *ObjectStore) getBucketFromDB(searchCriteria *ObjectStoreModel, managedB
 }
 
 // newBucketSearchCriteria returns the database search criteria to find a bucket in db
-func (o *ObjectStore) newBucketSearchCriteria(bucketName string, location string, compartmentID string) *ObjectStoreModel {
-	return &ObjectStoreModel{
+func (o *ObjectStore) newBucketSearchCriteria(bucketName string, location string, compartmentID string) *ObjectStoreBucketModel {
+	return &ObjectStoreBucketModel{
 		OrgID:         o.org.ID,
 		Name:          bucketName,
 		CompartmentID: compartmentID,
@@ -301,7 +301,7 @@ func (o *ObjectStore) newBucketSearchCriteria(bucketName string, location string
 }
 
 // persistBucketToDB persists bucket into DB
-func (o *ObjectStore) persistBucketToDB(m *ObjectStoreModel) error {
+func (o *ObjectStore) persistBucketToDB(m *ObjectStoreBucketModel) error {
 	logger := o.getLogger().WithField("bucket", m.Name)
 	logger.Debug("Persisting to DB")
 
@@ -309,7 +309,7 @@ func (o *ObjectStore) persistBucketToDB(m *ObjectStoreModel) error {
 }
 
 // deleteBucketFromDB deletes a bucket from DB
-func (o *ObjectStore) deleteBucketFromDB(m *ObjectStoreModel) error {
+func (o *ObjectStore) deleteBucketFromDB(m *ObjectStoreBucketModel) error {
 	logger := o.getLogger().WithField("bucket", m.Name)
 	logger.Debug("Deleting from DB")
 
