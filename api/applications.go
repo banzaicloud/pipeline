@@ -204,7 +204,7 @@ type ApplicationPostHook struct {
 
 // Do updates application in DB and call create application function
 func (c *ApplicationPostHook) Do(commonCluster cluster.CommonCluster) error {
-	c.Save(commonCluster.GetModel().ID)
+	c.Save(commonCluster.GetID())
 	return application.CreateApplication(c.am, c.option, commonCluster)
 }
 
@@ -282,7 +282,7 @@ func CreateApplication(c *gin.Context) {
 	c.JSON(http.StatusAccepted, pkgApplication.CreateResponse{
 		Name:      createApplicationRequest.Name,
 		Id:        postFunction.GetID(),
-		ClusterId: commonCluster.GetModel().ID,
+		ClusterId: commonCluster.GetID(),
 	})
 
 }

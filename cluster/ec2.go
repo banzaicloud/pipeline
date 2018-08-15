@@ -849,7 +849,7 @@ func (c *EC2Cluster) DownloadK8sConfig() ([]byte, error) {
 		return nil, err
 	}
 
-	return DownloadK8sConfig(kubicornCluster, c.GetModel().OrganizationId, secret.NewSSHKeyPair(sshSecret))
+	return DownloadK8sConfig(kubicornCluster, c.GetOrganizationId(), secret.NewSSHKeyPair(sshSecret))
 }
 
 //DownloadK8sConfig downloads the Kubernetes config from the cluster
