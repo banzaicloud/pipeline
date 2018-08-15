@@ -121,6 +121,8 @@ func InstallMonitoring(input interface{}) error {
 	}
 
 	clusterNameTag := fmt.Sprintf("cluster:%s", cluster.GetName())
+	clusterIdTag := fmt.Sprintf("clusterid: %d", cluster.GetID())
+
 	createSecretRequest := secret.CreateSecretRequest{
 		Name: fmt.Sprintf("cluster-%d-grafana", cluster.GetID()),
 		Type: pkgSecret.PasswordSecretType,
@@ -128,7 +130,12 @@ func InstallMonitoring(input interface{}) error {
 			pkgSecret.Username: grafanaAdminUsername,
 			pkgSecret.Password: grafanaAdminPass,
 		},
-		Tags: []string{clusterNameTag, "app:grafana", "release:pipeline-monitoring"},
+		Tags: []string{
+			clusterNameTag,
+			clusterIdTag,
+			"app:grafana",
+			"release:pipeline-monitoring",
+		},
 	}
 
 	secretID, err := secret.Store.CreateOrUpdate(cluster.GetOrganizationId(), &createSecretRequest)

@@ -16,6 +16,7 @@ import (
 	vaultapi "github.com/hashicorp/vault/api"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 	"k8s.io/apimachinery/pkg/util/validation"
@@ -138,6 +139,33 @@ func (r *CreateSecretRequest) Validate(verifier verify.Verifier) error {
 
 	if verifier != nil {
 		return verifier.VerifySecret()
+	}
+
+	return nil
+}
+
+// DeleteByClusterID Delete secrets by ClusterID
+func (ss *secretStore) DeleteByClusterID(orgID uint, clusterID uint) error {
+	log := log.WithFields(logrus.Fields{"organisationId": orgID, "clusterID": clusterID})
+
+	clusterIdTag := fmt.Sprintf("clusterid: %d", clusterID)
+	secrets, err := Store.List(orgID,
+		&secretTypes.ListSecretsQuery{
+			Tag: clusterIdTag,
+		}, true)
+
+	if err != nil {
+		log.Errorf("Error during list secrets: %s", err.Error())
+		return err
+	}
+
+	for _, s := range secrets {
+		log := log.WithFields(logrus.Fields{"secretID": s.ID, "secretName": s.Name})
+		err := Store.Delete(orgID, s.ID)
+		if err != nil {
+			log.Errorf("Error during delete secret: %s", err.Error())
+		}
+		log.Infoln("Secret Deleted")
 	}
 
 	return nil
@@ -320,7 +348,7 @@ func (ss *secretStore) GetByName(organizationID uint, name string) (*SecretItemR
 }
 
 // List secret secret/orgs/:orgid:/ scope
-func (ss *secretStore) List(orgid uint, query *secretTypes.ListSecretsQuery) ([]*SecretItemResponse, error) {
+func (ss *secretStore) List(orgid uint, query *secretTypes.ListSecretsQuery, internalCall bool) ([]*SecretItemResponse, error) {
 
 	log.Debugf("Searching for secrets [orgid: %d, query: %#v]", orgid, query)
 
@@ -354,7 +382,7 @@ func (ss *secretStore) List(orgid uint, query *secretTypes.ListSecretsQuery) ([]
 
 				if (query.Type == secretTypes.AllSecrets || sir.Type == query.Type) &&
 					(query.Tag == "" || hasTag(sir.Tags, query.Tag)) &&
-					(HasForbiddenTag(sir.Tags) == nil) {
+					(internalCall || HasForbiddenTag(sir.Tags) == nil) {
 
 					responseItems = append(responseItems, sir)
 				}

@@ -12,6 +12,7 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/jinzhu/gorm"
+	"github.com/sirupsen/logrus"
 )
 
 const unknown = "unknown"
@@ -249,17 +250,12 @@ func (cs *ClusterModel) Save() error {
 }
 
 func (cs *ClusterModel) preDelete() {
+	log := log.WithFields(logrus.Fields{"organisationId": cs.OrganizationId, "clusterID": cs.ID})
 
-	log.Info("Delete config secret")
-	if err := secret.Store.Delete(cs.OrganizationId, cs.ConfigSecretId); err != nil {
-		log.Warnf("Error during deleting config secret: %s", err.Error())
+	log.Info("Delete unused cluster secrets")
+	if err := secret.Store.DeleteByClusterID(cs.OrganizationId, cs.ID); err != nil {
+		log.Errorf("Error during deleting secret: %s", err.Error())
 	}
-
-	log.Info("Delete SSH secret")
-	if err := secret.Store.Delete(cs.OrganizationId, cs.SshSecretId); err != nil {
-		log.Warnf("Error during deleting config secret: %s", err.Error())
-	}
-
 }
 
 //Delete cluster from DB
