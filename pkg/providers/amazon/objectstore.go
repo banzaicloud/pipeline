@@ -64,7 +64,7 @@ func (s *ObjectStore) getLogger(bucketName string) logrus.FieldLogger {
 func (s *ObjectStore) CreateBucket(bucketName string) {
 	logger := s.getLogger(bucketName)
 
-	bucket := &ObjectStoreModel{}
+	bucket := &ObjectStoreBucketModel{}
 	searchCriteria := s.searchCriteria(bucketName)
 
 	if err := s.db.Where(searchCriteria).Find(bucket).Error; err != nil {
@@ -131,7 +131,7 @@ func (s *ObjectStore) CreateBucket(bucketName string) {
 func (s *ObjectStore) DeleteBucket(bucketName string) error {
 	logger := s.getLogger(bucketName)
 
-	bucket := &ObjectStoreModel{}
+	bucket := &ObjectStoreBucketModel{}
 	searchCriteria := s.searchCriteria(bucketName)
 
 	logger.Info("looking for bucket")
@@ -233,9 +233,9 @@ func (s *ObjectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 
 	logger.Infof("retrieving managed buckets")
 
-	var amazonBuckets []*ObjectStoreModel
+	var amazonBuckets []*ObjectStoreBucketModel
 
-	err = s.db.Where(&ObjectStoreModel{OrganizationID: s.org.ID}).Order("name asc").Find(&amazonBuckets).Error
+	err = s.db.Where(&ObjectStoreBucketModel{OrganizationID: s.org.ID}).Order("name asc").Find(&amazonBuckets).Error
 	if err != nil {
 		return nil, fmt.Errorf("retrieving managed buckets failed: %s", err.Error())
 	}
@@ -289,8 +289,8 @@ func getBucketRegion(regionHint, bucketName string, retrievedSecret *secret.Secr
 }
 
 // searchCriteria returns the database search criteria to find bucket with the given name.
-func (s *ObjectStore) searchCriteria(bucketName string) *ObjectStoreModel {
-	return &ObjectStoreModel{
+func (s *ObjectStore) searchCriteria(bucketName string) *ObjectStoreBucketModel {
+	return &ObjectStoreBucketModel{
 		OrganizationID: s.org.ID,
 		Name:           bucketName,
 	}

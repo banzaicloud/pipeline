@@ -107,7 +107,7 @@ func (s *ObjectStore) CreateBucket(bucketName string) {
 
 	logger := s.getLogger(bucketName)
 
-	bucket := &ObjectStoreModel{}
+	bucket := &ObjectStoreBucketModel{}
 	searchCriteria := s.searchCriteria(bucketName)
 
 	if err := s.db.Where(searchCriteria).Find(bucket).Error; err != nil {
@@ -139,7 +139,7 @@ func (s *ObjectStore) CreateBucket(bucketName string) {
 	}
 
 	// update here so the bucket list does not get inconsistent
-	updateField := &ObjectStoreModel{StorageAccount: s.storageAccount}
+	updateField := &ObjectStoreBucketModel{StorageAccount: s.storageAccount}
 	err = s.db.Model(bucket).Update(updateField).Error
 	if err != nil {
 		logger.Errorf("error happened during updating storage account: %s", err.Error())
@@ -170,7 +170,7 @@ func (s *ObjectStore) CreateBucket(bucketName string) {
 	}
 
 	// update here so the bucket list does not get inconsistent
-	updateField = &ObjectStoreModel{Name: bucketName, Location: s.location}
+	updateField = &ObjectStoreBucketModel{Name: bucketName, Location: s.location}
 	err = s.db.Model(bucket).Update(updateField).Error
 	if err != nil {
 		logger.Errorf("error happened during updating bucket name: %s", err.Error())
@@ -195,7 +195,7 @@ func (s *ObjectStore) CreateBucket(bucketName string) {
 	return
 }
 
-func (s *ObjectStore) rollback(logger logrus.FieldLogger, msg string, err error, bucket *ObjectStoreModel) {
+func (s *ObjectStore) rollback(logger logrus.FieldLogger, msg string, err error, bucket *ObjectStoreBucketModel) {
 	logger.Errorf("%s (rolling back): %s", msg, err.Error())
 
 	err = s.db.Delete(bucket).Error
@@ -327,7 +327,7 @@ func (s *ObjectStore) DeleteBucket(bucketName string) error {
 
 	logger := s.getLogger(bucketName)
 
-	bucket := &ObjectStoreModel{}
+	bucket := &ObjectStoreBucketModel{}
 	searchCriteria := s.searchCriteria(bucketName)
 
 	logger.Info("looking for bucket")
@@ -458,9 +458,9 @@ func (s *ObjectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 		}
 	}
 
-	var objectStores []ObjectStoreModel
+	var objectStores []ObjectStoreBucketModel
 
-	err = s.db.Where(&ObjectStoreModel{OrganizationID: s.org.ID}).Order("resource_group asc, storage_account asc, name asc").Find(&objectStores).Error
+	err = s.db.Where(&ObjectStoreBucketModel{OrganizationID: s.org.ID}).Order("resource_group asc, storage_account asc, name asc").Find(&objectStores).Error
 	if err != nil {
 		return nil, fmt.Errorf("retrieving managed buckets failed: %s", err.Error())
 	}
@@ -599,8 +599,8 @@ func newAuthorizer(s *secret.SecretItemResponse) (autorest.Authorizer, error) {
 
 // searchCriteria returns the database search criteria to find a bucket with the given name
 // within the scope of the specified resource group and storage account.
-func (s *ObjectStore) searchCriteria(bucketName string) *ObjectStoreModel {
-	return &ObjectStoreModel{
+func (s *ObjectStore) searchCriteria(bucketName string) *ObjectStoreBucketModel {
+	return &ObjectStoreBucketModel{
 		OrganizationID: s.org.ID,
 		Name:           bucketName,
 		ResourceGroup:  s.getResourceGroup(),

@@ -9,8 +9,8 @@ const (
 	bucketsTableName = "oracle_buckets"
 )
 
-// ObjectStoreModel is the schema for the DB
-type ObjectStoreModel struct {
+// ObjectStoreBucketModel is the schema for the DB.
+type ObjectStoreBucketModel struct {
 	ID uint `gorm:"primary_key"`
 
 	Organization auth.Organization `gorm:"foreignkey:OrgID"`
@@ -21,7 +21,7 @@ type ObjectStoreModel struct {
 	Location      string `gorm:"unique_index:bucketNameLocationCompartment"`
 }
 
-// TableName sets the ObjectStoreModel table name
-func (ObjectStoreModel) TableName() string {
+// TableName changes the default table name.
+func (ObjectStoreBucketModel) TableName() string {
 	return bucketsTableName
 }
