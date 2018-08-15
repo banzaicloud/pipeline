@@ -2,6 +2,11 @@ package azure
 
 import "github.com/banzaicloud/pipeline/auth"
 
+// TableName constants
+const (
+	bucketsTableName = "azure_blob_stores"
+)
+
 // ObjectStoreModel is the schema for the DB.
 type ObjectStoreModel struct {
 	ID uint `gorm:"primary_key"`
@@ -17,5 +22,5 @@ type ObjectStoreModel struct {
 
 // TableName changes the default table name.
 func (ObjectStoreModel) TableName() string {
-	return "azure_blob_stores"
+	return bucketsTableName
 }
