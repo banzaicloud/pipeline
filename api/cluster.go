@@ -291,7 +291,7 @@ func CreateCluster(createClusterRequest *pkgCluster.CreateClusterRequest, organi
 func postCreateCluster(commonCluster cluster.CommonCluster, postHooks []cluster.PostFunctioner) error {
 	log := log.WithFields(logrus.Fields{
 		"organization": commonCluster.GetOrganizationId(),
-		"cluster": commonCluster.GetName(),
+		"cluster":      commonCluster.GetName(),
 	})
 
 	// Check if public ssh key is needed for the cluster. If so and there is generate one and store it Vault
