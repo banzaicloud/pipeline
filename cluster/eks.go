@@ -966,7 +966,7 @@ func (e *EKSCluster) RbacEnabled() bool {
 func GetEKSNodePools(cluster CommonCluster) ([]*model.AmazonNodePoolsModel, error) {
 	ekscluster, ok := cluster.(*EKSCluster)
 	if !ok {
-		return nil, errors.New("invalid cluster instance")
+		return nil, ErrInvalidClusterInstance
 	}
 
 	return ekscluster.modelCluster.EKS.NodePools, nil

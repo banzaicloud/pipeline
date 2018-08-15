@@ -1452,7 +1452,7 @@ func (c *EC2Cluster) RbacEnabled() bool {
 func GetEC2NodePools(cluster CommonCluster) ([]*model.AmazonNodePoolsModel, error) {
 	ec2cluster, ok := cluster.(*EC2Cluster)
 	if !ok {
-		return nil, errors.New("invalid cluster instance")
+		return nil, ErrInvalidClusterInstance
 	}
 
 	return ec2cluster.modelCluster.EC2.NodePools, nil
