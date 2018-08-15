@@ -803,7 +803,7 @@ func DeleteResourceGroup(orgId uint, secretId, rgName string) error {
 func GetAKSNodePools(cluster CommonCluster) ([]*model.AKSNodePoolModel, error) {
 	akscluster, ok := cluster.(*AKSCluster)
 	if !ok {
-		return nil, errors.New("invalid cluster instance")
+		return nil, ErrInvalidClusterInstance
 	}
 
 	return akscluster.modelCluster.AKS.NodePools, nil
@@ -813,7 +813,7 @@ func GetAKSNodePools(cluster CommonCluster) ([]*model.AKSNodePoolModel, error) {
 func GetAKSResourceGroup(cluster CommonCluster) (string, error) {
 	akscluster, ok := cluster.(*AKSCluster)
 	if !ok {
-		return "", errors.New("invalid cluster instance")
+		return "", ErrInvalidClusterInstance
 	}
 
 	return akscluster.modelCluster.AKS.ResourceGroup, nil
