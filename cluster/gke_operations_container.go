@@ -12,7 +12,7 @@ type containerOperation struct {
 	zone      string
 }
 
-func (co *containerOperation) GetInfo(operationName string) (string, string, error) {
+func (co *containerOperation) getInfo(operationName string) (string, string, error) {
 	op, err := co.svc.Projects.Zones.Operations.Get(co.projectId, co.zone, operationName).Context(context.Background()).Do()
 	if err != nil {
 		return "", "", err
@@ -21,7 +21,7 @@ func (co *containerOperation) GetInfo(operationName string) (string, string, err
 	return op.Status, op.OperationType, nil
 }
 
-func newContainerOperation(svc *gke.Service, projectId, zone string) OperationInfoer {
+func newContainerOperation(svc *gke.Service, projectId, zone string) *containerOperation {
 	return &containerOperation{
 		svc:       svc,
 		projectId: projectId,

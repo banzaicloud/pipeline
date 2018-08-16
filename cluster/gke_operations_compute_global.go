@@ -11,7 +11,7 @@ type computeGlobalOperation struct {
 	projectId string
 }
 
-func (co *computeGlobalOperation) GetInfo(operationName string) (string, string, error) {
+func (co *computeGlobalOperation) getInfo(operationName string) (string, string, error) {
 
 	op, err := co.csv.GlobalOperations.Get(co.projectId, operationName).Context(context.Background()).Do()
 	if err != nil {
@@ -21,7 +21,7 @@ func (co *computeGlobalOperation) GetInfo(operationName string) (string, string,
 	return op.Status, op.OperationType, nil
 }
 
-func newComputeGlobalOperation(csv *gkeCompute.Service, projectId string) OperationInfoer {
+func newComputeGlobalOperation(csv *gkeCompute.Service, projectId string) *computeGlobalOperation {
 	return &computeGlobalOperation{
 		csv:       csv,
 		projectId: projectId,

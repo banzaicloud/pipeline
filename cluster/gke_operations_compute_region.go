@@ -12,7 +12,7 @@ type computeRegionOperation struct {
 	region    string
 }
 
-func (co *computeRegionOperation) GetInfo(operationName string) (string, string, error) {
+func (co *computeRegionOperation) getInfo(operationName string) (string, string, error) {
 
 	op, err := co.csv.RegionOperations.Get(co.projectId, co.region, operationName).Context(context.Background()).Do()
 	if err != nil {
@@ -22,7 +22,7 @@ func (co *computeRegionOperation) GetInfo(operationName string) (string, string,
 	return op.Status, op.OperationType, nil
 }
 
-func newComputeRegionOperation(csv *gkeCompute.Service, projectId, region string) OperationInfoer {
+func newComputeRegionOperation(csv *gkeCompute.Service, projectId, region string) *computeRegionOperation {
 	return &computeRegionOperation{
 		csv:       csv,
 		projectId: projectId,

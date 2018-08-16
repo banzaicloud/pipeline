@@ -2020,7 +2020,7 @@ func (g *GKECluster) GetK8sConfig() ([]byte, error) {
 	return g.CommonClusterBase.getConfig(g)
 }
 
-func waitForOperation(getter OperationInfoer, operationName string) error {
+func waitForOperation(getter operationInfoer, operationName string) error {
 
 	log := log.WithFields(logrus.Fields{"operation": operationName})
 
@@ -2031,7 +2031,7 @@ func waitForOperation(getter OperationInfoer, operationName string) error {
 	operationStatus := statusRunning
 	for operationStatus != statusDone {
 
-		operationStatus, operationType, err = getter.GetInfo(operationName)
+		operationStatus, operationType, err = getter.getInfo(operationName)
 		if err != nil {
 			return err
 		}
