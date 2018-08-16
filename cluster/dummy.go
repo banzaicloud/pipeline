@@ -99,6 +99,10 @@ func (d *DummyCluster) GetID() uint {
 	return d.modelCluster.ID
 }
 
+func (d *DummyCluster) GetUID() string {
+	return d.modelCluster.UID
+}
+
 //GetModel returns the whole clusterModel
 func (d *DummyCluster) GetModel() *model.ClusterModel {
 	return d.modelCluster

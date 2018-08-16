@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/banzaicloud/pipeline/model"
+	"github.com/satori/go.uuid"
 )
 
 const unknownLocation = "unknown"
@@ -16,7 +17,8 @@ const (
 
 // ClusterModel describes the common cluster model.
 type ClusterModel struct {
-	ID uint `gorm:"primary_key"`
+	ID  uint   `gorm:"primary_key"`
+	UID string `gorm:"unique_index:idx_uid"`
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
@@ -42,6 +44,14 @@ type ClusterModel struct {
 // TableName changes the default table name.
 func (ClusterModel) TableName() string {
 	return clustersTableName
+}
+
+func (m *ClusterModel) BeforeCreate() (err error) {
+	if m.UID == "" {
+		m.UID = uuid.NewV4().String()
+	}
+
+	return
 }
 
 // AfterFind converts Location field(s) to unknown if they are empty.

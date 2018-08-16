@@ -122,6 +122,10 @@ func (b *KubeCluster) GetID() uint {
 	return b.modelCluster.ID
 }
 
+func (b *KubeCluster) GetUID() string {
+	return b.modelCluster.UID
+}
+
 // GetSecretId returns the specified secret id
 func (b *KubeCluster) GetSecretId() string {
 	return b.modelCluster.SecretId

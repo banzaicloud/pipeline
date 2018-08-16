@@ -668,6 +668,10 @@ func (g *GKECluster) GetID() uint {
 	return g.modelCluster.ID
 }
 
+func (g *GKECluster) GetUID() string {
+	return g.modelCluster.UID
+}
+
 //GetModel returns the whole clusterModel
 func (g *GKECluster) GetModel() *model.ClusterModel {
 	return g.modelCluster
