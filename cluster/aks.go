@@ -392,6 +392,10 @@ func (c *AKSCluster) GetID() uint {
 	return c.modelCluster.ID
 }
 
+func (c *AKSCluster) GetUID() string {
+	return c.modelCluster.UID
+}
+
 //GetModel returns the whole clusterModel
 func (c *AKSCluster) GetModel() *model.ClusterModel {
 	return c.modelCluster

@@ -116,90 +116,90 @@ type GKECluster struct {
 }
 
 // GetOrganizationId gets org where the cluster belongs
-func (g *GKECluster) GetOrganizationId() uint {
-	return g.modelCluster.OrganizationId
+func (c *GKECluster) GetOrganizationId() uint {
+	return c.modelCluster.OrganizationId
 }
 
 // GetLocation gets where the cluster is.
-func (g *GKECluster) GetLocation() string {
-	return g.modelCluster.Location
+func (c *GKECluster) GetLocation() string {
+	return c.modelCluster.Location
 }
 
 // GetSecretId retrieves the secret id
-func (g *GKECluster) GetSecretId() string {
-	return g.modelCluster.SecretId
+func (c *GKECluster) GetSecretId() string {
+	return c.modelCluster.SecretId
 }
 
 // GetSshSecretId retrieves the secret id
-func (g *GKECluster) GetSshSecretId() string {
-	return g.modelCluster.SshSecretId
+func (c *GKECluster) GetSshSecretId() string {
+	return c.modelCluster.SshSecretId
 }
 
 // SaveSshSecretId saves the ssh secret id to database
-func (g *GKECluster) SaveSshSecretId(sshSecretId string) error {
-	return g.modelCluster.UpdateSshSecret(sshSecretId)
+func (c *GKECluster) SaveSshSecretId(sshSecretId string) error {
+	return c.modelCluster.UpdateSshSecret(sshSecretId)
 }
 
 // GetGoogleCluster returns with a Cluster from GKE
-func (g *GKECluster) GetGoogleCluster() (*gke.Cluster, error) {
-	if g.googleCluster != nil {
-		return g.googleCluster, nil
+func (c *GKECluster) GetGoogleCluster() (*gke.Cluster, error) {
+	if c.googleCluster != nil {
+		return c.googleCluster, nil
 	}
-	svc, err := g.getGoogleServiceClient()
+	svc, err := c.getGoogleServiceClient()
 	if err != nil {
 		return nil, err
 	}
 
-	secretItem, err := g.GetSecretWithValidation()
+	secretItem, err := c.GetSecretWithValidation()
 	if err != nil {
 		return nil, err
 	}
 
 	cc := googleCluster{
-		Name:      g.modelCluster.Name,
+		Name:      c.modelCluster.Name,
 		ProjectID: secretItem.GetValue(pkgSecret.ProjectId),
-		Zone:      g.modelCluster.Location,
+		Zone:      c.modelCluster.Location,
 	}
 	cluster, err := getClusterGoogle(svc, cc)
 	if err != nil {
 		return nil, err
 	}
-	g.googleCluster = cluster
-	return g.googleCluster, nil
+	c.googleCluster = cluster
+	return c.googleCluster, nil
 }
 
 //GetAPIEndpoint returns the Kubernetes Api endpoint
-func (g *GKECluster) GetAPIEndpoint() (string, error) {
-	if g.APIEndpoint != "" {
-		return g.APIEndpoint, nil
+func (c *GKECluster) GetAPIEndpoint() (string, error) {
+	if c.APIEndpoint != "" {
+		return c.APIEndpoint, nil
 	}
-	cluster, err := g.GetGoogleCluster()
+	cluster, err := c.GetGoogleCluster()
 	if err != nil {
 		return "", err
 	}
-	g.APIEndpoint = cluster.Endpoint
-	return g.APIEndpoint, nil
+	c.APIEndpoint = cluster.Endpoint
+	return c.APIEndpoint, nil
 }
 
 //CreateCluster creates a new cluster
-func (g *GKECluster) CreateCluster() error {
+func (c *GKECluster) CreateCluster() error {
 
 	log.Info("Start create cluster (Google)")
 
 	log.Info("Get Google Service Client")
-	svc, err := g.getGoogleServiceClient()
+	svc, err := c.getGoogleServiceClient()
 	if err != nil {
 		return err
 	}
 
 	log.Info("Get Google Service Client succeeded")
 
-	nodePools, err := createNodePoolsFromClusterModel(&g.modelCluster.GKE)
+	nodePools, err := createNodePoolsFromClusterModel(&c.modelCluster.GKE)
 	if err != nil {
 		return err
 	}
 
-	secretItem, err := g.GetSecretWithValidation()
+	secretItem, err := c.GetSecretWithValidation()
 	if err != nil {
 		return err
 	}
@@ -208,9 +208,9 @@ func (g *GKECluster) CreateCluster() error {
 
 	cc := googleCluster{
 		ProjectID:     projectId,
-		Zone:          g.modelCluster.Location,
-		Name:          g.modelCluster.Name,
-		MasterVersion: g.modelCluster.GKE.MasterVersion,
+		Zone:          c.modelCluster.Location,
+		Name:          c.modelCluster.Name,
+		MasterVersion: c.modelCluster.GKE.MasterVersion,
 		NodePools:     nodePools,
 	}
 
@@ -231,11 +231,11 @@ func (g *GKECluster) CreateCluster() error {
 		log.Infof("Cluster %s create is called for project %s and zone %s", cc.Name, cc.ProjectID, cc.Zone)
 		log.Info("Waiting for cluster...")
 
-		if err := waitForOperation(newContainerOperation(svc, projectId, g.modelCluster.Location), createCall.Name); err != nil {
+		if err := waitForOperation(newContainerOperation(svc, projectId, c.modelCluster.Location), createCall.Name); err != nil {
 			return err
 		}
 	} else {
-		log.Info("Cluster %s already exists.", g.modelCluster.Name)
+		log.Info("Cluster %s already exists.", c.modelCluster.Name)
 	}
 
 	gkeCluster, err := getClusterGoogle(svc, cc)
@@ -245,12 +245,12 @@ func (g *GKECluster) CreateCluster() error {
 		return errors.New(be.Message)
 	}
 
-	g.googleCluster = gkeCluster
+	c.googleCluster = gkeCluster
 
-	g.updateCurrentVersions(gkeCluster)
+	c.updateCurrentVersions(gkeCluster)
 
 	// set region
-	g.modelCluster.GKE.Region, err = g.getRegionByZone(projectId, gkeCluster.Zone)
+	c.modelCluster.GKE.Region, err = c.getRegionByZone(projectId, gkeCluster.Zone)
 	if err != nil {
 		log.Warnf("error during getting region: %s", err.Error())
 	}
@@ -259,26 +259,26 @@ func (g *GKECluster) CreateCluster() error {
 
 }
 
-func (g *GKECluster) updateCurrentVersions(gkeCluster *gke.Cluster) {
+func (c *GKECluster) updateCurrentVersions(gkeCluster *gke.Cluster) {
 
-	g.modelCluster.GKE.MasterVersion = gkeCluster.CurrentMasterVersion
+	c.modelCluster.GKE.MasterVersion = gkeCluster.CurrentMasterVersion
 	if len(gkeCluster.NodePools) != 0 && gkeCluster.NodePools[0] != nil {
 		// currently we didn't support different node versions
-		g.modelCluster.GKE.NodeVersion = gkeCluster.NodePools[0].Version
+		c.modelCluster.GKE.NodeVersion = gkeCluster.NodePools[0].Version
 	}
 
 }
 
 //Persist save the cluster model
-func (g *GKECluster) Persist(status, statusMessage string) error {
-	log.Infof("Model before save: %v", g.modelCluster)
-	return g.modelCluster.UpdateStatus(status, statusMessage)
+func (c *GKECluster) Persist(status, statusMessage string) error {
+	log.Infof("Model before save: %v", c.modelCluster)
+	return c.modelCluster.UpdateStatus(status, statusMessage)
 }
 
 // DownloadK8sConfig downloads the kubeconfig file from cloud
-func (g *GKECluster) DownloadK8sConfig() ([]byte, error) {
+func (c *GKECluster) DownloadK8sConfig() ([]byte, error) {
 
-	config, err := g.getGoogleKubernetesConfig()
+	config, err := c.getGoogleKubernetesConfig()
 	if err != nil {
 		// something went wrong
 		be := getBanzaiErrorFromError(err)
@@ -293,26 +293,26 @@ func (g *GKECluster) DownloadK8sConfig() ([]byte, error) {
 }
 
 //GetName returns the name of the cluster
-func (g *GKECluster) GetName() string {
-	return g.modelCluster.Name
+func (c *GKECluster) GetName() string {
+	return c.modelCluster.Name
 }
 
 // GetCloud returns the cloud type of the cluster
-func (g *GKECluster) GetCloud() string {
-	return g.modelCluster.Cloud
+func (c *GKECluster) GetCloud() string {
+	return c.modelCluster.Cloud
 }
 
 // GetDistribution returns the distribution type of the cluster
-func (g *GKECluster) GetDistribution() string {
-	return g.modelCluster.Distribution
+func (c *GKECluster) GetDistribution() string {
+	return c.modelCluster.Distribution
 }
 
 //GetStatus gets cluster status
-func (g *GKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
+func (c *GKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 	log.Info("Create cluster status response")
 
 	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
-	for _, np := range g.modelCluster.GKE.NodePools {
+	for _, np := range c.modelCluster.GKE.NodePools {
 		if np != nil {
 			nodePools[np.Name] = &pkgCluster.NodePoolStatus{
 				Autoscaling:  np.Autoscaling,
@@ -325,44 +325,44 @@ func (g *GKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 	}
 
 	return &pkgCluster.GetClusterStatusResponse{
-		Status:            g.modelCluster.Status,
-		StatusMessage:     g.modelCluster.StatusMessage,
-		Name:              g.modelCluster.Name,
-		Location:          g.modelCluster.Location,
-		Cloud:             g.modelCluster.Cloud,
-		Distribution:      g.modelCluster.Distribution,
-		ResourceID:        g.modelCluster.ID,
+		Status:            c.modelCluster.Status,
+		StatusMessage:     c.modelCluster.StatusMessage,
+		Name:              c.modelCluster.Name,
+		Location:          c.modelCluster.Location,
+		Cloud:             c.modelCluster.Cloud,
+		Distribution:      c.modelCluster.Distribution,
+		ResourceID:        c.modelCluster.ID,
 		NodePools:         nodePools,
-		CreatorBaseFields: *NewCreatorBaseFields(g.modelCluster.CreatedAt, g.modelCluster.CreatedBy),
-		Region:            g.modelCluster.GKE.Region,
+		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
+		Region:            c.modelCluster.GKE.Region,
 	}, nil
 }
 
 // DeleteCluster deletes cluster from google
-func (g *GKECluster) DeleteCluster() error {
+func (c *GKECluster) DeleteCluster() error {
 
-	if err := g.waitForResourcesDelete(); err != nil {
+	if err := c.waitForResourcesDelete(); err != nil {
 		return err
 	}
 
 	log.Info("Start delete gke cluster")
 
-	if g == nil {
+	if c == nil {
 		return pkgErrors.ErrorNilCluster
 	}
 
-	secretItem, err := g.GetSecretWithValidation()
+	secretItem, err := c.GetSecretWithValidation()
 	if err != nil {
 		return err
 	}
 
 	gkec := googleCluster{
 		ProjectID: secretItem.GetValue(pkgSecret.ProjectId),
-		Name:      g.modelCluster.Name,
-		Zone:      g.modelCluster.Location,
+		Name:      c.modelCluster.Name,
+		Zone:      c.modelCluster.Location,
 	}
 
-	if err := g.callDeleteCluster(&gkec); err != nil {
+	if err := c.callDeleteCluster(&gkec); err != nil {
 		be := getBanzaiErrorFromError(err)
 		// TODO status code !?
 		return errors.New(be.Message)
@@ -373,26 +373,26 @@ func (g *GKECluster) DeleteCluster() error {
 }
 
 // waitForResourcesDelete waits until the Kubernetes destroys all the resources which it had created
-func (g *GKECluster) waitForResourcesDelete() error {
+func (c *GKECluster) waitForResourcesDelete() error {
 
-	log := log.WithFields(logrus.Fields{"cluster": g.modelCluster.Name, "zone": g.modelCluster.Location})
+	log := log.WithFields(logrus.Fields{"cluster": c.modelCluster.Name, "zone": c.modelCluster.Location})
 
 	log.Info("Waiting for deleting cluster resources")
 
 	log.Info("Create compute service")
-	csv, err := g.getComputeService()
+	csv, err := c.getComputeService()
 	if err != nil {
 		return errors.Wrap(err, "Error during creating compute service")
 	}
 
 	log.Info("Get project id")
-	project, err := g.getProjectId()
+	project, err := c.getProjectId()
 	if err != nil {
 		return errors.Wrap(err, "Error during getting project id")
 	}
 
-	clusterName := g.modelCluster.Name
-	zone := g.modelCluster.Location
+	clusterName := c.modelCluster.Name
+	zone := c.modelCluster.Location
 	log.Info("Find region by zone")
 	region, err := findRegionByZone(csv, project, zone)
 	if err != nil {
@@ -454,10 +454,10 @@ func listRegions(csv *gkeCompute.Service, project string) ([]*gkeCompute.Region,
 	return regionList.Items, nil
 }
 
-func (g *GKECluster) getRegionByZone(project string, zone string) (string, error) {
+func (c *GKECluster) getRegionByZone(project string, zone string) (string, error) {
 
 	log.Infof("start getting region by zone[%s]", zone)
-	csv, err := g.getComputeService()
+	csv, err := c.getComputeService()
 	if err != nil {
 		return "", errors.Wrap(err, "Error during creating compute service")
 	}
@@ -531,11 +531,11 @@ func checkResources(checkers resourceCheckers, maxAttempts, sleepSeconds int) er
 }
 
 // UpdateCluster updates GKE cluster in cloud
-func (g *GKECluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterRequest, userId uint) error {
+func (c *GKECluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterRequest, userId uint) error {
 
 	log.Info("Start updating cluster (gke)")
 
-	svc, err := g.getGoogleServiceClient()
+	svc, err := c.getGoogleServiceClient()
 	if err != nil {
 		return err
 	}
@@ -547,7 +547,7 @@ func (g *GKECluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 
 	googleClusterModel := model.GKEClusterModel{}
 
-	copier.Copy(&googleClusterModel, &g.modelCluster.GKE)
+	copier.Copy(&googleClusterModel, &c.modelCluster.GKE)
 	googleClusterModel.NodePools = updateNodePoolsModel
 
 	googleClusterModel.NodeVersion = updateRequest.GKE.NodeVersion
@@ -558,7 +558,7 @@ func (g *GKECluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 		return err
 	}
 
-	secretItem, err := g.GetSecretWithValidation()
+	secretItem, err := c.GetSecretWithValidation()
 	if err != nil {
 		return err
 	}
@@ -566,41 +566,41 @@ func (g *GKECluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 	projectId := secretItem.GetValue(pkgSecret.ProjectId)
 
 	cc := googleCluster{
-		Name:          g.modelCluster.Name,
+		Name:          c.modelCluster.Name,
 		ProjectID:     projectId,
-		Zone:          g.modelCluster.Location,
+		Zone:          c.modelCluster.Location,
 		MasterVersion: updateRequest.GKE.Master.Version,
 		NodePools:     updatedNodePools,
 	}
 
-	res, err := callUpdateClusterGoogle(svc, cc, g.modelCluster.Location, projectId)
+	res, err := callUpdateClusterGoogle(svc, cc, c.modelCluster.Location, projectId)
 	if err != nil {
 		be := getBanzaiErrorFromError(err)
 		// TODO status code !?
 		return errors.New(be.Message)
 	}
 	log.Info("Cluster update succeeded")
-	g.googleCluster = res
+	c.googleCluster = res
 
-	g.updateCurrentVersions(res)
+	c.updateCurrentVersions(res)
 
 	// update model to save
-	g.updateModel(res, updatedNodePools)
+	c.updateModel(res, updatedNodePools)
 
 	return nil
 
 }
 
-func (g *GKECluster) updateModel(c *gke.Cluster, updatedNodePools []*gke.NodePool) {
+func (c *GKECluster) updateModel(cluster *gke.Cluster, updatedNodePools []*gke.NodePool) {
 	// Update the model from the cluster data read back from Google
-	g.modelCluster.GKE.MasterVersion = c.CurrentMasterVersion
-	g.modelCluster.GKE.NodeVersion = c.CurrentNodeVersion
+	c.modelCluster.GKE.MasterVersion = cluster.CurrentMasterVersion
+	c.modelCluster.GKE.NodeVersion = cluster.CurrentNodeVersion
 
 	var newNodePoolsModels []*model.GKENodePoolModel
-	for _, clusterNodePool := range c.NodePools {
+	for _, clusterNodePool := range cluster.NodePools {
 		updated := false
 
-		for _, nodePoolModel := range g.modelCluster.GKE.NodePools {
+		for _, nodePoolModel := range c.modelCluster.GKE.NodePools {
 			if clusterNodePool.Name == nodePoolModel.Name {
 				nodePoolModel.NodeInstanceType = clusterNodePool.Config.MachineType
 
@@ -641,14 +641,14 @@ func (g *GKECluster) updateModel(c *gke.Cluster, updatedNodePools []*gke.NodePoo
 	}
 
 	for _, newNodePoolModel := range newNodePoolsModels {
-		g.modelCluster.GKE.NodePools = append(g.modelCluster.GKE.NodePools, newNodePoolModel)
+		c.modelCluster.GKE.NodePools = append(c.modelCluster.GKE.NodePools, newNodePoolModel)
 	}
 
 	// mark for deletion the node pool model entries that has no corresponding node pool in the cluster
-	for _, nodePoolModel := range g.modelCluster.GKE.NodePools {
+	for _, nodePoolModel := range c.modelCluster.GKE.NodePools {
 		found := false
 
-		for _, clusterNodePool := range c.NodePools {
+		for _, clusterNodePool := range cluster.NodePools {
 			if nodePoolModel.Name == clusterNodePool.Name {
 				found = true
 				break
@@ -664,18 +664,22 @@ func (g *GKECluster) updateModel(c *gke.Cluster, updatedNodePools []*gke.NodePoo
 }
 
 //GetID returns the specified cluster id
-func (g *GKECluster) GetID() uint {
-	return g.modelCluster.ID
+func (c *GKECluster) GetID() uint {
+	return c.modelCluster.ID
+}
+
+func (c *GKECluster) GetUID() string {
+	return c.modelCluster.UID
 }
 
 //GetModel returns the whole clusterModel
-func (g *GKECluster) GetModel() *model.ClusterModel {
-	return g.modelCluster
+func (c *GKECluster) GetModel() *model.ClusterModel {
+	return c.modelCluster
 }
 
-func (g *GKECluster) getGoogleServiceClient() (*gke.Service, error) {
+func (c *GKECluster) getGoogleServiceClient() (*gke.Service, error) {
 
-	client, err := g.newClientFromCredentials()
+	client, err := c.newClientFromCredentials()
 	if err != nil {
 		return nil, err
 	}
@@ -857,8 +861,8 @@ func getClusterGoogle(svc *gke.Service, cc googleCluster) (*gke.Cluster, error) 
 	return svc.Projects.Zones.Clusters.Get(cc.ProjectID, cc.Zone, cc.Name).Context(context.TODO()).Do()
 }
 
-func (g *GKECluster) callDeleteCluster(cc *googleCluster) error {
-	svc, err := g.getGoogleServiceClient()
+func (c *GKECluster) callDeleteCluster(cc *googleCluster) error {
+	svc, err := c.getGoogleServiceClient()
 	if err != nil {
 		return err
 	}
@@ -1088,25 +1092,25 @@ func autoscalingHasBeenUpdated(updatedNodePool *gke.NodePool, actualNodePool *gk
 	return true
 }
 
-func (g *GKECluster) getGoogleKubernetesConfig() ([]byte, error) {
+func (c *GKECluster) getGoogleKubernetesConfig() ([]byte, error) {
 
 	log.Info("Get Google Service Client")
-	svc, err := g.getGoogleServiceClient()
+	svc, err := c.getGoogleServiceClient()
 	if err != nil {
 		return nil, err
 	}
 	log.Info("Get Google Service Client succeeded")
 
-	secretItem, err := g.GetSecretWithValidation()
+	secretItem, err := c.GetSecretWithValidation()
 	if err != nil {
 		return nil, err
 	}
 
-	log.Infof("Get gke cluster with name %s", g.modelCluster.Name)
+	log.Infof("Get gke cluster with name %s", c.modelCluster.Name)
 	cl, err := getClusterGoogle(svc, googleCluster{
-		Name:      g.modelCluster.Name,
+		Name:      c.modelCluster.Name,
 		ProjectID: secretItem.GetValue(pkgSecret.ProjectId),
-		Zone:      g.modelCluster.Location,
+		Zone:      c.modelCluster.Location,
 	})
 
 	if err != nil {
@@ -1139,7 +1143,7 @@ func (g *GKECluster) getGoogleKubernetesConfig() ([]byte, error) {
 
 	// TODO if the final solution is NOT SAVE CONFIG TO FILE than rename the method and change log message
 	log.Info("Start save config file")
-	config, err := storeConfig(&finalCl, g.modelCluster.Name)
+	config, err := storeConfig(&finalCl, c.modelCluster.Name)
 	if err != nil {
 		be := getBanzaiErrorFromError(err)
 		// TODO status code !?
@@ -1492,13 +1496,13 @@ func CreateGKEClusterFromModel(clusterModel *model.ClusterModel) (*GKECluster, e
 }
 
 //AddDefaultsToUpdate adds defaults to update request
-func (g *GKECluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
+func (c *GKECluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
 
 	// TODO: error handling
-	defGooglePools, _ := createNodePoolsFromClusterModel(&g.modelCluster.GKE)
+	defGooglePools, _ := createNodePoolsFromClusterModel(&c.modelCluster.GKE)
 
 	defGoogleMaster := &pkgClusterGoogle.Master{
-		Version: g.modelCluster.GKE.MasterVersion,
+		Version: c.modelCluster.GKE.MasterVersion,
 	}
 
 	// ---- [ Node check ] ---- //
@@ -1529,14 +1533,14 @@ func (g *GKECluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
 		if nodePoolData.Count == 0 {
 			// initialize with count read from db
 			var i int
-			for i = 0; i < len(g.modelCluster.GKE.NodePools); i++ {
-				if g.modelCluster.GKE.NodePools[i].Name == name {
-					nodePoolData.Count = g.modelCluster.GKE.NodePools[i].NodeCount
+			for i = 0; i < len(c.modelCluster.GKE.NodePools); i++ {
+				if c.modelCluster.GKE.NodePools[i].Name == name {
+					nodePoolData.Count = c.modelCluster.GKE.NodePools[i].NodeCount
 					log.Warnf("Node count for node pool %s initiated from database to value: %d", name, nodePoolData.Count)
 					break
 				}
 			}
-			if i == len(g.modelCluster.GKE.NodePools) {
+			if i == len(c.modelCluster.GKE.NodePools) {
 				// node pool not found in db; set count to default value
 				nodePoolData.Count = pkgCommon.DefaultNodeMinCount
 				log.Warnf("Node count for node pool %s set to default value: ", name, nodePoolData.Count)
@@ -1546,14 +1550,14 @@ func (g *GKECluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
 
 	// ---- [ Node Version check] ---- //
 	if len(r.GKE.NodeVersion) == 0 {
-		nodeVersion := g.modelCluster.GKE.NodeVersion
+		nodeVersion := c.modelCluster.GKE.NodeVersion
 		log.Warnf("Node K8s version: %s", nodeVersion)
 		r.GKE.NodeVersion = nodeVersion
 	}
 
 	// ---- [ Master Version check] ---- //
 	if len(r.GKE.Master.Version) == 0 {
-		masterVersion := g.modelCluster.GKE.MasterVersion
+		masterVersion := c.modelCluster.GKE.MasterVersion
 		log.Warnf("Master K8s version: %s", masterVersion)
 		r.GKE.Master.Version = masterVersion
 	}
@@ -1561,15 +1565,15 @@ func (g *GKECluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
 }
 
 //CheckEqualityToUpdate validates the update request
-func (g *GKECluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) error {
+func (c *GKECluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) error {
 
 	// create update request struct with the stored data to check equality
-	nodePools, _ := createNodePoolsRequestDataFromNodePoolModel(g.modelCluster.GKE.NodePools)
+	nodePools, _ := createNodePoolsRequestDataFromNodePoolModel(c.modelCluster.GKE.NodePools)
 	preCl := &pkgClusterGoogle.UpdateClusterGoogle{
 		Master: &pkgClusterGoogle.Master{
-			Version: g.modelCluster.GKE.MasterVersion,
+			Version: c.modelCluster.GKE.MasterVersion,
 		},
-		NodeVersion: g.modelCluster.GKE.NodeVersion,
+		NodeVersion: c.modelCluster.GKE.NodeVersion,
 		NodePools:   nodePools,
 	}
 
@@ -1580,12 +1584,12 @@ func (g *GKECluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) e
 }
 
 //DeleteFromDatabase deletes model from the database
-func (g *GKECluster) DeleteFromDatabase() error {
-	err := g.modelCluster.Delete()
+func (c *GKECluster) DeleteFromDatabase() error {
+	err := c.modelCluster.Delete()
 	if err != nil {
 		return err
 	}
-	g.modelCluster = nil
+	c.modelCluster = nil
 	return nil
 }
 
@@ -1602,17 +1606,17 @@ func GetGkeServerConfig(orgId uint, secretId, zone string) (*gke.ServerConfig, e
 }
 
 // GetGkeServerConfig returns configuration info about the Kubernetes Engine service.
-func (g *GKECluster) GetGkeServerConfig(zone string) (*gke.ServerConfig, error) {
+func (c *GKECluster) GetGkeServerConfig(zone string) (*gke.ServerConfig, error) {
 
 	log.Info("Start getting configuration info")
 
 	log.Info("Get Google service client")
-	svc, err := g.getGoogleServiceClient()
+	svc, err := c.getGoogleServiceClient()
 	if err != nil {
 		return nil, err
 	}
 
-	projectId, err := g.getProjectId()
+	projectId, err := c.getProjectId()
 	if err != nil {
 		return nil, err
 	}
@@ -1669,14 +1673,14 @@ func GetAllMachineTypesByZone(orgId uint, secretId, zone string) (map[string]pkg
 }
 
 // GetAllMachineTypesByZone lists supported machine types by zone
-func (g *GKECluster) GetAllMachineTypesByZone(zone string) (map[string]pkgCluster.MachineType, error) {
+func (c *GKECluster) GetAllMachineTypesByZone(zone string) (map[string]pkgCluster.MachineType, error) {
 
-	computeService, err := g.getComputeService()
+	computeService, err := c.getComputeService()
 	if err != nil {
 		return nil, err
 	}
 
-	project, err := g.getProjectId()
+	project, err := c.getProjectId()
 	if err != nil {
 		return nil, err
 	}
@@ -1698,14 +1702,14 @@ func GetAllMachineTypes(orgId uint, secretId string) (map[string]pkgCluster.Mach
 }
 
 // GetAllMachineTypes lists all supported machine types
-func (g *GKECluster) GetAllMachineTypes() (map[string]pkgCluster.MachineType, error) {
+func (c *GKECluster) GetAllMachineTypes() (map[string]pkgCluster.MachineType, error) {
 
-	computeService, err := g.getComputeService()
+	computeService, err := c.getComputeService()
 	if err != nil {
 		return nil, err
 	}
 
-	project, err := g.getProjectId()
+	project, err := c.getProjectId()
 	if err != nil {
 		return nil, err
 	}
@@ -1759,10 +1763,10 @@ func getMachineTypes(csv *gkeCompute.Service, project, zone string) (map[string]
 }
 
 // getComputeService create a Compute Service from GKECluster
-func (g *GKECluster) getComputeService() (*gkeCompute.Service, error) {
+func (c *GKECluster) getComputeService() (*gkeCompute.Service, error) {
 
 	//New client from credentials
-	client, err := g.newClientFromCredentials()
+	client, err := c.newClientFromCredentials()
 	if err != nil {
 		return nil, err
 	}
@@ -1774,9 +1778,9 @@ func (g *GKECluster) getComputeService() (*gkeCompute.Service, error) {
 }
 
 // newClientFromCredentials creates new client from credentials
-func (g *GKECluster) newClientFromCredentials() (*http.Client, error) {
+func (c *GKECluster) newClientFromCredentials() (*http.Client, error) {
 	// Get Secret from Vault
-	clusterSecret, err := g.GetSecretWithValidation()
+	clusterSecret, err := c.GetSecretWithValidation()
 	if err != nil {
 		return nil, err
 	}
@@ -1800,14 +1804,14 @@ func GetZones(orgId uint, secretId string) ([]string, error) {
 }
 
 // GetZones lists supported zones
-func (g *GKECluster) GetZones() ([]string, error) {
+func (c *GKECluster) GetZones() ([]string, error) {
 
-	computeService, err := g.getComputeService()
+	computeService, err := c.getComputeService()
 	if err != nil {
 		return nil, err
 	}
 
-	project, err := g.getProjectId()
+	project, err := c.getProjectId()
 	if err != nil {
 		return nil, err
 	}
@@ -1825,8 +1829,8 @@ func (g *GKECluster) GetZones() ([]string, error) {
 }
 
 // getProjectId returns with project id from secret
-func (g *GKECluster) getProjectId() (string, error) {
-	s, err := g.GetSecretWithValidation()
+func (c *GKECluster) getProjectId() (string, error) {
+	s, err := c.GetSecretWithValidation()
 	if err != nil {
 		return "", err
 	}
@@ -1835,27 +1839,27 @@ func (g *GKECluster) getProjectId() (string, error) {
 }
 
 // UpdateStatus updates cluster status in database
-func (g *GKECluster) UpdateStatus(status, statusMessage string) error {
-	return g.modelCluster.UpdateStatus(status, statusMessage)
+func (c *GKECluster) UpdateStatus(status, statusMessage string) error {
+	return c.modelCluster.UpdateStatus(status, statusMessage)
 }
 
 // GetClusterDetails gets cluster details from cloud
-func (g *GKECluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
+func (c *GKECluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 	log.Info("Get Google Service Client")
-	svc, err := g.getGoogleServiceClient()
+	svc, err := c.getGoogleServiceClient()
 	if err != nil {
 		be := getBanzaiErrorFromError(err)
 		return nil, errors.New(be.Message)
 	}
 	log.Info("Get Google Service Client success")
 
-	secretItem, err := g.GetSecretWithValidation()
+	secretItem, err := c.GetSecretWithValidation()
 	if err != nil {
 		return nil, err
 	}
 
-	log.Infof("Get gke cluster with name %s", g.modelCluster.Name)
-	cl, err := svc.Projects.Zones.Clusters.Get(secretItem.GetValue(pkgSecret.ProjectId), g.modelCluster.Location, g.modelCluster.Name).Context(context.Background()).Do()
+	log.Infof("Get gke cluster with name %s", c.modelCluster.Name)
+	cl, err := svc.Projects.Zones.Clusters.Get(secretItem.GetValue(pkgSecret.ProjectId), c.modelCluster.Location, c.modelCluster.Name).Context(context.Background()).Do()
 	if err != nil {
 		apiError := getBanzaiErrorFromError(err)
 		return nil, errors.New(apiError.Message)
@@ -1865,15 +1869,15 @@ func (g *GKECluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 
 	if statusRunning == cl.Status {
 
-		//userId, userName := GetUserIdAndName(g.modelCluster)
+		//userId, userName := GetUserIdAndName(c.modelCluster)
 		nodePools := make(map[string]*pkgCluster.NodeDetails)
 
-		for _, np := range g.modelCluster.GKE.NodePools {
+		for _, np := range c.modelCluster.GKE.NodePools {
 			if np != nil {
 
 				nodePools[np.Name] = &pkgCluster.NodeDetails{
 					CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
-					Version:           g.modelCluster.GKE.NodeVersion,
+					Version:           c.modelCluster.GKE.NodeVersion,
 					Count:             np.NodeCount,
 					MinCount:          np.NodeMinCount,
 					MaxCount:          np.NodeMaxCount,
@@ -1882,14 +1886,14 @@ func (g *GKECluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 		}
 
 		response := &pkgCluster.DetailsResponse{
-			CreatorBaseFields: *NewCreatorBaseFields(g.modelCluster.CreatedAt, g.modelCluster.CreatedBy),
-			Name:              g.modelCluster.Name,
-			Id:                g.modelCluster.ID,
-			Location:          g.modelCluster.Location,
-			MasterVersion:     g.modelCluster.GKE.MasterVersion,
+			CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
+			Name:              c.modelCluster.Name,
+			Id:                c.modelCluster.ID,
+			Location:          c.modelCluster.Location,
+			MasterVersion:     c.modelCluster.GKE.MasterVersion,
 			NodePools:         nodePools,
-			Region:            g.modelCluster.GKE.Region,
-			Status:            g.modelCluster.Status,
+			Region:            c.modelCluster.GKE.Region,
+			Status:            c.modelCluster.Status,
 		}
 		return response, nil
 	}
@@ -1897,13 +1901,13 @@ func (g *GKECluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 }
 
 // ValidateCreationFields validates all field
-func (g *GKECluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
+func (c *GKECluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
 
 	location := r.Location
 
 	// Validate location
 	log.Info("Validate location")
-	if err := g.validateLocation(location); err != nil {
+	if err := c.validateLocation(location); err != nil {
 		return err
 	}
 	log.Info("Validate location passed")
@@ -1911,7 +1915,7 @@ func (g *GKECluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) 
 	// Validate machine types
 	nodePools := r.Properties.CreateClusterGKE.NodePools
 	log.Info("Validate nodePools")
-	if err := g.validateMachineType(nodePools, location); err != nil {
+	if err := c.validateMachineType(nodePools, location); err != nil {
 		return err
 	}
 	log.Info("Validate nodePools passed")
@@ -1920,7 +1924,7 @@ func (g *GKECluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) 
 	log.Info("Validate kubernetesVersion")
 	masterVersion := r.Properties.CreateClusterGKE.Master.Version
 	nodeVersion := r.Properties.CreateClusterGKE.NodeVersion
-	if err := g.validateKubernetesVersion(masterVersion, nodeVersion, location); err != nil {
+	if err := c.validateKubernetesVersion(masterVersion, nodeVersion, location); err != nil {
 		return err
 	}
 	log.Info("Validate kubernetesVersion passed")
@@ -1929,9 +1933,9 @@ func (g *GKECluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) 
 }
 
 // validateLocation validates location
-func (g *GKECluster) validateLocation(location string) error {
+func (c *GKECluster) validateLocation(location string) error {
 	log.Infof("Location: %s", location)
-	validLocations, err := g.GetZones()
+	validLocations, err := c.GetZones()
 	if err != nil {
 		return err
 	}
@@ -1946,7 +1950,7 @@ func (g *GKECluster) validateLocation(location string) error {
 }
 
 // validateMachineType validates nodeInstanceTypes
-func (g *GKECluster) validateMachineType(nodePools map[string]*pkgClusterGoogle.NodePool, location string) error {
+func (c *GKECluster) validateMachineType(nodePools map[string]*pkgClusterGoogle.NodePool, location string) error {
 
 	var machineTypes []string
 	for _, nodePool := range nodePools {
@@ -1957,7 +1961,7 @@ func (g *GKECluster) validateMachineType(nodePools map[string]*pkgClusterGoogle.
 
 	log.Infof("NodeInstanceTypes: %v", machineTypes)
 
-	validMachineTypes, err := g.GetAllMachineTypesByZone(location)
+	validMachineTypes, err := c.GetAllMachineTypesByZone(location)
 	if err != nil {
 		return err
 	}
@@ -1973,11 +1977,11 @@ func (g *GKECluster) validateMachineType(nodePools map[string]*pkgClusterGoogle.
 }
 
 // validateKubernetesVersion validates k8s versions
-func (g *GKECluster) validateKubernetesVersion(masterVersion, nodeVersion, location string) error {
+func (c *GKECluster) validateKubernetesVersion(masterVersion, nodeVersion, location string) error {
 
 	log.Infof("Master version: %s", masterVersion)
 	log.Infof("Node version: %s", nodeVersion)
-	config, err := g.GetGkeServerConfig(location)
+	config, err := c.GetGkeServerConfig(location)
 	if err != nil {
 		return err
 	}
@@ -2001,23 +2005,23 @@ func (g *GKECluster) validateKubernetesVersion(masterVersion, nodeVersion, locat
 }
 
 // GetSecretWithValidation returns secret from vault
-func (g *GKECluster) GetSecretWithValidation() (*secret.SecretItemResponse, error) {
-	return g.CommonClusterBase.getSecret(g)
+func (c *GKECluster) GetSecretWithValidation() (*secret.SecretItemResponse, error) {
+	return c.CommonClusterBase.getSecret(c)
 }
 
 // SaveConfigSecretId saves the config secret id in database
-func (g *GKECluster) SaveConfigSecretId(configSecretId string) error {
-	return g.modelCluster.UpdateConfigSecret(configSecretId)
+func (c *GKECluster) SaveConfigSecretId(configSecretId string) error {
+	return c.modelCluster.UpdateConfigSecret(configSecretId)
 }
 
 // GetConfigSecretId return config secret id
-func (g *GKECluster) GetConfigSecretId() string {
-	return g.modelCluster.ConfigSecretId
+func (c *GKECluster) GetConfigSecretId() string {
+	return c.modelCluster.ConfigSecretId
 }
 
 // GetK8sConfig returns the Kubernetes config
-func (g *GKECluster) GetK8sConfig() ([]byte, error) {
-	return g.CommonClusterBase.getConfig(g)
+func (c *GKECluster) GetK8sConfig() ([]byte, error) {
+	return c.CommonClusterBase.getConfig(c)
 }
 
 func waitForOperation(getter operationInfoer, operationName string) error {
@@ -2044,12 +2048,12 @@ func waitForOperation(getter operationInfoer, operationName string) error {
 }
 
 // ListNodeNames returns node names to label them
-func (g *GKECluster) ListNodeNames() (nodeNames pkgCommon.NodeNames, err error) {
+func (c *GKECluster) ListNodeNames() (nodeNames pkgCommon.NodeNames, err error) {
 	// nodes are labeled in create request
 	return
 }
 
 // RbacEnabled returns true if rbac enabled on the cluster
-func (g *GKECluster) RbacEnabled() bool {
-	return g.modelCluster.RbacEnabled
+func (c *GKECluster) RbacEnabled() bool {
+	return c.modelCluster.RbacEnabled
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/jinzhu/gorm"
+	"github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
 )
 
@@ -36,7 +37,8 @@ const (
 //ClusterModel describes the common cluster model
 // Note: this model is being moved to github.com/banzaicloud/pipeline/pkg/model.ClusterModel
 type ClusterModel struct {
-	ID             uint `gorm:"primary_key"`
+	ID             uint   `gorm:"primary_key"`
+	UID            string `gorm:"unique_index:idx_uid"`
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 	DeletedAt      *time.Time `gorm:"unique_index:idx_unique_id" sql:"index"`
@@ -200,6 +202,14 @@ func (gc GKEClusterModel) String() string {
 		gc.NodePools))
 
 	return buffer.String()
+}
+
+func (cs *ClusterModel) BeforeCreate() (err error) {
+	if cs.UID == "" {
+		cs.UID = uuid.NewV4().String()
+	}
+
+	return
 }
 
 // BeforeSave converts the metadata into a json string in case of Kubernetes

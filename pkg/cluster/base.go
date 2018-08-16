@@ -44,6 +44,7 @@ const (
 
 // Distribution constants
 const (
+	ACSK    = "acsk"
 	EC2     = "ec2"
 	EKS     = "eks"
 	AKS     = "aks"

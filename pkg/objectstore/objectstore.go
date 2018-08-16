@@ -1,24 +1,16 @@
 package objectstore
 
-// ObjectStore is the interface that cloud specific object store implementation
-// must implement
+// ObjectStore is the interface that cloud specific object store implementation must implement.
 type ObjectStore interface {
-	CreateBucket(string)
-	ListBuckets() ([]*BucketInfo, error)
-	DeleteBucket(string) error
+	// CreateBucket creates a new bucket in the object store.
+	CreateBucket(string) error
+
+	// ListBuckets lists the current buckets in the object store.
+	ListBuckets() ([]string, error)
+
+	// CheckBucket checks the status of the given bucket.
 	CheckBucket(string) error
-}
 
-// BucketInfo desribes a storage bucket
-type BucketInfo struct {
-	Name     string                    `json:"name"  binding:"required"`
-	Managed  bool                      `json:"managed" binding:"required"`
-	Location string                    `json:"location,omitempty"`
-	Azure    *BlobStoragePropsForAzure `json:"aks,omitempty"`
-}
-
-// BlobStoragePropsForAzure describes the Azure specific properties
-type BlobStoragePropsForAzure struct {
-	ResourceGroup  string `json:"resourceGroup" binding:"required"`
-	StorageAccount string `json:"storageAccount" binding:"required"`
+	// DeleteBucket removes a bucket from the object store.
+	DeleteBucket(string) error
 }
