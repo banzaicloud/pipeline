@@ -194,19 +194,22 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 	if loggingParam.GenTLSForLogging.TLSHost == "" {
 		loggingParam.GenTLSForLogging.TLSHost = "fluentd." + loggingParam.GenTLSForLogging.Namespace + ".svc.cluster.local"
 	}
+	if loggingParam.GenTLSForLogging.GenTLSSecretName == "" {
+		loggingParam.GenTLSForLogging.GenTLSSecretName = fmt.Sprintf("logging-tls-%s", string(cluster.GetID()))
+	}
 
 	if loggingParam.GenTLSForLogging.TLSEnabled {
 		req := &secret.CreateSecretRequest{
 			Name: loggingParam.GenTLSForLogging.GenTLSSecretName,
 			Type: secretTypes.TLSSecretType,
-			Tags: []string{loggingOperator, "cluster:" + string(cluster.GetID())},
+			Tags: []string{loggingOperator},
 			Values: map[string]string{
 				secretTypes.TLSHosts: loggingParam.GenTLSForLogging.TLSHost,
 			},
 		}
 		_, err := secret.Store.Store(cluster.GetOrganizationId(), req)
 		if err != nil {
-			return errors.Errorf("Failed generate TLS secrets to logging operator")
+			return errors.Errorf("failed generate TLS secrets to logging operator: %s", err)
 		}
 		_, err = InstallOrUpdateSecrets(cluster,
 			&pkgSecret.ListSecretsQuery{
@@ -214,7 +217,7 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 				Tag:  loggingOperator,
 			}, loggingParam.GenTLSForLogging.Namespace)
 		if err != nil {
-			return errors.Errorf("Could not install created TLS secret to cluster!")
+			return errors.Errorf("could not install created TLS secret to cluster: %s", err)
 		}
 	}
 	// Install output related secret
@@ -222,7 +225,6 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 	if err != nil {
 		return err
 	}
-
 	err = installDeployment(cluster, helm.DefaultNamespace, pkgHelm.BanzaiRepository+"/logging-operator", "pipeline-logging", nil, "InstallLogging", "")
 	if err != nil {
 		return err
@@ -231,8 +233,11 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 		"s3output": map[string]interface{}{
 			"bucketname": loggingParam.BucketName,
 			"region":     loggingParam.Region,
-			"secretname": installedSecretValues.Name,
-		}}
+		},
+		"secret": map[string]interface{}{
+			"secretName": installedSecretValues.Name,
+		},
+	}
 	marshaledValues, err := yaml.Marshal(loggingValues)
 	if err != nil {
 		return err
