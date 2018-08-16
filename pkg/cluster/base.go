@@ -49,7 +49,7 @@ const (
 	EKS     = "eks"
 	AKS     = "aks"
 	GKE     = "gke"
-	OKE     = "oracle"
+	OKE     = "oke"
 	Unknown = "unknown"
 )
 
