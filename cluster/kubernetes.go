@@ -43,10 +43,10 @@ type KubeCluster struct {
 }
 
 // CreateCluster creates a new cluster
-func (b *KubeCluster) CreateCluster() error {
+func (c *KubeCluster) CreateCluster() error {
 
 	// check secret type
-	_, err := b.GetSecretWithValidation()
+	_, err := c.GetSecretWithValidation()
 	if err != nil {
 		return err
 	}
@@ -55,114 +55,114 @@ func (b *KubeCluster) CreateCluster() error {
 }
 
 // Persist save the cluster model
-func (b *KubeCluster) Persist(status, statusMessage string) error {
-	return b.modelCluster.UpdateStatus(status, statusMessage)
+func (c *KubeCluster) Persist(status, statusMessage string) error {
+	return c.modelCluster.UpdateStatus(status, statusMessage)
 }
 
 // DownloadK8sConfig downloads the kubeconfig file from cloud
-func (b *KubeCluster) DownloadK8sConfig() ([]byte, error) {
-	s, err := b.GetSecretWithValidation()
+func (c *KubeCluster) DownloadK8sConfig() ([]byte, error) {
+	s, err := c.GetSecretWithValidation()
 	if err != nil {
 		return nil, err
 	}
-	b.k8sConfig, err = base64.StdEncoding.DecodeString(s.GetValue(pkgSecret.K8SConfig))
-	return b.k8sConfig, err
+	c.k8sConfig, err = base64.StdEncoding.DecodeString(s.GetValue(pkgSecret.K8SConfig))
+	return c.k8sConfig, err
 }
 
 // GetName returns the name of the cluster
-func (b *KubeCluster) GetName() string {
-	return b.modelCluster.Name
+func (c *KubeCluster) GetName() string {
+	return c.modelCluster.Name
 }
 
 // GetCloud returns the cloud type of the cluster
-func (b *KubeCluster) GetCloud() string {
+func (c *KubeCluster) GetCloud() string {
 	return pkgCluster.Kubernetes
 }
 
 // GetDistribution returns the distribution type of the cluster
-func (b *KubeCluster) GetDistribution() string {
-	return b.modelCluster.Distribution
+func (c *KubeCluster) GetDistribution() string {
+	return c.modelCluster.Distribution
 }
 
 // GetStatus gets cluster status
-func (b *KubeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
+func (c *KubeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 
-	if len(b.modelCluster.Location) == 0 {
+	if len(c.modelCluster.Location) == 0 {
 		log.Debug("Empty location.. reload from db")
 		// reload from db
 		db := config.DB()
-		db.Find(&b.modelCluster, model.ClusterModel{ID: b.GetID()})
+		db.Find(&c.modelCluster, model.ClusterModel{ID: c.GetID()})
 	}
 
 	return &pkgCluster.GetClusterStatusResponse{
-		Status:            b.modelCluster.Status,
-		StatusMessage:     b.modelCluster.StatusMessage,
-		Name:              b.GetName(),
-		Location:          b.modelCluster.Location,
+		Status:            c.modelCluster.Status,
+		StatusMessage:     c.modelCluster.StatusMessage,
+		Name:              c.GetName(),
+		Location:          c.modelCluster.Location,
 		Cloud:             pkgCluster.Kubernetes,
-		Distribution:      b.modelCluster.Distribution,
-		ResourceID:        b.modelCluster.ID,
-		CreatorBaseFields: *NewCreatorBaseFields(b.modelCluster.CreatedAt, b.modelCluster.CreatedBy),
+		Distribution:      c.modelCluster.Distribution,
+		ResourceID:        c.modelCluster.ID,
+		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
 		NodePools:         nil,
 	}, nil
 }
 
 // DeleteCluster deletes cluster from cloud, in this case no delete function
-func (b *KubeCluster) DeleteCluster() error {
+func (c *KubeCluster) DeleteCluster() error {
 	return nil
 }
 
 // UpdateCluster updates cluster in cloud, in this case no update function
-func (b *KubeCluster) UpdateCluster(*pkgCluster.UpdateClusterRequest, uint) error {
+func (c *KubeCluster) UpdateCluster(*pkgCluster.UpdateClusterRequest, uint) error {
 	return nil
 }
 
 // GetID returns the specified cluster id
-func (b *KubeCluster) GetID() uint {
-	return b.modelCluster.ID
+func (c *KubeCluster) GetID() uint {
+	return c.modelCluster.ID
 }
 
-func (b *KubeCluster) GetUID() string {
-	return b.modelCluster.UID
+func (c *KubeCluster) GetUID() string {
+	return c.modelCluster.UID
 }
 
 // GetSecretId returns the specified secret id
-func (b *KubeCluster) GetSecretId() string {
-	return b.modelCluster.SecretId
+func (c *KubeCluster) GetSecretId() string {
+	return c.modelCluster.SecretId
 }
 
 // GetSshSecretId returns the specified ssh secret id
-func (b *KubeCluster) GetSshSecretId() string {
-	return b.modelCluster.SshSecretId
+func (c *KubeCluster) GetSshSecretId() string {
+	return c.modelCluster.SshSecretId
 }
 
 // SaveSshSecretId saves the ssh secret id to database
-func (b *KubeCluster) SaveSshSecretId(sshSecretId string) error {
-	return b.modelCluster.UpdateSshSecret(sshSecretId)
+func (c *KubeCluster) SaveSshSecretId(sshSecretId string) error {
+	return c.modelCluster.UpdateSshSecret(sshSecretId)
 }
 
 // GetModel returns the whole clusterModel
-func (b *KubeCluster) GetModel() *model.ClusterModel {
-	return b.modelCluster
+func (c *KubeCluster) GetModel() *model.ClusterModel {
+	return c.modelCluster
 }
 
 // CheckEqualityToUpdate validates the update request, in this case no update function
-func (b *KubeCluster) CheckEqualityToUpdate(*pkgCluster.UpdateClusterRequest) error {
+func (c *KubeCluster) CheckEqualityToUpdate(*pkgCluster.UpdateClusterRequest) error {
 	return nil
 }
 
 // AddDefaultsToUpdate adds defaults to update request, in this case no update function
-func (b *KubeCluster) AddDefaultsToUpdate(*pkgCluster.UpdateClusterRequest) {
+func (c *KubeCluster) AddDefaultsToUpdate(*pkgCluster.UpdateClusterRequest) {
 
 }
 
 // GetAPIEndpoint returns the Kubernetes Api endpoint
-func (b *KubeCluster) GetAPIEndpoint() (string, error) {
+func (c *KubeCluster) GetAPIEndpoint() (string, error) {
 
-	if b.APIEndpoint != "" {
-		return b.APIEndpoint, nil
+	if c.APIEndpoint != "" {
+		return c.APIEndpoint, nil
 	}
-	secretItem, err := b.GetSecretWithValidation()
+	secretItem, err := c.GetSecretWithValidation()
 	if err != nil {
 		return "", err
 	}
@@ -175,23 +175,23 @@ func (b *KubeCluster) GetAPIEndpoint() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	b.APIEndpoint = kubeConf.Clusters[0].Cluster.Server
-	return b.APIEndpoint, nil
+	c.APIEndpoint = kubeConf.Clusters[0].Cluster.Server
+	return c.APIEndpoint, nil
 }
 
 // DeleteFromDatabase deletes model from the database
-func (b *KubeCluster) DeleteFromDatabase() error {
-	return b.modelCluster.Delete()
+func (c *KubeCluster) DeleteFromDatabase() error {
+	return c.modelCluster.Delete()
 }
 
 // GetOrganizationId returns the specified organization id
-func (b *KubeCluster) GetOrganizationId() uint {
-	return b.modelCluster.OrganizationId
+func (c *KubeCluster) GetOrganizationId() uint {
+	return c.modelCluster.OrganizationId
 }
 
 // GetLocation gets where the cluster is.
-func (b *KubeCluster) GetLocation() string {
-	return b.modelCluster.Location
+func (c *KubeCluster) GetLocation() string {
+	return c.modelCluster.Location
 }
 
 // CreateKubernetesClusterFromModel converts ClusterModel to KubeCluster
@@ -204,52 +204,52 @@ func CreateKubernetesClusterFromModel(clusterModel *model.ClusterModel) (*KubeCl
 }
 
 // UpdateStatus updates cluster status in database
-func (b *KubeCluster) UpdateStatus(status, statusMessage string) error {
-	return b.modelCluster.UpdateStatus(status, statusMessage)
+func (c *KubeCluster) UpdateStatus(status, statusMessage string) error {
+	return c.modelCluster.UpdateStatus(status, statusMessage)
 }
 
 // GetClusterDetails gets cluster details from cloud
-func (b *KubeCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
+func (c *KubeCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 
 	return &pkgCluster.DetailsResponse{
-		CreatorBaseFields: *NewCreatorBaseFields(b.modelCluster.CreatedAt, b.modelCluster.CreatedBy),
-		Name:              b.modelCluster.Name,
-		Id:                b.modelCluster.ID,
-		Location:          b.modelCluster.Location,
+		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
+		Name:              c.modelCluster.Name,
+		Id:                c.modelCluster.ID,
+		Location:          c.modelCluster.Location,
 	}, nil
 }
 
 // ValidateCreationFields validates all field
-func (b *KubeCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
+func (c *KubeCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
 	return nil
 }
 
 // GetSecretWithValidation returns secret from vault
-func (b *KubeCluster) GetSecretWithValidation() (*secret.SecretItemResponse, error) {
-	return b.CommonClusterBase.getSecret(b)
+func (c *KubeCluster) GetSecretWithValidation() (*secret.SecretItemResponse, error) {
+	return c.CommonClusterBase.getSecret(c)
 }
 
 // SaveConfigSecretId saves the config secret id in database
-func (b *KubeCluster) SaveConfigSecretId(configSecretId string) error {
-	return b.modelCluster.UpdateConfigSecret(configSecretId)
+func (c *KubeCluster) SaveConfigSecretId(configSecretId string) error {
+	return c.modelCluster.UpdateConfigSecret(configSecretId)
 }
 
 // GetConfigSecretId return config secret id
-func (b *KubeCluster) GetConfigSecretId() string {
-	return b.modelCluster.ConfigSecretId
+func (c *KubeCluster) GetConfigSecretId() string {
+	return c.modelCluster.ConfigSecretId
 }
 
 // GetK8sConfig returns the Kubernetes config
-func (b *KubeCluster) GetK8sConfig() ([]byte, error) {
-	return b.DownloadK8sConfig()
+func (c *KubeCluster) GetK8sConfig() ([]byte, error) {
+	return c.DownloadK8sConfig()
 }
 
 // ListNodeNames returns node names to label them
-func (b *KubeCluster) ListNodeNames() (nodeNames pkgCommon.NodeNames, err error) {
+func (c *KubeCluster) ListNodeNames() (nodeNames pkgCommon.NodeNames, err error) {
 	return
 }
 
 // RbacEnabled returns true if rbac enabled on the cluster
-func (b *KubeCluster) RbacEnabled() bool {
-	return b.modelCluster.RbacEnabled
+func (c *KubeCluster) RbacEnabled() bool {
+	return c.modelCluster.RbacEnabled
 }
