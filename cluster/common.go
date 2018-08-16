@@ -143,7 +143,7 @@ func StoreKubernetesConfig(cluster CommonCluster, config []byte) error {
 	encodedConfig := utils.EncodeStringToBase64(string(config))
 
 	organizationID := cluster.GetOrganizationId()
-	clusterIdTag := fmt.Sprintf("clusterid:%d", cluster.GetID())
+	clusterUidTag := fmt.Sprintf("clusterUID:%s", cluster.GetUID())
 
 	createSecretRequest := secret.CreateSecretRequest{
 		Name: fmt.Sprintf("cluster-%d-config", cluster.GetID()),
@@ -151,7 +151,7 @@ func StoreKubernetesConfig(cluster CommonCluster, config []byte) error {
 		Values: map[string]string{
 			pkgSecret.K8SConfig: encodedConfig,
 		},
-		Tags: []string{pkgSecret.TagKubeConfig, clusterIdTag},
+		Tags: []string{pkgSecret.TagKubeConfig, clusterUidTag},
 	}
 
 	secretID := secret.GenerateSecretID(&createSecretRequest)

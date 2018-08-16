@@ -121,7 +121,7 @@ func InstallMonitoring(input interface{}) error {
 	}
 
 	clusterNameTag := fmt.Sprintf("cluster:%s", cluster.GetName())
-	clusterIdTag := fmt.Sprintf("clusterid:%d", cluster.GetID())
+	clusterUidTag := fmt.Sprintf("clusterUID:%s", cluster.GetUID())
 
 	createSecretRequest := secret.CreateSecretRequest{
 		Name: fmt.Sprintf("cluster-%d-grafana", cluster.GetID()),
@@ -132,7 +132,7 @@ func InstallMonitoring(input interface{}) error {
 		},
 		Tags: []string{
 			clusterNameTag,
-			clusterIdTag,
+			clusterUidTag,
 			"app:grafana",
 			"release:pipeline-monitoring",
 		},

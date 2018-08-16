@@ -111,7 +111,7 @@ func (m *Manager) createCluster(
 			return errors.Wrap(err, "key generator failed")
 		}
 
-		sshSecretId, err := secret.StoreSSHKeyPair(sshKey, cluster.GetOrganizationId(), cluster.GetID(), cluster.GetName())
+		sshSecretId, err := secret.StoreSSHKeyPair(sshKey, cluster.GetOrganizationId(), cluster.GetID(), cluster.GetName(), cluster.GetUID())
 		if err != nil {
 			return errors.Wrap(err, "key store failed")
 		}
