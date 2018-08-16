@@ -656,7 +656,7 @@ func TestAwsRoute53_RegisterDomain(t *testing.T) {
 		Type:   cluster.Amazon,
 		Tag:    secretTypes.TagBanzaiHidden,
 		Values: true,
-	}, true)
+	})
 
 	if len(secrets) != 1 {
 		t.Errorf("There should be one secret with name '%s' in Vault", iamUserAccessKeySecretName)
@@ -1112,7 +1112,7 @@ func cleanupVaultTestSecrets() {
 		Type:   cluster.Amazon,
 		Tag:    secretTypes.TagBanzaiHidden,
 		Values: true,
-	}, true)
+	})
 
 	for _, secretItem := range secrets {
 		if secretItem.Name == iamUserAccessKeySecretName {
