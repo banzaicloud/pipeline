@@ -36,127 +36,127 @@ func CreateDummyClusterFromRequest(request *pkgCluster.CreateClusterRequest, org
 }
 
 //CreateCluster creates a new cluster
-func (d *DummyCluster) CreateCluster() error {
+func (c *DummyCluster) CreateCluster() error {
 	return nil
 }
 
 //Persist save the cluster model
-func (d *DummyCluster) Persist(status, statusMessage string) error {
-	log.Infof("Model before save: %v", d.modelCluster)
-	return d.modelCluster.UpdateStatus(status, statusMessage)
+func (c *DummyCluster) Persist(status, statusMessage string) error {
+	log.Infof("Model before save: %v", c.modelCluster)
+	return c.modelCluster.UpdateStatus(status, statusMessage)
 }
 
 // DownloadK8sConfig downloads the kubeconfig file from cloud
-func (d *DummyCluster) DownloadK8sConfig() ([]byte, error) {
+func (c *DummyCluster) DownloadK8sConfig() ([]byte, error) {
 	return yaml.Marshal(createDummyConfig())
 }
 
 //GetName returns the name of the cluster
-func (d *DummyCluster) GetName() string {
-	return d.modelCluster.Name
+func (c *DummyCluster) GetName() string {
+	return c.modelCluster.Name
 }
 
 //GetCloud returns the cloud type of the cluster
-func (d *DummyCluster) GetCloud() string {
+func (c *DummyCluster) GetCloud() string {
 	return pkgCluster.Dummy
 }
 
 // GetDistribution returns the distribution type of the cluster
-func (d *DummyCluster) GetDistribution() string {
-	return d.modelCluster.Distribution
+func (c *DummyCluster) GetDistribution() string {
+	return c.modelCluster.Distribution
 }
 
 //GetStatus gets cluster status
-func (d *DummyCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
+func (c *DummyCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 
 	return &pkgCluster.GetClusterStatusResponse{
-		Status:            d.modelCluster.Status,
-		StatusMessage:     d.modelCluster.StatusMessage,
-		Name:              d.modelCluster.Name,
-		Location:          d.modelCluster.Location,
+		Status:            c.modelCluster.Status,
+		StatusMessage:     c.modelCluster.StatusMessage,
+		Name:              c.modelCluster.Name,
+		Location:          c.modelCluster.Location,
 		Cloud:             pkgCluster.Dummy,
 		Distribution:      pkgCluster.Dummy,
-		ResourceID:        d.GetID(),
-		CreatorBaseFields: *NewCreatorBaseFields(d.modelCluster.CreatedAt, d.modelCluster.CreatedBy),
+		ResourceID:        c.GetID(),
+		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
 		NodePools:         nil,
 	}, nil
 }
 
 // DeleteCluster deletes cluster
-func (d *DummyCluster) DeleteCluster() error {
+func (c *DummyCluster) DeleteCluster() error {
 	return nil
 }
 
 // UpdateCluster updates the dummy cluster
-func (d *DummyCluster) UpdateCluster(r *pkgCluster.UpdateClusterRequest, _ uint) error {
-	d.modelCluster.Dummy.KubernetesVersion = r.Dummy.Node.KubernetesVersion
-	d.modelCluster.Dummy.NodeCount = r.Dummy.Node.Count
+func (c *DummyCluster) UpdateCluster(r *pkgCluster.UpdateClusterRequest, _ uint) error {
+	c.modelCluster.Dummy.KubernetesVersion = r.Dummy.Node.KubernetesVersion
+	c.modelCluster.Dummy.NodeCount = r.Dummy.Node.Count
 	return nil
 }
 
 //GetID returns the specified cluster id
-func (d *DummyCluster) GetID() uint {
-	return d.modelCluster.ID
+func (c *DummyCluster) GetID() uint {
+	return c.modelCluster.ID
 }
 
-func (d *DummyCluster) GetUID() string {
-	return d.modelCluster.UID
+func (c *DummyCluster) GetUID() string {
+	return c.modelCluster.UID
 }
 
 //GetModel returns the whole clusterModel
-func (d *DummyCluster) GetModel() *model.ClusterModel {
-	return d.modelCluster
+func (c *DummyCluster) GetModel() *model.ClusterModel {
+	return c.modelCluster
 }
 
 //CheckEqualityToUpdate validates the update request
-func (d *DummyCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) error {
+func (c *DummyCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) error {
 	return nil
 }
 
 //AddDefaultsToUpdate adds defaults to update request
-func (d *DummyCluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
+func (c *DummyCluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
 
 }
 
 //GetAPIEndpoint returns the Kubernetes Api endpoint
-func (d *DummyCluster) GetAPIEndpoint() (string, error) {
-	d.APIEndpoint = "http://cow.org:8080"
-	return d.APIEndpoint, nil
+func (c *DummyCluster) GetAPIEndpoint() (string, error) {
+	c.APIEndpoint = "http://cow.org:8080"
+	return c.APIEndpoint, nil
 }
 
 //DeleteFromDatabase deletes model from the database
-func (d *DummyCluster) DeleteFromDatabase() error {
-	return d.modelCluster.Delete()
+func (c *DummyCluster) DeleteFromDatabase() error {
+	return c.modelCluster.Delete()
 }
 
 // GetOrganizationId gets org where the cluster belongs
-func (d *DummyCluster) GetOrganizationId() uint {
-	return d.modelCluster.OrganizationId
+func (c *DummyCluster) GetOrganizationId() uint {
+	return c.modelCluster.OrganizationId
 }
 
 // GetLocation gets where the cluster is.
-func (d *DummyCluster) GetLocation() string {
-	return d.modelCluster.Location
+func (c *DummyCluster) GetLocation() string {
+	return c.modelCluster.Location
 }
 
 //GetSecretId retrieves the secret id
-func (d *DummyCluster) GetSecretId() string {
-	return d.modelCluster.SecretId
+func (c *DummyCluster) GetSecretId() string {
+	return c.modelCluster.SecretId
 }
 
 //GetSshSecretId retrieves the ssh secret id
-func (d *DummyCluster) GetSshSecretId() string {
-	return d.modelCluster.SshSecretId
+func (c *DummyCluster) GetSshSecretId() string {
+	return c.modelCluster.SshSecretId
 }
 
 // SaveSshSecretId saves the ssh secret id to database
-func (d *DummyCluster) SaveSshSecretId(sshSecretId string) error {
-	d.modelCluster.SshSecretId = sshSecretId
+func (c *DummyCluster) SaveSshSecretId(sshSecretId string) error {
+	c.modelCluster.SshSecretId = sshSecretId
 	return nil
 }
 
 // RequiresSshPublicKey returns false
-func (d *DummyCluster) RequiresSshPublicKey() bool {
+func (c *DummyCluster) RequiresSshPublicKey() bool {
 	return true
 }
 
@@ -226,13 +226,13 @@ func CreateDummyClusterFromModel(clusterModel *model.ClusterModel) (*DummyCluste
 }
 
 // UpdateStatus updates cluster status in database
-func (d *DummyCluster) UpdateStatus(status, statusMessage string) error {
-	return d.modelCluster.UpdateStatus(status, statusMessage)
+func (c *DummyCluster) UpdateStatus(status, statusMessage string) error {
+	return c.modelCluster.UpdateStatus(status, statusMessage)
 }
 
 // GetClusterDetails gets cluster details from cloud
-func (d *DummyCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
-	status, err := d.GetStatus()
+func (c *DummyCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
+	status, err := c.GetStatus()
 	if err != nil {
 		return nil, err
 	}
@@ -247,38 +247,38 @@ func (d *DummyCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) 
 }
 
 // ValidateCreationFields validates all field
-func (d *DummyCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
+func (c *DummyCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
 	return nil
 }
 
 // GetSecretWithValidation returns secret from vault
-func (d *DummyCluster) GetSecretWithValidation() (*secret.SecretItemResponse, error) {
+func (c *DummyCluster) GetSecretWithValidation() (*secret.SecretItemResponse, error) {
 	return &secret.SecretItemResponse{
 		Type: pkgCluster.Dummy,
 	}, nil
 }
 
 // SaveConfigSecretId saves the config secret id in database
-func (d *DummyCluster) SaveConfigSecretId(configSecretId string) error {
-	return d.modelCluster.UpdateConfigSecret(configSecretId)
+func (c *DummyCluster) SaveConfigSecretId(configSecretId string) error {
+	return c.modelCluster.UpdateConfigSecret(configSecretId)
 }
 
 // GetConfigSecretId return config secret id
-func (d *DummyCluster) GetConfigSecretId() string {
-	return d.modelCluster.ConfigSecretId
+func (c *DummyCluster) GetConfigSecretId() string {
+	return c.modelCluster.ConfigSecretId
 }
 
 // GetK8sConfig returns the Kubernetes config
-func (d *DummyCluster) GetK8sConfig() ([]byte, error) {
-	return d.DownloadK8sConfig()
+func (c *DummyCluster) GetK8sConfig() ([]byte, error) {
+	return c.DownloadK8sConfig()
 }
 
 // ListNodeNames returns node names to label them
-func (d *DummyCluster) ListNodeNames() (nodeNames pkgCommon.NodeNames, err error) {
+func (c *DummyCluster) ListNodeNames() (nodeNames pkgCommon.NodeNames, err error) {
 	return
 }
 
 // RbacEnabled returns true if rbac enabled on the cluster
-func (d *DummyCluster) RbacEnabled() bool {
-	return d.modelCluster.RbacEnabled
+func (c *DummyCluster) RbacEnabled() bool {
+	return c.modelCluster.RbacEnabled
 }
