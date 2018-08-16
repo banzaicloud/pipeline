@@ -148,11 +148,15 @@ func (r *CreateSecretRequest) Validate(verifier verify.Verifier) error {
 	return nil
 }
 
-// DeleteByClusterID Delete secrets by ClusterID
-func (ss *secretStore) DeleteByClusterID(orgID uint, clusterID uint) error {
-	log := log.WithFields(logrus.Fields{"organization": orgID, "cluster": clusterID})
+// DeleteByClusterUID Delete secrets by ClusterUID
+func (ss *secretStore) DeleteByClusterUID(orgID uint, clusterUID string) error {
+	if clusterUID == "" {
+		return errors.New("ClusterUID is empty.")
+	}
 
-	clusterIdTag := fmt.Sprintf("clusterid:%d", clusterID)
+	log := log.WithFields(logrus.Fields{"organization": orgID, "clusterUID": clusterUID})
+
+	clusterIdTag := fmt.Sprintf("clusterUID:%s", clusterUID)
 	secrets, err := Store.List(orgID,
 		&secretTypes.ListSecretsQuery{
 			Tag: clusterIdTag,
