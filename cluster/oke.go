@@ -217,6 +217,10 @@ func (o *OKECluster) GetID() uint {
 	return o.modelCluster.ID
 }
 
+func (o *OKECluster) GetUID() string {
+	return o.modelCluster.UID
+}
+
 //GetModel returns the whole clusterModel
 func (o *OKECluster) GetModel() *model.ClusterModel {
 	return o.modelCluster

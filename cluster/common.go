@@ -26,6 +26,7 @@ import (
 type CommonCluster interface {
 	// Entity properties
 	GetID() uint
+	GetUID() string
 	GetOrganizationId() uint
 	GetName() string
 	GetCloud() string

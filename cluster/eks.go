@@ -694,6 +694,10 @@ func (e *EKSCluster) GetID() uint {
 	return e.modelCluster.ID
 }
 
+func (e *EKSCluster) GetUID() string {
+	return e.modelCluster.UID
+}
+
 // GetModel returns the DB model of this cluster
 func (e *EKSCluster) GetModel() *model.ClusterModel {
 	return e.modelCluster
