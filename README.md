@@ -102,7 +102,7 @@ Vendoring all dependencies is essential to have a **go get**-able package.
 
 ### API specification
 
-Pipeline API is described using the OpenAPI 3.0 specification (formarely Swagger). The get the specification please follow this [link](https://github.com/banzaicloud/pipeline/blob/master/docs/openapi/pipeline.yaml).
+Pipeline API is described using the OpenAPI 3.0 specification (formerly Swagger). The get the specification please follow this [link](https://github.com/banzaicloud/pipeline/blob/master/docs/openapi/pipeline.yaml).
 
 #### Generated API clients
 
@@ -112,7 +112,7 @@ Based on our OpenAPI 3.0 descriptor we have generated language clients for diffe
 
 ### Create Kubernetes clusters
 
-Kubernetes clusters can be created explicitley (directly triggered by calling the API), part of our CI/CD flow (where the cluster is created on demand as part of the flow) or deployments.
+Kubernetes clusters can be created explicitly (directly triggered by calling the API), part of our CI/CD flow (where the cluster is created on demand as part of the flow) or deployments.
 
 #### Create using the API
 
@@ -136,7 +136,7 @@ Once Pipeline is started, it can deploy applications using a RESTful API from an
 
 #### Deploy using the API
 
-We have introduced a new feature where beside the Helm CLI and gRPC a RESTful API can be used to deploy applications packeged with Helm.
+We have introduced a new feature where beside the Helm CLI and gRPC a RESTful API can be used to deploy applications packaged with Helm.
 
 <p align="center">
 <img src="/docs/images/tiller-rest-flow.png" width="700">
@@ -169,7 +169,7 @@ For `Authentication` Pipeline uses [OAuth2](https://oauth.net/2/) via delegating
 
 #### Vault
 
-For the purpose of storeing tokens we choose HashiCorp's Vault. However there was another major contributor to the decision to standardize on Vault: Vault’s nice integration with the [Kubernetes Authentication API](https://www.vaultproject.io/docs/auth/kubernetes.html). After Vault is started, the Kubernetes auth backend has to be enabled and configured, and with that Vault can `lease` tokens to be able to use its API based on **ServiceAccount JWT tokens**. This enables other applications running in the same Kubernetes cluster to call Vault and with this we can use `tightly scoped tokens` with various TTLs.
+For the purpose of storing tokens we choose HashiCorp's Vault. However there was another major contributor to the decision to standardize on Vault: Vault’s nice integration with the [Kubernetes Authentication API](https://www.vaultproject.io/docs/auth/kubernetes.html). After Vault is started, the Kubernetes auth backend has to be enabled and configured, and with that Vault can `lease` tokens to be able to use its API based on **ServiceAccount JWT tokens**. This enables other applications running in the same Kubernetes cluster to call Vault and with this we can use `tightly scoped tokens` with various TTLs.
 
 <p align="center">
 <img src="/docs/images//token-request-vault-flow.png" width="700">
@@ -214,7 +214,7 @@ We are using fluentd and fluent-bit to move application logs towards a centraliz
 
 ### Operators
 
-Pipeline installs and runs Kubernetes operators to bring human operational knowledge into code. There are (clopud agnostic) operators supporting deployments, storage management, autoscaling and more.
+Pipeline installs and runs Kubernetes operators to bring human operational knowledge into code. There are (cloud agnostic) operators supporting deployments, storage management, autoscaling and more.
 
  * [Logging operator](https://github.com/banzaicloud/logging-operator)
  * [PVC operator](https://github.com/banzaicloud/pvc-operator)
