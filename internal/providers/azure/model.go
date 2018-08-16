@@ -3,6 +3,7 @@ package azure
 import (
 	"fmt"
 
+	"github.com/banzaicloud/pipeline/pkg/providers/azure"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 )
@@ -19,7 +20,7 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	}
 
 	logger.WithFields(logrus.Fields{
-		"provider":    Provider,
+		"provider":    azure.Provider,
 		"table_names": tableNames,
 	}).Info("migrating provider tables")
 
