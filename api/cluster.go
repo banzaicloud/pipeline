@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"net/http"
@@ -13,10 +14,13 @@ import (
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
+	"github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/model/defaults"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	newmodel "github.com/banzaicloud/pipeline/pkg/model"
+	"github.com/banzaicloud/pipeline/pkg/providers"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
@@ -143,7 +147,8 @@ func CreateClusterRequest(c *gin.Context) {
 	userID := auth.GetCurrentUser(c.Request).ID
 
 	ph := getPostHookFunctions(createClusterRequest.PostHooks)
-	commonCluster, err := CreateCluster(&createClusterRequest, orgID, userID, ph)
+	ctx := ginutils.Context(context.Background(), c)
+	commonCluster, err := CreateCluster(ctx, &createClusterRequest, orgID, userID, ph)
 	if err != nil {
 		c.JSON(err.Code, err)
 		return
@@ -183,26 +188,42 @@ func getPostHookFunctions(postHooks pkgCluster.PostHooks) (ph []cluster.PostFunc
 }
 
 // CreateCluster creates a K8S cluster in the cloud
-func CreateCluster(createClusterRequest *pkgCluster.CreateClusterRequest, organizationID, userID uint,
-	postHooks []cluster.PostFunctioner) (cluster.CommonCluster, *pkgCommon.ErrorResponse) {
+func CreateCluster(
+	ctx context.Context,
+	createClusterRequest *pkgCluster.CreateClusterRequest,
+	organizationID uint,
+	userID uint,
+	postHooks []cluster.PostFunctioner,
+) (cluster.CommonCluster, *pkgCommon.ErrorResponse) {
+	logger := log.WithFields(logrus.Fields{
+		"organization": organizationID,
+		"user":         userID,
+		"cluster":      createClusterRequest.Name,
+	})
+
+	// TODO: refactor profile handling as well?
 	if len(createClusterRequest.ProfileName) != 0 {
-		log.Infof("Fill data from profile[%s]", createClusterRequest.ProfileName)
+		logger = logger.WithField("profile", createClusterRequest.ProfileName)
+
+		logger.Info("fill data from profile")
+
 		profile, err := defaults.GetProfile(createClusterRequest.Cloud, createClusterRequest.ProfileName)
 		if err != nil {
 			return nil, &pkgCommon.ErrorResponse{
 				Code:    http.StatusNotFound,
-				Message: "Error during getting profile",
+				Message: "error during getting profile",
 				Error:   err.Error(),
 			}
 		}
 
-		log.Info("Create profile response")
+		logger.Info("create profile response")
 		profileResponse := profile.GetProfile()
 
-		log.Info("Create clusterRequest from profile")
+		logger.Info("create cluster request from profile")
 		newRequest, err := profileResponse.CreateClusterRequest(createClusterRequest)
 		if err != nil {
-			log.Errorf("error during getting cluster request from profile: %s", err.Error())
+			logger.Errorf("error during getting cluster request from profile: %s", err.Error())
+
 			return nil, &pkgCommon.ErrorResponse{
 				Code:    http.StatusBadRequest,
 				Message: "Error creating request from profile",
@@ -212,31 +233,10 @@ func CreateCluster(createClusterRequest *pkgCluster.CreateClusterRequest, organi
 
 		createClusterRequest = newRequest
 
-		log.Infof("Modified clusterRequest: %v", createClusterRequest)
-
+		logger.Infof("modified clusterRequest: %v", createClusterRequest)
 	}
 
-	log.Debug("Parsing request succeeded")
-
-	log.Info("Searching entry with name: ", createClusterRequest.Name)
-
-	// check exists cluster name
-	var existingCluster model.ClusterModel
-	db := config.DB()
-	db.First(&existingCluster, map[string]interface{}{"name": createClusterRequest.Name, "organization_id": organizationID})
-
-	if existingCluster.ID != 0 {
-		// duplicated entry
-		err := fmt.Errorf("duplicate entry: %s", existingCluster.Name)
-		log.Errorf("error during create cluster: %s", err.Error())
-		return nil, &pkgCommon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: err.Error(),
-			Error:   err.Error(),
-		}
-	}
-
-	log.Info("Creating new entry with cloud type: ", createClusterRequest.Cloud)
+	logger.Info("Creating new entry with cloud type: ", createClusterRequest.Cloud)
 
 	// TODO check validation
 	// This is the common part of cluster flow
@@ -250,32 +250,35 @@ func CreateCluster(createClusterRequest *pkgCluster.CreateClusterRequest, organi
 		}
 	}
 
-	log.Infof("Validate secret[%s]", createClusterRequest.SecretId)
-	if _, err := commonCluster.GetSecretWithValidation(); err != nil {
-		log.Errorf("error during secret validation: %s", err.Error())
-		return nil, &pkgCommon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error during getting secret",
-			Error:   err.Error(),
-		}
-	}
-	log.Info("Secret validation passed")
+	// TODO: move these to a struct and create them only once upon application init
+	clusters := newmodel.NewClusters(config.DB())
+	secretValidator := providers.NewSecretValidator(secret.Store)
+	clusterManager := cluster.NewManager(clusters, secretValidator, log)
 
-	log.Info("Validate creation fields")
-	if err := commonCluster.ValidateCreationFields(createClusterRequest); err != nil {
-		log.Errorf("error during validate creation fields: %s", err.Error())
+	creationCtx := cluster.CreationContext{
+		OrganizationID: organizationID,
+		UserID:         userID,
+		Name:           createClusterRequest.Name,
+		SecretID:       createClusterRequest.SecretId,
+		Provider:       createClusterRequest.Cloud,
+		PostHooks:      postHooks,
+	}
+
+	creator := cluster.NewCommonClusterCreator(createClusterRequest, commonCluster)
+
+	commonCluster, err = clusterManager.CreateCluster(ctx, creationCtx, creator)
+
+	if err == cluster.ErrAlreadyExists || isInvalid(err) {
+		logger.Debug("invalid cluster creation: %s", err.Error())
+
 		return nil, &pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: err.Error(),
 			Error:   err.Error(),
 		}
-	}
+	} else if err != nil {
+		logger.Errorf("error during cluster creation: %s", err.Error())
 
-	log.Info("Validation passed")
-
-	// Persist the cluster in Database
-	err = commonCluster.Persist(pkgCluster.Creating, pkgCluster.CreatingMessage)
-	if err != nil {
 		return nil, &pkgCommon.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: err.Error(),
@@ -283,63 +286,7 @@ func CreateCluster(createClusterRequest *pkgCluster.CreateClusterRequest, organi
 		}
 	}
 
-	go postCreateCluster(commonCluster, postHooks)
 	return commonCluster, nil
-}
-
-// postCreateCluster creates a cluster (ASYNC)
-func postCreateCluster(commonCluster cluster.CommonCluster, postHooks []cluster.PostFunctioner) error {
-	log := log.WithFields(logrus.Fields{
-		"organization": commonCluster.GetOrganizationId(),
-		"cluster":      commonCluster.GetName(),
-	})
-
-	// Check if public ssh key is needed for the cluster. If so and there is generate one and store it Vault
-	if len(commonCluster.GetSshSecretId()) == 0 && commonCluster.RequiresSshPublicKey() {
-		log.Infof("Generating Ssh Key for the cluster")
-
-		sshKey, err := secret.GenerateSSHKeyPair()
-		if err != nil {
-			log.Errorf("KeyGenerator failed reason: %s", err.Error())
-			return err
-		}
-
-		sshSecretId, err := secret.StoreSSHKeyPair(sshKey, commonCluster.GetOrganizationId(), commonCluster.GetID(), commonCluster.GetName())
-		if err != nil {
-			log.Errorf("KeyStore failed reason: %s", err.Error())
-			return err
-		}
-
-		if err := commonCluster.SaveSshSecretId(sshSecretId); err != nil {
-			log.Errorf("Error during cluster creation: %s", err.Error())
-			return err
-		}
-	}
-
-	// Create cluster
-	err := commonCluster.CreateCluster()
-	if err != nil {
-		log.Errorf("Error during cluster creation: %s", err.Error())
-		commonCluster.UpdateStatus(pkgCluster.Error, err.Error())
-		return err
-	}
-
-	// Apply PostHooks
-	// These are hardcoded posthooks maybe we will want a bit more dynamic
-	postHookFunctions := cluster.BasePostHookFunctions
-
-	if postHooks != nil && len(postHooks) != 0 {
-		postHookFunctions = append(postHookFunctions, postHooks...)
-	}
-
-	err = cluster.RunPostHooks(postHookFunctions, commonCluster)
-
-	if err != nil {
-		log.Errorf("Error during running cluster posthooks: %s", err.Error())
-		return err
-	}
-
-	return nil
 }
 
 // GetClusterStatus retrieves the cluster status

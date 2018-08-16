@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -9,6 +10,7 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	"github.com/banzaicloud/pipeline/model"
 	pkgApplication "github.com/banzaicloud/pipeline/pkg/application"
 	pkgCatalog "github.com/banzaicloud/pipeline/pkg/catalog"
@@ -256,7 +258,8 @@ func CreateApplication(c *gin.Context) {
 	if createApplicationRequest.Cluster != nil {
 		// Support existing cluster
 		var err *pkgCommon.ErrorResponse
-		commonCluster, err = CreateCluster(createApplicationRequest.Cluster, orgId, userId, []cluster.PostFunctioner{postFunction})
+		ctx := ginutils.Context(context.Background(), c)
+		commonCluster, err = CreateCluster(ctx, createApplicationRequest.Cluster, orgId, userId, []cluster.PostFunctioner{postFunction})
 		if err != nil {
 			c.JSON(err.Code, err)
 			return
