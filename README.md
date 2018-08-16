@@ -7,20 +7,13 @@
 
 _Banzai Pipeline, or simply Pipeline is a tabletop reef break located in Hawaii, Oahu's North Shore. The most famous and infamous reef on the planet is forming the benchmark by which all other waves are measured._
 
-_Pipeline is a RESTful API to deploy **cloud native** microservices in public cloud and on-premise. It simplifies and abstracts all the details of provisioning the cloud and Kubernetes infrastructure, deploying, monitoring and managing the applications lifecycle._
-
-<p align="center">
-  <img width="139" height="197" src="docs/images/warning.jpg">
-</p>
-
-**Warning:** _Pipeline is experimental, under development and does not have a stable release yet. If in doubt, don't go out._
+_Pipeline enables developers to go from commit to scale in minutes by turning Kubernetes into a feature rich application platform integrating CI/CD, centralized logging, monitoring, enterprise-grade security and autoscaling._
 
 - [Pipeline](#pipeline)
   - [Cloud providers](#cloud-providers)
-  - [Managed Kubernetes](#managed-kubernetes)
 - [Architecture overview](#architecture-overview)
   - [Control plane](#control-plane)
-  - [Deployed clusters](#deployed-clusters)
+  - [Provisioned clusters](#provisioned-clusters)
   - [The Pipeline Platform - PaaS](#the-pipeline-platform-paas)
 - [Installation](#installation)
 - [API specification](#api-specification)
@@ -55,52 +48,46 @@ _Pipeline is a RESTful API to deploy **cloud native** microservices in public cl
 
 # Pipeline
 
-The Pipeline API is able to create and configure custom Kubernetes clusters in the cloud and deploy cloud native applications while taking care about services, ingress, network and volume management, replication and failover. It also monitors and autoscales the underlying cloud infrastucture, K8S cluster, pods and the application itself.
-
-It is a core building block and engine of the **Pipeline Platform** - an open source, multi cloud application platform as a service, based on a container management system. It is an application centric approach of a software delivery and deployment pipeline, to build cloud native microservices with confidence. It simplifies and abstracts all the details of provisioning the cloud infrastructure, installing or reusing the managed Kubernetes cluster and building, deploying and monitoring the application. The PaaS includes a full CI/CD workflow, orchestration, SLA rules based autoscaling and advanced networking delivering a complete solution for developers.
+Pipeline is a feature rich **application platform**, built for containers on top of Kubernetes to automate the DevOps experience, continuous application development and the lifecycle of deployments. Pipeline enables developers to go from commit to scale in minutes by turning Kubernetes into a feature rich application platform integrating CI/CD, centralized logging, monitoring, enterprise-grade security and autoscaling.
 
 The main features of the platform are:
 
-* **Provisioning:** _Provision highly available clusters on any of the supported cloud providers or managed Kubernetes commercial offerings, hybrid cloud or on-premise deployments_
+* **Provisioning:** _Provision highly available Kubernetes clusters on any of the supported cloud providers, on-premise or hybrid_
 * **Microservices Ready:** _Focus and build great applications and forget the hard stuff of ops, failover, build pipelines, patching and security_
 * **Scaling:** _Supports SLA rules for resiliency, failover and autoscaling_
-* **Operations support:** _Centralized log collection, tracing and advanced monitoring support for the underlying infrastructure, Kubernetes cluster and the deployed application_
-* **Spotguides:** _Understands the application runtime requirements and dependencies, builds the artifacts and pushes to the PaaS while applying the CI/CD pipeline steps with ready to use advanced features (SLA rules, monitoring, alerting, linear regression based predictions)_
-* **Hook in:** _Trigger your pipeline with a GitHub Webhook and let the PaaS to build your app, provision or reuse the infrastructure and deploy, monitor and autoscale your deployment_
-
-The platform includes a few default `spotguides` like: **Apache Spark, Apache Zeppelin, TiDB, Apache Kafka, Fn, OpenFaaS, Kubeless, Java/JEE, NodeJS, etc among many others**.
+* **Observability:** _Centralized log collection, tracing and advanced monitoring support for the infrastructure, Kubernetes cluster and the deployed applications_
+* **Hook in:** _Go from commit to scale in minutes using our container native CI/CD workflow engine_
+* **Spotguides:** _Apply or use one of the predefined Blueprints to your favorite development framework and let automate Pipeline all the rest_
 
 ## Cloud Providers
 
-The latest version contains the control plane, cloud images, Cloudformation/ARM templates, GKE deployments and belonging artifacts released under the *0.3.0* tag across several repositories. We do `native` Kubernetes installation on AWS, whereas everywhere available we use managed Kubernetes offerings. Pipeline does support `Bring Your Own Cluster`, thus we can adopt and manage any existing Kubernetes cluster.
+Banzai Cloud supports Kubernetes and the container based application platform - Pipeline - on all major providers in a way to make portability between vendors as easy as possible, seamless and automated. 
 
-## Managed Kubernetes
+The list of currently supported providers are:
 
-Pipeline is architected in a way to allow pluggable implementations for providers, managed Kubernetes clusters or hybrid environments. Through provider plugins it retrieves the `kubeconfig` and connects and deploys applications. The list of currently supported providers are:
-
-  * Microsoft AKS
-  * Google GKE
+  * Alibaba ACSK
   * Amazon EKS
-  * Alibaba CSK
+  * Google GKE
+  * Microsoft AKS
   * Oracle OKE
 
- There is work undergoing for the following plugins:
+Pipeline does support `BYOC - Bring Your Own Cluster` and can adopt and manage existing Kubernetes clusters as well. 
 
-  * Digital Ocean
+ There is work undergoing for the following providers:
+
+  * Digital Ocean DOK
 
 ## Architecture overview
 
 Pipeline enforces a typical **cloud native** architecture which takes full advantage of on-demand delivery, global deployment, elasticity, and higher-level services. It enables huge improvements in developer productivity, business agility, scalability, availability, utilization, and cost savings.
 
-It is written in `Golang` and built on public cloud provider APIs, Kubernetes, Helm, Prometheus, Drone, Docker, Vault and a few other open source technologies - however all of these are abstracted for the end user behind a secure REST API.
- Once the infrastructure/K8S cluster is provisioned by Pipeline, it also orchestrates the deployment of the application using Helm charts. A cluster can be reused and new and updated charts can be redeployed as well - without the need of recreating the cloud infrastructure or the K8S cluster. It supports alerting and autoscaling based on metrics using Prometheus.
-By default there are metrics and Grafana dashboards exposing the behaviour of the underlying infrastructure, Kubernetes cluster and the application itself - based on the application specific `spotguide`.
+It is written in Golang and built on public cloud provider APIs, Kubernetes, Helm, Prometheus, Grafana, Docker, Vault and a few other open source technologies from the CNCF landscape - however all of these are abstracted for the end user behind a secure REST API, UI or CLI.
 
 ### Control plane
 
-The Pipeline Control Plane is the central location where all the components of the [Pipeline PaaS](https://banzaicloud.com/platform/) are assembled together and it runs all the services we provide (CI/CD, authentication, log collection, monitoring, dashboards, and application registries/spotguide definitions). The control plane itself is a Kubernetes deployment as well, and it's cloud agnostic - currently there are out of the box deployments for [AWS](https://github.com/banzaicloud/pipeline-cp-launcher/blob/master/README.md#pipeline-control-plane-launcher-on-aws), [Azure](https://github.com/banzaicloud/pipeline-cp-launcher/blob/master/README.md#pipeline-control-plane-launcher-on-azure), [Google](https://github.com/banzaicloud/pipeline-cp-launcher/blob/master/README.md#pipeline-control-plane-launcher-on-google-cloud) and for [Minikube](https://github.com/banzaicloud/pipeline-cp-launcher/blob/master/README.md#pipeline-control-plane-launcher-on-minikube) (for local/dev purpose).
+The Pipeline Control Plane is the central location where all the components of the [Pipeline Platform](https://banzaicloud.com/platform/) are assembled together and it runs all the provided services as CI/CD, authentication, log collection, monitoring, dashboards, application registries, spotguide definitions, security scans and more. The control plane itself is a Kubernetes deployment as well, and it's cloud agnostic - currently there are out of the box deployments for [AWS](https://github.com/banzaicloud/pipeline-cp-launcher/blob/master/README.md#pipeline-control-plane-launcher-on-aws), [Azure](https://github.com/banzaicloud/pipeline-cp-launcher/blob/master/README.md#pipeline-control-plane-launcher-on-azure), [Google](https://github.com/banzaicloud/pipeline-cp-launcher/blob/master/README.md#pipeline-control-plane-launcher-on-google-cloud) and for [Minikube](https://github.com/banzaicloud/pipeline-cp-launcher/blob/master/README.md#pipeline-control-plane-launcher-on-minikube) (for local/dev purpose).
 
-All these components are assembled into a **Control Plane** - and deployed to Kubernetes with Helm. A typical control plane deployment looks like this:
+A default control plane deployment looks like this:
 
 <p align="center">
 <img src="docs/images/multi.png" width="700">
@@ -108,9 +95,9 @@ All these components are assembled into a **Control Plane** - and deployed to Ku
 
 To launch a Pipeline control plane on one of the supported provider please follow this [documentation](https://github.com/banzaicloud/pipeline-cp-launcher/blob/master/README.md).
 
-### Deployed clusters
+### Provisioned clusters
 
-A typical cluster/application deployed with Pipeline - as an example using Spark/Zeppelin spotguide deployment - looks like this.
+A typical cluster/application deployed with Pipeline - as an example using Spark/Zeppelin `spotguide` deployment - looks like this.
 
 <p align="center">
 <img src="docs/images/spark-cluster-aws.png">
@@ -118,15 +105,15 @@ A typical cluster/application deployed with Pipeline - as an example using Spark
 
 ### Installation
 
-Pipeline API deploys microservice based applications using the REST API. Unlike the Pipeline Platform, the API has no explicit knowledge about `spotguides`, the CI/CD pipeline, or the application type. It merely provisions (or reuses) the cloud infrastructure, deploys the containers through Helm and applies cluster reconciliation/SLA rules. In order to try the API follow the [installation guide](docs/pipeline-howto.md).
+In order to try the API follow this [installation guide](docs/pipeline-howto.md).
 
 ### Vendoring
 
-Vendoring all dependencies is essential to have a **go get**-able package. Go vendoring in combination with Kubernetes is quiet tricky - we came up with a `solution` described in [dependency management guide](docs/deps.md).
+Vendoring all dependencies is essential to have a **go get**-able package. 
 
 ### API specification
 
-Pipeline is using OpenAPI 3.0 to specify the API, and it's compatible with all Swagger tooling. The get the specification please follow this [link](https://github.com/banzaicloud/pipeline/blob/master/docs/openapi/pipeline.yaml).
+Pipeline API is described using the OpenAPI 3.0 specification (formarely Swagger). The get the specification please follow this [link](https://github.com/banzaicloud/pipeline/blob/master/docs/openapi/pipeline.yaml).
 
 #### Generated API clients
 
@@ -136,34 +123,31 @@ Based on our OpenAPI 3.0 descriptor we have generated language clients for diffe
 
 ### Create Kubernetes clusters
 
-Once Pipeline is started, it can create Kubernetes clusters on all cloud providers using a RESTful API. Kubernetes clusters can be created declaratively (directly triggered by calling the API) or part of a CI/CD flow (where the cluster is created on demand as part of the flow).
+Kubernetes clusters can be created explicitley (directly triggered by calling the API), part of our CI/CD flow (where the cluster is created on demand as part of the flow) or deployments.
 
 #### Create using the API
 
 The easiest way to create a Kubernetes cluster on one of the supported cloud providers is by using the REST API, available as a Postman collection. Clusters can be created, updated or deleted.
 
-The easiest way to deploy applications to it is through the following Postman examples.
-
 [![Run in Postman](https://run.pstmn.io/button.svg)](https://www.getpostman.com/collections/094e8ba30480348b5489)
 
 #### Create using CI/CD
 
-Pipeline has an in-built CI/CD system. Once the GitHub repository is configured with a commit hook, Pipeline can automatically clone, build and deploy the applications. The Kubernetes clusters are created (or reused) on demand as part of the CI/CD flow. For a CI/CD example please follow this [CI/CD guide](docs/pipeline-howto.md#define-pipeline-workflow-configuration-for-your-spark-application). The CI/CD flow does static code analysis and image security scans.
+Pipeline has an in-built CI/CD system. Once the GitHub repository is configured with a commit hook, Pipeline can automatically clone, build and deploy the applications. The target Kubernetes clusters are created (or reused) on demand as part of the CI/CD flow. For a CI/CD example please follow this [CI/CD guide](docs/pipeline-howto.md#define-pipeline-workflow-configuration-for-your-spark-application). The CI/CD flow does static code analysis and image security scans as well.
 
 <p align="center">
 <img src="docs/images/clair-flow.png">
 </p>
 
-
 For alternative ways to create a cluster please follow the [create cluster guide](docs/create.md).
 
 ### Application deployments
 
-Once Pipeline is started, it can deploy applications using a RESTful API from any Helm repository or using the in-built CI/CD system.
+Once Pipeline is started, it can deploy applications using a RESTful API from any Helm repository or using the in-built CI/CD engine.
 
 #### Deploy using the API
 
-We have introduced a new feature where beside CLI and gRPC a RESTful API can be used to deploy applications packegd with Helm.
+We have introduced a new feature where beside the Helm CLI and gRPC a RESTful API can be used to deploy applications packeged with Helm.
 
 <p align="center">
 <img src="/docs/images/tiller-rest-flow.png" width="700">
@@ -175,7 +159,7 @@ The easiest way to deploy applications to it is through the following Postman ex
 
 #### Deploy using CI/CD
 
-Pipeline has an in-built CI/CD system. Once the GitHub repository is configured with a commit hook, Pipeline can automatically clone, build and deploy the applications. For further CI/CD example please follow this [CI/CD guide](docs/pipeline-howto.md#define-pipeline-workflow-configuration-for-your-spark-application).
+For further CI/CD example please follow this [CI/CD guide](docs/pipeline-howto.md#define-pipeline-workflow-configuration-for-your-spark-application).
 
 For alternative ways to learn about application deployments please follow the [deployments guide](docs/deployments.md).
 
