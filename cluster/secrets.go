@@ -35,7 +35,7 @@ func InstallSecretsByK8SConfig(k8sConfig []byte, orgID uint, query *secretTypes.
 		return nil, err
 	}
 
-	secrets, err := secret.Store.List(orgID, query, true)
+	secrets, err := secret.Store.List(orgID, query)
 	if err != nil {
 		log.Errorf("Error during listing secrets: %s", err.Error())
 		return nil, err
@@ -92,7 +92,7 @@ func InstallOrUpdateSecretsByK8SConfig(k8sConfig []byte, orgID uint, query *secr
 		return nil, err
 	}
 
-	secrets, err := secret.Store.List(orgID, query, true)
+	secrets, err := secret.Store.List(orgID, query)
 	if err != nil {
 		log.Errorf("Error during listing secrets: %s", err.Error())
 		return nil, err
