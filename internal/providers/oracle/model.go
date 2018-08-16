@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/banzaicloud/pipeline/pkg/providers/oracle"
 	"github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
@@ -28,7 +29,7 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	}
 
 	logger.WithFields(logrus.Fields{
-		"provider":    Provider,
+		"provider":    oracle.Provider,
 		"table_names": strings.TrimLeft(tableNames, " "),
 	}).Info("migrating provider tables")
 

@@ -4,7 +4,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers/amazon"
 	"github.com/banzaicloud/pipeline/internal/providers/azure"
 	"github.com/banzaicloud/pipeline/internal/providers/google"
-	"github.com/banzaicloud/pipeline/pkg/providers/oracle"
+	"github.com/banzaicloud/pipeline/internal/providers/oracle"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 )
