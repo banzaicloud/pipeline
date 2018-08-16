@@ -179,9 +179,10 @@ func createACSKNodePoolsModelFromRequestData(pools acsk.NodePools, userId uint) 
 
 	var res = make([]*model.ACSKNodePoolModel, len(pools))
 	var i int
-	for _, pool := range pools {
+	for name, pool := range pools {
 		res[i] = &model.ACSKNodePoolModel{
 			CreatedBy:          userId,
+			Name:               name,
 			InstanceType:       pool.InstanceType,
 			SystemDiskCategory: pool.SystemDiskCategory,
 			SystemDiskSize:     pool.SystemDiskSize,
@@ -216,6 +217,7 @@ func CreateACSKClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgI
 		Name:           request.Name,
 		Location:       request.Location,
 		Cloud:          request.Cloud,
+		Distribution:   pkgCluster.ACSK,
 		OrganizationId: orgId,
 		SecretId:       request.SecretId,
 		ACSK: model.ACSKClusterModel{
@@ -229,6 +231,7 @@ func CreateACSKClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgI
 			SSHFlags:                 true,
 			NodePools:                nodePools,
 		},
+		CreatedBy: userId,
 	}
 	return &cluster, nil
 }
