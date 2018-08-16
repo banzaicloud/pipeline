@@ -1,10 +1,9 @@
-package oracle
+package google
 
 import (
 	"fmt"
-	"strings"
 
-	"github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
+	"github.com/banzaicloud/pipeline/pkg/providers/google"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 )
@@ -13,13 +12,6 @@ import (
 func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	tables := []interface{}{
 		&ObjectStoreBucketModel{},
-		&model.Cluster{},
-		&model.NodePool{},
-		&model.NodePoolSubnet{},
-		&model.NodePoolLabel{},
-		&model.Profile{},
-		&model.ProfileNodePool{},
-		&model.ProfileNodePoolLabel{},
 	}
 
 	var tableNames string
@@ -28,8 +20,8 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	}
 
 	logger.WithFields(logrus.Fields{
-		"provider":    Provider,
-		"table_names": strings.TrimLeft(tableNames, " "),
+		"provider":    google.Provider,
+		"table_names": tableNames,
 	}).Info("migrating provider tables")
 
 	return db.AutoMigrate(tables...).Error
