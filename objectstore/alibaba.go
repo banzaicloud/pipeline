@@ -1,7 +1,6 @@
 package objectstore
 
 import (
-	"errors"
 	"sort"
 	"strings"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/objectstore"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
+	"github.com/pkg/errors"
 )
 
 // ManagedAlibabaBucket is the schema for the DB
@@ -36,25 +36,21 @@ func NewAlibabaObjectStore(region string, secret *secret.SecretItemResponse, org
 	}
 }
 
-var _ objectstore.ObjectStoreService = (*AlibabaObjectStore)(nil)
-
-func (b *AlibabaObjectStore) CreateBucket(bucketName string) {
+func (b *AlibabaObjectStore) CreateBucket(bucketName string) error {
 	managedBucket := &ManagedAlibabaBucket{}
 	searchCriteria := b.newManagedBucketSearchCriteria(bucketName)
 	if err := getManagedBucket(searchCriteria, managedBucket); err != nil {
 		switch err.(type) {
 		case ManagedBucketNotFoundError:
 		default:
-			log.Errorf("Error happened during getting bucket description from DB %s", err.Error())
-			return
+			return errors.Wrap(err, "error happened during getting bucket description from DB")
 		}
 	}
 
 	log.Info("Creating AlibabaOSSClient...")
 	svc, err := createAlibabaOSSClient(b.region, b.secret)
 	if err != nil {
-		log.Error("Creating AlibabaOSSClient failed!")
-		return
+		return errors.Wrap(err, "Creating AlibabaOSSClient failed")
 	}
 	log.Info("AlibabaOSSClient create succeeded!")
 	log.Debugf("Region is: %s", b.region)
@@ -64,22 +60,22 @@ func (b *AlibabaObjectStore) CreateBucket(bucketName string) {
 	managedBucket.Region = b.region
 
 	if err = persistToDb(managedBucket); err != nil {
-		log.Errorf("Error happened during persisting bucket description to DB %s", err.Error())
-		return
+		return errors.Wrap(err, "Error happened during persisting bucket description to DB")
 	}
 	err = svc.CreateBucket(managedBucket.Name)
 	if err != nil {
-		log.Errorf("Could not create a new OSS Bucket, %s", err.Error())
 		if e := deleteFromDbByPK(managedBucket); e != nil {
 			log.Error(e.Error())
 		}
-		return
+
+		return errors.Wrap(err, "could not create a new OSS Bucket")
 	}
 	log.Debugf("Waiting for bucket %s to be created...", bucketName)
 
 	// TODO: wait for bucket creation.
 	log.Infof("Bucket %s Created", bucketName)
-	return
+
+	return nil
 }
 
 func (b *AlibabaObjectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {

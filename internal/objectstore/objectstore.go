@@ -3,7 +3,7 @@ package objectstore
 // ObjectStoreService is the interface that cloud specific object store implementation
 // must implement
 type ObjectStoreService interface {
-	CreateBucket(string)
+	CreateBucket(string) error
 	ListBuckets() ([]*BucketInfo, error)
 	DeleteBucket(string) error
 	CheckBucket(string) error
