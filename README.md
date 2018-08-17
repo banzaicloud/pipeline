@@ -89,7 +89,7 @@ To launch a Pipeline control plane on one of the supported provider please follo
 A typical cluster/application deployed with Pipeline - as an example using Spark/Zeppelin `spotguide` deployment - looks like this.
 
 <p align="center">
-<img src="docs/images/spark-cluster-aws.png">
+<img src="docs/images/spark-cluster-aws.png" width="600">
 </p>
 
 ### Installation
@@ -125,7 +125,7 @@ The easiest way to create a Kubernetes cluster on one of the supported cloud pro
 Pipeline has an in-built CI/CD system. Once the GitHub repository is configured with a commit hook, Pipeline can automatically clone, build and deploy the applications. The target Kubernetes clusters are created (or reused) on demand as part of the CI/CD flow. For a CI/CD example please follow this [CI/CD guide](docs/pipeline-howto.md#define-pipeline-workflow-configuration-for-your-spark-application). The CI/CD flow does static code analysis and image security scans as well.
 
 <p align="center">
-<img src="docs/images/clair-flow.png">
+<img src="docs/images/clair-flow.png" width="700">
 </p>
 
 For alternative ways to create a cluster please follow the [create cluster guide](docs/create.md).
