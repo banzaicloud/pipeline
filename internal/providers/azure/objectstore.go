@@ -19,6 +19,7 @@ import (
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/jinzhu/gorm"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -101,7 +102,7 @@ func (s *ObjectStore) getLogger(bucketName string) logrus.FieldLogger {
 
 // CreateBucket creates an Azure Object Store Blob with the provided name
 // within a generated/provided ResourceGroup and StorageAccount
-func (s *ObjectStore) CreateBucket(bucketName string) {
+func (s *ObjectStore) CreateBucket(bucketName string) error {
 	resourceGroup := s.getResourceGroup()
 	storageAccount := s.getStorageAccount()
 
@@ -112,9 +113,7 @@ func (s *ObjectStore) CreateBucket(bucketName string) {
 
 	if err := s.db.Where(searchCriteria).Find(bucket).Error; err != nil {
 		if err != gorm.ErrRecordNotFound {
-			logger.Errorf("error happened during getting bucket from DB: %s", err.Error())
-
-			return
+			return errors.Wrap(err, "error happened during getting bucket from DB: %s")
 		}
 	}
 
@@ -126,56 +125,43 @@ func (s *ObjectStore) CreateBucket(bucketName string) {
 
 	err := s.db.Save(bucket).Error
 	if err != nil {
-		logger.Errorf("error happened during saving bucket in DB: %s", err.Error())
-
-		return
+		return errors.Wrap(err, "error happened during saving bucket in DB")
 	}
 
 	err = s.createResourceGroup(resourceGroup)
 	if err != nil {
-		s.rollback(logger, "resource group creation failed", err, bucket)
-
-		return
+		return s.rollback(logger, "resource group creation failed", err, bucket)
 	}
 
 	// update here so the bucket list does not get inconsistent
 	updateField := &ObjectStoreBucketModel{StorageAccount: s.storageAccount}
 	err = s.db.Model(bucket).Update(updateField).Error
 	if err != nil {
-		logger.Errorf("error happened during updating storage account: %s", err.Error())
-
-		return
+		return errors.Wrap(err, "error happened during updating storage account")
 	}
 
 	exists, err := s.checkStorageAccountExistence(resourceGroup, storageAccount)
 	if !exists && err == nil {
 		err = s.createStorageAccount(resourceGroup, storageAccount)
 		if err != nil {
-			s.rollback(logger, "storage account creation failed", err, bucket)
-
-			return
+			return s.rollback(logger, "storage account creation failed", err, bucket)
 		}
 	}
 
 	if err != nil && !strings.Contains(err.Error(), "is already taken") {
-		s.rollback(logger, "storage account is already taken", err, bucket)
-
-		return
+		return s.rollback(logger, "storage account is already taken", err, bucket)
 	}
 
 	key, err := s.getStorageAccountKey(resourceGroup, storageAccount)
 	if err != nil {
-		logger.Error(err.Error())
-		return
+		return err
 	}
 
 	// update here so the bucket list does not get inconsistent
 	updateField = &ObjectStoreBucketModel{Name: bucketName, Location: s.location}
 	err = s.db.Model(bucket).Update(updateField).Error
 	if err != nil {
-		logger.Errorf("error happened during updating bucket name: %s", err.Error())
-
-		return
+		return errors.Wrap(err, "error happened during updating bucket name")
 	}
 
 	p := azblob.NewPipeline(azblob.NewSharedKeyCredential(storageAccount, key), azblob.PipelineOptions{})
@@ -186,22 +172,20 @@ func (s *ObjectStore) CreateBucket(bucketName string) {
 	if err != nil && err.(azblob.StorageError).ServiceCode() == azblob.ServiceCodeContainerNotFound {
 		_, err = containerURL.Create(context.TODO(), azblob.Metadata{}, azblob.PublicAccessNone)
 		if err != nil {
-			s.rollback(logger, "cannot access bucket", err, bucket)
-
-			return
+			return s.rollback(logger, "cannot access bucket", err, bucket)
 		}
 	}
 
-	return
+	return nil
 }
 
-func (s *ObjectStore) rollback(logger logrus.FieldLogger, msg string, err error, bucket *ObjectStoreBucketModel) {
-	logger.Errorf("%s (rolling back): %s", msg, err.Error())
-
-	err = s.db.Delete(bucket).Error
-	if err != nil {
-		logger.Error(err.Error())
+func (s *ObjectStore) rollback(logger logrus.FieldLogger, msg string, err error, bucket *ObjectStoreBucketModel) error {
+	e := s.db.Delete(bucket).Error
+	if e != nil {
+		logger.Error(e.Error())
 	}
+
+	return errors.Wrapf(err, "%s (rolling back)", msg)
 }
 
 func (s *ObjectStore) createResourceGroup(resourceGroup string) error {
@@ -499,7 +483,7 @@ func (s *ObjectStore) getStorageAccountKey(resourceGroup string, storageAccount 
 
 	keys, err := client.ListKeys(context.TODO(), resourceGroup, storageAccount)
 	if err != nil {
-		return "", fmt.Errorf("error retrieving keys for StorageAccount %s", err.Error())
+		return "", errors.Wrap(err, "error retrieving keys for StorageAccount")
 	}
 
 	key := (*keys.Keys)[0].Value
@@ -512,7 +496,7 @@ func createStorageAccountClient(s *secret.SecretItemResponse) (*storage.Accounts
 
 	authorizer, err := newAuthorizer(s)
 	if err != nil {
-		return nil, fmt.Errorf("error happened during authentication: %s", err.Error())
+		return nil, errors.Wrap(err, "error happened during authentication")
 	}
 
 	accountClient.Authorizer = authorizer

@@ -9,6 +9,7 @@ import (
 	osecret "github.com/banzaicloud/pipeline/pkg/providers/oracle/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/jinzhu/gorm"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -46,40 +47,36 @@ func NewObjectStore(
 }
 
 // CreateBucket creates an Oracle object store bucket with the given name and stores it in the database
-func (o *ObjectStore) CreateBucket(name string) {
-
+func (o *ObjectStore) CreateBucket(name string) error {
 	logger := o.getLogger().WithField("bucket", name)
 
 	oci, err := oci.NewOCI(osecret.CreateOCICredential(o.secret.Values))
 	if err != nil {
-		logger.Errorf("OCI client initialization failed: %s", err.Error())
-		return
+		return errors.Wrap(err, "OCI client initialization failed")
 	}
 
 	bucket := &ObjectStoreBucketModel{}
 	searchCriteria := o.newBucketSearchCriteria(name, o.location, oci.CompartmentOCID)
 	if err := o.getBucketFromDB(searchCriteria, bucket); err != nil {
 		if _, ok := err.(bucketNotFoundError); !ok {
-			logger.Errorf("Error happened during getting bucket description from DB: %s", err.Error())
-			return
+			return errors.Wrap(err, "Error happened during getting bucket description from DB")
 		}
 	}
 
 	if bucket.Name == name {
 		logger.Debug("Bucket already exists")
-		return
+
+		return nil
 	}
 
 	err = oci.ChangeRegion(o.location)
 	if err != nil {
-		logger.Errorf("Changing region failed: %s", err.Error())
-		return
+		return errors.Wrap(err, "changing region failed")
 	}
 
 	client, err := oci.NewObjectStorageClient()
 	if err != nil {
-		logger.Errorf("Creating Oracle object storage client failed: %s", err.Error())
-		return
+		return errors.Wrap(err, "creating Oracle object storage client failed")
 	}
 
 	bucket.Name = name
@@ -88,19 +85,20 @@ func (o *ObjectStore) CreateBucket(name string) {
 	bucket.Location = o.location
 
 	if err = o.persistBucketToDB(bucket); err != nil {
-		logger.Errorf("Error happened during persisting bucket description to DB: %s", err.Error())
-		return
+		return errors.Wrap(err, "error happened during persisting bucket description to DB")
 	}
 
 	if _, err := client.CreateBucket(name); err != nil {
-		logger.Errorf("Failed to create bucket: %s", err.Error())
 		if e := o.deleteBucketFromDB(bucket); e != nil {
 			logger.Error(e.Error())
 		}
-		return
+
+		return errors.Wrap(err, "failed to create bucket")
 	}
 
 	logger.Infof("%s bucket created", name)
+
+	return nil
 }
 
 // ListBuckets list all buckets in Oracle object store

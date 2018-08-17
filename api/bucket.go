@@ -168,7 +168,12 @@ func CreateBucket(c *gin.Context) {
 		Name: createBucketRequest.Name,
 	})
 
-	go objectStore.CreateBucket(createBucketRequest.Name)
+	go func() {
+		err := objectStore.CreateBucket(createBucketRequest.Name)
+		if err != nil {
+			logger.Error(err.Error())
+		}
+	}()
 
 	return
 }

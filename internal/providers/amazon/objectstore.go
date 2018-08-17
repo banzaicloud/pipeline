@@ -71,7 +71,7 @@ func (s *objectStore) getLogger() logrus.FieldLogger {
 }
 
 // CreateBucket creates an S3 bucket with the provided name.
-func (s *objectStore) CreateBucket(bucketName string) {
+func (s *objectStore) CreateBucket(bucketName string) error {
 	logger := s.getLogger().WithField("bucket", bucketName)
 
 	bucket := &ObjectStoreBucketModel{}
@@ -79,9 +79,7 @@ func (s *objectStore) CreateBucket(bucketName string) {
 
 	if err := s.db.Where(searchCriteria).Find(bucket).Error; err != nil {
 		if err != gorm.ErrRecordNotFound {
-			logger.Errorf("error happened during getting bucket from DB: %s", err.Error())
-
-			return
+			return errors.Wrap(err, "error happened during getting bucket from DB")
 		}
 	}
 
@@ -90,27 +88,23 @@ func (s *objectStore) CreateBucket(bucketName string) {
 	bucket.Region = s.region
 
 	if err := s.db.Save(bucket).Error; err != nil {
-		logger.Errorf("error happened during saving bucket in DB: %s", err.Error())
-
-		return
+		return errors.Wrap(err, "error happened during saving bucket in DB")
 	}
 
 	logger.Info("creating bucket")
 
 	if err := s.objectStore.CreateBucket(bucketName); err != nil {
-		logger.Errorf("could not create bucket (rolling back): %s", err.Error())
-
-		err = s.db.Delete(bucket).Error
-		if err != nil {
-			logger.Error(err.Error())
+		e := s.db.Delete(bucket).Error
+		if e != nil {
+			logger.Error(e.Error())
 		}
 
-		return
+		return errors.Wrap(err, "could not create bucket (rolling back)")
 	}
 
 	logger.Info("bucket created")
 
-	return
+	return nil
 }
 
 // DeleteBucket deletes the S3 bucket identified by the specified name

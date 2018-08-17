@@ -12,6 +12,7 @@ import (
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/gin-gonic/gin/json"
 	"github.com/jinzhu/gorm"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/iterator"
@@ -61,7 +62,7 @@ func (s *ObjectStore) getLogger(bucketName string) logrus.FieldLogger {
 }
 
 // CreateBucket creates a Google Bucket with the provided name and location.
-func (s *ObjectStore) CreateBucket(bucketName string) {
+func (s *ObjectStore) CreateBucket(bucketName string) error {
 	logger := s.getLogger(bucketName)
 
 	bucket := &ObjectStoreBucketModel{}
@@ -69,9 +70,7 @@ func (s *ObjectStore) CreateBucket(bucketName string) {
 
 	if err := s.db.Where(searchCriteria).Find(bucket).Error; err != nil {
 		if err != gorm.ErrRecordNotFound {
-			logger.Errorf("error happened during getting bucket from DB: %s", err.Error())
-
-			return
+			return errors.Wrap(err, "error happened during getting bucket from DB")
 		}
 	}
 
@@ -79,9 +78,7 @@ func (s *ObjectStore) CreateBucket(bucketName string) {
 	credentials, err := s.newGoogleCredentials()
 
 	if err != nil {
-		logger.Errorf("getting credentials failed: %s", err.Error())
-
-		return
+		return errors.Wrap(err, "getting credentials failed")
 	}
 
 	logger.Info("creating new storage client")
@@ -90,9 +87,7 @@ func (s *ObjectStore) CreateBucket(bucketName string) {
 
 	client, err := storage.NewClient(ctx, option.WithCredentials(credentials))
 	if err != nil {
-		logger.Errorf("failed to create client: %s", err.Error())
-
-		return
+		return errors.Wrap(err, "failed to create client")
 	}
 	defer client.Close()
 
@@ -106,9 +101,7 @@ func (s *ObjectStore) CreateBucket(bucketName string) {
 
 	err = s.db.Save(bucket).Error
 	if err != nil {
-		logger.Errorf("error happened during saving bucket in DB: %s", err.Error())
-
-		return
+		return errors.Wrap(err, "error happened during saving bucket in DB")
 	}
 
 	bucketHandle := client.Bucket(bucketName)
@@ -118,19 +111,17 @@ func (s *ObjectStore) CreateBucket(bucketName string) {
 	}
 
 	if err := bucketHandle.Create(ctx, s.serviceAccount.ProjectId, bucketAttrs); err != nil {
-		logger.Errorf("failed to create bucket (rolling back): %s", err.Error())
-
-		err = s.db.Delete(bucket).Error
-		if err != nil {
-			logger.Error(err.Error())
+		e := s.db.Delete(bucket).Error
+		if e != nil {
+			logger.Error(e.Error())
 		}
 
-		return
+		return errors.Wrap(err, "failed to create bucket (rolling back)")
 	}
 
 	logger.Infof("bucket created")
 
-	return
+	return nil
 }
 
 // DeleteBucket deletes the GS bucket identified by the specified name
