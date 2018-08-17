@@ -25,10 +25,15 @@ import (
 
 const awsNoUpdatesError = "No updates are to be performed."
 
+// EksClusterContext describes the common fields used across EKS cluster create/update/delete operations
+type EksClusterContext struct {
+	Session     *session.Session
+	ClusterName string
+}
+
 // EksClusterCreateUpdateContext describes the properties of an EKS cluster creation
 type EksClusterCreateUpdateContext struct {
-	Session                    *session.Session
-	ClusterName                string
+	EksClusterContext
 	ClusterRoleArn             string
 	NodeInstanceRoleID         *string
 	NodeInstanceRoleArn        string
@@ -50,8 +55,10 @@ type EksClusterCreateUpdateContext struct {
 // NewEksClusterCreationContext creates a new EksClusterCreateUpdateContext
 func NewEksClusterCreationContext(session *session.Session, clusterName, sshKeyName, nodePoolTemplate string) *EksClusterCreateUpdateContext {
 	return &EksClusterCreateUpdateContext{
-		Session:          session,
-		ClusterName:      clusterName,
+		EksClusterContext: EksClusterContext{
+			Session:     session,
+			ClusterName: clusterName,
+		},
 		SSHKeyName:       sshKeyName,
 		NodePoolTemplate: nodePoolTemplate,
 	}
@@ -61,8 +68,10 @@ func NewEksClusterCreationContext(session *session.Session, clusterName, sshKeyN
 func NewEksClusterUpdateContext(session *session.Session, clusterName string,
 	securityGroupID *string, nodeSecurityGroupID *string, subnetIDs []*string, sshKeyName, nodePoolTemplate string, vpcID *string, nodeInstanceRoleId *string, clusterUserArn, clusterUserAccessKeyId, clusterUserSecretAccessKey string) *EksClusterCreateUpdateContext {
 	return &EksClusterCreateUpdateContext{
-		Session:                    session,
-		ClusterName:                clusterName,
+		EksClusterContext: EksClusterContext{
+			Session:     session,
+			ClusterName: clusterName,
+		},
 		SecurityGroupID:            securityGroupID,
 		NodeSecurityGroupID:        nodeSecurityGroupID,
 		SubnetIDs:                  subnetIDs,
@@ -78,15 +87,16 @@ func NewEksClusterUpdateContext(session *session.Session, clusterName string,
 
 // EksClusterDeletionContext describes the properties of an EKS cluster deletion
 type EksClusterDeletionContext struct {
-	Session     *session.Session
-	ClusterName string
+	EksClusterContext
 }
 
 // NewEksClusterDeleteContext creates a new NewEksClusterDeleteContext
 func NewEksClusterDeleteContext(session *session.Session, clusterName string) *EksClusterDeletionContext {
 	return &EksClusterDeletionContext{
-		Session:     session,
-		ClusterName: clusterName,
+		EksClusterContext: EksClusterContext{
+			Session:     session,
+			ClusterName: clusterName,
+		},
 	}
 }
 

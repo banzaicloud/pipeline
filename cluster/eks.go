@@ -179,7 +179,6 @@ func (c *EKSCluster) CreateCluster() error {
 		action.NewUploadSSHKeyAction(c.log, creationContext, sshSecret),
 		action.NewGenerateVPCConfigRequestAction(c.log, creationContext, eksStackName),
 		action.NewCreateEksClusterAction(c.log, creationContext, c.modelCluster.EKS.Version),
-		action.NewLoadEksSettingsAction(c.log, creationContext),
 		action.NewCreateUpdateNodePoolStackAction(c.log, true, creationContext, c.modelCluster.EKS.NodePools...),
 	}
 
@@ -654,6 +653,32 @@ func (c *EKSCluster) GenerateK8sConfig() *clientcmdapi.Config {
 
 // DownloadK8sConfig generates and marshalls the kube config for this cluster.
 func (c *EKSCluster) DownloadK8sConfig() ([]byte, error) {
+	if c.APIEndpoint == "" || c.CertificateAuthorityData == nil || c.awsAccessKeyID == "" || c.awsSecretAccessKey == "" {
+
+		awsCred, err := c.createAWSCredentialsFromSecret()
+		if err != nil {
+			return nil, err
+		}
+
+		session, err := session.NewSession(&aws.Config{
+			Region:      aws.String(c.modelCluster.Location),
+			Credentials: awsCred,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		context := action.NewEksClusterCreationContext(session, c.modelCluster.Name, "", "")
+
+		if err := c.loadEksMasterSettings(context); err != nil {
+			return nil, err
+		}
+
+		if err := c.loadClusterUserCredentials(context); err != nil {
+			return nil, err
+		}
+	}
+
 	config := c.GenerateK8sConfig()
 	return yaml.Marshal(config)
 }
@@ -974,4 +999,44 @@ func GetEKSNodePools(cluster CommonCluster) ([]*model.AmazonNodePoolsModel, erro
 	}
 
 	return ekscluster.modelCluster.EKS.NodePools, nil
+}
+
+// loadEksMasterSettings gets K8s API server endpoint and Certificate Authority data from AWS and populates into
+// this EKSCluster instance
+func (c *EKSCluster) loadEksMasterSettings(context *action.EksClusterCreateUpdateContext) error {
+	if c.APIEndpoint == "" || c.CertificateAuthorityData == nil {
+		// Get cluster API endpoint and cluster CA data
+		loadEksSettings := action.NewLoadEksSettingsAction(c.log, context)
+		_, err := loadEksSettings.ExecuteAction(nil)
+		if err != nil {
+			return err
+		}
+
+		c.APIEndpoint = aws.StringValue(context.APIEndpoint)
+		c.CertificateAuthorityData, err = base64.StdEncoding.DecodeString(aws.StringValue(context.CertificateAuthorityData))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// loadClusterUserCredentials get the cluster user credentials from AWS and populates into this EKSCluster instance
+func (c *EKSCluster) loadClusterUserCredentials(context *action.EksClusterCreateUpdateContext) error {
+	// Get IAM user access key id and secret from stack
+	if c.awsAccessKeyID == "" || c.awsSecretAccessKey == "" {
+		eksStackName := c.generateStackNameForCluster()
+		getVPCConfig := action.NewGenerateVPCConfigRequestAction(c.log, context, eksStackName)
+
+		_, err := getVPCConfig.ExecuteAction(nil)
+		if err != nil {
+			return err
+		}
+
+		c.awsAccessKeyID = context.ClusterUserAccessKeyId
+		c.awsSecretAccessKey = context.ClusterUserSecretAccessKey
+	}
+
+	return nil
 }
