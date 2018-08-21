@@ -1,7 +1,5 @@
-# Golang CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-go/ for more details
 version: 2
+
 jobs:
   build:
     docker:
@@ -12,31 +10,34 @@ jobs:
             VAULT_DEV_ROOT_TOKEN_ID: 227e1cce-6bf7-30bb-2d2a-acc854318caf
 
     working_directory: /go/src/github.com/banzaicloud/pipeline
+
     steps:
       - checkout
+
+      - restore_cache:
+          keys:
+            - gopkg-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
+            - gopkg-v1-{{ .Branch }}
+            - gopkg-v1-master
+            - gopkg-v1
+
       - run:
-          name: Check symlinks
-          command:
-              make check-symlinks
-      - run:
-          name: Run dep ensure if necessary
-          command: |
-            if [[ `git diff HEAD^ Gopkg.* vendor/` ]]; then
-              dep ensure -v
-            fi
-      - run:
-          name: Unwind vendor
-          command: |
-              rm -rf vendor/
-              git reset --hard
+          name: Install dependencies
+          command: dep ensure -vendor-only
+
+      - save_cache:
+          key: gopkg-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
+          paths:
+            - vendor/
+
       - run:
           name: Build
-          command:
-              make build
+          command: make build
+
       - run:
           name: Run linter
-          command:
-              make lint
+          command: make lint
+
       - run:
           name: Run pipeline tests
           command: |
@@ -49,8 +50,7 @@ jobs:
 
       - run:
           name: Generate test reports
-          command:
-              make go-junit-report
+          command: make go-junit-report
           when: always
 
       - store_test_results:

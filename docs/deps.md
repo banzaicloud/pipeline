@@ -1,19 +1,27 @@
-## Dependency Management
+# Dependency Management
 
-Vendoring all dependencies is essential to have a **go get**-able package.
+Pipeline uses [dep](https://golang.github.io/dep/) to vendor dependencies.
 
-Tools needed:
+Install the latest version from the link above or by running:
 
-- [dep](https://golang.github.io/dep/) dependency manager
+```bash
+$ make bin/dep # Installs dep to ./bin/dep
+```
 
-`make deps` will install them, in case they are missing
+On MacOS you can install it using Homebrew:
+
+```bash
+$ brew install dep
+```
+
 
 ## Add a new dependency
 
 If you write new features which imports a new library, you have to vendor it:
+```bash
+$ dep ensure -v -add github.com/Masterminds/cookoo/web
 ```
-dep ensure -v -add github.com/Masterminds/cookoo/web
-```
+
 
 ## Add a forked dependency
 
@@ -21,12 +29,13 @@ Sometimes you have an unmerged PR, or a change which you don't even want to push
 In those cases you have a GH fork, and want use that instead of the origin.
 
 Gopkg.toml:
-```
+```toml
 [[constraint]]
   name = "github.com/kubicorn/kubicorn"
   branch = "master"
   source = "github.com/banzaicloud/kubicorn"
 ```
+
 
 ## Update existing dependency
 
@@ -35,10 +44,10 @@ new version.
 
 Perform an update:
 
+```bash
+$ dep ensure -v -update github.com/your/upgradable/package
 ```
-dep ensure -v -update github.com/your/upgradable/package
 
-```
 
 ## History
 
@@ -47,6 +56,10 @@ couldn't handle k8s.io dependencies.
 
 This project was previously using [glide](https://github.com/Masterminds/glide). But we returned to dep because seems like
 glide is becoming dormant, and seems like dep now can handle k8s.io dependencies.
+
+This project used to version control vendored dependencies, but due to licensing reasons we removed the vendor
+directory.
+
 
 ## Related issues
 
