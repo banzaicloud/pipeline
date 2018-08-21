@@ -493,13 +493,15 @@ func (c *ACSKCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) 
 	}
 
 	return &pkgCluster.GetClusterStatusResponse{
-		Status:        c.modelCluster.Status,
-		StatusMessage: c.modelCluster.StatusMessage,
-		Name:          c.modelCluster.Name,
-		Location:      c.modelCluster.Location,
-		Cloud:         c.modelCluster.Cloud,
-		ResourceID:    c.modelCluster.ID,
-		NodePools:     nodePools,
+		Status:            c.modelCluster.Status,
+		StatusMessage:     c.modelCluster.StatusMessage,
+		Name:              c.modelCluster.Name,
+		Location:          c.modelCluster.Location,
+		Cloud:             c.modelCluster.Cloud,
+		Distribution:      c.modelCluster.Distribution,
+		ResourceID:        c.modelCluster.ID,
+		NodePools:         nodePools,
+		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
 	}, nil
 }
 
