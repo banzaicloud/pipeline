@@ -140,7 +140,7 @@ type ACSKCluster struct {
 }
 
 func (*ACSKCluster) RbacEnabled() bool {
-	return true
+	return false
 }
 
 func (*ACSKCluster) RequiresSshPublicKey() bool {
@@ -518,14 +518,15 @@ func (c *ACSKCluster) DeleteCluster() error {
 
 	setEndpoint(req)
 	resp, err := client.DeleteCluster(req)
-	if err != nil {
+	// There is a bug in the SDK so we have to check for 202 incase of an error https://github.com/aliyun/alibaba-cloud-sdk-go/issues/83
+	if err != nil && resp.GetHttpStatus() != http.StatusAccepted {
 		if sdkErr, ok := err.(*aliErrors.ServerError); ok {
 			if strings.Contains(sdkErr.Message(), "ErrorClusterNotFound") {
 				// Cluster has been already deleted
 				return nil
 			}
 		}
-		log.Errorf("DeleteClusterResponse: %#v\n", resp)
+		log.Errorf("DeleteClusterResponse: %#v\n", resp.BaseResponse)
 		return err
 	}
 
