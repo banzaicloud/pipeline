@@ -92,10 +92,6 @@ misspell: bin/misspell ## Fix spelling mistakes
 test:
 	./scripts/test.sh
 
-.PHONY: clean-vendor
-clean-vendor:
-	find -L ./vendor -type l | xargs rm -rf
-
 .PHONY: generate-client
 generate-client:
 	docker run --rm -v ${PWD}:/local openapitools/openapi-generator-cli generate \
@@ -104,10 +100,6 @@ generate-client:
 	-g go \
 	-o /local/client
 	go fmt ./client
-
-.PHONY: check-symlinks
-check-symlinks:
-	FILES="${SYMLINKS}" ./scripts/symlink-check.sh
 
 .PHONY: install-go-junit-report
 install-go-junit-report:
