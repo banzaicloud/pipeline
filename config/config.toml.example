@@ -61,7 +61,7 @@ path = "./orgs"
 
 #helm repo URLs
 stableRepositoryURL = "https://kubernetes-charts.storage.googleapis.com"
-banzaiRepositoryURL = "http://kubernetes-charts.banzaicloud.com"
+banzaiRepositoryURL = "http://kubernetes-charts.banzaicloud.com/branch/master"
 
 [catalog]
 repositoryUrl = "http://kubernetes-charts.banzaicloud.com/branch/spotguide"
