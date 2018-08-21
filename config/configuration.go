@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -137,7 +138,8 @@ func init() {
 //GetCORS gets CORS related config
 func GetCORS() cors.Config {
 	viper.SetDefault("cors.AllowAllOrigins", true)
-	viper.SetDefault("cors.AllowOrigins", []string{"http://", "https://"})
+	viper.SetDefault("cors.AllowOrigins", []string{})
+	viper.SetDefault("cors.AllowOriginsRegexp", "")
 	viper.SetDefault("cors.AllowMethods", []string{"PUT", "DELETE", "GET", "POST", "OPTIONS"})
 	viper.SetDefault("cors.AllowHeaders", []string{"Origin", "Authorization", "Content-Type", "secretId"})
 	viper.SetDefault("cors.ExposeHeaders", []string{"Content-Length"})
@@ -145,11 +147,21 @@ func GetCORS() cors.Config {
 	viper.SetDefault("cors.MaxAge", 12)
 
 	config := cors.DefaultConfig()
-	cors.DefaultConfig()
 	config.AllowAllOrigins = viper.GetBool("cors.AllowAllOrigins")
 	if !config.AllowAllOrigins {
+		allowOriginsRegexp := viper.GetString("cors.AllowOriginsRegexp")
+		if allowOriginsRegexp != "" {
+			originsRegexp, err := regexp.Compile(allowOriginsRegexp)
+			if err == nil {
+				config.AllowOriginFunc = func(origin string) bool {
+					return originsRegexp.Match([]byte(origin))
+				}
+			}
+		}
+	} else if len(viper.GetStringSlice("cors.AllowOrigins")) > 0 {
 		config.AllowOrigins = viper.GetStringSlice("cors.AllowOrigins")
 	}
+
 	config.AllowMethods = viper.GetStringSlice("cors.AllowMethods")
 	config.AllowHeaders = viper.GetStringSlice("cors.AllowHeaders")
 	config.ExposeHeaders = viper.GetStringSlice("cors.ExposeHeaders")
