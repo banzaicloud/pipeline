@@ -195,7 +195,7 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 		loggingParam.GenTLSForLogging.TLSHost = "fluentd." + loggingParam.GenTLSForLogging.Namespace + ".svc.cluster.local"
 	}
 	if loggingParam.GenTLSForLogging.GenTLSSecretName == "" {
-		loggingParam.GenTLSForLogging.GenTLSSecretName = fmt.Sprintf("logging-tls-%s", string(cluster.GetID()))
+		loggingParam.GenTLSForLogging.GenTLSSecretName = fmt.Sprintf("logging-tls-%d", cluster.GetID())
 	}
 
 	if loggingParam.GenTLSForLogging.TLSEnabled {
