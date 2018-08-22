@@ -23,7 +23,7 @@ jobs:
 
       - run:
           name: Install dependencies
-          command: dep ensure -vendor-only
+          command: make vendor
 
       - save_cache:
           key: gopkg-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
