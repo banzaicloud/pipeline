@@ -1,10 +1,12 @@
 FROM golang:1.10-alpine
 RUN apk add --update --no-cache ca-certificates curl git make
 RUN go get github.com/kubernetes-sigs/aws-iam-authenticator/cmd/aws-iam-authenticator
-ADD . /go/src/github.com/banzaicloud/pipeline
+RUN mkdir -p /go/src/github.com/banzaicloud/pipeline
+ADD Gopkg.* Makefile /go/src/github.com/banzaicloud/pipeline/
 WORKDIR /go/src/github.com/banzaicloud/pipeline
 RUN make vendor
-RUN go build -o /pipeline main.go migrate.go
+ADD . /go/src/github.com/banzaicloud/pipeline
+RUN go build -o /pipeline
 
 FROM alpine:3.7
 COPY --from=0 /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
