@@ -137,7 +137,7 @@
   revision = "de5bf2ad457846296e2031421a34e2568e304e35"
 
 [[projects]]
-  digest = "1:2cc07b374da4b466e6af29406a45808bac115cd424ddb1bb9965dfe0f1fcf623"
+  digest = "1:379172d114b64135b9942eddaa15d39f682bbdda5fe7c0207856471490ac5213"
   name = "github.com/aliyun/alibaba-cloud-sdk-go"
   packages = [
     "sdk",
@@ -153,8 +153,8 @@
     "services/ecs",
   ]
   pruneopts = "NUT"
-  revision = "f89d40533aa10b95f92ecb33bbf63bda457a259c"
-  version = "1.23.7"
+  revision = "1c5a1c93a9c1e3da49ea0aa1f095a204b075c6b8"
+  version = "1.26.1"
 
 [[projects]]
   digest = "1:fff66556e25e676b296f9f2c78853831911e6ae41d84303a9be7a534bd1c0901"
