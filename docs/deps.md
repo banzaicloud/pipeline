@@ -49,18 +49,6 @@ $ dep ensure -v -update github.com/your/upgradable/package
 ```
 
 
-## History
-
-This project was previously using [dep](https://github.com/golang/dep). But `dep ensure`
-couldn't handle k8s.io dependencies.
-
-This project was previously using [glide](https://github.com/Masterminds/glide). But we returned to dep because seems like
-glide is becoming dormant, and seems like dep now can handle k8s.io dependencies.
-
-This project used to version control vendored dependencies, but due to licensing reasons we removed the vendor
-directory.
-
-
 ## Related issues
 
 see GH issues:
