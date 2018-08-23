@@ -187,7 +187,7 @@ func (o *OKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
 	for _, np := range o.modelCluster.OKE.NodePools {
 		if np != nil {
-			count := int(np.QuantityPerSubnet) * len(np.Subnets)
+			count := getNodeCount(np)
 			nodePools[np.Name] = &pkgCluster.NodePoolStatus{
 				Count:        count,
 				Autoscaling:  false,
@@ -210,6 +210,10 @@ func (o *OKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		CreatorBaseFields: *NewCreatorBaseFields(o.modelCluster.CreatedAt, o.modelCluster.CreatedBy),
 		NodePools:         nodePools,
 	}, nil
+}
+
+func getNodeCount(np *modelOracle.NodePool) int {
+	return int(np.QuantityPerSubnet) * len(np.Subnets)
 }
 
 //GetID returns the specified cluster id
@@ -341,9 +345,13 @@ func (o *OKECluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 	nodePools := make(map[string]*pkgCluster.NodeDetails)
 	for _, np := range o.modelCluster.OKE.NodePools {
 		if np != nil {
+			count := getNodeCount(np)
 			nodePools[np.Name] = &pkgCluster.NodeDetails{
 				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
 				Version:           np.Version,
+				Count:             count,
+				MinCount:          count,
+				MaxCount:          count,
 			}
 		}
 	}
