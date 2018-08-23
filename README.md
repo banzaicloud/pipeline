@@ -98,7 +98,7 @@ In order to try the API follow this [installation guide](docs/pipeline-howto.md)
 
 ### Vendoring
 
-Vendoring all dependencies is essential to have a **go get**-able package. 
+Vendoring all dependencies is essential to have a **go get**-able package. Please follow our [dependency management](docs/deps.md) guideline for more details.
 
 ### API specification
 
