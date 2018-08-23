@@ -13,6 +13,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"github.com/antihax/optional"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -130,9 +131,18 @@ CatalogsApiService List catalogs
 List all available catalogs
  * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param orgId Organization identification
+ * @param optional nil or *ListCatalogsOpts - Optional Parameters:
+ * @param "Name" (optional.String) -  Catalog name regexp
+ * @param "Version" (optional.String) -  Catalog version
 @return ListCatalogResponse
 */
-func (a *CatalogsApiService) ListCatalogs(ctx context.Context, orgId int32) (ListCatalogResponse, *http.Response, error) {
+
+type ListCatalogsOpts struct {
+	Name    optional.String
+	Version optional.String
+}
+
+func (a *CatalogsApiService) ListCatalogs(ctx context.Context, orgId int32, localVarOptionals *ListCatalogsOpts) (ListCatalogResponse, *http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Get")
 		localVarPostBody     interface{}
@@ -150,6 +160,12 @@ func (a *CatalogsApiService) ListCatalogs(ctx context.Context, orgId int32) (Lis
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if localVarOptionals != nil && localVarOptionals.Name.IsSet() {
+		localVarQueryParams.Add("name", parameterToString(localVarOptionals.Name.Value(), ""))
+	}
+	if localVarOptionals != nil && localVarOptionals.Version.IsSet() {
+		localVarQueryParams.Add("version", parameterToString(localVarOptionals.Version.Value(), ""))
+	}
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{}
 

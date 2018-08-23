@@ -56,6 +56,18 @@ paths:
           description: Organization identification
           schema:
             type: integer
+        - name: name
+          in: query
+          required: false
+          description: Catalog name regexp
+          schema:
+            type: string
+        - name: version
+          in: query
+          required: false
+          description: Catalog version
+          schema:
+            type: string
       responses:
         '200':
           description: Catalog list
