@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "6cac68a9-4904-4823-8789-04c4a7dd3fc9",
+		"_postman_id": "f142ef91-497e-4e8f-8eb8-7f9bf5a7a9c9",
 		"name": "End2End TEST Organizations",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -314,7 +314,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\":\"gkecluster-{{username}}-{{$randomInt}}\",\n    \"location\": \"us-central1-a\",\n    \"cloud\": \"google\",\n    \"secretId\": \"{{secretIdGoogle}}\",\n    \"properties\": {\n        \"gke\": {\n            \"master\":{\n                \"version\":\"1.9\"\n            },\n            \"nodeVersion\":\"1.9\",\n            \"nodePools\": {\n                \"pool1\": {\n                    \"autoscaling\": false, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n                    \"count\": 1,\n                    \"instanceType\": \"n1-standard-2\"\n                }\n            }\n        }\n    }\n}"
+							"raw": "{\n    \"name\":\"gkecluster-{{username}}-{{$randomInt}}\",\n    \"location\": \"us-central1-a\",\n    \"cloud\": \"google\",\n    \"secretId\": \"{{secretIdGoogle}}\",\n    \"properties\": {\n        \"gke\": {\n            \"master\":{\n                \"version\":\"1.10\"\n            },\n            \"nodeVersion\":\"1.10\",\n            \"nodePools\": {\n                \"pool1\": {\n                    \"autoscaling\": false, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n                    \"count\": 1,\n                    \"instanceType\": \"n1-standard-2\"\n                }\n            }\n        }\n    }\n}"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters",
@@ -8753,7 +8753,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"MyApplication\",\n  \"catalogName\": \"mysql-simple\",\n  \"clusterId\": 0,\n  \"cluster\": {\n    \"name\": \"gkecluster-pipelineuser-1\",\n    \"location\": \"us-central1-a\",\n    \"cloud\": \"google\",\n    \"secretId\": \"{{secretIdGoogle}}\",\n    \"profileName\": \"default\",\n    \"properties\": {\n      \"gke\": {\n        \"master\": {\n          \"version\": \"1.9.7-gke.3\"\n        },\n        \"nodePools\": {\n          \"pool1\": {\n            \"count\": 1,\n            \"instanceType\": \"n1-standard-2\"\n          }\n        },\n        \"nodeVersion\": \"1.9.7-gke.3\"\n      }\n    }\n  }\n}"
+							"raw": "{\n  \"name\": \"MyApplication\",\n  \"catalogName\": \"mysql-simple\",\n  \"clusterId\": 0,\n  \"cluster\": {\n    \"name\": \"gkecluster-pipelineuser-1\",\n    \"location\": \"us-central1-a\",\n    \"cloud\": \"google\",\n    \"secretId\": \"{{secretIdGoogle}}\",\n    \"profileName\": \"default\",\n    \"properties\": {\n      \"gke\": {\n        \"master\": {\n          \"version\": \"1.10\"\n        },\n        \"nodePools\": {\n          \"pool1\": {\n            \"count\": 1,\n            \"instanceType\": \"n1-standard-2\"\n          }\n        },\n        \"nodeVersion\": \"1.10\"\n      }\n    }\n  }\n}"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/applications",
