@@ -166,7 +166,7 @@ func InstallMonitoring(input interface{}) error {
 		return errors.Errorf("Json Convert Failed : %s", err.Error())
 	}
 
-	return installDeployment(cluster, grafanaNamespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-monitor", "pipeline-monitoring", grafanaValuesJson, "InstallMonitoring")
+	return installDeployment(cluster, grafanaNamespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-monitor", "pipeline-monitoring", grafanaValuesJson, "InstallMonitoring", "")
 }
 
 // InstallLogging to install logging deployment
@@ -223,7 +223,7 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 		return err
 	}
 
-	err = installDeployment(cluster, helm.DefaultNamespace, pkgHelm.BanzaiRepository+"/logging-operator", "pipeline-logging", nil, "InstallLogging")
+	err = installDeployment(cluster, helm.DefaultNamespace, pkgHelm.BanzaiRepository+"/logging-operator", "pipeline-logging", nil, "InstallLogging", "")
 	if err != nil {
 		return err
 	}
@@ -237,7 +237,7 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 	if err != nil {
 		return err
 	}
-	return installDeployment(cluster, helm.DefaultNamespace, pkgHelm.BanzaiRepository+"/s3-output", "pipeline-logging-output", marshaledValues, "ConfigureLoggingOutPut")
+	return installDeployment(cluster, helm.DefaultNamespace, pkgHelm.BanzaiRepository+"/s3-output", "pipeline-logging-output", marshaledValues, "ConfigureLoggingOutPut", "")
 }
 
 //func checkIfTLSRelatedValuesArePresent(v *pkgCluster.GenTLSForLogging) bool {
@@ -335,7 +335,7 @@ func saveKeysToConfigmap(config *rest.Config, configName string, clusterName str
 	return nil
 }
 
-func installDeployment(cluster CommonCluster, namespace string, deploymentName string, releaseName string, values []byte, actionName string) error {
+func installDeployment(cluster CommonCluster, namespace string, deploymentName string, releaseName string, values []byte, actionName string, chartVersion string) error {
 	// --- [ Get K8S Config ] --- //
 	kubeConfig, err := cluster.GetK8sConfig()
 	if err != nil {
@@ -380,7 +380,7 @@ func installDeployment(cluster CommonCluster, namespace string, deploymentName s
 		}
 	}
 
-	_, err = helm.CreateDeployment(deploymentName, "", namespace, releaseName, values, kubeConfig, helm.GenerateHelmRepoEnv(org.Name))
+	_, err = helm.CreateDeployment(deploymentName, chartVersion, namespace, releaseName, values, kubeConfig, helm.GenerateHelmRepoEnv(org.Name))
 	if err != nil {
 		log.Errorf("Deploying '%s' failed due to: %s", deploymentName, err.Error())
 		return err
@@ -395,7 +395,7 @@ func InstallIngressControllerPostHook(input interface{}) error {
 	if !ok {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
-	return installDeployment(cluster, helm.DefaultNamespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-ingress", "pipeline", nil, "InstallIngressController")
+	return installDeployment(cluster, helm.DefaultNamespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-ingress", "pipeline", nil, "InstallIngressController", "")
 }
 
 //InstallKubernetesDashboardPostHook post hooks can't return value, they can log error and/or update state?
@@ -510,7 +510,7 @@ func InstallKubernetesDashboardPostHook(input interface{}) error {
 
 	}
 
-	return installDeployment(cluster, k8sDashboardNameSpace, pkgHelm.StableRepository+"/kubernetes-dashboard", k8sDashboardReleaseName, valuesJson, "InstallKubernetesDashboard")
+	return installDeployment(cluster, k8sDashboardNameSpace, pkgHelm.StableRepository+"/kubernetes-dashboard", k8sDashboardReleaseName, valuesJson, "InstallKubernetesDashboard", "")
 
 }
 
@@ -547,7 +547,7 @@ func InstallHorizontalPodAutoscalerPostHook(input interface{}) error {
 		valuesOverride = marshalledValues
 	}
 
-	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/hpa-operator", "pipeline-hpa", valuesOverride, "InstallHorizontalPodAutoscaler")
+	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/hpa-operator", "pipeline-hpa", valuesOverride, "InstallHorizontalPodAutoscaler", "")
 }
 
 //UpdatePrometheusPostHook updates a configmap used by Prometheus
@@ -692,13 +692,16 @@ func RegisterDomainPostHook(input interface{}) error {
 		},
 		"domainFilters": []string{domain},
 		"policy":        "sync",
+		"txtOwnerId":    commonCluster.GetUID(),
 	}
 
 	externalDnsValuesJson, err := json.Marshal(externalDnsValues)
 	if err != nil {
 		return errors.Errorf("Json Convert Failed : %s", err.Error())
 	}
-	return installDeployment(commonCluster, route53SecretNamespace, pkgHelm.StableRepository+"/external-dns", "pipeline-dns", externalDnsValuesJson, "InstallMonitoring")
+	chartVersion := viper.GetString(pipConfig.DNSExternalDnsChartVersion)
+
+	return installDeployment(commonCluster, route53SecretNamespace, pkgHelm.StableRepository+"/external-dns", "pipeline-dns", externalDnsValuesJson, "InstallMonitoring", chartVersion)
 }
 
 // LabelNodes adds labels for all nodes
