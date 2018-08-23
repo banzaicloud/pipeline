@@ -151,7 +151,11 @@ func StoreKubernetesConfig(cluster CommonCluster, config []byte) error {
 		Values: map[string]string{
 			pkgSecret.K8SConfig: encodedConfig,
 		},
-		Tags: []string{pkgSecret.TagKubeConfig, clusterUidTag},
+		Tags: []string{
+			pkgSecret.TagKubeConfig,
+			pkgSecret.TagBanzaiReadonly,
+			clusterUidTag,
+		},
 	}
 
 	secretID := secret.GenerateSecretID(&createSecretRequest)
