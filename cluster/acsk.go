@@ -707,9 +707,23 @@ func (c *ACSKCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 		return nil, pkgErrors.ErrorClusterNotReady
 	}
 
+	nodePools := make(map[string]*pkgCluster.NodeDetails)
+	for _, np := range c.modelCluster.ACSK.NodePools {
+		nodePools[np.Name] = &pkgCluster.NodeDetails{
+			CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
+			Count:             np.Count,
+			MinCount:          np.Count,
+			MaxCount:          np.Count,
+		}
+	}
+
 	return &pkgCluster.DetailsResponse{
-		Name: r.Name,
-		Id:   c.modelCluster.ID,
+		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
+		Name:              r.Name,
+		Id:                c.modelCluster.ID,
+		Location:          c.modelCluster.Location,
+		NodePools:         nodePools,
+		Status:            c.modelCluster.Status,
 	}, nil
 }
 
