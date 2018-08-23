@@ -10,7 +10,7 @@ services:
       - 3306:3306
     environment:
       MYSQL_ROOT_PASSWORD: example
-      MYSQL_DATABASE: sparky
+      MYSQL_DATABASE: pipeline
       MYSQL_USER: sparky
       MYSQL_PASSWORD: sparky123
     volumes:
