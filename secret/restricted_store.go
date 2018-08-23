@@ -30,7 +30,7 @@ func (s *restrictedSecretStore) List(orgid uint, query *secretTypes.ListSecretsQ
 }
 
 func (s *restrictedSecretStore) Update(organizationID uint, secretID string, value *CreateSecretRequest) error {
-	if err := s.checkForbiddenTags(organizationID, secretID); err != nil {
+	if err := s.checkBlockingTags(organizationID, secretID); err != nil {
 		return err
 	}
 
@@ -38,11 +38,31 @@ func (s *restrictedSecretStore) Update(organizationID uint, secretID string, val
 }
 
 func (s *restrictedSecretStore) Delete(organizationID uint, secretID string) error {
-	if err := s.checkForbiddenTags(organizationID, secretID); err != nil {
+	if err := s.checkBlockingTags(organizationID, secretID); err != nil {
 		return err
 	}
 
 	return s.secretStore.Delete(organizationID, secretID)
+}
+
+func (s *restrictedSecretStore) checkBlockingTags(organizationID uint, secretID string) error {
+
+	secretItem, err := s.secretStore.Get(organizationID, secretID)
+	if err != nil {
+		return err
+	}
+
+	// check forbidden tags
+	if err := HasForbiddenTag(secretItem.Tags); err != nil {
+		return err
+	}
+
+	// check read only tag
+	if err := s.isSecretReadOnly(secretItem); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *restrictedSecretStore) checkForbiddenTags(organizationID uint, secretID string) error {
@@ -52,6 +72,28 @@ func (s *restrictedSecretStore) checkForbiddenTags(organizationID uint, secretID
 	}
 
 	return HasForbiddenTag(secretItem.Tags)
+}
+
+func (s *restrictedSecretStore) isSecretReadOnly(secretItem *SecretItemResponse) error {
+	for _, tag := range secretItem.Tags {
+		if tag == secretTypes.TagBanzaiReadonly {
+			return ReadOnlyError{
+				SecretID: secretItem.ID,
+			}
+		}
+	}
+
+	return nil
+
+}
+
+// ReadOnlyError describes a secret error where it contains read only tag
+type ReadOnlyError struct {
+	SecretID string
+}
+
+func (roe ReadOnlyError) Error() string {
+	return fmt.Sprintf("secret [%s] is read only, cannot be updated/deleted", roe.SecretID)
 }
 
 // ForbiddenError describes a secret error where it contains forbidden tag

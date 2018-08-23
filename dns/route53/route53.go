@@ -770,7 +770,10 @@ func (dns *awsRoute53) storeRoute53Secret(updateSecret *secret.SecretItemRespons
 	req := &secret.CreateSecretRequest{
 		Name: iamUserAccessKeySecretName,
 		Type: cluster.Amazon,
-		Tags: []string{secretTypes.TagBanzaiHidden},
+		Tags: []string{
+			secretTypes.TagBanzaiHidden,
+			secretTypes.TagBanzaiReadonly,
+		},
 		Values: map[string]string{
 			secretTypes.AwsAccessKeyId:     awsAccessKeyId,
 			secretTypes.AwsSecretAccessKey: awsSecretAccessKey,
