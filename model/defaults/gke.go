@@ -10,8 +10,8 @@ import (
 type GKEProfile struct {
 	DefaultModel
 	Location      string                `gorm:"default:'us-central1-a'"`
-	NodeVersion   string                `gorm:"default:'1.9.4-gke.1'"`
-	MasterVersion string                `gorm:"default:'1.9.4-gke.1'"`
+	NodeVersion   string                `gorm:"default:'1.10'"`
+	MasterVersion string                `gorm:"default:'1.10'"`
 	NodePools     []*GKENodePoolProfile `gorm:"foreignkey:Name"`
 }
 
