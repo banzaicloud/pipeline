@@ -93,8 +93,9 @@ const (
 
 // Internal usage
 const (
-	TagKubeConfig   = "KubeConfig"
-	TagBanzaiHidden = "banzai:hidden"
+	TagKubeConfig     = "KubeConfig"
+	TagBanzaiHidden   = "banzai:hidden"
+	TagBanzaiReadonly = "banzai:readonly"
 )
 
 // ForbiddenTags are not supported in secret creation

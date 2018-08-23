@@ -133,6 +133,7 @@ func InstallMonitoring(input interface{}) error {
 		Tags: []string{
 			clusterNameTag,
 			clusterUidTag,
+			pkgSecret.TagBanzaiReadonly,
 			"app:grafana",
 			"release:pipeline-monitoring",
 		},

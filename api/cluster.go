@@ -269,7 +269,7 @@ func CreateCluster(
 	commonCluster, err = clusterManager.CreateCluster(ctx, creationCtx, creator)
 
 	if err == cluster.ErrAlreadyExists || isInvalid(err) {
-		logger.Debug("invalid cluster creation: %s", err.Error())
+		logger.Debugf("invalid cluster creation: %s", err.Error())
 
 		return nil, &pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,

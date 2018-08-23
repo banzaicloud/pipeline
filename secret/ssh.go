@@ -42,7 +42,11 @@ func StoreSSHKeyPair(key *SSHKeyPair, organizationID uint, clusterID uint, clust
 	createSecretRequest.Name = fmt.Sprint("ssh-cluster-", clusterID)
 
 	clusterUidTag := fmt.Sprintf("clusterUID:%s", clusterUID)
-	createSecretRequest.Tags = []string{"cluster:" + clusterName, clusterUidTag}
+	createSecretRequest.Tags = []string{
+		"cluster:" + clusterName,
+		clusterUidTag,
+		secretTypes.TagBanzaiReadonly,
+	}
 
 	createSecretRequest.Values = map[string]string{
 		secretTypes.User:                 key.User,
