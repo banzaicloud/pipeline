@@ -103,6 +103,11 @@ func (c *Cluster) AddDefaults() error {
 		}
 
 		np.Labels[pkgCommon.LabelKey] = name
+
+		if len(np.Image) == 0 {
+			np.Image = defaultImage
+		}
+
 	}
 
 	return nil
