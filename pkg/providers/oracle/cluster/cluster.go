@@ -97,6 +97,11 @@ func (c *Cluster) AddDefaults() error {
 	}
 
 	for name, np := range c.NodePools {
+
+		if len(np.Labels) == 0 {
+			np.Labels = make(map[string]string)
+		}
+
 		np.Labels[pkgCommon.LabelKey] = name
 	}
 
