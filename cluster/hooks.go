@@ -225,15 +225,23 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 	if err != nil {
 		return err
 	}
-	err = installDeployment(cluster, helm.DefaultNamespace, pkgHelm.BanzaiRepository+"/logging-operator", "pipeline-logging", nil, "InstallLogging", "")
+	operatorValues := map[string]interface{}{
+		"tls": map[string]interface{}{
+			"enabled":    "true",
+			"secretName": loggingParam.GenTLSForLogging.GenTLSSecretName,
+		},
+	}
+	operatorYamlValues, err := yaml.Marshal(operatorValues)
+	if err != nil {
+		return err
+	}
+	err = installDeployment(cluster, helm.DefaultNamespace, pkgHelm.BanzaiRepository+"/logging-operator", "pipeline-logging", operatorYamlValues, "InstallLogging", "")
 	if err != nil {
 		return err
 	}
 	loggingValues := map[string]interface{}{
-		"s3output": map[string]interface{}{
-			"bucketname": loggingParam.BucketName,
-			"region":     loggingParam.Region,
-		},
+		"bucketName": loggingParam.BucketName,
+		"region":     loggingParam.Region,
 		"secret": map[string]interface{}{
 			"secretName": installedSecretValues.Name,
 		},
