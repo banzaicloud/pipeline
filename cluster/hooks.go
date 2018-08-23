@@ -186,10 +186,11 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 	//if !checkIfTLSRelatedValuesArePresent(&loggingParam.GenTLSForLogging) {
 	//	return errors.Errorf("TLS related parameter is missing from request!")
 	//}
+	const namespace = "default"
 	loggingParam.GenTLSForLogging.TLSEnabled = true
 	// Set TLS default values (default True)
 	if loggingParam.GenTLSForLogging.Namespace == "" {
-		loggingParam.GenTLSForLogging.Namespace = "default"
+		loggingParam.GenTLSForLogging.Namespace = namespace
 	}
 	if loggingParam.GenTLSForLogging.TLSHost == "" {
 		loggingParam.GenTLSForLogging.TLSHost = "fluentd." + loggingParam.GenTLSForLogging.Namespace + ".svc.cluster.local"
@@ -235,7 +236,7 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 	if err != nil {
 		return err
 	}
-	err = installDeployment(cluster, helm.DefaultNamespace, pkgHelm.BanzaiRepository+"/logging-operator", "pipeline-logging", operatorYamlValues, "InstallLogging", "")
+	err = installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/logging-operator", "pipeline-logging", operatorYamlValues, "InstallLogging", "")
 	if err != nil {
 		return err
 	}
@@ -250,7 +251,8 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 	if err != nil {
 		return err
 	}
-	return installDeployment(cluster, helm.DefaultNamespace, pkgHelm.BanzaiRepository+"/s3-output", "pipeline-logging-output", marshaledValues, "ConfigureLoggingOutPut", "")
+
+	return installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/s3-output", "pipeline-logging-output", marshaledValues, "ConfigureLoggingOutPut", "")
 }
 
 //func checkIfTLSRelatedValuesArePresent(v *pkgCluster.GenTLSForLogging) bool {
