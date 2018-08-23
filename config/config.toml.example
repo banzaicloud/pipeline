@@ -18,7 +18,7 @@ port = 3306
 user = "sparky"
 role = "pipeline"
 password = "sparky123"
-dbname = "sparky"
+dbname = "pipeline"
 logging = true
 
 [logging]
