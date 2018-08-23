@@ -4277,7 +4277,7 @@ components:
         properties:
           google:
             master:
-              version: 1.9.4-gke.1
+              version: "1.10"
             nodePools:
               pool1:
                 count: 2
@@ -4290,7 +4290,7 @@ components:
           example:
             google:
               master:
-                version: 1.9.4-gke.1
+                version: "1.10"
               nodePools:
                 pool1:
                   count: 2
@@ -4517,9 +4517,9 @@ components:
               bootID: decb64ff-e662-410a-b862-04cb490b4772
               kernelVersion: 4.4.111+
               containerRuntimeVersion: docker://17.3.2
-              kubeletVersion: v1.9.4-gke.1
+              kubeletVersion: v1.10
               systemUUID: 10D8ADDA-7714-10CA-912A-387CF7E5CB06
-              kubeProxyVersion: v1.9.4-gke.1
+              kubeProxyVersion: v1.10
               operatingSystem: linux
               osImage: Container-Optimized OS from Google
               architecture: amd64
@@ -4588,9 +4588,9 @@ components:
               bootID: decb64ff-e662-410a-b862-04cb490b4772
               kernelVersion: 4.4.111+
               containerRuntimeVersion: docker://17.3.2
-              kubeletVersion: v1.9.4-gke.1
+              kubeletVersion: v1.10
               systemUUID: 10D8ADDA-7714-10CA-912A-387CF7E5CB06
-              kubeProxyVersion: v1.9.4-gke.1
+              kubeProxyVersion: v1.10
               operatingSystem: linux
               osImage: Container-Optimized OS from Google
               architecture: amd64
@@ -4669,9 +4669,9 @@ components:
             bootID: decb64ff-e662-410a-b862-04cb490b4772
             kernelVersion: 4.4.111+
             containerRuntimeVersion: docker://17.3.2
-            kubeletVersion: v1.9.4-gke.1
+            kubeletVersion: v1.10
             systemUUID: 10D8ADDA-7714-10CA-912A-387CF7E5CB06
-            kubeProxyVersion: v1.9.4-gke.1
+            kubeProxyVersion: v1.10
             operatingSystem: linux
             osImage: Container-Optimized OS from Google
             architecture: amd64
@@ -5089,8 +5089,8 @@ components:
         properties:
           gke:
             master:
-              version: 1.9.4-gke.1
-            nodeVersion: 1.9.4-gke.1
+              version: "1.10"
+            nodeVersion: "1.10"
             nodePools:
               pool1:
                 count: 1
@@ -5109,8 +5109,8 @@ components:
           example:
             gke:
               master:
-                version: 1.9.4-gke.1
-              nodeVersion: 1.9.4-gke.1
+                version: "1.10"
+              nodeVersion: "1.10"
               nodePools:
                 pool1:
                   count: 1
@@ -5896,10 +5896,10 @@ components:
         kubernetes_versions:
           validMasterVersions:
           - 1.9.6-gke.0
-          - 1.9.4-gke.1
+          - "1.10"
           validNodeVersions:
           - 1.9.6-gke.0
-          - 1.9.4-gke.1
+          - "1.10"
           defaultImageType: COS
           defaultClusterVersion: 1.8.8-gke.0
           validImageTypes:
@@ -6755,9 +6755,9 @@ components:
         bootID: decb64ff-e662-410a-b862-04cb490b4772
         kernelVersion: 4.4.111+
         containerRuntimeVersion: docker://17.3.2
-        kubeletVersion: v1.9.4-gke.1
+        kubeletVersion: v1.10
         systemUUID: 10D8ADDA-7714-10CA-912A-387CF7E5CB06
-        kubeProxyVersion: v1.9.4-gke.1
+        kubeProxyVersion: v1.10
         operatingSystem: linux
         osImage: Container-Optimized OS from Google
         architecture: amd64
@@ -6781,10 +6781,10 @@ components:
           example: docker://17.3.2
           type: string
         kubeletVersion:
-          example: v1.9.4-gke.1
+          example: v1.10
           type: string
         kubeProxyVersion:
-          example: v1.9.4-gke.1
+          example: v1.10
           type: string
         operatingSystem:
           example: linux
@@ -6839,9 +6839,9 @@ components:
           bootID: decb64ff-e662-410a-b862-04cb490b4772
           kernelVersion: 4.4.111+
           containerRuntimeVersion: docker://17.3.2
-          kubeletVersion: v1.9.4-gke.1
+          kubeletVersion: v1.10
           systemUUID: 10D8ADDA-7714-10CA-912A-387CF7E5CB06
-          kubeProxyVersion: v1.9.4-gke.1
+          kubeProxyVersion: v1.10
           operatingSystem: linux
           osImage: Container-Optimized OS from Google
           architecture: amd64
@@ -7438,10 +7438,10 @@ components:
       example:
         validMasterVersions:
         - 1.9.6-gke.0
-        - 1.9.4-gke.1
+        - "1.10"
         validNodeVersions:
         - 1.9.6-gke.0
-        - 1.9.4-gke.1
+        - "1.10"
         defaultImageType: COS
         defaultClusterVersion: 1.8.8-gke.0
         validImageTypes:
@@ -7462,14 +7462,14 @@ components:
         validMasterVersions:
           example:
           - 1.9.6-gke.0
-          - 1.9.4-gke.1
+          - "1.10"
           items:
             type: string
           type: array
         validNodeVersions:
           example:
           - 1.9.6-gke.0
-          - 1.9.4-gke.1
+          - "1.10"
           items:
             type: string
           type: array
