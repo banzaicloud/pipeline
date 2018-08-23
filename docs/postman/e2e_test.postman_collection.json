@@ -1143,7 +1143,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"cloud\": \"google\",\n  \"properties\": {\n    \"gke\": {\n       \"master\": {\n            \"version\": \"1.9.4-gke.1\"\n      },\n      \"nodePools\": {\n        \"pool1\": {\n            \"autoscaling\": false, \n\t        \"minCount\": 1,\n\t        \"maxCount\": 2,\n            \"count\" : 2,\n            \"instanceType\": \"n1-standard-2\"\n        }\n      }\n    }\n  }\n}"
+							"raw": "{\n  \"cloud\": \"google\",\n  \"properties\": {\n    \"gke\": {\n       \"master\": {\n            \"version\": \"1.10\"\n      },\n      \"nodePools\": {\n        \"pool1\": {\n            \"autoscaling\": false, \n\t        \"minCount\": 1,\n\t        \"maxCount\": 2,\n            \"count\" : 2,\n            \"instanceType\": \"n1-standard-2\"\n        }\n      }\n    }\n  }\n}"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId",
@@ -3321,7 +3321,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"{{profileName}}\",\n    \"location\": \"us-central1-a\",\n    \"cloud\": \"google\",\n    \"properties\": {\n        \"gke\": {\n            \"master\":{\n                \"version\":\"1.9.4-gke.1\"\n            },\n            \"nodeVersion\":\"1.9.4-gke.1\",\n            \"nodePools\": {\n                \"pool1\": {\n                    \"autoscaling\": false, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n            \t\t\"count\": 1,\n                    \"instanceType\": \"n1-standard-2\"\n                },\n                \"pool2\": {\n                    \"autoscaling\": false, \n\t                \"minCount\": 2,\n\t                \"maxCount\": 2,\n            \t\t\"count\": 2,\n                    \"instanceType\": \"n1-standard-2\"\n                }\n            }\n        }\n    }\n}"
+							"raw": "{\n    \"name\": \"{{profileName}}\",\n    \"location\": \"us-central1-a\",\n    \"cloud\": \"google\",\n    \"properties\": {\n        \"gke\": {\n            \"master\":{\n                \"version\":\"1.10\"\n            },\n            \"nodeVersion\":\"1.10\",\n            \"nodePools\": {\n                \"pool1\": {\n                    \"autoscaling\": false, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n            \t\t\"count\": 1,\n                    \"instanceType\": \"n1-standard-2\"\n                },\n                \"pool2\": {\n                    \"autoscaling\": false, \n\t                \"minCount\": 2,\n\t                \"maxCount\": 2,\n            \t\t\"count\": 2,\n                    \"instanceType\": \"n1-standard-2\"\n                }\n            }\n        }\n    }\n}"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/profiles/cluster",
@@ -3611,7 +3611,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"{{profileName}}\",\n    \"location\": \"us-central1-a\",\n    \"cloud\": \"google\",\n    \"properties\": {\n        \"gke\": {\n            \"master\":{\n                \"version\":\"1.9.4-gke.1\"\n            },\n            \"nodeVersion\":\"1.9.4-gke.1\",\n            \"nodePools\": {\n                \"pool2\": {\n                    \"count\": 2,\n                    \"instanceType\": \"n1-standard-2\"\n                }\n            }\n        }\n    }\n}"
+							"raw": "{\n    \"name\": \"{{profileName}}\",\n    \"location\": \"us-central1-a\",\n    \"cloud\": \"google\",\n    \"properties\": {\n        \"gke\": {\n            \"master\":{\n                \"version\":\"1.10\"\n            },\n            \"nodeVersion\":\"1.10\",\n            \"nodePools\": {\n                \"pool2\": {\n                    \"count\": 2,\n                    \"instanceType\": \"n1-standard-2\"\n                }\n            }\n        }\n    }\n}"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/profiles/cluster",
