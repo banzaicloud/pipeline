@@ -3929,7 +3929,7 @@ components:
           example:
             google:
               master:
-                version: "1.9.4-gke.1"
+                version: "1.10"
               nodePools:
                 pool1:
                   count: 2
@@ -4307,10 +4307,10 @@ components:
                     example: "docker://17.3.2"
                   kubeletVersion:
                       type: string
-                      example: "v1.9.4-gke.1"
+                      example: "v1.10"
                   kubeProxyVersion:
                       type: string
-                      example: "v1.9.4-gke.1"
+                      example: "v1.10"
                   operatingSystem:
                       type: string
                       example: "linux"
@@ -4811,8 +4811,8 @@ components:
           example:
             gke:
               master:
-                version: "1.9.4-gke.1"
-              nodeVersion: "1.9.4-gke.1"
+                version: "1.10"
+              nodeVersion: "1.10"
               nodePools:
                 pool1:
                   count: 1
@@ -5654,12 +5654,12 @@ components:
               type: array
               items:
                 type: string
-              example: ["1.9.6-gke.0", "1.9.4-gke.1"]
+              example: ["1.9.6-gke.0", "1.10"]
             validNodeVersions:
               type: array
               items:
                 type: string
-              example: ["1.9.6-gke.0", "1.9.4-gke.1"]
+              example: ["1.9.6-gke.0", "1.10"]
 
     GetClusterStatusResponse:
       type: object

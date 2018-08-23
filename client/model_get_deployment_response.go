@@ -23,5 +23,5 @@ type GetDeploymentResponse struct {
 	// deployment notes in base64 encoded format
 	Notes string `json:"notes,omitempty"`
 	// current values of the deployment
-	Values map[string]interface{} `json:"values,omitempty"`
+	Values map[string]map[string]interface{} `json:"values,omitempty"`
 }
