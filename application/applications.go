@@ -153,8 +153,9 @@ func CreateApplicationDeployment(env helm_env.EnvSettings, am *model.Application
 	for name, s := range catalogInfo.Spotguide.Secrets {
 
 		request := secret.CreateSecretRequest{
-			Name: releaseName + "-" + name,
-			Tags: []string{secretTag},
+			Name:   releaseName + "-" + name,
+			Tags:   []string{secretTag},
+			Values: map[string]string{},
 		}
 
 		if s.TLS != nil {

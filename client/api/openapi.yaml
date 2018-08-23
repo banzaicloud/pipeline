@@ -52,6 +52,22 @@ paths:
           format: int32
           type: integer
         style: simple
+      - description: Catalog name regexp
+        explode: true
+        in: query
+        name: name
+        required: false
+        schema:
+          type: string
+        style: form
+      - description: Catalog version
+        explode: true
+        in: query
+        name: version
+        required: false
+        schema:
+          type: string
+        style: form
       responses:
         200:
           content:

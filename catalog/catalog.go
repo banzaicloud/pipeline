@@ -22,12 +22,10 @@ import (
 )
 
 // CatalogRepository for universal catalog repo name
-const CatalogRepository = "catalog"
+const CatalogRepository = "orgs/catalog"
 
 // CatalogPath TODO check if we need some special config/path
 var CatalogPath = "./" + CatalogRepository
-
-//TODO when the API fixed this needs to move to banzai-types
 
 // ApplicationDetails for API response
 
@@ -186,7 +184,7 @@ func getChartOption(file []byte) (*pkgCatalog.SpotguideFile, error) {
 	return nil, nil
 }
 
-// ChartGet modifiey helm.ChartGet to injet spotguide
+// ChartGet modifies helm.ChartGet to inject spotguide
 func ChartGet(env helm_env.EnvSettings, chartRepo, chartName, chartVersion string) (*CatalogDetails, error) {
 	f, err := repo.LoadRepositoriesFile(env.Home.RepositoryFile())
 	if err != nil {

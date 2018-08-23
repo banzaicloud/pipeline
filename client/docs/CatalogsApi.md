@@ -39,7 +39,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ListCatalogs**
-> ListCatalogResponse ListCatalogs(ctx, orgId)
+> ListCatalogResponse ListCatalogs(ctx, orgId, optional)
 List catalogs
 
 List all available catalogs
@@ -50,6 +50,16 @@ Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **orgId** | **int32**| Organization identification | 
+ **optional** | ***ListCatalogsOpts** | optional parameters | nil if no parameters
+
+### Optional Parameters
+Optional parameters are passed through a pointer to a ListCatalogsOpts struct
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+
+ **name** | **optional.String**| Catalog name regexp | 
+ **version** | **optional.String**| Catalog version | 
 
 ### Return type
 
