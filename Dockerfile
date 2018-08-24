@@ -9,6 +9,7 @@ ADD . /go/src/github.com/banzaicloud/pipeline
 RUN go build -o /pipeline
 
 FROM alpine:3.7
+RUN apk add --update --no-cache tzdata
 COPY --from=0 /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=0 /go/bin/aws-iam-authenticator /usr/bin/
 COPY --from=0 /go/src/github.com/banzaicloud/pipeline/views /views/
