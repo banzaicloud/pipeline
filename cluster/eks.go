@@ -710,6 +710,7 @@ func (c *EKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		Distribution:      c.modelCluster.Distribution,
 		ResourceID:        c.modelCluster.ID,
 		NodePools:         nodePools,
+		Version:           c.modelCluster.EKS.Version,
 		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
 	}, nil
 }

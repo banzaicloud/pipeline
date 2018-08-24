@@ -251,6 +251,7 @@ func (c *AKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		Location:          c.modelCluster.Location,
 		Cloud:             c.modelCluster.Cloud,
 		Distribution:      c.modelCluster.Distribution,
+		Version:           c.modelCluster.AKS.KubernetesVersion,
 		ResourceID:        c.modelCluster.ID,
 		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
 		NodePools:         nodePools,
