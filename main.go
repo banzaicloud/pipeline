@@ -18,6 +18,7 @@ import (
 	"github.com/banzaicloud/pipeline/model/defaults"
 	"github.com/banzaicloud/pipeline/notify"
 	"github.com/banzaicloud/pipeline/objectstore"
+	"github.com/banzaicloud/pipeline/spotguide"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -97,7 +98,9 @@ func main() {
 		&defaults.GKEProfile{},
 		&defaults.GKENodePoolProfile{},
 		&objectstore.ManagedAlibabaBucket{},
-		&route53model.Route53Domain{}}
+		&route53model.Route53Domain{},
+		&spotguide.Repo{},
+	}
 
 	var tableNames string
 	for _, table := range tables {
@@ -133,6 +136,14 @@ func main() {
 	if dnsSvc == nil {
 		log.Infoln("External dns service functionality is not enabled")
 	}
+
+	// Spotguides
+	go func() {
+		err := spotguide.ScrapeSpotguides()
+		if err != nil {
+			panic(err)
+		}
+	}()
 
 	//Initialise Gin router
 	router := gin.New()
@@ -171,14 +182,10 @@ func main() {
 		{
 			orgs.Use(api.OrganizationMiddleware)
 
-			orgs.GET("/:orgid/applications", api.GetApplications)
-			orgs.POST("/:orgid/applications", api.CreateApplication)
-			orgs.GET("/:orgid/applications/:id", api.ApplicationDetails)
-			orgs.DELETE("/:orgid/applications/:id", api.DeleteApplications)
-
-			orgs.GET("/:orgid/catalogs", api.GetCatalogs)
-			orgs.PUT("/:orgid/catalogs/update", api.UpdateCatalogs)
-			orgs.GET("/:orgid/catalogs/:name", api.CatalogDetails)
+			orgs.GET("/:orgid/spotguides", api.GetSpotguides)
+			orgs.PUT("/:orgid/spotguides", api.SyncSpotguides)
+			orgs.POST("/:orgid/spotguides", api.LaunchSpotguide)
+			orgs.GET("/:orgid/spotguides/*name", api.GetSpotguide)
 
 			orgs.POST("/:orgid/clusters", api.CreateClusterRequest)
 			//v1.GET("/status", api.Status)
@@ -186,7 +193,6 @@ func main() {
 			orgs.GET("/:orgid/clusters/:id", api.GetClusterStatus)
 			orgs.GET("/:orgid/clusters/:id/details", api.GetClusterDetails)
 			orgs.GET("/:orgid/clusters/:id/pods", api.GetPodDetails)
-			orgs.GET("/:orgid/clusters/:id/application", api.GetApplicationsByCluster)
 			orgs.PUT("/:orgid/clusters/:id", api.UpdateCluster)
 			orgs.PUT("/:orgid/clusters/:id/posthooks", api.ReRunPostHooks)
 			orgs.POST("/:orgid/clusters/:id/secrets", api.InstallSecretsToCluster)

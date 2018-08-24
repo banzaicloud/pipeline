@@ -137,6 +137,25 @@
   revision = "de5bf2ad457846296e2031421a34e2568e304e35"
 
 [[projects]]
+  branch = "master"
+  digest = "1:f3793f8a708522400cef1dba23385e901aede5519f68971fd69938ef330b07a1"
+  name = "github.com/alecthomas/template"
+  packages = [
+    ".",
+    "parse",
+  ]
+  pruneopts = "NUT"
+  revision = "a0175ee3bccc567396460bf5acd36800cb10c49c"
+
+[[projects]]
+  branch = "master"
+  digest = "1:fdd419e104ec26bb5bd63cc62637c640453ed2929a7453f3afadbd9a0223da66"
+  name = "github.com/alecthomas/units"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "2efee857e7cfd4f3d0138cc3cbb1b4966962b93a"
+
+[[projects]]
   digest = "1:379172d114b64135b9942eddaa15d39f682bbdda5fe7c0207856471490ac5213"
   name = "github.com/aliyun/alibaba-cloud-sdk-go"
   packages = [
@@ -256,7 +275,8 @@
   revision = "72e04c1bddb8e7246cc69496f942d35fc26aeb23"
 
 [[projects]]
-  digest = "1:a66f6606f1372e61d6766d413b223f01e850efdee6319eb3f50f9e2344fc6ad1"
+  branch = "master"
+  digest = "1:6f3ef52433006c1030293d0a7bc2f43ab8084ed076de77d81d05e84965cf36da"
   name = "github.com/banzaicloud/bank-vaults"
   packages = [
     "auth",
@@ -265,8 +285,7 @@
     "vault",
   ]
   pruneopts = "NUT"
-  revision = "ec3af7e7b4abdd87d293838baf11e56e65556cd4"
-  version = "0.2.8"
+  revision = "5096419938695b1253b72c6068a42fdc7a141fc4"
 
 [[projects]]
   branch = "master"
@@ -1181,11 +1200,12 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:c5d42ef4adf65e7f285781909ee3798fef7fec57f9c018cf96d6a4104f483feb"
+  digest = "1:5a31033f117e1be267d642fa385ec7f0434e7b7ce8d934ff049c9efb78307f24"
   name = "github.com/prometheus/common"
   packages = [
     "expfmt",
     "internal/bitbucket.org/ww/goautoneg",
+    "log",
     "model",
   ]
   pruneopts = "NUT"
@@ -1537,11 +1557,13 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:4c423e7ef829a094998d10166ed9dd6003acbdd1399f612c0917c6eef696edd9"
+  digest = "1:7a92574fb43cfd0343680f44d9390593eca30fead5e8f2f95bc2758c7a1a10fe"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
+    "windows/registry",
+    "windows/svc/eventlog",
   ]
   pruneopts = "NUT"
   revision = "13d03a9a82fba647c21a0ef8fba44a795d0f0835"
@@ -1668,6 +1690,14 @@
   pruneopts = "NUT"
   revision = "d89cded64628466c4ab532d1f0ba5c220459ebe8"
   version = "v1.11.2"
+
+[[projects]]
+  digest = "1:22b2dee6f30bc8601f087449a2a819df8388e54e9547349c658f14d8f8c590f2"
+  name = "gopkg.in/alecthomas/kingpin.v2"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "947dcec5ba9c011838740e680966fd7087a71d0d"
+  version = "v2.2.6"
 
 [[projects]]
   branch = "v3"
@@ -2316,6 +2346,7 @@
     "github.com/oracle/oci-go-sdk/objectstorage",
     "github.com/pkg/errors",
     "github.com/pkg/sftp",
+    "github.com/prometheus/common/log",
     "github.com/prometheus/common/model",
     "github.com/prometheus/prometheus/config",
     "github.com/qor/auth",
@@ -2378,7 +2409,6 @@
     "k8s.io/helm/pkg/proto/hapi/release",
     "k8s.io/helm/pkg/proto/hapi/services",
     "k8s.io/helm/pkg/repo",
-    "k8s.io/helm/pkg/strvals",
     "k8s.io/kubernetes/pkg/api/v1/resource",
     "k8s.io/kubernetes/pkg/apis/core",
   ]

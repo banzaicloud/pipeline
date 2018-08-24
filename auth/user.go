@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	bauth "github.com/banzaicloud/bank-vaults/auth"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/model"
@@ -25,6 +26,9 @@ import (
 const (
 	// CurrentOrganization current organization key
 	CurrentOrganization utils.ContextKey = "org"
+
+	// GithubTokenID denotes the tokenID for the user's Github token, there can be only one
+	GithubTokenID = "github"
 )
 
 // AuthIdentity auth identity session model
@@ -173,6 +177,14 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 	}
 
 	AddDefaultRoleForUser(currentUser.ID)
+
+	// Save the Github token to Vault
+	token := bauth.NewToken(GithubTokenID, "Github access token")
+	token.Value = githubExtraInfo.Token
+	err = TokenStore.Store(fmt.Sprint(currentUser.ID), token)
+	if err != nil {
+		return "", "", fmt.Errorf("Failed to store Github access token: %s", err.Error())
+	}
 
 	githubOrgIDs, err := importGithubOrganizations(currentUser, context, githubExtraInfo.Token)
 
