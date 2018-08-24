@@ -4131,14 +4131,14 @@ components:
     NodePoolsOracle:
       properties:
         version:
-          example: v1.9.7
+          example: v1.10.3
           type: string
         count:
           example: 1
           format: int32
           type: integer
         image:
-          example: Oracle-Linux-7.4
+          example: Oracle-Linux-7.5
           type: string
         shape:
           example: VM.Standard1.1
@@ -6476,7 +6476,7 @@ components:
     CreateUpdateOKEProperties_oke:
       properties:
         version:
-          example: v1.9.7
+          example: v1.10.3
           type: string
         nodePools:
           additionalProperties:

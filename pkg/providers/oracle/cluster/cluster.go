@@ -96,6 +96,11 @@ func (c *Cluster) AddDefaults() error {
 		return nil
 	}
 
+	// set default version
+	if len(c.Version) == 0 {
+		c.Version = defaultVersion
+	}
+
 	for name, np := range c.NodePools {
 
 		if len(np.Labels) == 0 {
@@ -104,8 +109,14 @@ func (c *Cluster) AddDefaults() error {
 
 		np.Labels[pkgCommon.LabelKey] = name
 
+		// set default image
 		if len(np.Image) == 0 {
 			np.Image = defaultImage
+		}
+
+		// set default version
+		if len(np.Version) == 0 {
+			np.Version = defaultVersion
 		}
 
 	}
