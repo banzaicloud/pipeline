@@ -195,6 +195,7 @@ func (o *OKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 				MaxCount:     count,
 				InstanceType: np.Shape,
 				Image:        np.Image,
+				Version:      np.Version,
 			}
 		}
 	}
@@ -206,6 +207,7 @@ func (o *OKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		Location:          o.modelCluster.Location,
 		Cloud:             pkgCluster.Oracle,
 		Distribution:      o.modelCluster.Distribution,
+		Version:           o.modelCluster.OKE.Version,
 		ResourceID:        o.GetID(),
 		CreatorBaseFields: *NewCreatorBaseFields(o.modelCluster.CreatedAt, o.modelCluster.CreatedBy),
 		NodePools:         nodePools,

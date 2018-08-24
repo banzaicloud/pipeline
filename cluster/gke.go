@@ -320,6 +320,7 @@ func (c *GKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 				InstanceType: np.NodeInstanceType,
 				MinCount:     np.NodeMinCount,
 				MaxCount:     np.NodeMaxCount,
+				Version:      c.modelCluster.GKE.NodeVersion,
 			}
 		}
 	}
@@ -332,6 +333,7 @@ func (c *GKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		Cloud:             c.modelCluster.Cloud,
 		Distribution:      c.modelCluster.Distribution,
 		ResourceID:        c.modelCluster.ID,
+		Version:           c.modelCluster.GKE.MasterVersion,
 		NodePools:         nodePools,
 		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
 		Region:            c.modelCluster.GKE.Region,
