@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "f142ef91-497e-4e8f-8eb8-7f9bf5a7a9c9",
+		"_postman_id": "725cb9d0-7597-4d4f-a64f-e2b2ffe4075f",
 		"name": "End2End TEST Organizations",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -379,7 +379,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\":\"okecluster-demo-{{$randomInt}}\",\n    \"location\": \"eu-frankfurt-1\",\n    \"cloud\": \"oracle\",\n    \"secretId\": \"{{secretIdOracle}}\",\n    \"properties\": {\n        \"oke\": {\n            \"version\":\"v1.9.7\",\n            \"nodePools\": {\n                \"pool1\": {\n                \t\"version\":\"v1.9.7\",\n                \t\"count\": 1,\n                \t\"image\": \"Oracle-Linux-7.4\",\n                \t\"shape\": \"VM.Standard1.1\",\n                \t\"labels\": {\n                \t\t\"type\": \"general\"\n                \t}\n                }\n            }\n        }\n    }\n}"
+							"raw": "{\n    \"name\":\"okecluster-demo-{{$randomInt}}\",\n    \"location\": \"eu-frankfurt-1\",\n    \"cloud\": \"oracle\",\n    \"secretId\": \"{{secretIdOracle}}\",\n    \"properties\": {\n        \"oke\": {\n            \"version\":\"v1.10.3\",\n            \"nodePools\": {\n                \"pool1\": {\n                \t\"version\":\"v1.10.3\",\n                \t\"count\": 1,\n                \t\"image\": \"Oracle-Linux-7.5\",\n                \t\"shape\": \"VM.Standard1.1\",\n                \t\"labels\": {\n                \t\t\"type\": \"general\"\n                \t}\n                }\n            }\n        }\n    }\n}"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters",
@@ -1206,7 +1206,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"cloud\": \"oracle\",\n    \"properties\": {\n        \"oke\": {\n            \"version\":\"v1.9.7\",\n            \"nodePools\": {\n                \"pool1\": {\n                \t\"version\":\"v1.9.7\",\n                \t\"count\": 3,\n                \t\"labels\": {\n                \t\t\"type\": \"compute\"\n                \t}\n                },\n                \"pool2\": {\n                \t\"version\":\"v1.9.7\",\n                \t\"count\": 1,\n                \t\"image\": \"Oracle-Linux-7.4\",\n                \t\"shape\": \"VM.Standard1.1\",\n                \t\"labels\": {\n                \t\t\"type\": \"compute\"\n                \t}\n                }\n            }\n        }\n    }\n}\n"
+							"raw": "{\n    \"cloud\": \"oracle\",\n    \"properties\": {\n        \"oke\": {\n            \"version\":\"v1.10.3\",\n            \"nodePools\": {\n                \"pool1\": {\n                \t\"version\":\"v1.10.3\",\n                \t\"count\": 3,\n                \t\"labels\": {\n                \t\t\"type\": \"compute\"\n                \t}\n                },\n                \"pool2\": {\n                \t\"version\":\"v1.10.3\",\n                \t\"count\": 1,\n                \t\"image\": \"Oracle-Linux-7.5\",\n                \t\"shape\": \"VM.Standard1.1\",\n                \t\"labels\": {\n                \t\t\"type\": \"compute\"\n                \t}\n                }\n            }\n        }\n    }\n}\n"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId",
@@ -1887,8 +1887,8 @@
 							"urlencoded": [
 								{
 									"key": "name",
-									"type": "text",
-									"value": "zeppelin-k8s-charts"
+									"value": "zeppelin-k8s-charts",
+									"type": "text"
 								}
 							]
 						},
@@ -1960,8 +1960,8 @@
 							"urlencoded": [
 								{
 									"key": "name",
-									"type": "text",
-									"value": "zeppelin-k8s-charts"
+									"value": "zeppelin-k8s-charts",
+									"type": "text"
 								}
 							]
 						},
@@ -2025,8 +2025,8 @@
 							"urlencoded": [
 								{
 									"key": "name",
-									"type": "text",
-									"value": "zeppelin-k8s-charts"
+									"value": "zeppelin-k8s-charts",
+									"type": "text"
 								}
 							]
 						},
@@ -2090,8 +2090,8 @@
 							"urlencoded": [
 								{
 									"key": "name",
-									"type": "text",
-									"value": "zeppelin-k8s-charts"
+									"value": "zeppelin-k8s-charts",
+									"type": "text"
 								}
 							]
 						},
@@ -2155,8 +2155,8 @@
 							"urlencoded": [
 								{
 									"key": "name",
-									"type": "text",
-									"value": "zeppelin-k8s-charts"
+									"value": "zeppelin-k8s-charts",
+									"type": "text"
 								}
 							]
 						},
@@ -3379,7 +3379,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"{{profileName}}\",\n    \"cloud\": \"oracle\",\n    \"location\": \"eu-frankfurt-1\",\n    \"properties\": {\n        \"oke\": {\n            \"version\":\"v1.9.7\",\n            \"nodePools\": {\n                \"pool1\": {\n                \t\"version\":\"v1.9.7\",\n                \t\"count\": 3,\n                \t\"image\": \"Oracle-Linux-7.4\",\n                \t\"shape\": \"VM.Standard1.1\",\n                \t\"labels\": {\n                \t\t\"type\": \"small-compute\"\n                \t}\n                }\n            }\n        }\n    }\n}"
+							"raw": "{\n    \"name\": \"{{profileName}}\",\n    \"cloud\": \"oracle\",\n    \"location\": \"eu-frankfurt-1\",\n    \"properties\": {\n        \"oke\": {\n            \"version\":\"v1.10.3\",\n            \"nodePools\": {\n                \"pool1\": {\n                \t\"version\":\"v1.10.3\",\n                \t\"count\": 3,\n                \t\"image\": \"Oracle-Linux-7.5\",\n                \t\"shape\": \"VM.Standard1.1\",\n                \t\"labels\": {\n                \t\t\"type\": \"small-compute\"\n                \t}\n                }\n            }\n        }\n    }\n}"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/profiles/cluster",
@@ -3669,7 +3669,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"{{profileName}}\",\n    \"cloud\": \"oracle\",\n    \"location\": \"eu-frankfurt-1\",\n    \"properties\": {\n        \"oke\": {\n            \"version\":\"v1.9.7\",\n            \"nodePools\": {\n                \"pool1\": {\n                \t\"version\":\"v1.9.7\",\n                \t\"count\": 2,\n                \t\"image\": \"Oracle-Linux-7.4\",\n                \t\"shape\": \"VM.Standard1.1\",\n                \t\"labels\": {\n                \t\t\"type\": \"small-compute\"\n                \t}\n                }\n            }\n        }\n    }\n}"
+							"raw": "{\n    \"name\": \"{{profileName}}\",\n    \"cloud\": \"oracle\",\n    \"location\": \"eu-frankfurt-1\",\n    \"properties\": {\n        \"oke\": {\n            \"version\":\"v1.10.3\",\n            \"nodePools\": {\n                \"pool1\": {\n                \t\"version\":\"v1.10.3\",\n                \t\"count\": 2,\n                \t\"image\": \"Oracle-Linux-7.5\",\n                \t\"shape\": \"VM.Standard1.1\",\n                \t\"labels\": {\n                \t\t\"type\": \"small-compute\"\n                \t}\n                }\n            }\n        }\n    }\n}"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/profiles/cluster",
