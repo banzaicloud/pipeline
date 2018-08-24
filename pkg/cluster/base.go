@@ -404,7 +404,7 @@ func (r *UpdateClusterRequest) preValidate() {
 		r.ACSK = nil
 		r.EC2 = nil
 		r.AKS = nil
-		r.OKE = nil
+		r.GKE = nil
 	}
 }
 
