@@ -62,7 +62,7 @@ var (
 
 	signingKey       string
 	signingKeyBase32 string
-	tokenStore       bauth.TokenStore
+	TokenStore       bauth.TokenStore
 
 	// JwtIssuer ("iss") claim identifies principal that issued the JWT
 	JwtIssuer string
@@ -169,9 +169,9 @@ func Init(db *gorm.DB) {
 	githubProvider.AuthorizeHandler = NewGithubAuthorizeHandler(githubProvider)
 	Auth.RegisterProvider(githubProvider)
 
-	tokenStore = bauth.NewVaultTokenStore("pipeline")
+	TokenStore = bauth.NewVaultTokenStore("pipeline")
 
-	jwtAuth := bauth.JWTAuth(tokenStore, signingKey, func(claims *bauth.ScopedClaims) interface{} {
+	jwtAuth := bauth.JWTAuth(TokenStore, signingKey, func(claims *bauth.ScopedClaims) interface{} {
 		userID, _ := strconv.ParseUint(claims.Subject, 10, 32)
 		return &User{
 			ID:      uint(userID),
@@ -336,7 +336,7 @@ func createAndStoreAPIToken(userID string, userLogin string, tokenType bauth.Tok
 	}
 
 	token := bauth.NewToken(tokenID, tokenName)
-	err = tokenStore.Store(userID, token)
+	err = TokenStore.Store(userID, token)
 	if err != nil {
 		return "", "", errors.Wrap(err, "Failed to store user token")
 	}
@@ -355,14 +355,14 @@ func GetTokens(c *gin.Context) {
 	tokenID := c.Param("id")
 
 	if tokenID == "" {
-		tokens, err := tokenStore.List(currentUser.IDString())
+		tokens, err := TokenStore.List(currentUser.IDString())
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, err)
 		} else {
 			c.JSON(http.StatusOK, tokens)
 		}
 	} else {
-		token, err := tokenStore.Lookup(currentUser.IDString(), tokenID)
+		token, err := TokenStore.Lookup(currentUser.IDString(), tokenID)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, err)
 		} else if token != nil {
@@ -390,7 +390,7 @@ func DeleteToken(c *gin.Context) {
 	if tokenID == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest, fmt.Errorf("Missing token id"))
 	} else {
-		err := tokenStore.Revoke(currentUser.IDString(), tokenID)
+		err := TokenStore.Revoke(currentUser.IDString(), tokenID)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, err)
 		} else {
@@ -505,7 +505,7 @@ func BanzaiDeregisterHandler(context *auth.Context) {
 	}
 
 	// Delete Tokens
-	tokens, err := tokenStore.List(user.IDString())
+	tokens, err := TokenStore.List(user.IDString())
 	if err != nil {
 		log.Errorln("Failed list user's tokens during user deletetion:", err)
 		http.Error(context.Writer, err.Error(), http.StatusInternalServerError)
@@ -513,7 +513,7 @@ func BanzaiDeregisterHandler(context *auth.Context) {
 	}
 
 	for _, token := range tokens {
-		err = tokenStore.Revoke(user.IDString(), token.ID)
+		err = TokenStore.Revoke(user.IDString(), token.ID)
 		if err != nil {
 			log.Errorln("Failed remove user's tokens during user deletetion:", err)
 			http.Error(context.Writer, err.Error(), http.StatusInternalServerError)
