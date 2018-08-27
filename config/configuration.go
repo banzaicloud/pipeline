@@ -86,6 +86,7 @@ func init() {
 
 	viper.SetDefault("auth.jwtissuer", "https://banzaicloud.com/")
 	viper.SetDefault("auth.jwtaudience", "https://pipeline.banzaicloud.com")
+	viper.SetDefault("auth.secureCookie", true)
 
 	viper.SetDefault("pipeline.listenport", 9090)
 	viper.SetDefault("pipeline.certfile", "")
