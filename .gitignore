@@ -14,6 +14,7 @@ orgs/
 catalog/**/*.yaml
 test.txt
 /vendor/
+/.licensei.cache
 
 # IDE integration
 /.idea/*

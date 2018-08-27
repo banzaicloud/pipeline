@@ -31,6 +31,30 @@ jobs:
             - vendor/
 
       - run:
+          name: Install license checker
+          command: curl https://raw.githubusercontent.com/goph/licensei/master/install.sh | bash
+
+      - restore_cache:
+          keys:
+          - licensei-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
+          - licensei-v1-{{ .Branch }}
+          - licensei-v1-master
+          - licensei-v1
+
+      - run:
+          name: Download license information for dependencies
+          command: bin/licensei cache
+
+      - save_cache:
+          key: licensei-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
+          paths:
+          - vendor/
+
+      - run:
+          name: Check dependency licenses
+          command: bin/licensei check
+
+      - run:
           name: Build
           command: make build
 
