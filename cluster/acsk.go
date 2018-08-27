@@ -1,6 +1,8 @@
 package cluster
 
 import (
+	"bufio"
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -12,7 +14,6 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/auth/credentials"
 	aliErrors "github.com/aliyun/alibaba-cloud-sdk-go/sdk/errors"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
-	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/responses"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/cs"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 	"github.com/banzaicloud/pipeline/model"
@@ -24,6 +25,7 @@ import (
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/jmespath/go-jmespath"
 	"github.com/pkg/errors"
+	"golang.org/x/crypto/ssh"
 )
 
 const (
@@ -100,36 +102,6 @@ type alibabaScaleClusterParams struct {
 	NumOfNodes               int    `json:"num_of_nodes"`                // Worker node number. The range is [0,300].
 }
 
-type obtainClusterConfigRequest struct {
-	*requests.RoaRequest
-	ClusterId string `position:"Path" name:"ClusterId"`
-}
-
-type obtainClusterConfigResponse struct {
-	*responses.BaseResponse
-}
-
-func createObtainClusterConfigRequest(clusterID string) (request *obtainClusterConfigRequest) {
-	request = &obtainClusterConfigRequest{
-		RoaRequest: &requests.RoaRequest{},
-		ClusterId:  clusterID,
-	}
-	request.InitWithApiInfo("CS", "2015-12-15", "UserConfig", "/k8s/[ClusterId]/user_config", "", "")
-	request.Method = requests.GET
-	return
-}
-
-func createObtainClusterConfigResponse() (response *obtainClusterConfigResponse) {
-	response = &obtainClusterConfigResponse{
-		BaseResponse: &responses.BaseResponse{},
-	}
-	return
-}
-
-type clusterConfigResponse struct {
-	Config string `json:"config"`
-}
-
 var _ CommonCluster = (*ACSKCluster)(nil)
 
 type ACSKCluster struct {
@@ -140,7 +112,7 @@ type ACSKCluster struct {
 }
 
 func (*ACSKCluster) RbacEnabled() bool {
-	return false
+	return true
 }
 
 func (*ACSKCluster) RequiresSshPublicKey() bool {
@@ -255,7 +227,10 @@ func (c *ACSKCluster) CreateCluster() error {
 	}
 
 	sshKey := secret.NewSSHKeyPair(clusterSshSecret)
-	_ = sshKey
+	err = c.uploadSSHKeyForCluster(sshKey)
+	if err != nil {
+		return err
+	}
 
 	// setup cluster creation request
 	params := alibabaClusterCreateParams{
@@ -269,12 +244,11 @@ func (c *ACSKCluster) CreateCluster() error {
 		WorkerInstanceType:       c.modelCluster.ACSK.NodePools[0].InstanceType,       // "ecs.sn1.large",
 		WorkerSystemDiskCategory: c.modelCluster.ACSK.NodePools[0].SystemDiskCategory, // "cloud_efficiency",
 		WorkerSystemDiskSize:     c.modelCluster.ACSK.NodePools[0].SystemDiskSize,     // 40,
-		LoginPassword:            c.modelCluster.ACSK.LoginPassword,                   // TODO: change me to KeyPair
-		// KeyPair:                  sshKey.PublicKeyData, // this one should be a keypair name, so keypair should be uploaded
-		ImageID:    c.modelCluster.ACSK.NodePools[0].Image, // "centos_7",
-		NumOfNodes: c.modelCluster.ACSK.NodePools[0].Count, // 1,
-		SNATEntry:  c.modelCluster.ACSK.SNATEntry,          // true,
-		SSHFlags:   c.modelCluster.ACSK.SSHFlags,           // true,
+		KeyPair:                  c.modelCluster.Name,                                 // uploaded keyPair name
+		ImageID:                  c.modelCluster.ACSK.NodePools[0].Image,              // "centos_7",
+		NumOfNodes:               c.modelCluster.ACSK.NodePools[0].Count,              // 1,
+		SNATEntry:                c.modelCluster.ACSK.SNATEntry,                       // true,
+		SSHFlags:                 c.modelCluster.ACSK.SSHFlags,                        // true,
 	}
 	p, err := json.Marshal(&params)
 	if err != nil {
@@ -314,6 +288,32 @@ func (c *ACSKCluster) CreateCluster() error {
 
 	c.modelCluster.ACSK.ClusterID = r.ClusterID
 	return c.modelCluster.Save()
+}
+
+func (c *ACSKCluster) uploadSSHKeyForCluster(key *secret.SSHKeyPair) error {
+	//Get the Alibaba ECSClient
+	cfg := sdk.NewConfig()
+	cfg.AutoRetry = false
+	cfg.Debug = true
+	cfg.Timeout = time.Minute
+
+	ecsClient, err := c.GetAlibabaECSClient(cfg)
+	if err != nil {
+		return err
+	}
+	//CreateImportKeyPairRequest request for Alibaba
+	req := ecs.CreateImportKeyPairRequest()
+
+	req.SetScheme(requests.HTTPS)
+	req.KeyPairName = c.modelCluster.Name
+	req.PublicKeyBody = strings.TrimSpace(key.PublicKeyData)
+	req.RegionId = c.modelCluster.ACSK.RegionID
+
+	_, err = ecsClient.ImportKeyPair(req)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 type setSchemeSetDomainer interface {
@@ -437,28 +437,48 @@ func (c *ACSKCluster) DownloadK8sConfig() ([]byte, error) {
 	cfg.Debug = true
 	cfg.Timeout = time.Minute
 
-	ecsClient, err := c.GetAlibabaECSClient(cfg)
+	csClient, err := c.GetAlibabaCSClient(cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	downloadConfigRequest := createObtainClusterConfigRequest(c.modelCluster.ACSK.ClusterID)
-	setEndpoint(downloadConfigRequest)
+	info, err := getConnectionInfo(csClient, c.modelCluster.ACSK.ClusterID)
+	sshHost := info.JumpHost
 
-	downloadConfigResponse := createObtainClusterConfigResponse()
-
-	err = ecsClient.DoAction(downloadConfigRequest, downloadConfigResponse)
+	clusterSshSecret, err := c.getSshSecret(c)
 	if err != nil {
 		return nil, err
 	}
+	sshKey := secret.NewSSHKeyPair(clusterSshSecret)
 
-	var config clusterConfigResponse
-	err = json.Unmarshal(downloadConfigResponse.GetHttpContentBytes(), &config)
+	signer, err := ssh.ParsePrivateKey([]byte(sshKey.PrivateKeyData))
 	if err != nil {
 		return nil, err
 	}
+	clientConfig := ssh.ClientConfig{
+		User: "root",
+		Auth: []ssh.AuthMethod{
+			ssh.PublicKeys(signer),
+		},
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+	}
+	sshClient, err := ssh.Dial("tcp", fmt.Sprint(sshHost, ":22"), &clientConfig)
+	if err != nil {
+		return nil, err
+	}
+	defer sshClient.Close()
+	var buff bytes.Buffer
+	w := bufio.NewWriter(&buff)
+	sshSession, err := sshClient.NewSession()
+	if err != nil {
+		return nil, err
+	}
+	defer sshSession.Close()
+	sshSession.Stdout = w
+	sshSession.Run(fmt.Sprintf("cat %s", "/etc/kubernetes/kube.conf"))
+	w.Flush()
+	return buff.Bytes(), err
 
-	return []byte(config.Config), err
 }
 
 // GetCloud returns the cloud type of the cluster
