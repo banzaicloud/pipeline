@@ -155,7 +155,7 @@ func GetCORS() cors.Config {
 	if !config.AllowAllOrigins {
 		allowOriginsRegexp := viper.GetString("cors.AllowOriginsRegexp")
 		if allowOriginsRegexp != "" {
-			originsRegexp, err := regexp.Compile(allowOriginsRegexp)
+			originsRegexp, err := regexp.Compile(fmt.Sprintf("^(%s)$", allowOriginsRegexp))
 			if err == nil {
 				config.AllowOriginFunc = func(origin string) bool {
 					return originsRegexp.Match([]byte(origin))
