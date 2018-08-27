@@ -1,9 +1,12 @@
 package auth
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/drone/drone-go/drone"
 
 	bauth "github.com/banzaicloud/bank-vaults/auth"
 	"github.com/banzaicloud/pipeline/config"
@@ -132,6 +135,29 @@ func GetCurrentUserFromDB(req *http.Request) (*User, error) {
 	return nil, errors.New("error fetching user from db")
 }
 
+// NewDroneClient creates an authenticated Drone client for the user specified by login
+func NewDroneClient(login string) (drone.Client, error) {
+	// Create a temporary Drone API token
+	claims := &DroneClaims{Type: DroneUserTokenType, Text: login}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	droneAPIToken, err := token.SignedString([]byte(signingKeyBase32))
+	if err != nil {
+		log.Errorln("Failed to create temporary Drone token", err.Error())
+		return nil, err
+	}
+
+	droneURL := viper.GetString("drone.url")
+	config := new(oauth2.Config)
+	client := config.Client(
+		context.Background(),
+		&oauth2.Token{
+			AccessToken: droneAPIToken,
+		},
+	)
+
+	return drone.NewClient(droneURL, client), nil
+}
+
 //BanzaiUserStorer struct
 type BanzaiUserStorer struct {
 	auth.UserStorer
@@ -168,7 +194,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 	db := context.Auth.GetDB(context.Request)
 	err = db.Create(currentUser).Error
 	if err != nil {
-		return nil, "", fmt.Errorf("Failed to create user organization: %s", err.Error())
+		return nil, "", fmt.Errorf("failed to create user organization: %s", err.Error())
 	}
 
 	err = helm.InstallLocalHelm(helm.GenerateHelmRepoEnv(currentUser.Organizations[0].Name))
@@ -183,7 +209,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 	token.Value = githubExtraInfo.Token
 	err = TokenStore.Store(fmt.Sprint(currentUser.ID), token)
 	if err != nil {
-		return "", "", fmt.Errorf("Failed to store Github access token: %s", err.Error())
+		return "", "", fmt.Errorf("failed to store Github access token: %s", err.Error())
 	}
 
 	githubOrgIDs, err := importGithubOrganizations(currentUser, context, githubExtraInfo.Token)
@@ -214,35 +240,19 @@ func (bus BanzaiUserStorer) createUserInDroneDB(user *User, githubAccessToken st
 
 // This method tries to call the Drone API on a best effort basis to fetch all repos before the user navigates there.
 func (bus BanzaiUserStorer) synchronizeDroneRepos(login string) {
-	droneURL := viper.GetString("drone.url")
-	req, err := http.NewRequest("GET", droneURL+"/api/user/repos?all=true&flush=true", nil)
+	droneClient, err := NewDroneClient(login)
 	if err != nil {
-		log.Info("synchronizeDroneRepos: failed to create Drone GET request", err.Error())
-		return
+		log.Warnln("failed to create Drone client", err.Error())
 	}
-
-	// Create a temporary Drone API token
-	claims := &DroneClaims{Type: DroneUserTokenType, Text: login}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	apiToken, err := token.SignedString([]byte(bus.signingKeyBase32))
+	_, err = droneClient.RepoListOpts(true, true)
 	if err != nil {
-		log.Info("synchronizeDroneRepos: failed to create temporary token for Drone GET request", err.Error())
-		return
-	}
-	req.Header.Add("Authorization", "Bearer "+apiToken)
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		log.Info("synchronizeDroneRepos: failed to call Drone API", err.Error())
-		return
-	}
-	if resp.StatusCode != http.StatusOK {
-		log.Info("synchronizeDroneRepos: failed to call Drone API HTTP", resp.StatusCode)
+		log.Warnln("failed to sync Drone repositories", err.Error())
 	}
 }
 
 func getGithubOrganizations(token string) ([]*Organization, error) {
 	httpClient := oauth2.NewClient(
-		oauth2.NoContext,
+		context.Background(),
 		oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token}),
 	)
 	githubClient := github.NewClient(httpClient)

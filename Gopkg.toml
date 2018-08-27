@@ -266,3 +266,7 @@ version = "=v7.0.0"
 [[override]]
   revision = "0b12d6b5"
   name = "github.com/jmespath/go-jmespath"
+
+[[constraint]]
+  name = "github.com/drone/drone-go"
+  branch = "master"
