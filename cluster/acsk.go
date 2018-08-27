@@ -443,6 +443,9 @@ func (c *ACSKCluster) DownloadK8sConfig() ([]byte, error) {
 	}
 
 	info, err := getConnectionInfo(csClient, c.modelCluster.ACSK.ClusterID)
+	if err != nil {
+		return nil, err
+	}
 	sshHost := info.JumpHost
 
 	clusterSshSecret, err := c.getSshSecret(c)
