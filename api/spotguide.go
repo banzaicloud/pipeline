@@ -19,14 +19,14 @@ func GetSpotguide(c *gin.Context) {
 		if gorm.IsRecordNotFoundError(err) {
 			c.JSON(http.StatusNotFound, pkgCommon.ErrorResponse{
 				Code:    http.StatusNotFound,
-				Message: "Spotguide not found",
+				Message: "spotguide not found",
 			})
 			return
 		}
 		log.Errorf("Error getting spotguide details: %s", err.Error())
 		c.JSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
 			Code:    http.StatusInternalServerError,
-			Message: "Error getting spotguide details",
+			Message: "error getting spotguide details",
 		})
 		return
 	}
@@ -40,7 +40,7 @@ func GetSpotguides(c *gin.Context) {
 		log.Errorf("Error listing spotguides: %s", err.Error())
 		c.JSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
 			Code:    http.StatusInternalServerError,
-			Message: "Error listing spotguides",
+			Message: "error listing spotguides",
 		})
 		return
 	}
@@ -65,13 +65,23 @@ func LaunchSpotguide(c *gin.Context) {
 	if err := c.BindJSON(&launchRequest); err != nil {
 		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
-			Message: "Error parsing request",
+			Message: "error parsing request",
 			Error:   err.Error(),
 		})
 		return
 	}
+
 	org := auth.GetCurrentOrganization(c.Request)
 	user := auth.GetCurrentUser(c.Request)
-	spotguide.LaunchSpotguide(&launchRequest, org.ID, user.ID)
+
+	err := spotguide.LaunchSpotguide(&launchRequest, org.ID, user.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: "error creating spotguide",
+		})
+		return
+	}
+
 	c.Status(http.StatusAccepted)
 }

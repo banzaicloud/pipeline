@@ -9,7 +9,7 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/secret"
-	yaml "github.com/ghodss/yaml"
+	"github.com/ghodss/yaml"
 	"github.com/google/go-github/github"
 	"github.com/prometheus/common/log"
 	"github.com/spf13/viper"
@@ -167,19 +167,27 @@ func GetSpotguide(name string) (*Repo, error) {
 }
 
 // curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -v http://localhost:9090/api/v1/orgs/1/spotguides -d '{"repoName":"spotguide-test", "repoOrganization":"banzaicloud"}'
-func LaunchSpotguide(request *LaunchRequest, orgID, userID uint) {
+func LaunchSpotguide(request *LaunchRequest, orgID, userID uint) error {
 
 	err := createGithubRepo(request, userID)
 	if err != nil {
 		log.Errorln("Failed to create GitHub repository", err.Error())
-		return
+		return err
 	}
 
 	err = createSecrets(request, orgID, userID)
 	if err != nil {
 		log.Errorln("Failed to create secrets for spotguide", err.Error())
-		return
+		return err
 	}
+
+	err = enableCICD(request, userID)
+	if err != nil {
+		log.Errorln("Failed to enable CI/CD for spotguide", err.Error())
+		return err
+	}
+
+	return nil
 }
 
 func createGithubRepo(request *LaunchRequest, userID uint) error {
@@ -286,6 +294,30 @@ func createSecrets(request *LaunchRequest, orgID, userID uint) error {
 	}
 
 	log.Infof("Created secrets for spotguide: %s/%s", request.RepoOrganization, request.RepoName)
+
+	return nil
+}
+
+func enableCICD(request *LaunchRequest, userID uint) error {
+
+	login := auth.GetUserNickNameById(userID)
+	droneClient, err := auth.NewDroneClient(login)
+	if err != nil {
+		log.Errorln("failed to create Drone client", err.Error())
+		return err
+	}
+
+	_, err = droneClient.RepoListOpts(true, true)
+	if err != nil {
+		log.Errorln("failed to sync Drone repositories", err.Error())
+		return err
+	}
+
+	_, err = droneClient.RepoPost(request.RepoOrganization, request.RepoName)
+	if err != nil {
+		log.Errorln("failed to sync enable Drone repository", err.Error())
+		return err
+	}
 
 	return nil
 }

@@ -434,6 +434,14 @@
   revision = "bc6354cbbc295e925e4c611ffe90c1f287ee54db"
 
 [[projects]]
+  branch = "master"
+  digest = "1:41180388bd58b8b299c74791317111ebf07c9514b8d0abb81fc5a0e81a8f32b3"
+  name = "github.com/drone/drone-go"
+  packages = ["drone"]
+  pruneopts = "NUT"
+  revision = "1c015eaecb1c62d827f7d1f3301a33e8e5fb23ca"
+
+[[projects]]
   digest = "1:ad32dc29f37281bacb5dcedff17c9461dc1739dc8a5f63a71ab491c6e92edf8d"
   name = "github.com/evanphx/json-patch"
   packages = ["."]
@@ -2281,7 +2289,6 @@
     "github.com/aliyun/alibaba-cloud-sdk-go/sdk/auth/credentials",
     "github.com/aliyun/alibaba-cloud-sdk-go/sdk/errors",
     "github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests",
-    "github.com/aliyun/alibaba-cloud-sdk-go/sdk/responses",
     "github.com/aliyun/alibaba-cloud-sdk-go/services/cs",
     "github.com/aliyun/alibaba-cloud-sdk-go/services/ecs",
     "github.com/aliyun/aliyun-oss-go-sdk/oss",
@@ -2317,6 +2324,7 @@
     "github.com/casbin/casbin",
     "github.com/casbin/gorm-adapter",
     "github.com/dgrijalva/jwt-go",
+    "github.com/drone/drone-go/drone",
     "github.com/ghodss/yaml",
     "github.com/gin-contrib/cors",
     "github.com/gin-gonic/gin",
