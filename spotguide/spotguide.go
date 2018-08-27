@@ -200,6 +200,71 @@ func createGithubRepo(request *LaunchRequest, userID uint) error {
 
 	log.Infof("Created spotguide repository: %s/%s", request.RepoOrganization, request.RepoName)
 
+	// An initial files has to be created with the API to be able to use the fresh repo
+	createFile := &github.RepositoryContentFileOptions{
+		Content: []byte("# Say hello to Spotguides!"),
+		Message: github.String("initial import"),
+	}
+
+	contentResponse, _, err := githubClient.Repositories.CreateFile(ctx, request.RepoOrganization, request.RepoName, "README.md", createFile)
+
+	if err != nil {
+		return err
+	}
+
+	// List the files here that needs to be created in this commit and create a tree from them
+	entries := []github.TreeEntry{
+		{
+			Type:    github.String("blob"),
+			Path:    github.String(".banzaicloud/pipeline.yaml"),
+			Content: github.String("pipeline: {}"),
+			Mode:    github.String("100644"),
+		},
+		{
+			Type:    github.String("blob"),
+			Path:    github.String(".banzaicloud/spotguide.yaml"),
+			Content: github.String("spotguide: {}"),
+			Mode:    github.String("100644"),
+		},
+	}
+
+	tree, _, err := githubClient.Git.CreateTree(ctx, request.RepoOrganization, request.RepoName, contentResponse.GetSHA(), entries)
+
+	if err != nil {
+		return err
+	}
+
+	// Create a commit from the tree
+	contentResponse.Commit.SHA = contentResponse.SHA
+
+	commit := &github.Commit{
+		Message: github.String("my first commit from the go client"),
+		Parents: []github.Commit{contentResponse.Commit},
+		Tree:    tree,
+	}
+
+	newCommit, _, err := githubClient.Git.CreateCommit(ctx, request.RepoOrganization, request.RepoName, commit)
+
+	if err != nil {
+		return err
+	}
+
+	// Attach the commit to the master branch.
+	// This can be changed later to another branch + create PR.
+	// See: https://github.com/google/go-github/blob/master/example/commitpr/main.go#L62
+	ref, _, err := githubClient.Git.GetRef(ctx, request.RepoOrganization, request.RepoName, "refs/heads/master")
+	if err != nil {
+		return err
+	}
+
+	ref.Object.SHA = newCommit.SHA
+
+	_, _, err = githubClient.Git.UpdateRef(ctx, request.RepoOrganization, request.RepoName, ref, false)
+
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
