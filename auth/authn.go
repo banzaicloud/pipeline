@@ -115,7 +115,7 @@ func Init(db *gorm.DB) {
 	cookieStore := sessions.NewCookieStore(cookieAuthenticationKey, cookieEncryptionKey)
 	cookieStore.Options.MaxAge = SessionCookieMaxAge
 	cookieStore.Options.HttpOnly = SessionCookieHTTPOnly
-	cookieStore.Options.Secure = true
+	cookieStore.Options.Secure = viper.GetBool("auth.secureCookie")
 	if CookieDomain != "" {
 		cookieStore.Options.Domain = CookieDomain
 	}
