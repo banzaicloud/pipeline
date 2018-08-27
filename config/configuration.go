@@ -161,8 +161,8 @@ func GetCORS() cors.Config {
 					return originsRegexp.Match([]byte(origin))
 				}
 			}
-		} else if len(viper.GetStringSlice("cors.AllowOrigins")) > 0 {
-			config.AllowOrigins = viper.GetStringSlice("cors.AllowOrigins")
+		} else if allowOrigins := viper.GetStringSlice("cors.AllowOrigins"); len(allowOrigins) > 0 {
+			config.AllowOrigins = allowOrigins
 		}
 	}
 
