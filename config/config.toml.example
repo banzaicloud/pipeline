@@ -50,7 +50,7 @@ tokensigningkey = "Th1s!sMyR4Nd0MStri4gPleaseChangeIt"
 jwtissueer = "https://banzaicloud.com/"
 jwtaudience = "https://pipeline.banzaicloud.com"
 
-secureCookie = false
+secureCookie = true
 
 # Domain field for cookies
 cookieDomain = ""
