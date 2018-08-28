@@ -3,6 +3,7 @@ package objectstore
 import (
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -16,9 +17,9 @@ import (
 func getSession(t *testing.T) *session.Session {
 	t.Helper()
 
-	accessKey := os.Getenv("AWS_ACCESS_KEY")
-	secretKey := os.Getenv("AWS_SECRET_KEY")
-	region := os.Getenv("AWS_REGION")
+	accessKey := strings.TrimSpace(os.Getenv("AWS_ACCESS_KEY"))
+	secretKey := strings.TrimSpace(os.Getenv("AWS_SECRET_KEY"))
+	region := strings.TrimSpace(os.Getenv("AWS_REGION"))
 
 	if accessKey == "" || secretKey == "" || region == "" {
 		t.Skip("missing aws credentials")
@@ -35,13 +36,25 @@ func getSession(t *testing.T) *session.Session {
 	return sess
 }
 
+func getBucket(t *testing.T, bucketName string) string {
+	t.Helper()
+
+	prefix := strings.TrimSpace(os.Getenv("AWS_BUCKET_PREFIX"))
+
+	if prefix != "" {
+		return fmt.Sprintf("%s-%s-%d", prefix, bucketName, time.Now().UnixNano())
+	}
+
+	return fmt.Sprintf("%s-%d", bucketName, time.Now().UnixNano())
+}
+
 func TestObjectStore_CreateBucket(t *testing.T) {
 	sess := getSession(t)
 	client := s3.New(sess)
 
 	s := New(sess, WaitForCompletion(true))
 
-	bucketName := fmt.Sprintf("banzaicloud-test-bucket-%d", time.Now().UnixNano())
+	bucketName := getBucket(t, "banzaicloud-test-bucket")
 
 	err := s.CreateBucket(bucketName)
 	if err != nil {
@@ -73,7 +86,7 @@ func TestObjectStore_ListBuckets(t *testing.T) {
 
 	s := New(sess, WaitForCompletion(true))
 
-	bucketName := fmt.Sprintf("banzaicloud-test-bucket-%d", time.Now().UnixNano())
+	bucketName := getBucket(t, "banzaicloud-test-bucket")
 
 	input := &s3.CreateBucketInput{
 		Bucket: aws.String(bucketName),
@@ -119,7 +132,7 @@ func TestObjectStore_CheckBucket(t *testing.T) {
 
 	s := New(sess, WaitForCompletion(true))
 
-	bucketName := fmt.Sprintf("banzaicloud-test-bucket-%d", time.Now().UnixNano())
+	bucketName := getBucket(t, "banzaicloud-test-bucket")
 
 	input := &s3.CreateBucketInput{
 		Bucket: aws.String(bucketName),
@@ -152,7 +165,7 @@ func TestObjectStore_CheckBucket_DifferentRegion(t *testing.T) {
 	// TODO: do not hardcode the region here
 	s := New(sess.Copy(&aws.Config{Region: aws.String("eu-west-1")}), WaitForCompletion(true))
 
-	bucketName := fmt.Sprintf("banzaicloud-test-bucket-%d", time.Now().UnixNano())
+	bucketName := getBucket(t, "banzaicloud-test-bucket")
 
 	input := &s3.CreateBucketInput{
 		Bucket: aws.String(bucketName),
@@ -184,7 +197,7 @@ func TestObjectStore_Delete(t *testing.T) {
 
 	s := New(sess, WaitForCompletion(true))
 
-	bucketName := fmt.Sprintf("banzaicloud-test-bucket-%d", time.Now().UnixNano())
+	bucketName := getBucket(t, "banzaicloud-test-bucket")
 
 	input := &s3.CreateBucketInput{
 		Bucket: aws.String(bucketName),
