@@ -8,7 +8,6 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/auth/credentials"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
-	"github.com/aliyun/alibaba-cloud-sdk-go/services/cs"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 )
@@ -32,7 +31,7 @@ var _ Verifier = (*alibabaVerify)(nil)
 
 // VerifySecret validates Alibaba credentials
 func (v *alibabaVerify) VerifySecret() error {
-	client, err := CreateAlibabaECSClient(v.credentials, defaultAlibabaRegion, nil)
+	client, err := createAlibabaECSClient(v.credentials, defaultAlibabaRegion)
 	if err != nil {
 		return err
 	}
@@ -49,21 +48,9 @@ func (v *alibabaVerify) VerifySecret() error {
 
 	return nil
 }
-
-func CreateAlibabaCSClient(auth *credentials.AccessKeyCredential, regionID string, cfg *sdk.Config) (*cs.Client, error) {
-	if cfg == nil {
-		cfg = sdk.NewConfig()
-	}
+func createAlibabaECSClient(auth *credentials.AccessKeyCredential, regionID string) (*ecs.Client, error) {
 	cred := credentials.NewAccessKeyCredential(auth.AccessKeyId, auth.AccessKeySecret)
-	return cs.NewClientWithOptions(defaultAlibabaRegion, cfg, cred)
-}
-
-func CreateAlibabaECSClient(auth *credentials.AccessKeyCredential, regionID string, cfg *sdk.Config) (*ecs.Client, error) {
-	if cfg == nil {
-		cfg = sdk.NewConfig()
-	}
-	cred := credentials.NewAccessKeyCredential(auth.AccessKeyId, auth.AccessKeySecret)
-	return ecs.NewClientWithOptions(defaultAlibabaRegion, cfg, cred)
+	return ecs.NewClientWithOptions(regionID, sdk.NewConfig(), cred)
 }
 
 func CreateAlibabaCredentials(values map[string]string) *credentials.AccessKeyCredential {

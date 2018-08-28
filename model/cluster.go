@@ -89,7 +89,6 @@ type ACSKClusterModel struct {
 	MasterInstanceType       string
 	MasterSystemDiskCategory string
 	MasterSystemDiskSize     int
-	LoginPassword            string
 	SNATEntry                bool
 	SSHFlags                 bool
 	NodePools                []*ACSKNodePoolModel `gorm:"foreignkey:ClusterModelId"`
