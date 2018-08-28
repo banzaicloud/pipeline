@@ -182,7 +182,7 @@ func main() {
 
 			orgs.POST("/:orgid/clusters", api.CreateClusterRequest)
 			//v1.GET("/status", api.Status)
-			orgs.GET("/:orgid/clusters", api.FetchClusters)
+			orgs.GET("/:orgid/clusters", api.GetClusters)
 			orgs.GET("/:orgid/clusters/:id", api.GetClusterStatus)
 			orgs.GET("/:orgid/clusters/:id/details", api.GetClusterDetails)
 			orgs.GET("/:orgid/clusters/:id/pods", api.GetPodDetails)

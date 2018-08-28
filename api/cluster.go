@@ -113,17 +113,6 @@ func GetCommonClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
 	return GetCommonClusterFromFilter(c, filter)
 }
 
-//GetCommonClusterNameFromRequest get cluster name from cluster request
-func GetCommonClusterNameFromRequest(c *gin.Context) (string, bool) {
-	commonCluster, ok := GetCommonClusterFromRequest(c)
-	if ok != true {
-		return "", false
-	}
-	clusterName := commonCluster.GetName()
-	log.Debugln("clusterName:", clusterName)
-	return clusterName, true
-}
-
 //CreateClusterRequest gin handler
 func CreateClusterRequest(c *gin.Context) {
 	//TODO refactor logging here
@@ -326,16 +315,6 @@ func GetClusterConfig(c *gin.Context) {
 			Error:   err.Error(),
 		})
 		return
-	}
-
-	// Force persist keys
-	persistParam := c.DefaultQuery("persist", "false")
-	persist, err := strconv.ParseBool(persistParam)
-	if err != nil {
-		persist = false
-	}
-	if persist {
-		cluster.PersistKubernetesKeys(commonCluster)
 	}
 
 	contentType := c.NegotiateFormat(gin.MIMEPlain, gin.MIMEJSON)
@@ -588,40 +567,47 @@ func postDeleteCluster(commonCluster cluster.CommonCluster, force bool) error {
 	return nil
 }
 
-// FetchClusters fetches all the K8S clusters from the cloud
-func FetchClusters(c *gin.Context) {
-	log.Info("Fetching clusters")
+// GetClusters fetches all the K8S clusters from the cloud.
+func GetClusters(c *gin.Context) {
+	organizationID := auth.GetCurrentOrganization(c.Request).ID
 
-	var clusters []model.ClusterModel //TODO change this to CommonClusterStatus
-	db := config.DB()
-	organization := auth.GetCurrentOrganization(c.Request)
-	organization.Name = ""
-	err := db.Model(organization).Related(&clusters).Error
+	logger := log.WithFields(logrus.Fields{
+		"organization": organizationID,
+	})
+
+	// TODO: move these to a struct and create them only once upon application init
+	secretValidator := providers.NewSecretValidator(secret.Store)
+	clusterManager := cluster.NewManager(newmodel.NewClusters(config.DB()), secretValidator, log)
+
+	logger.Info("fetching clusters")
+
+	clusters, err := clusterManager.GetClusters(context.Background(), organizationID)
 	if err != nil {
-		log.Errorf("Error listing clusters: %s", err.Error())
+		logger.Errorf("error listing clusters: %s", err.Error())
+
 		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
-			Message: "Error listing clusters",
+			Message: "error listing clusters",
 			Error:   err.Error(),
 		})
+
 		return
 	}
-	response := make([]pkgCluster.GetClusterStatusResponse, 0)
-	for _, cl := range clusters {
-		commonCluster, err := cluster.GetCommonClusterFromModel(&cl)
-		if err == nil {
-			status, err := commonCluster.GetStatus()
-			if err != nil {
-				//TODO we want skip or return error?
-				log.Errorf("get status failed for %s: %s", commonCluster.GetName(), err.Error())
-			} else {
-				log.Debugf("Append cluster to list: %s", commonCluster.GetName())
-				response = append(response, *status)
-			}
+
+	var response []pkgCluster.GetClusterStatusResponse
+
+	for _, c := range clusters {
+		logger := logger.WithField("cluster", c.GetName())
+
+		status, err := c.GetStatus()
+		if err != nil {
+			//TODO we want skip or return error?
+			logger.Errorf("get cluster status failed: %s", err.Error())
 		} else {
-			log.Errorf("convert ClusterModel to CommonCluster failed: %s ", err.Error())
+			response = append(response, *status)
 		}
 	}
+
 	c.JSON(http.StatusOK, response)
 }
 

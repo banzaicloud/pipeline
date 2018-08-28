@@ -4,11 +4,13 @@ import (
 	"context"
 
 	pipelineContext "github.com/banzaicloud/pipeline/internal/platform/context"
+	"github.com/banzaicloud/pipeline/model"
 	"github.com/sirupsen/logrus"
 )
 
 type clusterRepository interface {
 	Exists(organizationID uint, name string) (bool, error)
+	FindByOrganization(organizationID uint) ([]*model.ClusterModel, error)
 }
 
 type secretValidator interface {

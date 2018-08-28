@@ -1,6 +1,7 @@
 package model
 
 import (
+	"github.com/banzaicloud/pipeline/model"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 )
@@ -27,4 +28,16 @@ func (c *Clusters) Exists(organizationID uint, name string) (bool, error) {
 	}
 
 	return existingCluster.ID == 0, nil
+}
+
+// FindByOrganization returns all cluster instances for an organization.
+func (c *Clusters) FindByOrganization(organizationID uint) ([]*model.ClusterModel, error) {
+	var clusters []*model.ClusterModel
+
+	err := c.db.Find(&clusters, map[string]interface{}{"organization_id": organizationID}).Error
+	if err != nil {
+		return nil, errors.Wrap(err, "could not fetch clusters")
+	}
+
+	return clusters, nil
 }
