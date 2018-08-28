@@ -113,17 +113,6 @@ func GetCommonClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
 	return GetCommonClusterFromFilter(c, filter)
 }
 
-//GetCommonClusterNameFromRequest get cluster name from cluster request
-func GetCommonClusterNameFromRequest(c *gin.Context) (string, bool) {
-	commonCluster, ok := GetCommonClusterFromRequest(c)
-	if ok != true {
-		return "", false
-	}
-	clusterName := commonCluster.GetName()
-	log.Debugln("clusterName:", clusterName)
-	return clusterName, true
-}
-
 //CreateClusterRequest gin handler
 func CreateClusterRequest(c *gin.Context) {
 	//TODO refactor logging here
