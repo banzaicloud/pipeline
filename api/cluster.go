@@ -317,16 +317,6 @@ func GetClusterConfig(c *gin.Context) {
 		return
 	}
 
-	// Force persist keys
-	persistParam := c.DefaultQuery("persist", "false")
-	persist, err := strconv.ParseBool(persistParam)
-	if err != nil {
-		persist = false
-	}
-	if persist {
-		cluster.PersistKubernetesKeys(commonCluster)
-	}
-
 	contentType := c.NegotiateFormat(gin.MIMEPlain, gin.MIMEJSON)
 	log.Debug("Content-Type: ", contentType)
 	switch contentType {
