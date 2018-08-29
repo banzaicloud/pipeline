@@ -142,7 +142,7 @@ func main() {
 	go func() {
 		err := spotguide.ScrapeSpotguides()
 		if err != nil {
-			panic(err)
+			log.Errorln("Failed to scrape Spotguide repositories:", err)
 		}
 	}()
 
