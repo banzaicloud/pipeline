@@ -15,7 +15,6 @@ import (
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
-	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/ghodss/yaml"
@@ -201,12 +200,17 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 	}
 
 	if loggingParam.GenTLSForLogging.TLSEnabled {
+		clusterUidTag := fmt.Sprintf("clusterUID:%s", cluster.GetUID())
 		req := &secret.CreateSecretRequest{
 			Name: loggingParam.GenTLSForLogging.GenTLSSecretName,
-			Type: secretTypes.TLSSecretType,
-			Tags: []string{loggingOperator},
+			Type: pkgSecret.TLSSecretType,
+			Tags: []string{
+				loggingOperator,
+				clusterUidTag,
+				pkgSecret.TagBanzaiReadonly,
+			},
 			Values: map[string]string{
-				secretTypes.TLSHosts: loggingParam.GenTLSForLogging.TLSHost,
+				pkgSecret.TLSHosts: loggingParam.GenTLSForLogging.TLSHost,
 			},
 		}
 		_, err := secret.Store.Store(cluster.GetOrganizationId(), req)
@@ -215,7 +219,7 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 		}
 		_, err = InstallOrUpdateSecrets(cluster,
 			&pkgSecret.ListSecretsQuery{
-				Type: secretTypes.TLSSecretType,
+				Type: pkgSecret.TLSSecretType,
 				Tag:  loggingOperator,
 			}, loggingParam.GenTLSForLogging.Namespace)
 		if err != nil {
