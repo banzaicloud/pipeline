@@ -185,7 +185,9 @@ func main() {
 			orgs.GET("/:orgid/spotguides", api.GetSpotguides)
 			orgs.PUT("/:orgid/spotguides", api.SyncSpotguides)
 			orgs.POST("/:orgid/spotguides", api.LaunchSpotguide)
+			// Spotguide name may contain '/'s so we have to use *name
 			orgs.GET("/:orgid/spotguides/*name", api.GetSpotguide)
+			orgs.HEAD("/:orgid/spotguides/*name", api.GetSpotguide)
 
 			orgs.POST("/:orgid/clusters", api.CreateClusterRequest)
 			//v1.GET("/status", api.Status)
