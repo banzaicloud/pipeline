@@ -83,7 +83,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **DeleteCluster**
-> ClusterDelete200 DeleteCluster(ctx, orgId, id)
+> ClusterDelete200 DeleteCluster(ctx, orgId, id, optional)
 Delete cluster
 
 Deleting a K8S cluster
@@ -95,6 +95,16 @@ Name | Type | Description  | Notes
  **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **orgId** | **int32**| Organization identification | 
   **id** | **int32**| Selected cluster identification (number) | 
+ **optional** | ***DeleteClusterOpts** | optional parameters | nil if no parameters
+
+### Optional Parameters
+Optional parameters are passed through a pointer to a DeleteClusterOpts struct
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+
+
+ **force** | **optional.Bool**| Ignore errors during deletion | [default to false]
 
 ### Return type
 

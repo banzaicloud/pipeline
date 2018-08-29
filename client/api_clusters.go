@@ -13,6 +13,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"github.com/antihax/optional"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -214,9 +215,16 @@ Deleting a K8S cluster
  * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param orgId Organization identification
  * @param id Selected cluster identification (number)
+ * @param optional nil or *DeleteClusterOpts - Optional Parameters:
+ * @param "Force" (optional.Bool) -  Ignore errors during deletion
 @return ClusterDelete200
 */
-func (a *ClustersApiService) DeleteCluster(ctx context.Context, orgId int32, id int32) (ClusterDelete200, *http.Response, error) {
+
+type DeleteClusterOpts struct {
+	Force optional.Bool
+}
+
+func (a *ClustersApiService) DeleteCluster(ctx context.Context, orgId int32, id int32, localVarOptionals *DeleteClusterOpts) (ClusterDelete200, *http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Delete")
 		localVarPostBody     interface{}
@@ -235,6 +243,9 @@ func (a *ClustersApiService) DeleteCluster(ctx context.Context, orgId int32, id 
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if localVarOptionals != nil && localVarOptionals.Force.IsSet() {
+		localVarQueryParams.Add("force", parameterToString(localVarOptionals.Force.Value(), ""))
+	}
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{}
 
