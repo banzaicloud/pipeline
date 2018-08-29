@@ -11,6 +11,7 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/ghodss/yaml"
 	"github.com/google/go-github/github"
+	"github.com/pkg/errors"
 	"github.com/prometheus/common/log"
 	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
@@ -171,20 +172,17 @@ func LaunchSpotguide(request *LaunchRequest, orgID, userID uint) error {
 
 	err := createGithubRepo(request, userID)
 	if err != nil {
-		log.Errorln("Failed to create GitHub repository", err.Error())
-		return err
+		return errors.Wrap(err, "Failed to create GitHub client")
 	}
 
 	err = createSecrets(request, orgID, userID)
 	if err != nil {
-		log.Errorln("Failed to create secrets for spotguide", err.Error())
-		return err
+		return errors.Wrap(err, "Failed to create secrets for spotguide")
 	}
 
 	err = enableCICD(request, userID)
 	if err != nil {
-		log.Errorln("Failed to enable CI/CD for spotguide", err.Error())
-		return err
+		return errors.Wrap(err, "Failed to enable CI/CD for spotguide")
 	}
 
 	return nil
@@ -193,7 +191,7 @@ func LaunchSpotguide(request *LaunchRequest, orgID, userID uint) error {
 func createGithubRepo(request *LaunchRequest, userID uint) error {
 	githubClient, err := newGithubClientForUser(userID)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to create spotguide repository")
 	}
 
 	repo := github.Repository{
@@ -203,7 +201,7 @@ func createGithubRepo(request *LaunchRequest, userID uint) error {
 
 	_, _, err = githubClient.Repositories.Create(ctx, request.RepoOrganization, &repo)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to create spotguide repository")
 	}
 
 	log.Infof("Created spotguide repository: %s/%s", request.RepoOrganization, request.RepoName)
@@ -217,7 +215,7 @@ func createGithubRepo(request *LaunchRequest, userID uint) error {
 	contentResponse, _, err := githubClient.Repositories.CreateFile(ctx, request.RepoOrganization, request.RepoName, "README.md", createFile)
 
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to initialize spotguide repository")
 	}
 
 	// List the files here that needs to be created in this commit and create a tree from them
@@ -239,7 +237,7 @@ func createGithubRepo(request *LaunchRequest, userID uint) error {
 	tree, _, err := githubClient.Git.CreateTree(ctx, request.RepoOrganization, request.RepoName, contentResponse.GetSHA(), entries)
 
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to create git tree for spotguide repository")
 	}
 
 	// Create a commit from the tree
@@ -254,7 +252,7 @@ func createGithubRepo(request *LaunchRequest, userID uint) error {
 	newCommit, _, err := githubClient.Git.CreateCommit(ctx, request.RepoOrganization, request.RepoName, commit)
 
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to create git commit for spotguide repository")
 	}
 
 	// Attach the commit to the master branch.
@@ -262,7 +260,7 @@ func createGithubRepo(request *LaunchRequest, userID uint) error {
 	// See: https://github.com/google/go-github/blob/master/example/commitpr/main.go#L62
 	ref, _, err := githubClient.Git.GetRef(ctx, request.RepoOrganization, request.RepoName, "refs/heads/master")
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to get git ref for spotguide repository")
 	}
 
 	ref.Object.SHA = newCommit.SHA
@@ -270,7 +268,7 @@ func createGithubRepo(request *LaunchRequest, userID uint) error {
 	_, _, err = githubClient.Git.UpdateRef(ctx, request.RepoOrganization, request.RepoName, ref, false)
 
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to update git ref for spotguide repository")
 	}
 
 	return nil
@@ -303,20 +301,17 @@ func enableCICD(request *LaunchRequest, userID uint) error {
 	login := auth.GetUserNickNameById(userID)
 	droneClient, err := auth.NewDroneClient(login)
 	if err != nil {
-		log.Errorln("failed to create Drone client", err.Error())
-		return err
+		return errors.Wrap(err, "failed to create Drone client")
 	}
 
 	_, err = droneClient.RepoListOpts(true, true)
 	if err != nil {
-		log.Errorln("failed to sync Drone repositories", err.Error())
-		return err
+		return errors.Wrap(err, "failed to sync Drone repositories")
 	}
 
 	_, err = droneClient.RepoPost(request.RepoOrganization, request.RepoName)
 	if err != nil {
-		log.Errorln("failed to sync enable Drone repository", err.Error())
-		return err
+		return errors.Wrap(err, "failed to sync enable Drone repository")
 	}
 
 	return nil
