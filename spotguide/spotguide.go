@@ -19,7 +19,8 @@ import (
 
 const SpotguideGithubTopic = "spotguide"
 const SpotguideGithubOrganization = "banzaicloud"
-const SpotguidePath = ".banzaicloud/spotguide.yaml"
+const SpotguideYAMLPath = ".banzaicloud/spotguide.yaml"
+const PipelineYAMLPath = ".banzaicloud/pipeline.yaml"
 
 var ctx = context.Background()
 
@@ -51,6 +52,7 @@ type Repo struct {
 	DeletedAt    *time.Time `sql:"index" json:"-"`
 	Name         string     `json:"name"`
 	Icon         string     `json:"-"`
+	PipelineRaw  []byte     `json:"-"`
 	SpotguideRaw []byte     `json:"-"`
 	Spotguide    Spotguide  `gorm:"-" json:"spotguide"`
 }
@@ -104,6 +106,15 @@ func newGithubClient(accessToken string) *github.Client {
 	return github.NewClient(httpClient)
 }
 
+func downloadGithubFile(githubClient *github.Client, owner, repo, file string) ([]byte, error) {
+	reader, err := githubClient.Repositories.DownloadContents(ctx, owner, repo, file, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return ioutil.ReadAll(reader)
+}
+
 func ScrapeSpotguides() error {
 
 	db := config.DB()
@@ -124,18 +135,19 @@ func ScrapeSpotguides() error {
 				owner := repository.GetOwner().GetLogin()
 				name := repository.GetName()
 
-				reader, err := githubClient.Repositories.DownloadContents(ctx, owner, name, SpotguidePath, nil)
+				pipelineRaw, err := downloadGithubFile(githubClient, owner, name, PipelineYAMLPath)
 				if err != nil {
 					return err
 				}
 
-				spotguideRaw, err := ioutil.ReadAll(reader)
+				spotguideRaw, err := downloadGithubFile(githubClient, owner, name, SpotguideYAMLPath)
 				if err != nil {
 					return err
 				}
 
 				model := Repo{
 					Name:         repository.GetFullName(),
+					PipelineRaw:  pipelineRaw,
 					SpotguideRaw: spotguideRaw,
 				}
 
@@ -170,9 +182,14 @@ func GetSpotguide(name string) (*Repo, error) {
 // curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -v http://localhost:9090/api/v1/orgs/1/spotguides -d '{"repoName":"spotguide-test", "repoOrganization":"banzaicloud"}'
 func LaunchSpotguide(request *LaunchRequest, orgID, userID uint) error {
 
-	err := createGithubRepo(request, userID)
+	sourceRepo, err := GetSpotguide(request.RepoFullname())
 	if err != nil {
-		return errors.Wrap(err, "Failed to create GitHub client")
+		return errors.Wrap(err, "Failed to find spotguide repo")
+	}
+
+	err = createGithubRepo(request, userID, sourceRepo)
+	if err != nil {
+		return errors.Wrap(err, "Failed to create GitHub repository")
 	}
 
 	err = createSecrets(request, orgID, userID)
@@ -188,7 +205,7 @@ func LaunchSpotguide(request *LaunchRequest, orgID, userID uint) error {
 	return nil
 }
 
-func createGithubRepo(request *LaunchRequest, userID uint) error {
+func createGithubRepo(request *LaunchRequest, userID uint, sourceRepo *Repo) error {
 	githubClient, err := newGithubClientForUser(userID)
 	if err != nil {
 		return errors.Wrap(err, "failed to create spotguide repository")
@@ -223,13 +240,13 @@ func createGithubRepo(request *LaunchRequest, userID uint) error {
 		{
 			Type:    github.String("blob"),
 			Path:    github.String(".banzaicloud/pipeline.yaml"),
-			Content: github.String("pipeline: {}"),
+			Content: github.String(string(sourceRepo.PipelineRaw)),
 			Mode:    github.String("100644"),
 		},
 		{
 			Type:    github.String("blob"),
 			Path:    github.String(".banzaicloud/spotguide.yaml"),
-			Content: github.String("spotguide: {}"),
+			Content: github.String(string(sourceRepo.SpotguideRaw)),
 			Mode:    github.String("100644"),
 		},
 	}
