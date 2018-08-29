@@ -32,7 +32,7 @@ jobs:
 
       - run:
           name: Install license checker
-          command: curl https://raw.githubusercontent.com/goph/licensei/master/install.sh | bash
+          command: curl https://raw.githubusercontent.com/goph/licensei/master/install.sh | bash -s v0.0.6
 
       - restore_cache:
           keys:
@@ -48,7 +48,7 @@ jobs:
       - save_cache:
           key: licensei-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
           paths:
-          - vendor/
+            - .licensei.cache
 
       - run:
           name: Check dependency licenses
