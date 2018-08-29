@@ -1,8 +1,5 @@
 OS := $(shell uname -s)
 GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./client/*")
-SYMLINKS=$(shell find -L ./vendor -type l)
-
-PKGS=$(shell go list ./... | grep -v /client)
 
 VERSION = 0.1.0
 GITREV = $(shell git rev-parse --short HEAD)
