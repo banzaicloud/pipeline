@@ -14,12 +14,12 @@ import (
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
+	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/model/defaults"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-	newmodel "github.com/banzaicloud/pipeline/pkg/model"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
@@ -240,7 +240,7 @@ func CreateCluster(
 	}
 
 	// TODO: move these to a struct and create them only once upon application init
-	clusters := newmodel.NewClusters(config.DB())
+	clusters := intCluster.NewClusters(config.DB())
 	secretValidator := providers.NewSecretValidator(secret.Store)
 	clusterManager := cluster.NewManager(clusters, secretValidator, log)
 
@@ -577,7 +577,7 @@ func GetClusters(c *gin.Context) {
 
 	// TODO: move these to a struct and create them only once upon application init
 	secretValidator := providers.NewSecretValidator(secret.Store)
-	clusterManager := cluster.NewManager(newmodel.NewClusters(config.DB()), secretValidator, log)
+	clusterManager := cluster.NewManager(intCluster.NewClusters(config.DB()), secretValidator, log)
 
 	logger.Info("fetching clusters")
 
