@@ -48,7 +48,7 @@ jobs:
       - save_cache:
           key: licensei-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
           paths:
-          - vendor/
+            - .licensei.cache
 
       - run:
           name: Check dependency licenses
