@@ -85,6 +85,9 @@ func getUserGithubToken(userID uint) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	if token == nil {
+		return "", fmt.Errorf("Github token not found for user")
+	}
 	return token.Value, nil
 }
 
@@ -121,15 +124,27 @@ func ScrapeSpotguides() error {
 
 	githubClient := newGithubClient(viper.GetString("github.token"))
 
-	repositories, _, err := githubClient.Repositories.ListByOrg(ctx, SpotguideGithubOrganization, &github.RepositoryListByOrgOptions{
-		ListOptions: github.ListOptions{PerPage: 200},
-	})
+	var allRepositories []*github.Repository
+	listOpts := github.ListOptions{PerPage: 100}
+	for {
+		repositories, resp, err := githubClient.Repositories.ListByOrg(ctx, SpotguideGithubOrganization, &github.RepositoryListByOrgOptions{
+			ListOptions: listOpts,
+		})
 
-	if err != nil {
-		return err
+		if err != nil {
+			return err
+		}
+
+		allRepositories = append(allRepositories, repositories...)
+
+		if resp.NextPage == 0 {
+			break
+		}
+
+		listOpts.Page = resp.NextPage
 	}
 
-	for _, repository := range repositories {
+	for _, repository := range allRepositories {
 		for _, topic := range repository.Topics {
 			if topic == SpotguideGithubTopic {
 				owner := repository.GetOwner().GetLogin()
@@ -179,10 +194,10 @@ func GetSpotguide(name string) (*Repo, error) {
 	return &spotguide, err
 }
 
-// curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -v http://localhost:9090/api/v1/orgs/1/spotguides -d '{"repoName":"spotguide-test", "repoOrganization":"banzaicloud"}'
+// curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -v http://localhost:9090/api/v1/orgs/1/spotguides -d '{"repoName":"spotguide-test", "repoOrganization":"banzaicloud-test", "spotguideName":"banzaicloud/spotguide-nodejs-mongodb"}'
 func LaunchSpotguide(request *LaunchRequest, orgID, userID uint) error {
 
-	sourceRepo, err := GetSpotguide(request.RepoFullname())
+	sourceRepo, err := GetSpotguide(request.SpotguideName)
 	if err != nil {
 		return errors.Wrap(err, "Failed to find spotguide repo")
 	}
@@ -239,13 +254,13 @@ func createGithubRepo(request *LaunchRequest, userID uint, sourceRepo *Repo) err
 	entries := []github.TreeEntry{
 		{
 			Type:    github.String("blob"),
-			Path:    github.String(".banzaicloud/pipeline.yaml"),
+			Path:    github.String(PipelineYAMLPath),
 			Content: github.String(string(sourceRepo.PipelineRaw)),
 			Mode:    github.String("100644"),
 		},
 		{
 			Type:    github.String("blob"),
-			Path:    github.String(".banzaicloud/spotguide.yaml"),
+			Path:    github.String(SpotguideYAMLPath),
 			Content: github.String(string(sourceRepo.SpotguideRaw)),
 			Mode:    github.String("100644"),
 		},
