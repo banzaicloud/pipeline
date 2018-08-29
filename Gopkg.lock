@@ -285,7 +285,7 @@
     "vault",
   ]
   pruneopts = "NUT"
-  revision = "5096419938695b1253b72c6068a42fdc7a141fc4"
+  revision = "4a40ef7594782de5dc0a28a2c0b15dfcf3143244"
 
 [[projects]]
   branch = "master"
