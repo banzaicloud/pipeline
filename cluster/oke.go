@@ -92,7 +92,7 @@ func (o *OKECluster) CreateCluster() error {
 
 	err = o.setClusterAdminRights("cluster-creator-admin-right")
 	if err != nil {
-		return errors.Wrap(err, "error get/create clusterrolebinding")
+		return errors.WithMessage(err, "error get/create clusterrolebinding")
 	}
 
 	return nil
@@ -557,7 +557,7 @@ func (o *OKECluster) RbacEnabled() bool {
 
 // setClusterAdminRights creates a cluster role binding which gives admin
 // rights to the user ocid specified in the secret used to create the cluster
-func (o *OKECluster) setClusterAdminRights(name string) (err error) {
+func (o *OKECluster) setClusterAdminRights(name string) (error) {
 
 	kubeConfig, err := o.GetK8sConfig()
 	if err != nil {
@@ -575,7 +575,7 @@ func (o *OKECluster) setClusterAdminRights(name string) (err error) {
 	}
 
 	if secret.Values["user_ocid"] == "" {
-		return errors.Errorf("empty user OCID")
+		return errors.New("empty user OCID")
 	}
 
 	_, err = client.RbacV1beta1().ClusterRoleBindings().Create(
