@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/spotguide"
 	"github.com/gin-gonic/gin"
@@ -13,6 +14,8 @@ import (
 
 // GetSpotguide get detailed information about a spotguide
 func GetSpotguide(c *gin.Context) {
+	log := correlationid.Logger(log, c)
+
 	spotguideName := strings.TrimPrefix(c.Param("name"), "/")
 	spotguideDetails, err := spotguide.GetSpotguide(spotguideName)
 	if err != nil {
@@ -30,6 +33,7 @@ func GetSpotguide(c *gin.Context) {
 		})
 		return
 	}
+
 	if c.Request.Method == http.MethodHead {
 		c.Status(http.StatusOK)
 	} else {
@@ -39,6 +43,8 @@ func GetSpotguide(c *gin.Context) {
 
 // GetSpotguides lists all available spotguides
 func GetSpotguides(c *gin.Context) {
+	log := correlationid.Logger(log, c)
+
 	spotguides, err := spotguide.GetSpotguides()
 	if err != nil {
 		log.Errorln("Error listing spotguides:", err.Error())
@@ -54,17 +60,22 @@ func GetSpotguides(c *gin.Context) {
 
 // SyncSpotguides synchronizes the spotguide repositories from Github to database
 func SyncSpotguides(c *gin.Context) {
+	log := correlationid.Logger(log, c)
+
 	go func() {
 		err := spotguide.ScrapeSpotguides()
 		if err != nil {
 			log.Errorln("Failed synchronizing spotguides:", err.Error())
 		}
 	}()
+
 	c.Status(http.StatusAccepted)
 }
 
 // LaunchSpotguide creates a spotguide workflow, all secrets, repositories.
 func LaunchSpotguide(c *gin.Context) {
+	log := correlationid.Logger(log, c)
+
 	var launchRequest spotguide.LaunchRequest
 	if err := c.BindJSON(&launchRequest); err != nil {
 		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
