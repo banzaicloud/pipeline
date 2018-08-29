@@ -441,6 +441,12 @@ paths:
           required: true
           schema:
             type: integer
+        - name: force
+          in: query
+          description: Ignore errors during deletion
+          schema:
+            type: boolean
+            default: false
       responses:
         '202':
           description: Cluster deleted successfully

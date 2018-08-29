@@ -367,6 +367,15 @@ paths:
           format: int32
           type: integer
         style: simple
+      - description: Ignore errors during deletion
+        explode: true
+        in: query
+        name: force
+        required: false
+        schema:
+          default: false
+          type: boolean
+        style: form
       responses:
         202:
           content:
