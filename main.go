@@ -25,11 +25,12 @@ import (
 	"github.com/spf13/viper"
 )
 
-//Version of Pipeline
-var Version string
-
-//GitRev of Pipeline
-var GitRev string
+// Provisioned by ldflags
+var (
+	Version   string
+	GitRev    string
+	BuildDate string
+)
 
 //Common logger for package
 var log *logrus.Logger
@@ -45,9 +46,9 @@ func main() {
 
 	if len(os.Args) > 1 && os.Args[1] == "--version" {
 		if GitRev == "" {
-			fmt.Println("version:", Version)
+			fmt.Println("version: ", Version, " built on ", BuildDate)
 		} else {
-			fmt.Printf("version: %s-%s\n", Version, GitRev)
+			fmt.Printf("version: %s-%s built on %s\n", Version, GitRev, BuildDate)
 		}
 		os.Exit(0)
 	}

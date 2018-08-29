@@ -1,8 +1,9 @@
 OS := $(shell uname -s)
 GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./client/*")
 
-VERSION = 0.1.0
-GITREV = $(shell git rev-parse --short HEAD)
+VERSION ?= $(shell git rev-parse --abbrev-ref HEAD)
+GITREV = $(shell git rev-parse --short HEAD 2>/dev/null)
+BUILD_DATE = $(shell date +%FT%T%z)
 
 DEP_VERSION = 0.5.0
 GOLANGCI_VERSION = 1.9.3
@@ -20,7 +21,7 @@ vendor: bin/dep ## Install dependencies
 
 .PHONY: build
 build: ## Builds binary package
-	go build -v -ldflags "-X main.Version=$(VERSION) -X main.GitRev=$(GITREV)" .
+	go build -v -ldflags "-X main.Version=${VERSION} -X main.GitRev=${GITREV} -X main.BuildDate=${BUILD_DATE}" .
 
 .PHONY: build-ci
 build-ci:
