@@ -15,6 +15,14 @@ jobs:
       - checkout
 
       - restore_cache:
+          name: Restore build dependencies
+          keys:
+            - build-deps-v1-{{ .Branch }}-{{ checksum "Makefile" }}
+            - build-deps-v1-{{ .Branch }}
+            - build-deps-v1-master
+            - build-deps-v1
+
+      - restore_cache:
           keys:
             - gopkg-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
             - gopkg-v1-{{ .Branch }}
@@ -30,10 +38,6 @@ jobs:
           paths:
             - vendor/
 
-      - run:
-          name: Install license checker
-          command: curl https://raw.githubusercontent.com/goph/licensei/master/install.sh | bash -s v0.0.6
-
       - restore_cache:
           keys:
           - licensei-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
@@ -43,7 +47,7 @@ jobs:
 
       - run:
           name: Download license information for dependencies
-          command: bin/licensei cache
+          command: make license-cache
 
       - save_cache:
           key: licensei-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
@@ -52,7 +56,7 @@ jobs:
 
       - run:
           name: Check dependency licenses
-          command: bin/licensei check
+          command: make license-check
 
       - run:
           name: Build
@@ -65,19 +69,24 @@ jobs:
       - run:
           name: Run pipeline tests
           command: |
-              mkdir $HOME/config
-              cp config/config.toml.example $HOME/config/config.toml
-              make test
+              make config/config.toml
+              PIPELINE_CONFIG_DIR=$PWD/config make test
           environment:
             VAULT_ADDR: http://localhost:8200
             VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
 
       - run:
           name: Generate test reports
-          command: make go-junit-report
+          command: make junit-report
           when: always
 
+      - save_cache:
+          name: Save build dependencies
+          key: build-deps-v1-{{ .Branch }}-{{ checksum "Makefile" }}
+          paths:
+            - bin/
+
       - store_test_results:
-          path: test-results/
+          path: build/
       - store_artifacts:
-          path: test-results/
+          path: build/

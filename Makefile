@@ -11,6 +11,7 @@ DEP_VERSION = 0.5.0
 GOLANGCI_VERSION = 1.9.3
 MISSPELL_VERSION = 0.3.4
 JQ_VERSION = 1.5
+LICENSEI_VERSION = 0.0.6
 
 bin/dep:
 	@mkdir -p ./bin/
@@ -68,6 +69,15 @@ delete-cluster: bin/jq ## Curl call to pipeline api to delete a cluster with you
 ec2-list-instances: ## Lists aws ec2 instances, for alternative regions use: AWS_DEFAULT_REGION=us-west-2 make ec2-list-instances
 	aws ec2 describe-instances --query 'Reservations[].Instances[].{ip:PublicIpAddress,id:InstanceId,state:State.Name,name:Tags[?Key==`Name`].Value|[0]}' --filters "Name=instance-state-name,Values=pending,running,shutting-down,stopping,stopped" --out table
 
+.PHONY: generate-client
+generate-client:
+	docker run --rm -v ${PWD}:/local openapitools/openapi-generator-cli generate \
+	--additional-properties packageName=client \
+	-i /local/docs/openapi/pipeline.yaml \
+	-g go \
+	-o /local/client
+	go fmt ./client
+
 bin/golangci-lint: ## Install golangci linter
 	@mkdir -p ./bin/
 	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | bash -s -- -b ./bin/ v${GOLANGCI_VERSION}
@@ -88,30 +98,29 @@ bin/misspell: ## Install misspell
 misspell: bin/misspell ## Fix spelling mistakes
 	misspell -w ${GOFILES_NOVENDOR}
 
+bin/licensei: ## Install license checker
+	@mkdir -p ./bin/
+	curl -sfL https://raw.githubusercontent.com/goph/licensei/master/install.sh | bash -s v${LICENSEI_VERSION}
+
+.PHONY: license-check
+license-check: bin/licensei ## Run license check
+	@bin/licensei check
+
+.PHONY: license-cache
+license-cache: bin/licensei ## Generate license cache
+	@bin/licensei cache
+
 .PHONY: test
 test:
-	./scripts/test.sh
+	go list ./... | xargs -n1 go test -v -parallel 1 2>&1 | tee test.txt
 
-.PHONY: generate-client
-generate-client:
-	docker run --rm -v ${PWD}:/local openapitools/openapi-generator-cli generate \
-	--additional-properties packageName=client \
-	-i /local/docs/openapi/pipeline.yaml \
-	-g go \
-	-o /local/client
-	go fmt ./client
+bin/go-junit-report: # Install JUnit report generator
+	GOBIN=$PWD/bin/ go get -u github.com/jstemmer/go-junit-report
 
-.PHONY: install-go-junit-report
-install-go-junit-report:
-	GOLINT_CMD=$(shell command -v go-junit-report 2> /dev/null)
-ifndef GOLINT_CMD
-	go get -u github.com/jstemmer/go-junit-report
-endif
-
-.PHONY: go-junit-report
-go-junit-report: install-go-junit-report
-	$(shell mkdir -p test-results)
-	cat test.txt | go-junit-report > test-results/report.xml
+.PHONY: junit-report
+junit-report: bin/go-junit-report # Generate test reports
+	@mkdir -p build
+	cat test.txt | bin/go-junit-report > build/report.xml
 
 .PHONY: list
 list:
