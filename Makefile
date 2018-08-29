@@ -115,7 +115,7 @@ test:
 	go list ./... | xargs -n1 go test -v -parallel 1 2>&1 | tee test.txt
 
 bin/go-junit-report: # Install JUnit report generator
-	GOBIN=$PWD/bin/ go get -u github.com/jstemmer/go-junit-report
+	GOBIN=${PWD}/bin/ go get -u github.com/jstemmer/go-junit-report
 
 .PHONY: junit-report
 junit-report: bin/go-junit-report # Generate test reports
