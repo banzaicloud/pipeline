@@ -1,4 +1,4 @@
-package model
+package cluster
 
 import (
 	"github.com/banzaicloud/pipeline/model"
