@@ -1975,7 +1975,7 @@ paths:
   /api/v1/orgs/{orgId}/clusters/{id}/hpa:
     delete:
       description: Delete scaling info for a Helm deployment
-      operationId: DeploymentAutoscalingDelete
+      operationId: DeleteDeploymentAutoscaling
       parameters:
       - description: Organization identification
         explode: false
@@ -2031,7 +2031,7 @@ paths:
       - hpa
     get:
       description: Get scaling info for a Helm deployment
-      operationId: DeploymentAutoscalingGet
+      operationId: GetDeploymentAutoscaling
       parameters:
       - description: Organization identification
         explode: false
@@ -2091,7 +2091,7 @@ paths:
       - hpa
     put:
       description: Create / update scaling info for a Helm deployment
-      operationId: DeploymentAutoscalingPut
+      operationId: UpdateDeploymentAutoscaling
       parameters:
       - description: Organization identification
         explode: false

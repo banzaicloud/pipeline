@@ -34,7 +34,7 @@ Delete scaling info for a Helm deployment
  * @param id Selected cluster identification (number)
  * @param scaleTarget Deployment or StatefulSet name
 */
-func (a *HpaApiService) DeploymentAutoscalingDelete(ctx context.Context, orgId int32, id int32, scaleTarget string) (*http.Response, error) {
+func (a *HpaApiService) DeleteDeploymentAutoscaling(ctx context.Context, orgId int32, id int32, scaleTarget string) (*http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Delete")
 		localVarPostBody     interface{}
@@ -136,7 +136,7 @@ Get scaling info for a Helm deployment
  * @param scaleTarget Deployment or StatefulSet name
 @return DeploymentScalingResponse
 */
-func (a *HpaApiService) DeploymentAutoscalingGet(ctx context.Context, orgId int32, id int32, scaleTarget string) (DeploymentScalingResponse, *http.Response, error) {
+func (a *HpaApiService) GetDeploymentAutoscaling(ctx context.Context, orgId int32, id int32, scaleTarget string) (DeploymentScalingResponse, *http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Get")
 		localVarPostBody     interface{}
@@ -256,7 +256,7 @@ Create / update scaling info for a Helm deployment
  * @param id Selected cluster identification (number)
  * @param deploymentScalingRequest
 */
-func (a *HpaApiService) DeploymentAutoscalingPut(ctx context.Context, orgId int32, id int32, deploymentScalingRequest DeploymentScalingRequest) (*http.Response, error) {
+func (a *HpaApiService) UpdateDeploymentAutoscaling(ctx context.Context, orgId int32, id int32, deploymentScalingRequest DeploymentScalingRequest) (*http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Put")
 		localVarPostBody     interface{}

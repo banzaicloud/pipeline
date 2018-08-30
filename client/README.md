@@ -72,9 +72,9 @@ Class | Method | HTTP request | Description
 *HelmApi* | [**HelmReposDelete**](docs/HelmApi.md#helmreposdelete) | **Delete** /api/v1/orgs/{orgId}/helm/repos/{repoName} | Delete Repo
 *HelmApi* | [**HelmReposModify**](docs/HelmApi.md#helmreposmodify) | **Put** /api/v1/orgs/{orgId}/helm/repos/{repoName} | Modify Repo
 *HelmApi* | [**HelmReposUpdate**](docs/HelmApi.md#helmreposupdate) | **Put** /api/v1/orgs/{orgId}/helm/repos/{repoName}/update | Update Repo
-*HpaApi* | [**DeploymentAutoscalingDelete**](docs/HpaApi.md#deploymentautoscalingdelete) | **Delete** /api/v1/orgs/{orgId}/clusters/{id}/hpa | Delete Deployment Scaling
-*HpaApi* | [**DeploymentAutoscalingGet**](docs/HpaApi.md#deploymentautoscalingget) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/hpa | Get Deployment Scaling Info
-*HpaApi* | [**DeploymentAutoscalingPut**](docs/HpaApi.md#deploymentautoscalingput) | **Put** /api/v1/orgs/{orgId}/clusters/{id}/hpa | Create / Update Deployment Scaling
+*HpaApi* | [**DeleteDeploymentAutoscaling**](docs/HpaApi.md#deletedeploymentautoscaling) | **Delete** /api/v1/orgs/{orgId}/clusters/{id}/hpa | Delete Deployment Scaling
+*HpaApi* | [**GetDeploymentAutoscaling**](docs/HpaApi.md#getdeploymentautoscaling) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/hpa | Get Deployment Scaling Info
+*HpaApi* | [**UpdateDeploymentAutoscaling**](docs/HpaApi.md#updatedeploymentautoscaling) | **Put** /api/v1/orgs/{orgId}/clusters/{id}/hpa | Create / Update Deployment Scaling
 *InfoApi* | [**CreateResourceGroup**](docs/InfoApi.md#createresourcegroup) | **Post** /api/v1/orgs/{orgId}/azure/resourcegroups | Create resource groups
 *InfoApi* | [**DeleteResourceGroup**](docs/InfoApi.md#deleteresourcegroup) | **Delete** /api/v1/orgs/{orgId}/azure/resourcegroups/{name} | Delete resource group
 *InfoApi* | [**GetAmazonConfig**](docs/InfoApi.md#getamazonconfig) | **Get** /api/v1/orgs/{orgId}/cloudinfo/amazon | Get all amazon config
