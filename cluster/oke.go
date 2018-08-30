@@ -414,7 +414,7 @@ func (o *OKECluster) GetConfigSecretId() string {
 
 // GetK8sConfig returns the Kubernetes config
 func (o *OKECluster) GetK8sConfig() ([]byte, error) {
-	return o.DownloadK8sConfig()
+	return o.CommonClusterBase.getConfig(o)
 }
 
 // GetClusterManager creates a new oracleClusterManager.ClusterManager
