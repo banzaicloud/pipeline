@@ -245,7 +245,7 @@ func GetDeploymentResources(c *gin.Context) {
 
 		httpStatusCode := http.StatusInternalServerError
 		if _, ok := err.(*helm.DeploymentNotFoundError); ok {
-			httpStatusCode = http.StatusBadRequest
+			httpStatusCode = http.StatusNotFound
 		}
 
 		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
