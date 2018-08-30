@@ -157,7 +157,7 @@ func GetHpaResources(scaleTragetRef string, kubeConfig []byte) ([]hpa.Deployment
 
 			log.Infof("hpa found: %v for scaleTragetRef: %v", hpaItem.Name, scaleTragetRef)
 			deploymentItem := hpa.DeploymentScalingInfo{
-				ScaleTarget:          scaleTragetRef,
+				ScaleTarget:   scaleTragetRef,
 				Kind:          hpaItem.Spec.ScaleTargetRef.Kind,
 				MinReplicas:   *hpaItem.Spec.MinReplicas,
 				MaxReplicas:   hpaItem.Spec.MaxReplicas,
