@@ -21,6 +21,7 @@ import (
 	"github.com/banzaicloud/pipeline/spotguide"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -55,6 +56,7 @@ func main() {
 
 	logger = initLog()
 	logger.Info("Pipeline initialization")
+	errorHandler := config.ErrorHandler()
 
 	// Connect to database
 	db := config.DB()
@@ -140,7 +142,7 @@ func main() {
 	go func() {
 		err := spotguide.ScrapeSpotguides()
 		if err != nil {
-			log.Errorln("Failed to scrape Spotguide repositories:", err)
+			errorHandler.Handle(errors.Wrap(err, "failed to scrape Spotguide repositories"))
 		}
 	}()
 

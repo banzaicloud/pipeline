@@ -265,3 +265,7 @@
 [[constraint]]
   name = "github.com/drone/drone-go"
   branch = "master"
+
+[[constraint]]
+  name = "github.com/goph/emperror"
+  version = "0.11.0"

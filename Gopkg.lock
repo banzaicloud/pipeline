@@ -694,6 +694,18 @@
   version = "v0.1.0"
 
 [[projects]]
+  digest = "1:76de154494231e7856bd7f421dbe501e16fe1c825904db886d24fd8238767d6a"
+  name = "github.com/goph/emperror"
+  packages = [
+    ".",
+    "errorlogrus",
+    "internal/keyvals",
+  ]
+  pruneopts = "NUT"
+  revision = "d328ac744d45a846ad0608dda4a70cea9d90f935"
+  version = "v0.11.0"
+
+[[projects]]
   digest = "1:dbd86d229eacaa86a98b10f8fb3e3fc69a1913e0f4e010e7cc1f92bf12edca92"
   name = "github.com/gorilla/context"
   packages = ["."]
@@ -2332,6 +2344,8 @@
     "github.com/go-errors/errors",
     "github.com/golang/glog",
     "github.com/google/go-github/github",
+    "github.com/goph/emperror",
+    "github.com/goph/emperror/errorlogrus",
     "github.com/gorilla/sessions",
     "github.com/hashicorp/vault/api",
     "github.com/jinzhu/copier",

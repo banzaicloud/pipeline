@@ -4,6 +4,7 @@ import (
 	"sync"
 
 	"github.com/banzaicloud/logrus-runtime-formatter"
+	"github.com/banzaicloud/pipeline/internal/platform/log"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -19,28 +20,12 @@ func Logger() *logrus.Logger {
 }
 
 func newLogger() *logrus.Logger {
-	logger := logrus.New()
+	logger := log.NewLogger(log.Config{
+		Level:  viper.GetString("logging.loglevel"),
+		Format: viper.GetString("logging.logformat"),
+	})
 
-	level, err := logrus.ParseLevel(viper.GetString("logging.loglevel"))
-	if err != nil {
-		level = logrus.InfoLevel
-	}
-
-	logger.Level = level
-
-	var childFormatter logrus.Formatter
-
-	switch viper.GetString("log.logformat") {
-	case "json":
-		childFormatter = new(logrus.JSONFormatter)
-
-	default:
-		textFormatter := new(logrus.TextFormatter)
-		textFormatter.FullTimestamp = true
-		childFormatter = textFormatter
-	}
-
-	logger.Formatter = &runtime.Formatter{ChildFormatter: childFormatter}
+	logger.Formatter = &runtime.Formatter{ChildFormatter: logger.Formatter}
 
 	return logger
 }
