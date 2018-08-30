@@ -13,7 +13,6 @@ import (
 	"github.com/google/go-github/github"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
-	"github.com/prometheus/common/log"
 	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
 )

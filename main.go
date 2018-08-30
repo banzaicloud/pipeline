@@ -85,8 +85,6 @@ func main() {
 		&model.GKENodePoolModel{},
 		&model.DummyClusterModel{},
 		&model.KubernetesClusterModel{},
-		&model.Deployment{},
-		&model.Application{},
 		&auth.AuthIdentity{},
 		&auth.User{},
 		&auth.UserOrganization{},

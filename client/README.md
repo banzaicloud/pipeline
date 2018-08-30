@@ -30,21 +30,14 @@ All URIs are relative to *http://localhost:9090*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
-*ApplicationsApi* | [**CreateApplication**](docs/ApplicationsApi.md#createapplication) | **Post** /api/v1/orgs/{orgId}/applications | Create new application based on catalog
-*ApplicationsApi* | [**GetApplication**](docs/ApplicationsApi.md#getapplication) | **Get** /api/v1/orgs/{orgId}/applications/{appId} | Get application details
-*ApplicationsApi* | [**ListApplications**](docs/ApplicationsApi.md#listapplications) | **Get** /api/v1/orgs/{orgId}/applications | List application catalogs
 *AuthApi* | [**CreateToken**](docs/AuthApi.md#createtoken) | **Post** /api/v1/tokens | Create token
 *AuthApi* | [**DeleteToken**](docs/AuthApi.md#deletetoken) | **Delete** /api/v1/tokens/{tokenId} | Delete an API token
 *AuthApi* | [**ListTokens**](docs/AuthApi.md#listtokens) | **Get** /api/v1/tokens | List all API tokens
-*CatalogsApi* | [**GetCatalogDetail**](docs/CatalogsApi.md#getcatalogdetail) | **Get** /api/v1/orgs/{orgId}/catalogs/{name} | Get catalog details
-*CatalogsApi* | [**ListCatalogs**](docs/CatalogsApi.md#listcatalogs) | **Get** /api/v1/orgs/{orgId}/catalogs | List catalogs
-*CatalogsApi* | [**UpdateCatalogs**](docs/CatalogsApi.md#updatecatalogs) | **Put** /api/v1/orgs/{orgId}/catalogs/update | Update repository for catalog
 *ClustersApi* | [**ClusterPostHooks**](docs/ClustersApi.md#clusterposthooks) | **Put** /api/v1/orgs/{orgId}/clusters/{id}/posthooks | Run posthook functions
 *ClustersApi* | [**CreateCluster**](docs/ClustersApi.md#createcluster) | **Post** /api/v1/orgs/{orgId}/clusters | Create cluster
 *ClustersApi* | [**DeleteCluster**](docs/ClustersApi.md#deletecluster) | **Delete** /api/v1/orgs/{orgId}/clusters/{id} | Delete cluster
 *ClustersApi* | [**GetAPIEndpoint**](docs/ClustersApi.md#getapiendpoint) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/apiendpoint | Get API endpoint
 *ClustersApi* | [**GetCluster**](docs/ClustersApi.md#getcluster) | **Get** /api/v1/orgs/{orgId}/clusters/{id} | Get cluster status
-*ClustersApi* | [**GetClusterApplication**](docs/ClustersApi.md#getclusterapplication) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/application | Get cluster&#39;s applications
 *ClustersApi* | [**GetClusterConfig**](docs/ClustersApi.md#getclusterconfig) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/config | Get a cluster config
 *ClustersApi* | [**GetClusterDetails**](docs/ClustersApi.md#getclusterdetails) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/details | Get cluster details
 *ClustersApi* | [**GetClusterStatus**](docs/ClustersApi.md#getclusterstatus) | **Head** /api/v1/orgs/{orgId}/clusters/{id} | Get cluster status
@@ -97,6 +90,8 @@ Class | Method | HTTP request | Description
 *SecretsApi* | [**GetSecrets**](docs/SecretsApi.md#getsecrets) | **Get** /api/v1/orgs/{orgId}/secrets | List secrets
 *SecretsApi* | [**UpdateSecrets**](docs/SecretsApi.md#updatesecrets) | **Put** /api/v1/orgs/{orgId}/secrets/{secretId} | Update secrets
 *SecretsApi* | [**ValidateSecret**](docs/SecretsApi.md#validatesecret) | **Get** /api/v1/orgs/{orgId}/secrets/{secretId}/validate | Validate secret
+*SpotguidesApi* | [**GetSpotguideDetail**](docs/SpotguidesApi.md#getspotguidedetail) | **Get** /api/v1/orgs/{orgId}/spotguides/{name} | Get spotguide details
+*SpotguidesApi* | [**UpdateSpotguides**](docs/SpotguidesApi.md#updatespotguides) | **Put** /api/v1/orgs/{orgId}/spotguides | Update spotguide repositories
 *StorageApi* | [**CreateObjectStoreBucket**](docs/StorageApi.md#createobjectstorebucket) | **Post** /api/v1/orgs/{orgId}/buckets | Creates a new object store bucket with the given params
 *StorageApi* | [**DeleteObjectStoreBucket**](docs/StorageApi.md#deleteobjectstorebucket) | **Delete** /api/v1/orgs/{orgId}/buckets/{name} | Deletes the object store bucket with the given name
 *StorageApi* | [**GetObjectStoreBucketStatus**](docs/StorageApi.md#getobjectstorebucketstatus) | **Head** /api/v1/orgs/{orgId}/buckets/{name} | Get object store bucket status
@@ -128,8 +123,6 @@ Class | Method | HTTP request | Description
  - [AmazonConfigResponse](docs/AmazonConfigResponse.md)
  - [AmazonConfigResponseImage](docs/AmazonConfigResponseImage.md)
  - [AmazonConfigResponseInstanceType](docs/AmazonConfigResponseInstanceType.md)
- - [ApplicationDeploymentItem](docs/ApplicationDeploymentItem.md)
- - [ApplicationDetailsResponse](docs/ApplicationDetailsResponse.md)
  - [ApplicationListItem](docs/ApplicationListItem.md)
  - [ApplicationListResponse](docs/ApplicationListResponse.md)
  - [AzureBlobStorageProps](docs/AzureBlobStorageProps.md)
@@ -140,17 +133,7 @@ Class | Method | HTTP request | Description
  - [BasePostHook](docs/BasePostHook.md)
  - [Body](docs/Body.md)
  - [BucketInfo](docs/BucketInfo.md)
- - [CatalogChartInfo](docs/CatalogChartInfo.md)
- - [CatalogChartInfoAnnotations](docs/CatalogChartInfoAnnotations.md)
- - [CatalogDetailsResponse](docs/CatalogDetailsResponse.md)
- - [CatalogDetailsResponseSpotguide](docs/CatalogDetailsResponseSpotguide.md)
- - [CatalogNotFound](docs/CatalogNotFound.md)
- - [CatalogOptionsMonitor](docs/CatalogOptionsMonitor.md)
- - [CatalogOptionsMysqlDatabaseName](docs/CatalogOptionsMysqlDatabaseName.md)
- - [CatalogOptionsMysqlDatabaseSize](docs/CatalogOptionsMysqlDatabaseSize.md)
- - [CatalogOptionsMysqlVersion](docs/CatalogOptionsMysqlVersion.md)
  - [ChartNotFound](docs/ChartNotFound.md)
- - [ClusterApplicationList](docs/ClusterApplicationList.md)
  - [ClusterConfig](docs/ClusterConfig.md)
  - [ClusterDelete200](docs/ClusterDelete200.md)
  - [ClusterDetailsResponse](docs/ClusterDetailsResponse.md)
@@ -179,7 +162,6 @@ Class | Method | HTTP request | Description
  - [CreateAksPropertiesAks](docs/CreateAksPropertiesAks.md)
  - [CreateAmazonObjectStoreBucketProperties](docs/CreateAmazonObjectStoreBucketProperties.md)
  - [CreateAmazonObjectStoreBucketPropertiesAmazon](docs/CreateAmazonObjectStoreBucketPropertiesAmazon.md)
- - [CreateApplicationRequest](docs/CreateApplicationRequest.md)
  - [CreateAzureObjectStoreBucketProperties](docs/CreateAzureObjectStoreBucketProperties.md)
  - [CreateAzureObjectStoreBucketPropertiesAzure](docs/CreateAzureObjectStoreBucketPropertiesAzure.md)
  - [CreateClusterRequest](docs/CreateClusterRequest.md)
@@ -241,14 +223,12 @@ Class | Method | HTTP request | Description
  - [InstallSecretsRequestQuery](docs/InstallSecretsRequestQuery.md)
  - [InstallSecretsResponse](docs/InstallSecretsResponse.md)
  - [InstallSecretsResponseItem](docs/InstallSecretsResponseItem.md)
- - [ListCatalogItem1](docs/ListCatalogItem1.md)
- - [ListCatalogItem2](docs/ListCatalogItem2.md)
- - [ListCatalogResponse](docs/ListCatalogResponse.md)
  - [ListDeploymentsResponse](docs/ListDeploymentsResponse.md)
  - [ListDeploymentsResponseInner](docs/ListDeploymentsResponseInner.md)
  - [ListEndpointsResponse](docs/ListEndpointsResponse.md)
  - [ListNodesResponse](docs/ListNodesResponse.md)
  - [ListNodesResponseMetadata](docs/ListNodesResponseMetadata.md)
+ - [ListSpotguidesResponse](docs/ListSpotguidesResponse.md)
  - [ListStorageBucketsResponse](docs/ListStorageBucketsResponse.md)
  - [ListUserResponse](docs/ListUserResponse.md)
  - [LoggingPostHook](docs/LoggingPostHook.md)
@@ -304,6 +284,13 @@ Class | Method | HTTP request | Description
  - [SecretKeyValueTls](docs/SecretKeyValueTls.md)
  - [SecretsListResponse](docs/SecretsListResponse.md)
  - [SecretsNotFound](docs/SecretsNotFound.md)
+ - [SpotguideDetailsResponse](docs/SpotguideDetailsResponse.md)
+ - [SpotguideDetailsResponseSpotguide](docs/SpotguideDetailsResponseSpotguide.md)
+ - [SpotguideNotFound](docs/SpotguideNotFound.md)
+ - [SpotguideOptionsMonitor](docs/SpotguideOptionsMonitor.md)
+ - [SpotguideOptionsMysqlDatabaseName](docs/SpotguideOptionsMysqlDatabaseName.md)
+ - [SpotguideOptionsMysqlDatabaseSize](docs/SpotguideOptionsMysqlDatabaseSize.md)
+ - [SpotguideOptionsMysqlVersion](docs/SpotguideOptionsMysqlVersion.md)
  - [SupportedCloudItem](docs/SupportedCloudItem.md)
  - [SupportedCloudsResponse](docs/SupportedCloudsResponse.md)
  - [TokenCreateRequest](docs/TokenCreateRequest.md)

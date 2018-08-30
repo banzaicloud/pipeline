@@ -1,7 +1,7 @@
 {
 	"info": {
+		"_postman_id": "764247e7-43c3-401a-b226-1d73a56384d2",
 		"name": "End2End TEST Organizations",
-		"_postman_id": "7395acba-0436-7a71-6875-c031a55ca957",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -2251,51 +2251,6 @@
 					"response": []
 				},
 				{
-					"name": "Get cluster applications",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/application",
-							"host": [
-								"{{url}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"orgs",
-								":orgId",
-								"clusters",
-								":clusterId",
-								"application"
-							],
-							"variable": [
-								{
-									"key": "orgId",
-									"value": "{{orgId}}",
-									"description": "Organization identifier"
-								},
-								{
-									"key": "clusterId",
-									"value": "{{clusterId}}",
-									"description": "Cluster identifier"
-								}
-							]
-						},
-						"description": "Get cluster applications"
-					},
-					"response": []
-				},
-				{
 					"name": "Cluster Status",
 					"event": [
 						{
@@ -2370,10 +2325,10 @@
 			]
 		},
 		{
-			"name": "Catalog",
+			"name": "Spotguides",
 			"item": [
 				{
-					"name": "Catalog List",
+					"name": "Spotguide List",
 					"request": {
 						"method": "GET",
 						"header": [],
@@ -2382,7 +2337,7 @@
 							"raw": ""
 						},
 						"url": {
-							"raw": "{{url}}/api/v1/orgs/:orgId/catalogs",
+							"raw": "{{url}}/api/v1/orgs/:orgId/spotguides",
 							"host": [
 								"{{url}}"
 							],
@@ -2391,7 +2346,7 @@
 								"v1",
 								"orgs",
 								":orgId",
-								"catalogs"
+								"spotguides"
 							],
 							"variable": [
 								{
@@ -2405,16 +2360,21 @@
 					"response": []
 				},
 				{
-					"name": "Catalog Details",
+					"name": "Spotguide Create",
 					"request": {
-						"method": "GET",
-						"header": [],
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
 						"body": {
 							"mode": "raw",
-							"raw": ""
+							"raw": "{\n\t\"spotguideName\": \"banzaicloud/spotguide-nodejs-mongodb\",\n\t\"repoOrganization\": \"banzaicloud\",\n\t\"repoName\": \"nodejs-spotguide-test\"\n}\n"
 						},
 						"url": {
-							"raw": "{{url}}/api/v1/orgs/:orgId/catalogs/:chartName",
+							"raw": "{{url}}/api/v1/orgs/:orgId/spotguides",
 							"host": [
 								"{{url}}"
 							],
@@ -2423,8 +2383,77 @@
 								"v1",
 								"orgs",
 								":orgId",
-								"catalogs",
-								":chartName"
+								"spotguides"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "{{orgId}}",
+									"description": "Organization identifier"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Spotguide Sync Repos",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/spotguides",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"spotguides"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "{{orgId}}",
+									"description": "Organization identifier"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Spotguide Details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/spotguides/:spotguideName",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"spotguides",
+								":spotguideName"
 							],
 							"variable": [
 								{
@@ -2433,9 +2462,9 @@
 									"description": "Organization identifier"
 								},
 								{
-									"key": "chartName",
-									"value": "zeppelin",
-									"description": "Chart name"
+									"key": "spotguideName",
+									"value": "banzaicloud/spotguide-nodejs-mongodb",
+									"description": "Spotguide name"
 								}
 							]
 						}
@@ -3153,8 +3182,7 @@
 							"query": [
 								{
 									"key": "resourceTyeps",
-									"value": "deployment",
-									"equals": true
+									"value": "deployment"
 								}
 							],
 							"variable": [
@@ -8753,118 +8781,6 @@
 			]
 		},
 		{
-			"name": "Applications",
-			"item": [
-				{
-					"name": "Application List",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{url}}/api/v1/orgs/:orgId/applications",
-							"host": [
-								"{{url}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"orgs",
-								":orgId",
-								"applications"
-							],
-							"variable": [
-								{
-									"key": "orgId",
-									"value": "{{orgId}}",
-									"description": "Organization identifier"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Application Create",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"name\": \"MyApplication\",\n  \"catalogName\": \"mysql-simple\",\n  \"clusterId\": 0,\n  \"cluster\": {\n    \"name\": \"gkecluster-pipelineuser-1\",\n    \"location\": \"us-central1-a\",\n    \"cloud\": \"google\",\n    \"secretId\": \"{{secretIdGoogle}}\",\n    \"profileName\": \"default\",\n    \"properties\": {\n      \"gke\": {\n        \"master\": {\n          \"version\": \"1.10\"\n        },\n        \"nodePools\": {\n          \"pool1\": {\n            \"count\": 1,\n            \"instanceType\": \"n1-standard-2\"\n          }\n        },\n        \"nodeVersion\": \"1.10\"\n      }\n    }\n  }\n}"
-						},
-						"url": {
-							"raw": "{{url}}/api/v1/orgs/:orgId/applications",
-							"host": [
-								"{{url}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"orgs",
-								":orgId",
-								"applications"
-							],
-							"variable": [
-								{
-									"key": "orgId",
-									"value": "{{orgId}}",
-									"description": "Organization identifier"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Application Details",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{url}}/api/v1/orgs/:orgId/applications/:appId",
-							"host": [
-								"{{url}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"orgs",
-								":orgId",
-								"applications",
-								":appId"
-							],
-							"variable": [
-								{
-									"key": "orgId",
-									"value": "{{orgId}}",
-									"description": "Organization identifier"
-								},
-								{
-									"key": "appId",
-									"value": "{{appId}}",
-									"description": "Application identifier"
-								}
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
 			"name": "Resource groups",
 			"item": [
 				{
@@ -9023,7 +8939,6 @@
 		},
 		{
 			"name": "Hpa",
-			"description": "",
 			"item": [
 				{
 					"name": "Get Hpa for K8s deployment",
@@ -9082,8 +8997,7 @@
 							"query": [
 								{
 									"key": "scaleTarget",
-									"value": ":k8s_deployment_name",
-									"equals": true
+									"value": ":k8s_deployment_name"
 								}
 							],
 							"variable": [
@@ -9206,7 +9120,10 @@
 								"value": "application/json"
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/hpa?scaleTarget=:k8sDeploymentName",
 							"host": [
@@ -9224,8 +9141,7 @@
 							"query": [
 								{
 									"key": "scaleTarget",
-									"value": ":k8sDeploymentName",
-									"equals": true
+									"value": ":k8sDeploymentName"
 								}
 							],
 							"variable": [
