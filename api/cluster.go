@@ -54,13 +54,6 @@ const (
 	zeroMemory = "0 B"
 )
 
-//ParseField is to restrict other query TODO investigate to just pass the hasmap
-func ParseField(c *gin.Context) map[string]interface{} {
-	value := c.Param("id")
-	field := c.DefaultQuery("field", "id")
-	return map[string]interface{}{field: value}
-}
-
 // UpdateMonitoring updating prometheus
 func UpdateMonitoring(c *gin.Context) {
 	cluster.UpdatePrometheus()
@@ -70,7 +63,9 @@ func UpdateMonitoring(c *gin.Context) {
 
 // GetCommonClusterFromRequest just a simple getter to build commonCluster object this handles error messages directly
 func GetCommonClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
-	filter := ParseField(c)
+	value := c.Param("id")
+	field := c.DefaultQuery("field", "id")
+	filter := map[string]interface{}{field: value}
 
 	// Filter for organisation
 	filter["organization_id"] = c.Request.Context().Value(auth.CurrentOrganization).(*auth.Organization).ID
