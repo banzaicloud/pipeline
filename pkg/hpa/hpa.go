@@ -3,9 +3,9 @@ package hpa
 type ValueType string
 
 var (
-	// PercentageValueType
+	// PercentageValueType specifies that value is a percentage
 	PercentageValueType ValueType = "percentage"
-	// QuantityValueType
+	// QuantityValueType specifies that value is a K8s quantity
 	QuantityValueType ValueType = "quantity"
 )
 
