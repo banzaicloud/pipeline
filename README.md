@@ -5,9 +5,9 @@
 [![Docker Automated build](https://img.shields.io/docker/automated/banzaicloud/pipeline.svg)](https://hub.docker.com/r/banzaicloud/pipeline/)
 
 
-_Banzai Pipeline, or simply Pipeline is a tabletop reef break located in Hawaii, Oahu's North Shore. The most famous and infamous reef on the planet is forming the benchmark by which all other waves are measured._
+_Banzai Pipeline, or simply Pipeline is a tabletop reef break located in Hawaii, Oahu's North Shore. The most famous and infamous reef in the universe is the benchmark by which all other waves are measured._
 
-_Pipeline enables developers to go from commit to scale in minutes by turning Kubernetes into a feature rich application platform integrating CI/CD, centralized logging, monitoring, enterprise-grade security and autoscaling._
+_Pipeline enables developers to go from commit to scale in minutes by turning Kubernetes into a feature rich application platform integrating CI/CD, centralized logging, monitoring, enterprise-grade security, cost management and autoscaling._
 
 - [Pipeline](#pipeline)
   - [Cloud providers](#cloud-providers)
@@ -41,16 +41,16 @@ Pipeline is a feature rich **application platform**, built for containers on top
 
 The main features of the platform are:
 
-* **Provisioning:** _Provision highly available Kubernetes clusters on any of the supported cloud providers, on-premise or hybrid_
-* **Microservices Ready:** _Focus and build great applications and forget the hard stuff of ops, failover, build pipelines, patching and security_
+* **Provisioning:** _Provision highly available Kubernetes clusters on any of the supported cloud providers, on-premise or hybrid configurations_
+* **Application focused:** _Focus on building great applications and leave the hard stuff of ops, failover, build pipelines, patching and security to Banzai Pipeline_
 * **Scaling:** _Supports SLA rules for resiliency, failover and autoscaling_
 * **Observability:** _Centralized log collection, tracing and advanced monitoring support for the infrastructure, Kubernetes cluster and the deployed applications_
-* **Hook in:** _Go from commit to scale in minutes using our container native CI/CD workflow engine_
-* **Spotguides:** _Apply or use one of the predefined Blueprints to your favorite development framework and let automate Pipeline all the rest_
+* **Hook in:** _Go from commit to scale in minutes using our container-native CI/CD workflow engine_
+* **Spotguides:** _Use your favorite development framework and let Pipeline automate the rest_
 
 ## Cloud Providers
 
-Banzai Cloud supports Kubernetes and the container based application platform - Pipeline - on all major providers in a way to make portability between vendors as easy as possible, seamless and automated. 
+Banzai Cloud supports Kubernetes and the container based application platform - Pipeline - on all major providers in a way that makes portability between vendors as easy as possible, seamless and automated. 
 
 The list of currently supported providers are:
 
