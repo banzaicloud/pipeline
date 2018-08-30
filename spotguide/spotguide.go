@@ -11,6 +11,7 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/ghodss/yaml"
 	"github.com/google/go-github/github"
+	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	"github.com/prometheus/common/log"
 	"github.com/spf13/viper"
@@ -132,7 +133,7 @@ func ScrapeSpotguides() error {
 		})
 
 		if err != nil {
-			return err
+			return emperror.Wrap(err, "failed to list github repositories")
 		}
 
 		allRepositories = append(allRepositories, repositories...)
@@ -152,12 +153,12 @@ func ScrapeSpotguides() error {
 
 				pipelineRaw, err := downloadGithubFile(githubClient, owner, name, PipelineYAMLPath)
 				if err != nil {
-					return err
+					return emperror.Wrap(err, "failed to download pipeline YAML")
 				}
 
 				spotguideRaw, err := downloadGithubFile(githubClient, owner, name, SpotguideYAMLPath)
 				if err != nil {
-					return err
+					return emperror.Wrap(err, "failed to download spotguide YAML")
 				}
 
 				model := Repo{
