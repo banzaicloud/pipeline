@@ -132,6 +132,17 @@ type GetDeploymentResponse struct {
 	Values       map[string]interface{} `json:"values"`
 }
 
+// GetDeploymentResourcesResponse lists the resources of a helm deployment
+type GetDeploymentResourcesResponse struct {
+	DeploymentResources []DeploymentResource `json:"resources"`
+}
+
+// Describes a K8s resource
+type DeploymentResource struct {
+	Name string `json:"name"`
+	Kind string `json:"kind"`
+}
+
 // GenerateReleaseName Generate Helm like release name
 func GenerateReleaseName() string {
 	namer := moniker.New()
