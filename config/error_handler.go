@@ -26,7 +26,7 @@ func ErrorHandler() emperror.Handler {
 func newErrorHandler() emperror.Handler {
 	logger := log.NewLogger(log.Config{
 		Level:  logrus.ErrorLevel.String(),
-		Format: viper.GetString("log.logformat"),
+		Format: viper.GetString("logging.logformat"),
 	})
 
 	loggerHandler := errorlogrus.NewHandler(logger)

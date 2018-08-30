@@ -22,7 +22,7 @@ func Logger() *logrus.Logger {
 func newLogger() *logrus.Logger {
 	logger := log.NewLogger(log.Config{
 		Level:  viper.GetString("logging.loglevel"),
-		Format: viper.GetString("log.logformat"),
+		Format: viper.GetString("logging.logformat"),
 	})
 
 	logger.Formatter = &runtime.Formatter{ChildFormatter: logger.Formatter}
