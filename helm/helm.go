@@ -19,6 +19,9 @@ import (
 	helm2 "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/pkg/errors"
+	"k8s.io/api/apps/v1beta2"
+	"k8s.io/api/extensions/v1beta1"
+	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/helm/pkg/chartutil"
 	"k8s.io/helm/pkg/getter"
 	"k8s.io/helm/pkg/helm"
@@ -26,6 +29,7 @@ import (
 	"k8s.io/helm/pkg/proto/hapi/chart"
 	rls "k8s.io/helm/pkg/proto/hapi/services"
 	"k8s.io/helm/pkg/repo"
+	"k8s.io/kubernetes/pkg/apis/extensions"
 )
 
 // DefaultNamespace default namespace
@@ -246,6 +250,76 @@ func DeleteDeployment(releaseName string, kubeConfig []byte) error {
 		return err
 	}
 	return nil
+}
+
+// GetDeploymentsK8sResources returns K8s resources of a helm deployment
+func GetDeploymentK8sResources(releaseName string, kubeConfig []byte, resourceTypes []string) ([]helm2.DeploymentResource, error) {
+	helmClient, err := GetHelmClient(kubeConfig)
+	if err != nil {
+		log.Errorf("Getting Helm client failed: %s", err.Error())
+		return nil, err
+	}
+
+	releaseContent, err := helmClient.ReleaseContent(releaseName)
+
+	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			return nil, &DeploymentNotFoundError{HelmError: err}
+		}
+		return nil, err
+	}
+
+	objects := strings.Split(releaseContent.Release.Manifest, "---")
+	decode := scheme.Codecs.UniversalDeserializer().Decode
+	deployments := make([]helm2.DeploymentResource, 0)
+
+	for _, object := range objects {
+
+		obj, _, err := decode([]byte(object), nil, nil)
+
+		if err != nil {
+			log.Warnf("Error while decoding YAML object. Err was: %s", err)
+			continue
+		}
+		log.Infof("version: %v/%v kind: %v", obj.GetObjectKind().GroupVersionKind().Group, obj.GetObjectKind().GroupVersionKind().Version, obj.GetObjectKind().GroupVersionKind().Kind)
+
+		selectResource := false
+		if len(resourceTypes) == 0 {
+			selectResource = true
+		} else {
+			for _, resourceType := range resourceTypes {
+				if strings.ToLower(resourceType) == strings.ToLower(obj.GetObjectKind().GroupVersionKind().Kind) {
+					selectResource = true
+				}
+			}
+		}
+
+		if selectResource {
+			//TODO add all K8s resources
+			switch o := obj.(type) {
+			case *extensions.Deployment:
+				deployments = append(deployments, helm2.DeploymentResource{
+					Name: o.Name,
+					Kind: o.Kind,
+				})
+			case *v1beta1.Deployment:
+				deployments = append(deployments, helm2.DeploymentResource{
+					Name: o.Name,
+					Kind: o.Kind,
+				})
+			case *v1beta2.StatefulSet:
+				deployments = append(deployments, helm2.DeploymentResource{
+					Name: o.Name,
+					Kind: o.Kind,
+				})
+			default:
+				//o is unknown for us
+			}
+		}
+
+	}
+
+	return deployments, nil
 }
 
 // GetDeployment returns the details of a helm deployment
