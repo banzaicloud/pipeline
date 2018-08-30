@@ -68,8 +68,13 @@ func UpdateMonitoring(c *gin.Context) {
 	return
 }
 
-// GetCommonClusterFromFilter get filtered cluster
-func GetCommonClusterFromFilter(c *gin.Context, filter map[string]interface{}) (cluster.CommonCluster, bool) {
+// GetCommonClusterFromRequest just a simple getter to build commonCluster object this handles error messages directly
+func GetCommonClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
+	filter := ParseField(c)
+
+	// Filter for organisation
+	filter["organization_id"] = c.Request.Context().Value(auth.CurrentOrganization).(*auth.Organization).ID
+
 	modelCluster, err := model.QueryCluster(filter)
 	if err != nil {
 		log.Errorf("Cluster not found: %s", err.Error())
@@ -91,7 +96,7 @@ func GetCommonClusterFromFilter(c *gin.Context, filter map[string]interface{}) (
 		return nil, false
 	}
 
-	commonCLuster, err := cluster.GetCommonClusterFromModel(&modelCluster[0])
+	commonCluster, err := cluster.GetCommonClusterFromModel(&modelCluster[0])
 	if err != nil {
 		log.Errorf("GetCommonClusterFromModel failed: %s", err.Error())
 		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
@@ -101,16 +106,7 @@ func GetCommonClusterFromFilter(c *gin.Context, filter map[string]interface{}) (
 		})
 		return nil, false
 	}
-	return commonCLuster, true
-}
-
-// GetCommonClusterFromRequest just a simple getter to build commonCluster object this handles error messages directly
-func GetCommonClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
-	filter := ParseField(c)
-
-	// Filter for organisation
-	filter["organization_id"] = c.Request.Context().Value(auth.CurrentOrganization).(*auth.Organization).ID
-	return GetCommonClusterFromFilter(c, filter)
+	return commonCluster, true
 }
 
 //CreateClusterRequest gin handler
