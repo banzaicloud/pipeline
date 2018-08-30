@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/banzaicloud/pipeline/model"
 	"github.com/satori/go.uuid"
 )
 
@@ -37,8 +36,7 @@ type ClusterModel struct {
 	RbacEnabled    bool
 	Monitoring     bool
 	Logging        bool
-	StatusMessage  string              `sql:"type:text;"`
-	Applications   []model.Application `gorm:"foreignkey:ClusterID"`
+	StatusMessage  string `sql:"type:text;"`
 }
 
 // TableName changes the default table name.

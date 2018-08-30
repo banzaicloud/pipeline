@@ -11,12 +11,10 @@ info:
 servers:
 - url: http://localhost:9090
 tags:
-- description: Application managed by Pipeline
-  name: applications
 - description: Clusters realted funtions
   name: clusters
-- description: Application catalog
-  name: catalogs
+- description: Application spotguides
+  name: spotguides
 - description: Functions related for a deployment
   name: deployment
 - description: Deployment related functions for a cluster
@@ -40,51 +38,9 @@ tags:
 - description: Horizontal Pod Autoscaling related functions
   name: hpa
 paths:
-  /api/v1/orgs/{orgId}/catalogs:
-    get:
-      description: List all available catalogs
-      operationId: ListCatalogs
-      parameters:
-      - description: Organization identification
-        explode: false
-        in: path
-        name: orgId
-        required: true
-        schema:
-          format: int32
-          type: integer
-        style: simple
-      - description: Catalog name regexp
-        explode: true
-        in: query
-        name: name
-        required: false
-        schema:
-          type: string
-        style: form
-      - description: Catalog version
-        explode: true
-        in: query
-        name: version
-        required: false
-        schema:
-          type: string
-        style: form
-      responses:
-        200:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ListCatalogResponse'
-          description: Catalog list
-      security:
-      - bearerAuth: []
-      summary: List catalogs
-      tags:
-      - catalogs
-  /api/v1/orgs/{orgId}/catalogs/update:
+  /api/v1/orgs/{orgId}/spotguides:
     put:
-      operationId: UpdateCatalogs
+      operationId: UpdateSpotguides
       parameters:
       - description: Organization identification
         explode: false
@@ -97,16 +53,16 @@ paths:
         style: simple
       responses:
         202:
-          description: Catalog update
+          description: Spotguides update
       security:
       - bearerAuth: []
-      summary: Update repository for catalog
+      summary: Update spotguide repositories
       tags:
-      - catalogs
-  /api/v1/orgs/{orgId}/catalogs/{name}:
+      - spotguides
+  /api/v1/orgs/{orgId}/spotguides/{name}:
     get:
-      description: Get details about specific catalog
-      operationId: GetCatalogDetail
+      description: Get details about specific spotguide
+      operationId: GetSpotguideDetail
       parameters:
       - description: Organization identification
         explode: false
@@ -117,12 +73,13 @@ paths:
           format: int32
           type: integer
         style: simple
-      - description: Catalog name
+      - description: Spotguide name
         explode: false
         in: path
         name: name
         required: true
         schema:
+          example: banzaicloud/spotguide-nodejs-mongodb
           type: string
         style: simple
       responses:
@@ -130,110 +87,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CatalogDetailsResponse'
-          description: Catalog details
+                $ref: '#/components/schemas/SpotguideDetailsResponse'
+          description: Spotguide details
         404:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CatalogNotFound'
-          description: Catalog missing
+                $ref: '#/components/schemas/SpotguideNotFound'
+          description: Spotguide not found
       security:
       - bearerAuth: []
-      summary: Get catalog details
+      summary: Get spotguide details
       tags:
-      - catalogs
-  /api/v1/orgs/{orgId}/applications:
-    get:
-      description: List all available application for launch
-      operationId: ListApplications
-      parameters:
-      - description: Organization identification
-        explode: false
-        in: path
-        name: orgId
-        required: true
-        schema:
-          format: int32
-          type: integer
-        style: simple
-      responses:
-        200:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApplicationListResponse'
-          description: Application list
-      security:
-      - bearerAuth: []
-      summary: List application catalogs
-      tags:
-      - applications
-    post:
-      description: Create new application based on Catalog definition s
-      operationId: CreateApplication
-      parameters:
-      - description: Organization identification
-        explode: false
-        in: path
-        name: orgId
-        required: true
-        schema:
-          format: int32
-          type: integer
-        style: simple
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateApplicationRequest'
-        required: true
-      responses:
-        201:
-          content:
-            application/json:
-              schema: {}
-          description: Application created
-      security:
-      - bearerAuth: []
-      summary: Create new application based on catalog
-      tags:
-      - applications
-  /api/v1/orgs/{orgId}/applications/{appId}:
-    get:
-      description: Get application details with deployments
-      operationId: GetApplication
-      parameters:
-      - description: Organization identification
-        explode: false
-        in: path
-        name: orgId
-        required: true
-        schema:
-          format: int32
-          type: integer
-        style: simple
-      - description: Application identification
-        explode: false
-        in: path
-        name: appId
-        required: true
-        schema:
-          format: int32
-          type: integer
-        style: simple
-      responses:
-        200:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApplicationDetailsResponse'
-          description: Application list
-      security:
-      - bearerAuth: []
-      summary: Get application details
-      tags:
-      - applications
+      - spotguides
   /api/v1/orgs/{orgId}/clusters:
     get:
       description: Listing all the K8S clusters from the cloud
@@ -804,59 +670,6 @@ paths:
       security:
       - bearerAuth: []
       summary: Get API endpoint
-      tags:
-      - clusters
-  /api/v1/orgs/{orgId}/clusters/{id}/application:
-    get:
-      description: Getting cluster's application list
-      operationId: GetClusterApplication
-      parameters:
-      - description: Organization identification
-        explode: false
-        in: path
-        name: orgId
-        required: true
-        schema:
-          format: int32
-          type: integer
-        style: simple
-      - description: Selected cluster identification (number)
-        explode: false
-        in: path
-        name: id
-        required: true
-        schema:
-          format: int32
-          type: integer
-        style: simple
-      responses:
-        200:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ClusterApplicationList'
-          description: Getting cluster application list
-        400:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseError_400'
-          description: Error during getting config file
-        401:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Unauthorized'
-          description: Unauthorized
-        404:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ClusterNotFound'
-          description: Cluster not found
-      security:
-      - bearerAuth: []
-      summary: Get cluster's applications
       tags:
       - clusters
   /api/v1/orgs/{orgId}/clusters/{id}/monitoring:
@@ -3734,8 +3547,9 @@ paths:
       - storage
 components:
   schemas:
-    CatalogDetailsResponse:
+    SpotguideDetailsResponse:
       example:
+        createdAt: 2018-06-11T14:28:13Z
         spotguide:
           options:
           - ""
@@ -3750,60 +3564,26 @@ components:
             sumCpu: 8
             sameSize: true
             minNodes: 1
-        readme: readme
-        chart:
-          keywords:
-          - mysql
-          - pma
-          name: mysql_pma
-          icon: https://static.banzaicloud.com/catalog/mysql-logo.svg
-          annotations:
-            longDescription: Mysql Server with Mysql
-            displayName: Mysql Server + PMA
-          description: Mysql Server with Mysql
-      properties:
-        chart:
-          $ref: '#/components/schemas/CatalogChartInfo'
-        readme:
-          description: Catalog Readme.md in base64 encoded string
-          format: byte
-          type: string
-        spotguide:
-          $ref: '#/components/schemas/CatalogDetailsResponse_spotguide'
-      type: object
-    CatalogChartInfo:
-      example:
-        keywords:
-        - mysql
-        - pma
-        name: mysql_pma
-        icon: https://static.banzaicloud.com/catalog/mysql-logo.svg
-        annotations:
-          longDescription: Mysql Server with Mysql
-          displayName: Mysql Server + PMA
-        description: Mysql Server with Mysql
+        name: banzaicloud/spotguide-nodejs-mongodb
+        questions: '{}'
+        updatedAt: 2018-06-11T14:28:24Z
       properties:
         name:
-          example: mysql_pma
+          example: banzaicloud/spotguide-nodejs-mongodb
           type: string
-        annotations:
-          $ref: '#/components/schemas/CatalogChartInfo_annotations'
-        icon:
-          example: https://static.banzaicloud.com/catalog/mysql-logo.svg
-          format: uri
+        createdAt:
+          example: 2018-06-11T14:28:13Z
           type: string
-        description:
-          example: Mysql Server with Mysql
+        updatedAt:
+          example: 2018-06-11T14:28:24Z
           type: string
-        keywords:
-          example:
-          - mysql
-          - pma
-          items:
-            type: string
-          type: array
+        spotguide:
+          $ref: '#/components/schemas/SpotguideDetailsResponse_spotguide'
+        questions:
+          properties: {}
+          type: object
       type: object
-    CatalogOptionsMysqlDatabaseName:
+    SpotguideOptionsMysqlDatabaseName:
       properties:
         name:
           example: mysqlDatabaseName
@@ -3825,7 +3605,7 @@ components:
           example: mysql.database.name
           type: string
       type: object
-    CatalogOptionsMysqlDatabaseSize:
+    SpotguideOptionsMysqlDatabaseSize:
       properties:
         name:
           example: mysqlDatabaseSize
@@ -3848,7 +3628,7 @@ components:
           example: mysql.database.size
           type: string
       type: object
-    CatalogOptionsMysqlVersion:
+    SpotguideOptionsMysqlVersion:
       properties:
         name:
           example: mysql_version
@@ -3871,7 +3651,7 @@ components:
           example: mysql.version
           type: string
       type: object
-    CatalogOptionsMonitor:
+    SpotguideOptionsMonitor:
       properties:
         name:
           example: monitor
@@ -3889,63 +3669,24 @@ components:
           example: monitor.enabled
           type: string
       type: object
-    CatalogNotFound:
+    SpotguideNotFound:
       properties:
         code:
           example: 404
           format: int32
           type: integer
         message:
-          example: catalog not found
+          example: spotguide not found
           type: string
         error:
-          example: record not found
+          example: spotguide not found
           type: string
       type: object
-    ListCatalogResponse:
+    ListSpotguidesResponse:
       items:
         oneOf:
-        - $ref: '#/components/schemas/ListCatalogItem1'
-        - $ref: '#/components/schemas/ListCatalogItem2'
+        - $ref: '#/components/schemas/SpotguideDetailsResponse'
       type: array
-    ListCatalogItem1:
-      properties:
-        name:
-          example: zeppelin-spark
-          type: string
-        displayName:
-          example: Zeppelin UI + Spark on K8S
-          type: string
-        description:
-          example: Short description of Spark-Zeppelin application
-          type: string
-        icon:
-          example: https://static.banzaicloud.com/catalog/zeppelin-spark-logo.svg
-          format: uri
-          type: string
-        version:
-          example: 0.1.0
-          type: string
-      type: object
-    ListCatalogItem2:
-      properties:
-        name:
-          example: mysql
-          type: string
-        displayName:
-          example: Mysql database
-          type: string
-        description:
-          example: MySQL is the world's most popular open source database.
-          type: string
-        icon:
-          example: https://static.banzaicloud.com/catalog/mysql-logo.svg
-          format: uri
-          type: string
-        version:
-          example: 0.1.0
-          type: string
-      type: object
     RequestedResources:
       example:
         onDemandPct: 10
@@ -4029,173 +3770,6 @@ components:
         statusMessage:
           example: The resource was not found.
           type: string
-      type: object
-    ApplicationDetailsResponse:
-      example:
-        catalogVersion: catalogVersion
-        icon: /assets/image/mysql.png
-        description: Mysql simple description...
-        resources: resources
-        clusterId: 1
-        readme: Long readme about your application.
-        message: message
-        catalogName: mysql-simple
-        organizationId: 1
-        createdAt: 2018-06-11T14:28:12Z
-        deployments:
-        - createdAt: 2018-06-11T14:28:13Z
-          releaseName: measly-quail
-          name: monitor
-          id: 1
-          message: Something bad happened
-          applicationId: 1
-          chart: etcd-operator
-          updatedAt: 2018-06-11T14:28:24Z
-          status: READY
-        - createdAt: 2018-06-11T14:28:13Z
-          releaseName: measly-quail
-          name: monitor
-          id: 1
-          message: Something bad happened
-          applicationId: 1
-          chart: etcd-operator
-          updatedAt: 2018-06-11T14:28:24Z
-          status: READY
-        clusterName: MyCluster
-        name: Spark-Zeppelin
-        id: 1
-        updatedAt: 2018-06-11T14:28:12Z
-        status: DEPLOYED
-      properties:
-        id:
-          example: 1
-          type: number
-        name:
-          example: Spark-Zeppelin
-          type: string
-        createdAt:
-          example: 2018-06-11T14:28:12Z
-          type: string
-        updatedAt:
-          example: 2018-06-11T14:28:12Z
-          type: string
-        catalogName:
-          example: mysql-simple
-          type: string
-        catalogVersion:
-          type: string
-        description:
-          example: Mysql simple description...
-          type: string
-        icon:
-          example: /assets/image/mysql.png
-          type: string
-        organizationId:
-          example: 1
-          format: int32
-          type: integer
-        clusterName:
-          example: MyCluster
-          type: string
-        clusterId:
-          example: 1
-          format: int32
-          type: integer
-        resources:
-          type: string
-        status:
-          example: DEPLOYED
-          type: string
-        message:
-          type: string
-        readme:
-          example: Long readme about your application.
-          type: string
-        deployments:
-          items:
-            $ref: '#/components/schemas/ApplicationDeploymentItem'
-          type: array
-      type: object
-    ApplicationDeploymentItem:
-      example:
-        createdAt: 2018-06-11T14:28:13Z
-        releaseName: measly-quail
-        name: monitor
-        id: 1
-        message: Something bad happened
-        applicationId: 1
-        chart: etcd-operator
-        updatedAt: 2018-06-11T14:28:24Z
-        status: READY
-      properties:
-        id:
-          example: 1
-          format: int32
-          type: integer
-        createdAt:
-          example: 2018-06-11T14:28:13Z
-          type: string
-        updatedAt:
-          example: 2018-06-11T14:28:24Z
-          type: string
-        name:
-          example: monitor
-          type: string
-        chart:
-          example: etcd-operator
-          type: string
-        releaseName:
-          example: measly-quail
-          type: string
-        status:
-          example: READY
-          type: string
-        message:
-          example: Something bad happened
-          type: string
-        applicationId:
-          example: 1
-          format: int32
-          type: integer
-      type: object
-    CreateApplicationRequest:
-      example:
-        catalogName: mysql-simple
-        cluster:
-          cloud: google
-          profileName: profileName
-          name: gkecluster-pipelineuser-123
-          secretId: 62bc3c75-91fb-4670-bad4-24b401a9deac
-          location: us-central1-a
-          postHooks:
-            InstallLogging:
-              bucketName: mybucketname
-              region: region
-              secretId: 62bc3c75-91fb-4670-bad4-24b401a9deac
-          properties:
-            gke:
-              master:
-                version: 1.8.7-gke.1
-              nodePools:
-                pool1:
-                  count: 1
-                  instanceType: n1-standard-2
-              nodeVersion: 1.8.7-gke.1
-        name: MyApplication
-        clusterId: 0
-      properties:
-        name:
-          example: MyApplication
-          type: string
-        catalogName:
-          example: mysql-simple
-          type: string
-        clusterId:
-          example: 0
-          format: int32
-          type: integer
-        cluster:
-          $ref: '#/components/schemas/CreateClusterRequest'
       type: object
     CreateClusterRequest:
       example:
@@ -6414,10 +5988,6 @@ components:
             type: string
           type: array
       type: object
-    ClusterApplicationList:
-      items:
-        $ref: '#/components/schemas/ApplicationDetailsResponse'
-      type: array
     PodDetailsResponse:
       items:
         $ref: '#/components/schemas/PodItem'
@@ -6778,7 +6348,7 @@ components:
           example: myOrgName
           type: string
       type: object
-    CatalogDetailsResponse_spotguide:
+    SpotguideDetailsResponse_spotguide:
       example:
         options:
         - ""
@@ -6799,23 +6369,11 @@ components:
         options:
           items:
             oneOf:
-            - $ref: '#/components/schemas/CatalogOptionsMysqlDatabaseName'
-            - $ref: '#/components/schemas/CatalogOptionsMysqlDatabaseSize'
-            - $ref: '#/components/schemas/CatalogOptionsMysqlVersion'
-            - $ref: '#/components/schemas/CatalogOptionsMonitor'
+            - $ref: '#/components/schemas/SpotguideOptionsMysqlDatabaseName'
+            - $ref: '#/components/schemas/SpotguideOptionsMysqlDatabaseSize'
+            - $ref: '#/components/schemas/SpotguideOptionsMysqlVersion'
+            - $ref: '#/components/schemas/SpotguideOptionsMonitor'
           type: array
-      type: object
-    CatalogChartInfo_annotations:
-      example:
-        longDescription: Mysql Server with Mysql
-        displayName: Mysql Server + PMA
-      properties:
-        displayName:
-          example: Mysql Server + PMA
-          type: string
-        longDescription:
-          example: Mysql Server with Mysql
-          type: string
       type: object
     CreateEC2Properties_ec2_master:
       properties:

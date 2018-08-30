@@ -27,10 +27,6 @@ OAuth2 based authentication requires GitHub application, this can be created by 
 [tutorial](https://developer.github.com/apps/building-oauth-apps/creating-an-oauth-app/).
 Please set the `clientid` and the `clientsecret` in the auth section, with the GitHub generated values.
 
-By default Pipeline uses public/private key from `~/.ssh/id_rsa.pub`. If this key is protected with
-passphrase or the keys stored elsewhere, modify the config.toml to point towards the right key. This can be done
-by modifying the `cloud` section `keypath` entry. This needs to point to the `public` key.
-
 #### Set Required Environment Variables
 
 For accessing Vault the `VAULT_ADDR` env var has to be set, Pipeline stores JWT access tokens there.

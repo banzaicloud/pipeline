@@ -12,7 +12,6 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/google/go-github/github"
 	"github.com/pkg/errors"
-	"github.com/prometheus/common/log"
 	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
 )

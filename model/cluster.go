@@ -63,7 +63,6 @@ type ClusterModel struct {
 	Dummy          DummyClusterModel
 	Kubernetes     KubernetesClusterModel
 	OKE            modelOracle.Cluster
-	Applications   []Application `gorm:"foreignkey:ClusterID"`
 	CreatedBy      uint
 }
 

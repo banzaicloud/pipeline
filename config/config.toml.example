@@ -27,11 +27,8 @@ loglevel = "debug"
 kubicornloglevel = "debug"
 
 [cloud]
-cloudprovider = "aws"
-cloudprofile = "default" #defaults to func getCluster - see https://github.com/kris-nova/kubicorn/tree/master/profiles
 configRetryCount = 30
 configRetrySleep = 15
-keypath = "~"
 
 #[cors]
 
@@ -48,7 +45,6 @@ token = "YourPersonalAccessToken"
 clientid = ""
 clientsecret = ""
 
-# This is just an example
 tokensigningkey = "Th1s!sMyR4Nd0MStri4gPleaseChangeIt"
 jwtissueer = "https://banzaicloud.com/"
 jwtaudience = "https://pipeline.banzaicloud.com"
@@ -67,9 +63,6 @@ path = "./orgs"
 #helm repo URLs
 stableRepositoryURL = "https://kubernetes-charts.storage.googleapis.com"
 banzaiRepositoryURL = "http://kubernetes-charts.banzaicloud.com/branch/master"
-
-[catalog]
-repositoryUrl = "http://kubernetes-charts.banzaicloud.com/branch/spotguide"
 
 [monitor]
 grafanaAdminUsername = "admin"
