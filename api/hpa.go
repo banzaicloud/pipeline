@@ -112,13 +112,9 @@ func GetHpaResource(c *gin.Context) {
 
 	deploymentResponse, err := GetHpaResources(scaleTarget, kubeConfig)
 	if err != nil {
-		log.Error("Error during getting deployment details: ", err.Error())
+		log.Error("Error during getting Hpa resources details: ", err.Error())
 
 		httpStatusCode := http.StatusInternalServerError
-		if _, ok := err.(*helm.DeploymentNotFoundError); ok {
-			httpStatusCode = http.StatusBadRequest
-		}
-
 		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
 			Code:    httpStatusCode,
 			Message: "Error getting deployment",
