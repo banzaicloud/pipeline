@@ -1,43 +1,41 @@
 package action
 
 import (
+	"encoding/json"
 	"strings"
+	"time"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/cs"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
+	"github.com/banzaicloud/pipeline/pkg/cluster/acsk"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
 // ACSKClusterContext describes the common fields used across ACSK cluster create/update/delete operations
 type ACSKClusterContext struct {
 	ClusterName  string
-	RegionID     string
-	ZoneID       string
 	CSClient     *cs.Client
 	ECSClient    *ecs.Client
 }
 
 type ACSKClusterCreateUpdateContext struct {
 	ACSKClusterContext
-	SSHKeyName         string
-	SSHKey             *secret.SSHKeyPair
-	VpcID              string
-	SubNetIP           []string
+	acsk.AlibabaClusterCreateParams
 }
 
 
-func NewACSKClusterCreationContext(clusterName, zoneId, regionId, sshKeyName string, csClient *cs.Client, ecsClient *ecs.Client) *ACSKClusterCreateUpdateContext {
+func NewACSKClusterCreationContext(clusterName string, csClient *cs.Client,
+	ecsClient *ecs.Client, clusterCreateParams acsk.AlibabaClusterCreateParams) *ACSKClusterCreateUpdateContext {
 	return &ACSKClusterCreateUpdateContext{
 		ACSKClusterContext: ACSKClusterContext{
 			ClusterName:   clusterName,
 			CSClient:   csClient,
 			ECSClient:  ecsClient,
-			ZoneID:     zoneId,
-			RegionID:   regionId,
 		},
-		SSHKeyName: sshKeyName,
+		AlibabaClusterCreateParams: clusterCreateParams,
 	}
 }
 
@@ -65,14 +63,146 @@ func (a *UploadSSHKeyAction) GetName() string {
 // ExecuteAction executes this UploadSSHKeyAction
 func (a *UploadSSHKeyAction) ExecuteAction(input interface{}) (interface{}, error) {
 	a.log.Info("EXECUTE UploadSSHKeyAction")
-	a.context.SSHKey = secret.NewSSHKeyPair(a.sshSecret)
 	ecsClient := a.context.ECSClient
 
 	req := ecs.CreateImportKeyPairRequest()
 	req.SetScheme(requests.HTTPS)
 	req.KeyPairName = a.context.ClusterName
-	req.PublicKeyBody = strings.TrimSpace(a.context.SSHKey.PublicKeyData)
-	req.RegionId = a.context.RegionID
+	req.PublicKeyBody = strings.TrimSpace(secret.NewSSHKeyPair(a.sshSecret).PublicKeyData)
+	req.RegionId = a.context.AlibabaClusterCreateParams.RegionID
 
 	return ecsClient.ImportKeyPair(req)
+}
+
+// UndoAction rolls back this UploadSSHKeyAction
+func (a *UploadSSHKeyAction) UndoAction() (err error) {
+	a.log.Info("EXECUTE UNDO UploadSSHKeyAction")
+	//delete uploaded keypair
+	ecsClient := a.context.ECSClient
+
+	req := ecs.CreateDeleteKeyPairsRequest()
+	req.SetScheme(requests.HTTPS)
+	req.KeyPairNames = a.context.ClusterName
+	req.RegionId = a.context.AlibabaClusterCreateParams.RegionID
+
+	_, err = ecsClient.DeleteKeyPairs(req)
+	return
+}
+
+// CreateACSKClusterAction describes the properties of an Alibaba cluster creation
+type CreateACSKClusterAction struct {
+	context           *ACSKClusterCreateUpdateContext
+	log               logrus.FieldLogger
+}
+
+// NewCreateACSKClusterAction creates a new CreateACSKClusterAction
+func NewCreateACSKClusterAction(log logrus.FieldLogger, creationContext *ACSKClusterCreateUpdateContext) *CreateACSKClusterAction {
+	return &CreateACSKClusterAction{
+		context:           creationContext,
+		log:               log,
+	}
+}
+
+// GetName returns the name of this CreateACSKClusterAction
+func (a *CreateACSKClusterAction) GetName() string {
+	return "CreateACSKClusterAction"
+}
+
+// ExecuteAction executes this CreateACSKClusterAction
+func (a *CreateACSKClusterAction) ExecuteAction(input interface{}) (output interface{}, err error) {
+	a.log.Infoln("EXECUTE CreateACSKClusterAction, cluster name")
+	csClient := a.context.CSClient
+
+	// setup cluster creation request
+	a.context.AlibabaClusterCreateParams.ClusterType = "Kubernetes"
+	params := a.context.AlibabaClusterCreateParams
+	p, err := json.Marshal(&params)
+	if err != nil {
+		return nil, err
+	}
+
+	req := cs.CreateCreateClusterRequest()
+	req.SetScheme(requests.HTTPS)
+	req.SetDomain("cs.aliyuncs.com")
+	req.SetContent(p)
+	req.SetContentType("application/json")
+
+	// do a cluster creation
+	resp, err := csClient.CreateCluster(req)
+	if err != nil {
+		a.log.Errorf("CreateCluster error: %s", err)
+		return nil, err
+	}
+	if !resp.IsSuccess() || resp.GetHttpStatus() < 200 || resp.GetHttpStatus() > 299 {
+		a.log.Errorf("CreateCluster error status code is: %s", resp.GetHttpStatus())
+		return nil, errors.Errorf("create cluster error the returned status code is %s", resp.GetHttpStatus())
+	}
+
+	// parse response
+	var r acsk.AlibabaClusterCreateResponse
+	err = json.Unmarshal(resp.GetHttpContentBytes(), &r)
+	if err != nil {
+		return nil, err
+	}
+
+	a.log.Infof("Alibaba cluster creating with id %s", r.ClusterID)
+
+	// wait for cluster created
+	a.log.Info("Waiting for cluster...")
+	err = a.waitUntilClusterCreateComplete(r.ClusterID)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp ,nil
+}
+
+func (a *CreateACSKClusterAction) waitUntilClusterCreateComplete(clusterID string) error {
+	var (
+		r     *acsk.AlibabaDescribeClusterResponse
+		state string
+		err   error
+	)
+	for {
+		r, err = a.getClusterDetails(clusterID)
+		if err != nil {
+			return err
+		}
+
+		if r.State != state {
+			a.log.Infof("%s cluster %s", r.State, clusterID)
+			state = r.State
+		}
+
+		switch r.State {
+		case acsk.AlibabaClusterStateRunning:
+			return nil
+		case acsk.AlibabaClusterStateFailed:
+			return errors.New("The cluster creation failed")
+		default:
+			time.Sleep(time.Second * 5)
+		}
+	}
+}
+func (a *CreateACSKClusterAction) getClusterDetails(clusterID string) (r *acsk.AlibabaDescribeClusterResponse, err error) {
+
+	csClient := a.context.CSClient
+
+	req := cs.CreateDescribeClusterDetailRequest()
+	req.SetScheme(requests.HTTPS)
+	req.SetDomain("cs.aliyuncs.com")
+	req.ClusterId = clusterID
+
+	resp, err := csClient.DescribeClusterDetail(req)
+	if err != nil {
+		errors.Wrapf(err, "Could not get cluster details for ID: %s", clusterID)
+		return
+	}
+	if !resp.IsSuccess() || resp.GetHttpStatus() < 200 || resp.GetHttpStatus() > 299 {
+		err = errors.Wrapf(err, "Unexpected http status code: %d", resp.GetHttpStatus())
+		return
+	}
+
+	err = json.Unmarshal(resp.GetHttpContentBytes(), &r)
+	return
 }

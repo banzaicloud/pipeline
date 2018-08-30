@@ -16,19 +16,19 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/cs"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
-	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/acsk"
+	"github.com/banzaicloud/pipeline/pkg/cluster/acsk/action"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
+	"github.com/banzaicloud/pipeline/utils"
 	"github.com/jmespath/go-jmespath"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
-	"k8s.io/client-go/kubernetes"
 )
 
 const (
@@ -254,108 +254,112 @@ func CreateACSKClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgI
 func (c *ACSKCluster) CreateCluster() error {
 	log.Info("Start create cluster (Alibaba)")
 
-	client, err := c.GetAlibabaCSClient(nil)
+	csClient, err := c.GetAlibabaCSClient(nil)
 	if err != nil {
 		return err
 	}
+
+	ecsClient, err := c.GetAlibabaECSClient(nil)
+	if err != nil {
+		return err
+	}
+	creationContext := action.NewACSKClusterCreationContext(
+		c.modelCluster.Name,
+		csClient,
+		ecsClient,
+		acsk.AlibabaClusterCreateParams{
+			ClusterType:              "Kubernetes",
+			Name:                     c.modelCluster.Name,
+			RegionID:                 c.modelCluster.ACSK.RegionID,                        // "eu-central-1"
+			ZoneID:                   c.modelCluster.ACSK.ZoneID,                          // "eu-central-1a"
+			MasterInstanceType:       c.modelCluster.ACSK.MasterInstanceType,              // "ecs.sn1.large",
+			MasterSystemDiskCategory: c.modelCluster.ACSK.MasterSystemDiskCategory,        // "cloud_efficiency",
+			MasterSystemDiskSize:     c.modelCluster.ACSK.MasterSystemDiskSize,            // 40,
+			WorkerInstanceType:       c.modelCluster.ACSK.NodePools[0].InstanceType,       // "ecs.sn1.large",
+			WorkerSystemDiskCategory: c.modelCluster.ACSK.NodePools[0].SystemDiskCategory, // "cloud_efficiency",
+			WorkerSystemDiskSize:     c.modelCluster.ACSK.NodePools[0].SystemDiskSize,     // 40,
+			KeyPair:                  c.modelCluster.Name,                                 // uploaded keyPair name
+			NumOfNodes:               c.modelCluster.ACSK.NodePools[0].Count,              // 1,
+			SNATEntry:                c.modelCluster.ACSK.SNATEntry,                       // true,
+			SSHFlags:                 c.modelCluster.ACSK.SSHFlags,                        // true,
+		})
 
 	clusterSshSecret, err := c.getSshSecret(c)
 	if err != nil {
 		return err
 	}
+	actions := []utils.Action{
+		action.NewUploadSSHKeyAction(c.log, creationContext, clusterSshSecret),
+		action.NewCreateACSKClusterAction(c.log, creationContext),
+	}
 
-	sshKey := secret.NewSSHKeyPair(clusterSshSecret)
-	keyName, err := c.uploadSSHKeyForCluster(sshKey)
+	_, err = utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, false)
 	if err != nil {
+		errors.Wrap(err, "ACSK cluster create error")
 		return err
 	}
 
-	// setup cluster creation request
-	params := alibabaClusterCreateParams{
-		ClusterType:              "Kubernetes",
-		Name:                     c.modelCluster.Name,
-		RegionID:                 c.modelCluster.ACSK.RegionID,                        // "eu-central-1"
-		ZoneID:                   c.modelCluster.ACSK.ZoneID,                          // "eu-central-1a"
-		MasterInstanceType:       c.modelCluster.ACSK.MasterInstanceType,              // "ecs.sn1.large",
-		MasterSystemDiskCategory: c.modelCluster.ACSK.MasterSystemDiskCategory,        // "cloud_efficiency",
-		MasterSystemDiskSize:     c.modelCluster.ACSK.MasterSystemDiskSize,            // 40,
-		WorkerInstanceType:       c.modelCluster.ACSK.NodePools[0].InstanceType,       // "ecs.sn1.large",
-		WorkerSystemDiskCategory: c.modelCluster.ACSK.NodePools[0].SystemDiskCategory, // "cloud_efficiency",
-		WorkerSystemDiskSize:     c.modelCluster.ACSK.NodePools[0].SystemDiskSize,     // 40,
-		KeyPair:                  c.modelCluster.Name,                                 // uploaded keyPair name
-		NumOfNodes:               c.modelCluster.ACSK.NodePools[0].Count,              // 1,
-		SNATEntry:                c.modelCluster.ACSK.SNATEntry,                       // true,
-		SSHFlags:                 c.modelCluster.ACSK.SSHFlags,                        // true,
-	}
-	p, err := json.Marshal(&params)
-	if err != nil {
-		return err
-	}
+	//// setup cluster creation request
+	//params := alibabaClusterCreateParams{
+	//	ClusterType:              "Kubernetes",
+	//	Name:                     c.modelCluster.Name,
+	//	RegionID:                 c.modelCluster.ACSK.RegionID,                        // "eu-central-1"
+	//	ZoneID:                   c.modelCluster.ACSK.ZoneID,                          // "eu-central-1a"
+	//	MasterInstanceType:       c.modelCluster.ACSK.MasterInstanceType,              // "ecs.sn1.large",
+	//	MasterSystemDiskCategory: c.modelCluster.ACSK.MasterSystemDiskCategory,        // "cloud_efficiency",
+	//	MasterSystemDiskSize:     c.modelCluster.ACSK.MasterSystemDiskSize,            // 40,
+	//	WorkerInstanceType:       c.modelCluster.ACSK.NodePools[0].InstanceType,       // "ecs.sn1.large",
+	//	WorkerSystemDiskCategory: c.modelCluster.ACSK.NodePools[0].SystemDiskCategory, // "cloud_efficiency",
+	//	WorkerSystemDiskSize:     c.modelCluster.ACSK.NodePools[0].SystemDiskSize,     // 40,
+	//	KeyPair:                  keyName,                                             // uploaded keyPair name
+	//	ImageID:                  c.modelCluster.ACSK.NodePools[0].Image,              // "centos_7",
+	//	NumOfNodes:               c.modelCluster.ACSK.NodePools[0].Count,              // 1,
+	//	SNATEntry:                c.modelCluster.ACSK.SNATEntry,                       // true,
+	//	SSHFlags:                 c.modelCluster.ACSK.SSHFlags,                        // true,
+	//}
+	//p, err := json.Marshal(&params)
+	//if err != nil {
+	//	return err
+	//}
 	//creationContext := action.NewACSKClusterCreationContext(
 	//	c.modelCluster.Name,
 	//	keyName,
 	//	client,
 	//)
 
-	req := cs.CreateCreateClusterRequest()
-	setEndpoint(req)
-	setJSONContent(req, p)
+	//req := cs.CreateCreateClusterRequest()
+	//setEndpoint(req)
+	//setJSONContent(req, p)
+	//
+	//// do a cluster creation
+	//resp, err := client.CreateCluster(req)
+	//if err != nil {
+	//	return err
+	//}
+	//if !resp.IsSuccess() || resp.GetHttpStatus() < 200 || resp.GetHttpStatus() > 299 {
+	//	// TODO: create error message
+	//	return errors.New("TODO error")
+	//}
+	//
+	//// parse response
+	//var r alibabaClusterCreateResponse
+	//err = json.Unmarshal(resp.GetHttpContentBytes(), &r)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//log.Infof("Alibaba cluster creating with id %s", r.ClusterID)
+	//
+	//// wait for cluster created
+	//log.Info("Waiting for cluster...")
+	//aliCluster, err := waitForClusterState(client, r.ClusterID)
+	//if err != nil {
+	//	return err
+	//}
+	//c.alibabaCluster = aliCluster
 
-	// do a cluster creation
-	resp, err := client.CreateCluster(req)
-	if err != nil {
-		return err
-	}
-	if !resp.IsSuccess() || resp.GetHttpStatus() < 200 || resp.GetHttpStatus() > 299 {
-		// TODO: create error message
-		return errors.New("TODO error")
-	}
-
-	// parse response
-	var r alibabaClusterCreateResponse
-	err = json.Unmarshal(resp.GetHttpContentBytes(), &r)
-	if err != nil {
-		return err
-	}
-
-	log.Infof("Alibaba cluster creating with id %s", r.ClusterID)
-
-	// wait for cluster created
-	log.Info("Waiting for cluster...")
-	aliCluster, err := waitForClusterState(client, r.ClusterID, c.modelCluster.ACSK.NodePools[0].Count)
-	if err != nil {
-		return err
-	}
-	c.alibabaCluster = aliCluster
-
-	c.modelCluster.ACSK.ClusterID = r.ClusterID
-	err = c.modelCluster.Save()
-	if err != nil {
-		return err
-	}
-
-	kubeConfig, err := c.DownloadK8sConfig()
-	if err != nil {
-		return err
-	}
-
-	restKubeConfig, err := helm.GetK8sClientConfig(kubeConfig)
-	if err != nil {
-		return err
-	}
-
-	kubeClient, err := kubernetes.NewForConfig(restKubeConfig)
-	if err != nil {
-		return err
-	}
-
-	// create default storage class
-	err = createDefaultStorageClass(kubeClient, "alicloud/disk")
-	if err != nil {
-		return err
-	}
-
-	return nil
+	//c.modelCluster.ACSK.ClusterID = r.ClusterID
+	return c.modelCluster.Save()
 }
 
 func (c *ACSKCluster) uploadSSHKeyForCluster(key *secret.SSHKeyPair) (name string, err error) {
