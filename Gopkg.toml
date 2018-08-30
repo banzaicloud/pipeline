@@ -192,11 +192,6 @@
   name = "k8s.io/client-go"
   version = "=v7.0.0"
 
-# This override is here because of bank-vaults client-go version doesn't match the pipeline's
-[[override]]
-name = "k8s.io/client-go"
-version = "=v7.0.0"
-
 [[constraint]]
   branch = "release-2.9"
   name = "k8s.io/helm"
