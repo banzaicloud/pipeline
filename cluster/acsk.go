@@ -167,6 +167,34 @@ func createACSKNodePoolsModelFromRequestData(pools acsk.NodePools, userId uint) 
 	return res, nil
 }
 
+func (c *ACSKCluster) createACSKNodePoolsModelFromUpdateRequestData(pools acsk.NodePools, userId uint) ([]*model.ACSKNodePoolModel, error) {
+	currentNodePoolMap := make(map[string]*model.ACSKNodePoolModel, len(c.modelCluster.ACSK.NodePools))
+	for _, nodePool := range c.modelCluster.ACSK.NodePools {
+		currentNodePoolMap[nodePool.Name] = nodePool
+	}
+
+	updatedNodePools := make([]*model.ACSKNodePoolModel, 0, len(pools))
+
+	for nodePoolName, nodePool := range pools {
+		if currentNodePoolMap[nodePoolName] != nil {
+			updatedNodePools = append(updatedNodePools, &model.ACSKNodePoolModel{
+				ID:                 currentNodePoolMap[nodePoolName].ID,
+				CreatedBy:          currentNodePoolMap[nodePoolName].CreatedBy,
+				CreatedAt:          currentNodePoolMap[nodePoolName].CreatedAt,
+				ClusterModelId:     currentNodePoolMap[nodePoolName].ClusterModelId,
+				Name:               nodePoolName,
+				InstanceType:       nodePool.InstanceType,
+				SystemDiskCategory: nodePool.SystemDiskCategory,
+				SystemDiskSize:     nodePool.SystemDiskSize,
+				Image:              nodePool.Image,
+				Count:              nodePool.Count,
+			})
+		}
+	}
+	//TODO add support for new NodePools here
+	return updatedNodePools, nil
+}
+
 //CreateACSKClusterFromModel creates ClusterModel struct from the Alibaba model
 func CreateACSKClusterFromModel(clusterModel *model.ClusterModel) (*ACSKCluster, error) {
 	log.Debug("Create ClusterModel struct from the model")
@@ -570,7 +598,7 @@ func (c *ACSKCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, us
 	req := cs.CreateScaleClusterRequest()
 	req.ClusterId = c.modelCluster.ACSK.ClusterID
 
-	nodePoolModels, err := createACSKNodePoolsModelFromRequestData(request.ACSK.NodePools, userId)
+	nodePoolModels, err := c.createACSKNodePoolsModelFromUpdateRequestData(request.ACSK.NodePools, userId)
 	if err != nil {
 		return err
 	}
