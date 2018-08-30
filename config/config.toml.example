@@ -40,6 +40,9 @@ path = ""
 
 [drone]
 
+[github]
+token = "YourPersonalAccessToken"
+
 [auth]
 # GitHub settings
 clientid = ""
