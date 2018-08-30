@@ -38,8 +38,7 @@ func newErrorHandler() emperror.Handler {
 			err = emperror.With(
 				err,
 				"func", fmt.Sprintf("%n", frame), // nolint: govet
-				"file", fmt.Sprintf("%s", frame), // nolint: govet
-				"line", fmt.Sprintf("%d", frame),
+				"file", fmt.Sprintf("%v", frame), // nolint: govet
 			)
 		}
 
