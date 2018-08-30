@@ -1804,7 +1804,7 @@ paths:
         tags:
           - hpa
         summary: Create / Update Deployment Scaling
-        operationId: DeploymentAutoscalingPut
+        operationId: UpdateDeploymentAutoscaling
         description: Create / update scaling info for a Helm deployment
         parameters:
           - name: orgId
@@ -1853,7 +1853,7 @@ paths:
         tags:
           - hpa
         summary: Delete Deployment Scaling
-        operationId: DeploymentAutoscalingDelete
+        operationId: DeleteDeploymentAutoscaling
         description: Delete scaling info for a Helm deployment
         parameters:
           - name: orgId
@@ -1902,7 +1902,7 @@ paths:
         tags:
           - hpa
         summary: Get Deployment Scaling Info
-        operationId: DeploymentAutoscalingGet
+        operationId: GetDeploymentAutoscaling
         description: Get scaling info for a Helm deployment
         parameters:
           - name: orgId

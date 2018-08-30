@@ -4,13 +4,13 @@ All URIs are relative to *http://localhost:9090*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**DeploymentAutoscalingDelete**](HpaApi.md#DeploymentAutoscalingDelete) | **Delete** /api/v1/orgs/{orgId}/clusters/{id}/hpa | Delete Deployment Scaling
-[**DeploymentAutoscalingGet**](HpaApi.md#DeploymentAutoscalingGet) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/hpa | Get Deployment Scaling Info
-[**DeploymentAutoscalingPut**](HpaApi.md#DeploymentAutoscalingPut) | **Put** /api/v1/orgs/{orgId}/clusters/{id}/hpa | Create / Update Deployment Scaling
+[**DeleteDeploymentAutoscaling**](HpaApi.md#DeleteDeploymentAutoscaling) | **Delete** /api/v1/orgs/{orgId}/clusters/{id}/hpa | Delete Deployment Scaling
+[**GetDeploymentAutoscaling**](HpaApi.md#GetDeploymentAutoscaling) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/hpa | Get Deployment Scaling Info
+[**UpdateDeploymentAutoscaling**](HpaApi.md#UpdateDeploymentAutoscaling) | **Put** /api/v1/orgs/{orgId}/clusters/{id}/hpa | Create / Update Deployment Scaling
 
 
-# **DeploymentAutoscalingDelete**
-> DeploymentAutoscalingDelete(ctx, orgId, id, scaleTarget)
+# **DeleteDeploymentAutoscaling**
+> DeleteDeploymentAutoscaling(ctx, orgId, id, scaleTarget)
 Delete Deployment Scaling
 
 Delete scaling info for a Helm deployment
@@ -39,8 +39,8 @@ Name | Type | Description  | Notes
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **DeploymentAutoscalingGet**
-> DeploymentScalingResponse DeploymentAutoscalingGet(ctx, orgId, id, scaleTarget)
+# **GetDeploymentAutoscaling**
+> DeploymentScalingResponse GetDeploymentAutoscaling(ctx, orgId, id, scaleTarget)
 Get Deployment Scaling Info
 
 Get scaling info for a Helm deployment
@@ -69,8 +69,8 @@ Name | Type | Description  | Notes
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **DeploymentAutoscalingPut**
-> DeploymentAutoscalingPut(ctx, orgId, id, deploymentScalingRequest)
+# **UpdateDeploymentAutoscaling**
+> UpdateDeploymentAutoscaling(ctx, orgId, id, deploymentScalingRequest)
 Create / Update Deployment Scaling
 
 Create / update scaling info for a Helm deployment
