@@ -59,6 +59,7 @@ Class | Method | HTTP request | Description
 *CommonApi* | [**ListEndpoints**](docs/CommonApi.md#listendpoints) | **Get** /api | List Pipeline API endpoints
 *DeploymentApi* | [**DeleteDeployment**](docs/DeploymentApi.md#deletedeployment) | **Delete** /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name} | Delete deployment
 *DeploymentApi* | [**GetDeployment**](docs/DeploymentApi.md#getdeployment) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name} | Get deployment details
+*DeploymentApi* | [**GetDeploymentResource**](docs/DeploymentApi.md#getdeploymentresource) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name}/resources | Get deployment K8s resources
 *DeploymentApi* | [**HelmDeploymentStatus**](docs/DeploymentApi.md#helmdeploymentstatus) | **Head** /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name} | Check deployment status
 *DeploymentApi* | [**UpdateDeployment**](docs/DeploymentApi.md#updatedeployment) | **Put** /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name} | Update deployment
 *DeploymentsApi* | [**CreateDeployment**](docs/DeploymentsApi.md#createdeployment) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/deployments | Create a Helm deployment
@@ -71,6 +72,9 @@ Class | Method | HTTP request | Description
 *HelmApi* | [**HelmReposDelete**](docs/HelmApi.md#helmreposdelete) | **Delete** /api/v1/orgs/{orgId}/helm/repos/{repoName} | Delete Repo
 *HelmApi* | [**HelmReposModify**](docs/HelmApi.md#helmreposmodify) | **Put** /api/v1/orgs/{orgId}/helm/repos/{repoName} | Modify Repo
 *HelmApi* | [**HelmReposUpdate**](docs/HelmApi.md#helmreposupdate) | **Put** /api/v1/orgs/{orgId}/helm/repos/{repoName}/update | Update Repo
+*HpaApi* | [**DeleteDeploymentAutoscaling**](docs/HpaApi.md#deletedeploymentautoscaling) | **Delete** /api/v1/orgs/{orgId}/clusters/{id}/hpa | Delete Deployment Scaling
+*HpaApi* | [**GetDeploymentAutoscaling**](docs/HpaApi.md#getdeploymentautoscaling) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/hpa | Get Deployment Scaling Info
+*HpaApi* | [**UpdateDeploymentAutoscaling**](docs/HpaApi.md#updatedeploymentautoscaling) | **Put** /api/v1/orgs/{orgId}/clusters/{id}/hpa | Create / Update Deployment Scaling
 *InfoApi* | [**CreateResourceGroup**](docs/InfoApi.md#createresourcegroup) | **Post** /api/v1/orgs/{orgId}/azure/resourcegroups | Create resource groups
 *InfoApi* | [**DeleteResourceGroup**](docs/InfoApi.md#deleteresourcegroup) | **Delete** /api/v1/orgs/{orgId}/azure/resourcegroups/{name} | Delete resource group
 *InfoApi* | [**GetAmazonConfig**](docs/InfoApi.md#getamazonconfig) | **Get** /api/v1/orgs/{orgId}/cloudinfo/amazon | Get all amazon config
@@ -201,11 +205,19 @@ Class | Method | HTTP request | Description
  - [CreateUpdateDeploymentResponse](docs/CreateUpdateDeploymentResponse.md)
  - [CreateUpdateOkeProperties](docs/CreateUpdateOkeProperties.md)
  - [CreateUpdateOkePropertiesOke](docs/CreateUpdateOkePropertiesOke.md)
+ - [CustomMetric](docs/CustomMetric.md)
+ - [CustomMetricStatus](docs/CustomMetricStatus.md)
  - [DeleteDeploymentResponse](docs/DeleteDeploymentResponse.md)
+ - [DeploymentScaleStatus](docs/DeploymentScaleStatus.md)
+ - [DeploymentScalingRequest](docs/DeploymentScalingRequest.md)
+ - [DeploymentScalingResponse](docs/DeploymentScalingResponse.md)
+ - [DeploymentScalingResponseInner](docs/DeploymentScalingResponseInner.md)
  - [EndpointItem](docs/EndpointItem.md)
  - [GenTlsForLogging](docs/GenTlsForLogging.md)
  - [GetClusterStatusResponse](docs/GetClusterStatusResponse.md)
  - [GetClusterStatusResponseNodePools](docs/GetClusterStatusResponseNodePools.md)
+ - [GetDeploymentResourcesResponse](docs/GetDeploymentResourcesResponse.md)
+ - [GetDeploymentResourcesResponseInner](docs/GetDeploymentResourcesResponseInner.md)
  - [GetDeploymentResponse](docs/GetDeploymentResponse.md)
  - [GoogleConfigResponse](docs/GoogleConfigResponse.md)
  - [GoogleConfigResponseInstanceType](docs/GoogleConfigResponseInstanceType.md)
@@ -277,6 +289,8 @@ Class | Method | HTTP request | Description
  - [RequestedResources](docs/RequestedResources.md)
  - [ResourceGroupCreated](docs/ResourceGroupCreated.md)
  - [ResourceItem](docs/ResourceItem.md)
+ - [ResourceMetric](docs/ResourceMetric.md)
+ - [ResourceMetricStatus](docs/ResourceMetricStatus.md)
  - [ResourceSummaryItem](docs/ResourceSummaryItem.md)
  - [ResourceSummaryItemIp100100180Euwest1ComputeInternal](docs/ResourceSummaryItemIp100100180Euwest1ComputeInternal.md)
  - [RunPostHook](docs/RunPostHook.md)

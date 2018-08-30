@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/base64"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/banzaicloud/pipeline/auth"
@@ -216,6 +217,47 @@ func GetDeployment(c *gin.Context) {
 		ChartName:    deploymentResponse.ChartName,
 		ChartVersion: deploymentResponse.ChartVersion,
 		Values:       deploymentResponse.Values,
+	})
+
+}
+
+// GetDeploymentResources returns the resources of a helm deployment
+func GetDeploymentResources(c *gin.Context) {
+	name := c.Param("name")
+	log.Infof("getting resources for deployment: [%s]", name)
+
+	resourceTypesStr := c.Param("resourceTypes")
+	resourceTypes := make([]string, 0)
+	if len(resourceTypesStr) != 0 {
+		resourceTypes = append(resourceTypes, strings.Split(resourceTypesStr, ",")...)
+	}
+
+	kubeConfig, ok := GetK8sConfig(c)
+
+	if !ok {
+		log.Errorf("could not get the k8s config for querying the resources of deployment: [%s]", name)
+		return
+	}
+
+	deploymentResourcesResponse, err := helm.GetDeploymentK8sResources(name, kubeConfig, resourceTypes)
+	if err != nil {
+		log.Error("Error during getting deployment resources: ", err.Error())
+
+		httpStatusCode := http.StatusInternalServerError
+		if _, ok := err.(*helm.DeploymentNotFoundError); ok {
+			httpStatusCode = http.StatusNotFound
+		}
+
+		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
+			Code:    httpStatusCode,
+			Message: "Error getting deployment resources",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, pkgHelm.GetDeploymentResourcesResponse{
+		DeploymentResources: deploymentResourcesResponse,
 	})
 
 }

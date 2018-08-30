@@ -1,7 +1,7 @@
 {
 	"info": {
-		"_postman_id": "725cb9d0-7597-4d4f-a64f-e2b2ffe4075f",
 		"name": "End2End TEST Organizations",
+		"_postman_id": "7395acba-0436-7a71-6875-c031a55ca957",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -15,7 +15,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "ec1e0fec-7aaa-47c4-8291-994bca7959f2",
 								"type": "text/javascript",
 								"exec": [
 									"if (responseCode.code === 202) {",
@@ -82,7 +81,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "5bc38499-b525-420a-afa8-90a014bd61c6",
 								"type": "text/javascript",
 								"exec": [
 									"if (responseCode.code === 202) {",
@@ -149,7 +147,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "9e282e6c-9721-4751-b517-5c1dba9586c9",
 								"type": "text/javascript",
 								"exec": [
 									"if (responseCode.code === 202) {",
@@ -216,7 +213,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "eec597ba-2e63-4bb4-9290-0cc7c3893405",
 								"type": "text/javascript",
 								"exec": [
 									"if (responseCode.code === 202) {",
@@ -281,7 +277,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "5232f70c-d178-436d-a992-b604d49c96f7",
 								"type": "text/javascript",
 								"exec": [
 									"if (responseCode.code === 202) {",
@@ -346,7 +341,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "493fc410-642b-4a67-9918-15cba99924cf",
 								"type": "text/javascript",
 								"exec": [
 									"if (responseCode.code === 202) {",
@@ -411,7 +405,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "133037c8-8f18-472a-9a41-b2e1f8d1ed0c",
 								"type": "text/javascript",
 								"exec": [
 									"if (responseCode.code === 202) {",
@@ -476,7 +469,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "6ec41902-76cc-4855-a6bb-493efd481883",
 								"type": "text/javascript",
 								"exec": [
 									"if (responseCode.code === 202) {",
@@ -541,7 +533,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "280244b4-3d02-4c10-ad0a-b5c78395faa9",
 								"type": "text/javascript",
 								"exec": [
 									"if (responseCode.code === 202) {",
@@ -606,7 +597,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "ea0c7219-12a2-43e5-bc84-979f74bce0f9",
 								"type": "text/javascript",
 								"exec": [
 									"if (responseCode.code === 202) {",
@@ -671,7 +661,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "a5253a61-08cb-4fe1-acbe-d6622a685dfe",
 								"type": "text/javascript",
 								"exec": [
 									"if (responseCode.code === 202) {",
@@ -736,7 +725,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "b6a546ae-1702-4c0e-adbb-aba4962a525b",
 								"type": "text/javascript",
 								"exec": [
 									"if (responseCode.code === 202) {",
@@ -801,7 +789,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "96ce4b50-df4b-488b-abec-e2e8ac247241",
 								"type": "text/javascript",
 								"exec": [
 									"if (responseCode.code === 202) {",
@@ -1588,7 +1575,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "45a59709-e59d-4448-a5c2-b7b9fda53c6d",
 								"type": "text/javascript",
 								"exec": [
 									"if (responseCode.code === 200) {",
@@ -1729,7 +1715,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "9ebb239a-0b70-43c7-ad0e-f64f0fa13132",
 								"type": "text/javascript",
 								"exec": [
 									"if (responseCode.code === 200) {",
@@ -2468,7 +2453,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "cec26eef-9547-46b5-9589-cc474849de06",
 								"type": "text/javascript",
 								"exec": [
 									"if (responseCode.code === 201) {",
@@ -2899,7 +2883,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "48669766-e2df-48b2-982c-7480fa70ef88",
 								"type": "text/javascript",
 								"exec": [
 									"",
@@ -3108,6 +3091,88 @@
 							]
 						},
 						"description": "Get Deployment details\n"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Deployment Resources",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (responseCode.code === 201) {",
+									"    tests[\"Response Code 201\"] = responseCode.code == 201;",
+									"    var dataJSON = JSON.parse(responseBody);",
+									"",
+									"    pm.environment.set(\"deployment_name\", dataJSON.releaseName);",
+									"",
+									"} else {",
+									"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+									"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+									"    postman.setNextRequest(null);",
+									"}",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"deployments\": {\n\t\t\"k8s_deployment_name\": {\n\t\t\t\"minReplicas\": 1,\n\t\t\t\"maxReplicas\": 3,\n\t\t\t\"metrics\": {\n\t\t\t\t\"cpu.hpa.autoscaling.banzaicloud.io\": {\n\t\t\t\t\t\"targetAverageUtilization\": 70,\n\t\t\t\t\t\"currentAverageUtilization\": 30,\n\t\t\t\t\t\"currentAverageValue\":\"2m\",\n\t\t\t\t\t\"targetAverageValue\":\"700m\"\n\t\t\t\t},\n\t\t\t\t\"memory.hpa.autoscaling.banzaicloud.io\": {\n\t\t\t\t\t\"targetAverageValue\": \"1000Mi\",\n\t\t\t\t\t\"currentAverageValue\":\"847921152\",\n\t\t\t\t\t\"targetAverageUtilization\": 70,\n\t\t\t\t\t\"currentAverageUtilization\": 20\n\t\t\t\t},\n\t\t\t\t\"pod.hpa.autoscaling.banzaicloud.io/metric.name\": {\n\t\t\t\t\t\"targetValue\": \"1000Mi\",\n\t\t\t\t\t\"currentValue\": \"\"\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"status\": {\n\t\t\t\t\"currentReplicas\": 1,\n                \"desiredReplicas\": 1,\n\t\t\t\t\"message\": \"FailedGetPodsMetric\\\",\\\"message\\\":\\\"the HPA was unable to compute the replica count: unable to get metric custom_metric_name: unable to fetch metrics from API: the server could not find the requested resource (get pods.custom.metrics.k8s.io *)\"\n\t\t\t}\n\t\t}\n\t}\n}"
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/deployments/:deploymentName/resources?resourceTyeps=deployment",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"clusters",
+								":clusterId",
+								"deployments",
+								":deploymentName",
+								"resources"
+							],
+							"query": [
+								{
+									"key": "resourceTyeps",
+									"value": "deployment",
+									"equals": true
+								}
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": ""
+								},
+								{
+									"key": "clusterId",
+									"value": ""
+								},
+								{
+									"key": "deploymentName",
+									"value": ""
+								}
+							]
+						},
+						"description": "Get Deployment Resources"
 					},
 					"response": []
 				}
@@ -3840,7 +3905,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "758c2ef0-cdc6-48d9-8dd5-566c984e5b6a",
 										"type": "text/javascript",
 										"exec": [
 											"if (responseCode.code === 201) {",
@@ -3902,7 +3966,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "d7954c6e-e811-417f-b9e2-eaca0ffce6b5",
 										"type": "text/javascript",
 										"exec": [
 											"if (responseCode.code === 200) {",
@@ -4110,7 +4173,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "d8038499-7141-4481-a069-f143b3278ce7",
 										"type": "text/javascript",
 										"exec": [
 											"if (responseCode.code === 201) {",
@@ -4172,7 +4234,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "0ceca44e-7ae2-436b-bfa8-8ce82720960f",
 										"type": "text/javascript",
 										"exec": [
 											"if (responseCode.code === 200) {",
@@ -4380,7 +4441,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "ff48f571-d053-4776-b424-99ff9aa93cae",
 										"type": "text/javascript",
 										"exec": [
 											"if (responseCode.code === 201) {",
@@ -4442,7 +4502,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "544955ee-57a2-4f57-9bbf-b66ec9ecc937",
 										"type": "text/javascript",
 										"exec": [
 											"if (responseCode.code === 200) {",
@@ -4650,7 +4709,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "93563df6-0e89-4844-b1af-c3fc00c54d00",
 										"type": "text/javascript",
 										"exec": [
 											"if (responseCode.code === 201) {",
@@ -4712,7 +4770,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "145d663b-3497-4b6d-bc7e-9b74a8e52e89",
 										"type": "text/javascript",
 										"exec": [
 											"if (responseCode.code === 200) {",
@@ -4920,7 +4977,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "94ae9819-7f2d-41a0-99f7-575a3cafe154",
 										"type": "text/javascript",
 										"exec": [
 											"if (responseCode.code === 201) {",
@@ -4982,7 +5038,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "4c007d41-46be-455b-b772-c873cf1877fa",
 										"type": "text/javascript",
 										"exec": [
 											"if (responseCode.code === 200) {",
@@ -5190,7 +5245,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "4b16fbe4-a3e2-4fef-b590-ea30a7193575",
 										"type": "text/javascript",
 										"exec": [
 											"if (responseCode.code === 201) {",
@@ -5252,7 +5306,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "22e6717c-a297-4229-9df5-85953ba2141f",
 										"type": "text/javascript",
 										"exec": [
 											"if (responseCode.code === 200) {",
@@ -5420,7 +5473,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "6c2c2479-6325-463e-a157-d3e264590ce9",
 										"type": "text/javascript",
 										"exec": [
 											"if (responseCode.code === 201) {",
@@ -5482,7 +5534,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "57ba72a3-3614-4853-a228-6ce1f2078617",
 										"type": "text/javascript",
 										"exec": [
 											"if (responseCode.code === 200) {",
@@ -5651,7 +5702,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "54896135-96fa-4ebe-b872-ab3ebb7068b8",
 										"type": "text/javascript",
 										"exec": [
 											"if (responseCode.code === 201) {",
@@ -5713,7 +5763,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "d8cb2b0a-3fdf-40e0-b364-13506a2c040d",
 										"type": "text/javascript",
 										"exec": [
 											"if (responseCode.code === 200) {",
@@ -5882,7 +5931,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "412dae10-a46f-4cd7-ae70-d13549e1a196",
 										"type": "text/javascript",
 										"exec": [
 											"if (responseCode.code === 201) {",
@@ -5944,7 +5992,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "4c8d97eb-4f8d-4a3a-9e8f-bf9313751e1f",
 										"type": "text/javascript",
 										"exec": [
 											"if (responseCode.code === 200) {",
@@ -6113,7 +6160,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "4cb61d25-1bb3-42b7-85ff-c3555b409fd2",
 										"type": "text/javascript",
 										"exec": [
 											"if (responseCode.code === 201) {",
@@ -8866,7 +8912,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "ee8f4c9a-6dca-4238-8fbe-e7903649ba03",
 								"type": "text/javascript",
 								"exec": [
 									"if (responseCode.code === 201) {",
@@ -8977,6 +9022,230 @@
 			]
 		},
 		{
+			"name": "Hpa",
+			"description": "",
+			"item": [
+				{
+					"name": "Get Hpa for K8s deployment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (responseCode.code === 201) {",
+									"    tests[\"Response Code 201\"] = responseCode.code == 201;",
+									"    var dataJSON = JSON.parse(responseBody);",
+									"",
+									"    pm.environment.set(\"deployment_name\", dataJSON.releaseName);",
+									"",
+									"} else {",
+									"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+									"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+									"    postman.setNextRequest(null);",
+									"}",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"deployments\": {\n\t\t\"k8s_deployment_name\": {\n\t\t\t\"minReplicas\": 1,\n\t\t\t\"maxReplicas\": 3,\n\t\t\t\"metrics\": {\n\t\t\t\t\"cpu.hpa.autoscaling.banzaicloud.io\": {\n\t\t\t\t\t\"targetAverageUtilization\": 70,\n\t\t\t\t\t\"currentAverageUtilization\": 30,\n\t\t\t\t\t\"currentAverageValue\":\"2m\",\n\t\t\t\t\t\"targetAverageValue\":\"700m\"\n\t\t\t\t},\n\t\t\t\t\"memory.hpa.autoscaling.banzaicloud.io\": {\n\t\t\t\t\t\"targetAverageValue\": \"1000Mi\",\n\t\t\t\t\t\"currentAverageValue\":\"847921152\",\n\t\t\t\t\t\"targetAverageUtilization\": 70,\n\t\t\t\t\t\"currentAverageUtilization\": 20\n\t\t\t\t},\n\t\t\t\t\"pod.hpa.autoscaling.banzaicloud.io/metric.name\": {\n\t\t\t\t\t\"targetValue\": \"1000Mi\",\n\t\t\t\t\t\"currentValue\": \"\"\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"status\": {\n\t\t\t\t\"currentReplicas\": 1,\n                \"desiredReplicas\": 1,\n\t\t\t\t\"message\": \"FailedGetPodsMetric\\\",\\\"message\\\":\\\"the HPA was unable to compute the replica count: unable to get metric custom_metric_name: unable to fetch metrics from API: the server could not find the requested resource (get pods.custom.metrics.k8s.io *)\"\n\t\t\t}\n\t\t}\n\t}\n}"
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/hpa?scaleTarget=:k8s_deployment_name",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"clusters",
+								":clusterId",
+								"hpa"
+							],
+							"query": [
+								{
+									"key": "scaleTarget",
+									"value": ":k8s_deployment_name",
+									"equals": true
+								}
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": ""
+								},
+								{
+									"key": "clusterId",
+									"value": ""
+								}
+							]
+						},
+						"description": "Get Hpa for K8s deployment"
+					},
+					"response": []
+				},
+				{
+					"name": "Create / Update Hpa for K8s deployment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (responseCode.code === 201) {",
+									"    tests[\"Response Code 201\"] = responseCode.code == 201;",
+									"    var dataJSON = JSON.parse(responseBody);",
+									"",
+									"    pm.environment.set(\"deployment_name\", dataJSON.releaseName);",
+									"",
+									"} else {",
+									"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+									"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+									"    postman.setNextRequest(null);",
+									"}",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"scaleTarget\": \"k8sDeploymentName\",\n\t\"minReplicas\": 1,\n\t\"maxReplicas\": 4,\n\t\"cpu\": {\n        \"targetAverageValueType\": \"percentage\",\n        \"targetAverageValue\": \"60\"\n\t},\n\t\"memory\": {\n        \"targetAverageValueType\": \"quantity\",\n        \"targetAverageValue\": \"1100Mi\"\n\t},\n\t\"customMetrics\": {\n\t\t\"customMetricName\": {\n\t\t\t\"type\": \"pod\",\n\t\t\t\"targetAverageValue\": \"700m\"\n\t\t}\n\t}\n}\n"
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/hpa",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"clusters",
+								":clusterId",
+								"hpa"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": ""
+								},
+								{
+									"key": "clusterId",
+									"value": ""
+								}
+							]
+						},
+						"description": "Create / Update Hpa for K8s deployment"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Hpa for K8s deployment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (responseCode.code === 201) {",
+									"    tests[\"Response Code 201\"] = responseCode.code == 201;",
+									"    var dataJSON = JSON.parse(responseBody);",
+									"",
+									"    pm.environment.set(\"deployment_name\", dataJSON.releaseName);",
+									"",
+									"} else {",
+									"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+									"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+									"    postman.setNextRequest(null);",
+									"}",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/hpa?scaleTarget=:k8sDeploymentName",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"clusters",
+								":clusterId",
+								"hpa"
+							],
+							"query": [
+								{
+									"key": "scaleTarget",
+									"value": ":k8sDeploymentName",
+									"equals": true
+								}
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": ""
+								},
+								{
+									"key": "clusterId",
+									"value": ""
+								}
+							]
+						},
+						"description": "Delete Hpa for K8s deployment"
+					},
+					"response": []
+				}
+			]
+		},
+		{
 			"name": "Get API Endpoints",
 			"request": {
 				"method": "GET",
@@ -8996,38 +9265,6 @@
 				}
 			},
 			"response": []
-		}
-	],
-	"auth": {
-		"type": "bearer",
-		"bearer": [
-			{
-				"key": "token",
-				"value": "{{token}}",
-				"type": "string"
-			}
-		]
-	},
-	"event": [
-		{
-			"listen": "prerequest",
-			"script": {
-				"id": "5cfcfbdb-9fe1-4cab-9b82-e3d6808a59d6",
-				"type": "text/javascript",
-				"exec": [
-					""
-				]
-			}
-		},
-		{
-			"listen": "test",
-			"script": {
-				"id": "fc13eae6-5e8d-4024-9f9c-0fc8ef4b6e19",
-				"type": "text/javascript",
-				"exec": [
-					""
-				]
-			}
 		}
 	]
 }
