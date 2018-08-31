@@ -119,8 +119,26 @@ func (*ACSKCluster) RequiresSshPublicKey() bool {
 	return true
 }
 
-func (*ACSKCluster) ListNodeNames() (pkgCommon.NodeNames, error) {
-	return nil, nil
+func (c *ACSKCluster) ListNodeNames() (nodes pkgCommon.NodeNames, err error) {
+	client, err := c.GetAlibabaCSClient(nil)
+	if err != nil {
+		return
+	}
+
+	r, err := getClusterDetails(client, c.modelCluster.ACSK.ClusterID)
+	for _, v := range r.Outputs {
+		if v.OutputKey == "NodeInstanceIDs" {
+			var result []string
+			convertedValue := v.OutputValue.([]interface{})
+			for _, v := range convertedValue {
+				result = append(result, fmt.Sprint(c.modelCluster.ACSK.RegionID, ".", v.(string)))
+			}
+			nodes = map[string][]string{
+				c.modelCluster.ACSK.NodePools[0].Name: result,
+			}
+		}
+	}
+	return
 }
 
 // GetAlibabaCSClient creates an Alibaba Container Service client with the credentials
