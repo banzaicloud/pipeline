@@ -1461,3 +1461,13 @@ func GetEC2NodePools(cluster CommonCluster) ([]*model.AmazonNodePoolsModel, erro
 
 	return ec2cluster.modelCluster.EC2.NodePools, nil
 }
+
+// NeedAdminRights returns true if rbac is enabled and need to create a cluster role binding to user
+func (c *EC2Cluster) NeedAdminRights() bool {
+	return false
+}
+
+// GetKubernetesUserName returns the user ID which needed to create a cluster role binding which gives admin rights to the user
+func (c *EC2Cluster) GetKubernetesUserName() (string, error) {
+	return "", nil
+}

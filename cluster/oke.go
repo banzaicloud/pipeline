@@ -3,12 +3,6 @@ package cluster
 import (
 	"fmt"
 
-	"github.com/pkg/errors"
-	"k8s.io/api/core/v1"
-	"k8s.io/api/rbac/v1beta1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
@@ -20,6 +14,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/providers/oracle/oci"
 	secretOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/secret"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/pkg/errors"
 )
 
 // OKECluster struct for OKE cluster
@@ -88,11 +83,6 @@ func (o *OKECluster) CreateCluster() error {
 	err = cm.ManageOKECluster(&o.modelCluster.OKE)
 	if err != nil {
 		return errors.Wrap(err, "error creating cluster")
-	}
-
-	err = o.setClusterAdminRights("cluster-creator-admin-right")
-	if err != nil {
-		return errors.WithMessage(err, "error get/create clusterrolebinding")
 	}
 
 	return nil
@@ -555,53 +545,23 @@ func (o *OKECluster) RbacEnabled() bool {
 	return true
 }
 
-// setClusterAdminRights creates a cluster role binding which gives admin
-// rights to the user ocid specified in the secret used to create the cluster
-func (o *OKECluster) setClusterAdminRights(name string) error {
+// NeedAdminRights returns true if rbac is enabled and need to create a cluster role binding to user
+func (o *OKECluster) NeedAdminRights() bool {
+	return true
+}
 
-	kubeConfig, err := o.GetK8sConfig()
+// GetKubernetesUserName returns the user ID which needed to create a cluster role binding which gives admin rights to the user
+func (o *OKECluster) GetKubernetesUserName() (string, error) {
+
+	s, err := o.GetSecretWithValidation()
 	if err != nil {
-		return errors.Wrap(err, "error getting k8s config")
+		return "", errors.Wrap(err, "error getting secret")
 	}
 
-	client, err := helm.GetK8sConnection(kubeConfig)
-	if err != nil {
-		return errors.Wrap(err, "error getting k8s client")
+	if s.Values[secretOracle.UserOCID] == "" {
+		return "", errors.New("empty user OCID")
 	}
 
-	secret, err := o.GetSecretWithValidation()
-	if err != nil {
-		return errors.Wrap(err, "error getting secret")
-	}
+	return s.Values[secretOracle.UserOCID], nil
 
-	if secret.Values[secretOracle.UserOCID] == "" {
-		return errors.New("empty user OCID")
-	}
-
-	_, err = client.RbacV1beta1().ClusterRoleBindings().Create(
-		&v1beta1.ClusterRoleBinding{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: name,
-			},
-			Subjects: []v1beta1.Subject{
-				{
-					Kind:     "User",
-					Name:     secret.Values["user_ocid"],
-					APIGroup: v1.GroupName,
-				},
-			},
-			RoleRef: v1beta1.RoleRef{
-				Kind:     "ClusterRole",
-				Name:     "cluster-admin",
-				APIGroup: v1beta1.GroupName,
-			},
-		})
-
-	if err != nil {
-		return errors.Wrap(err, "creating cluster role binding failed")
-	}
-
-	log.WithField("name", name).Info("cluster role binding created")
-
-	return nil
 }

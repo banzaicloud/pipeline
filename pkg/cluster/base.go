@@ -56,6 +56,7 @@ const (
 // constants for posthooks
 const (
 	StoreKubeConfig                        = "StoreKubeConfig"
+	SetupPrivileges                        = "SetupPrivileges"
 	PersistKubernetesKeys                  = "PersistKubernetesKeys"
 	UpdatePrometheusPostHook               = "UpdatePrometheusPostHook"
 	InstallHelmPostHook                    = "InstallHelmPostHook"

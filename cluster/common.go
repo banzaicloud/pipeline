@@ -60,6 +60,8 @@ type CommonCluster interface {
 	GetK8sConfig() ([]byte, error)
 	RequiresSshPublicKey() bool
 	RbacEnabled() bool
+	NeedAdminRights() bool
+	GetKubernetesUserName() (string, error)
 
 	// Cluster info
 	GetStatus() (*pkgCluster.GetClusterStatusResponse, error)

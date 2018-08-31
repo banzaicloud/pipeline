@@ -21,6 +21,7 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"k8s.io/api/core/v1"
 	"k8s.io/api/rbac/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -430,6 +431,7 @@ func InstallKubernetesDashboardPostHook(input interface{}) error {
 	var valuesJson []byte
 
 	if cluster.RbacEnabled() {
+
 		// create service account
 		kubeConfig, err := cluster.GetK8sConfig()
 		if err != nil {
@@ -534,6 +536,36 @@ func InstallKubernetesDashboardPostHook(input interface{}) error {
 
 }
 
+func setAdminRights(client *kubernetes.Clientset, userName string) (err error) {
+
+	name := "cluster-creator-admin-right"
+
+	log := log.WithFields(logrus.Fields{"name": name, "user": userName})
+
+	log.Info("cluster role creating")
+
+	_, err = client.RbacV1beta1().ClusterRoleBindings().Create(
+		&v1beta1.ClusterRoleBinding{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: name,
+			},
+			Subjects: []v1beta1.Subject{
+				{
+					Kind:     "User",
+					Name:     userName,
+					APIGroup: v1.GroupName,
+				},
+			},
+			RoleRef: v1beta1.RoleRef{
+				Kind:     "ClusterRole",
+				Name:     "cluster-admin",
+				APIGroup: v1beta1.GroupName,
+			},
+		})
+
+	return
+}
+
 //InstallClusterAutoscalerPostHook post hook only for AWS & Azure for now
 func InstallClusterAutoscalerPostHook(input interface{}) error {
 	cluster, ok := input.(CommonCluster)
@@ -631,6 +663,41 @@ func StoreKubeConfig(input interface{}) error {
 	}
 
 	return StoreKubernetesConfig(cluster, config)
+}
+
+// SetupPrivileges setups privileges
+func SetupPrivileges(input interface{}) error {
+
+	cluster, ok := input.(CommonCluster)
+	if !ok {
+		return errors.Errorf("Wrong parameter type: %T", cluster)
+	}
+
+	// set admin rights (if needed)
+	if cluster.NeedAdminRights() {
+
+		kubeConfig, err := cluster.GetK8sConfig()
+		if err != nil {
+			return err
+		}
+
+		client, err := helm.GetK8sConnection(kubeConfig)
+		if err != nil {
+			return err
+		}
+
+		userName, err := cluster.GetKubernetesUserName()
+		if err != nil {
+			return err
+		}
+
+		if err := setAdminRights(client, userName); err != nil {
+			return err
+		}
+
+	}
+
+	return nil
 }
 
 // RegisterDomainPostHook registers a subdomain using the name of the current organization
