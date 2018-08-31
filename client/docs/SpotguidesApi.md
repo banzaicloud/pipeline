@@ -5,6 +5,7 @@ All URIs are relative to *http://localhost:9090*
 Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**GetSpotguideDetail**](SpotguidesApi.md#GetSpotguideDetail) | **Get** /api/v1/orgs/{orgId}/spotguides/{name} | Get spotguide details
+[**ListSpotguides**](SpotguidesApi.md#ListSpotguides) | **Get** /api/v1/orgs/{orgId}/spotguides | List spotguides
 [**UpdateSpotguides**](SpotguidesApi.md#UpdateSpotguides) | **Put** /api/v1/orgs/{orgId}/spotguides | Update spotguide repositories
 
 
@@ -25,6 +26,34 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**SpotguideDetailsResponse**](SpotguideDetailsResponse.md)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **ListSpotguides**
+> ListSpotguidesResponse ListSpotguides(ctx, orgId)
+List spotguides
+
+List all available spotguides
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+  **orgId** | **int32**| Organization identification | 
+
+### Return type
+
+[**ListSpotguidesResponse**](ListSpotguidesResponse.md)
 
 ### Authorization
 

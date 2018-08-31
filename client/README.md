@@ -91,6 +91,7 @@ Class | Method | HTTP request | Description
 *SecretsApi* | [**UpdateSecrets**](docs/SecretsApi.md#updatesecrets) | **Put** /api/v1/orgs/{orgId}/secrets/{secretId} | Update secrets
 *SecretsApi* | [**ValidateSecret**](docs/SecretsApi.md#validatesecret) | **Get** /api/v1/orgs/{orgId}/secrets/{secretId}/validate | Validate secret
 *SpotguidesApi* | [**GetSpotguideDetail**](docs/SpotguidesApi.md#getspotguidedetail) | **Get** /api/v1/orgs/{orgId}/spotguides/{name} | Get spotguide details
+*SpotguidesApi* | [**ListSpotguides**](docs/SpotguidesApi.md#listspotguides) | **Get** /api/v1/orgs/{orgId}/spotguides | List spotguides
 *SpotguidesApi* | [**UpdateSpotguides**](docs/SpotguidesApi.md#updatespotguides) | **Put** /api/v1/orgs/{orgId}/spotguides | Update spotguide repositories
 *StorageApi* | [**CreateObjectStoreBucket**](docs/StorageApi.md#createobjectstorebucket) | **Post** /api/v1/orgs/{orgId}/buckets | Creates a new object store bucket with the given params
 *StorageApi* | [**DeleteObjectStoreBucket**](docs/StorageApi.md#deleteobjectstorebucket) | **Delete** /api/v1/orgs/{orgId}/buckets/{name} | Deletes the object store bucket with the given name

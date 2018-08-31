@@ -64,7 +64,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/ListSpotguidesResponse'
 
-  '/api/v1/orgs/{orgId}/spotguides':
     put:
       security:
         - bearerAuth: []
