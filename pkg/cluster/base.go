@@ -179,14 +179,6 @@ type UpdateClusterRequest struct {
 	UpdateProperties `json:"properties"`
 }
 
-// DeleteClusterResponse describes Pipeline's DeleteCluster API response
-type DeleteClusterResponse struct {
-	Status     int    `json:"status"`
-	Name       string `json:"name"`
-	Message    string `json:"message"`
-	ResourceID uint   `json:"id"`
-}
-
 // UpdateProperties describes Pipeline's UpdateCluster request properties
 type UpdateProperties struct {
 	ACSK  *acsk.UpdateClusterACSK     `json:"acsk,omitempty"`
