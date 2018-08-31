@@ -199,7 +199,6 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 	if loggingParam.GenTLSForLogging.GenTLSSecretName == "" {
 		loggingParam.GenTLSForLogging.GenTLSSecretName = fmt.Sprintf("logging-tls-%d", cluster.GetID())
 	}
-
 	if loggingParam.GenTLSForLogging.TLSEnabled {
 		clusterUidTag := fmt.Sprintf("clusterUID:%s", cluster.GetUID())
 		req := &secret.CreateSecretRequest{
@@ -227,11 +226,6 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 			return errors.Errorf("could not install created TLS secret to cluster: %s", err)
 		}
 	}
-	// Install output related secret
-	installedSecretValues, err := InstallSecretWithVaultID(cluster, loggingParam.SecretId, loggingParam.GenTLSForLogging.Namespace)
-	if err != nil {
-		return err
-	}
 	operatorValues := map[string]interface{}{
 		"tls": map[string]interface{}{
 			"enabled":    "true",
@@ -246,19 +240,48 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 	if err != nil {
 		return err
 	}
-	loggingValues := map[string]interface{}{
-		"bucketName": loggingParam.BucketName,
-		"region":     loggingParam.Region,
-		"secret": map[string]interface{}{
-			"secretName": installedSecretValues.Name,
-		},
-	}
-	marshaledValues, err := yaml.Marshal(loggingValues)
+
+	// Determine the type of output plugin
+	logSecret, err := secret.Store.Get(cluster.GetOrganizationId(), loggingParam.SecretId)
 	if err != nil {
 		return err
 	}
+	switch logSecret.Type {
+	case pkgCluster.Amazon:
+		installedSecretValues, err := InstallSecretWithVaultID(cluster, loggingParam.SecretId, loggingParam.GenTLSForLogging.Namespace)
+		if err != nil {
+			return err
+		}
+		loggingValues := map[string]interface{}{
+			"bucketName": loggingParam.BucketName,
+			"region":     loggingParam.Region,
+			"secret": map[string]interface{}{
+				"secretName": installedSecretValues.Name,
+			},
+		}
+		marshaledValues, err := yaml.Marshal(loggingValues)
+		if err != nil {
+			return err
+		}
+		return installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/s3-output", "pipeline-s3-output", marshaledValues, "ConfigureLoggingOutPut", "")
+	case pkgCluster.Google:
+		installedSecretValues, err := InstallSecretWithVaultID(cluster, loggingParam.SecretId, loggingParam.GenTLSForLogging.Namespace)
+		loggingValues := map[string]interface{}{
+			"bucketName": loggingParam.BucketName,
+			"secret": map[string]interface{}{
+				"name": installedSecretValues.Name,
+			},
+		}
+		marshaledValues, err := yaml.Marshal(loggingValues)
+		if err != nil {
+			return err
+		}
+		return installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/gcs-output", "pipeline-gcs-output", marshaledValues, "ConfigureLoggingOutPut", "")
+	default:
+		return fmt.Errorf("unexpected logging secret type: %s", logSecret.Type)
+	}
+	// Install output related secret
 
-	return installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/s3-output", "pipeline-logging-output", marshaledValues, "ConfigureLoggingOutPut", "")
 }
 
 //func checkIfTLSRelatedValuesArePresent(v *pkgCluster.GenTLSForLogging) bool {
