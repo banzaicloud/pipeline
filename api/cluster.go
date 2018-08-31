@@ -14,18 +14,15 @@ import (
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
+	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/utils"
-	"github.com/banzaicloud/pipeline/model"
-	"github.com/banzaicloud/pipeline/model/defaults"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-	newmodel "github.com/banzaicloud/pipeline/pkg/model"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -54,13 +51,6 @@ const (
 	zeroMemory = "0 B"
 )
 
-//ParseField is to restrict other query TODO investigate to just pass the hasmap
-func ParseField(c *gin.Context) map[string]interface{} {
-	value := c.Param("id")
-	field := c.DefaultQuery("field", "id")
-	return map[string]interface{}{field: value}
-}
-
 // UpdateMonitoring updating prometheus
 func UpdateMonitoring(c *gin.Context) {
 	cluster.UpdatePrometheus()
@@ -68,85 +58,66 @@ func UpdateMonitoring(c *gin.Context) {
 	return
 }
 
-// GetCommonClusterFromFilter get filtered cluster
-func GetCommonClusterFromFilter(c *gin.Context, filter map[string]interface{}) (cluster.CommonCluster, bool) {
-	modelCluster, err := model.QueryCluster(filter)
-	if err != nil {
-		log.Errorf("Cluster not found: %s", err.Error())
-		c.JSON(http.StatusNotFound, pkgCommon.ErrorResponse{
-			Code:    http.StatusNotFound,
-			Message: "Cluster not found",
-			Error:   err.Error(),
-		})
-		return nil, false
-	}
+// getClusterFromRequest just a simple getter to build commonCluster object this handles error messages directly
+func getClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
+	var cl cluster.CommonCluster
+	var err error
 
-	if len(modelCluster) == 0 {
-		log.Error("Empty cluster list")
-		c.JSON(http.StatusNotFound, pkgCommon.ErrorResponse{
-			Code:    http.StatusNotFound,
-			Message: "Cluster not found",
-			Error:   "",
-		})
-		return nil, false
-	}
+	// TODO: move these to a struct and create them only once upon application init
+	clusters := intCluster.NewClusters(config.DB())
+	secretValidator := providers.NewSecretValidator(secret.Store)
+	clusterManager := cluster.NewManager(clusters, secretValidator, log, errorHandler)
 
-	commonCLuster, err := cluster.GetCommonClusterFromModel(&modelCluster[0])
-	if err != nil {
-		log.Errorf("GetCommonClusterFromModel failed: %s", err.Error())
-		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error parsing request",
-			Error:   err.Error(),
-		})
-		return nil, false
-	}
-	return commonCLuster, true
-}
-
-// GetCommonClusterFromRequest just a simple getter to build commonCluster object this handles error messages directly
-func GetCommonClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
-	filter := ParseField(c)
-
-	// Filter for organisation
-	filter["organization_id"] = c.Request.Context().Value(auth.CurrentOrganization).(*auth.Organization).ID
-	return GetCommonClusterFromFilter(c, filter)
-}
-
-//CreateClusterRequest gin handler
-func CreateClusterRequest(c *gin.Context) {
-	//TODO refactor logging here
-
-	log.Info("Cluster creation started")
-
-	log.Debug("Bind json into CreateClusterRequest struct")
-	// bind request body to struct
-	var createClusterRequest pkgCluster.CreateClusterRequest
-	if err := c.BindJSON(&createClusterRequest); err != nil {
-		log.Error(errors.Wrap(err, "Error parsing request"))
-		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error parsing request",
-			Error:   err.Error(),
-		})
-		return
-	}
-
-	orgID := auth.GetCurrentOrganization(c.Request).ID
-	userID := auth.GetCurrentUser(c.Request).ID
-
-	ph := getPostHookFunctions(createClusterRequest.PostHooks)
 	ctx := ginutils.Context(context.Background(), c)
-	commonCluster, err := CreateCluster(ctx, &createClusterRequest, orgID, userID, ph)
-	if err != nil {
-		c.JSON(err.Code, err)
-		return
+
+	organizationID := auth.GetCurrentOrganization(c.Request).ID
+
+	logger := log.WithField("organization", organizationID)
+
+	switch c.DefaultQuery("field", "id") {
+	case "id":
+		clusterID, ok := ginutils.UintParam(c, "id")
+		if !ok {
+			log.Debug("invalid ID parameter")
+
+			return nil, false
+		}
+
+		logger = logger.WithField("cluster", clusterID)
+
+		cl, err = clusterManager.GetClusterByID(ctx, organizationID, clusterID)
+	case "name":
+		clusterName := c.Param("id")
+
+		logger = logger.WithField("cluster", clusterName)
+
+		cl, err = clusterManager.GetClusterByName(ctx, organizationID, clusterName)
+	default:
 	}
 
-	c.JSON(http.StatusAccepted, pkgCluster.CreateClusterResponse{
-		Name:       commonCluster.GetName(),
-		ResourceID: commonCluster.GetID(),
-	})
+	if isNotFound(err) {
+		logger.Debug("cluster not found")
+
+		c.JSON(http.StatusNotFound, pkgCommon.ErrorResponse{
+			Code:    http.StatusNotFound,
+			Message: "cluster not found",
+			Error:   err.Error(),
+		})
+
+		return nil, false
+	} else if err != nil {
+		errorHandler.Handle(err)
+
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "error parsing request",
+			Error:   err.Error(),
+		})
+
+		return nil, false
+	}
+
+	return cl, true
 }
 
 func getPostHookFunctions(postHooks pkgCluster.PostHooks) (ph []cluster.PostFunctioner) {
@@ -176,112 +147,10 @@ func getPostHookFunctions(postHooks pkgCluster.PostHooks) (ph []cluster.PostFunc
 	return
 }
 
-// CreateCluster creates a K8S cluster in the cloud
-func CreateCluster(
-	ctx context.Context,
-	createClusterRequest *pkgCluster.CreateClusterRequest,
-	organizationID uint,
-	userID uint,
-	postHooks []cluster.PostFunctioner,
-) (cluster.CommonCluster, *pkgCommon.ErrorResponse) {
-	logger := log.WithFields(logrus.Fields{
-		"organization": organizationID,
-		"user":         userID,
-		"cluster":      createClusterRequest.Name,
-	})
-
-	// TODO: refactor profile handling as well?
-	if len(createClusterRequest.ProfileName) != 0 {
-		logger = logger.WithField("profile", createClusterRequest.ProfileName)
-
-		logger.Info("fill data from profile")
-
-		profile, err := defaults.GetProfile(createClusterRequest.Cloud, createClusterRequest.ProfileName)
-		if err != nil {
-			return nil, &pkgCommon.ErrorResponse{
-				Code:    http.StatusNotFound,
-				Message: "error during getting profile",
-				Error:   err.Error(),
-			}
-		}
-
-		logger.Info("create profile response")
-		profileResponse := profile.GetProfile()
-
-		logger.Info("create cluster request from profile")
-		newRequest, err := profileResponse.CreateClusterRequest(createClusterRequest)
-		if err != nil {
-			logger.Errorf("error during getting cluster request from profile: %s", err.Error())
-
-			return nil, &pkgCommon.ErrorResponse{
-				Code:    http.StatusBadRequest,
-				Message: "Error creating request from profile",
-				Error:   err.Error(),
-			}
-		}
-
-		createClusterRequest = newRequest
-
-		logger.Infof("modified clusterRequest: %v", createClusterRequest)
-	}
-
-	logger.Info("Creating new entry with cloud type: ", createClusterRequest.Cloud)
-
-	// TODO check validation
-	// This is the common part of cluster flow
-	commonCluster, err := cluster.CreateCommonClusterFromRequest(createClusterRequest, organizationID, userID)
-	if err != nil {
-		log.Errorf("error during create common cluster from request: %s", err.Error())
-		return nil, &pkgCommon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: err.Error(),
-			Error:   err.Error(),
-		}
-	}
-
-	// TODO: move these to a struct and create them only once upon application init
-	clusters := newmodel.NewClusters(config.DB())
-	secretValidator := providers.NewSecretValidator(secret.Store)
-	clusterManager := cluster.NewManager(clusters, secretValidator, log)
-
-	creationCtx := cluster.CreationContext{
-		OrganizationID: organizationID,
-		UserID:         userID,
-		Name:           createClusterRequest.Name,
-		SecretID:       createClusterRequest.SecretId,
-		Provider:       createClusterRequest.Cloud,
-		PostHooks:      postHooks,
-	}
-
-	creator := cluster.NewCommonClusterCreator(createClusterRequest, commonCluster)
-
-	commonCluster, err = clusterManager.CreateCluster(ctx, creationCtx, creator)
-
-	if err == cluster.ErrAlreadyExists || isInvalid(err) {
-		logger.Debugf("invalid cluster creation: %s", err.Error())
-
-		return nil, &pkgCommon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: err.Error(),
-			Error:   err.Error(),
-		}
-	} else if err != nil {
-		logger.Errorf("error during cluster creation: %s", err.Error())
-
-		return nil, &pkgCommon.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: err.Error(),
-			Error:   err.Error(),
-		}
-	}
-
-	return commonCluster, nil
-}
-
 // GetClusterStatus retrieves the cluster status
 func GetClusterStatus(c *gin.Context) {
 
-	commonCluster, ok := GetCommonClusterFromRequest(c)
+	commonCluster, ok := getClusterFromRequest(c)
 	if ok != true {
 		return
 	}
@@ -302,7 +171,7 @@ func GetClusterStatus(c *gin.Context) {
 
 // GetClusterConfig gets a cluster config
 func GetClusterConfig(c *gin.Context) {
-	commonCluster, ok := GetCommonClusterFromRequest(c)
+	commonCluster, ok := getClusterFromRequest(c)
 	if ok != true {
 		return
 	}
@@ -337,7 +206,7 @@ func GetApiEndpoint(c *gin.Context) {
 	log.Info("Start getting API endpoint")
 
 	log.Info("Create common cluster model from request")
-	commonCluster, ok := GetCommonClusterFromRequest(c)
+	commonCluster, ok := getClusterFromRequest(c)
 	if !ok {
 		return
 	}
@@ -360,213 +229,6 @@ func GetApiEndpoint(c *gin.Context) {
 	return
 }
 
-// UpdateCluster updates a K8S cluster in the cloud (e.g. autoscale)
-func UpdateCluster(c *gin.Context) {
-
-	// bind request body to UpdateClusterRequest struct
-	var updateRequest *pkgCluster.UpdateClusterRequest
-	if err := c.BindJSON(&updateRequest); err != nil {
-		log.Errorf("Error parsing request: %s", err.Error())
-		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error parsing request",
-			Error:   err.Error(),
-		})
-		return
-	}
-	commonCluster, ok := GetCommonClusterFromRequest(c)
-	if ok != true {
-		return
-	}
-
-	if commonCluster.GetCloud() != updateRequest.Cloud {
-		msg := fmt.Sprintf("Stored cloud type [%s] and request cloud type [%s] not equal", commonCluster.GetCloud(), updateRequest.Cloud)
-		log.Errorf(msg)
-		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: msg,
-		})
-		return
-	}
-
-	log.Info("Check cluster status")
-	status, err := commonCluster.GetStatus()
-	if err != nil {
-		log.Errorf("Error checking status: %s", err.Error())
-		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error checking status",
-			Error:   err.Error(),
-		})
-		return
-	}
-
-	log.Infof("Cluster status: %s", status.Status)
-
-	if status.Status != pkgCluster.Running {
-		err := fmt.Errorf("cluster is not in %s state yet", pkgCluster.Running)
-		log.Errorf("Error during checking cluster status: %s", err.Error())
-		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error during checking cluster status",
-			Error:   err.Error(),
-		})
-		return
-	}
-
-	log.Info("Add default values to request if necessarily")
-
-	// set default
-	commonCluster.AddDefaultsToUpdate(updateRequest)
-
-	log.Info("Check equality")
-	if err := commonCluster.CheckEqualityToUpdate(updateRequest); err != nil {
-		log.Errorf("Check changes failed: %s", err.Error())
-		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: err.Error(),
-			Error:   err.Error(),
-		})
-		return
-	}
-
-	if err := updateRequest.Validate(); err != nil {
-		log.Errorf("Validation failed: %s", err.Error())
-		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: err.Error(),
-			Error:   err.Error(),
-		})
-		return
-	}
-
-	// save the updated cluster to database
-	if err := commonCluster.Persist(pkgCluster.Updating, pkgCluster.UpdatingMessage); err != nil {
-		log.Errorf("Error during cluster save %s", err.Error())
-	}
-
-	userId := auth.GetCurrentUser(c.Request).ID
-
-	go postUpdateCluster(commonCluster, updateRequest, userId)
-
-	c.JSON(http.StatusAccepted, pkgCluster.UpdateClusterResponse{
-		Status: http.StatusAccepted,
-	})
-}
-
-// postUpdateCluster updates a cluster (ASYNC)
-func postUpdateCluster(commonCluster cluster.CommonCluster, updateRequest *pkgCluster.UpdateClusterRequest, userId uint) error {
-
-	err := commonCluster.UpdateCluster(updateRequest, userId)
-	if err != nil {
-		// validation failed
-		log.Errorf("Update failed: %s", err.Error())
-		commonCluster.UpdateStatus(pkgCluster.Error, err.Error())
-		return err
-	}
-
-	err = commonCluster.UpdateStatus(pkgCluster.Running, pkgCluster.RunningMessage)
-	if err != nil {
-		log.Errorf("Error during update cluster status: %s", err.Error())
-		return err
-	}
-
-	log.Info("deploy autoscaler")
-	if err := cluster.DeployClusterAutoscaler(commonCluster); err != nil {
-		log.Errorf("Error during update cluster status: %s", err.Error())
-		return err
-	}
-
-	log.Info("Add labels to nodes")
-
-	return cluster.LabelNodes(commonCluster)
-}
-
-// DeleteCluster deletes a K8S cluster from the cloud
-func DeleteCluster(c *gin.Context) {
-	commonCluster, ok := GetCommonClusterFromRequest(c)
-	if ok != true {
-		return
-	}
-	log.Info("Delete cluster start")
-
-	forceParam := c.DefaultQuery("force", "false")
-	force, err := strconv.ParseBool(forceParam)
-	if err != nil {
-		force = false
-	}
-
-	go postDeleteCluster(commonCluster, force)
-
-	deleteName := commonCluster.GetName()
-	deleteId := commonCluster.GetID()
-
-	c.JSON(http.StatusAccepted, pkgCluster.DeleteClusterResponse{
-		Status:     http.StatusAccepted,
-		Name:       deleteName,
-		ResourceID: deleteId,
-	})
-}
-
-// postDeleteCluster deletes a cluster (ASYNC)
-func postDeleteCluster(commonCluster cluster.CommonCluster, force bool) error {
-
-	err := commonCluster.UpdateStatus(pkgCluster.Deleting, pkgCluster.DeletingMessage)
-	if err != nil {
-		log.Errorf("Error during updating cluster status: %s", err.Error())
-		return err
-	}
-
-	// get kubeconfig
-	c, err := commonCluster.GetK8sConfig()
-	if err != nil && !force {
-		log.Errorf("Error during getting kubeconfig: %s", err.Error())
-		commonCluster.UpdateStatus(pkgCluster.Error, err.Error())
-		return err
-	}
-
-	// delete deployments
-	err = helm.DeleteAllDeployment(c)
-	if err != nil {
-		log.Errorf("Problem deleting deployment: %s", err)
-	}
-
-	// delete cluster
-	err = commonCluster.DeleteCluster()
-	if err != nil && !force {
-		log.Errorf(errors.Wrap(err, "Error during delete cluster").Error())
-		commonCluster.UpdateStatus(pkgCluster.Error, err.Error())
-		return err
-	}
-
-	// delete from proxy from kubeProxyCache if any
-	kubeProxyCache.Delete(GetGlobalClusterID(commonCluster))
-
-	// delete cluster from database
-	deleteName := commonCluster.GetName()
-	err = commonCluster.DeleteFromDatabase()
-	if err != nil && !force {
-		log.Errorf(errors.Wrap(err, "Error during delete cluster from database").Error())
-		commonCluster.UpdateStatus(pkgCluster.Error, err.Error())
-		return err
-	}
-
-	// Asyncron update prometheus
-	go cluster.UpdatePrometheus()
-
-	// clean statestore
-	log.Info("Clean cluster's statestore folder ")
-	if err := cluster.CleanStateStore(deleteName); err != nil {
-		log.Errorf("Statestore cleaning failed: %s", err.Error())
-	} else {
-		log.Info("Cluster's statestore folder cleaned")
-	}
-
-	log.Info("Cluster deleted successfully")
-
-	return nil
-}
-
 // GetClusters fetches all the K8S clusters from the cloud.
 func GetClusters(c *gin.Context) {
 	organizationID := auth.GetCurrentOrganization(c.Request).ID
@@ -577,7 +239,7 @@ func GetClusters(c *gin.Context) {
 
 	// TODO: move these to a struct and create them only once upon application init
 	secretValidator := providers.NewSecretValidator(secret.Store)
-	clusterManager := cluster.NewManager(newmodel.NewClusters(config.DB()), secretValidator, log)
+	clusterManager := cluster.NewManager(intCluster.NewClusters(config.DB()), secretValidator, log, errorHandler)
 
 	logger.Info("fetching clusters")
 
@@ -615,7 +277,7 @@ func GetClusters(c *gin.Context) {
 func ReRunPostHooks(c *gin.Context) {
 
 	log.Info("Get common cluster")
-	commonCluster, ok := GetCommonClusterFromRequest(c)
+	commonCluster, ok := getClusterFromRequest(c)
 	if ok != true {
 		return
 	}
@@ -649,7 +311,7 @@ func ReRunPostHooks(c *gin.Context) {
 // ClusterHEAD checks the cluster ready
 func ClusterHEAD(c *gin.Context) {
 
-	commonCluster, ok := GetCommonClusterFromRequest(c)
+	commonCluster, ok := getClusterFromRequest(c)
 	if ok != true {
 		return
 	}
@@ -669,7 +331,7 @@ func ClusterHEAD(c *gin.Context) {
 // GetPodDetails returns all pods with details
 func GetPodDetails(c *gin.Context) {
 
-	commonCluster, isOk := GetCommonClusterFromRequest(c)
+	commonCluster, isOk := getClusterFromRequest(c)
 	if !isOk {
 		return
 	}
@@ -735,7 +397,7 @@ func describePods(commonCluster cluster.CommonCluster) (items []pkgCluster.PodDe
 
 // GetClusterDetails fetch a K8S cluster in the cloud
 func GetClusterDetails(c *gin.Context) {
-	commonCluster, ok := GetCommonClusterFromRequest(c)
+	commonCluster, ok := getClusterFromRequest(c)
 	if ok != true {
 		return
 	}
@@ -1253,7 +915,7 @@ func calculatePodsTotalRequestsAndLimits(podList []v1.Pod) (reqs map[v1.Resource
 
 // InstallSecretsToCluster add all secrets from a repo to a cluster's namespace combined into one global secret named as the repo
 func InstallSecretsToCluster(c *gin.Context) {
-	commonCluster, ok := GetCommonClusterFromRequest(c)
+	commonCluster, ok := getClusterFromRequest(c)
 	if !ok {
 		return
 	}
@@ -1295,7 +957,7 @@ func GetGlobalClusterID(cluster cluster.CommonCluster) string {
 // ProxyToCluster sets up a proxy and forwards all requests to the cluster's API server.
 func ProxyToCluster(c *gin.Context) {
 
-	commonCluster, ok := GetCommonClusterFromRequest(c)
+	commonCluster, ok := getClusterFromRequest(c)
 	if !ok {
 		return
 	}

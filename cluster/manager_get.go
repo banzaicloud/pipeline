@@ -3,6 +3,8 @@ package cluster
 import (
 	"context"
 
+	"github.com/goph/emperror"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -36,4 +38,48 @@ func (m *Manager) GetClusters(ctx context.Context, organizationID uint) ([]Commo
 	}
 
 	return clusters, nil
+}
+
+// GetClusterByID returns the cluster instance for an organization ID by cluster ID.
+func (m *Manager) GetClusterByID(ctx context.Context, organizationID uint, clusterID uint) (CommonCluster, error) {
+	logger := m.getLogger(ctx).WithFields(logrus.Fields{
+		"organization": organizationID,
+		"cluster":      clusterID,
+	})
+
+	logger.Debug("getting cluster from database")
+
+	clusterModel, err := m.clusters.FindOneByID(organizationID, clusterID)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not get cluster from database")
+	}
+
+	cluster, err := GetCommonClusterFromModel(clusterModel)
+	if err != nil {
+		return nil, emperror.Wrap(err, "could not get cluster from model")
+	}
+
+	return cluster, nil
+}
+
+// GetClusterByName returns the cluster instance for an organization ID by cluster name.
+func (m *Manager) GetClusterByName(ctx context.Context, organizationID uint, clusterName string) (CommonCluster, error) {
+	logger := m.getLogger(ctx).WithFields(logrus.Fields{
+		"organization": organizationID,
+		"cluster":      clusterName,
+	})
+
+	logger.Debug("getting cluster from database")
+
+	clusterModel, err := m.clusters.FindOneByName(organizationID, clusterName)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not get cluster from database")
+	}
+
+	cluster, err := GetCommonClusterFromModel(clusterModel)
+	if err != nil {
+		return nil, emperror.Wrap(err, "could not get cluster from model")
+	}
+
+	return cluster, nil
 }

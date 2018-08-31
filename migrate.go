@@ -1,15 +1,15 @@
 package main
 
 import (
+	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/providers"
-	"github.com/banzaicloud/pipeline/pkg/model"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 )
 
 // Migrate runs migrations for the application.
 func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
-	if err := model.Migrate(db, logger); err != nil {
+	if err := cluster.Migrate(db, logger); err != nil {
 		return err
 	}
 
