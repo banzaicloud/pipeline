@@ -28,7 +28,7 @@ type ChartQuery struct {
 
 // GetK8sConfig returns the Kubernetes config
 func GetK8sConfig(c *gin.Context) ([]byte, bool) {
-	commonCluster, ok := GetCommonClusterFromRequest(c)
+	commonCluster, ok := getClusterFromRequest(c)
 	if ok != true {
 		return nil, false
 	}
@@ -266,7 +266,7 @@ func GetDeploymentResources(c *gin.Context) {
 func InitHelmOnCluster(c *gin.Context) {
 	log.Info("Start helm install")
 
-	commonCluster, ok := GetCommonClusterFromRequest(c)
+	commonCluster, ok := getClusterFromRequest(c)
 	if ok != true {
 		return
 	}
@@ -419,7 +419,7 @@ type parsedDeploymentRequest struct {
 func parseCreateUpdateDeploymentRequest(c *gin.Context) (*parsedDeploymentRequest, error) {
 	pdr := new(parsedDeploymentRequest)
 
-	commonCluster, ok := GetCommonClusterFromRequest(c)
+	commonCluster, ok := getClusterFromRequest(c)
 	if ok != true {
 		return nil, errors.New("Get cluster failed!")
 	}

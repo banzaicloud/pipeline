@@ -2,6 +2,7 @@ package cluster
 
 import (
 	"github.com/banzaicloud/pipeline/model"
+	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 )
@@ -40,4 +41,61 @@ func (c *Clusters) FindByOrganization(organizationID uint) ([]*model.ClusterMode
 	}
 
 	return clusters, nil
+}
+
+// FindOneByID returns a cluster instance for an organization by cluster ID.
+func (c *Clusters) FindOneByID(organizationID uint, clusterID uint) (*model.ClusterModel, error) {
+	return c.findOneBy(organizationID, "id", clusterID)
+}
+
+// FindOneByName returns a cluster instance for an organization by cluster name.
+func (c *Clusters) FindOneByName(organizationID uint, clusterName string) (*model.ClusterModel, error) {
+	return c.findOneBy(organizationID, "name", clusterName)
+}
+
+type clusterModelNotFoundError struct {
+	cluster        interface{}
+	organizationID uint
+}
+
+func (e *clusterModelNotFoundError) Error() string {
+	return "cluster not found"
+}
+
+func (e *clusterModelNotFoundError) Context() []interface{} {
+	return []interface{}{
+		"cluster", e.cluster,
+		"organization", e.organizationID,
+	}
+}
+
+func (e *clusterModelNotFoundError) NotFound() bool {
+	return true
+}
+
+// FindOneByName returns a cluster instance for an organization by cluster name.
+func (c *Clusters) findOneBy(organizationID uint, field string, criteria interface{}) (*model.ClusterModel, error) {
+	var cluster model.ClusterModel
+
+	err := c.db.First(
+		&cluster,
+		map[string]interface{}{
+			field:             criteria,
+			"organization_id": organizationID,
+		},
+	).Error
+	if gorm.IsRecordNotFoundError(err) {
+		return nil, errors.WithStack(&clusterModelNotFoundError{
+			cluster:        criteria,
+			organizationID: organizationID,
+		})
+	} else if err != nil {
+		return nil, emperror.With(
+			errors.Wrapf(err, "could not get cluster by %s", field),
+			"cluster", criteria,
+			"organization", organizationID,
+		)
+	}
+
+	return &cluster, nil
 }

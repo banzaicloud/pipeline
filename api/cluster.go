@@ -16,7 +16,6 @@ import (
 	"github.com/banzaicloud/pipeline/helm"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/utils"
-	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/model/defaults"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
@@ -61,47 +60,66 @@ func UpdateMonitoring(c *gin.Context) {
 	return
 }
 
-// GetCommonClusterFromRequest just a simple getter to build commonCluster object this handles error messages directly
-func GetCommonClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
-	value := c.Param("id")
-	field := c.DefaultQuery("field", "id")
-	filter := map[string]interface{}{field: value}
+// getClusterFromRequest just a simple getter to build commonCluster object this handles error messages directly
+func getClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
+	var cl cluster.CommonCluster
+	var err error
 
-	// Filter for organisation
-	filter["organization_id"] = c.Request.Context().Value(auth.CurrentOrganization).(*auth.Organization).ID
+	// TODO: move these to a struct and create them only once upon application init
+	clusters := intCluster.NewClusters(config.DB())
+	secretValidator := providers.NewSecretValidator(secret.Store)
+	clusterManager := cluster.NewManager(clusters, secretValidator, log)
 
-	modelCluster, err := model.QueryCluster(filter)
-	if err != nil {
-		log.Errorf("Cluster not found: %s", err.Error())
+	ctx := ginutils.Context(context.Background(), c)
+
+	organizationID := auth.GetCurrentOrganization(c.Request).ID
+
+	logger := log.WithField("organization", organizationID)
+
+	switch c.DefaultQuery("field", "id") {
+	case "id":
+		clusterID, ok := ginutils.UintParam(c, "id")
+		if !ok {
+			log.Debug("invalid ID parameter")
+
+			return nil, false
+		}
+
+		logger = logger.WithField("cluster", clusterID)
+
+		cl, err = clusterManager.GetClusterByID(ctx, organizationID, clusterID)
+	case "name":
+		clusterName := c.Param("id")
+
+		logger = logger.WithField("cluster", clusterName)
+
+		cl, err = clusterManager.GetClusterByName(ctx, organizationID, clusterName)
+	default:
+	}
+
+	if isNotFound(err) {
+		logger.Debug("cluster not found")
+
 		c.JSON(http.StatusNotFound, pkgCommon.ErrorResponse{
 			Code:    http.StatusNotFound,
-			Message: "Cluster not found",
+			Message: "cluster not found",
 			Error:   err.Error(),
 		})
-		return nil, false
-	}
 
-	if len(modelCluster) == 0 {
-		log.Error("Empty cluster list")
-		c.JSON(http.StatusNotFound, pkgCommon.ErrorResponse{
-			Code:    http.StatusNotFound,
-			Message: "Cluster not found",
-			Error:   "",
-		})
 		return nil, false
-	}
+	} else if err != nil {
+		errorHandler.Handle(err)
 
-	commonCluster, err := cluster.GetCommonClusterFromModel(&modelCluster[0])
-	if err != nil {
-		log.Errorf("GetCommonClusterFromModel failed: %s", err.Error())
 		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
-			Message: "Error parsing request",
+			Message: "error parsing request",
 			Error:   err.Error(),
 		})
+
 		return nil, false
 	}
-	return commonCluster, true
+
+	return cl, true
 }
 
 //CreateClusterRequest gin handler
@@ -272,7 +290,7 @@ func CreateCluster(
 // GetClusterStatus retrieves the cluster status
 func GetClusterStatus(c *gin.Context) {
 
-	commonCluster, ok := GetCommonClusterFromRequest(c)
+	commonCluster, ok := getClusterFromRequest(c)
 	if ok != true {
 		return
 	}
@@ -293,7 +311,7 @@ func GetClusterStatus(c *gin.Context) {
 
 // GetClusterConfig gets a cluster config
 func GetClusterConfig(c *gin.Context) {
-	commonCluster, ok := GetCommonClusterFromRequest(c)
+	commonCluster, ok := getClusterFromRequest(c)
 	if ok != true {
 		return
 	}
@@ -328,7 +346,7 @@ func GetApiEndpoint(c *gin.Context) {
 	log.Info("Start getting API endpoint")
 
 	log.Info("Create common cluster model from request")
-	commonCluster, ok := GetCommonClusterFromRequest(c)
+	commonCluster, ok := getClusterFromRequest(c)
 	if !ok {
 		return
 	}
@@ -365,7 +383,7 @@ func UpdateCluster(c *gin.Context) {
 		})
 		return
 	}
-	commonCluster, ok := GetCommonClusterFromRequest(c)
+	commonCluster, ok := getClusterFromRequest(c)
 	if ok != true {
 		return
 	}
@@ -475,7 +493,7 @@ func postUpdateCluster(commonCluster cluster.CommonCluster, updateRequest *pkgCl
 
 // DeleteCluster deletes a K8S cluster from the cloud
 func DeleteCluster(c *gin.Context) {
-	commonCluster, ok := GetCommonClusterFromRequest(c)
+	commonCluster, ok := getClusterFromRequest(c)
 	if ok != true {
 		return
 	}
@@ -606,7 +624,7 @@ func GetClusters(c *gin.Context) {
 func ReRunPostHooks(c *gin.Context) {
 
 	log.Info("Get common cluster")
-	commonCluster, ok := GetCommonClusterFromRequest(c)
+	commonCluster, ok := getClusterFromRequest(c)
 	if ok != true {
 		return
 	}
@@ -640,7 +658,7 @@ func ReRunPostHooks(c *gin.Context) {
 // ClusterHEAD checks the cluster ready
 func ClusterHEAD(c *gin.Context) {
 
-	commonCluster, ok := GetCommonClusterFromRequest(c)
+	commonCluster, ok := getClusterFromRequest(c)
 	if ok != true {
 		return
 	}
@@ -660,7 +678,7 @@ func ClusterHEAD(c *gin.Context) {
 // GetPodDetails returns all pods with details
 func GetPodDetails(c *gin.Context) {
 
-	commonCluster, isOk := GetCommonClusterFromRequest(c)
+	commonCluster, isOk := getClusterFromRequest(c)
 	if !isOk {
 		return
 	}
@@ -726,7 +744,7 @@ func describePods(commonCluster cluster.CommonCluster) (items []pkgCluster.PodDe
 
 // GetClusterDetails fetch a K8S cluster in the cloud
 func GetClusterDetails(c *gin.Context) {
-	commonCluster, ok := GetCommonClusterFromRequest(c)
+	commonCluster, ok := getClusterFromRequest(c)
 	if ok != true {
 		return
 	}
@@ -1244,7 +1262,7 @@ func calculatePodsTotalRequestsAndLimits(podList []v1.Pod) (reqs map[v1.Resource
 
 // InstallSecretsToCluster add all secrets from a repo to a cluster's namespace combined into one global secret named as the repo
 func InstallSecretsToCluster(c *gin.Context) {
-	commonCluster, ok := GetCommonClusterFromRequest(c)
+	commonCluster, ok := getClusterFromRequest(c)
 	if !ok {
 		return
 	}
@@ -1286,7 +1304,7 @@ func GetGlobalClusterID(cluster cluster.CommonCluster) string {
 // ProxyToCluster sets up a proxy and forwards all requests to the cluster's API server.
 func ProxyToCluster(c *gin.Context) {
 
-	commonCluster, ok := GetCommonClusterFromRequest(c)
+	commonCluster, ok := getClusterFromRequest(c)
 	if !ok {
 		return
 	}
