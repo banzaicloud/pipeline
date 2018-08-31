@@ -5,11 +5,21 @@ import (
 	"strconv"
 
 	"github.com/banzaicloud/pipeline/cluster"
-	"github.com/banzaicloud/pipeline/helm"
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/banzaicloud/pipeline/config"
+	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/platform/gin/utils"
+	"github.com/banzaicloud/pipeline/pkg/providers"
+	"github.com/banzaicloud/pipeline/secret"
 	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
 )
+
+// DeleteClusterResponse describes Pipeline's DeleteCluster API response
+type DeleteClusterResponse struct {
+	Status     int    `json:"status"`
+	Name       string `json:"name"`
+	Message    string `json:"message"`
+	ResourceID uint   `json:"id"`
+}
 
 // DeleteCluster deletes a K8S cluster from the cloud
 func DeleteCluster(c *gin.Context) {
@@ -17,81 +27,24 @@ func DeleteCluster(c *gin.Context) {
 	if ok != true {
 		return
 	}
-	log.Info("Delete cluster start")
 
-	forceParam := c.DefaultQuery("force", "false")
-	force, err := strconv.ParseBool(forceParam)
-	if err != nil {
-		force = false
-	}
+	force, _ := strconv.ParseBool(c.DefaultQuery("force", "false"))
 
-	go postDeleteCluster(commonCluster, force)
+	// DeleteCluster deletes the underlying model, so we get this data here
+	clusterID, clusterName := commonCluster.GetID(), commonCluster.GetName()
 
-	deleteName := commonCluster.GetName()
-	deleteId := commonCluster.GetID()
+	// TODO: move these to a struct and create them only once upon application init
+	clusters := intCluster.NewClusters(config.DB())
+	secretValidator := providers.NewSecretValidator(secret.Store)
+	clusterManager := cluster.NewManager(clusters, secretValidator, log, errorHandler)
 
-	c.JSON(http.StatusAccepted, pkgCluster.DeleteClusterResponse{
+	ctx := ginutils.Context(c.Request.Context(), c)
+
+	clusterManager.DeleteCluster(ctx, commonCluster, force, &kubeProxyCache)
+
+	c.JSON(http.StatusAccepted, DeleteClusterResponse{
 		Status:     http.StatusAccepted,
-		Name:       deleteName,
-		ResourceID: deleteId,
+		Name:       clusterName,
+		ResourceID: clusterID,
 	})
-}
-
-// postDeleteCluster deletes a cluster (ASYNC)
-func postDeleteCluster(commonCluster cluster.CommonCluster, force bool) error {
-
-	err := commonCluster.UpdateStatus(pkgCluster.Deleting, pkgCluster.DeletingMessage)
-	if err != nil {
-		log.Errorf("Error during updating cluster status: %s", err.Error())
-		return err
-	}
-
-	// get kubeconfig
-	c, err := commonCluster.GetK8sConfig()
-	if err != nil && !force {
-		log.Errorf("Error during getting kubeconfig: %s", err.Error())
-		commonCluster.UpdateStatus(pkgCluster.Error, err.Error())
-		return err
-	}
-
-	// delete deployments
-	err = helm.DeleteAllDeployment(c)
-	if err != nil {
-		log.Errorf("Problem deleting deployment: %s", err)
-	}
-
-	// delete cluster
-	err = commonCluster.DeleteCluster()
-	if err != nil && !force {
-		log.Errorf(errors.Wrap(err, "Error during delete cluster").Error())
-		commonCluster.UpdateStatus(pkgCluster.Error, err.Error())
-		return err
-	}
-
-	// delete from proxy from kubeProxyCache if any
-	kubeProxyCache.Delete(GetGlobalClusterID(commonCluster))
-
-	// delete cluster from database
-	deleteName := commonCluster.GetName()
-	err = commonCluster.DeleteFromDatabase()
-	if err != nil && !force {
-		log.Errorf(errors.Wrap(err, "Error during delete cluster from database").Error())
-		commonCluster.UpdateStatus(pkgCluster.Error, err.Error())
-		return err
-	}
-
-	// Asyncron update prometheus
-	go cluster.UpdatePrometheus()
-
-	// clean statestore
-	log.Info("Clean cluster's statestore folder ")
-	if err := cluster.CleanStateStore(deleteName); err != nil {
-		log.Errorf("Statestore cleaning failed: %s", err.Error())
-	} else {
-		log.Info("Cluster's statestore folder cleaned")
-	}
-
-	log.Info("Cluster deleted successfully")
-
-	return nil
 }

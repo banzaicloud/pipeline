@@ -66,7 +66,7 @@ func getClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
 	// TODO: move these to a struct and create them only once upon application init
 	clusters := intCluster.NewClusters(config.DB())
 	secretValidator := providers.NewSecretValidator(secret.Store)
-	clusterManager := cluster.NewManager(clusters, secretValidator, log)
+	clusterManager := cluster.NewManager(clusters, secretValidator, log, errorHandler)
 
 	ctx := ginutils.Context(context.Background(), c)
 
@@ -239,7 +239,7 @@ func GetClusters(c *gin.Context) {
 
 	// TODO: move these to a struct and create them only once upon application init
 	secretValidator := providers.NewSecretValidator(secret.Store)
-	clusterManager := cluster.NewManager(intCluster.NewClusters(config.DB()), secretValidator, log)
+	clusterManager := cluster.NewManager(intCluster.NewClusters(config.DB()), secretValidator, log, errorHandler)
 
 	logger.Info("fetching clusters")
 

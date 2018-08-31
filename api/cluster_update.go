@@ -1,16 +1,14 @@
 package api
 
 import (
-"fmt"
-"net/http"
+	"fmt"
+	"net/http"
 
-
-
-"github.com/banzaicloud/pipeline/auth"
-"github.com/banzaicloud/pipeline/cluster"
-pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-"github.com/gin-gonic/gin"
+	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/cluster"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	"github.com/gin-gonic/gin"
 )
 
 // UpdateCluster updates a K8S cluster in the cloud (e.g. autoscale)
