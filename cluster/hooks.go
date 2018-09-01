@@ -266,6 +266,9 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 		return installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/s3-output", "pipeline-s3-output", marshaledValues, "ConfigureLoggingOutPut", "")
 	case pkgCluster.Google:
 		installedSecretValues, err := InstallSecretWithVaultID(cluster, loggingParam.SecretId, loggingParam.GenTLSForLogging.Namespace)
+		if err != nil {
+			return err
+		}
 		loggingValues := map[string]interface{}{
 			"bucketName": loggingParam.BucketName,
 			"secret": map[string]interface{}{
