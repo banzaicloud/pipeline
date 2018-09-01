@@ -250,6 +250,7 @@ func (ss *secretStore) Update(organizationID uint, secretID string, value *Creat
 	return nil
 }
 
+// GetOrCreate create new secret or get if it's exist. secret/orgs/:orgid:/:id: scope
 func (ss *secretStore) GetOrCreate(organizationID uint, value *CreateSecretRequest) (string, error) {
 	secretID := GenerateSecretID(value)
 
