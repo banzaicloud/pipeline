@@ -213,7 +213,7 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 				pkgSecret.TLSHosts: loggingParam.GenTLSForLogging.TLSHost,
 			},
 		}
-		_, err := secret.Store.Store(cluster.GetOrganizationId(), req)
+		_, err := secret.Store.GetOrCreate(cluster.GetOrganizationId(), req)
 		if err != nil {
 			return errors.Errorf("failed generate TLS secrets to logging operator: %s", err)
 		}
@@ -246,6 +246,7 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 	if err != nil {
 		return err
 	}
+	log.Infof("logging-hook secret type: %s", logSecret.Type)
 	switch logSecret.Type {
 	case pkgCluster.Amazon:
 		installedSecretValues, err := InstallSecretWithVaultID(cluster, loggingParam.SecretId, loggingParam.GenTLSForLogging.Namespace)
