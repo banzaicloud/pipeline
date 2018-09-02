@@ -25,6 +25,14 @@ func (e *commonUpdateValidationError) Error() string {
 	return e.msg
 }
 
+func (e *commonUpdateValidationError) IsInvalid() bool {
+	return e.invalidRequest
+}
+
+func (e *commonUpdateValidationError) IsPreconditionFailed() bool {
+	return e.preconditionFailed
+}
+
 // NewCommonClusterUpdater returns a new cluster creator instance.
 func NewCommonClusterUpdater(request *cluster.UpdateClusterRequest, cluster CommonCluster, userID uint) *commonUpdater {
 	return &commonUpdater{
