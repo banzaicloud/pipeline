@@ -193,7 +193,7 @@
   version = "=v7.0.0"
 
 [[constraint]]
-  branch = "release-2.9"
+  branch = "release-2.10"
   name = "k8s.io/helm"
 
 [[override]]
