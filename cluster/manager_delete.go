@@ -62,8 +62,10 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 	if !(force && c == nil) {
 		// delete deployments
 		err = helm.DeleteAllDeployment(c)
-		if err != nil {
+		if err != nil && !force {
 			return emperror.Wrap(err, "deleting deployments failed")
+		} else if err != nil {
+			logger.Errorf("deleting deployments failed: %s", err.Error())
 		}
 	} else {
 		logger.Info("skipping deployment deletion without kubeconfig")
