@@ -169,11 +169,6 @@ type GetClusterConfigResponse struct {
 	Data   string `json:"data"`
 }
 
-// UpdateClusterResponse describes Pipeline's UpdateCluster API response
-type UpdateClusterResponse struct {
-	Status int `json:"status"`
-}
-
 // UpdateClusterRequest describes an update cluster request
 type UpdateClusterRequest struct {
 	Cloud            string `json:"cloud" binding:"required"`
