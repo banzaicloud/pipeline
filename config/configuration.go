@@ -50,6 +50,10 @@ const (
 	// Config keys to GKE resource delete
 	GKEResourceDeleteWaitAttempt  = "gke.resourceDeleteWaitAttempt"
 	GKEResourceDeleteSleepSeconds = "gke.resourceDeleteSleepSeconds"
+
+	// Config keys to OKE nodepool wait
+	OKEWaitAttemptsForNodepoolActive = "oke.waitAttemptsForNodepoolActive"
+	OKESleepSecondsForNodepoolActive = "oke.sleepSecondsForNodepoolActive"
 )
 
 //Init initializes the configurations
@@ -114,6 +118,9 @@ func init() {
 
 	viper.SetDefault(GKEResourceDeleteWaitAttempt, 12)
 	viper.SetDefault(GKEResourceDeleteSleepSeconds, 5)
+
+	viper.SetDefault(OKEWaitAttemptsForNodepoolActive, 60)
+	viper.SetDefault(OKESleepSecondsForNodepoolActive, 30)
 
 	ReleaseName := os.Getenv("KUBERNETES_RELEASE_NAME")
 	if ReleaseName == "" {

@@ -97,3 +97,7 @@ templateLocation="https://raw.githubusercontent.com/banzaicloud/pipeline/master/
 [gke]
 resourceDeleteWaitAttempt = 12
 resourceDeleteSleepSeconds = 5
+
+[oke]
+waitAttemptsForNodepoolActive = 60
+sleepSecondsForNodepoolActive = 30
