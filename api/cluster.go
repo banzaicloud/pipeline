@@ -256,7 +256,7 @@ func GetClusters(c *gin.Context) {
 		return
 	}
 
-	var response []pkgCluster.GetClusterStatusResponse
+	response := make([]pkgCluster.GetClusterStatusResponse, 0)
 
 	for _, c := range clusters {
 		logger := logger.WithField("cluster", c.GetName())
