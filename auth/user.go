@@ -9,8 +9,7 @@ import (
 	bauth "github.com/banzaicloud/bank-vaults/auth"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
-	"github.com/banzaicloud/pipeline/model"
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/drone/drone-go/drone"
 	"github.com/go-errors/errors"
 	"github.com/google/go-github/github"
@@ -79,14 +78,13 @@ type UserOrganization struct {
 
 //Organization struct
 type Organization struct {
-	ID        uint                 `gorm:"primary_key" json:"id"`
-	GithubID  *int64               `gorm:"unique" json:"githubId,omitempty"`
-	CreatedAt time.Time            `json:"createdAt"`
-	UpdatedAt time.Time            `json:"updatedAt"`
-	Name      string               `gorm:"unique;not null" json:"name"`
-	Users     []User               `gorm:"many2many:user_organizations" json:"users,omitempty"`
-	Clusters  []model.ClusterModel `gorm:"foreignkey:organization_id" json:"clusters,omitempty"`
-	Role      string               `json:"-" gorm:"-"` // Used only internally
+	ID        uint      `gorm:"primary_key" json:"id"`
+	GithubID  *int64    `gorm:"unique" json:"githubId,omitempty"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+	Name      string    `gorm:"unique;not null" json:"name"`
+	Users     []User    `gorm:"many2many:user_organizations" json:"users,omitempty"`
+	Role      string    `json:"-" gorm:"-"` // Used only internally
 }
 
 //IDString returns the ID as string
