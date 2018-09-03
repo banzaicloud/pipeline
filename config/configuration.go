@@ -67,7 +67,7 @@ func init() {
 	viper.SetDefault("drone.url", "http://localhost:8000")
 	viper.SetDefault("helm.retryAttempt", 30)
 	viper.SetDefault("helm.retrySleepSeconds", 15)
-	viper.SetDefault("helm.tillerVersion", "v2.9.0")
+	viper.SetDefault("helm.tillerVersion", "v2.10.0")
 	viper.SetDefault("helm.stableRepositoryURL", "https://kubernetes-charts.storage.googleapis.com")
 	viper.SetDefault("helm.banzaiRepositoryURL", "http://kubernetes-charts.banzaicloud.com")
 	viper.SetDefault(helmPath, "./orgs")
