@@ -57,7 +57,7 @@ cookieDomain = ""
 [helm]
 retryAttempt = 30
 retrySleepSeconds = 15
-tillerVersion = "v2.9.0"
+tillerVersion = "v2.10.0"
 path = "./orgs"
 
 #helm repo URLs
