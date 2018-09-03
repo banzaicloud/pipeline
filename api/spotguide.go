@@ -89,7 +89,7 @@ func LaunchSpotguide(c *gin.Context) {
 	org := auth.GetCurrentOrganization(c.Request)
 	user := auth.GetCurrentUser(c.Request)
 
-	err := spotguide.LaunchSpotguide(&launchRequest, org.ID, user.ID)
+	err := spotguide.LaunchSpotguide(&launchRequest, c.Request, org.ID, user.ID)
 	if err != nil {
 		log.Errorln("Failed to Launch spotguide:", err.Error())
 		c.JSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{

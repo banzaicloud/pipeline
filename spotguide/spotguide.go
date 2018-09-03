@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"time"
 
 	"github.com/banzaicloud/pipeline/auth"
@@ -195,7 +196,7 @@ func GetSpotguide(name string) (*Repo, error) {
 }
 
 // curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -v http://localhost:9090/api/v1/orgs/1/spotguides -d '{"repoName":"spotguide-test", "repoOrganization":"banzaicloud-test", "spotguideName":"banzaicloud/spotguide-nodejs-mongodb"}'
-func LaunchSpotguide(request *LaunchRequest, orgID, userID uint) error {
+func LaunchSpotguide(request *LaunchRequest, httpRequest *http.Request, orgID, userID uint) error {
 
 	sourceRepo, err := GetSpotguide(request.SpotguideName)
 	if err != nil {
@@ -212,7 +213,7 @@ func LaunchSpotguide(request *LaunchRequest, orgID, userID uint) error {
 		return errors.Wrap(err, "Failed to create secrets for spotguide")
 	}
 
-	err = enableCICD(request, userID)
+	err = enableCICD(request, httpRequest)
 	if err != nil {
 		return errors.Wrap(err, "Failed to enable CI/CD for spotguide")
 	}
@@ -328,10 +329,9 @@ func createSecrets(request *LaunchRequest, orgID, userID uint) error {
 	return nil
 }
 
-func enableCICD(request *LaunchRequest, userID uint) error {
+func enableCICD(request *LaunchRequest, httpRequest *http.Request) error {
 
-	login := auth.GetUserNickNameById(userID)
-	droneClient, err := auth.NewDroneClient(login)
+	droneClient, err := auth.NewDroneClient(httpRequest)
 	if err != nil {
 		return errors.Wrap(err, "failed to create Drone client")
 	}
