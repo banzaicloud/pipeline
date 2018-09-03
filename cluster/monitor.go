@@ -1,10 +1,14 @@
 package cluster
 
 import (
+	"context"
 	"fmt"
 
 	pipConfig "github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/model"
+	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/pkg/providers"
+	"github.com/banzaicloud/pipeline/secret"
+	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -40,38 +44,39 @@ func UpdatePrometheusConfig() error {
 	prefix := pipConfig.GetStateStorePath("")
 	configMapPath := viper.GetString("monitor.mountpath")
 
-	var clusters []model.ClusterModel
-	db := pipConfig.DB()
-	db.Find(&clusters)
+	// TODO: move these to a struct and create them only once upon application init
+	secretValidator := providers.NewSecretValidator(secret.Store)
+	clusterManager := NewManager(intCluster.NewClusters(pipConfig.DB()), secretValidator, log, errorHandler)
+
+	clusters, err := clusterManager.GetAllClusters(context.Background())
+	if err != nil {
+		return emperror.Wrap(err, "could not get all clusters")
+	}
+
 	var prometheusConfig []PrometheusCfg
 	//Gathering information about clusters
 	for _, cluster := range clusters {
-		commonCluster, err := GetCommonClusterFromModel(&cluster)
+		kubeEndpoint, err := cluster.GetAPIEndpoint()
 		if err != nil {
-			log.Errorf("Can't fetch cluster from database: %s, err: %s", cluster.Name, err)
-			continue
-		}
-		kubeEndpoint, err := commonCluster.GetAPIEndpoint()
-		if err != nil {
-			log.Errorf("Cluster endpoint is not available for cluster: %s, err: %s", commonCluster.GetName(), err)
+			log.Errorf("Cluster endpoint is not available for cluster: %s, err: %s", cluster.GetName(), err)
 			continue
 		}
 
 		log.Debugf("Cluster Endpoint IP: %s", kubeEndpoint)
-		basePath := prefix + "/" + commonCluster.GetName()
+		basePath := prefix + "/" + cluster.GetName()
 
 		cfgElement := PrometheusCfg{
 			Endpoint: kubeEndpoint,
-			Name:     commonCluster.GetName(),
+			Name:     cluster.GetName(),
 		}
 		if configMapPath == "" {
 			cfgElement.CaFilePath = basePath + "/certificate-authority-data.pem"
 			cfgElement.CertFilePath = basePath + "/client-certificate-data.pem"
 			cfgElement.KeyFile = basePath + "/client-key-data.pem"
 		} else {
-			cfgElement.CaFilePath = configMapPath + "/" + commonCluster.GetName() + "_certificate-authority-data.pem"
-			cfgElement.CertFilePath = configMapPath + "/" + commonCluster.GetName() + "_client-certificate-data.pem"
-			cfgElement.KeyFile = configMapPath + "/" + commonCluster.GetName() + "_client-key-data.pem"
+			cfgElement.CaFilePath = configMapPath + "/" + cluster.GetName() + "_certificate-authority-data.pem"
+			cfgElement.CertFilePath = configMapPath + "/" + cluster.GetName() + "_client-certificate-data.pem"
+			cfgElement.KeyFile = configMapPath + "/" + cluster.GetName() + "_client-key-data.pem"
 		}
 
 		prometheusConfig = append(prometheusConfig, cfgElement)

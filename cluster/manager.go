@@ -11,6 +11,7 @@ import (
 
 type clusterRepository interface {
 	Exists(organizationID uint, name string) (bool, error)
+	All() ([]*model.ClusterModel, error)
 	FindByOrganization(organizationID uint) ([]*model.ClusterModel, error)
 	FindOneByID(organizationID uint, clusterID uint) (*model.ClusterModel, error)
 	FindOneByName(organizationID uint, clusterName string) (*model.ClusterModel, error)
