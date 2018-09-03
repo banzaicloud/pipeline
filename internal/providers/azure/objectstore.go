@@ -152,7 +152,7 @@ func (s *ObjectStore) CreateBucket(bucketName string) error {
 		return s.rollback(logger, "storage account is already taken", err, bucket)
 	}
 
-	key, err := s.getStorageAccountKey(resourceGroup, storageAccount)
+	key, err := GetStorageAccountKey(resourceGroup, storageAccount, s.secret, s.logger)
 	if err != nil {
 		return err
 	}
@@ -322,7 +322,7 @@ func (s *ObjectStore) DeleteBucket(bucketName string) error {
 		}
 	}
 
-	key, err := s.getStorageAccountKey(resourceGroup, storageAccount)
+	key, err := GetStorageAccountKey(resourceGroup, storageAccount, s.secret, s.logger)
 	if err != nil {
 		return err
 	}
@@ -360,7 +360,7 @@ func (s *ObjectStore) CheckBucket(bucketName string) error {
 		return err
 	}
 
-	key, err := s.getStorageAccountKey(resourceGroup, storageAccount)
+	key, err := GetStorageAccountKey(resourceGroup, storageAccount, s.secret, s.logger)
 	if err != nil {
 		logger.Error(err.Error())
 
@@ -414,7 +414,7 @@ func (s *ObjectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 				"storage_account": accountName,
 			}).Info("getting all blob containers under storage account")
 
-			accountKey, err := s.getStorageAccountKey(*rg.Name, accountName)
+			accountKey, err := GetStorageAccountKey(*rg.Name, accountName, s.secret, s.logger)
 			if err != nil {
 				return nil, fmt.Errorf("getting all storage accounts under resource group=%s, storage account=%s failed: %s", *(rg.Name), accountName, err.Error())
 			}
@@ -468,13 +468,13 @@ func (s *ObjectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 	return buckets, nil
 }
 
-func (s *ObjectStore) getStorageAccountKey(resourceGroup string, storageAccount string) (string, error) {
-	client, err := createStorageAccountClient(s.secret)
+func GetStorageAccountKey(resourceGroup string, storageAccount string, s *secret.SecretItemResponse, log logrus.FieldLogger) (string, error) {
+	client, err := createStorageAccountClient(s)
 	if err != nil {
 		return "", err
 	}
 
-	logger := s.logger.WithFields(logrus.Fields{
+	logger := log.WithFields(logrus.Fields{
 		"resource_group":  resourceGroup,
 		"storage_account": storageAccount,
 	})
