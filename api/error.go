@@ -42,3 +42,17 @@ func isNotFound(err error) bool {
 
 	return false
 }
+
+// isPreconditionFailed checks whether an error is about a resource not being found.
+func isPreconditionFailed(err error) bool {
+	// Check the root cause error.
+	err = errors.Cause(err)
+
+	if e, ok := err.(interface {
+		PreconditionFailed() bool
+	}); ok {
+		return e.PreconditionFailed()
+	}
+
+	return false
+}
