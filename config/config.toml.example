@@ -36,6 +36,7 @@ configRetrySleep = 15
 path = ""
 
 [drone]
+url = "http://localhost:8000"
 
 [github]
 token = "YourPersonalAccessToken"

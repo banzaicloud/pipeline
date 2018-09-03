@@ -6,13 +6,12 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/drone/drone-go/drone"
-
 	bauth "github.com/banzaicloud/bank-vaults/auth"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/model"
-	"github.com/dgrijalva/jwt-go"
+	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/drone/drone-go/drone"
 	"github.com/go-errors/errors"
 	"github.com/google/go-github/github"
 	"github.com/jinzhu/copier"
@@ -135,8 +134,20 @@ func GetCurrentUserFromDB(req *http.Request) (*User, error) {
 	return nil, errors.New("error fetching user from db")
 }
 
+func newDroneClient(apiToken string) drone.Client {
+	droneURL := viper.GetString("drone.url")
+	config := new(oauth2.Config)
+	client := config.Client(
+		context.Background(),
+		&oauth2.Token{
+			AccessToken: apiToken,
+		},
+	)
+	return drone.NewClient(droneURL, client)
+}
+
 // NewDroneClient creates an authenticated Drone client for the user specified by login
-func NewDroneClient(login string) (drone.Client, error) {
+func NewTemporaryDroneClient(login string) (drone.Client, error) {
 	// Create a temporary Drone API token
 	claims := &DroneClaims{Type: DroneUserTokenType, Text: login}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -146,16 +157,18 @@ func NewDroneClient(login string) (drone.Client, error) {
 		return nil, err
 	}
 
-	droneURL := viper.GetString("drone.url")
-	config := new(oauth2.Config)
-	client := config.Client(
-		context.Background(),
-		&oauth2.Token{
-			AccessToken: droneAPIToken,
-		},
-	)
+	return newDroneClient(droneAPIToken), nil
+}
 
-	return drone.NewClient(droneURL, client), nil
+// NewDroneClient creates an authenticated Drone client for the user specified by the JWT in the HTTP request
+func NewDroneClient(request *http.Request) (drone.Client, error) {
+	droneAPIToken, err := parseDroneTokenFromRequest(request)
+	if err != nil {
+		log.Errorln("Failed to parse Drone token", err.Error())
+		return nil, err
+	}
+
+	return newDroneClient(droneAPIToken), nil
 }
 
 //BanzaiUserStorer struct
@@ -183,7 +196,8 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 		log.Info(context.Request.RemoteAddr, err.Error())
 		return nil, "", err
 	}
-	bus.synchronizeDroneRepos(currentUser.Login)
+
+	synchronizeDroneRepos(currentUser.Login)
 
 	// When a user registers a default organization is created in which he/she is admin
 	userOrg := Organization{
@@ -239,8 +253,8 @@ func (bus BanzaiUserStorer) createUserInDroneDB(user *User, githubAccessToken st
 }
 
 // This method tries to call the Drone API on a best effort basis to fetch all repos before the user navigates there.
-func (bus BanzaiUserStorer) synchronizeDroneRepos(login string) {
-	droneClient, err := NewDroneClient(login)
+func synchronizeDroneRepos(login string) {
+	droneClient, err := NewTemporaryDroneClient(login)
 	if err != nil {
 		log.Warnln("failed to create Drone client", err.Error())
 	}
@@ -339,4 +353,31 @@ func GetUserNickNameById(userId uint) (userName string) {
 	}
 
 	return
+}
+
+func parseDroneTokenFromRequest(r *http.Request) (string, error) {
+	var token = r.Header.Get("Authorization")
+
+	// first we attempt to get the token from the
+	// authorization header.
+	if len(token) != 0 {
+		token = r.Header.Get("Authorization")
+		fmt.Sscanf(token, "Bearer %s", &token)
+		return token, nil
+	}
+
+	// then we attempt to get the token from the
+	// access_token url query parameter
+	token = r.FormValue("access_token")
+	if len(token) != 0 {
+		return token, nil
+	}
+
+	// and finally we attempt to get the token from
+	// the user session cookie
+	cookie, err := r.Cookie("user_sess")
+	if err != nil {
+		return "", err
+	}
+	return cookie.Value, nil
 }
