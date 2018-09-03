@@ -7602,6 +7602,12 @@ components:
         region:
           example: region
           type: string
+        resourceGroup:
+          example: myResourceGroup
+          type: string
+        storageAccount:
+          example: myStorageAccount
+          type: string
         secretId:
           example: 62bc3c75-91fb-4670-bad4-24b401a9deac
           type: string

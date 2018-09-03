@@ -5,6 +5,8 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **BucketName** | **string** |  | [optional] 
 **Region** | **string** |  | [optional] 
+**ResourceGroup** | **string** |  | [optional] 
+**StorageAccount** | **string** |  | [optional] 
 **SecretId** | **string** |  | [optional] 
 **Tls** | [**GenTlsForLogging**](GenTLSForLogging.md) |  | [optional] 
 
