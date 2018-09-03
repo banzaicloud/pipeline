@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"time"
 
+	pipConfig "github.com/banzaicloud/pipeline/config"
+	"github.com/go-errors/errors"
 	"github.com/oracle/oci-go-sdk/common"
 	"github.com/oracle/oci-go-sdk/containerengine"
+	"github.com/spf13/viper"
 )
 
 // CreateCluster creates an OKE cluster specified in the request
@@ -163,9 +166,12 @@ func (ce *ContainerEngine) WaitingForClusterNodePoolActiveState(clusterID *strin
 
 	ce.oci.logger.Info("Waiting for all nodepools state to be ACTIVE on all nodes")
 
-	for i := 0; i <= 60; i++ {
+	maxAttempts := viper.GetInt(pipConfig.OKEWaitAttemptsForNodepoolActive)
+	sleepSeconds := viper.GetInt(pipConfig.OKESleepSecondsForNodepoolActive)
 
-		time.Sleep(time.Duration(20) * time.Second)
+	for i := 0; i <= maxAttempts; i++ {
+
+		time.Sleep(time.Duration(sleepSeconds) * time.Second)
 
 		nodePools, err := ce.GetNodePools(clusterID)
 		if err != nil {
@@ -184,7 +190,7 @@ func (ce *ContainerEngine) WaitingForClusterNodePoolActiveState(clusterID *strin
 		}
 	}
 
-	return fmt.Errorf("Timeout during waiting for nodepools to activate")
+	return errors.New("timeout during waiting for nodepools to activate")
 }
 
 // FilterClustersByNotInState filter cluster list by cluster state
