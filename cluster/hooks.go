@@ -10,6 +10,7 @@ import (
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/helm"
+	"github.com/banzaicloud/pipeline/internal/providers/azure"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
@@ -281,6 +282,56 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 			return err
 		}
 		return installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/gcs-output", "pipeline-gcs-output", marshaledValues, "ConfigureLoggingOutPut", "")
+	case pkgCluster.Azure:
+
+		sak, err := azure.GetStorageAccountKey(loggingParam.ResourceGroup, loggingParam.StorageAccount, logSecret, log)
+		if err != nil {
+			return err
+		}
+
+		clusterUidTag := fmt.Sprintf("clusterUID:%s", cluster.GetUID())
+
+		genericSecretName := fmt.Sprintf("logging-generic-%d", cluster.GetID())
+		req := &secret.CreateSecretRequest{
+			Name: genericSecretName,
+			Type: pkgSecret.GenericSecret,
+			Tags: []string{
+				loggingOperator,
+				clusterUidTag,
+				pkgSecret.TagBanzaiReadonly,
+			},
+			Values: map[string]string{
+				"storageAccountName": loggingParam.StorageAccount,
+				"storageAccountKey":  sak,
+			},
+		}
+		if _, err = secret.Store.GetOrCreate(cluster.GetOrganizationId(), req); err != nil {
+			return errors.Errorf("failed generate Generic secrets to logging operator: %s", err)
+		}
+
+		_, err = InstallOrUpdateSecrets(cluster,
+			&pkgSecret.ListSecretsQuery{
+				Type: pkgSecret.GenericSecret,
+				Tag:  loggingOperator,
+			}, namespace)
+		if err != nil {
+			return errors.Errorf("could not install created Generic secret to cluster: %s", err)
+		}
+
+		loggingValues := map[string]interface{}{
+			"bucketName": loggingParam.BucketName,
+			"secret": map[string]interface{}{
+				"name": genericSecretName,
+			},
+		}
+
+		marshaledValues, err := yaml.Marshal(loggingValues)
+		if err != nil {
+			return err
+		}
+
+		return installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/azure-output", "pipeline-azure-output", marshaledValues, "ConfigureLoggingOutPut", "")
+
 	default:
 		return fmt.Errorf("unexpected logging secret type: %s", logSecret.Type)
 	}
