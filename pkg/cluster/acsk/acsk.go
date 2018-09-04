@@ -4,24 +4,12 @@ import (
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 )
 
-const (
-	DefaultMasterInstanceType       = "ecs.sn1.large"
-	DefaultMasterSystemDiskCategory = "cloud_efficiency"
-	DefaultMasterSystemDiskSize     = 40
-	DefaultWorkerInstanceType       = "ecs.sn1.large"
-	DefaultWorkerSystemDiskCategory = "cloud_efficiency"
-	DefaultWorkerSystemDiskSize     = 40
-	DefaultImage                    = "centos_7"
-)
-
 // NodePool describes Alibaba's node fields of a CreateCluster/Update request
 type NodePool struct {
 	InstanceType       string `json:"instanceType"`
 	SystemDiskCategory string `json:"systemDiskCategory,omitempty"`
 	SystemDiskSize     int    `json:"systemDiskSize,omitempty"`
-	LoginPassword      string `json:"loginPassword,omitempty"`
 	Count              int    `json:"count"`
-	Image              string `json:"image"`
 }
 
 type NodePools map[string]*NodePool
@@ -67,9 +55,6 @@ func (c *CreateClusterACSK) AddDefaults() error {
 		if np.SystemDiskSize < DefaultWorkerSystemDiskSize {
 			c.NodePools[i].SystemDiskSize = DefaultWorkerSystemDiskSize
 		}
-		if np.Image == "" {
-			c.NodePools[i].Image = DefaultImage
-		}
 	}
 
 	return nil
@@ -88,9 +73,6 @@ func ValidateNodePools(nps NodePools) error {
 	for _, np := range nps {
 		if np.Count < 1 {
 			return pkgErrors.ErrorAlibabaMinNumberOfNodes
-		}
-		if np.Image != DefaultImage {
-			return pkgErrors.ErrorNotValidNodeImage
 		}
 	}
 	return nil

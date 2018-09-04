@@ -19,9 +19,7 @@ type AlibabaClusterCreateParams struct {
 	WorkerInstanceType       string `json:"worker_instance_type"`          // Worker node ECS specification type code.
 	WorkerSystemDiskCategory string `json:"worker_system_disk_category"`   // Worker node system disk type.
 	WorkerSystemDiskSize     int    `json:"worker_system_disk_size"`       // Worker node system disk size.
-	LoginPassword            string `json:"login_password"`                // SSH login password. The password rule is 8 - 30 characters and contains three items (uppercase, lowercase, numbers, and special symbols). Select one of the key_pair.
 	KeyPair                  string `json:"key_pair"`                      // Keypair name. Choose one with login_password
-	ImageID                  string `json:"image_id"`                      // Image ID, currently only supports the centos system. It is recommended to use centos_7.
 	NumOfNodes               int    `json:"num_of_nodes"`                  // Worker node number. The range is [0,300].
 	SNATEntry                bool   `json:"snat_entry"`                    // Whether to configure SNAT for the network. If it is automatically created VPC must be set to true. If you are using an existing VPC, set it according to whether you have network access capability
 	SSHFlags                 bool   `json:"ssh_flags,omitempty"`           // Whether to open public network SSH login.
