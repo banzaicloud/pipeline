@@ -258,12 +258,23 @@ func createGithubRepo(request *LaunchRequest, userID uint, sourceRepo *Repo) err
 		return errors.Wrap(err, "failed to initialize spotguide repository")
 	}
 
+	// Create repo config that drives the CICD flow from LaunchRequest
+	repoConfig, err := createDroneRepoConfig(sourceRepo.PipelineRaw, request)
+	if err != nil {
+		return errors.Wrap(err, "failed to initialize repo config")
+	}
+
+	repoConfigRaw, err := yaml.Marshal(repoConfig)
+	if err != nil {
+		return errors.Wrap(err, "failed to marshal repo config")
+	}
+
 	// List the files here that needs to be created in this commit and create a tree from them
 	entries := []github.TreeEntry{
 		{
 			Type:    github.String("blob"),
 			Path:    github.String(PipelineYAMLPath),
-			Content: github.String(string(sourceRepo.PipelineRaw)),
+			Content: github.String(string(repoConfigRaw)),
 			Mode:    github.String("100644"),
 		},
 		{
@@ -351,6 +362,30 @@ func enableCICD(request *LaunchRequest, httpRequest *http.Request) error {
 	_, err = droneClient.RepoPost(request.RepoOrganization, request.RepoName)
 	if err != nil {
 		return errors.Wrap(err, "failed to sync enable Drone repository")
+	}
+
+	return nil
+}
+
+func createDroneRepoConfig(initConfig []byte, request *LaunchRequest) (*droneRepoConfig, error) {
+	repoConfig := new(droneRepoConfig)
+	if err := yaml.Unmarshal(initConfig, repoConfig); err != nil {
+		return nil, err
+	}
+
+	// Configure secrets
+	if err := droneRepoConfigSecrets(request, repoConfig); err != nil {
+		return nil, err
+	}
+
+	return repoConfig, nil
+}
+
+func droneRepoConfigSecrets(request *LaunchRequest, repoConfig *droneRepoConfig) error {
+	for _, secret := range request.Secrets {
+		for _, container := range repoConfig.pipeline.containers {
+			container.secrets.secrets = append(container.secrets.secrets, &droneSecret{secret.Name, secret.Name})
+		}
 	}
 
 	return nil
