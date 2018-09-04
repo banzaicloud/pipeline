@@ -383,8 +383,8 @@ func createDroneRepoConfig(initConfig []byte, request *LaunchRequest) (*droneRep
 
 func droneRepoConfigSecrets(request *LaunchRequest, repoConfig *droneRepoConfig) error {
 	for _, secret := range request.Secrets {
-		for _, container := range repoConfig.pipeline.containers {
-			container.secrets.secrets = append(container.secrets.secrets, &droneSecret{secret.Name, secret.Name})
+		for _, container := range repoConfig.Pipeline.Containers {
+			container.Secrets.Secrets = append(container.Secrets.Secrets, &droneSecret{secret.Name, secret.Name})
 		}
 	}
 

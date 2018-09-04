@@ -11,167 +11,167 @@ import (
 // nolint
 // droneRepoConfig defines a pipeline configuration.
 type droneRepoConfig struct {
-	cache     libcompose.Stringorslice
-	platform  string
-	branches  droneConstraint
-	workspace droneWorkspace
-	cluster   *droneKubernetesCluster
-	clone     droneContainers
-	pipeline  droneContainers
-	services  droneContainers
-	networks  droneNetworks
-	volumes   droneVolumes
-	labels    libcompose.SliceorMap
+	Cache     libcompose.Stringorslice
+	Platform  string
+	Branches  droneConstraint
+	Workspace droneWorkspace
+	Cluster   *droneKubernetesCluster
+	Clone     droneContainers
+	Pipeline  droneContainers
+	Services  droneContainers
+	Networks  droneNetworks
+	Volumes   droneVolumes
+	Labels    libcompose.SliceorMap
 }
 
 // nolint
 // droneKubernetesCluster defines a cluster that has to be created before executing the rest of the Pipeline.
 type droneKubernetesCluster struct {
-	name     string `yaml:"name"`
-	provider string `yaml:"provider"`
-	secretID string `yaml:"secret_id"`
+	Name     string `yaml:"name"`
+	Provider string `yaml:"provider"`
+	SecretID string `yaml:"secret_id"`
 
-	googleProject    string `yaml:"google_project,omitempty"`
-	googleNodeCount  int    `yaml:"google_node_count,omitempty"`
-	googleGKEVersion string `yaml:"google_gke_version,omitempty"`
+	GoogleProject    string `yaml:"google_project,omitempty"`
+	GoogleNodeCount  int    `yaml:"google_node_count,omitempty"`
+	GoogleGKEVersion string `yaml:"google_gke_version,omitempty"`
 }
 
 // nolint
 // droneWorkspace defines a pipeline workspace.
 type droneWorkspace struct {
-	base string
-	path string
+	Base string
+	Path string
 }
 
 // nolint
 // droneAuthConfig defines registry authentication credentials.
 type droneAuthConfig struct {
-	username string
-	password string
-	email    string
+	Username string
+	Password string
+	Email    string
 }
 
 // nolint
 // droneContainers denotes an ordered collection of containers.
 type droneContainers struct {
-	containers []*droneContainer
+	Containers []*droneContainer
 }
 
 // nolint
 // droneContainer defines a container.
 type droneContainer struct {
-	authConfig    droneAuthConfig           `yaml:"auth_config,omitempty"`
-	capAdd        []string                  `yaml:"cap_add,omitempty"`
-	capDrop       []string                  `yaml:"cap_drop,omitempty"`
-	command       libcompose.Command        `yaml:"command,omitempty"`
-	commands      libcompose.Stringorslice  `yaml:"commands,omitempty"`
-	cpuQuota      libcompose.StringorInt    `yaml:"cpu_quota,omitempty"`
-	cpuSet        string                    `yaml:"cpuset,omitempty"`
-	cpuShares     libcompose.StringorInt    `yaml:"cpu_shares,omitempty"`
-	detached      bool                      `yaml:"detach,omitempty"`
-	devices       []string                  `yaml:"devices,omitempty"`
-	tmpfs         []string                  `yaml:"tmpfs,omitempty"`
-	dns           libcompose.Stringorslice  `yaml:"dns,omitempty"`
-	dnsSearch     libcompose.Stringorslice  `yaml:"dns_search,omitempty"`
-	entrypoint    libcompose.Command        `yaml:"entrypoint,omitempty"`
-	environment   libcompose.SliceorMap     `yaml:"environment,omitempty"`
-	extraHosts    []string                  `yaml:"extra_hosts,omitempty"`
-	group         string                    `yaml:"group,omitempty"`
-	image         string                    `yaml:"image,omitempty"`
-	isolation     string                    `yaml:"isolation,omitempty"`
-	labels        libcompose.SliceorMap     `yaml:"labels,omitempty"`
-	memLimit      libcompose.MemStringorInt `yaml:"mem_limit,omitempty"`
-	memSwapLimit  libcompose.MemStringorInt `yaml:"memswap_limit,omitempty"`
-	memSwappiness libcompose.MemStringorInt `yaml:"mem_swappiness,omitempty"`
-	name          string                    `yaml:"name,omitempty"`
-	networkMode   string                    `yaml:"network_mode,omitempty"`
-	ipcMode       string                    `yaml:"ipc_mode,omitempty"`
-	networks      libcompose.Networks       `yaml:"networks,omitempty"`
-	ports         []int32                   `yaml:"ports,omitempty"`
-	privileged    bool                      `yaml:"privileged,omitempty"`
-	pull          bool                      `yaml:"pull,omitempty"`
-	shmSize       libcompose.MemStringorInt `yaml:"shm_size,omitempty"`
-	ulimits       libcompose.Ulimits        `yaml:"ulimits,omitempty"`
-	volumes       libcompose.Volumes        `yaml:"volumes,omitempty"`
-	secrets       droneSecrets              `yaml:"secrets,omitempty"`
-	sysctls       libcompose.SliceorMap     `yaml:"sysctls,omitempty"`
-	constraints   droneConstraints          `yaml:"when,omitempty"`
-	vargs         map[string]interface{}    `yaml:",inline"`
+	AuthConfig    droneAuthConfig           `yaml:"auth_config,omitempty"`
+	CapAdd        []string                  `yaml:"cap_add,omitempty"`
+	CapDrop       []string                  `yaml:"cap_drop,omitempty"`
+	Command       libcompose.Command        `yaml:"command,omitempty"`
+	Commands      libcompose.Stringorslice  `yaml:"commands,omitempty"`
+	CpuQuota      libcompose.StringorInt    `yaml:"cpu_quota,omitempty"`
+	CpuSet        string                    `yaml:"cpuset,omitempty"`
+	CpuShares     libcompose.StringorInt    `yaml:"cpu_shares,omitempty"`
+	Detached      bool                      `yaml:"detach,omitempty"`
+	Devices       []string                  `yaml:"devices,omitempty"`
+	Tmpfs         []string                  `yaml:"tmpfs,omitempty"`
+	Dns           libcompose.Stringorslice  `yaml:"dns,omitempty"`
+	DnsSearch     libcompose.Stringorslice  `yaml:"dns_search,omitempty"`
+	Entrypoint    libcompose.Command        `yaml:"entrypoint,omitempty"`
+	Environment   libcompose.SliceorMap     `yaml:"environment,omitempty"`
+	ExtraHosts    []string                  `yaml:"extra_hosts,omitempty"`
+	Group         string                    `yaml:"group,omitempty"`
+	Image         string                    `yaml:"image,omitempty"`
+	Isolation     string                    `yaml:"isolation,omitempty"`
+	Labels        libcompose.SliceorMap     `yaml:"labels,omitempty"`
+	MemLimit      libcompose.MemStringorInt `yaml:"mem_limit,omitempty"`
+	MemSwapLimit  libcompose.MemStringorInt `yaml:"memswap_limit,omitempty"`
+	MemSwappiness libcompose.MemStringorInt `yaml:"mem_swappiness,omitempty"`
+	Name          string                    `yaml:"name,omitempty"`
+	NetworkMode   string                    `yaml:"network_mode,omitempty"`
+	IpcMode       string                    `yaml:"ipc_mode,omitempty"`
+	Networks      libcompose.Networks       `yaml:"networks,omitempty"`
+	Ports         []int32                   `yaml:"ports,omitempty"`
+	Privileged    bool                      `yaml:"privileged,omitempty"`
+	Pull          bool                      `yaml:"pull,omitempty"`
+	ShmSize       libcompose.MemStringorInt `yaml:"shm_size,omitempty"`
+	Ulimits       libcompose.Ulimits        `yaml:"ulimits,omitempty"`
+	Volumes       libcompose.Volumes        `yaml:"volumes,omitempty"`
+	Secrets       droneSecrets              `yaml:"secrets,omitempty"`
+	Sysctls       libcompose.SliceorMap     `yaml:"sysctls,omitempty"`
+	Constraints   droneConstraints          `yaml:"when,omitempty"`
+	Vargs         map[string]interface{}    `yaml:",inline"`
 }
 
 // nolint
 // droneConstraints defines a set of runtime constraints.
 type droneConstraints struct {
-	ref         droneConstraint
-	repo        droneConstraint
-	instance    droneConstraint
-	platform    droneConstraint
-	environment droneConstraint
-	event       droneConstraint
-	branch      droneConstraint
-	status      droneConstraint
-	matrix      droneConstraintMap
-	local       droneBoolTrue
+	Ref         droneConstraint
+	Repo        droneConstraint
+	Instance    droneConstraint
+	Platform    droneConstraint
+	Environment droneConstraint
+	Event       droneConstraint
+	Branch      droneConstraint
+	Status      droneConstraint
+	Matrix      droneConstraintMap
+	Local       droneBoolTrue
 }
 
 // nolint
 // droneConstraint defines a runtime constraint.
 type droneConstraint struct {
-	include []string
-	exclude []string
+	Include []string
+	Exclude []string
 }
 
 // nolint
 // droneConstraintMap defines a runtime constraint map.
 type droneConstraintMap struct {
-	include map[string]string
-	exclude map[string]string
+	Include map[string]string
+	Exclude map[string]string
 }
 
 // nolint
 // droneNetworks defines a collection of networks.
 type droneNetworks struct {
-	networks []*droneNetwork
+	Networks []*droneNetwork
 }
 
 // nolint
 // droneNetwork defines a container network.
 type droneNetwork struct {
-	name       string            `yaml:"name,omitempty"`
-	driver     string            `yaml:"driver,omitempty"`
-	driverOpts map[string]string `yaml:"driver_opts,omitempty"`
+	Name       string            `yaml:"name,omitempty"`
+	Driver     string            `yaml:"driver,omitempty"`
+	DriverOpts map[string]string `yaml:"driver_opts,omitempty"`
 }
 
 // nolint
 // droneVolumes defines a collection of volumes.
 type droneVolumes struct {
-	volumes []*droneVolume
+	Volumes []*droneVolume
 }
 
 // nolint
 // droneVolume defines a container volume.
 type droneVolume struct {
-	name       string            `yaml:"name,omitempty"`
-	driver     string            `yaml:"driver,omitempty"`
-	driverOpts map[string]string `yaml:"driver_opts,omitempty"`
+	Name       string            `yaml:"name,omitempty"`
+	Driver     string            `yaml:"driver,omitempty"`
+	DriverOpts map[string]string `yaml:"driver_opts,omitempty"`
 }
 
 // nolint
 // droneSecrets defines a collection of secrets.
 type droneSecrets struct {
-	secrets []*droneSecret
+	Secrets []*droneSecret
 }
 
 // nolint
 // droneSecret defines a container secret.
 type droneSecret struct {
-	source string `yaml:"source"`
-	target string `yaml:"target"`
+	Source string `yaml:"source"`
+	Target string `yaml:"target"`
 }
 
 // droneBoolTrue is a custom Yaml boolean type that defaults to true.
 type droneBoolTrue struct {
-	value bool
+	Value bool
 }
 
 // UnmarshalYAML implements custom Yaml unmarshaling.
@@ -184,7 +184,7 @@ func (b *droneBoolTrue) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 	value, err := strconv.ParseBool(s)
 	if err == nil {
-		b.value = !value
+		b.Value = !value
 	}
 	return nil
 }
@@ -197,7 +197,7 @@ func (b *droneBoolTrue) MarshalYAML() (interface{}, error) {
 
 // Bool returns the bool value.
 func (b droneBoolTrue) Bool() bool {
-	return !b.value
+	return !b.Value
 }
 
 // UnmarshalYAML unmarshals the constraint.
@@ -212,8 +212,8 @@ func (c *droneConstraint) UnmarshalYAML(unmarshal func(interface{}) error) error
 	unmarshal(&out1)
 	unmarshal(&out2)
 
-	c.exclude = out1.exclude
-	c.include = append(
+	c.Exclude = out1.exclude
+	c.Include = append(
 		out1.include,
 		out2...,
 	)
@@ -235,10 +235,10 @@ func (c *droneConstraintMap) UnmarshalYAML(unmarshal func(interface{}) error) er
 	unmarshal(&out1)
 	unmarshal(&out2)
 
-	c.include = out1.include
-	c.exclude = out1.exclude
+	c.Include = out1.include
+	c.Exclude = out1.exclude
 	for k, v := range out2 {
-		c.include[k] = v
+		c.Include[k] = v
 	}
 	return nil
 }
@@ -257,10 +257,10 @@ func (c *droneContainers) UnmarshalYAML(unmarshal func(interface{}) error) error
 		if err := yaml.Unmarshal(out, &container); err != nil {
 			return err
 		}
-		if container.name == "" {
-			container.name = fmt.Sprintf("%v", s.Key)
+		if container.Name == "" {
+			container.Name = fmt.Sprintf("%v", s.Key)
 		}
-		c.containers = append(c.containers, &container)
+		c.Containers = append(c.Containers, &container)
 	}
 	return nil
 }
@@ -281,13 +281,13 @@ func (n *droneNetworks) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		if err != nil {
 			return err
 		}
-		if nn.name == "" {
-			nn.name = fmt.Sprintf("%v", s.Key)
+		if nn.Name == "" {
+			nn.Name = fmt.Sprintf("%v", s.Key)
 		}
-		if nn.driver == "" {
-			nn.driver = "bridge"
+		if nn.Driver == "" {
+			nn.Driver = "bridge"
 		}
-		n.networks = append(n.networks, &nn)
+		n.Networks = append(n.Networks, &nn)
 	}
 	return err
 }
@@ -298,14 +298,14 @@ func (s *droneSecrets) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	err := unmarshal(&strslice)
 	if err == nil {
 		for _, str := range strslice {
-			s.secrets = append(s.secrets, &droneSecret{
-				source: str,
-				target: str,
+			s.Secrets = append(s.Secrets, &droneSecret{
+				Source: str,
+				Target: str,
 			})
 		}
 		return nil
 	}
-	return unmarshal(&s.secrets)
+	return unmarshal(&s.Secrets)
 }
 
 // UnmarshalYAML implements the Unmarshaller interface.
@@ -324,13 +324,13 @@ func (v *droneVolumes) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		if err != nil {
 			return err
 		}
-		if vv.name == "" {
-			vv.name = fmt.Sprintf("%v", s.Key)
+		if vv.Name == "" {
+			vv.Name = fmt.Sprintf("%v", s.Key)
 		}
-		if vv.driver == "" {
-			vv.driver = "local"
+		if vv.Driver == "" {
+			vv.Driver = "local"
 		}
-		v.volumes = append(v.volumes, &vv)
+		v.Volumes = append(v.Volumes, &vv)
 	}
 	return err
 }
