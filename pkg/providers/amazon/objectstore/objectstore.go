@@ -79,16 +79,25 @@ func (s *objectStore) ListBuckets() ([]string, error) {
 	return bucketList, nil
 }
 
-// CheckBucket checks the status of the given bucket.
-func (s *objectStore) CheckBucket(bucketName string) error {
-	// Check if the bucket's region matches the current region
-	actualRegion, err := s3manager.GetBucketRegionWithClient(context.Background(), s.client, bucketName)
+// GetRegion gets the region of the given bucket
+func (s *objectStore) GetRegion(bucketName string) (string, error) {
+	region, err := s3manager.GetBucketRegionWithClient(context.Background(), s.client, bucketName)
 	if err != nil {
 		if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "NotFound" {
 			err = errBucketNotFound{}
 		}
 
-		return errors.Wrap(err, "checking bucket region failed")
+		return "", errors.Wrap(err, "checking bucket region failed")
+	}
+	return region, nil
+}
+
+// CheckBucket checks the status of the given bucket.
+func (s *objectStore) CheckBucket(bucketName string) error {
+	// Check if the bucket's region matches the current region
+	actualRegion, err := s.GetRegion(bucketName)
+	if err != nil {
+		return err
 	}
 
 	client := s.client
