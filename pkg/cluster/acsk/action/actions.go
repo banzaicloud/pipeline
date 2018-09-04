@@ -19,9 +19,9 @@ import (
 
 // ACSKClusterContext describes the common fields used across ACSK cluster create/update/delete operations
 type ACSKClusterContext struct {
-	ClusterName string
-	CSClient    *cs.Client
-	ECSClient   *ecs.Client
+	ClusterID string
+	CSClient  *cs.Client
+	ECSClient *ecs.Client
 }
 
 type ACSKClusterCreateUpdateContext struct {
@@ -29,15 +29,29 @@ type ACSKClusterCreateUpdateContext struct {
 	acsk.AlibabaClusterCreateParams
 }
 
-func NewACSKClusterCreationContext(clusterName string, csClient *cs.Client,
+func NewACSKClusterCreationContext(csClient *cs.Client,
 	ecsClient *ecs.Client, clusterCreateParams acsk.AlibabaClusterCreateParams) *ACSKClusterCreateUpdateContext {
 	return &ACSKClusterCreateUpdateContext{
 		ACSKClusterContext: ACSKClusterContext{
-			ClusterName: clusterName,
-			CSClient:    csClient,
-			ECSClient:   ecsClient,
+			CSClient:  csClient,
+			ECSClient: ecsClient,
 		},
 		AlibabaClusterCreateParams: clusterCreateParams,
+	}
+}
+
+type ACSKClusterDeleteContext struct {
+	ACSKClusterContext
+}
+
+func NewACSKClusterDeletionContext(csClient *cs.Client,
+	ecsClient *ecs.Client, clusterID string) *ACSKClusterDeleteContext {
+	return &ACSKClusterDeleteContext{
+		ACSKClusterContext{
+			CSClient:  csClient,
+			ECSClient: ecsClient,
+			ClusterID: clusterID,
+		},
 	}
 }
 
@@ -69,7 +83,7 @@ func (a *UploadSSHKeyAction) ExecuteAction(input interface{}) (interface{}, erro
 
 	req := ecs.CreateImportKeyPairRequest()
 	req.SetScheme(requests.HTTPS)
-	req.KeyPairName = a.context.ClusterName
+	req.KeyPairName = a.context.AlibabaClusterCreateParams.Name
 	req.PublicKeyBody = strings.TrimSpace(secret.NewSSHKeyPair(a.sshSecret).PublicKeyData)
 	req.RegionId = a.context.AlibabaClusterCreateParams.RegionID
 
@@ -84,7 +98,7 @@ func (a *UploadSSHKeyAction) UndoAction() (err error) {
 
 	req := ecs.CreateDeleteKeyPairsRequest()
 	req.SetScheme(requests.HTTPS)
-	req.KeyPairNames = a.context.ClusterName
+	req.KeyPairNames = a.context.AlibabaClusterCreateParams.Name
 	req.RegionId = a.context.AlibabaClusterCreateParams.RegionID
 
 	_, err = ecsClient.DeleteKeyPairs(req)
@@ -93,9 +107,8 @@ func (a *UploadSSHKeyAction) UndoAction() (err error) {
 
 // CreateACSKClusterAction describes the properties of an Alibaba cluster creation
 type CreateACSKClusterAction struct {
-	context   *ACSKClusterCreateUpdateContext
-	log       logrus.FieldLogger
-	clusterID string
+	context *ACSKClusterCreateUpdateContext
+	log     logrus.FieldLogger
 }
 
 // NewCreateACSKClusterAction creates a new CreateACSKClusterAction
@@ -113,7 +126,7 @@ func (a *CreateACSKClusterAction) GetName() string {
 
 // ExecuteAction executes this CreateACSKClusterAction
 func (a *CreateACSKClusterAction) ExecuteAction(input interface{}) (output interface{}, err error) {
-	a.log.Infoln("EXECUTE CreateACSKClusterAction, cluster name")
+	a.log.Infoln("EXECUTE CreateACSKClusterAction, cluster name", a.context.Name)
 	csClient := a.context.CSClient
 
 	// setup cluster creation request
@@ -150,7 +163,7 @@ func (a *CreateACSKClusterAction) ExecuteAction(input interface{}) (output inter
 	a.log.Infof("Alibaba cluster creating with id %s", r.ClusterID)
 
 	//We need this field to be able to implement the UndoAction for ClusterCreate
-	a.clusterID = r.ClusterID
+	a.context.ClusterID = r.ClusterID
 
 	// wait for cluster created
 	a.log.Info("Waiting for cluster...")
@@ -165,10 +178,13 @@ func (a *CreateACSKClusterAction) ExecuteAction(input interface{}) (output inter
 func (a *CreateACSKClusterAction) UndoAction() (err error) {
 	a.log.Info("EXECUTE UNDO CreateACSKClusterAction")
 
-	csClient := a.context.CSClient
+	return deleteCluster(a.context.ClusterID, a.context.CSClient)
+}
+
+func deleteCluster(clusterID string, csClient *cs.Client) error {
 
 	req := cs.CreateDeleteClusterRequest()
-	req.ClusterId = a.clusterID
+	req.ClusterId = clusterID
 	req.SetScheme(requests.HTTPS)
 	req.SetDomain("cs.aliyuncs.com")
 
@@ -180,15 +196,14 @@ func (a *CreateACSKClusterAction) UndoAction() (err error) {
 				return nil
 			}
 		}
-		a.log.Errorf("DeleteClusterResponse: %#v\n", resp.BaseResponse)
-		return err
+		return errors.WithMessage(err, fmt.Sprint("DeleteClusterResponse: %#v\n", resp.BaseResponse))
 	}
 
 	if resp.GetHttpStatus() != http.StatusAccepted {
 		return fmt.Errorf("unexpected http status code: %d", resp.GetHttpStatus())
 	}
 
-	return
+	return nil
 }
 
 func (a *CreateACSKClusterAction) waitUntilClusterCreateComplete(clusterID string) (*acsk.AlibabaDescribeClusterResponse, error) {
@@ -239,4 +254,58 @@ func (a *CreateACSKClusterAction) getClusterDetails(clusterID string) (r *acsk.A
 
 	err = json.Unmarshal(resp.GetHttpContentBytes(), &r)
 	return
+}
+
+// DeleteACSKClusterAction describes the properties of an Alibaba cluster deletion
+type DeleteACSKClusterAction struct {
+	context *ACSKClusterDeleteContext
+	log     logrus.FieldLogger
+}
+
+// NewCreateACSKClusterAction creates a new CreateACSKClusterAction
+func NewDeleteACSKClusterAction(log logrus.FieldLogger, deletionContext *ACSKClusterDeleteContext) *DeleteACSKClusterAction {
+	return &DeleteACSKClusterAction{
+		context: deletionContext,
+		log:     log,
+	}
+}
+
+// GetName returns the name of this DeleteACSKClusterAction
+func (a *DeleteACSKClusterAction) GetName() string {
+	return "DeleteACSKClusterAction"
+}
+
+// ExecuteAction executes this DeleteACSKClusterAction
+func (a *DeleteACSKClusterAction) ExecuteAction(input interface{}) (output interface{}, err error) {
+	a.log.Info("EXECUTE DeleteClusterAction")
+	return nil, deleteCluster(a.context.ClusterID, a.context.CSClient)
+}
+
+// DeleteSSHKeyAction describes how to delete an SSH key
+type DeleteSSHKeyAction struct {
+	context        *ACSKClusterDeleteContext
+	sshKeyName     string
+	sshKeyRegionID string
+	log            logrus.FieldLogger
+}
+
+// NewDeleteSSHKeyAction creates a new UploadSSHKeyAction
+func NewDeleteSSHKeyAction(log logrus.FieldLogger, context *ACSKClusterDeleteContext, sshKeyName, regionID string) *DeleteSSHKeyAction {
+	return &DeleteSSHKeyAction{
+		context:        context,
+		sshKeyName:     sshKeyName,
+		sshKeyRegionID: regionID,
+		log:            log,
+	}
+}
+
+// GetName returns the name of this DeleteSSHKeyAction
+func (a *DeleteSSHKeyAction) GetName() string {
+	return "DeleteSSHKeyAction"
+}
+
+// ExecuteAction executes this UploadSSHKeyAction
+func (a *DeleteSSHKeyAction) ExecuteAction(input interface{}) (interface{}, error) {
+	a.log.Info("EXECUTE DeleteSSHKeyAction")
+	return nil, nil
 }
