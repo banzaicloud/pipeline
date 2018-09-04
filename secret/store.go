@@ -469,6 +469,9 @@ func generateValuesIfNeeded(value *CreateSecretRequest) error {
 		}
 		// Generate a password if needed (if password is in method,length)
 	} else if value.Type == secretTypes.PasswordSecretType {
+		if value.Values[secretTypes.Password] == "" {
+			value.Values[secretTypes.Password] = DefaultPasswordFormat
+		}
 		methodAndLength := strings.Split(value.Values[secretTypes.Password], ",")
 		if len(methodAndLength) == 2 {
 			length, err := strconv.Atoi(methodAndLength[1])
