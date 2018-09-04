@@ -53,7 +53,7 @@ func PutHpaResource(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, "")
+	c.Status(http.StatusCreated)
 }
 
 // DeleteHpaResource deletes a Hpa resource annotations from scaleTarget - K8s deployment/statefulset
@@ -88,7 +88,7 @@ func DeleteHpaResource(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, "")
+	c.Status(http.StatusNoContent)
 }
 
 // GetHpaResource returns a Hpa resource bound to a K8s deployment/statefulset
