@@ -193,6 +193,12 @@ func (s *objectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 			bucketInfo.Managed = true
 		}
 
+		region, err := s.objectStore.GetRegion(bucket)
+		if err != nil {
+			return nil, err
+		}
+		bucketInfo.Location = region
+
 		bucketList = append(bucketList, bucketInfo)
 	}
 
