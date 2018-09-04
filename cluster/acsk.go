@@ -52,7 +52,6 @@ type alibabaClusterCreateParams struct {
 	WorkerSystemDiskSize     int    `json:"worker_system_disk_size"`       // Worker node system disk size.
 	LoginPassword            string `json:"login_password"`                // SSH login password. The password rule is 8 - 30 characters and contains three items (uppercase, lowercase, numbers, and special symbols). Select one of the key_pair.
 	KeyPair                  string `json:"key_pair"`                      // Keypair name. Choose one with login_password
-	ImageID                  string `json:"image_id"`                      // Image ID, currently only supports the centos system. It is recommended to use centos_7.
 	NumOfNodes               int    `json:"num_of_nodes"`                  // Worker node number. The range is [0,300].
 	SNATEntry                bool   `json:"snat_entry"`                    // Whether to configure SNAT for the network. If it is automatically created VPC must be set to true. If you are using an existing VPC, set it according to whether you have network access capability
 	SSHFlags                 bool   `json:"ssh_flags,omitempty"`           // Whether to open public network SSH login.
@@ -95,7 +94,6 @@ type alibabaScaleClusterParams struct {
 	DisableRollback    bool   `json:"disable_rollback,omitempty"` // Whether the failure is rolled back, true means that the failure does not roll back, and false fails to roll back. If you choose to fail back, it will release the resources produced during the creation process. It is not recommended to use false.
 	TimeoutMins        int    `json:"timeout_mins,omitempty"`     // Cluster resource stack creation timeout in minutes, default value 60.
 	WorkerInstanceType string `json:"worker_instance_type"`       // Worker node ECS specification type code.
-	ImageID            string `json:"image_id"`                   // Image ID, currently only supports the centos system. It is recommended to use centos_7.
 	NumOfNodes         int    `json:"num_of_nodes"`               // Worker node number. The range is [0,300].
 }
 
@@ -193,16 +191,13 @@ func (c *ACSKCluster) createACSKNodePoolsModelFromUpdateRequestData(pools acsk.N
 	for nodePoolName, nodePool := range pools {
 		if currentNodePoolMap[nodePoolName] != nil {
 			updatedNodePools = append(updatedNodePools, &model.ACSKNodePoolModel{
-				ID:                 currentNodePoolMap[nodePoolName].ID,
-				CreatedBy:          currentNodePoolMap[nodePoolName].CreatedBy,
-				CreatedAt:          currentNodePoolMap[nodePoolName].CreatedAt,
-				ClusterModelId:     currentNodePoolMap[nodePoolName].ClusterModelId,
-				Name:               nodePoolName,
-				InstanceType:       nodePool.InstanceType,
-				SystemDiskCategory: nodePool.SystemDiskCategory,
-				SystemDiskSize:     nodePool.SystemDiskSize,
-				Image:              nodePool.Image,
-				Count:              nodePool.Count,
+				ID:             currentNodePoolMap[nodePoolName].ID,
+				CreatedBy:      currentNodePoolMap[nodePoolName].CreatedBy,
+				CreatedAt:      currentNodePoolMap[nodePoolName].CreatedAt,
+				ClusterModelId: currentNodePoolMap[nodePoolName].ClusterModelId,
+				Name:           nodePoolName,
+				InstanceType:   currentNodePoolMap[nodePoolName].InstanceType,
+				Count:          nodePool.Count,
 			})
 		}
 	}
@@ -288,7 +283,6 @@ func (c *ACSKCluster) CreateCluster() error {
 		WorkerSystemDiskCategory: c.modelCluster.ACSK.NodePools[0].SystemDiskCategory, // "cloud_efficiency",
 		WorkerSystemDiskSize:     c.modelCluster.ACSK.NodePools[0].SystemDiskSize,     // 40,
 		KeyPair:                  c.modelCluster.Name,                                 // uploaded keyPair name
-		ImageID:                  c.modelCluster.ACSK.NodePools[0].Image,              // "centos_7",
 		NumOfNodes:               c.modelCluster.ACSK.NodePools[0].Count,              // 1,
 		SNATEntry:                c.modelCluster.ACSK.SNATEntry,                       // true,
 		SSHFlags:                 c.modelCluster.ACSK.SSHFlags,                        // true,
@@ -621,7 +615,6 @@ func (c *ACSKCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, us
 		DisableRollback:    true,
 		TimeoutMins:        60,
 		WorkerInstanceType: nodePoolModels[0].InstanceType,
-		ImageID:            nodePoolModels[0].Image,
 		NumOfNodes:         nodePoolModels[0].Count,
 	}
 
