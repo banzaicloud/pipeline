@@ -682,7 +682,12 @@ func InstallHorizontalPodAutoscalerPostHook(input interface{}) error {
 
 //UpdatePrometheusPostHook updates a configmap used by Prometheus
 func UpdatePrometheusPostHook(_ interface{}) error {
-	UpdatePrometheus()
+	// TODO: return error instead? (preserved original behaviour during refactor)
+	err := UpdatePrometheusConfig()
+	if err != nil {
+		log.Warnf("could not update prometheus configmap: %v", err)
+	}
+
 	return nil
 }
 
@@ -716,14 +721,6 @@ func InstallHelmPostHook(input interface{}) error {
 		log.Errorf("Error during retry helm install: %s", err.Error())
 	}
 	return nil
-}
-
-//UpdatePrometheus updates a configmap used by Prometheus
-func UpdatePrometheus() {
-	err := UpdatePrometheusConfig()
-	if err != nil {
-		log.Warnf("Could not update prometheus configmap: %v", err)
-	}
 }
 
 // StoreKubeConfig saves kubeconfig into vault

@@ -1,14 +1,17 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
-	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/config"
+	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/pkg/common"
+	"github.com/banzaicloud/pipeline/pkg/providers"
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
@@ -401,24 +404,25 @@ func IsValidSecretType(secretType string) error {
 
 // checkClustersBeforeDelete returns error if there's a running cluster that created with the given secret
 func checkClustersBeforeDelete(orgId uint, secretId string) error {
+	// TODO: move these to a struct and create them only once upon application init
+	secretValidator := providers.NewSecretValidator(secret.Store)
+	clusterManager := cluster.NewManager(intCluster.NewClusters(config.DB()), secretValidator, log, errorHandler)
 
-	filter := map[string]interface{}{
-		"organization_id": orgId,
-		"secret_id":       secretId,
+	clusters, err := clusterManager.GetClustersBySecretID(context.Background(), orgId, secretId)
+	if err != nil {
+		log.Warnf("could not get clusters: %s", err.Error())
 	}
 
-	modelCluster, err := model.QueryCluster(filter)
-	if err != nil {
-		log.Infof("No cluster found in database with the given orgId[%d] and secretId[%s]", orgId, secretId)
+	if len(clusters) == 0 {
+		log.Infof("no cluster found in database with the given orgId[%d] and secretId[%s]", orgId, secretId)
 		return nil
 	}
 
-	for _, mc := range modelCluster {
-		if commonCluster, err := cluster.GetCommonClusterFromModel(&mc); err == nil {
-			if _, err := commonCluster.GetStatus(); err == nil {
-				return fmt.Errorf("there's a running cluster with this secret: %s[%d]", mc.Name, mc.ID)
-			}
+	for _, c := range clusters {
+		if _, err := c.GetStatus(); err == nil {
+			return fmt.Errorf("there's a running cluster with this secret: %s[%d]", c.GetName(), c.GetID())
 		}
 	}
+
 	return nil
 }

@@ -23,7 +23,7 @@ services:
       - 8080:8080
 
   vault:
-    image: vault:0.10.2
+    image: vault:0.11.0
     restart: always
     cap_add:
       - IPC_LOCK
@@ -33,7 +33,7 @@ services:
       - $HOME:/home/vault
 
   vault-configurer:
-    image: vault:0.10.0
+    image: vault:0.11.0
     depends_on:
       - vault
       - db

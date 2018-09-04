@@ -31,6 +31,18 @@ func (c *Clusters) Exists(organizationID uint, name string) (bool, error) {
 	return existingCluster.ID == 0, nil
 }
 
+// All returns all cluster instances for an organization.
+func (c *Clusters) All() ([]*model.ClusterModel, error) {
+	var clusters []*model.ClusterModel
+
+	err := c.db.Find(&clusters).Error
+	if err != nil {
+		return nil, errors.Wrap(err, "could not fetch clusters")
+	}
+
+	return clusters, nil
+}
+
 // FindByOrganization returns all cluster instances for an organization.
 func (c *Clusters) FindByOrganization(organizationID uint) ([]*model.ClusterModel, error) {
 	var clusters []*model.ClusterModel
@@ -98,4 +110,22 @@ func (c *Clusters) findOneBy(organizationID uint, field string, criteria interfa
 	}
 
 	return &cluster, nil
+}
+
+// FindBySecret returns all cluster instances for an organization filtered by secret.
+func (c *Clusters) FindBySecret(organizationID uint, secretID string) ([]*model.ClusterModel, error) {
+	var clusters []*model.ClusterModel
+
+	err := c.db.Find(
+		&clusters,
+		map[string]interface{}{
+			"organization_id": organizationID,
+			"secret_id":       secretID,
+		},
+	).Error
+	if err != nil {
+		return nil, errors.Wrap(err, "could not fetch clusters")
+	}
+
+	return clusters, nil
 }

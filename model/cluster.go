@@ -381,16 +381,6 @@ func (AKSNodePoolModel) TableName() string {
 	return TableNameAzureNodePools
 }
 
-// QueryCluster get's the clusters from the DB
-func QueryCluster(filter map[string]interface{}) ([]ClusterModel, error) {
-	var cluster []ClusterModel
-	err := config.DB().Where(filter).Find(&cluster).Error
-	if err != nil {
-		return nil, err
-	}
-	return cluster, nil
-}
-
 //TableName sets the GoogleClusterModel's table name
 func (GKEClusterModel) TableName() string {
 	return TableNameGoogleProperties

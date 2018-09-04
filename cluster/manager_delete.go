@@ -101,7 +101,12 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 	}
 
 	// Asyncron update prometheus
-	go UpdatePrometheus()
+	go func() {
+		err := UpdatePrometheusConfig()
+		if err != nil {
+			logger.Warnf("could not update prometheus configmap: %v", err)
+		}
+	}()
 
 	// clean statestore
 	logger.Info("cleaning cluster's statestore folder")

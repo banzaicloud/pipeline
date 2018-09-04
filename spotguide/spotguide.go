@@ -224,7 +224,7 @@ func LaunchSpotguide(request *LaunchRequest, httpRequest *http.Request, orgID, u
 func createGithubRepo(request *LaunchRequest, userID uint, sourceRepo *Repo) error {
 	githubClient, err := newGithubClientForUser(userID)
 	if err != nil {
-		return errors.Wrap(err, "failed to create spotguide repository")
+		return errors.Wrap(err, "failed to create GitHub client")
 	}
 
 	repo := github.Repository{
@@ -232,7 +232,14 @@ func createGithubRepo(request *LaunchRequest, userID uint, sourceRepo *Repo) err
 		Description: github.String("Spotguide by BanzaiCloud"),
 	}
 
-	_, _, err = githubClient.Repositories.Create(ctx, request.RepoOrganization, &repo)
+	// If the user's name is used as organization name, it has to be cleared in repo create.
+	// See: https://developer.github.com/v3/repos/#create
+	orgName := request.RepoOrganization
+	if auth.GetUserNickNameById(userID) == orgName {
+		orgName = ""
+	}
+
+	_, _, err = githubClient.Repositories.Create(ctx, orgName, &repo)
 	if err != nil {
 		return errors.Wrap(err, "failed to create spotguide repository")
 	}

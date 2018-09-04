@@ -51,13 +51,6 @@ const (
 	zeroMemory = "0 B"
 )
 
-// UpdateMonitoring updating prometheus
-func UpdateMonitoring(c *gin.Context) {
-	cluster.UpdatePrometheus()
-	c.String(http.StatusOK, "OK")
-	return
-}
-
 // getClusterFromRequest just a simple getter to build commonCluster object this handles error messages directly
 func getClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
 	var cl cluster.CommonCluster
