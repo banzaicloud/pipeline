@@ -122,7 +122,9 @@ type GenTLSForLogging struct {
 // LoggingParam describes the logging posthook params
 type LoggingParam struct {
 	BucketName       string           `json:"bucketName" binding:"required"`
-	Region           string           `json:"region" binding:"required"`
+	Region           string           `json:"region"`
+	ResourceGroup    string           `json:"resourceGroup"`
+	StorageAccount   string           `json:"storageAccount"`
 	SecretId         string           `json:"secretId" binding:"required"`
 	GenTLSForLogging GenTLSForLogging `json:"tls" binding:"required"`
 }
