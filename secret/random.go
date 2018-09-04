@@ -6,6 +6,9 @@ import (
 	"github.com/aokoli/goutils"
 )
 
+// DefaultPasswordFormat is the format of passwords if not specified otherwise
+const DefaultPasswordFormat = "randAlphaNum,12"
+
 //RandomString creates a random string whose length is the number of characters specified.
 func RandomString(genType string, length int) (res string, err error) {
 	switch genType {
