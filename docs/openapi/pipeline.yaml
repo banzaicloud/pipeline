@@ -6024,7 +6024,6 @@ components:
           type: object
           required:
             - bucketName
-            - region
             - secretId
             - tls
           properties:
@@ -6034,6 +6033,12 @@ components:
             region:
               type: string
               example: "region"
+            resourceGroup:
+              type: string
+              example: "myResourceGroup"
+            storageAccount:
+              type: string
+              example: "myStorageAccount"
             secretId:
               type: string
               example: "62bc3c75-91fb-4670-bad4-24b401a9deac"
