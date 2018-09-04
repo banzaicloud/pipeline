@@ -236,7 +236,7 @@ func (c *ACSKCluster) CreateCluster() error {
 		action.NewCreateACSKClusterAction(c.log, creationContext),
 	}
 
-	resp, err := utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, false)
+	resp, err := utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, true)
 	if err != nil {
 		errors.Wrap(err, "ACSK cluster create error")
 		return err

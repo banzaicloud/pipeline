@@ -2,9 +2,12 @@ package action
 
 import (
 	"encoding/json"
+	"fmt"
+	"net/http"
 	"strings"
 	"time"
 
+	aliErrors "github.com/aliyun/alibaba-cloud-sdk-go/sdk/errors"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/cs"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
@@ -90,8 +93,9 @@ func (a *UploadSSHKeyAction) UndoAction() (err error) {
 
 // CreateACSKClusterAction describes the properties of an Alibaba cluster creation
 type CreateACSKClusterAction struct {
-	context *ACSKClusterCreateUpdateContext
-	log     logrus.FieldLogger
+	context   *ACSKClusterCreateUpdateContext
+	log       logrus.FieldLogger
+	clusterID string
 }
 
 // NewCreateACSKClusterAction creates a new CreateACSKClusterAction
@@ -145,6 +149,9 @@ func (a *CreateACSKClusterAction) ExecuteAction(input interface{}) (output inter
 
 	a.log.Infof("Alibaba cluster creating with id %s", r.ClusterID)
 
+	//We need this field to be able to implement the UndoAction for ClusterCreate
+	a.clusterID = r.ClusterID
+
 	// wait for cluster created
 	a.log.Info("Waiting for cluster...")
 	cluster, err := a.waitUntilClusterCreateComplete(r.ClusterID)
@@ -155,7 +162,36 @@ func (a *CreateACSKClusterAction) ExecuteAction(input interface{}) (output inter
 	return cluster, nil
 }
 
-func (a *CreateACSKClusterAction) waitUntilClusterCreateComplete(clusterID string)  (*acsk.AlibabaDescribeClusterResponse, error) {
+func (a *CreateACSKClusterAction) UndoAction() (err error) {
+	a.log.Info("EXECUTE UNDO CreateACSKClusterAction")
+
+	csClient := a.context.CSClient
+
+	req := cs.CreateDeleteClusterRequest()
+	req.ClusterId = a.clusterID
+	req.SetScheme(requests.HTTPS)
+	req.SetDomain("cs.aliyuncs.com")
+
+	resp, err := csClient.DeleteCluster(req)
+	if err != nil {
+		if sdkErr, ok := err.(*aliErrors.ServerError); ok {
+			if strings.Contains(sdkErr.Message(), "ErrorClusterNotFound") {
+				// Cluster has been already deleted
+				return nil
+			}
+		}
+		a.log.Errorf("DeleteClusterResponse: %#v\n", resp.BaseResponse)
+		return err
+	}
+
+	if resp.GetHttpStatus() != http.StatusAccepted {
+		return fmt.Errorf("unexpected http status code: %d", resp.GetHttpStatus())
+	}
+
+	return
+}
+
+func (a *CreateACSKClusterAction) waitUntilClusterCreateComplete(clusterID string) (*acsk.AlibabaDescribeClusterResponse, error) {
 	var (
 		r     *acsk.AlibabaDescribeClusterResponse
 		state string
