@@ -95,14 +95,3 @@ func (ae *ActionExecutor) ExecuteActions(actions []Action, input interface{}, tr
 	}
 	return input, nil
 }
-
-//func (ae *ActionExecutor) ExecuteRevocableActions(actions []RevocableAction, input interface{}) (output interface{}, error error) {
-//	if len(actions) > 0 {
-//		action := actions[0]
-//		ctx := NewActionCallContext(action, actions[1:], input)
-//		output, err := ctx.executeContextAction()
-//		ae.log.Info("Actions executed, success:", err == nil)
-//		return output, err
-//	}
-//	return input, nil
-//}
