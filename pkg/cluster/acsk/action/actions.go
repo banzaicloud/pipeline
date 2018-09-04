@@ -16,9 +16,9 @@ import (
 
 // ACSKClusterContext describes the common fields used across ACSK cluster create/update/delete operations
 type ACSKClusterContext struct {
-	ClusterName  string
-	CSClient     *cs.Client
-	ECSClient    *ecs.Client
+	ClusterName string
+	CSClient    *cs.Client
+	ECSClient   *ecs.Client
 }
 
 type ACSKClusterCreateUpdateContext struct {
@@ -26,14 +26,13 @@ type ACSKClusterCreateUpdateContext struct {
 	acsk.AlibabaClusterCreateParams
 }
 
-
 func NewACSKClusterCreationContext(clusterName string, csClient *cs.Client,
 	ecsClient *ecs.Client, clusterCreateParams acsk.AlibabaClusterCreateParams) *ACSKClusterCreateUpdateContext {
 	return &ACSKClusterCreateUpdateContext{
 		ACSKClusterContext: ACSKClusterContext{
-			ClusterName:   clusterName,
-			CSClient:   csClient,
-			ECSClient:  ecsClient,
+			ClusterName: clusterName,
+			CSClient:    csClient,
+			ECSClient:   ecsClient,
 		},
 		AlibabaClusterCreateParams: clusterCreateParams,
 	}
@@ -47,7 +46,7 @@ type UploadSSHKeyAction struct {
 }
 
 // NewUploadSSHKeyAction creates a new UploadSSHKeyAction
-func NewUploadSSHKeyAction(log logrus.FieldLogger,context *ACSKClusterCreateUpdateContext, sshSecret *secret.SecretItemResponse) *UploadSSHKeyAction {
+func NewUploadSSHKeyAction(log logrus.FieldLogger, context *ACSKClusterCreateUpdateContext, sshSecret *secret.SecretItemResponse) *UploadSSHKeyAction {
 	return &UploadSSHKeyAction{
 		context:   context,
 		sshSecret: sshSecret,
@@ -91,15 +90,15 @@ func (a *UploadSSHKeyAction) UndoAction() (err error) {
 
 // CreateACSKClusterAction describes the properties of an Alibaba cluster creation
 type CreateACSKClusterAction struct {
-	context           *ACSKClusterCreateUpdateContext
-	log               logrus.FieldLogger
+	context *ACSKClusterCreateUpdateContext
+	log     logrus.FieldLogger
 }
 
 // NewCreateACSKClusterAction creates a new CreateACSKClusterAction
 func NewCreateACSKClusterAction(log logrus.FieldLogger, creationContext *ACSKClusterCreateUpdateContext) *CreateACSKClusterAction {
 	return &CreateACSKClusterAction{
-		context:           creationContext,
-		log:               log,
+		context: creationContext,
+		log:     log,
 	}
 }
 
@@ -114,7 +113,6 @@ func (a *CreateACSKClusterAction) ExecuteAction(input interface{}) (output inter
 	csClient := a.context.CSClient
 
 	// setup cluster creation request
-	a.context.AlibabaClusterCreateParams.ClusterType = "Kubernetes"
 	params := a.context.AlibabaClusterCreateParams
 	p, err := json.Marshal(&params)
 	if err != nil {
@@ -149,15 +147,15 @@ func (a *CreateACSKClusterAction) ExecuteAction(input interface{}) (output inter
 
 	// wait for cluster created
 	a.log.Info("Waiting for cluster...")
-	err = a.waitUntilClusterCreateComplete(r.ClusterID)
+	cluster, err := a.waitUntilClusterCreateComplete(r.ClusterID)
 	if err != nil {
 		return nil, err
 	}
 
-	return resp ,nil
+	return cluster, nil
 }
 
-func (a *CreateACSKClusterAction) waitUntilClusterCreateComplete(clusterID string) error {
+func (a *CreateACSKClusterAction) waitUntilClusterCreateComplete(clusterID string)  (*acsk.AlibabaDescribeClusterResponse, error) {
 	var (
 		r     *acsk.AlibabaDescribeClusterResponse
 		state string
@@ -166,7 +164,7 @@ func (a *CreateACSKClusterAction) waitUntilClusterCreateComplete(clusterID strin
 	for {
 		r, err = a.getClusterDetails(clusterID)
 		if err != nil {
-			return err
+			return r, err
 		}
 
 		if r.State != state {
@@ -176,9 +174,9 @@ func (a *CreateACSKClusterAction) waitUntilClusterCreateComplete(clusterID strin
 
 		switch r.State {
 		case acsk.AlibabaClusterStateRunning:
-			return nil
+			return r, nil
 		case acsk.AlibabaClusterStateFailed:
-			return errors.New("The cluster creation failed")
+			return nil, errors.New("The cluster creation failed")
 		default:
 			time.Sleep(time.Second * 5)
 		}
