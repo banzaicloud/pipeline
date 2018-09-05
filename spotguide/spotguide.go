@@ -67,14 +67,15 @@ func (s *Repo) AfterFind() error {
 }
 
 type LaunchRequest struct {
-	SpotguideName    string   `json:"spotguideName"`
-	RepoOrganization string   `json:"repoOrganization"`
-	RepoName         string   `json:"repoName"`
-	Secrets          []Secret `json:"secrets"`
+	SpotguideName    string                       `json:"spotguideName"`
+	RepoOrganization string                       `json:"repoOrganization"`
+	RepoName         string                       `json:"repoName"`
+	Secrets          []secret.CreateSecretRequest `json:"secrets"`
 }
 
 type Secret struct {
-	Name string `json:"name"`
+	Type   string            `json:"type"`
+	Values map[string]string `json:"values"`
 }
 
 func (r LaunchRequest) RepoFullname() string {
@@ -203,14 +204,14 @@ func LaunchSpotguide(request *LaunchRequest, httpRequest *http.Request, orgID, u
 		return errors.Wrap(err, "Failed to find spotguide repo")
 	}
 
-	err = createGithubRepo(request, userID, sourceRepo)
-	if err != nil {
-		return errors.Wrap(err, "Failed to create GitHub repository")
-	}
-
 	err = createSecrets(request, orgID, userID)
 	if err != nil {
 		return errors.Wrap(err, "Failed to create secrets for spotguide")
+	}
+
+	err = createGithubRepo(request, userID, sourceRepo)
+	if err != nil {
+		return errors.Wrap(err, "Failed to create GitHub repository")
 	}
 
 	err = enableCICD(request, httpRequest)
@@ -246,7 +247,7 @@ func createGithubRepo(request *LaunchRequest, userID uint, sourceRepo *Repo) err
 
 	log.Infof("Created spotguide repository: %s/%s", request.RepoOrganization, request.RepoName)
 
-	// An initial files has to be created with the API to be able to use the fresh repo
+	// An initial files have to be created with the API to be able to use the fresh repo
 	createFile := &github.RepositoryContentFileOptions{
 		Content: []byte("# Say hello to Spotguides!"),
 		Message: github.String("initial import"),
@@ -327,18 +328,14 @@ func createGithubRepo(request *LaunchRequest, userID uint, sourceRepo *Repo) err
 
 func createSecrets(request *LaunchRequest, orgID, userID uint) error {
 
-	secretTag := "spotguide:" + request.RepoName
+	repoTag := "repo:" + request.RepoFullname()
 
-	for _, s := range request.Secrets {
+	for _, secretRequest := range request.Secrets {
 
-		request := secret.CreateSecretRequest{
-			Name:   request.RepoName + "-" + s.Name,
-			Tags:   []string{secretTag},
-			Values: map[string]string{},
-		}
+		secretRequest.Tags = append(secretRequest.Tags, repoTag)
 
-		if _, err := secret.Store.Store(orgID, &request); err != nil {
-			return err
+		if _, err := secret.Store.Store(orgID, &secretRequest); err != nil {
+			return errors.Wrap(err, "failed to create spotguide secret:"+secretRequest.Name)
 		}
 	}
 
