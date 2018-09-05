@@ -7,17 +7,17 @@ import (
 // nolint
 // droneRepoConfig defines a pipeline configuration.
 type droneRepoConfig struct {
-	Cache     libcompose.Stringorslice  `json:"cache,omitempty"`
-	Platform  *string                   `json:"platform,omitempty"`
-	Branches  *droneConstraint          `json:"branches,omitempty"`
-	Workspace *droneWorkspace           `json:"workspace,omitempty"`
-	Cluster   *droneKubernetesCluster   `json:"cluster,omitempty"`
+	Cache     libcompose.Stringorslice   `json:"cache,omitempty"`
+	Platform  *string                    `json:"platform,omitempty"`
+	Branches  *droneConstraint           `json:"branches,omitempty"`
+	Workspace *droneWorkspace            `json:"workspace,omitempty"`
+	Cluster   *droneKubernetesCluster    `json:"cluster,omitempty"`
 	Clone     map[string]*droneContainer `json:"clone,omitempty"`
 	Pipeline  map[string]*droneContainer `json:"pipeline,omitempty"`
 	Services  map[string]*droneContainer `json:"services,omitempty"`
 	Networks  map[string]*droneNetwork   `json:"networks,omitempty"`
 	Volumes   map[string]*droneVolume    `json:"volumes,omitempty"`
-	Labels    libcompose.SliceorMap     `json:"labels,omitempty"`
+	Labels    libcompose.SliceorMap      `json:"labels,omitempty"`
 }
 
 // nolint
@@ -28,7 +28,7 @@ type droneKubernetesCluster struct {
 	SecretID *string `json:"secret_id,omitempty"`
 
 	GoogleProject    *string `json:"google_project,omitempty"`
-	GoogleNodeCount  int     `json:"google_node_count,omitempty"`
+	GoogleNodeCount  *int    `json:"google_node_count,omitempty"`
 	GoogleGKEVersion *string `json:"google_gke_version,omitempty"`
 }
 
