@@ -1,10 +1,13 @@
 package spotguide
 
 import (
+	"archive/zip"
+	"bytes"
 	"context"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/banzaicloud/pipeline/auth"
@@ -26,11 +29,11 @@ const PipelineYAMLPath = ".banzaicloud/pipeline.yaml"
 var ctx = context.Background()
 
 type Spotguide struct {
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-	Tags        []string  `json:"tags"`
-	Resources   Resources `json:"resources"`
-	Questions   Questions `json:"questions"`
+	Name        string     `json:"name"`
+	Description string     `json:"description"`
+	Tags        []string   `json:"tags"`
+	Resources   Resources  `json:"resources"`
+	Questions   []Question `json:"questions"`
 }
 
 type Resources struct {
@@ -43,7 +46,7 @@ type Resources struct {
 	MaxNodes    int      `json:"maxNodes"`
 }
 
-type Questions struct {
+type Question struct {
 }
 
 type Repo struct {
@@ -53,8 +56,7 @@ type Repo struct {
 	DeletedAt    *time.Time `sql:"index" json:"-"`
 	Name         string     `json:"name"`
 	Icon         string     `json:"-"`
-	PipelineRaw  []byte     `json:"-"`
-	SpotguideRaw []byte     `json:"-"`
+	SpotguideRaw []byte     `json:"-" sql:"size:10240"`
 	Spotguide    Spotguide  `gorm:"-" json:"spotguide"`
 }
 
@@ -152,11 +154,6 @@ func ScrapeSpotguides() error {
 				owner := repository.GetOwner().GetLogin()
 				name := repository.GetName()
 
-				pipelineRaw, err := downloadGithubFile(githubClient, owner, name, PipelineYAMLPath)
-				if err != nil {
-					return emperror.Wrap(err, "failed to download pipeline YAML")
-				}
-
 				spotguideRaw, err := downloadGithubFile(githubClient, owner, name, SpotguideYAMLPath)
 				if err != nil {
 					return emperror.Wrap(err, "failed to download spotguide YAML")
@@ -164,7 +161,6 @@ func ScrapeSpotguides() error {
 
 				model := Repo{
 					Name:         repository.GetFullName(),
-					PipelineRaw:  pipelineRaw,
 					SpotguideRaw: spotguideRaw,
 				}
 
@@ -222,6 +218,88 @@ func LaunchSpotguide(request *LaunchRequest, httpRequest *http.Request, orgID, u
 	return nil
 }
 
+func preparePipelineYAML(request *LaunchRequest, sourceRepo *Repo, pipelineYAML []byte) ([]byte, error) {
+	// Create repo config that drives the CICD flow from LaunchRequest
+	repoConfig, err := createDroneRepoConfig(pipelineYAML, request)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to initialize repo config")
+	}
+
+	repoConfigRaw, err := yaml.Marshal(repoConfig)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to marshal repo config")
+	}
+
+	return repoConfigRaw, nil
+}
+
+func getSpotguideContent(githubClient *github.Client, request *LaunchRequest, sourceRepo *Repo) ([]github.TreeEntry, error) {
+	// Download source repo zip
+	sourceRepoParts := strings.Split(sourceRepo.Name, "/")
+	sourceRepoOwner := sourceRepoParts[0]
+	sourceRepoName := sourceRepoParts[1]
+
+	sourceRelease, _, err := githubClient.Repositories.GetReleaseByTag(ctx, sourceRepoOwner, sourceRepoName, "spotguide")
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to find source spotguide repository release")
+	}
+
+	resp, err := http.Get(sourceRelease.GetZipballURL())
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to download source spotguide repository release")
+	}
+
+	defer resp.Body.Close()
+	repoBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to download source spotguide repository release")
+	}
+
+	zipReader, err := zip.NewReader(bytes.NewReader(repoBytes), int64(len(repoBytes)))
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to extract source spotguide repository release")
+	}
+
+	// List the files here that needs to be created in this commit and create a tree from them
+	entries := []github.TreeEntry{}
+
+	for _, zf := range zipReader.File {
+		if zf.FileInfo().IsDir() {
+			continue
+		}
+
+		file, err := zf.Open()
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to extract source spotguide repository release")
+		}
+
+		content, err := ioutil.ReadAll(file)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to extract source spotguide repository release")
+		}
+
+		path := strings.SplitN(zf.Name, "/", 2)[1]
+
+		// TODO We don't want to prepare yet, use the same pipeline.yml
+		if path == PipelineYAMLPath+"disabled" {
+			content, err = preparePipelineYAML(request, sourceRepo, content)
+			if err != nil {
+				return nil, errors.Wrap(err, "failed to prepare pipeline.yaml")
+			}
+		}
+
+		entry := github.TreeEntry{
+			Type:    github.String("blob"),
+			Path:    github.String(path),
+			Content: github.String(string(content)),
+			Mode:    github.String("100644"),
+		}
+		entries = append(entries, entry)
+	}
+
+	return entries, nil
+}
+
 func createGithubRepo(request *LaunchRequest, userID uint, sourceRepo *Repo) error {
 	githubClient, err := newGithubClientForUser(userID)
 	if err != nil {
@@ -259,34 +337,13 @@ func createGithubRepo(request *LaunchRequest, userID uint, sourceRepo *Repo) err
 		return errors.Wrap(err, "failed to initialize spotguide repository")
 	}
 
-	// Create repo config that drives the CICD flow from LaunchRequest
-	repoConfig, err := createDroneRepoConfig(sourceRepo.PipelineRaw, request)
+	// Prepare the spotguide commit
+	spotguideEntries, err := getSpotguideContent(githubClient, request, sourceRepo)
 	if err != nil {
-		return errors.Wrap(err, "failed to initialize repo config")
+		return errors.Wrap(err, "failed to prepare spotguide git content")
 	}
 
-	repoConfigRaw, err := yaml.Marshal(repoConfig)
-	if err != nil {
-		return errors.Wrap(err, "failed to marshal repo config")
-	}
-
-	// List the files here that needs to be created in this commit and create a tree from them
-	entries := []github.TreeEntry{
-		{
-			Type:    github.String("blob"),
-			Path:    github.String(PipelineYAMLPath),
-			Content: github.String(string(repoConfigRaw)),
-			Mode:    github.String("100644"),
-		},
-		{
-			Type:    github.String("blob"),
-			Path:    github.String(SpotguideYAMLPath),
-			Content: github.String(string(sourceRepo.SpotguideRaw)),
-			Mode:    github.String("100644"),
-		},
-	}
-
-	tree, _, err := githubClient.Git.CreateTree(ctx, request.RepoOrganization, request.RepoName, contentResponse.GetSHA(), entries)
+	tree, _, err := githubClient.Git.CreateTree(ctx, request.RepoOrganization, request.RepoName, contentResponse.GetSHA(), spotguideEntries)
 
 	if err != nil {
 		return errors.Wrap(err, "failed to create git tree for spotguide repository")
@@ -296,7 +353,7 @@ func createGithubRepo(request *LaunchRequest, userID uint, sourceRepo *Repo) err
 	contentResponse.Commit.SHA = contentResponse.SHA
 
 	commit := &github.Commit{
-		Message: github.String("my first commit from the go client"),
+		Message: github.String("adding spotguide structure"),
 		Parents: []github.Commit{contentResponse.Commit},
 		Tree:    tree,
 	}
