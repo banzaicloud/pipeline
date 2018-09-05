@@ -1,336 +1,139 @@
 package spotguide
 
 import (
-	"fmt"
-	"strconv"
-
 	libcompose "github.com/docker/libcompose/yaml"
-	"gopkg.in/yaml.v2"
 )
 
 // nolint
 // droneRepoConfig defines a pipeline configuration.
 type droneRepoConfig struct {
-	Cache     libcompose.Stringorslice
-	Platform  string
-	Branches  droneConstraint
-	Workspace droneWorkspace
-	Cluster   *droneKubernetesCluster
-	Clone     droneContainers
-	Pipeline  droneContainers
-	Services  droneContainers
-	Networks  droneNetworks
-	Volumes   droneVolumes
-	Labels    libcompose.SliceorMap
+	Cache     libcompose.Stringorslice  `json:"cache,omitempty"`
+	Platform  *string                   `json:"platform,omitempty"`
+	Branches  *droneConstraint          `json:"branches,omitempty"`
+	Workspace *droneWorkspace           `json:"workspace,omitempty"`
+	Cluster   *droneKubernetesCluster   `json:"cluster,omitempty"`
+	Clone     map[string]*droneContainer `json:"clone,omitempty"`
+	Pipeline  map[string]*droneContainer `json:"pipeline,omitempty"`
+	Services  map[string]*droneContainer `json:"services,omitempty"`
+	Networks  map[string]*droneNetwork   `json:"networks,omitempty"`
+	Volumes   map[string]*droneVolume    `json:"volumes,omitempty"`
+	Labels    libcompose.SliceorMap     `json:"labels,omitempty"`
 }
 
 // nolint
 // droneKubernetesCluster defines a cluster that has to be created before executing the rest of the Pipeline.
 type droneKubernetesCluster struct {
-	Name     string `yaml:"name"`
-	Provider string `yaml:"provider"`
-	SecretID string `yaml:"secret_id"`
+	Name     *string `json:"name,omitempty"`
+	Provider *string `json:"provider,omitempty"`
+	SecretID *string `json:"secret_id,omitempty"`
 
-	GoogleProject    string `yaml:"google_project,omitempty"`
-	GoogleNodeCount  int    `yaml:"google_node_count,omitempty"`
-	GoogleGKEVersion string `yaml:"google_gke_version,omitempty"`
+	GoogleProject    *string `json:"google_project,omitempty"`
+	GoogleNodeCount  int     `json:"google_node_count,omitempty"`
+	GoogleGKEVersion *string `json:"google_gke_version,omitempty"`
 }
 
 // nolint
 // droneWorkspace defines a pipeline workspace.
 type droneWorkspace struct {
-	Base string
-	Path string
+	Base *string `json:"base,omitempty"`
+	Path *string `json:"path,omitempty"`
 }
 
 // nolint
 // droneAuthConfig defines registry authentication credentials.
 type droneAuthConfig struct {
-	Username string
-	Password string
-	Email    string
-}
-
-// nolint
-// droneContainers denotes an ordered collection of containers.
-type droneContainers struct {
-	Containers []*droneContainer
+	Username *string `json:"username,omitempty"`
+	Password *string `json:"password,omitempty"`
+	Email    *string `json:"email,omitempty"`
 }
 
 // nolint
 // droneContainer defines a container.
 type droneContainer struct {
-	AuthConfig    droneAuthConfig           `yaml:"auth_config,omitempty"`
-	CapAdd        []string                  `yaml:"cap_add,omitempty"`
-	CapDrop       []string                  `yaml:"cap_drop,omitempty"`
-	Command       libcompose.Command        `yaml:"command,omitempty"`
-	Commands      libcompose.Stringorslice  `yaml:"commands,omitempty"`
-	CpuQuota      libcompose.StringorInt    `yaml:"cpu_quota,omitempty"`
-	CpuSet        string                    `yaml:"cpuset,omitempty"`
-	CpuShares     libcompose.StringorInt    `yaml:"cpu_shares,omitempty"`
-	Detached      bool                      `yaml:"detach,omitempty"`
-	Devices       []string                  `yaml:"devices,omitempty"`
-	Tmpfs         []string                  `yaml:"tmpfs,omitempty"`
-	Dns           libcompose.Stringorslice  `yaml:"dns,omitempty"`
-	DnsSearch     libcompose.Stringorslice  `yaml:"dns_search,omitempty"`
-	Entrypoint    libcompose.Command        `yaml:"entrypoint,omitempty"`
-	Environment   libcompose.SliceorMap     `yaml:"environment,omitempty"`
-	ExtraHosts    []string                  `yaml:"extra_hosts,omitempty"`
-	Group         string                    `yaml:"group,omitempty"`
-	Image         string                    `yaml:"image,omitempty"`
-	Isolation     string                    `yaml:"isolation,omitempty"`
-	Labels        libcompose.SliceorMap     `yaml:"labels,omitempty"`
-	MemLimit      libcompose.MemStringorInt `yaml:"mem_limit,omitempty"`
-	MemSwapLimit  libcompose.MemStringorInt `yaml:"memswap_limit,omitempty"`
-	MemSwappiness libcompose.MemStringorInt `yaml:"mem_swappiness,omitempty"`
-	Name          string                    `yaml:"name,omitempty"`
-	NetworkMode   string                    `yaml:"network_mode,omitempty"`
-	IpcMode       string                    `yaml:"ipc_mode,omitempty"`
-	Networks      libcompose.Networks       `yaml:"networks,omitempty"`
-	Ports         []int32                   `yaml:"ports,omitempty"`
-	Privileged    bool                      `yaml:"privileged,omitempty"`
-	Pull          bool                      `yaml:"pull,omitempty"`
-	ShmSize       libcompose.MemStringorInt `yaml:"shm_size,omitempty"`
-	Ulimits       libcompose.Ulimits        `yaml:"ulimits,omitempty"`
-	Volumes       libcompose.Volumes        `yaml:"volumes,omitempty"`
-	Secrets       droneSecrets              `yaml:"secrets,omitempty"`
-	Sysctls       libcompose.SliceorMap     `yaml:"sysctls,omitempty"`
-	Constraints   droneConstraints          `yaml:"when,omitempty"`
-	Vargs         map[string]interface{}    `yaml:",inline"`
+	AuthConfig    *droneAuthConfig           `json:"auth_config,omitempty"`
+	CapAdd        []string                   `json:"cap_add,omitempty"`
+	CapDrop       []string                   `json:"cap_drop,omitempty"`
+	Command       libcompose.Command         `json:"command,omitempty"`
+	Commands      libcompose.Stringorslice   `json:"commands,omitempty"`
+	CpuQuota      *libcompose.StringorInt    `json:"cpu_quota,omitempty"`
+	CpuSet        *string                    `json:"cpuset,omitempty"`
+	CpuShares     *libcompose.StringorInt    `json:"cpu_shares,omitempty"`
+	Detached      *bool                      `json:"detach,omitempty"`
+	Devices       []string                   `json:"devices,omitempty"`
+	Tmpfs         []string                   `json:"tmpfs,omitempty"`
+	Dns           libcompose.Stringorslice   `json:"dns,omitempty"`
+	DnsSearch     libcompose.Stringorslice   `json:"dns_search,omitempty"`
+	Entrypoint    libcompose.Command         `json:"entrypoint,omitempty"`
+	Environment   libcompose.SliceorMap      `json:"environment,omitempty"`
+	ExtraHosts    []string                   `json:"extra_hosts,omitempty"`
+	Group         *string                    `json:"group,omitempty"`
+	Image         *string                    `json:"image,omitempty"`
+	Isolation     *string                    `json:"isolation,omitempty"`
+	Labels        libcompose.SliceorMap      `json:"labels,omitempty"`
+	MemLimit      *libcompose.MemStringorInt `json:"mem_limit,omitempty"`
+	MemSwapLimit  *libcompose.MemStringorInt `json:"memswap_limit,omitempty"`
+	MemSwappiness *libcompose.MemStringorInt `json:"mem_swappiness,omitempty"`
+	Name          *string                    `json:"name,omitempty"`
+	NetworkMode   *string                    `json:"network_mode,omitempty"`
+	IpcMode       *string                    `json:"ipc_mode,omitempty"`
+	Networks      *libcompose.Networks       `json:"networks,omitempty"`
+	Ports         []int32                    `json:"ports,omitempty"`
+	Privileged    *bool                      `json:"privileged,omitempty"`
+	Pull          *bool                      `json:"pull,omitempty"`
+	ShmSize       *libcompose.MemStringorInt `json:"shm_size,omitempty"`
+	Ulimits       *libcompose.Ulimits        `json:"ulimits,omitempty"`
+	Volumes       *libcompose.Volumes        `json:"volumes,omitempty"`
+	Secrets       []string                   `json:"secrets,omitempty"`
+	Sysctls       libcompose.SliceorMap      `json:"sysctls,omitempty"`
+	Constraints   *droneConstraints          `json:"when,omitempty"`
+	Vargs         map[string]interface{}     `json:",inline,omitempty"`
+	Dockerfile    *string                    `json:"dockerfile,omitempty"`
+	Repo          *string                    `json:"repo,omitempty"`
+	Tags          *string                    `json:"tags,dockerfile,omitempty"`
+	Log           *string                    `json:"log,omitempty"`
 }
 
 // nolint
 // droneConstraints defines a set of runtime constraints.
 type droneConstraints struct {
-	Ref         droneConstraint
-	Repo        droneConstraint
-	Instance    droneConstraint
-	Platform    droneConstraint
-	Environment droneConstraint
-	Event       droneConstraint
-	Branch      droneConstraint
-	Status      droneConstraint
-	Matrix      droneConstraintMap
-	Local       droneBoolTrue
+	Ref         *droneConstraint    `json:"ref,omitempty"`
+	Repo        *droneConstraint    `json:"repo,omitempty"`
+	Instance    *droneConstraint    `json:"instance,omitempty"`
+	Platform    *droneConstraint    `json:"platform,omitempty"`
+	Environment *droneConstraint    `json:"environment,omitempty"`
+	Event       *droneConstraint    `json:"event,omitempty"`
+	Branch      *droneConstraint    `json:"branch,omitempty"`
+	Status      *droneConstraint    `json:"status,omitempty"`
+	Matrix      *droneConstraintMap `json:"matrix,omitempty"`
+	Local       *bool               `json:"local,omitempty"`
 }
 
 // nolint
 // droneConstraint defines a runtime constraint.
 type droneConstraint struct {
-	Include []string
-	Exclude []string
+	Include libcompose.Stringorslice `json:"include,omitempty"`
+	Exclude libcompose.Stringorslice `json:"exclude,omitempty"`
 }
 
 // nolint
 // droneConstraintMap defines a runtime constraint map.
 type droneConstraintMap struct {
-	Include map[string]string
-	Exclude map[string]string
-}
-
-// nolint
-// droneNetworks defines a collection of networks.
-type droneNetworks struct {
-	Networks []*droneNetwork
+	Include map[string]string `json:"include,omitempty"`
+	Exclude map[string]string `json:"exclude,omitempty"`
 }
 
 // nolint
 // droneNetwork defines a container network.
 type droneNetwork struct {
-	Name       string            `yaml:"name,omitempty"`
-	Driver     string            `yaml:"driver,omitempty"`
-	DriverOpts map[string]string `yaml:"driver_opts,omitempty"`
-}
-
-// nolint
-// droneVolumes defines a collection of volumes.
-type droneVolumes struct {
-	Volumes []*droneVolume
+	Name       *string            `json:"name,omitempty"`
+	Driver     *string            `json:"driver,omitempty"`
+	DriverOpts *map[string]string `json:"driver_opts,omitempty"`
 }
 
 // nolint
 // droneVolume defines a container volume.
 type droneVolume struct {
-	Name       string            `yaml:"name,omitempty"`
-	Driver     string            `yaml:"driver,omitempty"`
-	DriverOpts map[string]string `yaml:"driver_opts,omitempty"`
-}
-
-// nolint
-// droneSecrets defines a collection of secrets.
-type droneSecrets struct {
-	Secrets []*droneSecret
-}
-
-// nolint
-// droneSecret defines a container secret.
-type droneSecret struct {
-	Source string `yaml:"source"`
-	Target string `yaml:"target"`
-}
-
-// droneBoolTrue is a custom Yaml boolean type that defaults to true.
-type droneBoolTrue struct {
-	Value bool
-}
-
-// UnmarshalYAML implements custom Yaml unmarshaling.
-func (b *droneBoolTrue) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	var s string
-	err := unmarshal(&s)
-	if err != nil {
-		return err
-	}
-
-	value, err := strconv.ParseBool(s)
-	if err == nil {
-		b.Value = !value
-	}
-	return nil
-}
-
-// MarshalYAML implements custom Yaml marshaling.
-func (b *droneBoolTrue) MarshalYAML() (interface{}, error) {
-	value := strconv.FormatBool(b.Bool())
-	return value, nil
-}
-
-// Bool returns the bool value.
-func (b droneBoolTrue) Bool() bool {
-	return !b.Value
-}
-
-// UnmarshalYAML unmarshals the constraint.
-func (c *droneConstraint) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	var out1 = struct {
-		include libcompose.Stringorslice
-		exclude libcompose.Stringorslice
-	}{}
-
-	var out2 libcompose.Stringorslice
-
-	unmarshal(&out1)
-	unmarshal(&out2)
-
-	c.Exclude = out1.exclude
-	c.Include = append(
-		out1.include,
-		out2...,
-	)
-	return nil
-}
-
-// UnmarshalYAML unmarshals the constraint map.
-func (c *droneConstraintMap) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	out1 := struct {
-		include map[string]string
-		exclude map[string]string
-	}{
-		include: map[string]string{},
-		exclude: map[string]string{},
-	}
-
-	out2 := map[string]string{}
-
-	unmarshal(&out1)
-	unmarshal(&out2)
-
-	c.Include = out1.include
-	c.Exclude = out1.exclude
-	for k, v := range out2 {
-		c.Include[k] = v
-	}
-	return nil
-}
-
-// UnmarshalYAML implements the Unmarshaller interface.
-func (c *droneContainers) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	slice := yaml.MapSlice{}
-	if err := unmarshal(&slice); err != nil {
-		return err
-	}
-
-	for _, s := range slice {
-		container := droneContainer{}
-		out, _ := yaml.Marshal(s.Value)
-
-		if err := yaml.Unmarshal(out, &container); err != nil {
-			return err
-		}
-		if container.Name == "" {
-			container.Name = fmt.Sprintf("%v", s.Key)
-		}
-		c.Containers = append(c.Containers, &container)
-	}
-	return nil
-}
-
-// UnmarshalYAML implements the Unmarshaller interface.
-func (n *droneNetworks) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	slice := yaml.MapSlice{}
-	err := unmarshal(&slice)
-	if err != nil {
-		return err
-	}
-
-	for _, s := range slice {
-		nn := droneNetwork{}
-		out, _ := yaml.Marshal(s.Value)
-
-		err = yaml.Unmarshal(out, &nn)
-		if err != nil {
-			return err
-		}
-		if nn.Name == "" {
-			nn.Name = fmt.Sprintf("%v", s.Key)
-		}
-		if nn.Driver == "" {
-			nn.Driver = "bridge"
-		}
-		n.Networks = append(n.Networks, &nn)
-	}
-	return err
-}
-
-// UnmarshalYAML implements the Unmarshaller interface.
-func (s *droneSecrets) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	var strslice []string
-	err := unmarshal(&strslice)
-	if err == nil {
-		for _, str := range strslice {
-			s.Secrets = append(s.Secrets, &droneSecret{
-				Source: str,
-				Target: str,
-			})
-		}
-		return nil
-	}
-	return unmarshal(&s.Secrets)
-}
-
-// UnmarshalYAML implements the Unmarshaller interface.
-func (v *droneVolumes) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	slice := yaml.MapSlice{}
-	err := unmarshal(&slice)
-	if err != nil {
-		return err
-	}
-
-	for _, s := range slice {
-		vv := droneVolume{}
-		out, _ := yaml.Marshal(s.Value)
-
-		err = yaml.Unmarshal(out, &vv)
-		if err != nil {
-			return err
-		}
-		if vv.Name == "" {
-			vv.Name = fmt.Sprintf("%v", s.Key)
-		}
-		if vv.Driver == "" {
-			vv.Driver = "local"
-		}
-		v.Volumes = append(v.Volumes, &vv)
-	}
-	return err
+	Name       *string           `json:"name,omitempty"`
+	Driver     *string           `json:"driver,omitempty"`
+	DriverOpts map[string]string `json:"driver_opts,omitempty"`
 }
