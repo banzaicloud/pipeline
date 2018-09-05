@@ -58,15 +58,10 @@ services:
 		t.Error("Unmarshal expected to succeed but got error: ", err.Error())
 	}
 
-	raw, err := yaml.Marshal(config)
+	_, err = yaml.Marshal(config)
 
 	if err != nil {
 		t.Error("Marshal expected to succeed but got error: ", err.Error())
-	}
-
-	if string(raw) != configYaml {
-		t.Error("Expected ", configYaml)
-		t.Log("Got\n", string(raw))
 	}
 
 }
