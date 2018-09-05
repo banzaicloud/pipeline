@@ -1,0 +1,72 @@
+package spotguide
+
+import (
+	"testing"
+
+	"github.com/ghodss/yaml"
+)
+
+func TestUnmarshalDroneRepoConfig(t *testing.T) {
+	configYaml := `
+cluster:
+  name: "banzai-cicd-cluster"
+  provider: "google"
+workspace:
+  base: /go
+  path: src/github.com/banzaicloud/pipeline
+pipeline:
+  print_env:
+    image: golang:1.10
+    commands:
+    - pwd
+    - env
+    - find .
+    group: build
+  build:
+    image: golang:1.10
+    commands:
+    - make build
+  test:
+    image: golang:1.10
+    commands:
+    - mkdir $HOME/config
+    - cp config/config.toml.example $HOME/config/config.toml
+    - make test
+    environment:
+      VAULT_ADDR: http://vault:8200
+      VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
+  build_container:
+    image: plugins/docker
+    dockerfile: Dockerfile
+    repo: banzaicloud/pipeline
+    tags: "{{ printf \"%s\" .DRONE_BRANCH }}"
+    log: debug
+services:
+  vault:
+    image: vault:0.10.4
+    ports:
+    - 8200
+    environment:
+      SKIP_SETCAP: "true"
+      VAULT_DEV_ROOT_TOKEN_ID: 227e1cce-6bf7-30bb-2d2a-acc854318caf
+`
+
+	config := droneRepoConfig{}
+	err := yaml.Unmarshal([]byte(configYaml), &config)
+
+	if err != nil {
+		t.Error("Unmarshal expected to succeed but got error: ", err.Error())
+	}
+
+	raw, err := yaml.Marshal(config)
+
+	if err != nil {
+		t.Error("Marshal expected to succeed but got error: ", err.Error())
+	}
+
+	if string(raw) != configYaml {
+		t.Error("Expected ", configYaml)
+		t.Log("Got\n", string(raw))
+	}
+
+}

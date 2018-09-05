@@ -405,6 +405,14 @@
   version = "v0.3.2"
 
 [[projects]]
+  digest = "1:c54570e5ad145907207162316d2570437ac7f3d4f26d073c8e5edb1a4ebb3f44"
+  name = "github.com/docker/libcompose"
+  packages = ["yaml"]
+  pruneopts = "NUT"
+  revision = "7c59e343cd9d1f3f5577b5bfb71f6486beb4c006"
+  version = "v0.4.0"
+
+[[projects]]
   branch = "master"
   digest = "1:da25cf063072a10461c19320e82117d85f9d60be4c95a62bc8d5a49acf7d0ca5"
   name = "github.com/docker/spdystream"
@@ -454,6 +462,14 @@
   pruneopts = "NUT"
   revision = "507f6050b8568533fb3f5504de8e5205fa62a114"
   version = "v1.6.0"
+
+[[projects]]
+  branch = "master"
+  digest = "1:1ccd7321e62f680a988bba496f0f5a9c80410b8104d55b0f6b8ecf84ad328476"
+  name = "github.com/flynn/go-shlex"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "3f9db97f856818214da2e1057f8ad84803971cff"
 
 [[projects]]
   digest = "1:1b91ae0dc69a41d4c2ed23ea5cffb721ea63f5037ca4b81e6d6771fbb8f45129"
@@ -2310,6 +2326,7 @@
     "github.com/casbin/casbin",
     "github.com/casbin/gorm-adapter",
     "github.com/dgrijalva/jwt-go",
+    "github.com/docker/libcompose/yaml",
     "github.com/drone/drone-go/drone",
     "github.com/ghodss/yaml",
     "github.com/gin-contrib/cors",
