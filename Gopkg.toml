@@ -273,3 +273,19 @@
 [[constraint]]
   name = "github.com/docker/libcompose"
   version = "0.4.0"
+
+[[constraint]]
+  name = "go.uber.org/cadence"
+  version = "0.7.4"
+
+[[constraint]]
+  name = "go.uber.org/yarpc"
+  version = "1.32.4"
+
+[[constraint]]
+  name = "go.uber.org/zap"
+  version = "1.9.1"
+
+[[constraint]]
+  name = "github.com/jsternberg/zap-logfmt"
+  version = "1.2.0"

@@ -287,6 +287,16 @@ func main() {
 		logger.Info("Pipeline API listening on port ", listenPort)
 	}
 
+	config.RegisterCadenceDomain(logger)
+
+	worker := config.CadenceWorker()
+
+	err = worker.Start()
+	if err != nil {
+		panic(err)
+	}
+	defer worker.Stop()
+
 	certFile, keyFile := viper.GetString("pipeline.certfile"), viper.GetString("pipeline.keyfile")
 	if certFile != "" && keyFile != "" {
 		router.RunTLS(listenPort, certFile, keyFile)

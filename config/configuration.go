@@ -149,6 +149,10 @@ func init() {
 	viper.SetDefault(PipelineMonitorNamespace, "pipeline-infra")
 	viper.SetDefault(EksTemplateLocation, filepath.Join(pwd, "templates", "eks"))
 
+	// Cadence config
+	viper.SetDefault("cadence.port", 7933)
+	viper.SetDefault("cadence.domain", "banzaicloud")
+
 	// Find and read the config file
 	if err := viper.ReadInConfig(); err != nil {
 		log.Fatalf("Error reading config file, %s", err)
