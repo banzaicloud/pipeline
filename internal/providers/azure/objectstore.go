@@ -25,13 +25,12 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-02-01/resources"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage"
 	"github.com/Azure/azure-storage-blob-go/2016-05-31/azblob"
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/Azure/go-autorest/autorest/to"
 	pipelineAuth "github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/objectstore"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -204,20 +203,18 @@ func (s *ObjectStore) rollback(logger logrus.FieldLogger, msg string, err error,
 
 func (s *ObjectStore) createResourceGroup(resourceGroup string) error {
 	logger := s.logger.WithField("resource_group", resourceGroup)
-	gclient := resources.NewGroupsClient(s.secret.Values[pkgSecret.AzureSubscriptionId])
 
 	logger.Info("creating resource group")
 
-	authorizer, err := newAuthorizer(s.secret)
+	client, err := NewAuthorizedResourceGroupClientFromSecret(s.secret.Values)
 	if err != nil {
-		return fmt.Errorf("authentication failed: %s", err.Error())
+		return emperror.Wrap(err, "failed to create resource group client")
 	}
 
-	gclient.Authorizer = authorizer
-	res, _ := gclient.Get(context.TODO(), resourceGroup)
+	res, _ := client.Get(context.TODO(), resourceGroup)
 
 	if res.StatusCode == http.StatusNotFound {
-		result, err := gclient.CreateOrUpdate(
+		result, err := client.CreateOrUpdate(
 			context.TODO(),
 			resourceGroup,
 			resources.Group{Location: to.StringPtr(s.location)},
@@ -235,7 +232,7 @@ func (s *ObjectStore) createResourceGroup(resourceGroup string) error {
 }
 
 func (s *ObjectStore) checkStorageAccountExistence(resourceGroup string, storageAccount string) (bool, error) {
-	storageAccountsClient, err := createStorageAccountClient(s.secret)
+	client, err := NewAuthorizedStorageAccountClientFromSecret(s.secret.Values)
 	if err != nil {
 		return false, err
 	}
@@ -247,7 +244,7 @@ func (s *ObjectStore) checkStorageAccountExistence(resourceGroup string, storage
 
 	logger.Info("checking storage account existence")
 
-	result, err := storageAccountsClient.CheckNameAvailability(
+	result, err := client.CheckNameAvailability(
 		context.TODO(),
 		storage.AccountCheckNameAvailabilityParameters{
 			Name: to.StringPtr(storageAccount),
@@ -258,10 +255,12 @@ func (s *ObjectStore) checkStorageAccountExistence(resourceGroup string, storage
 		return false, err
 	}
 
+	logger.Info("storage account availability: ", result.Reason)
+
 	if *result.NameAvailable == false {
-		_, err := storageAccountsClient.GetProperties(context.TODO(), resourceGroup, storageAccount)
+		_, err := client.GetProperties(context.TODO(), resourceGroup, storageAccount)
 		if err != nil {
-			logger.Error("storage account exists but it is not in your resource group")
+			logger.Error("storage account exists but it is not in your resource group: ", err)
 
 			return false, err
 		}
@@ -275,7 +274,7 @@ func (s *ObjectStore) checkStorageAccountExistence(resourceGroup string, storage
 }
 
 func (s *ObjectStore) createStorageAccount(resourceGroup string, storageAccount string) error {
-	storageAccountsClient, err := createStorageAccountClient(s.secret)
+	client, err := NewAuthorizedStorageAccountClientFromSecret(s.secret.Values)
 	if err != nil {
 		return err
 	}
@@ -287,7 +286,7 @@ func (s *ObjectStore) createStorageAccount(resourceGroup string, storageAccount 
 
 	logger.Info("creating storage account")
 
-	future, err := storageAccountsClient.Create(
+	future, err := client.Create(
 		context.TODO(),
 		resourceGroup,
 		storageAccount,
@@ -308,7 +307,7 @@ func (s *ObjectStore) createStorageAccount(resourceGroup string, storageAccount 
 	}
 
 	logger.Info("storage account creation request sent")
-	if future.WaitForCompletion(context.TODO(), storageAccountsClient.Client) != nil {
+	if future.WaitForCompletion(context.TODO(), client.Client) != nil {
 		return err
 	}
 
@@ -483,7 +482,7 @@ func (s *ObjectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 }
 
 func GetStorageAccountKey(resourceGroup string, storageAccount string, s *secret.SecretItemResponse, log logrus.FieldLogger) (string, error) {
-	client, err := createStorageAccountClient(s)
+	client, err := NewAuthorizedStorageAccountClientFromSecret(s.Values)
 	if err != nil {
 		return "", err
 	}
@@ -505,31 +504,15 @@ func GetStorageAccountKey(resourceGroup string, storageAccount string, s *secret
 	return *key, nil
 }
 
-func createStorageAccountClient(s *secret.SecretItemResponse) (*storage.AccountsClient, error) {
-	accountClient := storage.NewAccountsClient(s.Values[pkgSecret.AzureSubscriptionId])
-
-	authorizer, err := newAuthorizer(s)
-	if err != nil {
-		return nil, errors.Wrap(err, "error happened during authentication")
-	}
-
-	accountClient.Authorizer = authorizer
-
-	return &accountClient, nil
-}
-
 // getAllResourceGroups returns all resource groups using
 // the Azure credentials referenced by the provided secret.
 func getAllResourceGroups(s *secret.SecretItemResponse) ([]*resources.Group, error) {
-	rgClient := resources.NewGroupsClient(s.GetValue(pkgSecret.AzureSubscriptionId))
-	authorizer, err := newAuthorizer(s)
+	client, err := NewAuthorizedResourceGroupClientFromSecret(s.Values)
 	if err != nil {
 		return nil, err
 	}
 
-	rgClient.Authorizer = authorizer
-
-	resourceGroupsPages, err := rgClient.List(context.TODO(), "", nil)
+	resourceGroupsPages, err := client.List(context.TODO(), "", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -553,7 +536,7 @@ func getAllResourceGroups(s *secret.SecretItemResponse) ([]*resources.Group, err
 // getAllStorageAccounts returns all storage accounts under the specified resource group
 // using the Azure credentials referenced by the provided secret.
 func getAllStorageAccounts(s *secret.SecretItemResponse, resourceGroup string) (*[]storage.Account, error) {
-	client, err := createStorageAccountClient(s)
+	client, err := NewAuthorizedStorageAccountClientFromSecret(s.Values)
 	if err != nil {
 		return nil, err
 	}
@@ -580,19 +563,6 @@ func getAllBlobContainers(storageAccount string, storageAccountKey string) ([]az
 	}
 
 	return resp.Containers, nil
-}
-
-func newAuthorizer(s *secret.SecretItemResponse) (autorest.Authorizer, error) {
-	authorizer, err := auth.NewClientCredentialsConfig(
-		s.Values[pkgSecret.AzureClientId],
-		s.Values[pkgSecret.AzureClientSecret],
-		s.Values[pkgSecret.AzureTenantId]).Authorizer()
-
-	if err != nil {
-		return nil, err
-	}
-
-	return authorizer, nil
 }
 
 // searchCriteria returns the database search criteria to find a bucket with the given name
