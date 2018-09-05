@@ -23,9 +23,14 @@ type bucketNotFoundError struct{}
 func (bucketNotFoundError) Error() string  { return "bucket not found" }
 func (bucketNotFoundError) NotFound() bool { return true }
 
+type amazonObjectStore interface {
+	commonObjectstore.ObjectStore
+	GetRegion(bucket string) (string, error)
+}
+
 // objectStore stores all required parameters for bucket creation.
 type objectStore struct {
-	objectStore commonObjectstore.ObjectStore
+	objectStore amazonObjectStore
 
 	region string
 	secret *secret.SecretItemResponse

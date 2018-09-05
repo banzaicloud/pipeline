@@ -80,6 +80,42 @@ func TestObjectStore_CreateBucket(t *testing.T) {
 	}
 }
 
+func TestObjectStore_GetRegion(t *testing.T) {
+	sess := getSession(t)
+	client := s3.New(sess)
+
+	s := New(sess, WaitForCompletion(true))
+
+	bucketName := getBucket(t, "banzaicloud-test-bucket")
+
+	input := &s3.CreateBucketInput{
+		Bucket: aws.String(bucketName),
+	}
+
+	_, err := client.CreateBucket(input)
+	if err != nil {
+		t.Fatal("could not create test bucket: ", err.Error())
+	}
+
+	region, err := s.GetRegion(bucketName)
+	if err != nil {
+		t.Error("testing bucket region failed: ", err.Error())
+	} else {
+		if strings.TrimSpace(os.Getenv("AWS_REGION")) != region {
+			t.Error("test bucket region does not match")
+		}
+	}
+
+	del := &s3.DeleteBucketInput{
+		Bucket: aws.String(bucketName),
+	}
+
+	_, err = client.DeleteBucket(del)
+	if err != nil {
+		t.Fatal("could not clean up bucket: ", err.Error())
+	}
+}
+
 func TestObjectStore_ListBuckets(t *testing.T) {
 	sess := getSession(t)
 	client := s3.New(sess)

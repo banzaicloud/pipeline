@@ -13,7 +13,4 @@ type ObjectStore interface {
 
 	// DeleteBucket removes a bucket from the object store.
 	DeleteBucket(string) error
-
-	// GetRegion returns the region for a given bucket
-	GetRegion(string) (string, error)
 }
