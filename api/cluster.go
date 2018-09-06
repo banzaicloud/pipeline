@@ -123,8 +123,9 @@ func getPostHookFunctions(postHooks pkgCluster.PostHooks) (ph []cluster.PostFunc
 		if function != nil {
 
 			if f, isOk := function.(*cluster.PostFunctionWithParam); isOk {
-				f.SetParams(param)
-				function = f
+				fa := *f
+				fa.SetParams(param)
+				function = &fa
 			}
 
 			log.Infof("posthook function: %s", function)
