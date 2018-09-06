@@ -301,7 +301,7 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 		return installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/gcs-output", "pipeline-gcs-output", marshaledValues, "ConfigureLoggingOutPut", "")
 	case pkgCluster.Azure:
 
-		sak, err := azure.GetStorageAccountKey(loggingParam.ResourceGroup, loggingParam.StorageAccount, logSecret, log)
+		sak, err := azure.StorageAccountKey(loggingParam.ResourceGroup, loggingParam.StorageAccount, logSecret, log)
 		if err != nil {
 			return err
 		}

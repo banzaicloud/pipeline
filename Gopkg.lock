@@ -1617,13 +1617,16 @@
   version = "v1.3.2"
 
 [[projects]]
-  digest = "1:c3b0eb7eef6c4fabbee273d38f10c01dc618ca4d697844d9b0024e99fff88e15"
+  branch = "master"
+  digest = "1:85a37ee18d761ef0cb29daed0c70fe8dabe6c45a7e276d2ee33e1085567d10a9"
   name = "go.uber.org/cadence"
   packages = [
+    ".",
     ".gen/go/cadence",
     ".gen/go/cadence/workflowserviceclient",
     ".gen/go/cadence/workflowservicetest",
     ".gen/go/shared",
+    "activity",
     "client",
     "encoded",
     "internal",
@@ -1636,8 +1639,7 @@
     "workflow",
   ]
   pruneopts = "NUT"
-  revision = "fd0b3dabb22f30f67c830d04e7b6389bf5789b02"
-  version = "v0.7.4"
+  revision = "50dd3870a633189073dfda6cf38b03d7c30ba50f"
 
 [[projects]]
   digest = "1:58ca93bdf81bac106ded02226b5395a0595d5346cdc4caa8d9c1f3a5f8f9976e"
@@ -2602,10 +2604,13 @@
     "github.com/spf13/viper",
     "github.com/stretchr/testify/require",
     "github.com/technosophos/moniker",
+    "go.uber.org/cadence",
     "go.uber.org/cadence/.gen/go/cadence/workflowserviceclient",
     "go.uber.org/cadence/.gen/go/shared",
+    "go.uber.org/cadence/activity",
     "go.uber.org/cadence/client",
     "go.uber.org/cadence/worker",
+    "go.uber.org/cadence/workflow",
     "go.uber.org/yarpc",
     "go.uber.org/yarpc/transport/tchannel",
     "go.uber.org/zap",

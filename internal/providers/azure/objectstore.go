@@ -25,12 +25,10 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage"
 	"github.com/Azure/azure-storage-blob-go/2016-05-31/azblob"
 	"github.com/Azure/go-autorest/autorest/to"
-	pipelineAuth "github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/objectstore"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/jinzhu/gorm"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -42,42 +40,6 @@ type bucketNotFoundError struct{}
 
 func (bucketNotFoundError) Error() string  { return "bucket not found" }
 func (bucketNotFoundError) NotFound() bool { return true }
-
-// ObjectStore stores all required parameters for container creation.
-//
-// Note: calling methods on this struct is not thread safe currently.
-type ObjectStore struct {
-	storageAccount string
-	resourceGroup  string
-	location       string
-	secret         *secret.SecretItemResponse
-
-	org *pipelineAuth.Organization
-
-	db     *gorm.DB
-	logger logrus.FieldLogger
-}
-
-// NewObjectStore returns a new object store instance.
-func NewObjectStore(
-	location string,
-	resourceGroup string,
-	storageAccount string,
-	secret *secret.SecretItemResponse,
-	org *pipelineAuth.Organization,
-	db *gorm.DB,
-	logger logrus.FieldLogger,
-) *ObjectStore {
-	return &ObjectStore{
-		location:       location,
-		resourceGroup:  resourceGroup,
-		storageAccount: storageAccount,
-		secret:         secret,
-		db:             db,
-		logger:         logger,
-		org:            org,
-	}
-}
 
 // getResourceGroup returns the given resource group or generates one.
 func (s *ObjectStore) getResourceGroup() string {
@@ -172,7 +134,7 @@ func (s *ObjectStore) DeleteBucket(bucketName string) error {
 		}
 	}
 
-	key, err := GetStorageAccountKey(resourceGroup, storageAccount, s.secret, s.logger)
+	key, err := StorageAccountKey(resourceGroup, storageAccount, s.secret, s.logger)
 	if err != nil {
 		return err
 	}
@@ -210,7 +172,7 @@ func (s *ObjectStore) CheckBucket(bucketName string) error {
 		return err
 	}
 
-	key, err := GetStorageAccountKey(resourceGroup, storageAccount, s.secret, s.logger)
+	key, err := StorageAccountKey(resourceGroup, storageAccount, s.secret, s.logger)
 	if err != nil {
 		logger.Error(err.Error())
 
@@ -264,7 +226,7 @@ func (s *ObjectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 				"storage_account": accountName,
 			}).Info("getting all blob containers under storage account")
 
-			accountKey, err := GetStorageAccountKey(*rg.Name, accountName, s.secret, s.logger)
+			accountKey, err := StorageAccountKey(*rg.Name, accountName, s.secret, s.logger)
 			if err != nil {
 				return nil, fmt.Errorf("getting all storage accounts under resource group=%s, storage account=%s failed: %s", *(rg.Name), accountName, err.Error())
 			}
@@ -318,7 +280,7 @@ func (s *ObjectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 	return buckets, nil
 }
 
-func GetStorageAccountKey(resourceGroup string, storageAccount string, s *secret.SecretItemResponse, log logrus.FieldLogger) (string, error) {
+func StorageAccountKey(resourceGroup string, storageAccount string, s *secret.SecretItemResponse, log logrus.FieldLogger) (string, error) {
 	client, err := NewAuthorizedStorageAccountClientFromSecret(s.Values)
 	if err != nil {
 		return "", err
@@ -331,14 +293,7 @@ func GetStorageAccountKey(resourceGroup string, storageAccount string, s *secret
 
 	logger.Info("getting key for storage account")
 
-	keys, err := client.ListKeys(context.TODO(), resourceGroup, storageAccount)
-	if err != nil {
-		return "", errors.Wrap(err, "error retrieving keys for StorageAccount")
-	}
-
-	key := (*keys.Keys)[0].Value
-
-	return *key, nil
+	return GetStorageAccountKey(context.Background(), client, resourceGroup, storageAccount)
 }
 
 // getAllResourceGroups returns all resource groups using

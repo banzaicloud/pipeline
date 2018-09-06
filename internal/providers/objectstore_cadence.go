@@ -1,18 +1,4 @@
-// Copyright © 2018 Banzai Cloud
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-//+build !cadence
+//+build cadence
 
 package providers
 
@@ -20,11 +6,11 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/objectstore"
-	"github.com/banzaicloud/pipeline/internal/providers/alibaba"
 	"github.com/banzaicloud/pipeline/internal/providers/amazon"
 	"github.com/banzaicloud/pipeline/internal/providers/azure"
 	"github.com/banzaicloud/pipeline/internal/providers/google"
 	"github.com/banzaicloud/pipeline/internal/providers/oracle"
+	_objectstore "github.com/banzaicloud/pipeline/objectstore"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/secret"
@@ -53,13 +39,13 @@ func NewObjectStore(ctx *ObjectStoreContext, logger logrus.FieldLogger) (objects
 
 	switch ctx.Provider {
 	case providers.Alibaba:
-		return alibaba.NewObjectStore(ctx.Location, ctx.Secret, ctx.Organization), nil
+		return _objectstore.NewAlibabaObjectStore(ctx.Location, ctx.Secret, ctx.Organization), nil
 
 	case providers.Amazon:
 		return amazon.NewObjectStore(ctx.Location, ctx.Secret, ctx.Organization, db, logger)
 
 	case providers.Azure:
-		return azure.NewObjectStore(ctx.Location, ctx.ResourceGroup, ctx.StorageAccount, ctx.Secret, ctx.Organization, db, logger), nil
+		return azure.NewObjectStore(ctx.Location, ctx.ResourceGroup, ctx.StorageAccount, ctx.Secret, ctx.Organization, config.CadenceClient(), db, logger), nil
 
 	case providers.Google:
 		return google.NewObjectStore(ctx.Organization, verify.CreateServiceAccount(ctx.Secret.Values), ctx.Location, db, logger), nil

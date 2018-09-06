@@ -28,6 +28,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/audit"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	ginlog "github.com/banzaicloud/pipeline/internal/platform/gin/log"
+	"github.com/banzaicloud/pipeline/internal/workflows"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/model/defaults"
 	"github.com/banzaicloud/pipeline/notify"
@@ -286,6 +287,8 @@ func main() {
 		listenPort = fmt.Sprintf(":%d", port)
 		logger.Info("Pipeline API listening on port ", listenPort)
 	}
+
+	workflows.RegisterWorkflows()
 
 	config.RegisterCadenceDomain(logger)
 

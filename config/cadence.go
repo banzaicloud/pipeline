@@ -66,7 +66,12 @@ func RegisterCadenceDomain(logger logrus.FieldLogger) {
 
 	logger = logger.WithField("domain", config.Domain)
 
-	domainRequest := &shared.RegisterDomainRequest{Name: &config.Domain}
+	// TODO: config
+	var retention int32 = 3
+	domainRequest := &shared.RegisterDomainRequest{
+		Name: &config.Domain,
+		WorkflowExecutionRetentionPeriodInDays: &retention,
+	}
 
 	client.Register(context.Background(), domainRequest)
 	if err != nil {

@@ -3,8 +3,14 @@
 package azure
 
 import (
+	"context"
+	"time"
+
+	"github.com/banzaicloud/pipeline/config"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"go.uber.org/cadence/client"
 )
 
 // CreateBucket creates an Azure Object Store Blob with the provided name
@@ -24,9 +30,11 @@ func (s *ObjectStore) CreateBucket(bucketName string) error {
 		}
 	}
 
-	// TODO: create the bucket in the database later so that we don't have to roll back
-	bucket.ResourceGroup = resourceGroup
 	bucket.Organization = *s.org
+	bucket.ResourceGroup = resourceGroup
+	bucket.StorageAccount = storageAccount
+	bucket.Location = s.location
+	bucket.Name = bucketName
 
 	logger.Info("saving bucket in DB")
 
@@ -35,7 +43,29 @@ func (s *ObjectStore) CreateBucket(bucketName string) error {
 		return errors.Wrap(err, "error happened during saving bucket in DB")
 	}
 
-	// TODO: start cadence workflow here
+	workflowContext := CreateBucketWorkflowContext{
+		OrganizationID: s.org.ID,
+		SecretID:       s.secret.ID,
+		Location:       s.location,
+		ResourceGroup:  resourceGroup,
+		StorageAccount: storageAccount,
+		Bucket:         bucketName,
+	}
+
+	workflowOptions := client.StartWorkflowOptions{
+		TaskList:                     config.CadenceTaskList(),
+		ExecutionStartToCloseTimeout: 10 * time.Minute, // TODO: lower timeout
+	}
+
+	exec, err := s.workflowClient.StartWorkflow(context.Background(), workflowOptions, CreateBucketWorkflowType, workflowContext)
+	if err != nil {
+		return errors.Wrap(err, "could not start workflow")
+	}
+
+	logger.WithFields(logrus.Fields{
+		"workflow-id": exec.ID,
+		"run-id":      exec.RunID,
+	}).Info("started workflow")
 
 	return nil
 }

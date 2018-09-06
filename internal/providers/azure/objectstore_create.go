@@ -71,7 +71,7 @@ func (s *ObjectStore) CreateBucket(bucketName string) error {
 		return s.rollback(logger, "storage account is already taken", err, bucket)
 	}
 
-	key, err := GetStorageAccountKey(resourceGroup, storageAccount, s.secret, s.logger)
+	key, err := StorageAccountKey(resourceGroup, storageAccount, s.secret, s.logger)
 	if err != nil {
 		return err
 	}
