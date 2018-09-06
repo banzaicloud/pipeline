@@ -10,6 +10,9 @@ import (
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"gopkg.in/yaml.v2"
+	storagev1 "k8s.io/api/storage/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 )
 
 // CreateKubernetesClusterFromRequest creates ClusterModel struct from the request
@@ -57,6 +60,24 @@ func (c *KubeCluster) CreateCluster() error {
 // Persist save the cluster model
 func (c *KubeCluster) Persist(status, statusMessage string) error {
 	return c.modelCluster.UpdateStatus(status, statusMessage)
+}
+
+// createDefaultStorageClass creates a default storage class as some clusters are not created with
+// any storage classes or with default one
+func createDefaultStorageClass(kubernetesClient *kubernetes.Clientset, provisioner string) error {
+	defaultStorageClass := storagev1.StorageClass{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "default",
+			Annotations: map[string]string{
+				"storageclass.kubernetes.io/is-default-class": "true",
+			},
+		},
+		Provisioner: provisioner,
+	}
+
+	_, err := kubernetesClient.StorageV1().StorageClasses().Create(&defaultStorageClass)
+
+	return err
 }
 
 // DownloadK8sConfig downloads the kubeconfig file from cloud
