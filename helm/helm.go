@@ -147,26 +147,45 @@ func ListDeployments(filter *string, kubeConfig []byte) (*rls.ListReleasesRespon
 	return resp, nil
 }
 
-//UpgradeDeployment upgrades a Helm deployment
-func UpgradeDeployment(releaseName, chartName, chartVersion string, values []byte, reuseValues bool, kubeConfig []byte, env helm_env.EnvSettings) (*rls.UpdateReleaseResponse, error) {
-	//Map chartName as
-	log.Infof("Deploying chart=%q, version=%q release name=%q", chartName, chartVersion, releaseName)
-	downloadedChartPath, err := DownloadChartFromRepo(chartName, chartVersion, env)
-	if err != nil {
-		return nil, err
+func getRequestedChart(releaseName, chartName, chartVersion string, chartPackage []byte, env helm_env.EnvSettings) (requestedChart *chart.Chart, err error) {
+
+	// If the request has a chart package sent by the user we install that
+	if chartPackage != nil && len(chartPackage) != 0 {
+		requestedChart, err = chartutil.LoadArchive(bytes.NewReader(chartPackage))
+	} else {
+		log.Infof("Deploying chart=%q, version=%q release name=%q", chartName, chartVersion, releaseName)
+		var downloadedChartPath string
+		downloadedChartPath, err = DownloadChartFromRepo(chartName, chartVersion, env)
+		if err != nil {
+			return nil, errors.Wrap(err, "error downloading chart")
+		}
+
+		requestedChart, err = chartutil.Load(downloadedChartPath)
 	}
 
-	chartRequested, err := chartutil.Load(downloadedChartPath)
+	if err != nil {
+		return nil, errors.Wrap(err, "error loading chart")
+	}
+
+	if req, err := chartutil.LoadRequirements(requestedChart); err == nil {
+		if err := checkDependencies(requestedChart, req); err != nil {
+			return nil, errors.Wrap(err, "error checking chart dependencies")
+		}
+	} else if err != chartutil.ErrRequirementsNotFound {
+		return nil, errors.Wrap(err, "cannot load requirements")
+	}
+
+	return requestedChart, err
+}
+
+//UpgradeDeployment upgrades a Helm deployment
+func UpgradeDeployment(releaseName, chartName, chartVersion string, chartPackage []byte, values []byte, reuseValues bool, kubeConfig []byte, env helm_env.EnvSettings) (*rls.UpdateReleaseResponse, error) {
+
+	chartRequested, err := getRequestedChart(releaseName, chartName, chartVersion, chartPackage, env)
 	if err != nil {
 		return nil, fmt.Errorf("error loading chart: %v", err)
 	}
-	if req, err := chartutil.LoadRequirements(chartRequested); err == nil {
-		if err := checkDependencies(chartRequested, req); err != nil {
-			return nil, err
-		}
-	} else if err != chartutil.ErrRequirementsNotFound {
-		return nil, fmt.Errorf("cannot load requirements: %v", err)
-	}
+
 	//Get cluster based or inCluster kubeconfig
 	hClient, err := GetHelmClient(kubeConfig)
 	if err != nil {
@@ -187,27 +206,13 @@ func UpgradeDeployment(releaseName, chartName, chartVersion string, values []byt
 }
 
 //CreateDeployment creates a Helm deployment in chosen namespace
-func CreateDeployment(chartName string, chartVersion, namespace string, releaseName string, valueOverrides []byte, kubeConfig []byte, env helm_env.EnvSettings) (*rls.InstallReleaseResponse, error) {
+func CreateDeployment(chartName, chartVersion string, chartPackage []byte, namespace string, releaseName string, valueOverrides []byte, kubeConfig []byte, env helm_env.EnvSettings) (*rls.InstallReleaseResponse, error) {
 
-	log.Infof("Deploying chart=%q, version=%q release name=%q", chartName, chartVersion, releaseName)
-	downloadedChartPath, err := DownloadChartFromRepo(chartName, chartVersion, env)
-	if err != nil {
-		return nil, err
-	}
-
-	log.Infof("Loading chart from %q", env.Home)
-
-	chartRequested, err := chartutil.Load(downloadedChartPath)
+	chartRequested, err := getRequestedChart(releaseName, chartName, chartVersion, chartPackage, env)
 	if err != nil {
 		return nil, fmt.Errorf("error loading chart: %v", err)
 	}
-	if req, err := chartutil.LoadRequirements(chartRequested); err == nil {
-		if err := checkDependencies(chartRequested, req); err != nil {
-			return nil, err
-		}
-	} else if err != chartutil.ErrRequirementsNotFound {
-		return nil, fmt.Errorf("cannot load requirements: %v", err)
-	}
+
 	if len(strings.TrimSpace(releaseName)) == 0 {
 		releaseName, _ = generateName("")
 	}

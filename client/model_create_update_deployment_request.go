@@ -13,7 +13,9 @@ package client
 type CreateUpdateDeploymentRequest struct {
 	Name string `json:"name"`
 	// Version of the deployment. If not specified, the latest version is used.
-	Version     string `json:"version,omitempty"`
+	Version string `json:"version,omitempty"`
+	// The chart content packaged by `helm package`. If specified chart version is ignored.
+	Package     string `json:"package,omitempty"`
 	Namespace   string `json:"namespace,omitempty"`
 	ReleaseName string `json:"releaseName,omitempty"`
 	ReuseValues bool   `json:"reuseValues,omitempty"`
