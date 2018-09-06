@@ -456,7 +456,11 @@ func waitForClusterState(client *cs.Client, clusterID string, numNodes int) (*al
 		case AlibabaClusterStateRunning:
 			for _, v := range r.Outputs {
 				if v.OutputKey == "NodeInstanceIDs" {
-					if len(v.OutputValue.([]interface{})) == numNodes {
+					res, ok := v.OutputValue.([]interface{})
+					if !ok {
+						return nil, errors.New("cluster creation failed, internal server error")
+					}
+					if len(res) == numNodes {
 						return r, nil
 					}
 				}
