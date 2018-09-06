@@ -1,5 +1,13 @@
 package hpa
 
+import (
+	"errors"
+	"fmt"
+	"strconv"
+
+	"k8s.io/apimachinery/pkg/api/resource"
+)
+
 type ValueType string
 
 var (
@@ -43,6 +51,74 @@ type DeploymentScalingRequest struct {
 	Cpu           ResourceMetric          `json:"cpu,omitempty"`
 	Memory        ResourceMetric          `json:"memory,omitempty"`
 	CustomMetrics map[string]CustomMetric `json:"customMetrics,omitempty"`
+}
+
+func (r *DeploymentScalingRequest) Validate() error {
+	if r.MaxReplicas <= r.MinReplicas {
+		return errors.New("'maxReplicas' should be greater then 'minReplicas'")
+	}
+	metricCount := 0
+	if len(r.Cpu.TargetAverageValueType) != 0 {
+		err := r.Cpu.validateResourceMetric()
+		if err != nil {
+			return err
+		}
+		metricCount++
+	}
+	if len(r.Memory.TargetAverageValueType) != 0 {
+		err := r.Memory.validateResourceMetric()
+		if err != nil {
+			return err
+		}
+		metricCount++
+	}
+	for _, cm := range r.CustomMetrics {
+		if len(cm.Type) != 0 {
+			err := cm.validateCustomMetric()
+			if err != nil {
+				return err
+			}
+		}
+		metricCount++
+	}
+	if metricCount == 0 {
+		return errors.New("there should at least one cpu / memory or custom metric specified")
+	}
+	return nil
+}
+
+func (rm ResourceMetric) validateResourceMetric() error {
+	switch rm.TargetAverageValueType {
+	case PercentageValueType:
+		int64Value, err := strconv.ParseInt(rm.TargetAverageValue, 10, 32)
+		if err != nil {
+			return errors.New("invalid percentage value specified")
+		}
+		targetValue := int32(int64Value)
+		if targetValue <= 0 || targetValue > 100 {
+			return fmt.Errorf("invalid percentage value specified: %v (Percentage value shoud be between [1,99]", targetValue)
+
+		}
+	case QuantityValueType:
+		_, err := resource.ParseQuantity(rm.TargetAverageValue)
+		if err != nil {
+			return fmt.Errorf("invalid resource metric value: %v (%v)", rm.TargetAverageValue, err.Error())
+		}
+	}
+	return nil
+}
+
+func (rm CustomMetric) validateCustomMetric() error {
+	if rm.Type != "pod" {
+		return fmt.Errorf("invalid custom metric type specified: %v", rm.Type)
+	}
+
+	_, err := resource.ParseQuantity(rm.TargetAverageValue)
+	if err != nil {
+		return fmt.Errorf("invalid custom metric value: %v (%v)", rm.TargetAverageValue, err.Error())
+	}
+
+	return nil
 }
 
 type DeploymentScalingInfo struct {
