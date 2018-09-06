@@ -584,6 +584,10 @@ func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (outp
 					ParameterKey:   aws.String("NodeInstanceRoleId"),
 					ParameterValue: a.context.NodeInstanceRoleID,
 				},
+				{
+					ParameterKey:   aws.String("BootstrapArguments"),
+					ParameterValue: aws.String(fmt.Sprintf("--kubelet-extra-args '--node-labels pipeline-nodepool-name=%v'", nodePool.Name)),
+				},
 			}
 
 			cloudformationSrv := cloudformation.New(a.context.Session)

@@ -9,10 +9,12 @@ const (
 var DefaultImages = map[string]string{
 	UsEast1: "ami-0b2ae3c6bda8b5c06",
 	UsWest2: "ami-08cab282f9979fc7a",
+	EuWest1: "ami-066110c1a7466949e",
 }
 
 // EC2 regions
 const (
 	UsEast1 = "us-east-1"
 	UsWest2 = "us-west-2"
+	EuWest1 = "eu-west-1"
 )
