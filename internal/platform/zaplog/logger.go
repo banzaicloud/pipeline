@@ -19,11 +19,14 @@ func NewLogger(config Config) *zap.Logger {
 		encoderConfig.TimeKey = "time"
 		encoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 
-		return zap.New(zapcore.NewCore(
-			zaplogfmt.NewEncoder(encoderConfig),
-			os.Stderr,
-			level,
-		))
+		return zap.New(
+			zapcore.NewCore(
+				zaplogfmt.NewEncoder(encoderConfig),
+				os.Stderr,
+				level,
+			),
+			zap.AddCaller(),
+		)
 
 	default:
 		if level == zapcore.DebugLevel {
