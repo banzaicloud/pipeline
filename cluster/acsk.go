@@ -16,6 +16,7 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/cs"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
+	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/acsk"
@@ -26,6 +27,7 @@ import (
 	"github.com/jmespath/go-jmespath"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/ssh"
+	"k8s.io/client-go/kubernetes"
 )
 
 const (
@@ -324,7 +326,33 @@ func (c *ACSKCluster) CreateCluster() error {
 	c.alibabaCluster = aliCluster
 
 	c.modelCluster.ACSK.ClusterID = r.ClusterID
-	return c.modelCluster.Save()
+	err = c.modelCluster.Save()
+	if err != nil {
+		return err
+	}
+
+	kubeConfig, err := c.DownloadK8sConfig()
+	if err != nil {
+		return err
+	}
+
+	restKubeConfig, err := helm.GetK8sClientConfig(kubeConfig)
+	if err != nil {
+		return err
+	}
+
+	kubeClient, err := kubernetes.NewForConfig(restKubeConfig)
+	if err != nil {
+		return err
+	}
+
+	// create default storage class
+	err = createDefaultStorageClass(kubeClient, "alicloud/disk")
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (c *ACSKCluster) uploadSSHKeyForCluster(key *secret.SSHKeyPair) error {

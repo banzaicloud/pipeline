@@ -29,7 +29,6 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/sirupsen/logrus"
 	"k8s.io/api/core/v1"
-	storagev1 "k8s.io/api/storage/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api/v1"
@@ -225,7 +224,7 @@ func (c *EKSCluster) CreateCluster() error {
 	}
 
 	// create default storage class
-	err = createDefaultStorageClass(kubeClient)
+	err = createDefaultStorageClass(kubeClient, "kubernetes.io/aws-ebs")
 	if err != nil {
 		return err
 	}
@@ -964,27 +963,6 @@ func ListEksImages(region string) (map[string][]string, error) {
 	return map[string][]string{
 		region: {},
 	}, nil
-}
-
-// createDefaultStorageClass creates a default storage class as Amazon EKS clusters are not created with
-// any storage classes
-func createDefaultStorageClass(kubernetesClient *kubernetes.Clientset) error {
-	defaultStorageClass := storagev1.StorageClass{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "default",
-			Annotations: map[string]string{
-				"storageclass.kubernetes.io/is-default-class": "true",
-			},
-		},
-		Provisioner: "kubernetes.io/aws-ebs",
-		Parameters: map[string]string{
-			"type": "gp2",
-		},
-	}
-
-	_, err := kubernetesClient.StorageV1().StorageClasses().Create(&defaultStorageClass)
-
-	return err
 }
 
 // RbacEnabled returns true if rbac enabled on the cluster
