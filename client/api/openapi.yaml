@@ -4556,6 +4556,7 @@ components:
       type: array
     CreateUpdateDeploymentRequest:
       example:
+        package: package
         releaseName: singed-bee
         values:
           ingress:
@@ -4571,6 +4572,10 @@ components:
         version:
           description: Version of the deployment. If not specified, the latest version is used.
           example: 0.1.0
+          type: string
+        package:
+          description: The chart content packaged by `helm package`. If specified chart version is ignored.
+          format: byte
           type: string
         namespace:
           example: default

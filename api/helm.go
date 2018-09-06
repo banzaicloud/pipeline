@@ -59,6 +59,7 @@ func CreateDeployment(c *gin.Context) {
 	}
 	release, err := helm.CreateDeployment(parsedRequest.deploymentName,
 		parsedRequest.deploymentVersion,
+		parsedRequest.deploymentPackage,
 		parsedRequest.namespace,
 		parsedRequest.deploymentReleaseName,
 		parsedRequest.values,
@@ -354,8 +355,8 @@ func UpgradeDeployment(c *gin.Context) {
 		return
 	}
 
-	release, err := helm.UpgradeDeployment(name,
-		parsedRequest.deploymentName, parsedRequest.deploymentVersion, parsedRequest.values,
+	release, err := helm.UpgradeDeployment(name, parsedRequest.deploymentName,
+		parsedRequest.deploymentVersion, parsedRequest.deploymentPackage, parsedRequest.values,
 		parsedRequest.reuseValues, parsedRequest.kubeConfig, helm.GenerateHelmRepoEnv(parsedRequest.organizationName))
 	if err != nil {
 		log.Errorf("Error during upgrading deployment. %s", err.Error())
@@ -408,6 +409,7 @@ func DeleteDeployment(c *gin.Context) {
 type parsedDeploymentRequest struct {
 	deploymentName        string
 	deploymentVersion     string
+	deploymentPackage     []byte
 	deploymentReleaseName string
 	reuseValues           bool
 	namespace             string
@@ -442,6 +444,7 @@ func parseCreateUpdateDeploymentRequest(c *gin.Context) (*parsedDeploymentReques
 
 	pdr.deploymentName = deployment.Name
 	pdr.deploymentVersion = deployment.Version
+	pdr.deploymentPackage = deployment.Package
 	pdr.deploymentReleaseName = deployment.ReleaseName
 	pdr.reuseValues = deployment.ReUseValues
 	pdr.namespace = deployment.Namespace
