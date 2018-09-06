@@ -317,7 +317,7 @@ func (c *ACSKCluster) CreateCluster() error {
 
 	// wait for cluster created
 	log.Info("Waiting for cluster...")
-	aliCluster, err := waitForClusterState(client, r.ClusterID)
+	aliCluster, err := waitForClusterState(client, r.ClusterID, c.modelCluster.ACSK.NodePools[0].Count)
 	if err != nil {
 		return err
 	}
@@ -435,7 +435,7 @@ func getConnectionInfo(client *cs.Client, clusterID string) (inf alibabaConnecti
 }
 
 // waitForClusterState docs: https://www.alibabacloud.com/help/doc-detail/26005.htm
-func waitForClusterState(client *cs.Client, clusterID string) (*alibabaDescribeClusterResponse, error) {
+func waitForClusterState(client *cs.Client, clusterID string, numNodes int) (*alibabaDescribeClusterResponse, error) {
 	var (
 		r     *alibabaDescribeClusterResponse
 		state string
@@ -454,7 +454,13 @@ func waitForClusterState(client *cs.Client, clusterID string) (*alibabaDescribeC
 
 		switch r.State {
 		case AlibabaClusterStateRunning:
-			return r, nil
+			for _, v := range r.Outputs {
+				if v.OutputKey == "NodeInstanceIDs" {
+					if len(v.OutputValue.([]interface{})) == numNodes {
+						return r, nil
+					}
+				}
+			}
 		case AlibabaClusterStateFailed:
 			return nil, errors.New("The cluster creation failed")
 		default:
@@ -637,7 +643,7 @@ func (c *ACSKCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, us
 		return err
 	}
 
-	cluster, err := waitForClusterState(client, r.ClusterID)
+	cluster, err := waitForClusterState(client, r.ClusterID, nodePoolModels[0].Count)
 	if err != nil {
 		return err
 	}
