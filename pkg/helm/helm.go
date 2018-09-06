@@ -91,6 +91,7 @@ type CreateUpdateDeploymentResponse struct {
 type CreateUpdateDeploymentRequest struct {
 	Name        string                 `json:"name" binding:"required"`
 	Version     string                 `json:"version,omitempty"`
+	Package     []byte                 `json:"package,omitempty"`
 	ReleaseName string                 `json:"releaseName"`
 	ReUseValues bool                   `json:"reuseValues"`
 	Namespace   string                 `json:"namespace"`
