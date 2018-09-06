@@ -23,7 +23,6 @@ func PutHpaResource(c *gin.Context) {
 
 	kubeConfig, ok := GetK8sConfig(c)
 	if !ok {
-		log.Errorf("could not get the k8s config")
 		return
 	}
 
@@ -39,9 +38,20 @@ func PutHpaResource(c *gin.Context) {
 		})
 		return
 	}
-	log.Info("Parse deployment succeeded")
 
-	err = SetDeploymentAutoscalingInfo(kubeConfig, *scalingRequest)
+	err = scalingRequest.Validate()
+	if err != nil {
+		err := errors.Wrap(err, "Error parsing request:")
+		log.Error(err.Error())
+		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error during parsing request!",
+			Error:   errors.Cause(err).Error(),
+		})
+		return
+	}
+
+	err = setDeploymentAutoscalingInfo(kubeConfig, *scalingRequest)
 	if err != nil {
 		err := errors.Wrap(err, "Error during request processing:")
 		log.Error(err.Error())
@@ -68,20 +78,19 @@ func DeleteHpaResource(c *gin.Context) {
 		})
 		return
 	}
-	log.Infof("getting hpa details for scaleTarget: [%s]", scaleTarget)
+	log.Debugf("getting hpa details for scaleTarget: [%s]", scaleTarget)
 
 	kubeConfig, ok := GetK8sConfig(c)
 	if !ok {
-		log.Errorf("could not get the k8s config")
 		return
 	}
 
-	err := DeleteDeploymentAutoscalingInfo(kubeConfig, scaleTarget)
+	err := deleteDeploymentAutoscalingInfo(kubeConfig, scaleTarget)
 	if err != nil {
 		err := errors.Wrap(err, "Error during request processing:")
 		log.Error(err.Error())
-		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
-			Code:    http.StatusBadRequest,
+		c.JSON(http.StatusInternalServerError, pkgCommmon.ErrorResponse{
+			Code:    http.StatusInternalServerError,
 			Message: "Error during request processing!",
 			Error:   errors.Cause(err).Error(),
 		})
@@ -102,18 +111,17 @@ func GetHpaResource(c *gin.Context) {
 		})
 		return
 	}
-	log.Infof("getting hpa details for scaleTarget: [%s]", scaleTarget)
+	log.Debugf("getting hpa details for scaleTarget: [%s]", scaleTarget)
 
 	kubeConfig, ok := GetK8sConfig(c)
 	if !ok {
-		log.Errorf("could not get the k8s config")
 		return
 	}
 
-	deploymentResponse, err := GetHpaResources(scaleTarget, kubeConfig)
+	deploymentResponse, err := getHpaResources(scaleTarget, kubeConfig)
 	if err != nil {
-		log.Error("Error during getting Hpa resources details: ", err.Error())
-
+		err := errors.Wrap(err, "Error during request processing:")
+		log.Error(err.Error())
 		httpStatusCode := http.StatusInternalServerError
 		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
 			Code:    httpStatusCode,
@@ -127,7 +135,7 @@ func GetHpaResource(c *gin.Context) {
 
 }
 
-func GetHpaResources(scaleTragetRef string, kubeConfig []byte) ([]hpa.DeploymentScalingInfo, error) {
+func getHpaResources(scaleTragetRef string, kubeConfig []byte) ([]hpa.DeploymentScalingInfo, error) {
 	client, err := helm.GetK8sConnection(kubeConfig)
 	if err != nil {
 		log.Errorf("Getting K8s client failed: %s", err.Error())
@@ -143,44 +151,42 @@ func GetHpaResources(scaleTragetRef string, kubeConfig []byte) ([]hpa.Deployment
 	}
 	hpaList, err := client.AutoscalingV2beta1().HorizontalPodAutoscalers(v12.NamespaceAll).List(listOption)
 	if err != nil {
-		log.Errorf("Getting hpa for %v failed: %s", scaleTragetRef, err.Error())
-	} else {
+		return nil, err
+	}
 
-		for _, hpaItem := range hpaList.Items {
-			if !hpaBelongsToDeployment(hpaItem, scaleTragetRef) {
-				continue
-			}
-
-			log.Infof("hpa found: %v for scaleTragetRef: %v", hpaItem.Name, scaleTragetRef)
-			deploymentItem := hpa.DeploymentScalingInfo{
-				ScaleTarget:   scaleTragetRef,
-				Kind:          hpaItem.Spec.ScaleTargetRef.Kind,
-				MinReplicas:   *hpaItem.Spec.MinReplicas,
-				MaxReplicas:   hpaItem.Spec.MaxReplicas,
-				CustomMetrics: map[string]hpa.CustomMetricStatus{},
-			}
-
-			for _, metric := range hpaItem.Spec.Metrics {
-				switch metric.Type {
-				case v2beta1.ResourceMetricSourceType:
-					switch metric.Resource.Name {
-					case v1.ResourceCPU:
-						deploymentItem.Cpu = getResourceMetricStatus(hpaItem, metric)
-					case v1.ResourceMemory:
-						deploymentItem.Memory = getResourceMetricStatus(hpaItem, metric)
-					}
-				case v2beta1.PodsMetricSourceType:
-					log.Warnf("custom metric %v found for hpa: %v", metric.Pods.MetricName, hpaItem.Name)
-					deploymentItem.CustomMetrics[metric.Pods.MetricName] = getPodMetricStatus(hpaItem, metric)
-				default:
-					log.Warnf("metric found: %v for hpa: %v", metric.Type, hpaItem.Name)
-				}
-			}
-
-			deploymentItem.Status.Message = generateStatusMessage(hpaItem.Status)
-			responseDeployments = append(responseDeployments, deploymentItem)
+	for _, hpaItem := range hpaList.Items {
+		if !hpaBelongsToDeployment(hpaItem, scaleTragetRef) {
+			continue
 		}
 
+		log.Debugf("hpa found: %v for scaleTragetRef: %v", hpaItem.Name, scaleTragetRef)
+		deploymentItem := hpa.DeploymentScalingInfo{
+			ScaleTarget:   scaleTragetRef,
+			Kind:          hpaItem.Spec.ScaleTargetRef.Kind,
+			MinReplicas:   *hpaItem.Spec.MinReplicas,
+			MaxReplicas:   hpaItem.Spec.MaxReplicas,
+			CustomMetrics: map[string]hpa.CustomMetricStatus{},
+		}
+
+		for _, metric := range hpaItem.Spec.Metrics {
+			switch metric.Type {
+			case v2beta1.ResourceMetricSourceType:
+				switch metric.Resource.Name {
+				case v1.ResourceCPU:
+					deploymentItem.Cpu = getResourceMetricStatus(hpaItem, metric)
+				case v1.ResourceMemory:
+					deploymentItem.Memory = getResourceMetricStatus(hpaItem, metric)
+				}
+			case v2beta1.PodsMetricSourceType:
+				log.Warnf("custom metric %v found for hpa: %v", metric.Pods.MetricName, hpaItem.Name)
+				deploymentItem.CustomMetrics[metric.Pods.MetricName] = getPodMetricStatus(hpaItem, metric)
+			default:
+				log.Warnf("metric found: %v for hpa: %v", metric.Type, hpaItem.Name)
+			}
+		}
+
+		deploymentItem.Status.Message = generateStatusMessage(hpaItem.Status)
+		responseDeployments = append(responseDeployments, deploymentItem)
 	}
 
 	return responseDeployments, nil
@@ -235,14 +241,13 @@ func getPodMetricStatus(hpaItem v2beta1.HorizontalPodAutoscaler, metric v2beta1.
 }
 
 func hpaBelongsToDeployment(hpa v2beta1.HorizontalPodAutoscaler, scaleTragetRef string) bool {
-	// TODO later may be check gvk as well
 	if hpa.Spec.ScaleTargetRef.Name != scaleTragetRef {
 		return false
 	}
 	return true
 }
 
-func DeleteDeploymentAutoscalingInfo(kubeConfig []byte, scaleTarget string) error {
+func deleteDeploymentAutoscalingInfo(kubeConfig []byte, scaleTarget string) error {
 	client, err := helm.GetK8sConnection(kubeConfig)
 	if err != nil {
 		log.Errorf("Getting K8s client failed: %s", err.Error())
@@ -253,25 +258,39 @@ func DeleteDeploymentAutoscalingInfo(kubeConfig []byte, scaleTarget string) erro
 	// get doesn't work with v12.NamespaceAll only if you specify the namespace exactly
 	// deployment, err := client.AppsV1().Deployments(v12.NamespaceAll).Get(request.Name, v12.GetOptions{})
 	scaleTargetFound := false
-
-	deploymentList, err := client.AppsV1().Deployments(v12.NamespaceAll).List(v12.ListOptions{})
+	listOptions := v12.ListOptions{
+		FieldSelector: fmt.Sprintf("metadata.name=%v", scaleTarget),
+	}
+	deploymentList, err := client.AppsV1().Deployments(v12.NamespaceAll).List(listOptions)
+	if err != nil {
+		return err
+	}
 	for _, dep := range deploymentList.Items {
 		if dep.Name == scaleTarget {
 			scaleTargetFound = true
-			log.Infof("remove annotations on deployment: %v", dep.Name)
+			log.Debugf("remove annotations on deployment: %v", dep.Name)
 			dep.Annotations = removeHpaAnnotations(dep.Annotations)
 			_, err = client.AppsV1().Deployments(dep.Namespace).Update(&dep)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
 	// find statefulset & update hpa annotations
-	statefulSetList, err := client.AppsV1().StatefulSets(v12.NamespaceAll).List(v12.ListOptions{})
+	statefulSetList, err := client.AppsV1().StatefulSets(v12.NamespaceAll).List(listOptions)
+	if err != nil {
+		return err
+	}
 	for _, stsset := range statefulSetList.Items {
 		if stsset.Name == scaleTarget {
 			scaleTargetFound = true
-			log.Infof("remove annotations on statefulset: %v", stsset.Name)
+			log.Debugf("remove annotations on statefulset: %v", stsset.Name)
 			stsset.Annotations = removeHpaAnnotations(stsset.Annotations)
 			_, err = client.AppsV1().StatefulSets(stsset.Namespace).Update(&stsset)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -282,36 +301,51 @@ func DeleteDeploymentAutoscalingInfo(kubeConfig []byte, scaleTarget string) erro
 	return nil
 }
 
-func SetDeploymentAutoscalingInfo(kubeConfig []byte, request hpa.DeploymentScalingRequest) error {
+func setDeploymentAutoscalingInfo(kubeConfig []byte, request hpa.DeploymentScalingRequest) error {
 	client, err := helm.GetK8sConnection(kubeConfig)
 	if err != nil {
-		log.Errorf("Getting K8s client failed: %s", err.Error())
 		return err
 	}
 
 	// find deployment & update hpa annotations
 	// get doesn't work with v12.NamespaceAll only if you specify the namespace exactly
-	// deployment, err := client.AppsV1().Deployments(v12.NamespaceAll).Get(request.Name, v12.GetOptions{})
+	//deployment, err := client.AppsV1().Deployments(v12.NamespaceAll).Get(request.Name, v12.GetOptions{})
 	scaleTargetFound := false
-
-	deploymentList, err := client.AppsV1().Deployments(v12.NamespaceAll).List(v12.ListOptions{})
+	listOptions := v12.ListOptions{
+		FieldSelector: fmt.Sprintf("metadata.name=%v", request.ScaleTarget),
+	}
+	deploymentList, err := client.AppsV1().Deployments(v12.NamespaceAll).List(listOptions)
+	if err != nil {
+		return err
+	}
 	for _, dep := range deploymentList.Items {
 		if dep.Name == request.ScaleTarget {
 			scaleTargetFound = true
-			log.Infof("set annotations on deployment: %v", dep.Name)
+			log.Debugf("set annotations on deployment: %v", dep.Name)
+			dep.Annotations = removeHpaAnnotations(dep.Annotations)
 			setupHpaAnnotations(request, dep.Annotations)
 			_, err = client.AppsV1().Deployments(dep.Namespace).Update(&dep)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
 	// find statefulset & update hpa annotations
-	statefulSetList, err := client.AppsV1().StatefulSets(v12.NamespaceAll).List(v12.ListOptions{})
+	statefulSetList, err := client.AppsV1().StatefulSets(v12.NamespaceAll).List(listOptions)
+	if err != nil {
+		return err
+	}
 	for _, stsset := range statefulSetList.Items {
 		if stsset.Name == request.ScaleTarget {
 			scaleTargetFound = true
-			log.Infof("set annotations on statefulset: %v", stsset.Name)
+			log.Debugf("set annotations on statefulset: %v", stsset.Name)
+			stsset.Annotations = removeHpaAnnotations(stsset.Annotations)
 			setupHpaAnnotations(request, stsset.Annotations)
 			_, err = client.AppsV1().StatefulSets(stsset.Namespace).Update(&stsset)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -323,7 +357,6 @@ func SetDeploymentAutoscalingInfo(kubeConfig []byte, request hpa.DeploymentScali
 }
 
 func setupHpaAnnotations(request hpa.DeploymentScalingRequest, annotations map[string]string) {
-	// TODO validation
 	annotations[fmt.Sprintf("%v/minReplicas", hpaAnnotationPrefix)] = fmt.Sprint(request.MinReplicas)
 	annotations[fmt.Sprintf("%v/maxReplicas", hpaAnnotationPrefix)] = fmt.Sprint(request.MaxReplicas)
 
