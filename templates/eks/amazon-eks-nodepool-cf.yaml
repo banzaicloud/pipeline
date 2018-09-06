@@ -89,12 +89,22 @@ Parameters:
     Description: The initial size of Node Group ASG.
     Default: 1
 
+  NodeVolumeSize:
+    Type: Number
+    Description: Node volume size
+    Default: 20
+
   NodeSpotPrice:
     Type: String
     Description: The spot price for this ASG
 
   ClusterName:
     Description: The cluster name provided when the cluster was created.  If it is incorrect, nodes will not be able to join the cluster.
+    Type: String
+
+  BootstrapArguments:
+    Description: Arguments to pass to the bootstrap script. See files/bootstrap.sh in https://github.com/awslabs/amazon-eks-ami
+    Default: ""
     Type: String
 
   NodeGroupName:
@@ -252,10 +262,12 @@ Metadata:
           - NodeAutoScalingGroupMinSize
           - NodeAutoScalingGroupMaxSize
           - NodeAutoScalingInitSize
+          - NodeVolumeSize
           - NodeSpotPrice
           - NodeInstanceType
           - NodeImageId
           - KeyName
+          - BootstrapArguments
       -
         Label:
           default: "Worker Network Configuration"
@@ -302,6 +314,26 @@ Resources:
       IpProtocol: tcp
       FromPort: 1025
       ToPort: 65535
+
+  NodeSecurityGroupFromControlPlaneOn443Ingress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: Allow pods running extension API servers on port 443 to receive communication from cluster control plane
+      GroupId: !Ref NodeSecurityGroup
+      SourceSecurityGroupId: !Ref ClusterControlPlaneSecurityGroup
+      IpProtocol: tcp
+      FromPort: 443
+      ToPort: 443
+
+  ControlPlaneEgressToNodeSecurityGroupOn443:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      Description: Allow the cluster control plane to communicate with pods running extension API servers on port 443
+      GroupId: !Ref ClusterControlPlaneSecurityGroup
+      DestinationSecurityGroupId: !Ref NodeSecurityGroup
+      IpProtocol: tcp
+      FromPort: 443
+      ToPort: 443
 
   ClusterControlPlaneSecurityGroupIngress:
     Type: AWS::EC2::SecurityGroupIngress
@@ -356,42 +388,19 @@ Resources:
       KeyName: !Ref KeyName
       SecurityGroups:
       - !Ref NodeSecurityGroup
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            VolumeSize: !Ref NodeVolumeSize
+            VolumeType: gp2
+            DeleteOnTermination: true
       UserData:
         Fn::Base64:
-          Fn::Join: [
-            "",
-            [
-              "#!/bin/bash -xe\n",
-              "CA_CERTIFICATE_DIRECTORY=/etc/kubernetes/pki", "\n",
-              "CA_CERTIFICATE_FILE_PATH=$CA_CERTIFICATE_DIRECTORY/ca.crt", "\n",
-              "MODEL_DIRECTORY_PATH=~/.aws/eks", "\n",
-              "MODEL_FILE_PATH=$MODEL_DIRECTORY_PATH/eks-2017-11-01.normal.json", "\n",
-              "mkdir -p $CA_CERTIFICATE_DIRECTORY", "\n",
-              "mkdir -p $MODEL_DIRECTORY_PATH", "\n",
-              "curl -o $MODEL_FILE_PATH https://s3-us-west-2.amazonaws.com/amazon-eks/1.10.3/2018-06-05/eks-2017-11-01.normal.json", "\n",
-              "aws configure add-model --service-model file://$MODEL_FILE_PATH --service-name eks", "\n",
-              "aws eks describe-cluster --region=", { Ref: "AWS::Region" }," --name=", { Ref: ClusterName }," --query 'cluster.{certificateAuthorityData: certificateAuthority.data, endpoint: endpoint}' > /tmp/describe_cluster_result.json", "\n",
-              "cat /tmp/describe_cluster_result.json | grep certificateAuthorityData | awk '{print $2}' | sed 's/[,\"]//g' | base64 -d >  $CA_CERTIFICATE_FILE_PATH", "\n",
-              "MASTER_ENDPOINT=$(cat /tmp/describe_cluster_result.json | grep endpoint | awk '{print $2}' | sed 's/[,\"]//g')", "\n",
-              "INTERNAL_IP=$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)", "\n",
-              "sed -i s,MASTER_ENDPOINT,$MASTER_ENDPOINT,g /var/lib/kubelet/kubeconfig", "\n",
-              "sed -i s,CLUSTER_NAME,", { Ref: ClusterName }, ",g /var/lib/kubelet/kubeconfig", "\n",
-              "sed -i s,REGION,", { Ref: "AWS::Region" }, ",g /etc/systemd/system/kubelet.service", "\n",
-              "sed -i s,MAX_PODS,", { "Fn::FindInMap": [ MaxPodsPerNode, { Ref: NodeInstanceType }, MaxPods ] }, ",g /etc/systemd/system/kubelet.service", "\n",
-              "sed -i s,MASTER_ENDPOINT,$MASTER_ENDPOINT,g /etc/systemd/system/kubelet.service", "\n",
-              "sed -i '/INTERNAL_IP/a --node-labels pipeline-nodepool-name=", { Ref: NodeGroupName } ," \\\\'  /etc/systemd/system/kubelet.service" , "\n",
-              "sed -i s,INTERNAL_IP,$INTERNAL_IP,g /etc/systemd/system/kubelet.service", "\n",
-              "DNS_CLUSTER_IP=10.100.0.10", "\n",
-              "if [[ $INTERNAL_IP == 10.* ]] ; then DNS_CLUSTER_IP=172.20.0.10; fi", "\n",
-              "sed -i s,DNS_CLUSTER_IP,$DNS_CLUSTER_IP,g  /etc/systemd/system/kubelet.service", "\n",
-              "sed -i s,CERTIFICATE_AUTHORITY_FILE,$CA_CERTIFICATE_FILE_PATH,g /var/lib/kubelet/kubeconfig" , "\n",
-              "sed -i s,CLIENT_CA_FILE,$CA_CERTIFICATE_FILE_PATH,g  /etc/systemd/system/kubelet.service" , "\n",
-              "systemctl daemon-reload", "\n",
-              "systemctl restart kubelet", "\n",
-              "/opt/aws/bin/cfn-signal -e $? ",
-              "         --stack ", { Ref: "AWS::StackName" },
-              "         --resource NodeGroup ",
-              "         --region ", { Ref: "AWS::Region" }, "\n"
-            ]
-          ]
-
+          !Sub |
+            #!/bin/bash
+            set -o xtrace
+            /etc/eks/bootstrap.sh ${ClusterName} ${BootstrapArguments}
+            /opt/aws/bin/cfn-signal --exit-code $? \
+                     --stack  ${AWS::StackName} \
+                     --resource NodeGroup  \
+                     --region ${AWS::Region}
