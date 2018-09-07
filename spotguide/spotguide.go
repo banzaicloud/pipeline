@@ -205,7 +205,12 @@ func LaunchSpotguide(request *LaunchRequest, httpRequest *http.Request, orgID, u
 		return errors.Wrap(err, "Failed to create secrets for spotguide")
 	}
 
-	err = createGithubRepo(request, userID, sourceRepo)
+	githubClient, err := newGithubClientForUser(userID)
+	if err != nil {
+		return errors.Wrap(err, "failed to create GitHub client")
+	}
+
+	err = createGithubRepo(githubClient, request, userID, sourceRepo)
 	if err != nil {
 		return errors.Wrap(err, "Failed to create GitHub repository")
 	}
@@ -213,6 +218,11 @@ func LaunchSpotguide(request *LaunchRequest, httpRequest *http.Request, orgID, u
 	err = enableCICD(request, httpRequest)
 	if err != nil {
 		return errors.Wrap(err, "Failed to enable CI/CD for spotguide")
+	}
+
+	err = addSpotguideContent(githubClient, request, userID, sourceRepo)
+	if err != nil {
+		return errors.Wrap(err, "Failed to add spotguide content to repository")
 	}
 
 	return nil
@@ -300,11 +310,7 @@ func getSpotguideContent(githubClient *github.Client, request *LaunchRequest, so
 	return entries, nil
 }
 
-func createGithubRepo(request *LaunchRequest, userID uint, sourceRepo *Repo) error {
-	githubClient, err := newGithubClientForUser(userID)
-	if err != nil {
-		return errors.Wrap(err, "failed to create GitHub client")
-	}
+func createGithubRepo(githubClient *github.Client, request *LaunchRequest, userID uint, sourceRepo *Repo) error {
 
 	repo := github.Repository{
 		Name:        github.String(request.RepoName),
@@ -318,12 +324,16 @@ func createGithubRepo(request *LaunchRequest, userID uint, sourceRepo *Repo) err
 		orgName = ""
 	}
 
-	_, _, err = githubClient.Repositories.Create(ctx, orgName, &repo)
+	_, _, err := githubClient.Repositories.Create(ctx, orgName, &repo)
 	if err != nil {
 		return errors.Wrap(err, "failed to create spotguide repository")
 	}
 
 	log.Infof("Created spotguide repository: %s/%s", request.RepoOrganization, request.RepoName)
+	return nil
+}
+
+func addSpotguideContent(githubClient *github.Client, request *LaunchRequest, userID uint, sourceRepo *Repo) error {
 
 	// An initial files have to be created with the API to be able to use the fresh repo
 	createFile := &github.RepositoryContentFileOptions{
