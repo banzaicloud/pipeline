@@ -307,5 +307,12 @@ func (a *DeleteSSHKeyAction) GetName() string {
 // ExecuteAction executes this UploadSSHKeyAction
 func (a *DeleteSSHKeyAction) ExecuteAction(input interface{}) (interface{}, error) {
 	a.log.Info("EXECUTE DeleteSSHKeyAction")
-	return nil, nil
+	ecsClient := a.context.ECSClient
+
+	req := ecs.CreateDeleteKeyPairsRequest()
+	req.SetScheme(requests.HTTPS)
+	req.KeyPairNames = a.sshKeyName
+	req.RegionId = a.sshKeyRegionID
+
+	return ecsClient.DeleteKeyPairs(req)
 }
