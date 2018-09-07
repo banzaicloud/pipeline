@@ -3577,6 +3577,7 @@ components:
                 image:
                   type: string
                   example: "ami-06d1667f"
+                  description: "You can find latest images here: https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-ami.html"
             nodePools:
               type: object
               additionalProperties:
@@ -4833,6 +4834,7 @@ components:
                     image:
                       type: string
                       example: "ami-0ea01e1d1dea65b5c"
+                      description: "You can find latest images here: https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-ami.html"
 
     ClusterProfileAKS:
       type: object
