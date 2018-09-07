@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage"
 	"github.com/Azure/azure-storage-blob-go/2016-05-31/azblob"
 	"github.com/goph/emperror"
+	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 )
 
@@ -47,4 +48,9 @@ func CreateBucket(
 	}
 
 	return nil
+}
+
+// DeleteBucketState removes a bucket from the database.
+func DeleteBucketState(db *gorm.DB, bucketID uint) error {
+	return db.Delete(&ObjectStoreBucketModel{ID: bucketID}).Error
 }

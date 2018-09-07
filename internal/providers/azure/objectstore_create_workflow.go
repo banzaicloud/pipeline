@@ -17,6 +17,7 @@ type CreateBucketWorkflowContext struct {
 	ResourceGroup  string
 	StorageAccount string
 	Bucket         string
+	BucketID       uint
 }
 type CreateBucketWorkflow struct{}
 
@@ -41,17 +42,19 @@ func (w *CreateBucketWorkflow) Execute(ctx workflow.Context, workflowContext Cre
 	logger.Info("creating object store bucket")
 
 	ao := workflow.ActivityOptions{
-		ScheduleToStartTimeout: 30 * time.Second,
+		ScheduleToStartTimeout: 1 * time.Minute,
 		StartToCloseTimeout:    1 * time.Minute,
 		WaitForCancellation:    true,
 		RetryPolicy: &cadence.RetryPolicy{
-			InitialInterval:          3 * time.Second,
-			ExpirationInterval:       3 * time.Minute,
-			MaximumAttempts:          3,
-			BackoffCoefficient:       1.0,
+			InitialInterval:          10 * time.Second,
+			ExpirationInterval:       30 * time.Minute,
+			MaximumAttempts:          5,
+			BackoffCoefficient:       1.2,
 			NonRetriableErrorReasons: []string{"cadenceInternal:Generic"},
 		},
 	}
+
+	ctx = workflow.WithActivityOptions(ctx, ao)
 
 	rac := CreateResourceGroupActivityContext{
 		OrganizationID: workflowContext.OrganizationID,
@@ -60,14 +63,12 @@ func (w *CreateBucketWorkflow) Execute(ctx workflow.Context, workflowContext Cre
 		ResourceGroup:  workflowContext.ResourceGroup,
 	}
 
-	err := workflow.ExecuteActivity(workflow.WithActivityOptions(ctx, ao), CreateResourceGroupActivityType, rac).Get(ctx, nil)
+	err := workflow.ExecuteActivity(ctx, CreateResourceGroupActivityType, rac).Get(ctx, nil)
 	if err != nil {
 		logger.Error("object store bucket creation failed", zap.Error(err))
 
-		return err
+		return w.rollback(ctx, logger, workflowContext, err)
 	}
-
-	//ao.StartToCloseTimeout = 10 * time.Minute
 
 	sac := CreateStorageAccountActivityContext{
 		OrganizationID: workflowContext.OrganizationID,
@@ -77,11 +78,11 @@ func (w *CreateBucketWorkflow) Execute(ctx workflow.Context, workflowContext Cre
 		StorageAccount: workflowContext.StorageAccount,
 	}
 
-	err = workflow.ExecuteActivity(workflow.WithActivityOptions(ctx, ao), CreateStorageAccountActivityType, sac).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, CreateStorageAccountActivityType, sac).Get(ctx, nil)
 	if err != nil {
 		logger.Error("object store bucket creation failed", zap.Error(err))
 
-		return err
+		return w.rollback(ctx, logger, workflowContext, err)
 	}
 
 	bac := CreateBucketActivityContext{
@@ -96,10 +97,38 @@ func (w *CreateBucketWorkflow) Execute(ctx workflow.Context, workflowContext Cre
 	if err != nil {
 		logger.Error("object store bucket creation failed", zap.Error(err))
 
-		return err
+		return w.rollback(ctx, logger, workflowContext, err)
 	}
 
 	logger.Info("object store bucket successfully created")
 
 	return nil
+}
+
+func (w *CreateBucketWorkflow) rollback(ctx workflow.Context, logger *zap.Logger, workflowContext CreateBucketWorkflowContext, err error) error {
+	activityOptions := workflow.ActivityOptions{
+		ScheduleToStartTimeout: 1 * time.Minute,
+		StartToCloseTimeout:    1 * time.Minute,
+		WaitForCancellation:    true,
+		RetryPolicy: &cadence.RetryPolicy{
+			InitialInterval:          10 * time.Second,
+			ExpirationInterval:       10 * time.Minute,
+			MaximumAttempts:          100,
+			BackoffCoefficient:       1.1,
+			NonRetriableErrorReasons: []string{},
+		},
+	}
+
+	activityContext := CreateBucketRollbackActivityContext{
+		BucketID: workflowContext.BucketID,
+	}
+
+	rerr := workflow.ExecuteActivity(workflow.WithActivityOptions(ctx, activityOptions), CreateBucketRollbackActivityType, activityContext).Get(ctx, nil)
+	if rerr != nil {
+		logger.Error("object store bucket rollback failed", zap.Error(err))
+
+		return rerr
+	}
+
+	return err
 }

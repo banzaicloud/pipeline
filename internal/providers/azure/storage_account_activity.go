@@ -3,6 +3,7 @@ package azure
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/banzaicloud/pipeline/internal/platform/zaplog"
 	"go.uber.org/cadence/activity"
@@ -43,6 +44,8 @@ func (a *CreateStorageAccountActivity) Execute(ctx context.Context, activityCont
 	)
 
 	logger.Info("creating storage account")
+
+	time.Sleep(1 * time.Minute)
 
 	client, err := a.clientFactory.New(activityContext.OrganizationID, activityContext.SecretID)
 	if err != nil {

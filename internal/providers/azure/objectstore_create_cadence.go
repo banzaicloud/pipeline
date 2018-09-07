@@ -16,9 +16,6 @@ import (
 // CreateBucket creates an Azure Object Store Blob with the provided name
 // within a generated/provided ResourceGroup and StorageAccount
 func (s *ObjectStore) CreateBucket(bucketName string) error {
-	resourceGroup := s.getResourceGroup()
-	storageAccount := s.getStorageAccount()
-
 	logger := s.getLogger(bucketName)
 
 	bucket := &ObjectStoreBucketModel{}
@@ -29,6 +26,9 @@ func (s *ObjectStore) CreateBucket(bucketName string) error {
 			return errors.Wrap(err, "error happened during getting bucket from DB: %s")
 		}
 	}
+
+	resourceGroup := s.getResourceGroup()
+	storageAccount := s.getStorageAccount()
 
 	bucket.Organization = *s.org
 	bucket.ResourceGroup = resourceGroup
@@ -50,6 +50,7 @@ func (s *ObjectStore) CreateBucket(bucketName string) error {
 		ResourceGroup:  resourceGroup,
 		StorageAccount: storageAccount,
 		Bucket:         bucketName,
+		BucketID:       bucket.ID,
 	}
 
 	workflowOptions := client.StartWorkflowOptions{
