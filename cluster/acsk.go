@@ -5,14 +5,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"net/url"
 	"strings"
 	"time"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/auth/credentials"
-	aliErrors "github.com/aliyun/alibaba-cloud-sdk-go/sdk/errors"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/cs"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
@@ -207,7 +205,6 @@ func (c *ACSKCluster) CreateCluster() error {
 		return err
 	}
 	creationContext := action.NewACSKClusterCreationContext(
-		c.modelCluster.Name,
 		csClient,
 		ecsClient,
 		acsk.AlibabaClusterCreateParams{
@@ -241,7 +238,11 @@ func (c *ACSKCluster) CreateCluster() error {
 		errors.Wrap(err, "ACSK cluster create error")
 		return err
 	}
-	c.alibabaCluster = resp.(*acsk.AlibabaDescribeClusterResponse)
+	castedValue, ok := resp.(*acsk.AlibabaDescribeClusterResponse)
+	if !ok {
+		return errors.New("could not cast cluster create response")
+	}
+	c.alibabaCluster = castedValue
 	c.modelCluster.ACSK.ClusterID = resp.(*acsk.AlibabaDescribeClusterResponse).ClusterID
 
 	return c.modelCluster.Save()
@@ -492,29 +493,30 @@ func (c *ACSKCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) 
 func (c *ACSKCluster) DeleteCluster() error {
 	log.Info("Start deleting cluster (alibaba)")
 
-	client, err := c.GetAlibabaCSClient(nil)
+	csClient, err := c.GetAlibabaCSClient(nil)
 	if err != nil {
 		return err
 	}
 
-	req := cs.CreateDeleteClusterRequest()
-	req.ClusterId = c.modelCluster.ACSK.ClusterID
-
-	setEndpoint(req)
-	resp, err := client.DeleteCluster(req)
+	ecsClient, err := c.GetAlibabaECSClient(nil)
 	if err != nil {
-		if sdkErr, ok := err.(*aliErrors.ServerError); ok {
-			if strings.Contains(sdkErr.Message(), "ErrorClusterNotFound") {
-				// Cluster has been already deleted
-				return nil
-			}
-		}
-		log.Errorf("DeleteClusterResponse: %#v\n", resp.BaseResponse)
 		return err
 	}
 
-	if resp.GetHttpStatus() != http.StatusAccepted {
-		return fmt.Errorf("Unexpected http status code: %d", resp.GetHttpStatus())
+	deleteContext := action.NewACSKClusterDeletionContext(
+		csClient,
+		ecsClient,
+		c.modelCluster.ACSK.ClusterID)
+
+	actions := []utils.Action{
+		action.NewDeleteACSKClusterAction(c.log, deleteContext),
+		action.NewDeleteSSHKeyAction(c.log, deleteContext, c.modelCluster.Name, c.modelCluster.ACSK.RegionID),
+	}
+
+	_, err = utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, true)
+	if err != nil {
+		errors.Wrap(err, "ACSK cluster delete error")
+		return err
 	}
 
 	return nil
