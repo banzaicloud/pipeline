@@ -3556,7 +3556,7 @@ components:
           example: 2
         image:
           type: string
-          example: "ami-06d1667f"
+          example: "https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-ami.html"
 
     CreateEKSProperties:
       type: object
@@ -3576,7 +3576,7 @@ components:
                   example: "m4.xlarge"
                 image:
                   type: string
-                  example: "ami-06d1667f"
+                  example: https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-ami.html
             nodePools:
               type: object
               additionalProperties:
