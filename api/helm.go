@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/helm"
 	pkgCommmon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
@@ -47,7 +48,11 @@ func GetK8sConfig(c *gin.Context) ([]byte, bool) {
 
 // CreateDeployment creates a Helm deployment
 func CreateDeployment(c *gin.Context) {
-	parsedRequest, err := parseCreateUpdateDeploymentRequest(c)
+	commonCluster, ok := getClusterFromRequest(c)
+	if ok != true {
+		return
+	}
+	parsedRequest, err := parseCreateUpdateDeploymentRequest(c, commonCluster)
 	if err != nil {
 		log.Error(err.Error())
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
@@ -344,7 +349,11 @@ func GetTillerStatus(c *gin.Context) {
 func UpgradeDeployment(c *gin.Context) {
 	name := c.Param("name")
 	log.Infof("Upgrading deployment: %s", name)
-	parsedRequest, err := parseCreateUpdateDeploymentRequest(c)
+	commonCluster, ok := getClusterFromRequest(c)
+	if ok != true {
+		return
+	}
+	parsedRequest, err := parseCreateUpdateDeploymentRequest(c, commonCluster)
 	if err != nil {
 		log.Error(err.Error())
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
@@ -418,13 +427,8 @@ type parsedDeploymentRequest struct {
 	organizationName      string
 }
 
-func parseCreateUpdateDeploymentRequest(c *gin.Context) (*parsedDeploymentRequest, error) {
+func parseCreateUpdateDeploymentRequest(c *gin.Context, commonCluster cluster.CommonCluster) (*parsedDeploymentRequest, error) {
 	pdr := new(parsedDeploymentRequest)
-
-	commonCluster, ok := getClusterFromRequest(c)
-	if ok != true {
-		return nil, errors.New("Get cluster failed!")
-	}
 
 	organization, err := auth.GetOrganizationById(commonCluster.GetOrganizationId())
 	if err != nil {
