@@ -56,3 +56,10 @@ type outputItem struct {
 	OutputKey   string
 	OutputValue interface{}
 }
+
+type AlibabaScaleClusterParams struct {
+	DisableRollback    bool   `json:"disable_rollback,omitempty"` // Whether the failure is rolled back, true means that the failure does not roll back, and false fails to roll back. If you choose to fail back, it will release the resources produced during the creation process. It is not recommended to use false.
+	TimeoutMins        int    `json:"timeout_mins,omitempty"`     // Cluster resource stack creation timeout in minutes, default value 60.
+	WorkerInstanceType string `json:"worker_instance_type"`       // Worker node ECS specification type code.
+	NumOfNodes         int    `json:"num_of_nodes"`               // Worker node number. The range is [0,300].
+}
