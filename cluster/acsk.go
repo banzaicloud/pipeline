@@ -14,6 +14,7 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/cs"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
+	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/acsk"
@@ -27,20 +28,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
+	"k8s.io/client-go/kubernetes"
 )
-
-type alibabaClusterCreateResponse struct {
-	ClusterID string `json:"cluster_id"`
-	RequestID string `json:"request_id"`
-	TaskID    string `json:"task_id"`
-}
-
-type alibabaScaleClusterParams struct {
-	DisableRollback    bool   `json:"disable_rollback,omitempty"` // Whether the failure is rolled back, true means that the failure does not roll back, and false fails to roll back. If you choose to fail back, it will release the resources produced during the creation process. It is not recommended to use false.
-	TimeoutMins        int    `json:"timeout_mins,omitempty"`     // Cluster resource stack creation timeout in minutes, default value 60.
-	WorkerInstanceType string `json:"worker_instance_type"`       // Worker node ECS specification type code.
-	NumOfNodes         int    `json:"num_of_nodes"`               // Worker node number. The range is [0,300].
-}
 
 var _ CommonCluster = (*ACSKCluster)(nil)
 
@@ -228,6 +217,7 @@ func (c *ACSKCluster) CreateCluster() error {
 	if err != nil {
 		return err
 	}
+
 	actions := []utils.Action{
 		action.NewUploadSSHKeyAction(c.log, creationContext, clusterSshSecret),
 		action.NewCreateACSKClusterAction(c.log, creationContext),
@@ -245,27 +235,28 @@ func (c *ACSKCluster) CreateCluster() error {
 	c.alibabaCluster = castedValue
 	c.modelCluster.ACSK.ClusterID = resp.(*acsk.AlibabaDescribeClusterResponse).ClusterID
 
+	kubeConfig, err := c.DownloadK8sConfig()
+	if err != nil {
+		return err
+	}
+
+	restKubeConfig, err := helm.GetK8sClientConfig(kubeConfig)
+	if err != nil {
+		return err
+	}
+
+	kubeClient, err := kubernetes.NewForConfig(restKubeConfig)
+	if err != nil {
+		return err
+	}
+
+	// create default storage class
+	err = createDefaultStorageClass(kubeClient, "alicloud/disk")
+	if err != nil {
+		return err
+	}
+
 	return c.modelCluster.Save()
-}
-
-func (c *ACSKCluster) uploadSSHKeyForCluster(key *secret.SSHKeyPair) (name string, err error) {
-	ecsClient, err := c.GetAlibabaECSClient(nil)
-	if err != nil {
-		return "", errors.Wrap(err, "could not upload ssh key")
-	}
-	//CreateImportKeyPairRequest request for Alibaba
-	req := ecs.CreateImportKeyPairRequest()
-
-	req.SetScheme(requests.HTTPS)
-	req.KeyPairName = c.modelCluster.Name
-	req.PublicKeyBody = strings.TrimSpace(key.PublicKeyData)
-	req.RegionId = c.modelCluster.ACSK.RegionID
-
-	resp, err := ecsClient.ImportKeyPair(req)
-	if err != nil {
-		return "", errors.Wrap(err, "could not upload ssh key")
-	}
-	return resp.KeyPairName, nil
 }
 
 type setSchemeSetDomainer interface {
@@ -276,16 +267,6 @@ type setSchemeSetDomainer interface {
 func setEndpoint(req setSchemeSetDomainer) {
 	req.SetScheme(requests.HTTPS)
 	req.SetDomain("cs.aliyuncs.com")
-}
-
-type setContentSetContentTyper interface {
-	SetContent([]byte)
-	SetContentType(string)
-}
-
-func setJSONContent(req setContentSetContentTyper, p []byte) {
-	req.SetContent(p)
-	req.SetContentType("application/json")
 }
 
 func getClusterDetails(client *cs.Client, clusterID string) (r *acsk.AlibabaDescribeClusterResponse, err error) {
@@ -347,45 +328,6 @@ func getConnectionInfo(client *cs.Client, clusterID string) (inf alibabaConnecti
 	}
 
 	return
-}
-
-// waitForClusterState docs: https://www.alibabacloud.com/help/doc-detail/26005.htm
-func waitForClusterState(client *cs.Client, clusterID string, numNodes int) (*acsk.AlibabaDescribeClusterResponse, error) {
-	var (
-		r     *acsk.AlibabaDescribeClusterResponse
-		state string
-		err   error
-	)
-	for {
-		r, err = getClusterDetails(client, clusterID)
-		if err != nil {
-			return nil, err
-		}
-
-		if r.State != state {
-			log.Infof("%s cluster %s", r.State, clusterID)
-			state = r.State
-		}
-
-		switch r.State {
-		case acsk.AlibabaClusterStateRunning:
-			for _, v := range r.Outputs {
-				if v.OutputKey == "NodeInstanceIDs" {
-					res, ok := v.OutputValue.([]interface{})
-					if !ok {
-						return nil, errors.New("cluster creation failed, internal server error")
-					}
-					if len(res) == numNodes {
-						return r, nil
-					}
-				}
-			}
-		case acsk.AlibabaClusterStateFailed:
-			return nil, errors.New("The cluster creation failed")
-		default:
-			time.Sleep(time.Second * 5)
-		}
-	}
 }
 
 func (c *ACSKCluster) Persist(status, statusMessage string) error {
@@ -523,55 +465,44 @@ func (c *ACSKCluster) DeleteCluster() error {
 }
 
 func (c *ACSKCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, userId uint) error {
-	log.Info("Start updating cluster (alibaba)")
+	log.Info("Start updating cluster (Alibaba)")
 
-	client, err := c.GetAlibabaCSClient(nil)
+	csClient, err := c.GetAlibabaCSClient(nil)
 	if err != nil {
 		return err
 	}
 
-	req := cs.CreateScaleClusterRequest()
-	req.ClusterId = c.modelCluster.ACSK.ClusterID
+	ecsClient, err := c.GetAlibabaECSClient(nil)
+	if err != nil {
+		return err
+	}
 
 	nodePoolModels, err := c.createACSKNodePoolsModelFromUpdateRequestData(request.ACSK.NodePools, userId)
 	if err != nil {
 		return err
 	}
-	params := alibabaScaleClusterParams{
-		DisableRollback:    true,
-		TimeoutMins:        60,
-		WorkerInstanceType: nodePoolModels[0].InstanceType,
-		NumOfNodes:         nodePoolModels[0].Count,
+
+	context := action.NewACSKClusterContext(csClient, ecsClient, c.modelCluster.ACSK.ClusterID)
+
+	actions := []utils.Action{
+		action.NewUpdateACSKClusterAction(c.log, nodePoolModels, context),
 	}
 
-	p, err := json.Marshal(&params)
+	resp, err := utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, true)
 	if err != nil {
+		errors.Wrap(err, "ACSK cluster create error")
 		return err
 	}
 
-	setEndpoint(req)
-	setJSONContent(req, p)
-
-	resp, err := client.ScaleCluster(req)
-	if err != nil {
-		return err
-	}
-
-	var r alibabaClusterCreateResponse
-	err = json.Unmarshal(resp.GetHttpContentBytes(), &r)
-	if err != nil {
-		return err
-	}
-
-	cluster, err := waitForClusterState(client, r.ClusterID, nodePoolModels[0].Count)
-	if err != nil {
-		return err
+	castedValue, ok := resp.(*acsk.AlibabaDescribeClusterResponse)
+	if !ok {
+		return errors.New("could not cast cluster create response")
 	}
 
 	updatedNodePools := make([]*model.ACSKNodePoolModel, 0, 1)
 	updatedNodePools = append(updatedNodePools, nodePoolModels[0])
 	c.modelCluster.ACSK.NodePools = updatedNodePools
-	c.alibabaCluster = cluster
+	c.alibabaCluster = castedValue
 
 	return nil
 }

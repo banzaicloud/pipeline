@@ -11,6 +11,7 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/cs"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
+	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/pkg/cluster/acsk"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/pkg/errors"
@@ -22,6 +23,15 @@ type ACSKClusterContext struct {
 	ClusterID string
 	CSClient  *cs.Client
 	ECSClient *ecs.Client
+}
+
+func NewACSKClusterContext(csClient *cs.Client,
+	ecsClient *ecs.Client, clusterID string) *ACSKClusterContext {
+	return &ACSKClusterContext{
+		CSClient:  csClient,
+		ECSClient: ecsClient,
+		ClusterID: clusterID,
+	}
 }
 
 type ACSKClusterCreateUpdateContext struct {
@@ -167,7 +177,7 @@ func (a *CreateACSKClusterAction) ExecuteAction(input interface{}) (output inter
 
 	// wait for cluster created
 	a.log.Info("Waiting for cluster...")
-	cluster, err := a.waitUntilClusterCreateComplete(r.ClusterID)
+	cluster, err := waitUntilClusterCreateComplete(a.log, r.ClusterID, csClient)
 	if err != nil {
 		return nil, err
 	}
@@ -206,20 +216,20 @@ func deleteCluster(clusterID string, csClient *cs.Client) error {
 	return nil
 }
 
-func (a *CreateACSKClusterAction) waitUntilClusterCreateComplete(clusterID string) (*acsk.AlibabaDescribeClusterResponse, error) {
+func waitUntilClusterCreateComplete(log logrus.FieldLogger, clusterID string, csClient *cs.Client) (*acsk.AlibabaDescribeClusterResponse, error) {
 	var (
 		r     *acsk.AlibabaDescribeClusterResponse
 		state string
 		err   error
 	)
 	for {
-		r, err = a.getClusterDetails(clusterID)
+		r, err = getClusterDetails(clusterID, csClient)
 		if err != nil {
 			return r, err
 		}
 
 		if r.State != state {
-			a.log.Infof("%s cluster %s", r.State, clusterID)
+			log.Infof("%s cluster %s", r.State, clusterID)
 			state = r.State
 		}
 
@@ -233,9 +243,7 @@ func (a *CreateACSKClusterAction) waitUntilClusterCreateComplete(clusterID strin
 		}
 	}
 }
-func (a *CreateACSKClusterAction) getClusterDetails(clusterID string) (r *acsk.AlibabaDescribeClusterResponse, err error) {
-
-	csClient := a.context.CSClient
+func getClusterDetails(clusterID string, csClient *cs.Client) (r *acsk.AlibabaDescribeClusterResponse, err error) {
 
 	req := cs.CreateDescribeClusterDetailRequest()
 	req.SetScheme(requests.HTTPS)
@@ -315,4 +323,72 @@ func (a *DeleteSSHKeyAction) ExecuteAction(input interface{}) (interface{}, erro
 	req.RegionId = a.sshKeyRegionID
 
 	return ecsClient.DeleteKeyPairs(req)
+}
+
+type UpdateACSKClusterAction struct {
+	log       logrus.FieldLogger
+	nodePools []*model.ACSKNodePoolModel
+	context   *ACSKClusterContext
+}
+
+// NewUpdateACSKClusterAction creates a new UpdateACSKClusterAction
+func NewUpdateACSKClusterAction(log logrus.FieldLogger, nodepools []*model.ACSKNodePoolModel, clusterContext *ACSKClusterContext) *UpdateACSKClusterAction {
+	return &UpdateACSKClusterAction{
+		log:       log,
+		nodePools: nodepools,
+		context:   clusterContext,
+	}
+}
+
+// GetName returns the name of this UpdateACSKClusterAction
+func (a *UpdateACSKClusterAction) GetName() string {
+	return "UpdateACSKClusterAction"
+}
+
+// ExecuteAction executes this UpdateACSKClusterAction
+func (a *UpdateACSKClusterAction) ExecuteAction(input interface{}) (interface{}, error) {
+	a.log.Infof("EXECUTE UpdateACSKClusterAction on cluster, %s", a.context.ClusterID)
+	csClient := a.context.CSClient
+
+	//setup cluster update request
+	params := acsk.AlibabaScaleClusterParams{
+		DisableRollback:    true,
+		TimeoutMins:        60,
+		WorkerInstanceType: a.nodePools[0].InstanceType,
+		NumOfNodes:         a.nodePools[0].Count,
+	}
+	p, err := json.Marshal(&params)
+	if err != nil {
+		return nil, err
+	}
+
+	req := cs.CreateScaleClusterRequest()
+	req.ClusterId = a.context.ClusterID
+	req.SetScheme(requests.HTTPS)
+	req.SetDomain("cs.aliyuncs.com")
+	req.SetContent(p)
+	req.SetContentType("application/json")
+
+	//do a cluster scale
+	resp, err := csClient.ScaleCluster(req)
+	if err != nil {
+		a.log.Errorf("ScaleCluster error %s", err)
+		return nil, err
+	}
+
+	// parse response
+	var r acsk.AlibabaClusterCreateResponse
+	err = json.Unmarshal(resp.GetHttpContentBytes(), &r)
+	if err != nil {
+		return nil, err
+	}
+
+	a.context.ClusterID = r.ClusterID
+
+	cluster, err := waitUntilClusterCreateComplete(a.log, r.ClusterID, csClient)
+	if err != nil {
+		return nil, err
+	}
+
+	return cluster, nil
 }
