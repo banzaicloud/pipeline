@@ -64,6 +64,33 @@ paths:
       summary: List spotguides
       tags:
       - spotguides
+    post:
+      description: Launch a spotguide
+      operationId: LaunchSpotguide
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LaunchSpotguidesRequest'
+        required: true
+      responses:
+        202:
+          description: Spotguide launch response
+      security:
+      - bearerAuth: []
+      summary: Launch spotguide
+      tags:
+      - spotguides
     put:
       operationId: UpdateSpotguides
       parameters:
@@ -3606,6 +3633,64 @@ components:
           $ref: '#/components/schemas/SpotguideDetailsResponse_spotguide'
         questions:
           properties: {}
+          type: object
+      type: object
+    LaunchSpotguidesRequest:
+      example:
+        repoName: spotguide-nodejs-mongodb-test
+        values: '{}'
+        repoOrganization: banzaicloud
+        spotguideName: banzaicloud/spotguide-nodejs-mongodb
+        secrets:
+        - values:
+            type: string
+            project_id: string
+            private_key_id: string
+            private_key: string
+            client_email: string
+            client_id: string
+            auth_uri: string
+            token_uri: string
+            auth_provider_x509_cert_url: string
+            client_x509_cert_url: string
+          name: My google secret
+          type: google
+          version: 1
+          tags:
+          - repo:pipeline
+          - tag2
+        - values:
+            type: string
+            project_id: string
+            private_key_id: string
+            private_key: string
+            client_email: string
+            client_id: string
+            auth_uri: string
+            token_uri: string
+            auth_provider_x509_cert_url: string
+            client_x509_cert_url: string
+          name: My google secret
+          type: google
+          version: 1
+          tags:
+          - repo:pipeline
+          - tag2
+      properties:
+        repoOrganization:
+          example: banzaicloud
+          type: string
+        repoName:
+          example: spotguide-nodejs-mongodb-test
+          type: string
+        spotguideName:
+          example: banzaicloud/spotguide-nodejs-mongodb
+          type: string
+        secrets:
+          items:
+            $ref: '#/components/schemas/CreateSecretRequest'
+          type: array
+        values:
           type: object
       type: object
     SpotguideOptionsMysqlDatabaseName:
