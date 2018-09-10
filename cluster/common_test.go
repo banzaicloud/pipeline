@@ -426,7 +426,7 @@ var (
 		Cloud:    pkgCluster.Kubernetes,
 		SecretId: clusterRequestSecretId,
 		Properties: &pkgCluster.CreateClusterProperties{
-			CreateKubernetes: &kubernetes.CreateKubernetes{
+			CreateClusterKubernetes: &kubernetes.CreateClusterKubernetes{
 				Metadata: map[string]string{
 					clusterKubeMetaKey: clusterKubeMetaValue,
 				},
@@ -440,7 +440,7 @@ var (
 		Cloud:    pkgCluster.Kubernetes,
 		SecretId: clusterRequestSecretId,
 		Properties: &pkgCluster.CreateClusterProperties{
-			CreateKubernetes: &kubernetes.CreateKubernetes{
+			CreateClusterKubernetes: &kubernetes.CreateClusterKubernetes{
 				Metadata: map[string]string{
 					clusterKubeMetaKey: clusterKubeMetaValue,
 				},
