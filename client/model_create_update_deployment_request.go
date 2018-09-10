@@ -20,5 +20,5 @@ type CreateUpdateDeploymentRequest struct {
 	ReleaseName string `json:"releaseName,omitempty"`
 	ReuseValues bool   `json:"reuseValues,omitempty"`
 	// current values of the deployment
-	Values map[string]map[string]interface{} `json:"values,omitempty"`
+	Values map[string]interface{} `json:"values,omitempty"`
 }

@@ -4587,7 +4587,6 @@ components:
           example: true
           type: boolean
         values:
-          additionalProperties: true
           description: current values of the deployment
           example:
             ingress:
