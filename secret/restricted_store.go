@@ -18,7 +18,7 @@ func (s *restrictedSecretStore) List(orgid uint, query *secretTypes.ListSecretsQ
 		return nil, err
 	}
 
-	var newResponseItems []*SecretItemResponse
+	newResponseItems := []*SecretItemResponse{}
 
 	for _, item := range responseItems {
 		if HasForbiddenTag(item.Tags) == nil {
