@@ -25,6 +25,7 @@ type ACSKClusterContext struct {
 	ECSClient *ecs.Client
 }
 
+// NewACSKClusterContext creates a new ACSKClusterContext
 func NewACSKClusterContext(csClient *cs.Client,
 	ecsClient *ecs.Client, clusterID string) *ACSKClusterContext {
 	return &ACSKClusterContext{
@@ -34,14 +35,16 @@ func NewACSKClusterContext(csClient *cs.Client,
 	}
 }
 
-type ACSKClusterCreateUpdateContext struct {
+// ACSKClusterCreateContext describes the fields used across ACSK cluster create operation
+type ACSKClusterCreateContext struct {
 	ACSKClusterContext
 	acsk.AlibabaClusterCreateParams
 }
 
+// NewACSKClusterCreationContext creates a new ACSKClusterCreateContext
 func NewACSKClusterCreationContext(csClient *cs.Client,
-	ecsClient *ecs.Client, clusterCreateParams acsk.AlibabaClusterCreateParams) *ACSKClusterCreateUpdateContext {
-	return &ACSKClusterCreateUpdateContext{
+	ecsClient *ecs.Client, clusterCreateParams acsk.AlibabaClusterCreateParams) *ACSKClusterCreateContext {
+	return &ACSKClusterCreateContext{
 		ACSKClusterContext: ACSKClusterContext{
 			CSClient:  csClient,
 			ECSClient: ecsClient,
@@ -50,14 +53,16 @@ func NewACSKClusterCreationContext(csClient *cs.Client,
 	}
 }
 
+// ACSKClusterDeleteContext describes the fields used across ACSK cluster delete operation
 type ACSKClusterDeleteContext struct {
 	ACSKClusterContext
 }
 
+// NewACSKClusterDeletionContext creates a new ACSKClusterDeleteContext
 func NewACSKClusterDeletionContext(csClient *cs.Client,
 	ecsClient *ecs.Client, clusterID string) *ACSKClusterDeleteContext {
 	return &ACSKClusterDeleteContext{
-		ACSKClusterContext{
+		ACSKClusterContext: ACSKClusterContext{
 			CSClient:  csClient,
 			ECSClient: ecsClient,
 			ClusterID: clusterID,
@@ -67,13 +72,13 @@ func NewACSKClusterDeletionContext(csClient *cs.Client,
 
 // UploadSSHKeyAction describes how to upload an SSH key
 type UploadSSHKeyAction struct {
-	context   *ACSKClusterCreateUpdateContext
+	context   *ACSKClusterCreateContext
 	sshSecret *secret.SecretItemResponse
 	log       logrus.FieldLogger
 }
 
 // NewUploadSSHKeyAction creates a new UploadSSHKeyAction
-func NewUploadSSHKeyAction(log logrus.FieldLogger, context *ACSKClusterCreateUpdateContext, sshSecret *secret.SecretItemResponse) *UploadSSHKeyAction {
+func NewUploadSSHKeyAction(log logrus.FieldLogger, context *ACSKClusterCreateContext, sshSecret *secret.SecretItemResponse) *UploadSSHKeyAction {
 	return &UploadSSHKeyAction{
 		context:   context,
 		sshSecret: sshSecret,
@@ -117,12 +122,12 @@ func (a *UploadSSHKeyAction) UndoAction() (err error) {
 
 // CreateACSKClusterAction describes the properties of an Alibaba cluster creation
 type CreateACSKClusterAction struct {
-	context *ACSKClusterCreateUpdateContext
+	context *ACSKClusterCreateContext
 	log     logrus.FieldLogger
 }
 
 // NewCreateACSKClusterAction creates a new CreateACSKClusterAction
-func NewCreateACSKClusterAction(log logrus.FieldLogger, creationContext *ACSKClusterCreateUpdateContext) *CreateACSKClusterAction {
+func NewCreateACSKClusterAction(log logrus.FieldLogger, creationContext *ACSKClusterCreateContext) *CreateACSKClusterAction {
 	return &CreateACSKClusterAction{
 		context: creationContext,
 		log:     log,
@@ -185,6 +190,7 @@ func (a *CreateACSKClusterAction) ExecuteAction(input interface{}) (output inter
 	return cluster, nil
 }
 
+// UndoAction rolls back this CreateACSKClusterAction
 func (a *CreateACSKClusterAction) UndoAction() (err error) {
 	a.log.Info("EXECUTE UNDO CreateACSKClusterAction")
 
@@ -206,7 +212,7 @@ func deleteCluster(clusterID string, csClient *cs.Client) error {
 				return nil
 			}
 		}
-		return errors.WithMessage(err, fmt.Sprint("DeleteClusterResponse: %#v\n", resp.BaseResponse))
+		return errors.WithMessage(err, fmt.Sprintf("DeleteClusterResponse: %#v \n", resp.BaseResponse))
 	}
 
 	if resp.GetHttpStatus() != http.StatusAccepted {
@@ -325,6 +331,7 @@ func (a *DeleteSSHKeyAction) ExecuteAction(input interface{}) (interface{}, erro
 	return ecsClient.DeleteKeyPairs(req)
 }
 
+// UpdateACSKClusterAction describes the fields used across ACSK cluster update operation
 type UpdateACSKClusterAction struct {
 	log       logrus.FieldLogger
 	nodePools []*model.ACSKNodePoolModel
