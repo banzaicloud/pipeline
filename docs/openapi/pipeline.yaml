@@ -64,6 +64,31 @@ paths:
               schema:
                 $ref: '#/components/schemas/ListSpotguidesResponse'
 
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - spotguides
+      summary: Launch spotguide
+      description: Launch a spotguide
+      operationId: LaunchSpotguide
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LaunchSpotguidesRequest'
+      responses:
+        '202':
+          description: Spotguide launch response
+
     put:
       security:
         - bearerAuth: []
@@ -3335,6 +3360,25 @@ components:
         questions:
           type: object
           properties: {}
+
+    LaunchSpotguidesRequest:
+      type: object
+      properties:
+        repoOrganization:
+          type: string
+          example: "banzaicloud"
+        repoName:
+          type: string
+          example: "spotguide-nodejs-mongodb-test"
+        spotguideName:
+          type: string
+          example: "banzaicloud/spotguide-nodejs-mongodb"
+        secrets:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreateSecretRequest'
+        values:
+          type: object
 
     SpotguideOptionsMysqlDatabaseName:
       type: object
