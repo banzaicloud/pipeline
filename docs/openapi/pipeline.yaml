@@ -4312,7 +4312,6 @@ components:
           example: "true"
         values:
           type: object
-          additionalProperties: true
           description: current values of the deployment
           example: { "ingress": { "enabled": "true" } }
 
