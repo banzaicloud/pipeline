@@ -71,6 +71,7 @@ ec2-list-instances: ## Lists aws ec2 instances, for alternative regions use: AWS
 generate-client:
 	docker run --rm -v ${PWD}:/local openapitools/openapi-generator-cli generate \
 	--additional-properties packageName=client \
+	--additional-properties withGoCodegenComment=true \
 	-i /local/docs/openapi/pipeline.yaml \
 	-g go \
 	-o /local/client
