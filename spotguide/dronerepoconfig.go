@@ -91,6 +91,13 @@ type droneContainer struct {
 	Repo          *string                    `json:"repo,omitempty"`
 	Tags          *string                    `json:"tags,dockerfile,omitempty"`
 	Log           *string                    `json:"log,omitempty"`
+	droneDeploymentContainer
+}
+
+type droneDeploymentContainer struct {
+	DeploymentName        string                 `json:"deployment_name,omitempty"`
+	DeploymentReleaseName string                 `json:"deployment_release_name,omitempty"`
+	DeploymentValues      map[string]interface{} `json:"deployment_values,omitempty"`
 }
 
 // nolint

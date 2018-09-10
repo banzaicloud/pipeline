@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -25,6 +26,7 @@ const SpotguideGithubTopic = "spotguide"
 const SpotguideGithubOrganization = "banzaicloud"
 const SpotguideYAMLPath = ".banzaicloud/spotguide.yaml"
 const PipelineYAMLPath = ".banzaicloud/pipeline.yaml"
+const DeployApplicationStep = "deploy_application"
 
 var ctx = context.Background()
 
@@ -73,11 +75,7 @@ type LaunchRequest struct {
 	RepoOrganization string                       `json:"repoOrganization"`
 	RepoName         string                       `json:"repoName"`
 	Secrets          []secret.CreateSecretRequest `json:"secrets"`
-}
-
-type Secret struct {
-	Type   string            `json:"type"`
-	Values map[string]string `json:"values"`
+	Values           map[string]interface{}       `json:"values"` // Values passed to the Helm deployment in the 'deploy_application' step
 }
 
 func (r LaunchRequest) RepoFullname() string {
@@ -290,8 +288,8 @@ func getSpotguideContent(githubClient *github.Client, request *LaunchRequest, so
 
 		path := strings.SplitN(zf.Name, "/", 2)[1]
 
-		// TODO We don't want to prepare yet, use the same pipeline.yml
-		if path == PipelineYAMLPath+"disabled" {
+		// We don't want to prepare yet, use the same pipeline.yml
+		if path == PipelineYAMLPath {
 			content, err = preparePipelineYAML(request, sourceRepo, content)
 			if err != nil {
 				return nil, errors.Wrap(err, "failed to prepare pipeline.yaml")
@@ -442,6 +440,11 @@ func createDroneRepoConfig(initConfig []byte, request *LaunchRequest) (*droneRep
 		return nil, err
 	}
 
+	// Configure values
+	if err := droneRepoConfigValues(request, repoConfig); err != nil {
+		return nil, err
+	}
+
 	return repoConfig, nil
 }
 
@@ -457,5 +460,25 @@ func droneRepoConfigSecrets(request *LaunchRequest, repoConfig *droneRepoConfig)
 		}
 	}
 
+	return nil
+}
+
+func droneRepoConfigValues(request *LaunchRequest, repoConfig *droneRepoConfig) error {
+	// Find DeployApplicationStep step and transform it
+	if deployStep, ok := repoConfig.Pipeline[DeployApplicationStep]; ok {
+
+		// Merge the values from the request into the existing values
+		values, err := json.Marshal(request.Values)
+		if err != nil {
+			return err
+		}
+
+		err = json.Unmarshal(values, &deployStep.DeploymentValues)
+		if err != nil {
+			return err
+		}
+	} else {
+		log.Info("deploy_application not present in pipeline.yaml, skipping transformation")
+	}
 	return nil
 }
