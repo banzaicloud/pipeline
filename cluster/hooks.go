@@ -218,7 +218,7 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 		if err != nil {
 			return errors.Errorf("failed generate TLS secrets to logging operator: %s", err)
 		}
-		_, err = InstallOrUpdateSecrets(cluster,
+		_, err = InstallSecrets(cluster,
 			&pkgSecret.ListSecretsQuery{
 				Type: pkgSecret.TLSSecretType,
 				Tags: []string{
@@ -312,7 +312,7 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 			return errors.Errorf("failed generate Generic secrets to logging operator: %s", err)
 		}
 
-		_, err = InstallOrUpdateSecrets(cluster,
+		_, err = InstallSecrets(cluster,
 			&pkgSecret.ListSecretsQuery{
 				Type: pkgSecret.GenericSecret,
 				Tags: []string{
@@ -828,7 +828,7 @@ func RegisterDomainPostHook(input interface{}) error {
 		log.Infof("Domain '%s' already registered", domain)
 	}
 
-	secretSources, err := InstallOrUpdateSecrets(
+	secretSources, err := InstallSecrets(
 		commonCluster,
 		&pkgSecret.ListSecretsQuery{
 			Type: pkgCluster.Amazon,
