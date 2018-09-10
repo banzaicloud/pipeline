@@ -719,6 +719,12 @@ paths:
           description: Selected cluster identification (number)
           schema:
             type: integer
+        - name: releaseName
+          in: query
+          required: false
+          description: Selected deployment release name
+          schema:
+            type: string
       responses:
         '200':
           description: "Endpoints listed"
@@ -861,6 +867,67 @@ paths:
               $ref: '#/components/schemas/HelmInitRequest'
 
   '/api/v1/orgs/{orgId}/clusters/{id}/secrets':
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - clusters
+      summary: List secrets which belongs to cluster
+      operationId: ListClusterSecrets
+      description: List secrets which belongs to cluster
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: id
+          in: path
+          required: true
+          description: Selected cluster identification (number)
+          schema:
+            type: integer
+        - name: releaseName
+          in: query
+          required: false
+          description: Selected deployment release name
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "Secrets listed"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SecretItem'
+
+        '400':
+          description: "Error during listing secrets"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '404':
+          description: "Cluster not found"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
     post:
       security:
         - bearerAuth: []
@@ -2132,13 +2199,15 @@ paths:
           schema:
             type: string
             enum: [amazon, azure, google, kubernetes, generic, tls, ssh]
-        - name: tag
+        - name: tags
           in: query
           required: false
           description: The selected tag to filter with
           schema:
-            type: string
-            example: "repo:pipeline"
+            type: array
+            items:
+              type: string
+            example: [ "release:pipeline-monitoring" ]
         - name: values
           in: query
           required: false

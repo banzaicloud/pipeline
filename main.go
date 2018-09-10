@@ -206,6 +206,7 @@ func main() {
 			orgs.GET("/:orgid/clusters/:id/apiendpoint", api.GetApiEndpoint)
 			orgs.GET("/:orgid/clusters/:id/nodes", api.GetClusterNodes)
 			orgs.GET("/:orgid/clusters/:id/endpoints", api.ListEndpoints)
+			orgs.GET("/:orgid/clusters/:id/secrets", api.ListClusterSecrets)
 			orgs.GET("/:orgid/clusters/:id/deployments", api.ListDeployments)
 			orgs.POST("/:orgid/clusters/:id/deployments", api.CreateDeployment)
 			orgs.GET("/:orgid/clusters/:id/deployments/:name", api.GetDeployment)

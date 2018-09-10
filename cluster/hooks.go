@@ -173,7 +173,7 @@ func InstallMonitoring(input interface{}) error {
 
 // InstallLogging to install logging deployment
 func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
-	const loggingOperator = "logging-operator"
+	const releaseTag = "release:pipeline-logging"
 	cluster, ok := input.(CommonCluster)
 	if !ok {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
@@ -206,9 +206,9 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 			Name: loggingParam.GenTLSForLogging.GenTLSSecretName,
 			Type: pkgSecret.TLSSecretType,
 			Tags: []string{
-				loggingOperator,
 				clusterUidTag,
 				pkgSecret.TagBanzaiReadonly,
+				releaseTag,
 			},
 			Values: map[string]string{
 				pkgSecret.TLSHosts: loggingParam.GenTLSForLogging.TLSHost,
@@ -221,7 +221,10 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 		_, err = InstallOrUpdateSecrets(cluster,
 			&pkgSecret.ListSecretsQuery{
 				Type: pkgSecret.TLSSecretType,
-				Tag:  loggingOperator,
+				Tags: []string{
+					clusterUidTag,
+					releaseTag,
+				},
 			}, loggingParam.GenTLSForLogging.Namespace)
 		if err != nil {
 			return errors.Errorf("could not install created TLS secret to cluster: %s", err)
@@ -296,9 +299,9 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 			Name: genericSecretName,
 			Type: pkgSecret.GenericSecret,
 			Tags: []string{
-				loggingOperator,
 				clusterUidTag,
 				pkgSecret.TagBanzaiReadonly,
+				releaseTag,
 			},
 			Values: map[string]string{
 				"storageAccountName": loggingParam.StorageAccount,
@@ -312,7 +315,10 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 		_, err = InstallOrUpdateSecrets(cluster,
 			&pkgSecret.ListSecretsQuery{
 				Type: pkgSecret.GenericSecret,
-				Tag:  loggingOperator,
+				Tags: []string{
+					clusterUidTag,
+					releaseTag,
+				},
 			}, namespace)
 		if err != nil {
 			return errors.Errorf("could not install created Generic secret to cluster: %s", err)
@@ -826,7 +832,7 @@ func RegisterDomainPostHook(input interface{}) error {
 		commonCluster,
 		&pkgSecret.ListSecretsQuery{
 			Type: pkgCluster.Amazon,
-			Tag:  pkgSecret.TagBanzaiHidden,
+			Tags: []string{pkgSecret.TagBanzaiHidden},
 		},
 		route53SecretNamespace,
 	)

@@ -595,14 +595,14 @@ Listing secrets
  * @param orgId Organization identification
  * @param optional nil or *GetSecretsOpts - Optional Parameters:
  * @param "Type_" (optional.String) -  Secret's type to filter with
- * @param "Tag" (optional.String) -  The selected tag to filter with
+ * @param "Tags" (optional.Interface of []string) -  The selected tag to filter with
  * @param "Values" (optional.Bool) -  Marks if to present secret values or just the keys
 @return []SecretItem
 */
 
 type GetSecretsOpts struct {
 	Type_  optional.String
-	Tag    optional.String
+	Tags   optional.Interface
 	Values optional.Bool
 }
 
@@ -627,8 +627,8 @@ func (a *SecretsApiService) GetSecrets(ctx context.Context, orgId int32, localVa
 	if localVarOptionals != nil && localVarOptionals.Type_.IsSet() {
 		localVarQueryParams.Add("type", parameterToString(localVarOptionals.Type_.Value(), ""))
 	}
-	if localVarOptionals != nil && localVarOptionals.Tag.IsSet() {
-		localVarQueryParams.Add("tag", parameterToString(localVarOptionals.Tag.Value(), ""))
+	if localVarOptionals != nil && localVarOptionals.Tags.IsSet() {
+		localVarQueryParams.Add("tags", parameterToString(localVarOptionals.Tags.Value(), "multi"))
 	}
 	if localVarOptionals != nil && localVarOptionals.Values.IsSet() {
 		localVarQueryParams.Add("values", parameterToString(localVarOptionals.Values.Value(), ""))
