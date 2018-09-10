@@ -12,6 +12,6 @@
 package client
 
 type CreateEksPropertiesEks struct {
-	Master    CreateEksPropertiesEksMaster `json:"master,omitempty"`
-	NodePools map[string]NodePoolsAmazon   `json:"nodePools,omitempty"`
+	Version   string                     `json:"version,omitempty"`
+	NodePools map[string]NodePoolsAmazon `json:"nodePools,omitempty"`
 }
