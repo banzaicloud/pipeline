@@ -756,6 +756,14 @@ paths:
           format: int32
           type: integer
         style: simple
+      - description: Selected deployment release name
+        explode: true
+        in: query
+        name: releaseName
+        required: false
+        schema:
+          type: string
+        style: form
       responses:
         200:
           content:
@@ -911,6 +919,74 @@ paths:
       tags:
       - clusters
   /api/v1/orgs/{orgId}/clusters/{id}/secrets:
+    get:
+      description: List secrets which belongs to cluster
+      operationId: ListClusterSecrets
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected deployment release name
+        explode: true
+        in: query
+        name: releaseName
+        required: false
+        schema:
+          type: string
+        style: form
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/SecretItem'
+                type: array
+          description: Secrets listed
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during listing secrets
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+          description: Cluster not found
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: List secrets which belongs to cluster
+      tags:
+      - clusters
     post:
       description: Install secrets into cluster
       operationId: InstallSecrets
@@ -2310,11 +2386,14 @@ paths:
       - description: The selected tag to filter with
         explode: true
         in: query
-        name: tag
+        name: tags
         required: false
         schema:
-          example: repo:pipeline
-          type: string
+          example:
+          - release:pipeline-monitoring
+          items:
+            type: string
+          type: array
         style: form
       - description: Marks if to present secret values or just the keys
         explode: true

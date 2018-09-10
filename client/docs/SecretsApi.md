@@ -184,7 +184,7 @@ Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
 
  **type_** | **optional.String**| Secret&#39;s type to filter with | 
- **tag** | **optional.String**| The selected tag to filter with | 
+ **tags** | [**optional.Interface of []string**](string.md)| The selected tag to filter with | 
  **values** | **optional.Bool**| Marks if to present secret values or just the keys | 
 
 ### Return type

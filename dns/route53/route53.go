@@ -469,7 +469,7 @@ func (dns *awsRoute53) unregisterDomain(orgId uint, domain string) error {
 	secrets, err := secret.Store.List(orgId,
 		&secretTypes.ListSecretsQuery{
 			Type: cluster.Amazon,
-			Tag:  secretTypes.TagBanzaiHidden,
+			Tags: []string{secretTypes.TagBanzaiHidden},
 		})
 
 	if err != nil {
@@ -738,7 +738,7 @@ func (dns *awsRoute53) getRoute53Secret(orgId uint) (*secret.SecretItemResponse,
 	awsAccessSecrets, err := secret.Store.List(orgId,
 		&secretTypes.ListSecretsQuery{
 			Type:   cluster.Amazon,
-			Tag:    secretTypes.TagBanzaiHidden,
+			Tags:   []string{secretTypes.TagBanzaiHidden},
 			Values: true,
 		})
 

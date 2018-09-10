@@ -985,3 +985,51 @@ func ProxyToCluster(c *gin.Context) {
 
 	kubeProxyHandler(c)
 }
+
+// ListClusterSecrets returns
+func ListClusterSecrets(c *gin.Context) {
+
+	commonCluster, ok := getClusterFromRequest(c)
+	if !ok {
+		return
+	}
+
+	releaseName := c.Query("releaseName")
+	organizationID := auth.GetCurrentOrganization(c.Request).ID
+
+	log := log.WithFields(logrus.Fields{
+		"organization": organizationID,
+		"clusterId":    commonCluster.GetID(),
+		"releaseName":  releaseName,
+	})
+
+	log.Info("Start filtering secrets")
+
+	clusterUidTag := fmt.Sprintf("clusterUID:%s", commonCluster.GetUID())
+	releaseTag := fmt.Sprintf("release:%s", releaseName)
+
+	tags := []string{clusterUidTag}
+	if len(releaseName) != 0 {
+		tags = append(tags, releaseTag)
+	}
+
+	log.Infof("tags: %v", tags)
+
+	secrets, err := secret.RestrictedStore.List(organizationID, &pkgSecret.ListSecretsQuery{
+		Tags: tags,
+	})
+	if err != nil {
+		log.Errorf("Error during listing secrets: %s", err.Error())
+		c.AbortWithStatusJSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error during listing secrets",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	log.Info("Listing secrets succeeded")
+
+	c.JSON(http.StatusOK, secrets)
+
+}
