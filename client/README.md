@@ -172,6 +172,8 @@ Class | Method | HTTP request | Description
  - [CreateEc2PropertiesEc2](docs/CreateEc2PropertiesEc2.md)
  - [CreateEc2PropertiesEc2Master](docs/CreateEc2PropertiesEc2Master.md)
  - [CreateEksProperties](docs/CreateEksProperties.md)
+ - [CreateEksPropertiesEks](docs/CreateEksPropertiesEks.md)
+ - [CreateEksPropertiesEksMaster](docs/CreateEksPropertiesEksMaster.md)
  - [CreateGkeProperties](docs/CreateGkeProperties.md)
  - [CreateGkePropertiesGke](docs/CreateGkePropertiesGke.md)
  - [CreateGkePropertiesGkeMaster](docs/CreateGkePropertiesGkeMaster.md)

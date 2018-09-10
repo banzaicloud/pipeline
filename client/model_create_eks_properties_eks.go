@@ -10,6 +10,7 @@
 
 package client
 
-type CreateEksProperties struct {
-	Eks CreateEksPropertiesEks `json:"eks"`
+type CreateEksPropertiesEks struct {
+	Master    CreateEksPropertiesEksMaster `json:"master,omitempty"`
+	NodePools map[string]NodePoolsAmazon   `json:"nodePools,omitempty"`
 }

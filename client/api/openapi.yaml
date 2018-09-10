@@ -3907,7 +3907,7 @@ components:
     CreateEKSProperties:
       properties:
         eks:
-          $ref: '#/components/schemas/CreateEC2Properties_ec2'
+          $ref: '#/components/schemas/CreateEKSProperties_eks'
       required:
       - eks
       type: object
@@ -6423,6 +6423,25 @@ components:
             $ref: '#/components/schemas/NodePoolsAmazon'
           type: object
       type: object
+    CreateEKSProperties_eks_master:
+      properties:
+        instanceType:
+          example: m4.xlarge
+          type: string
+        image:
+          description: 'You can find latest images here: https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-ami.html'
+          example: ami-06d1667f
+          type: string
+      type: object
+    CreateEKSProperties_eks:
+      properties:
+        master:
+          $ref: '#/components/schemas/CreateEKSProperties_eks_master'
+        nodePools:
+          additionalProperties:
+            $ref: '#/components/schemas/NodePoolsAmazon'
+          type: object
+      type: object
     CreateAKSProperties_aks:
       properties:
         resourceGroup:
@@ -7183,6 +7202,7 @@ components:
           format: int32
           type: integer
         image:
+          description: 'You can find latest images here: https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-ami.html'
           example: ami-0ea01e1d1dea65b5c
           type: string
       type: object

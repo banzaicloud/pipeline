@@ -10,13 +10,8 @@
 
 package client
 
-type ClusterProfileEksEksNodePoolsPool1 struct {
+type CreateEksPropertiesEksMaster struct {
 	InstanceType string `json:"instanceType,omitempty"`
-	SpotPrice    string `json:"spotPrice,omitempty"`
-	Autoscaling  bool   `json:"autoscaling,omitempty"`
-	Count        int32  `json:"count,omitempty"`
-	MinCount     int32  `json:"minCount,omitempty"`
-	MaxCount     int32  `json:"maxCount,omitempty"`
 	// You can find latest images here: https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-ami.html
 	Image string `json:"image,omitempty"`
 }
