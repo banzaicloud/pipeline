@@ -6589,20 +6589,11 @@ components:
             $ref: '#/components/schemas/NodePoolsAmazon'
           type: object
       type: object
-    CreateEKSProperties_eks_master:
-      properties:
-        instanceType:
-          example: m4.xlarge
-          type: string
-        image:
-          description: 'You can find latest images here: https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-ami.html'
-          example: ami-06d1667f
-          type: string
-      type: object
     CreateEKSProperties_eks:
       properties:
-        master:
-          $ref: '#/components/schemas/CreateEKSProperties_eks_master'
+        version:
+          example: "1.10"
+          type: string
         nodePools:
           additionalProperties:
             $ref: '#/components/schemas/NodePoolsAmazon'

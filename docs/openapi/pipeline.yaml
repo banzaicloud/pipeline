@@ -3681,16 +3681,9 @@ components:
           required:
             - nodePools
           properties:
-            master:
-              type: object
-              properties:
-                instanceType:
-                  type: string
-                  example: "m4.xlarge"
-                image:
-                  type: string
-                  example: "ami-06d1667f"
-                  description: "You can find latest images here: https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-ami.html"
+            version:
+              type: string
+              example: "1.10"
             nodePools:
               type: object
               additionalProperties:

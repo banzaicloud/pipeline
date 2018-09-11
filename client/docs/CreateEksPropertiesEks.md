@@ -3,7 +3,7 @@
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Master** | [**CreateEksPropertiesEksMaster**](CreateEKSProperties_eks_master.md) |  | [optional] 
+**Version** | **string** |  | [optional] 
 **NodePools** | [**map[string]NodePoolsAmazon**](NodePoolsAmazon.md) |  | [optional] 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
