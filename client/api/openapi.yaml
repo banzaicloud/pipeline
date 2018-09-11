@@ -5070,8 +5070,9 @@ components:
     InstallSecretsRequest:
       example:
         query:
-          tag: repo:pipeline
           type: amazon
+          tags:
+          - repo:pipeline
         namespace: default
       properties:
         namespace:
@@ -7294,15 +7295,19 @@ components:
       type: object
     InstallSecretsRequest_query:
       example:
-        tag: repo:pipeline
         type: amazon
+        tags:
+        - repo:pipeline
       properties:
         type:
           example: amazon
           type: string
-        tag:
-          example: repo:pipeline
-          type: string
+        tags:
+          example:
+          - repo:pipeline
+          items:
+            type: string
+          type: array
       type: object
     ClusterProfileEC2_ec2_nodePools_pool1:
       properties:
