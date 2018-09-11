@@ -231,6 +231,10 @@ func waitUntilClusterCreateComplete(log logrus.FieldLogger, clusterID string, cs
 	for {
 		r, err = getClusterDetails(clusterID, csClient)
 		if err != nil {
+			if strings.Contains(err.Error(), "timeout") {
+				log.Warn(err)
+				continue
+			}
 			return r, err
 		}
 
