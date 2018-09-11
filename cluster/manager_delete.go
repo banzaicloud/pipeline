@@ -9,6 +9,7 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // DeleteCluster deletes a cluster.
@@ -27,6 +28,35 @@ func (m *Manager) DeleteCluster(ctx context.Context, cluster CommonCluster, forc
 		}
 	}()
 
+	return nil
+}
+
+func deleteAllResource(kubeConfig []byte, logger *logrus.Entry) error {
+	client, err := helm.GetK8sConnection(kubeConfig)
+	if err != nil {
+		return err
+	}
+	// Delete all resources, log errors but ignore them
+	err = client.CoreV1().Services("").Delete("", metav1.NewDeleteOptions(0))
+	if err != nil {
+		logger.Info(err.Error())
+	}
+	err = client.AppsV1().Deployments("").Delete("", metav1.NewDeleteOptions(0))
+	if err != nil {
+		logger.Info(err.Error())
+	}
+	err = client.AppsV1().DaemonSets("").Delete("", metav1.NewDeleteOptions(0))
+	if err != nil {
+		logger.Info(err.Error())
+	}
+	err = client.AppsV1().StatefulSets("").Delete("", metav1.NewDeleteOptions(0))
+	if err != nil {
+		logger.Info(err.Error())
+	}
+	err = client.AppsV1().ReplicaSets("").Delete("", metav1.NewDeleteOptions(0))
+	if err != nil {
+		logger.Info(err.Error())
+	}
 	return nil
 }
 
@@ -61,7 +91,7 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 
 	if !(force && c == nil) {
 		// delete deployments
-		err = helm.DeleteAllDeployment(c)
+		err = deleteAllResource(c, logger)
 		if err != nil && !force {
 			return emperror.Wrap(err, "deleting deployments failed")
 		} else if err != nil {
