@@ -4816,6 +4816,11 @@ components:
             type:
               type: string
               example: "amazon"
+            ids:
+              type: array
+              items:
+                type: string
+              example: ["02ba59be9de457d3f04a02add7238489cf927511c6cd2a8a2aede19eac2a299b"]
             tags:
               type: array
               items:

@@ -1,13 +1,10 @@
 package cluster
 
 import (
-	"fmt"
-
 	"github.com/banzaicloud/pipeline/helm"
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -102,68 +99,4 @@ func InstallSecretsByK8SConfig(k8sConfig []byte, orgID uint, query *secretTypes.
 	}
 
 	return secretSources, nil
-}
-
-// InstallSecretWithVaultID installs a secret which determined by the vaultID to the given namespace
-func InstallSecretWithVaultID(cc CommonCluster, secretID, namespace string) (*secretTypes.K8SSourceMeta, error) {
-	k8sConfig, err := cc.GetK8sConfig()
-	if err != nil {
-		return nil, fmt.Errorf("error during getting config: %s", err.Error())
-	}
-	return InstallSecretWithVaultIDByK8SConfig(k8sConfig, cc.GetOrganizationId(), secretID, namespace)
-}
-
-// InstallSecretWithVaultIDByK8SConfig is the same as InstallSecretWithVaultID but use this if you already have a K8S config at hand.
-func InstallSecretWithVaultIDByK8SConfig(k8sConfig []byte, orgID uint, secretID, namespace string) (*secretTypes.K8SSourceMeta, error) {
-
-	clusterClient, err := helm.GetK8sConnection(k8sConfig)
-	if err != nil {
-		return nil, fmt.Errorf("error during getting config: %s", err.Error())
-	}
-
-	resolvedSecret, err := secret.Store.Get(orgID, secretID)
-	if err != nil {
-		return nil, fmt.Errorf("error during getting secrets with ID %s: %s", secretID, err.Error())
-	}
-
-	var secretSources secretTypes.K8SSourceMeta
-
-	k8sSecret := &v1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      resolvedSecret.Name,
-			Namespace: namespace,
-		},
-		StringData: map[string]string{},
-	}
-	for k, v := range resolvedSecret.Values {
-		k8sSecret.StringData[k] = v
-	}
-
-	err = helm.CreateNamespaceIfNotExist(k8sConfig, namespace)
-	if err != nil {
-		log.Errorf("Error checking namespace: %s", err.Error())
-		return nil, err
-	}
-
-	_, err = clusterClient.CoreV1().Secrets(namespace).Get(k8sSecret.Name, metav1.GetOptions{})
-	create := false
-	if apierrors.IsNotFound(err) {
-		create = true
-	} else if err != nil {
-		log.Errorf("Error checking k8s secret: %s", err.Error())
-		return nil, err
-	}
-
-	if create {
-		_, err = clusterClient.CoreV1().Secrets(namespace).Create(k8sSecret)
-	} else {
-		_, err = clusterClient.CoreV1().Secrets(namespace).Update(k8sSecret)
-	}
-	if err != nil {
-		return nil, fmt.Errorf("error during creating k8s secret: %s", err.Error())
-	}
-
-	secretSources = resolvedSecret.K8SSourceMeta()
-
-	return &secretSources, nil
 }

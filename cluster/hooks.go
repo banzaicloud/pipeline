@@ -253,7 +253,7 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 	log.Infof("logging-hook secret type: %s", logSecret.Type)
 	switch logSecret.Type {
 	case pkgCluster.Amazon:
-		installedSecretValues, err := InstallSecretWithVaultID(cluster, loggingParam.SecretId, loggingParam.GenTLSForLogging.Namespace)
+		installedSecretValues, err := InstallSecrets(cluster, &pkgSecret.ListSecretsQuery{IDs: []string{loggingParam.SecretId}}, loggingParam.GenTLSForLogging.Namespace)
 		if err != nil {
 			return err
 		}
@@ -261,7 +261,7 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 			"bucketName": loggingParam.BucketName,
 			"region":     loggingParam.Region,
 			"secret": map[string]interface{}{
-				"secretName": installedSecretValues.Name,
+				"secretName": installedSecretValues[0].Name,
 			},
 		}
 		marshaledValues, err := yaml.Marshal(loggingValues)
@@ -270,14 +270,14 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 		}
 		return installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/s3-output", "pipeline-s3-output", marshaledValues, "ConfigureLoggingOutPut", "")
 	case pkgCluster.Google:
-		installedSecretValues, err := InstallSecretWithVaultID(cluster, loggingParam.SecretId, loggingParam.GenTLSForLogging.Namespace)
+		installedSecretValues, err := InstallSecrets(cluster, &pkgSecret.ListSecretsQuery{IDs: []string{loggingParam.SecretId}}, loggingParam.GenTLSForLogging.Namespace)
 		if err != nil {
 			return err
 		}
 		loggingValues := map[string]interface{}{
 			"bucketName": loggingParam.BucketName,
 			"secret": map[string]interface{}{
-				"name": installedSecretValues.Name,
+				"name": installedSecretValues[0].Name,
 			},
 		}
 		marshaledValues, err := yaml.Marshal(loggingValues)

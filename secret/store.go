@@ -375,44 +375,56 @@ func (ss *secretStore) GetByName(organizationID uint, name string) (*SecretItemR
 	return secret, nil
 }
 
+func (ss *secretStore) getSecretIDs(orgid uint, query *secretTypes.ListSecretsQuery) ([]string, error) {
+	if len(query.IDs) > 0 {
+		return query.IDs, nil
+	}
+
+	listPath := fmt.Sprintf("secret/metadata/orgs/%d", orgid)
+
+	list, err := ss.Logical.List(listPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if list != nil {
+		return cast.ToStringSlice(list.Data["keys"]), nil
+	}
+
+	return []string{}, nil
+}
+
 // List secret secret/orgs/:orgid:/ scope
 func (ss *secretStore) List(orgid uint, query *secretTypes.ListSecretsQuery) ([]*SecretItemResponse, error) {
 
 	log.Debugf("Searching for secrets [orgid: %d, query: %#v]", orgid, query)
 
-	listPath := fmt.Sprintf("secret/metadata/orgs/%d", orgid)
-
-	responseItems := []*SecretItemResponse{}
-
-	list, err := ss.Logical.List(listPath)
+	secretIDs, err := ss.getSecretIDs(orgid, query)
 	if err != nil {
 		log.Errorf("Error listing secrets: %s", err.Error())
 		return nil, err
 	}
 
-	if list != nil {
+	responseItems := []*SecretItemResponse{}
 
-		keys := cast.ToStringSlice(list.Data["keys"])
+	for _, secretID := range secretIDs {
 
-		for _, secretID := range keys {
+		if secret, err := ss.Logical.Read(secretDataPath(orgid, secretID)); err != nil {
 
-			if secret, err := ss.Logical.Read(secretDataPath(orgid, secretID)); err != nil {
+			log.Errorf("Error listing secrets: %s", err.Error())
+			return nil, err
 
-				log.Errorf("Error listing secrets: %s", err.Error())
+		} else if secret != nil {
+
+			sir, err := parseSecret(secretID, secret, query.Values)
+			if err != nil {
 				return nil, err
+			}
 
-			} else if secret != nil {
+			if (query.Type == secretTypes.AllSecrets || sir.Type == query.Type) &&
+				(len(query.Tags) == 0 || hasTags(sir.Tags, query.Tags)) {
 
-				sir, err := parseSecret(secretID, secret, query.Values)
-				if err != nil {
-					return nil, err
-				}
-
-				if (query.Type == secretTypes.AllSecrets || sir.Type == query.Type) &&
-					(len(query.Tags) == 0 || hasTags(sir.Tags, query.Tags)) {
-
-					responseItems = append(responseItems, sir)
-				}
+				responseItems = append(responseItems, sir)
 			}
 		}
 	}

@@ -5070,6 +5070,8 @@ components:
     InstallSecretsRequest:
       example:
         query:
+          ids:
+          - 02ba59be9de457d3f04a02add7238489cf927511c6cd2a8a2aede19eac2a299b
           type: amazon
           tags:
           - repo:pipeline
@@ -7295,6 +7297,8 @@ components:
       type: object
     InstallSecretsRequest_query:
       example:
+        ids:
+        - 02ba59be9de457d3f04a02add7238489cf927511c6cd2a8a2aede19eac2a299b
         type: amazon
         tags:
         - repo:pipeline
@@ -7302,6 +7306,12 @@ components:
         type:
           example: amazon
           type: string
+        ids:
+          example:
+          - 02ba59be9de457d3f04a02add7238489cf927511c6cd2a8a2aede19eac2a299b
+          items:
+            type: string
+          type: array
         tags:
           example:
           - repo:pipeline
