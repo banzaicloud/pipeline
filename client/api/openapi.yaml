@@ -64,6 +64,33 @@ paths:
       summary: List spotguides
       tags:
       - spotguides
+    post:
+      description: Launch a spotguide
+      operationId: LaunchSpotguide
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LaunchSpotguidesRequest'
+        required: true
+      responses:
+        202:
+          description: Spotguide launch response
+      security:
+      - bearerAuth: []
+      summary: Launch spotguide
+      tags:
+      - spotguides
     put:
       operationId: UpdateSpotguides
       parameters:
@@ -756,6 +783,14 @@ paths:
           format: int32
           type: integer
         style: simple
+      - description: Selected deployment release name
+        explode: true
+        in: query
+        name: releaseName
+        required: false
+        schema:
+          type: string
+        style: form
       responses:
         200:
           content:
@@ -911,6 +946,74 @@ paths:
       tags:
       - clusters
   /api/v1/orgs/{orgId}/clusters/{id}/secrets:
+    get:
+      description: List secrets which belongs to cluster
+      operationId: ListClusterSecrets
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected deployment release name
+        explode: true
+        in: query
+        name: releaseName
+        required: false
+        schema:
+          type: string
+        style: form
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/SecretItem'
+                type: array
+          description: Secrets listed
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during listing secrets
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+          description: Cluster not found
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: List secrets which belongs to cluster
+      tags:
+      - clusters
     post:
       description: Install secrets into cluster
       operationId: InstallSecrets
@@ -2310,11 +2413,14 @@ paths:
       - description: The selected tag to filter with
         explode: true
         in: query
-        name: tag
+        name: tags
         required: false
         schema:
-          example: repo:pipeline
-          type: string
+          example:
+          - release:pipeline-monitoring
+          items:
+            type: string
+          type: array
         style: form
       - description: Marks if to present secret values or just the keys
         explode: true
@@ -3606,6 +3712,64 @@ components:
           $ref: '#/components/schemas/SpotguideDetailsResponse_spotguide'
         questions:
           properties: {}
+          type: object
+      type: object
+    LaunchSpotguidesRequest:
+      example:
+        repoName: spotguide-nodejs-mongodb-test
+        values: '{}'
+        repoOrganization: banzaicloud
+        spotguideName: banzaicloud/spotguide-nodejs-mongodb
+        secrets:
+        - values:
+            type: string
+            project_id: string
+            private_key_id: string
+            private_key: string
+            client_email: string
+            client_id: string
+            auth_uri: string
+            token_uri: string
+            auth_provider_x509_cert_url: string
+            client_x509_cert_url: string
+          name: My google secret
+          type: google
+          version: 1
+          tags:
+          - repo:pipeline
+          - tag2
+        - values:
+            type: string
+            project_id: string
+            private_key_id: string
+            private_key: string
+            client_email: string
+            client_id: string
+            auth_uri: string
+            token_uri: string
+            auth_provider_x509_cert_url: string
+            client_x509_cert_url: string
+          name: My google secret
+          type: google
+          version: 1
+          tags:
+          - repo:pipeline
+          - tag2
+      properties:
+        repoOrganization:
+          example: banzaicloud
+          type: string
+        repoName:
+          example: spotguide-nodejs-mongodb-test
+          type: string
+        spotguideName:
+          example: banzaicloud/spotguide-nodejs-mongodb
+          type: string
+        secrets:
+          items:
+            $ref: '#/components/schemas/CreateSecretRequest'
+          type: array
+        values:
           type: object
       type: object
     SpotguideOptionsMysqlDatabaseName:
@@ -4906,8 +5070,9 @@ components:
     InstallSecretsRequest:
       example:
         query:
-          tag: repo:pipeline
           type: amazon
+          tags:
+          - repo:pipeline
         namespace: default
       properties:
         namespace:
@@ -7130,15 +7295,19 @@ components:
       type: object
     InstallSecretsRequest_query:
       example:
-        tag: repo:pipeline
         type: amazon
+        tags:
+        - repo:pipeline
       properties:
         type:
           example: amazon
           type: string
-        tag:
-          example: repo:pipeline
-          type: string
+        tags:
+          example:
+          - repo:pipeline
+          items:
+            type: string
+          type: array
       type: object
     ClusterProfileEC2_ec2_nodePools_pool1:
       properties:

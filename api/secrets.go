@@ -284,10 +284,10 @@ func ListSecrets(c *gin.Context) {
 		return
 	}
 
-	log.Debugln("Organization:", organizationID, "type:", query.Type, "tag:", query.Tag, "values:", query.Values)
+	log.Debugln("Organization:", organizationID, "type:", query.Type, "tags:", query.Tags, "values:", query.Values)
 
 	if err := IsValidSecretType(query.Type); err != nil {
-		log.Errorf("Error validation secret type[%s]: %s", query.Tag, err.Error())
+		log.Errorf("Error validation secret type[%s]: %s", query.Type, err.Error())
 		c.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Not supported secret type",

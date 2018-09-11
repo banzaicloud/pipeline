@@ -654,7 +654,7 @@ func TestAwsRoute53_RegisterDomain(t *testing.T) {
 
 	secrets, _ := secret.Store.List(testOrgId, &secretTypes.ListSecretsQuery{
 		Type:   cluster.Amazon,
-		Tag:    secretTypes.TagBanzaiHidden,
+		Tags:   []string{secretTypes.TagBanzaiHidden},
 		Values: true,
 	})
 
@@ -1110,7 +1110,7 @@ func Test_nameServerMatch(t *testing.T) {
 func cleanupVaultTestSecrets() {
 	secrets, _ := secret.Store.List(testOrgId, &secretTypes.ListSecretsQuery{
 		Type:   cluster.Amazon,
-		Tag:    secretTypes.TagBanzaiHidden,
+		Tags:   []string{secretTypes.TagBanzaiHidden},
 		Values: true,
 	})
 

@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "92e77bf2-22e1-4df1-a309-e3023ad40db2",
+		"_postman_id": "d6c84e31-6ef3-466a-911e-670420d1b400",
 		"name": "End2End TEST Organizations",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -1638,6 +1638,68 @@
 							]
 						},
 						"description": "Get cluster details"
+					},
+					"response": []
+				},
+				{
+					"name": "Cluster secrets",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"",
+									"if (responseCode.code === 200) {",
+									"    tests[\"Response Code 200\"] = responseCode.code == 200;",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/secrets?releaseName={{releaseName}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"clusters",
+								":clusterId",
+								"secrets"
+							],
+							"query": [
+								{
+									"key": "releaseName",
+									"value": "{{releaseName}}"
+								}
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "{{orgId}}",
+									"description": "Organization identifier"
+								},
+								{
+									"key": "clusterId",
+									"value": "{{clusterId}}",
+									"description": "Cluster identifier"
+								}
+							]
+						},
+						"description": "List cluster public endpoints"
 					},
 					"response": []
 				},
@@ -6378,13 +6440,15 @@
 					"name": "List secret with filters",
 					"request": {
 						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {},
 						"url": {
-							"raw": "{{url}}/api/v1/orgs/:orgId/secrets?type={{secretType}}&tag={{tag}}",
+							"raw": "{{url}}/api/v1/orgs/:orgId/secrets?type={{secretType}}&tags={{tag}}",
 							"host": [
 								"{{url}}"
 							],
@@ -6402,7 +6466,7 @@
 									"description": "Cloud type"
 								},
 								{
-									"key": "tag",
+									"key": "tags",
 									"value": "{{tag}}",
 									"description": "Secret's tag"
 								}

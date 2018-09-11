@@ -159,7 +159,7 @@ func (ss *secretStore) DeleteByClusterUID(orgID uint, clusterUID string) error {
 	clusterIdTag := fmt.Sprintf("clusterUID:%s", clusterUID)
 	secrets, err := Store.List(orgID,
 		&secretTypes.ListSecretsQuery{
-			Tag: clusterIdTag,
+			Tags: []string{clusterIdTag},
 		})
 
 	if err != nil {
@@ -409,7 +409,7 @@ func (ss *secretStore) List(orgid uint, query *secretTypes.ListSecretsQuery) ([]
 				}
 
 				if (query.Type == secretTypes.AllSecrets || sir.Type == query.Type) &&
-					(query.Tag == "" || hasTag(sir.Tags, query.Tag)) {
+					(len(query.Tags) == 0 || hasTags(sir.Tags, query.Tags)) {
 
 					responseItems = append(responseItems, sir)
 				}
@@ -428,9 +428,17 @@ func secretMetadataPath(organizationID uint, secretID string) string {
 	return fmt.Sprintf("secret/metadata/orgs/%d/%s", organizationID, secretID)
 }
 
-func hasTag(tags []string, tag string) bool {
-	index := sort.SearchStrings(tags, tag)
-	return index < len(tags) && tags[index] == tag
+func hasTags(tags []string, searchingTag []string) bool {
+	var isOK bool
+	for _, t := range searchingTag {
+		index := sort.SearchStrings(tags, t)
+		isOK = index < len(tags) && tags[index] == t
+		if !isOK {
+			return false
+		}
+	}
+
+	return true
 }
 
 // MissmatchError describe a secret error where the given and expected secret type is not equal

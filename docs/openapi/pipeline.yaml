@@ -64,6 +64,31 @@ paths:
               schema:
                 $ref: '#/components/schemas/ListSpotguidesResponse'
 
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - spotguides
+      summary: Launch spotguide
+      description: Launch a spotguide
+      operationId: LaunchSpotguide
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LaunchSpotguidesRequest'
+      responses:
+        '202':
+          description: Spotguide launch response
+
     put:
       security:
         - bearerAuth: []
@@ -694,6 +719,12 @@ paths:
           description: Selected cluster identification (number)
           schema:
             type: integer
+        - name: releaseName
+          in: query
+          required: false
+          description: Selected deployment release name
+          schema:
+            type: string
       responses:
         '200':
           description: "Endpoints listed"
@@ -836,6 +867,67 @@ paths:
               $ref: '#/components/schemas/HelmInitRequest'
 
   '/api/v1/orgs/{orgId}/clusters/{id}/secrets':
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - clusters
+      summary: List secrets which belongs to cluster
+      operationId: ListClusterSecrets
+      description: List secrets which belongs to cluster
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: id
+          in: path
+          required: true
+          description: Selected cluster identification (number)
+          schema:
+            type: integer
+        - name: releaseName
+          in: query
+          required: false
+          description: Selected deployment release name
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "Secrets listed"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SecretItem'
+
+        '400':
+          description: "Error during listing secrets"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+        '401':
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '404':
+          description: "Cluster not found"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
     post:
       security:
         - bearerAuth: []
@@ -2107,13 +2199,15 @@ paths:
           schema:
             type: string
             enum: [amazon, azure, google, kubernetes, generic, tls, ssh]
-        - name: tag
+        - name: tags
           in: query
           required: false
           description: The selected tag to filter with
           schema:
-            type: string
-            example: "repo:pipeline"
+            type: array
+            items:
+              type: string
+            example: [ "release:pipeline-monitoring" ]
         - name: values
           in: query
           required: false
@@ -3266,6 +3360,25 @@ components:
         questions:
           type: object
           properties: {}
+
+    LaunchSpotguidesRequest:
+      type: object
+      properties:
+        repoOrganization:
+          type: string
+          example: "banzaicloud"
+        repoName:
+          type: string
+          example: "spotguide-nodejs-mongodb-test"
+        spotguideName:
+          type: string
+          example: "banzaicloud/spotguide-nodejs-mongodb"
+        secrets:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreateSecretRequest'
+        values:
+          type: object
 
     SpotguideOptionsMysqlDatabaseName:
       type: object
@@ -4703,9 +4816,11 @@ components:
             type:
               type: string
               example: "amazon"
-            tag:
-              type: string
-              example: "repo:pipeline"
+            tags:
+              type: array
+              items:
+                type: string
+              example: ["repo:pipeline"]
 
     InstallSecretsResponse:
       type: array

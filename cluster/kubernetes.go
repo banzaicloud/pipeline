@@ -30,7 +30,7 @@ func CreateKubernetesClusterFromRequest(request *pkgCluster.CreateClusterRequest
 		SecretId:       request.SecretId,
 		Distribution:   pkgCluster.Unknown,
 		Kubernetes: model.KubernetesClusterModel{
-			Metadata: request.Properties.CreateKubernetes.Metadata,
+			Metadata: request.Properties.CreateClusterKubernetes.Metadata,
 		},
 	}
 	return &cluster, nil

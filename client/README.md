@@ -44,6 +44,7 @@ Class | Method | HTTP request | Description
 *ClustersApi* | [**GetPodDetails**](docs/ClustersApi.md#getpoddetails) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/pods | Get pod details
 *ClustersApi* | [**HelmInit**](docs/ClustersApi.md#helminit) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/helminit | Initialize Helm
 *ClustersApi* | [**InstallSecrets**](docs/ClustersApi.md#installsecrets) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/secrets | Install secrets into cluster
+*ClustersApi* | [**ListClusterSecrets**](docs/ClustersApi.md#listclustersecrets) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/secrets | List secrets which belongs to cluster
 *ClustersApi* | [**ListClusters**](docs/ClustersApi.md#listclusters) | **Get** /api/v1/orgs/{orgId}/clusters | List clusters
 *ClustersApi* | [**ListEndpoints**](docs/ClustersApi.md#listendpoints) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/endpoints | List service public endpoints
 *ClustersApi* | [**ListNodes**](docs/ClustersApi.md#listnodes) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/nodes | List cluser nodes
@@ -91,6 +92,7 @@ Class | Method | HTTP request | Description
 *SecretsApi* | [**UpdateSecrets**](docs/SecretsApi.md#updatesecrets) | **Put** /api/v1/orgs/{orgId}/secrets/{secretId} | Update secrets
 *SecretsApi* | [**ValidateSecret**](docs/SecretsApi.md#validatesecret) | **Get** /api/v1/orgs/{orgId}/secrets/{secretId}/validate | Validate secret
 *SpotguidesApi* | [**GetSpotguideDetail**](docs/SpotguidesApi.md#getspotguidedetail) | **Get** /api/v1/orgs/{orgId}/spotguides/{name} | Get spotguide details
+*SpotguidesApi* | [**LaunchSpotguide**](docs/SpotguidesApi.md#launchspotguide) | **Post** /api/v1/orgs/{orgId}/spotguides | Launch spotguide
 *SpotguidesApi* | [**ListSpotguides**](docs/SpotguidesApi.md#listspotguides) | **Get** /api/v1/orgs/{orgId}/spotguides | List spotguides
 *SpotguidesApi* | [**UpdateSpotguides**](docs/SpotguidesApi.md#updatespotguides) | **Put** /api/v1/orgs/{orgId}/spotguides | Update spotguide repositories
 *StorageApi* | [**CreateObjectStoreBucket**](docs/StorageApi.md#createobjectstorebucket) | **Post** /api/v1/orgs/{orgId}/buckets | Creates a new object store bucket with the given params
@@ -226,6 +228,7 @@ Class | Method | HTTP request | Description
  - [InstallSecretsRequestQuery](docs/InstallSecretsRequestQuery.md)
  - [InstallSecretsResponse](docs/InstallSecretsResponse.md)
  - [InstallSecretsResponseItem](docs/InstallSecretsResponseItem.md)
+ - [LaunchSpotguidesRequest](docs/LaunchSpotguidesRequest.md)
  - [ListDeploymentsResponse](docs/ListDeploymentsResponse.md)
  - [ListDeploymentsResponseInner](docs/ListDeploymentsResponseInner.md)
  - [ListEndpointsResponse](docs/ListEndpointsResponse.md)
