@@ -421,9 +421,7 @@ func (ss *secretStore) List(orgid uint, query *secretTypes.ListSecretsQuery) ([]
 				return nil, err
 			}
 
-			if (query.Type == secretTypes.AllSecrets || sir.Type == query.Type) &&
-				(len(query.Tags) == 0 || hasTags(sir.Tags, query.Tags)) {
-
+			if (query.Type == secretTypes.AllSecrets || sir.Type == query.Type) && hasTags(sir.Tags, query.Tags) {
 				responseItems = append(responseItems, sir)
 			}
 		}
