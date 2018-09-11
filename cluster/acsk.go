@@ -452,7 +452,9 @@ func (c *ACSKCluster) DeleteCluster() error {
 
 	actions := []utils.Action{
 		action.NewDeleteACSKClusterAction(c.log, deleteContext),
-		action.NewDeleteSSHKeyAction(c.log, deleteContext, c.modelCluster.Name, c.modelCluster.ACSK.RegionID),
+		//TODO getting an error 'The specified parameter "KeyPairNames" is not valid.'
+		// when calling DeleteKeyPairs if this one is resolved we can uncomment this line
+		//action.NewDeleteSSHKeyAction(c.log, deleteContext, c.modelCluster.Name, c.modelCluster.ACSK.RegionID),
 	}
 
 	_, err = utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, true)
