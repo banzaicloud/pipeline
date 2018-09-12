@@ -10,6 +10,7 @@ import (
 	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"time"
 )
 
 // DeleteCluster deletes a cluster.
@@ -39,23 +40,23 @@ func deleteAllResource(kubeConfig []byte, logger *logrus.Entry) error {
 	// Delete all resources, log errors but ignore them
 	err = client.CoreV1().Services("").Delete("", metav1.NewDeleteOptions(0))
 	if err != nil {
-		logger.Info(err.Error())
+		return err
 	}
 	err = client.AppsV1().Deployments("").Delete("", metav1.NewDeleteOptions(0))
 	if err != nil {
-		logger.Info(err.Error())
+		return err
 	}
 	err = client.AppsV1().DaemonSets("").Delete("", metav1.NewDeleteOptions(0))
 	if err != nil {
-		logger.Info(err.Error())
+		return err
 	}
 	err = client.AppsV1().StatefulSets("").Delete("", metav1.NewDeleteOptions(0))
 	if err != nil {
-		logger.Info(err.Error())
+		return err
 	}
 	err = client.AppsV1().ReplicaSets("").Delete("", metav1.NewDeleteOptions(0))
 	if err != nil {
-		logger.Info(err.Error())
+		return err
 	}
 	return nil
 }
@@ -91,7 +92,15 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 
 	if !(force && c == nil) {
 		// delete deployments
-		err = deleteAllResource(c, logger)
+		for i := 0; i < 3; i++ {
+			err = deleteAllResource(c, logger)
+			// TODO we could check to the Authorization IAM error explicit
+			if err != nil {
+				time.Sleep(1)
+			} else {
+				break
+			}
+		}
 		if err != nil && !force {
 			return emperror.Wrap(err, "deleting deployments failed")
 		} else if err != nil {
