@@ -10,16 +10,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sirupsen/logrus"
-
-	"github.com/spf13/cast"
-
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/gorm"
+	"github.com/sirupsen/logrus"
 )
-
-var log *logrus.Entry = config.Logger().WithField("tag", "Audit")
 
 type closeableBuffer struct {
 	*bytes.Buffer
@@ -29,29 +24,18 @@ func (*closeableBuffer) Close() error {
 	return nil
 }
 
-// AuditEvent holds all information related to a user interaction
-type AuditEvent struct {
-	ID         uint      `gorm:"primary_key"`
-	Time       time.Time `gorm:"index"`
-	ClientIP   string    `gorm:"size:45"`
-	UserAgent  string
-	Path       string `gorm:"size:8000"`
-	Method     string `gorm:"size:7"`
-	UserID     uint
-	StatusCode int
-	Body       *string `gorm:"type:json"`
-	Headers    string  `gorm:"type:json"`
-}
-
 // LogWriter instance is a Gin Middleware which logs all request data into MySQL audit_events table.
-func LogWriter(notloggedPaths []string, whitelistedHeaders []string) gin.HandlerFunc {
+func LogWriter(
+	skipPaths []string,
+	whitelistedHeaders []string,
+	db *gorm.DB,
+	logger logrus.FieldLogger,
+) gin.HandlerFunc {
 	skip := map[string]struct{}{}
 
-	for _, path := range notloggedPaths {
+	for _, path := range skipPaths {
 		skip[path] = struct{}{}
 	}
-
-	db := config.DB()
 
 	return func(c *gin.Context) {
 		// Start timer
@@ -61,20 +45,21 @@ func LogWriter(notloggedPaths []string, whitelistedHeaders []string) gin.Handler
 
 		// Log only when path is not being skipped
 		if _, ok := skip[path]; !ok {
-
 			// Copy request body into a new buffer, so other handlers can use it safely
 			bodyBuffer := &closeableBuffer{bytes.NewBuffer(nil)}
 
 			written, err := io.Copy(bodyBuffer, c.Request.Body)
 			if err != nil {
 				c.AbortWithError(http.StatusInternalServerError, err)
-				log.Errorln(err)
+				logger.Errorln(err)
+
 				return
 			}
 
 			if written != c.Request.ContentLength {
 				c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Failed to copy request body correctly"))
-				log.Errorln(err)
+				logger.Errorln(err)
+
 				return
 			}
 
@@ -85,22 +70,29 @@ func LogWriter(notloggedPaths []string, whitelistedHeaders []string) gin.Handler
 			var body *string
 			if strings.Contains(path, "/secrets") && len(rawBody) > 0 {
 				data := map[string]interface{}{}
+
 				err := json.Unmarshal(rawBody, &data)
 				if err != nil {
 					c.AbortWithError(http.StatusInternalServerError, err)
-					log.Errorln(err)
+					logger.Errorln(err)
+
 					return
 				}
-				values := cast.ToStringMapString(data["values"])
-				for k := range values {
-					values[k] = ""
+
+				if values, ok := data["values"].(map[string]interface{}); ok {
+					for k := range values {
+						values[k] = ""
+					}
 				}
+
 				newBody, err := json.Marshal(data)
 				if err != nil {
 					c.AbortWithError(http.StatusInternalServerError, err)
-					log.Errorln(err)
+					logger.Errorln(err)
+
 					return
 				}
+
 				newBodyString := string(newBody)
 				body = &newBodyString
 			} else if len(rawBody) > 0 {
@@ -129,10 +121,12 @@ func LogWriter(notloggedPaths []string, whitelistedHeaders []string) gin.Handler
 					filteredHeaders[header] = values
 				}
 			}
+
 			headers, err := json.Marshal(filteredHeaders)
 			if err != nil {
 				c.AbortWithError(http.StatusInternalServerError, err)
-				log.Errorln(err)
+				logger.Errorln(err)
+
 				return
 			}
 
@@ -151,7 +145,8 @@ func LogWriter(notloggedPaths []string, whitelistedHeaders []string) gin.Handler
 			err = db.Save(&event).Error
 			if err != nil {
 				c.AbortWithError(http.StatusInternalServerError, err)
-				log.Errorln(err)
+				logger.Errorln(err)
+
 				return
 			}
 		}
