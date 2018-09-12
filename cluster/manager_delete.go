@@ -32,31 +32,31 @@ func (m *Manager) DeleteCluster(ctx context.Context, cluster CommonCluster, forc
 	return nil
 }
 
-func deleteAllResource(kubeConfig []byte, logger *logrus.Entry) error {
+func deleteAllResource(kubeConfig []byte) error {
 	client, err := helm.GetK8sConnection(kubeConfig)
 	if err != nil {
 		return err
 	}
-	// Delete all resources, log errors but ignore them
-	err = client.CoreV1().Services("").Delete("", metav1.NewDeleteOptions(0))
-	if err != nil {
-		return err
+
+	type resourceDeleter interface {
+		Delete(name string, options *metav1.DeleteOptions) error
 	}
-	err = client.AppsV1().Deployments("").Delete("", metav1.NewDeleteOptions(0))
-	if err != nil {
-		return err
+
+	services := []resourceDeleter{
+		client.CoreV1().Services(""),
+		client.AppsV1().Deployments(""),
+		client.AppsV1().DaemonSets(""),
+		client.AppsV1().StatefulSets(""),
+		client.AppsV1().ReplicaSets(""),
 	}
-	err = client.AppsV1().DaemonSets("").Delete("", metav1.NewDeleteOptions(0))
-	if err != nil {
-		return err
-	}
-	err = client.AppsV1().StatefulSets("").Delete("", metav1.NewDeleteOptions(0))
-	if err != nil {
-		return err
-	}
-	err = client.AppsV1().ReplicaSets("").Delete("", metav1.NewDeleteOptions(0))
-	if err != nil {
-		return err
+
+	options := metav1.NewDeleteOptions(0)
+
+	for _, service := range services {
+		err := service.Delete("", options)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -93,14 +93,16 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 	if !(force && c == nil) {
 		// delete deployments
 		for i := 0; i < 3; i++ {
-			err = deleteAllResource(c, logger)
+			err = deleteAllResource(c)
 			// TODO we could check to the Authorization IAM error explicit
 			if err != nil {
+				logger.Info(err)
 				time.Sleep(1)
 			} else {
 				break
 			}
 		}
+		err = helm.DeleteAllDeployment(c)
 		if err != nil && !force {
 			return emperror.Wrap(err, "deleting deployments failed")
 		} else if err != nil {
