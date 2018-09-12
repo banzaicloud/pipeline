@@ -156,7 +156,7 @@ func main() {
 	router.Use(cors.New(config.GetCORS()))
 	if viper.GetBool("audit.enabled") {
 		log.Infoln("Audit enabled, installing Gin audit middleware")
-		router.Use(audit.LogWriter(skipPaths, viper.GetStringSlice("audit.headers")))
+		router.Use(audit.LogWriter(skipPaths, viper.GetStringSlice("audit.headers"), db, log))
 	}
 
 	root := router.Group("/")
