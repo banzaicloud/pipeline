@@ -4,12 +4,16 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/banzaicloud/pipeline/helm"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+const retry = 3
 
 // DeleteCluster deletes a cluster.
 func (m *Manager) DeleteCluster(ctx context.Context, cluster CommonCluster, force bool, kubeProxyCache *sync.Map) error {
@@ -27,6 +31,38 @@ func (m *Manager) DeleteCluster(ctx context.Context, cluster CommonCluster, forc
 		}
 	}()
 
+	return nil
+}
+
+func deleteAllResource(kubeConfig []byte, logger *logrus.Entry) error {
+	client, err := helm.GetK8sConnection(kubeConfig)
+	if err != nil {
+		return err
+	}
+
+	type resourceDeleter interface {
+		Delete(name string, options *metav1.DeleteOptions) error
+	}
+
+	services := []resourceDeleter{
+		client.CoreV1().Services(metav1.NamespaceAll),
+		client.AppsV1().Deployments(metav1.NamespaceAll),
+		client.AppsV1().DaemonSets(metav1.NamespaceAll),
+		client.AppsV1().StatefulSets(metav1.NamespaceAll),
+		client.AppsV1().ReplicaSets(metav1.NamespaceAll),
+	}
+
+	options := metav1.NewDeleteOptions(0)
+
+	for _, service := range services {
+		for i := 0; i < retry; i++ {
+			err := service.Delete("", options)
+			if err != nil {
+				logger.Debugf("deleting resources %T attempt %d/%d failed", service, i, retry)
+				time.Sleep(1)
+			}
+		}
+	}
 	return nil
 }
 
@@ -61,12 +97,21 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 
 	if !(force && c == nil) {
 		// delete deployments
-		err = helm.DeleteAllDeployment(c)
-		if err != nil && !force {
-			return emperror.Wrap(err, "deleting deployments failed")
-		} else if err != nil {
-			logger.Errorf("deleting deployments failed: %s", err.Error())
+		for i := 0; i < retry; i++ {
+			err = helm.DeleteAllDeployment(c)
+			// TODO we could check to the Authorization IAM error explicit
+			if err != nil {
+				logger.Errorf("deleting deployments attempt %d/%d failed: %s", i, retry, err.Error())
+				time.Sleep(1)
+			} else {
+				break
+			}
 		}
+		err = deleteAllResource(c, logger)
+		if err != nil && !force {
+			return emperror.Wrap(err, "deleting resources failed")
+		}
+		logger.Errorf("deleting resources failed: %s", err.Error())
 	} else {
 		logger.Info("skipping deployment deletion without kubeconfig")
 	}
