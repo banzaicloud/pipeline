@@ -13,5 +13,6 @@ package client
 
 type InstallSecretsRequestQuery struct {
 	Type string   `json:"type,omitempty"`
+	Ids  []string `json:"ids,omitempty"`
 	Tags []string `json:"tags,omitempty"`
 }
