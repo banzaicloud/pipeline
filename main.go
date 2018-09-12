@@ -7,11 +7,11 @@ import (
 
 	"github.com/banzaicloud/go-gin-prometheus"
 	"github.com/banzaicloud/pipeline/api"
-	"github.com/banzaicloud/pipeline/internal/audit"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/dns/route53/model"
+	"github.com/banzaicloud/pipeline/internal/audit"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	ginlog "github.com/banzaicloud/pipeline/internal/platform/gin/log"
 	"github.com/banzaicloud/pipeline/model"
