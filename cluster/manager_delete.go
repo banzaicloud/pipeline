@@ -108,10 +108,14 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 			}
 		}
 		err = deleteAllResource(c, logger)
-		if err != nil && !force {
-			return emperror.Wrap(err, "deleting resources failed")
+		if err != nil {
+			if force {
+				logger.Errorf("deleting resources failed: %s", err.Error())
+			} else {
+				return emperror.Wrap(err, "deleting resources failed")
+			}
 		}
-		logger.Errorf("deleting resources failed: %s", err.Error())
+
 	} else {
 		logger.Info("skipping deployment deletion without kubeconfig")
 	}
