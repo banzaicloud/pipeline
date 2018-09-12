@@ -7,11 +7,11 @@ import (
 
 	"github.com/banzaicloud/go-gin-prometheus"
 	"github.com/banzaicloud/pipeline/api"
-	"github.com/banzaicloud/pipeline/audit"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/dns/route53/model"
+	"github.com/banzaicloud/pipeline/internal/audit"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	ginlog "github.com/banzaicloud/pipeline/internal/platform/gin/log"
 	"github.com/banzaicloud/pipeline/model"
@@ -89,7 +89,6 @@ func main() {
 		&auth.User{},
 		&auth.UserOrganization{},
 		&auth.Organization{},
-		&audit.AuditEvent{},
 		&defaults.EC2Profile{},
 		&defaults.EC2NodePoolProfile{},
 		&defaults.EKSProfile{},
@@ -157,7 +156,7 @@ func main() {
 	router.Use(cors.New(config.GetCORS()))
 	if viper.GetBool("audit.enabled") {
 		log.Infoln("Audit enabled, installing Gin audit middleware")
-		router.Use(audit.LogWriter(skipPaths, viper.GetStringSlice("audit.headers")))
+		router.Use(audit.LogWriter(skipPaths, viper.GetStringSlice("audit.headers"), db, log))
 	}
 
 	root := router.Group("/")
