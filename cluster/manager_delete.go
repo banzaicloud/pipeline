@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/banzaicloud/pipeline/helm"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"time"
 )
 
 // DeleteCluster deletes a cluster.
@@ -108,9 +108,8 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 		err = deleteAllResource(c, logger)
 		if err != nil && !force {
 			return emperror.Wrap(err, "deleting resources failed")
-		} else {
-			logger.Errorf("deleting resources failed: %s", err.Error())
 		}
+		logger.Errorf("deleting resources failed: %s", err.Error())
 	} else {
 		logger.Info("skipping deployment deletion without kubeconfig")
 	}
