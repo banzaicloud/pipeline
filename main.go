@@ -89,7 +89,6 @@ func main() {
 		&auth.User{},
 		&auth.UserOrganization{},
 		&auth.Organization{},
-		&audit.AuditEvent{},
 		&defaults.EC2Profile{},
 		&defaults.EC2NodePoolProfile{},
 		&defaults.EKSProfile{},
