@@ -96,17 +96,21 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 			err = deleteAllResource(c)
 			// TODO we could check to the Authorization IAM error explicit
 			if err != nil {
-				logger.Info(err)
+				logger.Errorf("deleting resources failed: %s", err.Error())
 				time.Sleep(1)
 			} else {
 				break
 			}
 		}
-		err = helm.DeleteAllDeployment(c)
-		if err != nil && !force {
-			return emperror.Wrap(err, "deleting deployments failed")
-		} else if err != nil {
-			logger.Errorf("deleting deployments failed: %s", err.Error())
+		for i := 0; i < 3; i++ {
+			err = helm.DeleteAllDeployment(c)
+			// TODO we could check to the Authorization IAM error explicit
+			if err != nil {
+				logger.Errorf("deleting deployments failed: %s", err.Error())
+				time.Sleep(1)
+			} else {
+				break
+			}
 		}
 	} else {
 		logger.Info("skipping deployment deletion without kubeconfig")
