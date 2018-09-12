@@ -14,7 +14,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/cast"
 )
 
 type closeableBuffer struct {
@@ -80,9 +79,10 @@ func LogWriter(
 					return
 				}
 
-				values := cast.ToStringMapString(data["values"])
-				for k := range values {
-					values[k] = ""
+				if values, ok := data["values"].(map[string]interface{}); ok {
+					for k := range values {
+						values[k] = ""
+					}
 				}
 
 				newBody, err := json.Marshal(data)
