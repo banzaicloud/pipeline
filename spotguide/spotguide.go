@@ -14,12 +14,12 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/ghodss/yaml"
 	"github.com/google/go-github/github"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
+	"gopkg.in/yaml.v2"
 )
 
 const SpotguideGithubTopic = "spotguide"
@@ -464,8 +464,8 @@ func droneRepoConfigSecrets(request *LaunchRequest, repoConfig *droneRepoConfig)
 }
 
 func droneRepoConfigValues(request *LaunchRequest, repoConfig *droneRepoConfig) error {
-	// Find DeployApplicationStep step and transform it
-	if deployStep, ok := repoConfig.Pipeline[DeployApplicationStep]; ok {
+	// Find DeployApplicationStep step and transform it if there are any incoming Values
+	if deployStep, ok := repoConfig.Pipeline[DeployApplicationStep]; ok && len(request.Values) > 0 {
 
 		// Merge the values from the request into the existing values
 		values, err := json.Marshal(request.Values)
@@ -473,7 +473,7 @@ func droneRepoConfigValues(request *LaunchRequest, repoConfig *droneRepoConfig) 
 			return err
 		}
 
-		err = json.Unmarshal(values, &deployStep.DeploymentValues)
+		err = json.Unmarshal(values, &deployStep.Deployment.Values)
 		if err != nil {
 			return err
 		}
