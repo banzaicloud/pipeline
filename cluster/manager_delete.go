@@ -13,6 +13,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const retry = 3
+
 // DeleteCluster deletes a cluster.
 func (m *Manager) DeleteCluster(ctx context.Context, cluster CommonCluster, force bool, kubeProxyCache *sync.Map) error {
 	errorHandler := emperror.HandlerWith(
@@ -43,20 +45,20 @@ func deleteAllResource(kubeConfig []byte, logger *logrus.Entry) error {
 	}
 
 	services := []resourceDeleter{
-		client.CoreV1().Services(""),
-		client.AppsV1().Deployments(""),
-		client.AppsV1().DaemonSets(""),
-		client.AppsV1().StatefulSets(""),
-		client.AppsV1().ReplicaSets(""),
+		client.CoreV1().Services(metav1.NamespaceAll),
+		client.AppsV1().Deployments(metav1.NamespaceAll),
+		client.AppsV1().DaemonSets(metav1.NamespaceAll),
+		client.AppsV1().StatefulSets(metav1.NamespaceAll),
+		client.AppsV1().ReplicaSets(metav1.NamespaceAll),
 	}
 
 	options := metav1.NewDeleteOptions(0)
 
 	for _, service := range services {
-		for i := 0; i < 3; i++ {
+		for i := 0; i < retry; i++ {
 			err := service.Delete("", options)
 			if err != nil {
-				logger.Debug("deleting resources %T attempt %d/%d failed", service, i, 3)
+				logger.Debugf("deleting resources %T attempt %d/%d failed", service, i, retry)
 				time.Sleep(1)
 			}
 		}
@@ -95,11 +97,11 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 
 	if !(force && c == nil) {
 		// delete deployments
-		for i := 0; i < 3; i++ {
+		for i := 0; i < retry; i++ {
 			err = helm.DeleteAllDeployment(c)
 			// TODO we could check to the Authorization IAM error explicit
 			if err != nil {
-				logger.Errorf("deleting deployments attempt %d/%d failed: %s", i, 3, err.Error())
+				logger.Errorf("deleting deployments attempt %d/%d failed: %s", i, retry, err.Error())
 				time.Sleep(1)
 			} else {
 				break
