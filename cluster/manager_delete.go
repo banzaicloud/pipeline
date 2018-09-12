@@ -32,7 +32,7 @@ func (m *Manager) DeleteCluster(ctx context.Context, cluster CommonCluster, forc
 	return nil
 }
 
-func deleteAllResource(kubeConfig []byte) error {
+func deleteAllResource(kubeConfig []byte, logger *logrus.Entry) error {
 	client, err := helm.GetK8sConnection(kubeConfig)
 	if err != nil {
 		return err
@@ -53,9 +53,12 @@ func deleteAllResource(kubeConfig []byte) error {
 	options := metav1.NewDeleteOptions(0)
 
 	for _, service := range services {
-		err := service.Delete("", options)
-		if err != nil {
-			return err
+		for i := 0; i < 3; i++ {
+			err := service.Delete("", options)
+			if err != nil {
+				logger.Debug("deleting resources %T attempt %d/%d failed", service, i, 3)
+				time.Sleep(1)
+			}
 		}
 	}
 	return nil
@@ -93,24 +96,20 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 	if !(force && c == nil) {
 		// delete deployments
 		for i := 0; i < 3; i++ {
-			err = deleteAllResource(c)
+			err = helm.DeleteAllDeployment(c)
 			// TODO we could check to the Authorization IAM error explicit
 			if err != nil {
-				logger.Errorf("deleting resources failed: %s", err.Error())
+				logger.Errorf("deleting deployments attempt %d/%d failed: %s", i, 3, err.Error())
 				time.Sleep(1)
 			} else {
 				break
 			}
 		}
-		for i := 0; i < 3; i++ {
-			err = helm.DeleteAllDeployment(c)
-			// TODO we could check to the Authorization IAM error explicit
-			if err != nil {
-				logger.Errorf("deleting deployments failed: %s", err.Error())
-				time.Sleep(1)
-			} else {
-				break
-			}
+		err = deleteAllResource(c, logger)
+		if err != nil && !force {
+			return emperror.Wrap(err, "deleting resources failed")
+		} else {
+			logger.Errorf("deleting resources failed: %s", err.Error())
 		}
 	} else {
 		logger.Info("skipping deployment deletion without kubeconfig")
