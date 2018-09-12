@@ -7,7 +7,7 @@ import (
 
 	"github.com/banzaicloud/go-gin-prometheus"
 	"github.com/banzaicloud/pipeline/api"
-	"github.com/banzaicloud/pipeline/audit"
+	"github.com/banzaicloud/pipeline/internal/audit"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
