@@ -112,7 +112,7 @@ func init() {
 	viper.SetDefault(DNSBaseDomain, "banzaicloud.io")
 	viper.SetDefault(DNSSecretNamespace, "pipeline-infra")
 	viper.SetDefault(DNSGcIntervalMinute, 1)
-	viper.SetDefault(DNSExternalDnsChartVersion, "0.5.4")
+	viper.SetDefault(DNSExternalDnsChartVersion, "0.7.5")
 	viper.SetDefault(DNSGcLogLevel, "debug")
 	viper.SetDefault(Route53MaintenanceWndMinute, 15)
 
