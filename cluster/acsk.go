@@ -262,7 +262,7 @@ func (c *ACSKCluster) CreateCluster() error {
 			WorkerSystemDiskCategory: c.modelCluster.ACSK.NodePools[0].SystemDiskCategory, // "cloud_efficiency",
 			WorkerSystemDiskSize:     c.modelCluster.ACSK.NodePools[0].SystemDiskSize,     // 40,
 			KeyPair:                  c.modelCluster.Name,                                 // uploaded keyPair name
-			NumOfNodes:               c.modelCluster.ACSK.NodePools[0].Count,              // 1,
+			NumOfNodes:               0,                                                   // 0 (to make sure node pools are created properly),
 			SNATEntry:                c.modelCluster.ACSK.SNATEntry,                       // true,
 			SSHFlags:                 c.modelCluster.ACSK.SSHFlags,                        // true,
 			DisableRollback:          true,
