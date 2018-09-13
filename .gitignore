@@ -18,6 +18,7 @@ test.txt
 
 # IDE integration
 /.idea/*
+!/.idea/copyright/
 !/.idea/runConfigurations/
 !/.idea/modules.xml
 !/.idea/*.iml
