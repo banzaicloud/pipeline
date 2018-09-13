@@ -20,6 +20,7 @@ test.txt
 /.idea/*
 !/.idea/copyright/
 !/.idea/runConfigurations/
+!/.idea/scopes/
 !/.idea/modules.xml
 !/.idea/*.iml
 !/.idea/go.imports.xml
