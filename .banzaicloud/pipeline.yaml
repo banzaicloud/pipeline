@@ -1,19 +1,19 @@
-cluster:
-  name: "banzai-cicd-cluster"
-  provider: "google"
-
 workspace:
   base: /go
   path: src/github.com/banzaicloud/pipeline
 
 pipeline:
-  print_env:
-    image: golang:1.10
-    commands:
-    - pwd
-    - env
-    - find .
-    group: build
+  create_cluster:
+    image: banzaicloud/ci-pipeline-client:latest
+    action: CreateCluster
+    secret:
+      name: paas-dev
+    cluster:
+      cloud: google
+      distribution: gke
+      location: us-central1-a
+      name: banzai-cicd-cluster
+      reuse: true
 
   build:
     image: golang:1.10
