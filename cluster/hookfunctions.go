@@ -76,6 +76,10 @@ var HookMap = map[string]PostFunctioner{
 		f:            LabelNodes,
 		ErrorHandler: ErrorHandler{},
 	},
+	pkgCluster.InstallPVCOperator: &BasePostFunction{
+		f:            InstallPVCOperatorPostHook,
+		ErrorHandler: ErrorHandler{},
+	},
 }
 
 // BasePostHookFunctions default posthook functions after cluster create
@@ -90,6 +94,7 @@ var BasePostHookFunctions = []PostFunctioner{
 	HookMap[pkgCluster.InstallClusterAutoscalerPostHook],
 	HookMap[pkgCluster.InstallHorizontalPodAutoscalerPostHook],
 	HookMap[pkgCluster.LabelNodes],
+	HookMap[pkgCluster.InstallPVCOperator],
 }
 
 // PostFunctioner manages posthook functions
