@@ -700,6 +700,7 @@ func InstallHorizontalPodAutoscalerPostHook(input interface{}) error {
 	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/hpa-operator", "pipeline-hpa", valuesOverride, "InstallHorizontalPodAutoscaler", "")
 }
 
+//InstallPVCOperatorPostHook installs the PVC operator
 func InstallPVCOperatorPostHook(input interface{}) error {
 	cluster, ok := input.(CommonCluster)
 	if !ok {
