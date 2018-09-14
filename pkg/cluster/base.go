@@ -82,6 +82,7 @@ const (
 	InstallLogging                         = "InstallLogging"
 	RegisterDomainPostHook                 = "RegisterDomainPostHook"
 	LabelNodes                             = "LabelNodes"
+	InstallPVCOperator                     = "InstallPVCOperator"
 )
 
 // Provider name regexp

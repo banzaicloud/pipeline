@@ -700,6 +700,17 @@ func InstallHorizontalPodAutoscalerPostHook(input interface{}) error {
 	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/hpa-operator", "pipeline-hpa", valuesOverride, "InstallHorizontalPodAutoscaler", "")
 }
 
+func InstallPVCOperatorPostHook(input interface{}) error {
+	cluster, ok := input.(CommonCluster)
+	if !ok {
+		return errors.Errorf("wrong parameter type: %T", cluster)
+	}
+
+	infraNamespace := viper.GetString(pipConfig.PipelineMonitorNamespace)
+
+	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/pvc-operator", "pipeline-pvc-operator", nil, "InstallPVCOperator", "")
+}
+
 //UpdatePrometheusPostHook updates a configmap used by Prometheus
 func UpdatePrometheusPostHook(_ interface{}) error {
 	// TODO: return error instead? (preserved original behaviour during refactor)
