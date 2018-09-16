@@ -132,6 +132,28 @@ func (stateStore *awsRoute53DatabaseStateStore) findByStatus(status string) ([]d
 	return domainStates, nil
 }
 
+// findByOrgId looks up in the database the domain state identified by origId. The found data is passed back
+// through stateOut
+func (stateStore *awsRoute53DatabaseStateStore) findByOrgId(orgId uint, stateOut *domainState) (bool, error) {
+	db := config.DB()
+	dbRec := &route53model.Route53Domain{}
+
+	crit := &route53model.Route53Domain{OrganizationId: orgId}
+	res := db.Where(crit).First(dbRec)
+
+	if res.RecordNotFound() {
+		return false, nil
+	}
+	err := res.Error
+	if err != nil {
+		return false, nil
+	}
+
+	initStateFromRoute53Domain(dbRec, stateOut)
+
+	return true, nil
+}
+
 // createRoute53Domain create a new Route53Domain instance initialized from the passed in state
 func createRoute53Domain(state *domainState) *route53model.Route53Domain {
 	return &route53model.Route53Domain{

@@ -46,7 +46,7 @@ func init() {
 }
 
 const (
-	createHostedZoneComment            = "HostedZone created by Banzaicloud Pipeline"
+	createHostedZoneComment            = "HostedZone created by Banzai Cloud Pipeline"
 	iamUserNameTemplate                = "banzaicloud.route53.%s"
 	hostedZoneAccessPolicyNameTemplate = "BanzaicloudRoute53-%s"
 	iamUserAccessKeySecretName         = "route53"
@@ -105,9 +105,10 @@ func (ctx *context) rollback() {
 }
 
 type workerTask struct {
-	operation      operationType
-	organisationId uint
-	domain         string
+	operation        operationType
+	organisationId   uint
+	domain           *string
+	dnsRecordownerId *string
 
 	responseQueue chan<- workerResponse
 }
@@ -189,7 +190,7 @@ func NewAwsRoute53(region, awsSecretId, awsSecretKey string, notifications chan 
 func (dns *awsRoute53) IsDomainRegistered(orgId uint, domain string) (bool, error) {
 	responseQueue := make(chan workerResponse)
 
-	dns.getWorker(orgId) <- newWorkerTask(isDomainRegistered, orgId, domain, responseQueue)
+	dns.getWorker(orgId) <- newWorkerTask(isDomainRegistered, orgId, &domain, responseQueue)
 	defer close(responseQueue)
 
 	response := <-responseQueue
@@ -200,7 +201,7 @@ func (dns *awsRoute53) IsDomainRegistered(orgId uint, domain string) (bool, erro
 func (dns *awsRoute53) RegisterDomain(orgId uint, domain string) error {
 	responseQueue := make(chan workerResponse)
 
-	dns.getWorker(orgId) <- newWorkerTask(registerDomain, orgId, domain, responseQueue)
+	dns.getWorker(orgId) <- newWorkerTask(registerDomain, orgId, &domain, responseQueue)
 	defer close(responseQueue)
 
 	response := <-responseQueue
@@ -227,7 +228,7 @@ func (dns *awsRoute53) RegisterDomain(orgId uint, domain string) error {
 func (dns *awsRoute53) UnregisterDomain(orgId uint, domain string) error {
 	responseQueue := make(chan workerResponse)
 
-	dns.getWorker(orgId) <- newWorkerTask(unregisterDomain, orgId, domain, responseQueue)
+	dns.getWorker(orgId) <- newWorkerTask(unregisterDomain, orgId, &domain, responseQueue)
 	defer close(responseQueue)
 
 	response := <-responseQueue
@@ -309,7 +310,7 @@ func (dns *awsRoute53) registerDomain(orgId uint, domain string) error {
 	ctx := &context{state: state}
 
 	if existingHostedZoneId == "" {
-		hostedZone, err := dns.createHostedZone(orgId, domain)
+		hostedZone, err := dns.createHostedZone(domain)
 		if err != nil {
 			dns.updateStateWithError(state, err)
 			return err
@@ -644,6 +645,38 @@ func (dns *awsRoute53) ProcessUnfinishedTasks() {
 	}
 }
 
+// DeleteDnsRecordsOwnedBy deletes DNS records that belong to the specified owner
+func (dns *awsRoute53) DeleteDnsRecordsOwnedBy(ownerId string, orgId uint) error {
+	responseQueue := make(chan workerResponse)
+
+	task := newWorkerTask(deleteDnsRecordsOwnedBy, orgId, nil, responseQueue)
+	task.dnsRecordownerId = &ownerId
+
+	dns.getWorker(orgId) <- task
+	defer close(responseQueue)
+
+	response := <-responseQueue
+	return response.error
+}
+
+// GetOrgDomain returns the DNS domain name registered for the organization with given id
+func (dns *awsRoute53) GetOrgDomain(orgId uint) (string, error) {
+	responseQueue := make(chan workerResponse)
+
+	dns.getWorker(orgId) <- newWorkerTask(getOrgDomain, orgId, nil, responseQueue)
+	defer close(responseQueue)
+
+	response := <-responseQueue
+	if response.error != nil {
+		return "", response.error
+	}
+
+	if response.result == nil {
+		return "", nil
+	}
+	return fmt.Sprintf("%s", response.result), nil
+}
+
 // setupAmazonAccess creates Amazon access key for the IAM user
 // and stores it in Vault. If there is a stale Amazon access key in Vault
 // creates a new Amazon access key and updates Vault
@@ -818,6 +851,20 @@ func (dns *awsRoute53) storeRoute53Secret(updateSecret *secret.SecretItemRespons
 	return nil
 }
 
+func (dns *awsRoute53) getOrgDomain(orgId uint) (string, error) {
+	state := domainState{}
+	found, err := dns.stateStore.findByOrgId(orgId, &state)
+
+	if err != nil {
+		return "", err
+	}
+
+	if found {
+		return state.domain, nil
+	}
+	return "", nil
+}
+
 func (dns *awsRoute53) updateStateWithError(state *domainState, err error) {
 	state.status = FAILED
 	state.errMsg = extractErrorMessage(err)
@@ -870,14 +917,28 @@ func (dns *awsRoute53) startNewWorker() chan workerTask {
 		for task := range workQueue {
 			switch task.operation {
 			case isDomainRegistered:
-				ok, err := dns.isDomainRegistered(task.organisationId, task.domain)
+				ok, err := dns.isDomainRegistered(task.organisationId, *task.domain)
 				task.responseQueue <- workerResponse{error: err, result: ok}
 			case registerDomain:
-				err := dns.registerDomain(task.organisationId, task.domain)
+				err := dns.registerDomain(task.organisationId, *task.domain)
 				task.responseQueue <- workerResponse{error: err}
 			case unregisterDomain:
-				err := dns.unregisterDomain(task.organisationId, task.domain)
+				err := dns.unregisterDomain(task.organisationId, *task.domain)
 				task.responseQueue <- workerResponse{error: err}
+			case deleteDnsRecordsOwnedBy:
+				var err error
+				var domain, hostedZoneId string
+				domain, err = dns.getOrgDomain(task.organisationId)
+				if err == nil {
+					hostedZoneId, err = dns.hostedZoneExistsByDomain(domain)
+					if err == nil {
+						err = dns.deleteHostedZoneResourceRecordSetsOwnedBy(aws.String(hostedZoneId), aws.StringValue(task.dnsRecordownerId))
+					}
+				}
+				task.responseQueue <- workerResponse{error: err}
+			case getOrgDomain:
+				domain, err := dns.getOrgDomain(task.organisationId)
+				task.responseQueue <- workerResponse{error: err, result: domain}
 			default:
 				task.responseQueue <- workerResponse{error: fmt.Errorf("operation %q not supported", task.operation)}
 			}
@@ -888,7 +949,7 @@ func (dns *awsRoute53) startNewWorker() chan workerTask {
 	return workQueue
 }
 
-func newWorkerTask(operation operationType, orgId uint, domain string, responseQueue chan<- workerResponse) workerTask {
+func newWorkerTask(operation operationType, orgId uint, domain *string, responseQueue chan<- workerResponse) workerTask {
 	return workerTask{
 		operation:      operation,
 		organisationId: orgId,

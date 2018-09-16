@@ -21,6 +21,7 @@ type awsRoute53StateStore interface {
 	update(state *domainState) error
 	find(orgId uint, domain string, state *domainState) (bool, error)
 	findByStatus(status string) ([]domainState, error)
+	findByOrgId(orgId uint, state *domainState) (bool, error)
 	listUnused() ([]domainState, error)
 	delete(state *domainState) error
 }

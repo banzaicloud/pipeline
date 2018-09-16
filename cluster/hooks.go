@@ -895,7 +895,7 @@ func RegisterDomainPostHook(input interface{}) error {
 	}
 	chartVersion := viper.GetString(pipConfig.DNSExternalDnsChartVersion)
 
-	return installDeployment(commonCluster, route53SecretNamespace, pkgHelm.StableRepository+"/external-dns", "pipeline-dns", externalDnsValuesJson, "InstallMonitoring", chartVersion)
+	return installDeployment(commonCluster, route53SecretNamespace, pkgHelm.StableRepository+"/external-dns", "pipeline-dns", externalDnsValuesJson, "InstallExternalDNS", chartVersion)
 }
 
 // LabelNodes adds labels for all nodes

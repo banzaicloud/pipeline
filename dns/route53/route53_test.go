@@ -211,6 +211,26 @@ func (stateStore *inMemoryStateStore) findByStatus(status string) ([]domainState
 	return res, nil
 }
 
+func (stateStore *inMemoryStateStore) findByOrgId(orgId uint, state *domainState) (bool, error) {
+
+	for _, v := range stateStore.orgDomains {
+		if v.organisationId == orgId {
+			state.organisationId = v.organisationId
+			state.domain = v.domain
+			state.status = v.status
+			state.policyArn = v.policyArn
+			state.hostedZoneId = v.hostedZoneId
+			state.iamUser = v.iamUser
+			state.awsAccessKeyId = v.awsAccessKeyId
+			state.errMsg = v.errMsg
+
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
 func (stateStore *inMemoryStateStore) listUnused() ([]domainState, error) {
 	key := stateKey(testOrgId, testDomain)
 	return []domainState{*stateStore.orgDomains[key]}, nil
