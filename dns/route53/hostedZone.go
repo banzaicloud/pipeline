@@ -27,7 +27,7 @@ import (
 )
 
 // createHostedZone creates a hosted zone on AWS Route53 with the given domain name
-func (dns *awsRoute53) createHostedZone(orgId uint, domain string) (*route53.HostedZone, error) {
+func (dns *awsRoute53) createHostedZone(domain string) (*route53.HostedZone, error) {
 	log := loggerWithFields(logrus.Fields{"domain": domain})
 
 	hostedZoneInput := &route53.CreateHostedZoneInput{
@@ -106,7 +106,7 @@ func (dns *awsRoute53) hostedZoneExistsByDomain(domain string) (string, error) {
 	return foundHostedZoneIds[0], nil
 }
 
-// deleteHostedZoneCallCount deletes the hosted zone with the given id from AWS Route53
+// deleteHostedZone deletes the hosted zone with the given id from AWS Route53
 func (dns *awsRoute53) deleteHostedZone(id *string) error {
 	log := loggerWithFields(logrus.Fields{"hosted zone": aws.StringValue(id)})
 
@@ -142,6 +142,52 @@ func (dns *awsRoute53) deleteHostedZone(id *string) error {
 	log.Infof("hosted zone deleted")
 
 	return err
+}
+
+// deleteHostedZoneResourceRecordSetsOwnedBy deletes resource records set of hosted zone and belong to the owner of the given id.
+func (dns *awsRoute53) deleteHostedZoneResourceRecordSetsOwnedBy(hostedZoneId *string, ownerId string) error {
+	log := loggerWithFields(logrus.Fields{"hosted zone": aws.StringValue(hostedZoneId), "ownerId": ownerId})
+
+	listResourceRecordSetsInput := &route53.ListResourceRecordSetsInput{HostedZoneId: hostedZoneId}
+	resourceRecordSets, err := dns.route53Svc.ListResourceRecordSets(listResourceRecordSetsInput)
+	if err != nil {
+		log.Errorf("retrieving resource record sets of the hosted zone failed: %s", extractErrorMessage(err))
+		return err
+	}
+
+	ownerReference := "external-dns/owner=" + ownerId
+
+	var ownedRecordNames = make(map[string]bool)
+
+	for _, resourceRecordSet := range resourceRecordSets.ResourceRecordSets {
+		if aws.StringValue(resourceRecordSet.Type) == route53.RRTypeTxt {
+			for _, resourceRecord := range resourceRecordSet.ResourceRecords {
+				if strings.Contains(aws.StringValue(resourceRecord.Value), ownerReference) {
+					ownedRecordNames[aws.StringValue(resourceRecordSet.Name)] = true
+					break
+				}
+			}
+		}
+	}
+
+	var resourceRecordSetChanges []*route53.ResourceRecordSet
+	for _, resourceRecordSet := range resourceRecordSets.ResourceRecordSets {
+		if aws.StringValue(resourceRecordSet.Type) != route53.RRTypeNs && aws.StringValue(resourceRecordSet.Type) != route53.RRTypeSoa {
+			if _, ok := ownedRecordNames[aws.StringValue(resourceRecordSet.Name)]; ok {
+				resourceRecordSetChanges = append(resourceRecordSetChanges, resourceRecordSet)
+			}
+		}
+	}
+
+	if len(resourceRecordSetChanges) > 0 {
+		err = dns.deleteResourceRecordSets(hostedZoneId, resourceRecordSetChanges)
+		if err != nil {
+			log.Errorf("deleting resource record sets of the hosted zone failed: %s", extractErrorMessage(err))
+			return err
+		}
+	}
+
+	return nil
 }
 
 // setHostedZoneAuthorisation sets up authorisation for the Route53 hosted zone identified by the specified id.
@@ -430,7 +476,7 @@ func (dns *awsRoute53) changeResourceRecordSet(action, zoneId *string, rrs []*ro
 	return nil
 }
 
-// nameServerMatch returns true of the name servers of the delegation set matches the
+// nameServerMatch returns true if the name servers of the delegation set matches the
 // resource records in the provided resource records set, otherwise returns false
 func nameServerMatch(ds *route53.DelegationSet, rrs *route53.ResourceRecordSet) bool {
 	if aws.StringValue(rrs.Type) != route53.RRTypeNs {

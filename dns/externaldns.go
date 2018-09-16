@@ -54,7 +54,9 @@ type DnsServiceClient interface {
 	RegisterDomain(orgId uint, domain string) error
 	UnregisterDomain(orgId uint, domain string) error
 	IsDomainRegistered(orgId uint, domain string) (bool, error)
+	GetOrgDomain(orgId uint) (string, error)
 	Cleanup()
+	DeleteDnsRecordsOwnedBy(ownerId string, orgId uint) error
 	ProcessUnfinishedTasks()
 }
 

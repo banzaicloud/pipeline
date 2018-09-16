@@ -20,6 +20,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/helm"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/goph/emperror"
@@ -80,6 +81,26 @@ func deleteAllResource(kubeConfig []byte, logger *logrus.Entry) error {
 	return nil
 }
 
+// deleteDnsRecordsOwnedByCluster deletes DNS records owned by the cluster. These are the DNS records
+// created for the public endpoints of the services hosted by the cluster.
+func deleteDnsRecordsOwnedByCluster(cluster CommonCluster) error {
+	dnsSvc, err := dns.GetExternalDnsServiceClient()
+	if err != nil {
+		return emperror.Wrap(err, "getting external dns service client failed")
+	}
+
+	if dnsSvc == nil {
+		return nil
+	}
+
+	err = dnsSvc.DeleteDnsRecordsOwnedBy(cluster.GetUID(), cluster.GetOrganizationId())
+	if err != nil {
+		return emperror.Wrapf(err, "deleting DNS records owned by cluster failed")
+	}
+
+	return nil
+}
+
 func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, force bool, kubeProxyCache *sync.Map) error {
 	logger := m.getLogger(ctx).WithFields(logrus.Fields{
 		"organization": cluster.GetOrganizationId(),
@@ -133,6 +154,9 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 	} else {
 		logger.Info("skipping deployment deletion without kubeconfig")
 	}
+
+	// clean up dns registrations
+	err = deleteDnsRecordsOwnedByCluster(cluster)
 
 	// delete cluster
 	err = cluster.DeleteCluster()
