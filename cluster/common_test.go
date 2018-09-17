@@ -38,9 +38,6 @@ const (
 	clusterRequestLocation       = "testLocation"
 	clusterRequestNodeInstance   = "testInstance"
 	clusterRequestNodeCount      = 1
-	clusterRequestVersion        = "1.9.4-gke.1"
-	clusterRequestVersion2       = "1.8.7-gke.2"
-	clusterRequestWrongVersion   = "1.7.7-gke.1"
 	clusterRequestRG             = "testResourceGroup"
 	clusterRequestKubernetes     = "1.9.6"
 	clusterRequestKubernetesEKS  = "1.10"
@@ -77,29 +74,11 @@ var (
 			clusterKubeMetaKey: clusterKubeMetaValue,
 		},
 	}
-
-	gkeSecretRequest = secret.CreateSecretRequest{
-		Name: secretName,
-		Type: pkgCluster.Google,
-		Values: map[string]string{
-			clusterKubeMetaKey: clusterKubeMetaValue,
-		},
-	}
 )
 
 var (
-	errAmazonGoogle = secret.MissmatchError{
-		SecretType: pkgCluster.Amazon,
-		ValidType:  pkgCluster.Google,
-	}
-
 	errAzureAmazon = secret.MissmatchError{
 		SecretType: pkgCluster.Azure,
-		ValidType:  pkgCluster.Amazon,
-	}
-
-	errGoogleAmazon = secret.MissmatchError{
-		SecretType: pkgCluster.Google,
 		ValidType:  pkgCluster.Amazon,
 	}
 )
@@ -112,20 +91,15 @@ func TestCreateCommonClusterFromRequest(t *testing.T) {
 		expectedModel *model.ClusterModel
 		expectedError error
 	}{
-		{name: "gke create", createRequest: gkeCreateFull, expectedModel: gkeModelFull, expectedError: nil},
 		{name: "aks create", createRequest: aksCreateFull, expectedModel: aksModelFull, expectedError: nil},
 		{name: "ec2 create", createRequest: ec2CreateFull, expectedModel: ec2ModelFull, expectedError: nil},
 		{name: "dummy create", createRequest: dummyCreateFull, expectedModel: dummyModelFull, expectedError: nil},
 		{name: "kube create", createRequest: kubeCreateFull, expectedModel: kubeModelFull, expectedError: nil},
 
-		{name: "gke wrong k8s version", createRequest: gkeWrongK8sVersion, expectedModel: nil, expectedError: pkgErrors.ErrorWrongKubernetesVersion},
-		{name: "gke different k8s version", createRequest: gkeDifferentK8sVersion, expectedModel: gkeModelDifferentVersion, expectedError: pkgErrors.ErrorDifferentKubernetesVersion},
-
 		{name: "not supported cloud", createRequest: notSupportedCloud, expectedModel: nil, expectedError: pkgErrors.ErrorNotSupportedCloudType},
 
 		{name: "ec2 empty location", createRequest: ec2EmptyLocationCreate, expectedModel: nil, expectedError: pkgErrors.ErrorLocationEmpty},
 		{name: "aks empty location", createRequest: aksEmptyLocationCreate, expectedModel: nil, expectedError: pkgErrors.ErrorLocationEmpty},
-		{name: "gke empty location", createRequest: gkeEmptyLocationCreate, expectedModel: nil, expectedError: pkgErrors.ErrorLocationEmpty},
 		{name: "kube empty location and nodeInstanceType", createRequest: kubeEmptyLocation, expectedModel: kubeEmptyLocAndNIT, expectedError: nil},
 	}
 
@@ -221,10 +195,7 @@ func TestGetSecretWithValidation(t *testing.T) {
 	}{
 		{"amazon", amazonSecretRequest, ec2CreateFull, nil},
 		{"aks", aksSecretRequest, aksCreateFull, nil},
-		{"gke", gkeSecretRequest, gkeCreateFull, nil},
-		{"amazon wrong cloud field", amazonSecretRequest, gkeCreateFull, errAmazonGoogle},
 		{"aks wrong cloud field", aksSecretRequest, ec2CreateFull, errAzureAmazon},
-		{"gke wrong cloud field", gkeSecretRequest, ec2CreateFull, errGoogleAmazon},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -261,51 +232,6 @@ func TestGetSecretWithValidation(t *testing.T) {
 }
 
 var (
-	gkeCreateFull = &pkgCluster.CreateClusterRequest{
-		Name:     clusterRequestName,
-		Location: clusterRequestLocation,
-		Cloud:    pkgCluster.Google,
-		SecretId: clusterRequestSecretId,
-		Properties: &pkgCluster.CreateClusterProperties{
-			CreateClusterGKE: &gke.CreateClusterGKE{
-				NodeVersion: clusterRequestVersion,
-				NodePools: map[string]*gke.NodePool{
-					pool1Name: {
-						Autoscaling:      true,
-						MinCount:         clusterRequestNodeCount,
-						MaxCount:         clusterRequestNodeMaxCount,
-						Count:            clusterRequestNodeCount,
-						NodeInstanceType: clusterRequestNodeInstance,
-					},
-				},
-				Master: &gke.Master{
-					Version: clusterRequestVersion,
-				},
-			},
-		},
-	}
-
-	gkeEmptyLocationCreate = &pkgCluster.CreateClusterRequest{
-		Name:     clusterRequestName,
-		Location: "",
-		Cloud:    pkgCluster.Google,
-		SecretId: clusterRequestSecretId,
-		Properties: &pkgCluster.CreateClusterProperties{
-			CreateClusterGKE: &gke.CreateClusterGKE{
-				NodeVersion: clusterRequestVersion,
-				NodePools: map[string]*gke.NodePool{
-					pool1Name: {
-						Count:            clusterRequestNodeCount,
-						NodeInstanceType: clusterRequestNodeInstance,
-					},
-				},
-				Master: &gke.Master{
-					Version: clusterRequestVersion,
-				},
-			},
-		},
-	}
-
 	aksCreateFull = &pkgCluster.CreateClusterRequest{
 		Name:     clusterRequestName,
 		Location: clusterRequestLocation,
@@ -469,76 +395,9 @@ var (
 		SecretId:   clusterRequestSecretId,
 		Properties: &pkgCluster.CreateClusterProperties{},
 	}
-
-	gkeWrongK8sVersion = &pkgCluster.CreateClusterRequest{
-		Name:     clusterRequestName,
-		Location: clusterRequestLocation,
-		Cloud:    pkgCluster.Google,
-		SecretId: clusterRequestSecretId,
-		Properties: &pkgCluster.CreateClusterProperties{
-			CreateClusterGKE: &gke.CreateClusterGKE{
-				NodeVersion: clusterRequestVersion,
-				NodePools: map[string]*gke.NodePool{
-					pool1Name: {
-						Count:            clusterRequestNodeCount,
-						NodeInstanceType: clusterRequestNodeInstance,
-					},
-				},
-				Master: &gke.Master{
-					Version: clusterRequestWrongVersion,
-				},
-			},
-		},
-	}
-
-	gkeDifferentK8sVersion = &pkgCluster.CreateClusterRequest{
-		Name:     clusterRequestName,
-		Location: clusterRequestLocation,
-		Cloud:    pkgCluster.Google,
-		SecretId: clusterRequestSecretId,
-		Properties: &pkgCluster.CreateClusterProperties{
-			CreateClusterGKE: &gke.CreateClusterGKE{
-				NodeVersion: clusterRequestVersion,
-				NodePools: map[string]*gke.NodePool{
-					pool1Name: {
-						Count:            clusterRequestNodeCount,
-						NodeInstanceType: clusterRequestNodeInstance,
-					},
-				},
-				Master: &gke.Master{
-					Version: clusterRequestVersion2,
-				},
-			},
-		},
-	}
 )
 
 var (
-	gkeModelFull = &model.ClusterModel{
-		CreatedBy:      userId,
-		Name:           clusterRequestName,
-		Location:       clusterRequestLocation,
-		SecretId:       clusterRequestSecretId,
-		Cloud:          pkgCluster.Google,
-		Distribution:   pkgCluster.GKE,
-		OrganizationId: organizationId,
-		GKE: model.GKEClusterModel{
-			MasterVersion: clusterRequestVersion,
-			NodeVersion:   clusterRequestVersion,
-			NodePools: []*model.GKENodePoolModel{
-				{
-					CreatedBy:        userId,
-					Name:             pool1Name,
-					Autoscaling:      true,
-					NodeMinCount:     clusterRequestNodeCount,
-					NodeMaxCount:     clusterRequestNodeMaxCount,
-					NodeCount:        clusterRequestNodeCount,
-					NodeInstanceType: clusterRequestNodeInstance,
-				},
-			},
-		},
-	}
-
 	aksModelFull = &model.ClusterModel{
 		CreatedBy:      userId,
 		Name:           clusterRequestName,
@@ -633,27 +492,6 @@ var (
 				clusterKubeMetaKey: clusterKubeMetaValue,
 			},
 			MetadataRaw: nil,
-		},
-	}
-
-	gkeModelDifferentVersion = &model.ClusterModel{
-		CreatedBy:      userId,
-		Name:           clusterRequestName,
-		Location:       clusterRequestLocation,
-		SecretId:       clusterRequestSecretId,
-		Cloud:          pkgCluster.Google,
-		Distribution:   pkgCluster.GKE,
-		OrganizationId: organizationId,
-		GKE: model.GKEClusterModel{
-			MasterVersion: clusterRequestVersion2,
-			NodeVersion:   clusterRequestVersion,
-			NodePools: []*model.GKENodePoolModel{
-				{
-					Name:             pool1Name,
-					NodeCount:        clusterRequestNodeCount,
-					NodeInstanceType: clusterRequestNodeInstance,
-				},
-			},
 		},
 	}
 )
