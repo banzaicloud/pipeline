@@ -42,8 +42,6 @@ const (
 	TableNameAmazonEksProperties  = "amazon_eks_cluster_properties"
 	TableNameAzureProperties      = "azure_cluster_properties"
 	TableNameAzureNodePools       = "azure_node_pools"
-	TableNameGoogleProperties     = "google_cluster_properties"
-	TableNameGoogleNodePools      = "google_node_pools"
 	TableNameDummyProperties      = "dummy_cluster_properties"
 	TableNameKubernetesProperties = "kubernetes_cluster_properties"
 )
@@ -73,7 +71,6 @@ type ClusterModel struct {
 	EC2            EC2ClusterModel
 	AKS            AKSClusterModel
 	EKS            EKSClusterModel
-	GKE            GKEClusterModel
 	Dummy          DummyClusterModel
 	Kubernetes     KubernetesClusterModel
 	OKE            modelOracle.Cluster
@@ -135,9 +132,11 @@ type AmazonNodePoolsModel struct {
 
 //EKSClusterModel describes the ec2 cluster model
 type EKSClusterModel struct {
-	ClusterModelId uint                    `gorm:"primary_key"`
-	Version        string                  //kubernetes "1.10"
-	NodePools      []*AmazonNodePoolsModel `gorm:"foreignkey:ClusterModelId"`
+	ClusterModelId uint `gorm:"primary_key"`
+
+	//kubernetes "1.10"
+	Version   string
+	NodePools []*AmazonNodePoolsModel `gorm:"foreignkey:ClusterModelId"`
 }
 
 //AKSClusterModel describes the aks cluster model
@@ -162,30 +161,6 @@ type AKSNodePoolModel struct {
 	NodeInstanceType string
 }
 
-//GKENodePoolModel describes GKE node pools model of a cluster
-type GKENodePoolModel struct {
-	ID               uint `gorm:"primary_key"`
-	CreatedAt        time.Time
-	CreatedBy        uint
-	ClusterModelId   uint   `gorm:"unique_index:idx_modelid_name"`
-	Name             string `gorm:"unique_index:idx_modelid_name"`
-	Autoscaling      bool   `gorm:"default:false"`
-	NodeMinCount     int
-	NodeMaxCount     int
-	NodeCount        int
-	NodeInstanceType string
-	Delete           bool `gorm:"-"`
-}
-
-//GKEClusterModel describes the gke cluster model
-type GKEClusterModel struct {
-	ClusterModelId uint `gorm:"primary_key"`
-	MasterVersion  string
-	NodeVersion    string
-	Region         string
-	NodePools      []*GKENodePoolModel `gorm:"foreignkey:ClusterModelId"`
-}
-
 // DummyClusterModel describes the dummy cluster model
 type DummyClusterModel struct {
 	ClusterModelId    uint `gorm:"primary_key"`
@@ -198,22 +173,6 @@ type KubernetesClusterModel struct {
 	ClusterModelId uint              `gorm:"primary_key"`
 	Metadata       map[string]string `gorm:"-"`
 	MetadataRaw    []byte            `gorm:"meta_data"`
-}
-
-func (gn GKENodePoolModel) String() string {
-	return fmt.Sprintf("ID: %d, createdAt: %v, createdBy: %d, Name: %s, Autoscaling: %v, NodeMinCount: %d, NodeMaxCount: %d, NodeCount: %d",
-		gn.ID, gn.CreatedAt, gn.CreatedBy, gn.Name, gn.Autoscaling, gn.NodeMinCount, gn.NodeMaxCount, gn.NodeCount)
-}
-
-func (gc GKEClusterModel) String() string {
-	var buffer bytes.Buffer
-
-	buffer.WriteString(fmt.Sprintf("Master version: %s, Node version: %s, Node pools: %s",
-		gc.MasterVersion,
-		gc.NodeVersion,
-		gc.NodePools))
-
-	return buffer.String()
 }
 
 func (cs *ClusterModel) BeforeCreate() (err error) {
@@ -388,16 +347,6 @@ func (AKSNodePoolModel) TableName() string {
 	return TableNameAzureNodePools
 }
 
-//TableName sets the GoogleClusterModel's table name
-func (GKEClusterModel) TableName() string {
-	return TableNameGoogleProperties
-}
-
-//TableName sets the GoogleNodePoolModel's table name
-func (GKENodePoolModel) TableName() string {
-	return TableNameGoogleNodePools
-}
-
 //TableName sets the DummyClusterModel's table name
 func (DummyClusterModel) TableName() string {
 	return TableNameDummyProperties
@@ -406,23 +355,6 @@ func (DummyClusterModel) TableName() string {
 //TableName sets the KubernetesClusterModel's table name
 func (KubernetesClusterModel) TableName() string {
 	return TableNameKubernetesProperties
-}
-
-// AfterUpdate removes marked node pool(s)
-func (gc *GKEClusterModel) AfterUpdate(scope *gorm.Scope) error {
-	log.Info("Remove node pools marked for deletion")
-
-	for _, nodePoolModel := range gc.NodePools {
-		if nodePoolModel.Delete {
-			err := scope.DB().Delete(nodePoolModel).Error
-
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
 }
 
 // AfterUpdate removes marked node pool(s)
