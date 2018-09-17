@@ -3716,6 +3716,26 @@ components:
       type: object
     LaunchSpotguidesRequest:
       example:
+        cluster:
+          cloud: google
+          profileName: profileName
+          name: gkecluster-pipelineuser-123
+          secretId: 62bc3c75-91fb-4670-bad4-24b401a9deac
+          location: us-central1-a
+          postHooks:
+            InstallLogging:
+              bucketName: mybucketname
+              region: region
+              secretId: 62bc3c75-91fb-4670-bad4-24b401a9deac
+          properties:
+            gke:
+              master:
+                version: 1.8.7-gke.1
+              nodePools:
+                pool1:
+                  count: 1
+                  instanceType: n1-standard-2
+              nodeVersion: 1.8.7-gke.1
         repoName: spotguide-nodejs-mongodb-test
         values: '{}'
         repoOrganization: banzaicloud
@@ -3765,6 +3785,8 @@ components:
         spotguideName:
           example: banzaicloud/spotguide-nodejs-mongodb
           type: string
+        cluster:
+          $ref: '#/components/schemas/CreateClusterRequest'
         secrets:
           items:
             $ref: '#/components/schemas/CreateSecretRequest'

@@ -15,6 +15,7 @@ type LaunchSpotguidesRequest struct {
 	RepoOrganization string                 `json:"repoOrganization,omitempty"`
 	RepoName         string                 `json:"repoName,omitempty"`
 	SpotguideName    string                 `json:"spotguideName,omitempty"`
+	Cluster          CreateClusterRequest   `json:"cluster,omitempty"`
 	Secrets          []CreateSecretRequest  `json:"secrets,omitempty"`
 	Values           map[string]interface{} `json:"values,omitempty"`
 }
