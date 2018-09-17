@@ -18,7 +18,7 @@ import "github.com/banzaicloud/pipeline/auth"
 
 // TableName constants
 const (
-	bucketsTableName = "azure_blob_stores"
+	bucketsTableName = "azure_buckets"
 )
 
 // ObjectStoreBucketModel is the schema for the DB.
