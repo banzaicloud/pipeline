@@ -26,8 +26,8 @@ import (
 	"time"
 
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/client"
 	"github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/google/go-github/github"
 	"github.com/goph/emperror"
@@ -87,12 +87,12 @@ func (s *Repo) AfterFind() error {
 }
 
 type LaunchRequest struct {
-	SpotguideName    string                        `json:"spotguideName" binding:"required"`
-	RepoOrganization string                        `json:"repoOrganization" binding:"required"`
-	RepoName         string                        `json:"repoName" binding:"required"`
-	Cluster          *cluster.CreateClusterRequest `json:"cluster"`
-	Secrets          []secret.CreateSecretRequest  `json:"secrets"`
-	Values           map[string]interface{}        `json:"values"` // Values passed to the Helm deployment in the 'deploy_application' step
+	SpotguideName    string                       `json:"spotguideName" binding:"required"`
+	RepoOrganization string                       `json:"repoOrganization" binding:"required"`
+	RepoName         string                       `json:"repoName" binding:"required"`
+	Cluster          *client.CreateClusterRequest `json:"cluster"`
+	Secrets          []secret.CreateSecretRequest `json:"secrets"`
+	Values           map[string]interface{}       `json:"values"` // Values passed to the Helm deployment in the 'deploy_application' step
 }
 
 func (r LaunchRequest) RepoFullname() string {
