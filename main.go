@@ -15,6 +15,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path"
@@ -22,10 +23,16 @@ import (
 
 	"github.com/banzaicloud/go-gin-prometheus"
 	"github.com/banzaicloud/pipeline/api"
+	"github.com/banzaicloud/pipeline/api/ark/backups"
+	"github.com/banzaicloud/pipeline/api/ark/backupservice"
+	"github.com/banzaicloud/pipeline/api/ark/buckets"
+	"github.com/banzaicloud/pipeline/api/ark/restores"
+	"github.com/banzaicloud/pipeline/api/ark/schedules"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/dns/route53/model"
+	arkSync "github.com/banzaicloud/pipeline/internal/ark/sync"
 	"github.com/banzaicloud/pipeline/internal/audit"
 	"github.com/banzaicloud/pipeline/internal/dashboard"
 	ginternal "github.com/banzaicloud/pipeline/internal/platform/gin"
@@ -286,7 +293,16 @@ func main() {
 
 		v1.GET("/allowed/secrets", api.ListAllowedSecretTypes)
 		v1.GET("/allowed/secrets/:type", api.ListAllowedSecretTypes)
+
+		backups.AddRoutes(orgs.Group("/:orgid/clusters/:id/backups"))
+		backupservice.AddRoutes(orgs.Group("/:orgid/clusters/:id/backupservice"))
+		restores.AddRoutes(orgs.Group("/:orgid/clusters/:id/restores"))
+		schedules.AddRoutes(orgs.Group("/:orgid/clusters/:id/schedules"))
+		buckets.AddRoutes(orgs.Group("/:orgid/backupbuckets"))
+		backups.AddOrgRoutes(orgs.Group("/:orgid/backups"))
 	}
+
+	go arkSync.RunSyncServices(context.Background(), config.DB(), log, config.ErrorHandler())
 
 	router.GET(basePath+"/api", api.MetaHandler(router, basePath+"/api"))
 

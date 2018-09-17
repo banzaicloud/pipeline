@@ -107,3 +107,12 @@ resourceDeleteSleepSeconds = 5
 [oke]
 waitAttemptsForNodepoolActive = 60
 sleepSecondsForNodepoolActive = 30
+
+[ark]
+name = "ark"
+namespace = "pipeline-infra"
+chart = "banzaicloud-stable/ark"
+chart_version = "1.2.1"
+image = "banzaicloud/ark"
+imagetag = "v0.9.6"
+pullpolicy = "IfNotPresent"

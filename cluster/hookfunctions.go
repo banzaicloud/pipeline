@@ -84,6 +84,10 @@ var HookMap = map[string]PostFunctioner{
 		f:            InstallPVCOperatorPostHook,
 		ErrorHandler: ErrorHandler{},
 	},
+	pkgCluster.RestoreFromBackup: &PostFunctionWithParam{
+		f:            RestoreFromBackup,
+		ErrorHandler: ErrorHandler{},
+	},
 }
 
 // BasePostHookFunctions default posthook functions after cluster create

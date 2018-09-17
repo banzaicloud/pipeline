@@ -249,6 +249,10 @@
   name = "github.com/aliyun/aliyun-oss-go-sdk"
   version = "1.9.0"
 
+[[constraint]]
+  name = "github.com/heptio/ark"
+  version = "0.9.3"
+
 # master: Could not introduce github.com/aliyun/alibaba-cloud-sdk-go@master,
 # as it has a dependency on github.com/jmespath/go-jmespath with constraint ^0.2.2,
 # which has no overlap with the following existing constraints:
