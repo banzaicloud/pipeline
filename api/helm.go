@@ -119,7 +119,7 @@ func ListDeployments(c *gin.Context) {
 	log.Info("Get deployments")
 	response, err := helm.ListDeployments(nil, kubeConfig)
 	if err != nil {
-		log.Error("Error during create deployment.", err.Error())
+		log.Error("Error listing deployments: ", err.Error())
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error listing deployments",
@@ -127,23 +127,48 @@ func ListDeployments(c *gin.Context) {
 		})
 		return
 	}
+
+	helmEnv := helm.GenerateHelmRepoEnv(auth.GetCurrentOrganization(c.Request).Name)
+	chartsResponse, err := helm.ChartsGet(helmEnv, "", "", "", "")
+	if err != nil {
+		log.Error("Error listing charts for deployments: ", err.Error())
+		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error listing charts for deployments",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	// Index known charts
+	supportedCharts := map[string]repo.ChartVersions{}
+	for _, charts := range chartsResponse {
+		for _, chart := range charts.Charts {
+			for _, chartVersion := range chart {
+				supportedCharts[chartVersion.Name] = append(supportedCharts[chartVersion.Name], chartVersion)
+			}
+		}
+	}
+
 	var releases []pkgHelm.ListDeploymentResponse
 	if response != nil && len(response.Releases) > 0 {
 		for _, r := range response.Releases {
 
 			createdAt := utils.ConvertSecondsToTime(time.Unix(r.Info.FirstDeployed.Seconds, 0))
 			updated := utils.ConvertSecondsToTime(time.Unix(r.Info.LastDeployed.Seconds, 0))
+			chartName := r.GetChart().GetMetadata().GetName()
 
 			body := pkgHelm.ListDeploymentResponse{
 				Name:         r.Name,
 				Chart:        helm.GetVersionedChartName(r.Chart.Metadata.Name, r.Chart.Metadata.Version),
-				ChartName:    r.GetChart().GetMetadata().GetName(),
+				ChartName:    chartName,
 				ChartVersion: r.GetChart().GetMetadata().GetVersion(),
 				Version:      r.Version,
 				Updated:      updated,
 				Status:       r.Info.Status.Code.String(),
 				Namespace:    r.Namespace,
 				CreatedAt:    createdAt,
+				Supported:    supportedCharts[chartName] != nil,
 			}
 			releases = append(releases, body)
 		}

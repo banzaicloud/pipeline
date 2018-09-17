@@ -21,4 +21,5 @@ type ListDeploymentsResponseInner struct {
 	Status       string `json:"status,omitempty"`
 	Namespace    string `json:"namespace,omitempty"`
 	CreatedAt    string `json:"createdAt,omitempty"`
+	Supported    bool   `json:"supported,omitempty"`
 }

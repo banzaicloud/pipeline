@@ -7093,6 +7093,8 @@ components:
         createdAt:
           example: 2018-07-03T14:23:19+02:00
           type: string
+        supported:
+          type: boolean
       type: object
     GetDeploymentResourcesResponse_inner:
       properties:

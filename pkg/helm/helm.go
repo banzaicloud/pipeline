@@ -123,6 +123,7 @@ type ListDeploymentResponse struct {
 	Status       string `json:"status"`
 	Namespace    string `json:"namespace"`
 	CreatedAt    string `json:"createdAt,omitempty"`
+	Supported    bool   `json:"supported"`
 }
 
 // DeploymentStatusResponse describes a deployment status response
