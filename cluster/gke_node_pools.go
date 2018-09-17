@@ -16,41 +16,14 @@ package cluster
 
 import (
 	"github.com/banzaicloud/pipeline/internal/providers/google"
-	"github.com/banzaicloud/pipeline/model"
 	pkgClusterGoogle "github.com/banzaicloud/pipeline/pkg/cluster/gke"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	gke "google.golang.org/api/container/v1"
 )
 
-//createNodePoolsModelFromRequestData creates an array of GoogleNodePoolModel from the nodePoolsData received through create/update requests
-func createNodePoolsModelFromRequestData(nodePoolsData map[string]*pkgClusterGoogle.NodePool, userId uint) ([]*model.GKENodePoolModel, error) {
-
-	nodePoolsCount := len(nodePoolsData)
-	if nodePoolsCount == 0 {
-		return nil, pkgErrors.ErrorNodePoolNotProvided
-	}
-	nodePoolsModel := make([]*model.GKENodePoolModel, nodePoolsCount)
-
-	i := 0
-	for nodePoolName, nodePoolData := range nodePoolsData {
-		nodePoolsModel[i] = &model.GKENodePoolModel{
-			CreatedBy:        userId,
-			Name:             nodePoolName,
-			Autoscaling:      nodePoolData.Autoscaling,
-			NodeMinCount:     nodePoolData.MinCount,
-			NodeMaxCount:     nodePoolData.MaxCount,
-			NodeCount:        nodePoolData.Count,
-			NodeInstanceType: nodePoolData.NodeInstanceType,
-		}
-		i++
-	}
-
-	return nodePoolsModel, nil
-}
-
 // createNodePoolsModelFromRequest creates an array of GoogleNodePoolModel from the nodePoolsData received through create/update requests
-func createNodePoolsModelFromRequest(nodePoolsData map[string]*pkgClusterGoogle.NodePool, userId uint) ([]*google.GKENodePoolModel, error) {
+func createNodePoolsModelFromRequest(nodePoolsData map[string]*pkgClusterGoogle.NodePool, userID uint) ([]*google.GKENodePoolModel, error) {
 	nodePoolsCount := len(nodePoolsData)
 	if nodePoolsCount == 0 {
 		return nil, pkgErrors.ErrorNodePoolNotProvided
@@ -60,7 +33,7 @@ func createNodePoolsModelFromRequest(nodePoolsData map[string]*pkgClusterGoogle.
 	i := 0
 	for nodePoolName, nodePoolData := range nodePoolsData {
 		nodePoolsModel[i] = &google.GKENodePoolModel{
-			CreatedBy:        userId,
+			CreatedBy:        userID,
 			Name:             nodePoolName,
 			Autoscaling:      nodePoolData.Autoscaling,
 			NodeMinCount:     nodePoolData.MinCount,
