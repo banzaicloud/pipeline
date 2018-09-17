@@ -1,6 +1,6 @@
 .git/
 bin/
-client/
+client/*.md
 docs/
 orgs/
 vendor/
