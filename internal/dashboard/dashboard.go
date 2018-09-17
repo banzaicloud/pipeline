@@ -1,0 +1,292 @@
+// Copyright © 2018 Banzai Cloud
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package dashboard
+
+import (
+	"context"
+	"fmt"
+	"net/http"
+	"strings"
+
+	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/cluster"
+	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/helm"
+	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	"github.com/banzaicloud/pipeline/pkg/providers"
+	"github.com/banzaicloud/pipeline/secret"
+	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
+	"k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
+	v12 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
+
+type Allocatable struct {
+	Cpu              string `json:"cpu"`
+	EphemeralStorage string `json:"ephemeral-storage"`
+	Memory           string `json:"memory"`
+	Pods             int64  `json:"pods"`
+}
+
+type Capacity struct {
+	Cpu              string `json:"cpu"`
+	EphemeralStorage string `json:"ephemeral-storage"`
+	Memory           string `json:"memory"`
+	Pods             int64  `json:"pods"`
+}
+
+type Node struct {
+	Name              string  `json:"name"`
+	CreationTimestamp string  `json:"creationTimestamp"`
+	Status            *Status `json:"status"`
+}
+
+type Status struct {
+	Capacity                    *Capacity    `json:"capacity"`
+	Allocatable                 *Allocatable `json:"allocatable"`
+	Ready                       string       `json:"ready"`
+	LastHeartbeatTime           string       `json:"lastHeartbeatTime"`
+	FrequentUnregisterNetDevice string       `json:"FrequentUnregisterNetDevice"`
+	KernelDeadlock              string       `json:"KernelDeadlock"`
+	NetworkUnavailable          string       `json:"NetworkUnavailable"`
+	OutOfDisk                   string       `json:"OutOfDisk"`
+	MemoryPressure              string       `json:"MemoryPressure"`
+	DiskPressure                string       `json:"DiskPressure"`
+	PIDPressure                 string       `json:"PIDPressure"`
+	CpuUsagePercent             float64      `json:"cpuUsagePercent"`
+	StorageUsagePercent         float64      `json:"storageUsagePercent"`
+	MemoryUsagePercent          float64      `json:"memoryUsagePercent"`
+	InstanceType                string       `json:"instance-type"`
+}
+
+type Cluster struct {
+	Name                string  `json:"name"`
+	Id                  string  `json:"id"`
+	Status              string  `json:"status"`
+	StatusMessage       string  `json:"statusMessage"`
+	Cloud               string  `json:"cloud"`
+	CreatedAt           string  `json:"createdAt"`
+	Region              string  `json:"region"`
+	Nodes               []Node  `json:"nodes"`
+	CpuUsagePercent     float64 `json:"cpuUsagePercent"`
+	StorageUsagePercent float64 `json:"storageUsagePercent"`
+	MemoryUsagePercent  float64 `json:"memoryUsagePercent"`
+}
+
+type GetDashboardRequest struct {
+	Clusters []Cluster `json:"clusters"`
+}
+
+// GetDashboard returns dashboard metrics for selected/all clusters of an organization
+func GetDashboard(c *gin.Context) {
+	organizationID := auth.GetCurrentOrganization(c.Request).ID
+
+	logger := log.WithFields(logrus.Fields{
+		"organization": organizationID,
+	})
+
+	// TODO: move these to a struct and create them only once upon application init
+	secretValidator := providers.NewSecretValidator(secret.Store)
+	clusterManager := cluster.NewManager(intCluster.NewClusters(config.DB()), secretValidator, log, errorHandler)
+
+	logger.Info("fetching clusters")
+
+	clusters, err := clusterManager.GetClusters(context.Background(), organizationID)
+	if err != nil {
+		logger.Errorf("error listing clusters: %s", err.Error())
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "error listing clusters",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	clusterResponseChan := make(chan Cluster, len(clusters))
+	defer close(clusterResponseChan)
+
+	i := 0
+	for _, c := range clusters {
+		status, err := c.GetStatus()
+		if err == nil {
+			if strings.ToUpper(status.Status) == "RUNNING" {
+				logger := logger.WithField("cluster", c.GetName())
+				go getClusterDashboard(logger, c, clusterResponseChan)
+				i++
+			}
+		}
+
+	}
+
+	clusterResponse := make([]Cluster, 0)
+	for j := 0; j < i; j++ {
+		c := <-clusterResponseChan
+		clusterResponse = append(clusterResponse, c)
+	}
+
+	c.JSON(http.StatusOK, GetDashboardRequest{Clusters: clusterResponse})
+
+}
+
+func getClusterDashboard(logger *logrus.Entry, commonCluster cluster.CommonCluster, clusterResponseChan chan Cluster) {
+	nodeStates := make([]Node, 0)
+	cluster := Cluster{
+		Name:  commonCluster.GetName(),
+		Id:    fmt.Sprint(commonCluster.GetID()),
+		Cloud: commonCluster.GetCloud(),
+		Nodes: nodeStates,
+	}
+	kubeConfig, err := commonCluster.GetK8sConfig()
+	if err != nil {
+		cluster.Status = "ERROR"
+		cluster.StatusMessage = err.Error()
+		clusterResponseChan <- cluster
+		return
+	}
+
+	client, err := helm.GetK8sConnection(kubeConfig)
+	if err != nil {
+		cluster.Status = "ERROR"
+		cluster.StatusMessage = err.Error()
+		clusterResponseChan <- cluster
+		return
+	}
+
+	clusterStatus, err := commonCluster.GetStatus()
+	if err != nil {
+		cluster.Status = "ERROR"
+		cluster.StatusMessage = err.Error()
+		clusterResponseChan <- cluster
+		return
+	}
+
+	cluster.Status = clusterStatus.Status
+	cluster.CreatedAt = clusterStatus.CreatedAt
+	cluster.Region = clusterStatus.Location
+
+	nodes, err := client.CoreV1().Nodes().List(v12.ListOptions{})
+	if err != nil {
+		cluster.Status = "ERROR"
+		cluster.StatusMessage = err.Error()
+		clusterResponseChan <- cluster
+		return
+	}
+
+	clusterResourceCapacityMap := make(map[v1.ResourceName]resource.Quantity, 0)
+	clusterResourceAllocatableMap := make(map[v1.ResourceName]resource.Quantity, 0)
+
+	for _, node := range nodes.Items {
+		status := &Status{
+			Allocatable: &Allocatable{},
+			Capacity:    &Capacity{},
+		}
+
+		status.KernelDeadlock = fmt.Sprint(v1.ConditionUnknown)
+		status.FrequentUnregisterNetDevice = fmt.Sprint(v1.ConditionUnknown)
+		status.OutOfDisk = fmt.Sprint(v1.ConditionUnknown)
+		status.MemoryPressure = fmt.Sprint(v1.ConditionUnknown)
+		status.DiskPressure = fmt.Sprint(v1.ConditionUnknown)
+		status.PIDPressure = fmt.Sprint(v1.ConditionUnknown)
+		status.NetworkUnavailable = fmt.Sprint(v1.ConditionUnknown)
+
+		for _, condition := range node.Status.Conditions {
+			switch condition.Type {
+			case v1.NodeReady:
+				status.Ready = fmt.Sprint(condition.Status)
+				status.LastHeartbeatTime = condition.LastHeartbeatTime.String()
+			case v1.NodeOutOfDisk:
+				status.OutOfDisk = fmt.Sprint(condition.Status)
+			case v1.NodeMemoryPressure:
+				status.MemoryPressure = fmt.Sprint(condition.Status)
+			case v1.NodeDiskPressure:
+				status.DiskPressure = fmt.Sprint(condition.Status)
+			case v1.NodePIDPressure:
+				status.PIDPressure = fmt.Sprint(condition.Status)
+			case v1.NodeNetworkUnavailable:
+				status.NetworkUnavailable = fmt.Sprint(condition.Status)
+			}
+		}
+
+		status.CpuUsagePercent, status.Capacity.Cpu, status.Allocatable.Cpu = calculateNodeResourceUsage(v1.ResourceCPU, node, clusterResourceCapacityMap, clusterResourceAllocatableMap)
+		status.MemoryUsagePercent, status.Capacity.Memory, status.Allocatable.Memory = calculateNodeResourceUsage(v1.ResourceMemory, node, clusterResourceCapacityMap, clusterResourceAllocatableMap)
+		status.StorageUsagePercent, status.Capacity.EphemeralStorage, status.Allocatable.EphemeralStorage = calculateNodeResourceUsage(v1.ResourceEphemeralStorage, node, clusterResourceCapacityMap, clusterResourceAllocatableMap)
+		status.Capacity.Pods = node.Status.Capacity.Pods().Value()
+		status.Allocatable.Pods = node.Status.Allocatable.Pods().Value()
+
+		instanceType, found := node.Labels["beta.kubernetes.io/instance-type"]
+		if found {
+			status.InstanceType = instanceType
+		} else {
+			status.InstanceType = "n/a"
+		}
+
+		nodeStates = append(nodeStates, Node{
+			Name:              node.Name,
+			CreationTimestamp: node.CreationTimestamp.String(),
+			Status:            status,
+		})
+	}
+	cluster.Nodes = nodeStates
+	cluster.CpuUsagePercent = calculateClusterResourceUsage(v1.ResourceCPU, clusterResourceCapacityMap, clusterResourceAllocatableMap)
+	cluster.MemoryUsagePercent = calculateClusterResourceUsage(v1.ResourceMemory, clusterResourceCapacityMap, clusterResourceAllocatableMap)
+	cluster.StorageUsagePercent = calculateClusterResourceUsage(v1.ResourceEphemeralStorage, clusterResourceCapacityMap, clusterResourceAllocatableMap)
+
+	clusterResponseChan <- cluster
+	return
+}
+
+func calculateNodeResourceUsage(resourceName v1.ResourceName, node v1.Node, clusterResourceCapacityMap map[v1.ResourceName]resource.Quantity, clusterResourceAllocatableMap map[v1.ResourceName]resource.Quantity) (float64, string, string) {
+	capacity, found := node.Status.Capacity[resourceName]
+	if !found {
+		return 0, "n/a", "n/a"
+	}
+	clusterResourceCapacity, found := clusterResourceCapacityMap[resourceName]
+	if found {
+		clusterResourceCapacity.Add(capacity)
+	} else {
+		clusterResourceCapacityMap[resourceName] = capacity.DeepCopy()
+	}
+
+	allocatable, found := node.Status.Allocatable[resourceName]
+	if !found {
+		return 0, "n/a", "n/a"
+	}
+	clusterResourceAllocatable, found := clusterResourceAllocatableMap[resourceName]
+	if found {
+		clusterResourceAllocatable.Add(allocatable)
+	} else {
+		clusterResourceAllocatableMap[resourceName] = allocatable.DeepCopy()
+	}
+
+	usagePercent := float64(capacity.Value()-allocatable.Value()) / float64(capacity.Value()) * 100
+	return usagePercent, capacity.String(), allocatable.String()
+}
+
+func calculateClusterResourceUsage(resourceName v1.ResourceName, clusterResourceCapacityMap map[v1.ResourceName]resource.Quantity, clusterResourceAllocatableMap map[v1.ResourceName]resource.Quantity) float64 {
+	clusterResourceCapacity, found := clusterResourceCapacityMap[resourceName]
+	if !found {
+		return 0
+	}
+
+	clusterResourceAllocatable, found := clusterResourceAllocatableMap[resourceName]
+	if !found {
+		return 0
+	}
+
+	usagePercent := float64(clusterResourceCapacity.Value()-clusterResourceAllocatable.Value()) / float64(clusterResourceCapacity.Value()) * 100
+	return usagePercent
+}
