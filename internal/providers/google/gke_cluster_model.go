@@ -25,7 +25,7 @@ import (
 // GKEClusterModel is the schema for the DB.
 type GKEClusterModel struct {
 	Cluster   cluster.ClusterModel `gorm:"foreignkey:ClusterID"`
-	ClusterID uint                 `gorm:"index;not null"`
+	ClusterID uint                 `gorm:"primary_key;not null"`
 
 	MasterVersion string
 	NodeVersion   string

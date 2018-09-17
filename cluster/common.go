@@ -293,13 +293,6 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 			return nil, err
 		}
 
-		log.Info("Load Google props from database")
-		err = db.Where(model.GKEClusterModel{ClusterModelId: gkeCluster.modelCluster.ID}).First(&gkeCluster.modelCluster.GKE).Error
-		if err != nil {
-			return nil, err
-		}
-		err = db.Model(&gkeCluster.modelCluster.GKE).Related(&gkeCluster.modelCluster.GKE.NodePools, "NodePools").Error
-
 		return gkeCluster, err
 
 	case pkgCluster.Dummy:

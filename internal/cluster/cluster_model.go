@@ -18,7 +18,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/banzaicloud/pipeline/secret"
+	"github.com/jinzhu/gorm"
 	"github.com/satori/go.uuid"
+	"github.com/sirupsen/logrus"
 )
 
 const unknownLocation = "unknown"
@@ -42,10 +45,10 @@ type ClusterModel struct {
 	Location       string
 	Cloud          string
 	Distribution   string
-	OrganizationId uint `gorm:"unique_index:idx_unique_id"`
-	SecretId       string
-	ConfigSecretId string
-	SshSecretId    string
+	OrganizationID uint `gorm:"unique_index:idx_unique_id"`
+	SecretID       string
+	ConfigSecretID string
+	SSHSecretID    string
 	Status         string
 	RbacEnabled    bool
 	Monitoring     bool
@@ -78,4 +81,18 @@ func (m *ClusterModel) AfterFind() error {
 // String method prints formatted cluster fields.
 func (m ClusterModel) String() string {
 	return fmt.Sprintf("Id: %d, Creation date: %s, Cloud: %s, Distribution: %s", m.ID, m.CreatedAt, m.Cloud, m.Distribution)
+}
+
+// BeforeDelete should not be declared on this model.
+// TODO: please move this to the cluster delete flow
+// this should not have been added here in the first place!!!!!!!
+func (m ClusterModel) BeforeDelete(tx *gorm.DB) (err error) {
+	logger := log.WithFields(logrus.Fields{"organization": m.OrganizationID, "cluster": m.ID})
+
+	logger.Info("Delete unused cluster secrets")
+	if err := secret.Store.DeleteByClusterUID(m.OrganizationID, m.UID); err != nil {
+		logger.Errorf("Error during deleting secret: %s", err.Error())
+	}
+
+	return
 }

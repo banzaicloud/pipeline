@@ -342,12 +342,6 @@ func (cs *ClusterModel) String() string {
 		buffer.WriteString(fmt.Sprintf("NodePools: %v, Kubernetes version: %s",
 			cs.AKS.NodePools,
 			cs.AKS.KubernetesVersion))
-	case pkgCluster.GKE:
-		// Write GKE
-		buffer.WriteString(fmt.Sprintf("NodePools: %v, Master version: %s, Node version: %s",
-			cs.GKE.NodePools,
-			cs.GKE.MasterVersion,
-			cs.GKE.NodeVersion))
 	case pkgCluster.Dummy:
 		buffer.WriteString(fmt.Sprintf("Node count: %d, kubernetes version: %s",
 			cs.Dummy.NodeCount,
