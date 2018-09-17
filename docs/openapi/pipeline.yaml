@@ -3373,6 +3373,9 @@ components:
         spotguideName:
           type: string
           example: "banzaicloud/spotguide-nodejs-mongodb"
+        cluster:
+          required: false
+          $ref: '#/components/schemas/CreateClusterRequest'
         secrets:
           type: array
           items:
