@@ -6,7 +6,7 @@ GITREV = $(shell git rev-parse --short HEAD 2>/dev/null)
 BUILD_DATE = $(shell date +%FT%T%z)
 
 DEP_VERSION = 0.5.0
-GOLANGCI_VERSION = 1.9.3
+GOLANGCI_VERSION = 1.10.2
 MISSPELL_VERSION = 0.3.4
 JQ_VERSION = 1.5
 LICENSEI_VERSION = 0.0.7
