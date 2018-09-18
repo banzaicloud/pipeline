@@ -64,8 +64,7 @@ type Resources struct {
 	MaxNodes    int      `json:"maxNodes"`
 }
 
-type Question struct {
-}
+type Question map[string]interface{}
 
 type Repo struct {
 	ID           uint       `gorm:"primary_key" json:"-"`
@@ -74,7 +73,7 @@ type Repo struct {
 	DeletedAt    *time.Time `sql:"index" json:"-"`
 	Name         string     `json:"name"`
 	Icon         string     `json:"-"`
-	SpotguideRaw []byte     `json:"-" sql:"size:10240"`
+	SpotguideRaw []byte     `json:"-" sql:"type:text"`
 	Spotguide    Spotguide  `gorm:"-" json:"spotguide"`
 }
 
