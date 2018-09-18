@@ -103,11 +103,12 @@ bin/licensei: ## Install license checker
 
 .PHONY: license-check
 license-check: bin/licensei ## Run license check
-	@bin/licensei check
+	bin/licensei check
+	./scripts/check-header.sh
 
 .PHONY: license-cache
 license-cache: bin/licensei ## Generate license cache
-	@bin/licensei cache
+	bin/licensei cache
 
 .PHONY: test
 test:
