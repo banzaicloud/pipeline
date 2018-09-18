@@ -983,6 +983,215 @@ paths:
             schema:
               $ref: '#/components/schemas/InstallSecretsRequest'
 
+  '/api/v1/orgs/{orgId}/clusters/{id}/policies':
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+       - Policies
+      operationId: list_policies
+      summary: List policies
+      description: List all saved policy bundles
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Selected cluster identification (number)
+          schema:
+            type: integer
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+        - name: detail
+          in: query
+          schema:
+            type: boolean
+          required: false
+          description: Include policy bundle detail in the form of the full bundle content for each entry
+      responses:
+        '200':
+          description: Policy listing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PolicyBundleList"
+    post:
+      tags:
+      - Policies
+      operationId: add_policy
+      summary: Add a new policy
+      description: Adds a new policy bundle to the system
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Selected cluster identification (number)
+          schema:
+            type: integer
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PolicyBundle"
+      responses:
+        200:
+          description: Saved bundle
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PolicyBundleRecord"
+        500:
+          description: Internal Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BaseError_500"
+
+  '/api/v1/orgs/{orgId}/clusters/{id}/policies/{policyId}':
+    get:
+      tags:
+      - Policies
+      operationId: get_policy
+      description: Get the policy bundle content
+      summary: Get specific policy
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: Selected cluster identification (number)
+        schema:
+          type: integer
+      - name: orgId
+        in: path
+        required: true
+        description: Organization identification
+        schema:
+          type: integer
+      - name: policyId
+        in: path
+        schema:
+          type: string
+        required: True
+      - name: detail
+        in: query
+        schema:
+          type: boolean
+        required: false
+        description: Include policy bundle detail in the form of the full bundle content for each entry
+      responses:
+        200:
+          description: A list with a single fetched policy bundle record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PolicyBundleList"
+        500:
+          description: Internal Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BaseError_500"
+    put:
+      tags:
+      - Policies
+      operationId: update_policy
+      description: Update/replace and existing policy
+      summary: Update policy
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: Selected cluster identification (number)
+        schema:
+          type: integer
+      - name: orgId
+        in: path
+        required: true
+        description: Organization identification
+        schema:
+          type: integer
+      - name: policyId
+        in: path
+        schema:
+          type: string
+        required: True
+      - name: active
+        in: query
+        schema:
+          type: boolean
+        required: false
+        description: Mark policy as active
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PolicyBundleRecord"
+      responses:
+        200:
+          description: A list with a single updated policy bundle record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PolicyBundleList"
+        500:
+          description: Internal Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BaseError_500"
+    delete:
+      tags:
+      - Policies
+      operationId: delete_policy
+      description: Delete the specified policy
+      summary: Delete policy
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: Selected cluster identification (number)
+        schema:
+          type: integer
+      - name: orgId
+        in: path
+        required: true
+        description: Organization identification
+        schema:
+          type: integer
+      - name: policyId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: Delete success
+        404:
+          description: Policy not found to delete
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BaseError_400"
+        500:
+          description: Internal Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BaseError_500"
+
+
   '/api/v1/orgs/{orgId}/helm/repos':
     get:
       security:
@@ -6402,3 +6611,256 @@ components:
         message:
           example: 'ScalingActive = true, lastTransitionTime: 2018-08-22T15:31:16Z, the HPA was able to succesfully calculate a replica count from memory resource'
           type: string
+
+    PolicyBundle:
+        description: A bundle containing a set of policies, whitelists, and rules for mapping them to specific images
+        type: object
+        required:
+        - id
+        - version
+        - policies
+        - mappings
+        properties:
+          id:
+            type: string
+            description: Id of the bundle
+          name:
+            type: string
+            description: Human readable name for the bundle
+          comment:
+            type: string
+            description: Description of the bundle, human readable
+          version:
+            type: string
+            description: Version id for this bundle format
+          whitelists:
+            description: Whitelists which define which policy matches to disregard explicitly in the final policy decision
+            type: array
+            items:
+              $ref: "#/components/schemas/Whitelist"
+          policies:
+            description: Policies which define the go/stop/warn status of an image using rule matches on image properties
+            type: "array"
+            items:
+              $ref: "#/components/schemas/Policy"
+          mappings:
+            description: Mapping rules for defining which policy and whitelist(s) to apply to an image based on a match of the image tag or id. Evaluated in order.
+            type: "array"
+            items:
+              $ref: "#/components/schemas/MappingRule"
+          whitelisted_images:
+            description: List of mapping rules that define which images should always be passed (unless also on the blacklist), regardless of policy result.
+            type: array
+            items:
+              $ref: "#/components/schemas/ImageSelectionRule"
+          blacklisted_images:
+            description: List of mapping rules that define which images should always result in a STOP/FAIL policy result regardless of policy content or presence in whitelisted_images
+            type: array
+            items:
+              $ref: "#/components/schemas/ImageSelectionRule"
+    WhitelistItem:
+      type: object
+      description: Identifies a specific gate and trigger match from a policy against an image and indicates it should be ignored in final policy decisions
+      required:
+      - gate
+      - trigger_id
+      properties:
+        id:
+          type: string
+        gate:
+          type: string
+        trigger_id:
+          type: string
+    PolicyRule:
+      type: object
+      description: A rule that defines and decision value if the match is found true for a given image.
+      required:
+      - gate
+      - trigger
+      - action
+      properties:
+        id:
+          type: string
+        gate:
+          type: string
+        trigger:
+          type: string
+        action:
+          enum:
+          - GO
+          - STOP
+          - WARN
+        params:
+          type: array
+          items:
+            type: object
+            required:
+            - name
+            - value
+            properties:
+              name:
+                type: string
+              value:
+                type: string
+    Whitelist:
+      type: object
+      description: A collection of whitelist items to match a policy evaluation against.
+      required:
+      - id
+      - version
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        version:
+          type: string
+        comment:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/WhitelistItem"
+    ImageRef:
+      type: object
+      description: A reference to an image
+      required:
+      - type
+      - value
+      properties:
+        type:
+          enum:
+            - tag
+            - digest
+            - id
+        value:
+          type: string
+    Policy:
+      type: object
+      required:
+      - id
+      - version
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        comment:
+          type: string
+        version:
+          type: string
+        rules:
+          type: array
+          items:
+            $ref: "#/components/schemas/PolicyRule"
+    ImageSelectionRule:
+      type: object
+      required:
+      - "name"
+      - "registry"
+      - "repository"
+      - "image"
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        registry:
+          type: string
+        repository:
+          type: string
+        image:
+          $ref: "#/components/schemas/ImageRef"
+    MappingRule:
+      type: object
+      required:
+      - name
+      - registry
+      - repository
+      - image
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        whitelist_ids:
+          type: array
+          items:
+            type: string
+        policy_id:
+          type: string
+          description: Optional single policy to evalute, if set will override any value in policy_ids, for backwards compatibility. Generally, policy_ids should be used even with a array of length 1.
+        policy_ids:
+          type: array
+          description: List of policyIds to evaluate in order, to completion
+          items:
+            type: string
+            description: PolicyId to evaluate
+        registry:
+          type: string
+        repository:
+          type: string
+        image:
+          $ref: "#/components/schemas/ImageRef"
+    PolicyBundleRecord:
+      description: A policy bundle plus some metadata
+      type: object
+      properties:
+        created_at:
+          type: string
+          format: "date-time"
+        last_updated:
+          type: string
+          format: "date-time"
+        policyId:
+          type: string
+          description: The bundle's identifier
+        active:
+          type: boolean
+          description: True if the bundle is currently defined to be used automatically
+        userId:
+          type: string
+          description: UserId of the user that owns the bundle
+        policy_source:
+          type: string
+          description: Source location of where the policy bundle originated
+        policybundle:
+          $ref: "#/components/schemas/PolicyBundle"
+    PolicyBundleList:
+      type: array
+      description: List of PolicyBundleRecord objects
+      items:
+        $ref: "#/components/schemas/PolicyBundleRecord"
+    ImageContent:
+      type: object
+      description: A metadata content record for a specific image, containing different content type entries
+    ImageDetail:
+      type: object
+      description: A metadata detail record for a specific image. Multiple detail records may map a single catalog image.
+      properties:
+        created_at:
+          type: string
+          format: "date-time"
+        last_updated:
+          type: string
+          format: "date-time"
+        fulltag:
+          description: "Full docker-pullalbe tag string referencing the image"
+          type: string
+        fulldigest:
+          description: "Full docker-pullable digest string including the registry url and repository necessary get the image"
+          type: string
+        userId:
+          type: string
+        imageId:
+          type: string
+        registry:
+          type: string
+        repo:
+          type: string
+        dockerfile:
+          type: string
+          x-nullable: True
+        imageDigest:
+          type: string
+          description: The parent Anchore Image record to which this detail maps
