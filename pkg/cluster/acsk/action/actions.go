@@ -343,7 +343,12 @@ func (a *DeleteSSHKeyAction) ExecuteAction(input interface{}) (interface{}, erro
 
 	req := ecs.CreateDeleteKeyPairsRequest()
 	req.SetScheme(requests.HTTPS)
-	req.KeyPairNames = a.sshKeyName
+	jsonData := []string{a.sshKeyName}
+	marshaledValue, err := json.Marshal(jsonData)
+	if err != nil {
+		return nil, err
+	}
+	req.KeyPairNames = string(marshaledValue)
 	req.RegionId = a.sshKeyRegionID
 
 	return ecsClient.DeleteKeyPairs(req)
