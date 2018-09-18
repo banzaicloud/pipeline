@@ -30,6 +30,7 @@ type clusterRepository interface {
 	FindOneByID(organizationID uint, clusterID uint) (*model.ClusterModel, error)
 	FindOneByName(organizationID uint, clusterName string) (*model.ClusterModel, error)
 	FindBySecret(organizationID uint, secretID string) ([]*model.ClusterModel, error)
+	FindByStatus(status string) ([]*model.ClusterModel, error)
 }
 
 type secretValidator interface {
