@@ -18,7 +18,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/internal/providers/google"
 	pkgClusterGoogle "github.com/banzaicloud/pipeline/pkg/cluster/gke"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
@@ -39,23 +39,23 @@ const (
 )
 
 var (
-	clusterModelWithNilNodePools = &model.GKEClusterModel{NodeVersion: nodeVersion}
+	clusterModelWithNilNodePools = &google.GKEClusterModel{NodeVersion: nodeVersion}
 
-	clusterModelWithEmptyNodePools = &model.GKEClusterModel{
+	clusterModelWithEmptyNodePools = &google.GKEClusterModel{
 		NodeVersion: nodeVersion,
-		NodePools:   []*model.GKENodePoolModel{},
+		NodePools:   []*google.GKENodePoolModel{},
 	}
 
-	clusterModel = &model.GKEClusterModel{
+	clusterModel = &google.GKEClusterModel{
 		NodeVersion: nodeVersion,
-		NodePools: []*model.GKENodePoolModel{
+		NodePools: []*google.GKENodePoolModel{
 			{Name: pool1Name, NodeCount: pool1Count, NodeInstanceType: pool1NodeInstanceType},
 			{Name: pool2Name, NodeCount: pool2Count, NodeInstanceType: pool2NodeInstanceType},
 		},
 	}
 )
 
-func TestCreateNodePoolsModelFromRequestData(t *testing.T) {
+func TestCreateNodePoolsModelFromRequest(t *testing.T) {
 	// given
 	emptyNodePoolsData := map[string]*pkgClusterGoogle.NodePool{}
 
@@ -64,7 +64,7 @@ func TestCreateNodePoolsModelFromRequestData(t *testing.T) {
 		pool2Name: {Count: pool2Count, NodeInstanceType: pool2NodeInstanceType},
 	}
 
-	nodePoolsModel := []*model.GKENodePoolModel{
+	nodePoolsModel := []*google.GKENodePoolModel{
 		{CreatedBy: userId, Name: pool1Name, NodeCount: pool1Count, NodeInstanceType: pool1NodeInstanceType},
 		{CreatedBy: userId, Name: pool2Name, NodeCount: pool2Count, NodeInstanceType: pool2NodeInstanceType},
 	}
@@ -72,7 +72,7 @@ func TestCreateNodePoolsModelFromRequestData(t *testing.T) {
 	testCases := []struct {
 		name                   string
 		inputNodePoolsData     map[string]*pkgClusterGoogle.NodePool
-		expectedNodePoolsModel []*model.GKENodePoolModel
+		expectedNodePoolsModel []*google.GKENodePoolModel
 		expectedErr            error
 	}{
 		{name: "create node pools model from nil", inputNodePoolsData: nil, expectedNodePoolsModel: nil, expectedErr: pkgErrors.ErrorNodePoolNotProvided},
@@ -83,7 +83,7 @@ func TestCreateNodePoolsModelFromRequestData(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			// when
-			nodePoolsModel, err := createNodePoolsModelFromRequestData(tc.inputNodePoolsData, userId)
+			nodePoolsModel, err := createNodePoolsModelFromRequest(tc.inputNodePoolsData, userId)
 
 			// then
 			if tc.expectedErr != err {
@@ -91,12 +91,12 @@ func TestCreateNodePoolsModelFromRequestData(t *testing.T) {
 			}
 
 			// we have to compare the actual and expected slices regardless of the order of the elements
-			expected := make(map[string]*model.GKENodePoolModel, len(tc.expectedNodePoolsModel))
+			expected := make(map[string]*google.GKENodePoolModel, len(tc.expectedNodePoolsModel))
 			for _, nodePool := range tc.expectedNodePoolsModel {
 				expected[nodePool.Name] = nodePool
 			}
 
-			actual := make(map[string]*model.GKENodePoolModel, len(nodePoolsModel))
+			actual := make(map[string]*google.GKENodePoolModel, len(nodePoolsModel))
 			for _, nodePool := range nodePoolsModel {
 				actual[nodePool.Name] = nodePool
 			}
@@ -140,7 +140,7 @@ func TestCreateNodePoolsFromClusterModel(t *testing.T) {
 
 	testCases := []struct {
 		name         string
-		clusterModel *model.GKEClusterModel
+		clusterModel *google.GKEClusterModel
 		nodePools    []*gke.NodePool
 		err          error
 	}{
@@ -192,7 +192,7 @@ func TestCreateRequestNodePoolsFromNodePoolModel(t *testing.T) {
 
 	testCases := []struct {
 		name                 string
-		nodePoolsModel       []*model.GKENodePoolModel
+		nodePoolsModel       []*google.GKENodePoolModel
 		nodePoolsRequestData map[string]*pkgClusterGoogle.NodePool
 		err                  error
 	}{

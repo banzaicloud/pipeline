@@ -12,34 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google
+package cluster
 
 import (
-	"fmt"
-
-	"github.com/banzaicloud/pipeline/pkg/providers/google"
-	"github.com/jinzhu/gorm"
+	"github.com/banzaicloud/pipeline/config"
 	"github.com/sirupsen/logrus"
 )
 
-// Migrate executes the table migrations for the provider.
-func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
-	tables := []interface{}{
-		&ObjectStoreBucketModel{},
+var log logrus.FieldLogger
 
-		&GKEClusterModel{},
-		&GKENodePoolModel{},
-	}
-
-	var tableNames string
-	for _, table := range tables {
-		tableNames += fmt.Sprintf(" %s", db.NewScope(table).TableName())
-	}
-
-	logger.WithFields(logrus.Fields{
-		"provider":    google.Provider,
-		"table_names": tableNames,
-	}).Info("migrating provider tables")
-
-	return db.AutoMigrate(tables...).Error
+func init() {
+	log = config.Logger()
 }

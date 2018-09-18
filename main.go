@@ -95,8 +95,6 @@ func main() {
 		&model.EKSClusterModel{},
 		&model.AKSClusterModel{},
 		&model.AKSNodePoolModel{},
-		&model.GKEClusterModel{},
-		&model.GKENodePoolModel{},
 		&model.DummyClusterModel{},
 		&model.KubernetesClusterModel{},
 		&auth.AuthIdentity{},
