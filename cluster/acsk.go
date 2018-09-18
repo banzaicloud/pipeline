@@ -466,9 +466,7 @@ func (c *ACSKCluster) DeleteCluster() error {
 
 	actions := []utils.Action{
 		action.NewDeleteACSKClusterAction(c.log, deleteContext),
-		//TODO getting an error 'The specified parameter "KeyPairNames" is not valid.'
-		// when calling DeleteKeyPairs if this one is resolved we can uncomment this line
-		//action.NewDeleteSSHKeyAction(c.log, deleteContext, c.modelCluster.Name, c.modelCluster.ACSK.RegionID),
+		action.NewDeleteSSHKeyAction(c.log, deleteContext, c.modelCluster.Name, c.modelCluster.ACSK.RegionID),
 	}
 
 	_, err = utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, true)
@@ -576,11 +574,6 @@ func (c *ACSKCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) 
 }
 
 func (c *ACSKCluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
-	//for _, np := range r.ACSK.NodePools {
-	//	if np.Image == "" {
-	//		np.Image = acsk.DefaultImage
-	//	}
-	//}
 }
 
 func (c *ACSKCluster) GetAPIEndpoint() (string, error) {
