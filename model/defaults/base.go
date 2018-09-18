@@ -27,17 +27,17 @@ import (
 
 // cluster profile table names
 const (
-	DefaultEC2ProfileTableName         = "profiles_ec2"
-	DefaultEC2NodePoolProfileTableName = "profiles_nodepools_ec2"
+	DefaultEC2ProfileTableName         = "amazon_ec2_profiles"
+	DefaultEC2NodePoolProfileTableName = "amazon_ec2_profile_nodepools"
 
-	DefaultEKSProfileTableName         = "profiles_eks"
-	DefaultEKSNodePoolProfileTableName = "profiles_nodepools_eks"
+	DefaultEKSProfileTableName         = "amazon_eks_profiles"
+	DefaultEKSNodePoolProfileTableName = "amazon_eks_profile_nodepools"
 
-	DefaultAKSProfileTableName         = "profiles_aks"
-	DefaultAKSNodePoolProfileTableName = "profiles_nodepools_aks"
+	DefaultAKSProfileTableName         = "azure_aks_profiles"
+	DefaultAKSNodePoolProfileTableName = "azure_aks_profile_nodepools"
 
-	DefaultGKEProfileTableName         = "profiles_gke"
-	DefaultGKENodePoolProfileTableName = "profiles_nodepools_gke"
+	DefaultGKEProfileTableName         = "google_gke_profiles"
+	DefaultGKENodePoolProfileTableName = "google_gke_profile_nodepools"
 )
 
 // default node name for all provider
