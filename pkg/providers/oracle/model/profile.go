@@ -24,9 +24,9 @@ import (
 
 // SQL table names
 const (
-	ProfileTableName              = "profiles_oke"
-	ProfileNodePoolTableName      = "profiles_nodepools_oke"
-	ProfileNodePoolLabelTableName = "profiles_nodepools_oke_labels"
+	ProfileTableName              = "oracle_oke_profiles"
+	ProfileNodePoolTableName      = "oracle_oke_profile_nodepools"
+	ProfileNodePoolLabelTableName = "oracle_oke_profile_nodepool_labels"
 )
 
 // Profile describes the Oracle cluster profile model
