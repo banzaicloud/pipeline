@@ -31,7 +31,6 @@ import (
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/model/defaults"
 	"github.com/banzaicloud/pipeline/notify"
-	"github.com/banzaicloud/pipeline/objectstore"
 	"github.com/banzaicloud/pipeline/spotguide"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -109,7 +108,6 @@ func main() {
 		&defaults.AKSNodePoolProfile{},
 		&defaults.GKEProfile{},
 		&defaults.GKENodePoolProfile{},
-		&objectstore.ManagedAlibabaBucket{},
 		&route53model.Route53Domain{},
 		&spotguide.Repo{},
 	}

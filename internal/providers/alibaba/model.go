@@ -12,39 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package providers
+package alibaba
 
 import (
-	"github.com/banzaicloud/pipeline/internal/providers/alibaba"
-	"github.com/banzaicloud/pipeline/internal/providers/amazon"
-	"github.com/banzaicloud/pipeline/internal/providers/azure"
-	"github.com/banzaicloud/pipeline/internal/providers/google"
-	"github.com/banzaicloud/pipeline/internal/providers/oracle"
+	"fmt"
+
+	"github.com/banzaicloud/pipeline/pkg/providers/alibaba"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 )
 
-// Migrate runs migrations for cloud provider services.
+// Migrate executes the table migrations for the provider.
 func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
-	if err := alibaba.Migrate(db, logger); err != nil {
-		return err
+	tables := []interface{}{
+		&ManagedAlibabaBucket{},
 	}
 
-	if err := amazon.Migrate(db, logger); err != nil {
-		return err
+	var tableNames string
+	for _, table := range tables {
+		tableNames += fmt.Sprintf(" %s", db.NewScope(table).TableName())
 	}
 
-	if err := azure.Migrate(db, logger); err != nil {
-		return err
-	}
+	logger.WithFields(logrus.Fields{
+		"provider":    alibaba.Provider,
+		"table_names": tableNames,
+	}).Info("migrating provider tables")
 
-	if err := google.Migrate(db, logger); err != nil {
-		return err
-	}
-
-	if err := oracle.Migrate(db, logger); err != nil {
-		return err
-	}
-
-	return nil
+	return db.AutoMigrate(tables...).Error
 }
