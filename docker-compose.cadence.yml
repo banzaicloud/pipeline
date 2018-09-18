@@ -1,0 +1,31 @@
+version: '3.1'
+
+services:
+    cassandra:
+        image: cassandra:3.11
+
+    statsd:
+        image: hopsoft/graphite-statsd
+
+    cadence:
+        image: ubercadence/server:0.3.15
+        ports:
+            - "7933:7933"
+            - "7934:7934"
+            - "7935:7935"
+        environment:
+            - "LOG_LEVEL=debug,info"
+            - "CASSANDRA_SEEDS=cassandra"
+            - "STATSD_ENDPOINT=statsd:8125"
+        depends_on:
+            - cassandra
+            - statsd
+
+    cadence-web:
+        image: ubercadence/web:2.4.0
+        environment:
+            - "CADENCE_TCHANNEL_PEERS=cadence:7933"
+        ports:
+            - "8088:8088"
+        depends_on:
+            - cadence
