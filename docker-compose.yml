@@ -1,83 +1,82 @@
 version: '3.1'
 
 services:
+    db:
+        image: mysql:5.7
+        command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+        restart: always
+        ports:
+            - 3306:3306
+        environment:
+            MYSQL_ROOT_PASSWORD: example
+            MYSQL_DATABASE: pipeline
+            MYSQL_USER: sparky
+            MYSQL_PASSWORD: sparky123
+        volumes:
+            - ${PWD}/db-init.sql:/docker-entrypoint-initdb.d/db-init.sql
 
-  db:
-    image: mysql:5.7
-    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
-    restart: always
-    ports:
-      - 3306:3306
-    environment:
-      MYSQL_ROOT_PASSWORD: example
-      MYSQL_DATABASE: pipeline
-      MYSQL_USER: sparky
-      MYSQL_PASSWORD: sparky123
-    volumes:
-      - ${PWD}/db-init.sql:/docker-entrypoint-initdb.d/db-init.sql
+    adminer:
+        image: adminer
+        restart: always
+        ports:
+            - 8080:8080
 
-  adminer:
-    image: adminer
-    restart: always
-    ports:
-      - 8080:8080
+    vault:
+        image: vault:0.11.0
+        restart: always
+        cap_add:
+            - IPC_LOCK
+        ports:
+            - 8200:8200
+        volumes:
+            - $HOME:/home/vault
 
-  vault:
-    image: vault:0.11.0
-    restart: always
-    cap_add:
-      - IPC_LOCK
-    ports:
-      - 8200:8200
-    volumes:
-      - $HOME:/home/vault
+    vault-configurer:
+        image: vault:0.11.0
+        depends_on:
+            - vault
+            - db
+        restart: "no"
+        command:
+            - /bin/vault-enable-database.sh
+        environment:
+            VAULT_ADDR: http://vault:8200
+        volumes:
+            - $HOME:/root
+            - ./scripts/vault-enable-database.sh:/bin/vault-enable-database.sh
 
-  vault-configurer:
-    image: vault:0.11.0
-    depends_on:
-      - vault
-      - db
-    restart: "no"
-    command:
-      - /bin/vault-enable-database.sh
-    environment:
-      VAULT_ADDR: http://vault:8200
-    volumes:
-      - $HOME:/root
-      - ./scripts/vault-enable-database.sh:/bin/vault-enable-database.sh
+    drone-server:
+        image: banzaicloud/drone:0.3.0
+        restart: always
+        ports:
+            - 8000:8000
+            - 9000
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+        entrypoint:
+            - /bin/drone-server
+        environment:
+            DRONE_HOST:                 http://localhost:8000
+            DRONE_DEBUG:                "true"
+            DRONE_GITHUB:               "true"
+            DRONE_GITHUB_CLIENT:
+            DRONE_GITHUB_SECRET:
+            DRONE_OPEN:                 "true"
+            DRONE_ORGS:
+            DRONE_PROVIDER:             github
+            DRONE_DATABASE_DRIVER:      mysql
+            DRONE_DATABASE_DATASOURCE:  root:example@tcp(db:3306)/drone?parseTime=true
+            DRONE_SECRET: "s3cr3t"
 
-  drone-server:
-    image: banzaicloud/drone:0.3.0
-    restart: always
-    ports:
-      - 8000:8000
-      - 9000
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    entrypoint:
-      - /bin/drone-server
-    environment:
-      DRONE_HOST:                 http://localhost:8000
-      DRONE_DEBUG:                "true"
-      DRONE_GITHUB:               "true"
-      DRONE_GITHUB_CLIENT:
-      DRONE_GITHUB_SECRET:
-      DRONE_OPEN:                 "true"
-      DRONE_ORGS:
-      DRONE_PROVIDER:             github
-      DRONE_DATABASE_DRIVER:      mysql
-      DRONE_DATABASE_DATASOURCE:  root:example@tcp(db:3306)/drone?parseTime=true
-      DRONE_SECRET: "s3cr3t"
-
-  drone-agent:
-    image: banzaicloud/drone:0.3.0
-    restart: always
-    depends_on:
-      - drone-server
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    entrypoint:
-      - /bin/drone-agent
-    environment:
-      DRONE_SERVER: drone-server:9000
-      DRONE_SECRET: "s3cr3t"
+    drone-agent:
+        image: banzaicloud/drone:0.3.0
+        restart: always
+        depends_on:
+            - drone-server
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+        entrypoint:
+            - /bin/drone-agent
+        environment:
+            DRONE_SERVER: drone-server:9000
+            DRONE_SECRET: "s3cr3t"

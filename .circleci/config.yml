@@ -1,96 +1,97 @@
 version: 2
 
 jobs:
-  build:
-    docker:
-      - image: circleci/golang:1.10
-      - image: vault:0.11.0
-        environment:
-            SKIP_SETCAP: true
-            VAULT_DEV_ROOT_TOKEN_ID: 227e1cce-6bf7-30bb-2d2a-acc854318caf
+    build:
+        docker:
+            - image: circleci/golang:1.10
+            -
+                image: vault:0.11.0
+                environment:
+                    SKIP_SETCAP: true
+                    AULT_DEV_ROOT_TOKEN_ID: 227e1cce-6bf7-30bb-2d2a-acc854318caf
 
-    working_directory: /go/src/github.com/banzaicloud/pipeline
+        working_directory: /go/src/github.com/banzaicloud/pipeline
 
-    steps:
-      - checkout
+        steps:
+            - checkout
 
-      - restore_cache:
-          name: Restore build dependencies
-          keys:
-            - build-deps-v1-{{ .Branch }}-{{ checksum "Makefile" }}
-            - build-deps-v1-{{ .Branch }}
-            - build-deps-v1-master
-            - build-deps-v1
+            - restore_cache:
+                  name: Restore build dependencies
+                  keys:
+                      - build-deps-v1-{{ .Branch }}-{{ checksum "Makefile" }}
+                      - build-deps-v1-{{ .Branch }}
+                      - build-deps-v1-master
+                      - build-deps-v1
 
-      - restore_cache:
-          name: Restore dependencies
-          keys:
-            - gopkg-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
-            - gopkg-v1-{{ .Branch }}
-            - gopkg-v1-master
-            - gopkg-v1
+            - restore_cache:
+                  name: Restore dependencies
+                  keys:
+                      - gopkg-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
+                      - gopkg-v1-{{ .Branch }}
+                      - gopkg-v1-master
+                      - gopkg-v1
 
-      - run:
-          name: Install dependencies
-          command: make vendor
+            - run:
+                  name: Install dependencies
+                  command: make vendor
 
-      - save_cache:
-          name: Save dependencies
-          key: gopkg-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
-          paths:
-            - vendor/
+            - save_cache:
+                  name: Save dependencies
+                  key: gopkg-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
+                  paths:
+                      - vendor/
 
-      - restore_cache:
-          name: Restore license cache
-          keys:
-          - licensei-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
-          - licensei-v1-{{ .Branch }}
-          - licensei-v1-master
-          - licensei-v1
+            - restore_cache:
+                  name: Restore license cache
+                  keys:
+                      - licensei-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
+                      - licensei-v1-{{ .Branch }}
+                      - licensei-v1-master
+                      - licensei-v1
 
-      - run:
-          name: Download license information for dependencies
-          command: make license-cache
+            - run:
+                  name: Download license information for dependencies
+                  command: make license-cache
 
-      - save_cache:
-          name: Save license cache
-          key: licensei-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
-          paths:
-            - .licensei.cache
+            - save_cache:
+                  name: Save license cache
+                  key: licensei-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
+                  paths:
+                      - .licensei.cache
 
-      - run:
-          name: Check dependency licenses
-          command: make license-check
+            - run:
+                  name: Check dependency licenses
+                  command: make license-check
 
-      - run:
-          name: Build
-          command: make build
+            - run:
+                  name: Build
+                  command: make build
 
-      - run:
-          name: Run linter
-          command: make lint
+            - run:
+                  name: Run linter
+                  command: make lint
 
-      - run:
-          name: Run pipeline tests
-          command: |
-              make config/config.toml
-              PIPELINE_CONFIG_DIR=$PWD/config make test
-          environment:
-            VAULT_ADDR: http://localhost:8200
-            VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
+            - run:
+                  name: Run pipeline tests
+                  command: |
+                      make config/config.toml
+                      PIPELINE_CONFIG_DIR=$PWD/config make test
+                  environment:
+                      VAULT_ADDR: http://localhost:8200
+                      VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
 
-      - run:
-          name: Generate test reports
-          command: make junit-report
-          when: always
+            - run:
+                  name: Generate test reports
+                  command: make junit-report
+                  when: always
 
-      - save_cache:
-          name: Save build dependencies
-          key: build-deps-v1-{{ .Branch }}-{{ checksum "Makefile" }}
-          paths:
-            - bin/
+            - save_cache:
+                  name: Save build dependencies
+                  key: build-deps-v1-{{ .Branch }}-{{ checksum "Makefile" }}
+                  paths:
+                      - bin/
 
-      - store_test_results:
-          path: build/
-      - store_artifacts:
-          path: build/
+            - store_test_results:
+                  path: build/
+            - store_artifacts:
+                  path: build/
