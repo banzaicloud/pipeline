@@ -247,6 +247,10 @@ func (o *OKECluster) GetUID() string {
 	return o.modelCluster.UID
 }
 
+func (o *OKECluster) GetCreatorID() uint {
+	return o.modelCluster.CreatedBy
+}
+
 //GetModel returns the whole clusterModel
 func (o *OKECluster) GetModel() *model.ClusterModel {
 	return o.modelCluster

@@ -737,6 +737,10 @@ func (c *EKSCluster) GetUID() string {
 	return c.modelCluster.UID
 }
 
+func (c *EKSCluster) GetCreatorID() uint {
+	return c.modelCluster.CreatedBy
+}
+
 // GetModel returns the DB model of this cluster
 func (c *EKSCluster) GetModel() *model.ClusterModel {
 	return c.modelCluster

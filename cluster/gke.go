@@ -683,6 +683,10 @@ func (c *GKECluster) GetUID() string {
 	return c.model.Cluster.UID
 }
 
+func (c *GKECluster) GetCreatorID() uint {
+	return c.model.Cluster.CreatedBy
+}
+
 func (c *GKECluster) getGoogleServiceClient() (*gke.Service, error) {
 
 	client, err := c.newClientFromCredentials()

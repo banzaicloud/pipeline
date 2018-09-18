@@ -42,6 +42,7 @@ type CommonCluster interface {
 	GetID() uint
 	GetUID() string
 	GetOrganizationId() uint
+	GetCreatorID() uint
 	GetName() string
 	GetCloud() string
 	GetDistribution() string

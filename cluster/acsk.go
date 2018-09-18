@@ -529,6 +529,10 @@ func (c *ACSKCluster) GetUID() string {
 	return c.modelCluster.UID
 }
 
+func (c *ACSKCluster) GetCreatorID() uint {
+	return c.modelCluster.CreatedBy
+}
+
 func (c *ACSKCluster) GetSecretId() string {
 	return c.modelCluster.SecretId
 }
