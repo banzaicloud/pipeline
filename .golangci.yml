@@ -1,23 +1,23 @@
 run:
-  skip-dirs:
-    - client
+    skip-dirs:
+        - client
 
 linters-settings:
-  golint:
-    min-confidence: 0.9
+    golint:
+        min-confidence: 0.9
 
-  gocyclo:
-    min-complexity: 15
+    gocyclo:
+        min-complexity: 15
 
 linters:
-  enable:
-    - misspell
-    - gofmt
-    - golint
-    - goimports
-  disable:
-    - errcheck
-    - gas
-    - megacheck
-    - varcheck
-  fast: false
+    enable:
+        - misspell
+        - gofmt
+        - golint
+        - goimports
+    disable:
+        - errcheck
+        - gas
+        - megacheck
+        - varcheck
+    fast: false
