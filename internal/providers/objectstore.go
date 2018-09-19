@@ -18,11 +18,11 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/objectstore"
+	"github.com/banzaicloud/pipeline/internal/providers/alibaba"
 	"github.com/banzaicloud/pipeline/internal/providers/amazon"
 	"github.com/banzaicloud/pipeline/internal/providers/azure"
 	"github.com/banzaicloud/pipeline/internal/providers/google"
 	"github.com/banzaicloud/pipeline/internal/providers/oracle"
-	_objectstore "github.com/banzaicloud/pipeline/objectstore"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/secret"
@@ -51,7 +51,7 @@ func NewObjectStore(ctx *ObjectStoreContext, logger logrus.FieldLogger) (objects
 
 	switch ctx.Provider {
 	case providers.Alibaba:
-		return _objectstore.NewAlibabaObjectStore(ctx.Location, ctx.Secret, ctx.Organization), nil
+		return alibaba.NewObjectStore(ctx.Location, ctx.Secret, ctx.Organization), nil
 
 	case providers.Amazon:
 		return amazon.NewObjectStore(ctx.Location, ctx.Secret, ctx.Organization, db, logger)

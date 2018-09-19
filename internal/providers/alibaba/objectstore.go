@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package objectstore
+package alibaba
 
 import (
 	"sort"
@@ -20,20 +20,13 @@ import (
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/objectstore"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
+	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 )
-
-// ManagedAlibabaBucket is the schema for the DB
-type ManagedAlibabaBucket struct {
-	ID           uint              `gorm:"primary_key"`
-	Organization auth.Organization `gorm:"foreignkey:OrgID"`
-	OrgID        uint              `gorm:"index;not null"`
-	Name         string            `gorm:"unique_index:bucketName"`
-	Region       string
-}
 
 type AlibabaObjectStore struct {
 	region string
@@ -42,7 +35,7 @@ type AlibabaObjectStore struct {
 	org    *auth.Organization
 }
 
-func NewAlibabaObjectStore(region string, secret *secret.SecretItemResponse, org *auth.Organization) *AlibabaObjectStore {
+func NewObjectStore(region string, secret *secret.SecretItemResponse, org *auth.Organization) *AlibabaObjectStore {
 	return &AlibabaObjectStore{
 		region: region,
 		secret: secret,
@@ -236,4 +229,51 @@ func ossRegionToEndpoint(region string) (endpoint string, err error) {
 	}
 
 	return
+}
+
+// ManagedBucketNotFoundError signals that managed bucket was not found in database.
+type ManagedBucketNotFoundError struct {
+	errMessage string
+}
+
+func (err ManagedBucketNotFoundError) Error() string {
+	return err.errMessage
+}
+
+func (ManagedBucketNotFoundError) NotFound() bool { return true }
+
+// getManagedBucket looks up the managed bucket record in the database based on the specified
+// searchCriteria and writes the db record into the managedBucket argument.
+// If no db record is found than returns with ManagedBucketNotFoundError
+func getManagedBucket(searchCriteria interface{}, managedBucket interface{}) error {
+
+	if err := config.DB().Where(searchCriteria).Find(managedBucket).Error; err != nil {
+
+		if err == gorm.ErrRecordNotFound {
+			return ManagedBucketNotFoundError{
+				errMessage: err.Error(),
+			}
+		}
+		return err
+	}
+
+	return nil
+}
+
+func persistToDb(m interface{}) error {
+	log.Info("Persisting Bucket to Db")
+	db := config.DB()
+	return db.Save(m).Error
+}
+
+func deleteFromDbByPK(m interface{}) error {
+	log.Info("Deleting from DB...")
+	db := config.DB()
+	return db.Delete(m).Error
+}
+
+// queryDb queries the database using the specified searchCriteria
+// and returns the returned records into result
+func queryWithOrderByDb(searchCriteria interface{}, orderBy interface{}, result interface{}) error {
+	return config.DB().Where(searchCriteria).Order(orderBy).Find(result).Error
 }
