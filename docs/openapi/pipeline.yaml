@@ -3363,6 +3363,10 @@ components:
 
     LaunchSpotguidesRequest:
       type: object
+      required:
+        - spotguideName
+        - repoOrganization
+        - repoName
       properties:
         repoOrganization:
           type: string
@@ -3373,8 +3377,10 @@ components:
         spotguideName:
           type: string
           example: "banzaicloud/spotguide-nodejs-mongodb"
+        spotguideVersion:
+          type: string
+          example: "v0.3.2"
         cluster:
-          required: false
           $ref: '#/components/schemas/CreateClusterRequest'
         secrets:
           type: array
