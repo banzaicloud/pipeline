@@ -70,11 +70,12 @@ type Repo struct {
 	ID           uint       `gorm:"primary_key" json:"-"`
 	CreatedAt    time.Time  `json:"createdAt"`
 	UpdatedAt    time.Time  `json:"updatedAt"`
-	DeletedAt    *time.Time `sql:"index" json:"-"`
-	Name         string     `json:"name"`
+	DeletedAt    *time.Time `json:"-" gorm:"index"`
+	Name         string     `json:"name" gorm:"unique_index:name_and_version"`
 	Icon         string     `json:"-"`
-	SpotguideRaw []byte     `json:"-" sql:"type:text"`
-	Spotguide    Spotguide  `gorm:"-" json:"spotguide"`
+	SpotguideRaw []byte     `json:"-" gorm:"type:text"`
+	Spotguide    Spotguide  `json:"spotguide" gorm:"-"`
+	Version      string     `json:"version" gorm:"unique_index:name_and_version"`
 }
 
 func (Repo) TableName() string {
@@ -87,6 +88,7 @@ func (s *Repo) AfterFind() error {
 
 type LaunchRequest struct {
 	SpotguideName    string                       `json:"spotguideName" binding:"required"`
+	SpotguideVersion string                       `json:"spotguideVersion"`
 	RepoOrganization string                       `json:"repoOrganization" binding:"required"`
 	RepoName         string                       `json:"repoName" binding:"required"`
 	Cluster          *client.CreateClusterRequest `json:"cluster"`
@@ -127,8 +129,10 @@ func newGithubClient(accessToken string) *github.Client {
 	return github.NewClient(httpClient)
 }
 
-func downloadGithubFile(githubClient *github.Client, owner, repo, file string) ([]byte, error) {
-	reader, err := githubClient.Repositories.DownloadContents(ctx, owner, repo, file, nil)
+func downloadGithubFile(githubClient *github.Client, owner, repo, file, tag string) ([]byte, error) {
+	reader, err := githubClient.Repositories.DownloadContents(ctx, owner, repo, file, &github.RepositoryContentGetOptions{
+		Ref: tag,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -168,20 +172,29 @@ func ScrapeSpotguides() error {
 				owner := repository.GetOwner().GetLogin()
 				name := repository.GetName()
 
-				spotguideRaw, err := downloadGithubFile(githubClient, owner, name, SpotguideYAMLPath)
+				releases, _, err := githubClient.Repositories.ListReleases(ctx, owner, name, &github.ListOptions{})
 				if err != nil {
-					return emperror.Wrap(err, "failed to download spotguide YAML")
+					return emperror.Wrap(err, "failed to list github repo releases")
 				}
+				for _, release := range releases {
+					tag := release.GetTagName()
 
-				model := Repo{
-					Name:         repository.GetFullName(),
-					SpotguideRaw: spotguideRaw,
-				}
+					spotguideRaw, err := downloadGithubFile(githubClient, owner, name, SpotguideYAMLPath, tag)
+					if err != nil {
+						return emperror.Wrap(err, "failed to download spotguide YAML")
+					}
 
-				err = db.Where(&model).Assign(&model).FirstOrCreate(&Repo{}).Error
+					model := Repo{
+						Name:         repository.GetFullName(),
+						SpotguideRaw: spotguideRaw,
+						Version:      tag,
+					}
 
-				if err != nil {
-					return err
+					err = db.Where(&model).Assign(&model).FirstOrCreate(&Repo{}).Error
+
+					if err != nil {
+						return err
+					}
 				}
 
 				break
@@ -199,17 +212,21 @@ func GetSpotguides() ([]*Repo, error) {
 	return spotguides, err
 }
 
-func GetSpotguide(name string) (*Repo, error) {
+func GetSpotguide(name, version string) (repo *Repo, err error) {
 	db := config.DB()
-	spotguide := Repo{}
-	err := db.Where("name = ?", name).Find(&spotguide).Error
-	return &spotguide, err
+	repo = &Repo{}
+	if version == "" {
+		err = db.Where("name = ?", name).Last(repo).Error
+	} else {
+		err = db.Where("name = ? AND version = ?", name, version).Find(repo).Error
+	}
+	return
 }
 
 // curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -v http://localhost:9090/api/v1/orgs/1/spotguides -d '{"repoName":"spotguide-test", "repoOrganization":"banzaicloud-test", "spotguideName":"banzaicloud/spotguide-nodejs-mongodb"}'
 func LaunchSpotguide(request *LaunchRequest, httpRequest *http.Request, orgID, userID uint) error {
 
-	sourceRepo, err := GetSpotguide(request.SpotguideName)
+	sourceRepo, err := GetSpotguide(request.SpotguideName, request.SpotguideVersion)
 	if err != nil {
 		return errors.Wrap(err, "Failed to find spotguide repo")
 	}
@@ -263,7 +280,7 @@ func getSpotguideContent(githubClient *github.Client, request *LaunchRequest, so
 	sourceRepoOwner := sourceRepoParts[0]
 	sourceRepoName := sourceRepoParts[1]
 
-	sourceRelease, _, err := githubClient.Repositories.GetReleaseByTag(ctx, sourceRepoOwner, sourceRepoName, "spotguide")
+	sourceRelease, _, err := githubClient.Repositories.GetReleaseByTag(ctx, sourceRepoOwner, sourceRepoName, request.SpotguideVersion)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find source spotguide repository release")
 	}

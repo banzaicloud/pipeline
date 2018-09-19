@@ -3736,6 +3736,7 @@ components:
                   count: 1
                   instanceType: n1-standard-2
               nodeVersion: 1.8.7-gke.1
+        spotguideVersion: v0.3.2
         repoName: spotguide-nodejs-mongodb-test
         values: '{}'
         repoOrganization: banzaicloud
@@ -3785,6 +3786,9 @@ components:
         spotguideName:
           example: banzaicloud/spotguide-nodejs-mongodb
           type: string
+        spotguideVersion:
+          example: v0.3.2
+          type: string
         cluster:
           $ref: '#/components/schemas/CreateClusterRequest'
         secrets:
@@ -3793,6 +3797,10 @@ components:
           type: array
         values:
           type: object
+      required:
+      - repoName
+      - repoOrganization
+      - spotguideName
       type: object
     SpotguideOptionsMysqlDatabaseName:
       properties:

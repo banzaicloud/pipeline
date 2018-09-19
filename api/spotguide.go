@@ -31,7 +31,8 @@ func GetSpotguide(c *gin.Context) {
 	log := correlationid.Logger(log, c)
 
 	spotguideName := strings.TrimPrefix(c.Param("name"), "/")
-	spotguideDetails, err := spotguide.GetSpotguide(spotguideName)
+	spotguideVersion := c.Query("version")
+	spotguideDetails, err := spotguide.GetSpotguide(spotguideName, spotguideVersion)
 	if err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			c.JSON(http.StatusNotFound, pkgCommon.ErrorResponse{
