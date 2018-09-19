@@ -1718,6 +1718,68 @@ paths:
               application/json:
                 schema:
                   $ref: '#/components/schemas/ReleaseWhiteList'
+      post:
+        security:
+          - bearerAuth: []
+        tags:
+          - whitelist
+        summary: List Whitelisted deployments
+        operationId: ListWhitelists
+        description: List Whitelisted deployments
+        parameters:
+          - name: orgId
+            in: path
+            required: true
+            description: Organization identification
+            schema:
+              type: integer
+          - name: id
+            in: path
+            required: true
+            description: Selected cluster identification (number)
+            schema:
+              type: integer
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReleaseWhiteListItem'
+        responses:
+          '200':
+            description: "Whitelist created"
+
+  '/api/v1/orgs/{orgId}/clusters/{id}/whitelists/{name}':
+      delete:
+        security:
+          - bearerAuth: []
+        tags:
+          - whitelist
+        summary: Delete Whitelisted deployments
+        operationId: ListWhitelists
+        description: List Whitelisted deployments
+        parameters:
+          - name: orgId
+            in: path
+            required: true
+            description: Organization identification
+            schema:
+              type: integer
+          - name: id
+            in: path
+            required: true
+            description: Selected cluster identification (number)
+            schema:
+              type: integer
+          - name: name
+            in: path
+            required: true
+            description: Selected whitelist identification
+            schema:
+              type: string
+        responses:
+          '200':
+            description: "Whitelist deleted"
 
   '/api/v1/orgs/{orgId}/clusters/{id}/deployments/{name}':
       delete:
@@ -6645,9 +6707,9 @@ components:
     ReleaseWhiteList:
       type: array
       items:
-        $ref: "#/components/schemas/ReleaseWhitelistItem"
+        $ref: "#/components/schemas/ReleaseWhiteListItem"
 
-    ReleaseWhitelistItem:
+    ReleaseWhiteListItem:
       type: object
       properties:
         releaseName:
