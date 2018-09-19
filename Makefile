@@ -29,7 +29,7 @@ build-ci:
 
 .PHONY: docker-build
 docker-build: ## Builds go binary in docker image
-	docker run -it -v $(PWD):/go/src/github.com/banzaicloud/pipeline -w /go/src/github.com/banzaicloud/pipeline golang:1.10.1-alpine go build -o pipeline_linux .
+	docker run -it -v $(PWD):/go/src/github.com/banzaicloud/pipeline -w /go/src/github.com/banzaicloud/pipeline golang:1.11-alpine go build -o pipeline_linux .
 
 .PHONY: clean
 clean:
