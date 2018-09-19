@@ -1689,6 +1689,36 @@ paths:
         '404':
           description: "Cluster not found"
 
+  '/api/v1/orgs/{orgId}/clusters/{id}/whitelists':
+      get:
+        security:
+          - bearerAuth: []
+        tags:
+          - whitelist
+        summary: List Whitelisted deployments
+        operationId: ListWhitelists
+        description: List Whitelisted deployments
+        parameters:
+          - name: orgId
+            in: path
+            required: true
+            description: Organization identification
+            schema:
+              type: integer
+          - name: id
+            in: path
+            required: true
+            description: Selected cluster identification (number)
+            schema:
+              type: integer
+        responses:
+          '200':
+            description: "List Whitelists"
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ReleaseWhiteList'
+
   '/api/v1/orgs/{orgId}/clusters/{id}/deployments/{name}':
       delete:
         security:
@@ -6610,6 +6640,24 @@ components:
           format: int32
         message:
           example: 'ScalingActive = true, lastTransitionTime: 2018-08-22T15:31:16Z, the HPA was able to succesfully calculate a replica count from memory resource'
+          type: string
+
+    ReleaseWhiteList:
+      type: array
+      items:
+        $ref: "#/components/schemas/ReleaseWhitelistItem"
+
+    ReleaseWhitelistItem:
+      type: object
+      properties:
+        releaseName:
+          type: string
+          example: 'flying-monkey'
+        owner:
+          type: string
+          example: 'banzaicloud'
+        reaseon:
+          example: 'test release'
           type: string
 
     PolicyBundle:
