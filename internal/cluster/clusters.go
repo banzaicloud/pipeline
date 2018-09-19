@@ -143,3 +143,15 @@ func (c *Clusters) FindBySecret(organizationID uint, secretID string) ([]*model.
 
 	return clusters, nil
 }
+
+// FindByStatus returns all cluster instances for an organization by status.
+func (c *Clusters) FindByStatus(status string) ([]*model.ClusterModel, error) {
+	var clusters []*model.ClusterModel
+
+	err := c.db.Find(&clusters, map[string]interface{}{"status": status}).Error
+	if err != nil {
+		return nil, errors.Wrap(err, "could not fetch clusters")
+	}
+
+	return clusters, nil
+}

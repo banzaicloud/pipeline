@@ -117,6 +117,10 @@ func (c *DummyCluster) GetUID() string {
 	return c.modelCluster.UID
 }
 
+func (c *DummyCluster) GetCreatorID() uint {
+	return c.modelCluster.CreatedBy
+}
+
 //GetModel returns the whole clusterModel
 func (c *DummyCluster) GetModel() *model.ClusterModel {
 	return c.modelCluster

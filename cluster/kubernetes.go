@@ -161,6 +161,10 @@ func (c *KubeCluster) GetUID() string {
 	return c.modelCluster.UID
 }
 
+func (c *KubeCluster) GetCreatorID() uint {
+	return c.modelCluster.CreatedBy
+}
+
 // GetSecretId returns the specified secret id
 func (c *KubeCluster) GetSecretId() string {
 	return c.modelCluster.SecretId

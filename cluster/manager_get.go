@@ -130,6 +130,22 @@ func (m *Manager) GetClustersBySecretID(ctx context.Context, organizationID uint
 	return m.getClustersFromModels(clusterModels, logger), nil
 }
 
+// GetClustersByStatus returns the cluster instance by status.
+func (m *Manager) GetClustersByStatus(ctx context.Context, status string) ([]CommonCluster, error) {
+	logger := m.getLogger(ctx).WithFields(logrus.Fields{
+		"status": status,
+	})
+
+	logger.Debug("getting cluster from database")
+
+	clusterModels, err := m.clusters.FindByStatus(status)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not get cluster from database")
+	}
+
+	return m.getClustersFromModels(clusterModels, logger), nil
+}
+
 func (m *Manager) getClusterFromModel(clusterModel *model.ClusterModel) (CommonCluster, error) {
 	return GetCommonClusterFromModel(clusterModel)
 }

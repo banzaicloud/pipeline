@@ -109,6 +109,10 @@ func (c *EC2Cluster) GetUID() string {
 	return c.modelCluster.UID
 }
 
+func (c *EC2Cluster) GetCreatorID() uint {
+	return c.modelCluster.CreatedBy
+}
+
 //GetAPIEndpoint returns the Kubernetes Api endpoint
 func (c *EC2Cluster) GetAPIEndpoint() (string, error) {
 	if c.APIEndpoint != "" {
