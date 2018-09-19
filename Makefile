@@ -4,6 +4,8 @@ GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -
 VERSION ?= $(shell git rev-parse --abbrev-ref HEAD)
 GITREV = $(shell git rev-parse --short HEAD 2>/dev/null)
 BUILD_DATE = $(shell date +%FT%T%z)
+GOLANG_VERSION = 1.11
+GOLANG_VERSION_REGEX = 1.11(.[0-9]+)?
 
 DEP_VERSION = 0.5.0
 GOLANGCI_VERSION = 1.10.2
@@ -23,15 +25,16 @@ vendor: bin/dep ## Install dependencies
 
 .PHONY: build
 build: ## Builds binary package
+	@go version | grep -q -E "go${GOLANG_VERSION_REGEX} " || (echo "Required Go version is ${GOLANG_VERSION}\nInstalled: `go version`" && exit 1)
 	go build -v -ldflags "-X main.Version=${VERSION} -X main.GitRev=${GITREV} -X main.BuildDate=${BUILD_DATE}" .
 
 .PHONY: build-ci
 build-ci:
-	CGO_ENABLED=0 GOOS=linux go build .
+	CGO_ENABLED=0 GOOS=linux go build -v -ldflags "-X main.Version=${VERSION} -X main.GitRev=${GITREV} -X main.BuildDate=${BUILD_DATE}" .
 
 .PHONY: docker-build
 docker-build: ## Builds go binary in docker image
-	docker run -it -v $(PWD):/go/src/github.com/banzaicloud/pipeline -w /go/src/github.com/banzaicloud/pipeline golang:1.11-alpine go build -o pipeline_linux .
+	docker run -it -v $(PWD):/go/src/github.com/banzaicloud/pipeline -w /go/src/github.com/banzaicloud/pipeline golang:${GOLANG_VERSION}-alpine go build -o pipeline_linux .
 
 .PHONY: clean
 clean:
