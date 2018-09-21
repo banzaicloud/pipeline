@@ -989,7 +989,7 @@ paths:
         - bearerAuth: []
       tags:
        - scanlog
-      operationId: listScans
+      operationId: ListScans
       summary: List scans
       description: List scans
       parameters:
@@ -1007,7 +1007,7 @@ paths:
             type: integer
       responses:
         '200':
-          description: Policy listing
+          description: Scan listing
           content:
             application/json:
               schema:
@@ -1019,7 +1019,7 @@ paths:
         - bearerAuth: []
       tags:
        - policies
-      operationId: list_policies
+      operationId: ListPolicies
       summary: List policies
       description: List all saved policy bundles
       parameters:
@@ -1050,8 +1050,8 @@ paths:
                 $ref: "#/components/schemas/PolicyBundleList"
     post:
       tags:
-      - Policies
-      operationId: add_policy
+      - policies
+      operationId: AddPolicy
       summary: Add a new policy
       description: Adds a new policy bundle to the system
       parameters:
@@ -1091,8 +1091,8 @@ paths:
   '/api/v1/orgs/{orgId}/clusters/{id}/policies/{policyId}':
     get:
       tags:
-      - Policies
-      operationId: get_policy
+      - policies
+      operationId: GetPolicy
       description: Get the policy bundle content
       summary: Get specific policy
       parameters:
@@ -1134,8 +1134,8 @@ paths:
                 $ref: "#/components/schemas/BaseError_500"
     put:
       tags:
-      - Policies
-      operationId: update_policy
+      - policies
+      operationId: UpdatePolicy
       description: Update/replace and existing policy
       summary: Update policy
       parameters:
@@ -1183,8 +1183,8 @@ paths:
                 $ref: "#/components/schemas/BaseError_500"
     delete:
       tags:
-      - Policies
-      operationId: delete_policy
+      - policies
+      operationId: DeletePolicy
       description: Delete the specified policy
       summary: Delete policy
       parameters:
