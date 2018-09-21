@@ -1043,3 +1043,8 @@ func (c *EKSCluster) NeedAdminRights() bool {
 func (c *EKSCluster) GetKubernetesUserName() (string, error) {
 	return "", nil
 }
+
+// GetCreatedBy returns cluster create userID.
+func (c *EKSCluster) GetCreatedBy() uint {
+	return c.modelCluster.CreatedBy
+}

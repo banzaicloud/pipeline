@@ -104,6 +104,7 @@ func CreateGKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID
 
 //GKECluster struct for GKE cluster
 type GKECluster struct {
+	modelCluster  *model.ClusterModel
 	db            *gorm.DB
 	model         *google.GKEClusterModel
 	googleCluster *gke.Cluster //Don't use this directly
@@ -1991,4 +1992,9 @@ func (c *GKECluster) NeedAdminRights() bool {
 // GetKubernetesUserName returns the user ID which needed to create a cluster role binding which gives admin rights to the user
 func (c *GKECluster) GetKubernetesUserName() (string, error) {
 	return "", nil
+}
+
+// GetCreatedBy returns cluster create userID.
+func (c *GKECluster) GetCreatedBy() uint {
+	return c.modelCluster.CreatedBy
 }

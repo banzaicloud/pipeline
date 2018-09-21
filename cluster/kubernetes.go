@@ -298,3 +298,8 @@ func (c *KubeCluster) NeedAdminRights() bool {
 func (c *KubeCluster) GetKubernetesUserName() (string, error) {
 	return "", nil
 }
+
+// GetCreatedBy returns cluster create userID.
+func (c *KubeCluster) GetCreatedBy() uint {
+	return c.modelCluster.CreatedBy
+}

@@ -579,3 +579,8 @@ func (o *OKECluster) GetKubernetesUserName() (string, error) {
 	return s.Values[secretOracle.UserOCID], nil
 
 }
+
+// GetCreatedBy returns cluster create userID.
+func (c *OKECluster) GetCreatedBy() uint {
+	return c.modelCluster.CreatedBy
+}
