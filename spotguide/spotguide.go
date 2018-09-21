@@ -25,6 +25,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/drone/drone-go/drone"
+
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/client"
 	"github.com/banzaicloud/pipeline/config"
@@ -433,7 +435,7 @@ func createSecrets(request *LaunchRequest, orgID, userID uint) error {
 		secretRequest.Tags = append(secretRequest.Tags, repoTag)
 
 		if _, err := secret.Store.Store(orgID, &secretRequest); err != nil {
-			return errors.Wrap(err, "failed to create spotguide secret:"+secretRequest.Name)
+			return errors.Wrap(err, "failed to create spotguide secret: "+secretRequest.Name)
 		}
 	}
 
@@ -456,7 +458,14 @@ func enableCICD(request *LaunchRequest, httpRequest *http.Request) error {
 
 	_, err = droneClient.RepoPost(request.RepoOrganization, request.RepoName)
 	if err != nil {
-		return errors.Wrap(err, "failed to sync enable Drone repository")
+		return errors.Wrap(err, "failed to enable Drone repository")
+	}
+
+	isSpotguide := true
+	repoPatch := drone.RepoPatch{IsSpotguide: &isSpotguide}
+	_, err = droneClient.RepoPatch(request.RepoOrganization, request.RepoName, &repoPatch)
+	if err != nil {
+		return errors.Wrap(err, "failed to patch Drone repository")
 	}
 
 	return nil
