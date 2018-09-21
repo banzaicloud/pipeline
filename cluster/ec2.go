@@ -1485,3 +1485,8 @@ func (c *EC2Cluster) NeedAdminRights() bool {
 func (c *EC2Cluster) GetKubernetesUserName() (string, error) {
 	return "", nil
 }
+
+// GetCreatedBy returns cluster create userID.
+func (c *EC2Cluster) GetCreatedBy() uint {
+	return c.modelCluster.CreatedBy
+}

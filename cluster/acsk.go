@@ -918,3 +918,8 @@ func createAlibabaECSClient(auth *credentials.AccessKeyCredential, regionID stri
 	cred := credentials.NewAccessKeyCredential(auth.AccessKeyId, auth.AccessKeySecret)
 	return ecs.NewClientWithOptions(regionID, cfg, cred)
 }
+
+// GetCreatedBy returns cluster create userID.
+func (c *ACSKCluster) GetCreatedBy() uint {
+	return c.modelCluster.CreatedBy
+}

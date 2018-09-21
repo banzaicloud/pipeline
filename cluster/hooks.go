@@ -23,6 +23,7 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
+	"github.com/banzaicloud/pipeline/dns/route53"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/internal/providers/azure"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -514,7 +515,37 @@ func InstallIngressControllerPostHook(input interface{}) error {
 	if !ok {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
-	return installDeployment(cluster, helm.DefaultNamespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-ingress", "pipeline", nil, "InstallIngressController", "")
+	userID := cluster.GetCreatedBy()
+	user, err := auth.GetUserById(userID)
+	if err != nil {
+		return errors.Errorf("Get User failed : %s", err.Error())
+	}
+
+	ingressValues := map[string]interface{}{
+		"traefik": map[string]interface{}{
+			"acme": map[string]interface{}{
+				"enabled":           true,
+				"staging":           false,
+				"logging":           true,
+				"challengeType":     "dns-01",
+				"delayDontCheckDNS": 60,
+				"email":             user.Email,
+				"persistence":       map[string]interface{}{"enabled": true},
+				"dnsProvider": map[string]interface{}{
+					"name": "route53",
+					"route53": map[string]interface{}{
+						"secretName": route53.IAMUserAccessKeySecretName,
+					},
+				},
+			},
+		},
+	}
+	ingressValuesJson, err := json.Marshal(ingressValues)
+	if err != nil {
+		return errors.Errorf("Json Convert Failed : %s", err.Error())
+	}
+
+	return installDeployment(cluster, helm.DefaultNamespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-ingress", "pipeline", ingressValuesJson, "InstallIngressController", "")
 }
 
 //InstallKubernetesDashboardPostHook post hooks can't return value, they can log error and/or update state?

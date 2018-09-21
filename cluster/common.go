@@ -46,6 +46,7 @@ type CommonCluster interface {
 	GetCloud() string
 	GetDistribution() string
 	GetLocation() string
+	GetCreatedBy() uint
 
 	// Secrets
 	GetSecretId() string

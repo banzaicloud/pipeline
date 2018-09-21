@@ -306,3 +306,8 @@ func (c *DummyCluster) NeedAdminRights() bool {
 func (c *DummyCluster) GetKubernetesUserName() (string, error) {
 	return "", nil
 }
+
+// GetCreatedBy returns cluster create userID.
+func (c *DummyCluster) GetCreatedBy() uint {
+	return c.modelCluster.CreatedBy
+}
