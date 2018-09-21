@@ -41,6 +41,7 @@ import (
 	"k8s.io/helm/pkg/helm"
 	helm_env "k8s.io/helm/pkg/helm/environment"
 	"k8s.io/helm/pkg/proto/hapi/chart"
+	"k8s.io/helm/pkg/proto/hapi/release"
 	rls "k8s.io/helm/pkg/proto/hapi/services"
 	"k8s.io/helm/pkg/repo"
 	"k8s.io/kubernetes/pkg/apis/extensions"
@@ -142,9 +143,15 @@ func ListDeployments(filter *string, kubeConfig []byte) (*rls.ListReleasesRespon
 	ops := []helm.ReleaseListOption{
 		helm.ReleaseListSort(sortBy),
 		helm.ReleaseListOrder(sortOrd),
+		helm.ReleaseListStatuses([]release.Status_Code{
+			release.Status_DEPLOYED,
+			release.Status_FAILED,
+			release.Status_DELETING,
+			release.Status_PENDING_INSTALL,
+			release.Status_PENDING_UPGRADE,
+			release.Status_PENDING_ROLLBACK}),
 		//helm.ReleaseListLimit(limit),
 		//helm.ReleaseListFilter(filter),
-		//helm.ReleaseListStatuses(codes),
 		//helm.ReleaseListNamespace(""),
 	}
 	if filter != nil {
