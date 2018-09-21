@@ -94,8 +94,21 @@ func InstallSecretsByK8SConfig(k8sConfig []byte, orgID uint, query *secretTypes.
 			}
 		}
 
-		for k, v := range s.Values {
-			k8sSecret.StringData[k] = v
+		for fieldName, fieldValue := range s.Values {
+			secretMeta := secretTypes.DefaultRules[s.Type]
+			opaque := false
+			// Generic secrets are not opaque at all
+			if s.Type != secretTypes.GenericSecret {
+				for _, fieldMeta := range secretMeta.Fields {
+					if fieldName == fieldMeta.Name {
+						opaque = fieldMeta.Opaque
+						break
+					}
+				}
+			}
+			if !opaque {
+				k8sSecret.StringData[fieldName] = fieldValue
+			}
 		}
 
 		if create {

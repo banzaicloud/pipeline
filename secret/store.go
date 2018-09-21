@@ -33,6 +33,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
+	"golang.org/x/crypto/bcrypt"
 	"k8s.io/apimachinery/pkg/util/validation"
 )
 
@@ -485,25 +486,31 @@ func IsCASError(err error) bool {
 }
 
 func generateValuesIfNeeded(value *CreateSecretRequest) error {
-	// If we are not storing a full TLS secret instead of it's a request to generate one
 	if value.Type == secretTypes.TLSSecretType && len(value.Values) <= 2 {
+		// If we are not storing a full TLS secret instead of it's a request to generate one
+
 		validity := value.Values[secretTypes.TLSValidity]
 		if validity == "" {
 			validity = viper.GetString("tls.validity")
 		}
+
 		cc, err := tls.GenerateTLS(value.Values[secretTypes.TLSHosts], validity)
 		if err != nil {
 			return errors.Wrap(err, "Error during generating TLS secret")
 		}
+
 		err = mapstructure.Decode(cc, &value.Values)
 		if err != nil {
 			return errors.Wrap(err, "Error during decoding TLS secret")
 		}
-		// Generate a password if needed (if password is in method,length)
+
 	} else if value.Type == secretTypes.PasswordSecretType {
+		// Generate a password if needed (if password is in method,length)
+
 		if value.Values[secretTypes.Password] == "" {
 			value.Values[secretTypes.Password] = DefaultPasswordFormat
 		}
+
 		methodAndLength := strings.Split(value.Values[secretTypes.Password], ",")
 		if len(methodAndLength) == 2 {
 			length, err := strconv.Atoi(methodAndLength[1])
@@ -515,6 +522,28 @@ func generateValuesIfNeeded(value *CreateSecretRequest) error {
 				return err
 			}
 			value.Values[secretTypes.Password] = password
+		}
+
+	} else if value.Type == secretTypes.HtpasswdSecretType {
+		// Generate a password if needed otherwise store the htaccess file if provided
+
+		if _, ok := value.Values[secretTypes.HtpasswdFile]; !ok {
+
+			username := value.Values[secretTypes.Username]
+			if value.Values[secretTypes.Password] == "" {
+				password, err := RandomString("randAlphaNum", 12)
+				if err != nil {
+					return err
+				}
+				value.Values[secretTypes.Password] = password
+			}
+
+			passwordHash, err := bcrypt.GenerateFromPassword([]byte(value.Values[secretTypes.Password]), bcrypt.DefaultCost)
+			if err != nil {
+				return err
+			}
+
+			value.Values[secretTypes.HtpasswdFile] = fmt.Sprintf("%s:%s", username, string(passwordHash))
 		}
 	}
 	return nil
