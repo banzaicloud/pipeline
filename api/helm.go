@@ -29,6 +29,7 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
+	"k8s.io/helm/pkg/helm/environment"
 	"k8s.io/helm/pkg/proto/hapi/release"
 	"k8s.io/helm/pkg/repo"
 )
@@ -529,8 +530,8 @@ func HelmReposGet(c *gin.Context) {
 func HelmReposAdd(c *gin.Context) {
 	log.Info("Add helm repository")
 
-	var repo *repo.Entry
-	err := c.BindJSON(&repo)
+	var r *repo.Entry
+	err := c.BindJSON(&r)
 	if err != nil {
 		log.Errorf("Error parsing request: %s", err.Error())
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
@@ -542,7 +543,7 @@ func HelmReposAdd(c *gin.Context) {
 	}
 
 	helmEnv := helm.GenerateHelmRepoEnv(auth.GetCurrentOrganization(c.Request).Name)
-	_, err = helm.ReposAdd(helmEnv, repo)
+	_, err = helm.ReposAdd(helmEnv, r)
 	if err != nil {
 		log.Errorf("Error adding helm repo: %s", err.Error())
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
@@ -553,28 +554,7 @@ func HelmReposAdd(c *gin.Context) {
 		return
 	}
 
-	entries, err := helm.ReposGet(helmEnv)
-	if err != nil {
-		log.Errorf("Error during getting helm repo: %s", err.Error())
-		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error during getting helm repo",
-			Error:   err.Error(),
-		})
-		return
-	}
-
-	for _, entry := range entries {
-		if entry.Name == repo.Name {
-			c.JSON(http.StatusOK, entry)
-			return
-		}
-	}
-
-	c.JSON(http.StatusNotFound, pkgCommmon.ErrorResponse{
-		Code:    http.StatusNotFound,
-		Message: "Helm repo not found",
-	})
+	sendResponseWithRepo(c, helmEnv, r.Name)
 
 	return
 }
@@ -651,16 +631,14 @@ func HelmReposModify(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, pkgHelm.StatusResponse{
-		Status:  http.StatusOK,
-		Message: "resource modified successfully",
-		Name:    repoName})
+	sendResponseWithRepo(c, helmEnv, newRepo.Name)
+
 	return
 }
 
 // HelmReposUpdate update the helm repo
 func HelmReposUpdate(c *gin.Context) {
-	log.Info("delete helm repository")
+	log.Info("update helm repository")
 
 	repoName := c.Param("name")
 	log.Debugf("repoName: %s", repoName)
@@ -676,10 +654,8 @@ func HelmReposUpdate(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, pkgHelm.StatusResponse{
-		Status:  http.StatusOK,
-		Message: "repository updated successfully",
-		Name:    repoName})
+	sendResponseWithRepo(c, helmEnv, repoName)
+
 	return
 }
 
@@ -751,4 +727,30 @@ func HelmChart(c *gin.Context) {
 
 	c.JSON(http.StatusOK, response)
 	return
+}
+
+func sendResponseWithRepo(c *gin.Context, helmEnv environment.EnvSettings, repoName string) {
+
+	entries, err := helm.ReposGet(helmEnv)
+	if err != nil {
+		log.Errorf("Error during getting helm repo: %s", err.Error())
+		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error during getting helm repo",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	for _, entry := range entries {
+		if entry.Name == repoName {
+			c.JSON(http.StatusOK, entry)
+			return
+		}
+	}
+
+	c.JSON(http.StatusNotFound, pkgCommmon.ErrorResponse{
+		Code:    http.StatusNotFound,
+		Message: "Helm repo not found",
+	})
 }
