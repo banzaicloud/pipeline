@@ -1514,7 +1514,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:2ac68c0fe4127b394c9a75908c45dedc9c5ceb3e56bf6def7c6c6d8c64dc72b0"
+  digest = "1:ee6eca9211cea51fce66b8085076b86229d55bad73fda61b3169858f844e1331"
   name = "golang.org/x/crypto"
   packages = [
     "bcrypt",
@@ -1524,6 +1524,7 @@
     "ed25519",
     "ed25519/internal/edwards25519",
     "internal/chacha20",
+    "internal/subtle",
     "openpgp",
     "openpgp/armor",
     "openpgp/clearsign",
@@ -1541,7 +1542,7 @@
     "ssh/terminal",
   ]
   pruneopts = "NUT"
-  revision = "88942b9c40a4c9d203b82b3731787b672d6e809b"
+  revision = "0e37d006457bf46f9e6692014ba72ef82c33022c"
 
 [[projects]]
   branch = "master"
