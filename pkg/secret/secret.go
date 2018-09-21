@@ -23,6 +23,7 @@ import (
 type FieldMeta struct {
 	Name        string `json:"name"`
 	Required    bool   `json:"required"`
+	Opaque      bool   `json:"opaque,omitempty"`
 	Description string `json:"description,omitempty"`
 }
 
@@ -105,6 +106,11 @@ const (
 	Password = "password"
 )
 
+// Htpasswd extra keys (+Password keys)
+const (
+	HtpasswdFile = ".htpasswd"
+)
+
 // Internal usage
 const (
 	TagKubeConfig     = "KubeConfig"
@@ -130,6 +136,8 @@ const (
 	FnSecretType = "fn"
 	// PasswordSecretType marks secrets as of type "password"
 	PasswordSecretType = "password"
+	// HtpasswdSecretType marks secrets as of type "htpasswd"
+	HtpasswdSecretType = "htpasswd"
 )
 
 // DefaultRules key matching for types
@@ -226,9 +234,17 @@ var DefaultRules = map[string]Meta{
 	PasswordSecretType: {
 		Fields: []FieldMeta{
 			{Name: Username, Required: true},
-			{Name: Password, Required: true},
+			{Name: Password, Required: false},
 		},
 		Sourcing: EnvVar,
+	},
+	HtpasswdSecretType: {
+		Fields: []FieldMeta{
+			{Name: Username, Required: true, Opaque: true},
+			{Name: Password, Required: false, Opaque: true},
+			{Name: HtpasswdFile, Required: false},
+		},
+		Sourcing: Volume,
 	},
 }
 

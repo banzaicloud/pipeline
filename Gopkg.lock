@@ -1514,14 +1514,17 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:aec0a97f5a5228eb65617c240938a74ca1c4bdaad6a133ae62134359bdaffe03"
+  digest = "1:ee6eca9211cea51fce66b8085076b86229d55bad73fda61b3169858f844e1331"
   name = "golang.org/x/crypto"
   packages = [
+    "bcrypt",
+    "blowfish",
     "cast5",
     "curve25519",
     "ed25519",
     "ed25519/internal/edwards25519",
     "internal/chacha20",
+    "internal/subtle",
     "openpgp",
     "openpgp/armor",
     "openpgp/clearsign",
@@ -1539,7 +1542,7 @@
     "ssh/terminal",
   ]
   pruneopts = "NUT"
-  revision = "88942b9c40a4c9d203b82b3731787b672d6e809b"
+  revision = "0e37d006457bf46f9e6692014ba72ef82c33022c"
 
 [[projects]]
   branch = "master"
@@ -1802,16 +1805,9 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:d2eba76da801cc4cdad80648255b93eafab2a2d0f0c5530d0a896d0b4177117c"
+  digest = "1:b46a162d7c7e9117ae2dd9a73ee4dc2181ad9ea9d505fd7c5eb63c96211dc9dd"
   name = "k8s.io/apiextensions-apiserver"
-  packages = [
-    "pkg/apis/apiextensions",
-    "pkg/apis/apiextensions/v1beta1",
-    "pkg/client/clientset/clientset",
-    "pkg/client/clientset/clientset/scheme",
-    "pkg/client/clientset/clientset/typed/apiextensions/v1beta1",
-    "pkg/features",
-  ]
+  packages = ["pkg/features"]
   pruneopts = "NUT"
   revision = "9beab23b266308fcd25e38a73285f95a88633da0"
 
@@ -2375,6 +2371,7 @@
     "github.com/spf13/viper",
     "github.com/stretchr/testify/require",
     "github.com/technosophos/moniker",
+    "golang.org/x/crypto/bcrypt",
     "golang.org/x/crypto/ssh",
     "golang.org/x/crypto/ssh/terminal",
     "golang.org/x/net/context",
@@ -2395,7 +2392,6 @@
     "k8s.io/api/rbac/v1",
     "k8s.io/api/rbac/v1beta1",
     "k8s.io/api/storage/v1",
-    "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset",
     "k8s.io/apimachinery/pkg/api/errors",
     "k8s.io/apimachinery/pkg/api/resource",
     "k8s.io/apimachinery/pkg/apis/meta/v1",
