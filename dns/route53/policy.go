@@ -37,23 +37,28 @@ func (dns *awsRoute53) createHostedZoneRoute53Policy(orgId uint, hostedZoneId st
 	policyName := aws.String(fmt.Sprintf(hostedZoneAccessPolicyNameTemplate, org.Name))
 	policyDocument := aws.String(fmt.Sprintf(
 		`{
-						"Version": "2012-10-17",
-    				"Statement": [
-							{
-            		"Effect": "Allow",
-            		"Action": "route53:ChangeResourceRecordSets",
-                "Resource": "arn:aws:route53:::hostedzone/%s"
-        			},
-        			{
-            		"Effect": "Allow",
-								"Action": [
-                	"route53:ListHostedZones",
-                	"route53:ListResourceRecordSets"
-            		],
-            		"Resource": "*"
-        			}
-    				]
-					}`, hostedZoneId))
+		"Version": "2012-10-17",
+		"Statement": [{
+				"Effect": "Allow",
+				"Action": "route53:ChangeResourceRecordSets",
+				"Resource": "arn:aws:route53:::hostedzone/%s"
+			},
+			{
+				"Effect": "Allow",
+				"Action": [
+					"route53:ListHostedZones",
+					"route53:ListHostedZonesByName",
+					"route53:ListResourceRecordSets"
+				],
+				"Resource": "*"
+			},
+			{
+				"Effect": "Allow",
+				"Action": "route53:GetChange",
+				"Resource": "arn:aws:route53:::change/*"
+			}
+		]
+		}`, hostedZoneId))
 	policyDescription := aws.String(fmt.Sprintf("Access permissions for hosted zone of the '%s' organization", org.Name))
 
 	policy, err := amazon.CreatePolicy(dns.iamSvc, policyName, policyDocument, policyDescription)

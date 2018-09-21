@@ -49,23 +49,28 @@ const (
 	testAccessKeyId               = "testaccesskeyid1"
 	testAccessSecretKey           = "testsecretkey1"
 	testPolicyDocument            = `{
-						"Version": "2012-10-17",
-    				"Statement": [
-							{
-            		"Effect": "Allow",
-            		"Action": "route53:ChangeResourceRecordSets",
-                "Resource": "arn:aws:route53:::hostedzone/testhostedzone1"
-        			},
-        			{
-            		"Effect": "Allow",
-								"Action": [
-                	"route53:ListHostedZones",
-                	"route53:ListResourceRecordSets"
-            		],
-            		"Resource": "*"
-        			}
-    				]
-					}`
+		"Version": "2012-10-17",
+		"Statement": [{
+				"Effect": "Allow",
+				"Action": "route53:ChangeResourceRecordSets",
+				"Resource": "arn:aws:route53:::hostedzone/%s"
+			},
+			{
+				"Effect": "Allow",
+				"Action": [
+					"route53:ListHostedZones",
+					"route53:ListHostedZonesByName",
+					"route53:ListResourceRecordSets"
+				],
+				"Resource": "*"
+			},
+			{
+				"Effect": "Allow",
+				"Action": "route53:GetChange",
+				"Resource": "arn:aws:route53:::change/*"
+			}
+		]
+	}`
 	testSomeErrMsg = "some error"
 )
 
