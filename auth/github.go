@@ -79,6 +79,23 @@ func NewGithubAuthorizeHandler(provider *githubauth.GithubProvider) func(context
 			return nil, err
 		}
 
+		// If user email is not available in the primary user info (hidden email on profile)
+		// get it with the help of the API (the user has given right to do that).
+		if user.Email == nil {
+			emails, _, err := client.Users.ListEmails(oauth2.NoContext, &github.ListOptions{})
+			if err != nil {
+				log.Info(context.Request.RemoteAddr, err.Error())
+				return nil, err
+			}
+
+			for _, email := range emails {
+				if email.GetPrimary() {
+					user.Email = email.Email
+					break
+				}
+			}
+		}
+
 		authInfo.Provider = provider.GetName()
 		authInfo.UID = fmt.Sprint(*user.ID)
 
