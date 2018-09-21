@@ -246,7 +246,7 @@ func CreateDeployment(chartName, chartVersion string, chartPackage []byte, names
 		helm.InstallDryRun(false),
 		helm.InstallReuseName(true),
 		helm.InstallDisableHooks(false),
-		helm.InstallTimeout(30),
+		helm.InstallTimeout(300),
 		helm.InstallWait(false))
 	if err != nil {
 		return nil, fmt.Errorf("Error deploying chart: %v", err)
