@@ -847,3 +847,8 @@ func (c *AKSCluster) NeedAdminRights() bool {
 func (c *AKSCluster) GetKubernetesUserName() (string, error) {
 	return "", nil
 }
+
+// GetCreatedBy returns cluster create userID.
+func (c *AKSCluster) GetCreatedBy() uint {
+	return c.modelCluster.CreatedBy
+}

@@ -49,7 +49,7 @@ const (
 	createHostedZoneComment            = "HostedZone created by Banzai Cloud Pipeline"
 	iamUserNameTemplate                = "banzaicloud.route53.%s"
 	hostedZoneAccessPolicyNameTemplate = "BanzaicloudRoute53-%s"
-	iamUserAccessKeySecretName         = "route53"
+	IAMUserAccessKeySecretName         = "route53"
 )
 
 func loggerWithFields(fields logrus.Fields) *logrus.Entry {
@@ -138,6 +138,7 @@ type awsRoute53 struct {
 	getOrganization func(orgId uint) (*auth.Organization, error)
 
 	notificationChannel chan<- interface{}
+	region              string
 }
 
 // NewAwsRoute53 creates a new awsRoute53 using the provided region and route53 credentials
@@ -169,6 +170,7 @@ func NewAwsRoute53(region, awsSecretId, awsSecretKey string, notifications chan 
 		stateStore:          &awsRoute53DatabaseStateStore{},
 		getOrganization:     getOrgById,
 		notificationChannel: notifications,
+		region:              region,
 	}
 
 	baseHostedZoneId, err := awsRoute53.hostedZoneExistsByDomain(baseDomain)
@@ -493,7 +495,7 @@ func (dns *awsRoute53) unregisterDomain(orgId uint, domain string) error {
 	}
 
 	for _, item := range secrets {
-		if item.Name == iamUserAccessKeySecretName {
+		if item.Name == IAMUserAccessKeySecretName {
 			if err := secret.Store.Delete(orgId, item.ID); err != nil {
 				dns.updateStateWithError(state, err)
 				return err
@@ -796,13 +798,13 @@ func (dns *awsRoute53) getRoute53Secret(orgId uint) (*secret.SecretItemResponse,
 	// route53 secret
 	var route53Secrets []*secret.SecretItemResponse
 	for _, awsAccessSecret := range awsAccessSecrets {
-		if awsAccessSecret.Name == iamUserAccessKeySecretName {
+		if awsAccessSecret.Name == IAMUserAccessKeySecretName {
 			route53Secrets = append(route53Secrets, awsAccessSecret)
 		}
 	}
 
 	if len(route53Secrets) > 1 {
-		return nil, fmt.Errorf("multiple secrets found with name '%s'", iamUserAccessKeySecretName)
+		return nil, fmt.Errorf("multiple secrets found with name '%s'", IAMUserAccessKeySecretName)
 	}
 
 	if len(route53Secrets) == 1 {
@@ -815,7 +817,7 @@ func (dns *awsRoute53) getRoute53Secret(orgId uint) (*secret.SecretItemResponse,
 // storeRoute53Secret stores the provided Amazon access key in Vault
 func (dns *awsRoute53) storeRoute53Secret(updateSecret *secret.SecretItemResponse, awsAccessKeyId, awsSecretAccessKey string, ctx *context) error {
 	req := &secret.CreateSecretRequest{
-		Name: iamUserAccessKeySecretName,
+		Name: IAMUserAccessKeySecretName,
 		Type: cluster.Amazon,
 		Tags: []string{
 			secretTypes.TagBanzaiHidden,
@@ -824,6 +826,7 @@ func (dns *awsRoute53) storeRoute53Secret(updateSecret *secret.SecretItemRespons
 		Values: map[string]string{
 			secretTypes.AwsAccessKeyId:     awsAccessKeyId,
 			secretTypes.AwsSecretAccessKey: awsSecretAccessKey,
+			secretTypes.AwsRegion:          dns.region,
 		},
 	}
 

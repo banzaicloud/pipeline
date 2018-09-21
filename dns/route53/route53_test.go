@@ -698,13 +698,13 @@ func TestAwsRoute53_RegisterDomain(t *testing.T) {
 	})
 
 	if len(secrets) != 1 {
-		t.Errorf("There should be one secret with name '%s' in Vault", iamUserAccessKeySecretName)
+		t.Errorf("There should be one secret with name '%s' in Vault", IAMUserAccessKeySecretName)
 	}
 
 	route53SecretCount := 0
 
 	for _, secretItem := range secrets {
-		if secretItem.Name == iamUserAccessKeySecretName {
+		if secretItem.Name == IAMUserAccessKeySecretName {
 			if secretItem.Values[secretTypes.AwsAccessKeyId] == testAccessKeyId &&
 				secretItem.Values[secretTypes.AwsSecretAccessKey] == testAccessSecretKey {
 				route53SecretCount++
@@ -1154,7 +1154,7 @@ func cleanupVaultTestSecrets() {
 	})
 
 	for _, secretItem := range secrets {
-		if secretItem.Name == iamUserAccessKeySecretName {
+		if secretItem.Name == IAMUserAccessKeySecretName {
 			if secretItem.Values[secretTypes.AwsAccessKeyId] == testAccessKeyId &&
 				secretItem.Values[secretTypes.AwsSecretAccessKey] == testAccessSecretKey {
 
