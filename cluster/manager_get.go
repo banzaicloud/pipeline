@@ -44,7 +44,7 @@ func (m *Manager) GetClusters(ctx context.Context, organizationID uint) ([]Commo
 
 		cluster, err := GetCommonClusterFromModel(clusterModel)
 		if err != nil {
-			logger.Error("converting cluster model to common cluster failed")
+			logger.Errorf("converting cluster model to common cluster failed: %s", err.Error())
 
 			continue
 		}
@@ -143,7 +143,7 @@ func (m *Manager) getClustersFromModels(clusterModels []*model.ClusterModel, log
 
 		cluster, err := m.getClusterFromModel(clusterModel)
 		if err != nil {
-			logger.Error("converting cluster model to common cluster failed")
+			logger.Errorf("converting cluster model to common cluster failed: %s", err.Error())
 
 			continue
 		}
