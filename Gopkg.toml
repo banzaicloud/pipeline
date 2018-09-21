@@ -259,7 +259,8 @@
 
 [[constraint]]
   name = "github.com/drone/drone-go"
-  branch = "master"
+  source = "github.com/banzaicloud/drone-go"
+  branch = "banzaidrone"
 
 [[constraint]]
   name = "github.com/goph/emperror"
