@@ -983,12 +983,42 @@ paths:
             schema:
               $ref: '#/components/schemas/InstallSecretsRequest'
 
+  '/api/v1/orgs/{orgId}/clusters/{id}/scanlog':
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+       - scanlog
+      operationId: listScans
+      summary: List scans
+      description: List scans
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Selected cluster identification (number)
+          schema:
+            type: integer
+        - name: orgId
+          in: path
+          required: true
+          description: Organization identification
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Policy listing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScanLogList"
+
   '/api/v1/orgs/{orgId}/clusters/{id}/policies':
     get:
       security:
         - bearerAuth: []
       tags:
-       - Policies
+       - policies
       operationId: list_policies
       summary: List policies
       description: List all saved policy bundles
@@ -1723,9 +1753,9 @@ paths:
           - bearerAuth: []
         tags:
           - whitelist
-        summary: Create Whitelisted deployment
-        operationId: CreateWhitelist
-        description: Create Whitelisted deployment
+        summary: List Whitelisted deployments
+        operationId: ListWhitelists
+        description: List Whitelisted deployments
         parameters:
           - name: orgId
             in: path
@@ -1755,9 +1785,9 @@ paths:
           - bearerAuth: []
         tags:
           - whitelist
-        summary: Delete Whitelisted deployment
-        operationId: DeleteWhitelist
-        description: Delete Whitelisted deployment
+        summary: Delete Whitelisted deployments
+        operationId: ListWhitelists
+        description: List Whitelisted deployments
         parameters:
           - name: orgId
             in: path
@@ -6704,6 +6734,33 @@ components:
           example: 'ScalingActive = true, lastTransitionTime: 2018-08-22T15:31:16Z, the HPA was able to succesfully calculate a replica count from memory resource'
           type: string
 
+    ScanLogList:
+      type: array
+      items:
+        $ref: "#/components/schemas/ScanLogItem"
+
+    ScanLogItem:
+      type: object
+      properties:
+        releaseName:
+          type: string
+          example: 'flying-monkey'
+        resource:
+          type: string
+          example: 'banzaicloud'
+        image:
+          example: ['nginx:latest', 'busybox:latest']
+          type: array
+          items:
+            type: string
+        result:
+          example: 'Warning level CVE found'
+          type: string
+        action:
+          example: 'allow'
+          type: string
+          enum: [allow, reject]
+
     ReleaseWhiteList:
       type: array
       items:
@@ -6974,3 +7031,5 @@ components:
         imageDigest:
           type: string
           description: The parent Anchore Image record to which this detail maps
+
+
