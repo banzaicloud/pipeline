@@ -17,6 +17,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path"
 	"strings"
 
 	"github.com/banzaicloud/go-gin-prometheus"
@@ -26,6 +27,7 @@ import (
 	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/dns/route53/model"
 	"github.com/banzaicloud/pipeline/internal/audit"
+	"github.com/banzaicloud/pipeline/internal/dashboard"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	ginlog "github.com/banzaicloud/pipeline/internal/platform/gin/log"
 	"github.com/banzaicloud/pipeline/model"
@@ -183,11 +185,20 @@ func main() {
 	auth.Install(router)
 
 	basePath := viper.GetString("pipeline.basepath")
-	v1 := router.Group(basePath + "/api/v1/")
+
+	authorizer := auth.NewAuthorizer(casbinDSN)
+
+	dgroup := router.Group(path.Join(basePath, "dashboard", "orgs"))
+	dgroup.Use(auth.Handler)
+	dgroup.Use(authorizer)
+	dgroup.Use(api.OrganizationMiddleware)
+	dgroup.GET("/:orgid/clusters", dashboard.GetDashboard)
+
+	v1 := router.Group(path.Join(basePath, "api", "v1/"))
 	v1.GET("/functions", api.ListFunctions)
 	{
 		v1.Use(auth.Handler)
-		v1.Use(auth.NewAuthorizer(casbinDSN))
+		v1.Use(authorizer)
 		orgs := v1.Group("/orgs")
 		{
 			orgs.Use(api.OrganizationMiddleware)
