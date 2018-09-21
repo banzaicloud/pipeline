@@ -231,6 +231,9 @@ func LaunchSpotguide(request *LaunchRequest, httpRequest *http.Request, orgID, u
 		return errors.Wrap(err, "Failed to find spotguide repo")
 	}
 
+	// LaunchRequest might not have the version
+	request.SpotguideVersion = sourceRepo.Version
+
 	err = createSecrets(request, orgID, userID)
 	if err != nil {
 		return errors.Wrap(err, "Failed to create secrets for spotguide")
