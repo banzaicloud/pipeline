@@ -122,6 +122,7 @@ func AddOrgRoles(orgids ...uint) {
 	for _, orgid := range orgids {
 		enforcer.AddPolicy(orgRoleName(orgid), fmt.Sprintf("%s/api/v1/orgs/%d", basePath, orgid), "*")
 		enforcer.AddPolicy(orgRoleName(orgid), fmt.Sprintf("%s/api/v1/orgs/%d/*", basePath, orgid), "*")
+		enforcer.AddPolicy(orgRoleName(orgid), fmt.Sprintf("%s/dashboard/orgs/%d/*", basePath, orgid), "*")
 	}
 }
 
