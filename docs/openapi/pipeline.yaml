@@ -1753,9 +1753,9 @@ paths:
           - bearerAuth: []
         tags:
           - whitelist
-        summary: List Whitelisted deployments
-        operationId: ListWhitelists
-        description: List Whitelisted deployments
+        summary: Create Whitelisted deployment
+        operationId: CreateWhitelists
+        description: Create Whitelisted deployment
         parameters:
           - name: orgId
             in: path
@@ -1785,9 +1785,9 @@ paths:
           - bearerAuth: []
         tags:
           - whitelist
-        summary: Delete Whitelisted deployments
-        operationId: ListWhitelists
-        description: List Whitelisted deployments
+        summary: Delete Whitelisted deployment
+        operationId: DeleteWhitelist
+        description: Delete Whitelisted deployment
         parameters:
           - name: orgId
             in: path
@@ -6754,8 +6754,10 @@ components:
           items:
             type: string
         result:
-          example: 'Warning level CVE found'
-          type: string
+          example: ['nginx:latest policy check failed, 'busybox:latest policy sheck success']
+          type: array
+          items:
+            type: string
         action:
           example: 'allow'
           type: string
