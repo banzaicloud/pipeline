@@ -129,7 +129,7 @@ func InstallMonitoring(input interface{}) error {
 	}
 
 	grafanaAdminUsername := viper.GetString("monitor.grafanaAdminUsername")
-	grafanaNamespace := viper.GetString(pipConfig.PipelineMonitorNamespace)
+	grafanaNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
 	// Grafana password generator
 	grafanaAdminPass, err := secret.RandomString("randAlphaNum", 12)
 	if err != nil {
@@ -151,7 +151,7 @@ func InstallMonitoring(input interface{}) error {
 			clusterUidTag,
 			pkgSecret.TagBanzaiReadonly,
 			"app:grafana",
-			"release:pipeline-monitoring",
+			"release:monitoring",
 		},
 	}
 
@@ -183,7 +183,7 @@ func InstallMonitoring(input interface{}) error {
 		return errors.Errorf("Json Convert Failed : %s", err.Error())
 	}
 
-	return installDeployment(cluster, grafanaNamespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-monitor", "pipeline-monitoring", grafanaValuesJson, "InstallMonitoring", "")
+	return installDeployment(cluster, grafanaNamespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-monitor", "monitoring", grafanaValuesJson, "InstallMonitoring", "")
 }
 
 // InstallLogging to install logging deployment
@@ -203,7 +203,7 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 	//if !checkIfTLSRelatedValuesArePresent(&loggingParam.GenTLSForLogging) {
 	//	return errors.Errorf("TLS related parameter is missing from request!")
 	//}
-	const namespace = "default"
+	namespace := viper.GetString(pipConfig.PipelineSystemNamespace)
 	loggingParam.GenTLSForLogging.TLSEnabled = true
 	// Set TLS default values (default True)
 	if loggingParam.GenTLSForLogging.Namespace == "" {
@@ -255,7 +255,7 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 	if err != nil {
 		return err
 	}
-	err = installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/logging-operator", "pipeline-logging", operatorYamlValues, "InstallLogging", "")
+	err = installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/logging-operator", "logging-operator", operatorYamlValues, "InstallLogging", "")
 	if err != nil {
 		return err
 	}
@@ -542,9 +542,9 @@ func InstallIngressControllerPostHook(input interface{}) error {
 	if err != nil {
 		return errors.Errorf("Json Convert Failed : %s", err.Error())
 	}
-	namespace := viper.GetString(pipConfig.DNSSecretNamespace)
+	namespace := viper.GetString(pipConfig.PipelineSystemNamespace)
 
-	return installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-ingress", "pipeline-ingress", ingressValuesJson, "InstallIngressController", "")
+	return installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-ingress", "ingress", ingressValuesJson, "InstallIngressController", "")
 }
 
 //InstallKubernetesDashboardPostHook post hooks can't return value, they can log error and/or update state?
@@ -554,7 +554,7 @@ func InstallKubernetesDashboardPostHook(input interface{}) error {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
 
-	k8sDashboardNameSpace := helm.SystemNamespace
+	k8sDashboardNameSpace := viper.GetString(pipConfig.PipelineSystemNamespace)
 	k8sDashboardReleaseName := "dashboard"
 	var valuesJson []byte
 
@@ -709,7 +709,7 @@ func InstallHorizontalPodAutoscalerPostHook(input interface{}) error {
 	if !ok {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
-	infraNamespace := viper.GetString(pipConfig.PipelineMonitorNamespace)
+	infraNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
 
 	var valuesOverride []byte
 	// install metricsServer for Amazon & Azure & Alibaba & Oracle
@@ -727,7 +727,7 @@ func InstallHorizontalPodAutoscalerPostHook(input interface{}) error {
 		valuesOverride = marshalledValues
 	}
 
-	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/hpa-operator", "pipeline-hpa", valuesOverride, "InstallHorizontalPodAutoscaler", "")
+	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/hpa-operator", "hpa-operator", valuesOverride, "InstallHorizontalPodAutoscaler", "")
 }
 
 //InstallPVCOperatorPostHook installs the PVC operator
@@ -737,9 +737,9 @@ func InstallPVCOperatorPostHook(input interface{}) error {
 		return errors.Errorf("wrong parameter type: %T", cluster)
 	}
 
-	infraNamespace := viper.GetString(pipConfig.PipelineMonitorNamespace)
+	infraNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
 
-	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/pvc-operator", "pipeline-pvc-operator", nil, "InstallPVCOperator", "")
+	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/pvc-operator", "pvc-operator", nil, "InstallPVCOperator", "")
 }
 
 //UpdatePrometheusPostHook updates a configmap used by Prometheus
@@ -846,7 +846,7 @@ func RegisterDomainPostHook(input interface{}) error {
 	}
 
 	domainBase := viper.GetString(pipConfig.DNSBaseDomain)
-	route53SecretNamespace := viper.GetString(pipConfig.DNSSecretNamespace)
+	route53SecretNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
 
 	orgId := commonCluster.GetOrganizationId()
 
@@ -925,7 +925,7 @@ func RegisterDomainPostHook(input interface{}) error {
 	}
 	chartVersion := viper.GetString(pipConfig.DNSExternalDnsChartVersion)
 
-	return installDeployment(commonCluster, route53SecretNamespace, pkgHelm.StableRepository+"/external-dns", "pipeline-dns", externalDnsValuesJson, "InstallExternalDNS", chartVersion)
+	return installDeployment(commonCluster, route53SecretNamespace, pkgHelm.StableRepository+"/external-dns", "dns", externalDnsValuesJson, "InstallExternalDNS", chartVersion)
 }
 
 // LabelNodes adds labels for all nodes
