@@ -104,7 +104,6 @@ func CreateGKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID
 
 //GKECluster struct for GKE cluster
 type GKECluster struct {
-	modelCluster  *model.ClusterModel
 	db            *gorm.DB
 	model         *google.GKEClusterModel
 	googleCluster *gke.Cluster //Don't use this directly
@@ -1996,5 +1995,5 @@ func (c *GKECluster) GetKubernetesUserName() (string, error) {
 
 // GetCreatedBy returns cluster create userID.
 func (c *GKECluster) GetCreatedBy() uint {
-	return c.modelCluster.CreatedBy
+	return c.model.Cluster.CreatedBy
 }

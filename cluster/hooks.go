@@ -532,10 +532,8 @@ func InstallIngressControllerPostHook(input interface{}) error {
 				"email":             user.Email,
 				"persistence":       map[string]interface{}{"enabled": true},
 				"dnsProvider": map[string]interface{}{
-					"name": "route53",
-					"route53": map[string]interface{}{
-						"secretName": route53.IAMUserAccessKeySecretName,
-					},
+					"name":       "route53",
+					"secretName": route53.IAMUserAccessKeySecretName,
 				},
 			},
 		},
@@ -544,8 +542,9 @@ func InstallIngressControllerPostHook(input interface{}) error {
 	if err != nil {
 		return errors.Errorf("Json Convert Failed : %s", err.Error())
 	}
+	namespace := viper.GetString(pipConfig.DNSSecretNamespace)
 
-	return installDeployment(cluster, helm.DefaultNamespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-ingress", "pipeline", ingressValuesJson, "InstallIngressController", "")
+	return installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-ingress", "pipeline-ingress", ingressValuesJson, "InstallIngressController", "")
 }
 
 //InstallKubernetesDashboardPostHook post hooks can't return value, they can log error and/or update state?
