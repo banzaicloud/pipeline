@@ -28,6 +28,7 @@ import (
 	"github.com/banzaicloud/pipeline/dns/route53/model"
 	"github.com/banzaicloud/pipeline/internal/audit"
 	"github.com/banzaicloud/pipeline/internal/dashboard"
+	ginternal "github.com/banzaicloud/pipeline/internal/platform/gin"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	ginlog "github.com/banzaicloud/pipeline/internal/platform/gin/log"
 	"github.com/banzaicloud/pipeline/model"
@@ -165,6 +166,7 @@ func main() {
 	router.Use(correlationid.Middleware())
 	router.Use(ginlog.Middleware(log, skipPaths...))
 	router.Use(gin.Recovery())
+	router.Use(ginternal.NewDrainModeMiddleware(errorHandler).Middleware)
 	router.Use(cors.New(config.GetCORS()))
 	if viper.GetBool("audit.enabled") {
 		log.Infoln("Audit enabled, installing Gin audit middleware")
