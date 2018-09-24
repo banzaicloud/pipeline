@@ -203,7 +203,7 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 	//if !checkIfTLSRelatedValuesArePresent(&loggingParam.GenTLSForLogging) {
 	//	return errors.Errorf("TLS related parameter is missing from request!")
 	//}
-	const namespace = "default"
+	namespace := viper.GetString(pipConfig.PipelineSystemNamespace)
 	loggingParam.GenTLSForLogging.TLSEnabled = true
 	// Set TLS default values (default True)
 	if loggingParam.GenTLSForLogging.Namespace == "" {
@@ -255,7 +255,7 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 	if err != nil {
 		return err
 	}
-	err = installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/logging-operator", "pipeline-logging", operatorYamlValues, "InstallLogging", "")
+	err = installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/logging-operator", "logging-operator", operatorYamlValues, "InstallLogging", "")
 	if err != nil {
 		return err
 	}
