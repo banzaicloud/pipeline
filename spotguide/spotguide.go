@@ -25,12 +25,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/drone/drone-go/drone"
-
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/client"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/drone/drone-go/drone"
+	yaml2 "github.com/ghodss/yaml"
 	"github.com/google/go-github/github"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
@@ -43,27 +43,20 @@ const SpotguideGithubTopic = "spotguide"
 const SpotguideGithubOrganization = "banzaicloud"
 const SpotguideYAMLPath = ".banzaicloud/spotguide.yaml"
 const PipelineYAMLPath = ".banzaicloud/pipeline.yaml"
+const ReadmePath = ".banzaicloud/README.md"
 const CreateClusterStep = "create_cluster"
 const DeployApplicationStep = "deploy_application"
 
 var ctx = context.Background()
 
 type Spotguide struct {
-	Name        string     `json:"name"`
-	Description string     `json:"description"`
-	Tags        []string   `json:"tags"`
-	Resources   Resources  `json:"resources"`
-	Questions   []Question `json:"questions"`
-}
-
-type Resources struct {
-	CPU         int      `json:"sumCpu"`
-	Memory      int      `json:"sumMem"`
-	Filters     []string `json:"filters"`
-	SameSize    bool     `json:"sameSize"`
-	OnDemandPct int      `json:"onDemandPct"`
-	MinNodes    int      `json:"minNodes"`
-	MaxNodes    int      `json:"maxNodes"`
+	Name        string                    `json:"name"`
+	Description string                    `json:"description,omitempty"`
+	Tags        []string                  `json:"tags,omitempty"`
+	Icon        string                    `json:"icon,omitempty"`
+	Readme      string                    `json:"readme,omitempty"`
+	Resources   client.RequestedResources `json:"resources"`
+	Questions   []Question                `json:"questions"`
 }
 
 type Question map[string]interface{}
@@ -77,6 +70,7 @@ type Repo struct {
 	Icon         string     `json:"-"`
 	SpotguideRaw []byte     `json:"-" gorm:"type:text"`
 	Spotguide    Spotguide  `json:"spotguide" gorm:"-"`
+	Readme       string     `json:"readme" gorm:"type:text"`
 	Version      string     `json:"version" gorm:"unique_index:name_and_version"`
 }
 
@@ -85,7 +79,16 @@ func (Repo) TableName() string {
 }
 
 func (s *Repo) AfterFind() error {
-	return yaml.Unmarshal(s.SpotguideRaw, &s.Spotguide)
+	return yaml2.Unmarshal(s.SpotguideRaw, &s.Spotguide)
+}
+
+func (s *Repo) BeforeSave() error {
+	err := yaml2.Unmarshal(s.SpotguideRaw, &s.Spotguide)
+	if err != nil {
+		return err
+	}
+	s.Spotguide.Readme = s.Readme
+	return err
 }
 
 type LaunchRequest struct {
@@ -186,9 +189,15 @@ func ScrapeSpotguides() error {
 						return emperror.Wrap(err, "failed to download spotguide YAML")
 					}
 
+					readme, err := downloadGithubFile(githubClient, owner, name, ReadmePath, tag)
+					if err != nil {
+						return emperror.Wrap(err, "failed to download README")
+					}
+
 					model := Repo{
 						Name:         repository.GetFullName(),
 						SpotguideRaw: spotguideRaw,
+						Readme:       string(readme),
 						Version:      tag,
 					}
 
@@ -214,24 +223,27 @@ func GetSpotguides() ([]*Repo, error) {
 	return spotguides, err
 }
 
-func GetSpotguide(name, version string) (repo *Repo, err error) {
+func GetSpotguide(name, version string) ([]Repo, error) {
 	db := config.DB()
-	repo = &Repo{}
+	repo := []Repo{}
+	var err error
 	if version == "" {
-		err = db.Where("name = ?", name).Last(repo).Error
+		err = db.Where("name = ?", name).Find(&repo).Error
 	} else {
-		err = db.Where("name = ? AND version = ?", name, version).Find(repo).Error
+		err = db.Where("name = ? AND version = ?", name, version).Find(&repo).Error
 	}
-	return
+	return repo, err
 }
 
 // curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -v http://localhost:9090/api/v1/orgs/1/spotguides -d '{"repoName":"spotguide-test", "repoOrganization":"banzaicloud-test", "spotguideName":"banzaicloud/spotguide-nodejs-mongodb"}'
 func LaunchSpotguide(request *LaunchRequest, httpRequest *http.Request, orgID, userID uint) error {
 
-	sourceRepo, err := GetSpotguide(request.SpotguideName, request.SpotguideVersion)
+	sourceRepos, err := GetSpotguide(request.SpotguideName, request.SpotguideVersion)
 	if err != nil {
 		return errors.Wrap(err, "Failed to find spotguide repo")
 	}
+
+	sourceRepo := &sourceRepos[0]
 
 	// LaunchRequest might not have the version
 	request.SpotguideVersion = sourceRepo.Version
