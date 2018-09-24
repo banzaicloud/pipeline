@@ -17,6 +17,8 @@ package oci
 import (
 	"context"
 	"fmt"
+	"io"
+	"time"
 
 	"github.com/oracle/oci-go-sdk/common"
 	"github.com/oracle/oci-go-sdk/objectstorage"
@@ -74,9 +76,14 @@ func (os *ObjectStorage) CreateBucket(name string) (bucket objectstorage.Bucket,
 }
 
 // DeleteBucket deletes an Object Storage bucket by name
+// it deletes existing PreauthenticatedRequests before trying to delete the bucket
 func (os *ObjectStorage) DeleteBucket(name string) error {
+	err := os.deletePreauthenticatedRequests(name)
+	if err != nil {
+		return err
+	}
 
-	_, err := os.client.DeleteBucket(context.Background(), objectstorage.DeleteBucketRequest{
+	_, err = os.client.DeleteBucket(context.Background(), objectstorage.DeleteBucketRequest{
 		NamespaceName: &os.Namespace,
 		BucketName:    &name,
 	})
@@ -98,7 +105,11 @@ func (os *ObjectStorage) GetBucket(name string) (bucket objectstorage.Bucket, er
 	}
 
 	if *response.CompartmentId != os.CompartmentOCID {
-		return response.Bucket, fmt.Errorf("Service error:BucketNotFound. The bucket '%s' does not exist in compartment '%s' in namespace '%s'.", name, os.CompartmentOCID, *request.NamespaceName)
+		return response.Bucket, &servicefailure{
+			StatusCode: 404,
+			Code:       "BucketNotFound",
+			Message:    fmt.Sprintf("The bucket '%s' does not exist in compartment '%s' in namespace '%s'", name, os.CompartmentOCID, *request.NamespaceName),
+		}
 	}
 
 	return response.Bucket, nil
@@ -136,4 +147,150 @@ func (os *ObjectStorage) GetBuckets() (buckets []objectstorage.BucketSummary, er
 	}
 
 	return buckets, err
+}
+
+// ListObjects gets all keys in the bucket
+func (os *ObjectStorage) ListObjects(bucket string) ([]objectstorage.ObjectSummary, error) {
+	request := objectstorage.ListObjectsRequest{
+		NamespaceName: &os.Namespace,
+		BucketName:    &bucket,
+	}
+
+	response, err := os.client.ListObjects(context.Background(), request)
+	if err != nil {
+		return nil, err
+	}
+
+	return response.Objects, nil
+}
+
+// ListObjectsWithPrefix gets all keys with the given prefix from the bucket
+func (os *ObjectStorage) ListObjectsWithPrefix(bucket, prefix string) ([]objectstorage.ObjectSummary, error) {
+	request := objectstorage.ListObjectsRequest{
+		NamespaceName: &os.Namespace,
+		BucketName:    &bucket,
+		Prefix:        &prefix,
+	}
+
+	response, err := os.client.ListObjects(context.Background(), request)
+	if err != nil {
+		return nil, err
+	}
+
+	return response.Objects, nil
+}
+
+// ListObjectKeyPrefixes gets a list of all object key prefixes that come before the provided delimiter.
+func (os *ObjectStorage) ListObjectKeyPrefixes(bucket, delimeter string) ([]string, error) {
+	request := objectstorage.ListObjectsRequest{
+		NamespaceName: &os.Namespace,
+		BucketName:    &bucket,
+		Delimiter:     &delimeter,
+	}
+
+	response, err := os.client.ListObjects(context.Background(), request)
+	if err != nil {
+		return nil, err
+	}
+
+	return response.Prefixes, nil
+}
+
+// GetObject retrieves the object by it's key from the given bucket
+func (os *ObjectStorage) GetObject(bucket, key string) (io.ReadCloser, error) {
+	request := objectstorage.GetObjectRequest{
+		NamespaceName: &os.Namespace,
+		BucketName:    &bucket,
+		ObjectName:    &key,
+	}
+
+	response, err := os.client.GetObject(context.Background(), request)
+	if err != nil {
+		return nil, err
+	}
+
+	return response.Content, nil
+}
+
+// PutObject creates a new object using the data in body with the given key
+func (os *ObjectStorage) PutObject(bucket, key string, length int64, body io.ReadCloser) error {
+	request := objectstorage.PutObjectRequest{
+		NamespaceName: &os.Namespace,
+		BucketName:    &bucket,
+		ObjectName:    &key,
+		ContentLength: &length,
+		PutObjectBody: body,
+	}
+
+	_, err := os.client.PutObject(context.Background(), request)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// DeleteObject removes the object from the given bucket by it's key
+func (os *ObjectStorage) DeleteObject(bucket, key string) error {
+	request := objectstorage.DeleteObjectRequest{
+		NamespaceName: &os.Namespace,
+		BucketName:    &bucket,
+		ObjectName:    &key,
+	}
+
+	_, err := os.client.DeleteObject(context.Background(), request)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// GetSignedURL gives back a signed URL for the key that expires after the given ttl
+func (os *ObjectStorage) GetSignedURL(bucket, key string, ttl time.Duration) (string, error) {
+	name := fmt.Sprintf("%s/%s@%d", bucket, key, time.Now().UnixNano())
+
+	request := objectstorage.CreatePreauthenticatedRequestRequest{
+		NamespaceName: &os.Namespace,
+		BucketName:    &bucket,
+		CreatePreauthenticatedRequestDetails: objectstorage.CreatePreauthenticatedRequestDetails{
+			Name:       &name,
+			ObjectName: &key,
+			TimeExpires: &common.SDKTime{
+				Time: time.Now().Add(ttl),
+			},
+			AccessType: objectstorage.CreatePreauthenticatedRequestDetailsAccessTypeObjectread,
+		},
+	}
+
+	response, err := os.client.CreatePreauthenticatedRequest(context.Background(), request)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("https://%s%s", os.client.Host, *response.AccessUri), nil
+}
+
+func (os *ObjectStorage) deletePreauthenticatedRequests(name string) error {
+	response, err := os.client.ListPreauthenticatedRequests(context.Background(), objectstorage.ListPreauthenticatedRequestsRequest{
+		NamespaceName: &os.Namespace,
+		BucketName:    &name,
+		Limit:         common.Int(1000),
+	})
+	if err != nil {
+		return err
+	}
+
+	for _, item := range response.Items {
+		_, err := os.client.DeletePreauthenticatedRequest(context.Background(), objectstorage.DeletePreauthenticatedRequestRequest{
+			NamespaceName: &os.Namespace,
+			BucketName:    &name,
+			ParId:         item.Id,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

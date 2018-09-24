@@ -31,3 +31,27 @@ func IsEntityNotFoundError(err error) (ok bool) {
 	_, ok = err.(*EntityNotFoundError)
 	return ok
 }
+
+type servicefailure struct {
+	StatusCode int
+	Code       string `json:"code,omitempty"`
+	Message    string `json:"message,omitempty"`
+}
+
+func (se servicefailure) Error() string {
+	return fmt.Sprintf("Service error:%s. %s. http status code: %d",
+		se.Code, se.Message, se.StatusCode)
+}
+
+func (se servicefailure) GetHTTPStatusCode() int {
+	return se.StatusCode
+
+}
+
+func (se servicefailure) GetMessage() string {
+	return se.Message
+}
+
+func (se servicefailure) GetCode() string {
+	return se.Code
+}

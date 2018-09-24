@@ -19,17 +19,16 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/jinzhu/gorm"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/objectstore"
 	commonObjectstore "github.com/banzaicloud/pipeline/pkg/objectstore"
 	amazonObjectstore "github.com/banzaicloud/pipeline/pkg/providers/amazon/objectstore"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/banzaicloud/pipeline/secret/verify"
-	"github.com/jinzhu/gorm"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 type bucketNotFoundError struct{}
@@ -63,22 +62,41 @@ func NewObjectStore(
 	db *gorm.DB,
 	logger logrus.FieldLogger,
 ) (*objectStore, error) {
-	sess, err := session.NewSession(&aws.Config{
-		Region:      aws.String(region),
-		Credentials: verify.CreateAWSCredentials(secret.Values),
-	})
+	ostore, err := getProviderObjectStore(secret, region)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not create aws session")
+		errors.Wrap(err, "could not create AWS object storage client")
 	}
 
 	return &objectStore{
-		objectStore: amazonObjectstore.New(sess, amazonObjectstore.WaitForCompletion(true)),
+		objectStore: ostore,
 		region:      region,
 		secret:      secret,
 		org:         org,
 		db:          db,
 		logger:      logger,
 	}, nil
+}
+
+func getProviderObjectStore(secret *secret.SecretItemResponse, region string) (amazonObjectStore, error) {
+
+	credentials := amazonObjectstore.Credentials{
+		AccessKeyID:     secret.Values[pkgSecret.AwsAccessKeyId],
+		SecretAccessKey: secret.Values[pkgSecret.AwsSecretAccessKey],
+	}
+
+	config := amazonObjectstore.Config{
+		Region: region,
+		Opts: []amazonObjectstore.Option{
+			amazonObjectstore.WaitForCompletion(true),
+		},
+	}
+
+	ostore, err := amazonObjectstore.New(config, credentials)
+	if err != nil {
+		return nil, err
+	}
+
+	return ostore, nil
 }
 
 func (s *objectStore) getLogger() logrus.FieldLogger {
@@ -144,15 +162,10 @@ func (s *objectStore) DeleteBucket(bucketName string) error {
 
 	logger.Info("deleting bucket")
 
-	sess, err := session.NewSession(&aws.Config{
-		Region:      aws.String(bucket.Region), // Region is not provided when deleting a bucket
-		Credentials: verify.CreateAWSCredentials(s.secret.Values),
-	})
+	objectStore, err := getProviderObjectStore(s.secret, bucket.Region)
 	if err != nil {
-		return errors.Wrap(err, "could not create aws session")
+		return errors.Wrap(err, "could not create AWS object storage client")
 	}
-
-	objectStore := amazonObjectstore.New(sess, amazonObjectstore.WaitForCompletion(true))
 
 	if err := objectStore.DeleteBucket(bucketName); err != nil {
 		return err
