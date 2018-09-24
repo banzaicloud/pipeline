@@ -40,6 +40,8 @@ func (m *Manager) DeleteCluster(ctx context.Context, cluster CommonCluster, forc
 	)
 
 	go func() {
+		defer emperror.HandleRecover(m.errorHandler)
+
 		err := m.deleteCluster(ctx, cluster, force, kubeProxyCache)
 		if err != nil {
 			errorHandler.Handle(err)

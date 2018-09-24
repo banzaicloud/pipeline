@@ -20,6 +20,7 @@ import (
 
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
@@ -87,6 +88,8 @@ func (m *Manager) CreateCluster(ctx context.Context, creationCtx CreationContext
 	logger.Info("creating cluster")
 
 	go func() {
+		defer emperror.HandleRecover(m.errorHandler)
+
 		err := m.createCluster(ctx, cluster, creator, creationCtx.PostHooks, logger)
 		if err != nil {
 			logger.Errorf("failed to create cluster: %s", err.Error())

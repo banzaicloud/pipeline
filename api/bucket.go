@@ -35,6 +35,7 @@ import (
 	pkgProviders "github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/gin-gonic/gin"
+	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/api/googleapi"
@@ -183,6 +184,8 @@ func CreateBucket(c *gin.Context) {
 	})
 
 	go func() {
+		defer emperror.HandleRecover(errorHandler)
+
 		err := objectStore.CreateBucket(createBucketRequest.Name)
 		if err != nil {
 			logger.Error(err.Error())

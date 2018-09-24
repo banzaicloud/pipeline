@@ -79,6 +79,8 @@ func (m *Manager) UpdateCluster(ctx context.Context, updateCtx UpdateContext, up
 	logger.Info("updating cluster")
 
 	go func() {
+		defer emperror.HandleRecover(m.errorHandler)
+
 		err := m.updateCluster(ctx, updateCtx, cluster, updater)
 		if err != nil {
 			errorHandler.Handle(err)
