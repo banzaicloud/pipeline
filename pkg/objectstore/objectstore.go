@@ -14,17 +14,43 @@
 
 package objectstore
 
+import (
+	"io"
+	"time"
+)
+
 // ObjectStore is the interface that cloud specific object store implementation must implement.
 type ObjectStore interface {
 	// CreateBucket creates a new bucket in the object store.
-	CreateBucket(string) error
+	CreateBucket(bucketName string) error
 
 	// ListBuckets lists the current buckets in the object store.
 	ListBuckets() ([]string, error)
 
 	// CheckBucket checks the status of the given bucket.
-	CheckBucket(string) error
+	CheckBucket(bucketName string) error
 
-	// DeleteBucket removes a bucket from the object store.
-	DeleteBucket(string) error
+	// DeleteBucket deletes a bucket from the object store.
+	DeleteBucket(bucketName string) error
+
+	// ListObjects gets all keys in the bucket.
+	ListObjects(bucketName string) ([]string, error)
+
+	// ListObjectsWithPrefix gets all keys with the given prefix from the bucket.
+	ListObjectsWithPrefix(bucketName string, prefix string) ([]string, error)
+
+	// ListObjectKeyPrefixes gets a list of all object key prefixes that come before the provided delimiter.
+	ListObjectKeyPrefixes(bucketName string, delimeter string) ([]string, error)
+
+	// GetObject retrieves the object by it's key from the given bucket.
+	GetObject(bucketName string, key string) (io.ReadCloser, error)
+
+	// PutObject creates a new object using the data in body with the given key.
+	PutObject(bucketName string, delimeter string, body io.Reader) error
+
+	// DeleteObject deletes the object from the given bucket by it's key.
+	DeleteObject(bucketName string, key string) error
+
+	// GetSignedURL gives back a signed URL for the object that expires after the given ttl.
+	GetSignedURL(bucketName string, key string, ttl time.Duration) (string, error)
 }

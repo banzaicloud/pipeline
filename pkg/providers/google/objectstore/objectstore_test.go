@@ -16,21 +16,18 @@ package objectstore
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
-	"reflect"
 	"sort"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/goph/emperror"
 	"github.com/pkg/errors"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/stretchr/testify/assert"
 )
 
 const bucketName = "banzaicloud-test-bucket"
@@ -39,7 +36,7 @@ const nonExistingBucketName = "a-asd8908sad-nonexisting-bucketname"
 func getObjectStore(t *testing.T) *objectStore {
 	t.Helper()
 
-	region := strings.TrimSpace(os.Getenv("AWS_REGION"))
+	region := strings.TrimSpace(os.Getenv("GOOGLE_REGION"))
 	if region == "" {
 		t.Skip("missing region")
 	}
@@ -50,59 +47,45 @@ func getObjectStore(t *testing.T) *objectStore {
 func getObjectStoreWithRegion(t *testing.T, region string) *objectStore {
 	t.Helper()
 
-	accessKey := strings.TrimSpace(os.Getenv("AWS_ACCESS_KEY"))
-	secretKey := strings.TrimSpace(os.Getenv("AWS_SECRET_KEY"))
+	var credentials Credentials
 
-	if accessKey == "" || secretKey == "" {
-		t.Skip("missing credentials")
+	jsonFile := strings.TrimSpace(os.Getenv("GOOGLE_SERVICE_ACCOUNT_JSON"))
+	if jsonFile == "" {
+		t.Skip("GOOGLE_SERVICE_ACCOUNT_JSON is not set")
 	}
 
-	credentials := Credentials{
-		AccessKeyID:     accessKey,
-		SecretAccessKey: secretKey,
+	f, err := os.Open(jsonFile)
+	if err != nil {
+		t.Fatal("json file not found: ", err.Error())
+	}
+	defer f.Close()
+
+	byteValue, err := ioutil.ReadAll(f)
+	if err != nil {
+		t.Fatal("error reading json file: ", err.Error())
+	}
+
+	err = json.Unmarshal(byteValue, &credentials)
+	if err != nil {
+		t.Fatal("error unmarshal json: ", err.Error())
 	}
 
 	config := Config{
 		Region: region,
-		Opts: []Option{
-			WaitForCompletion(true),
-		},
 	}
 
-	os, err := New(config, credentials)
+	ostore, err := New(config, credentials)
 	if err != nil {
 		t.Fatal("could not create object storage client: ", err.Error())
 	}
 
-	return os
-}
-
-func getSession(t *testing.T) *session.Session {
-	t.Helper()
-
-	accessKey := strings.TrimSpace(os.Getenv("AWS_ACCESS_KEY"))
-	secretKey := strings.TrimSpace(os.Getenv("AWS_SECRET_KEY"))
-	region := strings.TrimSpace(os.Getenv("AWS_REGION"))
-
-	if accessKey == "" || secretKey == "" || region == "" {
-		t.Skip("missing credentials")
-	}
-
-	sess, err := session.NewSession(&aws.Config{
-		Credentials: credentials.NewStaticCredentials(accessKey, secretKey, ""),
-		Region:      aws.String(region),
-	})
-	if err != nil {
-		t.Fatal("could not create session: ", err.Error())
-	}
-
-	return sess
+	return ostore
 }
 
 func getBucketName(t *testing.T, bucketName string) string {
 	t.Helper()
 
-	prefix := strings.TrimSpace(os.Getenv("AWS_BUCKET_PREFIX"))
+	prefix := strings.TrimSpace(os.Getenv("GOOGLE_BUCKET_PREFIX"))
 
 	if prefix != "" {
 		return fmt.Sprintf("%s-%s-%d", prefix, bucketName, time.Now().UnixNano())
@@ -111,225 +94,106 @@ func getBucketName(t *testing.T, bucketName string) string {
 	return fmt.Sprintf("%s-%d", bucketName, time.Now().UnixNano())
 }
 
-func TestObjectStore_CreateBucket(t *testing.T) {
-	sess := getSession(t)
-	client := s3.New(sess)
-
-	s := getObjectStore(t)
+func TestObjectStore_CreateDeleteBucket(t *testing.T) {
+	var err error
 
 	bucketName := getBucketName(t, bucketName)
+	ostore := getObjectStore(t)
 
-	err := s.CreateBucket(bucketName)
+	err = ostore.CreateBucket(bucketName)
 	if err != nil {
 		t.Fatal("could not create test bucket: ", err.Error())
 	}
 
-	head := &s3.HeadBucketInput{
-		Bucket: aws.String(bucketName),
-	}
-
-	_, err = client.HeadBucket(head)
+	err = ostore.DeleteBucket(bucketName)
 	if err != nil {
-		t.Error("could not verify bucket creation: ", err.Error())
-	}
-
-	del := &s3.DeleteBucketInput{
-		Bucket: aws.String(bucketName),
-	}
-
-	_, err = client.DeleteBucket(del)
-	if err != nil {
-		t.Fatal("could not clean up bucket: ", err.Error())
+		t.Fatal("could not delete test bucket: ", err.Error())
 	}
 }
 
-func TestObjectStore_GetRegion(t *testing.T) {
-	sess := getSession(t)
-	client := s3.New(sess)
-
-	s := getObjectStore(t)
+func TestObjectStore_ListBucket(t *testing.T) {
+	var err error
 
 	bucketName := getBucketName(t, bucketName)
+	ostore := getObjectStore(t)
 
-	input := &s3.CreateBucketInput{
-		Bucket: aws.String(bucketName),
-	}
-
-	_, err := client.CreateBucket(input)
+	err = ostore.CreateBucket(bucketName)
 	if err != nil {
 		t.Fatal("could not create test bucket: ", err.Error())
 	}
 
-	region, err := s.GetRegion(bucketName)
-	if err != nil {
-		t.Error("could not get bucket region: ", err.Error())
-	} else {
-		if strings.TrimSpace(os.Getenv("AWS_REGION")) != region {
-			t.Error("test bucket region does not match")
-		}
-	}
-
-	del := &s3.DeleteBucketInput{
-		Bucket: aws.String(bucketName),
-	}
-
-	_, err = client.DeleteBucket(del)
-	if err != nil {
-		t.Fatal("could not clean up bucket: ", err.Error())
-	}
-}
-
-func TestObjectStore_ListBuckets(t *testing.T) {
-	sess := getSession(t)
-	client := s3.New(sess)
-
-	s := getObjectStore(t)
-
-	bucketName := getBucketName(t, bucketName)
-
-	input := &s3.CreateBucketInput{
-		Bucket: aws.String(bucketName),
-	}
-
-	_, err := client.CreateBucket(input)
-	if err != nil {
-		t.Fatal("could not create test bucket: ", err.Error())
-	}
-
-	buckets, err := s.ListBuckets()
+	buckets, err := ostore.ListBuckets()
 	if err != nil {
 		t.Error("could not list buckets: ", err.Error())
-	} else {
-		var bucketFound bool
+	}
 
-		for _, bucket := range buckets {
-			if bucket == bucketName {
-				bucketFound = true
-
-				break
-			}
-		}
-
-		if !bucketFound {
-			t.Error("test bucket not found in the list")
+	ok := false
+	for _, name := range buckets {
+		if name == bucketName {
+			ok = true
 		}
 	}
 
-	del := &s3.DeleteBucketInput{
-		Bucket: aws.String(bucketName),
+	if !ok {
+		t.Error("test bucket bucket not found")
 	}
 
-	_, err = client.DeleteBucket(del)
+	err = ostore.DeleteBucket(bucketName)
 	if err != nil {
-		t.Fatal("could not clean up bucket: ", err.Error())
+		t.Fatal("could not delete test bucket: ", err.Error())
 	}
 }
 
 func TestObjectStore_CheckBucket(t *testing.T) {
-	sess := getSession(t)
-	client := s3.New(sess)
-
-	s := getObjectStore(t)
+	var err error
 
 	bucketName := getBucketName(t, bucketName)
+	ostore := getObjectStore(t)
 
-	input := &s3.CreateBucketInput{
-		Bucket: aws.String(bucketName),
-	}
-
-	_, err := client.CreateBucket(input)
+	err = ostore.CreateBucket(bucketName)
 	if err != nil {
 		t.Fatal("could not create test bucket: ", err.Error())
 	}
 
-	err = s.CheckBucket(bucketName)
+	err = ostore.CheckBucket(bucketName)
 	if err != nil {
 		t.Error("bucket checking failed: ", err.Error())
 	}
 
-	del := &s3.DeleteBucketInput{
-		Bucket: aws.String(bucketName),
-	}
-
-	_, err = client.DeleteBucket(del)
+	err = ostore.DeleteBucket(bucketName)
 	if err != nil {
-		t.Fatal("could not clean up bucket: ", err.Error())
+		t.Fatal("could not delete test bucket: ", err.Error())
 	}
 }
 
-func TestObjectStore_CheckBucket_DifferentRegion(t *testing.T) {
-	sess := getSession(t)
-	client := s3.New(sess)
+func TestObjectStore_CheckBucket_DiffRegion(t *testing.T) {
+	var err error
 
-	diffRegion := strings.TrimSpace(os.Getenv("AWS_DIFF_REGION"))
+	bucketName := getBucketName(t, bucketName)
+	ostore := getObjectStore(t)
+
+	diffRegion := strings.TrimSpace(os.Getenv("GOOGLE_DIFF_REGION"))
 	if diffRegion == "" {
-		t.Skip("no different region was set")
+		t.Skip("no diff region is set")
 	}
-	if diffRegion == *sess.Config.Region {
+	if diffRegion == ostore.config.Region {
 		t.Skip("same regions were set")
 	}
 
-	s := getObjectStoreWithRegion(t, diffRegion)
-
-	bucketName := getBucketName(t, bucketName)
-
-	input := &s3.CreateBucketInput{
-		Bucket: aws.String(bucketName),
-	}
-
-	_, err := client.CreateBucket(input)
+	ostoreWithRegion := getObjectStoreWithRegion(t, diffRegion)
+	err = ostoreWithRegion.CreateBucket(bucketName)
 	if err != nil {
 		t.Fatal("could not create test bucket: ", err.Error())
 	}
 
-	err = s.CheckBucket(bucketName)
+	err = ostore.CheckBucket(bucketName)
 	if err != nil {
-		t.Error("checking bucket failed: ", err.Error())
+		t.Error("bucket checking failed: ", err.Error())
 	}
 
-	del := &s3.DeleteBucketInput{
-		Bucket: aws.String(bucketName),
-	}
-
-	_, err = client.DeleteBucket(del)
+	err = ostore.DeleteBucket(bucketName)
 	if err != nil {
-		t.Fatal("could not clean up bucket: ", err.Error())
-	}
-}
-
-func TestObjectStore_Delete(t *testing.T) {
-	sess := getSession(t)
-	client := s3.New(sess)
-
-	s := getObjectStore(t)
-
-	bucketName := getBucketName(t, bucketName)
-
-	input := &s3.CreateBucketInput{
-		Bucket: aws.String(bucketName),
-	}
-
-	_, err := client.CreateBucket(input)
-	if err != nil {
-		t.Fatal("could not create test bucket: ", err.Error())
-	}
-
-	err = s.DeleteBucket(bucketName)
-	if err != nil {
-		t.Fatal("could not test bucket deletion: ", err.Error())
-	}
-
-	head := &s3.HeadBucketInput{
-		Bucket: aws.String(bucketName),
-	}
-
-	_, err = client.HeadBucket(head)
-	if err != nil {
-		if awsErr, ok := err.(awserr.Error); !ok || awsErr.Code() != "NotFound" {
-			t.Error("could not verify bucket deletion: ", err.Error())
-		}
-	} else {
-		t.Error("could not verify bucket deletion: no error received")
+		t.Fatal("could not delete test bucket: ", err.Error())
 	}
 }
 
@@ -375,9 +239,7 @@ func TestObjectStore_ListObjects(t *testing.T) {
 
 	sort.Strings(objectNames)
 	sort.Strings(objects)
-	if !reflect.DeepEqual(objectNames, objects) {
-		t.Error("retrieved objects differs")
-	}
+	assert.Exactly(t, objectNames, objects)
 
 	objects, err = ostore.ListObjectsWithPrefix(bucketName, "test/")
 	if err != nil {
@@ -386,9 +248,7 @@ func TestObjectStore_ListObjects(t *testing.T) {
 
 	sort.Strings(prefixedNames)
 	sort.Strings(objects)
-	if !reflect.DeepEqual(prefixedNames, objects) {
-		t.Error("retrieved prefixed objects differs")
-	}
+	assert.Exactly(t, prefixedNames, objects)
 
 	_prefixes, err := ostore.ListObjectKeyPrefixes(bucketName, "/")
 	if err != nil {
@@ -397,9 +257,7 @@ func TestObjectStore_ListObjects(t *testing.T) {
 
 	sort.Strings(prefixes)
 	sort.Strings(_prefixes)
-	if !reflect.DeepEqual(prefixes, _prefixes) {
-		t.Error("retrieved object key prefixes differs")
-	}
+	assert.Exactly(t, prefixes, _prefixes)
 
 	for _, objectName := range objectNames {
 		err = ostore.DeleteObject(bucketName, objectName)
@@ -444,9 +302,7 @@ func TestObjectStore_GetPutDeleteObject(t *testing.T) {
 		t.Error("error while reading test object: ", err.Error())
 	}
 
-	if bytes.Compare(content, readContent.Bytes()) != 0 {
-		t.Error("retrieved test content differs")
-	}
+	assert.Exactly(t, content, readContent.Bytes())
 
 	err = ostore.DeleteObject(bucketName, objectName)
 	if err != nil {
@@ -483,7 +339,7 @@ func TestObjectStore_SignedURL(t *testing.T) {
 		t.Error("could not get signed URL: ", err.Error())
 	}
 
-	if !strings.Contains(url, fmt.Sprintf("https://%s", bucketName)) {
+	if !strings.Contains(url, fmt.Sprintf("%s", bucketName)) {
 		t.Error("signed URL is not correctly formatted")
 	}
 
@@ -510,9 +366,7 @@ func TestObjectStore_CreateAlreadyExistingBucket(t *testing.T) {
 	}
 
 	err = ostore.CreateBucket(bucketName)
-	if _, ok := errors.Cause(err).(errBucketAlreadyExists); !ok {
-		t.Error("error is not errBucketAlreadyExists: ", err.Error())
-	}
+	assert.EqualError(t, errors.Cause(err), errBucketAlreadyExists{}.Error())
 
 	err = ostore.DeleteBucket(bucketName)
 	if err != nil {
@@ -526,9 +380,7 @@ func TestObjectStore_BucketNotFound(t *testing.T) {
 	ostore := getObjectStore(t)
 
 	err = ostore.CheckBucket(nonExistingBucketName)
-	if _, ok := errors.Cause(err).(errBucketNotFound); !ok {
-		t.Fatal("error is not errBucketNotFound: ", err.Error())
-	}
+	assert.EqualError(t, errors.Cause(err), errBucketNotFound{}.Error())
 }
 
 func TestObjectStore_ObjectNotFound(t *testing.T) {
@@ -543,9 +395,39 @@ func TestObjectStore_ObjectNotFound(t *testing.T) {
 	}
 
 	_, err = ostore.GetObject(bucketName, "test.txt")
-	if _, ok := errors.Cause(err).(errObjectNotFound); !ok {
-		t.Fatal("error is not errObjectNotFound: ", err.Error())
+	assert.EqualError(t, errors.Cause(err), errObjectNotFound{}.Error())
+
+	err = ostore.DeleteBucket(bucketName)
+	if err != nil {
+		t.Fatal("could not delete test bucket: ", err.Error())
 	}
+}
+
+func TestObjectStore_BucketErrorContext(t *testing.T) {
+	var err error
+
+	ostore := getObjectStore(t)
+
+	err = ostore.CheckBucket(nonExistingBucketName)
+	expected := []interface{}{"bucket", nonExistingBucketName}
+	assert.Exactly(t, expected, emperror.Context(err))
+}
+
+func TestObjectStore_ObjectErrorContext(t *testing.T) {
+	var err error
+
+	bucketName := getBucketName(t, bucketName)
+
+	ostore := getObjectStore(t)
+
+	err = ostore.CreateBucket(bucketName)
+	if err != nil {
+		t.Fatal("could not create test bucket: ", err.Error())
+	}
+
+	_, err = ostore.GetObject(bucketName, "test/test.txt")
+	expected := []interface{}{"bucket", bucketName, "object", "test/test.txt"}
+	assert.Exactly(t, expected, emperror.Context(err))
 
 	err = ostore.DeleteBucket(bucketName)
 	if err != nil {

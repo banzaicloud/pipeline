@@ -26,7 +26,7 @@
   version = "0.1.6"
 
 [[projects]]
-  digest = "1:78a6a73ce1f0d11e625494a802448e013e95622fccb2fb82219375677af1794c"
+  digest = "1:ac77d7c11fb4ba5b517b82f7cec6eb5fa19e342c4f83601c837af66e57594401"
   name = "github.com/Azure/azure-sdk-for-go"
   packages = [
     "profiles/2017-03-09/network/mgmt/network",
@@ -39,6 +39,7 @@
     "services/resources/mgmt/2017-05-10/resources",
     "services/resources/mgmt/2018-02-01/resources",
     "services/storage/mgmt/2017-10-01/storage",
+    "storage",
     "version",
   ]
   pruneopts = "NUT"
@@ -932,12 +933,12 @@
   revision = "2788f0dbd16903de03cb8186e5c7d97b69ad387b"
 
 [[projects]]
-  digest = "1:d61a1e6fb912bd41c807e0d0d151a905f36c8455170b9b91abb47d2571e436b6"
+  digest = "1:804fdc6a3c0d1cdb662495697688c82d771c90b72768da98a6eccb2a78cb4ba9"
   name = "github.com/kris-nova/klone"
   packages = ["pkg/local"]
   pruneopts = "NUT"
-  revision = "a9d1a9905c22559b040697cd0a22b89217d56c9a"
-  version = "v1.2.0"
+  revision = "2217bf3479abb92275417e26b948209df4e402e9"
+  version = "v1.1.1"
 
 [[projects]]
   branch = "master"
@@ -1022,6 +1023,14 @@
   ]
   pruneopts = "NUT"
   revision = "8b799c424f57fa123fc63a99d6383bc6e4c02578"
+
+[[projects]]
+  digest = "1:13ada91f079028d1b4ca88e10a16439dcfa6541d26ed2e61e770f56d06301933"
+  name = "github.com/marstr/guid"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "8bd9a64bf37eb297b492a4101fb28e80ac0b290f"
+  version = "v1.1.0"
 
 [[projects]]
   digest = "1:08c231ec84231a7e23d67e4b58f975e1423695a32467a362ee55a803f9de8061"
@@ -2277,6 +2286,7 @@
     "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice",
     "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-02-01/resources",
     "github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage",
+    "github.com/Azure/azure-sdk-for-go/storage",
     "github.com/Azure/azure-storage-blob-go/2016-05-31/azblob",
     "github.com/Azure/go-autorest/autorest",
     "github.com/Azure/go-autorest/autorest/azure",
