@@ -79,6 +79,7 @@ func ListBuckets(c *gin.Context) {
 
 	objectStore, err := providers.NewObjectStore(objectStoreCtx, logger)
 	if err != nil {
+		errorHandler.Handle(err)
 		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
 
 		return
@@ -172,6 +173,7 @@ func CreateBucket(c *gin.Context) {
 
 	objectStore, err := providers.NewObjectStore(objectStoreCtx, logger)
 	if err != nil {
+		errorHandler.Handle(err)
 		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
 
 		return
@@ -188,7 +190,7 @@ func CreateBucket(c *gin.Context) {
 
 		err := objectStore.CreateBucket(createBucketRequest.Name)
 		if err != nil {
-			logger.Error(err.Error())
+			errorHandler.Handle(err)
 		}
 	}()
 
@@ -251,7 +253,7 @@ func CheckBucket(c *gin.Context) {
 
 	objectStore, err := providers.NewObjectStore(objectStoreCtx, logger)
 	if err != nil {
-		logger.Errorf("instantiating object store client for failed: %s", err.Error())
+		errorHandler.Handle(err)
 		c.Status(errorResponseFrom(err).Code)
 
 		return
@@ -259,7 +261,7 @@ func CheckBucket(c *gin.Context) {
 
 	err = objectStore.CheckBucket(bucketName)
 	if err != nil {
-		logger.Error(err)
+		errorHandler.Handle(err)
 		c.Status(errorResponseFrom(err).Code)
 
 		return
@@ -327,14 +329,14 @@ func DeleteBucket(c *gin.Context) {
 
 	objectStore, err := providers.NewObjectStore(objectStoreCtx, logger)
 	if err != nil {
-		logger.Errorf("instantiating object store client failed: %s", err.Error())
+		errorHandler.Handle(err)
 		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
 
 		return
 	}
 
 	if err = objectStore.DeleteBucket(bucketName); err != nil {
-		logger.Errorf("deleting object store bucket failed: %s", err.Error())
+		errorHandler.Handle(err)
 		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
 
 		return
