@@ -34,10 +34,6 @@ const (
 	// DNSBaseDomain configuration key for the base domain setting
 	DNSBaseDomain = "dns.domain"
 
-	// DNSSecretNamespace configuration key for the K8s namespace setting
-	// external DNS services secrets are mounted to.
-	DNSSecretNamespace = "dns.secretNamespace"
-
 	// DNSGcIntervalMinute configuration key for the interval setting at which the DNS garbage collector runs
 	DNSGcIntervalMinute = "dns.gcIntervalMinute"
 
@@ -51,8 +47,8 @@ const (
 	// This is the maintenance window before the next AWS Route53 pricing period starts
 	Route53MaintenanceWndMinute = "route53.maintenanceWindowMinute"
 
-	//PipelineMonitorNamespace pipeline infra namespace key
-	PipelineMonitorNamespace = "infra.namespace"
+	//PipelineSystemNamespace pipeline infra namespace key
+	PipelineSystemNamespace = "infra.namespace"
 
 	// EksTemplateLocation is the configuration key the location to get EKS Cloud Formation templates from
 	// the location to get EKS Cloud Formation templates from
@@ -124,7 +120,6 @@ func init() {
 	viper.SetDefault("audit.skippaths", []string{"/auth/github/callback", "/pipeline/api"})
 	viper.SetDefault("tls.validity", "8760h") // 1 year
 	viper.SetDefault(DNSBaseDomain, "banzaicloud.io")
-	viper.SetDefault(DNSSecretNamespace, "pipeline-infra")
 	viper.SetDefault(DNSGcIntervalMinute, 1)
 	viper.SetDefault(DNSExternalDnsChartVersion, "0.7.5")
 	viper.SetDefault(DNSGcLogLevel, "debug")
@@ -146,7 +141,7 @@ func init() {
 	viper.SetDefault("monitor.mountpath", "")
 	viper.SetDefault("monitor.grafanaAdminUsername", "admin")
 
-	viper.SetDefault(PipelineMonitorNamespace, "pipeline-infra")
+	viper.SetDefault(PipelineSystemNamespace, "pipeline-system")
 	viper.SetDefault(EksTemplateLocation, filepath.Join(pwd, "templates", "eks"))
 
 	// Find and read the config file
