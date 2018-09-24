@@ -1074,6 +1074,288 @@ paths:
       summary: Install secrets into cluster
       tags:
       - clusters
+  /api/v1/orgs/{orgId}/clusters/{id}/scanlog:
+    get:
+      description: List scans
+      operationId: ListScans
+      parameters:
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScanLogList'
+          description: Scan listing
+      security:
+      - bearerAuth: []
+      summary: List scans
+      tags:
+      - scanlog
+  /api/v1/orgs/{orgId}/clusters/{id}/policies:
+    get:
+      description: List all saved policy bundles
+      operationId: ListPolicies
+      parameters:
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Include policy bundle detail in the form of the full bundle content for each entry
+        explode: true
+        in: query
+        name: detail
+        required: false
+        schema:
+          type: boolean
+        style: form
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PolicyBundleList'
+          description: Policy listing
+      security:
+      - bearerAuth: []
+      summary: List policies
+      tags:
+      - policies
+    post:
+      description: Adds a new policy bundle to the system
+      operationId: AddPolicy
+      parameters:
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PolicyBundle'
+        required: true
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PolicyBundleRecord'
+          description: Saved bundle
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal Error
+      summary: Add a new policy
+      tags:
+      - policies
+  /api/v1/orgs/{orgId}/clusters/{id}/policies/{policyId}:
+    delete:
+      description: Delete the specified policy
+      operationId: DeletePolicy
+      parameters:
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - explode: false
+        in: path
+        name: policyId
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        200:
+          description: Delete success
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Policy not found to delete
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal Error
+      summary: Delete policy
+      tags:
+      - policies
+    get:
+      description: Get the policy bundle content
+      operationId: GetPolicy
+      parameters:
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - explode: false
+        in: path
+        name: policyId
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Include policy bundle detail in the form of the full bundle content for each entry
+        explode: true
+        in: query
+        name: detail
+        required: false
+        schema:
+          type: boolean
+        style: form
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PolicyBundleList'
+          description: A list with a single fetched policy bundle record
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal Error
+      summary: Get specific policy
+      tags:
+      - policies
+    put:
+      description: Update/replace and existing policy
+      operationId: UpdatePolicy
+      parameters:
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - explode: false
+        in: path
+        name: policyId
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Mark policy as active
+        explode: true
+        in: query
+        name: active
+        required: false
+        schema:
+          type: boolean
+        style: form
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PolicyBundleRecord'
+        required: true
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PolicyBundleList'
+          description: A list with a single updated policy bundle record
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal Error
+      summary: Update policy
+      tags:
+      - policies
   /api/v1/orgs/{orgId}/helm/repos:
     get:
       description: Listing Helm repositories in the cluster
@@ -1613,6 +1895,116 @@ paths:
       summary: Create a Helm deployment
       tags:
       - deployments
+  /api/v1/orgs/{orgId}/clusters/{id}/whitelists:
+    get:
+      description: List Whitelisted deployments
+      operationId: ListWhitelists
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReleaseWhiteList'
+          description: List Whitelists
+      security:
+      - bearerAuth: []
+      summary: List Whitelisted deployments
+      tags:
+      - whitelist
+    post:
+      description: Create Whitelisted deployment
+      operationId: CreateWhitelists
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReleaseWhiteListItem'
+        required: true
+      responses:
+        200:
+          description: Whitelist created
+      security:
+      - bearerAuth: []
+      summary: Create Whitelisted deployment
+      tags:
+      - whitelist
+  /api/v1/orgs/{orgId}/clusters/{id}/whitelists/{name}:
+    delete:
+      description: Delete Whitelisted deployment
+      operationId: DeleteWhitelist
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected whitelist identification
+        explode: false
+        in: path
+        name: name
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        200:
+          description: Whitelist deleted
+      security:
+      - bearerAuth: []
+      summary: Delete Whitelisted deployment
+      tags:
+      - whitelist
   /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name}:
     delete:
       description: Deleting a Helm deployment
@@ -6568,6 +6960,656 @@ components:
             resource'
           type: string
       type: object
+    ScanLogList:
+      items:
+        $ref: '#/components/schemas/ScanLogItem'
+      type: array
+    ScanLogItem:
+      properties:
+        releaseName:
+          example: flying-monkey
+          type: string
+        resource:
+          example: banzaicloud
+          type: string
+        image:
+          example:
+          - nginx:latest
+          - busybox:latest
+          items:
+            type: string
+          type: array
+        result:
+          example:
+          - nginx:latest policy check failed
+          - busybox:latest policy sheck success
+          items:
+            type: string
+          type: array
+        action:
+          enum:
+          - allow
+          - reject
+          example: allow
+          type: string
+      type: object
+    ReleaseWhiteList:
+      items:
+        $ref: '#/components/schemas/ReleaseWhiteListItem'
+      type: array
+    ReleaseWhiteListItem:
+      example:
+        owner: banzaicloud
+        reaseon: test release
+        releaseName: flying-monkey
+      properties:
+        releaseName:
+          example: flying-monkey
+          type: string
+        owner:
+          example: banzaicloud
+          type: string
+        reaseon:
+          example: test release
+          type: string
+      type: object
+    PolicyBundle:
+      description: A bundle containing a set of policies, whitelists, and rules for mapping them to specific images
+      example:
+        blacklisted_images:
+        - registry: registry
+          image:
+            type: tag
+            value: value
+          name: name
+          id: id
+          repository: repository
+        - registry: registry
+          image:
+            type: tag
+            value: value
+          name: name
+          id: id
+          repository: repository
+        mappings:
+        - whitelist_ids:
+          - whitelist_ids
+          - whitelist_ids
+          registry: registry
+          image:
+            type: tag
+            value: value
+          policy_id: policy_id
+          name: name
+          id: id
+          policy_ids:
+          - policy_ids
+          - policy_ids
+          repository: repository
+        - whitelist_ids:
+          - whitelist_ids
+          - whitelist_ids
+          registry: registry
+          image:
+            type: tag
+            value: value
+          policy_id: policy_id
+          name: name
+          id: id
+          policy_ids:
+          - policy_ids
+          - policy_ids
+          repository: repository
+        whitelists:
+        - name: name
+          comment: comment
+          id: id
+          version: version
+          items:
+          - trigger_id: trigger_id
+            id: id
+            gate: gate
+          - trigger_id: trigger_id
+            id: id
+            gate: gate
+        - name: name
+          comment: comment
+          id: id
+          version: version
+          items:
+          - trigger_id: trigger_id
+            id: id
+            gate: gate
+          - trigger_id: trigger_id
+            id: id
+            gate: gate
+        name: name
+        policies:
+        - name: name
+          comment: comment
+          rules:
+          - action: GO
+            id: id
+            gate: gate
+            trigger: trigger
+            params:
+            - name: name
+              value: value
+            - name: name
+              value: value
+          - action: GO
+            id: id
+            gate: gate
+            trigger: trigger
+            params:
+            - name: name
+              value: value
+            - name: name
+              value: value
+          id: id
+          version: version
+        - name: name
+          comment: comment
+          rules:
+          - action: GO
+            id: id
+            gate: gate
+            trigger: trigger
+            params:
+            - name: name
+              value: value
+            - name: name
+              value: value
+          - action: GO
+            id: id
+            gate: gate
+            trigger: trigger
+            params:
+            - name: name
+              value: value
+            - name: name
+              value: value
+          id: id
+          version: version
+        whitelisted_images:
+        - registry: registry
+          image:
+            type: tag
+            value: value
+          name: name
+          id: id
+          repository: repository
+        - registry: registry
+          image:
+            type: tag
+            value: value
+          name: name
+          id: id
+          repository: repository
+        comment: comment
+        id: id
+        version: version
+      properties:
+        id:
+          description: Id of the bundle
+          type: string
+        name:
+          description: Human readable name for the bundle
+          type: string
+        comment:
+          description: Description of the bundle, human readable
+          type: string
+        version:
+          description: Version id for this bundle format
+          type: string
+        whitelists:
+          description: Whitelists which define which policy matches to disregard explicitly in the final policy decision
+          items:
+            $ref: '#/components/schemas/Whitelist'
+          type: array
+        policies:
+          description: Policies which define the go/stop/warn status of an image using rule matches on image properties
+          items:
+            $ref: '#/components/schemas/Policy'
+          type: array
+        mappings:
+          description: Mapping rules for defining which policy and whitelist(s) to apply to an image based on a match of the image tag or id. Evaluated in order.
+          items:
+            $ref: '#/components/schemas/MappingRule'
+          type: array
+        whitelisted_images:
+          description: List of mapping rules that define which images should always be passed (unless also on the blacklist), regardless of policy result.
+          items:
+            $ref: '#/components/schemas/ImageSelectionRule'
+          type: array
+        blacklisted_images:
+          description: List of mapping rules that define which images should always result in a STOP/FAIL policy result regardless of policy content or presence in whitelisted_images
+          items:
+            $ref: '#/components/schemas/ImageSelectionRule'
+          type: array
+      required:
+      - id
+      - mappings
+      - policies
+      - version
+      type: object
+    WhitelistItem:
+      description: Identifies a specific gate and trigger match from a policy against an image and indicates it should be ignored in final policy decisions
+      example:
+        trigger_id: trigger_id
+        id: id
+        gate: gate
+      properties:
+        id:
+          type: string
+        gate:
+          type: string
+        trigger_id:
+          type: string
+      required:
+      - gate
+      - trigger_id
+      type: object
+    PolicyRule:
+      description: A rule that defines and decision value if the match is found true for a given image.
+      example:
+        action: GO
+        id: id
+        gate: gate
+        trigger: trigger
+        params:
+        - name: name
+          value: value
+        - name: name
+          value: value
+      properties:
+        id:
+          type: string
+        gate:
+          type: string
+        trigger:
+          type: string
+        action:
+          enum:
+          - GO
+          - STOP
+          - WARN
+          type: string
+        params:
+          items:
+            $ref: '#/components/schemas/PolicyRule_params'
+          type: array
+      required:
+      - action
+      - gate
+      - trigger
+      type: object
+    Whitelist:
+      description: A collection of whitelist items to match a policy evaluation against.
+      example:
+        name: name
+        comment: comment
+        id: id
+        version: version
+        items:
+        - trigger_id: trigger_id
+          id: id
+          gate: gate
+        - trigger_id: trigger_id
+          id: id
+          gate: gate
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        version:
+          type: string
+        comment:
+          type: string
+        items:
+          items:
+            $ref: '#/components/schemas/WhitelistItem'
+          type: array
+      required:
+      - id
+      - version
+      type: object
+    ImageRef:
+      description: A reference to an image
+      example:
+        type: tag
+        value: value
+      properties:
+        type:
+          enum:
+          - tag
+          - digest
+          - id
+          type: string
+        value:
+          type: string
+      required:
+      - type
+      - value
+      type: object
+    Policy:
+      example:
+        name: name
+        comment: comment
+        rules:
+        - action: GO
+          id: id
+          gate: gate
+          trigger: trigger
+          params:
+          - name: name
+            value: value
+          - name: name
+            value: value
+        - action: GO
+          id: id
+          gate: gate
+          trigger: trigger
+          params:
+          - name: name
+            value: value
+          - name: name
+            value: value
+        id: id
+        version: version
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        comment:
+          type: string
+        version:
+          type: string
+        rules:
+          items:
+            $ref: '#/components/schemas/PolicyRule'
+          type: array
+      required:
+      - id
+      - version
+      type: object
+    ImageSelectionRule:
+      example:
+        registry: registry
+        image:
+          type: tag
+          value: value
+        name: name
+        id: id
+        repository: repository
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        registry:
+          type: string
+        repository:
+          type: string
+        image:
+          $ref: '#/components/schemas/ImageRef'
+      required:
+      - image
+      - name
+      - registry
+      - repository
+      type: object
+    MappingRule:
+      example:
+        whitelist_ids:
+        - whitelist_ids
+        - whitelist_ids
+        registry: registry
+        image:
+          type: tag
+          value: value
+        policy_id: policy_id
+        name: name
+        id: id
+        policy_ids:
+        - policy_ids
+        - policy_ids
+        repository: repository
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        whitelist_ids:
+          items:
+            type: string
+          type: array
+        policy_id:
+          description: Optional single policy to evalute, if set will override any value in policy_ids, for backwards compatibility. Generally, policy_ids should be used even with a array of length 1.
+          type: string
+        policy_ids:
+          description: List of policyIds to evaluate in order, to completion
+          items:
+            description: PolicyId to evaluate
+            type: string
+          type: array
+        registry:
+          type: string
+        repository:
+          type: string
+        image:
+          $ref: '#/components/schemas/ImageRef'
+      required:
+      - image
+      - name
+      - registry
+      - repository
+      type: object
+    PolicyBundleRecord:
+      description: A policy bundle plus some metadata
+      example:
+        policybundle:
+          blacklisted_images:
+          - registry: registry
+            image:
+              type: tag
+              value: value
+            name: name
+            id: id
+            repository: repository
+          - registry: registry
+            image:
+              type: tag
+              value: value
+            name: name
+            id: id
+            repository: repository
+          mappings:
+          - whitelist_ids:
+            - whitelist_ids
+            - whitelist_ids
+            registry: registry
+            image:
+              type: tag
+              value: value
+            policy_id: policy_id
+            name: name
+            id: id
+            policy_ids:
+            - policy_ids
+            - policy_ids
+            repository: repository
+          - whitelist_ids:
+            - whitelist_ids
+            - whitelist_ids
+            registry: registry
+            image:
+              type: tag
+              value: value
+            policy_id: policy_id
+            name: name
+            id: id
+            policy_ids:
+            - policy_ids
+            - policy_ids
+            repository: repository
+          whitelists:
+          - name: name
+            comment: comment
+            id: id
+            version: version
+            items:
+            - trigger_id: trigger_id
+              id: id
+              gate: gate
+            - trigger_id: trigger_id
+              id: id
+              gate: gate
+          - name: name
+            comment: comment
+            id: id
+            version: version
+            items:
+            - trigger_id: trigger_id
+              id: id
+              gate: gate
+            - trigger_id: trigger_id
+              id: id
+              gate: gate
+          name: name
+          policies:
+          - name: name
+            comment: comment
+            rules:
+            - action: GO
+              id: id
+              gate: gate
+              trigger: trigger
+              params:
+              - name: name
+                value: value
+              - name: name
+                value: value
+            - action: GO
+              id: id
+              gate: gate
+              trigger: trigger
+              params:
+              - name: name
+                value: value
+              - name: name
+                value: value
+            id: id
+            version: version
+          - name: name
+            comment: comment
+            rules:
+            - action: GO
+              id: id
+              gate: gate
+              trigger: trigger
+              params:
+              - name: name
+                value: value
+              - name: name
+                value: value
+            - action: GO
+              id: id
+              gate: gate
+              trigger: trigger
+              params:
+              - name: name
+                value: value
+              - name: name
+                value: value
+            id: id
+            version: version
+          whitelisted_images:
+          - registry: registry
+            image:
+              type: tag
+              value: value
+            name: name
+            id: id
+            repository: repository
+          - registry: registry
+            image:
+              type: tag
+              value: value
+            name: name
+            id: id
+            repository: repository
+          comment: comment
+          id: id
+          version: version
+        policy_source: policy_source
+        last_updated: 2000-01-23T04:56:07.000+00:00
+        policyId: policyId
+        created_at: 2000-01-23T04:56:07.000+00:00
+        active: true
+        userId: userId
+      properties:
+        created_at:
+          format: date-time
+          type: string
+        last_updated:
+          format: date-time
+          type: string
+        policyId:
+          description: The bundle's identifier
+          type: string
+        active:
+          description: True if the bundle is currently defined to be used automatically
+          type: boolean
+        userId:
+          description: UserId of the user that owns the bundle
+          type: string
+        policy_source:
+          description: Source location of where the policy bundle originated
+          type: string
+        policybundle:
+          $ref: '#/components/schemas/PolicyBundle'
+      type: object
+    PolicyBundleList:
+      description: List of PolicyBundleRecord objects
+      items:
+        $ref: '#/components/schemas/PolicyBundleRecord'
+      type: array
+    ImageContent:
+      description: A metadata content record for a specific image, containing different content type entries
+      type: object
+    ImageDetail:
+      description: A metadata detail record for a specific image. Multiple detail records may map a single catalog image.
+      properties:
+        created_at:
+          format: date-time
+          type: string
+        last_updated:
+          format: date-time
+          type: string
+        fulltag:
+          description: Full docker-pullalbe tag string referencing the image
+          type: string
+        fulldigest:
+          description: Full docker-pullable digest string including the registry url and repository necessary get the image
+          type: string
+        userId:
+          type: string
+        imageId:
+          type: string
+        registry:
+          type: string
+        repo:
+          type: string
+        dockerfile:
+          type: string
+          x-nullable: true
+        imageDigest:
+          description: The parent Anchore Image record to which this detail maps
+          type: string
+      type: object
     body:
       properties:
         name:
@@ -7871,6 +8913,16 @@ components:
           type: object
         status:
           $ref: '#/components/schemas/DeploymentScaleStatus'
+      type: object
+    PolicyRule_params:
+      example:
+        name: name
+        value: value
+      properties:
+        name:
+          type: string
+        value:
+          type: string
       type: object
   securitySchemes:
     bearerAuth:

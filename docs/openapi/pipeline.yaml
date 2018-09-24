@@ -6754,7 +6754,7 @@ components:
           items:
             type: string
         result:
-          example: ['nginx:latest policy check failed, 'busybox:latest policy sheck success']
+          example: ['nginx:latest policy check failed', 'busybox:latest policy sheck success']
           type: array
           items:
             type: string
