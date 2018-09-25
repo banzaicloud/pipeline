@@ -26,9 +26,9 @@ import (
 	"github.com/banzaicloud/pipeline/helm"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/banzaicloud/pipeline/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"k8s.io/api/core/v1"
@@ -298,7 +298,7 @@ func calculateNodeResourceUsage(resourceName v1.ResourceName, node v1.Node, clus
 	}
 
 	usagePercent := float64(capacity.MilliValue()-allocatable.MilliValue()) / float64(capacity.MilliValue()) * 100
-	return usagePercent, utils.FormatResourceQuantity(resourceName, &capacity), utils.FormatResourceQuantity(resourceName, &allocatable)
+	return usagePercent, k8sutil.FormatResourceQuantity(resourceName, &capacity), k8sutil.FormatResourceQuantity(resourceName, &allocatable)
 }
 
 func calculateClusterResourceUsage(resourceName v1.ResourceName, clusterResourceCapacityMap map[v1.ResourceName]resource.Quantity, clusterResourceAllocatableMap map[v1.ResourceName]resource.Quantity) float64 {

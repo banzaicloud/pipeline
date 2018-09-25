@@ -30,6 +30,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
@@ -670,35 +671,35 @@ func getResourceSummary(capacity, allocatable, requests, limits map[v1.ResourceN
 	var limitCPU = zeroCPU
 
 	if cpu, ok := capacity[v1.ResourceCPU]; ok {
-		capCPU = utils.FormatResourceQuantity(v1.ResourceCPU, &cpu)
+		capCPU = k8sutil.FormatResourceQuantity(v1.ResourceCPU, &cpu)
 	}
 
 	if memory, ok := capacity[v1.ResourceMemory]; ok {
-		capMem = utils.FormatResourceQuantity(v1.ResourceMemory, &memory)
+		capMem = k8sutil.FormatResourceQuantity(v1.ResourceMemory, &memory)
 	}
 
 	if cpu, ok := allocatable[v1.ResourceCPU]; ok {
-		allCPU = utils.FormatResourceQuantity(v1.ResourceCPU, &cpu)
+		allCPU = k8sutil.FormatResourceQuantity(v1.ResourceCPU, &cpu)
 	}
 
 	if memory, ok := allocatable[v1.ResourceMemory]; ok {
-		allMem = utils.FormatResourceQuantity(v1.ResourceMemory, &memory)
+		allMem = k8sutil.FormatResourceQuantity(v1.ResourceMemory, &memory)
 	}
 
 	if value, ok := requests[v1.ResourceCPU]; ok {
-		reqCPU = utils.FormatResourceQuantity(v1.ResourceCPU, &value)
+		reqCPU = k8sutil.FormatResourceQuantity(v1.ResourceCPU, &value)
 	}
 
 	if value, ok := requests[v1.ResourceMemory]; ok {
-		reqMem = utils.FormatResourceQuantity(v1.ResourceMemory, &value)
+		reqMem = k8sutil.FormatResourceQuantity(v1.ResourceMemory, &value)
 	}
 
 	if value, ok := limits[v1.ResourceCPU]; ok {
-		limitCPU = utils.FormatResourceQuantity(v1.ResourceCPU, &value)
+		limitCPU = k8sutil.FormatResourceQuantity(v1.ResourceCPU, &value)
 	}
 
 	if value, ok := limits[v1.ResourceMemory]; ok {
-		limitMem = utils.FormatResourceQuantity(v1.ResourceMemory, &value)
+		limitMem = k8sutil.FormatResourceQuantity(v1.ResourceMemory, &value)
 	}
 
 	return &pkgCluster.ResourceSummary{
