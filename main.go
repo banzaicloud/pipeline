@@ -111,7 +111,7 @@ func main() {
 		&defaults.GKEProfile{},
 		&defaults.GKENodePoolProfile{},
 		&route53model.Route53Domain{},
-		&spotguide.Repo{},
+		&spotguide.SpotguideRepo{},
 	}
 
 	var tableNames string

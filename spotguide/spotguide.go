@@ -18,6 +18,7 @@ import (
 	"archive/zip"
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -44,50 +45,39 @@ const SpotguideGithubOrganization = "banzaicloud"
 const SpotguideYAMLPath = ".banzaicloud/spotguide.yaml"
 const PipelineYAMLPath = ".banzaicloud/pipeline.yaml"
 const ReadmePath = ".banzaicloud/README.md"
+const IconPath = ".banzaicloud/icon.svg"
 const CreateClusterStep = "create_cluster"
 const DeployApplicationStep = "deploy_application"
 
 var ctx = context.Background()
 
-type Spotguide struct {
+type SpotguideYAML struct {
 	Name        string                    `json:"name"`
 	Description string                    `json:"description,omitempty"`
 	Tags        []string                  `json:"tags,omitempty"`
-	Icon        string                    `json:"icon,omitempty"`
-	Readme      string                    `json:"readme,omitempty"`
 	Resources   client.RequestedResources `json:"resources"`
 	Questions   []Question                `json:"questions"`
 }
 
 type Question map[string]interface{}
 
-type Repo struct {
-	ID           uint       `gorm:"primary_key" json:"-"`
-	CreatedAt    time.Time  `json:"createdAt"`
-	UpdatedAt    time.Time  `json:"updatedAt"`
-	DeletedAt    *time.Time `json:"-" gorm:"index"`
-	Name         string     `json:"name" gorm:"unique_index:name_and_version"`
-	Icon         string     `json:"-"`
-	SpotguideRaw []byte     `json:"-" gorm:"type:text"`
-	Spotguide    Spotguide  `json:"spotguide" gorm:"-"`
-	Readme       string     `json:"readme" gorm:"type:text"`
-	Version      string     `json:"version" gorm:"unique_index:name_and_version"`
+type SpotguideRepo struct {
+	ID               uint       `gorm:"primary_key" json:"-"`
+	CreatedAt        time.Time  `json:"createdAt"`
+	UpdatedAt        time.Time  `json:"updatedAt"`
+	DeletedAt        *time.Time `json:"-" gorm:"index"`
+	Name             string     `json:"name" gorm:"unique_index:name_and_version"`
+	DisplayName      string     `json:"displayName" gorm:"-"`
+	Icon             string     `json:"icon,omitempty" gorm:"type:mediumtext"`
+	Readme           string     `json:"readme" gorm:"type:mediumtext"`
+	Version          string     `json:"version" gorm:"unique_index:name_and_version"`
+	SpotguideYAMLRaw []byte     `json:"-" gorm:"type:text"`
+	SpotguideYAML    `gorm:"-"`
 }
 
-func (Repo) TableName() string {
-	return "spotguide_repos"
-}
-
-func (s *Repo) AfterFind() error {
-	return yaml2.Unmarshal(s.SpotguideRaw, &s.Spotguide)
-}
-
-func (s *Repo) BeforeSave() error {
-	err := yaml2.Unmarshal(s.SpotguideRaw, &s.Spotguide)
-	if err != nil {
-		return err
-	}
-	s.Spotguide.Readme = s.Readme
+func (r *SpotguideRepo) AfterFind() error {
+	err := yaml2.Unmarshal(r.SpotguideYAMLRaw, &r.SpotguideYAML)
+	r.DisplayName = r.SpotguideYAML.Name
 	return err
 }
 
@@ -186,22 +176,33 @@ func ScrapeSpotguides() error {
 
 					spotguideRaw, err := downloadGithubFile(githubClient, owner, name, SpotguideYAMLPath, tag)
 					if err != nil {
-						return emperror.Wrap(err, "failed to download spotguide YAML")
+						log.Warnf("failed to scrape repository '%s/%s' at version '%s': %s", owner, name, tag, err)
+						continue
 					}
 
 					readme, err := downloadGithubFile(githubClient, owner, name, ReadmePath, tag)
 					if err != nil {
-						return emperror.Wrap(err, "failed to download README")
+						log.Warnf("failed to scrape repository '%s/%s' at version '%s': %s", owner, name, tag, err)
+						continue
 					}
 
-					model := Repo{
-						Name:         repository.GetFullName(),
-						SpotguideRaw: spotguideRaw,
-						Readme:       string(readme),
-						Version:      tag,
+					icon, err := downloadGithubFile(githubClient, owner, name, IconPath, tag)
+					if err != nil {
+						log.Warnf("failed to scrape repository '%s/%s' at version '%s': %s", owner, name, tag, err)
+						continue
 					}
 
-					err = db.Where(&model).Assign(&model).FirstOrCreate(&Repo{}).Error
+					iconSrc := "data:image/svg+xml;base64," + base64.StdEncoding.EncodeToString(icon)
+
+					model := SpotguideRepo{
+						Name:             repository.GetFullName(),
+						SpotguideYAMLRaw: spotguideRaw,
+						Readme:           string(readme),
+						Icon:             iconSrc,
+						Version:          tag,
+					}
+
+					err = db.Where(&model).Assign(&model).FirstOrCreate(&SpotguideRepo{}).Error
 
 					if err != nil {
 						return err
@@ -216,16 +217,16 @@ func ScrapeSpotguides() error {
 	return nil
 }
 
-func GetSpotguides() ([]*Repo, error) {
+func GetSpotguides() ([]*SpotguideRepo, error) {
 	db := config.DB()
-	spotguides := []*Repo{}
+	spotguides := []*SpotguideRepo{}
 	err := db.Find(&spotguides).Error
 	return spotguides, err
 }
 
-func GetSpotguide(name, version string) ([]Repo, error) {
+func GetSpotguide(name, version string) ([]SpotguideRepo, error) {
 	db := config.DB()
-	repo := []Repo{}
+	repo := []SpotguideRepo{}
 	var err error
 	if version == "" {
 		err = db.Where("name = ?", name).Find(&repo).Error
@@ -276,7 +277,7 @@ func LaunchSpotguide(request *LaunchRequest, httpRequest *http.Request, orgID, u
 	return nil
 }
 
-func preparePipelineYAML(request *LaunchRequest, sourceRepo *Repo, pipelineYAML []byte) ([]byte, error) {
+func preparePipelineYAML(request *LaunchRequest, sourceRepo *SpotguideRepo, pipelineYAML []byte) ([]byte, error) {
 	// Create repo config that drives the CICD flow from LaunchRequest
 	repoConfig, err := createDroneRepoConfig(pipelineYAML, request)
 	if err != nil {
@@ -291,7 +292,7 @@ func preparePipelineYAML(request *LaunchRequest, sourceRepo *Repo, pipelineYAML 
 	return repoConfigRaw, nil
 }
 
-func getSpotguideContent(githubClient *github.Client, request *LaunchRequest, sourceRepo *Repo) ([]github.TreeEntry, error) {
+func getSpotguideContent(githubClient *github.Client, request *LaunchRequest, sourceRepo *SpotguideRepo) ([]github.TreeEntry, error) {
 	// Download source repo zip
 	sourceRepoParts := strings.Split(sourceRepo.Name, "/")
 	sourceRepoOwner := sourceRepoParts[0]
@@ -358,7 +359,7 @@ func getSpotguideContent(githubClient *github.Client, request *LaunchRequest, so
 	return entries, nil
 }
 
-func createGithubRepo(githubClient *github.Client, request *LaunchRequest, userID uint, sourceRepo *Repo) error {
+func createGithubRepo(githubClient *github.Client, request *LaunchRequest, userID uint, sourceRepo *SpotguideRepo) error {
 
 	repo := github.Repository{
 		Name:        github.String(request.RepoName),
@@ -381,7 +382,7 @@ func createGithubRepo(githubClient *github.Client, request *LaunchRequest, userI
 	return nil
 }
 
-func addSpotguideContent(githubClient *github.Client, request *LaunchRequest, userID uint, sourceRepo *Repo) error {
+func addSpotguideContent(githubClient *github.Client, request *LaunchRequest, userID uint, sourceRepo *SpotguideRepo) error {
 
 	// An initial files have to be created with the API to be able to use the fresh repo
 	createFile := &github.RepositoryContentFileOptions{
