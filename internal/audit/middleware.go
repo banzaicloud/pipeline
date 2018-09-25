@@ -82,36 +82,48 @@ func LogWriter(
 
 			// Filter out sensitive data from body
 			var body *string
-			if strings.Contains(path, "/secrets") && len(rawBody) > 0 {
-				data := map[string]interface{}{}
 
-				err := json.Unmarshal(rawBody, &data)
-				if err != nil {
-					c.AbortWithError(http.StatusInternalServerError, err)
-					logger.Errorln(err)
+			if len(rawBody) > 0 {
 
+				if !json.Valid(rawBody) {
+					c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error ": "invalid JSON in body"})
 					return
 				}
 
-				if values, ok := data["values"].(map[string]interface{}); ok {
-					for k := range values {
-						values[k] = ""
+				if strings.Contains(path, "/secrets") {
+
+					data := map[string]interface{}{}
+
+					err := json.Unmarshal(rawBody, &data)
+					if err != nil {
+						c.AbortWithError(http.StatusInternalServerError, err)
+						logger.Errorln(err)
+
+						return
 					}
+
+					if values, ok := data["values"].(map[string]interface{}); ok {
+						for k := range values {
+							values[k] = ""
+						}
+					}
+
+					newBody, err := json.Marshal(data)
+					if err != nil {
+						c.AbortWithError(http.StatusInternalServerError, err)
+						logger.Errorln(err)
+
+						return
+					}
+
+					newBodyString := string(newBody)
+					body = &newBodyString
+
+				} else {
+
+					newBodyString := string(rawBody)
+					body = &newBodyString
 				}
-
-				newBody, err := json.Marshal(data)
-				if err != nil {
-					c.AbortWithError(http.StatusInternalServerError, err)
-					logger.Errorln(err)
-
-					return
-				}
-
-				newBodyString := string(newBody)
-				body = &newBodyString
-			} else if len(rawBody) > 0 {
-				newBodyString := string(rawBody)
-				body = &newBodyString
 			}
 
 			clientIP := c.ClientIP()
