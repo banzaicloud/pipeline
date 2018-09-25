@@ -38,14 +38,14 @@ import (
 
 type Allocatable struct {
 	Cpu              string `json:"cpu"`
-	EphemeralStorage string `json:"ephemeral-storage"`
+	EphemeralStorage string `json:"ephemeralStorage"`
 	Memory           string `json:"memory"`
 	Pods             int64  `json:"pods"`
 }
 
 type Capacity struct {
 	Cpu              string `json:"cpu"`
-	EphemeralStorage string `json:"ephemeral-storage"`
+	EphemeralStorage string `json:"ephemeralStorage"`
 	Memory           string `json:"memory"`
 	Pods             int64  `json:"pods"`
 }
@@ -61,17 +61,17 @@ type Status struct {
 	Allocatable                 *Allocatable `json:"allocatable"`
 	Ready                       string       `json:"ready"`
 	LastHeartbeatTime           string       `json:"lastHeartbeatTime"`
-	FrequentUnregisterNetDevice string       `json:"FrequentUnregisterNetDevice"`
-	KernelDeadlock              string       `json:"KernelDeadlock"`
-	NetworkUnavailable          string       `json:"NetworkUnavailable"`
-	OutOfDisk                   string       `json:"OutOfDisk"`
-	MemoryPressure              string       `json:"MemoryPressure"`
-	DiskPressure                string       `json:"DiskPressure"`
-	PIDPressure                 string       `json:"PIDPressure"`
+	FrequentUnregisterNetDevice string       `json:"frequentUnregisterNetDevice"`
+	KernelDeadlock              string       `json:"kernelDeadlock"`
+	NetworkUnavailable          string       `json:"networkUnavailable"`
+	OutOfDisk                   string       `json:"outOfDisk"`
+	MemoryPressure              string       `json:"memoryPressure"`
+	DiskPressure                string       `json:"diskPressure"`
+	PIDPressure                 string       `json:"pidPressure"`
 	CpuUsagePercent             float64      `json:"cpuUsagePercent"`
 	StorageUsagePercent         float64      `json:"storageUsagePercent"`
 	MemoryUsagePercent          float64      `json:"memoryUsagePercent"`
-	InstanceType                string       `json:"instance-type"`
+	InstanceType                string       `json:"instanceType"`
 }
 
 type Cluster struct {
