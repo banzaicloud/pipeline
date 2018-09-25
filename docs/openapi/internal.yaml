@@ -37,7 +37,7 @@ definitions:
       cpu:
         type: string
         x-go-name: Cpu
-      ephemeral-storage:
+      ephemeralStorage:
         type: string
         x-go-name: EphemeralStorage
       memory:
@@ -54,7 +54,7 @@ definitions:
       cpu:
         type: string
         x-go-name: Cpu
-      ephemeral-storage:
+      ephemeralStorage:
         type: string
         x-go-name: EphemeralStorage
       memory:
@@ -144,19 +144,19 @@ definitions:
   Status:
     type: object
     properties:
-      DiskPressure:
+      diskPressure:
         type: string
-      FrequentUnregisterNetDevice:
+      frequentUnregisterNetDevice:
         type: string
-      KernelDeadlock:
+      kernelDeadlock:
         type: string
-      MemoryPressure:
+      memoryPressure:
         type: string
-      NetworkUnavailable:
+      networkUnavailable:
         type: string
-      OutOfDisk:
+      outOfDisk:
         type: string
-      PIDPressure:
+      pidPressure:
         type: string
       allocatable:
         $ref: '#/definitions/Allocatable'
@@ -166,7 +166,7 @@ definitions:
         type: number
         format: double
         x-go-name: CpuUsagePercent
-      instance-type:
+      instanceType:
         type: string
         x-go-name: InstanceType
       lastHeartbeatTime:
