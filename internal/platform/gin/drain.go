@@ -16,6 +16,7 @@ package gin
 
 import (
 	"net/http"
+	"strings"
 	"sync"
 
 	"github.com/gin-gonic/gin"
@@ -73,7 +74,7 @@ func (m *DrainModeMiddleware) Middleware(c *gin.Context) {
 
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	if m.enabled && isWriteOperation(c) {
+	if m.enabled && isWriteOperation(c) && !isException(c) {
 		c.AbortWithStatusJSON(
 			http.StatusServiceUnavailable,
 			map[string]string{
@@ -93,4 +94,16 @@ func isWriteOperation(c *gin.Context) bool {
 		c.Request.Method == http.MethodPut ||
 		c.Request.Method == http.MethodPatch ||
 		c.Request.Method == http.MethodDelete
+}
+
+func isException(c *gin.Context) bool {
+	if c.Request.URL.Path == "/api/v1/tokens" {
+		return true
+	}
+
+	if strings.HasPrefix(c.Request.URL.Path, "/auth") {
+		return true
+	}
+
+	return false
 }
