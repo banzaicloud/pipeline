@@ -1,7 +1,7 @@
 {
 	"info": {
-		"_postman_id": "d6c84e31-6ef3-466a-911e-670420d1b400",
 		"name": "End2End TEST Organizations",
+		"_postman_id": "68a48274-d40a-9334-3929-fe82495f4912",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -1665,7 +1665,10 @@
 								"value": "application/x-www-form-urlencoded"
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/secrets?releaseName={{releaseName}}",
 							"host": [
@@ -3191,7 +3194,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "559855a0-90bb-4358-87ff-aa3f6645b0a6",
 								"type": "text/javascript",
 								"exec": [
 									"if (responseCode.code === 200) {",
@@ -6446,7 +6448,10 @@
 								"value": "application/x-www-form-urlencoded"
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/secrets?type={{secretType}}&tags={{tag}}",
 							"host": [
@@ -9011,7 +9016,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "330aab25-34cc-4ef3-bfc2-c1dfad40579f",
 								"type": "text/javascript",
 								"exec": [
 									"if (responseCode.code === 200) {",
@@ -9083,7 +9087,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "4cbfa83e-e87e-4337-af37-9542cdbcb719",
 								"type": "text/javascript",
 								"exec": [
 									"if (responseCode.code === 201) {",
@@ -9149,7 +9152,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "de21897d-913b-45f6-a528-0f43d8484e9d",
 								"type": "text/javascript",
 								"exec": [
 									"if (responseCode.code === 204) {",
@@ -9218,6 +9220,150 @@
 			]
 		},
 		{
+			"name": "Internal",
+			"description": "",
+			"item": [
+				{
+					"name": "Get Dashboard",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"",
+									" ",
+									"",
+									"",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "name",
+									"value": "zeppelin-k8s-charts",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{url}}/dashboard/orgs/:orgId/clusters",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"dashboard",
+								"orgs",
+								":orgId",
+								"clusters"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "{{orgId}}",
+									"description": "Organization identifier"
+								}
+							]
+						},
+						"description": "Get Dashboard"
+					},
+					"response": [
+						{
+							"id": "e57d98d0-1508-4618-8fa4-d8e7d0016524",
+							"name": "Get Dashboard",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "name",
+											"value": "zeppelin-k8s-charts",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{url}}/dashboard/orgs/:orgId/clusters",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"dashboard",
+										"orgs",
+										":orgId",
+										"clusters"
+									],
+									"variable": [
+										{
+											"key": "orgId",
+											"value": "{{orgId}}",
+											"description": "Organization identifier"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"_postman_previewtype": "text",
+							"header": [
+								{
+									"key": "Content-Length",
+									"value": "1668",
+									"name": "Content-Length",
+									"description": "The length of the response body in octets (8-bit bytes)"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8",
+									"name": "Content-Type",
+									"description": "The mime type of this content"
+								},
+								{
+									"key": "Date",
+									"value": "Tue, 25 Sep 2018 09:38:37 GMT",
+									"name": "Date",
+									"description": "The date and time that the message was sent"
+								}
+							],
+							"cookie": [
+								{
+									"expires": "Tue Jan 19 2038 04:14:07 GMT+0100 (CET)",
+									"httpOnly": false,
+									"domain": "localhost",
+									"path": "/cluster-demo",
+									"secure": false,
+									"value": "6brVteqV4AFIfVQxcsc1d-2RnnUeuTUlUKFQDoFi.wildfly-example-5fd7c7c4c9-jlkg7",
+									"key": "JSESSIONID"
+								}
+							],
+							"responseTime": 784,
+							"body": "{\"clusters\":[{\"name\":\"gkecluster-sancyx-326\",\"id\":\"1\",\"status\":\"RUNNING\",\"statusMessage\":\"\",\"cloud\":\"google\",\"createdAt\":\"2018-09-24T14:00:13+02:00\",\"region\":\"us-central1-a\",\"nodes\":[{\"name\":\"gke-gkecluster-sancyx-326-pool1-7a511228-7n0w\",\"creationTimestamp\":\"2018-09-24 19:16:31 +0200 CEST\",\"status\":{\"capacity\":{\"cpu\":\"2\",\"ephemeral-storage\":\"98868448Ki\",\"memory\":\"7658160Ki\",\"pods\":110},\"allocatable\":{\"cpu\":\"1930m\",\"ephemeral-storage\":\"47093746742\",\"memory\":\"5778096Ki\",\"pods\":110},\"ready\":\"True\",\"lastHeartbeatTime\":\"2018-09-25 11:38:28 +0200 CEST\",\"FrequentUnregisterNetDevice\":\"Unknown\",\"KernelDeadlock\":\"Unknown\",\"NetworkUnavailable\":\"False\",\"OutOfDisk\":\"False\",\"MemoryPressure\":\"False\",\"DiskPressure\":\"False\",\"PIDPressure\":\"False\",\"cpuUsagePercent\":0,\"storageUsagePercent\":53.48365633014248,\"memoryUsagePercent\":24.549813532232285,\"instance-type\":\"n1-standard-2\"}},{\"name\":\"gke-gkecluster-sancyx-326-pool1-7a511228-m83z\",\"creationTimestamp\":\"2018-09-24 14:01:54 +0200 CEST\",\"status\":{\"capacity\":{\"cpu\":\"2\",\"ephemeral-storage\":\"98868448Ki\",\"memory\":\"7658152Ki\",\"pods\":110},\"allocatable\":{\"cpu\":\"1930m\",\"ephemeral-storage\":\"47093746742\",\"memory\":\"5778088Ki\",\"pods\":110},\"ready\":\"True\",\"lastHeartbeatTime\":\"2018-09-25 11:38:30 +0200 CEST\",\"FrequentUnregisterNetDevice\":\"Unknown\",\"KernelDeadlock\":\"Unknown\",\"NetworkUnavailable\":\"False\",\"OutOfDisk\":\"False\",\"MemoryPressure\":\"False\",\"DiskPressure\":\"False\",\"PIDPressure\":\"False\",\"cpuUsagePercent\":0,\"storageUsagePercent\":53.48365633014248,\"memoryUsagePercent\":24.549839177911327,\"instance-type\":\"n1-standard-2\"}}],\"cpuUsagePercent\":0,\"storageUsagePercent\":53.48365633014248,\"memoryUsagePercent\":24.549813532232285}]}"
+						}
+					]
+				}
+			]
+		},
+		{
 			"name": "Get API Endpoints",
 			"request": {
 				"method": "GET",
@@ -9237,38 +9383,6 @@
 				}
 			},
 			"response": []
-		}
-	],
-	"auth": {
-		"type": "bearer",
-		"bearer": [
-			{
-				"key": "token",
-				"value": "{{token}}",
-				"type": "string"
-			}
-		]
-	},
-	"event": [
-		{
-			"listen": "prerequest",
-			"script": {
-				"id": "fb60a701-634b-40df-814f-44457b07565e",
-				"type": "text/javascript",
-				"exec": [
-					""
-				]
-			}
-		},
-		{
-			"listen": "test",
-			"script": {
-				"id": "db004fae-0e0e-4800-b8de-cd2b96a09656",
-				"type": "text/javascript",
-				"exec": [
-					""
-				]
-			}
 		}
 	]
 }
