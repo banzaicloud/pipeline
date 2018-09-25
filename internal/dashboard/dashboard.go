@@ -87,11 +87,33 @@ type Cluster struct {
 	MemoryUsagePercent  float64 `json:"memoryUsagePercent"`
 }
 
-type GetDashboardRequest struct {
+// GetDashboardResponse Api object to be mapped to Get dashboard request
+// swagger:model GetDashboardResponse
+type GetDashboardResponse struct {
 	Clusters []Cluster `json:"clusters"`
 }
 
-// GetDashboard returns dashboard metrics for selected/all clusters of an organization
+// GetProviderPathParams is a placeholder for the GetDashboard route path parameters
+// swagger:parameters GetDashboard
+type GetDashboardPathParams struct {
+	// in:path
+	OrgId string `json:"orgid"`
+}
+
+// swagger:route GET /dashboard/{orgid}/clusters orgid GetDashboard
+//
+// Returns returns dashboard metrics for selected/all clusters of an organization
+//
+//     Produces:
+//     - application/json
+//
+//     Schemes: http
+//
+//     Security:
+//
+//     Responses:
+//       200: GetDashboardResponse
+// GetDashboard
 func GetDashboard(c *gin.Context) {
 	organizationID := auth.GetCurrentOrganization(c.Request).ID
 
@@ -138,7 +160,7 @@ func GetDashboard(c *gin.Context) {
 		clusterResponse = append(clusterResponse, c)
 	}
 
-	c.JSON(http.StatusOK, GetDashboardRequest{Clusters: clusterResponse})
+	c.JSON(http.StatusOK, GetDashboardResponse{Clusters: clusterResponse})
 
 }
 
