@@ -79,10 +79,16 @@ Class | Method | HTTP request | Description
 *OrganizationsApi* | [**CreateOrg**](docs/OrganizationsApi.md#createorg) | **Post** /api/v1/orgs | Create organization
 *OrganizationsApi* | [**GetOrg**](docs/OrganizationsApi.md#getorg) | **Get** /api/v1/orgs/{orgId} | Get organization
 *OrganizationsApi* | [**ListOrgs**](docs/OrganizationsApi.md#listorgs) | **Get** /api/v1/orgs | List organizations
+*PoliciesApi* | [**AddPolicy**](docs/PoliciesApi.md#addpolicy) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/policies | Add a new policy
+*PoliciesApi* | [**DeletePolicy**](docs/PoliciesApi.md#deletepolicy) | **Delete** /api/v1/orgs/{orgId}/clusters/{id}/policies/{policyId} | Delete policy
+*PoliciesApi* | [**GetPolicy**](docs/PoliciesApi.md#getpolicy) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/policies/{policyId} | Get specific policy
+*PoliciesApi* | [**ListPolicies**](docs/PoliciesApi.md#listpolicies) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/policies | List policies
+*PoliciesApi* | [**UpdatePolicy**](docs/PoliciesApi.md#updatepolicy) | **Put** /api/v1/orgs/{orgId}/clusters/{id}/policies/{policyId} | Update policy
 *ProfilesApi* | [**AddProfiles**](docs/ProfilesApi.md#addprofiles) | **Post** /api/v1/orgs/{orgId}/profiles/cluster | Add cluster profiles
 *ProfilesApi* | [**DeleteProfiles**](docs/ProfilesApi.md#deleteprofiles) | **Delete** /api/v1/orgs/{orgId}/profiles/cluster/{distribution}/{name} | Delete cluster profiles
 *ProfilesApi* | [**ListProfiles**](docs/ProfilesApi.md#listprofiles) | **Get** /api/v1/orgs/{orgId}/profiles/cluster/{distribution} | List cluster profiles
 *ProfilesApi* | [**UpdateProfiles**](docs/ProfilesApi.md#updateprofiles) | **Put** /api/v1/orgs/{orgId}/profiles/cluster | Update cluster profiles
+*ScanlogApi* | [**ListScans**](docs/ScanlogApi.md#listscans) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/scanlog | List scans
 *SecretsApi* | [**AddSecrets**](docs/SecretsApi.md#addsecrets) | **Post** /api/v1/orgs/{orgId}/secrets | Add secrets
 *SecretsApi* | [**AllowedSecretsTypes**](docs/SecretsApi.md#allowedsecretstypes) | **Get** /api/v1/allowed/secrets | List allowed secret types
 *SecretsApi* | [**AllowedSecretsTypesKeys**](docs/SecretsApi.md#allowedsecretstypeskeys) | **Get** /api/v1/allowed/secrets/{type} | List required keys
@@ -101,6 +107,9 @@ Class | Method | HTTP request | Description
 *StorageApi* | [**ListObjectStoreBuckets**](docs/StorageApi.md#listobjectstorebuckets) | **Get** /api/v1/orgs/{orgId}/buckets | List object storage buckets
 *UsersApi* | [**GetUsers**](docs/UsersApi.md#getusers) | **Get** /api/v1/orgs/{orgId}/users/{userId} | Get user
 *UsersApi* | [**ListUsers**](docs/UsersApi.md#listusers) | **Get** /api/v1/orgs/{orgId}/users | List users
+*WhitelistApi* | [**CreateWhitelists**](docs/WhitelistApi.md#createwhitelists) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/whitelists | Create Whitelisted deployment
+*WhitelistApi* | [**DeleteWhitelist**](docs/WhitelistApi.md#deletewhitelist) | **Delete** /api/v1/orgs/{orgId}/clusters/{id}/whitelists/{name} | Delete Whitelisted deployment
+*WhitelistApi* | [**ListWhitelists**](docs/WhitelistApi.md#listwhitelists) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/whitelists | List Whitelisted deployments
 
 
 ## Documentation For Models
@@ -223,6 +232,10 @@ Class | Method | HTTP request | Description
  - [HelmReposListResponse](docs/HelmReposListResponse.md)
  - [HelmReposModifyRequest](docs/HelmReposModifyRequest.md)
  - [HelmReposUpdateResponse](docs/HelmReposUpdateResponse.md)
+ - [ImageContent](docs/ImageContent.md)
+ - [ImageDetail](docs/ImageDetail.md)
+ - [ImageRef](docs/ImageRef.md)
+ - [ImageSelectionRule](docs/ImageSelectionRule.md)
  - [InstallSecretsRequest](docs/InstallSecretsRequest.md)
  - [InstallSecretsRequestQuery](docs/InstallSecretsRequestQuery.md)
  - [InstallSecretsResponse](docs/InstallSecretsResponse.md)
@@ -238,6 +251,7 @@ Class | Method | HTTP request | Description
  - [ListUserResponse](docs/ListUserResponse.md)
  - [LoggingPostHook](docs/LoggingPostHook.md)
  - [LoggingPostHookInstallLogging](docs/LoggingPostHookInstallLogging.md)
+ - [MappingRule](docs/MappingRule.md)
  - [NodeItem](docs/NodeItem.md)
  - [NodeItemMetadata](docs/NodeItemMetadata.md)
  - [NodeItemMetadataAnnotations](docs/NodeItemMetadataAnnotations.md)
@@ -268,8 +282,16 @@ Class | Method | HTTP request | Description
  - [PodItem](docs/PodItem.md)
  - [PodItemLabels](docs/PodItemLabels.md)
  - [PodItemResourceSummary](docs/PodItemResourceSummary.md)
+ - [Policy](docs/Policy.md)
+ - [PolicyBundle](docs/PolicyBundle.md)
+ - [PolicyBundleList](docs/PolicyBundleList.md)
+ - [PolicyBundleRecord](docs/PolicyBundleRecord.md)
+ - [PolicyRule](docs/PolicyRule.md)
+ - [PolicyRuleParams](docs/PolicyRuleParams.md)
  - [ProfileListResponse](docs/ProfileListResponse.md)
  - [ReRunPostHook](docs/ReRunPostHook.md)
+ - [ReleaseWhiteList](docs/ReleaseWhiteList.md)
+ - [ReleaseWhiteListItem](docs/ReleaseWhiteListItem.md)
  - [RepoNotFound](docs/RepoNotFound.md)
  - [RequestedResources](docs/RequestedResources.md)
  - [ResourceGroupCreated](docs/ResourceGroupCreated.md)
@@ -279,6 +301,8 @@ Class | Method | HTTP request | Description
  - [ResourceSummaryItem](docs/ResourceSummaryItem.md)
  - [ResourceSummaryItemIp100100180Euwest1ComputeInternal](docs/ResourceSummaryItemIp100100180Euwest1ComputeInternal.md)
  - [RunPostHook](docs/RunPostHook.md)
+ - [ScanLogItem](docs/ScanLogItem.md)
+ - [ScanLogList](docs/ScanLogList.md)
  - [SecretItem](docs/SecretItem.md)
  - [SecretKeyValueAmazon](docs/SecretKeyValueAmazon.md)
  - [SecretKeyValueAzure](docs/SecretKeyValueAzure.md)
@@ -319,6 +343,8 @@ Class | Method | HTTP request | Description
  - [UpdateNodePoolsAmazon](docs/UpdateNodePoolsAmazon.md)
  - [UrlItem](docs/UrlItem.md)
  - [User](docs/User.md)
+ - [Whitelist](docs/Whitelist.md)
+ - [WhitelistItem](docs/WhitelistItem.md)
 
 
 ## Documentation For Authorization
