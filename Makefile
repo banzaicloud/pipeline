@@ -15,9 +15,10 @@ LICENSEI_VERSION = 0.0.7
 
 bin/dep: bin/dep-${DEP_VERSION}
 bin/dep-${DEP_VERSION}:
-	@mkdir -p ./bin/
+	@mkdir -p bin
+	@rm -rf bin/dep-*
 	curl https://raw.githubusercontent.com/golang/dep/master/install.sh | INSTALL_DIRECTORY=./bin DEP_RELEASE_TAG=v${DEP_VERSION} sh
-	@touch bin/dep-${DEP_VERSION}
+	@touch $@
 
 .PHONY: vendor
 vendor: bin/dep ## Install dependencies
@@ -53,14 +54,15 @@ local-kill: ## Kills local development environment
 
 bin/jq: bin/jq-${JQ_VERSION}
 bin/jq-${JQ_VERSION}:
-	@mkdir -p ./bin/
+	@mkdir -p bin
+	@rm -rf bin/jq-*
 ifeq ($(OS), Darwin)
 	curl -L https://github.com/stedolan/jq/releases/download/jq-${JQ_VERSION}/jq-osx-amd64 > ./bin/jq && chmod +x ./bin/jq
 endif
 ifeq ($(OS), Linux)
 	curl -L https://github.com/stedolan/jq/releases/download/jq-${JQ_VERSION}/jq-linux64 > ./bin/jq && chmod +x ./bin/jq
 endif
-	@touch bin/jq-${JQ_VERSION}
+	@touch $@
 
 .PHONY: create-cluster
 create-cluster: ## Curl call to pipeline api to create a cluster with your username
@@ -86,9 +88,10 @@ generate-client:
 
 bin/golangci-lint: bin/golangci-lint-${GOLANGCI_VERSION}
 bin/golangci-lint-${GOLANGCI_VERSION}:
-	@mkdir -p ./bin/
+	@mkdir -p bin
+	@rm -rf bin/golangci-lint-*
 	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | bash -s -- -b ./bin/ v${GOLANGCI_VERSION}
-	@touch bin/golangci-lint-${GOLANGCI_VERSION}
+	@touch $@
 
 .PHONY: lint
 lint: bin/golangci-lint ## Run linter
@@ -100,9 +103,10 @@ fmt:
 
 bin/misspell: bin/misspell-${MISSPELL_VERSION}
 bin/misspell-${MISSPELL_VERSION}:
-	@mkdir -p ./bin/
+	@mkdir -p bin
+	@rm -rf bin/misspell-*
 	curl -sfL https://git.io/misspell | bash -s -- -b ./bin/ v${MISSPELL_VERSION}
-	@touch bin/misspell-${MISSPELL_VERSION}
+	@touch $@
 
 .PHONY: misspell
 misspell: bin/misspell ## Fix spelling mistakes
@@ -110,9 +114,10 @@ misspell: bin/misspell ## Fix spelling mistakes
 
 bin/licensei: bin/licensei-${LICENSEI_VERSION}
 bin/licensei-${LICENSEI_VERSION}:
-	@mkdir -p ./bin/
+	@mkdir -p bin
+	@rm -rf bin/licensei-*
 	curl -sfL https://raw.githubusercontent.com/goph/licensei/master/install.sh | bash -s v${LICENSEI_VERSION}
-	@touch bin/licensei-${LICENSEI_VERSION}
+	@touch $@
 
 .PHONY: license-check
 license-check: bin/licensei ## Run license check
