@@ -17,9 +17,7 @@ package api
 import (
 	"context"
 	"fmt"
-	"math"
 	"net/http"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -54,10 +52,6 @@ const (
 	statusUnknown  = "Unknown"
 	readyTrue      = "True"
 	readyFalse     = "False"
-)
-
-const (
-	int64QuantityExpectedBytes = 18
 )
 
 const (
@@ -676,35 +670,35 @@ func getResourceSummary(capacity, allocatable, requests, limits map[v1.ResourceN
 	var limitCPU = zeroCPU
 
 	if cpu, ok := capacity[v1.ResourceCPU]; ok {
-		capCPU = formatCPUQuantity(&cpu)
+		capCPU = utils.FormatResourceQuantity(v1.ResourceCPU, &cpu)
 	}
 
 	if memory, ok := capacity[v1.ResourceMemory]; ok {
-		capMem = formatMemoryQuantity(&memory)
+		capMem = utils.FormatResourceQuantity(v1.ResourceMemory, &memory)
 	}
 
 	if cpu, ok := allocatable[v1.ResourceCPU]; ok {
-		allCPU = formatCPUQuantity(&cpu)
+		allCPU = utils.FormatResourceQuantity(v1.ResourceCPU, &cpu)
 	}
 
 	if memory, ok := allocatable[v1.ResourceMemory]; ok {
-		allMem = formatMemoryQuantity(&memory)
+		allMem = utils.FormatResourceQuantity(v1.ResourceMemory, &memory)
 	}
 
 	if value, ok := requests[v1.ResourceCPU]; ok {
-		reqCPU = formatCPUQuantity(&value)
+		reqCPU = utils.FormatResourceQuantity(v1.ResourceCPU, &value)
 	}
 
 	if value, ok := requests[v1.ResourceMemory]; ok {
-		reqMem = formatMemoryQuantity(&value)
+		reqMem = utils.FormatResourceQuantity(v1.ResourceMemory, &value)
 	}
 
 	if value, ok := limits[v1.ResourceCPU]; ok {
-		limitCPU = formatCPUQuantity(&value)
+		limitCPU = utils.FormatResourceQuantity(v1.ResourceCPU, &value)
 	}
 
 	if value, ok := limits[v1.ResourceMemory]; ok {
-		limitMem = formatMemoryQuantity(&value)
+		limitMem = utils.FormatResourceQuantity(v1.ResourceMemory, &value)
 	}
 
 	return &pkgCluster.ResourceSummary{
@@ -725,74 +719,6 @@ func getResourceSummary(capacity, allocatable, requests, limits map[v1.ResourceN
 			},
 		},
 	}
-}
-
-func formatMemoryQuantity(q *resource.Quantity) string {
-
-	if q.IsZero() {
-		return "0"
-	}
-
-	result := make([]byte, 0, int64QuantityExpectedBytes)
-
-	rounded, exact := q.AsScale(0)
-	if !exact {
-		return q.String()
-	}
-	number, exponent := rounded.AsCanonicalBase1024Bytes(result)
-
-	i, err := strconv.Atoi(string(number))
-	if err != nil {
-		log.Warnf("error during formatting quantity: %s", err.Error())
-		return q.String()
-	}
-
-	b := float64(i) * math.Pow(1024, float64(exponent))
-
-	if b < 1000 {
-		return fmt.Sprintf("%.2f B", b)
-	}
-
-	b = b / 1000
-	if b < 1000 {
-		return fmt.Sprintf("%.2f KB", b)
-	}
-
-	b = b / 1000
-	if b < 1000 {
-		return fmt.Sprintf("%.2f MB", b)
-	}
-
-	b = b / 1000
-	return fmt.Sprintf("%.2f GB", b)
-}
-
-func formatCPUQuantity(q *resource.Quantity) string {
-
-	if q.IsZero() {
-		return "0"
-	}
-
-	result := make([]byte, 0, int64QuantityExpectedBytes)
-	number, suffix := q.CanonicalizeBytes(result)
-	if string(suffix) == "m" {
-		// the suffix m to mean mili. For example 100m cpu is 100 milicpu, and is the same as 0.1 cpu.
-		i, err := strconv.Atoi(string(number))
-		if err != nil {
-			log.Warnf("error during formatting quantity: %s", err.Error())
-			return q.String()
-		}
-
-		if i < 1000 {
-			return fmt.Sprintf("%s mCPU", string(number))
-		}
-
-		f := float64(i) / 1000
-		return fmt.Sprintf("%.2f CPU", f)
-	}
-
-	return fmt.Sprintf("%s CPU", string(number))
-
 }
 
 func getAllPodsRequestsAndLimitsInAllNamespace(client *kubernetes.Clientset, fieldSelector string) (map[v1.ResourceName]resource.Quantity, map[v1.ResourceName]resource.Quantity, error) {

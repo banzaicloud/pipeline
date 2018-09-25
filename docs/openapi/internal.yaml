@@ -88,6 +88,9 @@ definitions:
       name:
         type: string
         x-go-name: Name
+      distribution:
+        type: string
+        x-go-name: Distribution
       nodes:
         type: array
         items:

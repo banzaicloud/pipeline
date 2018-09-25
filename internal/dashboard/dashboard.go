@@ -28,6 +28,7 @@ import (
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"k8s.io/api/core/v1"
@@ -77,6 +78,7 @@ type Cluster struct {
 	Name                string  `json:"name"`
 	Id                  string  `json:"id"`
 	Status              string  `json:"status"`
+	Distribution        string  `json:"distribution"`
 	StatusMessage       string  `json:"statusMessage"`
 	Cloud               string  `json:"cloud"`
 	CreatedAt           string  `json:"createdAt"`
@@ -167,10 +169,11 @@ func GetDashboard(c *gin.Context) {
 func getClusterDashboard(logger *logrus.Entry, commonCluster cluster.CommonCluster, clusterResponseChan chan Cluster) {
 	nodeStates := make([]Node, 0)
 	cluster := Cluster{
-		Name:  commonCluster.GetName(),
-		Id:    fmt.Sprint(commonCluster.GetID()),
-		Cloud: commonCluster.GetCloud(),
-		Nodes: nodeStates,
+		Name:         commonCluster.GetName(),
+		Id:           fmt.Sprint(commonCluster.GetID()),
+		Distribution: commonCluster.GetDistribution(),
+		Cloud:        commonCluster.GetCloud(),
+		Nodes:        nodeStates,
 	}
 	kubeConfig, err := commonCluster.GetK8sConfig()
 	if err != nil {
@@ -294,8 +297,8 @@ func calculateNodeResourceUsage(resourceName v1.ResourceName, node v1.Node, clus
 		clusterResourceAllocatableMap[resourceName] = allocatable.DeepCopy()
 	}
 
-	usagePercent := float64(capacity.Value()-allocatable.Value()) / float64(capacity.Value()) * 100
-	return usagePercent, capacity.String(), allocatable.String()
+	usagePercent := float64(capacity.MilliValue()-allocatable.MilliValue()) / float64(capacity.MilliValue()) * 100
+	return usagePercent, utils.FormatResourceQuantity(resourceName, &capacity), utils.FormatResourceQuantity(resourceName, &allocatable)
 }
 
 func calculateClusterResourceUsage(resourceName v1.ResourceName, clusterResourceCapacityMap map[v1.ResourceName]resource.Quantity, clusterResourceAllocatableMap map[v1.ResourceName]resource.Quantity) float64 {
@@ -309,6 +312,6 @@ func calculateClusterResourceUsage(resourceName v1.ResourceName, clusterResource
 		return 0
 	}
 
-	usagePercent := float64(clusterResourceCapacity.Value()-clusterResourceAllocatable.Value()) / float64(clusterResourceCapacity.Value()) * 100
+	usagePercent := float64(clusterResourceCapacity.MilliValue()-clusterResourceAllocatable.MilliValue()) / float64(clusterResourceCapacity.MilliValue()) * 100
 	return usagePercent
 }
