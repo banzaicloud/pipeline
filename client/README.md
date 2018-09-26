@@ -314,7 +314,6 @@ Class | Method | HTTP request | Description
  - [SecretsListResponse](docs/SecretsListResponse.md)
  - [SecretsNotFound](docs/SecretsNotFound.md)
  - [SpotguideDetailsResponse](docs/SpotguideDetailsResponse.md)
- - [SpotguideDetailsResponseSpotguide](docs/SpotguideDetailsResponseSpotguide.md)
  - [SpotguideNotFound](docs/SpotguideNotFound.md)
  - [SpotguideOptionsMonitor](docs/SpotguideOptionsMonitor.md)
  - [SpotguideOptionsMysqlDatabaseName](docs/SpotguideOptionsMysqlDatabaseName.md)

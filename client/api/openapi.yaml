@@ -4073,26 +4073,34 @@ components:
     SpotguideDetailsResponse:
       example:
         createdAt: 2018-06-11T14:28:13Z
-        spotguide:
-          options:
-          - ""
-          - ""
-          resources:
-            onDemandPct: 10
-            sumMem: 32
-            filters:
-            - filters
-            - filters
-            maxNodes: 3
-            sumCpu: 8
-            sameSize: true
-            minNodes: 1
+        displayName: The spotguide for NodeJS and MongoDB
         name: banzaicloud/spotguide-nodejs-mongodb
-        questions: '{}'
+        icon: data:image/svg+xml;base64,PHN2ZyB4b...
+        questions:
+        - ""
+        - ""
+        resources:
+          onDemandPct: 10
+          sumMem: 32
+          filters:
+          - filters
+          - filters
+          maxNodes: 3
+          sumCpu: 8
+          sameSize: true
+          minNodes: 1
+        readme: '# Spotguide for Node.js with MongoDB database'
+        version: v0.0.1
         updatedAt: 2018-06-11T14:28:24Z
+        tags:
+        - tags
+        - tags
       properties:
         name:
           example: banzaicloud/spotguide-nodejs-mongodb
+          type: string
+        displayName:
+          example: The spotguide for NodeJS and MongoDB
           type: string
         createdAt:
           example: 2018-06-11T14:28:13Z
@@ -4100,11 +4108,29 @@ components:
         updatedAt:
           example: 2018-06-11T14:28:24Z
           type: string
-        spotguide:
-          $ref: '#/components/schemas/SpotguideDetailsResponse_spotguide'
+        icon:
+          example: data:image/svg+xml;base64,PHN2ZyB4b...
+          type: string
+        readme:
+          example: '# Spotguide for Node.js with MongoDB database'
+          type: string
+        version:
+          example: v0.0.1
+          type: string
+        tags:
+          items:
+            type: string
+          type: array
+        resources:
+          $ref: '#/components/schemas/RequestedResources'
         questions:
-          properties: {}
-          type: object
+          items:
+            oneOf:
+            - $ref: '#/components/schemas/SpotguideOptionsMysqlDatabaseName'
+            - $ref: '#/components/schemas/SpotguideOptionsMysqlDatabaseSize'
+            - $ref: '#/components/schemas/SpotguideOptionsMysqlVersion'
+            - $ref: '#/components/schemas/SpotguideOptionsMonitor'
+          type: array
       type: object
     LaunchSpotguidesRequest:
       example:
@@ -7615,33 +7641,6 @@ components:
         name:
           example: myOrgName
           type: string
-      type: object
-    SpotguideDetailsResponse_spotguide:
-      example:
-        options:
-        - ""
-        - ""
-        resources:
-          onDemandPct: 10
-          sumMem: 32
-          filters:
-          - filters
-          - filters
-          maxNodes: 3
-          sumCpu: 8
-          sameSize: true
-          minNodes: 1
-      properties:
-        resources:
-          $ref: '#/components/schemas/RequestedResources'
-        options:
-          items:
-            oneOf:
-            - $ref: '#/components/schemas/SpotguideOptionsMysqlDatabaseName'
-            - $ref: '#/components/schemas/SpotguideOptionsMysqlDatabaseSize'
-            - $ref: '#/components/schemas/SpotguideOptionsMysqlVersion'
-            - $ref: '#/components/schemas/SpotguideOptionsMonitor'
-          type: array
       type: object
     CreateEC2Properties_ec2_master:
       properties:
