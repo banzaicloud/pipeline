@@ -3,7 +3,8 @@
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**SecretId** | **string** |  | 
+**SecretId** | **string** |  | [optional] 
+**SecretName** | **string** |  | [optional] 
 **Name** | **string** |  | 
 **Properties** | [**map[string]interface{}**](map[string]interface{}.md) |  | 
 

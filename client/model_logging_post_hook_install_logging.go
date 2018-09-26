@@ -17,5 +17,6 @@ type LoggingPostHookInstallLogging struct {
 	ResourceGroup  string           `json:"resourceGroup,omitempty"`
 	StorageAccount string           `json:"storageAccount,omitempty"`
 	SecretId       string           `json:"secretId,omitempty"`
+	SecretName     string           `json:"secretName,omitempty"`
 	Tls            GenTlsForLogging `json:"tls,omitempty"`
 }

@@ -30,7 +30,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	"github.com/banzaicloud/pipeline/internal/providers"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/banzaicloud/pipeline/pkg/common"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	pkgProviders "github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/secret"
@@ -113,13 +113,25 @@ func CreateBucket(c *gin.Context) {
 	if err := c.BindJSON(&createBucketRequest); err != nil {
 		logger.Error(errors.Wrap(err, "Error parsing request"))
 
-		c.JSON(http.StatusBadRequest, common.ErrorResponse{
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error parsing request",
 			Error:   err.Error(),
 		})
 
 		return
+	}
+
+	if createBucketRequest.SecretId == "" {
+		if createBucketRequest.SecretName == "" {
+			c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
+				Code:    http.StatusBadRequest,
+				Message: "either secretId or secretName has to be set",
+			})
+			return
+		}
+
+		createBucketRequest.SecretId = secret.GenerateSecretIDFromName(createBucketRequest.SecretName)
 	}
 
 	cloudType, err := determineCloudProviderFromRequest(createBucketRequest)
@@ -433,9 +445,9 @@ func determineCloudProviderFromRequest(req CreateBucketRequest) (string, error) 
 }
 
 // errorResponseFrom translates the given error into a components.ErrorResponse
-func errorResponseFrom(err error) *common.ErrorResponse {
+func errorResponseFrom(err error) *pkgCommon.ErrorResponse {
 	if objectstore.IsNotFoundError(err) {
-		return &common.ErrorResponse{
+		return &pkgCommon.ErrorResponse{
 			Code:    http.StatusNotFound,
 			Error:   err.Error(),
 			Message: err.Error(),
@@ -444,7 +456,7 @@ func errorResponseFrom(err error) *common.ErrorResponse {
 
 	// google specific errors
 	if googleApiErr, ok := err.(*googleapi.Error); ok {
-		return &common.ErrorResponse{
+		return &pkgCommon.ErrorResponse{
 			Code:    googleApiErr.Code,
 			Error:   googleApiErr.Error(),
 			Message: googleApiErr.Message,
@@ -458,7 +470,7 @@ func errorResponseFrom(err error) *common.ErrorResponse {
 			code = awsReqFailure.StatusCode()
 		}
 
-		return &common.ErrorResponse{
+		return &pkgCommon.ErrorResponse{
 			Code:    code,
 			Error:   awsErr.Error(),
 			Message: awsErr.Message(),
@@ -467,7 +479,7 @@ func errorResponseFrom(err error) *common.ErrorResponse {
 
 	// azure specific errors
 	if azureErr, ok := err.(validation.Error); ok {
-		return &common.ErrorResponse{
+		return &pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Error:   azureErr.Error(),
 			Message: azureErr.Message,
@@ -477,7 +489,7 @@ func errorResponseFrom(err error) *common.ErrorResponse {
 	if azureErr, ok := err.(azblob.StorageError); ok {
 		serviceCode := fmt.Sprint(azureErr.ServiceCode())
 
-		return &common.ErrorResponse{
+		return &pkgCommon.ErrorResponse{
 			Code:    azureErr.Response().StatusCode,
 			Error:   azureErr.Error(),
 			Message: serviceCode,
@@ -487,21 +499,21 @@ func errorResponseFrom(err error) *common.ErrorResponse {
 	if azureErr, ok := err.(autorest.DetailedError); ok {
 		if azureErr.Original != nil {
 			if azureOrigErr, ok := azureErr.Original.(*azure.RequestError); ok {
-				return &common.ErrorResponse{
+				return &pkgCommon.ErrorResponse{
 					Code:    azureErr.Response.StatusCode,
 					Error:   azureOrigErr.ServiceError.Error(),
 					Message: azureOrigErr.ServiceError.Message,
 				}
 			}
 
-			return &common.ErrorResponse{
+			return &pkgCommon.ErrorResponse{
 				Code:    azureErr.Response.StatusCode,
 				Error:   azureErr.Original.Error(),
 				Message: azureErr.Message,
 			}
 		}
 
-		return &common.ErrorResponse{
+		return &pkgCommon.ErrorResponse{
 			Code:    azureErr.Response.StatusCode,
 			Error:   azureErr.Error(),
 			Message: azureErr.Message,
@@ -510,7 +522,7 @@ func errorResponseFrom(err error) *common.ErrorResponse {
 
 	// pipeline specific errors
 	if err == pkgErrors.ErrorNotSupportedCloudType {
-		return &common.ErrorResponse{
+		return &pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Error:   err.Error(),
 			Message: err.Error(),
@@ -519,13 +531,13 @@ func errorResponseFrom(err error) *common.ErrorResponse {
 
 	switch err.(type) {
 	case SecretNotFoundError, secret.MissmatchError:
-		return &common.ErrorResponse{
+		return &pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Error:   err.Error(),
 			Message: err.Error(),
 		}
 	default:
-		return &common.ErrorResponse{
+		return &pkgCommon.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Error:   err.Error(),
 			Message: err.Error(),

@@ -4137,6 +4137,7 @@ components:
         cluster:
           cloud: google
           profileName: profileName
+          secretName: my-aws-secret
           name: gkecluster-pipelineuser-123
           secretId: 62bc3c75-91fb-4670-bad4-24b401a9deac
           location: us-central1-a
@@ -4412,6 +4413,7 @@ components:
       example:
         cloud: google
         profileName: profileName
+        secretName: my-aws-secret
         name: gkecluster-pipelineuser-123
         secretId: 62bc3c75-91fb-4670-bad4-24b401a9deac
         location: us-central1-a
@@ -4441,6 +4443,9 @@ components:
           type: string
         secretId:
           example: 62bc3c75-91fb-4670-bad4-24b401a9deac
+          type: string
+        secretName:
+          example: my-aws-secret
           type: string
         postHooks:
           example:
@@ -4476,7 +4481,6 @@ components:
       - location
       - name
       - properties
-      - secretId
       type: object
     CreateEC2Properties:
       properties:
@@ -6546,11 +6550,15 @@ components:
       type: object
     CreateObjectStoreBucketRequest:
       example:
+        secretName: my-aws-secret
         name: mybucket
         secretId: secretId
         properties: ""
       properties:
         secretId:
+          type: string
+        secretName:
+          example: my-aws-secret
           type: string
         name:
           example: mybucket
@@ -6564,7 +6572,6 @@ components:
       required:
       - name
       - properties
-      - secretId
       type: object
     CreateAmazonObjectStoreBucketProperties:
       properties:
@@ -8877,6 +8884,9 @@ components:
           type: string
         secretId:
           example: 62bc3c75-91fb-4670-bad4-24b401a9deac
+          type: string
+        secretName:
+          example: my-aws-secret
           type: string
         tls:
           $ref: '#/components/schemas/GenTLSForLogging'
