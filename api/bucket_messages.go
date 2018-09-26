@@ -17,6 +17,7 @@ package api
 // CreateBucketRequest to create bucket
 type CreateBucketRequest struct {
 	SecretId   string `json:"secretId" binding:"required"`
+	SecretName string `json:"secretName"`
 	Name       string `json:"name" binding:"required"`
 	Properties struct {
 		Alibaba *CreateAlibabaObjectStoreBucketProperties `json:"alibaba,omitempty"`

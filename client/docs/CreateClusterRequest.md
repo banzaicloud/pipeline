@@ -6,7 +6,8 @@ Name | Type | Description | Notes
 **Name** | **string** |  | 
 **Location** | **string** |  | 
 **Cloud** | **string** |  | 
-**SecretId** | **string** |  | 
+**SecretId** | **string** |  | [optional] 
+**SecretName** | **string** |  | [optional] 
 **PostHooks** | [**map[string]interface{}**](map[string]interface{}.md) |  | [optional] 
 **ProfileName** | **string** |  | [optional] 
 **Properties** | [**map[string]interface{}**](map[string]interface{}.md) |  | 

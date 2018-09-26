@@ -52,6 +52,18 @@ func CreateClusterRequest(c *gin.Context) {
 		return
 	}
 
+	if createClusterRequest.SecretId == "" {
+		if createClusterRequest.SecretName == "" {
+			c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
+				Code:    http.StatusBadRequest,
+				Message: "either secretId or secretName has to be set",
+			})
+			return
+		}
+
+		createClusterRequest.SecretId = secret.GenerateSecretIDFromName(createClusterRequest.SecretName)
+	}
+
 	orgID := auth.GetCurrentOrganization(c.Request).ID
 	userID := auth.GetCurrentUser(c.Request).ID
 

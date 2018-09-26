@@ -105,7 +105,8 @@ type CreateClusterRequest struct {
 	Name        string                   `json:"name" binding:"required"`
 	Location    string                   `json:"location"`
 	Cloud       string                   `json:"cloud" binding:"required"`
-	SecretId    string                   `json:"secretId" binding:"required"`
+	SecretId    string                   `json:"secretId"`
+	SecretName  string                   `json:"secretName"`
 	ProfileName string                   `json:"profileName"`
 	PostHooks   PostHooks                `json:"postHooks"`
 	Properties  *CreateClusterProperties `json:"properties" binding:"required"`
@@ -140,7 +141,8 @@ type LoggingParam struct {
 	Region           string           `json:"region"`
 	ResourceGroup    string           `json:"resourceGroup"`
 	StorageAccount   string           `json:"storageAccount"`
-	SecretId         string           `json:"secretId" binding:"required"`
+	SecretId         string           `json:"secretId"`
+	SecretName       string           `json:"secretName"`
 	GenTLSForLogging GenTLSForLogging `json:"tls" binding:"required"`
 }
 
