@@ -22,7 +22,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
+	"github.com/spf13/viper"
 )
+
+var basePath = viper.GetString("pipeline.basepath")
 
 // DrainModeMiddleware prevents write operations from succeeding.
 type DrainModeMiddleware struct {
@@ -97,7 +100,7 @@ func isWriteOperation(c *gin.Context) bool {
 }
 
 func isException(c *gin.Context) bool {
-	if c.Request.URL.Path == "/api/v1/tokens" {
+	if c.Request.URL.Path == basePath+"/api/v1/tokens" {
 		return true
 	}
 
