@@ -206,6 +206,12 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 	namespace := viper.GetString(pipConfig.PipelineSystemNamespace)
 	loggingParam.GenTLSForLogging.TLSEnabled = true
 	// Set TLS default values (default True)
+	if loggingParam.SecretId == "" {
+		if loggingParam.SecretName == "" {
+			return fmt.Errorf("either secretId or secretName has to be set")
+		}
+		loggingParam.SecretId = secret.GenerateSecretIDFromName(loggingParam.SecretName)
+	}
 	if loggingParam.GenTLSForLogging.Namespace == "" {
 		loggingParam.GenTLSForLogging.Namespace = namespace
 	}

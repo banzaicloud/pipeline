@@ -3921,7 +3921,6 @@ components:
         - name
         - location
         - cloud
-        - secretId
         - properties
       properties:
         name:
@@ -3936,6 +3935,9 @@ components:
         secretId:
           type: string
           example: "62bc3c75-91fb-4670-bad4-24b401a9deac"
+        secretName:
+          type: string
+          example: "my-aws-secret"
         postHooks:
           type: object
           oneOf:
@@ -6203,12 +6205,14 @@ components:
     CreateObjectStoreBucketRequest:
       type: object
       required:
-        - secretId
         - name
         - properties
       properties:
         secretId:
           type: string
+        secretName:
+          type: string
+          example: "my-aws-secret"
         name:
           type: string
           example: "mybucket"
@@ -6514,6 +6518,9 @@ components:
             secretId:
               type: string
               example: "62bc3c75-91fb-4670-bad4-24b401a9deac"
+            secretName:
+              type: string
+              example: "my-aws-secret"
             tls:
               $ref: '#/components/schemas/GenTLSForLogging'
 
