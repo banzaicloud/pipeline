@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/banzaicloud/pipeline/config"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/helm"
 	phelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/pkg/errors"
@@ -315,6 +316,16 @@ func Install(helmInstall *helm.Install, kubeConfig []byte) error {
 		ImageSpec:      helmInstall.ImageSpec,
 		MaxHistory:     helmInstall.MaxHistory,
 	}
+
+	if len(helmInstall.TargetNodePool) > 0 {
+		opts.Values = []string{
+			fmt.Sprintf("spec.template.spec.tolerations[0].key=%v", pkgCommon.HeadNodeTaintKey),
+			"spec.template.spec.tolerations[0].operator=Equal",
+			fmt.Sprintf("spec.template.spec.tolerations[0].value=%v", helmInstall.TargetNodePool),
+		}
+		opts.NodeSelectors = fmt.Sprintf("%s=%s", pkgCommon.LabelKey, helmInstall.TargetNodePool)
+	}
+
 	kubeClient, err := GetK8sConnection(kubeConfig)
 	if err != nil {
 		return err
