@@ -295,13 +295,14 @@ func main() {
 	port := viper.GetInt("pipeline.listenport")
 	if port != 0 {
 		listenPort = fmt.Sprintf(":%d", port)
-		logger.Info("Pipeline API listening on port ", listenPort)
 	}
 
 	certFile, keyFile := viper.GetString("pipeline.certfile"), viper.GetString("pipeline.keyfile")
 	if certFile != "" && keyFile != "" {
+		logger.Info("Pipeline API listening on TLS port ", listenPort)
 		router.RunTLS(listenPort, certFile, keyFile)
 	} else {
+		logger.Info("Pipeline API listening on port ", listenPort)
 		router.Run(listenPort)
 	}
 }
