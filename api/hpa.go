@@ -67,7 +67,7 @@ func PutHpaResource(c *gin.Context) {
 
 	err = setDeploymentAutoscalingInfo(kubeConfig, *scalingRequest)
 	if err != nil {
-		err := errors.Wrap(err, "Error during request processing:")
+		err := errors.Wrap(err, "Error during request processing")
 		log.Error(err.Error())
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
 			Code:    http.StatusBadRequest,
@@ -101,10 +101,10 @@ func DeleteHpaResource(c *gin.Context) {
 
 	err := deleteDeploymentAutoscalingInfo(kubeConfig, scaleTarget)
 	if err != nil {
-		err := errors.Wrap(err, "Error during request processing:")
+		err := errors.Wrap(err, "Error during request processing")
 		log.Error(err.Error())
-		c.JSON(http.StatusInternalServerError, pkgCommmon.ErrorResponse{
-			Code:    http.StatusInternalServerError,
+		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
+			Code:    http.StatusBadRequest,
 			Message: "Error during request processing!",
 			Error:   errors.Cause(err).Error(),
 		})
@@ -118,11 +118,6 @@ func DeleteHpaResource(c *gin.Context) {
 func GetHpaResource(c *gin.Context) {
 	scaleTarget, ok := ginutils.RequiredQuery(c, "scaleTarget")
 	if !ok {
-		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "missing required param: scaleTarget",
-			Error:   "missing required param: scaleTarget",
-		})
 		return
 	}
 	log.Debugf("getting hpa details for scaleTarget: [%s]", scaleTarget)
@@ -134,9 +129,9 @@ func GetHpaResource(c *gin.Context) {
 
 	deploymentResponse, err := getHpaResources(scaleTarget, kubeConfig)
 	if err != nil {
-		err := errors.Wrap(err, "Error during request processing:")
+		err := errors.Wrap(err, "Error during request processing")
 		log.Error(err.Error())
-		httpStatusCode := http.StatusInternalServerError
+		httpStatusCode := http.StatusBadRequest
 		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
 			Code:    httpStatusCode,
 			Message: "Error getting deployment",
@@ -168,10 +163,14 @@ func getHpaResources(scaleTragetRef string, kubeConfig []byte) ([]hpa.Deployment
 		return nil, err
 	}
 
+	found := false
+
 	for _, hpaItem := range hpaList.Items {
 		if !hpaBelongsToDeployment(hpaItem, scaleTragetRef) {
 			continue
 		}
+
+		found = true
 
 		log.Debugf("hpa found: %v for scaleTragetRef: %v", hpaItem.Name, scaleTragetRef)
 		deploymentItem := hpa.DeploymentScalingInfo{
@@ -201,6 +200,10 @@ func getHpaResources(scaleTragetRef string, kubeConfig []byte) ([]hpa.Deployment
 
 		deploymentItem.Status.Message = generateStatusMessage(hpaItem.Status)
 		responseDeployments = append(responseDeployments, deploymentItem)
+	}
+
+	if !found {
+		return nil, errors.Errorf("scaleTarget: %v not found!", scaleTragetRef)
 	}
 
 	return responseDeployments, nil
