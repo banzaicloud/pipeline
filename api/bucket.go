@@ -67,7 +67,7 @@ func ListBuckets(c *gin.Context) {
 
 	switch cloudType {
 	case pkgProviders.Alibaba, pkgProviders.Amazon:
-		location, ok := ginutils.RequiredQuery(c, "location")
+		location, ok := ginutils.RequiredQueryOrAbort(c, "location")
 		if !ok {
 			logger.Debug("missing location")
 
@@ -223,7 +223,7 @@ func CheckBucket(c *gin.Context) {
 
 	switch cloudType {
 	case pkgProviders.Alibaba, pkgProviders.Amazon, pkgProviders.Oracle:
-		location, ok := ginutils.RequiredQuery(c, "location")
+		location, ok := ginutils.RequiredQueryOrAbort(c, "location")
 		if !ok {
 			logger.Debug("missing location")
 
@@ -233,14 +233,14 @@ func CheckBucket(c *gin.Context) {
 		objectStoreCtx.Location = location
 
 	case pkgProviders.Azure:
-		resourceGroup, ok := ginutils.RequiredQuery(c, "resourceGroup")
+		resourceGroup, ok := ginutils.RequiredQueryOrAbort(c, "resourceGroup")
 		if !ok {
 			logger.Debug("missing resource group")
 
 			return
 		}
 
-		storageAccount, ok := ginutils.RequiredQuery(c, "storageAccount")
+		storageAccount, ok := ginutils.RequiredQueryOrAbort(c, "storageAccount")
 		if !ok {
 			logger.Debug("missing storage account")
 
@@ -299,7 +299,7 @@ func DeleteBucket(c *gin.Context) {
 
 	switch cloudType {
 	case pkgProviders.Oracle:
-		location, ok := ginutils.RequiredQuery(c, "location")
+		location, ok := ginutils.RequiredQueryOrAbort(c, "location")
 		if !ok {
 			logger.Debug("missing location")
 
@@ -309,14 +309,14 @@ func DeleteBucket(c *gin.Context) {
 		objectStoreCtx.Location = location
 
 	case pkgProviders.Azure:
-		resourceGroup, ok := ginutils.RequiredQuery(c, "resourceGroup")
+		resourceGroup, ok := ginutils.RequiredQueryOrAbort(c, "resourceGroup")
 		if !ok {
 			logger.Debug("missing resource group")
 
 			return
 		}
 
-		storageAccount, ok := ginutils.RequiredQuery(c, "storageAccount")
+		storageAccount, ok := ginutils.RequiredQueryOrAbort(c, "storageAccount")
 		if !ok {
 			logger.Debug("missing storage account")
 
@@ -355,7 +355,7 @@ func getBucketContext(c *gin.Context, logger logrus.FieldLogger) (*auth.Organiza
 		return nil, nil, "", false
 	}
 
-	provider, ok := ginutils.RequiredQuery(c, "cloudType")
+	provider, ok := ginutils.RequiredQueryOrAbort(c, "cloudType")
 	if !ok {
 		logger.Debug("missing provider")
 
