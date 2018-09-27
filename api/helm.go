@@ -272,7 +272,7 @@ func GetDeploymentResources(c *gin.Context) {
 	name := c.Param("name")
 	log.Infof("getting resources for deployment: [%s]", name)
 
-	resourceTypesStr := c.Param("resourceTypes")
+	resourceTypesStr := c.Query("resourceTypes")
 	resourceTypes := make([]string, 0)
 	if len(resourceTypesStr) != 0 {
 		resourceTypes = append(resourceTypes, strings.Split(resourceTypesStr, ",")...)

@@ -24,6 +24,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"reflect"
 	"regexp"
 	"strings"
 	"text/template"
@@ -33,8 +34,6 @@ import (
 	helm2 "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/pkg/errors"
-	"k8s.io/api/apps/v1beta2"
-	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/helm/pkg/chartutil"
 	"k8s.io/helm/pkg/getter"
@@ -44,7 +43,6 @@ import (
 	"k8s.io/helm/pkg/proto/hapi/release"
 	rls "k8s.io/helm/pkg/proto/hapi/services"
 	"k8s.io/helm/pkg/repo"
-	"k8s.io/kubernetes/pkg/apis/extensions"
 )
 
 // DefaultNamespace default namespace
@@ -321,26 +319,10 @@ func GetDeploymentK8sResources(releaseName string, kubeConfig []byte, resourceTy
 		}
 
 		if selectResource {
-			//TODO add all K8s resources
-			switch o := obj.(type) {
-			case *extensions.Deployment:
-				deployments = append(deployments, helm2.DeploymentResource{
-					Name: o.Name,
-					Kind: o.Kind,
-				})
-			case *v1beta1.Deployment:
-				deployments = append(deployments, helm2.DeploymentResource{
-					Name: o.Name,
-					Kind: o.Kind,
-				})
-			case *v1beta2.StatefulSet:
-				deployments = append(deployments, helm2.DeploymentResource{
-					Name: o.Name,
-					Kind: o.Kind,
-				})
-			default:
-				//o is unknown for us
-			}
+			deployments = append(deployments, helm2.DeploymentResource{
+				Name: reflect.ValueOf(obj).Elem().FieldByName("Name").String(),
+				Kind: reflect.ValueOf(obj).Elem().FieldByName("Kind").String(),
+			})
 		}
 
 	}
