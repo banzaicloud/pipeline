@@ -3669,28 +3669,38 @@ components:
         name:
           type: string
           example: "banzaicloud/spotguide-nodejs-mongodb"
+        displayName:
+          type: string
+          example: "The spotguide for NodeJS and MongoDB"
         createdAt:
           type: string
           example: "2018-06-11T14:28:13Z"
         updatedAt:
           type: string
           example: "2018-06-11T14:28:24Z"
-        spotguide:
-          type: object
-          properties:
-            resources:
-              $ref: '#/components/schemas/RequestedResources'
-            options:
-              type: array
-              items:
-                oneOf:
-                  - $ref: '#/components/schemas/SpotguideOptionsMysqlDatabaseName'
-                  - $ref: '#/components/schemas/SpotguideOptionsMysqlDatabaseSize'
-                  - $ref: '#/components/schemas/SpotguideOptionsMysqlVersion'
-                  - $ref: '#/components/schemas/SpotguideOptionsMonitor'
+        icon:
+          type: string
+          example: "data:image/svg+xml;base64,PHN2ZyB4b..."
+        readme:
+          type: string
+          example: "# Spotguide for Node.js with MongoDB database"
+        version:
+          type: string
+          example: "v0.0.1"
+        tags:
+          type: array
+          items:
+            type: string
+        resources:
+          $ref: '#/components/schemas/RequestedResources'
         questions:
-          type: object
-          properties: {}
+          type: array
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/SpotguideOptionsMysqlDatabaseName'
+              - $ref: '#/components/schemas/SpotguideOptionsMysqlDatabaseSize'
+              - $ref: '#/components/schemas/SpotguideOptionsMysqlVersion'
+              - $ref: '#/components/schemas/SpotguideOptionsMonitor'
 
     LaunchSpotguidesRequest:
       type: object

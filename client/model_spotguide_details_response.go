@@ -12,9 +12,14 @@
 package client
 
 type SpotguideDetailsResponse struct {
-	Name      string                            `json:"name,omitempty"`
-	CreatedAt string                            `json:"createdAt,omitempty"`
-	UpdatedAt string                            `json:"updatedAt,omitempty"`
-	Spotguide SpotguideDetailsResponseSpotguide `json:"spotguide,omitempty"`
-	Questions map[string]interface{}            `json:"questions,omitempty"`
+	Name        string                   `json:"name,omitempty"`
+	DisplayName string                   `json:"displayName,omitempty"`
+	CreatedAt   string                   `json:"createdAt,omitempty"`
+	UpdatedAt   string                   `json:"updatedAt,omitempty"`
+	Icon        string                   `json:"icon,omitempty"`
+	Readme      string                   `json:"readme,omitempty"`
+	Version     string                   `json:"version,omitempty"`
+	Tags        []string                 `json:"tags,omitempty"`
+	Resources   RequestedResources       `json:"resources,omitempty"`
+	Questions   []map[string]interface{} `json:"questions,omitempty"`
 }
