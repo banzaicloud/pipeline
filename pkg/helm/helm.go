@@ -53,6 +53,9 @@ type Install struct {
 
 	// Limit the maximum number of revisions saved per release. Use 0 for no limit.
 	MaxHistory int `json:"history_max"`
+
+	// TargetNodePool
+	TargetNodePool string `json:"targetNodePool"`
 }
 
 // EndpointResponse describes a service public endpoints

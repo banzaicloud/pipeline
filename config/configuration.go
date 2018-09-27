@@ -50,6 +50,9 @@ const (
 	//PipelineSystemNamespace pipeline infra namespace key
 	PipelineSystemNamespace = "infra.namespace"
 
+	//PipelineHeadNodePoolName name of our Head node pool for Pipeline Infra deployments
+	PipelineHeadNodePoolName = "infra.headNodePoolName"
+
 	// EksTemplateLocation is the configuration key the location to get EKS Cloud Formation templates from
 	// the location to get EKS Cloud Formation templates from
 	EksTemplateLocation = "eks.templateLocation"

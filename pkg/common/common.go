@@ -47,3 +47,8 @@ const (
 const (
 	LabelKey = "pipeline-nodepool-name"
 )
+
+// Constant for tainting head node
+const (
+	HeadNodeTaintKey = "node.banzaicloud.com/nodepool"
+)
