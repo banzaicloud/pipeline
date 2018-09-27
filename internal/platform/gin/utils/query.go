@@ -22,8 +22,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// RequiredQuery returns a query value or responds with an error.
-func RequiredQuery(ctx *gin.Context, queryName string) (string, bool) {
+// RequiredQueryOrAbort returns a query value or responds with an error.
+func RequiredQueryOrAbort(ctx *gin.Context, queryName string) (string, bool) {
 	value := ctx.Query(queryName)
 	if len(value) == 0 {
 		ReplyWithErrorResponse(ctx, RequiredQueryMissingErrorResponse(queryName))

@@ -83,7 +83,7 @@ func PutHpaResource(c *gin.Context) {
 // DeleteHpaResource deletes a Hpa resource annotations from scaleTarget - K8s deployment/statefulset
 func DeleteHpaResource(c *gin.Context) {
 
-	scaleTarget, ok := ginutils.RequiredQuery(c, "scaleTarget")
+	scaleTarget, ok := ginutils.RequiredQueryOrAbort(c, "scaleTarget")
 	if !ok {
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
 			Code:    http.StatusBadRequest,
@@ -116,7 +116,7 @@ func DeleteHpaResource(c *gin.Context) {
 
 // GetHpaResource returns a Hpa resource bound to a K8s deployment/statefulset
 func GetHpaResource(c *gin.Context) {
-	scaleTarget, ok := ginutils.RequiredQuery(c, "scaleTarget")
+	scaleTarget, ok := ginutils.RequiredQueryOrAbort(c, "scaleTarget")
 	if !ok {
 		return
 	}
