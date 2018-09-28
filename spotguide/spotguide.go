@@ -240,8 +240,8 @@ func GetSpotguide(name, version string) ([]SpotguideRepo, error) {
 func LaunchSpotguide(request *LaunchRequest, httpRequest *http.Request, orgID, userID uint) error {
 
 	sourceRepos, err := GetSpotguide(request.SpotguideName, request.SpotguideVersion)
-	if err != nil {
-		return errors.Wrap(err, "Failed to find spotguide repo")
+	if err != nil || len(sourceRepos) == 0 {
+		return errors.Wrap(err, "failed to find spotguide repo")
 	}
 
 	sourceRepo := &sourceRepos[0]
@@ -251,27 +251,27 @@ func LaunchSpotguide(request *LaunchRequest, httpRequest *http.Request, orgID, u
 
 	err = createSecrets(request, orgID, userID)
 	if err != nil {
-		return errors.Wrap(err, "Failed to create secrets for spotguide")
+		return errors.Wrap(err, "failed to create secrets for spotguide")
 	}
 
 	githubClient, err := newGithubClientForUser(userID)
 	if err != nil {
-		return errors.Wrap(err, "Failed to create GitHub client")
+		return errors.Wrap(err, "failed to create GitHub client")
 	}
 
 	err = createGithubRepo(githubClient, request, userID, sourceRepo)
 	if err != nil {
-		return errors.Wrap(err, "Failed to create GitHub repository")
+		return errors.Wrap(err, "failed to create GitHub repository")
 	}
 
 	err = enableCICD(request, httpRequest)
 	if err != nil {
-		return errors.Wrap(err, "Failed to enable CI/CD for spotguide")
+		return errors.Wrap(err, "failed to enable CI/CD for spotguide")
 	}
 
 	err = addSpotguideContent(githubClient, request, userID, sourceRepo)
 	if err != nil {
-		return errors.Wrap(err, "Failed to add spotguide content to repository")
+		return errors.Wrap(err, "failed to add spotguide content to repository")
 	}
 
 	return nil
@@ -378,7 +378,7 @@ func createGithubRepo(githubClient *github.Client, request *LaunchRequest, userI
 		return errors.Wrap(err, "failed to create spotguide repository")
 	}
 
-	log.Infof("Created spotguide repository: %s/%s", request.RepoOrganization, request.RepoName)
+	log.Infof("Created spotguide repository: %s", request.RepoFullname())
 	return nil
 }
 
@@ -455,7 +455,7 @@ func createSecrets(request *LaunchRequest, orgID, userID uint) error {
 		}
 	}
 
-	log.Infof("Created secrets for spotguide: %s/%s", request.RepoOrganization, request.RepoName)
+	log.Infof("Created secrets for spotguide: %s", request.RepoFullname())
 
 	return nil
 }
