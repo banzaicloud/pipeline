@@ -771,6 +771,12 @@ func InstallHelmPostHook(input interface{}) error {
 		ServiceAccount: "tiller",
 		ImageSpec:      fmt.Sprintf("gcr.io/kubernetes-helm/tiller:%s", viper.GetString("helm.tillerVersion")),
 	}
+
+	headNodePoolName := viper.GetString(pipConfig.PipelineHeadNodePoolName)
+	if len(headNodePoolName) > 0 {
+		helmInstall.TargetNodePool = headNodePoolName
+	}
+
 	kubeconfig, err := cluster.GetK8sConfig()
 	if err != nil {
 		log.Errorf("Error retrieving kubernetes config: %s", err.Error())
@@ -944,29 +950,35 @@ func LabelNodes(input interface{}) error {
 		return errors.Errorf("Wrong parameter type: %T", commonCluster)
 	}
 
-	log.Infof("get K8S config")
+	switch commonCluster.GetDistribution() {
+	case pkgCluster.EKS, pkgCluster.OKE, pkgCluster.GKE:
+		log.Infof("node are already labelled on : %v", commonCluster.GetDistribution())
+		return nil
+	}
+
+	log.Debug("get K8S config")
 	kubeConfig, err := commonCluster.GetK8sConfig()
 	if err != nil {
 		return err
 	}
 
-	log.Info("get K8S connection")
+	log.Debug("get K8S connection")
 	client, err := helm.GetK8sConnection(kubeConfig)
 	if err != nil {
 		return err
 	}
 
-	log.Info("list node names")
+	log.Debug("list node names")
 	nodeNames, err := commonCluster.ListNodeNames()
 	if err != nil {
 		return err
 	}
 
-	log.Infof("node names: %v", nodeNames)
+	log.Debugf("node names: %v", nodeNames)
 
 	for name, nodes := range nodeNames {
 
-		log.Infof("nodepool: [%s]", name)
+		log.Debugf("nodepool: [%s]", name)
 		for _, nodeName := range nodes {
 			log.Infof("add label to node [%s]", nodeName)
 			if err := addLabelsToNode(client, nodeName, map[string]string{pkgCommon.LabelKey: name}); err != nil {
@@ -991,5 +1003,87 @@ func addLabelsToNode(client *kubernetes.Clientset, nodeName string, labels map[s
 	patch := fmt.Sprintf(`{"metadata":{"labels":%v}}`, labelString)
 
 	_, err = client.CoreV1().Nodes().Patch(nodeName, types.MergePatchType, []byte(patch))
+	return
+}
+
+// TaintHeadNodes add taints to the given node in nodepool
+func TaintHeadNodes(input interface{}) error {
+
+	headNodePoolName := viper.GetString(pipConfig.PipelineHeadNodePoolName)
+	if len(headNodePoolName) == 0 {
+		log.Infof("headNodePoolName not specified")
+		return nil
+	}
+	log.Infof("taint nodes in pool: %v", headNodePoolName)
+
+	commonCluster, ok := input.(CommonCluster)
+	if !ok {
+		return errors.Errorf("Wrong parameter type: %T", commonCluster)
+	}
+
+	log.Debug("get K8S config")
+	kubeConfig, err := commonCluster.GetK8sConfig()
+	if err != nil {
+		return err
+	}
+
+	log.Debug("get K8S connection")
+	client, err := helm.GetK8sConnection(kubeConfig)
+	if err != nil {
+		return err
+	}
+
+	clusterDetails, err := commonCluster.GetClusterDetails()
+	if err != nil {
+		return err
+	}
+
+	nodePoolDetails, isOk := clusterDetails.NodePools[headNodePoolName]
+	if !isOk {
+		return errors.Errorf("Wrong pool name: %v, configured as head node pool")
+	}
+
+	taintedNodesCount, err := taintNodepoolNodes(client, viper.GetString(pipConfig.PipelineHeadNodePoolName))
+	if err != nil {
+		return err
+	}
+	if taintedNodesCount != nodePoolDetails.Count {
+		log.Warnf("Head node pool configured size (%v) and tainted nodes count (%v) is different", nodePoolDetails.Count, taintedNodesCount)
+	}
+	log.Info("taint nodes finished")
+
+	return nil
+}
+
+func taintNodepoolNodes(client *kubernetes.Clientset, nodePoolName string) (taintedNodesCount int, err error) {
+	selector := fmt.Sprintf("%s=%s", pkgCommon.LabelKey, nodePoolName)
+	nodes, err := client.CoreV1().Nodes().List(metav1.ListOptions{
+		LabelSelector: selector,
+	})
+	if err != nil {
+		return taintedNodesCount, err
+	}
+
+	for _, node := range nodes.Items {
+		if len(node.Spec.Taints) == 0 {
+			node.Spec.Taints = make([]v1.Taint, 0)
+		}
+		node.Spec.Taints = append(node.Spec.Taints, v1.Taint{
+			Key:    pkgCommon.HeadNodeTaintKey,
+			Value:  nodePoolName,
+			Effect: v1.TaintEffectNoSchedule,
+		})
+		node.Spec.Taints = append(node.Spec.Taints, v1.Taint{
+			Key:    pkgCommon.HeadNodeTaintKey,
+			Value:  nodePoolName,
+			Effect: v1.TaintEffectNoExecute,
+		})
+		_, err = client.CoreV1().Nodes().Update(&node)
+		if err != nil {
+			return
+		}
+		taintedNodesCount++
+	}
+
 	return
 }

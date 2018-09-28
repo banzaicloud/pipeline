@@ -76,6 +76,10 @@ var HookMap = map[string]PostFunctioner{
 		f:            LabelNodes,
 		ErrorHandler: ErrorHandler{},
 	},
+	pkgCluster.TaintHeadNodes: &BasePostFunction{
+		f:            TaintHeadNodes,
+		ErrorHandler: ErrorHandler{},
+	},
 	pkgCluster.InstallPVCOperator: &BasePostFunction{
 		f:            InstallPVCOperatorPostHook,
 		ErrorHandler: ErrorHandler{},
@@ -94,6 +98,7 @@ var BasePostHookFunctions = []PostFunctioner{
 	HookMap[pkgCluster.InstallClusterAutoscalerPostHook],
 	HookMap[pkgCluster.InstallHorizontalPodAutoscalerPostHook],
 	HookMap[pkgCluster.LabelNodes],
+	HookMap[pkgCluster.TaintHeadNodes],
 	HookMap[pkgCluster.InstallPVCOperator],
 }
 
