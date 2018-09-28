@@ -41,7 +41,7 @@ func GetSpotguide(c *gin.Context) {
 			})
 			return
 		}
-		log.Errorln("Error getting spotguide details:", err.Error())
+		log.Errorln("error getting spotguide details:", err.Error())
 		c.JSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: "error getting spotguide details",
@@ -62,7 +62,7 @@ func GetSpotguides(c *gin.Context) {
 
 	spotguides, err := spotguide.GetSpotguides()
 	if err != nil {
-		log.Errorln("Error listing spotguides:", err.Error())
+		log.Errorln("error listing spotguides:", err.Error())
 		c.JSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: "error listing spotguides",
@@ -80,7 +80,7 @@ func SyncSpotguides(c *gin.Context) {
 	go func() {
 		err := spotguide.ScrapeSpotguides()
 		if err != nil {
-			log.Errorln("Failed synchronizing spotguides:", err.Error())
+			log.Errorln("failed synchronizing spotguides:", err.Error())
 		}
 	}()
 
@@ -106,10 +106,11 @@ func LaunchSpotguide(c *gin.Context) {
 
 	err := spotguide.LaunchSpotguide(&launchRequest, c.Request, org.ID, user.ID)
 	if err != nil {
-		log.Errorln("Failed to Launch spotguide:", err.Error())
+		log.Errorf("failed to Launch spotguide %s: %s", launchRequest.RepoFullname(), err.Error())
 		c.JSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: "error launching spotguide",
+			Error:   err.Error(),
 		})
 		return
 	}
