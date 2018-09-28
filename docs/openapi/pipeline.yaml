@@ -3959,6 +3959,7 @@ components:
             - $ref: '#/components/schemas/CreateGKEProperties'
             - $ref: '#/components/schemas/CreateEKSProperties'
             - $ref: '#/components/schemas/CreateUpdateOKEProperties'
+            - $ref: '#/components/schemas/CreateAKCSProperties'
           example:
             gke:
               master:
@@ -4040,6 +4041,46 @@ components:
               type: object
               additionalProperties:
                 $ref: '#/components/schemas/NodePoolsAmazon'
+
+    CreateAKCSProperties:
+      type: object
+      required:
+        - akcs
+      properties:
+        akcs:
+          type: object
+          required:
+            - regionId
+            - zoneId
+            - nodePools
+          properties:
+            regionId:
+              type: string
+              example: ""
+            zoneId:
+              type: string
+              example: ""
+            nodePools:
+              type: object
+              additionalProperties:
+                $ref: '#/components/schemas/NodePoolsAKCS'
+
+    NodePoolsAKCS:
+      type: object
+      required:
+        - count
+        - instanceType
+      properties:
+        count:
+          type: integer
+          example: 1
+        instanceType:
+          type: string
+          example: ""
+        systemDiskSize:
+          type: int
+        systemDiskCategory:
+          type: int
 
     CreateAKSProperties:
       type: object
@@ -4369,6 +4410,23 @@ components:
         image:
           type: string
           example: "ami-4d485ca7"
+
+    UpdateAKCSProperties:
+      type: object
+      required:
+        - akcs
+      properties:
+        akcs:
+          type: object
+          required:
+            - nodePools
+          properties:
+            nodePools:
+              type: object
+              properties:
+                type: object
+                additionalProperties:
+                  $ref: '#/components/schemas/NodePoolsAKCS'
 
     UpdateAzureProperties:
       type: object
