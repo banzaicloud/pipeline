@@ -27,6 +27,8 @@ OAuth2 based authentication requires GitHub application, this can be created by 
 [tutorial](https://developer.github.com/apps/building-oauth-apps/creating-an-oauth-app/).
 Please set the `clientid` and the `clientsecret` in the auth section, with the GitHub generated values.
 
+> If you are not using HTTPS set auth.secureCookie = false, otherwise you won't be able to login via HTTP.
+
 #### Set Required Environment Variables
 
 For accessing Vault the `VAULT_ADDR` env var has to be set, Pipeline stores JWT access tokens there.
