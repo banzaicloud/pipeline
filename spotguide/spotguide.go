@@ -201,6 +201,11 @@ func ScrapeSpotguides() error {
 
 					iconSrc := "data:image/svg+xml;base64," + base64.StdEncoding.EncodeToString(icon)
 
+					where := SpotguideRepo{
+						Name:    repository.GetFullName(),
+						Version: tag,
+					}
+
 					model := SpotguideRepo{
 						Name:             repository.GetFullName(),
 						SpotguideYAMLRaw: spotguideRaw,
@@ -209,7 +214,7 @@ func ScrapeSpotguides() error {
 						Version:          tag,
 					}
 
-					err = db.Where(&model).Assign(&model).FirstOrCreate(&SpotguideRepo{}).Error
+					err = db.Where(&where).Assign(&model).FirstOrCreate(&SpotguideRepo{}).Error
 
 					if err != nil {
 						return err
