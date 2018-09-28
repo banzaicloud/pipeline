@@ -3876,45 +3876,6 @@ components:
           example: 3
           description: Maximum number of nodes in the recommended cluster
 
-    ApplicationListResponse:
-      type: array
-      items:
-        $ref: '#/components/schemas/ApplicationListItem'
-
-    ApplicationListItem:
-      type: object
-      properties:
-        id:
-          type: integer
-          example: 1
-        name:
-          type: string
-          example: "Spark-Zeppelin"
-        createdAt:
-          type: string
-          example: "2018-06-11T14:28:13Z"
-        updatedAt:
-          type: string
-          example: "2018-06-11T14:28:24Z"
-        clusterName:
-          type: string
-          example: "My Favourite Cluster"
-        clusterId:
-          type: integer
-          example: 1
-        status:
-          type: string
-          example: READY
-        catalogName:
-          type: string
-          example: spark-zeppelin
-        icon:
-          type: string
-          example: /assets/img/asd.png
-        statusMessage:
-          type: string
-          example: "The resource was not found."
-
     CreateClusterRequest:
       type: object
       required:
@@ -4078,9 +4039,11 @@ components:
           type: string
           example: ""
         systemDiskSize:
-          type: int
+          type: integer
+          example: 8
         systemDiskCategory:
-          type: int
+          type: string
+          example: cloud
 
     CreateAKSProperties:
       type: object
@@ -4340,11 +4303,12 @@ components:
         properties:
           type: object
           oneOf:
-            - $ref: '#/components/schemas/UpdateAmazonProperties'
+            - $ref: '#/components/schemas/UpdateEC2Properties'
             - $ref: '#/components/schemas/UpdateAzureProperties'
             - $ref: '#/components/schemas/UpdateGoogleProperties'
             - $ref: '#/components/schemas/UpdateEksProperties'
             - $ref: '#/components/schemas/CreateUpdateOKEProperties'
+            - $ref: '#/components/schemas/UpdateAKCSProperties'
           example:
             google:
               master:
@@ -4354,21 +4318,46 @@ components:
                   count: 2
                   instanceType: "n1-standard-2"
 
-    UpdateAmazonProperties:
+    UpdateEC2Properties:
       type: object
       required:
         - amazon
       properties:
-        amazon:
+        ec2:
           type: object
           required:
             - nodePools
           properties:
             nodePools:
               type: object
-              properties:
-                pool1:
+              additionalProperties:
                   $ref: '#/components/schemas/UpdateNodePoolsAmazon'
+
+    UpdateNodePoolsAmazon:
+      type: object
+      properties:
+        instanceType:
+          type: string
+          example: "m4.xlarge"
+        spotPrice:
+          type: string
+          example: "0.2"
+        autoscaling:
+          type: boolean
+          example: true
+        count:
+          type: integer
+          example: 2
+        minCount:
+          type: integer
+          example: 1
+        maxCount:
+          type: integer
+          example: 2
+        image:
+          type: string
+          example: "ami-4d485ca7"
+
 
     UpdateEksProperties:
       type: object
@@ -4382,11 +4371,10 @@ components:
           properties:
             nodePools:
               type: object
-              properties:
-                pool1:
-                  $ref: '#/components/schemas/UpdateNodePoolsAmazon'
+              additionalProperties:
+               $ref: '#/components/schemas/UpdateNodePoolsEks'
 
-    UpdateNodePoolsAmazon:
+    UpdateNodePoolsEks:
       type: object
       properties:
         instanceType:
@@ -4423,10 +4411,8 @@ components:
           properties:
             nodePools:
               type: object
-              properties:
-                type: object
-                additionalProperties:
-                  $ref: '#/components/schemas/NodePoolsAKCS'
+              additionalProperties:
+                $ref: '#/components/schemas/NodePoolsAKCS'
 
     UpdateAzureProperties:
       type: object
@@ -4438,22 +4424,26 @@ components:
           properties:
             nodePools:
               type: object
-              properties:
-                pool1:
-                  type: object
-                  properties:
-                    autoscaling:
-                      type: boolean
-                      example: true
-                    count:
-                      type: integer
-                      example: 2
-                    minCount:
-                      type: integer
-                      example: 1
-                    maxCount:
-                      type: integer
-                      example: 2
+              additionalProperties:
+                $ref: '#/components/schemas/UpdateNodePoolsAzure'
+
+    UpdateNodePoolsAzure:
+      type: object
+      required:
+        - count
+      properties:
+        autoscaling:
+          type: boolean
+          example: true
+        count:
+          type: integer
+          example: 1
+        minCount:
+          type: integer
+          example: 1
+        maxCount:
+          type: integer
+          example: 2
 
     UpdateGoogleProperties:
       type: object
@@ -4468,25 +4458,29 @@ components:
           example: "1.9"
         nodePools:
           type: object
-          properties:
-            pool1:
-              type: object
-              properties:
-                autoscaling:
-                  type: boolean
-                  example: true
-                count:
-                  type: integer
-                  example: 2
-                minCount:
-                  type: integer
-                  example: 1
-                maxCount:
-                  type: integer
-                  example: 2
-                instanceType:
-                  type: string
-                  example: "n1-standard-2"
+          additionalProperties:
+            $ref: '#/components/schemas/UpdateNodePoolsGoogle'
+
+    UpdateNodePoolsGoogle:
+      type: object
+      required:
+        - count
+      properties:
+        autoscaling:
+          type: boolean
+          example: true
+        count:
+          type: integer
+          example: 2
+        minCount:
+          type: integer
+          example: 1
+        maxCount:
+          type: integer
+          example: 2
+        instanceType:
+          type: string
+          example: "n1-standard-2"
 
     ClusterDelete_200:
       type: object
@@ -4973,19 +4967,6 @@ components:
           type: string
           example: ""
 
-    HelmReposAddResponse:
-      type: object
-      properties:
-        status:
-          type: integer
-          example: 200
-        message:
-          type: string
-          example: "resource successfully added."
-        name:
-          type: string
-          example: "stable"
-
     HelmReposModifyRequest:
       type: object
       properties:
@@ -5297,31 +5278,9 @@ components:
                   example: "ami-06d1667f"
             nodePools:
               type: object
-              properties:
-                pool1:
-                  type: object
-                  properties:
-                    instanceType:
-                      type: string
-                      example: "m4.xlarge"
-                    spotPrice:
-                      type: string
-                      example: "0.2"
-                    autoscaling:
-                      type: boolean
-                      example: true
-                    count:
-                      type: integer
-                      example: 1
-                    minCount:
-                      type: integer
-                      example: 1
-                    maxCount:
-                      type: integer
-                      example: 2
-                    image:
-                      type: string
-                      example: "ami-06d1667f"
+              additionalProperties:
+                $ref: '#/components/schemas/NodePoolsAmazon'
+
 
     ClusterProfileEKS:
       type: object
@@ -5334,32 +5293,8 @@ components:
               example: "1.10"
             nodePools:
               type: object
-              properties:
-                pool1:
-                  type: object
-                  properties:
-                    instanceType:
-                      type: string
-                      example: "t2.medium"
-                    spotPrice:
-                      type: string
-                      example: "0.2"
-                    autoscaling:
-                      type: boolean
-                      example: true
-                    count:
-                      type: integer
-                      example: 1
-                    minCount:
-                      type: integer
-                      example: 1
-                    maxCount:
-                      type: integer
-                      example: 2
-                    image:
-                      type: string
-                      example: "ami-0ea01e1d1dea65b5c"
-                      description: "You can find latest images here: https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-ami.html"
+              additionalProperties:
+                $ref: '#/components/schemas/NodePoolsAmazon'
 
     ClusterProfileAKS:
       type: object
@@ -5372,25 +5307,8 @@ components:
               example: "1.9.2"
             nodePools:
               type: object
-              properties:
-                pool1:
-                  type: object
-                  properties:
-                    autoscaling:
-                      type: boolean
-                      example: true
-                    count:
-                      type: integer
-                      example: 1
-                    minCount:
-                      type: integer
-                      example: 1
-                    maxCount:
-                      type: integer
-                      example: 2
-                    instanceType:
-                      type: string
-                      example: "Standard_D2_v2"
+              additionalProperties:
+                $ref: '#/components/schemas/NodePoolsAzure'
 
     ClusterProfileGKE:
       type: object
@@ -5409,25 +5327,8 @@ components:
               example: "1.8.7-gke.1"
             nodePools:
               type: object
-              properties:
-                pool1:
-                  type: object
-                  properties:
-                    autoscaling:
-                      type: boolean
-                      example: true
-                    count:
-                      type: integer
-                      example: 1
-                    minCount:
-                      type: integer
-                      example: 1
-                    maxCount:
-                      type: integer
-                      example: 2
-                    instanceType:
-                      type: string
-                      example: "n1-standard-1"
+              additionalProperties:
+                $ref: '#/components/schemas/NodePoolsGoogle'
 
     AddClusterProfileRequest:
       type: object
@@ -5477,25 +5378,8 @@ components:
                   example: "ami-06d1667f"
             nodePools:
               type: object
-              properties:
-                pool1:
-                  type: object
-                  properties:
-                    spotPrice:
-                      type: string
-                      example: "0.2"
-                    minCount:
-                      type: integer
-                      example: 1
-                    maxCount:
-                      type: integer
-                      example: 2
-                    image:
-                      type: string
-                      example: "ami-06d1667f"
-                    instanceType:
-                      type: string
-                      example: "m4.xlarge"
+              additionalProperties:
+                $ref: '#/components/schemas/NodePoolsAmazon'
 
     AddClusterProfileEKS:
       type: object
@@ -5508,25 +5392,8 @@ components:
               example: "1.10"
             nodePools:
               type: object
-              properties:
-                pool1:
-                  type: object
-                  properties:
-                    spotPrice:
-                      type: string
-                      example: "0.2"
-                    minCount:
-                      type: integer
-                      example: 1
-                    maxCount:
-                      type: integer
-                      example: 2
-                    image:
-                      type: string
-                      example: "ami-06d1667f"
-                    instanceType:
-                      type: string
-                      example: "m4.xlarge"
+              additionalProperties:
+                $ref: '#/components/schemas/NodePoolsAmazon'
 
     AddClusterProfileAKS:
       type: object
@@ -5536,16 +5403,8 @@ components:
           properties:
             nodePools:
               type: object
-              properties:
-                pool1:
-                  type: object
-                  properties:
-                    count:
-                      type: integer
-                      example: 1
-                    instanceType:
-                      type: string
-                      example: "Standard_D2_v2"
+              additionalProperties:
+                $ref: '#/components/schemas/NodePoolsAzure'
             kubernetesVersion:
               type: string
               example: "1.8.2"
@@ -5567,16 +5426,8 @@ components:
               example: "1.8.7-gke.1"
             nodePools:
               type: object
-              properties:
-                pool1:
-                  type: object
-                  properties:
-                    count:
-                      type: integer
-                      example: 1
-                    instanceType:
-                      type: string
-                      example: "n1-standard-2"
+              additionalProperties:
+                $ref: '#/components/schemas/NodePoolsGoogle'
 
     TokenCreateRequest:
       type: object
@@ -6162,17 +6013,18 @@ components:
           example: "us-central1"
         nodePools:
           type: object
-          properties:
-            pool1:
-              type: object
-              oneOf:
-                - $ref: '#/components/schemas/NodePoolStatusAmazon'
-                - $ref: '#/components/schemas/NodePoolStatusAzure'
-                - $ref: '#/components/schemas/NodePoolStatusGoogle'
-                - $ref: '#/components/schemas/NodePoolStatusOracle'
-              example:
-                count: 1
-                instanceType: "n1-standard-1"
+          additionalProperties:
+            $ref: '#/components/schemas/NodePoolStatus'
+
+    NodePoolStatus:
+      oneOf:
+        - $ref: '#/components/schemas/NodePoolStatusAmazon'
+        - $ref: '#/components/schemas/NodePoolStatusAzure'
+        - $ref: '#/components/schemas/NodePoolStatusGoogle'
+        - $ref: '#/components/schemas/NodePoolStatusOracle'
+      example:
+        count: 1
+        instanceType: "n1-standard-1"
 
     NodePoolStatusAmazon:
       type: object
@@ -6443,7 +6295,6 @@ components:
           type: string
           example: "2018-08-01T07:04:37Z"
 
-
     ClusterDetailsResponse:
       type: object
       properties:
@@ -6482,29 +6333,8 @@ components:
           example: "RUNNING"
         nodePools:
           type: object
-          properties:
-            pool1:
-              type: object
-              properties:
-                createdAt:
-                  type: string
-                  example: "2018-07-03T14:19:26+02:00"
-                creatorName:
-                  type: string
-                  example: "colin014"
-                creatorId:
-                  type: integer
-                  example: 1
-                count:
-                  type: integer
-                  example: 1
-                minCount:
-                  type: integer
-                maxCount:
-                  type: integer
-                  example: 1
-                resourceSummary:
-                  $ref: '#/components/schemas/ResourceSummaryItem'
+          additionalProperties:
+            $ref: '#/components/schemas/NodePoolStatus'
         master:
           $ref: '#/components/schemas/ResourceSummaryItem'
         totalSummary:
