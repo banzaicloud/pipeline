@@ -952,7 +952,7 @@ func LabelNodes(input interface{}) error {
 
 	switch commonCluster.GetDistribution() {
 	case pkgCluster.EKS, pkgCluster.OKE, pkgCluster.GKE:
-		log.Infof("node are already labbeled on : %v", commonCluster.GetDistribution())
+		log.Infof("node are already labelled on : %v", commonCluster.GetDistribution())
 		return nil
 	}
 
@@ -1061,7 +1061,7 @@ func taintNodepoolNodes(client *kubernetes.Clientset, nodePoolName string) (tain
 		LabelSelector: selector,
 	})
 	if err != nil {
-		return
+		return taintedNodesCount, err
 	}
 
 	for _, node := range nodes.Items {
@@ -1080,7 +1080,7 @@ func taintNodepoolNodes(client *kubernetes.Clientset, nodePoolName string) (tain
 		})
 		_, err = client.CoreV1().Nodes().Update(&node)
 		if err != nil {
-			return 
+			return
 		}
 		taintedNodesCount++
 	}
