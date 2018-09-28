@@ -12,5 +12,5 @@
 package client
 
 type ClusterProfileEc2 struct {
-	Ec2 ClusterProfileEc2Ec2 `json:"ec2,omitempty"`
+	Ec2 CreateEc2PropertiesEc2 `json:"ec2,omitempty"`
 }

@@ -12,6 +12,7 @@ GOLANGCI_VERSION = 1.10.2
 MISSPELL_VERSION = 0.3.4
 JQ_VERSION = 1.5
 LICENSEI_VERSION = 0.0.7
+OPENAPI_GENERATOR_VERSION = v3.2.3
 
 bin/dep: bin/dep-${DEP_VERSION}
 bin/dep-${DEP_VERSION}:
@@ -77,8 +78,8 @@ ec2-list-instances: ## Lists aws ec2 instances, for alternative regions use: AWS
 	aws ec2 describe-instances --query 'Reservations[].Instances[].{ip:PublicIpAddress,id:InstanceId,state:State.Name,name:Tags[?Key==`Name`].Value|[0]}' --filters "Name=instance-state-name,Values=pending,running,shutting-down,stopping,stopped" --out table
 
 .PHONY: generate-client
-generate-client:
-	docker run --rm -v ${PWD}:/local openapitools/openapi-generator-cli generate \
+generate-client: ## Generate go client based on openapi description
+	docker run --rm -v ${PWD}:/local openapitools/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} generate \
 	--additional-properties packageName=client \
 	--additional-properties withGoCodegenComment=true \
 	-i /local/docs/openapi/pipeline.yaml \

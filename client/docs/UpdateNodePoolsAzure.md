@@ -1,9 +1,12 @@
-# ClusterProfileEc2
+# UpdateNodePoolsAzure
 
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Ec2** | [**CreateEc2PropertiesEc2**](CreateEC2Properties_ec2.md) |  | [optional] 
+**Autoscaling** | **bool** |  | [optional] 
+**Count** | **int32** |  | 
+**MinCount** | **int32** |  | [optional] 
+**MaxCount** | **int32** |  | [optional] 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

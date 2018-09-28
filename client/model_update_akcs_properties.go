@@ -11,6 +11,6 @@
 
 package client
 
-type ClusterProfileEks struct {
-	Eks CreateEksPropertiesEks `json:"eks,omitempty"`
+type UpdateAkcsProperties struct {
+	Akcs UpdateAkcsPropertiesAkcs `json:"akcs"`
 }
