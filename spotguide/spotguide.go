@@ -180,6 +180,13 @@ func ScrapeSpotguides() error {
 						continue
 					}
 
+					// syntax check spotguide.yaml
+					err = yaml2.Unmarshal(spotguideRaw, &SpotguideYAML{})
+					if err != nil {
+						log.Warnf("failed to scrape repository '%s/%s' at version '%s': %s", owner, name, tag, err)
+						continue
+					}
+
 					readme, err := downloadGithubFile(githubClient, owner, name, ReadmePath, tag)
 					if err != nil {
 						log.Warnf("failed to scrape repository '%s/%s' at version '%s': %s", owner, name, tag, err)
