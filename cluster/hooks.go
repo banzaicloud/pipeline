@@ -943,7 +943,7 @@ func RegisterDomainPostHook(input interface{}) error {
 // LabelNodes adds labels for all nodes
 func LabelNodes(input interface{}) error {
 
-	log.Infof("start adding labels to nodes")
+	log.Info("start adding labels to nodes")
 
 	commonCluster, ok := input.(CommonCluster)
 	if !ok {
@@ -968,7 +968,7 @@ func LabelNodes(input interface{}) error {
 		return err
 	}
 
-	log.Debugf("list node names")
+	log.Debug("list node names")
 	nodeNames, err := commonCluster.ListNodeNames()
 	if err != nil {
 		return err
@@ -987,7 +987,7 @@ func LabelNodes(input interface{}) error {
 		}
 	}
 
-	log.Infof("add labels finished")
+	log.Info("add labels finished")
 
 	return nil
 }
@@ -1037,8 +1037,9 @@ func TaintHeadNodes(input interface{}) error {
 	if err != nil {
 		return err
 	}
-	nodePoolDetails := clusterDetails.NodePools[headNodePoolName]
-	if nodePoolDetails == nil {
+
+	nodePoolDetails, isOk := clusterDetails.NodePools[headNodePoolName]
+	if !isOk {
 		return errors.Errorf("Wrong pool name: %v, configured as head node pool")
 	}
 
@@ -1049,7 +1050,7 @@ func TaintHeadNodes(input interface{}) error {
 	if taintedNodesCount != nodePoolDetails.Count {
 		log.Warnf("Head node pool configured size (%v) and tainted nodes count (%v) is different", nodePoolDetails.Count, taintedNodesCount)
 	}
-	log.Infof("taint nodes finished")
+	log.Info("taint nodes finished")
 
 	return nil
 }
@@ -1079,7 +1080,7 @@ func taintNodepoolNodes(client *kubernetes.Clientset, nodePoolName string) (tain
 		})
 		_, err = client.CoreV1().Nodes().Update(&node)
 		if err != nil {
-			return
+			return 
 		}
 		taintedNodesCount++
 	}
