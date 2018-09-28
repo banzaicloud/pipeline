@@ -14,7 +14,7 @@ Name | Type | Description | Notes
 **Endpoint** | **string** |  | [optional] 
 **Region** | **string** |  | [optional] 
 **Status** | **string** |  | [optional] 
-**NodePools** | [**ClusterDetailsResponseNodePools**](ClusterDetailsResponse_nodePools.md) |  | [optional] 
+**NodePools** | [**map[string]NodePoolStatus**](NodePoolStatus.md) |  | [optional] 
 **Master** | [**ResourceSummaryItem**](ResourceSummaryItem.md) |  | [optional] 
 **TotalSummary** | [**PodItemResourceSummary**](PodItem_resourceSummary.md) |  | [optional] 
 

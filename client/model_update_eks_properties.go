@@ -12,5 +12,5 @@
 package client
 
 type UpdateEksProperties struct {
-	Eks UpdateAmazonPropertiesAmazon `json:"eks"`
+	Eks UpdateEksPropertiesEks `json:"eks"`
 }

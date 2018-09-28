@@ -11,6 +11,9 @@
 
 package client
 
-type ClusterProfileEks struct {
-	Eks CreateEksPropertiesEks `json:"eks,omitempty"`
+type UpdateNodePoolsAzure struct {
+	Autoscaling bool  `json:"autoscaling,omitempty"`
+	Count       int32 `json:"count"`
+	MinCount    int32 `json:"minCount,omitempty"`
+	MaxCount    int32 `json:"maxCount,omitempty"`
 }

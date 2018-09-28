@@ -4370,45 +4370,6 @@ components:
           format: int32
           type: integer
       type: object
-    ApplicationListResponse:
-      items:
-        $ref: '#/components/schemas/ApplicationListItem'
-      type: array
-    ApplicationListItem:
-      properties:
-        id:
-          example: 1
-          format: int32
-          type: integer
-        name:
-          example: Spark-Zeppelin
-          type: string
-        createdAt:
-          example: 2018-06-11T14:28:13Z
-          type: string
-        updatedAt:
-          example: 2018-06-11T14:28:24Z
-          type: string
-        clusterName:
-          example: My Favourite Cluster
-          type: string
-        clusterId:
-          example: 1
-          format: int32
-          type: integer
-        status:
-          example: READY
-          type: string
-        catalogName:
-          example: spark-zeppelin
-          type: string
-        icon:
-          example: /assets/img/asd.png
-          type: string
-        statusMessage:
-          example: The resource was not found.
-          type: string
-      type: object
     CreateClusterRequest:
       example:
         cloud: google
@@ -4475,6 +4436,7 @@ components:
           - $ref: '#/components/schemas/CreateGKEProperties'
           - $ref: '#/components/schemas/CreateEKSProperties'
           - $ref: '#/components/schemas/CreateUpdateOKEProperties'
+          - $ref: '#/components/schemas/CreateAKCSProperties'
           type: object
       required:
       - cloud
@@ -4526,6 +4488,32 @@ components:
           $ref: '#/components/schemas/CreateEKSProperties_eks'
       required:
       - eks
+      type: object
+    CreateAKCSProperties:
+      properties:
+        akcs:
+          $ref: '#/components/schemas/CreateAKCSProperties_akcs'
+      required:
+      - akcs
+      type: object
+    NodePoolsAKCS:
+      properties:
+        count:
+          example: 1
+          format: int32
+          type: integer
+        instanceType:
+          type: string
+        systemDiskSize:
+          example: 8
+          format: int32
+          type: integer
+        systemDiskCategory:
+          example: cloud
+          type: string
+      required:
+      - count
+      - instanceType
       type: object
     CreateAKSProperties:
       properties:
@@ -4762,29 +4750,23 @@ components:
                   count: 2
                   instanceType: n1-standard-2
           oneOf:
-          - $ref: '#/components/schemas/UpdateAmazonProperties'
+          - $ref: '#/components/schemas/UpdateEC2Properties'
           - $ref: '#/components/schemas/UpdateAzureProperties'
           - $ref: '#/components/schemas/UpdateGoogleProperties'
           - $ref: '#/components/schemas/UpdateEksProperties'
           - $ref: '#/components/schemas/CreateUpdateOKEProperties'
+          - $ref: '#/components/schemas/UpdateAKCSProperties'
           type: object
       required:
       - cloud
       - properties
       type: object
-    UpdateAmazonProperties:
+    UpdateEC2Properties:
       properties:
-        amazon:
-          $ref: '#/components/schemas/UpdateAmazonProperties_amazon'
+        ec2:
+          $ref: '#/components/schemas/UpdateEC2Properties_ec2'
       required:
       - amazon
-      type: object
-    UpdateEksProperties:
-      properties:
-        eks:
-          $ref: '#/components/schemas/UpdateAmazonProperties_amazon'
-      required:
-      - eks
       type: object
     UpdateNodePoolsAmazon:
       properties:
@@ -4812,12 +4794,71 @@ components:
           example: ami-4d485ca7
           type: string
       type: object
+    UpdateEksProperties:
+      properties:
+        eks:
+          $ref: '#/components/schemas/UpdateEksProperties_eks'
+      required:
+      - eks
+      type: object
+    UpdateNodePoolsEks:
+      properties:
+        instanceType:
+          example: m4.xlarge
+          type: string
+        spotPrice:
+          example: "0.2"
+          type: string
+        autoscaling:
+          type: boolean
+        count:
+          example: 2
+          format: int32
+          type: integer
+        minCount:
+          example: 1
+          format: int32
+          type: integer
+        maxCount:
+          example: 2
+          format: int32
+          type: integer
+        image:
+          example: ami-4d485ca7
+          type: string
+      type: object
+    UpdateAKCSProperties:
+      properties:
+        akcs:
+          $ref: '#/components/schemas/UpdateAKCSProperties_akcs'
+      required:
+      - akcs
+      type: object
     UpdateAzureProperties:
       properties:
         azure:
           $ref: '#/components/schemas/UpdateAzureProperties_azure'
       required:
       - azure
+      type: object
+    UpdateNodePoolsAzure:
+      properties:
+        autoscaling:
+          type: boolean
+        count:
+          example: 1
+          format: int32
+          type: integer
+        minCount:
+          example: 1
+          format: int32
+          type: integer
+        maxCount:
+          example: 2
+          format: int32
+          type: integer
+      required:
+      - count
       type: object
     UpdateGoogleProperties:
       properties:
@@ -4827,7 +4868,31 @@ components:
           example: "1.9"
           type: string
         nodePools:
-          $ref: '#/components/schemas/UpdateGoogleProperties_nodePools'
+          additionalProperties:
+            $ref: '#/components/schemas/UpdateNodePoolsGoogle'
+          type: object
+      type: object
+    UpdateNodePoolsGoogle:
+      properties:
+        autoscaling:
+          type: boolean
+        count:
+          example: 2
+          format: int32
+          type: integer
+        minCount:
+          example: 1
+          format: int32
+          type: integer
+        maxCount:
+          example: 2
+          format: int32
+          type: integer
+        instanceType:
+          example: n1-standard-2
+          type: string
+      required:
+      - count
       type: object
     ClusterDelete_200:
       example:
@@ -5368,19 +5433,6 @@ components:
         caFile:
           type: string
       type: object
-    HelmReposAddResponse:
-      properties:
-        status:
-          example: 200
-          format: int32
-          type: integer
-        message:
-          example: resource successfully added.
-          type: string
-        name:
-          example: stable
-          type: string
-      type: object
     HelmReposModifyRequest:
       example:
         url: https://kubernetes-charts.storage.googleapis.com
@@ -5602,12 +5654,12 @@ components:
     ClusterProfileEC2:
       properties:
         ec2:
-          $ref: '#/components/schemas/ClusterProfileEC2_ec2'
+          $ref: '#/components/schemas/CreateEC2Properties_ec2'
       type: object
     ClusterProfileEKS:
       properties:
         eks:
-          $ref: '#/components/schemas/ClusterProfileEKS_eks'
+          $ref: '#/components/schemas/CreateEKSProperties_eks'
       type: object
     ClusterProfileAKS:
       properties:
@@ -5617,7 +5669,7 @@ components:
     ClusterProfileGKE:
       properties:
         gke:
-          $ref: '#/components/schemas/ClusterProfileGKE_gke'
+          $ref: '#/components/schemas/CreateGKEProperties_gke'
       type: object
     AddClusterProfileRequest:
       example:
@@ -5664,12 +5716,12 @@ components:
     AddClusterProfileEC2:
       properties:
         ec2:
-          $ref: '#/components/schemas/AddClusterProfileEC2_ec2'
+          $ref: '#/components/schemas/CreateEC2Properties_ec2'
       type: object
     AddClusterProfileEKS:
       properties:
         eks:
-          $ref: '#/components/schemas/AddClusterProfileEKS_eks'
+          $ref: '#/components/schemas/CreateEKSProperties_eks'
       type: object
     AddClusterProfileAKS:
       properties:
@@ -5679,7 +5731,7 @@ components:
     AddClusterProfileGKE:
       properties:
         gke:
-          $ref: '#/components/schemas/AddClusterProfileGKE_gke'
+          $ref: '#/components/schemas/CreateGKEProperties_gke'
       type: object
     TokenCreateRequest:
       example:
@@ -6413,7 +6465,7 @@ components:
         location: us-central1-a
         id: 1
         nodePools:
-          pool1:
+          key:
             count: 1
             instanceType: n1-standard-1
         distribution: gke
@@ -6457,8 +6509,19 @@ components:
           example: us-central1
           type: string
         nodePools:
-          $ref: '#/components/schemas/GetClusterStatusResponse_nodePools'
+          additionalProperties:
+            $ref: '#/components/schemas/NodePoolStatus'
+          type: object
       type: object
+    NodePoolStatus:
+      example:
+        count: 1
+        instanceType: n1-standard-1
+      oneOf:
+      - $ref: '#/components/schemas/NodePoolStatusAmazon'
+      - $ref: '#/components/schemas/NodePoolStatusAzure'
+      - $ref: '#/components/schemas/NodePoolStatusGoogle'
+      - $ref: '#/components/schemas/NodePoolStatusOracle'
     NodePoolStatusAmazon:
       properties:
         instanceType:
@@ -6705,15 +6768,9 @@ components:
         location: eu-west-1
         id: 1
         nodePools:
-          pool1:
-            createdAt: 2018-07-03T14:19:26+02:00
-            resourceSummary:
-              ip-10-0-100-180.eu-west-1.compute.internal: '{}'
-            creatorName: colin014
-            creatorId: 1
+          key:
             count: 1
-            minCount: 0
-            maxCount: 1
+            instanceType: n1-standard-1
         region: us-central1
         status: RUNNING
       properties:
@@ -6753,7 +6810,9 @@ components:
           example: RUNNING
           type: string
         nodePools:
-          $ref: '#/components/schemas/ClusterDetailsResponse_nodePools'
+          additionalProperties:
+            $ref: '#/components/schemas/NodePoolStatus'
+          type: object
         master:
           $ref: '#/components/schemas/ResourceSummaryItem'
         totalSummary:
@@ -7677,6 +7736,17 @@ components:
             $ref: '#/components/schemas/NodePoolsAmazon'
           type: object
       type: object
+    CreateAKCSProperties_akcs:
+      properties:
+        regionId:
+          type: string
+        zoneId:
+          type: string
+        nodePools:
+          additionalProperties:
+            $ref: '#/components/schemas/NodePoolsAKCS'
+          type: object
+      type: object
     CreateAKSProperties_aks:
       properties:
         resourceGroup:
@@ -7718,72 +7788,38 @@ components:
             $ref: '#/components/schemas/NodePoolsOracle'
           type: object
       type: object
-    UpdateAmazonProperties_amazon_nodePools:
-      properties:
-        pool1:
-          $ref: '#/components/schemas/UpdateNodePoolsAmazon'
-      type: object
-    UpdateAmazonProperties_amazon:
+    UpdateEC2Properties_ec2:
       properties:
         nodePools:
-          $ref: '#/components/schemas/UpdateAmazonProperties_amazon_nodePools'
+          additionalProperties:
+            $ref: '#/components/schemas/UpdateNodePoolsAmazon'
+          type: object
       type: object
-    UpdateAzureProperties_azure_nodePools_pool1:
+    UpdateEksProperties_eks:
       properties:
-        autoscaling:
-          type: boolean
-        count:
-          example: 2
-          format: int32
-          type: integer
-        minCount:
-          example: 1
-          format: int32
-          type: integer
-        maxCount:
-          example: 2
-          format: int32
-          type: integer
+        nodePools:
+          additionalProperties:
+            $ref: '#/components/schemas/UpdateNodePoolsEks'
+          type: object
       type: object
-    UpdateAzureProperties_azure_nodePools:
+    UpdateAKCSProperties_akcs:
       properties:
-        pool1:
-          $ref: '#/components/schemas/UpdateAzureProperties_azure_nodePools_pool1'
+        nodePools:
+          additionalProperties:
+            $ref: '#/components/schemas/NodePoolsAKCS'
+          type: object
       type: object
     UpdateAzureProperties_azure:
       properties:
         nodePools:
-          $ref: '#/components/schemas/UpdateAzureProperties_azure_nodePools'
+          additionalProperties:
+            $ref: '#/components/schemas/UpdateNodePoolsAzure'
+          type: object
       type: object
     UpdateGoogleProperties_master:
       properties:
         version:
           type: string
-      type: object
-    UpdateGoogleProperties_nodePools_pool1:
-      properties:
-        autoscaling:
-          type: boolean
-        count:
-          example: 2
-          format: int32
-          type: integer
-        minCount:
-          example: 1
-          format: int32
-          type: integer
-        maxCount:
-          example: 2
-          format: int32
-          type: integer
-        instanceType:
-          example: n1-standard-2
-          type: string
-      type: object
-    UpdateGoogleProperties_nodePools:
-      properties:
-        pool1:
-          $ref: '#/components/schemas/UpdateGoogleProperties_nodePools_pool1'
       type: object
     ListNodesResponse_metadata:
       example:
@@ -8390,239 +8426,25 @@ components:
             type: string
           type: array
       type: object
-    ClusterProfileEC2_ec2_nodePools_pool1:
-      properties:
-        instanceType:
-          example: m4.xlarge
-          type: string
-        spotPrice:
-          example: "0.2"
-          type: string
-        autoscaling:
-          type: boolean
-        count:
-          example: 1
-          format: int32
-          type: integer
-        minCount:
-          example: 1
-          format: int32
-          type: integer
-        maxCount:
-          example: 2
-          format: int32
-          type: integer
-        image:
-          example: ami-06d1667f
-          type: string
-      type: object
-    ClusterProfileEC2_ec2_nodePools:
-      properties:
-        pool1:
-          $ref: '#/components/schemas/ClusterProfileEC2_ec2_nodePools_pool1'
-      type: object
-    ClusterProfileEC2_ec2:
-      properties:
-        master:
-          $ref: '#/components/schemas/CreateEC2Properties_ec2_master'
-        nodePools:
-          $ref: '#/components/schemas/ClusterProfileEC2_ec2_nodePools'
-      type: object
-    ClusterProfileEKS_eks_nodePools_pool1:
-      properties:
-        instanceType:
-          example: t2.medium
-          type: string
-        spotPrice:
-          example: "0.2"
-          type: string
-        autoscaling:
-          type: boolean
-        count:
-          example: 1
-          format: int32
-          type: integer
-        minCount:
-          example: 1
-          format: int32
-          type: integer
-        maxCount:
-          example: 2
-          format: int32
-          type: integer
-        image:
-          description: 'You can find latest images here: https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-ami.html'
-          example: ami-0ea01e1d1dea65b5c
-          type: string
-      type: object
-    ClusterProfileEKS_eks_nodePools:
-      properties:
-        pool1:
-          $ref: '#/components/schemas/ClusterProfileEKS_eks_nodePools_pool1'
-      type: object
-    ClusterProfileEKS_eks:
-      properties:
-        version:
-          example: "1.10"
-          type: string
-        nodePools:
-          $ref: '#/components/schemas/ClusterProfileEKS_eks_nodePools'
-      type: object
-    ClusterProfileAKS_aks_nodePools_pool1:
-      properties:
-        autoscaling:
-          type: boolean
-        count:
-          example: 1
-          format: int32
-          type: integer
-        minCount:
-          example: 1
-          format: int32
-          type: integer
-        maxCount:
-          example: 2
-          format: int32
-          type: integer
-        instanceType:
-          example: Standard_D2_v2
-          type: string
-      type: object
-    ClusterProfileAKS_aks_nodePools:
-      properties:
-        pool1:
-          $ref: '#/components/schemas/ClusterProfileAKS_aks_nodePools_pool1'
-      type: object
     ClusterProfileAKS_aks:
       properties:
         kubernetesVersion:
           example: 1.9.2
           type: string
         nodePools:
-          $ref: '#/components/schemas/ClusterProfileAKS_aks_nodePools'
-      type: object
-    ClusterProfileGKE_gke_nodePools_pool1:
-      properties:
-        autoscaling:
-          type: boolean
-        count:
-          example: 1
-          format: int32
-          type: integer
-        minCount:
-          example: 1
-          format: int32
-          type: integer
-        maxCount:
-          example: 2
-          format: int32
-          type: integer
-        instanceType:
-          example: n1-standard-1
-          type: string
-      type: object
-    ClusterProfileGKE_gke_nodePools:
-      properties:
-        pool1:
-          $ref: '#/components/schemas/ClusterProfileGKE_gke_nodePools_pool1'
-      type: object
-    ClusterProfileGKE_gke:
-      properties:
-        master:
-          $ref: '#/components/schemas/CreateGKEProperties_gke_master'
-        nodeVersion:
-          example: 1.8.7-gke.1
-          type: string
-        nodePools:
-          $ref: '#/components/schemas/ClusterProfileGKE_gke_nodePools'
-      type: object
-    AddClusterProfileEC2_ec2_nodePools_pool1:
-      properties:
-        spotPrice:
-          example: "0.2"
-          type: string
-        minCount:
-          example: 1
-          format: int32
-          type: integer
-        maxCount:
-          example: 2
-          format: int32
-          type: integer
-        image:
-          example: ami-06d1667f
-          type: string
-        instanceType:
-          example: m4.xlarge
-          type: string
-      type: object
-    AddClusterProfileEC2_ec2_nodePools:
-      properties:
-        pool1:
-          $ref: '#/components/schemas/AddClusterProfileEC2_ec2_nodePools_pool1'
-      type: object
-    AddClusterProfileEC2_ec2:
-      properties:
-        master:
-          $ref: '#/components/schemas/CreateEC2Properties_ec2_master'
-        nodePools:
-          $ref: '#/components/schemas/AddClusterProfileEC2_ec2_nodePools'
-      type: object
-    AddClusterProfileEKS_eks:
-      properties:
-        version:
-          example: "1.10"
-          type: string
-        nodePools:
-          $ref: '#/components/schemas/AddClusterProfileEC2_ec2_nodePools'
-      type: object
-    AddClusterProfileAKS_aks_nodePools_pool1:
-      properties:
-        count:
-          example: 1
-          format: int32
-          type: integer
-        instanceType:
-          example: Standard_D2_v2
-          type: string
-      type: object
-    AddClusterProfileAKS_aks_nodePools:
-      properties:
-        pool1:
-          $ref: '#/components/schemas/AddClusterProfileAKS_aks_nodePools_pool1'
+          additionalProperties:
+            $ref: '#/components/schemas/NodePoolsAzure'
+          type: object
       type: object
     AddClusterProfileAKS_aks:
       properties:
         nodePools:
-          $ref: '#/components/schemas/AddClusterProfileAKS_aks_nodePools'
+          additionalProperties:
+            $ref: '#/components/schemas/NodePoolsAzure'
+          type: object
         kubernetesVersion:
           example: 1.8.2
           type: string
-      type: object
-    AddClusterProfileGKE_gke_nodePools_pool1:
-      properties:
-        count:
-          example: 1
-          format: int32
-          type: integer
-        instanceType:
-          example: n1-standard-2
-          type: string
-      type: object
-    AddClusterProfileGKE_gke_nodePools:
-      properties:
-        pool1:
-          $ref: '#/components/schemas/AddClusterProfileGKE_gke_nodePools_pool1'
-      type: object
-    AddClusterProfileGKE_gke:
-      properties:
-        master:
-          $ref: '#/components/schemas/CreateGKEProperties_gke_master'
-        nodeVersion:
-          example: 1.8.7-gke.1
-          type: string
-        nodePools:
-          $ref: '#/components/schemas/AddClusterProfileGKE_gke_nodePools'
       type: object
     AllowedSecretTypeResponse_fields:
       example:
@@ -8733,23 +8555,6 @@ components:
             type: string
           type: array
       type: object
-    GetClusterStatusResponse_nodePools:
-      example:
-        pool1:
-          count: 1
-          instanceType: n1-standard-1
-      properties:
-        pool1:
-          example:
-            count: 1
-            instanceType: n1-standard-1
-          oneOf:
-          - $ref: '#/components/schemas/NodePoolStatusAmazon'
-          - $ref: '#/components/schemas/NodePoolStatusAzure'
-          - $ref: '#/components/schemas/NodePoolStatusGoogle'
-          - $ref: '#/components/schemas/NodePoolStatusOracle'
-          type: object
-      type: object
     CreateAmazonObjectStoreBucketProperties_amazon:
       properties:
         location:
@@ -8807,56 +8612,6 @@ components:
           $ref: '#/components/schemas/ResourceItem'
         memory:
           $ref: '#/components/schemas/ResourceItem'
-      type: object
-    ClusterDetailsResponse_nodePools_pool1:
-      example:
-        createdAt: 2018-07-03T14:19:26+02:00
-        resourceSummary:
-          ip-10-0-100-180.eu-west-1.compute.internal: '{}'
-        creatorName: colin014
-        creatorId: 1
-        count: 1
-        minCount: 0
-        maxCount: 1
-      properties:
-        createdAt:
-          example: 2018-07-03T14:19:26+02:00
-          type: string
-        creatorName:
-          example: colin014
-          type: string
-        creatorId:
-          example: 1
-          format: int32
-          type: integer
-        count:
-          example: 1
-          format: int32
-          type: integer
-        minCount:
-          format: int32
-          type: integer
-        maxCount:
-          example: 1
-          format: int32
-          type: integer
-        resourceSummary:
-          $ref: '#/components/schemas/ResourceSummaryItem'
-      type: object
-    ClusterDetailsResponse_nodePools:
-      example:
-        pool1:
-          createdAt: 2018-07-03T14:19:26+02:00
-          resourceSummary:
-            ip-10-0-100-180.eu-west-1.compute.internal: '{}'
-          creatorName: colin014
-          creatorId: 1
-          count: 1
-          minCount: 0
-          maxCount: 1
-      properties:
-        pool1:
-          $ref: '#/components/schemas/ClusterDetailsResponse_nodePools_pool1'
       type: object
     ResourceSummaryItem_ip100100180.euwest1.compute.internal:
       properties:

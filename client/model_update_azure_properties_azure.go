@@ -12,5 +12,5 @@
 package client
 
 type UpdateAzurePropertiesAzure struct {
-	NodePools UpdateAzurePropertiesAzureNodePools `json:"nodePools,omitempty"`
+	NodePools map[string]UpdateNodePoolsAzure `json:"nodePools,omitempty"`
 }

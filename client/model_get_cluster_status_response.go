@@ -12,16 +12,16 @@
 package client
 
 type GetClusterStatusResponse struct {
-	Status        string                            `json:"status,omitempty"`
-	StatusMessage string                            `json:"statusMessage,omitempty"`
-	Name          string                            `json:"name,omitempty"`
-	Cloud         string                            `json:"cloud,omitempty"`
-	Distribution  string                            `json:"distribution,omitempty"`
-	Location      string                            `json:"location,omitempty"`
-	Id            int32                             `json:"id,omitempty"`
-	CreatedAt     string                            `json:"createdAt,omitempty"`
-	CreatorName   string                            `json:"creatorName,omitempty"`
-	CreatorId     int32                             `json:"creatorId,omitempty"`
-	Region        string                            `json:"region,omitempty"`
-	NodePools     GetClusterStatusResponseNodePools `json:"nodePools,omitempty"`
+	Status        string                    `json:"status,omitempty"`
+	StatusMessage string                    `json:"statusMessage,omitempty"`
+	Name          string                    `json:"name,omitempty"`
+	Cloud         string                    `json:"cloud,omitempty"`
+	Distribution  string                    `json:"distribution,omitempty"`
+	Location      string                    `json:"location,omitempty"`
+	Id            int32                     `json:"id,omitempty"`
+	CreatedAt     string                    `json:"createdAt,omitempty"`
+	CreatorName   string                    `json:"creatorName,omitempty"`
+	CreatorId     int32                     `json:"creatorId,omitempty"`
+	Region        string                    `json:"region,omitempty"`
+	NodePools     map[string]NodePoolStatus `json:"nodePools,omitempty"`
 }

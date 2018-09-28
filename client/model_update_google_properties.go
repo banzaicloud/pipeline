@@ -12,7 +12,7 @@
 package client
 
 type UpdateGoogleProperties struct {
-	Master      UpdateGooglePropertiesMaster    `json:"master,omitempty"`
-	NodeVersion string                          `json:"nodeVersion,omitempty"`
-	NodePools   UpdateGooglePropertiesNodePools `json:"nodePools,omitempty"`
+	Master      UpdateGooglePropertiesMaster     `json:"master,omitempty"`
+	NodeVersion string                           `json:"nodeVersion,omitempty"`
+	NodePools   map[string]UpdateNodePoolsGoogle `json:"nodePools,omitempty"`
 }

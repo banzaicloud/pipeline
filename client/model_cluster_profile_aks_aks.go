@@ -12,6 +12,6 @@
 package client
 
 type ClusterProfileAksAks struct {
-	KubernetesVersion string                        `json:"kubernetesVersion,omitempty"`
-	NodePools         ClusterProfileAksAksNodePools `json:"nodePools,omitempty"`
+	KubernetesVersion string                    `json:"kubernetesVersion,omitempty"`
+	NodePools         map[string]NodePoolsAzure `json:"nodePools,omitempty"`
 }
