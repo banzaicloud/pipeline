@@ -279,7 +279,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 		}
 
 		log.Info("Load Azure props from database")
-		err = db.Where(model.AKSClusterModel{ClusterModelId: aksCluster.modelCluster.ID}).First(&aksCluster.modelCluster.AKS).Error
+		err = db.Where(model.AKSClusterModel{ClusterID: aksCluster.modelCluster.ID}).First(&aksCluster.modelCluster.AKS).Error
 		if err != nil {
 			return nil, err
 		}

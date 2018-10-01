@@ -40,8 +40,8 @@ const (
 	TableNameAmazonProperties     = "amazon_ec2_clusters"
 	TableNameAmazonNodePools      = "amazon_node_pools"
 	TableNameAmazonEksProperties  = "amazon_eks_clusters"
-	TableNameAzureProperties      = "azure_cluster_properties"
-	TableNameAzureNodePools       = "azure_node_pools"
+	TableNameAzureProperties      = "azure_aks_clusters"
+	TableNameAzureNodePools       = "azure_aks_node_pools"
 	TableNameDummyProperties      = "dummy_cluster_properties"
 	TableNameKubernetesProperties = "kubernetes_cluster_properties"
 )
@@ -141,10 +141,10 @@ type EKSClusterModel struct {
 
 //AKSClusterModel describes the aks cluster model
 type AKSClusterModel struct {
-	ClusterModelId    uint `gorm:"primary_key"`
+	ClusterID         uint `gorm:"primary_key"`
 	ResourceGroup     string
 	KubernetesVersion string
-	NodePools         []*AKSNodePoolModel `gorm:"foreignkey:ClusterModelId"`
+	NodePools         []*AKSNodePoolModel `gorm:"foreignkey:ClusterID"`
 }
 
 // AKSNodePoolModel describes AKS node pools model of a cluster
@@ -152,8 +152,8 @@ type AKSNodePoolModel struct {
 	ID               uint `gorm:"primary_key"`
 	CreatedAt        time.Time
 	CreatedBy        uint
-	ClusterModelId   uint   `gorm:"unique_index:idx_modelid_name"`
-	Name             string `gorm:"unique_index:idx_modelid_name"`
+	ClusterID        uint   `gorm:"unique_index:idx_cluster_id_name"`
+	Name             string `gorm:"unique_index:idx_cluster_id_name"`
 	Autoscaling      bool
 	NodeMinCount     int
 	NodeMaxCount     int
