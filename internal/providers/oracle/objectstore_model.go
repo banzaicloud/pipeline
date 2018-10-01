@@ -30,9 +30,9 @@ type ObjectStoreBucketModel struct {
 	Organization auth.Organization `gorm:"foreignkey:OrgID"`
 	OrgID        uint              `gorm:"index;not null"`
 
-	CompartmentID string `gorm:"unique_index:bucketNameLocationCompartment"`
-	Name          string `gorm:"unique_index:bucketNameLocationCompartment"`
-	Location      string `gorm:"unique_index:bucketNameLocationCompartment"`
+	CompartmentID string `gorm:"unique_index:idx_bucket_name_location_compartment"`
+	Name          string `gorm:"unique_index:idx_bucket_name_location_compartment"`
+	Location      string `gorm:"unique_index:idx_bucket_name_location_compartment"`
 }
 
 // TableName changes the default table name.
