@@ -3547,7 +3547,7 @@ paths:
           required: true
           description: Bucket identification
           schema:
-            type: integer
+            type: string
         - name: secretId
           in: header
           required: true

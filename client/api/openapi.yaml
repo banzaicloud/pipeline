@@ -3917,8 +3917,7 @@ paths:
         name: name
         required: true
         schema:
-          format: int32
-          type: integer
+          type: string
         style: simple
       - description: Secret identification
         explode: false
