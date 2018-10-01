@@ -303,7 +303,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 		}
 
 		log.Info("Load Dummy props from database")
-		err = db.Where(model.DummyClusterModel{ClusterModelId: dummyCluster.modelCluster.ID}).First(&dummyCluster.modelCluster.Dummy).Error
+		err = db.Where(model.DummyClusterModel{ClusterID: dummyCluster.modelCluster.ID}).First(&dummyCluster.modelCluster.Dummy).Error
 
 		return dummyCluster, err
 
@@ -315,7 +315,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 		}
 
 		log.Info("Load Kubernetes props from database")
-		err = db.Where(model.KubernetesClusterModel{ClusterModelId: kubernetesCluster.modelCluster.ID}).First(&kubernetesCluster.modelCluster.Kubernetes).Error
+		err = db.Where(model.KubernetesClusterModel{ClusterID: kubernetesCluster.modelCluster.ID}).First(&kubernetesCluster.modelCluster.Kubernetes).Error
 		if database.IsRecordNotFoundError(err) {
 			// metadata not set so there's no properties in DB
 			log.Warnf(err.Error())

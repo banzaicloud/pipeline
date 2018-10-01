@@ -42,8 +42,8 @@ const (
 	TableNameAmazonEksProperties  = "amazon_eks_clusters"
 	TableNameAzureProperties      = "azure_aks_clusters"
 	TableNameAzureNodePools       = "azure_aks_node_pools"
-	TableNameDummyProperties      = "dummy_cluster_properties"
-	TableNameKubernetesProperties = "kubernetes_cluster_properties"
+	TableNameDummyProperties      = "dummy_clusters"
+	TableNameKubernetesProperties = "kubernetes_clusters"
 )
 
 //ClusterModel describes the common cluster model
@@ -163,16 +163,16 @@ type AKSNodePoolModel struct {
 
 // DummyClusterModel describes the dummy cluster model
 type DummyClusterModel struct {
-	ClusterModelId    uint `gorm:"primary_key"`
+	ClusterID         uint `gorm:"primary_key"`
 	KubernetesVersion string
 	NodeCount         int
 }
 
 //KubernetesClusterModel describes the build your own cluster model
 type KubernetesClusterModel struct {
-	ClusterModelId uint              `gorm:"primary_key"`
-	Metadata       map[string]string `gorm:"-"`
-	MetadataRaw    []byte            `gorm:"meta_data"`
+	ClusterID   uint              `gorm:"primary_key"`
+	Metadata    map[string]string `gorm:"-"`
+	MetadataRaw []byte            `gorm:"meta_data"`
 }
 
 func (cs *ClusterModel) BeforeCreate() (err error) {
