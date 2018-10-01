@@ -286,7 +286,7 @@ type GetObjectStoreBucketStatusOpts struct {
 	Location       optional.String
 }
 
-func (a *StorageApiService) GetObjectStoreBucketStatus(ctx context.Context, orgId int32, name int32, secretId string, cloudType string, localVarOptionals *GetObjectStoreBucketStatusOpts) (*http.Response, error) {
+func (a *StorageApiService) GetObjectStoreBucketStatus(ctx context.Context, orgId int32, name string, secretId string, cloudType string, localVarOptionals *GetObjectStoreBucketStatusOpts) (*http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Head")
 		localVarPostBody     interface{}
