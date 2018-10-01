@@ -37,8 +37,8 @@ type GKENodePoolProfile struct {
 	MaxCount         int    `gorm:"default:2"`
 	Count            int    `gorm:"default:1"`
 	NodeInstanceType string `gorm:"default:'n1-standard-1'"`
-	Name             string `gorm:"unique_index:idx_model_name"`
-	NodeName         string `gorm:"unique_index:idx_model_name"`
+	Name             string `gorm:"unique_index:idx_name_node_name"`
+	NodeName         string `gorm:"unique_index:idx_name_node_name"`
 }
 
 // TableName overrides GKEProfile's table name

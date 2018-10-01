@@ -36,8 +36,8 @@ type AKSNodePoolProfile struct {
 	MaxCount         int    `gorm:"default:2"`
 	Count            int    `gorm:"default:1"`
 	NodeInstanceType string `gorm:"default:'Standard_D4_v2'"`
-	Name             string `gorm:"unique_index:idx_model_name"`
-	NodeName         string `gorm:"unique_index:idx_model_name"`
+	Name             string `gorm:"unique_index:idx_name_node_name"`
+	NodeName         string `gorm:"unique_index:idx_name_node_name"`
 }
 
 // TableName overrides AKSNodePoolProfile's table name
