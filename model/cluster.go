@@ -93,7 +93,7 @@ type ACSKNodePoolModel struct {
 
 // ACSKClusterModel describes the Alibaba Cloud CS cluster model
 type ACSKClusterModel struct {
-	ClusterID                uint `gorm:"primary_key"`
+	ID                       uint `gorm:"primary_key"`
 	ClusterIdentifier        string
 	RegionID                 string
 	ZoneID                   string
@@ -102,15 +102,15 @@ type ACSKClusterModel struct {
 	MasterSystemDiskSize     int
 	SNATEntry                bool
 	SSHFlags                 bool
-	NodePools                []*ACSKNodePoolModel `gorm:"foreignkey:ClusterID"`
+	NodePools                []*ACSKNodePoolModel `gorm:"foreignkey:ID"`
 }
 
 //EC2ClusterModel describes the ec2 cluster model
 type EC2ClusterModel struct {
-	ClusterID          uint `gorm:"primary_key"`
+	ID                 uint `gorm:"primary_key"`
 	MasterInstanceType string
 	MasterImage        string
-	NodePools          []*AmazonNodePoolsModel `gorm:"foreignkey:ClusterID"`
+	NodePools          []*AmazonNodePoolsModel `gorm:"foreignkey:ID"`
 }
 
 //AmazonNodePoolsModel describes Amazon node groups model of a cluster
@@ -132,19 +132,19 @@ type AmazonNodePoolsModel struct {
 
 //EKSClusterModel describes the ec2 cluster model
 type EKSClusterModel struct {
-	ClusterID uint `gorm:"primary_key"`
+	ID uint `gorm:"primary_key"`
 
 	//kubernetes "1.10"
 	Version   string
-	NodePools []*AmazonNodePoolsModel `gorm:"foreignkey:ClusterID"`
+	NodePools []*AmazonNodePoolsModel `gorm:"foreignkey:ID"`
 }
 
 //AKSClusterModel describes the aks cluster model
 type AKSClusterModel struct {
-	ClusterID         uint `gorm:"primary_key"`
+	ID                uint `gorm:"primary_key"`
 	ResourceGroup     string
 	KubernetesVersion string
-	NodePools         []*AKSNodePoolModel `gorm:"foreignkey:ClusterID"`
+	NodePools         []*AKSNodePoolModel `gorm:"foreignkey:ID"`
 }
 
 // AKSNodePoolModel describes AKS node pools model of a cluster
@@ -163,14 +163,14 @@ type AKSNodePoolModel struct {
 
 // DummyClusterModel describes the dummy cluster model
 type DummyClusterModel struct {
-	ClusterID         uint `gorm:"primary_key"`
+	ID                uint `gorm:"primary_key"`
 	KubernetesVersion string
 	NodeCount         int
 }
 
 //KubernetesClusterModel describes the build your own cluster model
 type KubernetesClusterModel struct {
-	ClusterID   uint              `gorm:"primary_key"`
+	ID          uint              `gorm:"primary_key"`
 	Metadata    map[string]string `gorm:"-"`
 	MetadataRaw []byte            `gorm:"meta_data"`
 }

@@ -219,7 +219,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 		}
 
 		log.Debug("Load Alibaba props from database")
-		err = db.Where(model.ACSKClusterModel{ClusterID: alibabaCluster.modelCluster.ID}).First(&alibabaCluster.modelCluster.ACSK).Error
+		err = db.Where(model.ACSKClusterModel{ID: alibabaCluster.modelCluster.ID}).First(&alibabaCluster.modelCluster.ACSK).Error
 		if err != nil {
 			return nil, err
 		}
@@ -234,7 +234,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 	case pkgCluster.Amazon:
 
 		var c int
-		err := db.Model(&model.EC2ClusterModel{}).Where(&model.EC2ClusterModel{ClusterID: modelCluster.ID}).Count(&c).Error
+		err := db.Model(&model.EC2ClusterModel{}).Where(&model.EC2ClusterModel{ID: modelCluster.ID}).Count(&c).Error
 		if err != nil {
 			return nil, err
 		}
@@ -247,7 +247,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 			}
 
 			log.Debug("Load Amazon props from database")
-			err = db.Where(model.EC2ClusterModel{ClusterID: awsCluster.modelCluster.ID}).First(&awsCluster.modelCluster.EC2).Error
+			err = db.Where(model.EC2ClusterModel{ID: awsCluster.modelCluster.ID}).First(&awsCluster.modelCluster.EC2).Error
 			if err != nil {
 				return nil, err
 			}
@@ -263,7 +263,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 		}
 
 		log.Debug("Load EKS props from database")
-		err = db.Where(model.EKSClusterModel{ClusterID: eksCluster.modelCluster.ID}).First(&eksCluster.modelCluster.EKS).Error
+		err = db.Where(model.EKSClusterModel{ID: eksCluster.modelCluster.ID}).First(&eksCluster.modelCluster.EKS).Error
 		if err != nil {
 			return nil, err
 		}
@@ -279,7 +279,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 		}
 
 		log.Info("Load Azure props from database")
-		err = db.Where(model.AKSClusterModel{ClusterID: aksCluster.modelCluster.ID}).First(&aksCluster.modelCluster.AKS).Error
+		err = db.Where(model.AKSClusterModel{ID: aksCluster.modelCluster.ID}).First(&aksCluster.modelCluster.AKS).Error
 		if err != nil {
 			return nil, err
 		}
@@ -303,7 +303,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 		}
 
 		log.Info("Load Dummy props from database")
-		err = db.Where(model.DummyClusterModel{ClusterID: dummyCluster.modelCluster.ID}).First(&dummyCluster.modelCluster.Dummy).Error
+		err = db.Where(model.DummyClusterModel{ID: dummyCluster.modelCluster.ID}).First(&dummyCluster.modelCluster.Dummy).Error
 
 		return dummyCluster, err
 
@@ -315,7 +315,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 		}
 
 		log.Info("Load Kubernetes props from database")
-		err = db.Where(model.KubernetesClusterModel{ClusterID: kubernetesCluster.modelCluster.ID}).First(&kubernetesCluster.modelCluster.Kubernetes).Error
+		err = db.Where(model.KubernetesClusterModel{ID: kubernetesCluster.modelCluster.ID}).First(&kubernetesCluster.modelCluster.Kubernetes).Error
 		if database.IsRecordNotFoundError(err) {
 			// metadata not set so there's no properties in DB
 			log.Warnf(err.Error())
