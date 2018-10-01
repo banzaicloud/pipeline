@@ -18,6 +18,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/helm"
 	libcompose "github.com/docker/libcompose/yaml"
+	yaml "gopkg.in/yaml.v2"
 )
 
 // nolint
@@ -28,7 +29,7 @@ type droneRepoConfig struct {
 	Branches  *droneConstraint           `yaml:"branches,omitempty"`
 	Workspace *droneWorkspace            `yaml:"workspace,omitempty"`
 	Clone     map[string]*droneContainer `yaml:"clone,omitempty"`
-	Pipeline  map[string]*droneContainer `yaml:"pipeline,omitempty"`
+	Pipeline  yaml.MapSlice              `yaml:"pipeline,omitempty"` // map[string]*droneContainer
 	Services  map[string]*droneContainer `yaml:"services,omitempty"`
 	Networks  map[string]*droneNetwork   `yaml:"networks,omitempty"`
 	Volumes   map[string]*droneVolume    `yaml:"volumes,omitempty"`
@@ -141,4 +142,31 @@ type droneVolume struct {
 	Name       *string           `yaml:"name,omitempty"`
 	Driver     *string           `yaml:"driver,omitempty"`
 	DriverOpts map[string]string `yaml:"driver_opts,omitempty"`
+}
+
+// Functions to transform droneContainer vs. yaml.MapSlice and vice-versa
+func copyToDroneContainer(v interface{}) (*droneContainer, error) {
+	bytes, err := yaml.Marshal(v)
+	if err != nil {
+		return nil, err
+	}
+	var config droneContainer
+	err = yaml.Unmarshal(bytes, &config)
+	if err != nil {
+		return nil, err
+	}
+	return &config, nil
+}
+
+func droneContainerToMapSlice(container *droneContainer) (yaml.MapSlice, error) {
+	bytes, err := yaml.Marshal(container)
+	if err != nil {
+		return nil, err
+	}
+	var mapSlice yaml.MapSlice
+	err = yaml.Unmarshal(bytes, &mapSlice)
+	if err != nil {
+		return nil, err
+	}
+	return mapSlice, nil
 }
