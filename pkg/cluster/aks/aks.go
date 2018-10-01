@@ -32,18 +32,18 @@ const (
 
 // CreateClusterAKS describes Azure fields of a CreateCluster request
 type CreateClusterAKS struct {
-	ResourceGroup     string                     `json:"resourceGroup"`
-	KubernetesVersion string                     `json:"kubernetesVersion"`
-	NodePools         map[string]*NodePoolCreate `json:"nodePools,omitempty"`
+	ResourceGroup     string                     `json:"resourceGroup" yaml:"resourceGroup"`
+	KubernetesVersion string                     `json:"kubernetesVersion" yaml:"kubernetesVersion"`
+	NodePools         map[string]*NodePoolCreate `json:"nodePools,omitempty" yaml:"nodePools,omitempty"`
 }
 
 // NodePoolCreate describes Azure's node fields of a CreateCluster request
 type NodePoolCreate struct {
-	Autoscaling      bool   `json:"autoscaling"`
-	MinCount         int    `json:"minCount"`
-	MaxCount         int    `json:"maxCount"`
-	Count            int    `json:"count"`
-	NodeInstanceType string `json:"instanceType"`
+	Autoscaling      bool   `json:"autoscaling" yaml:"autoscaling"`
+	MinCount         int    `json:"minCount" yaml:"minCount"`
+	MaxCount         int    `json:"maxCount" yaml:"maxCount"`
+	Count            int    `json:"count" yaml:"count"`
+	NodeInstanceType string `json:"instanceType" yaml:"instanceType"`
 }
 
 // NodePoolUpdate describes Azure's node count of a UpdateCluster request

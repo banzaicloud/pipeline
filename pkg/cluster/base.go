@@ -115,14 +115,14 @@ type CreateClusterRequest struct {
 
 // CreateClusterProperties contains the cluster flavor specific properties.
 type CreateClusterProperties struct {
-	CreateClusterACSK       *acsk.CreateClusterACSK             `json:"acsk,omitempty"`
-	CreateClusterEC2        *ec2.CreateClusterEC2               `json:"ec2,omitempty"`
-	CreateClusterEKS        *eks.CreateClusterEKS               `json:"eks,omitempty"`
-	CreateClusterAKS        *aks.CreateClusterAKS               `json:"aks,omitempty"`
-	CreateClusterGKE        *gke.CreateClusterGKE               `json:"gke,omitempty"`
-	CreateClusterDummy      *dummy.CreateClusterDummy           `json:"dummy,omitempty"`
-	CreateClusterKubernetes *kubernetes.CreateClusterKubernetes `json:"kubernetes,omitempty"`
-	CreateClusterOKE        *oke.Cluster                        `json:"oke,omitempty"`
+	CreateClusterACSK       *acsk.CreateClusterACSK             `json:"acsk,omitempty" yaml:"acsk,omitempty"`
+	CreateClusterEC2        *ec2.CreateClusterEC2               `json:"ec2,omitempty" yaml:"ec2,omitempty"`
+	CreateClusterEKS        *eks.CreateClusterEKS               `json:"eks,omitempty" yaml:"eks,omitempty"`
+	CreateClusterAKS        *aks.CreateClusterAKS               `json:"aks,omitempty" yaml:"aks,omitempty"`
+	CreateClusterGKE        *gke.CreateClusterGKE               `json:"gke,omitempty" yaml:"gke,omitempty"`
+	CreateClusterDummy      *dummy.CreateClusterDummy           `json:"dummy,omitempty" yaml:"dummy,omitempty"`
+	CreateClusterKubernetes *kubernetes.CreateClusterKubernetes `json:"kubernetes,omitempty" yaml:"kubernetes,omitempty"`
+	CreateClusterOKE        *oke.Cluster                        `json:"oke,omitempty" yaml:"oke,omitempty"`
 }
 
 // PostHookParam describes posthook params in create request
