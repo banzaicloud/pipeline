@@ -166,7 +166,7 @@ type DeleteObjectStoreBucketOpts struct {
 	StorageAccount optional.String
 }
 
-func (a *StorageApiService) DeleteObjectStoreBucket(ctx context.Context, orgId int32, name int32, secretId string, cloudType string, localVarOptionals *DeleteObjectStoreBucketOpts) (*http.Response, error) {
+func (a *StorageApiService) DeleteObjectStoreBucket(ctx context.Context, orgId int32, name string, secretId string, cloudType string, localVarOptionals *DeleteObjectStoreBucketOpts) (*http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Delete")
 		localVarPostBody     interface{}
