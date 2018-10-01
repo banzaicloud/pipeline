@@ -234,7 +234,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 	case pkgCluster.Amazon:
 
 		var c int
-		err := db.Model(&model.EC2ClusterModel{}).Where(&model.EC2ClusterModel{ClusterModelId: modelCluster.ID}).Count(&c).Error
+		err := db.Model(&model.EC2ClusterModel{}).Where(&model.EC2ClusterModel{ClusterID: modelCluster.ID}).Count(&c).Error
 		if err != nil {
 			return nil, err
 		}
@@ -247,7 +247,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 			}
 
 			log.Debug("Load Amazon props from database")
-			err = db.Where(model.EC2ClusterModel{ClusterModelId: awsCluster.modelCluster.ID}).First(&awsCluster.modelCluster.EC2).Error
+			err = db.Where(model.EC2ClusterModel{ClusterID: awsCluster.modelCluster.ID}).First(&awsCluster.modelCluster.EC2).Error
 			if err != nil {
 				return nil, err
 			}
