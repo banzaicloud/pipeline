@@ -39,7 +39,7 @@ const (
 	TableNameAlibabaNodePools     = "alibaba_acsk_node_pools"
 	TableNameAmazonProperties     = "amazon_ec2_clusters"
 	TableNameAmazonNodePools      = "amazon_node_pools"
-	TableNameAmazonEksProperties  = "amazon_eks_cluster_properties"
+	TableNameAmazonEksProperties  = "amazon_eks_clusters"
 	TableNameAzureProperties      = "azure_cluster_properties"
 	TableNameAzureNodePools       = "azure_node_pools"
 	TableNameDummyProperties      = "dummy_cluster_properties"
@@ -132,11 +132,11 @@ type AmazonNodePoolsModel struct {
 
 //EKSClusterModel describes the ec2 cluster model
 type EKSClusterModel struct {
-	ClusterModelId uint `gorm:"primary_key"`
+	ClusterID uint `gorm:"primary_key"`
 
 	//kubernetes "1.10"
 	Version   string
-	NodePools []*AmazonNodePoolsModel `gorm:"foreignkey:ClusterModelId"`
+	NodePools []*AmazonNodePoolsModel `gorm:"foreignkey:ClusterID"`
 }
 
 //AKSClusterModel describes the aks cluster model

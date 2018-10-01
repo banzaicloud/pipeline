@@ -263,7 +263,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 		}
 
 		log.Debug("Load EKS props from database")
-		err = db.Where(model.EKSClusterModel{ClusterModelId: eksCluster.modelCluster.ID}).First(&eksCluster.modelCluster.EKS).Error
+		err = db.Where(model.EKSClusterModel{ClusterID: eksCluster.modelCluster.ID}).First(&eksCluster.modelCluster.EKS).Error
 		if err != nil {
 			return nil, err
 		}
