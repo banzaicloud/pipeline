@@ -34,7 +34,7 @@ const (
 // Cluster describes the Oracle cluster model
 type Cluster struct {
 	ID             uint   `gorm:"primary_key"`
-	Name           string `gorm:"unique_index:idx_id_name"`
+	Name           string `gorm:"unique_index:idx_name"`
 	Version        string
 	VCNID          string
 	LBSubnetID1    string
