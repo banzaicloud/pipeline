@@ -16,7 +16,7 @@ package api
 
 // CreateBucketRequest to create bucket
 type CreateBucketRequest struct {
-	SecretId   string `json:"secretId" binding:"required"`
+	SecretId   string `json:"secretId"`
 	SecretName string `json:"secretName"`
 	Name       string `json:"name" binding:"required"`
 	Properties struct {
