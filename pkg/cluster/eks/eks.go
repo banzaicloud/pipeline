@@ -21,8 +21,8 @@ import (
 
 // CreateClusterEKS describes Pipeline's Amazon EKS fields of a CreateCluster request
 type CreateClusterEKS struct {
-	Version   string                         `json:"version,omitempty"`
-	NodePools map[string]*pkgAmazon.NodePool `json:"nodePools,omitempty"`
+	Version   string                         `json:"version,omitempty" yaml:"version,omitempty"`
+	NodePools map[string]*pkgAmazon.NodePool `json:"nodePools,omitempty" yaml:"nodePools,omitempty"`
 }
 
 // UpdateClusterAmazonEKS describes Amazon EKS's node fields of an UpdateCluster request

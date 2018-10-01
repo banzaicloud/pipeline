@@ -30,13 +30,13 @@ type NodePools map[string]*NodePool
 
 // CreateClusterACSK
 type CreateClusterACSK struct {
-	RegionID                 string    `json:"regionId"`
-	ZoneID                   string    `json:"zoneId"`
-	MasterInstanceType       string    `json:"masterInstanceType,omitempty"`
-	MasterSystemDiskCategory string    `json:"masterSystemDiskCategory,omitempty"`
-	MasterSystemDiskSize     int       `json:"masterSystemDiskSize,omitempty"`
-	KeyPair                  string    `json:"keyPair,omitempty"`
-	NodePools                NodePools `json:"nodePools,omitempty"`
+	RegionID                 string    `json:"regionId" yaml:"regionId"`
+	ZoneID                   string    `json:"zoneId" yaml:"zoneId"`
+	MasterInstanceType       string    `json:"masterInstanceType,omitempty" yaml:"masterInstanceType,omitempty"`
+	MasterSystemDiskCategory string    `json:"masterSystemDiskCategory,omitempty" yaml:"masterSystemDiskCategory,omitempty"`
+	MasterSystemDiskSize     int       `json:"masterSystemDiskSize,omitempty" yaml:"masterSystemDiskSize,omitempty"`
+	KeyPair                  string    `json:"keyPair,omitempty" yaml:"keyPair,omitempty"`
+	NodePools                NodePools `json:"nodePools,omitempty" yaml:"nodePools,omitempty"`
 }
 
 // UpdateClusterACSK describes Alibaba's node fields of an UpdateCluster request

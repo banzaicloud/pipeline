@@ -21,25 +21,25 @@ import (
 
 // CreateClusterEC2 describes Pipeline's Amazon fields of a CreateCluster request
 type CreateClusterEC2 struct {
-	NodePools map[string]*NodePool `json:"nodePools,omitempty"`
-	Master    *CreateAmazonMaster  `json:"master,omitempty"`
+	NodePools map[string]*NodePool `json:"nodePools,omitempty" yaml:"nodePools,omitempty"`
+	Master    *CreateAmazonMaster  `json:"master,omitempty" yaml:"master,omitempty"`
 }
 
 // CreateAmazonMaster describes Amazon's master fields of a CreateCluster request
 type CreateAmazonMaster struct {
-	InstanceType string `json:"instanceType"`
-	Image        string `json:"image"`
+	InstanceType string `json:"instanceType" yaml:"instanceType"`
+	Image        string `json:"image" yaml:"image"`
 }
 
 // NodePool describes Amazon's node fields of a CreateCluster/Update request
 type NodePool struct {
-	InstanceType string `json:"instanceType"`
-	SpotPrice    string `json:"spotPrice"`
-	Autoscaling  bool   `json:"autoscaling"`
-	MinCount     int    `json:"minCount"`
-	MaxCount     int    `json:"maxCount"`
-	Count        int    `json:"count"`
-	Image        string `json:"image"`
+	InstanceType string `json:"instanceType" yaml:"instanceType"`
+	SpotPrice    string `json:"spotPrice" yaml:"spotPrice"`
+	Autoscaling  bool   `json:"autoscaling" yaml:"autoscaling"`
+	MinCount     int    `json:"minCount" yaml:"minCount"`
+	MaxCount     int    `json:"maxCount" yaml:"maxCount"`
+	Count        int    `json:"count" yaml:"count"`
+	Image        string `json:"image" yaml:"image"`
 }
 
 // UpdateClusterAmazon describes Amazon's node fields of an UpdateCluster request

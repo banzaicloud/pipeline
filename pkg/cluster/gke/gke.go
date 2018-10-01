@@ -29,9 +29,9 @@ const (
 
 // CreateClusterGKE describes Pipeline's Google fields of a CreateCluster request
 type CreateClusterGKE struct {
-	NodeVersion string               `json:"nodeVersion,omitempty"`
-	NodePools   map[string]*NodePool `json:"nodePools,omitempty"`
-	Master      *Master              `json:"master,omitempty"`
+	NodeVersion string               `json:"nodeVersion,omitempty" yaml:"nodeVersion,omitempty"`
+	NodePools   map[string]*NodePool `json:"nodePools,omitempty" yaml:"nodePools,omitempty"`
+	Master      *Master              `json:"master,omitempty" yaml:"master,omitempty"`
 }
 
 // Master describes Google's master fields of a CreateCluster request
@@ -41,11 +41,11 @@ type Master struct {
 
 // NodePool describes Google's node fields of a CreateCluster/Update request
 type NodePool struct {
-	Autoscaling      bool   `json:"autoscaling"`
-	MinCount         int    `json:"minCount"`
-	MaxCount         int    `json:"maxCount"`
-	Count            int    `json:"count,omitempty"`
-	NodeInstanceType string `json:"instanceType,omitempty"`
+	Autoscaling      bool   `json:"autoscaling" yaml:"autoscaling"`
+	MinCount         int    `json:"minCount" yaml:"minCount"`
+	MaxCount         int    `json:"maxCount" yaml:"maxCount"`
+	Count            int    `json:"count,omitempty" yaml:"count,omitempty"`
+	NodeInstanceType string `json:"instanceType,omitempty" yaml:"instanceType,omitempty"`
 }
 
 // UpdateClusterGoogle describes Google's node fields of an UpdateCluster request

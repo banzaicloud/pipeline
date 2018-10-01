@@ -23,8 +23,8 @@ import (
 
 // Cluster describes Pipeline's Oracle fields of a Create/Update request
 type Cluster struct {
-	Version   string               `json:"version"`
-	NodePools map[string]*NodePool `json:"nodePools,omitempty"`
+	Version   string               `json:"version" yaml:"version"`
+	NodePools map[string]*NodePool `json:"nodePools,omitempty" yaml:"nodePools,omitempty"`
 
 	vcnID       string
 	lbSubnetID1 string
@@ -33,11 +33,11 @@ type Cluster struct {
 
 // NodePool describes Oracle's node fields of a Create/Update request
 type NodePool struct {
-	Version string            `json:"version,omitempty"`
-	Count   uint              `json:"count,omitempty"`
-	Labels  map[string]string `json:"labels,omitempty"`
-	Image   string            `json:"image,omitempty"`
-	Shape   string            `json:"shape,omitempty"`
+	Version string            `json:"version,omitempty" yaml:"version,omitempty"`
+	Count   uint              `json:"count,omitempty" yaml:"count,omitempty"`
+	Labels  map[string]string `json:"labels,omitempty" yaml:"labels,omitempty"`
+	Image   string            `json:"image,omitempty" yaml:"image,omitempty"`
+	Shape   string            `json:"shape,omitempty" yaml:"shape,omitempty"`
 
 	subnetIds         []string
 	quantityPerSubnet uint

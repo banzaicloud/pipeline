@@ -21,8 +21,8 @@ type CreateClusterDummy struct {
 
 // Node describes Dummy's node fields of a CreateCluster/Update request
 type Node struct {
-	KubernetesVersion string `json:"kubernetesVersion"`
-	Count             int    `json:"count"`
+	KubernetesVersion string `json:"kubernetesVersion" yaml:"kubernetesVersion"`
+	Count             int    `json:"count" yaml:"count"`
 }
 
 // UpdateClusterDummy describes Dummy's node fields of an UpdateCluster request
