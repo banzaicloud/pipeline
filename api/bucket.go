@@ -194,7 +194,7 @@ func CreateBucket(c *gin.Context) {
 	logger.Debug("bucket creation started")
 
 	c.JSON(http.StatusAccepted, CreateBucketResponse{
-		Name: createBucketRequest.Name,
+		BucketName: createBucketRequest.Name,
 	})
 
 	go func() {

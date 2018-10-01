@@ -6656,13 +6656,13 @@ components:
       type: object
     CreateObjectStoreBucketResponse:
       example:
-        name: mybucket
+        bucketName: mybucket
       properties:
-        name:
+        bucketName:
           example: mybucket
           type: string
       required:
-      - name
+      - bucketName
       type: object
     BucketInfo:
       properties:
