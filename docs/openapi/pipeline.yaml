@@ -6190,9 +6190,9 @@ components:
     CreateObjectStoreBucketResponse:
       type: object
       required:
-        - name
+        - bucketName
       properties:
-        name:
+        bucketName:
           type: string
           example: "mybucket"
 
