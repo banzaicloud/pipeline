@@ -35,8 +35,8 @@ const unknown = "unknown"
 //TableName constants
 const (
 	TableNameClusters             = "clusters"
-	TableNameAlibabaProperties    = "alibaba_cluster_properties"
-	TableNameAlibabaNodePools     = "alibaba_node_pools"
+	TableNameAlibabaProperties    = "alibaba_acsk_clusters"
+	TableNameAlibabaNodePools     = "alibaba_acsk_node_pools"
 	TableNameAmazonProperties     = "amazon_cluster_properties"
 	TableNameAmazonNodePools      = "amazon_node_pools"
 	TableNameAmazonEksProperties  = "amazon_eks_cluster_properties"
@@ -82,8 +82,8 @@ type ACSKNodePoolModel struct {
 	ID                 uint `gorm:"primary_key"`
 	CreatedAt          time.Time
 	CreatedBy          uint
-	ClusterModelId     uint   `gorm:"unique_index:idx_modelid_name"`
-	Name               string `gorm:"unique_index:idx_modelid_name"`
+	ClusterID          uint   `gorm:"unique_index:idx_cluster_id_name"`
+	Name               string `gorm:"unique_index:idx_cluster_id_name"`
 	InstanceType       string
 	SystemDiskCategory string
 	SystemDiskSize     int
@@ -93,8 +93,8 @@ type ACSKNodePoolModel struct {
 
 // ACSKClusterModel describes the Alibaba Cloud CS cluster model
 type ACSKClusterModel struct {
-	ClusterModelId           uint `gorm:"primary_key"`
-	ClusterID                string
+	ClusterID                uint `gorm:"primary_key"`
+	ClusterIdentifier        string
 	RegionID                 string
 	ZoneID                   string
 	MasterInstanceType       string
@@ -102,7 +102,7 @@ type ACSKClusterModel struct {
 	MasterSystemDiskSize     int
 	SNATEntry                bool
 	SSHFlags                 bool
-	NodePools                []*ACSKNodePoolModel `gorm:"foreignkey:ClusterModelId"`
+	NodePools                []*ACSKNodePoolModel `gorm:"foreignkey:ClusterID"`
 }
 
 //EC2ClusterModel describes the ec2 cluster model

@@ -219,7 +219,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 		}
 
 		log.Debug("Load Alibaba props from database")
-		err = db.Where(model.ACSKClusterModel{ClusterModelId: alibabaCluster.modelCluster.ID}).First(&alibabaCluster.modelCluster.ACSK).Error
+		err = db.Where(model.ACSKClusterModel{ClusterID: alibabaCluster.modelCluster.ID}).First(&alibabaCluster.modelCluster.ACSK).Error
 		if err != nil {
 			return nil, err
 		}
