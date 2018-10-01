@@ -95,7 +95,7 @@ Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **orgId** | **int32**| Organization identification | 
-  **name** | **int32**| Bucket identification | 
+  **name** | **string**| Bucket identification | 
   **secretId** | **string**| Secret identification | 
   **cloudType** | **string**| Identifies the cloud provider | 
  **optional** | ***GetObjectStoreBucketStatusOpts** | optional parameters | nil if no parameters
