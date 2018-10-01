@@ -15,7 +15,7 @@
 package spotguide
 
 import (
-	"github.com/banzaicloud/pipeline/client"
+	"github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/helm"
 	libcompose "github.com/docker/libcompose/yaml"
 )
@@ -94,7 +94,7 @@ type droneContainer struct {
 	Repo          *string                             `yaml:"repo,omitempty"`
 	Tags          *string                             `yaml:"tags,omitempty"`
 	Log           *string                             `yaml:"log,omitempty"`
-	Cluster       *client.CreateClusterRequest        `yaml:"cluster,omitempty"`
+	Cluster       *cluster.CreateClusterRequest       `yaml:"cluster,omitempty"`
 	Deployment    *helm.CreateUpdateDeploymentRequest `yaml:"deployment,omitempty"`
 }
 

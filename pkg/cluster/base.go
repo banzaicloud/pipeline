@@ -103,14 +103,14 @@ const (
 
 // CreateClusterRequest describes a create cluster request
 type CreateClusterRequest struct {
-	Name        string                   `json:"name" binding:"required"`
-	Location    string                   `json:"location"`
-	Cloud       string                   `json:"cloud" binding:"required"`
-	SecretId    string                   `json:"secretId"`
-	SecretName  string                   `json:"secretName"`
-	ProfileName string                   `json:"profileName"`
-	PostHooks   PostHooks                `json:"postHooks"`
-	Properties  *CreateClusterProperties `json:"properties" binding:"required"`
+	Name        string                   `json:"name" yaml:"name" binding:"required"`
+	Location    string                   `json:"location" yaml:"location"`
+	Cloud       string                   `json:"cloud" yaml:"cloud" binding:"required"`
+	SecretId    string                   `json:"secretId" yaml:"secretId"`
+	SecretName  string                   `json:"secretName" yaml:"secretName"`
+	ProfileName string                   `json:"profileName" yaml:"profileName"`
+	PostHooks   PostHooks                `json:"postHooks" yaml:"postHooks"`
+	Properties  *CreateClusterProperties `json:"properties" yaml:"properties" binding:"required"`
 }
 
 // CreateClusterProperties contains the cluster flavor specific properties.
