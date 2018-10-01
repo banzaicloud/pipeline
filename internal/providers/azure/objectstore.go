@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -40,6 +41,8 @@ import (
 // Default storage account name when none is provided.
 // This must between 3-23 letters and can only contain small letters and numbers.
 const defaultStorageAccountName = "pipelinegenstorageacc"
+
+var alfanumericRegexp = regexp.MustCompile(`[^a-zA-Z0-9]`)
 
 type bucketNotFoundError struct{}
 
@@ -190,7 +193,35 @@ func (s *ObjectStore) CreateBucket(bucketName string) error {
 		}
 	}
 
+	secretName, err := s.createUpdateStorageAccountSecret(key)
+	if err != nil {
+		return err
+	}
+	logger.Infof("storageAccount secret %v created/updated", secretName)
 	return nil
+}
+
+func (s *ObjectStore) createUpdateStorageAccountSecret(accesskey string) (string, error) {
+	storageAccount := s.getStorageAccount()
+
+	storageAccountName := alfanumericRegexp.ReplaceAllString(storageAccount, "-")
+	secretName := fmt.Sprintf("%v-key", storageAccountName)
+
+	secretRequest := secret.CreateSecretRequest{
+		Name: secretName,
+		Type: "azureStorageAccount",
+		Values: map[string]string{
+			"storageAccount": storageAccount,
+			"accessKey":      accesskey,
+		},
+		Tags: []string{
+			fmt.Sprintf("azureStorageAccount:%v", storageAccount),
+		},
+	}
+	if _, err := secret.Store.CreateOrUpdate(s.org.ID, &secretRequest); err != nil {
+		return secretName, errors.Wrap(err, "failed to create/update secret: "+secretRequest.Name)
+	}
+	return secretName, nil
 }
 
 func (s *ObjectStore) rollback(logger logrus.FieldLogger, msg string, err error, bucket *ObjectStoreBucketModel) error {
