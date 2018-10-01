@@ -49,6 +49,14 @@ vault kv put secret/banzaicloud/aws \
     AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
 ```
 
+#### EKS cluster authentication
+
+Creating and using EKS clusters requires to you to have the [AWS IAM Authenticator for Kubernetes](https://github.com/kubernetes-sigs/aws-iam-authenticator) installed on your machine:
+
+```bash
+go get github.com/kubernetes-sigs/aws-iam-authenticator/cmd/aws-iam-authenticator
+```
+
 #### GitHub OAuth App setup
 
 Setup your Pipeline GitHub OAuth application according to: [this guilde](./github-app.md)
