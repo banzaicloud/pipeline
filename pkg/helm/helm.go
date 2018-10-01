@@ -106,13 +106,13 @@ type CreateUpdateDeploymentResponse struct {
 
 // CreateUpdateDeploymentRequest describes a Helm deployment
 type CreateUpdateDeploymentRequest struct {
-	Name        string                 `json:"name" binding:"required"`
-	Version     string                 `json:"version,omitempty"`
-	Package     []byte                 `json:"package,omitempty"`
-	ReleaseName string                 `json:"releaseName"`
-	ReUseValues bool                   `json:"reuseValues"`
-	Namespace   string                 `json:"namespace"`
-	Values      map[string]interface{} `json:"values,omitempty"`
+	Name        string                 `json:"name" yaml:"name" binding:"required"`
+	Version     string                 `json:"version,omitempty" yaml:"version,omitempty"`
+	Package     []byte                 `json:"package,omitempty" yaml:"package,omitempty"`
+	ReleaseName string                 `json:"releaseName" yaml:"releaseName"`
+	ReUseValues bool                   `json:"reuseValues" yaml:"reuseValues"`
+	Namespace   string                 `json:"namespace" yaml:"namespace"`
+	Values      map[string]interface{} `json:"values,omitempty" yaml:"values,omitempty"`
 }
 
 // ListDeploymentResponse describes a deployment list response
