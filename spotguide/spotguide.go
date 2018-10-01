@@ -525,22 +525,40 @@ func createDroneRepoConfig(initConfig []byte, request *LaunchRequest) (*droneRep
 
 func droneRepoConfigCluster(request *LaunchRequest, repoConfig *droneRepoConfig) error {
 
-	// Find CreateClusterStep step and transform it if there are is an incoming Cluster
-	if clusterStep, ok := repoConfig.Pipeline[CreateClusterStep]; ok && request.Cluster != nil {
+	for i, step := range repoConfig.Pipeline {
 
-		// Merge the cluster from the request into the existing cluster value
-		cluster, err := json.Marshal(request.Cluster)
-		if err != nil {
-			return err
-		}
+		// Find CreateClusterStep step and transform it if there are is an incoming Cluster
+		if step.Key == CreateClusterStep && request.Cluster != nil {
 
-		err = json.Unmarshal(cluster, &clusterStep.Cluster)
-		if err != nil {
-			return err
+			clusterStep, err := copyToDroneContainer(step.Value)
+			if err != nil {
+				return err
+			}
+
+			// Merge the cluster from the request into the existing cluster value
+			cluster, err := json.Marshal(request.Cluster)
+			if err != nil {
+				return err
+			}
+
+			err = json.Unmarshal(cluster, &clusterStep.Cluster)
+			if err != nil {
+				return err
+			}
+
+			newClusterStep, err := droneContainerToMapSlice(clusterStep)
+			if err != nil {
+				return err
+			}
+
+			repoConfig.Pipeline[i].Value = newClusterStep
+
+			return nil
 		}
-	} else {
-		log.Info("create_cluster step not present in pipeline.yaml, skipping transformation")
 	}
+
+	log.Info("create_cluster step not present in pipeline.yaml, skipping it's transformation")
+
 	return nil
 }
 
@@ -552,7 +570,11 @@ func droneRepoConfigSecrets(request *LaunchRequest, repoConfig *droneRepoConfig)
 
 	for _, plugin := range repoConfig.Pipeline {
 		for _, secret := range request.Secrets {
-			plugin.Secrets = append(plugin.Secrets, secret.Name)
+			step, err := copyToDroneContainer(plugin.Value)
+			if err != nil {
+				return err
+			}
+			step.Secrets = append(step.Secrets, secret.Name)
 		}
 	}
 
@@ -560,21 +582,40 @@ func droneRepoConfigSecrets(request *LaunchRequest, repoConfig *droneRepoConfig)
 }
 
 func droneRepoConfigValues(request *LaunchRequest, repoConfig *droneRepoConfig) error {
-	// Find DeployApplicationStep step and transform it if there are any incoming Values
-	if deployStep, ok := repoConfig.Pipeline[DeployApplicationStep]; ok && len(request.Values) > 0 {
 
-		// Merge the values from the request into the existing values
-		values, err := json.Marshal(request.Values)
-		if err != nil {
-			return err
-		}
+	for i, step := range repoConfig.Pipeline {
 
-		err = json.Unmarshal(values, &deployStep.Deployment.Values)
-		if err != nil {
-			return err
+		// Find DeployApplicationStep step and transform it if there are any incoming Values
+		if step.Key == DeployApplicationStep && len(request.Values) > 0 {
+
+			deployStep, err := copyToDroneContainer(step.Value)
+			if err != nil {
+				return err
+			}
+
+			// Merge the values from the request into the existing values
+			values, err := json.Marshal(request.Values)
+			if err != nil {
+				return err
+			}
+
+			err = json.Unmarshal(values, &deployStep.Deployment.Values)
+			if err != nil {
+				return err
+			}
+
+			newDeployStep, err := droneContainerToMapSlice(deployStep)
+			if err != nil {
+				return err
+			}
+
+			repoConfig.Pipeline[i].Value = newDeployStep
+
+			return nil
 		}
-	} else {
-		log.Info("deploy_application step not present in pipeline.yaml, skipping transformation")
 	}
+
+	log.Info("deploy_application step (or the Values) is not present in pipeline.yaml, skipping it's transformation")
+
 	return nil
 }
