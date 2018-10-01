@@ -37,7 +37,7 @@ const (
 	TableNameClusters             = "clusters"
 	TableNameAlibabaProperties    = "alibaba_acsk_clusters"
 	TableNameAlibabaNodePools     = "alibaba_acsk_node_pools"
-	TableNameAmazonProperties     = "amazon_cluster_properties"
+	TableNameAmazonProperties     = "amazon_ec2_clusters"
 	TableNameAmazonNodePools      = "amazon_node_pools"
 	TableNameAmazonEksProperties  = "amazon_eks_cluster_properties"
 	TableNameAzureProperties      = "azure_cluster_properties"
@@ -107,10 +107,10 @@ type ACSKClusterModel struct {
 
 //EC2ClusterModel describes the ec2 cluster model
 type EC2ClusterModel struct {
-	ClusterModelId     uint `gorm:"primary_key"`
+	ClusterID          uint `gorm:"primary_key"`
 	MasterInstanceType string
 	MasterImage        string
-	NodePools          []*AmazonNodePoolsModel `gorm:"foreignkey:ClusterModelId"`
+	NodePools          []*AmazonNodePoolsModel `gorm:"foreignkey:ClusterID"`
 }
 
 //AmazonNodePoolsModel describes Amazon node groups model of a cluster
@@ -118,8 +118,8 @@ type AmazonNodePoolsModel struct {
 	ID               uint `gorm:"primary_key"`
 	CreatedAt        time.Time
 	CreatedBy        uint
-	ClusterModelId   uint   `gorm:"unique_index:idx_modelid_name"`
-	Name             string `gorm:"unique_index:idx_modelid_name"`
+	ClusterID        uint   `gorm:"unique_index:idx_cluster_id_name"`
+	Name             string `gorm:"unique_index:idx_cluster_id_name"`
 	NodeSpotPrice    string
 	Autoscaling      bool
 	NodeMinCount     int
