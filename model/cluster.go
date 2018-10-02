@@ -35,15 +35,15 @@ const unknown = "unknown"
 //TableName constants
 const (
 	TableNameClusters             = "clusters"
-	TableNameAlibabaProperties    = "alibaba_cluster_properties"
-	TableNameAlibabaNodePools     = "alibaba_node_pools"
-	TableNameAmazonProperties     = "amazon_cluster_properties"
+	TableNameAlibabaProperties    = "alibaba_acsk_clusters"
+	TableNameAlibabaNodePools     = "alibaba_acsk_node_pools"
+	TableNameAmazonProperties     = "amazon_ec2_clusters"
 	TableNameAmazonNodePools      = "amazon_node_pools"
-	TableNameAmazonEksProperties  = "amazon_eks_cluster_properties"
-	TableNameAzureProperties      = "azure_cluster_properties"
-	TableNameAzureNodePools       = "azure_node_pools"
-	TableNameDummyProperties      = "dummy_cluster_properties"
-	TableNameKubernetesProperties = "kubernetes_cluster_properties"
+	TableNameAmazonEksProperties  = "amazon_eks_clusters"
+	TableNameAzureProperties      = "azure_aks_clusters"
+	TableNameAzureNodePools       = "azure_aks_node_pools"
+	TableNameDummyProperties      = "dummy_clusters"
+	TableNameKubernetesProperties = "kubernetes_clusters"
 )
 
 //ClusterModel describes the common cluster model
@@ -82,8 +82,8 @@ type ACSKNodePoolModel struct {
 	ID                 uint `gorm:"primary_key"`
 	CreatedAt          time.Time
 	CreatedBy          uint
-	ClusterModelId     uint   `gorm:"unique_index:idx_modelid_name"`
-	Name               string `gorm:"unique_index:idx_modelid_name"`
+	ClusterID          uint   `gorm:"unique_index:idx_cluster_id_name"`
+	Name               string `gorm:"unique_index:idx_cluster_id_name"`
 	InstanceType       string
 	SystemDiskCategory string
 	SystemDiskSize     int
@@ -93,8 +93,8 @@ type ACSKNodePoolModel struct {
 
 // ACSKClusterModel describes the Alibaba Cloud CS cluster model
 type ACSKClusterModel struct {
-	ClusterModelId           uint `gorm:"primary_key"`
-	ClusterID                string
+	ID                       uint `gorm:"primary_key"`
+	ProviderClusterID        string
 	RegionID                 string
 	ZoneID                   string
 	MasterInstanceType       string
@@ -102,15 +102,15 @@ type ACSKClusterModel struct {
 	MasterSystemDiskSize     int
 	SNATEntry                bool
 	SSHFlags                 bool
-	NodePools                []*ACSKNodePoolModel `gorm:"foreignkey:ClusterModelId"`
+	NodePools                []*ACSKNodePoolModel `gorm:"foreignkey:ID"`
 }
 
 //EC2ClusterModel describes the ec2 cluster model
 type EC2ClusterModel struct {
-	ClusterModelId     uint `gorm:"primary_key"`
+	ID                 uint `gorm:"primary_key"`
 	MasterInstanceType string
 	MasterImage        string
-	NodePools          []*AmazonNodePoolsModel `gorm:"foreignkey:ClusterModelId"`
+	NodePools          []*AmazonNodePoolsModel `gorm:"foreignkey:ID"`
 }
 
 //AmazonNodePoolsModel describes Amazon node groups model of a cluster
@@ -118,8 +118,8 @@ type AmazonNodePoolsModel struct {
 	ID               uint `gorm:"primary_key"`
 	CreatedAt        time.Time
 	CreatedBy        uint
-	ClusterModelId   uint   `gorm:"unique_index:idx_modelid_name"`
-	Name             string `gorm:"unique_index:idx_modelid_name"`
+	ClusterID        uint   `gorm:"unique_index:idx_cluster_id_name"`
+	Name             string `gorm:"unique_index:idx_cluster_id_name"`
 	NodeSpotPrice    string
 	Autoscaling      bool
 	NodeMinCount     int
@@ -132,19 +132,19 @@ type AmazonNodePoolsModel struct {
 
 //EKSClusterModel describes the ec2 cluster model
 type EKSClusterModel struct {
-	ClusterModelId uint `gorm:"primary_key"`
+	ID uint `gorm:"primary_key"`
 
 	//kubernetes "1.10"
 	Version   string
-	NodePools []*AmazonNodePoolsModel `gorm:"foreignkey:ClusterModelId"`
+	NodePools []*AmazonNodePoolsModel `gorm:"foreignkey:ID"`
 }
 
 //AKSClusterModel describes the aks cluster model
 type AKSClusterModel struct {
-	ClusterModelId    uint `gorm:"primary_key"`
+	ID                uint `gorm:"primary_key"`
 	ResourceGroup     string
 	KubernetesVersion string
-	NodePools         []*AKSNodePoolModel `gorm:"foreignkey:ClusterModelId"`
+	NodePools         []*AKSNodePoolModel `gorm:"foreignkey:ID"`
 }
 
 // AKSNodePoolModel describes AKS node pools model of a cluster
@@ -152,8 +152,8 @@ type AKSNodePoolModel struct {
 	ID               uint `gorm:"primary_key"`
 	CreatedAt        time.Time
 	CreatedBy        uint
-	ClusterModelId   uint   `gorm:"unique_index:idx_modelid_name"`
-	Name             string `gorm:"unique_index:idx_modelid_name"`
+	ClusterID        uint   `gorm:"unique_index:idx_cluster_id_name"`
+	Name             string `gorm:"unique_index:idx_cluster_id_name"`
 	Autoscaling      bool
 	NodeMinCount     int
 	NodeMaxCount     int
@@ -163,16 +163,16 @@ type AKSNodePoolModel struct {
 
 // DummyClusterModel describes the dummy cluster model
 type DummyClusterModel struct {
-	ClusterModelId    uint `gorm:"primary_key"`
+	ID                uint `gorm:"primary_key"`
 	KubernetesVersion string
 	NodeCount         int
 }
 
 //KubernetesClusterModel describes the build your own cluster model
 type KubernetesClusterModel struct {
-	ClusterModelId uint              `gorm:"primary_key"`
-	Metadata       map[string]string `gorm:"-"`
-	MetadataRaw    []byte            `gorm:"meta_data"`
+	ID          uint              `gorm:"primary_key"`
+	Metadata    map[string]string `gorm:"-"`
+	MetadataRaw []byte            `gorm:"meta_data"`
 }
 
 func (cs *ClusterModel) BeforeCreate() (err error) {

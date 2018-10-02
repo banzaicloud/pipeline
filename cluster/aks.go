@@ -213,7 +213,7 @@ func (c *AKSCluster) DownloadK8sConfig() ([]byte, error) {
 	client.With(log)
 
 	database := config.DB()
-	database.Where(model.AKSClusterModel{ClusterModelId: c.modelCluster.ID}).First(&c.modelCluster.AKS)
+	database.Where(model.AKSClusterModel{ID: c.modelCluster.ID}).First(&c.modelCluster.AKS)
 	//TODO check banzairesponses
 	config, err := azureClient.GetClusterConfig(client, c.modelCluster.Name, c.modelCluster.AKS.ResourceGroup, "clusterUser")
 	if err != nil {
@@ -283,7 +283,7 @@ func (c *AKSCluster) DeleteCluster() error {
 
 	// set aks props
 	database := config.DB()
-	database.Where(model.AKSClusterModel{ClusterModelId: c.modelCluster.ID}).First(&c.modelCluster.AKS)
+	database.Where(model.AKSClusterModel{ID: c.modelCluster.ID}).First(&c.modelCluster.AKS)
 
 	err = azureClient.DeleteCluster(client, c.modelCluster.Name, c.modelCluster.AKS.ResourceGroup)
 	if err != nil {
@@ -341,7 +341,7 @@ func (c *AKSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, use
 					ID:               existNodePool.ID,
 					CreatedAt:        time.Now(),
 					CreatedBy:        userId,
-					ClusterModelId:   existNodePool.ClusterModelId,
+					ClusterID:        existNodePool.ClusterID,
 					Name:             name,
 					Autoscaling:      np.Autoscaling,
 					NodeMinCount:     np.MinCount,

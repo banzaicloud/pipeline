@@ -364,7 +364,7 @@ func (c *EKSCluster) createNodePoolsFromUpdateRequest(requestedNodePools map[str
 				ID:               currentNodePoolMap[nodePoolName].ID,
 				CreatedBy:        currentNodePoolMap[nodePoolName].CreatedBy,
 				CreatedAt:        currentNodePoolMap[nodePoolName].CreatedAt,
-				ClusterModelId:   currentNodePoolMap[nodePoolName].ClusterModelId,
+				ClusterID:        currentNodePoolMap[nodePoolName].ClusterID,
 				Name:             nodePoolName,
 				NodeInstanceType: nodePool.InstanceType,
 				NodeImage:        nodePool.Image,
@@ -413,12 +413,12 @@ func (c *EKSCluster) createNodePoolsFromUpdateRequest(requestedNodePools map[str
 	for _, nodePool := range c.modelCluster.EKS.NodePools {
 		if requestedNodePools[nodePool.Name] == nil {
 			updatedNodePools = append(updatedNodePools, &model.AmazonNodePoolsModel{
-				ID:             nodePool.ID,
-				CreatedBy:      nodePool.CreatedBy,
-				CreatedAt:      nodePool.CreatedAt,
-				ClusterModelId: nodePool.ClusterModelId,
-				Name:           nodePool.Name,
-				Delete:         true,
+				ID:        nodePool.ID,
+				CreatedBy: nodePool.CreatedBy,
+				CreatedAt: nodePool.CreatedAt,
+				ClusterID: nodePool.ClusterID,
+				Name:      nodePool.Name,
+				Delete:    true,
 			})
 		}
 	}
