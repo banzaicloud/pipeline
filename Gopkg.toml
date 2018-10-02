@@ -269,3 +269,7 @@
 [[constraint]]
   name = "github.com/docker/libcompose"
   version = "0.4.0"
+
+[[constraint]]
+  name = "github.com/asaskevich/EventBus"
+  branch = "master"

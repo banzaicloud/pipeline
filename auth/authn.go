@@ -163,7 +163,11 @@ func Init(db *gorm.DB) {
 				SignedString:   signingKeyBase32,
 			},
 		},
-		UserStorer:        BanzaiUserStorer{signingKeyBase32: signingKeyBase32, droneDB: DroneDB},
+		UserStorer: BanzaiUserStorer{
+			signingKeyBase32: signingKeyBase32,
+			droneDB:          DroneDB,
+			events:           ebAuthEvents{eb: config.EventBus},
+		},
 		LogoutHandler:     BanzaiLogoutHandler,
 		DeregisterHandler: BanzaiDeregisterHandler,
 	})

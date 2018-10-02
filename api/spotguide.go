@@ -30,9 +30,11 @@ import (
 func GetSpotguide(c *gin.Context) {
 	log := correlationid.Logger(log, c)
 
+	orgID := auth.GetCurrentOrganization(c.Request).ID
+
 	spotguideName := strings.TrimPrefix(c.Param("name"), "/")
 	spotguideVersion := c.Query("version")
-	spotguideDetails, err := spotguide.GetSpotguide(spotguideName, spotguideVersion)
+	spotguideDetails, err := spotguide.GetSpotguide(orgID, spotguideName, spotguideVersion)
 	if err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			c.JSON(http.StatusNotFound, pkgCommon.ErrorResponse{
@@ -60,7 +62,9 @@ func GetSpotguide(c *gin.Context) {
 func GetSpotguides(c *gin.Context) {
 	log := correlationid.Logger(log, c)
 
-	spotguides, err := spotguide.GetSpotguides()
+	orgID := auth.GetCurrentOrganization(c.Request).ID
+
+	spotguides, err := spotguide.GetSpotguides(orgID)
 	if err != nil {
 		log.Errorln("error listing spotguides:", err.Error())
 		c.JSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
@@ -77,8 +81,10 @@ func GetSpotguides(c *gin.Context) {
 func SyncSpotguides(c *gin.Context) {
 	log := correlationid.Logger(log, c)
 
+	orgID := auth.GetCurrentOrganization(c.Request).ID
+
 	go func() {
-		err := spotguide.ScrapeSpotguides()
+		err := spotguide.ScrapeSpotguides(orgID)
 		if err != nil {
 			log.Errorln("failed synchronizing spotguides:", err.Error())
 		}
@@ -101,10 +107,10 @@ func LaunchSpotguide(c *gin.Context) {
 		return
 	}
 
-	org := auth.GetCurrentOrganization(c.Request)
-	user := auth.GetCurrentUser(c.Request)
+	orgID := auth.GetCurrentOrganization(c.Request).ID
+	userID := auth.GetCurrentUser(c.Request).ID
 
-	err := spotguide.LaunchSpotguide(&launchRequest, c.Request, org.ID, user.ID)
+	err := spotguide.LaunchSpotguide(&launchRequest, c.Request, orgID, userID)
 	if err != nil {
 		log.Errorf("failed to Launch spotguide %s: %s", launchRequest.RepoFullname(), err.Error())
 		c.JSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
