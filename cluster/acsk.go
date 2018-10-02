@@ -69,7 +69,7 @@ func (c *ACSKCluster) ListNodeNames() (nodes pkgCommon.NodeNames, err error) {
 		return
 	}
 
-	r, err := getClusterDetails(client, c.modelCluster.ACSK.ClusterIdentifier)
+	r, err := getClusterDetails(client, c.modelCluster.ACSK.ProviderClusterID)
 	for _, v := range r.Outputs {
 		if v.OutputKey == "NodeInstanceIDs" {
 			var result []string
@@ -247,7 +247,7 @@ func (c *ACSKCluster) CreateCluster() error {
 		return errors.New("could not cast cluster create response")
 	}
 	c.alibabaCluster = castedValue
-	c.modelCluster.ACSK.ClusterIdentifier = resp.(*acsk.AlibabaDescribeClusterResponse).ClusterID
+	c.modelCluster.ACSK.ProviderClusterID = resp.(*acsk.AlibabaDescribeClusterResponse).ClusterID
 
 	kubeConfig, err := c.DownloadK8sConfig()
 	if err != nil {
@@ -360,7 +360,7 @@ func (c *ACSKCluster) DownloadK8sConfig() ([]byte, error) {
 		return nil, err
 	}
 
-	info, err := getConnectionInfo(csClient, c.modelCluster.ACSK.ClusterIdentifier)
+	info, err := getConnectionInfo(csClient, c.modelCluster.ACSK.ProviderClusterID)
 	if err != nil {
 		return nil, err
 	}
@@ -462,7 +462,7 @@ func (c *ACSKCluster) DeleteCluster() error {
 	deleteContext := action.NewACSKClusterDeletionContext(
 		csClient,
 		ecsClient,
-		c.modelCluster.ACSK.ClusterIdentifier)
+		c.modelCluster.ACSK.ProviderClusterID)
 
 	actions := []utils.Action{
 		action.NewDeleteACSKClusterAction(c.log, deleteContext),
@@ -496,7 +496,7 @@ func (c *ACSKCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, us
 		return err
 	}
 
-	context := action.NewACSKClusterContext(csClient, ecsClient, c.modelCluster.ACSK.ClusterIdentifier)
+	context := action.NewACSKClusterContext(csClient, ecsClient, c.modelCluster.ACSK.ProviderClusterID)
 
 	actions := []utils.Action{
 		action.NewUpdateACSKClusterAction(c.log, nodePoolModels, context),
@@ -585,7 +585,7 @@ func (c *ACSKCluster) GetAPIEndpoint() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	inf, err := getConnectionInfo(client, c.modelCluster.ACSK.ClusterIdentifier)
+	inf, err := getConnectionInfo(client, c.modelCluster.ACSK.ProviderClusterID)
 	if err != nil {
 		return "", err
 	}
@@ -620,7 +620,7 @@ func (c *ACSKCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 		return nil, err
 	}
 
-	r, err := getClusterDetails(client, c.modelCluster.ACSK.ClusterIdentifier)
+	r, err := getClusterDetails(client, c.modelCluster.ACSK.ProviderClusterID)
 	if err != nil {
 		return nil, err
 	}

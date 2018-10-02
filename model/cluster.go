@@ -94,7 +94,7 @@ type ACSKNodePoolModel struct {
 // ACSKClusterModel describes the Alibaba Cloud CS cluster model
 type ACSKClusterModel struct {
 	ID                       uint `gorm:"primary_key"`
-	ClusterIdentifier        string
+	ProviderClusterID        string
 	RegionID                 string
 	ZoneID                   string
 	MasterInstanceType       string
