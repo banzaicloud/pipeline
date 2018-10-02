@@ -30,7 +30,7 @@ type GKEClusterModel struct {
 	MasterVersion string
 	NodeVersion   string
 	Region        string
-	NodePools     []*GKENodePoolModel `gorm:"foreignkey:ID"`
+	NodePools     []*GKENodePoolModel `gorm:"foreignkey:ClusterID"`
 }
 
 // TableName changes the default table name.

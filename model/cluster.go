@@ -102,7 +102,7 @@ type ACSKClusterModel struct {
 	MasterSystemDiskSize     int
 	SNATEntry                bool
 	SSHFlags                 bool
-	NodePools                []*ACSKNodePoolModel `gorm:"foreignkey:ID"`
+	NodePools                []*ACSKNodePoolModel `gorm:"foreignkey:ClusterID"`
 }
 
 //EC2ClusterModel describes the ec2 cluster model
@@ -110,7 +110,7 @@ type EC2ClusterModel struct {
 	ID                 uint `gorm:"primary_key"`
 	MasterInstanceType string
 	MasterImage        string
-	NodePools          []*AmazonNodePoolsModel `gorm:"foreignkey:ID"`
+	NodePools          []*AmazonNodePoolsModel `gorm:"foreignkey:ClusterID"`
 }
 
 //AmazonNodePoolsModel describes Amazon node groups model of a cluster
@@ -136,7 +136,7 @@ type EKSClusterModel struct {
 
 	//kubernetes "1.10"
 	Version   string
-	NodePools []*AmazonNodePoolsModel `gorm:"foreignkey:ID"`
+	NodePools []*AmazonNodePoolsModel `gorm:"foreignkey:ClusterID"`
 }
 
 //AKSClusterModel describes the aks cluster model
@@ -144,7 +144,7 @@ type AKSClusterModel struct {
 	ID                uint `gorm:"primary_key"`
 	ResourceGroup     string
 	KubernetesVersion string
-	NodePools         []*AKSNodePoolModel `gorm:"foreignkey:ID"`
+	NodePools         []*AKSNodePoolModel `gorm:"foreignkey:ClusterID"`
 }
 
 // AKSNodePoolModel describes AKS node pools model of a cluster
