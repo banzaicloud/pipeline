@@ -86,7 +86,8 @@ type LaunchRequest struct {
 	SpotguideVersion string                       `json:"spotguideVersion"`
 	RepoOrganization string                       `json:"repoOrganization" binding:"required"`
 	RepoName         string                       `json:"repoName" binding:"required"`
-	Cluster          *client.CreateClusterRequest `json:"cluster"`
+	RepoPrivate      bool                         `json:"repoPrivate"`
+	Cluster          client.CreateClusterRequest  `json:"cluster" binding:"required"`
 	Secrets          []secret.CreateSecretRequest `json:"secrets"`
 	Values           map[string]interface{}       `json:"values"` // Values passed to the Helm deployment in the 'deploy_application' step
 }
@@ -376,6 +377,7 @@ func createGithubRepo(githubClient *github.Client, request *LaunchRequest, userI
 	repo := github.Repository{
 		Name:        github.String(request.RepoName),
 		Description: github.String("Spotguide by BanzaiCloud"),
+		Private:     github.Bool(request.RepoPrivate),
 	}
 
 	// If the user's name is used as organization name, it has to be cleared in repo create.
@@ -528,7 +530,7 @@ func droneRepoConfigCluster(request *LaunchRequest, repoConfig *droneRepoConfig)
 	for i, step := range repoConfig.Pipeline {
 
 		// Find CreateClusterStep step and transform it if there are is an incoming Cluster
-		if step.Key == CreateClusterStep && request.Cluster != nil {
+		if step.Key == CreateClusterStep {
 
 			clusterStep, err := copyToDroneContainer(step.Value)
 			if err != nil {
