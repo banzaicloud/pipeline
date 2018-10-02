@@ -1428,10 +1428,12 @@ func CreateGKEClusterFromModel(clusterModel *model.ClusterModel) (*GKECluster, e
 	log.Debug("Create ClusterModel struct from the request")
 	db := pipConfig.DB()
 
-	var m google.GKEClusterModel
+	m := google.GKEClusterModel{
+		ID: clusterModel.ID,
+	}
 
 	log.Info("Load Google props from database")
-	err := db.Where("cluster_id = ?", clusterModel.ID).Preload("Cluster").Preload("NodePools").First(&m).Error
+	err := db.Where(m).Preload("Cluster").Preload("NodePools").First(&m).Error
 	if err != nil {
 		return nil, err
 	}
