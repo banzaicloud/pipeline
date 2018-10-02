@@ -37,7 +37,6 @@ import (
 	"github.com/banzaicloud/pipeline/spotguide"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -149,14 +148,6 @@ func main() {
 	if dnsSvc == nil {
 		log.Infoln("External dns service functionality is not enabled")
 	}
-
-	// Spotguides
-	go func() {
-		err := spotguide.ScrapeSpotguides()
-		if err != nil {
-			errorHandler.Handle(errors.Wrap(err, "failed to scrape Spotguide repositories"))
-		}
-	}()
 
 	//Initialise Gin router
 	router := gin.New()

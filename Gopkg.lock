@@ -182,6 +182,14 @@
   version = "v1.0.1"
 
 [[projects]]
+  branch = "master"
+  digest = "1:7a438550c05cb99c9022258d145dc1126aa8d1616b7111b5ce80b65adc815fec"
+  name = "github.com/asaskevich/EventBus"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "d46933a94f05c6657d7b923fcf5ac563ee37ec79"
+
+[[projects]]
   digest = "1:91db69c6eaea8ef25cc7f56a06b0aa2de886de091c100b2bea0936bbe90c55a3"
   name = "github.com/aws/aws-sdk-go"
   packages = [
@@ -2303,6 +2311,7 @@
     "github.com/aliyun/aliyun-oss-go-sdk/oss",
     "github.com/antihax/optional",
     "github.com/aokoli/goutils",
+    "github.com/asaskevich/EventBus",
     "github.com/aws/aws-sdk-go/aws",
     "github.com/aws/aws-sdk-go/aws/awserr",
     "github.com/aws/aws-sdk-go/aws/credentials",
@@ -2397,7 +2406,6 @@
     "google.golang.org/api/option",
     "google.golang.org/api/storage/v1",
     "gopkg.in/yaml.v2",
-    "k8s.io/api/apps/v1beta2",
     "k8s.io/api/autoscaling/v2beta1",
     "k8s.io/api/core/v1",
     "k8s.io/api/extensions/v1beta1",
@@ -2434,7 +2442,6 @@
     "k8s.io/helm/pkg/repo",
     "k8s.io/kubernetes/pkg/api/v1/resource",
     "k8s.io/kubernetes/pkg/apis/core",
-    "k8s.io/kubernetes/pkg/apis/extensions",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

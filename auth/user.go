@@ -188,6 +188,7 @@ type BanzaiUserStorer struct {
 	auth.UserStorer
 	signingKeyBase32 string // Drone uses base32 Hash
 	droneDB          *gorm.DB
+	events           authEvents
 }
 
 // Save differs from the default UserStorer.Save() in that it
@@ -245,6 +246,10 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 		orgids = append(orgids, githubOrgIDs...)
 		AddOrgRoles(orgids...)
 		AddOrgRoleForUser(currentUser.ID, orgids...)
+
+		for _, orgID := range orgids {
+			bus.events.OrganizationRegistered(orgID)
+		}
 	}
 
 	return currentUser, fmt.Sprint(db.NewScope(currentUser).PrimaryKeyValue()), err

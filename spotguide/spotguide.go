@@ -51,6 +51,12 @@ const DeployApplicationStep = "deploy_application"
 
 var ctx = context.Background()
 
+func init() {
+	// Subscribe to organization creations and sync spotguides into the newly created organizations
+	// TODO move this to a global place and more visible
+	authEventEmitter.NotifyOrganizationRegistered(internalScrapeSpotguides)
+}
+
 type SpotguideYAML struct {
 	Name        string                    `json:"name"`
 	Description string                    `json:"description,omitempty"`
@@ -62,7 +68,8 @@ type SpotguideYAML struct {
 type Question map[string]interface{}
 
 type SpotguideRepo struct {
-	ID               uint       `gorm:"primary_key" json:"-"`
+	ID               uint       `json:"id" gorm:"primary_key"`
+	OrganizationID   uint       `json:"organizationId" gorm:"unique_index:name_and_version"`
 	CreatedAt        time.Time  `json:"createdAt"`
 	UpdatedAt        time.Time  `json:"updatedAt"`
 	DeletedAt        *time.Time `json:"-" gorm:"index"`
@@ -136,7 +143,13 @@ func downloadGithubFile(githubClient *github.Client, owner, repo, file, tag stri
 	return ioutil.ReadAll(reader)
 }
 
-func ScrapeSpotguides() error {
+func internalScrapeSpotguides(orgID uint) {
+	if err := ScrapeSpotguides(orgID); err != nil {
+		log.Warnf("failed to scrape Spotguide repositories for org [%d]: %s", orgID, err)
+	}
+}
+
+func ScrapeSpotguides(orgID uint) error {
 
 	db := config.DB()
 
@@ -203,11 +216,13 @@ func ScrapeSpotguides() error {
 					iconSrc := "data:image/svg+xml;base64," + base64.StdEncoding.EncodeToString(icon)
 
 					where := SpotguideRepo{
-						Name:    repository.GetFullName(),
-						Version: tag,
+						OrganizationID: orgID,
+						Name:           repository.GetFullName(),
+						Version:        tag,
 					}
 
 					model := SpotguideRepo{
+						OrganizationID:   orgID,
 						Name:             repository.GetFullName(),
 						SpotguideYAMLRaw: spotguideRaw,
 						Readme:           string(readme),
@@ -230,29 +245,26 @@ func ScrapeSpotguides() error {
 	return nil
 }
 
-func GetSpotguides() ([]*SpotguideRepo, error) {
+func GetSpotguides(orgID uint) ([]*SpotguideRepo, error) {
 	db := config.DB()
+	where := SpotguideRepo{OrganizationID: orgID}
 	spotguides := []*SpotguideRepo{}
-	err := db.Find(&spotguides).Error
+	err := db.Find(&spotguides, where).Error
 	return spotguides, err
 }
 
-func GetSpotguide(name, version string) ([]SpotguideRepo, error) {
+func GetSpotguide(orgID uint, name, version string) ([]SpotguideRepo, error) {
 	db := config.DB()
+	where := SpotguideRepo{OrganizationID: orgID, Name: name, Version: version}
 	repo := []SpotguideRepo{}
-	var err error
-	if version == "" {
-		err = db.Where("name = ?", name).Find(&repo).Error
-	} else {
-		err = db.Where("name = ? AND version = ?", name, version).Find(&repo).Error
-	}
+	err := db.Find(&repo, where).Error
 	return repo, err
 }
 
 // curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -v http://localhost:9090/api/v1/orgs/1/spotguides -d '{"repoName":"spotguide-test", "repoOrganization":"banzaicloud-test", "spotguideName":"banzaicloud/spotguide-nodejs-mongodb"}'
 func LaunchSpotguide(request *LaunchRequest, httpRequest *http.Request, orgID, userID uint) error {
 
-	sourceRepos, err := GetSpotguide(request.SpotguideName, request.SpotguideVersion)
+	sourceRepos, err := GetSpotguide(orgID, request.SpotguideName, request.SpotguideVersion)
 	if err != nil || len(sourceRepos) == 0 {
 		return errors.Wrap(err, "failed to find spotguide repo")
 	}
