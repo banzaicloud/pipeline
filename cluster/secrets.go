@@ -16,6 +16,8 @@ package cluster
 
 import (
 	"github.com/banzaicloud/pipeline/helm"
+	intSecret "github.com/banzaicloud/pipeline/internal/secret"
+	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"k8s.io/api/core/v1"
@@ -62,12 +64,14 @@ func InstallSecretsByK8SConfig(k8sConfig []byte, orgID uint, query *secretTypes.
 	var secretSources []secretTypes.K8SSourceMeta
 
 	for _, s := range secrets {
-		var k8sSecret *v1.Secret
+		k8sSecret := v1.Secret{
+			StringData: make(map[string]string),
+		}
 		create := true
 
 		for i := 0; i < len(clusterSecretList.Items); i++ {
 			if clusterSecretList.Items[i].Name == s.Name {
-				k8sSecret = &clusterSecretList.Items[i]
+				k8sSecret = clusterSecretList.Items[i]
 
 				if k8sSecret.StringData == nil {
 					k8sSecret.StringData = make(map[string]string)
@@ -84,37 +88,21 @@ func InstallSecretsByK8SConfig(k8sConfig []byte, orgID uint, query *secretTypes.
 			return nil, err
 		}
 
-		if k8sSecret == nil {
-			k8sSecret = &v1.Secret{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      s.Name,
-					Namespace: namespace,
-				},
-				StringData: map[string]string{},
-			}
+		kubeSecretRequest := intSecret.KubeSecretRequest{
+			Name:   s.Name,
+			Type:   s.Type,
+			Values: s.Values,
 		}
 
-		for fieldName, fieldValue := range s.Values {
-			secretMeta := secretTypes.DefaultRules[s.Type]
-			opaque := false
-			// Generic secrets are not opaque at all
-			if s.Type != secretTypes.GenericSecret {
-				for _, fieldMeta := range secretMeta.Fields {
-					if fieldName == fieldMeta.Name {
-						opaque = fieldMeta.Opaque
-						break
-					}
-				}
-			}
-			if !opaque {
-				k8sSecret.StringData[fieldName] = fieldValue
-			}
-		}
+		newK8sSecret, err := intSecret.CreateKubeSecret(kubeSecretRequest)
+		newK8sSecret.ObjectMeta.Namespace = namespace
+
+		k8sSecret = k8sutil.MergeSecrets(k8sSecret, newK8sSecret)
 
 		if create {
-			_, err = clusterClient.CoreV1().Secrets(namespace).Create(k8sSecret)
+			_, err = clusterClient.CoreV1().Secrets(namespace).Create(&k8sSecret)
 		} else {
-			_, err = clusterClient.CoreV1().Secrets(namespace).Update(k8sSecret)
+			_, err = clusterClient.CoreV1().Secrets(namespace).Update(&k8sSecret)
 		}
 
 		if err != nil {
