@@ -25,6 +25,14 @@ type KubeSecretRequest struct {
 	Name   string
 	Type   string
 	Values map[string]string
+	Spec   KubeSecretSpec
+}
+
+type KubeSecretSpec map[string]KubeSecretSpecItem
+
+type KubeSecretSpecItem struct {
+	Source    string
+	SourceMap map[string]string
 }
 
 // CreateKubeSecret creates a Kubernetes Secret object from a Secret.
@@ -46,12 +54,17 @@ func CreateKubeSecret(req KubeSecretRequest) (v1.Secret, error) {
 		}
 	}
 
-	for key, value := range req.Values {
-		if opaqueMap[key] {
-			continue
+	// Add secret values as is
+	if len(req.Spec) == 0 {
+		for key, value := range req.Values {
+			if opaqueMap[key] {
+				continue
+			}
+
+			kubeSecret.StringData[key] = value
 		}
 
-		kubeSecret.StringData[key] = value
+		return kubeSecret, nil
 	}
 
 	return kubeSecret, nil
