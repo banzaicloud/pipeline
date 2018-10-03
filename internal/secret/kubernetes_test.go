@@ -65,6 +65,80 @@ func TestCreateKubeSecret(t *testing.T) {
 				},
 			},
 		},
+		"secret with spec source": {
+			v1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "secret",
+				},
+				StringData: map[string]string{
+					"tls.crt": "tlscert",
+					"tls.key": "tlskey",
+				},
+			},
+			secret.KubeSecretRequest{
+				Name: "secret",
+				Type: "generic",
+				Values: map[string]string{
+					"clientCert": "tlscert",
+					"clientKey":  "tlskey",
+				},
+				Spec: map[string]secret.KubeSecretSpecItem{
+					"tls.crt": {
+						Source: "clientCert",
+					},
+					"tls.key": {
+						Source: "clientKey",
+					},
+				},
+			},
+		},
+		"secret with spec source mapping": {
+			v1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "secret",
+				},
+				StringData: map[string]string{
+					"docker.json": "{\"docker_password\":\"password\",\"docker_username\":\"username\"}",
+				},
+			},
+			secret.KubeSecretRequest{
+				Name: "secret",
+				Type: "generic",
+				Values: map[string]string{
+					"username": "username",
+					"password": "password",
+				},
+				Spec: map[string]secret.KubeSecretSpecItem{
+					"docker.json": {
+						SourceMap: map[string]string{
+							"docker_username": "username",
+							"docker_password": "password",
+						},
+					},
+				},
+			},
+		},
+		"secret with empty spec item": {
+			v1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "secret",
+				},
+				StringData: map[string]string{
+					"google.json": "{\"password\":\"password\",\"username\":\"username\"}",
+				},
+			},
+			secret.KubeSecretRequest{
+				Name: "secret",
+				Type: "generic",
+				Values: map[string]string{
+					"username": "username",
+					"password": "password",
+				},
+				Spec: map[string]secret.KubeSecretSpecItem{
+					"google.json": {},
+				},
+			},
+		},
 	}
 
 	for name, test := range tests {

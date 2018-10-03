@@ -15,7 +15,10 @@
 package secret
 
 import (
+	"encoding/json"
+
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/pkg/errors"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -63,8 +66,44 @@ func CreateKubeSecret(req KubeSecretRequest) (v1.Secret, error) {
 
 			kubeSecret.StringData[key] = value
 		}
+	} else {
+		for key, specItem := range req.Spec {
+			if specItem.Source != "" { // Map one secret
+				if opaqueMap[specItem.Source] {
+					continue
+				}
 
-		return kubeSecret, nil
+				// TODO: error handling (missing secret key)?
+				kubeSecret.StringData[key] = req.Values[specItem.Source]
+			} else { // Map multiple secrets
+				sourceMap := make(map[string]string)
+				if len(specItem.SourceMap) > 0 { // Map certain secrets
+					sourceMap =  specItem.SourceMap
+				} else { // Include all secrets
+					for key := range req.Values {
+						sourceMap[key] = key
+					}
+				}
+
+				data := make(map[string]string)
+
+				for dest, source := range sourceMap {
+					if opaqueMap[source] {
+						continue
+					}
+
+					// TODO: error handling (missing secret key)?
+					data[dest] = req.Values[source]
+				}
+
+				rawData, err := json.Marshal(data)
+				if err != nil {
+					return kubeSecret, errors.Wrap(err, "could not marshal secret")
+				}
+
+				kubeSecret.StringData[key] = string(rawData)
+			}
+		}
 	}
 
 	return kubeSecret, nil
