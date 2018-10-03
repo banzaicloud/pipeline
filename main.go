@@ -232,6 +232,12 @@ func main() {
 			orgs.PUT("/:orgid/clusters/:id/deployments/:name", api.UpgradeDeployment)
 			orgs.HEAD("/:orgid/clusters/:id/deployments/:name", api.HelmDeploymentStatus)
 			orgs.POST("/:orgid/clusters/:id/helminit", api.InitHelmOnCluster)
+
+			orgs.GET("/:orgid/clusters/:id/scanlog", api.GetScanLog)
+			orgs.GET("/:orgid/clusters/:id/whitelists", api.GetWhiteLists)
+			orgs.POST("/:orgid/clusters/:id/whitelists", api.CreateWhiteList)
+			orgs.DELETE("/:orgid/clusters/:id/whitelists/:name", api.DeleteWhiteList)
+
 			orgs.GET("/:orgid/helm/repos", api.HelmReposGet)
 			orgs.POST("/:orgid/helm/repos", api.HelmReposAdd)
 			orgs.PUT("/:orgid/helm/repos/:name", api.HelmReposModify)

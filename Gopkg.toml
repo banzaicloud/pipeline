@@ -180,15 +180,15 @@
   name = "gopkg.in/yaml.v2"
   version = "2.2.0"
 
-[[constraint]]
+[[override]]
   name = "k8s.io/api"
   branch = "release-1.10"
 
-[[constraint]]
+[[override]]
   branch = "release-1.10"
   name = "k8s.io/apimachinery"
 
-[[constraint]]
+[[override]]
   name = "k8s.io/client-go"
   version = "=v7.0.0"
 
@@ -273,3 +273,7 @@
 [[constraint]]
   name = "github.com/asaskevich/EventBus"
   revision = "d46933a9"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/banzaicloud/anchore-image-validator"
