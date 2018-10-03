@@ -135,7 +135,7 @@ func (c *GKECluster) GetSshSecretId() string {
 func (c *GKECluster) SaveSshSecretId(sshSecretId string) error {
 	c.model.Cluster.SSHSecretID = sshSecretId
 
-	err := c.db.Save(c.model).Error
+	err := c.db.Save(&c.model).Error
 	if err != nil {
 		return errors.Wrap(err, "failed to save ssh secret id")
 	}
@@ -276,7 +276,7 @@ func (c *GKECluster) Persist(status, statusMessage string) error {
 	c.model.Cluster.Status = status
 	c.model.Cluster.StatusMessage = statusMessage
 
-	err := c.db.Save(c.model).Error
+	err := c.db.Save(&c.model).Error
 	if err != nil {
 		return errors.Wrap(err, "failed to save ssh secret id")
 	}
@@ -1755,7 +1755,7 @@ func (c *GKECluster) UpdateStatus(status, statusMessage string) error {
 	c.model.Cluster.Status = status
 	c.model.Cluster.StatusMessage = statusMessage
 
-	err := c.db.Save(c.model).Error
+	err := c.db.Save(&c.model).Error
 	if err != nil {
 		return errors.Wrap(err, "failed to update status")
 	}
@@ -1933,7 +1933,7 @@ func (c *GKECluster) GetSecretWithValidation() (*secret.SecretItemResponse, erro
 func (c *GKECluster) SaveConfigSecretId(configSecretId string) error {
 	c.model.Cluster.ConfigSecretID = configSecretId
 
-	err := c.db.Save(c.model).Error
+	err := c.db.Save(&c.model).Error
 	if err != nil {
 		return errors.Wrap(err, "failed to save config secret id")
 	}
