@@ -19,6 +19,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/secret"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -68,7 +69,8 @@ func TestCreateKubeSecret(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			kubeSecret := secret.CreateKubeSecret(test.kubeSecretRequest)
+			kubeSecret, err := secret.CreateKubeSecret(test.kubeSecretRequest)
+			require.NoError(t, err)
 
 			assert.Equal(t, test.kubeSecret, kubeSecret)
 		})

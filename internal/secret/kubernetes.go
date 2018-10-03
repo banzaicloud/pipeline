@@ -28,7 +28,7 @@ type KubeSecretRequest struct {
 }
 
 // CreateKubeSecret creates a Kubernetes Secret object from a Secret.
-func CreateKubeSecret(req KubeSecretRequest) v1.Secret {
+func CreateKubeSecret(req KubeSecretRequest) (v1.Secret, error) {
 	kubeSecret := v1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: req.Name,
@@ -54,5 +54,5 @@ func CreateKubeSecret(req KubeSecretRequest) v1.Secret {
 		kubeSecret.StringData[key] = value
 	}
 
-	return kubeSecret
+	return kubeSecret, nil
 }
