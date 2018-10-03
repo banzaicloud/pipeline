@@ -25,9 +25,8 @@ import (
 
 func TestCreateKubeSecret(t *testing.T) {
 	tests := map[string]struct {
-		kubeSecret v1.Secret
-		typ        string
-		secretMap  map[string]string
+		kubeSecret        v1.Secret
+		kubeSecretRequest secret.KubeSecretRequest
 	}{
 		"simple secret": {
 			v1.Secret{
@@ -38,9 +37,12 @@ func TestCreateKubeSecret(t *testing.T) {
 					"key": "value",
 				},
 			},
-			"generic",
-			map[string]string{
-				"key": "value",
+			secret.KubeSecretRequest{
+				Name: "secret",
+				Type: "generic",
+				Values: map[string]string{
+					"key": "value",
+				},
 			},
 		},
 		"secret with opaque fields": {
@@ -52,18 +54,21 @@ func TestCreateKubeSecret(t *testing.T) {
 					".htpasswd": "blah",
 				},
 			},
-			"htpasswd",
-			map[string]string{
-				"username":  "user",
-				"password":  "pass",
-				".htpasswd": "blah",
+			secret.KubeSecretRequest{
+				Name: "secret",
+				Type: "htpasswd",
+				Values: map[string]string{
+					"username":  "user",
+					"password":  "pass",
+					".htpasswd": "blah",
+				},
 			},
 		},
 	}
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			kubeSecret := secret.CreateKubeSecret("secret", test.typ, test.secretMap)
+			kubeSecret := secret.CreateKubeSecret(test.kubeSecretRequest)
 
 			assert.Equal(t, test.kubeSecret, kubeSecret)
 		})

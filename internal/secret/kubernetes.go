@@ -20,26 +20,33 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// KubeSecretRequest contains details for a Kubernetes Secret creation from pipeline secrets.
+type KubeSecretRequest struct {
+	Name   string
+	Type   string
+	Values map[string]string
+}
+
 // CreateKubeSecret creates a Kubernetes Secret object from a Secret.
-func CreateKubeSecret(name string, typ string, values map[string]string) v1.Secret {
+func CreateKubeSecret(req KubeSecretRequest) v1.Secret {
 	kubeSecret := v1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: name,
+			Name: req.Name,
 		},
 		StringData: map[string]string{},
 	}
 
-	secretMeta := secretTypes.DefaultRules[typ]
+	secretMeta := secretTypes.DefaultRules[req.Type]
 	opaqueMap := make(map[string]bool, len(secretMeta.Fields))
 
 	// Generic secret fields are never opaque
-	if typ != secretTypes.GenericSecret {
+	if req.Type != secretTypes.GenericSecret {
 		for _, field := range secretMeta.Fields {
 			opaqueMap[field.Name] = field.Opaque
 		}
 	}
 
-	for key, value := range values {
+	for key, value := range req.Values {
 		if opaqueMap[key] {
 			continue
 		}
