@@ -78,7 +78,7 @@ func CreateKubeSecret(req KubeSecretRequest) (v1.Secret, error) {
 			} else { // Map multiple secrets
 				sourceMap := make(map[string]string)
 				if len(specItem.SourceMap) > 0 { // Map certain secrets
-					sourceMap =  specItem.SourceMap
+					sourceMap = specItem.SourceMap
 				} else { // Include all secrets
 					for key := range req.Values {
 						sourceMap[key] = key

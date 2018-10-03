@@ -29,29 +29,29 @@ func TestMergeSecrets(t *testing.T) {
 			Name: "secret1",
 		},
 		StringData: map[string]string{
-			"key": "value1",
+			"key":  "value1",
 			"key1": "value1",
 		},
 	}
 
 	secret2 := v1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "secret2",
+			Name:      "secret2",
 			Namespace: "default",
 		},
 		StringData: map[string]string{
-			"key": "value2",
+			"key":  "value2",
 			"key2": "value2",
 		},
 	}
 
 	expectedSecret := v1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "secret2",
+			Name:      "secret2",
 			Namespace: "default",
 		},
 		StringData: map[string]string{
-			"key": "value2",
+			"key":  "value2",
 			"key1": "value1",
 			"key2": "value2",
 		},
