@@ -272,4 +272,4 @@
 
 [[constraint]]
   name = "github.com/asaskevich/EventBus"
-  branch = "master"
+  revision = "d46933a9"

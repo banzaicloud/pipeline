@@ -182,12 +182,11 @@
   version = "v1.0.1"
 
 [[projects]]
-  branch = "master"
   digest = "1:7a438550c05cb99c9022258d145dc1126aa8d1616b7111b5ce80b65adc815fec"
   name = "github.com/asaskevich/EventBus"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "d46933a94f05c6657d7b923fcf5ac563ee37ec79"
+  revision = "d46933a9"
 
 [[projects]]
   digest = "1:91db69c6eaea8ef25cc7f56a06b0aa2de886de091c100b2bea0936bbe90c55a3"
