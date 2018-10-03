@@ -66,13 +66,13 @@ type ClusterModel struct {
 	RbacEnabled    bool
 	Monitoring     bool
 	Logging        bool
-	StatusMessage  string `sql:"type:text;"`
-	ACSK           ACSKClusterModel
-	EC2            EC2ClusterModel
-	AKS            AKSClusterModel
-	EKS            EKSClusterModel
-	Dummy          DummyClusterModel
-	Kubernetes     KubernetesClusterModel
+	StatusMessage  string                 `sql:"type:text;"`
+	ACSK           ACSKClusterModel       `gorm:"foreignkey:ID"`
+	EC2            EC2ClusterModel        `gorm:"foreignkey:ID"`
+	AKS            AKSClusterModel        `gorm:"foreignkey:ID"`
+	EKS            EKSClusterModel        `gorm:"foreignkey:ID"`
+	Dummy          DummyClusterModel      `gorm:"foreignkey:ID"`
+	Kubernetes     KubernetesClusterModel `gorm:"foreignkey:ID"`
 	OKE            modelOracle.Cluster
 	CreatedBy      uint
 }
