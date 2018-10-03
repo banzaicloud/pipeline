@@ -246,6 +246,17 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:d2e3e7c81508aca1bcadff7a9f005b32668423965d2d7d0f21b0adeb83929acc"
+  name = "github.com/banzaicloud/anchore-image-validator"
+  packages = [
+    "pkg/apis/security/v1alpha1",
+    "pkg/clientset/v1alpha1",
+  ]
+  pruneopts = "NUT"
+  revision = "ada3b8cbfcd2556e298d95f578a9ef20e1230b32"
+
+[[projects]]
+  branch = "master"
   digest = "1:70f71b6fba14f54398f87e554a894df9cdaccbbbca4c844e7ebabe77459d4fee"
   name = "github.com/banzaicloud/azure-aks-client"
   packages = [
@@ -933,6 +944,14 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:c8a452cc8dd4ef9f857570ce2be31ca257a0928bf3c2b08cd7e11972b985c6d7"
+  name = "github.com/konsorten/go-windows-terminal-sequences"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "b729f2633dfe35f4d1d8a32385f6685610ce1cb5"
+
+[[projects]]
+  branch = "master"
   digest = "1:47fa0ef6ae6b0387dacb77c7ab8827b4ef621650fd613e43ece61de4cb3f5019"
   name = "github.com/kr/fs"
   packages = ["."]
@@ -1415,12 +1434,12 @@
   version = "v1.2.0"
 
 [[projects]]
-  digest = "1:6989062eb7ccf25cf38bf4fe3dba097ee209f896cda42cefdca3927047bef7b6"
+  digest = "1:01252cd79aac70f16cac02a72a1067dd136e0ad6d5b597d0129cf74c739fd8d1"
   name = "github.com/sirupsen/logrus"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "c155da19408a8799da419ed3eeb0cb5db0ad5dbc"
-  version = "v1.0.5"
+  revision = "a67f783a3814b8729bd2dac5780b5f78f8dbd64d"
+  version = "v1.1.0"
 
 [[projects]]
   digest = "1:39da3da7a735176ff518f7a6d8de9e4e03cb760dc7ef0b7b8dae6fc61406295c"
@@ -2329,6 +2348,8 @@
     "github.com/aws/aws-sdk-go/service/route53/route53iface",
     "github.com/aws/aws-sdk-go/service/s3",
     "github.com/aws/aws-sdk-go/service/s3/s3manager",
+    "github.com/banzaicloud/anchore-image-validator/pkg/apis/security/v1alpha1",
+    "github.com/banzaicloud/anchore-image-validator/pkg/clientset/v1alpha1",
     "github.com/banzaicloud/azure-aks-client/client",
     "github.com/banzaicloud/azure-aks-client/cluster",
     "github.com/banzaicloud/azure-aks-client/types",
