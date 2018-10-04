@@ -84,7 +84,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **GetObjectStoreBucketStatus**
-> GetObjectStoreBucketStatus(ctx, orgId, name, secretId, cloudType, optional)
+> GetObjectStoreBucketStatus(ctx, orgId, name, cloudType, optional)
 Get object store bucket status
 
 Retrieves the status of the object store bucket given its name
@@ -96,7 +96,6 @@ Name | Type | Description  | Notes
  **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **orgId** | **int32**| Organization identification | 
   **name** | **string**| Bucket identification | 
-  **secretId** | **string**| Secret identification | 
   **cloudType** | **string**| Identifies the cloud provider | 
  **optional** | ***GetObjectStoreBucketStatusOpts** | optional parameters | nil if no parameters
 
@@ -108,7 +107,8 @@ Name | Type | Description  | Notes
 
 
 
-
+ **secretId** | **optional.String**| Secret identification | 
+ **secretName** | **optional.String**| Secret identification by name | 
  **resourceGroup** | **optional.String**| Azure resource group to lookup the bucket(storage container) under. Required only on Azure cloud provider. | 
  **storageAccount** | **optional.String**| Azure storage account to lookup the bucket(storage container) under. Required only on Azure cloud provider. | 
  **location** | **optional.String**| The region to lookup the bucket under. Required on Amazon, Oracle and Alibaba cloud providers. | 

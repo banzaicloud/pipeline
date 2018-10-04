@@ -360,11 +360,17 @@ func DeleteBucket(c *gin.Context) {
 func getBucketContext(c *gin.Context, logger logrus.FieldLogger) (*auth.Organization, *secret.SecretItemResponse, string, bool) {
 	organization := auth.GetCurrentOrganization(c.Request)
 
-	secretID, ok := ginutils.GetRequiredHeader(c, "secretId")
-	if !ok {
-		logger.Debug("missing secret id")
+	var secretID string
+	var ok bool
 
-		return nil, nil, "", false
+	secretName := c.GetHeader("secretName")
+	if secretName != "" {
+		secretID = secret.GenerateSecretIDFromName(secretName)
+	} else {
+		secretID, ok = ginutils.GetRequiredHeader(c, "secretId")
+		if !ok {
+			return nil, nil, "", false
+		}
 	}
 
 	provider, ok := ginutils.RequiredQueryOrAbort(c, "cloudType")
