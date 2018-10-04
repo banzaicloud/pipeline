@@ -3617,8 +3617,12 @@ paths:
                       type: string
                 - name: secretId
                   in: header
-                  required: true
                   description: Secret identification
+                  schema:
+                      type: string
+                - name: secretName
+                  in: header
+                  description: Secret identification by name
                   schema:
                       type: string
                 - name: cloudType

@@ -272,21 +272,24 @@ Retrieves the status of the object store bucket given its name
  * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param orgId Organization identification
  * @param name Bucket identification
- * @param secretId Secret identification
  * @param cloudType Identifies the cloud provider
  * @param optional nil or *GetObjectStoreBucketStatusOpts - Optional Parameters:
+ * @param "SecretId" (optional.String) -  Secret identification
+ * @param "SecretName" (optional.String) -  Secret identification by name
  * @param "ResourceGroup" (optional.String) -  Azure resource group to lookup the bucket(storage container) under. Required only on Azure cloud provider.
  * @param "StorageAccount" (optional.String) -  Azure storage account to lookup the bucket(storage container) under. Required only on Azure cloud provider.
  * @param "Location" (optional.String) -  The region to lookup the bucket under. Required on Amazon, Oracle and Alibaba cloud providers.
 */
 
 type GetObjectStoreBucketStatusOpts struct {
+	SecretId       optional.String
+	SecretName     optional.String
 	ResourceGroup  optional.String
 	StorageAccount optional.String
 	Location       optional.String
 }
 
-func (a *StorageApiService) GetObjectStoreBucketStatus(ctx context.Context, orgId int32, name string, secretId string, cloudType string, localVarOptionals *GetObjectStoreBucketStatusOpts) (*http.Response, error) {
+func (a *StorageApiService) GetObjectStoreBucketStatus(ctx context.Context, orgId int32, name string, cloudType string, localVarOptionals *GetObjectStoreBucketStatusOpts) (*http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Head")
 		localVarPostBody     interface{}
@@ -331,7 +334,12 @@ func (a *StorageApiService) GetObjectStoreBucketStatus(ctx context.Context, orgI
 	if localVarHttpHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
 	}
-	localVarHeaderParams["secretId"] = parameterToString(secretId, "")
+	if localVarOptionals != nil && localVarOptionals.SecretId.IsSet() {
+		localVarHeaderParams["secretId"] = parameterToString(localVarOptionals.SecretId.Value(), "")
+	}
+	if localVarOptionals != nil && localVarOptionals.SecretName.IsSet() {
+		localVarHeaderParams["secretName"] = parameterToString(localVarOptionals.SecretName.Value(), "")
+	}
 	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFormFileName, localVarFileName, localVarFileBytes)
 	if err != nil {
 		return nil, err

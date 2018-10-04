@@ -4008,7 +4008,15 @@ paths:
         explode: false
         in: header
         name: secretId
-        required: true
+        required: false
+        schema:
+          type: string
+        style: simple
+      - description: Secret identification by name
+        explode: false
+        in: header
+        name: secretName
+        required: false
         schema:
           type: string
         style: simple
