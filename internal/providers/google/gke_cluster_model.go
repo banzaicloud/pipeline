@@ -24,13 +24,14 @@ import (
 
 // GKEClusterModel is the schema for the DB.
 type GKEClusterModel struct {
-	Cluster cluster.ClusterModel `gorm:"foreignkey:ID"`
-	ID      uint                 `gorm:"primary_key;not null"`
+	ID        uint                 `gorm:"primary_key"`
+	Cluster   cluster.ClusterModel `gorm:"foreignkey:ClusterID"`
+	ClusterID uint
 
 	MasterVersion string
 	NodeVersion   string
 	Region        string
-	NodePools     []*GKENodePoolModel `gorm:"foreignkey:ClusterID"`
+	NodePools     []*GKENodePoolModel `gorm:"foreignkey:ClusterID;association_foreignkey:ClusterID"`
 }
 
 // TableName changes the default table name.

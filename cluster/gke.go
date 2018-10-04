@@ -278,7 +278,7 @@ func (c *GKECluster) Persist(status, statusMessage string) error {
 
 	err := c.db.Save(&c.model).Error
 	if err != nil {
-		return errors.Wrap(err, "failed to save ssh secret id")
+		return errors.Wrap(err, "failed to persist cluster")
 	}
 
 	return nil
@@ -1429,7 +1429,7 @@ func CreateGKEClusterFromModel(clusterModel *model.ClusterModel) (*GKECluster, e
 	db := pipConfig.DB()
 
 	m := google.GKEClusterModel{
-		ID: clusterModel.ID,
+		ClusterID: clusterModel.ID,
 	}
 
 	log.Info("Load Google props from database")
