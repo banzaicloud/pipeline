@@ -278,7 +278,7 @@ func (c *GKECluster) Persist(status, statusMessage string) error {
 
 	err := c.db.Save(&c.model).Error
 	if err != nil {
-		return errors.Wrap(err, "failed to save ssh secret id")
+		return errors.Wrap(err, "failed to persist cluster")
 	}
 
 	return nil
