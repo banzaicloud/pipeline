@@ -1429,7 +1429,7 @@ func CreateGKEClusterFromModel(clusterModel *model.ClusterModel) (*GKECluster, e
 	db := pipConfig.DB()
 
 	m := google.GKEClusterModel{
-		ID: clusterModel.ID,
+		ClusterID: clusterModel.ID,
 	}
 
 	log.Info("Load Google props from database")
