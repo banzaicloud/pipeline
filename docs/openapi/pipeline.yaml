@@ -7074,24 +7074,24 @@ components:
           description: Details specific to an image reference and type such as tag and image source
           items:
             $ref: '#/components/schemas/ImageDetail'
-        last_updated:
+        lastUpdated:
           type: string
           format: "date-time"
-        created_at:
+        createdAt:
           type: string
           format: "date-time"
         imageDigest:
           type: string
         userId:
           type: string
-        image_status:
+        imageStatus:
           type: string
           description: State of the image
           enum:
           - active
           - inactive
           - disabled
-        analysis_status:
+        analysisDtatus:
           type: string
           description: A state value for the current status of the analysis progress of the image
           enum:
@@ -7121,22 +7121,22 @@ components:
         feed:
           type: string
           description: The name of the feed where vulnerability match was made
-        feed_group:
+        feedGroup:
           type: string
           description: The name of the feed group where vulnerability match was made
-        package_name:
+        packageName:
           type: string
           description: The name of the vulnerable package artifact
-        package_version:
+        packageVersion:
           type: string
           description: The version of the vulnerable package artifact
-        package_type:
+        packageType:
           type: string
           description: The type of vulnerable package
-        package_cpe:
+        packageCpe:
           type: string
           description: The CPE string (if applicable) describing the package to vulnerability match
-        package_path:
+        packagePath:
           type: string
           description: The location (if applicable) of the vulnerable package in the   container filesystem
   
@@ -7152,7 +7152,7 @@ components:
       properties:
         imageDigest:
           type: string
-        vulnerability_type:
+        vulnerabilityType:
           type: string
         vulnerabilities:
           $ref: '#/components/schemas/VulnerabilityList'
