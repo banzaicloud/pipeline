@@ -83,14 +83,17 @@ func SyncSpotguides(c *gin.Context) {
 
 	orgID := auth.GetCurrentOrganization(c.Request).ID
 
-	go func() {
-		err := spotguide.ScrapeSpotguides(orgID)
-		if err != nil {
-			log.Errorln("failed synchronizing spotguides:", err.Error())
-		}
-	}()
+	err := spotguide.ScrapeSpotguides(orgID)
+	if err != nil {
+		log.Errorln("failed synchronizing spotguides:", err.Error())
+		c.JSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: "failed synchronizing spotguides",
+		})
+		return
+	}
 
-	c.Status(http.StatusAccepted)
+	c.Status(http.StatusOK)
 }
 
 // LaunchSpotguide creates a spotguide workflow, all secrets, repositories.
