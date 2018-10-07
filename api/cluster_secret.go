@@ -41,7 +41,7 @@ type InstallSecretResponse struct {
 	Sourcing string `json:"sourcing"`
 }
 
-// InstallSecretsoCluster installs a particular secret to a cluster's namespace.
+// InstallSecretToCluster installs a particular secret to a cluster's namespace.
 func InstallSecretToCluster(c *gin.Context) {
 	commonCluster, ok := getClusterFromRequest(c)
 	if !ok {
