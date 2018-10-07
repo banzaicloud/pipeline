@@ -32,6 +32,14 @@ import (
 
 const hpaAnnotationPrefix = "hpa.autoscaling.banzaicloud.io"
 
+type scaleTargetNotFoundError struct {
+	scaleTargetRef string
+}
+
+func (e *scaleTargetNotFoundError) Error() string {
+	return fmt.Sprintf("scaleTarget: %v not found!", e.scaleTargetRef)
+}
+
 // PutHpaResource create/updates a Hpa resource annotations on scaleTarget - a K8s deployment/statefulset
 func PutHpaResource(c *gin.Context) {
 
@@ -67,10 +75,16 @@ func PutHpaResource(c *gin.Context) {
 
 	err = setDeploymentAutoscalingInfo(kubeConfig, *scalingRequest)
 	if err != nil {
+
+		httpStatusCode := http.StatusBadRequest
+		if _, ok := err.(*scaleTargetNotFoundError); ok {
+			httpStatusCode = http.StatusNotFound
+		}
+
 		err := errors.Wrap(err, "Error during request processing")
 		log.Error(err.Error())
-		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
-			Code:    http.StatusBadRequest,
+		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
+			Code:    httpStatusCode,
 			Message: "Error during request processing!",
 			Error:   errors.Cause(err).Error(),
 		})
@@ -85,11 +99,6 @@ func DeleteHpaResource(c *gin.Context) {
 
 	scaleTarget, ok := ginutils.RequiredQueryOrAbort(c, "scaleTarget")
 	if !ok {
-		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "missing required param: scaleTarget",
-			Error:   "missing required param: scaleTarget",
-		})
 		return
 	}
 	log.Debugf("getting hpa details for scaleTarget: [%s]", scaleTarget)
@@ -101,10 +110,16 @@ func DeleteHpaResource(c *gin.Context) {
 
 	err := deleteDeploymentAutoscalingInfo(kubeConfig, scaleTarget)
 	if err != nil {
+
+		httpStatusCode := http.StatusInternalServerError
+		if _, ok := err.(*scaleTargetNotFoundError); ok {
+			httpStatusCode = http.StatusNotFound
+		}
+
 		err := errors.Wrap(err, "Error during request processing")
 		log.Error(err.Error())
-		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
-			Code:    http.StatusBadRequest,
+		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
+			Code:    httpStatusCode,
 			Message: "Error during request processing!",
 			Error:   errors.Cause(err).Error(),
 		})
@@ -129,9 +144,14 @@ func GetHpaResource(c *gin.Context) {
 
 	deploymentResponse, err := getHpaResources(scaleTarget, kubeConfig)
 	if err != nil {
+
+		httpStatusCode := http.StatusInternalServerError
+		if _, ok := err.(*scaleTargetNotFoundError); ok {
+			httpStatusCode = http.StatusNotFound
+		}
+
 		err := errors.Wrap(err, "Error during request processing")
 		log.Error(err.Error())
-		httpStatusCode := http.StatusBadRequest
 		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
 			Code:    httpStatusCode,
 			Message: "Error getting deployment",
@@ -144,7 +164,7 @@ func GetHpaResource(c *gin.Context) {
 
 }
 
-func getHpaResources(scaleTragetRef string, kubeConfig []byte) ([]hpa.DeploymentScalingInfo, error) {
+func getHpaResources(scaleTargetRef string, kubeConfig []byte) ([]hpa.DeploymentScalingInfo, error) {
 	client, err := helm.GetK8sConnection(kubeConfig)
 	if err != nil {
 		log.Errorf("Getting K8s client failed: %s", err.Error())
@@ -166,15 +186,15 @@ func getHpaResources(scaleTragetRef string, kubeConfig []byte) ([]hpa.Deployment
 	found := false
 
 	for _, hpaItem := range hpaList.Items {
-		if !hpaBelongsToDeployment(hpaItem, scaleTragetRef) {
+		if !hpaBelongsToDeployment(hpaItem, scaleTargetRef) {
 			continue
 		}
 
 		found = true
 
-		log.Debugf("hpa found: %v for scaleTragetRef: %v", hpaItem.Name, scaleTragetRef)
+		log.Debugf("hpa found: %v for scaleTragetRef: %v", hpaItem.Name, scaleTargetRef)
 		deploymentItem := hpa.DeploymentScalingInfo{
-			ScaleTarget:   scaleTragetRef,
+			ScaleTarget:   scaleTargetRef,
 			Kind:          hpaItem.Spec.ScaleTargetRef.Kind,
 			MinReplicas:   *hpaItem.Spec.MinReplicas,
 			MaxReplicas:   hpaItem.Spec.MaxReplicas,
@@ -203,7 +223,7 @@ func getHpaResources(scaleTragetRef string, kubeConfig []byte) ([]hpa.Deployment
 	}
 
 	if !found {
-		return nil, errors.Errorf("scaleTarget: %v not found!", scaleTragetRef)
+		return nil, &scaleTargetNotFoundError{scaleTargetRef: scaleTargetRef}
 	}
 
 	return responseDeployments, nil
@@ -312,7 +332,7 @@ func deleteDeploymentAutoscalingInfo(kubeConfig []byte, scaleTarget string) erro
 	}
 
 	if !scaleTargetFound {
-		return errors.Errorf("scaleTarget: %v not found!", scaleTarget)
+		return &scaleTargetNotFoundError{scaleTargetRef: scaleTarget}
 	}
 
 	return nil
@@ -367,7 +387,7 @@ func setDeploymentAutoscalingInfo(kubeConfig []byte, request hpa.DeploymentScali
 	}
 
 	if !scaleTargetFound {
-		return errors.Errorf("scaleTarget: %v not found!", request.ScaleTarget)
+		return &scaleTargetNotFoundError{scaleTargetRef: request.ScaleTarget}
 	}
 
 	return nil
