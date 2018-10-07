@@ -178,8 +178,8 @@ func (a *CreateACSKClusterAction) ExecuteAction(input interface{}) (output inter
 		return nil, err
 	}
 	if !resp.IsSuccess() || resp.GetHttpStatus() < 200 || resp.GetHttpStatus() > 299 {
-		a.log.Errorf("CreateCluster error status code is: %s", resp.GetHttpStatus())
-		return nil, errors.Errorf("create cluster error the returned status code is %s", resp.GetHttpStatus())
+		a.log.Errorf("CreateCluster error status code is: %d", resp.GetHttpStatus())
+		return nil, errors.Errorf("create cluster error the returned status code is %d", resp.GetHttpStatus())
 	}
 
 	// parse response

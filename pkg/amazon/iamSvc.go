@@ -132,6 +132,32 @@ func GetPolicy(svc iamiface.IAMAPI, arn string) (*iam.Policy, error) {
 
 }
 
+// GetPolicyByName retrieves the IAM policy identified by the given policy name
+func GetPolicyByName(svc iamiface.IAMAPI, policyName, scope string) (*iam.Policy, error) {
+	listPolicies := &iam.ListPoliciesInput{
+		Scope: aws.String(scope),
+	}
+
+	var policy *iam.Policy
+	err := svc.ListPoliciesPages(listPolicies,
+		func(page *iam.ListPoliciesOutput, lastPage bool) bool {
+			for _, p := range page.Policies {
+				if aws.StringValue(p.PolicyName) == policyName {
+					policy = p
+					return false
+				}
+			}
+
+			return true
+		})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return policy, nil
+}
+
 // CreatePolicy creates an AWS policy with given name, description and JSON policy document
 func CreatePolicy(svc iamiface.IAMAPI, policyName, policyDocument, policyDescription *string) (*iam.Policy, error) {
 	policyInput := &iam.CreatePolicyInput{

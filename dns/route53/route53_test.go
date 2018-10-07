@@ -53,7 +53,7 @@ const (
 		"Statement": [{
 				"Effect": "Allow",
 				"Action": "route53:ChangeResourceRecordSets",
-				"Resource": "arn:aws:route53:::hostedzone/%s"
+				"Resource": "arn:aws:route53:::hostedzone/testhostedzone1"
 			},
 			{
 				"Effect": "Allow",
@@ -69,8 +69,7 @@ const (
 				"Action": "route53:GetChange",
 				"Resource": "arn:aws:route53:::change/*"
 			}
-		]
-	}`
+		]}`
 	testSomeErrMsg = "some error"
 )
 
