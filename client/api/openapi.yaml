@@ -1109,7 +1109,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/InstallSecretsRequest'
+              $ref: '#/components/schemas/InstallSecretRequest'
         required: true
       responses:
         200:
@@ -5669,6 +5669,13 @@ components:
         $ref: '#/components/schemas/InstallSecretResponse'
       type: array
     InstallSecretRequest:
+      example:
+        namespace: default
+        spec:
+          key:
+            sourceMap:
+              key: sourceMap
+            source: source
       properties:
         namespace:
           example: default
@@ -5681,6 +5688,10 @@ components:
       - namespace
       type: object
     InstallSecretRequestSpecItem:
+      example:
+        sourceMap:
+          key: sourceMap
+        source: source
       properties:
         source:
           type: string
@@ -7188,18 +7199,26 @@ components:
     ReleaseWhiteListItem:
       example:
         owner: banzaicloud
-        reaseon: test release
+        reason: test release
         releaseName: flying-monkey
+        name: flying-monkey-wl
       properties:
+        name:
+          example: flying-monkey-wl
+          type: string
         releaseName:
           example: flying-monkey
           type: string
         owner:
           example: banzaicloud
           type: string
-        reaseon:
+        reason:
           example: test release
           type: string
+      required:
+      - name
+      - owner
+      - releaseName
       type: object
     PolicyBundle:
       description: A bundle containing a set of policies, whitelists, and rules for mapping them to specific images

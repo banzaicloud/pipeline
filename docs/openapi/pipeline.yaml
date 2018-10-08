@@ -1043,7 +1043,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/InstallSecretsRequest'
+                            $ref: '#/components/schemas/InstallSecretRequest'
 
     '/api/v1/orgs/{orgId}/clusters/{id}/scanlog':
         get:
