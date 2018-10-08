@@ -235,7 +235,7 @@ func generateStatusMessage(status v2beta1.HorizontalPodAutoscalerStatus) string 
 			return fmt.Sprintf("%v=%v : %v", v2beta1.ScalingActive, condition.Status, condition.Message)
 		}
 	}
-	return "n/a"
+	return ""
 }
 
 func getResourceMetricStatus(hpaItem v2beta1.HorizontalPodAutoscaler, metric v2beta1.MetricSpec) hpa.ResourceMetricStatus {
@@ -253,7 +253,7 @@ func getResourceMetricStatus(hpaItem v2beta1.HorizontalPodAutoscaler, metric v2b
 				metricStatus.CurrentAverageValue = fmt.Sprint(*currentMetricStatus.Resource.CurrentAverageUtilization)
 				metricStatus.TargetAverageValueType = hpa.PercentageValueType
 			} else if !currentMetricStatus.Resource.CurrentAverageValue.IsZero() {
-				metricStatus.CurrentAverageValue = currentMetricStatus.Resource.CurrentAverageValue.String()
+				metricStatus.CurrentAverageValue = fmt.Sprint(currentMetricStatus.Resource.CurrentAverageValue.MilliValue())
 				metricStatus.CurrentAverageValueType = hpa.QuantityValueType
 			}
 		}
