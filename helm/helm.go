@@ -56,6 +56,15 @@ const versionAll = "all"
 // ErrRepoNotFound describe an error if helm repository not found
 var ErrRepoNotFound = errors.New("helm repository not found!")
 
+// DefaultInstallOptions contains th default install options used for creating a new helm deployment
+var DefaultInstallOptions = []helm.InstallOption{
+	helm.InstallDryRun(false),
+	helm.InstallReuseName(true),
+	helm.InstallDisableHooks(false),
+	helm.InstallTimeout(300),
+	helm.InstallWait(false),
+}
+
 // DeploymentNotFoundError is returned when a Helm related operation is executed on
 // a deployment (helm release) that doesn't exists
 type DeploymentNotFoundError struct {
@@ -225,7 +234,7 @@ func UpgradeDeployment(releaseName, chartName, chartVersion string, chartPackage
 }
 
 //CreateDeployment creates a Helm deployment in chosen namespace
-func CreateDeployment(chartName, chartVersion string, chartPackage []byte, namespace string, releaseName string, valueOverrides []byte, kubeConfig []byte, env helm_env.EnvSettings) (*rls.InstallReleaseResponse, error) {
+func CreateDeployment(chartName, chartVersion string, chartPackage []byte, namespace string, releaseName string, valueOverrides []byte, kubeConfig []byte, env helm_env.EnvSettings, options ...helm.InstallOption) (*rls.InstallReleaseResponse, error) {
 
 	chartRequested, err := getRequestedChart(releaseName, chartName, chartVersion, chartPackage, env)
 	if err != nil {
@@ -243,16 +252,21 @@ func CreateDeployment(chartName, chartVersion string, chartPackage []byte, names
 	if err != nil {
 		return nil, err
 	}
+
+	if len(options) == 0 {
+		options = DefaultInstallOptions
+	}
+	installOptions := []helm.InstallOption{
+		helm.ValueOverrides(valueOverrides),
+		helm.ReleaseName(releaseName),
+	}
+	installOptions = append(installOptions, options...)
+
 	installRes, err := hClient.InstallReleaseFromChart(
 		chartRequested,
 		namespace,
-		helm.ValueOverrides(valueOverrides),
-		helm.ReleaseName(releaseName),
-		helm.InstallDryRun(false),
-		helm.InstallReuseName(true),
-		helm.InstallDisableHooks(false),
-		helm.InstallTimeout(300),
-		helm.InstallWait(false))
+		installOptions...,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("Error deploying chart: %v", err)
 	}
