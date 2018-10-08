@@ -24,7 +24,7 @@ bin/dep-${DEP_VERSION}:
 
 .PHONY: vendor
 vendor: bin/dep ## Install dependencies
-	bin/dep ensure -vendor-only
+	bin/dep ensure -vendor-only -v
 
 .PHONY: build
 build: ## Builds binary package
