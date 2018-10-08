@@ -8057,13 +8057,8 @@ components:
     AnchoreImage:
       description: A unique image in the engine. May have multiple tags or references. Unique to an image content across registries or repositories.
       example:
-        imageDetail: ""
-        lastUpdated: 2000-01-23T04:56:07.000+00:00
-        createdAt: 2000-01-23T04:56:07.000+00:00
-        analysisDtatus: not_analyzed
-        imageStatus: active
-        items:
-          createdAt: 2000-01-23T04:56:07.000+00:00
+        imageDetail:
+        - createdAt: 2000-01-23T04:56:07.000+00:00
           lastUpdated: 2000-01-23T04:56:07.000+00:00
           registry: registry
           imageId: imageId
@@ -8073,6 +8068,20 @@ components:
           fulltag: fulltag
           userId: userId
           imageDigest: imageDigest
+        - createdAt: 2000-01-23T04:56:07.000+00:00
+          lastUpdated: 2000-01-23T04:56:07.000+00:00
+          registry: registry
+          imageId: imageId
+          fulldigest: fulldigest
+          repo: repo
+          dockerfile: dockerfile
+          fulltag: fulltag
+          userId: userId
+          imageDigest: imageDigest
+        lastUpdated: 2000-01-23T04:56:07.000+00:00
+        createdAt: 2000-01-23T04:56:07.000+00:00
+        analysisDtatus: not_analyzed
+        imageStatus: active
         userId: userId
         imageDigest: imageDigest
       properties:
@@ -8080,9 +8089,9 @@ components:
           $ref: '#/components/schemas/ImageContent'
         imageDetail:
           description: Details specific to an image reference and type such as tag and image source
+          items:
+            $ref: '#/components/schemas/ImageDetail'
           type: array
-        items:
-          $ref: '#/components/schemas/ImageDetail'
         lastUpdated:
           format: date-time
           type: string

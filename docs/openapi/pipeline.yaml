@@ -7253,8 +7253,8 @@ components:
                 imageDetail:
                     type: array
                     description: Details specific to an image reference and type such as tag and image source
-                items:
-                    $ref: '#/components/schemas/ImageDetail'
+                    items:
+                        $ref: '#/components/schemas/ImageDetail'
                 lastUpdated:
                     type: string
                     format: "date-time"

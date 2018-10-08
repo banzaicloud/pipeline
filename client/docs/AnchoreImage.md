@@ -4,8 +4,7 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **ImageContent** | [**ImageContent**](ImageContent.md) |  | [optional] 
-**ImageDetail** | [**Array**](array.md) | Details specific to an image reference and type such as tag and image source | [optional] 
-**Items** | [**ImageDetail**](ImageDetail.md) |  | [optional] 
+**ImageDetail** | [**[]ImageDetail**](ImageDetail.md) | Details specific to an image reference and type such as tag and image source | [optional] 
 **LastUpdated** | [**time.Time**](time.Time.md) |  | [optional] 
 **CreatedAt** | [**time.Time**](time.Time.md) |  | [optional] 
 **ImageDigest** | **string** |  | [optional] 

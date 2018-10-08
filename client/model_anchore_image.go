@@ -19,12 +19,11 @@ import (
 type AnchoreImage struct {
 	ImageContent ImageContent `json:"imageContent,omitempty"`
 	// Details specific to an image reference and type such as tag and image source
-	ImageDetail Array       `json:"imageDetail,omitempty"`
-	Items       ImageDetail `json:"items,omitempty"`
-	LastUpdated time.Time   `json:"lastUpdated,omitempty"`
-	CreatedAt   time.Time   `json:"createdAt,omitempty"`
-	ImageDigest string      `json:"imageDigest,omitempty"`
-	UserId      string      `json:"userId,omitempty"`
+	ImageDetail []ImageDetail `json:"imageDetail,omitempty"`
+	LastUpdated time.Time     `json:"lastUpdated,omitempty"`
+	CreatedAt   time.Time     `json:"createdAt,omitempty"`
+	ImageDigest string        `json:"imageDigest,omitempty"`
+	UserId      string        `json:"userId,omitempty"`
 	// State of the image
 	ImageStatus string `json:"imageStatus,omitempty"`
 	// A state value for the current status of the analysis progress of the image
