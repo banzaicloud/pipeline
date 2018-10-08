@@ -4151,6 +4151,204 @@ paths:
       summary: Get object store bucket status
       tags:
       - storage
+  /api/v1/orgs/{orgId}/clusters/{id}/images:
+    get:
+      description: List Images used in cluster
+      operationId: ListImages
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterImageList'
+          description: List Images
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during getting cluster details
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+          description: Cluster not found
+      security:
+      - bearerAuth: []
+      summary: List Images used in cluster
+      tags:
+      - images
+  /api/v1/orgs/{orgId}/imagescan:
+    post:
+      description: Scan Images used in cluster
+      operationId: ScanImages
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClusterImageList'
+        required: true
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterImageList'
+          description: Scan Images initiated
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Scan Images used in cluster
+      tags:
+      - imagescan
+  /api/v1/orgs/{orgId}/imagescan/{imageDigest}:
+    get:
+      description: Get Image scan result
+      operationId: ScanResult
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Image digest
+        explode: false
+        in: path
+        name: imageDigest
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnchoreImage'
+          description: Image scan results
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Get Image scan results
+      tags:
+      - imagescan
+  /api/v1/orgs/{orgId}/imagescan/{imageDigest}/vuln:
+    get:
+      description: Get vulnerabilities
+      operationId: Get ImageVulnerabilities
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Image digest
+        explode: false
+        in: path
+        name: imageDigest
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VulnerabilityResponse'
+          description: Image Vulnaribility
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Get vulnerabilities
+      tags:
+      - imagescan
 components:
   schemas:
     SpotguideDetailsResponse:
@@ -7231,49 +7429,64 @@ components:
     PolicyBundle:
       description: A bundle containing a set of policies, whitelists, and rules for mapping them to specific images
       example:
-        blacklisted_images:
-        - registry: registry
-          image:
-            type: tag
-            value: value
-          name: name
-          id: id
-          repository: repository
-        - registry: registry
-          image:
-            type: tag
-            value: value
-          name: name
-          id: id
-          repository: repository
         mappings:
-        - whitelist_ids:
-          - whitelist_ids
-          - whitelist_ids
-          registry: registry
+        - registry: registry
           image:
             type: tag
             value: value
-          policy_id: policy_id
+          policyId: policyId
           name: name
+          policyIds:
+          - policyIds
+          - policyIds
           id: id
-          policy_ids:
-          - policy_ids
-          - policy_ids
+          whitelistIds:
+          - whitelistIds
+          - whitelistIds
           repository: repository
-        - whitelist_ids:
-          - whitelist_ids
-          - whitelist_ids
-          registry: registry
+        - registry: registry
           image:
             type: tag
             value: value
-          policy_id: policy_id
+          policyId: policyId
+          name: name
+          policyIds:
+          - policyIds
+          - policyIds
+          id: id
+          whitelistIds:
+          - whitelistIds
+          - whitelistIds
+          repository: repository
+        whitelistedImages:
+        - registry: registry
+          image:
+            type: tag
+            value: value
           name: name
           id: id
-          policy_ids:
-          - policy_ids
-          - policy_ids
+          repository: repository
+        - registry: registry
+          image:
+            type: tag
+            value: value
+          name: name
+          id: id
+          repository: repository
+        blacklistedImages:
+        - registry: registry
+          image:
+            type: tag
+            value: value
+          name: name
+          id: id
+          repository: repository
+        - registry: registry
+          image:
+            type: tag
+            value: value
+          name: name
+          id: id
           repository: repository
         whitelists:
         - name: name
@@ -7346,21 +7559,6 @@ components:
               value: value
           id: id
           version: version
-        whitelisted_images:
-        - registry: registry
-          image:
-            type: tag
-            value: value
-          name: name
-          id: id
-          repository: repository
-        - registry: registry
-          image:
-            type: tag
-            value: value
-          name: name
-          id: id
-          repository: repository
         comment: comment
         id: id
         version: version
@@ -7392,12 +7590,12 @@ components:
           items:
             $ref: '#/components/schemas/MappingRule'
           type: array
-        whitelisted_images:
+        whitelistedImages:
           description: List of mapping rules that define which images should always be passed (unless also on the blacklist), regardless of policy result.
           items:
             $ref: '#/components/schemas/ImageSelectionRule'
           type: array
-        blacklisted_images:
+        blacklistedImages:
           description: List of mapping rules that define which images should always result in a STOP/FAIL policy result regardless of policy content or presence in whitelisted_images
           items:
             $ref: '#/components/schemas/ImageSelectionRule'
@@ -7578,33 +7776,33 @@ components:
       type: object
     MappingRule:
       example:
-        whitelist_ids:
-        - whitelist_ids
-        - whitelist_ids
         registry: registry
         image:
           type: tag
           value: value
-        policy_id: policy_id
+        policyId: policyId
         name: name
+        policyIds:
+        - policyIds
+        - policyIds
         id: id
-        policy_ids:
-        - policy_ids
-        - policy_ids
+        whitelistIds:
+        - whitelistIds
+        - whitelistIds
         repository: repository
       properties:
         id:
           type: string
         name:
           type: string
-        whitelist_ids:
+        whitelistIds:
           items:
             type: string
           type: array
-        policy_id:
+        policyId:
           description: Optional single policy to evalute, if set will override any value in policy_ids, for backwards compatibility. Generally, policy_ids should be used even with a array of length 1.
           type: string
-        policy_ids:
+        policyIds:
           description: List of policyIds to evaluate in order, to completion
           items:
             description: PolicyId to evaluate
@@ -7626,49 +7824,64 @@ components:
       description: A policy bundle plus some metadata
       example:
         policybundle:
-          blacklisted_images:
-          - registry: registry
-            image:
-              type: tag
-              value: value
-            name: name
-            id: id
-            repository: repository
-          - registry: registry
-            image:
-              type: tag
-              value: value
-            name: name
-            id: id
-            repository: repository
           mappings:
-          - whitelist_ids:
-            - whitelist_ids
-            - whitelist_ids
-            registry: registry
+          - registry: registry
             image:
               type: tag
               value: value
-            policy_id: policy_id
+            policyId: policyId
             name: name
+            policyIds:
+            - policyIds
+            - policyIds
             id: id
-            policy_ids:
-            - policy_ids
-            - policy_ids
+            whitelistIds:
+            - whitelistIds
+            - whitelistIds
             repository: repository
-          - whitelist_ids:
-            - whitelist_ids
-            - whitelist_ids
-            registry: registry
+          - registry: registry
             image:
               type: tag
               value: value
-            policy_id: policy_id
+            policyId: policyId
+            name: name
+            policyIds:
+            - policyIds
+            - policyIds
+            id: id
+            whitelistIds:
+            - whitelistIds
+            - whitelistIds
+            repository: repository
+          whitelistedImages:
+          - registry: registry
+            image:
+              type: tag
+              value: value
             name: name
             id: id
-            policy_ids:
-            - policy_ids
-            - policy_ids
+            repository: repository
+          - registry: registry
+            image:
+              type: tag
+              value: value
+            name: name
+            id: id
+            repository: repository
+          blacklistedImages:
+          - registry: registry
+            image:
+              type: tag
+              value: value
+            name: name
+            id: id
+            repository: repository
+          - registry: registry
+            image:
+              type: tag
+              value: value
+            name: name
+            id: id
             repository: repository
           whitelists:
           - name: name
@@ -7741,35 +7954,20 @@ components:
                 value: value
             id: id
             version: version
-          whitelisted_images:
-          - registry: registry
-            image:
-              type: tag
-              value: value
-            name: name
-            id: id
-            repository: repository
-          - registry: registry
-            image:
-              type: tag
-              value: value
-            name: name
-            id: id
-            repository: repository
           comment: comment
           id: id
           version: version
-        policy_source: policy_source
-        last_updated: 2000-01-23T04:56:07.000+00:00
+        createdAt: 2000-01-23T04:56:07.000+00:00
+        lastUpdated: 2000-01-23T04:56:07.000+00:00
         policyId: policyId
-        created_at: 2000-01-23T04:56:07.000+00:00
+        policySource: policySource
         active: true
         userId: userId
       properties:
-        created_at:
+        createdAt:
           format: date-time
           type: string
-        last_updated:
+        lastUpdated:
           format: date-time
           type: string
         policyId:
@@ -7781,7 +7979,7 @@ components:
         userId:
           description: UserId of the user that owns the bundle
           type: string
-        policy_source:
+        policySource:
           description: Source location of where the policy bundle originated
           type: string
         policybundle:
@@ -7797,11 +7995,22 @@ components:
       type: object
     ImageDetail:
       description: A metadata detail record for a specific image. Multiple detail records may map a single catalog image.
+      example:
+        createdAt: 2000-01-23T04:56:07.000+00:00
+        lastUpdated: 2000-01-23T04:56:07.000+00:00
+        registry: registry
+        imageId: imageId
+        fulldigest: fulldigest
+        repo: repo
+        dockerfile: dockerfile
+        fulltag: fulltag
+        userId: userId
+        imageDigest: imageDigest
       properties:
-        created_at:
+        createdAt:
           format: date-time
           type: string
-        last_updated:
+        lastUpdated:
           format: date-time
           type: string
         fulltag:
@@ -7824,6 +8033,138 @@ components:
         imageDigest:
           description: The parent Anchore Image record to which this detail maps
           type: string
+      type: object
+    ClusterImageList:
+      items:
+        $ref: '#/components/schemas/ClusterImage'
+      type: array
+    ClusterImage:
+      properties:
+        imageName:
+          example: docker.io/alpine
+          type: string
+        imageTag:
+          example: latest
+          type: string
+        imageDigest:
+          type: string
+      type: object
+    AnchoreImageList:
+      description: A list of Anchore Images
+      items:
+        $ref: '#/components/schemas/AnchoreImage'
+      type: array
+    AnchoreImage:
+      description: A unique image in the engine. May have multiple tags or references. Unique to an image content across registries or repositories.
+      example:
+        imageDetail: ""
+        lastUpdated: 2000-01-23T04:56:07.000+00:00
+        createdAt: 2000-01-23T04:56:07.000+00:00
+        analysisDtatus: not_analyzed
+        imageStatus: active
+        items:
+          createdAt: 2000-01-23T04:56:07.000+00:00
+          lastUpdated: 2000-01-23T04:56:07.000+00:00
+          registry: registry
+          imageId: imageId
+          fulldigest: fulldigest
+          repo: repo
+          dockerfile: dockerfile
+          fulltag: fulltag
+          userId: userId
+          imageDigest: imageDigest
+        userId: userId
+        imageDigest: imageDigest
+      properties:
+        imageContent:
+          $ref: '#/components/schemas/ImageContent'
+        imageDetail:
+          description: Details specific to an image reference and type such as tag and image source
+          type: array
+        items:
+          $ref: '#/components/schemas/ImageDetail'
+        lastUpdated:
+          format: date-time
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+        imageDigest:
+          type: string
+        userId:
+          type: string
+        imageStatus:
+          description: State of the image
+          enum:
+          - active
+          - inactive
+          - disabled
+          type: string
+        analysisDtatus:
+          description: A state value for the current status of the analysis progress of the image
+          enum:
+          - not_analyzed
+          - analyzing
+          - analyzed
+          - analysis_failed
+          type: string
+      type: object
+    Vulnerability:
+      properties:
+        vuln:
+          description: The vulnerability identifier, such as CVE-2017-100, or RHSA-2017123
+          type: string
+        fix:
+          description: The package containing a fix, if available
+          type: string
+        severity:
+          description: The severity of the vulnerability
+          type: string
+        package:
+          description: The package name and version that are vulnerable in the image
+          type: string
+        url:
+          description: The url for more information about the vulnerability
+          type: string
+        feed:
+          description: The name of the feed where vulnerability match was made
+          type: string
+        feedGroup:
+          description: The name of the feed group where vulnerability match was made
+          type: string
+        packageName:
+          description: The name of the vulnerable package artifact
+          type: string
+        packageVersion:
+          description: The version of the vulnerable package artifact
+          type: string
+        packageType:
+          description: The type of vulnerable package
+          type: string
+        packageCpe:
+          description: The CPE string (if applicable) describing the package to vulnerability match
+          type: string
+        packagePath:
+          description: The location (if applicable) of the vulnerable package in the   container filesystem
+          type: string
+      type: object
+    VulnerabilityList:
+      description: List of Vulnerability objects
+      items:
+        $ref: '#/components/schemas/Vulnerability'
+      type: array
+    VulnerabilityResponse:
+      description: envelope containing list of vulnerabilities
+      example:
+        vulnerabilityType: vulnerabilityType
+        imageDigest: imageDigest
+      properties:
+        imageDigest:
+          type: string
+        vulnerabilityType:
+          type: string
+        vulnerabilities:
+          $ref: '#/components/schemas/VulnerabilityList'
       type: object
     body:
       properties:

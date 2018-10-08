@@ -14,11 +14,11 @@ package client
 type MappingRule struct {
 	Id           string   `json:"id,omitempty"`
 	Name         string   `json:"name"`
-	WhitelistIds []string `json:"whitelist_ids,omitempty"`
+	WhitelistIds []string `json:"whitelistIds,omitempty"`
 	// Optional single policy to evalute, if set will override any value in policy_ids, for backwards compatibility. Generally, policy_ids should be used even with a array of length 1.
-	PolicyId string `json:"policy_id,omitempty"`
+	PolicyId string `json:"policyId,omitempty"`
 	// List of policyIds to evaluate in order, to completion
-	PolicyIds  []string `json:"policy_ids,omitempty"`
+	PolicyIds  []string `json:"policyIds,omitempty"`
 	Registry   string   `json:"registry"`
 	Repository string   `json:"repository"`
 	Image      ImageRef `json:"image"`

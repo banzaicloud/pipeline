@@ -3726,6 +3726,187 @@ paths:
                 '500':
                     description: Internal server error
 
+
+    '/api/v1/orgs/{orgId}/clusters/{id}/images':
+        get:
+            security:
+                - bearerAuth: []
+            tags:
+                - images
+            summary: List Images used in cluster
+            operationId: ListImages
+            description: List Images used in cluster
+            parameters:
+                - name: orgId
+                  in: path
+                  required: true
+                  description: Organization identification
+                  schema:
+                      type: integer
+                - name: id
+                  in: path
+                  required: true
+                  description: Selected cluster identification (number)
+                  schema:
+                      type: integer
+            responses:
+                '200':
+                    description: "List Images"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ClusterImageList'
+                '400':
+                    description: Error during getting cluster details
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BaseError_400'
+                '401':
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Unauthorized'
+                '404':
+                    description: Cluster not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ClusterNotFound'
+
+    '/api/v1/orgs/{orgId}/imagescan':
+        post:
+            security:
+                - bearerAuth: []
+            tags:
+                - imagescan
+            summary: Scan Images used in cluster
+            operationId: ScanImages
+            description: Scan Images used in cluster
+            parameters:
+                - name: orgId
+                  in: path
+                  required: true
+                  description: Organization identification
+                  schema:
+                    type: integer
+                - name: id
+                  in: path
+                  required: true
+                  description: Selected cluster identification (number)
+                  schema:
+                    type: integer
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ClusterImageList'
+            responses:
+                '200':
+                    description: "Scan Images initiated"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ClusterImageList'
+                '401':
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Unauthorized'
+                '500':
+                    description: Internal server error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BaseError_500'
+
+    '/api/v1/orgs/{orgId}/imagescan/{imageDigest}':
+        get:
+            security:
+                - bearerAuth: []
+            tags:
+                - imagescan
+            summary: Get Image scan results
+            operationId: ScanResult
+            description: Get Image scan result
+            parameters:
+                - name: orgId
+                  in: path
+                  required: true
+                  description: Organization identification
+                  schema:
+                      type: integer
+                - name: imageDigest
+                  in: path
+                  required: true
+                  description: Image digest
+                  schema:
+                      type: string
+            responses:
+                '200':
+                    description: "Image scan results"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AnchoreImage'
+                '401':
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Unauthorized'
+                '500':
+                    description: Internal server error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BaseError_500'
+
+    '/api/v1/orgs/{orgId}/imagescan/{imageDigest}/vuln':
+        get:
+            security:
+                - bearerAuth: []
+            tags:
+                - imagescan
+            summary: Get vulnerabilities
+            operationId: Get ImageVulnerabilities
+            description: Get vulnerabilities
+            parameters:
+                - name: orgId
+                  in: path
+                  required: true
+                  description: Organization identification
+                  schema:
+                      type: integer
+                - name: imageDigest
+                  in: path
+                  required: true
+                  description: Image digest
+                  schema:
+                      type: string
+            responses:
+                '200':
+                    description: "Image Vulnaribility"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/VulnerabilityResponse'
+                '401':
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Unauthorized'
+                '500':
+                    description: Internal server error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BaseError_500'
+
 components:
     securitySchemes:
         bearerAuth:
@@ -6823,12 +7004,12 @@ components:
                     type: "array"
                     items:
                         $ref: "#/components/schemas/MappingRule"
-                whitelisted_images:
+                whitelistedImages:
                     description: List of mapping rules that define which images should always be passed (unless also on the blacklist), regardless of policy result.
                     type: array
                     items:
                         $ref: "#/components/schemas/ImageSelectionRule"
-                blacklisted_images:
+                blacklistedImages:
                     description: List of mapping rules that define which images should always result in a STOP/FAIL policy result regardless of policy content or presence in whitelisted_images
                     type: array
                     items:
@@ -6958,14 +7139,14 @@ components:
                     type: string
                 name:
                     type: string
-                whitelist_ids:
+                whitelistIds:
                     type: array
                     items:
                         type: string
-                policy_id:
+                policyId:
                     type: string
                     description: Optional single policy to evalute, if set will override any value in policy_ids, for backwards compatibility. Generally, policy_ids should be used even with a array of length 1.
-                policy_ids:
+                policyIds:
                     type: array
                     description: List of policyIds to evaluate in order, to completion
                     items:
@@ -6981,10 +7162,10 @@ components:
             description: A policy bundle plus some metadata
             type: object
             properties:
-                created_at:
+                createdAt:
                     type: string
                     format: "date-time"
-                last_updated:
+                lastUpdated:
                     type: string
                     format: "date-time"
                 policyId:
@@ -6996,7 +7177,7 @@ components:
                 userId:
                     type: string
                     description: UserId of the user that owns the bundle
-                policy_source:
+                policySource:
                     type: string
                     description: Source location of where the policy bundle originated
                 policybundle:
@@ -7013,10 +7194,10 @@ components:
             type: object
             description: A metadata detail record for a specific image. Multiple detail records may map a single catalog image.
             properties:
-                created_at:
+                createdAt:
                     type: string
                     format: "date-time"
-                last_updated:
+                lastUpdated:
                     type: string
                     format: "date-time"
                 fulltag:
@@ -7040,119 +7221,120 @@ components:
                     type: string
                     description: The parent Anchore Image record to which this detail maps
 
-    ClusterImageList:
-      type: array
-      items:
-        $ref: "#/components/schemas/ClusterImage"
-
-    ClusterImage:
-      type: object
-      properties:
-        imageName:
-          type: string
-          example: 'docker.io/alpine'
-        imageTag:
-          type: string
-          example: 'latest'
-        imageDigest:
-          type: string
-
-    AnchoreImageList:
-      description: A list of Anchore Images
-      type: array
-      items:
-        $ref: '#/components/schemas/AnchoreImage'
-
-    AnchoreImage:
-      description: A unique image in the engine. May have multiple tags or references. Unique to an image content across registries or repositories.
-      type: object
-      properties:
-        image_content:
-          $ref: '#/components/schemas/ImageContent'
-        image_detail:
-          type: array
-          description: Details specific to an image reference and type such as tag and image source
-          items:
-            $ref: '#/components/schemas/ImageDetail'
-        lastUpdated:
-          type: string
-          format: "date-time"
-        createdAt:
-          type: string
-          format: "date-time"
-        imageDigest:
-          type: string
-        userId:
-          type: string
-        imageStatus:
-          type: string
-          description: State of the image
-          enum:
-          - active
-          - inactive
-          - disabled
-        analysisDtatus:
-          type: string
-          description: A state value for the current status of the analysis progress of the image
-          enum:
-          - not_analyzed
-          - analyzing
-          - analyzed
-          - analysis_failed
-  
-    Vulnerability:
-      type: object
-      properties:
-        vuln:
-          type: string
-          description: The vulnerability identifier, such as CVE-2017-100, or RHSA-2017123
-        fix:
-          type: string
-          description: The package containing a fix, if available
-        severity:
-          type: string
-          description: The severity of the vulnerability
-        package:
-          type: string
-          description: The package name and version that are vulnerable in the image
-        url:
-          type: string
-          description: The url for more information about the vulnerability
-        feed:
-          type: string
-          description: The name of the feed where vulnerability match was made
-        feedGroup:
-          type: string
-          description: The name of the feed group where vulnerability match was made
-        packageName:
-          type: string
-          description: The name of the vulnerable package artifact
-        packageVersion:
-          type: string
-          description: The version of the vulnerable package artifact
-        packageType:
-          type: string
-          description: The type of vulnerable package
-        packageCpe:
-          type: string
-          description: The CPE string (if applicable) describing the package to vulnerability match
-        packagePath:
-          type: string
-          description: The location (if applicable) of the vulnerable package in the   container filesystem
-  
-    VulnerabilityList:
-      type: array
-      description: List of Vulnerability objects
-      items:
-        $ref: '#/components/schemas/Vulnerability'
-
-    VulnerabilityResponse:
-      description: envelope containing list of vulnerabilities
-      type: object
-      properties:
-        imageDigest:
-          type: string
-        vulnerabilityType:
-          type: string
-        vulnerabilities:
-          $ref: '#/components/schemas/VulnerabilityList'
+        ClusterImageList:
+            type: array
+            items:
+                $ref: "#/components/schemas/ClusterImage"
+    
+        ClusterImage:
+            type: object
+            properties:
+                imageName:
+                    type: string
+                    example: 'docker.io/alpine'
+                imageTag:
+                    type: string
+                    example: 'latest'
+                imageDigest:
+                    type: string
+    
+        AnchoreImageList:
+            description: A list of Anchore Images
+            type: array
+            items:
+                $ref: '#/components/schemas/AnchoreImage'
+    
+        AnchoreImage:
+            description: A unique image in the engine. May have multiple tags or references. Unique to an image content across registries or repositories.
+            type: object
+            properties:
+                imageContent:
+                    $ref: '#/components/schemas/ImageContent'
+                imageDetail:
+                    type: array
+                    description: Details specific to an image reference and type such as tag and image source
+                items:
+                    $ref: '#/components/schemas/ImageDetail'
+                lastUpdated:
+                    type: string
+                    format: "date-time"
+                createdAt:
+                    type: string
+                    format: "date-time"
+                imageDigest:
+                    type: string
+                userId:
+                    type: string
+                imageStatus:
+                    type: string
+                    description: State of the image
+                    enum:
+                        - active
+                        - inactive
+                        - disabled
+                analysisDtatus:
+                    type: string
+                    description: A state value for the current status of the analysis progress of the image
+                    enum:
+                        - not_analyzed
+                        - analyzing
+                        - analyzed
+                        - analysis_failed
+    
+        Vulnerability:
+            type: object
+            properties:
+                vuln:
+                    type: string
+                    description: The vulnerability identifier, such as CVE-2017-100, or RHSA-2017123
+                fix:
+                    type: string
+                    description: The package containing a fix, if available
+                severity:
+                    type: string
+                    description: The severity of the vulnerability
+                package:
+                    type: string
+                    description: The package name and version that are vulnerable in the image
+                url:
+                    type: string
+                    description: The url for more information about the vulnerability
+                feed:
+                    type: string
+                    description: The name of the feed where vulnerability match was made
+                feedGroup:
+                    type: string
+                    description: The name of the feed group where vulnerability match was made
+                packageName:
+                    type: string
+                    description: The name of the vulnerable package artifact
+                packageVersion:
+                    type: string
+                    description: The version of the vulnerable package artifact
+                packageType:
+                    type: string
+                    description: The type of vulnerable package
+                packageCpe:
+                    type: string
+                    description: The CPE string (if applicable) describing the package to vulnerability match
+                packagePath:
+                    type: string
+                    description: The location (if applicable) of the vulnerable package in the   container filesystem
+    
+        VulnerabilityList:
+            type: array
+            description: List of Vulnerability objects
+            items:
+                $ref: '#/components/schemas/Vulnerability'
+    
+        VulnerabilityResponse:
+            description: envelope containing list of vulnerabilities
+            type: object
+            properties:
+                imageDigest:
+                    type: string
+                vulnerabilityType:
+                    type: string
+                vulnerabilities:
+                    $ref: '#/components/schemas/VulnerabilityList'
+    

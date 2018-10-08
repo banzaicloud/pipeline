@@ -70,6 +70,10 @@ Class | Method | HTTP request | Description
 *HpaApi* | [**DeleteDeploymentAutoscaling**](docs/HpaApi.md#deletedeploymentautoscaling) | **Delete** /api/v1/orgs/{orgId}/clusters/{id}/hpa | Delete Deployment Scaling
 *HpaApi* | [**GetDeploymentAutoscaling**](docs/HpaApi.md#getdeploymentautoscaling) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/hpa | Get Deployment Scaling Info
 *HpaApi* | [**UpdateDeploymentAutoscaling**](docs/HpaApi.md#updatedeploymentautoscaling) | **Put** /api/v1/orgs/{orgId}/clusters/{id}/hpa | Create / Update Deployment Scaling
+*ImagesApi* | [**ListImages**](docs/ImagesApi.md#listimages) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/images | List Images used in cluster
+*ImagescanApi* | [**GetImageVulnerabilities**](docs/ImagescanApi.md#getimagevulnerabilities) | **Get** /api/v1/orgs/{orgId}/imagescan/{imageDigest}/vuln | Get vulnerabilities
+*ImagescanApi* | [**ScanImages**](docs/ImagescanApi.md#scanimages) | **Post** /api/v1/orgs/{orgId}/imagescan | Scan Images used in cluster
+*ImagescanApi* | [**ScanResult**](docs/ImagescanApi.md#scanresult) | **Get** /api/v1/orgs/{orgId}/imagescan/{imageDigest} | Get Image scan results
 *InfoApi* | [**CreateResourceGroup**](docs/InfoApi.md#createresourcegroup) | **Post** /api/v1/orgs/{orgId}/azure/resourcegroups | Create resource groups
 *InfoApi* | [**DeleteResourceGroup**](docs/InfoApi.md#deleteresourcegroup) | **Delete** /api/v1/orgs/{orgId}/azure/resourcegroups/{name} | Delete resource group
 *InfoApi* | [**GetAmazonConfig**](docs/InfoApi.md#getamazonconfig) | **Get** /api/v1/orgs/{orgId}/cloudinfo/amazon | Get all amazon config
@@ -127,6 +131,8 @@ Class | Method | HTTP request | Description
  - [AmazonConfigResponse](docs/AmazonConfigResponse.md)
  - [AmazonConfigResponseImage](docs/AmazonConfigResponseImage.md)
  - [AmazonConfigResponseInstanceType](docs/AmazonConfigResponseInstanceType.md)
+ - [AnchoreImage](docs/AnchoreImage.md)
+ - [AnchoreImageList](docs/AnchoreImageList.md)
  - [AzureBlobStorageProps](docs/AzureBlobStorageProps.md)
  - [AzureConfigResponse](docs/AzureConfigResponse.md)
  - [AzureConfigResponseInstanceType](docs/AzureConfigResponseInstanceType.md)
@@ -139,6 +145,8 @@ Class | Method | HTTP request | Description
  - [ClusterConfig](docs/ClusterConfig.md)
  - [ClusterDelete200](docs/ClusterDelete200.md)
  - [ClusterDetailsResponse](docs/ClusterDetailsResponse.md)
+ - [ClusterImage](docs/ClusterImage.md)
+ - [ClusterImageList](docs/ClusterImageList.md)
  - [ClusterNotFound](docs/ClusterNotFound.md)
  - [ClusterProfileAks](docs/ClusterProfileAks.md)
  - [ClusterProfileAksAks](docs/ClusterProfileAksAks.md)
@@ -324,6 +332,9 @@ Class | Method | HTTP request | Description
  - [UpdateNodePoolsGoogle](docs/UpdateNodePoolsGoogle.md)
  - [UrlItem](docs/UrlItem.md)
  - [User](docs/User.md)
+ - [Vulnerability](docs/Vulnerability.md)
+ - [VulnerabilityList](docs/VulnerabilityList.md)
+ - [VulnerabilityResponse](docs/VulnerabilityResponse.md)
  - [Whitelist](docs/Whitelist.md)
  - [WhitelistItem](docs/WhitelistItem.md)
 

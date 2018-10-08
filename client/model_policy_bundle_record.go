@@ -17,8 +17,8 @@ import (
 
 // A policy bundle plus some metadata
 type PolicyBundleRecord struct {
-	CreatedAt   time.Time `json:"created_at,omitempty"`
-	LastUpdated time.Time `json:"last_updated,omitempty"`
+	CreatedAt   time.Time `json:"createdAt,omitempty"`
+	LastUpdated time.Time `json:"lastUpdated,omitempty"`
 	// The bundle's identifier
 	PolicyId string `json:"policyId,omitempty"`
 	// True if the bundle is currently defined to be used automatically
@@ -26,6 +26,6 @@ type PolicyBundleRecord struct {
 	// UserId of the user that owns the bundle
 	UserId string `json:"userId,omitempty"`
 	// Source location of where the policy bundle originated
-	PolicySource string       `json:"policy_source,omitempty"`
+	PolicySource string       `json:"policySource,omitempty"`
 	Policybundle PolicyBundle `json:"policybundle,omitempty"`
 }
