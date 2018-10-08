@@ -1,3 +1,4 @@
+SHELL=/bin/bash
 OS := $(shell uname -s)
 GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./client/*")
 
@@ -131,7 +132,7 @@ license-cache: bin/licensei ## Generate license cache
 
 .PHONY: test
 test:
-	go list ./... | xargs -n1 go test -v -parallel 1 2>&1 | tee test.txt
+	set -o pipefail; go list ./... | xargs -n1 go test -v -parallel 1 2>&1 | tee test.txt
 
 bin/go-junit-report: # Install JUnit report generator
 	GOBIN=${PWD}/bin/ go get -u github.com/jstemmer/go-junit-report

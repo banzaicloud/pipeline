@@ -18,6 +18,7 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/banzaicloud/pipeline/pkg/amazon"
 	"github.com/sirupsen/logrus"
@@ -34,7 +35,7 @@ func (dns *awsRoute53) createHostedZoneRoute53Policy(orgId uint, hostedZoneId st
 		return nil, err
 	}
 
-	policyName := aws.String(fmt.Sprintf(hostedZoneAccessPolicyNameTemplate, org.Name))
+	policyName := fmt.Sprintf(hostedZoneAccessPolicyNameTemplate, org.Name)
 	policyDocument := aws.String(fmt.Sprintf(
 		`{
 		"Version": "2012-10-17",
@@ -57,11 +58,16 @@ func (dns *awsRoute53) createHostedZoneRoute53Policy(orgId uint, hostedZoneId st
 				"Action": "route53:GetChange",
 				"Resource": "arn:aws:route53:::change/*"
 			}
-		]
-		}`, hostedZoneId))
+		]}`, hostedZoneId))
 	policyDescription := aws.String(fmt.Sprintf("Access permissions for hosted zone of the '%s' organization", org.Name))
 
-	policy, err := amazon.CreatePolicy(dns.iamSvc, policyName, policyDocument, policyDescription)
+	var policy *iam.Policy
+	policy, err = amazon.CreatePolicy(dns.iamSvc, aws.String(policyName), policyDocument, policyDescription)
+	if aerr, ok := err.(awserr.Error); ok {
+		if aerr.Code() == iam.ErrCodeEntityAlreadyExistsException {
+			policy, err = amazon.GetPolicyByName(dns.iamSvc, policyName, "Local")
+		}
+	}
 	if err != nil {
 		log.Errorf("creating access policy for hosted zone failed: %s", extractErrorMessage(err))
 		return nil, err

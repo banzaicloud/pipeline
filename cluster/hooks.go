@@ -1040,7 +1040,7 @@ func TaintHeadNodes(input interface{}) error {
 
 	nodePoolDetails, isOk := clusterDetails.NodePools[headNodePoolName]
 	if !isOk {
-		return errors.Errorf("Wrong pool name: %v, configured as head node pool")
+		return errors.Errorf("Wrong pool name: %v, configured as head node pool", headNodePoolName)
 	}
 
 	taintedNodesCount, err := taintNodepoolNodes(client, viper.GetString(pipConfig.PipelineHeadNodePoolName))

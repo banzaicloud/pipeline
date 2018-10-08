@@ -406,7 +406,7 @@ func (dns *awsRoute53) unregisterDomain(orgId uint, domain string) error {
 
 	org, err := dns.getOrganization(orgId)
 	if err != nil {
-		log.Errorf("retrieving organization details failed: %s", orgId, extractErrorMessage(err))
+		log.Errorf("retrieving organization details failed: %s", extractErrorMessage(err))
 		return err
 	}
 	userName := getIAMUserName(org)

@@ -17,7 +17,7 @@ package spotguide
 import (
 	"testing"
 
-	"github.com/ghodss/yaml"
+	"gopkg.in/yaml.v2"
 )
 
 func TestUnmarshalDroneRepoConfig(t *testing.T) {
