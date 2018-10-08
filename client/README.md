@@ -43,6 +43,7 @@ Class | Method | HTTP request | Description
 *ClustersApi* | [**GetClusterStatus**](docs/ClustersApi.md#getclusterstatus) | **Head** /api/v1/orgs/{orgId}/clusters/{id} | Get cluster status
 *ClustersApi* | [**GetPodDetails**](docs/ClustersApi.md#getpoddetails) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/pods | Get pod details
 *ClustersApi* | [**HelmInit**](docs/ClustersApi.md#helminit) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/helminit | Initialize Helm
+*ClustersApi* | [**InstallSecret**](docs/ClustersApi.md#installsecret) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/secrets/{secret} | Install a particular secret into a cluster with optional remapping
 *ClustersApi* | [**InstallSecrets**](docs/ClustersApi.md#installsecrets) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/secrets | Install secrets into cluster
 *ClustersApi* | [**ListClusterSecrets**](docs/ClustersApi.md#listclustersecrets) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/secrets | List secrets which belongs to cluster
 *ClustersApi* | [**ListClusters**](docs/ClustersApi.md#listclusters) | **Get** /api/v1/orgs/{orgId}/clusters | List clusters
@@ -212,10 +213,12 @@ Class | Method | HTTP request | Description
  - [ImageDetail](docs/ImageDetail.md)
  - [ImageRef](docs/ImageRef.md)
  - [ImageSelectionRule](docs/ImageSelectionRule.md)
+ - [InstallSecretRequest](docs/InstallSecretRequest.md)
+ - [InstallSecretRequestSpecItem](docs/InstallSecretRequestSpecItem.md)
+ - [InstallSecretResponse](docs/InstallSecretResponse.md)
  - [InstallSecretsRequest](docs/InstallSecretsRequest.md)
  - [InstallSecretsRequestQuery](docs/InstallSecretsRequestQuery.md)
  - [InstallSecretsResponse](docs/InstallSecretsResponse.md)
- - [InstallSecretsResponseItem](docs/InstallSecretsResponseItem.md)
  - [LaunchSpotguidesRequest](docs/LaunchSpotguidesRequest.md)
  - [ListDeploymentsResponse](docs/ListDeploymentsResponse.md)
  - [ListDeploymentsResponseInner](docs/ListDeploymentsResponseInner.md)

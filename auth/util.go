@@ -19,6 +19,7 @@ import (
 	"strings"
 
 	"github.com/jinzhu/gorm"
+	"github.com/spf13/viper"
 )
 
 // IsHttps is a helper function that evaluates the http.Request
@@ -53,7 +54,7 @@ func SetCookie(w http.ResponseWriter, r *http.Request, name, value string) {
 		Path:     "/",
 		Domain:   cookieDomain,
 		HttpOnly: SessionCookieHTTPOnly,
-		Secure:   IsHttps(r),
+		Secure:   viper.GetBool("auth.secureCookie"),
 		MaxAge:   SessionCookieMaxAge,
 	}
 

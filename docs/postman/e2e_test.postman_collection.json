@@ -1,7 +1,7 @@
 {
 	"info": {
+		"_postman_id": "5ed7b865-0079-4c00-a6ef-c4934f3b778c",
 		"name": "End2End TEST Organizations",
-		"_postman_id": "68a48274-d40a-9334-3929-fe82495f4912",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -1431,6 +1431,57 @@
 							]
 						},
 						"description": "Initialize helm in the cluster"
+					},
+					"response": []
+				},
+				{
+					"name": "Install secret",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"namespace\": \"default\",\n  \"spec\": {}\n}\n"
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/secrets/:secretName",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"clusters",
+								":clusterId",
+								"secrets",
+								":secretName"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "{{orgId}}",
+									"description": "Organization identifier"
+								},
+								{
+									"key": "clusterId",
+									"value": "{{clusterId}}",
+									"description": "Cluster identifier"
+								},
+								{
+									"key": "secretName",
+									"value": "{{secretName}}",
+                                    "description": "Secret name"
+								}
+							]
+						},
+						"description": "Install a particular secret in a cluster"
 					},
 					"response": []
 				},
