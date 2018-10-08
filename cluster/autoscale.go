@@ -310,7 +310,7 @@ func deployAutoscalerChart(cluster CommonCluster, nodeGroups []nodeGroup, kubeCo
 	}
 	switch action {
 	case install:
-		_, err = helm.CreateDeployment(autoScalerChart, "", nil, helm.SystemNamespace, releaseName, yamlValues, kubeConfig, helm.GenerateHelmRepoEnv(org.Name))
+		_, err = helm.CreateDeployment(autoScalerChart, "", nil, helm.SystemNamespace, releaseName, yamlValues, kubeConfig, helm.GenerateHelmRepoEnv(org.Name), helm.DefaultInstallOptions...)
 	case upgrade:
 		_, err = helm.UpgradeDeployment(releaseName, autoScalerChart, "", nil, yamlValues, false, kubeConfig, helm.GenerateHelmRepoEnv(org.Name))
 	default:
