@@ -550,18 +550,18 @@ func (a *CreateEksClusterAction) waitUntilClusterCreateCompleteWithContext(ctx a
 		Delay:       request.ConstantWaiterDelay(30 * time.Second),
 		Acceptors: []request.WaiterAcceptor{
 			{
-				State:   request.SuccessWaiterState,
-				Matcher: request.PathAnyWaiterMatch, Argument: "Cluster.Status",
+				State:    request.SuccessWaiterState,
+				Matcher:  request.PathAnyWaiterMatch, Argument: "Cluster.Status",
 				Expected: eks.ClusterStatusActive,
 			},
 			{
-				State:   request.FailureWaiterState,
-				Matcher: request.PathAnyWaiterMatch, Argument: "Cluster.Status",
+				State:    request.FailureWaiterState,
+				Matcher:  request.PathAnyWaiterMatch, Argument: "Cluster.Status",
 				Expected: eks.ClusterStatusDeleting,
 			},
 			{
-				State:   request.FailureWaiterState,
-				Matcher: request.PathAnyWaiterMatch, Argument: "Cluster.Status",
+				State:    request.FailureWaiterState,
+				Matcher:  request.PathAnyWaiterMatch, Argument: "Cluster.Status",
 				Expected: eks.ClusterStatusFailed,
 			},
 			{
@@ -676,6 +676,11 @@ func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (outp
 				spotPriceParam = nodePool.NodeSpotPrice
 			}
 
+			onDemandLabel := "true"
+			if spotPriceParam != "" {
+				onDemandLabel = "false"
+			}
+
 			stackParams := []*cloudformation.Parameter{
 				{
 					ParameterKey:   aws.String("KeyName"),
@@ -734,7 +739,7 @@ func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (outp
 				},
 				{
 					ParameterKey:   aws.String("BootstrapArguments"),
-					ParameterValue: aws.String(fmt.Sprintf("--kubelet-extra-args '--node-labels %v=%v'", common.LabelKey, nodePool.Name)),
+					ParameterValue: aws.String(fmt.Sprintf("--kubelet-extra-args '--node-labels %v=%v,node.banzaicloud.com/ondemand=%v'", common.LabelKey, nodePool.Name, onDemandLabel)),
 				},
 			}
 
