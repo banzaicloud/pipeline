@@ -14,6 +14,7 @@ Method | HTTP request | Description
 [**GetClusterStatus**](ClustersApi.md#GetClusterStatus) | **Head** /api/v1/orgs/{orgId}/clusters/{id} | Get cluster status
 [**GetPodDetails**](ClustersApi.md#GetPodDetails) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/pods | Get pod details
 [**HelmInit**](ClustersApi.md#HelmInit) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/helminit | Initialize Helm
+[**InstallSecret**](ClustersApi.md#InstallSecret) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/secrets/{secret} | Install a particular secret into a cluster with optional remapping
 [**InstallSecrets**](ClustersApi.md#InstallSecrets) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/secrets | Install secrets into cluster
 [**ListClusterSecrets**](ClustersApi.md#ListClusterSecrets) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/secrets | List secrets which belongs to cluster
 [**ListClusters**](ClustersApi.md#ListClusters) | **Get** /api/v1/orgs/{orgId}/clusters | List clusters
@@ -325,8 +326,39 @@ Name | Type | Description  | Notes
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **InstallSecret**
+> []InstallSecretResponse InstallSecret(ctx, orgId, id, secret, installSecretsRequest)
+Install a particular secret into a cluster with optional remapping
+
+Install a particular secret into a cluster
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+  **orgId** | **int32**| Organization identification | 
+  **id** | **int32**| Selected cluster identification (number) | 
+  **secret** | **string**| Secret name | 
+  **installSecretsRequest** | [**InstallSecretsRequest**](InstallSecretsRequest.md)|  | 
+
+### Return type
+
+[**[]InstallSecretResponse**](InstallSecretResponse.md)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **InstallSecrets**
-> []InstallSecretsResponseItem InstallSecrets(ctx, orgId, id, installSecretsRequest)
+> []InstallSecretResponse InstallSecrets(ctx, orgId, id, installSecretsRequest)
 Install secrets into cluster
 
 Install secrets into cluster
@@ -342,7 +374,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**[]InstallSecretsResponseItem**](InstallSecretsResponseItem.md)
+[**[]InstallSecretResponse**](InstallSecretResponse.md)
 
 ### Authorization
 

@@ -27,6 +27,7 @@ import (
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
@@ -65,22 +66,24 @@ func getClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
 	var cl cluster.CommonCluster
 	var err error
 
+	logger := correlationid.Logger(log, c)
+
 	// TODO: move these to a struct and create them only once upon application init
 	clusters := intCluster.NewClusters(config.DB())
 	secretValidator := providers.NewSecretValidator(secret.Store)
-	clusterManager := cluster.NewManager(clusters, secretValidator, log, errorHandler)
+	clusterManager := cluster.NewManager(clusters, secretValidator, logger, errorHandler)
 
 	ctx := ginutils.Context(context.Background(), c)
 
 	organizationID := auth.GetCurrentOrganization(c.Request).ID
 
-	logger := log.WithField("organization", organizationID)
+	logger = logger.WithField("organization", organizationID)
 
 	switch c.DefaultQuery("field", "id") {
 	case "id":
 		clusterID, ok := ginutils.UintParam(c, "id")
 		if !ok {
-			log.Debug("invalid ID parameter")
+			logger.Debug("invalid ID parameter")
 
 			return nil, false
 		}

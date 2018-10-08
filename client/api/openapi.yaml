@@ -1048,7 +1048,7 @@ paths:
             application/json:
               schema:
                 items:
-                  $ref: '#/components/schemas/InstallSecretsResponseItem'
+                  $ref: '#/components/schemas/InstallSecretResponse'
                 type: array
           description: Secrets are installed into cluster
         400:
@@ -1072,6 +1072,75 @@ paths:
       security:
       - bearerAuth: []
       summary: Install secrets into cluster
+      tags:
+      - clusters
+  /api/v1/orgs/{orgId}/clusters/{id}/secrets/{secret}:
+    post:
+      description: Install a particular secret into a cluster
+      operationId: InstallSecret
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Secret name
+        explode: false
+        in: path
+        name: secret
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InstallSecretsRequest'
+        required: true
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/InstallSecretResponse'
+                type: array
+          description: Secrets is installed into the cluster
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during getting endpoints
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+          description: Cluster not found
+      security:
+      - bearerAuth: []
+      summary: Install a particular secret into a cluster with optional remapping
       tags:
       - clusters
   /api/v1/orgs/{orgId}/clusters/{id}/scanlog:
@@ -5597,9 +5666,30 @@ components:
       type: object
     InstallSecretsResponse:
       items:
-        $ref: '#/components/schemas/InstallSecretsResponseItem'
+        $ref: '#/components/schemas/InstallSecretResponse'
       type: array
-    InstallSecretsResponseItem:
+    InstallSecretRequest:
+      properties:
+        namespace:
+          example: default
+          type: string
+        spec:
+          additionalProperties:
+            $ref: '#/components/schemas/InstallSecretRequestSpecItem'
+          type: object
+      required:
+      - namespace
+      type: object
+    InstallSecretRequestSpecItem:
+      properties:
+        source:
+          type: string
+        sourceMap:
+          additionalProperties:
+            type: string
+          type: object
+      type: object
+    InstallSecretResponse:
       example:
         name: my-aws-secret
         sourcing: env
