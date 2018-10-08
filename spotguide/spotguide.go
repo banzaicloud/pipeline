@@ -48,6 +48,7 @@ const ReadmePath = ".banzaicloud/README.md"
 const IconPath = ".banzaicloud/icon.svg"
 const CreateClusterStep = "create_cluster"
 const DeployApplicationStep = "deploy_application"
+const SpotguideRepoTableName = "spotguide_repos"
 
 var ctx = context.Background()
 
@@ -81,6 +82,28 @@ type SpotguideRepo struct {
 	Version          string     `json:"version" gorm:"unique_index:name_and_version"`
 	SpotguideYAMLRaw []byte     `json:"-" gorm:"type:text"`
 	SpotguideYAML    `gorm:"-"`
+}
+
+func (SpotguideRepo) TableName() string {
+	return SpotguideRepoTableName
+}
+
+func (r SpotguideRepo) Key() SpotguideRepoKey {
+	return SpotguideRepoKey{
+		OrganizationID: r.OrganizationID,
+		Name:           r.Name,
+		Version:        r.Version,
+	}
+}
+
+type SpotguideRepoKey struct {
+	OrganizationID uint
+	Name           string
+	Version        string
+}
+
+func (SpotguideRepoKey) TableName() string {
+	return SpotguideRepoTableName
 }
 
 func (r *SpotguideRepo) AfterFind() error {
@@ -176,6 +199,22 @@ func ScrapeSpotguides(orgID uint) error {
 		listOpts.Page = resp.NextPage
 	}
 
+	where := SpotguideRepo{
+		OrganizationID: orgID,
+	}
+
+	var oldSpotguides []SpotguideRepo
+	if err := db.Where(&where).Find(&oldSpotguides).Error; err != nil {
+		if err != nil {
+			return emperror.Wrap(err, "failed to list old spotguides")
+		}
+	}
+
+	oldSpotguidesIndexed := map[SpotguideRepoKey]SpotguideRepo{}
+	for _, sg := range oldSpotguides {
+		oldSpotguidesIndexed[sg.Key()] = sg
+	}
+
 	for _, repository := range allRepositories {
 		for _, topic := range repository.Topics {
 			if topic == SpotguideGithubTopic {
@@ -216,12 +255,6 @@ func ScrapeSpotguides(orgID uint) error {
 
 					iconSrc := "data:image/svg+xml;base64," + base64.StdEncoding.EncodeToString(icon)
 
-					where := SpotguideRepo{
-						OrganizationID: orgID,
-						Name:           repository.GetFullName(),
-						Version:        tag,
-					}
-
 					model := SpotguideRepo{
 						OrganizationID:   orgID,
 						Name:             repository.GetFullName(),
@@ -231,15 +264,26 @@ func ScrapeSpotguides(orgID uint) error {
 						Version:          tag,
 					}
 
+					where := model.Key()
+
 					err = db.Where(&where).Assign(&model).FirstOrCreate(&SpotguideRepo{}).Error
 
 					if err != nil {
 						return err
 					}
+
+					delete(oldSpotguidesIndexed, model.Key())
 				}
 
 				break
 			}
+		}
+	}
+
+	for spotguideRepoKey := range oldSpotguidesIndexed {
+		err := db.Where(&spotguideRepoKey).Delete(SpotguideRepo{}).Error
+		if err != nil {
+			return err
 		}
 	}
 
