@@ -111,7 +111,7 @@ type CreateUpdateDeploymentRequest struct {
 	Package     []byte                 `json:"package,omitempty" yaml:"package,omitempty"`
 	ReleaseName string                 `json:"releaseName" yaml:"releaseName"`
 	ReUseValues bool                   `json:"reuseValues" yaml:"reuseValues"`
-	Namespace   string                 `json:"namespace" yaml:"namespace"`
+	Namespace   string                 `json:"namespace,omitempty" yaml:"namespace,omitempty"`
 	Values      map[string]interface{} `json:"values,omitempty" yaml:"values,omitempty"`
 }
 

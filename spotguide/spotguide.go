@@ -65,6 +65,7 @@ type SpotguideYAML struct {
 	Questions   []Question                `json:"questions"`
 }
 
+// Question is an opaque struct from Pipeline's point of view
 type Question map[string]interface{}
 
 type SpotguideRepo struct {
@@ -96,7 +97,7 @@ type LaunchRequest struct {
 	RepoPrivate      bool                         `json:"repoPrivate"`
 	Cluster          client.CreateClusterRequest  `json:"cluster" binding:"required"`
 	Secrets          []secret.CreateSecretRequest `json:"secrets"`
-	Values           map[string]interface{}       `json:"values"` // Values passed to the Helm deployment in the 'deploy_application' step
+	Pipeline         map[string]interface{}       `json:"pipeline"`
 }
 
 func (r LaunchRequest) RepoFullname() string {
@@ -529,8 +530,8 @@ func createDroneRepoConfig(initConfig []byte, request *LaunchRequest) (*droneRep
 		return nil, err
 	}
 
-	// Configure values
-	if err := droneRepoConfigValues(request, repoConfig); err != nil {
+	// Configure pipeline
+	if err := droneRepoConfigPipeline(request, repoConfig); err != nil {
 		return nil, err
 	}
 
@@ -541,7 +542,7 @@ func droneRepoConfigCluster(request *LaunchRequest, repoConfig *droneRepoConfig)
 
 	for i, step := range repoConfig.Pipeline {
 
-		// Find CreateClusterStep step and transform it if there are is an incoming Cluster
+		// Find CreateClusterStep step and transform it
 		if step.Key == CreateClusterStep {
 
 			clusterStep, err := copyToDroneContainer(step.Value)
@@ -595,41 +596,39 @@ func droneRepoConfigSecrets(request *LaunchRequest, repoConfig *droneRepoConfig)
 	return nil
 }
 
-func droneRepoConfigValues(request *LaunchRequest, repoConfig *droneRepoConfig) error {
+func droneRepoConfigPipeline(request *LaunchRequest, repoConfig *droneRepoConfig) error {
 
 	for i, step := range repoConfig.Pipeline {
 
-		// Find DeployApplicationStep step and transform it if there are any incoming Values
-		if step.Key == DeployApplicationStep && len(request.Values) > 0 {
+		stepName := step.Key.(string)
 
-			deployStep, err := copyToDroneContainer(step.Value)
+		// Find 'stepName' step and transform it if there are any incoming Values
+		if stepToMergeIn, ok := request.Pipeline[stepName]; ok {
+
+			pipelineStep, err := copyToDroneContainer(step.Value)
 			if err != nil {
 				return err
 			}
 
 			// Merge the values from the request into the existing values
-			values, err := json.Marshal(request.Values)
+			values, err := json.Marshal(stepToMergeIn)
 			if err != nil {
 				return err
 			}
 
-			err = json.Unmarshal(values, &deployStep.Deployment.Values)
+			err = json.Unmarshal(values, pipelineStep)
 			if err != nil {
 				return err
 			}
 
-			newDeployStep, err := droneContainerToMapSlice(deployStep)
+			newPipelineStep, err := droneContainerToMapSlice(pipelineStep)
 			if err != nil {
 				return err
 			}
 
-			repoConfig.Pipeline[i].Value = newDeployStep
-
-			return nil
+			repoConfig.Pipeline[i].Value = newPipelineStep
 		}
 	}
-
-	log.Info("deploy_application step (or the Values) is not present in pipeline.yaml, skipping it's transformation")
 
 	return nil
 }
