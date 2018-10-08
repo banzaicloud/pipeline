@@ -12,7 +12,8 @@
 package client
 
 type ReleaseWhiteListItem struct {
-	ReleaseName string `json:"releaseName,omitempty"`
-	Owner       string `json:"owner,omitempty"`
-	Reaseon     string `json:"reaseon,omitempty"`
+	Name        string `json:"name"`
+	ReleaseName string `json:"releaseName"`
+	Owner       string `json:"owner"`
+	Reason      string `json:"reason,omitempty"`
 }

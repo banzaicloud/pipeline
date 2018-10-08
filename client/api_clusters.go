@@ -1142,10 +1142,10 @@ Install a particular secret into a cluster
  * @param orgId Organization identification
  * @param id Selected cluster identification (number)
  * @param secret Secret name
- * @param installSecretsRequest
+ * @param installSecretRequest
 @return []InstallSecretResponse
 */
-func (a *ClustersApiService) InstallSecret(ctx context.Context, orgId int32, id int32, secret string, installSecretsRequest InstallSecretsRequest) ([]InstallSecretResponse, *http.Response, error) {
+func (a *ClustersApiService) InstallSecret(ctx context.Context, orgId int32, id int32, secret string, installSecretRequest InstallSecretRequest) ([]InstallSecretResponse, *http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Post")
 		localVarPostBody     interface{}
@@ -1183,7 +1183,7 @@ func (a *ClustersApiService) InstallSecret(ctx context.Context, orgId int32, id 
 		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
 	}
 	// body params
-	localVarPostBody = &installSecretsRequest
+	localVarPostBody = &installSecretRequest
 	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFormFileName, localVarFileName, localVarFileBytes)
 	if err != nil {
 		return localVarReturnValue, nil, err
