@@ -1,6 +1,6 @@
 FROM golang:1.11-alpine
 
-RUN apk add --update --no-cache ca-certificates curl git make
+RUN apk add --update --no-cache bash ca-certificates curl git make
 RUN go get github.com/kubernetes-sigs/aws-iam-authenticator/cmd/aws-iam-authenticator
 
 RUN mkdir -p /go/src/github.com/banzaicloud/pipeline
