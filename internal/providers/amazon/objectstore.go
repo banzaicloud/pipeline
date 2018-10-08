@@ -124,6 +124,8 @@ func (s *objectStore) CreateBucket(bucketName string) error {
 	bucket.Organization = *s.org
 	bucket.Region = s.region
 
+	bucket.SecretRef = s.secret.ID
+
 	if err := s.db.Save(bucket).Error; err != nil {
 		return errors.Wrap(err, "error happened during saving bucket in DB")
 	}

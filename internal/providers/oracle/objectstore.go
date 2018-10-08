@@ -98,6 +98,8 @@ func (o *ObjectStore) CreateBucket(name string) error {
 	bucket.CompartmentID = oci.CompartmentOCID
 	bucket.Location = o.location
 
+	bucket.SecretRef = o.secret.ID
+
 	if err = o.persistBucketToDB(bucket); err != nil {
 		return errors.Wrap(err, "error happened during persisting bucket description to DB")
 	}

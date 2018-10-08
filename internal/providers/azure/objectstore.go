@@ -137,6 +137,7 @@ func (s *ObjectStore) CreateBucket(bucketName string) error {
 	// TODO: create the bucket in the database later so that we don't have to roll back
 	bucket.ResourceGroup = resourceGroup
 	bucket.Organization = *s.org
+	bucket.SecretRef = s.secret.ID
 
 	logger.Info("saving bucket in DB")
 

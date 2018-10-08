@@ -33,6 +33,8 @@ type ObjectStoreBucketModel struct {
 	CompartmentID string `gorm:"unique_index:idx_bucket_name_location_compartment"`
 	Name          string `gorm:"unique_index:idx_bucket_name_location_compartment"`
 	Location      string `gorm:"unique_index:idx_bucket_name_location_compartment"`
+
+	SecretRef string
 }
 
 // TableName changes the default table name.
