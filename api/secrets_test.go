@@ -123,18 +123,23 @@ func TestAddSecret(t *testing.T) {
 
 func TestListSecrets(t *testing.T) {
 
+	secret.Store.Store(orgId, &awsCreateSecretRequest)
+	secret.Store.Store(orgId, &aksCreateSecretRequest)
+	secret.Store.Store(orgId, &gkeCreateSecretRequest)
+	secret.Store.Store(orgId, &OCICreateSecretRequest)
+
 	cases := []struct {
 		name           string
 		secretType     string
-		tag            string
+		tag            []string
 		expectedValues []*secret.SecretItemResponse
 	}{
-		{name: "List aws secrets", secretType: clusterTypes.Amazon, tag: "", expectedValues: awsExpectedItems},
-		{name: "List aks secrets", secretType: clusterTypes.Azure, tag: "", expectedValues: aksExpectedItems},
-		{name: "List gke secrets", secretType: clusterTypes.Google, tag: "", expectedValues: gkeExpectedItems},
-		{name: "List oci secrets", secretType: clusterTypes.Oracle, tag: "", expectedValues: OCIExpectedItems},
-		{name: "List all secrets", secretType: "", tag: "", expectedValues: allExpectedItems},
-		{name: "List repo:pipeline secrets", secretType: "", tag: "repo:pipeline", expectedValues: awsExpectedItems},
+		{name: "List aws secrets", secretType: clusterTypes.Amazon, tag: awsCreateSecretRequest.Tags, expectedValues: awsExpectedItems},
+		{name: "List aks secrets", secretType: clusterTypes.Azure, tag: aksCreateSecretRequest.Tags, expectedValues: aksExpectedItems},
+		{name: "List gke secrets", secretType: clusterTypes.Google, tag: gkeCreateSecretRequest.Tags, expectedValues: gkeExpectedItems},
+		{name: "List oci secrets", secretType: clusterTypes.Oracle, tag: OCICreateSecretRequest.Tags, expectedValues: OCIExpectedItems},
+		{name: "List all secrets", secretType: "", tag: nil, expectedValues: allExpectedItems},
+		{name: "List repo:pipeline secrets", secretType: "", tag: []string{"repo:pipeline"}, expectedValues: awsExpectedItems},
 	}
 
 	for _, tc := range cases {
@@ -142,7 +147,7 @@ func TestListSecrets(t *testing.T) {
 			if err := api.IsValidSecretType(tc.secretType); err != nil {
 				t.Errorf("Error during validate secret type: %s", err)
 			} else {
-				if items, err := secret.Store.List(orgId, &secretTypes.ListSecretsQuery{Type: tc.secretType, Tags: []string{tc.tag}}); err != nil {
+				if items, err := secret.Store.List(orgId, &secretTypes.ListSecretsQuery{Type: tc.secretType, Tags: tc.tag}); err != nil {
 					t.Errorf("Error during listing secrets")
 				} else {
 					// Clear CreatedAt times, we don't know them
