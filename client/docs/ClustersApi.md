@@ -327,7 +327,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **InstallSecret**
-> []InstallSecretResponse InstallSecret(ctx, orgId, id, secret, installSecretsRequest)
+> []InstallSecretResponse InstallSecret(ctx, orgId, id, secret, installSecretRequest)
 Install a particular secret into a cluster with optional remapping
 
 Install a particular secret into a cluster
@@ -340,7 +340,7 @@ Name | Type | Description  | Notes
   **orgId** | **int32**| Organization identification | 
   **id** | **int32**| Selected cluster identification (number) | 
   **secret** | **string**| Secret name | 
-  **installSecretsRequest** | [**InstallSecretsRequest**](InstallSecretsRequest.md)|  | 
+  **installSecretRequest** | [**InstallSecretRequest**](InstallSecretRequest.md)|  | 
 
 ### Return type
 
