@@ -17,7 +17,7 @@ The recommended region is `eu-frankfurt-1`.
 
 #### user_ocid
 
-Navigate to the user settings. Under `User inforamtion` found the `user_ocid`.
+Navigate to `User settings` in the user menu. Under `User information` find the `user_ocid`.
 
 <p align="center">
 <img src="images/oracle_secret/oracle_user_ocid_1.png" width="700">
@@ -29,11 +29,7 @@ Navigate to the user settings. Under `User inforamtion` found the `user_ocid`.
 
 #### tenancy_ocid
 
-Tenancy ocid found in the footer.
-
-<p align="center">
-<img src="images/oracle_secret/oracle_tenancy_ocid.png" width="700">
-</p>
+Tenancy ocid can be found on the `Tenancy: ...` page of the user menu (like the user ocid on the User settings page).
 
 #### compartment_ocid
 
