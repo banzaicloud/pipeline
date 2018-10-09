@@ -170,6 +170,25 @@ func (o *ObjectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 	return bucketList, nil
 }
 
+func (o *ObjectStore) ListManagedBuckets() ([]*objectstore.BucketInfo, error) {
+
+	var objectStores []ObjectStoreBucketModel
+	err := o.db.Where(&ObjectStoreBucketModel{OrgID: o.org.ID}).Order("name asc").Find(&objectStores).Error
+	if err != nil {
+		return nil, fmt.Errorf("retrieving managed buckets failed: %s", err.Error())
+	}
+
+	bucketList := make([]*objectstore.BucketInfo, 0)
+	for _, bucket := range objectStores {
+		bucketInfo := &objectstore.BucketInfo{Name: bucket.Name, Managed: true}
+		bucketInfo.Location = bucket.Location
+		bucketList = append(bucketList, bucketInfo)
+	}
+
+	return bucketList, nil
+
+}
+
 // DeleteBucket deletes the managed bucket with the given name from Oracle object store
 func (o *ObjectStore) DeleteBucket(name string) error {
 

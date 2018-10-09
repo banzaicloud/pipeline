@@ -124,6 +124,27 @@ func (b *AlibabaObjectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 	return bucketList, nil
 }
 
+func (b *AlibabaObjectStore) ListManagedBuckets() ([]*objectstore.BucketInfo, error) {
+
+	var managedAlibabaBuckets []ManagedAlibabaBucket
+
+	if err := queryWithOrderByDb(&ManagedAlibabaBucket{OrgID: b.org.ID}, "name asc", &managedAlibabaBuckets); err != nil {
+		log.Errorf("Retrieving managed buckets in organisation id=%s failed: %s", err.Error())
+		return nil, err
+	}
+
+	bucketInfos := make([]*objectstore.BucketInfo, 0)
+	for _, mb := range managedAlibabaBuckets {
+		bucketInfos = append(bucketInfos, &objectstore.BucketInfo{
+			Managed:  true,
+			Name:     mb.Name,
+			Location: mb.Region,
+		})
+	}
+
+	return bucketInfos, nil
+}
+
 func (b *AlibabaObjectStore) DeleteBucket(bucketName string) error {
 	managedBucket := &ManagedAlibabaBucket{}
 	searchCriteria := b.newManagedBucketSearchCriteria(bucketName)

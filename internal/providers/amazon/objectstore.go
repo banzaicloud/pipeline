@@ -239,6 +239,27 @@ func (s *objectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 	return bucketList, nil
 }
 
+func (s *objectStore) ListManagedBuckets() ([]*objectstore.BucketInfo, error) {
+	logger := s.getLogger()
+	logger.Debug("retrieving managed bucket list")
+
+	var amazonBuckets []*ObjectStoreBucketModel
+
+	err := s.db.Where(&ObjectStoreBucketModel{OrganizationID: s.org.ID}).Order("name asc").Find(&amazonBuckets).Error
+	if err != nil {
+		return nil, fmt.Errorf("retrieving managed buckets failed: %s", err.Error())
+	}
+
+	bucketList := make([]*objectstore.BucketInfo, 0)
+	for _, bucket := range amazonBuckets {
+		bucketInfo := &objectstore.BucketInfo{Name: bucket.Name, Managed: true}
+		bucketInfo.Location = bucket.Region
+		bucketList = append(bucketList, bucketInfo)
+	}
+
+	return bucketList, nil
+}
+
 // searchCriteria returns the database search criteria to find bucket with the given name.
 func (s *objectStore) searchCriteria(bucketName string) *ObjectStoreBucketModel {
 	return &ObjectStoreBucketModel{

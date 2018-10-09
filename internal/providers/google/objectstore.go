@@ -299,6 +299,24 @@ func (s *ObjectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 	return bucketList, nil
 }
 
+func (s *ObjectStore) ListManagedBuckets() ([]*objectstore.BucketInfo, error) {
+
+	var objectStores []ObjectStoreBucketModel
+	err := s.db.Where(&ObjectStoreBucketModel{OrganizationID: s.org.ID}).Order("name asc").Find(&objectStores).Error
+	if err != nil {
+		return nil, fmt.Errorf("retrieving managed buckets failed: %s", err.Error())
+	}
+
+	bucketList := make([]*objectstore.BucketInfo, 0)
+	for _, bucket := range objectStores {
+		bucketInfo := &objectstore.BucketInfo{Name: bucket.Name, Managed: true}
+		bucketInfo.Location = bucket.Location
+		bucketList = append(bucketList, bucketInfo)
+	}
+
+	return bucketList, nil
+}
+
 func (s *ObjectStore) newGoogleCredentials() (*google.Credentials, error) {
 	credentialsJson, err := json.Marshal(s.serviceAccount)
 	if err != nil {

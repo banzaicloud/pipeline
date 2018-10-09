@@ -19,6 +19,7 @@ package objectstore
 type ObjectStoreService interface {
 	CreateBucket(string) error
 	ListBuckets() ([]*BucketInfo, error)
+	ListManagedBuckets() ([]*BucketInfo, error)
 	DeleteBucket(string) error
 	CheckBucket(string) error
 }

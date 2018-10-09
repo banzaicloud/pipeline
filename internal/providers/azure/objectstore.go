@@ -514,6 +514,30 @@ func (s *ObjectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 	return buckets, nil
 }
 
+func (s *ObjectStore) ListManagedBuckets() ([]*objectstore.BucketInfo, error) {
+
+	s.logger.Info("getting all resource groups for subscription")
+
+	var objectStores []ObjectStoreBucketModel
+	err := s.db.
+		Where(&ObjectStoreBucketModel{OrganizationID: s.org.ID}).
+		Order("resource_group asc, storage_account asc, name asc").
+		Find(&objectStores).Error
+
+	if err != nil {
+		return nil, fmt.Errorf("retrieving managed buckets failed: %s", err.Error())
+	}
+
+	bucketList := make([]*objectstore.BucketInfo, 0)
+	for _, bucket := range objectStores {
+		bucketInfo := &objectstore.BucketInfo{Name: bucket.Name, Managed: true}
+		bucketInfo.Location = bucket.Location
+		bucketList = append(bucketList, bucketInfo)
+	}
+
+	return bucketList, nil
+}
+
 func GetStorageAccountKey(resourceGroup string, storageAccount string, s *secret.SecretItemResponse, log logrus.FieldLogger) (string, error) {
 	client, err := createStorageAccountClient(s)
 	if err != nil {

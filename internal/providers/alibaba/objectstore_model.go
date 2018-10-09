@@ -28,6 +28,7 @@ type ManagedAlibabaBucket struct {
 	OrgID        uint              `gorm:"index;not null"`
 	Name         string            `gorm:"unique_index:idx_bucket_name"`
 	Region       string
+	SecretRef    string
 }
 
 // TableName changes the default table name.
