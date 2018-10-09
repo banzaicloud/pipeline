@@ -25,6 +25,8 @@ import (
 	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/dns/route53"
 	"github.com/banzaicloud/pipeline/helm"
+	"github.com/banzaicloud/pipeline/internal/ark"
+	arkAPI "github.com/banzaicloud/pipeline/internal/ark/api"
 	"github.com/banzaicloud/pipeline/internal/providers/azure"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
@@ -1086,4 +1088,20 @@ func taintNodepoolNodes(client *kubernetes.Clientset, nodePoolName string) (tain
 	}
 
 	return
+}
+
+// RestoreFromBackup restores an ARK backup
+func RestoreFromBackup(input interface{}, param pkgCluster.PostHookParam) error {
+	cluster, ok := input.(CommonCluster)
+	if !ok {
+		return errors.Errorf("Wrong parameter type: %T", cluster)
+	}
+
+	var params arkAPI.RestoreFromBackupParams
+	err := castToPostHookParam(&param, &params)
+	if err != nil {
+		return err
+	}
+
+	return ark.RestoreFromBackup(params, cluster, pipConfig.DB(), log)
 }

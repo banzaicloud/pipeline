@@ -722,6 +722,11 @@ func (c *AKSCluster) GetK8sConfig() ([]byte, error) {
 	return c.CommonClusterBase.getConfig(c)
 }
 
+// GetResourceGroup gets the Azure Resoure Group from the model
+func (c *AKSCluster) GetResourceGroup() string {
+	return c.modelCluster.AKS.ResourceGroup
+}
+
 // RequiresSshPublicKey returns true as a public ssh key is needed for bootstrapping
 // the cluster
 func (c *AKSCluster) RequiresSshPublicKey() bool {

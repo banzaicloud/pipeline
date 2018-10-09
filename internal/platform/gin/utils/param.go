@@ -15,6 +15,7 @@
 package ginutils
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -30,7 +31,7 @@ func UintParam(ctx *gin.Context, paramName string) (uint, bool) {
 		ReplyWithErrorResponse(ctx, &common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Error:   "Invalid parameter",
-			Message: "Parameter 'id' must be a positive, numeric value",
+			Message: fmt.Sprintf("Parameter '%s' must be a positive, numeric value", paramName),
 		})
 
 		return 0, false

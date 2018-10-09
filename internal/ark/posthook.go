@@ -1,0 +1,110 @@
+// Copyright © 2018 Banzai Cloud
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package ark
+
+import (
+	"time"
+
+	"github.com/jinzhu/gorm"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"k8s.io/apimachinery/pkg/labels"
+
+	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/internal/ark/api"
+)
+
+const (
+	retryAttempts        = 200
+	retrySleepSeconds    = 15
+	restoredByLabelKey   = "restored-by"
+	restoredByLabelValue = "pipeline"
+)
+
+var (
+	nonRestorableNamespaces = []string{
+		"kube-system",
+	}
+)
+
+// RestoreFromBackup is a posthook for restoring a backup right after a new cluster is created
+func RestoreFromBackup(
+	params api.RestoreFromBackupParams,
+	cluster api.Cluster,
+	db *gorm.DB,
+	logger logrus.FieldLogger,
+) error {
+
+	org, err := auth.GetOrganizationById(cluster.GetOrganizationId())
+	if err != nil {
+		return err
+	}
+
+	svc := NewARKService(org, cluster, db, logger)
+	backupsSvc := svc.GetBackupsService()
+
+	backup, err := backupsSvc.GetModelByID(params.BackupID)
+	if err != nil {
+		return err
+	}
+
+	err = svc.GetDeploymentsService().Deploy(&backup.Bucket, true)
+	if err != nil {
+		return err
+	}
+
+	labels := make(labels.Set)
+	labels[restoredByLabelKey] = restoredByLabelValue
+
+	restoresSvc := svc.GetRestoresService()
+	restore, err := restoresSvc.Create(api.CreateRestoreRequest{
+		BackupName: backup.Name,
+		Labels:     labels,
+		Options: api.RestoreOptions{
+			ExcludedNamespaces: nonRestorableNamespaces,
+		},
+	})
+	if err != nil {
+		logger.Error(err)
+	} else {
+		WaitingForRestoreToFinish(restoresSvc, restore, logger)
+	}
+
+	err = svc.GetDeploymentsService().Remove()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// WaitingForRestoreToFinish waits until restoration process finishes
+func WaitingForRestoreToFinish(restoresSvc *RestoresService, restore *api.Restore, logger logrus.FieldLogger) error {
+
+	for i := 0; i <= retryAttempts; i++ {
+		r, _ := restoresSvc.GetByName(restore.Name)
+		if r.Status == "Completed" {
+			return nil
+		}
+		logger.WithFields(logrus.Fields{
+			"status":       r.Status,
+			"attempt":      i,
+			"max-attempts": retryAttempts,
+		}).Debug("restoration in progress")
+		time.Sleep(time.Duration(retrySleepSeconds) * time.Second)
+	}
+
+	return errors.New("timeout during waiting for restoration to finish")
+}

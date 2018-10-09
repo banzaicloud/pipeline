@@ -861,6 +861,20 @@
   version = "v0.11.0"
 
 [[projects]]
+  digest = "1:8215593844310df4da1a168989c8882a67c54e3c367bffc7c62b7a7299286fa8"
+  name = "github.com/heptio/ark"
+  packages = [
+    "pkg/apis/ark/v1",
+    "pkg/cloudprovider",
+    "pkg/generated/clientset/versioned",
+    "pkg/generated/clientset/versioned/scheme",
+    "pkg/generated/clientset/versioned/typed/ark/v1",
+  ]
+  pruneopts = "NUT"
+  revision = "659a852c8cd5b2094e7d8d5ae4ff6b700b24d74b"
+  version = "v0.9.3"
+
+[[projects]]
   branch = "master"
   digest = "1:b7f860847a1d71f925ba9385ed95f1ebc0abfeb418a78e219ab61f48fdfeffad"
   name = "github.com/howeyc/gopass"
@@ -2375,6 +2389,9 @@
     "github.com/goph/emperror/errorlogrus",
     "github.com/gorilla/sessions",
     "github.com/hashicorp/vault/api",
+    "github.com/heptio/ark/pkg/apis/ark/v1",
+    "github.com/heptio/ark/pkg/cloudprovider",
+    "github.com/heptio/ark/pkg/generated/clientset/versioned",
     "github.com/jinzhu/copier",
     "github.com/jinzhu/gorm",
     "github.com/jinzhu/gorm/dialects/mysql",
@@ -2393,6 +2410,7 @@
     "github.com/oracle/oci-go-sdk/core",
     "github.com/oracle/oci-go-sdk/identity",
     "github.com/oracle/oci-go-sdk/objectstorage",
+    "github.com/pelletier/go-toml",
     "github.com/pkg/errors",
     "github.com/pkg/sftp",
     "github.com/prometheus/common/model",
@@ -2436,6 +2454,7 @@
     "k8s.io/apimachinery/pkg/api/resource",
     "k8s.io/apimachinery/pkg/apis/meta/v1",
     "k8s.io/apimachinery/pkg/fields",
+    "k8s.io/apimachinery/pkg/labels",
     "k8s.io/apimachinery/pkg/types",
     "k8s.io/apimachinery/pkg/util/intstr",
     "k8s.io/apimachinery/pkg/util/net",

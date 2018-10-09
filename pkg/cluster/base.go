@@ -84,6 +84,7 @@ const (
 	LabelNodes                             = "LabelNodes"
 	TaintHeadNodes                         = "TaintHeadNodes"
 	InstallPVCOperator                     = "InstallPVCOperator"
+	RestoreFromBackup                      = "RestoreFromBackup"
 )
 
 // Provider name regexp
