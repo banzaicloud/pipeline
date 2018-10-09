@@ -14,6 +14,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"github.com/antihax/optional"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -224,9 +225,16 @@ Listing Helm deployments
  * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param orgId Organization identification
  * @param id Selected cluster identification (number)
+ * @param optional nil or *ListDeploymentsOpts - Optional Parameters:
+ * @param "Tag" (optional.String) -  Deployment tag to filter for
 @return ListDeploymentsResponse
 */
-func (a *DeploymentsApiService) ListDeployments(ctx context.Context, orgId int32, id int32) (ListDeploymentsResponse, *http.Response, error) {
+
+type ListDeploymentsOpts struct {
+	Tag optional.String
+}
+
+func (a *DeploymentsApiService) ListDeployments(ctx context.Context, orgId int32, id int32, localVarOptionals *ListDeploymentsOpts) (ListDeploymentsResponse, *http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Get")
 		localVarPostBody     interface{}
@@ -245,6 +253,9 @@ func (a *DeploymentsApiService) ListDeployments(ctx context.Context, orgId int32
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if localVarOptionals != nil && localVarOptionals.Tag.IsSet() {
+		localVarQueryParams.Add("tag", parameterToString(localVarOptionals.Tag.Value(), ""))
+	}
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{}
 

@@ -1840,6 +1840,14 @@ paths:
           format: int32
           type: integer
         style: simple
+      - description: Deployment tag to filter for
+        explode: true
+        in: query
+        name: tag
+        required: false
+        schema:
+          type: string
+        style: form
       responses:
         200:
           content:
