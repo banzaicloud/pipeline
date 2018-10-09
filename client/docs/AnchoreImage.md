@@ -10,7 +10,7 @@ Name | Type | Description | Notes
 **ImageDigest** | **string** |  | [optional] 
 **UserId** | **string** |  | [optional] 
 **ImageStatus** | **string** | State of the image | [optional] 
-**AnalysisDtatus** | **string** | A state value for the current status of the analysis progress of the image | [optional] 
+**AnalysisStatus** | **string** | A state value for the current status of the analysis progress of the image | [optional] 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

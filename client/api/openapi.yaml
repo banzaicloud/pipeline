@@ -4265,7 +4265,68 @@ paths:
       summary: List Images used in cluster
       tags:
       - images
-  /api/v1/orgs/{orgId}/imagescan:
+  /api/v1/orgs/{orgId}/clusters/{id}/images/{imageDigest}/deployments:
+    get:
+      description: List Deployments by Image
+      operationId: ListDeploymentsByImage
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Image digest
+        explode: false
+        in: path
+        name: imageDigest
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListDeploymentsResponse'
+          description: List Images
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during getting cluster details
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+          description: Cluster not found
+      security:
+      - bearerAuth: []
+      summary: List Deployments by Image
+      tags:
+      - images
+  /api/v1/orgs/{orgId}/clusters/{id}/imagescan:
     post:
       description: Scan Images used in cluster
       operationId: ScanImages
@@ -4318,7 +4379,7 @@ paths:
       summary: Scan Images used in cluster
       tags:
       - imagescan
-  /api/v1/orgs/{orgId}/imagescan/{imageDigest}:
+  /api/v1/orgs/{orgId}/clusters/{id}/imagescan/{imageDigest}:
     get:
       description: Get Image scan result
       operationId: GetScanResult
@@ -4327,6 +4388,15 @@ paths:
         explode: false
         in: path
         name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
         required: true
         schema:
           format: int32
@@ -4364,7 +4434,7 @@ paths:
       summary: Get Image scan results
       tags:
       - imagescan
-  /api/v1/orgs/{orgId}/imagescan/{imageDigest}/vuln:
+  /api/v1/orgs/{orgId}/clusters/{id}/imagescan/{imageDigest}/vuln:
     get:
       description: Get vulnerabilities
       operationId: GetImageVulnerabilities
@@ -4373,6 +4443,15 @@ paths:
         explode: false
         in: path
         name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
         required: true
         schema:
           format: int32
@@ -8145,9 +8224,9 @@ components:
           imageDigest: imageDigest
         lastUpdated: 2000-01-23T04:56:07.000+00:00
         createdAt: 2000-01-23T04:56:07.000+00:00
-        analysisDtatus: not_analyzed
         imageStatus: active
         userId: userId
+        analysisStatus: not_analyzed
         imageDigest: imageDigest
       properties:
         imageContent:
@@ -8174,7 +8253,7 @@ components:
           - inactive
           - disabled
           type: string
-        analysisDtatus:
+        analysisStatus:
           description: A state value for the current status of the analysis progress of the image
           enum:
           - not_analyzed

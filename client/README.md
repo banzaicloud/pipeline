@@ -71,10 +71,11 @@ Class | Method | HTTP request | Description
 *HpaApi* | [**DeleteDeploymentAutoscaling**](docs/HpaApi.md#deletedeploymentautoscaling) | **Delete** /api/v1/orgs/{orgId}/clusters/{id}/hpa | Delete Deployment Scaling
 *HpaApi* | [**GetDeploymentAutoscaling**](docs/HpaApi.md#getdeploymentautoscaling) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/hpa | Get Deployment Scaling Info
 *HpaApi* | [**UpdateDeploymentAutoscaling**](docs/HpaApi.md#updatedeploymentautoscaling) | **Put** /api/v1/orgs/{orgId}/clusters/{id}/hpa | Create / Update Deployment Scaling
+*ImagesApi* | [**ListDeploymentsByImage**](docs/ImagesApi.md#listdeploymentsbyimage) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/images/{imageDigest}/deployments | List Deployments by Image
 *ImagesApi* | [**ListImages**](docs/ImagesApi.md#listimages) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/images | List Images used in cluster
-*ImagescanApi* | [**GetImageVulnerabilities**](docs/ImagescanApi.md#getimagevulnerabilities) | **Get** /api/v1/orgs/{orgId}/imagescan/{imageDigest}/vuln | Get vulnerabilities
-*ImagescanApi* | [**GetScanResult**](docs/ImagescanApi.md#getscanresult) | **Get** /api/v1/orgs/{orgId}/imagescan/{imageDigest} | Get Image scan results
-*ImagescanApi* | [**ScanImages**](docs/ImagescanApi.md#scanimages) | **Post** /api/v1/orgs/{orgId}/imagescan | Scan Images used in cluster
+*ImagescanApi* | [**GetImageVulnerabilities**](docs/ImagescanApi.md#getimagevulnerabilities) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/imagescan/{imageDigest}/vuln | Get vulnerabilities
+*ImagescanApi* | [**GetScanResult**](docs/ImagescanApi.md#getscanresult) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/imagescan/{imageDigest} | Get Image scan results
+*ImagescanApi* | [**ScanImages**](docs/ImagescanApi.md#scanimages) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/imagescan | Scan Images used in cluster
 *InfoApi* | [**CreateResourceGroup**](docs/InfoApi.md#createresourcegroup) | **Post** /api/v1/orgs/{orgId}/azure/resourcegroups | Create resource groups
 *InfoApi* | [**DeleteResourceGroup**](docs/InfoApi.md#deleteresourcegroup) | **Delete** /api/v1/orgs/{orgId}/azure/resourcegroups/{name} | Delete resource group
 *InfoApi* | [**GetAmazonConfig**](docs/InfoApi.md#getamazonconfig) | **Get** /api/v1/orgs/{orgId}/cloudinfo/amazon | Get all amazon config

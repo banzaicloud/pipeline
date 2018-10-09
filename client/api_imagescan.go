@@ -32,10 +32,11 @@ ImagescanApiService Get vulnerabilities
 Get vulnerabilities
  * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param orgId Organization identification
+ * @param id Selected cluster identification (number)
  * @param imageDigest Image digest
 @return VulnerabilityResponse
 */
-func (a *ImagescanApiService) GetImageVulnerabilities(ctx context.Context, orgId int32, imageDigest string) (VulnerabilityResponse, *http.Response, error) {
+func (a *ImagescanApiService) GetImageVulnerabilities(ctx context.Context, orgId int32, id int32, imageDigest string) (VulnerabilityResponse, *http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Get")
 		localVarPostBody     interface{}
@@ -46,8 +47,9 @@ func (a *ImagescanApiService) GetImageVulnerabilities(ctx context.Context, orgId
 	)
 
 	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/api/v1/orgs/{orgId}/imagescan/{imageDigest}/vuln"
+	localVarPath := a.client.cfg.BasePath + "/api/v1/orgs/{orgId}/clusters/{id}/imagescan/{imageDigest}/vuln"
 	localVarPath = strings.Replace(localVarPath, "{"+"orgId"+"}", fmt.Sprintf("%v", orgId), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"id"+"}", fmt.Sprintf("%v", id), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"imageDigest"+"}", fmt.Sprintf("%v", imageDigest), -1)
 
 	localVarHeaderParams := make(map[string]string)
@@ -141,10 +143,11 @@ ImagescanApiService Get Image scan results
 Get Image scan result
  * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param orgId Organization identification
+ * @param id Selected cluster identification (number)
  * @param imageDigest Image digest
 @return AnchoreImage
 */
-func (a *ImagescanApiService) GetScanResult(ctx context.Context, orgId int32, imageDigest string) (AnchoreImage, *http.Response, error) {
+func (a *ImagescanApiService) GetScanResult(ctx context.Context, orgId int32, id int32, imageDigest string) (AnchoreImage, *http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Get")
 		localVarPostBody     interface{}
@@ -155,8 +158,9 @@ func (a *ImagescanApiService) GetScanResult(ctx context.Context, orgId int32, im
 	)
 
 	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/api/v1/orgs/{orgId}/imagescan/{imageDigest}"
+	localVarPath := a.client.cfg.BasePath + "/api/v1/orgs/{orgId}/clusters/{id}/imagescan/{imageDigest}"
 	localVarPath = strings.Replace(localVarPath, "{"+"orgId"+"}", fmt.Sprintf("%v", orgId), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"id"+"}", fmt.Sprintf("%v", id), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"imageDigest"+"}", fmt.Sprintf("%v", imageDigest), -1)
 
 	localVarHeaderParams := make(map[string]string)
@@ -265,7 +269,7 @@ func (a *ImagescanApiService) ScanImages(ctx context.Context, orgId int32, id in
 	)
 
 	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/api/v1/orgs/{orgId}/imagescan"
+	localVarPath := a.client.cfg.BasePath + "/api/v1/orgs/{orgId}/clusters/{id}/imagescan"
 	localVarPath = strings.Replace(localVarPath, "{"+"orgId"+"}", fmt.Sprintf("%v", orgId), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"id"+"}", fmt.Sprintf("%v", id), -1)
 

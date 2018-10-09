@@ -3829,7 +3829,61 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/ClusterNotFound'
 
-    '/api/v1/orgs/{orgId}/imagescan':
+    '/api/v1/orgs/{orgId}/clusters/{id}/images/{imageDigest}/deployments':
+        get:
+            security:
+                - bearerAuth: []
+            tags:
+                - images
+            summary: List Deployments by Image
+            operationId: ListDeploymentsByImage
+            description: List Deployments by Image
+            parameters:
+                - name: orgId
+                  in: path
+                  required: true
+                  description: Organization identification
+                  schema:
+                      type: integer
+                - name: id
+                  in: path
+                  required: true
+                  description: Selected cluster identification (number)
+                  schema:
+                      type: integer
+                - name: imageDigest
+                  in: path
+                  required: true
+                  description: Image digest
+                  schema:
+                      type: string
+            responses:
+                '200':
+                    description: "List Images"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListDeploymentsResponse'
+                '400':
+                    description: Error during getting cluster details
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BaseError_400'
+                '401':
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Unauthorized'
+                '404':
+                    description: Cluster not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ClusterNotFound'
+
+    '/api/v1/orgs/{orgId}/clusters/{id}/imagescan':
         post:
             security:
                 - bearerAuth: []
@@ -3877,7 +3931,7 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/BaseError_500'
 
-    '/api/v1/orgs/{orgId}/imagescan/{imageDigest}':
+    '/api/v1/orgs/{orgId}/clusters/{id}/imagescan/{imageDigest}':
         get:
             security:
                 - bearerAuth: []
@@ -3891,6 +3945,12 @@ paths:
                   in: path
                   required: true
                   description: Organization identification
+                  schema:
+                      type: integer
+                - name: id
+                  in: path
+                  required: true
+                  description: Selected cluster identification (number)
                   schema:
                       type: integer
                 - name: imageDigest
@@ -3919,7 +3979,7 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/BaseError_500'
 
-    '/api/v1/orgs/{orgId}/imagescan/{imageDigest}/vuln':
+    '/api/v1/orgs/{orgId}/clusters/{id}/imagescan/{imageDigest}/vuln':
         get:
             security:
                 - bearerAuth: []
@@ -3933,6 +3993,12 @@ paths:
                   in: path
                   required: true
                   description: Organization identification
+                  schema:
+                      type: integer
+                - name: id
+                  in: path
+                  required: true
+                  description: Selected cluster identification (number)
                   schema:
                       type: integer
                 - name: imageDigest
@@ -7331,7 +7397,7 @@ components:
                         - active
                         - inactive
                         - disabled
-                analysisDtatus:
+                analysisStatus:
                     type: string
                     description: A state value for the current status of the analysis progress of the image
                     enum:
@@ -7396,4 +7462,3 @@ components:
                     type: string
                 vulnerabilities:
                     $ref: '#/components/schemas/VulnerabilityList'
-    

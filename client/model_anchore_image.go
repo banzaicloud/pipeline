@@ -27,5 +27,5 @@ type AnchoreImage struct {
 	// State of the image
 	ImageStatus string `json:"imageStatus,omitempty"`
 	// A state value for the current status of the analysis progress of the image
-	AnalysisDtatus string `json:"analysisDtatus,omitempty"`
+	AnalysisStatus string `json:"analysisStatus,omitempty"`
 }
