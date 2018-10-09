@@ -69,7 +69,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ListDeployments**
-> ListDeploymentsResponse ListDeployments(ctx, orgId, id)
+> ListDeploymentsResponse ListDeployments(ctx, orgId, id, optional)
 List deployments
 
 Listing Helm deployments
@@ -81,6 +81,16 @@ Name | Type | Description  | Notes
  **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **orgId** | **int32**| Organization identification | 
   **id** | **int32**| Selected cluster identification (number) | 
+ **optional** | ***ListDeploymentsOpts** | optional parameters | nil if no parameters
+
+### Optional Parameters
+Optional parameters are passed through a pointer to a ListDeploymentsOpts struct
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+
+
+ **tag** | **optional.String**| Deployment tag to filter for | 
 
 ### Return type
 

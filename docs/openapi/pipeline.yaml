@@ -1673,6 +1673,11 @@ paths:
                   description: Selected cluster identification (number)
                   schema:
                       type: integer
+                - name: tag
+                  in: query
+                  description: Deployment tag to filter for
+                  schema:
+                      type: string
             responses:
                 '200':
                     description: "Deployments listed"
