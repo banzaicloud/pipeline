@@ -19,6 +19,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -62,13 +63,13 @@ func NewObjectStore(
 	db *gorm.DB,
 	logger logrus.FieldLogger,
 ) (*objectStore, error) {
-	//ostore, err := getProviderObjectStore(secret, region)
-	//if err != nil {
-	//	errors.Wrap(err, "could not create AWS object storage client")
-	//}
+	ostore, err := getProviderObjectStore(secret, region)
+	if err != nil {
+		errors.Wrap(err, "could not create AWS object storage client")
+	}
 
 	return &objectStore{
-		//objectStore: ostore,
+		objectStore: ostore,
 		region:      region,
 		secret:      secret,
 		org:         org,
@@ -78,6 +79,11 @@ func NewObjectStore(
 }
 
 func getProviderObjectStore(secret *secret.SecretItemResponse, region string) (amazonObjectStore, error) {
+	// when no secrets provided build an object store with no provider client/session setup
+	// eg. usage: list managed buckets
+	if secret == nil {
+		return amazonObjectstore.NewPlainObjectStore()
+	}
 
 	credentials := amazonObjectstore.Credentials{
 		AccessKeyID:     secret.Values[pkgSecret.AwsAccessKeyId],
@@ -100,9 +106,16 @@ func getProviderObjectStore(secret *secret.SecretItemResponse, region string) (a
 }
 
 func (s *objectStore) getLogger() logrus.FieldLogger {
+	var sId string
+	if s.secret == nil {
+		sId = ""
+	} else {
+		sId = s.secret.ID
+	}
+
 	return s.logger.WithFields(logrus.Fields{
 		"organization": s.org.ID,
-		//"secret":       s.secret.ID,
+		"secret":       sId,
 		"region":       s.region,
 	})
 }
@@ -254,6 +267,8 @@ func (s *objectStore) ListManagedBuckets() ([]*objectstore.BucketInfo, error) {
 	for _, bucket := range amazonBuckets {
 		bucketInfo := &objectstore.BucketInfo{Name: bucket.Name, Managed: true}
 		bucketInfo.Location = bucket.Region
+		bucketInfo.SecretRef = bucket.SecretRef
+		bucketInfo.Cloud = providers.Amazon
 		bucketList = append(bucketList, bucketInfo)
 	}
 

@@ -126,9 +126,15 @@ func ListManagedBuckets(c *gin.Context) {
 	logger := correlationid.Logger(log, c)
 	organization := auth.GetCurrentOrganization(c.Request)
 
-	allBuckets := make(map[string][]*objectstore.BucketInfo)
+	allProviders := []string{
+		pkgProviders.Alibaba,
+		pkgProviders.Amazon,
+		pkgProviders.Azure,
+		pkgProviders.Google,
+		pkgProviders.Oracle}
 
-	for _, cloudType := range []string{pkgProviders.Alibaba, pkgProviders.Amazon} {
+	allBuckets := make([]*objectstore.BucketInfo, 0)
+	for _, cloudType := range allProviders {
 		logger.Debugf("retrieving buckets for provider: %s", cloudType)
 
 		objectStoreCtx := &providers.ObjectStoreContext{
@@ -138,6 +144,7 @@ func ListManagedBuckets(c *gin.Context) {
 
 		objectStore, err := providers.NewObjectStore(objectStoreCtx, logger)
 		if err != nil {
+			logger.Warnf("error creating object store, managed buckets not retrieved for cloud type: %s", cloudType)
 			errorHandler.Handle(err)
 			continue
 		}
@@ -145,10 +152,10 @@ func ListManagedBuckets(c *gin.Context) {
 		bucketList, err := objectStore.ListManagedBuckets()
 		if err != nil {
 			logger.Errorf("retrieving object store buckets failed: %s", err.Error())
-			return
+			continue
 		}
 
-		allBuckets[cloudType] = bucketList
+		allBuckets = append(allBuckets, bucketList...)
 
 	}
 

@@ -26,10 +26,12 @@ type ObjectStoreService interface {
 
 // BucketInfo desribes a storage bucket
 type BucketInfo struct {
-	Name     string                    `json:"name"  binding:"required"`
-	Managed  bool                      `json:"managed" binding:"required"`
-	Location string                    `json:"location,omitempty"`
-	Azure    *BlobStoragePropsForAzure `json:"aks,omitempty"`
+	Name      string                    `json:"name"  binding:"required"`
+	Managed   bool                      `json:"managed" binding:"required"`
+	Location  string                    `json:"location,omitempty"`
+	SecretRef string                    `json:"secretId,omitempty"`
+	Cloud     string                    `json:"cloud,omitempty"`
+	Azure     *BlobStoragePropsForAzure `json:"aks,omitempty"`
 }
 
 // BlobStoragePropsForAzure describes the Azure specific properties
