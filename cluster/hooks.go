@@ -767,6 +767,7 @@ func InstallAnchoreImageValidator(input interface{}) error {
 	}
 
 	infraNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
+
 	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/anchore-policy-validator", "anchore", nil, "InstallAnchoreImageValidator", "")
 }
 
