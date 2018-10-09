@@ -21,6 +21,16 @@ password = "sparky123"
 dbname = "pipeline"
 logging = true
 
+[anchore]
+enabled = false
+#dialect = "postgres"
+#host = "localhost"
+#port = 5432
+#user = "anchore-db-user"
+#password = "xxxxxxxxxx"
+#dbname = "anchore"
+#endPoint = "https://beta.dev.banzaicloud.com"
+
 [logging]
 logformat = "text"
 loglevel = "debug"

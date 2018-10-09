@@ -28,6 +28,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/ark"
 	arkAPI "github.com/banzaicloud/pipeline/internal/ark/api"
 	"github.com/banzaicloud/pipeline/internal/providers/azure"
+	"github.com/banzaicloud/pipeline/internal/security"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
@@ -748,6 +749,25 @@ func InstallPVCOperatorPostHook(input interface{}) error {
 	infraNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
 
 	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/pvc-operator", "pvc-operator", nil, "InstallPVCOperator", "")
+}
+
+//InstallAnchoreImageValidator installs Anchore image validator
+func InstallAnchoreImageValidator(input interface{}) error {
+	cluster, ok := input.(CommonCluster)
+	if !ok {
+		return errors.Errorf("wrong parameter type: %T", cluster)
+	}
+
+	enabled, err := anchore.SetupAnchoreUser(cluster.GetOrganizationId(), cluster.GetUID())
+	if err != nil {
+		return err
+	}
+	if !enabled {
+		return nil
+	}
+
+	infraNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
+	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/anchore-policy-validator", "anchore", nil, "InstallAnchoreImageValidator", "")
 }
 
 //UpdatePrometheusPostHook updates a configmap used by Prometheus

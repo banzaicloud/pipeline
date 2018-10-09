@@ -281,3 +281,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/banzaicloud/anchore-image-validator"
+
+[[constraint]]
+  name = "github.com/sethvargo/go-password"
+  version = "0.1.1"
