@@ -19,6 +19,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/objectstore"
+	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/pkg/providers/oracle/oci"
 	osecret "github.com/banzaicloud/pipeline/pkg/providers/oracle/secret"
 	"github.com/banzaicloud/pipeline/secret"
@@ -97,7 +98,6 @@ func (o *ObjectStore) CreateBucket(name string) error {
 	bucket.Organization = *o.org
 	bucket.CompartmentID = oci.CompartmentOCID
 	bucket.Location = o.location
-
 	bucket.SecretRef = o.secret.ID
 
 	if err = o.persistBucketToDB(bucket); err != nil {
@@ -182,6 +182,8 @@ func (o *ObjectStore) ListManagedBuckets() ([]*objectstore.BucketInfo, error) {
 	for _, bucket := range objectStores {
 		bucketInfo := &objectstore.BucketInfo{Name: bucket.Name, Managed: true}
 		bucketInfo.Location = bucket.Location
+		bucketInfo.Cloud = providers.Oracle
+		bucketInfo.SecretRef = bucket.SecretRef
 		bucketList = append(bucketList, bucketInfo)
 	}
 

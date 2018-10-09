@@ -131,7 +131,7 @@ func ListManagedBuckets(c *gin.Context) {
 		pkgProviders.Amazon,
 		pkgProviders.Azure,
 		pkgProviders.Google,
-		//pkgProviders.Oracle
+		pkgProviders.Oracle,
 	}
 
 	allBuckets := make([]*objectstore.BucketInfo, 0)
