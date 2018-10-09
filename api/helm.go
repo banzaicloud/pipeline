@@ -120,7 +120,7 @@ func ListDeployments(c *gin.Context) {
 	}
 
 	log.Info("Get deployments")
-	response, err := helm.ListDeployments(nil, kubeConfig)
+	response, err := helm.ListDeployments(nil, c.Query("tag"), kubeConfig)
 	if err != nil {
 		log.Error("Error listing deployments: ", err.Error())
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
@@ -153,7 +153,7 @@ func ListDeployments(c *gin.Context) {
 		}
 	}
 
-	var releases []pkgHelm.ListDeploymentResponse
+	releases := []pkgHelm.ListDeploymentResponse{}
 	if response != nil && len(response.Releases) > 0 {
 		for _, r := range response.Releases {
 
@@ -369,7 +369,7 @@ func GetTillerStatus(c *gin.Context) {
 		return
 	}
 	// --- [ List deployments ] ---- //
-	_, err := helm.ListDeployments(nil, kubeConfig)
+	_, err := helm.ListDeployments(nil, "", kubeConfig)
 	if err != nil {
 		message := "Error connecting to tiller"
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{

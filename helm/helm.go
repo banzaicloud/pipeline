@@ -34,6 +34,7 @@ import (
 	helm2 "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/pkg/errors"
+	"github.com/spf13/cast"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/helm/pkg/chartutil"
 	"k8s.io/helm/pkg/getter"
@@ -123,7 +124,7 @@ func GetChartFile(file []byte, fileName string) (string, error) {
 func DeleteAllDeployment(kubeconfig []byte) error {
 	log.Info("Getting deployments....")
 	filter := ""
-	releaseResp, err := ListDeployments(&filter, kubeconfig)
+	releaseResp, err := ListDeployments(&filter, "", kubeconfig)
 	if err != nil {
 		return err
 	}
@@ -142,7 +143,7 @@ func DeleteAllDeployment(kubeconfig []byte) error {
 }
 
 //ListDeployments lists Helm deployments
-func ListDeployments(filter *string, kubeConfig []byte) (*rls.ListReleasesResponse, error) {
+func ListDeployments(filter *string, tagFilter string, kubeConfig []byte) (*rls.ListReleasesResponse, error) {
 	hClient, err := GetHelmClient(kubeConfig)
 	// TODO doc the options here
 	var sortBy = int32(2)
@@ -171,6 +172,41 @@ func ListDeployments(filter *string, kubeConfig []byte) (*rls.ListReleasesRespon
 	resp, err := hClient.ListReleases(ops...)
 	if err != nil {
 		return nil, err
+	}
+
+	if tagFilter != "" {
+
+		filteredResp := &rls.ListReleasesResponse{}
+
+		for _, release := range resp.Releases {
+
+			deployment, err := GetDeployment(release.Name, kubeConfig)
+			if err != nil {
+				return nil, err
+			}
+
+			if banzaicloudRaw, ok := deployment.Values["banzaicloud"]; ok {
+				banzaicloudValues, err := cast.ToStringMapE(banzaicloudRaw)
+				if err != nil {
+					continue
+				}
+				if tagsRaw, ok := banzaicloudValues["tags"]; ok {
+					tags, err := cast.ToStringSliceE(tagsRaw)
+					if err != nil {
+						continue
+					}
+					for _, tag := range tags {
+						if tag == tagFilter {
+							filteredResp.Releases = append(filteredResp.Releases, release)
+							filteredResp.Count++
+							break
+						}
+					}
+				}
+			}
+		}
+
+		resp = filteredResp
 	}
 	return resp, nil
 }

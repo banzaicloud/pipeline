@@ -477,7 +477,7 @@ func installDeployment(cluster CommonCluster, namespace string, deploymentName s
 		return err
 	}
 
-	deployments, err := helm.ListDeployments(&releaseName, kubeConfig)
+	deployments, err := helm.ListDeployments(&releaseName, "", kubeConfig)
 	if err != nil {
 		log.Errorln("Unable to fetch deployments from helm:", err)
 		return err
