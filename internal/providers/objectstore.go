@@ -26,7 +26,6 @@ import (
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/sirupsen/logrus"
 )
 
@@ -60,7 +59,7 @@ func NewObjectStore(ctx *ObjectStoreContext, logger logrus.FieldLogger) (objects
 		return azure.NewObjectStore(ctx.Location, ctx.ResourceGroup, ctx.StorageAccount, ctx.Secret, ctx.Organization, db, logger), nil
 
 	case providers.Google:
-		return google.NewObjectStore(ctx.Organization, verify.CreateServiceAccount(ctx.Secret.Values), ctx.Location, db, logger), nil
+		return google.NewObjectStore(ctx.Organization, ctx.Secret, ctx.Location, db, logger), nil
 
 	case providers.Oracle:
 		return oracle.NewObjectStore(ctx.Location, ctx.Secret, ctx.Organization, db, logger), nil

@@ -127,11 +127,12 @@ func ListManagedBuckets(c *gin.Context) {
 	organization := auth.GetCurrentOrganization(c.Request)
 
 	allProviders := []string{
-		pkgProviders.Alibaba,
+		//pkgProviders.Alibaba,
 		pkgProviders.Amazon,
-		pkgProviders.Azure,
+		//pkgProviders.Azure,
 		pkgProviders.Google,
-		pkgProviders.Oracle}
+		//pkgProviders.Oracle
+	}
 
 	allBuckets := make([]*objectstore.BucketInfo, 0)
 	for _, cloudType := range allProviders {
