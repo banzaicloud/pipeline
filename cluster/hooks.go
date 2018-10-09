@@ -753,22 +753,37 @@ func InstallPVCOperatorPostHook(input interface{}) error {
 
 //InstallAnchoreImageValidator installs Anchore image validator
 func InstallAnchoreImageValidator(input interface{}) error {
+
+	if !anchore.AnchorEnabled {
+		log.Infof("Anchore integration is not enabled.")
+		return nil
+	}
+
 	cluster, ok := input.(CommonCluster)
 	if !ok {
 		return errors.Errorf("wrong parameter type: %T", cluster)
 	}
 
-	enabled, err := anchore.SetupAnchoreUser(cluster.GetOrganizationId(), cluster.GetUID())
+	anchoreUser, err := anchore.SetupAnchoreUser(cluster.GetOrganizationId(), cluster.GetUID())
 	if err != nil {
 		return err
-	}
-	if !enabled {
-		return nil
 	}
 
 	infraNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
 
-	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/anchore-policy-validator", "anchore", nil, "InstallAnchoreImageValidator", "")
+	values := map[string]map[string]string{
+		"externalAnchore": {
+			"anchoreHost": anchore.AnchorEndpoint,
+			"anchoreUser": anchoreUser.UserId,
+			"anchorePass": anchoreUser.Password,
+		},
+	}
+	marshalledValues, err := yaml.Marshal(values)
+	if err != nil {
+		return err
+	}
+	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/anchore-policy-validator", "anchore", marshalledValues, "InstallAnchoreImageValidator", "")
+
 }
 
 //UpdatePrometheusPostHook updates a configmap used by Prometheus

@@ -29,8 +29,6 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres" // blank import is used here for simplicity
-	"github.com/sethvargo/go-password/password"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
@@ -70,7 +68,6 @@ func NewAnchoreDB() *AnchoreDB {
 	}
 
 	dbConnStr := fmt.Sprintf("host=%v port=%v user=%v dbname=%v password=%v sslmode=disable", config.Host, config.Port, config.User, config.Name, config.Pass)
-	logrus.Info(dbConnStr)
 	db, err := gorm.Open("postgres", dbConnStr)
 	if err != nil {
 		logger.Panic("failed to initialize db: ", err.Error())
@@ -99,7 +96,7 @@ func (db *AnchoreDB) findAnchoreUser(name string) (*User, error) {
 	return &user, nil
 }
 
-func (db *AnchoreDB) createAnchoreUser(name string, password string) error {
+func (db *AnchoreDB) createAnchoreUser(name string, password string) (*User, error) {
 	user := User{
 		UserId:         name,
 		Password:       password,
@@ -111,9 +108,9 @@ func (db *AnchoreDB) createAnchoreUser(name string, password string) error {
 	}
 	err := db.database.Create(&user).Error
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return &user, nil
 }
 
 //DeleteAnchoreUser
@@ -129,11 +126,7 @@ func (db *AnchoreDB) DeleteAnchoreUser(name string) error {
 }
 
 //SetupAnchoreUser sets up a new user in Anchore Postgres DB & creates / updates a secret containng user name /password.
-func SetupAnchoreUser(orgId uint, clusterId string) (bool, error) {
-	if !AnchorEnabled {
-		logger.Infof("Anchore integration is not enabled.")
-		return false, nil
-	}
+func SetupAnchoreUser(orgId uint, clusterId string) (*User, error) {
 	anchorUserName := fmt.Sprintf("%v-anchore-user", clusterId)
 	db := NewAnchoreDB()
 	defer db.database.Close()
@@ -142,32 +135,47 @@ func SetupAnchoreUser(orgId uint, clusterId string) (bool, error) {
 	var userPassword string
 	if err != nil {
 		logger.Infof("Anchore user %v not found, creating", anchorUserName)
-		userPassword, err = password.Generate(16, 4, 4, false, true)
-		if err != nil {
-			return true, errors.WrapPrefix(err, "Error generating password for Anchor user", 0)
+
+		secretRequest := secret.CreateSecretRequest{
+			Name: anchorUserName,
+			Type: "password",
+			Values: map[string]string{
+				"username": anchorUserName,
+				"password": "",
+			},
 		}
-		err := db.createAnchoreUser(anchorUserName, userPassword)
+		secretId, err := secret.Store.CreateOrUpdate(orgId, &secretRequest)
 		if err != nil {
-			return true, errors.WrapPrefix(err, "Error creating Anchor user", 0)
+			return nil, errors.WrapPrefix(err, "Failed to create/update Anchore user secret", 0)
+		}
+		// retrieve crated secret to read generated password
+		secretItem, err := secret.Store.Get(orgId, secretId)
+		if err != nil {
+			return nil, errors.WrapPrefix(err, "Failed to retrieve Anchore user secret", 0)
+		}
+		userPassword := secretItem.Values["password"]
+		user, err = db.createAnchoreUser(anchorUserName, userPassword)
+		if err != nil {
+			return nil, errors.WrapPrefix(err, "Error creating Anchor user", 0)
 		}
 	} else {
 		logger.Infof("Anchore user %v found", anchorUserName)
 		userPassword = user.Password
+
+		secretRequest := secret.CreateSecretRequest{
+			Name: anchorUserName,
+			Type: "password",
+			Values: map[string]string{
+				"username": anchorUserName,
+				"password": userPassword,
+			},
+		}
+		if _, err := secret.Store.CreateOrUpdate(orgId, &secretRequest); err != nil {
+			return nil, errors.WrapPrefix(err, "Failed to create/update Anchore user secret", 0)
+		}
 	}
 
-	secretRequest := secret.CreateSecretRequest{
-		Name: anchorUserName,
-		Type: "password",
-		Values: map[string]string{
-			"username": anchorUserName,
-			"password": userPassword,
-		},
-	}
-	if _, err := secret.Store.CreateOrUpdate(orgId, &secretRequest); err != nil {
-		return true, errors.WrapPrefix(err, "Failed to create/update Anchore user secret", 0)
-	}
-
-	return true, nil
+	return user, nil
 }
 
 func RemoveAnchoreUser(orgId uint, clusterId string) {
@@ -181,8 +189,21 @@ func RemoveAnchoreUser(orgId uint, clusterId string) {
 	err := db.DeleteAnchoreUser(anchorUserName)
 	if err != nil {
 		logger.Errorf("Error deleting Anchore user: %v", err.Error())
+		return
 	} else {
 		logger.Infof("Anchore user %v deleted.", anchorUserName)
+	}
+
+	secretItem, err := secret.Store.GetByName(orgId, anchorUserName)
+	if err != nil {
+		logger.Errorf("Error fetching Anchore user secret: %v", err.Error())
+		return
+	}
+	err = secret.Store.Delete(orgId, secretItem.ID)
+	if err != nil {
+		logger.Errorf("Error deleting Anchore user secret: %v", err.Error())
+	} else {
+		logger.Infof("Anchore user secret %v deleted.", anchorUserName)
 	}
 }
 
@@ -212,12 +233,12 @@ func MakePolicyRequest(orgId uint, clusterId string, method string, url string, 
 			return nil, err
 		}
 
-		request, _ = http.NewRequest(method, AnchorEndpoint+"/"+path.Join("imagecheck/v1", url), buf)
+		request, _ = http.NewRequest(method, AnchorEndpoint+"/"+path.Join("v1", url), buf)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		request, _ = http.NewRequest(method, AnchorEndpoint+"/"+path.Join("imagecheck/v1", url), nil)
+		request, _ = http.NewRequest(method, AnchorEndpoint+"/"+path.Join("v1", url), nil)
 		if err != nil {
 			return nil, err
 		}

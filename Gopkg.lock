@@ -1450,14 +1450,6 @@
   version = "v1.2.0"
 
 [[projects]]
-  digest = "1:74e1e426348ad9d0165bf106ab29a0dc98c74c05998d36160003332579c66a87"
-  name = "github.com/sethvargo/go-password"
-  packages = ["password"]
-  pruneopts = "NUT"
-  revision = "d207206009266fab3e355f1a0488b47ac24139c7"
-  version = "v0.1.1"
-
-[[projects]]
   digest = "1:01252cd79aac70f16cac02a72a1067dd136e0ad6d5b597d0129cf74c739fd8d1"
   name = "github.com/sirupsen/logrus"
   packages = ["."]
@@ -2435,7 +2427,6 @@
     "github.com/qor/session",
     "github.com/qor/session/gorilla",
     "github.com/satori/go.uuid",
-    "github.com/sethvargo/go-password/password",
     "github.com/sirupsen/logrus",
     "github.com/spf13/cast",
     "github.com/spf13/viper",
