@@ -31,6 +31,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 	pipelineAuth "github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/objectstore"
+	"github.com/banzaicloud/pipeline/pkg/providers"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/jinzhu/gorm"
@@ -532,6 +533,8 @@ func (s *ObjectStore) ListManagedBuckets() ([]*objectstore.BucketInfo, error) {
 	for _, bucket := range objectStores {
 		bucketInfo := &objectstore.BucketInfo{Name: bucket.Name, Managed: true}
 		bucketInfo.Location = bucket.Location
+		bucketInfo.SecretRef = bucket.SecretRef
+		bucketInfo.Cloud = providers.Azure
 		bucketList = append(bucketList, bucketInfo)
 	}
 
