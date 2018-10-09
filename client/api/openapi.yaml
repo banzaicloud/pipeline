@@ -2382,6 +2382,67 @@ paths:
       summary: Get deployment K8s resources
       tags:
       - deployment
+  /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name}/images:
+    get:
+      description: Retrieves the K8s images of a deployment
+      operationId: GetDeploymentImages
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Deployment name
+        explode: false
+        in: path
+        name: name
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeploymentImageList'
+          description: Deployment images
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Bad request
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Get deployment K8s images
+      tags:
+      - deployment
   /api/v1/orgs/{orgId}/clusters/{id}/hpa:
     delete:
       description: Delete scaling info for a Helm deployment
@@ -4260,7 +4321,7 @@ paths:
   /api/v1/orgs/{orgId}/imagescan/{imageDigest}:
     get:
       description: Get Image scan result
-      operationId: ScanResult
+      operationId: GetScanResult
       parameters:
       - description: Organization identification
         explode: false
@@ -4306,7 +4367,7 @@ paths:
   /api/v1/orgs/{orgId}/imagescan/{imageDigest}/vuln:
     get:
       description: Get vulnerabilities
-      operationId: Get ImageVulnerabilities
+      operationId: GetImageVulnerabilities
       parameters:
       - description: Organization identification
         explode: false
@@ -8034,6 +8095,10 @@ components:
           description: The parent Anchore Image record to which this detail maps
           type: string
       type: object
+    DeploymentImageList:
+      items:
+        $ref: '#/components/schemas/ClusterImage'
+      type: array
     ClusterImageList:
       items:
         $ref: '#/components/schemas/ClusterImage'

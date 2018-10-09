@@ -2140,6 +2140,60 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/BaseError_500'
 
+    '/api/v1/orgs/{orgId}/clusters/{id}/deployments/{name}/images':
+        get:
+            security:
+                - bearerAuth: []
+            tags:
+                - deployment
+            summary: Get deployment K8s images
+            operationId: GetDeploymentImages
+            description: Retrieves the K8s images of a deployment
+            parameters:
+                - name: orgId
+                  in: path
+                  required: true
+                  description: Organization identification
+                  schema:
+                      type: integer
+                - name: id
+                  in: path
+                  required: true
+                  description: Selected cluster identification (number)
+                  schema:
+                      type: integer
+                - name: name
+                  in: path
+                  required: true
+                  description: Deployment name
+                  schema:
+                      type: string
+            responses:
+                '200':
+                    description: "Deployment images"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DeploymentImageList'
+                '400':
+                    description: "Bad request"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BaseError_400'
+                '401':
+                    description: "Unauthorized"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Unauthorized'
+                '500':
+                    description: Internal server error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BaseError_500'
+
     '/api/v1/orgs/{orgId}/clusters/{id}/hpa':
         put:
             security:
@@ -3830,7 +3884,7 @@ paths:
             tags:
                 - imagescan
             summary: Get Image scan results
-            operationId: ScanResult
+            operationId: GetScanResult
             description: Get Image scan result
             parameters:
                 - name: orgId
@@ -3872,7 +3926,7 @@ paths:
             tags:
                 - imagescan
             summary: Get vulnerabilities
-            operationId: Get ImageVulnerabilities
+            operationId: GetImageVulnerabilities
             description: Get vulnerabilities
             parameters:
                 - name: orgId
@@ -7221,11 +7275,16 @@ components:
                     type: string
                     description: The parent Anchore Image record to which this detail maps
 
+        DeploymentImageList:
+            type: array
+            items:
+                $ref: "#/components/schemas/ClusterImage"
+
         ClusterImageList:
             type: array
             items:
                 $ref: "#/components/schemas/ClusterImage"
-    
+
         ClusterImage:
             type: object
             properties:

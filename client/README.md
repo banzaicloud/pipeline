@@ -54,6 +54,7 @@ Class | Method | HTTP request | Description
 *CommonApi* | [**ListEndpoints**](docs/CommonApi.md#listendpoints) | **Get** /api | List Pipeline API endpoints
 *DeploymentApi* | [**DeleteDeployment**](docs/DeploymentApi.md#deletedeployment) | **Delete** /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name} | Delete deployment
 *DeploymentApi* | [**GetDeployment**](docs/DeploymentApi.md#getdeployment) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name} | Get deployment details
+*DeploymentApi* | [**GetDeploymentImages**](docs/DeploymentApi.md#getdeploymentimages) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name}/images | Get deployment K8s images
 *DeploymentApi* | [**GetDeploymentResource**](docs/DeploymentApi.md#getdeploymentresource) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name}/resources | Get deployment K8s resources
 *DeploymentApi* | [**HelmDeploymentStatus**](docs/DeploymentApi.md#helmdeploymentstatus) | **Head** /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name} | Check deployment status
 *DeploymentApi* | [**UpdateDeployment**](docs/DeploymentApi.md#updatedeployment) | **Put** /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name} | Update deployment
@@ -72,8 +73,8 @@ Class | Method | HTTP request | Description
 *HpaApi* | [**UpdateDeploymentAutoscaling**](docs/HpaApi.md#updatedeploymentautoscaling) | **Put** /api/v1/orgs/{orgId}/clusters/{id}/hpa | Create / Update Deployment Scaling
 *ImagesApi* | [**ListImages**](docs/ImagesApi.md#listimages) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/images | List Images used in cluster
 *ImagescanApi* | [**GetImageVulnerabilities**](docs/ImagescanApi.md#getimagevulnerabilities) | **Get** /api/v1/orgs/{orgId}/imagescan/{imageDigest}/vuln | Get vulnerabilities
+*ImagescanApi* | [**GetScanResult**](docs/ImagescanApi.md#getscanresult) | **Get** /api/v1/orgs/{orgId}/imagescan/{imageDigest} | Get Image scan results
 *ImagescanApi* | [**ScanImages**](docs/ImagescanApi.md#scanimages) | **Post** /api/v1/orgs/{orgId}/imagescan | Scan Images used in cluster
-*ImagescanApi* | [**ScanResult**](docs/ImagescanApi.md#scanresult) | **Get** /api/v1/orgs/{orgId}/imagescan/{imageDigest} | Get Image scan results
 *InfoApi* | [**CreateResourceGroup**](docs/InfoApi.md#createresourcegroup) | **Post** /api/v1/orgs/{orgId}/azure/resourcegroups | Create resource groups
 *InfoApi* | [**DeleteResourceGroup**](docs/InfoApi.md#deleteresourcegroup) | **Delete** /api/v1/orgs/{orgId}/azure/resourcegroups/{name} | Delete resource group
 *InfoApi* | [**GetAmazonConfig**](docs/InfoApi.md#getamazonconfig) | **Get** /api/v1/orgs/{orgId}/cloudinfo/amazon | Get all amazon config
@@ -190,6 +191,7 @@ Class | Method | HTTP request | Description
  - [CustomMetric](docs/CustomMetric.md)
  - [CustomMetricStatus](docs/CustomMetricStatus.md)
  - [DeleteDeploymentResponse](docs/DeleteDeploymentResponse.md)
+ - [DeploymentImageList](docs/DeploymentImageList.md)
  - [DeploymentScaleStatus](docs/DeploymentScaleStatus.md)
  - [DeploymentScalingRequest](docs/DeploymentScalingRequest.md)
  - [DeploymentScalingResponse](docs/DeploymentScalingResponse.md)
