@@ -127,9 +127,9 @@ func ListManagedBuckets(c *gin.Context) {
 	organization := auth.GetCurrentOrganization(c.Request)
 
 	allProviders := []string{
-		//pkgProviders.Alibaba,
+		pkgProviders.Alibaba,
 		pkgProviders.Amazon,
-		//pkgProviders.Azure,
+		pkgProviders.Azure,
 		pkgProviders.Google,
 		//pkgProviders.Oracle
 	}
