@@ -62,13 +62,13 @@ func NewObjectStore(
 	db *gorm.DB,
 	logger logrus.FieldLogger,
 ) (*objectStore, error) {
-	ostore, err := getProviderObjectStore(secret, region)
-	if err != nil {
-		errors.Wrap(err, "could not create AWS object storage client")
-	}
+	//ostore, err := getProviderObjectStore(secret, region)
+	//if err != nil {
+	//	errors.Wrap(err, "could not create AWS object storage client")
+	//}
 
 	return &objectStore{
-		objectStore: ostore,
+		//objectStore: ostore,
 		region:      region,
 		secret:      secret,
 		org:         org,
@@ -102,7 +102,7 @@ func getProviderObjectStore(secret *secret.SecretItemResponse, region string) (a
 func (s *objectStore) getLogger() logrus.FieldLogger {
 	return s.logger.WithFields(logrus.Fields{
 		"organization": s.org.ID,
-		"secret":       s.secret.ID,
+		//"secret":       s.secret.ID,
 		"region":       s.region,
 	})
 }
