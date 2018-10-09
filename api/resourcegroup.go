@@ -24,7 +24,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const sercretIdKey = "secretId"
+const secretIdKey = "secretId"
 
 // GetResourceGroups lists resource groups by secret
 func GetResourceGroups(c *gin.Context) {
@@ -118,5 +118,5 @@ func DeleteResourceGroups(c *gin.Context) {
 }
 
 func getSecretIdFromHeader(c *gin.Context) string {
-	return c.GetHeader(sercretIdKey)
+	return c.GetHeader(secretIdKey)
 }

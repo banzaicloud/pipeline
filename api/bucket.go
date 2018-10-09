@@ -98,7 +98,7 @@ func ListBuckets(c *gin.Context) {
 }
 
 // CreateBucket creates an objectstore bucket (blob container in case of Azure)
-// and also creates all requirements for them (eg.; ResourceGroup and StorageAccunt in case of Azure).
+// and also creates all requirements for them (eg.; ResourceGroup and StorageAccount in case of Azure).
 // These information are also stored to a database.
 func CreateBucket(c *gin.Context) {
 	logger := correlationid.Logger(log, c)
