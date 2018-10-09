@@ -104,7 +104,7 @@ func InstallSecretsByK8SConfig(k8sConfig []byte, orgID uint, query *secretTypes.
 		if create {
 			newK8sSecret.ObjectMeta.Namespace = namespace
 
-			_, err = clusterClient.CoreV1().Secrets(namespace).Create(&k8sSecret)
+			_, err = clusterClient.CoreV1().Secrets(namespace).Create(&newK8sSecret)
 		} else {
 			k8sSecret.Data = nil // Clear data so that it is created from string data again
 			k8sSecret.StringData = newK8sSecret.StringData
