@@ -25,7 +25,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// GetUsers gets a user or lists all users from an organizaion depending on the presence of the id paramater
+// GetUsers gets a user or lists all users from an organization depending on the presence of the id parameter
 func GetUsers(c *gin.Context) {
 
 	log.Info("Fetching users")
@@ -47,7 +47,8 @@ func GetUsers(c *gin.Context) {
 
 	var users []auth.User
 	db := config.DB()
-	err = db.Model(organization).Related(&users, "Users").Error
+
+	err = db.Model(organization).Where(&auth.User{ID: uint(id)}).Related(&users, "Users").Error
 	if err != nil {
 		message := "failed to fetch users"
 		log.Info(message + ": " + err.Error())
@@ -56,6 +57,7 @@ func GetUsers(c *gin.Context) {
 			Message: message,
 			Error:   message,
 		})
+		return
 	} else if id == 0 {
 		c.JSON(http.StatusOK, users)
 	} else if len(users) == 1 {

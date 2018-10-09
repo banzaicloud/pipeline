@@ -87,7 +87,7 @@ func GetOrganizations(c *gin.Context) {
 
 	db := config.DB()
 
-	// Virtual users can list only the organizaion they are belonging to
+	// Virtual users can list only the organization they are belonging to
 	if user.Virtual {
 		organization.Name = auth.GetOrgNameFromVirtualUser(user.Login)
 		err = db.Where(&organization).Find(&organizations).Error
@@ -167,7 +167,7 @@ func CreateOrganization(c *gin.Context) {
 	c.JSON(http.StatusOK, organization)
 }
 
-//DeleteOrganization deletes an organizaion by id
+//DeleteOrganization deletes an organization by id
 func DeleteOrganization(c *gin.Context) {
 	log.Info("Deleting organization")
 

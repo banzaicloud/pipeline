@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "5ed7b865-0079-4c00-a6ef-c4934f3b778c",
+		"_postman_id": "aeb0009c-c02b-4e10-9221-45ccd989475e",
 		"name": "End2End TEST Organizations",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -6899,6 +6899,86 @@
 									"key": "userId",
 									"value": "{{userId}}",
 									"description": "User identifier"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get user",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/users/:id",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"users",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "{{orgId}}",
+									"type": "text",
+									"enabled": true
+								},
+								{
+									"key": "id",
+									"value": "{{userId}}",
+									"type": "text",
+									"enabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete user",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/users/:userId",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"users",
+								":userId"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "{{orgId}}",
+									"type": "text",
+									"enabled": true
+								},
+								{
+									"key": "userId",
+									"value": "{{userId}}",
+									"type": "text",
+									"enabled": true
 								}
 							]
 						}
