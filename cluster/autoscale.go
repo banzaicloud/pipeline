@@ -273,7 +273,7 @@ func DeployClusterAutoscaler(cluster CommonCluster) error {
 }
 
 func isAutoscalerDeployedAlready(releaseName string, kubeConfig []byte) bool {
-	deployments, err := helm.ListDeployments(&releaseName, kubeConfig)
+	deployments, err := helm.ListDeployments(&releaseName, "", kubeConfig)
 	if err != nil {
 		log.Errorf("ListDeployments for '%s' failed due to: %s", autoScalerChart, err.Error())
 		return false

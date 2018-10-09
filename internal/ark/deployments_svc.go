@@ -257,7 +257,7 @@ func (s *DeploymentsService) installDeployment(
 		return emperror.Wrap(err, "unable to fetch k8s config")
 	}
 
-	deployments, err := helm.ListDeployments(&releaseName, kubeConfig)
+	deployments, err := helm.ListDeployments(&releaseName, "", kubeConfig)
 	if err != nil {
 		return emperror.Wrap(err, "unable to fetch deployments from helm")
 	}
