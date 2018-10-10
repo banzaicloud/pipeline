@@ -5846,11 +5846,6 @@ components:
                     type: string
                     example: my API token
 
-        TokenListResponse:
-            type: array
-            items:
-                $ref: '#/components/schemas/TokenListResponseItem'
-
         TokenListResponseItem:
             type: object
             required:
@@ -5867,11 +5862,6 @@ components:
                 name:
                     type: string
                     example: my API token
-
-        SecretsListResponse:
-            type: array
-            items:
-                $ref: '#/components/schemas/SecretItem'
 
         SecretItem:
             type: object
@@ -6114,11 +6104,6 @@ components:
                 error:
                     type: string
                     example: "There are no secrets with [1] organization id and [15205947761] secret id"
-
-        OrganizationListResponse:
-            type: array
-            items:
-                $ref: '#/components/schemas/OrganizationListItemResponse'
 
         OrganizationListItemResponse:
             type: object
@@ -6615,15 +6600,6 @@ components:
                     type: string
                 storageAccount:
                     type: string
-
-        RunPostHook:
-            type: object
-            properties:
-                functions:
-                    type: array
-                    items:
-                        type: string
-                    example:  [ "InstallMonitoring" ]
 
         PodDetailsResponse:
             type: array
@@ -7357,12 +7333,6 @@ components:
                     example: 'latest'
                 imageDigest:
                     type: string
-    
-        AnchoreImageList:
-            description: A list of Anchore Images
-            type: array
-            items:
-                $ref: '#/components/schemas/AnchoreImage'
     
         AnchoreImage:
             description: A unique image in the engine. May have multiple tags or references. Unique to an image content across registries or repositories.

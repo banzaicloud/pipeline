@@ -6214,10 +6214,6 @@ components:
       - name
       - token
       type: object
-    TokenListResponse:
-      items:
-        $ref: '#/components/schemas/TokenListResponseItem'
-      type: array
     TokenListResponseItem:
       example:
         createdAt: 2018-06-01T11:26:40.044297036+02:00
@@ -6238,10 +6234,6 @@ components:
       - id
       - name
       type: object
-    SecretsListResponse:
-      items:
-        $ref: '#/components/schemas/SecretItem'
-      type: array
     SecretItem:
       example:
         updatedBy: banzaiuser
@@ -6527,10 +6519,6 @@ components:
           example: There are no secrets with [1] organization id and [15205947761] secret id
           type: string
       type: object
-    OrganizationListResponse:
-      items:
-        $ref: '#/components/schemas/OrganizationListItemResponse'
-      type: array
     OrganizationListItemResponse:
       example:
         createdAt: 2018-03-09T13:24:49+01:00
@@ -7141,15 +7129,6 @@ components:
       required:
       - resourceGroup
       - storageAccount
-      type: object
-    RunPostHook:
-      properties:
-        functions:
-          example:
-          - InstallMonitoring
-          items:
-            type: string
-          type: array
       type: object
     PodDetailsResponse:
       items:
@@ -8189,11 +8168,6 @@ components:
         imageDigest:
           type: string
       type: object
-    AnchoreImageList:
-      description: A list of Anchore Images
-      items:
-        $ref: '#/components/schemas/AnchoreImage'
-      type: array
     AnchoreImage:
       description: A unique image in the engine. May have multiple tags or references. Unique to an image content across registries or repositories.
       example:
