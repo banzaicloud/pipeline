@@ -3549,7 +3549,7 @@ paths:
                 - storage
             summary: List object storage buckets
             operationId: ListObjectStoreBuckets
-            description: List object store buckets accessible by the credentials referenced by the given secret.
+            description: List object store buckets accessible by the credentials referenced by the given secret. If no credentials provided all managed buckets are returned for all cloud types.
             parameters:
                 - name: orgId
                   in: path
@@ -3559,8 +3559,8 @@ paths:
                       type: integer
                 - name: secretId
                   in: header
-                  required: true
-                  description: Secret identification
+                  required: false
+                  description: Secret identification. If not provided only the managed buckets (those created via pipeline) are listed
                   schema:
                       type: string
                 - name: cloudType
@@ -3568,8 +3568,8 @@ paths:
                   schema:
                       type: string
                       enum: [amazon, google, azure]
-                  required: true
-                  description: Identifies the cloud provider
+                  required: false
+                  description: Identifies the cloud provider - mandatory if secretId header is provided
                 - name: location
                   in: query
                   schema:
@@ -6596,6 +6596,8 @@ components:
             required:
                 - name
                 - managed
+                - cloud
+                - secretId
             properties:
                 name:
                     type: string
