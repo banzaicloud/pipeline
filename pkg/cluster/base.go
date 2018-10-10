@@ -84,6 +84,7 @@ const (
 	LabelNodes                             = "LabelNodes"
 	TaintHeadNodes                         = "TaintHeadNodes"
 	InstallPVCOperator                     = "InstallPVCOperator"
+	InstallAnchoreImageValidator           = "InstallAnchoreImageValidator"
 	RestoreFromBackup                      = "RestoreFromBackup"
 )
 

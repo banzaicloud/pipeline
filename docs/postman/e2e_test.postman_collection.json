@@ -1,7 +1,7 @@
 {
 	"info": {
-		"_postman_id": "aeb0009c-c02b-4e10-9221-45ccd989475e",
 		"name": "End2End TEST Organizations",
+		"_postman_id": "dfd89082-b262-7007-4798-f3c0b7626cd4",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -1477,7 +1477,7 @@
 								{
 									"key": "secretName",
 									"value": "{{secretName}}",
-                                    "description": "Secret name"
+									"description": "Secret name"
 								}
 							]
 						},
@@ -6930,15 +6930,11 @@
 							"variable": [
 								{
 									"key": "orgId",
-									"value": "{{orgId}}",
-									"type": "text",
-									"enabled": true
+									"value": "{{orgId}}"
 								},
 								{
 									"key": "id",
-									"value": "{{userId}}",
-									"type": "text",
-									"enabled": true
+									"value": "{{userId}}"
 								}
 							]
 						}
@@ -6970,15 +6966,11 @@
 							"variable": [
 								{
 									"key": "orgId",
-									"value": "{{orgId}}",
-									"type": "text",
-									"enabled": true
+									"value": "{{orgId}}"
 								},
 								{
 									"key": "userId",
-									"value": "{{userId}}",
-									"type": "text",
-									"enabled": true
+									"value": "{{userId}}"
 								}
 							]
 						}
@@ -9351,8 +9343,442 @@
 			]
 		},
 		{
-			"name": "Internal",
+			"name": "Security",
 			"description": "",
+			"item": [
+				{
+					"name": "Get Scanlog",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"name\": \"banzaicloud-stable/drone\"}"
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/scanlog",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"clusters",
+								":clusterId",
+								"scanlog"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "{{orgId}}",
+									"description": "Organization identifier"
+								},
+								{
+									"key": "clusterId",
+									"value": "{{clusterId}}",
+									"description": "Cluster identifier"
+								}
+							]
+						},
+						"description": "Get Scanlog"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Whitelists",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"name\": \"banzaicloud-stable/drone\"}"
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/whitelists",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"clusters",
+								":clusterId",
+								"whitelists"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "{{orgId}}",
+									"description": "Organization identifier"
+								},
+								{
+									"key": "clusterId",
+									"value": "{{clusterId}}",
+									"description": "Cluster identifier"
+								}
+							]
+						},
+						"description": "Get Whitelists"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Whitelists",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"budos-bagoly3\",\t\n  \"releaseName\": \"flying-monkey\",\n  \"owner\": \"banzaicloud\",\n  \"reason\": \"test release\"\n}"
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/whitelists",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"clusters",
+								":clusterId",
+								"whitelists"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "{{orgId}}",
+									"description": "Organization identifier"
+								},
+								{
+									"key": "clusterId",
+									"value": "{{clusterId}}",
+									"description": "Cluster identifier"
+								}
+							]
+						},
+						"description": "Create Whitelists"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Whitelists",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"budos-bagoly3\",\t\n  \"releaseName\": \"flying-monkey\",\n  \"owner\": \"banzaicloud\",\n  \"reason\": \"test release\"\n}"
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/whitelists/test-whitelist",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"clusters",
+								":clusterId",
+								"whitelists",
+								"test-whitelist"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "{{orgId}}",
+									"description": "Organization identifier"
+								},
+								{
+									"key": "clusterId",
+									"value": "{{clusterId}}",
+									"description": "Cluster identifier"
+								}
+							]
+						},
+						"description": "Delete Whitelists"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Policies",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"name\": \"banzaicloud-stable/drone\"}"
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/policies",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"clusters",
+								":clusterId",
+								"policies"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "{{orgId}}",
+									"description": "Organization identifier"
+								},
+								{
+									"key": "clusterId",
+									"value": "{{clusterId}}",
+									"description": "Cluster identifier"
+								}
+							]
+						},
+						"description": "Get Policies"
+					},
+					"response": []
+				},
+				{
+					"name": "Create new Policy",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (responseCode.code === 200) {",
+									"    tests[\"Response Code 200\"] = responseCode.code == 200;",
+									"    ",
+									"    var dataJSON = JSON.parse(responseBody);",
+									"    pm.environment.set(\"policyId\", dataJSON.policyId);",
+									"    tests[\"PolicyId ID: \" + dataJSON.policyId] = true;",
+									"} else {",
+									"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+									"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+									"    postman.setNextRequest(null);",
+									"}",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n      \"id\": \"97b33e2c-3b57-4a3f-a12b-a8c0daa472a0\",\n      \"version\": \"1_0\",\n      \"name\": \"AllowAll\",\n      \"policies\": [\n        {\n          \"comment\": \"\",\n          \"id\": \"b83f90b3-24b7-4c51-858e-035f85156f00\",\n          \"name\": \"allow-all\",\n          \"rules\": [\n            {\n              \"action\": \"WARN\",\n              \"gate\": \"ANCHORESEC\",\n              \"id\": \"eaef9298-9be9-4cc3-92d8-1b69968e175a\",\n              \"params\": [],\n              \"trigger\": \"VULNHIGH\"\n            },\n            {\n              \"action\": \"WARN\",\n              \"gate\": \"ANCHORESEC\",\n              \"id\": \"f2d9e08e-b09c-4f8d-972c-de84223783f9\",\n              \"params\": [],\n              \"trigger\": \"VULNCRITICAL\"\n            },\n            {\n              \"action\": \"WARN\",\n              \"gate\": \"DOCKERFILECHECK\",\n              \"id\": \"f47bf985-fbd5-4afa-bdcc-658ecc9e424e\",\n              \"params\": [\n                {\n                  \"name\": \"DENIEDPORTS\",\n                  \"value\": \"22\"\n                }\n              ],\n              \"trigger\": \"EXPOSE\"\n            }\n          ],\n          \"version\": \"1_0\"\n        }\n      ],\n      \"whitelists\": [],\n      \"mappings\": [\n        {\n          \"id\": \"df21279e-57f3-4ca2-a57a-ae23cb071d6b\",\n          \"image\": {\n            \"type\": \"tag\",\n            \"value\": \"*\"\n          },\n          \"name\": \"allow-all\",\n          \"policy_id\": \"b83f90b3-24b7-4c51-858e-035f85156f00\",\n          \"registry\": \"*\",\n          \"repository\": \"*\",\n          \"whitelist_ids\": []\n        }\n      ]\n    }"
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/policies",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"clusters",
+								":clusterId",
+								"policies"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "{{orgId}}",
+									"description": "Organization identifier"
+								},
+								{
+									"key": "clusterId",
+									"value": "{{clusterId}}",
+									"description": "Cluster identifier"
+								}
+							]
+						},
+						"description": "Create new Policy"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Policy",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (responseCode.code === 200) {",
+									"    tests[\"Response Code 200\"] = responseCode.code == 200;",
+									"} else {",
+									"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+									"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+									"    postman.setNextRequest(null);",
+									"}",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n      \"id\": \"97b33e2c-3b57-4a3f-a12b-a8c0daa472a0\",\n      \"version\": \"1_0\",\n      \"name\": \"AllowAll\",\n      \"policies\": [\n        {\n          \"comment\": \"\",\n          \"id\": \"b83f90b3-24b7-4c51-858e-035f85156f00\",\n          \"name\": \"allow-all\",\n          \"rules\": [\n            {\n              \"action\": \"WARN\",\n              \"gate\": \"ANCHORESECCC\",\n              \"id\": \"eaef9298-9be9-4cc3-92d8-1b69968e175a\",\n              \"params\": [],\n              \"trigger\": \"VULNHIGH\"\n            },\n            {\n              \"action\": \"WARN\",\n              \"gate\": \"ANCHORESEC\",\n              \"id\": \"f2d9e08e-b09c-4f8d-972c-de84223783f9\",\n              \"params\": [],\n              \"trigger\": \"VULNCRITICAL\"\n            },\n            {\n              \"action\": \"WARN\",\n              \"gate\": \"DOCKERFILECHECK\",\n              \"id\": \"f47bf985-fbd5-4afa-bdcc-658ecc9e424e\",\n              \"params\": [\n                {\n                  \"name\": \"DENIEDPORTS\",\n                  \"value\": \"22\"\n                }\n              ],\n              \"trigger\": \"EXPOSE\"\n            }\n          ],\n          \"version\": \"1_0\"\n        }\n      ],\n      \"whitelists\": [],\n      \"mappings\": [\n        {\n          \"id\": \"df21279e-57f3-4ca2-a57a-ae23cb071d6b\",\n          \"image\": {\n            \"type\": \"tag\",\n            \"value\": \"*\"\n          },\n          \"name\": \"allow-all\",\n          \"policy_id\": \"b83f90b3-24b7-4c51-858e-035f85156f00\",\n          \"registry\": \"*\",\n          \"repository\": \"*\",\n          \"whitelist_ids\": []\n        }\n      ]\n    }"
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/policies/:policyId",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"clusters",
+								":clusterId",
+								"policies",
+								":policyId"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "{{orgId}}",
+									"description": "Organization identifier"
+								},
+								{
+									"key": "clusterId",
+									"value": "{{clusterId}}",
+									"description": "Cluster identifier"
+								},
+								{
+									"key": "policyId",
+									"value": ""
+								}
+							]
+						},
+						"description": "Update Policy"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Policy",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (responseCode.code === 200) {",
+									"    tests[\"Response Code 200\"] = responseCode.code == 200;",
+									"} else {",
+									"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+									"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+									"    postman.setNextRequest(null);",
+									"}",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/policies/:policyId",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"clusters",
+								":clusterId",
+								"policies",
+								":policyId"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "{{orgId}}",
+									"description": "Organization identifier"
+								},
+								{
+									"key": "clusterId",
+									"value": "{{clusterId}}",
+									"description": "Cluster identifier"
+								},
+								{
+									"key": "policyId",
+									"value": ""
+								}
+							]
+						},
+						"description": "Delete Policy"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Internal",
 			"item": [
 				{
 					"name": "Get Dashboard",
@@ -9412,7 +9838,7 @@
 					},
 					"response": [
 						{
-							"id": "e57d98d0-1508-4618-8fa4-d8e7d0016524",
+							"id": "06b2d94c-6b7e-42b9-9384-10f115742786",
 							"name": "Get Dashboard",
 							"originalRequest": {
 								"method": "GET",
@@ -9478,7 +9904,7 @@
 							],
 							"cookie": [
 								{
-									"expires": "Tue Jan 19 2038 04:14:07 GMT+0100 (CET)",
+									"expires": "Invalid Date",
 									"httpOnly": false,
 									"domain": "localhost",
 									"path": "/cluster-demo",

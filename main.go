@@ -245,6 +245,11 @@ func main() {
 			orgs.GET("/:orgid/clusters/:id/whitelists", api.GetWhiteLists)
 			orgs.POST("/:orgid/clusters/:id/whitelists", api.CreateWhiteList)
 			orgs.DELETE("/:orgid/clusters/:id/whitelists/:name", api.DeleteWhiteList)
+			orgs.GET("/:orgid/clusters/:id/policies", api.GetPolicies)
+			orgs.GET("/:orgid/clusters/:id/policies/:policyId", api.GetPolicies)
+			orgs.POST("/:orgid/clusters/:id/policies", api.CreatePolicy)
+			orgs.PUT("/:orgid/clusters/:id/policies/:policyId", api.UpdatePolicies)
+			orgs.DELETE("/:orgid/clusters/:id/policies/:policyId", api.DeletePolicy)
 
 			orgs.GET("/:orgid/helm/repos", api.HelmReposGet)
 			orgs.POST("/:orgid/helm/repos", api.HelmReposAdd)

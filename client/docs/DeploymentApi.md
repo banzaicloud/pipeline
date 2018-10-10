@@ -6,6 +6,7 @@ Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**DeleteDeployment**](DeploymentApi.md#DeleteDeployment) | **Delete** /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name} | Delete deployment
 [**GetDeployment**](DeploymentApi.md#GetDeployment) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name} | Get deployment details
+[**GetDeploymentImages**](DeploymentApi.md#GetDeploymentImages) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name}/images | Get deployment K8s images
 [**GetDeploymentResource**](DeploymentApi.md#GetDeploymentResource) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name}/resources | Get deployment K8s resources
 [**HelmDeploymentStatus**](DeploymentApi.md#HelmDeploymentStatus) | **Head** /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name} | Check deployment status
 [**UpdateDeployment**](DeploymentApi.md#UpdateDeployment) | **Put** /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name} | Update deployment
@@ -59,6 +60,36 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**GetDeploymentResponse**](GetDeploymentResponse.md)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **GetDeploymentImages**
+> DeploymentImageList GetDeploymentImages(ctx, orgId, id, name)
+Get deployment K8s images
+
+Retrieves the K8s images of a deployment
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+  **orgId** | **int32**| Organization identification | 
+  **id** | **int32**| Selected cluster identification (number) | 
+  **name** | **string**| Deployment name | 
+
+### Return type
+
+[**DeploymentImageList**](DeploymentImageList.md)
 
 ### Authorization
 

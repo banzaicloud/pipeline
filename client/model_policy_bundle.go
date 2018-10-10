@@ -28,7 +28,7 @@ type PolicyBundle struct {
 	// Mapping rules for defining which policy and whitelist(s) to apply to an image based on a match of the image tag or id. Evaluated in order.
 	Mappings []MappingRule `json:"mappings"`
 	// List of mapping rules that define which images should always be passed (unless also on the blacklist), regardless of policy result.
-	WhitelistedImages []ImageSelectionRule `json:"whitelisted_images,omitempty"`
+	WhitelistedImages []ImageSelectionRule `json:"whitelistedImages,omitempty"`
 	// List of mapping rules that define which images should always result in a STOP/FAIL policy result regardless of policy content or presence in whitelisted_images
-	BlacklistedImages []ImageSelectionRule `json:"blacklisted_images,omitempty"`
+	BlacklistedImages []ImageSelectionRule `json:"blacklistedImages,omitempty"`
 }

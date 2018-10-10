@@ -54,6 +54,7 @@ Class | Method | HTTP request | Description
 *CommonApi* | [**ListEndpoints**](docs/CommonApi.md#listendpoints) | **Get** /api | List Pipeline API endpoints
 *DeploymentApi* | [**DeleteDeployment**](docs/DeploymentApi.md#deletedeployment) | **Delete** /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name} | Delete deployment
 *DeploymentApi* | [**GetDeployment**](docs/DeploymentApi.md#getdeployment) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name} | Get deployment details
+*DeploymentApi* | [**GetDeploymentImages**](docs/DeploymentApi.md#getdeploymentimages) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name}/images | Get deployment K8s images
 *DeploymentApi* | [**GetDeploymentResource**](docs/DeploymentApi.md#getdeploymentresource) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name}/resources | Get deployment K8s resources
 *DeploymentApi* | [**HelmDeploymentStatus**](docs/DeploymentApi.md#helmdeploymentstatus) | **Head** /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name} | Check deployment status
 *DeploymentApi* | [**UpdateDeployment**](docs/DeploymentApi.md#updatedeployment) | **Put** /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name} | Update deployment
@@ -70,6 +71,11 @@ Class | Method | HTTP request | Description
 *HpaApi* | [**DeleteDeploymentAutoscaling**](docs/HpaApi.md#deletedeploymentautoscaling) | **Delete** /api/v1/orgs/{orgId}/clusters/{id}/hpa | Delete Deployment Scaling
 *HpaApi* | [**GetDeploymentAutoscaling**](docs/HpaApi.md#getdeploymentautoscaling) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/hpa | Get Deployment Scaling Info
 *HpaApi* | [**UpdateDeploymentAutoscaling**](docs/HpaApi.md#updatedeploymentautoscaling) | **Put** /api/v1/orgs/{orgId}/clusters/{id}/hpa | Create / Update Deployment Scaling
+*ImagesApi* | [**ListDeploymentsByImage**](docs/ImagesApi.md#listdeploymentsbyimage) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/images/{imageDigest}/deployments | List Deployments by Image
+*ImagesApi* | [**ListImages**](docs/ImagesApi.md#listimages) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/images | List Images used in cluster
+*ImagescanApi* | [**GetImageVulnerabilities**](docs/ImagescanApi.md#getimagevulnerabilities) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/imagescan/{imageDigest}/vuln | Get vulnerabilities
+*ImagescanApi* | [**GetScanResult**](docs/ImagescanApi.md#getscanresult) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/imagescan/{imageDigest} | Get Image scan results
+*ImagescanApi* | [**ScanImages**](docs/ImagescanApi.md#scanimages) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/imagescan | Scan Images used in cluster
 *InfoApi* | [**CreateResourceGroup**](docs/InfoApi.md#createresourcegroup) | **Post** /api/v1/orgs/{orgId}/azure/resourcegroups | Create resource groups
 *InfoApi* | [**DeleteResourceGroup**](docs/InfoApi.md#deleteresourcegroup) | **Delete** /api/v1/orgs/{orgId}/azure/resourcegroups/{name} | Delete resource group
 *InfoApi* | [**GetAmazonConfig**](docs/InfoApi.md#getamazonconfig) | **Get** /api/v1/orgs/{orgId}/cloudinfo/amazon | Get all amazon config
@@ -127,6 +133,8 @@ Class | Method | HTTP request | Description
  - [AmazonConfigResponse](docs/AmazonConfigResponse.md)
  - [AmazonConfigResponseImage](docs/AmazonConfigResponseImage.md)
  - [AmazonConfigResponseInstanceType](docs/AmazonConfigResponseInstanceType.md)
+ - [AnchoreImage](docs/AnchoreImage.md)
+ - [AnchoreImageList](docs/AnchoreImageList.md)
  - [AzureBlobStorageProps](docs/AzureBlobStorageProps.md)
  - [AzureConfigResponse](docs/AzureConfigResponse.md)
  - [AzureConfigResponseInstanceType](docs/AzureConfigResponseInstanceType.md)
@@ -139,6 +147,8 @@ Class | Method | HTTP request | Description
  - [ClusterConfig](docs/ClusterConfig.md)
  - [ClusterDelete200](docs/ClusterDelete200.md)
  - [ClusterDetailsResponse](docs/ClusterDetailsResponse.md)
+ - [ClusterImage](docs/ClusterImage.md)
+ - [ClusterImageList](docs/ClusterImageList.md)
  - [ClusterNotFound](docs/ClusterNotFound.md)
  - [ClusterProfileAks](docs/ClusterProfileAks.md)
  - [ClusterProfileAksAks](docs/ClusterProfileAksAks.md)
@@ -182,6 +192,7 @@ Class | Method | HTTP request | Description
  - [CustomMetric](docs/CustomMetric.md)
  - [CustomMetricStatus](docs/CustomMetricStatus.md)
  - [DeleteDeploymentResponse](docs/DeleteDeploymentResponse.md)
+ - [DeploymentImageList](docs/DeploymentImageList.md)
  - [DeploymentScaleStatus](docs/DeploymentScaleStatus.md)
  - [DeploymentScalingRequest](docs/DeploymentScalingRequest.md)
  - [DeploymentScalingResponse](docs/DeploymentScalingResponse.md)
@@ -324,6 +335,9 @@ Class | Method | HTTP request | Description
  - [UpdateNodePoolsGoogle](docs/UpdateNodePoolsGoogle.md)
  - [UrlItem](docs/UrlItem.md)
  - [User](docs/User.md)
+ - [Vulnerability](docs/Vulnerability.md)
+ - [VulnerabilityList](docs/VulnerabilityList.md)
+ - [VulnerabilityResponse](docs/VulnerabilityResponse.md)
  - [Whitelist](docs/Whitelist.md)
  - [WhitelistItem](docs/WhitelistItem.md)
 
