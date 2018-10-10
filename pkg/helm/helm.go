@@ -127,6 +127,7 @@ type ListDeploymentResponse struct {
 	Namespace    string `json:"namespace"`
 	CreatedAt    string `json:"createdAt,omitempty"`
 	Supported    bool   `json:"supported"`
+	WhiteListed  bool   `json:"whiteListed"`
 }
 
 // DeploymentStatusResponse describes a deployment status response

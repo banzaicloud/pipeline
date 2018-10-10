@@ -29,6 +29,7 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/helm/pkg/helm/environment"
 	"k8s.io/helm/pkg/proto/hapi/release"
 	"k8s.io/helm/pkg/repo"
@@ -153,6 +154,20 @@ func ListDeployments(c *gin.Context) {
 		}
 	}
 
+	// Create WhiteList set
+	securityClientSet := getSecurityClient(c)
+	releaseWhitelist := make(map[string]bool)
+	if securityClientSet != nil {
+		whitelists, err := securityClientSet.Whitelists(metav1.NamespaceAll).List(metav1.ListOptions{})
+		if err != nil {
+			log.Warnf("can not fetch WhiteList: ", err.Error())
+		} else {
+			for _, whitelist := range whitelists.Items {
+				releaseWhitelist[whitelist.Name] = true
+			}
+		}
+	}
+
 	releases := []pkgHelm.ListDeploymentResponse{}
 	if response != nil && len(response.Releases) > 0 {
 		for _, r := range response.Releases {
@@ -172,6 +187,10 @@ func ListDeployments(c *gin.Context) {
 				Namespace:    r.Namespace,
 				CreatedAt:    createdAt,
 				Supported:    supportedCharts[chartName] != nil,
+			}
+			//Add WhiteListed flag if present
+			if _, ok := releaseWhitelist[r.Name]; ok {
+				body.WhiteListed = ok
 			}
 			releases = append(releases, body)
 		}
