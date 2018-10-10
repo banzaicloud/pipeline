@@ -190,9 +190,8 @@ func RemoveAnchoreUser(orgId uint, clusterId string) {
 	if err != nil {
 		logger.Errorf("Error deleting Anchore user: %v", err.Error())
 		return
-	} else {
-		logger.Infof("Anchore user %v deleted.", anchorUserName)
 	}
+	logger.Infof("Anchore user %v deleted.", anchorUserName)
 
 	secretItem, err := secret.Store.GetByName(orgId, anchorUserName)
 	if err != nil {
