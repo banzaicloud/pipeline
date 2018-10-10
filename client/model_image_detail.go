@@ -17,8 +17,8 @@ import (
 
 // A metadata detail record for a specific image. Multiple detail records may map a single catalog image.
 type ImageDetail struct {
-	CreatedAt   time.Time `json:"created_at,omitempty"`
-	LastUpdated time.Time `json:"last_updated,omitempty"`
+	CreatedAt   time.Time `json:"createdAt,omitempty"`
+	LastUpdated time.Time `json:"lastUpdated,omitempty"`
 	// Full docker-pullalbe tag string referencing the image
 	Fulltag string `json:"fulltag,omitempty"`
 	// Full docker-pullable digest string including the registry url and repository necessary get the image
