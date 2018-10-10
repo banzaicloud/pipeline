@@ -1013,13 +1013,11 @@ paths:
                       type: string
             responses:
                 '200':
-                    description: "Secrets is installed into the cluster"
+                    description: "Secret is installed into the cluster"
                     content:
                         application/json:
                             schema:
-                                type: array
-                                items:
-                                    $ref: '#/components/schemas/InstallSecretResponse'
+                                $ref: '#/components/schemas/InstallSecretResponse'
                 '400':
                     description: "Error during getting endpoints"
                     content:
@@ -5585,11 +5583,6 @@ components:
                             items:
                                 type: string
                             example: ["repo:pipeline"]
-
-        InstallSecretsResponse:
-            type: array
-            items:
-                $ref: '#/components/schemas/InstallSecretResponse'
 
         InstallSecretRequest:
             type: object

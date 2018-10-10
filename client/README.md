@@ -229,7 +229,6 @@ Class | Method | HTTP request | Description
  - [InstallSecretResponse](docs/InstallSecretResponse.md)
  - [InstallSecretsRequest](docs/InstallSecretsRequest.md)
  - [InstallSecretsRequestQuery](docs/InstallSecretsRequestQuery.md)
- - [InstallSecretsResponse](docs/InstallSecretsResponse.md)
  - [LaunchSpotguidesRequest](docs/LaunchSpotguidesRequest.md)
  - [ListDeploymentsResponse](docs/ListDeploymentsResponse.md)
  - [ListDeploymentsResponseInner](docs/ListDeploymentsResponseInner.md)
