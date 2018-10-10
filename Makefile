@@ -80,6 +80,7 @@ ec2-list-instances: ## Lists aws ec2 instances, for alternative regions use: AWS
 
 .PHONY: generate-client
 generate-client: ## Generate go client based on openapi description
+	rm -rf ./client
 	docker run --rm -v ${PWD}:/local openapitools/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} generate \
 	--additional-properties packageName=client \
 	--additional-properties withGoCodegenComment=true \
