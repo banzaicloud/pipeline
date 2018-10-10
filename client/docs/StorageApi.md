@@ -129,10 +129,10 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ListObjectStoreBuckets**
-> ListStorageBucketsResponse ListObjectStoreBuckets(ctx, orgId, secretId, cloudType, optional)
+> ListStorageBucketsResponse ListObjectStoreBuckets(ctx, orgId, optional)
 List object storage buckets
 
-List object store buckets accessible by the credentials referenced by the given secret.
+List object store buckets accessible by the credentials referenced by the given secret. If no credentials provided all managed buckets are returned for all cloud types.
 
 ### Required Parameters
 
@@ -140,8 +140,6 @@ Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **orgId** | **int32**| Organization identification | 
-  **secretId** | **string**| Secret identification | 
-  **cloudType** | **string**| Identifies the cloud provider | 
  **optional** | ***ListObjectStoreBucketsOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
@@ -150,8 +148,8 @@ Optional parameters are passed through a pointer to a ListObjectStoreBucketsOpts
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
 
-
-
+ **secretId** | **optional.String**| Secret identification. If not provided only the managed buckets (those created via pipeline) are listed | 
+ **cloudType** | **optional.String**| Identifies the cloud provider - mandatory if secretId header is provided | 
  **location** | **optional.String**| Identifies the cloud region. Required by Amazon only. | 
 
 ### Return type

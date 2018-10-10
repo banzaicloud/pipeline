@@ -19,6 +19,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/objectstore"
+	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/pkg/providers/oracle/oci"
 	osecret "github.com/banzaicloud/pipeline/pkg/providers/oracle/secret"
 	"github.com/banzaicloud/pipeline/secret"
@@ -97,6 +98,7 @@ func (o *ObjectStore) CreateBucket(name string) error {
 	bucket.Organization = *o.org
 	bucket.CompartmentID = oci.CompartmentOCID
 	bucket.Location = o.location
+	bucket.SecretRef = o.secret.ID
 
 	if err = o.persistBucketToDB(bucket); err != nil {
 		return errors.Wrap(err, "error happened during persisting bucket description to DB")
@@ -166,6 +168,27 @@ func (o *ObjectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 	o.markManagedBuckets(bucketList, oci.CompartmentOCID)
 
 	return bucketList, nil
+}
+
+func (o *ObjectStore) ListManagedBuckets() ([]*objectstore.BucketInfo, error) {
+
+	var objectStores []ObjectStoreBucketModel
+	err := o.db.Where(&ObjectStoreBucketModel{OrgID: o.org.ID}).Order("name asc").Find(&objectStores).Error
+	if err != nil {
+		return nil, fmt.Errorf("retrieving managed buckets failed: %s", err.Error())
+	}
+
+	bucketList := make([]*objectstore.BucketInfo, 0)
+	for _, bucket := range objectStores {
+		bucketInfo := &objectstore.BucketInfo{Name: bucket.Name, Managed: true}
+		bucketInfo.Location = bucket.Location
+		bucketInfo.Cloud = providers.Oracle
+		bucketInfo.SecretRef = bucket.SecretRef
+		bucketList = append(bucketList, bucketInfo)
+	}
+
+	return bucketList, nil
+
 }
 
 // DeleteBucket deletes the managed bucket with the given name from Oracle object store

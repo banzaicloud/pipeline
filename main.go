@@ -273,7 +273,7 @@ func main() {
 			orgs.POST("/:orgid/users/:id", api.AddUser)
 			orgs.DELETE("/:orgid/users/:id", api.RemoveUser)
 
-			orgs.GET("/:orgid/buckets", api.ListBuckets)
+			orgs.GET("/:orgid/buckets", api.ListAllBuckets)
 			orgs.POST("/:orgid/buckets", api.CreateBucket)
 			orgs.HEAD("/:orgid/buckets/:name", api.CheckBucket)
 			orgs.DELETE("/:orgid/buckets/:name", api.DeleteBucket)

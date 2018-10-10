@@ -41,6 +41,30 @@ import (
 	"google.golang.org/api/googleapi"
 )
 
+const (
+	// header key constants
+	secretNameHeader = "secretName"
+	secretIdHeader   = "secretId"
+)
+
+// ListAllBuckets handles bucket list requests. The handler method directs the flow to the appropriate retrieval
+// strategy based on the request header details
+func ListAllBuckets(c *gin.Context) {
+	logger := correlationid.Logger(log, c)
+
+	if hasSecret(c) {
+		// fallback to the initial implementation
+		logger.Debug("proceeding to listing buckets based on the provided secret")
+		ListBuckets(c)
+		return
+	}
+
+	logger.Debug("proceeding to listing managed buckets")
+	ListManagedBuckets(c)
+	return
+
+}
+
 // ListBuckets returns the list of object storage buckets (object storage container in case of Azure)
 // that can be accessed with the credentials from the given secret.
 func ListBuckets(c *gin.Context) {
@@ -95,6 +119,49 @@ func ListBuckets(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, bucketList)
+}
+
+// ListManagedBuckets lists managed buckets for the user when no secret is provided
+func ListManagedBuckets(c *gin.Context) {
+	logger := correlationid.Logger(log, c)
+	organization := auth.GetCurrentOrganization(c.Request)
+
+	allProviders := []string{
+		pkgProviders.Alibaba,
+		pkgProviders.Amazon,
+		pkgProviders.Azure,
+		pkgProviders.Google,
+		pkgProviders.Oracle,
+	}
+
+	allBuckets := make([]*objectstore.BucketInfo, 0)
+	for _, cloudType := range allProviders {
+		logger.Debugf("retrieving buckets for provider: %s", cloudType)
+
+		objectStoreCtx := &providers.ObjectStoreContext{
+			Provider:     cloudType,
+			Organization: organization,
+		}
+
+		objectStore, err := providers.NewObjectStore(objectStoreCtx, logger)
+		if err != nil {
+			logger.Warnf("error creating object store, managed buckets not retrieved for cloud type: %s", cloudType)
+			errorHandler.Handle(err)
+			continue
+		}
+
+		bucketList, err := objectStore.ListManagedBuckets()
+		if err != nil {
+			logger.Errorf("retrieving object store buckets failed: %s", err.Error())
+			continue
+		}
+
+		allBuckets = append(allBuckets, bucketList...)
+
+	}
+
+	c.JSON(http.StatusOK, allBuckets)
+
 }
 
 // CreateBucket creates an objectstore bucket (blob container in case of Azure)
@@ -357,17 +424,24 @@ func DeleteBucket(c *gin.Context) {
 	logger.Infof("object store bucket deleted")
 }
 
+// hasSecret checks the header for secret references, returns true in case one of the following headers are found:
+// - secretName
+// - secretId
+// otherwise returns false
+func hasSecret(c *gin.Context) bool {
+	return c.GetHeader(secretNameHeader) != "" || c.GetHeader(secretIdHeader) == ""
+}
 func getBucketContext(c *gin.Context, logger logrus.FieldLogger) (*auth.Organization, *secret.SecretItemResponse, string, bool) {
 	organization := auth.GetCurrentOrganization(c.Request)
 
 	var secretID string
 	var ok bool
 
-	secretName := c.GetHeader("secretName")
+	secretName := c.GetHeader(secretNameHeader)
 	if secretName != "" {
 		secretID = secret.GenerateSecretIDFromName(secretName)
 	} else {
-		secretID, ok = ginutils.GetRequiredHeader(c, "secretId")
+		secretID, ok = ginutils.GetRequiredHeader(c, secretIdHeader)
 		if !ok {
 			return nil, nil, "", false
 		}

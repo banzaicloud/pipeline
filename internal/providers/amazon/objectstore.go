@@ -19,6 +19,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -78,6 +79,11 @@ func NewObjectStore(
 }
 
 func getProviderObjectStore(secret *secret.SecretItemResponse, region string) (amazonObjectStore, error) {
+	// when no secrets provided build an object store with no provider client/session setup
+	// eg. usage: list managed buckets
+	if secret == nil {
+		return amazonObjectstore.NewPlainObjectStore()
+	}
 
 	credentials := amazonObjectstore.Credentials{
 		AccessKeyID:     secret.Values[pkgSecret.AwsAccessKeyId],
@@ -100,9 +106,16 @@ func getProviderObjectStore(secret *secret.SecretItemResponse, region string) (a
 }
 
 func (s *objectStore) getLogger() logrus.FieldLogger {
+	var sId string
+	if s.secret == nil {
+		sId = ""
+	} else {
+		sId = s.secret.ID
+	}
+
 	return s.logger.WithFields(logrus.Fields{
 		"organization": s.org.ID,
-		"secret":       s.secret.ID,
+		"secret":       sId,
 		"region":       s.region,
 	})
 }
@@ -123,6 +136,8 @@ func (s *objectStore) CreateBucket(bucketName string) error {
 	bucket.Name = bucketName
 	bucket.Organization = *s.org
 	bucket.Region = s.region
+
+	bucket.SecretRef = s.secret.ID
 
 	if err := s.db.Save(bucket).Error; err != nil {
 		return errors.Wrap(err, "error happened during saving bucket in DB")
@@ -231,6 +246,29 @@ func (s *objectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 		}
 		bucketInfo.Location = region
 
+		bucketList = append(bucketList, bucketInfo)
+	}
+
+	return bucketList, nil
+}
+
+func (s *objectStore) ListManagedBuckets() ([]*objectstore.BucketInfo, error) {
+	logger := s.getLogger()
+	logger.Debug("retrieving managed bucket list")
+
+	var amazonBuckets []*ObjectStoreBucketModel
+
+	err := s.db.Where(&ObjectStoreBucketModel{OrganizationID: s.org.ID}).Order("name asc").Find(&amazonBuckets).Error
+	if err != nil {
+		return nil, fmt.Errorf("retrieving managed buckets failed: %s", err.Error())
+	}
+
+	bucketList := make([]*objectstore.BucketInfo, 0)
+	for _, bucket := range amazonBuckets {
+		bucketInfo := &objectstore.BucketInfo{Name: bucket.Name, Managed: true}
+		bucketInfo.Location = bucket.Region
+		bucketInfo.SecretRef = bucket.SecretRef
+		bucketInfo.Cloud = providers.Amazon
 		bucketList = append(bucketList, bucketInfo)
 	}
 
