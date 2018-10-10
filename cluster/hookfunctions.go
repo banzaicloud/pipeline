@@ -84,6 +84,10 @@ var HookMap = map[string]PostFunctioner{
 		f:            InstallPVCOperatorPostHook,
 		ErrorHandler: ErrorHandler{},
 	},
+	pkgCluster.InstallAnchoreImageValidator: &BasePostFunction{
+		f:            InstallAnchoreImageValidator,
+		ErrorHandler: ErrorHandler{},
+	},
 	pkgCluster.RestoreFromBackup: &PostFunctionWithParam{
 		f:            RestoreFromBackup,
 		ErrorHandler: ErrorHandler{},
@@ -104,6 +108,7 @@ var BasePostHookFunctions = []PostFunctioner{
 	HookMap[pkgCluster.LabelNodes],
 	HookMap[pkgCluster.TaintHeadNodes],
 	HookMap[pkgCluster.InstallPVCOperator],
+	HookMap[pkgCluster.InstallAnchoreImageValidator],
 }
 
 // PostFunctioner manages posthook functions

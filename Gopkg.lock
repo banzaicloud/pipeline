@@ -915,11 +915,12 @@
   revision = "7e38e58719c33e0d44d585c4ab477a30f8cb82dd"
 
 [[projects]]
-  digest = "1:79563a43e3238fe7157330362a81ca088998f76d40f4845f56ccec7bc19faeba"
+  digest = "1:bedb0bceeac029e9ebab4b4461f9d70008bf6ee269e73c32b8b8a339d278cfea"
   name = "github.com/jinzhu/gorm"
   packages = [
     ".",
     "dialects/mysql",
+    "dialects/postgres",
   ]
   pruneopts = "NUT"
   revision = "6ed508ec6a4ecb3531899a69cbc746ccf65a4166"
@@ -1035,10 +1036,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:7a1e592f0349d56fac8ce47f28469e4e7f4ce637cb26f40c88da9dff25db1c98"
+  digest = "1:59b2ccc5705651ebe8a86d5b7d1c0309603291f78d212a38fc80ddda072a3585"
   name = "github.com/lib/pq"
   packages = [
     ".",
+    "hstore",
     "oid",
   ]
   pruneopts = "NUT"
@@ -2395,6 +2397,7 @@
     "github.com/jinzhu/copier",
     "github.com/jinzhu/gorm",
     "github.com/jinzhu/gorm/dialects/mysql",
+    "github.com/jinzhu/gorm/dialects/postgres",
     "github.com/jinzhu/now",
     "github.com/jmespath/go-jmespath",
     "github.com/kubicorn/kubicorn/apis/cluster",

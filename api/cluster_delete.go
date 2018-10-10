@@ -22,6 +22,7 @@ import (
 	"github.com/banzaicloud/pipeline/config"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/utils"
+	"github.com/banzaicloud/pipeline/internal/security"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/gin-gonic/gin"
@@ -55,6 +56,8 @@ func DeleteCluster(c *gin.Context) {
 	ctx := ginutils.Context(c.Request.Context(), c)
 
 	clusterManager.DeleteCluster(ctx, commonCluster, force, &kubeProxyCache)
+
+	anchore.RemoveAnchoreUser(commonCluster.GetOrganizationId(), commonCluster.GetUID())
 
 	c.JSON(http.StatusAccepted, DeleteClusterResponse{
 		Status:     http.StatusAccepted,

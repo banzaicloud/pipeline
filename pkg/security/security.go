@@ -18,10 +18,10 @@ import "time"
 
 type Policy struct {
 	Id      string       `json:"id"`
-	Name    string       `json:"name,omitempty"`
+	Name    string       `json:"name"`
 	Comment string       `json:"comment,omitempty"`
 	Version string       `json:"version"`
-	Rules   []PolicyRule `json:"rules,omitempty"`
+	Rules   []PolicyRule `json:"rules"`
 }
 
 // A bundle containing a set of policies, whitelists, and rules for mapping them to specific images
@@ -29,13 +29,13 @@ type PolicyBundle struct {
 	// Id of the bundle
 	Id string `json:"id"`
 	// Human readable name for the bundle
-	Name string `json:"name,omitempty"`
+	Name string `json:"name"`
 	// Description of the bundle, human readable
-	Comment string `json:"comment,omitempty"`
+	Comment string `json:"comment"`
 	// Version id for this bundle format
-	Version string `json:"version"`
+	Version string `json:"version,omitempty"`
 	// Whitelists which define which policy matches to disregard explicitly in the final policy decision
-	Whitelists []Whitelist `json:"whitelists,omitempty"`
+	Whitelists []Whitelist `json:"whitelists"`
 	// Policies which define the go/stop/warn status of an image using rule matches on image properties
 	Policies []Policy `json:"policies"`
 	// Mapping rules for defining which policy and whitelist(s) to apply to an image based on a match of the image tag or id. Evaluated in order.
@@ -49,7 +49,7 @@ type PolicyBundle struct {
 type MappingRule struct {
 	Id           string   `json:"id,omitempty"`
 	Name         string   `json:"name"`
-	WhitelistIds []string `json:"whitelist_ids,omitempty"`
+	WhitelistIds []string `json:"whitelist_ids"`
 	// Optional single policy to evalute, if set will override any value in policy_ids, for backwards compatibility. Generally, policy_ids should be used even with a array of length 1.
 	PolicyId string `json:"policy_id,omitempty"`
 	// List of policyIds to evaluate in order, to completion
@@ -90,11 +90,11 @@ type PolicyBundleRecord struct {
 
 // A rule that defines and decision value if the match is found true for a given image.
 type PolicyRule struct {
-	Id      string             `json:"id,omitempty"`
+	Id      string             `json:"id"`
 	Gate    string             `json:"gate"`
 	Trigger string             `json:"trigger"`
 	Action  string             `json:"action"`
-	Params  []PolicyRuleParams `json:"params,omitempty"`
+	Params  []PolicyRuleParams `json:"params"`
 }
 
 type PolicyRuleParams struct {

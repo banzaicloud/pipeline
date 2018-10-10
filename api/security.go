@@ -15,12 +15,15 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"path"
 
 	"github.com/banzaicloud/anchore-image-validator/pkg/apis/security/v1alpha1"
 	clientV1alpha1 "github.com/banzaicloud/anchore-image-validator/pkg/clientset/v1alpha1"
 	"github.com/banzaicloud/pipeline/helm"
+	"github.com/banzaicloud/pipeline/internal/security"
 	pkgCommmon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/security"
 	"github.com/gin-gonic/gin"
@@ -216,4 +219,167 @@ func DeleteWhiteList(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, "deleted")
+}
+
+func createResponse(c *gin.Context, response http.Response) {
+	var responsePayload interface{}
+	err := json.NewDecoder(response.Body).Decode(&responsePayload)
+	if err != nil {
+		log.Error("Error parsing response: %v", err.Error())
+		httpStatusCode := http.StatusInternalServerError
+		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
+			Code:    httpStatusCode,
+			Message: "Error parsing response",
+			Error:   err.Error(),
+		})
+	} else {
+		c.JSON(response.StatusCode, responsePayload)
+	}
+}
+
+// GetPolicies returns image scan results for all deployments
+func GetPolicies(c *gin.Context) {
+
+	endPoint := "policies"
+	policyId := c.Param("policyId")
+	if len(policyId) != 0 {
+		endPoint = path.Join(endPoint, policyId)
+	}
+
+	commonCluster, ok := getClusterFromRequest(c)
+	if !ok {
+		return
+	}
+	response, err := anchore.MakePolicyRequest(commonCluster.GetOrganizationId(), commonCluster.GetUID(), http.MethodGet, endPoint, nil)
+	if err != nil {
+		log.Error(err)
+		httpStatusCode := http.StatusInternalServerError
+		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
+			Code:    httpStatusCode,
+			Message: "Error",
+			Error:   err.Error(),
+		})
+		return
+	}
+	defer response.Body.Close()
+
+	createResponse(c, *response)
+}
+
+// CreatePolicies returns image scan results for all deployments
+func CreatePolicy(c *gin.Context) {
+
+	var policyBundle *security.PolicyBundle
+	err := c.BindJSON(&policyBundle)
+	if err != nil {
+		err := errors.Wrap(err, "Error parsing request:")
+		log.Error(err.Error())
+		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error during parsing request!",
+			Error:   errors.Cause(err).Error(),
+		})
+		return
+	}
+
+	commonCluster, ok := getClusterFromRequest(c)
+	if !ok {
+		return
+	}
+	response, err := anchore.MakePolicyRequest(commonCluster.GetOrganizationId(), commonCluster.GetUID(), http.MethodPost, "policies", policyBundle)
+	if err != nil {
+		log.Error(err)
+		httpStatusCode := http.StatusInternalServerError
+		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
+			Code:    httpStatusCode,
+			Message: "Error",
+			Error:   err.Error(),
+		})
+		return
+	}
+	defer response.Body.Close()
+
+	createResponse(c, *response)
+}
+
+// UpdatePolicies returns image scan results for all deployments
+func UpdatePolicies(c *gin.Context) {
+
+	policyId := c.Param("policyId")
+	if len(policyId) == 0 {
+		httpStatusCode := http.StatusBadRequest
+		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
+			Code:    httpStatusCode,
+			Message: "policyId is required!",
+			Error:   "policyId is required!",
+		})
+		return
+	}
+
+	var policyBundle *security.PolicyBundleRecord
+	err := c.BindJSON(&policyBundle)
+	if err != nil {
+		err := errors.Wrap(err, "Error parsing request:")
+		log.Error(err.Error())
+		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error during parsing request!",
+			Error:   errors.Cause(err).Error(),
+		})
+		return
+	}
+
+	commonCluster, ok := getClusterFromRequest(c)
+	if !ok {
+		return
+	}
+	response, err := anchore.MakePolicyRequest(commonCluster.GetOrganizationId(), commonCluster.GetUID(), http.MethodPut, path.Join("policies", policyId), policyBundle)
+	if err != nil {
+		log.Error(err)
+		httpStatusCode := http.StatusInternalServerError
+		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
+			Code:    httpStatusCode,
+			Message: "Error",
+			Error:   err.Error(),
+		})
+		return
+	}
+	defer response.Body.Close()
+
+	createResponse(c, *response)
+}
+
+// DeletePolicy returns image scan results for all deployments
+func DeletePolicy(c *gin.Context) {
+
+	policyId := c.Param("policyId")
+	if len(policyId) == 0 {
+		httpStatusCode := http.StatusBadRequest
+		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
+			Code:    httpStatusCode,
+			Message: "policyId is required!",
+			Error:   "policyId is required!",
+		})
+		return
+	}
+
+	commonCluster, ok := getClusterFromRequest(c)
+	if !ok {
+		return
+	}
+	response, err := anchore.MakePolicyRequest(commonCluster.GetOrganizationId(), commonCluster.GetUID(), http.MethodDelete, path.Join("policies", policyId), nil)
+	if err != nil {
+		log.Error(err)
+		httpStatusCode := http.StatusInternalServerError
+		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
+			Code:    httpStatusCode,
+			Message: "Error",
+			Error:   err.Error(),
+		})
+		return
+	}
+	defer response.Body.Close()
+
+	createResponse(c, *response)
+
 }
