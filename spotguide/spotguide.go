@@ -70,17 +70,16 @@ type SpotguideYAML struct {
 type Question map[string]interface{}
 
 type SpotguideRepo struct {
-	ID               uint       `json:"id" gorm:"primary_key"`
-	OrganizationID   uint       `json:"organizationId" gorm:"unique_index:name_and_version"`
-	CreatedAt        time.Time  `json:"createdAt"`
-	UpdatedAt        time.Time  `json:"updatedAt"`
-	DeletedAt        *time.Time `json:"-" gorm:"index"`
-	Name             string     `json:"name" gorm:"unique_index:name_and_version"`
-	DisplayName      string     `json:"displayName" gorm:"-"`
-	Icon             string     `json:"icon,omitempty" gorm:"type:mediumtext"`
-	Readme           string     `json:"readme" gorm:"type:mediumtext"`
-	Version          string     `json:"version" gorm:"unique_index:name_and_version"`
-	SpotguideYAMLRaw []byte     `json:"-" gorm:"type:text"`
+	ID               uint      `json:"id" gorm:"primary_key"`
+	OrganizationID   uint      `json:"organizationId" gorm:"unique_index:name_and_version"`
+	CreatedAt        time.Time `json:"createdAt"`
+	UpdatedAt        time.Time `json:"updatedAt"`
+	Name             string    `json:"name" gorm:"unique_index:name_and_version"`
+	DisplayName      string    `json:"displayName" gorm:"-"`
+	Icon             string    `json:"icon,omitempty" gorm:"type:mediumtext"`
+	Readme           string    `json:"readme" gorm:"type:mediumtext"`
+	Version          string    `json:"version" gorm:"unique_index:name_and_version"`
+	SpotguideYAMLRaw []byte    `json:"-" gorm:"type:text"`
 	SpotguideYAML    `gorm:"-"`
 }
 
