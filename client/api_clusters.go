@@ -1143,16 +1143,16 @@ Install a particular secret into a cluster
  * @param id Selected cluster identification (number)
  * @param secret Secret name
  * @param installSecretRequest
-@return []InstallSecretResponse
+@return InstallSecretResponse
 */
-func (a *ClustersApiService) InstallSecret(ctx context.Context, orgId int32, id int32, secret string, installSecretRequest InstallSecretRequest) ([]InstallSecretResponse, *http.Response, error) {
+func (a *ClustersApiService) InstallSecret(ctx context.Context, orgId int32, id int32, secret string, installSecretRequest InstallSecretRequest) (InstallSecretResponse, *http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Post")
 		localVarPostBody     interface{}
 		localVarFormFileName string
 		localVarFileName     string
 		localVarFileBytes    []byte
-		localVarReturnValue  []InstallSecretResponse
+		localVarReturnValue  InstallSecretResponse
 	)
 
 	// create path and map variables
@@ -1214,7 +1214,7 @@ func (a *ClustersApiService) InstallSecret(ctx context.Context, orgId int32, id 
 			error: localVarHttpResponse.Status,
 		}
 		if localVarHttpResponse.StatusCode == 200 {
-			var v []InstallSecretResponse
+			var v InstallSecretResponse
 			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
 			if err != nil {
 				newErr.error = err.Error()

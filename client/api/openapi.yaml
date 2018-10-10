@@ -1116,10 +1116,8 @@ paths:
           content:
             application/json:
               schema:
-                items:
-                  $ref: '#/components/schemas/InstallSecretResponse'
-                type: array
-          description: Secrets is installed into the cluster
+                $ref: '#/components/schemas/InstallSecretResponse'
+          description: Secret is installed into the cluster
         400:
           content:
             application/json:
@@ -6010,10 +6008,6 @@ components:
       required:
       - namespace
       type: object
-    InstallSecretsResponse:
-      items:
-        $ref: '#/components/schemas/InstallSecretResponse'
-      type: array
     InstallSecretRequest:
       example:
         namespace: default
