@@ -68,25 +68,36 @@ type CreateSecretResponse struct {
 }
 
 // CreateSecretRequest param for Store.Store
+// Only fields with `mapstructure` tag are getting written to Vault
 type CreateSecretRequest struct {
-	Name      string            `json:"name" binding:"required"`
-	Type      string            `json:"type" binding:"required"`
-	Values    map[string]string `json:"values" binding:"required"`
-	Tags      []string          `json:"tags"`
-	Version   *int              `json:"version,omitempty"`
-	UpdatedBy string            `json:"updatedBy"`
+	Name      string            `json:"name" binding:"required" mapstructure:"name"`
+	Type      string            `json:"type" binding:"required" mapstructure:"type"`
+	Values    map[string]string `json:"values" binding:"required" mapstructure:"values"`
+	Tags      []string          `json:"tags,omitempty" mapstructure:"tags"`
+	Version   *int              `json:"version,omitempty" mapstructure:"-"`
+	UpdatedBy string            `json:"updatedBy,omitempty" mapstructure:"updatedBy"`
+}
+
+func (r *CreateSecretRequest) MarshalJSON() ([]byte, error) {
+	type Alias CreateSecretRequest
+	modified := Alias(*r)
+	modified.Values = map[string]string{}
+	for k := range r.Values {
+		modified.Values[k] = ""
+	}
+	return json.Marshal(&modified)
 }
 
 // SecretItemResponse for GetSecret
 type SecretItemResponse struct {
 	ID        string            `json:"id"`
-	Name      string            `json:"name"`
-	Type      string            `json:"type"`
-	Values    map[string]string `json:"values"`
-	Tags      []string          `json:"tags"`
+	Name      string            `json:"name" mapstructure:"name"`
+	Type      string            `json:"type" mapstructure:"type"`
+	Values    map[string]string `json:"values" mapstructure:"values"`
+	Tags      []string          `json:"tags" mapstructure:"tags"`
 	Version   int               `json:"version"`
 	UpdatedAt time.Time         `json:"updatedAt"`
-	UpdatedBy string            `json:"updatedBy,omitempty"`
+	UpdatedBy string            `json:"updatedBy,omitempty" mapstructure:"updatedBy"`
 }
 
 // K8SSourceMeta returns the meta information how to use this secret if installed to K8S
@@ -209,25 +220,26 @@ func (ss *secretStore) Delete(organizationID uint, secretID string) error {
 }
 
 // Save secret secret/orgs/:orgid:/:id: scope
-func (ss *secretStore) Store(organizationID uint, value *CreateSecretRequest) (string, error) {
+func (ss *secretStore) Store(organizationID uint, request *CreateSecretRequest) (string, error) {
 
 	// We allow only Kubernetes compatible Secret names
-	if errorList := validation.IsDNS1123Subdomain(value.Name); errorList != nil {
+	if errorList := validation.IsDNS1123Subdomain(request.Name); errorList != nil {
 		return "", errors.New(errorList[0])
 	}
 
-	secretID := GenerateSecretID(value)
+	secretID := GenerateSecretID(request)
 	path := secretDataPath(organizationID, secretID)
 
-	if err := generateValuesIfNeeded(value); err != nil {
+	if err := generateValuesIfNeeded(request); err != nil {
 		return "", err
 	}
 
-	sort.Strings(value.Tags)
+	sort.Strings(request.Tags)
 
-	value.Version = nil
-
-	data := vault.NewData(0, map[string]interface{}{"value": value})
+	data, err := secretData(0, request)
+	if err != nil {
+		return "", err
+	}
 
 	if _, err := ss.Logical.Write(path, data); err != nil {
 		return "", errors.Wrap(err, "Error during storing secret")
@@ -237,9 +249,9 @@ func (ss *secretStore) Store(organizationID uint, value *CreateSecretRequest) (s
 }
 
 // Update secret secret/orgs/:orgid:/:id: scope
-func (ss *secretStore) Update(organizationID uint, secretID string, value *CreateSecretRequest) error {
+func (ss *secretStore) Update(organizationID uint, secretID string, request *CreateSecretRequest) error {
 
-	if GenerateSecretID(value) != secretID {
+	if GenerateSecretID(request) != secretID {
 		return errors.New("Secret name cannot be changed")
 	}
 
@@ -247,16 +259,18 @@ func (ss *secretStore) Update(organizationID uint, secretID string, value *Creat
 
 	log.Debugln("Update secret:", path)
 
-	sort.Strings(value.Tags)
+	sort.Strings(request.Tags)
 
 	// If secret doesn't exists, create it.
 	version := 0
-	if value.Version != nil {
-		version = *value.Version
-		value.Version = nil
+	if request.Version != nil {
+		version = *request.Version
 	}
 
-	data := vault.NewData(version, map[string]interface{}{"value": value})
+	data, err := secretData(version, request)
+	if err != nil {
+		return err
+	}
 
 	if _, err := ss.Logical.Write(path, data); err != nil {
 		return errors.Wrap(err, "Error during updating secret")
@@ -316,10 +330,6 @@ func parseSecret(secretID string, secret *vaultapi.Secret, values bool) (*Secret
 	data := cast.ToStringMap(secret.Data["data"])
 	metadata := cast.ToStringMap(secret.Data["metadata"])
 
-	value := data["value"].(map[string]interface{})
-	sname := value["name"].(string)
-	stype := value["type"].(string)
-	stags := cast.ToStringSlice(value["tags"])
 	version, _ := metadata["version"].(json.Number).Int64()
 
 	updatedAt, err := time.Parse(time.RFC3339, metadata["created_time"].(string))
@@ -327,31 +337,24 @@ func parseSecret(secretID string, secret *vaultapi.Secret, values bool) (*Secret
 		return nil, err
 	}
 
-	updatedBy := ""
-	updatedByRaw, ok := value["updatedBy"]
-	if ok {
-		updatedBy = updatedByRaw.(string)
-	}
-
-	sir := SecretItemResponse{
+	response := SecretItemResponse{
 		ID:        secretID,
-		Name:      sname,
-		Type:      stype,
-		Tags:      stags,
-		Values:    cast.ToStringMapString(value["values"]),
 		Version:   int(version),
 		UpdatedAt: updatedAt,
-		UpdatedBy: updatedBy,
+	}
+
+	if err := mapstructure.Decode(data["value"], &response); err != nil {
+		return nil, err
 	}
 
 	if !values {
 		// Clear the values otherwise
-		for k := range sir.Values {
-			sir.Values[k] = "<hidden>"
+		for k := range response.Values {
+			response.Values[k] = "<hidden>"
 		}
 	}
 
-	return &sir, nil
+	return &response, nil
 }
 
 // Retrieve secret secret/orgs/:orgid:/:id: scope
@@ -443,6 +446,16 @@ func (ss *secretStore) List(orgid uint, query *secretTypes.ListSecretsQuery) ([]
 	}
 
 	return responseItems, nil
+}
+
+func secretData(version int, request *CreateSecretRequest) (map[string]interface{}, error) {
+	valueData := map[string]interface{}{}
+
+	if err := mapstructure.Decode(request, &valueData); err != nil {
+		return nil, errors.Wrap(err, "Error during encoding secret")
+	}
+
+	return vault.NewData(version, map[string]interface{}{"value": valueData}), nil
 }
 
 func secretDataPath(organizationID uint, secretID string) string {
