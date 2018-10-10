@@ -429,7 +429,7 @@ func DeleteBucket(c *gin.Context) {
 // - secretId
 // otherwise returns false
 func hasSecret(c *gin.Context) bool {
-	return c.GetHeader(secretNameHeader) != "" || c.GetHeader(secretIdHeader) == ""
+	return c.GetHeader(secretNameHeader) != "" || c.GetHeader(secretIdHeader) != ""
 }
 func getBucketContext(c *gin.Context, logger logrus.FieldLogger) (*auth.Organization, *secret.SecretItemResponse, string, bool) {
 	organization := auth.GetCurrentOrganization(c.Request)
