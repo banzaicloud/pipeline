@@ -78,8 +78,14 @@ delete-cluster: bin/jq ## Curl call to pipeline api to delete a cluster with you
 ec2-list-instances: ## Lists aws ec2 instances, for alternative regions use: AWS_DEFAULT_REGION=us-west-2 make ec2-list-instances
 	aws ec2 describe-instances --query 'Reservations[].Instances[].{ip:PublicIpAddress,id:InstanceId,state:State.Name,name:Tags[?Key==`Name`].Value|[0]}' --filters "Name=instance-state-name,Values=pending,running,shutting-down,stopping,stopped" --out table
 
+.PHONY: validate-openapi
+validate-openapi: ## Validate the openapi description
+	docker run --rm -v ${PWD}:/local openapitools/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} validate \
+	--recommend \
+	-i /local/docs/openapi/pipeline.yaml
+
 .PHONY: generate-client
-generate-client: ## Generate go client based on openapi description
+generate-client: validate-openapi ## Generate go client based on openapi description
 	rm -rf ./client
 	docker run --rm -v ${PWD}:/local openapitools/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} generate \
 	--additional-properties packageName=client \
