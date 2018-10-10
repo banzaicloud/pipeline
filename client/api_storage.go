@@ -369,21 +369,23 @@ func (a *StorageApiService) GetObjectStoreBucketStatus(ctx context.Context, orgI
 
 /*
 StorageApiService List object storage buckets
-List object store buckets accessible by the credentials referenced by the given secret.
+List object store buckets accessible by the credentials referenced by the given secret. If no credentials provided all managed buckets are returned for all cloud types.
  * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param orgId Organization identification
- * @param secretId Secret identification
- * @param cloudType Identifies the cloud provider
  * @param optional nil or *ListObjectStoreBucketsOpts - Optional Parameters:
+ * @param "SecretId" (optional.String) -  Secret identification. If not provided only the managed buckets (those created via pipeline) are listed
+ * @param "CloudType" (optional.String) -  Identifies the cloud provider - mandatory if secretId header is provided
  * @param "Location" (optional.String) -  Identifies the cloud region. Required by Amazon only.
 @return ListStorageBucketsResponse
 */
 
 type ListObjectStoreBucketsOpts struct {
-	Location optional.String
+	SecretId  optional.String
+	CloudType optional.String
+	Location  optional.String
 }
 
-func (a *StorageApiService) ListObjectStoreBuckets(ctx context.Context, orgId int32, secretId string, cloudType string, localVarOptionals *ListObjectStoreBucketsOpts) (ListStorageBucketsResponse, *http.Response, error) {
+func (a *StorageApiService) ListObjectStoreBuckets(ctx context.Context, orgId int32, localVarOptionals *ListObjectStoreBucketsOpts) (ListStorageBucketsResponse, *http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Get")
 		localVarPostBody     interface{}
@@ -401,7 +403,9 @@ func (a *StorageApiService) ListObjectStoreBuckets(ctx context.Context, orgId in
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-	localVarQueryParams.Add("cloudType", parameterToString(cloudType, ""))
+	if localVarOptionals != nil && localVarOptionals.CloudType.IsSet() {
+		localVarQueryParams.Add("cloudType", parameterToString(localVarOptionals.CloudType.Value(), ""))
+	}
 	if localVarOptionals != nil && localVarOptionals.Location.IsSet() {
 		localVarQueryParams.Add("location", parameterToString(localVarOptionals.Location.Value(), ""))
 	}
@@ -422,7 +426,9 @@ func (a *StorageApiService) ListObjectStoreBuckets(ctx context.Context, orgId in
 	if localVarHttpHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
 	}
-	localVarHeaderParams["secretId"] = parameterToString(secretId, "")
+	if localVarOptionals != nil && localVarOptionals.SecretId.IsSet() {
+		localVarHeaderParams["secretId"] = parameterToString(localVarOptionals.SecretId.Value(), "")
+	}
 	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFormFileName, localVarFileName, localVarFileBytes)
 	if err != nil {
 		return localVarReturnValue, nil, err

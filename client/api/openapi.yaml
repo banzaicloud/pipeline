@@ -3916,7 +3916,7 @@ paths:
       - info
   /api/v1/orgs/{orgId}/buckets:
     get:
-      description: List object store buckets accessible by the credentials referenced by the given secret.
+      description: List object store buckets accessible by the credentials referenced by the given secret. If no credentials provided all managed buckets are returned for all cloud types.
       operationId: ListObjectStoreBuckets
       parameters:
       - description: Organization identification
@@ -3928,19 +3928,19 @@ paths:
           format: int32
           type: integer
         style: simple
-      - description: Secret identification
+      - description: Secret identification. If not provided only the managed buckets (those created via pipeline) are listed
         explode: false
         in: header
         name: secretId
-        required: true
+        required: false
         schema:
           type: string
         style: simple
-      - description: Identifies the cloud provider
+      - description: Identifies the cloud provider - mandatory if secretId header is provided
         explode: true
         in: query
         name: cloudType
-        required: true
+        required: false
         schema:
           enum:
           - amazon
@@ -7129,8 +7129,10 @@ components:
         azure:
           $ref: '#/components/schemas/AzureBlobStorageProps'
       required:
+      - cloud
       - managed
       - name
+      - secretId
       type: object
     ListStorageBucketsResponse:
       items:

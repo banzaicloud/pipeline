@@ -31,6 +31,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 	pipelineAuth "github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/objectstore"
+	"github.com/banzaicloud/pipeline/pkg/providers"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/jinzhu/gorm"
@@ -137,6 +138,7 @@ func (s *ObjectStore) CreateBucket(bucketName string) error {
 	// TODO: create the bucket in the database later so that we don't have to roll back
 	bucket.ResourceGroup = resourceGroup
 	bucket.Organization = *s.org
+	bucket.SecretRef = s.secret.ID
 
 	logger.Info("saving bucket in DB")
 
@@ -511,6 +513,32 @@ func (s *ObjectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 	}
 
 	return buckets, nil
+}
+
+func (s *ObjectStore) ListManagedBuckets() ([]*objectstore.BucketInfo, error) {
+
+	s.logger.Info("getting all resource groups for subscription")
+
+	var objectStores []ObjectStoreBucketModel
+	err := s.db.
+		Where(&ObjectStoreBucketModel{OrganizationID: s.org.ID}).
+		Order("resource_group asc, storage_account asc, name asc").
+		Find(&objectStores).Error
+
+	if err != nil {
+		return nil, fmt.Errorf("retrieving managed buckets failed: %s", err.Error())
+	}
+
+	bucketList := make([]*objectstore.BucketInfo, 0)
+	for _, bucket := range objectStores {
+		bucketInfo := &objectstore.BucketInfo{Name: bucket.Name, Managed: true}
+		bucketInfo.Location = bucket.Location
+		bucketInfo.SecretRef = bucket.SecretRef
+		bucketInfo.Cloud = providers.Azure
+		bucketList = append(bucketList, bucketInfo)
+	}
+
+	return bucketList, nil
 }
 
 func GetStorageAccountKey(resourceGroup string, storageAccount string, s *secret.SecretItemResponse, log logrus.FieldLogger) (string, error) {

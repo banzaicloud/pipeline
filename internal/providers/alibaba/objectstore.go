@@ -22,6 +22,7 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/objectstore"
+	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/jinzhu/gorm"
@@ -65,6 +66,7 @@ func (b *AlibabaObjectStore) CreateBucket(bucketName string) error {
 	managedBucket.Name = bucketName
 	managedBucket.Organization = *b.org
 	managedBucket.Region = b.region
+	managedBucket.SecretRef = b.secret.ID
 
 	if err = persistToDb(managedBucket); err != nil {
 		return errors.Wrap(err, "Error happened during persisting bucket description to DB")
@@ -122,6 +124,29 @@ func (b *AlibabaObjectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 	}
 
 	return bucketList, nil
+}
+
+func (b *AlibabaObjectStore) ListManagedBuckets() ([]*objectstore.BucketInfo, error) {
+
+	var managedAlibabaBuckets []ManagedAlibabaBucket
+
+	if err := queryWithOrderByDb(&ManagedAlibabaBucket{OrgID: b.org.ID}, "name asc", &managedAlibabaBuckets); err != nil {
+		log.Errorf("Retrieving managed buckets in organisation id=%s failed: %s", err.Error())
+		return nil, err
+	}
+
+	bucketInfos := make([]*objectstore.BucketInfo, 0)
+	for _, mb := range managedAlibabaBuckets {
+		bucketInfos = append(bucketInfos, &objectstore.BucketInfo{
+			Cloud:     providers.Alibaba,
+			Managed:   true,
+			Name:      mb.Name,
+			Location:  mb.Region,
+			SecretRef: mb.SecretRef,
+		})
+	}
+
+	return bucketInfos, nil
 }
 
 func (b *AlibabaObjectStore) DeleteBucket(bucketName string) error {

@@ -23,6 +23,8 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/objectstore"
+	"github.com/banzaicloud/pipeline/pkg/providers"
+	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/gin-gonic/gin/json"
 	"github.com/jinzhu/gorm"
@@ -46,6 +48,7 @@ type ObjectStore struct {
 
 	org            *auth.Organization
 	serviceAccount *verify.ServiceAccount
+	secret         *secret.SecretItemResponse
 
 	location string
 }
@@ -53,15 +56,21 @@ type ObjectStore struct {
 // NewObjectStore returns a new object store instance.
 func NewObjectStore(
 	org *auth.Organization,
-	serviceAccount *verify.ServiceAccount,
+	secret *secret.SecretItemResponse,
 	location string,
 	db *gorm.DB,
 	logger logrus.FieldLogger,
 ) *ObjectStore {
+	var serviceAccount *verify.ServiceAccount
+	if secret != nil {
+		serviceAccount = verify.CreateServiceAccount(secret.Values)
+	}
+
 	return &ObjectStore{
 		db:             db,
 		logger:         logger,
 		org:            org,
+		secret:         secret,
 		serviceAccount: serviceAccount,
 		location:       location,
 	}
@@ -110,6 +119,7 @@ func (s *ObjectStore) CreateBucket(bucketName string) error {
 	bucket.Name = bucketName
 	bucket.Organization = *s.org
 	bucket.Location = s.location
+	bucket.SecretRef = s.secret.ID
 
 	logger.Info("saving bucket in DB")
 
@@ -293,6 +303,26 @@ func (s *ObjectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 			bucketInfo.Managed = true
 		}
 
+		bucketList = append(bucketList, bucketInfo)
+	}
+
+	return bucketList, nil
+}
+
+func (s *ObjectStore) ListManagedBuckets() ([]*objectstore.BucketInfo, error) {
+
+	var objectStores []ObjectStoreBucketModel
+	err := s.db.Where(&ObjectStoreBucketModel{OrganizationID: s.org.ID}).Order("name asc").Find(&objectStores).Error
+	if err != nil {
+		return nil, fmt.Errorf("retrieving managed buckets failed: %s", err.Error())
+	}
+
+	bucketList := make([]*objectstore.BucketInfo, 0)
+	for _, bucket := range objectStores {
+		bucketInfo := &objectstore.BucketInfo{Name: bucket.Name, Managed: true}
+		bucketInfo.Location = bucket.Location
+		bucketInfo.SecretRef = bucket.SecretRef
+		bucketInfo.Cloud = providers.Google
 		bucketList = append(bucketList, bucketInfo)
 	}
 
