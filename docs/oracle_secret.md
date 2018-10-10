@@ -57,6 +57,12 @@ openssl genrsa -out ~/.oci/oci_api_key.pem 2048
 chmod go-rwx ~/.oci/oci_api_key.pem
 ```
 
+> Pipeline needs `api_key` which content is found in `~/.oci/oci_api_key.pm` file, in the following format:
+
+```
+		"api_key": "-----BEGIN RSA PRIVATE KEY-----\n.....\n-----END RSA PRIVATE KEY-----\n"
+```
+
 3. Generate the public key:
 ```
 openssl rsa -pubout -in ~/.oci/oci_api_key.pem -out ~/.oci/oci_api_key_public.pem
@@ -72,8 +78,6 @@ cat ~/.oci/oci_api_key_public.pem | pbcopy
 <p align="center">
 <img src="images/oracle_secret/oracle_pub_key.png" width="700">
 </p>
-
-> Pipeline needs `api_key` which content is found in `~/.oci/oci_api_key.pm` file. 
 
 #### api_key_fingerprint
 
@@ -95,7 +99,7 @@ Body:
 	"values": {
 		"user_ocid": "ocid1.user.oc1.....",
 		"api_key_fingerprint": "54:ca:d0:f7:......",
-		"api_key": "-----BEGIN RSA PRIVATE KEY-----\n.....-----END RSA PRIVATE KEY-----\n",
+		"api_key": "-----BEGIN RSA PRIVATE KEY-----\n.....\n-----END RSA PRIVATE KEY-----\n",
 		"region": "eu-frankfurt-1",
 		"compartment_ocid": "ocid1.compartment.oc1.........",
 		"tenancy_ocid": "ocid1.tenancy.oc1..........."
