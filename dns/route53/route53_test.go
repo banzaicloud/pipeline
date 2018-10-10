@@ -674,42 +674,45 @@ func TestAwsRoute53_RegisterDomain(t *testing.T) {
 	err := awsRoute53.RegisterDomain(testOrgId, testDomain)
 
 	if err != nil {
-		t.Errorf("Register domain should succeed: %s", err.Error())
+		t.Fatalf("Register domain should succeed: %s", err.Error())
 	}
 
 	state := &domainState{}
 	ok, _ := stateStore.find(testOrgId, testDomain, state)
 
 	if !ok {
-		t.Errorf("Statestore should contain an entry for the registered domain")
+		t.Fatalf("Statestore should contain an entry for the registered domain")
 	}
 
 	expected := testDomainStateCreated
 
 	if reflect.DeepEqual(state, expected) == false {
-		t.Errorf("Expected %v, got %v", expected, state)
+		t.Fatalf("Expected %v, got %v", expected, state)
 	}
 
-	secrets, _ := secret.Store.List(testOrgId, &secretTypes.ListSecretsQuery{
+	secrets, err := secret.Store.List(testOrgId, &secretTypes.ListSecretsQuery{
 		Type:   cluster.Amazon,
 		Tags:   []string{secretTypes.TagBanzaiHidden},
 		Values: true,
 	})
 
+	if err != nil {
+		t.Fatalf("Failed to list '%s' in Vault: %s", IAMUserAccessKeySecretName, err.Error())
+	}
+
 	if len(secrets) != 1 {
-		t.Errorf("There should be one secret with name '%s' in Vault", IAMUserAccessKeySecretName)
+		t.Fatalf("There should be one secret with name '%s' in Vault", IAMUserAccessKeySecretName)
 	}
 
 	route53SecretCount := 0
 
-	for _, secretItem := range secrets {
-		if secretItem.Name == IAMUserAccessKeySecretName {
-			if secretItem.Values[secretTypes.AwsAccessKeyId] == testAccessKeyId &&
-				secretItem.Values[secretTypes.AwsSecretAccessKey] == testAccessSecretKey {
-				route53SecretCount++
+	secretItem := secrets[0]
+	defer func() { secret.Store.Delete(testOrgId, secretItem.ID) }()
 
-				defer func() { secret.Store.Delete(testOrgId, secretItem.ID) }()
-			}
+	if secretItem.Name == IAMUserAccessKeySecretName {
+		if secretItem.Values[secretTypes.AwsAccessKeyId] == testAccessKeyId &&
+			secretItem.Values[secretTypes.AwsSecretAccessKey] == testAccessSecretKey {
+			route53SecretCount++
 		}
 	}
 
