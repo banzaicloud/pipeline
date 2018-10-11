@@ -13,5 +13,5 @@ package client
 
 // wraps a list of project details information
 type ListProjectsResponse struct {
-	Projects []ProjectDetails `json:"Projects,omitempty"`
+	Projects []ProjectDetails `json:"projects,omitempty"`
 }

@@ -8340,7 +8340,7 @@ components:
     ListProjectsResponse:
       description: wraps a list of project details information
       example:
-        Projects:
+        projects:
         - lifecycleState: lifecycleState
           projectNumber: projectNumber
           name: name
@@ -8350,7 +8350,7 @@ components:
           name: name
           projectId: projectId
       properties:
-        Projects:
+        projects:
           items:
             $ref: '#/components/schemas/ProjectDetails'
           type: array

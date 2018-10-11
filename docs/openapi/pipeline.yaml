@@ -7476,7 +7476,7 @@ components:
             description: wraps a list of project details information
             type: object
             properties:
-                Projects:
+                projects:
                     type: array
                     items:
                         $ref: '#/components/schemas/ProjectDetails'

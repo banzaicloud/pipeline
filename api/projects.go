@@ -28,7 +28,7 @@ import (
 )
 
 type ListProjectsResponse struct {
-	Projects []*cloudresourcemanager.Project
+	Projects []*cloudresourcemanager.Project `json:"projects,omitempty"`
 }
 
 // servicesContext encapsulates contextual information required for performing services related operations
@@ -61,16 +61,18 @@ func GetProjects(c *gin.Context) {
 		organization.ID, secretID)
 	servicesCtx := newServicesCtx(organization.ID, secretID)
 
-	cli, err := servicesCtx.HttpClient()
+	cli, err := servicesCtx.httpClient()
 	if err != nil {
 		log.WithError(err).Error("could not build http client")
 		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
+		return
 	}
 
-	projectsSvc, err := servicesCtx.ProjectsService(cli)
+	projectsSvc, err := servicesCtx.projectsService(cli)
 	if err != nil {
 		log.WithError(err).Error("could not build projects service")
 		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
+		return
 	}
 
 	req := projectsSvc.List()
@@ -80,12 +82,13 @@ func GetProjects(c *gin.Context) {
 	}); err != nil {
 		log.WithError(err).Error("could not retrieve projects")
 		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
+		return
 	}
 
 }
 
-// HttpClient builds a http client with the service account available through the secret and organization
-func (sc *servicesContext) HttpClient() (*http.Client, error) {
+// httpClient builds a http client with the service account available through the secret and organization
+func (sc *servicesContext) httpClient() (*http.Client, error) {
 
 	secret, err := getValidatedSecret(sc.orgId, sc.secretId, providers.Google)
 	if err != nil {
@@ -101,8 +104,8 @@ func (sc *servicesContext) HttpClient() (*http.Client, error) {
 
 }
 
-// ProjectsService boilerplate for creating a ProjectsService instance to access cloud resources
-func (sc *servicesContext) ProjectsService(cli *http.Client) (*cloudresourcemanager.ProjectsService, error) {
+// projectsService boilerplate for creating a projectsService instance to access cloud resources
+func (sc *servicesContext) projectsService(cli *http.Client) (*cloudresourcemanager.ProjectsService, error) {
 
 	svc, err := cloudresourcemanager.New(cli)
 	if err != nil {
