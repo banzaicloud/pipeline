@@ -374,7 +374,7 @@ func describePods(commonCluster cluster.CommonCluster) (items []pkgCluster.PodDe
 
 	log.Info("list pods")
 	var pods []v1.Pod
-	pods, err = listPods(client, "")
+	pods, err = listPods(client, "", "")
 	if err != nil {
 		return
 	}
@@ -502,7 +502,7 @@ func addTotalSummaryToDetails(client *kubernetes.Clientset, details *pkgCluster.
 
 	log.Info("list pods")
 	var pods []v1.Pod
-	pods, err = listPods(client, "")
+	pods, err = listPods(client, "", "")
 	if err != nil {
 		return
 	}
@@ -728,7 +728,7 @@ func getResourceSummary(capacity, allocatable, requests, limits map[v1.ResourceN
 func getAllPodsRequestsAndLimitsInAllNamespace(client *kubernetes.Clientset, fieldSelector string) (map[v1.ResourceName]resource.Quantity, map[v1.ResourceName]resource.Quantity, error) {
 
 	log.Infof("list pods with field selector: %s", fieldSelector)
-	podList, err := listPods(client, fieldSelector)
+	podList, err := listPods(client, fieldSelector, "")
 	if err != nil {
 		return nil, nil, err
 	}
@@ -740,7 +740,7 @@ func getAllPodsRequestsAndLimitsInAllNamespace(client *kubernetes.Clientset, fie
 }
 
 // listPods returns list of pods in all namspace
-func listPods(client *kubernetes.Clientset, fieldSelector string) (pods []v1.Pod, err error) {
+func listPods(client *kubernetes.Clientset, fieldSelector string, labelSelector string) (pods []v1.Pod, err error) {
 
 	log.Info("List namespaces")
 	var namespaces *v1.NamespaceList
@@ -758,6 +758,7 @@ func listPods(client *kubernetes.Clientset, fieldSelector string) (pods []v1.Pod
 
 		podList, err = client.CoreV1().Pods(np.Name).List(meta_v1.ListOptions{
 			FieldSelector: fieldSelector,
+			LabelSelector: labelSelector,
 		})
 		if err != nil {
 			return
