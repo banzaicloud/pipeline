@@ -101,7 +101,7 @@ func GetDeploymentImages(c *gin.Context) {
 	c.JSON(http.StatusOK, imageList)
 }
 
-func listAllImages(client *kubernetes.Clientset, labelSelector string) ([]apiclient.ClusterImage, error) {
+func listAllImages(client *kubernetes.Clientset, labelSelector string) ([]*apiclient.ClusterImage, error) {
 	var err error
 	var podList []v1.Pod
 	podList, err = listPods(client, "", labelSelector)
@@ -109,18 +109,18 @@ func listAllImages(client *kubernetes.Clientset, labelSelector string) ([]apicli
 		return nil, err
 	}
 
-	imageList := make([]apiclient.ClusterImage, 0)
+	imageList := make([]*apiclient.ClusterImage, 0)
 	for _, pod := range podList {
 		images := getPodImages(pod)
 		imageList = append(imageList, images...)
 	}
-	removeDuplicatedImages(&imageList)
+	removeDuplicatedImages(imageList)
 	return imageList, nil
 }
 
-func getPodImages(pod v1.Pod) []apiclient.ClusterImage {
+func getPodImages(pod v1.Pod) []*apiclient.ClusterImage {
 
-	images := make([]apiclient.ClusterImage, 0)
+	images := make([]*apiclient.ClusterImage, 0)
 	for _, container := range pod.Status.ContainerStatuses {
 		fullName := strings.Split(container.Image, ":")
 		var name string
@@ -142,22 +142,22 @@ func getPodImages(pod v1.Pod) []apiclient.ClusterImage {
 			ImageTag:    tag,
 			ImageDigest: digest,
 		}
-		images = append(images, image)
+		images = append(images, &image)
 	}
 	return images
 }
 
-func removeDuplicatedImages(images *[]apiclient.ClusterImage) {
+func removeDuplicatedImages(images []*apiclient.ClusterImage) {
 	found := make(map[string]bool)
 	j := 0
-	for i, image := range *images {
+	for i, image := range images {
 		if image.ImageDigest != "" {
 			if !found[image.ImageDigest] {
 				found[image.ImageDigest] = true
-				(*images)[j] = (*images)[i]
+				(images)[j] = (images)[i]
 				j++
 			}
 		}
 	}
-	*images = (*images)[:j]
+	images = (images)[:j]
 }
