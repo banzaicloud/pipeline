@@ -156,6 +156,9 @@ func ListDeployments(c *gin.Context) {
 
 	// Create WhiteList set
 	securityClientSet := getSecurityClient(c)
+	if securityClientSet == nil {
+		log.Errorf("can't get security clientset: %s", err)
+	}
 	releaseWhitelist := make(map[string]bool)
 	if securityClientSet != nil {
 		whitelists, err := securityClientSet.Whitelists(metav1.NamespaceAll).List(metav1.ListOptions{})
@@ -163,10 +166,11 @@ func ListDeployments(c *gin.Context) {
 			log.Warnf("can not fetch WhiteList: ", err.Error())
 		} else {
 			for _, whitelist := range whitelists.Items {
-				releaseWhitelist[whitelist.Name] = true
+				releaseWhitelist[whitelist.Spec.ReleaseName] = true
 			}
 		}
 	}
+	log.Debugf("Whitelist set: %#v", releaseWhitelist)
 
 	releases := []pkgHelm.ListDeploymentResponse{}
 	if response != nil && len(response.Releases) > 0 {
