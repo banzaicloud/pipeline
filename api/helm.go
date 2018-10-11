@@ -156,11 +156,10 @@ func ListDeployments(c *gin.Context) {
 
 	// Create WhiteList set
 	securityClientSet := getSecurityClient(c)
+	releaseWhitelist := make(map[string]bool)
 	if securityClientSet == nil {
 		log.Errorf("can't get security clientset: %s", err)
-	}
-	releaseWhitelist := make(map[string]bool)
-	if securityClientSet != nil {
+	} else {
 		whitelists, err := securityClientSet.Whitelists(metav1.NamespaceAll).List(metav1.ListOptions{})
 		if err != nil {
 			log.Warnf("can not fetch WhiteList: ", err.Error())
