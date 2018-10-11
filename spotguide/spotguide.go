@@ -34,6 +34,7 @@ import (
 	yaml2 "github.com/ghodss/yaml"
 	"github.com/google/go-github/github"
 	"github.com/goph/emperror"
+	"github.com/imdario/mergo"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
@@ -112,14 +113,14 @@ func (r *SpotguideRepo) AfterFind() error {
 }
 
 type LaunchRequest struct {
-	SpotguideName    string                       `json:"spotguideName" binding:"required"`
-	SpotguideVersion string                       `json:"spotguideVersion"`
-	RepoOrganization string                       `json:"repoOrganization" binding:"required"`
-	RepoName         string                       `json:"repoName" binding:"required"`
-	RepoPrivate      bool                         `json:"repoPrivate"`
-	Cluster          client.CreateClusterRequest  `json:"cluster" binding:"required"`
-	Secrets          []secret.CreateSecretRequest `json:"secrets"`
-	Pipeline         map[string]interface{}       `json:"pipeline"`
+	SpotguideName    string                        `json:"spotguideName" binding:"required"`
+	SpotguideVersion string                        `json:"spotguideVersion,omitempty"`
+	RepoOrganization string                        `json:"repoOrganization" binding:"required"`
+	RepoName         string                        `json:"repoName" binding:"required"`
+	RepoPrivate      bool                          `json:"repoPrivate"`
+	Cluster          *client.CreateClusterRequest  `json:"cluster" binding:"required"`
+	Secrets          []*secret.CreateSecretRequest `json:"secrets,omitempty"`
+	Pipeline         map[string]interface{}        `json:"pipeline,omitempty"`
 }
 
 func (r LaunchRequest) RepoFullname() string {
@@ -520,7 +521,7 @@ func createSecrets(request *LaunchRequest, orgID, userID uint) error {
 
 		secretRequest.Tags = append(secretRequest.Tags, repoTag)
 
-		if _, err := secret.Store.Store(orgID, &secretRequest); err != nil {
+		if _, err := secret.Store.Store(orgID, secretRequest); err != nil {
 			return errors.Wrap(err, "failed to create spotguide secret: "+secretRequest.Name)
 		}
 	}
@@ -648,23 +649,17 @@ func droneRepoConfigPipeline(request *LaunchRequest, repoConfig *droneRepoConfig
 		// Find 'stepName' step and transform it if there are any incoming Values
 		if stepToMergeIn, ok := request.Pipeline[stepName]; ok {
 
-			pipelineStep, err := copyToDroneContainer(step.Value)
+			pipelineStep, err := copyToMap(step.Value)
 			if err != nil {
 				return err
 			}
 
-			// Merge the values from the request into the existing values
-			values, err := json.Marshal(stepToMergeIn)
+			err = mergo.Merge(&pipelineStep, stepToMergeIn)
 			if err != nil {
 				return err
 			}
 
-			err = json.Unmarshal(values, pipelineStep)
-			if err != nil {
-				return err
-			}
-
-			newPipelineStep, err := droneContainerToMapSlice(pipelineStep)
+			newPipelineStep, err := mapToMapSlice(pipelineStep)
 			if err != nil {
 				return err
 			}

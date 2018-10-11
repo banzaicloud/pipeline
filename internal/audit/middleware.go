@@ -25,6 +25,8 @@ import (
 	"time"
 
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/spotguide"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
@@ -90,11 +92,14 @@ func LogWriter(
 					return
 				}
 
-				if strings.Contains(path, "/secrets") {
+				if strings.Contains(path, "/secrets") || strings.Contains(path, "/spotguides") {
 
-					data := map[string]interface{}{}
+					var request struct {
+						*secret.CreateSecretRequest
+						*spotguide.LaunchRequest
+					}
 
-					err := json.Unmarshal(rawBody, &data)
+					err := json.Unmarshal(rawBody, &request)
 					if err != nil {
 						c.AbortWithError(http.StatusInternalServerError, err)
 						logger.Errorln(err)
@@ -102,13 +107,14 @@ func LogWriter(
 						return
 					}
 
-					if values, ok := data["values"].(map[string]interface{}); ok {
-						for k := range values {
-							values[k] = ""
-						}
+					newBody := rawBody
+
+					if request.CreateSecretRequest != nil {
+						newBody, err = json.Marshal(&request.CreateSecretRequest)
+					} else if request.LaunchRequest != nil {
+						newBody, err = json.Marshal(&request.LaunchRequest)
 					}
 
-					newBody, err := json.Marshal(data)
 					if err != nil {
 						c.AbortWithError(http.StatusInternalServerError, err)
 						logger.Errorln(err)
