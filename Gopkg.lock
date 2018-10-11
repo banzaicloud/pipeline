@@ -1680,9 +1680,10 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:7223ecbe094f59e81cde2452c67a96b726feb5ba59ed208d22f451f356a780fe"
+  digest = "1:011b944fcb5ab92ec8a3433ea799bd1fe1f78eaa1c8aaa927b0c01ac136dc140"
   name = "google.golang.org/api"
   packages = [
+    "cloudresourcemanager/v1",
     "compute/v1",
     "container/v1",
     "gensupport",
@@ -2441,6 +2442,7 @@
     "golang.org/x/oauth2",
     "golang.org/x/oauth2/google",
     "golang.org/x/oauth2/jwt",
+    "google.golang.org/api/cloudresourcemanager/v1",
     "google.golang.org/api/compute/v1",
     "google.golang.org/api/container/v1",
     "google.golang.org/api/googleapi",

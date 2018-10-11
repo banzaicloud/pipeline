@@ -37,6 +37,8 @@ tags:
   name: storage
 - description: Horizontal Pod Autoscaling related functions
   name: hpa
+- description: Google projects related operations
+  name: projects
 paths:
   /api/v1/orgs/{orgId}/spotguides:
     get:
@@ -4487,6 +4489,52 @@ paths:
       summary: Get vulnerabilities
       tags:
       - imagescan
+  /api/v1/orgs/{orgId}/google/projects:
+    get:
+      description: Retrieves projects visible by the user represented by the secretid header from the google cloud
+      operationId: GetProjects
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Secret identification.
+        explode: false
+        in: header
+        name: secretId
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListProjectsResponse'
+          description: List of projects visible for the user
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Retrieves projects visible for the user identified by the secret id
+      tags:
+      - projects
 components:
   schemas:
     SpotguideDetailsResponse:
@@ -8288,6 +8336,41 @@ components:
           type: string
         vulnerabilities:
           $ref: '#/components/schemas/VulnerabilityList'
+      type: object
+    ListProjectsResponse:
+      description: wraps a list of project details information
+      example:
+        projects:
+        - lifecycleState: lifecycleState
+          projectNumber: projectNumber
+          name: name
+          projectId: projectId
+        - lifecycleState: lifecycleState
+          projectNumber: projectNumber
+          name: name
+          projectId: projectId
+      properties:
+        projects:
+          items:
+            $ref: '#/components/schemas/ProjectDetails'
+          type: array
+      type: object
+    ProjectDetails:
+      description: Details of the google project
+      example:
+        lifecycleState: lifecycleState
+        projectNumber: projectNumber
+        name: name
+        projectId: projectId
+      properties:
+        name:
+          type: string
+        projectId:
+          type: string
+        projectNumber:
+          type: string
+        lifecycleState:
+          type: string
       type: object
     body:
       properties:
