@@ -34,6 +34,7 @@ import (
 	yaml2 "github.com/ghodss/yaml"
 	"github.com/google/go-github/github"
 	"github.com/goph/emperror"
+	"github.com/imdario/mergo"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
@@ -648,23 +649,17 @@ func droneRepoConfigPipeline(request *LaunchRequest, repoConfig *droneRepoConfig
 		// Find 'stepName' step and transform it if there are any incoming Values
 		if stepToMergeIn, ok := request.Pipeline[stepName]; ok {
 
-			pipelineStep, err := copyToDroneContainer(step.Value)
+			pipelineStep, err := copyToMap(step.Value)
 			if err != nil {
 				return err
 			}
 
-			// Merge the values from the request into the existing values
-			values, err := json.Marshal(stepToMergeIn)
+			err = mergo.Merge(&pipelineStep, stepToMergeIn)
 			if err != nil {
 				return err
 			}
 
-			err = json.Unmarshal(values, pipelineStep)
-			if err != nil {
-				return err
-			}
-
-			newPipelineStep, err := droneContainerToMapSlice(pipelineStep)
+			newPipelineStep, err := mapToMapSlice(pipelineStep)
 			if err != nil {
 				return err
 			}
