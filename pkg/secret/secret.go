@@ -170,7 +170,7 @@ var DefaultRules = map[string]Meta{
 	cluster.Google: {
 		Fields: []FieldMeta{
 			{Name: Type, Required: true},
-			{Name: ProjectId, Required: true},
+			{Name: ProjectId, Required: false},
 			{Name: PrivateKeyId, Required: true},
 			{Name: PrivateKey, Required: true},
 			{Name: ClientEmail, Required: true},
