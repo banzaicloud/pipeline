@@ -134,15 +134,9 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 
 	if !(force && c == nil) {
 		// delete deployments
-		for i := 0; i < retry; i++ {
-			err = helm.DeleteAllDeployment(c)
-			// TODO we could check to the Authorization IAM error explicit
-			if err != nil {
-				logger.Errorf("deleting deployments attempt %d/%d failed: %s", i, retry, err.Error())
-				time.Sleep(1)
-			} else {
-				break
-			}
+		err = helm.DeleteAllDeployment(c)
+		if err != nil {
+			return emperror.Wrap(err, "deleting deployments failed")
 		}
 		err = deleteAllResource(c, logger)
 		if err != nil {
