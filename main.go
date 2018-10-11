@@ -285,6 +285,8 @@ func main() {
 			orgs.POST("/:orgid/azure/resourcegroups", api.AddResourceGroups)
 			orgs.DELETE("/:orgid/azure/resourcegroups/:name", api.DeleteResourceGroups)
 
+			orgs.GET("/:orgid/google/projects", api.GetProjects)
+
 			orgs.GET("/:orgid", api.GetOrganizations)
 			orgs.DELETE("/:orgid", api.DeleteOrganization)
 		}

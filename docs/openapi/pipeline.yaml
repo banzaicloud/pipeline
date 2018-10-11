@@ -37,6 +37,8 @@ tags:
       description: Storage related functions
     - name: hpa
       description: Horizontal Pod Autoscaling related functions
+    - name: projects
+      description: Google projects related operations
 
 paths:
 
@@ -4025,6 +4027,48 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/BaseError_500'
 
+    '/api/v1/orgs/{orgId}/google/projects':
+        get:
+            security:
+                - bearerAuth: []
+            tags:
+                - projects
+            summary: Retrieves projects visible for the user identified by the secret id
+            operationId: GetProjects
+            description: Retrieves projects visible by the user represented by the secretid header from the google cloud
+            parameters:
+                - name: orgId
+                  in: path
+                  required: true
+                  description: Organization identification
+                  schema:
+                      type: integer
+                - name: secretId
+                  in: header
+                  required: true
+                  description: Secret identification.
+                  schema:
+                      type: string
+            responses:
+              '200':
+                  description: "List of projects visible for the user"
+                  content:
+                      application/json:
+                          schema:
+                              $ref: '#/components/schemas/ListProjectsResponse'
+              '401':
+                  description: Unauthorized
+                  content:
+                      application/json:
+                          schema:
+                              $ref: '#/components/schemas/Unauthorized'
+              '500':
+                  description: Internal server error
+                  content:
+                      application/json:
+                          schema:
+                              $ref: '#/components/schemas/BaseError_500'
+
 components:
     securitySchemes:
         bearerAuth:
@@ -7427,3 +7471,27 @@ components:
                     type: string
                 vulnerabilities:
                     $ref: '#/components/schemas/VulnerabilityList'
+
+        ListProjectsResponse:
+            description: wraps a list of project details information
+            type: object
+            properties:
+                Projects:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/ProjectDetails'
+
+        ProjectDetails:
+            description: Details of the google project
+            type: object
+            properties:
+                name:
+                    type: string
+                projectId:
+                    type: string
+                projectNumber:
+                    type: string
+                lifecycleState:
+                    type: string
+
+

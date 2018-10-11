@@ -95,6 +95,7 @@ Class | Method | HTTP request | Description
 *ProfilesApi* | [**DeleteProfiles**](docs/ProfilesApi.md#deleteprofiles) | **Delete** /api/v1/orgs/{orgId}/profiles/cluster/{distribution}/{name} | Delete cluster profiles
 *ProfilesApi* | [**ListProfiles**](docs/ProfilesApi.md#listprofiles) | **Get** /api/v1/orgs/{orgId}/profiles/cluster/{distribution} | List cluster profiles
 *ProfilesApi* | [**UpdateProfiles**](docs/ProfilesApi.md#updateprofiles) | **Put** /api/v1/orgs/{orgId}/profiles/cluster | Update cluster profiles
+*ProjectsApi* | [**GetProjects**](docs/ProjectsApi.md#getprojects) | **Get** /api/v1/orgs/{orgId}/google/projects | Retrieves projects visible for the user identified by the secret id
 *ScanlogApi* | [**ListScans**](docs/ScanlogApi.md#listscans) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/scanlog | List scans
 *SecretsApi* | [**AddSecrets**](docs/SecretsApi.md#addsecrets) | **Post** /api/v1/orgs/{orgId}/secrets | Add secrets
 *SecretsApi* | [**AllowedSecretsTypes**](docs/SecretsApi.md#allowedsecretstypes) | **Get** /api/v1/allowed/secrets | List allowed secret types
@@ -234,6 +235,7 @@ Class | Method | HTTP request | Description
  - [ListEndpointsResponse](docs/ListEndpointsResponse.md)
  - [ListNodesResponse](docs/ListNodesResponse.md)
  - [ListNodesResponseMetadata](docs/ListNodesResponseMetadata.md)
+ - [ListProjectsResponse](docs/ListProjectsResponse.md)
  - [ListSpotguidesResponse](docs/ListSpotguidesResponse.md)
  - [ListStorageBucketsResponse](docs/ListStorageBucketsResponse.md)
  - [ListUserResponse](docs/ListUserResponse.md)
@@ -278,6 +280,7 @@ Class | Method | HTTP request | Description
  - [PolicyRule](docs/PolicyRule.md)
  - [PolicyRuleParams](docs/PolicyRuleParams.md)
  - [ProfileListResponse](docs/ProfileListResponse.md)
+ - [ProjectDetails](docs/ProjectDetails.md)
  - [ReRunPostHook](docs/ReRunPostHook.md)
  - [ReleaseWhiteList](docs/ReleaseWhiteList.md)
  - [ReleaseWhiteListItem](docs/ReleaseWhiteListItem.md)
