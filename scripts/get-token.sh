@@ -4,5 +4,5 @@
 
 set -euo pipefail
 
-curl -f -s http://localhost:9090/auth/github/callback\?access_token\=$GITHUB_TOKEN
+curl -f -s http://localhost:9090/auth/github/callback\?access_token\=$GITHUB_TOKEN > /dev/null
 curl -f -s -X POST http://localhost:9090/auth/tokens\?access_token\=$GITHUB_TOKEN | jq -r .token

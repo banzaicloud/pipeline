@@ -346,7 +346,7 @@ func UpgradeDeployment(releaseName, chartName, chartVersion string, chartPackage
 }
 
 //CreateDeployment creates a Helm deployment in chosen namespace
-func CreateDeployment(chartName, chartVersion string, chartPackage []byte, namespace string, releaseName string, valueOverrides []byte, kubeConfig []byte, env helm_env.EnvSettings, options ...helm.InstallOption) (*rls.InstallReleaseResponse, error) {
+func CreateDeployment(chartName, chartVersion string, chartPackage []byte, namespace string, releaseName string, dryRun bool, valueOverrides []byte, kubeConfig []byte, env helm_env.EnvSettings, options ...helm.InstallOption) (*rls.InstallReleaseResponse, error) {
 
 	chartRequested, err := getRequestedChart(releaseName, chartName, chartVersion, chartPackage, env)
 	if err != nil {
@@ -372,6 +372,7 @@ func CreateDeployment(chartName, chartVersion string, chartPackage []byte, names
 	installOptions := []helm.InstallOption{
 		helm.ValueOverrides(valueOverrides),
 		helm.ReleaseName(releaseName),
+		helm.InstallDryRun(dryRun),
 	}
 	installOptions = append(installOptions, options...)
 
@@ -422,7 +423,12 @@ func GetDeploymentK8sResources(releaseName string, kubeConfig []byte, resourceTy
 		return nil, err
 	}
 
-	objects := strings.Split(releaseContent.Release.Manifest, "---")
+	return ParseReleaseManifest(releaseContent.Release.Manifest, resourceTypes)
+}
+
+func ParseReleaseManifest(manifest string, resourceTypes []string) ([]helm2.DeploymentResource, error) {
+
+	objects := strings.Split(manifest, "---")
 	decode := scheme.Codecs.UniversalDeserializer().Decode
 	deployments := make([]pkgHelm.DeploymentResource, 0)
 

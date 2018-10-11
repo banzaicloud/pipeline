@@ -83,6 +83,7 @@ func CreateDeployment(c *gin.Context) {
 		parsedRequest.deploymentPackage,
 		parsedRequest.namespace,
 		parsedRequest.deploymentReleaseName,
+		parsedRequest.dryRun,
 		parsedRequest.values,
 		parsedRequest.kubeConfig,
 		helm.GenerateHelmRepoEnv(parsedRequest.organizationName),
@@ -100,14 +101,22 @@ func CreateDeployment(c *gin.Context) {
 	}
 	log.Info("Create deployment succeeded")
 
-	releaseName := release.GetRelease().GetName()
-	releaseNotes := base64.StdEncoding.EncodeToString([]byte(release.GetRelease().GetInfo().GetStatus().GetNotes()))
+	releaseContent := release.GetRelease()
+
+	releaseName := releaseContent.GetName()
+	releaseNotes := base64.StdEncoding.EncodeToString([]byte(releaseContent.GetInfo().GetStatus().GetNotes()))
+	resources, err := helm.ParseReleaseManifest(releaseContent.Manifest, []string{})
+	if err != nil {
+		log.Errorf("Error during parsing release manifest. %s", err.Error())
+	}
 
 	log.Debug("Release name: ", releaseName)
 	log.Debug("Release notes: ", releaseNotes)
+	log.Debug("Resources:", resources)
 	response := pkgHelm.CreateUpdateDeploymentResponse{
 		ReleaseName: releaseName,
 		Notes:       releaseNotes,
+		Resources:   resources,
 	}
 	c.JSON(http.StatusCreated, response)
 	return
@@ -444,6 +453,7 @@ type parsedDeploymentRequest struct {
 	values                []byte
 	kubeConfig            []byte
 	organizationName      string
+	dryRun                bool
 }
 
 func parseCreateUpdateDeploymentRequest(c *gin.Context, commonCluster cluster.CommonCluster) (*parsedDeploymentRequest, error) {
@@ -471,6 +481,7 @@ func parseCreateUpdateDeploymentRequest(c *gin.Context, commonCluster cluster.Co
 	pdr.deploymentReleaseName = deployment.ReleaseName
 	pdr.reuseValues = deployment.ReUseValues
 	pdr.namespace = deployment.Namespace
+	pdr.dryRun = deployment.DryRun
 
 	if deployment.Values != nil {
 		pdr.values, err = yaml.Marshal(deployment.Values)

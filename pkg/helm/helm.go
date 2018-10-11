@@ -104,8 +104,9 @@ type InstallResponse struct {
 
 // CreateUpdateDeploymentResponse describes a create/update deployment response
 type CreateUpdateDeploymentResponse struct {
-	ReleaseName string `json:"releaseName"`
-	Notes       string `json:"notes"`
+	ReleaseName string               `json:"releaseName"`
+	Notes       string               `json:"notes"`
+	Resources   []DeploymentResource `json:"resources"`
 }
 
 // CreateUpdateDeploymentRequest describes a Helm deployment
@@ -116,6 +117,7 @@ type CreateUpdateDeploymentRequest struct {
 	ReleaseName string                 `json:"releaseName" yaml:"releaseName"`
 	ReUseValues bool                   `json:"reuseValues" yaml:"reuseValues"`
 	Namespace   string                 `json:"namespace,omitempty" yaml:"namespace,omitempty"`
+	DryRun      bool                   `json:"dryrun,omitempty" yaml:"dryrun,omitempty"`
 	Values      map[string]interface{} `json:"values,omitempty" yaml:"values,omitempty"`
 }
 
