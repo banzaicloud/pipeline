@@ -15,8 +15,6 @@
 package spotguide
 
 import (
-	"encoding/json"
-
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	libcompose "github.com/docker/libcompose/yaml"
@@ -175,7 +173,7 @@ func droneContainerToMapSlice(container *droneContainer) (yaml.MapSlice, error) 
 	return mapSlice, nil
 }
 
-func copyToMap(v interface{}) (map[string]interface{}, error) {
+func yamlMapSliceToMap(v interface{}) (map[string]interface{}, error) {
 	bytes, err := yaml.Marshal(v)
 	if err != nil {
 		return nil, err
@@ -185,19 +183,10 @@ func copyToMap(v interface{}) (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	bytes, err = json.Marshal(config)
-	if err != nil {
-		return nil, err
-	}
-	var config2 map[string]interface{}
-	err = json.Unmarshal(bytes, &config2)
-	if err != nil {
-		return nil, err
-	}
-	return config2, nil
+	return config, nil
 }
 
-func mapToMapSlice(container map[string]interface{}) (yaml.MapSlice, error) {
+func mapToYamlMapSlice(container map[string]interface{}) (yaml.MapSlice, error) {
 	bytes, err := yaml.Marshal(container)
 	if err != nil {
 		return nil, err
