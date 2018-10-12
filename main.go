@@ -252,6 +252,9 @@ func main() {
 			orgs.PUT("/:orgid/clusters/:id/policies/:policyId", api.UpdatePolicies)
 			orgs.DELETE("/:orgid/clusters/:id/policies/:policyId", api.DeletePolicy)
 
+			orgs.GET("/:orgid/clusters/:id/images", api.ListImages)
+			orgs.GET("/:orgid/clusters/:id/deployments/:name/images", api.GetDeploymentImages)
+
 			orgs.GET("/:orgid/helm/repos", api.HelmReposGet)
 			orgs.POST("/:orgid/helm/repos", api.HelmReposAdd)
 			orgs.PUT("/:orgid/helm/repos/:name", api.HelmReposModify)
