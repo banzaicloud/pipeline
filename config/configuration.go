@@ -73,18 +73,18 @@ const (
 	LoggingLogFormat = "logging.logformat"
 
 	// ARK
-	ARKName                 = "ark.name"
-	ARKNamespace            = "ark.namespace"
-	ARKChart                = "ark.chart"
-	ARKChartVersion         = "ark.chartVersion"
-	ARKImage                = "ark.image"
-	ARKImageTag             = "ark.imageTag"
-	ARKPullPolicy           = "ark.pullPolicy"
-	ARKSyncEnabled          = "ark.syncEnabled"
-	ARKLogLevel             = "ark.logLevel"
-	ARKBucketsSyncInterval  = "ark.bucketsSyncInterval"
-	ARKRestoresSyncInterval = "ark.restoresSyncInterval"
-	ARKBackupsSyncInterval  = "ark.backupsSyncInterval"
+	ARKName                = "ark.name"
+	ARKNamespace           = "ark.namespace"
+	ARKChart               = "ark.chart"
+	ARKChartVersion        = "ark.chartVersion"
+	ARKImage               = "ark.image"
+	ARKImageTag            = "ark.imageTag"
+	ARKPullPolicy          = "ark.pullPolicy"
+	ARKSyncEnabled         = "ark.syncEnabled"
+	ARKLogLevel            = "ark.logLevel"
+	ARKBucketSyncInterval  = "ark.bucketSyncInterval"
+	ARKRestoreSyncInterval = "ark.restoreSyncInterval"
+	ARKBackupSyncInterval  = "ark.backupSyncInterval"
 )
 
 //Init initializes the configurations
@@ -163,9 +163,9 @@ func init() {
 	viper.SetDefault(ARKPullPolicy, "IfNotPresent")
 	viper.SetDefault(ARKSyncEnabled, true)
 	viper.SetDefault(ARKLogLevel, "info")
-	viper.SetDefault(ARKBucketsSyncInterval, "10m")
-	viper.SetDefault(ARKRestoresSyncInterval, "20s")
-	viper.SetDefault(ARKBackupsSyncInterval, "20s")
+	viper.SetDefault(ARKBucketSyncInterval, "10m")
+	viper.SetDefault(ARKRestoreSyncInterval, "20s")
+	viper.SetDefault(ARKBackupSyncInterval, "20s")
 
 	ReleaseName := os.Getenv("KUBERNETES_RELEASE_NAME")
 	if ReleaseName == "" {

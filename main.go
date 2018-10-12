@@ -319,9 +319,9 @@ func main() {
 				Format: viper.GetString(config.LoggingLogFormat),
 			}).WithField("subsystem", "ark"),
 			config.ErrorHandler(),
-			viper.GetDuration(config.ARKBucketsSyncInterval),
-			viper.GetDuration(config.ARKRestoresSyncInterval),
-			viper.GetDuration(config.ARKBackupsSyncInterval),
+			viper.GetDuration(config.ARKBucketSyncInterval),
+			viper.GetDuration(config.ARKRestoreSyncInterval),
+			viper.GetDuration(config.ARKBackupSyncInterval),
 		)
 	}
 

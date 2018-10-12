@@ -34,25 +34,25 @@ func RunSyncServices(
 	db *gorm.DB,
 	logger logrus.FieldLogger,
 	errorHandler emperror.Handler,
-	bucketsSyncInterval, restoresSyncInterval, backupsSyncInterval time.Duration,
+	bucketSyncInterval, restoreSyncInterval, backupSyncInterval time.Duration,
 ) {
-	if bucketsSyncInterval.Seconds() < 1 {
-		logger.WithField("interval-seconds", bucketsSyncInterval.Seconds()).Error("invalid buckets sync interval")
+	if bucketSyncInterval.Seconds() < 1 {
+		logger.WithField("interval", bucketSyncInterval.Seconds()).Error("invalid bucket sync interval")
 		return
 	}
-	if restoresSyncInterval.Seconds() < 1 {
-		logger.WithField("interval-seconds", restoresSyncInterval.Seconds()).Error("invalid restores sync interval")
+	if restoreSyncInterval.Seconds() < 1 {
+		logger.WithField("interval", restoreSyncInterval.Seconds()).Error("invalid restore sync interval")
 		return
 	}
-	if backupsSyncInterval.Seconds() < 1 {
-		logger.WithField("interval-seconds", backupsSyncInterval.Seconds()).Error("invalid backups sync interval")
+	if backupSyncInterval.Seconds() < 1 {
+		logger.WithField("interval", backupSyncInterval.Seconds()).Error("invalid backup sync interval")
 		return
 	}
 
 	logger.WithFields(logrus.Fields{
-		"buckets-sync-interval":  bucketsSyncInterval,
-		"restores-sync-interval": restoresSyncInterval,
-		"backups-sync-interval":  backupsSyncInterval,
+		"bucket-sync-interval":  bucketSyncInterval,
+		"restore-sync-interval": restoreSyncInterval,
+		"backup-sync-interval":  backupSyncInterval,
 	}).Info("ARK synchronisation starting")
 
 	clusterManager := cluster.NewManager(
@@ -63,9 +63,9 @@ func RunSyncServices(
 
 	svc := NewSyncService(
 		clusterManager,
-		bucketsSyncInterval,
-		restoresSyncInterval,
-		backupsSyncInterval,
+		bucketSyncInterval,
+		restoreSyncInterval,
+		backupSyncInterval,
 	)
 
 	svc.Run(context, db, logger)
