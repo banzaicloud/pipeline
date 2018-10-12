@@ -23,6 +23,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	pkgCommmon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/hpa"
+	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"k8s.io/api/autoscaling/v2beta1"
@@ -164,13 +165,12 @@ func GetHpaResource(c *gin.Context) {
 
 }
 
-func getHpaResources(scaleTargetRef string, kubeConfig []byte) ([]hpa.DeploymentScalingInfo, error) {
+func getHpaResources(scaleTargetRef string, kubeConfig []byte) (*hpa.DeploymentScalingInfo, error) {
 	client, err := helm.GetK8sConnection(kubeConfig)
 	if err != nil {
 		log.Errorf("Getting K8s client failed: %s", err.Error())
 		return nil, err
 	}
-	responseDeployments := make([]hpa.DeploymentScalingInfo, 0)
 
 	listOption := v12.ListOptions{
 		TypeMeta: v12.TypeMeta{
@@ -183,14 +183,10 @@ func getHpaResources(scaleTargetRef string, kubeConfig []byte) ([]hpa.Deployment
 		return nil, err
 	}
 
-	found := false
-
 	for _, hpaItem := range hpaList.Items {
 		if !hpaBelongsToDeployment(hpaItem, scaleTargetRef) {
 			continue
 		}
-
-		found = true
 
 		log.Debugf("hpa found: %v for scaleTragetRef: %v", hpaItem.Name, scaleTargetRef)
 		deploymentItem := hpa.DeploymentScalingInfo{
@@ -219,14 +215,15 @@ func getHpaResources(scaleTargetRef string, kubeConfig []byte) ([]hpa.Deployment
 		}
 
 		deploymentItem.Status.Message = generateStatusMessage(hpaItem.Status)
-		responseDeployments = append(responseDeployments, deploymentItem)
+
+		if hpaItem.Name != scaleTargetRef {
+			deploymentItem.Status.Message = "You can't edit this Horizontal Pod Autoscaler resource, in order to manage it with Pipeline please set the same name as deployment name."
+		}
+		return &deploymentItem, nil
 	}
 
-	if !found {
-		return nil, &scaleTargetNotFoundError{scaleTargetRef: scaleTargetRef}
-	}
+	return nil, &scaleTargetNotFoundError{scaleTargetRef: scaleTargetRef}
 
-	return responseDeployments, nil
 }
 
 func generateStatusMessage(status v2beta1.HorizontalPodAutoscalerStatus) string {
@@ -253,7 +250,7 @@ func getResourceMetricStatus(hpaItem v2beta1.HorizontalPodAutoscaler, metric v2b
 				metricStatus.CurrentAverageValue = fmt.Sprint(*currentMetricStatus.Resource.CurrentAverageUtilization)
 				metricStatus.TargetAverageValueType = hpa.PercentageValueType
 			} else if !currentMetricStatus.Resource.CurrentAverageValue.IsZero() {
-				metricStatus.CurrentAverageValue = fmt.Sprint(currentMetricStatus.Resource.CurrentAverageValue.MilliValue())
+				metricStatus.CurrentAverageValue = fmt.Sprint(k8sutil.GetResourceQuantityInBytes(&currentMetricStatus.Resource.CurrentAverageValue))
 				metricStatus.CurrentAverageValueType = hpa.QuantityValueType
 			}
 		}

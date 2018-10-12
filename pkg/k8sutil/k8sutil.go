@@ -169,6 +169,28 @@ func FormatResourceQuantity(resourceName v1.ResourceName, q *resource.Quantity) 
 	return formatQuantity(q)
 }
 
+func GetResourceQuantityInBytes(q *resource.Quantity) int {
+	if q.IsZero() {
+		return 0
+	}
+
+	result := make([]byte, 0, int64QuantityExpectedBytes)
+
+	rounded, exact := q.AsScale(0)
+	if !exact {
+		return 0
+	}
+	number, exponent := rounded.AsCanonicalBase1024Bytes(result)
+
+	i, err := strconv.Atoi(string(number))
+	if err != nil {
+		// this should never happen, but in case it happens we fallback to default string representation
+		return 0
+	}
+
+	return int(float64(i) * math.Pow(1024, float64(exponent)))
+}
+
 func formatQuantity(q *resource.Quantity) string {
 
 	if q.IsZero() {
