@@ -67,6 +67,24 @@ const (
 	// Config keys to OKE nodepool wait
 	OKEWaitAttemptsForNodepoolActive = "oke.waitAttemptsForNodepoolActive"
 	OKESleepSecondsForNodepoolActive = "oke.sleepSecondsForNodepoolActive"
+
+	// Logging
+	LoggingLogLevel  = "logging.loglevel"
+	LoggingLogFormat = "logging.logformat"
+
+	// ARK
+	ARKName                 = "ark.name"
+	ARKNamespace            = "ark.namespace"
+	ARKChart                = "ark.chart"
+	ARKChartVersion         = "ark.chartVersion"
+	ARKImage                = "ark.image"
+	ARKImageTag             = "ark.imageTag"
+	ARKPullPolicy           = "ark.pullPolicy"
+	ARKSyncEnabled          = "ark.syncEnabled"
+	ARKLogLevel             = "ark.logLevel"
+	ARKBucketsSyncInterval  = "ark.bucketsSyncInterval"
+	ARKRestoresSyncInterval = "ark.restoresSyncInterval"
+	ARKBackupsSyncInterval  = "ark.backupsSyncInterval"
 )
 
 //Init initializes the configurations
@@ -93,6 +111,8 @@ func init() {
 	viper.SetDefault("cloud.configRetrySleep", 15)
 	viper.SetDefault(AwsCredentialPath, "secret/data/banzaicloud/aws")
 	viper.SetDefault("logging.kubicornloglevel", "debug")
+	viper.SetDefault(LoggingLogLevel, "debug")
+	viper.SetDefault(LoggingLogFormat, "text")
 
 	pwd, err := os.Getwd()
 	if err != nil {
@@ -134,13 +154,18 @@ func init() {
 	viper.SetDefault(OKEWaitAttemptsForNodepoolActive, 60)
 	viper.SetDefault(OKESleepSecondsForNodepoolActive, 30)
 
-	viper.SetDefault("ark.name", "ark")
-	viper.SetDefault("ark.namespace", "pipeline-infra")
-	viper.SetDefault("ark.chart", "banzaicloud-stable/ark")
-	viper.SetDefault("ark.chart_version", "1.2.1")
-	viper.SetDefault("ark.image", "banzaicloud/ark")
-	viper.SetDefault("ark.imagetag", "v0.9.6")
-	viper.SetDefault("ark.pullpolicy", "IfNotPresent")
+	viper.SetDefault(ARKName, "ark")
+	viper.SetDefault(ARKNamespace, "pipeline-infra")
+	viper.SetDefault(ARKChart, "banzaicloud-stable/ark")
+	viper.SetDefault(ARKChartVersion, "1.2.1")
+	viper.SetDefault(ARKImage, "banzaicloud/ark")
+	viper.SetDefault(ARKImageTag, "v0.9.6")
+	viper.SetDefault(ARKPullPolicy, "IfNotPresent")
+	viper.SetDefault(ARKSyncEnabled, true)
+	viper.SetDefault(ARKLogLevel, "info")
+	viper.SetDefault(ARKBucketsSyncInterval, "10m")
+	viper.SetDefault(ARKRestoresSyncInterval, "20s")
+	viper.SetDefault(ARKBackupsSyncInterval, "20s")
 
 	ReleaseName := os.Getenv("KUBERNETES_RELEASE_NAME")
 	if ReleaseName == "" {

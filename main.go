@@ -38,6 +38,7 @@ import (
 	ginternal "github.com/banzaicloud/pipeline/internal/platform/gin"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	ginlog "github.com/banzaicloud/pipeline/internal/platform/gin/log"
+	platformlog "github.com/banzaicloud/pipeline/internal/platform/log"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/model/defaults"
 	"github.com/banzaicloud/pipeline/notify"
@@ -309,7 +310,20 @@ func main() {
 		backups.AddOrgRoutes(orgs.Group("/:orgid/backups"))
 	}
 
-	go arkSync.RunSyncServices(context.Background(), config.DB(), log, config.ErrorHandler())
+	if viper.GetBool(config.ARKSyncEnabled) {
+		go arkSync.RunSyncServices(
+			context.Background(),
+			config.DB(),
+			platformlog.NewLogger(platformlog.Config{
+				Level:  viper.GetString(config.ARKLogLevel),
+				Format: viper.GetString(config.LoggingLogFormat),
+			}).WithField("subsystem", "ark"),
+			config.ErrorHandler(),
+			viper.GetDuration(config.ARKBucketsSyncInterval),
+			viper.GetDuration(config.ARKRestoresSyncInterval),
+			viper.GetDuration(config.ARKBackupsSyncInterval),
+		)
+	}
 
 	router.GET(basePath+"/api", api.MetaHandler(router, basePath+"/api"))
 

@@ -203,7 +203,7 @@ func (cs *ClusterModel) BeforeSave() error {
 // to unknown if they are empty
 func (cs *ClusterModel) AfterFind() error {
 
-	log.Info("After find convert metadata")
+	log.Debug("After find convert metadata")
 
 	if len(cs.Location) == 0 {
 		cs.Location = unknown

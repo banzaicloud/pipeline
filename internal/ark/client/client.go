@@ -67,7 +67,6 @@ func (c *Client) getK8sClientConfig(kubeConfig []byte) (config *rest.Config, err
 		if err != nil {
 			return config, err
 		}
-		c.Logger.Debug("Use K8S RemoteCluster Config: ", config.ServerName)
 	} else {
 		err = errors.New("kubeconfig value is nil")
 		return

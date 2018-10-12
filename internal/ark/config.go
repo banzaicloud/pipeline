@@ -17,6 +17,7 @@ package ark
 import (
 	"github.com/spf13/viper"
 
+	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/ark/providers/amazon"
 	"github.com/banzaicloud/pipeline/internal/ark/providers/azure"
 	"github.com/banzaicloud/pipeline/internal/ark/providers/google"
@@ -130,10 +131,10 @@ type azureBucketConfig struct {
 func GetChartConfig() ChartConfig {
 
 	return ChartConfig{
-		Name:      viper.GetString("ark.name"),
-		Namespace: viper.GetString("ark.namespace"),
-		Chart:     viper.GetString("ark.chart"),
-		Version:   viper.GetString("ark.chart_version"),
+		Name:      viper.GetString(config.ARKName),
+		Namespace: viper.GetString(config.ARKNamespace),
+		Chart:     viper.GetString(config.ARKChart),
+		Version:   viper.GetString(config.ARKChartVersion),
 	}
 }
 
@@ -171,9 +172,9 @@ func (req ConfigRequest) Get() (values ValueOverrides, err error) {
 		},
 		Credentials: cred,
 		Image: image{
-			Repository: viper.GetString("ark.image"),
-			Tag:        viper.GetString("ark.imagetag"),
-			PullPolicy: viper.GetString("ark.pullpolicy"),
+			Repository: viper.GetString(config.ARKImage),
+			Tag:        viper.GetString(config.ARKImageTag),
+			PullPolicy: viper.GetString(config.ARKPullPolicy),
 		},
 	}, nil
 }
