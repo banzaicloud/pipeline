@@ -366,13 +366,17 @@ func (c *GKECluster) DeleteCluster() error {
 		return pkgErrors.ErrorNilCluster
 	}
 
-	secretItem, err := c.GetSecretWithValidation()
-	if err != nil {
-		return err
+	if c.model.ProjectId == "" {
+		// if there's no projectid saved with the cluster, take it from the secret
+		secretItem, err := c.GetSecretWithValidation()
+		if err != nil {
+			return err
+		}
+		c.model.ProjectId = secretItem.GetValue(pkgSecret.ProjectId)
 	}
 
 	gkec := googleCluster{
-		ProjectID: secretItem.GetValue(pkgSecret.ProjectId),
+		ProjectID: c.model.ProjectId,
 		Name:      c.model.Cluster.Name,
 		Zone:      c.model.Cluster.Location,
 	}
