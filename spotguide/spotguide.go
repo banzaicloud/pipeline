@@ -649,7 +649,7 @@ func droneRepoConfigPipeline(request *LaunchRequest, repoConfig *droneRepoConfig
 		// Find 'stepName' step and transform it if there are any incoming Values
 		if stepToMergeIn, ok := request.Pipeline[stepName]; ok {
 
-			pipelineStep, err := copyToMap(step.Value)
+			pipelineStep, err := yamlMapSliceToMap(step.Value)
 			if err != nil {
 				return err
 			}
@@ -659,7 +659,7 @@ func droneRepoConfigPipeline(request *LaunchRequest, repoConfig *droneRepoConfig
 				return err
 			}
 
-			newPipelineStep, err := mapToMapSlice(pipelineStep)
+			newPipelineStep, err := mapToYamlMapSlice(pipelineStep)
 			if err != nil {
 				return err
 			}
