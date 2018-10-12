@@ -114,8 +114,8 @@ func listAllImages(client *kubernetes.Clientset, labelSelector string) ([]*apicl
 		images := getPodImages(pod)
 		imageList = append(imageList, images...)
 	}
-	removeDuplicatedImages(imageList)
-	return imageList, nil
+	deDupList := removeDuplicatedImages(imageList)
+	return deDupList, nil
 }
 
 func getPodImages(pod v1.Pod) []*apiclient.ClusterImage {
@@ -147,17 +147,17 @@ func getPodImages(pod v1.Pod) []*apiclient.ClusterImage {
 	return images
 }
 
-func removeDuplicatedImages(images []*apiclient.ClusterImage) {
+func removeDuplicatedImages(images []*apiclient.ClusterImage) []*apiclient.ClusterImage {
 	found := make(map[string]bool)
 	j := 0
 	for i, image := range images {
 		if image.ImageDigest != "" {
 			if !found[image.ImageDigest] {
 				found[image.ImageDigest] = true
-				(images)[j] = (images)[i]
+				images[j] = images[i]
 				j++
 			}
 		}
 	}
-	images = (images)[:j]
+	return images[:j]
 }
