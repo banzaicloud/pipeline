@@ -123,6 +123,17 @@ func ListBuckets(c *gin.Context) {
 
 // ListManagedBuckets lists managed buckets for the user when no secret is provided
 func ListManagedBuckets(c *gin.Context) {
+
+	type secretData struct {
+		SecretId   string `json:"secretId"`
+		SecretName string `json:"secretName"`
+	}
+	type bucketWithSecretName struct {
+		*objectstore.BucketInfo
+		SecretRef  string      `json:"secretId,-,omitempty"`
+		SecretInfo *secretData `json:"secretInfo"`
+	}
+
 	logger := correlationid.Logger(log, c)
 	organization := auth.GetCurrentOrganization(c.Request)
 
@@ -133,6 +144,8 @@ func ListManagedBuckets(c *gin.Context) {
 		pkgProviders.Google,
 		pkgProviders.Oracle,
 	}
+
+	secretNamesNeeded := c.Query("fields") == "name"
 
 	allBuckets := make([]*objectstore.BucketInfo, 0)
 	for _, cloudType := range allProviders {
@@ -158,6 +171,25 @@ func ListManagedBuckets(c *gin.Context) {
 
 		allBuckets = append(allBuckets, bucketList...)
 
+	}
+
+	if secretNamesNeeded {
+		logger.Debug("decorating buckets with secret names")
+		withSecretName := make([]*bucketWithSecretName, 0)
+		for _, bucket := range allBuckets {
+
+			secret, err := secret.Store.Get(organization.ID, bucket.SecretRef)
+			if err != nil {
+				errorHandler.Handle(err)
+			}
+
+			withSecretName = append(withSecretName, &bucketWithSecretName{
+				BucketInfo: bucket,
+				SecretInfo: &secretData{SecretName: secret.Name, SecretId: secret.ID}})
+		}
+
+		c.JSON(http.StatusOK, withSecretName)
+		return
 	}
 
 	c.JSON(http.StatusOK, allBuckets)
