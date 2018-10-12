@@ -108,7 +108,7 @@ const (
 
 // Htpasswd extra keys (+Password keys)
 const (
-	HtpasswdFile = ".htpasswd"
+	HtpasswdFile = "htpasswd"
 )
 
 // Internal usage
