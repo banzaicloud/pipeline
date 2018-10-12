@@ -15,10 +15,12 @@
 package spotguide
 
 import (
-	"github.com/banzaicloud/pipeline/cluster"
+	"encoding/json"
+
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	libcompose "github.com/docker/libcompose/yaml"
+	yaml2 "github.com/ghodss/yaml"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -98,7 +100,7 @@ type droneContainer struct {
 	Log           *string                                `yaml:"log,omitempty"`
 	Cluster       *pkgCluster.CreateClusterRequest       `yaml:"cluster,omitempty"`
 	Deployment    *pkgHelm.CreateUpdateDeploymentRequest `yaml:"deployment,omitempty"`
-	ClusterSecret *cluster.InstallSecretRequest          `yaml:"cluster_secrets,omitempty"`
+	ClusterSecret map[string]interface{}                 `yaml:"cluster_secret,omitempty"`
 }
 
 // nolint
@@ -179,11 +181,20 @@ func copyToMap(v interface{}) (map[string]interface{}, error) {
 		return nil, err
 	}
 	var config map[string]interface{}
-	err = yaml.Unmarshal(bytes, &config)
+	err = yaml2.Unmarshal(bytes, &config)
 	if err != nil {
 		return nil, err
 	}
-	return config, nil
+	bytes, err = json.Marshal(config)
+	if err != nil {
+		return nil, err
+	}
+	var config2 map[string]interface{}
+	err = json.Unmarshal(bytes, &config2)
+	if err != nil {
+		return nil, err
+	}
+	return config2, nil
 }
 
 func mapToMapSlice(container map[string]interface{}) (yaml.MapSlice, error) {
