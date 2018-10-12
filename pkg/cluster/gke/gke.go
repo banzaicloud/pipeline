@@ -32,6 +32,7 @@ type CreateClusterGKE struct {
 	NodeVersion string               `json:"nodeVersion,omitempty" yaml:"nodeVersion,omitempty"`
 	NodePools   map[string]*NodePool `json:"nodePools,omitempty" yaml:"nodePools,omitempty"`
 	Master      *Master              `json:"master,omitempty" yaml:"master,omitempty"`
+	ProjectId   string               `json:"projectId" yaml:"projectId"`
 }
 
 // Master describes Google's master fields of a CreateCluster request
