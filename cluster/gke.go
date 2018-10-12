@@ -1432,7 +1432,7 @@ func CreateGKEClusterFromModel(clusterModel *model.ClusterModel) (*GKECluster, e
 		ClusterID: clusterModel.ID,
 	}
 
-	log.Info("Load Google props from database")
+	log.Debug("Load Google props from database")
 	err := db.Where(m).Preload("Cluster").Preload("NodePools").First(&m).Error
 	if err != nil {
 		return nil, err

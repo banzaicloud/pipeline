@@ -28,25 +28,25 @@ import (
 
 // Service describes a service for every ARK related sync operations
 type Service struct {
-	clusterManager       *cluster.Manager
-	bucketsSyncInterval  time.Duration
-	restoresSyncInterval time.Duration
-	backupsSyncInterval  time.Duration
+	clusterManager      *cluster.Manager
+	bucketSyncInterval  time.Duration
+	restoreSyncInterval time.Duration
+	backupSyncInterval  time.Duration
 }
 
 // NewSyncService creates and initializes a Service
 func NewSyncService(
 	ClusterManager *cluster.Manager,
-	BucketsSyncInterval time.Duration,
-	RestoresSyncInterval time.Duration,
-	BackupsSyncInterval time.Duration,
+	BucketSyncInterval time.Duration,
+	RestoreSyncInterval time.Duration,
+	BackupSyncInterval time.Duration,
 ) *Service {
 
 	return &Service{
-		clusterManager:       ClusterManager,
-		bucketsSyncInterval:  BucketsSyncInterval,
-		restoresSyncInterval: RestoresSyncInterval,
-		backupsSyncInterval:  BackupsSyncInterval,
+		clusterManager:      ClusterManager,
+		bucketSyncInterval:  BucketSyncInterval,
+		restoreSyncInterval: RestoreSyncInterval,
+		backupSyncInterval:  BackupSyncInterval,
 	}
 }
 
@@ -59,21 +59,21 @@ func (s *Service) Run(context context.Context, db *gorm.DB, logger logrus.FieldL
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		s.syncRegisteredBucketsLoop(context, db, logger, s.bucketsSyncInterval)
+		s.syncRegisteredBucketsLoop(context, db, logger, s.bucketSyncInterval)
 	}()
 
 	// restores
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		s.syncRestoresLoop(context, db, logger, s.restoresSyncInterval)
+		s.syncRestoresLoop(context, db, logger, s.restoreSyncInterval)
 	}()
 
 	// backups
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		s.syncBackupsLoop(context, db, logger, s.backupsSyncInterval)
+		s.syncBackupsLoop(context, db, logger, s.backupSyncInterval)
 	}()
 
 	wg.Wait()

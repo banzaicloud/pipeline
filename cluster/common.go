@@ -278,7 +278,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 			return nil, err
 		}
 
-		log.Info("Load Azure props from database")
+		log.Debug("Load Azure props from database")
 		err = db.Where(model.AKSClusterModel{ID: aksCluster.modelCluster.ID}).First(&aksCluster.modelCluster.AKS).Error
 		if err != nil {
 			return nil, err
@@ -302,7 +302,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 			return nil, err
 		}
 
-		log.Info("Load Dummy props from database")
+		log.Debug("Load Dummy props from database")
 		err = db.Where(model.DummyClusterModel{ID: dummyCluster.modelCluster.ID}).First(&dummyCluster.modelCluster.Dummy).Error
 
 		return dummyCluster, err
@@ -314,7 +314,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 			return nil, err
 		}
 
-		log.Info("Load Kubernetes props from database")
+		log.Debug("Load Kubernetes props from database")
 		err = db.Where(model.KubernetesClusterModel{ID: kubernetesCluster.modelCluster.ID}).First(&kubernetesCluster.modelCluster.Kubernetes).Error
 		if database.IsRecordNotFoundError(err) {
 			// metadata not set so there's no properties in DB
@@ -331,7 +331,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 			return nil, err
 		}
 
-		log.Info("Load Oracle props from database")
+		log.Debug("Load Oracle props from database")
 		err = db.Where(modelOracle.Cluster{ClusterModelID: okeCluster.modelCluster.ID}).Preload("NodePools.Subnets").Preload("NodePools.Labels").First(&okeCluster.modelCluster.OKE).Error
 
 		return okeCluster, err
