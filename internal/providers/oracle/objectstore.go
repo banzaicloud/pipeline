@@ -17,15 +17,17 @@ package oracle
 import (
 	"fmt"
 
+	"github.com/jinzhu/gorm"
+	"github.com/oracle/oci-go-sdk/common"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/objectstore"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/pkg/providers/oracle/oci"
 	osecret "github.com/banzaicloud/pipeline/pkg/providers/oracle/secret"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/jinzhu/gorm"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 type bucketNotFoundError struct{}
@@ -259,6 +261,11 @@ func (o *ObjectStore) CheckBucket(name string) error {
 
 	logger.Debug("Getting bucket")
 	_, err = client.GetBucket(name)
+	if err, ok := err.(common.ServiceError); ok {
+		if err.GetHTTPStatusCode() == 404 {
+			return bucketNotFoundError{}
+		}
+	}
 
 	return err
 }
