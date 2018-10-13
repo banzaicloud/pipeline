@@ -3948,6 +3948,16 @@ paths:
           - azure
           type: string
         style: form
+      - description: Signals whether the secret name is to be returned
+        explode: true
+        in: query
+        name: fields
+        required: false
+        schema:
+          enum:
+          - secretname
+          type: string
+        style: form
       - description: Identifies the cloud region. Required by Amazon only.
         explode: true
         in: query
@@ -7156,13 +7166,14 @@ components:
           type: string
         managed:
           type: boolean
+        secret:
+          $ref: '#/components/schemas/BucketInfo_secret'
         azure:
           $ref: '#/components/schemas/AzureBlobStorageProps'
       required:
       - cloud
       - managed
       - name
-      - secretId
       type: object
     ListStorageBucketsResponse:
       items:
@@ -9250,6 +9261,15 @@ components:
     CreateOracleObjectStoreBucketProperties_oracle:
       properties:
         location:
+          type: string
+      type: object
+    BucketInfo_secret:
+      properties:
+        id:
+          example: cc051aeaf686444e2f125d0e79eb051aaaf4fb73384f7b0f8c89e84a0502dca1
+          type: string
+        name:
+          example: mysecretname
           type: string
       type: object
     PodItem_labels:

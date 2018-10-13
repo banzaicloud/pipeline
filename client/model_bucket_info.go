@@ -14,5 +14,6 @@ package client
 type BucketInfo struct {
 	Name    string                `json:"name"`
 	Managed bool                  `json:"managed"`
+	Secret  BucketInfoSecret      `json:"secret,omitempty"`
 	Azure   AzureBlobStorageProps `json:"azure,omitempty"`
 }

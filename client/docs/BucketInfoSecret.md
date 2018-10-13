@@ -1,12 +1,10 @@
-# BucketInfo
+# BucketInfoSecret
 
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Name** | **string** |  | 
-**Managed** | **bool** |  | 
-**Secret** | [**BucketInfoSecret**](BucketInfo_secret.md) |  | [optional] 
-**Azure** | [**AzureBlobStorageProps**](AzureBlobStorageProps.md) |  | [optional] 
+**Id** | **string** |  | [optional] 
+**Name** | **string** |  | [optional] 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

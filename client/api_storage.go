@@ -375,6 +375,7 @@ List object store buckets accessible by the credentials referenced by the given 
  * @param optional nil or *ListObjectStoreBucketsOpts - Optional Parameters:
  * @param "SecretId" (optional.String) -  Secret identification. If not provided only the managed buckets (those created via pipeline) are listed
  * @param "CloudType" (optional.String) -  Identifies the cloud provider - mandatory if secretId header is provided
+ * @param "Fields" (optional.String) -  Signals whether the secret name is to be returned
  * @param "Location" (optional.String) -  Identifies the cloud region. Required by Amazon only.
 @return ListStorageBucketsResponse
 */
@@ -382,6 +383,7 @@ List object store buckets accessible by the credentials referenced by the given 
 type ListObjectStoreBucketsOpts struct {
 	SecretId  optional.String
 	CloudType optional.String
+	Fields    optional.String
 	Location  optional.String
 }
 
@@ -405,6 +407,9 @@ func (a *StorageApiService) ListObjectStoreBuckets(ctx context.Context, orgId in
 
 	if localVarOptionals != nil && localVarOptionals.CloudType.IsSet() {
 		localVarQueryParams.Add("cloudType", parameterToString(localVarOptionals.CloudType.Value(), ""))
+	}
+	if localVarOptionals != nil && localVarOptionals.Fields.IsSet() {
+		localVarQueryParams.Add("fields", parameterToString(localVarOptionals.Fields.Value(), ""))
 	}
 	if localVarOptionals != nil && localVarOptionals.Location.IsSet() {
 		localVarQueryParams.Add("location", parameterToString(localVarOptionals.Location.Value(), ""))
