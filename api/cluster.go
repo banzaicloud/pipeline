@@ -79,7 +79,7 @@ func getClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
 
 	logger = logger.WithField("organization", organizationID)
 
-	switch c.DefaultQuery("field", "id") {
+	switch field := c.DefaultQuery("field", "id"); field {
 	case "id":
 		clusterID, ok := ginutils.UintParam(c, "id")
 		if !ok {
@@ -98,6 +98,7 @@ func getClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
 
 		cl, err = clusterManager.GetClusterByName(ctx, organizationID, clusterName)
 	default:
+		err = fmt.Errorf("field=%s is not supported", field)
 	}
 
 	if isNotFound(err) {
