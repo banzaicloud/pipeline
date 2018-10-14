@@ -1141,7 +1141,7 @@ Install a particular secret into a cluster
  * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param orgId Organization identification
  * @param id Selected cluster identification (number)
- * @param secret Secret name
+ * @param secret Secret name as it will be seen in the cluster
  * @param installSecretRequest
 @return InstallSecretResponse
 */
@@ -1156,7 +1156,7 @@ func (a *ClustersApiService) InstallSecret(ctx context.Context, orgId int32, id 
 	)
 
 	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/api/v1/orgs/{orgId}/clusters/{id}/secrets/{secret}"
+	localVarPath := a.client.cfg.BasePath + "/api/v1/orgs/{orgId}/clusters/{id}/secrets/{secretName}"
 	localVarPath = strings.Replace(localVarPath, "{"+"orgId"+"}", fmt.Sprintf("%v", orgId), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"id"+"}", fmt.Sprintf("%v", id), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"secret"+"}", fmt.Sprintf("%v", secret), -1)

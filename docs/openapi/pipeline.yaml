@@ -985,7 +985,7 @@ paths:
                         schema:
                             $ref: '#/components/schemas/InstallSecretsRequest'
 
-    '/api/v1/orgs/{orgId}/clusters/{id}/secrets/{secret}':
+    '/api/v1/orgs/{orgId}/clusters/{id}/secrets/{secretName}':
         post:
             security:
                 - bearerAuth: []
@@ -1010,7 +1010,7 @@ paths:
                 - name: secret
                   in: path
                   required: true
-                  description: Secret name
+                  description: Secret name as it will be seen in the cluster
                   schema:
                       type: string
             responses:
@@ -5633,6 +5633,9 @@ components:
             required:
                 - namespace
             properties:
+                secretName:
+                    type: string
+                    example: my-secret
                 namespace:
                     type: string
                     example: "default"

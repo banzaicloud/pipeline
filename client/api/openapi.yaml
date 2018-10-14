@@ -1076,7 +1076,7 @@ paths:
       summary: Install secrets into cluster
       tags:
       - clusters
-  /api/v1/orgs/{orgId}/clusters/{id}/secrets/{secret}:
+  /api/v1/orgs/{orgId}/clusters/{id}/secrets/{secretName}:
     post:
       description: Install a particular secret into a cluster
       operationId: InstallSecret
@@ -1099,7 +1099,7 @@ paths:
           format: int32
           type: integer
         style: simple
-      - description: Secret name
+      - description: Secret name as it will be seen in the cluster
         explode: false
         in: path
         name: secret
@@ -6058,6 +6058,7 @@ components:
       type: object
     InstallSecretRequest:
       example:
+        secretName: my-secret
         namespace: default
         spec:
           key:
@@ -6065,6 +6066,9 @@ components:
               key: sourceMap
             source: source
       properties:
+        secretName:
+          example: my-secret
+          type: string
         namespace:
           example: default
           type: string
