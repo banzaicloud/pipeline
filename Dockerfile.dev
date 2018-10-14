@@ -1,0 +1,13 @@
+FROM golang:1.10-alpine
+RUN apk add --update --no-cache ca-certificates git
+RUN go get github.com/kubernetes-sigs/aws-iam-authenticator/cmd/aws-iam-authenticator
+RUN go get github.com/derekparker/delve/cmd/dlv
+
+FROM alpine:3.6
+RUN apk add --no-cache ca-certificates
+COPY --from=0 /go/bin/aws-iam-authenticator /usr/bin/
+COPY --from=0 /go/bin/dlv /
+ADD ./pipeline-debug /
+ADD ./views /views/
+
+ENTRYPOINT ["/dlv", "--listen=:40000", "--headless=true", "--api-version=2", "--log", "exec", "/pipeline-debug"]
