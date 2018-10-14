@@ -1,12 +1,10 @@
-version: '3.1'
+version: "3.1"
 
 services:
     db:
         image: mysql:5.7
         command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
         restart: always
-        ports:
-            - 3306:3306
         environment:
             MYSQL_ROOT_PASSWORD: example
             MYSQL_DATABASE: pipeline
@@ -18,16 +16,12 @@ services:
     adminer:
         image: adminer
         restart: always
-        ports:
-            - 8080:8080
 
     vault:
         image: vault:0.11.0
         restart: always
         cap_add:
             - IPC_LOCK
-        ports:
-            - 8200:8200
         volumes:
             - $HOME:/home/vault
 
@@ -48,9 +42,6 @@ services:
     drone-server:
         image: banzaicloud/drone:0.3.0
         restart: always
-        ports:
-            - 8000:8000
-            - 9000
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
         entrypoint:
