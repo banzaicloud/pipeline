@@ -37,6 +37,14 @@ func GetScanResult(c *gin.Context) {
 	imageDigest := c.Param("imagedigest")
 	if len(imageDigest) != 0 {
 		endPoint = path.Join(endPoint, imageDigest)
+	} else {
+		log.Error("Missing imageDigest")
+		httpStatusCode := http.StatusNotFound
+		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
+			Code:    httpStatusCode,
+			Message: "Error",
+			Error:   "Missing imageDigest",
+		})
 	}
 
 	commonCluster, ok := getClusterFromRequest(c)
@@ -103,4 +111,41 @@ func ScanImages(c *gin.Context) {
 		defer response.Body.Close()
 		createResponse(c, *response)
 	}
+}
+
+// GetImageVulnerabilities list image vulnerabilities
+func GetImageVulnerabilities(c *gin.Context) {
+
+	endPoint := "images"
+	imageDigest := c.Param("imagedigest")
+	if len(imageDigest) != 0 {
+		endPoint = path.Join(endPoint, imageDigest)
+	} else {
+		log.Error("Missing imageDigest")
+		httpStatusCode := http.StatusNotFound
+		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
+			Code:    httpStatusCode,
+			Message: "Error",
+			Error:   "Missing imageDigest",
+		})
+	}
+	endPoint = path.Join(endPoint, "/vuln/all")
+	commonCluster, ok := getClusterFromRequest(c)
+	if !ok {
+		return
+	}
+	response, err := anchore.MakeAnchoreRequest(commonCluster.GetOrganizationId(), commonCluster.GetUID(), http.MethodGet, endPoint, nil)
+	if err != nil {
+		log.Error(err)
+		httpStatusCode := http.StatusInternalServerError
+		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
+			Code:    httpStatusCode,
+			Message: "Error",
+			Error:   err.Error(),
+		})
+		return
+	}
+	defer response.Body.Close()
+
+	createResponse(c, *response)
 }

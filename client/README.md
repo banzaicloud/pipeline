@@ -135,6 +135,7 @@ Class | Method | HTTP request | Description
  - [AmazonConfigResponseImage](docs/AmazonConfigResponseImage.md)
  - [AmazonConfigResponseInstanceType](docs/AmazonConfigResponseInstanceType.md)
  - [AnchoreImage](docs/AnchoreImage.md)
+ - [AnchoreImageList](docs/AnchoreImageList.md)
  - [AzureBlobStorageProps](docs/AzureBlobStorageProps.md)
  - [AzureConfigResponse](docs/AzureConfigResponse.md)
  - [AzureConfigResponseInstanceType](docs/AzureConfigResponseInstanceType.md)

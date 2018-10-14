@@ -255,10 +255,10 @@ Scan Images used in cluster
  * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param orgId Organization identification
  * @param id Selected cluster identification (number)
- * @param clusterImage
+ * @param anchoreImage
 @return ClusterImageList
 */
-func (a *ImagescanApiService) ScanImages(ctx context.Context, orgId int32, id int32, clusterImage []ClusterImage) (ClusterImageList, *http.Response, error) {
+func (a *ImagescanApiService) ScanImages(ctx context.Context, orgId int32, id int32, anchoreImage []AnchoreImage) (ClusterImageList, *http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Post")
 		localVarPostBody     interface{}
@@ -295,7 +295,7 @@ func (a *ImagescanApiService) ScanImages(ctx context.Context, orgId int32, id in
 		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
 	}
 	// body params
-	localVarPostBody = &clusterImage
+	localVarPostBody = &anchoreImage
 	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFormFileName, localVarFileName, localVarFileBytes)
 	if err != nil {
 		return localVarReturnValue, nil, err
