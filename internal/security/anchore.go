@@ -231,7 +231,6 @@ func MakeAnchoreRequest(orgId uint, clusterId string, method string, url string,
 		if err != nil {
 			return nil, err
 		}
-
 		request, _ = http.NewRequest(method, AnchorEndpoint+"/"+path.Join("v1", url), buf)
 		if err != nil {
 			return nil, err

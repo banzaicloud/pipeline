@@ -255,7 +255,7 @@ func main() {
 			orgs.GET("/:orgid/clusters/:id/images", api.ListImages)
 			orgs.GET("/:orgid/clusters/:id/deployments/:name/images", api.GetDeploymentImages)
 
-			//			orgs.POST("/:orgid/clusters/:id/imagescan", api.ScanImages)
+			orgs.POST("/:orgid/clusters/:id/imagescan", api.ScanImages)
 			orgs.GET("/:orgid/clusters/:id/imagescan/:imagedigest", api.GetScanResult)
 			//			orgs.GET("/:orgid/clusters/:id/imagescan/:imagedigest/vuln", api.GetImageVulnerabilities)
 

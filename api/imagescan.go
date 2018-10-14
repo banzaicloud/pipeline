@@ -18,10 +18,17 @@ import (
 	"net/http"
 	"path"
 
+	apiclient "github.com/banzaicloud/pipeline/client"
 	"github.com/banzaicloud/pipeline/internal/security"
 	pkgCommmon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 )
+
+type anchoreImagePostBody struct {
+	Tag    string `json:"tag,omitempty"`
+	Digest string `json:"digest,omitempty"`
+}
 
 // GetScanResult list scan result
 func GetScanResult(c *gin.Context) {
@@ -55,4 +62,45 @@ func GetScanResult(c *gin.Context) {
 // ScanImages scans images
 func ScanImages(c *gin.Context) {
 
+	var images []apiclient.ClusterImage
+	endPoint := "images"
+	err := c.BindJSON(&images)
+	if err != nil {
+		err := errors.Wrap(err, "Error parsing request:")
+		log.Error(err.Error())
+		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error during parsing request!",
+			Error:   errors.Cause(err).Error(),
+		})
+		return
+	}
+
+	commonCluster, ok := getClusterFromRequest(c)
+	if !ok {
+		return
+	}
+	var anchorePost anchoreImagePostBody
+	for i := range images {
+		anchorePost.Tag = images[i].ImageName + ":" + images[i].ImageTag
+		anchorePost.Digest = ""
+		// if imageDigest set anchore intiate force image scanning
+		// anchorePost.Digest = images[i].ImageDigest
+		// if anchorePost.Digest != "" {
+		// 	endPoint = "images?force=true"
+		// }
+		response, err := anchore.MakeAnchoreRequest(commonCluster.GetOrganizationId(), commonCluster.GetUID(), http.MethodPost, endPoint, anchorePost)
+		if err != nil {
+			log.Error(err)
+			httpStatusCode := http.StatusInternalServerError
+			c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
+				Code:    httpStatusCode,
+				Message: "Error",
+				Error:   err.Error(),
+			})
+			return
+		}
+		defer response.Body.Close()
+		createResponse(c, *response)
+	}
 }
