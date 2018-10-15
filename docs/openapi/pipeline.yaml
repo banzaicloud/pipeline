@@ -3570,7 +3570,7 @@ paths:
                       enum: [amazon, google, azure]
                   required: false
                   description: Identifies the cloud provider - mandatory if secretId header is provided
-                - name: includes
+                - name: include
                   in: query
                   schema:
                       type: string

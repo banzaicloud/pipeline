@@ -154,7 +154,7 @@ func ListManagedBuckets(c *gin.Context) {
 	}
 
 	const (
-		fieldsQueryKey = "includes"
+		fieldsQueryKey = "include"
 		secretName     = "secret"
 	)
 	// is secretName requested?
