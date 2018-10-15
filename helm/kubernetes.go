@@ -16,8 +16,8 @@ package helm
 
 import (
 	"fmt"
-	"time"
 
+	pipelineHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/pkg/errors"
 	"k8s.io/api/core/v1"
@@ -25,12 +25,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-		"k8s.io/helm/pkg/helm"
-	"k8s.io/helm/pkg/helm/portforwarder"
-	"k8s.io/helm/pkg/kube"
+	"k8s.io/helm/pkg/helm"
 )
-
-var tillerTunnel *kube.Tunnel
 
 // GetK8sConnection creates a new Kubernetes client.
 // Deprecated: use github.com/banzaicloud/pipeline/pkg/k8sclient.NewClientFromKubeConfig
@@ -50,37 +46,10 @@ func GetK8sClientConfig(kubeConfig []byte) (*rest.Config, error) {
 	return k8sclient.NewClientConfig(kubeConfig)
 }
 
-//GetHelmClient establishes Tunnel for Helm client TODO check client and config if both needed
+// GetHelmClient establishes Tunnel for Helm client TODO check client and config if both needed
+// Deprecated: use github.com/banzaicloud/pipeline/pkg/helm.NewClient
 func GetHelmClient(kubeConfig []byte) (*helm.Client, error) {
-	for i := 0; i < 2; i++ {
-		log.Debug("Create kubernetes Client.")
-		config, err := GetK8sClientConfig(kubeConfig)
-		if err != nil {
-			log.Debug("Could not get K8S config")
-			return nil, err
-		}
-
-		client, err := GetK8sConnection(kubeConfig)
-		if err != nil {
-			log.Debug("Could not create kubernetes client from config.")
-			return nil, fmt.Errorf("create kubernetes client failed: %v", err)
-		}
-		log.Debug("Create kubernetes Tunnel")
-		tillerTunnel, err = portforwarder.New("kube-system", client, config)
-		if err != nil {
-			if err.Error() == "Unauthorized" && i == 0 {
-				log.Errorf("create tunnel attempt %d/%d failed: %s", i+1, 2, err.Error())
-				time.Sleep(time.Millisecond * 20)
-				continue
-			}
-			return nil, fmt.Errorf("create tunnel attempt %d/%d failed: %s", i+1, 2, err.Error())
-		}
-		break
-	}
-	log.Debug("Created kubernetes tunnel on address: localhost:", tillerTunnel.Local)
-	tillerTunnelAddress := fmt.Sprintf("localhost:%d", tillerTunnel.Local)
-	hclient := helm.NewClient(helm.Host(tillerTunnelAddress))
-	return hclient, nil
+	return pipelineHelm.NewClient(kubeConfig, log)
 }
 
 //CheckDeploymentState checks the state of Helm deployment
