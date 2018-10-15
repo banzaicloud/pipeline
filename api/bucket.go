@@ -60,7 +60,7 @@ type BucketResponseItem struct {
 	Managed    bool                                  `json:"managed" binding:"required"`
 	Location   string                                `json:"location,omitempty"`
 	Cloud      string                                `json:"cloud,omitempty"`
-	Notes      *string                               `json:"notes, omitempty"`
+	Notes      *string                               `json:"notes,omitempty"`
 	SecretInfo *secretData                           `json:"secret"`
 	Azure      *objectstore.BlobStoragePropsForAzure `json:"aks,omitempty"`
 }
