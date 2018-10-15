@@ -27,8 +27,9 @@ import (
 // Models copied from generated client package.
 // TODO: import these from a generated server model package
 type InstallSecretRequest struct {
-	Namespace string                                  `json:"namespace"`
-	Spec      map[string]InstallSecretRequestSpecItem `json:"spec,omitempty"`
+	SourceSecretName string                                  `json:"sourceSecretName,omitempty"`
+	Namespace        string                                  `json:"namespace"`
+	Spec             map[string]InstallSecretRequestSpecItem `json:"spec,omitempty"`
 }
 
 type InstallSecretRequestSpecItem struct {
@@ -63,8 +64,9 @@ func InstallSecretToCluster(c *gin.Context) {
 	}
 
 	secretRequest := cluster.InstallSecretRequest{
-		Namespace: request.Namespace,
-		Spec:      map[string]cluster.InstallSecretRequestSpecItem{},
+		SourceSecretName: request.SourceSecretName,
+		Namespace:        request.Namespace,
+		Spec:             map[string]cluster.InstallSecretRequestSpecItem{},
 	}
 
 	for key, spec := range request.Spec {
@@ -75,6 +77,11 @@ func InstallSecretToCluster(c *gin.Context) {
 	}
 
 	secretName := c.Param("secretName")
+
+	// If there is no separate pipeline secret name use the same as the cluster request name
+	if secretRequest.SourceSecretName == "" {
+		secretRequest.SourceSecretName = secretName
+	}
 
 	secretSource, err := cluster.InstallSecret(commonCluster, secretName, secretRequest)
 

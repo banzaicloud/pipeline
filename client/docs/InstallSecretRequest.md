@@ -3,6 +3,7 @@
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
+**SourceSecretName** | **string** |  | [optional] 
 **Namespace** | **string** |  | 
 **Spec** | [**map[string]InstallSecretRequestSpecItem**](InstallSecretRequestSpecItem.md) |  | [optional] 
 

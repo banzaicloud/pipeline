@@ -124,14 +124,14 @@ func InstallSecretsByK8SConfig(k8sConfig []byte, orgID uint, query *secretTypes.
 }
 
 type InstallSecretRequest struct {
-	Namespace string                                  `json:"namespace" yaml:"namespace"`
-	Name      string                                  `json:"name" yaml:"name"`
-	Spec      map[string]InstallSecretRequestSpecItem `json:"spec,omitempty" yaml:"spec,omitempty"`
+	SourceSecretName string
+	Namespace        string
+	Spec             map[string]InstallSecretRequestSpecItem
 }
 
 type InstallSecretRequestSpecItem struct {
-	Source    string            `json:"source,omitempty" yaml:"source,omitempty"`
-	SourceMap map[string]string `json:"sourceMap,omitempty" yaml:"sourceMap,omitempty"`
+	Source    string
+	SourceMap map[string]string
 }
 
 // InstallSecret installs or updates a secret under the name into namespace of a Kubernetes cluster.
@@ -152,7 +152,7 @@ func InstallSecretByK8SConfig(k8sConfig []byte, orgID uint, secretName string, r
 		return nil, errors.Wrap(err, "failed to create k8s client")
 	}
 
-	secretItem, err := secret.Store.GetByName(orgID, secretName)
+	secretItem, err := secret.Store.GetByName(orgID, req.SourceSecretName)
 	if err != nil {
 		return nil, emperror.With(errors.Wrap(err, "failed to get secret"), "secret", secretName)
 	}

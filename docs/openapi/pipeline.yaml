@@ -985,7 +985,7 @@ paths:
                         schema:
                             $ref: '#/components/schemas/InstallSecretsRequest'
 
-    '/api/v1/orgs/{orgId}/clusters/{id}/secrets/{secret}':
+    '/api/v1/orgs/{orgId}/clusters/{id}/secrets/{secretName}':
         post:
             security:
                 - bearerAuth: []
@@ -1007,12 +1007,20 @@ paths:
                   description: Selected cluster identification (number)
                   schema:
                       type: integer
-                - name: secret
+                - name: secretName
                   in: path
                   required: true
-                  description: Secret name
+                  description: Secret name as it will be seen in the cluster
                   schema:
                       type: string
+
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/InstallSecretRequest'
+
             responses:
                 '200':
                     description: "Secret is installed into the cluster"
@@ -1038,12 +1046,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ClusterNotFound'
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/InstallSecretRequest'
 
     '/api/v1/orgs/{orgId}/clusters/{id}/scanlog':
         get:
@@ -5640,6 +5642,9 @@ components:
             required:
                 - namespace
             properties:
+                sourceSecretName:
+                    type: string
+                    example: my-secret
                 namespace:
                     type: string
                     example: "default"
