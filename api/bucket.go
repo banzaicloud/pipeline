@@ -47,7 +47,25 @@ const (
 	secretIdHeader   = "secretId"
 )
 
-// ListAllBuckets handles bucket list requests. The handler method directs the flow to the appropriate retrieval
+// secretData secret representation
+type secretData struct {
+	SecretId   string `json:"id"`
+	SecretName string `json:"name,omitempty"`
+}
+
+// BucketResponseItem encapsulates bucket and secret details to be returned
+// it's purpose is to properly format the response details - especially the secret details
+type BucketResponseItem struct {
+	Name       string                                `json:"name"  binding:"required"`
+	Managed    bool                                  `json:"managed" binding:"required"`
+	Location   string                                `json:"location,omitempty"`
+	Cloud      string                                `json:"cloud,omitempty"`
+	Notes      *string                               `json:"notes,omitempty"`
+	SecretInfo *secretData                           `json:"secret"`
+	Azure      *objectstore.BlobStoragePropsForAzure `json:"aks,omitempty"`
+}
+
+// ListAllBuckets handles 	bucket list requests. The handler method directs the flow to the appropriate retrieval
 // strategy based on the request header details
 func ListAllBuckets(c *gin.Context) {
 	logger := correlationid.Logger(log, c)
@@ -70,14 +88,14 @@ func ListAllBuckets(c *gin.Context) {
 func ListBuckets(c *gin.Context) {
 	logger := correlationid.Logger(log, c)
 
-	organization, secret, cloudType, ok := getBucketContext(c, logger)
+	organization, secretItem, cloudType, ok := getBucketContext(c, logger)
 	if !ok {
 		return
 	}
 
 	logger = logger.WithFields(logrus.Fields{
 		"organization": organization.ID,
-		"secret":       secret.ID,
+		"secret":       secretItem.ID,
 		"provider":     cloudType,
 	})
 
@@ -85,7 +103,7 @@ func ListBuckets(c *gin.Context) {
 
 	objectStoreCtx := &providers.ObjectStoreContext{
 		Provider:     cloudType,
-		Secret:       secret,
+		Secret:       secretItem,
 		Organization: organization,
 	}
 
@@ -123,6 +141,7 @@ func ListBuckets(c *gin.Context) {
 
 // ListManagedBuckets lists managed buckets for the user when no secret is provided
 func ListManagedBuckets(c *gin.Context) {
+
 	logger := correlationid.Logger(log, c)
 	organization := auth.GetCurrentOrganization(c.Request)
 
@@ -133,6 +152,13 @@ func ListManagedBuckets(c *gin.Context) {
 		pkgProviders.Google,
 		pkgProviders.Oracle,
 	}
+
+	const (
+		fieldsQueryKey = "include"
+		secretName     = "secret"
+	)
+	// is secretName requested?
+	includeSecret := c.Query(fieldsQueryKey) == secretName
 
 	allBuckets := make([]*objectstore.BucketInfo, 0)
 	for _, cloudType := range allProviders {
@@ -160,8 +186,8 @@ func ListManagedBuckets(c *gin.Context) {
 
 	}
 
-	c.JSON(http.StatusOK, allBuckets)
-
+	c.JSON(http.StatusOK, bucketsResponse(allBuckets, organization.ID, includeSecret))
+	return
 }
 
 // CreateBucket creates an objectstore bucket (blob container in case of Azure)
@@ -283,20 +309,20 @@ func CheckBucket(c *gin.Context) {
 	bucketName := c.Param("name")
 	logger = logger.WithField("bucket", bucketName)
 
-	organization, secret, cloudType, ok := getBucketContext(c, logger)
+	organization, secretItem, cloudType, ok := getBucketContext(c, logger)
 	if !ok {
 		return
 	}
 
 	logger = logger.WithFields(logrus.Fields{
 		"organization": organization.ID,
-		"secret":       secret.ID,
+		"secret":       secretItem.ID,
 		"provider":     cloudType,
 	})
 
 	objectStoreCtx := &providers.ObjectStoreContext{
 		Provider:     cloudType,
-		Secret:       secret,
+		Secret:       secretItem,
 		Organization: organization,
 	}
 
@@ -357,14 +383,14 @@ func DeleteBucket(c *gin.Context) {
 	bucketName := c.Param("name")
 	logger = logger.WithField("bucket", bucketName)
 
-	organization, secret, cloudType, ok := getBucketContext(c, logger)
+	organization, secretItem, cloudType, ok := getBucketContext(c, logger)
 	if !ok {
 		return
 	}
 
 	logger = logger.WithFields(logrus.Fields{
 		"organization": organization.ID,
-		"secret":       secret.ID,
+		"secret":       secretItem.ID,
 		"provider":     cloudType,
 	})
 
@@ -372,7 +398,7 @@ func DeleteBucket(c *gin.Context) {
 
 	objectStoreCtx := &providers.ObjectStoreContext{
 		Provider:     cloudType,
-		Secret:       secret,
+		Secret:       secretItem,
 		Organization: organization,
 	}
 
@@ -623,4 +649,44 @@ func errorResponseFrom(err error) *pkgCommon.ErrorResponse {
 			Message: err.Error(),
 		}
 	}
+}
+
+// bucketsResponse decorates and formats the list of buckets to be returned
+func bucketsResponse(buckets []*objectstore.BucketInfo, orgid uint, withSecretName bool) []*BucketResponseItem {
+	bucketItems := make([]*BucketResponseItem, 0)
+
+	for _, bucket := range buckets {
+
+		var (
+			secretName string
+			notes      string
+		)
+
+		if withSecretName {
+			// get the secret name from the store if requested
+			if secretResponse, err := secret.Store.Get(orgid, bucket.SecretRef); err == nil {
+				secretName = secretResponse.Name
+			} else {
+				errorHandler.Handle(err)
+				notes = err.Error()
+
+			}
+
+		}
+
+		bucketItems = append(bucketItems, &BucketResponseItem{
+			Name:     bucket.Name,
+			Location: bucket.Location,
+			Cloud:    bucket.Cloud,
+			Managed:  bucket.Managed,
+			Notes:    &notes,
+			Azure:    bucket.Azure,
+			SecretInfo: &secretData{
+				SecretName: secretName,
+				SecretId:   bucket.SecretRef,
+			}})
+	}
+
+	return bucketItems
+
 }
