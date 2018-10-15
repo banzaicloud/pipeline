@@ -7162,10 +7162,16 @@ components:
     BucketInfo:
       properties:
         name:
+          description: the name of the object storage / bucket
           example: mybucket
           type: string
         managed:
+          description: true if the bucket has been created via piepeline
           type: boolean
+        notes:
+          description: true if the bucket has been created via piepeline
+          example: There's no secret with this ID
+          type: string
         secret:
           $ref: '#/components/schemas/BucketInfo_secret'
         azure:

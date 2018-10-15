@@ -6628,10 +6628,17 @@ components:
                 - cloud
             properties:
                 name:
+                    description: "the name of the object storage / bucket"
                     type: string
                     example: "mybucket"
                 managed:
+                    description: "true if the bucket has been created via piepeline"
                     type: boolean
+                    example: true
+                notes:
+                    description: "true if the bucket has been created via piepeline"
+                    type: string
+                    example: "There's no secret with this ID"
                 secret:
                     type: object
                     required:
