@@ -3951,11 +3951,11 @@ paths:
       - description: Signals whether the secret name is to be returned
         explode: true
         in: query
-        name: fields
+        name: include
         required: false
         schema:
           enum:
-          - secretname
+          - secret
           type: string
         style: form
       - description: Identifies the cloud region. Required by Amazon only.
