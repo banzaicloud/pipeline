@@ -30,10 +30,12 @@ type anchoreImagePostBody struct {
 	Digest string `json:"digest,omitempty"`
 }
 
+const imagscanEndPoint = "images"
+
 // GetScanResult list scan result
 func GetScanResult(c *gin.Context) {
 
-	endPoint := "images"
+	endPoint := imagscanEndPoint
 	imageDigest := c.Param("imagedigest")
 	if len(imageDigest) != 0 {
 		endPoint = path.Join(endPoint, imageDigest)
@@ -53,17 +55,10 @@ func GetScanResult(c *gin.Context) {
 	}
 	response, err := anchore.MakeAnchoreRequest(commonCluster.GetOrganizationId(), commonCluster.GetUID(), http.MethodGet, endPoint, nil)
 	if err != nil {
-		log.Error(err)
-		httpStatusCode := http.StatusInternalServerError
-		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
-			Code:    httpStatusCode,
-			Message: "Error",
-			Error:   err.Error(),
-		})
+		internalServerError(c, err)
 		return
 	}
 	defer response.Body.Close()
-
 	createResponse(c, *response)
 }
 
@@ -71,7 +66,7 @@ func GetScanResult(c *gin.Context) {
 func ScanImages(c *gin.Context) {
 
 	var images []apiclient.ClusterImage
-	endPoint := "images"
+	endPoint := imagscanEndPoint
 	err := c.BindJSON(&images)
 	if err != nil {
 		err := errors.Wrap(err, "Error parsing request:")
@@ -92,20 +87,14 @@ func ScanImages(c *gin.Context) {
 	for i := range images {
 		anchorePost.Tag = images[i].ImageName + ":" + images[i].ImageTag
 		anchorePost.Digest = ""
-		// if imageDigest set anchore intiate force image scanning
+		// if imageDigest set, anchore will intiate force image scanning
 		// anchorePost.Digest = images[i].ImageDigest
 		// if anchorePost.Digest != "" {
 		// 	endPoint = "images?force=true"
 		// }
 		response, err := anchore.MakeAnchoreRequest(commonCluster.GetOrganizationId(), commonCluster.GetUID(), http.MethodPost, endPoint, anchorePost)
 		if err != nil {
-			log.Error(err)
-			httpStatusCode := http.StatusInternalServerError
-			c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
-				Code:    httpStatusCode,
-				Message: "Error",
-				Error:   err.Error(),
-			})
+			internalServerError(c, err)
 			return
 		}
 		defer response.Body.Close()
@@ -116,7 +105,7 @@ func ScanImages(c *gin.Context) {
 // GetImageVulnerabilities list image vulnerabilities
 func GetImageVulnerabilities(c *gin.Context) {
 
-	endPoint := "images"
+	endPoint := imagscanEndPoint
 	imageDigest := c.Param("imagedigest")
 	if len(imageDigest) != 0 {
 		endPoint = path.Join(endPoint, imageDigest)
@@ -136,16 +125,19 @@ func GetImageVulnerabilities(c *gin.Context) {
 	}
 	response, err := anchore.MakeAnchoreRequest(commonCluster.GetOrganizationId(), commonCluster.GetUID(), http.MethodGet, endPoint, nil)
 	if err != nil {
-		log.Error(err)
-		httpStatusCode := http.StatusInternalServerError
-		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
-			Code:    httpStatusCode,
-			Message: "Error",
-			Error:   err.Error(),
-		})
+		internalServerError(c, err)
 		return
 	}
 	defer response.Body.Close()
-
 	createResponse(c, *response)
+}
+
+func internalServerError(c *gin.Context, err error) {
+	log.Error(err)
+	httpStatusCode := http.StatusInternalServerError
+	c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
+		Code:    httpStatusCode,
+		Message: "Error",
+		Error:   err.Error(),
+	})
 }
