@@ -1,6 +1,7 @@
 # A Self-Documenting Makefile: http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 
 SHELL = /bin/bash
+OS = $(shell uname -s)
 
 # Project variables
 PACKAGE = github.com/banzaicloud/pipeline
@@ -156,9 +157,15 @@ generate-client: validate-openapi ## Generate go client based on openapi descrip
 	-o /local/client
 	gofmt -s -w client/
 
+ifeq (${OS}, Darwin)
+	shasum -a 256 ${OPENAPI_DESCRIPTOR} > client/SHA256SUMS
+endif
+ifeq (${OS}, Linux)
+	sha256sum ${OPENAPI_DESCRIPTOR} > client/SHA256SUMS
+endif
+
 bin/jq: bin/jq-${JQ_VERSION}
 	@ln -sf jq-${JQ_VERSION} bin/jq
-OS = $(shell uname -s)
 bin/jq-${JQ_VERSION}:
 	@mkdir -p bin
 ifeq (${OS}, Darwin)

@@ -12,7 +12,12 @@
 package client
 
 type BucketInfo struct {
-	Name    string                `json:"name"`
-	Managed bool                  `json:"managed"`
-	Azure   AzureBlobStorageProps `json:"azure,omitempty"`
+	// the name of the object storage / bucket
+	Name string `json:"name"`
+	// true if the bucket has been created via piepeline
+	Managed bool `json:"managed"`
+	// true if the bucket has been created via piepeline
+	Notes  string                `json:"notes,omitempty"`
+	Secret BucketInfoSecret      `json:"secret,omitempty"`
+	Azure  AzureBlobStorageProps `json:"azure,omitempty"`
 }

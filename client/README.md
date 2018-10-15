@@ -144,6 +144,7 @@ Class | Method | HTTP request | Description
  - [BasePostHook](docs/BasePostHook.md)
  - [Body](docs/Body.md)
  - [BucketInfo](docs/BucketInfo.md)
+ - [BucketInfoSecret](docs/BucketInfoSecret.md)
  - [ChartNotFound](docs/ChartNotFound.md)
  - [ClusterConfig](docs/ClusterConfig.md)
  - [ClusterDelete200](docs/ClusterDelete200.md)
