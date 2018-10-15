@@ -84,6 +84,15 @@ endif
 docker-build: ## Builds go binary in docker image
 	docker run -it -v $(PWD):/go/src/${PACKAGE} -w /go/src/${PACKAGE} golang:${GOLANG_VERSION}-alpine go build -o pipeline_linux ${BUILD_PACKAGE}
 
+.PHONY: debug
+debug: ## Builds binary package
+	@go version | grep -q -E "go${GOLANG_VERSION_REGEX} " || (echo "Required Go version is ${GOLANG_VERSION}\nInstalled: `go version`" && exit 1)
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -v -gcflags "-N -l" -ldflags "-X main.Version=${VERSION} -X main.GitRev=${GITREV} -X main.BuildDate=${BUILD_DATE}" -o pipeline-debug
+
+.PHONY: debug-docker
+debug-docker: debug ## Builds binary package
+	docker build -t banzaicloud/pipeline:debug -f Dockerfile.dev .
+
 .PHONY: check
 check: test lint ## Run tests and linters
 
