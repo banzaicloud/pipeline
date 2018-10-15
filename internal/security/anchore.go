@@ -206,7 +206,7 @@ func RemoveAnchoreUser(orgId uint, clusterId string) {
 	}
 }
 
-func MakePolicyRequest(orgId uint, clusterId string, method string, url string, body interface{}) (*http.Response, error) {
+func MakeAnchoreRequest(orgId uint, clusterId string, method string, url string, body interface{}) (*http.Response, error) {
 
 	if !AnchorEnabled {
 		return nil, errors.New("Anchore integration is not enabled. You can enable by setting config property: anchor.enabled = true.")
@@ -231,7 +231,6 @@ func MakePolicyRequest(orgId uint, clusterId string, method string, url string, 
 		if err != nil {
 			return nil, err
 		}
-
 		request, _ = http.NewRequest(method, AnchorEndpoint+"/"+path.Join("v1", url), buf)
 		if err != nil {
 			return nil, err

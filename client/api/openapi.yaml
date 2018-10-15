@@ -4353,7 +4353,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ClusterImageList'
+              $ref: '#/components/schemas/AnchoreImageList'
         required: true
       responses:
         200:
@@ -8216,6 +8216,10 @@ components:
         imageDigest:
           type: string
       type: object
+    AnchoreImageList:
+      items:
+        $ref: '#/components/schemas/AnchoreImage'
+      type: array
     AnchoreImage:
       description: A unique image in the engine. May have multiple tags or references. Unique to an image content across registries or repositories.
       example:

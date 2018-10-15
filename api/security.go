@@ -250,7 +250,7 @@ func GetPolicies(c *gin.Context) {
 	if !ok {
 		return
 	}
-	response, err := anchore.MakePolicyRequest(commonCluster.GetOrganizationId(), commonCluster.GetUID(), http.MethodGet, endPoint, nil)
+	response, err := anchore.MakeAnchoreRequest(commonCluster.GetOrganizationId(), commonCluster.GetUID(), http.MethodGet, endPoint, nil)
 	if err != nil {
 		log.Error(err)
 		httpStatusCode := http.StatusInternalServerError
@@ -286,7 +286,7 @@ func CreatePolicy(c *gin.Context) {
 	if !ok {
 		return
 	}
-	response, err := anchore.MakePolicyRequest(commonCluster.GetOrganizationId(), commonCluster.GetUID(), http.MethodPost, "policies", policyBundle)
+	response, err := anchore.MakeAnchoreRequest(commonCluster.GetOrganizationId(), commonCluster.GetUID(), http.MethodPost, "policies", policyBundle)
 	if err != nil {
 		log.Error(err)
 		httpStatusCode := http.StatusInternalServerError
@@ -333,7 +333,7 @@ func UpdatePolicies(c *gin.Context) {
 	if !ok {
 		return
 	}
-	response, err := anchore.MakePolicyRequest(commonCluster.GetOrganizationId(), commonCluster.GetUID(), http.MethodPut, path.Join("policies", policyId), policyBundle)
+	response, err := anchore.MakeAnchoreRequest(commonCluster.GetOrganizationId(), commonCluster.GetUID(), http.MethodPut, path.Join("policies", policyId), policyBundle)
 	if err != nil {
 		log.Error(err)
 		httpStatusCode := http.StatusInternalServerError
@@ -367,7 +367,7 @@ func DeletePolicy(c *gin.Context) {
 	if !ok {
 		return
 	}
-	response, err := anchore.MakePolicyRequest(commonCluster.GetOrganizationId(), commonCluster.GetUID(), http.MethodDelete, path.Join("policies", policyId), nil)
+	response, err := anchore.MakeAnchoreRequest(commonCluster.GetOrganizationId(), commonCluster.GetUID(), http.MethodDelete, path.Join("policies", policyId), nil)
 	if err != nil {
 		log.Error(err)
 		httpStatusCode := http.StatusInternalServerError

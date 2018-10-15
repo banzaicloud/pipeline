@@ -3910,7 +3910,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/ClusterImageList'
+                            $ref: '#/components/schemas/AnchoreImageList'
             responses:
                 '200':
                     description: "Scan Images initiated"
@@ -7377,7 +7377,12 @@ components:
                     example: 'latest'
                 imageDigest:
                     type: string
-    
+
+        AnchoreImageList:
+            type: array
+            items:
+                $ref: "#/components/schemas/AnchoreImage"
+   
         AnchoreImage:
             description: A unique image in the engine. May have multiple tags or references. Unique to an image content across registries or repositories.
             type: object
