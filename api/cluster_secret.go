@@ -19,6 +19,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
+	"github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
@@ -85,12 +86,27 @@ func InstallSecretToCluster(c *gin.Context) {
 
 	secretSource, err := cluster.InstallSecret(commonCluster, secretName, secretRequest)
 
-	if err != nil {
+	if err == cluster.ErrSecretNotFound {
+		ginutils.ReplyWithErrorResponse(c, &pkgCommon.ErrorResponse{
+			Code:    http.StatusNotFound,
+			Message: "secret not found",
+		})
+
+		return
+	} else if err == cluster.ErrKubernetesSecretAlreadyExists {
+		ginutils.ReplyWithErrorResponse(c, &pkgCommon.ErrorResponse{
+			Code:    http.StatusConflict,
+			Message: "secret already exists in the cluster",
+		})
+
+		return
+	} else if err != nil {
 		errorHandler.Handle(emperror.With(
 			emperror.Wrap(err, "failed to install secret into cluster"),
-			"cluster-id", commonCluster.GetID(),
-			"organization-id", commonCluster.GetOrganizationId(),
+			"clusterId", commonCluster.GetID(),
+			"organizationId", commonCluster.GetOrganizationId(),
 			"secret", secretName,
+			"sourceSecret", secretRequest.SourceSecretName,
 		))
 
 		c.AbortWithStatusJSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
@@ -98,11 +114,12 @@ func InstallSecretToCluster(c *gin.Context) {
 			Message: "Error installing secret into cluster",
 			Error:   err.Error(),
 		})
+
 		return
 	}
 
 	response := InstallSecretResponse{
-		Name:     secretSource.Name,
+		Name:     secretName,
 		Sourcing: string(secretSource.Sourcing),
 	}
 

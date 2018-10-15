@@ -15,14 +15,18 @@
 package cluster
 
 import (
+	stderrors "errors"
+
 	"github.com/banzaicloud/pipeline/helm"
 	intSecret "github.com/banzaicloud/pipeline/internal/secret"
+	"github.com/banzaicloud/pipeline/pkg/k8sclient"
+	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	"k8s.io/api/core/v1"
-	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	k8sapierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -30,22 +34,22 @@ import (
 // It returns the list of installed secret names and meta about how to mount them.
 func InstallSecrets(cc CommonCluster, query *secretTypes.ListSecretsQuery, namespace string) ([]secretTypes.K8SSourceMeta, error) {
 
-	k8sConfig, err := cc.GetK8sConfig()
+	kubeConfig, err := cc.GetK8sConfig()
 	if err != nil {
 		log.Errorf("Error during getting config: %s", err.Error())
 		return nil, err
 	}
 
-	return InstallSecretsByK8SConfig(k8sConfig, cc.GetOrganizationId(), query, namespace)
+	return InstallSecretsByK8SConfig(kubeConfig, cc.GetOrganizationId(), query, namespace)
 }
 
 // InstallSecretsByK8SConfig is the same as InstallSecrets but use this if you already have a K8S config at hand.
-func InstallSecretsByK8SConfig(k8sConfig []byte, orgID uint, query *secretTypes.ListSecretsQuery, namespace string) ([]secretTypes.K8SSourceMeta, error) {
+func InstallSecretsByK8SConfig(kubeConfig []byte, orgID uint, query *secretTypes.ListSecretsQuery, namespace string) ([]secretTypes.K8SSourceMeta, error) {
 
 	// Values are always needed in this case
 	query.Values = true
 
-	clusterClient, err := helm.GetK8sConnection(k8sConfig)
+	clusterClient, err := helm.GetK8sConnection(kubeConfig)
 	if err != nil {
 		log.Errorf("Error during building k8s client: %s", err.Error())
 		return nil, err
@@ -84,7 +88,7 @@ func InstallSecretsByK8SConfig(k8sConfig []byte, orgID uint, query *secretTypes.
 				break
 			}
 		}
-		err := helm.CreateNamespaceIfNotExist(k8sConfig, namespace)
+		err := helm.CreateNamespaceIfNotExist(kubeConfig, namespace)
 		if err != nil {
 			log.Errorf("Error checking namespace: %s", err.Error())
 			return nil, err
@@ -134,48 +138,40 @@ type InstallSecretRequestSpecItem struct {
 	SourceMap map[string]string
 }
 
+var ErrSecretNotFound = stderrors.New("secret not found")
+var ErrKubernetesSecretAlreadyExists = stderrors.New("secret already exists")
+
 // InstallSecret installs or updates a secret under the name into namespace of a Kubernetes cluster.
 // It returns the installed secret name and meta about how to mount it.
 func InstallSecret(cc CommonCluster, secretName string, req InstallSecretRequest) (*secretTypes.K8SSourceMeta, error) {
-	k8sConfig, err := cc.GetK8sConfig()
+	kubeConfig, err := cc.GetK8sConfig()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get k8s config")
 	}
 
-	return InstallSecretByK8SConfig(k8sConfig, cc.GetOrganizationId(), secretName, req)
+	return InstallSecretByK8SConfig(kubeConfig, cc.GetOrganizationId(), secretName, req)
 }
 
 // InstallSecretByK8SConfig is the same as InstallSecrets but use this if you already have a K8S config at hand.
-func InstallSecretByK8SConfig(k8sConfig []byte, orgID uint, secretName string, req InstallSecretRequest) (*secretTypes.K8SSourceMeta, error) {
-	clusterClient, err := helm.GetK8sConnection(k8sConfig)
+func InstallSecretByK8SConfig(kubeConfig []byte, orgID uint, secretName string, req InstallSecretRequest) (*secretTypes.K8SSourceMeta, error) {
+	clusterClient, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to create k8s client")
+		return nil, errors.Wrap(err, "failed to create kubernetes client")
 	}
 
 	secretItem, err := secret.Store.GetByName(orgID, req.SourceSecretName)
-	if err != nil {
+	if err == secret.ErrSecretNotExists {
+		return nil, ErrSecretNotFound
+	} else if err != nil {
 		return nil, emperror.With(errors.Wrap(err, "failed to get secret"), "secret", secretName)
 	}
 
-	// Whether a new secret should be created
-	var create bool
-
-	kubeSecret, err := clusterClient.CoreV1().Secrets(req.Namespace).Get(secretName, metav1.GetOptions{})
-	if err != nil && k8serrors.IsNotFound(err) {
-		create = true
-	} else if err != nil {
-		return nil, errors.Wrap(err, "failed to get existing secret from cluster")
-	}
-
-	if err := helm.CreateNamespaceIfNotExist(k8sConfig, req.Namespace); err != nil {
-		return nil, errors.Wrap(err, "failed to check existing namespace")
-	}
-
 	kubeSecretRequest := intSecret.KubeSecretRequest{
-		Name:   secretItem.Name,
-		Type:   secretItem.Type,
-		Values: secretItem.Values,
-		Spec:   intSecret.KubeSecretSpec{},
+		Name:      secretName,
+		Namespace: req.Namespace,
+		Type:      secretItem.Type,
+		Values:    secretItem.Values,
+		Spec:      intSecret.KubeSecretSpec{},
 	}
 
 	for key, spec := range req.Spec {
@@ -185,24 +181,20 @@ func InstallSecretByK8SConfig(k8sConfig []byte, orgID uint, secretName string, r
 		}
 	}
 
-	newKubeSecret, err := intSecret.CreateKubeSecret(kubeSecretRequest)
+	kubeSecret, err := intSecret.CreateKubeSecret(kubeSecretRequest)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to create k8s secret")
+		return nil, emperror.Wrap(err, "failed to create kubernetes secret")
 	}
 
-	if create {
-		newKubeSecret.ObjectMeta.Namespace = req.Namespace
-
-		_, err = clusterClient.CoreV1().Secrets(req.Namespace).Create(&newKubeSecret)
-	} else {
-		kubeSecret.Data = nil // Clear data so that it is created from string data again
-		kubeSecret.StringData = newKubeSecret.StringData
-
-		_, err = clusterClient.CoreV1().Secrets(req.Namespace).Update(kubeSecret)
+	if err := k8sutil.EnsureNamespace(clusterClient, req.Namespace); err != nil {
+		return nil, emperror.Wrap(err, "failed to ensure that namespace exists")
 	}
 
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to create or update secret")
+	_, err = clusterClient.CoreV1().Secrets(req.Namespace).Create(&kubeSecret)
+	if err != nil && k8sapierrors.IsAlreadyExists(err) {
+		return nil, ErrKubernetesSecretAlreadyExists
+	} else if err != nil {
+		return nil, emperror.Wrap(err, "failed to create secret")
 	}
 
 	sourceMeta := secretItem.K8SSourceMeta()

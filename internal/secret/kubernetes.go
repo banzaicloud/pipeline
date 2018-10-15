@@ -25,10 +25,11 @@ import (
 
 // KubeSecretRequest contains details for a Kubernetes Secret creation from pipeline secrets.
 type KubeSecretRequest struct {
-	Name   string
-	Type   string
-	Values map[string]string
-	Spec   KubeSecretSpec
+	Name      string
+	Namespace string
+	Type      string
+	Values    map[string]string
+	Spec      KubeSecretSpec
 }
 
 type KubeSecretSpec map[string]KubeSecretSpecItem
@@ -42,7 +43,8 @@ type KubeSecretSpecItem struct {
 func CreateKubeSecret(req KubeSecretRequest) (v1.Secret, error) {
 	kubeSecret := v1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: req.Name,
+			Name:      req.Name,
+			Namespace: req.Namespace,
 		},
 		StringData: map[string]string{},
 	}
