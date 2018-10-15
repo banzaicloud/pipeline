@@ -808,6 +808,7 @@ func InstallHelmPostHook(input interface{}) error {
 		Namespace:      "kube-system",
 		ServiceAccount: "tiller",
 		ImageSpec:      fmt.Sprintf("gcr.io/kubernetes-helm/tiller:%s", viper.GetString("helm.tillerVersion")),
+		Upgrade:        true,
 	}
 
 	headNodePoolName := viper.GetString(pipConfig.PipelineHeadNodePoolName)
