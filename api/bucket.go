@@ -56,12 +56,16 @@ type secretData struct {
 // BucketResponseItem encapsulates bucket and secret details to be returned
 // it's purpose is to properly format the response details - especially the secret details
 type BucketResponseItem struct {
-	*objectstore.BucketInfo
-	SecretRef  string      `json:"secretId,-,omitempty"`
-	SecretInfo *secretData `json:"secret"`
+	Name       string                                `json:"name"  binding:"required"`
+	Managed    bool                                  `json:"managed" binding:"required"`
+	Location   string                                `json:"location,omitempty"`
+	Cloud      string                                `json:"cloud,omitempty"`
+	Notes      *string                               `json:"notes, omitempty"`
+	SecretInfo *secretData                           `json:"secret"`
+	Azure      *objectstore.BlobStoragePropsForAzure `json:"aks,omitempty"`
 }
 
-// ListAllBuckets handles bucket list requests. The handler method directs the flow to the appropriate retrieval
+// ListAllBuckets handles 	bucket list requests. The handler method directs the flow to the appropriate retrieval
 // strategy based on the request header details
 func ListAllBuckets(c *gin.Context) {
 	logger := correlationid.Logger(log, c)
@@ -650,21 +654,37 @@ func errorResponseFrom(err error) *pkgCommon.ErrorResponse {
 // bucketsResponse decorates and formats the list of buckets to be returned
 func bucketsResponse(buckets []*objectstore.BucketInfo, orgid uint, withSecretName bool) []*BucketResponseItem {
 	bucketItems := make([]*BucketResponseItem, 0)
+
 	for _, bucket := range buckets {
-		var secretName string
+
+		var (
+			secretName string
+			notes      string
+		)
 
 		if withSecretName {
 			// get the secret name from the store if requested
-			secretResponse, err := secret.Store.Get(orgid, bucket.SecretRef)
-			if err != nil {
+			if secretResponse, err := secret.Store.Get(orgid, bucket.SecretRef); err == nil {
+				secretName = secretResponse.Name
+			} else {
 				errorHandler.Handle(err)
+				notes = err.Error()
+
 			}
-			secretName = secretResponse.Name
+
 		}
 
 		bucketItems = append(bucketItems, &BucketResponseItem{
-			BucketInfo: bucket,
-			SecretInfo: &secretData{SecretName: secretName, SecretId: bucket.SecretRef}})
+			Name:     bucket.Name,
+			Location: bucket.Location,
+			Cloud:    bucket.Cloud,
+			Managed:  bucket.Managed,
+			Notes:    &notes,
+			Azure:    bucket.Azure,
+			SecretInfo: &secretData{
+				SecretName: secretName,
+				SecretId:   bucket.SecretRef,
+			}})
 	}
 
 	return bucketItems
