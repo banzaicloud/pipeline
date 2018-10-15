@@ -124,14 +124,14 @@ func InstallSecretsByK8SConfig(k8sConfig []byte, orgID uint, query *secretTypes.
 }
 
 type InstallSecretRequest struct {
-	SecretName string                                  `json:"name" yaml:"name"`
-	Namespace  string                                  `json:"namespace" yaml:"namespace"`
-	Spec       map[string]InstallSecretRequestSpecItem `json:"spec,omitempty" yaml:"spec,omitempty"`
+	SecretName string
+	Namespace  string
+	Spec       map[string]InstallSecretRequestSpecItem
 }
 
 type InstallSecretRequestSpecItem struct {
-	Source    string            `json:"source,omitempty" yaml:"source,omitempty"`
-	SourceMap map[string]string `json:"sourceMap,omitempty" yaml:"sourceMap,omitempty"`
+	Source    string
+	SourceMap map[string]string
 }
 
 // InstallSecret installs or updates a secret under the name into namespace of a Kubernetes cluster.
