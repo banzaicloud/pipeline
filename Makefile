@@ -24,7 +24,7 @@ GOLANGCI_VERSION = 1.10.2
 MISSPELL_VERSION = 0.3.4
 JQ_VERSION = 1.5
 LICENSEI_VERSION = 0.0.7
-OPENAPI_GENERATOR_VERSION = 3.2.3
+OPENAPI_GENERATOR_VERSION = 3.3.0
 
 GOLANG_VERSION = 1.11
 
@@ -154,6 +154,7 @@ generate-client: validate-openapi ## Generate go client based on openapi descrip
 	-i /local/${OPENAPI_DESCRIPTOR} \
 	-g go \
 	-o /local/client
+	gofmt -s -w client/
 
 bin/jq: bin/jq-${JQ_VERSION}
 	@ln -sf jq-${JQ_VERSION} bin/jq
