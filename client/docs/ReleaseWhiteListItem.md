@@ -4,7 +4,6 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Name** | **string** |  | 
-**ReleaseName** | **string** |  | 
 **Owner** | **string** |  | 
 **Reason** | **string** |  | [optional] 
 

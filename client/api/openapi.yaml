@@ -7569,14 +7569,10 @@ components:
       example:
         owner: banzaicloud
         reason: test release
-        releaseName: flying-monkey
         name: flying-monkey-wl
       properties:
         name:
           example: flying-monkey-wl
-          type: string
-        releaseName:
-          example: flying-monkey
           type: string
         owner:
           example: banzaicloud
@@ -7587,7 +7583,6 @@ components:
       required:
       - name
       - owner
-      - releaseName
       type: object
     PolicyBundle:
       description: A bundle containing a set of policies, whitelists, and rules for mapping them to specific images

@@ -7087,15 +7087,11 @@ components:
             type: object
             required:
                 - name
-                - releaseName
                 - owner
             properties:
                 name:
                     type: string
                     example: 'flying-monkey-wl'
-                releaseName:
-                    type: string
-                    example: 'flying-monkey'
                 owner:
                     type: string
                     example: 'banzaicloud'
