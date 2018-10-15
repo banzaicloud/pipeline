@@ -253,6 +253,7 @@ func main() {
 			orgs.DELETE("/:orgid/clusters/:id/policies/:policyId", api.DeletePolicy)
 
 			orgs.GET("/:orgid/clusters/:id/images", api.ListImages)
+			orgs.GET("/:orgid/clusters/:id/images/:imageDigest/deployments", api.GetImageDeployments)
 			orgs.GET("/:orgid/clusters/:id/deployments/:name/images", api.GetDeploymentImages)
 
 			orgs.POST("/:orgid/clusters/:id/imagescan", api.ScanImages)

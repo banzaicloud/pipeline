@@ -30,6 +30,7 @@ import (
 	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
+	"strings"
 )
 
 func init() {
@@ -380,4 +381,53 @@ func DeletePolicy(c *gin.Context) {
 
 	createResponse(c, *response)
 
+}
+
+func GetImageDeployments(c *gin.Context) {
+	imageDigest := c.Param("imageDigest")
+	releaseMap := make(map[string]bool)
+	kubeConfig, ok := GetK8sConfig(c)
+	if !ok {
+		return
+	}
+	client, err := helm.GetK8sConnection(kubeConfig)
+	if err != nil {
+		log.Errorf("Error getting K8s config: %s", err.Error())
+		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error getting K8s config",
+			Error:   err.Error(),
+		})
+		return
+	}
+	// 1. Get all pods from cluster
+	pods, err := listPods(client, "", "")
+	// In status it is possible to get all image with digest
+	//   - containerID: docker://08054c2cbf7ac842c1dc93929fa1b7a07e28641433fa21790c44408e2f897584
+	//    image: banzaicloud/pipeline:debug
+	//    imageID: docker://sha256:0e61330d23a5fd32dbf56c47808abc0a960248b4415746dfd5540b455384a6a0
+	for _, p := range pods {
+		for _, status := range p.Status.ContainerStatuses {
+			if getImageDigest(status.ImageID) == imageDigest {
+				releaseMap[p.Labels["release"]] = true
+			}
+		}
+		for _, status := range p.Status.InitContainerStatuses {
+			if getImageDigest(status.ImageID) == imageDigest {
+				releaseMap[p.Labels["release"]] = true
+			}
+		}
+	}
+	var releaseList []string
+	// 3. Return the release names
+	for k := range releaseMap {
+		releaseList = append(releaseList, k)
+	}
+
+}
+
+func getImageDigest(imageID string) string {
+	image := strings.Split(imageID, "@")
+	imageSHA := strings.Split(image[1], ":")
+	return imageSHA[1]
 }
