@@ -124,9 +124,9 @@ func InstallSecretsByK8SConfig(k8sConfig []byte, orgID uint, query *secretTypes.
 }
 
 type InstallSecretRequest struct {
-	SecretName string
-	Namespace  string
-	Spec       map[string]InstallSecretRequestSpecItem
+	SourceSecretName string
+	Namespace        string
+	Spec             map[string]InstallSecretRequestSpecItem
 }
 
 type InstallSecretRequestSpecItem struct {
@@ -152,7 +152,7 @@ func InstallSecretByK8SConfig(k8sConfig []byte, orgID uint, secretName string, r
 		return nil, errors.Wrap(err, "failed to create k8s client")
 	}
 
-	secretItem, err := secret.Store.GetByName(orgID, req.SecretName)
+	secretItem, err := secret.Store.GetByName(orgID, req.SourceSecretName)
 	if err != nil {
 		return nil, emperror.With(errors.Wrap(err, "failed to get secret"), "secret", secretName)
 	}

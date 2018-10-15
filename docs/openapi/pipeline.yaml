@@ -1013,6 +1013,14 @@ paths:
                   description: Secret name as it will be seen in the cluster
                   schema:
                       type: string
+
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/InstallSecretRequest'
+
             responses:
                 '200':
                     description: "Secret is installed into the cluster"
@@ -1038,12 +1046,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ClusterNotFound'
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/InstallSecretRequest'
 
     '/api/v1/orgs/{orgId}/clusters/{id}/scanlog':
         get:
@@ -5633,7 +5635,7 @@ components:
             required:
                 - namespace
             properties:
-                secretName:
+                sourceSecretName:
                     type: string
                     example: my-secret
                 namespace:

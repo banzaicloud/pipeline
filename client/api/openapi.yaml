@@ -6058,15 +6058,15 @@ components:
       type: object
     InstallSecretRequest:
       example:
-        secretName: my-secret
         namespace: default
+        sourceSecretName: my-secret
         spec:
           key:
             sourceMap:
               key: sourceMap
             source: source
       properties:
-        secretName:
+        sourceSecretName:
           example: my-secret
           type: string
         namespace:

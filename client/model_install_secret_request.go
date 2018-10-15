@@ -12,7 +12,7 @@
 package client
 
 type InstallSecretRequest struct {
-	SecretName string                                  `json:"secretName,omitempty"`
-	Namespace  string                                  `json:"namespace"`
-	Spec       map[string]InstallSecretRequestSpecItem `json:"spec,omitempty"`
+	SourceSecretName string                                  `json:"sourceSecretName,omitempty"`
+	Namespace        string                                  `json:"namespace"`
+	Spec             map[string]InstallSecretRequestSpecItem `json:"spec,omitempty"`
 }
