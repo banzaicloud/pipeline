@@ -18,67 +18,36 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/pkg/errors"
 	"k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/helm/pkg/helm"
+		"k8s.io/helm/pkg/helm"
 	"k8s.io/helm/pkg/helm/portforwarder"
 	"k8s.io/helm/pkg/kube"
 )
 
 var tillerTunnel *kube.Tunnel
 
-//GetK8sConnection creates a new Kubernetes client
+// GetK8sConnection creates a new Kubernetes client.
+// Deprecated: use github.com/banzaicloud/pipeline/pkg/k8sclient.NewClientFromKubeConfig
 func GetK8sConnection(kubeConfig []byte) (*kubernetes.Clientset, error) {
-	config, err := GetK8sClientConfig(kubeConfig)
-	if err != nil {
-		return nil, fmt.Errorf("create kubernetes config failed: %v", err)
-	}
-	client, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		return nil, fmt.Errorf("create kubernetes connection failed: %v", err)
-	}
-	return client, nil
+	return k8sclient.NewClientFromKubeConfig(kubeConfig)
 }
 
-// GetK8sInClusterConnection returns Kubernetes in-cluster configuration
+// GetK8sInClusterConnection returns Kubernetes in-cluster configuration.
+// Deprecated: use github.com/banzaicloud/pipeline/pkg/k8sclient.NewInClusterClient
 func GetK8sInClusterConnection() (*kubernetes.Clientset, error) {
-	log.Info("Kubernetes in-cluster configuration.")
-	config, err := rest.InClusterConfig()
-	if err != nil {
-		return nil, errors.Wrap(err, "can't use kubernetes in-cluster config")
-	}
-	client := kubernetes.NewForConfigOrDie(config)
-	return client, nil
+	return k8sclient.NewInClusterClient()
 }
 
-//GetK8sClientConfig creates a Kubernetes client config
+// GetK8sClientConfig creates a Kubernetes client config.
+// Deprecated: use github.com/banzaicloud/pipeline/pkg/k8sclient.NewClientConfig
 func GetK8sClientConfig(kubeConfig []byte) (*rest.Config, error) {
-	var config *rest.Config
-	var err error
-	if kubeConfig != nil {
-		apiconfig, err := clientcmd.Load(kubeConfig)
-		if err != nil {
-			return nil, err
-		}
-
-		clientConfig := clientcmd.NewDefaultClientConfig(*apiconfig, &clientcmd.ConfigOverrides{})
-		config, err = clientConfig.ClientConfig()
-		if err != nil {
-			return nil, err
-		}
-		log.Debug("Use K8S RemoteCluster Config: ", config.ServerName)
-	} else {
-		return nil, errors.New("kubeconfig value is nil")
-	}
-	if err != nil {
-		return nil, fmt.Errorf("create kubernetes config failed: %v", err)
-	}
-	return config, nil
+	return k8sclient.NewClientConfig(kubeConfig)
 }
 
 //GetHelmClient establishes Tunnel for Helm client TODO check client and config if both needed
