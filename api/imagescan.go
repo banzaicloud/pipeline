@@ -47,19 +47,9 @@ func GetScanResult(c *gin.Context) {
 			Message: "Error",
 			Error:   "Missing imageDigest",
 		})
-	}
-
-	commonCluster, ok := getClusterFromRequest(c)
-	if !ok {
 		return
 	}
-	response, err := anchore.MakeAnchoreRequest(commonCluster.GetOrganizationId(), commonCluster.GetUID(), http.MethodGet, endPoint, nil)
-	if err != nil {
-		internalServerError(c, err)
-		return
-	}
-	defer response.Body.Close()
-	createResponse(c, *response)
+	doAnchoreGetRequest(c, endPoint)
 }
 
 // ScanImages scans images
@@ -87,14 +77,15 @@ func ScanImages(c *gin.Context) {
 	for i := range images {
 		anchorePost.Tag = images[i].ImageName + ":" + images[i].ImageTag
 		anchorePost.Digest = ""
-		// if imageDigest set, anchore will intiate force image scanning
-		// anchorePost.Digest = images[i].ImageDigest
-		// if anchorePost.Digest != "" {
-		// 	endPoint = "images?force=true"
-		// }
 		response, err := anchore.MakeAnchoreRequest(commonCluster.GetOrganizationId(), commonCluster.GetUID(), http.MethodPost, endPoint, anchorePost)
 		if err != nil {
-			internalServerError(c, err)
+			log.Error(err)
+			httpStatusCode := http.StatusInternalServerError
+			c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
+				Code:    httpStatusCode,
+				Message: "Error",
+				Error:   err.Error(),
+			})
 			return
 		}
 		defer response.Body.Close()
@@ -117,27 +108,29 @@ func GetImageVulnerabilities(c *gin.Context) {
 			Message: "Error",
 			Error:   "Missing imageDigest",
 		})
+		return
 	}
 	endPoint = path.Join(endPoint, "/vuln/all")
+	doAnchoreGetRequest(c, endPoint)
+}
+
+func doAnchoreGetRequest(c *gin.Context, endPoint string) {
 	commonCluster, ok := getClusterFromRequest(c)
 	if !ok {
 		return
 	}
+
 	response, err := anchore.MakeAnchoreRequest(commonCluster.GetOrganizationId(), commonCluster.GetUID(), http.MethodGet, endPoint, nil)
 	if err != nil {
-		internalServerError(c, err)
+		log.Error(err)
+		httpStatusCode := http.StatusInternalServerError
+		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
+			Code:    httpStatusCode,
+			Message: "Error",
+			Error:   err.Error(),
+		})
 		return
 	}
 	defer response.Body.Close()
 	createResponse(c, *response)
-}
-
-func internalServerError(c *gin.Context, err error) {
-	log.Error(err)
-	httpStatusCode := http.StatusInternalServerError
-	c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
-		Code:    httpStatusCode,
-		Message: "Error",
-		Error:   err.Error(),
-	})
 }
