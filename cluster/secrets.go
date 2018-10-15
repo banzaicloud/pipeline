@@ -139,9 +139,10 @@ type InstallSecretRequestSpecItem struct {
 }
 
 var ErrSecretNotFound = stderrors.New("secret not found")
-var ErrKubernetesSecretAlreadyExists = stderrors.New("secret already exists")
+var ErrKubernetesSecretNotFound = stderrors.New("kubernetes secret not found")
+var ErrKubernetesSecretAlreadyExists = stderrors.New("kubernetes secret already exists")
 
-// InstallSecret installs or updates a secret under the name into namespace of a Kubernetes cluster.
+// InstallSecret installs a new secret under the name into namespace of a Kubernetes cluster.
 // It returns the installed secret name and meta about how to mount it.
 func InstallSecret(cc CommonCluster, secretName string, req InstallSecretRequest) (*secretTypes.K8SSourceMeta, error) {
 	kubeConfig, err := cc.GetK8sConfig()
@@ -152,7 +153,7 @@ func InstallSecret(cc CommonCluster, secretName string, req InstallSecretRequest
 	return InstallSecretByK8SConfig(kubeConfig, cc.GetOrganizationId(), secretName, req)
 }
 
-// InstallSecretByK8SConfig is the same as InstallSecrets but use this if you already have a K8S config at hand.
+// InstallSecretByK8SConfig is the same as InstallSecret but use this if you already have a K8S config at hand.
 func InstallSecretByK8SConfig(kubeConfig []byte, orgID uint, secretName string, req InstallSecretRequest) (*secretTypes.K8SSourceMeta, error) {
 	clusterClient, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
@@ -163,7 +164,7 @@ func InstallSecretByK8SConfig(kubeConfig []byte, orgID uint, secretName string, 
 	if err == secret.ErrSecretNotExists {
 		return nil, ErrSecretNotFound
 	} else if err != nil {
-		return nil, emperror.With(errors.Wrap(err, "failed to get secret"), "secret", secretName)
+		return nil, emperror.With(errors.Wrap(err, "failed to get secret"), "secret", req.SourceSecretName)
 	}
 
 	kubeSecretRequest := intSecret.KubeSecretRequest{
@@ -195,6 +196,78 @@ func InstallSecretByK8SConfig(kubeConfig []byte, orgID uint, secretName string, 
 		return nil, ErrKubernetesSecretAlreadyExists
 	} else if err != nil {
 		return nil, emperror.Wrap(err, "failed to create secret")
+	}
+
+	sourceMeta := secretItem.K8SSourceMeta()
+
+	return &sourceMeta, nil
+}
+
+// MergeSecret merges a secret with an already existing one in a Kubernetes cluster.
+// It returns the installed secret name and meta about how to mount it.
+func MergeSecret(cc CommonCluster, secretName string, req InstallSecretRequest) (*secretTypes.K8SSourceMeta, error) {
+	kubeConfig, err := cc.GetK8sConfig()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get k8s config")
+	}
+
+	return MergeSecretByK8SConfig(kubeConfig, cc.GetOrganizationId(), secretName, req)
+}
+
+// MergeSecretByK8SConfig is the same as MergeSecret but use this if you already have a K8S config at hand.
+func MergeSecretByK8SConfig(kubeConfig []byte, orgID uint, secretName string, req InstallSecretRequest) (*secretTypes.K8SSourceMeta, error) {
+	clusterClient, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create kubernetes client")
+	}
+
+	secretItem, err := secret.Store.GetByName(orgID, req.SourceSecretName)
+	if err == secret.ErrSecretNotExists {
+		return nil, ErrSecretNotFound
+	} else if err != nil {
+		return nil, emperror.With(errors.Wrap(err, "failed to get secret"), "secret", req.SourceSecretName)
+	}
+
+	clusterSecret, err := clusterClient.CoreV1().Secrets(req.Namespace).Get(secretName, metav1.GetOptions{})
+	if err != nil && k8sapierrors.IsNotFound(err) {
+		return nil, ErrKubernetesSecretNotFound
+	} else if err != nil {
+		return nil, emperror.With(errors.Wrap(err, "failed to get kubernetes secret"), "secret", secretName)
+	}
+
+	kubeSecretRequest := intSecret.KubeSecretRequest{
+		Name:      secretName,
+		Namespace: req.Namespace,
+		Type:      secretItem.Type,
+		Values:    secretItem.Values,
+		Spec:      intSecret.KubeSecretSpec{},
+	}
+
+	for key, spec := range req.Spec {
+		kubeSecretRequest.Spec[key] = intSecret.KubeSecretSpecItem{
+			Source:    spec.Source,
+			SourceMap: spec.SourceMap,
+		}
+	}
+
+	kubeSecret, err := intSecret.CreateKubeSecret(kubeSecretRequest)
+	if err != nil {
+		return nil, emperror.Wrap(err, "failed to create kubernetes secret")
+	}
+
+	if clusterSecret.StringData == nil {
+		clusterSecret.StringData = kubeSecret.StringData
+	} else {
+		for key, value := range kubeSecret.StringData {
+			clusterSecret.StringData[key] = value
+		}
+	}
+
+	_, err = clusterClient.CoreV1().Secrets(req.Namespace).Update(clusterSecret)
+	if err != nil && k8sapierrors.IsNotFound(err) {
+		return nil, ErrKubernetesSecretNotFound
+	} else if err != nil {
+		return nil, emperror.Wrap(err, "failed to update secret")
 	}
 
 	sourceMeta := secretItem.K8SSourceMeta()

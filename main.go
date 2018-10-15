@@ -221,6 +221,7 @@ func main() {
 			orgs.PUT("/:orgid/clusters/:id/posthooks", api.ReRunPostHooks)
 			orgs.POST("/:orgid/clusters/:id/secrets", api.InstallSecretsToCluster)
 			orgs.POST("/:orgid/clusters/:id/secrets/:secretName", api.InstallSecretToCluster)
+			orgs.PATCH("/:orgid/clusters/:id/secrets/:secretName", api.MergeSecretInCluster)
 			orgs.Any("/:orgid/clusters/:id/proxy/*path", api.ProxyToCluster)
 			orgs.DELETE("/:orgid/clusters/:id", api.DeleteCluster)
 			orgs.HEAD("/:orgid/clusters/:id", api.ClusterHEAD)

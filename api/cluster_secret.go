@@ -167,7 +167,7 @@ func MergeSecretInCluster(c *gin.Context) {
 		secretRequest.SourceSecretName = secretName
 	}
 
-	secretSource, err := cluster.InstallSecret(commonCluster, secretName, secretRequest)
+	secretSource, err := cluster.MergeSecret(commonCluster, secretName, secretRequest)
 
 	if err == cluster.ErrSecretNotFound {
 		ginutils.ReplyWithErrorResponse(c, &pkgCommon.ErrorResponse{
@@ -176,10 +176,10 @@ func MergeSecretInCluster(c *gin.Context) {
 		})
 
 		return
-	} else if err == cluster.ErrKubernetesSecretAlreadyExists {
+	} else if err == cluster.ErrKubernetesSecretNotFound {
 		ginutils.ReplyWithErrorResponse(c, &pkgCommon.ErrorResponse{
-			Code:    http.StatusConflict,
-			Message: "secret already exists in the cluster",
+			Code:    http.StatusNotFound,
+			Message: "kubernetes secret not found",
 		})
 
 		return
