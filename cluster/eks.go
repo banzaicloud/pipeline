@@ -189,8 +189,10 @@ func (c *EKSCluster) CreateCluster() error {
 
 	actions := []utils.Action{
 		action.NewCreateVPCAndRolesAction(c.log, creationContext, eksStackName),
+		action.NewCreateClusterUserAccessKeyAction(c.log, creationContext),
+		action.NewPersistClusterUserAccessKeyAction(c.log, creationContext, c.GetOrganizationId()),
 		action.NewUploadSSHKeyAction(c.log, creationContext, sshSecret),
-		action.NewGenerateVPCConfigRequestAction(c.log, creationContext, eksStackName),
+		action.NewGenerateVPCConfigRequestAction(c.log, creationContext, eksStackName, c.GetOrganizationId()),
 		action.NewCreateEksClusterAction(c.log, creationContext, c.modelCluster.EKS.Version),
 		action.NewCreateUpdateNodePoolStackAction(c.log, true, creationContext, c.modelCluster.EKS.NodePools...),
 	}
@@ -337,6 +339,8 @@ func (c *EKSCluster) DeleteCluster() error {
 		deleteNodePoolsAction,
 		action.NewDeleteClusterAction(c.log, deleteContext),
 		action.NewDeleteSSHKeyAction(c.log, deleteContext, c.generateSSHKeyNameForCluster()),
+		action.NewDeleteClusterUserAccessKeyAction(c.log, deleteContext),
+		action.NewDeleteClusterUserAccessKeySecretAction(c.log, deleteContext, c.GetOrganizationId()),
 		action.NewDeleteStacksAction(c.log, deleteContext, c.generateStackNameForCluster()),
 	)
 	_, err = utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, false)
@@ -468,11 +472,12 @@ func (c *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 			nodeInstanceRoleId = aws.StringValue(output.OutputValue)
 		case "ClusterUserArn":
 			clusterUserArn = aws.StringValue(output.OutputValue)
-		case "ClusterUserAccessKeyId":
-			clusterUserAccessKeyId = aws.StringValue(output.OutputValue)
-		case "ClusterUserSecretAccessKey":
-			clusterUserSecretAccessKey = aws.StringValue(output.OutputValue)
 		}
+	}
+
+	clusterUserAccessKeyId, clusterUserSecretAccessKey, err = action.GetClusterUserAccessKeyIdAndSecretVault(c.GetOrganizationId(), c.GetName())
+	if err != nil {
+		return err
 	}
 
 	if len(securityGroupId) == 0 {
@@ -1017,10 +1022,10 @@ func (c *EKSCluster) loadEksMasterSettings(context *action.EksClusterCreateUpdat
 
 // loadClusterUserCredentials get the cluster user credentials from AWS and populates into this EKSCluster instance
 func (c *EKSCluster) loadClusterUserCredentials(context *action.EksClusterCreateUpdateContext) error {
-	// Get IAM user access key id and secret from stack
+	// Get IAM user access key id and secret
 	if c.awsAccessKeyID == "" || c.awsSecretAccessKey == "" {
 		eksStackName := c.generateStackNameForCluster()
-		getVPCConfig := action.NewGenerateVPCConfigRequestAction(c.log, context, eksStackName)
+		getVPCConfig := action.NewGenerateVPCConfigRequestAction(c.log, context, eksStackName, c.GetOrganizationId())
 
 		_, err := getVPCConfig.ExecuteAction(nil)
 		if err != nil {
