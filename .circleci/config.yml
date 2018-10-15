@@ -62,7 +62,7 @@ jobs:
 
             - run:
                   name: Check generated OpenAPI files
-                  command: sha256sum -c client/SHA256SUMS
+                  command: sha256sum -c client/SHA256SUMS > /dev/null || echo "Please generate client code using make generate-client"
 
             - run:
                   name: Build
