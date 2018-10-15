@@ -69,18 +69,25 @@ func ValidateSecret(c *gin.Context) {
 		Tags:      secretItem.Tags,
 		Version:   &version,
 		UpdatedBy: secretItem.UpdatedBy,
-	}, true); ok {
+	}, true, false); ok {
 		c.Status(http.StatusOK)
 	}
 
 }
 
-func validateSecret(c *gin.Context, createSecretRequest *secret.CreateSecretRequest, validate bool) (ok bool, validationError error) {
+func validateSecret(c *gin.Context, createSecretRequest *secret.CreateSecretRequest, validate bool, new bool) (ok bool, validationError error) {
 
 	ok = true
 	log.Info("Start validation")
 	verifier := verify.NewVerifier(createSecretRequest.Type, createSecretRequest.Values)
-	if validationError = createSecretRequest.Validate(verifier); validationError != nil && validate {
+
+	if new {
+		validationError = createSecretRequest.ValidateAsNew(verifier)
+	} else {
+		validationError = createSecretRequest.Validate(verifier)
+	}
+
+	if validationError != nil && validate {
 		ok = false
 		log.Errorf("Validation error: %s", validationError.Error())
 		c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
@@ -134,7 +141,7 @@ func AddSecrets(c *gin.Context) {
 
 	var validationError error
 	var ok bool
-	if ok, validationError = validateSecret(c, &createSecretRequest, validate); !ok {
+	if ok, validationError = validateSecret(c, &createSecretRequest, validate, true); !ok {
 		return
 	}
 
@@ -234,7 +241,7 @@ func UpdateSecrets(c *gin.Context) {
 
 	var validationError error
 	var ok bool
-	if ok, validationError = validateSecret(c, &createSecretRequest, validate); !ok {
+	if ok, validationError = validateSecret(c, &createSecretRequest, validate, false); !ok {
 		return
 	}
 

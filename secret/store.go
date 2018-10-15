@@ -174,6 +174,53 @@ func (r *CreateSecretRequest) Validate(verifier verify.Verifier) error {
 	return nil
 }
 
+// ValidateAsNew validates a create secret request as it was a new secret.
+func (r *CreateSecretRequest) ValidateAsNew(verifier verify.Verifier) error {
+	fields, ok := secretTypes.DefaultRules[r.Type]
+
+	if !ok {
+		return errors.Errorf("wrong secret type: %s", r.Type)
+	}
+
+	switch r.Type {
+	case secretTypes.TLSSecretType:
+		if len(r.Values) < 3 { // Assume secret generation
+			if _, ok := r.Values[secretTypes.TLSHosts]; !ok {
+				return errors.Errorf("missing key: %s", secretTypes.TLSHosts)
+			}
+		}
+
+		if len(r.Values) >= 3 { // We expect keys for server TLS (at least)
+			for _, field := range []string{secretTypes.CACert, secretTypes.ServerKey, secretTypes.ServerCert} {
+				if _, ok := r.Values[field]; !ok {
+					return errors.Errorf("missing key: %s", field)
+				}
+			}
+		}
+
+		if len(r.Values) > 3 { // We expect keys for mutual TLS
+			for _, field := range []string{secretTypes.ClientKey, secretTypes.ClientCert} {
+				if _, ok := r.Values[field]; !ok {
+					return errors.Errorf("missing key: %s", field)
+				}
+			}
+		}
+
+	default:
+		for _, field := range fields.Fields {
+			if _, ok := r.Values[field.Name]; field.Required && !ok {
+				return errors.Errorf("missing key: %s", field.Name)
+			}
+		}
+	}
+
+	if verifier != nil {
+		return verifier.VerifySecret()
+	}
+
+	return nil
+}
+
 // DeleteByClusterUID Delete secrets by ClusterUID
 func (ss *secretStore) DeleteByClusterUID(orgID uint, clusterUID string) error {
 	if clusterUID == "" {
