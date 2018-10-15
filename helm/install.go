@@ -23,7 +23,6 @@ import (
 
 	"github.com/banzaicloud/pipeline/config"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-	"github.com/banzaicloud/pipeline/pkg/helm"
 	phelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
@@ -40,7 +39,7 @@ import (
 )
 
 //PreInstall create's serviceAccount and AccountRoleBinding
-func PreInstall(helmInstall *helm.Install, kubeConfig []byte) error {
+func PreInstall(helmInstall *phelm.Install, kubeConfig []byte) error {
 	log.Info("start pre-install")
 
 	client, err := GetK8sConnection(kubeConfig)
@@ -157,7 +156,7 @@ func PreInstall(helmInstall *helm.Install, kubeConfig []byte) error {
 // RetryHelmInstall retries for a configurable time/interval
 // Azure AKS sometimes failing because of TLS handshake timeout, there are several issues on GitHub about that:
 // https://github.com/Azure/AKS/issues/112, https://github.com/Azure/AKS/issues/116, https://github.com/Azure/AKS/issues/14
-func RetryHelmInstall(helmInstall *helm.Install, kubeconfig []byte) error {
+func RetryHelmInstall(helmInstall *phelm.Install, kubeconfig []byte) error {
 	retryAttempts := viper.GetInt(phelm.HELM_RETRY_ATTEMPT_CONFIG)
 	retrySleepSeconds := viper.GetInt(phelm.HELM_RETRY_SLEEP_SECONDS)
 	for i := 0; i <= retryAttempts; i++ {
@@ -302,7 +301,7 @@ func InstallLocalHelm(env helm_env.EnvSettings) error {
 }
 
 // Install uses Kubernetes client to install Tiller.
-func Install(helmInstall *helm.Install, kubeConfig []byte) error {
+func Install(helmInstall *phelm.Install, kubeConfig []byte) error {
 
 	err := PreInstall(helmInstall, kubeConfig)
 	if err != nil {

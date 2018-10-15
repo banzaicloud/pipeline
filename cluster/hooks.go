@@ -114,11 +114,19 @@ func WaitingForTillerComeUp(kubeConfig []byte) error {
 
 	for i := 0; i <= retryAttempts; i++ {
 		log.Infof("Waiting for tiller to come up %d/%d", i, retryAttempts)
-		_, err := helm.GetHelmClient(kubeConfig)
+		client, err := helm.GetHelmClient(kubeConfig)
 		if err == nil {
-			return nil
+			resp, err := client.GetVersion()
+			if err != nil {
+				return err
+			}
+			if resp.Version.SemVer == viper.GetString("helm.tillerVersion") {
+				return nil
+			}
+			log.Warn("Tiller version is not up to date yet")
+		} else {
+			log.Warnf("Error during getting helm client: %s", err.Error())
 		}
-		log.Warnf("Error during getting helm client: %s", err.Error())
 		time.Sleep(time.Duration(retrySleepSeconds) * time.Second)
 	}
 	return errors.New("Timeout during waiting for tiller to get ready")
