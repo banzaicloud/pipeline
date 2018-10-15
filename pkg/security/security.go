@@ -119,10 +119,9 @@ type WhitelistItem struct {
 }
 
 type ReleaseWhiteListItem struct {
-	Name        string `json:"name" binding:"required"`
-	ReleaseName string `json:"releaseName" binding:"required"`
-	Owner       string `json:"owner" binding:"required"`
-	Reason      string `json:"reason"`
+	Name   string `json:"name" binding:"required"`
+	Owner  string `json:"owner" binding:"required"`
+	Reason string `json:"reason"`
 }
 
 type ScanLogItem struct {

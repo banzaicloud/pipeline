@@ -124,10 +124,9 @@ func GetWhiteLists(c *gin.Context) {
 	releaseWhitelist := make([]security.ReleaseWhiteListItem, 0)
 	for _, whitelist := range whitelists.Items {
 		whitelistItem := security.ReleaseWhiteListItem{
-			Name:        whitelist.Name,
-			ReleaseName: whitelist.Spec.ReleaseName,
-			Owner:       whitelist.Spec.Creator,
-			Reason:      whitelist.Spec.Reason,
+			Name:   whitelist.Name,
+			Owner:  whitelist.Spec.Creator,
+			Reason: whitelist.Spec.Reason,
 		}
 		releaseWhitelist = append(releaseWhitelist, whitelistItem)
 	}
@@ -165,9 +164,8 @@ func CreateWhiteList(c *gin.Context) {
 			Name: whitelistCreateRequest.Name,
 		},
 		Spec: v1alpha1.WhiteListSpec{
-			ReleaseName: whitelistCreateRequest.ReleaseName,
-			Creator:     whitelistCreateRequest.Owner,
-			Reason:      whitelistCreateRequest.Reason,
+			Creator: whitelistCreateRequest.Owner,
+			Reason:  whitelistCreateRequest.Reason,
 		},
 	}
 	_, err = securityClientSet.Whitelists(metav1.NamespaceDefault).Create(&whitelist)
