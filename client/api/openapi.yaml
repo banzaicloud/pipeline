@@ -1102,7 +1102,7 @@ paths:
       - description: Secret name as it will be seen in the cluster
         explode: false
         in: path
-        name: secret
+        name: secretName
         required: true
         schema:
           type: string

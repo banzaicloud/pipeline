@@ -1007,7 +1007,7 @@ paths:
                   description: Selected cluster identification (number)
                   schema:
                       type: integer
-                - name: secret
+                - name: secretName
                   in: path
                   required: true
                   description: Secret name as it will be seen in the cluster
