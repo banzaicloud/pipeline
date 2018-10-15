@@ -125,3 +125,86 @@ func InstallSecretToCluster(c *gin.Context) {
 
 	c.JSON(http.StatusOK, response)
 }
+
+// MergeSecretInCluster installs a particular secret to a cluster's namespace.
+func MergeSecretInCluster(c *gin.Context) {
+	commonCluster, ok := getClusterFromRequest(c)
+	if !ok {
+		return
+	}
+
+	logger := correlationid.Logger(log, c)
+
+	var request InstallSecretRequest
+	if err := c.BindJSON(&request); err != nil {
+		logger.WithError(err).Debug("failed to parse request")
+
+		c.AbortWithStatusJSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error parsing request",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	secretRequest := cluster.InstallSecretRequest{
+		SourceSecretName: request.SourceSecretName,
+		Namespace:        request.Namespace,
+		Spec:             map[string]cluster.InstallSecretRequestSpecItem{},
+	}
+
+	for key, spec := range request.Spec {
+		secretRequest.Spec[key] = cluster.InstallSecretRequestSpecItem{
+			Source:    spec.Source,
+			SourceMap: spec.SourceMap,
+		}
+	}
+
+	secretName := c.Param("secretName")
+
+	// If there is no separate pipeline secret name use the same as the cluster request name
+	if secretRequest.SourceSecretName == "" {
+		secretRequest.SourceSecretName = secretName
+	}
+
+	secretSource, err := cluster.InstallSecret(commonCluster, secretName, secretRequest)
+
+	if err == cluster.ErrSecretNotFound {
+		ginutils.ReplyWithErrorResponse(c, &pkgCommon.ErrorResponse{
+			Code:    http.StatusNotFound,
+			Message: "secret not found",
+		})
+
+		return
+	} else if err == cluster.ErrKubernetesSecretAlreadyExists {
+		ginutils.ReplyWithErrorResponse(c, &pkgCommon.ErrorResponse{
+			Code:    http.StatusConflict,
+			Message: "secret already exists in the cluster",
+		})
+
+		return
+	} else if err != nil {
+		errorHandler.Handle(emperror.With(
+			emperror.Wrap(err, "failed to install secret into cluster"),
+			"clusterId", commonCluster.GetID(),
+			"organizationId", commonCluster.GetOrganizationId(),
+			"secret", secretName,
+			"sourceSecret", secretRequest.SourceSecretName,
+		))
+
+		c.AbortWithStatusJSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: "Error installing secret into cluster",
+			Error:   err.Error(),
+		})
+
+		return
+	}
+
+	response := InstallSecretResponse{
+		Name:     secretName,
+		Sourcing: string(secretSource.Sourcing),
+	}
+
+	c.JSON(http.StatusOK, response)
+}

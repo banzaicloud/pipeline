@@ -20,6 +20,7 @@ Method | HTTP request | Description
 [**ListClusters**](ClustersApi.md#ListClusters) | **Get** /api/v1/orgs/{orgId}/clusters | List clusters
 [**ListEndpoints**](ClustersApi.md#ListEndpoints) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/endpoints | List service public endpoints
 [**ListNodes**](ClustersApi.md#ListNodes) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/nodes | List cluser nodes
+[**MergeSecret**](ClustersApi.md#MergeSecret) | **Patch** /api/v1/orgs/{orgId}/clusters/{id}/secrets/{secretName} | Merge a particular secret with an existing one with optional remapping
 [**UpdateCluster**](ClustersApi.md#UpdateCluster) | **Put** /api/v1/orgs/{orgId}/clusters/{id} | Update cluster
 [**UpdateMonitoring**](ClustersApi.md#UpdateMonitoring) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/monitoring | Update monitoring
 
@@ -518,6 +519,37 @@ Name | Type | Description  | Notes
 ### HTTP request headers
 
  - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **MergeSecret**
+> InstallSecretResponse MergeSecret(ctx, orgId, id, secretName, installSecretRequest)
+Merge a particular secret with an existing one with optional remapping
+
+Merge a particular secret with an existing one
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+  **orgId** | **int32**| Organization identification | 
+  **id** | **int32**| Selected cluster identification (number) | 
+  **secretName** | **string**| Secret name as it will be seen in the cluster | 
+  **installSecretRequest** | [**InstallSecretRequest**](InstallSecretRequest.md)|  | 
+
+### Return type
+
+[**InstallSecretResponse**](InstallSecretResponse.md)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
  - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
