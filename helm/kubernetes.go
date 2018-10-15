@@ -15,9 +15,7 @@
 package helm
 
 import (
-	"fmt"
-
-	pipelineHelm "github.com/banzaicloud/pipeline/pkg/helm"
+		pipelineHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/pkg/errors"
 	"k8s.io/api/core/v1"
@@ -50,32 +48,6 @@ func GetK8sClientConfig(kubeConfig []byte) (*rest.Config, error) {
 // Deprecated: use github.com/banzaicloud/pipeline/pkg/helm.NewClient
 func GetHelmClient(kubeConfig []byte) (*helm.Client, error) {
 	return pipelineHelm.NewClient(kubeConfig, log)
-}
-
-//CheckDeploymentState checks the state of Helm deployment
-func CheckDeploymentState(kubeConfig []byte, releaseName string) (string, error) {
-	client, err := GetK8sConnection(kubeConfig)
-	if err != nil {
-		return "", errors.Wrap(err, "Error during getting K8S config")
-	}
-
-	filter := fmt.Sprintf("release=%s", releaseName)
-
-	state := v1.PodRunning
-	podList, err := client.CoreV1().Pods("").List(metav1.ListOptions{LabelSelector: filter})
-	if err != nil && podList != nil {
-		return "", fmt.Errorf("PoD list failed: %v", err)
-	}
-	for _, pod := range podList.Items {
-		log.Debug("PodStatus:", pod.Status.Phase)
-		if pod.Status.Phase == v1.PodRunning {
-			continue
-		} else {
-			state = pod.Status.Phase
-			break
-		}
-	}
-	return string(state), nil
 }
 
 //CreateNamespaceIfNotExist Create Kubernetes Namespace if not exist.
