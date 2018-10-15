@@ -71,7 +71,7 @@ func (dns *awsRoute53) deleteIAMUser(userName *string) error {
 func (dns *awsRoute53) createAmazonAccessKey(userName *string) (*iam.AccessKey, error) {
 	log := loggerWithFields(logrus.Fields{"userName": aws.StringValue(userName)})
 
-	accessKey, err := amazon.CreateAmazonAccessKey(dns.iamSvc, userName)
+	accessKey, err := amazon.CreateUserAccessKey(dns.iamSvc, userName)
 	if err != nil {
 		log.Errorf("creating Amazon access key for IAM user failed: %s", extractErrorMessage(err))
 		return nil, err
@@ -86,9 +86,7 @@ func (dns *awsRoute53) createAmazonAccessKey(userName *string) (*iam.AccessKey, 
 func (dns *awsRoute53) deleteAmazonAccessKey(userName, accessKeyId *string) error {
 	log := loggerWithFields(logrus.Fields{"userName": aws.StringValue(userName), "accessKeyId": aws.StringValue(accessKeyId)})
 
-	accessKeyInput := &iam.DeleteAccessKeyInput{AccessKeyId: accessKeyId, UserName: userName}
-
-	_, err := dns.iamSvc.DeleteAccessKey(accessKeyInput)
+	err := amazon.DeleteUserAccessKey(dns.iamSvc, userName, accessKeyId)
 	if err != nil {
 		log.Errorf("deleting Amazon access key failed: %s", extractErrorMessage(err))
 		return err

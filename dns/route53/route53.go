@@ -454,7 +454,7 @@ func (dns *awsRoute53) unregisterDomain(orgId uint, domain string) error {
 
 	// delete route53  access keys
 	if iamUser != nil {
-		awsAccessKeys, err := amazon.GetUserAmazonAccessKeys(dns.iamSvc, iamUser.UserName)
+		awsAccessKeys, err := amazon.GetUserAccessKeys(dns.iamSvc, iamUser.UserName)
 		if err != nil {
 			log.Errorf("querying IAM user '%s' access keys failed: %s", state.iamUser, extractErrorMessage(err))
 			dns.updateStateWithError(state, err)
@@ -692,7 +692,7 @@ func (dns *awsRoute53) setupAmazonAccess(iamUser string, ctx *context) error {
 	}
 
 	// IAM user AWS access keys
-	userAccessKeys, err := amazon.GetUserAmazonAccessKeys(dns.iamSvc, aws.String(iamUser))
+	userAccessKeys, err := amazon.GetUserAccessKeys(dns.iamSvc, aws.String(iamUser))
 	if err != nil {
 		return err
 	}

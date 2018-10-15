@@ -63,8 +63,8 @@ func DeleteIAMUser(svc iamiface.IAMAPI, userName *string) error {
 	return err
 }
 
-// IsAmazonAccessKeyExists returns whether the specified IAM user has the given Amazon access key
-func IsAmazonAccessKeyExists(svc iamiface.IAMAPI, userName, accessKeyId *string) (bool, error) {
+// IsUserAccessKeyExists returns whether the specified IAM user has the given Amazon access key
+func IsUserAccessKeyExists(svc iamiface.IAMAPI, userName, accessKeyId *string) (bool, error) {
 	listAccessKeys := &iam.ListAccessKeysInput{
 		UserName: userName,
 	}
@@ -85,8 +85,8 @@ func IsAmazonAccessKeyExists(svc iamiface.IAMAPI, userName, accessKeyId *string)
 	return found, nil
 }
 
-// GetUserAmazonAccessKeys returns the list of Amazon access keys of the given IAM user
-func GetUserAmazonAccessKeys(svc iamiface.IAMAPI, userName *string) ([]*iam.AccessKeyMetadata, error) {
+// GetUserAccessKeys returns the list of Amazon access keys of the given IAM user
+func GetUserAccessKeys(svc iamiface.IAMAPI, userName *string) ([]*iam.AccessKeyMetadata, error) {
 	listAccessKeys := &iam.ListAccessKeysInput{
 		UserName: userName,
 	}
@@ -99,8 +99,8 @@ func GetUserAmazonAccessKeys(svc iamiface.IAMAPI, userName *string) ([]*iam.Acce
 	return accessKeys.AccessKeyMetadata, nil
 }
 
-// CreateAmazonAccessKey create Amazon access key for the IAM user identified by userName
-func CreateAmazonAccessKey(svc iamiface.IAMAPI, userName *string) (*iam.AccessKey, error) {
+// CreateUserAccessKey create Amazon access key for the IAM user identified by userName
+func CreateUserAccessKey(svc iamiface.IAMAPI, userName *string) (*iam.AccessKey, error) {
 	accessKeyInput := &iam.CreateAccessKeyInput{UserName: userName}
 
 	accessKey, err := svc.CreateAccessKey(accessKeyInput)
@@ -109,6 +109,14 @@ func CreateAmazonAccessKey(svc iamiface.IAMAPI, userName *string) (*iam.AccessKe
 	}
 
 	return accessKey.AccessKey, nil
+}
+
+// DeleteUserAccessKey deletes the user access key identified by accessKeyId of user identified by userName
+func DeleteUserAccessKey(svc iamiface.IAMAPI, userName, accessKeyId *string) error {
+	accessKeyInput := &iam.DeleteAccessKeyInput{AccessKeyId: accessKeyId, UserName: userName}
+
+	_, err := svc.DeleteAccessKey(accessKeyInput)
+	return err
 }
 
 // GetPolicy retrieves the IAM policy identified by the given Arn
