@@ -1,4 +1,5 @@
 .git/
+.docker/
 bin/
 client/*.md
 docs/

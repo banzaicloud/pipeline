@@ -1,6 +1,5 @@
 _state*
 .DS_Store
-bin/*
 .pipeline
 pipeline
 !pipeline/
@@ -12,10 +11,13 @@ orgs/
 *.pem
 */main/main.go
 test.txt
+/bin/
 /build/
 /vendor/
+/.docker/
+/docker-compose.override.yml
 /.licensei.cache
-.env
+/.env
 
 # IDE integration
 /.idea/*

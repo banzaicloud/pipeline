@@ -1,0 +1,21 @@
+version: "3.1"
+
+services:
+    db:
+        ports:
+            - 3306:3306
+        volumes:
+            - ./.docker/volumes/mysql:/var/lib/mysql
+
+    adminer:
+        ports:
+            - 8080:8080
+
+    vault:
+        ports:
+            - 8200:8200
+
+    drone-server:
+        ports:
+            - 8000:8000
+            - 9000

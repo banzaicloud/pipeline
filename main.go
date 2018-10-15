@@ -51,9 +51,9 @@ import (
 
 // Provisioned by ldflags
 var (
-	Version   string
-	GitRev    string
-	BuildDate string
+	Version    string
+	CommitHash string
+	BuildDate  string
 )
 
 //Common logger for package
@@ -69,10 +69,10 @@ func initLog() *logrus.Entry {
 func main() {
 
 	if len(os.Args) > 1 && os.Args[1] == "--version" {
-		if GitRev == "" {
+		if CommitHash == "" {
 			fmt.Println("version: ", Version, " built on ", BuildDate)
 		} else {
-			fmt.Printf("version: %s-%s built on %s\n", Version, GitRev, BuildDate)
+			fmt.Printf("version: %s-%s built on %s\n", Version, CommitHash, BuildDate)
 		}
 		os.Exit(0)
 	}

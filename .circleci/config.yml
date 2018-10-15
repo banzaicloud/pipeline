@@ -62,7 +62,7 @@ jobs:
 
             - run:
                   name: Build
-                  command: make build-ci
+                  command: make build
 
             - run:
                   name: Run linter
