@@ -97,6 +97,7 @@ func CreateGKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID
 		MasterVersion: request.Properties.CreateClusterGKE.Master.Version,
 		NodeVersion:   request.Properties.CreateClusterGKE.NodeVersion,
 		NodePools:     nodePools,
+		ProjectId:     request.Properties.CreateClusterGKE.ProjectId,
 	}
 
 	return &c, nil
@@ -207,10 +208,13 @@ func (c *GKECluster) CreateCluster() error {
 		return err
 	}
 
-	projectId := secretItem.GetValue(pkgSecret.ProjectId)
+	if c.model.ProjectId == "" {
+		// if there's no projectId saved with the cluster take it from the secret
+		c.model.ProjectId = secretItem.GetValue(pkgSecret.ProjectId)
+	}
 
 	cc := googleCluster{
-		ProjectID:     projectId,
+		ProjectID:     c.model.ProjectId,
 		Zone:          c.model.Cluster.Location,
 		Name:          c.model.Cluster.Name,
 		MasterVersion: c.model.MasterVersion,
@@ -234,7 +238,7 @@ func (c *GKECluster) CreateCluster() error {
 		log.Infof("Cluster %s create is called for project %s and zone %s", cc.Name, cc.ProjectID, cc.Zone)
 		log.Info("Waiting for cluster...")
 
-		if err := waitForOperation(newContainerOperation(svc, projectId, c.model.Cluster.Location), createCall.Name); err != nil {
+		if err := waitForOperation(newContainerOperation(svc, c.model.ProjectId, c.model.Cluster.Location), createCall.Name); err != nil {
 			return err
 		}
 	} else {
@@ -253,7 +257,7 @@ func (c *GKECluster) CreateCluster() error {
 	c.updateCurrentVersions(gkeCluster)
 
 	// set region
-	c.model.Region, err = c.getRegionByZone(projectId, gkeCluster.Zone)
+	c.model.Region, err = c.getRegionByZone(c.model.ProjectId, gkeCluster.Zone)
 	if err != nil {
 		log.Warnf("error during getting region: %s", err.Error())
 	}
@@ -362,13 +366,17 @@ func (c *GKECluster) DeleteCluster() error {
 		return pkgErrors.ErrorNilCluster
 	}
 
-	secretItem, err := c.GetSecretWithValidation()
-	if err != nil {
-		return err
+	if c.model.ProjectId == "" {
+		// if there's no projectid saved with the cluster, take it from the secret
+		secretItem, err := c.GetSecretWithValidation()
+		if err != nil {
+			return err
+		}
+		c.model.ProjectId = secretItem.GetValue(pkgSecret.ProjectId)
 	}
 
 	gkec := googleCluster{
-		ProjectID: secretItem.GetValue(pkgSecret.ProjectId),
+		ProjectID: c.model.ProjectId,
 		Name:      c.model.Cluster.Name,
 		Zone:      c.model.Cluster.Location,
 	}
@@ -765,6 +773,7 @@ func generateClusterCreateRequest(cc googleCluster) *gke.CreateClusterRequest {
 	}
 	request.Cluster.MasterAuth = &gke.MasterAuth{}
 	request.Cluster.NodePools = cc.NodePools
+	request.ProjectId = cc.ProjectID
 
 	return &request
 }

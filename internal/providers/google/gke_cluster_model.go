@@ -32,6 +32,7 @@ type GKEClusterModel struct {
 	NodeVersion   string
 	Region        string
 	NodePools     []*GKENodePoolModel `gorm:"foreignkey:ClusterID;association_foreignkey:ClusterID"`
+	ProjectId     string
 }
 
 // TableName changes the default table name.
