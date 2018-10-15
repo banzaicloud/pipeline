@@ -3570,6 +3570,13 @@ paths:
                       enum: [amazon, google, azure]
                   required: false
                   description: Identifies the cloud provider - mandatory if secretId header is provided
+                - name: include
+                  in: query
+                  schema:
+                      type: string
+                      enum: [secret]
+                  required: false
+                  description: Signals whether the secret name is to be returned
                 - name: location
                   in: query
                   schema:
@@ -6619,13 +6626,30 @@ components:
                 - name
                 - managed
                 - cloud
-                - secretId
             properties:
                 name:
+                    description: "the name of the object storage / bucket"
                     type: string
                     example: "mybucket"
                 managed:
+                    description: "true if the bucket has been created via piepeline"
                     type: boolean
+                    example: true
+                notes:
+                    description: "true if the bucket has been created via piepeline"
+                    type: string
+                    example: "There's no secret with this ID"
+                secret:
+                    type: object
+                    required:
+                        - id
+                    properties:
+                        id:
+                            type: string
+                            example: "cc051aeaf686444e2f125d0e79eb051aaaf4fb73384f7b0f8c89e84a0502dca1"
+                        name:
+                            type: string
+                            example: "mysecretname"
                 azure:
                     $ref: '#/components/schemas/AzureBlobStorageProps'
 
