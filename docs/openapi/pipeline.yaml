@@ -1023,29 +1023,35 @@ paths:
 
             responses:
                 '200':
-                    description: "Secret is installed into the cluster"
+                    description: "secret is installed into the cluster"
                     content:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/InstallSecretResponse'
                 '400':
-                    description: "Error during getting endpoints"
+                    description: "invalid request"
                     content:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/BaseError_400'
                 '401':
-                    description: "Unauthorized"
+                    description: "unauthorized"
                     content:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Unauthorized'
                 '404':
-                    description: "Cluster not found"
+                    description: "secret not found"
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/ClusterNotFound'
+                                $ref: '#/components/schemas/BaseError'
+                '409':
+                    description: "secret already exists in the cluster"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BaseError'
 
     '/api/v1/orgs/{orgId}/clusters/{id}/scanlog':
         get:
@@ -4624,6 +4630,17 @@ components:
                 error:
                     type: string
                     example: Invalid version
+
+    BaseError:
+        type: object
+        properties:
+            code:
+                type: integer
+                example: 400
+            message:
+                type: string
+            error:
+                type: string
 
         BaseError_400:
             type: object
