@@ -3570,11 +3570,11 @@ paths:
                       enum: [amazon, google, azure]
                   required: false
                   description: Identifies the cloud provider - mandatory if secretId header is provided
-                - name: fields
+                - name: includes
                   in: query
                   schema:
                       type: string
-                      enum: [secretname]
+                      enum: [secret]
                   required: false
                   description: Signals whether the secret name is to be returned
                 - name: location

@@ -154,11 +154,11 @@ func ListManagedBuckets(c *gin.Context) {
 	}
 
 	const (
-		fieldsQueryKey = "fields"
-		secretName     = "secretname"
+		fieldsQueryKey = "includes"
+		secretName     = "secret"
 	)
 	// is secretName requested?
-	secretNamesNeeded := c.Query(fieldsQueryKey) == secretName
+	includeSecret := c.Query(fieldsQueryKey) == secretName
 
 	allBuckets := make([]*objectstore.BucketInfo, 0)
 	for _, cloudType := range allProviders {
@@ -186,7 +186,7 @@ func ListManagedBuckets(c *gin.Context) {
 
 	}
 
-	c.JSON(http.StatusOK, bucketsResponse(allBuckets, organization.ID, secretNamesNeeded))
+	c.JSON(http.StatusOK, bucketsResponse(allBuckets, organization.ID, includeSecret))
 	return
 }
 
