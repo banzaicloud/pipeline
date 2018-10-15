@@ -61,6 +61,10 @@ jobs:
                   command: make license-check
 
             - run:
+                  name: Check generated OpenAPI files
+                  command: sha256sum -c client/SHA256SUMS
+
+            - run:
                   name: Build
                   command: make build
 
