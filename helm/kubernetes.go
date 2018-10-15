@@ -15,12 +15,10 @@
 package helm
 
 import (
-		pipelineHelm "github.com/banzaicloud/pipeline/pkg/helm"
+	pipelineHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
+	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	"github.com/pkg/errors"
-	"k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/helm/pkg/helm"
@@ -50,25 +48,13 @@ func GetHelmClient(kubeConfig []byte) (*helm.Client, error) {
 	return pipelineHelm.NewClient(kubeConfig, log)
 }
 
-//CreateNamespaceIfNotExist Create Kubernetes Namespace if not exist.
+// CreateNamespaceIfNotExist Create Kubernetes Namespace if not exist.
+// Deprecated: use github.com/banzaicloud/pipeline/pkg/k8sutil.EnsureNamespace
 func CreateNamespaceIfNotExist(kubeConfig []byte, namespace string) error {
-	client, err := GetK8sConnection(kubeConfig)
+	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
-		return errors.Wrap(err, "Error during getting K8S config")
-	}
-	_, err = client.CoreV1().Namespaces().Create(&v1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: namespace,
-		},
-	})
-	if apierrors.IsAlreadyExists(err) {
-		log.Debugf("Namespace: %s already exist.", namespace)
-		return nil
-	} else if err != nil {
-		log.Errorf("Failed to create namespace %s: %v", namespace, err)
-		return err
+		return errors.WithMessage(err, "failed to create client for namespace creation")
 	}
 
-	log.Infof("Namespace: %s created.", namespace)
-	return nil
+	return k8sutil.EnsureNamespace(client, namespace)
 }
