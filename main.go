@@ -39,8 +39,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	ginlog "github.com/banzaicloud/pipeline/internal/platform/gin/log"
 	platformlog "github.com/banzaicloud/pipeline/internal/platform/log"
-	"github.com/banzaicloud/pipeline/model"
-	"github.com/banzaicloud/pipeline/model/defaults"
+		"github.com/banzaicloud/pipeline/model/defaults"
 	"github.com/banzaicloud/pipeline/notify"
 	"github.com/banzaicloud/pipeline/spotguide"
 	"github.com/gin-contrib/cors"
@@ -96,16 +95,7 @@ func main() {
 	// Initialize auth
 	auth.Init(droneDb)
 
-	var tables = []interface{}{&model.ClusterModel{},
-		&model.ACSKClusterModel{},
-		&model.ACSKNodePoolModel{},
-		&model.AmazonNodePoolsModel{},
-		&model.EC2ClusterModel{},
-		&model.EKSClusterModel{},
-		&model.AKSClusterModel{},
-		&model.AKSNodePoolModel{},
-		&model.DummyClusterModel{},
-		&model.KubernetesClusterModel{},
+	var tables = []interface{}{
 		&auth.AuthIdentity{},
 		&auth.User{},
 		&auth.UserOrganization{},
