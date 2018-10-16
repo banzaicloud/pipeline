@@ -12,39 +12,39 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package model
 
 import (
-	"github.com/banzaicloud/pipeline/internal/ark"
-	"github.com/banzaicloud/pipeline/internal/audit"
-	"github.com/banzaicloud/pipeline/internal/cluster"
-	"github.com/banzaicloud/pipeline/internal/providers"
-	"github.com/banzaicloud/pipeline/model"
+	"fmt"
+	"strings"
+
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 )
 
-// Migrate runs migrations for the application.
+// Migrate executes the table migrations for the application models.
 func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
-	if err := audit.Migrate(db, logger); err != nil {
-		return err
+	tables := []interface{}{
+		&ClusterModel{},
+		&ACSKClusterModel{},
+		&ACSKNodePoolModel{},
+		&AmazonNodePoolsModel{},
+		&EC2ClusterModel{},
+		&EKSClusterModel{},
+		&AKSClusterModel{},
+		&AKSNodePoolModel{},
+		&DummyClusterModel{},
+		&KubernetesClusterModel{},
 	}
 
-	if err := cluster.Migrate(db, logger); err != nil {
-		return err
+	var tableNames string
+	for _, table := range tables {
+		tableNames += fmt.Sprintf(" %s", db.NewScope(table).TableName())
 	}
 
-	if err := providers.Migrate(db, logger); err != nil {
-		return err
-	}
+	logger.WithFields(logrus.Fields{
+		"table_names": strings.TrimSpace(tableNames),
+	}).Info("migrating model tables")
 
-	if err := ark.Migrate(db, logger); err != nil {
-		return err
-	}
-
-	if err := model.Migrate(db, logger); err != nil {
-		return err
-	}
-
-	return nil
+	return db.AutoMigrate(tables...).Error
 }
