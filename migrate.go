@@ -15,6 +15,7 @@
 package main
 
 import (
+	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/ark"
 	"github.com/banzaicloud/pipeline/internal/audit"
 	"github.com/banzaicloud/pipeline/internal/cluster"
@@ -26,6 +27,14 @@ import (
 
 // Migrate runs migrations for the application.
 func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
+	if err := model.Migrate(db, logger); err != nil {
+		return err
+	}
+
+	if err := auth.Migrate(db, logger); err != nil {
+		return err
+	}
+
 	if err := audit.Migrate(db, logger); err != nil {
 		return err
 	}
@@ -39,10 +48,6 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	}
 
 	if err := ark.Migrate(db, logger); err != nil {
-		return err
-	}
-
-	if err := model.Migrate(db, logger); err != nil {
 		return err
 	}
 
