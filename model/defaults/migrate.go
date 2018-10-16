@@ -22,7 +22,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// Migrate executes the table migrations for the auth module.
+// Migrate executes the table migrations for the defaults module.
 func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	tables := []interface{}{
 		&EC2Profile{},
