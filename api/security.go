@@ -400,9 +400,18 @@ func GetImageDeployments(c *gin.Context) {
 		})
 		return
 	}
-	// 1. Get all pods from cluster
+	// Get all pods from cluster
 	pods, err := listPods(client, "", "")
-	// In status it is possible to get all image with digest
+	if err != nil {
+		log.Errorf("Error getting pods from cluster: %s", err.Error())
+		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error getting pods from cluster",
+			Error:   err.Error(),
+		})
+		return
+	}
+	// Example status
 	//   - containerID: docker://08054c2cbf7ac842c1dc93929fa1b7a07e28641433fa21790c44408e2f897584
 	//    image: banzaicloud/pipeline:debug
 	//    imageID: docker://sha256:0e61330d23a5fd32dbf56c47808abc0a960248b4415746dfd5540b455384a6a0
@@ -419,7 +428,6 @@ func GetImageDeployments(c *gin.Context) {
 		}
 	}
 	var releaseList []string
-	// 3. Return the release names
 	for k := range releaseMap {
 		releaseList = append(releaseList, k)
 	}
