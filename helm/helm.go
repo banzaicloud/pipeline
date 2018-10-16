@@ -39,7 +39,7 @@ import (
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/pkg/errors"
 	"github.com/spf13/cast"
-	"gopkg.in/russross/blackfriday"
+	"github.com/russross/blackfriday"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/helm/pkg/chartutil"
 	"k8s.io/helm/pkg/getter"
