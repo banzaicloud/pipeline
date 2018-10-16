@@ -53,6 +53,9 @@ const (
 	//PipelineHeadNodePoolName name of our Head node pool for Pipeline Infra deployments
 	PipelineHeadNodePoolName = "infra.headNodePoolName"
 
+	HeadNodeTaintRetryAttempt      = "infra.headNodeTaintRetryAttempt"
+	HeadNodeTaintRetrySleepSeconds = "infra.headNodeTaintRetrySleepSeconds"
+
 	// EksTemplateLocation is the configuration key the location to get EKS Cloud Formation templates from
 	// the location to get EKS Cloud Formation templates from
 	EksTemplateLocation = "eks.templateLocation"

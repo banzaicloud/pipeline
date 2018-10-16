@@ -98,6 +98,8 @@ var HookMap = map[string]PostFunctioner{
 var BasePostHookFunctions = []PostFunctioner{
 	HookMap[pkgCluster.StoreKubeConfig],
 	HookMap[pkgCluster.SetupPrivileges],
+	HookMap[pkgCluster.LabelNodes],
+	HookMap[pkgCluster.TaintHeadNodes],
 	HookMap[pkgCluster.UpdatePrometheusPostHook],
 	HookMap[pkgCluster.InstallHelmPostHook],
 	HookMap[pkgCluster.RegisterDomainPostHook],
@@ -105,8 +107,6 @@ var BasePostHookFunctions = []PostFunctioner{
 	HookMap[pkgCluster.InstallKubernetesDashboardPostHook],
 	HookMap[pkgCluster.InstallClusterAutoscalerPostHook],
 	HookMap[pkgCluster.InstallHorizontalPodAutoscalerPostHook],
-	HookMap[pkgCluster.LabelNodes],
-	HookMap[pkgCluster.TaintHeadNodes],
 	HookMap[pkgCluster.InstallPVCOperator],
 	HookMap[pkgCluster.InstallAnchoreImageValidator],
 }

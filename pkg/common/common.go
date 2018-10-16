@@ -45,10 +45,10 @@ const (
 
 // Constants for labeling cluster nodes
 const (
-	LabelKey = "pipeline-nodepool-name"
+	LabelKey = "nodepool.banzaicloud.io/name"
 )
 
 // Constant for tainting head node
 const (
-	HeadNodeTaintKey = "node.banzaicloud.com/nodepool"
+	HeadNodeTaintKey = "nodepool.banzaicloud.io/name"
 )
