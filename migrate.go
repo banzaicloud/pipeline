@@ -16,6 +16,7 @@ package main
 
 import (
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/dns/route53/model"
 	"github.com/banzaicloud/pipeline/internal/ark"
 	"github.com/banzaicloud/pipeline/internal/audit"
 	"github.com/banzaicloud/pipeline/internal/cluster"
@@ -37,6 +38,10 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	}
 
 	if err := defaults.Migrate(db, logger); err != nil {
+		return err
+	}
+
+	if err := route53model.Migrate(db, logger); err != nil {
 		return err
 	}
 

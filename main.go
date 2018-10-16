@@ -31,8 +31,7 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
-	"github.com/banzaicloud/pipeline/dns/route53/model"
-	arkSync "github.com/banzaicloud/pipeline/internal/ark/sync"
+		arkSync "github.com/banzaicloud/pipeline/internal/ark/sync"
 	"github.com/banzaicloud/pipeline/internal/audit"
 	"github.com/banzaicloud/pipeline/internal/dashboard"
 	ginternal "github.com/banzaicloud/pipeline/internal/platform/gin"
@@ -96,7 +95,6 @@ func main() {
 	auth.Init(droneDb)
 
 	var tables = []interface{}{
-		&route53model.Route53Domain{},
 		&spotguide.SpotguideRepo{},
 	}
 
