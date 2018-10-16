@@ -30,6 +30,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/banzaicloud/pipeline/model"
 	pkgEks "github.com/banzaicloud/pipeline/pkg/cluster/eks"
+	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/pkg/errors"
@@ -600,7 +601,7 @@ func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (outp
 				},
 				{
 					ParameterKey:   aws.String("BootstrapArguments"),
-					ParameterValue: aws.String(fmt.Sprintf("--kubelet-extra-args '--node-labels pipeline-nodepool-name=%v'", nodePool.Name)),
+					ParameterValue: aws.String(fmt.Sprintf("--kubelet-extra-args '--node-labels %v=%v'", common.LabelKey, nodePool.Name)),
 				},
 			}
 

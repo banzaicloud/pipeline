@@ -285,3 +285,7 @@
 [[constraint]]
   name = "github.com/imdario/mergo"
   version = "0.3.6"
+
+[[constraint]]
+  name = "github.com/patrickmn/go-cache"
+  version = "2.1.0"
