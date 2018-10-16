@@ -25,6 +25,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"path/filepath"
 	"reflect"
 	"regexp"
 	"strings"
@@ -34,8 +35,10 @@ import (
 	"github.com/Masterminds/sprig"
 	helm2 "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/utils"
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/patrickmn/go-cache"
 	"github.com/pkg/errors"
+	"github.com/russross/blackfriday"
 	"github.com/spf13/cast"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/helm/pkg/chartutil"
@@ -87,7 +90,18 @@ func DownloadFile(url string) ([]byte, error) {
 	defer resp.Body.Close()
 
 	tarContent := new(bytes.Buffer)
-	io.Copy(tarContent, resp.Body)
+
+	const maxDataSize = 10485760
+	if resp.ContentLength > maxDataSize {
+		log.Errorf("Response ContentLength: %v Max allowed size: %v", resp.ContentLength, maxDataSize)
+		return nil, fmt.Errorf("Chart data is too big.")
+	}
+
+	_, copyErr := io.CopyN(tarContent, resp.Body, maxDataSize)
+	if copyErr != nil && copyErr != io.EOF {
+		return nil, copyErr
+	}
+
 	gzf, err := gzip.NewReader(tarContent)
 	if err != nil {
 		return nil, err
@@ -114,6 +128,13 @@ func GetChartFile(file []byte, fileName string) (string, error) {
 			valuesContent := new(bytes.Buffer)
 			if _, err := io.Copy(valuesContent, tarReader); err != nil {
 				return "", err
+			}
+			if filepath.Ext(fileName) == ".md" {
+				log.Debugf("Security transform: %s", fileName)
+				bfFile := blackfriday.MarkdownCommon(valuesContent.Bytes())
+				readmeConvertedToHtml := bluemonday.UGCPolicy().SanitizeBytes(bfFile)
+				log.Debugf("Origin: %s", valuesContent.Bytes())
+				return base64.StdEncoding.EncodeToString(readmeConvertedToHtml), nil
 			}
 			base64Str := base64.StdEncoding.EncodeToString(valuesContent.Bytes())
 			return base64Str, nil
@@ -869,7 +890,6 @@ func getChartVersion(v *repo.ChartVersion) (*ChartVersion, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Debugf("readme hash: %s", readmeStr)
 
 	return &ChartVersion{
 		Chart:  v,
