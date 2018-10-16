@@ -44,7 +44,7 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 
 	logger.WithFields(logrus.Fields{
 		"provider":    oracle.Provider,
-		"table_names": strings.TrimLeft(tableNames, " "),
+		"table_names": strings.TrimSpace(tableNames),
 	}).Info("migrating provider tables")
 
 	return db.AutoMigrate(tables...).Error
