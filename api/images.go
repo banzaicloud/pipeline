@@ -20,8 +20,8 @@ import (
 	"strings"
 
 	apiclient "github.com/banzaicloud/pipeline/client"
-	"github.com/banzaicloud/pipeline/helm"
 	pkgCommmon "github.com/banzaicloud/pipeline/pkg/common"
+	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"k8s.io/api/core/v1"
@@ -35,7 +35,7 @@ func ListImages(c *gin.Context) {
 		return
 	}
 
-	client, err := helm.GetK8sConnection(kubeConfig)
+	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
 		log.Errorf("Error getting K8s config: %s", err.Error())
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
@@ -71,7 +71,7 @@ func GetDeploymentImages(c *gin.Context) {
 		return
 	}
 
-	client, err := helm.GetK8sConnection(kubeConfig)
+	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
 		log.Errorf("Error getting K8s config: %s", err.Error())
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{

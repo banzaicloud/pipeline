@@ -316,7 +316,7 @@ func UpgradeDeployment(releaseName, chartName, chartVersion string, chartPackage
 	}
 
 	//Get cluster based or inCluster kubeconfig
-	hClient, err := GetHelmClient(kubeConfig)
+	hClient, err := helm2.NewClient(kubeConfig, log)
 	if err != nil {
 		return nil, err
 	}
@@ -349,7 +349,7 @@ func CreateDeployment(chartName, chartVersion string, chartPackage []byte, names
 		log.Warn("Deployment namespace was not set failing back to default")
 		namespace = DefaultNamespace
 	}
-	hClient, err := GetHelmClient(kubeConfig)
+	hClient, err := helm2.NewClient(kubeConfig, log)
 	if err != nil {
 		return nil, err
 	}
@@ -376,7 +376,7 @@ func CreateDeployment(chartName, chartVersion string, chartPackage []byte, names
 
 //DeleteDeployment deletes a Helm deployment
 func DeleteDeployment(releaseName string, kubeConfig []byte) error {
-	hClient, err := GetHelmClient(kubeConfig)
+	hClient, err := helm2.NewClient(kubeConfig, log)
 	if err != nil {
 		return err
 	}
@@ -393,7 +393,7 @@ func DeleteDeployment(releaseName string, kubeConfig []byte) error {
 
 // GetDeploymentsK8sResources returns K8s resources of a helm deployment
 func GetDeploymentK8sResources(releaseName string, kubeConfig []byte, resourceTypes []string) ([]helm2.DeploymentResource, error) {
-	helmClient, err := GetHelmClient(kubeConfig)
+	helmClient, err := helm2.NewClient(kubeConfig, log)
 	if err != nil {
 		log.Errorf("Getting Helm client failed: %s", err.Error())
 		return nil, err
@@ -447,7 +447,7 @@ func GetDeploymentK8sResources(releaseName string, kubeConfig []byte, resourceTy
 
 // GetDeployment returns the details of a helm deployment
 func GetDeployment(releaseName string, kubeConfig []byte) (*helm2.GetDeploymentResponse, error) {
-	helmClient, err := GetHelmClient(kubeConfig)
+	helmClient, err := helm2.NewClient(kubeConfig, log)
 	if err != nil {
 		log.Errorf("Getting Helm client failed: %s", err.Error())
 		return nil, err
@@ -497,7 +497,7 @@ func GetDeployment(releaseName string, kubeConfig []byte) (*helm2.GetDeploymentR
 // in case of error the status is filled with information to classify the error cause
 func GetDeploymentStatus(releaseName string, kubeConfig []byte) (int32, error) {
 
-	helmClient, err := GetHelmClient(kubeConfig)
+	helmClient, err := helm2.NewClient(kubeConfig, log)
 
 	if err != nil {
 		// internal server error

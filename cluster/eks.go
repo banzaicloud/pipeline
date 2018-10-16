@@ -37,6 +37,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks/action"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
+	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/utils"
@@ -229,7 +230,7 @@ func (c *EKSCluster) CreateCluster() error {
 		return err
 	}
 
-	restKubeConfig, err := helm.GetK8sClientConfig(kubeConfig)
+	restKubeConfig, err := k8sclient.NewClientConfig(kubeConfig)
 	if err != nil {
 		return err
 	}

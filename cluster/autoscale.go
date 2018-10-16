@@ -19,6 +19,7 @@ import (
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
@@ -156,7 +157,7 @@ func getNodeResourceGroup(cluster CommonCluster) *string {
 		log.Errorf("Error getting config: %s", err.Error())
 		return nil
 	}
-	client, err := helm.GetK8sConnection(kubeConfig)
+	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
 		log.Errorf("Error getting k8s connection: %s", err.Error())
 		return nil

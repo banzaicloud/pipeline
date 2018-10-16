@@ -26,6 +26,7 @@ import (
 	"github.com/banzaicloud/pipeline/helm"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/secret"
@@ -183,7 +184,7 @@ func getClusterDashboard(logger *logrus.Entry, commonCluster cluster.CommonClust
 		return
 	}
 
-	client, err := helm.GetK8sConnection(kubeConfig)
+	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
 		cluster.Status = "ERROR"
 		cluster.StatusMessage = err.Error()

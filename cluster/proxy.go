@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/banzaicloud/pipeline/helm"
+	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/gin-gonic/gin"
 	"github.com/golang/glog"
 	utilnet "k8s.io/apimachinery/pkg/util/net"
@@ -183,7 +184,7 @@ func NewProxy(apiProxyPrefix string, filter *FilterServer, cluster CommonCluster
 		return nil, err
 	}
 
-	cfg, err := helm.GetK8sClientConfig(kubeConfig)
+	cfg, err := k8sclient.NewClientConfig(kubeConfig)
 	if err != nil {
 		return nil, err
 	}

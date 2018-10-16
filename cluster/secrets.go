@@ -17,7 +17,6 @@ package cluster
 import (
 	stderrors "errors"
 
-	"github.com/banzaicloud/pipeline/helm"
 	intSecret "github.com/banzaicloud/pipeline/internal/secret"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
@@ -49,7 +48,7 @@ func InstallSecretsByK8SConfig(kubeConfig []byte, orgID uint, query *secretTypes
 	// Values are always needed in this case
 	query.Values = true
 
-	clusterClient, err := helm.GetK8sConnection(kubeConfig)
+	clusterClient, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
 		log.Errorf("Error during building k8s client: %s", err.Error())
 		return nil, err
@@ -88,7 +87,12 @@ func InstallSecretsByK8SConfig(kubeConfig []byte, orgID uint, query *secretTypes
 				break
 			}
 		}
-		err := helm.CreateNamespaceIfNotExist(kubeConfig, namespace)
+		client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
+		if err != nil {
+			return nil, errors.WithMessage(err, "failed to create client for namespace creation")
+		}
+
+		err = k8sutil.EnsureNamespace(client, namespace)
 		if err != nil {
 			log.Errorf("Error checking namespace: %s", err.Error())
 			return nil, err
