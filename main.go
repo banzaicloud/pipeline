@@ -39,7 +39,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	ginlog "github.com/banzaicloud/pipeline/internal/platform/gin/log"
 	platformlog "github.com/banzaicloud/pipeline/internal/platform/log"
-		"github.com/banzaicloud/pipeline/model/defaults"
+	"github.com/banzaicloud/pipeline/model/defaults"
 	"github.com/banzaicloud/pipeline/notify"
 	"github.com/banzaicloud/pipeline/spotguide"
 	"github.com/gin-contrib/cors"
@@ -96,10 +96,6 @@ func main() {
 	auth.Init(droneDb)
 
 	var tables = []interface{}{
-		&auth.AuthIdentity{},
-		&auth.User{},
-		&auth.UserOrganization{},
-		&auth.Organization{},
 		&defaults.EC2Profile{},
 		&defaults.EC2NodePoolProfile{},
 		&defaults.EKSProfile{},
