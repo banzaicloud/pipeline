@@ -42,7 +42,7 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 
 	logger.WithFields(logrus.Fields{
 		"table_names": strings.TrimSpace(tableNames),
-	}).Info("defaults auth tables")
+	}).Info("migrating defaults tables")
 
 	return db.AutoMigrate(tables...).Error
 }

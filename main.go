@@ -92,9 +92,13 @@ func main() {
 	// Initialize auth
 	auth.Init(droneDb)
 
-	err = Migrate(db, logger)
-	if err != nil {
-		panic(err)
+	if viper.GetBool(config.DBAutoMigrateEnabled) {
+		log.Info("running automatic schema migrations")
+
+		err = Migrate(db, logger)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	err = defaults.SetDefaultValues()
