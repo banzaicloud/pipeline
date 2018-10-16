@@ -1,7 +1,7 @@
 {
 	"info": {
+		"_postman_id": "8afb4249-4291-4f28-ba9a-fe8c26df8ea2",
 		"name": "End2End TEST Organizations",
-		"_postman_id": "dfd89082-b262-7007-4798-f3c0b7626cd4",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -1446,7 +1446,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"namespace\": \"default\",\n  \"spec\": {}\n}\n"
+							"raw": "{\n  \"sourceSecretName\": \"mypipeline-secret\",\n  \"namespace\": \"default\",\n  \"spec\": {}\n}\n"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/secrets/:secretName",
@@ -1478,6 +1478,57 @@
 									"key": "secretName",
 									"value": "{{secretName}}",
 									"description": "Secret name"
+								}
+							]
+						},
+						"description": "Install a particular secret in a cluster"
+					},
+					"response": []
+				},
+				{
+					"name": "Merge secret with an existing one",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"sourceSecretName\": \"mypipeline-secret\",\n  \"namespace\": \"default\",\n  \"spec\": {}\n}\n"
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/secrets/:secretName",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"clusters",
+								":clusterId",
+								"secrets",
+								":secretName"
+							],
+							"variable": [
+								{
+									"description": "Organization identifier",
+									"key": "orgId",
+									"value": "{{orgId}}"
+								},
+								{
+									"description": "Cluster identifier",
+									"key": "clusterId",
+									"value": "{{clusterId}}"
+								},
+								{
+									"description": "Secret name",
+									"key": "secretName",
+									"value": "{{secretName}}"
 								}
 							]
 						},
@@ -9344,7 +9395,6 @@
 		},
 		{
 			"name": "Security",
-			"description": "",
 			"item": [
 				{
 					"name": "Get Scanlog",
@@ -9838,7 +9888,6 @@
 					},
 					"response": [
 						{
-							"id": "06b2d94c-6b7e-42b9-9384-10f115742786",
 							"name": "Get Dashboard",
 							"originalRequest": {
 								"method": "GET",
@@ -9881,7 +9930,6 @@
 							"status": "OK",
 							"code": 200,
 							"_postman_previewlanguage": "json",
-							"_postman_previewtype": "text",
 							"header": [
 								{
 									"key": "Content-Length",
@@ -9913,7 +9961,6 @@
 									"key": "JSESSIONID"
 								}
 							],
-							"responseTime": 784,
 							"body": "{\"clusters\":[{\"name\":\"gkecluster-sancyx-326\",\"id\":\"1\",\"status\":\"RUNNING\",\"statusMessage\":\"\",\"cloud\":\"google\",\"createdAt\":\"2018-09-24T14:00:13+02:00\",\"region\":\"us-central1-a\",\"nodes\":[{\"name\":\"gke-gkecluster-sancyx-326-pool1-7a511228-7n0w\",\"creationTimestamp\":\"2018-09-24 19:16:31 +0200 CEST\",\"status\":{\"capacity\":{\"cpu\":\"2\",\"ephemeralStorage\":\"98868448Ki\",\"memory\":\"7658160Ki\",\"pods\":110},\"allocatable\":{\"cpu\":\"1930m\",\"ephemeralStorage\":\"47093746742\",\"memory\":\"5778096Ki\",\"pods\":110},\"ready\":\"True\",\"lastHeartbeatTime\":\"2018-09-25 11:38:28 +0200 CEST\",\"frequentUnregisterNetDevice\":\"Unknown\",\"kernelDeadlock\":\"Unknown\",\"networkUnavailable\":\"False\",\"OutOfDisk\":\"False\",\"memoryPressure\":\"False\",\"diskPressure\":\"False\",\"pidPressure\":\"False\",\"cpuUsagePercent\":0,\"storageUsagePercent\":53.48365633014248,\"memoryUsagePercent\":24.549813532232285,\"instanceType\":\"n1-standard-2\"}},{\"name\":\"gke-gkecluster-sancyx-326-pool1-7a511228-m83z\",\"creationTimestamp\":\"2018-09-24 14:01:54 +0200 CEST\",\"status\":{\"capacity\":{\"cpu\":\"2\",\"ephemeralStorage\":\"98868448Ki\",\"memory\":\"7658152Ki\",\"pods\":110},\"allocatable\":{\"cpu\":\"1930m\",\"ephemeralStorage\":\"47093746742\",\"memory\":\"5778088Ki\",\"pods\":110},\"ready\":\"True\",\"lastHeartbeatTime\":\"2018-09-25 11:38:30 +0200 CEST\",\"FrequentUnregisterNetDevice\":\"Unknown\",\"KernelDeadlock\":\"Unknown\",\"NetworkUnavailable\":\"False\",\"OutOfDisk\":\"False\",\"MemoryPressure\":\"False\",\"DiskPressure\":\"False\",\"PIDPressure\":\"False\",\"cpuUsagePercent\":0,\"storageUsagePercent\":53.48365633014248,\"memoryUsagePercent\":24.549839177911327,\"instanceType\":\"n1-standard-2\"}}],\"cpuUsagePercent\":0,\"storageUsagePercent\":53.48365633014248,\"memoryUsagePercent\":24.549813532232285}]}"
 						}
 					]

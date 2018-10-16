@@ -15,150 +15,46 @@
 package helm
 
 import (
-	"fmt"
-	"time"
-
+	pipelineHelm "github.com/banzaicloud/pipeline/pkg/helm"
+	"github.com/banzaicloud/pipeline/pkg/k8sclient"
+	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	"github.com/pkg/errors"
-	"k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/helm/pkg/helm"
-	"k8s.io/helm/pkg/helm/portforwarder"
-	"k8s.io/helm/pkg/kube"
 )
 
-var tillerTunnel *kube.Tunnel
-
-//GetK8sConnection creates a new Kubernetes client
+// GetK8sConnection creates a new Kubernetes client.
+// Deprecated: use github.com/banzaicloud/pipeline/pkg/k8sclient.NewClientFromKubeConfig
 func GetK8sConnection(kubeConfig []byte) (*kubernetes.Clientset, error) {
-	config, err := GetK8sClientConfig(kubeConfig)
-	if err != nil {
-		return nil, fmt.Errorf("create kubernetes config failed: %v", err)
-	}
-	client, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		return nil, fmt.Errorf("create kubernetes connection failed: %v", err)
-	}
-	return client, nil
+	return k8sclient.NewClientFromKubeConfig(kubeConfig)
 }
 
-// GetK8sInClusterConnection returns Kubernetes in-cluster configuration
+// GetK8sInClusterConnection returns Kubernetes in-cluster configuration.
+// Deprecated: use github.com/banzaicloud/pipeline/pkg/k8sclient.NewInClusterClient
 func GetK8sInClusterConnection() (*kubernetes.Clientset, error) {
-	log.Info("Kubernetes in-cluster configuration.")
-	config, err := rest.InClusterConfig()
-	if err != nil {
-		return nil, errors.Wrap(err, "can't use kubernetes in-cluster config")
-	}
-	client := kubernetes.NewForConfigOrDie(config)
-	return client, nil
+	return k8sclient.NewInClusterClient()
 }
 
-//GetK8sClientConfig creates a Kubernetes client config
+// GetK8sClientConfig creates a Kubernetes client config.
+// Deprecated: use github.com/banzaicloud/pipeline/pkg/k8sclient.NewClientConfig
 func GetK8sClientConfig(kubeConfig []byte) (*rest.Config, error) {
-	var config *rest.Config
-	var err error
-	if kubeConfig != nil {
-		apiconfig, err := clientcmd.Load(kubeConfig)
-		if err != nil {
-			return nil, err
-		}
-
-		clientConfig := clientcmd.NewDefaultClientConfig(*apiconfig, &clientcmd.ConfigOverrides{})
-		config, err = clientConfig.ClientConfig()
-		if err != nil {
-			return nil, err
-		}
-		log.Debug("Use K8S RemoteCluster Config: ", config.ServerName)
-	} else {
-		return nil, errors.New("kubeconfig value is nil")
-	}
-	if err != nil {
-		return nil, fmt.Errorf("create kubernetes config failed: %v", err)
-	}
-	return config, nil
+	return k8sclient.NewClientConfig(kubeConfig)
 }
 
-//GetHelmClient establishes Tunnel for Helm client TODO check client and config if both needed
+// GetHelmClient establishes Tunnel for Helm client TODO check client and config if both needed
+// Deprecated: use github.com/banzaicloud/pipeline/pkg/helm.NewClient
 func GetHelmClient(kubeConfig []byte) (*helm.Client, error) {
-	for i := 0; i < 2; i++ {
-		log.Debug("Create kubernetes Client.")
-		config, err := GetK8sClientConfig(kubeConfig)
-		if err != nil {
-			log.Debug("Could not get K8S config")
-			return nil, err
-		}
-
-		client, err := GetK8sConnection(kubeConfig)
-		if err != nil {
-			log.Debug("Could not create kubernetes client from config.")
-			return nil, fmt.Errorf("create kubernetes client failed: %v", err)
-		}
-		log.Debug("Create kubernetes Tunnel")
-		tillerTunnel, err = portforwarder.New("kube-system", client, config)
-		if err != nil {
-			if err.Error() == "Unauthorized" && i == 0 {
-				log.Errorf("create tunnel attempt %d/%d failed: %s", i+1, 2, err.Error())
-				time.Sleep(time.Millisecond * 20)
-				continue
-			}
-			return nil, fmt.Errorf("create tunnel attempt %d/%d failed: %s", i+1, 2, err.Error())
-		}
-		break
-	}
-	log.Debug("Created kubernetes tunnel on address: localhost:", tillerTunnel.Local)
-	tillerTunnelAddress := fmt.Sprintf("localhost:%d", tillerTunnel.Local)
-	hclient := helm.NewClient(helm.Host(tillerTunnelAddress))
-	return hclient, nil
+	return pipelineHelm.NewClient(kubeConfig, log)
 }
 
-//CheckDeploymentState checks the state of Helm deployment
-func CheckDeploymentState(kubeConfig []byte, releaseName string) (string, error) {
-	client, err := GetK8sConnection(kubeConfig)
-	if err != nil {
-		return "", errors.Wrap(err, "Error during getting K8S config")
-	}
-
-	filter := fmt.Sprintf("release=%s", releaseName)
-
-	state := v1.PodRunning
-	podList, err := client.CoreV1().Pods("").List(metav1.ListOptions{LabelSelector: filter})
-	if err != nil && podList != nil {
-		return "", fmt.Errorf("PoD list failed: %v", err)
-	}
-	for _, pod := range podList.Items {
-		log.Debug("PodStatus:", pod.Status.Phase)
-		if pod.Status.Phase == v1.PodRunning {
-			continue
-		} else {
-			state = pod.Status.Phase
-			break
-		}
-	}
-	return string(state), nil
-}
-
-//CreateNamespaceIfNotExist Create Kubernetes Namespace if not exist.
+// CreateNamespaceIfNotExist Create Kubernetes Namespace if not exist.
+// Deprecated: use github.com/banzaicloud/pipeline/pkg/k8sutil.EnsureNamespace
 func CreateNamespaceIfNotExist(kubeConfig []byte, namespace string) error {
-	client, err := GetK8sConnection(kubeConfig)
+	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
-		return errors.Wrap(err, "Error during getting K8S config")
-	}
-	_, err = client.CoreV1().Namespaces().Create(&v1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: namespace,
-		},
-	})
-	if apierrors.IsAlreadyExists(err) {
-		log.Debugf("Namespace: %s already exist.", namespace)
-		return nil
-	} else if err != nil {
-		log.Errorf("Failed to create namespace %s: %v", namespace, err)
-		return err
+		return errors.WithMessage(err, "failed to create client for namespace creation")
 	}
 
-	log.Infof("Namespace: %s created.", namespace)
-	return nil
+	return k8sutil.EnsureNamespace(client, namespace)
 }
