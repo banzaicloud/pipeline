@@ -33,6 +33,10 @@ const nonExistingBucketName = "a-asd8908sad-nonexisting-bucketname"
 func getObjectStore(t *testing.T) *objectStore {
 	t.Helper()
 
+	if strings.TrimSpace(os.Getenv("TEST_OBJECTSTORE_INTEGRATION")) == "" {
+		t.Skip("test disabled")
+	}
+
 	clientID := strings.TrimSpace(os.Getenv("AZURE_CLIENT_ID"))
 	clientSecret := strings.TrimSpace(os.Getenv("AZURE_CLIENT_SECRET"))
 	tenantID := strings.TrimSpace(os.Getenv("AZURE_TENANT_ID"))

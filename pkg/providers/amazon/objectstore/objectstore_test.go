@@ -39,6 +39,10 @@ const nonExistingBucketName = "a-asd8908sad-nonexisting-bucketname"
 func getObjectStore(t *testing.T) *objectStore {
 	t.Helper()
 
+	if strings.TrimSpace(os.Getenv("TEST_OBJECTSTORE_INTEGRATION")) == "" {
+		t.Skip("test disabled")
+	}
+
 	region := strings.TrimSpace(os.Getenv("AWS_REGION"))
 	if region == "" {
 		t.Skip("missing region")

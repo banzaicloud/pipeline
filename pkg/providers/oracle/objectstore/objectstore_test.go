@@ -37,6 +37,10 @@ const nonExistingBucketName = "a-asd8908sad-nonexisting-bucketname"
 func getObjectStore(t *testing.T) *objectStore {
 	t.Helper()
 
+	if strings.TrimSpace(os.Getenv("TEST_OBJECTSTORE_INTEGRATION")) == "" {
+		t.Skip("test disabled")
+	}
+
 	configFileLocation := os.Getenv("ORACLE_CLI_CONFIG_LOCATION")
 	if configFileLocation == "" {
 		t.Skip("Environment variable ORACLE_CLI_CONFIG_LOCATION is not set")

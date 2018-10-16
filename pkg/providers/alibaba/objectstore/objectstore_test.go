@@ -34,6 +34,10 @@ const existingBucket = "demo-bucket"
 func getObjectStore(t *testing.T) *objectStore {
 	t.Helper()
 
+	if strings.TrimSpace(os.Getenv("TEST_OBJECTSTORE_INTEGRATION")) == "" {
+		t.Skip("test disabled")
+	}
+
 	region := strings.TrimSpace(os.Getenv("ALIBABA_REGION_ID"))
 	if region == "" {
 		t.Skip("missing region")
