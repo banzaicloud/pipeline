@@ -32,15 +32,17 @@ func TestCreateKubeSecret(t *testing.T) {
 		"simple secret": {
 			v1.Secret{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: "secret",
+					Name:      "secret",
+					Namespace: "namespace",
 				},
 				StringData: map[string]string{
 					"key": "value",
 				},
 			},
 			secret.KubeSecretRequest{
-				Name: "secret",
-				Type: "generic",
+				Name:      "secret",
+				Namespace: "namespace",
+				Type:      "generic",
 				Values: map[string]string{
 					"key": "value",
 				},
@@ -49,15 +51,17 @@ func TestCreateKubeSecret(t *testing.T) {
 		"secret with opaque fields": {
 			v1.Secret{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: "secret",
+					Name:      "secret",
+					Namespace: "namespace",
 				},
 				StringData: map[string]string{
 					".htpasswd": "blah",
 				},
 			},
 			secret.KubeSecretRequest{
-				Name: "secret",
-				Type: "htpasswd",
+				Name:      "secret",
+				Namespace: "namespace",
+				Type:      "htpasswd",
 				Values: map[string]string{
 					"username":  "user",
 					"password":  "pass",
@@ -68,7 +72,8 @@ func TestCreateKubeSecret(t *testing.T) {
 		"secret with spec source": {
 			v1.Secret{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: "secret",
+					Name:      "secret",
+					Namespace: "namespace",
 				},
 				StringData: map[string]string{
 					"tls.crt": "tlscert",
@@ -76,8 +81,9 @@ func TestCreateKubeSecret(t *testing.T) {
 				},
 			},
 			secret.KubeSecretRequest{
-				Name: "secret",
-				Type: "generic",
+				Name:      "secret",
+				Namespace: "namespace",
+				Type:      "generic",
 				Values: map[string]string{
 					"clientCert": "tlscert",
 					"clientKey":  "tlskey",
@@ -95,15 +101,17 @@ func TestCreateKubeSecret(t *testing.T) {
 		"secret with spec source mapping": {
 			v1.Secret{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: "secret",
+					Name:      "secret",
+					Namespace: "namespace",
 				},
 				StringData: map[string]string{
 					"docker.json": "{\"docker_password\":\"password\",\"docker_username\":\"username\"}",
 				},
 			},
 			secret.KubeSecretRequest{
-				Name: "secret",
-				Type: "generic",
+				Name:      "secret",
+				Namespace: "namespace",
+				Type:      "generic",
 				Values: map[string]string{
 					"username": "username",
 					"password": "password",
@@ -121,15 +129,17 @@ func TestCreateKubeSecret(t *testing.T) {
 		"secret with empty spec item": {
 			v1.Secret{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: "secret",
+					Name:      "secret",
+					Namespace: "namespace",
 				},
 				StringData: map[string]string{
 					"google.json": "{\"password\":\"password\",\"username\":\"username\"}",
 				},
 			},
 			secret.KubeSecretRequest{
-				Name: "secret",
-				Type: "generic",
+				Name:      "secret",
+				Namespace: "namespace",
+				Type:      "generic",
 				Values: map[string]string{
 					"username": "username",
 					"password": "password",

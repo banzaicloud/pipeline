@@ -1023,29 +1023,96 @@ paths:
 
             responses:
                 '200':
-                    description: "Secret is installed into the cluster"
+                    description: "secret is installed into the cluster"
                     content:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/InstallSecretResponse'
                 '400':
-                    description: "Error during getting endpoints"
+                    description: "invalid request"
                     content:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/BaseError_400'
                 '401':
-                    description: "Unauthorized"
+                    description: "unauthorized"
                     content:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Unauthorized'
                 '404':
-                    description: "Cluster not found"
+                    description: "secret not found"
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/ClusterNotFound'
+                                $ref: '#/components/schemas/BaseError'
+                '409':
+                    description: "secret already exists in the cluster"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BaseError'
+
+        patch:
+            security:
+                - bearerAuth: []
+            tags:
+                - clusters
+            summary: Merge a particular secret with an existing one with optional remapping
+            operationId: MergeSecret
+            description: Merge a particular secret with an existing one
+            parameters:
+                - name: orgId
+                  in: path
+                  required: true
+                  description: Organization identification
+                  schema:
+                      type: integer
+                - name: id
+                  in: path
+                  required: true
+                  description: Selected cluster identification (number)
+                  schema:
+                      type: integer
+                - name: secretName
+                  in: path
+                  required: true
+                  description: Secret name as it will be seen in the cluster
+                  schema:
+                      type: string
+
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/InstallSecretRequest'
+
+            responses:
+                '200':
+                    description: "secret is installed into the cluster"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/InstallSecretResponse'
+                '400':
+                    description: "invalid request"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BaseError_400'
+                '401':
+                    description: "unauthorized"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Unauthorized'
+                '404':
+                    description: "secret not found"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BaseError'
 
     '/api/v1/orgs/{orgId}/clusters/{id}/scanlog':
         get:
@@ -4624,6 +4691,17 @@ components:
                 error:
                     type: string
                     example: Invalid version
+
+        BaseError:
+            type: object
+            properties:
+                code:
+                    type: integer
+                    example: 400
+                message:
+                    type: string
+                error:
+                    type: string
 
         BaseError_400:
             type: object

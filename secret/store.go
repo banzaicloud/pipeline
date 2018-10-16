@@ -429,7 +429,9 @@ func (ss *secretStore) GetByName(organizationID uint, name string) (*SecretItemR
 
 	secretID := GenerateSecretIDFromName(name)
 	secret, err := Store.Get(organizationID, secretID)
-	if err != nil {
+	if err == ErrSecretNotExists {
+		return nil, err
+	} else if err != nil {
 		return nil, errors.Wrap(err, "Error during reading secret")
 	}
 
