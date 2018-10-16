@@ -1028,7 +1028,7 @@ func (a *DeleteClusterUserAccessKeyAction) ExecuteAction(input interface{}) (out
 	awsAccessKeys, err := amazon.GetUserAccessKeys(iamSvc, clusterUserName)
 	if err != nil {
 		a.log.Errorf("querying IAM user '%s' access keys failed: %s", clusterUserName, err)
-		return nil, errors.Wrapf(err, "querying IAM user '%s' access keys failed", clusterUserName)
+		return nil, errors.Wrapf(err, "querying IAM user '%s' access keys failed", *clusterUserName)
 	}
 	for _, awsAccessKey := range awsAccessKeys {
 		if err := amazon.DeleteUserAccessKey(iamSvc, awsAccessKey.UserName, awsAccessKey.AccessKeyId); err != nil {
