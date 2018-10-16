@@ -20,6 +20,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Masterminds/semver"
 	"github.com/banzaicloud/pipeline/auth"
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
@@ -111,6 +112,10 @@ func WaitingForTillerComeUp(kubeConfig []byte) error {
 
 	retryAttempts := viper.GetInt(pkgHelm.HELM_RETRY_ATTEMPT_CONFIG)
 	retrySleepSeconds := viper.GetInt(pkgHelm.HELM_RETRY_SLEEP_SECONDS)
+	requiredHelmVersion, err := semver.NewVersion(viper.GetString("helm.tillerVersion"))
+	if err != nil {
+		return err
+	}
 
 	for i := 0; i <= retryAttempts; i++ {
 		log.Infof("Waiting for tiller to come up %d/%d", i, retryAttempts)
@@ -120,7 +125,7 @@ func WaitingForTillerComeUp(kubeConfig []byte) error {
 			if err != nil {
 				return err
 			}
-			if resp.Version.SemVer == viper.GetString("helm.tillerVersion") {
+			if !semver.MustParse(resp.Version.SemVer).LessThan(requiredHelmVersion) {
 				return nil
 			}
 			log.Warn("Tiller version is not up to date yet")
