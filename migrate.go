@@ -23,6 +23,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/model/defaults"
+	"github.com/banzaicloud/pipeline/spotguide"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 )
@@ -42,6 +43,10 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	}
 
 	if err := route53model.Migrate(db, logger); err != nil {
+		return err
+	}
+
+	if err := spotguide.Migrate(db, logger); err != nil {
 		return err
 	}
 

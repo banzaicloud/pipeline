@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"strings"
 
 	"github.com/banzaicloud/go-gin-prometheus"
 	"github.com/banzaicloud/pipeline/api"
@@ -31,7 +30,7 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
-		arkSync "github.com/banzaicloud/pipeline/internal/ark/sync"
+	arkSync "github.com/banzaicloud/pipeline/internal/ark/sync"
 	"github.com/banzaicloud/pipeline/internal/audit"
 	"github.com/banzaicloud/pipeline/internal/dashboard"
 	ginternal "github.com/banzaicloud/pipeline/internal/platform/gin"
@@ -40,7 +39,6 @@ import (
 	platformlog "github.com/banzaicloud/pipeline/internal/platform/log"
 	"github.com/banzaicloud/pipeline/model/defaults"
 	"github.com/banzaicloud/pipeline/notify"
-	"github.com/banzaicloud/pipeline/spotguide"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -93,24 +91,6 @@ func main() {
 
 	// Initialize auth
 	auth.Init(droneDb)
-
-	var tables = []interface{}{
-		&spotguide.SpotguideRepo{},
-	}
-
-	var tableNames string
-	for _, table := range tables {
-		tableNames += fmt.Sprintf(" %s", db.NewScope(table).TableName())
-	}
-
-	logger.WithFields(logrus.Fields{
-		"table_names": strings.TrimSpace(tableNames),
-	}).Info("migrating tables")
-
-	// Create tables
-	if err := db.AutoMigrate(tables...).Error; err != nil {
-		panic(err)
-	}
 
 	err = Migrate(db, logger)
 	if err != nil {
