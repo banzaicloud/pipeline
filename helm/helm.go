@@ -18,6 +18,7 @@ import (
 	"archive/tar"
 	"bytes"
 	"compress/gzip"
+	"crypto/sha1"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -33,6 +34,7 @@ import (
 	"github.com/Masterminds/sprig"
 	helm2 "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/utils"
+	"github.com/patrickmn/go-cache"
 	"github.com/pkg/errors"
 	"github.com/spf13/cast"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -142,9 +144,15 @@ func DeleteAllDeployment(kubeconfig []byte) error {
 	return nil
 }
 
+var deploymentCache = cache.New(30*time.Minute, 5*time.Minute)
+
 //ListDeployments lists Helm deployments
 func ListDeployments(filter *string, tagFilter string, kubeConfig []byte) (*rls.ListReleasesResponse, error) {
 	hClient, err := GetHelmClient(kubeConfig)
+	if err != nil {
+		return nil, err
+	}
+
 	// TODO doc the options here
 	var sortBy = int32(2)
 	var sortOrd = int32(1)
@@ -166,9 +174,7 @@ func ListDeployments(filter *string, tagFilter string, kubeConfig []byte) (*rls.
 		log.Debug("Apply filters: ", *filter)
 		ops = append(ops, helm.ReleaseListFilter(*filter))
 	}
-	if err != nil {
-		return nil, err
-	}
+
 	resp, err := hClient.ListReleases(ops...)
 	if err != nil {
 		return nil, err
@@ -176,16 +182,35 @@ func ListDeployments(filter *string, tagFilter string, kubeConfig []byte) (*rls.
 
 	if tagFilter != "" {
 
+		clusterKey := string(sha1.New().Sum(kubeConfig))
+		releasesKey := string(sha1.New().Sum([]byte(resp.String())))
+		deploymentsKey := clusterKey + "-" + releasesKey
+
+		type releaseWithDeployment struct {
+			Deployment *helm2.GetDeploymentResponse
+			Release    *release.Release
+		}
+		var deployments []releaseWithDeployment
+
+		deploymentsRaw, ok := deploymentCache.Get(deploymentsKey)
+
+		if ok {
+			deployments = deploymentsRaw.([]releaseWithDeployment)
+		} else {
+			for _, release := range resp.Releases {
+				deployment, err := GetDeployment(release.Name, kubeConfig)
+				if err != nil {
+					return nil, err
+				}
+				deployments = append(deployments, releaseWithDeployment{Deployment: deployment, Release: release})
+			}
+			deploymentCache.Set(deploymentsKey, deployments, cache.DefaultExpiration)
+		}
+
 		filteredResp := &rls.ListReleasesResponse{}
 
-		for _, release := range resp.Releases {
-
-			deployment, err := GetDeployment(release.Name, kubeConfig)
-			if err != nil {
-				return nil, err
-			}
-
-			if banzaicloudRaw, ok := deployment.Values["banzaicloud"]; ok {
+		for _, deployment := range deployments {
+			if banzaicloudRaw, ok := deployment.Deployment.Values["banzaicloud"]; ok {
 				banzaicloudValues, err := cast.ToStringMapE(banzaicloudRaw)
 				if err != nil {
 					continue
@@ -197,7 +222,7 @@ func ListDeployments(filter *string, tagFilter string, kubeConfig []byte) (*rls.
 					}
 					for _, tag := range tags {
 						if tag == tagFilter {
-							filteredResp.Releases = append(filteredResp.Releases, release)
+							filteredResp.Releases = append(filteredResp.Releases, deployment.Release)
 							filteredResp.Count++
 							break
 						}
