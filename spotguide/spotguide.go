@@ -483,7 +483,7 @@ func addSpotguideContent(githubClient *github.Client, request *LaunchRequest, us
 	contentResponse.Commit.SHA = contentResponse.SHA
 
 	commit := &github.Commit{
-		Message: github.String("adding spotguide structure"),
+		Message: github.String("initial Banzai Cloud Pipeline commit"),
 		Parents: []github.Commit{contentResponse.Commit},
 		Tree:    tree,
 	}
