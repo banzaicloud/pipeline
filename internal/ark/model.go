@@ -30,7 +30,7 @@ const (
 	clusterBackupsTableName           = "ark_backups"
 )
 
-// Migrate executes the table migrations
+// Migrate executes the table migrations for Ark.
 func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	tables := []interface{}{
 		&ClusterBackupsModel{},
@@ -46,7 +46,7 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 
 	logger.WithFields(logrus.Fields{
 		"service":     "ark",
-		"table_names": strings.TrimLeft(tableNames, " "),
+		"table_names": strings.TrimSpace(tableNames),
 	}).Info("migrating provider tables")
 
 	return db.AutoMigrate(tables...).Error
