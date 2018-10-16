@@ -725,6 +725,32 @@ func InstallClusterAutoscalerPostHook(input interface{}) error {
 	return DeployClusterAutoscaler(cluster)
 }
 
+func metricsServerIsInstalled(cluster CommonCluster) bool {
+	kubeConfig, err := cluster.GetK8sConfig()
+	if err != nil {
+		log.Errorf("Getting cluster config failed: %s", err.Error())
+		return false
+	}
+
+	client, err := helm.GetK8sConnection(kubeConfig)
+	if err != nil {
+		log.Errorf("Getting K8s client failed: %s", err.Error())
+		return false
+	}
+
+	serverGroups, err := client.ServerGroups()
+	for _, group := range serverGroups.Groups {
+		if group.Name == "metrics.k8s.io" {
+			for _, v := range group.Versions {
+				if v.GroupVersion == "metrics.k8s.io/v1beta1" {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
 //InstallHorizontalPodAutoscalerPostHook
 func InstallHorizontalPodAutoscalerPostHook(input interface{}) error {
 	cluster, ok := input.(CommonCluster)
@@ -734,9 +760,9 @@ func InstallHorizontalPodAutoscalerPostHook(input interface{}) error {
 	infraNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
 
 	var valuesOverride []byte
-	// install metricsServer for Amazon & Azure & Alibaba & Oracle
-	switch cluster.GetCloud() {
-	case pkgCluster.Amazon, pkgCluster.Azure, pkgCluster.Alibaba, pkgCluster.Oracle:
+	// install metricsServer  only if metrics.k8s.io endpoint is not available
+	if !metricsServerIsInstalled(cluster) {
+		log.Infof("Metrics Server is not installed, installing")
 		values := map[string]map[string]string{
 			"metricsServer": {
 				"enabled": "true",
@@ -747,6 +773,8 @@ func InstallHorizontalPodAutoscalerPostHook(input interface{}) error {
 			return err
 		}
 		valuesOverride = marshalledValues
+	} else {
+		log.Infof("Metrics Server is already installed")
 	}
 
 	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/hpa-operator", "hpa-operator", valuesOverride, "InstallHorizontalPodAutoscaler", "")
@@ -1095,26 +1123,44 @@ func TaintHeadNodes(input interface{}) error {
 		return errors.Errorf("Wrong pool name: %v, configured as head node pool", headNodePoolName)
 	}
 
-	taintedNodesCount, err := taintNodepoolNodes(client, viper.GetString(pipConfig.PipelineHeadNodePoolName))
+	retryAttempts := viper.GetInt(pipConfig.HeadNodeTaintRetryAttempt)
+	retrySleepSeconds := viper.GetInt(pipConfig.HeadNodeTaintRetrySleepSeconds)
+
+	nodes, err := getHeadNodes(client, viper.GetString(pipConfig.PipelineHeadNodePoolName))
 	if err != nil {
 		return err
 	}
-	if taintedNodesCount != nodePoolDetails.Count {
-		log.Warnf("Head node pool configured size (%v) and tainted nodes count (%v) is different", nodePoolDetails.Count, taintedNodesCount)
+
+	for i := 0; i <= retryAttempts && len(nodes.Items) != nodePoolDetails.Count; i++ {
+		log.Infof("Waiting for head pool nodes: %d up out of %d, retry: %d/%d", len(nodes.Items), nodePoolDetails.Count, i, retryAttempts)
+		time.Sleep(time.Duration(retrySleepSeconds) * time.Second)
+
+		nodes, err = getHeadNodes(client, headNodePoolName)
+		if err != nil {
+			return err
+		}
 	}
-	log.Info("taint nodes finished")
+
+	err = taintNodes(client, headNodePoolName, nodes)
+	if err != nil {
+		return err
+	}
+	if len(nodes.Items) != nodePoolDetails.Count {
+		log.Errorf("Head node pool configured size (%v) and tainted nodes count (%v) is different, some head pool nodes are not come up / tainted", nodePoolDetails.Count, len(nodes.Items))
+	}
+	log.Infof("tainting %d nodes from pool: %v, finished.", len(nodes.Items), headNodePoolName)
 
 	return nil
 }
 
-func taintNodepoolNodes(client *kubernetes.Clientset, nodePoolName string) (taintedNodesCount int, err error) {
+func getHeadNodes(client *kubernetes.Clientset, nodePoolName string) (*v1.NodeList, error) {
 	selector := fmt.Sprintf("%s=%s", pkgCommon.LabelKey, nodePoolName)
-	nodes, err := client.CoreV1().Nodes().List(metav1.ListOptions{
+	return client.CoreV1().Nodes().List(metav1.ListOptions{
 		LabelSelector: selector,
 	})
-	if err != nil {
-		return taintedNodesCount, err
-	}
+}
+
+func taintNodes(client *kubernetes.Clientset, nodePoolName string, nodes *v1.NodeList) error {
 
 	for _, node := range nodes.Items {
 		if len(node.Spec.Taints) == 0 {
@@ -1130,14 +1176,14 @@ func taintNodepoolNodes(client *kubernetes.Clientset, nodePoolName string) (tain
 			Value:  nodePoolName,
 			Effect: v1.TaintEffectNoExecute,
 		})
-		_, err = client.CoreV1().Nodes().Update(&node)
+
+		_, err := client.CoreV1().Nodes().Update(&node)
 		if err != nil {
-			return
+			return err
 		}
-		taintedNodesCount++
 	}
 
-	return
+	return nil
 }
 
 // RestoreFromBackup restores an ARK backup
