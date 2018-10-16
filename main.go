@@ -96,14 +96,6 @@ func main() {
 	auth.Init(droneDb)
 
 	var tables = []interface{}{
-		&defaults.EC2Profile{},
-		&defaults.EC2NodePoolProfile{},
-		&defaults.EKSProfile{},
-		&defaults.EKSNodePoolProfile{},
-		&defaults.AKSProfile{},
-		&defaults.AKSNodePoolProfile{},
-		&defaults.GKEProfile{},
-		&defaults.GKENodePoolProfile{},
 		&route53model.Route53Domain{},
 		&spotguide.SpotguideRepo{},
 	}
