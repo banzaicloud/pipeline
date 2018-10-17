@@ -1077,6 +1077,72 @@ paths:
       tags:
       - clusters
   /api/v1/orgs/{orgId}/clusters/{id}/secrets/{secretName}:
+    patch:
+      description: Merge a particular secret with an existing one
+      operationId: MergeSecret
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Secret name as it will be seen in the cluster
+        explode: false
+        in: path
+        name: secretName
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InstallSecretRequest'
+        required: true
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InstallSecretResponse'
+          description: secret is installed into the cluster
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: invalid request
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError'
+          description: secret not found
+      security:
+      - bearerAuth: []
+      summary: Merge a particular secret with an existing one with optional remapping
+      tags:
+      - clusters
     post:
       description: Install a particular secret into a cluster
       operationId: InstallSecret
@@ -1119,25 +1185,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/InstallSecretResponse'
-          description: Secret is installed into the cluster
+          description: secret is installed into the cluster
         400:
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseError_400'
-          description: Error during getting endpoints
+          description: invalid request
         401:
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Unauthorized'
-          description: Unauthorized
+          description: unauthorized
         404:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ClusterNotFound'
-          description: Cluster not found
+                $ref: '#/components/schemas/BaseError'
+          description: secret not found
+        409:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError'
+          description: secret already exists in the cluster
       security:
       - bearerAuth: []
       summary: Install a particular secret into a cluster with optional remapping
@@ -4363,14 +4435,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AnchoreImageList'
+              $ref: '#/components/schemas/ClusterImageList'
         required: true
       responses:
         200:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ClusterImageList'
+                $ref: '#/components/schemas/AnchoreImageList'
           description: Scan Images initiated
         401:
           content:
@@ -5105,6 +5177,17 @@ components:
           type: string
         error:
           example: Invalid version
+          type: string
+      type: object
+    BaseError:
+      properties:
+        code:
+          example: 400
+          format: int32
+          type: integer
+        message:
+          type: string
+        error:
           type: string
       type: object
     BaseError_400:

@@ -14,13 +14,13 @@ Make sure all Infra deployments are setup with the following node-affinity and t
               requiredDuringSchedulingIgnoredDuringExecution:
                 nodeSelectorTerms:
                   - matchExpressions:
-                    - key: pipeline-nodepool-name
+                    - key: nodepool.banzaicloud.io/name
                       operator: In
                       values:
                       - headNodePoolName
                       
           tolerations:
-            - key: node.banzaicloud.com/nodepool
+            - key: nodepool.banzaicloud.io/name
               operator: Equal
               value: "headNodePoolName"
 ```

@@ -20,6 +20,7 @@ role = "pipeline"
 password = "sparky123"
 dbname = "pipeline"
 logging = true
+autoMigrateEnabled = false
 
 [anchore]
 enabled = false
@@ -106,6 +107,9 @@ namespace = "pipeline-system"
 # a node selector and toleration matching nodes from this node pool. Make sure all Infra deployments are setup with
 # the node-affinity and toleration as described in docs/infra-node-pool.md
 #headNodePoolName="head"
+
+headNodeTaintRetryAttempt=30
+headNodeTaintRetrySleepSeconds=5
 
 [eks]
 templateLocation="https://raw.githubusercontent.com/banzaicloud/pipeline/master/templates/eks"

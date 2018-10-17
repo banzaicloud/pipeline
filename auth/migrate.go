@@ -12,21 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package azure
+package auth
 
 import (
 	"fmt"
 	"strings"
 
-	"github.com/banzaicloud/pipeline/pkg/providers/azure"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 )
 
-// Migrate executes the table migrations for the provider.
+// Migrate executes the table migrations for the auth module.
 func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	tables := []interface{}{
-		&ObjectStoreBucketModel{},
+		&AuthIdentity{},
+		&User{},
+		&UserOrganization{},
+		&Organization{},
 	}
 
 	var tableNames string
@@ -35,9 +37,8 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	}
 
 	logger.WithFields(logrus.Fields{
-		"provider":    azure.Provider,
 		"table_names": strings.TrimSpace(tableNames),
-	}).Info("migrating provider tables")
+	}).Info("migrating auth tables")
 
 	return db.AutoMigrate(tables...).Error
 }

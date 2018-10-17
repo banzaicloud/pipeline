@@ -16,6 +16,7 @@ package google
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/banzaicloud/pipeline/pkg/providers/google"
 	"github.com/jinzhu/gorm"
@@ -38,7 +39,7 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 
 	logger.WithFields(logrus.Fields{
 		"provider":    google.Provider,
-		"table_names": tableNames,
+		"table_names": strings.TrimSpace(tableNames),
 	}).Info("migrating provider tables")
 
 	return db.AutoMigrate(tables...).Error

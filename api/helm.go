@@ -162,7 +162,7 @@ func ListDeployments(c *gin.Context) {
 	} else {
 		whitelists, err := securityClientSet.Whitelists(metav1.NamespaceAll).List(metav1.ListOptions{})
 		if err != nil {
-			log.Warnf("can not fetch WhiteList: ", err.Error())
+			log.Warnf("can not fetch WhiteList: %s", err.Error())
 		} else {
 			for _, whitelist := range whitelists.Items {
 				releaseWhitelist[whitelist.Spec.ReleaseName] = true
@@ -198,7 +198,7 @@ func ListDeployments(c *gin.Context) {
 			releases = append(releases, body)
 		}
 	} else {
-		log.Info("There is no installed charts.")
+		log.Info("There are no installed charts.")
 	}
 	c.JSON(http.StatusOK, releases)
 	return

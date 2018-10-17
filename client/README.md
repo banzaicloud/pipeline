@@ -49,6 +49,7 @@ Class | Method | HTTP request | Description
 *ClustersApi* | [**ListClusters**](docs/ClustersApi.md#listclusters) | **Get** /api/v1/orgs/{orgId}/clusters | List clusters
 *ClustersApi* | [**ListEndpoints**](docs/ClustersApi.md#listendpoints) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/endpoints | List service public endpoints
 *ClustersApi* | [**ListNodes**](docs/ClustersApi.md#listnodes) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/nodes | List cluser nodes
+*ClustersApi* | [**MergeSecret**](docs/ClustersApi.md#mergesecret) | **Patch** /api/v1/orgs/{orgId}/clusters/{id}/secrets/{secretName} | Merge a particular secret with an existing one with optional remapping
 *ClustersApi* | [**UpdateCluster**](docs/ClustersApi.md#updatecluster) | **Put** /api/v1/orgs/{orgId}/clusters/{id} | Update cluster
 *ClustersApi* | [**UpdateMonitoring**](docs/ClustersApi.md#updatemonitoring) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/monitoring | Update monitoring
 *CommonApi* | [**ListEndpoints**](docs/CommonApi.md#listendpoints) | **Get** /api | List Pipeline API endpoints
@@ -139,6 +140,7 @@ Class | Method | HTTP request | Description
  - [AzureBlobStorageProps](docs/AzureBlobStorageProps.md)
  - [AzureConfigResponse](docs/AzureConfigResponse.md)
  - [AzureConfigResponseInstanceType](docs/AzureConfigResponseInstanceType.md)
+ - [BaseError](docs/BaseError.md)
  - [BaseError400](docs/BaseError400.md)
  - [BaseError500](docs/BaseError500.md)
  - [BasePostHook](docs/BasePostHook.md)

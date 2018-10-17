@@ -53,6 +53,9 @@ const (
 	//PipelineHeadNodePoolName name of our Head node pool for Pipeline Infra deployments
 	PipelineHeadNodePoolName = "infra.headNodePoolName"
 
+	HeadNodeTaintRetryAttempt      = "infra.headNodeTaintRetryAttempt"
+	HeadNodeTaintRetrySleepSeconds = "infra.headNodeTaintRetrySleepSeconds"
+
 	// EksTemplateLocation is the configuration key the location to get EKS Cloud Formation templates from
 	// the location to get EKS Cloud Formation templates from
 	EksTemplateLocation = "eks.templateLocation"
@@ -85,6 +88,9 @@ const (
 	ARKBucketSyncInterval  = "ark.bucketSyncInterval"
 	ARKRestoreSyncInterval = "ark.restoreSyncInterval"
 	ARKBackupSyncInterval  = "ark.backupSyncInterval"
+
+	// Database
+	DBAutoMigrateEnabled = "database.autoMigrateEnabled"
 )
 
 //Init initializes the configurations
@@ -138,6 +144,7 @@ func init() {
 	viper.SetDefault("database.password", "pipemaster123!")
 	viper.SetDefault("database.dbname", "pipelinedb")
 	viper.SetDefault("database.logging", false)
+	viper.SetDefault(DBAutoMigrateEnabled, false)
 	viper.SetDefault("audit.enabled", true)
 	viper.SetDefault("audit.headers", []string{"secretId"})
 	viper.SetDefault("audit.skippaths", []string{"/auth/github/callback", "/pipeline/api"})

@@ -146,12 +146,6 @@ Resources:
     Properties:
       UserName: !Sub "${ClusterName}"
 
-  ClusterUserAccessKey:
-    Type: AWS::IAM::AccessKey
-    Properties:
-      Status: Active
-      UserName: !Ref ClusterUser
-
   ClusterRole:
     Type: AWS::IAM::Role
     Properties:
@@ -251,12 +245,3 @@ Outputs:
   ClusterUserArn:
     Description: Cluster user's ARN
     Value: !GetAtt ClusterUser.Arn
-
-  ClusterUserAccessKeyId:
-    Description: AWS Access Key Id of the cluster user
-    Value: !Ref ClusterUserAccessKey
-
-  ClusterUserSecretAccessKey:
-    Description: AWS Secret Access Key of the cluster user
-    Value: !GetAtt ClusterUserAccessKey.SecretAccessKey
-
