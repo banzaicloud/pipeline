@@ -20,6 +20,7 @@ role = "pipeline"
 password = "sparky123"
 dbname = "pipeline"
 logging = true
+autoMigrateEnabled = false
 
 [anchore]
 enabled = false

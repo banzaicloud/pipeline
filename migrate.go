@@ -15,16 +15,41 @@
 package main
 
 import (
+	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/dns/route53/model"
 	"github.com/banzaicloud/pipeline/internal/ark"
 	"github.com/banzaicloud/pipeline/internal/audit"
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/providers"
+	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/model/defaults"
+	"github.com/banzaicloud/pipeline/spotguide"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 )
 
 // Migrate runs migrations for the application.
 func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
+	if err := model.Migrate(db, logger); err != nil {
+		return err
+	}
+
+	if err := auth.Migrate(db, logger); err != nil {
+		return err
+	}
+
+	if err := defaults.Migrate(db, logger); err != nil {
+		return err
+	}
+
+	if err := route53model.Migrate(db, logger); err != nil {
+		return err
+	}
+
+	if err := spotguide.Migrate(db, logger); err != nil {
+		return err
+	}
+
 	if err := audit.Migrate(db, logger); err != nil {
 		return err
 	}

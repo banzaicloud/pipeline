@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"strings"
 
 	"github.com/banzaicloud/go-gin-prometheus"
 	"github.com/banzaicloud/pipeline/api"
@@ -31,7 +30,6 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
-	"github.com/banzaicloud/pipeline/dns/route53/model"
 	arkSync "github.com/banzaicloud/pipeline/internal/ark/sync"
 	"github.com/banzaicloud/pipeline/internal/audit"
 	"github.com/banzaicloud/pipeline/internal/dashboard"
@@ -39,10 +37,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	ginlog "github.com/banzaicloud/pipeline/internal/platform/gin/log"
 	platformlog "github.com/banzaicloud/pipeline/internal/platform/log"
-	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/model/defaults"
 	"github.com/banzaicloud/pipeline/notify"
-	"github.com/banzaicloud/pipeline/spotguide"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -96,49 +92,13 @@ func main() {
 	// Initialize auth
 	auth.Init(droneDb)
 
-	var tables = []interface{}{&model.ClusterModel{},
-		&model.ACSKClusterModel{},
-		&model.ACSKNodePoolModel{},
-		&model.AmazonNodePoolsModel{},
-		&model.EC2ClusterModel{},
-		&model.EKSClusterModel{},
-		&model.AKSClusterModel{},
-		&model.AKSNodePoolModel{},
-		&model.DummyClusterModel{},
-		&model.KubernetesClusterModel{},
-		&auth.AuthIdentity{},
-		&auth.User{},
-		&auth.UserOrganization{},
-		&auth.Organization{},
-		&defaults.EC2Profile{},
-		&defaults.EC2NodePoolProfile{},
-		&defaults.EKSProfile{},
-		&defaults.EKSNodePoolProfile{},
-		&defaults.AKSProfile{},
-		&defaults.AKSNodePoolProfile{},
-		&defaults.GKEProfile{},
-		&defaults.GKENodePoolProfile{},
-		&route53model.Route53Domain{},
-		&spotguide.SpotguideRepo{},
-	}
+	if viper.GetBool(config.DBAutoMigrateEnabled) {
+		log.Info("running automatic schema migrations")
 
-	var tableNames string
-	for _, table := range tables {
-		tableNames += fmt.Sprintf(" %s", db.NewScope(table).TableName())
-	}
-
-	logger.WithFields(logrus.Fields{
-		"table_names": strings.TrimSpace(tableNames),
-	}).Info("migrating tables")
-
-	// Create tables
-	if err := db.AutoMigrate(tables...).Error; err != nil {
-		panic(err)
-	}
-
-	err = Migrate(db, logger)
-	if err != nil {
-		panic(err)
+		err = Migrate(db, logger)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	err = defaults.SetDefaultValues()
