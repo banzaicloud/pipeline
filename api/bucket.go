@@ -45,13 +45,7 @@ const (
 	// header key constants
 	secretNameHeader = "secretName"
 	secretIdHeader   = "secretId"
-
-	BucketCreating = "CREATING"
-	BucketCreated  = "CREATED"
-	BucketDeleting = "DELETING"
-	BucketDeleted  = "DELETED"
-	BucketInError  = "ERROR"
-)
+	)
 
 // secretData secret representation
 type secretData struct {

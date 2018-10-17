@@ -21,7 +21,6 @@ import (
 	"strings"
 
 	"cloud.google.com/go/storage"
-	"github.com/banzaicloud/pipeline/api"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/objectstore"
 	"github.com/banzaicloud/pipeline/pkg/providers"
@@ -121,7 +120,7 @@ func (s *ObjectStore) CreateBucket(bucketName string) error {
 	bucket.Organization = *s.org
 	bucket.Location = s.location
 	bucket.SecretRef = s.secret.ID
-	bucket.Status = api.BucketCreating
+	bucket.Status = providers.BucketCreating
 
 	logger.Info("saving bucket in DB")
 
@@ -136,19 +135,19 @@ func (s *ObjectStore) CreateBucket(bucketName string) error {
 		RequesterPays: false,
 	}
 
-	if err := bucketHandle.Create(ctx, s.serviceAccount.ProjectId, bucketAttrs); err != nil {
-		bucket.Status = api.BucketInError
-	} else {
-		bucket.Status = api.BucketCreated
+	if err = bucketHandle.Create(ctx, s.serviceAccount.ProjectId, bucketAttrs); err != nil {
+		bucket.Status = providers.BucketCreateError
+		if e := s.db.Save(bucket).Error; e != nil {
+			logger.Error(e.Error())
+		}
+
+		return errors.Wrap(err, "failed to create bucket ")
 	}
 
-	// finalizing the bucket creation
-	e := s.db.Save(bucket).Error
-	if e != nil {
+	bucket.Status = providers.BucketCreated
+	if e := s.db.Save(bucket).Error; e != nil {
 		logger.Error(e.Error())
 	}
-
-	return errors.Wrap(err, "failed to create bucket ")
 
 	logger.Infof("bucket created")
 
@@ -171,10 +170,17 @@ func (s *ObjectStore) DeleteBucket(bucketName string) error {
 		}
 	}
 
+	bucket.Status = providers.BucketDeleting
+	db := s.db.Save(bucket)
+	if db.Error != nil {
+		return fmt.Errorf("could not delete bucket: %s", bucketName)
+	}
+
 	logger.Info("getting credentials")
 	credentials, err := s.newGoogleCredentials()
 
 	if err != nil {
+		s.deleteFailed(bucket)
 		return fmt.Errorf("getting credentials failed: %s", err.Error())
 	}
 
@@ -184,6 +190,8 @@ func (s *ObjectStore) DeleteBucket(bucketName string) error {
 
 	client, err := storage.NewClient(ctx, option.WithCredentials(credentials))
 	if err != nil {
+		s.deleteFailed(bucket)
+
 		return fmt.Errorf("failed to create client: %s", err.Error())
 	}
 	defer client.Close()
@@ -193,11 +201,17 @@ func (s *ObjectStore) DeleteBucket(bucketName string) error {
 	bucketHandle := client.Bucket(bucketName)
 
 	if err := bucketHandle.Delete(ctx); err != nil {
+		// delete failed on the provider
+		s.deleteFailed(bucket)
+
 		return err
 	}
 
 	err = s.db.Delete(bucket).Error
 	if err != nil {
+		// delete failed in the dbs
+		s.deleteFailed(bucket)
+
 		return fmt.Errorf("deleting bucket failed: %s", err.Error())
 	}
 
@@ -358,4 +372,13 @@ func (s *ObjectStore) searchCriteria(bucketName string) *ObjectStoreBucketModel 
 		OrganizationID: s.org.ID,
 		Name:           bucketName,
 	}
+}
+
+func (s *ObjectStore) deleteFailed(bucket *ObjectStoreBucketModel) error {
+	bucket.Status = providers.BucketDeleteError
+	db := s.db.Save(bucket)
+	if db.Error != nil {
+		return fmt.Errorf("could not delete bucket: %s", bucket.Name)
+	}
+	return nil
 }
