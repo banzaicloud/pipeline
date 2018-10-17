@@ -4435,14 +4435,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AnchoreImageList'
+              $ref: '#/components/schemas/ClusterImageList'
         required: true
       responses:
         200:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ClusterImageList'
+                $ref: '#/components/schemas/AnchoreImageList'
           description: Scan Images initiated
         401:
           content:

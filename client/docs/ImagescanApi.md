@@ -70,7 +70,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ScanImages**
-> ClusterImageList ScanImages(ctx, orgId, id, anchoreImage)
+> AnchoreImageList ScanImages(ctx, orgId, id, clusterImage)
 Scan Images used in cluster
 
 Scan Images used in cluster
@@ -82,11 +82,11 @@ Name | Type | Description  | Notes
  **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **orgId** | **int32**| Organization identification | 
   **id** | **int32**| Selected cluster identification (number) | 
-  **anchoreImage** | [**[]AnchoreImage**](array.md)|  | 
+  **clusterImage** | [**[]ClusterImage**](array.md)|  | 
 
 ### Return type
 
-[**ClusterImageList**](ClusterImageList.md)
+[**AnchoreImageList**](AnchoreImageList.md)
 
 ### Authorization
 
