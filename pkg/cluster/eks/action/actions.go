@@ -31,8 +31,10 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/pkg/amazon"
+	"github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgEks "github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	"github.com/banzaicloud/pipeline/pkg/common"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/pkg/errors"
@@ -804,8 +806,8 @@ func GetClusterUserAccessKeyIdAndSecretVault(organizationID uint, userName strin
 	if err != nil {
 		return "", "", errors.Wrapf(err, "retrieving secret with name '%s' from Vault failed", secretName)
 	}
-	clusterUserAccessKeyId := secretItem.GetValue("accessKeyId")
-	clusterUserSecretAccessKey := secretItem.GetValue("secretAccessKey")
+	clusterUserAccessKeyId := secretItem.GetValue(pkgSecret.AwsAccessKeyId)
+	clusterUserSecretAccessKey := secretItem.GetValue(pkgSecret.AwsSecretAccessKey)
 
 	return clusterUserAccessKeyId, clusterUserSecretAccessKey, nil
 }
@@ -817,13 +819,14 @@ func (a *PersistClusterUserAccessKeyAction) ExecuteAction(input interface{}) (ou
 	secretName := getSecretName(a.context.ClusterName)
 	secretRequest := secret.CreateSecretRequest{
 		Name: secretName,
-		Type: "eksClusterUserAccessKey",
+		Type: cluster.Amazon,
 		Values: map[string]string{
-			"accessKeyId":     a.context.ClusterUserAccessKeyId,
-			"secretAccessKey": a.context.ClusterUserSecretAccessKey,
+			pkgSecret.AwsAccessKeyId:     a.context.ClusterUserAccessKeyId,
+			pkgSecret.AwsSecretAccessKey: a.context.ClusterUserSecretAccessKey,
 		},
 		Tags: []string{
 			fmt.Sprintf("eksClusterUserAccessKey:%s", a.context.ClusterName),
+			pkgSecret.TagBanzaiHidden,
 		},
 	}
 
