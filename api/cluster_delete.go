@@ -18,13 +18,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/banzaicloud/pipeline/cluster"
-	"github.com/banzaicloud/pipeline/config"
-	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	"github.com/banzaicloud/pipeline/internal/security"
-	"github.com/banzaicloud/pipeline/pkg/providers"
-	"github.com/banzaicloud/pipeline/secret"
 	"github.com/gin-gonic/gin"
 )
 
@@ -37,7 +32,7 @@ type DeleteClusterResponse struct {
 }
 
 // DeleteCluster deletes a K8S cluster from the cloud
-func DeleteCluster(c *gin.Context) {
+func (a *ClusterAPI) DeleteCluster(c *gin.Context) {
 	commonCluster, ok := getClusterFromRequest(c)
 	if ok != true {
 		return
@@ -48,14 +43,9 @@ func DeleteCluster(c *gin.Context) {
 	// DeleteCluster deletes the underlying model, so we get this data here
 	clusterID, clusterName := commonCluster.GetID(), commonCluster.GetName()
 
-	// TODO: move these to a struct and create them only once upon application init
-	clusters := intCluster.NewClusters(config.DB())
-	secretValidator := providers.NewSecretValidator(secret.Store)
-	clusterManager := cluster.NewManager(clusters, secretValidator, log, errorHandler)
-
 	ctx := ginutils.Context(c.Request.Context(), c)
 
-	clusterManager.DeleteCluster(ctx, commonCluster, force, &kubeProxyCache)
+	a.clusterManager.DeleteCluster(ctx, commonCluster, force, &kubeProxyCache)
 
 	anchore.RemoveAnchoreUser(commonCluster.GetOrganizationId(), commonCluster.GetUID())
 

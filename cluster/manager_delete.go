@@ -188,14 +188,6 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 		logger.Errorf("error during deleting cluster from the database: %s", err.Error())
 	}
 
-	// Asyncron update prometheus
-	go func() {
-		err := UpdatePrometheusConfig()
-		if err != nil {
-			logger.Warnf("could not update prometheus configmap: %v", err)
-		}
-	}()
-
 	// clean statestore
 	logger.Info("cleaning cluster's statestore folder")
 	if err := CleanStateStore(deleteName); err != nil {
@@ -205,6 +197,8 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 	logger.Info("cluster's statestore folder cleaned")
 
 	logger.Info("cluster deleted successfully")
+
+	m.events.ClusterDeleted(cluster.GetID())
 
 	return nil
 }

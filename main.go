@@ -28,10 +28,12 @@ import (
 	"github.com/banzaicloud/pipeline/api/ark/restores"
 	"github.com/banzaicloud/pipeline/api/ark/schedules"
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
 	arkSync "github.com/banzaicloud/pipeline/internal/ark/sync"
 	"github.com/banzaicloud/pipeline/internal/audit"
+	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/dashboard"
 	ginternal "github.com/banzaicloud/pipeline/internal/platform/gin"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
@@ -39,6 +41,8 @@ import (
 	platformlog "github.com/banzaicloud/pipeline/internal/platform/log"
 	"github.com/banzaicloud/pipeline/model/defaults"
 	"github.com/banzaicloud/pipeline/notify"
+	"github.com/banzaicloud/pipeline/pkg/providers"
+	"github.com/banzaicloud/pipeline/secret"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -117,6 +121,12 @@ func main() {
 		log.Infoln("External dns service functionality is not enabled")
 	}
 
+	clusters := intCluster.NewClusters(db)
+	secretValidator := providers.NewSecretValidator(secret.Store)
+	clusterManager := cluster.NewManager(clusters, secretValidator, cluster.NewNopClusterEvents(), log, errorHandler)
+
+	clusterAPI := api.NewClusterAPI(clusterManager, log, errorHandler)
+
 	//Initialise Gin router
 	router := gin.New()
 
@@ -171,19 +181,19 @@ func main() {
 			orgs.GET("/:orgid/spotguides/*name", api.GetSpotguide)
 			orgs.HEAD("/:orgid/spotguides/*name", api.GetSpotguide)
 
-			orgs.POST("/:orgid/clusters", api.CreateClusterRequest)
+			orgs.POST("/:orgid/clusters", clusterAPI.CreateClusterRequest)
 			//v1.GET("/status", api.Status)
-			orgs.GET("/:orgid/clusters", api.GetClusters)
+			orgs.GET("/:orgid/clusters", clusterAPI.GetClusters)
 			orgs.GET("/:orgid/clusters/:id", api.GetClusterStatus)
 			orgs.GET("/:orgid/clusters/:id/details", api.GetClusterDetails)
 			orgs.GET("/:orgid/clusters/:id/pods", api.GetPodDetails)
-			orgs.PUT("/:orgid/clusters/:id", api.UpdateCluster)
+			orgs.PUT("/:orgid/clusters/:id", clusterAPI.UpdateCluster)
 			orgs.PUT("/:orgid/clusters/:id/posthooks", api.ReRunPostHooks)
 			orgs.POST("/:orgid/clusters/:id/secrets", api.InstallSecretsToCluster)
 			orgs.POST("/:orgid/clusters/:id/secrets/:secretName", api.InstallSecretToCluster)
 			orgs.PATCH("/:orgid/clusters/:id/secrets/:secretName", api.MergeSecretInCluster)
 			orgs.Any("/:orgid/clusters/:id/proxy/*path", api.ProxyToCluster)
-			orgs.DELETE("/:orgid/clusters/:id", api.DeleteCluster)
+			orgs.DELETE("/:orgid/clusters/:id", clusterAPI.DeleteCluster)
 			orgs.HEAD("/:orgid/clusters/:id", api.ClusterHEAD)
 			orgs.GET("/:orgid/clusters/:id/config", api.GetClusterConfig)
 			orgs.GET("/:orgid/clusters/:id/apiendpoint", api.GetApiEndpoint)
@@ -283,6 +293,7 @@ func main() {
 		go arkSync.RunSyncServices(
 			context.Background(),
 			config.DB(),
+			clusterManager,
 			platformlog.NewLogger(platformlog.Config{
 				Level:  viper.GetString(config.ARKLogLevel),
 				Format: viper.GetString(config.LoggingLogFormat),

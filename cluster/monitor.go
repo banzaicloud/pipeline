@@ -60,7 +60,7 @@ func UpdatePrometheusConfig() error {
 
 	// TODO: move these to a struct and create them only once upon application init
 	secretValidator := providers.NewSecretValidator(secret.Store)
-	clusterManager := NewManager(intCluster.NewClusters(pipConfig.DB()), secretValidator, log, errorHandler)
+	clusterManager := NewManager(intCluster.NewClusters(pipConfig.DB()), secretValidator, NewNopClusterEvents(), log, errorHandler)
 
 	clusters, err := clusterManager.GetAllClusters(context.Background())
 	if err != nil {
