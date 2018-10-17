@@ -255,17 +255,17 @@ Scan Images used in cluster
  * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param orgId Organization identification
  * @param id Selected cluster identification (number)
- * @param anchoreImage
-@return ClusterImageList
+ * @param clusterImage
+@return AnchoreImageList
 */
-func (a *ImagescanApiService) ScanImages(ctx context.Context, orgId int32, id int32, anchoreImage []AnchoreImage) (ClusterImageList, *http.Response, error) {
+func (a *ImagescanApiService) ScanImages(ctx context.Context, orgId int32, id int32, clusterImage []ClusterImage) (AnchoreImageList, *http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Post")
 		localVarPostBody     interface{}
 		localVarFormFileName string
 		localVarFileName     string
 		localVarFileBytes    []byte
-		localVarReturnValue  ClusterImageList
+		localVarReturnValue  AnchoreImageList
 	)
 
 	// create path and map variables
@@ -295,7 +295,7 @@ func (a *ImagescanApiService) ScanImages(ctx context.Context, orgId int32, id in
 		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
 	}
 	// body params
-	localVarPostBody = &anchoreImage
+	localVarPostBody = &clusterImage
 	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFormFileName, localVarFileName, localVarFileBytes)
 	if err != nil {
 		return localVarReturnValue, nil, err
@@ -326,7 +326,7 @@ func (a *ImagescanApiService) ScanImages(ctx context.Context, orgId int32, id in
 			error: localVarHttpResponse.Status,
 		}
 		if localVarHttpResponse.StatusCode == 200 {
-			var v ClusterImageList
+			var v AnchoreImageList
 			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
 			if err != nil {
 				newErr.error = err.Error()

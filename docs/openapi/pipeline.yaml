@@ -3986,14 +3986,14 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/AnchoreImageList'
+                            $ref: '#/components/schemas/ClusterImageList'
             responses:
                 '200':
                     description: "Scan Images initiated"
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/ClusterImageList'
+                                $ref: '#/components/schemas/AnchoreImageList'
                 '401':
                     description: Unauthorized
                     content:
