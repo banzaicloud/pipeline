@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	"cloud.google.com/go/storage"
+	"github.com/banzaicloud/pipeline/api"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/objectstore"
 	"github.com/banzaicloud/pipeline/pkg/providers"
@@ -120,6 +121,7 @@ func (s *ObjectStore) CreateBucket(bucketName string) error {
 	bucket.Organization = *s.org
 	bucket.Location = s.location
 	bucket.SecretRef = s.secret.ID
+	bucket.Status = api.BucketCreating
 
 	logger.Info("saving bucket in DB")
 
@@ -135,13 +137,18 @@ func (s *ObjectStore) CreateBucket(bucketName string) error {
 	}
 
 	if err := bucketHandle.Create(ctx, s.serviceAccount.ProjectId, bucketAttrs); err != nil {
-		e := s.db.Delete(bucket).Error
-		if e != nil {
-			logger.Error(e.Error())
-		}
-
-		return errors.Wrap(err, "failed to create bucket (rolling back)")
+		bucket.Status = api.BucketInError
+	} else {
+		bucket.Status = api.BucketCreated
 	}
+
+	// finalizing the bucket creation
+	e := s.db.Save(bucket).Error
+	if e != nil {
+		logger.Error(e.Error())
+	}
+
+	return errors.Wrap(err, "failed to create bucket ")
 
 	logger.Infof("bucket created")
 
