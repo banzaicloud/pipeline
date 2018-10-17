@@ -82,6 +82,15 @@ jobs:
                       VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
 
             - run:
+                  name: Run pipeline integration tests
+                  command: |
+                      make config/config.toml
+                      PIPELINE_CONFIG_DIR=$PWD/config make GOARGS="-tags integration" test
+                  environment:
+                      VAULT_ADDR: http://localhost:8200
+                      VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
+
+            - run:
                   name: Generate test reports
                   command: make junit-report
                   when: always
