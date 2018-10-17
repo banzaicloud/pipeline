@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"net/http"
 	"path"
-
 	"strings"
 
 	"github.com/banzaicloud/anchore-image-validator/pkg/apis/security/v1alpha1"
@@ -32,6 +31,7 @@ import (
 	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
+	"regexp"
 )
 
 func init() {
@@ -387,6 +387,19 @@ func DeletePolicy(c *gin.Context) {
 func GetImageDeployments(c *gin.Context) {
 	imageDigest := c.Param("imageDigest")
 	releaseMap := make(map[string]bool)
+
+	re := regexp.MustCompile("^docker-pullable://.*@sha256:[a-f0-9]{64}$")
+	if !re.MatchString(imageDigest) {
+		err := fmt.Errorf("Invalid imageID format: %s", imageDigest)
+		log.Error(err)
+		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error getting K8s config",
+			Error:   err.Error(),
+		})
+		return
+	}
+
 	kubeConfig, ok := GetK8sConfig(c)
 	if !ok {
 		return
@@ -413,9 +426,9 @@ func GetImageDeployments(c *gin.Context) {
 		return
 	}
 	// Example status
-	//   - containerID: docker://08054c2cbf7ac842c1dc93929fa1b7a07e28641433fa21790c44408e2f897584
-	//    image: banzaicloud/pipeline:debug
-	//    imageID: docker://sha256:0e61330d23a5fd32dbf56c47808abc0a960248b4415746dfd5540b455384a6a0
+	//	- containerID: docker://a8130dc313a40b0eb9151685ba41f84cd0e4bb7e2888c52691590ff8a22a2e6b
+	//	image: banzaicloud/pipeline:0.4.0-dev29
+	//	imageID: docker-pullable://banzaicloud/pipeline@sha256:5042ef1a5415dae8330583448584be2bb592053416b7db5fc41389a717cc52ab
 	for _, p := range pods {
 		for _, status := range p.Status.ContainerStatuses {
 			if getImageDigest(status.ImageID) == imageDigest {
@@ -436,6 +449,7 @@ func GetImageDeployments(c *gin.Context) {
 }
 
 func getImageDigest(imageID string) string {
+
 	image := strings.Split(imageID, "@")
 	imageSHA := strings.Split(image[1], ":")
 	return imageSHA[1]
