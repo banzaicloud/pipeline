@@ -91,9 +91,16 @@ func (s *ObjectStore) CreateBucket(bucketName string) error {
 	bucket := &ObjectStoreBucketModel{}
 	searchCriteria := s.searchCriteria(bucketName)
 
-	if err := s.db.Where(searchCriteria).Find(bucket).Error; err != nil {
-		if err != gorm.ErrRecordNotFound {
-			return errors.Wrap(err, "error happened during getting bucket from DB")
+	// lookup the bucket in the db
+	res := s.db.Where(searchCriteria).Find(bucket)
+
+	if res.Error == nil {
+		return fmt.Errorf("bucket already exists: %s", bucketName)
+	}
+
+	if res.Error != nil {
+		if res.Error != gorm.ErrRecordNotFound {
+			return errors.Wrap(res.Error, "error happened during getting bucket from DB")
 		}
 	}
 
@@ -344,6 +351,7 @@ func (s *ObjectStore) ListManagedBuckets() ([]*objectstore.BucketInfo, error) {
 		bucketInfo.Location = bucket.Location
 		bucketInfo.SecretRef = bucket.SecretRef
 		bucketInfo.Cloud = providers.Google
+		bucketInfo.Status = bucket.Status
 		bucketList = append(bucketList, bucketInfo)
 	}
 

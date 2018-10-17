@@ -45,7 +45,7 @@ const (
 	// header key constants
 	secretNameHeader = "secretName"
 	secretIdHeader   = "secretId"
-	)
+)
 
 // secretData secret representation
 type secretData struct {
@@ -63,6 +63,7 @@ type BucketResponseItem struct {
 	Notes      *string                               `json:"notes,omitempty"`
 	SecretInfo *secretData                           `json:"secret"`
 	Azure      *objectstore.BlobStoragePropsForAzure `json:"aks,omitempty"`
+	Status     string                                `json:"status"`
 }
 
 // ListAllBuckets handles 	bucket list requests. The handler method directs the flow to the appropriate retrieval
@@ -688,5 +689,53 @@ func bucketsResponse(buckets []*objectstore.BucketInfo, orgid uint, withSecretNa
 	}
 
 	return bucketItems
+
+}
+
+func GetBucket(c *gin.Context) {
+
+	logger := correlationid.Logger(log, c)
+	organization := auth.GetCurrentOrganization(c.Request)
+	bucketName := c.Param("name")
+	provider, ok := ginutils.RequiredQueryOrAbort(c, "cloudType")
+	if !ok {
+		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(fmt.Errorf("no cloudType specified in query")))
+	}
+
+	objectStoreCtx := &providers.ObjectStoreContext{
+		Provider:     provider,
+		Organization: organization,
+	}
+
+	objectStore, err := providers.NewObjectStore(objectStoreCtx, logger)
+	if err != nil {
+		errorHandler.Handle(err)
+		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
+
+		return
+	}
+
+	bucketList, err := objectStore.ListManagedBuckets()
+
+	if err != nil {
+		errorHandler.Handle(err)
+		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
+
+		return
+	}
+
+	for _, bucket := range bucketList {
+		if bucket.Name == bucketName {
+			c.JSON(http.StatusOK, BucketResponseItem{
+				Name:    bucket.Name,
+				Managed: bucket.Managed,
+				Cloud:   bucket.Cloud,
+				Status:  bucket.Status,
+			})
+			return
+		}
+	}
+
+	ginutils.ReplyWithErrorResponse(c, errorResponseFrom(fmt.Errorf("bucket with name: %s not found", bucketName)))
 
 }
