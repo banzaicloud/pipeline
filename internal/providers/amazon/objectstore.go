@@ -127,10 +127,14 @@ func (s *objectStore) CreateBucket(bucketName string) error {
 	bucket := &ObjectStoreBucketModel{}
 	searchCriteria := s.searchCriteria(bucketName)
 
-	if err := s.db.Where(searchCriteria).Find(bucket).Error; err != nil {
-		if err != gorm.ErrRecordNotFound {
-			return errors.Wrap(err, "error happened during getting bucket from DB")
+	dbr := s.db.Where(searchCriteria).Find(bucket)
+
+	if dbr.Error != nil {
+		if dbr.Error != gorm.ErrRecordNotFound {
+			return errors.Wrap(dbr.Error, "error happened during getting bucket from DB")
 		}
+	} else {
+		return fmt.Errorf("bucket with name %s already exists", bucketName)
 	}
 
 	bucket.Name = bucketName
@@ -138,6 +142,7 @@ func (s *objectStore) CreateBucket(bucketName string) error {
 	bucket.Region = s.region
 
 	bucket.SecretRef = s.secret.ID
+	bucket.Status = providers.BucketCreating
 
 	if err := s.db.Save(bucket).Error; err != nil {
 		return errors.Wrap(err, "error happened during saving bucket in DB")
@@ -146,14 +151,21 @@ func (s *objectStore) CreateBucket(bucketName string) error {
 	logger.Info("creating bucket")
 
 	if err := s.objectStore.CreateBucket(bucketName); err != nil {
-		e := s.db.Delete(bucket).Error
+		bucket.Status = providers.BucketCreateError
+		e := s.db.Save(bucket).Error
 		if e != nil {
 			logger.Error(e.Error())
 		}
 
-		return errors.Wrap(err, "could not create bucket (rolling back)")
+		return errors.Wrap(err, "could not create bucket")
 	}
 
+	bucket.Status = providers.BucketCreated
+	e := s.db.Save(bucket).Error
+	if e != nil {
+		logger.Error(e.Error())
+		return errors.Wrap(e, "could not create bucket")
+	}
 	logger.Info("bucket created")
 
 	return nil
@@ -176,17 +188,34 @@ func (s *objectStore) DeleteBucket(bucketName string) error {
 	}
 
 	logger.Info("deleting bucket")
-
-	objectStore, err := getProviderObjectStore(s.secret, bucket.Region)
+	bucket.Status = providers.BucketDeleting
+	err := s.db.Save(bucket).Error
 	if err != nil {
 		return errors.Wrap(err, "could not create AWS object storage client")
 	}
 
+	objectStore, err := getProviderObjectStore(s.secret, bucket.Region)
+	if err != nil {
+		bucket.Status = providers.BucketDeleteError
+		err := s.db.Save(bucket).Error
+		if err != nil {
+			return errors.Wrap(err, "could not create AWS object storage client")
+		}
+
+		return errors.Wrap(err, "could not create AWS object storage client")
+	}
+
 	if err := objectStore.DeleteBucket(bucketName); err != nil {
+		bucket.Status = providers.BucketDeleteError
+		err := s.db.Save(bucket).Error
+
 		return err
 	}
 
 	if err := s.db.Delete(bucket).Error; err != nil {
+		bucket.Status = providers.BucketDeleteError
+		err := s.db.Save(bucket).Error
+
 		return errors.Wrap(err, "deleting bucket from database failed")
 	}
 
@@ -269,6 +298,7 @@ func (s *objectStore) ListManagedBuckets() ([]*objectstore.BucketInfo, error) {
 		bucketInfo.Location = bucket.Region
 		bucketInfo.SecretRef = bucket.SecretRef
 		bucketInfo.Cloud = providers.Amazon
+		bucketInfo.Status = bucket.Status
 		bucketList = append(bucketList, bucketInfo)
 	}
 
