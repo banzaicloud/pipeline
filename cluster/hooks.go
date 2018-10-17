@@ -760,21 +760,24 @@ func InstallHorizontalPodAutoscalerPostHook(input interface{}) error {
 	infraNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
 
 	var valuesOverride []byte
-	// install metricsServer  only if metrics.k8s.io endpoint is not available
-	if !metricsServerIsInstalled(cluster) {
-		log.Infof("Metrics Server is not installed, installing")
-		values := map[string]map[string]string{
-			"metricsServer": {
-				"enabled": "true",
-			},
+	// install metricsServer for Amazon & Azure & Alibaba & Oracle only if metrics.k8s.io endpoint is not available already
+	switch cluster.GetCloud() {
+	case pkgCluster.Amazon, pkgCluster.Azure, pkgCluster.Alibaba, pkgCluster.Oracle:
+		if !metricsServerIsInstalled(cluster) {
+			log.Infof("Metrics Server is not installed, installing")
+			values := map[string]map[string]interface{}{
+				"metricsServer": {
+					"enabled": true,
+				},
+			}
+			marshalledValues, err := yaml.Marshal(values)
+			if err != nil {
+				return err
+			}
+			valuesOverride = marshalledValues
+		} else {
+			log.Infof("Metrics Server is already installed")
 		}
-		marshalledValues, err := yaml.Marshal(values)
-		if err != nil {
-			return err
-		}
-		valuesOverride = marshalledValues
-	} else {
-		log.Infof("Metrics Server is already installed")
 	}
 
 	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/hpa-operator", "hpa-operator", valuesOverride, "InstallHorizontalPodAutoscaler", "")
@@ -1163,21 +1166,25 @@ func getHeadNodes(client *kubernetes.Clientset, nodePoolName string) (*v1.NodeLi
 func taintNodes(client *kubernetes.Clientset, nodePoolName string, nodes *v1.NodeList) error {
 
 	for _, node := range nodes.Items {
-		if len(node.Spec.Taints) == 0 {
-			node.Spec.Taints = make([]v1.Taint, 0)
-		}
-		node.Spec.Taints = append(node.Spec.Taints, v1.Taint{
+		taints := make([]v1.Taint, 0)
+		taints = append(taints, v1.Taint{
 			Key:    pkgCommon.HeadNodeTaintKey,
 			Value:  nodePoolName,
 			Effect: v1.TaintEffectNoSchedule,
 		})
-		node.Spec.Taints = append(node.Spec.Taints, v1.Taint{
+		taints = append(taints, v1.Taint{
 			Key:    pkgCommon.HeadNodeTaintKey,
 			Value:  nodePoolName,
 			Effect: v1.TaintEffectNoExecute,
 		})
 
-		_, err := client.CoreV1().Nodes().Update(&node)
+		marshalledTaints, err := json.Marshal(taints)
+		if err != nil {
+			return err
+		}
+
+		patch := fmt.Sprintf(`{"spec":{"taints":%v}}`, string(marshalledTaints))
+		_, err = client.CoreV1().Nodes().Patch(node.Name, types.MergePatchType, []byte(patch))
 		if err != nil {
 			return err
 		}
