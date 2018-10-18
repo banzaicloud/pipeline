@@ -137,7 +137,7 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 		err = helm.DeleteAllDeployment(c)
 		if err != nil {
 			if force {
-				logger.Errorf("deleting all deployments failed: %s", err.Error())
+				logger.Errorln("deleting deployments failed: ", err.Error())
 			} else {
 				return emperror.Wrap(err, "deleting deployments failed")
 			}
@@ -146,7 +146,7 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 		err = deleteAllResource(c, logger)
 		if err != nil {
 			if force {
-				logger.Errorf("deleting resources failed: %s", err.Error())
+				logger.Errorln("deleting resources failed: ", err.Error())
 			} else {
 				return emperror.Wrap(err, "deleting resources failed")
 			}
