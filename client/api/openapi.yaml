@@ -7364,6 +7364,7 @@ components:
         secret:
           name: mysecretname
           id: cc051aeaf686444e2f125d0e79eb051aaaf4fb73384f7b0f8c89e84a0502dca1
+        statusMessage: statusMessage
         azure:
           resourceGroup: resourceGroup
           storageAccount: storageAccount
@@ -7392,6 +7393,9 @@ components:
           - ERROR_CREATE
           - DELETING
           - ERROR_DELETE
+          type: string
+        statusMessage:
+          description: the reason for the error status
           type: string
       required:
       - cloud

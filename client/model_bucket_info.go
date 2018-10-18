@@ -22,4 +22,6 @@ type BucketInfo struct {
 	Azure  AzureBlobStorageProps `json:"azure,omitempty"`
 	// the status of the bucket
 	Status string `json:"status"`
+	// the reason for the error status
+	StatusMessage string `json:"statusMessage,omitempty"`
 }
