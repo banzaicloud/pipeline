@@ -55,7 +55,7 @@ Please set the `clientid` and the `clientsecret` in the auth section, with the G
 
 The development environment uses Docker Compose to create an isolated area for Pipeline.
 
-You can easily start it my executing: 
+You can easily start it by executing: 
 
 ```bash
 $ make start
