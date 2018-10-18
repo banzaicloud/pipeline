@@ -1144,7 +1144,7 @@ func TaintHeadNodes(input interface{}) error {
 		}
 	}
 
-	err = taintNodes(client, headNodePoolName, nodes)
+	err = taintNodes(commonCluster, client, headNodePoolName, nodes)
 	if err != nil {
 		return err
 	}
@@ -1163,20 +1163,31 @@ func getHeadNodes(client *kubernetes.Clientset, nodePoolName string) (*v1.NodeLi
 	})
 }
 
-func taintNodes(client *kubernetes.Clientset, nodePoolName string, nodes *v1.NodeList) error {
+func taintNodes(commonCluster CommonCluster, client *kubernetes.Clientset, nodePoolName string, nodes *v1.NodeList) error {
 
 	for _, node := range nodes.Items {
 		taints := make([]v1.Taint, 0)
-		taints = append(taints, v1.Taint{
-			Key:    pkgCommon.HeadNodeTaintKey,
-			Value:  nodePoolName,
-			Effect: v1.TaintEffectNoSchedule,
-		})
-		taints = append(taints, v1.Taint{
-			Key:    pkgCommon.HeadNodeTaintKey,
-			Value:  nodePoolName,
-			Effect: v1.TaintEffectNoExecute,
-		})
+		// in case of Azure if we go with TaintEffectNoSchedule & TaintEffectNoExecute
+		// kube-proxy & kube-svc-redirect are not deployed on head nodes, until this issue will be fixed
+		// https://github.com/Azure/AKS/issues/363
+		if commonCluster.GetCloud() == pkgCluster.Azure {
+			taints = append(taints, v1.Taint{
+				Key:    pkgCommon.HeadNodeTaintKey,
+				Value:  nodePoolName,
+				Effect: v1.TaintEffectPreferNoSchedule,
+			})
+		} else {
+			taints = append(taints, v1.Taint{
+				Key:    pkgCommon.HeadNodeTaintKey,
+				Value:  nodePoolName,
+				Effect: v1.TaintEffectNoSchedule,
+			})
+			taints = append(taints, v1.Taint{
+				Key:    pkgCommon.HeadNodeTaintKey,
+				Value:  nodePoolName,
+				Effect: v1.TaintEffectNoExecute,
+			})
+		}
 
 		marshalledTaints, err := json.Marshal(taints)
 		if err != nil {
