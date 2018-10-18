@@ -109,6 +109,7 @@ func (o *ObjectStore) CreateBucket(name string) error {
 
 	if _, err := client.CreateBucket(name); err != nil {
 		bucket.Status = providers.BucketCreateError
+		bucket.StatusMsg = err.Error()
 		if e := o.persistBucketToDB(bucket); e != nil {
 			logger.Error(e.Error())
 		}
@@ -227,6 +228,7 @@ func (o *ObjectStore) DeleteBucket(name string) error {
 	err = oci.ChangeRegion(o.location)
 	if err != nil {
 		bucket.Status = providers.BucketDeleteError
+		bucket.StatusMsg = err.Error()
 		if err = o.persistBucketToDB(bucket); err != nil {
 			return errors.Wrap(err, "could not persist bucket state")
 		}
@@ -238,6 +240,7 @@ func (o *ObjectStore) DeleteBucket(name string) error {
 	client, err := oci.NewObjectStorageClient()
 	if err != nil {
 		bucket.Status = providers.BucketDeleteError
+		bucket.StatusMsg = err.Error()
 		if err = o.persistBucketToDB(bucket); err != nil {
 			return errors.Wrap(err, "could not persist bucket state")
 		}
@@ -247,6 +250,7 @@ func (o *ObjectStore) DeleteBucket(name string) error {
 
 	if err := client.DeleteBucket(name); err != nil {
 		bucket.Status = providers.BucketDeleteError
+		bucket.StatusMsg = err.Error()
 		if err = o.persistBucketToDB(bucket); err != nil {
 			return errors.Wrap(err, "could not persist bucket state")
 		}
@@ -255,6 +259,7 @@ func (o *ObjectStore) DeleteBucket(name string) error {
 
 	if err = o.deleteBucketFromDB(bucket); err != nil {
 		bucket.Status = providers.BucketDeleteError
+		bucket.StatusMsg = err.Error()
 		if err = o.persistBucketToDB(bucket); err != nil {
 			return errors.Wrap(err, "could not persist bucket state")
 		}
