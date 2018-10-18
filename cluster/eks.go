@@ -195,9 +195,10 @@ func (c *EKSCluster) CreateCluster() error {
 		action.NewGenerateVPCConfigRequestAction(c.log, creationContext, eksStackName, c.GetOrganizationId()),
 		action.NewCreateEksClusterAction(c.log, creationContext, c.modelCluster.EKS.Version),
 		action.NewCreateUpdateNodePoolStackAction(c.log, true, creationContext, c.modelCluster.EKS.NodePools...),
+		action.NewWaitForHealthyAutoscalingGroupsAction(c.log, 30, 20*time.Second, creationContext, c.modelCluster.EKS.NodePools...),
 	}
 
-	_, err = utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, true)
+	_, err = utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, false)
 	if err != nil {
 		c.log.Errorln("EKS cluster create error:", err.Error())
 		return err
@@ -272,7 +273,7 @@ func (c *EKSCluster) generateSSHKeyNameForCluster() string {
 }
 
 func (c *EKSCluster) generateNodePoolStackName(nodePool *model.AmazonNodePoolsModel) string {
-	return c.modelCluster.Name + "-pipeline-eks-nodepool-" + nodePool.Name
+	return action.GenerateNodePoolStackName(c.modelCluster.Name, nodePool.Name)
 }
 
 func (c *EKSCluster) generateStackNameForCluster() string {
@@ -589,7 +590,12 @@ func (c *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 	createNodePoolAction := action.NewCreateUpdateNodePoolStackAction(c.log, true, createUpdateContext, nodePoolsToCreate...)
 	updateNodePoolAction := action.NewCreateUpdateNodePoolStackAction(c.log, false, createUpdateContext, nodePoolsToUpdate...)
 
-	actions = append(actions, deleteNodePoolAction, createNodePoolAction, updateNodePoolAction)
+	existingNodePools := make([]*model.AmazonNodePoolsModel, 0)
+	existingNodePools = append(existingNodePools, nodePoolsToCreate...)
+	existingNodePools = append(existingNodePools, nodePoolsToUpdate...)
+	waitAction := action.NewWaitForHealthyAutoscalingGroupsAction(c.log, 30, 20*time.Second, createUpdateContext, existingNodePools...)
+
+	actions = append(actions, deleteNodePoolAction, createNodePoolAction, updateNodePoolAction, waitAction)
 
 	_, err = utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, false)
 	if err != nil {
