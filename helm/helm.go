@@ -111,7 +111,7 @@ func DownloadFile(url string) ([]byte, error) {
 
 	_, copyErr := io.CopyN(compressedContent, resp.Body, maxCompressedDataSize)
 	if copyErr != nil && copyErr != io.EOF {
-		return nil, copyErr
+		return nil, errors.Wrap(err, "failed to read from chart response")
 	}
 
 	gzf, err := gzip.NewReader(compressedContent)
