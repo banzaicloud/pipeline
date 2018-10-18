@@ -16,6 +16,7 @@ package action
 
 import (
 	"fmt"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -1087,10 +1088,17 @@ func (a *DeleteClusterUserAccessKeyAction) ExecuteAction(input interface{}) (out
 	a.log.Infof("EXECUTE DeleteClusterUserAccessKeyAction: %q", *clusterUserName)
 
 	awsAccessKeys, err := amazon.GetUserAccessKeys(iamSvc, clusterUserName)
+
 	if err != nil {
+		if awsErr, ok := err.(awserr.RequestFailure); ok {
+			if awsErr.StatusCode() == http.StatusNotFound {
+				return nil, nil
+			}
+		}
 		a.log.Errorf("querying IAM user '%s' access keys failed: %s", clusterUserName, err)
 		return nil, errors.Wrapf(err, "querying IAM user '%s' access keys failed", *clusterUserName)
 	}
+
 	for _, awsAccessKey := range awsAccessKeys {
 		if err := amazon.DeleteUserAccessKey(iamSvc, awsAccessKey.UserName, awsAccessKey.AccessKeyId); err != nil {
 
@@ -1245,12 +1253,19 @@ func (a *DeleteClusterAction) GetName() string {
 func (a *DeleteClusterAction) ExecuteAction(input interface{}) (output interface{}, err error) {
 	a.log.Info("EXECUTE DeleteClusterAction")
 
-	//TODO handle non existing cluster
 	eksSrv := eks.New(a.context.Session)
 	deleteClusterInput := &eks.DeleteClusterInput{
 		Name: aws.String(a.context.ClusterName),
 	}
-	return eksSrv.DeleteCluster(deleteClusterInput)
+	_, err = eksSrv.DeleteCluster(deleteClusterInput)
+
+	if awsErr, ok := err.(awserr.RequestFailure); ok {
+		if awsErr.StatusCode() == http.StatusNotFound {
+			return nil, nil
+		}
+	}
+
+	return nil, err
 }
 
 //--
@@ -1287,7 +1302,14 @@ func (a *DeleteSSHKeyAction) ExecuteAction(input interface{}) (output interface{
 	deleteKeyPairInput := &ec2.DeleteKeyPairInput{
 		KeyName: aws.String(a.SSHKeyName),
 	}
-	return ec2srv.DeleteKeyPair(deleteKeyPairInput)
+	_, err = ec2srv.DeleteKeyPair(deleteKeyPairInput)
+	if awsErr, ok := err.(awserr.RequestFailure); ok {
+		if awsErr.StatusCode() == http.StatusNotFound {
+			return nil, nil
+		}
+	}
+
+	return nil, err
 }
 
 //--
