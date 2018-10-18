@@ -132,12 +132,17 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 		logger.Errorf("error during getting kubeconfig: %s", err.Error())
 	}
 
-	if !(force && c == nil) {
+	if c != nil {
 		// delete deployments
 		err = helm.DeleteAllDeployment(c)
 		if err != nil {
-			return emperror.Wrap(err, "deleting deployments failed")
+			if force {
+				logger.Errorf("deleting all deployments failed: %s", err.Error())
+			} else {
+				return emperror.Wrap(err, "deleting deployments failed")
+			}
 		}
+
 		err = deleteAllResource(c, logger)
 		if err != nil {
 			if force {
@@ -148,7 +153,7 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 		}
 
 	} else {
-		logger.Info("skipping deployment deletion without kubeconfig")
+		logger.Info("skipping deployment deletion as kubeconfig is not available.")
 	}
 
 	// clean up dns registrations
