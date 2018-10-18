@@ -32,14 +32,6 @@ var HookMap = map[string]PostFunctioner{
 		f:            SetupPrivileges,
 		ErrorHandler: ErrorHandler{},
 	},
-	pkgCluster.PersistKubernetesKeys: &BasePostFunction{
-		f:            PersistKubernetesKeys,
-		ErrorHandler: ErrorHandler{},
-	},
-	pkgCluster.UpdatePrometheusPostHook: &BasePostFunction{
-		f:            UpdatePrometheusPostHook,
-		ErrorHandler: ErrorHandler{},
-	},
 	pkgCluster.InstallHelmPostHook: &BasePostFunction{
 		f:            InstallHelmPostHook,
 		ErrorHandler: ErrorHandler{},
@@ -100,7 +92,6 @@ var BasePostHookFunctions = []PostFunctioner{
 	HookMap[pkgCluster.SetupPrivileges],
 	HookMap[pkgCluster.LabelNodes],
 	HookMap[pkgCluster.TaintHeadNodes],
-	HookMap[pkgCluster.UpdatePrometheusPostHook],
 	HookMap[pkgCluster.InstallHelmPostHook],
 	HookMap[pkgCluster.RegisterDomainPostHook],
 	HookMap[pkgCluster.InstallIngressControllerPostHook],

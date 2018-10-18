@@ -36,7 +36,6 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/banzaicloud/pipeline/utils"
 	"github.com/ghodss/yaml"
 	"github.com/go-errors/errors"
 	"github.com/sirupsen/logrus"
@@ -46,7 +45,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
 	pkgHelmRelease "k8s.io/helm/pkg/proto/hapi/release"
 )
 
@@ -404,79 +402,6 @@ func castToPostHookParam(data *pkgCluster.PostHookParam, output interface{}) (er
 	return
 }
 
-//PersistKubernetesKeys is a basic version of persisting keys TODO check if we need this from API or anywhere else
-func PersistKubernetesKeys(input interface{}) error {
-	cluster, ok := input.(CommonCluster)
-	if !ok {
-		return errors.Errorf("Wrong parameter type: %T", cluster)
-	}
-	configPath := pipConfig.GetStateStorePath(cluster.GetName())
-	log.Infof("Statestore path is: %s", configPath)
-	var config *rest.Config
-
-	kubeConfig, err := cluster.GetK8sConfig()
-
-	if err != nil {
-		log.Errorf("Error getting kubernetes config : %s", err)
-		return err
-	}
-	log.Infof("Starting to write kubernetes config: %s", configPath)
-	if err := utils.WriteToFile(kubeConfig, configPath+"/cluster.cfg"); err != nil {
-		log.Errorf("Error writing file: %s", err.Error())
-		return err
-	}
-	config, err = helm.GetK8sClientConfig(kubeConfig)
-	if err != nil {
-		log.Errorf("Error parsing kubernetes config : %s", err)
-		return err
-	}
-	log.Infof("Starting to write kubernetes related certs/keys for: %s", configPath)
-	if err := utils.WriteToFile(config.KeyData, configPath+"/client-key-data.pem"); err != nil {
-		log.Errorf("Error writing file: %s", err.Error())
-		return err
-	}
-	if err := utils.WriteToFile(config.CertData, configPath+"/client-certificate-data.pem"); err != nil {
-		log.Errorf("Error writing file: %s", err.Error())
-		return err
-	}
-	if err := utils.WriteToFile(config.CAData, configPath+"/certificate-authority-data.pem"); err != nil {
-		log.Errorf("Error writing file: %s", err.Error())
-		return err
-	}
-
-	configMapName := viper.GetString("monitor.configmap")
-	configMapPath := viper.GetString("monitor.mountPath")
-	if configMapName != "" && configMapPath != "" {
-		log.Infof("save certificates to configmap: %s", configMapName)
-		if err := saveKeysToConfigmap(config, configMapName, cluster.GetName()); err != nil {
-			log.Errorf("error saving certs to configmap: %s", err)
-			return err
-		}
-	}
-	log.Infof("Writing kubernetes related certs/keys succeeded.")
-	return nil
-}
-
-func saveKeysToConfigmap(config *rest.Config, configName string, clusterName string) error {
-	client, err := helm.GetK8sInClusterConnection()
-	if err != nil {
-		return err
-	}
-	configmap, err := client.CoreV1().ConfigMaps("default").Get(configName, metav1.GetOptions{})
-	if err != nil {
-		return err
-	}
-
-	configmap.Data[clusterName+"_client-key-data.pem"] = string(config.KeyData)
-	configmap.Data[clusterName+"_client-certificate-data.pem"] = string(config.CertData)
-	configmap.Data[clusterName+"_certificate-authority-data.pem"] = string(config.CAData)
-	_, err = client.CoreV1().ConfigMaps("default").Update(configmap)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func installDeployment(cluster CommonCluster, namespace string, deploymentName string, releaseName string, values []byte, actionName string, chartVersion string) error {
 	// --- [ Get K8S Config ] --- //
 	kubeConfig, err := cluster.GetK8sConfig()
@@ -828,17 +753,6 @@ func InstallAnchoreImageValidator(input interface{}) error {
 	}
 	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/anchore-policy-validator", "anchore", marshalledValues, "InstallAnchoreImageValidator", "")
 
-}
-
-//UpdatePrometheusPostHook updates a configmap used by Prometheus
-func UpdatePrometheusPostHook(_ interface{}) error {
-	// TODO: return error instead? (preserved original behaviour during refactor)
-	err := UpdatePrometheusConfig()
-	if err != nil {
-		log.Warnf("could not update prometheus configmap: %v", err)
-	}
-
-	return nil
 }
 
 //InstallHelmPostHook this posthook installs the helm related things
