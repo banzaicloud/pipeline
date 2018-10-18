@@ -8,6 +8,7 @@ Name | Type | Description | Notes
 **Notes** | **string** | true if the bucket has been created via piepeline | [optional] 
 **Secret** | [**BucketInfoSecret**](BucketInfo_secret.md) |  | [optional] 
 **Azure** | [**AzureBlobStorageProps**](AzureBlobStorageProps.md) |  | [optional] 
+**Status** | **string** | the status of the bucket | 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

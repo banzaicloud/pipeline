@@ -20,4 +20,6 @@ type BucketInfo struct {
 	Notes  string                `json:"notes,omitempty"`
 	Secret BucketInfoSecret      `json:"secret,omitempty"`
 	Azure  AzureBlobStorageProps `json:"azure,omitempty"`
+	// the status of the bucket
+	Status string `json:"status"`
 }

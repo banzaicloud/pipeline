@@ -12,5 +12,6 @@
 package client
 
 type CreateObjectStoreBucketResponse struct {
-	BucketName string `json:"bucketName"`
+	Name  string `json:"name"`
+	Cloud string `json:"cloud"`
 }
