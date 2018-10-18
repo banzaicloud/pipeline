@@ -116,14 +116,14 @@ func DownloadFile(url string) ([]byte, error) {
 
 	gzf, err := gzip.NewReader(compressedContent)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to open gzip archive")
 	}
 	defer gzf.Close()
 
 	tarContent := new(bytes.Buffer)
 	_, copyErr = io.CopyN(tarContent, gzf, maxDataSize)
 	if copyErr != nil && copyErr != io.EOF {
-		return nil, copyErr
+		return nil, errors.Wrap(copyErr, "failed to read from chart data archive")
 	}
 
 	return tarContent.Bytes(), nil
