@@ -109,7 +109,6 @@ func DownloadFile(url string) ([]byte, error) {
 	}
 	defer gzf.Close()
 
-	//rawContent, _ := ioutil.ReadAll(gzf)
 	tarContent := new(bytes.Buffer)
 	_, copyErr = io.CopyN(tarContent, gzf, maxDataSize)
 	if copyErr != nil && copyErr != io.EOF {
