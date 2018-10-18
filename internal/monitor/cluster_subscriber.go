@@ -153,11 +153,18 @@ func (s *clusterSubscriber) AddClusterToPrometheusConfig(clusterID uint) {
 	}
 }
 
-func (s *clusterSubscriber) RemoveClusterFromPrometheusConfig(clusterID uint) {
+func (s *clusterSubscriber) RemoveClusterFromPrometheusConfig(orgID uint, clusterName string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	c, org, prometheusConfig, secret, err := s.init(clusterID)
+	org, err := s.getOrganization(orgID)
+	if err != nil {
+		s.errorHandler.Handle(err)
+
+		return
+	}
+
+	prometheusConfig, secret, err := s.getPrometheusConfigAndSecret()
 	if err != nil {
 		s.errorHandler.Handle(err)
 
@@ -167,7 +174,7 @@ func (s *clusterSubscriber) RemoveClusterFromPrometheusConfig(clusterID uint) {
 	var scrapeConfigs []*promconfig.ScrapeConfig
 
 	for _, scrapeConfig := range prometheusConfig.ScrapeConfigs {
-		if scrapeConfig.JobName == fmt.Sprintf("%s-%s", org.Name, c.GetName()) {
+		if scrapeConfig.JobName == fmt.Sprintf("%s-%s", org.Name, clusterName) {
 			continue
 		}
 
@@ -176,20 +183,12 @@ func (s *clusterSubscriber) RemoveClusterFromPrometheusConfig(clusterID uint) {
 
 	prometheusConfig.ScrapeConfigs = scrapeConfigs
 
-	delete(secret.StringData, fmt.Sprintf("%s_%s_certificate-authority-data.pem", org.Name, c.GetName()))
-	delete(secret.StringData, fmt.Sprintf("%s_%s_client-certificate-data.pem", org.Name, c.GetName()))
-	delete(secret.StringData, fmt.Sprintf("%s_%s_client-key-data.pem", org.Name, c.GetName()))
-
-	_, err = s.client.CoreV1().Secrets(s.controlPlaneNamespace).Update(secret)
-	if err != nil {
-		s.errorHandler.Handle(emperror.With(
-			emperror.Wrap(err, "failed to update secret"),
-			"secret", s.certSecret,
-			"namespace", s.controlPlaneNamespace,
-		))
-
-		return
-	}
+	delete(secret.StringData, fmt.Sprintf("%s_%s_certificate-authority-data.pem", org.Name, clusterName))
+	delete(secret.StringData, fmt.Sprintf("%s_%s_client-certificate-data.pem", org.Name, clusterName))
+	delete(secret.StringData, fmt.Sprintf("%s_%s_client-key-data.pem", org.Name, clusterName))
+	delete(secret.Data, fmt.Sprintf("%s_%s_certificate-authority-data.pem", org.Name, clusterName))
+	delete(secret.Data, fmt.Sprintf("%s_%s_client-certificate-data.pem", org.Name, clusterName))
+	delete(secret.Data, fmt.Sprintf("%s_%s_client-key-data.pem", org.Name, clusterName))
 
 	err = s.save(prometheusConfig, secret)
 	if err != nil {
@@ -205,9 +204,39 @@ func (s *clusterSubscriber) init(clusterID uint) (cluster.CommonCluster, *auth.O
 		return nil, nil, nil, nil, err
 	}
 
+	prometheusConfig, secret, err := s.getPrometheusConfigAndSecret()
+
+	return c, org, prometheusConfig, secret, err
+}
+
+func (s *clusterSubscriber) getClusterAndOrganization(clusterID uint) (cluster.CommonCluster, *auth.Organization, error) {
+	c, err := s.manager.GetClusterByIDOnly(context.Background(), clusterID)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	org, err := s.getOrganization(c.GetOrganizationId())
+
+	return c, org, err
+}
+
+func (s *clusterSubscriber) getOrganization(orgID uint) (*auth.Organization, error) {
+	org := auth.Organization{
+		ID: orgID,
+	}
+
+	err := s.db.Where(org).First(&org).Error
+	if err != nil {
+		return nil, emperror.Wrap(err, "failed to get organization")
+	}
+
+	return &org, nil
+}
+
+func (s *clusterSubscriber) getPrometheusConfigAndSecret() (*promconfig.Config, *v1.Secret, error) {
 	prometheusConfig, err := s.getPrometheusConfig()
 	if err != nil {
-		return nil, nil, nil, nil, emperror.Wrap(err, "failed to get prometheus config")
+		return nil, nil, emperror.Wrap(err, "failed to get prometheus config")
 	}
 
 	if prometheusConfig.ScrapeConfigs == nil {
@@ -216,7 +245,7 @@ func (s *clusterSubscriber) init(clusterID uint) (cluster.CommonCluster, *auth.O
 
 	secret, err := s.client.CoreV1().Secrets(s.controlPlaneNamespace).Get(s.certSecret, metav1.GetOptions{})
 	if err != nil {
-		return nil, nil, nil, nil, emperror.With(
+		return nil, nil, emperror.With(
 			emperror.Wrap(err, "failed to get cert secret"),
 			"secret", s.certSecret,
 			"namespace", s.controlPlaneNamespace,
@@ -227,25 +256,11 @@ func (s *clusterSubscriber) init(clusterID uint) (cluster.CommonCluster, *auth.O
 		secret.StringData = map[string]string{}
 	}
 
-	return c, org, prometheusConfig, secret, nil
-}
-
-func (s *clusterSubscriber) getClusterAndOrganization(clusterID uint) (cluster.CommonCluster, *auth.Organization, error) {
-	c, err := s.manager.GetClusterByIDOnly(context.Background(), clusterID)
-	if err != nil {
-		return nil, nil, err
+	if secret.Data == nil {
+		secret.Data = map[string][]byte{}
 	}
 
-	org := auth.Organization{
-		ID: c.GetOrganizationId(),
-	}
-
-	err = s.db.Where(org).First(&org).Error
-	if err != nil {
-		return nil, nil, emperror.Wrap(err, "failed to get organization")
-	}
-
-	return c, &org, nil
+	return prometheusConfig, secret, nil
 }
 
 func (s *clusterSubscriber) save(prometheusConfig *promconfig.Config, secret *v1.Secret) error {
@@ -276,14 +291,19 @@ func (s *clusterSubscriber) getPrometheusConfig() (*promconfig.Config, error) {
 		)
 	}
 
-	rawPrometheusConfig, ok := configMap.BinaryData[s.configMapPrometheusKey]
+	rawPrometheusConfig, ok := configMap.Data[s.configMapPrometheusKey]
 	if !ok {
-		return nil, emperror.With(errors.New("could not find prometheus config"), "prometheusKey", s.configMapPrometheusKey)
+		return nil, emperror.With(
+			errors.New("could not find prometheus config"),
+			"prometheusKey", s.configMapPrometheusKey,
+			"configMap", s.configMap,
+			"namespace", s.controlPlaneNamespace,
+		)
 	}
 
 	config := &promconfig.Config{}
 
-	err = yaml.Unmarshal(rawPrometheusConfig, config)
+	err = yaml.Unmarshal([]byte(rawPrometheusConfig), config)
 	if err != nil {
 		return nil, emperror.Wrap(err, "failed to parse prometheus config")
 	}
@@ -306,7 +326,7 @@ func (s *clusterSubscriber) savePrometheusConfig(config *promconfig.Config) erro
 		return errors.Wrap(err, "failed to marshal prometheus config")
 	}
 
-	configMap.BinaryData[s.configMapPrometheusKey] = rawPrometheusConfig
+	configMap.Data[s.configMapPrometheusKey] = string(rawPrometheusConfig)
 
 	_, err = s.client.CoreV1().ConfigMaps(s.controlPlaneNamespace).Update(configMap)
 	if err != nil {

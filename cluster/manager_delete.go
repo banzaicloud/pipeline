@@ -176,6 +176,7 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 	kubeProxyCache.Delete(fmt.Sprint(cluster.GetOrganizationId(), "-", cluster.GetID()))
 
 	// delete cluster from database
+	orgID := cluster.GetOrganizationId()
 	deleteName := cluster.GetName()
 	err = cluster.DeleteFromDatabase()
 	if err != nil {
@@ -198,7 +199,7 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 
 	logger.Info("cluster deleted successfully")
 
-	m.events.ClusterDeleted(cluster.GetID())
+	m.events.ClusterDeleted(orgID, deleteName)
 
 	return nil
 }

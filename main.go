@@ -126,9 +126,10 @@ func main() {
 	}
 
 	clusterEventBus := evbus.New()
+	clusterEvents := cluster.NewClusterEvents(clusterEventBus)
 	clusters := intCluster.NewClusters(db)
 	secretValidator := providers.NewSecretValidator(secret.Store)
-	clusterManager := cluster.NewManager(clusters, secretValidator, cluster.NewClusterEvents(clusterEventBus), log, errorHandler)
+	clusterManager := cluster.NewManager(clusters, secretValidator, clusterEvents, log, errorHandler)
 
 	if viper.GetBool(config.MonitorEnabled) {
 		client, err := k8sclient.NewInClusterClient()

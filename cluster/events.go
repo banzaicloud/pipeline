@@ -19,7 +19,7 @@ type clusterEvents interface {
 	ClusterCreated(clusterID uint)
 
 	// ClusterDeleted event is emitted when a cluster is completely deleted.
-	ClusterDeleted(clusterID uint)
+	ClusterDeleted(orgID uint, clusterName string)
 }
 
 type nopClusterEvents struct {
@@ -32,7 +32,7 @@ func NewNopClusterEvents() *nopClusterEvents {
 func (*nopClusterEvents) ClusterCreated(clusterID uint) {
 }
 
-func (*nopClusterEvents) ClusterDeleted(clusterID uint) {
+func (*nopClusterEvents) ClusterDeleted(orgID uint, clusterName string) {
 }
 
 type eventBus interface {
@@ -58,6 +58,6 @@ func (c *clusterEventBus) ClusterCreated(clusterID uint) {
 	c.eb.Publish(clusterCreatedTopic, clusterID)
 }
 
-func (c *clusterEventBus) ClusterDeleted(clusterID uint) {
-	c.eb.Publish(clusterDeletedTopic, clusterID)
+func (c *clusterEventBus) ClusterDeleted(orgID uint, clusterName string) {
+	c.eb.Publish(clusterDeletedTopic, orgID, clusterName)
 }
