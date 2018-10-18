@@ -191,24 +191,45 @@ func (a *CreateVPCAndRolesAction) ExecuteAction(input interface{}) (output inter
 	return nil, err
 }
 
+type awsStackFailedError struct {
+	awsStackError   error
+	stackName       string
+	failedEventsMsg []string
+}
+
+func (e awsStackFailedError) Error() string {
+	if len(e.failedEventsMsg) > 0 {
+		return fmt.Sprintf("stack %v\n%v", e.stackName, strings.Join(e.failedEventsMsg, "\n"))
+	}
+
+	return e.awsStackError.Error()
+}
+
+func (e awsStackFailedError) Cause() error {
+	return e.awsStackError
+}
+
 func onAwsStackFailure(log logrus.FieldLogger, awsStackError error, stackName string, cloudformationSrv *cloudformation.CloudFormation) error {
 	failedStackEvents, err := collectFailedStackEvents(stackName, cloudformationSrv)
 	if err != nil {
-		log.Errorln("retrieving failed stack events failed: ", err.Error())
-		return fmt.Errorf("%s\n%s", awsStackError.Error(), err.Error())
+		log.Errorln("retrieving stack events failed:", err.Error())
+		return awsStackError
 	}
 
 	if len(failedStackEvents) > 0 {
-		var eventMsg []string
+		var failedEventsMsg []string
 
 		for _, event := range failedStackEvents {
-			eventMsg = append(eventMsg, "%v %v %v", aws.StringValue(event.LogicalResourceId), aws.StringValue(event.ResourceStatus), aws.StringValue(event.ResourceStatusReason))
+			failedEventsMsg = append(failedEventsMsg, "%v %v %v", aws.StringValue(event.LogicalResourceId), aws.StringValue(event.ResourceStatus), aws.StringValue(event.ResourceStatusReason))
 		}
 
-		logFailedStackEvents(log, stackName, eventMsg)
+		logFailedStackEvents(log, stackName, failedEventsMsg)
 
-		msg := strings.Join(eventMsg, "\n")
-		return fmt.Errorf("stack %v events\n%v", stackName, msg)
+		return awsStackFailedError{
+			awsStackError:   awsStackError,
+			stackName:       stackName,
+			failedEventsMsg: failedEventsMsg,
+		}
 	}
 
 	return awsStackError
