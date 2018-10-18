@@ -116,7 +116,7 @@ func DownloadFile(url string) ([]byte, error) {
 
 	gzf, err := gzip.NewReader(compressedContent)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to open gzip archive")
+		return nil, errors.Wrap(err, "failed to open chart gzip archive")
 	}
 	defer gzf.Close()
 
