@@ -239,6 +239,7 @@ func (s *ObjectStore) createUpdateStorageAccountSecret(accesskey string) (string
 
 func (s *ObjectStore) rollback(logger logrus.FieldLogger, msg string, err error, bucket *ObjectStoreBucketModel) error {
 	bucket.Status = providers.BucketCreateError
+	bucket.StatusMsg = err.Error()
 	e := s.db.Save(bucket).Error
 	if e != nil {
 		logger.Error(e.Error())
@@ -249,6 +250,7 @@ func (s *ObjectStore) rollback(logger logrus.FieldLogger, msg string, err error,
 
 func (s *ObjectStore) deleteFailed(logger logrus.FieldLogger, msg string, err error, bucket *ObjectStoreBucketModel) error {
 	bucket.Status = providers.BucketDeleteError
+	bucket.StatusMsg = err.Error()
 	e := s.db.Save(bucket).Error
 	if e != nil {
 		logger.Error(e.Error())

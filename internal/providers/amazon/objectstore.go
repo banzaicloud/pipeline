@@ -152,6 +152,7 @@ func (s *objectStore) CreateBucket(bucketName string) error {
 
 	if err := s.objectStore.CreateBucket(bucketName); err != nil {
 		bucket.Status = providers.BucketCreateError
+		bucket.StatusMsg = err.Error()
 		e := s.db.Save(bucket).Error
 		if e != nil {
 			logger.Error(e.Error())
@@ -196,6 +197,7 @@ func (s *objectStore) DeleteBucket(bucketName string) error {
 
 	objectStore, err := getProviderObjectStore(s.secret, bucket.Region)
 	if err != nil {
+		bucket.StatusMsg = err.Error()
 		bucket.Status = providers.BucketDeleteError
 		err := s.db.Save(bucket).Error
 		if err != nil {
@@ -207,6 +209,7 @@ func (s *objectStore) DeleteBucket(bucketName string) error {
 
 	if err := objectStore.DeleteBucket(bucketName); err != nil {
 		bucket.Status = providers.BucketDeleteError
+		bucket.StatusMsg = err.Error()
 		err := s.db.Save(bucket).Error
 
 		return err
@@ -214,6 +217,7 @@ func (s *objectStore) DeleteBucket(bucketName string) error {
 
 	if err := s.db.Delete(bucket).Error; err != nil {
 		bucket.Status = providers.BucketDeleteError
+		bucket.StatusMsg = err.Error()
 		err := s.db.Save(bucket).Error
 
 		return errors.Wrap(err, "deleting bucket from database failed")

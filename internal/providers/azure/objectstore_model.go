@@ -35,6 +35,7 @@ type ObjectStoreBucketModel struct {
 
 	SecretRef string
 	Status    string
+	StatusMsg string
 }
 
 // TableName changes the default table name.
