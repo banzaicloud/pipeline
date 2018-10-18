@@ -16,6 +16,7 @@ package action
 
 import (
 	"fmt"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -186,18 +187,77 @@ func (a *CreateVPCAndRolesAction) ExecuteAction(input interface{}) (output inter
 	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(a.stackName)}
 	err = cloudformationSrv.WaitUntilStackCreateComplete(describeStacksInput)
 	if err != nil {
-		logFailedStackEvents(a.log, a.stackName, cloudformationSrv)
+		return nil, onAwsStackFailure(a.log, err, a.stackName, cloudformationSrv)
 	}
 	return nil, err
 }
 
-func logFailedStackEvents(log logrus.FieldLogger, stackName string, cloudformationSrv *cloudformation.CloudFormation) {
+type awsStackFailedError struct {
+	awsStackError   error
+	stackName       string
+	failedEventsMsg []string
+}
+
+func (e awsStackFailedError) Error() string {
+	if len(e.failedEventsMsg) > 0 {
+		return fmt.Sprintf("stack %v\n%v", e.stackName, strings.Join(e.failedEventsMsg, "\n"))
+	}
+
+	return e.awsStackError.Error()
+}
+
+func (e awsStackFailedError) Cause() error {
+	return e.awsStackError
+}
+
+func onAwsStackFailure(log logrus.FieldLogger, awsStackError error, stackName string, cloudformationSrv *cloudformation.CloudFormation) error {
+	failedStackEvents, err := collectFailedStackEvents(stackName, cloudformationSrv)
+	if err != nil {
+		log.Errorln("retrieving stack events failed:", err.Error())
+		return awsStackError
+	}
+
+	if len(failedStackEvents) > 0 {
+		var failedEventsMsg []string
+
+		for _, event := range failedStackEvents {
+			failedEventsMsg = append(failedEventsMsg, "%v %v %v", aws.StringValue(event.LogicalResourceId), aws.StringValue(event.ResourceStatus), aws.StringValue(event.ResourceStatusReason))
+		}
+
+		logFailedStackEvents(log, stackName, failedEventsMsg)
+
+		return awsStackFailedError{
+			awsStackError:   awsStackError,
+			stackName:       stackName,
+			failedEventsMsg: failedEventsMsg,
+		}
+	}
+
+	return awsStackError
+}
+
+func collectFailedStackEvents(stackName string, cloudformationSrv *cloudformation.CloudFormation) ([]*cloudformation.StackEvent, error) {
+	var failedStackEvents []*cloudformation.StackEvent
+
 	describeStackEventsInput := &cloudformation.DescribeStackEventsInput{StackName: aws.String(stackName)}
-	describeStackEventsOutput, _ := cloudformationSrv.DescribeStackEvents(describeStackEventsInput)
+	describeStackEventsOutput, err := cloudformationSrv.DescribeStackEvents(describeStackEventsInput)
+
+	if err != nil {
+		return nil, err
+	}
+
 	for _, event := range describeStackEventsOutput.StackEvents {
 		if strings.HasSuffix(*event.ResourceStatus, "FAILED") {
-			log.Errorf("stack %v event %v %v %v", aws.String(stackName), aws.StringValue(event.LogicalResourceId), aws.StringValue(event.ResourceStatus), aws.StringValue(event.ResourceStatusReason))
+			failedStackEvents = append(failedStackEvents, event)
 		}
+	}
+
+	return failedStackEvents, nil
+}
+
+func logFailedStackEvents(log logrus.FieldLogger, stackName string, eventsLogMsg []string) {
+	for _, msg := range eventsLogMsg {
+		log.Errorf("stack %v event %v", stackName, msg)
 	}
 }
 
@@ -722,8 +782,7 @@ func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (outp
 			}
 
 			if err != nil {
-				logFailedStackEvents(a.log, stackName, cloudformationSrv)
-				errorChan <- err
+				errorChan <- onAwsStackFailure(a.log, err, stackName, cloudformationSrv)
 				return
 			}
 
@@ -1026,13 +1085,20 @@ func (a *DeleteClusterUserAccessKeyAction) ExecuteAction(input interface{}) (out
 	iamSvc := iam.New(a.context.Session)
 	clusterUserName := aws.String(a.context.ClusterName)
 
-	a.log.Infof("EXECUTE DeleteClusterUserAccessKeyAction: %q", clusterUserName)
+	a.log.Infof("EXECUTE DeleteClusterUserAccessKeyAction: %q", *clusterUserName)
 
 	awsAccessKeys, err := amazon.GetUserAccessKeys(iamSvc, clusterUserName)
+
 	if err != nil {
+		if awsErr, ok := err.(awserr.RequestFailure); ok {
+			if awsErr.StatusCode() == http.StatusNotFound {
+				return nil, nil
+			}
+		}
 		a.log.Errorf("querying IAM user '%s' access keys failed: %s", clusterUserName, err)
 		return nil, errors.Wrapf(err, "querying IAM user '%s' access keys failed", *clusterUserName)
 	}
+
 	for _, awsAccessKey := range awsAccessKeys {
 		if err := amazon.DeleteUserAccessKey(iamSvc, awsAccessKey.UserName, awsAccessKey.AccessKeyId); err != nil {
 
@@ -1141,9 +1207,7 @@ func (a *DeleteStackAction) ExecuteAction(input interface{}) (output interface{}
 			describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(stackName)}
 			err = cloudformationSrv.WaitUntilStackDeleteComplete(describeStacksInput)
 			if err != nil {
-				logFailedStackEvents(a.log, stackName, cloudformationSrv)
-
-				errorChan <- err
+				errorChan <- onAwsStackFailure(a.log, err, stackName, cloudformationSrv)
 				return
 			}
 
@@ -1189,12 +1253,19 @@ func (a *DeleteClusterAction) GetName() string {
 func (a *DeleteClusterAction) ExecuteAction(input interface{}) (output interface{}, err error) {
 	a.log.Info("EXECUTE DeleteClusterAction")
 
-	//TODO handle non existing cluster
 	eksSrv := eks.New(a.context.Session)
 	deleteClusterInput := &eks.DeleteClusterInput{
 		Name: aws.String(a.context.ClusterName),
 	}
-	return eksSrv.DeleteCluster(deleteClusterInput)
+	_, err = eksSrv.DeleteCluster(deleteClusterInput)
+
+	if awsErr, ok := err.(awserr.RequestFailure); ok {
+		if awsErr.StatusCode() == http.StatusNotFound {
+			return nil, nil
+		}
+	}
+
+	return nil, err
 }
 
 //--
@@ -1231,7 +1302,14 @@ func (a *DeleteSSHKeyAction) ExecuteAction(input interface{}) (output interface{
 	deleteKeyPairInput := &ec2.DeleteKeyPairInput{
 		KeyName: aws.String(a.SSHKeyName),
 	}
-	return ec2srv.DeleteKeyPair(deleteKeyPairInput)
+	_, err = ec2srv.DeleteKeyPair(deleteKeyPairInput)
+	if awsErr, ok := err.(awserr.RequestFailure); ok {
+		if awsErr.StatusCode() == http.StatusNotFound {
+			return nil, nil
+		}
+	}
+
+	return nil, err
 }
 
 //--

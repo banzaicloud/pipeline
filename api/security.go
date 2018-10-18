@@ -19,6 +19,9 @@ import (
 	"fmt"
 	"net/http"
 	"path"
+	"strings"
+
+	"regexp"
 
 	"github.com/banzaicloud/anchore-image-validator/pkg/apis/security/v1alpha1"
 	clientV1alpha1 "github.com/banzaicloud/anchore-image-validator/pkg/clientset/v1alpha1"
@@ -380,4 +383,75 @@ func DeletePolicy(c *gin.Context) {
 
 	createResponse(c, *response)
 
+}
+
+func GetImageDeployments(c *gin.Context) {
+	imageDigest := c.Param("imageDigest")
+	releaseMap := make(map[string]bool)
+
+	re := regexp.MustCompile("^docker-pullable://.*@sha256:[a-f0-9]{64}$")
+	if !re.MatchString(imageDigest) {
+		err := fmt.Errorf("Invalid imageID format: %s", imageDigest)
+		log.Error(err)
+		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error getting K8s config",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	kubeConfig, ok := GetK8sConfig(c)
+	if !ok {
+		return
+	}
+	client, err := helm.GetK8sConnection(kubeConfig)
+	if err != nil {
+		log.Errorf("Error getting K8s config: %s", err.Error())
+		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error getting K8s config",
+			Error:   err.Error(),
+		})
+		return
+	}
+	// Get all pods from cluster
+	pods, err := listPods(client, "", "")
+	if err != nil {
+		log.Errorf("Error getting pods from cluster: %s", err.Error())
+		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error getting pods from cluster",
+			Error:   err.Error(),
+		})
+		return
+	}
+	// Example status
+	//	- containerID: docker://a8130dc313a40b0eb9151685ba41f84cd0e4bb7e2888c52691590ff8a22a2e6b
+	//	image: banzaicloud/pipeline:0.4.0-dev29
+	//	imageID: docker-pullable://banzaicloud/pipeline@sha256:5042ef1a5415dae8330583448584be2bb592053416b7db5fc41389a717cc52ab
+	for _, p := range pods {
+		for _, status := range p.Status.ContainerStatuses {
+			if getImageDigest(status.ImageID) == imageDigest {
+				releaseMap[p.Labels["release"]] = true
+			}
+		}
+		for _, status := range p.Status.InitContainerStatuses {
+			if getImageDigest(status.ImageID) == imageDigest {
+				releaseMap[p.Labels["release"]] = true
+			}
+		}
+	}
+	var releaseList []string
+	for k := range releaseMap {
+		releaseList = append(releaseList, k)
+	}
+
+}
+
+func getImageDigest(imageID string) string {
+
+	image := strings.Split(imageID, "@")
+	imageSHA := strings.Split(image[1], ":")
+	return imageSHA[1]
 }

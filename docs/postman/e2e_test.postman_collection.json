@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "8afb4249-4291-4f28-ba9a-fe8c26df8ea2",
+		"_postman_id": "41979d49-a5ce-4f49-8c6f-f2d28e10ae45",
 		"name": "End2End TEST Organizations",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -1516,19 +1516,19 @@
 							],
 							"variable": [
 								{
-									"description": "Organization identifier",
 									"key": "orgId",
-									"value": "{{orgId}}"
+									"value": "{{orgId}}",
+									"description": "Organization identifier"
 								},
 								{
-									"description": "Cluster identifier",
 									"key": "clusterId",
-									"value": "{{clusterId}}"
+									"value": "{{clusterId}}",
+									"description": "Cluster identifier"
 								},
 								{
-									"description": "Secret name",
 									"key": "secretName",
-									"value": "{{secretName}}"
+									"value": "{{secretName}}",
+									"description": "Secret name"
 								}
 							]
 						},
@@ -3368,6 +3368,55 @@
 							]
 						},
 						"description": "Get Deployment Resources"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Deployment Images",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/deployments/:deploymentName/images",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"clusters",
+								":clusterId",
+								"deployments",
+								":deploymentName",
+								"images"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "{{orgId}}"
+								},
+								{
+									"key": "clusterId",
+									"value": "{{clusterId}}"
+								},
+								{
+									"key": "deploymentName",
+									"value": "{{deploymentName}}"
+								}
+							]
+						}
 					},
 					"response": []
 				}
@@ -9498,7 +9547,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"budos-bagoly3\",\t\n  \"releaseName\": \"flying-monkey\",\n  \"owner\": \"banzaicloud\",\n  \"reason\": \"test release\"\n}"
+							"raw": "{\n  \"name\": \"budos-bagoly3\",\t\n  \"owner\": \"banzaicloud\",\n  \"reason\": \"test release\"\n}"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/whitelists",
@@ -9824,6 +9873,147 @@
 						"description": "Delete Policy"
 					},
 					"response": []
+				},
+				{
+					"name": "Initiate Imagescan",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\n  {\n    \"imageName\": \"{{imageName}}\",\n    \"imageTag\": \"{{imageTag}}\",\n    \"imageDigest\": \"{{imageDigest}}\"\n  }\n]"
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/imagescan",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"clusters",
+								":clusterId",
+								"imagescan"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "{{orgId}}"
+								},
+								{
+									"key": "clusterId",
+									"value": "{{clusterId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Imagescan",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/imagescan/:imageDigest",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"clusters",
+								":clusterId",
+								"imagescan",
+								":imageDigest"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "{{orgId}}"
+								},
+								{
+									"key": "clusterId",
+									"value": "{{clusterId}}"
+								},
+								{
+									"key": "imageDigest",
+									"value": "{{imageDigest}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Vulnerabilities",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/imagescan/:imageDigest/vuln",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"clusters",
+								":clusterId",
+								"imagescan",
+								":imageDigest",
+								"vuln"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "{{orgId}}"
+								},
+								{
+									"key": "clusterId",
+									"value": "{{clusterId}}"
+								},
+								{
+									"key": "imageDigest",
+									"value": "{{imageDigest}}"
+								}
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -9964,6 +10154,103 @@
 							"body": "{\"clusters\":[{\"name\":\"gkecluster-sancyx-326\",\"id\":\"1\",\"status\":\"RUNNING\",\"statusMessage\":\"\",\"cloud\":\"google\",\"createdAt\":\"2018-09-24T14:00:13+02:00\",\"region\":\"us-central1-a\",\"nodes\":[{\"name\":\"gke-gkecluster-sancyx-326-pool1-7a511228-7n0w\",\"creationTimestamp\":\"2018-09-24 19:16:31 +0200 CEST\",\"status\":{\"capacity\":{\"cpu\":\"2\",\"ephemeralStorage\":\"98868448Ki\",\"memory\":\"7658160Ki\",\"pods\":110},\"allocatable\":{\"cpu\":\"1930m\",\"ephemeralStorage\":\"47093746742\",\"memory\":\"5778096Ki\",\"pods\":110},\"ready\":\"True\",\"lastHeartbeatTime\":\"2018-09-25 11:38:28 +0200 CEST\",\"frequentUnregisterNetDevice\":\"Unknown\",\"kernelDeadlock\":\"Unknown\",\"networkUnavailable\":\"False\",\"OutOfDisk\":\"False\",\"memoryPressure\":\"False\",\"diskPressure\":\"False\",\"pidPressure\":\"False\",\"cpuUsagePercent\":0,\"storageUsagePercent\":53.48365633014248,\"memoryUsagePercent\":24.549813532232285,\"instanceType\":\"n1-standard-2\"}},{\"name\":\"gke-gkecluster-sancyx-326-pool1-7a511228-m83z\",\"creationTimestamp\":\"2018-09-24 14:01:54 +0200 CEST\",\"status\":{\"capacity\":{\"cpu\":\"2\",\"ephemeralStorage\":\"98868448Ki\",\"memory\":\"7658152Ki\",\"pods\":110},\"allocatable\":{\"cpu\":\"1930m\",\"ephemeralStorage\":\"47093746742\",\"memory\":\"5778088Ki\",\"pods\":110},\"ready\":\"True\",\"lastHeartbeatTime\":\"2018-09-25 11:38:30 +0200 CEST\",\"FrequentUnregisterNetDevice\":\"Unknown\",\"KernelDeadlock\":\"Unknown\",\"NetworkUnavailable\":\"False\",\"OutOfDisk\":\"False\",\"MemoryPressure\":\"False\",\"DiskPressure\":\"False\",\"PIDPressure\":\"False\",\"cpuUsagePercent\":0,\"storageUsagePercent\":53.48365633014248,\"memoryUsagePercent\":24.549839177911327,\"instanceType\":\"n1-standard-2\"}}],\"cpuUsagePercent\":0,\"storageUsagePercent\":53.48365633014248,\"memoryUsagePercent\":24.549813532232285}]}"
 						}
 					]
+				}
+			]
+		},
+		{
+			"name": "Images",
+			"item": [
+				{
+					"name": "Get Cluster Images",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/images",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"clusters",
+								":clusterId",
+								"images"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "{{orgId}}"
+								},
+								{
+									"key": "clusterId",
+									"value": "{{clusterId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Deployments by Image",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/images/:imageDigest/deployments",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"clusters",
+								":clusterId",
+								"images",
+								":imageDigest",
+								"deployments"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "{{orgId}}"
+								},
+								{
+									"key": "clusterId",
+									"value": "{{clusterID}}"
+								},
+								{
+									"key": "imageDigest",
+									"value": "{{imageDigest}}"
+								}
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
