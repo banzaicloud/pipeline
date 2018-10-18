@@ -12,31 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cluster
+package monitor
 
 type clusterEvents interface {
-	// ClusterCreated event is emitted when a cluster creation workflow finishes.
-	ClusterCreated(clusterID uint)
-
-	// ClusterDeleted event is emitted when a cluster is completely deleted.
-	ClusterDeleted(clusterID uint)
-}
-
-type nopClusterEvents struct {
-}
-
-func NewNopClusterEvents() *nopClusterEvents {
-	return &nopClusterEvents{}
-}
-
-func (*nopClusterEvents) ClusterCreated(clusterID uint) {
-}
-
-func (*nopClusterEvents) ClusterDeleted(clusterID uint) {
+	NotifyClusterCreated(fn interface{})
+	NotifyClusterDeleted(fn interface{})
 }
 
 type eventBus interface {
-	Publish(topic string, args ...interface{})
+	SubscribeAsync(topic string, fn interface{}, transactional bool) error
 }
 
 type clusterEventBus struct {
@@ -54,10 +38,10 @@ func NewClusterEvents(eb eventBus) *clusterEventBus {
 	}
 }
 
-func (c *clusterEventBus) ClusterCreated(clusterID uint) {
-	c.eb.Publish(clusterCreatedTopic, clusterID)
+func (c *clusterEventBus) NotifyClusterCreated(fn interface{}) {
+	c.eb.SubscribeAsync(clusterCreatedTopic, fn, false)
 }
 
-func (c *clusterEventBus) ClusterDeleted(clusterID uint) {
-	c.eb.Publish(clusterDeletedTopic, clusterID)
+func (c *clusterEventBus) NotifyClusterDeleted(fn interface{}) {
+	c.eb.SubscribeAsync(clusterDeletedTopic, fn, false)
 }

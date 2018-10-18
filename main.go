@@ -20,6 +20,7 @@ import (
 	"os"
 	"path"
 
+	evbus "github.com/asaskevich/EventBus"
 	"github.com/banzaicloud/go-gin-prometheus"
 	"github.com/banzaicloud/pipeline/api"
 	"github.com/banzaicloud/pipeline/api/ark/backups"
@@ -35,16 +36,19 @@ import (
 	"github.com/banzaicloud/pipeline/internal/audit"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/dashboard"
+	"github.com/banzaicloud/pipeline/internal/monitor"
 	ginternal "github.com/banzaicloud/pipeline/internal/platform/gin"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	ginlog "github.com/banzaicloud/pipeline/internal/platform/gin/log"
 	platformlog "github.com/banzaicloud/pipeline/internal/platform/log"
 	"github.com/banzaicloud/pipeline/model/defaults"
 	"github.com/banzaicloud/pipeline/notify"
+	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -121,9 +125,31 @@ func main() {
 		log.Infoln("External dns service functionality is not enabled")
 	}
 
+	clusterEventBus := evbus.New()
 	clusters := intCluster.NewClusters(db)
 	secretValidator := providers.NewSecretValidator(secret.Store)
-	clusterManager := cluster.NewManager(clusters, secretValidator, cluster.NewNopClusterEvents(), log, errorHandler)
+	clusterManager := cluster.NewManager(clusters, secretValidator, cluster.NewClusterEvents(clusterEventBus), log, errorHandler)
+
+	if viper.GetBool(config.MonitorEnabled) {
+		client, err := k8sclient.NewInClusterClient()
+		if err != nil {
+			errorHandler.Handle(emperror.Wrap(err, "failed to enable monitoring"))
+		} else {
+			monitorClusterSubscriber := monitor.NewClusterSubscriber(
+				client,
+				clusterManager,
+				db,
+				viper.GetString(config.ControlPlaneNamespace),
+				viper.GetString(config.PipelineSystemNamespace),
+				viper.GetString(config.MonitorConfigMap),
+				viper.GetString(config.MonitorConfigMapPrometheusKey),
+				viper.GetString(config.MonitorCertSecret),
+				viper.GetString(config.MonitorCertMountPath),
+				errorHandler,
+			)
+			monitorClusterSubscriber.Register(monitor.NewClusterEvents(clusterEventBus))
+		}
+	}
 
 	clusterAPI := api.NewClusterAPI(clusterManager, log, errorHandler)
 
