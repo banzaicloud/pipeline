@@ -59,5 +59,6 @@ type CreateObjectStoreBucketProperties struct {
 
 // CreateBucketResponse describes a storage bucket creation response
 type CreateBucketResponse struct {
-	BucketName string `json:"bucketName"`
+	BucketName string `json:"name"`
+	CloudType  string `json:"cloud"`
 }

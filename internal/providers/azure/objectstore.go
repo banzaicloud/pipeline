@@ -129,16 +129,20 @@ func (s *ObjectStore) CreateBucket(bucketName string) error {
 	bucket := &ObjectStoreBucketModel{}
 	searchCriteria := s.searchCriteria(bucketName)
 
-	if err := s.db.Where(searchCriteria).Find(bucket).Error; err != nil {
-		if err != gorm.ErrRecordNotFound {
-			return errors.Wrap(err, "error happened during getting bucket from DB: %s")
+	dbr := s.db.Where(searchCriteria).Find(bucket)
+
+	if dbr.Error != nil {
+		if dbr.Error != gorm.ErrRecordNotFound {
+			return errors.Wrap(dbr.Error, "error happened during getting bucket from DB: %s")
 		}
+	} else {
+		return fmt.Errorf("bucket with name %s already exists", bucketName)
 	}
 
-	// TODO: create the bucket in the database later so that we don't have to roll back
 	bucket.ResourceGroup = resourceGroup
 	bucket.Organization = *s.org
 	bucket.SecretRef = s.secret.ID
+	bucket.Status = providers.BucketCreating
 
 	logger.Info("saving bucket in DB")
 
@@ -173,14 +177,14 @@ func (s *ObjectStore) CreateBucket(bucketName string) error {
 
 	key, err := GetStorageAccountKey(resourceGroup, storageAccount, s.secret, s.logger)
 	if err != nil {
-		return err
+		return s.rollback(logger, "could not get storage account", err, bucket)
 	}
 
 	// update here so the bucket list does not get inconsistent
 	updateField = &ObjectStoreBucketModel{Name: bucketName, Location: s.location}
 	err = s.db.Model(bucket).Update(updateField).Error
 	if err != nil {
-		return errors.Wrap(err, "error happened during updating bucket name")
+		return s.rollback(logger, "error happened during updating bucket name", err, bucket)
 	}
 
 	p := azblob.NewPipeline(azblob.NewSharedKeyCredential(storageAccount, key), azblob.PipelineOptions{})
@@ -200,6 +204,13 @@ func (s *ObjectStore) CreateBucket(bucketName string) error {
 		return err
 	}
 	logger.Infof("storageAccount secret %v created/updated", secretName)
+	bucket.Status = providers.BucketCreated
+
+	err = s.db.Save(bucket).Error
+	if err != nil {
+		return s.rollback(logger, "could not save bucket", err, bucket)
+	}
+
 	return nil
 }
 
@@ -227,12 +238,23 @@ func (s *ObjectStore) createUpdateStorageAccountSecret(accesskey string) (string
 }
 
 func (s *ObjectStore) rollback(logger logrus.FieldLogger, msg string, err error, bucket *ObjectStoreBucketModel) error {
-	e := s.db.Delete(bucket).Error
+	bucket.Status = providers.BucketCreateError
+	e := s.db.Save(bucket).Error
 	if e != nil {
 		logger.Error(e.Error())
 	}
 
-	return errors.Wrapf(err, "%s (rolling back)", msg)
+	return errors.Wrapf(err, "%s", msg)
+}
+
+func (s *ObjectStore) deleteFailed(logger logrus.FieldLogger, msg string, err error, bucket *ObjectStoreBucketModel) error {
+	bucket.Status = providers.BucketDeleteError
+	e := s.db.Save(bucket).Error
+	if e != nil {
+		logger.Error(e.Error())
+	}
+
+	return errors.Wrapf(err, "%s", msg)
 }
 
 func (s *ObjectStore) createResourceGroup(resourceGroup string) error {
@@ -369,9 +391,14 @@ func (s *ObjectStore) DeleteBucket(bucketName string) error {
 		}
 	}
 
+	bucket.Status = providers.BucketDeleting
+	if err := s.db.Save(bucket).Error; err != nil {
+		return errors.Wrapf(err, "could not save/update bucket: %s", bucketName)
+	}
+
 	key, err := GetStorageAccountKey(resourceGroup, storageAccount, s.secret, s.logger)
 	if err != nil {
-		return err
+		return s.deleteFailed(logger, "could not get account key", err, bucket)
 	}
 
 	p := azblob.NewPipeline(azblob.NewSharedKeyCredential(storageAccount, key), azblob.PipelineOptions{})
@@ -381,7 +408,7 @@ func (s *ObjectStore) DeleteBucket(bucketName string) error {
 	_, err = containerURL.Delete(context.TODO(), azblob.ContainerAccessConditions{})
 
 	if err != nil {
-		return err
+		return s.deleteFailed(logger, "could not delete container", err, bucket)
 	}
 
 	err = s.db.Delete(bucket).Error
@@ -535,6 +562,11 @@ func (s *ObjectStore) ListManagedBuckets() ([]*objectstore.BucketInfo, error) {
 		bucketInfo.Location = bucket.Location
 		bucketInfo.SecretRef = bucket.SecretRef
 		bucketInfo.Cloud = providers.Azure
+		bucketInfo.Status = bucket.Status
+		bucketInfo.Azure = &objectstore.BlobStoragePropsForAzure{
+			ResourceGroup:  bucket.ResourceGroup,
+			StorageAccount: bucket.StorageAccount,
+		}
 		bucketList = append(bucketList, bucketInfo)
 	}
 

@@ -289,6 +289,7 @@ func CreateBucket(c *gin.Context) {
 
 	c.JSON(http.StatusAccepted, CreateBucketResponse{
 		BucketName: createBucketRequest.Name,
+		CloudType:  cloudType,
 	})
 
 	go func() {
