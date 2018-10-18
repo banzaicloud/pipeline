@@ -80,6 +80,18 @@ func (e *DeploymentNotFoundError) Error() string {
 	return fmt.Sprintf("deployment not found: %s", e.HelmError)
 }
 
+type chartDataIsTooBigError struct {
+	size int64
+}
+
+func (e *chartDataIsTooBigError) Error() string {
+	return "chart data is too big"
+}
+
+func (e *chartDataIsTooBigError) Context() []interface{} {
+	return []interface{}{"maxAllowedSize", maxCompressedDataSize, "size", e.size}
+}
+
 const maxCompressedDataSize = 10485760
 const maxDataSize = 10485760
 
@@ -94,8 +106,7 @@ func DownloadFile(url string) ([]byte, error) {
 	compressedContent := new(bytes.Buffer)
 
 	if resp.ContentLength > maxCompressedDataSize {
-		log.Errorf("Response ContentLength: %v Max allowed size: %v", resp.ContentLength, maxCompressedDataSize)
-		return nil, fmt.Errorf("Chart data is too big.")
+		return nil, errors.WithStack(&chartDataIsTooBigError{resp.ContentLength})
 	}
 
 	_, copyErr := io.CopyN(compressedContent, resp.Body, maxCompressedDataSize)
