@@ -195,7 +195,7 @@ func onAwsStackFailure(log logrus.FieldLogger, awsStackError error, stackName st
 	failedStackEvents, err := collectFailedStackEvents(stackName, cloudformationSrv)
 	if err != nil {
 		log.Errorln("retrieving failed stack events failed: ", err.Error())
-		return errors.New(fmt.Sprintf("%s\n%s", awsStackError.Error(), err.Error()))
+		return fmt.Errorf("%s\n%s", awsStackError.Error(), err.Error())
 	}
 
 	if len(failedStackEvents) > 0 {
@@ -208,7 +208,7 @@ func onAwsStackFailure(log logrus.FieldLogger, awsStackError error, stackName st
 		logFailedStackEvents(log, stackName, eventMsg)
 
 		msg := strings.Join(eventMsg, "\n")
-		return errors.New(fmt.Sprintf("stack %v events\n%v", stackName, msg))
+		return fmt.Errorf("stack %v events\n%v", stackName, msg)
 	}
 
 	return awsStackError
