@@ -80,6 +80,9 @@ func (e *DeploymentNotFoundError) Error() string {
 	return fmt.Sprintf("deployment not found: %s", e.HelmError)
 }
 
+const maxCompressedDataSize = 10485760
+const maxDataSize = 10485760
+
 // DownloadFile download file/unzip and untar and store it in memory
 func DownloadFile(url string) ([]byte, error) {
 	resp, err := http.Get(url)
@@ -90,7 +93,6 @@ func DownloadFile(url string) ([]byte, error) {
 
 	compressedContent := new(bytes.Buffer)
 
-	const maxCompressedDataSize = 10485760
 	if resp.ContentLength > maxCompressedDataSize {
 		log.Errorf("Response ContentLength: %v Max allowed size: %v", resp.ContentLength, maxCompressedDataSize)
 		return nil, fmt.Errorf("Chart data is too big.")
@@ -108,7 +110,6 @@ func DownloadFile(url string) ([]byte, error) {
 	defer gzf.Close()
 
 	//rawContent, _ := ioutil.ReadAll(gzf)
-	const maxDataSize = 10485760
 	tarContent := new(bytes.Buffer)
 	_, copyErr = io.CopyN(tarContent, gzf, maxDataSize)
 	if copyErr != nil && copyErr != io.EOF {
