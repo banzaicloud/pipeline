@@ -22,7 +22,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -89,25 +88,34 @@ func DownloadFile(url string) ([]byte, error) {
 	}
 	defer resp.Body.Close()
 
-	tarContent := new(bytes.Buffer)
+	compressedContent := new(bytes.Buffer)
 
-	const maxDataSize = 10485760
-	if resp.ContentLength > maxDataSize {
-		log.Errorf("Response ContentLength: %v Max allowed size: %v", resp.ContentLength, maxDataSize)
+	const maxCompressedDataSize = 10485760
+	if resp.ContentLength > maxCompressedDataSize {
+		log.Errorf("Response ContentLength: %v Max allowed size: %v", resp.ContentLength, maxCompressedDataSize)
 		return nil, fmt.Errorf("Chart data is too big.")
 	}
 
-	_, copyErr := io.CopyN(tarContent, resp.Body, maxDataSize)
+	_, copyErr := io.CopyN(compressedContent, resp.Body, maxCompressedDataSize)
 	if copyErr != nil && copyErr != io.EOF {
 		return nil, copyErr
 	}
 
-	gzf, err := gzip.NewReader(tarContent)
+	gzf, err := gzip.NewReader(compressedContent)
 	if err != nil {
 		return nil, err
 	}
-	rawContent, _ := ioutil.ReadAll(gzf)
-	return rawContent, nil
+	defer gzf.Close()
+
+	//rawContent, _ := ioutil.ReadAll(gzf)
+	const maxDataSize = 10485760
+	tarContent := new(bytes.Buffer)
+	_, copyErr = io.CopyN(tarContent, gzf, maxDataSize)
+	if copyErr != nil && copyErr != io.EOF {
+		return nil, copyErr
+	}
+
+	return tarContent.Bytes(), nil
 }
 
 //GetChartFile Download file from chart repository
