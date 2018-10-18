@@ -33,11 +33,16 @@ import (
 	"time"
 
 	"github.com/Masterminds/sprig"
+	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/pkg/common"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
+	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/patrickmn/go-cache"
 	"github.com/pkg/errors"
 	"github.com/spf13/cast"
+	"github.com/spf13/viper"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/helm/pkg/chartutil"
 	"k8s.io/helm/pkg/getter"
@@ -62,7 +67,6 @@ var ErrRepoNotFound = errors.New("helm repository not found!")
 
 // DefaultInstallOptions contains th default install options used for creating a new helm deployment
 var DefaultInstallOptions = []helm.InstallOption{
-	helm.InstallDryRun(false),
 	helm.InstallReuseName(true),
 	helm.InstallDisableHooks(false),
 	helm.InstallTimeout(300),
@@ -346,7 +350,7 @@ func UpgradeDeployment(releaseName, chartName, chartVersion string, chartPackage
 }
 
 //CreateDeployment creates a Helm deployment in chosen namespace
-func CreateDeployment(chartName, chartVersion string, chartPackage []byte, namespace string, releaseName string, dryRun bool, valueOverrides []byte, kubeConfig []byte, env helm_env.EnvSettings, options ...helm.InstallOption) (*rls.InstallReleaseResponse, error) {
+func CreateDeployment(chartName, chartVersion string, chartPackage []byte, namespace string, releaseName string, dryRun bool, valueOverrides []byte, odPcts map[string]int, kubeConfig []byte, env helm_env.EnvSettings, options ...helm.InstallOption) (*rls.InstallReleaseResponse, error) {
 
 	chartRequested, err := getRequestedChart(releaseName, chartName, chartVersion, chartPackage, env)
 	if err != nil {
@@ -356,10 +360,40 @@ func CreateDeployment(chartName, chartVersion string, chartPackage []byte, names
 	if len(strings.TrimSpace(releaseName)) == 0 {
 		releaseName, _ = generateName("")
 	}
+
 	if namespace == "" {
 		log.Warn("Deployment namespace was not set failing back to default")
 		namespace = DefaultNamespace
 	}
+
+	if !dryRun && odPcts != nil {
+		// if resource doesn't exist in the template
+		if len(releaseName) == 0 {
+			return nil, fmt.Errorf("release name cannot be empty when setting on-demand percentages")
+		}
+		client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
+		if err != nil {
+			return nil, err
+		}
+		pipelineSystemNamespace := viper.GetString(config.PipelineSystemNamespace)
+
+		// if configmap doesn't exist
+		configmap, err := client.CoreV1().ConfigMaps(pipelineSystemNamespace).Get(common.SpotConfigMapKey, metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+		if configmap.Data == nil {
+			configmap.Data = make(map[string]string)
+		}
+		for res, pct := range odPcts {
+			configmap.Data[releaseName+"."+res] = fmt.Sprintf("%d", pct)
+		}
+		_, err = client.CoreV1().ConfigMaps(pipelineSystemNamespace).Update(configmap)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	hClient, err := pkgHelm.NewClient(kubeConfig, log)
 	if err != nil {
 		return nil, err
@@ -426,14 +460,13 @@ func GetDeploymentK8sResources(releaseName string, kubeConfig []byte, resourceTy
 	return ParseReleaseManifest(releaseContent.Release.Manifest, resourceTypes)
 }
 
-func ParseReleaseManifest(manifest string, resourceTypes []string) ([]helm2.DeploymentResource, error) {
+func ParseReleaseManifest(manifest string, resourceTypes []string) ([]pkgHelm.DeploymentResource, error) {
 
 	objects := strings.Split(manifest, "---")
 	decode := scheme.Codecs.UniversalDeserializer().Decode
 	deployments := make([]pkgHelm.DeploymentResource, 0)
 
 	for _, object := range objects {
-
 		obj, _, err := decode([]byte(object), nil, nil)
 
 		if err != nil {

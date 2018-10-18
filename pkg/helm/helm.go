@@ -119,6 +119,7 @@ type CreateUpdateDeploymentRequest struct {
 	Namespace   string                 `json:"namespace,omitempty" yaml:"namespace,omitempty"`
 	DryRun      bool                   `json:"dryrun,omitempty" yaml:"dryrun,omitempty"`
 	Values      map[string]interface{} `json:"values,omitempty" yaml:"values,omitempty"`
+	OdPcts      map[string]int         `json:"odpcts,omitempty" yaml:"odpcts,omitempty"`
 }
 
 // ListDeploymentResponse describes a deployment list response

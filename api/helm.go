@@ -85,6 +85,7 @@ func CreateDeployment(c *gin.Context) {
 		parsedRequest.deploymentReleaseName,
 		parsedRequest.dryRun,
 		parsedRequest.values,
+		parsedRequest.odPcts,
 		parsedRequest.kubeConfig,
 		helm.GenerateHelmRepoEnv(parsedRequest.organizationName),
 		helm.DefaultInstallOptions...,
@@ -454,6 +455,8 @@ type parsedDeploymentRequest struct {
 	kubeConfig            []byte
 	organizationName      string
 	dryRun                bool
+	odPcts                map[string]int
+	// TODO: validate - 1. if odPcts are set, deploymentName must be set // if dryRun is set, odPcts shouldn't be set // map keys should match resource names in helm template
 }
 
 func parseCreateUpdateDeploymentRequest(c *gin.Context, commonCluster cluster.CommonCluster) (*parsedDeploymentRequest, error) {
@@ -482,6 +485,7 @@ func parseCreateUpdateDeploymentRequest(c *gin.Context, commonCluster cluster.Co
 	pdr.reuseValues = deployment.ReUseValues
 	pdr.namespace = deployment.Namespace
 	pdr.dryRun = deployment.DryRun
+	pdr.odPcts = deployment.OdPcts
 
 	if deployment.Values != nil {
 		pdr.values, err = yaml.Marshal(deployment.Values)

@@ -84,6 +84,7 @@ const (
 	InstallPVCOperator                     = "InstallPVCOperator"
 	InstallAnchoreImageValidator           = "InstallAnchoreImageValidator"
 	RestoreFromBackup                      = "RestoreFromBackup"
+	InitSpotConfig                         = "InitSpotConfig"
 )
 
 // Provider name regexp
@@ -190,7 +191,7 @@ type GetClusterConfigResponse struct {
 
 // UpdateClusterRequest describes an update cluster request
 type UpdateClusterRequest struct {
-	Cloud            string `json:"cloud" binding:"required"`
+	Cloud string     `json:"cloud" binding:"required"`
 	UpdateProperties `json:"properties"`
 }
 

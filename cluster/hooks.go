@@ -44,6 +44,7 @@ import (
 	"github.com/spf13/viper"
 	"k8s.io/api/core/v1"
 	"k8s.io/api/rbac/v1beta1"
+	apiErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
@@ -510,7 +511,7 @@ func installDeployment(cluster CommonCluster, namespace string, deploymentName s
 		}
 	}
 
-	_, err = helm.CreateDeployment(deploymentName, chartVersion, nil, namespace, releaseName, false, values, kubeConfig, helm.GenerateHelmRepoEnv(org.Name), helm.DefaultInstallOptions...)
+	_, err = helm.CreateDeployment(deploymentName, chartVersion, nil, namespace, releaseName, false, values, nil, kubeConfig, helm.GenerateHelmRepoEnv(org.Name), helm.DefaultInstallOptions...)
 	if err != nil {
 		log.Errorf("Deploying '%s' failed due to: %s", deploymentName, err.Error())
 		return err
@@ -1228,4 +1229,94 @@ func RestoreFromBackup(input interface{}, param pkgCluster.PostHookParam) error 
 	}
 
 	return ark.RestoreFromBackup(params, cluster, pipConfig.DB(), log)
+}
+
+// InitSpotConfig creates a ConfigMap to store spot related config and installs the scheduler and the spot webhook charts
+func InitSpotConfig(input interface{}) error {
+
+	cluster, ok := input.(CommonCluster)
+	if !ok {
+		return errors.Errorf("Wrong parameter type: %T", cluster)
+	}
+
+	spot, err := isSpotCluster(cluster)
+	if err != nil {
+		return err
+	}
+
+	if !spot {
+		log.Debug("cluster doesn't have spot priced instances, spot post hook won't run")
+		return nil
+	}
+
+	pipelineSystemNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
+
+	kubeConfig, err := cluster.GetK8sConfig()
+	if err != nil {
+		return err
+	}
+
+	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
+	if err != nil {
+		return err
+	}
+
+	err = initializeSpotConfigMap(client, pipelineSystemNamespace)
+	if err != nil {
+		return err
+	}
+
+	values := map[string]interface{}{
+		"affinity":    getHeadNodeAffinity(cluster),
+		"tolerations": getHeadNodeTolerations(),
+	}
+	marshalledValues, err := yaml.Marshal(values)
+	if err != nil {
+		return err
+	}
+
+	err = installDeployment(cluster, pipelineSystemNamespace, pkgHelm.BanzaiRepository+"/spot-scheduler", "spot-scheduler", marshalledValues, "InstallSpotScheduler", "")
+	if err != nil {
+		return err
+	}
+	err = installDeployment(cluster, pipelineSystemNamespace, pkgHelm.BanzaiRepository+"/spot-config-webhook", "spot-webhook", marshalledValues, "InstallSpotWebhook", "")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func isSpotCluster(cluster CommonCluster) (bool, error) {
+	status, err := cluster.GetStatus()
+	if err != nil {
+		return false, err
+	}
+	for _, nps := range status.NodePools {
+		if nps.SpotPrice != "" && nps.SpotPrice != "0" {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+func initializeSpotConfigMap(client *kubernetes.Clientset, systemNs string) error {
+	log.Debug("initializing ConfigMap to store spot configuration")
+	_, err := client.CoreV1().ConfigMaps(systemNs).Get(pkgCommon.SpotConfigMapKey, metav1.GetOptions{})
+	if err != nil {
+		if apiErrors.IsNotFound(err) {
+			_, err = client.CoreV1().ConfigMaps(systemNs).Create(&v1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: pkgCommon.SpotConfigMapKey,
+				},
+				Data: make(map[string]string),
+			})
+			if err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	}
+	log.Info("finished initializing spot ConfigMap")
+	return nil
 }

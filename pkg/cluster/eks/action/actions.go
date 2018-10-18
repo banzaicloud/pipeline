@@ -739,7 +739,7 @@ func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (outp
 				},
 				{
 					ParameterKey:   aws.String("BootstrapArguments"),
-					ParameterValue: aws.String(fmt.Sprintf("--kubelet-extra-args '--node-labels %v=%v,node.banzaicloud.com/ondemand=%v'", common.LabelKey, nodePool.Name, onDemandLabel)),
+					ParameterValue: aws.String(fmt.Sprintf("--kubelet-extra-args '--node-labels %v=%v,%v=%v'", common.LabelKey, nodePool.Name, common.OnDemandLabelKey, onDemandLabel)),
 				},
 			}
 
