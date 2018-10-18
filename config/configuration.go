@@ -94,10 +94,10 @@ const (
 
 	// Monitor
 	MonitorEnabled                = "monitor.enabled"
-	MonitorConfigMap              = "monitor.configMap" // Prometheus config map
+	MonitorConfigMap              = "monitor.configMap"              // Prometheus config map
 	MonitorConfigMapPrometheusKey = "monitor.configMapPrometheusKey" // Prometheus config key in the prometheus config map
-	MonitorCertSecret             = "monitor.certSecret" // Kubernetes secret for kubernetes cluster certs
-	MonitorCertMountPath          = "monitor.mountPath" // Mount path for the kubernetes cert secret
+	MonitorCertSecret             = "monitor.certSecret"             // Kubernetes secret for kubernetes cluster certs
+	MonitorCertMountPath          = "monitor.mountPath"              // Mount path for the kubernetes cert secret
 
 	ControlPlaneNamespace = "infra.control-plane-namespace" // Namespace where the pipeline and prometheus runs
 )
