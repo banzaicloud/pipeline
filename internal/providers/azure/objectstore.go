@@ -565,6 +565,7 @@ func (s *ObjectStore) ListManagedBuckets() ([]*objectstore.BucketInfo, error) {
 		bucketInfo.SecretRef = bucket.SecretRef
 		bucketInfo.Cloud = providers.Azure
 		bucketInfo.Status = bucket.Status
+		bucketInfo.StatusMsg = bucket.StatusMsg
 		bucketInfo.Azure = &objectstore.BlobStoragePropsForAzure{
 			ResourceGroup:  bucket.ResourceGroup,
 			StorageAccount: bucket.StorageAccount,

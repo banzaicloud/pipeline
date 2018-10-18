@@ -303,6 +303,7 @@ func (s *objectStore) ListManagedBuckets() ([]*objectstore.BucketInfo, error) {
 		bucketInfo.SecretRef = bucket.SecretRef
 		bucketInfo.Cloud = providers.Amazon
 		bucketInfo.Status = bucket.Status
+		bucketInfo.StatusMsg = bucket.StatusMsg
 		bucketList = append(bucketList, bucketInfo)
 	}
 

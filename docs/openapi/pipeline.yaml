@@ -6819,7 +6819,9 @@ components:
                     description: the status of the bucket
                     type: string
                     enum: [CREATING, AVAILABLE, ERROR_CREATE, DELETING, ERROR_DELETE]
-
+                statusMessage:
+                    description: the reason for the error status
+                    type: string
 
         ListStorageBucketsResponse:
             type: array

@@ -64,6 +64,7 @@ type BucketResponseItem struct {
 	SecretInfo *secretData                           `json:"secret"`
 	Azure      *objectstore.BlobStoragePropsForAzure `json:"aks,omitempty"`
 	Status     string                                `json:"status"`
+	StatusMsg  string                                `json:"statusMessage"`
 }
 
 // ListAllBuckets handles 	bucket list requests. The handler method directs the flow to the appropriate retrieval
@@ -740,13 +741,14 @@ func GetBucket(c *gin.Context) {
 // newBucketResponseItemFromBucketInfo builds a responsItem based opn the provided bucketInfo
 func newBucketResponseItemFromBucketInfo(bi *objectstore.BucketInfo, notes, secretName string) *BucketResponseItem {
 	ret := BucketResponseItem{
-		Name:     bi.Name,
-		Status:   bi.Status,
-		Location: bi.Location,
-		Cloud:    bi.Cloud,
-		Managed:  bi.Managed,
-		Notes:    &notes,
-		Azure:    bi.Azure,
+		Name:      bi.Name,
+		Status:    bi.Status,
+		StatusMsg: bi.StatusMsg,
+		Location:  bi.Location,
+		Cloud:     bi.Cloud,
+		Managed:   bi.Managed,
+		Notes:     &notes,
+		Azure:     bi.Azure,
 		SecretInfo: &secretData{
 			SecretName: secretName,
 			SecretId:   bi.SecretRef,

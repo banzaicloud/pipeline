@@ -195,6 +195,7 @@ func (o *ObjectStore) ListManagedBuckets() ([]*objectstore.BucketInfo, error) {
 		bucketInfo.Cloud = providers.Oracle
 		bucketInfo.SecretRef = bucket.SecretRef
 		bucketInfo.Status = bucket.Status
+		bucketInfo.StatusMsg = bucket.StatusMsg
 		bucketList = append(bucketList, bucketInfo)
 	}
 

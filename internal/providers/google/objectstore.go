@@ -353,6 +353,7 @@ func (s *ObjectStore) ListManagedBuckets() ([]*objectstore.BucketInfo, error) {
 		bucketInfo.SecretRef = bucket.SecretRef
 		bucketInfo.Cloud = providers.Google
 		bucketInfo.Status = bucket.Status
+		bucketInfo.StatusMsg = bucket.StatusMsg
 		bucketList = append(bucketList, bucketInfo)
 	}
 

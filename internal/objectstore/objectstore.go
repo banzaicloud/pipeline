@@ -33,6 +33,7 @@ type BucketInfo struct {
 	Cloud     string                    `json:"cloud,omitempty"`
 	Azure     *BlobStoragePropsForAzure `json:"aks,omitempty"`
 	Status    string                    `json:"status"`
+	StatusMsg string                    `json:"statusMsg"`
 }
 
 // BlobStoragePropsForAzure describes the Azure specific properties
