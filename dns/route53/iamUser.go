@@ -114,5 +114,5 @@ func (dns *awsRoute53) deleteAmazonAccessKey(userName, accessKeyId *string) erro
 }
 
 func getIAMUserName(org *auth.Organization) string {
-	return fmt.Sprintf(iamUserNameTemplate, fmt.Sprintf("%08x\n", crc32.ChecksumIEEE([]byte(viper.GetString(config.DNSBaseDomain)))), org.Name)
+	return fmt.Sprintf(iamUserNameTemplate, fmt.Sprintf("%08x", crc32.ChecksumIEEE([]byte(viper.GetString(config.DNSBaseDomain)))), org.Name)
 }
