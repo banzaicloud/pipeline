@@ -663,6 +663,8 @@ func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (outp
 
 			tags := []*cloudformation.Tag{
 				{Key: aws.String("pipeline-created"), Value: aws.String("true")},
+				{Key: aws.String("pipeline-cluster-name"), Value: aws.String(a.context.ClusterName)},
+				{Key: aws.String("pipeline-stack-type"), Value: aws.String("nodepool")},
 			}
 
 			if nodePool.Autoscaling {
