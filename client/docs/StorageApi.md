@@ -6,6 +6,7 @@ Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**CreateObjectStoreBucket**](StorageApi.md#CreateObjectStoreBucket) | **Post** /api/v1/orgs/{orgId}/buckets | Creates a new object store bucket with the given params
 [**DeleteObjectStoreBucket**](StorageApi.md#DeleteObjectStoreBucket) | **Delete** /api/v1/orgs/{orgId}/buckets/{name} | Deletes the object store bucket with the given name
+[**GetBucket**](StorageApi.md#GetBucket) | **Get** /api/v1/orgs/{orgId}/buckets/{name} | Get object store bucket details
 [**GetObjectStoreBucketStatus**](StorageApi.md#GetObjectStoreBucketStatus) | **Head** /api/v1/orgs/{orgId}/buckets/{name} | Get object store bucket status
 [**ListObjectStoreBuckets**](StorageApi.md#ListObjectStoreBuckets) | **Get** /api/v1/orgs/{orgId}/buckets | List object storage buckets
 
@@ -71,6 +72,51 @@ Name | Type | Description  | Notes
 ### Return type
 
  (empty response body)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **GetBucket**
+> BucketInfo GetBucket(ctx, orgId, name, cloudType, optional)
+Get object store bucket details
+
+Retrieves the details of the object store bucket given its name
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+  **orgId** | **int32**| Organization identification | 
+  **name** | **string**| Bucket identification | 
+  **cloudType** | **string**| Identifies the cloud provider | 
+ **optional** | ***GetBucketOpts** | optional parameters | nil if no parameters
+
+### Optional Parameters
+Optional parameters are passed through a pointer to a GetBucketOpts struct
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+
+
+
+ **secretId** | **optional.String**| Secret identification | 
+ **secretName** | **optional.String**| Secret identification by name | 
+ **resourceGroup** | **optional.String**| Azure resource group to lookup the bucket(storage container) under. Required only on Azure cloud provider. | 
+ **storageAccount** | **optional.String**| Azure storage account to lookup the bucket(storage container) under. Required only on Azure cloud provider. | 
+ **location** | **optional.String**| The region to lookup the bucket under. Required on Amazon, Oracle and Alibaba cloud providers. | 
+
+### Return type
+
+[**BucketInfo**](BucketInfo.md)
 
 ### Authorization
 

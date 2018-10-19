@@ -29,6 +29,14 @@ const (
 	Azure   = azure.Provider
 	Google  = google.Provider
 	Oracle  = oracle.Provider
+
+	BucketCreating    = "CREATING"
+	BucketCreated     = "AVAILABLE"
+	BucketCreateError = "ERROR_CREATE"
+
+	BucketDeleting    = "DELETING"
+	BucketDeleted     = "DELETED"
+	BucketDeleteError = "ERROR_DELETE"
 )
 
 // ValidateProvider validates if the passed cloud provider is supported.

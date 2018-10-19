@@ -3855,6 +3855,78 @@ paths:
                     description: Object store bucket not found
                 '500':
                     description: Internal server error
+        get:
+            security:
+            - bearerAuth: []
+            tags:
+            - storage
+            summary: Get object store bucket details
+            operationId: GetBucket
+            description: Retrieves the details of the object store bucket given its name
+            parameters:
+            - name: orgId
+              in: path
+              required: true
+              description: Organization identification
+              schema:
+                  type: integer
+            - name: name
+              in: path
+              required: true
+              description: Bucket identification
+              schema:
+                  type: string
+            - name: secretId
+              in: header
+              description: Secret identification
+              schema:
+                  type: string
+            - name: secretName
+              in: header
+              description: Secret identification by name
+              schema:
+                  type: string
+            - name: cloudType
+              in: query
+              description: Identifies the cloud provider
+              schema:
+                  type: string
+                  enum: [amazon, google, azure, oracle, alibaba]
+              required: true
+            - name: resourceGroup
+              in: query
+              description: Azure resource group to lookup the bucket(storage container) under. Required only on Azure cloud provider.
+              schema:
+                  type: string
+            - name: storageAccount
+              in: query
+              description: Azure storage account to lookup the bucket(storage container) under. Required only on Azure cloud provider.
+              schema:
+                  type: string
+            - name: location
+              in: query
+              description: The region to lookup the bucket under. Required on Amazon, Oracle and Alibaba cloud providers.
+              schema:
+                  type: string
+            responses:
+                '200':
+                    description: Object store bucket details
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BucketInfo'
+                '401':
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Unauthorized'
+                '400':
+                    description: Error while checking object store bucket status
+                '404':
+                    description: Object store bucket not found
+                '500':
+                    description: Internal server error
 
 
     '/api/v1/orgs/{orgId}/clusters/{id}/images':
@@ -4590,6 +4662,8 @@ components:
                     required:
                         - nodePools
                     properties:
+                        projectId:
+                            type: string
                         master:
                             type: object
                             properties:
@@ -6697,11 +6771,16 @@ components:
         CreateObjectStoreBucketResponse:
             type: object
             required:
-                - bucketName
+                - name
+                - cloud
             properties:
-                bucketName:
+                name:
                     type: string
                     example: "mybucket"
+                cloud:
+                    type: string
+                    enum: [amazon, azure, google, oracle, alibaba]
+                    example: amazon
 
         BucketInfo:
             type: object
@@ -6709,6 +6788,7 @@ components:
                 - name
                 - managed
                 - cloud
+                - status
             properties:
                 name:
                     description: "the name of the object storage / bucket"
@@ -6735,6 +6815,13 @@ components:
                             example: "mysecretname"
                 azure:
                     $ref: '#/components/schemas/AzureBlobStorageProps'
+                status:
+                    description: the status of the bucket
+                    type: string
+                    enum: [CREATING, AVAILABLE, ERROR_CREATE, DELETING, ERROR_DELETE]
+                statusMessage:
+                    description: the reason for the error status
+                    type: string
 
         ListStorageBucketsResponse:
             type: array
@@ -7485,7 +7572,7 @@ components:
             type: array
             items:
                 $ref: "#/components/schemas/AnchoreImage"
-   
+
         AnchoreImage:
             description: A unique image in the engine. May have multiple tags or references. Unique to an image content across registries or repositories.
             type: object
@@ -7522,7 +7609,7 @@ components:
                         - analyzing
                         - analyzed
                         - analysis_failed
-    
+
         Vulnerability:
             type: object
             properties:
@@ -7562,13 +7649,13 @@ components:
                 packagePath:
                     type: string
                     description: The location (if applicable) of the vulnerable package in the   container filesystem
-    
+
         VulnerabilityList:
             type: array
             description: List of Vulnerability objects
             items:
                 $ref: '#/components/schemas/Vulnerability'
-    
+
         VulnerabilityResponse:
             description: envelope containing list of vulnerabilities
             type: object
