@@ -65,6 +65,7 @@ secureCookie = true
 
 # Domain field for cookies
 cookieDomain = ""
+setCookieDomain = false
 
 whitelistEnabled = false
 

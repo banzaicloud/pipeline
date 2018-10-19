@@ -102,6 +102,8 @@ const (
 	MonitorReleaseName = "monitor"
 
 	ControlPlaneNamespace = "infra.control-plane-namespace" // Namespace where the pipeline and prometheus runs
+
+	SetCookieDomain = "auth.setCookieDomain"
 )
 
 //Init initializes the configurations
@@ -141,6 +143,7 @@ func init() {
 	viper.SetDefault("auth.jwtaudience", "https://pipeline.banzaicloud.com")
 	viper.SetDefault("auth.secureCookie", true)
 	viper.SetDefault("auth.whitelistEnabled", false)
+	viper.SetDefault(SetCookieDomain, false)
 
 	viper.SetDefault("pipeline.listenport", 9090)
 	viper.SetDefault("pipeline.certfile", "")
