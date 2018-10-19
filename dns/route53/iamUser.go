@@ -16,12 +16,17 @@ package route53
 
 import (
 	"fmt"
+	"hash/crc32"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/pkg/amazon"
+	"github.com/goph/emperror"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 // createIAMUser creates a Amazon IAM user with the given name and with no login access to console
@@ -29,14 +34,25 @@ import (
 func (dns *awsRoute53) createIAMUser(userName *string) (*iam.User, error) {
 	log := loggerWithFields(logrus.Fields{"userName": aws.StringValue(userName)})
 
-	user, err := amazon.CreateIAMUser(dns.iamSvc, userName)
+	path := fmt.Sprintf("/%s", viper.GetString(config.DNSBaseDomain))
+
+	userInput := &iam.CreateUserInput{
+		UserName: userName,
+		Path:     aws.String(path),
+	}
+
+	iamUser, err := dns.iamSvc.CreateUser(userInput)
 	if err != nil {
-		log.Errorf("creating IAM user failed: %s", extractErrorMessage(err))
-		return nil, err
+		return nil, emperror.With(
+			errors.Wrap(wrapAwsError(err), "failed to create IAM user"),
+			"userName", userName,
+			"path", path,
+		)
 	}
 
 	log.Infoln("IAM user created")
-	return user, nil
+
+	return iamUser.User, nil
 }
 
 // getIAMUser retrieves the Amazon IAM user with the given user name
@@ -98,5 +114,5 @@ func (dns *awsRoute53) deleteAmazonAccessKey(userName, accessKeyId *string) erro
 }
 
 func getIAMUserName(org *auth.Organization) string {
-	return fmt.Sprintf(iamUserNameTemplate, org.Name)
+	return fmt.Sprintf(iamUserNameTemplate, fmt.Sprintf("%08x\n", crc32.ChecksumIEEE([]byte(viper.GetString(config.DNSBaseDomain)))), org.Name)
 }
