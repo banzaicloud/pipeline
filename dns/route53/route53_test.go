@@ -764,7 +764,7 @@ func TestAwsRoute53_RegisterDomain_Fail(t *testing.T) {
 			name:           "Register domain should fail due to IAM user creation failing",
 			route53Svc:     route53Svc,
 			iamSvc:         iamSvcWithCreateIAMUserFailing,
-			expectedErrMsg: "failed to create IAM user: "+testSomeErrMsg,
+			expectedErrMsg: "failed to create IAM user: " + testSomeErrMsg,
 			expectedState:  testDomainStateFailed3,
 			verifyRollbacks: func(t *testing.T) {
 				if route53Svc.deleteHostedZoneCallCount != 1 {
