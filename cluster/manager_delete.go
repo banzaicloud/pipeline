@@ -23,6 +23,7 @@ import (
 	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/helm"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -52,7 +53,7 @@ func (m *Manager) DeleteCluster(ctx context.Context, cluster CommonCluster, forc
 }
 
 func deleteAllResource(kubeConfig []byte, logger *logrus.Entry) error {
-	client, err := helm.GetK8sConnection(kubeConfig)
+	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
 		return err
 	}
@@ -176,6 +177,7 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 	kubeProxyCache.Delete(fmt.Sprint(cluster.GetOrganizationId(), "-", cluster.GetID()))
 
 	// delete cluster from database
+	orgID := cluster.GetOrganizationId()
 	deleteName := cluster.GetName()
 	err = cluster.DeleteFromDatabase()
 	if err != nil {
@@ -188,14 +190,6 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 		logger.Errorf("error during deleting cluster from the database: %s", err.Error())
 	}
 
-	// Asyncron update prometheus
-	go func() {
-		err := UpdatePrometheusConfig()
-		if err != nil {
-			logger.Warnf("could not update prometheus configmap: %v", err)
-		}
-	}()
-
 	// clean statestore
 	logger.Info("cleaning cluster's statestore folder")
 	if err := CleanStateStore(deleteName); err != nil {
@@ -205,6 +199,8 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 	logger.Info("cluster's statestore folder cleaned")
 
 	logger.Info("cluster deleted successfully")
+
+	m.events.ClusterDeleted(orgID, deleteName)
 
 	return nil
 }

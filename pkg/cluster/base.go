@@ -71,8 +71,6 @@ const (
 const (
 	StoreKubeConfig                        = "StoreKubeConfig"
 	SetupPrivileges                        = "SetupPrivileges"
-	PersistKubernetesKeys                  = "PersistKubernetesKeys"
-	UpdatePrometheusPostHook               = "UpdatePrometheusPostHook"
 	InstallHelmPostHook                    = "InstallHelmPostHook"
 	InstallIngressControllerPostHook       = "InstallIngressControllerPostHook"
 	InstallKubernetesDashboardPostHook     = "InstallKubernetesDashboardPostHook"

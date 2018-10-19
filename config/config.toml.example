@@ -66,6 +66,8 @@ secureCookie = true
 # Domain field for cookies
 cookieDomain = ""
 
+whitelistEnabled = false
+
 [helm]
 retryAttempt = 30
 retrySleepSeconds = 15
@@ -77,6 +79,11 @@ stableRepositoryURL = "https://kubernetes-charts.storage.googleapis.com"
 banzaiRepositoryURL = "http://kubernetes-charts.banzaicloud.com/branch/master"
 
 [monitor]
+enabled = false
+configMap = ""
+configMapPrometheusKey = ""
+certSecret = ""
+mountPath = ""
 grafanaAdminUsername = "admin"
 
 # DNS service settings

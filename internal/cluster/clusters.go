@@ -99,17 +99,31 @@ func (e *clusterModelNotFoundError) NotFound() bool {
 	return true
 }
 
-// FindOneByName returns a cluster instance for an organization by cluster name.
+// findOneBy returns a cluster instance for an organization by cluster name.
 func (c *Clusters) findOneBy(organizationID uint, field string, criteria interface{}) (*model.ClusterModel, error) {
-	var cluster model.ClusterModel
+	cluster := model.ClusterModel{
+		OrganizationId: organizationID,
+	}
 
-	err := c.db.First(
-		&cluster,
-		map[string]interface{}{
-			field:             criteria,
-			"organization_id": organizationID,
-		},
-	).Error
+	switch field {
+	case "id":
+		id, ok := criteria.(uint)
+		if !ok {
+			return nil, errors.New("criteria is not a valid uint value for id")
+		}
+
+		cluster.ID = id
+
+	case "name":
+		name, ok := criteria.(string)
+		if !ok {
+			return nil, errors.New("criteria is not a valid string value for name")
+		}
+
+		cluster.Name = name
+	}
+
+	err := c.db.Where(cluster).First(&cluster).Error
 	if gorm.IsRecordNotFoundError(err) {
 		return nil, errors.WithStack(&clusterModelNotFoundError{
 			cluster:        criteria,
