@@ -17,6 +17,7 @@ package action
 import (
 	"time"
 
+	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
@@ -70,7 +71,7 @@ func (a *WaitForHealthyAutoscalingGroupsAction) ExecuteAction(input interface{})
 			ok, err := asGroup.IsHealthy()
 			if err != nil {
 				if autoscaling.IsErrorFinal(err) {
-					return nil, err
+					return nil, emperror.WrapWith(err, nodePool.Name, "nodePoolName", nodePool.Name, "asgName", *asGroup.AutoScalingGroupName)
 				}
 				a.log.WithField("asg-name", *asGroup.AutoScalingGroupName).Debug(err)
 			}
