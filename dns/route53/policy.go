@@ -15,16 +15,15 @@
 package route53
 
 import (
-"fmt"
+	"fmt"
 
-
-"github.com/aws/aws-sdk-go/aws"
-"github.com/aws/aws-sdk-go/aws/awserr"
-"github.com/aws/aws-sdk-go/service/iam"
-"github.com/banzaicloud/pipeline/config"
-"github.com/banzaicloud/pipeline/pkg/amazon"
-"github.com/sirupsen/logrus"
-"github.com/spf13/viper"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/pkg/amazon"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 // createHostedZoneRoute53Policy creates an AWS policy that allows listing route53 hosted zones and record  sets in general
