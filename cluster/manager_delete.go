@@ -107,7 +107,7 @@ func deleteDnsRecordsOwnedByCluster(cluster CommonCluster) error {
 func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, force bool, kubeProxyCache *sync.Map) error {
 	logger := m.getLogger(ctx).WithFields(logrus.Fields{
 		"organization": cluster.GetOrganizationId(),
-		"cluster":      cluster.GetID(),
+		"cluster":      cluster.GetName(),
 		"force":        force,
 	})
 

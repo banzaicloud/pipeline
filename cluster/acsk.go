@@ -237,7 +237,7 @@ func (c *ACSKCluster) CreateCluster() error {
 		action.NewCreateACSKClusterAction(c.log, creationContext),
 	}
 
-	resp, err := utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, true)
+	resp, err := utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, false)
 	if err != nil {
 		errors.Wrap(err, "ACSK cluster create error")
 		return err
@@ -469,7 +469,7 @@ func (c *ACSKCluster) DeleteCluster() error {
 		action.NewDeleteSSHKeyAction(c.log, deleteContext, c.modelCluster.Name, c.modelCluster.ACSK.RegionID),
 	}
 
-	_, err = utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, true)
+	_, err = utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, false)
 	if err != nil {
 		errors.Wrap(err, "ACSK cluster delete error")
 		return err
@@ -502,7 +502,7 @@ func (c *ACSKCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, us
 		action.NewUpdateACSKClusterAction(c.log, nodePoolModels, context),
 	}
 
-	resp, err := utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, true)
+	resp, err := utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, false)
 	if err != nil {
 		errors.Wrap(err, "ACSK cluster create error")
 		return err
