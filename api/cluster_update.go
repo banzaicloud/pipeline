@@ -20,13 +20,9 @@ import (
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
-	"github.com/banzaicloud/pipeline/config"
-	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-	"github.com/banzaicloud/pipeline/pkg/providers"
-	"github.com/banzaicloud/pipeline/secret"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 )
@@ -37,12 +33,11 @@ type UpdateClusterResponse struct {
 }
 
 // UpdateCluster updates a K8S cluster in the cloud (e.g. autoscale)
-func UpdateCluster(c *gin.Context) {
-
+func (a *ClusterAPI) UpdateCluster(c *gin.Context) {
 	// bind request body to UpdateClusterRequest struct
 	var updateRequest *pkgCluster.UpdateClusterRequest
 	if err := c.BindJSON(&updateRequest); err != nil {
-		log.Errorf("Error parsing request: %s", err.Error())
+		a.logger.Errorf("Error parsing request: %s", err.Error())
 		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error parsing request",
@@ -55,11 +50,6 @@ func UpdateCluster(c *gin.Context) {
 		return
 	}
 
-	// TODO: move these to a struct and create them only once upon application init
-	clusters := intCluster.NewClusters(config.DB())
-	secretValidator := providers.NewSecretValidator(secret.Store)
-	clusterManager := cluster.NewManager(clusters, secretValidator, log, errorHandler)
-
 	updateCtx := cluster.UpdateContext{
 		OrganizationID: auth.GetCurrentOrganization(c.Request).ID,
 		UserID:         auth.GetCurrentUser(c.Request).ID,
@@ -70,7 +60,7 @@ func UpdateCluster(c *gin.Context) {
 
 	ctx := ginutils.Context(context.Background(), c)
 
-	err := clusterManager.UpdateCluster(ctx, updateCtx, updater)
+	err := a.clusterManager.UpdateCluster(ctx, updateCtx, updater)
 	if err != nil {
 		if isInvalid(err) {
 			c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{

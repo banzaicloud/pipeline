@@ -91,6 +91,27 @@ func (m *Manager) GetClusterByID(ctx context.Context, organizationID uint, clust
 	return cluster, nil
 }
 
+// GetClusterByIDOnly returns the cluster instance by cluster ID.
+func (m *Manager) GetClusterByIDOnly(ctx context.Context, clusterID uint) (CommonCluster, error) {
+	logger := m.getLogger(ctx).WithFields(logrus.Fields{
+		"cluster": clusterID,
+	})
+
+	logger.Debug("getting cluster from database")
+
+	clusterModel, err := m.clusters.FindOneByID(0, clusterID)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not get cluster from database")
+	}
+
+	cluster, err := GetCommonClusterFromModel(clusterModel)
+	if err != nil {
+		return nil, emperror.Wrap(err, "could not get cluster from model")
+	}
+
+	return cluster, nil
+}
+
 // GetClusterByName returns the cluster instance for an organization ID by cluster name.
 func (m *Manager) GetClusterByName(ctx context.Context, organizationID uint, clusterName string) (CommonCluster, error) {
 	logger := m.getLogger(ctx).WithFields(logrus.Fields{

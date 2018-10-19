@@ -158,5 +158,7 @@ func (m *Manager) createCluster(
 		return errors.Wrap(err, "error during running cluster posthooks")
 	}
 
+	m.events.ClusterCreated(cluster.GetID())
+
 	return nil
 }

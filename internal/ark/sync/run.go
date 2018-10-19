@@ -23,15 +23,13 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/cluster"
-	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
-	"github.com/banzaicloud/pipeline/pkg/providers"
-	"github.com/banzaicloud/pipeline/secret"
 )
 
 // RunSyncServices runs ARK sync services
 func RunSyncServices(
 	context context.Context,
 	db *gorm.DB,
+	clusterManager *cluster.Manager,
 	logger logrus.FieldLogger,
 	errorHandler emperror.Handler,
 	bucketSyncInterval, restoreSyncInterval, backupSyncInterval time.Duration,
@@ -54,12 +52,6 @@ func RunSyncServices(
 		"restore-sync-interval": restoreSyncInterval,
 		"backup-sync-interval":  backupSyncInterval,
 	}).Info("ARK synchronisation starting")
-
-	clusterManager := cluster.NewManager(
-		intCluster.NewClusters(db),
-		providers.NewSecretValidator(secret.Store),
-		logger, errorHandler,
-	)
 
 	svc := NewSyncService(
 		clusterManager,

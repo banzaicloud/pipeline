@@ -37,6 +37,7 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -61,6 +62,24 @@ const (
 	zeroMemory = "0 B"
 )
 
+// ClusterAPI implements the Cluster API actions.
+type ClusterAPI struct {
+	clusterManager *cluster.Manager
+
+	logger       logrus.FieldLogger
+	errorHandler emperror.Handler
+}
+
+// NewClusterAPI returns a new ClusterAPI instance.
+func NewClusterAPI(clusterManager *cluster.Manager, logger logrus.FieldLogger, errorHandler emperror.Handler) *ClusterAPI {
+	return &ClusterAPI{
+		clusterManager: clusterManager,
+
+		logger:       logger,
+		errorHandler: errorHandler,
+	}
+}
+
 // getClusterFromRequest just a simple getter to build commonCluster object this handles error messages directly
 func getClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
 	var cl cluster.CommonCluster
@@ -71,7 +90,7 @@ func getClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
 	// TODO: move these to a struct and create them only once upon application init
 	clusters := intCluster.NewClusters(config.DB())
 	secretValidator := providers.NewSecretValidator(secret.Store)
-	clusterManager := cluster.NewManager(clusters, secretValidator, logger, errorHandler)
+	clusterManager := cluster.NewManager(clusters, secretValidator, cluster.NewNopClusterEvents(), logger, errorHandler)
 
 	ctx := ginutils.Context(context.Background(), c)
 
@@ -237,20 +256,16 @@ func GetApiEndpoint(c *gin.Context) {
 }
 
 // GetClusters fetches all the K8S clusters from the cloud.
-func GetClusters(c *gin.Context) {
+func (a *ClusterAPI) GetClusters(c *gin.Context) {
 	organizationID := auth.GetCurrentOrganization(c.Request).ID
 
-	logger := log.WithFields(logrus.Fields{
+	logger := a.logger.WithFields(logrus.Fields{
 		"organization": organizationID,
 	})
 
-	// TODO: move these to a struct and create them only once upon application init
-	secretValidator := providers.NewSecretValidator(secret.Store)
-	clusterManager := cluster.NewManager(intCluster.NewClusters(config.DB()), secretValidator, log, errorHandler)
-
 	logger.Info("fetching clusters")
 
-	clusters, err := clusterManager.GetClusters(context.Background(), organizationID)
+	clusters, err := a.clusterManager.GetClusters(context.Background(), organizationID)
 	if err != nil {
 		logger.Errorf("error listing clusters: %s", err.Error())
 
