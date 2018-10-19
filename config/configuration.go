@@ -92,12 +92,14 @@ const (
 	// Database
 	DBAutoMigrateEnabled = "database.autoMigrateEnabled"
 
-	// Monitor
+	// Monitor config path
 	MonitorEnabled                = "monitor.enabled"
 	MonitorConfigMap              = "monitor.configMap"              // Prometheus config map
 	MonitorConfigMapPrometheusKey = "monitor.configMapPrometheusKey" // Prometheus config key in the prometheus config map
 	MonitorCertSecret             = "monitor.certSecret"             // Kubernetes secret for kubernetes cluster certs
 	MonitorCertMountPath          = "monitor.mountPath"              // Mount path for the kubernetes cert secret
+	// Monitor constants
+	MonitorReleaseName = "monitor"
 
 	ControlPlaneNamespace = "infra.control-plane-namespace" // Namespace where the pipeline and prometheus runs
 )

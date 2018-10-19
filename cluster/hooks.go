@@ -197,7 +197,7 @@ func InstallMonitoring(input interface{}) error {
 		return errors.Errorf("Json Convert Failed : %s", err.Error())
 	}
 
-	return installDeployment(cluster, grafanaNamespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-monitor", "monitoring", grafanaValuesJson, "InstallMonitoring", "")
+	return installDeployment(cluster, grafanaNamespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-monitor", pipConfig.MonitorReleaseName, grafanaValuesJson, "InstallMonitoring", "")
 }
 
 // InstallLogging to install logging deployment
