@@ -37,6 +37,7 @@ import (
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
+	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/utils"
@@ -329,12 +330,8 @@ func (c *EKSCluster) DeleteCluster() error {
 	var actions []utils.Action
 	actions = append(actions, action.NewWaitResourceDeletionAction(c.log, deleteContext)) // wait for ELBs to be deleted
 
-	nodePoolStacks := make([]string, 0, len(c.modelCluster.EKS.NodePools))
-	for _, nodePool := range c.modelCluster.EKS.NodePools {
-		nodePoolStackName := c.generateNodePoolStackName(nodePool)
-		nodePoolStacks = append(nodePoolStacks, nodePoolStackName)
-	}
-	deleteNodePoolsAction := action.NewDeleteStacksAction(c.log, deleteContext, nodePoolStacks...)
+	nodePoolStackNames := c.getNodepoolStackNamesToDelete(session)
+	deleteNodePoolsAction := action.NewDeleteStacksAction(c.log, deleteContext, nodePoolStackNames...)
 
 	actions = append(actions,
 		deleteNodePoolsAction,
@@ -351,6 +348,38 @@ func (c *EKSCluster) DeleteCluster() error {
 	}
 
 	return nil
+}
+
+func (c *EKSCluster) getNodepoolStackNamesToDelete(sess *session.Session) []string {
+	stackNames := make([]string, 0)
+	uniqueMap := make(map[string]bool, 0)
+
+	for _, nodePool := range c.modelCluster.EKS.NodePools {
+		nodePoolStackName := c.generateNodePoolStackName(nodePool)
+		stackNames = append(stackNames, nodePoolStackName)
+		uniqueMap[nodePoolStackName] = true
+	}
+
+	c.log.Debugf("stack names from DB: %+v", stackNames)
+
+	tags := map[string]string{
+		"pipeline-cluster-name": c.GetName(),
+		"pipeline-stack-type":   "nodepool",
+	}
+	cfStackNames, err := pkgCloudformation.GetExistingTaggedStackNames(cloudformation.New(sess), tags)
+	if err != nil {
+		c.log.Error(err)
+	} else {
+		for _, stackName := range cfStackNames {
+			if !uniqueMap[stackName] {
+				stackNames = append(stackNames, stackName)
+			}
+		}
+	}
+
+	c.log.Debugf("stack names from DB + CF: %+v", stackNames)
+
+	return stackNames
 }
 
 func (c *EKSCluster) createNodePoolsFromUpdateRequest(requestedNodePools map[string]*ec2.NodePool, userId uint) ([]*model.AmazonNodePoolsModel, error) {
