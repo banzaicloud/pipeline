@@ -34,7 +34,7 @@ import (
 func (dns *awsRoute53) createIAMUser(userName *string) (*iam.User, error) {
 	log := loggerWithFields(logrus.Fields{"userName": aws.StringValue(userName)})
 
-	path := fmt.Sprintf("/%s", viper.GetString(config.DNSBaseDomain))
+	path := fmt.Sprintf("/%s/", viper.GetString(config.DNSBaseDomain))
 
 	userInput := &iam.CreateUserInput{
 		UserName: userName,
@@ -114,5 +114,9 @@ func (dns *awsRoute53) deleteAmazonAccessKey(userName, accessKeyId *string) erro
 }
 
 func getIAMUserName(org *auth.Organization) string {
-	return fmt.Sprintf(iamUserNameTemplate, fmt.Sprintf("%08x", crc32.ChecksumIEEE([]byte(viper.GetString(config.DNSBaseDomain)))), org.Name)
+	return fmt.Sprintf(iamUserNameTemplate, getHashedControlPlaneHostName(viper.GetString(config.DNSBaseDomain)), org.Name)
+}
+
+func getHashedControlPlaneHostName(hostName string) string {
+	return fmt.Sprintf("%08x", crc32.ChecksumIEEE([]byte(hostName)))
 }

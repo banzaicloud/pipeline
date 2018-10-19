@@ -45,7 +45,7 @@ const (
 	testHostedZoneId              = "/hostedzone/testhostedzone1"
 	testInUseHostedZoneId         = "/hostedzone/inuse.hostedzone.id"
 	testMismatchHostedZoneId      = "/hostedzone/mismatch.hostedzone.id"
-	testIamUser                   = "a05932df.r53.testorg" // fmt.Sprintf("%08x", crc32.ChecksumIEEE([]byte("example.org"))
+	testIamUser                   = "a05932df.r53.testorg" // getHashedControlPlaneHostName("example.org")
 	testAccessKeyId               = "testaccesskeyid1"
 	testAccessSecretKey           = "testsecretkey1"
 	testPolicyDocument            = `{
