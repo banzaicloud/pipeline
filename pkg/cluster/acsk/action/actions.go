@@ -213,6 +213,10 @@ func (a *CreateACSKClusterAction) UndoAction() (err error) {
 
 func deleteCluster(clusterID string, csClient *cs.Client) error {
 
+	if len(clusterID) == 0 {
+		return nil
+	}
+
 	req := cs.CreateDeleteClusterRequest()
 	req.ClusterId = clusterID
 	req.SetScheme(requests.HTTPS)
