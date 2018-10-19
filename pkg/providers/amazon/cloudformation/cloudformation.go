@@ -29,7 +29,7 @@ func GetExistingTaggedStackNames(cfSvc *cloudformation.CloudFormation, tags map[
 			for k, v := range tags {
 				if stackTags[k] != v {
 					ok = false
-					continue
+					break
 				}
 			}
 			if ok {
