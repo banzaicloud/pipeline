@@ -24,6 +24,7 @@ import (
 	"github.com/banzaicloud/pipeline/config"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	phelm "github.com/banzaicloud/pipeline/pkg/helm"
+	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	apiv1 "k8s.io/api/core/v1"
@@ -42,7 +43,7 @@ import (
 func PreInstall(helmInstall *phelm.Install, kubeConfig []byte) error {
 	log.Info("start pre-install")
 
-	client, err := GetK8sConnection(kubeConfig)
+	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
 		log.Errorf("could not get kubernetes client: %s", err)
 		return err
@@ -325,7 +326,7 @@ func Install(helmInstall *phelm.Install, kubeConfig []byte) error {
 		opts.NodeSelectors = fmt.Sprintf("%s=%s", pkgCommon.LabelKey, helmInstall.TargetNodePool)
 	}
 
-	kubeClient, err := GetK8sConnection(kubeConfig)
+	kubeClient, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
 		return err
 	}

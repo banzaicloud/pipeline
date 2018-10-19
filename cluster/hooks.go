@@ -33,6 +33,7 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
+	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
@@ -117,7 +118,7 @@ func WaitingForTillerComeUp(kubeConfig []byte) error {
 
 	for i := 0; i <= retryAttempts; i++ {
 		log.Infof("Waiting for tiller to come up %d/%d", i, retryAttempts)
-		client, err := helm.GetHelmClient(kubeConfig)
+		client, err := pkgHelm.NewClient(kubeConfig, log)
 		if err == nil {
 			resp, err := client.GetVersion()
 			if err != nil {
@@ -514,7 +515,7 @@ func InstallKubernetesDashboardPostHook(input interface{}) error {
 			return err
 		}
 
-		client, err := helm.GetK8sConnection(kubeConfig)
+		client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 		if err != nil {
 			log.Errorf("Could not get kubernetes client: %s", err)
 			return err
@@ -657,7 +658,7 @@ func metricsServerIsInstalled(cluster CommonCluster) bool {
 		return false
 	}
 
-	client, err := helm.GetK8sConnection(kubeConfig)
+	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
 		log.Errorf("Getting K8s client failed: %s", err.Error())
 		return false
@@ -827,7 +828,7 @@ func SetupPrivileges(input interface{}) error {
 			return err
 		}
 
-		client, err := helm.GetK8sConnection(kubeConfig)
+		client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 		if err != nil {
 			return err
 		}
@@ -960,7 +961,7 @@ func LabelNodes(input interface{}) error {
 	}
 
 	log.Debug("get K8S connection")
-	client, err := helm.GetK8sConnection(kubeConfig)
+	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
 		return err
 	}
@@ -1025,7 +1026,7 @@ func TaintHeadNodes(input interface{}) error {
 	}
 
 	log.Debug("get K8S connection")
-	client, err := helm.GetK8sConnection(kubeConfig)
+	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
 		return err
 	}

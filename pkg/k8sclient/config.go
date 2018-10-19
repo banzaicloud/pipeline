@@ -26,7 +26,6 @@ func NewClientConfig(kubeConfig []byte) (*rest.Config, error) {
 	if kubeConfig == nil {
 		return nil, errors.New("kube config is empty")
 	}
-
 	apiconfig, err := clientcmd.Load(kubeConfig)
 	if err != nil {
 		return nil, emperror.Wrap(err, "failed to load kubernetes API config")
