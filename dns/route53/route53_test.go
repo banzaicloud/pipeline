@@ -142,7 +142,7 @@ var (
 		hostedZoneId:   testHostedZoneIdShort,
 		policyArn:      testPolicyArn,
 		status:         FAILED,
-		errMsg:         testSomeErrMsg,
+		errMsg:         "failed to create IAM user: " + testSomeErrMsg,
 	}
 
 	// case when IAM user AWS access key creation failed
