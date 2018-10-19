@@ -47,8 +47,8 @@ func init() {
 
 const (
 	createHostedZoneComment            = "HostedZone created by Banzai Cloud Pipeline"
-	iamUserNameTemplate                = "banzaicloud.route53.%s"
-	hostedZoneAccessPolicyNameTemplate = "BanzaicloudRoute53-%s"
+	iamUserNameTemplate                = "%s.r53.%s"
+	hostedZoneAccessPolicyNameTemplate = "%s.r53.%s"
 	IAMUserAccessKeySecretName         = "route53"
 )
 
@@ -875,12 +875,29 @@ func (dns *awsRoute53) updateStateWithError(state *domainState, err error) {
 	dns.stateStore.update(state)
 }
 
+// TODO: test if this is necessary
 func extractErrorMessage(err error) string {
 	if awsErr, ok := err.(awserr.Error); ok {
 		return awsErr.Message()
 	}
 
 	return err.Error()
+}
+
+type wrappedAwsError struct {
+	err error
+}
+
+func (e *wrappedAwsError) Error() string {
+	if awsErr, ok := e.err.(awserr.Error); ok {
+		return awsErr.Message()
+	}
+
+	return e.err.Error()
+}
+
+func wrapAwsError(err error) error {
+	return &wrappedAwsError{err}
 }
 
 func getOrgById(orgId uint) (*auth.Organization, error) {

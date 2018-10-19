@@ -45,7 +45,7 @@ const (
 	testHostedZoneId              = "/hostedzone/testhostedzone1"
 	testInUseHostedZoneId         = "/hostedzone/inuse.hostedzone.id"
 	testMismatchHostedZoneId      = "/hostedzone/mismatch.hostedzone.id"
-	testIamUser                   = "banzaicloud.route53.testorg"
+	testIamUser                   = "a05932df.r53.testorg" // getHashedControlPlaneHostName("example.org")
 	testAccessKeyId               = "testaccesskeyid1"
 	testAccessSecretKey           = "testsecretkey1"
 	testPolicyDocument            = `{
@@ -142,7 +142,7 @@ var (
 		hostedZoneId:   testHostedZoneIdShort,
 		policyArn:      testPolicyArn,
 		status:         FAILED,
-		errMsg:         testSomeErrMsg,
+		errMsg:         "failed to create IAM user: " + testSomeErrMsg,
 	}
 
 	// case when IAM user AWS access key creation failed
@@ -764,7 +764,7 @@ func TestAwsRoute53_RegisterDomain_Fail(t *testing.T) {
 			name:           "Register domain should fail due to IAM user creation failing",
 			route53Svc:     route53Svc,
 			iamSvc:         iamSvcWithCreateIAMUserFailing,
-			expectedErrMsg: testSomeErrMsg,
+			expectedErrMsg: "failed to create IAM user: " + testSomeErrMsg,
 			expectedState:  testDomainStateFailed3,
 			verifyRollbacks: func(t *testing.T) {
 				if route53Svc.deleteHostedZoneCallCount != 1 {
