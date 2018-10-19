@@ -160,7 +160,7 @@ func init() {
 	viper.SetDefault("audit.headers", []string{"secretId"})
 	viper.SetDefault("audit.skippaths", []string{"/auth/github/callback", "/pipeline/api"})
 	viper.SetDefault("tls.validity", "8760h") // 1 year
-	viper.SetDefault(DNSBaseDomain, "banzaicloud.io")
+	viper.SetDefault(DNSBaseDomain, "example.org")
 	viper.SetDefault(DNSGcIntervalMinute, 1)
 	viper.SetDefault(DNSExternalDnsChartVersion, "0.7.5")
 	viper.SetDefault(DNSGcLogLevel, "debug")

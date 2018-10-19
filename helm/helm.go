@@ -22,7 +22,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -81,6 +80,21 @@ func (e *DeploymentNotFoundError) Error() string {
 	return fmt.Sprintf("deployment not found: %s", e.HelmError)
 }
 
+type chartDataIsTooBigError struct {
+	size int64
+}
+
+func (e *chartDataIsTooBigError) Error() string {
+	return "chart data is too big"
+}
+
+func (e *chartDataIsTooBigError) Context() []interface{} {
+	return []interface{}{"maxAllowedSize", maxCompressedDataSize, "size", e.size}
+}
+
+const maxCompressedDataSize = 10485760
+const maxDataSize = 10485760
+
 // DownloadFile download file/unzip and untar and store it in memory
 func DownloadFile(url string) ([]byte, error) {
 	resp, err := http.Get(url)
@@ -89,25 +103,30 @@ func DownloadFile(url string) ([]byte, error) {
 	}
 	defer resp.Body.Close()
 
-	tarContent := new(bytes.Buffer)
+	compressedContent := new(bytes.Buffer)
 
-	const maxDataSize = 10485760
-	if resp.ContentLength > maxDataSize {
-		log.Errorf("Response ContentLength: %v Max allowed size: %v", resp.ContentLength, maxDataSize)
-		return nil, fmt.Errorf("Chart data is too big.")
+	if resp.ContentLength > maxCompressedDataSize {
+		return nil, errors.WithStack(&chartDataIsTooBigError{resp.ContentLength})
 	}
 
-	_, copyErr := io.CopyN(tarContent, resp.Body, maxDataSize)
+	_, copyErr := io.CopyN(compressedContent, resp.Body, maxCompressedDataSize)
 	if copyErr != nil && copyErr != io.EOF {
-		return nil, copyErr
+		return nil, errors.Wrap(err, "failed to read from chart response")
 	}
 
-	gzf, err := gzip.NewReader(tarContent)
+	gzf, err := gzip.NewReader(compressedContent)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to open chart gzip archive")
 	}
-	rawContent, _ := ioutil.ReadAll(gzf)
-	return rawContent, nil
+	defer gzf.Close()
+
+	tarContent := new(bytes.Buffer)
+	_, copyErr = io.CopyN(tarContent, gzf, maxDataSize)
+	if copyErr != nil && copyErr != io.EOF {
+		return nil, errors.Wrap(copyErr, "failed to read from chart data archive")
+	}
+
+	return tarContent.Bytes(), nil
 }
 
 //GetChartFile Download file from chart repository
