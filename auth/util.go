@@ -18,6 +18,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/banzaicloud/pipeline/config"
 	"github.com/jinzhu/gorm"
 	"github.com/spf13/viper"
 )
@@ -52,10 +53,13 @@ func SetCookie(w http.ResponseWriter, r *http.Request, name, value string) {
 		Name:     name,
 		Value:    value,
 		Path:     "/",
-		Domain:   cookieDomain,
 		HttpOnly: SessionCookieHTTPOnly,
 		Secure:   viper.GetBool("auth.secureCookie"),
 		MaxAge:   SessionCookieMaxAge,
+	}
+
+	if viper.GetBool(config.SetCookieDomain) {
+		cookie.Domain = cookieDomain
 	}
 
 	http.SetCookie(w, &cookie)
