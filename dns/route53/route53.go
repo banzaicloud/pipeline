@@ -48,7 +48,7 @@ func init() {
 const (
 	createHostedZoneComment            = "HostedZone created by Banzai Cloud Pipeline"
 	iamUserNameTemplate                = "%s.r53.%s"
-	hostedZoneAccessPolicyNameTemplate = "BanzaicloudRoute53-%s"
+	hostedZoneAccessPolicyNameTemplate = "%s.r53.%s"
 	IAMUserAccessKeySecretName         = "route53"
 )
 

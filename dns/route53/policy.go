@@ -16,12 +16,15 @@ package route53
 
 import (
 	"fmt"
+	"hash/crc32"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/pkg/amazon"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 // createHostedZoneRoute53Policy creates an AWS policy that allows listing route53 hosted zones and record  sets in general
@@ -35,7 +38,7 @@ func (dns *awsRoute53) createHostedZoneRoute53Policy(orgId uint, hostedZoneId st
 		return nil, err
 	}
 
-	policyName := fmt.Sprintf(hostedZoneAccessPolicyNameTemplate, org.Name)
+	policyName := fmt.Sprintf(hostedZoneAccessPolicyNameTemplate, fmt.Sprintf("%08x", crc32.ChecksumIEEE([]byte(viper.GetString(config.DNSBaseDomain)))), org.Name)
 	policyDocument := aws.String(fmt.Sprintf(
 		`{
 		"Version": "2012-10-17",
