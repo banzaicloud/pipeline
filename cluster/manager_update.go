@@ -103,7 +103,7 @@ func (m *Manager) updateCluster(ctx context.Context, updateCtx UpdateContext, cl
 	if err != nil {
 		cluster.UpdateStatus(pkgCluster.Error, err.Error())
 
-		return emperror.Wrap(err, "error deleting cluster")
+		return emperror.Wrap(err, "error updating cluster")
 	}
 
 	if err := cluster.UpdateStatus(pkgCluster.Running, pkgCluster.RunningMessage); err != nil {
