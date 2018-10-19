@@ -97,6 +97,7 @@ func (group *Group) getSpotRequests() ([]*ec2.SpotInstanceRequest, error) {
 
 	requests := make([]*ec2.SpotInstanceRequest, 0)
 	for _, res := range result.SpotInstanceRequests {
+		// !!! We must use unique instance profile for every ASG for this to work !!!
 		if *res.LaunchSpecification.IamInstanceProfile.Name == *lc.IamInstanceProfile {
 			requests = append(requests, ec2.NewSpotInstanceRequest(res))
 		}
