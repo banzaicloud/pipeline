@@ -42,47 +42,10 @@ func GetIAMUser(svc iamiface.IAMAPI, userName *string) (*iam.User, error) {
 	return iamUser.User, nil
 }
 
-// CreateIAMUser creates a Amazon IAM user with the given name and with no login access to console
-// Returns the created IAM user in case of success
-func CreateIAMUser(svc iamiface.IAMAPI, userName *string) (*iam.User, error) {
-	userInput := &iam.CreateUserInput{
-		UserName: userName,
-	}
-
-	iamUser, err := svc.CreateUser(userInput)
-	if err != nil {
-		return nil, err
-	}
-
-	return iamUser.User, nil
-}
-
 // DeleteIAMUser deletes the Amazon IAM user with the given name
 func DeleteIAMUser(svc iamiface.IAMAPI, userName *string) error {
 	_, err := svc.DeleteUser(&iam.DeleteUserInput{UserName: userName})
 	return err
-}
-
-// IsUserAccessKeyExists returns whether the specified IAM user has the given Amazon access key
-func IsUserAccessKeyExists(svc iamiface.IAMAPI, userName, accessKeyId *string) (bool, error) {
-	listAccessKeys := &iam.ListAccessKeysInput{
-		UserName: userName,
-	}
-
-	accessKeys, err := svc.ListAccessKeys(listAccessKeys)
-	if err != nil {
-		return false, err
-	}
-
-	found := false
-	for _, accessKey := range accessKeys.AccessKeyMetadata {
-		if aws.StringValue(accessKey.AccessKeyId) == aws.StringValue(accessKeyId) {
-			found = true
-			break
-		}
-	}
-
-	return found, nil
 }
 
 // GetUserAccessKeys returns the list of Amazon access keys of the given IAM user

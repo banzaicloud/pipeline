@@ -16,7 +16,6 @@ package action
 
 import (
 	"fmt"
-	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -199,11 +198,12 @@ type awsStackFailedError struct {
 }
 
 func (e awsStackFailedError) Error() string {
+	hdr := "stack " + e.stackName
 	if len(e.failedEventsMsg) > 0 {
-		return fmt.Sprintf("stack %v\n%v", e.stackName, strings.Join(e.failedEventsMsg, "\n"))
+		return hdr + "\n" + strings.Join(e.failedEventsMsg, "\n")
 	}
 
-	return e.awsStackError.Error()
+	return hdr + e.awsStackError.Error()
 }
 
 func (e awsStackFailedError) Cause() error {
@@ -221,7 +221,8 @@ func onAwsStackFailure(log logrus.FieldLogger, awsStackError error, stackName st
 		var failedEventsMsg []string
 
 		for _, event := range failedStackEvents {
-			failedEventsMsg = append(failedEventsMsg, "%v %v %v", aws.StringValue(event.LogicalResourceId), aws.StringValue(event.ResourceStatus), aws.StringValue(event.ResourceStatusReason))
+			msg := fmt.Sprintf("%v %v %v", aws.StringValue(event.LogicalResourceId), aws.StringValue(event.ResourceStatus), aws.StringValue(event.ResourceStatusReason))
+			failedEventsMsg = append(failedEventsMsg, msg)
 		}
 
 		logFailedStackEvents(log, stackName, failedEventsMsg)
@@ -270,6 +271,15 @@ func (a *CreateVPCAndRolesAction) UndoAction() (err error) {
 		StackName:          aws.String(a.stackName),
 	}
 	_, err = cloudformationSrv.DeleteStack(deleteStackInput)
+
+	if err != nil {
+		if awsErr, ok := err.(awserr.Error); ok {
+			if awsErr.Code() == cloudformation.ErrCodeStackInstanceNotFoundException {
+				return nil
+			}
+		}
+	}
+
 	return err
 }
 
@@ -617,7 +627,7 @@ func NewCreateUpdateNodePoolStackAction(
 }
 
 func (a *CreateUpdateNodePoolStackAction) generateStackName(nodePool *model.AmazonNodePoolsModel) string {
-	return a.context.ClusterName + "-pipeline-eks-nodepool-" + nodePool.Name
+	return GenerateNodePoolStackName(a.context.ClusterName, nodePool.Name)
 }
 
 // GetName return the name of this action
@@ -810,6 +820,11 @@ func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (outp
 
 // UndoAction rolls back this CreateUpdateNodePoolStackAction
 func (a *CreateUpdateNodePoolStackAction) UndoAction() (err error) {
+	// do not delete updated stack for now
+	if !a.isCreate {
+		return
+	}
+
 	for _, nodepool := range a.nodePools {
 		a.log.Info("EXECUTE UNDO CreateUpdateNodePoolStackAction")
 		cloudformationSrv := cloudformation.New(a.context.Session)
@@ -819,6 +834,12 @@ func (a *CreateUpdateNodePoolStackAction) UndoAction() (err error) {
 		}
 		_, deleteErr := cloudformationSrv.DeleteStack(deleteStackInput)
 		if deleteErr != nil {
+			if awsErr, ok := deleteErr.(awserr.Error); ok {
+				if awsErr.Code() == cloudformation.ErrCodeStackInstanceNotFoundException {
+					return nil
+				}
+			}
+
 			a.log.Errorln("Error during deleting CloudFormation stack:", err.Error())
 			err = deleteErr
 		}
@@ -1090,8 +1111,8 @@ func (a *DeleteClusterUserAccessKeyAction) ExecuteAction(input interface{}) (out
 	awsAccessKeys, err := amazon.GetUserAccessKeys(iamSvc, clusterUserName)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.RequestFailure); ok {
-			if awsErr.StatusCode() == http.StatusNotFound {
+		if awsErr, ok := err.(awserr.Error); ok {
+			if awsErr.Code() == iam.ErrCodeNoSuchEntityException {
 				return nil, nil
 			}
 		}
@@ -1101,6 +1122,11 @@ func (a *DeleteClusterUserAccessKeyAction) ExecuteAction(input interface{}) (out
 
 	for _, awsAccessKey := range awsAccessKeys {
 		if err := amazon.DeleteUserAccessKey(iamSvc, awsAccessKey.UserName, awsAccessKey.AccessKeyId); err != nil {
+			if awsErr, ok := err.(awserr.Error); ok {
+				if awsErr.Code() == iam.ErrCodeNoSuchEntityException {
+					continue
+				}
+			}
 
 			a.log.Errorf("deleting Amazon user access key '%s', user '%s' failed: %s",
 				aws.StringValue(awsAccessKey.AccessKeyId),
@@ -1200,6 +1226,12 @@ func (a *DeleteStackAction) ExecuteAction(input interface{}) (output interface{}
 			}
 			_, err = cloudformationSrv.DeleteStack(deleteStackInput)
 			if err != nil {
+				if awsErr, ok := err.(awserr.Error); ok {
+					if awsErr.Code() == cloudformation.ErrCodeStackInstanceNotFoundException {
+						errorChan <- nil
+						return
+					}
+				}
 				errorChan <- err
 				return
 			}
@@ -1259,8 +1291,8 @@ func (a *DeleteClusterAction) ExecuteAction(input interface{}) (output interface
 	}
 	_, err = eksSrv.DeleteCluster(deleteClusterInput)
 
-	if awsErr, ok := err.(awserr.RequestFailure); ok {
-		if awsErr.StatusCode() == http.StatusNotFound {
+	if awsErr, ok := err.(awserr.Error); ok {
+		if awsErr.Code() == eks.ErrCodeResourceNotFoundException {
 			return nil, nil
 		}
 	}
@@ -1297,14 +1329,13 @@ func (a *DeleteSSHKeyAction) GetName() string {
 func (a *DeleteSSHKeyAction) ExecuteAction(input interface{}) (output interface{}, err error) {
 	a.log.Info("EXECUTE DeleteSSHKeyAction")
 
-	//TODO handle non existing key
 	ec2srv := ec2.New(a.context.Session)
 	deleteKeyPairInput := &ec2.DeleteKeyPairInput{
 		KeyName: aws.String(a.SSHKeyName),
 	}
 	_, err = ec2srv.DeleteKeyPair(deleteKeyPairInput)
-	if awsErr, ok := err.(awserr.RequestFailure); ok {
-		if awsErr.StatusCode() == http.StatusNotFound {
+	if awsErr, ok := err.(awserr.Error); ok {
+		if awsErr.Code() == iam.ErrCodeNoSuchEntityException {
 			return nil, nil
 		}
 	}
@@ -1388,4 +1419,9 @@ func (a *WaitResourceDeletionAction) waitUntilELBsDeleted() error {
 		a.log.Infoln("There are", len(result), "ELBs left from cluster")
 		time.Sleep(10 * time.Second)
 	}
+}
+
+// GenerateNodePoolStackName returns the CF Stack name for a node pool
+func GenerateNodePoolStackName(clusterName, nodePoolName string) string {
+	return clusterName + "-pipeline-eks-nodepool-" + nodePoolName
 }
