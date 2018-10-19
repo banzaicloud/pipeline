@@ -25,7 +25,6 @@ import (
 
 	"github.com/banzaicloud/anchore-image-validator/pkg/apis/security/v1alpha1"
 	clientV1alpha1 "github.com/banzaicloud/anchore-image-validator/pkg/clientset/v1alpha1"
-	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/internal/security"
 	pkgCommmon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
@@ -406,7 +405,7 @@ func GetImageDeployments(c *gin.Context) {
 	if !ok {
 		return
 	}
-	client, err := helm.GetK8sConnection(kubeConfig)
+	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
 		log.Errorf("Error getting K8s config: %s", err.Error())
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{

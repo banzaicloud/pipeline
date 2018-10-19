@@ -32,7 +32,7 @@ import (
 	"time"
 
 	"github.com/Masterminds/sprig"
-	helm2 "github.com/banzaicloud/pipeline/pkg/helm"
+	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/patrickmn/go-cache"
@@ -188,7 +188,7 @@ var deploymentCache = cache.New(30*time.Minute, 5*time.Minute)
 
 //ListDeployments lists Helm deployments
 func ListDeployments(filter *string, tagFilter string, kubeConfig []byte) (*rls.ListReleasesResponse, error) {
-	hClient, err := GetHelmClient(kubeConfig)
+	hClient, err := pkgHelm.NewClient(kubeConfig, log)
 	if err != nil {
 		return nil, err
 	}
@@ -227,7 +227,7 @@ func ListDeployments(filter *string, tagFilter string, kubeConfig []byte) (*rls.
 		deploymentsKey := clusterKey + "-" + releasesKey
 
 		type releaseWithDeployment struct {
-			Deployment *helm2.GetDeploymentResponse
+			Deployment *pkgHelm.GetDeploymentResponse
 			Release    *release.Release
 		}
 		var deployments []releaseWithDeployment
@@ -316,7 +316,7 @@ func UpgradeDeployment(releaseName, chartName, chartVersion string, chartPackage
 	}
 
 	//Get cluster based or inCluster kubeconfig
-	hClient, err := helm2.NewClient(kubeConfig, log)
+	hClient, err := pkgHelm.NewClient(kubeConfig, log)
 	if err != nil {
 		return nil, err
 	}
@@ -349,7 +349,7 @@ func CreateDeployment(chartName, chartVersion string, chartPackage []byte, names
 		log.Warn("Deployment namespace was not set failing back to default")
 		namespace = DefaultNamespace
 	}
-	hClient, err := helm2.NewClient(kubeConfig, log)
+	hClient, err := pkgHelm.NewClient(kubeConfig, log)
 	if err != nil {
 		return nil, err
 	}
@@ -376,7 +376,7 @@ func CreateDeployment(chartName, chartVersion string, chartPackage []byte, names
 
 //DeleteDeployment deletes a Helm deployment
 func DeleteDeployment(releaseName string, kubeConfig []byte) error {
-	hClient, err := helm2.NewClient(kubeConfig, log)
+	hClient, err := pkgHelm.NewClient(kubeConfig, log)
 	if err != nil {
 		return err
 	}
@@ -392,8 +392,8 @@ func DeleteDeployment(releaseName string, kubeConfig []byte) error {
 }
 
 // GetDeploymentsK8sResources returns K8s resources of a helm deployment
-func GetDeploymentK8sResources(releaseName string, kubeConfig []byte, resourceTypes []string) ([]helm2.DeploymentResource, error) {
-	helmClient, err := helm2.NewClient(kubeConfig, log)
+func GetDeploymentK8sResources(releaseName string, kubeConfig []byte, resourceTypes []string) ([]pkgHelm.DeploymentResource, error) {
+	helmClient, err := pkgHelm.NewClient(kubeConfig, log)
 	if err != nil {
 		log.Errorf("Getting Helm client failed: %s", err.Error())
 		return nil, err
@@ -410,7 +410,7 @@ func GetDeploymentK8sResources(releaseName string, kubeConfig []byte, resourceTy
 
 	objects := strings.Split(releaseContent.Release.Manifest, "---")
 	decode := scheme.Codecs.UniversalDeserializer().Decode
-	deployments := make([]helm2.DeploymentResource, 0)
+	deployments := make([]pkgHelm.DeploymentResource, 0)
 
 	for _, object := range objects {
 
@@ -434,7 +434,7 @@ func GetDeploymentK8sResources(releaseName string, kubeConfig []byte, resourceTy
 		}
 
 		if selectResource {
-			deployments = append(deployments, helm2.DeploymentResource{
+			deployments = append(deployments, pkgHelm.DeploymentResource{
 				Name: reflect.ValueOf(obj).Elem().FieldByName("Name").String(),
 				Kind: reflect.ValueOf(obj).Elem().FieldByName("Kind").String(),
 			})
@@ -446,8 +446,8 @@ func GetDeploymentK8sResources(releaseName string, kubeConfig []byte, resourceTy
 }
 
 // GetDeployment returns the details of a helm deployment
-func GetDeployment(releaseName string, kubeConfig []byte) (*helm2.GetDeploymentResponse, error) {
-	helmClient, err := helm2.NewClient(kubeConfig, log)
+func GetDeployment(releaseName string, kubeConfig []byte) (*pkgHelm.GetDeploymentResponse, error) {
+	helmClient, err := pkgHelm.NewClient(kubeConfig, log)
 	if err != nil {
 		log.Errorf("Getting Helm client failed: %s", err.Error())
 		return nil, err
@@ -476,7 +476,7 @@ func GetDeployment(releaseName string, kubeConfig []byte) (*helm2.GetDeploymentR
 
 	values := cfg.AsMap()
 
-	return &helm2.GetDeploymentResponse{
+	return &pkgHelm.GetDeploymentResponse{
 		ReleaseName:  releaseContent.GetRelease().GetName(),
 		Namespace:    releaseContent.GetRelease().GetNamespace(),
 		Version:      releaseContent.GetRelease().GetVersion(),
@@ -497,7 +497,7 @@ func GetDeployment(releaseName string, kubeConfig []byte) (*helm2.GetDeploymentR
 // in case of error the status is filled with information to classify the error cause
 func GetDeploymentStatus(releaseName string, kubeConfig []byte) (int32, error) {
 
-	helmClient, err := helm2.NewClient(kubeConfig, log)
+	helmClient, err := pkgHelm.NewClient(kubeConfig, log)
 
 	if err != nil {
 		// internal server error

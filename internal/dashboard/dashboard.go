@@ -23,7 +23,6 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/helm"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"

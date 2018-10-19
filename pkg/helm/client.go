@@ -16,46 +16,30 @@ package helm
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	k8sapierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/helm/pkg/helm"
 	"k8s.io/helm/pkg/helm/portforwarder"
-	"k8s.io/helm/pkg/kube"
 )
 
-const tillerPortForwardRetryLimit = 2
-
 func NewClient(kubeConfig []byte, logger logrus.FieldLogger) (*helm.Client, error) {
-	var tillerTunnel *kube.Tunnel
+	config, err := k8sclient.NewClientConfig(kubeConfig)
+	if err != nil {
+		return nil, errors.WithMessage(err, "failed to create client config for helm client")
+	}
 
-	for i := 0; i < tillerPortForwardRetryLimit; i++ {
-		config, err := k8sclient.NewClientConfig(kubeConfig)
-		if err != nil {
-			return nil, errors.WithMessage(err, "failed to create client config for helm client")
-		}
+	client, err := k8sclient.NewClientFromConfig(config)
+	if err != nil {
+		return nil, errors.WithMessage(err, "failed to create kubernetes client for helm client")
+	}
 
-		client, err := k8sclient.NewClientFromConfig(config)
-		if err != nil {
-			return nil, errors.WithMessage(err, "failed to create kubernetes client for helm client")
-		}
-
-		logger.Debug("create kubernetes tunnel")
-		tillerTunnel, err = portforwarder.New("kube-system", client, config)
-		if err != nil && k8sapierrors.IsUnauthorized(err) && i == 0 {
-			logger.Debug("create tunnel attempt %d/%d failed: %s", i+1, 2, err.Error())
-			time.Sleep(time.Millisecond * 20)
-
-			continue
-		} else if err != nil {
-			return nil, emperror.Wrap(err, "failed to create kubernetes tunnel")
-		}
-
-		break
+	logger.Debug("create kubernetes tunnel")
+	tillerTunnel, err := portforwarder.New("kube-system", client, config)
+	if err != nil {
+		return nil, emperror.Wrap(err, "failed to create kubernetes tunnel")
 	}
 
 	tillerTunnelAddress := fmt.Sprintf("localhost:%d", tillerTunnel.Local)

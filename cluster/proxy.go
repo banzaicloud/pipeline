@@ -22,7 +22,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/gin-gonic/gin"
 	"github.com/golang/glog"
