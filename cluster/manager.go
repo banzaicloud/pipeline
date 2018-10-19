@@ -39,15 +39,18 @@ type secretValidator interface {
 type Manager struct {
 	clusters clusterRepository
 	secrets  secretValidator
+	events   clusterEvents
 
 	logger       logrus.FieldLogger
 	errorHandler emperror.Handler
 }
 
-func NewManager(clusters clusterRepository, secrets secretValidator, logger logrus.FieldLogger, errorHandler emperror.Handler) *Manager {
+func NewManager(clusters clusterRepository, secrets secretValidator, events clusterEvents, logger logrus.FieldLogger, errorHandler emperror.Handler) *Manager {
 	return &Manager{
-		clusters:     clusters,
-		secrets:      secrets,
+		clusters: clusters,
+		secrets:  secrets,
+		events:   events,
+
 		logger:       logger,
 		errorHandler: errorHandler,
 	}

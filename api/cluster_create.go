@@ -20,13 +20,10 @@ import (
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
-	"github.com/banzaicloud/pipeline/config"
-	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	"github.com/banzaicloud/pipeline/model/defaults"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -34,16 +31,14 @@ import (
 )
 
 //CreateClusterRequest gin handler
-func CreateClusterRequest(c *gin.Context) {
-	//TODO refactor logging here
+func (a *ClusterAPI) CreateClusterRequest(c *gin.Context) {
+	a.logger.Info("Cluster creation started")
 
-	log.Info("Cluster creation started")
-
-	log.Debug("Bind json into CreateClusterRequest struct")
+	a.logger.Debug("Bind json into CreateClusterRequest struct")
 	// bind request body to struct
 	var createClusterRequest pkgCluster.CreateClusterRequest
 	if err := c.BindJSON(&createClusterRequest); err != nil {
-		log.Error(errors.Wrap(err, "Error parsing request"))
+		a.logger.Error(errors.Wrap(err, "Error parsing request"))
 		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error parsing request",
@@ -69,7 +64,7 @@ func CreateClusterRequest(c *gin.Context) {
 
 	ph := getPostHookFunctions(createClusterRequest.PostHooks)
 	ctx := ginutils.Context(context.Background(), c)
-	commonCluster, err := CreateCluster(ctx, &createClusterRequest, orgID, userID, ph)
+	commonCluster, err := a.CreateCluster(ctx, &createClusterRequest, orgID, userID, ph)
 	if err != nil {
 		c.JSON(err.Code, err)
 		return
@@ -82,14 +77,14 @@ func CreateClusterRequest(c *gin.Context) {
 }
 
 // CreateCluster creates a K8S cluster in the cloud
-func CreateCluster(
+func (a *ClusterAPI) CreateCluster(
 	ctx context.Context,
 	createClusterRequest *pkgCluster.CreateClusterRequest,
 	organizationID uint,
 	userID uint,
 	postHooks []cluster.PostFunctioner,
 ) (cluster.CommonCluster, *pkgCommon.ErrorResponse) {
-	logger := log.WithFields(logrus.Fields{
+	logger := a.logger.WithFields(logrus.Fields{
 		"organization": organizationID,
 		"user":         userID,
 		"cluster":      createClusterRequest.Name,
@@ -144,11 +139,6 @@ func CreateCluster(
 		}
 	}
 
-	// TODO: move these to a struct and create them only once upon application init
-	clusters := intCluster.NewClusters(config.DB())
-	secretValidator := providers.NewSecretValidator(secret.Store)
-	clusterManager := cluster.NewManager(clusters, secretValidator, log, errorHandler)
-
 	creationCtx := cluster.CreationContext{
 		OrganizationID: organizationID,
 		UserID:         userID,
@@ -160,7 +150,7 @@ func CreateCluster(
 
 	creator := cluster.NewCommonClusterCreator(createClusterRequest, commonCluster)
 
-	commonCluster, err = clusterManager.CreateCluster(ctx, creationCtx, creator)
+	commonCluster, err = a.clusterManager.CreateCluster(ctx, creationCtx, creator)
 
 	if err == cluster.ErrAlreadyExists || isInvalid(err) {
 		logger.Debugf("invalid cluster creation: %s", err.Error())

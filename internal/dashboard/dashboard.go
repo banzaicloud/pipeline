@@ -125,7 +125,7 @@ func GetDashboard(c *gin.Context) {
 
 	// TODO: move these to a struct and create them only once upon application init
 	secretValidator := providers.NewSecretValidator(secret.Store)
-	clusterManager := cluster.NewManager(intCluster.NewClusters(config.DB()), secretValidator, log, errorHandler)
+	clusterManager := cluster.NewManager(intCluster.NewClusters(config.DB()), secretValidator, cluster.NewNopClusterEvents(), log, errorHandler)
 
 	logger.Info("fetching clusters")
 

@@ -91,6 +91,17 @@ const (
 
 	// Database
 	DBAutoMigrateEnabled = "database.autoMigrateEnabled"
+
+	// Monitor config path
+	MonitorEnabled                = "monitor.enabled"
+	MonitorConfigMap              = "monitor.configMap"              // Prometheus config map
+	MonitorConfigMapPrometheusKey = "monitor.configMapPrometheusKey" // Prometheus config key in the prometheus config map
+	MonitorCertSecret             = "monitor.certSecret"             // Kubernetes secret for kubernetes cluster certs
+	MonitorCertMountPath          = "monitor.mountPath"              // Mount path for the kubernetes cert secret
+	// Monitor constants
+	MonitorReleaseName = "monitor"
+
+	ControlPlaneNamespace = "infra.control-plane-namespace" // Namespace where the pipeline and prometheus runs
 )
 
 //Init initializes the configurations
@@ -129,6 +140,7 @@ func init() {
 	viper.SetDefault("auth.jwtissuer", "https://banzaicloud.com/")
 	viper.SetDefault("auth.jwtaudience", "https://pipeline.banzaicloud.com")
 	viper.SetDefault("auth.secureCookie", true)
+	viper.SetDefault("auth.whitelistEnabled", false)
 
 	viper.SetDefault("pipeline.listenport", 9090)
 	viper.SetDefault("pipeline.certfile", "")
@@ -174,15 +186,15 @@ func init() {
 	viper.SetDefault(ARKRestoreSyncInterval, "20s")
 	viper.SetDefault(ARKBackupSyncInterval, "20s")
 
-	ReleaseName := os.Getenv("KUBERNETES_RELEASE_NAME")
-	if ReleaseName == "" {
-		ReleaseName = "pipeline"
-	}
-	viper.SetDefault("monitor.release", ReleaseName)
-	viper.SetDefault("monitor.enabled", false)
-	viper.SetDefault("monitor.configmap", "")
-	viper.SetDefault("monitor.mountpath", "")
+	viper.SetDefault(MonitorEnabled, false)
+	viper.SetDefault(MonitorConfigMap, "")
+	viper.SetDefault(MonitorConfigMapPrometheusKey, "prometheus.yml")
+	viper.SetDefault(MonitorCertSecret, "")
+	viper.SetDefault(MonitorCertMountPath, "")
 	viper.SetDefault("monitor.grafanaAdminUsername", "admin")
+
+	viper.BindEnv(ControlPlaneNamespace, "KUBERNETES_NAMESPACE")
+	viper.SetDefault(ControlPlaneNamespace, "default")
 
 	viper.SetDefault(PipelineSystemNamespace, "pipeline-system")
 	viper.SetDefault(EksTemplateLocation, filepath.Join(pwd, "templates", "eks"))
