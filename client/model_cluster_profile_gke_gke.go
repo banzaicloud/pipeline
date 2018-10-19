@@ -11,8 +11,7 @@
 
 package client
 
-type CreateGkePropertiesGke struct {
-	ProjectId   string                       `json:"projectId,omitempty"`
+type ClusterProfileGkeGke struct {
 	Master      CreateGkePropertiesGkeMaster `json:"master,omitempty"`
 	NodeVersion string                       `json:"nodeVersion,omitempty"`
 	NodePools   map[string]NodePoolsGoogle   `json:"nodePools,omitempty"`

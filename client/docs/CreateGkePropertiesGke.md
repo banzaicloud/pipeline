@@ -3,6 +3,7 @@
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
+**ProjectId** | **string** |  | [optional] 
 **Master** | [**CreateGkePropertiesGkeMaster**](CreateGKEProperties_gke_master.md) |  | [optional] 
 **NodeVersion** | **string** |  | [optional] 
 **NodePools** | [**map[string]NodePoolsGoogle**](NodePoolsGoogle.md) |  | [optional] 

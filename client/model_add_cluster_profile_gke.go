@@ -12,5 +12,5 @@
 package client
 
 type AddClusterProfileGke struct {
-	Gke CreateGkePropertiesGke `json:"gke,omitempty"`
+	Gke ClusterProfileGkeGke `json:"gke,omitempty"`
 }

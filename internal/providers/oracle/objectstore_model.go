@@ -35,6 +35,8 @@ type ObjectStoreBucketModel struct {
 	Location      string `gorm:"unique_index:idx_bucket_name_location_compartment"`
 
 	SecretRef string
+	Status    string
+	StatusMsg string
 }
 
 // TableName changes the default table name.

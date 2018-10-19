@@ -283,6 +283,7 @@ func main() {
 			orgs.GET("/:orgid/buckets", api.ListAllBuckets)
 			orgs.POST("/:orgid/buckets", api.CreateBucket)
 			orgs.HEAD("/:orgid/buckets/:name", api.CheckBucket)
+			orgs.GET("/:orgid/buckets/:name", api.GetBucket)
 			orgs.DELETE("/:orgid/buckets/:name", api.DeleteBucket)
 
 			orgs.GET("/:orgid/cloudinfo", api.GetSupportedClusterList)

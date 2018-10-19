@@ -112,6 +112,7 @@ Class | Method | HTTP request | Description
 *SpotguidesApi* | [**UpdateSpotguides**](docs/SpotguidesApi.md#updatespotguides) | **Put** /api/v1/orgs/{orgId}/spotguides | Update spotguide repositories
 *StorageApi* | [**CreateObjectStoreBucket**](docs/StorageApi.md#createobjectstorebucket) | **Post** /api/v1/orgs/{orgId}/buckets | Creates a new object store bucket with the given params
 *StorageApi* | [**DeleteObjectStoreBucket**](docs/StorageApi.md#deleteobjectstorebucket) | **Delete** /api/v1/orgs/{orgId}/buckets/{name} | Deletes the object store bucket with the given name
+*StorageApi* | [**GetBucket**](docs/StorageApi.md#getbucket) | **Get** /api/v1/orgs/{orgId}/buckets/{name} | Get object store bucket details
 *StorageApi* | [**GetObjectStoreBucketStatus**](docs/StorageApi.md#getobjectstorebucketstatus) | **Head** /api/v1/orgs/{orgId}/buckets/{name} | Get object store bucket status
 *StorageApi* | [**ListObjectStoreBuckets**](docs/StorageApi.md#listobjectstorebuckets) | **Get** /api/v1/orgs/{orgId}/buckets | List object storage buckets
 *UsersApi* | [**GetUsers**](docs/UsersApi.md#getusers) | **Get** /api/v1/orgs/{orgId}/users/{userId} | Get user
@@ -159,6 +160,7 @@ Class | Method | HTTP request | Description
  - [ClusterProfileEc2](docs/ClusterProfileEc2.md)
  - [ClusterProfileEks](docs/ClusterProfileEks.md)
  - [ClusterProfileGke](docs/ClusterProfileGke.md)
+ - [ClusterProfileGkeGke](docs/ClusterProfileGkeGke.md)
  - [ClusterProfileNotFound](docs/ClusterProfileNotFound.md)
  - [Conflict](docs/Conflict.md)
  - [CreateAkcsProperties](docs/CreateAkcsProperties.md)

@@ -91,9 +91,16 @@ func (s *ObjectStore) CreateBucket(bucketName string) error {
 	bucket := &ObjectStoreBucketModel{}
 	searchCriteria := s.searchCriteria(bucketName)
 
-	if err := s.db.Where(searchCriteria).Find(bucket).Error; err != nil {
-		if err != gorm.ErrRecordNotFound {
-			return errors.Wrap(err, "error happened during getting bucket from DB")
+	// lookup the bucket in the db
+	res := s.db.Where(searchCriteria).Find(bucket)
+
+	if res.Error == nil {
+		return fmt.Errorf("bucket already exists: %s", bucketName)
+	}
+
+	if res.Error != nil {
+		if res.Error != gorm.ErrRecordNotFound {
+			return errors.Wrap(res.Error, "error happened during getting bucket from DB")
 		}
 	}
 
@@ -120,6 +127,7 @@ func (s *ObjectStore) CreateBucket(bucketName string) error {
 	bucket.Organization = *s.org
 	bucket.Location = s.location
 	bucket.SecretRef = s.secret.ID
+	bucket.Status = providers.BucketCreating
 
 	logger.Info("saving bucket in DB")
 
@@ -134,13 +142,19 @@ func (s *ObjectStore) CreateBucket(bucketName string) error {
 		RequesterPays: false,
 	}
 
-	if err := bucketHandle.Create(ctx, s.serviceAccount.ProjectId, bucketAttrs); err != nil {
-		e := s.db.Delete(bucket).Error
-		if e != nil {
+	if err = bucketHandle.Create(ctx, s.serviceAccount.ProjectId, bucketAttrs); err != nil {
+		bucket.Status = providers.BucketCreateError
+		bucket.StatusMsg = err.Error()
+		if e := s.db.Save(bucket).Error; e != nil {
 			logger.Error(e.Error())
 		}
 
-		return errors.Wrap(err, "failed to create bucket (rolling back)")
+		return errors.Wrap(err, "failed to create bucket ")
+	}
+
+	bucket.Status = providers.BucketCreated
+	if e := s.db.Save(bucket).Error; e != nil {
+		logger.Error(e.Error())
 	}
 
 	logger.Infof("bucket created")
@@ -164,10 +178,17 @@ func (s *ObjectStore) DeleteBucket(bucketName string) error {
 		}
 	}
 
+	bucket.Status = providers.BucketDeleting
+	db := s.db.Save(bucket)
+	if db.Error != nil {
+		return fmt.Errorf("could not delete bucket: %s", bucketName)
+	}
+
 	logger.Info("getting credentials")
 	credentials, err := s.newGoogleCredentials()
 
 	if err != nil {
+		s.deleteFailed(bucket, err)
 		return fmt.Errorf("getting credentials failed: %s", err.Error())
 	}
 
@@ -177,6 +198,8 @@ func (s *ObjectStore) DeleteBucket(bucketName string) error {
 
 	client, err := storage.NewClient(ctx, option.WithCredentials(credentials))
 	if err != nil {
+		s.deleteFailed(bucket, err)
+
 		return fmt.Errorf("failed to create client: %s", err.Error())
 	}
 	defer client.Close()
@@ -186,11 +209,17 @@ func (s *ObjectStore) DeleteBucket(bucketName string) error {
 	bucketHandle := client.Bucket(bucketName)
 
 	if err := bucketHandle.Delete(ctx); err != nil {
+		// delete failed on the provider
+		s.deleteFailed(bucket, err)
+
 		return err
 	}
 
 	err = s.db.Delete(bucket).Error
 	if err != nil {
+		// delete failed in the dbs
+		s.deleteFailed(bucket, err)
+
 		return fmt.Errorf("deleting bucket failed: %s", err.Error())
 	}
 
@@ -323,6 +352,8 @@ func (s *ObjectStore) ListManagedBuckets() ([]*objectstore.BucketInfo, error) {
 		bucketInfo.Location = bucket.Location
 		bucketInfo.SecretRef = bucket.SecretRef
 		bucketInfo.Cloud = providers.Google
+		bucketInfo.Status = bucket.Status
+		bucketInfo.StatusMsg = bucket.StatusMsg
 		bucketList = append(bucketList, bucketInfo)
 	}
 
@@ -351,4 +382,14 @@ func (s *ObjectStore) searchCriteria(bucketName string) *ObjectStoreBucketModel 
 		OrganizationID: s.org.ID,
 		Name:           bucketName,
 	}
+}
+
+func (s *ObjectStore) deleteFailed(bucket *ObjectStoreBucketModel, reason error) error {
+	bucket.Status = providers.BucketDeleteError
+	bucket.StatusMsg = reason.Error()
+	db := s.db.Save(bucket)
+	if db.Error != nil {
+		return fmt.Errorf("could not delete bucket: %s", bucket.Name)
+	}
+	return nil
 }
