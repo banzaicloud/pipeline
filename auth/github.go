@@ -24,6 +24,7 @@ import (
 	"github.com/qor/auth/claims"
 	githubauth "github.com/qor/auth/providers/github"
 	"github.com/qor/qor/utils"
+	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
 )
 
@@ -41,7 +42,7 @@ func NewGithubAuthorizeHandler(provider *githubauth.GithubProvider) func(context
 			authInfo     auth_identity.Basic
 			authIdentity = reflect.New(utils.ModelType(context.Auth.Config.AuthIdentityModel)).Interface()
 			req          = context.Request
-			tx           = context.Auth.GetDB(req)
+			db           = context.Auth.GetDB(req)
 			oauthCfg     = provider.OAuthConfig(context)
 			token        *oauth2.Token
 		)
@@ -55,19 +56,19 @@ func NewGithubAuthorizeHandler(provider *githubauth.GithubProvider) func(context
 			claims, err := context.Auth.SessionStorer.ValidateClaims(state)
 
 			if err != nil {
-				log.Info(context.Request.RemoteAddr, err.Error())
+				log.Errorln("failed to validate user claims", err.Error())
 				return nil, err
 			}
 
 			if claims.Valid() != nil || claims.Subject != "state" {
-				log.Info(context.Request.RemoteAddr, auth.ErrUnauthorized.Error())
+				log.Infoln("invalid user claims", auth.ErrUnauthorized.Error())
 				return nil, auth.ErrUnauthorized
 			}
 
 			token, err = oauthCfg.Exchange(oauth2.NoContext, req.URL.Query().Get("code"))
 
 			if err != nil {
-				log.Info(context.Request.RemoteAddr, err.Error())
+				log.Errorln("oauth exchange failed", err.Error())
 				return nil, err
 			}
 		}
@@ -75,8 +76,69 @@ func NewGithubAuthorizeHandler(provider *githubauth.GithubProvider) func(context
 		client := github.NewClient(oauthCfg.Client(oauth2.NoContext, token))
 		user, _, err := client.Users.Get(oauth2.NoContext, "")
 		if err != nil {
-			log.Info(context.Request.RemoteAddr, err.Error())
+			log.Errorln("failed to query user metadata from GitHub", err.Error())
 			return nil, err
+		}
+
+		authInfo.Provider = provider.GetName()
+		authInfo.UID = fmt.Sprint(user.GetID())
+
+		// If the user is already registered, just return
+		if tx := db.Model(authIdentity).Where(authInfo).Scan(&authInfo); tx.Error == nil {
+			return authInfo.ToClaims(), nil
+		} else if !tx.RecordNotFound() {
+			log.Errorln("failed to check if user is already registered", tx.Error.Error())
+			return nil, err
+		}
+
+		if viper.GetBool("auth.whitelistEnabled") {
+
+			whitelistedCandidates := []*WhitelistedAuthIdentity{}
+
+			// Check here that a user login name is in the whitelisted_auth_identities table
+			userWhitelisted := WhitelistedAuthIdentity{
+				Provider: authInfo.Provider,
+				UID:      authInfo.UID,
+				Login:    user.GetLogin(),
+				Type:     UserType,
+			}
+
+			whitelistedCandidates = append(whitelistedCandidates, &userWhitelisted)
+
+			// Also check if the user is member of one of the whitelisted organizations
+			userOrgs, _, err := client.Organizations.List(oauth2.NoContext, "", &github.ListOptions{})
+			if err != nil {
+				log.Errorln("failed to query user's organizations from GitHub", err.Error())
+				return nil, err
+			}
+
+			for _, userOrg := range userOrgs {
+
+				orgWhitelisted := WhitelistedAuthIdentity{
+					Provider: authInfo.Provider,
+					UID:      fmt.Sprint(userOrg.GetID()),
+					Login:    userOrg.GetLogin(),
+					Type:     OrganizationType,
+				}
+
+				whitelistedCandidates = append(whitelistedCandidates, &orgWhitelisted)
+			}
+
+			var userIsWhitelisted bool
+			for _, whitelistedCandidate := range whitelistedCandidates {
+
+				if tx := db.Where(&whitelistedCandidate).Find(&WhitelistedAuthIdentity{}); tx.Error == nil {
+					userIsWhitelisted = true
+					break
+				} else if !tx.RecordNotFound() {
+					log.Errorln("failed to check whitelist in db", tx.Error.Error())
+					return nil, err
+				}
+			}
+
+			if !userIsWhitelisted {
+				return nil, fmt.Errorf("sorry, you are not invited currently to this release")
+			}
 		}
 
 		// If user email is not available in the primary user info (hidden email on profile)
@@ -84,7 +146,7 @@ func NewGithubAuthorizeHandler(provider *githubauth.GithubProvider) func(context
 		if user.Email == nil {
 			emails, _, err := client.Users.ListEmails(oauth2.NoContext, &github.ListOptions{})
 			if err != nil {
-				log.Info(context.Request.RemoteAddr, err.Error())
+				log.Errorln("failed to fetch user's emails from GitHub", err.Error())
 				return nil, err
 			}
 
@@ -94,13 +156,6 @@ func NewGithubAuthorizeHandler(provider *githubauth.GithubProvider) func(context
 					break
 				}
 			}
-		}
-
-		authInfo.Provider = provider.GetName()
-		authInfo.UID = fmt.Sprint(*user.ID)
-
-		if !tx.Model(authIdentity).Where(authInfo).Scan(&authInfo).RecordNotFound() {
-			return authInfo.ToClaims(), nil
 		}
 
 		{
@@ -116,14 +171,15 @@ func NewGithubAuthorizeHandler(provider *githubauth.GithubProvider) func(context
 				authInfo.UserID = userID
 			}
 		} else {
+			log.Errorln("failed to store user in db", err.Error())
 			return nil, err
 		}
 
-		if err = tx.Where(authInfo).FirstOrCreate(authIdentity).Error; err == nil {
+		if err = db.Where(authInfo).FirstOrCreate(authIdentity).Error; err == nil {
 			return authInfo.ToClaims(), nil
 		}
 
-		log.Info(context.Request.RemoteAddr, err.Error())
+		log.Errorln("failed to create auth identity for user in db", err.Error())
 		return nil, err
 	}
 }
