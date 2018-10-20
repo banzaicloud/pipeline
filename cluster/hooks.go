@@ -894,22 +894,21 @@ func RegisterDomainPostHook(input interface{}) error {
 		log.Infof("Domain '%s' already registered", domain)
 	}
 
-	secretSources, err := InstallSecrets(
+	route53Secret, err := secret.Store.GetByName(orgId, route53.IAMUserAccessKeySecretName)
+	if err != nil {
+		log.Errorf("Failed to install route53 secret into cluster: %s", err.Error())
+		return err
+	}
+	_, err = InstallSecrets(
 		commonCluster,
 		&pkgSecret.ListSecretsQuery{
 			Type: pkgCluster.Amazon,
-			Tags: []string{pkgSecret.TagBanzaiHidden},
+			IDs:  []string{route53Secret.ID},
 		},
 		route53SecretNamespace,
 	)
 	if err != nil {
 		log.Errorf("Failed to install route53 secret into cluster: %s", err.Error())
-		return err
-	}
-
-	route53Secret, err := secret.Store.GetByName(orgId, secretSources[0].Name)
-	if err != nil {
-		log.Errorf("Failed to get the route53 secret : %s", err.Error())
 		return err
 	}
 
