@@ -483,25 +483,15 @@ func (dns *awsRoute53) unregisterDomain(orgId uint, domain string) error {
 	}
 
 	// delete route53 secret
-	secrets, err := secret.Store.List(orgId,
-		&secretTypes.ListSecretsQuery{
-			Type: cluster.Amazon,
-			Tags: []string{secretTypes.TagBanzaiHidden},
-		})
-
-	if err != nil {
+	secretItem, err := secret.Store.GetByName(orgId, IAMUserAccessKeySecretName)
+	if err != nil && err != secret.ErrSecretNotExists {
 		dns.updateStateWithError(state, err)
 		return err
 	}
-
-	for _, item := range secrets {
-		if item.Name == IAMUserAccessKeySecretName {
-			if err := secret.Store.Delete(orgId, item.ID); err != nil {
-				dns.updateStateWithError(state, err)
-				return err
-			}
-
-			break
+	if secretItem != nil {
+		if err := secret.Store.Delete(orgId, secretItem.ID); err != nil {
+			dns.updateStateWithError(state, err)
+			return err
 		}
 	}
 
@@ -784,34 +774,12 @@ func (dns *awsRoute53) setupAmazonAccess(iamUser string, ctx *context) error {
 // getRoute53Secret returns the secret from Vault that stores the IAM user
 // aws access credentials that is used for accessing the Route53 Amazon service
 func (dns *awsRoute53) getRoute53Secret(orgId uint) (*secret.SecretItemResponse, error) {
-	awsAccessSecrets, err := secret.Store.List(orgId,
-		&secretTypes.ListSecretsQuery{
-			Type:   cluster.Amazon,
-			Tags:   []string{secretTypes.TagBanzaiHidden},
-			Values: true,
-		})
-
-	if err != nil {
+	route53Secret, err := secret.Store.GetByName(orgId, IAMUserAccessKeySecretName)
+	if err != nil && err != secret.ErrSecretNotExists {
 		return nil, err
 	}
 
-	// route53 secret
-	var route53Secrets []*secret.SecretItemResponse
-	for _, awsAccessSecret := range awsAccessSecrets {
-		if awsAccessSecret.Name == IAMUserAccessKeySecretName {
-			route53Secrets = append(route53Secrets, awsAccessSecret)
-		}
-	}
-
-	if len(route53Secrets) > 1 {
-		return nil, fmt.Errorf("multiple secrets found with name '%s'", IAMUserAccessKeySecretName)
-	}
-
-	if len(route53Secrets) == 1 {
-		return route53Secrets[0], nil
-	}
-
-	return nil, nil
+	return route53Secret, nil
 }
 
 // storeRoute53Secret stores the provided Amazon access key in Vault
