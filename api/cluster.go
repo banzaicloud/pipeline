@@ -755,37 +755,24 @@ func getAllPodsRequestsAndLimitsInAllNamespace(client *kubernetes.Clientset, fie
 	return req, limits, nil
 }
 
-// listPods returns list of pods in all namspace
-func listPods(client *kubernetes.Clientset, fieldSelector string, labelSelector string) (pods []v1.Pod, err error) {
+// listPods returns list of pods in all namespaces
+func listPods(client *kubernetes.Clientset, fieldSelector string, labelSelector string) ([]v1.Pod, error) {
 
-	log.Info("List namespaces")
-	var namespaces *v1.NamespaceList
-	namespaces, err = client.CoreV1().Namespaces().List(meta_v1.ListOptions{})
+	log := log.WithFields(logrus.Fields{
+		"fieldSelector": fieldSelector,
+		"labelSelector": labelSelector,
+	})
+
+	log.Info("List pods")
+	podList, err := client.CoreV1().Pods("").List(meta_v1.ListOptions{
+		FieldSelector: fieldSelector,
+		LabelSelector: labelSelector,
+	})
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	log.Infof("namespaces: %v", namespaces.Items)
-
-	var podList *v1.PodList
-	for _, np := range namespaces.Items {
-
-		log.Infof("List pods in namespace [%s] with selector: %s", np.Name, fieldSelector)
-
-		podList, err = client.CoreV1().Pods(np.Name).List(meta_v1.ListOptions{
-			FieldSelector: fieldSelector,
-			LabelSelector: labelSelector,
-		})
-		if err != nil {
-			return
-		}
-
-		pods = append(pods, podList.Items...)
-	}
-
-	log.Debugf(" pod list [%d]", len(pods))
-
-	return
+	return podList.Items, nil
 }
 
 // calculateNodesTotalCapacityAndAllocatable calculates capacity and allocatable of the given nodes
