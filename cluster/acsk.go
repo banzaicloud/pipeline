@@ -238,6 +238,8 @@ func (c *ACSKCluster) CreateCluster() error {
 	}
 
 	resp, err := utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, false)
+	//c.modelCluster.ACSK.ProviderClusterID = resp.(*acsk.AlibabaDescribeClusterResponse).ClusterID
+	c.modelCluster.ACSK.ProviderClusterID = creationContext.ClusterID
 	if err != nil {
 		errors.Wrap(err, "ACSK cluster create error")
 		return err
@@ -247,7 +249,6 @@ func (c *ACSKCluster) CreateCluster() error {
 		return errors.New("could not cast cluster create response")
 	}
 	c.alibabaCluster = castedValue
-	c.modelCluster.ACSK.ProviderClusterID = resp.(*acsk.AlibabaDescribeClusterResponse).ClusterID
 
 	kubeConfig, err := c.DownloadK8sConfig()
 	if err != nil {
