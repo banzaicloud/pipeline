@@ -167,7 +167,7 @@ func InstallMonitoring(input interface{}) error {
 			clusterUidTag,
 			pkgSecret.TagBanzaiReadonly,
 			"app:grafana",
-			"release:monitoring",
+			fmt.Sprintf("release:%s", pipConfig.MonitorReleaseName),
 		},
 	}
 
@@ -204,7 +204,7 @@ func InstallMonitoring(input interface{}) error {
 
 // InstallLogging to install logging deployment
 func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
-	const releaseTag = "release:pipeline-logging"
+	var releaseTag = fmt.Sprintf("release:%s", pipConfig.LoggingReleaseName)
 	cluster, ok := input.(CommonCluster)
 	if !ok {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
@@ -277,7 +277,7 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 	if err != nil {
 		return err
 	}
-	err = installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/logging-operator", "logging-operator", operatorYamlValues, "InstallLogging", "")
+	err = installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/logging-operator", pipConfig.LoggingReleaseName, operatorYamlValues, "InstallLogging", "")
 	if err != nil {
 		return err
 	}
