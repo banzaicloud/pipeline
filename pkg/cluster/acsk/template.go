@@ -77,3 +77,13 @@ type AlibabaScaleClusterParams struct {
 	WorkerInstanceType string `json:"worker_instance_type"`       // Worker node ECS specification type code.
 	NumOfNodes         int    `json:"num_of_nodes"`               // Worker node number. The range is [0,300].
 }
+
+// AlibabaDescribeClusterLogResponseEntry is the response struct of a cluster log entry for api DescribeClusterLogs
+type AlibabaDescribeClusterLogResponseEntry struct {
+	ID        uint   `json:"ID"`
+	ClusterID string `json:"cluster_id"`  // The cluster ID supplied by provider, which is the unique identifier of the cluster.
+	Log       string `json:"cluster_log"` // Cluster log entry
+	//LogLevel  interface{}    `json:"log_level"`
+	Created time.Time `json:"created"` // The create time of the log entry
+	Updated time.Time `json:"updated"` // The update time of the log entry
+}
