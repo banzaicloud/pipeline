@@ -23,4 +23,9 @@ const (
 	DefaultWorkerInstanceType       = "ecs.sn1.large"
 	DefaultWorkerSystemDiskCategory = "cloud_efficiency"
 	DefaultWorkerSystemDiskSize     = 40
+	AlibabaStartCreateClusterLog    = "start to createk8scluster"
+	AlibabaCreateClusterFailedLog   = "start to update cluster status create_failed"
+	AlibabaStartScaleClusterLog     = "start to scale kubernetes cluster"
+	AlibabaScaleClusterFailedLog    = "start to update cluster status update_failed"
+	AlibabaApiDomain                = "cs.aliyuncs.com"
 )

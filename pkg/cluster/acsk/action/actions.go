@@ -55,6 +55,18 @@ type ACSKClusterCreateContext struct {
 	acsk.AlibabaClusterCreateParams
 }
 
+type AlibabaClusterFailureLogsError struct {
+	clusterEventLogs []string
+}
+
+func (e AlibabaClusterFailureLogsError) Error() string {
+	if len(e.clusterEventLogs) > 0 {
+		return "\n" + strings.Join(e.clusterEventLogs, "\n")
+	}
+
+	return ""
+}
+
 // NewACSKClusterCreationContext creates a new ACSKClusterCreateContext
 func NewACSKClusterCreationContext(csClient *cs.Client,
 	ecsClient *ecs.Client, clusterCreateParams acsk.AlibabaClusterCreateParams) *ACSKClusterCreateContext {
@@ -167,9 +179,9 @@ func (a *CreateACSKClusterAction) ExecuteAction(input interface{}) (output inter
 
 	req := cs.CreateCreateClusterRequest()
 	req.SetScheme(requests.HTTPS)
-	req.SetDomain("cs.aliyuncs.com")
+	req.SetDomain(acsk.AlibabaApiDomain)
 	req.SetContent(p)
-	req.SetContentType("application/json")
+	req.SetContentType(requests.Json)
 
 	// do a cluster creation
 	resp, err := csClient.CreateCluster(req)
@@ -191,14 +203,14 @@ func (a *CreateACSKClusterAction) ExecuteAction(input interface{}) (output inter
 
 	a.log.Infof("Alibaba cluster creating with id %s", r.ClusterID)
 
-	//We need this field to be able to implement the UndoAction for ClusterCreate
+	// We need this field to be able to implement the UndoAction for ClusterCreate
 	a.context.ClusterID = r.ClusterID
 
 	// wait for cluster created
 	a.log.Info("Waiting for cluster...")
-	cluster, err := waitUntilClusterCreateComplete(a.log, r.ClusterID, csClient)
+	cluster, err := waitUntilClusterCreateOrScaleComplete(a.log, r.ClusterID, csClient, true)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "cluster create failed")
 	}
 
 	return cluster, nil
@@ -220,7 +232,7 @@ func deleteCluster(clusterID string, csClient *cs.Client) error {
 	req := cs.CreateDeleteClusterRequest()
 	req.ClusterId = clusterID
 	req.SetScheme(requests.HTTPS)
-	req.SetDomain("cs.aliyuncs.com")
+	req.SetDomain(acsk.AlibabaApiDomain)
 
 	resp, err := csClient.DeleteCluster(req)
 	if err != nil {
@@ -240,7 +252,7 @@ func deleteCluster(clusterID string, csClient *cs.Client) error {
 	return nil
 }
 
-func waitUntilClusterCreateComplete(log logrus.FieldLogger, clusterID string, csClient *cs.Client) (*acsk.AlibabaDescribeClusterResponse, error) {
+func waitUntilClusterCreateOrScaleComplete(log logrus.FieldLogger, clusterID string, csClient *cs.Client, isClusterCreate bool) (*acsk.AlibabaDescribeClusterResponse, error) {
 	var (
 		r     *acsk.AlibabaDescribeClusterResponse
 		state string
@@ -263,19 +275,48 @@ func waitUntilClusterCreateComplete(log logrus.FieldLogger, clusterID string, cs
 
 		switch r.State {
 		case acsk.AlibabaClusterStateRunning:
+			if !isClusterCreate {
+				// in case of cluster scale the transition from 'scaling' -> 'running'
+				// doesn't necessary mean that the scale succeeded.
+				// If node count quota is hit than the cluster state transitions from 'scaling' to 'running'
+				// without the scaling taking place thus we need to collect cluster event logs
+				// to see if scaling succeeded
+
+				logs, err := collectClusterScaleFailureLogs(clusterID, csClient)
+				if err != nil {
+					log.Error("failed to collect cluster failure event log")
+				}
+				if len(logs) > 0 {
+					return nil, AlibabaClusterFailureLogsError{clusterEventLogs: logs}
+				}
+			}
+
 			return r, nil
 		case acsk.AlibabaClusterStateFailed:
-			return nil, errors.New("The cluster creation failed")
+			var logs []string
+			var err error
+
+			if isClusterCreate {
+				logs, err = collectClusterCreateFailureLogs(clusterID, csClient)
+			} else {
+				logs, err = collectClusterScaleFailureLogs(clusterID, csClient)
+			}
+			if err != nil {
+				log.Error("failed to collect cluster failure event log")
+			}
+
+			return nil, AlibabaClusterFailureLogsError{clusterEventLogs: logs}
 		default:
 			time.Sleep(time.Second * 5)
 		}
 	}
 }
+
 func getClusterDetails(clusterID string, csClient *cs.Client) (r *acsk.AlibabaDescribeClusterResponse, err error) {
 
 	req := cs.CreateDescribeClusterDetailRequest()
 	req.SetScheme(requests.HTTPS)
-	req.SetDomain("cs.aliyuncs.com")
+	req.SetDomain(acsk.AlibabaApiDomain)
 	req.ClusterId = clusterID
 
 	resp, err := csClient.DescribeClusterDetail(req)
@@ -399,9 +440,9 @@ func (a *UpdateACSKClusterAction) ExecuteAction(input interface{}) (interface{},
 	req := cs.CreateScaleClusterRequest()
 	req.ClusterId = a.context.ClusterID
 	req.SetScheme(requests.HTTPS)
-	req.SetDomain("cs.aliyuncs.com")
+	req.SetDomain(acsk.AlibabaApiDomain)
 	req.SetContent(p)
-	req.SetContentType("application/json")
+	req.SetContentType(requests.Json)
 
 	//do a cluster scale
 	resp, err := csClient.ScaleCluster(req)
@@ -419,10 +460,83 @@ func (a *UpdateACSKClusterAction) ExecuteAction(input interface{}) (interface{},
 
 	a.context.ClusterID = r.ClusterID
 
-	cluster, err := waitUntilClusterCreateComplete(a.log, r.ClusterID, csClient)
+	cluster, err := waitUntilClusterCreateOrScaleComplete(a.log, r.ClusterID, csClient, false)
+	if err != nil {
+		return nil, errors.Wrap(err, "cluster scale failed")
+	}
+
+	return cluster, nil
+}
+
+// collectClusterLogs returns the event logs associated with the cluster identified by clusterID
+func collectClusterLogs(clusterID string, csClient *cs.Client) ([]*acsk.AlibabaDescribeClusterLogResponseEntry, error) {
+	clusterLogsRequest := cs.CreateDescribeClusterLogsRequest()
+	clusterLogsRequest.ClusterId = clusterID
+	clusterLogsRequest.SetScheme(requests.HTTPS)
+	clusterLogsRequest.SetDomain(acsk.AlibabaApiDomain)
+
+	clusterLogsResp, err := csClient.DescribeClusterLogs(clusterLogsRequest)
+
+	if clusterLogsResp != nil {
+		if !clusterLogsResp.IsSuccess() || clusterLogsResp.GetHttpStatus() < 200 || clusterLogsResp.GetHttpStatus() > 299 {
+			return nil, errors.Wrapf(err, "Unexpected http status code: %d", clusterLogsResp.GetHttpStatus())
+		}
+
+		var clusterLogs []*acsk.AlibabaDescribeClusterLogResponseEntry
+		err = json.Unmarshal(clusterLogsResp.GetHttpContentBytes(), &clusterLogs)
+		if err != nil {
+			return nil, err
+		}
+
+		return clusterLogs, nil
+	}
+
+	return nil, nil
+}
+
+// collectClusterLogsInRange returns the logs events in-between the provided start and end log line markers
+func collectClusterLogsInRange(clusterID string, csClient *cs.Client, startMarker, endMarker string) ([]string, error) {
+	logs, err := collectClusterLogs(clusterID, csClient)
 	if err != nil {
 		return nil, err
 	}
 
-	return cluster, nil
+	// process log lines in-between the starMarker and endMarker log lines
+	// cluster event log collection received from Alibaba are in reverse chronological order, thus the endMarker precedes
+	// the starMarker line
+	insideMarkers := false
+	var errorLogs []string
+
+	for _, logEntry := range logs {
+		logMsg := strings.ToLower(strings.TrimSpace(logEntry.Log))
+
+		if strings.HasSuffix(logMsg, startMarker) {
+			break
+		} else if strings.HasSuffix(logMsg, endMarker) {
+			insideMarkers = true
+			continue
+		} else if insideMarkers {
+			errorLogs = append(errorLogs, fmt.Sprintf("%v - %v", logEntry.Updated.Format(time.RFC3339), logEntry.Log))
+		}
+	}
+
+	return errorLogs, nil
+}
+
+// collectClusterCreateFailureLogs returns the logs of events that resulted in cluster creation to not succeed
+func collectClusterCreateFailureLogs(clusterID string, csClient *cs.Client) ([]string, error) {
+	return collectClusterLogsInRange(
+		clusterID,
+		csClient,
+		acsk.AlibabaStartCreateClusterLog,
+		acsk.AlibabaCreateClusterFailedLog)
+}
+
+// collectClusterScaleFailureLogs returns the logs of events that resulted in cluster creation to not succeed
+func collectClusterScaleFailureLogs(clusterID string, csClient *cs.Client) ([]string, error) {
+	return collectClusterLogsInRange(
+		clusterID,
+		csClient,
+		acsk.AlibabaStartScaleClusterLog,
+		acsk.AlibabaScaleClusterFailedLog)
 }

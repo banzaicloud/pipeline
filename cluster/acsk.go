@@ -225,6 +225,7 @@ func (c *ACSKCluster) CreateCluster() error {
 			NumOfNodes:               c.modelCluster.ACSK.NodePools[0].Count,              // 1,
 			SNATEntry:                c.modelCluster.ACSK.SNATEntry,                       // true,
 			SSHFlags:                 c.modelCluster.ACSK.SSHFlags,                        // true,
+			DisableRollback:          true,
 		})
 
 	clusterSshSecret, err := c.getSshSecret(c)
@@ -238,7 +239,6 @@ func (c *ACSKCluster) CreateCluster() error {
 	}
 
 	resp, err := utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, false)
-	//c.modelCluster.ACSK.ProviderClusterID = resp.(*acsk.AlibabaDescribeClusterResponse).ClusterID
 	c.modelCluster.ACSK.ProviderClusterID = creationContext.ClusterID
 	if err != nil {
 		errors.Wrap(err, "ACSK cluster create error")
@@ -895,11 +895,9 @@ func (c *ACSKCluster) GetKubernetesUserName() (string, error) {
 }
 
 func createAlibabaConfig() *sdk.Config {
-	cfg := sdk.NewConfig()
-	cfg.AutoRetry = false
-	cfg.Debug = true
-	cfg.Timeout = time.Minute
-	return cfg
+	return sdk.NewConfig().
+		WithAutoRetry(true).
+		WithDebug(true).WithTimeout(time.Minute)
 }
 
 func createAlibabaCSClient(auth *credentials.AccessKeyCredential, regionID string, cfg *sdk.Config) (*cs.Client, error) {
