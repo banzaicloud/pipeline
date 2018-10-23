@@ -385,11 +385,12 @@ func DeletePolicy(c *gin.Context) {
 
 }
 
+// GetImageDeployments list deployments by image
 func GetImageDeployments(c *gin.Context) {
 	imageDigest := c.Param("imageDigest")
 	releaseMap := make(map[string]bool)
 
-	re := regexp.MustCompile("^docker-pullable://.*@sha256:[a-f0-9]{64}$")
+	re := regexp.MustCompile("^sha256:[a-f0-9]{64}$")
 	if !re.MatchString(imageDigest) {
 		err := fmt.Errorf("Invalid imageID format: %s", imageDigest)
 		log.Error(err)
@@ -447,11 +448,14 @@ func GetImageDeployments(c *gin.Context) {
 		releaseList = append(releaseList, k)
 	}
 
+	c.JSON(http.StatusOK, releaseList)
 }
 
 func getImageDigest(imageID string) string {
 
 	image := strings.Split(imageID, "@")
-	imageSHA := strings.Split(image[1], ":")
-	return imageSHA[1]
+	if len(image) > 1 {
+		return image[1]
+	}
+	return ""
 }
