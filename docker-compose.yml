@@ -11,7 +11,7 @@ services:
             MYSQL_USER: sparky
             MYSQL_PASSWORD: sparky123
         volumes:
-            - ${PWD}/db-init.sql:/docker-entrypoint-initdb.d/db-init.sql
+            - ${PWD}/database/docker-init.sql:/docker-entrypoint-initdb.d/docker-init.sql
 
     adminer:
         image: adminer

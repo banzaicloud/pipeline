@@ -452,7 +452,7 @@ func (sessionStorer *BanzaiSessionStorer) Update(w http.ResponseWriter, req *htt
 func BanzaiLogoutHandler(context *auth.Context) {
 	DelCookie(context.Writer, context.Request, DroneSessionCookie)
 	DelCookie(context.Writer, context.Request, PipelineSessionCookie)
-	auth.DefaultLogoutHandler(context)
+	context.SessionStorer.Delete(context.Writer, context.Request)
 }
 
 // BanzaiDeregisterHandler deletes the user and all his/her tokens from the database
