@@ -21,7 +21,7 @@ import (
 	"net/http"
 	"time"
 
-	bauth "github.com/banzaicloud/bank-vaults/auth"
+	bauth "github.com/banzaicloud/bank-vaults/pkg/auth"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/dgrijalva/jwt-go"
@@ -33,7 +33,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/qor/auth"
 	"github.com/qor/auth/auth_identity"
-	"github.com/qor/auth/claims"
 	"github.com/qor/qor/utils"
 	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
@@ -158,20 +157,6 @@ func GetCurrentOrganization(req *http.Request) *Organization {
 	return nil
 }
 
-// GetCurrentUserFromDB returns the current user from the database
-func GetCurrentUserFromDB(req *http.Request) (*User, error) {
-	if currentUser, ok := Auth.GetCurrentUser(req).(*User); ok {
-		claims := &claims.Claims{UserID: currentUser.IDString()}
-		context := &auth.Context{Auth: Auth, Claims: claims, Request: req}
-		user, err := Auth.UserStorer.Get(claims, context)
-		if err != nil {
-			return nil, err
-		}
-		return user.(*User), nil
-	}
-	return nil, errors.New("error fetching user from db")
-}
-
 func newDroneClient(apiToken string) drone.Client {
 	droneURL := viper.GetString("drone.url")
 	config := new(oauth2.Config)
@@ -184,7 +169,7 @@ func newDroneClient(apiToken string) drone.Client {
 	return drone.NewClient(droneURL, client)
 }
 
-// NewDroneClient creates an authenticated Drone client for the user specified by login
+// NewTemporaryDroneClient creates an authenticated Drone client for the user specified by login
 func NewTemporaryDroneClient(login string) (drone.Client, error) {
 	// Create a temporary Drone API token
 	claims := &DroneClaims{Type: DroneUserTokenType, Text: login}

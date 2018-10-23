@@ -181,6 +181,7 @@ func main() {
 	}
 
 	auth.Install(router)
+	auth.StartTokenStoreGC()
 
 	basePath := viper.GetString("pipeline.basepath")
 
