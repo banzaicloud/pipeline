@@ -10241,7 +10241,7 @@
 								},
 								{
 									"key": "clusterId",
-									"value": "{{clusterID}}"
+									"value": "{{clusterId}}"
 								},
 								{
 									"key": "imageDigest",
