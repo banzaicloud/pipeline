@@ -104,6 +104,9 @@ const (
 	ControlPlaneNamespace = "infra.control-plane-namespace" // Namespace where the pipeline and prometheus runs
 
 	SetCookieDomain = "auth.setCookieDomain"
+
+	// Logging constants
+	LoggingReleaseName = "logging-operator"
 )
 
 //Init initializes the configurations
