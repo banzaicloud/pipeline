@@ -65,6 +65,7 @@ secureCookie = true
 
 # Domain field for cookies
 cookieDomain = ""
+setCookieDomain = false
 
 whitelistEnabled = false
 
@@ -94,7 +95,7 @@ domain = "example.org"
 # Kubernetes namespace which the secret for interacting with external DNS server (Route53) is created into
 secretNamespace = "default"
 
-# The interval in mintutes at which the garbage collector runs to clean up unused organisation level domains
+# The interval in minutes at which the garbage collector runs to clean up unused organisation level domains
 gcIntervalMinute = 1
 
 gcLogLevel = "debug"

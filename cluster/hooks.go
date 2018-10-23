@@ -39,6 +39,7 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/ghodss/yaml"
 	"github.com/go-errors/errors"
+	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"k8s.io/api/core/v1"
@@ -166,7 +167,7 @@ func InstallMonitoring(input interface{}) error {
 			clusterUidTag,
 			pkgSecret.TagBanzaiReadonly,
 			"app:grafana",
-			"release:monitoring",
+			fmt.Sprintf("release:%s", pipConfig.MonitorReleaseName),
 		},
 	}
 
@@ -203,7 +204,7 @@ func InstallMonitoring(input interface{}) error {
 
 // InstallLogging to install logging deployment
 func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
-	const releaseTag = "release:pipeline-logging"
+	var releaseTag = fmt.Sprintf("release:%s", pipConfig.LoggingReleaseName)
 	cluster, ok := input.(CommonCluster)
 	if !ok {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
@@ -276,7 +277,7 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 	if err != nil {
 		return err
 	}
-	err = installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/logging-operator", "logging-operator", operatorYamlValues, "InstallLogging", "")
+	err = installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/logging-operator", pipConfig.LoggingReleaseName, operatorYamlValues, "InstallLogging", "")
 	if err != nil {
 		return err
 	}
@@ -862,8 +863,7 @@ func RegisterDomainPostHook(input interface{}) error {
 
 	dnsSvc, err := dns.GetExternalDnsServiceClient()
 	if err != nil {
-		log.Errorf("Getting external dns service client failed: %s", err.Error())
-		return err
+		return emperror.Wrap(err, "Getting external dns service client failed")
 	}
 
 	if dnsSvc == nil {
@@ -873,44 +873,38 @@ func RegisterDomainPostHook(input interface{}) error {
 
 	org, err := auth.GetOrganizationById(orgId)
 	if err != nil {
-		log.Errorf("Retrieving organization with id %d failed: %s", orgId, err.Error())
-		return err
+		return emperror.Wrapf(err, "Retrieving organization with id %d failed", orgId)
 	}
 
 	domain := fmt.Sprintf("%s.%s", org.Name, domainBase)
 
 	registered, err := dnsSvc.IsDomainRegistered(orgId, domain)
 	if err != nil {
-		log.Errorf("Checking if domain '%s' is already registered failed: %s", domain, err.Error())
-		return err
+		return emperror.Wrapf(err, "Checking if domain '%s' is already registered failed", domain)
 	}
 
 	if !registered {
 		if err = dnsSvc.RegisterDomain(orgId, domain); err != nil {
-			log.Errorf("Registering domain '%s' failed: %s", domain, err.Error())
-			return err
+			return emperror.Wrapf(err, "Registering domain '%s' failed", domain)
 		}
 	} else {
 		log.Infof("Domain '%s' already registered", domain)
 	}
 
-	secretSources, err := InstallSecrets(
+	route53Secret, err := secret.Store.GetByName(orgId, route53.IAMUserAccessKeySecretName)
+	if err != nil {
+		return emperror.Wrap(err, "Failed to install route53 secret into cluster")
+	}
+	_, err = InstallSecrets(
 		commonCluster,
 		&pkgSecret.ListSecretsQuery{
 			Type: pkgCluster.Amazon,
-			Tags: []string{pkgSecret.TagBanzaiHidden},
+			IDs:  []string{route53Secret.ID},
 		},
 		route53SecretNamespace,
 	)
 	if err != nil {
-		log.Errorf("Failed to install route53 secret into cluster: %s", err.Error())
-		return err
-	}
-
-	route53Secret, err := secret.Store.GetByName(orgId, secretSources[0].Name)
-	if err != nil {
-		log.Errorf("Failed to get the route53 secret : %s", err.Error())
-		return err
+		return emperror.Wrap(err, "Failed to install route53 secret into cluster")
 	}
 
 	log.Info("route53 secret successfully installed into cluster.")
@@ -931,7 +925,7 @@ func RegisterDomainPostHook(input interface{}) error {
 
 	externalDnsValuesJson, err := json.Marshal(externalDnsValues)
 	if err != nil {
-		return errors.Errorf("Json Convert Failed : %s", err.Error())
+		return emperror.Wrap(err, "Json Convert Failed")
 	}
 	chartVersion := viper.GetString(pipConfig.DNSExternalDnsChartVersion)
 

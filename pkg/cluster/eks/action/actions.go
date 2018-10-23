@@ -663,6 +663,8 @@ func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (outp
 
 			tags := []*cloudformation.Tag{
 				{Key: aws.String("pipeline-created"), Value: aws.String("true")},
+				{Key: aws.String("pipeline-cluster-name"), Value: aws.String(a.context.ClusterName)},
+				{Key: aws.String("pipeline-stack-type"), Value: aws.String("nodepool")},
 			}
 
 			if nodePool.Autoscaling {
@@ -1297,7 +1299,57 @@ func (a *DeleteClusterAction) ExecuteAction(input interface{}) (output interface
 		}
 	}
 
+	// wait until cluster exists
+	startTime := time.Now()
+	a.log.Info("waiting for EKS cluster deletion")
+	describeClusterInput := &eks.DescribeClusterInput{
+		Name: aws.String(a.context.ClusterName),
+	}
+	err = a.waitUntilClusterExists(aws.BackgroundContext(), describeClusterInput)
+	if err != nil {
+		return nil, err
+	}
+	endTime := time.Now()
+	a.log.Info("EKS cluster deleted successfully in", endTime.Sub(startTime).String())
+
 	return nil, err
+}
+
+func (a *DeleteClusterAction) waitUntilClusterExists(ctx aws.Context, input *eks.DescribeClusterInput, opts ...request.WaiterOption) error {
+	eksSvc := eks.New(a.context.Session)
+
+	w := request.Waiter{
+		Name:        "WaitUntilClusterExists",
+		MaxAttempts: 30,
+		Delay:       request.ConstantWaiterDelay(30 * time.Second),
+		Acceptors: []request.WaiterAcceptor{
+			{
+				State:    request.SuccessWaiterState,
+				Matcher:  request.StatusWaiterMatch,
+				Expected: 404,
+			},
+			{
+				State:    request.RetryWaiterState,
+				Matcher:  request.ErrorWaiterMatch,
+				Expected: "ValidationError",
+			},
+		},
+		Logger: eksSvc.Config.Logger,
+		NewRequest: func(opts []request.Option) (*request.Request, error) {
+			var inCpy *eks.DescribeClusterInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := eksSvc.DescribeClusterRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+	w.ApplyOptions(opts...)
+
+	return w.WaitWithContext(ctx)
 }
 
 //--

@@ -40,7 +40,7 @@ services:
             - ./scripts/vault-enable-database.sh:/bin/vault-enable-database.sh
 
     drone-server:
-        image: banzaicloud/drone:0.3.0
+        image: banzaicloud/drone:0.4.0
         restart: always
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
