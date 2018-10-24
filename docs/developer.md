@@ -125,3 +125,11 @@ the Pipeline will limit which users can register, this list is stored in the `wh
     ```sql
     INSERT INTO whitelisted_auth_identities (created_at, updated_at, provider, type, login, uid) VALUES (NOW(), NOW(), "github", "User", "bonifaido", 23779)
     ```
+
+#### Anchore Engine
+
+If you need to access local anchore server, you'll have to start development environment with `anchorestart` instead of `start`
+
+```bash
+$ make anchorestart
+```
