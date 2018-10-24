@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
@@ -75,18 +76,18 @@ type Status struct {
 }
 
 type Cluster struct {
-	Name                string  `json:"name"`
-	Id                  string  `json:"id"`
-	Status              string  `json:"status"`
-	Distribution        string  `json:"distribution"`
-	StatusMessage       string  `json:"statusMessage"`
-	Cloud               string  `json:"cloud"`
-	CreatedAt           string  `json:"createdAt"`
-	Region              string  `json:"region"`
-	Nodes               []Node  `json:"nodes"`
-	CpuUsagePercent     float64 `json:"cpuUsagePercent"`
-	StorageUsagePercent float64 `json:"storageUsagePercent"`
-	MemoryUsagePercent  float64 `json:"memoryUsagePercent"`
+	Name                string    `json:"name"`
+	Id                  string    `json:"id"`
+	Status              string    `json:"status"`
+	Distribution        string    `json:"distribution"`
+	StatusMessage       string    `json:"statusMessage"`
+	Cloud               string    `json:"cloud"`
+	CreatedAt           time.Time `json:"createdAt"`
+	Region              string    `json:"region"`
+	Nodes               []Node    `json:"nodes"`
+	CpuUsagePercent     float64   `json:"cpuUsagePercent"`
+	StorageUsagePercent float64   `json:"storageUsagePercent"`
+	MemoryUsagePercent  float64   `json:"memoryUsagePercent"`
 }
 
 // GetDashboardResponse Api object to be mapped to Get dashboard request
