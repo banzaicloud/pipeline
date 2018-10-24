@@ -477,7 +477,7 @@ func NewCreatorBaseFields(createdAt time.Time, createdBy uint) *pkgCommon.Creato
 	}
 
 	return &pkgCommon.CreatorBaseFields{
-		CreatedAt:   utils.ConvertSecondsToTime(createdAt),
+		CreatedAt:   createdAt,
 		CreatorName: userName,
 		CreatorId:   createdBy,
 	}

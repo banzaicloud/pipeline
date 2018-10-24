@@ -35,7 +35,6 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/banzaicloud/pipeline/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
@@ -405,7 +404,7 @@ func describePods(commonCluster cluster.CommonCluster) (items []pkgCluster.PodDe
 		items = append(items, pkgCluster.PodDetailsResponse{
 			Name:          pod.Name,
 			Namespace:     pod.Namespace,
-			CreatedAt:     utils.ConvertSecondsToTime(pod.CreationTimestamp.Time),
+			CreatedAt:     pod.CreationTimestamp.Time,
 			Labels:        pod.Labels,
 			RestartPolicy: string(pod.Spec.RestartPolicy),
 			Conditions:    pod.Status.Conditions,

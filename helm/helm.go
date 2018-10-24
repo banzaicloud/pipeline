@@ -33,7 +33,6 @@ import (
 
 	"github.com/Masterminds/sprig"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
-	"github.com/banzaicloud/pipeline/utils"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/patrickmn/go-cache"
 	"github.com/pkg/errors"
@@ -462,8 +461,8 @@ func GetDeployment(releaseName string, kubeConfig []byte) (*pkgHelm.GetDeploymen
 		return nil, err
 	}
 
-	createdAt := utils.ConvertSecondsToTime(time.Unix(releaseContent.GetRelease().GetInfo().GetFirstDeployed().GetSeconds(), 0))
-	updatedAt := utils.ConvertSecondsToTime(time.Unix(releaseContent.GetRelease().GetInfo().GetLastDeployed().GetSeconds(), 0))
+	createdAt := time.Unix(releaseContent.GetRelease().GetInfo().GetFirstDeployed().GetSeconds(), 0)
+	updatedAt := time.Unix(releaseContent.GetRelease().GetInfo().GetLastDeployed().GetSeconds(), 0)
 	chart := GetVersionedChartName(releaseContent.GetRelease().GetChart().GetMetadata().GetName(), releaseContent.GetRelease().GetChart().GetMetadata().GetVersion())
 
 	notes := base64.StdEncoding.EncodeToString([]byte(releaseContent.GetRelease().GetInfo().GetStatus().GetNotes()))

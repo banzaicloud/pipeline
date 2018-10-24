@@ -17,6 +17,7 @@ package cluster
 import (
 	"bytes"
 	"fmt"
+	"time"
 
 	"github.com/banzaicloud/pipeline/pkg/cluster/acsk"
 	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
@@ -527,7 +528,7 @@ type DetailsResponse struct {
 type PodDetailsResponse struct {
 	Name          string            `json:"name"`
 	Namespace     string            `json:"namespace"`
-	CreatedAt     string            `json:"createdAt"`
+	CreatedAt     time.Time         `json:"createdAt"`
 	Labels        map[string]string `json:"labels,omitempty"`
 	RestartPolicy string            `json:"restartPolicy,omitempty"`
 	Conditions    []v1.PodCondition `json:"conditions,omitempty"`
