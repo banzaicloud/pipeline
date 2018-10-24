@@ -50,8 +50,15 @@ clean: ## Clean the working area and the project
 docker-compose.override.yml: ## Create docker compose override file
 	cp docker-compose.override.yml.dist docker-compose.override.yml
 
+docker-compose.anchore.yml: ## Create docker compose override file with anchore
+	cp docker-compose.anchore.yml.dist docker-compose.override.yml
+
 .PHONY: start
 start: docker-compose.override.yml ## Start docker development environment
+	docker-compose up -d
+
+.PHONY: anchorestart
+anchorestart: docker-compose.anchore.yml  ## Start docker development environment with anchore
 	docker-compose up -d
 
 .PHONY: stop

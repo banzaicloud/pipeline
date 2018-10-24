@@ -1,0 +1,40 @@
+version: "3.1"
+services:
+    db:
+        ports:
+            - 3306:3306
+        volumes:
+            - ./.docker/volumes/mysql:/var/lib/mysql
+    adminer:
+        ports:
+            - 8080:8080
+    vault:
+        ports:
+            - 8200:8200
+    drone-server:
+        ports:
+            - 8000:8000
+            - 9000
+
+    anchore-engine:
+        image: docker.io/anchore/anchore-engine:latest
+        #privileged: true
+        depends_on:
+            - anchore-db
+        ports:
+            - "8228:8228"
+            - "8338:8338"
+        volumes:
+            - ${PWD}/config/anchore-config.yaml:/config/config.yaml:z
+        environment:
+            - ANCHORE_HOST_ID=dockerhostid-anchore-engine
+            - ANCHORE_ENDPOINT_HOSTNAME=anchore-engine
+    anchore-db:
+        image: "postgres:9"
+        environment:
+            - POSTGRES_PASSWORD=mysecretpassword
+            - PGDATA=/var/lib/postgresql/data/pgdata/
+        ports:
+            - "5432:5432"
+        volumes:
+            - ./.docker/volumes/anchore-db:/var/lib/postgresql/data/pgdata/:z
