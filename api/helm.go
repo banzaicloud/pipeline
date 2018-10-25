@@ -25,7 +25,6 @@ import (
 	"github.com/banzaicloud/pipeline/helm"
 	pkgCommmon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
-	"github.com/banzaicloud/pipeline/utils"
 	"github.com/ghodss/yaml"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -175,8 +174,8 @@ func ListDeployments(c *gin.Context) {
 	if response != nil && len(response.Releases) > 0 {
 		for _, r := range response.Releases {
 
-			createdAt := utils.ConvertSecondsToTime(time.Unix(r.Info.FirstDeployed.Seconds, 0))
-			updated := utils.ConvertSecondsToTime(time.Unix(r.Info.LastDeployed.Seconds, 0))
+			createdAt := time.Unix(r.Info.FirstDeployed.Seconds, 0)
+			updated := time.Unix(r.Info.LastDeployed.Seconds, 0)
 			chartName := r.GetChart().GetMetadata().GetName()
 
 			body := pkgHelm.ListDeploymentResponse{
@@ -185,7 +184,7 @@ func ListDeployments(c *gin.Context) {
 				ChartName:    chartName,
 				ChartVersion: r.GetChart().GetMetadata().GetVersion(),
 				Version:      r.Version,
-				Updated:      updated,
+				UpdatedAt:    updated,
 				Status:       r.Info.Status.Code.String(),
 				Namespace:    r.Namespace,
 				CreatedAt:    createdAt,

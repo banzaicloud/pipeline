@@ -21,7 +21,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"time"
 )
 
 //NopHandler is an empty handler to help net/http -> Gin conversions
@@ -83,9 +82,4 @@ func EncodeStringToBase64(s string) string {
 		return base64.StdEncoding.EncodeToString([]byte(s))
 	}
 	return s
-}
-
-// ConvertSecondsToTime returns string format of seconds
-func ConvertSecondsToTime(t time.Time) string {
-	return t.Format(time.RFC3339)
 }

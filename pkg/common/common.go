@@ -14,6 +14,8 @@
 
 package common
 
+import "time"
+
 // BanzaiResponse describes Pipeline's responses
 type BanzaiResponse struct {
 	StatusCode int    `json:"status_code,omitempty"`
@@ -29,9 +31,9 @@ type ErrorResponse struct {
 
 // CreatorBaseFields describes all field which contains info about who created the cluster/application etc
 type CreatorBaseFields struct {
-	CreatedAt   string `json:"createdAt,omitempty"`
-	CreatorName string `json:"creatorName,omitempty"`
-	CreatorId   uint   `json:"creatorId,omitempty"`
+	CreatedAt   time.Time `json:"createdAt,omitempty"`
+	CreatorName string    `json:"creatorName,omitempty"`
+	CreatorId   uint      `json:"creatorId,omitempty"`
 }
 
 // NodeNames describes node names

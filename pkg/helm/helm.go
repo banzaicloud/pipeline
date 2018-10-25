@@ -14,7 +14,11 @@
 
 package helm
 
-import "github.com/technosophos/moniker"
+import (
+	"time"
+
+	"github.com/technosophos/moniker"
+)
 
 // ### [ Constants to helm]
 const (
@@ -117,17 +121,17 @@ type CreateUpdateDeploymentRequest struct {
 
 // ListDeploymentResponse describes a deployment list response
 type ListDeploymentResponse struct {
-	Name         string `json:"releaseName"`
-	Chart        string `json:"chart"`
-	ChartName    string `json:"chartName"`
-	ChartVersion string `json:"chartVersion"`
-	Version      int32  `json:"version"`
-	Updated      string `json:"updatedAt"`
-	Status       string `json:"status"`
-	Namespace    string `json:"namespace"`
-	CreatedAt    string `json:"createdAt,omitempty"`
-	Supported    bool   `json:"supported"`
-	WhiteListed  bool   `json:"whiteListed"`
+	Name         string    `json:"releaseName"`
+	Chart        string    `json:"chart"`
+	ChartName    string    `json:"chartName"`
+	ChartVersion string    `json:"chartVersion"`
+	Version      int32     `json:"version"`
+	UpdatedAt    time.Time `json:"updatedAt"`
+	Status       string    `json:"status"`
+	Namespace    string    `json:"namespace"`
+	CreatedAt    time.Time `json:"createdAt,omitempty"`
+	Supported    bool      `json:"supported"`
+	WhiteListed  bool      `json:"whiteListed"`
 }
 
 // DeploymentStatusResponse describes a deployment status response
@@ -146,8 +150,8 @@ type GetDeploymentResponse struct {
 	Version      int32                  `json:"version"`
 	Status       string                 `json:"status"`
 	Description  string                 `json:"description"`
-	CreatedAt    string                 `json:"createdAt,omitempty"`
-	Updated      string                 `json:"updatedAt,omitempty"`
+	CreatedAt    time.Time              `json:"createdAt,omitempty"`
+	Updated      time.Time              `json:"updatedAt,omitempty"`
 	Notes        string                 `json:"notes"`
 	Values       map[string]interface{} `json:"values"`
 }
