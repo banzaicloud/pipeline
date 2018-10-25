@@ -154,6 +154,8 @@ func main() {
 	//Initialise Gin router
 	router := gin.New()
 
+	router.GET("/version", VersionHandler)
+
 	// These two paths can contain sensitive information, so it is advised not to log them out.
 	skipPaths := viper.GetStringSlice("audit.skippaths")
 	router.Use(correlationid.Middleware())

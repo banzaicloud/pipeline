@@ -14,9 +14,27 @@
 
 package main
 
+import (
+	"fmt"
+	"net/http"
+	"runtime"
+
+	"github.com/gin-gonic/gin"
+)
+
 // Provisioned by ldflags
 var (
 	Version    string
 	CommitHash string
 	BuildDate  string
 )
+
+func VersionHandler(c *gin.Context) {
+	c.JSON(http.StatusOK, map[string]interface{}{
+		"version":     Version,
+		"go_version":  runtime.Version(),
+		"commit_hash": CommitHash,
+		"build_date":  BuildDate,
+		"os_arch":     fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
+	})
+}
