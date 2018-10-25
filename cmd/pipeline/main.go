@@ -53,13 +53,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-// Provisioned by ldflags
-var (
-	Version    string
-	CommitHash string
-	BuildDate  string
-)
-
 //Common logger for package
 var log *logrus.Logger
 var logger *logrus.Entry
@@ -82,7 +75,11 @@ func main() {
 	}
 
 	logger = initLog()
-	logger.Info("Pipeline initialization")
+	logger.WithFields(logrus.Fields{
+		"version":     Version,
+		"commit_hash": CommitHash,
+		"build_date":  BuildDate,
+	}).Info("Pipeline initialization")
 	errorHandler := config.ErrorHandler()
 
 	// Connect to database
