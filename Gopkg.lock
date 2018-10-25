@@ -1321,7 +1321,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:0c4d55933a90d57843306bec9c83d727d336385ff9f930979d4824b1a6ec54b5"
+  digest = "1:3db2dcbe1390b0e84ba452cd3f5d3c2731f452ae21433ae819bd9cda6e1ec3fb"
   name = "github.com/qor/auth"
   packages = [
     ".",
@@ -1330,7 +1330,7 @@
     "providers/github",
   ]
   pruneopts = "NUT"
-  revision = "c75a1792b35833e56bb1b24edd2321c10ae635a5"
+  revision = "1bff4585d99aba219bcdc81e9ba63788835e99e9"
   source = "github.com/banzaicloud/auth"
 
 [[projects]]
@@ -2492,7 +2492,6 @@
     "k8s.io/helm/pkg/helm/environment",
     "k8s.io/helm/pkg/helm/helmpath",
     "k8s.io/helm/pkg/helm/portforwarder",
-    "k8s.io/helm/pkg/kube",
     "k8s.io/helm/pkg/proto/hapi/chart",
     "k8s.io/helm/pkg/proto/hapi/release",
     "k8s.io/helm/pkg/proto/hapi/services",
