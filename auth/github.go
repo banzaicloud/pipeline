@@ -83,9 +83,12 @@ func NewGithubAuthorizeHandler(provider *githubauth.GithubProvider) func(context
 		authInfo.Provider = provider.GetName()
 		authInfo.UID = fmt.Sprint(user.GetID())
 
+		schema.RawInfo = &GithubExtraInfo{Login: user.GetLogin(), Token: token.AccessToken}
+
 		// If the user is already registered, just return
 		if tx := db.Model(authIdentity).Where(authInfo).Scan(&authInfo); tx.Error == nil {
-			return authInfo.ToClaims(), nil
+			context.Claims = authInfo.ToClaims()
+			return authInfo.ToClaims(), context.Auth.UserStorer.Update(&schema, context)
 		} else if !tx.RecordNotFound() {
 			log.Errorln("failed to check if user is already registered", tx.Error.Error())
 			return nil, err
@@ -164,7 +167,6 @@ func NewGithubAuthorizeHandler(provider *githubauth.GithubProvider) func(context
 			schema.Name = user.GetName()
 			schema.Email = user.GetEmail()
 			schema.Image = user.GetAvatarURL()
-			schema.RawInfo = &GithubExtraInfo{Login: user.GetLogin(), Token: token.AccessToken}
 		}
 		if _, userID, err := context.Auth.UserStorer.Save(&schema, context); err == nil {
 			if userID != "" {

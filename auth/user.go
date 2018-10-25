@@ -26,11 +26,11 @@ import (
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/drone/drone-go/drone"
-	"github.com/go-errors/errors"
 	"github.com/google/go-github/github"
 	"github.com/jinzhu/copier"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql" // blank import is used here for sql driver inclusion
+	"github.com/pkg/errors"
 	"github.com/qor/auth"
 	"github.com/qor/auth/auth_identity"
 	"github.com/qor/auth/claims"
@@ -281,6 +281,33 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 	return currentUser, fmt.Sprint(db.NewScope(currentUser).PrimaryKeyValue()), err
 }
 
+// Update differs from the default UserStorer.Update() in that it
+// updates the GitHub access token of the given user
+func (bus BanzaiUserStorer) Update(schema *auth.Schema, context *auth.Context) error {
+
+	// This assumes GitHub auth only right now
+	currentUser := &User{}
+	githubExtraInfo := schema.RawInfo.(*GithubExtraInfo)
+	currentUser.Login = githubExtraInfo.Login
+
+	// Revoke the old Github token from Vault
+	err := TokenStore.Revoke(context.Claims.UserID, GithubTokenID)
+	if err != nil {
+		return errors.Wrap(err, "failed to revoke old Github access token")
+	}
+
+	// Save the new Github token to Vault
+	token := bauth.NewToken(GithubTokenID, "Github access token")
+	token.Value = githubExtraInfo.Token
+	err = TokenStore.Store(context.Claims.UserID, token)
+	if err != nil {
+		return errors.Wrap(err, "failed to save Github access token")
+	}
+
+	// Also update the new Github token in Drone (TODO Drone should get it from Vault as well)
+	return bus.updateUserInDroneDB(currentUser, githubExtraInfo.Token)
+}
+
 func (bus BanzaiUserStorer) createUserInDroneDB(user *User, githubAccessToken string) error {
 	droneUser := &DroneUser{
 		Login:  user.Login,
@@ -293,6 +320,17 @@ func (bus BanzaiUserStorer) createUserInDroneDB(user *User, githubAccessToken st
 		Synced: time.Now().Unix(),
 	}
 	return bus.droneDB.Where(droneUser).FirstOrCreate(droneUser).Error
+}
+
+func (bus BanzaiUserStorer) updateUserInDroneDB(user *User, githubAccessToken string) error {
+	where := &DroneUser{
+		Login: user.Login,
+	}
+	update := &DroneUser{
+		Token:  githubAccessToken,
+		Synced: time.Now().Unix(),
+	}
+	return bus.droneDB.Model(&DroneUser{}).Where(where).Update(update).Error
 }
 
 // This method tries to call the Drone API on a best effort basis to fetch all repos before the user navigates there.
