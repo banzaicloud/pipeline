@@ -7,8 +7,7 @@ FROM alpine:3.7
 RUN apk add --no-cache ca-certificates libc6-compat
 COPY --from=0 /go/bin/aws-iam-authenticator /usr/bin/
 COPY --from=0 /go/bin/dlv /
-ADD ./pipeline-debug /
-ADD ./views /views/
+COPY build/pipeline-debug /
+COPY views /views/
 
 ENTRYPOINT ["/dlv", "--listen=:40000", "--headless=true", "--api-version=2", "--log", "exec", "/pipeline-debug"]
-
