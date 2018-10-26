@@ -23,6 +23,7 @@ import (
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
+	"k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -72,6 +73,8 @@ type autoscalingInfo struct {
 	Azure             azureInfo         `json:"azure"`
 	AutoDiscovery     autoDiscovery     `json:"autoDiscovery"`
 	SslCertPath       *string           `json:"sslCertPath,omitempty"`
+	Affinity          v1.Affinity       `json:"affinity,omitempty"`
+	Tolerations       []v1.Toleration   `json:"tolerations,omitempty"`
 }
 
 func getAmazonNodeGroups(cluster CommonCluster) ([]nodeGroup, error) {
@@ -129,8 +132,10 @@ func createAutoscalingForEc2(cluster CommonCluster, groups []nodeGroup) *autosca
 			"v":        logLevel,
 			"expander": expanderStrategy,
 		},
-		Rbac:      rbac{Create: true},
-		AwsRegion: cluster.GetLocation(),
+		Rbac:        rbac{Create: true},
+		AwsRegion:   cluster.GetLocation(),
+		Affinity:    getHeadNodeAffinity(),
+		Tolerations: getHeadNodeTolerations(),
 	}
 }
 
@@ -148,6 +153,8 @@ func createAutoscalingForEks(cluster CommonCluster, groups []nodeGroup) *autosca
 			ClusterName: cluster.GetName(),
 		},
 		SslCertPath: &eksCertPath,
+		Affinity:    getHeadNodeAffinity(),
+		Tolerations: getHeadNodeTolerations(),
 	}
 }
 
@@ -214,6 +221,8 @@ func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup) *autos
 			NodeResourceGroup: *nodeResourceGroup,
 			ClusterName:       cluster.GetName(),
 		},
+		Affinity:    getHeadNodeAffinity(),
+		Tolerations: getHeadNodeTolerations(),
 	}
 }
 
@@ -309,6 +318,7 @@ func deployAutoscalerChart(cluster CommonCluster, nodeGroups []nodeGroup, kubeCo
 		log.Errorf("Error during getting organization: %s", err.Error())
 		return err
 	}
+
 	switch action {
 	case install:
 		_, err = helm.CreateDeployment(autoScalerChart, "", nil, helm.SystemNamespace, releaseName, yamlValues, kubeConfig, helm.GenerateHelmRepoEnv(org.Name), helm.DefaultInstallOptions...)
