@@ -121,6 +121,7 @@ func WaitingForTillerComeUp(kubeConfig []byte) error {
 		log.Infof("Waiting for tiller to come up %d/%d", i, retryAttempts)
 		client, err := pkgHelm.NewClient(kubeConfig, log)
 		if err == nil {
+			defer client.Close()
 			resp, err := client.GetVersion()
 			if err != nil {
 				return err
