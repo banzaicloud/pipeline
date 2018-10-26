@@ -193,12 +193,9 @@ func ListDeployments(filter *string, tagFilter string, kubeConfig []byte) (*rls.
 	}
 	defer hClient.Close()
 
-	// TODO doc the options here
-	var sortBy = int32(2)
-	var sortOrd = int32(1)
 	ops := []helm.ReleaseListOption{
-		helm.ReleaseListSort(sortBy),
-		helm.ReleaseListOrder(sortOrd),
+		helm.ReleaseListSort(int32(rls.ListSort_LAST_RELEASED)),
+		helm.ReleaseListOrder(int32(rls.ListSort_DESC)),
 		helm.ReleaseListStatuses([]release.Status_Code{
 			release.Status_DEPLOYED,
 			release.Status_FAILED,
@@ -250,30 +247,37 @@ func ListDeployments(filter *string, tagFilter string, kubeConfig []byte) (*rls.
 		filteredResp := &rls.ListReleasesResponse{}
 
 		for _, deployment := range deployments {
-			if banzaicloudRaw, ok := deployment.Deployment.Values["banzaicloud"]; ok {
-				banzaicloudValues, err := cast.ToStringMapE(banzaicloudRaw)
-				if err != nil {
-					continue
-				}
-				if tagsRaw, ok := banzaicloudValues["tags"]; ok {
-					tags, err := cast.ToStringSliceE(tagsRaw)
-					if err != nil {
-						continue
-					}
-					for _, tag := range tags {
-						if tag == tagFilter {
-							filteredResp.Releases = append(filteredResp.Releases, deployment.Release)
-							filteredResp.Count++
-							break
-						}
-					}
-				}
+			if DeploymentHasTag(deployment.Deployment, tagFilter) {
+				filteredResp.Releases = append(filteredResp.Releases, deployment.Release)
+				filteredResp.Count++
+				break
 			}
 		}
 
 		resp = filteredResp
 	}
 	return resp, nil
+}
+
+func DeploymentHasTag(deployment *pkgHelm.GetDeploymentResponse, tagFilter string) bool {
+	if banzaicloudRaw, ok := deployment.Values["banzaicloud"]; ok {
+		banzaicloudValues, err := cast.ToStringMapE(banzaicloudRaw)
+		if err != nil {
+			return false
+		}
+		if tagsRaw, ok := banzaicloudValues["tags"]; ok {
+			tags, err := cast.ToStringSliceE(tagsRaw)
+			if err != nil {
+				return false
+			}
+			for _, tag := range tags {
+				if tag == tagFilter {
+					return true
+				}
+			}
+		}
+	}
+	return false
 }
 
 func getRequestedChart(releaseName, chartName, chartVersion string, chartPackage []byte, env helm_env.EnvSettings) (requestedChart *chart.Chart, err error) {
@@ -396,7 +400,7 @@ func DeleteDeployment(releaseName string, kubeConfig []byte) error {
 	return nil
 }
 
-// GetDeploymentsK8sResources returns K8s resources of a helm deployment
+// GetDeploymentK8sResources returns K8s resources of a helm deployment
 func GetDeploymentK8sResources(releaseName string, kubeConfig []byte, resourceTypes []string) ([]pkgHelm.DeploymentResource, error) {
 	hClient, err := pkgHelm.NewClient(kubeConfig, log)
 	if err != nil {
@@ -453,6 +457,11 @@ func GetDeploymentK8sResources(releaseName string, kubeConfig []byte, resourceTy
 
 // GetDeployment returns the details of a helm deployment
 func GetDeployment(releaseName string, kubeConfig []byte) (*pkgHelm.GetDeploymentResponse, error) {
+	return GetDeploymentByVersion(releaseName, kubeConfig, 0)
+}
+
+// GetDeploymentByVersion returns the details of a helm deployment version
+func GetDeploymentByVersion(releaseName string, kubeConfig []byte, version int32) (*pkgHelm.GetDeploymentResponse, error) {
 	helmClient, err := pkgHelm.NewClient(kubeConfig, log)
 	if err != nil {
 		log.Errorf("Getting Helm client failed: %s", err.Error())
@@ -460,7 +469,7 @@ func GetDeployment(releaseName string, kubeConfig []byte) (*pkgHelm.GetDeploymen
 	}
 	defer helmClient.Close()
 
-	releaseContent, err := helmClient.ReleaseContent(releaseName)
+	releaseContent, err := helmClient.ReleaseContent(releaseName, helm.ContentReleaseVersion(version))
 
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
