@@ -276,17 +276,18 @@
   revision = "72e04c1bddb8e7246cc69496f942d35fc26aeb23"
 
 [[projects]]
-  branch = "master"
-  digest = "1:6f3ef52433006c1030293d0a7bc2f43ab8084ed076de77d81d05e84965cf36da"
+  digest = "1:6464127eaa3df47de46edd59debd615d73268ce128a7b7f820f5143ecac7e054"
   name = "github.com/banzaicloud/bank-vaults"
   packages = [
-    "auth",
-    "database",
+    "pkg/auth",
+    "pkg/db",
+    "pkg/kv",
     "pkg/tls",
-    "vault",
+    "pkg/vault",
   ]
   pruneopts = "NUT"
-  revision = "5af754bf95150854fed0b469cd944a90dd6673f3"
+  revision = "bfe5b7d7d711c8fcafabe42b9e2bcf83d2b407db"
+  version = "0.3.7"
 
 [[projects]]
   branch = "master"
@@ -2379,10 +2380,10 @@
     "github.com/banzaicloud/azure-aks-client/client",
     "github.com/banzaicloud/azure-aks-client/cluster",
     "github.com/banzaicloud/azure-aks-client/types",
-    "github.com/banzaicloud/bank-vaults/auth",
-    "github.com/banzaicloud/bank-vaults/database",
+    "github.com/banzaicloud/bank-vaults/pkg/auth",
+    "github.com/banzaicloud/bank-vaults/pkg/db",
     "github.com/banzaicloud/bank-vaults/pkg/tls",
-    "github.com/banzaicloud/bank-vaults/vault",
+    "github.com/banzaicloud/bank-vaults/pkg/vault",
     "github.com/banzaicloud/go-gin-prometheus",
     "github.com/banzaicloud/logrus-runtime-formatter",
     "github.com/casbin/casbin",

@@ -59,7 +59,7 @@ func NewAuthorizer(dsn string) gin.HandlerFunc {
 // NewAuthorizer returns the authorizer, uses a Casbin enforcer as input
 func newAuthorizer(e *casbin.SyncedEnforcer) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		a := &BearerAuthorizer{enforcer: e}
+		a := &userIDAuthorizer{enforcer: e}
 
 		if !a.CheckPermission(c.Request) {
 			a.RequirePermission(c)
@@ -67,14 +67,13 @@ func newAuthorizer(e *casbin.SyncedEnforcer) gin.HandlerFunc {
 	}
 }
 
-// BearerAuthorizer stores the casbin handler
-type BearerAuthorizer struct {
+// userIDAuthorizer stores the casbin handler
+type userIDAuthorizer struct {
 	enforcer *casbin.SyncedEnforcer
 }
 
-// GetUserID gets the user name from the request.
-// Currently, only HTTP Bearer token authentication is supported
-func (a *BearerAuthorizer) GetUserID(r *http.Request) string {
+// getUserID gets the user name from the request.
+func (a *userIDAuthorizer) getUserID(r *http.Request) string {
 	user := GetCurrentUser(r)
 	if user.ID == 0 {
 		return user.Login // This is needed for Drone virtual user tokens
@@ -84,15 +83,15 @@ func (a *BearerAuthorizer) GetUserID(r *http.Request) string {
 
 // CheckPermission checks the user/method/path combination from the request.
 // Returns true (permission granted) or false (permission forbidden)
-func (a *BearerAuthorizer) CheckPermission(r *http.Request) bool {
-	userID := a.GetUserID(r)
+func (a *userIDAuthorizer) CheckPermission(r *http.Request) bool {
+	userID := a.getUserID(r)
 	method := r.Method
 	path := r.URL.Path
 	return a.enforcer.Enforce(userID, path, method)
 }
 
 // RequirePermission returns the 403 Forbidden to the client
-func (a *BearerAuthorizer) RequirePermission(c *gin.Context) {
+func (a *userIDAuthorizer) RequirePermission(c *gin.Context) {
 	c.AbortWithStatus(http.StatusForbidden)
 }
 
