@@ -193,9 +193,15 @@ func InstallMonitoring(input interface{}) error {
 			"adminUser":     grafanaAdminUsername,
 			"adminPassword": grafanaAdminPass,
 			"ingress":       map[string][]string{"hosts": {host}},
+			"affinity":      getHeadNodeAffinity(),
+			"tolerations":   getHeadNodeTolerations(),
+		},
+		"prometheus": map[string]interface{}{
+			"affinity":    getHeadNodeAffinity(),
+			"tolerations": getHeadNodeTolerations(),
 		},
 	}
-	grafanaValuesJson, err := json.Marshal(grafanaValues)
+	grafanaValuesJson, err := yaml.Marshal(grafanaValues)
 	if err != nil {
 		return errors.Errorf("Json Convert Failed : %s", err.Error())
 	}
@@ -273,6 +279,8 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 			"enabled":    "true",
 			"secretName": loggingParam.GenTLSForLogging.GenTLSSecretName,
 		},
+		"affinity":    getHeadNodeAffinity(),
+		"tolerations": getHeadNodeTolerations(),
 	}
 	operatorYamlValues, err := yaml.Marshal(operatorValues)
 	if err != nil {
@@ -405,6 +413,46 @@ func castToPostHookParam(data *pkgCluster.PostHookParam, output interface{}) (er
 	return
 }
 
+func getHeadNodeAffinity() v1.Affinity {
+	headNodePoolName := viper.GetString(pipConfig.PipelineHeadNodePoolName)
+	if len(headNodePoolName) == 0 {
+		return v1.Affinity{}
+	}
+	return v1.Affinity{
+		NodeAffinity: &v1.NodeAffinity{
+			RequiredDuringSchedulingIgnoredDuringExecution: &v1.NodeSelector{
+				NodeSelectorTerms: []v1.NodeSelectorTerm{
+					{
+						MatchExpressions: []v1.NodeSelectorRequirement{
+							{
+								Key:      pkgCommon.LabelKey,
+								Operator: v1.NodeSelectorOpIn,
+								Values: []string{
+									headNodePoolName,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func getHeadNodeTolerations() []v1.Toleration {
+	headNodePoolName := viper.GetString(pipConfig.PipelineHeadNodePoolName)
+	if len(headNodePoolName) == 0 {
+		return []v1.Toleration{}
+	}
+	return []v1.Toleration{
+		{
+			Key:      pkgCommon.HeadNodeTaintKey,
+			Operator: v1.TolerationOpEqual,
+			Value:    headNodePoolName,
+		},
+	}
+}
+
 func installDeployment(cluster CommonCluster, namespace string, deploymentName string, releaseName string, values []byte, actionName string, chartVersion string) error {
 	// --- [ Get K8S Config ] --- //
 	kubeConfig, err := cluster.GetK8sConfig()
@@ -486,9 +534,11 @@ func InstallIngressControllerPostHook(input interface{}) error {
 					"secretName": route53.IAMUserAccessKeySecretName,
 				},
 			},
+			"affinity":    getHeadNodeAffinity(),
+			"tolerations": getHeadNodeTolerations(),
 		},
 	}
-	ingressValuesJson, err := json.Marshal(ingressValues)
+	ingressValuesJson, err := yaml.Marshal(ingressValues)
 	if err != nil {
 		return errors.Errorf("Json Convert Failed : %s", err.Error())
 	}
@@ -601,9 +651,11 @@ func InstallKubernetesDashboardPostHook(input interface{}) error {
 				"create": false,
 				"name":   serviceAccount.Name,
 			},
+			"affinity":    getHeadNodeAffinity(),
+			"tolerations": getHeadNodeTolerations(),
 		}
 
-		valuesJson, err = json.Marshal(values)
+		valuesJson, err = yaml.Marshal(values)
 		if err != nil {
 			return err
 		}
@@ -687,25 +739,31 @@ func InstallHorizontalPodAutoscalerPostHook(input interface{}) error {
 	}
 	infraNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
 
-	var valuesOverride []byte
+	values := map[string]interface{}{
+		"affinity":    getHeadNodeAffinity(),
+		"tolerations": getHeadNodeTolerations(),
+	}
+
 	// install metricsServer for Amazon & Azure & Alibaba & Oracle only if metrics.k8s.io endpoint is not available already
 	switch cluster.GetCloud() {
 	case pkgCluster.Amazon, pkgCluster.Azure, pkgCluster.Alibaba, pkgCluster.Oracle:
 		if !metricsServerIsInstalled(cluster) {
 			log.Infof("Metrics Server is not installed, installing")
-			values := map[string]map[string]interface{}{
-				"metricsServer": {
-					"enabled": true,
-				},
+			values["metricsServer"] = map[string]interface{}{
+				"enabled": true,
 			}
-			marshalledValues, err := yaml.Marshal(values)
-			if err != nil {
-				return err
+			values["metrics-server"] = map[string]interface{}{
+				"affinity":    getHeadNodeAffinity(),
+				"tolerations": getHeadNodeTolerations(),
 			}
-			valuesOverride = marshalledValues
 		} else {
 			log.Infof("Metrics Server is already installed")
 		}
+	}
+
+	valuesOverride, err := yaml.Marshal(values)
+	if err != nil {
+		return err
 	}
 
 	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/hpa-operator", "hpa-operator", valuesOverride, "InstallHorizontalPodAutoscaler", "")
@@ -720,7 +778,16 @@ func InstallPVCOperatorPostHook(input interface{}) error {
 
 	infraNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
 
-	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/pvc-operator", "pvc-operator", nil, "InstallPVCOperator", "")
+	values := map[string]interface{}{
+		"affinity":    getHeadNodeAffinity(),
+		"tolerations": getHeadNodeTolerations(),
+	}
+	valuesOverride, err := yaml.Marshal(values)
+	if err != nil {
+		return err
+	}
+
+	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/pvc-operator", "pvc-operator", valuesOverride, "InstallPVCOperator", "")
 }
 
 //InstallAnchoreImageValidator installs Anchore image validator
@@ -743,12 +810,14 @@ func InstallAnchoreImageValidator(input interface{}) error {
 
 	infraNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
 
-	values := map[string]map[string]string{
-		"externalAnchore": {
+	values := map[string]interface{}{
+		"externalAnchore": map[string]string{
 			"anchoreHost": anchore.AnchorEndpoint,
 			"anchoreUser": anchoreUser.UserId,
 			"anchorePass": anchoreUser.Password,
 		},
+		"affinity":    getHeadNodeAffinity(),
+		"tolerations": getHeadNodeTolerations(),
 	}
 	marshalledValues, err := yaml.Marshal(values)
 	if err != nil {
@@ -922,9 +991,11 @@ func RegisterDomainPostHook(input interface{}) error {
 		"domainFilters": []string{domain},
 		"policy":        "sync",
 		"txtOwnerId":    commonCluster.GetUID(),
+		"affinity":      getHeadNodeAffinity(),
+		"tolerations":   getHeadNodeTolerations(),
 	}
 
-	externalDnsValuesJson, err := json.Marshal(externalDnsValues)
+	externalDnsValuesJson, err := yaml.Marshal(externalDnsValues)
 	if err != nil {
 		return emperror.Wrap(err, "Json Convert Failed")
 	}
