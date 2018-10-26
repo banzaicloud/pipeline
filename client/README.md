@@ -62,6 +62,7 @@ Class | Method | HTTP request | Description
 *DeploymentsApi* | [**CreateDeployment**](docs/DeploymentsApi.md#createdeployment) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/deployments | Create a Helm deployment
 *DeploymentsApi* | [**GetTillerStatus**](docs/DeploymentsApi.md#gettillerstatus) | **Head** /api/v1/orgs/{orgId}/clusters/{id}/deployments | Get tiller status
 *DeploymentsApi* | [**ListDeployments**](docs/DeploymentsApi.md#listdeployments) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/deployments | List deployments
+*DomainApi* | [**GetDomain**](docs/DomainApi.md#getdomain) | **Get** /api/v1/orgs/{orgId}/domain | 
 *HelmApi* | [**HelmChartDetails**](docs/HelmApi.md#helmchartdetails) | **Get** /api/v1/orgs/{orgId}/helm/chart/{repoName}/{chartName} | Chart details
 *HelmApi* | [**HelmChartList**](docs/HelmApi.md#helmchartlist) | **Get** /api/v1/orgs/{orgId}/helm/charts/ | Chart List
 *HelmApi* | [**HelmInit**](docs/HelmApi.md#helminit) | **Get** /api/v1/orgs/{orgId}/helm/repos | List repositories
@@ -209,6 +210,7 @@ Class | Method | HTTP request | Description
  - [GetDeploymentResourcesResponse](docs/GetDeploymentResourcesResponse.md)
  - [GetDeploymentResourcesResponseInner](docs/GetDeploymentResourcesResponseInner.md)
  - [GetDeploymentResponse](docs/GetDeploymentResponse.md)
+ - [GetDomainResponse](docs/GetDomainResponse.md)
  - [GoogleConfigResponse](docs/GoogleConfigResponse.md)
  - [GoogleConfigResponseInstanceType](docs/GoogleConfigResponseInstanceType.md)
  - [GoogleConfigResponseKubernetesVersions](docs/GoogleConfigResponseKubernetesVersions.md)
