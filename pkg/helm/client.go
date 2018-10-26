@@ -23,12 +23,19 @@ import (
 	"github.com/sirupsen/logrus"
 	"k8s.io/helm/pkg/helm"
 	"k8s.io/helm/pkg/helm/portforwarder"
+	"k8s.io/helm/pkg/kube"
 )
 
-func NewClient(kubeConfig []byte, logger logrus.FieldLogger) (*helm.Client, error) {
+// Client encapsulates a Helm Client and a Tunnel for that client to interact with the Tiller pod
+type Client struct {
+	*kube.Tunnel
+	*helm.Client
+}
+
+func NewClient(kubeConfig []byte, logger logrus.FieldLogger) (*Client, error) {
 	config, err := k8sclient.NewClientConfig(kubeConfig)
 	if err != nil {
-		return nil, errors.WithMessage(err, "failed to create client config for helm client")
+		return nil, errors.WithMessage(err, "failed to create kubernetes client config for helm client")
 	}
 
 	client, err := k8sclient.NewClientFromConfig(config)
@@ -45,7 +52,7 @@ func NewClient(kubeConfig []byte, logger logrus.FieldLogger) (*helm.Client, erro
 	tillerTunnelAddress := fmt.Sprintf("localhost:%d", tillerTunnel.Local)
 	logger.WithField("address", tillerTunnelAddress).Debug("created kubernetes tunnel on address")
 
-	hclient := helm.NewClient(helm.Host(tillerTunnelAddress))
+	hClient := helm.NewClient(helm.Host(tillerTunnelAddress))
 
-	return hclient, nil
+	return &Client{Tunnel: tillerTunnel, Client: hClient}, nil
 }

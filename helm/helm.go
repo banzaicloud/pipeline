@@ -191,6 +191,7 @@ func ListDeployments(filter *string, tagFilter string, kubeConfig []byte) (*rls.
 	if err != nil {
 		return nil, err
 	}
+	defer hClient.Close()
 
 	// TODO doc the options here
 	var sortBy = int32(2)
@@ -314,11 +315,13 @@ func UpgradeDeployment(releaseName, chartName, chartVersion string, chartPackage
 		return nil, fmt.Errorf("error loading chart: %v", err)
 	}
 
-	//Get cluster based or inCluster kubeconfig
+	//Get cluster based on inCluster kubeconfig
 	hClient, err := pkgHelm.NewClient(kubeConfig, log)
 	if err != nil {
 		return nil, err
 	}
+	defer hClient.Close()
+
 	upgradeRes, err := hClient.UpdateReleaseFromChart(
 		releaseName,
 		chartRequested,
@@ -328,8 +331,9 @@ func UpgradeDeployment(releaseName, chartName, chartVersion string, chartPackage
 		helm.ReuseValues(reuseValues),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("upgrade failed: %v", err)
+		return nil, errors.Wrap(err, "upgrade failed")
 	}
+
 	return upgradeRes, nil
 }
 
@@ -352,6 +356,7 @@ func CreateDeployment(chartName, chartVersion string, chartPackage []byte, names
 	if err != nil {
 		return nil, err
 	}
+	defer hClient.Close()
 
 	if len(options) == 0 {
 		options = DefaultInstallOptions
@@ -379,6 +384,7 @@ func DeleteDeployment(releaseName string, kubeConfig []byte) error {
 	if err != nil {
 		return err
 	}
+	defer hClient.Close()
 	//TODO sophisticate command options
 	opts := []helm.DeleteOption{
 		helm.DeletePurge(true),
@@ -392,13 +398,14 @@ func DeleteDeployment(releaseName string, kubeConfig []byte) error {
 
 // GetDeploymentsK8sResources returns K8s resources of a helm deployment
 func GetDeploymentK8sResources(releaseName string, kubeConfig []byte, resourceTypes []string) ([]pkgHelm.DeploymentResource, error) {
-	helmClient, err := pkgHelm.NewClient(kubeConfig, log)
+	hClient, err := pkgHelm.NewClient(kubeConfig, log)
 	if err != nil {
 		log.Errorf("Getting Helm client failed: %s", err.Error())
 		return nil, err
 	}
+	defer hClient.Close()
 
-	releaseContent, err := helmClient.ReleaseContent(releaseName)
+	releaseContent, err := hClient.ReleaseContent(releaseName)
 
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
@@ -451,6 +458,7 @@ func GetDeployment(releaseName string, kubeConfig []byte) (*pkgHelm.GetDeploymen
 		log.Errorf("Getting Helm client failed: %s", err.Error())
 		return nil, err
 	}
+	defer helmClient.Close()
 
 	releaseContent, err := helmClient.ReleaseContent(releaseName)
 
@@ -502,6 +510,7 @@ func GetDeploymentStatus(releaseName string, kubeConfig []byte) (int32, error) {
 		// internal server error
 		return http.StatusInternalServerError, errors.Wrap(err, "couldn't get the helm client")
 	}
+	defer helmClient.Close()
 
 	releaseStatusResponse, err := helmClient.ReleaseStatus(releaseName)
 
