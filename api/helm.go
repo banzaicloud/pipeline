@@ -16,6 +16,7 @@ package api
 
 import (
 	"encoding/base64"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -247,6 +248,7 @@ func HelmDeploymentStatus(c *gin.Context) {
 // GetDeployment returns the details of a helm deployment
 func GetDeployment(c *gin.Context) {
 	name := c.Param("name")
+	tag := c.Query("tag")
 	log.Infof("getting details for deployment: [%s]", name)
 
 	kubeConfig, ok := GetK8sConfig(c)
@@ -256,13 +258,29 @@ func GetDeployment(c *gin.Context) {
 		return
 	}
 
-	deploymentResponse, err := helm.GetDeployment(name, kubeConfig)
-	if err != nil {
-		log.Error("Error during getting deployment details: ", err.Error())
+	deployment, err := helm.GetDeployment(name, kubeConfig)
+	if err == nil && tag != "" && !helm.DeploymentHasTag(deployment, tag) {
+		notFoundError := &helm.DeploymentNotFoundError{HelmError: fmt.Errorf("tag not found")}
+		err = notFoundError
+		for version := deployment.Version - 1; version > 0; version-- {
+			deployment, err = helm.GetDeploymentByVersion(name, kubeConfig, version)
+			if err != nil || helm.DeploymentHasTag(deployment, tag) {
+				break
+			} else {
+				err = notFoundError
+			}
+		}
+	}
+
+	if err == nil {
+		c.JSON(http.StatusOK, deployment)
+	} else {
 
 		httpStatusCode := http.StatusInternalServerError
 		if _, ok := err.(*helm.DeploymentNotFoundError); ok {
 			httpStatusCode = http.StatusNotFound
+		} else {
+			log.Error("Error during getting deployment details: ", err.Error())
 		}
 
 		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
@@ -270,24 +288,7 @@ func GetDeployment(c *gin.Context) {
 			Message: "Error getting deployment",
 			Error:   err.Error(),
 		})
-		return
 	}
-
-	c.JSON(http.StatusOK, pkgHelm.GetDeploymentResponse{
-		ReleaseName:  deploymentResponse.ReleaseName,
-		Namespace:    deploymentResponse.Namespace,
-		Status:       deploymentResponse.Status,
-		Version:      deploymentResponse.Version,
-		Description:  deploymentResponse.Description,
-		CreatedAt:    deploymentResponse.CreatedAt,
-		Updated:      deploymentResponse.Updated,
-		Notes:        deploymentResponse.Notes,
-		Chart:        deploymentResponse.Chart,
-		ChartName:    deploymentResponse.ChartName,
-		ChartVersion: deploymentResponse.ChartVersion,
-		Values:       deploymentResponse.Values,
-	})
-
 }
 
 // GetDeploymentResources returns the resources of a helm deployment
