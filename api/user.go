@@ -194,18 +194,7 @@ func RemoveUser(c *gin.Context) {
 		return
 	}
 
-	user, err := auth.GetCurrentUserFromDB(c.Request)
-	if err != nil {
-		message := "failed to query user for deletion: " + err.Error()
-		log.Info(message)
-		statusCode := auth.GormErrorToStatusCode(err)
-		c.AbortWithStatusJSON(statusCode, common.ErrorResponse{
-			Code:    statusCode,
-			Message: message,
-			Error:   message,
-		})
-		return
-	}
+	user := auth.GetCurrentUser(c.Request)
 
 	auth.DeleteOrgRoleForUser(user.ID, organization.ID)
 

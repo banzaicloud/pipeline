@@ -10,8 +10,7 @@ RUN make vendor
 
 ADD . /go/src/github.com/banzaicloud/pipeline
 
-RUN go build -o /pipeline
-
+RUN BUILD_DIR=/ make build
 
 
 FROM alpine:3.7

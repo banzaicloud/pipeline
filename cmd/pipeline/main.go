@@ -53,13 +53,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-// Provisioned by ldflags
-var (
-	Version    string
-	CommitHash string
-	BuildDate  string
-)
-
 //Common logger for package
 var log *logrus.Logger
 var logger *logrus.Entry
@@ -82,7 +75,11 @@ func main() {
 	}
 
 	logger = initLog()
-	logger.Info("Pipeline initialization")
+	logger.WithFields(logrus.Fields{
+		"version":     Version,
+		"commit_hash": CommitHash,
+		"build_date":  BuildDate,
+	}).Info("Pipeline initialization")
 	errorHandler := config.ErrorHandler()
 
 	// Connect to database
@@ -157,6 +154,8 @@ func main() {
 	//Initialise Gin router
 	router := gin.New()
 
+	router.GET("/version", VersionHandler)
+
 	// These two paths can contain sensitive information, so it is advised not to log them out.
 	skipPaths := viper.GetStringSlice("audit.skippaths")
 	router.Use(correlationid.Middleware())
@@ -181,6 +180,7 @@ func main() {
 	}
 
 	auth.Install(router)
+	auth.StartTokenStoreGC()
 
 	basePath := viper.GetString("pipeline.basepath")
 

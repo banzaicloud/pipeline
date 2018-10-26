@@ -9,8 +9,8 @@ BINARY_NAME = pipeline
 OPENAPI_DESCRIPTOR = docs/openapi/pipeline.yaml
 
 # Build variables
-BUILD_DIR = build
-BUILD_PACKAGE = ${PACKAGE}
+BUILD_DIR ?= build
+BUILD_PACKAGE = ${PACKAGE}/cmd/pipeline
 VERSION ?= $(shell git rev-parse --abbrev-ref HEAD)
 COMMIT_HASH ?= $(shell git rev-parse --short HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
@@ -92,9 +92,9 @@ docker-build: ## Builds go binary in docker image
 	docker run -it -v $(PWD):/go/src/${PACKAGE} -w /go/src/${PACKAGE} golang:${GOLANG_VERSION}-alpine go build -o pipeline_linux ${BUILD_PACKAGE}
 
 .PHONY: debug
-debug: ## Builds binary package
-	@go version | grep -q -E "go${GOLANG_VERSION_REGEX} " || (echo "Required Go version is ${GOLANG_VERSION}\nInstalled: `go version`" && exit 1)
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -v -gcflags "-N -l" -ldflags "-X main.Version=${VERSION} -X main.GitRev=${GITREV} -X main.BuildDate=${BUILD_DATE}" -o pipeline-debug
+debug: GOARGS += -gcflags "-N -l"
+debug: BINARY_NAME = pipeline-debug
+debug: build ## Builds binary package
 
 .PHONY: debug-docker
 debug-docker: debug ## Builds binary package

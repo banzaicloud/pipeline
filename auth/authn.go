@@ -20,8 +20,9 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
-	bauth "github.com/banzaicloud/bank-vaults/auth"
+	bauth "github.com/banzaicloud/bank-vaults/pkg/auth"
 	"github.com/banzaicloud/pipeline/config"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/utils"
@@ -65,6 +66,9 @@ const SessionCookieMaxAge = 30 * 24 * 60 * 60
 // SessionCookieHTTPOnly describes if the cookies should be accessible from HTTP requests only (no JS)
 const SessionCookieHTTPOnly = true
 
+// SessionCookieName is the name of the token that is stored in the session cookie
+const SessionCookieName = "Pipeline session token"
+
 // Init authorization
 var (
 	log *logrus.Logger
@@ -104,6 +108,23 @@ type DroneClaims struct {
 	*claims.Claims
 	Type bauth.TokenType `json:"type,omitempty"`
 	Text string          `json:"text,omitempty"`
+}
+
+func claimConverter(claims *bauth.ScopedClaims) interface{} {
+	userID, _ := strconv.ParseUint(claims.Subject, 10, 32)
+	return &User{
+		ID:      uint(userID),
+		Login:   claims.Text, // This is needed for Drone virtual user tokens
+		Virtual: claims.Type == DroneHookTokenType,
+	}
+}
+
+type cookieExtractor struct {
+	sessionStorer *BanzaiSessionStorer
+}
+
+func (c cookieExtractor) ExtractToken(r *http.Request) (string, error) {
+	return c.sessionStorer.SessionManager.Get(r, c.sessionStorer.SessionName), nil
 }
 
 // Init initializes the auth
@@ -148,6 +169,15 @@ func Init(db *gorm.DB) {
 
 	DroneDB = db
 
+	sessionStorer := &BanzaiSessionStorer{
+		SessionStorer: auth.SessionStorer{
+			SessionName:    "_auth_session",
+			SessionManager: SessionManager,
+			SigningMethod:  jwt.SigningMethodHS256,
+			SignedString:   signingKeyBase32,
+		},
+	}
+
 	// Initialize Auth with configuration
 	Auth = auth.New(&auth.Config{
 		DB:                config.DB(),
@@ -155,14 +185,7 @@ func Init(db *gorm.DB) {
 		AuthIdentityModel: AuthIdentity{},
 		UserModel:         User{},
 		ViewPaths:         []string{"views"},
-		SessionStorer: &BanzaiSessionStorer{
-			SessionStorer: auth.SessionStorer{
-				SessionName:    "_auth_session",
-				SessionManager: SessionManager,
-				SigningMethod:  jwt.SigningMethodHS256,
-				SignedString:   signingKeyBase32,
-			},
-		},
+		SessionStorer:     sessionStorer,
 		UserStorer: BanzaiUserStorer{
 			signingKeyBase32: signingKeyBase32,
 			droneDB:          DroneDB,
@@ -189,22 +212,22 @@ func Init(db *gorm.DB) {
 
 	TokenStore = bauth.NewVaultTokenStore("pipeline")
 
-	jwtAuth := bauth.JWTAuth(TokenStore, signingKey, func(claims *bauth.ScopedClaims) interface{} {
-		userID, _ := strconv.ParseUint(claims.Subject, 10, 32)
-		return &User{
-			ID:      uint(userID),
-			Login:   claims.Text, // This is needed for Drone virtual user tokens
-			Virtual: claims.Type == DroneHookTokenType,
-		}
-	})
+	Handler = bauth.JWTAuth(TokenStore, signingKey, claimConverter, cookieExtractor{sessionStorer})
+}
 
-	Handler = func(c *gin.Context) {
-		currentUser := Auth.GetCurrentUser(c.Request)
-		if currentUser != nil {
-			return
+func StartTokenStoreGC() {
+	ticker := time.NewTicker(time.Hour * 12)
+	go func() {
+		for tick := range ticker.C {
+			_ = tick
+			err := TokenStore.GC()
+			if err != nil {
+				errorHandler.Handle(errors.Wrap(err, "failed to garbage collect TokenStore"))
+			} else {
+				log.Info("TokenStore garbage collected")
+			}
 		}
-		jwtAuth(c)
-	}
+	}()
 }
 
 // Install the whole OAuth and JWT Token based authn/authz mechanism to the specified Gin Engine.
@@ -239,8 +262,8 @@ func GenerateToken(c *gin.Context) {
 	if accessToken, ok := c.GetQuery("access_token"); ok {
 		githubUser, err := GetGithubUser(accessToken)
 		if err != nil {
-			err := c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("Invalid session"))
-			log.Info(c.ClientIP(), " ", err.Error())
+			errorHandler.Handle(errors.Wrap(err, "failed to query GitHub user"))
+			c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("Invalid session"))
 			return
 		}
 		user := User{}
@@ -249,8 +272,12 @@ func GenerateToken(c *gin.Context) {
 			Where("auth_identities.uid = ?", githubUser.GetID()).
 			Find(&user).Error
 		if err != nil {
-			err := c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("Invalid session"))
-			log.Info(c.ClientIP(), " ", err.Error())
+			if gorm.IsRecordNotFoundError(err) {
+				c.Status(http.StatusUnauthorized)
+			} else {
+				errorHandler.Handle(errors.Wrap(err, "failed to query registered user"))
+				c.Status(http.StatusInternalServerError)
+			}
 			return
 		}
 		currentUser = &user
@@ -260,22 +287,17 @@ func GenerateToken(c *gin.Context) {
 			return
 		}
 		currentUser = GetCurrentUser(c.Request)
-		if currentUser == nil {
-			err := c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("Invalid session"))
-			log.Info(c.ClientIP(), " ", err.Error())
-			return
-		}
 	}
 
 	tokenRequest := struct {
-		Name        string `json:"name,omitempty"`
-		VirtualUser string `json:"virtualUser,omitempty"`
+		Name        string     `json:"name,omitempty"`
+		VirtualUser string     `json:"virtualUser,omitempty"`
+		ExpiresAt   *time.Time `json:"expiresAt,omitempty"`
 	}{Name: "generated"}
 
 	if c.Request.Method == http.MethodPost && c.Request.ContentLength > 0 {
 		if err := c.ShouldBindJSON(&tokenRequest); err != nil {
-			err := c.AbortWithError(http.StatusBadRequest, err)
-			log.Info(c.ClientIP(), " ", err.Error())
+			c.AbortWithError(http.StatusBadRequest, err)
 			return
 		}
 	}
@@ -291,11 +313,11 @@ func GenerateToken(c *gin.Context) {
 		tokenType = DroneHookTokenType
 	}
 
-	tokenID, signedToken, err := createAndStoreAPIToken(userID, userLogin, tokenType, tokenRequest.Name)
+	tokenID, signedToken, err := createAndStoreAPIToken(userID, userLogin, tokenType, tokenRequest.Name, tokenRequest.ExpiresAt)
 
 	if err != nil {
 		err = c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("%s", err))
-		log.Info(c.ClientIP(), " ", err.Error())
+		errorHandler.Handle(errors.Wrap(err, "failed to create and store API token"))
 		return
 	}
 
@@ -309,7 +331,7 @@ func GenerateToken(c *gin.Context) {
 		if err != nil {
 			statusCode := GormErrorToStatusCode(err)
 			err = c.AbortWithError(statusCode, err)
-			log.Info(c.ClientIP(), " ", err.Error())
+			errorHandler.Handle(errors.Wrap(err, "failed to query organization name for virtual user"))
 			return
 		}
 
@@ -320,8 +342,13 @@ func GenerateToken(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"id": tokenID, "token": signedToken})
 }
 
-func createAPIToken(userID string, userLogin string, tokenType bauth.TokenType) (string, string, error) {
+func createAPIToken(userID string, userLogin string, tokenType bauth.TokenType, expiresAt *time.Time) (string, string, error) {
 	tokenID := uuid.NewV4().String()
+
+	var expiresAtUnix int64
+	if expiresAt != nil {
+		expiresAtUnix = expiresAt.Unix()
+	}
 
 	// Create the Claims
 	claims := &bauth.ScopedClaims{
@@ -329,7 +356,7 @@ func createAPIToken(userID string, userLogin string, tokenType bauth.TokenType) 
 			Issuer:    JwtIssuer,
 			Audience:  JwtAudience,
 			IssuedAt:  jwt.TimeFunc().Unix(),
-			ExpiresAt: 0,
+			ExpiresAt: expiresAtUnix,
 			Subject:   userID,
 			Id:        tokenID,
 		},
@@ -341,22 +368,23 @@ func createAPIToken(userID string, userLogin string, tokenType bauth.TokenType) 
 	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signedToken, err := jwtToken.SignedString([]byte(signingKeyBase32))
 	if err != nil {
-		return "", "", errors.Wrap(err, "Failed to sign user token")
+		return "", "", errors.Wrap(err, "failed to sign user token")
 	}
 
 	return tokenID, signedToken, nil
 }
 
-func createAndStoreAPIToken(userID string, userLogin string, tokenType bauth.TokenType, tokenName string) (string, string, error) {
-	tokenID, signedToken, err := createAPIToken(userID, userLogin, tokenType)
+func createAndStoreAPIToken(userID string, userLogin string, tokenType bauth.TokenType, tokenName string, expiresAt *time.Time) (string, string, error) {
+	tokenID, signedToken, err := createAPIToken(userID, userLogin, tokenType, expiresAt)
 	if err != nil {
 		return "", "", err
 	}
 
 	token := bauth.NewToken(tokenID, tokenName)
+	token.ExpiresAt = expiresAt
 	err = TokenStore.Store(userID, token)
 	if err != nil {
-		return "", "", errors.Wrap(err, "Failed to store user token")
+		return "", "", errors.Wrap(err, "failed to store user token")
 	}
 
 	return tokenID, signedToken, nil
@@ -365,11 +393,6 @@ func createAndStoreAPIToken(userID string, userLogin string, tokenType bauth.Tok
 // GetTokens returns the calling user's access tokens
 func GetTokens(c *gin.Context) {
 	currentUser := GetCurrentUser(c.Request)
-	if currentUser == nil {
-		err := c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("Invalid session"))
-		log.Info(c.ClientIP(), " ", err.Error())
-		return
-	}
 	tokenID := c.Param("id")
 
 	if tokenID == "" {
@@ -377,6 +400,9 @@ func GetTokens(c *gin.Context) {
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, err)
 		} else {
+			for _, token := range tokens {
+				token.Value = ""
+			}
 			c.JSON(http.StatusOK, tokens)
 		}
 	} else {
@@ -384,6 +410,7 @@ func GetTokens(c *gin.Context) {
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, err)
 		} else if token != nil {
+			token.Value = ""
 			c.JSON(http.StatusOK, token)
 		} else {
 			c.AbortWithStatusJSON(http.StatusNotFound, pkgCommon.ErrorResponse{
@@ -398,11 +425,6 @@ func GetTokens(c *gin.Context) {
 // DeleteToken deletes the calling user's access token specified by token id
 func DeleteToken(c *gin.Context) {
 	currentUser := GetCurrentUser(c.Request)
-	if currentUser == nil {
-		err := c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("Invalid session"))
-		log.Info(c.ClientIP(), err.Error())
-		return
-	}
 	tokenID := c.Param("id")
 
 	if tokenID == "" {
@@ -424,27 +446,37 @@ type BanzaiSessionStorer struct {
 
 //Update updates the BanzaiSessionStorer
 func (sessionStorer *BanzaiSessionStorer) Update(w http.ResponseWriter, req *http.Request, claims *claims.Claims) error {
-	token := sessionStorer.SignedToken(claims)
-	err := sessionStorer.SessionManager.Add(w, req, sessionStorer.SessionName, token)
+
+	// Get the current user object, in this early stage this is how to get it
+	context := &auth.Context{Auth: Auth, Claims: claims, Request: req}
+	user, err := Auth.UserStorer.Get(claims, context)
 	if err != nil {
-		log.Info(req.RemoteAddr, err.Error())
 		return err
 	}
-
-	// Set the drone cookie as well, but that cookie's value is actually a Pipeline API token
-	currentUser := GetCurrentUser(req)
+	currentUser := user.(*User)
 	if currentUser == nil {
 		return fmt.Errorf("Can't get current user")
 	}
 
-	// Drone tokens have to stored in Vault, because they act as Pipeline API tokens as well
-	// TODO We need GC them somehow
-	_, droneToken, err := createAndStoreAPIToken(claims.UserID, currentUser.Login, DroneUserTokenType, "Drone session token")
+	// These tokens are GCd after they expire
+	expiresAt := time.Now().Add(SessionCookieMaxAge * time.Second)
+
+	_, cookieToken, err := createAndStoreAPIToken(claims.UserID, currentUser.Login, DroneUserTokenType, SessionCookieName, &expiresAt)
 	if err != nil {
-		log.Info(req.RemoteAddr, err.Error())
+		errorHandler.Handle(errors.Wrap(err, "failed to create user session cookie"))
 		return err
 	}
-	SetCookie(w, req, DroneSessionCookie, droneToken)
+
+	// Set the pipeline cookie
+	err = sessionStorer.SessionManager.Add(w, req, sessionStorer.SessionName, cookieToken)
+	if err != nil {
+		errorHandler.Handle(errors.Wrap(err, "failed to add user's session cookie to store"))
+		return err
+	}
+
+	// Set the drone cookie as well, but that cookie's value is actually a Pipeline API token
+	SetCookie(w, req, DroneSessionCookie, cookieToken)
+
 	return nil
 }
 
@@ -452,20 +484,11 @@ func (sessionStorer *BanzaiSessionStorer) Update(w http.ResponseWriter, req *htt
 func BanzaiLogoutHandler(context *auth.Context) {
 	DelCookie(context.Writer, context.Request, DroneSessionCookie)
 	DelCookie(context.Writer, context.Request, PipelineSessionCookie)
-	context.SessionStorer.Delete(context.Writer, context.Request)
 }
 
 // BanzaiDeregisterHandler deletes the user and all his/her tokens from the database
 func BanzaiDeregisterHandler(context *auth.Context) {
-	user, err := GetCurrentUserFromDB(context.Request)
-	if user == nil {
-		http.Error(context.Writer, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
-		return
-	}
-	if err != nil {
-		http.Error(context.Writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
+	user := GetCurrentUser(context.Request)
 
 	db := context.GetDB(context.Request)
 
@@ -479,7 +502,7 @@ func BanzaiDeregisterHandler(context *auth.Context) {
 		HAVING COUNT(*) = 1`
 
 	if err := db.Raw(sql, "admin", user.ID, "admin").Scan(&userAdminOrganizations).Error; err != nil {
-		log.Errorln("Failed select user only owned organizations:", err)
+		errorHandler.Handle(errors.Wrap(err, "failed select user only owned organizations"))
 		http.Error(context.Writer, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -495,20 +518,20 @@ func BanzaiDeregisterHandler(context *auth.Context) {
 	}
 
 	if err := db.Model(user).Association("Organizations").Clear().Error; err != nil {
-		log.Errorln("Failed delete user's organization associations:", err)
+		errorHandler.Handle(errors.Wrap(err, "failed delete user's organization associations"))
 		http.Error(context.Writer, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	if err := db.Delete(user).Error; err != nil {
-		log.Errorln("Failed delete user from DB:", err)
+		errorHandler.Handle(errors.Wrap(err, "failed delete user from DB"))
 		http.Error(context.Writer, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	authIdentity := &AuthIdentity{Basic: auth_identity.Basic{UserID: user.IDString()}}
 	if err := db.Delete(authIdentity).Error; err != nil {
-		log.Errorln("Failed delete user's auth_identity from DB:", err)
+		errorHandler.Handle(errors.Wrap(err, "failed delete user's auth_identity from DB"))
 		http.Error(context.Writer, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -517,7 +540,7 @@ func BanzaiDeregisterHandler(context *auth.Context) {
 	// We need to pass droneUser as well as the where clause, because Delete() filters by primary
 	// key by default: http://doc.gorm.io/crud.html#delete but here we need to delete by the Login
 	if err := DroneDB.Delete(droneUser, droneUser).Error; err != nil {
-		log.Errorln("Failed delete user from Drone:", err)
+		errorHandler.Handle(errors.Wrap(err, "failed delete user from Drone"))
 		http.Error(context.Writer, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -525,7 +548,7 @@ func BanzaiDeregisterHandler(context *auth.Context) {
 	// Delete Tokens
 	tokens, err := TokenStore.List(user.IDString())
 	if err != nil {
-		log.Errorln("Failed list user's tokens during user deletetion:", err)
+		errorHandler.Handle(errors.Wrap(err, "failed list user's tokens during user deletetion"))
 		http.Error(context.Writer, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -533,7 +556,7 @@ func BanzaiDeregisterHandler(context *auth.Context) {
 	for _, token := range tokens {
 		err = TokenStore.Revoke(user.IDString(), token.ID)
 		if err != nil {
-			log.Errorln("Failed remove user's tokens during user deletetion:", err)
+			errorHandler.Handle(errors.Wrap(err, "failed remove user's tokens during user deletetion"))
 			http.Error(context.Writer, err.Error(), http.StatusInternalServerError)
 			return
 		}
