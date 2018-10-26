@@ -30,7 +30,7 @@ var (
 )
 
 func VersionHandler(c *gin.Context) {
-	c.JSON(http.StatusOK, map[string]interface{}{
+	c.JSON(http.StatusOK, gin.H{
 		"version":     Version,
 		"go_version":  runtime.Version(),
 		"commit_hash": CommitHash,
