@@ -192,6 +192,8 @@ func main() {
 	dgroup.Use(api.OrganizationMiddleware)
 	dgroup.GET("/:orgid/clusters", dashboard.GetDashboard)
 
+	domainAPI := api.NewDomainAPI(clusterManager, log, errorHandler)
+
 	v1 := router.Group(path.Join(basePath, "api", "v1/"))
 	v1.GET("/functions", api.ListFunctions)
 	{
@@ -207,6 +209,8 @@ func main() {
 			// Spotguide name may contain '/'s so we have to use *name
 			orgs.GET("/:orgid/spotguides/*name", api.GetSpotguide)
 			orgs.HEAD("/:orgid/spotguides/*name", api.GetSpotguide)
+
+			orgs.GET("/:orgid/domain", domainAPI.GetDomain)
 
 			orgs.POST("/:orgid/clusters", clusterAPI.CreateClusterRequest)
 			//v1.GET("/status", api.Status)

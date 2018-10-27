@@ -39,9 +39,36 @@ tags:
       description: Horizontal Pod Autoscaling related functions
     - name: projects
       description: Google projects related operations
+    - name: domain
+      description: Domain related information
 
 paths:
-
+    '/api/v1/orgs/{orgId}/domain':
+        get:
+            description: Return the base domain
+            tags:
+            - domain
+            operationId: GetDomain
+            parameters:
+            - name: orgId
+              in: path
+              required: true
+              description: Organization identification
+              schema:
+                  type: integer
+            - name: clusterid
+              in: query
+              description: Cluster ID bounded domain name
+              schema:
+                  type: string
+                  default: false
+            responses:
+                '200':
+                    description: GetDomainResponse
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetDomainResponse'
     '/api/v1/orgs/{orgId}/spotguides':
         get:
             security:
@@ -4405,6 +4432,15 @@ components:
             items:
                 oneOf:
                     - $ref: '#/components/schemas/SpotguideDetailsResponse'
+
+        GetDomainResponse:
+            description: GetDomainResponse Api object to be mapped to Get domain request
+            type: object
+            properties:
+                domainName:
+                    type: string
+                    x-go-name: DomainName
+            x-go-package: github.com/banzaicloud/pipeline/internal/domain
 
         RequestedResources:
             type: object
