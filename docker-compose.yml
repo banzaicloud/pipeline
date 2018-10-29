@@ -61,7 +61,7 @@ services:
             DRONE_REPO_CONFIG: ".banzaicloud/pipeline.yaml"
 
     drone-agent:
-        image: banzaicloud/drone:0.3.0
+        image: banzaicloud/drone:0.4.0
         restart: always
         depends_on:
             - drone-server
