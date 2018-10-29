@@ -48,7 +48,6 @@ const PipelineYAMLPath = ".banzaicloud/pipeline.yaml"
 const ReadmePath = ".banzaicloud/README.md"
 const IconPath = ".banzaicloud/icon.svg"
 const CreateClusterStep = "create_cluster"
-const DeployApplicationStep = "deploy_application"
 const SpotguideRepoTableName = "spotguide_repos"
 
 var ctx = context.Background()

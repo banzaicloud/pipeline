@@ -77,6 +77,9 @@ func GetSpotguides(c *gin.Context) {
 	c.JSON(http.StatusOK, spotguides)
 }
 
+// SyncSpotguidesRateLimit 1 request per 2 minutes
+const SyncSpotguidesRateLimit = 1.0 / 60 / 2
+
 // SyncSpotguides synchronizes the spotguide repositories from Github to database
 func SyncSpotguides(c *gin.Context) {
 	log := correlationid.Logger(log, c)
