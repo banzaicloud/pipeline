@@ -183,9 +183,7 @@ func CreateWhiteList(c *gin.Context) {
 		})
 		return
 	}
-
-	c.JSON(http.StatusOK, "created")
-
+	c.Status(http.StatusCreated)
 }
 
 // DeleteWhiteList deletes a whitelist
