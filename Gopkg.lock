@@ -358,6 +358,19 @@
   version = "v3.2.0"
 
 [[projects]]
+  digest = "1:1acd773d45337169c65e8d1453742cfa4b191a4d7e63ad5130916cbb77673433"
+  name = "github.com/didip/tollbooth"
+  packages = [
+    ".",
+    "errors",
+    "libstring",
+    "limiter",
+  ]
+  pruneopts = "NUT"
+  revision = "c95eaa3ddc98f635a91e218b48727fb2e06613ea"
+  version = "v4.0.0"
+
+[[projects]]
   digest = "1:d6f17978cac426aa1aa398d7df2a544d2d2a2a7348897cb5dfb80501632ac1d6"
   name = "github.com/digitalocean/godo"
   packages = [
@@ -2389,6 +2402,7 @@
     "github.com/casbin/casbin",
     "github.com/casbin/gorm-adapter",
     "github.com/dgrijalva/jwt-go",
+    "github.com/didip/tollbooth",
     "github.com/docker/libcompose/yaml",
     "github.com/drone/drone-go/drone",
     "github.com/ghodss/yaml",
