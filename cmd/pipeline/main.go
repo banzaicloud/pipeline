@@ -28,6 +28,7 @@ import (
 	"github.com/banzaicloud/pipeline/api/ark/buckets"
 	"github.com/banzaicloud/pipeline/api/ark/restores"
 	"github.com/banzaicloud/pipeline/api/ark/schedules"
+	"github.com/banzaicloud/pipeline/api/middleware"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
@@ -204,7 +205,7 @@ func main() {
 			orgs.Use(api.OrganizationMiddleware)
 
 			orgs.GET("/:orgid/spotguides", api.GetSpotguides)
-			orgs.PUT("/:orgid/spotguides", api.SyncSpotguides)
+			orgs.PUT("/:orgid/spotguides", middleware.NewRateLimiterByOrgID(api.SyncSpotguidesRateLimit), api.SyncSpotguides)
 			orgs.POST("/:orgid/spotguides", api.LaunchSpotguide)
 			// Spotguide name may contain '/'s so we have to use *name
 			orgs.GET("/:orgid/spotguides/*name", api.GetSpotguide)

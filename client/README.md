@@ -53,15 +53,15 @@ Class | Method | HTTP request | Description
 *ClustersApi* | [**UpdateCluster**](docs/ClustersApi.md#updatecluster) | **Put** /api/v1/orgs/{orgId}/clusters/{id} | Update cluster
 *ClustersApi* | [**UpdateMonitoring**](docs/ClustersApi.md#updatemonitoring) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/monitoring | Update monitoring
 *CommonApi* | [**ListEndpoints**](docs/CommonApi.md#listendpoints) | **Get** /api | List Pipeline API endpoints
-*DeploymentApi* | [**DeleteDeployment**](docs/DeploymentApi.md#deletedeployment) | **Delete** /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name} | Delete deployment
-*DeploymentApi* | [**GetDeployment**](docs/DeploymentApi.md#getdeployment) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name} | Get deployment details
-*DeploymentApi* | [**GetDeploymentImages**](docs/DeploymentApi.md#getdeploymentimages) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name}/images | Get deployment K8s images
-*DeploymentApi* | [**GetDeploymentResource**](docs/DeploymentApi.md#getdeploymentresource) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name}/resources | Get deployment K8s resources
-*DeploymentApi* | [**HelmDeploymentStatus**](docs/DeploymentApi.md#helmdeploymentstatus) | **Head** /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name} | Check deployment status
-*DeploymentApi* | [**UpdateDeployment**](docs/DeploymentApi.md#updatedeployment) | **Put** /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name} | Update deployment
 *DeploymentsApi* | [**CreateDeployment**](docs/DeploymentsApi.md#createdeployment) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/deployments | Create a Helm deployment
+*DeploymentsApi* | [**DeleteDeployment**](docs/DeploymentsApi.md#deletedeployment) | **Delete** /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name} | Delete deployment
+*DeploymentsApi* | [**GetDeployment**](docs/DeploymentsApi.md#getdeployment) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name} | Get deployment details
+*DeploymentsApi* | [**GetDeploymentImages**](docs/DeploymentsApi.md#getdeploymentimages) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name}/images | Get deployment K8s images
+*DeploymentsApi* | [**GetDeploymentResource**](docs/DeploymentsApi.md#getdeploymentresource) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name}/resources | Get deployment K8s resources
 *DeploymentsApi* | [**GetTillerStatus**](docs/DeploymentsApi.md#gettillerstatus) | **Head** /api/v1/orgs/{orgId}/clusters/{id}/deployments | Get tiller status
+*DeploymentsApi* | [**HelmDeploymentStatus**](docs/DeploymentsApi.md#helmdeploymentstatus) | **Head** /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name} | Check deployment status
 *DeploymentsApi* | [**ListDeployments**](docs/DeploymentsApi.md#listdeployments) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/deployments | List deployments
+*DeploymentsApi* | [**UpdateDeployment**](docs/DeploymentsApi.md#updatedeployment) | **Put** /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name} | Update deployment
 *DomainApi* | [**GetDomain**](docs/DomainApi.md#getdomain) | **Get** /api/v1/orgs/{orgId}/domain | 
 *HelmApi* | [**HelmChartDetails**](docs/HelmApi.md#helmchartdetails) | **Get** /api/v1/orgs/{orgId}/helm/chart/{repoName}/{chartName} | Chart details
 *HelmApi* | [**HelmChartList**](docs/HelmApi.md#helmchartlist) | **Get** /api/v1/orgs/{orgId}/helm/charts/ | Chart List
