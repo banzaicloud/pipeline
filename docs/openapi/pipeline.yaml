@@ -15,8 +15,6 @@ tags:
       description: Clusters realted funtions
     - name: spotguides
       description: Application spotguides
-    - name: deployment
-      description: Functions related for a deployment
     - name: deployments
       description: Deployment related functions for a cluster
     - name: profiles
@@ -1979,7 +1977,7 @@ paths:
             security:
                 - bearerAuth: []
             tags:
-                - deployment
+                - deployments
             summary: Delete deployment
             operationId: DeleteDeployment
             description: Deleting a Helm deployment
@@ -2032,7 +2030,7 @@ paths:
             security:
                 - bearerAuth: []
             tags:
-                - deployment
+                - deployments
             summary: Update deployment
             operationId: UpdateDeployment
             description: Updating a Helm deployment
@@ -2091,7 +2089,7 @@ paths:
             security:
                 - bearerAuth: []
             tags:
-                - deployment
+                - deployments
             summary: Check deployment status
             operationId: HelmDeploymentStatus
             description: Checking the status of a deployment through the Helm client API
@@ -2127,7 +2125,7 @@ paths:
             security:
                 - bearerAuth: []
             tags:
-                - deployment
+                - deployments
             summary: Get deployment details
             operationId: GetDeployment
             description: Retrieves the details of a deployment
@@ -2148,6 +2146,12 @@ paths:
                   in: path
                   required: true
                   description: Deployment name
+                  schema:
+                      type: string
+                - name: tag
+                  in: query
+                  required: false
+                  description: Deployment tag
                   schema:
                       type: string
             responses:
@@ -2181,7 +2185,7 @@ paths:
             security:
                 - bearerAuth: []
             tags:
-                - deployment
+                - deployments
             summary: Get deployment K8s resources
             operationId: GetDeploymentResource
             description: Retrieves the K8s resources of a deployment
@@ -2241,7 +2245,7 @@ paths:
             security:
                 - bearerAuth: []
             tags:
-                - deployment
+                - deployments
             summary: Get deployment K8s images
             operationId: GetDeploymentImages
             description: Retrieves the K8s images of a deployment

@@ -15,8 +15,6 @@ tags:
   name: clusters
 - description: Application spotguides
   name: spotguides
-- description: Functions related for a deployment
-  name: deployment
 - description: Deployment related functions for a cluster
   name: deployments
 - description: Cluster profiles related functions
@@ -2248,7 +2246,7 @@ paths:
       - bearerAuth: []
       summary: Delete deployment
       tags:
-      - deployment
+      - deployments
     get:
       description: Retrieves the details of a deployment
       operationId: GetDeployment
@@ -2279,6 +2277,14 @@ paths:
         schema:
           type: string
         style: simple
+      - description: Deployment tag
+        explode: true
+        in: query
+        name: tag
+        required: false
+        schema:
+          type: string
+        style: form
       responses:
         200:
           content:
@@ -2308,7 +2314,7 @@ paths:
       - bearerAuth: []
       summary: Get deployment details
       tags:
-      - deployment
+      - deployments
     head:
       description: Checking the status of a deployment through the Helm client API
       operationId: HelmDeploymentStatus
@@ -2352,7 +2358,7 @@ paths:
       - bearerAuth: []
       summary: Check deployment status
       tags:
-      - deployment
+      - deployments
     put:
       description: Updating a Helm deployment
       operationId: UpdateDeployment
@@ -2418,7 +2424,7 @@ paths:
       - bearerAuth: []
       summary: Update deployment
       tags:
-      - deployment
+      - deployments
   /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name}/resources:
     get:
       description: Retrieves the K8s resources of a deployment
@@ -2487,7 +2493,7 @@ paths:
       - bearerAuth: []
       summary: Get deployment K8s resources
       tags:
-      - deployment
+      - deployments
   /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name}/images:
     get:
       description: Retrieves the K8s images of a deployment
@@ -2548,7 +2554,7 @@ paths:
       - bearerAuth: []
       summary: Get deployment K8s images
       tags:
-      - deployment
+      - deployments
   /api/v1/orgs/{orgId}/clusters/{id}/hpa:
     delete:
       description: Delete scaling info for a Helm deployment
