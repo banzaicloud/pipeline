@@ -193,11 +193,11 @@ func InstallMonitoring(input interface{}) error {
 			"adminUser":     grafanaAdminUsername,
 			"adminPassword": grafanaAdminPass,
 			"ingress":       map[string][]string{"hosts": {host}},
-			"affinity":      getHeadNodeAffinity(),
+			"affinity":      getHeadNodeAffinity(cluster),
 			"tolerations":   getHeadNodeTolerations(),
 		},
 		"prometheus": map[string]interface{}{
-			"affinity":    getHeadNodeAffinity(),
+			"affinity":    getHeadNodeAffinity(cluster),
 			"tolerations": getHeadNodeTolerations(),
 		},
 	}
@@ -279,7 +279,7 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 			"enabled":    "true",
 			"secretName": loggingParam.GenTLSForLogging.GenTLSSecretName,
 		},
-		"affinity":    getHeadNodeAffinity(),
+		"affinity":    getHeadNodeAffinity(cluster),
 		"tolerations": getHeadNodeTolerations(),
 	}
 	operatorYamlValues, err := yaml.Marshal(operatorValues)
@@ -413,9 +413,12 @@ func castToPostHookParam(data *pkgCluster.PostHookParam, output interface{}) (er
 	return
 }
 
-func getHeadNodeAffinity() v1.Affinity {
+func getHeadNodeAffinity(cluster CommonCluster) v1.Affinity {
 	headNodePoolName := viper.GetString(pipConfig.PipelineHeadNodePoolName)
 	if len(headNodePoolName) == 0 {
+		return v1.Affinity{}
+	}
+	if !cluster.NodePoolExists(headNodePoolName) {
 		return v1.Affinity{}
 	}
 	return v1.Affinity{
@@ -534,7 +537,7 @@ func InstallIngressControllerPostHook(input interface{}) error {
 					"secretName": route53.IAMUserAccessKeySecretName,
 				},
 			},
-			"affinity":    getHeadNodeAffinity(),
+			"affinity":    getHeadNodeAffinity(cluster),
 			"tolerations": getHeadNodeTolerations(),
 		},
 	}
@@ -651,7 +654,7 @@ func InstallKubernetesDashboardPostHook(input interface{}) error {
 				"create": false,
 				"name":   serviceAccount.Name,
 			},
-			"affinity":    getHeadNodeAffinity(),
+			"affinity":    getHeadNodeAffinity(cluster),
 			"tolerations": getHeadNodeTolerations(),
 		}
 
@@ -740,7 +743,7 @@ func InstallHorizontalPodAutoscalerPostHook(input interface{}) error {
 	infraNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
 
 	values := map[string]interface{}{
-		"affinity":    getHeadNodeAffinity(),
+		"affinity":    getHeadNodeAffinity(cluster),
 		"tolerations": getHeadNodeTolerations(),
 	}
 
@@ -753,7 +756,7 @@ func InstallHorizontalPodAutoscalerPostHook(input interface{}) error {
 				"enabled": true,
 			}
 			values["metrics-server"] = map[string]interface{}{
-				"affinity":    getHeadNodeAffinity(),
+				"affinity":    getHeadNodeAffinity(cluster),
 				"tolerations": getHeadNodeTolerations(),
 			}
 		} else {
@@ -779,7 +782,7 @@ func InstallPVCOperatorPostHook(input interface{}) error {
 	infraNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
 
 	values := map[string]interface{}{
-		"affinity":    getHeadNodeAffinity(),
+		"affinity":    getHeadNodeAffinity(cluster),
 		"tolerations": getHeadNodeTolerations(),
 	}
 	valuesOverride, err := yaml.Marshal(values)
@@ -816,7 +819,7 @@ func InstallAnchoreImageValidator(input interface{}) error {
 			"anchoreUser": anchoreUser.UserId,
 			"anchorePass": anchoreUser.Password,
 		},
-		"affinity":    getHeadNodeAffinity(),
+		"affinity":    getHeadNodeAffinity(cluster),
 		"tolerations": getHeadNodeTolerations(),
 	}
 	marshalledValues, err := yaml.Marshal(values)
@@ -843,7 +846,11 @@ func InstallHelmPostHook(input interface{}) error {
 
 	headNodePoolName := viper.GetString(pipConfig.PipelineHeadNodePoolName)
 	if len(headNodePoolName) > 0 {
-		helmInstall.TargetNodePool = headNodePoolName
+		if cluster.NodePoolExists(headNodePoolName) {
+			helmInstall.TargetNodePool = headNodePoolName
+		} else {
+			log.Warnf("head node pool %v not found, tiller deployment is not targeted to any node pool.", headNodePoolName)
+		}
 	}
 
 	kubeconfig, err := cluster.GetK8sConfig()
@@ -991,7 +998,7 @@ func RegisterDomainPostHook(input interface{}) error {
 		"domainFilters": []string{domain},
 		"policy":        "sync",
 		"txtOwnerId":    commonCluster.GetUID(),
-		"affinity":      getHeadNodeAffinity(),
+		"affinity":      getHeadNodeAffinity(commonCluster),
 		"tolerations":   getHeadNodeTolerations(),
 	}
 
@@ -1078,12 +1085,18 @@ func TaintHeadNodes(input interface{}) error {
 		log.Infof("headNodePoolName not specified")
 		return nil
 	}
-	log.Infof("taint nodes in pool: %v", headNodePoolName)
 
 	commonCluster, ok := input.(CommonCluster)
 	if !ok {
 		return errors.Errorf("Wrong parameter type: %T", commonCluster)
 	}
+
+	if !commonCluster.NodePoolExists(headNodePoolName) {
+		log.Warnf("head node pool %v not found, no taints added to any node.", headNodePoolName)
+		return nil
+	}
+
+	log.Infof("taint nodes in pool: %v", headNodePoolName)
 
 	log.Debug("get K8S config")
 	kubeConfig, err := commonCluster.GetK8sConfig()

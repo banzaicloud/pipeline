@@ -244,6 +244,11 @@ func (c *DummyCluster) UpdateStatus(status, statusMessage string) error {
 	return c.modelCluster.UpdateStatus(status, statusMessage)
 }
 
+// NodePoolExists returns true if node pool with nodePoolName exists
+func (c *DummyCluster) NodePoolExists(nodePoolName string) bool {
+	return false
+}
+
 // GetClusterDetails gets cluster details from cloud
 func (c *DummyCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 	status, err := c.GetStatus()

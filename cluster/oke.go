@@ -337,6 +337,16 @@ func (o *OKECluster) UpdateStatus(status, statusMessage string) error {
 	return o.modelCluster.UpdateStatus(status, statusMessage)
 }
 
+// NodePoolExists returns true if node pool with nodePoolName exists
+func (o *OKECluster) NodePoolExists(nodePoolName string) bool {
+	for _, np := range o.modelCluster.OKE.NodePools {
+		if np != nil && np.Name == nodePoolName {
+			return true
+		}
+	}
+	return false
+}
+
 // GetClusterDetails gets cluster details from cloud
 func (o *OKECluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 
