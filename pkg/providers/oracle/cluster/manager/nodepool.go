@@ -15,12 +15,11 @@
 package manager
 
 import (
-	"sort"
+	"github.com/oracle/oci-go-sdk/common"
+	"github.com/oracle/oci-go-sdk/containerengine"
 
 	"github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
 	"github.com/banzaicloud/pipeline/pkg/providers/oracle/oci"
-	"github.com/oracle/oci-go-sdk/common"
-	"github.com/oracle/oci-go-sdk/containerengine"
 )
 
 // SyncNodePools keeps the cluster node pools in state with the model
@@ -30,32 +29,56 @@ func (cm *ClusterManager) SyncNodePools(clusterModel *model.Cluster) error {
 
 	nodePools := clusterModel.NodePools
 
-	sort.SliceStable(nodePools, func(i, j int) bool {
-		return !nodePools[i].Delete
-	})
+	ce, err := cm.oci.NewContainerEngineClient()
+	if err != nil {
+		return err
+	}
 
+	waitForChange := false
 	for _, np := range nodePools {
+		if waitForChange == false && !np.Delete {
+			waitForChange = true
+		}
+
 		if np.Add {
 			if err := cm.AddNodePool(clusterModel, np); err != nil {
 				return err
 			}
-		} else if np.Delete {
-			if err := cm.DeleteNodePool(clusterModel, np); err != nil {
-				return err
-			}
-		} else {
+		} else if !np.Delete {
 			if err := cm.UpdateNodePool(clusterModel, np); err != nil {
 				return err
 			}
 		}
 	}
 
-	ce, err := cm.oci.NewContainerEngineClient()
-	if err != nil {
-		return err
+	// waiting for add/update operations to finish
+	if waitForChange {
+		err = ce.WaitingForClusterNodePoolActiveState(&clusterModel.OCID)
+		if err != nil {
+			return err
+		}
 	}
 
-	return ce.WaitingForClusterNodePoolActiveState(&clusterModel.OCID)
+	waitForDelete := false
+	for _, np := range nodePools {
+		if np.Delete {
+			if !waitForDelete {
+				waitForDelete = true
+			}
+			if err := cm.DeleteNodePool(clusterModel, np); err != nil {
+				return err
+			}
+		}
+	}
+
+	if waitForDelete {
+		err = ce.WaitingForClusterNodePoolActiveState(&clusterModel.OCID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // UpdateNodePool updates node pool in a cluster
