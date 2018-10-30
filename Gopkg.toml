@@ -77,7 +77,7 @@
 
 [[constraint]]
   name = "github.com/banzaicloud/bank-vaults"
-  version = "0.3.7"
+  version = "0.3.9"
 
 [[constraint]]
   name = "github.com/dgrijalva/jwt-go"
