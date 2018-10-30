@@ -624,7 +624,7 @@ func (c *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 	existingNodePools = append(existingNodePools, nodePoolsToUpdate...)
 	waitAction := action.NewWaitForHealthyAutoscalingGroupsAction(c.log, 30, 20*time.Second, createUpdateContext, existingNodePools...)
 
-	actions = append(actions, deleteNodePoolAction, createNodePoolAction, updateNodePoolAction, waitAction)
+	actions = append(actions, createNodePoolAction, updateNodePoolAction, deleteNodePoolAction, waitAction)
 
 	_, err = utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, false)
 	if err != nil {
