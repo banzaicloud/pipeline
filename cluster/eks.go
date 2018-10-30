@@ -822,6 +822,16 @@ func (c *EKSCluster) UpdateStatus(status string, statusMessage string) error {
 	return c.modelCluster.UpdateStatus(status, statusMessage)
 }
 
+// NodePoolExists returns true if node pool with nodePoolName exists
+func (c *EKSCluster) NodePoolExists(nodePoolName string) bool {
+	for _, np := range c.modelCluster.EKS.NodePools {
+		if np != nil && np.Name == nodePoolName {
+			return true
+		}
+	}
+	return false
+}
+
 // GetClusterDetails gets cluster details from cloud
 func (c *EKSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 	c.log.Infoln("Getting cluster details")

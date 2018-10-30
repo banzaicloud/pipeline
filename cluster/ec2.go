@@ -1123,6 +1123,16 @@ func (c *EC2Cluster) UpdateStatus(status, statusMessage string) error {
 	return c.modelCluster.UpdateStatus(status, statusMessage)
 }
 
+// NodePoolExists returns true if node pool with nodePoolName exists
+func (c *EC2Cluster) NodePoolExists(nodePoolName string) bool {
+	for _, np := range c.modelCluster.EC2.NodePools {
+		if np != nil && np.Name == nodePoolName {
+			return true
+		}
+	}
+	return false
+}
+
 // GetClusterDetails gets cluster details from cloud
 func (c *EC2Cluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 

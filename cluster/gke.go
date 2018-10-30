@@ -1772,6 +1772,16 @@ func (c *GKECluster) UpdateStatus(status, statusMessage string) error {
 	return nil
 }
 
+// NodePoolExists returns true if node pool with nodePoolName exists
+func (c *GKECluster) NodePoolExists(nodePoolName string) bool {
+	for _, np := range c.model.NodePools {
+		if np != nil && np.Name == nodePoolName {
+			return true
+		}
+	}
+	return false
+}
+
 // GetClusterDetails gets cluster details from cloud
 func (c *GKECluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 	log.Info("Get Google Service Client")
