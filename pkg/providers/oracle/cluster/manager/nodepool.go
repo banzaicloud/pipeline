@@ -15,6 +15,8 @@
 package manager
 
 import (
+	"sort"
+
 	"github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
 	"github.com/banzaicloud/pipeline/pkg/providers/oracle/oci"
 	"github.com/oracle/oci-go-sdk/common"
@@ -26,7 +28,13 @@ func (cm *ClusterManager) SyncNodePools(clusterModel *model.Cluster) error {
 
 	cm.oci.GetLogger().Infof("Syncing Node Pools states of Cluster[%s]", clusterModel.Name)
 
-	for _, np := range clusterModel.NodePools {
+	nodePools := clusterModel.NodePools
+
+	sort.SliceStable(nodePools, func(i, j int) bool {
+		return !nodePools[i].Delete
+	})
+
+	for _, np := range nodePools {
 		if np.Add {
 			if err := cm.AddNodePool(clusterModel, np); err != nil {
 				return err
