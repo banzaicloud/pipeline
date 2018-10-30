@@ -6478,12 +6478,16 @@ components:
       example:
         virtualUser: banzaicloud/pipeline
         name: my API token
+        expiresAt: 2000-01-23T04:56:07.000+00:00
       properties:
         name:
           example: my API token
           type: string
         virtualUser:
           example: banzaicloud/pipeline
+          type: string
+        expiresAt:
+          format: date-time
           type: string
       required:
       - name

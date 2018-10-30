@@ -6076,6 +6076,10 @@ components:
                 virtualUser:
                     type: string
                     example: banzaicloud/pipeline
+                expiresAt:
+                    type: string
+                    format: date-time
+                    example: "2018-03-09T13:24:49+01:00"
 
         TokenCreateResponse:
             type: object
