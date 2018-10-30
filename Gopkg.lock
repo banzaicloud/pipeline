@@ -276,7 +276,7 @@
   revision = "72e04c1bddb8e7246cc69496f942d35fc26aeb23"
 
 [[projects]]
-  digest = "1:6464127eaa3df47de46edd59debd615d73268ce128a7b7f820f5143ecac7e054"
+  digest = "1:96570024d406d186e24b982a004162701cdceeb04bbe7f2d73153db10ebd4b9f"
   name = "github.com/banzaicloud/bank-vaults"
   packages = [
     "pkg/auth",
@@ -286,8 +286,8 @@
     "pkg/vault",
   ]
   pruneopts = "NUT"
-  revision = "bfe5b7d7d711c8fcafabe42b9e2bcf83d2b407db"
-  version = "0.3.7"
+  revision = "380dcbf32208b08b816dd2003d885c214df5288a"
+  version = "0.3.9"
 
 [[projects]]
   branch = "master"
@@ -2507,6 +2507,7 @@
     "k8s.io/helm/pkg/helm/environment",
     "k8s.io/helm/pkg/helm/helmpath",
     "k8s.io/helm/pkg/helm/portforwarder",
+    "k8s.io/helm/pkg/kube",
     "k8s.io/helm/pkg/proto/hapi/chart",
     "k8s.io/helm/pkg/proto/hapi/release",
     "k8s.io/helm/pkg/proto/hapi/services",
