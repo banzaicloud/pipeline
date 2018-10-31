@@ -134,7 +134,7 @@ func createAutoscalingForEc2(cluster CommonCluster, groups []nodeGroup) *autosca
 		},
 		Rbac:        rbac{Create: true},
 		AwsRegion:   cluster.GetLocation(),
-		Affinity:    getHeadNodeAffinity(),
+		Affinity:    getHeadNodeAffinity(cluster),
 		Tolerations: getHeadNodeTolerations(),
 	}
 }
@@ -153,7 +153,7 @@ func createAutoscalingForEks(cluster CommonCluster, groups []nodeGroup) *autosca
 			ClusterName: cluster.GetName(),
 		},
 		SslCertPath: &eksCertPath,
-		Affinity:    getHeadNodeAffinity(),
+		Affinity:    getHeadNodeAffinity(cluster),
 		Tolerations: getHeadNodeTolerations(),
 	}
 }
@@ -221,7 +221,7 @@ func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup) *autos
 			NodeResourceGroup: *nodeResourceGroup,
 			ClusterName:       cluster.GetName(),
 		},
-		Affinity:    getHeadNodeAffinity(),
+		Affinity:    getHeadNodeAffinity(cluster),
 		Tolerations: getHeadNodeTolerations(),
 	}
 }

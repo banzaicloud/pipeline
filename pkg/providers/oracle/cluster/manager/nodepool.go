@@ -15,10 +15,11 @@
 package manager
 
 import (
-	"github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
-	"github.com/banzaicloud/pipeline/pkg/providers/oracle/oci"
 	"github.com/oracle/oci-go-sdk/common"
 	"github.com/oracle/oci-go-sdk/containerengine"
+
+	"github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
+	"github.com/banzaicloud/pipeline/pkg/providers/oracle/oci"
 )
 
 // SyncNodePools keeps the cluster node pools in state with the model
@@ -26,28 +27,58 @@ func (cm *ClusterManager) SyncNodePools(clusterModel *model.Cluster) error {
 
 	cm.oci.GetLogger().Infof("Syncing Node Pools states of Cluster[%s]", clusterModel.Name)
 
-	for _, np := range clusterModel.NodePools {
-		if np.Add {
-			if err := cm.AddNodePool(clusterModel, np); err != nil {
-				return err
-			}
-		} else if np.Delete {
-			if err := cm.DeleteNodePool(clusterModel, np); err != nil {
-				return err
-			}
-		} else {
-			if err := cm.UpdateNodePool(clusterModel, np); err != nil {
-				return err
-			}
-		}
-	}
+	nodePools := clusterModel.NodePools
 
 	ce, err := cm.oci.NewContainerEngineClient()
 	if err != nil {
 		return err
 	}
 
-	return ce.WaitingForClusterNodePoolActiveState(&clusterModel.OCID)
+	waitForChange := false
+	for _, np := range nodePools {
+		if waitForChange == false && !np.Delete {
+			waitForChange = true
+		}
+
+		if np.Add {
+			if err := cm.AddNodePool(clusterModel, np); err != nil {
+				return err
+			}
+		} else if !np.Delete {
+			if err := cm.UpdateNodePool(clusterModel, np); err != nil {
+				return err
+			}
+		}
+	}
+
+	// waiting for add/update operations to finish
+	if waitForChange {
+		err = ce.WaitingForClusterNodePoolActiveState(&clusterModel.OCID)
+		if err != nil {
+			return err
+		}
+	}
+
+	waitForDelete := false
+	for _, np := range nodePools {
+		if np.Delete {
+			if !waitForDelete {
+				waitForDelete = true
+			}
+			if err := cm.DeleteNodePool(clusterModel, np); err != nil {
+				return err
+			}
+		}
+	}
+
+	if waitForDelete {
+		err = ce.WaitingForClusterNodePoolActiveState(&clusterModel.OCID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // UpdateNodePool updates node pool in a cluster

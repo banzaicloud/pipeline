@@ -890,27 +890,6 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster, location, proje
 		}
 	}
 
-	// Delete node pools
-	for _, nodePoolName := range nodePoolsToDelete {
-		log.Infof("Deleting node pool %s", nodePoolName)
-
-		deleteCall, err :=
-			svc.Projects.Zones.Clusters.NodePools.Delete(cc.ProjectID, cc.Zone, cc.Name, nodePoolName).Context(
-				context.Background()).Do()
-
-		if err != nil {
-			return nil, err
-		}
-		log.Infof("Node pool %s delete is called for project %s, zone %s and cluster %s. Status Code %v", nodePoolName, cc.ProjectID, cc.Zone, cc.Name, deleteCall.HTTPStatusCode)
-		if err = waitForOperation(newContainerOperation(svc, projectId, location), deleteCall.Name); err != nil {
-			return nil, err
-		}
-		updatedCluster, err = getClusterGoogle(svc, cc)
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	// Update node pools
 	for _, nodePool := range cc.NodePools {
 		for i := 0; i < len(updatedCluster.NodePools); i++ {
@@ -1015,6 +994,27 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster, location, proje
 			return nil, err
 		}
 
+	}
+
+	// Delete node pools
+	for _, nodePoolName := range nodePoolsToDelete {
+		log.Infof("Deleting node pool %s", nodePoolName)
+
+		deleteCall, err :=
+			svc.Projects.Zones.Clusters.NodePools.Delete(cc.ProjectID, cc.Zone, cc.Name, nodePoolName).Context(
+				context.Background()).Do()
+
+		if err != nil {
+			return nil, err
+		}
+		log.Infof("Node pool %s delete is called for project %s, zone %s and cluster %s. Status Code %v", nodePoolName, cc.ProjectID, cc.Zone, cc.Name, deleteCall.HTTPStatusCode)
+		if err = waitForOperation(newContainerOperation(svc, projectId, location), deleteCall.Name); err != nil {
+			return nil, err
+		}
+		updatedCluster, err = getClusterGoogle(svc, cc)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return updatedCluster, nil
@@ -1770,6 +1770,16 @@ func (c *GKECluster) UpdateStatus(status, statusMessage string) error {
 	}
 
 	return nil
+}
+
+// NodePoolExists returns true if node pool with nodePoolName exists
+func (c *GKECluster) NodePoolExists(nodePoolName string) bool {
+	for _, np := range c.model.NodePools {
+		if np != nil && np.Name == nodePoolName {
+			return true
+		}
+	}
+	return false
 }
 
 // GetClusterDetails gets cluster details from cloud

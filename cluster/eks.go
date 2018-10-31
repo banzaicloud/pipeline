@@ -624,7 +624,7 @@ func (c *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 	existingNodePools = append(existingNodePools, nodePoolsToUpdate...)
 	waitAction := action.NewWaitForHealthyAutoscalingGroupsAction(c.log, 30, 20*time.Second, createUpdateContext, existingNodePools...)
 
-	actions = append(actions, deleteNodePoolAction, createNodePoolAction, updateNodePoolAction, waitAction)
+	actions = append(actions, createNodePoolAction, updateNodePoolAction, deleteNodePoolAction, waitAction)
 
 	_, err = utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, false)
 	if err != nil {
@@ -820,6 +820,16 @@ func (c *EKSCluster) ListNodeNames() (nodeNames pkgCommon.NodeNames, err error) 
 // UpdateStatus updates cluster status in database
 func (c *EKSCluster) UpdateStatus(status string, statusMessage string) error {
 	return c.modelCluster.UpdateStatus(status, statusMessage)
+}
+
+// NodePoolExists returns true if node pool with nodePoolName exists
+func (c *EKSCluster) NodePoolExists(nodePoolName string) bool {
+	for _, np := range c.modelCluster.EKS.NodePools {
+		if np != nil && np.Name == nodePoolName {
+			return true
+		}
+	}
+	return false
 }
 
 // GetClusterDetails gets cluster details from cloud

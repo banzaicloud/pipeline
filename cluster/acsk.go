@@ -85,6 +85,16 @@ func (c *ACSKCluster) ListNodeNames() (nodes pkgCommon.NodeNames, err error) {
 	return
 }
 
+// NodePoolExists returns true if node pool with nodePoolName exists
+func (c *ACSKCluster) NodePoolExists(nodePoolName string) bool {
+	for _, np := range c.modelCluster.ACSK.NodePools {
+		if np != nil && np.Name == nodePoolName {
+			return true
+		}
+	}
+	return false
+}
+
 // GetAlibabaCSClient creates an Alibaba Container Service client with the credentials
 func (c *ACSKCluster) GetAlibabaCSClient(cfg *sdk.Config) (*cs.Client, error) {
 	cred, err := c.createAlibabaCredentialsFromSecret()
