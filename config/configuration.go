@@ -107,6 +107,9 @@ const (
 
 	// Logging constants
 	LoggingReleaseName = "logging-operator"
+
+	// Spotguides constants
+	SpotguideAllowPrereleases = "spotguide.allowPrereleases"
 )
 
 //Init initializes the configurations
@@ -204,6 +207,8 @@ func init() {
 
 	viper.SetDefault(PipelineSystemNamespace, "pipeline-system")
 	viper.SetDefault(EksTemplateLocation, filepath.Join(pwd, "templates", "eks"))
+
+	viper.SetDefault(SpotguideAllowPrereleases, false)
 
 	// Find and read the config file
 	if err := viper.ReadInConfig(); err != nil {
