@@ -143,3 +143,6 @@ logLevel = "info"
 bucketSyncInterval = "10m"
 restoreSyncInterval = "20s"
 backupSyncInterval = "20s"
+
+[spotguide]
+allowPrereleases = false
