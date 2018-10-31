@@ -26,6 +26,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Masterminds/semver"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/client"
 	"github.com/banzaicloud/pipeline/config"
@@ -172,6 +173,24 @@ func internalScrapeSpotguides(orgID uint) {
 	}
 }
 
+func isSpotguideRepository(repo *github.Repository) bool {
+	for _, topic := range repo.Topics {
+		if topic == SpotguideGithubTopic {
+			return true
+		}
+	}
+	return false
+}
+
+func isSpotguideReleaseAllowed(release *github.RepositoryRelease) bool {
+	version, err := semver.NewVersion(release.GetTagName())
+	if err != nil {
+		log.Warn("Failed to parse spotguide release tag: ", err)
+		return false
+	}
+	return version.Prerelease() == "" || viper.GetBool(config.SpotguideAllowPrereleases)
+}
+
 func ScrapeSpotguides(orgID uint) error {
 
 	db := config.DB()
@@ -215,66 +234,68 @@ func ScrapeSpotguides(orgID uint) error {
 	}
 
 	for _, repository := range allRepositories {
-		for _, topic := range repository.Topics {
-			if topic == SpotguideGithubTopic {
-				owner := repository.GetOwner().GetLogin()
-				name := repository.GetName()
+		if isSpotguideRepository(repository) {
+			owner := repository.GetOwner().GetLogin()
+			name := repository.GetName()
 
-				releases, _, err := githubClient.Repositories.ListReleases(ctx, owner, name, &github.ListOptions{})
+			releases, _, err := githubClient.Repositories.ListReleases(ctx, owner, name, &github.ListOptions{})
+			if err != nil {
+				return emperror.Wrap(err, "failed to list github repo releases")
+			}
+
+			for _, release := range releases {
+
+				if !isSpotguideReleaseAllowed(release) {
+					continue
+				}
+
+				tag := release.GetTagName()
+
+				spotguideRaw, err := downloadGithubFile(githubClient, owner, name, SpotguideYAMLPath, tag)
 				if err != nil {
-					return emperror.Wrap(err, "failed to list github repo releases")
-				}
-				for _, release := range releases {
-					tag := release.GetTagName()
-
-					spotguideRaw, err := downloadGithubFile(githubClient, owner, name, SpotguideYAMLPath, tag)
-					if err != nil {
-						log.Warnf("failed to scrape repository '%s/%s' at version '%s': %s", owner, name, tag, err)
-						continue
-					}
-
-					// syntax check spotguide.yaml
-					err = yaml2.Unmarshal(spotguideRaw, &SpotguideYAML{})
-					if err != nil {
-						log.Warnf("failed to scrape repository '%s/%s' at version '%s': %s", owner, name, tag, err)
-						continue
-					}
-
-					readme, err := downloadGithubFile(githubClient, owner, name, ReadmePath, tag)
-					if err != nil {
-						log.Warnf("failed to scrape repository '%s/%s' at version '%s': %s", owner, name, tag, err)
-						continue
-					}
-
-					icon, err := downloadGithubFile(githubClient, owner, name, IconPath, tag)
-					if err != nil {
-						log.Warnf("failed to scrape repository '%s/%s' at version '%s': %s", owner, name, tag, err)
-						continue
-					}
-
-					iconSrc := "data:image/svg+xml;base64," + base64.StdEncoding.EncodeToString(icon)
-
-					model := SpotguideRepo{
-						OrganizationID:   orgID,
-						Name:             repository.GetFullName(),
-						SpotguideYAMLRaw: spotguideRaw,
-						Readme:           string(readme),
-						Icon:             iconSrc,
-						Version:          tag,
-					}
-
-					where := model.Key()
-
-					err = db.Where(&where).Assign(&model).FirstOrCreate(&SpotguideRepo{}).Error
-
-					if err != nil {
-						return err
-					}
-
-					delete(oldSpotguidesIndexed, model.Key())
+					log.Warnf("failed to scrape repository '%s/%s' at version '%s': %s", owner, name, tag, err)
+					continue
 				}
 
-				break
+				// syntax check spotguide.yaml
+				err = yaml2.Unmarshal(spotguideRaw, &SpotguideYAML{})
+				if err != nil {
+					log.Warnf("failed to scrape repository '%s/%s' at version '%s': %s", owner, name, tag, err)
+					continue
+				}
+
+				readme, err := downloadGithubFile(githubClient, owner, name, ReadmePath, tag)
+				if err != nil {
+					log.Warnf("failed to scrape repository '%s/%s' at version '%s': %s", owner, name, tag, err)
+					continue
+				}
+
+				icon, err := downloadGithubFile(githubClient, owner, name, IconPath, tag)
+				if err != nil {
+					log.Warnf("failed to scrape repository '%s/%s' at version '%s': %s", owner, name, tag, err)
+					continue
+				}
+
+				iconSrc := "data:image/svg+xml;base64," + base64.StdEncoding.EncodeToString(icon)
+
+				model := SpotguideRepo{
+					OrganizationID:   orgID,
+					Name:             repository.GetFullName(),
+					SpotguideYAMLRaw: spotguideRaw,
+					Readme:           string(readme),
+					Icon:             iconSrc,
+					Version:          tag,
+				}
+
+				where := model.Key()
+
+				err = db.Where(&where).Assign(&model).FirstOrCreate(&SpotguideRepo{}).Error
+
+				if err != nil {
+					return err
+				}
+
+				delete(oldSpotguidesIndexed, model.Key())
 			}
 		}
 	}
