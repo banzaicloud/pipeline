@@ -197,8 +197,25 @@ func InstallMonitoring(input interface{}) error {
 			"tolerations":   getHeadNodeTolerations(),
 		},
 		"prometheus": map[string]interface{}{
-			"affinity":    getHeadNodeAffinity(cluster),
-			"tolerations": getHeadNodeTolerations(),
+			"alertmanager": map[string]interface{}{
+				"affinity":    getHeadNodeAffinity(cluster),
+				"tolerations": getHeadNodeTolerations(),
+			},
+			"kubeStateMetrics": map[string]interface{}{
+				"affinity":    getHeadNodeAffinity(cluster),
+				"tolerations": getHeadNodeTolerations(),
+			},
+			"nodeExporter": map[string]interface{}{
+				"tolerations": getHeadNodeTolerations(),
+			},
+			"server": map[string]interface{}{
+				"affinity":    getHeadNodeAffinity(cluster),
+				"tolerations": getHeadNodeTolerations(),
+			},
+			"pushgateway": map[string]interface{}{
+				"affinity":    getHeadNodeAffinity(cluster),
+				"tolerations": getHeadNodeTolerations(),
+			},
 		},
 	}
 	grafanaValuesJson, err := yaml.Marshal(grafanaValues)
