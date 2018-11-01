@@ -139,6 +139,7 @@ func (s *ObjectStore) CreateBucket(bucketName string) error {
 		return fmt.Errorf("bucket with name %s already exists", bucketName)
 	}
 
+	bucket.Name = bucketName
 	bucket.ResourceGroup = resourceGroup
 	bucket.Organization = *s.org
 	bucket.SecretRef = s.secret.ID
