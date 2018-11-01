@@ -243,16 +243,6 @@ paths:
         content:
           application/json:
             examples:
-              EC2:
-                value:
-                  name: ec2cluster-pipelineuser-123
-                  location: eu-west-1
-                  cloud: amazon
-                  instanceType: m4.xlarge
-                  properties:
-                    properties:
-                      ec2:
-                        $ref: '#/components/schemas/CreateEC2Properties'
               AKS:
                 value:
                   name: azcluster-pipelineuser-123
@@ -5129,7 +5119,6 @@ components:
                   instanceType: n1-standard-2
               nodeVersion: 1.8.7-gke.1
           oneOf:
-          - $ref: '#/components/schemas/CreateEC2Properties'
           - $ref: '#/components/schemas/CreateAKSProperties'
           - $ref: '#/components/schemas/CreateGKEProperties'
           - $ref: '#/components/schemas/CreateEKSProperties'
@@ -5141,13 +5130,6 @@ components:
       - location
       - name
       - properties
-      type: object
-    CreateEC2Properties:
-      properties:
-        ec2:
-          $ref: '#/components/schemas/CreateEC2Properties_ec2'
-      required:
-      - ec2
       type: object
     NodePoolsAmazon:
       properties:
@@ -5459,7 +5441,6 @@ components:
                   count: 2
                   instanceType: n1-standard-2
           oneOf:
-          - $ref: '#/components/schemas/UpdateEC2Properties'
           - $ref: '#/components/schemas/UpdateAzureProperties'
           - $ref: '#/components/schemas/UpdateGoogleProperties'
           - $ref: '#/components/schemas/UpdateEksProperties'
@@ -5469,39 +5450,6 @@ components:
       required:
       - cloud
       - properties
-      type: object
-    UpdateEC2Properties:
-      properties:
-        ec2:
-          $ref: '#/components/schemas/UpdateEC2Properties_ec2'
-      required:
-      - amazon
-      type: object
-    UpdateNodePoolsAmazon:
-      properties:
-        instanceType:
-          example: m4.xlarge
-          type: string
-        spotPrice:
-          example: "0.2"
-          type: string
-        autoscaling:
-          type: boolean
-        count:
-          example: 2
-          format: int32
-          type: integer
-        minCount:
-          example: 1
-          format: int32
-          type: integer
-        maxCount:
-          example: 2
-          format: int32
-          type: integer
-        image:
-          example: ami-4d485ca7
-          type: string
       type: object
     UpdateEksProperties:
       properties:
@@ -6386,16 +6334,10 @@ components:
                   count: 1
                   instanceType: n1-standard-1
           oneOf:
-          - $ref: '#/components/schemas/ClusterProfileEC2'
           - $ref: '#/components/schemas/ClusterProfileEKS'
           - $ref: '#/components/schemas/ClusterProfileAKS'
           - $ref: '#/components/schemas/ClusterProfileGKE'
           type: object
-      type: object
-    ClusterProfileEC2:
-      properties:
-        ec2:
-          $ref: '#/components/schemas/CreateEC2Properties_ec2'
       type: object
     ClusterProfileEKS:
       properties:
@@ -6447,17 +6389,11 @@ components:
                   count: 1
                   instanceType: n1-standard-1
           oneOf:
-          - $ref: '#/components/schemas/AddClusterProfileEC2'
           - $ref: '#/components/schemas/AddClusterProfileEKS'
           - $ref: '#/components/schemas/AddClusterProfileAKS'
           - $ref: '#/components/schemas/AddClusterProfileGKE'
           - $ref: '#/components/schemas/CreateUpdateOKEProperties'
           type: object
-      type: object
-    AddClusterProfileEC2:
-      properties:
-        ec2:
-          $ref: '#/components/schemas/CreateEC2Properties_ec2'
       type: object
     AddClusterProfileEKS:
       properties:
@@ -8669,24 +8605,6 @@ components:
           example: myOrgName
           type: string
       type: object
-    CreateEC2Properties_ec2_master:
-      properties:
-        instanceType:
-          example: m4.xlarge
-          type: string
-        image:
-          example: ami-06d1667f
-          type: string
-      type: object
-    CreateEC2Properties_ec2:
-      properties:
-        master:
-          $ref: '#/components/schemas/CreateEC2Properties_ec2_master'
-        nodePools:
-          additionalProperties:
-            $ref: '#/components/schemas/NodePoolsAmazon'
-          type: object
-      type: object
     CreateEKSProperties_eks:
       properties:
         version:
@@ -8749,13 +8667,6 @@ components:
         nodePools:
           additionalProperties:
             $ref: '#/components/schemas/NodePoolsOracle'
-          type: object
-      type: object
-    UpdateEC2Properties_ec2:
-      properties:
-        nodePools:
-          additionalProperties:
-            $ref: '#/components/schemas/UpdateNodePoolsAmazon'
           type: object
       type: object
     UpdateEksProperties_eks:
