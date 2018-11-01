@@ -700,6 +700,7 @@ func GetBucket(c *gin.Context) {
 	if !ok {
 		logger.Error("the mandatory cloud type is missing from the query")
 		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(fmt.Errorf("no cloudType specified in query")))
+		return
 	}
 
 	organization := auth.GetCurrentOrganization(c.Request)
@@ -732,10 +733,25 @@ func GetBucket(c *gin.Context) {
 		}
 	}
 
-	ginutils.ReplyWithErrorResponse(c, errorResponseFrom(fmt.Errorf("bucket with name: %s not found", bucketName)))
+	ginutils.ReplyWithErrorResponse(c, errorResponseFrom(BucketNotFoundError{errMessage: fmt.Sprintf("bucket with name: %s not found", bucketName)}))
 
 	return
 
+}
+
+// SecretNotFoundError signals that a given bucket was not found
+type BucketNotFoundError struct {
+	errMessage string
+}
+
+// Error returns error message as string
+func (err BucketNotFoundError) Error() string {
+	return err.errMessage
+}
+
+// NotFound signals a not found error
+func (err BucketNotFoundError) NotFound() bool {
+	return true
 }
 
 // newBucketResponseItemFromBucketInfo builds a responsItem based opn the provided bucketInfo
