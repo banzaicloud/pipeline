@@ -135,7 +135,6 @@ func init() {
 	viper.SetDefault("cloud.configRetryCount", 30)
 	viper.SetDefault("cloud.configRetrySleep", 15)
 	viper.SetDefault(AwsCredentialPath, "secret/data/banzaicloud/aws")
-	viper.SetDefault("logging.kubicornloglevel", "debug")
 	viper.SetDefault(LoggingLogLevel, "debug")
 	viper.SetDefault(LoggingLogFormat, "text")
 

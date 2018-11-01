@@ -18,7 +18,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"os"
-	"syscall"
 	"time"
 
 	"github.com/banzaicloud/pipeline/auth"
@@ -32,8 +31,6 @@ import (
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
-	"golang.org/x/crypto/ssh"
-	"golang.org/x/crypto/ssh/terminal"
 )
 
 // CommonCluster interface for clusters.
@@ -233,30 +230,6 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 		return alibabaCluster, nil
 
 	case pkgCluster.Amazon:
-
-		var c int
-		err := db.Model(&model.EC2ClusterModel{}).Where(&model.EC2ClusterModel{ID: modelCluster.ID}).Count(&c).Error
-		if err != nil {
-			return nil, err
-		}
-
-		if c > 0 {
-			//Create Amazon struct
-			awsCluster, err := CreateEC2ClusterFromModel(modelCluster)
-			if err != nil {
-				return nil, err
-			}
-
-			log.Debug("Load Amazon props from database")
-			err = db.Where(model.EC2ClusterModel{ID: awsCluster.modelCluster.ID}).First(&awsCluster.modelCluster.EC2).Error
-			if err != nil {
-				return nil, err
-			}
-			err = db.Model(&awsCluster.modelCluster.EC2).Related(&awsCluster.modelCluster.EC2.NodePools, "NodePools").Error
-
-			return awsCluster, err
-		}
-
 		//Create Amazon EKS struct
 		eksCluster, err := CreateEKSClusterFromModel(modelCluster)
 		if err != nil {
@@ -364,15 +337,6 @@ func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClust
 		return alibabaCluster, nil
 
 	case pkgCluster.Amazon:
-		if createClusterRequest.Properties.CreateClusterEC2 != nil {
-			//Create EC2 struct
-			ec2Cluster, err := CreateEC2ClusterFromRequest(createClusterRequest, orgId, userId)
-			if err != nil {
-				return nil, err
-			}
-			return ec2Cluster, nil
-		}
-
 		//Create EKS struct
 		eksCluster, err := CreateEKSClusterFromRequest(createClusterRequest, orgId, userId)
 		if err != nil {
@@ -424,27 +388,6 @@ func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClust
 	}
 
 	return nil, pkgErrors.ErrorNotSupportedCloudType
-}
-
-func getSigner(pemBytes []byte) (ssh.Signer, error) {
-	signerwithoutpassphrase, err := ssh.ParsePrivateKey(pemBytes)
-	if err != nil {
-		log.Debug(err.Error())
-		fmt.Print("SSH Key Passphrase [none]: ")
-		passPhrase, err := terminal.ReadPassword(int(syscall.Stdin))
-		fmt.Println("")
-		if err != nil {
-			return nil, err
-		}
-		signerwithpassphrase, err := ssh.ParsePrivateKeyWithPassphrase(pemBytes, passPhrase)
-		if err != nil {
-			return nil, err
-		}
-
-		return signerwithpassphrase, err
-	}
-
-	return signerwithoutpassphrase, err
 }
 
 // CleanStateStore deletes state store folder by cluster name

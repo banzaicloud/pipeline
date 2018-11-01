@@ -20,7 +20,6 @@ import (
 
 	"github.com/banzaicloud/pipeline/config"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/banzaicloud/pipeline/pkg/cluster/ec2"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
@@ -29,9 +28,6 @@ import (
 
 // cluster profile table names
 const (
-	DefaultEC2ProfileTableName         = "amazon_ec2_profiles"
-	DefaultEC2NodePoolProfileTableName = "amazon_ec2_profile_node_pools"
-
 	DefaultEKSProfileTableName         = "amazon_eks_profiles"
 	DefaultEKSNodePoolProfileTableName = "amazon_eks_profile_node_pools"
 
@@ -95,20 +91,12 @@ func save(i interface{}) error {
 // GetDefaultProfiles returns all types of clouds with default profile name.
 func GetDefaultProfiles() []ClusterProfile {
 	return []ClusterProfile{
-		&EC2Profile{
-			DefaultModel: DefaultModel{Name: GetDefaultProfileName()},
-			NodePools: []*EC2NodePoolProfile{{
-				AmazonNodePoolProfileBaseFields: AmazonNodePoolProfileBaseFields{
-					NodeName: DefaultNodeName,
-				},
-			}},
-		},
 		&EKSProfile{
 			DefaultModel: DefaultModel{Name: GetDefaultProfileName()},
 			NodePools: []*EKSNodePoolProfile{{
 				AmazonNodePoolProfileBaseFields: AmazonNodePoolProfileBaseFields{
 					NodeName:  DefaultNodeName,
-					SpotPrice: ec2.DefaultSpotPrice,
+					SpotPrice: eks.DefaultSpotPrice,
 				},
 				Image: eks.DefaultImages[eks.DefaultRegion],
 			}},
@@ -141,13 +129,6 @@ func GetAllProfiles(distribution string) ([]ClusterProfile, error) {
 	db := config.DB()
 
 	switch distribution {
-
-	case pkgCluster.EC2:
-		var awsProfiles []EC2Profile
-		db.Find(&awsProfiles)
-		for i := range awsProfiles {
-			defaults = append(defaults, &awsProfiles[i])
-		}
 
 	case pkgCluster.EKS:
 		var eksProfiles []EKSProfile
@@ -189,13 +170,6 @@ func GetProfile(distribution string, name string) (ClusterProfile, error) {
 	db := config.DB()
 
 	switch distribution {
-	case pkgCluster.EC2:
-		var ec2Profile EC2Profile
-		if err := db.Where(EC2Profile{DefaultModel: DefaultModel{Name: name}}).First(&ec2Profile).Error; err != nil {
-			return nil, err
-		}
-		return &ec2Profile, nil
-
 	case pkgCluster.EKS:
 		var eksProfile EKSProfile
 		if err := db.Where(EKSProfile{DefaultModel: DefaultModel{Name: name}}).First(&eksProfile).Error; err != nil {

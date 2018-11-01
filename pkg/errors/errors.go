@@ -18,14 +18,9 @@ import "errors"
 
 // ### [ Errors ] ### //
 var (
-	ErrorNotSupportedCloudType          = errors.New("Not supported cloud type")
-	ErrorAmazonClusterNameRegexp        = errors.New("Up to 255 letters (uppercase and lowercase), numbers, hyphens, and underscores are allowed.")
-	ErrorAmazonFieldIsEmpty             = errors.New("Required field 'ec2' is empty.")
-	ErrorAmazonMasterFieldIsEmpty       = errors.New("Required field 'master' is empty.")
-	ErrorAmazonImageFieldIsEmpty        = errors.New("Required field 'image' is empty ")
-	ErrorAmazonNodePoolFieldIsEmpty     = errors.New("At least one 'nodePool' is required.")
-	ErrorInstancetypeFieldIsEmpty       = errors.New("Required field 'instanceType' is empty ")
-	ErrorAmazonInstancetypeFieldIsEmpty = errors.New("Required field 'instanceType' is empty ")
+	ErrorNotSupportedCloudType    = errors.New("Not supported cloud type")
+	ErrorAmazonImageFieldIsEmpty  = errors.New("Required field 'image' is empty ")
+	ErrorInstancetypeFieldIsEmpty = errors.New("Required field 'instanceType' is empty ")
 
 	ErrorAmazonEksClusterNameRegexp        = errors.New("Up to 255 letters (uppercase and lowercase), numbers, hyphens, and underscores are allowed.")
 	ErrorAmazonEksFieldIsEmpty             = errors.New("Required field 'eks' is empty.")

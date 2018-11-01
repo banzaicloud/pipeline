@@ -19,7 +19,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	pkgAmazon "github.com/banzaicloud/pipeline/pkg/cluster/ec2"
+	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/sirupsen/logrus"
 )
@@ -38,7 +38,7 @@ func CreateAWSSecret(values map[string]string) *awsVerify {
 
 // VerifySecret validates AKS credentials
 func (a *awsVerify) VerifySecret() error {
-	client, err := CreateEC2Client(a.credentials, pkgAmazon.DefaultRegion)
+	client, err := CreateEC2Client(a.credentials, eks.DefaultRegion)
 	if err != nil {
 		return err
 	}

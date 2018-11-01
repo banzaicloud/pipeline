@@ -134,11 +134,6 @@ func convertRequestToProfile(request *pkgCluster.ClusterProfileRequest) (default
 
 	switch request.Cloud {
 	case pkgCluster.Amazon:
-		if request.Properties.EC2 != nil {
-			var ec2Profile defaults.EC2Profile
-			ec2Profile.UpdateProfile(request, false)
-			return &ec2Profile, nil
-		}
 		var eksProfile defaults.EKSProfile
 		eksProfile.UpdateProfile(request, false)
 		return &eksProfile, nil
@@ -195,11 +190,7 @@ func UpdateClusterProfile(c *gin.Context) {
 	distribution := ""
 	switch profileRequest.Cloud {
 	case pkgCluster.Amazon:
-		if profileRequest.Properties.EC2 != nil {
-			distribution = pkgCluster.EC2
-		} else {
-			distribution = pkgCluster.EKS
-		}
+		distribution = pkgCluster.EKS
 	case pkgCluster.Azure:
 		distribution = pkgCluster.AKS
 	case pkgCluster.Google:

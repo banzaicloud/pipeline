@@ -26,14 +26,12 @@
   version = "0.1.6"
 
 [[projects]]
-  digest = "1:ac77d7c11fb4ba5b517b82f7cec6eb5fa19e342c4f83601c837af66e57594401"
+  digest = "1:bb5f7669dd19946b48727fd57ba954be988f044aff0a56b55ea5d2ccaff4374e"
   name = "github.com/Azure/azure-sdk-for-go"
   packages = [
-    "profiles/2017-03-09/network/mgmt/network",
     "services/authorization/mgmt/2015-07-01/authorization",
     "services/compute/mgmt/2018-04-01/compute",
     "services/containerservice/mgmt/2017-09-30/containerservice",
-    "services/network/mgmt/2015-06-15/network",
     "services/network/mgmt/2018-01-01/network",
     "services/resources/mgmt/2016-06-01/subscriptions",
     "services/resources/mgmt/2017-05-10/resources",
@@ -371,17 +369,6 @@
   version = "v4.0.0"
 
 [[projects]]
-  digest = "1:d6f17978cac426aa1aa398d7df2a544d2d2a2a7348897cb5dfb80501632ac1d6"
-  name = "github.com/digitalocean/godo"
-  packages = [
-    ".",
-    "context",
-  ]
-  pruneopts = "NUT"
-  revision = "7a32b5ce17203924a21366d5031032fd326d5051"
-  version = "v1.1.3"
-
-[[projects]]
   branch = "master"
   digest = "1:ec6271918b59b872a2d25e374569a4f75f1839d91e4191470c297b7eaaaf7641"
   name = "github.com/dimchansky/utfbom"
@@ -488,14 +475,6 @@
   packages = ["."]
   pruneopts = "NUT"
   revision = "44e46d280b43ec1531bb25252440e34f1b800b65"
-
-[[projects]]
-  digest = "1:7c4b5e23bb01e5945b0df8a5f181efa2d90abd19e368be7c7bd55a5737db0739"
-  name = "github.com/fatih/color"
-  packages = ["."]
-  pruneopts = "NUT"
-  revision = "507f6050b8568533fb3f5504de8e5205fa62a114"
-  version = "v1.6.0"
 
 [[projects]]
   branch = "master"
@@ -981,75 +960,6 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:47fa0ef6ae6b0387dacb77c7ab8827b4ef621650fd613e43ece61de4cb3f5019"
-  name = "github.com/kr/fs"
-  packages = ["."]
-  pruneopts = "NUT"
-  revision = "2788f0dbd16903de03cb8186e5c7d97b69ad387b"
-
-[[projects]]
-  digest = "1:804fdc6a3c0d1cdb662495697688c82d771c90b72768da98a6eccb2a78cb4ba9"
-  name = "github.com/kris-nova/klone"
-  packages = ["pkg/local"]
-  pruneopts = "NUT"
-  revision = "2217bf3479abb92275417e26b948209df4e402e9"
-  version = "v1.1.1"
-
-[[projects]]
-  branch = "master"
-  digest = "1:16a7583a5498c20c14f0885e98a315cb225b910ca56f53bd8e2c6d4fe25716f5"
-  name = "github.com/kris-nova/lolgopher"
-  packages = ["."]
-  pruneopts = "NUT"
-  revision = "14d43f83481a37e992f5899de8581727b9ba7702"
-
-[[projects]]
-  branch = "master"
-  digest = "1:f44e0d694c571afcadbbc2921a5eca87ca6f56094dfc7a814a4287b67cdcff7d"
-  name = "github.com/kubicorn/kubicorn"
-  packages = [
-    "apis/cluster",
-    "cloud",
-    "cloud/amazon/awsSdkGo",
-    "cloud/amazon/public",
-    "cloud/amazon/public/resources",
-    "cloud/azure/azureSDK",
-    "cloud/azure/public",
-    "cloud/azure/public/resources",
-    "cloud/digitalocean/droplet",
-    "cloud/digitalocean/droplet/resources",
-    "cloud/digitalocean/godoSdk",
-    "cloud/google/compute",
-    "cloud/google/compute/resources",
-    "cloud/google/googleSDK",
-    "cloud/openstack/openstackSdk",
-    "cloud/openstack/operator/generic/resources",
-    "cloud/openstack/operator/ovh",
-    "cloud/openstack/operator/ovh/resources",
-    "cloud/packet/packetSDK",
-    "cloud/packet/public",
-    "cloud/packet/public/resources",
-    "pkg",
-    "pkg/agent",
-    "pkg/compare",
-    "pkg/defaults",
-    "pkg/hang",
-    "pkg/kubeadm",
-    "pkg/logger",
-    "pkg/parser",
-    "pkg/rand",
-    "pkg/scp",
-    "pkg/script",
-    "pkg/uuid",
-    "state",
-    "state/fs",
-  ]
-  pruneopts = "NUT"
-  revision = "3575f1fff96a3c71e0b458fa0bda30ba569e07ff"
-  source = "github.com/banzaicloud/kubicorn"
-
-[[projects]]
-  branch = "master"
   digest = "1:59b2ccc5705651ebe8a86d5b7d1c0309603291f78d212a38fc80ddda072a3585"
   name = "github.com/lib/pq"
   packages = [
@@ -1087,14 +997,6 @@
   pruneopts = "NUT"
   revision = "8bd9a64bf37eb297b492a4101fb28e80ac0b290f"
   version = "v1.1.0"
-
-[[projects]]
-  digest = "1:08c231ec84231a7e23d67e4b58f975e1423695a32467a362ee55a803f9de8061"
-  name = "github.com/mattn/go-colorable"
-  packages = ["."]
-  pruneopts = "NUT"
-  revision = "167de6bfdfba052fa6b2d3664c8f5272e23c9072"
-  version = "v0.0.9"
 
 [[projects]]
   digest = "1:bc4f7eec3b7be8c6cb1f0af6c1e3333d5bb71072951aaaae2f05067b0803f287"
@@ -1202,14 +1104,6 @@
   version = "v2.0.0"
 
 [[projects]]
-  digest = "1:0d9e0c0cf483f559e4fbe31dd1966d0bfd8d7fd27a20f0a80c15ed122767bae0"
-  name = "github.com/packethost/packngo"
-  packages = ["."]
-  pruneopts = "NUT"
-  revision = "131798f2804a1b3e895ca98047d56f0d7e094e2a"
-  version = "v0.1.0"
-
-[[projects]]
   digest = "1:748946761cf99c8b73cef5a3c0ee3e040859dd713a20cece0d0e0dc04e6ceca7"
   name = "github.com/patrickmn/go-cache"
   packages = ["."]
@@ -1256,14 +1150,6 @@
   pruneopts = "NUT"
   revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
   version = "v0.8.0"
-
-[[projects]]
-  digest = "1:9e91b09b60846a94340b21776f8b74c45661ce138662f39f0e2dd893b1146dd7"
-  name = "github.com/pkg/sftp"
-  packages = ["."]
-  pruneopts = "NUT"
-  revision = "49488377fa2f14143ba3067cf7555f60f6c7b550"
-  version = "1.5.0"
 
 [[projects]]
   digest = "1:0028cb19b2e4c3112225cd871870f2d9cf49b9b4276531f03438a88e94be86fe"
@@ -1415,32 +1301,6 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:031913bec0b1e753091642120e16e719ec9cc9b2b148822fe885c385aa4575c6"
-  name = "github.com/rackspace/gophercloud"
-  packages = [
-    ".",
-    "openstack",
-    "openstack/compute/v2/extensions/keypairs",
-    "openstack/compute/v2/flavors",
-    "openstack/compute/v2/images",
-    "openstack/compute/v2/servers",
-    "openstack/identity/v2/tenants",
-    "openstack/identity/v2/tokens",
-    "openstack/identity/v3/tokens",
-    "openstack/networking/v2/extensions/security/groups",
-    "openstack/networking/v2/extensions/security/rules",
-    "openstack/networking/v2/networks",
-    "openstack/networking/v2/subnets",
-    "openstack/utils",
-    "pagination",
-    "testhelper",
-    "testhelper/client",
-  ]
-  pruneopts = "NUT"
-  revision = "e00690e87603abe613e9f02c816c7c4bef82e063"
-
-[[projects]]
-  branch = "master"
   digest = "1:16e2136a67ec44aa2d1d6b0fd65394b3c4a8b2a1b6730c77967f7b7b06b179b2"
   name = "github.com/rainycape/unidecode"
   packages = ["."]
@@ -1550,14 +1410,6 @@
   version = "0.2.0"
 
 [[projects]]
-  branch = "master"
-  digest = "1:a0aee89faaf795424d978b6b4bcee4af3dc71f5680e5e1b30bd1528639e61a9a"
-  name = "github.com/tent/http-link-go"
-  packages = ["."]
-  pruneopts = "NUT"
-  revision = "ac974c61c2f990f4115b119354b5e0b47550e888"
-
-[[projects]]
   digest = "1:1ed7acee0f08ecd69b52fa94213269e880900a910e1631f18fac6f9c908b9408"
   name = "github.com/ugorji/go"
   packages = ["codec"]
@@ -1588,7 +1440,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:ee6eca9211cea51fce66b8085076b86229d55bad73fda61b3169858f844e1331"
+  digest = "1:4cfa282a4d6d62874764147a14fa15147e84e8b41d202230eba55707ea1bf1dd"
   name = "golang.org/x/crypto"
   packages = [
     "bcrypt",
@@ -1612,7 +1464,6 @@
     "poly1305",
     "scrypt",
     "ssh",
-    "ssh/agent",
     "ssh/terminal",
   ]
   pruneopts = "NUT"
@@ -2426,13 +2277,6 @@
     "github.com/jinzhu/gorm/dialects/postgres",
     "github.com/jinzhu/now",
     "github.com/jmespath/go-jmespath",
-    "github.com/kubicorn/kubicorn/apis/cluster",
-    "github.com/kubicorn/kubicorn/pkg",
-    "github.com/kubicorn/kubicorn/pkg/kubeadm",
-    "github.com/kubicorn/kubicorn/pkg/logger",
-    "github.com/kubicorn/kubicorn/pkg/uuid",
-    "github.com/kubicorn/kubicorn/state",
-    "github.com/kubicorn/kubicorn/state/fs",
     "github.com/microcosm-cc/bluemonday",
     "github.com/mitchellh/mapstructure",
     "github.com/oracle/oci-go-sdk/common",
@@ -2443,7 +2287,6 @@
     "github.com/patrickmn/go-cache",
     "github.com/pelletier/go-toml",
     "github.com/pkg/errors",
-    "github.com/pkg/sftp",
     "github.com/prometheus/common/model",
     "github.com/prometheus/prometheus/config",
     "github.com/qor/auth",
@@ -2464,7 +2307,6 @@
     "github.com/technosophos/moniker",
     "golang.org/x/crypto/bcrypt",
     "golang.org/x/crypto/ssh",
-    "golang.org/x/crypto/ssh/terminal",
     "golang.org/x/net/context",
     "golang.org/x/oauth2",
     "golang.org/x/oauth2/google",

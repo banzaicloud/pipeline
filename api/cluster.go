@@ -47,8 +47,6 @@ import (
 )
 
 const (
-	awsLabelMaster = "node-role.kubernetes.io/master"
-
 	statusReady    = "Ready"
 	statusNotReady = "Not ready"
 	statusUnknown  = "Unknown"
@@ -488,16 +486,6 @@ func addResourceSummaryToDetails(commonCluster cluster.CommonCluster, details *p
 
 	}
 
-	// add master summary, in case of EC2
-	if commonCluster.GetDistribution() == pkgCluster.EC2 {
-
-		log.Info("distribution is ec2, add master summary")
-		if err := addMasterSummaryToDetails(client, details); err != nil {
-			return err
-		}
-
-	}
-
 	// add total summary
 	log.Info("add total summary")
 	return addTotalSummaryToDetails(client, details)
@@ -532,41 +520,6 @@ func addTotalSummaryToDetails(client *kubernetes.Clientset, details *pkgCluster.
 	details.TotalSummary = resourceSummary
 
 	return
-}
-
-// addMasterSummaryToDetails add master resource summary in case of Amazon
-func addMasterSummaryToDetails(client *kubernetes.Clientset, details *pkgCluster.DetailsResponse) error {
-
-	selector := fmt.Sprintf("%s=", awsLabelMaster)
-
-	log.Info("List nodes with selector: %s", selector)
-	nodes, err := client.CoreV1().Nodes().List(meta_v1.ListOptions{
-		LabelSelector: selector,
-	})
-	if err != nil {
-		return err
-	}
-
-	log.Infof("nodes [%d]", len(nodes.Items))
-
-	if len(nodes.Items) != 0 {
-
-		log.Info("add master resource summary")
-
-		master := nodes.Items[0]
-		resourceSummary, err := getResourceSummaryFromNode(client, &master)
-		if err != nil {
-			return err
-		}
-
-		details.Master = make(map[string]pkgCluster.ResourceSummary)
-		details.Master[master.Name] = *resourceSummary
-
-		log.Info("master summary added")
-	}
-
-	return nil
-
 }
 
 // addNodeSummaryToDetails adds node resource summary

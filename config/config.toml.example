@@ -35,7 +35,6 @@ enabled = false
 [logging]
 logformat = "text"
 loglevel = "debug"
-kubicornloglevel = "debug"
 
 [cloud]
 configRetryCount = 30

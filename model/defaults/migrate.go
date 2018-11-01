@@ -25,8 +25,6 @@ import (
 // Migrate executes the table migrations for the defaults module.
 func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	tables := []interface{}{
-		&EC2Profile{},
-		&EC2NodePoolProfile{},
 		&EKSProfile{},
 		&EKSNodePoolProfile{},
 		&AKSProfile{},
