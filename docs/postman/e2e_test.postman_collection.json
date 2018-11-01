@@ -76,72 +76,6 @@
 					"response": []
 				},
 				{
-					"name": "Cluster Create EC2",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"if (responseCode.code === 202) {",
-									"    tests[\"Response Code 202\"] = responseCode.code == 202;",
-									"",
-									"    pm.environment.set(\"timestampHeader\", new Date());",
-									"    var dataJSON = JSON.parse(responseBody);",
-									"    pm.environment.set(\"clusterId\", dataJSON.id);",
-									"    tests[\"Cluster ID: \" + dataJSON.id] = true;",
-									"",
-									"    tests[\"Response Time\"] = pm.expect(pm.response.responseTime).to.be.below(80500)",
-									"",
-									"    postman.setNextRequest(\"Cluster Status\");",
-									"} else {",
-									"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
-									"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
-									"    console.warn(responseBody);",
-									"    postman.setNextRequest(null);",
-									"}",
-									""
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"name\":\"awscluster-{{username}}-{{$randomInt}}\",\n  \"location\": \"eu-west-1\",\n  \"cloud\": \"amazon\",\n  \"secretId\": \"{{secretIdAmazon}}\",\n  \"properties\": {\n        \"ec2\": {\n            \"nodePools\": {\n            \t\"pool1\": {\n            \t\t\"instanceType\": \"m4.xlarge\",\n\t            \t\"spotPrice\": \"0.2\",\n            \t\t\"autoscaling\": false, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n            \t\t\"count\": 1,\n\t                \"image\": \"ami-4d485ca7\"\t\n            \t}\n            },\n            \"master\": {\n                \"instanceType\": \"m4.xlarge\",\n                \"image\": \"ami-4d485ca7\"\n            }\n        }\n    }\n}\n\n"
-						},
-						"url": {
-							"raw": "{{url}}/api/v1/orgs/:orgId/clusters",
-							"host": [
-								"{{url}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"orgs",
-								":orgId",
-								"clusters"
-							],
-							"variable": [
-								{
-									"key": "orgId",
-									"value": "{{orgId}}",
-									"description": "Organization identifier"
-								}
-							]
-						},
-						"description": "Creates a K8S cluster in the Amazon Web Services"
-					},
-					"response": []
-				},
-				{
 					"name": "Cluster Create EKS",
 					"event": [
 						{
@@ -531,70 +465,6 @@
 					"response": []
 				},
 				{
-					"name": "Cluster Create with profile EC2",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"if (responseCode.code === 202) {",
-									"    tests[\"Response Code 202\"] = responseCode.code == 202;",
-									"",
-									"    pm.environment.set(\"timestampHeader\", new Date());",
-									"    var dataJSON = JSON.parse(responseBody);",
-									"    pm.environment.set(\"clusterId\", dataJSON.id);",
-									"    tests[\"Cluster ID: \" + dataJSON.id] = true;",
-									"",
-									"    postman.setNextRequest(\"Cluster Status\");",
-									"} else {",
-									"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
-									"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
-									"    console.warn(responseBody);",
-									"    postman.setNextRequest(null);",
-									"}",
-									""
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n\t\"name\":\"awscluster-{{username}}-{{$randomInt}}\",\n\t\"secretId\": \"{{secretIdAmazon}}\",\n\t\"cloud\": \"amazon\",\n\t\"profileName\": \"default\",\n\t\"properties\": {\n\t\t\"ec2\": {\n           \n\t\t}\n\t}\n}"
-						},
-						"url": {
-							"raw": "{{url}}/api/v1/orgs/:orgId/clusters",
-							"host": [
-								"{{url}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"orgs",
-								":orgId",
-								"clusters"
-							],
-							"variable": [
-								{
-									"key": "orgId",
-									"value": "{{orgId}}",
-									"description": "Organization identifier"
-								}
-							]
-						},
-						"description": "Creates a K8S cluster in the Amazon Web Services"
-					},
-					"response": []
-				},
-				{
 					"name": "Cluster Create with profile EKS",
 					"event": [
 						{
@@ -973,69 +843,6 @@
 							]
 						},
 						"description": "Update an AKS cluster"
-					},
-					"response": []
-				},
-				{
-					"name": "Cluster Update EC2",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"",
-									"if (responseCode.code === 202) {",
-									"    tests[\"Response Code 202\"] = responseCode.code == 202;",
-									"} else {",
-									"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
-									"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
-									"    postman.setNextRequest(null);",
-									"}",
-									""
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n\t\"cloud\": \"amazon\",\n\t\"properties\": {\n\t\t\"ec2\": {\n\t\t\t\"nodePools\": {\n\t\t\t\t\"pool1\": {\n            \t\t\"instanceType\": \"m4.xlarge\",\n\t            \t\"spotPrice\": \"0.2\",\n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n\t                \"image\": \"ami-4d485ca7\"\t\n            \t}\n\t\t\t}\n\t\t}\n\t}\n}"
-						},
-						"url": {
-							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId",
-							"host": [
-								"{{url}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"orgs",
-								":orgId",
-								"clusters",
-								":clusterId"
-							],
-							"variable": [
-								{
-									"key": "orgId",
-									"value": "{{orgId}}",
-									"description": "Organization identifier"
-								},
-								{
-									"key": "clusterId",
-									"value": "{{clusterId}}",
-									"description": "Cluster identifier"
-								}
-							]
-						},
-						"description": "Update an AWS cluster"
 					},
 					"response": []
 				},
@@ -3406,64 +3213,6 @@
 			"name": "Profiles",
 			"item": [
 				{
-					"name": "Create Profile EC2",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"if (responseCode.code === 201) {",
-									"    tests[\"Response Code 201\"] = responseCode.code == 201;",
-									"} else {",
-									"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
-									"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
-									"    console.warn(responseBody);",
-									"    postman.setNextRequest(null);",
-									"}",
-									""
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n\t\"name\": \"{{profileName}}\",\n\t\"location\": \"eu-west-1\",\n\t\"cloud\": \"amazon\",\n\t\"properties\": {\n\t\t\"ec2\": {\n\t\t\t\"master\": {\n\t\t\t\t\"instanceType\": \"m4.xlarge\",\n\t\t\t\t\"image\": \"ami-4d485ca7\"\n\t\t\t},\n\t\t\t\"nodePools\": {\n\t\t\t\t\"pool1\": {\n\t\t\t\t\t\"instanceType\": \"m4.xlarge\",\n            \t\t\"autoscaling\": false, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n            \t\t\"count\": 1,\n\t\t\t\t\t\"image\": \"ami-4d485ca7\"\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}"
-						},
-						"url": {
-							"raw": "{{url}}/api/v1/orgs/:orgId/profiles/cluster",
-							"host": [
-								"{{url}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"orgs",
-								":orgId",
-								"profiles",
-								"cluster"
-							],
-							"variable": [
-								{
-									"key": "orgId",
-									"value": "{{orgId}}",
-									"description": "Organization identifier"
-								}
-							]
-						},
-						"description": "Create an Amazon Web Services profile"
-					},
-					"response": []
-				},
-				{
 					"name": "Create Profile EKS",
 					"event": [
 						{
@@ -3693,64 +3442,6 @@
 							]
 						},
 						"description": "Create a Google Kubernetes Engine profile"
-					},
-					"response": []
-				},
-				{
-					"name": "Update Profile EC2",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"if (responseCode.code === 201) {",
-									"    tests[\"Response Code 201\"] = responseCode.code == 201;",
-									"} else {",
-									"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
-									"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
-									"    console.warn(responseBody);",
-									"    postman.setNextRequest(null);",
-									"}",
-									""
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"name\": \"{{profileName}}\",\n  \"location\": \"eu-west-1\",\n  \"cloud\": \"amazon\",\n  \"instanceType\": \"m4.xlarge\",\n  \"properties\": {\n    \"ec2\": {\n      \"master\": {\n        \"instanceType\": \"m4.xlarge\",\n        \"image\": \"ami-4d485ca7\"\n      },\n      \"node\": {\n        \"spotPrice\": \"0.2\",\n        \"minCount\": 2,\n        \"maxCount\": 4,\n        \"image\": \"ami-4d485ca7\"\n      }\n    }\n  }\n}"
-						},
-						"url": {
-							"raw": "{{url}}/api/v1/orgs/:orgId/profiles/cluster",
-							"host": [
-								"{{url}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"orgs",
-								":orgId",
-								"profiles",
-								"cluster"
-							],
-							"variable": [
-								{
-									"key": "orgId",
-									"value": "{{orgId}}",
-									"description": "Organization Identifier"
-								}
-							]
-						},
-						"description": "Update an existing Amazon Web Services profile"
 					},
 					"response": []
 				},
