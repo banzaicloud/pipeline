@@ -36,7 +36,7 @@ func TestBucketNotFoundResponseCode(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			nfe := BucketNotFoundError{errMessage: "error message "}
+			nfe := BucketNotFoundError{errMessage: test.errMsg}
 			er := errorResponseFrom(nfe)
 
 			assert.Equal(t, er.Code, test.code)
