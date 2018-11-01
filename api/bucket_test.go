@@ -18,7 +18,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/magiconair/properties/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestBucketNotFoundResponseCode(t *testing.T) {
