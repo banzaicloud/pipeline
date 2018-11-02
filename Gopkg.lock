@@ -276,7 +276,7 @@
   revision = "72e04c1bddb8e7246cc69496f942d35fc26aeb23"
 
 [[projects]]
-  digest = "1:96570024d406d186e24b982a004162701cdceeb04bbe7f2d73153db10ebd4b9f"
+  digest = "1:b6f9ff9bced3b82298572efd53d7cf1e406dd434c43cb9a2e8285bc2f215940b"
   name = "github.com/banzaicloud/bank-vaults"
   packages = [
     "pkg/auth",
@@ -286,8 +286,8 @@
     "pkg/vault",
   ]
   pruneopts = "NUT"
-  revision = "380dcbf32208b08b816dd2003d885c214df5288a"
-  version = "0.3.9"
+  revision = "445560dd968cc9e4784f0ce5742697fe1be73f35"
+  version = "0.3.11"
 
 [[projects]]
   branch = "master"
@@ -1137,12 +1137,12 @@
   revision = "ad45545899c7b13c020ea92b2072220eefad42b8"
 
 [[projects]]
-  branch = "master"
-  digest = "1:eeb1f466766c40a4656b090593e103d2ce327b914329232bc1d4632dae17fc4f"
+  digest = "1:a45ae66dea4c899d79fceb116accfa1892105c251f0dcd9a217ddc276b42ec68"
   name = "github.com/mitchellh/mapstructure"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "00c29f56e2386353d58c599509e8dc3801b0d716"
+  revision = "3536a929edddb9a5b34bd6861dc4a9647cb459fe"
+  version = "v1.1.2"
 
 [[projects]]
   digest = "1:2f42fa12d6911c7b7659738758631bec870b7e9b4c6be5444f963cdcfccc191f"
