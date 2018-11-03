@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "b4fe738a-f645-424b-b6a4-d5e8d8901472",
+		"_postman_id": "bb86e40a-6dc3-49d6-8db6-b000ac4eb7f2",
 		"name": "End2End TEST Organizations",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -3469,7 +3469,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"type": "text/javascript",
+								"id": "9c97c61d-e98b-49ed-90cf-7224bc92469e",
 								"exec": [
 									"if (responseCode.code === 201) {",
 									"    tests[\"Response Code 201\"] = responseCode.code == 201;",
@@ -3480,7 +3480,8 @@
 									"    postman.setNextRequest(null);",
 									"}",
 									""
-								]
+								],
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -3494,7 +3495,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"name\": \"{{profileName}}\",\n\t\"location\": \"us-west-2\",\n\t\"cloud\": \"amazon\",\n\t\"properties\": {\n\t\t\"eks\": {\n\t\t\t\"nodePools\": {\n\t\t\t\t\"pool1\": {\n\t\t\t\t\t\"instanceType\": \"m4.xlarge\",\n            \t\t\"autoscaling\": false, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n            \t\t\"count\": 1,\n\t\t\t\t\t\"image\": \"ami-0ea01e1d1dea65b5c\"\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}"
+							"raw": "{\n\t\"name\": \"{{profileName}}\",\n\t\"location\": \"us-west-2\",\n\t\"cloud\": \"amazon\",\n\t\"properties\": {\n\t\t\"eks\": {\n\t\t\t\"nodePools\": {\n\t\t\t\t\"pool1\": {\n\t\t\t\t\t\"instanceType\": \"m4.xlarge\",\n            \t\t\"autoscaling\": false, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n            \t\t\"count\": 1\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/profiles/cluster",
@@ -3759,7 +3760,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"type": "text/javascript",
+								"id": "6a70c71a-fc7c-40ea-b294-5b97c545ccbc",
 								"exec": [
 									"if (responseCode.code === 201) {",
 									"    tests[\"Response Code 201\"] = responseCode.code == 201;",
@@ -3770,7 +3771,8 @@
 									"    postman.setNextRequest(null);",
 									"}",
 									""
-								]
+								],
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -3784,7 +3786,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"{{profileName}}\",\n  \"location\": \"us-west-2\",\n  \"cloud\": \"amazon\",\n  \"instanceType\": \"m4.xlarge\",\n  \"properties\": {\n    \"eks\": {\n      \"node\": {\n        \"spotPrice\": \"0.2\",\n        \"minCount\": 2,\n        \"maxCount\": 4,\n        \"image\": \"ami-0ea01e1d1dea65b5c\"\n      }\n    }\n  }\n}"
+							"raw": "{\n  \"name\": \"{{profileName}}\",\n  \"location\": \"us-east-1\",\n  \"cloud\": \"amazon\",\n  \"instanceType\": \"m4.xlarge\",\n  \"properties\": {\n    \"eks\": {\n    \t\"nodePools\": {\n\t      \"pool1\": {\n\t        \"spotPrice\": \"0.2\",\n\t        \"minCount\": 2,\n\t        \"maxCount\": 4\n\t      }\n    \t}\n    }\n  }\n}\n"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/profiles/cluster",
@@ -10242,6 +10244,38 @@
 				}
 			},
 			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJodHRwczovL3BpcGVsaW5lLmJhbnphaWNsb3VkLmNvbSIsImp0aSI6Ijg0ZDk4NzMxLWNhZjEtNGUyYy05Zjg0LTgyMGI1ZWI2Y2ZlOCIsImlhdCI6MTU0MTI1ODMxNiwiaXNzIjoiaHR0cHM6Ly9iYW56YWljbG91ZC5jb20vIiwic3ViIjoiMSIsInNjb3BlIjoiYXBpOmludm9rZSIsInR5cGUiOiJ1c2VyIiwidGV4dCI6InN0b2FkZXIifQ.dmuu8ia6kOWb0Ec7475O88YA6DHsov43rPDBuYlTuCk",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "ff2ff7c2-9dd3-4b69-9575-f8ae4df5b714",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "1880659b-ad97-4d07-9d45-c49aa052ffb2",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
 		}
 	],
 	"variable": [

@@ -192,8 +192,32 @@ func UpdateClusterProfile(c *gin.Context) {
 
 	log.Infof("Load cluster from database: %s[%s]", profileRequest.Name, profileRequest.Cloud)
 
+	distribution := ""
+	switch profileRequest.Cloud {
+	case pkgCluster.Amazon:
+		if profileRequest.Properties.EC2 != nil {
+			distribution = pkgCluster.EC2
+		} else {
+			distribution = pkgCluster.EKS
+		}
+	case pkgCluster.Azure:
+		distribution = pkgCluster.AKS
+	case pkgCluster.Google:
+		distribution = pkgCluster.GKE
+	case pkgCluster.Oracle:
+		distribution = pkgCluster.OKE
+	default:
+		log.Infoln("Not supported cloud type", profileRequest.Cloud)
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Not supported cloud type",
+			Error:   "Not supported cloud type",
+		})
+		return
+	}
+
 	// load cluster profile from database
-	if profile, err := defaults.GetProfile(profileRequest.Cloud, profileRequest.Name); err != nil {
+	if profile, err := defaults.GetProfile(distribution, profileRequest.Name); err != nil {
 		// load from db failed
 		log.Error(errors.Wrap(err, "Error during getting profile"))
 		sendBackGetProfileErrorResponse(c, err)

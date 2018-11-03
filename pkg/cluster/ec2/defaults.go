@@ -17,7 +17,7 @@ package ec2
 // ### [ Constants to Amazon cluster default values ] ### //
 const (
 	DefaultInstanceType = "m4.xlarge"
-	DefaultSpotPrice    = "0.2"
+	DefaultSpotPrice    = "0.0" // 0 spot price stands for on-demand instances
 	DefaultRegion       = EuWest1
 )
 

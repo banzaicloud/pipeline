@@ -20,6 +20,8 @@ import (
 
 	"github.com/banzaicloud/pipeline/config"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/banzaicloud/pipeline/pkg/cluster/ec2"
+	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
 	"github.com/spf13/viper"
@@ -105,8 +107,10 @@ func GetDefaultProfiles() []ClusterProfile {
 			DefaultModel: DefaultModel{Name: GetDefaultProfileName()},
 			NodePools: []*EKSNodePoolProfile{{
 				AmazonNodePoolProfileBaseFields: AmazonNodePoolProfileBaseFields{
-					NodeName: DefaultNodeName,
+					NodeName:  DefaultNodeName,
+					SpotPrice: ec2.DefaultSpotPrice,
 				},
+				Image: eks.DefaultImages[eks.DefaultRegion],
 			}},
 		},
 		&AKSProfile{
@@ -193,11 +197,11 @@ func GetProfile(distribution string, name string) (ClusterProfile, error) {
 		return &ec2Profile, nil
 
 	case pkgCluster.EKS:
-		var ec2Profile EKSProfile
-		if err := db.Where(EKSProfile{DefaultModel: DefaultModel{Name: name}}).First(&ec2Profile).Error; err != nil {
+		var eksProfile EKSProfile
+		if err := db.Where(EKSProfile{DefaultModel: DefaultModel{Name: name}}).First(&eksProfile).Error; err != nil {
 			return nil, err
 		}
-		return &ec2Profile, nil
+		return &eksProfile, nil
 
 	case pkgCluster.AKS:
 		var aksProfile AKSProfile
