@@ -101,8 +101,17 @@ func (d *EKSProfile) GetProfile() *pkgCluster.ClusterProfileResponse {
 // UpdateProfile update profile's data with ClusterProfileRequest's data and if bool is true then update in the database
 func (d *EKSProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave bool) error {
 
-	if len(r.Location) != 0 {
+	regionChanged := false
+	if len(r.Location) != 0 && r.Location != d.Region {
 		d.Region = r.Location
+		regionChanged = true
+	}
+	image := eks.DefaultImages[d.Region] // the image is fixed for a region
+
+	if regionChanged && (r.Properties.EKS == nil || len(r.Properties.EKS.NodePools) == 0) {
+		for _, np := range d.NodePools {
+			np.Image = image
+		}
 	}
 
 	if r.Properties.EKS != nil {
@@ -119,7 +128,6 @@ func (d *EKSProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave
 				instanceType := ec2.DefaultInstanceType
 				minCount := pkgCommon.DefaultNodeMinCount
 				maxCount := pkgCommon.DefaultNodeMaxCount
-				image := eks.DefaultImages[d.Region]
 
 				if len(nodePool.SpotPrice) != 0 {
 					spotPrice = nodePool.SpotPrice
@@ -145,10 +153,6 @@ func (d *EKSProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave
 				count := nodePool.Count
 				if count == 0 {
 					count = minCount
-				}
-
-				if len(nodePool.Image) != 0 {
-					image = nodePool.Image
 				}
 
 				nodePools = append(nodePools, &EKSNodePoolProfile{

@@ -20,8 +20,8 @@ type AmazonNodePoolProfileBaseFields struct {
 	Name         string `gorm:"unique_index:idx_name_node_name"`
 	NodeName     string `gorm:"unique_index:idx_name_node_name"`
 	SpotPrice    string
-	Autoscaling  bool   `gorm:"default:false"`
-	MinCount     int    `gorm:"default:1"`
-	MaxCount     int    `gorm:"default:2"`
-	Count        int    `gorm:"default:1"`
+	Autoscaling  bool `gorm:"default:false"`
+	MinCount     int  `gorm:"default:1"`
+	MaxCount     int  `gorm:"default:2"`
+	Count        int  `gorm:"default:1"`
 }
