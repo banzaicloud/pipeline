@@ -185,16 +185,16 @@ func (ce *ContainerEngine) GetNodePools(clusterID *string) (nodepools []containe
 }
 
 // IsNodePoolActive checks whether every node is in ACTIVE not DELETED state in a node pool
-func (ce *ContainerEngine) IsNodePoolActive(id *string) bool {
-
+func (ce *ContainerEngine) IsNodePoolActive(id *string) (bool, error) {
 	np, err := ce.GetNodePool(id)
 	if err != nil {
-		return false
+		return false, err
 	}
 
 	neededCount := len(np.SubnetIds) * *np.QuantityPerSubnet
 
 	activeNodes := 0
+	nodeErrorMessage := ""
 	for _, n := range np.Nodes {
 		if n.LifecycleState == containerengine.NodeLifecycleStateDeleted {
 			continue
@@ -203,16 +203,22 @@ func (ce *ContainerEngine) IsNodePoolActive(id *string) bool {
 			activeNodes++
 		} else {
 			ce.oci.logger.Debugf("Node state: %s (%s)", n.LifecycleState, *n.LifecycleDetails)
-			break
+			if n.NodeError != nil && nodeErrorMessage == "" {
+				nodeErrorMessage = *n.NodeError.Message
+			}
 		}
 	}
 
 	if activeNodes == neededCount {
-		ce.oci.logger.Infof("All nodes are in ACTIVE state in NodePool[%s]", *np.Name)
-		return true
+		ce.oci.logger.Debugf("The needed amount of nodes are in ACTIVE state in NodePool[%s]", *np.Name)
+		return true, nil
 	}
 
-	return false
+	if nodeErrorMessage != "" {
+		return false, fmt.Errorf(nodeErrorMessage)
+	}
+
+	return false, nil
 }
 
 // GetDefaultNodePoolOptions gets default node pool options
