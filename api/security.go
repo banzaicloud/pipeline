@@ -23,14 +23,11 @@ import (
 
 	"regexp"
 
-	"time"
-
 	"github.com/banzaicloud/anchore-image-validator/pkg/apis/security/v1alpha1"
 	clientV1alpha1 "github.com/banzaicloud/anchore-image-validator/pkg/clientset/v1alpha1"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/internal/security"
 	pkgCommmon "github.com/banzaicloud/pipeline/pkg/common"
-	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/security"
 	"github.com/gin-gonic/gin"
@@ -404,16 +401,9 @@ func GetImageDeployments(c *gin.Context) {
 		return
 	}
 
-	// Get WhiteList set
-	releaseWhitelist, ok := GetWhitelistSet(c)
-	if !ok {
-		return
-	}
-	log.Debugf("Whitelist set: %#v", releaseWhitelist)
-
 	kubeConfig, ok := GetK8sConfig(c)
 	if !ok {
-		log.Warnf("whitelist data is not valid: %#v", releaseWhitelist)
+		return
 	}
 
 	// Get active helm deployments
@@ -466,36 +456,8 @@ func GetImageDeployments(c *gin.Context) {
 			}
 		}
 	}
+	releases := ListHelmReleases(c, activeReleases, releaseMap)
 
-	releases := []pkgHelm.ListDeploymentResponse{}
-	if activeReleases != nil && len(activeReleases.Releases) > 0 {
-		for _, r := range activeReleases.Releases {
-			if ok := releaseMap[r.Name]; ok {
-				createdAt := time.Unix(r.Info.FirstDeployed.Seconds, 0)
-				updated := time.Unix(r.Info.LastDeployed.Seconds, 0)
-				chartName := r.GetChart().GetMetadata().GetName()
-
-				body := pkgHelm.ListDeploymentResponse{
-					Name:         r.Name,
-					Chart:        helm.GetVersionedChartName(r.Chart.Metadata.Name, r.Chart.Metadata.Version),
-					ChartName:    chartName,
-					ChartVersion: r.GetChart().GetMetadata().GetVersion(),
-					Version:      r.Version,
-					UpdatedAt:    updated,
-					Status:       r.Info.Status.Code.String(),
-					Namespace:    r.Namespace,
-					CreatedAt:    createdAt,
-				}
-				//Add WhiteListed flag if present
-				if _, ok := releaseWhitelist[r.Name]; ok {
-					body.WhiteListed = ok
-				}
-				releases = append(releases, body)
-			}
-		}
-	} else {
-		log.Info("There are no installed charts.")
-	}
 	c.JSON(http.StatusOK, releases)
 }
 
