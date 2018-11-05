@@ -291,7 +291,7 @@ type setSchemeSetDomainer interface {
 
 func setEndpoint(req setSchemeSetDomainer) {
 	req.SetScheme(requests.HTTPS)
-	req.SetDomain("cs.aliyuncs.com")
+	req.SetDomain(acsk.AlibabaApiDomain)
 }
 
 func getClusterDetails(client *cs.Client, clusterID string) (r *acsk.AlibabaDescribeClusterResponse, err error) {
