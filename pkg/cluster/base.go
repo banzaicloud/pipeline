@@ -37,6 +37,7 @@ const (
 	Running  = "RUNNING"
 	Updating = "UPDATING"
 	Deleting = "DELETING"
+	Warning  = "WARNING"
 	Error    = "ERROR"
 
 	CreatingMessage = "Cluster is creating"

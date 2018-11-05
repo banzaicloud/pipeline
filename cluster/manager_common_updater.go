@@ -70,10 +70,10 @@ func (c *commonUpdater) Validate(ctx context.Context) error {
 		return emperror.Wrap(err, "could not get cluster status")
 	}
 
-	if status.Status != cluster.Running {
+	if status.Status != cluster.Running && status.Status != cluster.Warning {
 		return emperror.With(
 			&commonUpdateValidationError{
-				msg:                fmt.Sprintf("cluster is not in %s state yet", cluster.Running),
+				msg:                fmt.Sprintf("cluster is not in %s or %s state yet", cluster.Running, cluster.Warning),
 				preconditionFailed: true,
 			},
 			"status", status.Status,
