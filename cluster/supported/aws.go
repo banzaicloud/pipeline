@@ -17,7 +17,7 @@ package supported
 import (
 	"github.com/banzaicloud/pipeline/cluster"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	pkgAmazon "github.com/banzaicloud/pipeline/pkg/cluster/ec2"
+	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 )
 
@@ -43,7 +43,7 @@ func (a *AmazonInfo) GetLocations() ([]string, error) {
 		return nil, pkgErrors.ErrorRequiredSecretId
 	}
 
-	regions, err := cluster.ListRegions(a.OrgId, a.SecretId, pkgAmazon.DefaultRegion)
+	regions, err := cluster.ListRegions(a.OrgId, a.SecretId, eks.DefaultRegion)
 	if err != nil {
 		return nil, err
 	}

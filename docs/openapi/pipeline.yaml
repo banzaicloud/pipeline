@@ -214,17 +214,6 @@ paths:
                             $ref: '#/components/schemas/CreateClusterRequest'
 
                         examples:
-                            EC2:
-                                value:
-                                    name: "ec2cluster-pipelineuser-123"
-                                    location: "eu-west-1"
-                                    cloud: "amazon"
-                                    instanceType: "m4.xlarge"
-                                    properties:
-                                        properties:
-                                            ec2:
-                                                $ref: '#/components/schemas/CreateEC2Properties'
-
                             AKS:
                                 value:
                                     name: "azcluster-pipelineuser-123"
@@ -4517,7 +4506,6 @@ components:
                 properties:
                     type: object
                     oneOf:
-                        - $ref: '#/components/schemas/CreateEC2Properties'
                         - $ref: '#/components/schemas/CreateAKSProperties'
                         - $ref: '#/components/schemas/CreateGKEProperties'
                         - $ref: '#/components/schemas/CreateEKSProperties'
@@ -4532,30 +4520,6 @@ components:
                                     count: 1
                                     instanceType: "n1-standard-2"
                             nodeVersion: "1.8.7-gke.1"
-
-        CreateEC2Properties:
-            type: object
-            required:
-                - ec2
-            properties:
-                ec2:
-                    type: object
-                    required:
-                        - nodePools
-                    properties:
-                        master:
-                            type: object
-                            properties:
-                                instanceType:
-                                    type: string
-                                    example: "m4.xlarge"
-                                image:
-                                    type: string
-                                    example: "ami-06d1667f"
-                        nodePools:
-                            type: object
-                            additionalProperties:
-                                $ref: '#/components/schemas/NodePoolsAmazon'
 
         NodePoolsAmazon:
             type: object
@@ -4918,7 +4882,6 @@ components:
                 properties:
                     type: object
                     oneOf:
-                        - $ref: '#/components/schemas/UpdateEC2Properties'
                         - $ref: '#/components/schemas/UpdateAzureProperties'
                         - $ref: '#/components/schemas/UpdateGoogleProperties'
                         - $ref: '#/components/schemas/UpdateEksProperties'
@@ -4932,47 +4895,6 @@ components:
                                 pool1:
                                     count: 2
                                     instanceType: "n1-standard-2"
-
-        UpdateEC2Properties:
-            type: object
-            required:
-                - amazon
-            properties:
-                ec2:
-                    type: object
-                    required:
-                        - nodePools
-                    properties:
-                        nodePools:
-                            type: object
-                            additionalProperties:
-                                $ref: '#/components/schemas/UpdateNodePoolsAmazon'
-
-        UpdateNodePoolsAmazon:
-            type: object
-            properties:
-                instanceType:
-                    type: string
-                    example: "m4.xlarge"
-                spotPrice:
-                    type: string
-                    example: "0.2"
-                autoscaling:
-                    type: boolean
-                    example: true
-                count:
-                    type: integer
-                    example: 2
-                minCount:
-                    type: integer
-                    example: 1
-                maxCount:
-                    type: integer
-                    example: 2
-                image:
-                    type: string
-                    example: "ami-4d485ca7"
-
 
         UpdateEksProperties:
             type: object
@@ -5883,7 +5805,6 @@ components:
                 properties:
                     type: object
                     oneOf:
-                        - $ref: '#/components/schemas/ClusterProfileEC2'
                         - $ref: '#/components/schemas/ClusterProfileEKS'
                         - $ref: '#/components/schemas/ClusterProfileAKS'
                         - $ref: '#/components/schemas/ClusterProfileGKE'
@@ -5896,27 +5817,6 @@ components:
                                 pool1:
                                     count: 1
                                     instanceType: "n1-standard-1"
-
-        ClusterProfileEC2:
-            type: object
-            properties:
-                ec2:
-                    type: object
-                    properties:
-                        master:
-                            type: object
-                            properties:
-                                instanceType:
-                                    type: string
-                                    example: "m4.xlarge"
-                                image:
-                                    type: string
-                                    example: "ami-06d1667f"
-                        nodePools:
-                            type: object
-                            additionalProperties:
-                                $ref: '#/components/schemas/NodePoolsAmazon'
-
 
         ClusterProfileEKS:
             type: object
@@ -5981,7 +5881,6 @@ components:
                 properties:
                     type: object
                     oneOf:
-                        - $ref: '#/components/schemas/AddClusterProfileEC2'
                         - $ref: '#/components/schemas/AddClusterProfileEKS'
                         - $ref: '#/components/schemas/AddClusterProfileAKS'
                         - $ref: '#/components/schemas/AddClusterProfileGKE'
@@ -5995,27 +5894,6 @@ components:
                                 pool1:
                                     count: 1
                                     instanceType: "n1-standard-1"
-
-
-        AddClusterProfileEC2:
-            type: object
-            properties:
-                ec2:
-                    type: object
-                    properties:
-                        master:
-                            type: object
-                            properties:
-                                instanceType:
-                                    type: string
-                                    example: "m4.xlarge"
-                                image:
-                                    type: string
-                                    example: "ami-06d1667f"
-                        nodePools:
-                            type: object
-                            additionalProperties:
-                                $ref: '#/components/schemas/NodePoolsAmazon'
 
         AddClusterProfileEKS:
             type: object

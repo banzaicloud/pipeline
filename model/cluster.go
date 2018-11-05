@@ -37,7 +37,6 @@ const (
 	TableNameClusters             = "clusters"
 	TableNameAlibabaProperties    = "alibaba_acsk_clusters"
 	TableNameAlibabaNodePools     = "alibaba_acsk_node_pools"
-	TableNameAmazonProperties     = "amazon_ec2_clusters"
 	TableNameAmazonNodePools      = "amazon_node_pools"
 	TableNameAmazonEksProperties  = "amazon_eks_clusters"
 	TableNameAzureProperties      = "azure_aks_clusters"
@@ -68,7 +67,6 @@ type ClusterModel struct {
 	Logging        bool
 	StatusMessage  string                 `sql:"type:text;"`
 	ACSK           ACSKClusterModel       `gorm:"foreignkey:ID"`
-	EC2            EC2ClusterModel        `gorm:"foreignkey:ID"`
 	AKS            AKSClusterModel        `gorm:"foreignkey:ID"`
 	EKS            EKSClusterModel        `gorm:"foreignkey:ID"`
 	Dummy          DummyClusterModel      `gorm:"foreignkey:ID"`
@@ -105,14 +103,6 @@ type ACSKClusterModel struct {
 	NodePools                []*ACSKNodePoolModel `gorm:"foreignkey:ClusterID"`
 }
 
-//EC2ClusterModel describes the ec2 cluster model
-type EC2ClusterModel struct {
-	ID                 uint `gorm:"primary_key"`
-	MasterInstanceType string
-	MasterImage        string
-	NodePools          []*AmazonNodePoolsModel `gorm:"foreignkey:ClusterID"`
-}
-
 //AmazonNodePoolsModel describes Amazon node groups model of a cluster
 type AmazonNodePoolsModel struct {
 	ID               uint `gorm:"primary_key"`
@@ -130,7 +120,7 @@ type AmazonNodePoolsModel struct {
 	Delete           bool `gorm:"-"`
 }
 
-//EKSClusterModel describes the ec2 cluster model
+//EKSClusterModel describes the eks cluster model
 type EKSClusterModel struct {
 	ID uint `gorm:"primary_key"`
 
@@ -261,24 +251,6 @@ func (cs *ClusterModel) String() string {
 	buffer.WriteString(fmt.Sprintf("Id: %d, Creation date: %s, Cloud: %s, Distribution: %s, ", cs.ID, cs.CreatedAt, cs.Cloud, cs.Distribution))
 
 	switch cs.Distribution {
-	case pkgCluster.EC2:
-		// Write EC2 Master
-		buffer.WriteString(fmt.Sprintf("Master instance type: %s, Master image: %s",
-			cs.EC2.MasterInstanceType,
-			cs.EC2.MasterImage))
-
-		// Write EC2 Node
-		for _, nodePool := range cs.EC2.NodePools {
-			buffer.WriteString(fmt.Sprintf("NodePool Name: %s, Autoscaling: %v, InstanceType: %s, Spot price: %s, Min count: %d, Max count: %d, Count: %d, Node image: %s",
-				nodePool.Name,
-				nodePool.Autoscaling,
-				nodePool.NodeInstanceType,
-				nodePool.NodeSpotPrice,
-				nodePool.NodeMinCount,
-				nodePool.NodeMaxCount,
-				nodePool.Count,
-				nodePool.NodeImage))
-		}
 	case pkgCluster.EKS:
 		// Write EKS Master
 		buffer.WriteString(fmt.Sprintf("Master version: %s",
@@ -322,11 +294,6 @@ func (ACSKNodePoolModel) TableName() string {
 	return TableNameAlibabaNodePools
 }
 
-// TableName sets AmazonClusterModel's table name
-func (EC2ClusterModel) TableName() string {
-	return TableNameAmazonProperties
-}
-
 // TableName sets AmazonNodePoolsModel's table name
 func (AmazonNodePoolsModel) TableName() string {
 	return TableNameAmazonNodePools
@@ -359,23 +326,6 @@ func (KubernetesClusterModel) TableName() string {
 
 // AfterUpdate removes marked node pool(s)
 func (a *EKSClusterModel) AfterUpdate(scope *gorm.Scope) error {
-	log.Info("Remove node pools marked for deletion")
-
-	for _, nodePoolModel := range a.NodePools {
-		if nodePoolModel.Delete {
-			err := scope.DB().Delete(nodePoolModel).Error
-
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
-
-// AfterUpdate removes marked node pool(s)
-func (a *EC2ClusterModel) AfterUpdate(scope *gorm.Scope) error {
 	log.Info("Remove node pools marked for deletion")
 
 	for _, nodePoolModel := range a.NodePools {
