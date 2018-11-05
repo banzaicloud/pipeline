@@ -101,7 +101,7 @@ func (m *Manager) updateCluster(ctx context.Context, updateCtx UpdateContext, cl
 
 	err := updater.Update(ctx)
 	if err != nil {
-		cluster.UpdateStatus(pkgCluster.Error, err.Error())
+		cluster.UpdateStatus(pkgCluster.Warning, err.Error())
 
 		return emperror.Wrap(err, "error updating cluster")
 	}
