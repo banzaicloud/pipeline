@@ -165,15 +165,16 @@ func (s *ObjectStore) CreateBucket(bucketName string) error {
 	}
 
 	exists, err := s.checkStorageAccountExistence(resourceGroup, storageAccount)
-	if !exists && err == nil {
+
+	if err != nil {
+		return s.rollback(logger, "error during creating the storage account:", err, bucket)
+	}
+
+	if !exists {
 		err = s.createStorageAccount(resourceGroup, storageAccount)
 		if err != nil {
 			return s.rollback(logger, "storage account creation failed", err, bucket)
 		}
-	}
-
-	if err != nil && !strings.Contains(err.Error(), "is already taken") {
-		return s.rollback(logger, "storage account is already taken", err, bucket)
 	}
 
 	key, err := GetStorageAccountKey(resourceGroup, storageAccount, s.secret, s.logger)
@@ -295,7 +296,7 @@ func (s *ObjectStore) createResourceGroup(resourceGroup string) error {
 func (s *ObjectStore) checkStorageAccountExistence(resourceGroup string, storageAccount string) (bool, error) {
 	storageAccountsClient, err := createStorageAccountClient(s.secret)
 	if err != nil {
-		return false, err
+		return true, err
 	}
 
 	logger := s.logger.WithFields(logrus.Fields{
@@ -303,7 +304,7 @@ func (s *ObjectStore) checkStorageAccountExistence(resourceGroup string, storage
 		"storage_account": storageAccount,
 	})
 
-	logger.Info("checking storage account existence")
+	logger.Info("checking storage account availability")
 
 	result, err := storageAccountsClient.CheckNameAvailability(
 		context.TODO(),
@@ -313,20 +314,14 @@ func (s *ObjectStore) checkStorageAccountExistence(resourceGroup string, storage
 		},
 	)
 	if err != nil {
-		return false, err
+		return true, err
 	}
 
 	if *result.NameAvailable == false {
-		_, err := storageAccountsClient.GetProperties(context.TODO(), resourceGroup, storageAccount)
-		if err != nil {
-			logger.Error("storage account exists but it is not in your resource group")
-
-			return false, err
+		if _, err = storageAccountsClient.GetProperties(context.TODO(), resourceGroup, storageAccount); err != nil {
+			logger.Errorf("storage account name not available, %s", *result.Message)
+			return true, fmt.Errorf(*result.Message)
 		}
-
-		logger.Warnf("storage account name not available because: %s", *result.Message)
-
-		return true, fmt.Errorf("storage account name %s is already taken", storageAccount)
 	}
 
 	return false, nil
@@ -431,9 +426,8 @@ func (s *ObjectStore) CheckBucket(bucketName string) error {
 	logger.Info("looking for bucket")
 
 	_, err := s.checkStorageAccountExistence(resourceGroup, storageAccount)
-	if err != nil && !strings.Contains(err.Error(), "is already taken") {
+	if err != nil {
 		logger.Error(err.Error())
-
 		return err
 	}
 
