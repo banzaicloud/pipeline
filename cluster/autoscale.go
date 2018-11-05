@@ -83,8 +83,6 @@ func getAmazonNodeGroups(cluster CommonCluster) ([]nodeGroup, error) {
 	var nodePools []*model.AmazonNodePoolsModel
 	var err error
 	switch cluster.GetDistribution() {
-	case pkgCluster.EC2:
-		nodePools, err = GetEC2NodePools(cluster)
 	case pkgCluster.EKS:
 		nodePools, err = GetEKSNodePools(cluster)
 	}
@@ -122,21 +120,6 @@ func getAzureNodeGroups(cluster CommonCluster) ([]nodeGroup, error) {
 		}
 	}
 	return nodeGroups, nil
-}
-
-func createAutoscalingForEc2(cluster CommonCluster, groups []nodeGroup) *autoscalingInfo {
-	return &autoscalingInfo{
-		CloudProvider:     cloudProviderAws,
-		AutoscalingGroups: groups,
-		ExtraArgs: map[string]string{
-			"v":        logLevel,
-			"expander": expanderStrategy,
-		},
-		Rbac:        rbac{Create: true},
-		AwsRegion:   cluster.GetLocation(),
-		Affinity:    getHeadNodeAffinity(cluster),
-		Tolerations: getHeadNodeTolerations(),
-	}
 }
 
 func createAutoscalingForEks(cluster CommonCluster, groups []nodeGroup) *autoscalingInfo {
@@ -301,8 +284,6 @@ func deployAutoscalerChart(cluster CommonCluster, nodeGroups []nodeGroup, kubeCo
 	switch cluster.GetDistribution() {
 	case pkgCluster.EKS:
 		values = createAutoscalingForEks(cluster, nodeGroups)
-	case pkgCluster.EC2:
-		values = createAutoscalingForEc2(cluster, nodeGroups)
 	case pkgCluster.AKS:
 		values = createAutoscalingForAzure(cluster, nodeGroups)
 	default:

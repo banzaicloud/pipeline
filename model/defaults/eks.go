@@ -17,7 +17,6 @@ package defaults
 import (
 	"github.com/banzaicloud/pipeline/config"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/banzaicloud/pipeline/pkg/cluster/ec2"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 )
@@ -69,10 +68,10 @@ func (d *EKSProfile) IsDefinedBefore() bool {
 // GetProfile load profile from database and converts ClusterProfileResponse
 func (d *EKSProfile) GetProfile() *pkgCluster.ClusterProfileResponse {
 
-	nodePools := make(map[string]*ec2.NodePool)
+	nodePools := make(map[string]*eks.NodePool)
 	for _, np := range d.NodePools {
 		if np != nil {
-			nodePools[np.NodeName] = &ec2.NodePool{
+			nodePools[np.NodeName] = &eks.NodePool{
 				InstanceType: np.InstanceType,
 				SpotPrice:    np.SpotPrice,
 				Autoscaling:  np.Autoscaling,
@@ -124,8 +123,8 @@ func (d *EKSProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave
 			var nodePools []*EKSNodePoolProfile
 			for npName, nodePool := range r.Properties.EKS.NodePools {
 
-				spotPrice := ec2.DefaultSpotPrice
-				instanceType := ec2.DefaultInstanceType
+				spotPrice := eks.DefaultSpotPrice
+				instanceType := eks.DefaultInstanceType
 				minCount := pkgCommon.DefaultNodeMinCount
 				maxCount := pkgCommon.DefaultNodeMaxCount
 

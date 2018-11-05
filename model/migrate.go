@@ -29,7 +29,6 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 		&ACSKClusterModel{},
 		&ACSKNodePoolModel{},
 		&AmazonNodePoolsModel{},
-		&EC2ClusterModel{},
 		&EKSClusterModel{},
 		&AKSClusterModel{},
 		&AKSNodePoolModel{},

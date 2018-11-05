@@ -31,7 +31,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/pricing"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/banzaicloud/pipeline/pkg/cluster/ec2"
 	pkgEks "github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks/action"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
@@ -85,6 +84,27 @@ func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 		CreatedBy: userId,
 	}
 	return &cluster, nil
+}
+
+func createNodePoolsFromRequest(nodePools map[string]*pkgEks.NodePool, userId uint) []*model.AmazonNodePoolsModel {
+	var modelNodePools = make([]*model.AmazonNodePoolsModel, len(nodePools))
+	i := 0
+	for nodePoolName, nodePool := range nodePools {
+		modelNodePools[i] = &model.AmazonNodePoolsModel{
+			CreatedBy:        userId,
+			Name:             nodePoolName,
+			NodeSpotPrice:    nodePool.SpotPrice,
+			Autoscaling:      nodePool.Autoscaling,
+			NodeMinCount:     nodePool.MinCount,
+			NodeMaxCount:     nodePool.MaxCount,
+			Count:            nodePool.Count,
+			NodeImage:        nodePool.Image,
+			NodeInstanceType: nodePool.InstanceType,
+			Delete:           false,
+		}
+		i++
+	}
+	return modelNodePools
 }
 
 //EKSCluster struct for EKS cluster
@@ -382,7 +402,7 @@ func (c *EKSCluster) getNodepoolStackNamesToDelete(sess *session.Session) []stri
 	return stackNames
 }
 
-func (c *EKSCluster) createNodePoolsFromUpdateRequest(requestedNodePools map[string]*ec2.NodePool, userId uint) ([]*model.AmazonNodePoolsModel, error) {
+func (c *EKSCluster) createNodePoolsFromUpdateRequest(requestedNodePools map[string]*pkgEks.NodePool, userId uint) ([]*model.AmazonNodePoolsModel, error) {
 
 	currentNodePoolMap := make(map[string]*model.AmazonNodePoolsModel, len(c.modelCluster.EKS.NodePools))
 	for _, nodePool := range c.modelCluster.EKS.NodePools {
@@ -426,7 +446,7 @@ func (c *EKSCluster) createNodePoolsFromUpdateRequest(requestedNodePools map[str
 
 			// ---- [ Node spot price ] ---- //
 			if len(nodePool.SpotPrice) == 0 {
-				nodePool.SpotPrice = ec2.DefaultSpotPrice
+				nodePool.SpotPrice = pkgEks.DefaultSpotPrice
 			}
 
 			updatedNodePools = append(updatedNodePools, &model.AmazonNodePoolsModel{
@@ -784,7 +804,28 @@ func (c *EKSCluster) GetModel() *model.ClusterModel {
 
 // CheckEqualityToUpdate validates the update request
 func (c *EKSCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) error {
-	return CheckEqualityToUpdate(r, c.modelCluster.EKS.NodePools)
+	// create update request struct with the stored data to check equality
+	preNodePools := make(map[string]*pkgEks.NodePool)
+	for _, preNp := range c.modelCluster.EKS.NodePools {
+		preNodePools[preNp.Name] = &pkgEks.NodePool{
+			InstanceType: preNp.NodeInstanceType,
+			SpotPrice:    preNp.NodeSpotPrice,
+			Autoscaling:  preNp.Autoscaling,
+			MinCount:     preNp.NodeMinCount,
+			MaxCount:     preNp.NodeMaxCount,
+			Count:        preNp.Count,
+			Image:        preNp.NodeImage,
+		}
+	}
+
+	preCl := &pkgEks.UpdateClusterAmazonEKS{
+		NodePools: preNodePools,
+	}
+
+	log.Info("Check stored & updated cluster equals")
+
+	// check equality
+	return isDifferent(r.EKS, preCl)
 }
 
 // AddDefaultsToUpdate adds defaults to update request

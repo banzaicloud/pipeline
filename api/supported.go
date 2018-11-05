@@ -32,12 +32,6 @@ func GetSupportedClusterList(c *gin.Context) {
 	c.JSON(http.StatusOK, pkgCluster.SupportedClustersResponse{
 		Items: []pkgCluster.SupportedClusterItem{
 			{
-				Name:    "Amazon EC2",
-				Key:     pkgCluster.Amazon,
-				Enabled: true,
-				Icon:    "assets/images/amazon.png",
-			},
-			{
 				Name:    "Amazon EKS",
 				Key:     "unknown",
 				Enabled: false,

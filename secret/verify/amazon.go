@@ -19,9 +19,12 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	pkgAmazon "github.com/banzaicloud/pipeline/pkg/cluster/ec2"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/sirupsen/logrus"
+)
+
+const (
+	DefaultRegion = "us-west-2" // TODO: move this to common amazon package?
 )
 
 // awsVerify for validation AWS credentials
@@ -38,12 +41,13 @@ func CreateAWSSecret(values map[string]string) *awsVerify {
 
 // VerifySecret validates AKS credentials
 func (a *awsVerify) VerifySecret() error {
-	client, err := CreateEC2Client(a.credentials, pkgAmazon.DefaultRegion)
+	client, err := CreateEC2Client(a.credentials, DefaultRegion)
 	if err != nil {
 		return err
 	}
 
 	// currently the only way to verify AWS credentials is to actually use them to sign a request and see if it works
+	// TODO: find a better way
 	_, err = client.DescribeRegions(nil)
 	return err
 }

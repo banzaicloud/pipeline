@@ -16,7 +16,9 @@ package eks
 
 // ### [ Constants to EKS cluster default values ] ### //
 const (
-	DefaultRegion = UsWest2
+	DefaultInstanceType = "m4.xlarge"
+	DefaultSpotPrice    = "0.0" // 0 spot price stands for on-demand instances
+	DefaultRegion       = UsWest2
 )
 
 // DefaultImages in each supported location in EC2 (from https://docs.aws.amazon.com/eks/latest/userguide/launch-workers.html)

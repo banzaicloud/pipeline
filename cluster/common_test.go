@@ -25,7 +25,6 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/dummy"
-	"github.com/banzaicloud/pipeline/pkg/cluster/ec2"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/gke"
 	"github.com/banzaicloud/pipeline/pkg/cluster/kubernetes"
@@ -34,26 +33,24 @@ import (
 )
 
 const (
-	clusterRequestName           = "testName"
-	clusterRequestLocation       = "testLocation"
-	clusterRequestNodeInstance   = "testInstance"
-	clusterRequestNodeCount      = 1
-	clusterRequestRG             = "testResourceGroup"
-	clusterRequestKubernetes     = "1.9.6"
-	clusterRequestKubernetesEKS  = "1.10"
-	clusterRequestAgentName      = "testAgent"
-	clusterRequestSpotPrice      = "1.2"
-	clusterRequestNodeMinCount   = 1
-	clusterRequestNodeMaxCount   = 2
-	clusterRequestNodeImage      = "testImage"
-	clusterRequestMasterImage    = "testImage"
-	clusterRequestMasterInstance = "testInstance"
-	organizationId               = 1
-	userId                       = 1
-	clusterKubeMetaKey           = "metaKey"
-	clusterKubeMetaValue         = "metaValue"
-	secretName                   = "test-secret-name"
-	pool1Name                    = "pool1"
+	clusterRequestName          = "testName"
+	clusterRequestLocation      = "testLocation"
+	clusterRequestNodeInstance  = "testInstance"
+	clusterRequestNodeCount     = 1
+	clusterRequestRG            = "testResourceGroup"
+	clusterRequestKubernetes    = "1.9.6"
+	clusterRequestKubernetesEKS = "1.10"
+	clusterRequestAgentName     = "testAgent"
+	clusterRequestSpotPrice     = "1.2"
+	clusterRequestNodeMinCount  = 1
+	clusterRequestNodeMaxCount  = 2
+	clusterRequestNodeImage     = "testImage"
+	organizationId              = 1
+	userId                      = 1
+	clusterKubeMetaKey          = "metaKey"
+	clusterKubeMetaValue        = "metaValue"
+	secretName                  = "test-secret-name"
+	pool1Name                   = "pool1"
 )
 
 var (
@@ -92,13 +89,11 @@ func TestCreateCommonClusterFromRequest(t *testing.T) {
 		expectedError error
 	}{
 		{name: "aks create", createRequest: aksCreateFull, expectedModel: aksModelFull, expectedError: nil},
-		{name: "ec2 create", createRequest: ec2CreateFull, expectedModel: ec2ModelFull, expectedError: nil},
 		{name: "dummy create", createRequest: dummyCreateFull, expectedModel: dummyModelFull, expectedError: nil},
 		{name: "kube create", createRequest: kubeCreateFull, expectedModel: kubeModelFull, expectedError: nil},
 
 		{name: "not supported cloud", createRequest: notSupportedCloud, expectedModel: nil, expectedError: pkgErrors.ErrorNotSupportedCloudType},
 
-		{name: "ec2 empty location", createRequest: ec2EmptyLocationCreate, expectedModel: nil, expectedError: pkgErrors.ErrorLocationEmpty},
 		{name: "aks empty location", createRequest: aksEmptyLocationCreate, expectedModel: nil, expectedError: pkgErrors.ErrorLocationEmpty},
 		{name: "kube empty location and nodeInstanceType", createRequest: kubeEmptyLocation, expectedModel: kubeEmptyLocAndNIT, expectedError: nil},
 	}
@@ -193,9 +188,9 @@ func TestGetSecretWithValidation(t *testing.T) {
 		createClusterRequest *pkgCluster.CreateClusterRequest
 		err                  error
 	}{
-		{"amazon", amazonSecretRequest, ec2CreateFull, nil},
+		{"amazon", amazonSecretRequest, eksCreateFull, nil},
 		{"aks", aksSecretRequest, aksCreateFull, nil},
-		{"aks wrong cloud field", aksSecretRequest, ec2CreateFull, errAzureAmazon},
+		{"aks wrong cloud field", aksSecretRequest, eksCreateFull, errAzureAmazon},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -273,31 +268,6 @@ var (
 		},
 	}
 
-	ec2CreateFull = &pkgCluster.CreateClusterRequest{
-		Name:     clusterRequestName,
-		Location: clusterRequestLocation,
-		Cloud:    pkgCluster.Amazon,
-		SecretId: clusterRequestSecretId,
-		Properties: &pkgCluster.CreateClusterProperties{
-			CreateClusterEC2: &ec2.CreateClusterEC2{
-				NodePools: map[string]*ec2.NodePool{
-					pool1Name: {
-						InstanceType: clusterRequestNodeInstance,
-						SpotPrice:    clusterRequestSpotPrice,
-						Autoscaling:  true,
-						MinCount:     clusterRequestNodeCount,
-						MaxCount:     clusterRequestNodeMaxCount,
-						Image:        clusterRequestNodeImage,
-					},
-				},
-				Master: &ec2.CreateAmazonMaster{
-					InstanceType: clusterRequestMasterInstance,
-					Image:        clusterRequestMasterImage,
-				},
-			},
-		},
-	}
-
 	eksCreateFull = &pkgCluster.CreateClusterRequest{ // nolint deadcode
 		Name:     clusterRequestName,
 		Location: clusterRequestLocation,
@@ -306,7 +276,7 @@ var (
 		Properties: &pkgCluster.CreateClusterProperties{
 			CreateClusterEKS: &eks.CreateClusterEKS{
 				Version: clusterRequestKubernetesEKS,
-				NodePools: map[string]*ec2.NodePool{
+				NodePools: map[string]*eks.NodePool{
 					pool1Name: {
 						InstanceType: clusterRequestNodeInstance,
 						SpotPrice:    clusterRequestSpotPrice,
@@ -331,30 +301,6 @@ var (
 				Node: &dummy.Node{
 					KubernetesVersion: clusterRequestKubernetes,
 					Count:             clusterRequestNodeCount,
-				},
-			},
-		},
-	}
-
-	ec2EmptyLocationCreate = &pkgCluster.CreateClusterRequest{
-		Name:     clusterRequestName,
-		Location: "",
-		Cloud:    pkgCluster.Amazon,
-		SecretId: clusterRequestSecretId,
-		Properties: &pkgCluster.CreateClusterProperties{
-			CreateClusterEC2: &ec2.CreateClusterEC2{
-				NodePools: map[string]*ec2.NodePool{
-					pool1Name: {
-						InstanceType: clusterRequestNodeInstance,
-						SpotPrice:    clusterRequestSpotPrice,
-						MinCount:     clusterRequestNodeCount,
-						MaxCount:     clusterRequestNodeMaxCount,
-						Image:        clusterRequestNodeImage,
-					},
-				},
-				Master: &ec2.CreateAmazonMaster{
-					InstanceType: clusterRequestMasterInstance,
-					Image:        clusterRequestMasterImage,
 				},
 			},
 		},
@@ -420,32 +366,6 @@ var (
 					Name:             clusterRequestAgentName,
 				},
 			},
-		},
-	}
-
-	ec2ModelFull = &model.ClusterModel{
-		CreatedBy:      userId,
-		Name:           clusterRequestName,
-		Location:       clusterRequestLocation,
-		SecretId:       clusterRequestSecretId,
-		Cloud:          pkgCluster.Amazon,
-		Distribution:   pkgCluster.EC2,
-		OrganizationId: organizationId,
-		EC2: model.EC2ClusterModel{
-			NodePools: []*model.AmazonNodePoolsModel{
-				{
-					CreatedBy:        userId,
-					Name:             pool1Name,
-					NodeInstanceType: clusterRequestNodeInstance,
-					NodeSpotPrice:    clusterRequestSpotPrice,
-					Autoscaling:      true,
-					Count:            clusterRequestNodeCount,
-					NodeMinCount:     clusterRequestNodeCount,
-					NodeMaxCount:     clusterRequestNodeMaxCount,
-					NodeImage:        clusterRequestNodeImage,
-				}},
-			MasterInstanceType: clusterRequestMasterInstance,
-			MasterImage:        clusterRequestMasterImage,
 		},
 	}
 

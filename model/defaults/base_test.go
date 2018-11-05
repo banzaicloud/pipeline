@@ -21,7 +21,6 @@ import (
 	"github.com/banzaicloud/pipeline/model/defaults"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
-	"github.com/banzaicloud/pipeline/pkg/cluster/ec2"
 	"github.com/banzaicloud/pipeline/pkg/cluster/gke"
 )
 
@@ -43,7 +42,6 @@ func TestGetType(t *testing.T) {
 	}{
 		{"type gke", &defaults.GKEProfile{}, pkgCluster.Google},
 		{"type aks", &defaults.AKSProfile{}, pkgCluster.Azure},
-		{"type ec2", &defaults.EC2Profile{}, pkgCluster.Amazon}, // todo expand with other distribution
 	}
 
 	for _, tc := range cases {
@@ -72,11 +70,6 @@ func TestUpdateWithoutSave(t *testing.T) {
 
 		{"full request AKS", &defaults.AKSProfile{}, fullRequestAKS, &fullAKS},
 		{"just basic update AKS", &defaults.AKSProfile{}, emptyRequestAKS, &emptyAKS},
-
-		{"full request EC2", &defaults.EC2Profile{}, fullRequestEC2, &fullEC2},
-		{"just master update EC2", &defaults.EC2Profile{}, masterRequestEC2, &masterEC2},
-		{"just node update EC2", &defaults.EC2Profile{}, nodeRequestEC2, &nodeEC2},
-		{"just basic update EC2", &defaults.EC2Profile{}, emptyRequestEC2, &emptyEC2}, // todo expand
 	}
 
 	for _, tc := range testCases {
@@ -99,19 +92,13 @@ func TestUpdateWithoutSave(t *testing.T) {
 }
 
 const (
-	name               = "TestProfile"
-	location           = "TestLocation"
-	nodeInstanceType   = "TestNodeInstance"
-	masterInstanceType = "TestMasterInstance"
-	masterImage        = "TestMasterImage"
-	nodeImage          = "TestMasterImage"
-	version            = "TestVersion"
-	nodeCount          = 1
-	agentName          = "TestAgent"
-	k8sVersion         = "TestKubernetesVersion"
-	minCount           = 1
-	maxCount           = 2
-	spotPrice          = "0.2"
+	name             = "TestProfile"
+	location         = "TestLocation"
+	nodeInstanceType = "TestNodeInstance"
+	version          = "TestVersion"
+	nodeCount        = 1
+	agentName        = "TestAgent"
+	k8sVersion       = "TestKubernetesVersion"
 )
 
 var (
@@ -152,31 +139,6 @@ var (
 		},
 	}
 
-	fullRequestEC2 = &pkgCluster.ClusterProfileRequest{
-		Name:     name,
-		Location: location,
-		Cloud:    pkgCluster.Amazon,
-		Properties: &pkgCluster.ClusterProfileProperties{
-			EC2: &ec2.ClusterProfileEC2{
-				Master: &ec2.ProfileMaster{
-					InstanceType: masterInstanceType,
-					Image:        masterImage,
-				},
-				NodePools: map[string]*ec2.NodePool{
-					agentName: {
-						InstanceType: nodeInstanceType,
-						SpotPrice:    spotPrice,
-						Autoscaling:  true,
-						Count:        minCount,
-						MinCount:     minCount,
-						MaxCount:     maxCount,
-						Image:        nodeImage,
-					},
-				},
-			},
-		},
-	}
-
 	fullGKE = defaults.GKEProfile{
 		DefaultModel:  defaults.DefaultModel{Name: name},
 		Location:      location,
@@ -203,27 +165,6 @@ var (
 			},
 		},
 	}
-
-	fullEC2 = defaults.EC2Profile{
-		DefaultModel:       defaults.DefaultModel{Name: name},
-		Location:           location,
-		MasterInstanceType: masterInstanceType,
-		MasterImage:        masterImage,
-		NodePools: []*defaults.EC2NodePoolProfile{
-			{
-				AmazonNodePoolProfileBaseFields: defaults.AmazonNodePoolProfileBaseFields{
-					InstanceType: nodeInstanceType,
-					NodeName:     agentName,
-					SpotPrice:    spotPrice,
-					Autoscaling:  true,
-					MinCount:     minCount,
-					MaxCount:     maxCount,
-					Count:        minCount,
-				},
-				Image: nodeImage,
-			},
-		},
-	}
 )
 
 var (
@@ -240,31 +181,10 @@ var (
 		},
 	}
 
-	masterRequestEC2 = &pkgCluster.ClusterProfileRequest{
-		Name:     name,
-		Location: location,
-		Cloud:    pkgCluster.Amazon,
-		Properties: &pkgCluster.ClusterProfileProperties{
-			EC2: &ec2.ClusterProfileEC2{
-				Master: &ec2.ProfileMaster{
-					InstanceType: masterInstanceType,
-					Image:        masterImage,
-				},
-			},
-		},
-	}
-
 	masterGKE = defaults.GKEProfile{
 		DefaultModel:  defaults.DefaultModel{Name: name},
 		Location:      location,
 		MasterVersion: version,
-	}
-
-	masterEC2 = defaults.EC2Profile{
-		DefaultModel:       defaults.DefaultModel{Name: name},
-		Location:           location,
-		MasterInstanceType: masterInstanceType,
-		MasterImage:        masterImage,
 	}
 )
 
@@ -286,27 +206,6 @@ var (
 		},
 	}
 
-	nodeRequestEC2 = &pkgCluster.ClusterProfileRequest{
-		Name:     name,
-		Location: location,
-		Cloud:    pkgCluster.Amazon,
-		Properties: &pkgCluster.ClusterProfileProperties{
-			EC2: &ec2.ClusterProfileEC2{
-				NodePools: map[string]*ec2.NodePool{
-					agentName: {
-						InstanceType: nodeInstanceType,
-						SpotPrice:    spotPrice,
-						Autoscaling:  true,
-						MinCount:     minCount,
-						MaxCount:     maxCount,
-						Count:        minCount,
-						Image:        nodeImage,
-					},
-				},
-			},
-		},
-	}
-
 	nodeGKE = defaults.GKEProfile{
 		DefaultModel: defaults.DefaultModel{Name: name},
 		Location:     location,
@@ -316,25 +215,6 @@ var (
 				Count:            nodeCount,
 				NodeInstanceType: nodeInstanceType,
 				NodeName:         agentName,
-			},
-		},
-	}
-
-	nodeEC2 = defaults.EC2Profile{
-		DefaultModel: defaults.DefaultModel{Name: name},
-		Location:     location,
-		NodePools: []*defaults.EC2NodePoolProfile{
-			{
-				AmazonNodePoolProfileBaseFields: defaults.AmazonNodePoolProfileBaseFields{
-					InstanceType: nodeInstanceType,
-					NodeName:     agentName,
-					SpotPrice:    spotPrice,
-					Autoscaling:  true,
-					MinCount:     minCount,
-					MaxCount:     maxCount,
-					Count:        minCount,
-				},
-				Image: nodeImage,
 			},
 		},
 	}
@@ -355,24 +235,12 @@ var (
 		Properties: &pkgCluster.ClusterProfileProperties{},
 	}
 
-	emptyRequestEC2 = &pkgCluster.ClusterProfileRequest{
-		Name:       name,
-		Location:   location,
-		Cloud:      pkgCluster.Amazon,
-		Properties: &pkgCluster.ClusterProfileProperties{},
-	}
-
 	emptyGKE = defaults.GKEProfile{
 		DefaultModel: defaults.DefaultModel{Name: name},
 		Location:     location,
 	}
 
 	emptyAKS = defaults.AKSProfile{
-		DefaultModel: defaults.DefaultModel{Name: name},
-		Location:     location,
-	}
-
-	emptyEC2 = defaults.EC2Profile{
 		DefaultModel: defaults.DefaultModel{Name: name},
 		Location:     location,
 	}

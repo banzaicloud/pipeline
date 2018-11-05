@@ -31,9 +31,9 @@ In those cases you have a GH fork, and want use that instead of the origin.
 Gopkg.toml:
 ```toml
 [[constraint]]
-  name = "github.com/kubicorn/kubicorn"
+  name = "github.com/qor/auth"
   branch = "master"
-  source = "github.com/banzaicloud/kubicorn"
+  source = "github.com/banzaicloud/auth"
 ```
 
 

@@ -15,19 +15,126 @@
 package eks
 
 import (
-	pkgAmazon "github.com/banzaicloud/pipeline/pkg/cluster/ec2"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 )
 
 // CreateClusterEKS describes Pipeline's Amazon EKS fields of a CreateCluster request
 type CreateClusterEKS struct {
-	Version   string                         `json:"version,omitempty" yaml:"version,omitempty"`
-	NodePools map[string]*pkgAmazon.NodePool `json:"nodePools,omitempty" yaml:"nodePools,omitempty"`
+	Version   string               `json:"version,omitempty" yaml:"version,omitempty"`
+	NodePools map[string]*NodePool `json:"nodePools,omitempty" yaml:"nodePools,omitempty"`
 }
 
 // UpdateClusterAmazonEKS describes Amazon EKS's node fields of an UpdateCluster request
 type UpdateClusterAmazonEKS struct {
-	NodePools map[string]*pkgAmazon.NodePool `json:"nodePools,omitempty"`
+	NodePools map[string]*NodePool `json:"nodePools,omitempty"`
+}
+
+// NodePool describes Amazon's node fields of a CreateCluster/Update request
+type NodePool struct {
+	InstanceType string `json:"instanceType" yaml:"instanceType"`
+	SpotPrice    string `json:"spotPrice" yaml:"spotPrice"`
+	Autoscaling  bool   `json:"autoscaling" yaml:"autoscaling"`
+	MinCount     int    `json:"minCount" yaml:"minCount"`
+	MaxCount     int    `json:"maxCount" yaml:"maxCount"`
+	Count        int    `json:"count" yaml:"count"`
+	Image        string `json:"image" yaml:"image"`
+}
+
+// Validate checks Amazon's node fields
+func (a *NodePool) Validate() error {
+	// ---- [ Node instanceType check ] ---- //
+	if len(a.InstanceType) == 0 {
+		return pkgErrors.ErrorInstancetypeFieldIsEmpty
+	}
+
+	// ---- [ Node image check ] ---- //
+	if len(a.Image) == 0 {
+		return pkgErrors.ErrorAmazonImageFieldIsEmpty
+	}
+
+	// ---- [ Min & Max count fields are required in case of autoscaling ] ---- //
+	if a.Autoscaling {
+
+		if a.MinCount == 0 {
+			return pkgErrors.ErrorMinFieldRequiredError
+		}
+		if a.MaxCount == 0 {
+			return pkgErrors.ErrorMaxFieldRequiredError
+		}
+
+	} else {
+		// ---- [ Node min count check ] ---- //
+		if a.MinCount == 0 {
+			a.MinCount = pkgCommon.DefaultNodeMinCount
+		}
+
+		// ---- [ Node max count check ] ---- //
+		if a.MaxCount == 0 {
+			a.MaxCount = pkgCommon.DefaultNodeMaxCount
+		}
+	}
+
+	// ---- [ Node min count <= max count check ] ---- //
+	if a.MaxCount < a.MinCount {
+		return pkgErrors.ErrorNodePoolMinMaxFieldError
+	}
+
+	if a.Count == 0 {
+		a.Count = a.MinCount
+	} else {
+		if a.Count < a.MinCount || a.Count > a.MaxCount {
+			return pkgErrors.ErrorNodePoolCountFieldError
+		}
+	}
+
+	// ---- [ Node spot price ] ---- //
+	if len(a.SpotPrice) == 0 {
+		a.SpotPrice = DefaultSpotPrice
+	}
+
+	return nil
+}
+
+// ValidateForUpdate checks Amazon's node fields
+func (a *NodePool) ValidateForUpdate() error {
+
+	// ---- [ Min & Max count fields are required in case of autoscaling ] ---- //
+	if a.Autoscaling {
+
+		if a.MinCount == 0 {
+			return pkgErrors.ErrorMinFieldRequiredError
+		}
+		if a.MaxCount == 0 {
+			return pkgErrors.ErrorMaxFieldRequiredError
+		}
+
+	} else {
+		// ---- [ Node min count check ] ---- //
+		if a.MinCount == 0 {
+			a.MinCount = pkgCommon.DefaultNodeMinCount
+		}
+
+		// ---- [ Node max count check ] ---- //
+		if a.MaxCount == 0 {
+			a.MaxCount = pkgCommon.DefaultNodeMaxCount
+		}
+	}
+
+	// ---- [ Node min count <= max count check ] ---- //
+	if a.MaxCount < a.MinCount {
+		return pkgErrors.ErrorNodePoolMinMaxFieldError
+	}
+
+	if a.Count == 0 {
+		a.Count = a.MinCount
+	} else {
+		if a.Count < a.MinCount || a.Count > a.MaxCount {
+			return pkgErrors.ErrorNodePoolCountFieldError
+		}
+	}
+
+	return nil
 }
 
 // Validate validates Amazon EKS cluster create request
@@ -108,8 +215,8 @@ type CertificateAuthority struct {
 
 // ClusterProfileEKS describes an Amazon EKS profile
 type ClusterProfileEKS struct {
-	Version   string                         `json:"version,omitempty"`
-	NodePools map[string]*pkgAmazon.NodePool `json:"nodePools,omitempty"`
+	Version   string               `json:"version,omitempty"`
+	NodePools map[string]*NodePool `json:"nodePools,omitempty"`
 }
 
 // CreateAmazonEksObjectStoreBucketProperties describes the properties of

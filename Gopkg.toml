@@ -24,8 +24,6 @@
 #   go-tests = true
 #   unused-packages = true
 
-#ignored = ["github.com/kubicorn/kubicorn*"]
-
 [[override]]
   branch = "master"
   name = "github.com/rackspace/gophercloud"
@@ -57,11 +55,6 @@
 [[override]]
   name = "github.com/gin-gonic/gin"
   branch = "master"
-
-[[constraint]]
-  name = "github.com/kubicorn/kubicorn"
-  branch = "master"
-  source = "github.com/banzaicloud/kubicorn"
 
 [[constraint]]
   name = "github.com/Masterminds/sprig"
@@ -118,10 +111,6 @@
 [[constraint]]
   name = "github.com/pkg/errors"
   version = "0.8.0"
-
-[[constraint]]
-  name = "github.com/pkg/sftp"
-  version = "1.5.0"
 
 [[constraint]]
   branch = "master"
@@ -208,10 +197,6 @@
   go-tests = true
   unused-packages = true
   non-go = true
-
-[[override]]
-  branch = "master"
-  name = "github.com/banzaicloud/kubicorn"
 
 [[constraint]]
   name = "github.com/casbin/casbin"

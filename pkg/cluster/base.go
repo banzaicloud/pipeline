@@ -22,7 +22,6 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/cluster/acsk"
 	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/dummy"
-	"github.com/banzaicloud/pipeline/pkg/cluster/ec2"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/gke"
 	"github.com/banzaicloud/pipeline/pkg/cluster/kubernetes"
@@ -61,7 +60,6 @@ const (
 // Distribution constants
 const (
 	ACSK    = "acsk"
-	EC2     = "ec2"
 	EKS     = "eks"
 	AKS     = "aks"
 	GKE     = "gke"
@@ -118,7 +116,6 @@ type CreateClusterRequest struct {
 // CreateClusterProperties contains the cluster flavor specific properties.
 type CreateClusterProperties struct {
 	CreateClusterACSK       *acsk.CreateClusterACSK             `json:"acsk,omitempty" yaml:"acsk,omitempty"`
-	CreateClusterEC2        *ec2.CreateClusterEC2               `json:"ec2,omitempty" yaml:"ec2,omitempty"`
 	CreateClusterEKS        *eks.CreateClusterEKS               `json:"eks,omitempty" yaml:"eks,omitempty"`
 	CreateClusterAKS        *aks.CreateClusterAKS               `json:"aks,omitempty" yaml:"aks,omitempty"`
 	CreateClusterGKE        *gke.CreateClusterGKE               `json:"gke,omitempty" yaml:"gke,omitempty"`
@@ -200,7 +197,6 @@ type UpdateClusterRequest struct {
 // UpdateProperties describes Pipeline's UpdateCluster request properties
 type UpdateProperties struct {
 	ACSK  *acsk.UpdateClusterACSK     `json:"acsk,omitempty"`
-	EC2   *ec2.UpdateClusterAmazon    `json:"ec2,omitempty"`
 	EKS   *eks.UpdateClusterAmazonEKS `json:"eks,omitempty"`
 	AKS   *aks.UpdateClusterAzure     `json:"aks,omitempty"`
 	GKE   *gke.UpdateClusterGoogle    `json:"gke,omitempty"`
@@ -216,21 +212,7 @@ func (r *UpdateClusterRequest) String() string { // todo expand
 		// Write AKS
 		buffer.WriteString(fmt.Sprintf("Node pools: %v", &r.AKS.NodePools))
 	} else if r.Cloud == Amazon {
-		if r.EC2 != nil {
-			// Write EC2 Node
-			for name, nodePool := range r.UpdateProperties.EC2.NodePools {
-				buffer.WriteString(fmt.Sprintf("NodePool %s Min count: %d, Max count: %d, Count: %d, Image: %s, Autoscaling: %v, InstanceType: %s, Spot price: %s",
-					name,
-					nodePool.MinCount,
-					nodePool.MaxCount,
-					nodePool.Count,
-					nodePool.Image,
-					nodePool.Autoscaling,
-					nodePool.InstanceType,
-					nodePool.SpotPrice,
-				))
-			}
-		} else if r.EKS != nil {
+		if r.EKS != nil {
 			// Write EKS Node
 			for name, nodePool := range r.UpdateProperties.EKS.NodePools {
 				buffer.WriteString(fmt.Sprintf("NodePool %s Min count: %d, Max count: %d, Count: %d, Image: %s, Autoscaling: %v, InstanceType: %s, Spot price: %s",
@@ -284,9 +266,6 @@ func (r *UpdateClusterRequest) String() string { // todo expand
 func (r *CreateClusterRequest) AddDefaults() error {
 	switch r.Cloud {
 	case Amazon:
-		if r.Properties.CreateClusterEC2 != nil {
-			return r.Properties.CreateClusterEC2.AddDefaults(r.Location)
-		}
 		return r.Properties.CreateClusterEKS.AddDefaults(r.Location)
 	case Oracle:
 		return r.Properties.CreateClusterOKE.AddDefaults()
@@ -307,11 +286,7 @@ func (r *CreateClusterRequest) Validate() error {
 		// alibaba validate
 		return r.Properties.CreateClusterACSK.Validate()
 	case Amazon:
-		// ec2 validate
-		if r.Properties.CreateClusterEC2 != nil {
-			return r.Properties.CreateClusterEC2.Validate()
-		}
-		// ec2 eks validate
+		// eks validate
 		return r.Properties.CreateClusterEKS.Validate()
 	case Azure:
 		// aks validate
@@ -354,11 +329,7 @@ func (r *UpdateClusterRequest) Validate() error {
 		// alibaba validate
 		return r.ACSK.Validate()
 	case Amazon:
-		// ec2 validate
-		if r.EC2 != nil {
-			return r.EC2.Validate()
-		}
-		// ec2 eks validate
+		// eks validate
 		return r.EKS.Validate()
 	case Azure:
 		// aks validate
@@ -384,7 +355,6 @@ func (r *UpdateClusterRequest) preValidate() {
 	switch r.Cloud {
 	case Alibaba:
 		// reset other fields
-		r.EC2 = nil
 		r.AKS = nil
 		r.GKE = nil
 		r.OKE = nil
@@ -399,20 +369,17 @@ func (r *UpdateClusterRequest) preValidate() {
 	case Azure:
 		// reset other fields
 		r.ACSK = nil
-		r.EC2 = nil
 		r.GKE = nil
 		r.OKE = nil
 		break
 	case Google:
 		// reset other fields
 		r.ACSK = nil
-		r.EC2 = nil
 		r.AKS = nil
 		r.OKE = nil
 	case Oracle:
 		// reset other fields
 		r.ACSK = nil
-		r.EC2 = nil
 		r.AKS = nil
 		r.GKE = nil
 	}
@@ -436,7 +403,6 @@ type ClusterProfileRequest struct {
 
 type ClusterProfileProperties struct {
 	ACSK *acsk.ClusterProfileACSK `json:"acsk,omitempty"`
-	EC2  *ec2.ClusterProfileEC2   `json:"ec2,omitempty"`
 	EKS  *eks.ClusterProfileEKS   `json:"eks,omitempty"`
 	AKS  *aks.ClusterProfileAKS   `json:"aks,omitempty"`
 	GKE  *gke.ClusterProfileGKE   `json:"gke,omitempty"`
@@ -590,19 +556,9 @@ func (p *ClusterProfileResponse) CreateClusterRequest(createRequest *CreateClust
 			NodePools: p.Properties.ACSK.NodePools,
 		}
 	case Amazon:
-		if response.Properties.CreateClusterEC2 != nil {
-			response.Properties.CreateClusterEC2 = &ec2.CreateClusterEC2{
-				NodePools: p.Properties.EC2.NodePools,
-				Master: &ec2.CreateAmazonMaster{
-					InstanceType: p.Properties.EC2.Master.InstanceType,
-					Image:        p.Properties.EC2.Master.Image,
-				},
-			}
-		} else {
-			response.Properties.CreateClusterEKS = &eks.CreateClusterEKS{
-				NodePools: p.Properties.EKS.NodePools,
-				Version:   p.Properties.EKS.Version,
-			}
+		response.Properties.CreateClusterEKS = &eks.CreateClusterEKS{
+			NodePools: p.Properties.EKS.NodePools,
+			Version:   p.Properties.EKS.Version,
 		}
 	case Azure:
 		a := createRequest.Properties.CreateClusterAKS
