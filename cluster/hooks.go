@@ -218,6 +218,13 @@ func InstallMonitoring(input interface{}) error {
 			},
 		},
 	}
+	if cluster.GetCloud() == pkgCluster.Alibaba {
+		prometheusVolumeSize := grafanaValues["prometheus"].(map[string]interface{})["server"].(map[string]interface{})
+		prometheusVolumeSize["persistentVolume"] = map[string]interface{}{
+			"size": "20Gi",
+		}
+		grafanaValues["prometheus"].(map[string]interface{})["server"] = prometheusVolumeSize
+	}
 	grafanaValuesJson, err := yaml.Marshal(grafanaValues)
 	if err != nil {
 		return errors.Errorf("Json Convert Failed : %s", err.Error())
@@ -559,6 +566,13 @@ func InstallIngressControllerPostHook(input interface{}) error {
 			"tolerations": getHeadNodeTolerations(),
 		},
 	}
+
+	if cluster.GetCloud() == pkgCluster.Alibaba {
+		traefikPerSize := ingressValues["traefik"].(map[string]interface{})["acme"].(map[string]interface{})["persistence"].(map[string]interface{})
+		traefikPerSize["size"] = "20Gi"
+		ingressValues["traefik"].(map[string]interface{})["acme"].(map[string]interface{})["persistence"] = traefikPerSize
+	}
+
 	ingressValuesJson, err := yaml.Marshal(ingressValues)
 	if err != nil {
 		return errors.Errorf("Json Convert Failed : %s", err.Error())
