@@ -144,6 +144,7 @@ func (s *ObjectStore) CreateBucket(bucketName string) error {
 
 	bucket.Name = bucketName
 	bucket.ResourceGroup = resourceGroup
+	bucket.StorageAccount = storageAccount
 	bucket.Organization = *s.org
 	bucket.SecretRef = s.secret.ID
 	bucket.Status = providers.BucketCreating
