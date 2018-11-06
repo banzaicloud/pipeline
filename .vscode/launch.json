@@ -9,8 +9,9 @@
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${workspaceRoot}/main.go",
+            "program": "${workspaceRoot}/cmd/pipeline/main.go",
             "env": {
+                "PIPELINE_CONFIG_DIR": "${workspaceRoot}/config",
                 "VAULT_ADDR": "http://127.0.0.1:8200"
             },
             "args": []
