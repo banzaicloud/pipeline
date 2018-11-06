@@ -53,6 +53,8 @@ type objectStore struct {
 
 	db     *gorm.DB
 	logger logrus.FieldLogger
+
+	force bool
 }
 
 // NewObjectStore returns a new object store instance.
@@ -62,6 +64,7 @@ func NewObjectStore(
 	org *auth.Organization,
 	db *gorm.DB,
 	logger logrus.FieldLogger,
+	force bool,
 ) (*objectStore, error) {
 	ostore, err := getProviderObjectStore(secret, region)
 	if err != nil {
@@ -75,6 +78,7 @@ func NewObjectStore(
 		org:         org,
 		db:          db,
 		logger:      logger,
+		force:       force,
 	}, nil
 }
 
@@ -189,7 +193,10 @@ func (s *objectStore) DeleteBucket(bucketName string) error {
 	}
 
 	if err := s.deleteFromProvider(bucket); err != nil {
-		return err
+		if !s.force {
+			// if delete is not forced return here
+			return err
+		}
 	}
 
 	db := s.db.Delete(bucket)

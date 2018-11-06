@@ -51,6 +51,7 @@ type ObjectStore struct {
 	secret         *secret.SecretItemResponse
 
 	location string
+	force    bool
 }
 
 // NewObjectStore returns a new object store instance.
@@ -60,6 +61,7 @@ func NewObjectStore(
 	location string,
 	db *gorm.DB,
 	logger logrus.FieldLogger,
+	force bool,
 ) *ObjectStore {
 	var serviceAccount *verify.ServiceAccount
 	if secret != nil {
@@ -73,6 +75,7 @@ func NewObjectStore(
 		secret:         secret,
 		serviceAccount: serviceAccount,
 		location:       location,
+		force:          force,
 	}
 }
 
@@ -177,7 +180,10 @@ func (s *ObjectStore) DeleteBucket(bucketName string) error {
 	}
 
 	if err := s.deleteFromProvider(bucket); err != nil {
-		return err
+		if !s.force {
+			// if delete is not forced return here
+			return err
+		}
 	}
 
 	db := s.db.Delete(bucket)

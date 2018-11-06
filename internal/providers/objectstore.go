@@ -41,6 +41,9 @@ type ObjectStoreContext struct {
 	// Azure specific parameters
 	ResourceGroup  string
 	StorageAccount string
+
+	// ForceOperation indicates the kind of the operation to be performed on object store
+	ForceOperation bool
 }
 
 // NewObjectStore creates an object store client for the given cloud provider.
@@ -53,16 +56,16 @@ func NewObjectStore(ctx *ObjectStoreContext, logger logrus.FieldLogger) (objects
 		return alibaba.NewObjectStore(ctx.Location, ctx.Secret, ctx.Organization), nil
 
 	case providers.Amazon:
-		return amazon.NewObjectStore(ctx.Location, ctx.Secret, ctx.Organization, db, logger)
+		return amazon.NewObjectStore(ctx.Location, ctx.Secret, ctx.Organization, db, logger, ctx.ForceOperation)
 
 	case providers.Azure:
-		return azure.NewObjectStore(ctx.Location, ctx.ResourceGroup, ctx.StorageAccount, ctx.Secret, ctx.Organization, db, logger), nil
+		return azure.NewObjectStore(ctx.Location, ctx.ResourceGroup, ctx.StorageAccount, ctx.Secret, ctx.Organization, db, logger, ctx.ForceOperation), nil
 
 	case providers.Google:
-		return google.NewObjectStore(ctx.Organization, ctx.Secret, ctx.Location, db, logger), nil
+		return google.NewObjectStore(ctx.Organization, ctx.Secret, ctx.Location, db, logger, ctx.ForceOperation), nil
 
 	case providers.Oracle:
-		return oracle.NewObjectStore(ctx.Location, ctx.Secret, ctx.Organization, db, logger), nil
+		return oracle.NewObjectStore(ctx.Location, ctx.Secret, ctx.Organization, db, logger, ctx.ForceOperation), nil
 
 	default:
 		return nil, pkgErrors.ErrorNotSupportedCloudType

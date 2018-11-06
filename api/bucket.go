@@ -381,6 +381,13 @@ func CheckBucket(c *gin.Context) {
 // DeleteBucket deletes object storage buckets (object storage container in case of Azure)
 // that can be accessed with the credentials from the given secret
 func DeleteBucket(c *gin.Context) {
+
+	const (
+		forceQueryKey = "force"
+	)
+	// is secretName requested?
+	force := c.Query(forceQueryKey) == "true"
+
 	logger := correlationid.Logger(log, c)
 
 	bucketName := c.Param("name")
@@ -400,9 +407,10 @@ func DeleteBucket(c *gin.Context) {
 	logger.Infof("deleting object store bucket")
 
 	objectStoreCtx := &providers.ObjectStoreContext{
-		Provider:     cloudType,
-		Secret:       secretItem,
-		Organization: organization,
+		Provider:       cloudType,
+		Secret:         secretItem,
+		Organization:   organization,
+		ForceOperation: force,
 	}
 
 	switch cloudType {

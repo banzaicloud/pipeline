@@ -3778,6 +3778,10 @@ paths:
                       type: string
                       enum: [amazon, google, azure]
                   required: true
+                - name: force
+                  in: query
+                  description: Is the operation forced
+                  required: false
                 - name: resourceGroup
                   in: query
                   description: Azure resource group the storage account that holds the bucket (storage container) to be deleted
