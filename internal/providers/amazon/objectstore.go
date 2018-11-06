@@ -209,7 +209,8 @@ func (s *objectStore) DeleteBucket(bucketName string) error {
 
 func (s *objectStore) deleteFromProvider(bucket *ObjectStoreBucketModel) error {
 	logger := s.getLogger().WithField("bucket", bucket.Name)
-	logger.Infof("deleting bucket %s on provider", bucket.Name)
+	logger.Info("deleting bucket on provider")
+
 	// todo the assumption here is, that a bucket in 'ERROR_CREATE' doesn't exist on the provider
 	// todo however there might be -presumably rare cases- when a bucket in 'ERROR_DELETE' that has already been deleted on the provider
 	if bucket.Status == providers.BucketCreateError {
@@ -218,21 +219,13 @@ func (s *objectStore) deleteFromProvider(bucket *ObjectStoreBucketModel) error {
 	}
 
 	bucket.Status = providers.BucketDeleting
-	db := s.db.Save(bucket)
-	if db.Error != nil {
-		return fmt.Errorf("could not update bucket: %s", bucket.Name)
+	if err := s.db.Save(bucket).Error; err != nil {
+		return errors.Wrapf(err, "could not update bucket: %s", bucket.Name)
 	}
 
 	objectStore, err := getProviderObjectStore(s.secret, bucket.Region)
 	if err != nil {
-		bucket.StatusMsg = err.Error()
-		bucket.Status = providers.BucketDeleteError
-		err := s.db.Save(bucket).Error
-		if err != nil {
-			return errors.Wrap(err, "could not create AWS object storage client")
-		}
-
-		return errors.Wrap(err, "could not create AWS object storage client")
+		return s.deleteFailed(bucket, errors.Wrap(err, "could not create AWS object storage client"))
 	}
 
 	if err := objectStore.DeleteBucket(bucket.Name); err != nil {
@@ -250,9 +243,8 @@ func (s *objectStore) deleteFromProvider(bucket *ObjectStoreBucketModel) error {
 func (s *objectStore) deleteFailed(bucket *ObjectStoreBucketModel, reason error) error {
 	bucket.Status = providers.BucketDeleteError
 	bucket.StatusMsg = reason.Error()
-	db := s.db.Save(bucket)
-	if db.Error != nil {
-		return fmt.Errorf("could not delete bucket: %s", bucket.Name)
+	if err := s.db.Save(bucket).Error; err != nil {
+		return errors.Wrapf(err, "could not delete bucket: %s", bucket.Name)
 	}
 	return nil
 }
