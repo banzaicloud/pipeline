@@ -125,7 +125,7 @@ List scans by release
  * @param releaseName release name identification
 @return ScanLogList
 */
-func (a *ScanlogApiService) ListScans_1(ctx context.Context, id int32, orgId int32, releaseName string) (ScanLogList, *http.Response, error) {
+func (a *ScanlogApiService) ListScansByRelease(ctx context.Context, id int32, orgId int32, releaseName string) (ScanLogList, *http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Get")
 		localVarPostBody     interface{}

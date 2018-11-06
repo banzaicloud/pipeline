@@ -1164,7 +1164,7 @@ paths:
                 - bearerAuth: []
             tags:
                 - scanlog
-            operationId: ListScans
+            operationId: ListScansByRelease
             summary: List scans by release
             description: List scans by release
             parameters:

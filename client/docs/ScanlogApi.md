@@ -5,7 +5,7 @@ All URIs are relative to *http://localhost:9090*
 Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**ListScans**](ScanlogApi.md#ListScans) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/scanlog | List scans
-[**ListScans_0**](ScanlogApi.md#ListScans_0) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/scanlog/{releaseName} | List scans by release
+[**ListScansByRelease**](ScanlogApi.md#ListScansByRelease) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/scanlog/{releaseName} | List scans by release
 
 
 # **ListScans**
@@ -37,8 +37,8 @@ Name | Type | Description  | Notes
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **ListScans_0**
-> ScanLogList ListScans_0(ctx, id, orgId, releaseName)
+# **ListScansByRelease**
+> ScanLogList ListScansByRelease(ctx, id, orgId, releaseName)
 List scans by release
 
 List scans by release

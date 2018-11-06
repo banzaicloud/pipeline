@@ -1275,7 +1275,7 @@ paths:
   /api/v1/orgs/{orgId}/clusters/{id}/scanlog/{releaseName}:
     get:
       description: List scans by release
-      operationId: ListScans
+      operationId: ListScansByRelease
       parameters:
       - description: Selected cluster identification (number)
         explode: false
