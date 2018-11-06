@@ -75,6 +75,7 @@ func GetScanLog(c *gin.Context) {
 	if securityClientSet == nil {
 		return
 	}
+	releaseName := c.Param("releaseName")
 
 	audits, err := securityClientSet.Audits(metav1.NamespaceAll).List(metav1.ListOptions{})
 	if err != nil {
@@ -98,7 +99,11 @@ func GetScanLog(c *gin.Context) {
 			Image:       audit.Spec.Image,
 			Result:      audit.Spec.Result,
 		}
-		scanLogList = append(scanLogList, scanLog)
+		if len(releaseName) == 0 {
+			scanLogList = append(scanLogList, scanLog)
+		} else if audit.Spec.ReleaseName == releaseName {
+			scanLogList = append(scanLogList, scanLog)
+		}
 	}
 
 	c.JSON(http.StatusOK, scanLogList)
