@@ -440,9 +440,10 @@ func getHeadNodeAffinity(cluster CommonCluster) v1.Affinity {
 	}
 	return v1.Affinity{
 		NodeAffinity: &v1.NodeAffinity{
-			RequiredDuringSchedulingIgnoredDuringExecution: &v1.NodeSelector{
-				NodeSelectorTerms: []v1.NodeSelectorTerm{
-					{
+			PreferredDuringSchedulingIgnoredDuringExecution: []v1.PreferredSchedulingTerm{
+				{
+					Weight: 100,
+					Preference: v1.NodeSelectorTerm{
 						MatchExpressions: []v1.NodeSelectorRequirement{
 							{
 								Key:      pkgCommon.LabelKey,
