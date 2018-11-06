@@ -99,9 +99,7 @@ func GetScanLog(c *gin.Context) {
 			Image:       audit.Spec.Image,
 			Result:      audit.Spec.Result,
 		}
-		if len(releaseName) == 0 {
-			scanLogList = append(scanLogList, scanLog)
-		} else if audit.Spec.ReleaseName == releaseName {
+		if len(releaseName) == 0 || audit.Spec.ReleaseName == releaseName {
 			scanLogList = append(scanLogList, scanLog)
 		}
 	}
