@@ -17,6 +17,7 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/Azure/azure-storage-blob-go/2016-05-31/azblob"
@@ -385,8 +386,8 @@ func DeleteBucket(c *gin.Context) {
 	const (
 		forceQueryKey = "force"
 	)
-	// is secretName requested?
-	force := c.Query(forceQueryKey) == "true"
+
+	force, _ := strconv.ParseBool(c.Query(forceQueryKey))
 
 	logger := correlationid.Logger(log, c)
 
