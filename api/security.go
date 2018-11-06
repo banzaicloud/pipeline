@@ -25,6 +25,7 @@ import (
 
 	"github.com/banzaicloud/anchore-image-validator/pkg/apis/security/v1alpha1"
 	clientV1alpha1 "github.com/banzaicloud/anchore-image-validator/pkg/clientset/v1alpha1"
+	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/internal/security"
 	pkgCommmon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
@@ -183,9 +184,7 @@ func CreateWhiteList(c *gin.Context) {
 		})
 		return
 	}
-
-	c.JSON(http.StatusOK, "created")
-
+	c.Status(http.StatusCreated)
 }
 
 // DeleteWhiteList deletes a whitelist
@@ -406,6 +405,20 @@ func GetImageDeployments(c *gin.Context) {
 	if !ok {
 		return
 	}
+
+	// Get active helm deployments
+	log.Info("Get deployments")
+	activeReleases, err := helm.ListDeployments(nil, c.Query("tag"), kubeConfig)
+	if err != nil {
+		log.Error("Error listing deployments: ", err.Error())
+		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error listing deployments",
+			Error:   err.Error(),
+		})
+		return
+	}
+
 	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
 		log.Errorf("Error getting K8s config: %s", err.Error())
@@ -443,12 +456,9 @@ func GetImageDeployments(c *gin.Context) {
 			}
 		}
 	}
-	var releaseList []string
-	for k := range releaseMap {
-		releaseList = append(releaseList, k)
-	}
+	releases := ListHelmReleases(c, activeReleases, releaseMap)
 
-	c.JSON(http.StatusOK, releaseList)
+	c.JSON(http.StatusOK, releases)
 }
 
 func getImageDigest(imageID string) string {
@@ -458,4 +468,23 @@ func getImageDigest(imageID string) string {
 		return image[1]
 	}
 	return ""
+}
+
+// GetWhitelistSet will return a WhitelistSet
+func GetWhitelistSet(c *gin.Context) (map[string]bool, bool) {
+	securityClientSet := getSecurityClient(c)
+	releaseWhitelist := make(map[string]bool)
+	if securityClientSet == nil {
+		return releaseWhitelist, false
+	}
+	whitelists, err := securityClientSet.Whitelists(metav1.NamespaceAll).List(metav1.ListOptions{})
+	if err != nil {
+		log.Warnf("can not fetch WhiteList: %s", err.Error())
+		return releaseWhitelist, false
+	}
+	for _, whitelist := range whitelists.Items {
+		releaseWhitelist[whitelist.Spec.ReleaseName] = true
+	}
+	log.Debugf("Whitelist set: %#v", releaseWhitelist)
+	return releaseWhitelist, true
 }

@@ -29,9 +29,9 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/helm/pkg/helm/environment"
 	"k8s.io/helm/pkg/proto/hapi/release"
+	rls "k8s.io/helm/pkg/proto/hapi/services"
 	"k8s.io/helm/pkg/repo"
 )
 
@@ -153,53 +153,8 @@ func ListDeployments(c *gin.Context) {
 			}
 		}
 	}
+	releases := ListHelmReleases(c, response, supportedCharts)
 
-	// Create WhiteList set
-	securityClientSet := getSecurityClient(c)
-	releaseWhitelist := make(map[string]bool)
-	if securityClientSet == nil {
-		log.Errorf("can't get security clientset: %s", err)
-	} else {
-		whitelists, err := securityClientSet.Whitelists(metav1.NamespaceAll).List(metav1.ListOptions{})
-		if err != nil {
-			log.Warnf("can not fetch WhiteList: %s", err.Error())
-		} else {
-			for _, whitelist := range whitelists.Items {
-				releaseWhitelist[whitelist.Spec.ReleaseName] = true
-			}
-		}
-	}
-	log.Debugf("Whitelist set: %#v", releaseWhitelist)
-
-	releases := []pkgHelm.ListDeploymentResponse{}
-	if response != nil && len(response.Releases) > 0 {
-		for _, r := range response.Releases {
-
-			createdAt := time.Unix(r.Info.FirstDeployed.Seconds, 0)
-			updated := time.Unix(r.Info.LastDeployed.Seconds, 0)
-			chartName := r.GetChart().GetMetadata().GetName()
-
-			body := pkgHelm.ListDeploymentResponse{
-				Name:         r.Name,
-				Chart:        helm.GetVersionedChartName(r.Chart.Metadata.Name, r.Chart.Metadata.Version),
-				ChartName:    chartName,
-				ChartVersion: r.GetChart().GetMetadata().GetVersion(),
-				Version:      r.Version,
-				UpdatedAt:    updated,
-				Status:       r.Info.Status.Code.String(),
-				Namespace:    r.Namespace,
-				CreatedAt:    createdAt,
-				Supported:    supportedCharts[chartName] != nil,
-			}
-			//Add WhiteListed flag if present
-			if _, ok := releaseWhitelist[r.Name]; ok {
-				body.WhiteListed = ok
-			}
-			releases = append(releases, body)
-		}
-	} else {
-		log.Info("There are no installed charts.")
-	}
 	c.JSON(http.StatusOK, releases)
 	return
 }
@@ -777,4 +732,56 @@ func sendResponseWithRepo(c *gin.Context, helmEnv environment.EnvSettings, repoN
 		Code:    http.StatusNotFound,
 		Message: "Helm repo not found",
 	})
+}
+
+// ListHelmReleases list helm releases
+func ListHelmReleases(c *gin.Context, response *rls.ListReleasesResponse, optparam interface{}) []pkgHelm.ListDeploymentResponse {
+
+	// Get WhiteList set
+	releaseWhitelist, ok := GetWhitelistSet(c)
+	if !ok {
+		log.Warnf("whitelist data is not valid: %#v", releaseWhitelist)
+	}
+
+	releases := make([]pkgHelm.ListDeploymentResponse, 0)
+	if response != nil && len(response.Releases) > 0 {
+		for _, r := range response.Releases {
+
+			createdAt := time.Unix(r.Info.FirstDeployed.Seconds, 0)
+			updated := time.Unix(r.Info.LastDeployed.Seconds, 0)
+			chartName := r.GetChart().GetMetadata().GetName()
+
+			body := pkgHelm.ListDeploymentResponse{
+				Name:         r.Name,
+				Chart:        helm.GetVersionedChartName(r.Chart.Metadata.Name, r.Chart.Metadata.Version),
+				ChartName:    chartName,
+				ChartVersion: r.GetChart().GetMetadata().GetVersion(),
+				Version:      r.Version,
+				UpdatedAt:    updated,
+				Status:       r.Info.Status.Code.String(),
+				Namespace:    r.Namespace,
+				CreatedAt:    createdAt,
+			}
+			optparamType := fmt.Sprintf("%T", optparam)
+			if optparamType == "map[string]repo.ChartVersions" {
+				supportedCharts := optparam.(map[string]repo.ChartVersions)
+				body.Supported = supportedCharts[chartName] != nil
+			}
+			//Add WhiteListed flag if present
+			if _, ok := releaseWhitelist[r.Name]; ok {
+				body.WhiteListed = ok
+			}
+			if optparamType == "map[string]bool" {
+				releaseMap := optparam.(map[string]bool)
+				if ok := releaseMap[r.Name]; ok {
+					releases = append(releases, body)
+				}
+			} else {
+				releases = append(releases, body)
+			}
+		}
+	} else {
+		log.Info("There are no installed charts.")
+	}
+	return releases
 }
