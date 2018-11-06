@@ -409,12 +409,12 @@ func (s *ObjectStore) DeleteBucket(bucketName string) error {
 
 func (s *ObjectStore) deleteFromProvider(bucket *ObjectStoreBucketModel) error {
 	logger := s.getLogger(bucket.Name)
-	logger.Info("deleting bucket %s on provider", bucket.Name)
+	logger.Info("deleting bucket on provider")
 
 	// todo the assumption here is, that a bucket in 'ERROR_CREATE' doesn't exist on the provider
 	// todo however there might be -presumably rare cases- when a bucket in 'ERROR_DELETE' that has already been deleted on the provider
 	if bucket.Status == providers.BucketCreateError {
-		logger.Debugf("bucket %s doesn't exist on provider")
+		logger.Debug("bucket doesn't exist on provider")
 		return nil
 	}
 

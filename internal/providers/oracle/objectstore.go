@@ -17,6 +17,7 @@ package oracle
 import (
 	"fmt"
 
+	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 	"github.com/oracle/oci-go-sdk/common"
 	"github.com/pkg/errors"
@@ -289,7 +290,7 @@ func (o *ObjectStore) deleteFailed(bucket *ObjectStoreBucketModel, reason error)
 	bucket.StatusMsg = reason.Error()
 	db := o.db.Save(bucket)
 	if db.Error != nil {
-		return fmt.Errorf("could not delete bucket: %s", bucket.Name)
+		return emperror.With(db.Error, "could not delete bucket", bucket.Name)
 	}
 	return nil
 }

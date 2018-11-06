@@ -27,6 +27,7 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/gin-gonic/gin/json"
+	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -172,7 +173,7 @@ func (s *ObjectStore) DeleteBucket(bucketName string) error {
 	bucket := &ObjectStoreBucketModel{}
 	searchCriteria := s.searchCriteria(bucketName)
 
-	logger.Infof("looking up the bucket %s", bucketName)
+	logger.Info("looking up the bucket")
 	if err := s.db.Where(searchCriteria).Find(bucket).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return bucketNotFoundError{}
@@ -196,19 +197,19 @@ func (s *ObjectStore) DeleteBucket(bucketName string) error {
 
 func (s *ObjectStore) deleteFromProvider(bucket *ObjectStoreBucketModel) error {
 	logger := s.getLogger(bucket.Name)
-	logger.Info("deleting bucket %s on provider", bucket.Name)
+	logger.Info("deleting bucket on provider")
 
 	// todo the assumption here is, that a bucket in 'ERROR_CREATE' doesn't exist on the provider
 	// todo however there might be -presumably rare cases- when a bucket in 'ERROR_DELETE' that has already been deleted on the provider
 	if bucket.Status == providers.BucketCreateError {
-		logger.Debugf("bucket %s doesn't exist on provider")
+		logger.Debug("bucket doesn't exist on provider")
 		return nil
 	}
 
 	bucket.Status = providers.BucketDeleting
 	db := s.db.Save(bucket)
 	if db.Error != nil {
-		return fmt.Errorf("could not update bucket: %s", bucket.Name)
+		return emperror.With(db.Error, "could not update bucket", bucket.Name)
 	}
 
 	logger.Info("getting credentials")
@@ -236,7 +237,6 @@ func (s *ObjectStore) deleteFromProvider(bucket *ObjectStoreBucketModel) error {
 	}
 
 	return nil
-
 }
 
 // CheckBucket checks the status of the given Google bucket.

@@ -42,7 +42,7 @@ type ObjectStoreContext struct {
 	ResourceGroup  string
 	StorageAccount string
 
-	// ForceOperation indicates the kind of the operation to be performed on object store
+	// ForceOperation indicates whether the operation needs to be executed forcibly (some errors are ignored)
 	ForceOperation bool
 }
 

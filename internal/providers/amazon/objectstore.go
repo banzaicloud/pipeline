@@ -20,6 +20,7 @@ import (
 	"strings"
 
 	"github.com/banzaicloud/pipeline/pkg/providers"
+	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -184,7 +185,7 @@ func (s *objectStore) DeleteBucket(bucketName string) error {
 	bucket := &ObjectStoreBucketModel{}
 	searchCriteria := s.searchCriteria(bucketName)
 
-	logger.Infof("looking up bucket %s", bucketName)
+	logger.Info("looking up bucket")
 
 	if err := s.db.Where(searchCriteria).Find(bucket).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -220,7 +221,7 @@ func (s *objectStore) deleteFromProvider(bucket *ObjectStoreBucketModel) error {
 
 	bucket.Status = providers.BucketDeleting
 	if err := s.db.Save(bucket).Error; err != nil {
-		return errors.Wrapf(err, "could not update bucket: %s", bucket.Name)
+		return emperror.With(err, "could not update bucket")
 	}
 
 	objectStore, err := getProviderObjectStore(s.secret, bucket.Region)
@@ -244,7 +245,7 @@ func (s *objectStore) deleteFailed(bucket *ObjectStoreBucketModel, reason error)
 	bucket.Status = providers.BucketDeleteError
 	bucket.StatusMsg = reason.Error()
 	if err := s.db.Save(bucket).Error; err != nil {
-		return errors.Wrapf(err, "could not delete bucket: %s", bucket.Name)
+		return emperror.With(err, "could not delete bucket")
 	}
 	return nil
 }
