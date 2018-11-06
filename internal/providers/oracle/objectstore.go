@@ -221,53 +221,70 @@ func (o *ObjectStore) DeleteBucket(name string) error {
 		return err
 	}
 
+	if err := o.deleteFromProvider(bucket); err != nil {
+		return err
+	}
+
+	if err := o.deleteBucketFromDB(bucket); err != nil {
+		return o.deleteFailed(bucket, err)
+	}
+
+	return nil
+}
+
+func (o *ObjectStore) deleteFromProvider(bucket *ObjectStoreBucketModel) error {
+
+	logger := o.getLogger().WithField("bucket", bucket.Name)
+	// todo the assumption here is, that a bucket in 'ERROR_CREATE' doesn't exist on the provider
+	// todo however there might be -presumably rare cases- when a bucket in 'ERROR_DELETE' that has already been deleted on the provider
+	if bucket.Status == providers.BucketCreateError {
+		logger.Debugf("bucket %s doesn't exist on provider")
+		return nil
+	}
+
 	bucket.Status = providers.BucketDeleting
-	if err = o.persistBucketToDB(bucket); err != nil {
+	if err := o.persistBucketToDB(bucket); err != nil {
 		return errors.Wrap(err, "could not persist bucket state")
+	}
+
+	logger.Debug("Initializing OCI client")
+	oci, err := oci.NewOCI(osecret.CreateOCICredential(o.secret.Values))
+	if err != nil {
+		logger.Errorf("OCI client initialization failed: %s", err.Error())
+		return o.deleteFailed(bucket, err)
 	}
 
 	err = oci.ChangeRegion(o.location)
 	if err != nil {
-		bucket.Status = providers.BucketDeleteError
-		bucket.StatusMsg = err.Error()
-		if err = o.persistBucketToDB(bucket); err != nil {
-			return errors.Wrap(err, "could not persist bucket state")
-		}
-
 		logger.Errorf("Changing region failed: %s", err.Error())
-		return err
+		return o.deleteFailed(bucket, err)
 	}
 
 	client, err := oci.NewObjectStorageClient()
 	if err != nil {
-		bucket.Status = providers.BucketDeleteError
-		bucket.StatusMsg = err.Error()
-		if err = o.persistBucketToDB(bucket); err != nil {
-			return errors.Wrap(err, "could not persist bucket state")
-		}
 		logger.Errorf("Creating object storage client failed: %s", err.Error())
-		return err
+		return o.deleteFailed(bucket, err)
 	}
 
-	if err := client.DeleteBucket(name); err != nil {
-		bucket.Status = providers.BucketDeleteError
-		bucket.StatusMsg = err.Error()
-		if err = o.persistBucketToDB(bucket); err != nil {
-			return errors.Wrap(err, "could not persist bucket state")
-		}
-		return err
+	if err := client.DeleteBucket(bucket.Name); err != nil {
+		return o.deleteFailed(bucket, err)
 	}
 
 	if err = o.deleteBucketFromDB(bucket); err != nil {
-		bucket.Status = providers.BucketDeleteError
-		bucket.StatusMsg = err.Error()
-		if err = o.persistBucketToDB(bucket); err != nil {
-			return errors.Wrap(err, "could not persist bucket state")
-		}
 		logger.Errorf("Deleting managed Oracle bucket from database failed: %s", err.Error())
-		return err
+		return o.deleteFailed(bucket, err)
 	}
 
+	return nil
+}
+
+func (o *ObjectStore) deleteFailed(bucket *ObjectStoreBucketModel, reason error) error {
+	bucket.Status = providers.BucketDeleteError
+	bucket.StatusMsg = reason.Error()
+	db := o.db.Save(bucket)
+	if db.Error != nil {
+		return fmt.Errorf("could not delete bucket: %s", bucket.Name)
+	}
 	return nil
 }
 

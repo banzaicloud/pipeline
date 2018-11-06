@@ -373,15 +373,13 @@ func (s *ObjectStore) createStorageAccount(resourceGroup string, storageAccount 
 // DeleteBucket deletes the Azure storage container identified by the specified name
 // under the current resource group, storage account provided the storage container is of 'managed' type.
 func (s *ObjectStore) DeleteBucket(bucketName string) error {
-	resourceGroup := s.getResourceGroup()
-	storageAccount := s.getStorageAccount()
 
 	logger := s.getLogger(bucketName)
 
 	bucket := &ObjectStoreBucketModel{}
 	searchCriteria := s.searchCriteria(bucketName)
 
-	logger.Info("looking for bucket")
+	logger.Infof("looking up the bucket %s", bucketName)
 
 	if err := s.db.Where(searchCriteria).Find(bucket).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -389,32 +387,51 @@ func (s *ObjectStore) DeleteBucket(bucketName string) error {
 		}
 	}
 
-	bucket.Status = providers.BucketDeleting
-	if err := s.db.Save(bucket).Error; err != nil {
-		return errors.Wrapf(err, "could not save/update bucket: %s", bucketName)
+	if err := s.deleteFromProvider(bucket); err != nil {
+		return err
 	}
 
-	key, err := GetStorageAccountKey(resourceGroup, storageAccount, s.secret, s.logger)
+	db := s.db.Delete(bucket)
+	if db.Error != nil {
+		return s.deleteFailed(logger, db.Error.Error(), db.Error, bucket)
+	}
+
+	return nil
+
+}
+
+func (s *ObjectStore) deleteFromProvider(bucket *ObjectStoreBucketModel) error {
+	logger := s.getLogger(bucket.Name)
+	logger.Info("deleting bucket %s on provider", bucket.Name)
+
+	// todo the assumption here is, that a bucket in 'ERROR_CREATE' doesn't exist on the provider
+	// todo however there might be -presumably rare cases- when a bucket in 'ERROR_DELETE' that has already been deleted on the provider
+	if bucket.Status == providers.BucketCreateError {
+		logger.Debugf("bucket %s doesn't exist on provider")
+		return nil
+	}
+
+	bucket.Status = providers.BucketDeleting
+	db := s.db.Save(bucket)
+	if db.Error != nil {
+		return fmt.Errorf("could not update bucket: %s", bucket.Name)
+	}
+
+	key, err := GetStorageAccountKey(s.getResourceGroup(), s.getStorageAccount(), s.secret, s.logger)
 	if err != nil {
 		return s.deleteFailed(logger, "could not get account key", err, bucket)
 	}
 
-	p := azblob.NewPipeline(azblob.NewSharedKeyCredential(storageAccount, key), azblob.PipelineOptions{})
-	URL, _ := url.Parse(fmt.Sprintf("https://%s.blob.core.windows.net/%s", storageAccount, bucketName))
+	p := azblob.NewPipeline(azblob.NewSharedKeyCredential(s.getStorageAccount(), key), azblob.PipelineOptions{})
+	URL, _ := url.Parse(fmt.Sprintf("https://%s.blob.core.windows.net/%s", s.getStorageAccount(), bucket.Name))
 	containerURL := azblob.NewContainerURL(*URL, p)
 
-	_, err = containerURL.Delete(context.TODO(), azblob.ContainerAccessConditions{})
-
-	if err != nil {
+	if _, err = containerURL.Delete(context.TODO(), azblob.ContainerAccessConditions{}); err != nil {
 		return s.deleteFailed(logger, "could not delete container", err, bucket)
 	}
 
-	err = s.db.Delete(bucket).Error
-	if err != nil {
-		return fmt.Errorf("deleting bucket failed: %s", err.Error())
-	}
-
 	return nil
+
 }
 
 // CheckBucket checks the status of the given Azure blob.
