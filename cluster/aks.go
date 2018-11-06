@@ -600,6 +600,7 @@ func (c *AKSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 			Name:              c.modelCluster.Name,
 			Id:                c.modelCluster.ID,
 			Location:          c.modelCluster.Location,
+			MasterVersion:     c.modelCluster.AKS.KubernetesVersion,
 			NodePools:         nodePools,
 			Status:            c.modelCluster.Status,
 		}, nil
