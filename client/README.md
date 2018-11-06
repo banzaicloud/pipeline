@@ -99,6 +99,7 @@ Class | Method | HTTP request | Description
 *ProfilesApi* | [**UpdateProfiles**](docs/ProfilesApi.md#updateprofiles) | **Put** /api/v1/orgs/{orgId}/profiles/cluster | Update cluster profiles
 *ProjectsApi* | [**GetProjects**](docs/ProjectsApi.md#getprojects) | **Get** /api/v1/orgs/{orgId}/google/projects | Retrieves projects visible for the user identified by the secret id
 *ScanlogApi* | [**ListScans**](docs/ScanlogApi.md#listscans) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/scanlog | List scans
+*ScanlogApi* | [**ListScans_0**](docs/ScanlogApi.md#listscans_0) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/scanlog/{releaseName} | List scans by release
 *SecretsApi* | [**AddSecrets**](docs/SecretsApi.md#addsecrets) | **Post** /api/v1/orgs/{orgId}/secrets | Add secrets
 *SecretsApi* | [**AllowedSecretsTypes**](docs/SecretsApi.md#allowedsecretstypes) | **Get** /api/v1/allowed/secrets | List allowed secret types
 *SecretsApi* | [**AllowedSecretsTypesKeys**](docs/SecretsApi.md#allowedsecretstypeskeys) | **Get** /api/v1/allowed/secrets/{type} | List required keys
