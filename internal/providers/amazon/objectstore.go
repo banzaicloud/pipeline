@@ -184,7 +184,7 @@ func (s *objectStore) DeleteBucket(bucketName string) error {
 	bucket := &ObjectStoreBucketModel{}
 	searchCriteria := s.searchCriteria(bucketName)
 
-	logger.Info("looking up bucket %s", bucketName)
+	logger.Infof("looking up bucket %s", bucketName)
 
 	if err := s.db.Where(searchCriteria).Find(bucket).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -209,11 +209,11 @@ func (s *objectStore) DeleteBucket(bucketName string) error {
 
 func (s *objectStore) deleteFromProvider(bucket *ObjectStoreBucketModel) error {
 	logger := s.getLogger().WithField("bucket", bucket.Name)
-	logger.Info("deleting bucket %s on provider", bucket.Name)
+	logger.Infof("deleting bucket %s on provider", bucket.Name)
 	// todo the assumption here is, that a bucket in 'ERROR_CREATE' doesn't exist on the provider
 	// todo however there might be -presumably rare cases- when a bucket in 'ERROR_DELETE' that has already been deleted on the provider
 	if bucket.Status == providers.BucketCreateError {
-		logger.Debugf("bucket %s doesn't exist on provider")
+		logger.Debug("bucket doesn't exist on provider")
 		return nil
 	}
 
