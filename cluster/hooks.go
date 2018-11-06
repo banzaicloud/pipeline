@@ -683,7 +683,7 @@ func InstallKubernetesDashboardPostHook(input interface{}) error {
 
 	}
 
-	return installDeployment(cluster, k8sDashboardNameSpace, pkgHelm.StableRepository+"/kubernetes-dashboard", k8sDashboardReleaseName, valuesJson, "InstallKubernetesDashboard", "")
+	return installDeployment(cluster, k8sDashboardNameSpace, pkgHelm.BanzaiRepository+"/kubernetes-dashboard", k8sDashboardReleaseName, valuesJson, "InstallKubernetesDashboard", "")
 
 }
 
