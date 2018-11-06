@@ -21,6 +21,7 @@ import (
 
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/go-errors/errors"
+	"github.com/goph/emperror"
 	"github.com/oracle/oci-go-sdk/common"
 	"github.com/oracle/oci-go-sdk/containerengine"
 	"github.com/spf13/viper"
@@ -95,7 +96,7 @@ func (ce *ContainerEngine) DeleteCluster(request containerengine.DeleteClusterRe
 }
 
 // GetCluster gets a Cluster by id
-func (ce *ContainerEngine) GetCluster(id *string) (cluster containerengine.Cluster, err error) {
+func (ce *ContainerEngine) GetClusterByID(id *string) (cluster containerengine.Cluster, err error) {
 
 	response, err := ce.client.GetCluster(context.Background(), containerengine.GetClusterRequest{
 		ClusterId: id,
@@ -116,7 +117,11 @@ func (ce *ContainerEngine) GetClusterByName(name string) (cluster containerengin
 	}
 
 	if len(clusters) < 1 {
-		return cluster, err
+		return cluster, &servicefailure{
+			StatusCode: 404,
+			Code:       "NotAuthorizedOrNotFound",
+			Message:    "Authorization failed or requested resource not found",
+		}
 	}
 
 	return clusters[0], nil
@@ -124,6 +129,10 @@ func (ce *ContainerEngine) GetClusterByName(name string) (cluster containerengin
 
 // GetClustersByName gets all Clusters by name within a Compartment
 func (ce *ContainerEngine) GetClustersByName(name string) (clusters []containerengine.ClusterSummary, err error) {
+
+	if name == "" {
+		return clusters, errors.New("cluster name must not be empty")
+	}
 
 	request := containerengine.ListClustersRequest{
 		CompartmentId: common.String(ce.CompartmentOCID),
@@ -175,8 +184,9 @@ func (ce *ContainerEngine) GetClusters() (clusters []containerengine.ClusterSumm
 	return clusters, err
 }
 
-// WaitingForClusterNodePoolActiveState waits until every node in the pool is in ACTIVE state
-func (ce *ContainerEngine) WaitingForClusterNodePoolActiveState(clusterID *string) error {
+// WaitingForClusterNodePoolActiveState waits until every node in the existing pools is in ACTIVE state
+// only checks node pools specified in nodepoolNamesToCheck if any
+func (ce *ContainerEngine) WaitingForClusterNodePoolActiveState(clusterID *string, nodepoolNamesToCheck map[string]bool) error {
 
 	ce.oci.logger.Info("Waiting for all nodepools state to be ACTIVE on all nodes")
 
@@ -192,10 +202,14 @@ func (ce *ContainerEngine) WaitingForClusterNodePoolActiveState(clusterID *strin
 			return err
 		}
 
-		ok := true
+		ok := false
 		for _, np := range nodePools {
-			if !ce.IsNodePoolActive(np.Id) {
-				ok = false
+			if len(nodepoolNamesToCheck) > 0 && !nodepoolNamesToCheck[*np.Name] {
+				continue
+			}
+			ok, err = ce.IsNodePoolActive(np.Id)
+			if err != nil {
+				return emperror.WrapWith(err, fmt.Sprintf("error in nodepool %s", *np.Name), "nodepool", *np.Name)
 			}
 		}
 

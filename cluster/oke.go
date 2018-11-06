@@ -94,12 +94,7 @@ func (o *OKECluster) CreateCluster() error {
 		return err
 	}
 
-	err = cm.ManageOKECluster(&o.modelCluster.OKE)
-	if err != nil {
-		return errors.Wrap(err, "error creating cluster")
-	}
-
-	return nil
+	return cm.ManageOKECluster(&o.modelCluster.OKE)
 }
 
 // UpdateCluster updates the cluster
@@ -115,6 +110,7 @@ func (o *OKECluster) UpdateCluster(r *pkgCluster.UpdateClusterRequest, userId ui
 	if err != nil {
 		return err
 	}
+	o.modelCluster.OKE = model
 
 	cm, err := o.GetClusterManager()
 	if err != nil {
@@ -281,7 +277,7 @@ func (o *OKECluster) GetAPIEndpoint() (string, error) {
 		return o.APIEndpoint, err
 	}
 
-	cluster, err := ce.GetCluster(&o.modelCluster.OKE.OCID)
+	cluster, err := ce.GetClusterByID(&o.modelCluster.OKE.OCID)
 	if err != nil {
 		return o.APIEndpoint, err
 	}
@@ -360,7 +356,7 @@ func (o *OKECluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 		return nil, err
 	}
 
-	cluster, err := ce.GetCluster(&o.modelCluster.OKE.OCID)
+	cluster, err := ce.GetClusterByID(&o.modelCluster.OKE.OCID)
 	if err != nil {
 		return nil, err
 	}
@@ -408,7 +404,16 @@ func (o *OKECluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) 
 		return err
 	}
 
-	return cm.ValidateModel(&o.modelCluster.OKE)
+	err = cm.ValidateModel(&o.modelCluster.OKE)
+	if err != nil {
+		deleteError := o.DeletePreconfiguredVCN(o.modelCluster.OKE.VCNID)
+		if deleteError != nil {
+			err = errors.Wrap(deleteError, err.Error())
+		}
+		return err
+	}
+
+	return nil
 }
 
 // GetSecretWithValidation returns secret from vault

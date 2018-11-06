@@ -35,11 +35,14 @@ func (cm *ClusterManager) SyncNodePools(clusterModel *model.Cluster) error {
 	}
 
 	waitForChange := false
+	nodepoolNamesToCheck := make(map[string]bool, 0)
 	for _, np := range nodePools {
+		if !np.Delete {
+			nodepoolNamesToCheck[np.Name] = true
+		}
 		if waitForChange == false && !np.Delete {
 			waitForChange = true
 		}
-
 		if np.Add {
 			if err := cm.AddNodePool(clusterModel, np); err != nil {
 				return err
@@ -53,7 +56,7 @@ func (cm *ClusterManager) SyncNodePools(clusterModel *model.Cluster) error {
 
 	// waiting for add/update operations to finish
 	if waitForChange {
-		err = ce.WaitingForClusterNodePoolActiveState(&clusterModel.OCID)
+		err = ce.WaitingForClusterNodePoolActiveState(&clusterModel.OCID, nodepoolNamesToCheck)
 		if err != nil {
 			return err
 		}
@@ -72,7 +75,7 @@ func (cm *ClusterManager) SyncNodePools(clusterModel *model.Cluster) error {
 	}
 
 	if waitForDelete {
-		err = ce.WaitingForClusterNodePoolActiveState(&clusterModel.OCID)
+		err = ce.WaitingForClusterNodePoolActiveState(&clusterModel.OCID, make(map[string]bool, 0))
 		if err != nil {
 			return err
 		}
