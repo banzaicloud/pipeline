@@ -42,6 +42,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
+	"k8s.io/api/core/v1"
+	apiErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/helm/pkg/chartutil"
@@ -367,28 +369,10 @@ func CreateDeployment(chartName, chartVersion string, chartPackage []byte, names
 	}
 
 	if !dryRun && odPcts != nil {
-		// if resource doesn't exist in the template
 		if len(releaseName) == 0 {
 			return nil, fmt.Errorf("release name cannot be empty when setting on-demand percentages")
 		}
-		client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
-		if err != nil {
-			return nil, err
-		}
-		pipelineSystemNamespace := viper.GetString(config.PipelineSystemNamespace)
-
-		// if configmap doesn't exist
-		configmap, err := client.CoreV1().ConfigMaps(pipelineSystemNamespace).Get(common.SpotConfigMapKey, metav1.GetOptions{})
-		if err != nil {
-			return nil, err
-		}
-		if configmap.Data == nil {
-			configmap.Data = make(map[string]string)
-		}
-		for res, pct := range odPcts {
-			configmap.Data[releaseName+"."+res] = fmt.Sprintf("%d", pct)
-		}
-		_, err = client.CoreV1().ConfigMaps(pipelineSystemNamespace).Update(configmap)
+		err = updateSpotConfigMap(kubeConfig, odPcts, releaseName)
 		if err != nil {
 			return nil, err
 		}
@@ -419,6 +403,42 @@ func CreateDeployment(chartName, chartVersion string, chartPackage []byte, names
 		return nil, fmt.Errorf("Error deploying chart: %v", err)
 	}
 	return installRes, nil
+}
+
+func updateSpotConfigMap(kubeConfig []byte, odPcts map[string]int, releaseName string) error {
+	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
+	if err != nil {
+		return err
+	}
+	pipelineSystemNamespace := viper.GetString(config.PipelineSystemNamespace)
+	configmap, err := client.CoreV1().ConfigMaps(pipelineSystemNamespace).Get(common.SpotConfigMapKey, metav1.GetOptions{})
+	if err != nil {
+		if apiErrors.IsNotFound(err) {
+			configmap, err = client.CoreV1().ConfigMaps(pipelineSystemNamespace).Create(&v1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: common.SpotConfigMapKey,
+				},
+				Data: make(map[string]string),
+			})
+			if err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	}
+
+	if configmap.Data == nil {
+		configmap.Data = make(map[string]string)
+	}
+	for res, pct := range odPcts {
+		configmap.Data[releaseName+"."+res] = fmt.Sprintf("%d", pct)
+	}
+	_, err = client.CoreV1().ConfigMaps(pipelineSystemNamespace).Update(configmap)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 //DeleteDeployment deletes a Helm deployment

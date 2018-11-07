@@ -456,7 +456,6 @@ type parsedDeploymentRequest struct {
 	organizationName      string
 	dryRun                bool
 	odPcts                map[string]int
-	// TODO: validate - 1. if odPcts are set, deploymentName must be set // if dryRun is set, odPcts shouldn't be set // map keys should match resource names in helm template
 }
 
 func parseCreateUpdateDeploymentRequest(c *gin.Context, commonCluster cluster.CommonCluster) (*parsedDeploymentRequest, error) {

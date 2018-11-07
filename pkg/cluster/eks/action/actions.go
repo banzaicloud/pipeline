@@ -550,18 +550,18 @@ func (a *CreateEksClusterAction) waitUntilClusterCreateCompleteWithContext(ctx a
 		Delay:       request.ConstantWaiterDelay(30 * time.Second),
 		Acceptors: []request.WaiterAcceptor{
 			{
-				State:    request.SuccessWaiterState,
-				Matcher:  request.PathAnyWaiterMatch, Argument: "Cluster.Status",
+				State:   request.SuccessWaiterState,
+				Matcher: request.PathAnyWaiterMatch, Argument: "Cluster.Status",
 				Expected: eks.ClusterStatusActive,
 			},
 			{
-				State:    request.FailureWaiterState,
-				Matcher:  request.PathAnyWaiterMatch, Argument: "Cluster.Status",
+				State:   request.FailureWaiterState,
+				Matcher: request.PathAnyWaiterMatch, Argument: "Cluster.Status",
 				Expected: eks.ClusterStatusDeleting,
 			},
 			{
-				State:    request.FailureWaiterState,
-				Matcher:  request.PathAnyWaiterMatch, Argument: "Cluster.Status",
+				State:   request.FailureWaiterState,
+				Matcher: request.PathAnyWaiterMatch, Argument: "Cluster.Status",
 				Expected: eks.ClusterStatusFailed,
 			},
 			{
