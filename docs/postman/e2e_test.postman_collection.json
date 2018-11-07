@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "bb86e40a-6dc3-49d6-8db6-b000ac4eb7f2",
+		"_postman_id": "242ab5fb-4535-4831-97b1-5f98ed2f4f29",
 		"name": "End2End TEST Organizations",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -9164,6 +9164,57 @@
 					"response": []
 				},
 				{
+					"name": "Get Deployment Scanlog",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/scanlog/:deploymentName",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"clusters",
+								":clusterId",
+								"scanlog",
+								":deploymentName"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "{{orgId}}",
+									"description": "Organization identifier"
+								},
+								{
+									"key": "clusterId",
+									"value": "{{clusterId}}",
+									"description": "Cluster identifier"
+								},
+								{
+									"key": "deploymentName",
+									"value": "{{deploymentName}}",
+									"description": "Deployment name"
+								}
+							]
+						},
+						"description": "Get Scanlog"
+					},
+					"response": []
+				},
+				{
 					"name": "Get Whitelists",
 					"request": {
 						"method": "GET",
@@ -9935,38 +9986,6 @@
 				}
 			},
 			"response": []
-		}
-	],
-	"auth": {
-		"type": "bearer",
-		"bearer": [
-			{
-				"key": "token",
-				"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJodHRwczovL3BpcGVsaW5lLmJhbnphaWNsb3VkLmNvbSIsImp0aSI6Ijg0ZDk4NzMxLWNhZjEtNGUyYy05Zjg0LTgyMGI1ZWI2Y2ZlOCIsImlhdCI6MTU0MTI1ODMxNiwiaXNzIjoiaHR0cHM6Ly9iYW56YWljbG91ZC5jb20vIiwic3ViIjoiMSIsInNjb3BlIjoiYXBpOmludm9rZSIsInR5cGUiOiJ1c2VyIiwidGV4dCI6InN0b2FkZXIifQ.dmuu8ia6kOWb0Ec7475O88YA6DHsov43rPDBuYlTuCk",
-				"type": "string"
-			}
-		]
-	},
-	"event": [
-		{
-			"listen": "prerequest",
-			"script": {
-				"id": "ff2ff7c2-9dd3-4b69-9575-f8ae4df5b714",
-				"type": "text/javascript",
-				"exec": [
-					""
-				]
-			}
-		},
-		{
-			"listen": "test",
-			"script": {
-				"id": "1880659b-ad97-4d07-9d45-c49aa052ffb2",
-				"type": "text/javascript",
-				"exec": [
-					""
-				]
-			}
 		}
 	],
 	"variable": [

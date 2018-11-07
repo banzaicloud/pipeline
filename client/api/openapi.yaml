@@ -1272,6 +1272,49 @@ paths:
       summary: List scans
       tags:
       - scanlog
+  /api/v1/orgs/{orgId}/clusters/{id}/scanlog/{releaseName}:
+    get:
+      description: List scans by release
+      operationId: ListScansByRelease
+      parameters:
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: release name identification
+        explode: false
+        in: path
+        name: releaseName
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScanLogList'
+          description: Scan listing
+      security:
+      - bearerAuth: []
+      summary: List scans by release
+      tags:
+      - scanlog
   /api/v1/orgs/{orgId}/clusters/{id}/policies:
     get:
       description: List all saved policy bundles
