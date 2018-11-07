@@ -132,6 +132,7 @@ type ListDeploymentResponse struct {
 	CreatedAt    time.Time `json:"createdAt,omitempty"`
 	Supported    bool      `json:"supported"`
 	WhiteListed  bool      `json:"whiteListed"`
+	Rejected     bool      `json:"rejected"`
 }
 
 // DeploymentStatusResponse describes a deployment status response
