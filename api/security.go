@@ -486,7 +486,7 @@ func GetWhitelistSet(c *gin.Context) (map[string]bool, bool) {
 		return releaseWhitelist, false
 	}
 	for _, whitelist := range whitelists.Items {
-		releaseWhitelist[whitelist.Spec.ReleaseName] = true
+		releaseWhitelist[whitelist.ObjectMeta.Name] = true
 	}
 	log.Debugf("Whitelist set: %#v", releaseWhitelist)
 	return releaseWhitelist, true
