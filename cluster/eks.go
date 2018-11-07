@@ -43,6 +43,7 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/sirupsen/logrus"
 	"k8s.io/api/core/v1"
+	storagev1 "k8s.io/api/storage/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api/v1"
@@ -262,7 +263,7 @@ func (c *EKSCluster) CreateCluster() error {
 	}
 
 	// create default storage class
-	err = createDefaultStorageClass(kubeClient, "kubernetes.io/aws-ebs")
+	err = createDefaultStorageClass(kubeClient, "kubernetes.io/aws-ebs", storagev1.VolumeBindingWaitForFirstConsumer)
 	if err != nil {
 		return err
 	}

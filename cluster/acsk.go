@@ -42,6 +42,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
+	storagev1 "k8s.io/api/storage/v1"
 	"k8s.io/client-go/kubernetes"
 )
 
@@ -276,7 +277,7 @@ func (c *ACSKCluster) CreateCluster() error {
 	}
 
 	// create default storage class
-	err = createDefaultStorageClass(kubeClient, "alicloud/disk")
+	err = createDefaultStorageClass(kubeClient, "alicloud/disk", storagev1.VolumeBindingWaitForFirstConsumer)
 	if err != nil {
 		return err
 	}
