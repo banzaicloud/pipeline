@@ -63,6 +63,7 @@ type AlibabaDescribeClusterResponse struct {
 	VSwitchID              string       `json:"vswitch_id"`               // VSwitch ID.
 	ZoneID                 string       `json:"zone_id"`                  // Zone ID.
 	Outputs                []outputItem `json:"outputs,omitempty"`
+	KubernetesVersion      string       `json:"current_version"`
 }
 
 type outputItem struct {
