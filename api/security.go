@@ -491,3 +491,22 @@ func GetWhitelistSet(c *gin.Context) (map[string]bool, bool) {
 	log.Debugf("Whitelist set: %#v", releaseWhitelist)
 	return releaseWhitelist, true
 }
+
+// GetReleaseScanLog will return a ReleaseScanlog
+func GetReleaseScanLog(c *gin.Context) (map[string]bool, bool) {
+	securityClientSet := getSecurityClient(c)
+	releaseScanLog := make(map[string]bool)
+	if securityClientSet == nil {
+		return releaseScanLog, false
+	}
+	audits, err := securityClientSet.Audits(metav1.NamespaceAll).List(metav1.ListOptions{LabelSelector: "fakerelease=false"})
+	if err != nil {
+		log.Warnf("can not fetch ScanLog: %s", err.Error())
+		return releaseScanLog, false
+	}
+	for _, audit := range audits.Items {
+		releaseScanLog[audit.Spec.ReleaseName] = true
+	}
+	log.Debugf("Whitelist set: %#v", releaseScanLog)
+	return releaseScanLog, true
+}
