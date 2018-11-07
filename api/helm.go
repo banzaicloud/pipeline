@@ -742,6 +742,10 @@ func ListHelmReleases(c *gin.Context, response *rls.ListReleasesResponse, optpar
 	if !ok {
 		log.Warnf("whitelist data is not valid: %#v", releaseWhitelist)
 	}
+	releaseScanLogReject, ok := GetReleaseScanLog(c)
+	if !ok {
+		log.Warnf("scanlog data is not valid: %#v", releaseScanLogReject)
+	}
 
 	releases := make([]pkgHelm.ListDeploymentResponse, 0)
 	if response != nil && len(response.Releases) > 0 {
@@ -771,9 +775,12 @@ func ListHelmReleases(c *gin.Context, response *rls.ListReleasesResponse, optpar
 			if _, ok := releaseWhitelist[r.Name]; ok {
 				body.WhiteListed = ok
 			}
+			if _, ok := releaseScanLogReject[r.Name]; ok {
+				body.Rejected = ok
+			}
 			if optparamType == "map[string]bool" {
 				releaseMap := optparam.(map[string]bool)
-				if ok := releaseMap[r.Name]; ok {
+				if _, ok := releaseMap[r.Name]; ok {
 					releases = append(releases, body)
 				}
 			} else {
