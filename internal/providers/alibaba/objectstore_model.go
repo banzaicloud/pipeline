@@ -29,6 +29,9 @@ type ManagedAlibabaBucket struct {
 	Name         string            `gorm:"unique_index:idx_bucket_name"`
 	Region       string
 	SecretRef    string
+
+	Status    string
+	StatusMsg string `sql:"type:text;"`
 }
 
 // TableName changes the default table name.

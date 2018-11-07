@@ -438,7 +438,6 @@ func (s *ObjectStore) deleteFromProvider(bucket *ObjectStoreBucketModel) error {
 	}
 
 	return nil
-
 }
 
 // CheckBucket checks the status of the given Azure blob.

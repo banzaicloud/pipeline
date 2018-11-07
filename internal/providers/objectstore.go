@@ -53,7 +53,7 @@ func NewObjectStore(ctx *ObjectStoreContext, logger logrus.FieldLogger) (objects
 
 	switch ctx.Provider {
 	case providers.Alibaba:
-		return alibaba.NewObjectStore(ctx.Location, ctx.Secret, ctx.Organization), nil
+		return alibaba.NewObjectStore(ctx.Location, ctx.Secret, ctx.Organization, logger), nil
 
 	case providers.Amazon:
 		return amazon.NewObjectStore(ctx.Location, ctx.Secret, ctx.Organization, db, logger, ctx.ForceOperation)

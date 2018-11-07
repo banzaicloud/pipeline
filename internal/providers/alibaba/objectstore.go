@@ -27,26 +27,34 @@ import (
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
-type AlibabaObjectStore struct {
+type ObjectStore struct {
 	region string
 
 	secret *secret.SecretItemResponse
 	org    *auth.Organization
+	db     *gorm.DB
+
+	logger logrus.FieldLogger
 }
 
-func NewObjectStore(region string, secret *secret.SecretItemResponse, org *auth.Organization) *AlibabaObjectStore {
-	return &AlibabaObjectStore{
+func NewObjectStore(region string, secret *secret.SecretItemResponse, org *auth.Organization, logger logrus.FieldLogger) *ObjectStore {
+
+	return &ObjectStore{
 		region: region,
 		secret: secret,
 		org:    org,
+		logger: logger,
 	}
 }
 
-func (b *AlibabaObjectStore) CreateBucket(bucketName string) error {
+func (os *ObjectStore) CreateBucket(bucketName string) error {
+	log := os.getLogger(bucketName)
+
 	managedBucket := &ManagedAlibabaBucket{}
-	searchCriteria := b.newManagedBucketSearchCriteria(bucketName)
+	searchCriteria := os.newManagedBucketSearchCriteria(bucketName)
 	if err := getManagedBucket(searchCriteria, managedBucket); err != nil {
 		switch err.(type) {
 		case ManagedBucketNotFoundError:
@@ -56,39 +64,38 @@ func (b *AlibabaObjectStore) CreateBucket(bucketName string) error {
 	}
 
 	log.Info("Creating AlibabaOSSClient...")
-	svc, err := createAlibabaOSSClient(b.region, b.secret)
+	svc, err := createAlibabaOSSClient(os.region, os.secret)
 	if err != nil {
 		return errors.Wrap(err, "Creating AlibabaOSSClient failed")
 	}
 	log.Info("AlibabaOSSClient create succeeded!")
-	log.Debugf("Region is: %s", b.region)
 
 	managedBucket.Name = bucketName
-	managedBucket.Organization = *b.org
-	managedBucket.Region = b.region
-	managedBucket.SecretRef = b.secret.ID
+	managedBucket.Organization = *os.org
+	managedBucket.Region = os.region
+	managedBucket.SecretRef = os.secret.ID
 
-	if err = persistToDb(managedBucket); err != nil {
+	if err = os.persistToDb(managedBucket); err != nil {
 		return errors.Wrap(err, "Error happened during persisting bucket description to DB")
 	}
 	err = svc.CreateBucket(managedBucket.Name)
 	if err != nil {
-		if e := deleteFromDbByPK(managedBucket); e != nil {
+		if e := os.deleteFromDb(managedBucket); e != nil {
 			log.Error(e.Error())
 		}
 
 		return errors.Wrap(err, "could not create a new OSS Bucket")
 	}
-	log.Debugf("Waiting for bucket %s to be created...", bucketName)
+	log.Debugf("Waiting for bucket to be created...")
 
 	// TODO: wait for bucket creation.
-	log.Infof("Bucket %s Created", bucketName)
+	log.Infof("bucket created")
 
 	return nil
 }
 
-func (b *AlibabaObjectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
-	svc, err := createAlibabaOSSClient(b.region, b.secret)
+func (os *ObjectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
+	svc, err := createAlibabaOSSClient(os.region, os.secret)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +110,7 @@ func (b *AlibabaObjectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 	log.Infof("Retrieving managed buckets")
 
 	var managedAlibabaBuckets []ManagedAlibabaBucket
-	if err = queryWithOrderByDb(&ManagedAlibabaBucket{OrgID: b.org.ID}, "name asc", &managedAlibabaBuckets); err != nil {
+	if err = os.queryWithOrderByDb(&ManagedAlibabaBucket{OrgID: os.org.ID}, "name asc", &managedAlibabaBuckets); err != nil {
 		log.Errorf("Retrieving managed buckets in organisation id=%s failed: %s", err.Error())
 		return nil, err
 	}
@@ -126,12 +133,12 @@ func (b *AlibabaObjectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 	return bucketList, nil
 }
 
-func (b *AlibabaObjectStore) ListManagedBuckets() ([]*objectstore.BucketInfo, error) {
+func (os *ObjectStore) ListManagedBuckets() ([]*objectstore.BucketInfo, error) {
 
 	var managedAlibabaBuckets []ManagedAlibabaBucket
 
-	if err := queryWithOrderByDb(&ManagedAlibabaBucket{OrgID: b.org.ID}, "name asc", &managedAlibabaBuckets); err != nil {
-		log.Errorf("Retrieving managed buckets in organisation id=%s failed: %s", err.Error())
+	if err := os.queryWithOrderByDb(&ManagedAlibabaBucket{OrgID: os.org.ID}, "name asc", &managedAlibabaBuckets); err != nil {
+		os.logger.WithError(err).Error("retrieving managed buckets")
 		return nil, err
 	}
 
@@ -149,18 +156,19 @@ func (b *AlibabaObjectStore) ListManagedBuckets() ([]*objectstore.BucketInfo, er
 	return bucketInfos, nil
 }
 
-func (b *AlibabaObjectStore) DeleteBucket(bucketName string) error {
-	managedBucket := &ManagedAlibabaBucket{}
-	searchCriteria := b.newManagedBucketSearchCriteria(bucketName)
+func (os *ObjectStore) DeleteBucket(bucketName string) error {
 
-	log.Info("Looking up managed bucket: name=%s", bucketName)
+	managedBucket := &ManagedAlibabaBucket{}
+	searchCriteria := os.newManagedBucketSearchCriteria(bucketName)
+
+	os.logger.Info("looking up managed bucket")
 	if err := getManagedBucket(searchCriteria, managedBucket); err != nil {
 		return err
 	}
 
-	svc, err := createAlibabaOSSClient(managedBucket.Region, b.secret)
+	svc, err := createAlibabaOSSClient(managedBucket.Region, os.secret)
 	if err != nil {
-		log.Errorf("Creating OSSClient failed: %s", err.Error())
+		os.logger.Errorf("Creating OSSClient failed: %s", err.Error())
 		return err
 	}
 
@@ -170,16 +178,16 @@ func (b *AlibabaObjectStore) DeleteBucket(bucketName string) error {
 	}
 
 	// TODO: wait for bucket creation.
-	if err = deleteFromDbByPK(managedBucket); err != nil {
-		log.Errorf("Deleting managed OSS bucket from database failed: %s", err.Error())
+	if err = os.deleteFromDb(managedBucket); err != nil {
+		os.logger.Errorf("Deleting managed OSS bucket from database failed: %s", err.Error())
 		return err
 	}
 
 	return nil
 }
 
-func (b *AlibabaObjectStore) CheckBucket(bucketName string) error {
-	svc, err := createAlibabaOSSClient(b.region, b.secret)
+func (os *ObjectStore) CheckBucket(bucketName string) error {
+	svc, err := createAlibabaOSSClient(os.region, os.secret)
 
 	if err != nil {
 		log.Errorf("Creating AlibabaOSSClient failed: %s", err.Error())
@@ -195,20 +203,28 @@ func (b *AlibabaObjectStore) CheckBucket(bucketName string) error {
 }
 
 // newManagedBucketSearchCriteria returns the database search criteria to find managed bucket with the given name
-func (b *AlibabaObjectStore) newManagedBucketSearchCriteria(bucketName string) *ManagedAlibabaBucket {
+func (os *ObjectStore) newManagedBucketSearchCriteria(bucketName string) *ManagedAlibabaBucket {
 	return &ManagedAlibabaBucket{
-		OrgID: b.org.ID,
+		OrgID: os.org.ID,
 		Name:  bucketName,
 	}
 }
 
+func (os *ObjectStore) getLogger(bucketName string) logrus.FieldLogger {
+	return os.logger.WithFields(logrus.Fields{
+		"organization": os.org.ID,
+		"region":       os.region,
+		"bucket":       bucketName,
+	})
+}
+
 func createAlibabaOSSClient(region string, retrievedSecret *secret.SecretItemResponse) (*oss.Client, error) {
-	auth := verify.CreateAlibabaCredentials(retrievedSecret.Values)
+	serviceAccount := verify.CreateAlibabaCredentials(retrievedSecret.Values)
 	endpoint, err := ossRegionToEndpoint(region)
 	if err != nil {
 		return nil, err
 	}
-	return oss.New(endpoint, auth.AccessKeyId, auth.AccessKeySecret)
+	return oss.New(endpoint, serviceAccount.AccessKeyId, serviceAccount.AccessKeySecret)
 }
 
 func ossRegionToEndpoint(region string) (endpoint string, err error) {
@@ -285,20 +301,18 @@ func getManagedBucket(searchCriteria interface{}, managedBucket interface{}) err
 	return nil
 }
 
-func persistToDb(m interface{}) error {
-	log.Info("Persisting Bucket to Db")
-	db := config.DB()
-	return db.Save(m).Error
+func (os *ObjectStore) persistToDb(m interface{}) error {
+	os.logger.Info("persisiting  from database...")
+	return os.db.Save(m).Error
 }
 
-func deleteFromDbByPK(m interface{}) error {
-	log.Info("Deleting from DB...")
-	db := config.DB()
-	return db.Delete(m).Error
+func (os *ObjectStore) deleteFromDb(m interface{}) error {
+	os.logger.Info("deleting from database...")
+	return os.db.Delete(m).Error
 }
 
 // queryDb queries the database using the specified searchCriteria
 // and returns the returned records into result
-func queryWithOrderByDb(searchCriteria interface{}, orderBy interface{}, result interface{}) error {
-	return config.DB().Where(searchCriteria).Order(orderBy).Find(result).Error
+func (os *ObjectStore) queryWithOrderByDb(searchCriteria interface{}, orderBy interface{}, result interface{}) error {
+	return os.db.Where(searchCriteria).Order(orderBy).Find(result).Error
 }
