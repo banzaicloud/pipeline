@@ -140,6 +140,8 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 			if force {
 				logger.Errorln("deleting deployments failed:", err.Error())
 			} else {
+				cluster.UpdateStatus(pkgCluster.Error, err.Error())
+
 				return emperror.Wrap(err, "deleting deployments failed")
 			}
 		}
@@ -149,6 +151,8 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 			if force {
 				logger.Errorln("deleting resources failed:", err.Error())
 			} else {
+				cluster.UpdateStatus(pkgCluster.Error, err.Error())
+
 				return emperror.Wrap(err, "deleting resources failed")
 			}
 		}
