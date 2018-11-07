@@ -657,6 +657,7 @@ func (c *ACSKCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 		Location:          c.modelCluster.Location,
 		NodePools:         nodePools,
 		Status:            c.modelCluster.Status,
+		MasterVersion:     r.KubernetesVersion,
 	}, nil
 }
 
