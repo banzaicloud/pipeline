@@ -368,6 +368,8 @@ func CreateDeployment(chartName, chartVersion string, chartPackage []byte, names
 		namespace = DefaultNamespace
 	}
 
+	var cmUpdated bool
+
 	if !dryRun && odPcts != nil {
 		if len(releaseName) == 0 {
 			return nil, fmt.Errorf("release name cannot be empty when setting on-demand percentages")
@@ -376,6 +378,7 @@ func CreateDeployment(chartName, chartVersion string, chartPackage []byte, names
 		if err != nil {
 			return nil, err
 		}
+		cmUpdated = true
 	}
 
 	hClient, err := pkgHelm.NewClient(kubeConfig, log)
@@ -400,6 +403,12 @@ func CreateDeployment(chartName, chartVersion string, chartPackage []byte, names
 		installOptions...,
 	)
 	if err != nil {
+		if cmUpdated {
+			err := cleanupSpotConfigMap(kubeConfig, odPcts, releaseName)
+			if err != nil {
+				log.Warn("failed to clean up spot config map")
+			}
+		}
 		return nil, fmt.Errorf("Error deploying chart: %v", err)
 	}
 	return installRes, nil
@@ -411,10 +420,10 @@ func updateSpotConfigMap(kubeConfig []byte, odPcts map[string]int, releaseName s
 		return err
 	}
 	pipelineSystemNamespace := viper.GetString(config.PipelineSystemNamespace)
-	configmap, err := client.CoreV1().ConfigMaps(pipelineSystemNamespace).Get(common.SpotConfigMapKey, metav1.GetOptions{})
+	cm, err := client.CoreV1().ConfigMaps(pipelineSystemNamespace).Get(common.SpotConfigMapKey, metav1.GetOptions{})
 	if err != nil {
 		if apiErrors.IsNotFound(err) {
-			configmap, err = client.CoreV1().ConfigMaps(pipelineSystemNamespace).Create(&v1.ConfigMap{
+			cm, err = client.CoreV1().ConfigMaps(pipelineSystemNamespace).Create(&v1.ConfigMap{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: common.SpotConfigMapKey,
 				},
@@ -428,13 +437,40 @@ func updateSpotConfigMap(kubeConfig []byte, odPcts map[string]int, releaseName s
 		}
 	}
 
-	if configmap.Data == nil {
-		configmap.Data = make(map[string]string)
+	if cm.Data == nil {
+		cm.Data = make(map[string]string)
 	}
 	for res, pct := range odPcts {
-		configmap.Data[releaseName+"."+res] = fmt.Sprintf("%d", pct)
+		cm.Data[releaseName+"."+res] = fmt.Sprintf("%d", pct)
 	}
-	_, err = client.CoreV1().ConfigMaps(pipelineSystemNamespace).Update(configmap)
+	_, err = client.CoreV1().ConfigMaps(pipelineSystemNamespace).Update(cm)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func cleanupSpotConfigMap(kubeConfig []byte, odPcts map[string]int, releaseName string) error {
+	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
+	if err != nil {
+		return err
+	}
+	pipelineSystemNamespace := viper.GetString(config.PipelineSystemNamespace)
+	cm, err := client.CoreV1().ConfigMaps(pipelineSystemNamespace).Get(common.SpotConfigMapKey, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
+	if cm.Data == nil {
+		return nil
+	}
+	for res := range odPcts {
+		_, ok := cm.Data[releaseName+"."+res]
+		if ok {
+			delete(cm.Data, releaseName+"."+res)
+		}
+	}
+	_, err = client.CoreV1().ConfigMaps(pipelineSystemNamespace).Update(cm)
 	if err != nil {
 		return err
 	}
