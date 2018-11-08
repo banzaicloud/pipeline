@@ -20,6 +20,7 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 )
 
@@ -71,6 +72,7 @@ func (m *Manager) UpdateCluster(ctx context.Context, updateCtx UpdateContext, up
 	if err != nil {
 		return errors.WithMessage(err, "could not prepare cluster")
 	}
+	timer := prometheus.NewTimer(StatusChangeDuration.WithLabelValues(cluster.GetCloud(), cluster.GetLocation(), pkgCluster.Updating))
 
 	if err := cluster.UpdateStatus(pkgCluster.Updating, pkgCluster.UpdatingMessage); err != nil {
 		return emperror.With(err, "could not update cluster status")
@@ -84,7 +86,9 @@ func (m *Manager) UpdateCluster(ctx context.Context, updateCtx UpdateContext, up
 		err := m.updateCluster(ctx, updateCtx, cluster, updater)
 		if err != nil {
 			errorHandler.Handle(err)
+			return
 		}
+		timer.ObserveDuration()
 	}()
 
 	return nil
