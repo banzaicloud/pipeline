@@ -25,6 +25,7 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/goph/emperror"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -110,6 +111,8 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 		"cluster":      cluster.GetName(),
 		"force":        force,
 	})
+	timer := prometheus.NewTimer(StatusChangeDuration.WithLabelValues(cluster.GetCloud(), cluster.GetLocation(), pkgCluster.Deleting))
+	defer timer.ObserveDuration()
 
 	logger.Info("deleting cluster")
 

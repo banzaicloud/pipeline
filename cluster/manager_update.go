@@ -20,6 +20,7 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 )
 
@@ -96,6 +97,8 @@ func (m *Manager) updateCluster(ctx context.Context, updateCtx UpdateContext, cl
 		"user":         updateCtx.UserID,
 		"cluster":      updateCtx.ClusterID,
 	})
+	timer := prometheus.NewTimer(StatusChangeDuration.WithLabelValues(cluster.GetCloud(), cluster.GetLocation(), pkgCluster.Updating))
+	defer timer.ObserveDuration()
 
 	logger.Info("updating cluster")
 

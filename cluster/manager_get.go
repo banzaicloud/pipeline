@@ -55,7 +55,7 @@ func (m *Manager) GetClusters(ctx context.Context, organizationID uint) ([]Commo
 	return clusters, nil
 }
 
-// GetAllCLusters returns all cluster instances.
+// GetAllClusters returns all cluster instances.
 func (m *Manager) GetAllClusters(ctx context.Context) ([]CommonCluster, error) {
 	logger := m.getLogger(ctx)
 

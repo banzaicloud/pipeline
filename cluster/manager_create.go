@@ -22,6 +22,7 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 )
 
@@ -80,6 +81,7 @@ func (m *Manager) CreateCluster(ctx context.Context, creationCtx CreationContext
 	if err != nil {
 		return nil, err
 	}
+	timer := prometheus.NewTimer(StatusChangeDuration.WithLabelValues(cluster.GetCloud(), cluster.GetLocation(), pkgCluster.Creating))
 
 	if err := cluster.UpdateStatus(pkgCluster.Creating, pkgCluster.CreatingMessage); err != nil {
 		return nil, err
@@ -89,6 +91,7 @@ func (m *Manager) CreateCluster(ctx context.Context, creationCtx CreationContext
 
 	go func() {
 		defer emperror.HandleRecover(m.errorHandler)
+		defer timer.ObserveDuration()
 
 		err := m.createCluster(ctx, cluster, creator, creationCtx.PostHooks, logger)
 		if err != nil {
