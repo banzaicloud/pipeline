@@ -181,7 +181,7 @@ func main() {
 	}
 	// Add prometheus metric endpoint
 	if viper.GetBool("metrics.enabled") {
-		p := ginprometheus.NewPrometheus("http", []string{})
+		p := ginprometheus.NewPrometheus("pipeline", []string{})
 		p.SetListenAddress(viper.GetString("metrics.port"))
 		p.Use(router)
 	}

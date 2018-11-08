@@ -37,7 +37,7 @@ type scrapeResultTotalCluster struct {
 
 var (
 	StatusChangeDuration = prometheus.NewSummaryVec(prometheus.SummaryOpts{
-		Namespace: "cluster",
+		Namespace: "pipeline",
 		Name:      "status_change_duration",
 		Help:      "Cluster status change duration in seconds",
 	},
@@ -48,7 +48,7 @@ var (
 func NewExporter() *pipelineMetrics {
 	p := pipelineMetrics{
 		clusterStatus: prometheus.NewGaugeVec(prometheus.GaugeOpts{
-			Namespace: "cluster",
+			Namespace: "pipeline",
 			Name:      "total",
 			Help:      "Total number of clusters, partitioned by provider, location and status",
 		},
