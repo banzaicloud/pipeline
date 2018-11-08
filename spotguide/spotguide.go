@@ -24,9 +24,11 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"text/template"
 	"time"
 
 	"github.com/Masterminds/semver"
+	"github.com/Masterminds/sprig"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/client"
 	"github.com/banzaicloud/pipeline/config"
@@ -119,6 +121,7 @@ type LaunchRequest struct {
 	Cluster          *client.CreateClusterRequest  `json:"cluster" binding:"required"`
 	Secrets          []*secret.CreateSecretRequest `json:"secrets,omitempty"`
 	Pipeline         map[string]interface{}        `json:"pipeline,omitempty"`
+	PrePipeline      map[string]interface{}        `json:"prePipeline,omitempty"`
 }
 
 func (r LaunchRequest) RepoFullname() string {
@@ -565,9 +568,23 @@ func enableCICD(request *LaunchRequest, httpRequest *http.Request) error {
 	return nil
 }
 
-func createDroneRepoConfig(initConfig []byte, request *LaunchRequest) (*droneRepoConfig, error) {
+func createDroneRepoConfig(pipelineYAML []byte, request *LaunchRequest) (*droneRepoConfig, error) {
+	// Pre-process pipeline
+	yamlTemplate, err := template.New("yaml").
+		Delims("{{{", "}}}").
+		Funcs(sprig.TxtFuncMap()).
+		Parse(string(pipelineYAML))
+	if err != nil {
+		return nil, err
+	}
+	buffer := bytes.NewBuffer(nil)
+	err = yamlTemplate.Execute(buffer, request.PrePipeline)
+	if err != nil {
+		return nil, err
+	}
+
 	repoConfig := new(droneRepoConfig)
-	if err := yaml.Unmarshal(initConfig, repoConfig); err != nil {
+	if err := yaml.Unmarshal(buffer.Bytes(), repoConfig); err != nil {
 		return nil, errors.Wrap(err, "failed to unmarshal initial config")
 	}
 
