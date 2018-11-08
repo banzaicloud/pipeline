@@ -22,11 +22,11 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-type PipelineMetrics struct {
+type pipelineMetrics struct {
 	clusterStatus *prometheus.GaugeVec
+	clusters      *intCluster.Clusters
 
-	metricsMtx sync.RWMutex
-	sync.RWMutex
+	mu sync.Mutex
 }
 
 type scrapeResultTotalCluster struct {
@@ -45,8 +45,8 @@ var (
 	)
 )
 
-func NewExporter() *PipelineMetrics {
-	p := PipelineMetrics{
+func NewExporter() *pipelineMetrics {
+	p := pipelineMetrics{
 		clusterStatus: prometheus.NewGaugeVec(prometheus.GaugeOpts{
 			Namespace: "cluster",
 			Name:      "total",
@@ -54,19 +54,20 @@ func NewExporter() *PipelineMetrics {
 		},
 			[]string{"provider", "location", "status"},
 		),
+		clusters: intCluster.NewClusters(config.DB()),
 	}
 	return &p
 }
 
-func (p *PipelineMetrics) Describe(ch chan<- *prometheus.Desc) {
+func (p *pipelineMetrics) Describe(ch chan<- *prometheus.Desc) {
 	p.clusterStatus.Describe(ch)
 }
 
-func (p *PipelineMetrics) Collect(ch chan<- prometheus.Metric) {
+func (p *pipelineMetrics) Collect(ch chan<- prometheus.Metric) {
 	clusterTotal := make(chan scrapeResultTotalCluster)
 
-	p.Lock()
-	defer p.Unlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
 	go p.scrape(clusterTotal)
 	p.setClusterMetrics(clusterTotal)
@@ -74,11 +75,11 @@ func (p *PipelineMetrics) Collect(ch chan<- prometheus.Metric) {
 	p.clusterStatus.Collect(ch)
 }
 
-func (p *PipelineMetrics) scrape(scrapesTotalCluster chan<- scrapeResultTotalCluster) {
+func (p *pipelineMetrics) scrape(scrapesTotalCluster chan<- scrapeResultTotalCluster) {
 
 	defer close(scrapesTotalCluster)
-	clusters := intCluster.NewClusters(config.DB())
-	allCluster, err := clusters.All()
+
+	allCluster, err := p.clusters.All()
 	if err != nil {
 		return
 	}
@@ -93,16 +94,9 @@ func (p *PipelineMetrics) scrape(scrapesTotalCluster chan<- scrapeResultTotalClu
 
 }
 
-func (p *PipelineMetrics) setClusterMetrics(resultTotalCluster <-chan scrapeResultTotalCluster) {
+func (p *pipelineMetrics) setClusterMetrics(resultTotalCluster <-chan scrapeResultTotalCluster) {
 	log.Debug("set cluster metrics")
-	p.metricsMtx.Lock()
-	p.clusterStatus = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: "cluster",
-		Name:      "total",
-		Help:      "Total number of clusters, partitioned by provider, location and status",
-	},
-		[]string{"provider", "location", "status"})
-	p.metricsMtx.Unlock()
+	p.clusterStatus.Reset()
 
 	for scr := range resultTotalCluster {
 		var labels prometheus.Labels = map[string]string{

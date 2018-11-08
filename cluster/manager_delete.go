@@ -40,6 +40,7 @@ func (m *Manager) DeleteCluster(ctx context.Context, cluster CommonCluster, forc
 		"cluster", cluster.GetID(),
 		"force", force,
 	)
+	timer := prometheus.NewTimer(StatusChangeDuration.WithLabelValues(cluster.GetCloud(), cluster.GetLocation(), pkgCluster.Deleting))
 
 	go func() {
 		defer emperror.HandleRecover(m.errorHandler)
@@ -47,7 +48,9 @@ func (m *Manager) DeleteCluster(ctx context.Context, cluster CommonCluster, forc
 		err := m.deleteCluster(ctx, cluster, force, kubeProxyCache)
 		if err != nil {
 			errorHandler.Handle(err)
+			return
 		}
+		timer.ObserveDuration()
 	}()
 
 	return nil
@@ -111,8 +114,6 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 		"cluster":      cluster.GetName(),
 		"force":        force,
 	})
-	timer := prometheus.NewTimer(StatusChangeDuration.WithLabelValues(cluster.GetCloud(), cluster.GetLocation(), pkgCluster.Deleting))
-	defer timer.ObserveDuration()
 
 	logger.Info("deleting cluster")
 

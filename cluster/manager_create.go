@@ -91,12 +91,13 @@ func (m *Manager) CreateCluster(ctx context.Context, creationCtx CreationContext
 
 	go func() {
 		defer emperror.HandleRecover(m.errorHandler)
-		defer timer.ObserveDuration()
 
 		err := m.createCluster(ctx, cluster, creator, creationCtx.PostHooks, logger)
 		if err != nil {
 			logger.Errorf("failed to create cluster: %s", err.Error())
+			return
 		}
+		timer.ObserveDuration()
 	}()
 
 	return cluster, nil
