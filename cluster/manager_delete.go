@@ -131,44 +131,41 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 	if err != nil {
 		return emperror.With(
 			emperror.Wrap(err, "cluster status update failed"),
-			"cluster", cluster.GetID(),
+			"cluster_id", cluster.GetID(),
 		)
 	}
 
 	// get kubeconfig
 	c, err := cluster.GetK8sConfig()
 	if err != nil {
+		err = emperror.Wrap(err, "cannot access Kubernetes cluster")
 		if !force {
 			cluster.UpdateStatus(pkgCluster.Error, err.Error())
-
-			return emperror.Wrap(err, "error getting kubeconfig")
+			return err
 		}
-
-		logger.Errorln("error during getting kubeconfig:", err.Error())
+		logger.Error(err)
 	}
 
 	if c != nil {
 		// delete deployments
 		err = helm.DeleteAllDeployment(c)
 		if err != nil {
-			if force {
-				logger.Errorln("deleting deployments failed:", err.Error())
-			} else {
+			err = emperror.Wrap(err, "failed to delete deployments")
+			if !force {
 				cluster.UpdateStatus(pkgCluster.Error, err.Error())
-
-				return emperror.Wrap(err, "deleting deployments failed")
+				return err
 			}
+			logger.Error(err)
 		}
 
 		err = deleteAllResource(c, logger)
 		if err != nil {
-			if force {
-				logger.Errorln("deleting resources failed:", err.Error())
-			} else {
+			err = emperror.Wrap(err, "failed to delete Kubernetes resources")
+			if !force {
 				cluster.UpdateStatus(pkgCluster.Error, err.Error())
-
-				return emperror.Wrap(err, "deleting resources failed")
+				return err
 			}
+			logger.Error(err)
 		}
 
 	} else {
@@ -177,17 +174,20 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 
 	// clean up dns registrations
 	err = deleteDnsRecordsOwnedByCluster(cluster)
+	if err != nil {
+		err = emperror.Wrap(err, "failed to delete cluster's DNS records")
+		logger.Error(err)
+	}
 
 	// delete cluster
 	err = cluster.DeleteCluster()
 	if err != nil {
+		err = emperror.Wrap(err, "failed to delete cluster from the provider")
 		if !force {
 			cluster.UpdateStatus(pkgCluster.Error, err.Error())
-
-			return emperror.Wrap(err, "error deleting cluster")
+			return err
 		}
-
-		logger.Errorf("error during deleting cluster: %s", err.Error())
+		logger.Error(err)
 	}
 
 	// delete from proxy from kubeProxyCache if any
@@ -199,13 +199,12 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 	deleteName := cluster.GetName()
 	err = cluster.DeleteFromDatabase()
 	if err != nil {
+		err = emperror.Wrap(err, "failed to delete from the database")
 		if !force {
 			cluster.UpdateStatus(pkgCluster.Error, err.Error())
-
-			return emperror.Wrap(err, "error deleting cluster from the database")
+			return err
 		}
-
-		logger.Errorf("error during deleting cluster from the database: %s", err.Error())
+		logger.Error(err)
 	}
 
 	// clean statestore
@@ -213,7 +212,6 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 	if err := CleanStateStore(deleteName); err != nil {
 		return emperror.Wrap(err, "cleaning cluster statestore failed")
 	}
-
 	logger.Info("cluster's statestore folder cleaned")
 
 	logger.Info("cluster deleted successfully")
