@@ -22,6 +22,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -36,7 +37,6 @@ import (
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/patrickmn/go-cache"
 	"github.com/pkg/errors"
-	"github.com/russross/blackfriday"
 	"github.com/spf13/cast"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/helm/pkg/chartutil"
@@ -128,36 +128,40 @@ func DownloadFile(url string) ([]byte, error) {
 	return tarContent.Bytes(), nil
 }
 
-//GetChartFile Download file from chart repository
+// GetChartFile fetches a file from the chart.
 func GetChartFile(file []byte, fileName string) (string, error) {
 	tarReader := tar.NewReader(bytes.NewReader(file))
+
 	for {
 		header, err := tarReader.Next()
 		if err == io.EOF {
 			break
-		}
-		if err != nil {
+		} else if err != nil {
 			return "", err
 		}
+
 		// We search for explicit path and the root directory is unknown.
 		// Apply regexp (<anything>/filename prevent false match like /root_dir/chart/abc/README.md
 		match, _ := regexp.MatchString("^([^/]*)/"+fileName+"$", header.Name)
 		if match {
-			valuesContent := new(bytes.Buffer)
-			if _, err := io.Copy(valuesContent, tarReader); err != nil {
+			fileContent, err := ioutil.ReadAll(tarReader)
+			if err != nil {
 				return "", err
 			}
+
 			if filepath.Ext(fileName) == ".md" {
 				log.Debugf("Security transform: %s", fileName)
-				bfFile := blackfriday.MarkdownCommon(valuesContent.Bytes())
-				readmeConvertedToHtml := bluemonday.UGCPolicy().SanitizeBytes(bfFile)
-				log.Debugf("Origin: %s", valuesContent.Bytes())
-				return base64.StdEncoding.EncodeToString(readmeConvertedToHtml), nil
+				log.Debugf("Origin: %s", fileContent)
+
+				fileContent = bluemonday.UGCPolicy().SanitizeBytes(fileContent)
 			}
-			base64Str := base64.StdEncoding.EncodeToString(valuesContent.Bytes())
-			return base64Str, nil
+
+			base64File := base64.StdEncoding.EncodeToString(fileContent)
+
+			return base64File, nil
 		}
 	}
+
 	return "", nil
 }
 

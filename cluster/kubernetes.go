@@ -27,6 +27,7 @@ import (
 	storagev1 "k8s.io/api/storage/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+	storageUtil "k8s.io/kubernetes/pkg/apis/storage/util"
 )
 
 // CreateKubernetesClusterFromRequest creates ClusterModel struct from the request
@@ -78,15 +79,16 @@ func (c *KubeCluster) Persist(status, statusMessage string) error {
 
 // createDefaultStorageClass creates a default storage class as some clusters are not created with
 // any storage classes or with default one
-func createDefaultStorageClass(kubernetesClient *kubernetes.Clientset, provisioner string) error {
+func createDefaultStorageClass(kubernetesClient *kubernetes.Clientset, provisioner string, volumeBindingMode storagev1.VolumeBindingMode) error {
 	defaultStorageClass := storagev1.StorageClass{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "default",
 			Annotations: map[string]string{
-				"storageclass.kubernetes.io/is-default-class": "true",
+				storageUtil.IsDefaultStorageClassAnnotation: "true",
 			},
 		},
-		Provisioner: provisioner,
+		VolumeBindingMode: &volumeBindingMode,
+		Provisioner:       provisioner,
 	}
 
 	_, err := kubernetesClient.StorageV1().StorageClasses().Create(&defaultStorageClass)

@@ -27,6 +27,7 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/gin-gonic/gin/json"
+	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -51,6 +52,7 @@ type ObjectStore struct {
 	secret         *secret.SecretItemResponse
 
 	location string
+	force    bool
 }
 
 // NewObjectStore returns a new object store instance.
@@ -60,6 +62,7 @@ func NewObjectStore(
 	location string,
 	db *gorm.DB,
 	logger logrus.FieldLogger,
+	force bool,
 ) *ObjectStore {
 	var serviceAccount *verify.ServiceAccount
 	if secret != nil {
@@ -73,6 +76,7 @@ func NewObjectStore(
 		secret:         secret,
 		serviceAccount: serviceAccount,
 		location:       location,
+		force:          force,
 	}
 }
 
@@ -166,61 +170,70 @@ func (s *ObjectStore) CreateBucket(bucketName string) error {
 // provided the storage container is of 'managed' type.
 func (s *ObjectStore) DeleteBucket(bucketName string) error {
 	logger := s.getLogger(bucketName)
-
 	bucket := &ObjectStoreBucketModel{}
 	searchCriteria := s.searchCriteria(bucketName)
 
-	logger.Info("looking for bucket")
-
+	logger.Info("looking up the bucket")
 	if err := s.db.Where(searchCriteria).Find(bucket).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return bucketNotFoundError{}
 		}
 	}
 
+	if err := s.deleteFromProvider(bucket); err != nil {
+		if !s.force {
+			// if delete is not forced return here
+			return err
+		}
+	}
+
+	db := s.db.Delete(bucket)
+	if db.Error != nil {
+		return s.deleteFailed(bucket, db.Error)
+	}
+
+	return nil
+}
+
+func (s *ObjectStore) deleteFromProvider(bucket *ObjectStoreBucketModel) error {
+	logger := s.getLogger(bucket.Name)
+	logger.Info("deleting bucket on provider")
+
+	// todo the assumption here is, that a bucket in 'ERROR_CREATE' doesn't exist on the provider
+	// todo however there might be -presumably rare cases- when a bucket in 'ERROR_DELETE' that has already been deleted on the provider
+	if bucket.Status == providers.BucketCreateError {
+		logger.Debug("bucket doesn't exist on provider")
+		return nil
+	}
+
 	bucket.Status = providers.BucketDeleting
 	db := s.db.Save(bucket)
 	if db.Error != nil {
-		return fmt.Errorf("could not delete bucket: %s", bucketName)
+		return emperror.With(db.Error, "could not update bucket", bucket.Name)
 	}
 
 	logger.Info("getting credentials")
 	credentials, err := s.newGoogleCredentials()
-
 	if err != nil {
-		s.deleteFailed(bucket, err)
-		return fmt.Errorf("getting credentials failed: %s", err.Error())
+		return s.deleteFailed(bucket, err)
 	}
 
 	logger.Info("creating new storage client")
-
 	ctx := context.Background()
 
 	client, err := storage.NewClient(ctx, option.WithCredentials(credentials))
 	if err != nil {
-		s.deleteFailed(bucket, err)
-
-		return fmt.Errorf("failed to create client: %s", err.Error())
+		return s.deleteFailed(bucket, err)
 	}
 	defer client.Close()
-
 	logger.Info("storage client created successfully")
 
-	bucketHandle := client.Bucket(bucketName)
-
+	bucketHandle := client.Bucket(bucket.Name)
 	if err := bucketHandle.Delete(ctx); err != nil {
 		// delete failed on the provider
 		s.deleteFailed(bucket, err)
 
 		return err
-	}
-
-	err = s.db.Delete(bucket).Error
-	if err != nil {
-		// delete failed in the dbs
-		s.deleteFailed(bucket, err)
-
-		return fmt.Errorf("deleting bucket failed: %s", err.Error())
 	}
 
 	return nil

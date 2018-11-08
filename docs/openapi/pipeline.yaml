@@ -1158,6 +1158,42 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/ScanLogList"
 
+    '/api/v1/orgs/{orgId}/clusters/{id}/scanlog/{releaseName}':
+        get:
+            security:
+                - bearerAuth: []
+            tags:
+                - scanlog
+            operationId: ListScansByRelease
+            summary: List scans by release
+            description: List scans by release
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  description: Selected cluster identification (number)
+                  schema:
+                      type: integer
+                - name: orgId
+                  in: path
+                  required: true
+                  description: Organization identification
+                  schema:
+                      type: integer
+                - name: releaseName
+                  in: path
+                  required: true
+                  description: release name identification
+                  schema:
+                      type: string
+            responses:
+                '200':
+                    description: Scan listing
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ScanLogList"
+
     '/api/v1/orgs/{orgId}/clusters/{id}/policies':
         get:
             security:
@@ -3778,6 +3814,10 @@ paths:
                       type: string
                       enum: [amazon, google, azure]
                   required: true
+                - name: force
+                  in: query
+                  description: Is the operation forced
+                  required: false
                 - name: resourceGroup
                   in: query
                   description: Azure resource group the storage account that holds the bucket (storage container) to be deleted

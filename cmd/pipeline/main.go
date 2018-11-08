@@ -246,6 +246,7 @@ func main() {
 			orgs.POST("/:orgid/clusters/:id/helminit", api.InitHelmOnCluster)
 
 			orgs.GET("/:orgid/clusters/:id/scanlog", api.GetScanLog)
+			orgs.GET("/:orgid/clusters/:id/scanlog/:releaseName", api.GetScanLog)
 			orgs.GET("/:orgid/clusters/:id/whitelists", api.GetWhiteLists)
 			orgs.POST("/:orgid/clusters/:id/whitelists", api.CreateWhiteList)
 			orgs.DELETE("/:orgid/clusters/:id/whitelists/:name", api.DeleteWhiteList)

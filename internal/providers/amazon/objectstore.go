@@ -20,6 +20,7 @@ import (
 	"strings"
 
 	"github.com/banzaicloud/pipeline/pkg/providers"
+	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -53,6 +54,8 @@ type objectStore struct {
 
 	db     *gorm.DB
 	logger logrus.FieldLogger
+
+	force bool
 }
 
 // NewObjectStore returns a new object store instance.
@@ -62,6 +65,7 @@ func NewObjectStore(
 	org *auth.Organization,
 	db *gorm.DB,
 	logger logrus.FieldLogger,
+	force bool,
 ) (*objectStore, error) {
 	ostore, err := getProviderObjectStore(secret, region)
 	if err != nil {
@@ -75,6 +79,7 @@ func NewObjectStore(
 		org:         org,
 		db:          db,
 		logger:      logger,
+		force:       force,
 	}, nil
 }
 
@@ -180,7 +185,7 @@ func (s *objectStore) DeleteBucket(bucketName string) error {
 	bucket := &ObjectStoreBucketModel{}
 	searchCriteria := s.searchCriteria(bucketName)
 
-	logger.Info("looking for bucket")
+	logger.Info("looking up bucket")
 
 	if err := s.db.Where(searchCriteria).Find(bucket).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -188,41 +193,60 @@ func (s *objectStore) DeleteBucket(bucketName string) error {
 		}
 	}
 
-	logger.Info("deleting bucket")
+	if err := s.deleteFromProvider(bucket); err != nil {
+		if !s.force {
+			// if delete is not forced return here
+			return err
+		}
+	}
+
+	db := s.db.Delete(bucket)
+	if db.Error != nil {
+		return s.deleteFailed(bucket, db.Error)
+	}
+
+	return nil
+}
+
+func (s *objectStore) deleteFromProvider(bucket *ObjectStoreBucketModel) error {
+	logger := s.getLogger().WithField("bucket", bucket.Name)
+	logger.Info("deleting bucket on provider")
+
+	// todo the assumption here is, that a bucket in 'ERROR_CREATE' doesn't exist on the provider
+	// todo however there might be -presumably rare cases- when a bucket in 'ERROR_DELETE' that has already been deleted on the provider
+	if bucket.Status == providers.BucketCreateError {
+		logger.Debug("bucket doesn't exist on provider")
+		return nil
+	}
+
 	bucket.Status = providers.BucketDeleting
-	err := s.db.Save(bucket).Error
-	if err != nil {
-		return errors.Wrap(err, "could not create AWS object storage client")
+	if err := s.db.Save(bucket).Error; err != nil {
+		return emperror.With(err, "could not update bucket")
 	}
 
 	objectStore, err := getProviderObjectStore(s.secret, bucket.Region)
 	if err != nil {
-		bucket.StatusMsg = err.Error()
-		bucket.Status = providers.BucketDeleteError
-		err := s.db.Save(bucket).Error
-		if err != nil {
-			return errors.Wrap(err, "could not create AWS object storage client")
-		}
-
-		return errors.Wrap(err, "could not create AWS object storage client")
+		return s.deleteFailed(bucket, errors.Wrap(err, "could not create AWS object storage client"))
 	}
 
-	if err := objectStore.DeleteBucket(bucketName); err != nil {
-		bucket.Status = providers.BucketDeleteError
-		bucket.StatusMsg = err.Error()
-		err := s.db.Save(bucket).Error
-
-		return err
+	if err := objectStore.DeleteBucket(bucket.Name); err != nil {
+		return s.deleteFailed(bucket, err)
 	}
 
 	if err := s.db.Delete(bucket).Error; err != nil {
-		bucket.Status = providers.BucketDeleteError
-		bucket.StatusMsg = err.Error()
-		err := s.db.Save(bucket).Error
-
-		return errors.Wrap(err, "deleting bucket from database failed")
+		return s.deleteFailed(bucket, err)
 	}
 
+	return nil
+
+}
+
+func (s *objectStore) deleteFailed(bucket *ObjectStoreBucketModel, reason error) error {
+	bucket.Status = providers.BucketDeleteError
+	bucket.StatusMsg = reason.Error()
+	if err := s.db.Save(bucket).Error; err != nil {
+		return emperror.With(err, "could not delete bucket")
+	}
 	return nil
 }
 
