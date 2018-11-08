@@ -134,12 +134,14 @@ func (s *ObjectStore) CreateBucket(bucketName string) error {
 
 	dbr := s.db.Where(searchCriteria).Find(bucket)
 
-	if dbr.Error != nil {
-		if dbr.Error != gorm.ErrRecordNotFound {
-			return errors.Wrap(dbr.Error, "error happened during getting bucket from DB: %s")
-		}
-	} else {
-		return fmt.Errorf("bucket with name %s already exists", bucketName)
+	switch dbr.Error {
+	case nil:
+		return errors.Wrapf(dbr.Error, "the bucket [%s] already exists", bucketName)
+	case gorm.ErrRecordNotFound:
+		// proceed to creation
+	default:
+		return errors.Wrapf(dbr.Error, "error while retrieving bucket [%s]", bucketName)
+
 	}
 
 	bucket.Name = bucketName
@@ -383,7 +385,7 @@ func (s *ObjectStore) DeleteBucket(bucketName string) error {
 	bucket := &ObjectStoreBucketModel{}
 	searchCriteria := s.searchCriteria(bucketName)
 
-	logger.Infof("looking up the bucket %s", bucketName)
+	logger.Info("looking up the bucket")
 
 	if err := s.db.Where(searchCriteria).Find(bucket).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -438,7 +440,6 @@ func (s *ObjectStore) deleteFromProvider(bucket *ObjectStoreBucketModel) error {
 	}
 
 	return nil
-
 }
 
 // CheckBucket checks the status of the given Azure blob.

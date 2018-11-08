@@ -16,28 +16,27 @@ package alibaba
 
 import (
 	"fmt"
-	"strings"
+	"testing"
 
-	"github.com/banzaicloud/pipeline/pkg/providers/alibaba"
-	"github.com/jinzhu/gorm"
-	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
 )
 
-// Migrate executes the table migrations for the provider.
-func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
-	tables := []interface{}{
-		&ObjectStoreBucketModel{},
+func TestOssRegionToEndpoint(t *testing.T) {
+	tests := []struct {
+		name     string
+		region   string
+		endpoint string
+	}{
+		{
+			name:     "endpoint for eu-central-1",
+			region:   "eu-central-1",
+			endpoint: "https://oss-eu-central-1.aliyuncs.com",
+		},
 	}
-
-	var tableNames string
-	for _, table := range tables {
-		tableNames += fmt.Sprintf(" %s", db.NewScope(table).TableName())
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ep := fmt.Sprintf(ossEndpointFmt, test.region)
+			assert.Equal(t, test.endpoint, ep)
+		})
 	}
-
-	logger.WithFields(logrus.Fields{
-		"provider":    alibaba.Provider,
-		"table_names": strings.TrimSpace(tableNames),
-	}).Info("migrating provider tables")
-
-	return db.AutoMigrate(tables...).Error
 }
