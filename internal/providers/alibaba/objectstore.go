@@ -15,6 +15,7 @@
 package alibaba
 
 import (
+	"fmt"
 	"sort"
 	"strings"
 
@@ -27,6 +28,10 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+)
+
+const (
+	ossEndpointFmt = "https://oss-%s.aliyuncs.com"
 )
 
 type ObjectStore struct {
@@ -90,7 +95,7 @@ func (os *ObjectStore) CreateBucket(bucketName string) error {
 	}
 
 	log.Info("creating OSSClient...")
-	svc, err := createOSSClient(os.region, os.secret)
+	svc, err := os.createOSSClient(os.region)
 	if err != nil {
 		return os.createFailed(bucket, errors.Wrap(err, "failed to create OSS client"))
 	}
@@ -107,14 +112,12 @@ func (os *ObjectStore) CreateBucket(bucketName string) error {
 	if err := os.db.Save(bucket).Error; err != nil {
 		log.WithError(err).Error("could not update bucket status")
 	}
-	// TODO: wait for bucket creation.
-	log.Infof("bucket created")
 
 	return nil
 }
 
 func (os *ObjectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
-	svc, err := createOSSClient(os.region, os.secret)
+	svc, err := os.createOSSClient(os.region)
 	if err != nil {
 		return nil, err
 	}
@@ -193,7 +196,7 @@ func (os *ObjectStore) DeleteBucket(bucketName string) error {
 	if err := os.deleteFromProvider(bucket); err != nil {
 		if !os.force {
 			// if delete is not forced return here
-			return err
+			return os.deleteFailed(bucket, err)
 		}
 	}
 
@@ -207,7 +210,14 @@ func (os *ObjectStore) DeleteBucket(bucketName string) error {
 }
 
 func (os *ObjectStore) deleteFromProvider(bucket *ObjectStoreBucketModel) error {
-	svc, err := createOSSClient(bucket.Region, os.secret)
+
+	// todo the assumption here is, that a bucket in 'ERROR_CREATE' doesn't exist on the provider
+	// todo however there might be -presumably rare cases- when a bucket in 'ERROR_DELETE' that has already been deleted on the provider
+	if bucket.Status == providers.BucketCreateError {
+		os.logger.Debug("bucket doesn't exist on provider")
+		return nil
+	}
+	svc, err := os.createOSSClient(bucket.Region)
 	if err != nil {
 		os.logger.WithError(err).Error("failed to create OSSClient")
 		return err
@@ -218,7 +228,7 @@ func (os *ObjectStore) deleteFromProvider(bucket *ObjectStoreBucketModel) error 
 }
 
 func (os *ObjectStore) CheckBucket(bucketName string) error {
-	svc, err := createOSSClient(os.region, os.secret)
+	svc, err := os.createOSSClient(os.region)
 
 	if err != nil {
 		log.Errorf("Creating AlibabaOSSClient failed: %s", err.Error())
@@ -249,58 +259,12 @@ func (os *ObjectStore) getLogger(bucketName string) logrus.FieldLogger {
 	})
 }
 
-func createOSSClient(region string, retrievedSecret *secret.SecretItemResponse) (*oss.Client, error) {
-	serviceAccount := verify.CreateAlibabaCredentials(retrievedSecret.Values)
-	endpoint, err := ossRegionToEndpoint(region)
-	if err != nil {
-		return nil, err
-	}
+func (os *ObjectStore) createOSSClient(region string) (*oss.Client, error) {
+
+	endpoint := fmt.Sprintf(ossEndpointFmt, region)
+	serviceAccount := verify.CreateAlibabaCredentials(os.secret.Values)
+
 	return oss.New(endpoint, serviceAccount.AccessKeyId, serviceAccount.AccessKeySecret)
-}
-
-func ossRegionToEndpoint(region string) (endpoint string, err error) {
-	switch region {
-	case "oss-cn-hangzhou":
-		endpoint = "https://oss-cn-hangzhou.aliyuncs.com"
-	case "oss-cn-shanghai":
-		endpoint = "https://oss-cn-shanghai.aliyuncs.com"
-	case "oss-cn-qingdao":
-		endpoint = "https://oss-cn-qingdao.aliyuncs.com"
-	case "oss-cn-beijing":
-		endpoint = "https://oss-cn-beijing.aliyuncs.com"
-	case "oss-cn-zhangjiakou":
-		endpoint = "https://oss-cn-zhangjiakou.aliyuncs.com"
-	case "oss-cn-huhehaote":
-		endpoint = "https://oss-cn-huhehaote.aliyuncs.com"
-	case "oss-cn-shenzhen":
-		endpoint = "https://oss-cn-shenzhen.aliyuncs.com"
-	case "oss-cn-hongkong":
-		endpoint = "https://oss-cn-hongkong.aliyuncs.com"
-	case "oss-us-west-1":
-		endpoint = "https://oss-us-west-1.aliyuncs.com"
-	case "oss-us-east-1":
-		endpoint = "https://oss-us-east-1.aliyuncs.com"
-	case "oss-ap-southeast-1":
-		endpoint = "https://oss-ap-southeast-1.aliyuncs.com"
-	case "oss-ap-southeast-2":
-		endpoint = "https://oss-ap-southeast-2.aliyuncs.com"
-	case "oss-ap-southeast-3":
-		endpoint = "https://oss-ap-southeast-3.aliyuncs.com"
-	case "oss-ap-southeast-5":
-		endpoint = "https://oss-ap-southeast-5.aliyuncs.com"
-	case "oss-ap-northeast-1":
-		endpoint = "https://oss-ap-northeast-1.aliyuncs.com"
-	case "oss-ap-south-1":
-		endpoint = "https://oss-ap-south-1.aliyuncs.com"
-	case "oss-eu-central-1":
-		endpoint = "https://oss-eu-central-1.aliyuncs.com"
-	case "oss-me-east-1":
-		endpoint = "https://oss-me-east-1.aliyuncs.com"
-	default:
-		err = errors.New("unknown endpoint")
-	}
-
-	return
 }
 
 func (os *ObjectStore) createFailed(b *ObjectStoreBucketModel, err error) error {
