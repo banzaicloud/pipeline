@@ -50,6 +50,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -64,8 +65,13 @@ func initLog() *logrus.Entry {
 	return logger
 }
 
+func initPrometheus() {
+	prometheus.MustRegister(cluster.NewExporter(), cluster.StatusChangeDuration)
+}
+
 func main() {
 
+	initPrometheus()
 	if len(os.Args) > 1 && os.Args[1] == "--version" {
 		if CommitHash == "" {
 			fmt.Println("version: ", Version, " built on ", BuildDate)

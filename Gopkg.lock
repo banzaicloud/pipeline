@@ -2287,6 +2287,7 @@
     "github.com/patrickmn/go-cache",
     "github.com/pelletier/go-toml",
     "github.com/pkg/errors",
+    "github.com/prometheus/client_golang/prometheus",
     "github.com/prometheus/common/model",
     "github.com/prometheus/prometheus/config",
     "github.com/qor/auth",
@@ -2297,7 +2298,6 @@
     "github.com/qor/redirect_back",
     "github.com/qor/session",
     "github.com/qor/session/gorilla",
-    "github.com/russross/blackfriday",
     "github.com/satori/go.uuid",
     "github.com/sirupsen/logrus",
     "github.com/spf13/cast",
@@ -2356,6 +2356,7 @@
     "k8s.io/helm/pkg/repo",
     "k8s.io/kubernetes/pkg/api/v1/resource",
     "k8s.io/kubernetes/pkg/apis/core",
+    "k8s.io/kubernetes/pkg/apis/storage/util",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
