@@ -26,7 +26,7 @@ import (
 // Migrate executes the table migrations for the provider.
 func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	tables := []interface{}{
-		&ManagedAlibabaBucket{},
+		&ObjectStoreBucketModel{},
 	}
 
 	var tableNames string

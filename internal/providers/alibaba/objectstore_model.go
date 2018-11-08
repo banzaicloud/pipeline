@@ -21,8 +21,8 @@ const (
 	bucketsTableName = "alibaba_buckets"
 )
 
-// ManagedAlibabaBucket is the schema for the DB
-type ManagedAlibabaBucket struct {
+// ObjectStoreBucketModel is the schema for the DB
+type ObjectStoreBucketModel struct {
 	ID           uint              `gorm:"primary_key"`
 	Organization auth.Organization `gorm:"foreignkey:OrgID"`
 	OrgID        uint              `gorm:"index;not null"`
@@ -35,6 +35,6 @@ type ManagedAlibabaBucket struct {
 }
 
 // TableName changes the default table name.
-func (ManagedAlibabaBucket) TableName() string {
+func (ObjectStoreBucketModel) TableName() string {
 	return bucketsTableName
 }
