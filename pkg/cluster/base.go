@@ -84,6 +84,7 @@ const (
 	InstallPVCOperator                     = "InstallPVCOperator"
 	InstallAnchoreImageValidator           = "InstallAnchoreImageValidator"
 	RestoreFromBackup                      = "RestoreFromBackup"
+	InitSpotConfig                         = "InitSpotConfig"
 )
 
 // Provider name regexp
