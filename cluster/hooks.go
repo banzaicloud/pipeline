@@ -1241,7 +1241,7 @@ func InitSpotConfig(input interface{}) error {
 
 	spot, err := isSpotCluster(cluster)
 	if err != nil {
-		emperror.Wrap(err, "failed to check if cluster has spot instances")
+		return emperror.Wrap(err, "failed to check if cluster has spot instances")
 	}
 
 	if !spot {
@@ -1253,17 +1253,17 @@ func InitSpotConfig(input interface{}) error {
 
 	kubeConfig, err := cluster.GetK8sConfig()
 	if err != nil {
-		emperror.Wrap(err, "failed to get Kubernetes config")
+		return emperror.Wrap(err, "failed to get Kubernetes config")
 	}
 
 	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
-		emperror.Wrap(err, "failed to get Kubernetes clientset from kubeconfig")
+		return emperror.Wrap(err, "failed to get Kubernetes clientset from kubeconfig")
 	}
 
 	err = initializeSpotConfigMap(client, pipelineSystemNamespace)
 	if err != nil {
-		emperror.Wrap(err, "failed to initialize spot ConfigMap")
+		return emperror.Wrap(err, "failed to initialize spot ConfigMap")
 	}
 
 	values := map[string]interface{}{
@@ -1272,16 +1272,16 @@ func InitSpotConfig(input interface{}) error {
 	}
 	marshalledValues, err := yaml.Marshal(values)
 	if err != nil {
-		emperror.Wrap(err, "failed to marshal yaml values")
+		return emperror.Wrap(err, "failed to marshal yaml values")
 	}
 
 	err = installDeployment(cluster, pipelineSystemNamespace, pkgHelm.BanzaiRepository+"/spot-scheduler", "spot-scheduler", marshalledValues, "InstallSpotScheduler", "")
 	if err != nil {
-		emperror.Wrap(err, "failed to install the spot-scheduler deployment")
+		return emperror.Wrap(err, "failed to install the spot-scheduler deployment")
 	}
 	err = installDeployment(cluster, pipelineSystemNamespace, pkgHelm.BanzaiRepository+"/spot-config-webhook", "spot-webhook", marshalledValues, "InstallSpotWebhook", "")
 	if err != nil {
-		emperror.Wrap(err, "failed to install the spot-config-webhook deployment")
+		return emperror.Wrap(err, "failed to install the spot-config-webhook deployment")
 	}
 	return nil
 }
