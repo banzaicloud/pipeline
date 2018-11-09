@@ -30,8 +30,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-const retry = 3
-
 // DeleteCluster deletes a cluster.
 func (m *Manager) DeleteCluster(ctx context.Context, cluster CommonCluster, force bool, kubeProxyCache *sync.Map) error {
 	errorHandler := emperror.HandlerWith(
@@ -56,36 +54,175 @@ func (m *Manager) DeleteCluster(ctx context.Context, cluster CommonCluster, forc
 	return nil
 }
 
-func deleteAllResource(kubeConfig []byte, logger *logrus.Entry) error {
+func retry(function func() error, count int, delaySeconds int) error {
+	i := 1
+	for {
+		err := function()
+		if err == nil || i == count {
+			return err
+		}
+		time.Sleep(time.Duration(delaySeconds))
+		i++
+	}
+}
+
+func deleteAllResources(kubeConfig []byte, logger *logrus.Entry) error {
+
+	err := deleteUserNamespaces(kubeConfig, logger)
+	if err != nil {
+		return emperror.Wrap(err, "failed to delete user namespaces")
+	}
+
+	err = deleteResources(kubeConfig, "default", logger)
+	if err != nil {
+		return emperror.Wrap(err, "failed to delete resurces in default namespace")
+	}
+
+	err = deleteServices(kubeConfig, "default", logger)
+	if err != nil {
+		return emperror.Wrap(err, "failed to delete services in default namespace")
+	}
+
+	return nil
+}
+
+// deleteUserNamespaces deletes all namespace in the context expect the protected ones
+func deleteUserNamespaces(kubeConfig []byte, logger *logrus.Entry) error {
 	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
 		return err
 	}
-
-	type resourceDeleter interface {
-		Delete(name string, options *metav1.DeleteOptions) error
+	namespaces, err := client.CoreV1().Namespaces().List(metav1.ListOptions{})
+	if err != nil {
+		return emperror.Wrap(err, "could not list namespaces to delete")
 	}
 
-	services := []resourceDeleter{
-		client.CoreV1().Services(metav1.NamespaceAll),
-		client.AppsV1().Deployments(metav1.NamespaceAll),
-		client.AppsV1().DaemonSets(metav1.NamespaceAll),
-		client.AppsV1().StatefulSets(metav1.NamespaceAll),
-		client.AppsV1().ReplicaSets(metav1.NamespaceAll),
-	}
-
-	options := metav1.NewDeleteOptions(0)
-
-	for _, service := range services {
-		for i := 0; i < retry; i++ {
-			err := service.Delete("", options)
+	for _, ns := range namespaces.Items {
+		switch ns.Name {
+		case "default", "kube-system", "kube-public":
+			continue
+		}
+		err := retry(func() error {
+			logger.Infof("deleting kubernetes namespace %q", ns.Name)
+			err := client.CoreV1().Namespaces().Delete(ns.Name, &metav1.DeleteOptions{})
 			if err != nil {
-				logger.Debugf("deleting resources %T attempt %d/%d failed", service, i, retry)
-				time.Sleep(1)
+				return emperror.Wrapf(err, "failed to delete %q namespace", ns.Name)
 			}
+			return nil
+		}, 3, 1)
+		if err != nil {
+			return err
 		}
 	}
+	err = retry(func() error {
+		namespaces, err := client.CoreV1().Namespaces().List(metav1.ListOptions{})
+		left := 0
+		if err != nil {
+			return emperror.Wrap(err, "could not list remaining namespaces")
+		}
+		for _, ns := range namespaces.Items {
+			switch ns.Name {
+			case "default", "kube-system", "kube-public":
+				continue
+			default:
+				logger.Infof("namespace %q still %s", ns.Name, ns.Status)
+				left++
+			}
+		}
+		if left > 0 {
+			return fmt.Errorf("%d namespaces remained after deletion", left)
+		}
+		return nil
+	}, 6, 30)
+	return err
+}
+
+// deleteResources deletes all Services, Deployments, DaemonSets, StatefulSets, ReplicaSets, Pods, and PersistentVolumeClaims of a namespace
+func deleteResources(kubeConfig []byte, ns string, logger *logrus.Entry) error {
+	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
+	if err != nil {
+		return err
+	}
+	resourceTypes := []struct {
+		DeleteCollectioner interface {
+			DeleteCollection(*metav1.DeleteOptions, metav1.ListOptions) error
+		}
+		Name string
+	}{
+		{client.AppsV1().Deployments(ns), "Deployments"},
+		{client.AppsV1().DaemonSets(ns), "DaemonSets"},
+		{client.AppsV1().StatefulSets(ns), "StatefulSets"},
+		{client.AppsV1().ReplicaSets(ns), "ReplicaSets"},
+		{client.CoreV1().Pods(ns), "Pods"},
+		{client.CoreV1().PersistentVolumeClaims(ns), "PersistentVolumeClaims"},
+	}
+
+	for _, resourceType := range resourceTypes {
+		err := retry(func() error {
+			logger.Debugf("deleting %s", resourceType.Name)
+			err := resourceType.DeleteCollectioner.DeleteCollection(&metav1.DeleteOptions{}, metav1.ListOptions{})
+			if err != nil {
+				logger.Infof("could not delete %s: %v", resourceType.Name, err)
+			}
+			return err
+		}, 6, 1)
+		if err != nil {
+			return emperror.Wrapf(err, "could not delete %s", resourceType.Name)
+		}
+	}
+
 	return nil
+}
+
+// deleteServices deletes all services one by one from a namespace
+func deleteServices(kubeConfig []byte, ns string, logger *logrus.Entry) error {
+	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
+	if err != nil {
+		return err
+	}
+	services, err := client.CoreV1().Services(ns).List(metav1.ListOptions{})
+	if err != nil {
+		return emperror.Wrap(err, "could not list services to delete")
+	}
+
+	for _, service := range services.Items {
+		switch service.Name {
+		case "kubernetes":
+			continue
+		}
+		err := retry(func() error {
+			logger.Infof("deleting kubernetes service %q", service.Name)
+			err := client.CoreV1().Services(ns).Delete(service.Name, &metav1.DeleteOptions{})
+			if err != nil {
+				return emperror.Wrapf(err, "failed to delete %q service", service.Name)
+			}
+			return nil
+		}, 3, 1)
+		if err != nil {
+			return err
+		}
+	}
+	err = retry(func() error {
+		services, err := client.CoreV1().Services(ns).List(metav1.ListOptions{})
+		if err != nil {
+			return emperror.Wrap(err, "could not list remaining services")
+		}
+		left := 0
+		for _, svc := range services.Items {
+			switch svc.Name {
+			case "kubernetes":
+				continue
+			default:
+				logger.Infof("service %q still %s", svc.Name, svc.Status)
+				left++
+			}
+		}
+		if left > 0 {
+			return fmt.Errorf("%d services remained after deletion", left)
+		}
+		return nil
+	}, 6, 30)
+	return err
 }
 
 // deleteDnsRecordsOwnedByCluster deletes DNS records owned by the cluster. These are the DNS records
@@ -148,7 +285,7 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 			logger.Error(err)
 		}
 
-		err = deleteAllResource(c, logger)
+		err = deleteAllResources(c, logger)
 		if err != nil {
 			err = emperror.Wrap(err, "failed to delete Kubernetes resources")
 			if !force {
