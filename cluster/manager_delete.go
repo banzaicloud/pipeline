@@ -20,6 +20,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/helm"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -40,7 +41,11 @@ func (m *Manager) DeleteCluster(ctx context.Context, cluster CommonCluster, forc
 		"cluster", cluster.GetID(),
 		"force", force,
 	)
-	timer := prometheus.NewTimer(StatusChangeDuration.WithLabelValues(cluster.GetCloud(), cluster.GetLocation(), pkgCluster.Deleting))
+	org, err := auth.GetOrganizationById(cluster.GetOrganizationId())
+	if err != nil {
+		return err
+	}
+	timer := prometheus.NewTimer(StatusChangeDuration.WithLabelValues(cluster.GetCloud(), cluster.GetLocation(), pkgCluster.Deleting, org.Name, cluster.GetName()))
 
 	go func() {
 		defer emperror.HandleRecover(m.errorHandler)

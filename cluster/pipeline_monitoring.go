@@ -17,6 +17,7 @@ package cluster
 import (
 	"sync"
 
+	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/prometheus/client_golang/prometheus"
@@ -30,18 +31,20 @@ type pipelineMetrics struct {
 }
 
 type scrapeResultTotalCluster struct {
-	provider string
-	location string
-	status   string
+	provider    string
+	location    string
+	status      string
+	orgName     string
+	clusterName string
 }
 
 var (
 	StatusChangeDuration = prometheus.NewSummaryVec(prometheus.SummaryOpts{
 		Namespace: "pipeline",
-		Name:      "status_change_duration",
+		Name:      "cluster_status_change_duration",
 		Help:      "Cluster status change duration in seconds",
 	},
-		[]string{"provider", "location", "status"},
+		[]string{"provider", "location", "status", "orgName", "clusterName"},
 	)
 )
 
@@ -49,10 +52,10 @@ func NewExporter() *pipelineMetrics {
 	p := pipelineMetrics{
 		clusterStatus: prometheus.NewGaugeVec(prometheus.GaugeOpts{
 			Namespace: "pipeline",
-			Name:      "total",
-			Help:      "Total number of clusters, partitioned by provider, location and status",
+			Name:      "cluster_total",
+			Help:      "Total number of clusters",
 		},
-			[]string{"provider", "location", "status"},
+			[]string{"provider", "location", "status", "orgName", "clusterName"},
 		),
 		clusters: intCluster.NewClusters(config.DB()),
 	}
@@ -85,10 +88,17 @@ func (p *pipelineMetrics) scrape(scrapesTotalCluster chan<- scrapeResultTotalClu
 	}
 
 	for _, cluster := range allCluster {
+		org, err := auth.GetOrganizationById(cluster.OrganizationId)
+		if err != nil {
+			return
+		}
+
 		scrapesTotalCluster <- scrapeResultTotalCluster{
-			provider: cluster.Cloud,
-			location: cluster.Location,
-			status:   cluster.Status,
+			provider:    cluster.Cloud,
+			location:    cluster.Location,
+			status:      cluster.Status,
+			orgName:     org.Name,
+			clusterName: cluster.Name,
 		}
 	}
 
@@ -100,9 +110,11 @@ func (p *pipelineMetrics) setClusterMetrics(resultTotalCluster <-chan scrapeResu
 
 	for scr := range resultTotalCluster {
 		var labels prometheus.Labels = map[string]string{
-			"provider": scr.provider,
-			"location": scr.location,
-			"status":   scr.status,
+			"provider":    scr.provider,
+			"location":    scr.location,
+			"status":      scr.status,
+			"orgName":     scr.orgName,
+			"clusterName": scr.clusterName,
 		}
 		p.clusterStatus.With(labels).Inc()
 	}
