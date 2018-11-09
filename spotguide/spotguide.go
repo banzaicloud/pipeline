@@ -121,7 +121,6 @@ type LaunchRequest struct {
 	Cluster          *client.CreateClusterRequest  `json:"cluster" binding:"required"`
 	Secrets          []*secret.CreateSecretRequest `json:"secrets,omitempty"`
 	Pipeline         map[string]interface{}        `json:"pipeline,omitempty"`
-	PrePipeline      map[string]interface{}        `json:"prePipeline,omitempty"`
 }
 
 func (r LaunchRequest) RepoFullname() string {
@@ -569,18 +568,35 @@ func enableCICD(request *LaunchRequest, httpRequest *http.Request) error {
 }
 
 func createDroneRepoConfig(pipelineYAML []byte, request *LaunchRequest) (*droneRepoConfig, error) {
-	// Pre-process pipeline
-	yamlTemplate, err := template.New("yaml").
-		Delims("{{{", "}}}").
+	// Pre-process pipeline.yaml
+	yamlTemplate, err := template.New("pipeline.yaml").
+		Delims("{{{{", "}}}}").
 		Funcs(sprig.TxtFuncMap()).
 		Parse(string(pipelineYAML))
 	if err != nil {
-		return nil, err
+		return nil, emperror.Wrap(err, "failed to setup sprig template for pipeline.yaml")
 	}
 	buffer := bytes.NewBuffer(nil)
-	err = yamlTemplate.Execute(buffer, request.PrePipeline)
+
+	data := map[string]map[string]interface{}{}
+	cluster := map[string]interface{}{}
+	pipeline := map[string]interface{}{}
+
+	err = mergo.Map(&cluster, request.Cluster)
 	if err != nil {
-		return nil, err
+		return nil, emperror.Wrap(err, "failed to merge cluster into sprig template data")
+	}
+	err = mergo.Merge(&pipeline, request.Pipeline)
+	if err != nil {
+		return nil, emperror.Wrap(err, "failed to merge pipline into sprig template data")
+	}
+
+	data["cluster"] = cluster
+	data["pipeline"] = pipeline
+
+	err = yamlTemplate.Execute(buffer, data)
+	if err != nil {
+		return nil, emperror.Wrap(err, "failed to evaluate sprig template for pipeline.yaml")
 	}
 
 	repoConfig := new(droneRepoConfig)
