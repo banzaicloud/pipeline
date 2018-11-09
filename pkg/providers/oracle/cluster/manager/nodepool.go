@@ -169,6 +169,7 @@ func (cm *ClusterManager) AddNodePool(clusterModel *model.Cluster, np *model.Nod
 	createNodePoolReq.NodeImageName = &np.Image
 	createNodePoolReq.NodeShape = &np.Shape
 	createNodePoolReq.QuantityPerSubnet = common.Int(int(np.QuantityPerSubnet))
+	createNodePoolReq.SshPublicKey = common.String(clusterModel.SSHPubKey)
 
 	for _, subnet := range np.Subnets {
 		createNodePoolReq.SubnetIds = append(createNodePoolReq.SubnetIds, subnet.SubnetID)

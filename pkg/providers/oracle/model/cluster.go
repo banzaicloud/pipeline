@@ -45,7 +45,8 @@ type Cluster struct {
 	CreatedBy      uint
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
-	Delete         bool `gorm:"-"`
+	Delete         bool   `gorm:"-"`
+	SSHPubKey      string `gorm:"-"`
 }
 
 // NodePool describes Oracle node pools model of a cluster
