@@ -708,6 +708,6 @@ func (s *ObjectStore) searchCriteria(bucketName string) *ObjectStoreBucketModel 
 		Name:           bucketName,
 		ResourceGroup:  s.getResourceGroup(),
 		StorageAccount: s.getStorageAccount(),
-		Location:       s.location,
+		//Location:       s.location,
 	}
 }

@@ -461,7 +461,7 @@ func DeleteBucket(c *gin.Context) {
 		return
 	}
 
-	logger.Infof("object store bucket deleted")
+	logger.Info("object store bucket deleted")
 }
 
 // hasSecret checks the header for secret references, returns true in case one of the following headers are found:
