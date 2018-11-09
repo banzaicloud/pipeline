@@ -169,7 +169,7 @@ func (s *ObjectStore) CreateBucket(bucketName string) error {
 		return s.createFailed(bucket, emperror.Wrap(err, "failed to check storage account"))
 	}
 
-	if !exists {
+	if !*exists {
 		if err = s.createStorageAccount(s.getResourceGroup(), s.getStorageAccount()); err != nil {
 			return s.createFailed(bucket, emperror.Wrap(err, "failed to create storage account"))
 		}
@@ -293,10 +293,12 @@ func (s *ObjectStore) createResourceGroup(resourceGroup string) error {
 	return nil
 }
 
-func (s *ObjectStore) checkStorageAccountExistence(resourceGroup string, storageAccount string) (bool, error) {
+func (s *ObjectStore) checkStorageAccountExistence(resourceGroup string, storageAccount string) (*bool, error) {
+	falseVal := false
+	trueVal := true
 	storageAccountsClient, err := createStorageAccountClient(s.secret)
 	if err != nil {
-		return true, err
+		return nil, emperror.Wrap(err, "failed to create storage account client")
 	}
 
 	logger := s.logger.WithFields(logrus.Fields{
@@ -314,17 +316,18 @@ func (s *ObjectStore) checkStorageAccountExistence(resourceGroup string, storage
 		},
 	)
 	if err != nil {
-		return true, err
+		return nil, emperror.Wrap(err, "failed to check storage account name availability")
 	}
 
 	if *result.NameAvailable == false {
 		if _, err = storageAccountsClient.GetProperties(context.TODO(), resourceGroup, storageAccount); err != nil {
 			logger.Errorf("storage account name not available, %s", *result.Message)
-			return true, fmt.Errorf(*result.Message)
+			return nil, emperror.Wrap(err, *result.Message)
 		}
+		return &trueVal, nil
 	}
 
-	return false, nil
+	return &falseVal, nil
 }
 
 func (s *ObjectStore) createStorageAccount(resourceGroup string, storageAccount string) error {
