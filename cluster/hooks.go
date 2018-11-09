@@ -1241,7 +1241,7 @@ func InitSpotConfig(input interface{}) error {
 
 	spot, err := isSpotCluster(cluster)
 	if err != nil {
-		return err
+		emperror.Wrap(err, "failed to check if cluster has spot instances")
 	}
 
 	if !spot {
@@ -1253,17 +1253,17 @@ func InitSpotConfig(input interface{}) error {
 
 	kubeConfig, err := cluster.GetK8sConfig()
 	if err != nil {
-		return err
+		emperror.Wrap(err, "failed to get Kubernetes config")
 	}
 
 	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
-		return err
+		emperror.Wrap(err, "failed to get Kubernetes clientset from kubeconfig")
 	}
 
 	err = initializeSpotConfigMap(client, pipelineSystemNamespace)
 	if err != nil {
-		return err
+		emperror.Wrap(err, "failed to initialize spot ConfigMap")
 	}
 
 	values := map[string]interface{}{
@@ -1272,16 +1272,16 @@ func InitSpotConfig(input interface{}) error {
 	}
 	marshalledValues, err := yaml.Marshal(values)
 	if err != nil {
-		return err
+		emperror.Wrap(err, "failed to marshal yaml values")
 	}
 
 	err = installDeployment(cluster, pipelineSystemNamespace, pkgHelm.BanzaiRepository+"/spot-scheduler", "spot-scheduler", marshalledValues, "InstallSpotScheduler", "")
 	if err != nil {
-		return err
+		emperror.Wrap(err, "failed to install the spot-scheduler deployment")
 	}
 	err = installDeployment(cluster, pipelineSystemNamespace, pkgHelm.BanzaiRepository+"/spot-config-webhook", "spot-webhook", marshalledValues, "InstallSpotWebhook", "")
 	if err != nil {
-		return err
+		emperror.Wrap(err, "failed to install the spot-config-webhook deployment")
 	}
 	return nil
 }
@@ -1289,7 +1289,7 @@ func InitSpotConfig(input interface{}) error {
 func isSpotCluster(cluster CommonCluster) (bool, error) {
 	status, err := cluster.GetStatus()
 	if err != nil {
-		return false, err
+		return false, emperror.Wrap(err, "failed to get cluster status")
 	}
 	for _, nps := range status.NodePools {
 		if nps.SpotPrice != "" && nps.SpotPrice != "0" {
@@ -1311,10 +1311,10 @@ func initializeSpotConfigMap(client *kubernetes.Clientset, systemNs string) erro
 				Data: make(map[string]string),
 			})
 			if err != nil {
-				return err
+				return emperror.Wrap(err, "failed to create spot ConfigMap")
 			}
 		} else {
-			return err
+			return emperror.Wrap(err, "failed to retrieve spot ConfigMap")
 		}
 	}
 	log.Info("finished initializing spot ConfigMap")
