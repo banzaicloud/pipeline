@@ -230,7 +230,7 @@ func (s *ObjectStore) createUpdateStorageAccountSecret(accesskey string) (string
 			fmt.Sprintf("azureStorageAccount:%v", s.getStorageAccount()),
 		},
 	}
-	secretId, err := secret.Store.CreateOrUpdate(s.org.ID, &secretRequest);
+	secretId, err := secret.Store.CreateOrUpdate(s.org.ID, &secretRequest)
 	if err != nil {
 		return secretId, secretName, emperror.WrapWith(err, "failed to create/update secret", "secret", secretName)
 	}

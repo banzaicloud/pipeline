@@ -670,37 +670,7 @@ func bucketsResponse(buckets []*objectstore.BucketInfo, orgid uint, withSecretNa
 	bucketItems := make([]*BucketResponseItem, 0)
 
 	for _, bucket := range buckets {
-
-		var (
-			secretName       string
-			accessSecretName string
-			notes            string
-		)
-
-		if withSecretName {
-			// get the secret name from the store if requested
-			if secretResponse, err := secret.Store.Get(orgid, bucket.SecretRef); err == nil {
-				secretName = secretResponse.Name
-			} else {
-				errorHandler.Handle(err)
-				notes = err.Error()
-			}
-
-			accessSecretName = secretName
-
-			// in case of azure the access secret differs from the secret used to create it
-			if bucket.Cloud == pkgCluster.Azure {
-				// get the access - secret name from the store if requested
-				if secretResponse, err := secret.Store.Get(orgid, bucket.AccessSecretRef); err == nil {
-					accessSecretName = secretResponse.Name
-				} else {
-					errorHandler.Handle(err)
-					notes = err.Error()
-				}
-			}
-
-		}
-		bucketItems = append(bucketItems, newBucketResponseItemFromBucketInfo(bucket, notes, secretName, accessSecretName))
+		bucketItems = append(bucketItems, newBucketResponseItemFromBucketInfo(bucket, orgid, withSecretName))
 	}
 
 	return bucketItems
@@ -727,6 +697,13 @@ func GetBucket(c *gin.Context) {
 		return
 	}
 
+	const (
+		fieldsQueryKey = "include"
+		secretName     = "secret"
+	)
+	// is secretName requested?
+	includeSecret := c.Query(fieldsQueryKey) == secretName
+
 	organization := auth.GetCurrentOrganization(c.Request)
 	objectStoreCtx := &providers.ObjectStoreContext{
 		Provider:     provider,
@@ -751,7 +728,7 @@ func GetBucket(c *gin.Context) {
 
 	for _, bucket := range bucketList {
 		if bucket.Name == bucketName {
-			c.JSON(http.StatusOK, newBucketResponseItemFromBucketInfo(bucket, "", "", ""))
+			c.JSON(http.StatusOK, newBucketResponseItemFromBucketInfo(bucket, organization.ID, includeSecret))
 
 			return
 		}
@@ -779,7 +756,37 @@ func (err BucketNotFoundError) NotFound() bool {
 }
 
 // newBucketResponseItemFromBucketInfo builds a responsItem based opn the provided bucketInfo
-func newBucketResponseItemFromBucketInfo(bi *objectstore.BucketInfo, notes, secretName, accessSecretName string) *BucketResponseItem {
+func newBucketResponseItemFromBucketInfo(bi *objectstore.BucketInfo, orgid uint, withSecretName bool) *BucketResponseItem {
+	var (
+		secretName       string
+		accessSecretName string
+		notes            string
+	)
+
+	if withSecretName {
+		// get the secret name from the store if requested
+		if secretResponse, err := secret.Store.Get(orgid, bi.SecretRef); err == nil {
+			secretName = secretResponse.Name
+		} else {
+			errorHandler.Handle(err)
+			notes = err.Error()
+		}
+
+		accessSecretName = secretName
+
+		// in case of azure the access secret differs from the secret used to create it
+		if bi.Cloud == pkgCluster.Azure {
+			// get the access - secret name from the store if requested
+			if secretResponse, err := secret.Store.Get(orgid, bi.AccessSecretRef); err == nil {
+				accessSecretName = secretResponse.Name
+			} else {
+				errorHandler.Handle(err)
+				notes = err.Error()
+			}
+		}
+
+	}
+
 	ret := BucketResponseItem{
 		Name:      bi.Name,
 		Status:    bi.Status,
