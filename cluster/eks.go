@@ -21,6 +21,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Masterminds/semver"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/endpoints"
@@ -41,6 +42,7 @@ import (
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/ghodss/yaml"
+	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
 	"k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
@@ -262,8 +264,22 @@ func (c *EKSCluster) CreateCluster() error {
 		return err
 	}
 
+	constraint, err := semver.NewConstraint(">= 1.12")
+	if err != nil {
+		return emperror.Wrap(err, "Could not set  1.12 constraint for semver")
+	}
+	kubeVersion, err := semver.NewVersion(c.modelCluster.EKS.Version)
+	if err != nil {
+		return emperror.Wrap(err, "Could not set eks version for semver check")
+	}
+	var volumeBindingMode storagev1.VolumeBindingMode
+	if constraint.Check(kubeVersion) {
+		volumeBindingMode = storagev1.VolumeBindingWaitForFirstConsumer
+	} else {
+		volumeBindingMode = storagev1.VolumeBindingImmediate
+	}
 	// create default storage class
-	err = createDefaultStorageClass(kubeClient, "kubernetes.io/aws-ebs", storagev1.VolumeBindingWaitForFirstConsumer)
+	err = createDefaultStorageClass(kubeClient, "kubernetes.io/aws-ebs", volumeBindingMode)
 	if err != nil {
 		return err
 	}
