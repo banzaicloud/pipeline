@@ -408,15 +408,6 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 
 }
 
-//func checkIfTLSRelatedValuesArePresent(v *pkgCluster.GenTLSForLogging) bool {
-//	if v.TLSEnabled {
-//		if v.TLSHost == "" || v.GenTLSSecretName == "" || v.Namespace == "" {
-//			return false
-//		}
-//	}
-//	return true
-//}
-
 func castToPostHookParam(data *pkgCluster.PostHookParam, output interface{}) (err error) {
 
 	var bytes []byte
@@ -559,6 +550,13 @@ func InstallIngressControllerPostHook(input interface{}) error {
 			"tolerations": getHeadNodeTolerations(),
 		},
 	}
+	//TODO remove this when refactoring of the posthook happens
+	if cluster.GetCloud() == pkgCluster.Alibaba {
+		traefikPerSize := ingressValues["traefik"].(map[string]interface{})["acme"].(map[string]interface{})["persistence"].(map[string]interface{})
+		traefikPerSize["size"] = "20Gi"
+		ingressValues["traefik"].(map[string]interface{})["acme"].(map[string]interface{})["persistence"] = traefikPerSize
+	}
+
 	ingressValuesJson, err := yaml.Marshal(ingressValues)
 	if err != nil {
 		return errors.Errorf("Json Convert Failed : %s", err.Error())
