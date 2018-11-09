@@ -5397,6 +5397,13 @@ components:
                 releaseName:
                     type: string
                     example: "singed-bee"
+                dryRun:
+                    type: boolean
+                    example: false
+                odPcts:
+                    type: object
+                    description: "Map of resources in the template where replicas should have a minimum on-demand percentage. Format: <kind.resourceName: min-percentage>"
+                    example: { "deployment.my-deployment": 40 }
                 reuseValues:
                     type: boolean
                     example: "true"
