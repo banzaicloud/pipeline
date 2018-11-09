@@ -19,7 +19,10 @@ type CreateUpdateDeploymentRequest struct {
 	Package     string `json:"package,omitempty"`
 	Namespace   string `json:"namespace,omitempty"`
 	ReleaseName string `json:"releaseName,omitempty"`
-	ReuseValues bool   `json:"reuseValues,omitempty"`
+	DryRun      bool   `json:"dryRun,omitempty"`
+	// Map of resources in the template where replicas should have a minimum on-demand percentage. Format: <kind.resourceName: min-percentage>
+	OdPcts      map[string]interface{} `json:"odPcts,omitempty"`
+	ReuseValues bool                   `json:"reuseValues,omitempty"`
 	// current values of the deployment
 	Values map[string]interface{} `json:"values,omitempty"`
 }

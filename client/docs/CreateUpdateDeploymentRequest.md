@@ -8,6 +8,8 @@ Name | Type | Description | Notes
 **Package** | **string** | The chart content packaged by &#x60;helm package&#x60;. If specified chart version is ignored. | [optional] 
 **Namespace** | **string** |  | [optional] 
 **ReleaseName** | **string** |  | [optional] 
+**DryRun** | **bool** |  | [optional] 
+**OdPcts** | [**map[string]interface{}**](map[string]interface{}.md) | Map of resources in the template where replicas should have a minimum on-demand percentage. Format: &lt;kind.resourceName: min-percentage&gt; | [optional] 
 **ReuseValues** | **bool** |  | [optional] 
 **Values** | [**map[string]interface{}**](map[string]interface{}.md) | current values of the deployment | [optional] 
 
