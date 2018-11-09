@@ -202,9 +202,9 @@ func (s *ObjectStore) CreateBucket(bucketName string) error {
 		return s.createFailed(bucket, emperror.Wrap(err, "failed to create or update access-secret"))
 	}
 	logger.WithField("acc-secret-name", accSecretName).Info("secret created/updated")
+
 	bucket.Status = providers.BucketCreated
 	bucket.AccessSecretRef = accSecretId
-
 	err = s.db.Save(bucket).Error
 	if err != nil {
 		return s.createFailed(bucket, emperror.Wrap(err, "failed to save bucket"))
@@ -230,7 +230,8 @@ func (s *ObjectStore) createUpdateStorageAccountSecret(accesskey string) (string
 			fmt.Sprintf("azureStorageAccount:%v", s.getStorageAccount()),
 		},
 	}
-	if secretId, err := secret.Store.CreateOrUpdate(s.org.ID, &secretRequest); err != nil {
+	secretId, err := secret.Store.CreateOrUpdate(s.org.ID, &secretRequest);
+	if err != nil {
 		return secretId, secretName, emperror.WrapWith(err, "failed to create/update secret", "secret", secretName)
 	}
 	return secretId, secretName, nil
@@ -570,6 +571,7 @@ func (s *ObjectStore) ListManagedBuckets() ([]*objectstore.BucketInfo, error) {
 		bucketInfo := &objectstore.BucketInfo{Name: bucket.Name, Managed: true}
 		bucketInfo.Location = bucket.Location
 		bucketInfo.SecretRef = bucket.SecretRef
+		bucketInfo.AccessSecretRef = bucket.AccessSecretRef
 		bucketInfo.Cloud = providers.Azure
 		bucketInfo.Status = bucket.Status
 		bucketInfo.StatusMsg = bucket.StatusMsg
