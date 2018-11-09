@@ -582,9 +582,9 @@ func enableCICD(request *LaunchRequest, httpRequest *http.Request) error {
 }
 
 func createDroneRepoConfig(pipelineYAML []byte, request *LaunchRequest) (*droneRepoConfig, error) {
-	// Pre-process pipeline
-	yamlTemplate, err := template.New("yaml").
-		Delims("{{{", "}}}").
+	// Pre-process pipeline.yaml
+	yamlTemplate, err := template.New("pipeline.yaml").
+		Delims("{{{{", "}}}}").
 		Funcs(sprig.TxtFuncMap()).
 		Parse(string(pipelineYAML))
 	if err != nil {

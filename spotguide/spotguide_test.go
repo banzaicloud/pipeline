@@ -65,15 +65,19 @@ pipeline:
       - name: DOCKER_PASSWORD
         source: password
     image: banzaicloud/ci-pipeline-client:latest
+{{{{ if .debugMode }}}}
   env:
     image: node:10
     commands:
     - env
     - find .
+{{{{ end }}}}
+{{{{ if .runTests }}}}
   test:
     image: node:10
     commands:
     - npm version
+{{{{ end }}}}
   build_container:
     image: plugins/docker
     dockerfile: Dockerfile
@@ -177,11 +181,6 @@ pipeline:
       - name: DOCKER_PASSWORD
         source: password
     image: banzaicloud/ci-pipeline-client:latest
-  env:
-    image: node:10
-    commands:
-    - env
-    - find .
   test:
     image: node:10
     commands:
@@ -328,20 +327,17 @@ var testLaunchRequestJSON = `{
               "name": "spotguide-nodejs-mongodb-05-docker-hub"
           }
       }
+  },
+  "prePipeline": {
+    "debugMode": false,
+    "runTests": true
   }
 }`
 
 func TestDroneRepoConfigPipeline(t *testing.T) {
 
-	config := droneRepoConfig{}
-	err := yaml.Unmarshal([]byte(testPipelineYAML), &config)
-
-	if err != nil {
-		t.Fatal("Unmarshal expected to succeed but got error: ", err.Error())
-	}
-
 	launchRequest := LaunchRequest{}
-	err = json.Unmarshal([]byte(testLaunchRequestJSON), &launchRequest)
+	err := json.Unmarshal([]byte(testLaunchRequestJSON), &launchRequest)
 
 	if err != nil {
 		t.Fatal("Unmarshal expected to succeed but got error: ", err.Error())
