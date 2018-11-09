@@ -164,6 +164,8 @@ func downloadGithubFile(githubClient *github.Client, owner, repo, file, tag stri
 		return nil, err
 	}
 
+	defer reader.Close()
+
 	return ioutil.ReadAll(reader)
 }
 
@@ -326,7 +328,6 @@ func GetSpotguide(orgID uint, name, version string) ([]SpotguideRepo, error) {
 	return repo, err
 }
 
-// curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -v http://localhost:9090/api/v1/orgs/1/spotguides -d '{"repoName":"spotguide-test", "repoOrganization":"banzaicloud-test", "spotguideName":"banzaicloud/spotguide-nodejs-mongodb"}'
 func LaunchSpotguide(request *LaunchRequest, httpRequest *http.Request, orgID, userID uint) error {
 
 	sourceRepos, err := GetSpotguide(orgID, request.SpotguideName, request.SpotguideVersion)
@@ -427,9 +428,11 @@ func getSpotguideContent(githubClient *github.Client, request *LaunchRequest, so
 			return nil, errors.Wrap(err, "failed to extract source spotguide repository release")
 		}
 
+		file.Close()
+
 		path := strings.SplitN(zf.Name, "/", 2)[1]
 
-		// We don't want to prepare yet, use the same pipeline.yml
+		// Prepare pipeline.yaml
 		if path == PipelineYAMLPath {
 			content, err = preparePipelineYAML(request, sourceRepo, content)
 			if err != nil {
@@ -437,12 +440,36 @@ func getSpotguideContent(githubClient *github.Client, request *LaunchRequest, so
 			}
 		}
 
+		// The GitHub API accepts blobs as utf-8 by default, and we can change the encoding only in the
+		// CreateBlob call, so if the file is utf-8 let's spare an API call, otherwise create the blob
+		// with base64 encoding specified.
+		var blobSHA, blobContent *string
+
+		if strings.HasSuffix(http.DetectContentType(content), "charset=utf-8") {
+
+			blobContent = github.String(string(content))
+
+		} else {
+
+			blob, _, err := githubClient.Git.CreateBlob(ctx, request.RepoOrganization, request.RepoName, &github.Blob{
+				Content:  github.String(base64.StdEncoding.EncodeToString(content)),
+				Encoding: github.String("base64"),
+			})
+			if err != nil {
+				return nil, errors.Wrap(err, "failed to create blob for spotguide repository: "+path)
+			}
+
+			blobSHA = blob.SHA
+		}
+
 		entry := github.TreeEntry{
 			Type:    github.String("blob"),
-			Path:    github.String(path),
-			Content: github.String(string(content)),
 			Mode:    github.String("100644"),
+			Path:    github.String(path),
+			SHA:     blobSHA,
+			Content: blobContent,
 		}
+
 		entries = append(entries, entry)
 	}
 
