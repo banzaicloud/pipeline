@@ -384,13 +384,9 @@ func (s *ObjectStore) DeleteBucket(bucketName string) error {
 	if err := s.db.Where(searchCriteria).Find(bucket).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return bucketNotFoundError{}
+		} else {
+			return emperror.WrapWith(err, "failed to lookup", "bucket", bucketName)
 		}
-	}
-
-	bucket.Status = providers.BucketDeleting
-	db := s.db.Save(bucket)
-	if db.Error != nil {
-		return s.deleteFailed(bucket, emperror.WrapWith(db.Error, "failed to update", "bucket", bucketName))
 	}
 
 	if err := s.deleteFromProvider(bucket); err != nil {
@@ -401,7 +397,7 @@ func (s *ObjectStore) DeleteBucket(bucketName string) error {
 	}
 
 	if err := s.db.Delete(bucket).Error; err != nil {
-		return s.deleteFailed(bucket, emperror.WrapWith(db.Error, "failed to delete", "bucket", bucketName))
+		return s.deleteFailed(bucket, emperror.WrapWith(err, "failed to delete", "bucket", bucketName))
 	}
 
 	return nil
@@ -412,11 +408,17 @@ func (s *ObjectStore) deleteFromProvider(bucket *ObjectStoreBucketModel) error {
 	logger := s.getLogger(bucket.Name)
 	logger.Info("deleting bucket on provider")
 
-	// todo the assumption here is, that a bucket in 'ERROR_CREATE' doesn't exist on the provider
-	// todo however there might be -presumably rare cases- when a bucket in 'ERROR_DELETE' that has already been deleted on the provider
+	// the assumption here is, that a bucket in 'ERROR_CREATE' doesn't exist on the provider
+	// however there might be -presumably rare cases- when a bucket in 'ERROR_DELETE' that has already been deleted on the provider
 	if bucket.Status == providers.BucketCreateError {
 		logger.Debug("bucket doesn't exist on provider")
 		return nil
+	}
+
+	bucket.Status = providers.BucketDeleting
+	db := s.db.Save(bucket)
+	if db.Error != nil {
+		return s.deleteFailed(bucket, emperror.WrapWith(db.Error, "failed to update", "bucket", bucket.Name))
 	}
 
 	key, err := GetStorageAccountKey(s.getResourceGroup(), s.getStorageAccount(), s.secret, s.logger)
@@ -706,5 +708,6 @@ func (s *ObjectStore) searchCriteria(bucketName string) *ObjectStoreBucketModel 
 		Name:           bucketName,
 		ResourceGroup:  s.getResourceGroup(),
 		StorageAccount: s.getStorageAccount(),
+		Location:       s.location,
 	}
 }
