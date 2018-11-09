@@ -18,6 +18,7 @@ import (
 	"context"
 	stderrors "errors"
 
+	"github.com/banzaicloud/pipeline/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/goph/emperror"
@@ -81,7 +82,12 @@ func (m *Manager) CreateCluster(ctx context.Context, creationCtx CreationContext
 	if err != nil {
 		return nil, err
 	}
-	timer := prometheus.NewTimer(StatusChangeDuration.WithLabelValues(cluster.GetCloud(), cluster.GetLocation(), pkgCluster.Creating))
+
+	org, err := auth.GetOrganizationById(cluster.GetOrganizationId())
+	if err != nil {
+		return nil, err
+	}
+	timer := prometheus.NewTimer(StatusChangeDuration.WithLabelValues(cluster.GetCloud(), cluster.GetLocation(), pkgCluster.Creating, org.Name, cluster.GetName()))
 
 	if err := cluster.UpdateStatus(pkgCluster.Creating, pkgCluster.CreatingMessage); err != nil {
 		return nil, err

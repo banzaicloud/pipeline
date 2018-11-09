@@ -17,6 +17,7 @@ package cluster
 import (
 	"context"
 
+	"github.com/banzaicloud/pipeline/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
@@ -72,7 +73,12 @@ func (m *Manager) UpdateCluster(ctx context.Context, updateCtx UpdateContext, up
 	if err != nil {
 		return errors.WithMessage(err, "could not prepare cluster")
 	}
-	timer := prometheus.NewTimer(StatusChangeDuration.WithLabelValues(cluster.GetCloud(), cluster.GetLocation(), pkgCluster.Updating))
+
+	org, err := auth.GetOrganizationById(cluster.GetOrganizationId())
+	if err != nil {
+		return err
+	}
+	timer := prometheus.NewTimer(StatusChangeDuration.WithLabelValues(cluster.GetCloud(), cluster.GetLocation(), pkgCluster.Updating, org.Name, cluster.GetName()))
 
 	if err := cluster.UpdateStatus(pkgCluster.Updating, pkgCluster.UpdatingMessage); err != nil {
 		return emperror.With(err, "could not update cluster status")
