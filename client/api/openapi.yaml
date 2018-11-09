@@ -4232,6 +4232,14 @@ paths:
           - azure
           type: string
         style: form
+      - description: Is the operation forced
+        explode: true
+        in: query
+        name: force
+        required: false
+        schema:
+          type: boolean
+        style: form
       - description: Azure resource group the storage account that holds the bucket (storage container) to be deleted
         explode: true
         in: query
@@ -5938,7 +5946,10 @@ components:
     CreateUpdateDeploymentRequest:
       example:
         package: package
+        dryRun: true
         releaseName: singed-bee
+        odPcts:
+          deployment.my-deployment: 40
         values:
           ingress:
             enabled: "true"
@@ -5964,6 +5975,14 @@ components:
         releaseName:
           example: singed-bee
           type: string
+        dryRun:
+          type: boolean
+        odPcts:
+          description: 'Map of resources in the template where replicas should have
+            a minimum on-demand percentage. Format: <kind.resourceName: min-percentage>'
+          example:
+            deployment.my-deployment: 40
+          type: object
         reuseValues:
           example: true
           type: boolean

@@ -3817,6 +3817,8 @@ paths:
                 - name: force
                   in: query
                   description: Is the operation forced
+                  schema:
+                      type: boolean
                   required: false
                 - name: resourceGroup
                   in: query
