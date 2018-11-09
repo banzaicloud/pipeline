@@ -387,9 +387,8 @@ func (s *ObjectStore) DeleteBucket(bucketName string) error {
 	if err := s.db.Where(searchCriteria).Find(bucket).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return bucketNotFoundError{}
-		} else {
-			return emperror.WrapWith(err, "failed to lookup", "bucket", bucketName)
 		}
+		return emperror.WrapWith(err, "failed to lookup", "bucket", bucketName)
 	}
 
 	if err := s.deleteFromProvider(bucket); err != nil {
