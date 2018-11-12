@@ -761,10 +761,17 @@ func newBucketResponseItemFromBucketInfo(bi *objectstore.BucketInfo, orgid uint,
 	var (
 		secretName       string
 		accessSecretName string
-		notes            string
+
+		notes string
 	)
 
+	if (bi.AccessSecretRef == "") {
+		// accessSecretRef is only set on Azure, use the SecretRef on other providers
+		bi.AccessSecretRef = bi.SecretRef
+	}
+
 	if withSecretName {
+
 		// get the secret name from the store if requested
 		if secretResponse, err := secret.Store.Get(orgid, bi.SecretRef); err == nil {
 			secretName = secretResponse.Name
@@ -773,6 +780,7 @@ func newBucketResponseItemFromBucketInfo(bi *objectstore.BucketInfo, orgid uint,
 			notes = err.Error()
 		}
 
+		// the accessSecret name needs to be changed on Azure only
 		accessSecretName = secretName
 
 		// in case of azure the access secret differs from the secret used to create it
