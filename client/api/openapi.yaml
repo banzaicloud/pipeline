@@ -7833,11 +7833,8 @@ components:
           example: banzaicloud
           type: string
         image:
-          example:
-          - nginx:latest
-          - busybox:latest
           items:
-            type: string
+            $ref: '#/components/schemas/ScanLogItemImage'
           type: array
         result:
           example:
@@ -7851,6 +7848,21 @@ components:
           - allow
           - reject
           example: allow
+          type: string
+      type: object
+    ScanLogItemImage:
+      properties:
+        imageName:
+          example: docker.io/redis
+          type: string
+        imageTag:
+          example: latest
+          type: string
+        imageDigest:
+          example: sha256:93ce9120377effb33fc8ab25cc5fb6ab736982aa4524adb89324c031e47b33ac
+          type: string
+        lastUpdated:
+          example: 2018-11-11T14:35:38Z
           type: string
       type: object
     ReleaseWhiteList:
