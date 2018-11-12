@@ -243,15 +243,15 @@
   version = "v1.15.26"
 
 [[projects]]
-  branch = "master"
-  digest = "1:d2e3e7c81508aca1bcadff7a9f005b32668423965d2d7d0f21b0adeb83929acc"
+  digest = "1:c3909141e151d12606bed1ff1ecf0f0812010565119cdbdac7346a7a111ea09e"
   name = "github.com/banzaicloud/anchore-image-validator"
   packages = [
     "pkg/apis/security/v1alpha1",
     "pkg/clientset/v1alpha1",
   ]
   pruneopts = "NUT"
-  revision = "ada3b8cbfcd2556e298d95f578a9ef20e1230b32"
+  revision = "e82c2c9aa8d300a167c66aed04741496a03c11f3"
+  version = "0.0.5"
 
 [[projects]]
   branch = "master"
