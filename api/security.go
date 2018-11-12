@@ -90,13 +90,13 @@ func GetScanLog(c *gin.Context) {
 		return
 	}
 
-	scanLogList := make([]security.ScanLogItem, 0)
+	scanLogList := make([]v1alpha1.AuditSpec, 0)
 	for _, audit := range audits.Items {
-		scanLog := security.ScanLogItem{
+		scanLog := v1alpha1.AuditSpec{
 			ReleaseName: audit.Spec.ReleaseName,
 			Resource:    audit.Spec.Resource,
 			Action:      audit.Spec.Action,
-			Image:       audit.Spec.Image,
+			Images:      audit.Spec.Images,
 			Result:      audit.Spec.Result,
 		}
 		if len(releaseName) == 0 || audit.Spec.ReleaseName == releaseName {
