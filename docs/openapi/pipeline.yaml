@@ -4733,6 +4733,9 @@ components:
                 autoscaling:
                     type: boolean
                     example: true
+                preemptible:
+                    type: boolean
+                    example: true
                 count:
                     type: integer
                     example: 1
