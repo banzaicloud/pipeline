@@ -157,6 +157,7 @@ func init() {
 	viper.SetDefault("pipeline.basepath", "")
 	viper.SetDefault("metrics.enabled", false)
 	viper.SetDefault("metrics.port", ":9900")
+	viper.SetDefault("metrics.debug", true)
 	viper.SetDefault("database.dialect", "mysql")
 	viper.SetDefault("database.port", 3306)
 	viper.SetDefault("database.host", "localhost")
