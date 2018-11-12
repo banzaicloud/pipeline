@@ -5287,6 +5287,8 @@ components:
       properties:
         autoscaling:
           type: boolean
+        preemptible:
+          type: boolean
         count:
           example: 1
           format: int32

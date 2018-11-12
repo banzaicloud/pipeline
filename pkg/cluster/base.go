@@ -178,6 +178,7 @@ type NodePoolStatus struct {
 	Count        int    `json:"count,omitempty"`
 	InstanceType string `json:"instanceType,omitempty"`
 	SpotPrice    string `json:"spotPrice,omitempty"`
+	Preemptible  bool   `json:"preemptible,omitempty"`
 	MinCount     int    `json:"minCount,omitempty"`
 	MaxCount     int    `json:"maxCount,omitempty"`
 	Image        string `json:"image,omitempty"`
