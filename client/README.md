@@ -297,6 +297,7 @@ Class | Method | HTTP request | Description
  - [ResourceSummaryItem](docs/ResourceSummaryItem.md)
  - [ResourceSummaryItemIp100100180Euwest1ComputeInternal](docs/ResourceSummaryItemIp100100180Euwest1ComputeInternal.md)
  - [ScanLogItem](docs/ScanLogItem.md)
+ - [ScanLogItemImage](docs/ScanLogItemImage.md)
  - [ScanLogList](docs/ScanLogList.md)
  - [SecretItem](docs/SecretItem.md)
  - [SecretKeyValueAmazon](docs/SecretKeyValueAmazon.md)

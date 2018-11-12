@@ -243,15 +243,15 @@
   version = "v1.15.26"
 
 [[projects]]
-  digest = "1:c3909141e151d12606bed1ff1ecf0f0812010565119cdbdac7346a7a111ea09e"
+  digest = "1:094b04381c4e5b2c4068d5f997efa5bf2c7e16beaa3826f1c2654b5c5a2c2dde"
   name = "github.com/banzaicloud/anchore-image-validator"
   packages = [
     "pkg/apis/security/v1alpha1",
     "pkg/clientset/v1alpha1",
   ]
   pruneopts = "NUT"
-  revision = "e82c2c9aa8d300a167c66aed04741496a03c11f3"
-  version = "0.0.5"
+  revision = "20ccee5584f72d8c2e3e38a23d9d9cb5ba9fc0a6"
+  version = "0.1.0"
 
 [[projects]]
   branch = "master"
@@ -948,11 +948,12 @@
   revision = "0b12d6b5"
 
 [[projects]]
-  digest = "1:0243cffa4a3410f161ee613dfdd903a636d07e838a42d341da95d81f42cd1d41"
+  digest = "1:8e36686e8b139f8fe240c1d5cf3a145bc675c22ff8e707857cdd3ae17b00d728"
   name = "github.com/json-iterator/go"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "f2b4162a"
+  revision = "1624edc4454b8682399def8740d46db5e4362ba4"
+  version = "v1.1.5"
 
 [[projects]]
   branch = "master"
@@ -1059,12 +1060,12 @@
   version = "1.0.3"
 
 [[projects]]
-  digest = "1:314a5881fab303a80d6d2e35a77000f2224bb50f09ef63a9aa4c1f9eaef985d8"
+  digest = "1:c6aca19413b13dc59c220ad7430329e2ec454cc310bc6d8de2c7e2b93c18a0f6"
   name = "github.com/modern-go/reflect2"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "1df9eeb2bb81f327b96228865c5687bc2194af3f"
-  version = "1.0.0"
+  revision = "4b7aa43c6742a2c18fdef89dd197aaae7dac7ccd"
+  version = "1.0.1"
 
 [[projects]]
   branch = "master"

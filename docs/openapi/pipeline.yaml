@@ -7233,10 +7233,9 @@ components:
                     type: string
                     example: 'banzaicloud'
                 image:
-                    example: ['nginx:latest', 'busybox:latest']
                     type: array
                     items:
-                        type: string
+                        $ref: "#/components/schemas/ScanLogItemImage"
                 result:
                     example: ['nginx:latest policy check failed', 'busybox:latest policy sheck success']
                     type: array
@@ -7246,6 +7245,22 @@ components:
                     example: 'allow'
                     type: string
                     enum: [allow, reject]
+
+        ScanLogItemImage:
+            type: object
+            properties:
+                imageName:
+                    type: string
+                    example: 'docker.io/redis'
+                imageTag:
+                    type: string
+                    example: 'latest'
+                imageDigest:
+                    type: string
+                    example: 'sha256:93ce9120377effb33fc8ab25cc5fb6ab736982aa4524adb89324c031e47b33ac'
+                lastUpdated:
+                    type: string
+                    example: '2018-11-11T14:35:38Z'
 
         ReleaseWhiteList:
             type: array

@@ -14,7 +14,9 @@
 
 package security
 
-import "time"
+import (
+	"time"
+)
 
 type Policy struct {
 	Id      string       `json:"id"`
@@ -122,12 +124,4 @@ type ReleaseWhiteListItem struct {
 	Name   string `json:"name" binding:"required"`
 	Owner  string `json:"owner" binding:"required"`
 	Reason string `json:"reason"`
-}
-
-type ScanLogItem struct {
-	ReleaseName string   `json:"releaseName,omitempty"`
-	Resource    string   `json:"resource,omitempty"`
-	Image       []string `json:"image,omitempty"`
-	Result      []string `json:"result,omitempty"`
-	Action      string   `json:"action,omitempty"`
 }
