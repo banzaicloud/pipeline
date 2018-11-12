@@ -43,7 +43,11 @@ import (
 // This must between 3-23 letters and can only contain small letters and numbers.
 const defaultStorageAccountName = "pipelinegenstorageacc"
 
-var alfanumericRegexp = regexp.MustCompile(`[^a-zA-Z0-9]`)
+var (
+	alfanumericRegexp = regexp.MustCompile(`[^a-zA-Z0-9]`)
+	falseVal          = false
+	trueVal           = true
+)
 
 type bucketNotFoundError struct{}
 
@@ -294,8 +298,6 @@ func (s *ObjectStore) createResourceGroup(resourceGroup string) error {
 }
 
 func (s *ObjectStore) checkStorageAccountExistence(resourceGroup string, storageAccount string) (*bool, error) {
-	falseVal := false
-	trueVal := true
 	storageAccountsClient, err := createStorageAccountClient(s.secret)
 	if err != nil {
 		return nil, emperror.Wrap(err, "failed to create storage account client")
@@ -306,8 +308,7 @@ func (s *ObjectStore) checkStorageAccountExistence(resourceGroup string, storage
 		"storage_account": storageAccount,
 	})
 
-	logger.Info("checking storage account availability")
-
+	logger.Info("retrieving storage account name availability...")
 	result, err := storageAccountsClient.CheckNameAvailability(
 		context.TODO(),
 		storage.AccountCheckNameAvailabilityParameters{
@@ -316,17 +317,21 @@ func (s *ObjectStore) checkStorageAccountExistence(resourceGroup string, storage
 		},
 	)
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to check storage account name availability")
+		return nil, emperror.Wrap(err, "failed to retrieve storage account name availability")
 	}
 
 	if *result.NameAvailable == false {
+		// account name is already taken or it is invalid
+		// retrieve the storage account
 		if _, err = storageAccountsClient.GetProperties(context.TODO(), resourceGroup, storageAccount); err != nil {
-			logger.Errorf("storage account name not available, %s", *result.Message)
-			return nil, emperror.Wrap(err, *result.Message)
+			logger.Errorf("could not retrieve storage account, %s", *result.Message)
+			return nil, emperror.WrapWith(err, *result.Message, "storage_account", storageAccount, "resource_group", resourceGroup)
 		}
+		// storage name exists, available
 		return &trueVal, nil
 	}
 
+	// storage name doesn't exist
 	return &falseVal, nil
 }
 
