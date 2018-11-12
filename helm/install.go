@@ -310,11 +310,12 @@ func Install(helmInstall *phelm.Install, kubeConfig []byte) error {
 	}
 
 	opts := installer.Options{
-		Namespace:      helmInstall.Namespace,
-		ServiceAccount: helmInstall.ServiceAccount,
-		UseCanary:      helmInstall.Canary,
-		ImageSpec:      helmInstall.ImageSpec,
-		MaxHistory:     helmInstall.MaxHistory,
+		Namespace:                    helmInstall.Namespace,
+		ServiceAccount:               helmInstall.ServiceAccount,
+		UseCanary:                    helmInstall.Canary,
+		ImageSpec:                    helmInstall.ImageSpec,
+		MaxHistory:                   helmInstall.MaxHistory,
+		AutoMountServiceAccountToken: true,
 	}
 
 	if len(helmInstall.TargetNodePool) > 0 {
