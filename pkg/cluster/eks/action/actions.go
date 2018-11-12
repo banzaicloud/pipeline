@@ -676,6 +676,11 @@ func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (outp
 				spotPriceParam = nodePool.NodeSpotPrice
 			}
 
+			onDemandLabel := "true"
+			if spotPriceParam != "" {
+				onDemandLabel = "false"
+			}
+
 			stackParams := []*cloudformation.Parameter{
 				{
 					ParameterKey:   aws.String("KeyName"),
@@ -734,7 +739,7 @@ func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (outp
 				},
 				{
 					ParameterKey:   aws.String("BootstrapArguments"),
-					ParameterValue: aws.String(fmt.Sprintf("--kubelet-extra-args '--node-labels %v=%v'", common.LabelKey, nodePool.Name)),
+					ParameterValue: aws.String(fmt.Sprintf("--kubelet-extra-args '--node-labels %v=%v,%v=%v'", common.LabelKey, nodePool.Name, common.OnDemandLabelKey, onDemandLabel)),
 				},
 			}
 

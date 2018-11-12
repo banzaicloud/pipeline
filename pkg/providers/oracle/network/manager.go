@@ -280,6 +280,17 @@ func (m *VCNManager) createWorkerNodesSecurityList(name string, CIDR string) (li
 			},
 		},
 		{
+			Source:      common.String("0.0.0.0/0"),
+			Protocol:    common.String("6"),
+			IsStateless: common.Bool(false),
+			TcpOptions: &core.TcpOptions{
+				DestinationPortRange: &core.PortRange{
+					Min: common.Int(22),
+					Max: common.Int(22),
+				},
+			},
+		},
+		{
 			Source:      common.String("130.35.0.0/16"),
 			Protocol:    common.String("6"),
 			IsStateless: common.Bool(false),

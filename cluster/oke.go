@@ -94,6 +94,11 @@ func (o *OKECluster) CreateCluster() error {
 		return err
 	}
 
+	o.modelCluster.OKE.SSHPubKey, err = o.getSSHPubKey()
+	if err != nil {
+		return errors.Wrap(err, "could not get ssh pubkey")
+	}
+
 	return cm.ManageOKECluster(&o.modelCluster.OKE)
 }
 
@@ -110,6 +115,12 @@ func (o *OKECluster) UpdateCluster(r *pkgCluster.UpdateClusterRequest, userId ui
 	if err != nil {
 		return err
 	}
+
+	model.SSHPubKey, err = o.getSSHPubKey()
+	if err != nil {
+		return errors.Wrap(err, "could not get ssh pubkey")
+	}
+
 	o.modelCluster.OKE = model
 
 	cm, err := o.GetClusterManager()
@@ -316,6 +327,11 @@ func (o *OKECluster) GetLocation() string {
 //GetSecretId retrieves the secret id
 func (o *OKECluster) GetSecretId() string {
 	return o.modelCluster.SecretId
+}
+
+// RequiresSshPublicKey returns true if an ssh public key is needed for the cluster for bootstrapping it.
+func (o *OKECluster) RequiresSshPublicKey() bool {
+	return true
 }
 
 //GetSshSecretId retrieves the ssh secret id
@@ -598,4 +614,16 @@ func (o *OKECluster) GetKubernetesUserName() (string, error) {
 // GetCreatedBy returns cluster create userID.
 func (o *OKECluster) GetCreatedBy() uint {
 	return o.modelCluster.CreatedBy
+}
+
+func (o *OKECluster) getSSHPubKey() (string, error) {
+
+	sshSecret, err := o.getSshSecret(o)
+	if err != nil {
+		return "", err
+	}
+
+	sshKey := secret.NewSSHKeyPair(sshSecret)
+
+	return sshKey.PublicKeyData, nil
 }
