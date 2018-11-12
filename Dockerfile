@@ -1,7 +1,10 @@
 FROM golang:1.11-alpine
 
 RUN apk add --update --no-cache bash ca-certificates curl git make
-RUN go get github.com/kubernetes-sigs/aws-iam-authenticator/cmd/aws-iam-authenticator
+RUN go get -d github.com/kubernetes-sigs/aws-iam-authenticator/cmd/aws-iam-authenticator
+RUN cd $GOPATH/src/github.com/kubernetes-sigs/aws-iam-authenticator && \
+    git checkout 981ecbe && \
+    go install ./cmd/aws-iam-authenticator
 
 RUN mkdir -p /go/src/github.com/banzaicloud/pipeline
 ADD Gopkg.* Makefile /go/src/github.com/banzaicloud/pipeline/
