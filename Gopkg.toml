@@ -268,7 +268,7 @@
   revision = "d46933a9"
 
 [[constraint]]
-  version = "0.0.5"
+  version = "0.1.0"
   name = "github.com/banzaicloud/anchore-image-validator"
 
 [[constraint]]
