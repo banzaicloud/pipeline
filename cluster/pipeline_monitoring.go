@@ -43,8 +43,8 @@ func NewExporter() *pipelineMetrics {
 	p := pipelineMetrics{
 		clusterStatus: prometheus.NewGaugeVec(prometheus.GaugeOpts{
 			Namespace: "pipeline",
-			Name:      "cluster_total",
-			Help:      "Total number of clusters",
+			Name:      "cluster_active_total",
+			Help:      "the number of active clusters",
 		},
 			[]string{"provider", "location", "status", "orgName", "clusterName"},
 		),

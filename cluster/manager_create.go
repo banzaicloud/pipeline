@@ -18,15 +18,11 @@ import (
 	"context"
 	stderrors "errors"
 
-	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/config"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 )
 
 // CreationContext represents the data necessary to do generic cluster creation steps/checks.
@@ -85,15 +81,11 @@ func (m *Manager) CreateCluster(ctx context.Context, creationCtx CreationContext
 		return nil, err
 	}
 
-	org, err := auth.GetOrganizationById(cluster.GetOrganizationId())
+	m.clusterTotalMetric.WithLabelValues(cluster.GetCloud(), cluster.GetLocation()).Inc()
+
+	timer, err := m.getPrometheusTimer(cluster.GetCloud(), cluster.GetLocation(), pkgCluster.Creating, cluster.GetOrganizationId(), cluster.GetName())
 	if err != nil {
 		return nil, err
-	}
-	var timer *prometheus.Timer
-	if viper.GetBool(config.MetricsDebug) {
-		timer = prometheus.NewTimer(m.statusChangeDuration.WithLabelValues(cluster.GetCloud(), cluster.GetLocation(), pkgCluster.Creating, org.Name, cluster.GetName()))
-	} else {
-		timer = prometheus.NewTimer(m.statusChangeDuration.WithLabelValues(cluster.GetCloud(), cluster.GetLocation(), pkgCluster.Creating, "", ""))
 	}
 
 	if err := cluster.UpdateStatus(pkgCluster.Creating, pkgCluster.CreatingMessage); err != nil {

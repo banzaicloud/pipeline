@@ -17,14 +17,10 @@ package cluster
 import (
 	"context"
 
-	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/config"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 )
 
 // UpdateContext represents the data necessary to do generic cluster update steps/checks.
@@ -76,15 +72,9 @@ func (m *Manager) UpdateCluster(ctx context.Context, updateCtx UpdateContext, up
 		return errors.WithMessage(err, "could not prepare cluster")
 	}
 
-	org, err := auth.GetOrganizationById(cluster.GetOrganizationId())
+	timer, err := m.getPrometheusTimer(cluster.GetCloud(), cluster.GetLocation(), pkgCluster.Updating, cluster.GetOrganizationId(), cluster.GetName())
 	if err != nil {
 		return err
-	}
-	var timer *prometheus.Timer
-	if viper.GetBool(config.MetricsDebug) {
-		timer = prometheus.NewTimer(m.statusChangeDuration.WithLabelValues(cluster.GetCloud(), cluster.GetLocation(), pkgCluster.Updating, org.Name, cluster.GetName()))
-	} else {
-		timer = prometheus.NewTimer(m.statusChangeDuration.WithLabelValues(cluster.GetCloud(), cluster.GetLocation(), pkgCluster.Updating, "", ""))
 	}
 
 	if err := cluster.UpdateStatus(pkgCluster.Updating, pkgCluster.UpdatingMessage); err != nil {
