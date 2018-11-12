@@ -20,6 +20,7 @@ import (
 	pipelineContext "github.com/banzaicloud/pipeline/internal/platform/context"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/goph/emperror"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 )
 
@@ -37,9 +38,10 @@ type secretValidator interface {
 }
 
 type Manager struct {
-	clusters clusterRepository
-	secrets  secretValidator
-	events   clusterEvents
+	clusters             clusterRepository
+	secrets              secretValidator
+	events               clusterEvents
+	statusChangeDuration *prometheus.SummaryVec
 
 	logger       logrus.FieldLogger
 	errorHandler emperror.Handler
@@ -50,6 +52,13 @@ func NewManager(clusters clusterRepository, secrets secretValidator, events clus
 		clusters: clusters,
 		secrets:  secrets,
 		events:   events,
+		statusChangeDuration: prometheus.NewSummaryVec(prometheus.SummaryOpts{
+			Namespace: "pipeline",
+			Name:      "cluster_status_change_duration",
+			Help:      "Cluster status change duration in seconds",
+		},
+			[]string{"provider", "location", "status", "orgName", "clusterName"},
+		),
 
 		logger:       logger,
 		errorHandler: errorHandler,
@@ -62,4 +71,8 @@ func (m *Manager) getLogger(ctx context.Context) logrus.FieldLogger {
 
 func (m *Manager) getErrorHandler(ctx context.Context) emperror.Handler {
 	return pipelineContext.ErrorHandlerWithCorrelationID(ctx, m.errorHandler)
+}
+
+func (m *Manager) GetCollector() prometheus.Collector {
+	return m.statusChangeDuration
 }

@@ -22,6 +22,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/spf13/viper"
 )
 
@@ -29,8 +30,9 @@ var basePath = viper.GetString("pipeline.basepath")
 
 // DrainModeMiddleware prevents write operations from succeeding.
 type DrainModeMiddleware struct {
-	enabled bool
-	mu      sync.RWMutex
+	enabled   bool
+	mu        sync.RWMutex
+	drainMode prometheus.Gauge
 
 	errorHandler emperror.Handler
 }
@@ -38,6 +40,11 @@ type DrainModeMiddleware struct {
 // NewDrainModeMiddleware returns a new DrainModeMiddleware instance.
 func NewDrainModeMiddleware(errorHandler emperror.Handler) *DrainModeMiddleware {
 	return &DrainModeMiddleware{
+		drainMode: prometheus.NewGauge(prometheus.GaugeOpts{
+			Namespace: "pipeline",
+			Name:      "drain_mode",
+			Help:      "read only mode is on/off",
+		}),
 		errorHandler: errorHandler,
 	}
 }
@@ -63,9 +70,11 @@ func (m *DrainModeMiddleware) Middleware(c *gin.Context) {
 		switch c.Request.Method {
 		case http.MethodPost:
 			m.enabled = true
+			m.drainMode.Set(1)
 
 		case http.MethodDelete:
 			m.enabled = false
+			m.drainMode.Set(0)
 		}
 
 		m.mu.Unlock()
@@ -109,4 +118,8 @@ func isException(c *gin.Context) bool {
 	}
 
 	return false
+}
+
+func (m *DrainModeMiddleware) GetCollector() prometheus.Collector {
+	return m.drainMode
 }

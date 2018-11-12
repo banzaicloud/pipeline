@@ -66,7 +66,7 @@ func initLog() *logrus.Entry {
 }
 
 func initPrometheus() {
-	prometheus.MustRegister(cluster.NewExporter(), cluster.StatusChangeDuration)
+	prometheus.MustRegister(cluster.NewExporter())
 }
 
 func main() {
@@ -134,6 +134,7 @@ func main() {
 	clusters := intCluster.NewClusters(db)
 	secretValidator := providers.NewSecretValidator(secret.Store)
 	clusterManager := cluster.NewManager(clusters, secretValidator, clusterEvents, log, errorHandler)
+	prometheus.MustRegister(clusterManager.GetCollector())
 
 	if viper.GetBool(config.MonitorEnabled) {
 		client, err := k8sclient.NewInClusterClient()
@@ -168,7 +169,9 @@ func main() {
 	router.Use(correlationid.Middleware())
 	router.Use(ginlog.Middleware(log, skipPaths...))
 	router.Use(gin.Recovery())
-	router.Use(ginternal.NewDrainModeMiddleware(errorHandler).Middleware)
+	drainMode := ginternal.NewDrainModeMiddleware(errorHandler)
+	router.Use(drainMode.Middleware)
+	prometheus.MustRegister(drainMode.GetCollector())
 	router.Use(cors.New(config.GetCORS()))
 	if viper.GetBool("audit.enabled") {
 		log.Infoln("Audit enabled, installing Gin audit middleware")
@@ -180,9 +183,9 @@ func main() {
 		root.GET("/", api.RedirectRoot)
 	}
 	// Add prometheus metric endpoint
-	if viper.GetBool("metrics.enabled") {
+	if viper.GetBool(config.MetricsEnabled) {
 		p := ginprometheus.NewPrometheus("pipeline", []string{})
-		p.SetListenAddress(viper.GetString("metrics.port"))
+		p.SetListenAddress(viper.GetString(config.MetricsPort))
 		p.Use(router)
 	}
 

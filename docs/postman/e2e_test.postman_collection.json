@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "242ab5fb-4535-4831-97b1-5f98ed2f4f29",
+		"_postman_id": "f07bc1d6-508e-4454-b09d-5ea3f59f474b",
 		"name": "End2End TEST Organizations",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -182,7 +182,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\":\"azcluster{{username}}{{$randomInt}}\",\n  \"location\": \"westeurope\",\n  \"cloud\": \"azure\",\n  \"secretId\": \"{{secretIdAzure}}\",\n  \"properties\": {\n        \"aks\": {\n        \t\"resourceGroup\": \"{{azResourceGroup}}\",\n        \t\"kubernetesVersion\": \"1.9.2\",\n            \"nodePools\": {\n            \t\"pool1\": {\n            \t\t\"autoscaling\": false, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n            \t\t\"count\": 1,\n                \t\"instanceType\": \"Standard_B2ms\"\n            \t},\n            \t\"pool2\": {\n            \t    \"autoscaling\": false, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n            \t\t\"count\": 1,\n                \t\"instanceType\": \"Standard_B2ms\"\n            \t}\n        \t}\n        }\n    }\n}"
+							"raw": "{\n  \"name\":\"azcluster{{username}}{{$randomInt}}\",\n  \"location\": \"westeurope\",\n  \"cloud\": \"azure\",\n  \"secretId\": \"{{secretIdAzure}}\",\n  \"properties\": {\n        \"aks\": {\n        \t\"resourceGroup\": \"{{azResourceGroup}}\",\n        \t\"kubernetesVersion\": \"1.11.3\",\n            \"nodePools\": {\n            \t\"pool1\": {\n            \t\t\"autoscaling\": false, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n            \t\t\"count\": 1,\n                \t\"instanceType\": \"Standard_B2ms\"\n            \t},\n            \t\"pool2\": {\n            \t    \"autoscaling\": false, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n            \t\t\"count\": 1,\n                \t\"instanceType\": \"Standard_B2ms\"\n            \t}\n        \t}\n        }\n    }\n}"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters",
@@ -9982,6 +9982,50 @@
 					],
 					"path": [
 						"api"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Drain mode on",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{url}}/-/drain",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"-",
+						"drain"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Drain mode off",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{url}}/-/drain",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"-",
+						"drain"
 					]
 				}
 			},

@@ -18,6 +18,7 @@ import (
 	"context"
 
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/config"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
@@ -80,10 +81,10 @@ func (m *Manager) UpdateCluster(ctx context.Context, updateCtx UpdateContext, up
 		return err
 	}
 	var timer *prometheus.Timer
-	if viper.GetBool("metrics.debug") {
-		timer = prometheus.NewTimer(StatusChangeDuration.WithLabelValues(cluster.GetCloud(), cluster.GetLocation(), pkgCluster.Updating, org.Name, cluster.GetName()))
+	if viper.GetBool(config.MetricsDebug) {
+		timer = prometheus.NewTimer(m.statusChangeDuration.WithLabelValues(cluster.GetCloud(), cluster.GetLocation(), pkgCluster.Updating, org.Name, cluster.GetName()))
 	} else {
-		timer = prometheus.NewTimer(StatusChangeDuration.WithLabelValues(cluster.GetCloud(), cluster.GetLocation(), pkgCluster.Updating, "", ""))
+		timer = prometheus.NewTimer(m.statusChangeDuration.WithLabelValues(cluster.GetCloud(), cluster.GetLocation(), pkgCluster.Updating, "", ""))
 	}
 
 	if err := cluster.UpdateStatus(pkgCluster.Updating, pkgCluster.UpdatingMessage); err != nil {
