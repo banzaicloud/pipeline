@@ -152,3 +152,8 @@ port = ":9900"
 
 # if true, some metrics have unique labels
 debug = true
+
+[issue]
+type = "github"
+githubOwner = "kelly-slater"
+githubRepository = "the-pipeline-issues"
