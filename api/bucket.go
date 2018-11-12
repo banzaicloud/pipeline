@@ -765,7 +765,7 @@ func newBucketResponseItemFromBucketInfo(bi *objectstore.BucketInfo, orgid uint,
 		notes string
 	)
 
-	if (bi.AccessSecretRef == "") {
+	if bi.AccessSecretRef == "" {
 		// accessSecretRef is only set on Azure, use the SecretRef on other providers
 		bi.AccessSecretRef = bi.SecretRef
 	}
