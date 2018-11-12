@@ -47,18 +47,12 @@ type Manager struct {
 	errorHandler emperror.Handler
 }
 
-func NewManager(clusters clusterRepository, secrets secretValidator, events clusterEvents, logger logrus.FieldLogger, errorHandler emperror.Handler) *Manager {
+func NewManager(clusters clusterRepository, secrets secretValidator, events clusterEvents, statusChangeDuration *prometheus.SummaryVec, logger logrus.FieldLogger, errorHandler emperror.Handler) *Manager {
 	return &Manager{
-		clusters: clusters,
-		secrets:  secrets,
-		events:   events,
-		statusChangeDuration: prometheus.NewSummaryVec(prometheus.SummaryOpts{
-			Namespace: "pipeline",
-			Name:      "cluster_status_change_duration",
-			Help:      "Cluster status change duration in seconds",
-		},
-			[]string{"provider", "location", "status", "orgName", "clusterName"},
-		),
+		clusters:             clusters,
+		secrets:              secrets,
+		events:               events,
+		statusChangeDuration: statusChangeDuration,
 
 		logger:       logger,
 		errorHandler: errorHandler,
@@ -71,8 +65,4 @@ func (m *Manager) getLogger(ctx context.Context) logrus.FieldLogger {
 
 func (m *Manager) getErrorHandler(ctx context.Context) emperror.Handler {
 	return pipelineContext.ErrorHandlerWithCorrelationID(ctx, m.errorHandler)
-}
-
-func (m *Manager) GetCollector() prometheus.Collector {
-	return m.statusChangeDuration
 }

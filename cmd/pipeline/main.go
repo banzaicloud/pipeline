@@ -65,13 +65,7 @@ func initLog() *logrus.Entry {
 	return logger
 }
 
-func initPrometheus() {
-	prometheus.MustRegister(cluster.NewExporter())
-}
-
 func main() {
-
-	initPrometheus()
 	if len(os.Args) > 1 && os.Args[1] == "--version" {
 		if CommitHash == "" {
 			fmt.Println("version: ", Version, " built on ", BuildDate)
@@ -129,12 +123,21 @@ func main() {
 		log.Infoln("External dns service functionality is not enabled")
 	}
 
+	prometheus.MustRegister(cluster.NewExporter())
+
 	clusterEventBus := evbus.New()
 	clusterEvents := cluster.NewClusterEvents(clusterEventBus)
 	clusters := intCluster.NewClusters(db)
 	secretValidator := providers.NewSecretValidator(secret.Store)
-	clusterManager := cluster.NewManager(clusters, secretValidator, clusterEvents, log, errorHandler)
-	prometheus.MustRegister(clusterManager.GetCollector())
+	statusChangeDuration := prometheus.NewSummaryVec(prometheus.SummaryOpts{
+		Namespace: "pipeline",
+		Name:      "cluster_status_change_duration",
+		Help:      "Cluster status change duration in seconds",
+	},
+		[]string{"provider", "location", "status", "orgName", "clusterName"},
+	)
+	prometheus.MustRegister(statusChangeDuration)
+	clusterManager := cluster.NewManager(clusters, secretValidator, clusterEvents, statusChangeDuration, log, errorHandler)
 
 	if viper.GetBool(config.MonitorEnabled) {
 		client, err := k8sclient.NewInClusterClient()
@@ -169,9 +172,13 @@ func main() {
 	router.Use(correlationid.Middleware())
 	router.Use(ginlog.Middleware(log, skipPaths...))
 	router.Use(gin.Recovery())
-	drainMode := ginternal.NewDrainModeMiddleware(errorHandler)
-	router.Use(drainMode.Middleware)
-	prometheus.MustRegister(drainMode.GetCollector())
+	drainModeMetric := prometheus.NewGauge(prometheus.GaugeOpts{
+		Namespace: "pipeline",
+		Name:      "drain_mode",
+		Help:      "read only mode is on/off",
+	})
+	prometheus.MustRegister(drainModeMetric)
+	router.Use(ginternal.NewDrainModeMiddleware(drainModeMetric, errorHandler).Middleware)
 	router.Use(cors.New(config.GetCORS()))
 	if viper.GetBool("audit.enabled") {
 		log.Infoln("Audit enabled, installing Gin audit middleware")
