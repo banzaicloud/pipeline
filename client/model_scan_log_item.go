@@ -12,9 +12,9 @@
 package client
 
 type ScanLogItem struct {
-	ReleaseName string   `json:"releaseName,omitempty"`
-	Resource    string   `json:"resource,omitempty"`
-	Image       []string `json:"image,omitempty"`
-	Result      []string `json:"result,omitempty"`
-	Action      string   `json:"action,omitempty"`
+	ReleaseName string             `json:"releaseName,omitempty"`
+	Resource    string             `json:"resource,omitempty"`
+	Image       []ScanLogItemImage `json:"image,omitempty"`
+	Result      []string           `json:"result,omitempty"`
+	Action      string             `json:"action,omitempty"`
 }
