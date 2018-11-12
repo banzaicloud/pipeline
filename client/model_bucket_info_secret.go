@@ -14,4 +14,8 @@ package client
 type BucketInfoSecret struct {
 	Id   string `json:"id,omitempty"`
 	Name string `json:"name,omitempty"`
+	// the secret identifier of the azure access information
+	AccessId string `json:"accessId,omitempty"`
+	// the secret name of the azure access information
+	AccessName string `json:"accessName,omitempty"`
 }

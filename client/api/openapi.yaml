@@ -7410,6 +7410,8 @@ components:
         managed: true
         name: mybucket
         secret:
+          accessId: cc051aeaf686444e2f125d0e79eb051aaaf4fb73384f7b0f8c89e84a0502dcef
+          accessName: myaccesssecretname
           name: mysecretname
           id: cc051aeaf686444e2f125d0e79eb051aaaf4fb73384f7b0f8c89e84a0502dca1
         statusMessage: statusMessage
@@ -9533,6 +9535,8 @@ components:
       type: object
     BucketInfo_secret:
       example:
+        accessId: cc051aeaf686444e2f125d0e79eb051aaaf4fb73384f7b0f8c89e84a0502dcef
+        accessName: myaccesssecretname
         name: mysecretname
         id: cc051aeaf686444e2f125d0e79eb051aaaf4fb73384f7b0f8c89e84a0502dca1
       properties:
@@ -9541,6 +9545,14 @@ components:
           type: string
         name:
           example: mysecretname
+          type: string
+        accessId:
+          description: the secret identifier of the azure access information
+          example: cc051aeaf686444e2f125d0e79eb051aaaf4fb73384f7b0f8c89e84a0502dcef
+          type: string
+        accessName:
+          description: the secret name of the azure access information
+          example: myaccesssecretname
           type: string
       type: object
     PodItem_labels:
