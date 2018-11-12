@@ -52,7 +52,7 @@ const (
 type secretData struct {
 	SecretId         string `json:"id"`
 	SecretName       string `json:"name,omitempty"`
-	AccessSecretId   string `json:"accessId"`
+	AccessSecretId   string `json:"accessId,omitempty"`
 	AccessSecretName string `json:"accessName,omitempty"`
 }
 
