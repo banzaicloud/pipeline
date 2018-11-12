@@ -189,10 +189,6 @@
   name = "k8s.io/helm"
   branch = "release-2.11"
 
-[[override]]
-  name = "github.com/russross/blackfriday"
-  version = "=v1.5.1"
-
 [prune]
   go-tests = true
   unused-packages = true
