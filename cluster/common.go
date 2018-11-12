@@ -91,6 +91,9 @@ type CommonClusterBase struct {
 	config []byte
 }
 
+// ErrConfigNotExists means that a cluster has no kubeconfig stored in vault (probably didn't successfully start yet)
+var ErrConfigNotExists = fmt.Errorf("Kubernetes config is not available for the cluster")
+
 // RequiresSshPublicKey returns true if an ssh public key is needed for the cluster for bootstrapping it.
 // The default is false.
 func (c *CommonClusterBase) RequiresSshPublicKey() bool {
@@ -138,7 +141,9 @@ func (c *CommonClusterBase) getConfig(cluster CommonCluster) ([]byte, error) {
 		log.Debug("k8s config is nil.. load from vault")
 		var loadedConfig []byte
 		configSecret, err := getSecret(cluster.GetOrganizationId(), cluster.GetConfigSecretId())
-		if err != nil {
+		if err == secret.ErrSecretNotExists {
+			return nil, ErrConfigNotExists
+		} else if err != nil {
 			return nil, err
 		}
 		configStr, err := base64.StdEncoding.DecodeString(configSecret.GetValue(pkgSecret.K8SConfig))
