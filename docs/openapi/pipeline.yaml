@@ -6780,6 +6780,14 @@ components:
                         name:
                             type: string
                             example: "mysecretname"
+                        accessId:
+                            description: "the secret identifier of the azure access information"
+                            type: string
+                            example: "cc051aeaf686444e2f125d0e79eb051aaaf4fb73384f7b0f8c89e84a0502dcef"
+                        accessName:
+                            description: "the secret name of the azure access information"
+                            type: string
+                            example: "myaccesssecretname"
                 azure:
                     $ref: '#/components/schemas/AzureBlobStorageProps'
                 status:

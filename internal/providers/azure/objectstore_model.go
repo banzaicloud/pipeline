@@ -33,9 +33,10 @@ type ObjectStoreBucketModel struct {
 	StorageAccount string `gorm:"unique_index:idx_bucket_name"`
 	Location       string
 
-	SecretRef string
-	Status    string
-	StatusMsg string `sql:"type:text;"`
+	SecretRef       string
+	Status          string
+	StatusMsg       string `sql:"type:text;"`
+	AccessSecretRef string
 }
 
 // TableName changes the default table name.
