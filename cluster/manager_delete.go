@@ -71,7 +71,7 @@ func retry(function func() error, count int, delaySeconds int) error {
 		if err == nil || i == count {
 			return err
 		}
-		time.Sleep(time.Duration(delaySeconds))
+		time.Sleep(time.Second * time.Duration(delaySeconds))
 		i++
 	}
 }
