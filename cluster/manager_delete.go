@@ -20,6 +20,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/helm"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -27,6 +28,7 @@ import (
 	"github.com/goph/emperror"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -38,8 +40,16 @@ func (m *Manager) DeleteCluster(ctx context.Context, cluster CommonCluster, forc
 		"cluster", cluster.GetID(),
 		"force", force,
 	)
-	timer := prometheus.NewTimer(StatusChangeDuration.WithLabelValues(cluster.GetCloud(), cluster.GetLocation(), pkgCluster.Deleting))
-
+	org, err := auth.GetOrganizationById(cluster.GetOrganizationId())
+	if err != nil {
+		return err
+	}
+	var timer *prometheus.Timer
+	if viper.GetBool("metrics.debug") {
+		timer = prometheus.NewTimer(StatusChangeDuration.WithLabelValues(cluster.GetCloud(), cluster.GetLocation(), pkgCluster.Deleting, org.Name, cluster.GetName()))
+	} else {
+		timer = prometheus.NewTimer(StatusChangeDuration.WithLabelValues(cluster.GetCloud(), cluster.GetLocation(), pkgCluster.Deleting, "", ""))
+	}
 	go func() {
 		defer emperror.HandleRecover(m.errorHandler)
 
