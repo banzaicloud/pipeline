@@ -257,7 +257,7 @@ func GenerateToken(c *gin.Context) {
 	var currentUser *User
 
 	if accessToken, ok := c.GetQuery("access_token"); ok {
-		githubUser, err := GetGithubUser(accessToken)
+		githubUser, err := getGithubUser(accessToken)
 		if err != nil {
 			errorHandler.Handle(errors.Wrap(err, "failed to query GitHub user"))
 			c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("Invalid session"))
