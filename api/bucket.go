@@ -728,7 +728,7 @@ func GetBucket(c *gin.Context) {
 
 	organization := auth.GetCurrentOrganization(c.Request)
 	objectStoreCtx := &providers.ObjectStoreContext{
-		Provider:     qd.CloudType[0],
+		Provider:     qd.paramValue(qd.CloudType),
 		Organization: organization,
 	}
 
