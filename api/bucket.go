@@ -749,7 +749,7 @@ func GetBucket(c *gin.Context) {
 	}
 
 	if retBuckets, err := bc.filterBuckets(bucketList, bucketName, *qd); err == nil {
-		c.JSON(http.StatusOK, bucketsResponse(retBuckets, organization.ID, qd.withSecretName()))
+		c.JSON(http.StatusOK, newBucketResponseItemFromBucketInfo(retBuckets[0], organization.ID, qd.withSecretName()))
 		return
 	}
 
