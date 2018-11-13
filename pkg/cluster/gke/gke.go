@@ -47,6 +47,7 @@ type NodePool struct {
 	MaxCount         int    `json:"maxCount" yaml:"maxCount"`
 	Count            int    `json:"count,omitempty" yaml:"count,omitempty"`
 	NodeInstanceType string `json:"instanceType,omitempty" yaml:"instanceType,omitempty"`
+	Preemptible      bool   `json:"preemptible,omitempty" yaml:"preemptible,omitempty"`
 }
 
 // UpdateClusterGoogle describes Google's node fields of an UpdateCluster request

@@ -324,16 +324,22 @@ func (c *GKECluster) GetDistribution() string {
 func (c *GKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 	log.Info("Create cluster status response")
 
+	var hasSpotNodePool bool
+
 	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
 	for _, np := range c.model.NodePools {
 		if np != nil {
 			nodePools[np.Name] = &pkgCluster.NodePoolStatus{
 				Autoscaling:  np.Autoscaling,
+				Preemptible:  np.Preemptible,
 				Count:        np.NodeCount,
 				InstanceType: np.NodeInstanceType,
 				MinCount:     np.NodeMinCount,
 				MaxCount:     np.NodeMaxCount,
 				Version:      c.model.NodeVersion,
+			}
+			if np.Preemptible {
+				hasSpotNodePool = true
 			}
 		}
 	}
@@ -345,6 +351,7 @@ func (c *GKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		Location:          c.model.Cluster.Location,
 		Cloud:             c.model.Cluster.Cloud,
 		Distribution:      c.model.Cluster.Distribution,
+		Spot:              hasSpotNodePool,
 		ResourceID:        c.model.Cluster.ID,
 		Version:           c.model.MasterVersion,
 		NodePools:         nodePools,

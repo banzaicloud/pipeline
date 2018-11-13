@@ -40,6 +40,7 @@ func createNodePoolsModelFromRequest(nodePoolsData map[string]*pkgClusterGoogle.
 			NodeMaxCount:     nodePoolData.MaxCount,
 			NodeCount:        nodePoolData.Count,
 			NodeInstanceType: nodePoolData.NodeInstanceType,
+			Preemptible:      nodePoolData.Preemptible,
 		}
 
 		i++
@@ -72,6 +73,7 @@ func createNodePoolsFromClusterModel(clusterModel *google.GKEClusterModel) ([]*g
 					"https://www.googleapis.com/auth/cloud-platform",
 					"https://www.googleapis.com/auth/compute",
 				},
+				Preemptible: nodePoolModel.Preemptible,
 			},
 			InitialNodeCount: int64(nodePoolModel.NodeCount),
 			Version:          clusterModel.NodeVersion,

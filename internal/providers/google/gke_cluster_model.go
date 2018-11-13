@@ -83,6 +83,7 @@ type GKENodePoolModel struct {
 
 	Name             string `gorm:"unique_index:idx_cluster_id_name"`
 	Autoscaling      bool   `gorm:"default:false"`
+	Preemptible      bool
 	NodeMinCount     int
 	NodeMaxCount     int
 	NodeCount        int

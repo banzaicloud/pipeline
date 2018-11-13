@@ -4,6 +4,7 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Autoscaling** | **bool** |  | [optional] 
+**Preemptible** | **bool** |  | [optional] 
 **Count** | **int32** |  | 
 **MinCount** | **int32** |  | [optional] 
 **MaxCount** | **int32** |  | [optional] 
