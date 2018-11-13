@@ -526,31 +526,45 @@ func InstallIngressControllerPostHook(input interface{}) error {
 	if !ok {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
+
 	userID := cluster.GetCreatedBy()
 	user, err := auth.GetUserById(userID)
 	if err != nil {
 		return errors.Errorf("Get User failed : %s", err.Error())
 	}
 
+	acme := map[string]interface{}{
+		"enabled":           true,
+		"staging":           false,
+		"logging":           true,
+		"challengeType":     "dns-01",
+		"delayDontCheckDNS": 60,
+		"email":             user.Email,
+		"persistence":       map[string]interface{}{"enabled": true},
+	}
+
+	dnsSvc, err := dns.GetExternalDnsServiceClient()
+	if err != nil {
+		return emperror.Wrap(err, "Getting external dns service client failed")
+	}
+
+	if dnsSvc != nil {
+		acme["dnsProvider"] = map[string]interface{}{
+			"name":       "route53",
+			"secretName": route53.IAMUserAccessKeySecretName,
+		}
+	} else {
+		log.Info("Will not set dnsProvider to Ingress as external dns service functionality is not enabled")
+	}
+
 	ingressValues := map[string]interface{}{
 		"traefik": map[string]interface{}{
-			"acme": map[string]interface{}{
-				"enabled":           true,
-				"staging":           false,
-				"logging":           true,
-				"challengeType":     "dns-01",
-				"delayDontCheckDNS": 60,
-				"email":             user.Email,
-				"persistence":       map[string]interface{}{"enabled": true},
-				"dnsProvider": map[string]interface{}{
-					"name":       "route53",
-					"secretName": route53.IAMUserAccessKeySecretName,
-				},
-			},
+			"acme":        acme,
 			"affinity":    getHeadNodeAffinity(cluster),
 			"tolerations": getHeadNodeTolerations(),
 		},
 	}
+
 	//TODO remove this when refactoring of the posthook happens
 	if cluster.GetCloud() == pkgCluster.Alibaba {
 		traefikPerSize := ingressValues["traefik"].(map[string]interface{})["acme"].(map[string]interface{})["persistence"].(map[string]interface{})
