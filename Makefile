@@ -26,6 +26,7 @@ MISSPELL_VERSION = 0.3.4
 JQ_VERSION = 1.5
 LICENSEI_VERSION = 0.0.7
 OPENAPI_GENERATOR_VERSION = 3.3.0
+MIGRATE_VERSION = 4.0.2
 
 GOLANG_VERSION = 1.11
 
@@ -190,6 +191,14 @@ endif
 ifeq (${OS}, Linux)
 	curl -L https://github.com/stedolan/jq/releases/download/jq-${JQ_VERSION}/jq-linux64 > ./bin/jq-${JQ_VERSION} && chmod +x ./bin/jq-${JQ_VERSION}
 endif
+
+bin/migrate: bin/migrate-${MIGRATE_VERSION}
+	@ln -sf migrate-${MIGRATE_VERSION} bin/migrate
+bin/migrate-${MIGRATE_VERSION}: PLATFORM := $(shell echo ${OS} | tr '[:upper:]' '[:lower:]')
+bin/migrate-${MIGRATE_VERSION}:
+	@mkdir -p bin
+	curl -L https://github.com/golang-migrate/migrate/releases/download/v${MIGRATE_VERSION}/migrate.${PLATFORM}-amd64.tar.gz | tar xvz -C bin
+	@mv bin/migrate.${PLATFORM}-amd64 $@
 
 .PHONY: create-cluster
 create-cluster: ## Curl call to pipeline api to create a cluster with your username
