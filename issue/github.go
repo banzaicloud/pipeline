@@ -24,30 +24,35 @@ import (
 
 // GitHubIssuer creates an issue on GitHub
 type GitHubIssuer struct {
-	Version VersionInformation
+	version VersionInformation
 }
 
 var _ Issuer = GitHubIssuer{}
 
 const issueTemplate = `
 **Version Information:**
-%s
+
+| Version | Commit Hash | Build Date |
+| ------- |:-----------:| ----------:|
+| %s | [link](https://github.com/banzaicloud/pipeline/commit/%s) | %s |
 
 **User Information:**
-ID: %d
-Organization: %s
+
+| User ID | Organization|
+| ------- |:-----------:|
+| %d      | %s          |
 
 **Description:**
 %s`
 
 // CreateIssue creates an issue on GitHub
-func (gi GitHubIssuer) CreateIssue(userID uint, organization, title, text string) error {
+func (gi GitHubIssuer) CreateIssue(userID uint, organization, title, text string, userLabels []string) error {
 
 	githubClient := auth.NewGithubClient(viper.GetString("github.token"))
 
-	body := fmt.Sprintf(issueTemplate, gi.Version, userID, organization, text)
+	body := fmt.Sprintf(issueTemplate, gi.version.Version, gi.version.CommitHash, gi.version.BuildDate, userID, organization, text)
 
-	labels := viper.GetStringSlice("issue.githubLabels")
+	labels := append(viper.GetStringSlice("issue.githubLabels"), userLabels...)
 	issue := github.IssueRequest{
 		Title:  github.String(title),
 		Body:   github.String(body),
@@ -55,7 +60,7 @@ func (gi GitHubIssuer) CreateIssue(userID uint, organization, title, text string
 	}
 
 	_, _, err := githubClient.Issues.Create(
-		context.TODO(),
+		context.Background(),
 		viper.GetString("issue.githubOwner"),
 		viper.GetString("issue.githubRepository"),
 		&issue,

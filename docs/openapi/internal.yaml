@@ -53,6 +53,10 @@ paths:
                 type: string
               text:
                 type: string
+              labels:
+                type: array
+                items:
+                  type: string
       responses:
         '201':
           description: Created
