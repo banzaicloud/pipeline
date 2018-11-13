@@ -30,6 +30,36 @@ paths:
           description: GetDashboardResponse
           schema:
             $ref: '#/definitions/GetDashboardResponse'
+  '/issues':
+    post:
+      description: Creates a new issue in the configured issue tracking system.
+      schemes:
+        - http
+      operationId: CreateIssue
+      parameters:
+        - in: body
+          name: user
+          description: The issue to create.
+          schema:
+            type: object
+            required:
+              - organization
+              - title
+              - text
+            properties:
+              organization:
+                type: string
+              title:
+                type: string
+              text:
+                type: string
+      responses:
+        '201':
+          description: Created
+        '400':
+          description: Bad Request
+        '500':
+          description: Issue Creation Failed
 definitions:
   Allocatable:
     type: object
