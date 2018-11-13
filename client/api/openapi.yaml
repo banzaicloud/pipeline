@@ -4751,6 +4751,69 @@ paths:
       summary: Get vulnerabilities
       tags:
       - imagescan
+  /api/v1/orgs/{orgId}/clusters/{id}/namespaces/{namespace}:
+    delete:
+      description: Delete namespace from a cluster
+      operationId: DeleteNamespace
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Kubernetes namespace
+        explode: false
+        in: path
+        name: namespace
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        204:
+          description: Namespace deleted successfully
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during deleting namespace
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+          description: Cluster not found
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Delete namespace from a cluster
+      tags:
+      - clusters
   /api/v1/orgs/{orgId}/google/projects:
     get:
       description: Retrieves projects visible by the user represented by the secretid header from the google cloud
