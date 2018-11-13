@@ -691,7 +691,11 @@ func GetBucket(c *gin.Context) {
 
 	bucketName := c.Param("name")
 	if bucketName == "" {
-		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(fmt.Errorf("bucketname path parameter is missing")))
+		ginutils.ReplyWithErrorResponse(c,
+			&pkgCommon.ErrorResponse{
+				Code:  http.StatusBadRequest,
+				Error: "`bucketname`path parameter is missing",
+			})
 		return
 	}
 
@@ -703,12 +707,22 @@ func GetBucket(c *gin.Context) {
 
 	if qd, err = bc.queryData(c); err != nil {
 		logger.Error("failed to parse query parameters")
-		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(emperror.Wrap(err, "failed to parse query parameters")))
+		ginutils.ReplyWithErrorResponse(c,
+			&pkgCommon.ErrorResponse{
+				Code:    http.StatusBadRequest,
+				Error:   err.Error(),
+				Message: err.Error(),
+			})
 		return
 	}
 
 	if err = qd.validateForGetBucket(); err != nil {
-		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
+		ginutils.ReplyWithErrorResponse(c,
+			&pkgCommon.ErrorResponse{
+				Code:    http.StatusBadRequest,
+				Error:   err.Error(),
+				Message: err.Error(),
+			})
 		return
 	}
 
