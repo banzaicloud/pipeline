@@ -69,5 +69,5 @@ func (a *API) Delete(c *gin.Context) {
 		return
 	}
 
-	c.Status(http.StatusNoContent)
+	c.Status(http.StatusAccepted)
 }

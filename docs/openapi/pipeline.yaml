@@ -4266,8 +4266,8 @@ paths:
                   schema:
                       type: string
             responses:
-                '204':
-                    description: Namespace deleted successfully
+                '202':
+                    description: Namespace deletion started
 
                 '400':
                     description: Error during deleting namespace

@@ -4783,8 +4783,8 @@ paths:
           type: string
         style: simple
       responses:
-        204:
-          description: Namespace deleted successfully
+        202:
+          description: Namespace deletion started
         400:
           content:
             application/json:
