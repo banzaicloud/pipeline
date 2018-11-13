@@ -1291,12 +1291,7 @@ func isSpotCluster(cluster CommonCluster) (bool, error) {
 	if err != nil {
 		return false, emperror.Wrap(err, "failed to get cluster status")
 	}
-	for _, nps := range status.NodePools {
-		if nps.SpotPrice != "" && nps.SpotPrice != "0" {
-			return true, nil
-		}
-	}
-	return false, nil
+	return status.Spot, nil
 }
 
 func initializeSpotConfigMap(client *kubernetes.Clientset, systemNs string) error {
