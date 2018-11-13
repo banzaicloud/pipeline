@@ -1,1 +1,1 @@
-ALTER TABLE azure_buckets ADD access_secret_ref varchar(255) null;
+ALTER TABLE azure_buckets ADD COLUMN access_secret_ref varchar(255) null;
