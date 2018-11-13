@@ -162,6 +162,7 @@ type GetClusterStatusResponse struct {
 	Location      string                     `json:"location"`
 	Cloud         string                     `json:"cloud"`
 	Distribution  string                     `json:"distribution"`
+	Spot          bool                       `json:"spot"`
 	Version       string                     `json:"version,omitempty"`
 	ResourceID    uint                       `json:"id"`
 	NodePools     map[string]*NodePoolStatus `json:"nodePools,omitempty"`
@@ -191,7 +192,7 @@ type GetClusterConfigResponse struct {
 
 // UpdateClusterRequest describes an update cluster request
 type UpdateClusterRequest struct {
-	Cloud            string `json:"cloud" binding:"required"`
+	Cloud string     `json:"cloud" binding:"required"`
 	UpdateProperties `json:"properties"`
 }
 
