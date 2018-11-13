@@ -776,6 +776,8 @@ func (c *EKSCluster) DownloadK8sConfig() ([]byte, error) {
 // GetStatus describes the status of this EKS cluster.
 func (c *EKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 
+	var hasSpotNodePool bool
+
 	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
 	for _, np := range c.modelCluster.EKS.NodePools {
 		if np != nil {
@@ -788,6 +790,9 @@ func (c *EKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 				MaxCount:     np.NodeMaxCount,
 				Image:        np.NodeImage,
 			}
+			if np.NodeSpotPrice != "" && np.NodeSpotPrice != "0" {
+				hasSpotNodePool = true
+			}
 		}
 	}
 
@@ -798,6 +803,7 @@ func (c *EKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		Location:          c.modelCluster.Location,
 		Cloud:             c.modelCluster.Cloud,
 		Distribution:      c.modelCluster.Distribution,
+		Spot:              hasSpotNodePool,
 		ResourceID:        c.modelCluster.ID,
 		NodePools:         nodePools,
 		Version:           c.modelCluster.EKS.Version,
