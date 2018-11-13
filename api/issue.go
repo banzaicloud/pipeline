@@ -25,9 +25,10 @@ import (
 )
 
 type CreatePipelineIssueRequest struct {
-	Organization string `json:"organization" binding:"required"`
-	Title        string `json:"title" binding:"required"`
-	Text         string `json:"text" binding:"required"`
+	Organization string   `json:"organization" binding:"required"`
+	Title        string   `json:"title" binding:"required"`
+	Text         string   `json:"text" binding:"required"`
+	Labels       []string `json:"labels"`
 }
 
 func NewIssueHandler(version, commitHash, buildDate string) (gin.HandlerFunc, error) {
@@ -58,7 +59,7 @@ func NewIssueHandler(version, commitHash, buildDate string) (gin.HandlerFunc, er
 			return
 		}
 
-		err := issuer.CreateIssue(userID, request.Organization, request.Title, request.Text)
+		err := issuer.CreateIssue(userID, request.Organization, request.Title, request.Text, request.Labels)
 
 		if err != nil {
 			errorHandler.Handle(errors.Wrapf(err, "failed to create issue"))

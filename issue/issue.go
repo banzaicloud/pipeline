@@ -25,18 +25,14 @@ type VersionInformation struct {
 	BuildDate  string
 }
 
-func (v VersionInformation) String() string {
-	return fmt.Sprintf("Version: %s\nCommit Hash: %s\nBuild Date: %s", v.Version, v.CommitHash, v.BuildDate)
-}
-
 type Issuer interface {
-	CreateIssue(userID uint, organization, title, body string) error
+	CreateIssue(userID uint, organization, title, body string, userLabels []string) error
 }
 
 func NewIssuer(version VersionInformation) (Issuer, error) {
 	switch issueType := viper.GetString("issue.type"); issueType {
 	case "github":
-		return GitHubIssuer{Version: version}, nil
+		return GitHubIssuer{version: version}, nil
 	default:
 		return nil, fmt.Errorf("issuer type not supported: %s", issueType)
 	}

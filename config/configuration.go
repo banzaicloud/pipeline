@@ -216,7 +216,7 @@ func init() {
 	viper.SetDefault(SpotguideAllowPrereleases, false)
 
 	viper.SetDefault("issue.type", "github")
-	viper.SetDefault("issue.githubLabels", []string{"bug", "community"})
+	viper.SetDefault("issue.githubLabels", []string{"community"})
 	viper.SetDefault("issue.githubOwner", "banzaicloud")
 	viper.SetDefault("issue.githubRepository", "pipeline")
 
