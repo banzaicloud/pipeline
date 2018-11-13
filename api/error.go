@@ -43,20 +43,6 @@ func isInvalid(err error) bool {
 	return false
 }
 
-// isNotFound checks whether an error is about a resource not being found.
-func isNotFound(err error) bool {
-	// Check the root cause error.
-	err = errors.Cause(err)
-
-	if e, ok := err.(interface {
-		NotFound() bool
-	}); ok {
-		return e.NotFound()
-	}
-
-	return false
-}
-
 // isPreconditionFailed checks whether an error is about a resource not being found.
 func isPreconditionFailed(err error) bool {
 	// Check the root cause error.
