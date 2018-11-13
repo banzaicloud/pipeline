@@ -145,3 +145,10 @@ backupSyncInterval = "20s"
 
 [spotguide]
 allowPrereleases = false
+
+[metrics]
+enabled = false
+port = ":9900"
+
+# if true, some metrics have unique labels
+debug = true

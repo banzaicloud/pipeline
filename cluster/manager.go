@@ -82,7 +82,7 @@ func (m *Manager) getPrometheusTimer(provider, location, status string, orgId ui
 	if viper.GetBool(config.MetricsDebug) {
 		org, err := auth.GetOrganizationById(orgId)
 		if err != nil {
-			return nil, err
+			return nil, emperror.Wrap(err, "Error during getting organization. ")
 		}
 
 		return prometheus.NewTimer(m.statusChangeDurationMetric.WithLabelValues(provider, location, status, org.Name, clusterName)), nil
