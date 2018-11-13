@@ -37,6 +37,7 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
+	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/api/googleapi"
@@ -678,6 +679,10 @@ func bucketsResponse(buckets []*objectstore.BucketInfo, orgid uint, withSecretNa
 
 }
 
+// bucketController gathers bucket related operations / helpers
+type bucketController struct {
+}
+
 // GetBucket handler for retrieving bucket details by name
 // it retrieves all the managed buckets and filters them by name
 func GetBucket(c *gin.Context) {
@@ -686,28 +691,30 @@ func GetBucket(c *gin.Context) {
 
 	bucketName := c.Param("name")
 	if bucketName == "" {
-		logger.Error("no bucketname found in path")
-		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(fmt.Errorf("no bucket name specified in path")))
+		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(fmt.Errorf("bucketname path parameter is missing")))
 		return
 	}
 
-	provider, ok := ginutils.RequiredQueryOrAbort(c, "cloudType")
-	if !ok {
-		logger.Error("the mandatory cloud type is missing from the query")
-		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(fmt.Errorf("no cloudType specified in query")))
-		return
-	}
-
-	const (
-		fieldsQueryKey = "include"
-		secretName     = "secret"
+	bc := newBucketController()
+	var (
+		qd  *BucketQueryData
+		err error
 	)
-	// is secretName requested?
-	includeSecret := c.Query(fieldsQueryKey) == secretName
+
+	if qd, err = bc.queryData(c); err != nil {
+		logger.Error("failed to parse query parameters")
+		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(emperror.Wrap(err, "failed to parse query parameters")))
+		return
+	}
+
+	if err = qd.validateForGetBucket(); err != nil {
+		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
+		return
+	}
 
 	organization := auth.GetCurrentOrganization(c.Request)
 	objectStoreCtx := &providers.ObjectStoreContext{
-		Provider:     provider,
+		Provider:     qd.CloudType[0],
 		Organization: organization,
 	}
 
@@ -727,12 +734,9 @@ func GetBucket(c *gin.Context) {
 		return
 	}
 
-	for _, bucket := range bucketList {
-		if bucket.Name == bucketName {
-			c.JSON(http.StatusOK, newBucketResponseItemFromBucketInfo(bucket, organization.ID, includeSecret))
-
-			return
-		}
+	if retBuckets, err := bc.filterBuckets(bucketList, bucketName, *qd); err == nil {
+		c.JSON(http.StatusOK, bucketsResponse(retBuckets, organization.ID, qd.withSecretName()))
+		return
 	}
 
 	ginutils.ReplyWithErrorResponse(c, errorResponseFrom(BucketNotFoundError{errMessage: fmt.Sprintf("bucket with name: %s not found", bucketName)}))
@@ -812,4 +816,116 @@ func newBucketResponseItemFromBucketInfo(bi *objectstore.BucketInfo, orgid uint,
 			AccessSecretName: accessSecretName,
 		}}
 	return &ret
+}
+
+// BucketQueryData encapsulates query parameter data
+type BucketQueryData struct {
+	CloudType      []string
+	Include        []string
+	StorageAccount []string
+	ResourceGroup  []string
+}
+
+// newBucketController creates a new controller instance
+func newBucketController() bucketController {
+	return bucketController{}
+}
+
+// queryData parses query parameters into the dedicated struct
+func (bc *bucketController) queryData(ginCtx *gin.Context) (*BucketQueryData, error) {
+	bqd := BucketQueryData{}
+
+	// bind the query to the query data struct
+	if err := mapstructure.Decode(ginCtx.Request.URL.Query(), &bqd); err != nil {
+		return nil, emperror.WrapWith(err, "failed to parse query params", "query params")
+	}
+
+	// this is a similar approach to the above, however it only works if all query params to be bound are uppercase (and correspond to the queryData exported fields with no configuration possibilities)
+	//if  err:= ginCtx.BindQuery(&bqd); err != nil {
+	//	return nil, emperror.WrapWith(err, "failed to parse query params", "bucket")
+	//}
+
+	return &bqd, nil
+}
+
+// filterBuckets filters elements based on the passed int parameters
+// the filter implements an "AND" filter base don these fields
+func (bc *bucketController) filterBuckets(buckets []*objectstore.BucketInfo, bucketName string, qd BucketQueryData) ([]*objectstore.BucketInfo, error) {
+	ret := make([]*objectstore.BucketInfo, 0)
+	for _, bucket := range buckets {
+
+		if bucketName != "" {
+			if bucket.Name != bucketName {
+				continue
+			}
+		}
+
+		if len(qd.StorageAccount) > 0 {
+			if bucket.Azure != nil && !ContainsString(qd.StorageAccount, bucket.Azure.StorageAccount) {
+				continue
+			}
+		}
+
+		if len(qd.ResourceGroup) > 0 {
+			if bucket.Azure != nil && !ContainsString(qd.ResourceGroup, bucket.Azure.ResourceGroup) {
+				continue
+			}
+		}
+
+		ret = append(ret, bucket)
+	}
+
+	return ret, nil
+}
+
+// withSecretName computes the need for including secret names in the response
+func (qd *BucketQueryData) withSecretName() bool {
+	const (
+		secretName = "secret"
+	)
+
+	if len(qd.Include) == 0 {
+		return false
+	}
+
+	if qd.paramValue(qd.Include) == secretName {
+		return true
+	}
+
+	// invalid value provided
+	return false
+}
+
+// withSecretName computes the need for including secret names in the response
+func (qd *BucketQueryData) validateForGetBucket() error {
+
+	if len(qd.CloudType) != 1 {
+		return errors.New("cloudType query parameter is mandatory")
+	}
+
+	if qd.paramValue(qd.CloudType) == pkgCluster.Azure {
+		if len(qd.StorageAccount) != 1 {
+			return errors.New("storageAccount query parameter is mandatory")
+		}
+
+		if len(qd.ResourceGroup) != 1 {
+			return errors.New("resourceGroup query parameter is mandatory")
+		}
+	}
+
+	return nil
+}
+
+// paramValue returns the first value from the query param values
+func (qd *BucketQueryData) paramValue(val []string) string {
+	return val[0]
+}
+
+func ContainsString(sl []string, v string) bool {
+	for _, vv := range sl {
+		if vv == v {
+			return true
+		}
+	}
+	return false
 }
