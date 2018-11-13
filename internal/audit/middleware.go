@@ -25,6 +25,7 @@ import (
 	"time"
 
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/spotguide"
 	"github.com/gin-gonic/gin"
@@ -132,6 +133,7 @@ func LogWriter(
 				}
 			}
 
+			correlationID := c.GetString(correlationid.ContextKey)
 			clientIP := c.ClientIP()
 			method := c.Request.Method
 			userAgent := c.Request.UserAgent()
@@ -163,15 +165,16 @@ func LogWriter(
 			}
 
 			event := AuditEvent{
-				Time:       start,
-				ClientIP:   clientIP,
-				UserAgent:  userAgent,
-				UserID:     userID,
-				StatusCode: statusCode,
-				Method:     method,
-				Path:       path,
-				Body:       body,
-				Headers:    string(headers),
+				Time:          start,
+				CorrelationID: correlationID,
+				ClientIP:      clientIP,
+				UserAgent:     userAgent,
+				UserID:        userID,
+				StatusCode:    statusCode,
+				Method:        method,
+				Path:          path,
+				Body:          body,
+				Headers:       string(headers),
 			}
 
 			err = db.Save(&event).Error
