@@ -22,12 +22,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/banzaicloud/pipeline/api/common"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
-	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
-	"github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
@@ -78,68 +77,15 @@ func NewClusterAPI(clusterManager *cluster.Manager, logger logrus.FieldLogger, e
 }
 
 // getClusterFromRequest just a simple getter to build commonCluster object this handles error messages directly
+// Deprecated: use internal.clusterGetter instead
 func getClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
-	var cl cluster.CommonCluster
-	var err error
-
-	logger := correlationid.Logger(log, c)
-
 	// TODO: move these to a struct and create them only once upon application init
 	clusters := intCluster.NewClusters(config.DB())
 	secretValidator := providers.NewSecretValidator(secret.Store)
-	clusterManager := cluster.NewManager(clusters, secretValidator, cluster.NewNopClusterEvents(), nil, nil, logger, errorHandler)
+	clusterManager := cluster.NewManager(clusters, secretValidator, cluster.NewNopClusterEvents(), nil, nil, log, errorHandler)
+	clusterGetter := common.NewClusterGetter(clusterManager, log, errorHandler)
 
-	ctx := ginutils.Context(context.Background(), c)
-
-	organizationID := auth.GetCurrentOrganization(c.Request).ID
-
-	logger = logger.WithField("organization", organizationID)
-
-	switch field := c.DefaultQuery("field", "id"); field {
-	case "id":
-		clusterID, ok := ginutils.UintParam(c, "id")
-		if !ok {
-			logger.Debug("invalid ID parameter")
-
-			return nil, false
-		}
-
-		logger = logger.WithField("cluster", clusterID)
-
-		cl, err = clusterManager.GetClusterByID(ctx, organizationID, clusterID)
-	case "name":
-		clusterName := c.Param("id")
-
-		logger = logger.WithField("cluster", clusterName)
-
-		cl, err = clusterManager.GetClusterByName(ctx, organizationID, clusterName)
-	default:
-		err = fmt.Errorf("field=%s is not supported", field)
-	}
-
-	if isNotFound(err) {
-		logger.Debug("cluster not found")
-
-		c.JSON(http.StatusNotFound, pkgCommon.ErrorResponse{
-			Code:    http.StatusNotFound,
-			Message: "cluster not found",
-			Error:   err.Error(),
-		})
-
-		return nil, false
-	} else if err != nil {
-		errorHandler.Handle(err)
-
-		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "error parsing request",
-			Error:   err.Error(),
-		})
-
-		return nil, false
-	}
-
-	return cl, true
+	return clusterGetter.GetClusterFromRequest(c)
 }
 
 func getPostHookFunctions(postHooks pkgCluster.PostHooks) (ph []cluster.PostFunctioner) {

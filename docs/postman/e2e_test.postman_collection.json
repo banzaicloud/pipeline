@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "f07bc1d6-508e-4454-b09d-5ea3f59f474b",
+		"_postman_id": "5354e2e3-3a88-4798-a5ce-270db5d04e9c",
 		"name": "End2End TEST Organizations",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -9,6 +9,73 @@
 		{
 			"name": "Clusters",
 			"item": [
+				{
+					"name": "Namespaces",
+					"item": [
+						{
+							"name": "Delete namespace",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "fa33d46e-c32a-425e-882b-d156fc682ebe",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/namespaces/:namespace",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orgs",
+										":orgId",
+										"clusters",
+										":clusterId",
+										"namespaces",
+										":namespace"
+									],
+									"variable": [
+										{
+											"key": "orgId",
+											"value": "{{orgId}}",
+											"description": "Organization identifier"
+										},
+										{
+											"key": "clusterId",
+											"value": "{{clusterId}}",
+											"description": "Cluster identifier"
+										},
+										{
+											"key": "namespace",
+											"value": "{{namespace}}"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"_postman_isSubFolder": true
+				},
 				{
 					"name": "Cluster Create ACSK",
 					"event": [
