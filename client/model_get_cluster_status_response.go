@@ -17,6 +17,7 @@ type GetClusterStatusResponse struct {
 	Name          string                    `json:"name,omitempty"`
 	Cloud         string                    `json:"cloud,omitempty"`
 	Distribution  string                    `json:"distribution,omitempty"`
+	Spot          bool                      `json:"spot,omitempty"`
 	Location      string                    `json:"location,omitempty"`
 	Id            int32                     `json:"id,omitempty"`
 	CreatedAt     string                    `json:"createdAt,omitempty"`

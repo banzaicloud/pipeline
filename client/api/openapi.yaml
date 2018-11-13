@@ -7184,20 +7184,21 @@ components:
       type: object
     GetClusterStatusResponse:
       example:
-        cloud: google
-        createdAt: 2018-07-03T14:23:19+02:00
-        name: myClusterName
         creatorName: userName
         creatorId: 1
+        distribution: gke
+        statusMessage: Cluster is running
+        cloud: google
+        createdAt: 2018-07-03T14:23:19+02:00
+        spot: true
+        name: myClusterName
         location: us-central1-a
         id: 1
         nodePools:
           key:
             count: 1
             instanceType: n1-standard-1
-        distribution: gke
         region: us-central1
-        statusMessage: Cluster is running
         status: RUNNING
       properties:
         status:
@@ -7215,6 +7216,8 @@ components:
         distribution:
           example: gke
           type: string
+        spot:
+          type: boolean
         location:
           example: us-central1-a
           type: string

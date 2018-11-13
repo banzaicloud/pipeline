@@ -6541,6 +6541,9 @@ components:
                 distribution:
                     type: string
                     example: "gke"
+                spot:
+                    type: boolean
+                    example: false
                 location:
                     type: string
                     example: "us-central1-a"
