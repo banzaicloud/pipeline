@@ -17,10 +17,14 @@ package cluster
 import (
 	"context"
 
+	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/config"
 	pipelineContext "github.com/banzaicloud/pipeline/internal/platform/context"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/goph/emperror"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 type clusterRepository interface {
@@ -37,19 +41,29 @@ type secretValidator interface {
 }
 
 type Manager struct {
-	clusters clusterRepository
-	secrets  secretValidator
-	events   clusterEvents
+	clusters                   clusterRepository
+	secrets                    secretValidator
+	events                     clusterEvents
+	statusChangeDurationMetric *prometheus.SummaryVec
+	clusterTotalMetric         *prometheus.CounterVec
 
 	logger       logrus.FieldLogger
 	errorHandler emperror.Handler
 }
 
-func NewManager(clusters clusterRepository, secrets secretValidator, events clusterEvents, logger logrus.FieldLogger, errorHandler emperror.Handler) *Manager {
+func NewManager(clusters clusterRepository,
+	secrets secretValidator,
+	events clusterEvents,
+	statusChangeDurationMetric *prometheus.SummaryVec,
+	clusterTotalMetric *prometheus.CounterVec,
+	logger logrus.FieldLogger,
+	errorHandler emperror.Handler) *Manager {
 	return &Manager{
-		clusters: clusters,
-		secrets:  secrets,
-		events:   events,
+		clusters:                   clusters,
+		secrets:                    secrets,
+		events:                     events,
+		statusChangeDurationMetric: statusChangeDurationMetric,
+		clusterTotalMetric:         clusterTotalMetric,
 
 		logger:       logger,
 		errorHandler: errorHandler,
@@ -62,4 +76,16 @@ func (m *Manager) getLogger(ctx context.Context) logrus.FieldLogger {
 
 func (m *Manager) getErrorHandler(ctx context.Context) emperror.Handler {
 	return pipelineContext.ErrorHandlerWithCorrelationID(ctx, m.errorHandler)
+}
+
+func (m *Manager) getPrometheusTimer(provider, location, status string, orgId uint, clusterName string) (*prometheus.Timer, error) {
+	if viper.GetBool(config.MetricsDebug) {
+		org, err := auth.GetOrganizationById(orgId)
+		if err != nil {
+			return nil, emperror.Wrap(err, "Error during getting organization. ")
+		}
+
+		return prometheus.NewTimer(m.statusChangeDurationMetric.WithLabelValues(provider, location, status, org.Name, clusterName)), nil
+	}
+	return prometheus.NewTimer(m.statusChangeDurationMetric.WithLabelValues(provider, location, status, "", "")), nil
 }

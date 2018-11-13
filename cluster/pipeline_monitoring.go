@@ -39,22 +39,12 @@ type scrapeResultTotalCluster struct {
 	clusterName string
 }
 
-var (
-	StatusChangeDuration = prometheus.NewSummaryVec(prometheus.SummaryOpts{
-		Namespace: "pipeline",
-		Name:      "cluster_status_change_duration",
-		Help:      "Cluster status change duration in seconds",
-	},
-		[]string{"provider", "location", "status", "orgName", "clusterName"},
-	)
-)
-
 func NewExporter() *pipelineMetrics {
 	p := pipelineMetrics{
 		clusterStatus: prometheus.NewGaugeVec(prometheus.GaugeOpts{
 			Namespace: "pipeline",
-			Name:      "cluster_total",
-			Help:      "Total number of clusters",
+			Name:      "cluster_active_total",
+			Help:      "the number of active clusters",
 		},
 			[]string{"provider", "location", "status", "orgName", "clusterName"},
 		),
@@ -117,7 +107,7 @@ func (p *pipelineMetrics) setClusterMetrics(resultTotalCluster <-chan scrapeResu
 			"orgName":     "",
 			"clusterName": "",
 		}
-		if viper.GetBool("metrics.debug") {
+		if viper.GetBool(config.MetricsDebug) {
 			labels["orgName"] = scr.orgName
 			labels["clusterName"] = scr.clusterName
 		}

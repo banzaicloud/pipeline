@@ -65,13 +65,7 @@ func initLog() *logrus.Entry {
 	return logger
 }
 
-func initPrometheus() {
-	prometheus.MustRegister(cluster.NewExporter(), cluster.StatusChangeDuration)
-}
-
 func main() {
-
-	initPrometheus()
 	if len(os.Args) > 1 && os.Args[1] == "--version" {
 		if CommitHash == "" {
 			fmt.Println("version: ", Version, " built on ", BuildDate)
@@ -129,11 +123,28 @@ func main() {
 		log.Infoln("External dns service functionality is not enabled")
 	}
 
+	prometheus.MustRegister(cluster.NewExporter())
+
 	clusterEventBus := evbus.New()
 	clusterEvents := cluster.NewClusterEvents(clusterEventBus)
 	clusters := intCluster.NewClusters(db)
 	secretValidator := providers.NewSecretValidator(secret.Store)
-	clusterManager := cluster.NewManager(clusters, secretValidator, clusterEvents, log, errorHandler)
+	statusChangeDurationMetric := prometheus.NewSummaryVec(prometheus.SummaryOpts{
+		Namespace: "pipeline",
+		Name:      "cluster_status_change_duration",
+		Help:      "Cluster status change duration in seconds",
+	},
+		[]string{"provider", "location", "status", "orgName", "clusterName"},
+	)
+	clusterTotalMetric := prometheus.NewCounterVec(prometheus.CounterOpts{
+		Namespace: "pipeline",
+		Name:      "cluster_total",
+		Help:      "the number of clusters launched",
+	},
+		[]string{"provider", "location"},
+	)
+	prometheus.MustRegister(statusChangeDurationMetric, clusterTotalMetric)
+	clusterManager := cluster.NewManager(clusters, secretValidator, clusterEvents, statusChangeDurationMetric, clusterTotalMetric, log, errorHandler)
 
 	if viper.GetBool(config.MonitorEnabled) {
 		client, err := k8sclient.NewInClusterClient()
@@ -168,7 +179,13 @@ func main() {
 	router.Use(correlationid.Middleware())
 	router.Use(ginlog.Middleware(log, skipPaths...))
 	router.Use(gin.Recovery())
-	router.Use(ginternal.NewDrainModeMiddleware(errorHandler).Middleware)
+	drainModeMetric := prometheus.NewGauge(prometheus.GaugeOpts{
+		Namespace: "pipeline",
+		Name:      "drain_mode",
+		Help:      "read only mode is on/off",
+	})
+	prometheus.MustRegister(drainModeMetric)
+	router.Use(ginternal.NewDrainModeMiddleware(drainModeMetric, errorHandler).Middleware)
 	router.Use(cors.New(config.GetCORS()))
 	if viper.GetBool("audit.enabled") {
 		log.Infoln("Audit enabled, installing Gin audit middleware")
@@ -180,9 +197,9 @@ func main() {
 		root.GET("/", api.RedirectRoot)
 	}
 	// Add prometheus metric endpoint
-	if viper.GetBool("metrics.enabled") {
+	if viper.GetBool(config.MetricsEnabled) {
 		p := ginprometheus.NewPrometheus("pipeline", []string{})
-		p.SetListenAddress(viper.GetString("metrics.port"))
+		p.SetListenAddress(viper.GetString(config.MetricsPort))
 		p.Use(router)
 	}
 

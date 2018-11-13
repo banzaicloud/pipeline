@@ -20,15 +20,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/helm"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/goph/emperror"
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -40,16 +37,12 @@ func (m *Manager) DeleteCluster(ctx context.Context, cluster CommonCluster, forc
 		"cluster", cluster.GetID(),
 		"force", force,
 	)
-	org, err := auth.GetOrganizationById(cluster.GetOrganizationId())
+
+	timer, err := m.getPrometheusTimer(cluster.GetCloud(), cluster.GetLocation(), pkgCluster.Deleting, cluster.GetOrganizationId(), cluster.GetName())
 	if err != nil {
 		return err
 	}
-	var timer *prometheus.Timer
-	if viper.GetBool("metrics.debug") {
-		timer = prometheus.NewTimer(StatusChangeDuration.WithLabelValues(cluster.GetCloud(), cluster.GetLocation(), pkgCluster.Deleting, org.Name, cluster.GetName()))
-	} else {
-		timer = prometheus.NewTimer(StatusChangeDuration.WithLabelValues(cluster.GetCloud(), cluster.GetLocation(), pkgCluster.Deleting, "", ""))
-	}
+
 	go func() {
 		defer emperror.HandleRecover(m.errorHandler)
 
@@ -85,7 +78,7 @@ func deleteAllResources(kubeConfig []byte, logger *logrus.Entry) error {
 
 	err = deleteResources(kubeConfig, "default", logger)
 	if err != nil {
-		return emperror.Wrap(err, "failed to delete resurces in default namespace")
+		return emperror.Wrap(err, "failed to delete resources in default namespace")
 	}
 
 	err = deleteServices(kubeConfig, "default", logger)
