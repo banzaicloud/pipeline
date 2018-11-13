@@ -7,6 +7,7 @@ Method | HTTP request | Description
 [**ClusterPostHooks**](ClustersApi.md#ClusterPostHooks) | **Put** /api/v1/orgs/{orgId}/clusters/{id}/posthooks | Run posthook functions
 [**CreateCluster**](ClustersApi.md#CreateCluster) | **Post** /api/v1/orgs/{orgId}/clusters | Create cluster
 [**DeleteCluster**](ClustersApi.md#DeleteCluster) | **Delete** /api/v1/orgs/{orgId}/clusters/{id} | Delete cluster
+[**DeleteNamespace**](ClustersApi.md#DeleteNamespace) | **Delete** /api/v1/orgs/{orgId}/clusters/{id}/namespaces/{namespace} | Delete namespace from a cluster
 [**GetAPIEndpoint**](ClustersApi.md#GetAPIEndpoint) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/apiendpoint | Get API endpoint
 [**GetCluster**](ClustersApi.md#GetCluster) | **Get** /api/v1/orgs/{orgId}/clusters/{id} | Get cluster status
 [**GetClusterConfig**](ClustersApi.md#GetClusterConfig) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/config | Get a cluster config
@@ -111,6 +112,36 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**ClusterDelete200**](ClusterDelete_200.md)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **DeleteNamespace**
+> DeleteNamespace(ctx, orgId, id, namespace)
+Delete namespace from a cluster
+
+Delete namespace from a cluster
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+  **orgId** | **int32**| Organization identification | 
+  **id** | **int32**| Selected cluster identification (number) | 
+  **namespace** | **string**| Kubernetes namespace | 
+
+### Return type
+
+ (empty response body)
 
 ### Authorization
 

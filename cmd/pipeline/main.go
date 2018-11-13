@@ -28,6 +28,8 @@ import (
 	"github.com/banzaicloud/pipeline/api/ark/buckets"
 	"github.com/banzaicloud/pipeline/api/ark/restores"
 	"github.com/banzaicloud/pipeline/api/ark/schedules"
+	"github.com/banzaicloud/pipeline/api/cluster/namespace"
+	"github.com/banzaicloud/pipeline/api/common"
 	"github.com/banzaicloud/pipeline/api/middleware"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
@@ -145,6 +147,7 @@ func main() {
 	)
 	prometheus.MustRegister(statusChangeDurationMetric, clusterTotalMetric)
 	clusterManager := cluster.NewManager(clusters, secretValidator, clusterEvents, statusChangeDurationMetric, clusterTotalMetric, log, errorHandler)
+	clusterGetter := common.NewClusterGetter(clusterManager, logger, errorHandler)
 
 	if viper.GetBool(config.MonitorEnabled) {
 		client, err := k8sclient.NewInClusterClient()
@@ -286,6 +289,10 @@ func main() {
 			orgs.POST("/:orgid/clusters/:id/imagescan", api.ScanImages)
 			orgs.GET("/:orgid/clusters/:id/imagescan/:imagedigest", api.GetScanResult)
 			orgs.GET("/:orgid/clusters/:id/imagescan/:imagedigest/vuln", api.GetImageVulnerabilities)
+
+			clusters := orgs.Group("/:orgid/clusters/:id")
+			namespaceAPI := namespace.NewAPI(clusterGetter, errorHandler)
+			namespaceAPI.RegisterRoutes(clusters.Group("/namespaces/:namespace"))
 
 			orgs.GET("/:orgid/helm/repos", api.HelmReposGet)
 			orgs.POST("/:orgid/helm/repos", api.HelmReposAdd)
