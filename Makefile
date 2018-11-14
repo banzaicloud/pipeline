@@ -155,8 +155,8 @@ bin/go-junit-report:
 
 .PHONY: junit-report
 junit-report: bin/go-junit-report # Generate test reports
-	@mkdir -p build
-	cat test.txt | bin/go-junit-report > build/report.xml
+	@mkdir -p build/test-results/junit
+	cat test.txt | bin/go-junit-report > build/test-results/junit/results.xml
 
 .PHONY: validate-openapi
 validate-openapi: ## Validate the openapi description
