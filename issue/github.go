@@ -19,6 +19,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/google/go-github/github"
+	"github.com/goph/emperror"
 	"github.com/spf13/viper"
 )
 
@@ -66,5 +67,5 @@ func (gi GitHubIssuer) CreateIssue(userID uint, organization, title, text string
 		&issue,
 	)
 
-	return err
+	return emperror.Wrap(err, "failed to create github issue on API")
 }

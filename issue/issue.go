@@ -14,7 +14,7 @@
 package issue
 
 import (
-	"fmt"
+	"github.com/pkg/errors"
 
 	"github.com/spf13/viper"
 )
@@ -34,6 +34,6 @@ func NewIssuer(version VersionInformation) (Issuer, error) {
 	case "github":
 		return GitHubIssuer{version: version}, nil
 	default:
-		return nil, fmt.Errorf("issuer type not supported: %s", issueType)
+		return nil, errors.Errorf("issuer type not supported: %s", issueType)
 	}
 }

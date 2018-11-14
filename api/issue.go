@@ -42,7 +42,7 @@ func NewIssueHandler(version, commitHash, buildDate string) (gin.HandlerFunc, er
 	issuer, err := issue.NewIssuer(versionInformation)
 
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to created issuer")
 	}
 
 	return func(c *gin.Context) {

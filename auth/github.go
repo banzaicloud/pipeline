@@ -18,6 +18,8 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/goph/emperror"
+
 	"github.com/google/go-github/github"
 	"github.com/qor/auth"
 	"github.com/qor/auth/auth_identity"
@@ -205,7 +207,7 @@ func NewGithubClient(accessToken string) *github.Client {
 func GetUserGithubToken(userID uint) (string, error) {
 	token, err := TokenStore.Lookup(fmt.Sprint(userID), GithubTokenID)
 	if err != nil {
-		return "", err
+		return "", emperror.Wrap(err, "failed to lookup user token")
 	}
 	if token == nil {
 		return "", fmt.Errorf("Github token not found for user")
