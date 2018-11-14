@@ -84,6 +84,7 @@ func CreateDeployment(c *gin.Context) {
 		parsedRequest.namespace,
 		parsedRequest.deploymentReleaseName,
 		parsedRequest.dryRun,
+		parsedRequest.wait,
 		parsedRequest.values,
 		parsedRequest.odPcts,
 		parsedRequest.kubeConfig,
@@ -455,6 +456,7 @@ type parsedDeploymentRequest struct {
 	kubeConfig            []byte
 	organizationName      string
 	dryRun                bool
+	wait                  bool
 	odPcts                map[string]int
 }
 
@@ -484,6 +486,7 @@ func parseCreateUpdateDeploymentRequest(c *gin.Context, commonCluster cluster.Co
 	pdr.reuseValues = deployment.ReUseValues
 	pdr.namespace = deployment.Namespace
 	pdr.dryRun = deployment.DryRun
+	pdr.wait = deployment.Wait
 	pdr.odPcts = deployment.OdPcts
 
 	if deployment.Values != nil {

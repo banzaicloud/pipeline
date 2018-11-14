@@ -224,7 +224,7 @@ func InstallMonitoring(input interface{}) error {
 		return errors.Errorf("Json Convert Failed : %s", err.Error())
 	}
 
-	return installDeployment(cluster, grafanaNamespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-monitor", pipConfig.MonitorReleaseName, grafanaValuesJson, "InstallMonitoring", "")
+	return installDeployment(cluster, grafanaNamespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-monitor", pipConfig.MonitorReleaseName, grafanaValuesJson, "", false)
 }
 
 // InstallLogging to install logging deployment
@@ -304,7 +304,7 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 	if err != nil {
 		return err
 	}
-	err = installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/logging-operator", pipConfig.LoggingReleaseName, operatorYamlValues, "InstallLogging", "")
+	err = installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/logging-operator", pipConfig.LoggingReleaseName, operatorYamlValues, "", true)
 	if err != nil {
 		return err
 	}
@@ -332,7 +332,7 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 		if err != nil {
 			return err
 		}
-		return installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/s3-output", "pipeline-s3-output", marshaledValues, "ConfigureLoggingOutPut", "")
+		return installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/s3-output", "pipeline-s3-output", marshaledValues, "", false)
 	case pkgCluster.Google:
 		installedSecretValues, err := InstallSecrets(cluster, &pkgSecret.ListSecretsQuery{IDs: []string{loggingParam.SecretId}}, loggingParam.GenTLSForLogging.Namespace)
 		if err != nil {
@@ -348,7 +348,7 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 		if err != nil {
 			return err
 		}
-		return installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/gcs-output", "pipeline-gcs-output", marshaledValues, "ConfigureLoggingOutPut", "")
+		return installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/gcs-output", "pipeline-gcs-output", marshaledValues, "", false)
 	case pkgCluster.Azure:
 
 		sak, err := azure.GetStorageAccountKey(loggingParam.ResourceGroup, loggingParam.StorageAccount, logSecret, log)
@@ -400,7 +400,7 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 			return err
 		}
 
-		return installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/azure-output", "pipeline-azure-output", marshaledValues, "ConfigureLoggingOutPut", "")
+		return installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/azure-output", "pipeline-azure-output", marshaledValues, "", false)
 
 	default:
 		return fmt.Errorf("unexpected logging secret type: %s", logSecret.Type)
@@ -466,7 +466,7 @@ func getHeadNodeTolerations() []v1.Toleration {
 	}
 }
 
-func installDeployment(cluster CommonCluster, namespace string, deploymentName string, releaseName string, values []byte, actionName string, chartVersion string) error {
+func installDeployment(cluster CommonCluster, namespace string, deploymentName string, releaseName string, values []byte, chartVersion string, wait bool) error {
 	// --- [ Get K8S Config ] --- //
 	kubeConfig, err := cluster.GetK8sConfig()
 	if err != nil {
@@ -511,7 +511,7 @@ func installDeployment(cluster CommonCluster, namespace string, deploymentName s
 		}
 	}
 
-	_, err = helm.CreateDeployment(deploymentName, chartVersion, nil, namespace, releaseName, false, values, nil, kubeConfig, helm.GenerateHelmRepoEnv(org.Name), helm.DefaultInstallOptions...)
+	_, err = helm.CreateDeployment(deploymentName, chartVersion, nil, namespace, releaseName, false, wait, values, nil, kubeConfig, helm.GenerateHelmRepoEnv(org.Name), helm.DefaultInstallOptions...)
 	if err != nil {
 		log.Errorf("Deploying '%s' failed due to: %s", deploymentName, err.Error())
 		return err
@@ -578,7 +578,7 @@ func InstallIngressControllerPostHook(input interface{}) error {
 	}
 	namespace := viper.GetString(pipConfig.PipelineSystemNamespace)
 
-	return installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-ingress", "ingress", ingressValuesJson, "InstallIngressController", "")
+	return installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-ingress", "ingress", ingressValuesJson, "", false)
 }
 
 //InstallKubernetesDashboardPostHook post hooks can't return value, they can log error and/or update state?
@@ -696,7 +696,7 @@ func InstallKubernetesDashboardPostHook(input interface{}) error {
 
 	}
 
-	return installDeployment(cluster, k8sDashboardNameSpace, pkgHelm.BanzaiRepository+"/kubernetes-dashboard", k8sDashboardReleaseName, valuesJson, "InstallKubernetesDashboard", "")
+	return installDeployment(cluster, k8sDashboardNameSpace, pkgHelm.BanzaiRepository+"/kubernetes-dashboard", k8sDashboardReleaseName, valuesJson, "", false)
 
 }
 
@@ -800,7 +800,7 @@ func InstallHorizontalPodAutoscalerPostHook(input interface{}) error {
 		return err
 	}
 
-	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/hpa-operator", "hpa-operator", valuesOverride, "InstallHorizontalPodAutoscaler", "")
+	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/hpa-operator", "hpa-operator", valuesOverride, "", false)
 }
 
 //InstallPVCOperatorPostHook installs the PVC operator
@@ -821,7 +821,7 @@ func InstallPVCOperatorPostHook(input interface{}) error {
 		return err
 	}
 
-	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/pvc-operator", "pvc-operator", valuesOverride, "InstallPVCOperator", "")
+	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/pvc-operator", "pvc-operator", valuesOverride, "", false)
 }
 
 //InstallAnchoreImageValidator installs Anchore image validator
@@ -857,7 +857,7 @@ func InstallAnchoreImageValidator(input interface{}) error {
 	if err != nil {
 		return err
 	}
-	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/anchore-policy-validator", "anchore", marshalledValues, "InstallAnchoreImageValidator", "")
+	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/anchore-policy-validator", "anchore", marshalledValues, "", true)
 
 }
 
@@ -1039,7 +1039,7 @@ func RegisterDomainPostHook(input interface{}) error {
 	}
 	chartVersion := viper.GetString(pipConfig.DNSExternalDnsChartVersion)
 
-	return installDeployment(commonCluster, route53SecretNamespace, pkgHelm.StableRepository+"/external-dns", "dns", externalDnsValuesJson, "InstallExternalDNS", chartVersion)
+	return installDeployment(commonCluster, route53SecretNamespace, pkgHelm.StableRepository+"/external-dns", "dns", externalDnsValuesJson, chartVersion, false)
 }
 
 // LabelNodes adds labels for all nodes
@@ -1289,11 +1289,11 @@ func InitSpotConfig(input interface{}) error {
 		return emperror.Wrap(err, "failed to marshal yaml values")
 	}
 
-	err = installDeployment(cluster, pipelineSystemNamespace, pkgHelm.BanzaiRepository+"/spot-scheduler", "spot-scheduler", marshalledValues, "InstallSpotScheduler", "")
+	err = installDeployment(cluster, pipelineSystemNamespace, pkgHelm.BanzaiRepository+"/spot-scheduler", "spot-scheduler", marshalledValues, "", false)
 	if err != nil {
 		return emperror.Wrap(err, "failed to install the spot-scheduler deployment")
 	}
-	err = installDeployment(cluster, pipelineSystemNamespace, pkgHelm.BanzaiRepository+"/spot-config-webhook", "spot-webhook", marshalledValues, "InstallSpotWebhook", "")
+	err = installDeployment(cluster, pipelineSystemNamespace, pkgHelm.BanzaiRepository+"/spot-config-webhook", "spot-webhook", marshalledValues, "", true)
 	if err != nil {
 		return emperror.Wrap(err, "failed to install the spot-config-webhook deployment")
 	}
@@ -1333,7 +1333,7 @@ func deploySpotTerminationAlertExporter(cluster CommonCluster, namespace string)
 		return emperror.Wrap(err, "failed to marshal yaml values")
 	}
 
-	return installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/spot-termination-exporter", "spot-termination-exporter", marshalledValues, "InstallSpotTerminationExporter", "")
+	return installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/spot-termination-exporter", "spot-termination-exporter", marshalledValues, "", false)
 }
 
 func isSpotCluster(cluster CommonCluster) (bool, error) {
