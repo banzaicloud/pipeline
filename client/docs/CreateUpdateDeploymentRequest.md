@@ -9,6 +9,7 @@ Name | Type | Description | Notes
 **Namespace** | **string** |  | [optional] 
 **ReleaseName** | **string** |  | [optional] 
 **DryRun** | **bool** |  | [optional] 
+**Wait** | **bool** | if set, will wait until all Pods, PVCs, Services, and minimum number of Pods of a Deployment are in a ready state before marking the release as successful | [optional] 
 **OdPcts** | [**map[string]interface{}**](map[string]interface{}.md) | Map of resources in the template where replicas should have a minimum on-demand percentage. Format: &lt;kind.resourceName: min-percentage&gt; | [optional] 
 **ReuseValues** | **bool** |  | [optional] 
 **Values** | [**map[string]interface{}**](map[string]interface{}.md) | current values of the deployment | [optional] 

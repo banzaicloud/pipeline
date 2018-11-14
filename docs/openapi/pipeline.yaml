@@ -5463,6 +5463,10 @@ components:
                 dryRun:
                     type: boolean
                     example: false
+                wait:
+                    type: boolean
+                    description: "if set, will wait until all Pods, PVCs, Services, and minimum number of Pods of a Deployment are in a ready state before marking the release as successful"
+                    example: false
                 odPcts:
                     type: object
                     description: "Map of resources in the template where replicas should have a minimum on-demand percentage. Format: <kind.resourceName: min-percentage>"

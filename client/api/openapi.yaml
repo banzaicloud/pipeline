@@ -6010,6 +6010,7 @@ components:
       type: array
     CreateUpdateDeploymentRequest:
       example:
+        wait: true
         package: package
         dryRun: true
         releaseName: singed-bee
@@ -6041,6 +6042,9 @@ components:
           example: singed-bee
           type: string
         dryRun:
+          type: boolean
+        wait:
+          description: if set, will wait until all Pods, PVCs, Services, and minimum number of Pods of a Deployment are in a ready state before marking the release as successful
           type: boolean
         odPcts:
           description: 'Map of resources in the template where replicas should have

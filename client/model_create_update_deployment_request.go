@@ -20,6 +20,8 @@ type CreateUpdateDeploymentRequest struct {
 	Namespace   string `json:"namespace,omitempty"`
 	ReleaseName string `json:"releaseName,omitempty"`
 	DryRun      bool   `json:"dryRun,omitempty"`
+	// if set, will wait until all Pods, PVCs, Services, and minimum number of Pods of a Deployment are in a ready state before marking the release as successful
+	Wait bool `json:"wait,omitempty"`
 	// Map of resources in the template where replicas should have a minimum on-demand percentage. Format: <kind.resourceName: min-percentage>
 	OdPcts      map[string]interface{} `json:"odPcts,omitempty"`
 	ReuseValues bool                   `json:"reuseValues,omitempty"`
