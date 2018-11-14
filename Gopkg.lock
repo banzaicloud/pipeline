@@ -458,11 +458,11 @@
 
 [[projects]]
   branch = "banzaidrone"
-  digest = "1:51da19b8983e62196d61850e35c5ff42a2f482b7fb8f998936e39c630ee47b9b"
+  digest = "1:dcccc00826cb77e0e53a9e8ca3093e5c69e5e81959b488e9821def8f19fd893c"
   name = "github.com/drone/drone-go"
   packages = ["drone"]
   pruneopts = "NUT"
-  revision = "2f6075cf9eea8ccd2314a9d5fb28583cfd3c6f2c"
+  revision = "8d59833cbc929793d621180fb639b4391b62fe2b"
   source = "github.com/banzaicloud/drone-go"
 
 [[projects]]
