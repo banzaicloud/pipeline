@@ -137,7 +137,8 @@ func (s *objectStore) GetRegion(bucketName string) (string, error) {
 	region, err := s3manager.GetBucketRegionWithClient(context.Background(), s.client, bucketName)
 	if err != nil {
 		err = s.convertError(err)
-		return "", emperror.With(emperror.Wrap(err, "checking bucket region failed"), "bucket", bucketName)
+		// the error is already converted here / the context is implicitly added
+		return "", err
 	}
 	return region, nil
 }

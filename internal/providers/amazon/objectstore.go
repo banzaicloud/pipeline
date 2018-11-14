@@ -293,7 +293,11 @@ func (s *objectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 			bucketInfo.Location = region
 			bucketList = append(bucketList, bucketInfo)
 		} else {
-			logger.WithField("bucket", bucket).WithError(err).Warn("skipping bucket from the list")
+			if _, ok := err.(bucketNotFoundError); ok {
+				logger.WithField("bucket", bucket).WithError(err).Warn("skipping bucket from the list")
+			} else {
+				return nil, emperror.WrapWith(err, "failed to retrieve region for bucket", "bucket", bucket)
+			}
 		}
 	}
 
