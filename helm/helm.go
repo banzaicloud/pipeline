@@ -394,6 +394,7 @@ func CreateDeployment(chartName, chartVersion string, chartPackage []byte, names
 		helm.ValueOverrides(valueOverrides),
 		helm.ReleaseName(releaseName),
 		helm.InstallDryRun(dryRun),
+		helm.InstallWait(wait),
 	}
 	installOptions = append(installOptions, options...)
 
