@@ -371,6 +371,12 @@ func main() {
 
 	router.GET(basePath+"/api", api.MetaHandler(router, basePath+"/api"))
 
+	issueHandler, err := api.NewIssueHandler(Version, CommitHash, BuildDate)
+	if err != nil {
+		panic(err)
+	}
+	router.POST(basePath+"/issues", auth.Handler, issueHandler)
+
 	notify.SlackNotify("API is already running")
 	var listenPort string
 	port := viper.GetInt("pipeline.listenport")

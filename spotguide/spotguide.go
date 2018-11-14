@@ -20,7 +20,6 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -38,7 +37,6 @@ import (
 	"github.com/imdario/mergo"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
-	"golang.org/x/oauth2"
 	"gopkg.in/yaml.v2"
 )
 
@@ -127,35 +125,6 @@ func (r LaunchRequest) RepoFullname() string {
 	return r.RepoOrganization + "/" + r.RepoName
 }
 
-func getUserGithubToken(userID uint) (string, error) {
-	token, err := auth.TokenStore.Lookup(fmt.Sprint(userID), auth.GithubTokenID)
-	if err != nil {
-		return "", err
-	}
-	if token == nil {
-		return "", fmt.Errorf("Github token not found for user")
-	}
-	return token.Value, nil
-}
-
-func newGithubClientForUser(userID uint) (*github.Client, error) {
-	accessToken, err := getUserGithubToken(userID)
-	if err != nil {
-		return nil, err
-	}
-
-	return newGithubClient(accessToken), nil
-}
-
-func newGithubClient(accessToken string) *github.Client {
-	httpClient := oauth2.NewClient(
-		ctx,
-		oauth2.StaticTokenSource(&oauth2.Token{AccessToken: accessToken}),
-	)
-
-	return github.NewClient(httpClient)
-}
-
 func downloadGithubFile(githubClient *github.Client, owner, repo, file, tag string) ([]byte, error) {
 	reader, err := githubClient.Repositories.DownloadContents(ctx, owner, repo, file, &github.RepositoryContentGetOptions{
 		Ref: tag,
@@ -197,7 +166,7 @@ func ScrapeSpotguides(orgID uint) error {
 
 	db := config.DB()
 
-	githubClient := newGithubClient(viper.GetString("github.token"))
+	githubClient := auth.NewGithubClient(viper.GetString("github.token"))
 
 	var allRepositories []*github.Repository
 	listOpts := github.ListOptions{PerPage: 100}
@@ -345,7 +314,7 @@ func LaunchSpotguide(request *LaunchRequest, httpRequest *http.Request, orgID, u
 		return errors.Wrap(err, "failed to create secrets for spotguide")
 	}
 
-	githubClient, err := newGithubClientForUser(userID)
+	githubClient, err := auth.NewGithubClientForUser(userID)
 	if err != nil {
 		return errors.Wrap(err, "failed to create GitHub client")
 	}

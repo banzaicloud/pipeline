@@ -18,6 +18,8 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/goph/emperror"
+
 	"github.com/google/go-github/github"
 	"github.com/qor/auth"
 	"github.com/qor/auth/auth_identity"
@@ -187,8 +189,37 @@ func NewGithubAuthorizeHandler(provider *githubauth.GithubProvider) func(context
 }
 
 // GetGithubUser returns github user by token
-func GetGithubUser(accessToken string) (*github.User, error) {
-	client := github.NewClient(oauth2.NewClient(oauth2.NoContext, oauth2.StaticTokenSource(&oauth2.Token{AccessToken: accessToken})))
+func getGithubUser(accessToken string) (*github.User, error) {
+	client := NewGithubClient(accessToken)
 	user, _, err := client.Users.Get(oauth2.NoContext, "")
 	return user, err
+}
+
+func NewGithubClient(accessToken string) *github.Client {
+	httpClient := oauth2.NewClient(
+		oauth2.NoContext,
+		oauth2.StaticTokenSource(&oauth2.Token{AccessToken: accessToken}),
+	)
+
+	return github.NewClient(httpClient)
+}
+
+func GetUserGithubToken(userID uint) (string, error) {
+	token, err := TokenStore.Lookup(fmt.Sprint(userID), GithubTokenID)
+	if err != nil {
+		return "", emperror.Wrap(err, "failed to lookup user token")
+	}
+	if token == nil {
+		return "", fmt.Errorf("Github token not found for user")
+	}
+	return token.Value, nil
+}
+
+func NewGithubClientForUser(userID uint) (*github.Client, error) {
+	accessToken, err := GetUserGithubToken(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewGithubClient(accessToken), nil
 }

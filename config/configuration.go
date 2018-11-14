@@ -215,6 +215,11 @@ func init() {
 
 	viper.SetDefault(SpotguideAllowPrereleases, false)
 
+	viper.SetDefault("issue.type", "github")
+	viper.SetDefault("issue.githubLabels", []string{"community"})
+	viper.SetDefault("issue.githubOwner", "banzaicloud")
+	viper.SetDefault("issue.githubRepository", "pipeline")
+
 	// Find and read the config file
 	if err := viper.ReadInConfig(); err != nil {
 		log.Fatalf("Error reading config file, %s", err)
