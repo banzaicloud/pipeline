@@ -15,20 +15,47 @@
 package autoscaling
 
 import (
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
+	"github.com/aws/aws-sdk-go/service/ec2"
 )
 
 // Instance extends autoscaling.Instance
 type Instance struct {
 	*autoscaling.Instance
+	manager *Manager
 }
 
 // NewInstance initialises and gives back a new Instance
-func NewInstance(instance *autoscaling.Instance) *Instance {
-	return &Instance{Instance: instance}
+func NewInstance(manager *Manager, instance *autoscaling.Instance) *Instance {
+	return &Instance{
+		Instance: instance,
+		manager:  manager,
+	}
 }
 
 // IsHealthyAndInService is true if the instance is healthy and in InService state
 func (i *Instance) IsHealthyAndInService() bool {
 	return *i.HealthStatus == "Healthy" && *i.LifecycleState == "InService"
+}
+
+// Describe returns detailed information about the instance
+func (i *Instance) Describe() (*ec2.Instance, error) {
+	result, err := i.manager.ec2Svc.DescribeInstances(&ec2.DescribeInstancesInput{
+		InstanceIds: []*string{
+			i.InstanceId,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(result.Reservations) == 1 {
+		reservation := result.Reservations[0]
+		if len(reservation.Instances) == 1 {
+			return reservation.Instances[0], nil
+		}
+	}
+
+	return nil, awserr.New("404", "instance not found", nil)
 }

@@ -646,7 +646,9 @@ func (a *CreateUpdateNodePoolStackAction) GetName() string {
 
 // WaitForASGToBeFulfilled waits until an ASG has the desired amount of healthy nodes
 func (a *CreateUpdateNodePoolStackAction) WaitForASGToBeFulfilled(nodePool *model.AmazonNodePoolsModel) error {
-	m := autoscaling.NewManager(a.context.Session)
+	m := autoscaling.NewManager(a.context.Session, autoscaling.MetricsEnabled(true), autoscaling.Logger{
+		FieldLogger: a.log,
+	})
 	asgName := a.generateStackName(nodePool)
 	log := a.log.WithField("asg-name", asgName)
 	log.WithFields(logrus.Fields{
