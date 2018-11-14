@@ -116,6 +116,6 @@ jobs:
                       - bin/
 
             - store_test_results:
-                  path: build/
+                  path: build/test-results/
             - store_artifacts:
                   path: build/
