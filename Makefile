@@ -11,7 +11,7 @@ OPENAPI_DESCRIPTOR = docs/openapi/pipeline.yaml
 # Build variables
 BUILD_DIR ?= build
 BUILD_PACKAGE = ${PACKAGE}/cmd/pipeline
-VERSION ?= $(shell git rev-parse --abbrev-ref HEAD)
+VERSION ?= $(shell git symbolic-ref -q --short HEAD || git describe --tags --exact-match)
 COMMIT_HASH ?= $(shell git rev-parse --short HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
 LDFLAGS += -X main.Version=${VERSION} -X main.CommitHash=${COMMIT_HASH} -X main.BuildDate=${BUILD_DATE}
