@@ -565,7 +565,8 @@ func enableCICD(request *LaunchRequest, httpRequest *http.Request) error {
 	}
 
 	isSpotguide := true
-	repoPatch := drone.RepoPatch{IsSpotguide: &isSpotguide}
+	spotguideSource := request.RepoFullname()
+	repoPatch := drone.RepoPatch{IsSpotguide: &isSpotguide, SpotguideSource: &spotguideSource}
 	_, err = droneClient.RepoPatch(request.RepoOrganization, request.RepoName, &repoPatch)
 	if err != nil {
 		return errors.Wrap(err, "failed to patch Drone repository")
