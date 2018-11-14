@@ -299,6 +299,7 @@ func (s *DeploymentsService) installDeployment(
 		namespace,
 		releaseName,
 		false,
+		true,
 		values,
 		nil,
 		kubeConfig,
