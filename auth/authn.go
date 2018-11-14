@@ -49,9 +49,6 @@ const PipelineSessionCookie = "_banzai_session"
 // DroneSessionCookie holds the name of the Cookie Drone sets in the browser
 const DroneSessionCookie = "user_sess"
 
-// DroneSessionCookieType is the Drone token type used for browser sessions
-const DroneSessionCookieType = "sess"
-
 // DroneUserTokenType is the Drone token type used for API sessions
 const DroneUserTokenType bauth.TokenType = "user"
 
