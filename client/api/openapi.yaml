@@ -3557,45 +3557,6 @@ paths:
       summary: List organizations
       tags:
       - organizations
-    post:
-      description: Creating organization
-      operationId: CreateOrg
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/body'
-        required: true
-      responses:
-        200:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OrganizationCreateResponse'
-          description: Organizations created successfully
-        400:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseError_400'
-          description: Error during creating organization
-        401:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Unauthorized'
-          description: Unauthorized
-        500:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseError_500'
-          description: Internal server error
-      security:
-      - bearerAuth: []
-      summary: Create organization
-      tags:
-      - organizations
     put:
       operationId: SyncOrgs
       responses:
@@ -6923,48 +6884,6 @@ components:
           example: myOrgName
           type: string
       type: object
-    OrganizationCreateResponse:
-      example:
-        createdAt: 2018-03-09T13:24:49+01:00
-        name: myOrgName
-        id: 1
-        users:
-        - createdAt: 2018-03-09T13:24:49+01:00
-          image: githubImageUrl.com/imageId/3
-          name: myName
-          organizations: '{}'
-          id: 1
-          login: username
-          email: my@email.com
-          updatedAt: 2018-03-09T13:24:49+01:00
-        - createdAt: 2018-03-09T13:24:49+01:00
-          image: githubImageUrl.com/imageId/3
-          name: myName
-          organizations: '{}'
-          id: 1
-          login: username
-          email: my@email.com
-          updatedAt: 2018-03-09T13:24:49+01:00
-        updatedAt: 2018-03-09T13:24:49+01:00
-      properties:
-        id:
-          example: 1
-          format: int32
-          type: integer
-        createdAt:
-          example: 2018-03-09T13:24:49+01:00
-          type: string
-        updatedAt:
-          example: 2018-03-09T13:24:49+01:00
-          type: string
-        name:
-          example: myOrgName
-          type: string
-        users:
-          items:
-            $ref: '#/components/schemas/User'
-          type: array
-      type: object
     User:
       example:
         createdAt: 2018-03-09T13:24:49+01:00
@@ -8767,12 +8686,6 @@ components:
         projectNumber:
           type: string
         lifecycleState:
-          type: string
-      type: object
-    body:
-      properties:
-        name:
-          example: myOrgName
           type: string
       type: object
     CreateEKSProperties_eks:

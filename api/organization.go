@@ -23,7 +23,6 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/gin-gonic/gin"
@@ -65,21 +64,14 @@ func OrganizationMiddleware(c *gin.Context) {
 	}
 }
 
-type organizationAccessManager interface {
-	AddOrganizationPolicies(orgID uint)
-	GrantOganizationAccessToUser(userID string, orgID uint)
-}
-
 // OrganizationAPI implements organization functions.
 type OrganizationAPI struct {
-	accessManager  organizationAccessManager
 	githubImporter *auth.GithubImporter
 }
 
 // NewOrganizationAPI returns a new OrganizationAPI instance.
-func NewOrganizationAPI(accessManager organizationAccessManager, githubImporter *auth.GithubImporter) *OrganizationAPI {
+func NewOrganizationAPI(githubImporter *auth.GithubImporter) *OrganizationAPI {
 	return &OrganizationAPI{
-		accessManager:  accessManager,
 		githubImporter: githubImporter,
 	}
 }
@@ -146,46 +138,6 @@ func (a *OrganizationAPI) GetOrganizations(c *gin.Context) {
 			Error:   message,
 		})
 	}
-}
-
-// CreateOrganization creates an organization for the calling user.
-func (a *OrganizationAPI) CreateOrganization(c *gin.Context) {
-	log.Info("Creating organization")
-
-	var name struct {
-		Name string `json:"name,omitempty"`
-	}
-	if err := c.ShouldBindJSON(&name); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: err.Error(),
-			Error:   err.Error(),
-		})
-		return
-	}
-
-	user := auth.GetCurrentUser(c.Request)
-	organization := &auth.Organization{Name: name.Name}
-
-	db := config.DB()
-	err := db.Model(user).Association("Organizations").Append(organization).Error
-	if err != nil {
-		message := "error creating organization: " + err.Error()
-		log.Info(message)
-		c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: message,
-			Error:   message,
-		})
-		return
-	}
-
-	a.accessManager.AddOrganizationPolicies(organization.ID)
-	a.accessManager.GrantOganizationAccessToUser(user.IDString(), organization.ID)
-
-	helm.InstallLocalHelm(helm.GenerateHelmRepoEnv(organization.Name))
-
-	c.JSON(http.StatusOK, organization)
 }
 
 // SyncOrganizations synchronizes github organizations.
