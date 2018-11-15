@@ -103,6 +103,10 @@ debug: GO_ARCH = amd64
 debug-docker: debug ## Builds binary package
 	docker build -t banzaicloud/pipeline:debug -f Dockerfile.dev .
 
+.PHONY: local-docker
+local-docker: debug ## Builds binary package
+	docker build -t banzaicloud/pipeline:local -f Dockerfile.local .
+
 .PHONY: check
 check: test lint ## Run tests and linters
 
