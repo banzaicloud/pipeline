@@ -28,7 +28,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-//OrganizationMiddleware parses the organization id from the request, queries it from the database and saves it to the current context
+// OrganizationMiddleware parses the organization id from the request,
+// queries it from the database and saves it to the current context.
 func OrganizationMiddleware(c *gin.Context) {
 	orgidParam := c.Param("orgid")
 	orgid, err := strconv.ParseUint(orgidParam, 10, 32)
@@ -63,8 +64,25 @@ func OrganizationMiddleware(c *gin.Context) {
 	}
 }
 
-//GetOrganizations returns all organizations the user belongs to or a specific one from those by id
-func GetOrganizations(c *gin.Context) {
+type organizationAccessManager interface {
+	AddOrganizationPolicies(orgID uint)
+	GrantOganizationAccessToUser(userID string, orgID uint)
+}
+
+// OrganizationAPI implements organization functions.
+type OrganizationAPI struct {
+	accessManager organizationAccessManager
+}
+
+// NewOrganizationAPI returns a new OrganizationAPI instance.
+func NewOrganizationAPI(accessManager organizationAccessManager) *OrganizationAPI {
+	return &OrganizationAPI{
+		accessManager: accessManager,
+	}
+}
+
+// GetOrganizations returns all organizations the user belongs to or a specific one from those by id.
+func (a *OrganizationAPI) GetOrganizations(c *gin.Context) {
 	log.Info("Fetching organizations")
 
 	user := auth.GetCurrentUser(c.Request)
@@ -127,8 +145,8 @@ func GetOrganizations(c *gin.Context) {
 	}
 }
 
-//CreateOrganization creates an organization for the calling user
-func CreateOrganization(c *gin.Context) {
+// CreateOrganization creates an organization for the calling user.
+func (a *OrganizationAPI) CreateOrganization(c *gin.Context) {
 	log.Info("Creating organization")
 
 	var name struct {
@@ -159,16 +177,16 @@ func CreateOrganization(c *gin.Context) {
 		return
 	}
 
-	auth.AddOrgRoles(organization.ID)
-	auth.AddOrgRoleForUser(user.ID, organization.ID)
+	a.accessManager.AddOrganizationPolicies(organization.ID)
+	a.accessManager.GrantOganizationAccessToUser(user.IDString(), organization.ID)
 
 	helm.InstallLocalHelm(helm.GenerateHelmRepoEnv(organization.Name))
 
 	c.JSON(http.StatusOK, organization)
 }
 
-//DeleteOrganization deletes an organization by id
-func DeleteOrganization(c *gin.Context) {
+// DeleteOrganization deletes an organization by id.
+func (a *OrganizationAPI) DeleteOrganization(c *gin.Context) {
 	log.Info("Deleting organization")
 
 	idParam := c.Param("orgid")
