@@ -211,18 +211,18 @@ func deleteServices(kubeConfig []byte, ns string, logger *logrus.Entry) error {
 		if err != nil {
 			return emperror.Wrap(err, "could not list remaining services")
 		}
-		left := 0
+		left := []string{}
 		for _, svc := range services.Items {
 			switch svc.Name {
 			case "kubernetes":
 				continue
 			default:
 				logger.Infof("service %q still %s", svc.Name, svc.Status)
-				left++
+				left = append(left, svc.Name)
 			}
 		}
-		if left > 0 {
-			return fmt.Errorf("%d services remained after deletion", left)
+		if len(left) > 0 {
+			return emperror.With(errors.Errorf("services remained after deletion: %v", left), "services", left)
 		}
 		return nil
 	}, 6, 30)
