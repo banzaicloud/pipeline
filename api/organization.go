@@ -204,6 +204,8 @@ func (a *OrganizationAPI) SyncOrganizations(c *gin.Context) {
 			Message: "failed to retrieve github token",
 			Error:   err.Error(),
 		})
+
+		return
 	}
 
 	err = a.githubImporter.ImportOrganizations(user, token)
@@ -215,6 +217,8 @@ func (a *OrganizationAPI) SyncOrganizations(c *gin.Context) {
 			Message: "syncronization failed",
 			Error:   err.Error(),
 		})
+
+		return
 	}
 
 	c.Status(http.StatusOK)
