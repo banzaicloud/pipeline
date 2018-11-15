@@ -51,6 +51,11 @@ import (
 	pkgHelmRelease "k8s.io/helm/pkg/proto/hapi/release"
 )
 
+type domains struct {
+	Enabled     bool                     `json:"enabled"`
+	DomainsList []map[string]interface{} `json:"domainsList"`
+}
+
 //RunPostHooks calls posthook functions with created cluster
 func RunPostHooks(postHooks []PostFunctioner, cluster CommonCluster) (err error) {
 
@@ -541,6 +546,19 @@ func InstallIngressControllerPostHook(input interface{}) error {
 
 	domainWithOrgName := fmt.Sprintf("%s.%s", organization.Name, viper.GetString(pipConfig.DNSBaseDomain))
 
+	ds := domains{
+		Enabled: true,
+		DomainsList: []map[string]interface{}{
+			{
+				"main": fmt.Sprintf("*.%s", domainWithOrgName)},
+			{
+				"sans": []string{
+					fmt.Sprintf("%s.%s", cluster.GetName(), domainWithOrgName),
+					domainWithOrgName},
+			},
+		},
+	}
+
 	acme := map[string]interface{}{
 		"enabled":           true,
 		"staging":           false,
@@ -549,18 +567,7 @@ func InstallIngressControllerPostHook(input interface{}) error {
 		"delayDontCheckDNS": 60,
 		"email":             user.Email,
 		"persistence":       map[string]interface{}{"enabled": true},
-		"domains": map[string]interface{}{
-			"enabled": true,
-			"domainsList": []map[string]interface{}{
-				{
-					"main": fmt.Sprintf("*.%s", domainWithOrgName)},
-				{
-					"sans": []string{
-						fmt.Sprintf("%s.%s", cluster.GetName(), domainWithOrgName),
-						domainWithOrgName},
-				},
-			},
-		},
+		"domains":           ds,
 	}
 
 	dnsSvc, err := dns.GetExternalDnsServiceClient()
