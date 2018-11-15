@@ -663,7 +663,7 @@ func (a *CreateUpdateNodePoolStackAction) WaitForASGToBeFulfilled(nodePool *mode
 					continue
 				}
 			}
-			return err
+			return emperror.WrapWith(err, "could not get ASG", "asg-name", asgName)
 		}
 
 		ok, err := asGroup.IsHealthy()
