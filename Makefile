@@ -11,7 +11,7 @@ OPENAPI_DESCRIPTOR = docs/openapi/pipeline.yaml
 # Build variables
 BUILD_DIR ?= build
 BUILD_PACKAGE = ${PACKAGE}/cmd/pipeline
-VERSION ?= $(shell git rev-parse --abbrev-ref HEAD)
+VERSION ?= $(shell git symbolic-ref -q --short HEAD || git describe --tags --exact-match)
 COMMIT_HASH ?= $(shell git rev-parse --short HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
 LDFLAGS += -X main.Version=${VERSION} -X main.CommitHash=${COMMIT_HASH} -X main.BuildDate=${BUILD_DATE}
@@ -93,11 +93,11 @@ docker-build: ## Builds go binary in docker image
 	docker run -it -v $(PWD):/go/src/${PACKAGE} -w /go/src/${PACKAGE} golang:${GOLANG_VERSION}-alpine go build -o pipeline_linux ${BUILD_PACKAGE}
 
 .PHONY: debug
+debug: export GOOS = linux
 debug: GOARGS += -gcflags "-N -l"
 debug: BINARY_NAME = pipeline-debug
 debug: build ## Builds binary package
-debug: export GOOS = linux
-debug: export GOARCH = amd64
+
 
 .PHONY: debug-docker
 debug-docker: debug ## Builds binary package
