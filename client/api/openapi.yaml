@@ -3596,6 +3596,28 @@ paths:
       summary: Create organization
       tags:
       - organizations
+    put:
+      operationId: SyncOrgs
+      responses:
+        200:
+          description: Organizations synchronized successfully
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Synchronize Github organizations
+      tags:
+      - organizations
   /api:
     get:
       description: Listing Pipeline API endpoint

@@ -7,6 +7,7 @@ Method | HTTP request | Description
 [**CreateOrg**](OrganizationsApi.md#CreateOrg) | **Post** /api/v1/orgs | Create organization
 [**GetOrg**](OrganizationsApi.md#GetOrg) | **Get** /api/v1/orgs/{orgId} | Get organization
 [**ListOrgs**](OrganizationsApi.md#ListOrgs) | **Get** /api/v1/orgs | List organizations
+[**SyncOrgs**](OrganizationsApi.md#SyncOrgs) | **Put** /api/v1/orgs | Synchronize Github organizations
 
 
 # **CreateOrg**
@@ -77,6 +78,28 @@ This endpoint does not need any parameter.
 ### Return type
 
 [**[]OrganizationListItemResponse**](OrganizationListItemResponse.md)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **SyncOrgs**
+> SyncOrgs(ctx, )
+Synchronize Github organizations
+
+### Required Parameters
+This endpoint does not need any parameter.
+
+### Return type
+
+ (empty response body)
 
 ### Authorization
 

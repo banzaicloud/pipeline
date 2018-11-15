@@ -110,7 +110,10 @@ func TestAccessManager_OrganizationPolicies(t *testing.T) {
 	enforcer.ClearPolicy()
 
 	accessManager.AddOrganizationPolicies(1)
+	accessManager.GrantOganizationAccessToUser("user", 1)
 
+	// Granting the same access twice should be idempotent
+	accessManager.AddOrganizationPolicies(1)
 	accessManager.GrantOganizationAccessToUser("user", 1)
 
 	tests := []struct {
