@@ -54,7 +54,7 @@ Banzai Cloud supports Kubernetes and the container based application platform - 
 
 The list of currently supported providers are:
 
-  * Alibaba ACSK
+  * Alibaba ACK
   * Amazon EKS
   * Google GKE
   * Microsoft AKS
