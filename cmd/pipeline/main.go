@@ -109,8 +109,10 @@ func main() {
 
 	accessManager.AddDefaultPolicies()
 
+	githubImporter := auth.NewGithubImporter(db, accessManager, config.EventBus)
+
 	// Initialize auth
-	auth.Init(droneDb, accessManager)
+	auth.Init(droneDb, accessManager, githubImporter)
 
 	if viper.GetBool(config.DBAutoMigrateEnabled) {
 		log.Info("running automatic schema migrations")
@@ -232,7 +234,7 @@ func main() {
 	dgroup.GET("/:orgid/clusters", dashboard.GetDashboard)
 
 	domainAPI := api.NewDomainAPI(clusterManager, log, errorHandler)
-	organizationAPI := api.NewOrganizationAPI(accessManager)
+	organizationAPI := api.NewOrganizationAPI(accessManager, githubImporter)
 	userAPI := api.NewUserAPI(accessManager)
 
 	v1 := router.Group(path.Join(basePath, "api", "v1/"))
@@ -350,6 +352,7 @@ func main() {
 		}
 		v1.GET("/orgs", organizationAPI.GetOrganizations)
 		v1.POST("/orgs", organizationAPI.CreateOrganization)
+		v1.PUT("/orgs", organizationAPI.SyncOrganizations)
 		v1.GET("/token", generateTokenHandler) // TODO Deprecated, should be removed once the UI has support.
 		v1.POST("/tokens", generateTokenHandler)
 		v1.GET("/tokens", auth.GetTokens)

@@ -134,7 +134,7 @@ type accessManager interface {
 }
 
 // Init initializes the auth
-func Init(db *gorm.DB, accessManager accessManager) {
+func Init(db *gorm.DB, accessManager accessManager, githubImporter *GithubImporter) {
 	JwtIssuer = viper.GetString("auth.jwtissuer")
 	JwtAudience = viper.GetString("auth.jwtaudience")
 	CookieDomain = viper.GetString("auth.cookieDomain")
@@ -197,6 +197,7 @@ func Init(db *gorm.DB, accessManager accessManager) {
 			droneDB:          DroneDB,
 			events:           ebAuthEvents{eb: config.EventBus},
 			accessManager:    accessManager,
+			githubImporter:   githubImporter,
 		},
 		LogoutHandler:     BanzaiLogoutHandler,
 		DeregisterHandler: NewBanzaiDeregisterHandler(accessManager),

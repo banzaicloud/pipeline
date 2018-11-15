@@ -24,6 +24,7 @@ import (
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
+	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/gin-gonic/gin"
 )
@@ -71,13 +72,15 @@ type organizationAccessManager interface {
 
 // OrganizationAPI implements organization functions.
 type OrganizationAPI struct {
-	accessManager organizationAccessManager
+	accessManager  organizationAccessManager
+	githubImporter *auth.GithubImporter
 }
 
 // NewOrganizationAPI returns a new OrganizationAPI instance.
-func NewOrganizationAPI(accessManager organizationAccessManager) *OrganizationAPI {
+func NewOrganizationAPI(accessManager organizationAccessManager, githubImporter *auth.GithubImporter) *OrganizationAPI {
 	return &OrganizationAPI{
-		accessManager: accessManager,
+		accessManager:  accessManager,
+		githubImporter: githubImporter,
 	}
 }
 
@@ -183,6 +186,38 @@ func (a *OrganizationAPI) CreateOrganization(c *gin.Context) {
 	helm.InstallLocalHelm(helm.GenerateHelmRepoEnv(organization.Name))
 
 	c.JSON(http.StatusOK, organization)
+}
+
+// SyncOrganizations synchronizes github organizations.
+func (a *OrganizationAPI) SyncOrganizations(c *gin.Context) {
+	logger := correlationid.Logger(log, c)
+
+	logger.Info("synchronizing organizations")
+
+	user := auth.GetCurrentUser(c.Request)
+	token, err := auth.GetUserGithubToken(user.ID)
+	if err != nil {
+		errorHandler.Handle(err)
+
+		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: "failed to retrieve github token",
+			Error:   err.Error(),
+		})
+	}
+
+	err = a.githubImporter.ImportOrganizations(user, token)
+	if err != nil {
+		errorHandler.Handle(err)
+
+		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: "syncronization failed",
+			Error:   err.Error(),
+		})
+	}
+
+	c.Status(http.StatusOK)
 }
 
 // DeleteOrganization deletes an organization by id.

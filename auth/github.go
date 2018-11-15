@@ -211,9 +211,11 @@ func GetUserGithubToken(userID uint) (string, error) {
 	if err != nil {
 		return "", emperror.Wrap(err, "failed to lookup user token")
 	}
+
 	if token == nil {
-		return "", fmt.Errorf("Github token not found for user")
+		return "", errors.New("github token not found for user")
 	}
+
 	return token.Value, nil
 }
 
