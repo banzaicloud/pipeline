@@ -50,9 +50,7 @@ func (r *SpotInstanceRequest) IsPending() bool {
 	}
 
 	switch r.GetStatusCode() {
-	case "pending-evaluation":
-	case "not-scheduled-yet":
-	case "pending-fulfillment":
+	case "pending-evaluation", "not-scheduled-yet", "pending-fulfillment":
 		return true
 	}
 

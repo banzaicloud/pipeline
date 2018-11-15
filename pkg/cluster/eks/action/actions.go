@@ -29,17 +29,20 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/goph/emperror"
+	"github.com/pkg/errors"
+	"github.com/satori/go.uuid"
+	"github.com/sirupsen/logrus"
+
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/pkg/amazon"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgEks "github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	"github.com/banzaicloud/pipeline/pkg/common"
+	"github.com/banzaicloud/pipeline/pkg/providers/amazon/autoscaling"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
-	"github.com/pkg/errors"
-	"github.com/satori/go.uuid"
-	"github.com/sirupsen/logrus"
 )
 
 const awsNoUpdatesError = "No updates are to be performed."
@@ -606,10 +609,12 @@ var _ utils.RevocableAction = (*CreateUpdateNodePoolStackAction)(nil)
 
 // CreateUpdateNodePoolStackAction describes the properties of a nodePool VPC creation
 type CreateUpdateNodePoolStackAction struct {
-	context   *EksClusterCreateUpdateContext
-	isCreate  bool
-	nodePools []*model.AmazonNodePoolsModel
-	log       logrus.FieldLogger
+	context      *EksClusterCreateUpdateContext
+	isCreate     bool
+	nodePools    []*model.AmazonNodePoolsModel
+	log          logrus.FieldLogger
+	waitAttempts int
+	waitInterval time.Duration
 }
 
 // NewCreateUpdateNodePoolStackAction creates a new CreateUpdateNodePoolStackAction
@@ -617,12 +622,16 @@ func NewCreateUpdateNodePoolStackAction(
 	log logrus.FieldLogger,
 	isCreate bool,
 	creationContext *EksClusterCreateUpdateContext,
+	waitAttempts int,
+	waitInterval time.Duration,
 	nodePools ...*model.AmazonNodePoolsModel) *CreateUpdateNodePoolStackAction {
 	return &CreateUpdateNodePoolStackAction{
-		context:   creationContext,
-		isCreate:  isCreate,
-		nodePools: nodePools,
-		log:       log,
+		context:      creationContext,
+		isCreate:     isCreate,
+		nodePools:    nodePools,
+		log:          log,
+		waitAttempts: waitAttempts,
+		waitInterval: waitInterval,
 	}
 }
 
@@ -635,11 +644,54 @@ func (a *CreateUpdateNodePoolStackAction) GetName() string {
 	return "CreateUpdateNodePoolStackAction"
 }
 
+// WaitForASGToBeFulfilled waits until an ASG has the desired amount of healthy nodes
+func (a *CreateUpdateNodePoolStackAction) WaitForASGToBeFulfilled(nodePool *model.AmazonNodePoolsModel) error {
+	m := autoscaling.NewManager(a.context.Session)
+	asgName := a.generateStackName(nodePool)
+	log := a.log.WithField("asg-name", asgName)
+	log.WithFields(logrus.Fields{
+		"attempts": a.waitAttempts,
+		"interval": a.waitInterval,
+	}).Info("EXECUTE WaitForASGToBeFulfilled")
+
+	for i := 0; i <= a.waitAttempts; i++ {
+		asGroup, err := m.GetAutoscalingGroupByStackName(asgName)
+		if err != nil {
+			if aerr, ok := err.(awserr.Error); ok {
+				if aerr.Code() == "ValidationError" {
+					time.Sleep(a.waitInterval)
+					continue
+				}
+			}
+			return emperror.WrapWith(err, "could not get ASG", "asg-name", asgName)
+		}
+
+		ok, err := asGroup.IsHealthy()
+		if err != nil {
+			if autoscaling.IsErrorFinal(err) {
+				return emperror.WrapWith(err, nodePool.Name, "nodePoolName", nodePool.Name, "asgName", *asGroup.AutoScalingGroupName)
+			}
+			log.Debug(err)
+		}
+		if ok {
+			log.Debug("ASG is healthy")
+			break
+		}
+		time.Sleep(a.waitInterval)
+	}
+
+	return nil
+}
+
 // ExecuteAction executes the CreateUpdateNodePoolStackAction in parallel for each node pool
 func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (output interface{}, err error) {
 
 	errorChan := make(chan error, len(a.nodePools))
 	defer close(errorChan)
+
+	waitRoutines := 0
+	waitChan := make(chan error)
+	defer close(waitChan)
 
 	for _, nodePool := range a.nodePools {
 
@@ -790,6 +842,11 @@ func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (outp
 				}
 			}
 
+			waitRoutines++
+			go func(nodePool *model.AmazonNodePoolsModel) {
+				waitChan <- a.WaitForASGToBeFulfilled(nodePool)
+			}(nodePool)
+
 			describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(stackName)}
 
 			if a.isCreate {
@@ -819,6 +876,14 @@ func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (outp
 		createErr := <-errorChan
 		if createErr != nil {
 			err = createErr
+		}
+	}
+
+	// wait for goroutines to finish
+	for i := 0; i < waitRoutines; i++ {
+		waitErr := <-waitChan
+		if waitErr != nil {
+			err = waitErr
 		}
 	}
 
