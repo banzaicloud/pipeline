@@ -218,8 +218,7 @@ func (c *EKSCluster) CreateCluster() error {
 		action.NewUploadSSHKeyAction(c.log, creationContext, sshSecret),
 		action.NewGenerateVPCConfigRequestAction(c.log, creationContext, eksStackName, c.GetOrganizationId()),
 		action.NewCreateEksClusterAction(c.log, creationContext, c.modelCluster.EKS.Version),
-		action.NewCreateUpdateNodePoolStackAction(c.log, true, creationContext, c.modelCluster.EKS.NodePools...),
-		action.NewWaitForHealthyAutoscalingGroupsAction(c.log, 30, 20*time.Second, creationContext, c.modelCluster.EKS.NodePools...),
+		action.NewCreateUpdateNodePoolStackAction(c.log, true, creationContext, 120, 5*time.Second, c.modelCluster.EKS.NodePools...),
 	}
 
 	_, err = utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, false)
@@ -653,15 +652,10 @@ func (c *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 	}
 
 	deleteNodePoolAction := action.NewDeleteStacksAction(c.log, deleteContext, nodePoolsToDelete...)
-	createNodePoolAction := action.NewCreateUpdateNodePoolStackAction(c.log, true, createUpdateContext, nodePoolsToCreate...)
-	updateNodePoolAction := action.NewCreateUpdateNodePoolStackAction(c.log, false, createUpdateContext, nodePoolsToUpdate...)
+	createNodePoolAction := action.NewCreateUpdateNodePoolStackAction(c.log, true, createUpdateContext, 120, 5*time.Second, nodePoolsToCreate...)
+	updateNodePoolAction := action.NewCreateUpdateNodePoolStackAction(c.log, false, createUpdateContext, 120, 5*time.Second, nodePoolsToUpdate...)
 
-	existingNodePools := make([]*model.AmazonNodePoolsModel, 0)
-	existingNodePools = append(existingNodePools, nodePoolsToCreate...)
-	existingNodePools = append(existingNodePools, nodePoolsToUpdate...)
-	waitAction := action.NewWaitForHealthyAutoscalingGroupsAction(c.log, 30, 20*time.Second, createUpdateContext, existingNodePools...)
-
-	actions = append(actions, createNodePoolAction, updateNodePoolAction, deleteNodePoolAction, waitAction)
+	actions = append(actions, createNodePoolAction, updateNodePoolAction, deleteNodePoolAction)
 
 	_, err = utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, false)
 	if err != nil {

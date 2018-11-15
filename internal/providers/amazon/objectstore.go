@@ -15,7 +15,6 @@
 package amazon
 
 import (
-	"fmt"
 	"sort"
 	"strings"
 
@@ -136,10 +135,10 @@ func (s *objectStore) CreateBucket(bucketName string) error {
 
 	if dbr.Error != nil {
 		if dbr.Error != gorm.ErrRecordNotFound {
-			return errors.Wrap(dbr.Error, "error happened during getting bucket from DB")
+			return emperror.WrapWith(dbr.Error, "failed to retrieve bucket", "bucket", bucketName)
 		}
 	} else {
-		return fmt.Errorf("bucket with name %s already exists", bucketName)
+		return emperror.WrapWith(errors.New("bucket already exists"), "bucket", bucketName)
 	}
 
 	bucket.Name = bucketName
@@ -149,28 +148,24 @@ func (s *objectStore) CreateBucket(bucketName string) error {
 	bucket.SecretRef = s.secret.ID
 	bucket.Status = providers.BucketCreating
 
-	if err := s.db.Save(bucket).Error; err != nil {
-		return errors.Wrap(err, "error happened during saving bucket in DB")
+	if e := s.db.Save(bucket).Error; e != nil {
+		return emperror.WrapWith(e, "failed to persist the bucket", "bucket", bucketName)
 	}
 
-	logger.Info("creating bucket")
+	logger.Info("creating bucket...")
 
 	if err := s.objectStore.CreateBucket(bucketName); err != nil {
 		bucket.Status = providers.BucketCreateError
 		bucket.StatusMsg = err.Error()
-		e := s.db.Save(bucket).Error
-		if e != nil {
-			logger.Error(e.Error())
+		if e := s.db.Save(bucket).Error; e != nil {
+			return emperror.WrapWith(e, "failed to persist the bucket", "bucket", bucketName)
 		}
-
-		return errors.Wrap(err, "could not create bucket")
+		return emperror.WrapWith(err, "failed to create the bucket", "bucket", bucketName)
 	}
 
 	bucket.Status = providers.BucketCreated
-	e := s.db.Save(bucket).Error
-	if e != nil {
-		logger.Error(e.Error())
-		return errors.Wrap(e, "could not create bucket")
+	if e := s.db.Save(bucket).Error; e != nil {
+		return emperror.WrapWith(e, "failed to persist the bucket", "bucket", bucketName)
 	}
 	logger.Info("bucket created")
 
@@ -185,7 +180,7 @@ func (s *objectStore) DeleteBucket(bucketName string) error {
 	bucket := &ObjectStoreBucketModel{}
 	searchCriteria := s.searchCriteria(bucketName)
 
-	logger.Info("looking up bucket")
+	logger.Info("looking up the bucket...")
 
 	if err := s.db.Where(searchCriteria).Find(bucket).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -210,7 +205,7 @@ func (s *objectStore) DeleteBucket(bucketName string) error {
 
 func (s *objectStore) deleteFromProvider(bucket *ObjectStoreBucketModel) error {
 	logger := s.getLogger().WithField("bucket", bucket.Name)
-	logger.Info("deleting bucket on provider")
+	logger.Info("deleting bucket on provider...")
 
 	// todo the assumption here is, that a bucket in 'ERROR_CREATE' doesn't exist on the provider
 	// todo however there might be -presumably rare cases- when a bucket in 'ERROR_DELETE' that has already been deleted on the provider
@@ -221,12 +216,12 @@ func (s *objectStore) deleteFromProvider(bucket *ObjectStoreBucketModel) error {
 
 	bucket.Status = providers.BucketDeleting
 	if err := s.db.Save(bucket).Error; err != nil {
-		return emperror.With(err, "could not update bucket")
+		return emperror.WrapWith(err, "failed to update bucket", "bucket", bucket.Name)
 	}
 
 	objectStore, err := getProviderObjectStore(s.secret, bucket.Region)
 	if err != nil {
-		return s.deleteFailed(bucket, errors.Wrap(err, "could not create AWS object storage client"))
+		return s.deleteFailed(bucket, emperror.WrapWith(err, "failed create AWS object storage client", "bucket", bucket.Name))
 	}
 
 	if err := objectStore.DeleteBucket(bucket.Name); err != nil {
@@ -245,7 +240,7 @@ func (s *objectStore) deleteFailed(bucket *ObjectStoreBucketModel, reason error)
 	bucket.Status = providers.BucketDeleteError
 	bucket.StatusMsg = reason.Error()
 	if err := s.db.Save(bucket).Error; err != nil {
-		return emperror.With(err, "could not delete bucket")
+		return emperror.WrapWith(err, "failed to delete bucket", "bucket", bucket.Name)
 	}
 	return nil
 }
@@ -253,11 +248,10 @@ func (s *objectStore) deleteFailed(bucket *ObjectStoreBucketModel, reason error)
 // CheckBucket checks the status of the given S3 bucket.
 func (s *objectStore) CheckBucket(bucketName string) error {
 	logger := s.getLogger().WithField("bucket", bucketName)
-
-	logger.Info("looking for bucket")
+	logger.Info("looking up the bucket...")
 
 	if err := s.objectStore.CheckBucket(bucketName); err != nil {
-		return err
+		return emperror.WrapWith(err, "failed to check the bucket", "bucket", bucketName)
 	}
 
 	return nil
@@ -269,41 +263,42 @@ func (s *objectStore) CheckBucket(bucketName string) error {
 func (s *objectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 	logger := s.getLogger()
 
-	logger.Info("retrieving bucket list")
-
-	buckets, err := s.objectStore.ListBuckets()
+	logger.Info("retrieving buckets from provider...")
+	s3Buckets, err := s.objectStore.ListBuckets()
 	if err != nil {
-		return nil, err
+		return nil, emperror.Wrap(err, "failed to retrieve buckets")
 	}
 
-	logger.Infof("retrieving managed buckets")
+	logger.Info("retrieving managed buckets...")
+	var managedBuckets []*ObjectStoreBucketModel
 
-	var amazonBuckets []*ObjectStoreBucketModel
-
-	err = s.db.Where(&ObjectStoreBucketModel{OrganizationID: s.org.ID}).Order("name asc").Find(&amazonBuckets).Error
+	err = s.db.Where(&ObjectStoreBucketModel{OrganizationID: s.org.ID}).Order("name asc").Find(&managedBuckets).Error
 	if err != nil {
-		return nil, fmt.Errorf("retrieving managed buckets failed: %s", err.Error())
+		return nil, emperror.Wrap(err, "failed to retrieve managed buckets")
 	}
 
 	var bucketList []*objectstore.BucketInfo
-	for _, bucket := range buckets {
-		// amazonBuckets must be sorted in order to be able to perform binary search on it
-		idx := sort.Search(len(amazonBuckets), func(i int) bool {
-			return strings.Compare(amazonBuckets[i].Name, bucket) >= 0
+	for _, bucket := range s3Buckets {
+		// managedBuckets must be sorted in order to be able to perform binary search on it
+		idx := sort.Search(len(managedBuckets), func(i int) bool {
+			return strings.Compare(managedBuckets[i].Name, bucket) >= 0
 		})
 
 		bucketInfo := &objectstore.BucketInfo{Name: bucket, Managed: false}
-		if idx < len(amazonBuckets) && strings.Compare(amazonBuckets[idx].Name, bucket) == 0 {
+		if idx < len(managedBuckets) && strings.Compare(managedBuckets[idx].Name, bucket) == 0 {
 			bucketInfo.Managed = true
 		}
 
-		region, err := s.objectStore.GetRegion(bucket)
-		if err != nil {
-			return nil, err
+		if region, err := s.objectStore.GetRegion(bucket); err == nil {
+			bucketInfo.Location = region
+			bucketList = append(bucketList, bucketInfo)
+		} else {
+			if objectstore.IsNotFoundError(err) {
+				logger.WithField("bucket", bucket).WithError(err).Warn("skipping bucket from the list")
+			} else {
+				return nil, emperror.WrapWith(err, "failed to retrieve region for bucket", "bucket", bucket)
+			}
 		}
-		bucketInfo.Location = region
-
-		bucketList = append(bucketList, bucketInfo)
 	}
 
 	return bucketList, nil
@@ -315,9 +310,8 @@ func (s *objectStore) ListManagedBuckets() ([]*objectstore.BucketInfo, error) {
 
 	var amazonBuckets []*ObjectStoreBucketModel
 
-	err := s.db.Where(&ObjectStoreBucketModel{OrganizationID: s.org.ID}).Order("name asc").Find(&amazonBuckets).Error
-	if err != nil {
-		return nil, fmt.Errorf("retrieving managed buckets failed: %s", err.Error())
+	if err := s.db.Where(&ObjectStoreBucketModel{OrganizationID: s.org.ID}).Order("name asc").Find(&amazonBuckets).Error; err != nil {
+		return nil, emperror.Wrap(err, "failed to retrieve managed buckets")
 	}
 
 	bucketList := make([]*objectstore.BucketInfo, 0)
