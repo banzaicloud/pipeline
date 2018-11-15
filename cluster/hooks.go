@@ -533,6 +533,14 @@ func InstallIngressControllerPostHook(input interface{}) error {
 		return errors.Errorf("Get User failed : %s", err.Error())
 	}
 
+	orgID := cluster.GetOrganizationId()
+	organization, err := auth.GetOrganizationById(orgID)
+	if err != nil {
+		return emperror.WrapWith(err, "failed to get organization", "orgID", orgID)
+	}
+
+	domainWithOrgName := fmt.Sprintf("%s.%s", organization.Name, viper.GetString(pipConfig.DNSBaseDomain))
+
 	acme := map[string]interface{}{
 		"enabled":           true,
 		"staging":           false,
@@ -541,6 +549,18 @@ func InstallIngressControllerPostHook(input interface{}) error {
 		"delayDontCheckDNS": 60,
 		"email":             user.Email,
 		"persistence":       map[string]interface{}{"enabled": true},
+		"domains": map[string]interface{}{
+			"enabled": true,
+			"domainsList": []map[string]interface{}{
+				{
+					"main": fmt.Sprintf("*.%s", domainWithOrgName)},
+				{
+					"sans": []string{
+						fmt.Sprintf("%s.%s", cluster.GetName(), domainWithOrgName),
+						domainWithOrgName},
+				},
+			},
+		},
 	}
 
 	dnsSvc, err := dns.GetExternalDnsServiceClient()
