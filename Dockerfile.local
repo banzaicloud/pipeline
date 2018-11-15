@@ -11,4 +11,4 @@ COPY --from=0 /go/bin/aws-iam-authenticator /usr/bin/
 COPY build/pipeline-debug /
 COPY views /views/
 
-ENTRYPOINT ["/pipeline"]
+ENTRYPOINT ["/pipeline-debug"]
