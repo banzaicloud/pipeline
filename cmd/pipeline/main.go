@@ -37,6 +37,7 @@ import (
 	"github.com/banzaicloud/pipeline/dns"
 	arkSync "github.com/banzaicloud/pipeline/internal/ark/sync"
 	"github.com/banzaicloud/pipeline/internal/audit"
+	intAuth "github.com/banzaicloud/pipeline/internal/auth"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/dashboard"
 	"github.com/banzaicloud/pipeline/internal/monitor"
@@ -211,11 +212,12 @@ func main() {
 
 	basePath := viper.GetString("pipeline.basepath")
 
-	authorizer := auth.NewAuthorizer(casbinDSN)
+	enforcer := auth.NewEnforcer(casbinDSN, basePath)
+	authorizationMiddleware := intAuth.NewMiddleware(enforcer, basePath)
 
 	dgroup := router.Group(path.Join(basePath, "dashboard", "orgs"))
 	dgroup.Use(auth.Handler)
-	dgroup.Use(authorizer)
+	dgroup.Use(authorizationMiddleware)
 	dgroup.Use(api.OrganizationMiddleware)
 	dgroup.GET("/:orgid/clusters", dashboard.GetDashboard)
 
@@ -225,7 +227,7 @@ func main() {
 	v1.GET("/functions", api.ListFunctions)
 	{
 		v1.Use(auth.Handler)
-		v1.Use(authorizer)
+		v1.Use(authorizationMiddleware)
 		orgs := v1.Group("/orgs")
 		{
 			orgs.Use(api.OrganizationMiddleware)

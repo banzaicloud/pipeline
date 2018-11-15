@@ -16,12 +16,10 @@ package auth
 
 import (
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/casbin/casbin"
 	"github.com/casbin/gorm-adapter"
-	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 )
 
@@ -46,57 +44,18 @@ const logging = false
 
 var enforcer *casbin.SyncedEnforcer
 
-// NewAuthorizer returns the MySQL based default authorizer
-func NewAuthorizer(dsn string) gin.HandlerFunc {
+// NewEnforcer returns the MySQL based default role enforcer.
+func NewEnforcer(dsn string, basePath string) *casbin.SyncedEnforcer {
 	adapter := gormadapter.NewAdapter("mysql", dsn, true)
 	model := casbin.NewModel(modelDefinition)
 	enforcer = casbin.NewSyncedEnforcer(model, adapter, logging)
 	enforcer.StartAutoLoadPolicy(10 * time.Second)
-	addDefaultPolicies()
-	return newAuthorizer(enforcer)
+	addDefaultPolicies(basePath)
+
+	return enforcer
 }
 
-// NewAuthorizer returns the authorizer, uses a Casbin enforcer as input
-func newAuthorizer(e *casbin.SyncedEnforcer) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		a := &userIDAuthorizer{enforcer: e}
-
-		if !a.CheckPermission(c.Request) {
-			a.RequirePermission(c)
-		}
-	}
-}
-
-// userIDAuthorizer stores the casbin handler
-type userIDAuthorizer struct {
-	enforcer *casbin.SyncedEnforcer
-}
-
-// getUserID gets the user name from the request.
-func (a *userIDAuthorizer) getUserID(r *http.Request) string {
-	user := GetCurrentUser(r)
-	if user.ID == 0 {
-		return user.Login // This is needed for Drone virtual user tokens
-	}
-	return user.IDString()
-}
-
-// CheckPermission checks the user/method/path combination from the request.
-// Returns true (permission granted) or false (permission forbidden)
-func (a *userIDAuthorizer) CheckPermission(r *http.Request) bool {
-	userID := a.getUserID(r)
-	method := r.Method
-	path := r.URL.Path
-	return a.enforcer.Enforce(userID, path, method)
-}
-
-// RequirePermission returns the 403 Forbidden to the client
-func (a *userIDAuthorizer) RequirePermission(c *gin.Context) {
-	c.AbortWithStatus(http.StatusForbidden)
-}
-
-func addDefaultPolicies() {
-	basePath := viper.GetString("pipeline.basepath")
+func addDefaultPolicies(basePath string) {
 	enforcer.AddPolicy("default", basePath+"/api/v1/allowed/secrets", "*")
 	enforcer.AddPolicy("default", basePath+"/api/v1/allowed/secrets/*", "*")
 	enforcer.AddPolicy("default", basePath+"/api/v1/orgs", "*")
