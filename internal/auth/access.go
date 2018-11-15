@@ -14,7 +14,9 @@
 
 package auth
 
-import "github.com/casbin/casbin"
+import (
+	"github.com/casbin/casbin"
+)
 
 // AccessManager is responsible for managing authorization rules.
 type AccessManager struct {
@@ -38,4 +40,14 @@ func (m *AccessManager) AddDefaultPolicies() {
 	m.enforcer.AddPolicy("default", m.basePath+"/api/v1/token", "*")
 	m.enforcer.AddPolicy("default", m.basePath+"/api/v1/tokens", "*")
 	m.enforcer.AddPolicy("defaultVirtual", m.basePath+"/api/v1/orgs", "GET")
+}
+
+// AddDefaultRoleToUser adds all the default non-org-specific role to a user.
+func (m *AccessManager) AddDefaultRoleToUser(userID string) {
+	m.enforcer.AddRoleForUser(userID, "default")
+}
+
+// AddDefaultRoleToVirtualUser adds org list role to a virtual user.
+func (m *AccessManager) AddDefaultRoleToVirtualUser(userID string) {
+	m.enforcer.AddRoleForUser(userID, "defaultVirtual")
 }
