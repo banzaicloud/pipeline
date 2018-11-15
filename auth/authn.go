@@ -124,8 +124,17 @@ func (c cookieExtractor) ExtractToken(r *http.Request) (string, error) {
 	return c.sessionStorer.SessionManager.Get(r, c.sessionStorer.SessionName), nil
 }
 
+type accessManager interface {
+	GrantDefaultAccessToUser(userID string)
+	GrantDefaultAccessToVirtualUser(userID string)
+	AddOrganizationPolicies(orgID uint)
+	GrantOganizationAccessToUser(userID string, orgID uint)
+	RevokeOrganizationAccessFromUser(userID string, orgID uint)
+	RevokeAllAccessFromUser(userID string)
+}
+
 // Init initializes the auth
-func Init(db *gorm.DB) {
+func Init(db *gorm.DB, accessManager accessManager) {
 	JwtIssuer = viper.GetString("auth.jwtissuer")
 	JwtAudience = viper.GetString("auth.jwtaudience")
 	CookieDomain = viper.GetString("auth.cookieDomain")
@@ -187,9 +196,10 @@ func Init(db *gorm.DB) {
 			signingKeyBase32: signingKeyBase32,
 			droneDB:          DroneDB,
 			events:           ebAuthEvents{eb: config.EventBus},
+			accessManager:    accessManager,
 		},
 		LogoutHandler:     BanzaiLogoutHandler,
-		DeregisterHandler: BanzaiDeregisterHandler,
+		DeregisterHandler: NewBanzaiDeregisterHandler(accessManager),
 	})
 
 	githubProvider := github.New(&github.Config{
@@ -228,7 +238,7 @@ func StartTokenStoreGC() {
 }
 
 // Install the whole OAuth and JWT Token based authn/authz mechanism to the specified Gin Engine.
-func Install(engine *gin.Engine) {
+func Install(engine *gin.Engine, generateTokenHandler gin.HandlerFunc) {
 
 	// We have to make the raw net/http handlers a bit Gin-ish
 	authHandler := gin.WrapH(Auth.NewServeMux())
@@ -245,15 +255,27 @@ func Install(engine *gin.Engine) {
 		authGroup.GET("/github/logout", authHandler)
 		authGroup.GET("/github/register", authHandler)
 		authGroup.GET("/github/callback", authHandler)
-		authGroup.POST("/tokens", GenerateToken)
+		authGroup.POST("/tokens", generateTokenHandler)
 		authGroup.GET("/tokens", GetTokens)
 		authGroup.GET("/tokens/:id", GetTokens)
 		authGroup.DELETE("/tokens/:id", DeleteToken)
 	}
 }
 
+type tokenHandler struct {
+	accessManager accessManager
+}
+
+func NewTokenHandler(accessManager accessManager) gin.HandlerFunc {
+	handler := &tokenHandler{
+		accessManager: accessManager,
+	}
+
+	return handler.GenerateToken
+}
+
 //GenerateToken generates token from context
-func GenerateToken(c *gin.Context) {
+func (h *tokenHandler) GenerateToken(c *gin.Context) {
 	var currentUser *User
 
 	if accessToken, ok := c.GetQuery("access_token"); ok {
@@ -332,8 +354,8 @@ func GenerateToken(c *gin.Context) {
 			return
 		}
 
-		AddDefaultRoleForVirtualUser(userID)
-		AddOrgRoleForUser(userID, organization.ID)
+		h.accessManager.GrantDefaultAccessToVirtualUser(userID)
+		h.accessManager.GrantOganizationAccessToUser(userID, organization.ID)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"id": tokenID, "token": signedToken})
@@ -483,8 +505,21 @@ func BanzaiLogoutHandler(context *auth.Context) {
 	DelCookie(context.Writer, context.Request, PipelineSessionCookie)
 }
 
+type banzaiDeregisterHandler struct {
+	accessManager accessManager
+}
+
+// NewBanzaiDeregisterHandler returns a handler that deletes the user and all his/her tokens from the database
+func NewBanzaiDeregisterHandler(accessManager accessManager) func(*auth.Context) {
+	handler := &banzaiDeregisterHandler{
+		accessManager: accessManager,
+	}
+
+	return handler.handler
+}
+
 // BanzaiDeregisterHandler deletes the user and all his/her tokens from the database
-func BanzaiDeregisterHandler(context *auth.Context) {
+func (h *banzaiDeregisterHandler) handler(context *auth.Context) {
 	user := GetCurrentUser(context.Request)
 
 	db := context.GetDB(context.Request)
@@ -560,7 +595,7 @@ func BanzaiDeregisterHandler(context *auth.Context) {
 	}
 
 	// Delete Casbin roles
-	DeleteRolesForUser(user.ID)
+	h.accessManager.RevokeAllAccessFromUser(user.IDString())
 
 	BanzaiLogoutHandler(context)
 }

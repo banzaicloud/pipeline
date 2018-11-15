@@ -21,7 +21,7 @@ import (
 	"github.com/casbin/gorm-adapter"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"github.com/stretchr/testify/assert"
-	)
+)
 
 func TestAccessManager_DefaultPolicies(t *testing.T) {
 	adapter := gormadapter.NewAdapter("sqlite3", "file::memory:")

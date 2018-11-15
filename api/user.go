@@ -25,8 +25,25 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// GetUsers gets a user or lists all users from an organization depending on the presence of the id parameter
-func GetUsers(c *gin.Context) {
+type userAccessManager interface {
+	GrantOganizationAccessToUser(userID string, orgID uint)
+	RevokeOrganizationAccessFromUser(userID string, orgID uint)
+}
+
+// UserAPI implements user functions.
+type UserAPI struct {
+	accessManager userAccessManager
+}
+
+// NewUserAPI returns a new UserAPI instance.
+func NewUserAPI(accessManager userAccessManager) *UserAPI {
+	return &UserAPI{
+		accessManager: accessManager,
+	}
+}
+
+// GetUsers gets a user or lists all users from an organization depending on the presence of the id parameter.
+func (a *UserAPI) GetUsers(c *gin.Context) {
 
 	log.Info("Fetching users")
 
@@ -82,7 +99,7 @@ func GetUsers(c *gin.Context) {
 }
 
 // AddUser adds a user to an organization, role=admin|member has to be in the body, otherwise member is the default role.
-func AddUser(c *gin.Context) {
+func (a *UserAPI) AddUser(c *gin.Context) {
 
 	log.Info("Adding user to organization")
 
@@ -134,7 +151,7 @@ func AddUser(c *gin.Context) {
 		return
 	}
 
-	auth.AddOrgRoleForUser(user.ID, organization.ID)
+	a.accessManager.GrantOganizationAccessToUser(user.IDString(), organization.ID)
 
 	c.Status(http.StatusNoContent)
 }
@@ -161,7 +178,7 @@ func addUserToOrgInDb(organization *auth.Organization, user *auth.User, role str
 }
 
 // RemoveUser removes a user from an organization
-func RemoveUser(c *gin.Context) {
+func (a *UserAPI) RemoveUser(c *gin.Context) {
 
 	log.Info("Deleting user from organization")
 
@@ -196,7 +213,7 @@ func RemoveUser(c *gin.Context) {
 
 	user := auth.GetCurrentUser(c.Request)
 
-	auth.DeleteOrgRoleForUser(user.ID, organization.ID)
+	a.accessManager.RevokeOrganizationAccessFromUser(user.IDString(), organization.ID)
 
 	c.Status(http.StatusNoContent)
 }

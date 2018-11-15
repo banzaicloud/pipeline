@@ -200,6 +200,7 @@ type BanzaiUserStorer struct {
 	signingKeyBase32 string // Drone uses base32 Hash
 	droneDB          *gorm.DB
 	events           authEvents
+	accessManager    accessManager
 }
 
 // Save differs from the default UserStorer.Save() in that it
@@ -240,7 +241,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 		log.Errorf("Error during local helm install: %s", err.Error())
 	}
 
-	AddDefaultRoleForUser(currentUser.ID)
+	bus.accessManager.GrantDefaultAccessToUser(currentUser.IDString())
 
 	// Save the Github token to Vault
 	token := bauth.NewToken(GithubTokenID, "Github access token")
@@ -255,10 +256,10 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 	if err == nil {
 		orgids := []uint{currentUser.Organizations[0].ID}
 		orgids = append(orgids, githubOrgIDs...)
-		AddOrgRoles(orgids...)
-		AddOrgRoleForUser(currentUser.ID, orgids...)
-
 		for _, orgID := range orgids {
+			bus.accessManager.AddOrganizationPolicies(orgID)
+			bus.accessManager.GrantOganizationAccessToUser(currentUser.IDString(), orgID)
+
 			bus.events.OrganizationRegistered(orgID)
 		}
 	}

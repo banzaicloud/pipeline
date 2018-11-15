@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"time"
 
 	evbus "github.com/asaskevich/EventBus"
 	"github.com/banzaicloud/go-gin-prometheus"
@@ -50,6 +51,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/casbin/gorm-adapter"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
@@ -98,8 +100,17 @@ func main() {
 		logger.Panic(err.Error())
 	}
 
+	basePath := viper.GetString("pipeline.basepath")
+
+	casbinAdapter := gormadapter.NewAdapter("mysql", casbinDSN, true)
+	enforcer := intAuth.NewEnforcer(casbinAdapter)
+	enforcer.StartAutoLoadPolicy(10 * time.Second)
+	accessManager := intAuth.NewAccessManager(enforcer, basePath)
+
+	accessManager.AddDefaultPolicies()
+
 	// Initialize auth
-	auth.Init(droneDb)
+	auth.Init(droneDb, accessManager)
 
 	if viper.GetBool(config.DBAutoMigrateEnabled) {
 		log.Info("running automatic schema migrations")
@@ -207,12 +218,11 @@ func main() {
 		p.Use(router)
 	}
 
-	auth.Install(router)
+	generateTokenHandler := auth.NewTokenHandler(accessManager)
+
+	auth.Install(router, generateTokenHandler)
 	auth.StartTokenStoreGC()
 
-	basePath := viper.GetString("pipeline.basepath")
-
-	enforcer := auth.NewEnforcer(casbinDSN, basePath)
 	authorizationMiddleware := intAuth.NewMiddleware(enforcer, basePath)
 
 	dgroup := router.Group(path.Join(basePath, "dashboard", "orgs"))
@@ -222,6 +232,8 @@ func main() {
 	dgroup.GET("/:orgid/clusters", dashboard.GetDashboard)
 
 	domainAPI := api.NewDomainAPI(clusterManager, log, errorHandler)
+	organizationAPI := api.NewOrganizationAPI(accessManager)
+	userAPI := api.NewUserAPI(accessManager)
 
 	v1 := router.Group(path.Join(basePath, "api", "v1/"))
 	v1.GET("/functions", api.ListFunctions)
@@ -313,10 +325,10 @@ func main() {
 			orgs.PUT("/:orgid/secrets/:id", api.UpdateSecrets)
 			orgs.DELETE("/:orgid/secrets/:id", api.DeleteSecrets)
 			orgs.GET("/:orgid/secrets/:id/validate", api.ValidateSecret)
-			orgs.GET("/:orgid/users", api.GetUsers)
-			orgs.GET("/:orgid/users/:id", api.GetUsers)
-			orgs.POST("/:orgid/users/:id", api.AddUser)
-			orgs.DELETE("/:orgid/users/:id", api.RemoveUser)
+			orgs.GET("/:orgid/users", userAPI.GetUsers)
+			orgs.GET("/:orgid/users/:id", userAPI.GetUsers)
+			orgs.POST("/:orgid/users/:id", userAPI.AddUser)
+			orgs.DELETE("/:orgid/users/:id", userAPI.RemoveUser)
 
 			orgs.GET("/:orgid/buckets", api.ListAllBuckets)
 			orgs.POST("/:orgid/buckets", api.CreateBucket)
@@ -333,13 +345,13 @@ func main() {
 
 			orgs.GET("/:orgid/google/projects", api.GetProjects)
 
-			orgs.GET("/:orgid", api.GetOrganizations)
-			orgs.DELETE("/:orgid", api.DeleteOrganization)
+			orgs.GET("/:orgid", organizationAPI.GetOrganizations)
+			orgs.DELETE("/:orgid", organizationAPI.DeleteOrganization)
 		}
-		v1.GET("/orgs", api.GetOrganizations)
-		v1.POST("/orgs", api.CreateOrganization)
-		v1.GET("/token", auth.GenerateToken) // TODO Deprecated, should be removed once the UI has support.
-		v1.POST("/tokens", auth.GenerateToken)
+		v1.GET("/orgs", organizationAPI.GetOrganizations)
+		v1.POST("/orgs", organizationAPI.CreateOrganization)
+		v1.GET("/token", generateTokenHandler) // TODO Deprecated, should be removed once the UI has support.
+		v1.POST("/tokens", generateTokenHandler)
 		v1.GET("/tokens", auth.GetTokens)
 		v1.GET("/tokens/:id", auth.GetTokens)
 		v1.DELETE("/tokens/:id", auth.DeleteToken)
