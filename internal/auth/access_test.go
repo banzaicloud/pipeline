@@ -21,17 +21,19 @@ import (
 	"github.com/casbin/gorm-adapter"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"github.com/stretchr/testify/assert"
-)
+	)
 
 func TestAccessManager_DefaultPolicies(t *testing.T) {
 	adapter := gormadapter.NewAdapter("sqlite3", "file::memory:")
 	enforcer := NewEnforcer(adapter)
 	accessManager := NewAccessManager(enforcer, "")
 
+	enforcer.ClearPolicy()
+
 	accessManager.AddDefaultPolicies()
 
-	accessManager.AddDefaultRoleToUser("user")
-	accessManager.AddDefaultRoleToVirtualUser("userVirtual")
+	accessManager.GrantDefaultAccessToUser("user")
+	accessManager.GrantDefaultAccessToVirtualUser("userVirtual")
 
 	tests := []struct {
 		user           string
@@ -94,6 +96,189 @@ func TestAccessManager_DefaultPolicies(t *testing.T) {
 
 		t.Run("", func(t *testing.T) {
 			granted := enforcer.Enforce(test.user, test.path, test.method)
+
+			assert.Equal(t, test.expectedResult, granted)
+		})
+	}
+}
+
+func TestAccessManager_OrganizationPolicies(t *testing.T) {
+	adapter := gormadapter.NewAdapter("sqlite3", "file::memory:")
+	enforcer := NewEnforcer(adapter)
+	accessManager := NewAccessManager(enforcer, "")
+
+	enforcer.ClearPolicy()
+
+	accessManager.AddOrganizationPolicies(1)
+
+	accessManager.GrantOganizationAccessToUser("user", 1)
+
+	tests := []struct {
+		path           string
+		method         string
+		expectedResult bool
+	}{
+		{
+			path:           "/api/v1/orgs/1",
+			method:         http.MethodGet,
+			expectedResult: true,
+		},
+		{
+			path:           "/api/v1/orgs/1/clusters",
+			method:         http.MethodGet,
+			expectedResult: true,
+		},
+		{
+			path:           "/dashboard/orgs/1/clusters",
+			method:         http.MethodGet,
+			expectedResult: true,
+		},
+		{
+			path:           "/api/v1/orgs/2",
+			method:         http.MethodGet,
+			expectedResult: false,
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+
+		t.Run("", func(t *testing.T) {
+			granted := enforcer.Enforce("user", test.path, test.method)
+
+			assert.Equal(t, test.expectedResult, granted)
+		})
+	}
+}
+
+func TestAccessManager_RevokeOrganizationAccessFromUser(t *testing.T) {
+	adapter := gormadapter.NewAdapter("sqlite3", "file::memory:")
+	enforcer := NewEnforcer(adapter)
+	accessManager := NewAccessManager(enforcer, "")
+
+	enforcer.ClearPolicy()
+
+	accessManager.AddOrganizationPolicies(1)
+	accessManager.AddOrganizationPolicies(2)
+
+	accessManager.GrantOganizationAccessToUser("user", 1)
+	accessManager.GrantOganizationAccessToUser("user", 2)
+	accessManager.RevokeOrganizationAccessFromUser("user", 1)
+
+	tests := []struct {
+		path           string
+		method         string
+		expectedResult bool
+	}{
+		{
+			path:           "/api/v1/orgs/1",
+			method:         http.MethodGet,
+			expectedResult: false,
+		},
+		{
+			path:           "/api/v1/orgs/1/clusters",
+			method:         http.MethodGet,
+			expectedResult: false,
+		},
+		{
+			path:           "/dashboard/orgs/1/clusters",
+			method:         http.MethodGet,
+			expectedResult: false,
+		},
+		{
+			path:           "/api/v1/orgs/2",
+			method:         http.MethodGet,
+			expectedResult: true,
+		},
+		{
+			path:           "/api/v1/orgs/2/clusters",
+			method:         http.MethodGet,
+			expectedResult: true,
+		},
+		{
+			path:           "/dashboard/orgs/2/clusters",
+			method:         http.MethodGet,
+			expectedResult: true,
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+
+		t.Run("", func(t *testing.T) {
+			granted := enforcer.Enforce("user", test.path, test.method)
+
+			assert.Equal(t, test.expectedResult, granted)
+		})
+	}
+}
+
+func TestAccessManager_RevokeAllAccessFromUser(t *testing.T) {
+	adapter := gormadapter.NewAdapter("sqlite3", "file::memory:")
+	enforcer := NewEnforcer(adapter)
+	accessManager := NewAccessManager(enforcer, "")
+
+	enforcer.ClearPolicy()
+
+	accessManager.AddDefaultPolicies()
+	accessManager.AddOrganizationPolicies(1)
+
+	accessManager.GrantOganizationAccessToUser("user", 1)
+
+	accessManager.RevokeAllAccessFromUser("user")
+
+	tests := []struct {
+		path           string
+		method         string
+		expectedResult bool
+	}{
+		{
+			path:           "/api/v1/allowed/secrets",
+			method:         http.MethodGet,
+			expectedResult: false,
+		},
+		{
+			path:           "/api/v1/allowed/secrets/asd",
+			method:         http.MethodGet,
+			expectedResult: false,
+		},
+		{
+			path:           "/api/v1/orgs",
+			method:         http.MethodGet,
+			expectedResult: false,
+		},
+		{
+			path:           "/api/v1/token",
+			method:         http.MethodGet,
+			expectedResult: false,
+		},
+		{
+			path:           "/api/v1/tokens",
+			method:         http.MethodGet,
+			expectedResult: false,
+		},
+		{
+			path:           "/api/v1/orgs/1",
+			method:         http.MethodGet,
+			expectedResult: false,
+		},
+		{
+			path:           "/api/v1/orgs/1/clusters",
+			method:         http.MethodGet,
+			expectedResult: false,
+		},
+		{
+			path:           "/dashboard/orgs/1/clusters",
+			method:         http.MethodGet,
+			expectedResult: false,
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+
+		t.Run("", func(t *testing.T) {
+			granted := enforcer.Enforce("user", test.path, test.method)
 
 			assert.Equal(t, test.expectedResult, granted)
 		})

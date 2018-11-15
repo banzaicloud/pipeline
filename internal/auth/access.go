@@ -15,6 +15,8 @@
 package auth
 
 import (
+	"fmt"
+
 	"github.com/casbin/casbin"
 )
 
@@ -42,12 +44,38 @@ func (m *AccessManager) AddDefaultPolicies() {
 	m.enforcer.AddPolicy("defaultVirtual", m.basePath+"/api/v1/orgs", "GET")
 }
 
-// AddDefaultRoleToUser adds all the default non-org-specific role to a user.
-func (m *AccessManager) AddDefaultRoleToUser(userID string) {
+// GrantDefaultAccessToUser adds all the default non-org-specific role to a user.
+func (m *AccessManager) GrantDefaultAccessToUser(userID string) {
 	m.enforcer.AddRoleForUser(userID, "default")
 }
 
-// AddDefaultRoleToVirtualUser adds org list role to a virtual user.
-func (m *AccessManager) AddDefaultRoleToVirtualUser(userID string) {
+// GrantDefaultAccessToVirtualUser adds org list role to a virtual user.
+func (m *AccessManager) GrantDefaultAccessToVirtualUser(userID string) {
 	m.enforcer.AddRoleForUser(userID, "defaultVirtual")
+}
+
+// AddOrganizationPolicies creates an organization role, by adding the default (*) org policies for the given organization.
+func (m *AccessManager) AddOrganizationPolicies(orgID uint) {
+	m.enforcer.AddPolicy(orgRoleName(orgID), fmt.Sprintf("%s/api/v1/orgs/%d", m.basePath, orgID), "*")
+	m.enforcer.AddPolicy(orgRoleName(orgID), fmt.Sprintf("%s/api/v1/orgs/%d/*", m.basePath, orgID), "*")
+	m.enforcer.AddPolicy(orgRoleName(orgID), fmt.Sprintf("%s/dashboard/orgs/%d/*", m.basePath, orgID), "*")
+}
+
+// GrantOganizationAccessToUser adds a user to an organization by adding the associated organization role.
+func (m *AccessManager) GrantOganizationAccessToUser(userID string, orgID uint) {
+	m.enforcer.AddRoleForUser(userID, orgRoleName(orgID))
+}
+
+// RevokeOrganizationAccessFromUser removes a user from an organization by removing the associated organization role.
+func (m *AccessManager) RevokeOrganizationAccessFromUser(userID string, orgID uint) {
+	m.enforcer.DeleteRoleForUser(userID, orgRoleName(orgID))
+}
+
+// RevokeAllAccessFromUser removes all roles for a given user.
+func (m *AccessManager) RevokeAllAccessFromUser(userID string) {
+	m.enforcer.DeleteUser(userID)
+}
+
+func orgRoleName(orgID uint) string {
+	return fmt.Sprint("org-", orgID)
 }
