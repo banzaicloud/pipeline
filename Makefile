@@ -86,7 +86,7 @@ build: ## Build a binary
 ifneq (${IGNORE_GOLANG_VERSION_REQ}, 1)
 	@printf "${GOLANG_VERSION}\n$$(go version | awk '{sub(/^go/, "", $$3);print $$3}')" | sort -t '.' -k 1,1 -k 2,2 -k 3,3 -g | head -1 | grep -q -E "^${GOLANG_VERSION}$$" || (printf "Required Go version is ${GOLANG_VERSION}\nInstalled: `go version`" && exit 1)
 endif
-	GOOS=${GO_OS} GOARCH=${GO_ARCH} go build ${GOARGS} ${BUILD_PACKAGE}
+	go build ${GOARGS} ${BUILD_PACKAGE}
 
 .PHONY: docker-build
 docker-build: ## Builds go binary in docker image
@@ -96,8 +96,8 @@ docker-build: ## Builds go binary in docker image
 debug: GOARGS += -gcflags "-N -l"
 debug: BINARY_NAME = pipeline-debug
 debug: build ## Builds binary package
-debug: GO_OS = linux
-debug: GO_ARCH = amd64
+debug: export GOOS = linux
+debug: export GOARCH = amd64
 
 .PHONY: debug-docker
 debug-docker: debug ## Builds binary package
