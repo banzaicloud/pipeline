@@ -119,7 +119,7 @@ func deleteUserNamespaces(kubeConfig []byte, logger *logrus.Entry) error {
 	}
 	err = retry(func() error {
 		namespaces, err := client.CoreV1().Namespaces().List(metav1.ListOptions{})
-		left := 0
+		left := []string{}
 		if err != nil {
 			return emperror.Wrap(err, "could not list remaining namespaces")
 		}
@@ -129,11 +129,11 @@ func deleteUserNamespaces(kubeConfig []byte, logger *logrus.Entry) error {
 				continue
 			default:
 				logger.Infof("namespace %q still %s", ns.Name, ns.Status)
-				left++
+				left = append(left, ns.Name)
 			}
 		}
-		if left > 0 {
-			return fmt.Errorf("%d namespaces remained after deletion", left)
+		if len(left) > 0 {
+			return fmt.Errorf("%d namespaces remained after deletion: %v", len(left), left)
 		}
 		return nil
 	}, 6, 30)
