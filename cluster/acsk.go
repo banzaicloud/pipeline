@@ -277,7 +277,9 @@ func (c *ACSKCluster) CreateCluster() error {
 	}
 
 	// create default storage class
-	err = createDefaultStorageClass(kubeClient, "alicloud/disk", storagev1.VolumeBindingWaitForFirstConsumer)
+	// TODO change this storagev1.VolumeBindingImmediate to storagev1.VolumeBindingWaitForFirstConsumer
+	// when Alibaba supports this feature
+	err = createDefaultStorageClass(kubeClient, "alicloud/disk", storagev1.VolumeBindingImmediate)
 	if err != nil {
 		return err
 	}
