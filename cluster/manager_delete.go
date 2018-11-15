@@ -25,6 +25,7 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/goph/emperror"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -133,7 +134,7 @@ func deleteUserNamespaces(kubeConfig []byte, logger *logrus.Entry) error {
 			}
 		}
 		if len(left) > 0 {
-			return fmt.Errorf("%d namespaces remained after deletion: %v", len(left), left)
+			return emperror.With(errors.Errorf("namespaces remained after deletion: %v", left), "namespaces", left)
 		}
 		return nil
 	}, 20, 30)
