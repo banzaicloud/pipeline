@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "3bff134f-679f-4878-bbc2-2296aa852109",
+		"_postman_id": "7f301cf5-a63c-4181-9a77-ea616af16783",
 		"name": "End2End TEST Organizations",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -6503,58 +6503,6 @@
 									"value": "{{orgId}}",
 									"description": "Organization identifier"
 								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Create organization",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"if (responseCode.code === 200) {",
-									"    tests[\"Response Code 200\"] = responseCode.code == 200;",
-									"",
-									"    pm.environment.set(\"timestampHeader\", new Date());",
-									"    var dataJSON = JSON.parse(responseBody);",
-									"    pm.environment.set(\"orgId\", dataJSON.id);",
-									"    tests[\"Org ID: \" + dataJSON.id] = true;",
-									"} else {",
-									"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
-									"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
-									"    console.warn(responseBody);",
-									"    postman.setNextRequest(null);",
-									"}",
-									""
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n\t\"name\": \"{{organizationName}}\"\n}"
-						},
-						"url": {
-							"raw": "{{url}}/api/v1/orgs",
-							"host": [
-								"{{url}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"orgs"
 							]
 						}
 					},

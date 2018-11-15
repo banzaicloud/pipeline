@@ -86,7 +86,6 @@ Class | Method | HTTP request | Description
 *InfoApi* | [**GetGoogleConfig**](docs/InfoApi.md#getgoogleconfig) | **Get** /api/v1/orgs/{orgId}/cloudinfo/google | Get all google config
 *InfoApi* | [**GetResourceGroup**](docs/InfoApi.md#getresourcegroup) | **Get** /api/v1/orgs/{orgId}/azure/resourcegroups | Get all resource groups
 *InfoApi* | [**GetSupportedClouds**](docs/InfoApi.md#getsupportedclouds) | **Get** /api/v1/orgs/{orgId}/cloudinfo | Get supported cloud types
-*OrganizationsApi* | [**CreateOrg**](docs/OrganizationsApi.md#createorg) | **Post** /api/v1/orgs | Create organization
 *OrganizationsApi* | [**GetOrg**](docs/OrganizationsApi.md#getorg) | **Get** /api/v1/orgs/{orgId} | Get organization
 *OrganizationsApi* | [**ListOrgs**](docs/OrganizationsApi.md#listorgs) | **Get** /api/v1/orgs | List organizations
 *OrganizationsApi* | [**SyncOrgs**](docs/OrganizationsApi.md#syncorgs) | **Put** /api/v1/orgs | Synchronize Github organizations
@@ -148,7 +147,6 @@ Class | Method | HTTP request | Description
  - [BaseError400](docs/BaseError400.md)
  - [BaseError500](docs/BaseError500.md)
  - [BasePostHook](docs/BasePostHook.md)
- - [Body](docs/Body.md)
  - [BucketInfo](docs/BucketInfo.md)
  - [BucketInfoSecret](docs/BucketInfoSecret.md)
  - [ChartNotFound](docs/ChartNotFound.md)
@@ -271,7 +269,6 @@ Class | Method | HTTP request | Description
  - [NodePoolsAzure](docs/NodePoolsAzure.md)
  - [NodePoolsGoogle](docs/NodePoolsGoogle.md)
  - [NodePoolsOracle](docs/NodePoolsOracle.md)
- - [OrganizationCreateResponse](docs/OrganizationCreateResponse.md)
  - [OrganizationListItemResponse](docs/OrganizationListItemResponse.md)
  - [OrganizationNotFound](docs/OrganizationNotFound.md)
  - [PodCondition](docs/PodCondition.md)
