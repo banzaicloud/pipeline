@@ -23,15 +23,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestAccessManager_AddDefaultPolicies(t *testing.T) {
-	adapter := gormadapter.NewAdapter("sqlite3", ":memory:")
+func TestAccessManager_DefaultPolicies(t *testing.T) {
+	adapter := gormadapter.NewAdapter("sqlite3", "file::memory:")
 	enforcer := NewEnforcer(adapter)
 	accessManager := NewAccessManager(enforcer, "")
 
 	accessManager.AddDefaultPolicies()
 
-	enforcer.AddRoleForUser("user", "default")
-	enforcer.AddRoleForUser("userVirtual", "defaultVirtual")
+	accessManager.AddDefaultRoleToUser("user")
+	accessManager.AddDefaultRoleToVirtualUser("userVirtual")
 
 	tests := []struct {
 		user           string
