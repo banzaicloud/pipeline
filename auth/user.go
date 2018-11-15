@@ -26,7 +26,6 @@ import (
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/drone/drone-go/drone"
-	"github.com/google/go-github/github"
 	"github.com/jinzhu/copier"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql" // blank import is used here for sql driver inclusion
@@ -251,16 +250,20 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 		return "", "", fmt.Errorf("failed to store Github access token: %s", err.Error())
 	}
 
-	githubOrgIDs, err := importGithubOrganizations(currentUser, context, githubExtraInfo.Token)
+	bus.accessManager.AddOrganizationPolicies(currentUser.Organizations[0].ID)
+	bus.accessManager.GrantOganizationAccessToUser(currentUser.IDString(), currentUser.Organizations[0].ID)
+	bus.events.OrganizationRegistered(currentUser.Organizations[0].ID)
+
+	githubOrgIDs, err := importGithubOrganizations(db, currentUser, githubExtraInfo.Token)
 
 	if err == nil {
-		orgids := []uint{currentUser.Organizations[0].ID}
-		orgids = append(orgids, githubOrgIDs...)
-		for _, orgID := range orgids {
-			bus.accessManager.AddOrganizationPolicies(orgID)
-			bus.accessManager.GrantOganizationAccessToUser(currentUser.IDString(), orgID)
+		for id, created := range githubOrgIDs {
+			bus.accessManager.AddOrganizationPolicies(id)
+			bus.accessManager.GrantOganizationAccessToUser(currentUser.IDString(), id)
 
-			bus.events.OrganizationRegistered(orgID)
+			if created {
+				bus.events.OrganizationRegistered(id)
+			}
 		}
 	}
 
@@ -331,66 +334,64 @@ func synchronizeDroneRepos(login string) {
 	}
 }
 
-func getGithubOrganizations(token string) ([]*Organization, error) {
-	httpClient := oauth2.NewClient(
-		context.Background(),
-		oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token}),
-	)
-	githubClient := github.NewClient(httpClient)
-
-	memberships, _, err := githubClient.Organizations.ListOrgMemberships(oauth2.NoContext, nil)
+func importGithubOrganizations(db *gorm.DB, currentUser *User, githubToken string) (map[uint]bool, error) {
+	orgs, err := getGithubOrganizations(githubToken)
 	if err != nil {
 		return nil, err
 	}
 
-	orgs := []*Organization{}
-	for _, membership := range memberships {
-		githubOrg := membership.GetOrganization()
-		org := Organization{Name: githubOrg.GetLogin(), GithubID: githubOrg.ID, Role: membership.GetRole()}
-		orgs = append(orgs, &org)
-	}
-	return orgs, nil
-}
+	orgIDs := make(map[uint]bool, len(orgs))
 
-func importGithubOrganizations(currentUser *User, context *auth.Context, githubToken string) ([]uint, error) {
+	tx := db.Begin()
+	for _, org := range orgs {
+		o := Organization{
+			Name:     org.name,
+			GithubID: &org.id,
+			Role:     org.role,
+		}
 
-	githubOrgs, err := getGithubOrganizations(githubToken)
-	if err != nil {
-		log.Info("Failed to list organizations", err)
-		githubOrgs = []*Organization{}
-	}
+		err := tx.Where(o).First(&o).Error
+		if err == nil {
+			orgIDs[o.ID] = false
 
-	orgids := []uint{}
+			continue
+		} else if !gorm.IsRecordNotFoundError(err) {
+			tx.Rollback()
 
-	tx := context.Auth.GetDB(context.Request).Begin()
-	{
-		for _, githubOrg := range githubOrgs {
-			err = tx.Where(&githubOrg).FirstOrCreate(githubOrg).Error
-			if err != nil {
-				tx.Rollback()
-				return nil, err
-			}
-			err = tx.Model(currentUser).Association("Organizations").Append(githubOrg).Error
-			if err != nil {
-				tx.Rollback()
-				return nil, err
-			}
-			userRoleInOrg := UserOrganization{UserID: currentUser.ID, OrganizationID: githubOrg.ID}
-			err = tx.Model(&UserOrganization{}).Where(userRoleInOrg).Update("role", githubOrg.Role).Error
-			if err != nil {
-				tx.Rollback()
-				return nil, err
-			}
-			orgids = append(orgids, githubOrg.ID)
+			return nil, errors.Wrap(err, "failed to check if organization exists")
+		}
+
+		err = tx.Where(o).Create(&o).Error
+		if err != nil {
+			tx.Rollback()
+
+			return nil, errors.Wrap(err, "failed to create organization")
+		}
+
+		orgIDs[o.ID] = true
+
+		err = tx.Model(currentUser).Association("Organizations").Append(o).Error
+		if err != nil {
+			tx.Rollback()
+
+			return nil, errors.Wrap(err, "failed to associate user with organization")
+		}
+
+		userRoleInOrg := UserOrganization{UserID: currentUser.ID, OrganizationID: o.ID}
+		err = tx.Model(&UserOrganization{}).Where(userRoleInOrg).Update("role", o.Role).Error
+		if err != nil {
+			tx.Rollback()
+
+			return nil, errors.Wrap(err, "failed to save user role in organization")
 		}
 	}
 
 	err = tx.Commit().Error
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to save organizations")
 	}
 
-	return orgids, nil
+	return orgIDs, nil
 }
 
 // GetOrganizationById returns an organization from database by ID

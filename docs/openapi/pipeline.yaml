@@ -9,57 +9,74 @@ info:
         name: Apache 2.0
         url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
 servers:
-    - url: http://localhost:9090
+    -
+        url: http://localhost:9090
 tags:
-    - name: clusters
-      description: Clusters realted funtions
-    - name: spotguides
-      description: Application spotguides
-    - name: deployments
-      description: Deployment related functions for a cluster
-    - name: profiles
-      description: Cluster profiles related functions
-    - name: auth
-      description: Auth related functions
-    - name: secrets
-      description: Secrets related functions
-    - name: organizations
-      description: Organizations related functions
-    - name: common
-      description: Common API functions
-    - name: users
-      description: Users related functions
-    - name: info
-      description: Cloud config related functions
-    - name: storage
-      description: Storage related functions
-    - name: hpa
-      description: Horizontal Pod Autoscaling related functions
-    - name: projects
-      description: Google projects related operations
-    - name: domain
-      description: Domain related information
+    -
+        name: clusters
+        description: Clusters realted funtions
+    -
+        name: spotguides
+        description: Application spotguides
+    -
+        name: deployments
+        description: Deployment related functions for a cluster
+    -
+        name: profiles
+        description: Cluster profiles related functions
+    -
+        name: auth
+        description: Auth related functions
+    -
+        name: secrets
+        description: Secrets related functions
+    -
+        name: organizations
+        description: Organizations related functions
+    -
+        name: common
+        description: Common API functions
+    -
+        name: users
+        description: Users related functions
+    -
+        name: info
+        description: Cloud config related functions
+    -
+        name: storage
+        description: Storage related functions
+    -
+        name: hpa
+        description: Horizontal Pod Autoscaling related functions
+    -
+        name: projects
+        description: Google projects related operations
+    -
+        name: domain
+        description: Domain related information
 
 paths:
     '/api/v1/orgs/{orgId}/domain':
         get:
             description: Return the base domain
             tags:
-            - domain
+                - domain
             operationId: GetDomain
             parameters:
-            - name: orgId
-              in: path
-              required: true
-              description: Organization identification
-              schema:
-                  type: integer
-            - name: clusterid
-              in: query
-              description: Cluster ID bounded domain name
-              schema:
-                  type: string
-                  default: false
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: clusterid
+                    in: query
+                    description: Cluster ID bounded domain name
+                    schema:
+                        type: string
+                        default: false
             responses:
                 '200':
                     description: GetDomainResponse
@@ -70,19 +87,21 @@ paths:
     '/api/v1/orgs/{orgId}/spotguides':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - spotguides
             summary: List spotguides
             description: List all available spotguides
             operationId: ListSpotguides
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
             responses:
                 '200':
                     description: Spotguide list
@@ -93,19 +112,21 @@ paths:
 
         post:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - spotguides
             summary: Launch spotguide
             description: Launch a spotguide
             operationId: LaunchSpotguide
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
             requestBody:
                 required: true
                 content:
@@ -118,18 +139,20 @@ paths:
 
         put:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - spotguides
             summary: Update spotguide repositories
             operationId: UpdateSpotguides
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
             responses:
                 '202':
                     description: Spotguides update
@@ -137,26 +160,29 @@ paths:
     '/api/v1/orgs/{orgId}/spotguides/{name}':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - spotguides
             summary: Get spotguide details
             description: Get details about specific spotguide
             operationId: GetSpotguideDetail
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: name
-                  in: path
-                  required: true
-                  description: Spotguide name
-                  schema:
-                      type: string
-                      example: banzaicloud/spotguide-nodejs-mongodb
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: name
+                    in: path
+                    required: true
+                    description: Spotguide name
+                    schema:
+                        type: string
+                        example: banzaicloud/spotguide-nodejs-mongodb
             responses:
                 '200':
                     description: Spotguide details
@@ -174,19 +200,21 @@ paths:
     '/api/v1/orgs/{orgId}/clusters':
         post:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - clusters
             summary: Create cluster
             description: Create a new K8S cluster in the cloud
             operationId: CreateCluster
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
             responses:
                 '202':
                     description: Cluster created successfully
@@ -235,19 +263,21 @@ paths:
                                             $ref: '#/components/schemas/CreateGKEProperties'
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - clusters
             summary: List clusters
             operationId: ListClusters
             description: Listing all the K8S clusters from the cloud
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
             responses:
                 '200':
                     description: All cluster listed
@@ -272,25 +302,28 @@ paths:
     '/api/v1/orgs/{orgId}/clusters/{id}':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - clusters
             summary: Get cluster status
             description: Getting cluster status
             operationId: GetCluster
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: id
-                  in: path
-                  description: Selected cluster identification (number)
-                  required: true
-                  schema:
-                      type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    description: Selected cluster identification (number)
+                    required: true
+                    schema:
+                        type: integer
             responses:
                 '200':
                     description: Getting cluster succeeded
@@ -319,25 +352,28 @@ paths:
 
         put:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - clusters
             summary: Update cluster
             description: Updating an existing K8S cluster
             operationId: UpdateCluster
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: id
-                  in: path
-                  description: Selected cluster identification (number)
-                  required: true
-                  schema:
-                      type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    description: Selected cluster identification (number)
+                    required: true
+                    schema:
+                        type: integer
             responses:
                 '202':
                     description: Cluster update accepted
@@ -368,31 +404,35 @@ paths:
 
         delete:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - clusters
             summary: Delete cluster
             description: Deleting a K8S cluster
             operationId: DeleteCluster
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: id
-                  in: path
-                  description: Selected cluster identification (number)
-                  required: true
-                  schema:
-                      type: integer
-                - name: force
-                  in: query
-                  description: Ignore errors during deletion
-                  schema:
-                      type: boolean
-                      default: false
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    description: Selected cluster identification (number)
+                    required: true
+                    schema:
+                        type: integer
+                -
+                    name: force
+                    in: query
+                    description: Ignore errors during deletion
+                    schema:
+                        type: boolean
+                        default: false
             responses:
                 '202':
                     description: Cluster deleted successfully
@@ -427,25 +467,28 @@ paths:
 
         head:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - clusters
             summary: Get cluster status
             operationId: GetClusterStatus
             description: Getting the K8S cluster status
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: id
-                  in: path
-                  required: true
-                  description: Selected cluster identification (number)
-                  schema:
-                      type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
             responses:
                 '200':
                     description: Cluster exists
@@ -459,25 +502,28 @@ paths:
     '/api/v1/orgs/{orgId}/clusters/{id}/details':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - clusters
             summary: Get cluster details
             description: Getting cluster details
             operationId: GetClusterDetails
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: id
-                  in: path
-                  description: Selected cluster identification (number)
-                  required: true
-                  schema:
-                      type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    description: Selected cluster identification (number)
+                    required: true
+                    schema:
+                        type: integer
             responses:
                 '200':
                     description: Getting cluster succeeded
@@ -507,25 +553,28 @@ paths:
     '/api/v1/orgs/{orgId}/clusters/{id}/pods':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - clusters
             summary: Get pod details
             description: Getting pod details
             operationId: GetPodDetails
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: id
-                  in: path
-                  description: Selected cluster identification (number)
-                  required: true
-                  schema:
-                      type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    description: Selected cluster identification (number)
+                    required: true
+                    schema:
+                        type: integer
             responses:
                 '200':
                     description: Getting cluster succeeded
@@ -555,25 +604,28 @@ paths:
     '/api/v1/orgs/{orgId}/clusters/{id}/posthooks':
         put:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - clusters
             summary: Run posthook functions
             operationId: ClusterPostHooks
             description: Run posthook functions
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: id
-                  in: path
-                  required: true
-                  description: Selected cluster identification (number)
-                  schema:
-                      type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
             responses:
                 '200':
                     description: "Posthooks started"
@@ -588,25 +640,28 @@ paths:
     '/api/v1/orgs/{orgId}/clusters/{id}/config':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - clusters
             summary: Get a cluster config
             operationId: GetClusterConfig
             description: Getting a K8S cluster config file
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: id
-                  in: path
-                  required: true
-                  description: Selected cluster identification (number)
-                  schema:
-                      type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
             responses:
                 '200':
                     description: "Getting config file succeeded"
@@ -636,25 +691,28 @@ paths:
     '/api/v1/orgs/{orgId}/clusters/{id}/apiendpoint':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - clusters
             summary: Get API endpoint
             operationId: GetAPIEndpoint
             description: Get API endpoint
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: id
-                  in: path
-                  required: true
-                  description: Selected cluster identification (number)
-                  schema:
-                      type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
             responses:
                 '200':
                     description: "API endpoint showed"
@@ -685,25 +743,28 @@ paths:
     '/api/v1/orgs/{orgId}/clusters/{id}/monitoring':
         post:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - clusters
             summary: Update monitoring
             operationId: UpdateMonitoring
             description: Update monitoring
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: id
-                  in: path
-                  required: true
-                  description: Selected cluster identification (number)
-                  schema:
-                      type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
             responses:
                 '200':
                     description: "Monitoring updated"
@@ -716,31 +777,35 @@ paths:
     '/api/v1/orgs/{orgId}/clusters/{id}/endpoints':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - clusters
             summary: List service public endpoints
             operationId: ListEndpoints
             description: List service public endpoints
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: id
-                  in: path
-                  required: true
-                  description: Selected cluster identification (number)
-                  schema:
-                      type: integer
-                - name: releaseName
-                  in: query
-                  required: false
-                  description: Selected deployment release name
-                  schema:
-                      type: string
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
+                -
+                    name: releaseName
+                    in: query
+                    required: false
+                    description: Selected deployment release name
+                    schema:
+                        type: string
             responses:
                 '200':
                     description: "Endpoints listed"
@@ -776,25 +841,28 @@ paths:
     '/api/v1/orgs/{orgId}/clusters/{id}/nodes':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - clusters
             summary: List cluser nodes
             operationId: ListNodes
             description: List cluser nodes
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: id
-                  in: path
-                  required: true
-                  description: Selected cluster identification (number)
-                  schema:
-                      type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
             responses:
                 '200':
                     description: "Nodes listed"
@@ -831,25 +899,28 @@ paths:
     '/api/v1/orgs/{orgId}/clusters/{id}/helminit':
         post:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - clusters
             summary: Initialize Helm
             operationId: HelmInit
             description: Initialize helm in the cluster
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: id
-                  in: path
-                  required: true
-                  description: Selected cluster identification (number)
-                  schema:
-                      type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
             responses:
                 '201':
                     description: "Helm initialized int the cluster"
@@ -885,31 +956,35 @@ paths:
     '/api/v1/orgs/{orgId}/clusters/{id}/secrets':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - clusters
             summary: List secrets which belongs to cluster
             operationId: ListClusterSecrets
             description: List secrets which belongs to cluster
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: id
-                  in: path
-                  required: true
-                  description: Selected cluster identification (number)
-                  schema:
-                      type: integer
-                - name: releaseName
-                  in: query
-                  required: false
-                  description: Selected deployment release name
-                  schema:
-                      type: string
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
+                -
+                    name: releaseName
+                    in: query
+                    required: false
+                    description: Selected deployment release name
+                    schema:
+                        type: string
             responses:
                 '200':
                     description: "Secrets listed"
@@ -946,25 +1021,28 @@ paths:
                                 $ref: '#/components/schemas/BaseError_500'
         post:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - clusters
             summary: Install secrets into cluster
             operationId: InstallSecrets
             description: Install secrets into cluster
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: id
-                  in: path
-                  required: true
-                  description: Selected cluster identification (number)
-                  schema:
-                      type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
             responses:
                 '200':
                     description: "Secrets are installed into cluster"
@@ -1002,31 +1080,35 @@ paths:
     '/api/v1/orgs/{orgId}/clusters/{id}/secrets/{secretName}':
         post:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - clusters
             summary: Install a particular secret into a cluster with optional remapping
             operationId: InstallSecret
             description: Install a particular secret into a cluster
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: id
-                  in: path
-                  required: true
-                  description: Selected cluster identification (number)
-                  schema:
-                      type: integer
-                - name: secretName
-                  in: path
-                  required: true
-                  description: Secret name as it will be seen in the cluster
-                  schema:
-                      type: string
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
+                -
+                    name: secretName
+                    in: path
+                    required: true
+                    description: Secret name as it will be seen in the cluster
+                    schema:
+                        type: string
 
             requestBody:
                 required: true
@@ -1069,31 +1151,35 @@ paths:
 
         patch:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - clusters
             summary: Merge a particular secret with an existing one with optional remapping
             operationId: MergeSecret
             description: Merge a particular secret with an existing one
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: id
-                  in: path
-                  required: true
-                  description: Selected cluster identification (number)
-                  schema:
-                      type: integer
-                - name: secretName
-                  in: path
-                  required: true
-                  description: Secret name as it will be seen in the cluster
-                  schema:
-                      type: string
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
+                -
+                    name: secretName
+                    in: path
+                    required: true
+                    description: Secret name as it will be seen in the cluster
+                    schema:
+                        type: string
 
             requestBody:
                 required: true
@@ -1131,25 +1217,28 @@ paths:
     '/api/v1/orgs/{orgId}/clusters/{id}/scanlog':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - scanlog
             operationId: ListScans
             summary: List scans
             description: List scans
             parameters:
-                - name: id
-                  in: path
-                  required: true
-                  description: Selected cluster identification (number)
-                  schema:
-                      type: integer
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
             responses:
                 '200':
                     description: Scan listing
@@ -1161,31 +1250,35 @@ paths:
     '/api/v1/orgs/{orgId}/clusters/{id}/scanlog/{releaseName}':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - scanlog
             operationId: ListScansByRelease
             summary: List scans by release
             description: List scans by release
             parameters:
-                - name: id
-                  in: path
-                  required: true
-                  description: Selected cluster identification (number)
-                  schema:
-                      type: integer
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: releaseName
-                  in: path
-                  required: true
-                  description: release name identification
-                  schema:
-                      type: string
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: releaseName
+                    in: path
+                    required: true
+                    description: release name identification
+                    schema:
+                        type: string
             responses:
                 '200':
                     description: Scan listing
@@ -1197,31 +1290,35 @@ paths:
     '/api/v1/orgs/{orgId}/clusters/{id}/policies':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - policies
             operationId: ListPolicies
             summary: List policies
             description: List all saved policy bundles
             parameters:
-                - name: id
-                  in: path
-                  required: true
-                  description: Selected cluster identification (number)
-                  schema:
-                      type: integer
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: detail
-                  in: query
-                  schema:
-                      type: boolean
-                  required: false
-                  description: Include policy bundle detail in the form of the full bundle content for each entry
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: detail
+                    in: query
+                    schema:
+                        type: boolean
+                    required: false
+                    description: Include policy bundle detail in the form of the full bundle content for each entry
             responses:
                 '200':
                     description: Policy listing
@@ -1236,18 +1333,20 @@ paths:
             summary: Add a new policy
             description: Adds a new policy bundle to the system
             parameters:
-                - name: id
-                  in: path
-                  required: true
-                  description: Selected cluster identification (number)
-                  schema:
-                      type: integer
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
 
             requestBody:
                 required: true
@@ -1277,29 +1376,33 @@ paths:
             description: Get the policy bundle content
             summary: Get specific policy
             parameters:
-                - name: id
-                  in: path
-                  required: true
-                  description: Selected cluster identification (number)
-                  schema:
-                      type: integer
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: policyId
-                  in: path
-                  schema:
-                      type: string
-                  required: True
-                - name: detail
-                  in: query
-                  schema:
-                      type: boolean
-                  required: false
-                  description: Include policy bundle detail in the form of the full bundle content for each entry
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: policyId
+                    in: path
+                    schema:
+                        type: string
+                    required: True
+                -
+                    name: detail
+                    in: query
+                    schema:
+                        type: boolean
+                    required: false
+                    description: Include policy bundle detail in the form of the full bundle content for each entry
             responses:
                 200:
                     description: A list with a single fetched policy bundle record
@@ -1320,29 +1423,33 @@ paths:
             description: Update/replace and existing policy
             summary: Update policy
             parameters:
-                - name: id
-                  in: path
-                  required: true
-                  description: Selected cluster identification (number)
-                  schema:
-                      type: integer
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: policyId
-                  in: path
-                  schema:
-                      type: string
-                  required: True
-                - name: active
-                  in: query
-                  schema:
-                      type: boolean
-                  required: false
-                  description: Mark policy as active
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: policyId
+                    in: path
+                    schema:
+                        type: string
+                    required: True
+                -
+                    name: active
+                    in: query
+                    schema:
+                        type: boolean
+                    required: false
+                    description: Mark policy as active
             requestBody:
                 required: true
                 content:
@@ -1369,23 +1476,26 @@ paths:
             description: Delete the specified policy
             summary: Delete policy
             parameters:
-                - name: id
-                  in: path
-                  required: true
-                  description: Selected cluster identification (number)
-                  schema:
-                      type: integer
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: policyId
-                  in: path
-                  required: true
-                  schema:
-                      type: string
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: policyId
+                    in: path
+                    required: true
+                    schema:
+                        type: string
             responses:
                 200:
                     description: Delete success
@@ -1406,19 +1516,21 @@ paths:
     '/api/v1/orgs/{orgId}/helm/repos':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - helm
             summary: List repositories
             operationId: HelmInit
             description: Listing Helm repositories in the cluster
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
             responses:
                 '200':
                     description: "Repositories listed"
@@ -1447,19 +1559,21 @@ paths:
 
         post:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - helm
             summary: Add Repo
             operationId: HelmReposAdd
             description: Add new Helm repository
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
             responses:
                 '200':
                     description: "resource successfully added."
@@ -1495,25 +1609,28 @@ paths:
     '/api/v1/orgs/{orgId}/helm/repos/{repoName}':
         delete:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - helm
             summary: Delete Repo
             operationId: HelmReposDelete
             description: Delete  Helm repository
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: repoName
-                  in: path
-                  required: true
-                  description: Helm repo name
-                  schema:
-                      type: string
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: repoName
+                    in: path
+                    required: true
+                    description: Helm repo name
+                    schema:
+                        type: string
             responses:
                 '200':
                     description: "resource deleted successfully"
@@ -1542,25 +1659,28 @@ paths:
 
         put:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - helm
             summary: Modify Repo
             operationId: HelmReposModify
             description: Modify Helm repository
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: repoName
-                  in: path
-                  required: true
-                  description: Helm repo name
-                  schema:
-                      type: string
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: repoName
+                    in: path
+                    required: true
+                    description: Helm repo name
+                    schema:
+                        type: string
             requestBody:
                 required: true
                 content:
@@ -1592,31 +1712,36 @@ paths:
                         application/json:
                             schema:
                                 oneOf:
-                                    - $ref: '#/components/schemas/ClusterNotFound'
-                                    - $ref: '#/components/schemas/RepoNotFound'
+                                    -
+                                        $ref: '#/components/schemas/ClusterNotFound'
+                                    -
+                                        $ref: '#/components/schemas/RepoNotFound'
 
     '/api/v1/orgs/{orgId}/helm/repos/{repoName}/update':
         put:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - helm
             summary: Update Repo
             operationId: HelmReposUpdate
             description: Modify Helm repository
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: repoName
-                  in: path
-                  required: true
-                  description: Helm repo name
-                  schema:
-                      type: string
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: repoName
+                    in: path
+                    required: true
+                    description: Helm repo name
+                    schema:
+                        type: string
             responses:
                 '200':
                     description: "resource modified successfully"
@@ -1642,43 +1767,50 @@ paths:
                         application/json:
                             schema:
                                 oneOf:
-                                    - $ref: '#/components/schemas/ClusterNotFound'
-                                    - $ref: '#/components/schemas/RepoNotFound'
+                                    -
+                                        $ref: '#/components/schemas/ClusterNotFound'
+                                    -
+                                        $ref: '#/components/schemas/RepoNotFound'
 
     '/api/v1/orgs/{orgId}/helm/charts/':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - helm
             summary: Chart List
             operationId: HelmChartList
             description: Get available Helm chart's list
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: name
-                  in: query
-                  required: false
-                  description: Chart Name
-                  schema:
-                      type: string
-                - name: repo
-                  in: query
-                  required: false
-                  description: Repo Name
-                  schema:
-                      type: string
-                - name: version
-                  in: query
-                  required: false
-                  description: Chart version (latest)
-                  schema:
-                      type: string
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: name
+                    in: query
+                    required: false
+                    description: Chart Name
+                    schema:
+                        type: string
+                -
+                    name: repo
+                    in: query
+                    required: false
+                    description: Repo Name
+                    schema:
+                        type: string
+                -
+                    name: version
+                    in: query
+                    required: false
+                    description: Chart version (latest)
+                    schema:
+                        type: string
 
             responses:
                 '200':
@@ -1710,37 +1842,42 @@ paths:
     '/api/v1/orgs/{orgId}/helm/chart/{repoName}/{chartName}':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - helm
             summary: Chart details
             operationId: HelmChartDetails
             description: Get helm chart details
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: repoName
-                  in: path
-                  required: true
-                  description: Chart repository name
-                  schema:
-                      type: string
-                - name: chartName
-                  in: path
-                  required: true
-                  description: Chart Name
-                  schema:
-                      type: string
-                - name: version
-                  in: query
-                  required: false
-                  description: Chart version
-                  schema:
-                      type: string
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: repoName
+                    in: path
+                    required: true
+                    description: Chart repository name
+                    schema:
+                        type: string
+                -
+                    name: chartName
+                    in: path
+                    required: true
+                    description: Chart Name
+                    schema:
+                        type: string
+                -
+                    name: version
+                    in: query
+                    required: false
+                    description: Chart version
+                    schema:
+                        type: string
 
             responses:
                 '200':
@@ -1773,30 +1910,34 @@ paths:
     '/api/v1/orgs/{orgId}/clusters/{id}/deployments':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - deployments
             summary: List deployments
             operationId: ListDeployments
             description: Listing Helm deployments
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: id
-                  in: path
-                  required: true
-                  description: Selected cluster identification (number)
-                  schema:
-                      type: integer
-                - name: tag
-                  in: query
-                  description: Deployment tag to filter for
-                  schema:
-                      type: string
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
+                -
+                    name: tag
+                    in: query
+                    description: Deployment tag to filter for
+                    schema:
+                        type: string
             responses:
                 '200':
                     description: "Deployments listed"
@@ -1824,25 +1965,28 @@ paths:
                                 $ref: '#/components/schemas/ClusterNotFound'
         post:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - deployments
             summary: Create a Helm deployment
             operationId: CreateDeployment
             description: Creating a Helm deployment
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: id
-                  in: path
-                  required: true
-                  description: Selected cluster identification (number)
-                  schema:
-                      type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
             requestBody:
                 required: true
                 content:
@@ -1876,25 +2020,28 @@ paths:
                                 $ref: '#/components/schemas/ClusterNotFound'
         head:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - deployments
             summary: Get tiller status
             operationId: GetTillerStatus
             description: Checking if tiller ready to accept deployments
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: id
-                  in: path
-                  required: true
-                  description: Selected cluster identification (number)
-                  schema:
-                      type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
             responses:
                 '200':
                     description: "Tiller is available"
@@ -1908,25 +2055,28 @@ paths:
     '/api/v1/orgs/{orgId}/clusters/{id}/whitelists':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - whitelist
             summary: List Whitelisted deployments
             operationId: ListWhitelists
             description: List Whitelisted deployments
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: id
-                  in: path
-                  required: true
-                  description: Selected cluster identification (number)
-                  schema:
-                      type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
             responses:
                 '200':
                     description: "List Whitelists"
@@ -1936,25 +2086,28 @@ paths:
                                 $ref: '#/components/schemas/ReleaseWhiteList'
         post:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - whitelist
             summary: Create Whitelisted deployment
             operationId: CreateWhitelists
             description: Create Whitelisted deployment
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: id
-                  in: path
-                  required: true
-                  description: Selected cluster identification (number)
-                  schema:
-                      type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
             requestBody:
                 required: true
                 content:
@@ -1968,31 +2121,35 @@ paths:
     '/api/v1/orgs/{orgId}/clusters/{id}/whitelists/{name}':
         delete:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - whitelist
             summary: Delete Whitelisted deployment
             operationId: DeleteWhitelist
             description: Delete Whitelisted deployment
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: id
-                  in: path
-                  required: true
-                  description: Selected cluster identification (number)
-                  schema:
-                      type: integer
-                - name: name
-                  in: path
-                  required: true
-                  description: Selected whitelist identification
-                  schema:
-                      type: string
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
+                -
+                    name: name
+                    in: path
+                    required: true
+                    description: Selected whitelist identification
+                    schema:
+                        type: string
             responses:
                 '200':
                     description: "Whitelist deleted"
@@ -2000,31 +2157,35 @@ paths:
     '/api/v1/orgs/{orgId}/clusters/{id}/deployments/{name}':
         delete:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - deployments
             summary: Delete deployment
             operationId: DeleteDeployment
             description: Deleting a Helm deployment
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: id
-                  in: path
-                  required: true
-                  description: Selected cluster identification (number)
-                  schema:
-                      type: integer
-                - name: name
-                  in: path
-                  required: true
-                  description: Deployment name
-                  schema:
-                      type: string
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
+                -
+                    name: name
+                    in: path
+                    required: true
+                    description: Deployment name
+                    schema:
+                        type: string
             responses:
                 '200':
                     description: "Deployment deleted successfully"
@@ -2053,31 +2214,35 @@ paths:
 
         put:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - deployments
             summary: Update deployment
             operationId: UpdateDeployment
             description: Updating a Helm deployment
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: id
-                  in: path
-                  required: true
-                  description: Selected cluster identification (number)
-                  schema:
-                      type: integer
-                - name: name
-                  in: path
-                  required: true
-                  description: Deployment name
-                  schema:
-                      type: string
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
+                -
+                    name: name
+                    in: path
+                    required: true
+                    description: Deployment name
+                    schema:
+                        type: string
             requestBody:
                 required: true
                 content:
@@ -2112,31 +2277,35 @@ paths:
 
         head:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - deployments
             summary: Check deployment status
             operationId: HelmDeploymentStatus
             description: Checking the status of a deployment through the Helm client API
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: id
-                  in: path
-                  required: true
-                  description: Selected cluster identification (number)
-                  schema:
-                      type: integer
-                - name: name
-                  in: path
-                  required: true
-                  description: Deployment name
-                  schema:
-                      type: string
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
+                -
+                    name: name
+                    in: path
+                    required: true
+                    description: Deployment name
+                    schema:
+                        type: string
             responses:
                 '200':
                     description: "Deployment status is OK"
@@ -2148,37 +2317,42 @@ paths:
                     description: "Deployment not found"
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - deployments
             summary: Get deployment details
             operationId: GetDeployment
             description: Retrieves the details of a deployment
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: id
-                  in: path
-                  required: true
-                  description: Selected cluster identification (number)
-                  schema:
-                      type: integer
-                - name: name
-                  in: path
-                  required: true
-                  description: Deployment name
-                  schema:
-                      type: string
-                - name: tag
-                  in: query
-                  required: false
-                  description: Deployment tag
-                  schema:
-                      type: string
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
+                -
+                    name: name
+                    in: path
+                    required: true
+                    description: Deployment name
+                    schema:
+                        type: string
+                -
+                    name: tag
+                    in: query
+                    required: false
+                    description: Deployment tag
+                    schema:
+                        type: string
             responses:
                 '200':
                     description: "Deployment details"
@@ -2208,37 +2382,42 @@ paths:
     '/api/v1/orgs/{orgId}/clusters/{id}/deployments/{name}/resources':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - deployments
             summary: Get deployment K8s resources
             operationId: GetDeploymentResource
             description: Retrieves the K8s resources of a deployment
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: id
-                  in: path
-                  required: true
-                  description: Selected cluster identification (number)
-                  schema:
-                      type: integer
-                - name: name
-                  in: path
-                  required: true
-                  description: Deployment name
-                  schema:
-                      type: string
-                - name: resourceTypes
-                  in: query
-                  required: false
-                  description: K8s reource type
-                  schema:
-                      type: string
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
+                -
+                    name: name
+                    in: path
+                    required: true
+                    description: Deployment name
+                    schema:
+                        type: string
+                -
+                    name: resourceTypes
+                    in: query
+                    required: false
+                    description: K8s reource type
+                    schema:
+                        type: string
             responses:
                 '200':
                     description: "Deployment resources"
@@ -2268,31 +2447,35 @@ paths:
     '/api/v1/orgs/{orgId}/clusters/{id}/deployments/{name}/images':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - deployments
             summary: Get deployment K8s images
             operationId: GetDeploymentImages
             description: Retrieves the K8s images of a deployment
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: id
-                  in: path
-                  required: true
-                  description: Selected cluster identification (number)
-                  schema:
-                      type: integer
-                - name: name
-                  in: path
-                  required: true
-                  description: Deployment name
-                  schema:
-                      type: string
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
+                -
+                    name: name
+                    in: path
+                    required: true
+                    description: Deployment name
+                    schema:
+                        type: string
             responses:
                 '200':
                     description: "Deployment images"
@@ -2322,25 +2505,28 @@ paths:
     '/api/v1/orgs/{orgId}/clusters/{id}/hpa':
         put:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - hpa
             summary: Create / Update Deployment Scaling
             operationId: UpdateDeploymentAutoscaling
             description: Create / update scaling info for a Helm deployment
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: id
-                  in: path
-                  required: true
-                  description: Selected cluster identification (number)
-                  schema:
-                      type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
             requestBody:
                 required: true
                 content:
@@ -2371,31 +2557,35 @@ paths:
 
         delete:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - hpa
             summary: Delete Deployment Scaling
             operationId: DeleteDeploymentAutoscaling
             description: Delete scaling info for a Helm deployment
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: id
-                  in: path
-                  required: true
-                  description: Selected cluster identification (number)
-                  schema:
-                      type: integer
-                - name: scaleTarget
-                  in: query
-                  required: true
-                  description: Deployment or StatefulSet name
-                  schema:
-                      type: string
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
+                -
+                    name: scaleTarget
+                    in: query
+                    required: true
+                    description: Deployment or StatefulSet name
+                    schema:
+                        type: string
             responses:
                 '201':
                     description: "Deployment autoscaling updated successfully"
@@ -2420,31 +2610,35 @@ paths:
 
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - hpa
             summary: Get Deployment Scaling Info
             operationId: GetDeploymentAutoscaling
             description: Get scaling info for a Helm deployment
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: id
-                  in: path
-                  required: true
-                  description: Selected cluster identification (number)
-                  schema:
-                      type: integer
-                - name: scaleTarget
-                  in: query
-                  required: true
-                  description: Deployment or StatefulSet name
-                  schema:
-                      type: string
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
+                -
+                    name: scaleTarget
+                    in: query
+                    required: true
+                    description: Deployment or StatefulSet name
+                    schema:
+                        type: string
             responses:
                 '200':
                     description: "Deployment autoscaling info"
@@ -2474,25 +2668,28 @@ paths:
     '/api/v1/orgs/{orgId}/profiles/cluster/{distribution}':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - profiles
             summary: List cluster profiles
             operationId: ListProfiles
             description: Listing cluster profiles by cloud type
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: distribution
-                  in: path
-                  required: true
-                  description: Distribution type
-                  schema:
-                      type: string
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: distribution
+                    in: path
+                    required: true
+                    description: Distribution type
+                    schema:
+                        type: string
             responses:
                 '200':
                     description: "Profiles listed"
@@ -2516,19 +2713,21 @@ paths:
     '/api/v1/orgs/{orgId}/profiles/cluster':
         post:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - profiles
             summary: Add cluster profiles
             operationId: AddProfiles
             description: Add cluster profile
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
             requestBody:
                 required: true
                 content:
@@ -2553,19 +2752,21 @@ paths:
 
         put:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - profiles
             summary: Update cluster profiles
             operationId: UpdateProfiles
             description: Update an existing cluster profile
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
             requestBody:
                 required: true
                 content:
@@ -2603,31 +2804,35 @@ paths:
     '/api/v1/orgs/{orgId}/profiles/cluster/{distribution}/{name}':
         delete:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - profiles
             summary: Delete cluster profiles
             operationId: DeleteProfiles
             description: Delete cluster profiles by cloud type and name
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: distribution
-                  in: path
-                  required: true
-                  description: Distribution type
-                  schema:
-                      type: string
-                - name: name
-                  in: path
-                  required: true
-                  description: Cluster profile name
-                  schema:
-                      type: string
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: distribution
+                    in: path
+                    required: true
+                    description: Distribution type
+                    schema:
+                        type: string
+                -
+                    name: name
+                    in: path
+                    required: true
+                    description: Cluster profile name
+                    schema:
+                        type: string
             responses:
                 '201':
                     description: "Cluster profile deleted successfully"
@@ -2659,7 +2864,8 @@ paths:
     /api/v1/tokens:
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - auth
             summary: List all API tokens
@@ -2688,7 +2894,8 @@ paths:
                                 $ref: '#/components/schemas/BaseError_500'
         post:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - auth
             summary: Create token
@@ -2723,20 +2930,22 @@ paths:
     /api/v1/tokens/{tokenId}:
         delete:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - auth
             summary: Delete an API token
             operationId: DeleteToken
             description: Delete an API token
             parameters:
-                - name: tokenId
-                  in: path
-                  required: true
-                  description: Token identification
-                  schema:
-                      type: string
-                      example: a4358708-c525-4c78-89c2-c1cbe0f3f76c
+                -
+                    name: tokenId
+                    in: path
+                    required: true
+                    description: Token identification
+                    schema:
+                        type: string
+                        example: a4358708-c525-4c78-89c2-c1cbe0f3f76c
             responses:
                 '204':
                     description: Token deleted successfully
@@ -2756,41 +2965,46 @@ paths:
     '/api/v1/orgs/{orgId}/secrets':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - secrets
             summary: List secrets
             operationId: GetSecrets
             description: Listing secrets
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: type
-                  in: query
-                  required: false
-                  description: Secret's type to filter with
-                  schema:
-                      type: string
-                      enum: [amazon, azure, google, kubernetes, generic, tls, ssh]
-                - name: tags
-                  in: query
-                  required: false
-                  description: The selected tag to filter with
-                  schema:
-                      type: array
-                      items:
-                          type: string
-                      example: [ "release:pipeline-monitoring" ]
-                - name: values
-                  in: query
-                  required: false
-                  description: Marks if to present secret values or just the keys
-                  schema:
-                      type: boolean
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: type
+                    in: query
+                    required: false
+                    description: Secret's type to filter with
+                    schema:
+                        type: string
+                        enum: [amazon, azure, google, kubernetes, generic, tls, ssh]
+                -
+                    name: tags
+                    in: query
+                    required: false
+                    description: The selected tag to filter with
+                    schema:
+                        type: array
+                        items:
+                            type: string
+                        example: [ "release:pipeline-monitoring" ]
+                -
+                    name: values
+                    in: query
+                    required: false
+                    description: Marks if to present secret values or just the keys
+                    schema:
+                        type: boolean
             responses:
                 '200':
                     description: Secrets listed
@@ -2814,25 +3028,28 @@ paths:
                                 $ref: '#/components/schemas/Unauthorized'
         post:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - secrets
             summary: Add secrets
             operationId: AddSecrets
             description: Adding secrets
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: validate
-                  in: query
-                  required: false
-                  description: validation is skipped or not
-                  schema:
-                      type: boolean
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: validate
+                    in: query
+                    required: false
+                    description: validation is skipped or not
+                    schema:
+                        type: boolean
             requestBody:
                 required: true
                 content:
@@ -2867,7 +3084,8 @@ paths:
     '/api/v1/allowed/secrets':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - secrets
             summary: List allowed secret types
@@ -2890,19 +3108,21 @@ paths:
     '/api/v1/allowed/secrets/{type}':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - secrets
             summary: List required keys
             operationId: AllowedSecretsTypesKeys
             description: List required keys in the given secret type
             parameters:
-                - name: type
-                  in: path
-                  required: true
-                  description:  Secret type
-                  schema:
-                      type: string
+                -
+                    name: type
+                    in: path
+                    required: true
+                    description:  Secret type
+                    schema:
+                        type: string
             responses:
                 '200':
                     description: Required keys listed
@@ -2926,25 +3146,28 @@ paths:
     '/api/v1/orgs/{orgId}/secrets/{secretId}':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - secrets
             summary: Get secret
             operationId: GetSecret
             description: Get secret
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: secretId
-                  in: path
-                  required: true
-                  description: Secret identification
-                  schema:
-                      type: string
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: secretId
+                    in: path
+                    required: true
+                    description: Secret identification
+                    schema:
+                        type: string
             responses:
                 '200':
                     description: Secret returned successfully
@@ -2978,31 +3201,35 @@ paths:
                                 $ref: '#/components/schemas/BaseError_500'
         put:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - secrets
             summary: Update secrets
             operationId: UpdateSecrets
             description: Update secrets
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: secretId
-                  in: path
-                  required: true
-                  description: Secret identification
-                  schema:
-                      type: string
-                - name: validate
-                  in: query
-                  required: false
-                  description: validation is skipped or not
-                  schema:
-                      type: boolean
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: secretId
+                    in: path
+                    required: true
+                    description: Secret identification
+                    schema:
+                        type: string
+                -
+                    name: validate
+                    in: query
+                    required: false
+                    description: validation is skipped or not
+                    schema:
+                        type: boolean
             requestBody:
                 required: true
                 content:
@@ -3048,25 +3275,28 @@ paths:
                                 $ref: '#/components/schemas/BaseError_500'
         delete:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - secrets
             summary: Delete secrets
             operationId: DeleteSecrets
             description: Deleting secrets
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: secretId
-                  in: path
-                  required: true
-                  description: Secret identification
-                  schema:
-                      type: string
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: secretId
+                    in: path
+                    required: true
+                    description: Secret identification
+                    schema:
+                        type: string
             responses:
                 '204':
                     description: Secret deleted successfully
@@ -3092,25 +3322,28 @@ paths:
     '/api/v1/orgs/{orgId}/secrets/{secretId}/validate':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - secrets
             summary: Validate secret
             operationId: ValidateSecret
             description: Validate secret
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: secretId
-                  in: path
-                  required: true
-                  description: Secret identification
-                  schema:
-                      type: string
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: secretId
+                    in: path
+                    required: true
+                    description: Secret identification
+                    schema:
+                        type: string
             responses:
                 '200':
                     description: Valid secret
@@ -3143,19 +3376,21 @@ paths:
     '/api/v1/orgs/{orgId}':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - organizations
             summary: Get organization
             operationId: GetOrg
             description: Getting organization
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
             responses:
                 '200':
                     description: "Organization getting successfully"
@@ -3185,7 +3420,8 @@ paths:
     '/api/v1/orgs':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - organizations
             summary: List organizations
@@ -3214,7 +3450,8 @@ paths:
                                 $ref: '#/components/schemas/Unauthorized'
         post:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - organizations
             summary: Create organization
@@ -3256,6 +3493,30 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/BaseError_500'
 
+        put:
+            security:
+                -
+                    bearerAuth: []
+            tags:
+                - organizations
+            summary: Synchronize Github organizations
+            operationId: SyncOrgs
+            responses:
+                '200':
+                    description: "Organizations synchronized successfully"
+
+                '401':
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Unauthorized'
+                '500':
+                    description: Internal server error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BaseError_500'
     '/api':
         get:
             tags:
@@ -3280,19 +3541,21 @@ paths:
     '/api/v1/orgs/{orgId}/users':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - users
             summary: List users
             operationId: ListUsers
             description: Listing users
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
             responses:
                 '200':
                     description: "Users listed"
@@ -3304,25 +3567,28 @@ paths:
     '/api/v1/orgs/{orgId}/users/{userId}':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - users
             summary: Get user
             operationId: GetUsers
             description: Getting user
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: userId
-                  in: path
-                  required: true
-                  description: User identification
-                  schema:
-                      type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: userId
+                    in: path
+                    required: true
+                    description: User identification
+                    schema:
+                        type: integer
             responses:
                 '200':
                     description: "Getting user succeeded"
@@ -3334,19 +3600,21 @@ paths:
     '/api/v1/orgs/{orgId}/cloudinfo':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - info
             summary: Get supported cloud types
             operationId: GetSupportedClouds
             description: Get supported cloud types
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
             responses:
                 '200':
                     description: "Supported clouds listed"
@@ -3364,44 +3632,50 @@ paths:
     '/api/v1/orgs/{orgId}/cloudinfo/amazon':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - info
             summary: Get all amazon config
             operationId: GetAmazonConfig
             description: Get all amazon config
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: secretId
-                  in: query
-                  required: true
-                  description: Secret identifier
-                  schema:
-                      type: string
-                - name: fields
-                  in: query
-                  required: true
-                  description: Filter fields
-                  schema:
-                      type: string
-                      enum: ["location", "image", "instanceType"]
-                - name: tags
-                  in: query
-                  required: true
-                  description: Tags filter
-                  schema:
-                      type: string
-                - name: location
-                  in: query
-                  required: true
-                  description: Location filter
-                  schema:
-                      type: string
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: secretId
+                    in: query
+                    required: true
+                    description: Secret identifier
+                    schema:
+                        type: string
+                -
+                    name: fields
+                    in: query
+                    required: true
+                    description: Filter fields
+                    schema:
+                        type: string
+                        enum: ["location", "image", "instanceType"]
+                -
+                    name: tags
+                    in: query
+                    required: true
+                    description: Tags filter
+                    schema:
+                        type: string
+                -
+                    name: location
+                    in: query
+                    required: true
+                    description: Location filter
+                    schema:
+                        type: string
             responses:
                 '200':
                     description: "Amazon config listed"
@@ -3425,38 +3699,43 @@ paths:
     '/api/v1/orgs/{orgId}/cloudinfo/azure':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - info
             summary: Get all azure config
             operationId: GetAzureConfig
             description: Get all azure config
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: secretId
-                  in: query
-                  required: true
-                  description: Secret identifier
-                  schema:
-                      type: string
-                - name: fields
-                  in: query
-                  required: true
-                  description: Filter fields
-                  schema:
-                      type: string
-                      enum: ["location", "k8sVersion", "instanceType"]
-                - name: location
-                  in: query
-                  required: true
-                  description: Location filter
-                  schema:
-                      type: string
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: secretId
+                    in: query
+                    required: true
+                    description: Secret identifier
+                    schema:
+                        type: string
+                -
+                    name: fields
+                    in: query
+                    required: true
+                    description: Filter fields
+                    schema:
+                        type: string
+                        enum: ["location", "k8sVersion", "instanceType"]
+                -
+                    name: location
+                    in: query
+                    required: true
+                    description: Location filter
+                    schema:
+                        type: string
             responses:
                 '200':
                     description: "Azure config listed"
@@ -3480,38 +3759,43 @@ paths:
     '/api/v1/orgs/{orgId}/cloudinfo/google':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - info
             summary: Get all google config
             operationId: GetGoogleConfig
             description: Get all google config
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: secretId
-                  in: query
-                  required: true
-                  description: Secret identifier
-                  schema:
-                      type: string
-                - name: fields
-                  in: query
-                  required: true
-                  description: Filter fields
-                  schema:
-                      type: string
-                      enum: ["location", "k8sVersion", "instanceType"]
-                - name: location
-                  in: query
-                  required: true
-                  description: Location filter
-                  schema:
-                      type: string
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: secretId
+                    in: query
+                    required: true
+                    description: Secret identifier
+                    schema:
+                        type: string
+                -
+                    name: fields
+                    in: query
+                    required: true
+                    description: Filter fields
+                    schema:
+                        type: string
+                        enum: ["location", "k8sVersion", "instanceType"]
+                -
+                    name: location
+                    in: query
+                    required: true
+                    description: Location filter
+                    schema:
+                        type: string
             responses:
                 '200':
                     description: "Azure config listed"
@@ -3536,25 +3820,28 @@ paths:
     '/api/v1/orgs/{orgId}/azure/resourcegroups':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - info
             summary: Get all resource groups
             operationId: GetResourceGroup
             description: Get all resource groups
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: secretId
-                  in: header
-                  required: true
-                  description: Secret identifier
-                  schema:
-                      type: string
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: secretId
+                    in: header
+                    required: true
+                    description: Secret identifier
+                    schema:
+                        type: string
             responses:
                 '200':
                     description: "Azure resource groups listed"
@@ -3583,19 +3870,21 @@ paths:
 
         post:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - info
             summary: Create resource groups
             operationId: CreateResourceGroup
             description: Create resource groups
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
             requestBody:
                 required: true
                 content:
@@ -3625,31 +3914,35 @@ paths:
     '/api/v1/orgs/{orgId}/azure/resourcegroups/{name}':
         delete:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - info
             summary: Delete resource group
             operationId: DeleteResourceGroup
             description: Delete resource group
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: name
-                  in: path
-                  required: true
-                  description: Resource group name
-                  schema:
-                      type: integer
-                - name: secretId
-                  in: header
-                  required: true
-                  description: Secret identifier
-                  schema:
-                      type: string
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: name
+                    in: path
+                    required: true
+                    description: Resource group name
+                    schema:
+                        type: integer
+                -
+                    name: secretId
+                    in: header
+                    required: true
+                    description: Secret identifier
+                    schema:
+                        type: string
             responses:
                 '202':
                     description: "Azure resource group deleted"
@@ -3669,44 +3962,50 @@ paths:
     '/api/v1/orgs/{orgId}/buckets':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - storage
             summary: List object storage buckets
             operationId: ListObjectStoreBuckets
             description: List object store buckets accessible by the credentials referenced by the given secret. If no credentials provided all managed buckets are returned for all cloud types.
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: secretId
-                  in: header
-                  required: false
-                  description: Secret identification. If not provided only the managed buckets (those created via pipeline) are listed
-                  schema:
-                      type: string
-                - name: cloudType
-                  in: query
-                  schema:
-                      type: string
-                      enum: [amazon, google, azure]
-                  required: false
-                  description: Identifies the cloud provider - mandatory if secretId header is provided
-                - name: include
-                  in: query
-                  schema:
-                      type: string
-                      enum: [secret]
-                  required: false
-                  description: Signals whether the secret name is to be returned
-                - name: location
-                  in: query
-                  schema:
-                      type: string
-                  description: Identifies the cloud region. Required by Amazon only.
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: secretId
+                    in: header
+                    required: false
+                    description: Secret identification. If not provided only the managed buckets (those created via pipeline) are listed
+                    schema:
+                        type: string
+                -
+                    name: cloudType
+                    in: query
+                    schema:
+                        type: string
+                        enum: [amazon, google, azure]
+                    required: false
+                    description: Identifies the cloud provider - mandatory if secretId header is provided
+                -
+                    name: include
+                    in: query
+                    schema:
+                        type: string
+                        enum: [secret]
+                    required: false
+                    description: Signals whether the secret name is to be returned
+                -
+                    name: location
+                    in: query
+                    schema:
+                        type: string
+                    description: Identifies the cloud region. Required by Amazon only.
             responses:
                 '200':
                     description: "Storage buckets listed"
@@ -3734,19 +4033,21 @@ paths:
                                 $ref: '#/components/schemas/BaseError_500'
         post:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - storage
             summary: Creates a new object store bucket with the given params
             operationId: CreateObjectStoreBucket
             description: Creates a new object store bucket on the Cloud provider referenced by the given secret. The credentials for creating the bucket is taken from the provided secret.
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
             responses:
                 '202':
                     description: "Storage bucket creation request accepted"
@@ -3782,54 +4083,62 @@ paths:
     '/api/v1/orgs/{orgId}/buckets/{name}':
         delete:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - storage
             summary: Deletes the object store bucket with the given name
             operationId: DeleteObjectStoreBucket
             description: Deletes the object store bucket identified by the given name. The credentials for deleting the bucket is taken from the provided secret.
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: name
-                  in: path
-                  required: true
-                  description: Bucket identification
-                  schema:
-                      type: string
-                - name: secretId
-                  in: header
-                  required: true
-                  description: Secret identification
-                  schema:
-                      type: string
-                - name: cloudType
-                  in: query
-                  description: Identifies the cloud provider
-                  schema:
-                      type: string
-                      enum: [amazon, google, azure]
-                  required: true
-                - name: force
-                  in: query
-                  description: Is the operation forced
-                  schema:
-                      type: boolean
-                  required: false
-                - name: resourceGroup
-                  in: query
-                  description: Azure resource group the storage account that holds the bucket (storage container) to be deleted
-                  schema:
-                      type: string
-                - name: storageAccount
-                  in: query
-                  description: Azure storage account to delete the bucket (storage container) from
-                  schema:
-                      type: string
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: name
+                    in: path
+                    required: true
+                    description: Bucket identification
+                    schema:
+                        type: string
+                -
+                    name: secretId
+                    in: header
+                    required: true
+                    description: Secret identification
+                    schema:
+                        type: string
+                -
+                    name: cloudType
+                    in: query
+                    description: Identifies the cloud provider
+                    schema:
+                        type: string
+                        enum: [amazon, google, azure]
+                    required: true
+                -
+                    name: force
+                    in: query
+                    description: Is the operation forced
+                    schema:
+                        type: boolean
+                    required: false
+                -
+                    name: resourceGroup
+                    in: query
+                    description: Azure resource group the storage account that holds the bucket (storage container) to be deleted
+                    schema:
+                        type: string
+                -
+                    name: storageAccount
+                    in: query
+                    description: Azure storage account to delete the bucket (storage container) from
+                    schema:
+                        type: string
             responses:
                 '200':
                     description: "Storage bucket deleted successfully"
@@ -3855,57 +4164,66 @@ paths:
                                 $ref: '#/components/schemas/BaseError_500'
         head:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - storage
             summary: Get object store bucket status
             operationId: GetObjectStoreBucketStatus
             description: Retrieves the status of the object store bucket given its name
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: name
-                  in: path
-                  required: true
-                  description: Bucket identification
-                  schema:
-                      type: string
-                - name: secretId
-                  in: header
-                  description: Secret identification
-                  schema:
-                      type: string
-                - name: secretName
-                  in: header
-                  description: Secret identification by name
-                  schema:
-                      type: string
-                - name: cloudType
-                  in: query
-                  description: Identifies the cloud provider
-                  schema:
-                      type: string
-                      enum: [amazon, google, azure, oracle, alibaba]
-                  required: true
-                - name: resourceGroup
-                  in: query
-                  description: Azure resource group to lookup the bucket(storage container) under. Required only on Azure cloud provider.
-                  schema:
-                      type: string
-                - name: storageAccount
-                  in: query
-                  description: Azure storage account to lookup the bucket(storage container) under. Required only on Azure cloud provider.
-                  schema:
-                      type: string
-                - name: location
-                  in: query
-                  description: The region to lookup the bucket under. Required on Amazon, Oracle and Alibaba cloud providers.
-                  schema:
-                      type: string
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: name
+                    in: path
+                    required: true
+                    description: Bucket identification
+                    schema:
+                        type: string
+                -
+                    name: secretId
+                    in: header
+                    description: Secret identification
+                    schema:
+                        type: string
+                -
+                    name: secretName
+                    in: header
+                    description: Secret identification by name
+                    schema:
+                        type: string
+                -
+                    name: cloudType
+                    in: query
+                    description: Identifies the cloud provider
+                    schema:
+                        type: string
+                        enum: [amazon, google, azure, oracle, alibaba]
+                    required: true
+                -
+                    name: resourceGroup
+                    in: query
+                    description: Azure resource group to lookup the bucket(storage container) under. Required only on Azure cloud provider.
+                    schema:
+                        type: string
+                -
+                    name: storageAccount
+                    in: query
+                    description: Azure storage account to lookup the bucket(storage container) under. Required only on Azure cloud provider.
+                    schema:
+                        type: string
+                -
+                    name: location
+                    in: query
+                    description: The region to lookup the bucket under. Required on Amazon, Oracle and Alibaba cloud providers.
+                    schema:
+                        type: string
             responses:
                 '200':
                     description: "Object store buckets exists"
@@ -3919,57 +4237,66 @@ paths:
                     description: Internal server error
         get:
             security:
-            - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
-            - storage
+                - storage
             summary: Get object store bucket details
             operationId: GetBucket
             description: Retrieves the details of the object store bucket given its name
             parameters:
-            - name: orgId
-              in: path
-              required: true
-              description: Organization identification
-              schema:
-                  type: integer
-            - name: name
-              in: path
-              required: true
-              description: Bucket identification
-              schema:
-                  type: string
-            - name: secretId
-              in: header
-              description: Secret identification
-              schema:
-                  type: string
-            - name: secretName
-              in: header
-              description: Secret identification by name
-              schema:
-                  type: string
-            - name: cloudType
-              in: query
-              description: Identifies the cloud provider
-              schema:
-                  type: string
-                  enum: [amazon, google, azure, oracle, alibaba]
-              required: true
-            - name: resourceGroup
-              in: query
-              description: Azure resource group to lookup the bucket(storage container) under. Required only on Azure cloud provider.
-              schema:
-                  type: string
-            - name: storageAccount
-              in: query
-              description: Azure storage account to lookup the bucket(storage container) under. Required only on Azure cloud provider.
-              schema:
-                  type: string
-            - name: location
-              in: query
-              description: The region to lookup the bucket under. Required on Amazon, Oracle and Alibaba cloud providers.
-              schema:
-                  type: string
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: name
+                    in: path
+                    required: true
+                    description: Bucket identification
+                    schema:
+                        type: string
+                -
+                    name: secretId
+                    in: header
+                    description: Secret identification
+                    schema:
+                        type: string
+                -
+                    name: secretName
+                    in: header
+                    description: Secret identification by name
+                    schema:
+                        type: string
+                -
+                    name: cloudType
+                    in: query
+                    description: Identifies the cloud provider
+                    schema:
+                        type: string
+                        enum: [amazon, google, azure, oracle, alibaba]
+                    required: true
+                -
+                    name: resourceGroup
+                    in: query
+                    description: Azure resource group to lookup the bucket(storage container) under. Required only on Azure cloud provider.
+                    schema:
+                        type: string
+                -
+                    name: storageAccount
+                    in: query
+                    description: Azure storage account to lookup the bucket(storage container) under. Required only on Azure cloud provider.
+                    schema:
+                        type: string
+                -
+                    name: location
+                    in: query
+                    description: The region to lookup the bucket under. Required on Amazon, Oracle and Alibaba cloud providers.
+                    schema:
+                        type: string
             responses:
                 '200':
                     description: Object store bucket details
@@ -3994,25 +4321,28 @@ paths:
     '/api/v1/orgs/{orgId}/clusters/{id}/images':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - images
             summary: List Images used in cluster
             operationId: ListImages
             description: List Images used in cluster
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: id
-                  in: path
-                  required: true
-                  description: Selected cluster identification (number)
-                  schema:
-                      type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
             responses:
                 '200':
                     description: "List Images"
@@ -4042,31 +4372,35 @@ paths:
     '/api/v1/orgs/{orgId}/clusters/{id}/images/{imageDigest}/deployments':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - images
             summary: List Deployments by Image
             operationId: ListDeploymentsByImage
             description: List Deployments by Image
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: id
-                  in: path
-                  required: true
-                  description: Selected cluster identification (number)
-                  schema:
-                      type: integer
-                - name: imageDigest
-                  in: path
-                  required: true
-                  description: Image digest
-                  schema:
-                      type: string
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
+                -
+                    name: imageDigest
+                    in: path
+                    required: true
+                    description: Image digest
+                    schema:
+                        type: string
             responses:
                 '200':
                     description: "List Images"
@@ -4096,25 +4430,28 @@ paths:
     '/api/v1/orgs/{orgId}/clusters/{id}/imagescan':
         post:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - imagescan
             summary: Scan Images used in cluster
             operationId: ScanImages
             description: Scan Images used in cluster
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                    type: integer
-                - name: id
-                  in: path
-                  required: true
-                  description: Selected cluster identification (number)
-                  schema:
-                    type: integer
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
             requestBody:
                 required: true
                 content:
@@ -4144,31 +4481,35 @@ paths:
     '/api/v1/orgs/{orgId}/clusters/{id}/imagescan/{imageDigest}':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - imagescan
             summary: Get Image scan results
             operationId: GetScanResult
             description: Get Image scan result
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: id
-                  in: path
-                  required: true
-                  description: Selected cluster identification (number)
-                  schema:
-                      type: integer
-                - name: imageDigest
-                  in: path
-                  required: true
-                  description: Image digest
-                  schema:
-                      type: string
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
+                -
+                    name: imageDigest
+                    in: path
+                    required: true
+                    description: Image digest
+                    schema:
+                        type: string
             responses:
                 '200':
                     description: "Image scan results"
@@ -4192,31 +4533,35 @@ paths:
     '/api/v1/orgs/{orgId}/clusters/{id}/imagescan/{imageDigest}/vuln':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - imagescan
             summary: Get vulnerabilities
             operationId: GetImageVulnerabilities
             description: Get vulnerabilities
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: id
-                  in: path
-                  required: true
-                  description: Selected cluster identification (number)
-                  schema:
-                      type: integer
-                - name: imageDigest
-                  in: path
-                  required: true
-                  description: Image digest
-                  schema:
-                      type: string
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
+                -
+                    name: imageDigest
+                    in: path
+                    required: true
+                    description: Image digest
+                    schema:
+                        type: string
             responses:
                 '200':
                     description: "Image Vulnaribility"
@@ -4240,31 +4585,35 @@ paths:
     '/api/v1/orgs/{orgId}/clusters/{id}/namespaces/{namespace}':
         delete:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - clusters
             summary: Delete namespace from a cluster
             description: Delete namespace from a cluster
             operationId: DeleteNamespace
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: id
-                  in: path
-                  description: Selected cluster identification (number)
-                  required: true
-                  schema:
-                      type: integer
-                - name: namespace
-                  in: path
-                  description: Kubernetes namespace
-                  required: true
-                  schema:
-                      type: string
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    description: Selected cluster identification (number)
+                    required: true
+                    schema:
+                        type: integer
+                -
+                    name: namespace
+                    in: path
+                    description: Kubernetes namespace
+                    required: true
+                    schema:
+                        type: string
             responses:
                 '202':
                     description: Namespace deletion started
@@ -4298,44 +4647,47 @@ paths:
     '/api/v1/orgs/{orgId}/google/projects':
         get:
             security:
-                - bearerAuth: []
+                -
+                    bearerAuth: []
             tags:
                 - projects
             summary: Retrieves projects visible for the user identified by the secret id
             operationId: GetProjects
             description: Retrieves projects visible by the user represented by the secretid header from the google cloud
             parameters:
-                - name: orgId
-                  in: path
-                  required: true
-                  description: Organization identification
-                  schema:
-                      type: integer
-                - name: secretId
-                  in: header
-                  required: true
-                  description: Secret identification.
-                  schema:
-                      type: string
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: secretId
+                    in: header
+                    required: true
+                    description: Secret identification.
+                    schema:
+                        type: string
             responses:
-              '200':
-                  description: "List of projects visible for the user"
-                  content:
-                      application/json:
-                          schema:
-                              $ref: '#/components/schemas/ListProjectsResponse'
-              '401':
-                  description: Unauthorized
-                  content:
-                      application/json:
-                          schema:
-                              $ref: '#/components/schemas/Unauthorized'
-              '500':
-                  description: Internal server error
-                  content:
-                      application/json:
-                          schema:
-                              $ref: '#/components/schemas/BaseError_500'
+                '200':
+                    description: "List of projects visible for the user"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListProjectsResponse'
+                '401':
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Unauthorized'
+                '500':
+                    description: Internal server error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BaseError_500'
 
 components:
     securitySchemes:
@@ -4379,10 +4731,14 @@ components:
                     type: array
                     items:
                         oneOf:
-                            - $ref: '#/components/schemas/SpotguideOptionsMysqlDatabaseName'
-                            - $ref: '#/components/schemas/SpotguideOptionsMysqlDatabaseSize'
-                            - $ref: '#/components/schemas/SpotguideOptionsMysqlVersion'
-                            - $ref: '#/components/schemas/SpotguideOptionsMonitor'
+                            -
+                                $ref: '#/components/schemas/SpotguideOptionsMysqlDatabaseName'
+                            -
+                                $ref: '#/components/schemas/SpotguideOptionsMysqlDatabaseSize'
+                            -
+                                $ref: '#/components/schemas/SpotguideOptionsMysqlVersion'
+                            -
+                                $ref: '#/components/schemas/SpotguideOptionsMonitor'
 
         LaunchSpotguidesRequest:
             type: object
@@ -4524,7 +4880,8 @@ components:
             type: array
             items:
                 oneOf:
-                    - $ref: '#/components/schemas/SpotguideDetailsResponse'
+                    -
+                        $ref: '#/components/schemas/SpotguideDetailsResponse'
 
         GetDomainResponse:
             description: GetDomainResponse Api object to be mapped to Get domain request
@@ -4593,8 +4950,10 @@ components:
                 postHooks:
                     type: object
                     oneOf:
-                        - $ref: '#/components/schemas/LoggingPostHook'
-                        - $ref: '#/components/schemas/BasePostHook'
+                        -
+                            $ref: '#/components/schemas/LoggingPostHook'
+                        -
+                            $ref: '#/components/schemas/BasePostHook'
                     example:
                         InstallLogging:
                             bucketName: "mybucketname"
@@ -4606,11 +4965,16 @@ components:
                 properties:
                     type: object
                     oneOf:
-                        - $ref: '#/components/schemas/CreateAKSProperties'
-                        - $ref: '#/components/schemas/CreateGKEProperties'
-                        - $ref: '#/components/schemas/CreateEKSProperties'
-                        - $ref: '#/components/schemas/CreateUpdateOKEProperties'
-                        - $ref: '#/components/schemas/CreateAKCSProperties'
+                        -
+                            $ref: '#/components/schemas/CreateAKSProperties'
+                        -
+                            $ref: '#/components/schemas/CreateGKEProperties'
+                        -
+                            $ref: '#/components/schemas/CreateEKSProperties'
+                        -
+                            $ref: '#/components/schemas/CreateUpdateOKEProperties'
+                        -
+                            $ref: '#/components/schemas/CreateAKCSProperties'
                     example:
                         gke:
                             master:
@@ -4985,11 +5349,16 @@ components:
                 properties:
                     type: object
                     oneOf:
-                        - $ref: '#/components/schemas/UpdateAzureProperties'
-                        - $ref: '#/components/schemas/UpdateGoogleProperties'
-                        - $ref: '#/components/schemas/UpdateEksProperties'
-                        - $ref: '#/components/schemas/CreateUpdateOKEProperties'
-                        - $ref: '#/components/schemas/UpdateAKCSProperties'
+                        -
+                            $ref: '#/components/schemas/UpdateAzureProperties'
+                        -
+                            $ref: '#/components/schemas/UpdateGoogleProperties'
+                        -
+                            $ref: '#/components/schemas/UpdateEksProperties'
+                        -
+                            $ref: '#/components/schemas/CreateUpdateOKEProperties'
+                        -
+                            $ref: '#/components/schemas/UpdateAKCSProperties'
                     example:
                         google:
                             master:
@@ -5919,9 +6288,12 @@ components:
                 properties:
                     type: object
                     oneOf:
-                        - $ref: '#/components/schemas/ClusterProfileEKS'
-                        - $ref: '#/components/schemas/ClusterProfileAKS'
-                        - $ref: '#/components/schemas/ClusterProfileGKE'
+                        -
+                            $ref: '#/components/schemas/ClusterProfileEKS'
+                        -
+                            $ref: '#/components/schemas/ClusterProfileAKS'
+                        -
+                            $ref: '#/components/schemas/ClusterProfileGKE'
                     example:
                         gke:
                             master:
@@ -5995,10 +6367,14 @@ components:
                 properties:
                     type: object
                     oneOf:
-                        - $ref: '#/components/schemas/AddClusterProfileEKS'
-                        - $ref: '#/components/schemas/AddClusterProfileAKS'
-                        - $ref: '#/components/schemas/AddClusterProfileGKE'
-                        - $ref: '#/components/schemas/CreateUpdateOKEProperties'
+                        -
+                            $ref: '#/components/schemas/AddClusterProfileEKS'
+                        -
+                            $ref: '#/components/schemas/AddClusterProfileAKS'
+                        -
+                            $ref: '#/components/schemas/AddClusterProfileGKE'
+                        -
+                            $ref: '#/components/schemas/CreateUpdateOKEProperties'
                     example:
                         gke:
                             master:
@@ -6193,13 +6569,20 @@ components:
                 values:
                     type: object
                     oneOf:
-                        - $ref: '#/components/schemas/SecretKeyValueAmazon'
-                        - $ref: '#/components/schemas/SecretKeyValueAzure'
-                        - $ref: '#/components/schemas/SecretKeyValueGoogle'
-                        - $ref: '#/components/schemas/SecretKeyValueOracle'
-                        - $ref: '#/components/schemas/SecretKeyValueKubernetes'
-                        - $ref: '#/components/schemas/SecretKeyValueGeneric'
-                        - $ref: '#/components/schemas/SecretKeyValueTLS'
+                        -
+                            $ref: '#/components/schemas/SecretKeyValueAmazon'
+                        -
+                            $ref: '#/components/schemas/SecretKeyValueAzure'
+                        -
+                            $ref: '#/components/schemas/SecretKeyValueGoogle'
+                        -
+                            $ref: '#/components/schemas/SecretKeyValueOracle'
+                        -
+                            $ref: '#/components/schemas/SecretKeyValueKubernetes'
+                        -
+                            $ref: '#/components/schemas/SecretKeyValueGeneric'
+                        -
+                            $ref: '#/components/schemas/SecretKeyValueTLS'
                     example:
                         type: string
                         project_id: string
@@ -6634,10 +7017,14 @@ components:
 
         NodePoolStatus:
             oneOf:
-                - $ref: '#/components/schemas/NodePoolStatusAmazon'
-                - $ref: '#/components/schemas/NodePoolStatusAzure'
-                - $ref: '#/components/schemas/NodePoolStatusGoogle'
-                - $ref: '#/components/schemas/NodePoolStatusOracle'
+                -
+                    $ref: '#/components/schemas/NodePoolStatusAmazon'
+                -
+                    $ref: '#/components/schemas/NodePoolStatusAzure'
+                -
+                    $ref: '#/components/schemas/NodePoolStatusGoogle'
+                -
+                    $ref: '#/components/schemas/NodePoolStatusOracle'
             example:
                 count: 1
                 instanceType: "n1-standard-1"
@@ -6744,10 +7131,14 @@ components:
                     example: "mybucket"
                 properties:
                     oneOf:
-                        - $ref: '#/components/schemas/CreateAmazonObjectStoreBucketProperties'
-                        - $ref: '#/components/schemas/CreateAzureObjectStoreBucketProperties'
-                        - $ref: '#/components/schemas/CreateGoogleObjectStoreBucketProperties'
-                        - $ref: '#/components/schemas/CreateOracleObjectStoreBucketProperties'
+                        -
+                            $ref: '#/components/schemas/CreateAmazonObjectStoreBucketProperties'
+                        -
+                            $ref: '#/components/schemas/CreateAzureObjectStoreBucketProperties'
+                        -
+                            $ref: '#/components/schemas/CreateGoogleObjectStoreBucketProperties'
+                        -
+                            $ref: '#/components/schemas/CreateOracleObjectStoreBucketProperties'
 
         CreateAmazonObjectStoreBucketProperties:
             type: object
@@ -7062,8 +7453,10 @@ components:
         ReRunPostHook:
             type: object
             oneOf:
-                - $ref: '#/components/schemas/LoggingPostHook'
-                - $ref: '#/components/schemas/BasePostHook'
+                -
+                    $ref: '#/components/schemas/LoggingPostHook'
+                -
+                    $ref: '#/components/schemas/BasePostHook'
             example:
                 InstallLogging:
                     bucketName: "mybucketname"
@@ -7194,28 +7587,29 @@ components:
         DeploymentScalingResponse:
             title: Get Deployment Scaling Response
             example:
-                - scaleTarget: k8sDeploymentName
-                  kind: Deployment
-                  minReplicas: 1
-                  maxReplicas: 3
-                  cpu:
-                      targetAverageValueType: 'percentage'
-                      targetAverageValue: 60
-                      currentAverageValue: 0
-                  memory:
-                      targetAverageValueType: 'quantity'
-                      targetAverageValue: '1100Mi'
-                      currentAverageUtilization: 'quantity'
-                      currentAverageValue: 780013568
-                  customMetrics:
-                      custom_metric_name:
-                          type: pod
-                          targetAverageValue: 700m
-                          currentAverageValue: 300m
-                  status:
-                      currentReplicas: 1
-                      desiredReplicas: 1
-                      message: 'ScalingActive = true, lastTransitionTime: 2018-00-22T15:31:16Z, the HPA was able to succesfully calculate a replica count from memory resource'
+                -
+                    scaleTarget: k8sDeploymentName
+                    kind: Deployment
+                    minReplicas: 1
+                    maxReplicas: 3
+                    cpu:
+                        targetAverageValueType: 'percentage'
+                        targetAverageValue: 60
+                        currentAverageValue: 0
+                    memory:
+                        targetAverageValueType: 'quantity'
+                        targetAverageValue: '1100Mi'
+                        currentAverageUtilization: 'quantity'
+                        currentAverageValue: 780013568
+                    customMetrics:
+                        custom_metric_name:
+                            type: pod
+                            targetAverageValue: 700m
+                            currentAverageValue: 300m
+                    status:
+                        currentReplicas: 1
+                        desiredReplicas: 1
+                        message: 'ScalingActive = true, lastTransitionTime: 2018-00-22T15:31:16Z, the HPA was able to succesfully calculate a replica count from memory resource'
             type: array
             items:
                 type: object

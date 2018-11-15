@@ -89,6 +89,7 @@ Class | Method | HTTP request | Description
 *OrganizationsApi* | [**CreateOrg**](docs/OrganizationsApi.md#createorg) | **Post** /api/v1/orgs | Create organization
 *OrganizationsApi* | [**GetOrg**](docs/OrganizationsApi.md#getorg) | **Get** /api/v1/orgs/{orgId} | Get organization
 *OrganizationsApi* | [**ListOrgs**](docs/OrganizationsApi.md#listorgs) | **Get** /api/v1/orgs | List organizations
+*OrganizationsApi* | [**SyncOrgs**](docs/OrganizationsApi.md#syncorgs) | **Put** /api/v1/orgs | Synchronize Github organizations
 *PoliciesApi* | [**AddPolicy**](docs/PoliciesApi.md#addpolicy) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/policies | Add a new policy
 *PoliciesApi* | [**DeletePolicy**](docs/PoliciesApi.md#deletepolicy) | **Delete** /api/v1/orgs/{orgId}/clusters/{id}/policies/{policyId} | Delete policy
 *PoliciesApi* | [**GetPolicy**](docs/PoliciesApi.md#getpolicy) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/policies/{policyId} | Get specific policy

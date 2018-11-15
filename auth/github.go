@@ -15,10 +15,12 @@
 package auth
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 
 	"github.com/goph/emperror"
+	"github.com/pkg/errors"
 
 	"github.com/google/go-github/github"
 	"github.com/qor/auth"
@@ -222,4 +224,33 @@ func NewGithubClientForUser(userID uint) (*github.Client, error) {
 	}
 
 	return NewGithubClient(accessToken), nil
+}
+
+type githubOrganization struct {
+	name string
+	id   int64
+	role string
+}
+
+func getGithubOrganizations(token string) ([]githubOrganization, error) {
+	httpClient := oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token}))
+	githubClient := github.NewClient(httpClient)
+
+	memberships, _, err := githubClient.Organizations.ListOrgMemberships(oauth2.NoContext, nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to list organization memberships")
+	}
+
+	var orgs []githubOrganization
+	for _, membership := range memberships {
+		org := githubOrganization{
+			name: membership.GetOrganization().GetLogin(),
+			id:   membership.GetOrganization().GetID(),
+			role: membership.GetRole(),
+		}
+
+		orgs = append(orgs, org)
+	}
+
+	return orgs, nil
 }
