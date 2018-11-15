@@ -93,13 +93,19 @@ docker-build: ## Builds go binary in docker image
 	docker run -it -v $(PWD):/go/src/${PACKAGE} -w /go/src/${PACKAGE} golang:${GOLANG_VERSION}-alpine go build -o pipeline_linux ${BUILD_PACKAGE}
 
 .PHONY: debug
+debug: export GOOS = linux
 debug: GOARGS += -gcflags "-N -l"
 debug: BINARY_NAME = pipeline-debug
 debug: build ## Builds binary package
 
+
 .PHONY: debug-docker
 debug-docker: debug ## Builds binary package
 	docker build -t banzaicloud/pipeline:debug -f Dockerfile.dev .
+
+.PHONY: local-docker
+local-docker: debug ## Builds binary package
+	docker build -t banzaicloud/pipeline:local -f Dockerfile.local .
 
 .PHONY: check
 check: test lint ## Run tests and linters

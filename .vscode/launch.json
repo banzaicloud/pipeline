@@ -15,6 +15,18 @@
                 "VAULT_ADDR": "http://127.0.0.1:8200"
             },
             "args": []
+        },
+        {
+            "name": "Remote Docker",
+            "type": "go",
+            "request": "launch",
+            "mode": "remote",
+            "remotePath": "/pipeline-debug",
+            "port": 40000,
+            "host": "127.0.0.1",
+             "program": "${workspaceRoot}/cmd/pipeline/main.go",
+             "env": {},
+             "args": []
         }
     ]
 }
