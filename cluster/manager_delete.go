@@ -25,6 +25,7 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/goph/emperror"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -119,7 +120,7 @@ func deleteUserNamespaces(kubeConfig []byte, logger *logrus.Entry) error {
 	}
 	err = retry(func() error {
 		namespaces, err := client.CoreV1().Namespaces().List(metav1.ListOptions{})
-		left := 0
+		left := []string{}
 		if err != nil {
 			return emperror.Wrap(err, "could not list remaining namespaces")
 		}
@@ -129,14 +130,14 @@ func deleteUserNamespaces(kubeConfig []byte, logger *logrus.Entry) error {
 				continue
 			default:
 				logger.Infof("namespace %q still %s", ns.Name, ns.Status)
-				left++
+				left = append(left, ns.Name)
 			}
 		}
-		if left > 0 {
-			return fmt.Errorf("%d namespaces remained after deletion", left)
+		if len(left) > 0 {
+			return emperror.With(errors.Errorf("namespaces remained after deletion: %v", left), "namespaces", left)
 		}
 		return nil
-	}, 6, 30)
+	}, 20, 30)
 	return err
 }
 
@@ -210,18 +211,18 @@ func deleteServices(kubeConfig []byte, ns string, logger *logrus.Entry) error {
 		if err != nil {
 			return emperror.Wrap(err, "could not list remaining services")
 		}
-		left := 0
+		left := []string{}
 		for _, svc := range services.Items {
 			switch svc.Name {
 			case "kubernetes":
 				continue
 			default:
 				logger.Infof("service %q still %s", svc.Name, svc.Status)
-				left++
+				left = append(left, svc.Name)
 			}
 		}
-		if left > 0 {
-			return fmt.Errorf("%d services remained after deletion", left)
+		if len(left) > 0 {
+			return emperror.With(errors.Errorf("services remained after deletion: %v", left), "services", left)
 		}
 		return nil
 	}, 6, 30)
