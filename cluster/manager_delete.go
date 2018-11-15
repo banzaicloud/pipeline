@@ -136,7 +136,7 @@ func deleteUserNamespaces(kubeConfig []byte, logger *logrus.Entry) error {
 			return fmt.Errorf("%d namespaces remained after deletion: %v", len(left), left)
 		}
 		return nil
-	}, 6, 30)
+	}, 20, 30)
 	return err
 }
 
