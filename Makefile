@@ -153,6 +153,7 @@ license-cache: bin/licensei ## Generate license cache
 	bin/licensei cache
 
 .PHONY: test
+test: export CGO_ENABLED = 1
 test:
 	set -o pipefail; go list ./... | xargs -n1 go test ${GOARGS} -v -parallel 1 2>&1 | tee test.txt
 
