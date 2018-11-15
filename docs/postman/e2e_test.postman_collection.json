@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "5354e2e3-3a88-4798-a5ce-270db5d04e9c",
+		"_postman_id": "3bff134f-679f-4878-bbc2-2296aa852109",
 		"name": "End2End TEST Organizations",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -6545,6 +6545,47 @@
 						"body": {
 							"mode": "raw",
 							"raw": "{\n\t\"name\": \"{{organizationName}}\"\n}"
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Synchronize organizations",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "8972f9fd-d079-46a7-a52b-31c7ff0cb64c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs",

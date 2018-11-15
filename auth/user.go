@@ -26,6 +26,7 @@ import (
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/drone/drone-go/drone"
+	"github.com/goph/emperror"
 	"github.com/jinzhu/copier"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql" // blank import is used here for sql driver inclusion
@@ -200,6 +201,7 @@ type BanzaiUserStorer struct {
 	droneDB          *gorm.DB
 	events           authEvents
 	accessManager    accessManager
+	githubImporter   *GithubImporter
 }
 
 // Save differs from the default UserStorer.Save() in that it
@@ -254,18 +256,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 	bus.accessManager.GrantOganizationAccessToUser(currentUser.IDString(), currentUser.Organizations[0].ID)
 	bus.events.OrganizationRegistered(currentUser.Organizations[0].ID)
 
-	githubOrgIDs, err := importGithubOrganizations(db, currentUser, githubExtraInfo.Token)
-
-	if err == nil {
-		for id, created := range githubOrgIDs {
-			bus.accessManager.AddOrganizationPolicies(id)
-			bus.accessManager.GrantOganizationAccessToUser(currentUser.IDString(), id)
-
-			if created {
-				bus.events.OrganizationRegistered(id)
-			}
-		}
-	}
+	err = bus.githubImporter.ImportOrganizations(currentUser, githubExtraInfo.Token)
 
 	return currentUser, fmt.Sprint(db.NewScope(currentUser).PrimaryKeyValue()), err
 }
@@ -332,6 +323,45 @@ func synchronizeDroneRepos(login string) {
 	if err != nil {
 		log.Warnln("failed to sync Drone repositories", err.Error())
 	}
+}
+
+// GithubImporter imports github organizations.
+type GithubImporter struct {
+	db            *gorm.DB
+	accessManager accessManager
+	events        authEvents
+}
+
+// NewGithubImporter returns a new GithubImporter instance.
+func NewGithubImporter(
+	db *gorm.DB,
+	accessManager accessManager,
+	events eventBus,
+) *GithubImporter {
+	return &GithubImporter{
+		db:            db,
+		accessManager: accessManager,
+		events:        ebAuthEvents{eb: events},
+	}
+}
+
+func (i *GithubImporter) ImportOrganizations(currentUser *User, githubToken string) error {
+	githubOrgIDs, err := importGithubOrganizations(i.db, currentUser, githubToken)
+
+	if err != nil {
+		return emperror.With(err, "failed to import organizations")
+	}
+
+	for id, created := range githubOrgIDs {
+		i.accessManager.AddOrganizationPolicies(id)
+		i.accessManager.GrantOganizationAccessToUser(currentUser.IDString(), id)
+
+		if created {
+			i.events.OrganizationRegistered(id)
+		}
+	}
+
+	return nil
 }
 
 func importGithubOrganizations(db *gorm.DB, currentUser *User, githubToken string) (map[uint]bool, error) {
