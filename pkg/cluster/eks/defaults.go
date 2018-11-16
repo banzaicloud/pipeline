@@ -23,14 +23,16 @@ const (
 
 // DefaultImages in each supported location in EC2 (from https://docs.aws.amazon.com/eks/latest/userguide/launch-workers.html)
 var DefaultImages = map[string]string{
-	UsEast1: "ami-0440e4f6b9713faf6",
-	UsWest2: "ami-0a54c984b9f908c81",
-	EuWest1: "ami-0c7a4976cb6fafd3a",
+	UsEast1: "ami-0a0b913ef3249b655",
+	UsEast2: "ami-0958a76db2d150238",
+	UsWest2: "ami-0f54a2f7d2e9c88b3",
+	EuWest1: "ami-00c3b2d35bddd4f5c",
 }
 
 // EC2 regions
 const (
 	UsEast1 = "us-east-1"
+	UsEast2 = "us-east-2"
 	UsWest2 = "us-west-2"
 	EuWest1 = "eu-west-1"
 )
