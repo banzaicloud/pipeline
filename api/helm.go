@@ -29,6 +29,7 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
+	k8sHelm "k8s.io/helm/pkg/helm"
 	"k8s.io/helm/pkg/helm/environment"
 	"k8s.io/helm/pkg/proto/hapi/release"
 	rls "k8s.io/helm/pkg/proto/hapi/services"
@@ -78,18 +79,22 @@ func CreateDeployment(c *gin.Context) {
 		})
 		return
 	}
+
+	installOptions := []k8sHelm.InstallOption{
+		k8sHelm.InstallWait(parsedRequest.wait),
+		k8sHelm.ValueOverrides(parsedRequest.values),
+	}
+
 	release, err := helm.CreateDeployment(parsedRequest.deploymentName,
 		parsedRequest.deploymentVersion,
 		parsedRequest.deploymentPackage,
 		parsedRequest.namespace,
 		parsedRequest.deploymentReleaseName,
 		parsedRequest.dryRun,
-		parsedRequest.wait,
-		parsedRequest.values,
 		parsedRequest.odPcts,
 		parsedRequest.kubeConfig,
 		helm.GenerateHelmRepoEnv(parsedRequest.organizationName),
-		helm.DefaultInstallOptions...,
+		installOptions...,
 	)
 	if err != nil {
 		//TODO distinguish error codes
