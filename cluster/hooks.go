@@ -589,7 +589,7 @@ func InstallIngressControllerPostHook(input interface{}) error {
 			Enabled: true,
 			DomainsList: []map[string]interface{}{
 				{
-					"main": fmt.Sprintf("*.%s", domainWithOrgName)},
+					"main": fmt.Sprintf("*.%s.%s", cluster.GetName(), domainWithOrgName)},
 				{
 					"sans": []string{
 						fmt.Sprintf("%s.%s", cluster.GetName(), domainWithOrgName),
