@@ -189,6 +189,7 @@ func (s *DeploymentsService) Deploy(bucket *ClusterBackupBucketsModel, restoreMo
 	if err != nil {
 		err = errors.Wrap(err, "error deploying ark")
 		s.repository.UpdateStatus(deployment, "ERROR", err.Error())
+		s.repository.Delete(deployment)
 		return err
 	}
 
