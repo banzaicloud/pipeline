@@ -520,6 +520,33 @@ func installDeployment(cluster CommonCluster, namespace string, deploymentName s
 	return nil
 }
 
+type acme struct {
+	Enabled           bool        `json:"enabled"`
+	Staging           bool        `json:"staging"`
+	Logging           bool        `json:"logging"`
+	ChallengeType     string      `json:"challengeType"`
+	DelayDontCheckDNS int         `json:"delayDontCheckDNS"`
+	Email             string      `json:"email"`
+	Persistence       persistence `json:"persistence"`
+	Domains           domains     `json:"domains"`
+	DnsProvider       dnsProvider `json:"dnsProvider"`
+}
+
+type persistence struct {
+	Enabled bool   `json:"enabled"`
+	Size    string `json:"size"`
+}
+
+type dnsProvider struct {
+	Name       string `json:"name"`
+	SecretName string `json:"secretName"`
+}
+
+type domains struct {
+	Enabled     bool                     `json:"enabled"`
+	DomainsList []map[string]interface{} `json:"domainsList"`
+}
+
 //InstallIngressControllerPostHook post hooks can't return value, they can log error and/or update state?
 func InstallIngressControllerPostHook(input interface{}) error {
 	cluster, ok := input.(CommonCluster)
@@ -533,14 +560,43 @@ func InstallIngressControllerPostHook(input interface{}) error {
 		return errors.Errorf("Get User failed : %s", err.Error())
 	}
 
-	acme := map[string]interface{}{
-		"enabled":           true,
-		"staging":           false,
-		"logging":           true,
-		"challengeType":     "dns-01",
-		"delayDontCheckDNS": 60,
-		"email":             user.Email,
-		"persistence":       map[string]interface{}{"enabled": true},
+	orgID := cluster.GetOrganizationId()
+	organization, err := auth.GetOrganizationById(orgID)
+	if err != nil {
+		return emperror.WrapWith(err, "failed to get organization", "orgID", orgID)
+	}
+
+	domainWithOrgName := fmt.Sprintf("%s.%s", organization.Name, viper.GetString(pipConfig.DNSBaseDomain))
+
+	persistenceValues := persistence{
+		Enabled: true,
+	}
+
+	//TODO remove this when refactoring of the posthook happens
+	if cluster.GetCloud() == pkgCluster.Alibaba {
+		persistenceValues.Size = "20Gi"
+	}
+
+	acmeValues := acme{
+		Enabled:           true,
+		Staging:           false,
+		Logging:           true,
+		ChallengeType:     "dns-01",
+		DelayDontCheckDNS: 60,
+		Email:             user.Email,
+		Persistence:       persistenceValues,
+		Domains: domains{
+			Enabled: true,
+			DomainsList: []map[string]interface{}{
+				{
+					"main": fmt.Sprintf("*.%s", domainWithOrgName)},
+				{
+					"sans": []string{
+						fmt.Sprintf("%s.%s", cluster.GetName(), domainWithOrgName),
+						domainWithOrgName},
+				},
+			},
+		},
 	}
 
 	dnsSvc, err := dns.GetExternalDnsServiceClient()
@@ -549,9 +605,9 @@ func InstallIngressControllerPostHook(input interface{}) error {
 	}
 
 	if dnsSvc != nil {
-		acme["dnsProvider"] = map[string]interface{}{
-			"name":       "route53",
-			"secretName": route53.IAMUserAccessKeySecretName,
+		acmeValues.DnsProvider = dnsProvider{
+			Name:       "route53",
+			SecretName: route53.IAMUserAccessKeySecretName,
 		}
 	} else {
 		log.Info("Will not set dnsProvider to Ingress as external dns service functionality is not enabled")
@@ -559,17 +615,10 @@ func InstallIngressControllerPostHook(input interface{}) error {
 
 	ingressValues := map[string]interface{}{
 		"traefik": map[string]interface{}{
-			"acme":        acme,
+			"acme":        acmeValues,
 			"affinity":    getHeadNodeAffinity(cluster),
 			"tolerations": getHeadNodeTolerations(),
 		},
-	}
-
-	//TODO remove this when refactoring of the posthook happens
-	if cluster.GetCloud() == pkgCluster.Alibaba {
-		traefikPerSize := ingressValues["traefik"].(map[string]interface{})["acme"].(map[string]interface{})["persistence"].(map[string]interface{})
-		traefikPerSize["size"] = "20Gi"
-		ingressValues["traefik"].(map[string]interface{})["acme"].(map[string]interface{})["persistence"] = traefikPerSize
 	}
 
 	ingressValuesJson, err := yaml.Marshal(ingressValues)
