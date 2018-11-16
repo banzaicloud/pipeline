@@ -50,13 +50,6 @@ func (ClusterBackupDeploymentsModel) TableName() string {
 	return clusterBackupDeploymentsTableName
 }
 
-// BeforeDelete runs before deleting a ClusterBackupDeploymentsModel
-func (m *ClusterBackupDeploymentsModel) BeforeDelete(db *gorm.DB) error {
-	m.Status = "DELETED"
-	m.StatusMessage = ""
-	return db.Save(&m).Error
-}
-
 // UpdateStatus updates the model's status and status message in database
 func (m *ClusterBackupDeploymentsModel) UpdateStatus(db *gorm.DB, status, statusMessage string) error {
 	m.Status = status
