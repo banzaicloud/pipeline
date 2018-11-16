@@ -538,8 +538,8 @@ type persistence struct {
 }
 
 type dnsProvider struct {
-	Name       string `json:"name"`
-	SecretName string `json:"secretName"`
+	Name   string                 `json:"name"`
+	Secret map[string]interface{} `json:"route53,omitempty"`
 }
 
 type domains struct {
@@ -605,9 +605,18 @@ func InstallIngressControllerPostHook(input interface{}) error {
 	}
 
 	if dnsSvc != nil {
+		route53Secret, err := secret.Store.GetByName(orgID, route53.IAMUserAccessKeySecretName)
+		if err != nil {
+			return emperror.Wrap(err, "Failed to retrieve route53 secret from Vault")
+		}
+
 		acmeValues.DnsProvider = dnsProvider{
-			Name:       "route53",
-			SecretName: route53.IAMUserAccessKeySecretName,
+			Name: route53.IAMUserAccessKeySecretName,
+			Secret: map[string]interface{}{
+				pkgSecret.AwsRegion:          route53Secret.GetValue(pkgSecret.AwsRegion),
+				pkgSecret.AwsAccessKeyId:     route53Secret.GetValue(pkgSecret.AwsAccessKeyId),
+				pkgSecret.AwsSecretAccessKey: route53Secret.GetValue(pkgSecret.AwsSecretAccessKey),
+			},
 		}
 	} else {
 		log.Info("Will not set dnsProvider to Ingress as external dns service functionality is not enabled")
