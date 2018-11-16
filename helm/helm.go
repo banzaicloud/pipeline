@@ -354,7 +354,7 @@ func UpgradeDeployment(releaseName, chartName, chartVersion string, chartPackage
 }
 
 //CreateDeployment creates a Helm deployment in chosen namespace
-func CreateDeployment(chartName, chartVersion string, chartPackage []byte, namespace string, releaseName string, dryRun bool, odPcts map[string]int, kubeConfig []byte, env helm_env.EnvSettings, options ...helm.InstallOption) (*rls.InstallReleaseResponse, error) {
+func CreateDeployment(chartName, chartVersion string, chartPackage []byte, namespace string, releaseName string, dryRun bool, odPcts map[string]int, kubeConfig []byte, env helm_env.EnvSettings, overrideOpts ...helm.InstallOption) (*rls.InstallReleaseResponse, error) {
 
 	chartRequested, err := getRequestedChart(releaseName, chartName, chartVersion, chartPackage, env)
 	if err != nil {
@@ -389,12 +389,12 @@ func CreateDeployment(chartName, chartVersion string, chartPackage []byte, names
 	}
 	defer hClient.Close()
 
-	overrideOptions := []helm.InstallOption{
+	basicOptions := []helm.InstallOption{
 		helm.ReleaseName(releaseName),
 		helm.InstallDryRun(dryRun),
 	}
-	installOptions := append(DefaultInstallOptions, overrideOptions...)
-	installOptions = append(installOptions, options...)
+	installOptions := append(DefaultInstallOptions, basicOptions...)
+	installOptions = append(installOptions, overrideOpts...)
 
 	installRes, err := hClient.InstallReleaseFromChart(
 		chartRequested,
