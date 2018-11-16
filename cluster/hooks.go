@@ -534,7 +534,7 @@ type acme struct {
 
 type persistence struct {
 	Enabled bool   `json:"enabled"`
-	Size    string `json:"size"`
+	Size    string `json:"size,omitempty"`
 }
 
 type dnsProvider struct {
@@ -625,6 +625,7 @@ func InstallIngressControllerPostHook(input interface{}) error {
 	if err != nil {
 		return errors.Errorf("Json Convert Failed : %s", err.Error())
 	}
+
 	namespace := viper.GetString(pipConfig.PipelineSystemNamespace)
 
 	return installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-ingress", "ingress", ingressValuesJson, "", false)
