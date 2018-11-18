@@ -577,9 +577,11 @@ func InstallIngressControllerPostHook(input interface{}) error {
 		persistenceValues.Size = "20Gi"
 	}
 
+	useStaging := viper.GetBool(pipConfig.ACMEUseStaging)
+
 	acmeValues := acme{
 		Enabled:           true,
-		Staging:           false,
+		Staging:           useStaging,
 		Logging:           true,
 		ChallengeType:     "dns-01",
 		DelayDontCheckDNS: 60,

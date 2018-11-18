@@ -115,6 +115,9 @@ const (
 
 	// Spotguides constants
 	SpotguideAllowPrereleases = "spotguide.allowPrereleases"
+
+	// ACME constants (Let's Encrypt)
+	ACMEUseStaging = "acme.useStaging"
 )
 
 //Init initializes the configurations
@@ -219,6 +222,8 @@ func init() {
 	viper.SetDefault("issue.githubLabels", []string{"community"})
 	viper.SetDefault("issue.githubOwner", "banzaicloud")
 	viper.SetDefault("issue.githubRepository", "pipeline")
+
+	viper.SetDefault(ACMEUseStaging, true)
 
 	// Find and read the config file
 	if err := viper.ReadInConfig(); err != nil {

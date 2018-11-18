@@ -157,3 +157,8 @@ debug = true
 type = "github"
 githubOwner = "kelly-slater"
 githubRepository = "the-pipeline-issues"
+
+# ACME (Let's Encrypt) settings
+[acme]
+# Whether to use Let's Encrypt's staging server (preferable for development and QA envs)
+useStaging = true
