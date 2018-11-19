@@ -16,8 +16,6 @@ package cluster
 
 import (
 	"context"
-	"fmt"
-	"sync"
 	"time"
 
 	"github.com/banzaicloud/pipeline/dns"
@@ -31,7 +29,7 @@ import (
 )
 
 // DeleteCluster deletes a cluster.
-func (m *Manager) DeleteCluster(ctx context.Context, cluster CommonCluster, force bool, kubeProxyCache *sync.Map) error {
+func (m *Manager) DeleteCluster(ctx context.Context, cluster CommonCluster, force bool) error {
 	errorHandler := emperror.HandlerWith(
 		m.getErrorHandler(ctx),
 		"organization", cluster.GetOrganizationId(),
@@ -47,7 +45,7 @@ func (m *Manager) DeleteCluster(ctx context.Context, cluster CommonCluster, forc
 	go func() {
 		defer emperror.HandleRecover(m.errorHandler)
 
-		err := m.deleteCluster(ctx, cluster, force, kubeProxyCache)
+		err := m.deleteCluster(ctx, cluster, force)
 		if err != nil {
 			errorHandler.Handle(err)
 			return
@@ -249,7 +247,7 @@ func deleteDnsRecordsOwnedByCluster(cluster CommonCluster) error {
 	return nil
 }
 
-func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, force bool, kubeProxyCache *sync.Map) error {
+func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, force bool) error {
 	logger := m.getLogger(ctx).WithFields(logrus.Fields{
 		"organization": cluster.GetOrganizationId(),
 		"cluster":      cluster.GetName(),
@@ -322,8 +320,7 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 	}
 
 	// delete from proxy from kubeProxyCache if any
-	// TODO: this should be handled somewhere else
-	kubeProxyCache.Delete(fmt.Sprint(cluster.GetOrganizationId(), "-", cluster.GetID()))
+	m.DeleteKubeProxy(cluster)
 
 	// delete cluster from database
 	orgID := cluster.GetOrganizationId()

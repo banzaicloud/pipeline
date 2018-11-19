@@ -266,7 +266,7 @@ func main() {
 			orgs.POST("/:orgid/clusters/:id/secrets", api.InstallSecretsToCluster)
 			orgs.POST("/:orgid/clusters/:id/secrets/:secretName", api.InstallSecretToCluster)
 			orgs.PATCH("/:orgid/clusters/:id/secrets/:secretName", api.MergeSecretInCluster)
-			orgs.Any("/:orgid/clusters/:id/proxy/*path", api.ProxyToCluster)
+			orgs.Any("/:orgid/clusters/:id/proxy/*path", clusterAPI.ProxyToCluster)
 			orgs.DELETE("/:orgid/clusters/:id", clusterAPI.DeleteCluster)
 			orgs.HEAD("/:orgid/clusters/:id", api.ClusterHEAD)
 			orgs.GET("/:orgid/clusters/:id/config", api.GetClusterConfig)
