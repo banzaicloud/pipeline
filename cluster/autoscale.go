@@ -25,6 +25,7 @@ import (
 	"github.com/pkg/errors"
 	"k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	k8sHelm "k8s.io/helm/pkg/helm"
 )
 
 const cloudProviderAzure = "azure"
@@ -302,7 +303,7 @@ func deployAutoscalerChart(cluster CommonCluster, nodeGroups []nodeGroup, kubeCo
 
 	switch action {
 	case install:
-		_, err = helm.CreateDeployment(autoScalerChart, "", nil, helm.SystemNamespace, releaseName, false, false, yamlValues, nil, kubeConfig, helm.GenerateHelmRepoEnv(org.Name), helm.DefaultInstallOptions...)
+		_, err = helm.CreateDeployment(autoScalerChart, "", nil, helm.SystemNamespace, releaseName, false, nil, kubeConfig, helm.GenerateHelmRepoEnv(org.Name), k8sHelm.ValueOverrides(yamlValues))
 	case upgrade:
 		_, err = helm.UpgradeDeployment(releaseName, autoScalerChart, "", nil, yamlValues, false, kubeConfig, helm.GenerateHelmRepoEnv(org.Name))
 	default:

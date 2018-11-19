@@ -22,7 +22,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	pkgHelm "k8s.io/helm/pkg/helm"
+	k8sHelm "k8s.io/helm/pkg/helm"
 	pkgHelmRelease "k8s.io/helm/pkg/proto/hapi/release"
 
 	"github.com/banzaicloud/pipeline/auth"
@@ -287,11 +287,10 @@ func (s *DeploymentsService) installDeployment(
 		}
 	}
 
-	options := helm.DefaultInstallOptions
-	options = append(options,
-		pkgHelm.InstallWait(true),
-		pkgHelm.InstallTimeout(300),
-	)
+	options := []k8sHelm.InstallOption{
+		k8sHelm.InstallWait(true),
+		k8sHelm.ValueOverrides(values),
+	}
 
 	_, err = helm.CreateDeployment(
 		deploymentName,
@@ -300,8 +299,6 @@ func (s *DeploymentsService) installDeployment(
 		namespace,
 		releaseName,
 		false,
-		true,
-		values,
 		nil,
 		kubeConfig,
 		helm.GenerateHelmRepoEnv(s.org.Name),
