@@ -19,8 +19,6 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"sync"
-	"time"
 
 	"github.com/banzaicloud/pipeline/api/common"
 	"github.com/banzaicloud/pipeline/auth"
@@ -787,49 +785,28 @@ func InstallSecretsToCluster(c *gin.Context) {
 	c.JSON(http.StatusOK, secretSources)
 }
 
-var kubeProxyCache sync.Map
-
-// GetGlobalClusterID generates an universally unique ID for a cluster within the Pipeline
-func GetGlobalClusterID(cluster cluster.CommonCluster) string {
-	return fmt.Sprint(cluster.GetOrganizationId(), "-", cluster.GetID())
-}
-
 // ProxyToCluster sets up a proxy and forwards all requests to the cluster's API server.
-func ProxyToCluster(c *gin.Context) {
+func (a *ClusterAPI) ProxyToCluster(c *gin.Context) {
 
 	commonCluster, ok := getClusterFromRequest(c)
 	if !ok {
 		return
 	}
 
-	clusterKey := GetGlobalClusterID(commonCluster)
+	apiProxyPrefix := strings.TrimSuffix(c.Request.URL.Path, c.Param("path"))
 
-	kubeProxy, found := kubeProxyCache.Load(clusterKey)
-	if !found {
-		var err error
-
-		apiProxyPrefix := strings.TrimSuffix(c.Request.URL.Path, c.Param("path"))
-
-		kubeProxy, err = cluster.NewProxy(apiProxyPrefix, nil, commonCluster, 1*time.Minute)
-
-		if err != nil {
-			if err != nil {
-				log.Errorf("Error proxying to cluster [%d]: %s", commonCluster.GetID(), err.Error())
-				c.AbortWithStatusJSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
-					Code:    http.StatusInternalServerError,
-					Message: "Error proxying to cluster",
-					Error:   err.Error(),
-				})
-				return
-			}
-		}
-
-		kubeProxy, _ = kubeProxyCache.LoadOrStore(clusterKey, kubeProxy)
+	kubeProxy, err := a.clusterManager.GetKubeProxy(apiProxyPrefix, commonCluster)
+	if err != nil {
+		log.Errorf("Error proxying to cluster [%d]: %s", commonCluster.GetID(), err.Error())
+		c.AbortWithStatusJSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: "Error proxying to cluster",
+			Error:   err.Error(),
+		})
+		return
 	}
 
-	kubeProxyHandler := kubeProxy.(gin.HandlerFunc)
-
-	kubeProxyHandler(c)
+	kubeProxy.Handler(c)
 }
 
 // ListClusterSecrets returns

@@ -18,133 +18,27 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"regexp"
 	"strings"
 	"time"
 
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/gin-gonic/gin"
-	"github.com/golang/glog"
 	utilnet "k8s.io/apimachinery/pkg/util/net"
 	"k8s.io/apimachinery/pkg/util/proxy"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/transport"
 )
 
-const (
-	// DefaultHostAcceptRE is the default value for which hosts to accept.
-	DefaultHostAcceptRE = "^localhost$,^127\\.0\\.0\\.1$,^\\[::1\\]$"
-	// DefaultPathAcceptRE is the default path to accept.
-	DefaultPathAcceptRE = "^.*"
-	// DefaultPathRejectRE is the default set of paths to reject.
-	DefaultPathRejectRE = "^/api/.*/pods/.*/exec,^/api/.*/pods/.*/attach"
-	// DefaultMethodRejectRE is the set of HTTP methods to reject by default.
-	DefaultMethodRejectRE = "^$"
-)
+const defaultProxyExpirationMinutes = 10
 
-var (
-	// ReverseProxyFlushInterval is the frequency to flush the reverse proxy.
-	// Only matters for long poll connections like the one used to watch. With an
-	// interval of 0 the reverse proxy will buffer content sent on any connection
-	// with transfer-encoding=chunked.
-	// TODO: Flush after each chunk so the client doesn't suffer a 100ms latency per
-	// watch event.
-	ReverseProxyFlushInterval = 100 * time.Millisecond
-)
-
-// FilterServer rejects requests which don't match one of the specified regular expressions
-type FilterServer struct {
-	// Only paths that match this regexp will be accepted
-	AcceptPaths []*regexp.Regexp
-	// Paths that match this regexp will be rejected, even if they match the above
-	RejectPaths []*regexp.Regexp
-	// Hosts are required to match this list of regexp
-	AcceptHosts []*regexp.Regexp
-	// Methods that match this regexp are rejected
-	RejectMethods []*regexp.Regexp
-	// The delegate to call to handle accepted requests.
-	delegate http.Handler
-}
-
-// MakeRegexpArray splits a comma separated list of regexps into an array of Regexp objects.
-func MakeRegexpArray(str string) ([]*regexp.Regexp, error) {
-	parts := strings.Split(str, ",")
-	result := make([]*regexp.Regexp, len(parts))
-	for ix := range parts {
-		re, err := regexp.Compile(parts[ix])
-		if err != nil {
-			return nil, err
-		}
-		result[ix] = re
-	}
-	return result, nil
-}
-
-// MakeRegexpArrayOrDie creates an array of regular expression objects from a string or exits.
-func MakeRegexpArrayOrDie(str string) []*regexp.Regexp {
-	result, err := MakeRegexpArray(str)
-	if err != nil {
-		glog.Fatalf("Error compiling re: %v", err)
-	}
-	return result
-}
-
-func matchesRegexp(str string, regexps []*regexp.Regexp) bool {
-	for _, re := range regexps {
-		if re.MatchString(str) {
-			glog.V(6).Infof("%v matched %s", str, re)
-			return true
-		}
-	}
-	return false
-}
-
-func (f *FilterServer) accept(method, path, host string) bool {
-	if matchesRegexp(path, f.RejectPaths) {
-		return false
-	}
-	if matchesRegexp(method, f.RejectMethods) {
-		return false
-	}
-	if matchesRegexp(path, f.AcceptPaths) && matchesRegexp(host, f.AcceptHosts) {
-		return true
-	}
-	return false
-}
-
-// HandlerFor makes a shallow copy of f which passes its requests along to the
-// new delegate.
-func (f *FilterServer) HandlerFor(delegate http.Handler) *FilterServer {
-	f2 := *f
-	f2.delegate = delegate
-	return &f2
-}
-
-// Get host from a host header value like "localhost" or "localhost:8080"
-func extractHost(header string) (host string) {
-	host, _, err := net.SplitHostPort(header)
-	if err != nil {
-		host = header
-	}
-	return host
-}
-
-func (f *FilterServer) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	host := extractHost(req.Host)
-	if f.accept(req.Method, req.URL.Path, host) {
-		glog.V(3).Infof("Filter accepting %v %v %v", req.Method, req.URL.Path, host)
-		f.delegate.ServeHTTP(rw, req)
-		return
-	}
-	glog.V(3).Infof("Filter rejecting %v %v %v", req.Method, req.URL.Path, host)
-	rw.WriteHeader(http.StatusForbidden)
-	rw.Write([]byte("<h3>Unauthorized</h3>"))
+type KubeAPIProxy struct {
+	Handler gin.HandlerFunc
 }
 
 type responder struct{}
 
 func (r *responder) Error(w http.ResponseWriter, req *http.Request, err error) {
-	glog.Errorf("Error while proxying request: %v", err)
+	log.Errorf("Error while proxying request: %v", err)
 	http.Error(w, err.Error(), http.StatusInternalServerError)
 }
 
@@ -174,9 +68,8 @@ func makeUpgradeTransport(config *rest.Config, keepalive time.Duration) (proxy.U
 	return proxy.NewUpgradeRequestRoundTripper(rt, upgrader), nil
 }
 
-// NewProxy creates and installs a new Kubernetes API Server Proxy.
-// 'filter', if non-nil, protects requests to the api only.
-func NewProxy(apiProxyPrefix string, filter *FilterServer, cluster CommonCluster, keepalive time.Duration) (gin.HandlerFunc, error) {
+// NewKubeAPIProxy creates a new Kubernetes API Server Proxy to the given cluster with a well-defined keep-alive timeout.
+func NewKubeAPIProxy(apiProxyPrefix string, cluster CommonCluster, keepalive time.Duration) (*KubeAPIProxy, error) {
 
 	kubeConfig, err := cluster.GetK8sConfig()
 	if err != nil {
@@ -211,13 +104,9 @@ func NewProxy(apiProxyPrefix string, filter *FilterServer, cluster CommonCluster
 	proxy.UseRequestLocation = true
 
 	proxyServer := http.Handler(proxy)
-	if filter != nil {
-		proxyServer = filter.HandlerFor(proxyServer)
-	}
-
 	proxyServer = stripLeaveSlash(apiProxyPrefix, proxyServer)
 
-	return gin.WrapH(proxyServer), nil
+	return &KubeAPIProxy{Handler: gin.WrapH(proxyServer)}, nil
 }
 
 // like http.StripPrefix, but always leaves an initial slash. (so that our

@@ -45,7 +45,7 @@ func (a *ClusterAPI) DeleteCluster(c *gin.Context) {
 
 	ctx := ginutils.Context(c.Request.Context(), c)
 
-	a.clusterManager.DeleteCluster(ctx, commonCluster, force, &kubeProxyCache)
+	a.clusterManager.DeleteCluster(ctx, commonCluster, force)
 
 	anchore.RemoveAnchoreUser(commonCluster.GetOrganizationId(), commonCluster.GetUID())
 
