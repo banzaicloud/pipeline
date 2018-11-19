@@ -66,6 +66,9 @@ func LogWriter(
 				return
 			}
 
+			// We can close the old Body right now, it is fully read
+			c.Request.Body.Close()
+
 			if written != c.Request.ContentLength {
 				c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Failed to copy request body correctly"))
 				logger.Errorln(err)
