@@ -161,3 +161,7 @@ debug = true
 type = "github"
 githubOwner = "kelly-slater"
 githubRepository = "the-pipeline-issues"
+
+[spotmetrics]
+enabled = false
+collectionInterval = "30s"

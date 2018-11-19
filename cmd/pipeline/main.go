@@ -184,6 +184,10 @@ func main() {
 		}
 	}
 
+	if viper.GetBool(config.SpotMetricsEnabled) {
+		go monitor.NewSpotMetricsExporter(context.Background(), clusterManager, log.WithField("subsystem", "spot-metrics-exporter")).Run(viper.GetDuration(config.SpotMetricsCollectionInterval))
+	}
+
 	clusterAPI := api.NewClusterAPI(clusterManager, log, errorHandler)
 
 	//Initialise Gin router
