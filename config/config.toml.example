@@ -165,3 +165,6 @@ githubRepository = "the-pipeline-issues"
 [spotmetrics]
 enabled = false
 collectionInterval = "30s"
+
+[cert]
+path = "config/certs"
