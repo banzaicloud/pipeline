@@ -191,13 +191,12 @@ func (s *objectStore) DeleteBucket(bucketName string) error {
 	if err := s.deleteFromProvider(bucket); err != nil {
 		if !s.force {
 			// if delete is not forced return here
-			return err
+			return s.deleteFailed(bucket, err)
 		}
 	}
 
-	db := s.db.Delete(bucket)
-	if db.Error != nil {
-		return s.deleteFailed(bucket, db.Error)
+	if err := s.db.Delete(bucket).Error; err != nil {
+		return s.deleteFailed(bucket, err)
 	}
 
 	return nil
@@ -221,15 +220,11 @@ func (s *objectStore) deleteFromProvider(bucket *ObjectStoreBucketModel) error {
 
 	objectStore, err := getProviderObjectStore(s.secret, bucket.Region)
 	if err != nil {
-		return s.deleteFailed(bucket, emperror.WrapWith(err, "failed create AWS object storage client", "bucket", bucket.Name))
+		return emperror.WrapWith(err, "failed to create object store", "bucket", bucket.Name)
 	}
 
 	if err := objectStore.DeleteBucket(bucket.Name); err != nil {
-		return s.deleteFailed(bucket, err)
-	}
-
-	if err := s.db.Delete(bucket).Error; err != nil {
-		return s.deleteFailed(bucket, err)
+		return emperror.WrapWith(err, "failed to delete bucket from provider", "bucket", bucket.Name)
 	}
 
 	return nil
@@ -242,7 +237,7 @@ func (s *objectStore) deleteFailed(bucket *ObjectStoreBucketModel, reason error)
 	if err := s.db.Save(bucket).Error; err != nil {
 		return emperror.WrapWith(err, "failed to delete bucket", "bucket", bucket.Name)
 	}
-	return emperror.WrapWith(reason, "bucket", bucket.Name)
+	return reason
 }
 
 // CheckBucket checks the status of the given S3 bucket.

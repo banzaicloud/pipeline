@@ -190,15 +190,12 @@ func (s *objectStore) DeleteBucket(bucketName string) error {
 	_, err = s.client.DeleteBucket(input)
 	if err != nil {
 		err = s.convertError(err)
-		return emperror.WrapWith(err, "bucket deletion failed", "bucket", bucketName)
+		return emperror.WrapWith(err, "failed to delete bucket", "bucket", bucketName)
 	}
 
 	if s.waitForCompletion {
-		err := s.client.WaitUntilBucketNotExists(&s3.HeadBucketInput{
-			Bucket: aws.String(bucketName),
-		})
-		if err != nil {
-			return emperror.WrapWith(err, "could not wait for bucket to be deleted", "bucket", bucketName)
+		if err := s.client.WaitUntilBucketNotExists(&s3.HeadBucketInput{Bucket: aws.String(bucketName)}); err != nil {
+			return emperror.WrapWith(err, "failed to wait for bucket to be deleted", "bucket", bucketName)
 		}
 	}
 
