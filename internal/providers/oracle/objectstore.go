@@ -292,7 +292,7 @@ func (o *ObjectStore) deleteFailed(bucket *ObjectStoreBucketModel, reason error)
 	if db.Error != nil {
 		return emperror.With(db.Error, "could not delete bucket", bucket.Name)
 	}
-	return nil
+	return emperror.WrapWith(reason, "bucket", bucket.Name)
 }
 
 // CheckBucket check the status of the given Oracle object store bucket

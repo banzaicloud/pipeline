@@ -404,5 +404,5 @@ func (s *ObjectStore) deleteFailed(bucket *ObjectStoreBucketModel, reason error)
 	if db.Error != nil {
 		return fmt.Errorf("could not delete bucket: %s", bucket.Name)
 	}
-	return nil
+	return emperror.WrapWith(reason, "bucket", bucket.Name)
 }

@@ -25,6 +25,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
+	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -278,7 +279,10 @@ func (os *ObjectStore) deleteFailed(b *ObjectStoreBucketModel, err error) error 
 	os.logger.WithError(err).Info("delete bucket failed")
 	b.Status = providers.BucketDeleteError
 	b.StatusMsg = err.Error()
-	return os.db.Save(b).Error
+	if err := os.db.Save(b).Error; err != nil {
+		return emperror.WrapWith(err, "failed to delete bucket", "bucket", b.Name)
+	}
+	return emperror.WrapWith(err, "bucket", b.Name)
 }
 
 // queryWithOrderByDb queries the database using the specified searchCriteria

@@ -158,7 +158,7 @@ func (o *objectStore) DeleteBucket(bucketName string) error {
 
 	obj, err := o.ListObjects(bucketName)
 	if err != nil {
-		return emperror.With(emperror.Wrap(err, "could not list objects"), "bucket", bucketName)
+		return emperror.WrapWith(err, "failed to list objects", "bucket", bucketName)
 	}
 
 	if len(obj) > 0 {
@@ -197,7 +197,7 @@ func (o *objectStore) ListObjectsWithPrefix(bucketName, prefix string) ([]string
 		Prefix: prefix,
 	})
 	if err != nil {
-		return nil, emperror.With(emperror.Wrap(o.convertBucketError(err, bucketName), "could not list objects"), "prefix", prefix)
+		return nil, emperror.WrapWith(o.convertBucketError(err, bucketName), "could not list objects", "prefix", prefix)
 	}
 
 	for _, object := range objects {
@@ -215,7 +215,7 @@ func (o *objectStore) ListObjectKeyPrefixes(bucketName string, delimiter string)
 		Delimiter: delimiter,
 	})
 	if err != nil {
-		return nil, emperror.With(emperror.Wrap(o.convertBucketError(err, bucketName), "could not list object key prefixes"), "delimeter", delimiter)
+		return nil, emperror.WrapWith(o.convertBucketError(err, bucketName), "could not list object key prefixes", "delimeter", delimiter)
 	}
 
 	for _, object := range objects {

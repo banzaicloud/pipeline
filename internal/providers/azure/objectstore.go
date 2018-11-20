@@ -262,7 +262,7 @@ func (s *ObjectStore) deleteFailed(bucket *ObjectStoreBucketModel, err error) er
 		return emperror.WrapWith(e, "failed to save bucket", "gorm", "db")
 	}
 
-	return emperror.With(err, "create failed")
+	return emperror.With(err, "delete failed")
 }
 
 func (s *ObjectStore) createResourceGroup(resourceGroup string) error {

@@ -651,7 +651,7 @@ func errorResponseFrom(err error) *pkgCommon.ErrorResponse {
 		}
 	}
 
-	if err.Error() == "bucket: "+pkgErrors.ErrorBucketDeleteNotEmpty.Error() {
+	if errors.Cause(err) == pkgErrors.ErrorBucketDeleteNotEmpty {
 		return &pkgCommon.ErrorResponse{
 			Code:    http.StatusConflict,
 			Error:   err.Error(),
