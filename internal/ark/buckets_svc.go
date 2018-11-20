@@ -252,7 +252,7 @@ func (s *BucketsService) GetNodesFromBackupContents(bucket *api.Bucket, backupNa
 			return nodes, err
 		}
 
-		r, _ := regexp.Compile(`resources/nodes/cluster/[a-z0-9-]+\.json`)
+		r, _ := regexp.Compile(`resources/nodes/cluster/[a-z0-9-.]+\.json`)
 		name := header.Name
 
 		var node core.Node
