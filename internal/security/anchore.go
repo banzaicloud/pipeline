@@ -83,7 +83,6 @@ func createAnchoreAccount(name string, email string) error {
 		Name:  name,
 		Email: email,
 	}
-
 	anchoreRequest := AnchoreRequest{
 		AdminUser: true,
 		Method:    http.MethodPost,
@@ -102,11 +101,8 @@ func createAnchoreUser(username string, password string) error {
 		Username: username,
 		Password: password,
 	}
-
-	endPoint := "accounts"
-	endPoint = path.Join(endPoint, username)
+	endPoint := path.Join("accounts", username)
 	endPoint = path.Join(endPoint, "users")
-
 	anchoreRequest := AnchoreRequest{
 		AdminUser: true,
 		Method:    http.MethodPost,
@@ -120,34 +116,11 @@ func createAnchoreUser(username string, password string) error {
 	return nil
 }
 
-func getAnchoreUser(username string) int {
-	endPoint := "accounts"
-	endPoint = path.Join(endPoint, username)
-	endPoint = path.Join(endPoint, "users")
-	endPoint = path.Join(endPoint, username)
-
+func checkAnchoreUser(username string, method string) int {
+	endPoint := anchoreUserEndPoint(username)
 	anchoreRequest := AnchoreRequest{
 		AdminUser: true,
-		Method:    http.MethodGet,
-		URL:       endPoint,
-	}
-	response, err := MakeAnchoreRequest(anchoreRequest)
-	if err != nil {
-		log.Error(err)
-		return response.StatusCode
-	}
-	return response.StatusCode
-}
-
-func deleteAnchoreUser(username string) int {
-	endPoint := "accounts"
-	endPoint = path.Join(endPoint, username)
-	endPoint = path.Join(endPoint, "users")
-	endPoint = path.Join(endPoint, username)
-
-	anchoreRequest := AnchoreRequest{
-		AdminUser: true,
-		Method:    http.MethodDelete,
+		Method:    method,
 		URL:       endPoint,
 	}
 	response, err := MakeAnchoreRequest(anchoreRequest)
@@ -159,9 +132,7 @@ func deleteAnchoreUser(username string) int {
 }
 
 func deleteAnchoreAccount(account string) int {
-	endPoint := "accounts"
-	endPoint = path.Join(endPoint, account)
-
+	endPoint := path.Join("accounts", account)
 	type accountStatus struct {
 		State string `json:"state"`
 	}
@@ -202,12 +173,7 @@ func getAnchoreUserCredentials(username string) (string, int) {
 		CreatedAt string `json:"created_at"`
 	}
 
-	endPoint := "accounts"
-	endPoint = path.Join(endPoint, username)
-	endPoint = path.Join(endPoint, "users")
-	endPoint = path.Join(endPoint, username)
-	endPoint = path.Join(endPoint, "credentials")
-
+	endPoint := path.Join(anchoreUserEndPoint(username), "credentials")
 	anchoreRequest := AnchoreRequest{
 		AdminUser: true,
 		Method:    http.MethodGet,
@@ -227,11 +193,18 @@ func getAnchoreUserCredentials(username string) (string, int) {
 	return userPass, response.StatusCode
 }
 
+func anchoreUserEndPoint(username string) string {
+	endPoint := path.Join("accounts", username)
+	endPoint = path.Join(endPoint, "users")
+	endPoint = path.Join(endPoint, username)
+	return endPoint
+}
+
 //SetupAnchoreUser sets up a new user in Anchore Postgres DB & creates / updates a secret containng user name /password.
 func SetupAnchoreUser(orgId uint, clusterId string) (*User, error) {
 	anchoreUserName := fmt.Sprintf("%v-anchore-user", clusterId)
 	var user User
-	if getAnchoreUser(anchoreUserName) != http.StatusOK {
+	if checkAnchoreUser(anchoreUserName, http.MethodGet) != http.StatusOK {
 		logger.Infof("Anchore user %v not found, creating", anchoreUserName)
 
 		secretRequest := secret.CreateSecretRequest{
@@ -301,7 +274,7 @@ func RemoveAnchoreUser(orgId uint, clusterId string) {
 	} else {
 		logger.Infof("Anchore user secret %v deleted.", anchorUserName)
 	}
-	if deleteAnchoreUser(anchorUserName) != http.StatusNoContent {
+	if checkAnchoreUser(anchorUserName, http.MethodDelete) != http.StatusNoContent {
 		logger.Errorf("Error deleting Anchore user: %v", anchorUserName)
 	}
 	logger.Debugf("Anchore user %v deleted.", anchorUserName)
