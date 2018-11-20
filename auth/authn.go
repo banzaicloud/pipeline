@@ -256,10 +256,10 @@ func Install(engine *gin.Engine, generateTokenHandler gin.HandlerFunc) {
 		authGroup.GET("/github/logout", authHandler)
 		authGroup.GET("/github/register", authHandler)
 		authGroup.GET("/github/callback", authHandler)
-		authGroup.POST("/tokens", generateTokenHandler)
-		authGroup.GET("/tokens", GetTokens)
-		authGroup.GET("/tokens/:id", GetTokens)
-		authGroup.DELETE("/tokens/:id", DeleteToken)
+		authGroup.POST("/tokens", Handler, generateTokenHandler)
+		authGroup.GET("/tokens", Handler, GetTokens)
+		authGroup.GET("/tokens/:id", Handler, GetTokens)
+		authGroup.DELETE("/tokens/:id", Handler, DeleteToken)
 	}
 }
 
