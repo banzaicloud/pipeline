@@ -228,6 +228,12 @@ func InstallMonitoring(input interface{}) error {
 	return installDeployment(cluster, grafanaNamespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-monitor", pipConfig.MonitorReleaseName, grafanaValuesJson, "", false)
 }
 
+type imageValues struct {
+	Repository string `json:"repository,omitempty"`
+	Tag        string `json:"tag,omitempty"`
+	PullPolicy string `json:"pullPolicy,omitempty"`
+}
+
 // InstallLogging to install logging deployment
 func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 	var releaseTag = fmt.Sprintf("release:%s", pipConfig.LoggingReleaseName)
@@ -294,6 +300,9 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 		}
 	}
 	operatorValues := map[string]interface{}{
+		"image": imageValues{
+			Tag: viper.GetString(pipConfig.LoggingOperatorImageTag),
+		},
 		"tls": map[string]interface{}{
 			"enabled":    "true",
 			"secretName": loggingParam.GenTLSForLogging.GenTLSSecretName,
@@ -305,7 +314,10 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 	if err != nil {
 		return err
 	}
-	err = installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/logging-operator", pipConfig.LoggingReleaseName, operatorYamlValues, "", true)
+
+	chartVersion := viper.GetString(pipConfig.LoggingOperatorChartVersion)
+
+	err = installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/logging-operator", pipConfig.LoggingReleaseName, operatorYamlValues, chartVersion, true)
 	if err != nil {
 		return err
 	}
