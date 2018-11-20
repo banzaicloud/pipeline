@@ -209,6 +209,7 @@ func init() {
 	viper.SetDefault(MonitorCertMountPath, "")
 	viper.SetDefault("monitor.grafanaAdminUsername", "admin")
 
+	// empty string means the latest version of the chart will be installed
 	viper.SetDefault(LoggingOperatorChartVersion, "")
 	viper.SetDefault(LoggingOperatorImageTag, "0.0.4")
 
