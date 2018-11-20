@@ -220,6 +220,8 @@ func init() {
 	viper.SetDefault("issue.githubOwner", "banzaicloud")
 	viper.SetDefault("issue.githubRepository", "pipeline")
 
+	viper.SetDefault("cert.path", "config/certs")
+
 	// Find and read the config file
 	if err := viper.ReadInConfig(); err != nil {
 		log.Fatalf("Error reading config file, %s", err)
