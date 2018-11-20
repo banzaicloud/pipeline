@@ -73,6 +73,8 @@ var DefaultInstallOptions = []helm.InstallOption{
 	helm.InstallReuseName(true),
 	helm.InstallDisableHooks(false),
 	helm.InstallTimeout(300),
+	helm.InstallWait(false),
+	helm.InstallDryRun(false),
 }
 
 // DeploymentNotFoundError is returned when a Helm related operation is executed on
@@ -352,7 +354,7 @@ func UpgradeDeployment(releaseName, chartName, chartVersion string, chartPackage
 }
 
 //CreateDeployment creates a Helm deployment in chosen namespace
-func CreateDeployment(chartName, chartVersion string, chartPackage []byte, namespace string, releaseName string, dryRun bool, wait bool, valueOverrides []byte, odPcts map[string]int, kubeConfig []byte, env helm_env.EnvSettings, options ...helm.InstallOption) (*rls.InstallReleaseResponse, error) {
+func CreateDeployment(chartName, chartVersion string, chartPackage []byte, namespace string, releaseName string, dryRun bool, odPcts map[string]int, kubeConfig []byte, env helm_env.EnvSettings, overrideOpts ...helm.InstallOption) (*rls.InstallReleaseResponse, error) {
 
 	chartRequested, err := getRequestedChart(releaseName, chartName, chartVersion, chartPackage, env)
 	if err != nil {
@@ -387,16 +389,12 @@ func CreateDeployment(chartName, chartVersion string, chartPackage []byte, names
 	}
 	defer hClient.Close()
 
-	if len(options) == 0 {
-		options = DefaultInstallOptions
-	}
-	installOptions := []helm.InstallOption{
-		helm.ValueOverrides(valueOverrides),
+	basicOptions := []helm.InstallOption{
 		helm.ReleaseName(releaseName),
 		helm.InstallDryRun(dryRun),
-		helm.InstallWait(wait),
 	}
-	installOptions = append(installOptions, options...)
+	installOptions := append(DefaultInstallOptions, basicOptions...)
+	installOptions = append(installOptions, overrideOpts...)
 
 	installRes, err := hClient.InstallReleaseFromChart(
 		chartRequested,

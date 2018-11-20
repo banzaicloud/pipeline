@@ -48,6 +48,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
+	k8sHelm "k8s.io/helm/pkg/helm"
 	pkgHelmRelease "k8s.io/helm/pkg/proto/hapi/release"
 )
 
@@ -511,7 +512,11 @@ func installDeployment(cluster CommonCluster, namespace string, deploymentName s
 		}
 	}
 
-	_, err = helm.CreateDeployment(deploymentName, chartVersion, nil, namespace, releaseName, false, wait, values, nil, kubeConfig, helm.GenerateHelmRepoEnv(org.Name), helm.DefaultInstallOptions...)
+	options := []k8sHelm.InstallOption{
+		k8sHelm.InstallWait(wait),
+		k8sHelm.ValueOverrides(values),
+	}
+	_, err = helm.CreateDeployment(deploymentName, chartVersion, nil, namespace, releaseName, false, nil, kubeConfig, helm.GenerateHelmRepoEnv(org.Name), options...)
 	if err != nil {
 		log.Errorf("Deploying '%s' failed due to: %s", deploymentName, err.Error())
 		return err
