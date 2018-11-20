@@ -25,9 +25,7 @@ import (
 	"path"
 
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/cloudflare/cfssl/log"
 	"github.com/go-errors/errors"
-	_ "github.com/jinzhu/gorm/dialects/postgres" // blank import is used here for simplicity
 	"github.com/spf13/viper"
 )
 
@@ -125,7 +123,7 @@ func checkAnchoreUser(username string, method string) int {
 	}
 	response, err := MakeAnchoreRequest(anchoreRequest)
 	if err != nil {
-		log.Error(err)
+		logger.Error(err)
 		return response.StatusCode
 	}
 	return response.StatusCode
@@ -148,7 +146,7 @@ func deleteAnchoreAccount(account string) int {
 	}
 	response, err := MakeAnchoreRequest(anchoreRequest)
 	if err != nil {
-		log.Error(err)
+		logger.Error(err)
 		return response.StatusCode
 	}
 
@@ -160,7 +158,7 @@ func deleteAnchoreAccount(account string) int {
 	}
 	response, err = MakeAnchoreRequest(anchoreRequest)
 	if err != nil {
-		log.Error(err)
+		logger.Error(err)
 		return response.StatusCode
 	}
 	return response.StatusCode
@@ -181,7 +179,7 @@ func getAnchoreUserCredentials(username string) (string, int) {
 	}
 	response, err := MakeAnchoreRequest(anchoreRequest)
 	if err != nil {
-		log.Error(err)
+		logger.Error(err)
 		return "", response.StatusCode
 	}
 	defer response.Body.Close()
