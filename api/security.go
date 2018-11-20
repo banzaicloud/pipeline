@@ -253,7 +253,14 @@ func GetPolicies(c *gin.Context) {
 	if !ok {
 		return
 	}
-	response, err := anchore.MakeAnchoreRequest(commonCluster.GetOrganizationId(), commonCluster.GetUID(), http.MethodGet, endPoint, nil)
+	anchoreRequest := anchore.AnchoreRequest{
+		OrgID:     commonCluster.GetOrganizationId(),
+		ClusterID: commonCluster.GetUID(),
+		Method:    http.MethodGet,
+		URL:       endPoint,
+		Body:      nil,
+	}
+	response, err := anchore.MakeAnchoreRequest(anchoreRequest)
 	if err != nil {
 		log.Error(err)
 		httpStatusCode := http.StatusInternalServerError
@@ -289,7 +296,14 @@ func CreatePolicy(c *gin.Context) {
 	if !ok {
 		return
 	}
-	response, err := anchore.MakeAnchoreRequest(commonCluster.GetOrganizationId(), commonCluster.GetUID(), http.MethodPost, "policies", policyBundle)
+	anchoreRequest := anchore.AnchoreRequest{
+		OrgID:     commonCluster.GetOrganizationId(),
+		ClusterID: commonCluster.GetUID(),
+		Method:    http.MethodPost,
+		URL:       "policies",
+		Body:      policyBundle,
+	}
+	response, err := anchore.MakeAnchoreRequest(anchoreRequest)
 	if err != nil {
 		log.Error(err)
 		httpStatusCode := http.StatusInternalServerError
@@ -336,7 +350,14 @@ func UpdatePolicies(c *gin.Context) {
 	if !ok {
 		return
 	}
-	response, err := anchore.MakeAnchoreRequest(commonCluster.GetOrganizationId(), commonCluster.GetUID(), http.MethodPut, path.Join("policies", policyId), policyBundle)
+	anchoreRequest := anchore.AnchoreRequest{
+		OrgID:     commonCluster.GetOrganizationId(),
+		ClusterID: commonCluster.GetUID(),
+		Method:    http.MethodPut,
+		URL:       path.Join("policies", policyId),
+		Body:      policyBundle,
+	}
+	response, err := anchore.MakeAnchoreRequest(anchoreRequest)
 	if err != nil {
 		log.Error(err)
 		httpStatusCode := http.StatusInternalServerError
@@ -370,7 +391,14 @@ func DeletePolicy(c *gin.Context) {
 	if !ok {
 		return
 	}
-	response, err := anchore.MakeAnchoreRequest(commonCluster.GetOrganizationId(), commonCluster.GetUID(), http.MethodDelete, path.Join("policies", policyId), nil)
+	anchoreRequest := anchore.AnchoreRequest{
+		OrgID:     commonCluster.GetOrganizationId(),
+		ClusterID: commonCluster.GetUID(),
+		Method:    http.MethodDelete,
+		URL:       path.Join("policies", policyId),
+		Body:      nil,
+	}
+	response, err := anchore.MakeAnchoreRequest(anchoreRequest)
 	if err != nil {
 		log.Error(err)
 		httpStatusCode := http.StatusInternalServerError

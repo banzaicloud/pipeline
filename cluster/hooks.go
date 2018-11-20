@@ -891,7 +891,7 @@ func InstallPVCOperatorPostHook(input interface{}) error {
 //InstallAnchoreImageValidator installs Anchore image validator
 func InstallAnchoreImageValidator(input interface{}) error {
 
-	if !anchore.AnchorEnabled {
+	if !anchore.AnchoreEnabled {
 		log.Infof("Anchore integration is not enabled.")
 		return nil
 	}
@@ -910,7 +910,7 @@ func InstallAnchoreImageValidator(input interface{}) error {
 
 	values := map[string]interface{}{
 		"externalAnchore": map[string]string{
-			"anchoreHost": anchore.AnchorEndpoint,
+			"anchoreHost": anchore.AnchoreEndpoint,
 			"anchoreUser": anchoreUser.UserId,
 			"anchorePass": anchoreUser.Password,
 		},
