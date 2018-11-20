@@ -4709,6 +4709,12 @@ components:
                 repoName:
                     type: string
                     example: "spotguide-nodejs-mongodb-test"
+                repoPrivate:
+                    type: boolean
+                    example: false
+                repoLatent:
+                    type: boolean
+                    example: false
                 spotguideName:
                     type: string
                     example: "banzaicloud/spotguide-nodejs-mongodb"
@@ -4721,7 +4727,7 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/CreateSecretRequest'
-                values:
+                pipeline:
                     type: object
 
         SpotguideOptionsMysqlDatabaseName:
