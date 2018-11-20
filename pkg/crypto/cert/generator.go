@@ -17,12 +17,13 @@ package cert
 import (
 	"bytes"
 	"crypto"
+	"crypto/ecdsa"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
-		"io"
+	"io"
 	"io/ioutil"
 	"math/big"
 	"time"
@@ -40,8 +41,8 @@ type Clock interface {
 	Now() time.Time
 }
 
-// TODO: install tardis package
 // SystemClock uses the real time.
+// TODO: install tardis package
 var SystemClock = NewSystemClock()
 
 type systemClock struct{}
@@ -112,17 +113,34 @@ func NewGeneratorFromFile(
 		return nil, errors.New("failed to pem-decode CA key")
 	}
 
-	parsedSignerKey, err := x509.ParsePKCS8PrivateKey(signerKeyPem.Bytes)
+	signerKey, err := parsePrivateKey(signerKeyPem.Bytes)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse CA key")
 	}
 
-	signerKey, ok := parsedSignerKey.(crypto.Signer)
-	if !ok {
-		return nil, errors.Wrap(err, "invalid CA key")
+	return NewGenerator(signerCert, signerKey, clock, randReader), nil
+}
+
+func parsePrivateKey(der []byte) (crypto.Signer, error) {
+	if key, err := x509.ParsePKCS1PrivateKey(der); err == nil {
+		return key, nil
+	}
+	if key, err := x509.ParsePKCS8PrivateKey(der); err == nil {
+		switch key := key.(type) {
+		case *rsa.PrivateKey:
+			return key, nil
+
+		case *ecdsa.PrivateKey:
+			return key, nil
+		default:
+			return nil, errors.New("found unknown private key type in PKCS#8 wrapping")
+		}
+	}
+	if key, err := x509.ParseECPrivateKey(der); err == nil {
+		return key, nil
 	}
 
-	return NewGenerator(signerCert, signerKey, clock, randReader), nil
+	return nil, errors.New("failed to parse private key")
 }
 
 // CertificateRequest contains a minimal set of information to generate a self-signed certificate.
@@ -165,9 +183,17 @@ func (g *Generator) Generate(request CertificateRequest) ([]byte, []byte, error)
 		BasicConstraintsValid: true,
 	}
 
-	cert, err := x509.CreateCertificate(g.randReader, certTemplate, g.signerCert, privateKey.PublicKey, g.signerKey)
+	cert, err := x509.CreateCertificate(g.randReader, certTemplate, g.signerCert, privateKey.Public(), g.signerKey)
+	if err != nil {
+		return nil, nil, emperror.Wrap(err, "failed to sign certificate")
+	}
 
-	return cert, privateKeyBytes, emperror.Wrap(err, "failed to sign certificate")
+	certBytes, err := certToBytes(cert)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return certBytes, privateKeyBytes, nil
 }
 
 func keyToBytes(key *rsa.PrivateKey) ([]byte, error) {
@@ -176,6 +202,16 @@ func keyToBytes(key *rsa.PrivateKey) ([]byte, error) {
 
 	if err := pem.Encode(buffer, &pem.Block{Type: "RSA PRIVATE KEY", Bytes: keyBytes}); err != nil {
 		return nil, errors.Wrap(err, "failed to pem-encode key")
+	}
+
+	return buffer.Bytes(), nil
+}
+
+func certToBytes(certBytes []byte) ([]byte, error) {
+	buffer := bytes.NewBuffer(nil)
+
+	if err := pem.Encode(buffer, &pem.Block{Type: "CERTIFICATE", Bytes: certBytes}); err != nil {
+		return nil, errors.Wrap(err, "failed to pem-encode cert")
 	}
 
 	return buffer.Bytes(), nil
