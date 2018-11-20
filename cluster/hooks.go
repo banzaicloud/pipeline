@@ -537,56 +537,6 @@ func installDeployment(cluster CommonCluster, namespace string, deploymentName s
 	return nil
 }
 
-type treafikSslConfig struct {
-	Enabled        bool     `json:"enabled"`
-	GenerateTLS    bool     `json:"generateTLS"`
-	DefaultCN      string   `json:"defaultCN"`
-	DefaultSANList []string `json:"defaultSANList"`
-}
-
-//InstallIngressControllerPostHook post hooks can't return value, they can log error and/or update state?
-func InstallIngressControllerPostHook(input interface{}) error {
-	cluster, ok := input.(CommonCluster)
-	if !ok {
-		return errors.Errorf("Wrong parameter type: %T", cluster)
-	}
-
-	orgID := cluster.GetOrganizationId()
-	organization, err := auth.GetOrganizationById(orgID)
-	if err != nil {
-		return emperror.WrapWith(err, "failed to get organization", "orgID", orgID)
-	}
-
-	domainWithOrgName := fmt.Sprintf("%s.%s", organization.Name, viper.GetString(pipConfig.DNSBaseDomain))
-
-	ssl := treafikSslConfig{
-		Enabled:     true,
-		GenerateTLS: true,
-		DefaultCN:   fmt.Sprintf("*.%s", domainWithOrgName),
-		DefaultSANList: []string{
-			domainWithOrgName,
-			fmt.Sprintf("%s.%s", cluster.GetName(), domainWithOrgName),
-		},
-	}
-
-	ingressValues := map[string]interface{}{
-		"traefik": map[string]interface{}{
-			"ssl":         ssl,
-			"affinity":    getHeadNodeAffinity(cluster),
-			"tolerations": getHeadNodeTolerations(),
-		},
-	}
-
-	ingressValuesJson, err := yaml.Marshal(ingressValues)
-	if err != nil {
-		return emperror.Wrap(err, "converting ingress config to json failed")
-	}
-
-	namespace := viper.GetString(pipConfig.PipelineSystemNamespace)
-
-	return installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-ingress", "ingress", ingressValuesJson, "", false)
-}
-
 //InstallKubernetesDashboardPostHook post hooks can't return value, they can log error and/or update state?
 func InstallKubernetesDashboardPostHook(input interface{}) error {
 	cluster, ok := input.(CommonCluster)
