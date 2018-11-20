@@ -90,12 +90,11 @@ func createAnchoreAccount(name string, email string) error {
 		URL:       "accounts",
 		Body:      anchoreAccount,
 	}
-	response, err := MakeAnchoreRequest(anchoreRequest)
+	_, err := MakeAnchoreRequest(anchoreRequest)
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
-	return err
+	return nil
 }
 
 func createAnchoreUser(username string, password string) error {
@@ -114,12 +113,11 @@ func createAnchoreUser(username string, password string) error {
 		URL:       endPoint,
 		Body:      anchoreUser,
 	}
-	response, err := MakeAnchoreRequest(anchoreRequest)
+	_, err := MakeAnchoreRequest(anchoreRequest)
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
-	return err
+	return nil
 }
 
 func getAnchoreUser(username string) int {
@@ -138,7 +136,6 @@ func getAnchoreUser(username string) int {
 		log.Error(err)
 		return response.StatusCode
 	}
-	defer response.Body.Close()
 	return response.StatusCode
 }
 
@@ -158,7 +155,6 @@ func deleteAnchoreUser(username string) int {
 		log.Error(err)
 		return response.StatusCode
 	}
-	defer response.Body.Close()
 	return response.StatusCode
 }
 
@@ -166,17 +162,36 @@ func deleteAnchoreAccount(account string) int {
 	endPoint := "accounts"
 	endPoint = path.Join(endPoint, account)
 
+	type accountStatus struct {
+		State string `json:"state"`
+	}
+
+	accStatus := accountStatus{
+		State: "disabled",
+	}
 	anchoreRequest := AnchoreRequest{
 		AdminUser: true,
-		Method:    http.MethodDelete,
-		URL:       endPoint,
+		Method:    http.MethodPut,
+		URL:       path.Join(endPoint, "state"),
+		Body:      accStatus,
 	}
 	response, err := MakeAnchoreRequest(anchoreRequest)
 	if err != nil {
 		log.Error(err)
 		return response.StatusCode
 	}
-	defer response.Body.Close()
+
+	anchoreRequest = AnchoreRequest{
+		AdminUser: true,
+		Method:    http.MethodDelete,
+		URL:       endPoint,
+		Body:      nil,
+	}
+	response, err = MakeAnchoreRequest(anchoreRequest)
+	if err != nil {
+		log.Error(err)
+		return response.StatusCode
+	}
 	return response.StatusCode
 }
 
@@ -215,7 +230,7 @@ func getAnchoreUserCredentials(username string) (string, int) {
 //SetupAnchoreUser sets up a new user in Anchore Postgres DB & creates / updates a secret containng user name /password.
 func SetupAnchoreUser(orgId uint, clusterId string) (*User, error) {
 	anchoreUserName := fmt.Sprintf("%v-anchore-user", clusterId)
-	var user *User
+	var user User
 	if getAnchoreUser(anchoreUserName) != http.StatusOK {
 		logger.Infof("Anchore user %v not found, creating", anchoreUserName)
 
@@ -239,13 +254,13 @@ func SetupAnchoreUser(orgId uint, clusterId string) (*User, error) {
 		userPassword := secretItem.Values["password"]
 
 		if createAnchoreAccount(anchoreUserName, anchoreEmail) != nil {
-			return nil, errors.WrapPrefix(err, "Error creating Anchor user", 0)
+			return nil, errors.WrapPrefix(err, "Error creating Anchor account", 0)
 		}
 		if createAnchoreUser(anchoreUserName, userPassword) != nil {
 			return nil, errors.WrapPrefix(err, "Error creating Anchor user", 0)
 		}
-		user.Password = anchoreUserName
-		user.UserId = userPassword
+		user.Password = userPassword
+		user.UserId = anchoreUserName
 	} else {
 		logger.Infof("Anchore user %v found", anchoreUserName)
 		userPassword, status := getAnchoreUserCredentials(anchoreUserName)
@@ -266,7 +281,7 @@ func SetupAnchoreUser(orgId uint, clusterId string) (*User, error) {
 		}
 	}
 
-	return user, nil
+	return &user, nil
 }
 
 func RemoveAnchoreUser(orgId uint, clusterId string) {
@@ -274,18 +289,6 @@ func RemoveAnchoreUser(orgId uint, clusterId string) {
 		return
 	}
 	anchorUserName := fmt.Sprintf("%v-anchore-user", clusterId)
-
-	// err := db.DeleteAnchoreUser(anchorUserName)
-
-	if deleteAnchoreUser(anchorUserName) != http.StatusNoContent {
-		logger.Errorf("Error deleting Anchore user: %v", anchorUserName)
-		return
-	}
-	if deleteAnchoreAccount(anchorUserName) != http.StatusNoContent {
-		logger.Errorf("Error deleting Anchore account: %v", anchorUserName)
-		return
-	}
-	logger.Infof("Anchore user %v deleted.", anchorUserName)
 
 	secretItem, err := secret.Store.GetByName(orgId, anchorUserName)
 	if err != nil {
@@ -298,6 +301,14 @@ func RemoveAnchoreUser(orgId uint, clusterId string) {
 	} else {
 		logger.Infof("Anchore user secret %v deleted.", anchorUserName)
 	}
+	if deleteAnchoreUser(anchorUserName) != http.StatusNoContent {
+		logger.Errorf("Error deleting Anchore user: %v", anchorUserName)
+	}
+	logger.Debugf("Anchore user %v deleted.", anchorUserName)
+	if deleteAnchoreAccount(anchorUserName) != http.StatusNoContent {
+		logger.Errorf("Error deleting Anchore account: %v", anchorUserName)
+	}
+	logger.Debugf("Anchore account %v deleting.", anchorUserName)
 }
 
 // MakeAnchoreRequest do anchore api call
