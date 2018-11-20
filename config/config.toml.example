@@ -157,3 +157,6 @@ debug = true
 type = "github"
 githubOwner = "kelly-slater"
 githubRepository = "the-pipeline-issues"
+
+[cert]
+path = "config/certs"
