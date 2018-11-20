@@ -110,8 +110,10 @@ const (
 
 	SetCookieDomain = "auth.setCookieDomain"
 
-	// Logging constants
-	LoggingReleaseName = "logging-operator"
+	// Logging operator constants
+	LoggingReleaseName          = "logging-operator"
+	LoggingOperatorChartVersion = "loggingOperator.chartVersion"
+	LoggingOperatorImageTag     = "loggingOperator.imageTag"
 
 	// Spotguides constants
 	SpotguideAllowPrereleases = "spotguide.allowPrereleases"
@@ -206,6 +208,9 @@ func init() {
 	viper.SetDefault(MonitorCertSecret, "")
 	viper.SetDefault(MonitorCertMountPath, "")
 	viper.SetDefault("monitor.grafanaAdminUsername", "admin")
+
+	viper.SetDefault(LoggingOperatorChartVersion, "")
+	viper.SetDefault(LoggingOperatorImageTag, "0.0.4")
 
 	viper.BindEnv(ControlPlaneNamespace, "KUBERNETES_NAMESPACE")
 	viper.SetDefault(ControlPlaneNamespace, "default")

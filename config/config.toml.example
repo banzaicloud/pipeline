@@ -86,6 +86,10 @@ certSecret = ""
 mountPath = ""
 grafanaAdminUsername = "admin"
 
+[loggingOperator]
+chartVersion = ""
+imageTag = "0.0.4"
+
 # DNS service settings
 [dns]
 # base domain under which organisation level subdomains will be registered
