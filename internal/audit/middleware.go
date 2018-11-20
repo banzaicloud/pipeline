@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/textproto"
 	"strings"
@@ -32,14 +33,6 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 )
-
-type closeableBuffer struct {
-	*bytes.Buffer
-}
-
-func (*closeableBuffer) Close() error {
-	return nil
-}
 
 // LogWriter instance is a Gin Middleware which logs all request data into MySQL audit_events table.
 func LogWriter(
@@ -63,7 +56,7 @@ func LogWriter(
 		// Log only when path is not being skipped
 		if _, ok := skip[path]; !ok {
 			// Copy request body into a new buffer, so other handlers can use it safely
-			bodyBuffer := &closeableBuffer{bytes.NewBuffer(nil)}
+			bodyBuffer := bytes.NewBuffer(nil)
 
 			written, err := io.Copy(bodyBuffer, c.Request.Body)
 			if err != nil {
@@ -73,6 +66,9 @@ func LogWriter(
 				return
 			}
 
+			// We can close the old Body right now, it is fully read
+			c.Request.Body.Close()
+
 			if written != c.Request.ContentLength {
 				c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Failed to copy request body correctly"))
 				logger.Errorln(err)
@@ -81,7 +77,7 @@ func LogWriter(
 			}
 
 			rawBody := bodyBuffer.Bytes()
-			c.Request.Body = bodyBuffer
+			c.Request.Body = ioutil.NopCloser(bodyBuffer)
 
 			// Filter out sensitive data from body
 			var body *string
