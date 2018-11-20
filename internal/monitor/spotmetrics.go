@@ -64,22 +64,20 @@ func (e *spotMetricsExporter) Run(interval time.Duration) {
 	}
 
 	ticker := time.NewTicker(interval)
-	func() {
-		for {
-			select {
-			case <-ticker.C:
-				e.logger.WithField("interval", interval.String()).Debug("collecting spot request metrics from EKS clusters")
-				err := e.collectMetrics()
-				if err != nil {
-					e.errorHandler.Handle(emperror.Wrap(err, "could not collect spot metrics"))
-				}
-			case <-e.ctx.Done():
-				e.logger.Debug("closing ticker")
-				ticker.Stop()
-				return
+	for {
+		select {
+		case <-ticker.C:
+			e.logger.WithField("interval", interval.String()).Debug("collecting spot request metrics from EKS clusters")
+			err := e.collectMetrics()
+			if err != nil {
+				e.errorHandler.Handle(emperror.Wrap(err, "could not collect spot metrics"))
 			}
+		case <-e.ctx.Done():
+			e.logger.Debug("closing ticker")
+			ticker.Stop()
+			return
 		}
-	}()
+	}
 }
 
 func (e *spotMetricsExporter) collectMetrics() error {
