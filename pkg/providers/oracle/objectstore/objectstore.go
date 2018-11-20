@@ -21,6 +21,7 @@ import (
 	"strings"
 	"time"
 
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/providers/oracle/oci"
 	"github.com/goph/emperror"
 	"github.com/oracle/oci-go-sdk/common"
@@ -125,7 +126,16 @@ func (o *objectStore) CheckBucket(bucketName string) (err error) {
 
 // DeleteBucket removes a bucket from the object store
 func (o *objectStore) DeleteBucket(bucketName string) error {
-	err := o.osClient.DeleteBucket(bucketName)
+	obj, err := o.ListObjects(bucketName)
+	if err != nil {
+		return emperror.With(emperror.Wrap(err, "could not list objects"), "bucket", bucketName)
+	}
+
+	if len(obj) > 0 {
+		return emperror.With(pkgErrors.ErrorBucketDeleteNotEmpty, "bucket", bucketName)
+	}
+
+	err = o.osClient.DeleteBucket(bucketName)
 	if err != nil {
 		return emperror.Wrap(o.convertBucketError(err, bucketName), "could not delete bucket")
 	}

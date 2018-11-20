@@ -242,7 +242,7 @@ func (s *objectStore) deleteFailed(bucket *ObjectStoreBucketModel, reason error)
 	if err := s.db.Save(bucket).Error; err != nil {
 		return emperror.WrapWith(err, "failed to delete bucket", "bucket", bucket.Name)
 	}
-	return nil
+	return emperror.WrapWith(reason, "bucket", bucket.Name)
 }
 
 // CheckBucket checks the status of the given S3 bucket.

@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/goph/emperror"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/googleapi"
@@ -154,7 +155,17 @@ func (o *objectStore) CheckBucket(bucketName string) error {
 
 // DeleteBucket deletes a bucket from the object store
 func (o *objectStore) DeleteBucket(bucketName string) error {
-	err := o.client.Bucket(bucketName).Delete(context.Background())
+
+	obj, err := o.ListObjects(bucketName)
+	if err != nil {
+		return emperror.With(emperror.Wrap(err, "could not list objects"), "bucket", bucketName)
+	}
+
+	if len(obj) > 0 {
+		return emperror.With(pkgErrors.ErrorBucketDeleteNotEmpty, "bucket", bucketName)
+	}
+
+	err = o.client.Bucket(bucketName).Delete(context.Background())
 	if err != nil {
 		return emperror.Wrap(o.convertBucketError(err, bucketName), "could not delete bucket")
 	}

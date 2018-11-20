@@ -651,6 +651,14 @@ func errorResponseFrom(err error) *pkgCommon.ErrorResponse {
 		}
 	}
 
+	if err.Error() == "bucket: "+pkgErrors.ErrorBucketDeleteNotEmpty.Error() {
+		return &pkgCommon.ErrorResponse{
+			Code:    http.StatusConflict,
+			Error:   err.Error(),
+			Message: err.Error(),
+		}
+	}
+
 	switch err.(type) {
 	case SecretNotFoundError, secret.MissmatchError:
 		return &pkgCommon.ErrorResponse{

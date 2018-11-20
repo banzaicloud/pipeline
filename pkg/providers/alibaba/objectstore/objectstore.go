@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/goph/emperror"
 )
 
@@ -115,6 +116,15 @@ func (o *objectStore) CheckBucket(bucketName string) error {
 
 // DeleteBucket deletes a bucket from the object store
 func (o *objectStore) DeleteBucket(bucketName string) error {
+	obj, err := o.ListObjects(bucketName)
+	if err != nil {
+		return emperror.With(emperror.Wrap(err, "could not list objects"), "bucket", bucketName)
+	}
+
+	if len(obj) > 0 {
+		return emperror.With(pkgErrors.ErrorBucketDeleteNotEmpty, "bucket", bucketName)
+	}
+
 	client, err := o.getClientForBucket(bucketName)
 	if err != nil {
 		return err

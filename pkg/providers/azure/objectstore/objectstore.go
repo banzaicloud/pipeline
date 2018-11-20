@@ -25,6 +25,7 @@ import (
 	"github.com/Azure/azure-storage-blob-go/2016-05-31/azblob"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 )
@@ -119,7 +120,16 @@ func (o *objectStore) CheckBucket(bucketName string) error {
 
 // DeleteBucket deletes a bucket from the object store
 func (o *objectStore) DeleteBucket(bucketName string) error {
-	err := o.client.GetContainerReference(bucketName).Delete(&storage.DeleteContainerOptions{})
+	obj, err := o.ListObjects(bucketName)
+	if err != nil {
+		return emperror.With(emperror.Wrap(err, "could not list objects"), "bucket", bucketName)
+	}
+
+	if len(obj) > 0 {
+		return emperror.With(pkgErrors.ErrorBucketDeleteNotEmpty, "bucket", bucketName)
+	}
+
+	err = o.client.GetContainerReference(bucketName).Delete(&storage.DeleteContainerOptions{})
 	if err != nil {
 		err = o.convertError(err)
 		return emperror.With(emperror.Wrap(err, "bucket deletion failed"), "bucket", bucketName)

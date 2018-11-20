@@ -26,6 +26,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/goph/emperror"
 )
 
@@ -178,7 +179,15 @@ func (s *objectStore) DeleteBucket(bucketName string) error {
 		Bucket: aws.String(bucketName),
 	}
 
-	_, err := s.client.DeleteBucket(input)
+	obj, err := s.ListObjects(bucketName)
+	if err != nil {
+		return emperror.With(emperror.Wrap(err, "could not list objects"), "bucket", bucketName)
+	}
+
+	if len(obj) > 0 {
+		return emperror.With(pkgErrors.ErrorBucketDeleteNotEmpty, "bucket", bucketName)
+	}
+	_, err = s.client.DeleteBucket(input)
 	if err != nil {
 		err = s.convertError(err)
 		return emperror.With(emperror.Wrap(err, "bucket deletion failed"), "bucket", bucketName)
