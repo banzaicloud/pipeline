@@ -22,6 +22,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/goph/emperror"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/cluster"
@@ -30,12 +31,13 @@ import (
 	"github.com/banzaicloud/pipeline/secret/verify"
 )
 
-const metricsNamesapce = "popeline"
+const metricsNamesapce = "pipeline"
 
 type spotMetricsExporter struct {
-	ctx     context.Context
-	manager *cluster.Manager
-	logger  logrus.FieldLogger
+	ctx          context.Context
+	manager      *cluster.Manager
+	logger       logrus.FieldLogger
+	errorHandler emperror.Handler
 
 	ec2Clients map[string]*ec2.EC2
 	exporter   *pkgEC2.SpotMetricsExporter
@@ -44,18 +46,22 @@ type spotMetricsExporter struct {
 // NewSpotMetricsExporter gives back an initialized spotMetricsExporter
 func NewSpotMetricsExporter(ctx context.Context, manager *cluster.Manager, logger logrus.FieldLogger) *spotMetricsExporter {
 	return &spotMetricsExporter{
-		ctx:        ctx,
-		manager:    manager,
-		logger:     logger,
-		exporter:   pkgEC2.NewSpotMetricsExporter(logger, metricsNamesapce),
-		ec2Clients: make(map[string]*ec2.EC2),
+		ctx:          ctx,
+		manager:      manager,
+		logger:       logger,
+		errorHandler: NewSpotMetricsErrorHandler(logger),
+		exporter:     pkgEC2.NewSpotMetricsExporter(logger, metricsNamesapce),
+		ec2Clients:   make(map[string]*ec2.EC2),
 	}
 }
 
 // Run runs the metrics collections with the given interval
 func (e *spotMetricsExporter) Run(interval time.Duration) {
 	e.logger.WithField("interval", interval.String()).Debug("collecting spot request metrics from EKS clusters")
-	go e.collectMetrics()
+	err := e.collectMetrics()
+	if err != nil {
+		e.errorHandler.Handle(emperror.Wrap(err, "could not collect spot metrics"))
+	}
 
 	ticker := time.NewTicker(interval)
 	func() {
@@ -63,7 +69,10 @@ func (e *spotMetricsExporter) Run(interval time.Duration) {
 			select {
 			case <-ticker.C:
 				e.logger.WithField("interval", interval.String()).Debug("collecting spot request metrics from EKS clusters")
-				go e.collectMetrics()
+				err := e.collectMetrics()
+				if err != nil {
+					e.errorHandler.Handle(emperror.Wrap(err, "could not collect spot metrics"))
+				}
 			case <-e.ctx.Done():
 				e.logger.Debug("closing ticker")
 				ticker.Stop()
@@ -85,7 +94,7 @@ func (e *spotMetricsExporter) collectMetrics() error {
 
 		status, err := cluster.GetStatus()
 		if err != nil {
-			log.Error(emperror.Wrap(err, "could not get cluster status"))
+			e.errorHandler.Handle(emperror.Wrap(err, "could not get cluster status"))
 		}
 		if status.Status != pkgCluster.Running || cluster.GetDistribution() != pkgCluster.EKS {
 			continue
@@ -94,7 +103,7 @@ func (e *spotMetricsExporter) collectMetrics() error {
 		log.Debug("collecting metrics from cluster")
 		clusterSecret, err := cluster.GetSecretWithValidation()
 		if err != nil {
-			log.Error(emperror.Wrap(err, "could not get secret"))
+			e.errorHandler.Handle(emperror.Wrap(err, "could not get secret"))
 			continue
 		}
 
@@ -103,13 +112,13 @@ func (e *spotMetricsExporter) collectMetrics() error {
 			Credentials: verify.CreateAWSCredentials(clusterSecret.Values),
 		})
 		if err != nil {
-			e.logger.Error(emperror.Wrap(err, "could not get EC2 service"))
+			e.errorHandler.Handle(emperror.Wrap(err, "could not get EC2 service"))
 			continue
 		}
 
 		srs, err := e.exporter.GetSpotRequests(client)
 		if err != nil {
-			e.logger.Error(emperror.Wrap(err, "could not get spot requests"))
+			e.errorHandler.Handle(emperror.Wrap(err, "could not get spot requests"))
 			continue
 		}
 		for key, request := range srs {
@@ -127,14 +136,14 @@ func (e *spotMetricsExporter) collectMetrics() error {
 func (e *spotMetricsExporter) getEC2Client(config aws.Config) (*ec2.EC2, error) {
 	credentials, err := config.Credentials.Get()
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	key := *config.Region + "-" + credentials.AccessKeyID
 	if e.ec2Clients[key] == nil {
 		sess, err := session.NewSession(&config)
 		if err != nil {
-			return nil, err
+			return nil, errors.WithStack(err)
 		}
 		e.ec2Clients[key] = ec2.New(sess)
 	}
