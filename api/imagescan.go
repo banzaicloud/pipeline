@@ -77,7 +77,14 @@ func ScanImages(c *gin.Context) {
 	for i := range images {
 		anchorePost.Tag = images[i].ImageName + ":" + images[i].ImageTag
 		anchorePost.Digest = ""
-		response, err := anchore.MakeAnchoreRequest(commonCluster.GetOrganizationId(), commonCluster.GetUID(), http.MethodPost, endPoint, anchorePost)
+		anchoreRequest := anchore.AnchoreRequest{
+			OrgID:     commonCluster.GetOrganizationId(),
+			ClusterID: commonCluster.GetUID(),
+			Method:    http.MethodPost,
+			URL:       endPoint,
+			Body:      anchorePost,
+		}
+		response, err := anchore.MakeAnchoreRequest(anchoreRequest)
 		if err != nil {
 			log.Error(err)
 			httpStatusCode := http.StatusInternalServerError
@@ -119,8 +126,14 @@ func doAnchoreGetRequest(c *gin.Context, endPoint string) {
 	if !ok {
 		return
 	}
-
-	response, err := anchore.MakeAnchoreRequest(commonCluster.GetOrganizationId(), commonCluster.GetUID(), http.MethodGet, endPoint, nil)
+	anchoreRequest := anchore.AnchoreRequest{
+		OrgID:     commonCluster.GetOrganizationId(),
+		ClusterID: commonCluster.GetUID(),
+		Method:    http.MethodGet,
+		URL:       endPoint,
+		Body:      nil,
+	}
+	response, err := anchore.MakeAnchoreRequest(anchoreRequest)
 	if err != nil {
 		log.Error(err)
 		httpStatusCode := http.StatusInternalServerError
