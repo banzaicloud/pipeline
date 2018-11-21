@@ -567,7 +567,7 @@ func enableCICD(request *LaunchRequest, httpRequest *http.Request) error {
 
 	repoPatch := drone.RepoPatch{
 		IsSpotguide:     github.Bool(true),
-		SpotguideSource: github.String(request.RepoFullname()),
+		SpotguideSource: github.String(request.SpotguideName),
 	}
 	if request.RepoLatent {
 		repoPatch.AllowTag = github.Bool(false)
