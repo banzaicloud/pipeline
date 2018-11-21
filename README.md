@@ -118,7 +118,7 @@ Kubernetes clusters can be created explicitly (directly triggered by calling the
 
 The easiest way to create a Kubernetes cluster on one of the supported cloud providers is by using the REST API, available as a Postman collection. Clusters can be created, updated or deleted.
 
-[![Run in Postman](https://run.pstmn.io/button.svg)](https://www.getpostman.com/collections/094e8ba30480348b5489)
+[![Run in Postman](https://run.pstmn.io/button.svg)](docs/postman/e2e_test.postman_collection.json)
 
 #### Create using CI/CD
 
@@ -144,7 +144,7 @@ We have introduced a new feature where beside the Helm CLI and gRPC a RESTful AP
 
 The easiest way to deploy applications to it is through the following Postman examples.
 
-[![Run in Postman](https://run.pstmn.io/button.svg)](https://www.getpostman.com/collections/094e8ba30480348b5489)
+[![Run in Postman](https://run.pstmn.io/button.svg)](docs/postman/e2e_test.postman_collection.json)
 
 #### Deploy using CI/CD
 
