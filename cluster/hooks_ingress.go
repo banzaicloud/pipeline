@@ -15,13 +15,14 @@
 package cluster
 
 import (
+	"crypto/x509/pkix"
 	"encoding/base64"
 	"fmt"
 
+	"github.com/banzaicloud/bank-vaults/pkg/tls"
 	"github.com/banzaicloud/pipeline/auth"
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/global"
-	"github.com/banzaicloud/pipeline/pkg/crypto/cert"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
@@ -72,14 +73,14 @@ func InstallIngressControllerPostHook(input interface{}) error {
 
 		orgDomainName := fmt.Sprintf("%s.%s", organization.Name, viper.GetString(pipConfig.DNSBaseDomain))
 
-		certRequest := cert.CertificateRequest{
-			CommonName: fmt.Sprintf("*.%s", orgDomainName),
-			AlternativeNames: []string{
-				orgDomainName,
+		certRequest := tls.ServerCertificateRequest{
+			Subject: pkix.Name{
+				CommonName: fmt.Sprintf("*.%s", orgDomainName),
 			},
+			DNSNames: []string{orgDomainName},
 		}
 
-		cert, key, err := certGenerator.Generate(certRequest)
+		cert, key, err := certGenerator.GenerateServerCertificate(certRequest)
 		if err != nil {
 			return errors.Wrap(err, "failed to generate certificate")
 		}
