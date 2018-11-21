@@ -72,12 +72,13 @@ func InstallIngressControllerPostHook(input interface{}) error {
 		}
 
 		orgDomainName := fmt.Sprintf("%s.%s", organization.Name, viper.GetString(pipConfig.DNSBaseDomain))
+		wildcardOrgDomainName := fmt.Sprintf("*.%s", orgDomainName)
 
 		certRequest := tls.ServerCertificateRequest{
 			Subject: pkix.Name{
-				CommonName: fmt.Sprintf("*.%s", orgDomainName),
+				CommonName: wildcardOrgDomainName,
 			},
-			DNSNames: []string{orgDomainName},
+			DNSNames: []string{orgDomainName, wildcardOrgDomainName},
 		}
 
 		rootCA, cert, key, err := certGenerator.GenerateServerCertificate(certRequest)
