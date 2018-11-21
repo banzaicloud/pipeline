@@ -15,7 +15,6 @@
 package global
 
 import (
-	"crypto/rand"
 	"path/filepath"
 	"sync"
 
@@ -30,8 +29,6 @@ func newCertGenerator() *cert.Generator {
 	generator, err := cert.NewGeneratorFromFile(
 		filepath.Join(viper.GetString("cert.path"), "ca.crt.pem"),
 		filepath.Join(viper.GetString("cert.path"), "ca.key.pem"),
-		cert.SystemClock,
-		rand.Reader,
 	)
 	if err != nil {
 		panic(err)
