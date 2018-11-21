@@ -17,13 +17,12 @@ package cert
 import (
 	"crypto"
 	"crypto/x509"
-	"encoding/pem"
 	"io/ioutil"
 
 	"github.com/pkg/errors"
 )
 
-// FileCALoader loads a parent certificate and signing key.
+// FileCALoader loads a CA bundle from file.
 type FileCALoader struct {
 	certPath string
 	keyPath  string
@@ -38,35 +37,15 @@ func NewFileCALoader(certPath string, keyPath string) *FileCALoader {
 }
 
 func (s *FileCALoader) Load() (*x509.Certificate, crypto.Signer, error) {
-	certFile, err := ioutil.ReadFile(s.certPath)
+	certBytes, err := ioutil.ReadFile(s.certPath)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to read cert file")
 	}
 
-	certPem, _ := pem.Decode(certFile)
-	if certPem == nil {
-		return nil, nil, errors.New("failed to pem-decode cert")
-	}
-
-	cert, err := x509.ParseCertificate(certPem.Bytes)
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to parse cert")
-	}
-
-	keyFile, err := ioutil.ReadFile(s.keyPath)
+	keyBytes, err := ioutil.ReadFile(s.keyPath)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to read key file")
 	}
 
-	keyPem, _ := pem.Decode(keyFile)
-	if keyPem == nil {
-		return nil, nil, errors.New("failed to pem-decode key")
-	}
-
-	key, err := parsePrivateKey(keyPem.Bytes)
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to parse key")
-	}
-
-	return cert, key, nil
+	return parseCABundle(certBytes, keyBytes)
 }
