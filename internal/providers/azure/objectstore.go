@@ -148,7 +148,7 @@ func (s *ObjectStore) getResourceGroup() string {
 	return resourceGroup
 }
 
-// getStorageAccount returns the given storage account or or falls back to a default one.
+// getStorageAccount returns the given storage account or falls back to a default one.
 func (s *ObjectStore) getStorageAccount() string {
 	storageAccount := s.storageAccount
 
@@ -598,34 +598,32 @@ func (s *ObjectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 }
 
 func (s *ObjectStore) ListManagedBuckets() ([]*objectstore.BucketInfo, error) {
-
 	logger := s.getLogger()
-	logger.Info("getting all resource groups for subscription")
+	logger.Debug("retrieving managed bucket list")
 
-	var objectStores []ObjectStoreBucketModel
-	err := s.db.
-		Where(&ObjectStoreBucketModel{OrganizationID: s.org.ID}).
-		Order("resource_group asc, storage_account asc, name asc").
-		Find(&objectStores).Error
+	var azureBuckets []ObjectStoreBucketModel
 
-	if err != nil {
-		return nil, fmt.Errorf("retrieving managed buckets failed: %s", err.Error())
+	if err := s.db.Where(ObjectStoreBucketModel{OrganizationID: s.org.ID}).
+		Order("resource_group asc, storage_account asc, name asc").Find(&azureBuckets).Error; err != nil {
+		return nil, emperror.Wrap(err, "failed to retrieve managed buckets")
 	}
 
 	bucketList := make([]*objectstore.BucketInfo, 0)
-	for _, bucket := range objectStores {
-		bucketInfo := &objectstore.BucketInfo{Name: bucket.Name, Managed: true}
-		bucketInfo.Location = bucket.Location
-		bucketInfo.SecretRef = bucket.SecretRef
-		bucketInfo.AccessSecretRef = bucket.AccessSecretRef
-		bucketInfo.Cloud = providers.Azure
-		bucketInfo.Status = bucket.Status
-		bucketInfo.StatusMsg = bucket.StatusMsg
-		bucketInfo.Azure = &objectstore.BlobStoragePropsForAzure{
-			ResourceGroup:  bucket.ResourceGroup,
-			StorageAccount: bucket.StorageAccount,
-		}
-		bucketList = append(bucketList, bucketInfo)
+	for _, bucket := range azureBuckets {
+		bucketList = append(bucketList, &objectstore.BucketInfo{
+			Name:            bucket.Name,
+			Managed:         true,
+			Location:        bucket.Location,
+			SecretRef:       bucket.SecretRef,
+			AccessSecretRef: bucket.AccessSecretRef,
+			Cloud:           providers.Azure,
+			Status:          bucket.Status,
+			StatusMsg:       bucket.StatusMsg,
+			Azure: &objectstore.BlobStoragePropsForAzure{
+				ResourceGroup:  bucket.ResourceGroup,
+				StorageAccount: bucket.StorageAccount,
+			},
+		})
 	}
 
 	return bucketList, nil

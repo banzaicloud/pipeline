@@ -34,6 +34,10 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Default storage account name when none is provided.
+// This must between 3-23 letters and can only contain small letters and numbers.
+const defaultStorageAccountName = "pipelinegenstorage"
+
 type objectStore struct {
 	config      Config
 	credentials Credentials
@@ -77,7 +81,7 @@ func New(config Config, credentials Credentials) (*objectStore, error) {
 	}
 	o.storageAccountKey = key
 
-	client, err := storage.NewBasicClient(o.config.StorageAccount, o.storageAccountKey)
+	client, err := storage.NewBasicClient(o.getStorageAccount(), o.storageAccountKey)
 	if err != nil {
 		return nil, emperror.Wrap(err, "could not create Azure client")
 	}
@@ -86,6 +90,65 @@ func New(config Config, credentials Credentials) (*objectStore, error) {
 	o.client = &blobStorageClient
 
 	return o, nil
+}
+
+// getResourceGroup returns the given resource group or generates one.
+func (o *objectStore) getResourceGroup() string {
+	if o.config.Location == "" {
+		o.config.Location = "centralus"
+	}
+	// generate a default resource group name if none given
+	if o.config.ResourceGroup == "" {
+		o.config.ResourceGroup = fmt.Sprintf("pipeline-auto-%s", o.config.Location)
+	}
+
+	return o.config.ResourceGroup
+}
+
+// getStorageAccount returns the given storage account or falls back to a default one.
+func (o *objectStore) getStorageAccount() string {
+	if o.config.StorageAccount == "" {
+		o.config.StorageAccount = defaultStorageAccountName
+	}
+
+	return o.config.StorageAccount
+}
+
+func (o *objectStore) createStorageAccount(resourceGroup string, storageAccount string) error {
+	storageAccountsClient, err := o.createStorageAccountClient()
+	if err != nil {
+		return err
+	}
+
+	if o.config.Location == "" {
+		o.config.Location = "centralus"
+	}
+
+	future, err := storageAccountsClient.Create(
+		context.TODO(),
+		resourceGroup,
+		storageAccount,
+		mgmtStorage.AccountCreateParameters{
+			Sku: &mgmtStorage.Sku{
+				Name: mgmtStorage.StandardLRS,
+			},
+			Kind:     mgmtStorage.BlobStorage,
+			Location: to.StringPtr(o.config.Location),
+			AccountPropertiesCreateParameters: &mgmtStorage.AccountPropertiesCreateParameters{
+				AccessTier: mgmtStorage.Hot,
+			},
+		},
+	)
+
+	if err != nil {
+		return fmt.Errorf("cannot create storage account: %v", err)
+	}
+
+	if future.WaitForCompletion(context.TODO(), storageAccountsClient.Client) != nil {
+		return err
+	}
+
+	return nil
 }
 
 // CreateBucket creates a new bucket in the object store
@@ -341,7 +404,7 @@ func (o *objectStore) getStorageAccountKey() (string, error) {
 		return "", err
 	}
 
-	keys, err := client.ListKeys(context.TODO(), o.config.ResourceGroup, o.config.StorageAccount)
+	keys, err := client.ListKeys(context.TODO(), o.getResourceGroup(), o.getStorageAccount())
 	if err != nil {
 		return "", errors.WithStack(err)
 	}
