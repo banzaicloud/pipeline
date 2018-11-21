@@ -120,7 +120,7 @@ the Pipeline will limit which users can register, this list is stored in the `wh
 
 - Add `bonifaido` user for example:
 
-    Get the `bonifaido` user information from: https://api.github.com/user/bonifaido
+    Get the `bonifaido` user information from: https://api.github.com/users/bonifaido
 
     ```sql
     INSERT INTO whitelisted_auth_identities (created_at, updated_at, provider, type, login, uid) VALUES (NOW(), NOW(), "github", "User", "bonifaido", 23779)
