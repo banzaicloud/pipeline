@@ -1,3 +1,6 @@
+
+
+
 # Developer Guide
 
 ## How to run Pipeline in your local dev environment
@@ -11,7 +14,7 @@
 
 ### GitHub OAuth App setup
 
-Setup your Pipeline GitHub OAuth application according to[this guilde](./github-app.md)
+Setup your Pipeline GitHub OAuth application according to [this guide](./github-app.md)
 
 
 ### Quick start
@@ -120,7 +123,7 @@ the Pipeline will limit which users can register, this list is stored in the `wh
 
 - Add `bonifaido` user for example:
 
-    Get the `bonifaido` user information from: https://api.github.com/user/bonifaido
+    Get the `bonifaido` user information from: https://api.github.com/users/bonifaido
 
     ```sql
     INSERT INTO whitelisted_auth_identities (created_at, updated_at, provider, type, login, uid) VALUES (NOW(), NOW(), "github", "User", "bonifaido", 23779)
