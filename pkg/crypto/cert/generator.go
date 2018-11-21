@@ -26,7 +26,7 @@ const (
 	validity = 365 * 24 * time.Hour
 )
 
-// Generator generates a self-signed cert-key pair.
+// Generator creates a cert-key pair issued by the loaded CA.
 type Generator struct {
 	caLoader CALoader
 }
@@ -38,7 +38,7 @@ func NewGenerator(caLoader CALoader) *Generator {
 	}
 }
 
-// GenerateServerCertificate generates a self-signed cert-key pair for server usage.
+// GenerateServerCertificate generates a cert-key pair for server usage issued by the loaded CA.
 func (g *Generator) GenerateServerCertificate(req tls.ServerCertificateRequest) ([]byte, []byte, []byte, error) {
 	rootCA, signingKey, err := g.caLoader.Load()
 	if err != nil {
