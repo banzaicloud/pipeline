@@ -167,4 +167,5 @@ enabled = false
 collectionInterval = "30s"
 
 [cert]
+source = file
 path = "config/certs"
