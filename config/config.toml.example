@@ -159,4 +159,5 @@ githubOwner = "kelly-slater"
 githubRepository = "the-pipeline-issues"
 
 [cert]
+source = file
 path = "config/certs"

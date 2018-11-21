@@ -19,6 +19,7 @@ import (
 	"sync"
 
 	"github.com/banzaicloud/pipeline/pkg/crypto/cert"
+	"github.com/banzaicloud/pipeline/secret"
 	"github.com/spf13/viper"
 )
 
@@ -26,10 +27,20 @@ var certGenerator *cert.Generator
 var certGeneratorOnce sync.Once
 
 func newCertGenerator() *cert.Generator {
-	generator := cert.NewGenerator(cert.NewCACache(cert.NewFileCALoader(
-		filepath.Join(viper.GetString("cert.path"), "ca.crt.pem"),
-		filepath.Join(viper.GetString("cert.path"), "ca.key.pem"),
-	)))
+	var caLoader cert.CALoader
+
+	switch viper.GetString("cert.source") {
+	case "file":
+		caLoader = cert.NewFileCALoader(
+			filepath.Join(viper.GetString("cert.path"), "ca.crt.pem"),
+			filepath.Join(viper.GetString("cert.path"), "ca.key.pem"),
+		)
+
+	case "vault":
+		caLoader = cert.NewVaultCALoader(secret.Store.Logical, viper.GetString("cert.path"))
+	}
+
+	generator := cert.NewGenerator(cert.NewCACache(caLoader))
 
 	return generator
 }
