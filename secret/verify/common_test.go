@@ -129,10 +129,10 @@ var (
 	}
 
 	OCICredentialMap = map[string]string{
-		oracle.UserOCID:          testUserOCID,
-		oracle.TenancyOCID:       testTenancyOCID,
-		oracle.APIKey:            testAPIKey,
-		oracle.APIKeyFingerprint: testAPIKeyFringerprint,
-		oracle.Region:            testRegion,
+		pkgSecret.OracleUserOCID:          testUserOCID,
+		pkgSecret.OracleTenancyOCID:       testTenancyOCID,
+		pkgSecret.OracleAPIKey:            testAPIKey,
+		pkgSecret.OracleAPIKeyFingerprint: testAPIKeyFringerprint,
+		pkgSecret.OracleRegion:            testRegion,
 	}
 )

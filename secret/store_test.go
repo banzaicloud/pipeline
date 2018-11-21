@@ -19,7 +19,6 @@ import (
 	"testing"
 
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/secret"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
@@ -223,12 +222,12 @@ var (
 		Name: secretDesc,
 		Type: pkgCluster.Oracle,
 		Values: map[string]string{
-			oracle.UserOCID:          oracle.UserOCID,
-			oracle.TenancyOCID:       oracle.TenancyOCID,
-			oracle.APIKey:            oracle.APIKey,
-			oracle.APIKeyFingerprint: oracle.APIKeyFingerprint,
-			oracle.Region:            oracle.Region,
-			oracle.CompartmentOCID:   oracle.CompartmentOCID,
+			pkgSecret.OracleUserOCID:          pkgSecret.OracleUserOCID,
+			pkgSecret.OracleTenancyOCID:       pkgSecret.OracleTenancyOCID,
+			pkgSecret.OracleAPIKey:            pkgSecret.OracleAPIKey,
+			pkgSecret.OracleAPIKeyFingerprint: pkgSecret.OracleAPIKeyFingerprint,
+			pkgSecret.OracleRegion:            pkgSecret.OracleRegion,
+			pkgSecret.OracleCompartmentOCID:   pkgSecret.OracleCompartmentOCID,
 		},
 	}
 
@@ -236,11 +235,11 @@ var (
 		Name: secretDesc,
 		Type: pkgCluster.Oracle,
 		Values: map[string]string{
-			oracle.UserOCID:          oracle.UserOCID,
-			oracle.TenancyOCID:       oracle.TenancyOCID,
-			oracle.APIKey:            oracle.APIKey,
-			oracle.APIKeyFingerprint: oracle.APIKeyFingerprint,
-			oracle.Region:            oracle.Region,
+			pkgSecret.OracleUserOCID:          pkgSecret.OracleUserOCID,
+			pkgSecret.OracleTenancyOCID:       pkgSecret.OracleTenancyOCID,
+			pkgSecret.OracleAPIKey:            pkgSecret.OracleAPIKey,
+			pkgSecret.OracleAPIKeyFingerprint: pkgSecret.OracleAPIKeyFingerprint,
+			pkgSecret.OracleRegion:            pkgSecret.OracleRegion,
 		},
 	}
 )

@@ -27,6 +27,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/providers/oracle/network"
 	"github.com/banzaicloud/pipeline/pkg/providers/oracle/oci"
 	secretOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/secret"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/pkg/errors"
 )
@@ -604,11 +605,11 @@ func (o *OKECluster) GetKubernetesUserName() (string, error) {
 		return "", errors.Wrap(err, "error getting secret")
 	}
 
-	if s.Values[secretOracle.UserOCID] == "" {
+	if s.Values[pkgSecret.OracleUserOCID] == "" {
 		return "", errors.New("empty user OCID")
 	}
 
-	return s.Values[secretOracle.UserOCID], nil
+	return s.Values[pkgSecret.OracleUserOCID], nil
 
 }
 
