@@ -25,7 +25,7 @@ import (
 	"github.com/goph/emperror"
 )
 
-const endpointURLTemplate = "https://%s.aliyuncs.com"
+const endpointURLTemplate = "https://oss-%s.aliyuncs.com"
 
 type objectStore struct {
 	config      Config
@@ -43,6 +43,12 @@ type Config struct {
 type Credentials struct {
 	AccessKeyID     string
 	SecretAccessKey string
+}
+
+// NewPlainObjectStore creates an objectstore with no configuration.
+// Instances created with this function may be used to access methods that don't explicitly access external (cloud) resources
+func NewPlainObjectStore() (*objectStore, error) {
+	return &objectStore{}, nil
 }
 
 // New returns an Object Store instance that manages Alibaba object store
@@ -267,11 +273,12 @@ func (o *objectStore) listObjectsWithOptions(bucketName string, options ...oss.O
 }
 
 func (o *objectStore) getClientForBucket(bucketName string) (*oss.Client, error) {
-	location, err := o.client.GetBucketLocation(bucketName)
+	result, err := o.client.GetBucketLocation(bucketName)
 	if err != nil {
 		err = o.convertError(err)
 		return nil, emperror.WrapWith(err, "get bucket location failed", "bucket", bucketName)
 	}
+	location := strings.TrimPrefix(result, "oss-")
 
 	return o.getClientForLocation(location)
 }

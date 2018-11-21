@@ -16,15 +16,19 @@ package objectstore
 
 import (
 	"context"
+	"fmt"
 	"io"
+	"net/http"
 	"strings"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-02-01/resources"
 	mgmtStorage "github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage"
 	"github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/Azure/azure-storage-blob-go/2016-05-31/azblob"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
+	"github.com/Azure/go-autorest/autorest/to"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
@@ -43,6 +47,7 @@ type objectStore struct {
 type Config struct {
 	ResourceGroup  string
 	StorageAccount string
+	Location       string
 }
 
 // Credentials represents credentials necessary for access
@@ -51,6 +56,12 @@ type Credentials struct {
 	TenantID       string
 	ClientID       string
 	ClientSecret   string
+}
+
+// NewPlainObjectStore creates an objectstore with no configuration.
+// Instances created with this function may be used to access methods that don't explicitly access external (cloud) resources
+func NewPlainObjectStore() (*objectStore, error) {
+	return &objectStore{}, nil
 }
 
 // New returns an Object Store instance that manages Azure object store
@@ -248,6 +259,80 @@ func (o *objectStore) GetSignedURL(bucketName, key string, ttl time.Duration) (s
 	}
 
 	return url, nil
+}
+
+// getAllResourceGroups returns all resource groups using
+// the Azure credentials referenced by the provided secret.
+func (o *objectStore) getAllResourceGroups() ([]*resources.Group, error) {
+	rgClient := resources.NewGroupsClient(o.credentials.SubscriptionID)
+	authorizer, err := o.newAuthorizer()
+	if err != nil {
+		return nil, err
+	}
+
+	rgClient.Authorizer = authorizer
+
+	resourceGroupsPages, err := rgClient.List(context.TODO(), "", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var groups []*resources.Group
+	for resourceGroupsPages.NotDone() {
+		resourceGroupsChunk := resourceGroupsPages.Values()
+
+		for i := 0; i < len(resourceGroupsChunk); i++ {
+			groups = append(groups, &resourceGroupsChunk[i])
+		}
+
+		if err = resourceGroupsPages.Next(); err != nil {
+			return nil, err
+		}
+	}
+
+	return groups, nil
+}
+
+// getAllStorageAccounts returns all storage accounts under the specified resource group
+// using the Azure credentials referenced by the provided secret.
+func (o *objectStore) getAllStorageAccounts(resourceGroup string) (*[]mgmtStorage.Account, error) {
+	client, err := o.createStorageAccountClient()
+	if err != nil {
+		return nil, err
+	}
+
+	storageAccountList, err := client.ListByResourceGroup(context.TODO(), resourceGroup)
+	if err != nil {
+		return nil, err
+	}
+
+	return storageAccountList.Value, nil
+}
+
+func (o *objectStore) createResourceGroup(resourceGroup string) error {
+	gclient := resources.NewGroupsClient(o.credentials.SubscriptionID)
+
+	authorizer, err := o.newAuthorizer()
+	if err != nil {
+		return fmt.Errorf("authentication failed: %s", err.Error())
+	}
+
+	gclient.Authorizer = authorizer
+	res, _ := gclient.Get(context.TODO(), resourceGroup)
+
+	if res.StatusCode == http.StatusNotFound {
+		_, err := gclient.CreateOrUpdate(
+			context.TODO(),
+			resourceGroup,
+			resources.Group{Location: to.StringPtr(o.config.Location)},
+		)
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return nil
 }
 
 func (o *objectStore) getStorageAccountKey() (string, error) {

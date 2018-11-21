@@ -53,16 +53,16 @@ func NewObjectStore(ctx *ObjectStoreContext, logger logrus.FieldLogger) (objects
 
 	switch ctx.Provider {
 	case providers.Alibaba:
-		return alibaba.NewObjectStore(ctx.Location, ctx.Secret, ctx.Organization, db, logger, ctx.ForceOperation), nil
+		return alibaba.NewObjectStore(ctx.Location, ctx.Secret, ctx.Organization, db, logger, ctx.ForceOperation)
 
 	case providers.Amazon:
 		return amazon.NewObjectStore(ctx.Location, ctx.Secret, ctx.Organization, db, logger, ctx.ForceOperation)
 
 	case providers.Azure:
-		return azure.NewObjectStore(ctx.Location, ctx.ResourceGroup, ctx.StorageAccount, ctx.Secret, ctx.Organization, db, logger, ctx.ForceOperation), nil
+		return azure.NewObjectStore(ctx.Location, ctx.ResourceGroup, ctx.StorageAccount, ctx.Secret, ctx.Organization, db, logger, ctx.ForceOperation)
 
 	case providers.Google:
-		return google.NewObjectStore(ctx.Organization, ctx.Secret, ctx.Location, db, logger, ctx.ForceOperation), nil
+		return google.NewObjectStore(ctx.Organization, ctx.Secret, ctx.Location, db, logger, ctx.ForceOperation)
 
 	case providers.Oracle:
 		return oracle.NewObjectStore(ctx.Location, ctx.Secret, ctx.Organization, db, logger, ctx.ForceOperation), nil

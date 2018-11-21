@@ -61,6 +61,12 @@ type Credentials struct {
 	ClientX509CertURL      string `json:"client_x509_cert_url"`
 }
 
+// NewPlainObjectStore creates an objectstore with no configuration.
+// Instances created with this function may be used to access methods that don't explicitly access external (cloud) resources
+func NewPlainObjectStore() (*objectStore, error) {
+	return &objectStore{}, nil
+}
+
 // New returns an Object Store instance that manages Google object storage
 func New(config Config, credentials Credentials) (*objectStore, error) {
 	o := &objectStore{
