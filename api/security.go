@@ -36,6 +36,8 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 )
 
+const policyPath string = "policies"
+
 func init() {
 	v1alpha1.AddToScheme(scheme.Scheme)
 }
@@ -243,7 +245,7 @@ func createResponse(c *gin.Context, response http.Response) {
 // GetPolicies returns image scan results for all deployments
 func GetPolicies(c *gin.Context) {
 
-	endPoint := "policies"
+	endPoint := policyPath
 	policyId := c.Param("policyId")
 	if len(policyId) != 0 {
 		endPoint = path.Join(endPoint, policyId)
@@ -300,7 +302,7 @@ func CreatePolicy(c *gin.Context) {
 		OrgID:     commonCluster.GetOrganizationId(),
 		ClusterID: commonCluster.GetUID(),
 		Method:    http.MethodPost,
-		URL:       "policies",
+		URL:       policyPath,
 		Body:      policyBundle,
 	}
 	response, err := anchore.MakeAnchoreRequest(anchoreRequest)
@@ -354,7 +356,7 @@ func UpdatePolicies(c *gin.Context) {
 		OrgID:     commonCluster.GetOrganizationId(),
 		ClusterID: commonCluster.GetUID(),
 		Method:    http.MethodPut,
-		URL:       path.Join("policies", policyId),
+		URL:       path.Join(policyPath, policyId),
 		Body:      policyBundle,
 	}
 	response, err := anchore.MakeAnchoreRequest(anchoreRequest)
@@ -395,7 +397,7 @@ func DeletePolicy(c *gin.Context) {
 		OrgID:     commonCluster.GetOrganizationId(),
 		ClusterID: commonCluster.GetUID(),
 		Method:    http.MethodDelete,
-		URL:       path.Join("policies", policyId),
+		URL:       path.Join(policyPath, policyId),
 		Body:      nil,
 	}
 	response, err := anchore.MakeAnchoreRequest(anchoreRequest)
