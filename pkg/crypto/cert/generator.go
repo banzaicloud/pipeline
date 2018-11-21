@@ -15,6 +15,7 @@
 package cert
 
 import (
+	"encoding/pem"
 	"time"
 
 	"github.com/banzaicloud/bank-vaults/pkg/tls"
@@ -38,18 +39,18 @@ func NewGenerator(caLoader CALoader) *Generator {
 }
 
 // GenerateServerCertificate generates a self-signed cert-key pair for server usage.
-func (g *Generator) GenerateServerCertificate(req tls.ServerCertificateRequest) ([]byte, []byte, error) {
+func (g *Generator) GenerateServerCertificate(req tls.ServerCertificateRequest) ([]byte, []byte, []byte, error) {
 	rootCA, signingKey, err := g.caLoader.Load()
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	req.Validity = validity
 
 	cert, err := tls.GenerateServerCertificate(req, rootCA, signingKey)
 	if err != nil {
-		return nil, nil, errors.WithMessage(err, "failed to generate server certificate")
+		return nil, nil, nil, errors.WithMessage(err, "failed to generate server certificate")
 	}
 
-	return cert.Certificate, cert.Key, nil
+	return pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: rootCA.Raw}), cert.Certificate, cert.Key, nil
 }
