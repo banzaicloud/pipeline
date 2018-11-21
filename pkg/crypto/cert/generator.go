@@ -15,13 +15,7 @@
 package cert
 
 import (
-	"crypto"
-	"crypto/ecdsa"
-	"crypto/rsa"
-	"crypto/x509"
 	"crypto/x509/pkix"
-	"encoding/pem"
-	"io/ioutil"
 	"time"
 
 	"github.com/banzaicloud/bank-vaults/pkg/tls"
@@ -34,79 +28,14 @@ const (
 
 // Generator generates a self-signed cert-key pair.
 type Generator struct {
-	signerCert *x509.Certificate
-	signerKey  crypto.Signer
+	caLoader CALoader
 }
 
 // NewGenerator returns a new Generator instance.
-func NewGenerator(
-	signerCert *x509.Certificate,
-	signerKey crypto.Signer,
-) *Generator {
+func NewGenerator(caLoader CALoader) *Generator {
 	return &Generator{
-		signerCert: signerCert,
-		signerKey:  signerKey,
+		caLoader: caLoader,
 	}
-}
-
-// NewGeneratorFromFile creates a generator and loads CA cert and key from file.
-func NewGeneratorFromFile(
-	signerCertPath string,
-	signerKeyPath string,
-) (*Generator, error) {
-	signerCertFile, err := ioutil.ReadFile(signerCertPath)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to read CA cert file")
-	}
-
-	signerCertPem, _ := pem.Decode(signerCertFile)
-	if signerCertPem == nil {
-		return nil, errors.New("failed to pem-decode CA cert")
-	}
-
-	signerCert, err := x509.ParseCertificate(signerCertPem.Bytes)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to parse CA cert")
-	}
-
-	signerKeyFile, err := ioutil.ReadFile(signerKeyPath)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to read CA key file")
-	}
-
-	signerKeyPem, _ := pem.Decode(signerKeyFile)
-	if signerKeyPem == nil {
-		return nil, errors.New("failed to pem-decode CA key")
-	}
-
-	signerKey, err := parsePrivateKey(signerKeyPem.Bytes)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to parse CA key")
-	}
-
-	return NewGenerator(signerCert, signerKey), nil
-}
-
-func parsePrivateKey(der []byte) (crypto.Signer, error) {
-	if key, err := x509.ParsePKCS1PrivateKey(der); err == nil {
-		return key, nil
-	}
-	if key, err := x509.ParsePKCS8PrivateKey(der); err == nil {
-		switch key := key.(type) {
-		case *rsa.PrivateKey:
-			return key, nil
-
-		case *ecdsa.PrivateKey:
-			return key, nil
-		default:
-			return nil, errors.New("found unknown private key type in PKCS#8 wrapping")
-		}
-	}
-	if key, err := x509.ParseECPrivateKey(der); err == nil {
-		return key, nil
-	}
-
-	return nil, errors.New("failed to parse private key")
 }
 
 // CertificateRequest contains a minimal set of information to generate a self-signed certificate.
@@ -117,6 +46,11 @@ type CertificateRequest struct {
 
 // Generate generates a self-signed cert-key pair.
 func (g *Generator) Generate(request CertificateRequest) ([]byte, []byte, error) {
+	rootCA, signingKey, err := g.caLoader.Load()
+	if err != nil {
+		return nil, nil, err
+	}
+
 	certRequest := tls.ServerCertificateRequest{
 		Subject: pkix.Name{
 			CommonName: request.CommonName,
@@ -124,7 +58,7 @@ func (g *Generator) Generate(request CertificateRequest) ([]byte, []byte, error)
 		DNSNames: request.AlternativeNames,
 		Validity: validity,
 	}
-	cert, err := tls.GenerateServerCertificate(certRequest, g.signerCert, g.signerKey)
+	cert, err := tls.GenerateServerCertificate(certRequest, rootCA, signingKey)
 	if err != nil {
 		return nil, nil, errors.WithMessage(err, "failed to generate server certificate")
 	}
