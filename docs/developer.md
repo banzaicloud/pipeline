@@ -1,3 +1,6 @@
+
+
+
 # Developer Guide
 
 ## How to run Pipeline in your local dev environment
@@ -11,7 +14,7 @@
 
 ### GitHub OAuth App setup
 
-Setup your Pipeline GitHub OAuth application according to[this guilde](./github-app.md)
+Setup your Pipeline GitHub OAuth application according to [this guide](./github-app.md)
 
 
 ### Quick start
