@@ -15,7 +15,6 @@
 package cert
 
 import (
-	"crypto/x509/pkix"
 	"time"
 
 	"github.com/banzaicloud/bank-vaults/pkg/tls"
@@ -38,27 +37,16 @@ func NewGenerator(caLoader CALoader) *Generator {
 	}
 }
 
-// CertificateRequest contains a minimal set of information to generate a self-signed certificate.
-type CertificateRequest struct {
-	CommonName       string
-	AlternativeNames []string
-}
-
-// Generate generates a self-signed cert-key pair.
-func (g *Generator) Generate(request CertificateRequest) ([]byte, []byte, error) {
+// GenerateServerCertificate generates a self-signed cert-key pair for server usage.
+func (g *Generator) GenerateServerCertificate(req tls.ServerCertificateRequest) ([]byte, []byte, error) {
 	rootCA, signingKey, err := g.caLoader.Load()
 	if err != nil {
 		return nil, nil, err
 	}
 
-	certRequest := tls.ServerCertificateRequest{
-		Subject: pkix.Name{
-			CommonName: request.CommonName,
-		},
-		DNSNames: request.AlternativeNames,
-		Validity: validity,
-	}
-	cert, err := tls.GenerateServerCertificate(certRequest, rootCA, signingKey)
+	req.Validity = validity
+
+	cert, err := tls.GenerateServerCertificate(req, rootCA, signingKey)
 	if err != nil {
 		return nil, nil, errors.WithMessage(err, "failed to generate server certificate")
 	}
