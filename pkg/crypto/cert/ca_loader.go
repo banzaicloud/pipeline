@@ -19,6 +19,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/pem"
 
 	"github.com/pkg/errors"
 )
@@ -27,6 +28,30 @@ import (
 type CALoader interface {
 	// Load fetches a parent certificate and signing key.
 	Load() (*x509.Certificate, crypto.Signer, error)
+}
+
+func parseCABundle(certBytes []byte, keyBytes []byte) (*x509.Certificate, crypto.Signer, error) {
+	certPem, _ := pem.Decode(certBytes)
+	if certPem == nil {
+		return nil, nil, errors.New("failed to pem-decode certificate")
+	}
+
+	cert, err := x509.ParseCertificate(certPem.Bytes)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "failed to parse certificate")
+	}
+
+	keyPem, _ := pem.Decode(keyBytes)
+	if keyPem == nil {
+		return nil, nil, errors.New("failed to pem-decode key")
+	}
+
+	key, err := parsePrivateKey(keyPem.Bytes)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "failed to parse key")
+	}
+
+	return cert, key, nil
 }
 
 func parsePrivateKey(der []byte) (crypto.Signer, error) {
