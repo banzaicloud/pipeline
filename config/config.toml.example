@@ -23,14 +23,10 @@ logging = true
 autoMigrateEnabled = false
 
 [anchore]
-enabled = false
-#dialect = "postgres"
-#host = "localhost"
-#port = 5432
-#user = "anchore-db-user"
-#password = "xxxxxxxxxx"
-#dbname = "anchore"
-#endPoint = "https://beta.dev.banzaicloud.com"
+enabled = true
+adminUser = "admin"
+adminPass = "xxxxxx"
+endPoint = "http://exampe.com"
 
 [logging]
 logformat = "text"
