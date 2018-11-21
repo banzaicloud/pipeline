@@ -41,7 +41,6 @@ import (
 	intAuth "github.com/banzaicloud/pipeline/internal/auth"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/dashboard"
-	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/monitor"
 	ginternal "github.com/banzaicloud/pipeline/internal/platform/gin"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
@@ -128,8 +127,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
-	global.Init()
 
 	// External DNS service
 	dnsSvc, err := dns.GetExternalDnsServiceClient()

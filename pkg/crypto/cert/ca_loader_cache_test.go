@@ -15,18 +15,25 @@
 package cert
 
 import (
-	"crypto/rand"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestNewGeneratorFromFile(t *testing.T) {
-	_, err := NewGeneratorFromFile(
-		"testdata/ca.crt",
-		"testdata/ca.key",
-		SystemClock,
-		rand.Reader,
-	)
+func TestCACache_Load(t *testing.T) {
+	signingSource := NewCACache(NewFileCALoader("testdata/ca.crt", "testdata/ca.key"))
+
+	cert, key, err := signingSource.Load()
+
 	require.NoError(t, err)
+
+	signingSource.loader = nil
+
+	cert2, key2, err := signingSource.Load()
+
+	require.NoError(t, err)
+
+	assert.Equal(t, cert, cert2)
+	assert.Equal(t, key, key2)
 }

@@ -12,9 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package global collects all singleton instances.
-package global
+package cert
 
-func Init() {
-	GetCertGenerator()
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+func TestFileCALoader_Load(t *testing.T) {
+	signingSource := NewFileCALoader("testdata/ca.crt", "testdata/ca.key")
+
+	cert, key, err := signingSource.Load()
+
+	require.NoError(t, err)
+	assert.NotNil(t, cert)
+	assert.NotNil(t, key)
 }
