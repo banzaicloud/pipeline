@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -25,7 +26,7 @@ import (
 	"path"
 
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/go-errors/errors"
+	"github.com/goph/emperror"
 	"github.com/spf13/viper"
 )
 
@@ -34,7 +35,10 @@ var AnchoreEnabled bool
 var AnchoreAdminUser string
 var AnchoreAdminPass string
 
-const anchoreEmail string = "banzai@banzaicloud.com"
+const (
+	anchoreEmail string = "banzai@banzaicloud.com"
+	accountPath  string = "accounts"
+)
 
 //AnchoreError
 type AnchoreError struct {
@@ -84,12 +88,12 @@ func createAnchoreAccount(name string, email string) error {
 	anchoreRequest := AnchoreRequest{
 		AdminUser: true,
 		Method:    http.MethodPost,
-		URL:       "accounts",
+		URL:       accountPath,
 		Body:      anchoreAccount,
 	}
 	_, err := MakeAnchoreRequest(anchoreRequest)
 	if err != nil {
-		return err
+		return emperror.Wrap(err, "Account create AnchoreRequest failed")
 	}
 	return nil
 }
@@ -99,7 +103,7 @@ func createAnchoreUser(username string, password string) error {
 		Username: username,
 		Password: password,
 	}
-	endPoint := path.Join("accounts", username)
+	endPoint := path.Join(accountPath, username)
 	endPoint = path.Join(endPoint, "users")
 	anchoreRequest := AnchoreRequest{
 		AdminUser: true,
@@ -109,7 +113,7 @@ func createAnchoreUser(username string, password string) error {
 	}
 	_, err := MakeAnchoreRequest(anchoreRequest)
 	if err != nil {
-		return err
+		return emperror.Wrap(err, "User create AnchoreRequest failed")
 	}
 	return nil
 }
@@ -130,7 +134,7 @@ func checkAnchoreUser(username string, method string) int {
 }
 
 func deleteAnchoreAccount(account string) int {
-	endPoint := path.Join("accounts", account)
+	endPoint := path.Join(accountPath, account)
 	type accountStatus struct {
 		State string `json:"state"`
 	}
@@ -192,7 +196,7 @@ func getAnchoreUserCredentials(username string) (string, int) {
 }
 
 func anchoreUserEndPoint(username string) string {
-	endPoint := path.Join("accounts", username)
+	endPoint := path.Join(accountPath, username)
 	endPoint = path.Join(endPoint, "users")
 	endPoint = path.Join(endPoint, username)
 	return endPoint
@@ -215,20 +219,20 @@ func SetupAnchoreUser(orgId uint, clusterId string) (*User, error) {
 		}
 		secretId, err := secret.Store.CreateOrUpdate(orgId, &secretRequest)
 		if err != nil {
-			return nil, errors.WrapPrefix(err, "Failed to create/update Anchore user secret", 0)
+			return nil, emperror.Wrap(err, "Failed to create/update Anchore user secret")
 		}
 		// retrieve crated secret to read generated password
 		secretItem, err := secret.Store.Get(orgId, secretId)
 		if err != nil {
-			return nil, errors.WrapPrefix(err, "Failed to retrieve Anchore user secret", 0)
+			return nil, emperror.Wrap(err, "Failed to retrieve Anchore user secret")
 		}
 		userPassword := secretItem.Values["password"]
 
 		if createAnchoreAccount(anchoreUserName, anchoreEmail) != nil {
-			return nil, errors.WrapPrefix(err, "Error creating Anchor account", 0)
+			return nil, emperror.Wrap(err, "Error creating Anchor account")
 		}
 		if createAnchoreUser(anchoreUserName, userPassword) != nil {
-			return nil, errors.WrapPrefix(err, "Error creating Anchor user", 0)
+			return nil, emperror.Wrap(err, "Error creating Anchor user")
 		}
 		user.Password = userPassword
 		user.UserId = anchoreUserName
@@ -237,7 +241,7 @@ func SetupAnchoreUser(orgId uint, clusterId string) (*User, error) {
 		userPassword, status := getAnchoreUserCredentials(anchoreUserName)
 		if status != http.StatusOK {
 			var err error
-			return nil, errors.WrapPrefix(err, "Failed to get Anchore user secret", 0)
+			return nil, emperror.Wrap(err, "Failed to get Anchore user secret")
 		}
 		secretRequest := secret.CreateSecretRequest{
 			Name: anchoreUserName,
@@ -248,7 +252,7 @@ func SetupAnchoreUser(orgId uint, clusterId string) (*User, error) {
 			},
 		}
 		if _, err := secret.Store.CreateOrUpdate(orgId, &secretRequest); err != nil {
-			return nil, errors.WrapPrefix(err, "Failed to create/update Anchore user secret", 0)
+			return nil, emperror.Wrap(err, "Failed to create/update Anchore user secret")
 		}
 	}
 
