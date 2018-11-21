@@ -20,28 +20,38 @@ services:
     vault:
         image: vault:0.11.0
         restart: always
+        depends_on:
+            - db
         cap_add:
             - IPC_LOCK
         volumes:
             - $HOME:/home/vault
 
     vault-configurer:
-        image: vault:0.11.0
+        image: banzaicloud/bank-vaults:0.3.15
         depends_on:
             - vault
-            - db
         restart: "no"
+        entrypoint: "./wait-for-it.sh"
         command:
-            - /bin/vault-enable-database.sh
+            - "db:3306"
+            - "--"
+            - "bank-vaults"
+            - configure
+            - --mode
+            - dev
         environment:
             VAULT_ADDR: http://vault:8200
         volumes:
             - $HOME:/root
-            - ./scripts/vault-enable-database.sh:/bin/vault-enable-database.sh
+            - ./scripts/vault-config.yml:/vault-config.yml
+            - ./scripts/wait-for-it.sh:/wait-for-it.sh
 
     drone-server:
         image: banzaicloud/drone:0.4.0
         restart: always
+        depends_on:
+            - db
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
         entrypoint:
