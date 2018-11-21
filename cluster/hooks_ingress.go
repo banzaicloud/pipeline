@@ -80,15 +80,16 @@ func InstallIngressControllerPostHook(input interface{}) error {
 			DNSNames: []string{orgDomainName},
 		}
 
-		cert, key, err := certGenerator.GenerateServerCertificate(certRequest)
+		rootCA, cert, key, err := certGenerator.GenerateServerCertificate(certRequest)
 		if err != nil {
 			return errors.Wrap(err, "failed to generate certificate")
 		}
 
 		defaultCertSecretRequest := &secret.CreateSecretRequest{
 			Name: defaultCertSecretName,
-			Type: pkgSecret.GenericSecret, // bypassing secret validation and generation
+			Type: pkgSecret.TLSSecretType,
 			Values: map[string]string{
+				pkgSecret.CACert:     string(rootCA),
 				pkgSecret.ServerCert: string(cert),
 				pkgSecret.ServerKey:  string(key),
 			},
