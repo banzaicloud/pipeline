@@ -31,6 +31,7 @@ import (
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
+	"github.com/pkg/errors"
 )
 
 // CommonCluster interface for clusters.
@@ -140,15 +141,17 @@ func (c *CommonClusterBase) getConfig(cluster CommonCluster) ([]byte, error) {
 	if c.config == nil {
 		log.Debug("k8s config is nil.. load from vault")
 		var loadedConfig []byte
-		configSecret, err := getSecret(cluster.GetOrganizationId(), cluster.GetConfigSecretId())
-		if err == secret.ErrSecretNotExists {
+		secretId := cluster.GetConfigSecretId()
+		if secretId == "" {
 			return nil, ErrConfigNotExists
-		} else if err != nil {
-			return nil, err
+		}
+		configSecret, err := getSecret(cluster.GetOrganizationId(), secretId)
+		if err != nil {
+			return nil, errors.Wrap(err, "can't get config from Vault")
 		}
 		configStr, err := base64.StdEncoding.DecodeString(configSecret.GetValue(pkgSecret.K8SConfig))
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, "can't decode Kubernetes config")
 		}
 		loadedConfig = []byte(configStr)
 
