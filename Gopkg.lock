@@ -2190,7 +2190,6 @@
     "github.com/gin-gonic/gin",
     "github.com/gin-gonic/gin/json",
     "github.com/go-errors/errors",
-    "github.com/golang/glog",
     "github.com/google/go-github/github",
     "github.com/goph/emperror",
     "github.com/goph/emperror/errorlogrus",

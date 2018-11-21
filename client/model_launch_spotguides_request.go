@@ -14,9 +14,11 @@ package client
 type LaunchSpotguidesRequest struct {
 	RepoOrganization string                 `json:"repoOrganization"`
 	RepoName         string                 `json:"repoName"`
+	RepoPrivate      bool                   `json:"repoPrivate,omitempty"`
+	RepoLatent       bool                   `json:"repoLatent,omitempty"`
 	SpotguideName    string                 `json:"spotguideName"`
 	SpotguideVersion string                 `json:"spotguideVersion,omitempty"`
 	Cluster          CreateClusterRequest   `json:"cluster,omitempty"`
 	Secrets          []CreateSecretRequest  `json:"secrets,omitempty"`
-	Values           map[string]interface{} `json:"values,omitempty"`
+	Pipeline         map[string]interface{} `json:"pipeline,omitempty"`
 }

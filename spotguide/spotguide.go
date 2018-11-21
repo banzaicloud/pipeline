@@ -116,6 +116,7 @@ type LaunchRequest struct {
 	RepoOrganization string                        `json:"repoOrganization" binding:"required"`
 	RepoName         string                        `json:"repoName" binding:"required"`
 	RepoPrivate      bool                          `json:"repoPrivate"`
+	RepoLatent       bool                          `json:"repoLatent"`
 	Cluster          *client.CreateClusterRequest  `json:"cluster" binding:"required"`
 	Secrets          []*secret.CreateSecretRequest `json:"secrets,omitempty"`
 	Pipeline         map[string]interface{}        `json:"pipeline,omitempty"`
@@ -564,9 +565,16 @@ func enableCICD(request *LaunchRequest, httpRequest *http.Request) error {
 		return errors.Wrap(err, "failed to enable Drone repository")
 	}
 
-	isSpotguide := true
-	spotguideSource := request.RepoFullname()
-	repoPatch := drone.RepoPatch{IsSpotguide: &isSpotguide, SpotguideSource: &spotguideSource}
+	repoPatch := drone.RepoPatch{
+		IsSpotguide:     github.Bool(true),
+		SpotguideSource: github.String(request.RepoFullname()),
+	}
+	if request.RepoLatent {
+		repoPatch.AllowTag = github.Bool(false)
+		repoPatch.AllowPull = github.Bool(false)
+		repoPatch.AllowPush = github.Bool(false)
+		repoPatch.AllowDeploy = github.Bool(false)
+	}
 	_, err = droneClient.RepoPatch(request.RepoOrganization, request.RepoName, &repoPatch)
 	if err != nil {
 		return errors.Wrap(err, "failed to patch Drone repository")

@@ -4909,6 +4909,7 @@ components:
       type: object
     LaunchSpotguidesRequest:
       example:
+        pipeline: '{}'
         cluster:
           cloud: google
           profileName: profileName
@@ -4932,9 +4933,10 @@ components:
               nodeVersion: 1.8.7-gke.1
         spotguideVersion: v0.3.2
         repoName: spotguide-nodejs-mongodb-test
-        values: '{}'
+        repoLatent: true
         repoOrganization: banzaicloud
         spotguideName: banzaicloud/spotguide-nodejs-mongodb
+        repoPrivate: true
         secrets:
         - values:
             type: string
@@ -4977,6 +4979,10 @@ components:
         repoName:
           example: spotguide-nodejs-mongodb-test
           type: string
+        repoPrivate:
+          type: boolean
+        repoLatent:
+          type: boolean
         spotguideName:
           example: banzaicloud/spotguide-nodejs-mongodb
           type: string
@@ -4989,7 +4995,7 @@ components:
           items:
             $ref: '#/components/schemas/CreateSecretRequest'
           type: array
-        values:
+        pipeline:
           type: object
       required:
       - repoName
