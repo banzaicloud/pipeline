@@ -35,6 +35,7 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/utils"
+	"github.com/goph/emperror"
 	"github.com/jinzhu/copier"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
@@ -190,27 +191,33 @@ func (c *GKECluster) CreateCluster() error {
 
 	log.Info("Start create cluster (Google)")
 
+	secretItem, err := c.GetSecretWithValidation()
+	if err != nil {
+		return emperror.Wrap(err, "failed to retrieve cluster credential secret")
+	}
+
+	if c.model.ProjectId == "" {
+		// if there's no projectId saved with the cluster take it from the secret
+		c.model.ProjectId = secretItem.GetValue(pkgSecret.ProjectId)
+	}
+
+	// set region
+	c.model.Region, err = c.getRegionByZone(c.model.ProjectId, c.model.Cluster.Location)
+	if err != nil {
+		log.Warnf("error during getting region: %s", err.Error())
+	}
+
 	log.Info("Get Google Service Client")
 	svc, err := c.getGoogleServiceClient()
 	if err != nil {
-		return err
+		return emperror.Wrap(err, "getting gke service client failed")
 	}
 
 	log.Info("Get Google Service Client succeeded")
 
 	nodePools, err := createNodePoolsFromClusterModel(c.model)
 	if err != nil {
-		return err
-	}
-
-	secretItem, err := c.GetSecretWithValidation()
-	if err != nil {
-		return err
-	}
-
-	if c.model.ProjectId == "" {
-		// if there's no projectId saved with the cluster take it from the secret
-		c.model.ProjectId = secretItem.GetValue(pkgSecret.ProjectId)
+		return emperror.Wrap(err, "create node pools from model failed")
 	}
 
 	cc := googleCluster{
@@ -239,7 +246,7 @@ func (c *GKECluster) CreateCluster() error {
 		log.Info("Waiting for cluster...")
 
 		if err := waitForOperation(newContainerOperation(svc, c.model.ProjectId, c.model.Cluster.Location), createCall.Name); err != nil {
-			return err
+			return emperror.Wrap(err, "waiting for cluster creation failed")
 		}
 	} else {
 		log.Info("Cluster %s already exists.", c.model.Cluster.Name)
@@ -255,12 +262,6 @@ func (c *GKECluster) CreateCluster() error {
 	c.googleCluster = gkeCluster
 
 	c.updateCurrentVersions(gkeCluster)
-
-	// set region
-	c.model.Region, err = c.getRegionByZone(c.model.ProjectId, gkeCluster.Zone)
-	if err != nil {
-		log.Warnf("error during getting region: %s", err.Error())
-	}
 
 	return nil
 
@@ -485,12 +486,12 @@ func (c *GKECluster) getRegionByZone(project string, zone string) (string, error
 	log.Infof("start getting region by zone[%s]", zone)
 	csv, err := c.getComputeService()
 	if err != nil {
-		return "", errors.Wrap(err, "Error during creating compute service")
+		return "", errors.Wrap(err, "error during creating compute service")
 	}
 
 	regions, err := csv.Regions.List(project).Context(context.Background()).Do()
 	if err != nil {
-		return "", errors.Wrap(err, "Error during listing regions")
+		return "", errors.Wrap(err, "error during listing regions")
 	}
 
 	for _, i := range regions.Items {
@@ -503,7 +504,7 @@ func (c *GKECluster) getRegionByZone(project string, zone string) (string, error
 		}
 	}
 
-	return "", fmt.Errorf("there's no zone [%s] in regions", zone)
+	return "", errors.Errorf("there's no zone [%s] in regions", zone)
 }
 
 // checkResources checks all load balancer resources deleted by Kubernetes
@@ -1992,7 +1993,7 @@ func waitForOperation(getter operationInfoer, operationName string) error {
 
 		operationStatus, operationType, err = getter.getInfo(operationName)
 		if err != nil {
-			return err
+			return emperror.Wrap(err, "retrieving operation status failed")
 		}
 
 		log.Infof("Operation[%s] status: %s", operationType, operationStatus)
