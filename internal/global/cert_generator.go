@@ -26,13 +26,10 @@ var certGenerator *cert.Generator
 var certGeneratorOnce sync.Once
 
 func newCertGenerator() *cert.Generator {
-	generator, err := cert.NewGeneratorFromFile(
+	generator := cert.NewGenerator(cert.NewCACache(cert.NewFileCALoader(
 		filepath.Join(viper.GetString("cert.path"), "ca.crt.pem"),
 		filepath.Join(viper.GetString("cert.path"), "ca.key.pem"),
-	)
-	if err != nil {
-		panic(err)
-	}
+	)))
 
 	return generator
 }
