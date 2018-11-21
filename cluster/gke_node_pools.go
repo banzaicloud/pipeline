@@ -15,6 +15,8 @@
 package cluster
 
 import (
+	"strconv"
+
 	"github.com/banzaicloud/pipeline/internal/providers/google"
 	pkgClusterGoogle "github.com/banzaicloud/pipeline/pkg/cluster/gke"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
@@ -64,7 +66,10 @@ func createNodePoolsFromClusterModel(clusterModel *google.GKEClusterModel) ([]*g
 		nodePools[i] = &gke.NodePool{
 			Name: nodePoolModel.Name,
 			Config: &gke.NodeConfig{
-				Labels:      map[string]string{pkgCommon.LabelKey: nodePoolModel.Name},
+				Labels: map[string]string{
+					pkgCommon.LabelKey:         nodePoolModel.Name,
+					pkgCommon.OnDemandLabelKey: strconv.FormatBool(!nodePoolModel.Preemptible),
+				},
 				MachineType: nodePoolModel.NodeInstanceType,
 				OauthScopes: []string{
 					"https://www.googleapis.com/auth/logging.write",
