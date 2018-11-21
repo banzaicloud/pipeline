@@ -17,6 +17,7 @@ package dashboard
 import (
 	"context"
 	"fmt"
+	"math"
 	"net/http"
 	"strings"
 	"time"
@@ -272,14 +273,21 @@ func getClusterDashboard(logger *logrus.Entry, commonCluster cluster.CommonClust
 	cluster.StorageUsagePercent = calculateClusterResourceUsage(v1.ResourceEphemeralStorage, clusterResourceCapacityMap, clusterResourceAllocatableMap)
 
 	clusterResponseChan <- cluster
+
 	return
 }
 
-func calculateNodeResourceUsage(resourceName v1.ResourceName, node v1.Node, clusterResourceCapacityMap map[v1.ResourceName]resource.Quantity, clusterResourceAllocatableMap map[v1.ResourceName]resource.Quantity) (float64, string, string) {
+func calculateNodeResourceUsage(
+	resourceName v1.ResourceName,
+	node v1.Node,
+	clusterResourceCapacityMap map[v1.ResourceName]resource.Quantity,
+	clusterResourceAllocatableMap map[v1.ResourceName]resource.Quantity,
+) (float64, string, string) {
 	capacity, found := node.Status.Capacity[resourceName]
 	if !found {
 		return 0, "n/a", "n/a"
 	}
+
 	clusterResourceCapacity, found := clusterResourceCapacityMap[resourceName]
 	if found {
 		clusterResourceCapacity.Add(capacity)
@@ -291,6 +299,7 @@ func calculateNodeResourceUsage(resourceName v1.ResourceName, node v1.Node, clus
 	if !found {
 		return 0, "n/a", "n/a"
 	}
+
 	clusterResourceAllocatable, found := clusterResourceAllocatableMap[resourceName]
 	if found {
 		clusterResourceAllocatable.Add(allocatable)
@@ -299,10 +308,19 @@ func calculateNodeResourceUsage(resourceName v1.ResourceName, node v1.Node, clus
 	}
 
 	usagePercent := float64(capacity.MilliValue()-allocatable.MilliValue()) / float64(capacity.MilliValue()) * 100
+
+	if math.IsNaN(usagePercent) || math.IsInf(usagePercent, 0) {
+		usagePercent = 0
+	}
+
 	return usagePercent, k8sutil.FormatResourceQuantity(resourceName, &capacity), k8sutil.FormatResourceQuantity(resourceName, &allocatable)
 }
 
-func calculateClusterResourceUsage(resourceName v1.ResourceName, clusterResourceCapacityMap map[v1.ResourceName]resource.Quantity, clusterResourceAllocatableMap map[v1.ResourceName]resource.Quantity) float64 {
+func calculateClusterResourceUsage(
+	resourceName v1.ResourceName,
+	clusterResourceCapacityMap map[v1.ResourceName]resource.Quantity,
+	clusterResourceAllocatableMap map[v1.ResourceName]resource.Quantity,
+) float64 {
 	clusterResourceCapacity, found := clusterResourceCapacityMap[resourceName]
 	if !found {
 		return 0
@@ -314,5 +332,9 @@ func calculateClusterResourceUsage(resourceName v1.ResourceName, clusterResource
 	}
 
 	usagePercent := float64(clusterResourceCapacity.MilliValue()-clusterResourceAllocatable.MilliValue()) / float64(clusterResourceCapacity.MilliValue()) * 100
+	if math.IsNaN(usagePercent) || math.IsInf(usagePercent, 0) {
+		usagePercent = 0
+	}
+
 	return usagePercent
 }
