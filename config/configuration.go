@@ -89,6 +89,10 @@ const (
 	ARKRestoreSyncInterval = "ark.restoreSyncInterval"
 	ARKBackupSyncInterval  = "ark.backupSyncInterval"
 
+	// Spot Metrics
+	SpotMetricsEnabled            = "spotmetrics.enabled"
+	SpotMetricsCollectionInterval = "spotmetrics.collectionInterval"
+
 	// Database
 	DBAutoMigrateEnabled = "database.autoMigrateEnabled"
 
@@ -110,8 +114,10 @@ const (
 
 	SetCookieDomain = "auth.setCookieDomain"
 
-	// Logging constants
-	LoggingReleaseName = "logging-operator"
+	// Logging operator constants
+	LoggingReleaseName          = "logging-operator"
+	LoggingOperatorChartVersion = "loggingOperator.chartVersion"
+	LoggingOperatorImageTag     = "loggingOperator.imageTag"
 
 	// Spotguides constants
 	SpotguideAllowPrereleases = "spotguide.allowPrereleases"
@@ -200,12 +206,19 @@ func init() {
 	viper.SetDefault(ARKRestoreSyncInterval, "20s")
 	viper.SetDefault(ARKBackupSyncInterval, "20s")
 
+	viper.SetDefault(SpotMetricsEnabled, false)
+	viper.SetDefault(SpotMetricsCollectionInterval, "30s")
+
 	viper.SetDefault(MonitorEnabled, false)
 	viper.SetDefault(MonitorConfigMap, "")
 	viper.SetDefault(MonitorConfigMapPrometheusKey, "prometheus.yml")
 	viper.SetDefault(MonitorCertSecret, "")
 	viper.SetDefault(MonitorCertMountPath, "")
 	viper.SetDefault("monitor.grafanaAdminUsername", "admin")
+
+	// empty string means the latest version of the chart will be installed
+	viper.SetDefault(LoggingOperatorChartVersion, "")
+	viper.SetDefault(LoggingOperatorImageTag, "0.0.4")
 
 	viper.BindEnv(ControlPlaneNamespace, "KUBERNETES_NAMESPACE")
 	viper.SetDefault(ControlPlaneNamespace, "default")
