@@ -14,9 +14,7 @@ jobs:
     dependencies:
         docker:
             - image: circleci/golang:1.11
-
         working_directory: /go/src/github.com/banzaicloud/pipeline
-
         steps:
             - attach_workspace:
                   at: /go/src/github.com/banzaicloud/pipeline
@@ -85,9 +83,7 @@ jobs:
                     MYSQL_DATABASE: pipeline
                     MYSQL_USER: pipeline
                     MYSQL_PASSWORD: pipeline123
-
         working_directory: /go/src/github.com/banzaicloud/pipeline
-
         steps:
             - attach_workspace:
                   at: /go/src/github.com/banzaicloud/pipeline
@@ -124,10 +120,7 @@ jobs:
     build:
         docker:
             - image: circleci/golang:1.11
-        environment:
-            - GOCACHE: /go/cache
         working_directory: /go/src/github.com/banzaicloud/pipeline
-
         steps:
             - attach_workspace:
                   at: /go/src/github.com/banzaicloud/pipeline
@@ -137,11 +130,9 @@ jobs:
                   command: make build
 
             - persist_to_workspace:
-                  root: /go
+                  root: /go/src/github.com/banzaicloud/pipeline
                   paths:
-                      - src/github.com/banzaicloud/pipeline/build/
-                      - cache/
-                      - pkg/
+                      - build/
 
     tests:
         docker:
@@ -151,10 +142,7 @@ jobs:
                 environment:
                     SKIP_SETCAP: true
                     VAULT_DEV_ROOT_TOKEN_ID: 227e1cce-6bf7-30bb-2d2a-acc854318caf
-        environment:
-            - GOCACHE: /go/cache
         working_directory: /go/src/github.com/banzaicloud/pipeline
-
         steps:
             - attach_workspace:
                   at: /go/src/github.com/banzaicloud/pipeline
@@ -177,10 +165,7 @@ jobs:
     integration_tests:
         docker:
             - image: circleci/golang:1.11
-
         working_directory: /go/src/github.com/banzaicloud/pipeline
-        environment:
-            - GOCACHE: /go/cache
         steps:
             - attach_workspace:
                   at: /go/src/github.com/banzaicloud/pipeline
@@ -207,9 +192,7 @@ jobs:
     report:
         docker:
             - image: circleci/golang:1.11
-
         working_directory: /go/src/github.com/banzaicloud/pipeline
-
         steps:
             - attach_workspace:
                   at: /go/src/github.com/banzaicloud/pipeline
@@ -251,15 +234,13 @@ workflows:
                       - dependencies
             - build:
                   requires:
-                      - dependencies
+                      - checks
             - tests:
                   requires:
                       - checks
-                      - build
             - integration_tests:
                   requires:
                       - checks
-                      - build
             - report:
                   requires:
                       - tests
