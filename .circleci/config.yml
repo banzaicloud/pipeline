@@ -246,16 +246,15 @@ workflows:
                       - dependencies
             - build:
                   requires:
-                      - dependencies
+                      - checks
             - tests:
                   requires:
-                      - dependencies
+                      - checks
             - integration_tests:
                   requires:
-                      - dependencies
+                      - checks
             - report:
                   requires:
-                      - checks
                       - build
                       - tests
                       - integration_tests
