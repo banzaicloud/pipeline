@@ -1,6 +1,74 @@
 version: 2
 
 jobs:
+    checkout_code:
+        docker:
+            - image: circleci/golang:1.11
+        working_directory: /go/src/github.com/banzaicloud/pipeline
+        steps:
+            - checkout
+            - persist_to_workspace:
+                  root: /go/src/github.com/banzaicloud/pipeline
+                  paths:
+                      - .
+    dependencies:
+        docker:
+            - image: circleci/golang:1.11
+
+        working_directory: /go/src/github.com/banzaicloud/pipeline
+
+        steps:
+            - attach_workspace:
+                  at: /go/src/github.com/banzaicloud/pipeline
+
+            - restore_cache:
+                  name: Restore build dependencies
+                  keys:
+                      - build-deps-v1-{{ .Branch }}-{{ checksum "Makefile" }}
+
+            - restore_cache:
+                  name: Restore dependencies
+                  keys:
+                      - gopkg-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
+                      - gopkg-v1-{{ .Branch }}
+                      - gopkg-v1-master
+                      - gopkg-v1
+
+            - restore_cache:
+                  name: Restore license cache
+                  keys:
+                      - licensei-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
+                      - licensei-v1-{{ .Branch }}
+                      - licensei-v1-master
+                      - licensei-v1
+
+            - run:
+                  name: Install dependencies
+                  command: make vendor
+
+            - run:
+                  name: Download license information for dependencies
+                  command: make license-cache
+
+            - save_cache:
+                  name: Save dependencies
+                  key: gopkg-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
+                  paths:
+                      - vendor/
+
+            - save_cache:
+                  name: Save license cache
+                  key: licensei-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
+                  paths:
+                      - .licensei.cache
+
+            - persist_to_workspace:
+                  root: /go/src/github.com/banzaicloud/pipeline
+                  paths:
+                      - .licensei.cache
+                      - bin/
+                      - vendor/
+
     build:
         docker:
             - image: circleci/golang:1.11
@@ -20,49 +88,11 @@ jobs:
 
         working_directory: /go/src/github.com/banzaicloud/pipeline
 
+        parallelism: 4
+
         steps:
-            - checkout
-
-            - restore_cache:
-                  name: Restore build dependencies
-                  keys:
-                      - build-deps-v1-{{ .Branch }}-{{ checksum "Makefile" }}
-
-            - restore_cache:
-                  name: Restore dependencies
-                  keys:
-                      - gopkg-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
-                      - gopkg-v1-{{ .Branch }}
-                      - gopkg-v1-master
-                      - gopkg-v1
-
-            - run:
-                  name: Install dependencies
-                  command: make vendor
-
-            - save_cache:
-                  name: Save dependencies
-                  key: gopkg-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
-                  paths:
-                      - vendor/
-
-            - restore_cache:
-                  name: Restore license cache
-                  keys:
-                      - licensei-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
-                      - licensei-v1-{{ .Branch }}
-                      - licensei-v1-master
-                      - licensei-v1
-
-            - run:
-                  name: Download license information for dependencies
-                  command: make license-cache
-
-            - save_cache:
-                  name: Save license cache
-                  key: licensei-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
-                  paths:
-                      - .licensei.cache
+            - attach_workspace:
+                  at: /go/src/github.com/banzaicloud/pipeline
 
             - run:
                   name: Check dependency licenses
@@ -94,6 +124,7 @@ jobs:
                   command: |
                       make config/config.toml
                       PIPELINE_CONFIG_DIR=$PWD/config make GOARGS="-p=2 -tags integration" TEST_OUTPUT=test_integration.txt test
+                      cat test_integration.txt >> test.txt
                   environment:
                       VAULT_ADDR: http://localhost:8200
                       VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
@@ -104,11 +135,26 @@ jobs:
                       make bin/migrate
                       bin/migrate -source "file://database/migrations" -database "mysql://pipeline:pipeline123@tcp(127.0.0.1:3306)/pipeline?multiStatements=true&charset=utf8mb4" up
 
+            - persist_to_workspace:
+                  root: /go/src/github.com/banzaicloud/pipeline
+                  paths:
+                      - bin/
+                      - build/
+                      - test.txt
+
+    report:
+        docker:
+            - image: circleci/golang:1.11
+
+        working_directory: /go/src/github.com/banzaicloud/pipeline
+
+        steps:
+            - attach_workspace:
+                  at: /go/src/github.com/banzaicloud/pipeline
+
             - run:
                   name: Generate test reports
-                  command: |
-                      cat test_integration.txt >> test.txt
-                      make junit-report
+                  command: make junit-report
                   when: always
 
             - save_cache:
@@ -119,5 +165,21 @@ jobs:
 
             - store_test_results:
                   path: build/test-results/
+
             - store_artifacts:
                   path: build/
+
+workflows:
+    version: 2
+    build:
+        jobs:
+            - checkout_code
+            - dependencies:
+                  requires:
+                      - checkout_code
+            - build:
+                  requires:
+                      - dependencies
+            - report:
+                  requires:
+                      - build
