@@ -74,25 +74,6 @@ jobs:
                       - .licensei.cache
                       - vendor/
 
-    build:
-        docker:
-            - image: circleci/golang:1.11
-
-        working_directory: /go/src/github.com/banzaicloud/pipeline
-
-        steps:
-            - attach_workspace:
-                  at: /go/src/github.com/banzaicloud/pipeline
-
-            - run:
-                  name: Build
-                  command: make build
-
-            - persist_to_workspace:
-                  root: /go/src/github.com/banzaicloud/pipeline
-                  paths:
-                      - build/
-
     checks:
         docker:
             - image: circleci/golang:1.11
@@ -140,6 +121,27 @@ jobs:
                   paths:
                       - bin/
 
+    build:
+        docker:
+            - image: circleci/golang:1.11
+        environment:
+            - GOCACHE: /go/cache
+        working_directory: /go/src/github.com/banzaicloud/pipeline
+
+        steps:
+            - attach_workspace:
+                  at: /go/src/github.com/banzaicloud/pipeline
+
+            - run:
+                  name: Build
+                  command: make build
+
+            - persist_to_workspace:
+                  root: /go
+                  paths:
+                      - src/github.com/banzaicloud/pipeline/build/
+                      - cache/
+
     tests:
         docker:
             - image: circleci/golang:1.11
@@ -148,7 +150,8 @@ jobs:
                 environment:
                     SKIP_SETCAP: true
                     VAULT_DEV_ROOT_TOKEN_ID: 227e1cce-6bf7-30bb-2d2a-acc854318caf
-
+        environment:
+            - GOCACHE: /go/cache
         working_directory: /go/src/github.com/banzaicloud/pipeline
 
         steps:
@@ -175,7 +178,8 @@ jobs:
             - image: circleci/golang:1.11
 
         working_directory: /go/src/github.com/banzaicloud/pipeline
-
+        environment:
+            - GOCACHE: /go/cache
         steps:
             - attach_workspace:
                   at: /go/src/github.com/banzaicloud/pipeline
@@ -249,12 +253,11 @@ workflows:
                       - checks
             - tests:
                   requires:
-                      - checks
+                      - build
             - integration_tests:
                   requires:
-                      - checks
+                      - build
             - report:
                   requires:
-                      - build
                       - tests
                       - integration_tests
