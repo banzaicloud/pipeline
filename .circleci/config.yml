@@ -24,7 +24,7 @@ jobs:
             - restore_cache:
                   name: Restore build dependencies
                   keys:
-                      - build-deps-v1-{{ .Branch }}-{{ checksum "Makefile" }}
+                      - gopkg-deps-v1-{{ .Branch }}-{{ checksum "Makefile" }}
 
             - restore_cache:
                   name: Restore dependencies
@@ -62,11 +62,16 @@ jobs:
                   paths:
                       - .licensei.cache
 
+            - save_cache:
+                  name: Save build dependencies
+                  key: gopkg-deps-v1-{{ .Branch }}-{{ checksum "Makefile" }}
+                  paths:
+                      - bin/
+
             - persist_to_workspace:
                   root: /go/src/github.com/banzaicloud/pipeline
                   paths:
                       - .licensei.cache
-                      - bin/
                       - vendor/
 
     build:
@@ -86,7 +91,6 @@ jobs:
             - persist_to_workspace:
                   root: /go/src/github.com/banzaicloud/pipeline
                   paths:
-                      - bin/
                       - build/
 
     checks:
@@ -107,6 +111,11 @@ jobs:
             - attach_workspace:
                   at: /go/src/github.com/banzaicloud/pipeline
 
+            - restore_cache:
+                  name: Restore build dependencies
+                  keys:
+                      - checks-deps-v1-{{ .Branch }}-{{ checksum "Makefile" }}
+
             - run:
                   name: Check dependency licenses
                   command: make license-check
@@ -125,8 +134,9 @@ jobs:
                       make bin/migrate
                       bin/migrate -source "file://database/migrations" -database "mysql://pipeline:pipeline123@tcp(127.0.0.1:3306)/pipeline?multiStatements=true&charset=utf8mb4" up
 
-            - persist_to_workspace:
-                  root: /go/src/github.com/banzaicloud/pipeline
+            - save_cache:
+                  name: Save build dependencies
+                  key: checks-deps-v1-{{ .Branch }}-{{ checksum "Makefile" }}
                   paths:
                       - bin/
 
@@ -199,6 +209,11 @@ jobs:
             - attach_workspace:
                   at: /go/src/github.com/banzaicloud/pipeline
 
+            - restore_cache:
+                  name: Restore build dependencies
+                  keys:
+                      - report-deps-v1-{{ .Branch }}-{{ checksum "Makefile" }}
+
             - run:
                   name: Generate test reports
                   command: |
@@ -208,7 +223,7 @@ jobs:
 
             - save_cache:
                   name: Save build dependencies
-                  key: build-deps-v1-{{ .Branch }}-{{ checksum "Makefile" }}
+                  key: report-deps-v1-{{ .Branch }}-{{ checksum "Makefile" }}
                   paths:
                       - bin/
 
