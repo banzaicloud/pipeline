@@ -85,7 +85,6 @@ jobs:
                   command: |
                       make config/config.toml
                       PIPELINE_CONFIG_DIR=$PWD/config GOARGS="-p=2" make test
-                      cp test.txt test.unit.txt
                   environment:
                       VAULT_ADDR: http://localhost:8200
                       VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
@@ -94,7 +93,7 @@ jobs:
                   name: Run integration tests
                   command: |
                       make config/config.toml
-                      PIPELINE_CONFIG_DIR=$PWD/config make GOARGS="-p=2 -tags integration" test
+                      PIPELINE_CONFIG_DIR=$PWD/config make GOARGS="-p=2 -tags integration" TEST_OUTPUT=test_integration.txt test
                   environment:
                       VAULT_ADDR: http://localhost:8200
                       VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
@@ -108,7 +107,7 @@ jobs:
             - run:
                   name: Generate test reports
                   command: |
-                      cat test.unit.txt >> test.txt
+                      cat test_integration.txt >> test.txt
                       make junit-report
                   when: always
 
