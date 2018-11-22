@@ -169,6 +169,7 @@ jobs:
                     SKIP_SETCAP: true
                     VAULT_DEV_ROOT_TOKEN_ID: 227e1cce-6bf7-30bb-2d2a-acc854318caf
         working_directory: /go/src/github.com/banzaicloud/pipeline
+        parallelism: 3
         steps:
             -
                 attach_workspace:
@@ -179,7 +180,12 @@ jobs:
                     name: Run tests
                     command: |
                         make config/config.toml
-                        PIPELINE_CONFIG_DIR=$PWD/config GOARGS="-p=2" make test
+                        # PIPELINE_CONFIG_DIR=$PWD/config GOARGS="-p=2" make test
+                        set -o pipefail
+                        mkdir -p build/
+                        export TEST_PACKAGES=$(go list ./... | circleci tests split)
+                        echo $TEST_PACKAGES
+                        go test -p=2 -v $TEST_PACKAGES 2>&1 | tee build/test_${CIRCLE_NODE_INDEX}.txt
                     environment:
                         VAULT_ADDR: http://localhost:8200
                         VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
@@ -188,7 +194,7 @@ jobs:
                 persist_to_workspace:
                     root: /go/src/github.com/banzaicloud/pipeline
                     paths:
-                        - test.txt
+                        - build/test_*.txt
 
 
     integration_tests:
@@ -209,18 +215,19 @@ jobs:
                         # PIPELINE_CONFIG_DIR=$PWD/config make GOARGS="-p=2 -tags integration" TEST_OUTPUT=test_integration.txt test
                         export PIPELINE_CONFIG_DIR=$PWD/config
                         set -o pipefail
+                        mkdir -p build/
                         go test -p=2 -tags integration -v \
                           ./pkg/providers/amazon/objectstore \
                           ./pkg/providers/azure/objectstore \
                           ./pkg/providers/google/objectstore \
                           ./pkg/providers/oracle/objectstore \
-                          ./pkg/providers/alibaba/objectstore 2>&1 | tee test_integration.txt
+                          ./pkg/providers/alibaba/objectstore 2>&1 | tee build/test_integration.txt
 
             -
                 persist_to_workspace:
                     root: /go/src/github.com/banzaicloud/pipeline
                     paths:
-                        - test_integration.txt
+                        - build/test_*.txt
 
     report:
         docker:
@@ -242,7 +249,7 @@ jobs:
                 run:
                     name: Generate test reports
                     command: |
-                        cat test_integration.txt >> test.txt
+                        cat build/test_*.txt > test.txt
                         make junit-report
                     when: always
 
