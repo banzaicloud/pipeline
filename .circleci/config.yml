@@ -250,12 +250,14 @@ workflows:
                       - dependencies
             - build:
                   requires:
-                      - checks
+                      - dependencies
             - tests:
                   requires:
+                      - checks
                       - build
             - integration_tests:
                   requires:
+                      - checks
                       - build
             - report:
                   requires:
