@@ -586,22 +586,22 @@ func enableCICD(request *LaunchRequest, httpRequest *http.Request) error {
 func createDroneRepoConfig(initConfig []byte, request *LaunchRequest) (*droneRepoConfig, error) {
 	repoConfig := new(droneRepoConfig)
 	if err := yaml.Unmarshal(initConfig, repoConfig); err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to unmarshal initial config")
 	}
 
 	// Configure cluster
 	if err := droneRepoConfigCluster(request, repoConfig); err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to add cluster details")
 	}
 
 	// Configure secrets
 	if err := droneRepoConfigSecrets(request, repoConfig); err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to add secrets to steps")
 	}
 
 	// Configure pipeline
 	if err := droneRepoConfigPipeline(request, repoConfig); err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to merge values")
 	}
 
 	return repoConfig, nil
@@ -609,10 +609,16 @@ func createDroneRepoConfig(initConfig []byte, request *LaunchRequest) (*droneRep
 
 func droneRepoConfigCluster(request *LaunchRequest, repoConfig *droneRepoConfig) error {
 
+	clusterJson, err := json.Marshal(request.Cluster)
+	if err != nil {
+		return err
+	}
+
 	for i, step := range repoConfig.Pipeline {
 
 		// Find CreateClusterStep step and transform it
 		if step.Key == CreateClusterStep {
+			log.Debugf("merge cluster info to %q step", step.Key)
 
 			clusterStep, err := copyToDroneContainer(step.Value)
 			if err != nil {
@@ -620,12 +626,7 @@ func droneRepoConfigCluster(request *LaunchRequest, repoConfig *droneRepoConfig)
 			}
 
 			// Merge the cluster from the request into the existing cluster value
-			cluster, err := json.Marshal(request.Cluster)
-			if err != nil {
-				return err
-			}
-
-			err = json.Unmarshal(cluster, &clusterStep.Cluster)
+			err = json.Unmarshal(clusterJson, &clusterStep.Cluster)
 			if err != nil {
 				return err
 			}
@@ -641,7 +642,17 @@ func droneRepoConfigCluster(request *LaunchRequest, repoConfig *droneRepoConfig)
 		}
 	}
 
-	log.Info("create_cluster step not present in pipeline.yaml, skipping it's transformation")
+	if len(repoConfig.Cluster) > 0 {
+		log.Debug("merge cluster info to cluster block")
+
+		// Merge the cluster from the request into the existing cluster value
+		if err := json.Unmarshal(clusterJson, &repoConfig.Cluster); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	log.Info("cluster block or create_cluster step not present in pipeline.yaml, skipping its transformation")
 
 	return nil
 }

@@ -381,3 +381,115 @@ func TestDroneRepoConfigPipeline(t *testing.T) {
 
 	assert.Equal(t, expectedConfig, actualConfig, "Actual pipeline.yaml doesn't match the expected one")
 }
+
+const testClusterPipelineYAML = `
+cluster:
+  cloud: google
+  location: europe-west1-b
+  name: banzaicloudleu1
+  postHooks:
+    InstallLogging:
+      bucketName: johndoe-spark-cluster-logs
+      secretId: d316a5c2c3a107aa47f0bda16cdc70020895a01d5d23847014013780bb52a7d9
+    InstallMonitoring: {}
+  profileName: ""
+  properties:
+    gke:
+      master:
+        version: "1.10"
+pipeline:
+  env:
+    image: node:10
+    commands:
+    - env
+    - find .
+  deploy_application:
+    action: EnsureDeployment
+    deployment:
+      name: ./spotguide-nodejs-mongodb-1.0.0.tgz
+      releaseName: '{{ .DRONE_REPO_NAME }}'
+      reuseValues: true
+      values:
+        foo: 3
+`
+
+const testExpectedClusterPipelineYAML = `
+cluster:
+  cloud: google
+  location: europe-west2-a
+  name: banzaicloudsgts
+  postHooks:
+    InstallLogging:
+      bucketName: johndoe-spark-cluster-logs
+      secretId: b6d88b1c21908689d80f4c5a0c32d86666e1bfd90e14602d1fd6eccd6c232281
+    InstallMonitoring: {}
+  profileName: ""
+  properties:
+    gke:
+      master:
+        version: "1.10"
+      nodePools:
+        pool1:
+          autoscaling: true
+          count: 2
+          instanceType: n1-standard-1
+          maxCount: 3
+          minCount: 2
+        system:
+          autoscaling: true
+          count: 1
+          instanceType: n1-standard-2
+          maxCount: 2
+          minCount: 1
+      nodeVersion: "1.10"
+  secretId: c8f9c9fc3835b9a3721165afea97ffb78e1375552ab112ed54aee30b29c962ae
+pipeline:
+  env:
+    image: node:10
+    commands:
+    - env
+    - find .
+  deploy_application:
+    action: EnsureDeployment
+    deployment:
+      name: ./spotguide-nodejs-mongodb-1.0.0.tgz
+      releaseName: '{{ .DRONE_REPO_NAME }}'
+      reuseValues: true
+      values:
+        foo: 3
+        mongodb:
+          existingSecret: spotguide-nodejs-mongodb-05-mongodb
+          mongodbDatabase: application
+          mongodbUsername: user
+`
+
+func TestDroneRepoConfigPipelineClusterBlock(t *testing.T) {
+
+	config := droneRepoConfig{}
+	yaml.Unmarshal([]byte(testClusterPipelineYAML), &config)
+
+	launchRequest := LaunchRequest{}
+	json.Unmarshal([]byte(testLaunchRequestJSON), &launchRequest)
+
+	droneConfig, err := createDroneRepoConfig([]byte(testClusterPipelineYAML), &launchRequest)
+	if err != nil {
+		t.Fatal("createDroneRepoConfig expected to succeed but got error: ", err.Error())
+	}
+
+	actualPipelineYAML, err := yaml.Marshal(&droneConfig)
+	if err != nil {
+		t.Error("Marshal expected to succeed but got error: ", err.Error())
+	}
+
+	expectedConfig := map[string]interface{}{}
+	yaml.Unmarshal([]byte(testExpectedClusterPipelineYAML), &expectedConfig)
+
+	actualConfig := map[string]interface{}{}
+	err = yaml.Unmarshal(actualPipelineYAML, &actualConfig)
+
+	if err != nil {
+		t.Fatal("Unmarshal expected to succeed but got error: ", err.Error())
+	}
+
+	assert.Equal(t, expectedConfig, actualConfig, "Actual pipeline.yaml doesn't match the expected one")
+}
