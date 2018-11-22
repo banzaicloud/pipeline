@@ -72,6 +72,26 @@ jobs:
     build:
         docker:
             - image: circleci/golang:1.11
+
+        working_directory: /go/src/github.com/banzaicloud/pipeline
+
+        steps:
+            - attach_workspace:
+                  at: /go/src/github.com/banzaicloud/pipeline
+
+            - run:
+                  name: Build
+                  command: make build
+
+            - persist_to_workspace:
+                  root: /go/src/github.com/banzaicloud/pipeline
+                  paths:
+                      - bin/
+                      - build/
+
+    checks:
+        docker:
+            - image: circleci/golang:1.11
             -
                 image: mysql:5.7
                 command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
@@ -80,15 +100,8 @@ jobs:
                     MYSQL_DATABASE: pipeline
                     MYSQL_USER: pipeline
                     MYSQL_PASSWORD: pipeline123
-            -
-                image: vault:0.11.0
-                environment:
-                    SKIP_SETCAP: true
-                    VAULT_DEV_ROOT_TOKEN_ID: 227e1cce-6bf7-30bb-2d2a-acc854318caf
 
         working_directory: /go/src/github.com/banzaicloud/pipeline
-
-        parallelism: 4
 
         steps:
             - attach_workspace:
@@ -103,31 +116,8 @@ jobs:
                   command: sha256sum -c client/SHA256SUMS > /dev/null || { echo "Please generate client code using make generate-client"; exit 1; }
 
             - run:
-                  name: Build
-                  command: make build
-
-            - run:
                   name: Run linter
                   command: make lint
-
-            - run:
-                  name: Run tests
-                  command: |
-                      make config/config.toml
-                      PIPELINE_CONFIG_DIR=$PWD/config GOARGS="-p=2" make test
-                  environment:
-                      VAULT_ADDR: http://localhost:8200
-                      VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
-
-            - run:
-                  name: Run integration tests
-                  command: |
-                      make config/config.toml
-                      PIPELINE_CONFIG_DIR=$PWD/config make GOARGS="-p=2 -tags integration" TEST_OUTPUT=test_integration.txt test
-                      cat test_integration.txt >> test.txt
-                  environment:
-                      VAULT_ADDR: http://localhost:8200
-                      VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
 
             - run:
                   name: Test database migrations
@@ -139,8 +129,65 @@ jobs:
                   root: /go/src/github.com/banzaicloud/pipeline
                   paths:
                       - bin/
-                      - build/
+
+    tests:
+        docker:
+            - image: circleci/golang:1.11
+            -
+                image: vault:0.11.0
+                environment:
+                    SKIP_SETCAP: true
+                    VAULT_DEV_ROOT_TOKEN_ID: 227e1cce-6bf7-30bb-2d2a-acc854318caf
+
+        working_directory: /go/src/github.com/banzaicloud/pipeline
+
+        steps:
+            - attach_workspace:
+                  at: /go/src/github.com/banzaicloud/pipeline
+
+            - run:
+                  name: Run tests
+                  command: |
+                      make config/config.toml
+                      PIPELINE_CONFIG_DIR=$PWD/config GOARGS="-p=2" make test
+                  environment:
+                      VAULT_ADDR: http://localhost:8200
+                      VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
+
+            - persist_to_workspace:
+                  root: /go/src/github.com/banzaicloud/pipeline
+                  paths:
                       - test.txt
+
+
+    integration_tests:
+        docker:
+            - image: circleci/golang:1.11
+            -
+                image: vault:0.11.0
+                environment:
+                    SKIP_SETCAP: true
+                    VAULT_DEV_ROOT_TOKEN_ID: 227e1cce-6bf7-30bb-2d2a-acc854318caf
+
+        working_directory: /go/src/github.com/banzaicloud/pipeline
+
+        steps:
+            - attach_workspace:
+                  at: /go/src/github.com/banzaicloud/pipeline
+
+            - run:
+                  name: Run integration tests
+                  command: |
+                      make config/config.toml
+                      PIPELINE_CONFIG_DIR=$PWD/config make GOARGS="-p=2 -tags integration" TEST_OUTPUT=test_integration.txt test
+                  environment:
+                      VAULT_ADDR: http://localhost:8200
+                      VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
+
+            - persist_to_workspace:
+                  root: /go/src/github.com/banzaicloud/pipeline
+                  paths:
+                      - test_integration.txt
 
     report:
         docker:
@@ -154,7 +201,9 @@ jobs:
 
             - run:
                   name: Generate test reports
-                  command: make junit-report
+                  command: |
+                      cat test_integration.txt >> test.txt
+                      make junit-report
                   when: always
 
             - save_cache:
@@ -177,9 +226,21 @@ workflows:
             - dependencies:
                   requires:
                       - checkout_code
+            - checks:
+                  requires:
+                      - dependencies
             - build:
+                  requires:
+                      - dependencies
+            - tests:
+                  requires:
+                      - dependencies
+            - integration_tests:
                   requires:
                       - dependencies
             - report:
                   requires:
+                      - checks
                       - build
+                      - tests
+                      - integration_tests
