@@ -168,7 +168,7 @@ type GetClusterStatusResponse struct {
 	NodePools     map[string]*NodePoolStatus `json:"nodePools,omitempty"`
 	pkgCommon.CreatorBaseFields
 
-	// ONLY in case of GKE
+	// If region not available fall back to Location
 	Region string `json:"region,omitempty"`
 }
 

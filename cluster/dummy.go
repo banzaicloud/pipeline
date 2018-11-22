@@ -93,6 +93,7 @@ func (c *DummyCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error)
 		ResourceID:        c.GetID(),
 		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
 		NodePools:         nil,
+		Region:            c.modelCluster.Location,
 	}, nil
 }
 

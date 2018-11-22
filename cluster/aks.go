@@ -269,6 +269,7 @@ func (c *AKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		ResourceID:        c.modelCluster.ID,
 		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
 		NodePools:         nodePools,
+		Region:            c.modelCluster.Location,
 	}, nil
 }
 
