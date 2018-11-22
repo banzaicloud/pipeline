@@ -84,7 +84,7 @@ func ScanImages(c *gin.Context) {
 			URL:       endPoint,
 			Body:      anchorePost,
 		}
-		response, err := anchore.MakeAnchoreRequest(anchoreRequest)
+		response, err := anchore.DoAnchoreRequest(anchoreRequest)
 		if err != nil {
 			log.Error(err)
 			httpStatusCode := http.StatusInternalServerError
@@ -133,7 +133,7 @@ func doAnchoreGetRequest(c *gin.Context, endPoint string) {
 		URL:       endPoint,
 		Body:      nil,
 	}
-	response, err := anchore.MakeAnchoreRequest(anchoreRequest)
+	response, err := anchore.DoAnchoreRequest(anchoreRequest)
 	if err != nil {
 		log.Error(err)
 		httpStatusCode := http.StatusInternalServerError
