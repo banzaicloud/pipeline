@@ -4668,9 +4668,6 @@ components:
                 updatedAt:
                     type: string
                     example: "2018-06-11T14:28:24Z"
-                icon:
-                    type: string
-                    example: "data:image/svg+xml;base64,PHN2ZyB4b..."
                 readme:
                     type: string
                     example: "# Spotguide for Node.js with MongoDB database"
