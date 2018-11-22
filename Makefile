@@ -156,7 +156,8 @@ license-cache: bin/licensei ## Generate license cache
 test: export CGO_ENABLED = 1
 test: TEST_OUTPUT ?= test.txt
 test: ## Run all tests
-	go test ${GOARGS} -v ./... 2>&1 > ${TEST_OUTPUT}
+	@set -o pipefail
+	go test ${GOARGS} -v ./... 2>&1 | tee ${TEST_OUTPUT}
 
 bin/go-junit-report:
 	@mkdir -p bin

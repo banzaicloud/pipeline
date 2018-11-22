@@ -11,6 +11,7 @@ orgs/
 *.pem
 */main/main.go
 test.txt
+test_integration.txt
 /bin/
 /build/
 /vendor/

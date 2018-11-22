@@ -173,11 +173,6 @@ jobs:
     integration_tests:
         docker:
             - image: circleci/golang:1.11
-            -
-                image: vault:0.11.0
-                environment:
-                    SKIP_SETCAP: true
-                    VAULT_DEV_ROOT_TOKEN_ID: 227e1cce-6bf7-30bb-2d2a-acc854318caf
 
         working_directory: /go/src/github.com/banzaicloud/pipeline
 
@@ -189,10 +184,15 @@ jobs:
                   name: Run integration tests
                   command: |
                       make config/config.toml
-                      PIPELINE_CONFIG_DIR=$PWD/config make GOARGS="-p=2 -tags integration" TEST_OUTPUT=test_integration.txt test
-                  environment:
-                      VAULT_ADDR: http://localhost:8200
-                      VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
+                      # PIPELINE_CONFIG_DIR=$PWD/config make GOARGS="-p=2 -tags integration" TEST_OUTPUT=test_integration.txt test
+                      export PIPELINE_CONFIG_DIR=$PWD/config
+                      set -o pipefail
+                      go test -p=2 -tags integration -v \
+                        ./pkg/providers/amazon/objectstore \
+                        ./pkg/providers/azure/objectstore \
+                        ./pkg/providers/google/objectstore \
+                        ./pkg/providers/oracle/objectstore \
+                        ./pkg/providers/alibaba/objectstore 2>&1 | tee test_integration.txt
 
             - persist_to_workspace:
                   root: /go/src/github.com/banzaicloud/pipeline
