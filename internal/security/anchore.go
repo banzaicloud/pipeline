@@ -93,7 +93,7 @@ func createAnchoreAccount(name string, email string) error {
 	}
 	_, err := DoAnchoreRequest(anchoreRequest)
 	if err != nil {
-		return emperror.Wrap(err, "Account create AnchoreRequest failed")
+		return emperror.Wrap(err, "account create AnchoreRequest failed")
 	}
 	return nil
 }
@@ -112,7 +112,7 @@ func createAnchoreUser(username string, password string) error {
 	}
 	_, err := DoAnchoreRequest(anchoreRequest)
 	if err != nil {
-		return emperror.Wrap(err, "User create AnchoreRequest failed")
+		return emperror.Wrap(err, "user create AnchoreRequest failed")
 	}
 	return nil
 }
@@ -215,20 +215,20 @@ func SetupAnchoreUser(orgId uint, clusterId string) (*User, error) {
 		}
 		secretId, err := secret.Store.CreateOrUpdate(orgId, &secretRequest)
 		if err != nil {
-			return nil, emperror.Wrap(err, "Failed to create/update Anchore user secret")
+			return nil, emperror.Wrap(err, "failed to create/update Anchore user secret")
 		}
 		// retrieve crated secret to read generated password
 		secretItem, err := secret.Store.Get(orgId, secretId)
 		if err != nil {
-			return nil, emperror.Wrap(err, "Failed to retrieve Anchore user secret")
+			return nil, emperror.Wrap(err, "failed to retrieve Anchore user secret")
 		}
 		userPassword := secretItem.Values["password"]
 
 		if createAnchoreAccount(anchoreUserName, anchoreEmail) != nil {
-			return nil, emperror.Wrap(err, "Error creating Anchor account")
+			return nil, emperror.Wrap(err, "error creating Anchor account")
 		}
 		if createAnchoreUser(anchoreUserName, userPassword) != nil {
-			return nil, emperror.Wrap(err, "Error creating Anchor user")
+			return nil, emperror.Wrap(err, "error creating Anchor user")
 		}
 		user.Password = userPassword
 		user.UserId = anchoreUserName
@@ -237,7 +237,7 @@ func SetupAnchoreUser(orgId uint, clusterId string) (*User, error) {
 		userPassword, status := getAnchoreUserCredentials(anchoreUserName)
 		if status != http.StatusOK {
 			var err error
-			return nil, emperror.Wrap(err, "Failed to get Anchore user secret")
+			return nil, emperror.Wrap(err, "failed to get Anchore user secret")
 		}
 		secretRequest := secret.CreateSecretRequest{
 			Name: anchoreUserName,
@@ -248,7 +248,7 @@ func SetupAnchoreUser(orgId uint, clusterId string) (*User, error) {
 			},
 		}
 		if _, err := secret.Store.CreateOrUpdate(orgId, &secretRequest); err != nil {
-			return nil, emperror.Wrap(err, "Failed to create/update Anchore user secret")
+			return nil, emperror.Wrap(err, "failed to create/update Anchore user secret")
 		}
 	}
 
@@ -263,21 +263,21 @@ func RemoveAnchoreUser(orgId uint, clusterId string) {
 
 	secretItem, err := secret.Store.GetByName(orgId, anchorUserName)
 	if err != nil {
-		logger.Errorf("Error fetching Anchore user secret: %v", err.Error())
+		logger.Errorf("error fetching Anchore user secret: %v", err.Error())
 		return
 	}
 	err = secret.Store.Delete(orgId, secretItem.ID)
 	if err != nil {
-		logger.Errorf("Error deleting Anchore user secret: %v", err.Error())
+		logger.Errorf("error deleting Anchore user secret: %v", err.Error())
 	} else {
 		logger.Infof("Anchore user secret %v deleted.", anchorUserName)
 	}
 	if checkAnchoreUser(anchorUserName, http.MethodDelete) != http.StatusNoContent {
-		logger.Errorf("Error deleting Anchore user: %v", anchorUserName)
+		logger.Errorf("error deleting Anchore user: %v", anchorUserName)
 	}
 	logger.Debugf("Anchore user %v deleted.", anchorUserName)
 	if deleteAnchoreAccount(anchorUserName) != http.StatusNoContent {
-		logger.Errorf("Error deleting Anchore account: %v", anchorUserName)
+		logger.Errorf("error deleting Anchore account: %v", anchorUserName)
 	}
 	logger.Debugf("Anchore account %v deleting.", anchorUserName)
 }
@@ -286,7 +286,7 @@ func RemoveAnchoreUser(orgId uint, clusterId string) {
 func DoAnchoreRequest(req AnchoreRequest) (*http.Response, error) {
 
 	if !AnchoreEnabled {
-		return nil, errors.New("Anchore integration is not enabled. You can enable by setting config property: anchor.enabled = true.")
+		return nil, errors.New("anchore integration is not enabled, you can enable by setting config property: anchor.enabled = true")
 	}
 	var anchoreUserName string
 	var password string
@@ -297,7 +297,7 @@ func DoAnchoreRequest(req AnchoreRequest) (*http.Response, error) {
 		anchoreUserName = fmt.Sprintf("%v-anchore-user", req.ClusterID)
 		anchoreUserSecret, err := secret.Store.GetByName(req.OrgID, anchoreUserName)
 		if err != nil {
-			return nil, emperror.Wrap(err, "Failed to get secret")
+			return nil, emperror.Wrap(err, "failed to get secret")
 		}
 		password = anchoreUserSecret.Values["password"]
 	}
@@ -311,17 +311,17 @@ func DoAnchoreRequest(req AnchoreRequest) (*http.Response, error) {
 		buf = new(bytes.Buffer)
 		err := json.NewEncoder(buf).Encode(req.Body)
 		if err != nil {
-			return nil, emperror.Wrap(err, "Json encode failed")
+			return nil, emperror.Wrap(err, "json encode failed")
 		}
 		request, err = http.NewRequest(req.Method, path.Join(AnchoreEndpoint, "v1", req.URL), buf)
 		if err != nil {
-			return nil, emperror.Wrap(err, "Request creation failed")
+			return nil, emperror.Wrap(err, "request creation failed")
 		}
 	} else {
 		var err error
 		request, err = http.NewRequest(req.Method, path.Join(AnchoreEndpoint, "v1", req.URL), nil)
 		if err != nil {
-			return nil, emperror.Wrap(err, "Request creation failed")
+			return nil, emperror.Wrap(err, "request creation failed")
 		}
 	}
 
@@ -331,8 +331,7 @@ func DoAnchoreRequest(req AnchoreRequest) (*http.Response, error) {
 
 	response, err := client.Do(request)
 	if err != nil {
-		logger.Error(err)
-		return response, emperror.Wrap(err, "Anchore request failed")
+		return response, emperror.Wrap(err, "anchore request failed")
 	}
 
 	return response, nil
