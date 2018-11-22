@@ -103,7 +103,6 @@ var BasePostHookFunctions = []PostFunctioner{
 	HookMap[pkgCluster.InstallClusterAutoscalerPostHook],
 	HookMap[pkgCluster.InstallHorizontalPodAutoscalerPostHook],
 	HookMap[pkgCluster.InstallPVCOperator],
-	HookMap[pkgCluster.InstallAnchoreImageValidator],
 	HookMap[pkgCluster.InitSpotConfig],
 }
 

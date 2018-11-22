@@ -141,6 +141,7 @@ func (c *KubeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) 
 		ResourceID:        c.modelCluster.ID,
 		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
 		NodePools:         nil,
+		Region:            c.modelCluster.Location,
 	}, nil
 }
 
