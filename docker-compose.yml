@@ -20,32 +20,66 @@ services:
     vault:
         image: vault:0.11.0
         restart: always
-        depends_on:
-            - db
+        command:
+            - server
         cap_add:
             - IPC_LOCK
         volumes:
             - $HOME:/home/vault
+            - ./scripts/vault.hcl:/vault/config/vault.hcl
 
-    vault-configurer:
-        image: banzaicloud/bank-vaults:0.3.15
+    vault-unsealer:
+        image: banzaicloud/bank-vaults:latest
         depends_on:
             - vault
-        restart: "no"
-        entrypoint: "./wait-for-it.sh"
+        restart: "always"
         command:
-            - "db:3306"
-            - "--"
-            - "bank-vaults"
-            - configure
+            - unseal
+            - --init
             - --mode
-            - dev
+            - file
+            - --file-path
+            - /vault/keys
         environment:
             VAULT_ADDR: http://vault:8200
         volumes:
-            - $HOME:/root
             - ./scripts/vault-config.yml:/vault-config.yml
             - ./scripts/wait-for-it.sh:/wait-for-it.sh
+
+    vault-configurer:
+        image: banzaicloud/bank-vaults:latest
+        depends_on:
+            - db
+            - vault
+            - vault-unsealer
+        restart: "always"
+        entrypoint: "./wait-for-it.sh"
+        command:
+            - db:3306
+            - --
+            - bank-vaults
+            - configure
+            - --mode
+            - file
+            - --file-path
+            - /vault/keys
+        environment:
+            VAULT_ADDR: http://vault:8200
+        volumes:
+            - ./scripts/vault-config.yml:/vault-config.yml
+            - ./scripts/wait-for-it.sh:/wait-for-it.sh
+
+    vault-token-helper:
+        image: alpine
+        depends_on:
+            - vault-configurer
+        restart: on-failure
+        command:
+            - cp
+            - /vault/keys/vault-root
+            - /root/.vault-token
+        volumes:
+            - $HOME:/root
 
     drone-server:
         image: banzaicloud/drone:0.4.0
