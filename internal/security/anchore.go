@@ -103,8 +103,7 @@ func createAnchoreUser(username string, password string) error {
 		Username: username,
 		Password: password,
 	}
-	endPoint := path.Join(accountPath, username)
-	endPoint = path.Join(endPoint, "users")
+	endPoint := path.Join(accountPath, username, "users")
 	anchoreRequest := AnchoreRequest{
 		AdminUser: true,
 		Method:    http.MethodPost,
@@ -196,10 +195,7 @@ func getAnchoreUserCredentials(username string) (string, int) {
 }
 
 func anchoreUserEndPoint(username string) string {
-	endPoint := path.Join(accountPath, username)
-	endPoint = path.Join(endPoint, "users")
-	endPoint = path.Join(endPoint, username)
-	return endPoint
+	return path.Join(accountPath, username, "users", username)
 }
 
 //SetupAnchoreUser sets up a new user in Anchore Postgres DB & creates / updates a secret containng user name /password.
@@ -317,13 +313,13 @@ func DoAnchoreRequest(req AnchoreRequest) (*http.Response, error) {
 		if err != nil {
 			return nil, err
 		}
-		request, err = http.NewRequest(req.Method, path.Join(AnchoreEndpoint+"/v1", req.URL), buf)
+		request, err = http.NewRequest(req.Method, path.Join(AnchoreEndpoint, "v1", req.URL), buf)
 		if err != nil {
 			return nil, err
 		}
 	} else {
 		var err error
-		request, err = http.NewRequest(req.Method, path.Join(AnchoreEndpoint+"/v1", req.URL), nil)
+		request, err = http.NewRequest(req.Method, path.Join(AnchoreEndpoint, "v1", req.URL), nil)
 		if err != nil {
 			return nil, err
 		}
