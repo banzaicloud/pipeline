@@ -642,18 +642,12 @@ func droneRepoConfigCluster(request *LaunchRequest, repoConfig *droneRepoConfig)
 		}
 	}
 
-	if len(repoConfig.Cluster) > 0 {
-		log.Debug("merge cluster info to cluster block")
+	log.Debug("merge cluster info to cluster block")
 
-		// Merge the cluster from the request into the existing cluster value
-		if err := json.Unmarshal(clusterJson, &repoConfig.Cluster); err != nil {
-			return err
-		}
-		return nil
+	// Merge the cluster from the request into the cluster block
+	if err := json.Unmarshal(clusterJson, &repoConfig.Cluster); err != nil {
+		return err
 	}
-
-	log.Info("cluster block or create_cluster step not present in pipeline.yaml, skipping its transformation")
-
 	return nil
 }
 
