@@ -20,6 +20,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -143,15 +144,6 @@ func internalScrapeSpotguides(orgID uint) {
 	}
 }
 
-func isSpotguideRepository(repo *github.Repository) bool {
-	for _, topic := range repo.Topics {
-		if topic == SpotguideGithubTopic {
-			return true
-		}
-	}
-	return false
-}
-
 func isSpotguideReleaseAllowed(release *github.RepositoryRelease) bool {
 	version, err := semver.NewVersion(release.GetTagName())
 	if err != nil {
@@ -167,18 +159,16 @@ func ScrapeSpotguides(orgID uint) error {
 
 	githubClient := auth.NewGithubClient(viper.GetString("github.token"))
 
-	var allRepositories []*github.Repository
+	var allRepositories []github.Repository
+	opts := &github.SearchOptions{Sort: "created", Order: "asc"}
+	query := fmt.Sprintf("org:%s topic:%s", SpotguideGithubOrganization, SpotguideGithubTopic)
 	listOpts := github.ListOptions{PerPage: 100}
 	for {
-		repositories, resp, err := githubClient.Repositories.ListByOrg(ctx, SpotguideGithubOrganization, &github.RepositoryListByOrgOptions{
-			ListOptions: listOpts,
-		})
-
+		reposRes, resp, err := githubClient.Search.Repositories(ctx, query, opts)
 		if err != nil {
 			return emperror.Wrap(err, "failed to list github repositories")
 		}
-
-		allRepositories = append(allRepositories, repositories...)
+		allRepositories = append(allRepositories, reposRes.Repositories...)
 
 		if resp.NextPage == 0 {
 			break
@@ -204,60 +194,58 @@ func ScrapeSpotguides(orgID uint) error {
 	}
 
 	for _, repository := range allRepositories {
-		if isSpotguideRepository(repository) {
-			owner := repository.GetOwner().GetLogin()
-			name := repository.GetName()
+		owner := repository.GetOwner().GetLogin()
+		name := repository.GetName()
 
-			releases, _, err := githubClient.Repositories.ListReleases(ctx, owner, name, &github.ListOptions{})
+		releases, _, err := githubClient.Repositories.ListReleases(ctx, owner, name, &github.ListOptions{})
+		if err != nil {
+			return emperror.Wrap(err, "failed to list github repo releases")
+		}
+
+		for _, release := range releases {
+
+			if !isSpotguideReleaseAllowed(release) {
+				continue
+			}
+
+			tag := release.GetTagName()
+
+			spotguideRaw, err := downloadGithubFile(githubClient, owner, name, SpotguideYAMLPath, tag)
 			if err != nil {
-				return emperror.Wrap(err, "failed to list github repo releases")
+				log.Warnf("failed to scrape repository '%s/%s' at version '%s': %s", owner, name, tag, err)
+				continue
 			}
 
-			for _, release := range releases {
-
-				if !isSpotguideReleaseAllowed(release) {
-					continue
-				}
-
-				tag := release.GetTagName()
-
-				spotguideRaw, err := downloadGithubFile(githubClient, owner, name, SpotguideYAMLPath, tag)
-				if err != nil {
-					log.Warnf("failed to scrape repository '%s/%s' at version '%s': %s", owner, name, tag, err)
-					continue
-				}
-
-				// syntax check spotguide.yaml
-				err = yaml2.Unmarshal(spotguideRaw, &SpotguideYAML{})
-				if err != nil {
-					log.Warnf("failed to scrape repository '%s/%s' at version '%s': %s", owner, name, tag, err)
-					continue
-				}
-
-				readme, err := downloadGithubFile(githubClient, owner, name, ReadmePath, tag)
-				if err != nil {
-					log.Warnf("failed to scrape repository '%s/%s' at version '%s': %s", owner, name, tag, err)
-					continue
-				}
-
-				model := SpotguideRepo{
-					OrganizationID:   orgID,
-					Name:             repository.GetFullName(),
-					SpotguideYAMLRaw: spotguideRaw,
-					Readme:           string(readme),
-					Version:          tag,
-				}
-
-				where := model.Key()
-
-				err = db.Where(&where).Assign(&model).FirstOrCreate(&SpotguideRepo{}).Error
-
-				if err != nil {
-					return err
-				}
-
-				delete(oldSpotguidesIndexed, model.Key())
+			// syntax check spotguide.yaml
+			err = yaml2.Unmarshal(spotguideRaw, &SpotguideYAML{})
+			if err != nil {
+				log.Warnf("failed to scrape repository '%s/%s' at version '%s': %s", owner, name, tag, err)
+				continue
 			}
+
+			readme, err := downloadGithubFile(githubClient, owner, name, ReadmePath, tag)
+			if err != nil {
+				log.Warnf("failed to scrape repository '%s/%s' at version '%s': %s", owner, name, tag, err)
+				continue
+			}
+
+			model := SpotguideRepo{
+				OrganizationID:   orgID,
+				Name:             repository.GetFullName(),
+				SpotguideYAMLRaw: spotguideRaw,
+				Readme:           string(readme),
+				Version:          tag,
+			}
+
+			where := model.Key()
+
+			err = db.Where(&where).Assign(&model).FirstOrCreate(&SpotguideRepo{}).Error
+
+			if err != nil {
+				return err
+			}
+
+			delete(oldSpotguidesIndexed, model.Key())
 		}
 	}
 
