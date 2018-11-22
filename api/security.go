@@ -262,7 +262,7 @@ func GetPolicies(c *gin.Context) {
 		URL:       endPoint,
 		Body:      nil,
 	}
-	response, err := anchore.MakeAnchoreRequest(anchoreRequest)
+	response, err := anchore.DoAnchoreRequest(anchoreRequest)
 	if err != nil {
 		log.Error(err)
 		httpStatusCode := http.StatusInternalServerError
@@ -305,7 +305,7 @@ func CreatePolicy(c *gin.Context) {
 		URL:       policyPath,
 		Body:      policyBundle,
 	}
-	response, err := anchore.MakeAnchoreRequest(anchoreRequest)
+	response, err := anchore.DoAnchoreRequest(anchoreRequest)
 	if err != nil {
 		log.Error(err)
 		httpStatusCode := http.StatusInternalServerError
@@ -359,7 +359,7 @@ func UpdatePolicies(c *gin.Context) {
 		URL:       path.Join(policyPath, policyId),
 		Body:      policyBundle,
 	}
-	response, err := anchore.MakeAnchoreRequest(anchoreRequest)
+	response, err := anchore.DoAnchoreRequest(anchoreRequest)
 	if err != nil {
 		log.Error(err)
 		httpStatusCode := http.StatusInternalServerError
@@ -400,7 +400,7 @@ func DeletePolicy(c *gin.Context) {
 		URL:       path.Join(policyPath, policyId),
 		Body:      nil,
 	}
-	response, err := anchore.MakeAnchoreRequest(anchoreRequest)
+	response, err := anchore.DoAnchoreRequest(anchoreRequest)
 	if err != nil {
 		log.Error(err)
 		httpStatusCode := http.StatusInternalServerError

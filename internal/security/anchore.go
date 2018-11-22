@@ -91,7 +91,7 @@ func createAnchoreAccount(name string, email string) error {
 		URL:       accountPath,
 		Body:      anchoreAccount,
 	}
-	_, err := MakeAnchoreRequest(anchoreRequest)
+	_, err := DoAnchoreRequest(anchoreRequest)
 	if err != nil {
 		return emperror.Wrap(err, "Account create AnchoreRequest failed")
 	}
@@ -111,7 +111,7 @@ func createAnchoreUser(username string, password string) error {
 		URL:       endPoint,
 		Body:      anchoreUser,
 	}
-	_, err := MakeAnchoreRequest(anchoreRequest)
+	_, err := DoAnchoreRequest(anchoreRequest)
 	if err != nil {
 		return emperror.Wrap(err, "User create AnchoreRequest failed")
 	}
@@ -125,7 +125,7 @@ func checkAnchoreUser(username string, method string) int {
 		Method:    method,
 		URL:       endPoint,
 	}
-	response, err := MakeAnchoreRequest(anchoreRequest)
+	response, err := DoAnchoreRequest(anchoreRequest)
 	if err != nil {
 		logger.Error(err)
 		return response.StatusCode
@@ -148,7 +148,7 @@ func deleteAnchoreAccount(account string) int {
 		URL:       path.Join(endPoint, "state"),
 		Body:      accStatus,
 	}
-	response, err := MakeAnchoreRequest(anchoreRequest)
+	response, err := DoAnchoreRequest(anchoreRequest)
 	if err != nil {
 		logger.Error(err)
 		return response.StatusCode
@@ -160,7 +160,7 @@ func deleteAnchoreAccount(account string) int {
 		URL:       endPoint,
 		Body:      nil,
 	}
-	response, err = MakeAnchoreRequest(anchoreRequest)
+	response, err = DoAnchoreRequest(anchoreRequest)
 	if err != nil {
 		logger.Error(err)
 		return response.StatusCode
@@ -181,7 +181,7 @@ func getAnchoreUserCredentials(username string) (string, int) {
 		Method:    http.MethodGet,
 		URL:       endPoint,
 	}
-	response, err := MakeAnchoreRequest(anchoreRequest)
+	response, err := DoAnchoreRequest(anchoreRequest)
 	if err != nil {
 		logger.Error(err)
 		return "", response.StatusCode
@@ -286,8 +286,8 @@ func RemoveAnchoreUser(orgId uint, clusterId string) {
 	logger.Debugf("Anchore account %v deleting.", anchorUserName)
 }
 
-// MakeAnchoreRequest do anchore api call
-func MakeAnchoreRequest(req AnchoreRequest) (*http.Response, error) {
+// DoAnchoreRequest do anchore api call
+func DoAnchoreRequest(req AnchoreRequest) (*http.Response, error) {
 
 	if !AnchoreEnabled {
 		return nil, errors.New("Anchore integration is not enabled. You can enable by setting config property: anchor.enabled = true.")
@@ -317,13 +317,13 @@ func MakeAnchoreRequest(req AnchoreRequest) (*http.Response, error) {
 		if err != nil {
 			return nil, err
 		}
-		request, err = http.NewRequest(req.Method, AnchoreEndpoint+"/"+path.Join("v1", req.URL), buf)
+		request, err = http.NewRequest(req.Method, path.Join(AnchoreEndpoint+"/v1", req.URL), buf)
 		if err != nil {
 			return nil, err
 		}
 	} else {
 		var err error
-		request, err = http.NewRequest(req.Method, AnchoreEndpoint+"/"+path.Join("v1", req.URL), nil)
+		request, err = http.NewRequest(req.Method, path.Join(AnchoreEndpoint+"/v1", req.URL), nil)
 		if err != nil {
 			return nil, err
 		}
