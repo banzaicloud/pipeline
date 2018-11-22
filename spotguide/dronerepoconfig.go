@@ -30,6 +30,7 @@ type droneRepoConfig struct {
 	Branches  *droneConstraint           `yaml:"branches,omitempty"`
 	Workspace *droneWorkspace            `yaml:"workspace,omitempty"`
 	Clone     map[string]*droneContainer `yaml:"clone,omitempty"`
+	Cluster   map[string]interface{}     `yaml:"cluster,omitempty"`
 	Pipeline  yaml.MapSlice              `yaml:"pipeline,omitempty"` // map[string]*droneContainer
 	Services  map[string]*droneContainer `yaml:"services,omitempty"`
 	Networks  map[string]*droneNetwork   `yaml:"networks,omitempty"`
