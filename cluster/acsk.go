@@ -457,6 +457,7 @@ func (c *ACSKCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) 
 		ResourceID:        c.modelCluster.ID,
 		NodePools:         nodePools,
 		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
+		Region:            c.modelCluster.Location,
 	}, nil
 }
 
