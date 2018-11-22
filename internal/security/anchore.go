@@ -297,7 +297,7 @@ func DoAnchoreRequest(req AnchoreRequest) (*http.Response, error) {
 		anchoreUserName = fmt.Sprintf("%v-anchore-user", req.ClusterID)
 		anchoreUserSecret, err := secret.Store.GetByName(req.OrgID, anchoreUserName)
 		if err != nil {
-			return nil, err
+			return nil, emperror.Wrap(err, "Failed to get secret")
 		}
 		password = anchoreUserSecret.Values["password"]
 	}
@@ -311,17 +311,17 @@ func DoAnchoreRequest(req AnchoreRequest) (*http.Response, error) {
 		buf = new(bytes.Buffer)
 		err := json.NewEncoder(buf).Encode(req.Body)
 		if err != nil {
-			return nil, err
+			return nil, emperror.Wrap(err, "Json encode failed")
 		}
 		request, err = http.NewRequest(req.Method, path.Join(AnchoreEndpoint, "v1", req.URL), buf)
 		if err != nil {
-			return nil, err
+			return nil, emperror.Wrap(err, "Request creation failed")
 		}
 	} else {
 		var err error
 		request, err = http.NewRequest(req.Method, path.Join(AnchoreEndpoint, "v1", req.URL), nil)
 		if err != nil {
-			return nil, err
+			return nil, emperror.Wrap(err, "Request creation failed")
 		}
 	}
 
@@ -332,7 +332,7 @@ func DoAnchoreRequest(req AnchoreRequest) (*http.Response, error) {
 	response, err := client.Do(request)
 	if err != nil {
 		logger.Error(err)
-		return response, err
+		return response, emperror.Wrap(err, "Anchore request failed")
 	}
 
 	return response, nil
