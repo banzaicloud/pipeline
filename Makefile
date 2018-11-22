@@ -154,7 +154,7 @@ license-cache: bin/licensei ## Generate license cache
 
 .PHONY: test
 test: export CGO_ENABLED = 1
-test:
+test: ## Run all tests
 	go test ${GOARGS} -v ./... 2>&1 | tee test.txt
 
 bin/go-junit-report:
