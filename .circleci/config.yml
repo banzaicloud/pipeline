@@ -141,6 +141,7 @@ jobs:
                   paths:
                       - src/github.com/banzaicloud/pipeline/build/
                       - cache/
+                      - pkg/
 
     tests:
         docker:
