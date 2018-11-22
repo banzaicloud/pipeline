@@ -188,6 +188,7 @@ func (s *objectStore) DeleteBucket(bucketName string) error {
 		if err == gorm.ErrRecordNotFound {
 			return bucketNotFoundError{}
 		}
+		return emperror.WrapWith(err, "failed to lookup", "bucket", bucketName)
 	}
 
 	if err := s.deleteFromProvider(bucket); err != nil {
@@ -236,7 +237,7 @@ func (s *objectStore) deleteFailed(bucket *ObjectStoreBucketModel, reason error)
 	bucket.Status = providers.BucketDeleteError
 	bucket.StatusMsg = reason.Error()
 	if err := s.db.Save(bucket).Error; err != nil {
-		return emperror.WrapWith(err, "failed to delete bucket", "bucket", bucket.Name)
+		return emperror.WrapWith(err, "failed to save bucket", "bucket", bucket.Name)
 	}
 	return reason
 }

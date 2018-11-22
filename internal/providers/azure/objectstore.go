@@ -23,8 +23,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/pkg/errors"
-
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-02-01/resources"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage"
 	"github.com/Azure/azure-storage-blob-go/2016-05-31/azblob"
@@ -66,8 +64,6 @@ func (bucketNotFoundError) NotFound() bool { return true }
 //
 // Note: calling methods on this struct is not thread safe currently.
 type ObjectStore struct {
-	objectStore azureObjectStore
-
 	storageAccount string
 	resourceGroup  string
 	location       string
@@ -91,12 +87,7 @@ func NewObjectStore(
 	logger logrus.FieldLogger,
 	force bool,
 ) (*ObjectStore, error) {
-	ostore, err := getProviderObjectStore(secret, resourceGroup, storageAccount, location)
-	if err != nil {
-		return nil, errors.Wrap(err, "could not create Azure object storage client")
-	}
 	return &ObjectStore{
-		objectStore:    ostore,
 		location:       location,
 		resourceGroup:  resourceGroup,
 		storageAccount: storageAccount,
@@ -125,7 +116,6 @@ func getProviderObjectStore(secret *secret.SecretItemResponse, resourceGroup, st
 	config := azureObjectstore.Config{
 		ResourceGroup:  resourceGroup,
 		StorageAccount: storageAccount,
-		Location:       location,
 	}
 
 	ostore, err := azureObjectstore.New(config, credentials)
@@ -258,10 +248,11 @@ func (s *ObjectStore) CreateBucket(bucketName string) error {
 
 	bucket.Status = providers.BucketCreated
 	bucket.AccessSecretRef = accSecretId
-	err = s.db.Save(bucket).Error
-	if err != nil {
-		return s.createFailed(bucket, emperror.Wrap(err, "failed to save bucket"))
+	bucket.StatusMsg = "bucket successfully created"
+	if err := s.db.Save(bucket).Error; err != nil {
+		return emperror.WrapWith(err, "failed to persist the bucket", "bucket", bucketName)
 	}
+	logger.Info("bucket created")
 
 	return nil
 }
@@ -291,24 +282,21 @@ func (s *ObjectStore) createUpdateStorageAccountSecret(accesskey string) (string
 }
 
 func (s *ObjectStore) createFailed(bucket *ObjectStoreBucketModel, err error) error {
-
 	bucket.Status = providers.BucketCreateError
 	bucket.StatusMsg = err.Error()
 
 	if e := s.db.Save(bucket).Error; e != nil {
-		return emperror.WrapWith(e, "failed to save bucket", "gorm", "db")
+		return emperror.WrapWith(e, "failed to save bucket", "bucket", bucket.Name)
 	}
 
 	return emperror.With(err, "create failed")
 }
 
 func (s *ObjectStore) deleteFailed(bucket *ObjectStoreBucketModel, reason error) error {
-
 	bucket.Status = providers.BucketDeleteError
 	bucket.StatusMsg = reason.Error()
-
 	if err := s.db.Save(bucket).Error; err != nil {
-		return emperror.WrapWith(err, "failed to save bucket", "gorm", "db")
+		return emperror.WrapWith(err, "failed to save bucket", "bucket", bucket.Name)
 	}
 
 	return reason
@@ -441,46 +429,40 @@ func (s *ObjectStore) DeleteBucket(bucketName string) error {
 	if err := s.deleteFromProvider(bucket); err != nil {
 		if !s.force {
 			// if delete is not forced return here
-			return s.deleteFailed(bucket, emperror.WrapWith(err, "failed to delete from provider", "bucket", bucketName))
+			return s.deleteFailed(bucket, err)
 		}
 	}
 
 	if err := s.db.Delete(bucket).Error; err != nil {
-		return s.deleteFailed(bucket, emperror.WrapWith(err, "failed to delete", "bucket", bucketName))
+		return s.deleteFailed(bucket, err)
 	}
 
 	return nil
-
 }
 
 func (s *ObjectStore) deleteFromProvider(bucket *ObjectStoreBucketModel) error {
 	logger := s.getLogger().WithField("bucket", bucket.Name)
 	logger.Info("deleting bucket on provider")
 
-	// the assumption here is, that a bucket in 'ERROR_CREATE' doesn't exist on the provider
-	// however there might be -presumably rare cases- when a bucket in 'ERROR_DELETE' that has already been deleted on the provider
+	// todo the assumption here is, that a bucket in 'ERROR_CREATE' doesn't exist on the provider
+	// todo however there might be -presumably rare cases- when a bucket in 'ERROR_DELETE' that has already been deleted on the provider
 	if bucket.Status == providers.BucketCreateError {
 		logger.Debug("bucket doesn't exist on provider")
 		return nil
 	}
 
 	bucket.Status = providers.BucketDeleting
-	db := s.db.Save(bucket)
-	if db.Error != nil {
-		return s.deleteFailed(bucket, emperror.WrapWith(db.Error, "failed to update", "bucket", bucket.Name))
+	if err := s.db.Save(bucket).Error; err != nil {
+		return emperror.WrapWith(err, "failed to update bucket", "bucket", bucket.Name)
 	}
 
-	key, err := GetStorageAccountKey(s.getResourceGroup(), s.getStorageAccount(), s.secret, s.logger)
+	objectStore, err := getProviderObjectStore(s.secret, s.resourceGroup, s.storageAccount, bucket.Location)
 	if err != nil {
-		return emperror.WrapWith(err, "filed to retrieve storage account key", "bucket", bucket.Name)
+		return emperror.WrapWith(err, "failed to create object store", "bucket", bucket.Name)
 	}
 
-	p := azblob.NewPipeline(azblob.NewSharedKeyCredential(s.getStorageAccount(), key), azblob.PipelineOptions{})
-	URL, _ := url.Parse(fmt.Sprintf("https://%s.blob.core.windows.net/%s", s.getStorageAccount(), bucket.Name))
-	containerURL := azblob.NewContainerURL(*URL, p)
-
-	if _, err = containerURL.Delete(context.TODO(), azblob.ContainerAccessConditions{}); err != nil {
-		return emperror.WrapWith(err, "failed to delete container", "bucket", bucket.Name)
+	if err := objectStore.DeleteBucket(bucket.Name); err != nil {
+		return emperror.WrapWith(err, "failed to delete bucket from provider", "bucket", bucket.Name)
 	}
 
 	return nil
@@ -518,7 +500,10 @@ func (s *ObjectStore) CheckBucket(bucketName string) error {
 // referenced by the secret field. Azure storage containers buckets that were created by a user in the current
 // org are marked as 'managed'.
 func (s *ObjectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
-	logger := s.getLogger()
+	logger := s.logger.WithFields(logrus.Fields{
+		"organization":    s.org.ID,
+		"subscription_id": s.secret.GetValue(pkgSecret.AzureSubscriptionId),
+	})
 
 	logger.Info("getting all resource groups for subscription")
 
@@ -530,7 +515,7 @@ func (s *ObjectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 	var buckets []*objectstore.BucketInfo
 
 	for _, rg := range resourceGroups {
-		logger.Info("getting all storage accounts under resource group")
+		logger.WithField("resource_group", *(rg.Name)).Info("getting all storage accounts under resource group")
 
 		storageAccounts, err := getAllStorageAccounts(s.secret, *rg.Name)
 		if err != nil {
@@ -541,7 +526,10 @@ func (s *ObjectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 		for i := 0; i < len(*storageAccounts); i++ {
 			accountName := *(*storageAccounts)[i].Name
 
-			logger.Info("getting all blob containers under storage account")
+			logger.WithFields(logrus.Fields{
+				"resource_group":  *(rg.Name),
+				"storage_account": accountName,
+			}).Info("getting all blob containers under storage account")
 
 			accountKey, err := GetStorageAccountKey(*rg.Name, accountName, s.secret, s.logger)
 			if err != nil {

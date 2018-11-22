@@ -16,27 +16,19 @@ package objectstore
 
 import (
 	"context"
-	"fmt"
 	"io"
-	"net/http"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-02-01/resources"
 	mgmtStorage "github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage"
 	"github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/Azure/azure-storage-blob-go/2016-05-31/azblob"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
-	"github.com/Azure/go-autorest/autorest/to"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 )
-
-// Default storage account name when none is provided.
-// This must between 3-23 letters and can only contain small letters and numbers.
-const defaultStorageAccountName = "pipelinegenstorage"
 
 type objectStore struct {
 	config      Config
@@ -51,7 +43,6 @@ type objectStore struct {
 type Config struct {
 	ResourceGroup  string
 	StorageAccount string
-	Location       string
 }
 
 // Credentials represents credentials necessary for access
@@ -81,7 +72,7 @@ func New(config Config, credentials Credentials) (*objectStore, error) {
 	}
 	o.storageAccountKey = key
 
-	client, err := storage.NewBasicClient(o.getStorageAccount(), o.storageAccountKey)
+	client, err := storage.NewBasicClient(o.config.StorageAccount, o.storageAccountKey)
 	if err != nil {
 		return nil, emperror.Wrap(err, "could not create Azure client")
 	}
@@ -90,65 +81,6 @@ func New(config Config, credentials Credentials) (*objectStore, error) {
 	o.client = &blobStorageClient
 
 	return o, nil
-}
-
-// getResourceGroup returns the given resource group or generates one.
-func (o *objectStore) getResourceGroup() string {
-	if o.config.Location == "" {
-		o.config.Location = "centralus"
-	}
-	// generate a default resource group name if none given
-	if o.config.ResourceGroup == "" {
-		o.config.ResourceGroup = fmt.Sprintf("pipeline-auto-%s", o.config.Location)
-	}
-
-	return o.config.ResourceGroup
-}
-
-// getStorageAccount returns the given storage account or falls back to a default one.
-func (o *objectStore) getStorageAccount() string {
-	if o.config.StorageAccount == "" {
-		o.config.StorageAccount = defaultStorageAccountName
-	}
-
-	return o.config.StorageAccount
-}
-
-func (o *objectStore) createStorageAccount(resourceGroup string, storageAccount string) error {
-	storageAccountsClient, err := o.createStorageAccountClient()
-	if err != nil {
-		return err
-	}
-
-	if o.config.Location == "" {
-		o.config.Location = "centralus"
-	}
-
-	future, err := storageAccountsClient.Create(
-		context.TODO(),
-		resourceGroup,
-		storageAccount,
-		mgmtStorage.AccountCreateParameters{
-			Sku: &mgmtStorage.Sku{
-				Name: mgmtStorage.StandardLRS,
-			},
-			Kind:     mgmtStorage.BlobStorage,
-			Location: to.StringPtr(o.config.Location),
-			AccountPropertiesCreateParameters: &mgmtStorage.AccountPropertiesCreateParameters{
-				AccessTier: mgmtStorage.Hot,
-			},
-		},
-	)
-
-	if err != nil {
-		return fmt.Errorf("cannot create storage account: %v", err)
-	}
-
-	if future.WaitForCompletion(context.TODO(), storageAccountsClient.Client) != nil {
-		return err
-	}
-
-	return nil
 }
 
 // CreateBucket creates a new bucket in the object store
@@ -324,87 +256,13 @@ func (o *objectStore) GetSignedURL(bucketName, key string, ttl time.Duration) (s
 	return url, nil
 }
 
-// getAllResourceGroups returns all resource groups using
-// the Azure credentials referenced by the provided secret.
-func (o *objectStore) getAllResourceGroups() ([]*resources.Group, error) {
-	rgClient := resources.NewGroupsClient(o.credentials.SubscriptionID)
-	authorizer, err := o.newAuthorizer()
-	if err != nil {
-		return nil, err
-	}
-
-	rgClient.Authorizer = authorizer
-
-	resourceGroupsPages, err := rgClient.List(context.TODO(), "", nil)
-	if err != nil {
-		return nil, err
-	}
-
-	var groups []*resources.Group
-	for resourceGroupsPages.NotDone() {
-		resourceGroupsChunk := resourceGroupsPages.Values()
-
-		for i := 0; i < len(resourceGroupsChunk); i++ {
-			groups = append(groups, &resourceGroupsChunk[i])
-		}
-
-		if err = resourceGroupsPages.Next(); err != nil {
-			return nil, err
-		}
-	}
-
-	return groups, nil
-}
-
-// getAllStorageAccounts returns all storage accounts under the specified resource group
-// using the Azure credentials referenced by the provided secret.
-func (o *objectStore) getAllStorageAccounts(resourceGroup string) (*[]mgmtStorage.Account, error) {
-	client, err := o.createStorageAccountClient()
-	if err != nil {
-		return nil, err
-	}
-
-	storageAccountList, err := client.ListByResourceGroup(context.TODO(), resourceGroup)
-	if err != nil {
-		return nil, err
-	}
-
-	return storageAccountList.Value, nil
-}
-
-func (o *objectStore) createResourceGroup(resourceGroup string) error {
-	gclient := resources.NewGroupsClient(o.credentials.SubscriptionID)
-
-	authorizer, err := o.newAuthorizer()
-	if err != nil {
-		return fmt.Errorf("authentication failed: %s", err.Error())
-	}
-
-	gclient.Authorizer = authorizer
-	res, _ := gclient.Get(context.TODO(), resourceGroup)
-
-	if res.StatusCode == http.StatusNotFound {
-		_, err := gclient.CreateOrUpdate(
-			context.TODO(),
-			resourceGroup,
-			resources.Group{Location: to.StringPtr(o.config.Location)},
-		)
-		if err != nil {
-			return err
-		}
-
-	}
-
-	return nil
-}
-
 func (o *objectStore) getStorageAccountKey() (string, error) {
 	client, err := o.createStorageAccountClient()
 	if err != nil {
 		return "", err
 	}
 
-	keys, err := client.ListKeys(context.TODO(), o.getResourceGroup(), o.getStorageAccount())
+	keys, err := client.ListKeys(context.TODO(), o.config.ResourceGroup, o.config.StorageAccount)
 	if err != nil {
 		return "", errors.WithStack(err)
 	}
