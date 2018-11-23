@@ -139,8 +139,8 @@ func downloadGithubFile(githubClient *github.Client, owner, repo, file, tag stri
 	return ioutil.ReadAll(reader)
 }
 
-func internalScrapeSpotguides(orgID uint) {
-	if err := ScrapeSpotguides(orgID); err != nil {
+func internalScrapeSpotguides(orgID uint, userID uint) {
+	if err := ScrapeSpotguides(orgID, userID); err != nil {
 		log.Warnf("failed to scrape Spotguide repositories for org [%d]: %s", orgID, err)
 	}
 }
@@ -154,12 +154,14 @@ func isSpotguideReleaseAllowed(release *github.RepositoryRelease) bool {
 	return version.Prerelease() == "" || viper.GetBool(config.SpotguideAllowPrereleases)
 }
 
-func ScrapeSpotguides(orgID uint) error {
+func ScrapeSpotguides(orgID uint, userID uint) error {
 
 	db := config.DB()
 
-	githubClient := auth.NewGithubClient(viper.GetString("github.token"))
-
+	githubClient, err := auth.NewGithubClientForUser(userID)
+	if err != nil {
+		return errors.Wrap(err, "failed to create GitHub client")
+	}
 	var allRepositories []github.Repository
 	query := fmt.Sprintf("org:%s topic:%s", SpotguideGithubOrganization, SpotguideGithubTopic)
 	listOpts := github.ListOptions{PerPage: 100}
