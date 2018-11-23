@@ -26,6 +26,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/goph/emperror"
 )
 
@@ -101,7 +102,7 @@ func (s *objectStore) CreateBucket(bucketName string) error {
 	_, err := s.client.CreateBucket(input)
 	if err != nil {
 		err = s.convertError(err)
-		return emperror.With(emperror.Wrap(err, "bucket creation failed"), "bucket", bucketName)
+		return emperror.WrapWith(err, "bucket creation failed", "bucket", bucketName)
 	}
 
 	if s.waitForCompletion {
@@ -109,7 +110,7 @@ func (s *objectStore) CreateBucket(bucketName string) error {
 			Bucket: aws.String(bucketName),
 		})
 		if err != nil {
-			return emperror.With(emperror.Wrap(err, "could not wait for bucket to be ready"), "bucket", bucketName)
+			return emperror.WrapWith(err, "could not wait for bucket to be ready", "bucket", bucketName)
 		}
 	}
 
@@ -166,7 +167,7 @@ func (s *objectStore) CheckBucket(bucketName string) error {
 	_, err = client.HeadBucket(input)
 	if err != nil {
 		err = s.convertError(err)
-		return emperror.With(emperror.Wrap(err, "checking bucket failed"), "bucket", bucketName)
+		return emperror.WrapWith(err, "checking bucket failed", "bucket", bucketName)
 	}
 
 	return nil
@@ -178,18 +179,23 @@ func (s *objectStore) DeleteBucket(bucketName string) error {
 		Bucket: aws.String(bucketName),
 	}
 
-	_, err := s.client.DeleteBucket(input)
+	obj, err := s.ListObjects(bucketName)
+	if err != nil {
+		return emperror.WrapWith(err, "failed to list objects", "bucket", bucketName)
+	}
+
+	if len(obj) > 0 {
+		return emperror.With(pkgErrors.ErrorBucketDeleteNotEmpty, "bucket", bucketName)
+	}
+	_, err = s.client.DeleteBucket(input)
 	if err != nil {
 		err = s.convertError(err)
-		return emperror.With(emperror.Wrap(err, "bucket deletion failed"), "bucket", bucketName)
+		return emperror.WrapWith(err, "failed to delete bucket", "bucket", bucketName)
 	}
 
 	if s.waitForCompletion {
-		err := s.client.WaitUntilBucketNotExists(&s3.HeadBucketInput{
-			Bucket: aws.String(bucketName),
-		})
-		if err != nil {
-			return emperror.With(emperror.Wrap(err, "could not wait for bucket to be deleted"), "bucket", bucketName)
+		if err := s.client.WaitUntilBucketNotExists(&s3.HeadBucketInput{Bucket: aws.String(bucketName)}); err != nil {
+			return emperror.WrapWith(err, "failed to wait for bucket to be deleted", "bucket", bucketName)
 		}
 	}
 
@@ -210,7 +216,7 @@ func (s *objectStore) ListObjects(bucketName string) ([]string, error) {
 
 	if err != nil {
 		err = s.convertError(err)
-		return nil, emperror.With(emperror.Wrap(err, "error listing object for bucket"), "bucket", bucketName)
+		return nil, emperror.WrapWith(err, "error listing object for bucket", "bucket", bucketName)
 	}
 
 	return keys, nil
@@ -231,7 +237,7 @@ func (s *objectStore) ListObjectsWithPrefix(bucketName, prefix string) ([]string
 
 	if err != nil {
 		err = s.convertError(err)
-		return nil, emperror.With(emperror.Wrap(err, "error listing object for bucket"), "bucket", bucketName, "prefix", prefix)
+		return nil, emperror.WrapWith(err, "error listing object for bucket", "bucket", bucketName, "prefix", prefix)
 	}
 
 	return keys, nil
@@ -255,7 +261,7 @@ func (s *objectStore) ListObjectKeyPrefixes(bucketName string, delimiter string)
 
 	if err != nil {
 		err = s.convertError(err)
-		return nil, emperror.With(emperror.Wrap(err, "error getting prefixes for bucket"), "bucket", bucketName, "delimeter", delimiter)
+		return nil, emperror.WrapWith(err, "error getting prefixes for bucket", "bucket", bucketName, "delimeter", delimiter)
 	}
 
 	return prefixes, nil
@@ -269,7 +275,7 @@ func (s *objectStore) GetObject(bucketName string, key string) (io.ReadCloser, e
 	})
 	if err != nil {
 		err = s.convertError(err)
-		return nil, emperror.With(emperror.Wrap(err, "error getting object"), "bucket", bucketName, "object", key)
+		return nil, emperror.WrapWith(err, "error getting object", "bucket", bucketName, "object", key)
 	}
 
 	return output.Body, nil
@@ -284,7 +290,7 @@ func (s *objectStore) PutObject(bucketName string, key string, body io.Reader) e
 	})
 	if err != nil {
 		err = s.convertError(err)
-		return emperror.With(emperror.Wrap(err, "error putting object"), "bucket", bucketName, "object", key)
+		return emperror.WrapWith(err, "error putting object", "bucket", bucketName, "object", key)
 	}
 
 	if s.waitForCompletion {
@@ -293,7 +299,7 @@ func (s *objectStore) PutObject(bucketName string, key string, body io.Reader) e
 			Key:    aws.String(key),
 		})
 		if err != nil {
-			return emperror.With(emperror.Wrap(err, "could not wait for object to be created"), "bucket", bucketName, "object", key)
+			return emperror.WrapWith(err, "could not wait for object to be created", "bucket", bucketName, "object", key)
 		}
 	}
 
@@ -308,7 +314,7 @@ func (s *objectStore) DeleteObject(bucketName string, key string) error {
 	})
 	if err != nil {
 		err = s.convertError(err)
-		emperror.With(emperror.Wrap(err, "error deleting object"), "bucket", bucketName, "object", key)
+		emperror.WrapWith(err, "error deleting object", "bucket", bucketName, "object", key)
 	}
 
 	if s.waitForCompletion {
@@ -317,7 +323,7 @@ func (s *objectStore) DeleteObject(bucketName string, key string) error {
 			Key:    aws.String(key),
 		})
 		if err != nil {
-			return emperror.With(emperror.Wrap(err, "could not wait for object to be deleted"), "bucket", bucketName, "object", key)
+			return emperror.WrapWith(err, "could not wait for object to be deleted", "bucket", bucketName, "object", key)
 		}
 	}
 
@@ -334,7 +340,7 @@ func (s *objectStore) GetSignedURL(bucketName, key string, ttl time.Duration) (s
 	url, err := req.Presign(ttl)
 	if err != nil {
 		err = s.convertError(err)
-		return "", emperror.With(emperror.Wrap(err, "could not get signed url"), "bucket", bucketName, "object", key)
+		return "", emperror.WrapWith(err, "could not get signed url", "bucket", bucketName, "object", key)
 	}
 
 	return url, nil

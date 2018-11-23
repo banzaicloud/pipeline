@@ -25,6 +25,7 @@ import (
 	"github.com/Azure/azure-storage-blob-go/2016-05-31/azblob"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 )
@@ -50,6 +51,12 @@ type Credentials struct {
 	TenantID       string
 	ClientID       string
 	ClientSecret   string
+}
+
+// NewPlainObjectStore creates an objectstore with no configuration.
+// Instances created with this function may be used to access methods that don't explicitly access external (cloud) resources
+func NewPlainObjectStore() (*objectStore, error) {
+	return &objectStore{}, nil
 }
 
 // New returns an Object Store instance that manages Azure object store
@@ -81,7 +88,7 @@ func (o *objectStore) CreateBucket(bucketName string) error {
 	err := o.client.GetContainerReference(bucketName).Create(&storage.CreateContainerOptions{})
 	if err != nil {
 		err = o.convertError(err)
-		return emperror.With(emperror.Wrap(err, "bucket creation failed"), "bucket", bucketName)
+		return emperror.WrapWith(err, "bucket creation failed", "bucket", bucketName)
 	}
 
 	return nil
@@ -111,7 +118,7 @@ func (o *objectStore) CheckBucket(bucketName string) error {
 	}
 
 	if err != nil {
-		return emperror.With(emperror.Wrap(err, "checking bucket failed"), "bucket", bucketName)
+		return emperror.WrapWith(err, "checking bucket failed", "bucket", bucketName)
 	}
 
 	return nil
@@ -119,10 +126,19 @@ func (o *objectStore) CheckBucket(bucketName string) error {
 
 // DeleteBucket deletes a bucket from the object store
 func (o *objectStore) DeleteBucket(bucketName string) error {
-	err := o.client.GetContainerReference(bucketName).Delete(&storage.DeleteContainerOptions{})
+	obj, err := o.ListObjects(bucketName)
+	if err != nil {
+		return emperror.WrapWith(err, "failed to list objects", "bucket", bucketName)
+	}
+
+	if len(obj) > 0 {
+		return emperror.With(pkgErrors.ErrorBucketDeleteNotEmpty, "bucket", bucketName)
+	}
+
+	err = o.client.GetContainerReference(bucketName).Delete(&storage.DeleteContainerOptions{})
 	if err != nil {
 		err = o.convertError(err)
-		return emperror.With(emperror.Wrap(err, "bucket deletion failed"), "bucket", bucketName)
+		return emperror.WrapWith(err, "bucket deletion failed", "bucket", bucketName)
 	}
 
 	return nil
@@ -133,7 +149,7 @@ func (o *objectStore) ListObjects(bucketName string) ([]string, error) {
 	res, err := o.client.GetContainerReference(bucketName).ListBlobs(storage.ListBlobsParameters{})
 	if err != nil {
 		err = o.convertError(err)
-		return nil, emperror.With(emperror.Wrap(err, "error listing object for bucket"), "bucket", bucketName)
+		return nil, emperror.WrapWith(err, "error listing object for bucket", "bucket", bucketName)
 	}
 
 	ret := make([]string, 0, len(res.Blobs))
@@ -151,7 +167,7 @@ func (o *objectStore) ListObjectsWithPrefix(bucketName, prefix string) ([]string
 	})
 	if err != nil {
 		err = o.convertError(err)
-		return nil, emperror.With(emperror.Wrap(err, "error listing object for bucket"), "bucket", bucketName, "prefix", prefix)
+		return nil, emperror.WrapWith(err, "error listing object for bucket", "bucket", bucketName, "prefix", prefix)
 	}
 
 	ret := make([]string, 0, len(res.Blobs))
@@ -171,7 +187,7 @@ func (o *objectStore) ListObjectKeyPrefixes(bucketName string, delimiter string)
 	})
 	if err != nil {
 		err = o.convertError(err)
-		return nil, emperror.With(emperror.Wrap(err, "error getting prefixes for bucket"), "bucket", bucketName, "delimeter", delimiter)
+		return nil, emperror.WrapWith(err, "error getting prefixes for bucket", "bucket", bucketName, "delimeter", delimiter)
 	}
 
 	for _, prefix := range response.BlobPrefixes {
@@ -188,7 +204,7 @@ func (o *objectStore) GetObject(bucketName string, key string) (io.ReadCloser, e
 	res, err := blob.Get(nil)
 	if err != nil {
 		err = o.convertError(err)
-		return nil, emperror.With(emperror.Wrap(err, "error getting object"), "bucket", bucketName, "object", key)
+		return nil, emperror.WrapWith(err, "error getting object", "bucket", bucketName, "object", key)
 	}
 
 	return res, nil
@@ -201,7 +217,7 @@ func (o *objectStore) PutObject(bucketName string, key string, body io.Reader) e
 	err := blob.CreateBlockBlobFromReader(body, nil)
 	if err != nil {
 		err = o.convertError(err)
-		return emperror.With(emperror.Wrap(err, "error putting object"), "bucket", bucketName, "object", key)
+		return emperror.WrapWith(err, "error putting object", "bucket", bucketName, "object", key)
 	}
 
 	return nil
@@ -214,7 +230,7 @@ func (o *objectStore) DeleteObject(bucketName string, key string) error {
 	err := blob.Delete(nil)
 	if err != nil {
 		err = o.convertError(err)
-		return emperror.With(emperror.Wrap(err, "error deleting object"), "bucket", bucketName, "object", key)
+		return emperror.WrapWith(err, "error deleting object", "bucket", bucketName, "object", key)
 	}
 
 	return nil
@@ -234,7 +250,7 @@ func (o *objectStore) GetSignedURL(bucketName, key string, ttl time.Duration) (s
 	})
 	if err != nil {
 		err = o.convertError(err)
-		return "", emperror.With(emperror.Wrap(err, "could not get signed url"), "bucket", bucketName, "object", key)
+		return "", emperror.WrapWith(err, "could not get signed url", "bucket", bucketName, "object", key)
 	}
 
 	return url, nil
