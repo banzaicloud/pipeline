@@ -160,11 +160,14 @@ func ScrapeSpotguides(orgID uint) error {
 	githubClient := auth.NewGithubClient(viper.GetString("github.token"))
 
 	var allRepositories []github.Repository
-	opts := &github.SearchOptions{Sort: "created", Order: "asc"}
 	query := fmt.Sprintf("org:%s topic:%s", SpotguideGithubOrganization, SpotguideGithubTopic)
 	listOpts := github.ListOptions{PerPage: 100}
 	for {
-		reposRes, resp, err := githubClient.Search.Repositories(ctx, query, opts)
+		reposRes, resp, err := githubClient.Search.Repositories(ctx, query, &github.SearchOptions{
+			Sort:        "created",
+			Order:       "asc",
+			ListOptions: listOpts,
+		})
 		if err != nil {
 			return emperror.Wrap(err, "failed to list github repositories")
 		}
