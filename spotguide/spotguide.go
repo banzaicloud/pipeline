@@ -45,7 +45,6 @@ const SpotguideGithubOrganization = "banzaicloud"
 const SpotguideYAMLPath = ".banzaicloud/spotguide.yaml"
 const PipelineYAMLPath = ".banzaicloud/pipeline.yaml"
 const ReadmePath = ".banzaicloud/README.md"
-const IconPath = ".banzaicloud/icon.svg"
 const CreateClusterStep = "create_cluster"
 const SpotguideRepoTableName = "spotguide_repos"
 
@@ -75,7 +74,6 @@ type SpotguideRepo struct {
 	UpdatedAt        time.Time `json:"updatedAt"`
 	Name             string    `json:"name" gorm:"unique_index:name_and_version"`
 	DisplayName      string    `json:"displayName" gorm:"-"`
-	Icon             string    `json:"icon,omitempty" gorm:"type:mediumtext"`
 	Readme           string    `json:"readme" gorm:"type:mediumtext"`
 	Version          string    `json:"version" gorm:"unique_index:name_and_version"`
 	SpotguideYAMLRaw []byte    `json:"-" gorm:"type:text"`
@@ -242,20 +240,11 @@ func ScrapeSpotguides(orgID uint) error {
 					continue
 				}
 
-				icon, err := downloadGithubFile(githubClient, owner, name, IconPath, tag)
-				if err != nil {
-					log.Warnf("failed to scrape repository '%s/%s' at version '%s': %s", owner, name, tag, err)
-					continue
-				}
-
-				iconSrc := "data:image/svg+xml;base64," + base64.StdEncoding.EncodeToString(icon)
-
 				model := SpotguideRepo{
 					OrganizationID:   orgID,
 					Name:             repository.GetFullName(),
 					SpotguideYAMLRaw: spotguideRaw,
 					Readme:           string(readme),
-					Icon:             iconSrc,
 					Version:          tag,
 				}
 
@@ -586,22 +575,22 @@ func enableCICD(request *LaunchRequest, httpRequest *http.Request) error {
 func createDroneRepoConfig(initConfig []byte, request *LaunchRequest) (*droneRepoConfig, error) {
 	repoConfig := new(droneRepoConfig)
 	if err := yaml.Unmarshal(initConfig, repoConfig); err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to unmarshal initial config")
 	}
 
 	// Configure cluster
 	if err := droneRepoConfigCluster(request, repoConfig); err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to add cluster details")
 	}
 
 	// Configure secrets
 	if err := droneRepoConfigSecrets(request, repoConfig); err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to add secrets to steps")
 	}
 
 	// Configure pipeline
 	if err := droneRepoConfigPipeline(request, repoConfig); err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to merge values")
 	}
 
 	return repoConfig, nil
@@ -609,10 +598,16 @@ func createDroneRepoConfig(initConfig []byte, request *LaunchRequest) (*droneRep
 
 func droneRepoConfigCluster(request *LaunchRequest, repoConfig *droneRepoConfig) error {
 
+	clusterJson, err := json.Marshal(request.Cluster)
+	if err != nil {
+		return err
+	}
+
 	for i, step := range repoConfig.Pipeline {
 
 		// Find CreateClusterStep step and transform it
 		if step.Key == CreateClusterStep {
+			log.Debugf("merge cluster info to %q step", step.Key)
 
 			clusterStep, err := copyToDroneContainer(step.Value)
 			if err != nil {
@@ -620,12 +615,7 @@ func droneRepoConfigCluster(request *LaunchRequest, repoConfig *droneRepoConfig)
 			}
 
 			// Merge the cluster from the request into the existing cluster value
-			cluster, err := json.Marshal(request.Cluster)
-			if err != nil {
-				return err
-			}
-
-			err = json.Unmarshal(cluster, &clusterStep.Cluster)
+			err = json.Unmarshal(clusterJson, &clusterStep.Cluster)
 			if err != nil {
 				return err
 			}
@@ -641,8 +631,12 @@ func droneRepoConfigCluster(request *LaunchRequest, repoConfig *droneRepoConfig)
 		}
 	}
 
-	log.Info("create_cluster step not present in pipeline.yaml, skipping it's transformation")
+	log.Debug("merge cluster info to cluster block")
 
+	// Merge the cluster from the request into the cluster block
+	if err := json.Unmarshal(clusterJson, &repoConfig.Cluster); err != nil {
+		return err
+	}
 	return nil
 }
 
