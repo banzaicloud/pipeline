@@ -20,8 +20,7 @@ services:
     vault:
         image: vault:0.11.5
         restart: always
-        command:
-            - server
+        command: server
         cap_add:
             - IPC_LOCK
         volumes:
@@ -33,13 +32,7 @@ services:
         depends_on:
             - vault
         restart: "always"
-        command:
-            - unseal
-            - --init
-            - --mode
-            - file
-            - --file-path
-            - /vault/keys
+        command: unseal --init --mode file --file-path /vault/keys
         environment:
             VAULT_ADDR: http://vault:8200
         volumes:
@@ -54,15 +47,7 @@ services:
             - vault-unsealer
         restart: "always"
         entrypoint: "./wait-for-it.sh"
-        command:
-            - db:3306
-            - --
-            - bank-vaults
-            - configure
-            - --mode
-            - file
-            - --file-path
-            - /vault/keys
+        command: db:3306 -- bank-vaults configure --mode file --file-path /vault/keys
         environment:
             VAULT_ADDR: http://vault:8200
         volumes:
@@ -74,10 +59,7 @@ services:
         depends_on:
             - vault-configurer
         restart: on-failure
-        command:
-            - cp
-            - /vault/keys/vault-root
-            - /root/.vault-token
+        command: cp /vault/keys/vault-root /root/.vault-token
         volumes:
             - $HOME:/root
 
