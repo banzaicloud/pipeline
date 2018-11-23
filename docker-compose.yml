@@ -18,7 +18,7 @@ services:
         restart: always
 
     vault:
-        image: vault:0.11.0
+        image: vault:0.11.5
         restart: always
         command:
             - server
@@ -29,7 +29,7 @@ services:
             - ./scripts/vault.hcl:/vault/config/vault.hcl
 
     vault-unsealer:
-        image: banzaicloud/bank-vaults:latest
+        image: banzaicloud/bank-vaults:0.3.16
         depends_on:
             - vault
         restart: "always"
@@ -47,7 +47,7 @@ services:
             - ./scripts/wait-for-it.sh:/wait-for-it.sh
 
     vault-configurer:
-        image: banzaicloud/bank-vaults:latest
+        image: banzaicloud/bank-vaults:0.3.16
         depends_on:
             - db
             - vault
