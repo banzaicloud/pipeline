@@ -3,7 +3,8 @@ version: 2
 jobs:
     build:
         docker:
-            - image: circleci/golang:1.11
+            -
+                image: circleci/golang:1.11
             -
                 image: mysql:5.7
                 command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
@@ -23,101 +24,119 @@ jobs:
         steps:
             - checkout
 
-            - restore_cache:
-                  name: Restore build dependencies
-                  keys:
-                      - build-deps-v1-{{ .Branch }}-{{ checksum "Makefile" }}
+            -
+                restore_cache:
+                    name: Restore build dependencies
+                    keys:
+                        - build-deps-v1-{{ .Branch }}-{{ checksum "Makefile" }}
 
-            - restore_cache:
-                  name: Restore dependencies
-                  keys:
-                      - gopkg-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
-                      - gopkg-v1-{{ .Branch }}
-                      - gopkg-v1-master
-                      - gopkg-v1
+            -
+                restore_cache:
+                    name: Restore dependencies
+                    keys:
+                        - gopkg-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
+                        - gopkg-v1-{{ .Branch }}
+                        - gopkg-v1-master
+                        - gopkg-v1
 
-            - run:
-                  name: Install dependencies
-                  command: make vendor
+            -
+                run:
+                    name: Install dependencies
+                    command: make vendor
 
-            - save_cache:
-                  name: Save dependencies
-                  key: gopkg-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
-                  paths:
-                      - vendor/
+            -
+                save_cache:
+                    name: Save dependencies
+                    key: gopkg-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
+                    paths:
+                        - vendor/
 
-            - restore_cache:
-                  name: Restore license cache
-                  keys:
-                      - licensei-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
-                      - licensei-v1-{{ .Branch }}
-                      - licensei-v1-master
-                      - licensei-v1
+            -
+                restore_cache:
+                    name: Restore license cache
+                    keys:
+                        - licensei-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
+                        - licensei-v1-{{ .Branch }}
+                        - licensei-v1-master
+                        - licensei-v1
 
-            - run:
-                  name: Download license information for dependencies
-                  command: make license-cache
+            -
+                run:
+                    name: Download license information for dependencies
+                    command: make license-cache
 
-            - save_cache:
-                  name: Save license cache
-                  key: licensei-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
-                  paths:
-                      - .licensei.cache
+            -
+                save_cache:
+                    name: Save license cache
+                    key: licensei-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
+                    paths:
+                        - .licensei.cache
 
-            - run:
-                  name: Check dependency licenses
-                  command: make license-check
+            -
+                run:
+                    name: Check dependency licenses
+                    command: make license-check
 
-            - run:
-                  name: Check generated OpenAPI files
-                  command: sha256sum -c client/SHA256SUMS > /dev/null || { echo "Please generate client code using make generate-client"; exit 1; }
+            -
+                run:
+                    name: Check generated OpenAPI files
+                    command: sha256sum -c client/SHA256SUMS > /dev/null || { echo "Please generate client code using make generate-client"; exit 1; }
 
-            - run:
-                  name: Build
-                  command: make build
+            -
+                run:
+                    name: Build
+                    command: make build
 
-            - run:
-                  name: Run linter
-                  command: make lint
+            -
+                run:
+                    name: Run linter
+                    command: make lint
 
-            - run:
-                  name: Run tests
-                  command: |
-                      make config/config.toml
-                      PIPELINE_CONFIG_DIR=$PWD/config GOARGS="-p=2" make test
-                  environment:
-                      VAULT_ADDR: http://localhost:8200
-                      VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
+            -
+                run:
+                    name: Run tests
+                    command: |
+                        make config/config.toml
+                        PIPELINE_CONFIG_DIR=$PWD/config GOARGS="-p=2" make test
+                    environment:
+                        VAULT_ADDR: http://localhost:8200
+                        VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
 
-            - run:
-                  name: Run integration tests
-                  command: |
-                      make config/config.toml
-                      PIPELINE_CONFIG_DIR=$PWD/config make GOARGS="-p=2 -tags integration" TEST_OUTPUT=test_integration.txt test
-                  environment:
-                      VAULT_ADDR: http://localhost:8200
-                      VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
+            -
+                run:
+                    name: Run integration tests
+                    command: |
+                        make config/config.toml
+                        PIPELINE_CONFIG_DIR=$PWD/config make GOARGS="-p=2 -tags integration" TEST_OUTPUT=test_integration.txt test
+                    environment:
+                        VAULT_ADDR: http://localhost:8200
+                        VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
 
-            - run:
-                  name: Test database migrations
-                  command: |
-                      make bin/migrate
-                      bin/migrate -source "file://database/migrations" -database "mysql://pipeline:pipeline123@tcp(127.0.0.1:3306)/pipeline?multiStatements=true&charset=utf8mb4" up
+            -
+                run:
+                    name: Test database migrations
+                    command: |
+                        make bin/migrate
+                        bin/migrate -source "file://database/migrations" -database "mysql://pipeline:pipeline123@tcp(127.0.0.1:3306)/pipeline?multiStatements=true&charset=utf8mb4" up
 
-            - run:
-                  name: Generate test reports
-                  command: |
-                      cat test_integration.txt >> test.txt
-                      make junit-report
-                  when: always
+            -
+                run:
+                    name: Generate test reports
+                    command: |
+                        cat test_integration.txt >> test.txt
+                        make junit-report
+                    when: always
 
-            - save_cache:
-                  name: Save build dependencies
-                  key: build-deps-v1-{{ .Branch }}-{{ checksum "Makefile" }}
-                  paths:
-                      - bin/
+            -
+                save_cache:
+                    name: Save build dependencies
+                    key: build-deps-v1-{{ .Branch }}-{{ checksum "Makefile" }}
+                    paths:
+                        - bin/
 
-            - store_test_results:
-                  path: build/test-results/
-            - store_artifacts:
-                  path: build/
+            -
+                store_test_results:
+                    path: build/test-results/
+            -
+                store_artifacts:
+                    path: build/
