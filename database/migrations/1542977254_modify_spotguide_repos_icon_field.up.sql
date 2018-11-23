@@ -1,0 +1,1 @@
+ALTER TABLE spotguide_repos MODIFY COLUMN icon MEDIUMBLOB;

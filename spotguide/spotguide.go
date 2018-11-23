@@ -78,7 +78,7 @@ type SpotguideRepo struct {
 	UpdatedAt        time.Time `json:"updatedAt"`
 	Name             string    `json:"name" gorm:"unique_index:name_and_version"`
 	DisplayName      string    `json:"displayName" gorm:"-"`
-	Icon             []byte    `json:"-" gorm:"type:mediumtext"`
+	Icon             []byte    `json:"-" gorm:"type:mediumblob"`
 	Readme           string    `json:"readme" gorm:"type:mediumtext"`
 	Version          string    `json:"version" gorm:"unique_index:name_and_version"`
 	SpotguideYAMLRaw []byte    `json:"-" gorm:"type:text"`
@@ -221,26 +221,26 @@ func ScrapeSpotguides(orgID uint, userID uint) error {
 
 			spotguideRaw, err := downloadGithubFile(githubClient, owner, name, SpotguideYAMLPath, tag)
 			if err != nil {
-				log.Warnf("failed to scrape repository '%s/%s' at version '%s': %s", owner, name, tag, err)
+				log.Warnf("failed to scrape spotguide.yaml of '%s/%s' at version '%s': %s", owner, name, tag, err)
 				continue
 			}
 
 			// syntax check spotguide.yaml
 			err = yaml2.Unmarshal(spotguideRaw, &SpotguideYAML{})
 			if err != nil {
-				log.Warnf("failed to scrape repository '%s/%s' at version '%s': %s", owner, name, tag, err)
+				log.Warnf("failed to parse spotguide.yaml of '%s/%s' at version '%s': %s", owner, name, tag, err)
 				continue
 			}
 
 			readme, err := downloadGithubFile(githubClient, owner, name, ReadmePath, tag)
 			if err != nil {
-				log.Warnf("failed to scrape repository '%s/%s' at version '%s': %s", owner, name, tag, err)
+				log.Warnf("failed to scrape the readme of '%s/%s' at version '%s': %s", owner, name, tag, err)
 				continue
 			}
 
 			icon, err := downloadGithubFile(githubClient, owner, name, IconPath, tag)
 			if err != nil {
-				log.Warnf("failed to scrape repository '%s/%s' at version '%s': %s", owner, name, tag, err)
+				log.Warnf("failed to scrape the icon of '%s/%s' at version '%s': %s", owner, name, tag, err)
 				continue
 			}
 
