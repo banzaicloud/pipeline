@@ -16,7 +16,6 @@ package secret
 
 import (
 	"github.com/banzaicloud/pipeline/pkg/cluster"
-	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/secret"
 )
 
 // FieldMeta describes how a secret field should be validated
@@ -67,6 +66,16 @@ const (
 	TokenUri      = "token_uri"
 	AuthX509Url   = "auth_provider_x509_cert_url"
 	ClientX509Url = "client_x509_cert_url"
+)
+
+// Oracle keys
+const (
+	OracleUserOCID          = "user_ocid"
+	OracleTenancyOCID       = "tenancy_ocid"
+	OracleAPIKey            = "api_key"
+	OracleAPIKeyFingerprint = "api_key_fingerprint"
+	OracleRegion            = "region"
+	OracleCompartmentOCID   = "compartment_ocid"
 )
 
 // Kubernetes keys
@@ -190,12 +199,12 @@ var DefaultRules = map[string]Meta{
 	},
 	cluster.Oracle: {
 		Fields: []FieldMeta{
-			{Name: oracle.UserOCID, Required: true},
-			{Name: oracle.TenancyOCID, Required: true},
-			{Name: oracle.APIKey, Required: true},
-			{Name: oracle.APIKeyFingerprint, Required: true},
-			{Name: oracle.Region, Required: true},
-			{Name: oracle.CompartmentOCID, Required: true},
+			{Name: OracleUserOCID, Required: true},
+			{Name: OracleTenancyOCID, Required: true},
+			{Name: OracleAPIKey, Required: true},
+			{Name: OracleAPIKeyFingerprint, Required: true},
+			{Name: OracleRegion, Required: true},
+			{Name: OracleCompartmentOCID, Required: true},
 		},
 	},
 	SSHSecretType: {

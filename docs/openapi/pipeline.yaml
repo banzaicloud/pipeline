@@ -4074,7 +4074,7 @@ paths:
                     description: Identifies the cloud provider
                     schema:
                         type: string
-                        enum: [amazon, google, azure]
+                        enum: [amazon, google, azure, oracle, alibaba]
                     required: true
                 -
                     name: force

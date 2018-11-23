@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/goph/emperror"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/googleapi"
@@ -58,6 +59,12 @@ type Credentials struct {
 	TokenURI               string `json:"token_uri"`
 	AuthProviderX50CertURL string `json:"auth_provider_x509_cert_url"`
 	ClientX509CertURL      string `json:"client_x509_cert_url"`
+}
+
+// NewPlainObjectStore creates an objectstore with no configuration.
+// Instances created with this function may be used to access methods that don't explicitly access external (cloud) resources
+func NewPlainObjectStore() (*objectStore, error) {
+	return &objectStore{}, nil
 }
 
 // New returns an Object Store instance that manages Google object storage
@@ -154,7 +161,17 @@ func (o *objectStore) CheckBucket(bucketName string) error {
 
 // DeleteBucket deletes a bucket from the object store
 func (o *objectStore) DeleteBucket(bucketName string) error {
-	err := o.client.Bucket(bucketName).Delete(context.Background())
+
+	obj, err := o.ListObjects(bucketName)
+	if err != nil {
+		return emperror.WrapWith(err, "failed to list objects", "bucket", bucketName)
+	}
+
+	if len(obj) > 0 {
+		return emperror.With(pkgErrors.ErrorBucketDeleteNotEmpty, "bucket", bucketName)
+	}
+
+	err = o.client.Bucket(bucketName).Delete(context.Background())
 	if err != nil {
 		return emperror.Wrap(o.convertBucketError(err, bucketName), "could not delete bucket")
 	}
@@ -186,7 +203,7 @@ func (o *objectStore) ListObjectsWithPrefix(bucketName, prefix string) ([]string
 		Prefix: prefix,
 	})
 	if err != nil {
-		return nil, emperror.With(emperror.Wrap(o.convertBucketError(err, bucketName), "could not list objects"), "prefix", prefix)
+		return nil, emperror.WrapWith(o.convertBucketError(err, bucketName), "could not list objects", "prefix", prefix)
 	}
 
 	for _, object := range objects {
@@ -204,7 +221,7 @@ func (o *objectStore) ListObjectKeyPrefixes(bucketName string, delimiter string)
 		Delimiter: delimiter,
 	})
 	if err != nil {
-		return nil, emperror.With(emperror.Wrap(o.convertBucketError(err, bucketName), "could not list object key prefixes"), "delimeter", delimiter)
+		return nil, emperror.WrapWith(o.convertBucketError(err, bucketName), "could not list object key prefixes", "delimeter", delimiter)
 	}
 
 	for _, object := range objects {

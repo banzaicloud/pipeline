@@ -24,7 +24,7 @@ type ObjectStoreService interface {
 	CheckBucket(string) error
 }
 
-// BucketInfo desribes a storage bucket
+// BucketInfo describes a storage bucket
 type BucketInfo struct {
 	Name            string                    `json:"name"  binding:"required"`
 	Managed         bool                      `json:"managed" binding:"required"`

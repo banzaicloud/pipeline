@@ -31,7 +31,9 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 	pipelineAuth "github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/objectstore"
+	commonObjectstore "github.com/banzaicloud/pipeline/pkg/objectstore"
 	"github.com/banzaicloud/pipeline/pkg/providers"
+	azureObjectstore "github.com/banzaicloud/pipeline/pkg/providers/azure/objectstore"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/goph/emperror"
@@ -48,6 +50,10 @@ var (
 	falseVal          = false
 	trueVal           = true
 )
+
+type azureObjectStore interface {
+	commonObjectstore.ObjectStore
+}
 
 type bucketNotFoundError struct{}
 
@@ -80,7 +86,7 @@ func NewObjectStore(
 	db *gorm.DB,
 	logger logrus.FieldLogger,
 	force bool,
-) *ObjectStore {
+) (*ObjectStore, error) {
 	return &ObjectStore{
 		location:       location,
 		resourceGroup:  resourceGroup,
@@ -90,7 +96,34 @@ func NewObjectStore(
 		logger:         logger,
 		org:            org,
 		force:          force,
+	}, nil
+}
+
+func getProviderObjectStore(secret *secret.SecretItemResponse, resourceGroup, storageAccount, location string) (azureObjectStore, error) {
+	// when no secrets provided build an object store with no provider client/session setup
+	// eg. usage: list managed buckets
+	if secret == nil {
+		return azureObjectstore.NewPlainObjectStore()
 	}
+
+	credentials := azureObjectstore.Credentials{
+		SubscriptionID: secret.Values[pkgSecret.AzureSubscriptionId],
+		ClientID:       secret.Values[pkgSecret.AzureClientId],
+		ClientSecret:   secret.Values[pkgSecret.AzureClientSecret],
+		TenantID:       secret.Values[pkgSecret.AzureTenantId],
+	}
+
+	config := azureObjectstore.Config{
+		ResourceGroup:  resourceGroup,
+		StorageAccount: storageAccount,
+	}
+
+	ostore, err := azureObjectstore.New(config, credentials)
+	if err != nil {
+		return nil, err
+	}
+
+	return ostore, nil
 }
 
 // getResourceGroup returns the given resource group or generates one.
@@ -105,7 +138,7 @@ func (s *ObjectStore) getResourceGroup() string {
 	return resourceGroup
 }
 
-// getStorageAccount returns the given storage account or or falls back to a default one.
+// getStorageAccount returns the given storage account or falls back to a default one.
 func (s *ObjectStore) getStorageAccount() string {
 	storageAccount := s.storageAccount
 
@@ -116,10 +149,17 @@ func (s *ObjectStore) getStorageAccount() string {
 	return storageAccount
 }
 
-func (s *ObjectStore) getLogger(bucketName string) logrus.FieldLogger {
+func (s *ObjectStore) getLogger() logrus.FieldLogger {
+	var sId string
+	if s.secret == nil {
+		sId = ""
+	} else {
+		sId = s.secret.ID
+	}
+
 	return s.logger.WithFields(logrus.Fields{
 		"organization":    s.org.ID,
-		"bucket":          bucketName,
+		"secret":          sId,
 		"resource_group":  s.getResourceGroup(),
 		"storage_account": s.getStorageAccount(),
 	})
@@ -128,8 +168,7 @@ func (s *ObjectStore) getLogger(bucketName string) logrus.FieldLogger {
 // CreateBucket creates an Azure Object Store Blob with the provided name
 // within a generated/provided ResourceGroup and StorageAccount
 func (s *ObjectStore) CreateBucket(bucketName string) error {
-
-	logger := s.getLogger(bucketName)
+	logger := s.getLogger().WithField("bucket", bucketName)
 
 	bucket := &ObjectStoreBucketModel{}
 	searchCriteria := s.searchCriteria(bucketName)
@@ -152,7 +191,7 @@ func (s *ObjectStore) CreateBucket(bucketName string) error {
 	bucket.SecretRef = s.secret.ID
 	bucket.Status = providers.BucketCreating
 
-	logger.Info("persisting bucket to database...")
+	logger.Info("creating bucket...")
 
 	if err := s.db.Save(bucket).Error; err != nil {
 		return emperror.WrapWith(err, "failed to save bucket", "bucket", bucketName)
@@ -209,10 +248,11 @@ func (s *ObjectStore) CreateBucket(bucketName string) error {
 
 	bucket.Status = providers.BucketCreated
 	bucket.AccessSecretRef = accSecretId
-	err = s.db.Save(bucket).Error
-	if err != nil {
+	bucket.StatusMsg = "bucket successfully created"
+	if err := s.db.Save(bucket).Error; err != nil {
 		return s.createFailed(bucket, emperror.Wrap(err, "failed to save bucket"))
 	}
+	logger.Info("bucket created")
 
 	return nil
 }
@@ -242,31 +282,28 @@ func (s *ObjectStore) createUpdateStorageAccountSecret(accesskey string) (string
 }
 
 func (s *ObjectStore) createFailed(bucket *ObjectStoreBucketModel, err error) error {
-
 	bucket.Status = providers.BucketCreateError
 	bucket.StatusMsg = err.Error()
 
 	if e := s.db.Save(bucket).Error; e != nil {
-		return emperror.WrapWith(e, "failed to save bucket", "gorm", "db")
+		return emperror.WrapWith(e, "failed to save bucket", "bucket", bucket.Name)
 	}
 
 	return emperror.With(err, "create failed")
 }
 
-func (s *ObjectStore) deleteFailed(bucket *ObjectStoreBucketModel, err error) error {
-
+func (s *ObjectStore) deleteFailed(bucket *ObjectStoreBucketModel, reason error) error {
 	bucket.Status = providers.BucketDeleteError
-	bucket.StatusMsg = err.Error()
-
-	if e := s.db.Save(bucket).Error; e != nil {
-		return emperror.WrapWith(e, "failed to save bucket", "gorm", "db")
+	bucket.StatusMsg = reason.Error()
+	if err := s.db.Save(bucket).Error; err != nil {
+		return emperror.WrapWith(err, "failed to save bucket", "bucket", bucket.Name)
 	}
 
-	return emperror.With(err, "create failed")
+	return reason
 }
 
 func (s *ObjectStore) createResourceGroup(resourceGroup string) error {
-	logger := s.logger.WithField("resource_group", resourceGroup)
+	logger := s.getLogger()
 	gclient := resources.NewGroupsClient(s.secret.Values[pkgSecret.AzureSubscriptionId])
 
 	logger.Info("creating resource group")
@@ -303,10 +340,7 @@ func (s *ObjectStore) checkStorageAccountExistence(resourceGroup string, storage
 		return nil, emperror.Wrap(err, "failed to create storage account client")
 	}
 
-	logger := s.logger.WithFields(logrus.Fields{
-		"resource_group":  resourceGroup,
-		"storage_account": storageAccount,
-	})
+	logger := s.getLogger()
 
 	logger.Info("retrieving storage account name availability...")
 	result, err := storageAccountsClient.CheckNameAvailability(
@@ -341,10 +375,7 @@ func (s *ObjectStore) createStorageAccount(resourceGroup string, storageAccount 
 		return err
 	}
 
-	logger := s.logger.WithFields(logrus.Fields{
-		"resource_group":  resourceGroup,
-		"storage_account": storageAccount,
-	})
+	logger := s.getLogger()
 
 	logger.Info("creating storage account")
 
@@ -381,8 +412,7 @@ func (s *ObjectStore) createStorageAccount(resourceGroup string, storageAccount 
 // DeleteBucket deletes the Azure storage container identified by the specified name
 // under the current resource group, storage account provided the storage container is of 'managed' type.
 func (s *ObjectStore) DeleteBucket(bucketName string) error {
-
-	logger := s.getLogger(bucketName)
+	logger := s.getLogger().WithField("bucket", bucketName)
 
 	bucket := &ObjectStoreBucketModel{}
 	searchCriteria := s.searchCriteria(bucketName)
@@ -399,46 +429,40 @@ func (s *ObjectStore) DeleteBucket(bucketName string) error {
 	if err := s.deleteFromProvider(bucket); err != nil {
 		if !s.force {
 			// if delete is not forced return here
-			return s.deleteFailed(bucket, emperror.WrapWith(err, "failed to delete from provider", "bucket", bucketName))
+			return s.deleteFailed(bucket, err)
 		}
 	}
 
 	if err := s.db.Delete(bucket).Error; err != nil {
-		return s.deleteFailed(bucket, emperror.WrapWith(err, "failed to delete", "bucket", bucketName))
+		return s.deleteFailed(bucket, err)
 	}
 
 	return nil
-
 }
 
 func (s *ObjectStore) deleteFromProvider(bucket *ObjectStoreBucketModel) error {
-	logger := s.getLogger(bucket.Name)
+	logger := s.getLogger().WithField("bucket", bucket.Name)
 	logger.Info("deleting bucket on provider")
 
-	// the assumption here is, that a bucket in 'ERROR_CREATE' doesn't exist on the provider
-	// however there might be -presumably rare cases- when a bucket in 'ERROR_DELETE' that has already been deleted on the provider
+	// todo the assumption here is, that a bucket in 'ERROR_CREATE' doesn't exist on the provider
+	// todo however there might be -presumably rare cases- when a bucket in 'ERROR_DELETE' that has already been deleted on the provider
 	if bucket.Status == providers.BucketCreateError {
 		logger.Debug("bucket doesn't exist on provider")
 		return nil
 	}
 
 	bucket.Status = providers.BucketDeleting
-	db := s.db.Save(bucket)
-	if db.Error != nil {
-		return s.deleteFailed(bucket, emperror.WrapWith(db.Error, "failed to update", "bucket", bucket.Name))
+	if err := s.db.Save(bucket).Error; err != nil {
+		return emperror.WrapWith(err, "failed to update bucket", "bucket", bucket.Name)
 	}
 
-	key, err := GetStorageAccountKey(s.getResourceGroup(), s.getStorageAccount(), s.secret, s.logger)
+	objectStore, err := getProviderObjectStore(s.secret, s.resourceGroup, s.storageAccount, bucket.Location)
 	if err != nil {
-		return emperror.WrapWith(err, "filed to retrieve storage account key", "bucket", bucket.Name)
+		return emperror.WrapWith(err, "failed to create object store", "bucket", bucket.Name)
 	}
 
-	p := azblob.NewPipeline(azblob.NewSharedKeyCredential(s.getStorageAccount(), key), azblob.PipelineOptions{})
-	URL, _ := url.Parse(fmt.Sprintf("https://%s.blob.core.windows.net/%s", s.getStorageAccount(), bucket.Name))
-	containerURL := azblob.NewContainerURL(*URL, p)
-
-	if _, err = containerURL.Delete(context.TODO(), azblob.ContainerAccessConditions{}); err != nil {
-		return emperror.WrapWith(err, "failed to delete container", "bucket", bucket.Name)
+	if err := objectStore.DeleteBucket(bucket.Name); err != nil {
+		return emperror.WrapWith(err, "failed to delete bucket from provider", "bucket", bucket.Name)
 	}
 
 	return nil
@@ -449,7 +473,7 @@ func (s *ObjectStore) CheckBucket(bucketName string) error {
 	resourceGroup := s.getResourceGroup()
 	storageAccount := s.getStorageAccount()
 
-	logger := s.getLogger(bucketName)
+	logger := s.getLogger().WithField("bucket", bucketName)
 	logger.Info("looking up the bucket")
 
 	if _, err := s.checkStorageAccountExistence(resourceGroup, storageAccount); err != nil {
@@ -562,33 +586,32 @@ func (s *ObjectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 }
 
 func (s *ObjectStore) ListManagedBuckets() ([]*objectstore.BucketInfo, error) {
+	logger := s.getLogger()
+	logger.Debug("retrieving managed bucket list")
 
-	s.logger.Info("getting all resource groups for subscription")
+	var azureBuckets []ObjectStoreBucketModel
 
-	var objectStores []ObjectStoreBucketModel
-	err := s.db.
-		Where(&ObjectStoreBucketModel{OrganizationID: s.org.ID}).
-		Order("resource_group asc, storage_account asc, name asc").
-		Find(&objectStores).Error
-
-	if err != nil {
-		return nil, fmt.Errorf("retrieving managed buckets failed: %s", err.Error())
+	if err := s.db.Where(ObjectStoreBucketModel{OrganizationID: s.org.ID}).
+		Order("resource_group asc, storage_account asc, name asc").Find(&azureBuckets).Error; err != nil {
+		return nil, emperror.Wrap(err, "failed to retrieve managed buckets")
 	}
 
 	bucketList := make([]*objectstore.BucketInfo, 0)
-	for _, bucket := range objectStores {
-		bucketInfo := &objectstore.BucketInfo{Name: bucket.Name, Managed: true}
-		bucketInfo.Location = bucket.Location
-		bucketInfo.SecretRef = bucket.SecretRef
-		bucketInfo.AccessSecretRef = bucket.AccessSecretRef
-		bucketInfo.Cloud = providers.Azure
-		bucketInfo.Status = bucket.Status
-		bucketInfo.StatusMsg = bucket.StatusMsg
-		bucketInfo.Azure = &objectstore.BlobStoragePropsForAzure{
-			ResourceGroup:  bucket.ResourceGroup,
-			StorageAccount: bucket.StorageAccount,
-		}
-		bucketList = append(bucketList, bucketInfo)
+	for _, bucket := range azureBuckets {
+		bucketList = append(bucketList, &objectstore.BucketInfo{
+			Name:            bucket.Name,
+			Managed:         true,
+			Location:        bucket.Location,
+			SecretRef:       bucket.SecretRef,
+			AccessSecretRef: bucket.AccessSecretRef,
+			Cloud:           providers.Azure,
+			Status:          bucket.Status,
+			StatusMsg:       bucket.StatusMsg,
+			Azure: &objectstore.BlobStoragePropsForAzure{
+				ResourceGroup:  bucket.ResourceGroup,
+				StorageAccount: bucket.StorageAccount,
+			},
+		})
 	}
 
 	return bucketList, nil

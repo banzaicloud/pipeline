@@ -4213,6 +4213,8 @@ paths:
           - amazon
           - google
           - azure
+          - oracle
+          - alibaba
           type: string
         style: form
       - description: Is the operation forced
