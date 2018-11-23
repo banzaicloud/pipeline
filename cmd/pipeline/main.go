@@ -253,9 +253,10 @@ func main() {
 			orgs.GET("/:orgid/spotguides", api.GetSpotguides)
 			orgs.PUT("/:orgid/spotguides", middleware.NewRateLimiterByOrgID(api.SyncSpotguidesRateLimit), api.SyncSpotguides)
 			orgs.POST("/:orgid/spotguides", api.LaunchSpotguide)
-			// Spotguide name may contain '/'s so we have to use *name
-			orgs.GET("/:orgid/spotguides/*name", api.GetSpotguide)
-			orgs.HEAD("/:orgid/spotguides/*name", api.GetSpotguide)
+			// Spotguide name may contain '/'s so we have to use :owner/:name
+			orgs.GET("/:orgid/spotguides/:owner/:name", api.GetSpotguide)
+			orgs.HEAD("/:orgid/spotguides/:owner/:name", api.GetSpotguide)
+			orgs.GET("/:orgid/spotguides/:owner/:name/icon", api.GetSpotguideIcon)
 
 			orgs.GET("/:orgid/domain", domainAPI.GetDomain)
 
