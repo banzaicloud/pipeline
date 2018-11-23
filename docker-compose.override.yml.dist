@@ -14,6 +14,20 @@ services:
     vault:
         ports:
             - 8200:8200
+        volumes:
+            - ./.docker/volumes/vault/file:/vault/file
+
+    vault-unsealer:
+        volumes:
+            - ./.docker/volumes/vault/keys:/vault/keys
+
+    vault-configurer:
+        volumes:
+            - ./.docker/volumes/vault/keys:/vault/keys
+
+    vault-token-helper:
+        volumes:
+            - ./.docker/volumes/vault/keys:/vault/keys
 
     drone-server:
         ports:
