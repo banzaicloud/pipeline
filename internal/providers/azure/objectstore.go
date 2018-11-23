@@ -250,7 +250,7 @@ func (s *ObjectStore) CreateBucket(bucketName string) error {
 	bucket.AccessSecretRef = accSecretId
 	bucket.StatusMsg = "bucket successfully created"
 	if err := s.db.Save(bucket).Error; err != nil {
-		return emperror.WrapWith(err, "failed to persist the bucket", "bucket", bucketName)
+		return s.createFailed(bucket, emperror.Wrap(err, "failed to save bucket"))
 	}
 	logger.Info("bucket created")
 

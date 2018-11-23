@@ -142,22 +142,28 @@ func (os *objectStore) CreateBucket(bucketName string) error {
 	}
 
 	if err := os.objectStore.CreateBucket(bucketName); err != nil {
-		bucket.Status = providers.BucketCreateError
-		bucket.StatusMsg = err.Error()
-		if e := os.db.Save(bucket).Error; e != nil {
-			return emperror.WrapWith(e, "failed to persist the bucket", "bucket", bucketName)
-		}
-		return emperror.WrapWith(err, "failed to create the bucket", "bucket", bucketName)
+		return os.createFailed(bucket, emperror.Wrap(err, "failed to create the bucket"))
 	}
 
 	bucket.Status = providers.BucketCreated
 	bucket.StatusMsg = "bucket successfully created"
 	if err := os.db.Save(bucket).Error; err != nil {
-		return emperror.WrapWith(err, "failed to persist the bucket", "bucket", bucketName)
+		return os.createFailed(bucket, emperror.Wrap(err, "failed to save bucket"))
 	}
 	logger.Info("bucket created")
 
 	return nil
+}
+
+func (os *objectStore) createFailed(bucket *ObjectStoreBucketModel, err error) error {
+	bucket.Status = providers.BucketCreateError
+	bucket.StatusMsg = err.Error()
+
+	if e := os.db.Save(bucket).Error; e != nil {
+		return emperror.WrapWith(e, "failed to save bucket", "bucket", bucket.Name)
+	}
+
+	return emperror.With(err, "create failed")
 }
 
 func (os *objectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
