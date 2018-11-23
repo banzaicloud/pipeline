@@ -7,7 +7,6 @@ Name | Type | Description | Notes
 **DisplayName** | **string** |  | [optional] 
 **CreatedAt** | **string** |  | [optional] 
 **UpdatedAt** | **string** |  | [optional] 
-**Icon** | **string** |  | [optional] 
 **Readme** | **string** |  | [optional] 
 **Version** | **string** |  | [optional] 
 **Tags** | **[]string** |  | [optional] 

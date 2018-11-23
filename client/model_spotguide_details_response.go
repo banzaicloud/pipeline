@@ -16,7 +16,6 @@ type SpotguideDetailsResponse struct {
 	DisplayName string                   `json:"displayName,omitempty"`
 	CreatedAt   string                   `json:"createdAt,omitempty"`
 	UpdatedAt   string                   `json:"updatedAt,omitempty"`
-	Icon        string                   `json:"icon,omitempty"`
 	Readme      string                   `json:"readme,omitempty"`
 	Version     string                   `json:"version,omitempty"`
 	Tags        []string                 `json:"tags,omitempty"`
