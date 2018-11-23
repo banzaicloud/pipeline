@@ -31,7 +31,7 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/utils"
-	"github.com/go-errors/errors"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -574,7 +574,7 @@ func (c *AKSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 
 	resp, err := azureClient.GetCluster(client, c.modelCluster.Name, c.modelCluster.AKS.ResourceGroup)
 	if err != nil {
-		return nil, errors.New(err)
+		return nil, errors.WithStack(err)
 	}
 	log.Info("Get cluster success")
 	stage := resp.Value.Properties.ProvisioningState

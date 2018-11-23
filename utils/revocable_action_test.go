@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/go-errors/errors"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 )
