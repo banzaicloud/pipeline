@@ -48,6 +48,7 @@ const SpotguideGithubOrganization = "banzaicloud"
 const SpotguideYAMLPath = ".banzaicloud/spotguide.yaml"
 const PipelineYAMLPath = ".banzaicloud/pipeline.yaml"
 const ReadmePath = ".banzaicloud/README.md"
+const IconPath = ".banzaicloud/icon.svg"
 const CreateClusterStep = "create_cluster"
 const SpotguideRepoTableName = "spotguide_repos"
 
@@ -77,6 +78,7 @@ type SpotguideRepo struct {
 	UpdatedAt        time.Time `json:"updatedAt"`
 	Name             string    `json:"name" gorm:"unique_index:name_and_version"`
 	DisplayName      string    `json:"displayName" gorm:"-"`
+	Icon             []byte    `json:"-" gorm:"type:mediumtext"`
 	Readme           string    `json:"readme" gorm:"type:mediumtext"`
 	Version          string    `json:"version" gorm:"unique_index:name_and_version"`
 	SpotguideYAMLRaw []byte    `json:"-" gorm:"type:text"`
@@ -236,11 +238,18 @@ func ScrapeSpotguides(orgID uint, userID uint) error {
 				continue
 			}
 
+			icon, err := downloadGithubFile(githubClient, owner, name, IconPath, tag)
+			if err != nil {
+				log.Warnf("failed to scrape repository '%s/%s' at version '%s': %s", owner, name, tag, err)
+				continue
+			}
+
 			model := SpotguideRepo{
 				OrganizationID:   orgID,
 				Name:             repository.GetFullName(),
 				SpotguideYAMLRaw: spotguideRaw,
 				Readme:           string(readme),
+				Icon:             icon,
 				Version:          tag,
 			}
 

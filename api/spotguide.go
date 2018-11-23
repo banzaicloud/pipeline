@@ -16,7 +16,7 @@ package api
 
 import (
 	"net/http"
-	"strings"
+	"path"
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
@@ -32,7 +32,7 @@ func GetSpotguide(c *gin.Context) {
 
 	orgID := auth.GetCurrentOrganization(c.Request).ID
 
-	spotguideName := strings.TrimPrefix(c.Param("name"), "/")
+	spotguideName := path.Join(c.Param("owner"), c.Param("name"))
 	spotguideVersion := c.Query("version")
 	spotguideDetails, err := spotguide.GetSpotguide(orgID, spotguideName, spotguideVersion)
 	if err != nil {
@@ -75,6 +75,37 @@ func GetSpotguides(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, spotguides)
+}
+
+// GetSpotguideIcon returns the icon for the last version of the spotguide
+// if not specified otherwise (e.g.: ?version=1.2.3).
+func GetSpotguideIcon(c *gin.Context) {
+	log := correlationid.Logger(log, c)
+
+	orgID := auth.GetCurrentOrganization(c.Request).ID
+
+	spotguideName := path.Join(c.Param("owner"), c.Param("name"))
+	spotguideVersion := c.Query("version")
+	spotguideDetails, err := spotguide.GetSpotguide(orgID, spotguideName, spotguideVersion)
+	if err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			c.JSON(http.StatusNotFound, pkgCommon.ErrorResponse{
+				Code:    http.StatusNotFound,
+				Message: "spotguide not found",
+			})
+			return
+		}
+		log.Errorln("error getting spotguide details:", err.Error())
+		c.JSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: "error getting spotguide details",
+		})
+		return
+	}
+
+	// Return the icon SVG data, and mark it as eligible for caching (for 5 minutes)
+	c.Header("Cache-Control", "public, max-age=300")
+	c.Data(http.StatusOK, "image/svg+xml", spotguideDetails[0].Icon)
 }
 
 // SyncSpotguidesRateLimit 1 request per 2 minutes
