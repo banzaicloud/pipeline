@@ -85,8 +85,9 @@ func SyncSpotguides(c *gin.Context) {
 	log := correlationid.Logger(log, c)
 
 	orgID := auth.GetCurrentOrganization(c.Request).ID
+	userID := auth.GetCurrentUser(c.Request).ID
 
-	err := spotguide.ScrapeSpotguides(orgID)
+	err := spotguide.ScrapeSpotguides(orgID, userID)
 	if err != nil {
 		log.Errorln("failed synchronizing spotguides:", err.Error())
 		c.JSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{

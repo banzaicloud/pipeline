@@ -254,7 +254,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 
 	bus.accessManager.AddOrganizationPolicies(currentUser.Organizations[0].ID)
 	bus.accessManager.GrantOganizationAccessToUser(currentUser.IDString(), currentUser.Organizations[0].ID)
-	bus.events.OrganizationRegistered(currentUser.Organizations[0].ID)
+	bus.events.OrganizationRegistered(currentUser.Organizations[0].ID, currentUser.ID)
 
 	err = bus.githubImporter.ImportOrganizations(currentUser, githubExtraInfo.Token)
 
@@ -357,7 +357,7 @@ func (i *GithubImporter) ImportOrganizations(currentUser *User, githubToken stri
 		i.accessManager.GrantOganizationAccessToUser(currentUser.IDString(), id)
 
 		if created {
-			i.events.OrganizationRegistered(id)
+			i.events.OrganizationRegistered(id, currentUser.ID)
 		}
 	}
 
