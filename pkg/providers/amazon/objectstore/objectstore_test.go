@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +build integration
-
 package objectstore
 
 import (
 	"bytes"
+	"flag"
 	"fmt"
 	"os"
 	"reflect"
+	"regexp"
 	"sort"
 	"strings"
 	"testing"
@@ -113,7 +113,28 @@ func getBucketName(t *testing.T, bucketName string) string {
 	return fmt.Sprintf("%s-%d", bucketName, time.Now().UnixNano())
 }
 
-func TestObjectStore_CreateBucket(t *testing.T) {
+func TestIntegration(t *testing.T) {
+	if m := flag.Lookup("test.run").Value.String(); m == "" || !regexp.MustCompile(m).MatchString(t.Name()) {
+		t.Skip("skipping as execution was not requested explicitly using go test -run")
+	}
+
+	t.Parallel()
+
+	t.Run("ObjectStore_CreateBucket", testObjectStoreCreateBucket)
+	t.Run("ObjectStore_GetRegion", testObjectStoreGetRegion)
+	t.Run("ObjectStore_ListBuckets", testObjectStoreListBuckets)
+	t.Run("ObjectStore_CheckBucket", testObjectStoreCheckBucket)
+	t.Run("ObjectStore_CheckBucket_DifferentRegion", testObjectStoreCheckBucketDifferentRegion)
+	t.Run("ObjectStore_Delete", testObjectStoreDelete)
+	t.Run("ObjectStore_ListObjects", testObjectStoreListObjects)
+	t.Run("ObjectStore_GetPutDeleteObject", testObjectStoreGetPutDeleteObject)
+	t.Run("ObjectStore_SignedURL", testObjectStoreSignedURL)
+	t.Run("ObjectStore_CreateAlreadyExistingBucket", testObjectStoreCreateAlreadyExistingBucket)
+	t.Run("ObjectStore_BucketNotFound", testObjectStoreBucketNotFound)
+	t.Run("ObjectStore_ObjectNotFound", testObjectStoreObjectNotFound)
+}
+
+func testObjectStoreCreateBucket(t *testing.T) {
 	sess := getSession(t)
 	client := s3.New(sess)
 
@@ -145,7 +166,7 @@ func TestObjectStore_CreateBucket(t *testing.T) {
 	}
 }
 
-func TestObjectStore_GetRegion(t *testing.T) {
+func testObjectStoreGetRegion(t *testing.T) {
 	sess := getSession(t)
 	client := s3.New(sess)
 
@@ -181,7 +202,7 @@ func TestObjectStore_GetRegion(t *testing.T) {
 	}
 }
 
-func TestObjectStore_ListBuckets(t *testing.T) {
+func testObjectStoreListBuckets(t *testing.T) {
 	sess := getSession(t)
 	client := s3.New(sess)
 
@@ -227,7 +248,7 @@ func TestObjectStore_ListBuckets(t *testing.T) {
 	}
 }
 
-func TestObjectStore_CheckBucket(t *testing.T) {
+func testObjectStoreCheckBucket(t *testing.T) {
 	sess := getSession(t)
 	client := s3.New(sess)
 
@@ -259,7 +280,7 @@ func TestObjectStore_CheckBucket(t *testing.T) {
 	}
 }
 
-func TestObjectStore_CheckBucket_DifferentRegion(t *testing.T) {
+func testObjectStoreCheckBucketDifferentRegion(t *testing.T) {
 	sess := getSession(t)
 	client := s3.New(sess)
 
@@ -299,7 +320,7 @@ func TestObjectStore_CheckBucket_DifferentRegion(t *testing.T) {
 	}
 }
 
-func TestObjectStore_Delete(t *testing.T) {
+func testObjectStoreDelete(t *testing.T) {
 	sess := getSession(t)
 	client := s3.New(sess)
 
@@ -335,7 +356,7 @@ func TestObjectStore_Delete(t *testing.T) {
 	}
 }
 
-func TestObjectStore_ListObjects(t *testing.T) {
+func testObjectStoreListObjects(t *testing.T) {
 	var err error
 
 	bucketName := getBucketName(t, bucketName)
@@ -416,7 +437,7 @@ func TestObjectStore_ListObjects(t *testing.T) {
 	}
 }
 
-func TestObjectStore_GetPutDeleteObject(t *testing.T) {
+func testObjectStoreGetPutDeleteObject(t *testing.T) {
 	var err error
 
 	bucketName := getBucketName(t, bucketName)
@@ -461,7 +482,7 @@ func TestObjectStore_GetPutDeleteObject(t *testing.T) {
 	}
 }
 
-func TestObjectStore_SignedURL(t *testing.T) {
+func testObjectStoreSignedURL(t *testing.T) {
 	var err error
 
 	bucketName := getBucketName(t, bucketName)
@@ -500,7 +521,7 @@ func TestObjectStore_SignedURL(t *testing.T) {
 	}
 }
 
-func TestObjectStore_CreateAlreadyExistingBucket(t *testing.T) {
+func testObjectStoreCreateAlreadyExistingBucket(t *testing.T) {
 	var err error
 
 	bucketName := getBucketName(t, bucketName)
@@ -522,7 +543,7 @@ func TestObjectStore_CreateAlreadyExistingBucket(t *testing.T) {
 	}
 }
 
-func TestObjectStore_BucketNotFound(t *testing.T) {
+func testObjectStoreBucketNotFound(t *testing.T) {
 	var err error
 
 	ostore := getObjectStore(t)
@@ -533,7 +554,7 @@ func TestObjectStore_BucketNotFound(t *testing.T) {
 	}
 }
 
-func TestObjectStore_ObjectNotFound(t *testing.T) {
+func testObjectStoreObjectNotFound(t *testing.T) {
 	var err error
 
 	bucketName := getBucketName(t, bucketName)

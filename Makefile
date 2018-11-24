@@ -152,20 +152,29 @@ license-check: bin/licensei ## Run license check
 license-cache: bin/licensei ## Generate license cache
 	bin/licensei cache
 
-.PHONY: test
-test: export CGO_ENABLED = 1
-test: TEST_OUTPUT ?= test.txt
-test: ## Run all tests
-	go test ${GOARGS} -v ./... 2>&1 > ${TEST_OUTPUT}
-
 bin/go-junit-report:
 	@mkdir -p bin
 	GOBIN=${PWD}/bin/ go get -u github.com/jstemmer/go-junit-report
 
-.PHONY: junit-report
-junit-report: bin/go-junit-report # Generate test reports
-	@mkdir -p build/test-results/junit
-	cat test.txt | bin/go-junit-report > build/test-results/junit/results.xml
+.PHONY: test
+TEST_PKGS ?= ./...
+TEST_REPORT_NAME ?= results.xml
+.PHONY: test
+test: TEST_REPORT ?= main
+test: SHELL = /bin/bash
+test: export CGO_ENABLED = 1
+test: bin/go-junit-report ## Run tests
+	@mkdir -p ${BUILD_DIR}/test_results/${TEST_REPORT}
+	@set -o pipefail
+	go test -v $(filter-out -v,${GOARGS}) ${TEST_PKGS} 2>&1 | tee >(cat) | bin/go-junit-report > ${BUILD_DIR}/test_results/${TEST_REPORT}/${TEST_REPORT_NAME}
+
+.PHONY: test-all
+test-all: ## Run all tests
+	@${MAKE} GOARGS="${GOARGS} -run .\*" TEST_REPORT=all test
+
+.PHONY: test-integration
+test-integration: ## Run integration tests
+	@${MAKE} GOARGS="${GOARGS} -run ^TestIntegration\$$\$$" TEST_REPORT=integration test
 
 .PHONY: validate-openapi
 validate-openapi: ## Validate the openapi description
