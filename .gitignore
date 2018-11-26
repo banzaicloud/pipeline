@@ -9,6 +9,7 @@ config/config.toml
 *.swp
 orgs/
 *.pem
+!config/certs/*.pem
 */main/main.go
 test.txt
 /bin/
