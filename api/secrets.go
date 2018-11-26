@@ -31,7 +31,7 @@ import (
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/gin-gonic/gin"
-	"github.com/go-errors/errors"
+	"github.com/pkg/errors"
 )
 
 // ErrNotSupportedSecretType describe an error if the secret type is not supported

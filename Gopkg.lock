@@ -543,14 +543,6 @@
   revision = "65a65c2edd4e86f96634a553f07a25c38f2b1c75"
 
 [[projects]]
-  digest = "1:ea1d5bfdb4ec5c2ee48c97865e6de1a28fa8c4849a3f56b27d521aa619038e06"
-  name = "github.com/go-errors/errors"
-  packages = ["."]
-  pruneopts = "NUT"
-  revision = "a6af135bd4e28680facf08a3d206b454abc877a4"
-  version = "v1.0.1"
-
-[[projects]]
   digest = "1:27b7ff77d8f9de0ca6f1e821e09246aaa83132d07b8606ca0ed1dcacdcc1dded"
   name = "github.com/go-ini/ini"
   packages = ["."]
@@ -913,12 +905,11 @@
   revision = "7e38e58719c33e0d44d585c4ab477a30f8cb82dd"
 
 [[projects]]
-  digest = "1:b352f5f4804d46ecaff84b5e3dfe207a71f75f92634b9ede66b52fab09a5737f"
+  digest = "1:670b6ef23a9e64c57c5c883913c1cd580dad710f4a7c199d02e56d7e20bfeb59"
   name = "github.com/jinzhu/gorm"
   packages = [
     ".",
     "dialects/mysql",
-    "dialects/postgres",
     "dialects/sqlite",
   ]
   pruneopts = "NUT"
@@ -966,11 +957,10 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:59b2ccc5705651ebe8a86d5b7d1c0309603291f78d212a38fc80ddda072a3585"
+  digest = "1:7a1e592f0349d56fac8ce47f28469e4e7f4ce637cb26f40c88da9dff25db1c98"
   name = "github.com/lib/pq"
   packages = [
     ".",
-    "hstore",
     "oid",
   ]
   pruneopts = "NUT"
@@ -2189,7 +2179,6 @@
     "github.com/gin-contrib/cors",
     "github.com/gin-gonic/gin",
     "github.com/gin-gonic/gin/json",
-    "github.com/go-errors/errors",
     "github.com/google/go-github/github",
     "github.com/goph/emperror",
     "github.com/goph/emperror/errorlogrus",
@@ -2202,7 +2191,6 @@
     "github.com/jinzhu/copier",
     "github.com/jinzhu/gorm",
     "github.com/jinzhu/gorm/dialects/mysql",
-    "github.com/jinzhu/gorm/dialects/postgres",
     "github.com/jinzhu/gorm/dialects/sqlite",
     "github.com/jinzhu/now",
     "github.com/jmespath/go-jmespath",
