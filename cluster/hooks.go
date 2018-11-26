@@ -362,6 +362,25 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 			return err
 		}
 		return installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/gcs-output", "pipeline-gcs-output", marshaledValues, "", false)
+	case pkgCluster.Alibaba:
+		installedSecretValues, err := InstallSecrets(cluster, &pkgSecret.ListSecretsQuery{IDs: []string{loggingParam.SecretId}}, loggingParam.GenTLSForLogging.Namespace)
+		if err != nil {
+			return emperror.Wrap(err, "could not install alibaba logging secret")
+		}
+		loggingValues := map[string]interface{}{
+			"bucket": map[string]interface{}{
+				"name":   loggingParam.BucketName,
+				"region": loggingParam.Region,
+			},
+			"secret": map[string]interface{}{
+				"name": installedSecretValues[0].Name,
+			},
+		}
+		marshaledValues, err := yaml.Marshal(loggingValues)
+		if err != nil {
+			return emperror.Wrap(err, "could not marshal alibaba logging values")
+		}
+		return installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/oss-output", "pipeline-oss-output", marshaledValues, "", false)
 	case pkgCluster.Azure:
 
 		sak, err := azure.GetStorageAccountKey(loggingParam.ResourceGroup, loggingParam.StorageAccount, logSecret, log)
