@@ -27,6 +27,7 @@ JQ_VERSION = 1.5
 LICENSEI_VERSION = 0.0.7
 OPENAPI_GENERATOR_VERSION = 3.3.0
 MIGRATE_VERSION = 4.0.2
+GOTESTSUM_VERSION = 0.3.2
 
 GOLANG_VERSION = 1.11
 
@@ -152,9 +153,16 @@ license-check: bin/licensei ## Run license check
 license-cache: bin/licensei ## Generate license cache
 	bin/licensei cache
 
-bin/go-junit-report:
+bin/gotestsum: bin/gotestsum-${GOTESTSUM_VERSION}
+	@ln -sf gotestsum-${GOTESTSUM_VERSION} bin/gotestsum
+bin/gotestsum-${GOTESTSUM_VERSION}:
 	@mkdir -p bin
-	GOBIN=${PWD}/bin/ go get -u github.com/jstemmer/go-junit-report
+ifeq (${OS}, Darwin)
+	curl -L https://github.com/gotestyourself/gotestsum/releases/download/v${GOTESTSUM_VERSION}/gotestsum_${GOTESTSUM_VERSION}_darwin_amd64.tar.gz | tar -zOxf - gotestsum > ./bin/gotestsum-${GOTESTSUM_VERSION} && chmod +x ./bin/gotestsum-${GOTESTSUM_VERSION}
+endif
+ifeq (${OS}, Linux)
+	curl -L https://github.com/gotestyourself/gotestsum/releases/download/v${GOTESTSUM_VERSION}/gotestsum_${GOTESTSUM_VERSION}_linux_amd64.tar.gz | tar -zOxf - gotestsum > ./bin/gotestsum-${GOTESTSUM_VERSION} && chmod +x ./bin/gotestsum-${GOTESTSUM_VERSION}
+endif
 
 .PHONY: test
 TEST_PKGS ?= ./...
@@ -163,10 +171,9 @@ TEST_REPORT_NAME ?= results.xml
 test: TEST_REPORT ?= main
 test: SHELL = /bin/bash
 test: export CGO_ENABLED = 1
-test: bin/go-junit-report ## Run tests
+test: bin/gotestsum ## Run tests
 	@mkdir -p ${BUILD_DIR}/test_results/${TEST_REPORT}
-	@set -o pipefail
-	go test -v $(filter-out -v,${GOARGS}) ${TEST_PKGS} 2>&1 | tee /dev/tty | bin/go-junit-report > ${BUILD_DIR}/test_results/${TEST_REPORT}/${TEST_REPORT_NAME}
+	bin/gotestsum --no-summary=skipped --junitfile ${BUILD_DIR}/test_results/${TEST_REPORT}/${TEST_REPORT_NAME} -- $(filter-out -v,${GOARGS})  $(if ${TEST_PKGS},${TEST_PKGS},./...)
 
 .PHONY: test-all
 test-all: ## Run all tests
