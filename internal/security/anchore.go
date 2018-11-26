@@ -313,13 +313,13 @@ func DoAnchoreRequest(req AnchoreRequest) (*http.Response, error) {
 		if err != nil {
 			return nil, emperror.Wrap(err, "json encode failed")
 		}
-		request, err = http.NewRequest(req.Method, path.Join(AnchoreEndpoint, "v1", req.URL), buf)
+		request, err = http.NewRequest(req.Method, AnchoreEndpoint+path.Join("/v1", req.URL), buf)
 		if err != nil {
 			return nil, emperror.Wrap(err, "request creation failed")
 		}
 	} else {
 		var err error
-		request, err = http.NewRequest(req.Method, path.Join(AnchoreEndpoint, "v1", req.URL), nil)
+		request, err = http.NewRequest(req.Method, AnchoreEndpoint+path.Join("/v1", req.URL), nil)
 		if err != nil {
 			return nil, emperror.Wrap(err, "request creation failed")
 		}
