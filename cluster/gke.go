@@ -17,7 +17,6 @@ package cluster
 import (
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -31,10 +30,13 @@ import (
 	pkgClusterGoogle "github.com/banzaicloud/pipeline/pkg/cluster/gke"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
+	pkgProviderGoogle "github.com/banzaicloud/pipeline/pkg/providers/google"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/utils"
+	"github.com/gin-gonic/gin/json"
+	"github.com/golang/protobuf/ptypes/duration"
 	"github.com/goph/emperror"
 	"github.com/jinzhu/copier"
 	"github.com/jinzhu/gorm"
@@ -42,6 +44,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"golang.org/x/net/context"
+	googleAuth "golang.org/x/oauth2/google"
 	gkeCompute "google.golang.org/api/compute/v1"
 	gke "google.golang.org/api/container/v1"
 	"google.golang.org/api/googleapi"
@@ -51,7 +54,9 @@ import (
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp" // required by GCP authentication at runtime
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd/api"
 )
 
 const (
@@ -207,6 +212,8 @@ func (c *GKECluster) CreateCluster() error {
 		log.Warnf("error during getting region: %s", err.Error())
 	}
 
+	c.model.Cluster.RbacEnabled = true
+
 	log.Info("Get Google Service Client")
 	svc, err := c.getGoogleServiceClient()
 	if err != nil {
@@ -225,6 +232,7 @@ func (c *GKECluster) CreateCluster() error {
 		Zone:          c.model.Cluster.Location,
 		Name:          c.model.Cluster.Name,
 		MasterVersion: c.model.MasterVersion,
+		LegacyAbac:    false,
 		NodePools:     nodePools,
 	}
 
@@ -246,7 +254,7 @@ func (c *GKECluster) CreateCluster() error {
 		log.Info("Waiting for cluster...")
 
 		if err := waitForOperation(newContainerOperation(svc, c.model.ProjectId, c.model.Cluster.Location), createCall.Name); err != nil {
-			return emperror.Wrap(err, "waiting for cluster creation failed")
+			return emperror.Wrap(err, "waiting for cluster creation to complete failed")
 		}
 	} else {
 		log.Info("Cluster %s already exists.", c.model.Cluster.Name)
@@ -294,10 +302,7 @@ func (c *GKECluster) DownloadK8sConfig() ([]byte, error) {
 
 	config, err := c.getGoogleKubernetesConfig()
 	if err != nil {
-		// something went wrong
-		be := getBanzaiErrorFromError(err)
-		// TODO status code !?
-		return nil, errors.New(be.Message)
+		return nil, emperror.Wrap(err, "retrieving kubernetes config failed")
 	}
 	// get config succeeded
 	log.Info("Get k8s config succeeded")
@@ -703,7 +708,7 @@ func (c *GKECluster) getGoogleServiceClient() (*gke.Service, error) {
 
 	client, err := c.newClientFromCredentials()
 	if err != nil {
-		return nil, err
+		return nil, emperror.Wrap(err, "retrieving cluster credentials secret failed")
 	}
 
 	//New client from credentials
@@ -779,7 +784,7 @@ func generateClusterCreateRequest(cc googleCluster) *gke.CreateClusterRequest {
 	request.Cluster.Network = cc.Network
 	request.Cluster.Subnetwork = cc.SubNetwork
 	request.Cluster.LegacyAbac = &gke.LegacyAbac{
-		Enabled: true,
+		Enabled: cc.LegacyAbac,
 	}
 	request.Cluster.MasterAuth = &gke.MasterAuth{}
 	request.Cluster.NodePools = cc.NodePools
@@ -797,7 +802,7 @@ func getBanzaiErrorFromError(err error) *pkgCommon.BanzaiResponse {
 		}
 	}
 
-	googleErr, ok := err.(*googleapi.Error)
+	googleErr, ok := errors.Cause(err).(*googleapi.Error)
 	if ok {
 		// error is googleapi error
 		return &pkgCommon.BanzaiResponse{
@@ -820,19 +825,26 @@ func getClusterGoogle(svc *gke.Service, cc googleCluster) (*gke.Cluster, error) 
 func (c *GKECluster) callDeleteCluster(cc *googleCluster) error {
 	svc, err := c.getGoogleServiceClient()
 	if err != nil {
-		return err
+		return emperror.Wrap(err, "creating google service client failed")
 	}
 	log.Info("Get Google Service Client succeeded")
 
 	log.Infof("Removing cluster %v from project %v, zone %v", cc.Name, cc.ProjectID, cc.Zone)
 	deleteCall, err := svc.Projects.Zones.Clusters.Delete(cc.ProjectID, cc.Zone, cc.Name).Context(context.Background()).Do()
 	if err != nil && !strings.Contains(err.Error(), "notFound") {
-		return err
+		return emperror.Wrap(err, "initiating cluster deletion failed")
 	} else if err == nil {
 		log.Infof("Cluster %v delete is called. Status Code %v", cc.Name, deleteCall.HTTPStatusCode)
+
+		if deleteCall != nil {
+			log.Info("Waiting for cluster...")
+
+			if err := waitForOperation(newContainerOperation(svc, c.model.ProjectId, c.model.Cluster.Location), deleteCall.Name); err != nil {
+				return emperror.Wrap(err, "waiting for cluster deletion to complete failed")
+			}
+		}
 	} else {
-		log.Errorf("Cluster %s doesn't exist", cc.Name)
-		return err
+		log.Infof("Cluster %s doesn't exist", cc.Name)
 	}
 	os.RemoveAll(cc.TempCredentialPath)
 	return nil
@@ -1053,13 +1065,13 @@ func (c *GKECluster) getGoogleKubernetesConfig() ([]byte, error) {
 	log.Info("Get Google Service Client")
 	svc, err := c.getGoogleServiceClient()
 	if err != nil {
-		return nil, err
+		return nil, emperror.Wrap(err, "creating google service client failed")
 	}
 	log.Info("Get Google Service Client succeeded")
 
 	secretItem, err := c.GetSecretWithValidation()
 	if err != nil {
-		return nil, err
+		return nil, emperror.Wrap(err, "retrieving cluster credentials secret failed")
 	}
 
 	log.Infof("Get gke cluster with name %s", c.model.Cluster.Name)
@@ -1070,15 +1082,13 @@ func (c *GKECluster) getGoogleKubernetesConfig() ([]byte, error) {
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, emperror.Wrap(err, "retrieving GKE cluster provider failed")
 	}
 
 	log.Info("Generate Service Account token")
-	serviceAccountToken, err := generateServiceAccountTokenForGke(cl)
+	serviceAccountToken, err := c.generateServiceAccountTokenForGke(cl)
 	if err != nil {
-		be := getBanzaiErrorFromError(err)
-		// TODO status code !?
-		return nil, errors.New(be.Message)
+		return nil, emperror.Wrap(err, "getting service account for GKE cluster failed")
 	}
 
 	finalCl := kubernetesCluster{
@@ -1097,47 +1107,73 @@ func (c *GKECluster) getGoogleKubernetesConfig() ([]byte, error) {
 
 	finalCl.Metadata["nodePools"] = fmt.Sprintf("%v", cl.NodePools)
 
-	// TODO if the final solution is NOT SAVE CONFIG TO FILE than rename the method and change log message
-	log.Info("Start save config file")
-	config, err := storeConfig(&finalCl, c.model.Cluster.Name)
+	config, err := storeConfig(&finalCl)
 	if err != nil {
-		be := getBanzaiErrorFromError(err)
-		// TODO status code !?
-		return nil, errors.New(be.Message)
+		return nil, emperror.Wrap(err, "storing kubernetes config failed")
 	}
 	return config, nil
 }
 
-func generateServiceAccountTokenForGke(cluster *gke.Cluster) (string, error) {
+func (c *GKECluster) generateServiceAccountTokenForGke(cluster *gke.Cluster) (string, error) {
 	capem, err := base64.StdEncoding.DecodeString(cluster.MasterAuth.ClusterCaCertificate)
 	if err != nil {
-		return "", err
+		return "", emperror.Wrap(err, "base64 decode of ca certificate failed")
 	}
-	certData, err := base64.StdEncoding.DecodeString(cluster.MasterAuth.ClientCertificate)
-	if err != nil {
-		return "", err
-	}
-	keyData, err := base64.StdEncoding.DecodeString(cluster.MasterAuth.ClientKey)
-	if err != nil {
-		return "", err
-	}
+
 	host := cluster.Endpoint
 	if !strings.HasPrefix(host, "https://") {
 		host = fmt.Sprintf("https://%s", host)
 	}
 
-	// in here we have to use http basic auth otherwise we can't get the permission to create cluster role
+	// generate GCP access token
+	ctx := context.Background()
+	clusterSecret, err := c.GetSecretWithValidation()
+	if err != nil {
+		return "", emperror.Wrap(err, "retrieving cluster credentials secret failed")
+	}
+
+	serviceAccount := verify.CreateServiceAccount(clusterSecret.Values)
+	jsonConfig, err := json.Marshal(serviceAccount)
+	if err != nil {
+		return "", emperror.Wrap(err, "marshaling cluster credentials secret to json format failed")
+	}
+
+	googleCredentials, err := googleAuth.CredentialsFromJSON(ctx, jsonConfig, gke.CloudPlatformScope)
+	if err != nil {
+		return "", emperror.Wrap(err, "creating Google credentials failed")
+	}
+
+	iamSvc := pkgProviderGoogle.NewIamSvc(googleCredentials)
+
+	// get short lived service account access credentials
+	tokenResp, err := iamSvc.GenerateNewAccessToken(
+		serviceAccount.ClientEmail,
+		&duration.Duration{
+			Seconds: 600, // token expires after 10 mins
+		})
+	if err != nil {
+		return "", emperror.Wrap(err, "getting access token failed")
+	}
+
+	tokenExpiry := time.Unix(tokenResp.GetExpireTime().GetSeconds(), int64(tokenResp.GetExpireTime().GetNanos()))
+
+	// kubernetes config using GCP authenticator
 	config := &rest.Config{
 		Host: host,
 		TLSClientConfig: rest.TLSClientConfig{
-			CAData:   capem,
-			CertData: certData,
-			KeyData:  keyData,
+			CAData: capem,
+		},
+		AuthProvider: &api.AuthProviderConfig{
+			Name: "gcp",
+			Config: map[string]string{
+				"access-token": tokenResp.GetAccessToken(),
+				"expiry":       tokenExpiry.Format(time.RFC3339Nano),
+			},
 		},
 	}
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		return "", err
+		return "", emperror.Wrap(err, "creating kubernetes clientset failed")
 	}
 
 	return generateServiceAccountToken(clientset)
@@ -1152,7 +1188,7 @@ func generateServiceAccountToken(clientset *kubernetes.Clientset) (string, error
 
 	_, err := clientset.CoreV1().ServiceAccounts(defaultNamespace).Create(serviceAccount)
 	if err != nil && !k8sErrors.IsAlreadyExists(err) {
-		return "", err
+		return "", emperror.WrapWith(err, "creating service account failed", "namespace", defaultNamespace, "service account", serviceAccount)
 	}
 
 	adminRole := &v1beta1.ClusterRole{
@@ -1175,13 +1211,13 @@ func generateServiceAccountToken(clientset *kubernetes.Clientset) (string, error
 	if err != nil {
 		clusterAdminRole, err = clientset.RbacV1beta1().ClusterRoles().Create(adminRole)
 		if err != nil {
-			return "", err
+			return "", emperror.WrapWith(err, "creating cluster role failed", "cluster role", adminRole.Name)
 		}
 	}
 
 	clusterRoleBinding := &v1beta1.ClusterRoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "netes-default-clusterRoleBinding",
+			Name: fmt.Sprintf("%s-clusterRoleBinding", netesDefault),
 		},
 		Subjects: []v1beta1.Subject{
 			{
@@ -1198,28 +1234,28 @@ func generateServiceAccountToken(clientset *kubernetes.Clientset) (string, error
 		},
 	}
 	if _, err = clientset.RbacV1beta1().ClusterRoleBindings().Create(clusterRoleBinding); err != nil && !k8sErrors.IsAlreadyExists(err) {
-		return "", err
+		return "", emperror.WrapWith(err, "creating cluster role binding failed", "cluster role", clusterAdminRole.Name, "service account", serviceAccount.Name)
 	}
 
 	if serviceAccount, err = clientset.CoreV1().ServiceAccounts(defaultNamespace).Get(serviceAccount.Name, metav1.GetOptions{}); err != nil {
-		return "", err
+		return "", emperror.WrapWith(err, "retrieving service account failed", "namespace", defaultNamespace, "service account", serviceAccount.Name)
 	}
 
 	if len(serviceAccount.Secrets) > 0 {
 		secret := serviceAccount.Secrets[0]
 		secretObj, err := clientset.CoreV1().Secrets(defaultNamespace).Get(secret.Name, metav1.GetOptions{})
 		if err != nil {
-			return "", err
+			return "", emperror.WrapWith(err, "retrieving kubernetes secret found", "namespace", defaultNamespace, "secret", secret.Name)
 		}
 		if token, ok := secretObj.Data["token"]; ok {
 			return string(token), nil
 		}
 	}
-	return "", fmt.Errorf("failed to configure serviceAccountToken")
+	return "", errors.New("failed to configure serviceAccountToken")
 }
 
 // storeConfig saves config file
-func storeConfig(c *kubernetesCluster, name string) ([]byte, error) {
+func storeConfig(c *kubernetesCluster) ([]byte, error) {
 	isBasicOn := false
 	if c.Username != "" && c.Password != "" {
 		isBasicOn = true
@@ -1232,17 +1268,7 @@ func storeConfig(c *kubernetesCluster, name string) ([]byte, error) {
 		token = c.ServiceAccountToken
 	}
 
-	configFile := fmt.Sprintf("%s/%s/config", pipConfig.GetStateStorePath(""), name)
 	config := kubeConfig{}
-	if _, err := os.Stat(configFile); err == nil {
-		data, err := ioutil.ReadFile(configFile)
-		if err != nil {
-			return nil, err
-		}
-		if err := yaml.Unmarshal(data, &config); err != nil {
-			return nil, err
-		}
-	}
 	config.APIVersion = "v1"
 	config.Kind = "Config"
 
@@ -1287,12 +1313,10 @@ func storeConfig(c *kubernetesCluster, name string) ([]byte, error) {
 	// setup users
 	user := configUser{
 		User: userData{
-			Token:                 token,
-			Username:              username,
-			Password:              password,
-			ClientCertificateData: c.ClientCertificate,
-			ClientKeyData:         c.ClientKey,
-			AuthProvider:          provider,
+			Token:        token,
+			Username:     username,
+			Password:     password,
+			AuthProvider: provider,
 		},
 		Name: c.Name,
 	}
@@ -1338,15 +1362,8 @@ func storeConfig(c *kubernetesCluster, name string) ([]byte, error) {
 
 	data, err := yaml.Marshal(config)
 	if err != nil {
-		return nil, err
+		return nil, emperror.Wrap(err, "marshaling kubernetes config failed")
 	}
-
-	// TODO save or not save, this is the question
-	//fileToWrite := fmt.Sprintf("./statestore/%s/config", name)
-	//if err := utils.WriteToFile(data, fileToWrite); err != nil {
-	//	return nil, err
-	//}
-	//log.Infof("KubeConfig files is saved to %s", fileToWrite)
 
 	return data, nil
 }
@@ -1711,11 +1728,11 @@ func (c *GKECluster) getComputeService() (*gkeCompute.Service, error) {
 	//New client from credentials
 	client, err := c.newClientFromCredentials()
 	if err != nil {
-		return nil, err
+		return nil, emperror.Wrap(err, "creating http client failed")
 	}
 	service, err := gkeCompute.New(client)
 	if err != nil {
-		return nil, err
+		return nil, emperror.Wrap(err, "instantiating google compute service failed")
 	}
 	return service, nil
 }
@@ -1725,7 +1742,7 @@ func (c *GKECluster) newClientFromCredentials() (*http.Client, error) {
 	// Get Secret from Vault
 	clusterSecret, err := c.GetSecretWithValidation()
 	if err != nil {
-		return nil, err
+		return nil, emperror.Wrap(err, "retrieving cluster credentials secret failed")
 	}
 
 	// TODO https://github.com/mitchellh/mapstructure

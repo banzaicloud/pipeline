@@ -2,11 +2,12 @@
 
 
 [[projects]]
-  digest = "1:00e79d6128a3291e16e50c06b741dea303a14022a9ad0933e282b56f5718da25"
+  digest = "1:86d7a2bfbe354792669f27ba02e2d9d41388635850c6a23341eae12ad5ecabd3"
   name = "cloud.google.com/go"
   packages = [
     "compute/metadata",
     "iam",
+    "iam/credentials/apiv1",
     "internal",
     "internal/optional",
     "internal/trace",
@@ -14,8 +15,8 @@
     "storage",
   ]
   pruneopts = "NUT"
-  revision = "4b98a6370e36d7a85192e7bad08a4ebd82eac2a8"
-  version = "v0.20.0"
+  revision = "74b12019e2aa53ec27882158f59192d7cd6d1998"
+  version = "v0.33.1"
 
 [[projects]]
   digest = "1:e9b73c014740269d9db56dcedc41f757d63a78e53856abca0428ebcb51f8978b"
@@ -635,7 +636,7 @@
   revision = "66deaeb636dff1ac7d938ce666d090556056a4b0"
 
 [[projects]]
-  digest = "1:a23755086b1973f2296df39be6c44a8a909b61b86774acbe2d1f340d34942cc2"
+  digest = "1:5ae5b54d7cd695bafa92bf426b7c3d046f907260ec0fcb4fe5c368d937597c00"
   name = "github.com/golang/protobuf"
   packages = [
     "proto",
@@ -646,8 +647,8 @@
     "ptypes/timestamp",
   ]
   pruneopts = "NUT"
-  revision = "925541529c1fa6821df4e44ce2723319eb2be768"
-  version = "v1.0.0"
+  revision = "aa810b61a9c79d51363740d207bb46cf8e620ed5"
+  version = "v1.2.0"
 
 [[projects]]
   branch = "master"
@@ -1413,12 +1414,13 @@
   version = "v1.1"
 
 [[projects]]
-  digest = "1:79ffa15e0e8652e8ad775e46cfaa9134492a1e00964acbfdb0baf88c7094cc01"
+  digest = "1:b52fa5390c647456aef1fc8f093c077a6fff3465f30f095a0f8ce18ec2ac6e0c"
   name = "go.opencensus.io"
   packages = [
     "exporter/stackdriver/propagation",
     "internal",
     "internal/tagencoding",
+    "plugin/ocgrpc",
     "plugin/ochttp",
     "plugin/ochttp/propagation/b3",
     "stats",
@@ -1548,7 +1550,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:011b944fcb5ab92ec8a3433ea799bd1fe1f78eaa1c8aaa927b0c01ac136dc140"
+  digest = "1:393e5df46c55f0da1b1a32767ca6285510ea0d98b8f58bf17fb5af7d561a98ce"
   name = "google.golang.org/api"
   packages = [
     "cloudresourcemanager/v1",
@@ -1562,13 +1564,15 @@
     "iterator",
     "option",
     "storage/v1",
+    "transport",
+    "transport/grpc",
     "transport/http",
   ]
   pruneopts = "NUT"
   revision = "a213db537ac9b393526194a5c85ad6e546f7923f"
 
 [[projects]]
-  digest = "1:7206d98ec77c90c72ec2c405181a1dcf86965803b6dbc4f98ceab7a5047c37a9"
+  digest = "1:626ac4e70ef18262989f8c52503259109e1a2e5580d23aeae0f0e0349819dade"
   name = "google.golang.org/appengine"
   packages = [
     ".",
@@ -1579,7 +1583,9 @@
     "internal/log",
     "internal/modules",
     "internal/remote_api",
+    "internal/socket",
     "internal/urlfetch",
+    "socket",
     "urlfetch",
   ]
   pruneopts = "NUT"
@@ -1588,19 +1594,20 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:c076551166e317385a2b280934496f1d4afe2a52c68311565be19476ab977e93"
+  digest = "1:0d203622c926f268c2f51cfe7622ff74343a5833784e5eac7bc8c764228c556e"
   name = "google.golang.org/genproto"
   packages = [
     "googleapis/api/annotations",
+    "googleapis/iam/credentials/v1",
     "googleapis/iam/v1",
     "googleapis/rpc/code",
     "googleapis/rpc/status",
   ]
   pruneopts = "NUT"
-  revision = "ce84044298496ef4b54b4a0a0909ba593cc60e30"
+  revision = "b5d43981345bdb2c233eb4bf3277847b48c6fdc6"
 
 [[projects]]
-  digest = "1:4146656a003b3753a1c21be22576628b99fa41c9487c826f3316eb0939d29fe9"
+  digest = "1:b140f21b83859b16d263fc34fc316076af1c3e1661d92018a105a8cbf2f24d1e"
   name = "google.golang.org/grpc"
   packages = [
     ".",
@@ -1610,6 +1617,7 @@
     "codes",
     "connectivity",
     "credentials",
+    "credentials/oauth",
     "encoding",
     "encoding/proto",
     "grpclb/grpc_lb_v1/messages",
@@ -1811,7 +1819,7 @@
   revision = "f4a9d31325865f18b8023622a564578f079d582b"
 
 [[projects]]
-  digest = "1:7d2d718664b295b923c3928a5fc0a658f38568b35debcff33c370aa87251bd7a"
+  digest = "1:bee4c3962ff00d97ed072c20f02ea764f5e8493754eed231e66fb3145e3df7c4"
   name = "k8s.io/client-go"
   packages = [
     "discovery",
@@ -1854,6 +1862,7 @@
     "pkg/apis/clientauthentication/v1beta1",
     "pkg/version",
     "plugin/pkg/client/auth/exec",
+    "plugin/pkg/client/auth/gcp",
     "rest",
     "rest/watch",
     "restmapper",
@@ -2115,6 +2124,7 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "cloud.google.com/go/iam/credentials/apiv1",
     "cloud.google.com/go/storage",
     "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-04-01/compute",
     "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice",
@@ -2179,6 +2189,7 @@
     "github.com/gin-contrib/cors",
     "github.com/gin-gonic/gin",
     "github.com/gin-gonic/gin/json",
+    "github.com/golang/protobuf/ptypes/duration",
     "github.com/google/go-github/github",
     "github.com/goph/emperror",
     "github.com/goph/emperror/errorlogrus",
@@ -2235,6 +2246,7 @@
     "google.golang.org/api/iterator",
     "google.golang.org/api/option",
     "google.golang.org/api/storage/v1",
+    "google.golang.org/genproto/googleapis/iam/credentials/v1",
     "gopkg.in/yaml.v2",
     "k8s.io/api/autoscaling/v2beta1",
     "k8s.io/api/core/v1",
@@ -2254,8 +2266,10 @@
     "k8s.io/apimachinery/pkg/util/validation",
     "k8s.io/client-go/kubernetes",
     "k8s.io/client-go/kubernetes/scheme",
+    "k8s.io/client-go/plugin/pkg/client/auth/gcp",
     "k8s.io/client-go/rest",
     "k8s.io/client-go/tools/clientcmd",
+    "k8s.io/client-go/tools/clientcmd/api",
     "k8s.io/client-go/tools/clientcmd/api/v1",
     "k8s.io/client-go/transport",
     "k8s.io/helm/cmd/helm/installer",
