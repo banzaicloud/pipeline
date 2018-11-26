@@ -19,7 +19,7 @@ type CreateBucketRequest struct {
 	Cloud      string `json:"cloud" binding:"required"`
 	BucketName string `json:"bucketName" binding:"required"`
 	SecretID   string `json:"secretId" binding:"required"`
-	Location   string `json:"location" binding:"required"`
+	Location   string `json:"location"`
 
 	AzureBucketProperties `json:"azure"`
 }
