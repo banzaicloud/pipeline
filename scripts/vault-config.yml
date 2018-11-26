@@ -1,4 +1,9 @@
 secrets:
+  - path: secret
+    type: kv
+    description: General secrets.
+    options:
+      version: 2
   - type: database
     description: MySQL Database secret engine.
     configuration:
