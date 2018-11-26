@@ -218,7 +218,7 @@ func init() {
 
 	// empty string means the latest version of the chart will be installed
 	viper.SetDefault(LoggingOperatorChartVersion, "")
-	viper.SetDefault(LoggingOperatorImageTag, "0.0.4")
+	viper.SetDefault(LoggingOperatorImageTag, "0.0.5")
 
 	viper.BindEnv(ControlPlaneNamespace, "KUBERNETES_NAMESPACE")
 	viper.SetDefault(ControlPlaneNamespace, "default")

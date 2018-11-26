@@ -24,9 +24,11 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"text/template"
 	"time"
 
 	"github.com/Masterminds/semver"
+	"github.com/Masterminds/sprig"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/client"
 	"github.com/banzaicloud/pipeline/config"
@@ -574,9 +576,40 @@ func enableCICD(request *LaunchRequest, httpRequest *http.Request) error {
 	return nil
 }
 
-func createDroneRepoConfig(initConfig []byte, request *LaunchRequest) (*droneRepoConfig, error) {
+func createDroneRepoConfig(pipelineYAML []byte, request *LaunchRequest) (*droneRepoConfig, error) {
+	// Pre-process pipeline.yaml
+	yamlTemplate, err := template.New("pipeline.yaml").
+		Delims("{{{{", "}}}}").
+		Funcs(sprig.TxtFuncMap()).
+		Parse(string(pipelineYAML))
+	if err != nil {
+		return nil, emperror.Wrap(err, "failed to setup sprig template for pipeline.yaml")
+	}
+	buffer := bytes.NewBuffer(nil)
+
+	data := map[string]map[string]interface{}{}
+	cluster := map[string]interface{}{}
+	pipeline := map[string]interface{}{}
+
+	err = mergo.Map(&cluster, request.Cluster)
+	if err != nil {
+		return nil, emperror.Wrap(err, "failed to merge cluster into sprig template data")
+	}
+	err = mergo.Merge(&pipeline, request.Pipeline)
+	if err != nil {
+		return nil, emperror.Wrap(err, "failed to merge pipline into sprig template data")
+	}
+
+	data["cluster"] = cluster
+	data["pipeline"] = pipeline
+
+	err = yamlTemplate.Execute(buffer, data)
+	if err != nil {
+		return nil, emperror.Wrap(err, "failed to evaluate sprig template for pipeline.yaml")
+	}
+
 	repoConfig := new(droneRepoConfig)
-	if err := yaml.Unmarshal(initConfig, repoConfig); err != nil {
+	if err := yaml.Unmarshal(buffer.Bytes(), repoConfig); err != nil {
 		return nil, errors.Wrap(err, "failed to unmarshal initial config")
 	}
 
