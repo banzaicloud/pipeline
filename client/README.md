@@ -101,11 +101,14 @@ Class | Method | HTTP request | Description
 *ProjectsApi* | [**GetProjects**](docs/ProjectsApi.md#getprojects) | **Get** /api/v1/orgs/{orgId}/google/projects | Retrieves projects visible for the user identified by the secret id
 *ScanlogApi* | [**ListScans**](docs/ScanlogApi.md#listscans) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/scanlog | List scans
 *ScanlogApi* | [**ListScansByRelease**](docs/ScanlogApi.md#listscansbyrelease) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/scanlog/{releaseName} | List scans by release
+*SecretsApi* | [**AddSecretTag**](docs/SecretsApi.md#addsecrettag) | **Put** /api/v1/orgs/{orgId}/secrets/{secretId}/tags/{tag} | Add a tag to a secret
 *SecretsApi* | [**AddSecrets**](docs/SecretsApi.md#addsecrets) | **Post** /api/v1/orgs/{orgId}/secrets | Add secrets
 *SecretsApi* | [**AllowedSecretsTypes**](docs/SecretsApi.md#allowedsecretstypes) | **Get** /api/v1/allowed/secrets | List allowed secret types
 *SecretsApi* | [**AllowedSecretsTypesKeys**](docs/SecretsApi.md#allowedsecretstypeskeys) | **Get** /api/v1/allowed/secrets/{type} | List required keys
+*SecretsApi* | [**DeleteSecretTag**](docs/SecretsApi.md#deletesecrettag) | **Delete** /api/v1/orgs/{orgId}/secrets/{secretId}/tags/{tag} | Delete a tag from a secret
 *SecretsApi* | [**DeleteSecrets**](docs/SecretsApi.md#deletesecrets) | **Delete** /api/v1/orgs/{orgId}/secrets/{secretId} | Delete secrets
 *SecretsApi* | [**GetSecret**](docs/SecretsApi.md#getsecret) | **Get** /api/v1/orgs/{orgId}/secrets/{secretId} | Get secret
+*SecretsApi* | [**GetSecretTags**](docs/SecretsApi.md#getsecrettags) | **Get** /api/v1/orgs/{orgId}/secrets/{secretId}/tags | Get the tags of a secret
 *SecretsApi* | [**GetSecrets**](docs/SecretsApi.md#getsecrets) | **Get** /api/v1/orgs/{orgId}/secrets | List secrets
 *SecretsApi* | [**UpdateSecrets**](docs/SecretsApi.md#updatesecrets) | **Put** /api/v1/orgs/{orgId}/secrets/{secretId} | Update secrets
 *SecretsApi* | [**ValidateSecret**](docs/SecretsApi.md#validatesecret) | **Get** /api/v1/orgs/{orgId}/secrets/{secretId}/validate | Validate secret
@@ -306,6 +309,7 @@ Class | Method | HTTP request | Description
  - [SecretKeyValueKubernetes](docs/SecretKeyValueKubernetes.md)
  - [SecretKeyValueOracle](docs/SecretKeyValueOracle.md)
  - [SecretKeyValueTls](docs/SecretKeyValueTls.md)
+ - [SecretTags](docs/SecretTags.md)
  - [SecretsNotFound](docs/SecretsNotFound.md)
  - [SpotguideDetailsResponse](docs/SpotguideDetailsResponse.md)
  - [SpotguideNotFound](docs/SpotguideNotFound.md)
