@@ -408,11 +408,11 @@ func AddSecretTag(c *gin.Context) {
 	tag := c.Param("tag")
 	log.Debugf("adding secret tag: %s to %d/%s", tag, organizationID, secretID)
 
-	if strings.HasPrefix(tag, "banzaicloud:") {
+	if strings.HasPrefix(tag, "banzai:") {
 		log.Errorf("error during secret tag add, restricted tag: %s", tag)
 		c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
-			Message: "Adding 'banzaicloud:*' tag is restricted",
+			Message: "Adding 'banzai:*' tag is restricted",
 		})
 		return
 	}
@@ -463,11 +463,11 @@ func DeleteSecretTag(c *gin.Context) {
 	tag := c.Param("tag")
 	log.Debugf("deleting secret tag: %s from %d/%s", tag, organizationID, secretID)
 
-	if strings.HasPrefix(tag, "banzaicloud:") {
+	if strings.HasPrefix(tag, "banzai:") {
 		log.Errorf("error during secret tag delete, restricted tag: %s", tag)
 		c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
-			Message: "Deleting 'banzaicloud:*' tag is restricted",
+			Message: "Deleting 'banzai:*' tag is restricted",
 		})
 		return
 	}
