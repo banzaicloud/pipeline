@@ -25,6 +25,7 @@ import (
 	"net/http"
 	"path"
 
+	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/goph/emperror"
 	"github.com/spf13/viper"
@@ -211,6 +212,9 @@ func SetupAnchoreUser(orgId uint, clusterId string) (*User, error) {
 			Values: map[string]string{
 				"username": anchoreUserName,
 				"password": "",
+			},
+			Tags: []string{
+				secretTypes.TagBanzaiHidden,
 			},
 		}
 		secretId, err := secret.Store.CreateOrUpdate(orgId, &secretRequest)
