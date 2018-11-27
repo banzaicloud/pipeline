@@ -3373,6 +3373,179 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/BaseError_500'
 
+    '/api/v1/orgs/{orgId}/secrets/{secretId}/tags':
+        get:
+            security:
+                -
+                    bearerAuth: []
+            tags:
+                - secrets
+            summary: Get the tags of a secret
+            operationId: GetSecretTags
+            description: Get the tags of a secret
+            parameters:
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: secretId
+                    in: path
+                    required: true
+                    description: Secret identification
+                    schema:
+                        type: string
+            responses:
+                '200':
+                    description: Secret tags returned successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/SecretTags'
+                '401':
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Unauthorized'
+                '404':
+                    description: Secret not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/SecretsNotFound'
+                '500':
+                    description: Internal server error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BaseError_500'
+
+    '/api/v1/orgs/{orgId}/secrets/{secretId}/tags/{tag}':
+        put:
+            security:
+                -
+                    bearerAuth: []
+            tags:
+                - secrets
+            summary: Add a tag to a secret
+            operationId: AddSecretTag
+            description: Add a tag to a secret
+            parameters:
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: secretId
+                    in: path
+                    required: true
+                    description: Secret identification
+                    schema:
+                        type: string
+                -
+                    name: tag
+                    in: path
+                    required: true
+                    description: Tag
+                    schema:
+                        type: string
+            responses:
+                '200':
+                    description: Secret tags returned successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/SecretTags'
+                '400':
+                    description: Bad request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BaseError_400'
+                '401':
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Unauthorized'
+                '404':
+                    description: Secret not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/SecretsNotFound'
+                '500':
+                    description: Internal server error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BaseError_500'
+        delete:
+            security:
+                -
+                    bearerAuth: []
+            tags:
+                - secrets
+            summary: Delete a tag from a secret
+            operationId: DeleteSecretTag
+            description: Delete a tag from a secret
+            parameters:
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: secretId
+                    in: path
+                    required: true
+                    description: Secret identification
+                    schema:
+                        type: string
+                -
+                    name: tag
+                    in: path
+                    required: true
+                    description: Tag
+                    schema:
+                        type: string
+            responses:
+                '204':
+                    description: Secret tag deleted successfully
+                '400':
+                    description: Bad request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BaseError_400'
+                '401':
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Unauthorized'
+                '404':
+                    description: Secret not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/SecretsNotFound'
+                '500':
+                    description: Internal server error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BaseError_500'
+
     '/api/v1/orgs/{orgId}':
         get:
             security:
@@ -6478,6 +6651,12 @@ components:
                         token_uri: "<hidden>"
                         auth_provider_x509_cert_url: "<hidden>"
                         client_x509_cert_url: "<hidden>"
+
+        SecretTags:
+            type: array
+            items:
+                type: string
+            example: [ "scope:tag1", "scope:tag2" ]
 
         CreateSecretResponse:
             type: object

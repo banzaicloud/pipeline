@@ -4,15 +4,48 @@ All URIs are relative to *http://localhost:9090*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
+[**AddSecretTag**](SecretsApi.md#AddSecretTag) | **Put** /api/v1/orgs/{orgId}/secrets/{secretId}/tags/{tag} | Add a tag to a secret
 [**AddSecrets**](SecretsApi.md#AddSecrets) | **Post** /api/v1/orgs/{orgId}/secrets | Add secrets
 [**AllowedSecretsTypes**](SecretsApi.md#AllowedSecretsTypes) | **Get** /api/v1/allowed/secrets | List allowed secret types
 [**AllowedSecretsTypesKeys**](SecretsApi.md#AllowedSecretsTypesKeys) | **Get** /api/v1/allowed/secrets/{type} | List required keys
+[**DeleteSecretTag**](SecretsApi.md#DeleteSecretTag) | **Delete** /api/v1/orgs/{orgId}/secrets/{secretId}/tags/{tag} | Delete a tag from a secret
 [**DeleteSecrets**](SecretsApi.md#DeleteSecrets) | **Delete** /api/v1/orgs/{orgId}/secrets/{secretId} | Delete secrets
 [**GetSecret**](SecretsApi.md#GetSecret) | **Get** /api/v1/orgs/{orgId}/secrets/{secretId} | Get secret
+[**GetSecretTags**](SecretsApi.md#GetSecretTags) | **Get** /api/v1/orgs/{orgId}/secrets/{secretId}/tags | Get the tags of a secret
 [**GetSecrets**](SecretsApi.md#GetSecrets) | **Get** /api/v1/orgs/{orgId}/secrets | List secrets
 [**UpdateSecrets**](SecretsApi.md#UpdateSecrets) | **Put** /api/v1/orgs/{orgId}/secrets/{secretId} | Update secrets
 [**ValidateSecret**](SecretsApi.md#ValidateSecret) | **Get** /api/v1/orgs/{orgId}/secrets/{secretId}/validate | Validate secret
 
+
+# **AddSecretTag**
+> SecretTags AddSecretTag(ctx, orgId, secretId, tag)
+Add a tag to a secret
+
+Add a tag to a secret
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+  **orgId** | **int32**| Organization identification | 
+  **secretId** | **string**| Secret identification | 
+  **tag** | **string**| Tag | 
+
+### Return type
+
+[**SecretTags**](SecretTags.md)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **AddSecrets**
 > CreateSecretResponse AddSecrets(ctx, orgId, createSecretRequest, optional)
@@ -105,6 +138,36 @@ Name | Type | Description  | Notes
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **DeleteSecretTag**
+> DeleteSecretTag(ctx, orgId, secretId, tag)
+Delete a tag from a secret
+
+Delete a tag from a secret
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+  **orgId** | **int32**| Organization identification | 
+  **secretId** | **string**| Secret identification | 
+  **tag** | **string**| Tag | 
+
+### Return type
+
+ (empty response body)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **DeleteSecrets**
 > DeleteSecrets(ctx, orgId, secretId)
 Delete secrets
@@ -151,6 +214,35 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**SecretItem**](SecretItem.md)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **GetSecretTags**
+> SecretTags GetSecretTags(ctx, orgId, secretId)
+Get the tags of a secret
+
+Get the tags of a secret
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+  **orgId** | **int32**| Organization identification | 
+  **secretId** | **string**| Secret identification | 
+
+### Return type
+
+[**SecretTags**](SecretTags.md)
 
 ### Authorization
 

@@ -388,6 +388,7 @@ func parseSecret(secretID string, secret *vaultapi.Secret, values bool) (*Secret
 		ID:        secretID,
 		Version:   int(version),
 		UpdatedAt: updatedAt,
+		Tags:      []string{},
 	}
 
 	if err := mapstructure.Decode(data["value"], &response); err != nil {
