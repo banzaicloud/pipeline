@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
@@ -380,6 +381,136 @@ func DeleteSecrets(c *gin.Context) {
 	}
 }
 
+// GetSecretTags returns tags of a secret by ID
+func GetSecretTags(c *gin.Context) {
+	organizationID := auth.GetCurrentOrganization(c.Request).ID
+	secretID := c.Param("id")
+	log.Debugf("getting secret tags: %d/%s", organizationID, secretID)
+
+	existingSecret, err := secret.RestrictedStore.Get(organizationID, secretID)
+	if err != nil {
+		log.Errorf("error during getting secret: %s", err.Error())
+		c.AbortWithStatusJSON(http.StatusNotFound, common.ErrorResponse{
+			Code:    http.StatusNotFound,
+			Message: "Error during getting secret",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, existingSecret.Tags)
+}
+
+// AddSecretTag adds a tag to a given secret in Vault
+func AddSecretTag(c *gin.Context) {
+	organizationID := auth.GetCurrentOrganization(c.Request).ID
+	secretID := c.Param("id")
+	tag := c.Param("tag")
+	log.Debugf("adding secret tag: %s to %d/%s", tag, organizationID, secretID)
+
+	if strings.HasPrefix(tag, "banzaicloud:") {
+		log.Errorf("error during secret tag add, restricted tag: %s", tag)
+		c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Adding 'banzaicloud:*' tag is restricted",
+		})
+		return
+	}
+
+	existingSecret, err := secret.RestrictedStore.Get(organizationID, secretID)
+	if err != nil {
+		log.Errorf("error during getting secret: %s", err.Error())
+		c.AbortWithStatusJSON(http.StatusNotFound, common.ErrorResponse{
+			Code:    http.StatusNotFound,
+			Message: "Error during getting secret",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	createSecretRequest := secret.CreateSecretRequest{
+		Name:      existingSecret.Name,
+		Type:      existingSecret.Type,
+		Values:    existingSecret.Values,
+		Tags:      addElement(existingSecret.Tags, tag),
+		Version:   &existingSecret.Version,
+		UpdatedBy: auth.GetCurrentUser(c.Request).Login,
+	}
+
+	if err := secret.RestrictedStore.Update(organizationID, secretID, &createSecretRequest); err != nil {
+		statusCode := http.StatusInternalServerError
+		if secret.IsCASError(err) {
+			statusCode = http.StatusBadRequest
+		}
+
+		log.Errorf("error during update: %s", err.Error())
+		c.AbortWithStatusJSON(statusCode, common.ErrorResponse{
+			Code:    statusCode,
+			Message: "Error during update",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	log.Debugf("added secret tag: %s to %d/%s", tag, organizationID, secretID)
+	c.JSON(http.StatusOK, createSecretRequest.Tags)
+}
+
+// DeleteSecretTag removes a tag from a given secret in Vault
+func DeleteSecretTag(c *gin.Context) {
+	organizationID := auth.GetCurrentOrganization(c.Request).ID
+	secretID := c.Param("id")
+	tag := c.Param("tag")
+	log.Debugf("deleting secret tag: %s from %d/%s", tag, organizationID, secretID)
+
+	if strings.HasPrefix(tag, "banzaicloud:") {
+		log.Errorf("error during secret tag delete, restricted tag: %s", tag)
+		c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Deleting 'banzaicloud:*' tag is restricted",
+		})
+		return
+	}
+
+	existingSecret, err := secret.RestrictedStore.Get(organizationID, secretID)
+	if err != nil {
+		log.Errorf("error during getting secret: %s", err.Error())
+		c.AbortWithStatusJSON(http.StatusNotFound, common.ErrorResponse{
+			Code:    http.StatusNotFound,
+			Message: "Error during getting secret",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	createSecretRequest := secret.CreateSecretRequest{
+		Name:      existingSecret.Name,
+		Type:      existingSecret.Type,
+		Values:    existingSecret.Values,
+		Tags:      removeElement(existingSecret.Tags, tag),
+		Version:   &existingSecret.Version,
+		UpdatedBy: auth.GetCurrentUser(c.Request).Login,
+	}
+
+	if err := secret.RestrictedStore.Update(organizationID, secretID, &createSecretRequest); err != nil {
+		statusCode := http.StatusInternalServerError
+		if secret.IsCASError(err) {
+			statusCode = http.StatusBadRequest
+		}
+
+		log.Errorf("error during update: %s", err.Error())
+		c.AbortWithStatusJSON(statusCode, common.ErrorResponse{
+			Code:    statusCode,
+			Message: "Error during update",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	log.Debugf("deleted secret tag: %s from %d/%s", tag, organizationID, secretID)
+	c.Status(http.StatusNoContent)
+}
+
 // ListAllowedSecretTypes returns the allowed secret types and the required keys
 func ListAllowedSecretTypes(c *gin.Context) {
 
@@ -446,4 +577,22 @@ func checkClustersBeforeDelete(orgId uint, secretId string) error {
 	}
 
 	return nil
+}
+
+func addElement(s []string, v string) []string {
+	for _, vv := range s {
+		if vv == v {
+			return s
+		}
+	}
+	return append(s, v)
+}
+
+func removeElement(s []string, v string) []string {
+	for i, vv := range s {
+		if vv == v {
+			s = append(s[:i], s[i+1:]...)
+		}
+	}
+	return s
 }

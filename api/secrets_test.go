@@ -384,6 +384,7 @@ var (
 			Name:    secretNameAzure,
 			Type:    clusterTypes.Azure,
 			Values:  toHiddenValues(clusterTypes.Azure),
+			Tags:    []string{},
 			Version: 1,
 		},
 	}
@@ -394,6 +395,7 @@ var (
 			Name:    secretNameGoogle,
 			Type:    clusterTypes.Google,
 			Values:  toHiddenValues(clusterTypes.Google),
+			Tags:    []string{},
 			Version: 1,
 		},
 	}
@@ -404,6 +406,7 @@ var (
 			Name:    secretNameOracle,
 			Type:    clusterTypes.Oracle,
 			Values:  toHiddenValues(clusterTypes.Oracle),
+			Tags:    []string{},
 			Version: 1,
 		},
 	}
@@ -414,6 +417,7 @@ var (
 			Name:    secretNameGoogle,
 			Type:    clusterTypes.Google,
 			Values:  toHiddenValues(clusterTypes.Google),
+			Tags:    []string{},
 			Version: 1,
 		},
 		{
@@ -421,6 +425,7 @@ var (
 			Name:    secretNameAzure,
 			Type:    clusterTypes.Azure,
 			Values:  toHiddenValues(clusterTypes.Azure),
+			Tags:    []string{},
 			Version: 1,
 		}, {
 			ID:      secretIdAmazon,
@@ -434,6 +439,7 @@ var (
 			Name:    secretNameOracle,
 			Type:    clusterTypes.Oracle,
 			Values:  toHiddenValues(clusterTypes.Oracle),
+			Tags:    []string{},
 			Version: 1,
 		},
 	}
