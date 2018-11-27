@@ -405,8 +405,16 @@ func GetSecretTags(c *gin.Context) {
 func AddSecretTag(c *gin.Context) {
 	organizationID := auth.GetCurrentOrganization(c.Request).ID
 	secretID := c.Param("id")
-	tag := c.Param("tag")
+	tag := strings.Trim(c.Param("tag"), "/")
 	log.Debugf("adding secret tag: %s to %d/%s", tag, organizationID, secretID)
+
+	if tag == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Tag can not be empty",
+		})
+		return
+	}
 
 	if strings.HasPrefix(tag, "banzai:") {
 		log.Errorf("error during secret tag add, restricted tag: %s", tag)
@@ -460,8 +468,16 @@ func AddSecretTag(c *gin.Context) {
 func DeleteSecretTag(c *gin.Context) {
 	organizationID := auth.GetCurrentOrganization(c.Request).ID
 	secretID := c.Param("id")
-	tag := c.Param("tag")
+	tag := strings.Trim(c.Param("tag"), "/")
 	log.Debugf("deleting secret tag: %s from %d/%s", tag, organizationID, secretID)
+
+	if tag == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Tag can not be empty",
+		})
+		return
+	}
 
 	if strings.HasPrefix(tag, "banzai:") {
 		log.Errorf("error during secret tag delete, restricted tag: %s", tag)
