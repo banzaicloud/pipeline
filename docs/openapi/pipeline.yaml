@@ -3463,6 +3463,12 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/SecretTags'
+                '400':
+                    description: Bad request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BaseError_400'
                 '401':
                     description: Unauthorized
                     content:
@@ -3516,7 +3522,7 @@ paths:
                 '204':
                     description: Secret tag deleted successfully
                 '400':
-                    description: Error during deleting secret tag
+                    description: Bad request
                     content:
                         application/json:
                             schema:
