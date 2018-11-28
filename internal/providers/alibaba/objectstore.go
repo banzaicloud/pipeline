@@ -219,6 +219,8 @@ func (os *objectStore) ListManagedBuckets() ([]*objectstore.BucketInfo, error) {
 			Name:      bucket.Name,
 			Location:  bucket.Region,
 			SecretRef: bucket.SecretRef,
+			Status:    bucket.Status,
+			StatusMsg: bucket.StatusMsg,
 		})
 	}
 
