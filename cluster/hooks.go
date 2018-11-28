@@ -224,9 +224,13 @@ func InstallMonitoring(input interface{}) error {
 	if err != nil {
 		return errors.Errorf("Json Convert Failed : %s", err.Error())
 	}
-	cluster.SetMonitoring(true)
 
-	return installDeployment(cluster, grafanaNamespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-monitor", pipConfig.MonitorReleaseName, grafanaValuesJson, "", false)
+	err = installDeployment(cluster, grafanaNamespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-monitor", pipConfig.MonitorReleaseName, grafanaValuesJson, "", false)
+	if err != nil {
+		return emperror.Wrap(err, "install pipeline-cluster-monito failed")
+	}
+	cluster.SetMonitoring(true)
+	return nil
 }
 
 type imageValues struct {
@@ -246,7 +250,7 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 	var loggingParam pkgCluster.LoggingParam
 	err := castToPostHookParam(&param, &loggingParam)
 	if err != nil {
-		return err
+		return emperror.Wrap(err, "porthook param failed")
 	}
 	// This makes no sense since we can't check if it default false or set false
 	//if !checkIfTLSRelatedValuesArePresent(&loggingParam.GenTLSForLogging) {
@@ -317,11 +321,9 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 	}
 
 	chartVersion := viper.GetString(pipConfig.LoggingOperatorChartVersion)
-	cluster.SetLogging(true)
-
 	err = installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/logging-operator", pipConfig.LoggingReleaseName, operatorYamlValues, chartVersion, true)
 	if err != nil {
-		return err
+		return emperror.Wrap(err, "install logging-operator failed")
 	}
 
 	// Determine the type of output plugin
@@ -334,7 +336,7 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 	case pkgCluster.Amazon:
 		installedSecretValues, err := InstallSecrets(cluster, &pkgSecret.ListSecretsQuery{IDs: []string{loggingParam.SecretId}}, loggingParam.GenTLSForLogging.Namespace)
 		if err != nil {
-			return err
+			return emperror.Wrap(err, "install amazon secret failed")
 		}
 		loggingValues := map[string]interface{}{
 			"bucketName": loggingParam.BucketName,
@@ -345,13 +347,16 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 		}
 		marshaledValues, err := yaml.Marshal(loggingValues)
 		if err != nil {
-			return err
+			return emperror.Wrap(err, "marshaling failed")
 		}
-		return installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/s3-output", "pipeline-s3-output", marshaledValues, "", false)
+		err = installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/s3-output", "pipeline-s3-output", marshaledValues, "", false)
+		if err != nil {
+			return emperror.Wrap(err, "install s3-output failed")
+		}
 	case pkgCluster.Google:
 		installedSecretValues, err := InstallSecrets(cluster, &pkgSecret.ListSecretsQuery{IDs: []string{loggingParam.SecretId}}, loggingParam.GenTLSForLogging.Namespace)
 		if err != nil {
-			return err
+			return emperror.Wrap(err, "install google secret failed")
 		}
 		loggingValues := map[string]interface{}{
 			"bucketName": loggingParam.BucketName,
@@ -361,9 +366,12 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 		}
 		marshaledValues, err := yaml.Marshal(loggingValues)
 		if err != nil {
-			return err
+			return emperror.Wrap(err, "marshaling failed")
 		}
-		return installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/gcs-output", "pipeline-gcs-output", marshaledValues, "", false)
+		err = installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/gcs-output", "pipeline-gcs-output", marshaledValues, "", false)
+		if err != nil {
+			return emperror.Wrap(err, "install gcs-output failed")
+		}
 	case pkgCluster.Alibaba:
 		installedSecretValues, err := InstallSecrets(cluster, &pkgSecret.ListSecretsQuery{IDs: []string{loggingParam.SecretId}}, loggingParam.GenTLSForLogging.Namespace)
 		if err != nil {
@@ -382,12 +390,15 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 		if err != nil {
 			return emperror.Wrap(err, "could not marshal alibaba logging values")
 		}
-		return installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/oss-output", "pipeline-oss-output", marshaledValues, "", false)
+		err = installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/oss-output", "pipeline-oss-output", marshaledValues, "", false)
+		if err != nil {
+			return emperror.Wrap(err, "install oss-output failed")
+		}
 	case pkgCluster.Azure:
 
 		sak, err := azure.GetStorageAccountKey(loggingParam.ResourceGroup, loggingParam.StorageAccount, logSecret, log)
 		if err != nil {
-			return err
+			return emperror.Wrap(err, "get storage account key failed")
 		}
 
 		clusterUidTag := fmt.Sprintf("clusterUID:%s", cluster.GetUID())
@@ -431,16 +442,19 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 
 		marshaledValues, err := yaml.Marshal(loggingValues)
 		if err != nil {
-			return err
+			return emperror.Wrap(err, "marshaling failed")
 		}
 
-		return installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/azure-output", "pipeline-azure-output", marshaledValues, "", false)
-
+		err = installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/azure-output", "pipeline-azure-output", marshaledValues, "", false)
+		if err != nil {
+			return emperror.Wrap(err, "install azure-output failed")
+		}
 	default:
 		return fmt.Errorf("unexpected logging secret type: %s", logSecret.Type)
 	}
 	// Install output related secret
-
+	cluster.SetLogging(true)
+	return nil
 }
 
 func castToPostHookParam(data *pkgCluster.PostHookParam, output interface{}) (err error) {
@@ -816,7 +830,7 @@ func InstallAnchoreImageValidator(input interface{}) error {
 
 	anchoreUser, err := anchore.SetupAnchoreUser(cluster.GetOrganizationId(), cluster.GetUID())
 	if err != nil {
-		return err
+		return emperror.Wrap(err, "setup anchore user failed")
 	}
 
 	infraNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
@@ -832,11 +846,15 @@ func InstallAnchoreImageValidator(input interface{}) error {
 	}
 	marshalledValues, err := yaml.Marshal(values)
 	if err != nil {
-		return err
+		return emperror.Wrap(err, "marshaling failed")
+	}
+
+	err = installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/anchore-policy-validator", "anchore", marshalledValues, "", true)
+	if err != nil {
+		return emperror.Wrap(err, "install anchore-policy-validator failed")
 	}
 	cluster.SetSecurityScan(true)
-
-	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/anchore-policy-validator", "anchore", marshalledValues, "", true)
+	return nil
 }
 
 //InstallHelmPostHook this posthook installs the helm related things
