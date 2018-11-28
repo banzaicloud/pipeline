@@ -443,7 +443,7 @@ func createGithubRepo(githubClient *github.Client, request *LaunchRequest, userI
 
 	repo := github.Repository{
 		Name:        github.String(request.RepoName),
-		Description: github.String("Spotguide by BanzaiCloud"),
+		Description: github.String("Spotguide by Banzai Cloud"),
 		Private:     github.Bool(request.RepoPrivate),
 	}
 
