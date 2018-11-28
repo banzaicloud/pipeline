@@ -602,6 +602,26 @@ func (o *OKECluster) SetSecurityScan(scan bool) {
 	o.modelCluster.SecurityScan = scan
 }
 
+// GetLogging returns true if logging enabled on the cluster
+func (o *OKECluster) GetLogging() bool {
+	return o.modelCluster.Logging
+}
+
+// SetLogging returns true if logging enabled on the cluster
+func (o *OKECluster) SetLogging(l bool) {
+	o.modelCluster.Logging = l
+}
+
+// GetMonitoring returns true if momnitoring enabled on the cluster
+func (o *OKECluster) GetMonitoring() bool {
+	return o.modelCluster.Monitoring
+}
+
+// SetMonitoring returns true if monitoring enabled on the cluster
+func (o *OKECluster) SetMonitoring(l bool) {
+	o.modelCluster.Monitoring = l
+}
+
 // NeedAdminRights returns true if rbac is enabled and need to create a cluster role binding to user
 func (o *OKECluster) NeedAdminRights() bool {
 	return true

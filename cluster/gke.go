@@ -2041,6 +2041,26 @@ func (c *GKECluster) SetSecurityScan(scan bool) {
 	c.model.Cluster.SecurityScan = scan
 }
 
+// GetLogging returns true if logging enabled on the cluster
+func (c *GKECluster) GetLogging() bool {
+	return c.model.Cluster.Logging
+}
+
+// SetLogging returns true if logging enabled on the cluster
+func (c *GKECluster) SetLogging(l bool) {
+	c.model.Cluster.Logging = l
+}
+
+// GetMonitoring returns true if momnitoring enabled on the cluster
+func (c *GKECluster) GetMonitoring() bool {
+	return c.model.Cluster.Monitoring
+}
+
+// SetMonitoring returns true if monitoring enabled on the cluster
+func (c *GKECluster) SetMonitoring(l bool) {
+	c.model.Cluster.Monitoring = l
+}
+
 // NeedAdminRights returns true if rbac is enabled and need to create a cluster role binding to user
 func (c *GKECluster) NeedAdminRights() bool {
 	return false

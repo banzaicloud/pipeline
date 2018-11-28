@@ -224,6 +224,7 @@ func InstallMonitoring(input interface{}) error {
 	if err != nil {
 		return errors.Errorf("Json Convert Failed : %s", err.Error())
 	}
+	cluster.SetMonitoring(true)
 
 	return installDeployment(cluster, grafanaNamespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-monitor", pipConfig.MonitorReleaseName, grafanaValuesJson, "", false)
 }
@@ -316,6 +317,7 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 	}
 
 	chartVersion := viper.GetString(pipConfig.LoggingOperatorChartVersion)
+	cluster.SetLogging(true)
 
 	err = installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/logging-operator", pipConfig.LoggingReleaseName, operatorYamlValues, chartVersion, true)
 	if err != nil {

@@ -1093,7 +1093,7 @@ func (c *EKSCluster) RbacEnabled() bool {
 	return c.modelCluster.RbacEnabled
 }
 
-// SecurityScan returns true if security scan enabled on the cluster
+// GetSecurityScan returns true if security scan enabled on the cluster
 func (c *EKSCluster) GetSecurityScan() bool {
 	return c.modelCluster.SecurityScan
 }
@@ -1101,6 +1101,26 @@ func (c *EKSCluster) GetSecurityScan() bool {
 // SetSecurityScan returns true if security scan enabled on the cluster
 func (c *EKSCluster) SetSecurityScan(scan bool) {
 	c.modelCluster.SecurityScan = scan
+}
+
+// GetLogging returns true if logging enabled on the cluster
+func (c *EKSCluster) GetLogging() bool {
+	return c.modelCluster.Logging
+}
+
+// SetLogging returns true if logging enabled on the cluster
+func (c *EKSCluster) SetLogging(l bool) {
+	c.modelCluster.Logging = l
+}
+
+// GetMonitoring returns true if momnitoring enabled on the cluster
+func (c *EKSCluster) GetMonitoring() bool {
+	return c.modelCluster.Monitoring
+}
+
+// SetMonitoring returns true if monitoring enabled on the cluster
+func (c *EKSCluster) SetMonitoring(l bool) {
+	c.modelCluster.Monitoring = l
 }
 
 // GetEKSNodePools returns EKS node pools from a common cluster.

@@ -307,6 +307,26 @@ func (c *KubeCluster) SetSecurityScan(scan bool) {
 	c.modelCluster.SecurityScan = scan
 }
 
+// GetLogging returns true if logging enabled on the cluster
+func (c *KubeCluster) GetLogging() bool {
+	return c.modelCluster.Logging
+}
+
+// SetLogging returns true if logging enabled on the cluster
+func (c *KubeCluster) SetLogging(l bool) {
+	c.modelCluster.Logging = l
+}
+
+// GetMonitoring returns true if momnitoring enabled on the cluster
+func (c *KubeCluster) GetMonitoring() bool {
+	return c.modelCluster.Monitoring
+}
+
+// SetMonitoring returns true if monitoring enabled on the cluster
+func (c *KubeCluster) SetMonitoring(l bool) {
+	c.modelCluster.Monitoring = l
+}
+
 // NeedAdminRights returns true if rbac is enabled and need to create a cluster role binding to user
 func (c *KubeCluster) NeedAdminRights() bool {
 	return false

@@ -303,7 +303,7 @@ func (c *DummyCluster) RbacEnabled() bool {
 	return c.modelCluster.RbacEnabled
 }
 
-// SecurityScan returns true if security scan enabled on the cluster
+// GetSecurityScan returns true if security scan enabled on the cluster
 func (c *DummyCluster) GetSecurityScan() bool {
 	return c.modelCluster.SecurityScan
 }
@@ -311,6 +311,26 @@ func (c *DummyCluster) GetSecurityScan() bool {
 // SetSecurityScan returns true if security scan enabled on the cluster
 func (c *DummyCluster) SetSecurityScan(scan bool) {
 	c.modelCluster.SecurityScan = scan
+}
+
+// GetLogging returns true if logging enabled on the cluster
+func (c *DummyCluster) GetLogging() bool {
+	return c.modelCluster.Logging
+}
+
+// SetLogging returns true if logging enabled on the cluster
+func (c *DummyCluster) SetLogging(l bool) {
+	c.modelCluster.Logging = l
+}
+
+// GetMonitoring returns true if momnitoring enabled on the cluster
+func (c *DummyCluster) GetMonitoring() bool {
+	return c.modelCluster.Monitoring
+}
+
+// SetMonitoring returns true if monitoring enabled on the cluster
+func (c *DummyCluster) SetMonitoring(l bool) {
+	c.modelCluster.Monitoring = l
 }
 
 // NeedAdminRights returns true if rbac is enabled and need to create a cluster role binding to user

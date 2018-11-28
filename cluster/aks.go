@@ -782,7 +782,7 @@ func (c *AKSCluster) RbacEnabled() bool {
 	return c.modelCluster.RbacEnabled
 }
 
-// SecurityScan returns true if security scan enabled on the cluster
+// GetSecurityScan returns true if security scan enabled on the cluster
 func (c *AKSCluster) GetSecurityScan() bool {
 	return c.modelCluster.SecurityScan
 }
@@ -790,6 +790,26 @@ func (c *AKSCluster) GetSecurityScan() bool {
 // SetSecurityScan returns true if security scan enabled on the cluster
 func (c *AKSCluster) SetSecurityScan(scan bool) {
 	c.modelCluster.SecurityScan = scan
+}
+
+// GetLogging returns true if logging enabled on the cluster
+func (c *AKSCluster) GetLogging() bool {
+	return c.modelCluster.Logging
+}
+
+// SetLogging returns true if logging enabled on the cluster
+func (c *AKSCluster) SetLogging(l bool) {
+	c.modelCluster.Logging = l
+}
+
+// GetMonitoring returns true if momnitoring enabled on the cluster
+func (c *AKSCluster) GetMonitoring() bool {
+	return c.modelCluster.Monitoring
+}
+
+// SetMonitoring returns true if monitoring enabled on the cluster
+func (c *AKSCluster) SetMonitoring(l bool) {
+	c.modelCluster.Monitoring = l
 }
 
 // ListResourceGroups returns all resource group
