@@ -179,12 +179,14 @@ definitions:
   MessagesResponse:
     type: object
     properties:
+      id:
+        type: integer
+        x-go-name: Id
       message:
         type: string
         x-go-name: Message
       priority:
         type: integer
-        format: int8
         x-go-name: Priority
     x-go-package: github.com/banzaicloud/pipeline/internal/notification
   GetDashboardResponse:

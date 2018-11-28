@@ -31,6 +31,7 @@ type GetNotificationsResponse struct {
 }
 
 type MessagesResponse struct {
+	Id       uint   `json:"id"`
 	Message  string `json:"message"`
 	Priority int8   `json:"priority"`
 }
@@ -72,10 +73,11 @@ func getValidNotifications() ([]MessagesResponse, error) {
 	if err != nil {
 		return nil, emperror.Wrap(err, "failed to find notifications")
 	}
-	var response []MessagesResponse
+	response := make([]MessagesResponse, 0)
 
 	for _, notification := range notifications {
 		response = append(response, MessagesResponse{
+			Id:       notification.ID,
 			Message:  notification.Message,
 			Priority: notification.Priority,
 		})
