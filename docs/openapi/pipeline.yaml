@@ -7115,6 +7115,15 @@ components:
                 id:
                     type: integer
                     example: 1
+                logging:
+                    type: boolean
+                    example: false
+                monitoring:
+                    type: boolean
+                    example: false
+                securityscan:
+                    type: boolean
+                    example: false
                 createdAt:
                     type: string
                     example: "2018-07-03T14:23:19+02:00"
