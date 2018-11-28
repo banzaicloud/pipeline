@@ -36,6 +36,7 @@ import (
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	v12 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/kubernetes/pkg/scheduler/cache"
 )
 
 type Allocatable struct {
@@ -168,6 +169,20 @@ func GetDashboard(c *gin.Context) {
 
 }
 
+func createNodeInfoMap(pods []v1.Pod, nodes []v1.Node) map[string]*cache.NodeInfo {
+	nodeInfoMap := make(map[string]*cache.NodeInfo)
+	for _, pod := range pods {
+		nodeName := pod.Spec.NodeName
+		if len(nodeName) > 0 {
+			if _, ok := nodeInfoMap[nodeName]; !ok {
+				nodeInfoMap[nodeName] = cache.NewNodeInfo()
+			}
+			nodeInfoMap[nodeName].AddPod(pod.DeepCopy())
+		}
+	}
+	return nodeInfoMap
+}
+
 func getClusterDashboard(logger *logrus.Entry, commonCluster cluster.CommonCluster, clusterResponseChan chan Cluster) {
 	nodeStates := make([]Node, 0)
 	cluster := Cluster{
@@ -213,8 +228,19 @@ func getClusterDashboard(logger *logrus.Entry, commonCluster cluster.CommonClust
 		return
 	}
 
-	clusterResourceCapacityMap := make(map[v1.ResourceName]resource.Quantity, 0)
-	clusterResourceAllocatableMap := make(map[v1.ResourceName]resource.Quantity, 0)
+	log.Info("List pods")
+	podList, err := client.CoreV1().Pods("").List(v12.ListOptions{})
+	if err != nil {
+		cluster.Status = "ERROR"
+		cluster.StatusMessage = err.Error()
+		clusterResponseChan <- cluster
+		return
+	}
+
+	nodeInfoMap := createNodeInfoMap(podList.Items, nodes.Items)
+
+	clusterResourceRequestMap := make(map[v1.ResourceName]resource.Quantity)
+	clusterResourceAllocatableMap := make(map[v1.ResourceName]resource.Quantity)
 
 	for _, node := range nodes.Items {
 		status := &Status{
@@ -248,9 +274,9 @@ func getClusterDashboard(logger *logrus.Entry, commonCluster cluster.CommonClust
 			}
 		}
 
-		status.CpuUsagePercent, status.Capacity.Cpu, status.Allocatable.Cpu = calculateNodeResourceUsage(v1.ResourceCPU, node, clusterResourceCapacityMap, clusterResourceAllocatableMap)
-		status.MemoryUsagePercent, status.Capacity.Memory, status.Allocatable.Memory = calculateNodeResourceUsage(v1.ResourceMemory, node, clusterResourceCapacityMap, clusterResourceAllocatableMap)
-		status.StorageUsagePercent, status.Capacity.EphemeralStorage, status.Allocatable.EphemeralStorage = calculateNodeResourceUsage(v1.ResourceEphemeralStorage, node, clusterResourceCapacityMap, clusterResourceAllocatableMap)
+		status.CpuUsagePercent, status.Capacity.Cpu, status.Allocatable.Cpu = calculateNodeResourceUsage(v1.ResourceCPU, node, nodeInfoMap, clusterResourceRequestMap, clusterResourceAllocatableMap)
+		status.MemoryUsagePercent, status.Capacity.Memory, status.Allocatable.Memory = calculateNodeResourceUsage(v1.ResourceMemory, node, nodeInfoMap, clusterResourceRequestMap, clusterResourceAllocatableMap)
+		status.StorageUsagePercent, status.Capacity.EphemeralStorage, status.Allocatable.EphemeralStorage = calculateNodeResourceUsage(v1.ResourceEphemeralStorage, node, nodeInfoMap, clusterResourceRequestMap, clusterResourceAllocatableMap)
 		status.Capacity.Pods = node.Status.Capacity.Pods().Value()
 		status.Allocatable.Pods = node.Status.Allocatable.Pods().Value()
 
@@ -268,9 +294,9 @@ func getClusterDashboard(logger *logrus.Entry, commonCluster cluster.CommonClust
 		})
 	}
 	cluster.Nodes = nodeStates
-	cluster.CpuUsagePercent = calculateClusterResourceUsage(v1.ResourceCPU, clusterResourceCapacityMap, clusterResourceAllocatableMap)
-	cluster.MemoryUsagePercent = calculateClusterResourceUsage(v1.ResourceMemory, clusterResourceCapacityMap, clusterResourceAllocatableMap)
-	cluster.StorageUsagePercent = calculateClusterResourceUsage(v1.ResourceEphemeralStorage, clusterResourceCapacityMap, clusterResourceAllocatableMap)
+	cluster.CpuUsagePercent = calculateClusterResourceUsage(v1.ResourceCPU, clusterResourceRequestMap, clusterResourceAllocatableMap)
+	cluster.MemoryUsagePercent = calculateClusterResourceUsage(v1.ResourceMemory, clusterResourceRequestMap, clusterResourceAllocatableMap)
+	cluster.StorageUsagePercent = calculateClusterResourceUsage(v1.ResourceEphemeralStorage, clusterResourceRequestMap, clusterResourceAllocatableMap)
 
 	clusterResponseChan <- cluster
 
@@ -280,19 +306,13 @@ func getClusterDashboard(logger *logrus.Entry, commonCluster cluster.CommonClust
 func calculateNodeResourceUsage(
 	resourceName v1.ResourceName,
 	node v1.Node,
-	clusterResourceCapacityMap map[v1.ResourceName]resource.Quantity,
+	nodeInfoMap map[string]*cache.NodeInfo,
+	clusterResourceRequestMap map[v1.ResourceName]resource.Quantity,
 	clusterResourceAllocatableMap map[v1.ResourceName]resource.Quantity,
 ) (float64, string, string) {
 	capacity, found := node.Status.Capacity[resourceName]
 	if !found {
 		return 0, "n/a", "n/a"
-	}
-
-	clusterResourceCapacity, found := clusterResourceCapacityMap[resourceName]
-	if found {
-		clusterResourceCapacity.Add(capacity)
-	} else {
-		clusterResourceCapacityMap[resourceName] = capacity.DeepCopy()
 	}
 
 	allocatable, found := node.Status.Allocatable[resourceName]
@@ -303,11 +323,32 @@ func calculateNodeResourceUsage(
 	clusterResourceAllocatable, found := clusterResourceAllocatableMap[resourceName]
 	if found {
 		clusterResourceAllocatable.Add(allocatable)
+		clusterResourceAllocatableMap[resourceName] = clusterResourceAllocatable
 	} else {
 		clusterResourceAllocatableMap[resourceName] = allocatable.DeepCopy()
 	}
 
-	usagePercent := float64(capacity.MilliValue()-allocatable.MilliValue()) / float64(capacity.MilliValue()) * 100
+	podsRequest := resource.MustParse("0")
+	nodeInfo := nodeInfoMap[node.Name]
+	if nodeInfo != nil {
+		for _, pod := range nodeInfo.Pods() {
+			for _, container := range pod.Spec.Containers {
+				if resourceValue, found := container.Resources.Requests[resourceName]; found {
+					podsRequest.Add(resourceValue)
+				}
+			}
+		}
+	}
+
+	clusterResourceRequest, found := clusterResourceRequestMap[resourceName]
+	if found {
+		clusterResourceRequest.Add(podsRequest)
+		clusterResourceRequestMap[resourceName] = clusterResourceRequest
+	} else {
+		clusterResourceRequestMap[resourceName] = podsRequest.DeepCopy()
+	}
+
+	usagePercent := float64(podsRequest.MilliValue()) / float64(allocatable.MilliValue()) * 100
 
 	if math.IsNaN(usagePercent) || math.IsInf(usagePercent, 0) {
 		usagePercent = 0
@@ -318,10 +359,10 @@ func calculateNodeResourceUsage(
 
 func calculateClusterResourceUsage(
 	resourceName v1.ResourceName,
-	clusterResourceCapacityMap map[v1.ResourceName]resource.Quantity,
+	clusterResourceRequestMap map[v1.ResourceName]resource.Quantity,
 	clusterResourceAllocatableMap map[v1.ResourceName]resource.Quantity,
 ) float64 {
-	clusterResourceCapacity, found := clusterResourceCapacityMap[resourceName]
+	clusterResourceRequest, found := clusterResourceRequestMap[resourceName]
 	if !found {
 		return 0
 	}
@@ -331,7 +372,7 @@ func calculateClusterResourceUsage(
 		return 0
 	}
 
-	usagePercent := float64(clusterResourceCapacity.MilliValue()-clusterResourceAllocatable.MilliValue()) / float64(clusterResourceCapacity.MilliValue()) * 100
+	usagePercent := float64(clusterResourceRequest.MilliValue()) / float64(clusterResourceAllocatable.MilliValue()) * 100
 	if math.IsNaN(usagePercent) || math.IsInf(usagePercent, 0) {
 		usagePercent = 0
 	}
