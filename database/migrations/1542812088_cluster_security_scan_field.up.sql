@@ -1,1 +1,1 @@
-ALTER TABLE `audit_events` DROP COLUMN `security_scan`;
+ALTER TABLE `clusters` ADD COLUMN `security_scan` tinyint(1) DEFAULT NULL;
