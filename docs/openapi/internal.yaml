@@ -9,6 +9,19 @@ info:
     name: Apache 2.0
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
 paths:
+  '/notifications':
+    get:
+      description: Lists all notifications
+      produces:
+        - application/json
+      schemes:
+        - http
+      operationId: GetNotifications
+      responses:
+        '200':
+          description: GetNotificationsResponse
+          schema:
+            $ref: '#/definitions/GetNotificationsResponse'
   '/dashboard/{orgid}/clusters':
     get:
       description: Returns returns dashboard metrics for selected/all clusters of an organization
@@ -153,6 +166,27 @@ definitions:
         type: string
         x-go-name: OrgId
     x-go-package: github.com/banzaicloud/pipeline/internal/dashboard
+  GetNotificationsResponse:
+    description: GetNotificationsResponse Api object to be mapped to Get notifications request
+    type: object
+    properties:
+      messages:
+        type: array
+        items:
+          $ref: '#/definitions/MessagesResponse'
+        x-go-name: Messages
+    x-go-package: github.com/banzaicloud/pipeline/internal/notification
+  MessagesResponse:
+    type: object
+    properties:
+      message:
+        type: string
+        x-go-name: Message
+      priority:
+        type: integer
+        format: int8
+        x-go-name: Priority
+    x-go-package: github.com/banzaicloud/pipeline/internal/notification
   GetDashboardResponse:
     description: GetDashboardResponse Api object to be mapped to Get dashboard request
     type: object

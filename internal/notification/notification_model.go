@@ -12,30 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package spotguide
+package notification
 
-import (
-	"fmt"
-	"strings"
+import "time"
 
-	"github.com/jinzhu/gorm"
-	"github.com/sirupsen/logrus"
+// TableName constants
+const (
+	notificationTableName = "notifications"
 )
 
-// Migrate executes the table migrations for the spotguide module.
-func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
-	tables := []interface{}{
-		&SpotguideRepo{},
-	}
+type NotificationModel struct {
+	ID          uint `gorm:"primary_key"`
+	Message     string
+	InitialTime time.Time
+	EndTime     time.Time
+	Priority    int8
+}
 
-	var tableNames string
-	for _, table := range tables {
-		tableNames += fmt.Sprintf(" %s", db.NewScope(table).TableName())
-	}
-
-	logger.WithFields(logrus.Fields{
-		"table_names": strings.TrimSpace(tableNames),
-	}).Info("migrating spotguide tables")
-
-	return db.AutoMigrate(tables...).Error
+// TableName changes the default table name.
+func (NotificationModel) TableName() string {
+	return notificationTableName
 }

@@ -20,6 +20,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/ark"
 	"github.com/banzaicloud/pipeline/internal/audit"
 	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/notification"
 	"github.com/banzaicloud/pipeline/internal/providers"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/model/defaults"
@@ -63,6 +64,10 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	}
 
 	if err := ark.Migrate(db, logger); err != nil {
+		return err
+	}
+
+	if err := notification.Migrate(db, logger); err != nil {
 		return err
 	}
 
