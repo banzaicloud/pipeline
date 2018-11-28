@@ -60,6 +60,16 @@ func (*ACSKCluster) RbacEnabled() bool {
 	return true
 }
 
+// SecurityScan returns true if security scan enabled on the cluster
+func (c *ACSKCluster) GetSecurityScan() bool {
+	return c.modelCluster.SecurityScan
+}
+
+// SetSecurityScan returns true if security scan enabled on the cluster
+func (c *ACSKCluster) SetSecurityScan(scan bool) {
+	c.modelCluster.SecurityScan = scan
+}
+
 func (*ACSKCluster) RequiresSshPublicKey() bool {
 	return true
 }

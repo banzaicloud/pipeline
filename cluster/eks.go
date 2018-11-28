@@ -1093,6 +1093,16 @@ func (c *EKSCluster) RbacEnabled() bool {
 	return c.modelCluster.RbacEnabled
 }
 
+// SecurityScan returns true if security scan enabled on the cluster
+func (c *EKSCluster) GetSecurityScan() bool {
+	return c.modelCluster.SecurityScan
+}
+
+// SetSecurityScan returns true if security scan enabled on the cluster
+func (c *EKSCluster) SetSecurityScan(scan bool) {
+	c.modelCluster.SecurityScan = scan
+}
+
 // GetEKSNodePools returns EKS node pools from a common cluster.
 func GetEKSNodePools(cluster CommonCluster) ([]*model.AmazonNodePoolsModel, error) {
 	ekscluster, ok := cluster.(*EKSCluster)

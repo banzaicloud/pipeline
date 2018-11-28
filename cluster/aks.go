@@ -782,6 +782,16 @@ func (c *AKSCluster) RbacEnabled() bool {
 	return c.modelCluster.RbacEnabled
 }
 
+// SecurityScan returns true if security scan enabled on the cluster
+func (c *AKSCluster) GetSecurityScan() bool {
+	return c.modelCluster.SecurityScan
+}
+
+// SetSecurityScan returns true if security scan enabled on the cluster
+func (c *AKSCluster) SetSecurityScan(scan bool) {
+	c.modelCluster.SecurityScan = scan
+}
+
 // ListResourceGroups returns all resource group
 func ListResourceGroups(orgId uint, secretId string) ([]string, error) {
 

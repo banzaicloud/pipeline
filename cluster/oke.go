@@ -592,6 +592,16 @@ func (o *OKECluster) RbacEnabled() bool {
 	return true
 }
 
+// SecurityScan returns true if security scan enabled on the cluster
+func (o *OKECluster) GetSecurityScan() bool {
+	return o.modelCluster.SecurityScan
+}
+
+// SetSecurityScan returns true if security scan enabled on the cluster
+func (o *OKECluster) SetSecurityScan(scan bool) {
+	o.modelCluster.SecurityScan = scan
+}
+
 // NeedAdminRights returns true if rbac is enabled and need to create a cluster role binding to user
 func (o *OKECluster) NeedAdminRights() bool {
 	return true

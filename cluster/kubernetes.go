@@ -297,6 +297,16 @@ func (c *KubeCluster) RbacEnabled() bool {
 	return c.modelCluster.RbacEnabled
 }
 
+// SecurityScan returns true if security scan enabled on the cluster
+func (c *KubeCluster) GetSecurityScan() bool {
+	return c.modelCluster.SecurityScan
+}
+
+// SetSecurityScan returns true if security scan enabled on the cluster
+func (c *KubeCluster) SetSecurityScan(scan bool) {
+	c.modelCluster.SecurityScan = scan
+}
+
 // NeedAdminRights returns true if rbac is enabled and need to create a cluster role binding to user
 func (c *KubeCluster) NeedAdminRights() bool {
 	return false

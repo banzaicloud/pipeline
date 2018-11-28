@@ -832,8 +832,9 @@ func InstallAnchoreImageValidator(input interface{}) error {
 	if err != nil {
 		return err
 	}
-	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/anchore-policy-validator", "anchore", marshalledValues, "", true)
+	cluster.SetSecurityScan(true)
 
+	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/anchore-policy-validator", "anchore", marshalledValues, "", true)
 }
 
 //InstallHelmPostHook this posthook installs the helm related things

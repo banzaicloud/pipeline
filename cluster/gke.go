@@ -2031,6 +2031,16 @@ func (c *GKECluster) RbacEnabled() bool {
 	return c.model.Cluster.RbacEnabled
 }
 
+// SecurityScan returns true if security scan enabled on the cluster
+func (c *GKECluster) GetSecurityScan() bool {
+	return c.model.Cluster.SecurityScan
+}
+
+// SetSecurityScan returns true if security scan enabled on the cluster
+func (c *GKECluster) SetSecurityScan(scan bool) {
+	c.model.Cluster.SecurityScan = scan
+}
+
 // NeedAdminRights returns true if rbac is enabled and need to create a cluster role binding to user
 func (c *GKECluster) NeedAdminRights() bool {
 	return false
