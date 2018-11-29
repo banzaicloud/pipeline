@@ -33,19 +33,19 @@ func GetSupportedClusterList(c *gin.Context) {
 		Items: []pkgCluster.SupportedClusterItem{
 			{
 				Name:    "Amazon EKS",
-				Key:     "unknown",
-				Enabled: false,
+				Key:     pkgCluster.EKS,
+				Enabled: true,
 				Icon:    "assets/images/aws-eks.png",
 			},
 			{
 				Name:    "Azure Kubernetes Service",
-				Key:     pkgCluster.Azure,
+				Key:     pkgCluster.AKS,
 				Enabled: true,
 				Icon:    "assets/images/azure.png",
 			},
 			{
 				Name:    "Google Kubernetes Engine",
-				Key:     pkgCluster.Google,
+				Key:     pkgCluster.GKE,
 				Enabled: true,
 				Icon:    "assets/images/google.png",
 			},
@@ -63,14 +63,14 @@ func GetSupportedClusterList(c *gin.Context) {
 			},
 			{
 				Name:    "Oracle Kubernetes Engine",
-				Key:     "unknown",
-				Enabled: false,
+				Key:     pkgCluster.OKE,
+				Enabled: true,
 				Icon:    "assets/images/oracle.png",
 			},
 			{
 				Name:    "Alibaba Kubernetes Container Service",
-				Key:     "unknown",
-				Enabled: false,
+				Key:     pkgCluster.ACSK,
+				Enabled: true,
 				Icon:    "assets/images/alibaba_cloud.png",
 			},
 			{
