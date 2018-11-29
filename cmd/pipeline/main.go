@@ -22,7 +22,7 @@ import (
 	"time"
 
 	evbus "github.com/asaskevich/EventBus"
-	"github.com/banzaicloud/go-gin-prometheus"
+	ginprometheus "github.com/banzaicloud/go-gin-prometheus"
 	"github.com/banzaicloud/pipeline/api"
 	"github.com/banzaicloud/pipeline/api/ark/backups"
 	"github.com/banzaicloud/pipeline/api/ark/backupservice"
@@ -52,7 +52,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/casbin/gorm-adapter"
+	gormadapter "github.com/casbin/gorm-adapter"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
@@ -244,6 +244,7 @@ func main() {
 
 	v1 := router.Group(path.Join(basePath, "api", "v1/"))
 	v1.GET("/functions", api.ListFunctions)
+	v1.HEAD("/securityscan", api.SecurytiScanEnabled)
 	{
 		v1.Use(auth.Handler)
 		v1.Use(authorizationMiddleware)
