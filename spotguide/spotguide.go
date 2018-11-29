@@ -52,6 +52,8 @@ const IconPath = ".banzaicloud/icon.svg"
 const CreateClusterStep = "create_cluster"
 const SpotguideRepoTableName = "spotguide_repos"
 
+var IgnoredPaths = []string{".circleci"}
+
 var ctx = context.Background()
 
 func init() {
@@ -381,19 +383,24 @@ func getSpotguideContent(githubClient *github.Client, request *LaunchRequest, so
 			continue
 		}
 
+		// First directory is the name of the repo
+		path := strings.SplitN(zf.Name, "/", 2)[1]
+
+		// Skip files inside ignored paths
+		if isIgnoredPath(path) {
+			continue
+		}
+
 		file, err := zf.Open()
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to extract source spotguide repository release")
 		}
+		defer file.Close()
 
 		content, err := ioutil.ReadAll(file)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to extract source spotguide repository release")
 		}
-
-		file.Close()
-
-		path := strings.SplitN(zf.Name, "/", 2)[1]
 
 		// Prepare pipeline.yaml
 		if path == PipelineYAMLPath {
@@ -409,11 +416,8 @@ func getSpotguideContent(githubClient *github.Client, request *LaunchRequest, so
 		var blobSHA, blobContent *string
 
 		if strings.HasSuffix(http.DetectContentType(content), "charset=utf-8") {
-
 			blobContent = github.String(string(content))
-
 		} else {
-
 			blob, _, err := githubClient.Git.CreateBlob(ctx, request.RepoOrganization, request.RepoName, &github.Blob{
 				Content:  github.String(base64.StdEncoding.EncodeToString(content)),
 				Encoding: github.String("base64"),
@@ -723,4 +727,14 @@ func droneRepoConfigPipeline(request *LaunchRequest, repoConfig *droneRepoConfig
 	}
 
 	return nil
+}
+
+func isIgnoredPath(path string) bool {
+	for _, ignoredPath := range IgnoredPaths {
+		if strings.HasPrefix(path, ignoredPath) {
+			return true
+		}
+	}
+
+	return false
 }
