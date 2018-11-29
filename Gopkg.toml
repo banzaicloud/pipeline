@@ -42,11 +42,11 @@
 
 [[override]]
   name = "github.com/Azure/go-autorest"
-  version = "=v10.6.0"
+  version = "=v11.2.8"
 
 [[override]]
   name = "github.com/Azure/azure-sdk-for-go"
-  version = "=v15.0.0"
+  version = "=v22.2.2"
 
 [[override]]
   name = "github.com/gin-gonic/gin"
@@ -65,7 +65,7 @@
   version = "=1.15.*"
 
 [[constraint]]
-  branch = "master"
+  version = "0.4.0"
   name = "github.com/banzaicloud/azure-aks-client"
 
 [[constraint]]

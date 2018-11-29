@@ -19,6 +19,14 @@
   version = "v0.33.1"
 
 [[projects]]
+  digest = "1:f323f98930459f65f4699b5bfba563743680e2633d96e72d61a9732648e2d07c"
+  name = "contrib.go.opencensus.io/exporter/ocagent"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "00af367e65149ff1f2f4b93bbfbb84fd9297170d"
+  version = "v0.2.0"
+
+[[projects]]
   digest = "1:e9b73c014740269d9db56dcedc41f757d63a78e53856abca0428ebcb51f8978b"
   name = "github.com/Azure/azure-pipeline-go"
   packages = ["pipeline"]
@@ -27,23 +35,22 @@
   version = "0.1.6"
 
 [[projects]]
-  digest = "1:bb5f7669dd19946b48727fd57ba954be988f044aff0a56b55ea5d2ccaff4374e"
+  digest = "1:ac61480b85935507e4926aa3f8c91a4363c16a0780727ed288ba351e76ba5191"
   name = "github.com/Azure/azure-sdk-for-go"
   packages = [
     "services/authorization/mgmt/2015-07-01/authorization",
-    "services/compute/mgmt/2018-04-01/compute",
-    "services/containerservice/mgmt/2017-09-30/containerservice",
+    "services/compute/mgmt/2018-10-01/compute",
+    "services/containerservice/mgmt/2018-03-31/containerservice",
     "services/network/mgmt/2018-01-01/network",
     "services/resources/mgmt/2016-06-01/subscriptions",
-    "services/resources/mgmt/2017-05-10/resources",
     "services/resources/mgmt/2018-02-01/resources",
     "services/storage/mgmt/2017-10-01/storage",
     "storage",
     "version",
   ]
   pruneopts = "NUT"
-  revision = "56332fec5b308fbb6615fa1af6117394cdba186d"
-  version = "v15.0.0"
+  revision = "9699bdefa481d47c5c7638a1cc05d87ce53601fd"
+  version = "v22.2.2"
 
 [[projects]]
   digest = "1:0a05d409f73fb7d4595886e2de6093ab18eaeca1fb6470ddd0c96113975cb61b"
@@ -65,20 +72,23 @@
   revision = "d6e3b3328b783f23731bc4d058875b0371ff8109"
 
 [[projects]]
-  digest = "1:bf3dc72a7473bb43f47717ace335c4d69fdfc08492368d76fbc2ef42a7474742"
+  digest = "1:067748d36a49258957c5978039ca7d334683c62df53012e100cbcbab5c38fe5c"
   name = "github.com/Azure/go-autorest"
   packages = [
     "autorest",
     "autorest/adal",
     "autorest/azure",
     "autorest/azure/auth",
+    "autorest/azure/cli",
     "autorest/date",
     "autorest/to",
     "autorest/validation",
+    "logger",
+    "tracing",
   ]
   pruneopts = "NUT"
-  revision = "9ad9326b278af8fa5cc67c30c0ce9a58cc0862b2"
-  version = "v10.6.0"
+  revision = "f401b1ccc8eb505927fae7a0c7f6406d37ca1c7e"
+  version = "v11.2.8"
 
 [[projects]]
   digest = "1:167b6f65a6656de568092189ae791253939f076df60231fdd64588ac703892a1"
@@ -255,8 +265,7 @@
   version = "0.1.0"
 
 [[projects]]
-  branch = "master"
-  digest = "1:70f71b6fba14f54398f87e554a894df9cdaccbbbca4c844e7ebabe77459d4fee"
+  digest = "1:ee95a455921cb078b002d0067bac8558ad0c45659b8a6ba6e42634ac30b1990b"
   name = "github.com/banzaicloud/azure-aks-client"
   packages = [
     "client",
@@ -272,7 +281,8 @@
     "utils",
   ]
   pruneopts = "NUT"
-  revision = "72e04c1bddb8e7246cc69496f942d35fc26aeb23"
+  revision = "ddd6cb920f4780529dec6b6d0208018777caa6db"
+  version = "0.4.0"
 
 [[projects]]
   digest = "1:6220949cfe4dd44b6a6d90583447313a53ff606726b31e256aafd8e63f51782d"
@@ -338,6 +348,19 @@
   revision = "e56c6daebd5e8c657caf3bdf3a647803cf7b242d"
 
 [[projects]]
+  digest = "1:65b0d980b428a6ad4425f2df4cd5410edd81f044cf527bd1c345368444649e58"
+  name = "github.com/census-instrumentation/opencensus-proto"
+  packages = [
+    "gen-go/agent/common/v1",
+    "gen-go/agent/trace/v1",
+    "gen-go/resource/v1",
+    "gen-go/trace/v1",
+  ]
+  pruneopts = "NUT"
+  revision = "7f2434bc10da710debe5c4315ed6d4df454b4024"
+  version = "v0.1.0"
+
+[[projects]]
   branch = "master"
   digest = "1:95e08278c876d185ba67533f045e9e63b3c9d02cbd60beb0f4dbaa2344a13ac2"
   name = "github.com/chai2010/gettext-go"
@@ -383,12 +406,12 @@
   version = "v4.0.0"
 
 [[projects]]
-  branch = "master"
   digest = "1:ec6271918b59b872a2d25e374569a4f75f1839d91e4191470c297b7eaaaf7641"
   name = "github.com/dimchansky/utfbom"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "6c6132ff69f0f6c088739067407b5d32c52e1d0f"
+  revision = "5448fe645cb1964ba70ac8f9f2ffe975e61a536c"
+  version = "v1.0.0"
 
 [[projects]]
   branch = "master"
@@ -636,7 +659,7 @@
   revision = "66deaeb636dff1ac7d938ce666d090556056a4b0"
 
 [[projects]]
-  digest = "1:5ae5b54d7cd695bafa92bf426b7c3d046f907260ec0fcb4fe5c368d937597c00"
+  digest = "1:381fdad8817f7dc3e36a62441e87b29251fcf216d93d39a244fda414ce9f1feb"
   name = "github.com/golang/protobuf"
   packages = [
     "proto",
@@ -645,6 +668,7 @@
     "ptypes/any",
     "ptypes/duration",
     "ptypes/timestamp",
+    "ptypes/wrappers",
   ]
   pruneopts = "NUT"
   revision = "aa810b61a9c79d51363740d207bb46cf8e620ed5"
@@ -1028,12 +1052,12 @@
   revision = "995366fdf961d03629cd17361bddd32745718e2c"
 
 [[projects]]
-  branch = "master"
-  digest = "1:b62c4f18ad6eb454ac5253e7791ded3d7867330015ca4b37b6336e57f514585e"
+  digest = "1:a4df73029d2c42fabcb6b41e327d2f87e685284ec03edf76921c267d9cfc9c23"
   name = "github.com/mitchellh/go-homedir"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "b8bc1bf767474819792c23f32d8286a45736f1c6"
+  revision = "ae18d6b8b3205b561c79e8e5f69bff09736185f4"
+  version = "v1.0.0"
 
 [[projects]]
   branch = "master"
@@ -1414,15 +1438,18 @@
   version = "v1.1"
 
 [[projects]]
-  digest = "1:b52fa5390c647456aef1fc8f093c077a6fff3465f30f095a0f8ce18ec2ac6e0c"
+  digest = "1:4a4427e16f52f54ca6eb18e2883735f4afe0179d366d25f7ac8ce6c30387ff5a"
   name = "go.opencensus.io"
   packages = [
+    ".",
+    "exemplar",
     "exporter/stackdriver/propagation",
     "internal",
     "internal/tagencoding",
     "plugin/ocgrpc",
     "plugin/ochttp",
     "plugin/ochttp/propagation/b3",
+    "plugin/ochttp/propagation/tracecontext",
     "stats",
     "stats/internal",
     "stats/view",
@@ -1430,10 +1457,11 @@
     "trace",
     "trace/internal",
     "trace/propagation",
+    "trace/tracestate",
   ]
   pruneopts = "NUT"
-  revision = "f7730ab009c252771b19074bd05217d054c0c93f"
-  version = "v0.10.0"
+  revision = "b7bf3cdb64150a8c8c53b769fdeb2ba581bd4d4b"
+  version = "v0.18.0"
 
 [[projects]]
   branch = "master"
@@ -1501,6 +1529,14 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:5e4d81c50cffcb124b899e4f3eabec3930c73532f0096c27f94476728ba03028"
+  name = "golang.org/x/sync"
+  packages = ["semaphore"]
+  pruneopts = "NUT"
+  revision = "42b317875d0fa942474b76e1b46a6060d720ae6e"
+
+[[projects]]
+  branch = "master"
   digest = "1:4c423e7ef829a094998d10166ed9dd6003acbdd1399f612c0917c6eef696edd9"
   name = "golang.org/x/sys"
   packages = [
@@ -1550,7 +1586,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:393e5df46c55f0da1b1a32767ca6285510ea0d98b8f58bf17fb5af7d561a98ce"
+  digest = "1:1ff143e45b8b5091553efc5fcdb22d1687ad24752b5fe577e564b3e0c7c2185a"
   name = "google.golang.org/api"
   packages = [
     "cloudresourcemanager/v1",
@@ -1564,6 +1600,7 @@
     "iterator",
     "option",
     "storage/v1",
+    "support/bundler",
     "transport",
     "transport/grpc",
     "transport/http",
@@ -2126,8 +2163,8 @@
   input-imports = [
     "cloud.google.com/go/iam/credentials/apiv1",
     "cloud.google.com/go/storage",
-    "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-04-01/compute",
-    "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice",
+    "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute",
+    "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice",
     "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-02-01/resources",
     "github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage",
     "github.com/Azure/azure-sdk-for-go/storage",
