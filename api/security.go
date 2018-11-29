@@ -32,6 +32,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/security"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
+	"github.com/spf13/viper"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 )
@@ -529,4 +530,15 @@ func GetReleaseScanLog(c *gin.Context) (map[string]bool, bool) {
 	}
 	log.Debugf("ReleaseScanLogReject set: %#v", releaseScanLogReject)
 	return releaseScanLogReject, true
+}
+
+// SecurytiScanEnabled checks if security scan is enabled in pipeline
+func SecurytiScanEnabled(c *gin.Context) {
+
+	if viper.GetBool("anchore.enabled") {
+		c.Status(http.StatusOK)
+		return
+	}
+	c.Status(http.StatusBadRequest)
+	return
 }
