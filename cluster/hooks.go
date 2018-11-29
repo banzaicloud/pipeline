@@ -1293,16 +1293,26 @@ func InitSpotConfig(input interface{}) error {
 	if err != nil {
 		return emperror.Wrap(err, "failed to install the spot-config-webhook deployment")
 	}
-	err = deploySpotTerminationAlertExporter(cluster, pipelineSystemNamespace)
+	err = deploySpotTerminationHandler(cluster, pipelineSystemNamespace)
 	if err != nil {
-		return emperror.Wrap(err, "failed to install spot-termination-exporter deployment")
+		return emperror.Wrap(err, "failed to install spot-termination-handler deployment")
 	}
 	return nil
 }
 
-func deploySpotTerminationAlertExporter(cluster CommonCluster, namespace string) error {
+func deploySpotTerminationHandler(cluster CommonCluster, namespace string) error {
 
 	values := map[string]interface{}{
+		"tolerations": []v1.Toleration{
+			{
+				Operator: v1.TolerationOpExists,
+				Effect:   v1.TaintEffectNoExecute,
+			},
+			{
+				Operator: v1.TolerationOpExists,
+				Effect:   v1.TaintEffectNoSchedule,
+			},
+		},
 		"affinity": v1.Affinity{
 			NodeAffinity: &v1.NodeAffinity{
 				RequiredDuringSchedulingIgnoredDuringExecution: &v1.NodeSelector{
@@ -1329,7 +1339,7 @@ func deploySpotTerminationAlertExporter(cluster CommonCluster, namespace string)
 		return emperror.Wrap(err, "failed to marshal yaml values")
 	}
 
-	return installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/spot-termination-exporter", "spot-termination-exporter", marshalledValues, "", false)
+	return installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/spot-termination-handler", "sth", marshalledValues, "", false)
 }
 
 func isSpotCluster(cluster CommonCluster) (bool, error) {
