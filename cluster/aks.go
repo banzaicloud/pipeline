@@ -17,8 +17,8 @@ package cluster
 import (
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-04-01/compute"
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
 	azureClient "github.com/banzaicloud/azure-aks-client/client"
 	azureCluster "github.com/banzaicloud/azure-aks-client/cluster"
 	azureType "github.com/banzaicloud/azure-aks-client/types"
@@ -129,13 +129,14 @@ func (c *AKSCluster) GetAPIEndpoint() (string, error) {
 func (c *AKSCluster) CreateCluster() error {
 
 	// create profiles model for the request
-	var profiles []containerservice.AgentPoolProfile
+	var profiles []containerservice.ManagedClusterAgentPoolProfile
+	c.modelCluster.RbacEnabled = true
 	if nodePools := c.modelCluster.AKS.NodePools; nodePools != nil {
 		for _, np := range nodePools {
 			if np != nil {
 				count := int32(np.Count)
 				name := np.Name
-				profiles = append(profiles, containerservice.AgentPoolProfile{
+				profiles = append(profiles, containerservice.ManagedClusterAgentPoolProfile{
 					Name:   &name,
 					Count:  &count,
 					VMSize: containerservice.VMSizeTypes(np.NodeInstanceType),
@@ -158,6 +159,7 @@ func (c *AKSCluster) CreateCluster() error {
 		KubernetesVersion: c.modelCluster.AKS.KubernetesVersion,
 		SSHPubKey:         sshKey.PublicKeyData,
 		Profiles:          profiles,
+		EnableRBAC:        c.RbacEnabled(),
 	}
 	client, err := c.GetAKSClient()
 	if err != nil {
@@ -332,7 +334,8 @@ func (c *AKSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, use
 					ResourceGroup:     c.modelCluster.AKS.ResourceGroup,
 					KubernetesVersion: c.modelCluster.AKS.KubernetesVersion,
 					SSHPubKey:         sshKey.PublicKeyData,
-					Profiles: []containerservice.AgentPoolProfile{
+					EnableRBAC:        c.RbacEnabled(),
+					Profiles: []containerservice.ManagedClusterAgentPoolProfile{
 						{
 							Name:   &name,
 							Count:  &count,
