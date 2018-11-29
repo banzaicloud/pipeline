@@ -536,9 +536,13 @@ func GetReleaseScanLog(c *gin.Context) (map[string]bool, bool) {
 func SecurytiScanEnabled(c *gin.Context) {
 
 	if viper.GetBool("anchore.enabled") {
-		c.Status(http.StatusOK)
+		c.JSON(http.StatusOK, gin.H{
+			"enabled": true,
+		})
 		return
 	}
-	c.Status(http.StatusBadRequest)
+	c.JSON(http.StatusOK, gin.H{
+		"enabled": false,
+	})
 	return
 }
