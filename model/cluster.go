@@ -65,6 +65,7 @@ type ClusterModel struct {
 	RbacEnabled    bool
 	Monitoring     bool
 	Logging        bool
+	SecurityScan   bool
 	StatusMessage  string                 `sql:"type:text;"`
 	ACSK           ACSKClusterModel       `gorm:"foreignkey:ID"`
 	AKS            AKSClusterModel        `gorm:"foreignkey:ID"`

@@ -7384,14 +7384,17 @@ components:
       type: object
     GetClusterStatusResponse:
       example:
+        securityscan: true
         creatorName: userName
         creatorId: 1
         distribution: gke
+        monitoring: true
         statusMessage: Cluster is running
         cloud: google
         createdAt: 2018-07-03T14:23:19+02:00
         spot: true
         name: myClusterName
+        logging: true
         location: us-central1-a
         id: 1
         nodePools:
@@ -7425,6 +7428,12 @@ components:
           example: 1
           format: int32
           type: integer
+        logging:
+          type: boolean
+        monitoring:
+          type: boolean
+        securityscan:
+          type: boolean
         createdAt:
           example: 2018-07-03T14:23:19+02:00
           type: string

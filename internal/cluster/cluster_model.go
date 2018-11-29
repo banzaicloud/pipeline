@@ -53,6 +53,7 @@ type ClusterModel struct {
 	RbacEnabled    bool
 	Monitoring     bool
 	Logging        bool
+	SecurityScan   bool
 	StatusMessage  string `sql:"type:text;"`
 }
 

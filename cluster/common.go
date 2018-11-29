@@ -81,6 +81,14 @@ type CommonCluster interface {
 	GetClusterDetails() (*pkgCluster.DetailsResponse, error)
 	ListNodeNames() (pkgCommon.NodeNames, error)
 	NodePoolExists(nodePoolName string) bool
+
+	// Set Get flags
+	GetSecurityScan() bool
+	SetSecurityScan(scan bool)
+	GetLogging() bool
+	SetLogging(l bool)
+	GetMonitoring() bool
+	SetMonitoring(m bool)
 }
 
 // CommonClusterBase holds the fields that is common to all cluster types
