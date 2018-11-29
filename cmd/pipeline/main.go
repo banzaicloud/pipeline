@@ -42,6 +42,7 @@ import (
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/dashboard"
 	"github.com/banzaicloud/pipeline/internal/monitor"
+	"github.com/banzaicloud/pipeline/internal/notification"
 	ginternal "github.com/banzaicloud/pipeline/internal/platform/gin"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	ginlog "github.com/banzaicloud/pipeline/internal/platform/gin/log"
@@ -368,6 +369,7 @@ func main() {
 
 		v1.GET("/allowed/secrets", api.ListAllowedSecretTypes)
 		v1.GET("/allowed/secrets/:type", api.ListAllowedSecretTypes)
+		v1.GET("/notifications", notification.GetNotifications)
 
 		backups.AddRoutes(orgs.Group("/:orgid/clusters/:id/backups"))
 		backupservice.AddRoutes(orgs.Group("/:orgid/clusters/:id/backupservice"))

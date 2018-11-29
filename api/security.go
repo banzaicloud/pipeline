@@ -83,9 +83,8 @@ func GetScanLog(c *gin.Context) {
 	if err != nil {
 		err := errors.Wrap(err, "Error during request processing")
 		log.Error(err.Error())
-		httpStatusCode := http.StatusInternalServerError
-		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
-			Code:    httpStatusCode,
+		c.JSON(http.StatusInternalServerError, pkgCommmon.ErrorResponse{
+			Code:    http.StatusInternalServerError,
 			Message: "Error getting scanlogs",
 			Error:   err.Error(),
 		})
@@ -121,9 +120,8 @@ func GetWhiteLists(c *gin.Context) {
 	if err != nil {
 		err := errors.Wrap(err, "Error during request processing")
 		log.Error(err.Error())
-		httpStatusCode := http.StatusInternalServerError
-		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
-			Code:    httpStatusCode,
+		c.JSON(http.StatusInternalServerError, pkgCommmon.ErrorResponse{
+			Code:    http.StatusInternalServerError,
 			Message: "Error getting whitelists",
 			Error:   err.Error(),
 		})
@@ -181,9 +179,8 @@ func CreateWhiteList(c *gin.Context) {
 	if err != nil {
 		err := errors.Wrap(err, "Error during request processing")
 		log.Error(err.Error())
-		httpStatusCode := http.StatusInternalServerError
-		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
-			Code:    httpStatusCode,
+		c.JSON(http.StatusInternalServerError, pkgCommmon.ErrorResponse{
+			Code:    http.StatusInternalServerError,
 			Message: "Error creating whitelist",
 			Error:   err.Error(),
 		})
@@ -196,9 +193,8 @@ func CreateWhiteList(c *gin.Context) {
 func DeleteWhiteList(c *gin.Context) {
 	name := c.Param("name")
 	if len(name) == 0 {
-		httpStatusCode := http.StatusBadRequest
-		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
-			Code:    httpStatusCode,
+		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
+			Code:    http.StatusBadRequest,
 			Message: "WhiteList name is required!",
 			Error:   "WhiteList name is required!",
 		})
@@ -214,9 +210,8 @@ func DeleteWhiteList(c *gin.Context) {
 	if err != nil {
 		err := errors.Wrap(err, "Error during request processing")
 		log.Error(err.Error())
-		httpStatusCode := http.StatusInternalServerError
-		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
-			Code:    httpStatusCode,
+		c.JSON(http.StatusInternalServerError, pkgCommmon.ErrorResponse{
+			Code:    http.StatusInternalServerError,
 			Message: "Error deleting whitelist",
 			Error:   err.Error(),
 		})
@@ -231,9 +226,8 @@ func createResponse(c *gin.Context, response http.Response) {
 	err := json.NewDecoder(response.Body).Decode(&responsePayload)
 	if err != nil {
 		log.Error("Error parsing response: %v", err.Error())
-		httpStatusCode := http.StatusInternalServerError
-		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
-			Code:    httpStatusCode,
+		c.JSON(http.StatusInternalServerError, pkgCommmon.ErrorResponse{
+			Code:    http.StatusInternalServerError,
 			Message: "Error parsing response",
 			Error:   err.Error(),
 		})
@@ -265,9 +259,8 @@ func GetPolicies(c *gin.Context) {
 	response, err := anchore.DoAnchoreRequest(anchoreRequest)
 	if err != nil {
 		log.Error(err)
-		httpStatusCode := http.StatusInternalServerError
-		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
-			Code:    httpStatusCode,
+		c.JSON(http.StatusInternalServerError, pkgCommmon.ErrorResponse{
+			Code:    http.StatusInternalServerError,
 			Message: "Error",
 			Error:   err.Error(),
 		})
@@ -308,9 +301,8 @@ func CreatePolicy(c *gin.Context) {
 	response, err := anchore.DoAnchoreRequest(anchoreRequest)
 	if err != nil {
 		log.Error(err)
-		httpStatusCode := http.StatusInternalServerError
-		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
-			Code:    httpStatusCode,
+		c.JSON(http.StatusInternalServerError, pkgCommmon.ErrorResponse{
+			Code:    http.StatusInternalServerError,
 			Message: "Error",
 			Error:   err.Error(),
 		})
@@ -326,9 +318,8 @@ func UpdatePolicies(c *gin.Context) {
 
 	policyId := c.Param("policyId")
 	if len(policyId) == 0 {
-		httpStatusCode := http.StatusBadRequest
-		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
-			Code:    httpStatusCode,
+		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
+			Code:    http.StatusBadRequest,
 			Message: "policyId is required!",
 			Error:   "policyId is required!",
 		})
@@ -362,9 +353,8 @@ func UpdatePolicies(c *gin.Context) {
 	response, err := anchore.DoAnchoreRequest(anchoreRequest)
 	if err != nil {
 		log.Error(err)
-		httpStatusCode := http.StatusInternalServerError
-		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
-			Code:    httpStatusCode,
+		c.JSON(http.StatusInternalServerError, pkgCommmon.ErrorResponse{
+			Code:    http.StatusInternalServerError,
 			Message: "Error",
 			Error:   err.Error(),
 		})
@@ -380,9 +370,8 @@ func DeletePolicy(c *gin.Context) {
 
 	policyId := c.Param("policyId")
 	if len(policyId) == 0 {
-		httpStatusCode := http.StatusBadRequest
-		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
-			Code:    httpStatusCode,
+		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
+			Code:    http.StatusBadRequest,
 			Message: "policyId is required!",
 			Error:   "policyId is required!",
 		})
@@ -403,9 +392,8 @@ func DeletePolicy(c *gin.Context) {
 	response, err := anchore.DoAnchoreRequest(anchoreRequest)
 	if err != nil {
 		log.Error(err)
-		httpStatusCode := http.StatusInternalServerError
-		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
-			Code:    httpStatusCode,
+		c.JSON(http.StatusInternalServerError, pkgCommmon.ErrorResponse{
+			Code:    http.StatusInternalServerError,
 			Message: "Error",
 			Error:   err.Error(),
 		})

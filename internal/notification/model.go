@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package spotguide
+package notification
 
 import (
 	"fmt"
@@ -22,10 +22,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// Migrate executes the table migrations for the spotguide module.
+// Migrate executes the table migrations for the notification module.
 func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	tables := []interface{}{
-		&SpotguideRepo{},
+		&NotificationModel{},
 	}
 
 	var tableNames string
@@ -35,7 +35,7 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 
 	logger.WithFields(logrus.Fields{
 		"table_names": strings.TrimSpace(tableNames),
-	}).Info("migrating spotguide tables")
+	}).Info("migrating notification tables")
 
 	return db.AutoMigrate(tables...).Error
 }

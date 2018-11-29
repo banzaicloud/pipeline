@@ -12,30 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package spotguide
+package notification
 
 import (
-	"fmt"
-	"strings"
-
-	"github.com/jinzhu/gorm"
+	"github.com/banzaicloud/pipeline/config"
 	"github.com/sirupsen/logrus"
 )
 
-// Migrate executes the table migrations for the spotguide module.
-func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
-	tables := []interface{}{
-		&SpotguideRepo{},
-	}
+var log logrus.FieldLogger
 
-	var tableNames string
-	for _, table := range tables {
-		tableNames += fmt.Sprintf(" %s", db.NewScope(table).TableName())
-	}
-
-	logger.WithFields(logrus.Fields{
-		"table_names": strings.TrimSpace(tableNames),
-	}).Info("migrating spotguide tables")
-
-	return db.AutoMigrate(tables...).Error
+func init() {
+	log = config.Logger()
 }

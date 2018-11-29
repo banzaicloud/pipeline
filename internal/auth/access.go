@@ -41,6 +41,7 @@ func (m *AccessManager) AddDefaultPolicies() {
 	m.enforcer.AddPolicy("default", m.basePath+"/api/v1/orgs", "*")
 	m.enforcer.AddPolicy("default", m.basePath+"/api/v1/token", "*")
 	m.enforcer.AddPolicy("default", m.basePath+"/api/v1/tokens", "*")
+	m.enforcer.AddPolicy("default", m.basePath+"/api/v1/notifications", "GET")
 	m.enforcer.AddPolicy("defaultVirtual", m.basePath+"/api/v1/orgs", "GET")
 }
 
