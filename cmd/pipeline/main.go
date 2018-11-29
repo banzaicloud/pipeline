@@ -244,7 +244,7 @@ func main() {
 
 	v1 := router.Group(path.Join(basePath, "api", "v1/"))
 	v1.GET("/functions", api.ListFunctions)
-	v1.HEAD("/securityscan", api.SecurytiScanEnabled)
+	v1.GET("/securityscan", api.SecurytiScanEnabled)
 	{
 		v1.Use(auth.Handler)
 		v1.Use(authorizationMiddleware)
