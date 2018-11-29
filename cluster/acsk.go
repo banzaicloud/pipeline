@@ -60,6 +60,36 @@ func (*ACSKCluster) RbacEnabled() bool {
 	return true
 }
 
+// GetSecurityScan returns true if security scan enabled on the cluster
+func (c *ACSKCluster) GetSecurityScan() bool {
+	return c.modelCluster.SecurityScan
+}
+
+// SetSecurityScan returns true if security scan enabled on the cluster
+func (c *ACSKCluster) SetSecurityScan(scan bool) {
+	c.modelCluster.SecurityScan = scan
+}
+
+// GetLogging returns true if logging enabled on the cluster
+func (c *ACSKCluster) GetLogging() bool {
+	return c.modelCluster.Logging
+}
+
+// SetLogging returns true if logging enabled on the cluster
+func (c *ACSKCluster) SetLogging(l bool) {
+	c.modelCluster.Logging = l
+}
+
+// GetMonitoring returns true if momnitoring enabled on the cluster
+func (c *ACSKCluster) GetMonitoring() bool {
+	return c.modelCluster.Monitoring
+}
+
+// SetMonitoring returns true if monitoring enabled on the cluster
+func (c *ACSKCluster) SetMonitoring(l bool) {
+	c.modelCluster.Monitoring = l
+}
+
 func (*ACSKCluster) RequiresSshPublicKey() bool {
 	return true
 }
@@ -455,6 +485,9 @@ func (c *ACSKCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) 
 		Cloud:             c.modelCluster.Cloud,
 		Distribution:      c.modelCluster.Distribution,
 		ResourceID:        c.modelCluster.ID,
+		Logging:           c.GetLogging(),
+		Monitoring:        c.GetMonitoring(),
+		SecurityScan:      c.GetSecurityScan(),
 		NodePools:         nodePools,
 		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
 		Region:            c.modelCluster.Location,
