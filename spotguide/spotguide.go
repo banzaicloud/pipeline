@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 	"text/template"
 	"time"
@@ -52,7 +53,7 @@ const IconPath = ".banzaicloud/icon.svg"
 const CreateClusterStep = "create_cluster"
 const SpotguideRepoTableName = "spotguide_repos"
 
-var IgnoredPaths = []string{".circleci"}
+var IgnoredPaths = []string{".circleci", ".github"}
 
 var ctx = context.Background()
 
@@ -731,7 +732,7 @@ func droneRepoConfigPipeline(request *LaunchRequest, repoConfig *droneRepoConfig
 
 func isIgnoredPath(path string) bool {
 	for _, ignoredPath := range IgnoredPaths {
-		if strings.HasPrefix(path, ignoredPath) {
+		if path == ignoredPath || strings.HasPrefix(path, ignoredPath+string(os.PathSeparator)) {
 			return true
 		}
 	}
