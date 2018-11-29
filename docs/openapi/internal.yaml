@@ -186,6 +186,7 @@ definitions:
         type: string
         x-go-name: Message
       priority:
+        description: Severity of the notifications
         type: integer
         x-go-name: Priority
     x-go-package: github.com/banzaicloud/pipeline/internal/notification

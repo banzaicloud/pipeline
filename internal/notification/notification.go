@@ -16,7 +16,6 @@ package notification
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/banzaicloud/pipeline/config"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
@@ -69,7 +68,7 @@ func getValidNotifications() ([]MessagesResponse, error) {
 
 	db := config.DB()
 
-	err := db.Find(&notifications, "initial_time < ? AND end_time > ?", time.Now(), time.Now()).Error
+	err := db.Find(&notifications, "NOW() BETWEEN initial_time AND end_time").Error
 	if err != nil {
 		return nil, emperror.Wrap(err, "failed to find notifications")
 	}
