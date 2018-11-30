@@ -39,6 +39,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgEks "github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	"github.com/banzaicloud/pipeline/pkg/common"
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon/autoscaling"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
@@ -815,7 +816,7 @@ func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (outp
 				}
 				_, err = cloudformationSrv.CreateStack(createStackInput)
 				if err != nil {
-					errorChan <- err
+					errorChan <- emperror.Wrapf(err, "could not create '%s' CF stack", stackName)
 					return
 				}
 			} else {
@@ -838,7 +839,7 @@ func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (outp
 						waitOnCreateUpdate = false
 						err = nil
 					} else {
-						errorChan <- err
+						errorChan <- emperror.Wrapf(err, "could not update '%s' CF stack", stackName)
 						return
 					}
 				}
@@ -873,11 +874,13 @@ func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (outp
 		}(nodePool)
 	}
 
+	caughtErrors := emperror.NewMultiErrorBuilder()
+
 	// wait for goroutines to finish
 	for i := 0; i < len(a.nodePools); i++ {
 		createErr := <-errorChan
 		if createErr != nil {
-			err = createErr
+			caughtErrors.Add(createErr)
 		}
 	}
 
@@ -885,11 +888,11 @@ func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (outp
 	for i := 0; i < waitRoutines; i++ {
 		waitErr := <-waitChan
 		if waitErr != nil {
-			err = waitErr
+			caughtErrors.Add(waitErr)
 		}
 	}
 
-	return nil, err
+	return nil, pkgErrors.NewMultiErrorWithFormatter(caughtErrors.ErrOrNil())
 }
 
 // UndoAction rolls back this CreateUpdateNodePoolStackAction
