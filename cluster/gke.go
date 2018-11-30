@@ -1098,6 +1098,7 @@ func (c *GKECluster) getGoogleKubernetesConfig() ([]byte, error) {
 		ClientCertificate:   cl.MasterAuth.ClientCertificate,
 		ClientKey:           cl.MasterAuth.ClientKey,
 		RootCACert:          cl.MasterAuth.ClusterCaCertificate,
+		Name:                cl.Name,
 		Username:            cl.MasterAuth.Username,
 		Password:            cl.MasterAuth.Password,
 		Version:             cl.CurrentMasterVersion,
@@ -1338,8 +1339,6 @@ func storeConfig(c *kubernetesCluster) ([]byte, error) {
 		}
 	}
 
-	config.CurrentContext = c.CurrentContext
-
 	// setup context
 	context := configContext{
 		Context: contextData{
@@ -1348,6 +1347,9 @@ func storeConfig(c *kubernetesCluster) ([]byte, error) {
 		},
 		Name: c.Name,
 	}
+
+	config.CurrentContext = context.Name
+
 	if config.Contexts == nil || len(config.Contexts) == 0 {
 		config.Contexts = []configContext{context}
 	} else {
