@@ -87,7 +87,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **AllowedSecretsTypes**
-> AllowedSecretTypesResponse AllowedSecretsTypes(ctx, )
+> map[string]AllowedSecretTypeResponse AllowedSecretsTypes(ctx, )
 List allowed secret types
 
 List allowed secret types and their required keys
@@ -97,7 +97,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-[**AllowedSecretTypesResponse**](AllowedSecretTypesResponse.md)
+[**map[string]AllowedSecretTypeResponse**](AllowedSecretTypeResponse.md)
 
 ### Authorization
 

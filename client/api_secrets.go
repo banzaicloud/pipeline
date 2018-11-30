@@ -293,16 +293,16 @@ func (a *SecretsApiService) AddSecrets(ctx context.Context, orgId int32, createS
 SecretsApiService List allowed secret types
 List allowed secret types and their required keys
  * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-@return AllowedSecretTypesResponse
+@return map[string]AllowedSecretTypeResponse
 */
-func (a *SecretsApiService) AllowedSecretsTypes(ctx context.Context) (AllowedSecretTypesResponse, *http.Response, error) {
+func (a *SecretsApiService) AllowedSecretsTypes(ctx context.Context) (map[string]AllowedSecretTypeResponse, *http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Get")
 		localVarPostBody     interface{}
 		localVarFormFileName string
 		localVarFileName     string
 		localVarFileBytes    []byte
-		localVarReturnValue  AllowedSecretTypesResponse
+		localVarReturnValue  map[string]AllowedSecretTypeResponse
 	)
 
 	// create path and map variables
@@ -359,7 +359,7 @@ func (a *SecretsApiService) AllowedSecretsTypes(ctx context.Context) (AllowedSec
 			error: localVarHttpResponse.Status,
 		}
 		if localVarHttpResponse.StatusCode == 200 {
-			var v AllowedSecretTypesResponse
+			var v map[string]AllowedSecretTypeResponse
 			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
 			if err != nil {
 				newErr.error = err.Error()

@@ -137,7 +137,6 @@ Class | Method | HTTP request | Description
  - [AddClusterProfileRequest](docs/AddClusterProfileRequest.md)
  - [AllowedSecretTypeResponse](docs/AllowedSecretTypeResponse.md)
  - [AllowedSecretTypeResponseFields](docs/AllowedSecretTypeResponseFields.md)
- - [AllowedSecretTypesResponse](docs/AllowedSecretTypesResponse.md)
  - [AmazonConfigResponse](docs/AmazonConfigResponse.md)
  - [AmazonConfigResponseImage](docs/AmazonConfigResponseImage.md)
  - [AmazonConfigResponseInstanceType](docs/AmazonConfigResponseInstanceType.md)
