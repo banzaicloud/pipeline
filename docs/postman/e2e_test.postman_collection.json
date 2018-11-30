@@ -10118,13 +10118,11 @@
 							"raw": ""
 						},
 						"url": {
-							"raw": "{{url}}/api/v1/notifications",
+							"raw": "{{url}}/notifications",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
-								"api",
-								"v1",
 								"notifications"
 							]
 						}

@@ -196,6 +196,8 @@ func main() {
 
 	router.GET("/version", VersionHandler)
 
+	router.GET(path.Join(basePath, "notifications"), notification.GetNotifications)
+
 	// These two paths can contain sensitive information, so it is advised not to log them out.
 	skipPaths := viper.GetStringSlice("audit.skippaths")
 	router.Use(correlationid.Middleware())
@@ -370,7 +372,6 @@ func main() {
 
 		v1.GET("/allowed/secrets", api.ListAllowedSecretTypes)
 		v1.GET("/allowed/secrets/:type", api.ListAllowedSecretTypes)
-		v1.GET("/notifications", notification.GetNotifications)
 
 		backups.AddRoutes(orgs.Group("/:orgid/clusters/:id/backups"))
 		backupservice.AddRoutes(orgs.Group("/:orgid/clusters/:id/backupservice"))
