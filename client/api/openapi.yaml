@@ -3197,7 +3197,17 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AllowedSecretTypesResponse'
+                additionalProperties:
+                  $ref: '#/components/schemas/AllowedSecretTypeResponse'
+                example:
+                  tls:
+                    fields:
+                    - name: hosts
+                      required: true
+                    - name: validity
+                      required: false
+                    sourcing: volume
+                type: object
           description: Allowed types listed
         401:
           content:
@@ -7122,120 +7132,6 @@ components:
         error:
           example: Organization not found
           type: string
-      type: object
-    AllowedSecretTypesResponse:
-      example:
-        amazon:
-          fields:
-          - name: name
-            description: description
-            required: true
-          - name: name
-            description: description
-            required: true
-          sourcing: env
-        kubernetes:
-          fields:
-          - name: name
-            description: description
-            required: true
-          - name: name
-            description: description
-            required: true
-          sourcing: env
-        password:
-          fields:
-          - name: name
-            description: description
-            required: true
-          - name: name
-            description: description
-            required: true
-          sourcing: env
-        oracle:
-          fields:
-          - name: name
-            description: description
-            required: true
-          - name: name
-            description: description
-            required: true
-          sourcing: env
-        fn:
-          fields:
-          - name: name
-            description: description
-            required: true
-          - name: name
-            description: description
-            required: true
-          sourcing: env
-        ssh:
-          fields:
-          - name: name
-            description: description
-            required: true
-          - name: name
-            description: description
-            required: true
-          sourcing: env
-        google:
-          fields:
-          - name: name
-            description: description
-            required: true
-          - name: name
-            description: description
-            required: true
-          sourcing: env
-        tls:
-          fields:
-          - name: name
-            description: description
-            required: true
-          - name: name
-            description: description
-            required: true
-          sourcing: env
-        generic:
-          fields:
-          - name: name
-            description: description
-            required: true
-          - name: name
-            description: description
-            required: true
-          sourcing: env
-        azure:
-          fields:
-          - name: name
-            description: description
-            required: true
-          - name: name
-            description: description
-            required: true
-          sourcing: env
-      properties:
-        amazon:
-          $ref: '#/components/schemas/AllowedSecretTypeResponse'
-        azure:
-          $ref: '#/components/schemas/AllowedSecretTypeResponse'
-        google:
-          $ref: '#/components/schemas/AllowedSecretTypeResponse'
-        oracle:
-          $ref: '#/components/schemas/AllowedSecretTypeResponse'
-        kubernetes:
-          $ref: '#/components/schemas/AllowedSecretTypeResponse'
-        generic:
-          $ref: '#/components/schemas/AllowedSecretTypeResponse'
-        fn:
-          $ref: '#/components/schemas/AllowedSecretTypeResponse'
-        password:
-          $ref: '#/components/schemas/AllowedSecretTypeResponse'
-        tls:
-          $ref: '#/components/schemas/AllowedSecretTypeResponse'
-        ssh:
-          $ref: '#/components/schemas/AllowedSecretTypeResponse'
       type: object
     AllowedSecretTypeResponse:
       example:

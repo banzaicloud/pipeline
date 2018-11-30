@@ -3097,7 +3097,19 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/AllowedSecretTypesResponse'
+                                type: object
+                                example:
+                                    tls:
+                                        fields:
+                                            -
+                                                name: hosts
+                                                required: true
+                                            -
+                                                name: validity
+                                                required: false
+                                        sourcing: volume
+                                additionalProperties:
+                                    $ref: '#/components/schemas/AllowedSecretTypeResponse'
                 '401':
                     description: Unauthorized
                     content:
@@ -3130,6 +3142,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/AllowedSecretTypeResponse'
+
                 '400':
                     description: Error during listing secret types
                     content:
@@ -6922,30 +6935,6 @@ components:
                 error:
                     type: string
                     example: "Organization not found"
-
-        AllowedSecretTypesResponse:
-            type: object
-            properties:
-                amazon:
-                    $ref: '#/components/schemas/AllowedSecretTypeResponse'
-                azure:
-                    $ref: '#/components/schemas/AllowedSecretTypeResponse'
-                google:
-                    $ref: '#/components/schemas/AllowedSecretTypeResponse'
-                oracle:
-                    $ref: '#/components/schemas/AllowedSecretTypeResponse'
-                kubernetes:
-                    $ref: '#/components/schemas/AllowedSecretTypeResponse'
-                generic:
-                    $ref: '#/components/schemas/AllowedSecretTypeResponse'
-                fn:
-                    $ref: '#/components/schemas/AllowedSecretTypeResponse'
-                password:
-                    $ref: '#/components/schemas/AllowedSecretTypeResponse'
-                tls:
-                    $ref: '#/components/schemas/AllowedSecretTypeResponse'
-                ssh:
-                    $ref: '#/components/schemas/AllowedSecretTypeResponse'
 
         AllowedSecretTypeResponse:
             type: object
