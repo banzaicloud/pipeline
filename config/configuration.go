@@ -59,8 +59,8 @@ const (
 	// EksTemplateLocation is the configuration key the location to get EKS Cloud Formation templates from
 	// the location to get EKS Cloud Formation templates from
 	EksTemplateLocation = "eks.templateLocation"
-	// EksASGFullfillmentTimeout configuration key for the timeout of EKS ASG instance fulfillments
-	EksASGFullfillmentTimeout = "eks.ASGFullfillmentTimeout"
+	// EksASGFulfillmentTimeout configuration key for the timeout of EKS ASG instance fulfillments
+	EksASGFulfillmentTimeout = "eks.ASGFulfillmentTimeout"
 
 	// AwsCredentialPath is the path in Vault to get AWS credentials from for Pipeline
 	AwsCredentialPath = "aws.credentials.path"
@@ -227,7 +227,7 @@ func init() {
 
 	viper.SetDefault(PipelineSystemNamespace, "pipeline-system")
 	viper.SetDefault(EksTemplateLocation, filepath.Join(pwd, "templates", "eks"))
-	viper.SetDefault(EksASGFullfillmentTimeout, "10m")
+	viper.SetDefault(EksASGFulfillmentTimeout, "10m")
 
 	viper.SetDefault(SpotguideAllowPrereleases, false)
 

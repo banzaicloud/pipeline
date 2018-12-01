@@ -215,7 +215,7 @@ func (c *EKSCluster) CreateCluster() error {
 		return err
 	}
 
-	ASGWaitLoopCount := int(viper.GetDuration(config.EksASGFullfillmentTimeout).Seconds() / asgWaitLoopSleepSeconds)
+	ASGWaitLoopCount := int(viper.GetDuration(config.EksASGFulfillmentTimeout).Seconds() / asgWaitLoopSleepSeconds)
 
 	actions := []utils.Action{
 		action.NewCreateVPCAndRolesAction(c.log, creationContext, eksStackName),
@@ -657,7 +657,7 @@ func (c *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 		}
 	}
 
-	ASGWaitLoopCount := int(viper.GetDuration(config.EksASGFullfillmentTimeout).Seconds() / asgWaitLoopSleepSeconds)
+	ASGWaitLoopCount := int(viper.GetDuration(config.EksASGFulfillmentTimeout).Seconds() / asgWaitLoopSleepSeconds)
 
 	deleteNodePoolAction := action.NewDeleteStacksAction(c.log, deleteContext, nodePoolsToDelete...)
 	createNodePoolAction := action.NewCreateUpdateNodePoolStackAction(c.log, true, createUpdateContext, ASGWaitLoopCount, asgWaitLoopSleepSeconds*time.Second, nodePoolsToCreate...)
