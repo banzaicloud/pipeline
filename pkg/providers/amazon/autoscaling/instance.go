@@ -15,9 +15,10 @@
 package autoscaling
 
 import (
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/ec2"
+
+	pkgEC2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
 )
 
 // Instance extends autoscaling.Instance
@@ -41,21 +42,5 @@ func (i *Instance) IsHealthyAndInService() bool {
 
 // Describe returns detailed information about the instance
 func (i *Instance) Describe() (*ec2.Instance, error) {
-	result, err := i.manager.ec2Svc.DescribeInstances(&ec2.DescribeInstancesInput{
-		InstanceIds: []*string{
-			i.InstanceId,
-		},
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	if len(result.Reservations) == 1 {
-		reservation := result.Reservations[0]
-		if len(reservation.Instances) == 1 {
-			return reservation.Instances[0], nil
-		}
-	}
-
-	return nil, awserr.New("404", "instance not found", nil)
+	return pkgEC2.DescribeInstanceById(i.manager.ec2Svc, *i.InstanceId)
 }

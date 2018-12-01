@@ -17,12 +17,13 @@ package ec2
 import (
 	"time"
 
-	"github.com/goph/emperror"
-	"github.com/sirupsen/logrus"
-
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/goph/emperror"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/sirupsen/logrus"
 )
+
+const instancePipelineCreatedTag = "pipeline-created"
 
 // SpotMetricsExporter describes
 type SpotMetricsExporter struct {
@@ -46,7 +47,7 @@ func NewSpotMetricsExporter(logger logrus.FieldLogger, namespace string) *SpotMe
 		Name:      "ec2_spot_request_duration_until_state_seconds",
 		Help:      "Duration until an EC2 spot request got into it's current state in seconds",
 	},
-		[]string{"state", "region", "zone", "type"},
+		[]string{"state", "region", "zone", "type", "instance_id"},
 	)
 
 	e.ec2SpotRequest = prometheus.NewGaugeVec(prometheus.GaugeOpts{
@@ -63,8 +64,9 @@ func NewSpotMetricsExporter(logger logrus.FieldLogger, namespace string) *SpotMe
 	return e
 }
 
-func (e *SpotMetricsExporter) SetSpotRequestMetrics(requests map[string]*ec2.SpotInstanceRequest) {
-	var region, availabilityZone, instanceType string
+// SetSpotRequestMetrics exposes spot requests information as Prometheus metrics
+func (e *SpotMetricsExporter) SetSpotRequestMetrics(requests map[string]*SpotInstanceRequest) {
+	var region, availabilityZone, instanceType, instanceId string
 
 	// reset spot requests gauge
 	e.ec2SpotRequest.Reset()
@@ -80,36 +82,68 @@ func (e *SpotMetricsExporter) SetSpotRequestMetrics(requests map[string]*ec2.Spo
 			instanceType = *request.LaunchSpecification.InstanceType
 		}
 
+		instanceId = ""
+		if request.InstanceId != nil && request.IsPipelineRelated() {
+			instanceId = *request.InstanceId
+		}
+
 		// increment gauge
 		e.ec2SpotRequest.WithLabelValues(*request.Status.Code, region, availabilityZone, instanceType).Inc()
 
 		// observe state duration
 		if e.needsMeasure(request, e.lastRun) {
-			e.ec2SpotRequestDuration.WithLabelValues(*request.Status.Code, region, availabilityZone, instanceType).Observe(request.Status.UpdateTime.Sub(*request.CreateTime).Seconds())
+			e.ec2SpotRequestDuration.WithLabelValues(*request.Status.Code, region, availabilityZone, instanceType, instanceId).Observe(request.Status.UpdateTime.Sub(*request.CreateTime).Seconds())
 		}
 	}
 
 	e.lastRun = time.Now()
 }
 
-func (e *SpotMetricsExporter) GetSpotRequests(client *ec2.EC2) (map[string]*ec2.SpotInstanceRequest, error) {
+// GetSpotRequests gets spot requests from EC2 and sets related instance pipeline tags on them
+func (e *SpotMetricsExporter) GetSpotRequests(client *ec2.EC2) (map[string]*SpotInstanceRequest, error) {
 	input := &ec2.DescribeSpotInstanceRequestsInput{}
 	result, err := client.DescribeSpotInstanceRequests(input)
 	if err != nil {
 		return nil, emperror.Wrap(err, "could not get spot requests")
 	}
 
-	requests := make(map[string]*ec2.SpotInstanceRequest)
+	requests := make(map[string]*SpotInstanceRequest)
 	for _, sr := range result.SpotInstanceRequests {
 		if requests[*sr.SpotInstanceRequestId] == nil {
-			requests[*sr.SpotInstanceRequestId] = sr
+			requests[*sr.SpotInstanceRequestId] = e.addPipelineCreatedInstanceTag(client, &SpotInstanceRequest{SpotInstanceRequest: sr})
 		}
 	}
 
 	return requests, nil
 }
 
-func (e *SpotMetricsExporter) needsMeasure(request *ec2.SpotInstanceRequest, lastRun time.Time) bool {
+func (e *SpotMetricsExporter) addPipelineCreatedInstanceTag(client *ec2.EC2, request *SpotInstanceRequest) *SpotInstanceRequest {
+	if request.InstanceId == nil {
+		return request
+	}
+
+	i, err := DescribeInstanceById(client, *request.InstanceId)
+	if err != nil {
+		e.logger.Error(emperror.Wrap(err, "cannot describe ec2 instance"))
+		return request
+	}
+
+	if len(i.Tags) == 0 {
+		return request
+	}
+
+	tags := request.Tags
+	for _, tag := range i.Tags {
+		if tag.Key != nil && tag.Value != nil && *tag.Key == instancePipelineCreatedTag && *tag.Value == "true" {
+			tags = append(tags, tag)
+			break
+		}
+	}
+
+	return &SpotInstanceRequest{SpotInstanceRequest: request.SetTags(tags)}
+}
+
+func (e *SpotMetricsExporter) needsMeasure(request *SpotInstanceRequest, lastRun time.Time) bool {
 
 	if request.Status.UpdateTime.Before(lastRun) {
 		return false

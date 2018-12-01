@@ -86,7 +86,7 @@ func (e *spotMetricsExporter) collectMetrics() error {
 		return emperror.Wrap(err, "could not get clusters from cluster manager")
 	}
 
-	requests := make(map[string]*ec2.SpotInstanceRequest)
+	requests := make(map[string]*pkgEC2.SpotInstanceRequest)
 	for _, cluster := range clusters {
 		log := e.logger.WithField("cluster", cluster.GetName())
 

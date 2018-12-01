@@ -30,6 +30,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/pricing"
+	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgEks "github.com/banzaicloud/pipeline/pkg/cluster/eks"
@@ -44,6 +45,7 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -63,6 +65,8 @@ const mapUsersTemplate = `- userarn: %s
   groups:
   - system:masters
 `
+
+const asgWaitLoopSleepSeconds = 5
 
 //CreateEKSClusterFromRequest creates ClusterModel struct from the request
 func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId uint) (*EKSCluster, error) {
@@ -211,6 +215,8 @@ func (c *EKSCluster) CreateCluster() error {
 		return err
 	}
 
+	ASGWaitLoopCount := int(viper.GetDuration(config.EksASGFullfillmentTimeout).Seconds() / asgWaitLoopSleepSeconds)
+
 	actions := []utils.Action{
 		action.NewCreateVPCAndRolesAction(c.log, creationContext, eksStackName),
 		action.NewCreateClusterUserAccessKeyAction(c.log, creationContext),
@@ -218,7 +224,7 @@ func (c *EKSCluster) CreateCluster() error {
 		action.NewUploadSSHKeyAction(c.log, creationContext, sshSecret),
 		action.NewGenerateVPCConfigRequestAction(c.log, creationContext, eksStackName, c.GetOrganizationId()),
 		action.NewCreateEksClusterAction(c.log, creationContext, c.modelCluster.EKS.Version),
-		action.NewCreateUpdateNodePoolStackAction(c.log, true, creationContext, 120, 5*time.Second, c.modelCluster.EKS.NodePools...),
+		action.NewCreateUpdateNodePoolStackAction(c.log, true, creationContext, ASGWaitLoopCount, asgWaitLoopSleepSeconds*time.Second, c.modelCluster.EKS.NodePools...),
 	}
 
 	_, err = utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, false)
@@ -651,9 +657,11 @@ func (c *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 		}
 	}
 
+	ASGWaitLoopCount := int(viper.GetDuration(config.EksASGFullfillmentTimeout).Seconds() / asgWaitLoopSleepSeconds)
+
 	deleteNodePoolAction := action.NewDeleteStacksAction(c.log, deleteContext, nodePoolsToDelete...)
-	createNodePoolAction := action.NewCreateUpdateNodePoolStackAction(c.log, true, createUpdateContext, 120, 5*time.Second, nodePoolsToCreate...)
-	updateNodePoolAction := action.NewCreateUpdateNodePoolStackAction(c.log, false, createUpdateContext, 120, 5*time.Second, nodePoolsToUpdate...)
+	createNodePoolAction := action.NewCreateUpdateNodePoolStackAction(c.log, true, createUpdateContext, ASGWaitLoopCount, asgWaitLoopSleepSeconds*time.Second, nodePoolsToCreate...)
+	updateNodePoolAction := action.NewCreateUpdateNodePoolStackAction(c.log, false, createUpdateContext, ASGWaitLoopCount, asgWaitLoopSleepSeconds*time.Second, nodePoolsToUpdate...)
 
 	actions = append(actions, createNodePoolAction, updateNodePoolAction, deleteNodePoolAction)
 
