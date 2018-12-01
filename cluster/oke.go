@@ -41,7 +41,6 @@ type OKECluster struct {
 
 // CreateOKEClusterFromModel creates ClusterModel struct from model
 func CreateOKEClusterFromModel(clusterModel *model.ClusterModel) (*OKECluster, error) {
-	log.Debug("Create ClusterModel struct from the request")
 	okeCluster := OKECluster{
 		modelCluster: clusterModel,
 	}
@@ -50,7 +49,6 @@ func CreateOKEClusterFromModel(clusterModel *model.ClusterModel) (*OKECluster, e
 
 // CreateOKEClusterFromRequest creates ClusterModel struct from the request
 func CreateOKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId, userId uint) (*OKECluster, error) {
-	log.Debug("Create ClusterModel struct from the request")
 
 	var oke OKECluster
 

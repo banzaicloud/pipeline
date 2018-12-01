@@ -29,8 +29,6 @@ func (m *Manager) GetClusters(ctx context.Context, organizationID uint) ([]Commo
 		"organization": organizationID,
 	})
 
-	logger.Debug("fetching clusters from database")
-
 	clusterModels, err := m.clusters.FindByOrganization(organizationID)
 	if err != nil {
 		return nil, err
@@ -40,7 +38,6 @@ func (m *Manager) GetClusters(ctx context.Context, organizationID uint) ([]Commo
 
 	for _, clusterModel := range clusterModels {
 		logger := logger.WithField("cluster", clusterModel.Name)
-		logger.Debug("converting cluster model to common cluster")
 
 		cluster, err := GetCommonClusterFromModel(clusterModel)
 		if err != nil {
@@ -58,8 +55,6 @@ func (m *Manager) GetClusters(ctx context.Context, organizationID uint) ([]Commo
 // GetAllClusters returns all cluster instances.
 func (m *Manager) GetAllClusters(ctx context.Context) ([]CommonCluster, error) {
 	logger := m.getLogger(ctx)
-
-	logger.Debug("fetching clusters from database")
 
 	clusterModels, err := m.clusters.All()
 	if err != nil {
@@ -160,7 +155,6 @@ func (m *Manager) getClustersFromModels(clusterModels []*model.ClusterModel, log
 
 	for _, clusterModel := range clusterModels {
 		logger := logger.WithField("cluster", clusterModel.Name)
-		logger.Debug("converting cluster model to common cluster")
 
 		cluster, err := m.getClusterFromModel(clusterModel)
 		if err != nil {

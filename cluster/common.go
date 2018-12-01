@@ -111,7 +111,6 @@ func (c *CommonClusterBase) RequiresSshPublicKey() bool {
 
 func (c *CommonClusterBase) getSecret(cluster CommonCluster) (*secret.SecretItemResponse, error) {
 	if c.secret == nil {
-		log.Debug("Secret is nil.. load from vault")
 		s, err := getSecret(cluster.GetOrganizationId(), cluster.GetSecretId())
 		if err != nil {
 			return nil, err
@@ -129,7 +128,6 @@ func (c *CommonClusterBase) getSecret(cluster CommonCluster) (*secret.SecretItem
 
 func (c *CommonClusterBase) getSshSecret(cluster CommonCluster) (*secret.SecretItemResponse, error) {
 	if c.sshSecret == nil {
-		log.Debug("SSH secret is nil.. load from vault")
 		s, err := getSecret(cluster.GetOrganizationId(), cluster.GetSshSecretId())
 		if err != nil {
 			return nil, err
@@ -147,7 +145,6 @@ func (c *CommonClusterBase) getSshSecret(cluster CommonCluster) (*secret.SecretI
 
 func (c *CommonClusterBase) getConfig(cluster CommonCluster) ([]byte, error) {
 	if c.config == nil {
-		log.Debug("k8s config is nil.. load from vault")
 		var loadedConfig []byte
 		secretId := cluster.GetConfigSecretId()
 		if secretId == "" {
@@ -232,7 +229,6 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 			return nil, err
 		}
 
-		log.Debug("Load Alibaba props from database")
 		err = db.Where(model.ACSKClusterModel{ID: alibabaCluster.modelCluster.ID}).First(&alibabaCluster.modelCluster.ACSK).Error
 		if err != nil {
 			return nil, err
@@ -252,7 +248,6 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 			return nil, err
 		}
 
-		log.Debug("Load EKS props from database")
 		err = db.Where(model.EKSClusterModel{ID: eksCluster.modelCluster.ID}).First(&eksCluster.modelCluster.EKS).Error
 		if err != nil {
 			return nil, err
@@ -268,7 +263,6 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 			return nil, err
 		}
 
-		log.Debug("Load Azure props from database")
 		err = db.Where(model.AKSClusterModel{ID: aksCluster.modelCluster.ID}).First(&aksCluster.modelCluster.AKS).Error
 		if err != nil {
 			return nil, err
@@ -292,7 +286,6 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 			return nil, err
 		}
 
-		log.Debug("Load Dummy props from database")
 		err = db.Where(model.DummyClusterModel{ID: dummyCluster.modelCluster.ID}).First(&dummyCluster.modelCluster.Dummy).Error
 
 		return dummyCluster, err
@@ -304,7 +297,6 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 			return nil, err
 		}
 
-		log.Debug("Load Kubernetes props from database")
 		err = db.Where(model.KubernetesClusterModel{ID: kubernetesCluster.modelCluster.ID}).First(&kubernetesCluster.modelCluster.Kubernetes).Error
 		if database.IsRecordNotFoundError(err) {
 			// metadata not set so there's no properties in DB
@@ -321,7 +313,6 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 			return nil, err
 		}
 
-		log.Debug("Load Oracle props from database")
 		err = db.Where(modelOracle.Cluster{ClusterModelID: okeCluster.modelCluster.ID}).Preload("NodePools.Subnets").Preload("NodePools.Labels").First(&okeCluster.modelCluster.OKE).Error
 
 		return okeCluster, err
