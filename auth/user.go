@@ -442,8 +442,6 @@ func GetUserById(userId uint) (*User, error) {
 
 // GetUserNickNameById returns user's login name
 func GetUserNickNameById(userId uint) (userName string) {
-
-	log.Infof("Get username by id[%d]", userId)
 	if user, err := GetUserById(userId); err != nil {
 		log.Warnf("Error during getting user name: %s", err.Error())
 	} else {

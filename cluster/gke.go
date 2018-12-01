@@ -79,7 +79,6 @@ const (
 
 // CreateGKEClusterFromRequest creates ClusterModel struct from the request
 func CreateGKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID, userID uint) (*GKECluster, error) {
-	log.Debug("Create ClusterModel struct from the request")
 	var c GKECluster
 
 	c.db = pipConfig.DB()
@@ -1466,7 +1465,6 @@ type providerConfig struct {
 
 //CreateGKEClusterFromModel creates ClusterModel struct from model
 func CreateGKEClusterFromModel(clusterModel *model.ClusterModel) (*GKECluster, error) {
-	log.Debug("Create ClusterModel struct from the request")
 	db := pipConfig.DB()
 
 	m := google.GKEClusterModel{

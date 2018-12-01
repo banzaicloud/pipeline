@@ -205,7 +205,6 @@ func CreateACSKClusterFromModel(clusterModel *model.ClusterModel) (*ACSKCluster,
 }
 
 func CreateACSKClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId, userId uint) (*ACSKCluster, error) {
-	log.Debug("Create ClusterModel struct from the request")
 	cluster := ACSKCluster{
 		log: log.WithField("cluster", request.Name),
 	}

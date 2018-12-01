@@ -33,7 +33,6 @@ import (
 // CreateKubernetesClusterFromRequest creates ClusterModel struct from the request
 func CreateKubernetesClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId, userId uint) (*KubeCluster, error) {
 
-	log.Debug("Create ClusterModel struct from the request")
 	var cluster KubeCluster
 
 	cluster.modelCluster = &model.ClusterModel{
@@ -237,7 +236,6 @@ func (c *KubeCluster) GetLocation() string {
 
 // CreateKubernetesClusterFromModel converts ClusterModel to KubeCluster
 func CreateKubernetesClusterFromModel(clusterModel *model.ClusterModel) (*KubeCluster, error) {
-	log.Debug("Create ClusterModel struct from the request")
 	kubeCluster := KubeCluster{
 		modelCluster: clusterModel,
 	}

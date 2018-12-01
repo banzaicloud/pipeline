@@ -410,8 +410,6 @@ func (ss *secretStore) Get(organizationID uint, secretID string) (*SecretItemRes
 
 	path := secretDataPath(organizationID, secretID)
 
-	log.Debugln("Get secret:", path)
-
 	secret, err := ss.Logical.Read(path)
 
 	if err != nil {
