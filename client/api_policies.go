@@ -230,13 +230,11 @@ Get the policy bundle content
  * @param policyId
  * @param optional nil or *GetPolicyOpts - Optional Parameters:
  * @param "Detail" (optional.Bool) -  Include policy bundle detail in the form of the full bundle content for each entry
- * @param "Active" (optional.Bool) -  Activate policy bundle
 @return PolicyBundleList
 */
 
 type GetPolicyOpts struct {
 	Detail optional.Bool
-	Active optional.Bool
 }
 
 func (a *PoliciesApiService) GetPolicy(ctx context.Context, id int32, orgId int32, policyId string, localVarOptionals *GetPolicyOpts) (PolicyBundleList, *http.Response, error) {
@@ -261,9 +259,6 @@ func (a *PoliciesApiService) GetPolicy(ctx context.Context, id int32, orgId int3
 
 	if localVarOptionals != nil && localVarOptionals.Detail.IsSet() {
 		localVarQueryParams.Add("detail", parameterToString(localVarOptionals.Detail.Value(), ""))
-	}
-	if localVarOptionals != nil && localVarOptionals.Active.IsSet() {
-		localVarQueryParams.Add("active", parameterToString(localVarOptionals.Active.Value(), ""))
 	}
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{}
