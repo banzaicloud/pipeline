@@ -17,8 +17,10 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"path"
+	"strconv"
 	"strings"
 
 	"regexp"
@@ -250,6 +252,7 @@ func GetPolicies(c *gin.Context) {
 	if !ok {
 		return
 	}
+
 	anchoreRequest := anchore.AnchoreRequest{
 		OrgID:     commonCluster.GetOrganizationId(),
 		ClusterID: commonCluster.GetUID(),
@@ -266,6 +269,25 @@ func GetPolicies(c *gin.Context) {
 			Error:   err.Error(),
 		})
 		return
+	}
+	if active, _ := strconv.ParseBool(c.Query("active")); active {
+		respBody, _ := ioutil.ReadAll(response.Body)
+		policyBundle := []security.PolicyBundleRecord{}
+		json.Unmarshal(respBody, &policyBundle)
+		policyBundle[0].Active = true
+		anchoreRequest.Method = http.MethodPut
+		anchoreRequest.Body = policyBundle[0]
+
+		response, err = anchore.DoAnchoreRequest(anchoreRequest)
+		if err != nil {
+			log.Error(err)
+			c.JSON(http.StatusInternalServerError, pkgCommmon.ErrorResponse{
+				Code:    http.StatusInternalServerError,
+				Message: "Error",
+				Error:   err.Error(),
+			})
+			return
+		}
 	}
 	defer response.Body.Close()
 

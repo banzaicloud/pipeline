@@ -1403,6 +1403,13 @@ paths:
                         type: boolean
                     required: false
                     description: Include policy bundle detail in the form of the full bundle content for each entry
+                -
+                    name: active
+                    in: query
+                    required: false
+                    description: Activate policy bundle
+                    schema:
+                        type: boolean
             responses:
                 200:
                     description: A list with a single fetched policy bundle record
