@@ -243,9 +243,8 @@
   name = "github.com/jmespath/go-jmespath"
 
 [[constraint]]
-  name = "github.com/drone/drone-go"
-  source = "github.com/banzaicloud/drone-go"
-  branch = "banzaidrone"
+  name = "github.com/banzaicloud/cicd-go"
+  branch = "master"
 
 [[constraint]]
   name = "github.com/goph/emperror"

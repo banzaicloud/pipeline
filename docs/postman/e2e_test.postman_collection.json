@@ -2531,7 +2531,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"name\": \"banzaicloud-stable/drone\",\n\t\"values\": {\n\t\t\"server\": {\n\t\t\t\"persistentVolume\": {\n\t\t\t\t\"enabled\": false\n\t\t\t}\n\t\t}\n\t}\n}"
+							"raw": "{\n\t\"name\": \"banzaicloud-stable/cicd\",\n\t\"values\": {\n\t\t\"server\": {\n\t\t\t\"persistentVolume\": {\n\t\t\t\t\"enabled\": false\n\t\t\t}\n\t\t}\n\t}\n}"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/deployments",

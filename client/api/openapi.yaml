@@ -6195,13 +6195,13 @@ components:
         values:
           ingress:
             enabled: "true"
-        name: banzaicloud-stable/drone
+        name: banzaicloud-stable/cicd
         namespace: default
         reuseValues: true
         version: 0.1.0
       properties:
         name:
-          example: banzaicloud-stable/drone
+          example: banzaicloud-stable/cicd
           type: string
         version:
           description: Version of the deployment. If not specified, the latest version is used.

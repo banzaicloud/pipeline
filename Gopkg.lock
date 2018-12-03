@@ -300,6 +300,14 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:3886346341c9405ada3bec342c98fa2494137926bfd38158b832c63afd41cae6"
+  name = "github.com/banzaicloud/cicd-go"
+  packages = ["cicd"]
+  pruneopts = "NUT"
+  revision = "de6f3f91e590b34a68773144cd24e313cde0411f"
+
+[[projects]]
+  branch = "master"
   digest = "1:8647feebcdfccaf639607c9924970a3528136aabc113ff896d5e8124705dcfd5"
   name = "github.com/banzaicloud/go-gin-prometheus"
   packages = ["."]
@@ -479,15 +487,6 @@
   ]
   pruneopts = "NUT"
   revision = "bc6354cbbc295e925e4c611ffe90c1f287ee54db"
-
-[[projects]]
-  branch = "banzaidrone"
-  digest = "1:dcccc00826cb77e0e53a9e8ca3093e5c69e5e81959b488e9821def8f19fd893c"
-  name = "github.com/drone/drone-go"
-  packages = ["drone"]
-  pruneopts = "NUT"
-  revision = "8d59833cbc929793d621180fb639b4391b62fe2b"
-  source = "github.com/banzaicloud/drone-go"
 
 [[projects]]
   digest = "1:ad32dc29f37281bacb5dcedff17c9461dc1739dc8a5f63a71ab491c6e92edf8d"
@@ -2213,6 +2212,7 @@
     "github.com/banzaicloud/bank-vaults/pkg/db",
     "github.com/banzaicloud/bank-vaults/pkg/tls",
     "github.com/banzaicloud/bank-vaults/pkg/vault",
+    "github.com/banzaicloud/cicd-go/cicd",
     "github.com/banzaicloud/go-gin-prometheus",
     "github.com/banzaicloud/logrus-runtime-formatter",
     "github.com/casbin/casbin",
@@ -2221,7 +2221,6 @@
     "github.com/dgrijalva/jwt-go",
     "github.com/didip/tollbooth",
     "github.com/docker/libcompose/yaml",
-    "github.com/drone/drone-go/drone",
     "github.com/ghodss/yaml",
     "github.com/gin-contrib/cors",
     "github.com/gin-gonic/gin",
@@ -2325,6 +2324,7 @@
     "k8s.io/kubernetes/pkg/api/v1/resource",
     "k8s.io/kubernetes/pkg/apis/core",
     "k8s.io/kubernetes/pkg/apis/storage/util",
+    "k8s.io/kubernetes/pkg/scheduler/cache",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -44,8 +44,7 @@ $ make config/config.toml
 
 **Note:** If you followed the quick start guide this file should already exist.
  
-As of now the example config enables OAuth2 based authentication, and disables Drone deployment.
-It can be changed by modifying the example.
+As of now the example config enables OAuth2 based authentication. It can be changed by modifying the example.
 
 OAuth2 based authentication requires GitHub application, this can be created by following this 
 [tutorial](https://developer.github.com/apps/building-oauth-apps/creating-an-oauth-app/).

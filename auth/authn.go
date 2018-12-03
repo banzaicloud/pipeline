@@ -46,16 +46,14 @@ import (
 // PipelineSessionCookie holds the name of the Cookie Pipeline sets in the browser
 const PipelineSessionCookie = "_banzai_session"
 
-// DroneSessionCookie holds the name of the Cookie Drone sets in the browser
-const DroneSessionCookie = "user_sess"
+// CICDSessionCookie holds the name of the Cookie CICD sets in the browser
+const CICDSessionCookie = "user_sess"
 
-// DroneUserTokenType is the Drone token type used for API sessions
-const DroneUserTokenType bauth.TokenType = "user"
+// CICDUserTokenType is the CICD token type used for API sessions
+const CICDUserTokenType bauth.TokenType = "user"
 
-// DroneHookTokenType is the Drone token type used for API sessions
-const DroneHookTokenType bauth.TokenType = "hook"
-
-// For all Drone token types please see: https://github.com/drone/drone/blob/master/shared/token/token.go#L12
+// CICDHookTokenType is the CICD token type used for API sessions
+const CICDHookTokenType bauth.TokenType = "hook"
 
 // SessionCookieMaxAge holds long an authenticated session should be valid in seconds
 const SessionCookieMaxAge = 30 * 24 * 60 * 60
@@ -70,7 +68,7 @@ const SessionCookieName = "Pipeline session token"
 var (
 	log *logrus.Logger
 
-	DroneDB *gorm.DB
+	cicdDB *gorm.DB
 
 	redirectBack *redirect_back.RedirectBack
 	Auth         *auth.Auth
@@ -100,8 +98,8 @@ func init() {
 	log = config.Logger()
 }
 
-// DroneClaims struct to store the drone claim related things
-type DroneClaims struct {
+// CICDClaims struct to store the cicd claim related things
+type CICDClaims struct {
 	*claims.Claims
 	Type bauth.TokenType `json:"type,omitempty"`
 	Text string          `json:"text,omitempty"`
@@ -111,8 +109,8 @@ func claimConverter(claims *bauth.ScopedClaims) interface{} {
 	userID, _ := strconv.ParseUint(claims.Subject, 10, 32)
 	return &User{
 		ID:      uint(userID),
-		Login:   claims.Text, // This is needed for Drone virtual user tokens
-		Virtual: claims.Type == DroneHookTokenType,
+		Login:   claims.Text, // This is needed for CICD virtual user tokens
+		Virtual: claims.Type == CICDHookTokenType,
 	}
 }
 
@@ -173,7 +171,7 @@ func Init(db *gorm.DB, accessManager accessManager, githubImporter *GithubImport
 		FallbackPath: viper.GetString("pipeline.uipath"),
 	})
 
-	DroneDB = db
+	cicdDB = db
 
 	sessionStorer := &BanzaiSessionStorer{
 		SessionStorer: auth.SessionStorer{
@@ -194,7 +192,7 @@ func Init(db *gorm.DB, accessManager accessManager, githubImporter *GithubImport
 		SessionStorer:     sessionStorer,
 		UserStorer: BanzaiUserStorer{
 			signingKeyBase32: signingKeyBase32,
-			droneDB:          DroneDB,
+			cicdDB:           cicdDB,
 			events:           ebAuthEvents{eb: config.EventBus},
 			accessManager:    accessManager,
 			githubImporter:   githubImporter,
@@ -208,7 +206,7 @@ func Init(db *gorm.DB, accessManager accessManager, githubImporter *GithubImport
 		ClientID:     viper.GetString("auth.clientid"),
 		ClientSecret: viper.GetString("auth.clientsecret"),
 
-		// The same as Drone's scopes
+		// The same as CICD's scopes
 		Scopes: []string{
 			"repo",
 			"user:email",
@@ -326,11 +324,11 @@ func (h *tokenHandler) GenerateToken(c *gin.Context) {
 
 	userID := currentUser.IDString()
 	userLogin := currentUser.Login
-	tokenType := DroneUserTokenType
+	tokenType := CICDUserTokenType
 	if isForVirtualUser {
 		userID = tokenRequest.VirtualUser
 		userLogin = tokenRequest.VirtualUser
-		tokenType = DroneHookTokenType
+		tokenType = CICDHookTokenType
 	}
 
 	tokenID, signedToken, err := createAndStoreAPIToken(userID, userLogin, tokenType, tokenRequest.Name, tokenRequest.ExpiresAt)
@@ -381,8 +379,8 @@ func createAPIToken(userID string, userLogin string, tokenType bauth.TokenType, 
 			Id:        tokenID,
 		},
 		Scope: "api:invoke", // "scope" for Pipeline
-		Type:  tokenType,    // "type" for Drone
-		Text:  userLogin,    // "text" for Drone
+		Type:  tokenType,    // "type" for CICD
+		Text:  userLogin,    // "text" for CICD
 	}
 
 	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -481,7 +479,7 @@ func (sessionStorer *BanzaiSessionStorer) Update(w http.ResponseWriter, req *htt
 	// These tokens are GCd after they expire
 	expiresAt := time.Now().Add(SessionCookieMaxAge * time.Second)
 
-	_, cookieToken, err := createAndStoreAPIToken(claims.UserID, currentUser.Login, DroneUserTokenType, SessionCookieName, &expiresAt)
+	_, cookieToken, err := createAndStoreAPIToken(claims.UserID, currentUser.Login, CICDUserTokenType, SessionCookieName, &expiresAt)
 	if err != nil {
 		errorHandler.Handle(errors.Wrap(err, "failed to create user session cookie"))
 		return err
@@ -494,15 +492,15 @@ func (sessionStorer *BanzaiSessionStorer) Update(w http.ResponseWriter, req *htt
 		return err
 	}
 
-	// Set the drone cookie as well, but that cookie's value is actually a Pipeline API token
-	SetCookie(w, req, DroneSessionCookie, cookieToken)
+	// Set the CICD cookie as well, but that cookie's value is actually a Pipeline API token
+	SetCookie(w, req, CICDSessionCookie, cookieToken)
 
 	return nil
 }
 
-// BanzaiLogoutHandler does the qor/auth DefaultLogoutHandler default logout behavior + deleting the Drone cookie
+// BanzaiLogoutHandler does the qor/auth DefaultLogoutHandler default logout behavior + deleting the CICD cookie
 func BanzaiLogoutHandler(context *auth.Context) {
-	DelCookie(context.Writer, context.Request, DroneSessionCookie)
+	DelCookie(context.Writer, context.Request, CICDSessionCookie)
 	DelCookie(context.Writer, context.Request, PipelineSessionCookie)
 }
 
@@ -569,11 +567,11 @@ func (h *banzaiDeregisterHandler) handler(context *auth.Context) {
 		return
 	}
 
-	droneUser := DroneUser{Login: user.Login}
-	// We need to pass droneUser as well as the where clause, because Delete() filters by primary
+	cicdUser := CICDUser{Login: user.Login}
+	// We need to pass cicdUser as well as the where clause, because Delete() filters by primary
 	// key by default: http://doc.gorm.io/crud.html#delete but here we need to delete by the Login
-	if err := DroneDB.Delete(droneUser, droneUser).Error; err != nil {
-		errorHandler.Handle(errors.Wrap(err, "failed delete user from Drone"))
+	if err := cicdDB.Delete(cicdUser, cicdUser).Error; err != nil {
+		errorHandler.Handle(errors.Wrap(err, "failed delete user from CICD"))
 		http.Error(context.Writer, err.Error(), http.StatusInternalServerError)
 		return
 	}

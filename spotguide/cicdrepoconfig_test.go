@@ -20,7 +20,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func TestUnmarshalDroneRepoConfig(t *testing.T) {
+func TestUnmarshalCICDRepoConfig(t *testing.T) {
 	configYaml := `
 cluster:
   name: "banzai-cicd-cluster"
@@ -53,7 +53,7 @@ pipeline:
     image: plugins/docker
     dockerfile: Dockerfile
     repo: banzaicloud/pipeline
-    tags: "{{ printf \"%s\" .DRONE_BRANCH }}"
+    tags: "{{ printf \"%s\" .CICD_BRANCH }}"
     log: debug
 services:
   vault:
@@ -65,7 +65,7 @@ services:
       VAULT_DEV_ROOT_TOKEN_ID: 227e1cce-6bf7-30bb-2d2a-acc854318caf
 `
 
-	config := droneRepoConfig{}
+	config := cicdRepoConfig{}
 	err := yaml.Unmarshal([]byte(configYaml), &config)
 
 	if err != nil {
