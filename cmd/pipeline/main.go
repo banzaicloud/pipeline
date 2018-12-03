@@ -21,6 +21,8 @@ import (
 	"path"
 	"time"
 
+	"github.com/banzaicloud/pipeline/spotguide"
+
 	evbus "github.com/asaskevich/EventBus"
 	ginprometheus "github.com/banzaicloud/go-gin-prometheus"
 	"github.com/banzaicloud/pipeline/api"
@@ -100,6 +102,20 @@ func main() {
 	if err != nil {
 		logger.Panic(err.Error())
 	}
+
+	// periodically sync shared spotguides
+	syncTicker := time.NewTicker(viper.GetDuration(config.SpotguideSyncInterval))
+	go func() {
+		if err := spotguide.ScrapeSharedSpotguides(); err != nil {
+			logger.Errorln("failed to sync shared spotguides", err)
+		}
+
+		for range syncTicker.C {
+			if err := spotguide.ScrapeSharedSpotguides(); err != nil {
+				logger.Errorln("failed to sync shared spotguides", err)
+			}
+		}
+	}()
 
 	basePath := viper.GetString("pipeline.basepath")
 
