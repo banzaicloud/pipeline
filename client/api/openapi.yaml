@@ -1487,6 +1487,14 @@ paths:
         schema:
           type: boolean
         style: form
+      - description: Activate policy bundle
+        explode: true
+        in: query
+        name: active
+        required: false
+        schema:
+          type: boolean
+        style: form
       responses:
         200:
           content:

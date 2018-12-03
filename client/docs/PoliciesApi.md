@@ -96,6 +96,7 @@ Name | Type | Description  | Notes
 
 
  **detail** | **optional.Bool**| Include policy bundle detail in the form of the full bundle content for each entry | 
+ **active** | **optional.Bool**| Activate policy bundle | 
 
 ### Return type
 
